@@ -1131,7 +1131,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=7",
   "/js/mediatheque-ui.js?v=21",
-  "/js/mediatheque-core.js?v=21",
+  "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
   "/data/mediatheque/editorial-seed-v1.json",
@@ -4130,7 +4130,10 @@ app.post('/api/publication/mediatheque/materials\\:delete', rlPublicationWrite, 
   (req, res) => publicationWrite(req, res, 'mediatheque_material_delete',
     (repo, actor, opts) => repo.deleteMediathequeMaterials(actor, { items: (req.body && req.body.items) || [] }, opts)));
 app.post('/api/publication/mediatheque/materials\\:update', rlPublicationWrite, requireStrictSameOriginJson,
-  (req, res) => publicationWrite(req, res, 'mediatheque_material_update', (repo, actor, opts) => repo.updateMediathequeMaterial(actor, req.body || {}, opts)));
+  (req, res) => publicationWrite(req, res, 'mediatheque_material_update', (repo, actor, opts) => {
+    const { faultAfter, ...body } = req.body || {}; // test-only hook never reaches the repo from HTTP
+    return repo.updateMediathequeMaterial(actor, body, opts);
+  }));
 app.get('/api/publication/mediatheque/materials/archive', rlPublicationRead, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   res.set('Cache-Control', 'private, no-store, max-age=0');

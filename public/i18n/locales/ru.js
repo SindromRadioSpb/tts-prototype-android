@@ -4798,3 +4798,8 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "hiddenDone": "Скрыто из Медиатеки",
   "unhiddenDone": "Возвращено в Медиатеку"
 });
+Object.assign(window.I18N_LOCALES.ru.mediatheque, {
+  "draftConflict": "У собрания есть незавершённые правки. Завершите их в Центре публикаций.",
+  "downloadMedia": "Скачать медиафайл",
+  "downloadMediaBeforeDelete": "Скачать медиафайл перед удалением"
+});

@@ -4792,3 +4792,8 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "hiddenDone": "הוסתר מהמדיה־טק",
   "unhiddenDone": "הוחזר למדיה־טק"
 });
+Object.assign(window.I18N_LOCALES.he.mediatheque, {
+  "draftConflict": "באוסף יש שינויים שלא הושלמו. השלימו אותם במרכז הפרסום.",
+  "downloadMedia": "הורדת קובץ המדיה",
+  "downloadMediaBeforeDelete": "הורדת קובץ המדיה לפני מחיקה"
+});

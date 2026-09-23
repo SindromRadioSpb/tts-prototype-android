@@ -4783,3 +4783,8 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "hiddenDone": "Hidden from the Mediatheque",
   "unhiddenDone": "Returned to the Mediatheque"
 });
+Object.assign(window.I18N_LOCALES.en.mediatheque, {
+  "draftConflict": "This collection has unfinished edits. Finish them in the Publication Center.",
+  "downloadMedia": "Download media file",
+  "downloadMediaBeforeDelete": "Download the media file before deleting"
+});

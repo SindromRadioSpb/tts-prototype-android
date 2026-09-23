@@ -1,5 +1,5 @@
 import * as localDb from '/db/local-db.js?v=545';
-import './mediatheque-core.js?v=21';
+import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 const C = globalThis.MediathequeCore;
@@ -60,6 +60,7 @@ function announce(message, error = false) {
 }
 function errorText(error) {
   const code = String(error && (error.code || error.message) || '');
+  if (/DRAFT_VERSION_CONFLICT/.test(code)) return t('draftConflict');
   if (/CONFLICT/.test(code)) return t('conflict');
   if (/UNAVAILABLE|REFERENCE_MISSING/.test(code)) return t('referenceUnavailable');
   if (/CYCLE|DEPTH|PARENT/.test(code)) return t('invalidTree');
@@ -85,7 +86,7 @@ async function api(path, body, idempotencyKey) {
     headers['Content-Type'] = 'application/json'; headers['X-Idempotency-Key'] = idempotencyKey || uid();
     try { headers['X-LP-CSRF'] = localStorage.getItem('cloud.csrf') || ''; } catch (_) {}
   }
-  const response = await fetch(path, { signal: AbortSignal.timeout(path.includes(':publish') ? 300000 : 30000), method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers,
+  const response = await fetch(path, { signal: AbortSignal.timeout(/:publish|materials:/.test(path) ? 300000 : 30000), method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers,
     body: body === undefined ? undefined : JSON.stringify(body) });
   const json = await response.json().catch(() => ({}));
   if (!response.ok || !json.ok) { const e = new Error(json.error || 'HTTP_' + response.status); e.code = e.message; throw e; }
@@ -217,6 +218,12 @@ async function loadAll() {
   const epoch = ++loadEpoch;
   const results = await Promise.allSettled([loadLocal(), loadPublic(), api('/api/auth/me').then(result => { state.owner = result.user?.role === 'owner'; try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {} }).catch(() => { state.owner = false; })]);
   if (epoch !== loadEpoch) return;
+  if (state.localReady && state.publicReady) {
+    try {
+      const next = C.followCurrent(state.personal.structure, (state.published.items || []).map(i => i.ref));
+      if (JSON.stringify(next) !== JSON.stringify(state.personal.structure)) state.personal = await localDb.saveMediathequeStructure(next, state.personal.revision);
+    } catch (_) {}
+  }
   state.loading = false;
   results.forEach(r => { if (r.status === 'rejected') announce(errorText(r.reason), true); });
   render();
@@ -248,8 +255,21 @@ function placesOf(item) {
     ...d.collections.filter(c => c.items.some(same)).map(c => c.title), ...(d.home.featured === item.key ? [t('section.pinned')] : [])];
   return places.length ? places.join(', ') : t('none');
 }
+const hasMediaFile = item => !!state.published.items.find(i => i.ref.slug === item.ref.slug && i.ref.workId === item.ref.workId)?.has_media_file;
 function archiveHref(item, part = 'package') {
   return '/api/publication/mediatheque/materials/archive?' + new URLSearchParams({ slug: item.ref.slug, workId: item.ref.workId, part });
+}
+// Каталог отдаёт описание и теги усечёнными; отправляем только то, что владелец изменил.
+function changedFields(row, item, data) {
+  const tags = value => (value || []).join(', '), out = {};
+  const title = String(data.get('title') || '').trim(), description = String(data.get('description') || '').trim(), creator = String(data.get('creator') || '').trim();
+  if (title !== (row.title || item.title)) out.title = title;
+  if (description !== (row.topic || '').trim()) out.description = description;
+  if (creator !== (row.creator || '')) out.creator = creator;
+  if (String(data.get('tags') || '').trim() !== tags(row.tags)) out.tags = String(data.get('tags') || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (data.has('download') !== (row.download_allowed !== 0)) out.download = data.has('download');
+  if (!Object.keys(out).length) out.title = title;
+  return out;
 }
 async function reloadAfterMaterialChange() {
   await loadPublic(); if (state.editing) state.draft = await api('/api/publication/mediatheque');
@@ -306,7 +326,8 @@ function itemHtml(item) {
       ${!state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'personal' && item.ref.kind === 'public' ? button('forget-reference', t('forgetReference'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'public' && item.ref.kind === 'public' ? (managed(item)
-        ? button('edit-material', t('editMaterial'), `data-key="${esc(item.key)}"`) + button('download-material', t('downloadArchive'), `data-key="${esc(item.key)}"`)
+        ? button('edit-material', t('editMaterial'), `data-key="${esc(item.key)}"`) + button('download-material', t('downloadArchive'), `data-key="${esc(item.key)}" data-part="package"`)
+          + (hasMediaFile(item) ? button('download-material', t('downloadMedia'), `data-key="${esc(item.key)}" data-part="media"`) : '')
           + button('delete-material', t('deleteMaterial'), `data-key="${esc(item.key)}"`, 'ml-danger')
         : `<span class="ml-hint" dir="auto">${esc(t('materialNotManaged', { corpus: item.corpusTitle || item.ref.slug }))}</span>`) : ''}
       ${manage && state.space === 'personal' && item.ref.kind === 'personal' ? ((structure().hidden || []).includes(item.key)
@@ -848,7 +869,8 @@ async function onAction(action, node) {
     const item = state.prepared.byKey.get(node.dataset.key); if (!managed(item)) return;
     return showDialog(t('deleteMaterial'), `<p dir="auto">${esc(t('deleteMaterialHelp', { title: item.title }))}</p>
       <p dir="auto">${esc(t('deleteMaterialPlaces', { places: placesOf(item) }))}</p><p>${esc(t('deleteMaterialDevices'))}</p>
-      <p><a class="ml-textlink" href="${esc(archiveHref(item))}" download>${esc(t('downloadBeforeDelete'))}</a></p>${formActions(t('deleteForever'), true)}`,
+      <p><a class="ml-textlink" href="${esc(archiveHref(item))}" download>${esc(t('downloadBeforeDelete'))}</a></p>
+      ${hasMediaFile(item) ? `<p><a class="ml-textlink" href="${esc(archiveHref(item, 'media'))}" download>${esc(t('downloadMediaBeforeDelete'))}</a></p>` : ''}${formActions(t('deleteForever'), true)}`,
       () => deleteMaterials([item]));
   }
   if (action === 'delete-selected') {
@@ -859,9 +881,10 @@ async function onAction(action, node) {
   }
   if (action === 'download-material') {
     const item = state.prepared.byKey.get(node.dataset.key); if (!managed(item)) return;
-    const probe = await fetch(archiveHref(item), { method: 'HEAD', credentials: 'same-origin', cache: 'no-store' }).catch(() => null);
+    const part = node.dataset.part === 'media' ? 'media' : 'package';
+    const probe = await fetch(archiveHref(item, part), { method: 'HEAD', credentials: 'same-origin', cache: 'no-store' }).catch(() => null);
     if (!probe || !probe.ok) return announce(t('archiveUnavailable'), true);
-    location.assign(archiveHref(item)); return;
+    location.assign(archiveHref(item, part)); return;
   }
   if (action === 'edit-material') {
     const item = state.prepared.byKey.get(node.dataset.key); if (!managed(item)) return;
@@ -873,8 +896,7 @@ async function onAction(action, node) {
       <label class="ml-checkbox"><input type="checkbox" name="download" ${row.download_allowed === 0 ? '' : 'checked'}>${esc(t('materialDownload'))}</label>${formActions(t('save'))}`,
       async data => {
         await api('/api/publication/mediatheque/materials:update', { slug: item.ref.slug, workId: item.ref.workId, expectedSnapshotHash: row.ref ? row.ref.snapshotHash : item.ref.snapshotHash,
-          fields: { title: String(data.get('title') || '').trim(), description: String(data.get('description') || '').trim(), creator: String(data.get('creator') || '').trim(),
-            tags: String(data.get('tags') || '').split(',').map(s => s.trim()).filter(Boolean), download: data.has('download') } });
+          fields: changedFields(row, item, data) });
         closeDialog(); await reloadAfterMaterialChange(); announce(t('saved'));
       });
   }
@@ -1003,7 +1025,7 @@ $('ml-dialog').addEventListener('submit', async event => {
   const submit = event.target.querySelector('button[type=submit]'); if (submit) submit.disabled = true;
   try { await action(data); }
   catch (e) {
-    if (/CONFLICT/.test(e.message)) {
+    if (/CONFLICT/.test(e.message) && !/DRAFT_VERSION_CONFLICT/.test(e.message)) {
       const error = $('ml-form-error'); error.hidden = false; event.target.dataset.conflict = 'true';
       error.innerHTML = `${esc(t('conflictKeep'))}<span class="ml-actions">${button('copy-input',t('copyInput'))}${button('refresh-structure',t('refreshStructure'))}</span>`;
       error.setAttribute('tabindex','-1'); error.focus();

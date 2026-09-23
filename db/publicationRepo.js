@@ -791,8 +791,8 @@ function createPublicationRepo(options = {}) {
   const restore = (actor, corpusId, input, opts) => pointerMutation(actor, corpusId, "RESTORE", "RESTORED", input, opts);
   const rollback = (actor, corpusId, input, opts) => pointerMutation(actor, corpusId, "ROLLBACK_POINTER", "POINTER_ROLLED_BACK", input, opts);
 
-  async function createRevisionDraft(actor, corpusId, opts) {
-    return withIdempotency(actor, "CREATE_REVISION_DRAFT", opts, { corpusId }, async key => {
+  async function createRevisionDraft(actor, corpusId, opts, excludeWorkId = null) {
+    return withIdempotency(actor, "CREATE_REVISION_DRAFT", opts, excludeWorkId ? { corpusId, excludeWorkId } : { corpusId }, async key => {
       const corpus = await corpusForActor(actor, corpusId);
       if (!corpus.current_edition_id) fail("CORPUS_NOT_FOUND", 404);
       if (await dbGet(database, "SELECT 1 ok FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id])) fail("DRAFT_VERSION_CONFLICT", 409);
@@ -803,10 +803,13 @@ function createPublicationRepo(options = {}) {
       const prior = await dbAll(database, `SELECT ei.*,di.source_domain,di.source_corpus_id,di.source_work_id,di.source_revision,di.source_hash
         FROM published_corpus_edition_items ei JOIN publication_draft_items di ON di.item_id=ei.source_item_id
        WHERE ei.edition_id=? ORDER BY ei.position_no`, [corpus.current_edition_id]);
+      let position = 0;
       for (const old of prior) {
+        if (excludeWorkId && old.public_work_id === excludeWorkId) continue;
+        position += 1;
         const newItemId = id("pi_");
         await dbRun(database, `INSERT INTO publication_draft_items(item_id,draft_id,position_no,source_domain,source_corpus_id,source_work_id,source_revision,source_hash,snapshot_json,snapshot_sha256,title,creator,expected_audio_count,copied_at)
-          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newItemId, draftId, old.position_no, old.source_domain, old.source_corpus_id, old.source_work_id, old.source_revision, old.source_hash, old.snapshot_json, old.snapshot_sha256, old.title, old.creator, old.expected_audio_count, at]);
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newItemId, draftId, excludeWorkId ? position : old.position_no, old.source_domain, old.source_corpus_id, old.source_work_id, old.source_revision, old.source_hash, old.snapshot_json, old.snapshot_sha256, old.title, old.creator, old.expected_audio_count, at]);
         const rights = [["PUBLIC_READ", old.public_read_allowed], ["PUBLIC_STREAM", old.public_stream_allowed], ["PACKAGE_DOWNLOAD", old.package_download_allowed]];
         for (const [permission, allowed] of rights) await dbRun(database, `INSERT INTO publication_rights_facts(fact_id,item_id,permission,allowed,basis,asserted_at,asserted_by,created_at) VALUES(?,?,?,?,?,?,?,?)`, [id("prf_"), newItemId, permission, allowed, old.rights_basis, old.rights_asserted_at, actorId(actor), at]);
       }
@@ -878,6 +881,7 @@ function createPublicationRepo(options = {}) {
     const source = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].source_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].source_meta_json'),'{}')`;
     const table = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta_json'),'{}')`;
     const rows = await dbAll(database, `SELECT c.slug,c.title corpus_title,e.published_at,ei.public_work_id,ei.snapshot_sha256,ei.title,ei.creator,ei.position_no,ei.package_download_allowed download_allowed,
+      (json_extract(ei.snapshot_json,'$.library.texts[0].source_meta.publication_media.sha256') IS NOT NULL) has_media_file,
       SUBSTR(COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].topic'),''),1,256) topic,
       COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].tags'),json_extract(ei.snapshot_json,'$.library.texts[0].tags_json'),'[]') tags_json,
       ${MediathequeMetadata.projectionSql(source, table)} media_projection,
@@ -961,6 +965,7 @@ function createPublicationRepo(options = {}) {
   }
 
   // ── Mediatheque material commands (spec MEDIATHEQUE_MATERIAL_COMMANDS_2026_09_23) ──
+  const HEX64 = /^[a-f0-9]{64}$/;
   async function managedWork(ref) {
     const slug = cleanSlug(ref && ref.slug), workId = cleanId(ref && ref.workId, "MATERIAL_NOT_FOUND");
     const corpus = await dbGet(database, "SELECT * FROM published_corpora WHERE slug=?", [slug]);
@@ -970,36 +975,33 @@ function createPublicationRepo(options = {}) {
       "SELECT * FROM published_corpus_edition_items WHERE edition_id=? AND public_work_id=?", [corpus.current_edition_id, workId]) : null;
     return { corpus, item, workId };
   }
-  // Черновик, который Медиатека может переиспользовать: основан на текущей редакции и не
-  // содержит чужих правок (тот же набор снимков). Иначе — чужая работа, её не трогаем.
-  async function cleanDraftFor(actor, corpus, key) {
+  // Активный черновик корпуса относительно одной работы:
+  //  none      — черновика нет;
+  //  identical — копия текущей редакции (наш прежний незавершённый шаг или чистый черновик);
+  //  without   — текущая редакция без этой работы (наше незавершённое удаление);
+  //  edited    — текущая редакция, где изменена только эта работа (наша незавершённая правка);
+  //  foreign   — чужие правки: другие работы, другая основа. Их не трогаем.
+  async function draftState(corpus, workId) {
     const draft = await dbGet(database, "SELECT * FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id]);
-    if (draft) {
-      const mine = (await dbAll(database, "SELECT snapshot_sha256 FROM publication_draft_items WHERE draft_id=? ORDER BY snapshot_sha256", [draft.draft_id])).map(r => r.snapshot_sha256).join();
-      const live = (await dbAll(database, "SELECT snapshot_sha256 FROM published_corpus_edition_items WHERE edition_id=? ORDER BY snapshot_sha256", [corpus.current_edition_id])).map(r => r.snapshot_sha256).join();
-      if (draft.based_on_edition_id !== corpus.current_edition_id || mine !== live) fail("DRAFT_VERSION_CONFLICT", 409);
-      return draft;
-    }
-    await createRevisionDraft(actor, corpus.corpus_id, { idempotencyKey: key });
-    return dbGet(database, "SELECT * FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id]);
+    if (!draft) return { draft: null, kind: "none" };
+    if (draft.based_on_edition_id !== corpus.current_edition_id) return { draft, kind: "foreign" };
+    const live = new Map((await dbAll(database, "SELECT public_work_id,snapshot_sha256 FROM published_corpus_edition_items WHERE edition_id=?", [corpus.current_edition_id]))
+      .map(r => [r.public_work_id, r.snapshot_sha256]));
+    const mine = new Map((await dbAll(database, "SELECT * FROM publication_draft_items WHERE draft_id=?", [draft.draft_id])).map(r => [publicWorkIdOf(r), r.snapshot_sha256]));
+    for (const [work, sha] of live) if (work !== workId && mine.get(work) !== sha) return { draft, kind: "foreign" };
+    for (const work of mine.keys()) if (!live.has(work)) return { draft, kind: "foreign" };
+    if (!mine.has(workId)) return { draft, kind: "without" };
+    return { draft, kind: mine.get(workId) === live.get(workId) ? "identical" : "edited" };
   }
-  async function removeDraftWork(actor, corpusId, input, opts) {
-    const workId = cleanId(input && input.workId, "MATERIAL_NOT_FOUND"), expectedVersion = Number(input && input.expectedVersion);
-    return withIdempotency(actor, "REMOVE_DRAFT_WORK", opts, { corpusId, workId, expectedVersion }, async () => {
-      const { draft } = await activeDraft(actor, corpusId, expectedVersion);
-      const items = await dbAll(database, "SELECT * FROM publication_draft_items WHERE draft_id=? ORDER BY position_no,item_id", [draft.draft_id]);
-      const target = items.find(item => publicWorkIdOf(item) === workId);
-      if (!target) fail("MATERIAL_NOT_FOUND", 404);
-      await dbRun(database, "DELETE FROM publication_draft_items WHERE item_id=?", [target.item_id]);
-      const rest = items.filter(item => item.item_id !== target.item_id);
-      for (let i = 0; i < rest.length; i += 1) await dbRun(database, "UPDATE publication_draft_items SET position_no=? WHERE item_id=?", [i + 1, rest[i].item_id]);
-      const nextVersion = Number(draft.version) + 1;
-      await dbRun(database, "UPDATE publication_drafts SET version=?,updated_by=?,updated_at=? WHERE draft_id=?", [nextVersion, actorId(actor), now(), draft.draft_id]);
-      return { corpus_id: corpusId, draft_version: nextVersion };
+  async function closeDraft(actor, draft, key) {
+    return withIdempotency(actor, "ARCHIVE_DRAFT", { idempotencyKey: key }, { draftId: draft.draft_id }, async () => {
+      await dbRun(database, "UPDATE publication_drafts SET state='ARCHIVED',updated_by=?,updated_at=? WHERE draft_id=? AND state='ACTIVE'", [actorId(actor), now(), draft.draft_id]);
+      return { closed: true };
     });
   }
-  // Снимок читается ДО вычистки: из него берутся исходный пакет, медиа и корень архива.
-  // Результат хранится в идемпотентности, поэтому повтор после обрыва знает, что дочищать.
+  const activeDraftRow = corpusId => dbGet(database, "SELECT * FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpusId]);
+  // Снимок читается ДО вычистки, источники записываются в отдельную таблицу: повтор с новым
+  // ключом (снимки уже вычищены) всё равно знает, какие файлы дочистить.
   async function purgeWork(actor, corpusId, workId, opts) {
     return withIdempotency(actor, "PURGE_WORK", opts, { corpusId, workId }, async () => {
       const editionRows = await dbAll(database, `SELECT ei.edition_id,ei.title,ei.snapshot_json FROM published_corpus_edition_items ei
@@ -1007,13 +1009,12 @@ function createPublicationRepo(options = {}) {
       const draftRows = (await dbAll(database, `SELECT di.* FROM publication_draft_items di JOIN publication_drafts d ON d.draft_id=di.draft_id WHERE d.corpus_id=?`, [corpusId]))
         .filter(item => publicWorkIdOf(item) === workId);
       const live = [...editionRows, ...draftRows].find(row => row.snapshot_json !== PURGED_SNAPSHOT);
-      let source = {};
       if (live) {
         const text = ((parseJson(live.snapshot_json).library || {}).texts || [])[0] || {};
-        const meta = text.source_meta || {};
-        source = { title: live.title, package_sha256: meta.publication_archive && meta.publication_archive.package_sha256 || null,
-          content_root: meta.publication_archive && meta.publication_archive.content_root_sha256 || null,
-          media_sha256: meta.publication_media && meta.publication_media.sha256 || null };
+        const meta = text.source_meta || {}, archive = meta.publication_archive || {}, media = meta.publication_media || {};
+        const hex = value => HEX64.test(String(value || "")) ? String(value) : null;
+        await dbRun(database, `INSERT OR IGNORE INTO published_corpus_purge_sources(corpus_id,public_work_id,title,package_sha256,media_sha256,content_root,recorded_at) VALUES(?,?,?,?,?,?,?)`,
+          [corpusId, workId, live.title, hex(archive.package_sha256), hex(media.sha256), hex(archive.content_root_sha256), now()]);
       }
       const current = (await dbGet(database, "SELECT current_edition_id FROM published_corpora WHERE corpus_id=?", [corpusId])).current_edition_id;
       const editions = [...new Set(editionRows.map(r => r.edition_id))].filter(e => e !== current);
@@ -1024,29 +1025,31 @@ function createPublicationRepo(options = {}) {
           WHERE edition_id=? AND public_work_id=? AND snapshot_json<>?`, [PURGED_SNAPSHOT, editionId, workId, PURGED_SNAPSHOT]);
       }
       for (const row of draftRows) await dbRun(database, "UPDATE publication_draft_items SET snapshot_json=?,title='[deleted]',creator=NULL WHERE item_id=?", [PURGED_SNAPSHOT, row.item_id]);
-      return { corpus_id: corpusId, work_id: workId, editions, ...source };
+      return { corpus_id: corpusId, work_id: workId, editions };
     });
   }
-  async function cleanupPurgedFiles(corpusId, purged) {
+  async function cleanupPurgedFiles(corpusId, workId) {
     const pending = [];
     const remove = async target => { try { await fs.promises.rm(target, { recursive: true, force: true }); } catch (_) { pending.push(target); } };
-    for (const editionId of purged.editions || []) {
-      await remove(publicationPath(path.posix.join("published-corpora", corpusId, "editions", editionId)));
-      await remove(publicationPath(path.posix.join("published-corpora", corpusId, editionId)));
+    // Каталоги всех вычищенных редакций, а не только из этого вызова: повтор дочищает прежние.
+    for (const { edition_id } of await dbAll(database, "SELECT edition_id FROM published_corpus_edition_purges WHERE corpus_id=? AND public_work_id=?", [corpusId, workId])) {
+      await remove(publicationPath(path.posix.join("published-corpora", corpusId, "editions", edition_id)));
+      await remove(publicationPath(path.posix.join("published-corpora", corpusId, edition_id)));
     }
+    const source = await dbGet(database, "SELECT * FROM published_corpus_purge_sources WHERE corpus_id=? AND public_work_id=?", [corpusId, workId]) || {};
     const stillUsed = async needle => !!(needle && await dbGet(database, `SELECT 1 ok FROM published_corpus_edition_items WHERE snapshot_json LIKE ? AND snapshot_json<>?
       UNION ALL SELECT 1 FROM publication_draft_items WHERE snapshot_json LIKE ? AND snapshot_json<>? LIMIT 1`, ['%' + needle + '%', PURGED_SNAPSHOT, '%' + needle + '%', PURGED_SNAPSHOT]));
-    if (purged.package_sha256 && !await stillUsed(purged.package_sha256)) await remove(sourcePath("publication-imports/packages/" + purged.package_sha256 + ".zip"));
-    if (purged.media_sha256 && !await stillUsed(purged.media_sha256)) await remove(sourcePath("publication-imports/media/" + purged.media_sha256));
-    if (purged.content_root) {
+    if (HEX64.test(String(source.package_sha256 || "")) && !await stillUsed(source.package_sha256)) await remove(sourcePath("publication-imports/packages/" + source.package_sha256 + ".zip"));
+    if (HEX64.test(String(source.media_sha256 || "")) && !await stillUsed(source.media_sha256)) await remove(sourcePath("publication-imports/media/" + source.media_sha256));
+    if (HEX64.test(String(source.content_root || ""))) {
       const dir = sourcePath("publication-imports");
       for (const name of await fs.promises.readdir(dir).catch(() => [])) {
         if (!/^import_[a-f0-9]{24}\.json$/.test(name)) continue;
         const file = path.join(dir, name);
-        try { if (JSON.parse(await fs.promises.readFile(file, "utf8")).contentRoot === purged.content_root) await remove(file); } catch (_) {}
+        try { if (JSON.parse(await fs.promises.readFile(file, "utf8")).contentRoot === source.content_root) await remove(file); } catch (_) {}
       }
     }
-    return pending.map(p => path.relative(dataDir, p).replace(/\\/g, "/"));
+    return { title: source.title || null, pending: pending.map(p => path.relative(dataDir, p).replace(/\\/g, "/")) };
   }
   // Ссылки на удалённую работу уходят и из черновика, и из опубликованной витрины: иначе
   // followCurrent вернул бы материал на старые места при повторном импорте с тем же workId.
@@ -1079,22 +1082,21 @@ function createPublicationRepo(options = {}) {
     const k = step => (baseKey + ":" + workId + ":" + step).slice(0, 200);
     let archived = false;
     if (item) {
+      const state = await draftState(corpus, workId);
+      if (state.kind === "foreign") fail("DRAFT_VERSION_CONFLICT", 409);
       const count = Number((await dbGet(database, "SELECT COUNT(*) n FROM published_corpus_edition_items WHERE edition_id=?", [corpus.current_edition_id])).n);
       if (count === 1) {
-        const active = await dbGet(database, "SELECT * FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id]);
-        if (active) {
-          await cleanDraftFor(actor, corpus, k("draft")); // чужие правки → DRAFT_VERSION_CONFLICT, ничего не тронуто
-          await withIdempotency(actor, "ARCHIVE_DRAFT", { idempotencyKey: k("close-draft") }, { draftId: active.draft_id }, async () => {
-            await dbRun(database, "UPDATE publication_drafts SET state='ARCHIVED',updated_by=?,updated_at=? WHERE draft_id=? AND state='ACTIVE'", [actorId(actor), now(), active.draft_id]);
-            return { closed: true };
-          });
-        }
+        if (state.draft) await closeDraft(actor, state.draft, k("close-draft"));
         await withdraw(actor, corpus.corpus_id, { reasonCode: "MATERIAL_DELETED" }, { idempotencyKey: k("withdraw") });
         archived = true;
       } else {
-        const draft = await cleanDraftFor(actor, corpus, k("draft"));
-        const removed = await removeDraftWork(actor, corpus.corpus_id, { workId, expectedVersion: Number(draft.version) }, { idempotencyKey: k("remove") });
-        await publish(actor, corpus.corpus_id, { expectedVersion: removed.draft_version }, { idempotencyKey: k("publish") });
+        // Элемент черновика не удаляется: каскад на append-only факты прав его запрещает.
+        // Черновик строится сразу без этой работы; наш незавершённый черновик доводится до публикации.
+        if (state.kind === "identical" || state.kind === "edited") await closeDraft(actor, state.draft, k("close-draft"));
+        if (state.kind !== "without") await createRevisionDraft(actor, corpus.corpus_id, { idempotencyKey: k("draft") }, workId);
+        if (fault === "draft") fail("FAULT_AFTER_DRAFT", 500);
+        const draft = await activeDraftRow(corpus.corpus_id);
+        await publish(actor, corpus.corpus_id, { expectedVersion: Number(draft.version) }, { idempotencyKey: k("publish") });
       }
       if (fault === "publish") fail("FAULT_AFTER_PUBLISH", 500);
     } else {
@@ -1102,10 +1104,10 @@ function createPublicationRepo(options = {}) {
         WHERE e.corpus_id=? AND ei.public_work_id=?`, [corpus.corpus_id, workId]);
       if (!known) fail("MATERIAL_NOT_FOUND", 404);
     }
-    const purged = await purgeWork(actor, corpus.corpus_id, workId, { idempotencyKey: k("purge") });
-    const pending = await cleanupPurgedFiles(corpus.corpus_id, purged);
+    await purgeWork(actor, corpus.corpus_id, workId, { idempotencyKey: k("purge") });
+    const cleaned = await cleanupPurgedFiles(corpus.corpus_id, workId);
     await dropMediathequeWork(actor, { slug: corpus.slug, workId }, { idempotencyKey: k("structure") });
-    return { slug: corpus.slug, workId, title: purged.title || null, corpus_archived: archived, cleanup_pending: pending };
+    return { slug: corpus.slug, workId, title: cleaned.title, corpus_archived: archived, cleanup_pending: cleaned.pending };
   }
   async function deleteMediathequeMaterials(actor, input, opts = {}) {
     mediathequeOwner(actor);
@@ -1125,6 +1127,8 @@ function createPublicationRepo(options = {}) {
     return out;
   }
 
+  // Меняются только присланные поля: каталог отдаёт описание усечённым, и полная перезапись
+  // по предзаполненной форме молча обрезала бы его.
   async function updateDraftWork(actor, corpusId, input, opts) {
     return withIdempotency(actor, "UPDATE_DRAFT_WORK", opts, input, async () => {
       const { draft } = await activeDraft(actor, corpusId, input.expectedVersion);
@@ -1132,18 +1136,23 @@ function createPublicationRepo(options = {}) {
       if (!target) fail("MATERIAL_NOT_FOUND", 404);
       const snapshot = parseJson(target.snapshot_json), text = snapshot.library && snapshot.library.texts && snapshot.library.texts[0];
       if (!text) fail("SOURCE_SNAPSHOT_INVALID", 400);
-      const f = input.fields;
-      text.title = f.title; text.topic = f.description; text.tags = f.tags; delete text.tags_json;
+      const f = input.fields, has = key => Object.prototype.hasOwnProperty.call(f, key);
+      if (has("title")) text.title = f.title;
+      if (has("description")) text.topic = f.description;
+      if (has("tags")) { text.tags = f.tags; delete text.tags_json; }
       const video = text.source_meta && text.source_meta.source && text.source_meta.source.audio && text.source_meta.source.audio.video;
-      if (video) video.author = f.creator;
+      if (has("creator") && video) video.author = f.creator;
+      const title = has("title") ? f.title : target.title, creator = has("creator") ? (f.creator || null) : target.creator;
       const snapshotJson = canonicalJson(snapshot), snapshotSha = sha256(Buffer.from(snapshotJson, "utf8"));
       await dbRun(database, "UPDATE publication_draft_items SET snapshot_json=?,snapshot_sha256=?,source_hash=?,title=?,creator=? WHERE item_id=?",
-        [snapshotJson, snapshotSha, snapshotSha, f.title, f.creator || null, target.item_id]);
-      const rights = await latestRights(target.item_id);
-      if (!rights.PUBLIC_READ) fail("RIGHTS_REVIEW_REQUIRED", 409);
-      if (!rights.PACKAGE_DOWNLOAD || (rights.PACKAGE_DOWNLOAD.allowed === 1) !== f.download)
-        await dbRun(database, `INSERT INTO publication_rights_facts(fact_id,item_id,permission,allowed,basis,asserted_at,asserted_by,created_at) VALUES(?,?,?,?,?,?,?,?)`,
-          [id("prf_"), target.item_id, "PACKAGE_DOWNLOAD", f.download ? 1 : 0, rights.PUBLIC_READ.basis, rights.PUBLIC_READ.asserted_at, actorId(actor), now()]);
+        [snapshotJson, snapshotSha, snapshotSha, title, creator, target.item_id]);
+      if (has("download")) {
+        const rights = await latestRights(target.item_id);
+        if (!rights.PUBLIC_READ) fail("RIGHTS_REVIEW_REQUIRED", 409);
+        if (!rights.PACKAGE_DOWNLOAD || (rights.PACKAGE_DOWNLOAD.allowed === 1) !== f.download)
+          await dbRun(database, `INSERT INTO publication_rights_facts(fact_id,item_id,permission,allowed,basis,asserted_at,asserted_by,created_at) VALUES(?,?,?,?,?,?,?,?)`,
+            [id("prf_"), target.item_id, "PACKAGE_DOWNLOAD", f.download ? 1 : 0, rights.PUBLIC_READ.basis, rights.PUBLIC_READ.asserted_at, actorId(actor), now()]);
+      }
       const nextVersion = Number(draft.version) + 1;
       await dbRun(database, "UPDATE publication_drafts SET version=?,updated_by=?,updated_at=? WHERE draft_id=?", [nextVersion, actorId(actor), now(), draft.draft_id]);
       return { draft_version: nextVersion, snapshot_sha256: snapshotSha };
@@ -1151,16 +1160,28 @@ function createPublicationRepo(options = {}) {
   }
   async function updateMediathequeMaterial(actor, input, opts = {}) {
     mediathequeOwner(actor);
-    const base = idemKey(opts.idempotencyKey), raw = input && input.fields || {};
-    const tags = Array.isArray(raw.tags) ? [...new Set(raw.tags.map(tag => cleanText(tag, 240)).filter(Boolean))] : [];
-    if (tags.length > 30 || tags.some(tag => tag.length > 80) || typeof raw.download !== "boolean") fail("PUBLICATION_INPUT_INVALID", 400);
-    const fields = { title: cleanText(raw.title, 500, true), description: cleanText(raw.description, 4000), creator: cleanText(raw.creator, 200), tags, download: raw.download };
+    const base = idemKey(opts.idempotencyKey), raw = input && input.fields || {}, has = key => Object.prototype.hasOwnProperty.call(raw, key);
+    const fields = {};
+    if (has("title")) fields.title = cleanText(raw.title, 500, true);
+    if (has("description")) fields.description = cleanText(raw.description, 4000);
+    if (has("creator")) fields.creator = cleanText(raw.creator, 200);
+    if (has("tags")) {
+      const tags = Array.isArray(raw.tags) ? [...new Set(raw.tags.map(tag => cleanText(tag, 240)).filter(Boolean))] : null;
+      if (!tags || tags.length > 30 || tags.some(tag => tag.length > 80)) fail("PUBLICATION_INPUT_INVALID", 400);
+      fields.tags = tags;
+    }
+    if (has("download")) { if (typeof raw.download !== "boolean") fail("PUBLICATION_INPUT_INVALID", 400); fields.download = raw.download; }
+    if (!Object.keys(fields).length) fail("PUBLICATION_INPUT_INVALID", 400);
     const { corpus, item, workId } = await managedWork(input);
     if (!item) fail("MATERIAL_NOT_FOUND", 404);
     if (item.snapshot_sha256 !== String(input.expectedSnapshotHash || "")) fail("MATERIAL_CHANGED", 409);
     const k = step => (base + ":" + workId + ":" + step).slice(0, 200);
-    const draft = await cleanDraftFor(actor, corpus, k("draft"));
+    const state = await draftState(corpus, workId);
+    if (state.kind === "foreign" || state.kind === "without") fail("DRAFT_VERSION_CONFLICT", 409);
+    if (state.kind === "none") await createRevisionDraft(actor, corpus.corpus_id, { idempotencyKey: k("draft") });
+    const draft = await activeDraftRow(corpus.corpus_id);
     const updated = await updateDraftWork(actor, corpus.corpus_id, { workId, expectedVersion: Number(draft.version), fields }, { idempotencyKey: k("update") });
+    if (input.faultAfter === "draft") fail("FAULT_AFTER_DRAFT", 500);
     await publish(actor, corpus.corpus_id, { expectedVersion: updated.draft_version }, { idempotencyKey: k("publish") });
     return { slug: corpus.slug, workId, snapshotHash: updated.snapshot_sha256 };
   }

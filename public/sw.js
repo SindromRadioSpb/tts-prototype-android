@@ -70,7 +70,7 @@ const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=7",
   "/js/mediatheque-ui.js?v=21",
-  "/js/mediatheque-core.js?v=21",
+  "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
   "/data/mediatheque/editorial-seed-v1.json",

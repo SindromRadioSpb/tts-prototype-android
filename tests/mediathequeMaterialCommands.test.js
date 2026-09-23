@@ -8,13 +8,14 @@ const Portable=require('../public/js/studio-portable-learning-package');
 const Playback=require('../public/js/playback-source');
 const C=require('../public/js/mediatheque-core');
 const {createPublicationRepo}=require('../db/publicationRepo');
-const MIGRATIONS=['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql','067_mediatheque_structure.sql','068_mediatheque_material_purge.sql'];
+const MIGRATIONS=['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql','067_mediatheque_structure.sql','068_mediatheque_material_purge.sql','069_mediatheque_purge_sources.sql'];
 const exec=(db,s)=>new Promise((resolve,reject)=>db.exec(s,e=>e?reject(e):resolve()));
 const all=(db,s,p=[])=>new Promise((resolve,reject)=>db.all(s,p,(e,r)=>e?reject(e):resolve(r)));
 const run=(db,s,p=[])=>new Promise((resolve,reject)=>db.run(s,p,e=>e?reject(e):resolve()));
 async function setup(t){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'lp-material-'));
   const db=await new Promise((resolve,reject)=>{const d=new sqlite3.Database(':memory:',e=>e?reject(e):resolve(d));});
+  await exec(db,'PRAGMA foreign_keys=ON');// как на проде (db/sqlite.js)
   for(const m of MIGRATIONS)await exec(db,fs.readFileSync(path.join(__dirname,'..','migrations',m),'utf8'));
   await exec(db,"INSERT INTO users(id,role,display_name) VALUES('owner','owner','Owner'),('member','user','Member')");
   t.after(async()=>{await new Promise(r=>db.close(r));fs.rmSync(dir,{recursive:true,force:true});});
@@ -164,6 +165,7 @@ test('server wires owner-guarded material routes and exposes their error codes',
   assert.ok(src.includes("app.post('/api/publication/mediatheque/materials\\\\:update', rlPublicationWrite, requireStrictSameOriginJson,"));
   assert.ok(src.includes("app.get('/api/publication/mediatheque/materials/archive', rlPublicationRead,"));
   assert.ok(!/materials\\\\:delete[^\n]*faultAfter/.test(src));
+  assert.ok(src.includes('const { faultAfter, ...body } = req.body || {};'),'update route strips the test fault hook');
   for(const code of ['MATERIAL_NOT_MANAGED','MATERIAL_NOT_FOUND','MATERIAL_CHANGED','MATERIAL_ARCHIVE_UNAVAILABLE','EDITION_PURGED'])assert.ok(src.includes('"'+code+'"'),code);
 });
 test('catalog tells the editor whether package download is allowed',async t=>{
@@ -182,4 +184,59 @@ test('mediatheque UI wires material commands and every new string exists in ru/e
     const keys=['deleteMaterial','deleteMaterialHelp','deleteMaterialPlaces','deleteMaterialDevices','deleteForever','deleteSelected','deleteSelectedHelp','deleteSkipped','deleteReport','deleteCleanupPending','downloadArchive','downloadBeforeDelete','archiveUnavailable','editMaterial','materialTitle','materialDescription','materialCreator','materialTags','materialDownload','materialNotManaged','materialNotFound','materialChanged','editionPurged','hideFromMediatheque','hideHelp','hiddenFilter','unhide','hiddenDone','unhiddenDone'];
     for(const l of ['ru','en','he'])for(const k of keys)assert.ok(window.I18N_LOCALES[l].mediatheque[k],l+'.'+k);
   }finally{global.window=saved;}
+});
+test('review I1: delete interrupted after the draft step is finished by a retry with a new key',async t=>{
+  const h=await setup(t);await publishArchive(h,'Keep','a');const b=await publishArchive(h,'Drop','b');
+  await assert.rejects(h.repo.deleteMediathequeMaterials(h.owner,{items:[b.item.ref],faultAfter:'draft'},{idempotencyKey:'i1'}),/FAULT_AFTER_DRAFT/);
+  const out=await h.repo.deleteMediathequeMaterials(h.owner,{items:[b.item.ref]},{idempotencyKey:'i1-retry'});
+  assert.deepEqual(out.failed,[]);
+  assert.deepEqual((await h.repo.getPublicMediatheque()).items.map(i=>i.title),['Keep']);
+});
+test('review I1: edit interrupted after the draft step is finished by a retry with a new key',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Old','a');await publishArchive(h,'Other','b');
+  const input={slug:a.item.ref.slug,workId:a.item.ref.workId,expectedSnapshotHash:a.item.ref.snapshotHash,fields:{title:'New',description:'',creator:'C',tags:[],download:true}};
+  await assert.rejects(h.repo.updateMediathequeMaterial(h.owner,{...input,faultAfter:'draft'},{idempotencyKey:'e1'}),/FAULT_AFTER_DRAFT/);
+  await h.repo.updateMediathequeMaterial(h.owner,input,{idempotencyKey:'e1-retry'});
+  assert.ok((await h.repo.getPublicMediatheque()).items.some(i=>i.title==='New'));
+});
+test('review I2: a retry cleans source files left behind by an earlier cleanup failure',async t=>{
+  const h=await setup(t);await publishArchive(h,'Keep','a');const b=await publishArchive(h,'Drop','b');
+  const [row]=await all(h.db,'SELECT snapshot_json FROM published_corpus_edition_items ei JOIN published_corpora c ON c.current_edition_id=ei.edition_id WHERE ei.public_work_id=?',[b.item.ref.workId]);
+  const sha=JSON.parse(row.snapshot_json).library.texts[0].source_meta.publication_archive.package_sha256;
+  await h.repo.deleteMediathequeMaterials(h.owner,{items:[b.item.ref]},{idempotencyKey:'i2'});
+  const leftover=path.join(h.dir,'publication-imports','packages',sha+'.zip');
+  fs.writeFileSync(leftover,'left behind');
+  await h.repo.deleteMediathequeMaterials(h.owner,{items:[b.item.ref]},{idempotencyKey:'i2-retry'});
+  assert.equal(fs.existsSync(leftover),false);
+});
+test('review I5: editing only the title keeps the full description and tags',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Old','a');
+  const long='д'.repeat(1500);
+  const first=await h.repo.updateMediathequeMaterial(h.owner,{...a.item.ref,expectedSnapshotHash:a.item.ref.snapshotHash,fields:{title:'Old',description:long,creator:'C',tags:['x'],download:true}},{idempotencyKey:'e5a'});
+  await h.repo.updateMediathequeMaterial(h.owner,{...a.item.ref,expectedSnapshotHash:first.snapshotHash,fields:{title:'New title'}},{idempotencyKey:'e5b'});
+  const [row]=await all(h.db,'SELECT ei.title,ei.snapshot_json FROM published_corpus_edition_items ei JOIN published_corpora c ON c.current_edition_id=ei.edition_id WHERE ei.public_work_id=?',[a.item.ref.workId]);
+  const text=JSON.parse(row.snapshot_json).library.texts[0];
+  assert.equal(row.title,'New title');assert.equal(text.topic,long);assert.deepEqual(text.tags,['x']);
+});
+test('review I8: catalog tells the editor whether an original media file is stored',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Episode','a');
+  assert.equal(a.item.has_media_file,0);
+});
+test('review I3-I8: UI timeouts, conflict text, partial edit, personal follow, core URL, media download',()=>{
+  const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
+  const ui=read('public/js/mediatheque-ui.js'),sw=read('public/sw.js'),server=read('server.js'),localDb=read('public/db/local-db.js');
+  assert.ok(ui.includes("/:publish|materials:/.test(path) ? 300000 : 30000"),'I3 long timeout for material commands');
+  const conflict=ui.indexOf("/DRAFT_VERSION_CONFLICT/.test(code)"),generic=ui.indexOf("if (/CONFLICT/.test(code)) return t('conflict');");
+  assert.ok(conflict>0&&conflict<generic,'I4 draft conflict matched before the generic conflict');
+  assert.ok(ui.includes("/CONFLICT/.test(e.message) && !/DRAFT_VERSION_CONFLICT/.test(e.message)"),'I4 dialog does not offer refresh-structure for a corpus draft conflict');
+  assert.ok(!ui.includes("description: String(data.get('description')"),'I5 unchanged description is not sent');
+  assert.ok(ui.includes('C.followCurrent(state.personal.structure'),'I6 personal structure follows current public versions');
+  const coreImports=[ui.match(/import '\.\/mediatheque-core\.js[^']*'/)[0],localDb.match(/mediatheque-core\.js[^'"]*/)[0]];
+  assert.deepEqual(coreImports,["import './mediatheque-core.js'",'mediatheque-core.js'],'I7 one module URL for the core');
+  assert.ok(sw.includes('"/js/mediatheque-core.js",')&&server.includes('"/js/mediatheque-core.js",'),'I7 unversioned core precached and integrity-checked');
+  assert.ok(ui.includes("data-part=\"media\""),'I8 media download button');
+  const saved=global.window;global.window={};
+  try{for(const l of ['ru','en','he']){delete require.cache[require.resolve('../public/i18n/locales/'+l+'.js')];require('../public/i18n/locales/'+l+'.js');}
+    for(const l of ['ru','en','he'])for(const k of ['draftConflict','downloadMedia','downloadMediaBeforeDelete'])assert.ok(window.I18N_LOCALES[l].mediatheque[k],l+'.'+k);}
+  finally{global.window=saved;}
 });
