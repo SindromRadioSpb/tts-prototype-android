@@ -93,6 +93,21 @@ test('confirmed mapping uses a separate source clock and invalidates if source r
   assert.equal((await P.youtubeView(shifted, rows, binding)).reason, 'PLAYBACK_TIMING_CHANGED');
 });
 
+test('basis confirmed before projected entries carried ends still certifies the same rows and starts', async () => {
+  // До появления концов интервалов в проекции basis хешировал end=null. Те же строки, та же
+  // медиа и те же начала — это та же разметка; иначе релиз молча снимает все кнопки ▶.
+  const legacy = await P.digest(JSON.stringify({ media: audio.media.sha256, rows: rows.map(r => r.he),
+    entries: audio.timing.entries.map(e => [e.o, Math.round(e.t * 1000), null, false]) }));
+  const binding = P.append(null, { url: `https://youtu.be/${A}`, confirmed: true }, { basis_sha256: legacy });
+  const view = await P.youtubeView(audio, rows, binding);
+  assert.equal(view.reason, null);
+  assert.deepEqual(view.entries, [{o:0,t:1,end:3},{o:1,t:5,end:8}]);
+  assert.equal(await P.basisMatches(audio, rows, legacy), true);
+  const shifted = structuredClone(audio); shifted.timing.entries[1].t = 6;
+  assert.equal((await P.youtubeView(shifted, rows, binding)).reason, 'PLAYBACK_TIMING_CHANGED');
+  assert.equal((await P.youtubeView(audio, [{he:'אחר'}, rows[1]], binding)).reason, 'PLAYBACK_TIMING_CHANGED');
+});
+
 test('source edits append immutable history; detach suppresses legacy fallback; invalid offsets fail closed', () => {
   const first = P.append(null, {url:`https://youtu.be/${A}`});
   const second = P.append(first, {url:`https://youtu.be/${B}`});

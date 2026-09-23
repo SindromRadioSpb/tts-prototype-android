@@ -113,12 +113,19 @@
     }
     return out;
   }
-  async function timingBasis(audio, rows) {
+  async function timingBasis(audio, rows, options) {
     const entries = safeEntries(audio, (rows || []).length);
     if (!entries || !entries.some(entry => !entry.blind)) return null;
+    const withEnds = !(options && options.startsOnly);
     // No text IDs, provider diagnostics or object-key ordering: stable across package import.
     return digest(JSON.stringify({ media: audio && audio.media && audio.media.sha256 || null,
-      rows: (rows || []).map(rowText), entries: entries.map(entry => [entry.o, Math.round(entry.t*1000), entry.end == null ? null : Math.round(entry.end*1000), !!entry.blind]) }));
+      rows: (rows || []).map(rowText), entries: entries.map(entry => [entry.o, Math.round(entry.t*1000), !withEnds || entry.end == null ? null : Math.round(entry.end*1000), !!entry.blind]) }));
+  }
+  // Подтверждения до того, как проекция стала нести концы интервалов, хешировали end=null.
+  // Те же медиа, строки и начала — та же разметка: концы выведены из той же ревизии позже.
+  async function basisMatches(audio, rows, basis) {
+    if (!basis) return true;
+    return await timingBasis(audio, rows) === basis || await timingBasis(audio, rows, { startsOnly: true }) === basis;
   }
   async function youtubeView(audio, rows, record) {
     const binding = record || fromLegacy(audio);
@@ -129,7 +136,7 @@
     // Product default: the selected YouTube video uses the local source clock.
     // This is a runtime policy, NOT an owner-confirmed assertion or a DB migration.
     result.timingPolicy = current.timing.status === 'unverified' ? 'same-video-default' : current.timing.status;
-    if (current.timing.basis_sha256 && await timingBasis(audio,rows) !== current.timing.basis_sha256) { result.reason = 'PLAYBACK_TIMING_CHANGED'; return result; }
+    if (!await basisMatches(audio,rows,current.timing.basis_sha256)) { result.reason = 'PLAYBACK_TIMING_CHANGED'; return result; }
     const entries = safeEntries(audio,(rows||[]).length);
     if (!entries) { result.reason = audio && audio.timingDropReason === 'ASR_CLOCK_UNVERIFIED'
       ? 'ASR_CLOCK_UNVERIFIED' : 'PLAYBACK_TIMING_MISSING'; return result; }
@@ -178,5 +185,5 @@
     };
   }
   return {SCHEMA,MAX_REVISIONS,parseVideoId,canonicalUrl,validate,selected,append,fromLegacy,fromText,fromPackageReference,
-    parseMeta,isPublished,timingBasis,youtubeView,playbackAudio,safeEntries,digest,createRepository};
+    parseMeta,isPublished,timingBasis,basisMatches,youtubeView,playbackAudio,safeEntries,digest,createRepository};
 });

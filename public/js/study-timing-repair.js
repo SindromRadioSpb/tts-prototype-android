@@ -22,6 +22,9 @@
   Object.assign(text.ru,{full:'Восстановить все реплики — повторный запрос',fullRun:'Запустить полный проход — до ${price}',fullCost:'Будет заново прослушано всё видео: {n} участков. Бюджет до ${price}. Текст, перевод и уже работающие кнопки сохранятся. Найденная разметка сохранится автоматически.',fullProgress:'Полное восстановление: участок {n} из {total}.',partial:'Синхронизация неполная: {n} из {total} реплик. Без кнопок: {missing}. Доступен полный повторный запрос.',near:'Почти полная синхронизация: {n} из {total}. Без кнопок: {missing}.',complete:'Синхронизация восстановлена для всех {total} реплик.',resume:'Продолжить полный проход',fullInterrupted:'Полный проход прерван. Полученные интервалы сохранены; можно продолжить оставшиеся участки. Неуспешные запросы автоматически не повторяются.'});
   Object.assign(text.en,{full:'Recover all utterances — new request',fullRun:'Run full recovery — up to ${price}',fullCost:'Listen to the whole video again: {n} windows. Budget up to ${price}. Text, translation and existing buttons stay. Recovered timing is saved automatically.',fullProgress:'Full recovery: window {n} of {total}.',partial:'Synchronization incomplete: {n} of {total} utterances. Missing buttons: {missing}. Full recovery is available.',near:'Almost complete: {n} of {total}. Missing buttons: {missing}.',complete:'Synchronization recovered for all {total} utterances.',resume:'Resume full recovery',fullInterrupted:'Full recovery stopped. Results are saved; remaining windows can be resumed. Failed requests are not automatically repeated.'});
   Object.assign(text.he,{full:'שחזור כל הקטעים — בקשה חדשה',fullRun:'הפעלת שחזור מלא — עד ${price}',fullCost:'הסרטון כולו ייבדק מחדש: {n} קטעים. תקציב עד ${price}. הטקסט, התרגום והכפתורים הקיימים יישמרו. התזמון שיימצא יישמר אוטומטית.',fullProgress:'שחזור מלא: קטע {n} מתוך {total}.',partial:'הסנכרון אינו מלא: {n} מתוך {total} קטעים. ללא כפתורים: {missing}. ניתן להפעיל שחזור מלא.',near:'הסנכרון כמעט מלא: {n} מתוך {total}. ללא כפתורים: {missing}.',complete:'הסנכרון שוחזר לכל {total} הקטעים.',resume:'המשך שחזור מלא',fullInterrupted:'השחזור המלא נעצר. התוצאות נשמרו; ניתן להמשיך בקטעים שנותרו. בקשות שנכשלו אינן חוזרות אוטומטית.'});
+  Object.assign(text.ru,{relink:'Вернуть кнопки воспроизведения',relinkNote:'Разметка цела: {n} из {total} реплик. Кнопки скрыты, потому что привязка к YouTube-видео была подтверждена для прежней версии разметки. Привяжем текущую разметку к тому же видео с тем же сдвигом — без платных запросов. Отметка «проверено владельцем» не переносится.',relinked:'Готово: кнопки воспроизведения вернулись для {n} из {total} строк.'});
+  Object.assign(text.en,{relink:'Restore playback buttons',relinkNote:'Timing is intact: {n} of {total} utterances. Buttons are hidden because the YouTube link was confirmed for an earlier version of the timing. The current timing will be linked to the same video with the same offset — no paid requests. The “owner-checked” mark is not carried over.',relinked:'Done: playback buttons restored for {n} of {total} rows.'});
+  Object.assign(text.he,{relink:'החזרת כפתורי הניגון',relinkNote:'התזמון שלם: {n} מתוך {total} קטעים. הכפתורים מוסתרים כי הקישור לסרטון YouTube אושר עבור גרסה קודמת של התזמון. נקשר את התזמון הנוכחי לאותו סרטון עם אותה הזזה — ללא בקשות בתשלום. הסימון „נבדק על ידי הבעלים” אינו מועבר.',relinked:'הושלם: כפתורי הניגון הוחזרו עבור {n} מתוך {total} שורות.'});
   // Часы, которые никто не сверил, — не измерение, а предложение провайдера. Принять его можно
   // только ЯВНО и только там, где метки СТРУКТУРНО целы: возрастают, лежат внутри
   // ролика и дают непустой интервал. Ни одна метка не достраивается и ни один порядок не чинится.
@@ -129,8 +132,36 @@
           playable:times.filter(s=>s.startSec!=null).length,total:times.length};
         if(!local)meta.playback_source=PlaybackSource.append(meta.playback_source,{url:ctx.source.url,offset_ms:0},
           {basis_sha256:await PlaybackSource.timingBasis(audio,ctx.rows)});
+        else{
+          // Локальный ремонт карточки, играющей с YouTube, меняет разметку под прежней привязкой.
+          // Без перепривязки её отпечаток устаревает, и плеер молча снимает все кнопки ▶.
+          const youtube=meta.playback_source?PlaybackSource.selected(meta.playback_source):null;
+          if(youtube&&youtube.source)meta.playback_source=PlaybackSource.append(meta.playback_source,
+            {url:youtube.source.url,offset_ms:youtube.offset_ms},{basis_sha256:await PlaybackSource.timingBasis(audio,ctx.rows)});
+        }
         return JSON.stringify(meta);
       }});
+  }
+  // Разметка цела, но привязка к YouTube была заверена для другой её версии: плеер прячет
+  // все кнопки. Перепривязка к тому же ролику с тем же сдвигом не покупает ни одного запроса
+  // и не переносит «проверено владельцем» на разметку, которую владелец не проверял.
+  async function playbackState(id){
+    const ctx=await StudyVideoSourceUI.context(id);
+    const selected=ctx.record?PlaybackSource.selected(ctx.record):null;
+    if(!selected||!selected.source)return {ctx,stale:false,view:null};
+    const view=await PlaybackSource.youtubeView(ctx.audio,ctx.rows,ctx.record);
+    return {ctx,view,selected,stale:view.reason==='PLAYBACK_TIMING_CHANGED'&&!!ctx.basis};
+  }
+  async function relinkPlayback(id){
+    const state=await playbackState(id),ctx=state.ctx,meta=PlaybackSource.parseMeta(ctx.card.source_meta_json);
+    if(PlaybackSource.isPublished(meta))throw new Error('TIMING_REPAIR_READ_ONLY');
+    if(!state.stale)throw new Error('PLAYBACK_RELINK_NOT_NEEDED');
+    const record=await PlaybackSource.createRepository(ctx.ldb).save(ctx.card.id||String(id),
+      {url:state.selected.source.url,offset_ms:state.selected.offset_ms},
+      {expected_revision:meta.playback_source?meta.playback_source.revision:0,basis_sha256:ctx.basis});
+    const after=await PlaybackSource.youtubeView(ctx.audio,ctx.rows,record);
+    if(after.reason||!after.entries)throw new Error(after.reason||'PLAYBACK_TIMING_MISSING');
+    return {record,playable:after.entries.filter(e=>!e.blind).length,total:ctx.rows.length};
   }
   async function open(id){
     const d=document.createElement('dialog');d.className='study-source-dialog';d.setAttribute('aria-label',tr('title'));
@@ -145,7 +176,8 @@
     const initialRows=ctx.rowsSnapshot;
     const base=ctx.revision.segments.map(s=>({text:s.text,startSec:s.start_ms==null?null:s.start_ms/1000,endSec:s.end_ms==null?null:s.end_ms/1000}));
     let times=copy(base),evidence=null,paid=null,authority='provider',quote=null,busy=false,stopped=false,finished=false,acceptUnverified=false;
-    let fullQuote=null,fullEvidence=null,resuming=false;
+    let fullQuote=null,fullEvidence=null,resuming=false,relink=false;
+    try{relink=(await playbackState(ctx.id)).stale;}catch(_){}
     const fullKey=!local&&window.YoutubeFullTiming?ctx.id+':full:'+await YoutubeFullTiming.identity(ctx.source,base):null;
     const matches=e=>!!e?.source&&(local?e.source.kind==='local'&&e.source.sha256===ctx.source.sha256:e.source.video_id===ctx.source.video_id)&&e.source.durationSec===ctx.source.durationSec;
     const compatible=list=>list?.length===base.length&&list.every((s,i)=>s.text===base[i].text);
@@ -214,6 +246,7 @@
       primary.textContent=finished?tr('open'):changed()?tr('saveReady',{n}):quote?tr('run',{price:quote.estimatedUsd.toFixed(4)}):tr('auto');
       if(local&&!finished){primary.textContent=tr('save');primary.disabled=busy||!changed()||!confirmed.checked;}
       if(local&&finished)primary.textContent=tr('close');
+      if(relink&&!changed()&&!finished){primary.textContent=tr('relink');primary.disabled=busy;}
       close.disabled=busy;d.dataset.running=String(busy);
       full.disabled=resume.disabled=busy;full.hidden=!fullKey;
       full.textContent=fullQuote?tr('fullRun',{price:fullQuote.maxUsd.toFixed(4)}):tr('full');
@@ -275,7 +308,12 @@
       };
       try{if(navigator.locks)await navigator.locks.request('linguistpro-timing-verification:'+ctx.id,{ifAvailable:true},work);else await work(true);}finally{quote=null;}
     };
-    primary.onclick=()=>{if(finished){d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);return;}return action(()=>changed()?save():local?Promise.resolve():quote?verify():estimate());};
+    const relinkAction=async()=>{
+      const result=await relinkPlayback(ctx.id);relink=false;finished=true;
+      status.textContent=tr('relinked',{n:result.playable,total:result.total});
+      window.dispatchEvent(new CustomEvent('playback-source-changed',{detail:{textId:ctx.id}}));
+    };
+    primary.onclick=()=>{if(relink&&!changed()&&!finished)return action(relinkAction);if(finished){d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);return;}return action(()=>changed()?save():local?Promise.resolve():quote?verify():estimate());};
     openCard.onclick=()=>{d.close();if(!local&&typeof window.StudyVideoInlineOpen==='function')window.StudyVideoInlineOpen(ctx.id);};
     stop.onclick=()=>{stopped=true;stop.disabled=true;};close.onclick=()=>d.close();d.oncancel=e=>{if(busy){e.preventDefault();stopped=true;}};
     trust.onclick=()=>action(async()=>{
@@ -336,7 +374,8 @@
       // дешёвую повторную проверку за самым дорогим действием на экране.
       finished=count(base)===base.length;status.textContent=resultText();
     }
+    if(relink&&!changed()){finished=false;status.textContent=tr('relinkNote',{n:count(base),total:base.length});}
     render();return d;
   }
-  window.StudyTimingRepair={open,context,apply,proposed,journal,journalScan,unverifiedMarks};
+  window.StudyTimingRepair={open,context,apply,proposed,journal,journalScan,unverifiedMarks,playbackState,relinkPlayback};
 })();
