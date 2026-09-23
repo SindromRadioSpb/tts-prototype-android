@@ -794,7 +794,15 @@ function createPublicationRepo(options = {}) {
   async function createRevisionDraft(actor, corpusId, opts, excludeWorkId = null) {
     return withIdempotency(actor, "CREATE_REVISION_DRAFT", opts, excludeWorkId ? { corpusId, excludeWorkId } : { corpusId }, async key => {
       const corpus = await corpusForActor(actor, corpusId);
-      if (!corpus.current_edition_id) fail("CORPUS_NOT_FOUND", 404);
+      // Корпус, опустевший удалением последнего материала (все элементы последней редакции
+      // вычищены), начинает пустую ревизию: иначе в тему нельзя добавить материал заново.
+      // Обычный отзыв по-прежнему требует «Восстановить», а не пустой черновик поверх материалов.
+      if (!corpus.current_edition_id) {
+        const latest = await dbGet(database, "SELECT edition_id FROM published_corpus_editions WHERE corpus_id=? ORDER BY edition_number DESC LIMIT 1", [corpus.corpus_id]);
+        const emptied = latest && !await dbGet(database, `SELECT 1 ok FROM published_corpus_edition_items ei WHERE ei.edition_id=? AND NOT EXISTS
+          (SELECT 1 FROM published_corpus_edition_purges p WHERE p.edition_id=ei.edition_id AND p.public_work_id=ei.public_work_id)`, [latest.edition_id]);
+        if (!emptied) fail("CORPUS_NOT_FOUND", 404);
+      }
       if (await dbGet(database, "SELECT 1 ok FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id])) fail("DRAFT_VERSION_CONFLICT", 409);
       const draftNumber = Number((await dbGet(database, "SELECT COALESCE(MAX(draft_number),0)+1 n FROM publication_drafts WHERE corpus_id=?", [corpus.corpus_id])).n);
       const draftId = id("pd_"); const at = now();

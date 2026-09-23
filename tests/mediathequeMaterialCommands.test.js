@@ -240,3 +240,14 @@ test('review I3-I8: UI timeouts, conflict text, partial edit, personal follow, c
     for(const l of ['ru','en','he'])for(const k of ['draftConflict','downloadMedia','downloadMediaBeforeDelete'])assert.ok(window.I18N_LOCALES[l].mediatheque[k],l+'.'+k);}
   finally{global.window=saved;}
 });
+test('re-import into a topic whose last material was deleted publishes the corpus again',async t=>{
+  // Прод 2026-09-23: «Ворт» был последним в теме → корпус WITHDRAWN без текущей редакции;
+  // «Добавить материал» просил новую ревизию и получал CORPUS_NOT_FOUND.
+  const h=await setup(t);const a=await publishArchive(h,'Old version','old');
+  await h.repo.deleteMediathequeMaterials(h.owner,{items:[a.item.ref]},{idempotencyKey:'del'});
+  const again=await publishArchive(h,'Corrected version','new');
+  assert.ok(again.item,'re-imported material is in the public catalog');
+  assert.deepEqual((await h.repo.getPublicMediatheque()).items.map(i=>i.title),['Corrected version']);
+  const [corpus]=await all(h.db,"SELECT status,current_edition_id FROM published_corpora WHERE slug=?",[slug]);
+  assert.equal(corpus.status,'PUBLISHED');assert.ok(corpus.current_edition_id);
+});
