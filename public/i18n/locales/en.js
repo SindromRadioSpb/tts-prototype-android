@@ -4788,3 +4788,8 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "downloadMedia": "Download media file",
   "downloadMediaBeforeDelete": "Download the media file before deleting"
 });
+Object.assign(window.I18N_LOCALES.en.mediatheque, {
+  "pendingChanges": "Unpublished showcase changes: {count}. Viewers still see the previous version.",
+  "publishNow": "Publish",
+  "continueEditing": "Continue editing"
+});

@@ -4803,3 +4803,8 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "downloadMedia": "Скачать медиафайл",
   "downloadMediaBeforeDelete": "Скачать медиафайл перед удалением"
 });
+Object.assign(window.I18N_LOCALES.ru.mediatheque, {
+  "pendingChanges": "Изменения витрины не опубликованы: {count}. Зрители видят прежнюю версию.",
+  "publishNow": "Опубликовать",
+  "continueEditing": "Продолжить редактирование"
+});

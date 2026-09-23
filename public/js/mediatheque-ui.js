@@ -218,6 +218,8 @@ async function loadAll() {
   const epoch = ++loadEpoch;
   const results = await Promise.allSettled([loadLocal(), loadPublic(), api('/api/auth/me').then(result => { state.owner = result.user?.role === 'owner'; try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {} }).catch(() => { state.owner = false; })]);
   if (epoch !== loadEpoch) return;
+  // Владелец видит неопубликованные правки витрины и вне редактора.
+  if (state.owner) state.draft = await api('/api/publication/mediatheque').catch(() => state.draft);
   if (state.localReady && state.publicReady) {
     try {
       const next = C.followCurrent(state.personal.structure, (state.published.items || []).map(i => i.ref));
@@ -583,7 +585,8 @@ function render() {
       ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : state.owner && !state.preview ? button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}</div></div>
 
     ${state.preview ? `<div class="ml-banner"><div><strong>${esc(t('previewTitle'))}</strong><p>${esc(t('previewHelp'))}</p></div><div class="ml-actions">${button('publish', t('publish'), '', 'ml-primary')}${button('exit-preview', t('backToDraft'))}</div></div>`
-      : state.editing && state.space === 'public' ? `<div class="ml-banner"><span>${esc(t('draftNotice'))} · ${esc(t('revision', { count: state.draft?.revision || 0 }))}</span>${button('preview', t('preview'))}</div>` : ''}
+      : state.editing && state.space === 'public' ? `<div class="ml-banner"><span>${esc(t('draftNotice'))} · ${esc(t('revision', { count: state.draft?.revision || 0 }))}</span><div class="ml-actions">${pendingShowcaseChanges() ? button('publish-pending', t('publishNow'), '', 'ml-primary') : ''}${button('preview', t('preview'))}</div></div>`
+      : state.space === 'public' && pendingShowcaseChanges() ? (pending => `<div class="ml-banner"><span>${esc(t('pendingChanges', { count: pending }))}</span><div class="ml-actions">${button('publish-pending', t('publishNow'), '', 'ml-primary')}${button('organize', t('continueEditing'))}</div></div>`)(pendingShowcaseChanges()) : ''}
     ${state.publicError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.publicError)}</span>${button('retry', t('retry'))}</div>` : ''}
     ${state.localError ? `<div class="ml-banner ml-banner-error"><span>${esc(state.localError)}</span>${button('retry-local', t('retry'))}</div>` : ''}
     ${updateWorker || updateRequired ? `<div class="ml-banner"><span>${esc(t('updateAvailable'))}</span>${button('update-app',t('updateNow'))}</div>` : ''}
@@ -797,6 +800,13 @@ async function historyDialog() {
     await api('/api/publication/mediatheque/rollback', { editionId: data.get('editionId'), expectedVersion: state.draft.revision, expectedEdition: state.draft.edition_id }); await loadPublic(); state.draft = await api('/api/publication/mediatheque'); closeDialog(); render(); announce(t('editionRestored'));
   });
 }
+// Правки витрины ложатся в черновик; зрители видят опубликованную редакцию. Считается как в
+// предпросмотре публикации; служебные неиспользуемые ссылки публикация всё равно отбрасывает.
+function pendingShowcaseChanges() {
+  if (!state.owner || !state.publicReady || !state.draft || !state.draft.structure || !state.published || !state.published.structure) return 0;
+  try { return C.structureChanges(state.published.structure, state.draft.structure).filter(c => c.type !== 'references').length; }
+  catch (_) { return 0; }
+}
 function publishDialog(intro = '') {
   const d = state.draft.structure, expectedVersion = state.draft.revision, expectedEdition = state.draft.edition_id;
   showDialog(t('publishTitle'), `${intro}<p>${esc(t('publishHelp'))}</p>${changePreviewHtml(state.published.structure,d)}${formActions(t('publish'))}`, async () => {
@@ -864,6 +874,7 @@ async function onAction(action, node) {
   if (action === 'add-item') return addToCollection(node.dataset.key);
   if (action === 'use-view') { const v = structure().views.find(v => v.id === id); if (v) return navigate('catalog', v.filters, { viewId:id }); return; }
   if (action === 'exit-preview') { state.preview = false; render(); return; }
+  if (action === 'publish-pending' && state.owner) { state.draft = await api('/api/publication/mediatheque'); return publishDialog(); }
   if (action === 'publish' && state.owner && state.preview) return publishDialog();
   if (!canEdit()) return;
   if (action === 'delete-material') {

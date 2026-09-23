@@ -4797,3 +4797,8 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "downloadMedia": "הורדת קובץ המדיה",
   "downloadMediaBeforeDelete": "הורדת קובץ המדיה לפני מחיקה"
 });
+Object.assign(window.I18N_LOCALES.he.mediatheque, {
+  "pendingChanges": "שינויים בחלון התצוגה שלא פורסמו: {count}. הצופים עדיין רואים את הגרסה הקודמת.",
+  "publishNow": "פרסום",
+  "continueEditing": "המשך עריכה"
+});
