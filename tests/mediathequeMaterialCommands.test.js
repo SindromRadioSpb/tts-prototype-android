@@ -133,3 +133,28 @@ test('resume after interruption finishes purge and structure cleanup',async t=>{
   assert.deepEqual(out.failed,[]);
   assert.ok((await all(h.db,'SELECT snapshot_json FROM published_corpus_edition_items WHERE public_work_id=?',[b.item.ref.workId])).every(r=>r.snapshot_json==='{"purged":true}'));
 });
+test('edit card publishes a new version that keeps its showcase place',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Old title','a');await publishArchive(h,'Other','b');
+  await placeOnShowcase(h,[a.item.ref]);
+  const fields={title:'X',description:'',creator:'C',tags:[],download:true};
+  await assert.rejects(h.repo.updateMediathequeMaterial({id:'member',role:'user'},{...a.item.ref,expectedSnapshotHash:a.item.ref.snapshotHash,fields},{idempotencyKey:'u0'}),/PUBLISHER_FORBIDDEN/);
+  const out=await h.repo.updateMediathequeMaterial(h.owner,{slug:a.item.ref.slug,workId:a.item.ref.workId,expectedSnapshotHash:a.item.ref.snapshotHash,
+    fields:{title:'New title',description:'About',creator:'Kan 11',tags:['интервью'],download:false}},{idempotencyKey:'u1'});
+  assert.notEqual(out.snapshotHash,a.item.ref.snapshotHash);
+  const pub=await h.repo.getPublicMediatheque(),item=pub.items.find(i=>i.ref.workId===a.item.ref.workId);
+  assert.equal(item.title,'New title');assert.equal(item.creator,'Kan 11');assert.deepEqual(item.tags,['интервью']);assert.equal(item.topic,'About');
+  assert.equal(item.ref.snapshotHash,out.snapshotHash);
+  assert.deepEqual(pub.structure.categories.find(c=>c.id==='topic').items,[C.refKey(item.ref)]);
+  assert.deepEqual((await h.repo.getMediathequeDraft(h.owner)).structure.categories.find(c=>c.id==='topic').items,[C.refKey(item.ref)]);
+  const [row]=await all(h.db,'SELECT package_download_allowed FROM published_corpus_edition_items ei JOIN published_corpora c ON c.current_edition_id=ei.edition_id WHERE ei.public_work_id=?',[a.item.ref.workId]);
+  assert.equal(row.package_download_allowed,0);
+  await assert.rejects(h.repo.updateMediathequeMaterial(h.owner,{slug:a.item.ref.slug,workId:a.item.ref.workId,expectedSnapshotHash:a.item.ref.snapshotHash,fields},{idempotencyKey:'u2'}),/MATERIAL_CHANGED/);
+  await assert.rejects(h.repo.updateMediathequeMaterial(h.owner,{slug:a.item.ref.slug,workId:a.item.ref.workId,expectedSnapshotHash:out.snapshotHash,fields:{...fields,title:''}},{idempotencyKey:'u3'}),/PUBLICATION_INPUT_INVALID/);
+});
+test('archive download is owner-only and names a missing archive honestly',async t=>{
+  const h=await setup(t);const a=await publishArchive(h,'Episode','a');
+  await assert.rejects(h.repo.mediathequeMaterialArchive({id:'member',role:'user'},{...a.item.ref,part:'package'}),/PUBLISHER_FORBIDDEN/);
+  const out=await h.repo.mediathequeMaterialArchive(h.owner,{...a.item.ref,part:'package'});
+  assert.ok(fs.existsSync(out.absolute_path));assert.match(out.filename,/\.lplp\.zip$/);assert.equal(out.mime,'application/zip');
+  await assert.rejects(h.repo.mediathequeMaterialArchive(h.owner,{...a.item.ref,part:'media'}),/MATERIAL_ARCHIVE_UNAVAILABLE/);
+});

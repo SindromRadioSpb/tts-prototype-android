@@ -1125,6 +1125,61 @@ function createPublicationRepo(options = {}) {
     return out;
   }
 
+  async function updateDraftWork(actor, corpusId, input, opts) {
+    return withIdempotency(actor, "UPDATE_DRAFT_WORK", opts, input, async () => {
+      const { draft } = await activeDraft(actor, corpusId, input.expectedVersion);
+      const target = (await dbAll(database, "SELECT * FROM publication_draft_items WHERE draft_id=?", [draft.draft_id])).find(item => publicWorkIdOf(item) === input.workId);
+      if (!target) fail("MATERIAL_NOT_FOUND", 404);
+      const snapshot = parseJson(target.snapshot_json), text = snapshot.library && snapshot.library.texts && snapshot.library.texts[0];
+      if (!text) fail("SOURCE_SNAPSHOT_INVALID", 400);
+      const f = input.fields;
+      text.title = f.title; text.topic = f.description; text.tags = f.tags; delete text.tags_json;
+      const video = text.source_meta && text.source_meta.source && text.source_meta.source.audio && text.source_meta.source.audio.video;
+      if (video) video.author = f.creator;
+      const snapshotJson = canonicalJson(snapshot), snapshotSha = sha256(Buffer.from(snapshotJson, "utf8"));
+      await dbRun(database, "UPDATE publication_draft_items SET snapshot_json=?,snapshot_sha256=?,source_hash=?,title=?,creator=? WHERE item_id=?",
+        [snapshotJson, snapshotSha, snapshotSha, f.title, f.creator || null, target.item_id]);
+      const rights = await latestRights(target.item_id);
+      if (!rights.PUBLIC_READ) fail("RIGHTS_REVIEW_REQUIRED", 409);
+      if (!rights.PACKAGE_DOWNLOAD || (rights.PACKAGE_DOWNLOAD.allowed === 1) !== f.download)
+        await dbRun(database, `INSERT INTO publication_rights_facts(fact_id,item_id,permission,allowed,basis,asserted_at,asserted_by,created_at) VALUES(?,?,?,?,?,?,?,?)`,
+          [id("prf_"), target.item_id, "PACKAGE_DOWNLOAD", f.download ? 1 : 0, rights.PUBLIC_READ.basis, rights.PUBLIC_READ.asserted_at, actorId(actor), now()]);
+      const nextVersion = Number(draft.version) + 1;
+      await dbRun(database, "UPDATE publication_drafts SET version=?,updated_by=?,updated_at=? WHERE draft_id=?", [nextVersion, actorId(actor), now(), draft.draft_id]);
+      return { draft_version: nextVersion, snapshot_sha256: snapshotSha };
+    });
+  }
+  async function updateMediathequeMaterial(actor, input, opts = {}) {
+    mediathequeOwner(actor);
+    const base = idemKey(opts.idempotencyKey), raw = input && input.fields || {};
+    const tags = Array.isArray(raw.tags) ? [...new Set(raw.tags.map(tag => cleanText(tag, 240)).filter(Boolean))] : [];
+    if (tags.length > 30 || tags.some(tag => tag.length > 80) || typeof raw.download !== "boolean") fail("PUBLICATION_INPUT_INVALID", 400);
+    const fields = { title: cleanText(raw.title, 500, true), description: cleanText(raw.description, 4000), creator: cleanText(raw.creator, 200), tags, download: raw.download };
+    const { corpus, item, workId } = await managedWork(input);
+    if (!item) fail("MATERIAL_NOT_FOUND", 404);
+    if (item.snapshot_sha256 !== String(input.expectedSnapshotHash || "")) fail("MATERIAL_CHANGED", 409);
+    const k = step => (base + ":" + workId + ":" + step).slice(0, 200);
+    const draft = await cleanDraftFor(actor, corpus, k("draft"));
+    const updated = await updateDraftWork(actor, corpus.corpus_id, { workId, expectedVersion: Number(draft.version), fields }, { idempotencyKey: k("update") });
+    await publish(actor, corpus.corpus_id, { expectedVersion: updated.draft_version }, { idempotencyKey: k("publish") });
+    return { slug: corpus.slug, workId, snapshotHash: updated.snapshot_sha256 };
+  }
+  async function mediathequeMaterialArchive(actor, input) {
+    mediathequeOwner(actor);
+    const { item, workId } = await managedWork(input);
+    if (!item) fail("MATERIAL_NOT_FOUND", 404);
+    const meta = (((parseJson(item.snapshot_json).library || {}).texts || [])[0] || {}).source_meta || {};
+    const part = input && input.part === "media" ? "media" : "package";
+    const media = meta.publication_media || {}, archive = meta.publication_archive || {};
+    const sha = part === "media" ? media.sha256 : archive.package_sha256;
+    if (!/^[a-f0-9]{64}$/.test(String(sha || ""))) fail("MATERIAL_ARCHIVE_UNAVAILABLE", 404);
+    const absolute = sourcePath(part === "media" ? "publication-imports/media/" + sha : "publication-imports/packages/" + sha + ".zip");
+    const stat = await fs.promises.stat(absolute).catch(() => null);
+    if (!stat || !stat.isFile()) fail("MATERIAL_ARCHIVE_UNAVAILABLE", 404);
+    const ext = { "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov", "audio/mpeg": ".mp3", "audio/mp4": ".m4a" }[media.mime] || "";
+    return { absolute_path: absolute, filename: workId + (part === "media" ? ext : ".lplp.zip"), mime: part === "media" ? media.mime : "application/zip" };
+  }
+
   return {
     grantPublisher, createCorpus, copyGroupCorpusItems, copyMyTextItems, reorderDraftItems, applyRightsPreset,
     validateDraft, publish, createRevisionDraft, getPublisherCorpus, listPublisherCorpora,
@@ -1133,7 +1188,7 @@ function createPublicationRepo(options = {}) {
     getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, publishMediatheque, rollbackMediatheque,
     prepareMediathequeArchive, attachMediathequeMedia, copyMediathequeArchive,
     recordMaterialRights: (actor,corpusId,input,opts)=>applyRightsPreset(actor,corpusId,input,opts,true),
-    deleteMediathequeMaterials,
+    deleteMediathequeMaterials, updateMediathequeMaterial, mediathequeMaterialArchive,
   };
 }
 
