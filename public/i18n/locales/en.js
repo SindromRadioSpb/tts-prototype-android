@@ -4724,7 +4724,8 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "archiveMediaMismatch": "The media file does not match the archive checksum.",
   "archiveMediaRequired": "Select the matching media file for this archive.",
   "archiveTopicMismatch": "The selected collection belongs to another topic.",
-  "archiveInvalid": "Could not verify the learning archive or source. Use a LinguistPro learning package export (ZIP or lpmedia.zip)."
+  "archiveInvalid": "Could not verify the learning archive or source. Use a LinguistPro learning package export (ZIP or lpmedia.zip).",
+  "archiveNoMaterial": "This Library ZIP has no learning material with timing history — only the table. Prepare the material in Import Center first, then save the ZIP again."
 });
 window.I18N_LOCALES.en.mediatheque.changeFields.categoryId = "Topic / channel";
 

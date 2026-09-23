@@ -4739,7 +4739,8 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "archiveMediaMismatch": "Медиафайл не соответствует контрольной сумме архива.",
   "archiveMediaRequired": "Для этого архива выберите соответствующий медиафайл.",
   "archiveTopicMismatch": "Выбранная подборка относится к другой теме.",
-  "archiveInvalid": "Не удалось проверить учебный архив или источник. Нужен экспорт учебного пакета LinguistPro (ZIP или lpmedia.zip)."
+  "archiveInvalid": "Не удалось проверить учебный архив или источник. Нужен экспорт учебного пакета LinguistPro (ZIP или lpmedia.zip).",
+  "archiveNoMaterial": "В этом ZIP из Библиотеки нет учебного материала с историей разметки — только таблица. Сначала подготовьте материал в Импорт-центре, затем сохраните ZIP заново."
 });
 window.I18N_LOCALES.ru.mediatheque.changeFields.categoryId = "Тема / канал";
 

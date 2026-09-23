@@ -69,6 +69,7 @@ function errorText(error) {
   if (/MATERIAL_MEDIA_MISMATCH/.test(code)) return t('archiveMediaMismatch');
   if (/MATERIAL_MEDIA_REQUIRED/.test(code)) return t('archiveMediaRequired');
   if (/MATERIAL_TOPIC_MISMATCH/.test(code)) return t('archiveTopicMismatch');
+  if (/MATERIAL_ARCHIVE_NO_MATERIAL/.test(code)) return t('archiveNoMaterial');
   if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid');
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF/.test(code)) return t('signInOwner');
   return t('failed');

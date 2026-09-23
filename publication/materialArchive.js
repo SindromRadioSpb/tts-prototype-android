@@ -17,6 +17,21 @@ async function inspectArchive(bytes, options={}) {
   const manifestEntry=entries.find(e=>e.entryName==='manifest.json');
   if(!manifestEntry||manifestEntry.header.size>1024*1024||manifestEntry.header.size>Math.max(4096,manifestEntry.header.compressedSize*200))fail('MATERIAL_ARCHIVE_INVALID');
   const manifest=JSON.parse(manifestEntry.getData().toString('utf8'));
+  // «Библиотека → Отправить или сохранить → Сохранить ZIP» — учебный архив карточки. Архив
+  // материала лежит в нём целиком (learning-packages/<root>.lplp.zip) — тот же, что даёт
+  // «Импорт-центр → Скачать копию материала». Принимаем его, а не отдельный третий формат.
+  const indexEntry=entries.find(e=>e.entryName==='learning-packages/index.json');
+  if(manifest.format==='linguistpro-bundle'||indexEntry){
+    if(options.nested)fail('MATERIAL_ARCHIVE_INVALID');
+    if(!indexEntry||indexEntry.header.size>1024*1024)fail('MATERIAL_ARCHIVE_NO_MATERIAL');
+    const index=JSON.parse(indexEntry.getData().toString('utf8'));
+    const packages=Array.isArray(index.packages)?index.packages:[];
+    if(!packages.length)fail('MATERIAL_ARCHIVE_NO_MATERIAL');
+    if(packages.length!==1||!/^learning-packages\/[a-f0-9]{64}\.lplp\.zip$/.test(String(packages[0].path||'')))fail('MATERIAL_ARCHIVE_INVALID');
+    const inner=entries.find(e=>e.entryName===packages[0].path);
+    if(!inner||inner.header.size>512*1024*1024)fail('MATERIAL_ARCHIVE_INVALID');
+    return inspectArchive(inner.getData(),{...options,nested:true});
+  }
   if(manifest.schema==='lplp-media-bundle-v1') {
     const file={size:bytes.length,slice:(start,end)=>new Blob([bytes.subarray(start,end)])};
     const bundle=await Bundle.readBundle({file});

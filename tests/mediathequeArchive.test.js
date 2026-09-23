@@ -103,3 +103,23 @@ test('archive playback basis is rebound to the timing the published card actuall
   const fresh=await Archive.inspectArchive(await archive(),{mode:'youtube'});
   assert.equal(fresh.snapshot.library.texts[0].source_meta.playback_source.revision,1);
 });
+test('Library "Save ZIP" learning archive is accepted through its embedded material archive',async()=>{
+  // «Сохранить ZIP» кладёт внутрь тот же архив материала, что и «Скачать копию материала»:
+  // learning-packages/<root>.lplp.zip. Медиатека принимает оба пути, а не только второй.
+  const Zip=require('adm-zip'),inner=await archive(),bare=await Archive.inspectArchive(inner,{mode:'youtube'});
+  const learning=new Zip();
+  learning.addFile('manifest.json',Buffer.from(JSON.stringify({format:'linguistpro-bundle',schema_version:1})));
+  learning.addFile('library.json',Buffer.from('{}'));
+  learning.addFile(`learning-packages/${bare.contentRoot}.lplp.zip`,inner);
+  learning.addFile('learning-packages/index.json',Buffer.from(JSON.stringify({schema:'linguistpro-learning-packages-backup-index-v1',
+    packages:[{content_root_sha256:bare.contentRoot,path:`learning-packages/${bare.contentRoot}.lplp.zip`,coverage_status:'COMPLETE'}],skipped:[]})));
+  const out=await Archive.inspectArchive(learning.toBuffer(),{mode:'youtube'});
+  assert.equal(out.contentRoot,bare.contentRoot);assert.equal(out.rowCount,bare.rowCount);assert.equal(out.videoId,bare.videoId);
+  assert.equal(Archive.sha(out.packageBytes),Archive.sha(inner));
+  const empty=new Zip();
+  empty.addFile('manifest.json',Buffer.from(JSON.stringify({format:'linguistpro-bundle',schema_version:1})));
+  empty.addFile('learning-packages/index.json',Buffer.from(JSON.stringify({schema:'linguistpro-learning-packages-backup-index-v1',packages:[],skipped:[{reason:'NO_MATERIAL'}]})));
+  await assert.rejects(Archive.inspectArchive(empty.toBuffer(),{mode:'youtube'}),/MATERIAL_ARCHIVE_NO_MATERIAL/);
+  const legacy=new Zip();legacy.addFile('manifest.json',Buffer.from(JSON.stringify({format:'linguistpro-bundle',schema_version:1})));
+  await assert.rejects(Archive.inspectArchive(legacy.toBuffer(),{mode:'youtube'}),/MATERIAL_ARCHIVE_NO_MATERIAL/);
+});

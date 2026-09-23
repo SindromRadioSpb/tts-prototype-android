@@ -4733,7 +4733,8 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "archiveMediaMismatch": "קובץ המדיה אינו תואם לחתימת הארכיון.",
   "archiveMediaRequired": "בחרו את קובץ המדיה התואם לארכיון.",
   "archiveTopicMismatch": "האוסף שנבחר שייך לנושא אחר.",
-  "archiveInvalid": "לא ניתן לאמת את הארכיון או המקור. נדרש ייצוא חבילת לימוד של LinguistPro (ZIP או lpmedia.zip)."
+  "archiveInvalid": "לא ניתן לאמת את הארכיון או המקור. נדרש ייצוא חבילת לימוד של LinguistPro (ZIP או lpmedia.zip).",
+  "archiveNoMaterial": "בקובץ ZIP זה מהספרייה אין חומר לימוד עם היסטוריית תזמון — רק הטבלה. הכינו תחילה את החומר במרכז הייבוא ושמרו את ה-ZIP מחדש."
 });
 window.I18N_LOCALES.he.mediatheque.changeFields.categoryId = "נושא / ערוץ";
 
