@@ -1130,7 +1130,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/css/mediatheque.css?v=7",
-  "/js/mediatheque-ui.js?v=21",
+  "/js/mediatheque-ui.js?v=22",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1161,7 +1161,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=581",
+  "/js/study-video-source-ui.js?v=620",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=566",
@@ -1196,7 +1196,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=611",
+  "/js/library-ui.js?v=620",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1207,7 +1207,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=416",
   "/js/room-b6-core.js?v=485",
-  "/db/local-db.js?v=545",
+  "/db/local-db.js?v=620",
   "/db/migrations.js",
   "/db/db-worker.js",
   "/db/vfs-order.js",
@@ -4284,8 +4284,15 @@ app.get("/api/public-corpora/:slug/works", rlPublicCorpusRead, (req, res) => pub
 }));
 app.get("/api/public-corpora/:slug/works/:workId", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
   const published = await repo.getPublicWork(req.params.slug, req.params.workId);
+  // Под одним workId публикуются новые снимки (правка карточки, повторный импорт архива):
+  // неизменяем только адрес конкретного снимка, без него — ревалидация по ETag.
+  const wanted = String(req.query.snapshot || "").toLowerCase();
+  if (wanted && wanted !== published.item.snapshot_sha256) {
+    res.set("Cache-Control", "no-store");
+    return res.status(409).json({ ok: false, error: "PUBLIC_WORK_CHANGED" });
+  }
   publicCorpusEtag(res, published.item.snapshot_sha256);
-  res.set("Cache-Control", "public, max-age=31536000, immutable");
+  res.set("Cache-Control", wanted ? "public, max-age=31536000, immutable" : "public, max-age=0, must-revalidate");
   return res.json({ ok: true, schema_version: "public_corpus_work.1.0.0", ...published });
 }));
 function materialsPb2LearningSupportPublicReadEnabled() {

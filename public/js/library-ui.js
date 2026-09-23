@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=545';
+import * as localDb from '/db/local-db.js?v=620';
 import * as readerCore from '/js/reader-core.js?v=582';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -8488,6 +8488,17 @@ function refreshFindAfterRerender() {
 
 // Resolve a stable text_key → the ephemeral local OPFS id (importBundle remaps ids on
 // import, so discovery keys on text_key and the reader opens by local id).
+// Под одним workId публикуются новые снимки (правка карточки, повторный импорт того же
+// архива). Неизменяем только адрес конкретного снимка; пришедший снимок обязан совпасть.
+function publicWorkUrl(slug, workId, snapshot) {
+  const base = '/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(workId);
+  return /^[a-f0-9]{64}$/.test(String(snapshot || '')) ? base + '?snapshot=' + snapshot : base;
+}
+function expectPublicSnapshot(payload, snapshot) {
+  const got = payload && payload.item && payload.item.snapshot_sha256;
+  if (/^[a-f0-9]{64}$/.test(String(snapshot || '')) && got !== snapshot) throw new Error('PUBLIC_WORK_SNAPSHOT_MISMATCH');
+  return payload;
+}
 async function resolveLocalIdByKey(textKey) {
   try {
     const rows = await localDb.dbQuery('SELECT id FROM texts WHERE text_key = ?', [textKey]);
@@ -9280,9 +9291,9 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
     const textKey = window.PublicCorpusAdapter.localTextKey(slug, card.public_work_id, card.snapshot_sha256);
     let localId = await resolveLocalIdByKey(textKey);
     if (!localId) {
-      const response = await fetch('/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(card.public_work_id), { cache: 'force-cache' });
+      const response = await fetch(publicWorkUrl(slug, card.public_work_id, card.snapshot_sha256), { cache: 'force-cache' });
       if (!response.ok) throw new Error('public work ' + response.status);
-      const payload = await response.json();
+      const payload = expectPublicSnapshot(await response.json(), card.snapshot_sha256);
       const bundle = window.PublicCorpusAdapter.prepareImportBundle(payload);
       await localDb.importBundle(bundle, { mode: 'skip' });
       localId = await resolveLocalIdByKey(textKey);
@@ -10696,9 +10707,9 @@ async function ensureActionMaterial(config) {
     const bundle = await response.json(); if (!bundle || !bundle.library) throw new Error('MATERIAL_PAYLOAD_INVALID');
     await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
   } else if (!localId && source.kind === 'public') {
-    const response = await fetch('/api/public-corpora/' + encodeURIComponent(source.slug) + '/works/' + encodeURIComponent(item.public_work_id), { cache: 'force-cache' });
+    const response = await fetch(publicWorkUrl(source.slug, item.public_work_id, item.snapshot_sha256), { cache: 'force-cache' });
     if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
-    const bundle = window.PublicCorpusAdapter.prepareImportBundle(await response.json());
+    const bundle = window.PublicCorpusAdapter.prepareImportBundle(expectPublicSnapshot(await response.json(), item.snapshot_sha256));
     await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
   } else if (!localId && source.kind === 'group') {
     const response = await fetch('/api/group-corpora/' + encodeURIComponent(source.corpusId) + '/works/' + encodeURIComponent(item.work_id), { cache: 'no-store' });

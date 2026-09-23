@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.619";
+const CACHE_VERSION = "v3.11.620";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=7",
-  "/js/mediatheque-ui.js?v=21",
+  "/js/mediatheque-ui.js?v=22",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -92,7 +92,7 @@ const PRECACHE_URLS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=581",
+  "/js/study-video-source-ui.js?v=620",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=566",
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=611",
+  "/js/library-ui.js?v=620",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -300,7 +300,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=545",
+  "/db/local-db.js?v=620",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
@@ -471,7 +471,9 @@ self.addEventListener("fetch", (event) => {
     if (/\/resources\/[A-Za-z0-9_.:-]+\/file$/.test(url.pathname)) return;
     const asset = /\/assets\/[0-9a-f]{64}$/.test(url.pathname);
     const learningSupport = /\/works\/[^/]+\/learning-support$/.test(url.pathname);
-    const immutable = /\/works\/[^/]+$/.test(url.pathname) || learningSupport || asset;
+    // Под одним workId выходят новые снимки: cache-first только для адреса конкретного снимка.
+    const versionedWork = /\/works\/[^/]+$/.test(url.pathname) && /^[a-f0-9]{64}$/.test(url.searchParams.get("snapshot") || "");
+    const immutable = versionedWork || learningSupport || asset;
     event.respondWith(asset ? publicCorpusAsset(req) : immutable ? publicCorpusCacheFirst(req) : networkFirst(req, PUBLIC_CORPUS_CACHE, NETWORK_FIRST_TIMEOUT_MS));
     return;
   }

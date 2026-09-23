@@ -29,7 +29,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=545">
+    <link rel="modulepreload" href="/db/local-db.js?v=620">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -10864,7 +10864,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=545';
+  import * as _ldb from '/db/local-db.js?v=620';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13495,7 +13495,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
-<script src="/js/study-video-source-ui.js?v=581"></script>
+<script src="/js/study-video-source-ui.js?v=620"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=566"></script>
@@ -13587,7 +13587,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.619";
+    window.APP_VERSION = "3.11.620";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -26156,7 +26156,7 @@ async function v3LibraryRefresh() {
           for (const m of (await ldb.listTextUserMeta() || [])) overlay.set(String(m.text_key), m);
         for (const r of raw) {
           let corpus = null;
-          try { const sm = r.source_meta_json ? JSON.parse(r.source_meta_json) : null; if (sm && sm.corpus) corpus = sm.corpus; } catch (_) {}
+          try { const sm = r.source_meta_json ? JSON.parse(r.source_meta_json) : null; if (sm && sm.corpus) corpus = sm.corpus; else if (sm && (sm.public_corpus || sm.group_corpus)) r._shared = true; } catch (_) {}
           r._corpus = corpus || null;
           if (corpus) {
             const m = overlay.get(String(r.text_key));
@@ -26904,7 +26904,9 @@ function v3LibraryApplyFilter() {
   let filtered = v3LibraryTexts;
 
   // 0) Studio↔Room compat Ф1 — corpus dimension (default 'mine': own texts only)
-  if (v3LibraryCorpusMode === "mine") filtered = filtered.filter((t) => !t._corpus);
+  // Копии общедоступных и групповых материалов (sm.public_corpus || sm.group_corpus) Зал
+  // сохраняет локально ради прогресса; «Мои» — только собственные тексты.
+  if (v3LibraryCorpusMode === "mine") filtered = filtered.filter((t) => !t._corpus && !t._shared);
   else if (v3LibraryCorpusMode === "benyehuda") filtered = filtered.filter((t) => !!t._corpus);
 
   if (hasAny) {
