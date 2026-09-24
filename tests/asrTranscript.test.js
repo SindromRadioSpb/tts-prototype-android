@@ -1663,3 +1663,45 @@ test("validateSegments keeps one ASR segment on one composer line (2026-09-22 co
   assert.equal(v.segments.map((s) => s.text).join("\n").split("\n").length, 3);
   assert.equal(A.singleLineText("  א \n\n ב  "), "א ב");
 });
+
+// Владелец, 2026-09-24 («אנשים שפגשתי» פרק 1): 32 короткие реплики («כן.», «לילה טוב.») остались
+// без ▶, потому что встречаются во многих сегментах. Их место доказывает ПОРЯДОК: между двумя
+// привязанными строками столько же строк, сколько сегментов, и строка k совпадает со своим
+// сегментом k целиком. Сила доказательства — как у строгого выравнивания, только локально.
+test("partial-proven proves repeated short replies by order inside an equal-count gap", () => {
+  const segs = [
+    { i: 0, start: 0, end: 1, text: "שלום עולם" },
+    { i: 1, start: 2, end: 3, text: "כן." },
+    { i: 2, start: 4, end: 34, text: "הי הי הי" },
+    { i: 3, start: 35, end: 36, text: "מיה באה" },
+    { i: 4, start: 37, end: 38, text: "לילה טוב." },
+    { i: 5, start: 39, end: 40, text: "כן." },
+    { i: 6, start: 41, end: 42, text: "לילה טוב." },
+  ];
+  const rows = ["שלום עולם", "כן.", "הי הי הי הי", "מיה באה", "לילה טוב.", "כן.", "לילה טוב."];
+  assert.equal(A.alignRowsToSegments(rows, segs).ok, false, "one mismatched row still fails the strict pass");
+  const partial = A.alignRowsToSegmentsPartialProven(rows, segs);
+  assert.deepEqual(partial.rowSegIdx, [0, 1, null, 3, 4, 5, 6]);
+  assert.deepEqual(partial.orderProvenRows, [1, 4, 5, 6]);
+  assert.deepEqual(partial.ambiguousRows, [], "rows proven by order are no longer reported ambiguous");
+  assert.deepEqual(partial.absentRows, [2], "the row that differs from its segment stays unproven");
+  assert.equal(partial.mappedRows, 6);
+});
+
+test("order proof needs equal counts and whole-segment equality", () => {
+  const segs = [
+    { i: 0, start: 0, end: 1, text: "שלום עולם" },
+    { i: 1, start: 2, end: 3, text: "כן." },
+    { i: 2, start: 4, end: 5, text: "כן." },
+    { i: 3, start: 6, end: 7, text: "מיה באה" },
+    { i: 4, start: 8, end: 9, text: "כן בהחלט" },
+    { i: 5, start: 10, end: 11, text: "דני הלך" },
+    { i: 6, start: 12, end: 13, text: "כן בהחלט" },
+  ];
+  // Между «שלום עולם» и «מיה באה» одна строка на два сегмента — какой из двух «כן.», не доказано.
+  // Между «מיה באה» и «דני הלך» строка «כן» — лишь часть «כן בהחלט», а не весь сегмент.
+  const rows = ["שלום עולם", "כן.", "מיה באה", "כן", "דני הלך"];
+  const partial = A.alignRowsToSegmentsPartialProven(rows, segs);
+  assert.deepEqual(partial.rowSegIdx, [0, null, 3, null, 5]);
+  assert.deepEqual(partial.orderProvenRows, []);
+});

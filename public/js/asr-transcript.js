@@ -1335,12 +1335,12 @@
   // NOT weaken alignRowsToSegments above. A row is accepted only when its full
   // normalized word sequence occurs contiguously inside exactly one segment.
   // There is no proximity, majority, neighbour inheritance or interpolation.
-  var ALIGN_PARTIAL_VERSION = "align-rows-partial-proven-v1";
+  var ALIGN_PARTIAL_VERSION = "align-rows-partial-proven-v2"; // v2: + доказательство порядком (2026-09-24)
   function alignRowsToSegmentsPartialProven(rowTexts, segments) {
     var R = Array.isArray(rowTexts) ? rowTexts : [];
     var S = Array.isArray(segments) ? segments : [];
     var segWords = S.map(function (segment) { return alignWords(segment && segment.text); });
-    var idx = new Array(R.length).fill(null);
+    var idx = new Array(R.length).fill(null), positions = new Array(R.length).fill(null);
     var absent = [], ambiguous = [], conflicts = [], lastPosition = -1, mapped = 0;
     function containsWords(haystack, needle) {
       if (!needle.length || needle.length > haystack.length) return false;
@@ -1359,12 +1359,39 @@
       if (matches.length !== 1) { ambiguous.push(r); continue; }
       var position = matches[0];
       if (position < lastPosition) { conflicts.push(r); continue; }
-      idx[r] = alignSegIndex(S, position); lastPosition = position; mapped++;
+      idx[r] = alignSegIndex(S, position); positions[r] = position; lastPosition = position; mapped++;
     }
+    // Доказательство ПОРЯДКОМ (владелец, 2026-09-24): короткая реплика («כן.», «לילה טוב.»)
+    // встречается во многих сегментах, но между двумя привязанными строками её место одно. Если в
+    // промежутке строк ровно столько же, сколько сегментов, строка k сопоставляется только с
+    // сегментом k и только при ПОЛНОМ пословном равенстве — не подстрока, не сосед, не голосование.
+    var orderProven = [];
+    function sameWords(a, b) {
+      if (a.length !== b.length || !a.length) return false;
+      for (var n = 0; n < a.length; n++) if (a[n] !== b[n]) return false;
+      return true;
+    }
+    var prevRow = -1, prevPos = -1;
+    for (var at = 0; at <= R.length; at++) {
+      if (at < R.length && positions[at] == null) continue;
+      var nextPos = at < R.length ? positions[at] : S.length;
+      var gapRows = at - prevRow - 1, gapSegs = nextPos - prevPos - 1;
+      if (gapRows > 0 && gapRows === gapSegs) {
+        for (var g = 1; g <= gapRows; g++) {
+          var row = prevRow + g, seg = prevPos + g;
+          if (idx[row] === null && sameWords(alignWords(R[row]), segWords[seg])) {
+            idx[row] = alignSegIndex(S, seg); orderProven.push(row); mapped++;
+          }
+        }
+      }
+      if (at < R.length) { prevRow = at; prevPos = positions[at]; }
+    }
+    function unproven(list) { return list.filter(function (row) { return idx[row] === null; }); }
     return {
       mode: "partial-proven", version: ALIGN_PARTIAL_VERSION, rowSegIdx: idx,
       mappedRows: mapped, totalRows: R.length, coverage: R.length ? mapped / R.length : 0,
-      absentRows: absent, ambiguousRows: ambiguous, orderConflictRows: conflicts,
+      absentRows: unproven(absent), ambiguousRows: unproven(ambiguous), orderConflictRows: unproven(conflicts),
+      orderProvenRows: orderProven,
     };
   }
 
