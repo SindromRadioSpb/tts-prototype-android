@@ -130,6 +130,23 @@ test("source coverage rejects dropped or rewritten Hebrew before cache publicati
   );
 });
 
+// Прод 2026-09-24: субтитровый текст начинал каждую реплику с невидимого U+202B, модель их не
+// повторяла, а растянутое «ווווו…» вернула на одну букву длиннее — и вся таблица из 133 строк
+// вставала целиком, хотя ни одно слово не пропало.
+test("source coverage ignores invisible direction marks and elongated letter runs", () => {
+  validateHebrewSourceCoverage(
+    [{ he: "בואו נבחר אותה ביחד." }, { he: "הופה." }, { he: "ווווווווו כאשר יוצאים" }],
+    "‫בואו נבחר אותה ביחד.\n‫הופה.\n‏וווווווו כאשר יוצאים",
+  );
+});
+
+test("source coverage still rejects a dropped word next to direction marks", () => {
+  assert.throws(
+    () => validateHebrewSourceCoverage([{ he: "בואו נבחר ביחד." }], "‫בואו נבחר אותה ביחד."),
+    (error) => error && error.code === "HE_SOURCE_COVERAGE_MISMATCH",
+  );
+});
+
 test("known physics terms are canonicalized locally without changing plain Hebrew", () => {
   const input = [{
     he: "אופנוע ומכונית נוסעים על כביש ישר ואופקי.",

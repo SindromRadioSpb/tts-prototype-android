@@ -39,3 +39,24 @@ test('completion is coverage-gated, repairs only missing segments and retains a 
   const completion = html.slice(html.indexOf('// Initial chunks can all return successfully'), html.indexOf('// PROVIDER SELECTOR'));
   assert.doesNotMatch(completion, /TableJob\.clear/);
 });
+
+// Владелец, 2026-09-24: короткая сборка одним запросом пропадала без следа — ни сводки при
+// успехе, ни причины при отказе. Каждый путь «одним запросом» обязан оставить итоговую карточку.
+test('short single-request builds end in a done or stopped card instead of vanishing', () => {
+  for (const fn of ['async function translateTable', 'async function v3TranslateTablePremiumChunked', 'async function v3TranslateTableLocalMt']) {
+    const start = html.indexOf(fn);
+    assert.notEqual(start, -1, fn);
+    const body = html.slice(start, html.indexOf('\n    async function ', start + 20));
+    assert.match(body, /v3TablePlainFinish\(\{ kind: "done" \}\)/, `${fn} never reports success`);
+    assert.match(body, /v3TablePlainFinish\(v3TablePlainStopOutcome\(/, `${fn} never reports a stop`);
+  }
+  const start = html.indexOf('function v3TablePlainStopOutcome');
+  const src = html.slice(start, html.indexOf('\n    function ', start + 20));
+  const outcome = new Function('t', `${src}; return v3TablePlainStopOutcome;`)((key) => key);
+  // Смысловой отказ повтором не лечится: сервер отдаст тот же сохранённый ответ.
+  assert.deepEqual(outcome({ raw: { error_code: 'HE_SOURCE_COVERAGE_MISMATCH' } }),
+    { kind: 'stopped', reason: 'tableJob.reasonSemantic', canRetry: false });
+  assert.equal(outcome({ httpStatus: 429 }).canRetry, false);
+  assert.deepEqual(outcome(new Error('network')),
+    { kind: 'stopped', reason: 'tableJob.reasonInterrupted', canRetry: true });
+});

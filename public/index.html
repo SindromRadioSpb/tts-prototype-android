@@ -13428,9 +13428,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=248"></script>
-<script src="/i18n/locales/en.js?v=248"></script>
-<script src="/i18n/locales/he.js?v=248"></script>
+<script src="/i18n/locales/ru.js?v=249"></script>
+<script src="/i18n/locales/en.js?v=249"></script>
+<script src="/i18n/locales/he.js?v=249"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13653,7 +13653,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.624";
+    window.APP_VERSION = "3.11.625";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -36386,8 +36386,10 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             }});
             loadStats();
             try { classicSyncMainPanels({ force: true }); } catch (_) {}
+            v3TablePlainFinish({ kind: "done" });
         } catch (error) {
             const code = error && (error.code || error.message) || "LOCAL_MT_FAILED";
+            v3TablePlainFinish(v3TablePlainStopOutcome(error));
             showError(code);
         } finally {
             _activeLocalMtAbort = null;
@@ -36705,7 +36707,9 @@ try {
             if (currentTableData.length > 0) {
                 try { classicSyncMainPanels({ force: true }); } catch (_) {}
             }
+            v3TablePlainFinish({ kind: "done" });
         } catch (e) {
+            v3TablePlainFinish(v3TablePlainStopOutcome(e));
             if (usePremium) {
                 handlePremiumError(e, provider);
             } else if (e.httpStatus === 429) {
@@ -36785,6 +36789,7 @@ try {
                     v3AttachImportSource();
                     v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] },
                         false, premiumLines);
+                    v3TablePlainFinish(v3TablePlainStopOutcome(e));
                     showError(t("classic.tableChunkFailed")
                         .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
                     return;
@@ -36812,6 +36817,7 @@ try {
                 currentTableData = accum.slice();
                 renderTable(currentTableData);
             }
+            v3TablePlainFinish({ kind: "done" });
         } finally {
             setLoading(false);
             updateAiButtonState();
@@ -36905,8 +36911,10 @@ try {
         el("v3TableJobMedia").textContent = model.media === "exact" ? t("tableJob.mediaBound")
             : (model.media === "intended" ? t("tableJob.mediaIntended") : "");
         if (model.media === "exact" && model.mediaSha) el("v3TableJobMedia").title = t("tableJob.mediaExact", { sha: model.mediaSha });
-        el("v3TableJobRows").textContent = model.total ? t("tableJob.rows", { ready: model.ready, total: model.total }) : "";
-        el("v3TableJobPercent").textContent = model.percent == null ? "" : model.percent + "%";
+        // Короткая сборка не знает сегментов: её итог — число строк, крупно и один раз.
+        el("v3TableJobRows").textContent = !model.total ? ""
+            : (model.plain ? t("tableJob.summaryRows", { n: model.total }) : t("tableJob.rows", { ready: model.ready, total: model.total }));
+        el("v3TableJobPercent").textContent = model.percent == null || model.plain ? "" : model.percent + "%";
         const bar = el("v3TableJobBar");
         const segs = model.indeterminate ? ["sweep"]
             : (model.parts.length ? model.parts : (model.total ? ["fill"] : []));
@@ -36922,17 +36930,18 @@ try {
             model.mediaDeferred ? t("tableJob.mediaDeferred") : ""].filter(Boolean).join(" ");
         deferred.textContent = deferredText; deferred.hidden = !deferredText;
         const summary = el("v3TableJobSummary");
-        if (model.summary) {
-            const sm = model.summary, parts = [t("tableJob.summaryRows", { n: sm.rows })];
+        if (model.summary && (!model.plain || model.summary.playable != null || model.summary.unvocalized)) {
+            const sm = model.summary, parts = model.plain ? [] : [t("tableJob.summaryRows", { n: sm.rows })];
             if (sm.playable != null) parts.push(t("tableJob.summaryPlayable", { n: sm.playable, total: sm.rows }));
             if (sm.unvocalized) parts.push(t("tableJob.summaryUnvocalized", { n: sm.unvocalized }));
             summary.innerHTML = parts.map((x) => "<span>" + escapeHtml(x) + "</span>").join("");
             summary.hidden = false;
         } else { summary.textContent = ""; summary.hidden = true; }
-        el("v3TableJobNext").textContent = model.tone === "busy" || !model.nextAction ? ""
-            : t("tableJob.nextAction", { action: model.nextAction });
+        el("v3TableJobNext").textContent = model.tone === "busy" ? ""
+            : (model.reason ? model.reason
+                : (model.nextAction ? t("tableJob.nextAction", { action: model.nextAction }) : ""));
         const retry = el("v3TableJobRetry");
-        retry.textContent = t("tableJob.retryButton"); retry.hidden = !model.canRetry;
+        retry.textContent = t(model.retryKey || "tableJob.retryButton"); retry.hidden = !model.canRetry;
         if (mini) {
             mini.hidden = model.tone !== "busy";
             mini.dataset.indeterminate = model.indeterminate ? "true" : "false";
@@ -36953,20 +36962,65 @@ try {
     }
     // Короткая сборка (один запрос, премиум, локальный MT) — бегущая полоса без выдуманных долей.
     // Длинная сборка кусками перехватывает карточку первым же v3TableJobHudUpdate.
+    // Короткая сборка тоже заканчивается карточкой, а не исчезновением (владелец, 2026-09-24):
+    // зелёная сводка при успехе, янтарная — с причиной при остановке.
+    let v3TablePlainStartedAt = 0;
+    let v3TablePlainTimer = null;
+    let v3TablePlainProgress = null;
+    let v3TablePlainOutcome = null;
+    function v3TablePlainRender() {
+        const model = TableJob.progressModel(v3TablePlainProgress
+            ? { state: "generate", chunk: v3TablePlainProgress.chunk, chunks: v3TablePlainProgress.chunks,
+                readyRows: v3TablePlainProgress.ready, totalRows: v3TablePlainProgress.total }
+            : { state: "generate", indeterminate: true });
+        model.elapsedSec = Math.floor((Date.now() - v3TablePlainStartedAt) / 1000);
+        v3TableProgressRender(model);
+    }
+    function v3TablePlainFinish(outcome) { v3TablePlainOutcome = outcome || null; }
+    // Причина остановки словами. Смысловой отказ повтором не лечится: сервер хранит оплаченный
+    // ответ и отдаст его же, поэтому кнопку повтора там не предлагаем.
+    function v3TablePlainStopOutcome(error) {
+        const code = error && error.raw && error.raw.error_code || "";
+        const semantic = /^HE_|^GEMINI_SEMANTIC|^GEMINI_TABLE_REVIEW/.test(code);
+        if (semantic) return { kind: "stopped", reason: t("tableJob.reasonSemantic"), canRetry: false };
+        if (error && error.httpStatus === 429) return { kind: "stopped", reason: t("tableJob.reasonLimit"), canRetry: false };
+        return { kind: "stopped", reason: t("tableJob.reasonInterrupted"), canRetry: true };
+    }
     function v3TableBusy(on, progress) {
         if (!window.TableJob) return;
         if (on) {
             // Во время самой длинной сборки (например, догонка пропусков) карточку не сбрасываем.
             if (v3TableProgressMode === "job" && v3TableProgressLast && v3TableProgressLast.tone === "busy") return;
+            if (v3TableProgressMode !== "plain") { v3TablePlainStartedAt = Date.now(); v3TablePlainOutcome = null; }
             v3TableProgressMode = "plain";
-            v3TableProgressRender(TableJob.progressModel(progress
-                ? { state: "generate", chunk: progress.chunk, chunks: progress.chunks,
-                    readyRows: progress.ready, totalRows: progress.total }
-                : { state: "generate", indeterminate: true }));
+            v3TablePlainProgress = progress || null;
+            v3TablePlainRender();
+            if (!v3TablePlainTimer) v3TablePlainTimer = setInterval(() => {
+                if (v3TableProgressMode === "plain") v3TablePlainRender();
+            }, 1000);
             return;
         }
+        if (v3TablePlainTimer) { clearInterval(v3TablePlainTimer); v3TablePlainTimer = null; }
         if (v3TableProgressMode === "plain") {
             v3TableProgressMode = null;
+            const outcome = v3TablePlainOutcome;
+            v3TablePlainOutcome = null;
+            const elapsedSec = Math.floor((Date.now() - v3TablePlainStartedAt) / 1000);
+            const rows = Array.isArray(currentTableData) ? currentTableData.length : 0;
+            if (outcome && outcome.kind === "done" && rows) {
+                const model = TableJob.progressModel({ state: "done", readyRows: rows, totalRows: rows,
+                    elapsedSec, summary: v3TableProgressSummary(), nextAction: t("tableJob.actionReview") });
+                model.plain = true;
+                v3TableProgressRender(model);
+                return;
+            }
+            if (outcome && outcome.kind === "stopped") {
+                const model = TableJob.progressModel({ state: "stopped", elapsedSec, canRetry: outcome.canRetry });
+                model.reason = outcome.reason;
+                model.retryKey = "tableJob.retryPlain";
+                v3TableProgressRender(model);
+                return;
+            }
             const hud = document.getElementById("v3TableJobHud"), mini = document.getElementById("v3TableJobMini");
             if (hud) hud.hidden = true;
             if (mini) mini.hidden = true;

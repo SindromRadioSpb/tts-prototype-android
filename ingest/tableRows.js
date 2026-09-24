@@ -7,6 +7,11 @@
 "use strict";
 
 const HEBREW_MARKS_RE = /[\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7]/g;
+// \u041d\u0435\u0432\u0438\u0434\u0438\u043c\u044b\u0435 \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u044e\u0449\u0438\u0435 \u0437\u043d\u0430\u043a\u0438 \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u0438 \u043d\u0443\u043b\u0435\u0432\u043e\u0439 \u0448\u0438\u0440\u0438\u043d\u044b: \u0441\u0443\u0431\u0442\u0438\u0442\u0440\u044b \u0441\u0442\u0430\u0432\u044f\u0442 U+202B \u043f\u0435\u0440\u0435\u0434 \u043a\u0430\u0436\u0434\u043e\u0439
+// \u0440\u0435\u043f\u043b\u0438\u043a\u043e\u0439, \u0430 \u043c\u043e\u0434\u0435\u043b\u044c \u0438\u0445 \u043d\u0435 \u043f\u043e\u0432\u0442\u043e\u0440\u044f\u0435\u0442. \u042d\u0442\u043e \u0440\u0430\u0437\u043c\u0435\u0442\u043a\u0430, \u0430 \u043d\u0435 \u0442\u0435\u043a\u0441\u0442, \u2014 \u0432 \u0441\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0438 \u0435\u0439 \u043d\u0435 \u043c\u0435\u0441\u0442\u043e.
+const INVISIBLE_FORMAT_RE = /[\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff\u061c]/g;
+// \u0420\u0430\u0441\u0442\u044f\u043d\u0443\u0442\u043e\u0435 \u043c\u0435\u0436\u0434\u043e\u043c\u0435\u0442\u0438\u0435 (\u00ab\u05d5\u05d5\u05d5\u05d5\u05d5\u05d5\u2026\u00bb) \u043c\u043e\u0434\u0435\u043b\u044c \u043f\u0435\u0440\u0435\u0441\u0447\u0438\u0442\u044b\u0432\u0430\u0435\u0442 \u0441 \u0442\u043e\u0447\u043d\u043e\u0441\u0442\u044c\u044e \u00b11 \u0431\u0443\u043a\u0432\u0430.
+const ELONGATED_RUN_RE = /(\p{L})\1{2,}/gu;
 const { normalizeRows: canonicalizeKnownNiqqudRows } = require("../public/js/table-niqqud-normalizer.js");
 const sourceRecovery = require('../public/js/table-source-recovery');
 
@@ -15,6 +20,7 @@ function comparableHebrewBase(value) {
     .normalize("NFD")
     .replace(HEBREW_MARKS_RE, "")
     .normalize("NFC")
+    .replace(INVISIBLE_FORMAT_RE, "")
     .replace(/[־–—]/g, "-")
     .replace(/״/g, '"')
     .replace(/׳/g, "'")
@@ -61,8 +67,10 @@ function validateNiqqudBase(rows) {
 }
 
 function validateHebrewSourceCoverage(rows, sourceText) {
-  const source = comparableHebrewBase(sourceText);
-  const rendered = comparableHebrewBase((rows || []).map((row) => row && row.he || "").join(""));
+  // Длина растянутого повтора не несёт смысла: сравниваем его как «буква трижды».
+  const source = comparableHebrewBase(sourceText).replace(ELONGATED_RUN_RE, "$1$1$1");
+  const rendered = comparableHebrewBase((rows || []).map((row) => row && row.he || "").join(""))
+    .replace(ELONGATED_RUN_RE, "$1$1$1");
   if (source !== rendered) {
     throw semanticError("HE_SOURCE_COVERAGE_MISMATCH", "Gemini rows do not preserve the complete source Hebrew", {
       sourceLength: source.length,
