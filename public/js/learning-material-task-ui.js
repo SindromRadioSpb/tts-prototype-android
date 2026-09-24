@@ -20,12 +20,50 @@
     he:{reviewSource:'בדיקת הבדלים',exportResults:'הורדת המקור והתוצאות',reviewIntro:'בדקו את התרגום מול התמלול. שורות שהשתנו יישמרו עם טקסט המקור והתרגום שנבדק, ללא ניקוד או תעתיק שלא אומתו. תשובת המודל נשמרת ביומן. לא יבוצעו בקשות בתשלום.',sourceOriginal:'תמלול',sourceModel:'תשובת המודל',reviewTranslation:'תרגום — בדקו ותקנו',reviewConfirmed:'התרגום נבדק מול התמלול',applyReview:'שמירת השורות שנבדקו והמשך',reviewIncomplete:'בדקו את התרגום ואשרו כל שורה.',recoveredNote:'טקסט המקור שוחזר ב־{n} שורות. תשובת המודל נשמרת ביומן.',recoveryMissing:'נדרשים ניקוד ותעתיק ב־{n} שורות ששוחזרו.',mismatch_input:'נתוני המקור של המשימה השתנו.',mismatch_video:'הסרטון בתמלול אינו תואם לקישור המשימה.',mismatch_receipt:'בדיקות תקינות התוצאות נכשלו.',mismatch_table:'המודל שינה את הטקסט. בדקו את ההבדלים לשמירת התוצאות ללא זיהוי דיבור חוזר.',mismatch_mapping:'לא ניתן לשייך את השורות לתמלול באופן חד־משמעי. הורידו את הנתונים לשחזור ידני.',mismatch_saved:'הכרטיס השמור שונה מתוצאות המשימה. הכתיבה האוטומטית נעצרה.',TASK_TRANSLITERATION_RETRY:'לא ניתן לחשב מחדש את התעתיק. המשיכו ללא תשלום חוזר על זיהוי דיבור ותרגום.'}
   };
   for(const lang of Object.keys(recoveryWords))Object.assign(words[lang],recoveryWords[lang]);
+  const journeyWords={
+    ru:{stageMedia:'Медиа',stageTranscript:'Транскрипт',stageReview:'Проверка',stageOf:'Этап {i} из {n}',
+      finalLine:'«{title}» · {n} строк · ▶ у {m} · видео привязано ({kind})',finalKindLocal:'локальный файл',finalKindYoutube:'YouTube',
+      finalMissing:'Без ▶ осталось строк: {k}. Их можно привязать позже в Импорт-центре.',finalLocal:'Видео хранится в этом браузере: на другом устройстве плеер его не найдёт.',
+      openRoom:'Открыть в Зале',openStudio:'Открыть в Студии',
+      TASK_MEDIA_CONTEXT_LOST:'Текст разошёлся с транскриптом видео, и таблица без привязки не собирается. Проверьте транскрипт и продолжите.',
+      TASK_TABLE_UNSEGMENTED:'Таблица вернулась без номеров реплик, поэтому кнопки ▶ не привязать. Продолжите — части, собранные без номеров, соберутся заново.',
+      TASK_PLAYBACK_UNBOUND:'Карточка сохранена, но кнопки ▶ не привязались. Нажмите «Продолжить», чтобы привязать заново, или проверьте транскрипт.',
+      mismatchLine:'Первое расхождение — строка {n}.',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
+      reviewNote:'Транскрипт можно поправить сейчас: таблица соберётся из исправленной версии, а кнопки ▶ привяжутся к её репликам.'},
+    en:{stageMedia:'Media',stageTranscript:'Transcript',stageReview:'Review',stageOf:'Step {i} of {n}',
+      finalLine:'“{title}” · {n} rows · ▶ on {m} · video linked ({kind})',finalKindLocal:'local file',finalKindYoutube:'YouTube',
+      finalMissing:'Rows without ▶: {k}. You can link them later in the Import Center.',finalLocal:'The video is stored in this browser: the player will not find it on another device.',
+      openRoom:'Open in the Room',openStudio:'Open in the Studio',
+      TASK_MEDIA_CONTEXT_LOST:'The text no longer matches the video transcript, so the table is not built without its link. Check the transcript and continue.',
+      TASK_TABLE_UNSEGMENTED:'The table came back without cue numbers, so ▶ buttons cannot be linked. Continue — parts without numbers are built again.',
+      TASK_PLAYBACK_UNBOUND:'The card is saved, but its ▶ buttons did not link. Press “Continue” to link again, or check the transcript.',
+      mismatchLine:'First difference: line {n}.',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
+      reviewNote:'You can fix the transcript now: the table is built from the corrected version, and ▶ buttons link to its cues.'},
+    he:{stageMedia:'מדיה',stageTranscript:'תמלול',stageReview:'בדיקה',stageOf:'שלב {i} מתוך {n}',
+      finalLine:'„{title}” · {n} שורות · ▶ ב־{m} · הסרטון מקושר ({kind})',finalKindLocal:'קובץ מקומי',finalKindYoutube:'YouTube',
+      finalMissing:'שורות בלי ▶: {k}. אפשר לקשר אותן מאוחר יותר במרכז הייבוא.',finalLocal:'הסרטון שמור בדפדפן הזה: במכשיר אחר הנגן לא ימצא אותו.',
+      openRoom:'פתיחה באולם הקריאה',openStudio:'פתיחה בסטודיו',
+      TASK_MEDIA_CONTEXT_LOST:'הטקסט כבר לא תואם לתמלול הסרטון, ולכן הטבלה לא נבנית בלי הקישור. בדקו את התמלול והמשיכו.',
+      TASK_TABLE_UNSEGMENTED:'הטבלה חזרה בלי מספרי משפטים, ולכן אי אפשר לקשר כפתורי ▶. המשיכו — חלקים בלי מספרים ייבנו שוב.',
+      TASK_PLAYBACK_UNBOUND:'הכרטיס נשמר, אבל כפתורי ▶ לא קושרו. לחצו «המשך» כדי לקשר שוב, או בדקו את התמלול.',
+      mismatchLine:'ההבדל הראשון: שורה {n}.',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
+      reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
+  };
+  for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
   // ── Модель этапов и живой детали ──
   // Правило одно: показываем ТОЛЬКО то, чему есть знаменатель. У одного ASR-вызова провайдер не
   // отдаёт доли выполненного — там честны лишь номер окна и время, но не проценты. У таблицы
   // знаменатель есть и он уже посчитан чанк-циклом (доказанное покрытие строк) — его и берём.
   const LINK_STAGES=['transcribing','translating','saved','bound'];
   const TEXT_STAGES=['imported','translating','saved','ready'];
+  // Ведущий путь (владелец, 2026-09-24): медиа-материал — ссылка или локальный файл — проходит одну
+  // шкалу от медиа до готового материала. Локальный файл входит в задачу уже с транскриптом.
+  const MEDIA_STAGES=['media','transcript','review','translating','saved','bound','ready'];
+  const PHASE_AT_MEDIA={imported:3,transcribing:1,transcribed:3,translating:3,table_ready:4,saving:4,saved:5,binding:5,bound:6,exporting:6,ready:6};
+  // Часы этапа живут под именем фазы журнала, а не под именем пункта шкалы.
+  const CLOCK_PHASE={transcript:'transcribing'};
+  function isMediaJob(job){const input=job&&job.input;if(!input)return false;if(input.youtube_source)return true;
+    const meta=(job.transcript&&job.transcript.import_meta)||input.import_meta;return !!(meta&&meta.media_package_ref);}
   // Куда попадает каждая фаза журнала на шкале этапов.
   const PHASE_AT={imported:0,transcribing:0,transcribed:1,translating:1,table_ready:2,saving:2,saved:3,binding:3,bound:4,exporting:4,ready:4};
   // Время каждого этапа берётся из журнала задачи: он переживает перезагрузку и возобновление,
@@ -40,20 +78,40 @@
   }
   function stageModel(job,opts){
     const now=(opts&&opts.now)||Date.now();
-    const stages=(job&&job.input&&job.input.youtube_source)?LINK_STAGES:TEXT_STAGES;
-    const at=PHASE_AT[job&&job.phase];
+    const media=isMediaJob(job);
+    const stages=media?MEDIA_STAGES:TEXT_STAGES;
+    // У ссылки до распознавания текущий этап — транскрипт; у файла транскрипт уже есть.
+    const table=media?(job.input.youtube_source&&(job.phase==='imported'||!job.phase)?{...PHASE_AT_MEDIA,imported:1}:PHASE_AT_MEDIA):PHASE_AT;
+    const at=table[job&&job.phase];
     const reached=Number.isInteger(at)?at:0;
-    const finished=job&&(job.state==='ready'||job.phase==='ready'||job.phase==='bound');
+    const finished=job&&(job.state==='ready'||job.phase==='ready'||(!media&&job.phase==='bound'));
     const stalled=job&&(job.state==='paused'||job.state==='cancelled');
     return stages.map((key,i)=>({
       key,
       label:t('stage'+key.charAt(0).toUpperCase()+key.slice(1)),
       mark:mark(i),
       markLabel:t('mark'+mark(i).charAt(0).toUpperCase()+mark(i).slice(1)),
-      elapsedSec:stageElapsedSec(job,key,now),
-      elapsedText:stageElapsedSec(job,key,now)==null?null:clockShort(stageElapsedSec(job,key,now)),
+      elapsedSec:stageElapsedSec(job,CLOCK_PHASE[key]||key,now),
+      elapsedText:stageElapsedSec(job,CLOCK_PHASE[key]||key,now)==null?null:clockShort(stageElapsedSec(job,CLOCK_PHASE[key]||key,now)),
     }));
     function mark(i){return finished?'done':i<reached?'done':i===reached?(stalled?'stalled':'current'):'pending';}
+  }
+  // Узкий экран: одна строка «Этап 4 из 7 · Таблица» вместо семи пунктов.
+  function stageSummary(model){
+    const list=Array.isArray(model)?model:[];
+    let i=list.findIndex(s=>s.mark==='current'||s.mark==='stalled');
+    if(i<0)i=list.every(s=>s.mark==='done')?list.length-1:0;
+    return fill(t('stageOf'),{i:i+1,n:list.length})+' · '+(list[i]?list[i].label:'');
+  }
+  // ⑦ Итог: сколько строк, у скольких ▶, чего нет и где живёт локальное видео.
+  function finishLines(job){
+    const proof=job&&job.playback_proof;
+    if(!job||job.state!=='ready'||!proof)return [];
+    const lines=[fill(t('finalLine'),{title:job.input.title,n:proof.total_rows,m:proof.bound_rows,
+      kind:t(proof.kind==='youtube'?'finalKindYoutube':'finalKindLocal')})];
+    if(Number(proof.missing_rows)>0)lines.push(fill(t('finalMissing'),{k:proof.missing_rows}));
+    if(proof.kind==='local')lines.push(t('finalLocal'));
+    return lines;
   }
   // Цена качества объявляется там же, где успех: пробел допустим, молчание о нём — нет.
   function qualityNotes(job){
@@ -252,6 +310,8 @@
     // прогресса есть настоящий знаменатель (доказанные строки таблицы); у одного ASR-вызова его
     // нет, и придумывать проценты там нельзя — это то же враньё, что и подделанные метки.
     const steps=element('ol');steps.className='lmt-stages';
+    // Узкий экран показывает одну строку вместо семи пунктов (CSS прячет список, не эту строку).
+    const summary=element('p');summary.className='lmt-stage-summary';
     const detail=element('p');detail.className='lmt-detail';detail.setAttribute('role','status');
     const bar=document.createElement('progress');bar.className='lmt-bar';bar.max=100;bar.hidden=true;
     // Отдельная строка под деталью: вердикт журнала живёт весь прогон, а деталь перерисовывается
@@ -267,6 +327,7 @@
         li.setAttribute('aria-current',stage.mark==='current'?'step':'false');
         steps.append(li);
       }
+      summary.textContent=stageSummary(stageModel(current));
       const info=liveDetail(current,live||{});
       detail.textContent=info.text||'';
       const note=resumeNote(live||{});
@@ -275,7 +336,10 @@
       else{bar.hidden=false;bar.value=info.percent;bar.textContent=info.percent+'%';}
     }
     paintStages(job,liveState);
-    d.append(steps,detail,bar,resumed);
+    d.append(summary,steps,detail,bar,resumed);
+    const finish=finishLines(job);
+    if(finish.length){const box=element('div');box.className='lmt-final';box.setAttribute('role','status');
+      finish.forEach((line,i)=>{const p=element(i?'p':'strong',line);box.append(p);});d.append(box);}
     d.__paintStages=paintStages;d.__job=job;
     // Отозванные часы — факт материала, а не деталь прогона: он виден там же, где итог.
     for(const note of paidNotes(job)){const q=element('p',note);q.className='lmt-paid-note';d.append(q);}
@@ -288,7 +352,16 @@
     const alternateAvailable=job.error==='ASR_OTHER_EXHAUSTED'&&asrFailure&&asrFailure.failed_window
       &&!(job.asr_checkpoint.alternate_attempts||[]).some(item=>JSON.stringify(item.window)===JSON.stringify(asrFailure.failed_window)&&item.index===asrFailure.index);
     if(job.error){const named=alternateAvailable?({ru:'Gemini не распознал даже короткий фрагмент. Готовые части сохранены; можно один раз попробовать другую модель только для этого фрагмента.',en:'Gemini could not recognize even a short clip. Completed parts are saved; another model can be tried once for this clip only.',he:'Gemini לא הצליח לתמלל גם מקטע קצר. החלקים שהושלמו נשמרו; אפשר לנסות מודל אחר פעם אחת רק למקטע זה.'}[document.documentElement.lang]||''):recoverableOther?({ru:'Gemini остановил распознавание без указания причины. Готовые окна сохранены; продолжим с разделением проблемного фрагмента.',en:'Gemini stopped recognition without a specific reason. Completed windows are saved; continue by splitting only the failed section.',he:'Gemini עצר את התמלול בלי לציין סיבה. המקטעים שהושלמו נשמרו; נמשיך בחלוקת המקטע שנכשל.'}[document.documentElement.lang]||''):t('mismatch_'+job.error_reason)||(words[document.documentElement.lang]||words.ru)[job.error];const error=element('p',named||t('error'));error.setAttribute('role','alert');d.append(error);if(job.error==='ASR_BLOCKED'&&!recoverableOther){const hint=element('p',({ru:'Повтор этого же запроса отключён: он снова потратит квоту и получит тот же отказ. Используйте подготовленную MP4-копию через «С устройства».',en:'Repeating the same request is disabled: it would spend quota again and receive the same refusal. Use the prepared MP4 copy via “From device”.',he:'הפעלה חוזרת של אותה בקשה הושבתה: היא תצרוך שוב מכסה ותקבל אותה סירוב. השתמשו בעותק MP4 המוכן דרך „מהמכשיר”.'}[document.documentElement.lang]||''));hint.className='lmt-quality-note';d.append(hint);}const details=element('details');const failure=asrFailure;const provider=failure&&failure.provider_detail;const diagnostic=job.error+(job.error_reason?': '+job.error_reason:'')+(provider&&(provider.block_reason||provider.finish_reason)?' · '+(provider.block_reason||provider.finish_reason):'');details.append(element('summary',({ru:'Подробности',en:'Details',he:'פרטים'})[document.documentElement.lang]||'Details'),element('code',diagnostic));d.append(details);}
+    if(job.error==='TASK_MEDIA_CONTEXT_LOST'&&/:\d+$/.test(String(job.error_reason||''))){
+      const q=element('p',fill(t('mismatchLine'),{n:String(job.error_reason).split(':').pop()}));q.className='lmt-quality-note';d.append(q);}
     const actions=element('div');actions.className='study-source-actions';d.append(actions);
+    // ⑦ Готово: пользователь сам выбирает, учиться или править; задача закрывается его выбором.
+    const finale=job.state==='ready'&&job.saved_text_id&&job.playback_proof&&operations.openInRoom&&operations.openInStudio;
+    if(finale){
+      const room=button(actions,t('openRoom'),async()=>{try{await operations.openInRoom(job);d.close();}catch(_){status.textContent=t('error');}});
+      room.className='btn-primary';
+      button(actions,t('openStudio'),async()=>{try{await operations.openInStudio(job);d.close();}catch(_){status.textContent=t('error');}});
+    }
     if(runner.isRunning(job.id))button(actions,t('cancel'),async()=>{await runner.cancel(job.id);status.textContent=t('stopping');});
     // A provider policy/safety block is terminal for this exact URL. Re-running the same paid
     // request cannot heal it; completed ASR windows remain exportable in the task checkpoint.
@@ -311,7 +384,7 @@
       const url=URL.createObjectURL(blob),a=element('a');a.href=url;a.download='material-task-'+job.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
     if(job.package){button(actions,t('download'),async()=>{try{await operations.download(job);status.textContent=t('downloaded');}catch(_){status.textContent=t('error');}});}
-    if(job.saved_text_id)button(actions,t('open'),async()=>{try{await operations.openMaterial(job);d.close();}catch(_){status.textContent=t('error');}});
+    if(job.saved_text_id&&!finale)button(actions,t('open'),async()=>{try{await operations.openMaterial(job);d.close();}catch(_){status.textContent=t('error');}});
     if(job.saved_text_id&&job.transcript?.timing?.verdict!=='verified'&&window.StudyTimingRepair)button(actions,
       ({ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[document.documentElement.lang]||'Restore synchronization'),()=>StudyTimingRepair.open(job.saved_text_id));
     if(!runner.isRunning(job.id)){button(actions,t('close'),()=>d.close());button(actions,t('remove'),async()=>{if(!window.confirm(t('removeConfirm')))return;await store.remove(job.id);await list(d);});}
@@ -475,6 +548,6 @@
     button(d,t('close'),()=>d.close());
   }
   function labels(){const start=document.getElementById('v3ImportPrepareTask');if(start)start.textContent=t('start');const tasks=document.getElementById('v3LearningTasks');if(tasks)tasks.textContent=t('tasks');}
-  window.LearningMaterialTaskUI={configure:value=>{operations=value;},start,list,labels,stageModel,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
+  window.LearningMaterialTaskUI={configure:value=>{operations=value;},start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
   document.addEventListener('DOMContentLoaded',labels);document.addEventListener('i18n:changed',labels);
 })();

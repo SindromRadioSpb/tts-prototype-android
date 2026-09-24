@@ -79,19 +79,33 @@ const marks = (model) => model.map((s) => s.key + ':' + s.mark).join(' ');
 // Массивы приходят из другого realm (vm), поэтому сравниваем содержимое, а не прототип.
 const keys = (model) => model.map((s) => s.key).join(',');
 
-test('a link material shows its own four stages, not the text ones',()=>{
-  assert.equal(keys(UI.stageModel(linkJob('transcribing'))), 'transcribing,translating,saved,bound');
+// Ведущий путь (2026-09-24): медиа-материал — ссылка или локальный файл — идёт по одной шкале из
+// семи этапов от медиа до готового материала; у текста без медиа прежние четыре.
+const MEDIA_KEYS = 'media,transcript,review,translating,saved,bound,ready';
+const localJob = (phase, state, extra) => Object.assign({
+  input: { title: 'x', import_meta: { media_package_ref: { package_id: 'mpkg:a' } } },
+  phase, state: state || 'running', transcript: null, table: null, saved_text_id: null,
+}, extra || {});
+
+test('a media material shows seven stages; a plain text keeps its four',()=>{
+  assert.equal(keys(UI.stageModel(linkJob('transcribing'))), MEDIA_KEYS);
+  assert.equal(keys(UI.stageModel(localJob('imported'))), MEDIA_KEYS);
   assert.equal(keys(UI.stageModel({ input: { title: 'x' }, phase: 'imported', state: 'running' })),
     'imported,translating,saved,ready');
 });
 
-test('a finished stage is marked done, the running one current, the rest pending',()=>{
+test('a local file starts at the table: media, transcript and review are already behind it',()=>{
+  assert.equal(marks(UI.stageModel(localJob('translating'))),
+    'media:done transcript:done review:done translating:current saved:pending bound:pending ready:pending');
+});
+
+test('a link material walks recognition, table, saving and binding in order',()=>{
   assert.equal(marks(UI.stageModel(linkJob('transcribing'))),
-    'transcribing:current translating:pending saved:pending bound:pending');
+    'media:done transcript:current review:pending translating:pending saved:pending bound:pending ready:pending');
   assert.equal(marks(UI.stageModel(linkJob('translating'))),
-    'transcribing:done translating:current saved:pending bound:pending');
+    'media:done transcript:done review:done translating:current saved:pending bound:pending ready:pending');
   assert.equal(marks(UI.stageModel(linkJob('binding'))),
-    'transcribing:done translating:done saved:done bound:current');
+    'media:done transcript:done review:done translating:done saved:done bound:current ready:pending');
 });
 
 test('a completed run leaves every stage marked done, none still running',()=>{
@@ -102,7 +116,23 @@ test('a completed run leaves every stage marked done, none still running',()=>{
 test('a paused run stops claiming its stage is still working',()=>{
   const model = UI.stageModel(linkJob('translating', 'paused'));
   assert.equal(model.find((s) => s.key === 'translating').mark, 'stalled');
-  assert.equal(model.find((s) => s.key === 'transcribing').mark, 'done');
+  assert.equal(model.find((s) => s.key === 'transcript').mark, 'done');
+  const unbound = UI.stageModel(localJob('binding', 'paused'));
+  assert.equal(unbound.find((s) => s.key === 'bound').mark, 'stalled');
+});
+
+test('the finish line names rows, play buttons and where a local video lives',()=>{
+  const job = localJob('ready', 'ready', { saved_text_id: 't', table: { rows: [{}, {}, {}] },
+    playback_proof: { kind: 'local', bound_rows: 2, total_rows: 3, missing_rows: 1 } });
+  const lines = UI.finishLines(job);
+  assert.match(lines.join(' | '), /3/);
+  assert.match(lines.join(' | '), /2/);
+  assert.equal(lines.length, 3, 'summary, missing rows, local storage');
+  assert.equal(UI.finishLines(localJob('translating')).length, 0, 'nothing to announce before the end');
+});
+
+test('on a narrow screen the scale collapses to one named step',()=>{
+  assert.equal(UI.stageSummary(UI.stageModel(localJob('translating'))), 'Этап 4 из 7 · Учебная таблица');
 });
 
 test('recognition reports the window it is on, and nothing it cannot know',()=>{
@@ -135,8 +165,8 @@ test('a running stage never paints from a snapshot taken before the run started'
   // и всё 4-минутное ожидание экран показывал «остановлено» при работающем прогоне.
   const stale = linkJob('imported', 'paused');
   const fresh = linkJob('transcribing', 'running');
-  assert.equal(UI.stageModel(fresh).find((s) => s.key === 'transcribing').mark, 'current');
-  assert.equal(UI.stageModel(stale).find((s) => s.key === 'transcribing').mark, 'stalled');
+  assert.equal(UI.stageModel(fresh).find((s) => s.key === 'transcript').mark, 'current');
+  assert.equal(UI.stageModel(stale).find((s) => s.key === 'transcript').mark, 'stalled');
 });
 
 test('the line under the stages never repeats the clock the stage already shows',()=>{
@@ -158,7 +188,8 @@ test('every stage mark carries a word, not only a glyph',()=>{
   const model = UI.stageModel(linkJob('translating'));
   const words = model.map((s) => s.markLabel);
   assert.equal(words.every((w) => typeof w === 'string' && w.length > 0), true, JSON.stringify(words));
-  assert.notEqual(words[0], words[1], 'done and running must not read the same');
+  const word = (mark) => model.find((s) => s.mark === mark).markLabel;
+  assert.notEqual(word('done'), word('current'), 'done and running must not read the same');
 });
 
 test('the wait between attempts never tells the person to do what the app is already doing',()=>{
@@ -235,7 +266,7 @@ test('each stage carries its own clock, running and finished alike',()=>{
   const job = linkJob('translating');
   job.stage_times = { transcribing: { startedAt: 1000, endedAt: 582000 }, translating: { startedAt: 582000 } };
   const model = UI.stageModel(job, { now: 700000 });
-  const done = model.find((s) => s.key === 'transcribing');
+  const done = model.find((s) => s.key === 'transcript');
   const current = model.find((s) => s.key === 'translating');
   assert.equal(done.elapsedSec, 581, 'a finished stage reports what it actually took');
   assert.equal(current.elapsedSec, 118, 'a running stage counts from its own start, not the run start');
@@ -246,7 +277,7 @@ test('stage clocks are shown next to their stage, in mm:ss',()=>{
   const job = linkJob('ready', 'ready');
   job.stage_times = { transcribing: { startedAt: 0, endedAt: 581000 }, translating: { startedAt: 581000, endedAt: 711000 } };
   const model = UI.stageModel(job, { now: 711000 });
-  assert.equal(model.find((s) => s.key === 'transcribing').elapsedText, '9:41');
+  assert.equal(model.find((s) => s.key === 'transcript').elapsedText, '9:41');
   assert.equal(model.find((s) => s.key === 'translating').elapsedText, '2:10');
 });
 
