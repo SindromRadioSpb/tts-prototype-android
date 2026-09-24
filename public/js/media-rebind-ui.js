@@ -5,19 +5,19 @@
 (function () {
   'use strict';
   const words = {
-    ru: { searchingCards: 'Ищем сохранённые карточки этого видео…', cardsTitle: 'Карточки без видео', cardsHelp: 'К этому транскрипту подходит сохранённая карточка без привязки. Выберите её: строки не изменятся.', noCards: 'Подходящих сохранённых карточек без привязки не нашлось.', cardOffer: 'Привязать к «{title}» · ▶ у {k} из {n}', title: 'Видео не привязано', help: 'Карточка сохранена без видео. Её строки можно привязать к транскрипту бесплатно: сами строки не изменятся.',
+    ru: { linkedTitle: 'Видео привязано', linkedHelp: 'Откройте карточку заново: плеер и кнопки ▶ появятся в Студии и в Зале.', searchingCards: 'Ищем сохранённые карточки этого видео…', cardsTitle: 'Карточки без видео', cardsHelp: 'К этому транскрипту подходит сохранённая карточка без привязки. Выберите её: строки не изменятся.', noCards: 'Подходящих сохранённых карточек без привязки не нашлось.', cardOffer: 'Привязать к «{title}» · ▶ у {k} из {n}', title: 'Видео не привязано', help: 'Карточка сохранена без видео. Её строки можно привязать к транскрипту бесплатно: сами строки не изменятся.',
       find: 'Привязать медиа', finding: 'Ищем транскрипт этой карточки…', preview: '▶ получат {k} из {n} строк · {file}',
       rebuild: 'Меньше 80% строк нашли свои реплики. Чтобы ▶ были у всех, пересоберите таблицу по сегментам через «Собрать учебный материал» — это платно и со сметой.',
       apply: 'Привязать', cancel: 'Отмена', applying: 'Привязываем…', changed: 'Карточка изменилась после предпросмотра. Проверьте новый результат.',
       done: 'Готово: ▶ у {m} из {n} строк.', NO_MATCH: 'Транскрипт этой карточки на устройстве не найден.',
       AMBIGUOUS: 'Карточке одинаково подходят два транскрипта. Автоматически выбирать не будем.', failed: 'Привязать не удалось: {code}' },
-    en: { searchingCards: 'Looking for saved cards of this video…', cardsTitle: 'Cards without video', cardsHelp: 'A saved card without a link fits this transcript. Choose it; its rows stay unchanged.', noCards: 'No matching saved cards without a link were found.', cardOffer: 'Link to “{title}” · ▶ on {k} of {n}', title: 'Video not linked', help: 'This card was saved without its video. Its rows can be linked to the transcript for free; the rows themselves stay unchanged.',
+    en: { linkedTitle: 'Video linked', linkedHelp: 'Open the card again: the player and ▶ buttons appear in the Studio and the Room.', searchingCards: 'Looking for saved cards of this video…', cardsTitle: 'Cards without video', cardsHelp: 'A saved card without a link fits this transcript. Choose it; its rows stay unchanged.', noCards: 'No matching saved cards without a link were found.', cardOffer: 'Link to “{title}” · ▶ on {k} of {n}', title: 'Video not linked', help: 'This card was saved without its video. Its rows can be linked to the transcript for free; the rows themselves stay unchanged.',
       find: 'Link media', finding: 'Looking for this card’s transcript…', preview: '▶ for {k} of {n} rows · {file}',
       rebuild: 'Under 80% of rows found their cues. For ▶ on every row, rebuild the table by segments with “Build the study material” — paid, with an estimate.',
       apply: 'Link', cancel: 'Cancel', applying: 'Linking…', changed: 'The card changed after the preview. Check the new result.',
       done: 'Done: ▶ on {m} of {n} rows.', NO_MATCH: 'This card’s transcript was not found on this device.',
       AMBIGUOUS: 'Two transcripts fit this card equally well. It will not be chosen automatically.', failed: 'Linking failed: {code}' },
-    he: { searchingCards: 'מחפשים כרטיסים שמורים של הסרטון…', cardsTitle: 'כרטיסים בלי סרטון', cardsHelp: 'כרטיס שמור בלי קישור מתאים לתמלול הזה. בחרו בו; השורות שלו לא ישתנו.', noCards: 'לא נמצאו כרטיסים שמורים מתאימים בלי קישור.', cardOffer: 'קישור אל „{title}” · ▶ ב־{k} מתוך {n}', title: 'הסרטון לא מקושר', help: 'הכרטיס נשמר בלי הסרטון. אפשר לקשר את השורות שלו לתמלול בחינם; השורות עצמן לא ישתנו.',
+    he: { linkedTitle: 'הסרטון מקושר', linkedHelp: 'פתחו את הכרטיס שוב: הנגן וכפתורי ▶ יופיעו בסטודיו ובאולם הקריאה.', searchingCards: 'מחפשים כרטיסים שמורים של הסרטון…', cardsTitle: 'כרטיסים בלי סרטון', cardsHelp: 'כרטיס שמור בלי קישור מתאים לתמלול הזה. בחרו בו; השורות שלו לא ישתנו.', noCards: 'לא נמצאו כרטיסים שמורים מתאימים בלי קישור.', cardOffer: 'קישור אל „{title}” · ▶ ב־{k} מתוך {n}', title: 'הסרטון לא מקושר', help: 'הכרטיס נשמר בלי הסרטון. אפשר לקשר את השורות שלו לתמלול בחינם; השורות עצמן לא ישתנו.',
       find: 'קישור מדיה', finding: 'מחפשים את התמלול של הכרטיס…', preview: '▶ ל־{k} מתוך {n} שורות · {file}',
       rebuild: 'פחות מ־80% מהשורות מצאו את המשפטים שלהן. כדי שלכל שורה יהיה ▶, בנו מחדש את הטבלה לפי מקטעים דרך «בניית חומר הלימוד» — בתשלום, עם הערכת עלות.',
       apply: 'קישור', cancel: 'ביטול', applying: 'מקשרים…', changed: 'הכרטיס השתנה אחרי התצוגה המקדימה. בדקו את התוצאה החדשה.',
@@ -71,7 +71,8 @@
     try { count = await playableCount(textId); } catch (_) { return; }
     if (count.playable > 0 || !count.total) return;
     const box = el('section', null, 'p4-rebind'); box.setAttribute('aria-live', 'polite');
-    box.append(el('h5', t('title')), el('p', t('help')));
+    const heading = el('h5', t('title')), help = el('p', t('help'));
+    box.append(heading, help);
     const status = el('p', '', 'p2-portable-status'); status.setAttribute('role', 'status');
     const actions = el('div', null, 'p4-material-actions');
     const find = el('button', t('find')); find.type = 'button';
@@ -101,6 +102,7 @@
           const out = await apply(textId, c);
           if (out.changed) { status.textContent = t('changed'); if (out.fresh.candidate) showPreview(out.fresh); return; }
           actions.replaceChildren();
+          heading.textContent = t('linkedTitle'); help.textContent = t('linkedHelp');
           status.textContent = t('done', { m: out.count.playable, n: out.count.total });
         } catch (e) { status.textContent = t('failed', { code: e && (e.code || e.message) || 'ERROR' }); go.disabled = false; }
       };
@@ -149,7 +151,9 @@
   // Студия: открытая сохранённая карточка без ▶ сама предлагает привязку.
   async function mountInto(host, textId) {
     if (!host) return;
-    host.replaceChildren(); host.hidden = true;
+    // Поздний повторный проход той же карточки не сбрасывает начатый человеком поиск.
+    if (host.dataset.textId === String(textId) && host.childElementCount) return;
+    host.replaceChildren(); host.hidden = true; host.dataset.textId = String(textId);
     await mount(host, textId);
     host.hidden = !host.childElementCount;
   }
@@ -158,6 +162,6 @@
   // Новый источник в Студии — предложение прошлой карточки больше не о том, что на экране.
   document.addEventListener('studio:source-context-changed', () => {
     const host = document.getElementById('v3RebindHost');
-    if (host) { host.replaceChildren(); host.hidden = true; }
+    if (host) { host.replaceChildren(); host.hidden = true; delete host.dataset.textId; }
   });
 })();

@@ -31,3 +31,10 @@ test('an opened saved card without play buttons offers the rebind in the Studio'
   const at = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows)');
   assert.match(html.slice(at, at + 400), /MediaRebindUI\.mountInto\(document\.getElementById\("v3RebindHost"\), textId\)/);
 });
+
+test('a late second pass keeps the offer the person is working with, and success renames it', () => {
+  const ui = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'media-rebind-ui.js'), 'utf8');
+  const at = ui.indexOf('async function mountInto');
+  assert.match(ui.slice(at, at + 500), /host\.dataset\.textId === String\(textId\) && host\.childElementCount\) return/);
+  assert.match(ui, /heading\.textContent = t\('linkedTitle'\)/);
+});
