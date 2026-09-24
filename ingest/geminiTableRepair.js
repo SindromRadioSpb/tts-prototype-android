@@ -75,16 +75,23 @@ async function runRepair(opts) {
   });
   if (!faults.length) return { parsed, providerCalls: 0, repair: null };
   const indices = faults.map(r => r.row_index);
-  if (faults.length > MAX_TARGET_ROWS || prepared.length !== parsed.rows.length) throw reviewRequired(indices, 0, 'target_limit');
+  // Индексы подготовленных строк совпадают с сырыми всегда, кроме legacy any-he с пустыми
+  // строками; там сопоставление неточно, и этот случай остаётся закрытым.
+  if (prepared.length !== parsed.rows.length) throw reviewRequired(indices, 0, 'row_mapping');
   const identity = crypto.createHash('sha256').update(JSON.stringify({
     version: REPAIR_VERSION, rawText, scenario, translitProfile,
   })).digest('hex');
   let ledger = { version: REPAIR_VERSION, identity, attempts: [], patches: [] };
   if (fs.existsSync(cacheFile)) {
     try {
-      ledger = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-      if (ledger.identity !== identity || !Array.isArray(ledger.attempts) || !Array.isArray(ledger.patches)) throw new Error('identity');
-    } catch (_) { throw reviewRequired(indices, 0, 'repair_cache_invalid'); }
+      const stored = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+      if (stored.identity !== identity || !Array.isArray(stored.attempts) || !Array.isArray(stored.patches)) throw new Error('identity');
+      ledger = stored;
+    } catch (_) {
+      // Нечитаемый или чужой журнал откладывается как улика, а не останавливает сборку
+      // (владелец, 2026-09-24): ремонт начинается заново под своим бюджетом.
+      try { fs.renameSync(cacheFile, `${cacheFile}.invalid-${Date.now()}`); } catch (_) {}
+    }
   }
   const working = JSON.parse(JSON.stringify(parsed));
   const accepted = new Set();
@@ -125,16 +132,29 @@ async function runRepair(opts) {
       attempt.acceptedRows = patches.map(p => p.row_index);
     } catch (_) {}
     attempt.state = 'validated';
-    writeRawTableCacheAtomic(cacheFile, ledger);
+    try { writeRawTableCacheAtomic(cacheFile, ledger); } catch (_) {}
   }
+  // Бюджет считается по строке, а не по запросу: каждая отвергнутая строка получает не больше
+  // MAX_ATTEMPTS платных попыток, а запрос несёт не больше MAX_TARGET_ROWS строк. Раньше лишняя
+  // строка сверх потолка останавливала всю часть ещё до ремонта (владелец, 2026-09-24: 27 из 120).
+  const tries = new Map();
+  for (const a of ledger.attempts) for (const i of (a.rows || [])) tries.set(i, (tries.get(i) || 0) + 1);
   let providerCalls = 0;
-  while (accepted.size < faults.length && ledger.attempts.length < MAX_ATTEMPTS) {
-    const targets = faults.filter(r => !accepted.has(r.row_index));
+  let reservationFailed = false;
+  for (;;) {
+    const targets = faults
+      .filter(r => !accepted.has(r.row_index) && (tries.get(r.row_index) || 0) < MAX_ATTEMPTS)
+      .sort((a, b) => (tries.get(a.row_index) || 0) - (tries.get(b.row_index) || 0) || a.row_index - b.row_index)
+      .slice(0, MAX_TARGET_ROWS)
+      .sort((a, b) => a.row_index - b.row_index);
+    if (!targets.length) break;
     const attempt = { number: ledger.attempts.length + 1, rows: targets.map(r => r.row_index), state: 'reserved' };
     ledger.attempts.push(attempt);
-    // A persistence failure must stop BEFORE spending the owner's quota.
+    // A persistence failure must stop BEFORE spending the owner's quota. Не оплаченные строки
+    // тогда едут без огласовки с пометкой — сборка из-за диска не останавливается.
     try { writeRawTableCacheAtomic(cacheFile, ledger); }
-    catch (_) { throw reviewRequired(targets.map(r => r.row_index), ledger.attempts.length - 1, 'repair_cache_unavailable'); }
+    catch (_) { ledger.attempts.pop(); reservationFailed = true; break; }
+    targets.forEach(r => tries.set(r.row_index, (tries.get(r.row_index) || 0) + 1));
     let response;
     try {
       providerCalls++;
@@ -145,13 +165,13 @@ async function runRepair(opts) {
       // Explicit auth/rate rejection produced no paid text. Allow an intentional
       // retry with a corrected key / after the quota cooldown.
       if ([400, 401, 403, 429].includes(Number(e.status || e.statusCode))) ledger.attempts.pop();
-      writeRawTableCacheAtomic(cacheFile, ledger);
+      try { writeRawTableCacheAtomic(cacheFile, ledger); } catch (_) {}
       throw e;
     }
     attempt.state = 'received';
     attempt.rawText = typeof response.text === 'string' ? response.text : '';
     attempt.modelVersion = response.modelVersion || null;
-    writeRawTableCacheAtomic(cacheFile, ledger); // preserve paid output before parsing
+    try { writeRawTableCacheAtomic(cacheFile, ledger); } catch (_) {} // preserve paid output before parsing
     try {
       const payload = JSON.parse(attempt.rawText.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim());
       const patches = applyPatches(payload.repairs, targets);
@@ -159,7 +179,7 @@ async function runRepair(opts) {
       attempt.acceptedRows = patches.map(p => p.row_index);
     } catch (_) { /* bounded second attempt, never bypass validation */ }
     attempt.state = 'validated';
-    writeRawTableCacheAtomic(cacheFile, ledger);
+    try { writeRawTableCacheAtomic(cacheFile, ledger); } catch (_) {}
   }
   // Решение владельца 2026-09-11 (вариант A). Строка, которую модель не может огласовать, не
   // переписав источник, едет дальше БЕЗ огласовки и с явной пометкой. Источник неприкосновенен —
@@ -172,7 +192,7 @@ async function runRepair(opts) {
   }
   return { parsed: working, providerCalls, repair: { version: REPAIR_VERSION,
     repairedRows: accepted.size, rowIndexes: [...accepted], attempts: ledger.attempts.length,
-    unvocalizedRows: unvocalized,
+    unvocalizedRows: unvocalized, ...(reservationFailed ? { stoppedReason: 'repair_cache_unavailable' } : {}),
     modelVersions: [...new Set(ledger.attempts.map(a => a.modelVersion).filter(Boolean))] } };
 }
 

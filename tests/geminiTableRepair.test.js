@@ -149,3 +149,69 @@ test('the repair tells the model exactly what it broke, not only that something 
     'the source token it must keep has to appear in the instruction');
   assert.match(seenPrompt, /סֶנְטִימֶטֶר|סנטימטר/, 'so does the substitution it made');
 });
+
+// ── Владелец, 2026-09-24: часть 1/4 с 27 отвергнутыми строками остановила всю сборку ──
+// Потолок «не больше 24 строк в одном запросе ремонта» был правильным для размера запроса, но
+// превращался в блокировку: ремонт не запускался вовсе, и 0/453 сегментов. Потолок теперь режет
+// ЗАПРОС на пачки, а не материал; строка, которую не удалось огласовать, едет с пометкой.
+function manyBad(n) {
+  const rows = [good];
+  for (let i = 1; i <= n; i++) rows.push({ ...bad, segment_index: i });
+  return rows;
+}
+function manyFixture(t, n, generate) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-table-repair-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const rows = manyBad(n);
+  return { dir, parsed: { rows }, direction: 'he-ru', segMode: true,
+    rawText: JSON.stringify({ rows }), cacheFile: path.join(dir, 'repair.json'),
+    scenario, translitProfile: 'learner-latin', generate };
+}
+
+test('more rejected rows than one repair request holds are repaired in batches, never refused', async t => {
+  const batches = [];
+  const opts = manyFixture(t, 27, async ({ targets }) => {
+    batches.push(targets.map(r => r.row_index));
+    return { text: JSON.stringify({ repairs: targets.map(r => ({ ...fixed, row_index: r.row_index })) }) };
+  });
+  const out = await recoverTableNiqqud(opts);
+  assert.ok(batches.every(b => b.length <= 24), 'each request stays within the bounded size');
+  assert.deepEqual(batches.flat().sort((a, b) => a - b), Array.from({ length: 27 }, (_, i) => i + 1));
+  assert.equal(out.repair.repairedRows, 27);
+  assert.deepEqual(out.repair.unvocalizedRows, []);
+  assert.equal(out.parsed.rows[0].he_niqqud, good.he_niqqud);
+});
+
+test('a large unrepairable part still builds: every row gets at most two paid tries, then ships marked', async t => {
+  let calls = 0;
+  const opts = manyFixture(t, 30, async () => { calls++; return { text: JSON.stringify({ repairs: [] }) }; });
+  const out = await recoverTableNiqqud(opts);
+  assert.equal(out.repair.unvocalizedRows.length, 30);
+  assert.ok(out.parsed.rows.slice(1).every(r => r.niqqud_status === 'not_vocalized' && r.he_niqqud === ''));
+  assert.equal(calls, 3, '30 rows x 2 tries = 60 row-tries, packed 24 per request');
+  const again = await recoverTableNiqqud(opts);
+  assert.equal(calls, 3, 'a rebuild reuses the ledger instead of paying again');
+  assert.deepEqual(again.repair.unvocalizedRows, out.repair.unvocalizedRows);
+});
+
+test('an unreadable repair ledger is set aside, not a reason to stop the build', async t => {
+  let calls = 0;
+  const opts = fixture(t, async () => { calls++; return { text: JSON.stringify({ repairs: [fixed] }) }; });
+  fs.writeFileSync(opts.cacheFile, '{broken');
+  const out = await recoverTableNiqqud(opts);
+  assert.equal(out.repair.repairedRows, 1);
+  assert.equal(calls, 1);
+  const kept = fs.readdirSync(path.dirname(opts.cacheFile)).filter(f => f.startsWith('repair.json.invalid-'));
+  assert.equal(kept.length, 1, 'the old ledger is kept as evidence');
+});
+
+test('when the ledger cannot be written, nothing is paid and rows ship unvocalized', async t => {
+  const opts = fixture(t, async () => assert.fail('must not spend without a durable reservation'));
+  const blocker = path.join(path.dirname(opts.cacheFile), 'not-a-dir');
+  fs.writeFileSync(blocker, 'x');
+  opts.cacheFile = path.join(blocker, 'repair.json');
+  const out = await recoverTableNiqqud(opts);
+  assert.deepEqual(out.repair.unvocalizedRows, [1]);
+  assert.equal(out.parsed.rows[1].niqqud_status, 'not_vocalized');
+  assert.equal(out.providerCalls, 0);
+});
