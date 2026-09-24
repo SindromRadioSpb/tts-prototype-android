@@ -28,7 +28,7 @@
       TASK_MEDIA_CONTEXT_LOST:'Текст разошёлся с транскриптом видео, и таблица без привязки не собирается. Проверьте транскрипт и продолжите.',
       TASK_TABLE_UNSEGMENTED:'Таблица вернулась без номеров реплик, поэтому кнопки ▶ не привязать. Продолжите — части, собранные без номеров, соберутся заново.',
       TASK_PLAYBACK_UNBOUND:'Карточка сохранена, но кнопки ▶ не привязались. Нажмите «Продолжить», чтобы привязать заново, или проверьте транскрипт.',
-      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
+      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
       reviewNote:'Транскрипт можно поправить сейчас: таблица соберётся из исправленной версии, а кнопки ▶ привяжутся к её репликам.'},
     en:{stageMedia:'Media',stageTranscript:'Transcript',stageReview:'Review',stageOf:'Step {i} of {n}',
       finalLine:'“{title}” · {n} rows · ▶ on {m} · video linked ({kind})',finalKindLocal:'local file',finalKindYoutube:'YouTube',
@@ -37,7 +37,7 @@
       TASK_MEDIA_CONTEXT_LOST:'The text no longer matches the video transcript, so the table is not built without its link. Check the transcript and continue.',
       TASK_TABLE_UNSEGMENTED:'The table came back without cue numbers, so ▶ buttons cannot be linked. Continue — parts without numbers are built again.',
       TASK_PLAYBACK_UNBOUND:'The card is saved, but its ▶ buttons did not link. Press “Continue” to link again, or check the transcript.',
-      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
+      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
       reviewNote:'You can fix the transcript now: the table is built from the corrected version, and ▶ buttons link to its cues.'},
     he:{stageMedia:'מדיה',stageTranscript:'תמלול',stageReview:'בדיקה',stageOf:'שלב {i} מתוך {n}',
       finalLine:'„{title}” · {n} שורות · ▶ ב־{m} · הסרטון מקושר ({kind})',finalKindLocal:'קובץ מקומי',finalKindYoutube:'YouTube',
@@ -46,7 +46,7 @@
       TASK_MEDIA_CONTEXT_LOST:'הטקסט כבר לא תואם לתמלול הסרטון, ולכן הטבלה לא נבנית בלי הקישור. בדקו את התמלול והמשיכו.',
       TASK_TABLE_UNSEGMENTED:'הטבלה חזרה בלי מספרי משפטים, ולכן אי אפשר לקשר כפתורי ▶. המשיכו — חלקים בלי מספרים ייבנו שוב.',
       TASK_PLAYBACK_UNBOUND:'הכרטיס נשמר, אבל כפתורי ▶ לא קושרו. לחצו «המשך» כדי לקשר שוב, או בדקו את התמלול.',
-      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
+      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
       reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
   };
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
@@ -88,7 +88,7 @@
     const stalled=job&&(job.state==='paused'||job.state==='cancelled');
     return stages.map((key,i)=>({
       key,
-      label:t('stage'+key.charAt(0).toUpperCase()+key.slice(1)),
+      label:t(media&&key==='ready'?'stageFinish':'stage'+key.charAt(0).toUpperCase()+key.slice(1)),
       mark:mark(i),
       markLabel:t('mark'+mark(i).charAt(0).toUpperCase()+mark(i).slice(1)),
       elapsedSec:stageElapsedSec(job,CLOCK_PHASE[key]||key,now),
@@ -107,7 +107,8 @@
   function finishLines(job){
     const proof=job&&job.playback_proof;
     if(!job||job.state!=='ready'||!proof)return [];
-    const lines=[fill(t('finalLine'),{title:job.input.title,n:proof.total_rows,m:proof.bound_rows,
+    // Название изолировано (FSI…PDI): русское имя в ивритской строке не переставляет соседние числа.
+    const lines=[fill(t('finalLine'),{title:'\u2068'+job.input.title+'\u2069',n:proof.total_rows,m:proof.bound_rows,
       kind:t(proof.kind==='youtube'?'finalKindYoutube':'finalKindLocal')})];
     if(Number(proof.missing_rows)>0)lines.push(fill(t('finalMissing'),{k:proof.missing_rows}));
     if(proof.kind==='local')lines.push(t('finalLocal'));
@@ -305,7 +306,9 @@
   function button(parent,label,fn){const b=element('button',label);b.type='button';b.onclick=fn;parent.append(b);return b;}
   async function showTask(job,d){
     d=d||dialog(t('title'));d.replaceChildren(element('h2',job.input.title));sourceLink(d,job.input);
-    const status=element('p',job.state==='running'?'':t(job.state));status.setAttribute('role','status');d.append(status);
+    // Финал медиа-материала говорит об учёбе, а не о ZIP: пакет остаётся второстепенной кнопкой.
+    const finalReady=job.state==='ready'&&!!job.playback_proof;
+    const status=element('p',job.state==='running'?'':t(finalReady?'readyFinal':job.state));status.setAttribute('role','status');d.append(status);
     // Этапы с состояниями и живая деталь ТЕКУЩЕГО этапа. Полоса рисуется только когда у
     // прогресса есть настоящий знаменатель (доказанные строки таблицы); у одного ASR-вызова его
     // нет, и придумывать проценты там нельзя — это то же враньё, что и подделанные метки.
@@ -336,7 +339,8 @@
       else{bar.hidden=false;bar.value=info.percent;bar.textContent=info.percent+'%';}
     }
     paintStages(job,liveState);
-    d.append(summary,steps,detail,bar,resumed);
+    const scale=element('div');scale.className='lmt-scale';scale.append(summary,steps);
+    d.append(scale,detail,bar,resumed);
     const finish=finishLines(job);
     if(finish.length){const box=element('div');box.className='lmt-final';box.setAttribute('role','status');
       finish.forEach((line,i)=>{const p=element(i?'p':'strong',line);box.append(p);});d.append(box);}
@@ -385,7 +389,7 @@
     });
     if(job.package){button(actions,t('download'),async()=>{try{await operations.download(job);status.textContent=t('downloaded');}catch(_){status.textContent=t('error');}});}
     if(job.saved_text_id&&!finale)button(actions,t('open'),async()=>{try{await operations.openMaterial(job);d.close();}catch(_){status.textContent=t('error');}});
-    if(job.saved_text_id&&job.transcript?.timing?.verdict!=='verified'&&window.StudyTimingRepair)button(actions,
+    if(job.saved_text_id&&!finale&&job.transcript?.timing?.verdict!=='verified'&&window.StudyTimingRepair)button(actions,
       ({ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[document.documentElement.lang]||'Restore synchronization'),()=>StudyTimingRepair.open(job.saved_text_id));
     if(!runner.isRunning(job.id)){button(actions,t('close'),()=>d.close());button(actions,t('remove'),async()=>{if(!window.confirm(t('removeConfirm')))return;await store.remove(job.id);await list(d);});}
     // Итог объявляется ОДИН раз и только скрытой вкладке (см. applyTitleNotice).

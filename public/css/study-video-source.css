@@ -44,15 +44,17 @@
 /* Цена качества рядом с итогом: заметно, но не тревожно (решение владельца, вариант A). */
 .lmt-quality-note{margin:8px 0 0;padding:8px 10px;border-inline-start:3px solid #b45309;border-radius:6px;background:color-mix(in srgb,#b45309 7%,transparent);color:var(--theme-text,#24342c);font-size:13px;line-height:1.45}
 /* Ведущий путь (2026-09-24): итог ⑦ и шкала на узком экране. */
-.lmt-stage-summary{display:none;margin:12px 0 4px;font-weight:700;color:var(--theme-text,#24342c)}
-@media (max-width:480px){
+.lmt-stage-summary{display:none;margin:12px 0 4px;font-weight:700;color:inherit}
+/* Сворачивание по ширине самой шкалы, а не окна: диалог на телефоне уже окна. */
+.lmt-scale{container-type:inline-size}
+@container (max-width:400px){
   .lmt-stage-summary{display:block}
   .lmt-stages li:not([data-mark="current"]):not([data-mark="stalled"]){display:none}
 }
-.lmt-final{margin:14px 0 4px;padding:12px 14px;border-inline-start:4px solid var(--theme-accent,#0b7673);border-radius:8px;background:color-mix(in srgb,var(--theme-accent,#0b7673) 9%,var(--theme-bg-card,#fff));color:var(--theme-text,#24342c)}
+.lmt-final{margin:14px 0 4px;padding:12px 14px;border-inline-start:4px solid var(--theme-accent,#0b7673);border-radius:8px;background:color-mix(in srgb,var(--theme-accent,#0b7673) 9%,transparent);color:inherit}
 .lmt-final strong{display:block;font-size:15px;line-height:1.45;overflow-wrap:anywhere}
-.lmt-final p{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--theme-text-secondary,#64748b)}
-.lmt-resume-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 14px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--theme-accent,#0b7673) 30%,transparent);border-radius:14px;background:color-mix(in srgb,var(--theme-accent,#0b7673) 8%,var(--theme-bg-card,#fff));color:var(--theme-text,#24342c);font-size:14px;line-height:1.45}
+.lmt-final p{margin:6px 0 0;font-size:13px;line-height:1.45;opacity:.8}
+.lmt-resume-banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 14px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--theme-accent,#0b7673) 30%,transparent);border-radius:14px;background:color-mix(in srgb,var(--theme-accent,#0b7673) 8%,var(--theme-bg-card,#fff));color:var(--theme-text-primary,#24342c);font-size:14px;line-height:1.45}
 .lmt-resume-banner[hidden]{display:none}
 .lmt-resume-banner>span{flex:1 1 240px;min-width:0;overflow-wrap:anywhere}
 .lmt-resume-banner.is-warning{border-color:color-mix(in srgb,#b45309 45%,transparent);background:color-mix(in srgb,#b45309 8%,var(--theme-bg-card,#fff))}

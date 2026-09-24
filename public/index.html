@@ -13432,9 +13432,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=250"></script>
-<script src="/i18n/locales/en.js?v=250"></script>
-<script src="/i18n/locales/he.js?v=250"></script>
+<script src="/i18n/locales/ru.js?v=251"></script>
+<script src="/i18n/locales/en.js?v=251"></script>
+<script src="/i18n/locales/he.js?v=251"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13557,7 +13557,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js?v=587"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js?v=553"></script>
-<link rel="stylesheet" href="/css/study-video-source.css?v=520">
+<link rel="stylesheet" href="/css/study-video-source.css?v=629">
 <script src="/js/playback-source.js?v=624"></script>
 <script src="/js/youtube-timing.js?v=593"></script>
 <script src="/js/youtube-full-timing.js?v=557"></script>
@@ -13568,8 +13568,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-source-ui.js?v=620"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
-<script src="/js/learning-material-task.js?v=566"></script>
-<script src="/js/learning-material-task-ui.js?v=566"></script>
+<script src="/js/learning-material-task.js?v=628"></script>
+<script src="/js/learning-material-task-ui.js?v=629"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
@@ -13578,9 +13578,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
 <script src="/js/studio-media-package.js?v=615"></script>
-<script src="/js/studio-media-editor.js?v=529"></script>
+<script src="/js/studio-media-editor.js?v=628"></script>
 <script src="/js/studio-material-revision.js"></script>
-<script src="/js/studio-portable-learning-package.js?v=584"></script>
+<script src="/js/studio-portable-learning-package.js?v=628"></script>
 <script src="/js/media-rebind-core.js?v=628"></script>
 <script src="/js/media-rebind-ui.js?v=628"></script>
 <script src="/js/gemini-files.js"></script>
@@ -13594,7 +13594,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-karaoke.js?v=553"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/media-host.js?v=627"></script>
+<script src="/js/media-host.js?v=628"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13659,7 +13659,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.627";
+    window.APP_VERSION = "3.11.629";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -36327,8 +36327,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         if (!revision || !Array.isArray(revision.segments) || !revision.segments.length) throw new Error("MEDIA_LOST_NO_REVISION");
         const input = document.getElementById("inputText");
         const previous = input.value;
-        input.value = revision.segments.map((seg) => seg.text).join("
-");
+        input.value = revision.segments.map((seg) => seg.text).join("\n");
         input.dispatchEvent(new Event("input", { bubbles: true }));
         await addRefForRestore(repo, ws, revision);
         await v3ResolveMediaContext();
