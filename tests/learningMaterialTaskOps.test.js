@@ -48,3 +48,12 @@ test('the manual Studio shows the lost-media bar and asks before saving without 
   assert.match(head, /v3MediaIntentLost/, 'save checks the lost media intent first');
   assert.match(head, /acknowledged/);
 });
+
+// Прогон владельца 2026-09-24: карточка прогресса просила «сохранить карточку», хотя её сохраняла сама задача.
+test('a table built inside the task does not ask the person to save the card', () => {
+  assert.equal((html.match(/tableJob\.actionReview/g) || []).length, 1, 'every review hint goes through v3TableReviewAction');
+  assert.match(html, /function v3TableReviewAction\(\)[\s\S]{0,300}v3TableBuildOwnedByTask[\s\S]{0,200}tableJob\.actionTaskContinues/);
+  const translate = method('translate');
+  assert.match(translate, /v3TableBuildOwnedByTask\s*=\s*true/);
+  assert.match(translate, /finally[\s\S]{0,120}v3TableBuildOwnedByTask\s*=\s*false/);
+});

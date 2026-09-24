@@ -223,6 +223,8 @@
     if(!r)return '';
     if(Number(r.from)>0)return fill(t('resumeFrom'),{from:Number(r.from),of:Number(r.of)||0});
     if(!r.reason||r.reason==='NO_JOURNAL')return '';   // журнала не было — сообщать не о чем
+    // Первый запуск задачи: журнал с другим текстом — журнал другого материала, а не отказ этого.
+    if((live||{}).firstRun&&Array.isArray(r.changed)&&r.changed.includes('text'))return '';
     const changed=Array.isArray(r.changed)?r.changed.map(key=>t('field'+key)).filter(Boolean):null;
     return changed&&changed.length?fill(t('resumeRefused'),{what:changed.join(', ')}):t('resumeRefusedUnknown');
   }
@@ -239,7 +241,7 @@
   // Вердикт журнала переживает конец прогона: это итог, а не мгновенный сигнал прогресса —
   // человек должен видеть «продолжено с куска N» и на готовом экране. Гасится он только
   // стартом СЛЕДУЮЩЕГО прогона, у которого будет свой вердикт.
-  function liveReset(){const keep=liveState.expectedSec,resume=liveState.resume;liveState={};if(keep)liveState.expectedSec=keep;if(resume)liveState.resume=resume;if(liveTimer){clearInterval(liveTimer);liveTimer=null;}}
+  function liveReset(){const keep=liveState.expectedSec,resume=liveState.resume,first=liveState.firstRun;liveState={};if(keep)liveState.expectedSec=keep;if(resume)liveState.resume=resume;if(first)liveState.firstRun=first;if(liveTimer){clearInterval(liveTimer);liveTimer=null;}}
   // Ретрай гасим и при получении любого следующего сигнала прогресса.
   // ВСЕГДА перерисовываем из САМОГО СВЕЖЕГО состояния задачи (d.__job обновляет showTask на каждом
   // переходе фазы). Наблюдение 2026-09-11: таймер держал объект, захваченный ДО старта прогона, и
@@ -403,7 +405,10 @@
     ready();
     const work=async lock=>{
       if(!lock){d.append(element('p',t('busy')));return;}
-      liveReset();liveState.resume=null;liveAttach(d);
+      liveReset();liveState.resume=null;
+      // Задача ещё не строила таблицу — значит, чужой журнал ей не отказ (см. resumeNote).
+      try{const before=await store.get(id);liveState.firstRun=!!before&&!before.table&&!(before.stage_times&&before.stage_times.translating);}catch(_){liveState.firstRun=false;}
+      liveAttach(d);
       try{const job=await runner.run(id,next=>{if(d.isConnected)showTask(next,d);});await showTask(job,d);}
       catch(_){await showTask(await store.get(id),d);}
       finally{liveReset();if(d.isConnected&&d.__job)showTask(d.__job,d);}

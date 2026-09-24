@@ -34828,7 +34828,8 @@ window.LearningMaterialTaskUI.configure({
     if(getTableDirection()!==input.direction)throw new Error('TASK_DIRECTION_CHANGED');
     if(input.provider==='gemini' && input.model!==EXPECTED_GEMINI_STUDIO_MODEL)throw new Error('TASK_MODEL_CHANGED');
     currentTableData=[];v3LastGeminiMeta=null;tableIsStale=true;
-    await translateTable();
+    window.v3TableBuildOwnedByTask=true;
+    try { await translateTable(); } finally { window.v3TableBuildOwnedByTask=false; }
     if(tableIsStale || !currentTableData.length)throw new Error('TASK_TABLE_INCOMPLETE');
     try { delete window.v3TableCostQuote; } catch (_) {}
     return {rows:currentTableData,meta:v3LastGeminiMeta || null};
@@ -37064,6 +37065,11 @@ try {
                 : (model.total ? model.ready + " / " + model.total : t(V3_TABLE_JOB_STATE_KEYS[model.state]));
         }
     }
+    // Следующее действие после готовой таблицы. Внутри задачи материала карточку сохраняет и
+    // привязывает сама задача — просить об этом человека значило бы противоречить её шкале.
+    function v3TableReviewAction() {
+        return window.v3TableBuildOwnedByTask ? t("tableJob.actionTaskContinues") : t("tableJob.actionReview");
+    }
     function v3TableProgressClock(sec) {
         const s = Math.max(0, Math.floor(Number(sec) || 0));
         return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
@@ -37123,7 +37129,7 @@ try {
             const rows = Array.isArray(currentTableData) ? currentTableData.length : 0;
             if (outcome && outcome.kind === "done" && rows) {
                 const model = TableJob.progressModel({ state: "done", readyRows: rows, totalRows: rows,
-                    elapsedSec, summary: v3TableProgressSummary(), nextAction: t("tableJob.actionReview") });
+                    elapsedSec, summary: v3TableProgressSummary(), nextAction: v3TableReviewAction() });
                 model.plain = true;
                 v3TableProgressRender(model);
                 return;
@@ -37236,7 +37242,7 @@ try {
             else { tableIsStale = true; }
             v3TableJobHudUpdate(restoredComplete ? "done" : "stopped", { chunk: restored.nextChunk, chunks: restored.journal.plan.length,
                 attempt: 0, attempts: 2, readyRows: restoredCoverage.covered, totalRows: segments.length,
-                nextAction: t(restoredComplete ? "tableJob.actionReview" : "tableJob.actionRetry"), mediaSha: restored.mediaSha,
+                nextAction: (restoredComplete ? v3TableReviewAction() : t("tableJob.actionRetry")), mediaSha: restored.mediaSha,
                 mediaIntended: !!restored.journal.mediaIntended, restored: true, canRetry: !restoredComplete });
             try { v3UiSyncSaveButtons(); classicSyncMainPanels({ force: true }); } catch (_) {}
         } catch (_) {}
@@ -37758,7 +37764,7 @@ try {
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
         v3TableJobHudUpdate("done", { chunk: chunks.length, chunks: chunks.length, attempt: 1, attempts: 2,
             readyRows: coverage.covered, totalRows: jobTotalRows,
-            nextAction: t("tableJob.actionReview"), mediaSha: jobMediaSha, mediaIntended: jobMediaIntended });
+            nextAction: v3TableReviewAction(), mediaSha: jobMediaSha, mediaIntended: jobMediaIntended });
         // Keep the completed OPFS recovery snapshot until another exact job replaces it. The
         // localStorage table cache can be quota-blocked on established libraries; clearing the
         // only durable rows here caused the owner-live reload loss.

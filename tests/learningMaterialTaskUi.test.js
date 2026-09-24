@@ -475,3 +475,11 @@ test('a finish with no play buttons says so instead of claiming a linked video',
   assert.doesNotMatch(text, /привязано/);
   assert.match(text, /5/);
 });
+
+// Прогон владельца 2026-09-24: у НОВОГО материала висело «журнал прошлого прогона не подошёл
+// (изменился текст)» — это был журнал другого материала. Другой текст = чужой журнал, не отказ.
+test('a journal of another material is not announced as a refused resume', () => {
+  assert.equal(UI.resumeNote({ firstRun: true, resume: { from: 0, reason: 'FINGERPRINT_MISMATCH', changed: ['text', 'segments'] } }), '');
+  assert.match(UI.resumeNote({ firstRun: true, resume: { from: 0, reason: 'FINGERPRINT_MISMATCH', changed: ['model'] } }), /модель/);
+  assert.match(UI.resumeNote({ resume: { reason: 'FINGERPRINT_MISMATCH', changed: ['text'] } }), /текст/, 'a resumed task still names it');
+});
