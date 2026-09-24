@@ -35,3 +35,16 @@ test('a failed media resolution reports the first line that broke identity', () 
   assert.match(body, /first_mismatch_line/);
   assert.match(body, /firstMismatchLine/);
 });
+
+// Ведущий путь 2.3: ручная Студия больше не сохраняет медиа-материал без видео молча.
+test('the manual Studio shows the lost-media bar and asks before saving without video', () => {
+  const resolver = html.slice(html.indexOf('async function v3ResolveMediaContext'),
+    html.indexOf('async function v3RestoreImportPassportFromWorkspace'));
+  assert.match(resolver, /v3MediaLostBarRefresh\(\)/);
+  assert.match(html, /function v3MediaLostBarRefresh\(/);
+  assert.match(html, /async function v3MediaLostRestoreTranscript\(/);
+  const save = html.slice(html.indexOf('async function v3LibrarySaveCurrentCore'));
+  const head = save.slice(0, 1500);
+  assert.match(head, /v3MediaIntentLost/, 'save checks the lost media intent first');
+  assert.match(head, /acknowledged/);
+});

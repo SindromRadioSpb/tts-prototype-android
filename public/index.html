@@ -27866,6 +27866,12 @@ async function v3LibrarySaveCurrent() {
 
 async function v3LibrarySaveCurrentCore(meta) {
   try {
+    // Ведущий путь 2.3: медиа было, текст с транскриптом разошёлся — без явного «без видео» не сохраняем.
+    if (window.v3MediaIntentLost && !window.v3MediaIntentLost.acknowledged) {
+      showToast(t("studio.mediaLost.saveBlocked"), "warning");
+      try { v3MediaLostBarRefresh(); const bar = document.getElementById("v3MediaLostBar"); if (bar) bar.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
+      return null;
+    }
     const sourceText = String(getText() || "").trim();
     if (!sourceText) {
       showToast(t("toast.noSourceTextToSave"), "error");
@@ -36233,6 +36239,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 }
                 if (!savedPassportExact) window.v3LastMediaPackageRef = null;
                 if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+                v3MediaLostBarRefresh();
                 return null;
             }
             const context = resolved.context;
@@ -36267,6 +36274,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             window.v3ActiveMediaAudio = passport;
             window.v3LastMediaPackageRef = Object.assign({}, ref);
             if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+                v3MediaLostBarRefresh();
             return {
                 package: media, track, revision, segments: passport.segments,
                 rows_provenance: {
@@ -36282,6 +36290,56 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             };
             return null;
         }
+    }
+
+    // Ведущий путь 2.3 (владелец, 2026-09-24): флаг потерянного медиа вычислялся, но молчал, и
+    // «Хан Юнес» сохранился без видео. Теперь он — видимая полоса с двумя честными выходами.
+    function v3MediaLostBarRefresh() {
+        const bar = document.getElementById("v3MediaLostBar");
+        if (!bar) return;
+        const lost = window.v3MediaIntentLost;
+        if (!lost || lost.acknowledged) { bar.hidden = true; bar.replaceChildren(); return; }
+        const res = window.v3LastMediaContextResolution || {};
+        const line = Number.isInteger(res.first_mismatch_line) ? res.first_mismatch_line + 1 : null;
+        const text = document.createElement("span");
+        text.textContent = line ? t("studio.mediaLost.textLine", { n: line }) : t("studio.mediaLost.text");
+        const restore = document.createElement("button");
+        restore.type = "button"; restore.className = "btn-primary"; restore.textContent = t("studio.mediaLost.restore");
+        restore.onclick = () => { v3MediaLostRestoreTranscript().catch(() => showToast(t("studio.mediaLost.restoreFailed"), "error")); };
+        const without = document.createElement("button");
+        without.type = "button"; without.className = "btn-secondary"; without.textContent = t("studio.mediaLost.withoutVideo");
+        without.onclick = () => { if (window.v3MediaIntentLost) window.v3MediaIntentLost.acknowledged = true; v3MediaLostBarRefresh(); };
+        bar.replaceChildren(text, restore, without);
+        bar.hidden = false;
+    }
+    // Вернуть в поле ввода текст текущей ревизии транскрипта этого медиа. Прежний текст не теряется:
+    // он остаётся для «Отменить» в тосте.
+    async function v3MediaLostRestoreTranscript() {
+        const lost = window.v3MediaIntentLost;
+        const SMP = window.StudioMediaPackage;
+        if (!lost || !lost.package_id || !SMP || !SMP.browserRepository) throw new Error("MEDIA_LOST_NO_PACKAGE");
+        if (typeof ensureLocalDB === "function") await ensureLocalDB();
+        const repo = SMP.browserRepository();
+        const ws = (await repo.listWorkspaces({ limit: 50 })).find((w) => String(w.package_id) === String(lost.package_id));
+        const revision = ws && ws.current_revision_id ? await repo.getRevision(ws.current_revision_id) : null;
+        if (!revision || !Array.isArray(revision.segments) || !revision.segments.length) throw new Error("MEDIA_LOST_NO_REVISION");
+        const input = document.getElementById("inputText");
+        const previous = input.value;
+        input.value = revision.segments.map((seg) => seg.text).join("
+");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        await addRefForRestore(repo, ws, revision);
+        await v3ResolveMediaContext();
+        showToast(t("studio.mediaLost.restored"), "success", { action: { label: t("studio.mediaLost.undo"), onClick: () => {
+            input.value = previous; input.dispatchEvent(new Event("input", { bubbles: true }));
+        } } });
+    }
+    async function addRefForRestore(repo, ws, revision) {
+        const track = await repo.getTrack(revision.track_id);
+        const ref = { package_id: ws.package_id, track_id: revision.track_id, revision_id: revision.revision_id,
+            revision_sha256: revision.canonical_sha256, projection_sha256: revision.canonical_sha256, local_only: true };
+        if (track && window.StudioMediaPackage.setActiveWorkspace) await window.StudioMediaPackage.setActiveWorkspace(ref);
+        else window.v3LastMediaPackageRef = ref;
     }
 
     // Backward-compatible D5 entry point: old callers only need to know whether a missing

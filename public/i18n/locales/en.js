@@ -3582,6 +3582,16 @@ window.I18N_LOCALES.en = {
   },
   // PAS-B — Studio agent UI (studio-agent.js); every key MUST exist in all 3 locales
   studio: {
+    mediaLost: {
+      text: "The video will not be linked: the text no longer matches the transcript.",
+      textLine: "The video will not be linked: line {n} differs from the transcript.",
+      restore: "Restore the transcript text",
+      withoutVideo: "Continue without video",
+      restored: "The transcript text is back and the video is linked again.",
+      restoreFailed: "The transcript text could not be restored: its version was not found.",
+      undo: "Undo",
+      saveBlocked: "The card would be saved without its video. Restore the transcript text or choose “Continue without video”.",
+    },
     agent: {
       title: "Mentor · explanation",
       loading: "The mentor is thinking…",
