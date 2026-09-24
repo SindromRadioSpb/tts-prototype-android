@@ -452,3 +452,19 @@ test('a plain text material has no transcript review step', async () => {
   const actions = body.children.at(-1).children.find(n => n.className === 'study-source-actions').children;
   assert.equal(actions.some(n => n.textContent === 'Проверить и исправить транскрипт'), false);
 });
+
+// Ведущий путь 2.2 (2026-09-24): после перезагрузки Студия сама напоминает о незаконченном материале.
+test('the resume banner picks the freshest unfinished task from the last two weeks', () => {
+  const now = Date.parse('2026-09-24T12:00:00Z');
+  const at = (days) => new Date(now - days * 864e5).toISOString();
+  const jobs = [
+    { id: 'old', state: 'paused', updated_at: at(20) },
+    { id: 'done', state: 'ready', updated_at: at(0) },
+    { id: 'a', state: 'paused', updated_at: at(3) },
+    { id: 'b', state: 'running', updated_at: at(1) },
+    { id: 'c', state: 'cancelled', updated_at: at(0.5) },
+  ];
+  assert.equal(UI.pickResumable(jobs, now).id, 'b');
+  assert.equal(UI.pickResumable(jobs.filter((j) => j.id !== 'b'), now).id, 'a');
+  assert.equal(UI.pickResumable([jobs[0], jobs[1]], now), null, 'finished or stale tasks do not nag');
+});

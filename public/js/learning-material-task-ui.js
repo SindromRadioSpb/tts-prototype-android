@@ -28,7 +28,7 @@
       TASK_MEDIA_CONTEXT_LOST:'Текст разошёлся с транскриптом видео, и таблица без привязки не собирается. Проверьте транскрипт и продолжите.',
       TASK_TABLE_UNSEGMENTED:'Таблица вернулась без номеров реплик, поэтому кнопки ▶ не привязать. Продолжите — части, собранные без номеров, соберутся заново.',
       TASK_PLAYBACK_UNBOUND:'Карточка сохранена, но кнопки ▶ не привязались. Нажмите «Продолжить», чтобы привязать заново, или проверьте транскрипт.',
-      mismatchLine:'Первое расхождение — строка {n}.',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
+      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
       reviewNote:'Транскрипт можно поправить сейчас: таблица соберётся из исправленной версии, а кнопки ▶ привяжутся к её репликам.'},
     en:{stageMedia:'Media',stageTranscript:'Transcript',stageReview:'Review',stageOf:'Step {i} of {n}',
       finalLine:'“{title}” · {n} rows · ▶ on {m} · video linked ({kind})',finalKindLocal:'local file',finalKindYoutube:'YouTube',
@@ -37,7 +37,7 @@
       TASK_MEDIA_CONTEXT_LOST:'The text no longer matches the video transcript, so the table is not built without its link. Check the transcript and continue.',
       TASK_TABLE_UNSEGMENTED:'The table came back without cue numbers, so ▶ buttons cannot be linked. Continue — parts without numbers are built again.',
       TASK_PLAYBACK_UNBOUND:'The card is saved, but its ▶ buttons did not link. Press “Continue” to link again, or check the transcript.',
-      mismatchLine:'First difference: line {n}.',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
+      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
       reviewNote:'You can fix the transcript now: the table is built from the corrected version, and ▶ buttons link to its cues.'},
     he:{stageMedia:'מדיה',stageTranscript:'תמלול',stageReview:'בדיקה',stageOf:'שלב {i} מתוך {n}',
       finalLine:'„{title}” · {n} שורות · ▶ ב־{m} · הסרטון מקושר ({kind})',finalKindLocal:'קובץ מקומי',finalKindYoutube:'YouTube',
@@ -46,7 +46,7 @@
       TASK_MEDIA_CONTEXT_LOST:'הטקסט כבר לא תואם לתמלול הסרטון, ולכן הטבלה לא נבנית בלי הקישור. בדקו את התמלול והמשיכו.',
       TASK_TABLE_UNSEGMENTED:'הטבלה חזרה בלי מספרי משפטים, ולכן אי אפשר לקשר כפתורי ▶. המשיכו — חלקים בלי מספרים ייבנו שוב.',
       TASK_PLAYBACK_UNBOUND:'הכרטיס נשמר, אבל כפתורי ▶ לא קושרו. לחצו «המשך» כדי לקשר שוב, או בדקו את התמלול.',
-      mismatchLine:'ההבדל הראשון: שורה {n}.',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
+      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
       reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
   };
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
@@ -545,6 +545,31 @@
       quote();
     }
   }
+  // 2.2: какую незаконченную задачу напомнить после перезагрузки. Отменённая — решение человека,
+  // готовая — уже не задача, старше двух недель — забытая; ни одна из них не напоминает о себе.
+  const RESUME_WINDOW_MS=14*864e5;
+  function pickResumable(jobs,now){
+    const t0=Number(now)||Date.now();
+    const open=(Array.isArray(jobs)?jobs:[]).filter(j=>j&&['running','paused','stopping'].includes(j.state)
+      &&t0-Date.parse(j.updated_at||j.created_at||0)<=RESUME_WINDOW_MS);
+    open.sort((a,b)=>Date.parse(b.updated_at||0)-Date.parse(a.updated_at||0));
+    return open[0]||null;
+  }
+  async function resumeBanner(){
+    const host=typeof document.getElementById==='function'?document.getElementById('lmtResumeBanner'):null;
+    if(!host)return;
+    let job=null;
+    try{ready();job=pickResumable(await store.list());}catch(_){job=null;}
+    if(!job||runner.isRunning(job.id)){host.hidden=true;host.replaceChildren();return;}
+    // После перезагрузки раннер не активен: «идёт» здесь было бы неправдой.
+    const shown={...job,state:job.state==='running'?'paused':job.state};
+    const text=element('span',fill(t('resumeBanner'),{title:job.input.title,stage:stageSummary(stageModel(shown))}));
+    const why=job.error?element('span',(words[document.documentElement.lang]||words.ru)[job.error]||''):null;
+    const go=element('button',t('resume'));go.type='button';go.className='btn-primary';
+    go.onclick=async()=>{host.hidden=true;await showTask(await store.get(job.id));};
+    const hide=element('button',t('resumeHide'));hide.type='button';hide.className='btn-secondary';hide.onclick=()=>{host.hidden=true;};
+    host.replaceChildren(...[text,why,go,hide].filter(Boolean));host.hidden=false;
+  }
   async function list(d){
     ready();d=d||dialog(t('tasks'));d.replaceChildren(element('h2',t('tasks')));
     const jobs=await store.list();if(!jobs.length)d.append(element('p',t('empty')));
@@ -559,6 +584,6 @@
     button(d,t('close'),()=>d.close());
   }
   function labels(){const start=document.getElementById('v3ImportPrepareTask');if(start)start.textContent=t('start');const tasks=document.getElementById('v3LearningTasks');if(tasks)tasks.textContent=t('tasks');}
-  window.LearningMaterialTaskUI={configure:value=>{operations=value;},start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
+  window.LearningMaterialTaskUI={configure:value=>{operations=value;if(typeof setTimeout==='function')setTimeout(()=>{resumeBanner().catch(()=>{});},0);},pickResumable,resumeBanner,start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
   document.addEventListener('DOMContentLoaded',labels);document.addEventListener('i18n:changed',labels);
 })();

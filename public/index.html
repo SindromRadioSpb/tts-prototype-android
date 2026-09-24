@@ -11623,6 +11623,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                 </div>
                 <button id="classicNextActionBtn" type="button" class="btn-primary" data-studio-primary="true" data-action="add" onclick="classicRunNextAction()" data-i18n="classic.nextAction.add">Добавить материал</button>
             </section>
+            <!-- Ведущий путь 2.2: незаконченная задача материала напоминает о себе после перезагрузки. -->
+            <div id="lmtResumeBanner" class="lmt-resume-banner" role="status" aria-live="polite" hidden></div>
+            <!-- Ведущий путь 2.3: медиа было, но текст разошёлся с транскриптом — сказать об этом до сохранения. -->
+            <div id="v3MediaLostBar" class="lmt-resume-banner is-warning" role="alert" hidden></div>
 
             <div class="classic-workspace-grid">
                 <div class="classic-workflow-column">
