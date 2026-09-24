@@ -28,7 +28,7 @@
       TASK_MEDIA_CONTEXT_LOST:'Текст разошёлся с транскриптом видео, и таблица без привязки не собирается. Проверьте транскрипт и продолжите.',
       TASK_TABLE_UNSEGMENTED:'Таблица вернулась без номеров реплик, поэтому кнопки ▶ не привязать. Продолжите — части, собранные без номеров, соберутся заново.',
       TASK_PLAYBACK_UNBOUND:'Карточка сохранена, но кнопки ▶ не привязались. Нажмите «Продолжить», чтобы привязать заново, или проверьте транскрипт.',
-      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
+      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',finalNoSync:'«{title}» · {n} строк сохранены, но синхронизации с видео нет: кнопки ▶ недоступны.',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
       reviewNote:'Транскрипт можно поправить сейчас: таблица соберётся из исправленной версии, а кнопки ▶ привяжутся к её репликам.'},
     en:{stageMedia:'Media',stageTranscript:'Transcript',stageReview:'Review',stageOf:'Step {i} of {n}',
       finalLine:'“{title}” · {n} rows · ▶ on {m} · video linked ({kind})',finalKindLocal:'local file',finalKindYoutube:'YouTube',
@@ -37,7 +37,7 @@
       TASK_MEDIA_CONTEXT_LOST:'The text no longer matches the video transcript, so the table is not built without its link. Check the transcript and continue.',
       TASK_TABLE_UNSEGMENTED:'The table came back without cue numbers, so ▶ buttons cannot be linked. Continue — parts without numbers are built again.',
       TASK_PLAYBACK_UNBOUND:'The card is saved, but its ▶ buttons did not link. Press “Continue” to link again, or check the transcript.',
-      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
+      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',finalNoSync:'“{title}” · {n} rows saved, but there is no sync with the video: ▶ buttons are unavailable.',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
       reviewNote:'You can fix the transcript now: the table is built from the corrected version, and ▶ buttons link to its cues.'},
     he:{stageMedia:'מדיה',stageTranscript:'תמלול',stageReview:'בדיקה',stageOf:'שלב {i} מתוך {n}',
       finalLine:'„{title}” · {n} שורות · ▶ ב־{m} · הסרטון מקושר ({kind})',finalKindLocal:'קובץ מקומי',finalKindYoutube:'YouTube',
@@ -46,7 +46,7 @@
       TASK_MEDIA_CONTEXT_LOST:'הטקסט כבר לא תואם לתמלול הסרטון, ולכן הטבלה לא נבנית בלי הקישור. בדקו את התמלול והמשיכו.',
       TASK_TABLE_UNSEGMENTED:'הטבלה חזרה בלי מספרי משפטים, ולכן אי אפשר לקשר כפתורי ▶. המשיכו — חלקים בלי מספרים ייבנו שוב.',
       TASK_PLAYBACK_UNBOUND:'הכרטיס נשמר, אבל כפתורי ▶ לא קושרו. לחצו «המשך» כדי לקשר שוב, או בדקו את התמלול.',
-      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
+      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',finalNoSync:'„{title}” · {n} שורות נשמרו, אבל אין סנכרון עם הסרטון: כפתורי ▶ אינם זמינים.',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
       reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
   };
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
@@ -110,6 +110,8 @@
     // Название изолировано (FSI…PDI): русское имя в ивритской строке не переставляет соседние числа.
     const lines=[fill(t('finalLine'),{title:'\u2068'+job.input.title+'\u2069',n:proof.total_rows,m:proof.bound_rows,
       kind:t(proof.kind==='youtube'?'finalKindYoutube':'finalKindLocal')})];
+    // Ноль ▶ (часы распознавания не подтверждены) — не «видео привязано»: говорим, чего нет.
+    if(!(Number(proof.bound_rows)>0))return [fill(t('finalNoSync'),{title:'\u2068'+job.input.title+'\u2069',n:proof.total_rows})];
     if(Number(proof.missing_rows)>0)lines.push(fill(t('finalMissing'),{k:proof.missing_rows}));
     if(proof.kind==='local')lines.push(t('finalLocal'));
     return lines;

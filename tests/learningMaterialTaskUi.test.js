@@ -468,3 +468,10 @@ test('the resume banner picks the freshest unfinished task from the last two wee
   assert.equal(UI.pickResumable(jobs.filter((j) => j.id !== 'b'), now).id, 'a');
   assert.equal(UI.pickResumable([jobs[0], jobs[1]], now), null, 'finished or stale tasks do not nag');
 });
+
+test('a finish with no play buttons says so instead of claiming a linked video',()=>{
+  const job = localJob('ready', 'ready', { saved_text_id: 't', playback_proof: { kind: 'youtube', bound_rows: 0, total_rows: 5, missing_rows: 5 } });
+  const text = UI.finishLines(job).join(' | ');
+  assert.doesNotMatch(text, /привязано/);
+  assert.match(text, /5/);
+});

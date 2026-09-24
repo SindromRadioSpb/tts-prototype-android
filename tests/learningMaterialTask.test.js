@@ -238,3 +238,16 @@ test('a task journal from before playback proof keeps running when the operation
   const done=await T.createRunner(store,ops).run(job.id);
   assert.equal(done.state,'ready');
 });
+
+test('a transcript with an unverified clock finishes with zero play buttons instead of stopping forever',async()=>{
+  const store=memory(),log={prove:0};
+  const job=await T.create(link);await store.add(job);
+  const ops={...linkOps({transcribe:0,translate:0,save:0,bind:0,pkg:0}),
+    transcribe:async()=>({text:'שלום עולם',segments:[{text:'שלום עולם'}],durationSec:60,timing:{verdict:'unverified'},blind:true,
+      import_meta:{...sourceMeta,media_package_ref:{package_id:'mpkg:y',track_id:'trk:y',revision_id:'rev:y'}}}),
+    translate:async()=>({rows:[{he:'שלום עולם',ru:'Привет мир',segment_index:0}]}),
+    provePlayback:async()=>{log.prove++;return {kind:'youtube',bound_rows:0,total_rows:1,missing_rows:1};}};
+  const done=await T.createRunner(store,ops).run(job.id);
+  assert.equal(done.state,'ready');assert.equal(log.prove,1);
+  assert.equal(done.playback_proof.bound_rows,0,'the honest zero is kept for the finish screen');
+});

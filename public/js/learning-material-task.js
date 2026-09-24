@@ -264,7 +264,10 @@
         if(hasMedia(job)&&operations.provePlayback&&!job.playback_proof){
           await update({phase:'binding'});
           const proof=await operations.provePlayback(clone(job));
-          if(!proof||!(Number(proof.bound_rows)>0))throw codeError('TASK_PLAYBACK_UNBOUND');
+          // Часы распознавания не подтверждены: ▶ честно нет ни у одной строки, и «Продолжить» этого не
+          // исправит. Такой итог принимается и называется на финале, а не стопорит задачу навсегда.
+          const clockUnverified=!!(job.transcript&&job.transcript.blind);
+          if(!proof||(!(Number(proof.bound_rows)>0)&&!clockUnverified))throw codeError('TASK_PLAYBACK_UNBOUND');
           job=await update({playback_proof:safe(proof),phase:'bound'});
         }
         if(await cancelled())return await update({state:'cancelled'});
