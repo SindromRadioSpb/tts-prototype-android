@@ -697,9 +697,11 @@ window.I18N_LOCALES.he = {
     removeLocalTitle: "מוחק את העותק המקומי; היצירה תיפתח שוב מחדר הקריאה",
   },
   tableJob: {
-    state: { cache: "מטמון", generate: "יצירה", retry: "ניסיון חוזר", repair: "בדיקה/תיקון JSON", split: "פיצול בטוח", done: "הושלם", stopped: "נעצר" },
-    chunk: "מקטע {chunk}/{chunks}", attempt: "ניסיון {attempt}/{attempts}", rows: "כיסוי מקטעים: {ready}/{total}", elapsed: "זמן שחלף: {seconds} שנ׳", nextAction: "הפעולה הבאה: {action}",
-    actionWait: "להמתין לתשובה", actionRepair: "משחזרים רק את המקטעים החסרים", actionRetry: "ללחוץ שוב על AI Translate; המקטעים שהושלמו ישוחזרו מקומית", actionRetryMissing: "ללחוץ שוב על AI Translate; נמשיך רק מהמקטעים החסרים", actionReview: "לבדוק את התוצאה ולשמור את הכרטיס", coverageIncomplete: "הטבלה אינה שלמה: חסרים {missing} מתוך {total} מקטעים. השורות שהושלמו נשמרו במכשיר.", mediaExact: "SHA של המדיה: {sha}", mediaIntended: "מקור המדיה נמצא; קישור השורות ייבדק בשמירה", mediaNone: "לא הוצהרה מדיה"
+    state: { cache: "משתמשים בחלקים שנשמרו", generate: "בונים את טבלת הלימוד", retry: "מנסים שוב", repair: "בודקים ומשחזרים את התשובה", split: "מפצלים חלק", done: "הטבלה מוכנה", stopped: "הבנייה נעצרה" },
+    chunk: "חלק {chunk} מתוך {chunks}", attempt: "ניסיון חוזר {attempt}", rows: "{ready} / {total} מקטעים", elapsed: "{time} בהרצה זו", took: "נמשך {time}", nextAction: "הפעולה הבאה: {action}",
+    buildingTitle: "בונים את הטבלה", mediaBound: "🎬 הסרטון מקושר", mediaDeferred: "הנגן וכפתורי ▶ יתחברו כשהטבלה תהיה מוכנה.", resumedFrom: "ממשיכים: {parts} חלקים מוכנים נלקחו מהשמירה ולא ישולמו שוב.",
+    summaryRows: "{n} שורות", summaryPlayable: "▶ ב־{n} מתוך {total}", summaryUnvocalized: "{n} ללא ניקוד", retryButton: "להמשיך לבנות",
+    actionWait: "להמתין לתשובה", actionRepair: "משחזרים רק את המקטעים החסרים", actionRetry: "ללחוץ על „להמשיך לבנות”; החלקים שהושלמו ישוחזרו מקומית", actionRetryMissing: "ללחוץ על „להמשיך לבנות”; נמשיך רק מהמקטעים החסרים", actionReview: "לבדוק את התוצאה ולשמור את הכרטיס", coverageIncomplete: "הטבלה אינה שלמה: חסרים {missing} מתוך {total} מקטעים. השורות שהושלמו נשמרו במכשיר.", mediaExact: "SHA של המדיה: {sha}", mediaIntended: "מקור המדיה נמצא; קישור השורות ייבדק בשמירה", mediaNone: "לא הוצהרה מדיה"
   },
   saveMeta: {
     concurrentChange: "החומר השתנה בכרטיסייה אחרת. הטיוטה נשמרת בכרטיסייה הזו. פתחו את הגרסה העדכנית או שמרו את הטיוטה כחומר חדש.",

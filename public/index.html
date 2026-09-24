@@ -1963,6 +1963,58 @@ td.col-action-cell {
 .smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
 .v3-table-job-hud { margin-top:10px; padding:10px 12px; border:1px solid var(--theme-border-soft); border-inline-start:4px solid var(--theme-accent); border-radius:8px; background:var(--theme-bg-muted); font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
 .v3-table-job-hud[hidden] { display:none; }
+/* Карточка прогресса сборки (2026-09-24). Тон: busy — акцент, done — успех, stopped — предупреждение. */
+.v3-tbp { --tbp-tone: var(--theme-accent); --tbp-soft: var(--theme-accent-soft, var(--theme-bg-muted));
+  position:relative; margin-top:12px; padding:16px 16px 14px; border:1px solid var(--theme-border-soft);
+  border-radius:14px; background:var(--theme-bg-card); box-shadow:var(--theme-shadow-sm, 0 1px 3px rgba(0,0,0,.06));
+  font-size:13px; line-height:1.45; overflow:hidden; }
+.v3-tbp::before { content:""; position:absolute; inset:0 0 auto 0; height:3px; background:var(--tbp-tone); opacity:.85; }
+.v3-tbp[data-tone="done"] { --tbp-tone: var(--theme-success); --tbp-soft: var(--theme-success-soft, var(--theme-bg-muted)); }
+.v3-tbp[data-tone="stopped"] { --tbp-tone: var(--theme-warning); --tbp-soft: var(--theme-warning-soft, var(--theme-bg-muted)); }
+.v3-tbp-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.v3-tbp-dot { width:9px; height:9px; border-radius:50%; background:var(--tbp-tone); flex:0 0 auto; }
+.v3-tbp[data-tone="busy"] .v3-tbp-dot { animation:v3TbpPulse 1.8s ease-out infinite; }
+.v3-tbp-title { font-weight:700; font-size:14px; color:var(--theme-text-primary); }
+.v3-tbp-chip { margin-inline-start:auto; padding:2px 10px; border-radius:999px; background:var(--tbp-soft); color:var(--theme-text-secondary); font-size:12px; }
+.v3-tbp-chip:empty { display:none; }
+.v3-tbp-count { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:10px; }
+.v3-tbp-count:has(.v3-tbp-big:empty) { display:none; }
+.v3-tbp-big { font-size:22px; font-weight:750; letter-spacing:-.01em; color:var(--theme-text-primary); font-variant-numeric:tabular-nums; }
+.v3-tbp-pct { font-size:13px; font-weight:600; color:var(--tbp-tone); font-variant-numeric:tabular-nums; }
+.v3-tbp-bar { display:flex; gap:4px; height:8px; margin-top:8px; }
+.v3-tbp-bar:empty { display:none; }
+.v3-tbp-seg { position:relative; flex:1 1 0; border-radius:999px; background:var(--theme-bg-muted); overflow:hidden; }
+.v3-tbp-seg[data-part="done"] { background:var(--tbp-tone); }
+.v3-tbp-seg[data-part="failed"] { background:var(--theme-warning); opacity:.6; }
+.v3-tbp-seg[data-part="current"], .v3-tbp-seg[data-part="sweep"] { background:var(--tbp-soft); }
+.v3-tbp-seg[data-part="current"]::after, .v3-tbp-seg[data-part="sweep"]::after { content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent 0%, var(--tbp-tone) 50%, transparent 100%); opacity:.6;
+  transform:translateX(-100%); animation:v3TbpShimmer 1.6s ease-in-out infinite; }
+.v3-tbp-seg[data-part="fill"] > span { position:absolute; inset:0 auto 0 0; width:var(--tbp-p, 0%); background:var(--tbp-tone); border-radius:999px; transition:width .4s ease; }
+[dir="rtl"] .v3-tbp-seg[data-part="fill"] > span { inset:0 0 0 auto; }
+.v3-tbp-facts { display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:8px; color:var(--theme-text-secondary); font-size:12px; }
+.v3-tbp-facts span:empty { display:none; }
+.v3-tbp-deferred, .v3-tbp-summary { margin-top:10px; padding:8px 10px; border-radius:10px; background:var(--tbp-soft); color:var(--theme-text-primary); font-size:12.5px; }
+.v3-tbp-summary { display:flex; flex-wrap:wrap; gap:6px 16px; font-weight:600; }
+.v3-tbp-deferred[hidden], .v3-tbp-summary[hidden], .v3-tbp-retry[hidden], .v3-tbp-mini[hidden] { display:none; }
+.v3-tbp-next { margin-top:8px; color:var(--theme-text-secondary); font-size:12px; }
+.v3-tbp-next:empty { display:none; }
+.v3-tbp-retry { margin-top:10px; }
+.v3-tbp-mini { display:flex; align-items:center; gap:10px; width:100%; margin-top:8px; padding:6px 12px; border:1px solid var(--theme-border-soft);
+  border-radius:999px; background:var(--theme-bg-card); color:var(--theme-text-secondary); font-size:12px; cursor:pointer; text-align:start; }
+.v3-tbp-mini-bar { position:relative; flex:1 1 auto; height:4px; border-radius:999px; background:var(--theme-bg-muted); overflow:hidden; }
+.v3-tbp-mini-bar > span { position:absolute; inset:0 auto 0 0; width:var(--tbp-p, 0%); background:var(--theme-accent); border-radius:999px; transition:width .4s ease; }
+[dir="rtl"] .v3-tbp-mini-bar > span { inset:0 0 0 auto; }
+.v3-tbp-mini[data-indeterminate="true"] .v3-tbp-mini-bar > span { width:35%; animation:v3TbpSweep 1.6s ease-in-out infinite; }
+.v3-tbp-mini-text { flex:0 0 auto; font-variant-numeric:tabular-nums; }
+[dir="rtl"] .v3-tbp-seg[data-part="current"]::after, [dir="rtl"] .v3-tbp-seg[data-part="sweep"]::after,
+[dir="rtl"] .v3-tbp-mini[data-indeterminate="true"] .v3-tbp-mini-bar > span { animation-direction:reverse; }
+@keyframes v3TbpShimmer { from { transform:translateX(-100%); } to { transform:translateX(100%); } }
+@keyframes v3TbpSweep { from { transform:translateX(-100%); } to { transform:translateX(300%); } }
+@keyframes v3TbpPulse { 0% { box-shadow:0 0 0 0 color-mix(in srgb, var(--tbp-tone) 45%, transparent); } 100% { box-shadow:0 0 0 8px transparent; } }
+@media (prefers-reduced-motion: reduce) {
+  .v3-tbp *, .v3-tbp *::after, .v3-tbp-mini * { animation:none !important; transition:none !important; }
+}
 .v3-table-job-head,.v3-table-job-facts { display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
 .v3-table-job-state { font-weight:700; color:var(--theme-text-primary); }
 .v3-table-job-media { margin-inline-start:auto; max-width:100%; font-family:ui-monospace,Consolas,monospace; color:var(--theme-text-secondary); }
@@ -11617,6 +11669,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <button id="btnAiTranslate" class="btn-success" onclick="translateTable()" data-i18n="classic.buildTable">Собрать таблицу</button>
                                 <button id="btnMainTts" class="btn-primary" onclick="playTTS()" data-i18n="classic.speak">🔊 Озвучить</button>
                             </div>
+                            <button id="v3TableJobMini" type="button" class="v3-tbp-mini" hidden onclick="v3TableProgressReveal()">
+                                <span class="v3-tbp-mini-bar" aria-hidden="true"><span id="v3TableJobMiniFill"></span></span>
+                                <span id="v3TableJobMiniText" class="v3-tbp-mini-text"></span>
+                            </button>
                             <div id="classicPrimaryHint" class="classic-primary-hint" data-i18n="classic.primaryHint">Введите текст и запустите основное действие.</div>
                         </div>
 
@@ -11699,7 +11755,6 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <input type="file" id="ttsKeyFileInput" accept="application/json,.json" style="display:none" onchange="ttsKeyOnFileChosen(event)">
                                 <span id="ttsKeyStatus" class="provenance-badge" style="display:none"></span>
                                 <span id="localTtsProviderBadge" class="provenance-badge">TTS: init…</span>
-                                <div id="loader" class="loader"></div>
                             </div>
 
                             <div id="localTtsDiagnostics" class="v3-help classic-help-block" style="display:none;"></div>
@@ -11853,10 +11908,21 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         </div>
 
                         <div id="classicResultSummary" class="classic-result-summary" data-i18n="classic.buildFirst">Сначала соберите таблицу. После этого появятся provenance, экспорт и работа по строкам.</div>
-                        <div id="v3TableJobHud" class="v3-table-job-hud" role="status" aria-live="polite" hidden>
-                          <div class="v3-table-job-head"><span id="v3TableJobState" class="v3-table-job-state"></span><span id="v3TableJobMedia" class="v3-table-job-media"></span></div>
-                          <div class="v3-table-job-facts"><span id="v3TableJobChunk"></span><span id="v3TableJobAttempt"></span><span id="v3TableJobRows"></span><span id="v3TableJobElapsed"></span></div>
-                          <div id="v3TableJobNext" class="v3-table-job-next"></div>
+                        <!-- Карточка прогресса сборки таблицы (владелец, 2026-09-24): одно место вместо
+                             спиннера у «Настроек озвучки». Модель — TableJob.progressModel. -->
+                        <div id="v3TableJobHud" class="v3-table-job-hud v3-tbp" role="status" aria-live="polite" data-tone="busy" hidden>
+                          <div class="v3-table-job-head v3-tbp-head">
+                            <span class="v3-tbp-dot" aria-hidden="true"></span>
+                            <span id="v3TableJobState" class="v3-table-job-state v3-tbp-title"></span>
+                            <span id="v3TableJobMedia" class="v3-table-job-media v3-tbp-chip"></span>
+                          </div>
+                          <div class="v3-tbp-count"><span id="v3TableJobRows" class="v3-tbp-big"></span><span id="v3TableJobPercent" class="v3-tbp-pct"></span></div>
+                          <div id="v3TableJobBar" class="v3-tbp-bar" aria-hidden="true"></div>
+                          <div class="v3-table-job-facts v3-tbp-facts"><span id="v3TableJobChunk"></span><span id="v3TableJobAttempt"></span><span id="v3TableJobElapsed"></span></div>
+                          <div id="v3TableJobDeferred" class="v3-tbp-deferred" hidden></div>
+                          <div id="v3TableJobSummary" class="v3-tbp-summary" hidden></div>
+                          <div id="v3TableJobNext" class="v3-table-job-next v3-tbp-next"></div>
+                          <button id="v3TableJobRetry" type="button" class="btn-secondary v3-tbp-retry" onclick="translateTable()" hidden></button>
                         </div>
                     </section>
                     </details>
@@ -13362,9 +13428,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=247"></script>
-<script src="/i18n/locales/en.js?v=247"></script>
-<script src="/i18n/locales/he.js?v=247"></script>
+<script src="/i18n/locales/ru.js?v=248"></script>
+<script src="/i18n/locales/en.js?v=248"></script>
+<script src="/i18n/locales/he.js?v=248"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13587,7 +13653,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.622";
+    window.APP_VERSION = "3.11.623";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -36698,8 +36764,8 @@ try {
                 const chunk = chunks[k];
                 const base = chunk.base;
                 const chunkText = chunk.segs.map((s) => s.text).join("\n");
-                setResultsMeta("table", t("classic.tableChunkProgress")
-                    .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                v3TableBusy(true, { chunk: k + 1, chunks: chunks.length,
+                    ready: Math.min(accum.length, segs.length), total: segs.length });
                 let res;
                 try {
                     res = await apiCall("/api/translate-table-v2", {
@@ -36809,6 +36875,103 @@ try {
         if (!window.YoutubeAsr || !window.v3TableCostQuote) return false;
         return window.YoutubeAsr.tableCostWithinQuote(actual, window.v3TableCostQuote);
     }
+    // Карточка прогресса (владелец, 2026-09-24). Режим 'job' — длинная сборка кусками с журналом
+    // (честные доли, время, итог); 'plain' — короткая сборка одним запросом (бегущая полоса).
+    let v3TableProgressMode = null;
+    let v3TableProgressLast = null;
+    // Время ЭТОГО нажатия и честное «продолжение»: раньше счётчик брал начало старого журнала
+    // («Прошло: 1783 с» на новом запуске), а возобновление выглядело как обычный старт.
+    let v3TableJobResumedFrom = 0;
+    function v3TableProgressSummary() {
+        const rows = Array.isArray(currentTableData) ? currentTableData : [];
+        const audio = window.v3ActiveMediaAudio;
+        let playable = null;
+        if (audio) {
+            const cov = audio.timingMap && audio.timingMap.coverage;
+            playable = !audio.timing ? 0 : (cov && Number.isFinite(cov.mapped_rows) ? cov.mapped_rows : rows.length);
+        }
+        return { rows: rows.length, playable,
+            unvocalized: rows.filter((r) => r && r.niqqud_status === "not_vocalized").length };
+    }
+    function v3TableProgressRender(model) {
+        const el = (id) => document.getElementById(id), hud = el("v3TableJobHud");
+        v3TableProgressLast = model;
+        const mini = el("v3TableJobMini");
+        if (!hud) return;
+        hud.hidden = false;
+        hud.dataset.tone = model.tone;
+        el("v3TableJobState").textContent = model.indeterminate
+            ? t("tableJob.buildingTitle") : t(V3_TABLE_JOB_STATE_KEYS[model.state]);
+        el("v3TableJobMedia").textContent = model.media === "exact" ? t("tableJob.mediaBound")
+            : (model.media === "intended" ? t("tableJob.mediaIntended") : "");
+        if (model.media === "exact" && model.mediaSha) el("v3TableJobMedia").title = t("tableJob.mediaExact", { sha: model.mediaSha });
+        el("v3TableJobRows").textContent = model.total ? t("tableJob.rows", { ready: model.ready, total: model.total }) : "";
+        el("v3TableJobPercent").textContent = model.percent == null ? "" : model.percent + "%";
+        const bar = el("v3TableJobBar");
+        const segs = model.indeterminate ? ["sweep"]
+            : (model.parts.length ? model.parts : (model.total ? ["fill"] : []));
+        bar.innerHTML = segs.map((part) => '<span class="v3-tbp-seg" data-part="' + part + '">'
+            + (part === "fill" ? "<span></span>" : "") + "</span>").join("");
+        if (model.percent != null) bar.style.setProperty("--tbp-p", model.percent + "%");
+        el("v3TableJobChunk").textContent = model.chunks > 1 ? t("tableJob.chunk", { chunk: model.chunk, chunks: model.chunks }) : "";
+        el("v3TableJobAttempt").textContent = model.retryAttempt ? t("tableJob.attempt", { attempt: model.retryAttempt }) : "";
+        el("v3TableJobElapsed").textContent = model.elapsedSec == null ? ""
+            : t(model.tone === "busy" ? "tableJob.elapsed" : "tableJob.took", { time: v3TableProgressClock(model.elapsedSec) });
+        const deferred = el("v3TableJobDeferred");
+        const deferredText = [model.resumedFrom ? t("tableJob.resumedFrom", { parts: model.resumedFrom }) : "",
+            model.mediaDeferred ? t("tableJob.mediaDeferred") : ""].filter(Boolean).join(" ");
+        deferred.textContent = deferredText; deferred.hidden = !deferredText;
+        const summary = el("v3TableJobSummary");
+        if (model.summary) {
+            const sm = model.summary, parts = [t("tableJob.summaryRows", { n: sm.rows })];
+            if (sm.playable != null) parts.push(t("tableJob.summaryPlayable", { n: sm.playable, total: sm.rows }));
+            if (sm.unvocalized) parts.push(t("tableJob.summaryUnvocalized", { n: sm.unvocalized }));
+            summary.innerHTML = parts.map((x) => "<span>" + escapeHtml(x) + "</span>").join("");
+            summary.hidden = false;
+        } else { summary.textContent = ""; summary.hidden = true; }
+        el("v3TableJobNext").textContent = model.tone === "busy" || !model.nextAction ? ""
+            : t("tableJob.nextAction", { action: model.nextAction });
+        const retry = el("v3TableJobRetry");
+        retry.textContent = t("tableJob.retryButton"); retry.hidden = !model.canRetry;
+        if (mini) {
+            mini.hidden = model.tone !== "busy";
+            mini.dataset.indeterminate = model.indeterminate ? "true" : "false";
+            if (model.percent != null) mini.style.setProperty("--tbp-p", model.percent + "%");
+            el("v3TableJobMiniText").textContent = model.indeterminate ? t("tableJob.buildingTitle")
+                : (model.total ? model.ready + " / " + model.total : t(V3_TABLE_JOB_STATE_KEYS[model.state]));
+        }
+    }
+    function v3TableProgressClock(sec) {
+        const s = Math.max(0, Math.floor(Number(sec) || 0));
+        return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    }
+    function v3TableProgressReveal() {
+        const hud = document.getElementById("v3TableJobHud");
+        if (!hud) return;
+        const panel = hud.closest("details"); if (panel && !panel.open) panel.open = true;
+        hud.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    // Короткая сборка (один запрос, премиум, локальный MT) — бегущая полоса без выдуманных долей.
+    // Длинная сборка кусками перехватывает карточку первым же v3TableJobHudUpdate.
+    function v3TableBusy(on, progress) {
+        if (!window.TableJob) return;
+        if (on) {
+            // Во время самой длинной сборки (например, догонка пропусков) карточку не сбрасываем.
+            if (v3TableProgressMode === "job" && v3TableProgressLast && v3TableProgressLast.tone === "busy") return;
+            v3TableProgressMode = "plain";
+            v3TableProgressRender(TableJob.progressModel(progress
+                ? { state: "generate", chunk: progress.chunk, chunks: progress.chunks,
+                    readyRows: progress.ready, totalRows: progress.total }
+                : { state: "generate", indeterminate: true }));
+            return;
+        }
+        if (v3TableProgressMode === "plain") {
+            v3TableProgressMode = null;
+            const hud = document.getElementById("v3TableJobHud"), mini = document.getElementById("v3TableJobMini");
+            if (hud) hud.hidden = true;
+            if (mini) mini.hidden = true;
+        }
+    }
     function v3TableJobHudUpdate(state, fields) {
         if (!window.TableJob) return;
         const f = fields || {};
@@ -36817,22 +36980,18 @@ try {
             attempt: f.attempt, attempts: f.attempts, readyRows: f.readyRows,
             totalRows: f.totalRows, startedAt: v3TableJobStartedAt, now: Date.now(),
             nextAction: f.nextAction || "" });
-        v3TableJobLastTelemetry = Object.assign({}, snap, { mediaSha: f.mediaSha || null, mediaIntended: !!f.mediaIntended });
+        v3TableJobLastTelemetry = Object.assign({}, snap, { mediaSha: f.mediaSha || null, mediaIntended: !!f.mediaIntended,
+            restored: !!f.restored, canRetry: !!f.canRetry });
         // Тот же снимок — единственный источник правды о прогрессе таблицы. Диалог задачи
         // подписывается на него вместо собственного счётчика (P5-UX, 2026-09-11).
         try { window.dispatchEvent(new CustomEvent('table-job-progress', { detail: v3TableJobLastTelemetry })); } catch (_) {}
-        const el = (id) => document.getElementById(id), hud = el("v3TableJobHud");
-        if (!hud) return;
-        hud.hidden = false;
-        el("v3TableJobState").textContent = t(V3_TABLE_JOB_STATE_KEYS[state]);
-        el("v3TableJobChunk").textContent = t("tableJob.chunk", snap);
-        el("v3TableJobAttempt").textContent = t("tableJob.attempt", snap);
-        el("v3TableJobRows").textContent = t("tableJob.rows", { ready: snap.readyRows, total: snap.totalRows });
-        el("v3TableJobElapsed").textContent = t("tableJob.elapsed", { seconds: snap.elapsedSec });
-        el("v3TableJobNext").textContent = t("tableJob.nextAction", { action: snap.nextAction });
-        el("v3TableJobMedia").textContent = f.mediaSha
-            ? t("tableJob.mediaExact", { sha: String(f.mediaSha).slice(0, 12) + "…" })
-            : t(f.mediaIntended ? "tableJob.mediaIntended" : "tableJob.mediaNone");
+        v3TableProgressMode = "job";
+        const model = TableJob.progressModel(Object.assign({}, snap, {
+            mediaSha: f.mediaSha || null, mediaIntended: !!f.mediaIntended,
+            resumedFrom: v3TableJobResumedFrom, restored: !!f.restored, canRetry: !!f.canRetry,
+            summary: state === "done" ? v3TableProgressSummary() : null }));
+        model.mediaSha = f.mediaSha ? String(f.mediaSha).slice(0, 12) + "…" : null;
+        v3TableProgressRender(model);
         if (!v3TableJobTimer && state !== "done" && state !== "stopped") {
             v3TableJobTimer = setInterval(() => {
                 if (v3TableJobLastTelemetry) v3TableJobHudUpdate(v3TableJobLastTelemetry.state, v3TableJobLastTelemetry);
@@ -36893,6 +37052,7 @@ try {
                 model: EXPECTED_GEMINI_STUDIO_MODEL, segments, chunkSize: TableChunks.CHUNK_SIZE });
             if (!restored || !restored.rows.length) return;
             v3TableJobStartedAt = Number(restored.journal.startedAt) || Date.now();
+            v3TableJobResumedFrom = 0;
             const restoredCoverage = TableChunks.coverageForRows(restored.rows, segments.length);
             const restoredComplete = restoredCoverage.missing.length === 0 && restored.nextChunk === restored.journal.plan.length;
             const restoredProvenance = v3GeminiChunkedProvenance((restored.journal.completed || []).map((entry) => entry.meta || {}));
@@ -36909,7 +37069,7 @@ try {
             v3TableJobHudUpdate(restoredComplete ? "done" : "stopped", { chunk: restored.nextChunk, chunks: restored.journal.plan.length,
                 attempt: 0, attempts: 2, readyRows: restoredCoverage.covered, totalRows: segments.length,
                 nextAction: t(restoredComplete ? "tableJob.actionReview" : "tableJob.actionRetry"), mediaSha: restored.mediaSha,
-                mediaIntended: !!restored.journal.mediaIntended });
+                mediaIntended: !!restored.journal.mediaIntended, restored: true, canRetry: !restoredComplete });
             try { v3UiSyncSaveButtons(); classicSyncMainPanels({ force: true }); } catch (_) {}
         } catch (_) {}
     }
@@ -37183,12 +37343,14 @@ try {
             startChunk = restoredJob.nextChunk;
             currentTableData = accum.slice();
             renderTable(currentTableData);
-            v3TableJobStartedAt = Number(jobJournal.startedAt) || Date.now();
+            v3TableJobStartedAt = Date.now();
+            v3TableJobResumedFrom = startChunk;
             v3TableJobHudUpdate("cache", { chunk: startChunk, chunks: chunks.length, attempt: 0, attempts: 2,
                 readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows, nextAction: t("tableJob.actionWait"),
                 mediaSha: jobMediaSha || restoredJob.mediaSha, mediaIntended: jobMediaIntended });
         } else {
             v3TableJobStartedAt = Date.now();
+            v3TableJobResumedFrom = 0;
             if (jobJournal) await TableJob.storeDurable(jobJournal);
         }
         // Fix2 (re-review): the skeleton is already on screen (translateTable(), before the
@@ -37213,8 +37375,6 @@ try {
         } catch (_) {}
         try {
             for (let k = startChunk; k < chunks.length; k++) {
-                setResultsMeta("table", t("classic.tableChunkProgress")
-                    .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
                 let res;
                 let retriedThisChunk = false;
                 let recoveredJsonThisChunk = false;
@@ -37270,7 +37430,8 @@ try {
                         attempt: e.tableAttempt || 1, attempts: 2, readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows,
                         nextAction: needsReview ? t("classic.tableReviewSourceAction")
                             : (e.raw && e.raw.retryable === false ? e.message : t("tableJob.actionRetry")), mediaSha: jobMediaSha,
-                        mediaIntended: jobMediaIntended });
+                        mediaIntended: jobMediaIntended,
+                        canRetry: !needsReview && e.httpStatus !== 429 && !(e.raw && e.raw.retryable === false) });
                     return;
                 }
                 // The skeleton belongs to the input, not to the model: a chunk handed N
@@ -37410,7 +37571,7 @@ try {
             v3TableJobHudUpdate("stopped", { chunk: chunks.length, chunks: chunks.length,
                 attempt: 2, attempts: 2, readyRows: coverage.covered, totalRows: jobTotalRows,
                 nextAction: t("tableJob.actionRetryMissing"), mediaSha: jobMediaSha,
-                mediaIntended: jobMediaIntended });
+                mediaIntended: jobMediaIntended, canRetry: true });
             try { v3UiSyncSaveButtons(); classicSyncMainPanels({ force: true }); } catch (_) {}
             return;
         }
@@ -41942,8 +42103,11 @@ async function v3AnkiSyncNow() {
         document.getElementById("errorMsg").textContent = "Ошибка: " + msg;
     }
 
+    // Сборка таблицы — единственный пользователь «загрузки». Прежний спиннер жил в строке
+    // «Настроек озвучки» и сигналил не там, где ждут результат (владелец, 2026-09-24): теперь это
+    // карточка прогресса в «Результате» и её мини-полоса под кнопкой сборки.
     function setLoading(state) {
-        document.getElementById("loader").style.display = state ? "block" : "none";
+        v3TableBusy(!!state);
     }
 
     async function apiCall(url, data) {

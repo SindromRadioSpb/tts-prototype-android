@@ -692,9 +692,11 @@ window.I18N_LOCALES.en = {
     removeLocalTitle: "Deletes the local copy; the work re-opens from the Room",
   },
   tableJob: {
-    state: { cache: "Cache", generate: "Generating", retry: "Retrying request", repair: "Checking/repairing JSON", split: "Safe split", done: "Done", stopped: "Stopped" },
-    chunk: "Chunk {chunk}/{chunks}", attempt: "Attempt {attempt}/{attempts}", rows: "Segments covered: {ready}/{total}", elapsed: "Elapsed: {seconds}s", nextAction: "Next action: {action}",
-    actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press AI Translate again; completed chunks will restore locally", actionRetryMissing: "press AI Translate again; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media source found; row binding is checked on save", mediaNone: "No media declared"
+    state: { cache: "Reusing saved parts", generate: "Building the study table", retry: "Retrying the request", repair: "Checking and recovering the response", split: "Splitting a part", done: "Table ready", stopped: "Build stopped" },
+    chunk: "Part {chunk} of {chunks}", attempt: "retry, attempt {attempt}", rows: "{ready} / {total} segments", elapsed: "{time} in this run", took: "took {time}", nextAction: "Next action: {action}",
+    buildingTitle: "Building the table", mediaBound: "🎬 Video linked", mediaDeferred: "The player and ▶ buttons connect when the table is ready.", resumedFrom: "Resuming: {parts} finished part(s) reused from the saved run, not paid again.",
+    summaryRows: "{n} rows", summaryPlayable: "▶ on {n} of {total}", summaryUnvocalized: "{n} without niqqud", retryButton: "Continue building",
+    actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press “Continue building”; completed parts will restore locally", actionRetryMissing: "press “Continue building”; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media source found; row binding is checked on save", mediaNone: "No media declared"
   },
   saveMeta: {
     concurrentChange: "This material changed in another tab. Your draft remains in this tab. Open the current version or save your draft as a new material.",

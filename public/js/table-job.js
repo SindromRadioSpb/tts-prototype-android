@@ -106,6 +106,36 @@
       elapsedSec: Math.max(0, Math.floor(((Number(input.now) || Date.now()) - (Number(input.startedAt) || Date.now())) / 1000)),
       nextAction: String(input.nextAction || "") };
   }
+  // Модель карточки прогресса (владелец, 2026-09-24): что показать, решает она, а не DOM.
+  // Спиннер у «Настроек озвучки» заменён одной карточкой в «Результате»; сюда сведены правила,
+  // которые раньше были разбросаны: доли частей, честное время ЭТОГО запуска, повтор только когда
+  // он был, объяснение спрятанного на время сборки видео, итог готовой таблицы.
+  function progressModel(input) {
+    var f = input || {}, state = STATES.indexOf(f.state) >= 0 ? f.state : "generate";
+    var tone = state === "done" ? "done" : (state === "stopped" ? "stopped" : "busy");
+    var indeterminate = !!f.indeterminate;
+    var n = indeterminate ? 0 : Math.max(0, Number(f.chunks) || 0);
+    var chunk = Math.max(0, Number(f.chunk) || 0);
+    var doneCount = tone === "done" ? n : (state === "cache" ? chunk : Math.max(0, chunk - 1));
+    doneCount = Math.min(n, doneCount);
+    var parts = [];
+    for (var i = 0; i < n && n > 1; i++) {
+      if (i < doneCount) parts.push("done");
+      else if (i === doneCount) parts.push(tone === "stopped" ? "failed" : (tone === "busy" ? "current" : "done"));
+      else parts.push("pending");
+    }
+    var total = Number(f.totalRows) || 0, ready = Math.min(total, Number(f.readyRows) || 0);
+    var percent = indeterminate || !total ? null : Math.round(ready / total * 100);
+    var media = indeterminate ? null : (f.mediaSha ? "exact" : (f.mediaIntended ? "intended" : null));
+    var elapsed = f.restored || f.elapsedSec == null ? null : Math.max(0, Math.floor(Number(f.elapsedSec) || 0));
+    return { tone: tone, state: state, indeterminate: indeterminate, parts: parts, percent: percent,
+      ready: ready, total: total, chunk: n ? (tone === "done" ? n : Math.min(n, doneCount + 1)) : 0, chunks: n,
+      retryAttempt: Number(f.attempt) > 1 ? Number(f.attempt) : null, elapsedSec: elapsed,
+      resumedFrom: Number(f.resumedFrom) > 0 && !f.restored ? Number(f.resumedFrom) : null,
+      media: media, mediaDeferred: tone === "busy" && media === "exact",
+      summary: tone === "done" && f.summary ? f.summary : null,
+      canRetry: tone === "stopped" && !!f.canRetry, nextAction: String(f.nextAction || "") };
+  }
   function markState(journal, state, now) {
     if (STATES.indexOf(state) < 0) throw new Error("UNKNOWN_STATE");
     var j = JSON.parse(JSON.stringify(journal || {})); j.state = state;
@@ -149,7 +179,7 @@
     } catch (_) {}
   }
   return { STATES: STATES, STORAGE_KEY: STORAGE_KEY, fingerprint: fingerprint, create: create, diagnose: diagnose,
-    acceptChunk: acceptChunk, acceptRepair: acceptRepair, resume: resume, telemetry: telemetry,
+    acceptChunk: acceptChunk, acceptRepair: acceptRepair, resume: resume, telemetry: telemetry, progressModel: progressModel,
     markState: markState, load: load, store: store, clear: clear,
     loadDurable: loadDurable, storeDurable: storeDurable, clearDurable: clearDurable };
 });

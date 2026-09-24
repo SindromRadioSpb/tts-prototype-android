@@ -144,3 +144,54 @@ test('a journal whose completed chunks are broken is not offered as resumable', 
   assert.equal(verdict.resumable, false);
   assert.equal(verdict.reason, 'BROKEN_CHAIN');
 });
+
+// Владелец, 2026-09-24: индикация сборки — одна карточка вместо спиннера у «Настроек озвучки».
+// Модель отображения чистая: что показать, решает она, а не DOM.
+const PJ = require('../public/js/table-job.js');
+test('progress model: parts, percent and deferred media while a Gemini job runs', () => {
+  const m = PJ.progressModel({ state: 'generate', chunk: 3, chunks: 4, readyRows: 240, totalRows: 453,
+    attempt: 1, elapsedSec: 72, mediaSha: 'abc', resumedFrom: 0 });
+  assert.equal(m.tone, 'busy');
+  assert.deepEqual(m.parts, ['done', 'done', 'current', 'pending']);
+  assert.equal(m.percent, 53);
+  assert.equal(m.retryAttempt, null, 'a first attempt is not news');
+  assert.equal(m.media, 'exact');
+  assert.equal(m.mediaDeferred, true, 'the hidden player is explained while the job runs');
+  assert.equal(m.elapsedSec, 72);
+  assert.equal(m.summary, null);
+});
+
+test('progress model: a retry, a resume and a restored cache step are named honestly', () => {
+  const retry = PJ.progressModel({ state: 'retry', chunk: 2, chunks: 4, readyRows: 120, totalRows: 453, attempt: 2 });
+  assert.equal(retry.retryAttempt, 2);
+  const cache = PJ.progressModel({ state: 'cache', chunk: 1, chunks: 4, readyRows: 120, totalRows: 453, resumedFrom: 1 });
+  assert.deepEqual(cache.parts, ['done', 'current', 'pending', 'pending'], 'cache reports parts already done');
+  assert.equal(cache.resumedFrom, 1);
+  const restored = PJ.progressModel({ state: 'done', chunk: 4, chunks: 4, readyRows: 453, totalRows: 453,
+    elapsedSec: 99999, restored: true });
+  assert.equal(restored.elapsedSec, null, 'time since an old journal is not this run');
+});
+
+test('progress model: stop marks the failing part and offers a retry only when it can help', () => {
+  const stop = PJ.progressModel({ state: 'stopped', chunk: 2, chunks: 4, readyRows: 120, totalRows: 453, canRetry: true });
+  assert.equal(stop.tone, 'stopped');
+  assert.deepEqual(stop.parts, ['done', 'failed', 'pending', 'pending']);
+  assert.equal(stop.canRetry, true);
+  assert.equal(stop.mediaDeferred, false);
+  assert.equal(PJ.progressModel({ state: 'stopped', chunk: 1, chunks: 4, canRetry: false }).canRetry, false);
+});
+
+test('progress model: done carries the summary; plain builds are indeterminate', () => {
+  const done = PJ.progressModel({ state: 'done', chunk: 4, chunks: 4, readyRows: 453, totalRows: 453,
+    mediaSha: 'abc', summary: { rows: 453, playable: 452, unvocalized: 6 } });
+  assert.equal(done.tone, 'done');
+  assert.equal(done.percent, 100);
+  assert.deepEqual(done.parts, ['done', 'done', 'done', 'done']);
+  assert.deepEqual(done.summary, { rows: 453, playable: 452, unvocalized: 6 });
+  assert.equal(done.mediaDeferred, false);
+  const plain = PJ.progressModel({ state: 'generate', indeterminate: true });
+  assert.equal(plain.indeterminate, true);
+  assert.equal(plain.percent, null);
+  assert.deepEqual(plain.parts, []);
+  assert.equal(plain.media, null);
+});
