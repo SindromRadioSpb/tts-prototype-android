@@ -62,7 +62,7 @@ test('switching to Gemini retains the YouTube source after the import handoff is
   await Promise.resolve();
   assert.equal(quotes.length, 2, 'the new dialog must still estimate the linked video');
   const second = body.children.at(-1);
-  await buttons(second).find(n => n.textContent === 'Подготовить и сохранить').onclick();
+  await buttons(second).find(n => n.textContent === 'Собрать учебный материал').onclick();
   assert.equal(created.youtube_source.video_id, 'MlX2x9QJIMk');
   assert.equal(created.source_text, '');
   assert.equal(created.import_meta, null);
@@ -394,4 +394,61 @@ test('the new lines of A and D exist in all three locales', () => {
   for (const key of ['titleReady', 'titleStopped', 'paidTranscript']) {
     assert.equal((src.match(new RegExp('[,{]' + key + ':', 'g')) || []).length, 3, key + ' must be phrased in ru, en and he');
   }
+});
+
+// Ведущий путь ③ (2026-09-24): проверка транскрипта — шаг ВНУТРИ процесса. Редактор возвращает в
+// задачу с исправленной ревизией, а не бросает человека в Студии.
+test('a media material offers a transcript review that returns to the task with a fresh capture', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { this.children.splice(this.children.indexOf(before), 0, node); }
+    setAttribute() {}
+    addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {}
+    close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: { createStore: () => ({}), createRunner: () => ({}) } });
+  const ui = window.LearningMaterialTaskUI;
+  let captures = 0, reviewed = 0, revision = 'rev:1';
+  ui.configure({
+    capture: () => { captures++; return { source_text: 'שלום', title: 'Local', provider: 'gemini', direction: 'he-ru',
+      import_meta: { media_package_ref: { package_id: 'mpkg:a', track_id: 'trk:c', revision_id: revision } } }; },
+    reviewTranscript: async () => { reviewed++; revision = 'rev:2'; return { continued: true }; },
+  });
+  await ui.start();
+  const first = body.children.at(-1);
+  const actions = d => d.children.find(n => n.className === 'study-source-actions').children;
+  const review = actions(first).find(n => n.textContent === 'Проверить и исправить транскрипт');
+  assert.ok(review, 'the review step is offered for a media material');
+  assert.ok(actions(first).find(n => n.textContent === 'Собрать учебный материал'), 'building stays the main action');
+  await review.onclick();
+  assert.equal(reviewed, 1);
+  assert.equal(captures, 2, 'the task re-reads the corrected transcript');
+  assert.notEqual(body.children.at(-1), first, 'the task dialog comes back');
+});
+
+test('a plain text material has no transcript review step', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { this.children.splice(this.children.indexOf(before), 0, node); }
+    setAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: { createStore: () => ({}), createRunner: () => ({}) } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({ capture: () => ({ source_text: 'שלום', title: 'Text', provider: 'gemini', direction: 'he-ru', import_meta: null }),
+    reviewTranscript: async () => ({ continued: true }) });
+  await ui.start();
+  const actions = body.children.at(-1).children.find(n => n.className === 'study-source-actions').children;
+  assert.equal(actions.some(n => n.textContent === 'Проверить и исправить транскрипт'), false);
 });

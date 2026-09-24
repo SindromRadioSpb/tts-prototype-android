@@ -225,6 +225,7 @@
         holder[key].segments = revision.segments.map(function (s, index) { return { i:index, start:s.start_ms==null?null:s.start_ms/1000, end:s.end_ms==null?null:s.end_ms/1000, text:s.text, caption_segment_id:s.caption_segment_id, source_segment_id:s.source_segment_ids&&s.source_segment_ids[0]||null, source_segment_ids:clone(s.source_segment_ids||[]), speaker:s.speaker||null, authority:clone(s.authority||{}), quality_flags:clone(s.quality_flags||[]) }; });
       }
     });
+    continuedToTable = true;
     close(true);
     // Import Center is opened from the Library. Once correction is complete, reveal the
     // already-populated Studio composer instead of leaving that parent modal on top of it.
@@ -254,6 +255,7 @@
     try { var packageId = state.packageId; var receipt = await window.StudioMediaPackage.deletePackageAndGc(packageId, true); close(true); if (window.v3LastMediaPackageRef && window.v3LastMediaPackageRef.package_id === packageId && window.StudioMediaPackage.clearActiveWorkspace) window.StudioMediaPackage.clearActiveWorkspace(); else if (window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi(); if (typeof showToast === 'function') showToast(tr('studio.mediaPackage.deleted', 'Media Package удалён') + ' · ' + receipt.revisions_removed, 'success'); }
     catch (e) { setStatus('studio.mediaPackage.deleteFailed', e.code || e.message, 'error'); }
   }
+  var continuedToTable = false;
   function close(force) {
     if (!state) return;
     if (!force && state.dirty && !window.confirm(tr('studio.mediaPackage.closeDirty', 'Закрыть? Черновик сохранён локально, но новая версия ещё не создана.'))) return;
@@ -261,6 +263,9 @@
     var p = player(); if (p) { p.pause(); p.ontimeupdate = null; p.onseeked = null; p.removeAttribute('src'); }
     if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = null; state = null; mediaSyncPromise = null;
     if (window.MaterialRevisionWorkspace && window.MaterialRevisionWorkspace.close) window.MaterialRevisionWorkspace.close();
+    // Ведущий путь ③: задача ждёт закрытия редактора, чтобы вернуть человека в процесс.
+    var continued = continuedToTable; continuedToTable = false;
+    try { window.dispatchEvent(new CustomEvent('studio:media-editor-closed', { detail: { continued: continued } })); } catch (_) {}
   }
   async function open(trackId) {
     var repository = repo(), track = await repository.getTrack(trackId); if (!track || track.role !== 'user_corrected') throw new Error('CORRECTED_TRACK_REQUIRED');

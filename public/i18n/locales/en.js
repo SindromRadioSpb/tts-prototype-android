@@ -4028,7 +4028,7 @@ window.I18N_LOCALES.en = {
       },
     },
     mediaPackage: {
-      title: "Correct transcript", correctBtn: "Correct transcript", continueDraftBtn: "Continue with draft",
+      title: "Correct transcript", correctBtn: "Correct transcript", continueDraftBtn: "Continue manually in the Studio",
       close: "Close", prev: "← Previous", next: "Next →", cueText: "Cue text", start: "Start", end: "End", speaker: "Speaker",
       reviewControls: "Cue review controls", jumpLabel: "Jump to cue", followHint: "The player and selected cue stay synchronized in both directions", advancedTools: "Export and package management",
       compareRaw: "Compare with immutable original", replay: "▶ Replay cue", split: "Split at cursors", merge: "Merge with next",

@@ -4036,7 +4036,7 @@ window.I18N_LOCALES.he = {
       },
     },
     mediaPackage: {
-      title: "תיקון התמלול", correctBtn: "תיקון התמלול", continueDraftBtn: "המשך עם הטיוטה",
+      title: "תיקון התמלול", correctBtn: "תיקון התמלול", continueDraftBtn: "המשך ידני בסטודיו",
       close: "סגירה", prev: "→ הקודם", next: "הבא ←", cueText: "טקסט הקטע", start: "התחלה", end: "סיום", speaker: "דובר/ת",
       reviewControls: "פקדי בדיקת קטעים", jumpLabel: "מעבר לקטע", followHint: "הנגן והקטע הנבחר מסונכרנים לשני הכיוונים", advancedTools: "ייצוא וניהול החבילה",
       compareRaw: "השוואה למקור שאינו ניתן לשינוי", replay: "▶ ניגון הקטע", split: "פיצול לפי הסמנים", merge: "מיזוג עם הבא",

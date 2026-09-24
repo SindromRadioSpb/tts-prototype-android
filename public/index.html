@@ -34894,6 +34894,15 @@ window.LearningMaterialTaskUI.configure({
     try { if (window.StudioImport && window.StudioImport.close) window.StudioImport.close(); } catch (_) {}
     return v3LibraryOpenText(job.saved_text_id);
   },
+  // ③: открыть исправляемую дорожку и дождаться закрытия редактора; «Продолжить к таблице» в
+  // редакторе уже подставляет исправленную ревизию в Студию, откуда её снимет capture().
+  async reviewTranscript(input) {
+    const ref=input&&input.import_meta&&input.import_meta.media_package_ref;
+    if(!ref||!ref.track_id||!window.StudioMediaEditor)throw new Error('TASK_REVIEW_UNAVAILABLE');
+    const closed=new Promise(resolve=>window.addEventListener('studio:media-editor-closed',e=>resolve(e.detail||{}),{once:true}));
+    await window.StudioMediaEditor.open(ref.track_id);
+    return closed;
+  },
   async openMaterial(job) {
     // «Один модал владеет фокусом» — та же доктрина, что и у Send-or-save. Иначе «Добавить
     // материал» остаётся висеть поверх открытого материала (найдено владельцем 2026-09-11).
@@ -51581,9 +51590,11 @@ document.addEventListener("i18n:changed", function () {
         <div id="v3ImportProv" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
         <textarea id="v3ImportPreview" dir="auto" style="width:100%; min-height:140px; box-sizing:border-box;"></textarea>
         <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-          <button type="button" class="btn-primary" onclick="StudioImport.useTextAndCorrect()" data-i18n="studio.mediaPackage.correctBtn">Исправить транскрипт</button>
-          <button type="button" class="btn-secondary" onclick="StudioImport.useText()" data-i18n="studio.mediaPackage.continueDraftBtn">Продолжить с черновиком</button>
-          <button type="button" id="v3ImportPrepareTask" class="btn-primary" onclick="StudioImport.useTextAndPrepare()">Подготовить и сохранить</button>
+          <!-- Ведущий путь (владелец, 2026-09-24): одна главная кнопка ведёт от транскрипта до готового
+               материала; проверка транскрипта — шаг внутри процесса, ручная Студия — запасной путь. -->
+          <button type="button" id="v3ImportPrepareTask" class="btn-primary" onclick="StudioImport.useTextAndPrepare()">Собрать учебный материал</button>
+          <button type="button" class="btn-secondary" onclick="StudioImport.useTextAndCorrect()" data-i18n="studio.mediaPackage.correctBtn">Исправить транскрипт</button>
+          <button type="button" class="btn-secondary" onclick="StudioImport.useText()" data-i18n="studio.mediaPackage.continueDraftBtn">Продолжить в Студии вручную</button>
           <button type="button" class="btn-secondary" id="v3ImportExportOcrBtn" hidden onclick="StudioImport.exportOcrEvidence()" data-i18n="studio.import.exportOcrBtn">Скачать OCR JSON</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.useTextAndRetell()" data-i18n="studio.retell.fromImportBtn">✨ Упростить…</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
