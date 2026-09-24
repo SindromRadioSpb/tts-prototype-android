@@ -17,3 +17,17 @@ test('the relink task turns a missing binding into the free rebind offer', () =>
 test('material details still mount the rebind offer', () => {
   assert.match(src, /MediaRebindUI\.mount\(body\.querySelector\('\.p4-material-detail'\)/);
 });
+
+test('from the video side the relink task and the draft details search for the card', () => {
+  const start = src.indexOf('async function renderRelinkTask');
+  const body = src.slice(start, src.indexOf('\n  async function ', start + 20));
+  assert.match(body, /MediaRebindUI\.mountForPackage/);
+  assert.match(src, /draft&&window\.MediaRebindUI[\s\S]{0,200}mountForPackage/);
+});
+
+test('an opened saved card without play buttons offers the rebind in the Studio', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(html, /id="v3RebindHost"/);
+  const at = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows)');
+  assert.match(html.slice(at, at + 400), /MediaRebindUI\.mountInto\(document\.getElementById\("v3RebindHost"\), textId\)/);
+});

@@ -11627,6 +11627,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
             <div id="lmtResumeBanner" class="lmt-resume-banner" role="status" aria-live="polite" hidden></div>
             <!-- Ведущий путь 2.3: медиа было, но текст разошёлся с транскриптом — сказать об этом до сохранения. -->
             <div id="v3MediaLostBar" class="lmt-resume-banner is-warning" role="alert" hidden></div>
+            <!-- Ведущий путь 2.4: открытая карточка без ▶ — предложение привязать медиа. -->
+            <div id="v3RebindHost" class="lmt-resume-banner" hidden></div>
 
             <div class="classic-workspace-grid">
                 <div class="classic-workflow-column">
@@ -13581,8 +13583,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-editor.js?v=628"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=630"></script>
-<script src="/js/media-rebind-core.js?v=628"></script>
-<script src="/js/media-rebind-ui.js?v=628"></script>
+<script src="/js/media-rebind-core.js?v=630"></script>
+<script src="/js/media-rebind-ui.js?v=630"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -27605,6 +27607,8 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	      // when this card's own composer text and mapped rows are both available; the timing
 	      // stays derived in memory and is never written into canon by this path.
 	      try { await v3RestoreUnboundMediaAfterSourceHydration(textId, rows); } catch (_) {}
+	      // Ведущий путь 2.4: сохранённая карточка без ▶ сама предлагает бесплатную привязку медиа.
+	      try { if (window.MediaRebindUI) await window.MediaRebindUI.mountInto(document.getElementById("v3RebindHost"), textId); } catch (_) {}
 	      saveLibCache();
 	    } catch (_) {}
 	  })();

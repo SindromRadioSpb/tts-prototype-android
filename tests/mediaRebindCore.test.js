@@ -59,3 +59,12 @@ test('the rebind target is the one transcript that explains the most rows, and a
   assert.equal(C.chooseCandidate([{ id: 'a', plan: plan(0) }]).reason, 'NO_MATCH');
   assert.equal(C.chooseCandidate([]).reason, 'NO_MATCH');
 });
+
+// Поиск карточки со стороны видео: 470 карточек без привязки нельзя выравнивать целиком, поэтому
+// дешёвый фильтр — текст карточки начинается теми же словами, что транскрипт.
+test('sharesOpening keeps a card whose text starts like the transcript and drops the rest', () => {
+  const segments = ['‫חבר׳ה, זה הדבר', 'הכי מדהים שקרה לנו', 'בחיים'].map(seg);
+  assert.equal(C.sharesOpening('חבר׳ה, זה הדבר הכי מדהים שקרה לנו בחיים. ועוד', segments, deps), true);
+  assert.equal(C.sharesOpening('שלום עולם, טקסט אחר לגמרי', segments, deps), false);
+  assert.equal(C.sharesOpening('', segments, deps), false);
+});

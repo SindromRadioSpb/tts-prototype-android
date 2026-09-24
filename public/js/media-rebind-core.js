@@ -67,6 +67,21 @@
       bound: mappingRows.length, total: total, ratio: ratio, needsRebuild: ratio < REBUILD_THRESHOLD };
   }
 
+  // Дешёвый предфильтр поиска со стороны видео: первые слова текста карточки совпадают с первыми
+  // словами транскрипта. Полное выравнивание — только для прошедших.
+  var OPENING_WORDS = 8;
+  function sharesOpening(sourceText, segments, deps) {
+    var words = resolveNormalize(deps);
+    var card = words(sourceText).slice(0, OPENING_WORDS);
+    if (card.length < Math.min(3, OPENING_WORDS)) return false;
+    var stream = [];
+    for (var i = 0; i < (segments || []).length && stream.length < card.length; i++) {
+      stream = stream.concat(words(segments[i] && segments[i].text));
+    }
+    for (var k = 0; k < card.length; k++) if (stream[k] !== card[k]) return false;
+    return true;
+  }
+
   // Цель ремонта — транскрипт, объясняющий больше всего строк. Равенство двух лучших — не повод
   // выбрать любой: это отказ, как у резолвера медиа-контекста.
   function chooseCandidate(candidates) {
@@ -77,6 +92,6 @@
     return { candidate: list[0], reason: null };
   }
 
-  return { alignRowsToSegmentSpans: alignRowsToSegmentSpans, planRebind: planRebind, chooseCandidate: chooseCandidate,
+  return { alignRowsToSegmentSpans: alignRowsToSegmentSpans, planRebind: planRebind, chooseCandidate: chooseCandidate, sharesOpening: sharesOpening,
     SEARCH_WINDOW_WORDS: SEARCH_WINDOW_WORDS, REBUILD_THRESHOLD: REBUILD_THRESHOLD };
 });
