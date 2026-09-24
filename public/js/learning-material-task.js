@@ -30,6 +30,10 @@
       return id!==expected.video_id||(v.url&&P().parseVideoId(v.url)!==id);
     }))throw new Error('TASK_SOURCE_MISMATCH');
   }
+  // Медиа-задача: у транскрипта есть пакет медиа. Её таблица и карточка обязаны доказать медиа,
+  // иначе потеря привязки проходит молча до конца (владелец, «Хан Юнес», 2026-09-24).
+  function hasMedia(job){const meta=effectiveImportMeta(job);return !!(meta&&meta.media_package_ref);}
+  function codeError(code){const e=new Error(code);e.code=code;return e;}
   function sourceText(job){return job.transcript?job.transcript.text:job.input.source_text;}
   const textIdentity=value=>String(value||'').normalize('NFD').replace(/[^\p{L}\p{N}]/gu,'');
   function assertSavedRows(job,rows){
@@ -225,6 +229,8 @@
           // Таблица всегда строится из уже оплаченного транскрипта, а не из повторного запроса.
           const table=await operations.translate(clone(job.transcript?{...job.input,source_text:job.transcript.text,import_meta:effectiveImportMeta(job)}:job.input),job.id);
           if(!table||!Array.isArray(table.rows)||!table.rows.length)throw new Error('TASK_TABLE_INCOMPLETE');
+          // Без номера реплики у строки нет ▶: такая таблица для медиа-материала не результат.
+          if(hasMedia(job)&&!table.rows.every(r=>Number.isInteger(r&&r.segment_index)))throw codeError('TASK_TABLE_UNSEGMENTED');
           table.source_receipt=await tableReceipt(job,table);
           job=await update({table:safe(table),phase:'table_ready'});
         }
@@ -254,6 +260,13 @@
           job=await update({playback_bound:safe(bound),phase:'bound'});
         }
         if(job.input.youtube_source)await operations.verifySaved(clone(job));
+        // ⑥ Привязка ▶ доказывается подсчётом на сохранённой карточке тем же путём, что рисует Зал.
+        if(hasMedia(job)&&operations.provePlayback&&!job.playback_proof){
+          await update({phase:'binding'});
+          const proof=await operations.provePlayback(clone(job));
+          if(!proof||!(Number(proof.bound_rows)>0))throw codeError('TASK_PLAYBACK_UNBOUND');
+          job=await update({playback_proof:safe(proof),phase:'bound'});
+        }
         if(await cancelled())return await update({state:'cancelled'});
         if(!job.package){
           await update({phase:'exporting'});
@@ -267,7 +280,7 @@
       }catch(error){
         if(error&&error.code==='TASK_CANCELLED'){await update({state:'cancelled',error:null});return await store.get(id);}
         const code=String(error.code||error.message||'TASK_FAILED').slice(0,120);
-        let reason=null;
+        let reason=error&&error.reason?String(error.reason).slice(0,120):null;
         if(code==='TASK_SOURCE_MISMATCH')try{reason=await sourceDiagnosis(await store.get(id));}catch(_){}
         await update({state:'paused',error:code,error_reason:reason});throw error;
       }

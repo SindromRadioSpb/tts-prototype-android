@@ -186,3 +186,55 @@ test('conflicting saved video is rejected even when transcript video matches',()
 test('invalid explicit YouTube input never falls back to the open card text',async()=>{
   await assert.rejects(T.create({...input,youtube_source:{url:'invalid'}}),/TASK_INPUT_INVALID/);
 });
+
+// ── Ведущий путь (2026-09-24): медиа-задача обязана доказать медиа на каждом этапе ──
+const mediaInput={source_text:'שלום\nעולם',title:'Local video',provider:'gemini',
+  import_meta:{kind:'audio',media_package_ref:{package_id:'mpkg:a',track_id:'trk:a',revision_id:'rev:a'}}};
+function mediaOps(log,over){return Object.assign({
+  translate:async()=>{log.translate++;return {rows:[{he:'שלום',ru:'Привет',segment_index:0},{he:'עולם',ru:'мир',segment_index:1}]};},
+  save:async()=>{log.save++;return {id:'text-9'};},
+  provePlayback:async()=>{log.prove++;return {kind:'local',bound_rows:2,total_rows:2,missing_rows:0};},
+  preparePackage:async()=>{log.pkg++;return {sha256:'d'.repeat(64)};}},over||{});}
+
+test('a media task refuses a table whose rows lost their segment identity',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0},job=await T.create(mediaInput);await store.add(job);
+  const runner=T.createRunner(store,mediaOps(log,{translate:async()=>({rows:[{he:'שלום עולם',ru:'Привет мир'}]})}));
+  await assert.rejects(runner.run(job.id),/TASK_TABLE_UNSEGMENTED/);
+  assert.equal(log.save,0,'nothing is saved without segment identity');
+  assert.equal((await store.get(job.id)).error,'TASK_TABLE_UNSEGMENTED');
+});
+
+test('a local media task stops at binding when the saved card has no play buttons, and resumes without saving twice',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0},job=await T.create(mediaInput);await store.add(job);
+  let proof={kind:'local',bound_rows:0,total_rows:2,missing_rows:2};
+  const runner=T.createRunner(store,mediaOps(log,{provePlayback:async()=>{log.prove++;return proof;}}));
+  await assert.rejects(runner.run(job.id),/TASK_PLAYBACK_UNBOUND/);
+  const stopped=await store.get(job.id);
+  assert.equal(stopped.state,'paused');assert.equal(stopped.phase,'binding');assert.equal(log.pkg,0);
+  proof={kind:'local',bound_rows:2,total_rows:2,missing_rows:0};
+  const done=await runner.run(job.id);
+  assert.equal(done.state,'ready');assert.equal(log.save,1,'the card is saved once');assert.equal(log.translate,1);
+  assert.deepEqual(done.playback_proof,{kind:'local',bound_rows:2,total_rows:2,missing_rows:0});
+});
+
+test('a lost media context names its reason in the journal',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0},job=await T.create(mediaInput);await store.add(job);
+  const runner=T.createRunner(store,mediaOps(log,{translate:async()=>{const e=new Error('TASK_MEDIA_CONTEXT_LOST');e.code='TASK_MEDIA_CONTEXT_LOST';e.reason='NO_EXACT_REVISION:221';throw e;}}));
+  await assert.rejects(runner.run(job.id),/TASK_MEDIA_CONTEXT_LOST/);
+  const j=await store.get(job.id);
+  assert.equal(j.error,'TASK_MEDIA_CONTEXT_LOST');assert.equal(j.error_reason,'NO_EXACT_REVISION:221');
+});
+
+test('a text task without media never asks for playback proof',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0},job=await T.create(input);await store.add(job);
+  const runner=T.createRunner(store,mediaOps(log,{translate:async()=>({rows:[{he:'שלום',ru:'Привет'}]})}));
+  const done=await runner.run(job.id);
+  assert.equal(done.state,'ready');assert.equal(log.prove,0);assert.equal(done.playback_proof,undefined);
+});
+
+test('a task journal from before playback proof keeps running when the operation is absent',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0},job=await T.create(mediaInput);await store.add(job);
+  const ops=mediaOps(log);delete ops.provePlayback;
+  const done=await T.createRunner(store,ops).run(job.id);
+  assert.equal(done.state,'ready');
+});
