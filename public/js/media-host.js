@@ -581,25 +581,33 @@
   // выхода. Здесь — гейт честности для восстановления identity: тождество ПОЛНОЕ и построчное.
   // Одна расходящаяся строка означает, что текст переразбивали, и номер строки больше НЕ равен
   // номеру сегмента — тот же инвариант, что держит v3MediaLineIdentity.
-  function revisionMatchesLines(segments, lines, deps) {
-    var AT = resolveDeps(deps).AT;
-    if (!AT || typeof AT.stitchNormalizeWords !== "function") return false;
-    if (!Array.isArray(segments) || !Array.isArray(lines)) return false;
-    if (!segments.length || segments.length !== lines.length) return false;
-    for (var i = 0; i < segments.length; i++) {
-      var rawLine = String(lines[i] == null ? "" : lines[i]);
-      var rawSeg = String((segments[i] && segments[i].text) || "");
-      var a = AT.stitchNormalizeWords(rawLine).join(" ");
-      var b = AT.stitchNormalizeWords(rawSeg).join(" ");
-      // Реплика без слов («...», «♪») сверяется как есть: пустое против пустого ещё не тождество.
-      if (!a && !b) {
-        var ra = rawLine.replace(/\s+/g, ""), rb = rawSeg.replace(/\s+/g, "");
-        if (!ra || ra !== rb) return false;
-        continue;
-      }
-      if (a !== b) return false;
+  function lineMatchesSegment(AT, line, segment) {
+    var rawLine = String(line == null ? "" : line);
+    var rawSeg = String((segment && segment.text) || "");
+    var a = AT.stitchNormalizeWords(rawLine).join(" ");
+    var b = AT.stitchNormalizeWords(rawSeg).join(" ");
+    // Реплика без слов («...», «♪») сверяется как есть: пустое против пустого ещё не тождество.
+    if (!a && !b) {
+      var ra = rawLine.replace(/\s+/g, ""), rb = rawSeg.replace(/\s+/g, "");
+      return !!ra && ra === rb;
     }
-    return true;
+    return a === b;
+  }
+
+  // Номер первой строки, на которой текст перестаёт совпадать с ревизией; -1 — совпадает целиком.
+  // Нехватка или лишняя строка — расхождение там, где кончается более короткий список.
+  function firstMismatchLine(segments, lines, deps) {
+    var AT = resolveDeps(deps).AT;
+    if (!AT || typeof AT.stitchNormalizeWords !== "function") return 0;
+    if (!Array.isArray(segments) || !Array.isArray(lines)) return 0;
+    var n = Math.min(segments.length, lines.length);
+    for (var i = 0; i < n; i++) if (!lineMatchesSegment(AT, lines[i], segments[i])) return i;
+    return segments.length === lines.length ? -1 : n;
+  }
+
+  function revisionMatchesLines(segments, lines, deps) {
+    if (!Array.isArray(segments) || !segments.length) return false;
+    return firstMismatchLine(segments, lines, deps) === -1;
   }
 
   // W1 (honest import -> card, 2026-08-06): pure authority gate for the browser
@@ -638,6 +646,7 @@
     clockBlindRanges: clockBlindRanges,
     passportFromTextRow: passportFromTextRow,
     revisionMatchesLines: revisionMatchesLines,
+    firstMismatchLine: firstMismatchLine,
     resolveUniqueRevisionContext: resolveUniqueRevisionContext,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restorePersistedRowIdentityTiming: restorePersistedRowIdentityTiming,

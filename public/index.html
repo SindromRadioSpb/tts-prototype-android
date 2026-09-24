@@ -34796,6 +34796,17 @@ window.LearningMaterialTaskUI.configure({
     window.v3LastImportMeta=input.import_meta;
     const ref=input.import_meta && input.import_meta.media_package_ref;
     if(window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace)await window.StudioMediaPackage.setActiveWorkspace(ref || null);
+    // Медиа-задача не уходит в плоскую таблицу: контекст ЭТОЙ задачи доказывается после того, как
+    // её текст и рабочее пространство встали на место, и до сборки (владелец, «Хан Юнес», 2026-09-24).
+    if(ref){
+      const ctx=await v3ResolveMediaContext();
+      if(!ctx){
+        const res=window.v3LastMediaContextResolution||{};
+        const e=new Error('TASK_MEDIA_CONTEXT_LOST');e.code='TASK_MEDIA_CONTEXT_LOST';
+        e.reason=String(res.reason||'NO_CONTEXT')+(Number.isInteger(res.first_mismatch_line)?':'+(res.first_mismatch_line+1):'');
+        throw e;
+      }
+    }
     document.getElementById('providerSelect').value=input.provider;
     document.getElementById('translitProfileSelect').value=input.translit_profile;
     if(getTableDirection()!==input.direction)throw new Error('TASK_DIRECTION_CHANGED');
@@ -34866,6 +34877,22 @@ window.LearningMaterialTaskUI.configure({
     const card=await v3TcsBuildCardPayload(job.saved_text_id),bundle=TextCardFormat.cardToBundle(card);
     const artifact=await ShareService.buildLearningPackage({JSZip:await v3LoadJSZip(),bundle,filename:'linguistpro-material-'+job.id+'.zip',generator:'learning-material-task',fetchAudio:(key,options)=>ShareService.fetchAudioAsset(key,options)});
     return ShareService.saveFile({blob:artifact.blob,filename:artifact.filename});
+  },
+  // ⑥: ▶ считаются на СОХРАНЁННОЙ карточке тем же восстановлением, что рисует Зал.
+  async provePlayback(job) {
+    const ctx=await StudyVideoSourceUI.context(job.saved_text_id);
+    const rows=Array.isArray(ctx.rows)?ctx.rows:[];
+    // Та же мера, что решает, рисовать ли ▶ у строки (MediaHost.replayCoverage).
+    const bound=ctx.audio?MediaHost.replayCoverage(ctx.audio,rows.length).playable_rows:0;
+    return {kind:job.input.youtube_source?'youtube':'local',bound_rows:bound,total_rows:rows.length,missing_rows:rows.length-bound};
+  },
+  async openInRoom(job) {
+    try { if (window.StudioImport && window.StudioImport.close) window.StudioImport.close(); } catch (_) {}
+    location.href='/library.html?my_text='+encodeURIComponent(String(job.saved_text_id));
+  },
+  async openInStudio(job) {
+    try { if (window.StudioImport && window.StudioImport.close) window.StudioImport.close(); } catch (_) {}
+    return v3LibraryOpenText(job.saved_text_id);
   },
   async openMaterial(job) {
     // «Один модал владеет фокусом» — та же доктрина, что и у Send-or-save. Иначе «Добавить
@@ -36162,9 +36189,20 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             const savedSegmentsExact = !!(savedPassport && typeof MH.revisionMatchesLines === "function" &&
                 MH.revisionMatchesLines(savedPassport.segments, lines));
             const savedPassportExact = savedCardExact || savedSegmentsExact;
+            // Потеря медиа называет строку: «строка 221 расходится с транскриптом», а не «нет ревизии».
+            let firstMismatch = null;
+            if (!resolved.context && typeof MH.firstMismatchLine === "function") {
+                const intended = candidates.find((c) => intendedPackageId && String(c.package.package_id) === String(intendedPackageId))
+                    || (candidates.length === 1 ? candidates[0] : null);
+                if (intended) {
+                    const at = MH.firstMismatchLine(intended.revision.segments, lines);
+                    if (at >= 0) firstMismatch = at;
+                }
+            }
             window.v3LastMediaContextResolution = {
                 reason: resolved.reason, match_count: resolved.match_count,
                 media_intended: mediaIntended, at: new Date().toISOString(), line_count: lines.length,
+                first_mismatch_line: firstMismatch,
             };
             if (!resolved.context) {
                 window.v3LastImportMeta = null;

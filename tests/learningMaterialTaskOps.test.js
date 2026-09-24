@@ -1,0 +1,37 @@
+'use strict';
+// Операции задачи живут в public/index.html: проверяем их порядок и наличие по тексту оболочки.
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+const opsStart = html.indexOf('window.LearningMaterialTaskUI.configure({');
+const ops = html.slice(opsStart, html.indexOf('\n});', opsStart));
+function method(name) {
+  const at = ops.indexOf('  async ' + name + '(');
+  assert.notEqual(at, -1, name + ' is declared');
+  return ops.slice(at, ops.indexOf('\n  },', at));
+}
+
+test('translate proves the media context of THIS task before building the table', () => {
+  const body = method('translate');
+  const workspace = body.indexOf('setActiveWorkspace');
+  const proof = body.indexOf('v3ResolveMediaContext()');
+  const build = body.indexOf('translateTable()');
+  assert.ok(workspace > -1 && proof > workspace && build > proof,
+    'the check runs after the task text and workspace are in place and before the build');
+  assert.match(body, /TASK_MEDIA_CONTEXT_LOST/);
+});
+
+test('the task can count play buttons and finish in the Room or the Studio', () => {
+  assert.match(method('provePlayback'), /StudyVideoSourceUI\.context/);
+  assert.match(method('openInRoom'), /library\.html\?my_text=/);
+  assert.match(method('openInStudio'), /v3LibraryOpenText/);
+});
+
+test('a failed media resolution reports the first line that broke identity', () => {
+  const start = html.indexOf('async function v3ResolveMediaContext');
+  const body = html.slice(start, html.indexOf('\n    async function ', start + 20));
+  assert.match(body, /first_mismatch_line/);
+  assert.match(body, /firstMismatchLine/);
+});

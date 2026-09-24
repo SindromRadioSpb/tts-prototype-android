@@ -729,3 +729,12 @@ test('timing derived by the v2 order proof keeps the v1 shape as a basis alias',
   assert.deepEqual(audio.timingMap.row_seg_idx, [0, 1, null, 3, 4]);
   assert.deepEqual(audio.timingBasisAliases, [v1.timing.entries]);
 });
+
+// Ведущий путь (2026-09-24): остановка «медиа потеряно» обязана назвать строку, а не только факт.
+test('firstMismatchLine names the first line that breaks identity with the revision', () => {
+  const segs = [{ text: 'שלום מיה' }, { text: '...' }, { text: 'תודה רבה' }];
+  assert.equal(MH.firstMismatchLine(segs, ['שלום מיה', '...', 'תודה רבה'], deps), -1);
+  assert.equal(MH.firstMismatchLine(segs, ['שלום מיה', '...', 'תודה'], deps), 2);
+  assert.equal(MH.firstMismatchLine(segs, ['שלום מיה', '...'], deps), 2, 'a missing line is where identity ends');
+  assert.equal(MH.firstMismatchLine(segs, ['שלום מיה', '...', 'תודה רבה', 'עוד'], deps), 3);
+});
