@@ -251,3 +251,26 @@ test('a transcript with an unverified clock finishes with zero play buttons inst
   assert.equal(done.state,'ready');assert.equal(log.prove,1);
   assert.equal(done.playback_proof.bound_rows,0,'the honest zero is kept for the finish screen');
 });
+
+// Прогон владельца 2026-09-24: локальный файл скачан с YouTube, но ссылка на исходный ролик в
+// процессе не участвовала, и на другом устройстве материал без видео. Ссылка — второй источник.
+test('a local media task links its source YouTube video after the local play buttons are proven',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0},bound=[];
+  const job=await T.create({...mediaInput,youtube_origin:{url:'https://youtu.be/W0PNddM-0vE?si=x'}});
+  assert.equal(job.input.youtube_origin.video_id,'W0PNddM-0vE','the origin link is canonicalised');
+  await store.add(job);
+  const ops=mediaOps(log,{bindPlaybackSource:async(j,src)=>{bound.push({src,proved:log.prove});return {revision:1};}});
+  const done=await T.createRunner(store,ops).run(job.id);
+  assert.equal(done.state,'ready');
+  assert.deepEqual(JSON.parse(JSON.stringify(bound)),[{src:{url:'https://www.youtube.com/watch?v=W0PNddM-0vE',offset_ms:0},proved:1}]);
+  assert.equal(done.youtube_origin_bound,true);
+});
+
+test('a failed YouTube origin link does not undo a finished local material',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0};
+  const job=await T.create({...mediaInput,youtube_origin:{url:'https://youtu.be/W0PNddM-0vE'}});await store.add(job);
+  const ops=mediaOps(log,{bindPlaybackSource:async()=>{throw new Error('PLAYBACK_BASIS_MISMATCH');}});
+  const done=await T.createRunner(store,ops).run(job.id);
+  assert.equal(done.state,'ready');assert.equal(done.youtube_origin_bound,false);
+  assert.equal(done.youtube_origin_error,'PLAYBACK_BASIS_MISMATCH');
+});

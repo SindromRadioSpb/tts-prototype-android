@@ -518,3 +518,39 @@ test('a local media material shows the table price in the task dialog and carrie
   await start.onclick();
   assert.deepEqual(JSON.parse(JSON.stringify(created.table_quote)), quote);
 });
+
+test('a local media material can name its source YouTube video before the build', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; this.value = ''; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { const i = this.children.indexOf(before); this.children.splice(i < 0 ? this.children.length : i, 0, node); }
+    setAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  let created = null;
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: {
+    createStore: () => ({ add: async () => { throw new Error('stop'); } }),
+    createRunner: () => ({}), create: async (input) => { created = input; return input; } } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({ capture: () => ({ source_text: 'שלום', title: 'Local', provider: 'gemini', direction: 'he-ru',
+    import_meta: { media_package_ref: { package_id: 'mpkg:a', track_id: 'trk:c' } } }) });
+  await ui.start();
+  const d = body.children.at(-1);
+  const originLabel = d.children.find((n) => n.tag === 'label' && n.className === 'lmt-origin');
+  assert.ok(originLabel, 'the optional origin link field is offered');
+  originLabel.children.find((n) => n.tag === 'input').value = ' https://youtu.be/W0PNddM-0vE?si=x ';
+  const start = d.children.find((n) => n.className === 'study-source-actions').children.find((n) => n.textContent === 'Собрать учебный материал');
+  await start.onclick();
+  assert.equal(created.youtube_origin.url, 'https://youtu.be/W0PNddM-0vE?si=x');
+});
+
+test('the finish names a linked source video, or why it could not be linked', () => {
+  const base = { input: { title: 'x', import_meta: { media_package_ref: { package_id: 'mpkg:a' } } }, state: 'ready', phase: 'ready',
+    playback_proof: { kind: 'local', bound_rows: 3, total_rows: 3, missing_rows: 0 } };
+  assert.match(UI.finishLines({ ...base, youtube_origin_bound: true }).join(' '), /YouTube/);
+  assert.match(UI.finishLines({ ...base, youtube_origin_bound: false, youtube_origin_error: 'PLAYBACK_BASIS_MISMATCH' }).join(' '), /YouTube/);
+});

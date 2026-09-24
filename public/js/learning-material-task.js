@@ -131,7 +131,10 @@
     if(!input||(input.youtube_source&&!link)||(!String(input.source_text||'').trim()&&!link)||!String(input.title||'').trim()||!['gemini','gcp','google-free','madlad'].includes(input.provider))throw new Error('TASK_INPUT_INVALID');
     // Согласованная цена — часть того, на что человек согласился, поэтому живёт в журнале задачи,
     // а не в переменной страницы: иначе возобновление её теряет и маршрут спрашивает заново.
-    const source=safe({source_text:input.source_text||'',youtube_source:link,table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
+    // Исходный ролик локального файла (необязателен): второй источник видео для других устройств.
+    const origin=input&&input.youtube_origin?youtubeSource(input.youtube_origin):null;
+    if(input&&input.youtube_origin&&!origin)throw new Error('TASK_INPUT_INVALID');
+    const source=safe({source_text:input.source_text||'',youtube_source:link,...(origin?{youtube_origin:origin}:{}),table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
     return {schema:SCHEMA,id:crypto.randomUUID(),signature:await P().digest(JSON.stringify(source)),input:source,phase:'imported',state:'paused',cancel_requested:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),transcript:null,table:null,saved_text_id:null,playback_bound:null,package:null,stage_times:{},error:null};
   }
   function createStore(){
@@ -269,6 +272,16 @@
           const clockUnverified=!!(job.transcript&&job.transcript.blind);
           if(!proof||(!(Number(proof.bound_rows)>0)&&!clockUnverified))throw codeError('TASK_PLAYBACK_UNBOUND');
           job=await update({playback_proof:safe(proof),phase:'bound'});
+        }
+        // Локальный файл с указанным исходным роликом: ссылка привязывается ПОСЛЕ доказанных ▶ и
+        // её сбой не отменяет готовый материал — он честно остаётся локальным и называет причину.
+        if(job.input.youtube_origin&&!job.input.youtube_source&&operations.bindPlaybackSource&&job.youtube_origin_bound==null){
+          try{
+            await operations.bindPlaybackSource(clone(job),{url:job.input.youtube_origin.url,offset_ms:0});
+            job=await update({youtube_origin_bound:true,youtube_origin_error:null});
+          }catch(error){
+            job=await update({youtube_origin_bound:false,youtube_origin_error:String(error&&(error.code||error.message)||'BIND_FAILED').slice(0,120)});
+          }
         }
         if(await cancelled())return await update({state:'cancelled'});
         if(!job.package){

@@ -28,7 +28,7 @@
       TASK_MEDIA_CONTEXT_LOST:'Текст разошёлся с транскриптом видео, и таблица без привязки не собирается. Проверьте транскрипт и продолжите.',
       TASK_TABLE_UNSEGMENTED:'Таблица вернулась без номеров реплик, поэтому кнопки ▶ не привязать. Продолжите — части, собранные без номеров, соберутся заново.',
       TASK_PLAYBACK_UNBOUND:'Карточка сохранена, но кнопки ▶ не привязались. Нажмите «Продолжить», чтобы привязать заново, или проверьте транскрипт.',
-      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',priceTableOnly:'Учебная таблица: ≈{rows} строк · ≈${usd} · обычно {min} мин. Распознавание уже сделано локально и бесплатно.',finalNoSync:'«{title}» · {n} строк сохранены, но синхронизации с видео нет: кнопки ▶ недоступны.',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
+      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',originLabel:'Исходный ролик YouTube (необязательно) — тогда материал откроется и на других устройствах',finalOriginBound:'Исходный ролик YouTube тоже привязан: на других устройствах материал откроется с ним.',finalOriginFailed:'Исходный ролик YouTube привязать не удалось ({code}); материал работает с локальным файлом.',TASK_INPUT_INVALID:'Проверьте ссылку на ролик YouTube: она не распознана.',priceTableOnly:'Учебная таблица: ≈{rows} строк · ≈${usd} · обычно {min} мин. Распознавание уже сделано локально и бесплатно.',finalNoSync:'«{title}» · {n} строк сохранены, но синхронизации с видео нет: кнопки ▶ недоступны.',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
       reviewNote:'Транскрипт можно поправить сейчас: таблица соберётся из исправленной версии, а кнопки ▶ привяжутся к её репликам.'},
     en:{stageMedia:'Media',stageTranscript:'Transcript',stageReview:'Review',stageOf:'Step {i} of {n}',
       finalLine:'“{title}” · {n} rows · ▶ on {m} · video linked ({kind})',finalKindLocal:'local file',finalKindYoutube:'YouTube',
@@ -37,7 +37,7 @@
       TASK_MEDIA_CONTEXT_LOST:'The text no longer matches the video transcript, so the table is not built without its link. Check the transcript and continue.',
       TASK_TABLE_UNSEGMENTED:'The table came back without cue numbers, so ▶ buttons cannot be linked. Continue — parts without numbers are built again.',
       TASK_PLAYBACK_UNBOUND:'The card is saved, but its ▶ buttons did not link. Press “Continue” to link again, or check the transcript.',
-      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',priceTableOnly:'Study table: ≈{rows} rows · ≈${usd} · usually {min} min. Recognition was already done locally for free.',finalNoSync:'“{title}” · {n} rows saved, but there is no sync with the video: ▶ buttons are unavailable.',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
+      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',originLabel:'Source YouTube video (optional) — the material then opens on other devices too',finalOriginBound:'The source YouTube video is linked too: on other devices the material opens with it.',finalOriginFailed:'The source YouTube video could not be linked ({code}); the material works with the local file.',TASK_INPUT_INVALID:'Check the YouTube link: it was not recognised.',priceTableOnly:'Study table: ≈{rows} rows · ≈${usd} · usually {min} min. Recognition was already done locally for free.',finalNoSync:'“{title}” · {n} rows saved, but there is no sync with the video: ▶ buttons are unavailable.',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
       reviewNote:'You can fix the transcript now: the table is built from the corrected version, and ▶ buttons link to its cues.'},
     he:{stageMedia:'מדיה',stageTranscript:'תמלול',stageReview:'בדיקה',stageOf:'שלב {i} מתוך {n}',
       finalLine:'„{title}” · {n} שורות · ▶ ב־{m} · הסרטון מקושר ({kind})',finalKindLocal:'קובץ מקומי',finalKindYoutube:'YouTube',
@@ -46,7 +46,7 @@
       TASK_MEDIA_CONTEXT_LOST:'הטקסט כבר לא תואם לתמלול הסרטון, ולכן הטבלה לא נבנית בלי הקישור. בדקו את התמלול והמשיכו.',
       TASK_TABLE_UNSEGMENTED:'הטבלה חזרה בלי מספרי משפטים, ולכן אי אפשר לקשר כפתורי ▶. המשיכו — חלקים בלי מספרים ייבנו שוב.',
       TASK_PLAYBACK_UNBOUND:'הכרטיס נשמר, אבל כפתורי ▶ לא קושרו. לחצו «המשך» כדי לקשר שוב, או בדקו את התמלול.',
-      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',priceTableOnly:'טבלת לימוד: ≈{rows} שורות · ≈${usd} · בדרך כלל {min} דק׳. הזיהוי כבר בוצע מקומית ובחינם.',finalNoSync:'„{title}” · {n} שורות נשמרו, אבל אין סנכרון עם הסרטון: כפתורי ▶ אינם זמינים.',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
+      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',originLabel:'סרטון המקור ב־YouTube (לא חובה) — כך החומר ייפתח גם במכשירים אחרים',finalOriginBound:'גם סרטון המקור ב־YouTube מקושר: במכשירים אחרים החומר ייפתח איתו.',finalOriginFailed:'לא ניתן לקשר את סרטון המקור ב־YouTube ({code}); החומר עובד עם הקובץ המקומי.',TASK_INPUT_INVALID:'בדקו את הקישור ל־YouTube: הוא לא זוהה.',priceTableOnly:'טבלת לימוד: ≈{rows} שורות · ≈${usd} · בדרך כלל {min} דק׳. הזיהוי כבר בוצע מקומית ובחינם.',finalNoSync:'„{title}” · {n} שורות נשמרו, אבל אין סנכרון עם הסרטון: כפתורי ▶ אינם זמינים.',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
       reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
   };
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
@@ -113,7 +113,9 @@
     // Ноль ▶ (часы распознавания не подтверждены) — не «видео привязано»: говорим, чего нет.
     if(!(Number(proof.bound_rows)>0))return [fill(t('finalNoSync'),{title:'\u2068'+job.input.title+'\u2069',n:proof.total_rows})];
     if(Number(proof.missing_rows)>0)lines.push(fill(t('finalMissing'),{k:proof.missing_rows}));
-    if(proof.kind==='local')lines.push(t('finalLocal'));
+    if(job.youtube_origin_bound===true)lines.push(t('finalOriginBound'));
+    else if(job.youtube_origin_bound===false)lines.push(fill(t('finalOriginFailed'),{code:job.youtube_origin_error||'—'}));
+    else if(proof.kind==='local')lines.push(t('finalLocal'));
     return lines;
   }
   // Цена качества объявляется там же, где успех: пробел допустим, молчание о нём — нет.
@@ -491,6 +493,14 @@
     if(!input.source_text && !link){d.append(element('p',t('missing')));button(d,t('close'),()=>d.close());return;}
     const title=element('input');title.type='text';title.maxLength=160;title.value=input.title || '';
     const label=element('label',t('name'));label.append(title);d.append(label);sourceLink(d,input);
+    // Локальный файл, скачанный с YouTube: ссылка на исходный ролик делает материал доступным и на
+    // других устройствах. Поле необязательное; сбой привязки ссылки не отменяет локальный материал.
+    let origin=null;
+    if(!link&&isMediaJob({input})){
+      const originLabel=element('label',t('originLabel'));originLabel.className='lmt-origin';
+      origin=element('input');origin.type='url';origin.placeholder='https://youtu.be/…';origin.dir='ltr';
+      originLabel.append(origin);d.append(originLabel);
+    }
     // Порядок экрана: имя → ЦЕНА → действие → пояснения. Раньше решающая кнопка пряталась под
     // четырьмя абзацами прозы, и на 380 px до неё надо было доскроллить (наблюдение 2026-09-11).
     const actions=element('div');actions.className='study-source-actions';d.append(actions);
@@ -498,7 +508,7 @@
     notes.append(element('p',t('note')+input.provider),element('p',t('cost')));
     if(link)notes.append(element('p',t('linkNote')),element('p',t('captionsFree')));
     d.append(notes);
-    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
+    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const originUrl=origin?String(origin.value||'').trim():'';const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted,...(originUrl?{youtube_origin:{url:originUrl}}:{})});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
     // ③ Проверка транскрипта — внутри процесса: редактор возвращает сюда с исправленной ревизией.
     if(!link&&isMediaJob({input})&&operations.reviewTranscript){
       const reviewNote=element('p',t('reviewNote'));reviewNote.className='lmt-price-note';d.insertBefore(reviewNote,actions);
