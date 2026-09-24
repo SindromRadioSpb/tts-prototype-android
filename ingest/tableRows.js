@@ -187,6 +187,7 @@ function prepareRowsFromGeminiPayload(parsed, options, opts) {
       }
       // Пометка едет вместе со строкой: поверхность обязана иметь возможность сказать о пробеле.
       if (row.niqqud_status === "not_vocalized") out.niqqud_status = "not_vocalized";
+      if (row.niqqud_source === "dicta") out.niqqud_source = "dicta";
       if (row.source_recovery) out.source_recovery = row.source_recovery;
       return out;
     })

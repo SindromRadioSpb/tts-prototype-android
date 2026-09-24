@@ -7460,6 +7460,11 @@ app.post("/api/translate-table", async (req, res) => {
         parsed, direction, segMode, rawText, scenario, translitProfile,
         sourceSegments: segMode ? req.body.segments : null,
         cacheFile: path.join(geminiCacheDir, `table-repair-v1-${hashKey}.json`),
+        // Бесплатная резервная огласовка строк, которые Gemini не смог огласовать без правки текста.
+        vocalizeFallback: async (lines) => {
+          const out = await nakdanOnDemand.vocalize(lines.join("\n"));
+          return String(out && out.niqqud || "").split("\n");
+        },
         generate: async ({ prompt: repairPrompt }) => {
           const answer = await generateGeminiContent({
             apiKey: trimmedKey, scenario, contents: repairPrompt,
@@ -7525,6 +7530,10 @@ app.post("/api/translate-table", async (req, res) => {
     // Отдельный сигнал: строки, отданные БЕЗ огласовки, — это не «починено», а честный пробел.
     if (semanticRepair && Array.isArray(semanticRepair.unvocalizedRows) && semanticRepair.unvocalizedRows.length) {
       warnings.push("GEMINI_NIQQUD_UNVOCALIZED");
+    }
+    // Строки, огласованные бесплатным Dicta вместо Gemini, — отдельный честный сигнал провенанса.
+    if (semanticRepair && Array.isArray(semanticRepair.fallbackRows) && semanticRepair.fallbackRows.length) {
+      warnings.push("NIQQUD_FALLBACK_DICTA");
     }
     if (segMode) {
       if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {

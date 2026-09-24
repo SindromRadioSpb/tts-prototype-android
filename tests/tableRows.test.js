@@ -241,3 +241,9 @@ test('a marked row cannot smuggle a changed source past the validator', () => {
     { direction: 'he-ru' }, { keepSegmentIndex: true }),
     (e) => e.code === 'HE_NIQQUD_CONSONANT_MISMATCH');
 });
+
+test("a row vocalized by the free fallback keeps its provenance through preparation", () => {
+  const rows = buildRowsFromGeminiPayload({ rows: [{ segment_index: 0, he: "שלום", he_niqqud: "שָׁלוֹם", ru: "мир", niqqud_source: "dicta" }] },
+    { direction: "he-ru" }, { keepSegmentIndex: true, sourceSegments: [{ i: 0, text: "שלום" }] });
+  assert.equal(rows[0].niqqud_source, "dicta");
+});

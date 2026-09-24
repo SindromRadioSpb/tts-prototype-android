@@ -185,14 +185,37 @@ async function runRepair(opts) {
   // переписав источник, едет дальше БЕЗ огласовки и с явной пометкой. Источник неприкосновенен —
   // именно ради него валидатор и отверг ответ; а материал из-за шести строк из 637 больше не
   // пропадает целиком. Молчаливой пустой огласовки при этом не существует: см. validateNiqqudBase.
-  const unvocalized = indices.filter(i => !accepted.has(i));
+  let unvocalized = indices.filter(i => !accepted.has(i));
+  // Бесплатная резервная огласовка (владелец, 2026-09-24): Dicta Nakdan огласовывает ровно данный
+  // текст, поэтому источник не переписывается. Её ответ проходит тот же валидатор согласных; не
+  // прошедшая или недоступная — строка остаётся с честной пометкой ниже. Транслитерация потом
+  // считается локально из огласовки, как у всех строк.
+  const fallbackRows = [];
+  if (unvocalized.length && typeof opts.vocalizeFallback === 'function') {
+    try {
+      const lines = unvocalized.map(i => prepared[i].he);
+      const answers = await opts.vocalizeFallback(lines);
+      if (Array.isArray(answers) && answers.length === lines.length) {
+        unvocalized.forEach((i, k) => {
+          const niqqud = String(answers[k] || '').trim();
+          if (!niqqud || !/[ְ-ׇּׁׂ]/.test(niqqud)) return;
+          try { validateNiqqudBase([{ he: prepared[i].he, he_niqqud: niqqud }]); } catch (_) { return; }
+          working.rows[i].he_niqqud = niqqud;
+          working.rows[i].niqqud_source = 'dicta';
+          delete working.rows[i].niqqud_status;
+          fallbackRows.push(i);
+        });
+      }
+    } catch (_) { /* недоступный Dicta не останавливает сборку: строки остаются помеченными */ }
+    unvocalized = unvocalized.filter(i => !fallbackRows.includes(i));
+  }
   for (const i of unvocalized) {
     working.rows[i].he_niqqud = '';
     working.rows[i].niqqud_status = 'not_vocalized';
   }
   return { parsed: working, providerCalls, repair: { version: REPAIR_VERSION,
     repairedRows: accepted.size, rowIndexes: [...accepted], attempts: ledger.attempts.length,
-    unvocalizedRows: unvocalized, ...(reservationFailed ? { stoppedReason: 'repair_cache_unavailable' } : {}),
+    unvocalizedRows: unvocalized, fallbackRows, ...(reservationFailed ? { stoppedReason: 'repair_cache_unavailable' } : {}),
     modelVersions: [...new Set(ledger.attempts.map(a => a.modelVersion).filter(Boolean))] } };
 }
 

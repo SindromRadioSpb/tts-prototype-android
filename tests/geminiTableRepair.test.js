@@ -215,3 +215,32 @@ test('when the ledger cannot be written, nothing is paid and rows ship unvocaliz
   assert.equal(out.parsed.rows[1].niqqud_status, 'not_vocalized');
   assert.equal(out.providerCalls, 0);
 });
+
+// Владелец, 2026-09-24: 17 строк из 353 уехали без огласовки (и потому без транслитерации — она
+// считается локально из огласовки). Бесплатный Dicta Nakdan огласовывает РОВНО данный текст;
+// им закрываются строки, которые Gemini не смог огласовать, не переписав источник.
+test('rows Gemini could not vocalize are vocalized by the free fallback and keep their Russian', async t => {
+  const opts = fixture(t, async () => ({ text: JSON.stringify({ repairs: [] }), modelVersion: 'test-1' }));
+  let asked = null;
+  opts.vocalizeFallback = async (lines) => { asked = lines; return ['הַטְּרְרָאוּמָטִי']; };
+  const out = await recoverTableNiqqud(opts);
+  assert.deepEqual(asked, [bad.he], 'only the rejected source goes to the fallback');
+  const row = out.parsed.rows[1];
+  assert.equal(row.he_niqqud, 'הַטְּרְרָאוּמָטִי');
+  assert.equal(row.niqqud_status, undefined);
+  assert.equal(row.niqqud_source, 'dicta');
+  assert.equal(row.ru, bad.ru);
+  assert.deepEqual(out.repair.unvocalizedRows, []);
+  assert.deepEqual(out.repair.fallbackRows, [1]);
+});
+
+test('a fallback that changes consonants or fails leaves the honest not_vocalized mark', async t => {
+  const opts = fixture(t, async () => ({ text: JSON.stringify({ repairs: [] }), modelVersion: 'test-1' }));
+  opts.vocalizeFallback = async () => ['הַטְּרָאוּמָטִי'];
+  const changed = await recoverTableNiqqud(opts);
+  assert.equal(changed.parsed.rows[1].niqqud_status, 'not_vocalized');
+  const opts2 = fixture(t, async () => ({ text: JSON.stringify({ repairs: [] }), modelVersion: 'test-1' }));
+  opts2.vocalizeFallback = async () => { throw new Error('NAKDAN_UNAVAILABLE'); };
+  const failed = await recoverTableNiqqud(opts2);
+  assert.equal(failed.parsed.rows[1].niqqud_status, 'not_vocalized');
+});
