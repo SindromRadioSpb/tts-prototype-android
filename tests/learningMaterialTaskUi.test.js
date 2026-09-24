@@ -483,3 +483,38 @@ test('a journal of another material is not announced as a refused resume', () =>
   assert.match(UI.resumeNote({ firstRun: true, resume: { from: 0, reason: 'FINGERPRINT_MISMATCH', changed: ['model'] } }), /модель/);
   assert.match(UI.resumeNote({ resume: { reason: 'FINGERPRINT_MISMATCH', changed: ['text'] } }), /текст/, 'a resumed task still names it');
 });
+
+// Прогон владельца 2026-09-24: цена таблицы локального файла всплывала системным window.confirm
+// посреди прогона. Смета — на экране задачи до старта, и согласованная цена едет в журнал.
+test('a local media material shows the table price in the task dialog and carries the agreed quote', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { const i = this.children.indexOf(before); this.children.splice(i < 0 ? this.children.length : i, 0, node); }
+    setAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  let created = null;
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: {
+    createStore: () => ({ add: async () => { throw new Error('stop before provider calls'); } }),
+    createRunner: () => ({}), create: async (input) => { created = input; return input; } } });
+  const ui = window.LearningMaterialTaskUI;
+  const quote = { lowUsd: 0.21, highUsd: 0.21, lowRows: 371, highRows: 371, chunks: 3 };
+  ui.configure({
+    capture: () => ({ source_text: 'שלום', title: 'Local', provider: 'gemini', direction: 'he-ru',
+      import_meta: { media_package_ref: { package_id: 'mpkg:a', track_id: 'trk:c' } } }),
+    estimateTable: async () => ({ table: quote, minutes: 7 }),
+  });
+  await ui.start();
+  await new Promise((r) => setImmediate(r));
+  const d = body.children.at(-1);
+  const texts = d.children.map((n) => n.textContent || '').join(' | ');
+  assert.match(texts, /371/); assert.match(texts, /0\.21/);
+  const start = d.children.find((n) => n.className === 'study-source-actions').children.find((n) => n.textContent === 'Собрать учебный материал');
+  await start.onclick();
+  assert.deepEqual(JSON.parse(JSON.stringify(created.table_quote)), quote);
+});

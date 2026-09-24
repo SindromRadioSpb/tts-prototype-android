@@ -34911,6 +34911,18 @@ window.LearningMaterialTaskUI.configure({
     try { if (window.StudioImport && window.StudioImport.close) window.StudioImport.close(); } catch (_) {}
     return v3LibraryOpenText(job.saved_text_id);
   },
+  // Смета таблицы локального медиа-материала — тот же калькулятор, что у окна подтверждения сборки.
+  async estimateTable(input) {
+    if (!window.AsrTranscript || !window.TableChunks) return null;
+    const meta = input && input.import_meta;
+    const passport = meta && (meta.audio || meta.captions);
+    const n = passport && Array.isArray(passport.segments) ? passport.segments.length
+      : String(input && input.source_text || '').split('\n').filter((l) => l.trim()).length;
+    if (!n) return null;
+    const est = AsrTranscript.estimateLongJob(0, { chunkSize: TableChunks.CHUNK_SIZE, segmentsKnown: n });
+    return { table: { lowUsd: est.tableUsd, highUsd: est.tableUsd, lowRows: est.expRows, highRows: est.expRows, chunks: est.chunks },
+      minutes: Math.ceil(est.chunks * 140 / 60) };
+  },
   // ③: открыть исправляемую дорожку и дождаться закрытия редактора; «Продолжить к таблице» в
   // редакторе уже подставляет исправленную ревизию в Студию, откуда её снимет capture().
   async reviewTranscript(input) {
