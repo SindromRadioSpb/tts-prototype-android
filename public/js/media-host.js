@@ -213,6 +213,13 @@
             alignedSegments: null, alignedRows: coverage.mapped_rows,
             coverage: coverage, codeVersion: d.appVersion,
             entries: built.timing.entries.length, replaced: !!audio.timing };
+          rememberBasisAlias(audio, audio.timing && audio.timing.entries);
+          if (partial.orderProvenRows && partial.orderProvenRows.length) {
+            // Та же форма, какой её выводило правило v1, — для отпечатков, записанных до v2.
+            var legacy = AT.alignRowsToSegmentsPartialProven(texts, segs, { orderProof: false });
+            var legacyBuilt = AT.buildPartialProvenTiming(segs, legacy.rowSegIdx, clockBlindRanges(audio));
+            if (legacyBuilt && legacyBuilt.timing) rememberBasisAlias(audio, legacyBuilt.timing.entries);
+          }
           audio.timing = built.timing;
           audio.timingSource = "aligned-partial-proven";
           audio.timingAlign = prov;
@@ -256,6 +263,7 @@
     }
     prov.entries = timing.entries.length;
     prov.replaced = !!audio.timing;               // R9: заменили непроверяемое утверждение
+    rememberBasisAlias(audio, audio.timing && audio.timing.entries);
     audio.timing = timing;
     audio.timingSource = "aligned-offline";
     audio.timingAlign = prov;
@@ -367,6 +375,7 @@
     var map = Object.assign({}, audio.timingMap || {});
     delete map.authority;
     delete map.row_caption_segment_ids;
+    rememberBasisAlias(audio, audio.timing && audio.timing.entries);
     audio.timing = built.timing;
     audio.timingSource = "persisted-row-identity";
     audio.timingMap = Object.assign(map, {
@@ -491,11 +500,26 @@
     return !!(media.sha256 || media.media_sha256 || media.opfsPath || media.opfs_path ||
       media.sessionOnly || media.session_only);
   }
+  // Вытесненная форма тайминга того же материала остаётся псевдонимом для сверки отпечатка
+  // YouTube-привязки (PlaybackSource.basisMatches). Без этого улучшение выравнивания, которое
+  // выигрывает выбор кандидата, молча снимало все ▶ у сохранённых карточек (владелец, 2026-09-24).
+  // entries — записи, которые сейчас будут вытеснены (снимок ДО замены тайминга).
+  function rememberBasisAlias(target, entries) {
+    if (!target || !Array.isArray(entries) || !entries.length) return;
+    var list = Array.isArray(target.timingBasisAliases) ? target.timingBasisAliases : [];
+    var key = JSON.stringify(entries);
+    if (list.some(function (known) { return known === entries || JSON.stringify(known) === key; })) return;
+    // Неперечислимо: только для сверки в этом сеансе. Паспорт сохраняется в карточку по ссылке
+    // (table_model_meta_json), а копии тайминга в базе не нужны — их выведут заново при открытии.
+    Object.defineProperty(target, "timingBasisAliases", { value: list.concat([entries]).slice(-4),
+      writable: true, configurable: true, enumerable: false });
+  }
   function pickExactBindingPassport(prev, exact, rowCount) {
     if (!exact) return prev || null;
     var e = playableRows(exact, rowCount);
     var p = playableRows(prev, rowCount);
-    if (e >= p) return exact;
+    if (e >= p) { rememberBasisAlias(exact, prev && prev.timing && prev.timing.entries); return exact; }
+    rememberBasisAlias(prev, exact.timing && exact.timing.entries);
     // R9: отказ виден в провенансе — бар/мета честно объясняют, что привязка неполная.
     try {
       prev.exactBindingSkipped = {

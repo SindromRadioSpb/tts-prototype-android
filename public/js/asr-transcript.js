@@ -1336,7 +1336,9 @@
   // normalized word sequence occurs contiguously inside exactly one segment.
   // There is no proximity, majority, neighbour inheritance or interpolation.
   var ALIGN_PARTIAL_VERSION = "align-rows-partial-proven-v2"; // v2: + доказательство порядком (2026-09-24)
-  function alignRowsToSegmentsPartialProven(rowTexts, segments) {
+  // options.orderProof === false — правило v1 (только уникальные совпадения). Нужно, чтобы
+  // сверять отпечатки YouTube-привязок, записанные по форме тайминга до v2 (media-host).
+  function alignRowsToSegmentsPartialProven(rowTexts, segments, options) {
     var R = Array.isArray(rowTexts) ? rowTexts : [];
     var S = Array.isArray(segments) ? segments : [];
     var segWords = S.map(function (segment) { return alignWords(segment && segment.text); });
@@ -1372,7 +1374,7 @@
       return true;
     }
     var prevRow = -1, prevPos = -1;
-    for (var at = 0; at <= R.length; at++) {
+    for (var at = 0; at <= R.length && !(options && options.orderProof === false); at++) {
       if (at < R.length && positions[at] == null) continue;
       var nextPos = at < R.length ? positions[at] : S.length;
       var gapRows = at - prevRow - 1, gapSegs = nextPos - prevPos - 1;

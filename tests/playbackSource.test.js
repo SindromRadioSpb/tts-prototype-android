@@ -150,3 +150,22 @@ test('binding repository changes only source metadata with compare-and-swap and 
   db.run(`INSERT INTO texts VALUES('public','{"public_corpus":{"slug":"fixture"}}','t')`);
   await assert.rejects(()=>repo.save('public',{url:`https://youtu.be/${A}`},{expected_revision:0}),/PLAYBACK_PUBLISHED_READ_ONLY/);
 });
+
+// Владелец, 2026-09-24: отпечаток, записанный по форме тайминга, которую потом вытеснил лучший
+// кандидат того же материала, по-прежнему принадлежит этой карточке.
+test('a basis recorded on a displaced timing candidate still matches; playback uses the current timing', async () => {
+  const old = { ...audio, timing: { entries: [{ o: 0, t: 1, end: 3 }] } };
+  const basis = await P.timingBasis(old, rows);
+  const current = { ...audio, timingBasisAliases: [old.timing.entries] };
+  assert.equal(await P.basisMatches(audio, rows, basis), false, 'without the alias it is a real change');
+  assert.equal(await P.basisMatches(current, rows, basis), true);
+  const record = P.append(null, { url: 'https://youtu.be/' + A }, { basis_sha256: basis });
+  const view = await P.youtubeView(current, rows, record);
+  assert.equal(view.reason, null);
+  assert.equal(view.entries.length, 2, 'the better current timing plays, not the alias');
+});
+
+test('an alias never rescues a basis from different rows', async () => {
+  const basis = await P.timingBasis(audio, [{ he: 'אחר' }, { he: 'שונה' }]);
+  assert.equal(await P.basisMatches({ ...audio, timingBasisAliases: [audio.timing.entries] }, rows, basis), false);
+});

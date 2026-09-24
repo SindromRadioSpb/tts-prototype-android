@@ -125,7 +125,16 @@
   // Те же медиа, строки и начала — та же разметка: концы выведены из той же ревизии позже.
   async function basisMatches(audio, rows, basis) {
     if (!basis) return true;
-    return await timingBasis(audio, rows) === basis || await timingBasis(audio, rows, { startsOnly: true }) === basis;
+    if (await timingBasis(audio, rows) === basis || await timingBasis(audio, rows, { startsOnly: true }) === basis) return true;
+    // Владелец, 2026-09-24: лучший кандидат тайминга того же материала (улучшенное выравнивание)
+    // вытеснил тот, по которому записан отпечаток, — и все ▶ пропали. Вытесненный кандидат жив
+    // (MediaHost кладёт его в timingBasisAliases), значит привязка держится; играет лучший.
+    const aliases = Array.isArray(audio && audio.timingBasisAliases) ? audio.timingBasisAliases.slice(0, 8) : [];
+    for (const entries of aliases) {
+      const alias = { ...audio, timing: { entries } };
+      if (await timingBasis(alias, rows) === basis || await timingBasis(alias, rows, { startsOnly: true }) === basis) return true;
+    }
+    return false;
   }
   // Новая карточка из архива получает разметку, пересобранную из ревизии архива: та же
   // ревизия, другая форма записи (концы, склейки строк без конца). Отпечаток источника

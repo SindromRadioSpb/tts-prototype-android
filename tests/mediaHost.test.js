@@ -662,3 +662,58 @@ test('local playback falls back to a registered lite file without changing the c
   fullPresent = true;
   assert.equal((await resolver.resolve(audio)).size, 10, 'the full copy takes precedence once present');
 });
+
+// Владелец, 2026-09-24: улучшенное выравнивание (452/453 против 440 у точной привязки) стало
+// выигрывать выбор — и сохранённый отпечаток YouTube-привязки (посчитанный по точной привязке)
+// перестал совпадать: все ▶ пропали. Вытесненный кандидат остаётся псевдонимом для сверки.
+test("exact binding: вытесненная точная привязка остаётся псевдонимом отпечатка", () => {
+  const prev = derivedPassport(228), exact = exactPassport(8, 236, 8);
+  const picked = MH.pickExactBindingPassport(prev, exact, 236);
+  assert.equal(picked, prev);
+  assert.deepEqual(picked.timingBasisAliases, [exact.timing.entries]);
+  const again = MH.pickExactBindingPassport(picked, exact, 236);
+  assert.equal(again.timingBasisAliases.length, 1, "повторный выбор не копит одинаковые псевдонимы");
+});
+
+test('offline realignment that replaces a saved timing keeps the replaced shape as a basis alias', () => {
+  const saved = [{ o: 0, t: 0 }, { o: 2, t: 8 }];
+  const audio = {
+    segments: [
+      { i: 0, start: 0, end: 2, text: 'שלום עולם' },
+      { i: 1, start: 4, end: 6, text: 'שורה אחרת' },
+      { i: 2, start: 8, end: 10, text: 'מיה באה' },
+    ],
+    timing: { entries: saved },
+    timingMap: { authority: 'studio-exact-binding', row_caption_segment_ids: [] },
+  };
+  MH.alignSavedTimingOffline(audio, [
+    { he: 'שלום עולם' }, { he: 'לא נמצא' }, { he: 'מיה באה' },
+  ], { AT, appVersion: 'test' });
+  assert.equal(audio.timingSource, 'aligned-partial-proven');
+  assert.notEqual(audio.timing.entries, saved);
+  assert.deepEqual(audio.timingBasisAliases, [saved]);
+});
+
+test('basis aliases never reach the persisted passport', () => {
+  const prev = derivedPassport(228), exact = exactPassport(8, 236, 8);
+  const picked = MH.pickExactBindingPassport(prev, exact, 236);
+  assert.equal(picked.timingBasisAliases.length, 1);
+  assert.equal(JSON.stringify(picked).includes('timingBasisAliases'), false);
+});
+
+test('timing derived by the v2 order proof keeps the v1 shape as a basis alias', () => {
+  const segments = [
+    { i: 0, start: 0, end: 1, text: 'שלום עולם' },
+    { i: 1, start: 2, end: 3, text: 'כן.' },
+    { i: 2, start: 4, end: 34, text: 'הי הי הי' },
+    { i: 3, start: 35, end: 36, text: 'מיה באה' },
+    { i: 4, start: 37, end: 38, text: 'כן.' },
+  ];
+  const rows = ['שלום עולם', 'כן.', 'הי הי הי הי', 'מיה באה', 'כן.'].map((he) => ({ he }));
+  const audio = { segments, timing: null };
+  MH.alignSavedTimingOffline(audio, rows, { AT, appVersion: 'test' });
+  const v1 = AT.buildPartialProvenTiming(segments,
+    AT.alignRowsToSegmentsPartialProven(rows.map((r) => r.he), segments, { orderProof: false }).rowSegIdx, []);
+  assert.deepEqual(audio.timingMap.row_seg_idx, [0, 1, null, 3, 4]);
+  assert.deepEqual(audio.timingBasisAliases, [v1.timing.entries]);
+});

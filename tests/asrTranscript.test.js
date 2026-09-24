@@ -1705,3 +1705,16 @@ test("order proof needs equal counts and whole-segment equality", () => {
   assert.deepEqual(partial.rowSegIdx, [0, null, 3, null, 5]);
   assert.deepEqual(partial.orderProvenRows, []);
 });
+
+test('orderProof:false reproduces the v1 rule exactly', () => {
+  const segs = [
+    { i: 0, start: 0, end: 1, text: 'שלום עולם' }, { i: 1, start: 2, end: 3, text: 'כן.' },
+    { i: 2, start: 4, end: 5, text: 'מיה באה' }, { i: 3, start: 6, end: 7, text: 'כן.' },
+  ];
+  const rows = ['שלום עולם', 'כן.', 'מיה באה', 'כן.'];
+  assert.deepEqual(A.alignRowsToSegmentsPartialProven(rows, segs).rowSegIdx, [0, 1, 2, 3]);
+  const v1 = A.alignRowsToSegmentsPartialProven(rows, segs, { orderProof: false });
+  assert.deepEqual(v1.rowSegIdx, [0, null, 2, null]);
+  assert.deepEqual(v1.ambiguousRows, [1, 3]);
+  assert.deepEqual(v1.orderProvenRows, []);
+});
