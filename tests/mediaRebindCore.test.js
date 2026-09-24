@@ -51,3 +51,11 @@ test('planRebind maps rows to caption ids and reports the share of rows that gai
   assert.equal(Math.round(plan.ratio * 100), 67);
   assert.equal(plan.needsRebuild, true, 'under 80% of rows the paid rebuild is offered');
 });
+
+test('the rebind target is the one transcript that explains the most rows, and a tie is refused', () => {
+  const plan = (bound) => ({ bound, total: 10, ratio: bound / 10 });
+  assert.equal(C.chooseCandidate([{ id: 'a', plan: plan(3) }, { id: 'b', plan: plan(9) }]).candidate.id, 'b');
+  assert.equal(C.chooseCandidate([{ id: 'a', plan: plan(7) }, { id: 'b', plan: plan(7) }]).reason, 'AMBIGUOUS');
+  assert.equal(C.chooseCandidate([{ id: 'a', plan: plan(0) }]).reason, 'NO_MATCH');
+  assert.equal(C.chooseCandidate([]).reason, 'NO_MATCH');
+});

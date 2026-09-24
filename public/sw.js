@@ -236,6 +236,8 @@ const PRECACHE_URLS = [
   "/js/studio-media-editor.js?v=529",
   "/js/studio-material-revision.js",
   "/js/studio-portable-learning-package.js?v=584",
+  "/js/media-rebind-core.js?v=628",
+  "/js/media-rebind-ui.js?v=628",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back

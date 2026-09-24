@@ -240,6 +240,8 @@
     actions.innerHTML=`<button type="button" data-material-back>${esc(life('back'))}</button>`;
     const button=(action,label)=>`<button type="button" data-material-action="${action}">${esc(life(label||action))}</button>`;
     body.innerHTML=`<section class="p4-material-detail" data-selected-material="${esc(item.catalog_key)}"><h4 dir="auto">${esc(item.title||life('untitled'))}</h4><p>${esc(draft?life('draftHelp'):archived?life('archivedHelp'):life('savedHelp'))}</p>${draft?`<div class="p4-material-actions"><button type="button" class="p4-danger-action" data-material-action="delete-draft">${esc(life('deleteDraft'))}</button></div>`:`<label>${esc(life('name'))}<input id="p4MaterialName" type="text" maxlength="240" value="${esc(item.title||'')}" dir="auto" required></label>${button('rename')}<div class="p4-material-actions">${archived?button('restore'):button('study')}${button('export')}${!archived?button('archive'):''}${button('delete')}</div>`}${item.package_id&&item.binding_track_id?`<div class="p4-material-actions">${button('source')}</div><p>${esc(life('sourceHelp'))}</p>`:''}<div id="p4MaterialStatus" class="p2-portable-status" role="status"></div><details><summary>${esc(life('details'))}</summary>${continuityRail(item)}</details></section>`;
+    // Ведущий путь 2.4: карточка без ▶ получает «Привязать медиа» прямо здесь (бесплатно, с предпросмотром).
+    if(!draft&&window.MediaRebindUI){try{window.MediaRebindUI.mount(body.querySelector('.p4-material-detail'),item.text_id);}catch(_){}}
     actions.onclick=()=>{state.materialId=null;return renderView(modal,state,'materials');};
     body.onclick=async event=>{
       const selected=actionTarget(event,'[data-material-action]');if(!selected||state.materialBusy)return;

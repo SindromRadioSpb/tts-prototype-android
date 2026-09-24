@@ -67,6 +67,16 @@
       bound: mappingRows.length, total: total, ratio: ratio, needsRebuild: ratio < REBUILD_THRESHOLD };
   }
 
-  return { alignRowsToSegmentSpans: alignRowsToSegmentSpans, planRebind: planRebind,
+  // Цель ремонта — транскрипт, объясняющий больше всего строк. Равенство двух лучших — не повод
+  // выбрать любой: это отказ, как у резолвера медиа-контекста.
+  function chooseCandidate(candidates) {
+    var list = (Array.isArray(candidates) ? candidates : []).filter(function (c) { return c && c.plan && c.plan.bound > 0; });
+    if (!list.length) return { candidate: null, reason: "NO_MATCH" };
+    list.sort(function (a, b) { return b.plan.bound - a.plan.bound; });
+    if (list.length > 1 && list[1].plan.bound === list[0].plan.bound) return { candidate: null, reason: "AMBIGUOUS" };
+    return { candidate: list[0], reason: null };
+  }
+
+  return { alignRowsToSegmentSpans: alignRowsToSegmentSpans, planRebind: planRebind, chooseCandidate: chooseCandidate,
     SEARCH_WINDOW_WORDS: SEARCH_WINDOW_WORDS, REBUILD_THRESHOLD: REBUILD_THRESHOLD };
 });

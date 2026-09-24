@@ -1193,6 +1193,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-library-discovery.js?v=486",
   "/index.html",
   "/js/studio-portable-learning-package.js?v=584",
+  "/js/media-rebind-core.js?v=628",
+  "/js/media-rebind-ui.js?v=628",
   "/js/studio-media-editor.js?v=529",
   "/js/learning-compass-core.js",
   "/library.html",
