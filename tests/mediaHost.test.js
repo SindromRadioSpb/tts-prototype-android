@@ -336,6 +336,18 @@ test('revisionMatchesLines admits an exact line-for-line transcript and nothing 
   assert.equal(MH.revisionMatchesLines(null, ['a'], deps), false, 'no segments, no claim');
 });
 
+// Прод 2026-09-24 («Хан Юнес»): субтитровая реплика «...» не содержит слов. Пустое сравнение
+// считалось расхождением, и одна такая строка из 241 молча отвязывала видео от всей карточки.
+test('revisionMatchesLines keeps identity across a word-free cue such as "..."', () => {
+  const segs = [{ text: 'שלום מיה' }, { text: '...' }, { text: 'תודה רבה' }];
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום מיה', '...', 'תודה רבה'], deps), true,
+    'an identical punctuation-only cue is the same line');
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום מיה', '!', 'תודה רבה'], deps), false,
+    'a different word-free line is still a different line');
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום מיה', 'מה', 'תודה רבה'], deps), false,
+    'words where the segment had none is an edit');
+});
+
 // W1 (honest import -> card, 2026-08-06): all three former ambient globals must be
 // projections of one content-addressed decision. The decision is unique-or-null: two
 // exact revisions are not permission to pick the most recent one.

@@ -587,9 +587,17 @@
     if (!Array.isArray(segments) || !Array.isArray(lines)) return false;
     if (!segments.length || segments.length !== lines.length) return false;
     for (var i = 0; i < segments.length; i++) {
-      var a = AT.stitchNormalizeWords(String(lines[i] == null ? "" : lines[i])).join(" ");
-      var b = AT.stitchNormalizeWords(String((segments[i] && segments[i].text) || "")).join(" ");
-      if (!a || a !== b) return false;
+      var rawLine = String(lines[i] == null ? "" : lines[i]);
+      var rawSeg = String((segments[i] && segments[i].text) || "");
+      var a = AT.stitchNormalizeWords(rawLine).join(" ");
+      var b = AT.stitchNormalizeWords(rawSeg).join(" ");
+      // Реплика без слов («...», «♪») сверяется как есть: пустое против пустого ещё не тождество.
+      if (!a && !b) {
+        var ra = rawLine.replace(/\s+/g, ""), rb = rawSeg.replace(/\s+/g, "");
+        if (!ra || ra !== rb) return false;
+        continue;
+      }
+      if (a !== b) return false;
     }
     return true;
   }
