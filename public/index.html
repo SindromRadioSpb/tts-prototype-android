@@ -6755,18 +6755,25 @@ body:not(.theme-light) .v3-notes-template-banner {
 .v3-notes-tpl-dicta-btn:hover { background: var(--theme-bg-hover, #f1f5f9); border-color: var(--theme-accent); }
 .v3-notes-tpl-dicta-btn:disabled { opacity: 0.55; cursor: default; }
 
-/* Phase D — corpus enrichment progress overlay */
+/* Phase D — corpus enrichment progress. Владелец, 2026-09-25: был полноэкранный затемняющий
+   слой, и фоновое обогащение большой карточки блокировало интерфейс на минуты. Теперь это плашка
+   в углу: клики проходят сквозь хост, работа с карточкой продолжается. */
 .v3-morph-enrich-progress {
-  position: fixed; inset: 0; z-index: 100000;
-  display: none; align-items: center; justify-content: center;
-  background: rgba(0, 0, 0, 0.45); padding: 20px;
+  position: fixed; inset-block-end: 16px; inset-inline-end: 16px; z-index: 9000;
+  display: none; pointer-events: none;
 }
 .v3-mep-box {
+  pointer-events: auto;
   background: var(--theme-bg-card, #fff); color: var(--theme-text-primary);
-  border-radius: 14px; padding: 20px 22px; width: min(340px, 90vw);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); text-align: center;
+  border: 1px solid var(--theme-border-soft, rgba(0,0,0,0.1));
+  border-radius: 12px; padding: 10px 14px; width: min(280px, calc(100vw - 32px));
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); text-align: start;
 }
-.v3-mep-title { font: 700 14px "Segoe UI", system-ui, sans-serif; margin-bottom: 12px; }
+@media (max-width: 480px) {
+  .v3-morph-enrich-progress { inset-inline: 16px; }
+  .v3-mep-box { width: 100%; }
+}
+.v3-mep-title { font: 700 13px "Segoe UI", system-ui, sans-serif; margin-bottom: 8px; }
 .v3-mep-bar { height: 8px; background: var(--theme-bg-muted, #eef1f6); border-radius: 999px; overflow: hidden; }
 .v3-mep-fill { height: 100%; width: 0%; background: #E69F00; border-radius: 999px; transition: width 0.25s ease; }
 .v3-mep-sub { margin-top: 8px; font-size: 12px; color: var(--theme-text-muted); }
@@ -13661,7 +13668,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.633";
+    window.APP_VERSION = "3.11.634";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -48779,6 +48786,9 @@ function v3MorphProgressShow(titleKey, titleFb) {
     el = document.createElement("div");
     el.id = "v3MorphEnrichProgress";
     el.className = "v3-morph-enrich-progress";
+    // Фоновый прогресс: сообщает о себе вежливо, фокус не забирает, интерфейс не перекрывает.
+    el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
     el.innerHTML = '<div class="v3-mep-box"><div class="v3-mep-title"></div><div class="v3-mep-bar"><div class="v3-mep-fill"></div></div><div class="v3-mep-sub"></div></div>';
     document.body.appendChild(el);
   }
