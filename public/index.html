@@ -10891,7 +10891,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Общие стили морф-карточки ReaderMorph + палитра статусов слов (одна реализация с Залом,
      форк запрещён). После инлайн-<style>: при равной специфичности выигрывает карточный файл. -->
-<link rel="stylesheet" href="/css/reader-morph.css?v=396">
+<link rel="stylesheet" href="/css/reader-morph.css?v=639">
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
 <script>
@@ -13464,9 +13464,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=255"></script>
-<script src="/i18n/locales/en.js?v=255"></script>
-<script src="/i18n/locales/he.js?v=255"></script>
+<script src="/i18n/locales/ru.js?v=256"></script>
+<script src="/i18n/locales/en.js?v=256"></script>
+<script src="/i18n/locales/he.js?v=256"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13539,7 +13539,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js?v=583"></script>
+<script src="/js/reader-morph.js?v=639"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13692,7 +13692,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.638";
+    window.APP_VERSION = "3.11.639";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17795,8 +17795,9 @@ function v3NotesRefreshAllButtons() {
         });
         if (lg && !lg.childNodes.length) {
             const _lt = (k, fb) => { try { if (typeof window.t === "function") { const v = window.t(k); if (v && v !== k) return v; } } catch (_) {} return fb; };
-            [["unassessed", _lt("room.morph.status.unassessed", "не оценено")], ["new", _lt("room.morph.status.new", "новое")], ["l1", "1"], ["l2", "2"], ["l3", "3"], ["l4", "4"],
-             ["known", _lt("room.morph.status.known", "знаю")], ["ignore", _lt("room.morph.status.ignore", "игнор")]].forEach(function (p) {
+            [["unassessed", _lt("room.morph.status.unassessed", "не оценено")], ["new", _lt("room.morph.status.new", "новое")], ["l1", _lt("room.morph.status.l1", "незнакомо")], ["l2", _lt("room.morph.status.l2", "узнаю")],
+             ["l3", _lt("room.morph.status.l3", "вспоминаю")], ["l4", _lt("room.morph.status.l4", "почти знаю")],
+             ["known", _lt("room.morph.status.known", "знаю")], ["ignore", _lt("room.morph.status.ignore", "не учить")]].forEach(function (p) {
                 const sw = document.createElement("span"); sw.className = "reader-status-sw";
                 const dot = document.createElement("span"); dot.className = "reader-status-dot sw-" + p[0];
                 const tx = document.createElement("span"); tx.textContent = p[1];

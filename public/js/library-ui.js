@@ -2103,8 +2103,9 @@ function showScaffoldAdviceBar(rule) {
 // repaint (manual-wins, NO flashcard — same word_status store). Self-contained over the morph
 // engine + the manual status store; Room-only, parity-safe. Plan: BRR_EPIC4_3A_STUDY_LIST_PREMIUM.
 const STUDY_STATUS_OPTS = [
-  ['new', 'room.morph.status.new', 'новое'], ['l1', null, '1'], ['l2', null, '2'], ['l3', null, '3'], ['l4', null, '4'],
-  ['known', 'room.morph.status.known', 'знаю'], ['ignore', 'room.morph.status.ignore', 'игнор'],
+  ['new', 'room.morph.status.new', 'новое'], ['l1', 'room.morph.status.l1', 'незнакомо'], ['l2', 'room.morph.status.l2', 'узнаю'],
+  ['l3', 'room.morph.status.l3', 'вспоминаю'], ['l4', 'room.morph.status.l4', 'почти знаю'],
+  ['known', 'room.morph.status.known', 'знаю'], ['ignore', 'room.morph.status.ignore', 'не учить'],
 ];
 // A9 — localized label for a status code (used in the training level-move «новое → 1», not raw codes).
 function statusLabel(code) {
@@ -8062,8 +8063,9 @@ function buildAidsPanel() {
   panel.appendChild(wsLab);
   // Epic 4 — VISIBLE status-colour legend (premium + mobile-legible; title tooltips fail @380px).
   const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', '🎨 Статус слов') } });
-  [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', '1'], ['l2', '2'], ['l3', '3'], ['l4', '4'],
-    ['known', tt('room.morph.status.known', 'знаю')], ['ignore', tt('room.morph.status.ignore', 'игнор')]].forEach(([c, l]) => {
+  [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', tt('room.morph.status.l1', 'незнакомо')], ['l2', tt('room.morph.status.l2', 'узнаю')],
+    ['l3', tt('room.morph.status.l3', 'вспоминаю')], ['l4', tt('room.morph.status.l4', 'почти знаю')],
+    ['known', tt('room.morph.status.known', 'знаю')], ['ignore', tt('room.morph.status.ignore', 'не учить')]].forEach(([c, l]) => {
     const sw = el('span', { class: 'reader-status-sw' });
     sw.appendChild(el('span', { class: 'reader-status-dot sw-' + c }));
     sw.appendChild(el('span', { text: l }));

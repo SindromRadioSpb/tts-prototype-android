@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="/css/reader-core.css?v=638">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
-  <link rel="stylesheet" href="/css/reader-morph.css?v=396">
+  <link rel="stylesheet" href="/css/reader-morph.css?v=639">
   <link rel="stylesheet" href="/css/lexical-resolution.css?v=6">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
@@ -3227,7 +3227,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.638</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.639</button>
   </div>
 </footer>
 
@@ -3415,9 +3415,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=255"></script>
-    <script src="/i18n/locales/en.js?v=255"></script>
-    <script src="/i18n/locales/he.js?v=255"></script>
+    <script src="/i18n/locales/ru.js?v=256"></script>
+    <script src="/i18n/locales/en.js?v=256"></script>
+    <script src="/i18n/locales/he.js?v=256"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3460,7 +3460,7 @@
 <!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
      reader-morph.js so ensureEngine can build its lexicon. -->
 <script src="/js/proclitic-segment.js"></script>
-<script src="/js/reader-morph.js?v=583"></script>
+<script src="/js/reader-morph.js?v=639"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
@@ -3528,6 +3528,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=638"></script>
+<script type="module" src="/js/library-ui.js?v=639"></script>
 </body>
 </html>

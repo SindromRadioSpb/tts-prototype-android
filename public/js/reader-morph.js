@@ -1079,8 +1079,9 @@
   var FAM_STATE = { known: "rm-fam-known", learning: "rm-fam-learning", weak: "rm-fam-learning", stale: "rm-fam-learning", "new": "rm-fam-new", l1: "rm-fam-l1", l2: "rm-fam-l2", l3: "rm-fam-l3", l4: "rm-fam-l4", ignore: "rm-fam-ignore" };
   // Epic 4 — manual status one-tap level selector (LingQ-style new/1-4/known/ignore).
   var STATUS_OPTS = [
-    ["new", ["room.morph.status.new", "новое"]], ["l1", null], ["l2", null], ["l3", null], ["l4", null],
-    ["known", ["room.morph.status.known", "знаю"]], ["ignore", ["room.morph.status.ignore", "игнор"]],
+    ["new", ["room.morph.status.new", "новое"]], ["l1", ["room.morph.status.l1", "незнакомо"]], ["l2", ["room.morph.status.l2", "узнаю"]],
+    ["l3", ["room.morph.status.l3", "вспоминаю"]], ["l4", ["room.morph.status.l4", "почти знаю"]],
+    ["known", ["room.morph.status.known", "знаю"]], ["ignore", ["room.morph.status.ignore", "не учить"]],
   ];
   var _activeCard = null, _activeOcc = null, _activeNoteInfo = null, _attachOpts = {};
   // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
@@ -1203,7 +1204,7 @@
     var cur = card.manualStatus || ((card.label === "exact" || card.label === "likely") ? "new" : "");
     var btns = STATUS_OPTS.map(function (o) {
       var val = o[0];
-      var lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
+      var lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : escapeHtml(val);
       return '<button type="button" class="rm-status-btn rm-status-' + val + (cur === val ? " rm-status-active" : "") + '" data-rm-status="' + val + '">' + lab + "</button>";
     }).join("");
     return '<div class="rm-status" dir="' + uiDir() + '"><span class="rm-status-k">' + escapeHtml(tt("room.morph.status.title", "Мой статус")) + ":</span>" + btns + "</div>";
@@ -1277,7 +1278,7 @@
     _statpopOcc = occ || null; // R1 source-at-mark — the long-press occurrence, forwarded on set
     var active = _statpopCur || (isConf ? "new" : "");   // effective highlight (confident default = new)
     var btns = STATUS_OPTS.map(function (o) {
-      var val = o[0], lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
+      var val = o[0], lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : escapeHtml(val);
       return '<button type="button" class="rm-status-btn rm-status-' + val + (active === val ? " rm-status-active" : "") + '" data-rm-statpop="' + val + '">' + lab + "</button>";
     }).join("");
     el.innerHTML = '<div class="rm-statpop-inner" dir="' + uiDir() + '">' + btns + "</div>";
