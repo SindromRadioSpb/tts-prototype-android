@@ -2094,6 +2094,8 @@ window.I18N_LOCALES.he = {
     densityComfortable: "נוח",
     densitySpacious: "רווח",
   },
+  // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
+  appNav: { room: "קריאה", mediatheque: "מדיה", studio: "סטודיו", review: "חזרה", label: "אזורים" },
   onboarding: {
     title: "ברוכים הבאים ל-LinguistPro",
     tagline: "קוראים ומאזינים לעברית עם תרגום, ניקוד ופירוק של כל מילה.",
@@ -4386,7 +4388,7 @@ window.I18N_LOCALES.he.studio.portable.mediaYoutubeOnline="YouTube \u05d1\u05d0\
 window.I18N_LOCALES.he.mediatheque = {
   "title": "ספריית מדיה",
   "skip": "מעבר לחומרים",
-  "room": "חדר הלימוד",
+  "room": "חדר קריאה",
   "studio": "סטודיו",
   "theme": "ערכת נושא",
   "loading": "ספריית המדיה נטענת…",

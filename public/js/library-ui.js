@@ -3152,6 +3152,14 @@ async function _crossPoolFor(items, due) {
   const extra = await _crossDistractorPool(items, due);
   return extra.length >= 3 ? items.concat(extra) : items;
 }
+// R6 — «Повторение» in the shared navigation. The hash is dropped once the review opens, so a reload
+// does not reopen it and a second tap on the same item fires hashchange again.
+function openReviewFromNav() {
+  if (location.hash === '#review') {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+    startDueReview();
+  }
+}
 async function startDueReview() {
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
@@ -5511,6 +5519,7 @@ function roomMentorInit() {
   window.addEventListener('hashchange', () => {
     if (location.hash === '#mentor') openMentorView();
     else if (location.hash === '#lesson-builder') openLessonStudio();
+    else if (location.hash === '#review') openReviewFromNav();
   });
   if (location.hash === '#lesson-builder') openLessonStudio();
 }
@@ -14603,6 +14612,8 @@ async function boot() {
     // CLG-P9 — deep-link #mentor (пуш/закладка): открыть дом наставника. Это ЯВНОЕ
     // намерение пользователя (URL), не автооткрытие — этикет R17 §2.3 соблюдён.
     try { if (location.hash === '#mentor') openMentorView(); } catch (_) {}
+    // R6 — the shared navigation's «Повторение» deep-links here (#review).
+    try { if (location.hash === '#review') openReviewFromNav(); } catch (_) {}
     // B6 diagnostics are buffered observers, not a critical-render dependency.
     // Install them only after the canonical Room boot/render path has settled;
     // LCP/CLS/event observers use buffered entries, so early evidence is retained

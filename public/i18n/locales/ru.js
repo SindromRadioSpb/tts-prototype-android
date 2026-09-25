@@ -2100,6 +2100,8 @@ window.I18N_LOCALES.ru = {
     densityComfortable: "Комфортная",
     densitySpacious: "Просторная",
   },
+  // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
+  appNav: { room: "Зал", mediatheque: "Медиатека", studio: "Студия", review: "Повторение", label: "Разделы" },
   onboarding: {
     title: "Добро пожаловать в LinguistPro",
     tagline: "Читайте и слушайте иврит с переводом, огласовкой и разбором каждого слова.",
@@ -4392,7 +4394,7 @@ window.I18N_LOCALES.ru.studio.portable.mediaYoutubeOnline="YouTube \u043e\u043d\
 window.I18N_LOCALES.ru.mediatheque = {
   "title": "Медиатека",
   "skip": "К материалам",
-  "room": "Учебный зал",
+  "room": "Читальный зал",
   "studio": "Студия",
   "theme": "Тема",
   "loading": "Загрузка Медиатеки…",

@@ -9,7 +9,7 @@ const { chromium } = require("playwright"); const fs = require("fs"), os = requi
   await page.addInitScript((l) => { localStorage.setItem("onboardingSeen_v1", "1"); localStorage.setItem("room.studyMode", "0"); if (l) localStorage.setItem("app.locale", l); }, loc);
   await page.goto(L.BASE + "/mediatheque.html"); await page.waitForTimeout(5000);
   await page.locator("a,button").filter({ hasText: /Изучать|ללמוד/ }).first().click(); await page.waitForSelector("#proTable tbody tr", { timeout: 45000 }).catch(() => {}); await page.waitForTimeout(2500);
-  const inText = await page.evaluate(() => { const h = document.querySelector("header.room-header"); const v = document.querySelector("iframe, video"); const t = document.querySelector("#proTable"); return { study: document.body.classList.contains("room-study"), headerShown: !!(h && h.offsetHeight), videoTop: v ? Math.round(v.getBoundingClientRect().top) : null, tableTop: t ? Math.round(t.getBoundingClientRect().top) : null }; });
+  const inText = await page.evaluate(() => { const h = document.querySelector("header.room-header"); const v = document.querySelector("iframe, video"); const t = document.querySelector("#proTable"); const nv = document.querySelector("nav.lp-app-nav"); return { navShown: !!(nv && nv.offsetHeight), study: document.body.classList.contains("room-study"), headerShown: !!(h && h.offsetHeight), videoTop: v ? Math.round(v.getBoundingClientRect().top) : null, tableTop: t ? Math.round(t.getBoundingClientRect().top) : null }; });
   fs.mkdirSync(path.join(__dirname, "R4", "after"), { recursive: true });
   await L.shot(page, `../R4/after/r4b-open-${tag}`);
   await page.click("#readerBack").catch(() => {}); await page.waitForTimeout(3000);

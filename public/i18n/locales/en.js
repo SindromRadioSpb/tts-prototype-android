@@ -2086,6 +2086,8 @@ window.I18N_LOCALES.en = {
     densityComfortable: "Comfortable",
     densitySpacious: "Spacious",
   },
+  // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
+  appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", label: "Sections" },
   onboarding: {
     title: "Welcome to LinguistPro",
     tagline: "Read and listen to Hebrew with translation, vowel marks and a breakdown of every word.",
