@@ -38,7 +38,10 @@ test("every shell loads the nav, and the service worker precaches it", () => {
   const sw = read("public/sw.js");
   for (const shell of SHELLS) {
     const html = read(shell);
-    assert.match(html, /<script src="\/js\/app-nav\.js\?v=\d+" defer><\/script>/, shell);
+    // Its own line right after the real <body> line — never inside an inline script (a comment
+    // mentioning "<body>" once caught a naive insertion).
+    assert.match(html, /^<body[^>]*>\n<script src="\/js\/app-nav\.js\?v=\d+"><\/script>$/m, shell + ": mounted right after <body>");
+    assert.equal((html.match(/app-nav\.js\?v=/g) || []).length, 1, shell + ": loaded once");
     assert.match(html, /<link rel="stylesheet" href="\/css\/app-nav\.css\?v=\d+">/, shell);
   }
   assert.match(sw, /"\/js\/app-nav\.js\?v=\d+",/);

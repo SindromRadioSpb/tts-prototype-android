@@ -27,7 +27,7 @@
   <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
-  <link rel="stylesheet" href="/css/app-nav.css?v=644">
+  <link rel="stylesheet" href="/css/app-nav.css?v=645">
   <link rel="stylesheet" href="/css/reader-core.css?v=643">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
@@ -3108,6 +3108,7 @@
 <style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
 </head>
 <body>
+<script src="/js/app-nav.js?v=645"></script>
 <!-- No-flash theme: apply the shared Studio theme choice (appTheme_v1) before paint. -->
 <script>(function(){try{var t=localStorage.getItem("appTheme_v1");if(t==="light")document.body.classList.add("theme-light");else if(t==="dark")document.body.classList.add("theme-dark");}catch(_){}})();</script>
 
@@ -3236,7 +3237,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.644</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.645</button>
   </div>
 </footer>
 
@@ -3538,6 +3539,5 @@
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
 <script type="module" src="/js/library-ui.js?v=644"></script>
-<script src="/js/app-nav.js?v=644" defer></script>
 </body>
 </html>

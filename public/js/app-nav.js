@@ -51,6 +51,12 @@
   }
 
   window.LpAppNav = { mount: mount, currentId: currentId };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
-  else mount();
+  // Loaded right after <body>: mount at once (no late jump on a heavy page), then re-render when
+  // the locale scripts further down have defined window.t.
+  if (document.body) mount();
+  document.addEventListener("DOMContentLoaded", function () {
+    mount();
+    var nav = document.querySelector("nav.lp-app-nav");
+    if (nav) render(nav);
+  });
 })();

@@ -50,7 +50,7 @@
     <!-- ROOM-UX-VF/VF0: additive primitives load before the complete legacy
          surface stylesheet below, preserving old/new SW compatibility. -->
     <link rel="stylesheet" href="/css/visual-foundations.css">
-    <link rel="stylesheet" href="/css/app-nav.css?v=644">
+    <link rel="stylesheet" href="/css/app-nav.css?v=645">
     <link rel="stylesheet" href="/css/publication-center.css?v=643">
 
     <style>
@@ -11102,6 +11102,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
 </head>
 <body>
+<script src="/js/app-nav.js?v=645"></script>
 
 <!-- BRR-P0-002a — Room-mode return bar (visible only in body.room-mode; the one
      piece of chrome the clean reading view keeps — R4: explicit non-dead-end). -->
@@ -13696,7 +13697,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.644";
+    window.APP_VERSION = "3.11.645";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -52227,6 +52228,5 @@ document.addEventListener("i18n:changed", function () {
 </script>
 
 <script src="/js/product-telemetry.js?v=610"></script>
-<script src="/js/app-nav.js?v=644" defer></script>
 </body>
 </html>
