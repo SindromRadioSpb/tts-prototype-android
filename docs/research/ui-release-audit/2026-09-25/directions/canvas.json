@@ -1,25 +1,194 @@
 {
   "v": 3,
-  "createdOnFiles": { "v": 1, "at": "2026-09-25T13:40:00Z" },
-  "title": "LinguistPro — дизайн-направления",
-  "launch": { "view": "canvas" },
-  "pages": [],
+  "attachments": {},
   "boards": {
-    "Main.dc.html": { "x": 0, "y": 0, "w": 760, "h": 844, "title": "A · Книжная страница — токены" },
-    "PhoneA.dc.html": { "x": 840, "y": 0, "w": 380, "h": 844, "title": "A · учебный режим, светлая" },
-    "PhoneADark.dc.html": { "x": 1300, "y": 0, "w": 380, "h": 844, "title": "A · учебный режим, тёмная" },
-    "TokensB.dc.html": { "x": 0, "y": 1300, "w": 760, "h": 844, "title": "B · Лексикон — токены" },
-    "PhoneB.dc.html": { "x": 840, "y": 1300, "w": 380, "h": 844, "title": "B · учебный режим, светлая" },
-    "PhoneBDark.dc.html": { "x": 1300, "y": 1300, "w": 380, "h": 844, "title": "B · учебный режим, тёмная" },
-    "TokensC.dc.html": { "x": 0, "y": 2600, "w": 760, "h": 844, "title": "C · Дружелюбный наставник — токены" },
-    "PhoneC.dc.html": { "x": 840, "y": 2600, "w": 380, "h": 844, "title": "C · учебный режим, светлая" },
-    "PhoneCDark.dc.html": { "x": 1300, "y": 2600, "w": 380, "h": 844, "title": "C · учебный режим, тёмная" }
+    "Main.dc.html": {
+      "h": 844,
+      "title": "A · Книжная страница — токены",
+      "w": 760,
+      "x": 0,
+      "y": 0
+    },
+    "PhoneA.dc.html": {
+      "h": 844,
+      "title": "A · учебный режим, светлая",
+      "w": 380,
+      "x": 840,
+      "y": 0
+    },
+    "PhoneADark.dc.html": {
+      "h": 844,
+      "title": "A · учебный режим, тёмная",
+      "w": 380,
+      "x": 1300,
+      "y": 0
+    },
+    "PhoneB.dc.html": {
+      "h": 844,
+      "title": "B · учебный режим, светлая",
+      "w": 380,
+      "x": 840,
+      "y": 1300
+    },
+    "PhoneBDark.dc.html": {
+      "h": 844,
+      "title": "B · учебный режим, тёмная",
+      "w": 380,
+      "x": 1300,
+      "y": 1300
+    },
+    "PhoneC.dc.html": {
+      "h": 844,
+      "title": "C · учебный режим, светлая",
+      "w": 380,
+      "x": 840,
+      "y": 2600
+    },
+    "PhoneCDark.dc.html": {
+      "h": 844,
+      "title": "C · учебный режим, тёмная",
+      "w": 380,
+      "x": 1300,
+      "y": 2600
+    },
+    "TokensB.dc.html": {
+      "h": 844,
+      "title": "B · Лексикон — токены",
+      "w": 760,
+      "x": 0,
+      "y": 1300
+    },
+    "TokensC.dc.html": {
+      "h": 844,
+      "title": "C · Дружелюбный наставник — токены",
+      "w": 760,
+      "x": 0,
+      "y": 2600
+    },
+    "TableStudy.dc.html": {
+      "x": 0,
+      "y": -2800,
+      "w": 380,
+      "h": 844,
+      "title": "D · Огласовка и перевод, светлая"
+    },
+    "TableStudyDark.dc.html": {
+      "x": 460,
+      "y": -2800,
+      "w": 380,
+      "h": 844,
+      "title": "D · Огласовка и перевод, тёмная"
+    },
+    "TableTranslit.dc.html": {
+      "x": 920,
+      "y": -2800,
+      "w": 380,
+      "h": 844,
+      "title": "D · Транслит и перевод"
+    },
+    "TableThree.dc.html": {
+      "x": 1380,
+      "y": -2800,
+      "w": 380,
+      "h": 844,
+      "title": "D · Три колонки, тёмная"
+    },
+    "TableLong.dc.html": {
+      "x": 1840,
+      "y": -2800,
+      "w": 380,
+      "h": 844,
+      "title": "D · Иврит и перевод, длинная строка ASR"
+    },
+    "TableAa.dc.html": {
+      "x": 2300,
+      "y": -2800,
+      "w": 380,
+      "h": 844,
+      "title": "D · Настройки Аа: колонки"
+    },
+    "TokensD.dc.html": {
+      "x": 0,
+      "y": -1556,
+      "w": 760,
+      "h": 844,
+      "title": "D · Учебная таблица — токены"
+    },
+    "TableDesktop.dc.html": {
+      "x": 840,
+      "y": -1556,
+      "w": 1280,
+      "h": 800,
+      "title": "D · Десктоп 1280: видео и карточка слова слева, таблица справа"
+    }
   },
-  "order": ["Main.dc.html", "PhoneA.dc.html", "PhoneADark.dc.html", "TokensB.dc.html", "PhoneB.dc.html", "PhoneBDark.dc.html", "TokensC.dc.html", "PhoneC.dc.html", "PhoneCDark.dc.html"],
+  "createdOnFiles": {
+    "at": "2026-09-25T13:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
   "notes": {
-    "tA": { "x": 0, "y": -260, "text": "A · Книжная страница: иврит как в книге, интерфейс отступает", "kind": "title1", "maxW": 1680 },
-    "tB": { "x": 0, "y": 1040, "text": "B · Лексикон: точный инструмент, пронумерованные строки", "kind": "title1", "maxW": 1680 },
-    "tC": { "x": 0, "y": 2340, "text": "C · Дружелюбный наставник: крупно, мягко, одна гарнитура", "kind": "title1", "maxW": 1680 }
+    "tA": {
+      "kind": "title1",
+      "maxW": 1680,
+      "text": "A · Книжная страница: иврит как в книге, интерфейс отступает",
+      "w": 240,
+      "x": 0,
+      "y": -260
+    },
+    "tB": {
+      "kind": "title1",
+      "maxW": 1680,
+      "text": "B · Лексикон: точный инструмент, пронумерованные строки",
+      "w": 240,
+      "x": 0,
+      "y": 1040
+    },
+    "tC": {
+      "kind": "title1",
+      "maxW": 1680,
+      "text": "C · Дружелюбный наставник: крупно, мягко, одна гарнитура",
+      "w": 240,
+      "x": 0,
+      "y": 2340
+    },
+    "tD": {
+      "x": 0,
+      "y": -3060,
+      "text": "D · Учебная таблица (после разбора владельца): таблица на любой ширине, колонки по выбору",
+      "kind": "title1",
+      "maxW": 2680
+    },
+    "tD2": {
+      "x": 0,
+      "y": -1800,
+      "text": "D · Токены и десктоп",
+      "kind": "title1",
+      "maxW": 2120
+    }
   },
-  "designSystems": []
+  "order": [
+    "Main.dc.html",
+    "PhoneA.dc.html",
+    "PhoneADark.dc.html",
+    "TokensB.dc.html",
+    "PhoneB.dc.html",
+    "PhoneBDark.dc.html",
+    "TokensC.dc.html",
+    "PhoneC.dc.html",
+    "PhoneCDark.dc.html",
+    "TableStudy.dc.html",
+    "TableStudyDark.dc.html",
+    "TableTranslit.dc.html",
+    "TableThree.dc.html",
+    "TableLong.dc.html",
+    "TableAa.dc.html",
+    "TokensD.dc.html",
+    "TableDesktop.dc.html"
+  ],
+  "pages": [],
+  "title": "LinguistPro — дизайн-направления"
 }

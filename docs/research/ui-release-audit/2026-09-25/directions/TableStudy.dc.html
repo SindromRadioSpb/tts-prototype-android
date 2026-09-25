@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>D · учебная таблица с видео</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&amp;family=Golos+Text:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;font-family:"Golos Text",system-ui,sans-serif}
+a{color:#1B4FB8}a:hover{color:#123A8A}
+</style>
+</helmet>
+<div style="width: 380px; height: 844px; overflow: hidden; position: relative; display: flex; flex-direction: column; background: {{c.bg}}; color: {{c.ink}}; font-family: 'Golos Text', system-ui, sans-serif">
+  <header style="height: 56px; flex-shrink: 0; display: flex; align-items: center; gap: 2px; padding: 0 6px; background: {{c.surface}}; border-bottom: 1px solid {{c.line}}">
+    <a href="#" aria-label="Назад в Медиатеку" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: {{c.ink}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></a>
+    <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+      <div style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{title}}</div>
+      <div style="font-size: 12px; color: {{c.ink2}}; font-variant-numeric: tabular-nums">Строка {{activeN}} из 353</div>
+    </div>
+    <button type="button" aria-label="Читать вслух" style="width: 44px; height: 44px; border: 0; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"></path><path d="M16 9a5 5 0 0 1 0 6"></path></svg></button>
+    <button type="button" aria-label="Поиск по тексту" style="width: 44px; height: 44px; border: 0; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button>
+    <button type="button" aria-label="Настройки чтения" style="{{aaStyle}}">Аа</button>
+  </header>
+
+  <div style="height: 214px; flex-shrink: 0; background: #0B0F14; position: relative; display: flex; align-items: center; justify-content: center">
+    <div style="position: absolute; left: 12px; top: 10px; font-size: 12px; color: #B8C2D3">Видео · YouTube</div>
+    <button type="button" aria-label="Пауза" style="width: 52px; height: 52px; border-radius: 26px; border: 0; background: rgba(255,255,255,0.14); color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg></button>
+    <div style="position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #B8C2D3; font-variant-numeric: tabular-nums">
+      <span>{{clock}}</span>
+      <div style="flex-grow: 1; height: 3px; background: rgba(255,255,255,0.22); border-radius: 2px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 6%; background: #7FA6F5; border-radius: 2px"></div></div>
+      <span>54:40</span>
+    </div>
+  </div>
+
+  <div style="{{headStyle}}">
+    <div style="display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: {{c.ink2}}">№</div>
+    <sc-for list="{{heads}}" as="h" hint-placeholder-count="2">
+      <div style="{{h.style}}"><span style="{{h.labelStyle}}">{{h.label}}</span><span aria-hidden="true" style="{{h.gripStyle}}"></span></div>
+    </sc-for>
+  </div>
+
+  <div style="flex-grow: 1; overflow: hidden">
+    <sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+      <div style="{{row.style}}">
+        <div style="{{row.actionStyle}}">
+          <span style="{{row.numStyle}}">{{row.n}}</span>
+          <button type="button" aria-label="{{row.ttsLabel}}" style="{{btnIcon}}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"></path><path d="M16 9a5 5 0 0 1 0 6"></path></svg>
+            <span aria-hidden="true" style="{{row.dotStyle}}"></span>
+          </button>
+          <button type="button" aria-label="ИИ-наставник: объяснить строку" style="{{btnIcon}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 10.9a1 1 0 0 0 0-1.8l-8.6-3.9a2 2 0 0 0-1.7 0L2.6 9.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.7 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></button>
+        </div>
+        <sc-for list="{{row.cells}}" as="cell" hint-placeholder-count="2">
+          <div style="{{cell.style}}">
+            <sc-if value="{{cell.media}}" hint-placeholder-val="{{false}}">
+              <button type="button" aria-label="{{row.mediaLabel}}" style="{{row.mediaStyle}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg><span>{{row.t}}</span></button>
+            </sc-if>
+            <div dir="{{cell.dir}}" lang="{{cell.lang}}" style="{{cell.textStyle}}"><sc-for list="{{cell.parts}}" as="pt" hint-placeholder-count="1"><span style="{{pt.style}}">{{pt.t}}</span></sc-for></div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{sheet}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(8,12,18,0.45)"></div>
+    <div role="dialog" aria-label="Настройки чтения" style="position: absolute; left: 0; right: 0; bottom: 0; height: 720px; border-radius: 16px 16px 0 0; background: {{c.surface}}; color: {{c.ink}}; display: flex; flex-direction: column">
+      <div style="height: 56px; flex-shrink: 0; display: flex; align-items: center; padding: 0 8px 0 20px; border-bottom: 1px solid {{c.line}}">
+        <div style="flex-grow: 1; font-size: 17px; font-weight: 600">Настройки чтения</div>
+        <button type="button" aria-label="Закрыть" style="width: 44px; height: 44px; border: 0; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+      <div style="flex-grow: 1; overflow: hidden; padding: 12px 20px 16px 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <div style="font-size: 14px; font-weight: 600; padding-bottom: 4px">Колонки таблицы</div>
+          <sc-for list="{{presets}}" as="ps" hint-placeholder-count="5">
+            <label style="{{ps.rowStyle}}"><input type="radio" name="preset" checked="{{ps.on}}" style="width: 20px; height: 20px; margin: 0; accent-color: #1B4FB8"><span style="flex-grow: 1; font-size: 16px">{{ps.label}}</span><span style="font-size: 13px; color: {{c.ink2}}">{{ps.hint}}</span></label>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="font-size: 14px; font-weight: 600">Свой набор</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <sc-for list="{{toggles}}" as="tg" hint-placeholder-count="4">
+              <button type="button" aria-pressed="{{tg.on}}" style="{{tg.style}}">{{tg.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+          <div style="flex-grow: 1; display: flex; flex-direction: column"><span style="font-size: 16px">Ширина колонок</span><span style="font-size: 13px; color: {{c.ink2}}">Потяните разделитель в заголовке</span></div>
+          <button type="button" style="height: 44px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 6px; background: transparent; color: {{c.ink}}; font: 500 15px 'Golos Text', sans-serif">Сбросить</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+          <div style="flex-grow: 1; display: flex; flex-direction: column"><span style="font-size: 16px">Колонка «Действие»</span><span style="font-size: 13px; color: {{c.ink2}}">Номер, озвучка, наставник</span></div>
+          <div style="display: flex; border: 1px solid {{c.line}}; border-radius: 6px; overflow: hidden">
+            <button type="button" aria-pressed="true" style="height: 44px; padding: 0 12px; border: 0; background: #1B4FB8; color: #FFFFFF; font: 500 14px 'Golos Text', sans-serif">Полная</button>
+            <button type="button" aria-pressed="false" style="height: 44px; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: 500 14px 'Golos Text', sans-serif">Узкая</button>
+            <button type="button" aria-pressed="false" style="height: 44px; padding: 0 12px; border: 0; background: transparent; color: {{c.ink}}; font: 500 14px 'Golos Text', sans-serif">Скрыта</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+            <span style="flex-grow: 1; font-size: 16px">Статус слов в тексте</span>
+            <span role="switch" aria-checked="true" aria-label="Статус слов в тексте" style="width: 48px; height: 28px; border-radius: 14px; background: #1B4FB8; position: relative; display: block"><span style="position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 11px; background: #FFFFFF"></span></span>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; background: {{c.sNewBg}}; color: {{c.sNewInk}}; font-size: 13px; font-weight: 500; display: flex; align-items: center">Новое</span>
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; background: {{c.s1Bg}}; color: {{c.s1Ink}}; font-size: 13px; font-weight: 500; display: flex; align-items: center">Незнакомо</span>
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; background: {{c.sLearnBg}}; color: {{c.sLearnInk}}; font-size: 13px; font-weight: 500; display: flex; align-items: center">Узнаю</span>
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; background: {{c.s3Bg}}; color: {{c.s3Ink}}; font-size: 13px; font-weight: 500; display: flex; align-items: center">Вспоминаю</span>
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; background: {{c.s4Bg}}; color: {{c.s4Ink}}; font-size: 13px; font-weight: 500; display: flex; align-items: center">Почти знаю</span>
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; background: {{c.sKnowBg}}; color: {{c.sKnowInk}}; font-size: 13px; font-weight: 500; display: flex; align-items: center">Знаю</span>
+            <span style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px dashed {{c.ink2}}; color: {{c.ink2}}; font-size: 13px; display: flex; align-items: center">Не оценено</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"preset":{"editor":"enum","options":["niqqud","translit","plain","three","hebrew"],"default":"niqqud"},"sample":{"editor":"enum","options":["greet","long"],"default":"greet"},"sheet":{"editor":"boolean","default":false},"$preview":{"width":380,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = !!this.props.dark;
+    const preset = this.props.preset ?? 'niqqud';
+    const sample = this.props.sample ?? 'greet';
+    const sheet = !!this.props.sheet;
+    const c = dark
+      ? { bg: '#10141A', surface: '#161C24', ink: '#E6EBF2', ink2: '#9AA6B8', line: '#26303D', accent: '#7FA6F5', active: '#1A2740', accentSoft: '#223355', sNewBg: '#3A2D63', sNewInk: '#E4DAFA', sLearnBg: '#4A3712', sLearnInk: '#FBE6BF', sKnowBg: '#173A2E', sKnowInk: '#CDEBDD', s1Bg: '#4A1F1B', s1Ink: '#FBDAD7', s3Bg: '#1F3A1B', s3Ink: '#DCEFD9', s4Bg: '#1C2E52', s4Ink: '#D9E5FB' }
+      : { bg: '#F4F5F3', surface: '#FFFFFF', ink: '#17212B', ink2: '#4A5563', line: '#D8DCE0', accent: '#1B4FB8', active: '#E3EBFA', accentSoft: '#D3E0F8', sNewBg: '#E4DAFA', sNewInk: '#4B2FA0', sLearnBg: '#FBE6BF', sLearnInk: '#7A4A00', sKnowBg: '#D4EFEA', sKnowInk: '#155C52', s1Bg: '#FBDAD7', s1Ink: '#8A231B', s3Bg: '#DCEFD9', s3Ink: '#2B5E22', s4Bg: '#D9E5FB', s4Ink: '#1F4494' };
+
+    const cols = { niqqud: ['nq', 'ru'], translit: ['tl', 'ru'], plain: ['he', 'ru'], three: ['nq', 'tl', 'ru'], hebrew: ['nq'] }[preset] || ['nq', 'ru'];
+    const tracks = { niqqud: '1.05fr 1fr', translit: '1fr 1fr', plain: '1.05fr 1fr', three: '1.15fr 0.85fr 1fr', hebrew: '1fr' }[preset] || '1fr 1fr';
+    const template = '52px ' + tracks.split(' ').map((f) => 'minmax(0, ' + f + ')').join(' ');
+    const three = preset === 'three';
+    const heSize = preset === 'hebrew' ? 28 : three ? 21 : 24;
+    const labels = { he: 'Иврит', nq: 'Огласовка', tl: 'Транслит', ru: 'Перевод' };
+
+    const P = (t, s) => ({ t, style: s === 'new' ? 'background: ' + c.sNewBg + '; border-radius: 4px; padding: 0 2px' : s === 'learn' ? 'background: ' + c.sLearnBg + '; border-radius: 4px; padding: 0 2px' : '' });
+    const greet = [
+      { n: '01', t: '0:02', tts: true, he: [P('שלום לכם, ערב טוב.')], nq: [P('שָׁלוֹם לָכֶם, עֶרֶב טוֹב.')], tl: 'Shalom lakhem, erev tov.', ru: 'Здравствуйте, добрый вечер.' },
+      { n: '02', t: '0:07', tts: true, active: true, he: [P('שלום רוני. שלום עמרי. מה '), P('שלומך', 'new'), P('? אני '), P('בסדר', 'learn'), P(',')], nq: [P('שָׁלוֹם רוֹנִי. שָׁלוֹם עָמְרִי. מַה '), P('שְּׁלוֹמְךָ', 'new'), P('? אֲנִי '), P('בְּסֵדֶר', 'learn'), P(',')], tl: 'Shalom Roni. Shalom Omri. Mah shlomkha? Ani beseder,', ru: 'Привет, Рони. Привет, Омри. Как дела? Я в порядке,' },
+      { n: '03', t: '0:12', tts: false, he: [P('היום אני לומד עברית בבית.')], nq: [P('הַיּוֹם אֲנִי לוֹמֵד עִבְרִית בַּבַּיִת.')], tl: 'Hayom ani lomed ivrit babayit.', ru: 'Сегодня я учу иврит дома.' },
+      { n: '04', t: '0:15', tts: false, he: [P('שלום לכולם.')], nq: [P('שָׁלוֹם לְכֻלָּם.')], tl: 'Shalom lekhulam.', ru: 'Всем привет.' }
+    ];
+    const long = [
+      { n: '117', t: '6:41', tts: true, he: [P('שלום לכם, ערב טוב.')], nq: null, tl: '', ru: 'Здравствуйте, добрый вечер.' },
+      { n: '118', t: '6:44', tts: false, active: true, he: [P('איך היה? איך היה? איך היה? תש עולם, אבל '), P('התגעגענו', 'new'), P(' אליו. די, די, די, די. די, די. הנה פה פגשי, אחי! כבר היה. ההוא נוכל ככה, ההוא מפליץ ככה,')], nq: null, tl: '', ru: 'Как было? Как было? Как было? … мир, но мы по нему скучали. Хватит, хватит, хватит, хватит. Хватит, хватит. Вот тут встретил, брат! Уже было. Тот так жульничает, тот так пукает,' },
+      { n: '119', t: '7:02', tts: false, he: [P('היום אני לומד עברית בבית.')], nq: null, tl: '', ru: 'Сегодня я учу иврит дома.' }
+    ];
+    const data = sample === 'long' ? long : greet;
+    const last = cols[cols.length - 1];
+
+    const cellBase = 'padding: 12px 10px 12px 10px; border-left: 1px solid ' + c.line + '; min-width: 0';
+    const rows = data.map((r) => {
+      const cells = cols.map((k) => {
+        const isHe = k === 'he' || k === 'nq';
+        const parts = k === 'tl' ? [P(r.tl)] : k === 'ru' ? [P(r.ru)] : (r[k] || r.he);
+        const textStyle = isHe
+          ? "font-family: 'Frank Ruhl Libre', serif; font-size: " + heSize + 'px; line-height: 1.55; text-align: right; overflow-wrap: break-word'
+          : k === 'tl'
+            ? 'font-size: ' + (three ? 13 : 14) + 'px; line-height: 1.45; color: ' + c.ink2 + '; overflow-wrap: break-word'
+            : 'font-size: ' + (three ? 15 : 16) + 'px; line-height: 1.45; overflow-wrap: break-word';
+        return { style: cellBase, textStyle, parts, media: k === last, dir: isHe ? 'rtl' : 'ltr', lang: isHe ? 'he' : k === 'ru' ? 'ru' : 'he-Latn' };
+      });
+      return {
+        n: r.n, t: r.t, cells,
+        style: 'display: grid; grid-template-columns: ' + template + '; border-bottom: 1px solid ' + c.line + '; background: ' + (r.active ? c.active : c.surface) + (r.active ? '; box-shadow: inset 3px 0 0 ' + c.accent : ''),
+        actionStyle: 'display: flex; flex-direction: column; align-items: center; padding: 8px 0 8px 0; gap: 0',
+        numStyle: 'font-size: 13px; font-weight: ' + (r.active ? 600 : 500) + '; color: ' + (r.active ? c.accent : c.ink2) + '; font-variant-numeric: tabular-nums; line-height: 20px',
+        ttsLabel: r.tts ? 'Озвучить строку ' + r.n + ' (TTS, озвучка сохранена)' : 'Озвучить строку ' + r.n + ' (TTS, будет синтезирована)',
+        dotStyle: 'position: absolute; top: 9px; right: 8px; width: 7px; height: 7px; border-radius: 4px; box-sizing: border-box; ' + (r.tts ? 'background: ' + c.accent : 'border: 1.5px solid ' + c.ink2),
+        mediaLabel: 'Фрагмент видео строки ' + r.n + ', ' + r.t + (r.active ? ', сейчас играет' : ''),
+        mediaStyle: 'float: right; margin: -8px -6px 2px 6px; height: 44px; min-width: 44px; padding: 0 8px; border: 0; border-radius: 6px; display: flex; align-items: center; gap: 4px; background: ' + (r.active ? c.accentSoft : 'transparent') + '; color: ' + c.accent + "; font: 500 12px 'Golos Text', sans-serif; font-variant-numeric: tabular-nums"
+      };
+    });
+
+    const heads = cols.map((k, i) => ({
+      label: labels[k],
+      style: 'position: relative; display: flex; align-items: center; justify-content: ' + (k === 'he' || k === 'nq' ? 'flex-end' : 'flex-start') + '; padding: 0 10px; border-left: 1px solid ' + c.line + '; min-width: 0',
+      labelStyle: 'font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis',
+      gripStyle: i < cols.length - 1 ? 'position: absolute; right: -3px; top: 10px; bottom: 10px; width: 5px; border-left: 1px solid ' + c.ink2 + '; border-right: 1px solid ' + c.ink2 + '; opacity: 0.55' : 'display: none'
+    }));
+
+    const presetDefs = [
+      ['niqqud', 'Огласовка и перевод', 'начало'],
+      ['translit', 'Транслит и перевод', 'на слух'],
+      ['plain', 'Иврит и перевод', 'без огласовки'],
+      ['three', 'Огласовка, транслит, перевод', ''],
+      ['hebrew', 'Одна колонка', 'иврит']
+    ];
+    const presets = presetDefs.map(([id, label, hint]) => ({ label, hint, on: id === preset, rowStyle: 'display: flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid ' + c.line }));
+    const toggles = ['he', 'nq', 'tl', 'ru'].map((k) => {
+      const on = cols.includes(k);
+      return { label: labels[k], on, style: 'height: 44px; padding: 0 14px; border-radius: 6px; font: 500 15px ' + "'Golos Text', sans-serif; " + (on ? 'border: 0; background: ' + c.accentSoft + '; color: ' + (dark ? '#E6EBF2' : '#123A8A') : 'border: 1px solid ' + c.line + '; background: transparent; color: ' + c.ink) };
+    });
+
+    return {
+      c, rows, heads, presets, toggles, sheet,
+      title: 'Двадцать девять солдат из 51-го батальона',
+      activeN: sample === 'long' ? '118' : '2',
+      clock: sample === 'long' ? '6:44' : '0:07',
+      headStyle: 'height: 40px; flex-shrink: 0; display: grid; grid-template-columns: ' + template + '; background: ' + c.surface + '; border-bottom: 1px solid ' + c.line + '; color: ' + c.ink,
+      btnIcon: 'position: relative; width: 44px; height: 44px; border: 0; background: transparent; color: ' + c.ink + '; display: flex; align-items: center; justify-content: center',
+      aaStyle: 'width: 44px; height: 44px; border: 0; border-radius: 6px; background: ' + (sheet ? c.accentSoft : 'transparent') + '; color: ' + c.ink + "; font: 500 17px 'Frank Ruhl Libre', serif"
+    };
+  }
+}
+</script>
+</body>
+</html>
