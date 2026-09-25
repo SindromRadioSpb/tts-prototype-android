@@ -15,7 +15,7 @@
         } catch (_) {}
       })();
     </script>
-    <title>TTS & Translator Dashboard</title>
+    <title>LinguistPro — Студия</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Шрифты для иврита: self-hosted woff2 в public/fonts/ (см. @font-face
@@ -10630,61 +10630,40 @@ body:not(.theme-light) .v3-heatmap-cell {
   max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   animation: v3FbEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-#v3OnboardingPanel header {
-  padding: 24px 24px 12px; text-align: center;
+#v3OnboardingPanel header { padding: 28px 24px 8px; text-align: center; }
+#v3OnbTitle { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700; color: #17212B; }
+#v3OnbTagline { margin: 8px auto 0; max-width: 34ch; font-size: 16px; line-height: 1.5; color: #4A5563; }
+#v3OnbBody { padding: 16px 24px 24px; }
+.v3-onb-actions { display: flex; flex-direction: column; gap: 10px; }
+#v3OnboardingModal .v3-onb-go {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%;
+  min-height: 64px; padding: 12px 16px; border: 1px solid #D8DCE0; border-radius: 10px;
+  background: #FFFFFF; color: #17212B; text-align: start; cursor: pointer; font-family: inherit;
 }
-#v3OnbTitle {
-  font-size: 26px; font-weight: 700; color: #0f172a;
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-#v3OnbTagline { font-size: 14px; color: #64748b; margin-top: 6px; }
-#v3OnbBody { padding: 4px 28px 24px; }
-.v3-onb-intro {
-  font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 18px;
-  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
-  padding: 14px 16px;
-}
-.v3-onb-features-title {
-  font-size: 12px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.05em; color: #475569; margin-bottom: 10px;
-}
-.v3-onb-features {
-  display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
-}
-.v3-onb-feature {
-  font-size: 13.5px; color: #0f172a; line-height: 1.5;
-  padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0;
-  border-radius: 8px;
-}
-.v3-onb-actions {
-  display: flex; flex-direction: column; gap: 8px; margin-top: 12px;
-}
-.v3-onb-cta-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  color: #fff; border: 0; padding: 14px 16px; border-radius: 10px;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.15s;
-  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
-  font-family: inherit;
-}
-.v3-onb-cta-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.35); }
-.v3-onb-cta-secondary {
-  background: #fff; color: #475569; border: 1px solid #cbd5e1;
-  padding: 12px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
-  font-family: inherit; transition: all 0.15s;
-}
-.v3-onb-cta-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
-.v3-onb-dismiss {
-  display: flex; align-items: center; justify-content: center;
-  margin-top: 14px; font-size: 12.5px; color: #94a3b8;
-  cursor: pointer; user-select: none;
-}
-.v3-onb-dismiss input { margin-right: 6px; }
+#v3OnboardingModal .v3-onb-go:first-child { background: #1B4FB8; border-color: #1B4FB8; color: #FFFFFF; }
+#v3OnboardingModal .v3-onb-go:first-child .v3-onb-go-hint { color: #DCE6FA; }
+#v3OnboardingModal .v3-onb-go:hover { border-color: #1B4FB8; }
+#v3OnboardingModal .v3-onb-go:focus-visible { outline: 3px solid #1B4FB8; outline-offset: 2px; }
+.v3-onb-go-title { font-size: 17px; font-weight: 600; line-height: 1.3; }
+.v3-onb-go-hint { font-size: 14px; line-height: 1.4; color: #4A5563; }
+.v3-onb-intro { margin: 16px 0 0; font-size: 14px; line-height: 1.5; color: #4A5563; text-align: center; }
 @media (max-width: 600px) {
   #v3OnboardingPanel { border-radius: 16px 16px 0 0; max-height: 92vh; margin-top: auto; }
   #v3OnboardingModal { padding: 0; align-items: flex-end; }
+}
+body.theme-dark #v3OnboardingPanel { background: #161C24; }
+body.theme-dark #v3OnbTitle { color: #E6EBF2; }
+body.theme-dark #v3OnbTagline, body.theme-dark .v3-onb-intro, body.theme-dark .v3-onb-go-hint { color: #9AA6B8; }
+body.theme-dark #v3OnboardingModal .v3-onb-go { background: #10141A; border-color: #26303D; color: #E6EBF2; }
+body.theme-dark #v3OnboardingModal .v3-onb-go:first-child { background: #1B4FB8; border-color: #1B4FB8; color: #FFFFFF; }
+body.theme-dark #v3OnboardingModal .v3-onb-go:first-child .v3-onb-go-hint { color: #DCE6FA; }
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) #v3OnboardingPanel { background: #161C24; }
+  body:not(.theme-light) #v3OnbTitle { color: #E6EBF2; }
+  body:not(.theme-light) #v3OnbTagline, body:not(.theme-light) .v3-onb-intro, body:not(.theme-light) .v3-onb-go-hint { color: #9AA6B8; }
+  body:not(.theme-light) #v3OnboardingModal .v3-onb-go { background: #10141A; border-color: #26303D; color: #E6EBF2; }
+  body:not(.theme-light) #v3OnboardingModal .v3-onb-go:first-child { background: #1B4FB8; border-color: #1B4FB8; color: #FFFFFF; }
+  body:not(.theme-light) #v3OnboardingModal .v3-onb-go:first-child .v3-onb-go-hint { color: #DCE6FA; }
 }
 
 /* ── Direction 8: trust footer + about modal (Premium Release v3.1.0) ── */
@@ -11671,7 +11650,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             <span id="classicSourceStateChip" class="classic-state-chip">Источник: локальный ввод</span>
                         </div>
 
-                        <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
+                        <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Вставьте текст на иврите — статью, песню или диалог"></textarea>
 
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Добавить материал</span></button>
@@ -13448,9 +13427,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=253"></script>
-<script src="/i18n/locales/en.js?v=253"></script>
-<script src="/i18n/locales/he.js?v=253"></script>
+<script src="/i18n/locales/ru.js?v=254"></script>
+<script src="/i18n/locales/en.js?v=254"></script>
+<script src="/i18n/locales/he.js?v=254"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13675,7 +13654,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.636";
+    window.APP_VERSION = "3.11.637";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -28576,6 +28555,8 @@ async function v3Phase6ServerLibraryCount() {
   // block the prompt — user may still want to opt in for new data.
   try {
     const r = await fetch("/api/library/texts?limit=1");
+    // 404/410: the server library is gone — nothing can be migrated (R1).
+    if (r.status === 404 || r.status === 410) return 0;
     if (!r.ok) return null;
     const data = await r.json();
     const items = (data && data.texts) || [];
@@ -28745,6 +28726,17 @@ async function v3Phase6ShowPrompt() {
 
 async function v3Phase6MaybeShow() {
   if (!v3Phase6PromptShouldShow()) return;
+  // R1: a new visitor has nothing on the server, so the migration dialog would only be noise.
+  // Ask only when the server really holds texts. Gone/empty → remember a fresh local start
+  // (the same effect as "Начать с чистого листа"); unknown (offline) → ask again next time.
+  const count = await v3Phase6ServerLibraryCount();
+  if (!(count > 0)) {
+    if (count === 0) {
+      localStorage.setItem("localMode", "1");
+      localStorage.setItem(V3_PHASE6_DECISION_KEY, "none-on-server");
+    }
+    return;
+  }
   try { await v3Phase6ShowPrompt(); } catch (e) { console.warn("[phase6] prompt failed", e); }
 }
 
@@ -38155,11 +38147,9 @@ try {
     }
 
     function byokOnboardingInit() {
-        if (!byokOnboardingShouldShow()) return;
-        // Wait a beat so other startup modals (OPFS migration) appear first.
-        setTimeout(() => {
-            if (byokOnboardingShouldShow()) byokOnboardingShow();
-        }, 1500);
+        // R1 (2026-09-25): no unsolicited popup on arrival. Free paths (browser speech, Google
+        // Translate free, library) need no key; each paid path explains the missing Gemini key
+        // where it is needed, and settings/tour link this guide.
     }
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", byokOnboardingInit);
@@ -51249,27 +51239,16 @@ document.addEventListener("i18n:changed", function () {
 <div id="v3OnboardingModal" role="dialog" aria-modal="true" aria-labelledby="v3OnbTitle" onclick="if(event.target===this)v3OnboardingDismiss(false)">
   <div id="v3OnboardingPanel">
     <header>
-      <div id="v3OnbTitle" data-i18n="onboarding.title">Добро пожаловать в LinguistPro</div>
-      <div id="v3OnbTagline" data-i18n="onboarding.tagline">IDE для изучения иврита с offline-first архитектурой</div>
+      <h2 id="v3OnbTitle" data-i18n="onboarding.title">Добро пожаловать в LinguistPro</h2>
+      <p id="v3OnbTagline" data-i18n="onboarding.tagline">Читайте и слушайте иврит с переводом, огласовкой и разбором каждого слова.</p>
     </header>
     <div id="v3OnbBody">
-      <div class="v3-onb-intro" data-i18n="onboarding.intro">Ваши тексты, заметки, прогресс и SRS-карточки хранятся локально на этом устройстве.</div>
-      <div class="v3-onb-features-title" data-i18n="onboarding.whatsHere">Что вы можете сделать:</div>
-      <div class="v3-onb-features">
-        <div class="v3-onb-feature" data-i18n="onboarding.feature1">📝 Вставить текст на иврите → собрать таблицу.</div>
-        <div class="v3-onb-feature" data-i18n="onboarding.feature2">🔊 Озвучить любое предложение через TTS.</div>
-        <div class="v3-onb-feature" data-i18n="onboarding.feature3">📚 Сохранять тексты в локальную библиотеку.</div>
-        <div class="v3-onb-feature" data-i18n="onboarding.feature4">🎯 Тренироваться через SRS Trainer.</div>
-        <div class="v3-onb-feature" data-i18n="onboarding.feature5">🕸 Писать заметки и связывать их через [[…]] — связи складываются в Карту знаний.</div>
-      </div>
       <div class="v3-onb-actions">
-        <button class="v3-onb-cta-primary" onclick="v3OnboardingTryDemo()" data-i18n="onboarding.tryDemo">🚀 Попробовать на демо-тексте</button>
-        <button class="v3-onb-cta-secondary" onclick="v3OnboardingDismiss(true)" data-i18n="onboarding.startFresh">Начать с моего текста</button>
+        <button type="button" class="v3-onb-go" data-onb-go="room" onclick="v3OnboardingGo('room')"><span class="v3-onb-go-title" data-i18n="onboarding.goRoom">Читать тексты</span><span class="v3-onb-go-hint" data-i18n="onboarding.goRoomHint">Рассказы и стихи с переводом</span></button>
+        <button type="button" class="v3-onb-go" data-onb-go="mediatheque" onclick="v3OnboardingGo('mediatheque')"><span class="v3-onb-go-title" data-i18n="onboarding.goMedia">Учить по видео</span><span class="v3-onb-go-hint" data-i18n="onboarding.goMediaHint">Видео с таблицей: каждая фраза с переводом</span></button>
+        <button type="button" class="v3-onb-go" data-onb-go="studio" onclick="v3OnboardingGo('studio')"><span class="v3-onb-go-title" data-i18n="onboarding.goStudio">Добавить свой текст</span><span class="v3-onb-go-hint" data-i18n="onboarding.goStudioHint">Вставьте текст — соберём учебную таблицу</span></button>
       </div>
-      <label class="v3-onb-dismiss">
-        <input type="checkbox" id="v3OnbDontShow" checked />
-        <span data-i18n="onboarding.dontShowAgain">Больше не показывать</span>
-      </label>
+      <p class="v3-onb-intro" data-i18n="onboarding.intro">Всё, что вы сохраняете, хранится на этом устройстве.</p>
     </div>
   </div>
 </div>
@@ -51951,6 +51930,15 @@ document.addEventListener("i18n:changed", function () {
     } catch (_) {}
     v3OnboardingDismiss(true);
   }
+  // R1: three plain first choices. Every choice is remembered, so the welcome never repeats.
+  function v3OnboardingGo(where) {
+    if (where === "room" || where === "mediatheque") {
+      try { localStorage.setItem(V3_ONB_KEY, JSON.stringify({ ts: Date.now(), action: "go-" + where })); } catch (_) {}
+      location.href = where === "room" ? "/library.html" : "/mediatheque.html";
+      return;
+    }
+    v3OnboardingDismiss(true);
+  }
   // Public: lets users re-trigger onboarding from About modal.
   function v3OnboardingReset() {
     try { localStorage.removeItem(V3_ONB_KEY); } catch (_) {}
@@ -51960,6 +51948,7 @@ document.addEventListener("i18n:changed", function () {
   window.v3OnboardingShow = v3OnboardingShow;
   window.v3OnboardingDismiss = v3OnboardingDismiss;
   window.v3OnboardingTryDemo = v3OnboardingTryDemo;
+  window.v3OnboardingGo = v3OnboardingGo;
   window.v3OnboardingReset = v3OnboardingReset;
 
   // Trigger first-time onboarding after DOM is ready and i18n applied.

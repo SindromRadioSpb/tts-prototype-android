@@ -47,12 +47,14 @@ test("PPF2-01 uses the existing Library secondary role only on Journey explanato
 
 test("PPF2-02..04 use the approved Studio semantic colors without global token changes", () => {
   const classic = ruleBody(studio, "\\.classic-next-step-label");
-  const onboarding = ruleBody(studio, "\\.v3-onb-features-title");
+  // R1 (2026-09-25) replaced the feature list with three choices; its secondary line is the intro.
+  const onboarding = ruleBody(studio, "\\.v3-onb-intro");
   const footerVersion = ruleBody(studio, "\\.app-footer-version");
   const footerCredit = ruleBody(studio, "\\.app-footer-credit");
   assert.match(classic, /color:\s*var\(--theme-text-secondary\);/);
-  assert.match(onboarding, /color:\s*#475569;/,
-    "the fixed-white onboarding island uses the existing light secondary value");
+  assert.match(onboarding, /color:\s*#4A5563;/,
+    "the fixed-white onboarding island uses the direction-D secondary value (7.5:1 on white)");
+  assert.ok(contrast("#4A5563", "#ffffff") >= 4.5);
   assert.match(footerVersion, /color:\s*var\(--theme-text-secondary\);/);
   assert.match(footerCredit, /color:\s*var\(--theme-text-secondary\);/);
   assert.doesNotMatch(classic, /!important/);
