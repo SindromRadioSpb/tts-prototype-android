@@ -133,7 +133,8 @@ test("VF0 loads foundations before legacy surface styles and leaves the fallback
   const studioLink = indexHtml.indexOf(link);
   const studioLegacy = indexHtml.indexOf("<style>");
   const roomLink = libraryHtml.indexOf(link);
-  const roomReader = libraryHtml.indexOf('<link rel="stylesheet" href="/css/reader-core.css?v=399">');
+  // Order is the contract, not the cache-bust number (reader-core.css is re-versioned on change).
+  const roomReader = libraryHtml.search(/<link rel="stylesheet" href="\/css\/reader-core\.css\?v=\d+">/);
   const roomLegacy = libraryHtml.indexOf("<style>");
 
   assert.ok(studioLink >= 0 && studioLink < studioLegacy,

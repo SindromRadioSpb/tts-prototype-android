@@ -117,6 +117,9 @@ const PRESET_COLS = {
           // and NOT part of the builder. v3AudioPrefetchRefreshMarkers paints row-audio-ind.
           window.v3PortableTtsApplyUiState = function () {};
           window.v3AudioPrefetchRefreshMarkers = function () {};
+          // v3MarkTableRowNumbers stamps data-row-n on the action cells (row numbers, UI release R2) —
+          // post-render in both shells (the Room calls TablePresets.markRowNumbers after the builder).
+          window.v3MarkTableRowNumbers = function () {};
           // attachResizeHandlers (bare call in renderTable's tail) stamps the table
           // with data-resize-bound="1" — a MOUNT concern the pure builder doesn't emit
           // (library.html wires resize at mount in slice 3). No-op it so the golden is

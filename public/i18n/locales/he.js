@@ -1529,8 +1529,8 @@ window.I18N_LOCALES.he = {
     colTranslit: "תעתיק",
     colTranslitLat: "תעתיק (לטיני)",
     colTranslitRu: "תעתיק (רוסית)",
-    colTranslitSbl: "תעתיק (SBL)",
-    colTranslitLearnerLatin: "תעתיק (לטינית ללומדים)",
+    colTranslitSbl: "תעתיק",
+    colTranslitLearnerLatin: "תעתיק",
     colTranslation: "תרגום",
     colActions: "פעולות",
   },
@@ -2962,6 +2962,17 @@ window.I18N_LOCALES.he = {
       widths: "רוחב העמודות",
       widthsHint: "גררו ‖ בין הכותרות; הקשה כפולה מאפסת את הזוג",
       widthsReset: "↺ איפוס",
+    },
+    // UI release program R2 (2026-09-25): column presets of the study table.
+    aids: {
+      presetsTitle: "עמודות הטבלה",
+      preset_niqqud: "ניקוד ותרגום",
+      preset_translit: "תעתיק ותרגום",
+      preset_plain: "עברית ותרגום",
+      preset_three: "ניקוד, תעתיק ותרגום",
+      preset_hebrew: "עמודה אחת",
+      preset_all: "כל העמודות",
+      custom: "בחירה אישית",
     },
     reader: {
       back: "← מדפים",

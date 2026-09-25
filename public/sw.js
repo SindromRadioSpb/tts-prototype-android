@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.637";
+const CACHE_VERSION = "v3.11.638";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=635",
+  "/js/library-ui.js?v=638",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -130,7 +130,7 @@ const PRECACHE_URLS = [
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=582",
-  "/css/reader-core.css?v=399",
+  "/css/reader-core.css?v=638",
   "/css/reader-morph.css?v=396",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
@@ -253,7 +253,8 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js?v=553",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=628",
+  "/js/table-presets.js?v=638",
+  "/js/media-host.js?v=638",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=506",
@@ -287,9 +288,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=254",
-  "/i18n/locales/en.js?v=254",
-  "/i18n/locales/he.js?v=254",
+  "/i18n/locales/ru.js?v=255",
+  "/i18n/locales/en.js?v=255",
+  "/i18n/locales/he.js?v=255",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

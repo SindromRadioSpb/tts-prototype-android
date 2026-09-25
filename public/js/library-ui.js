@@ -1509,13 +1509,31 @@ function setActiveTrack(track) {
 // Persisted to localStorage (loadReaderCfg/saveReaderCfg) so the scaffolding is a JOURNEY, not reset each load.
 let readerCfg = { heOn: true, niqqudMode: 'full', translitOn: true, translitProfile: 'sbl', ruMode: 'show' };
 function loadReaderCfg() {
+  let hasSaved = false;
   try {
-    const he = localStorage.getItem('room.heOn'); if (he != null) readerCfg.heOn = he === '1';
-    const nm = localStorage.getItem('room.niqqudMode'); if (nm === 'full' || nm === 'adaptive' || nm === 'off') readerCfg.niqqudMode = nm;
+    const he = localStorage.getItem('room.heOn'); if (he != null) { readerCfg.heOn = he === '1'; hasSaved = true; }
+    const nm = localStorage.getItem('room.niqqudMode'); if (nm === 'full' || nm === 'adaptive' || nm === 'off') { readerCfg.niqqudMode = nm; hasSaved = true; }
     const tp = localStorage.getItem('room.translitProfile'); if (tp === 'sbl' || tp === 'ru-phonetic') readerCfg.translitProfile = tp;
-    const to = localStorage.getItem('room.translitOn'); if (to != null) readerCfg.translitOn = to === '1';
-    const rm = localStorage.getItem('room.ruMode'); if (rm === 'show' || rm === 'reveal' || rm === 'off') readerCfg.ruMode = rm;
+    const to = localStorage.getItem('room.translitOn'); if (to != null) { readerCfg.translitOn = to === '1'; hasSaved = true; }
+    const rm = localStorage.getItem('room.ruMode'); if (rm === 'show' || rm === 'reveal' || rm === 'off') { readerCfg.ruMode = rm; hasSaved = true; }
   } catch (_) {}
+  // R2 (owner D8): a profile without saved columns opens with the preset for its screen —
+  // «Огласовка и перевод» on a phone, all columns on a desktop. Saved choices always win.
+  if (!hasSaved && window.TablePresets) applyRoomPresetCols(window.TablePresets.toColumns(window.TablePresets.defaultFor(window.innerWidth)));
+}
+// A preset switches columns on/off; a column that stays visible keeps its mode, so adaptive
+// niqqud and tap-to-reveal translation survive a preset change.
+function applyRoomPresetCols(cols) {
+  readerCfg.heOn = !!cols.he;
+  readerCfg.niqqudMode = cols.niqqud ? (readerCfg.niqqudMode === 'off' ? 'full' : readerCfg.niqqudMode) : 'off';
+  readerCfg.translitOn = !!cols.translit;
+  readerCfg.ruMode = cols.ru ? (readerCfg.ruMode === 'off' ? 'show' : readerCfg.ruMode) : 'off';
+}
+function applyRoomPreset(id) {
+  applyRoomPresetCols(window.TablePresets.toColumns(id));
+  saveReaderCfg();
+  rerenderReader();
+  buildAidsPanel();
 }
 function saveReaderCfg() {
   try {
@@ -5639,7 +5657,8 @@ function attachReaderAudio() {
   if (morphOverrides) applyDecorations();
   applyReveal(activeReaderMorphMount());
   attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
-  attachExplainButtons(mount);   // CLG-P6.2 — POST-render 🤖 per row (только свои тексты)
+  attachExplainButtons(mount);   // CLG-P6.2 — POST-render mentor per row (только свои тексты)
+  try { window.TablePresets && window.TablePresets.markRowNumbers(mount); } catch (_) {}   // R2 — номера строк (D4)
   attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
   roomPaintColWidths();    // ширины из persisted-состояния
   try { applyStudyModeClass(); } catch (_) {}   // режим + скролл-окно после каждого рендера
@@ -7280,11 +7299,13 @@ function attachExplainButtons(mount) {
     const cell = tr.querySelector('.col-action-cell');
     if (!cell || cell.querySelector('.row-explain-btn')) return;
     const btn = el('button', {
-      class: 'row-explain-btn', text: '🤖',
+      class: 'row-explain-btn',
       attrs: { type: 'button', 'data-row-idx': String(idx),
         title: tt('room.explain.btn', 'Объяснить предложение (наставник)'),
         'aria-label': tt('room.explain.btn', 'Объяснить предложение (наставник)') },
     });
+    // Owner D10: a line graduation cap instead of the 🤖 emoji (static markup, no user data).
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 10.9a1 1 0 0 0 0-1.8l-8.6-3.9a2 2 0 0 0-1.7 0L2.6 9.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.7 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
     btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); explainRow(idx); });
     const wrap = el('div', { class: 'col-action-row col-action-row-explain' });
     wrap.appendChild(btn);
@@ -7771,7 +7792,7 @@ function readerSkeleton() {
 // Ширина рельса. Замер живого DOM 2026-08-05: содержимое action-ячейки занимает 57px
 // при колонке 85px, а ▶ и сегодня показывается только на активной строке — колонка была
 // широкой не из-за иконок, а из-за доли. 34px хватает на ▶ 26x26 плюс рамки.
-const ROOM_RAIL_PX = 34;
+const ROOM_RAIL_PX = 52;
 function roomPaintColWidths() {
   const mount = $('roomReaderTable');
   const primary = mount && mount.querySelector('#proTable');
@@ -7915,7 +7936,27 @@ function buildAidsPanel() {
   const panel = $('readerAids');
   if (!panel) return;
   panel.innerHTML = '';
-  // ── Блок учебного режима — ПЕРВЫМ в панели (решение D2: новых кнопок в баре нет) ──
+  // ── R2: наборы колонок — первыми. Таблица остаётся таблицей (D1); набор лишь включает колонки,
+  // ручные переключатели ниже остаются «своим набором».
+  if (window.TablePresets) {
+    const current = window.TablePresets.fromColumns({
+      he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn, ru: readerCfg.ruMode !== 'off',
+    });
+    const presetBlock = el('div', { class: 'reader-study-block reader-preset-block' });
+    const titleId = 'roomPresetTitle';
+    presetBlock.appendChild(el('div', { class: 'reader-playback-head', i18n: 'room.aids.presetsTitle', text: tt('room.aids.presetsTitle', 'Колонки таблицы'), attrs: { id: titleId } }));
+    const group = el('div', { class: 'reader-preset-group', attrs: { role: 'radiogroup', 'aria-labelledby': titleId } });
+    window.TablePresets.PRESETS.forEach((id) => {
+      const key = 'room.aids.preset_' + id;
+      const b = el('button', { class: 'reader-preset-row', i18n: key, text: tt(key, id), attrs: { type: 'button', role: 'radio', 'data-preset': id } });
+      b.setAttribute('aria-checked', String(current === id));
+      b.addEventListener('click', () => applyRoomPreset(id));
+      group.appendChild(b);
+    });
+    presetBlock.appendChild(group);
+    panel.appendChild(presetBlock);
+  }
+  // ── Блок учебного режима (решение D2: новых кнопок в баре нет) ──
   const studyBlock = el('div', { class: 'reader-study-block', attrs: { id: 'roomStudyBlock' } });
   const studyLab = el('label', { class: 'reader-study-toggle' });
   const studyCb = el('input', { attrs: { type: 'checkbox', id: 'roomStudyToggle' } });
@@ -7931,7 +7972,7 @@ function buildAidsPanel() {
   const segRow = el('div', { class: 'reader-study-row' });
   segRow.appendChild(el('span', { i18n: 'room.study.actionCol', text: tt('room.study.actionCol', 'Служебная колонка') }));
   const seg = el('div', { class: 'reader-study-seg', attrs: { id: 'roomActionColSeg', role: 'radiogroup', 'aria-label': tt('room.study.actionCol', 'Служебная колонка') } });
-  [['full', 'room.study.actionFull', 'Полная'], ['rail', 'room.study.actionRail', 'Рельс'], ['hidden', 'room.study.actionHidden', 'Скрыта']]
+  [['full', 'room.study.actionFull', 'Полная'], ['rail', 'room.study.actionRail', 'Узкая'], ['hidden', 'room.study.actionHidden', 'Скрыта']]
     .forEach(([mode, key, fb]) => {
       const b = el('button', { i18n: key, text: tt(key, fb), attrs: { type: 'button', 'data-mode': mode, role: 'radio' } });
       b.setAttribute('aria-checked', String(actionColMode() === mode));

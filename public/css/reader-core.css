@@ -165,8 +165,10 @@ body.theme-dark {
   text-align: left;
   border: 1px solid rgba(0,0,0,0.75);
   vertical-align: top;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  /* R2: wrap between words only; break a word just when it is longer than the cell. */
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: manual;
   line-height: 1.45;
   border-color: rgba(0,0,0,0.55);
 }
@@ -178,6 +180,7 @@ body.theme-dark {
   text-align: center;
   position: relative;  /* для грипа */
   user-select: none;
+  white-space: nowrap; /* R2: a header label never splits («Огласов|ки») */
 }
 
 /* PRO: STICKY HEADER */

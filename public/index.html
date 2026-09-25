@@ -1889,6 +1889,10 @@ td.col-action-cell {
         flex-wrap: wrap;
         justify-content: flex-end;
     }
+    /* R2: column presets — same set as the Room's Аа; 44px targets, a clear selected state. */
+    .table-presets .btn-mini-secondary { min-height: 44px; width: auto; }
+    .table-presets .btn-mini-secondary[aria-checked="true"] { background: #1B4FB8; border-color: #1B4FB8; color: #FFFFFF; }
+    .table-settings .table-presets { display: flex; justify-content: flex-start; margin: 8px 0; }
 
     .btn-mini, .btn-mini-secondary {
         padding: 6px 10px;
@@ -1960,7 +1964,21 @@ td.col-action-cell {
 #v3MediaBar button { width: auto; }
 #v3MediaBar[hidden] { display: none; }        /* [hidden] vs display-ловушка */
 .v3-media-note { font-size: 12px; color: #6c757d; }
-.smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
+/* R2 (owner D3): the next glyph after the last word; 44px target via negative margins. */
+.smk-row-replay {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 44px; height: 44px; margin: -12px -12px -12px -8px; padding: 0;
+  border: 0; border-radius: 22px; background: transparent; color: var(--accent, #1B4FB8);
+  font-size: 13px; line-height: 1; cursor: pointer; unicode-bidi: isolate;
+}
+.smk-row-replay:focus-visible { outline: 2px solid var(--accent, #1B4FB8); outline-offset: -8px; }
+tr.smk-row-active .smk-row-replay, tr.row-playing .smk-row-replay { background: radial-gradient(circle, var(--accent-soft, #D3E0F8) 0 13px, transparent 14px); }
+body.theme-dark .smk-row-replay { color: #7FA6F5; }
+body.theme-dark tr.smk-row-active .smk-row-replay, body.theme-dark tr.row-playing .smk-row-replay { background: radial-gradient(circle, #223355 0 13px, transparent 14px); }
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) .smk-row-replay { color: #7FA6F5; }
+  body:not(.theme-light) tr.smk-row-active .smk-row-replay, body:not(.theme-light) tr.row-playing .smk-row-replay { background: radial-gradient(circle, #223355 0 13px, transparent 14px); }
+}
 .v3-table-job-hud { margin-top:10px; padding:10px 12px; border:1px solid var(--theme-border-soft); border-inline-start:4px solid var(--theme-accent); border-radius:8px; background:var(--theme-bg-muted); font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
 .v3-table-job-hud[hidden] { display:none; }
 /* Карточка прогресса сборки (2026-09-24). Тон: busy — акцент, done — успех, stopped — предупреждение. */
@@ -2065,8 +2083,10 @@ td.col-action-cell {
         text-align: left;
         border: 1px solid rgba(0,0,0,0.75);
         vertical-align: top;
-        word-break: break-word;
-        overflow-wrap: anywhere;
+        /* R2: wrap between words only; break a word just when it is longer than the cell. */
+        word-break: normal;
+        overflow-wrap: break-word;
+        hyphens: manual;
 
         line-height: 1.45; /* стабильный ритм чтения */
     }
@@ -2079,6 +2099,8 @@ td.col-action-cell {
         position: relative; /* для грипа */
         user-select: none;
     }
+
+    #proTable th { white-space: nowrap; } /* R2: a header label never splits */
 
 /* === Premium: softer grid + nicer typography === */
 table { border-radius: 10px; }
@@ -2794,6 +2816,13 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 
 .row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
 .row-tts-btn:active { transform: translateY(0px); }
+/* R2 (owner D4/D7): row number from the post-render attribute; the row TTS button is ≥ 44px. */
+.col-action-cell .row-tts-btn { min-width: 44px; min-height: 44px; }
+.col-action-cell[data-row-n]::before {
+    content: attr(data-row-n); display: block; text-align: center;
+    font-size: 12px; font-weight: 600; line-height: 18px; color: var(--theme-text-secondary, #4A5563);
+    font-variant-numeric: tabular-nums;
+}
 
 /* W12-AUDIO-PREFETCH-UI-01: audio readiness marker (per row) */
 .row-audio-ind {
@@ -11984,6 +12013,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                     </div>
                                 </div>
 
+                                <div class="table-presets" role="radiogroup" aria-label="Колонки таблицы" data-i18n-aria-label="room.aids.presetsTitle">
+                                    <button type="button" class="btn-mini-secondary" data-preset="niqqud" data-i18n="room.aids.preset_niqqud">Огласовка и перевод</button>
+                                    <button type="button" class="btn-mini-secondary" data-preset="translit" data-i18n="room.aids.preset_translit">Транслит и перевод</button>
+                                    <button type="button" class="btn-mini-secondary" data-preset="plain" data-i18n="room.aids.preset_plain">Иврит и перевод</button>
+                                    <button type="button" class="btn-mini-secondary" data-preset="three" data-i18n="room.aids.preset_three">Огласовка, транслит, перевод</button>
+                                    <button type="button" class="btn-mini-secondary" data-preset="hebrew" data-i18n="room.aids.preset_hebrew">Одна колонка</button>
+                                    <button type="button" class="btn-mini-secondary" data-preset="all" data-i18n="room.aids.preset_all">Все колонки</button>
+                                </div>
                                 <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
                                     <label class="table-chk"><input type="checkbox" data-col="action"> <span data-i18n="classic.tableColAction">Действие</span></label>
                                     <label class="table-chk"><input type="checkbox" data-col="he"> <span data-i18n="classic.tableColHebrew">Иврит</span></label>
@@ -13427,9 +13464,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=254"></script>
-<script src="/i18n/locales/en.js?v=254"></script>
-<script src="/i18n/locales/he.js?v=254"></script>
+<script src="/i18n/locales/ru.js?v=255"></script>
+<script src="/i18n/locales/en.js?v=255"></script>
+<script src="/i18n/locales/he.js?v=255"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13589,7 +13626,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-karaoke.js?v=553"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/media-host.js?v=628"></script>
+<script src="/js/table-presets.js?v=638"></script>
+<script src="/js/media-host.js?v=638"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13654,7 +13692,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.637";
+    window.APP_VERSION = "3.11.638";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -20498,7 +20536,16 @@ loadRowAudioCacheFromStorage();
     function loadTableSettings() {
         try {
             const raw = localStorage.getItem(TABLE_SETTINGS_KEY);
-            if (!raw) return;
+            if (!raw) {
+                // R2 (owner D8): no saved settings → the preset for this screen.
+                if (window.TablePresets) {
+                    const cols = window.TablePresets.toColumns(window.TablePresets.defaultFor(window.innerWidth));
+                    tableVisibleColumns = { action: true, he: cols.he, niqqud: cols.niqqud, translit: cols.translit, ru: cols.ru };
+                    tablePreset = window.TablePresets.defaultFor(window.innerWidth);
+                    normalizeVisibleBaseWidthsTo100();
+                }
+                return;
+            }
 
             const parsed = JSON.parse(raw);
             if (!parsed || typeof parsed !== "object") return;
@@ -20635,7 +20682,10 @@ loadRowAudioCacheFromStorage();
 
         const presetButtons = root.querySelectorAll('button[data-preset]');
         presetButtons.forEach(function (btn) {
-            btn.classList.toggle("active", btn.getAttribute("data-preset") === tablePreset);
+            const on = btn.getAttribute("data-preset") === tablePreset;
+            btn.classList.toggle("active", on);
+            btn.setAttribute("role", "radio");
+            btn.setAttribute("aria-checked", String(on));
         });
     }
 
@@ -20759,7 +20809,8 @@ updatePlaylistButtonUI();
                 return;
             }
 
-            tablePreset = "custom";
+            // R2: a hand-made set that equals a preset lights that preset up.
+            tablePreset = window.TablePresets ? window.TablePresets.fromColumns(tableVisibleColumns) : "custom";
 
             // Строгий контроль суммы после изменения набора видимых
             normalizeVisibleBaseWidthsTo100();
@@ -20800,8 +20851,15 @@ updatePlaylistButtonUI();
         saveTableSettings();
     }
 
+    window.v3MarkTableRowNumbers = function () {
+        if (window.TablePresets) window.TablePresets.markRowNumbers(document.getElementById("tableContainer"));
+    };
     function applyPreset(preset) {
-        if (preset === "full") {
+        // R2: the shared presets (same as the Room's Аа). «Действие» keeps its own switch.
+        if (window.TablePresets && window.TablePresets.PRESETS.indexOf(preset) >= 0) {
+            const cols = window.TablePresets.toColumns(preset);
+            tableVisibleColumns = { action: tableVisibleColumns.action, he: cols.he, niqqud: cols.niqqud, translit: cols.translit, ru: cols.ru };
+        } else if (preset === "full") {
             tableVisibleColumns = { action: true, he: true, niqqud: true, translit: true, ru: true };
         } else if (preset === "he_ru") {
             tableVisibleColumns = { action: true, he: true, niqqud: false, translit: false, ru: true };
@@ -39011,6 +39069,9 @@ try {
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
+        // R2 (owner D4): row numbers as a POST-render attribute (named, like v3AudioPrefetchRefreshMarkers,
+        // so smoke:reader-parity can neutralize it and keep snapshotting the pure builder output).
+        try { if (typeof window.v3MarkTableRowNumbers === "function") window.v3MarkTableRowNumbers(); } catch (_) {}
 
 		// W12-AUDIO-PREFETCH-UI-01: refresh per-row audio markers
 try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}

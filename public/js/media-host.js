@@ -809,7 +809,11 @@
       var resolveBlob = opts.resolveBlob, t = opts.t || function (k) { return k; };
       var onReplay = opts.onReplay, stillActive = opts.stillActive || function () { return true; };
       if (!table) return;
-      table.querySelectorAll(".smk-row-replay").forEach(function (b) { b.remove(); });
+      table.querySelectorAll(".smk-row-replay").forEach(function (b) {
+        var glue = b.previousSibling; // the no-break space renderRowReplay put before it
+        if (glue && glue.nodeType === 3 && glue.textContent === " ") glue.remove();
+        b.remove();
+      });
       if (!audio || !audio.timing) return;
       // A YouTube-only workspace projection still has a `media` descriptor (duration and
       // compatibility metadata), but no local bytes. Treating object presence as a local file
@@ -842,6 +846,7 @@
         btn.className = "smk-row-replay";
         btn.textContent = "▶︎";
         btn.title = t("studio.media.replaySegment");
+        btn.setAttribute("aria-label", t("studio.media.replaySegment"));
         btn.addEventListener("click", async function (e) {
           e.stopPropagation();
           try {
@@ -850,6 +855,9 @@
             if (onReplay) await onReplay(idx, audio, b);
           } catch (_) {}
         });
+        // Owner D3 (UI release program R2): the next glyph after the last word, glued by a
+        // no-break space — it takes no width from the text and carries no duration.
+        cell.appendChild(document.createTextNode(" "));
         cell.appendChild(btn);
       });
     } catch (_) {}
@@ -860,6 +868,7 @@
     createBlobResolver: createBlobResolver,
     createStage: createStage,
     augmentRows: augmentRows,
+    __renderRowReplayForTest: renderRowReplay,
   });
   window.MediaHost = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

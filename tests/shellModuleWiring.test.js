@@ -23,6 +23,7 @@ const PROVIDERS = {
   MediaBundleCore: "media-bundle-core.js",
   SubtitleMaterialVocalization: "subtitle-material-vocalization.js",
   LocalTranslit: "local-translit-bundle.js",
+  TablePresets: "table-presets.js",
 };
 
 function consumersOf(global, providerFile) {

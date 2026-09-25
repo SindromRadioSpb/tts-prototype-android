@@ -738,3 +738,52 @@ test('firstMismatchLine names the first line that breaks identity with the revis
   assert.equal(MH.firstMismatchLine(segs, ['שלום מיה', '...'], deps), 2, 'a missing line is where identity ends');
   assert.equal(MH.firstMismatchLine(segs, ['שלום מיה', '...', 'תודה רבה', 'עוד'], deps), 3);
 });
+
+// UI release program R2 (owner D3, 2026-09-25): the media ▶︎ is the next glyph after the last word
+// of the last visible cell — glued by a no-break space, never floated beside the text (a float
+// narrowed the cell and split «Здравствуйте» mid-word) — and it shows no duration.
+test("row replay sits inline after the last word of the last visible cell, without a timestamp", () => {
+  const { parseHTML } = require("linkedom");
+  const { window, document } = parseHTML('<!doctype html><html><body><table><tbody>' +
+    '<tr data-row-idx="0"><td data-col="action"></td><td data-col="niqqud">שָׁלוֹם</td><td data-col="ru">Здравствуйте, добрый вечер.</td></tr>' +
+    '</tbody></table></body></html>');
+  const sandbox = { window, document, module: { exports: {} }, Blob };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../public/js/media-host.js"), "utf8"), sandbox);
+  const api = sandbox.module.exports;
+  assert.equal(typeof api.__renderRowReplayForTest, "function");
+  api.__renderRowReplayForTest(document.querySelector("table"), { timing: { entries: [{ o: 0, t: 1, end: 2 }] } }, async () => ({}), (k) => k, () => {});
+  const cell = document.querySelector('td[data-col="ru"]');
+  const btn = cell.querySelector(".smk-row-replay");
+  assert.ok(btn, "button exists in the last visible cell");
+  assert.equal(btn.previousSibling && btn.previousSibling.nodeType, 3);
+  assert.equal(btn.previousSibling.textContent, "\u00A0", "a no-break space glues it to the last word");
+  assert.equal(btn.textContent.trim(), "▶︎");
+  assert.equal(btn.getAttribute("aria-label"), "studio.media.replaySegment");
+  assert.doesNotMatch(cell.textContent, /\d:\d\d/, "no duration or timestamp");
+});
+
+test("row replay CSS gives a 44px target without growing the line, in both shells", () => {
+  for (const shell of ["public/library.html", "public/index.html"]) {
+    const css = fs.readFileSync(path.join(__dirname, "..", shell), "utf8");
+    const start = css.indexOf(".smk-row-replay {");
+    assert.ok(start > 0, shell);
+    const rule = css.slice(start, css.indexOf("}", start));
+    assert.match(rule, /width: 44px/);
+    assert.match(rule, /height: 44px/);
+    assert.match(rule, /margin: -12px/, "negative margins keep the text line height");
+    assert.match(rule, /unicode-bidi: isolate/, "stays after the last word in RTL too");
+  }
+});
+
+test("re-augmenting rows removes the glue space together with the old button", () => {
+  const { parseHTML } = require("linkedom");
+  const { window, document } = parseHTML('<!doctype html><html><body><table><tbody>' +
+    '<tr data-row-idx="0"><td data-col="ru">Всем привет.</td></tr></tbody></table></body></html>');
+  const sandbox = { window, document, module: { exports: {} }, Blob };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "../public/js/media-host.js"), "utf8"), sandbox);
+  const api = sandbox.module.exports;
+  const table = document.querySelector("table");
+  api.__renderRowReplayForTest(table, { timing: { entries: [{ o: 0, t: 1, end: 2 }] } }, async () => ({}), (k) => k, () => {});
+  api.augmentRows({ table, audio: { timing: null } });
+  assert.equal(document.querySelector('td[data-col="ru"]').textContent, "Всем привет.");
+});
