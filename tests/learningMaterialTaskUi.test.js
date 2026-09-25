@@ -213,7 +213,7 @@ test('a linked video recommends Gemini before continuing with Google Translate',
   assert.equal(withKey.canContinue, true);
   assert.match(withKey.message, /Gemini/);
   assert.equal(UI.geminiRecommendation('gemini', true, { video_id: 'x' }), null);
-  assert.equal(UI.geminiRecommendation('google-free', true, null), null);
+  // 2026-09-25: рекомендация больше не только для ссылки — см. тест ниже.
   assert.equal(typeof UI.confirmGeminiRecommendation, 'function');
 });
 
@@ -553,4 +553,119 @@ test('the finish names a linked source video, or why it could not be linked', ()
     playback_proof: { kind: 'local', bound_rows: 3, total_rows: 3, missing_rows: 0 } };
   assert.match(UI.finishLines({ ...base, youtube_origin_bound: true }).join(' '), /YouTube/);
   assert.match(UI.finishLines({ ...base, youtube_origin_bound: false, youtube_origin_error: 'PLAYBACK_BASIS_MISMATCH' }).join(' '), /YouTube/);
+});
+
+// Владелец, 2026-09-25: учебную таблицу строит Gemini — любой материал, начатый с другим
+// переводчиком, получает предложение переключиться, а остановленная задача — продолжить с Gemini.
+test('any material started with another translator is offered Gemini before the build', () => {
+  const withKey = UI.geminiRecommendation('google-free', true, null);
+  assert.equal(withKey.canContinue, true);
+  assert.match(withKey.message, /Gemini/);
+  const noKey = UI.geminiRecommendation('madlad', false, null);
+  assert.equal(noKey.canContinue, true, 'a prepared text can still be translated without Gemini');
+  assert.equal(noKey.needsKey, true);
+  assert.equal(UI.geminiRecommendation('gemini', true, null), null);
+});
+
+test('a stopped task without a table offers to continue with Gemini', () => {
+  const job = (provider, extra) => Object.assign({ input: { provider, source_text: 'שלום' }, state: 'paused', table: null, saved_text_id: null }, extra || {});
+  assert.equal(UI.canSwitchToGemini(job('google-free')), true);
+  assert.equal(UI.canSwitchToGemini(job('gemini')), false);
+  assert.equal(UI.canSwitchToGemini(job('google-free', { table: { rows: [] } })), false, 'a finished table is not rebuilt');
+  assert.equal(UI.canSwitchToGemini(job('google-free', { state: 'running' })), false);
+  assert.equal(UI.canSwitchToGemini(job('google-free', { input: { provider: 'google-free', source_text: '' } })), false);
+});
+
+test('a stopped local task switches to Gemini from its own dialog and continues', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; this.value = ''; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { const i = this.children.indexOf(before); this.children.splice(i < 0 ? this.children.length : i, 0, node); }
+    replaceChildren(...nodes) { this.children = nodes; }
+    setAttribute() {} removeAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+    get isConnected() { return true; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  const job = { id: 'j1', input: { title: 'Local', provider: 'google-free', source_text: 'שלום',
+    import_meta: { media_package_ref: { package_id: 'mpkg:a' } } }, state: 'paused', phase: 'translating',
+    error: 'TASK_TABLE_INCOMPLETE', table: null, saved_text_id: null };
+  const calls = [];
+  vm.runInNewContext(source, { window, document, navigator: {}, setInterval: () => 0, clearInterval: () => {}, setTimeout: () => 0, LearningMaterialTask: {
+    createStore: () => ({ list: async () => [job], get: async () => job, listCompleted: async () => [] }),
+    createRunner: () => ({ isRunning: () => false, run: async () => { calls.push('run'); return { ...job, state: 'ready' }; } }),
+    switchTranslationProvider: async (store, id, provider, model, extra) => { calls.push(['switch', provider, model, extra && extra.table_quote && extra.table_quote.highUsd]); return job; },
+    safe: (v) => v } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({ hasGeminiKey: () => true, selectGemini: async () => { calls.push('select'); },
+    capture: () => ({ provider: 'gemini', model: 'm-1' }),
+    estimateTable: async () => ({ table: { lowUsd: 0.21, highUsd: 0.21, lowRows: 371, highRows: 371, chunks: 3 }, minutes: 7 }) });
+  await ui.list();
+  const listDialog = body.children.at(-1);
+  await listDialog.children.find((n) => n.tag === 'p').children[0].onclick();
+  await new Promise((r) => setImmediate(r));
+  const d = body.children.at(-1);
+  const actions = d.children.find((n) => n.className === 'study-source-actions').children;
+  const go = actions.find((n) => /Продолжить с Gemini/.test(n.textContent));
+  assert.ok(go, 'the dialog offers to continue with Gemini');
+  assert.match(go.textContent, /0\.21/, 'the price is on the button');
+  await go.onclick();
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), ['select', ['switch', 'gemini', 'm-1', 0.21], 'run']);
+});
+
+test('a local material started with Google Translate is offered Gemini before the build', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; this.value = ''; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { const i = this.children.indexOf(before); this.children.splice(i < 0 ? this.children.length : i, 0, node); }
+    setAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  let provider = 'google-free', selected = 0;
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: { createStore: () => ({}), createRunner: () => ({}) } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({ hasGeminiKey: () => true, selectGemini: async () => { selected++; provider = 'gemini'; },
+    capture: () => ({ source_text: 'שלום', title: 'Local', provider, direction: 'he-ru',
+      import_meta: { media_package_ref: { package_id: 'mpkg:a', track_id: 'trk:c' } } }) });
+  await ui.start();
+  const first = body.children.at(-1);
+  const names = () => body.children.at(-1).children.find((n) => n.className === 'study-source-actions').children.map((n) => n.textContent);
+  assert.ok(names().includes('Использовать Gemini'));
+  assert.ok(names().includes('Продолжить с Google Translate'));
+  await first.children.find((n) => n.className === 'study-source-actions').children.find((n) => n.textContent === 'Использовать Gemini').onclick();
+  assert.equal(selected, 1);
+  assert.ok(names().includes('Собрать учебный материал'), 'after switching, the main action is back');
+});
+
+test('without a Gemini key a text material names its own translator and offers the Gemini settings', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; this.value = ''; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { const i = this.children.indexOf(before); this.children.splice(i < 0 ? this.children.length : i, 0, node); }
+    setAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  let opened = 0;
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: { createStore: () => ({}), createRunner: () => ({}) } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({ hasGeminiKey: () => false, openTranslationSettings: () => { opened++; },
+    capture: () => ({ source_text: 'שלום', title: 'Text', provider: 'madlad', direction: 'he-ru', import_meta: null }) });
+  await ui.start();
+  const actions = body.children.at(-1).children.find((n) => n.className === 'study-source-actions').children;
+  const names = actions.map((n) => n.textContent);
+  assert.ok(names.includes('Продолжить с MADLAD'), names.join(' | '));
+  assert.equal(actions.find((n) => n.textContent === 'Продолжить с MADLAD').disabled, undefined, 'the prepared text can still be built');
+  await actions.find((n) => n.textContent === 'Вернуться и настроить Gemini').onclick();
+  assert.equal(opened, 1);
 });

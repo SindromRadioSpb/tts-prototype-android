@@ -274,3 +274,27 @@ test('a failed YouTube origin link does not undo a finished local material',asyn
   assert.equal(done.state,'ready');assert.equal(done.youtube_origin_bound,false);
   assert.equal(done.youtube_origin_error,'PLAYBACK_BASIS_MISMATCH');
 });
+
+// Владелец, 2026-09-25: локальная задача, начатая с Google Translate, остановлена ради Gemini — но
+// смена переводчика разрешалась только задачам, получившим транскрипт сами (путь ссылки).
+test('a local task stopped before its table can switch to Gemini and continue',async()=>{
+  const store=memory(),log={translate:0,save:0,prove:0,pkg:0};
+  const job=await T.create({...mediaInput,provider:'google-free'});await store.add(job);
+  const ops=mediaOps(log,{translate:async(i)=>{log.translate++;if(i.provider!=='gemini')throw new Error('TASK_TABLE_INCOMPLETE');
+    return {rows:[{he:'שלום',ru:'Привет',segment_index:0},{he:'עולם',ru:'мир',segment_index:1}]};}});
+  const runner=T.createRunner(store,ops);
+  await assert.rejects(runner.run(job.id),/TASK_TABLE_INCOMPLETE/);
+  const changed=await T.switchTranslationProvider(store,job.id,'gemini','gemini-3.8-flash');
+  assert.equal(changed.input.provider,'gemini');
+  assert.equal(changed.input.source_text,mediaInput.source_text,'the transcript stays as it was');
+  const done=await runner.run(job.id);
+  assert.equal(done.state,'ready');assert.equal(log.save,1);
+});
+
+test('switching to Gemini can carry the newly agreed table price',async()=>{
+  const store=memory(),job=await T.create({...mediaInput,provider:'google-free'});await store.add(job);
+  await store.update(job.id,j=>({...j,state:'paused'}));
+  const quote={lowUsd:0.2,highUsd:0.2,lowRows:300,highRows:300,chunks:3};
+  const changed=await T.switchTranslationProvider(store,job.id,'gemini','gemini-3.8-flash',{table_quote:quote});
+  assert.deepEqual(changed.input.table_quote,quote);
+});

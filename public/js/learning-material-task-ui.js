@@ -28,7 +28,7 @@
       TASK_MEDIA_CONTEXT_LOST:'Текст разошёлся с транскриптом видео, и таблица без привязки не собирается. Проверьте транскрипт и продолжите.',
       TASK_TABLE_UNSEGMENTED:'Таблица вернулась без номеров реплик, поэтому кнопки ▶ не привязать. Продолжите — части, собранные без номеров, соберутся заново.',
       TASK_PLAYBACK_UNBOUND:'Карточка сохранена, но кнопки ▶ не привязались. Нажмите «Продолжить», чтобы привязать заново, или проверьте транскрипт.',
-      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',originLabel:'Исходный ролик YouTube (необязательно) — тогда материал откроется и на других устройствах',finalOriginBound:'Исходный ролик YouTube тоже привязан: на других устройствах материал откроется с ним.',finalOriginFailed:'Исходный ролик YouTube привязать не удалось ({code}); материал работает с локальным файлом.',TASK_INPUT_INVALID:'Проверьте ссылку на ролик YouTube: она не распознана.',priceTableOnly:'Учебная таблица: ≈{rows} строк · ≈${usd} · обычно {min} мин. Распознавание уже сделано локально и бесплатно.',finalNoSync:'«{title}» · {n} строк сохранены, но синхронизации с видео нет: кнопки ▶ недоступны.',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
+      mismatchLine:'Первое расхождение — строка {n}.',resumeBanner:'Материал «{title}» не закончен — {stage}',stageFinish:'Готовый материал',continueWithGemini:'Продолжить с Gemini',geminiKeyForTable:'Учебную таблицу лучше всего строит Gemini. Добавьте ключ Gemini в «Настройки перевода и таблицы» или продолжите с выбранным переводчиком.',continueWith:'Продолжить с {p}',originLabel:'Исходный ролик YouTube (необязательно) — тогда материал откроется и на других устройствах',finalOriginBound:'Исходный ролик YouTube тоже привязан: на других устройствах материал откроется с ним.',finalOriginFailed:'Исходный ролик YouTube привязать не удалось ({code}); материал работает с локальным файлом.',TASK_INPUT_INVALID:'Проверьте ссылку на ролик YouTube: она не распознана.',priceTableOnly:'Учебная таблица: ≈{rows} строк · ≈${usd} · обычно {min} мин. Распознавание уже сделано локально и бесплатно.',finalNoSync:'«{title}» · {n} строк сохранены, но синхронизации с видео нет: кнопки ▶ недоступны.',readyFinal:'Материал готов: откройте его, чтобы учиться или править.',resumeHide:'Скрыть',reviewTranscript:'Проверить и исправить транскрипт',reviewSkip:'Собрать без проверки',
       reviewNote:'Транскрипт можно поправить сейчас: таблица соберётся из исправленной версии, а кнопки ▶ привяжутся к её репликам.'},
     en:{stageMedia:'Media',stageTranscript:'Transcript',stageReview:'Review',stageOf:'Step {i} of {n}',
       finalLine:'“{title}” · {n} rows · ▶ on {m} · video linked ({kind})',finalKindLocal:'local file',finalKindYoutube:'YouTube',
@@ -37,7 +37,7 @@
       TASK_MEDIA_CONTEXT_LOST:'The text no longer matches the video transcript, so the table is not built without its link. Check the transcript and continue.',
       TASK_TABLE_UNSEGMENTED:'The table came back without cue numbers, so ▶ buttons cannot be linked. Continue — parts without numbers are built again.',
       TASK_PLAYBACK_UNBOUND:'The card is saved, but its ▶ buttons did not link. Press “Continue” to link again, or check the transcript.',
-      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',originLabel:'Source YouTube video (optional) — the material then opens on other devices too',finalOriginBound:'The source YouTube video is linked too: on other devices the material opens with it.',finalOriginFailed:'The source YouTube video could not be linked ({code}); the material works with the local file.',TASK_INPUT_INVALID:'Check the YouTube link: it was not recognised.',priceTableOnly:'Study table: ≈{rows} rows · ≈${usd} · usually {min} min. Recognition was already done locally for free.',finalNoSync:'“{title}” · {n} rows saved, but there is no sync with the video: ▶ buttons are unavailable.',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
+      mismatchLine:'First difference: line {n}.',resumeBanner:'Material “{title}” is unfinished — {stage}',stageFinish:'Ready material',continueWithGemini:'Continue with Gemini',geminiKeyForTable:'Gemini builds the best study table. Add a Gemini key in Translation and table settings, or continue with the selected translator.',continueWith:'Continue with {p}',originLabel:'Source YouTube video (optional) — the material then opens on other devices too',finalOriginBound:'The source YouTube video is linked too: on other devices the material opens with it.',finalOriginFailed:'The source YouTube video could not be linked ({code}); the material works with the local file.',TASK_INPUT_INVALID:'Check the YouTube link: it was not recognised.',priceTableOnly:'Study table: ≈{rows} rows · ≈${usd} · usually {min} min. Recognition was already done locally for free.',finalNoSync:'“{title}” · {n} rows saved, but there is no sync with the video: ▶ buttons are unavailable.',readyFinal:'The material is ready: open it to study or edit.',resumeHide:'Hide',reviewTranscript:'Review and fix the transcript',reviewSkip:'Build without review',
       reviewNote:'You can fix the transcript now: the table is built from the corrected version, and ▶ buttons link to its cues.'},
     he:{stageMedia:'מדיה',stageTranscript:'תמלול',stageReview:'בדיקה',stageOf:'שלב {i} מתוך {n}',
       finalLine:'„{title}” · {n} שורות · ▶ ב־{m} · הסרטון מקושר ({kind})',finalKindLocal:'קובץ מקומי',finalKindYoutube:'YouTube',
@@ -46,7 +46,7 @@
       TASK_MEDIA_CONTEXT_LOST:'הטקסט כבר לא תואם לתמלול הסרטון, ולכן הטבלה לא נבנית בלי הקישור. בדקו את התמלול והמשיכו.',
       TASK_TABLE_UNSEGMENTED:'הטבלה חזרה בלי מספרי משפטים, ולכן אי אפשר לקשר כפתורי ▶. המשיכו — חלקים בלי מספרים ייבנו שוב.',
       TASK_PLAYBACK_UNBOUND:'הכרטיס נשמר, אבל כפתורי ▶ לא קושרו. לחצו «המשך» כדי לקשר שוב, או בדקו את התמלול.',
-      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',originLabel:'סרטון המקור ב־YouTube (לא חובה) — כך החומר ייפתח גם במכשירים אחרים',finalOriginBound:'גם סרטון המקור ב־YouTube מקושר: במכשירים אחרים החומר ייפתח איתו.',finalOriginFailed:'לא ניתן לקשר את סרטון המקור ב־YouTube ({code}); החומר עובד עם הקובץ המקומי.',TASK_INPUT_INVALID:'בדקו את הקישור ל־YouTube: הוא לא זוהה.',priceTableOnly:'טבלת לימוד: ≈{rows} שורות · ≈${usd} · בדרך כלל {min} דק׳. הזיהוי כבר בוצע מקומית ובחינם.',finalNoSync:'„{title}” · {n} שורות נשמרו, אבל אין סנכרון עם הסרטון: כפתורי ▶ אינם זמינים.',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
+      mismatchLine:'ההבדל הראשון: שורה {n}.',resumeBanner:'החומר „{title}” לא הושלם — {stage}',stageFinish:'חומר מוכן',continueWithGemini:'המשך עם Gemini',geminiKeyForTable:'Gemini בונה את טבלת הלימוד הטובה ביותר. הוסיפו מפתח Gemini בהגדרות התרגום והטבלה, או המשיכו עם המתרגם שנבחר.',continueWith:'המשך עם {p}',originLabel:'סרטון המקור ב־YouTube (לא חובה) — כך החומר ייפתח גם במכשירים אחרים',finalOriginBound:'גם סרטון המקור ב־YouTube מקושר: במכשירים אחרים החומר ייפתח איתו.',finalOriginFailed:'לא ניתן לקשר את סרטון המקור ב־YouTube ({code}); החומר עובד עם הקובץ המקומי.',TASK_INPUT_INVALID:'בדקו את הקישור ל־YouTube: הוא לא זוהה.',priceTableOnly:'טבלת לימוד: ≈{rows} שורות · ≈${usd} · בדרך כלל {min} דק׳. הזיהוי כבר בוצע מקומית ובחינם.',finalNoSync:'„{title}” · {n} שורות נשמרו, אבל אין סנכרון עם הסרטון: כפתורי ▶ אינם זמינים.',readyFinal:'החומר מוכן: פתחו אותו כדי ללמוד או לערוך.',resumeHide:'הסתרה',reviewTranscript:'בדיקה ותיקון של התמלול',reviewSkip:'בנייה בלי בדיקה',
       reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
   };
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
@@ -376,16 +376,25 @@
     // A provider policy/safety block is terminal for this exact URL. Re-running the same paid
     // request cannot heal it; completed ASR windows remain exportable in the task checkpoint.
     else if(job.state!=='ready'&&(job.error!=='ASR_BLOCKED'||recoverableOther)&&(job.error!=='ASR_OTHER_EXHAUSTED'||alternateAvailable)&&!(job.error==='TASK_SOURCE_MISMATCH'&&job.error_reason))button(actions,t('resume'),()=>execute(job.id,d));
-    if(job.error==='TASK_TABLE_INCOMPLETE'&&job.input.provider==='google-free'&&job.transcript&&!job.table
-      &&operations.hasGeminiKey&&operations.hasGeminiKey())button(actions,
-      ({ru:'Перевести через Gemini',en:'Translate with Gemini',he:'תרגום באמצעות Gemini'}[document.documentElement.lang]||'Translate with Gemini'),async()=>{
-        try{
-          await operations.selectGemini();
-          const selected=operations.capture();
-          await LearningMaterialTask.switchTranslationProvider(store,job.id,'gemini',selected.model);
-          await execute(job.id,d);
-        }catch(error){const note=element('p',String(error.code||error.message||error));note.setAttribute('role','alert');d.append(note);}
-      });
+    // Владелец, 2026-09-25: остановленная задача без таблицы переходит на Gemini из своего же окна
+    // и продолжает с того же места — транскрипт не оплачивается заново, окно закрывать не нужно.
+    if(canSwitchToGemini(job)&&!runner.isRunning(job.id)){
+      if(operations.hasGeminiKey&&operations.hasGeminiKey()){
+        const go=button(actions,t('continueWithGemini'),async()=>{
+          go.disabled=true;
+          try{
+            await operations.selectGemini();
+            const selected=operations.capture();
+            await LearningMaterialTask.switchTranslationProvider(store,job.id,'gemini',selected.model,go.__quote?{table_quote:go.__quote}:undefined);
+            await execute(job.id,d);
+          }catch(error){go.disabled=false;const note=element('p',t(error.code||error.message)||String(error.code||error.message||error));note.setAttribute('role','alert');d.append(note);}
+        });
+        go.className='btn-primary';actions.insertBefore(go,actions.children[0]);
+        // Цена — на самой кнопке: согласие на неё и есть нажатие, второго окна посреди сборки нет.
+        if(operations.estimateTable&&isMediaJob(job))(async()=>{try{const e=await operations.estimateTable({...job.input,provider:'gemini'});
+          if(e&&e.table){go.__quote=e.table;go.textContent=t('continueWithGemini')+' · ≈$'+money(e.table.highUsd);}}catch(_){}})();
+      }else button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
+    }
     if(job.error==='TASK_SOURCE_MISMATCH'&&!runner.isRunning(job.id)){
       if(!job.error_reason||job.error_reason==='table')button(actions,t('reviewSource'),()=>showSourceReview(job.id,d));
     }
@@ -471,8 +480,22 @@
   function money(usd){return (usd<0.01?usd.toFixed(4):usd.toFixed(2));}
   function clock(sec){const s=Math.max(0,Math.round(sec||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
   function geminiRecommendation(provider,hasKey,link){
-    if(!link||provider==='gemini'||(hasKey&&provider!=='google-free'))return null;
-    return {canContinue:!!hasKey,message:hasKey?t('geminiRecommended'):t('geminiRequiredForLink')};
+    if(provider==='gemini')return null;
+    if(link){
+      if(hasKey&&provider!=='google-free')return null;
+      return {canContinue:!!hasKey,message:hasKey?t('geminiRecommended'):t('geminiRequiredForLink')};
+    }
+    // Готовый текст (локальный файл, вставка): учебную таблицу строит Gemini, но и другой
+    // переводчик справится. Предлагаем, не запрещаем; без ключа — путь к настройке ключа.
+    return {canContinue:true,needsKey:!hasKey,message:hasKey?t('geminiRecommended'):t('geminiKeyForTable')};
+  }
+  const PROVIDER_NAMES={'google-free':'Google Translate',gcp:'Google Cloud Translation',madlad:'MADLAD',gemini:'Gemini'};
+  function providerName(p){return PROVIDER_NAMES[p]||String(p||'');}
+  // Остановленная задача без таблицы может продолжиться с Gemini, не закрывая окна.
+  function canSwitchToGemini(job){
+    return !!(job&&job.input&&job.input.provider!=='gemini'&&!job.table&&!job.saved_text_id
+      &&['paused','cancelled','stopping'].includes(job.state)&&job.state!=='running'
+      &&(job.transcript||String(job.input.source_text||'').trim()));
   }
   function confirmGeminiRecommendation(){
     return new Promise(resolve=>{
@@ -524,8 +547,13 @@
     const recommendation=geminiRecommendation(input.provider,!!(operations.hasGeminiKey&&operations.hasGeminiKey()),link);
     if(recommendation){
       const notice=element('p',recommendation.message);notice.className='lmt-provider-recommendation';notice.setAttribute('role','alert');d.insertBefore(notice,actions);
-      if(recommendation.canContinue){
-        startButton.textContent=t('continueGoogle');
+      if(recommendation.canContinue&&recommendation.needsKey){
+        // Нет ключа Gemini: готовый текст соберёт и выбранный переводчик, а путь к ключу — рядом.
+        startButton.textContent=fill(t('continueWith'),{p:providerName(input.provider)});
+        const settings=button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
+        actions.insertBefore(settings,startButton);
+      }else if(recommendation.canContinue){
+        startButton.textContent=link?t('continueGoogle'):fill(t('continueWith'),{p:providerName(input.provider)});
         const use=button(actions,t('useGemini'),async()=>{use.disabled=true;try{
           await operations.selectGemini();
           const selected=operations.capture();
@@ -619,6 +647,6 @@
     button(d,t('close'),()=>d.close());
   }
   function labels(){const start=document.getElementById('v3ImportPrepareTask');if(start)start.textContent=t('start');const tasks=document.getElementById('v3LearningTasks');if(tasks)tasks.textContent=t('tasks');}
-  window.LearningMaterialTaskUI={configure:value=>{operations=value;if(typeof setTimeout==='function')setTimeout(()=>{resumeBanner().catch(()=>{});},0);},pickResumable,resumeBanner,start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
+  window.LearningMaterialTaskUI={canSwitchToGemini,configure:value=>{operations=value;if(typeof setTimeout==='function')setTimeout(()=>{resumeBanner().catch(()=>{});},0);},pickResumable,resumeBanner,start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
   document.addEventListener('DOMContentLoaded',labels);document.addEventListener('i18n:changed',labels);
 })();

@@ -178,14 +178,17 @@
   }
   // An explicit provider change may recover a saved transcript, but cannot rewrite a paid
   // translation, a saved card, or the video identity. Re-sign the complete input atomically.
-  async function switchTranslationProvider(store,id,provider,model){
+  async function switchTranslationProvider(store,id,provider,model,extra){
     if(provider!=='gemini'||!String(model||'').trim())throw new Error('TASK_PROVIDER_INVALID');
     const old=await store.get(id);
-    if(!old||old.state==='running'||!old.transcript||old.table||old.saved_text_id)throw new Error('TASK_PROVIDER_CHANGE_BLOCKED');
-    const source=safe({...old.input,provider,model:String(model)});
+    // Транскрипт есть либо оплаченный задачей, либо принесённый входом (локальный файл, текст).
+    const hasSource=o=>!!(o&&(o.transcript||String(o.input&&o.input.source_text||'').trim()));
+    if(!old||old.state==='running'||!hasSource(old)||old.table||old.saved_text_id)throw new Error('TASK_PROVIDER_CHANGE_BLOCKED');
+    // Новая согласованная цена едет вместе со сменой переводчика: старая была ценой другого провайдера.
+    const source=safe({...old.input,provider,model:String(model),...(extra&&extra.table_quote?{table_quote:extra.table_quote}:{})});
     const signature=await P().digest(JSON.stringify(source));
     return store.update(id,current=>{
-      if(current.signature!==old.signature||current.state==='running'||!current.transcript||current.table||current.saved_text_id)throw new Error('TASK_SOURCE_MISMATCH');
+      if(current.signature!==old.signature||current.state==='running'||!hasSource(current)||current.table||current.saved_text_id)throw new Error('TASK_SOURCE_MISMATCH');
       return {...current,input:source,signature,error:null,error_reason:null};
     });
   }
