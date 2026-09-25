@@ -3086,7 +3086,7 @@
        touching it would break index.html / smoke:reader-parity). CSS-only: parity is
        HTML byte-parity of the builder, so this stays green. */
     @media (min-width: 1024px) {
-      .room-header-row, .room-tabs { max-width: 1120px; margin-inline: auto; }
+      .room-header-row, .room-tabs, .room-mediatheque-entry { max-width: 1120px; margin-inline: auto; }
       main#roomContent { max-width: 1120px; margin-inline: auto; }
       .room-footer { max-width: 1120px; margin-inline: auto; }
       /* read view = narrower, book-like centered column */
@@ -3101,7 +3101,7 @@
       .shelf-rail::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
     }
 
-.room-mediatheque-entry{margin:12px 0}.room-mediatheque-entry a{display:inline-flex;align-items:center;min-height:44px;padding:8px 18px;border:1px solid currentColor;border-radius:12px;font-weight:650;text-decoration:none}
+.room-mediatheque-entry{margin-block:12px}.room-mediatheque-entry a{display:inline-flex;align-items:center;min-height:44px;padding:8px 18px;color:var(--accent);background:var(--bg-card);border:1px solid var(--border-soft);border-radius:12px;font-weight:650;text-decoration:none}.room-mediatheque-entry a:hover{border-color:var(--accent)}.room-mediatheque-entry a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 <link rel="stylesheet" href="/css/catalog-discovery.css?v=485">
 <style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
@@ -3235,7 +3235,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.641</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.642</button>
   </div>
 </footer>
 

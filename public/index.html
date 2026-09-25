@@ -10918,7 +10918,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       // Theme: 'light' | 'dark' | 'auto' (no class) | undefined → auto.
       if (saved === "light") b.classList.add("theme-light");
       else if (saved === "dark") b.classList.add("theme-dark");
-      // 'auto' or unset — leave both classes off; @media queries handle it.
+      // 'auto' or unset — follow the OS with the same class: every dark override is written as
+      // body.theme-dark, so leaving it off kept white cards under light text (R5a, audit P0-4).
+      else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) b.classList.add("theme-dark");
       // Density: default comfortable.
       var d = density === "compact" || density === "comfortable" || density === "spacious" ? density : "comfortable";
       b.classList.add("theme-density-" + d);
@@ -13692,7 +13694,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.641";
+    window.APP_VERSION = "3.11.642";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -29426,7 +29428,9 @@ function v3ThemeApply(choice) {
   b.classList.remove("theme-light", "theme-dark");
   if (choice === "light") b.classList.add("theme-light");
   else if (choice === "dark") b.classList.add("theme-dark");
-  // 'auto' — let @media (prefers-color-scheme: dark) drive variables.
+  // 'auto' — the @media rules drive variables, and the class follows the OS so the
+  // body.theme-dark component overrides apply too (R5a, audit P0-4).
+  else if (choice === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) b.classList.add("theme-dark");
 }
 function v3ThemeCycle() {
   const cur = v3ThemeGet();
@@ -29474,8 +29478,9 @@ if (window.matchMedia) {
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function() {
       // Only re-apply if user hasn't picked an explicit theme.
       if (v3ThemeGet() === "auto") {
-        // No-op — CSS @media handles it. But we update the icon if
-        // the toggle indicator should reflect the effective mode.
+        // The OS switched: re-apply so the body.theme-dark class follows it (R5a), then
+        // update the toggle indicator.
+        v3ThemeApply("auto");
         syncStudioThemeControls("auto");
       }
     });
