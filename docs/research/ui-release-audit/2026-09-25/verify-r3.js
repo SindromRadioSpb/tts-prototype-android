@@ -16,14 +16,19 @@ const PROD = "https://linguistpro.kolosei.com";
     const headers = {}; r.headers.forEach((v, k) => { if (!/^(content-encoding|content-length|transfer-encoding)$/i.test(k)) headers[k] = v; });
     await route.fulfill({ status: r.status, headers, body: Buffer.from(await r.arrayBuffer()) });
   });
-  await page.addInitScript((l) => { localStorage.setItem("onboardingSeen_v1", "1"); localStorage.setItem("room.dictaConsent", "declined"); if (l) localStorage.setItem("app.locale", l); }, loc || "ru");
+  await page.addInitScript((l) => { localStorage.setItem("onboardingSeen_v1", "1"); if (l) localStorage.setItem("app.locale", l); }, loc || "ru");
   await page.goto(L.BASE + "/mediatheque.html"); await page.waitForTimeout(5000);
   await page.locator("a,button").filter({ hasText: /Изучать|ללמוד|Study/ }).first().click(); await page.waitForTimeout(9000);
-  await page.locator("#proTable td[data-col=niqqud] .rm-w, #proTable td[data-col=niqqud] [data-word]").first().click().catch((e) => console.log("tap", String(e).slice(0, 100)));
+  await page.locator("#proTable td[data-col=niqqud] .rm-w, #proTable td[data-col=niqqud] [data-word]").nth(Number(process.env.R_WORD || 0)).click().catch((e) => console.log("tap", String(e).slice(0, 100)));
   await page.waitForTimeout(2500);
+  console.log("MODAL_AFTER_TAP", await page.evaluate(() => !!document.querySelector(".room-consent")));
   const consent = page.locator(".room-consent button").first();
   if (await consent.count() && await consent.isVisible()) { await consent.click(); await page.waitForTimeout(2000); }
+  // A fresh profile downloads the morphology dictionary on the first tap; wait for the card.
+  await page.waitForSelector(".rm-status-btn", { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(800);
   await L.shot(page, `../R3/after/card-${tag}`);
+  console.log("MODAL", await page.evaluate(() => !!document.querySelector(".room-consent")), "REFINE", await page.evaluate(() => !!document.querySelector("[data-rm-refine]")));
   console.log(JSON.stringify(await page.evaluate(() => [...document.querySelectorAll(".rm-status-btn")].filter((b) => b.offsetWidth).map((b) => {
     const s = getComputedStyle(b), r = b.getBoundingClientRect();
     return b.textContent.trim() + " " + Math.round(r.width) + "x" + Math.round(r.height) + " " + s.color + " on " + s.backgroundColor;

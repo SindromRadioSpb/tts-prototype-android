@@ -1367,7 +1367,9 @@
     .room-media-local-stage { flex: 1 0 100%; border: 1px solid var(--border-soft); border-radius: 12px; padding: 8px; background: var(--bg-muted); }
     .room-media-local-stage[hidden] { display: none; }
     .room-media-local-stage audio, .room-media-local-stage video { display: block; width: 100%; max-height: clamp(120px, 26vh, 280px); background: #0d1716; border-radius: 8px; }
-    #roomMediaYtMount { margin: 0 12px 6px; }
+    /* R4 (P0-8): the bar already carries the 12px gutter; an own inline margin on top of
+       flex-basis 100% pushed the video off-screen (right in LTR, left in RTL). */
+    #roomMediaYtMount { margin: 0 0 6px; }
     #roomMediaYtMount[hidden] { display: none; }
 /* R2 (owner D3): the next glyph after the last word; 44px target via negative margins. */
     .smk-row-replay {
@@ -3227,7 +3229,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.639</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.640</button>
   </div>
 </footer>
 
@@ -3520,7 +3522,7 @@
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
 <script src="/js/public-word-audio.js?v=453"></script>
-<script src="/js/morph-host.js?v=416"></script>
+<script src="/js/morph-host.js?v=640"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>

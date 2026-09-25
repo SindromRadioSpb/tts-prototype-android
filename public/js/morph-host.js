@@ -163,7 +163,9 @@
           if (r0 && r0.ctx) return r0.ctx;
           if (r0 && r0.authoritative) return null;
         }
-        if (consent !== "granted") { promptContextConsent(); return null; }
+        // R4 (P0-10): no modal over the first word card. Undecided → the offline reading; the card
+        // offers «Уточнить в контексте» (one-off or for all words) and Аа holds the switch.
+        if (consent !== "granted") return null;
         var key = String(sentence || "");
         if (!key || !window.ReaderDicta) return null;
         var p = _ctxCache.get(key);

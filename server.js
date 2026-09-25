@@ -1207,7 +1207,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/public-corpus-adapter.js?v=486",
   "/js/reader-morph.js?v=639",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=416",
+  "/js/morph-host.js?v=640",
   "/js/room-b6-core.js?v=485",
   "/db/local-db.js?v=620",
   "/db/migrations.js",
