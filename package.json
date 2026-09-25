@@ -340,7 +340,8 @@
     "smoke:youtube-asr": "node --test tests/youtubeAsr.test.js tests/learningMaterialTask.test.js",
     "smoke:youtube-material": "node scripts/premium/youtube-material-browser-smoke.cjs",
     "smoke:youtube-material:e2e": "node scripts/premium/youtube-material-e2e-smoke.cjs",
-    "smoke:youtube-asr:live": "node scripts/premium/youtube-asr-live-smoke.cjs"
+    "smoke:youtube-asr:live": "node scripts/premium/youtube-asr-live-smoke.cjs",
+    "smoke:sw-update": "node scripts/premium/sw-update-browser-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

@@ -841,8 +841,21 @@ async function onAction(action, node) {
   if (action === 'update-app') {
     if ($('ml-dialog').open || state.busy) return;
     rememberLocation();
-    if (updateWorker) { updateRequested = true; updateWorker.postMessage({type:'SKIP_WAITING'}); }
-    else if (updateRequired && !updateReloading) { updateReloading = true; location.reload(); }
+    // Decide from the registration as it is NOW (smoke:sw-update scenario A): the banner's worker
+    // may have activated on its own since it was shown. Waiting → SKIP_WAITING, re-sent once if
+    // controllerchange does not come; nothing waiting → the new worker already controls the page,
+    // so a reload is what brings its shell.
+    const reg = await navigator.serviceWorker?.getRegistration('/').catch(() => null);
+    if (reg?.waiting) {
+      updateRequested = true;
+      reg.waiting.postMessage({type:'SKIP_WAITING'});
+      setTimeout(async () => {
+        if (updateReloading) return;
+        const again = await navigator.serviceWorker.getRegistration('/').catch(() => null);
+        if (again?.waiting) again.waiting.postMessage({type:'SKIP_WAITING'});
+        else if (!updateReloading) { updateReloading = true; location.reload(); }
+      }, 3500);
+    } else if (!updateReloading) { updateReloading = true; location.reload(); }
     return;
   }
   if (action === 'copy-input') {
@@ -1087,5 +1100,9 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(registration=>{
     const show = () => { if (registration.waiting) { updateWorker = registration.waiting; render(); } };
     show(); registration.addEventListener('updatefound',()=>{ const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed')show();}); });
+    // Like the Studio and the Room: look for a new release now, on tab return and every 30 min.
+    const check = async () => { try { await registration.update(); show(); } catch (_) {} };
+    check(); setInterval(check, 30 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
   }).catch(() => {});
 }
