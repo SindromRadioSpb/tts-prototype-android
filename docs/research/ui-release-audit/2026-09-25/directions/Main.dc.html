@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A · Книжная страница — токены</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&amp;family=Golos+Text:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;font-family:"Golos Text",system-ui,sans-serif;color:#1B2420;background:#F3F4F0}
+a{color:#27487A}a:hover{color:#1B3459}
+</style>
+</helmet>
+<div style="width: 760px; height: 844px; box-sizing: border-box; padding: 40px 44px; display: flex; flex-direction: column; gap: 28px; background: #F3F4F0; color: #1B2420; font-family: 'Golos Text', system-ui, sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-family: 'Frank Ruhl Libre', serif; font-weight: 500; font-size: 40px; line-height: 1.1">Книжная страница</h1>
+    <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #4E5A54; max-width: 620px">Иврит набран как в книге, всё остальное — тихие сноски. Линии вместо карточек, одно чернильно-синее для действий.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 14px; font-weight: 600">Светлая</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #F3F4F0; border: 1px solid #D5D9D3"></div><div style="font-size: 12px">Бумага #F3F4F0</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #FFFFFF; border: 1px solid #D5D9D3"></div><div style="font-size: 12px">Лист #FFFFFF</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #1B2420"></div><div style="font-size: 12px">Чернила #1B2420</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #4E5A54"></div><div style="font-size: 12px">Сноска #4E5A54</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #27487A"></div><div style="font-size: 12px">Перо #27487A</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #E6ECF4"></div><div style="font-size: 12px">Строка #E6ECF4</div></div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 14px; font-weight: 600">Тёмная</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #141816"></div><div style="font-size: 12px">Бумага #141816</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #1C211F"></div><div style="font-size: 12px">Лист #1C211F</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #E7EAE4; border: 1px solid #D5D9D3"></div><div style="font-size: 12px">Чернила #E7EAE4</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #A6AFA9"></div><div style="font-size: 12px">Сноска #A6AFA9</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #9DB8E6"></div><div style="font-size: 12px">Перо #9DB8E6</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 4px; background: #1F2A38"></div><div style="font-size: 12px">Строка #1F2A38</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; border-top: 1px solid #D5D9D3; padding-top: 20px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 14px; font-weight: 600">Гарнитуры</div>
+      <div dir="rtl" lang="he" style="font-family: 'Frank Ruhl Libre', serif; font-size: 28px; line-height: 1.5">שָׁלוֹם לָכֶם, עֶרֶב טוֹב.</div>
+      <div style="font-size: 13px; color: #4E5A54">Frank Ruhl Libre 28/1.5 — иврит с огласовкой (уже в таблицах Зала)</div>
+      <div style="font-size: 17px; line-height: 1.5">Здравствуйте, добрый вечер.</div>
+      <div style="font-size: 13px; color: #4E5A54">Golos Text 17/1.5 — перевод и интерфейс, кириллица родная</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 14px; font-weight: 600">Шкала</div>
+      <div style="font-size: 13px; line-height: 1.7; color: #4E5A54">Текст 13 · 15 · 17 · 20 · 28 · 40<br>Иврит в строке 26–28, в карточке слова 40<br>Отступы 4 · 8 · 12 · 16 · 24 · 32 · 48<br>Касание ≥ 44, скругление 4 (кнопки), 12 (листы)</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; border-top: 1px solid #D5D9D3; padding-top: 20px">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 14px; font-weight: 600">Кнопки</div>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+        <button type="button" style="height: 44px; padding: 0 18px; border: 0; border-radius: 4px; background: #27487A; color: #FFFFFF; font: 500 15px 'Golos Text', sans-serif">Добавить в мои слова</button>
+        <button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #27487A; border-radius: 4px; background: transparent; color: #27487A; font: 500 15px 'Golos Text', sans-serif">Подробнее</button>
+      </div>
+      <div style="display: flex; gap: 4px">
+        <button type="button" aria-label="Озвучить" style="width: 44px; height: 44px; border: 0; background: transparent; color: #1B2420; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"></path><path d="M16 9a5 5 0 0 1 0 6"></path></svg></button>
+        <button type="button" aria-label="Поиск" style="width: 44px; height: 44px; border: 0; background: transparent; color: #1B2420; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button>
+        <button type="button" aria-label="Закладка" style="width: 44px; height: 44px; border: 0; background: transparent; color: #1B2420; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+        <button type="button" aria-label="Фрагмент видео" style="width: 44px; height: 44px; border: 0; background: transparent; color: #1B2420; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 4v16l13-8z"></path></svg></button>
+      </div>
+      <div style="font-size: 13px; color: #4E5A54">Иконки: линейные 1.6, 22px в зоне 44. Динамик — озвучка, треугольник — видео.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 14px; font-weight: 600">Статус слова — подчёркивание в тексте</div>
+      <div dir="rtl" lang="he" style="font-family: 'Frank Ruhl Libre', serif; font-size: 26px; line-height: 1.8; display: flex; gap: 14px; justify-content: flex-start">
+        <span style="border-bottom: 3px solid #6D4BC7">חָדָשׁ</span>
+        <span style="border-bottom: 3px solid #B26B00">לוֹמֵד</span>
+        <span style="border-bottom: 3px dotted #7C8782">רָאִיתִי</span>
+        <span>יוֹדֵעַ</span>
+      </div>
+      <div style="display: flex; gap: 16px; font-size: 13px; color: #4E5A54; flex-wrap: wrap">
+        <span>Фиолетовая — новое</span><span>Янтарная — учу</span><span>Пунктир — не оценено</span><span>Без линии — знаю</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>B · Лексикон — токены</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Sans+Hebrew:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;font-family:"IBM Plex Sans",system-ui,sans-serif;color:#15202E;background:#F1F3F6}
+a{color:#1B4FB8}a:hover{color:#123A8A}
+</style>
+</helmet>
+<div style="width: 760px; height: 844px; box-sizing: border-box; padding: 40px 44px; display: flex; flex-direction: column; gap: 28px; background: #F1F3F6; color: #15202E; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <h1 style="margin: 0; font-weight: 600; font-size: 36px; line-height: 1.1; letter-spacing: -0.01em">Лексикон</h1>
+    <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #4A5566; max-width: 620px">Точный инструмент для учёбы: одна гарнитура для иврита, кириллицы и латиницы, строки пронумерованы и привязаны ко времени видео. Акцент — тхелет, синий из традиции.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 14px; font-weight: 600">Светлая</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #F1F3F6; border: 1px solid #D9DEE6"></div><div style="font-size: 12px">Фон #F1F3F6</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #FFFFFF; border: 1px solid #D9DEE6"></div><div style="font-size: 12px">Поверхность #FFFFFF</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #15202E"></div><div style="font-size: 12px">Текст #15202E</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #4A5566"></div><div style="font-size: 12px">Вторичный #4A5566</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #1B4FB8"></div><div style="font-size: 12px">Тхелет #1B4FB8</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #E3EBFA"></div><div style="font-size: 12px">Активная #E3EBFA</div></div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 14px; font-weight: 600">Тёмная</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #0E131B"></div><div style="font-size: 12px">Фон #0E131B</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #161D28"></div><div style="font-size: 12px">Поверхность #161D28</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #E6EBF2; border: 1px solid #D9DEE6"></div><div style="font-size: 12px">Текст #E6EBF2</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #9AA6B8"></div><div style="font-size: 12px">Вторичный #9AA6B8</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #7FA6F5"></div><div style="font-size: 12px">Тхелет #7FA6F5</div></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><div style="height: 44px; border-radius: 6px; background: #1A2740"></div><div style="font-size: 12px">Активная #1A2740</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; border-top: 1px solid #D9DEE6; padding-top: 20px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 14px; font-weight: 600">Гарнитуры</div>
+      <div dir="rtl" lang="he" style="font-family: 'IBM Plex Sans Hebrew', sans-serif; font-size: 26px; line-height: 1.5">שָׁלוֹם לָכֶם, עֶרֶב טוֹב.</div>
+      <div style="font-size: 13px; color: #4A5566">IBM Plex Sans Hebrew 24–26/1.5 — иврит</div>
+      <div style="font-size: 16px; line-height: 1.5">Здравствуйте, добрый вечер.</div>
+      <div style="font-size: 13px; color: #4A5566">IBM Plex Sans 16/1.5 — перевод и интерфейс; цифры табличные</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 14px; font-weight: 600">Шкала</div>
+      <div style="font-size: 13px; line-height: 1.7; color: #4A5566">Текст 12 · 14 · 16 · 18 · 24 · 36<br>Иврит в строке 24, в карточке слова 36<br>Отступы 4 · 8 · 12 · 16 · 24 · 32<br>Касание ≥ 44, скругление 6 везде</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; border-top: 1px solid #D9DEE6; padding-top: 20px">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 14px; font-weight: 600">Кнопки</div>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+        <button type="button" style="height: 44px; padding: 0 16px; border: 0; border-radius: 6px; background: #1B4FB8; color: #FFFFFF; font: 500 15px 'IBM Plex Sans', sans-serif">Добавить в мои слова</button>
+        <button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #C3CCDA; border-radius: 6px; background: #FFFFFF; color: #15202E; font: 500 15px 'IBM Plex Sans', sans-serif">Подробнее</button>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button type="button" aria-label="Озвучить" style="width: 44px; height: 44px; border: 1px solid #D9DEE6; border-radius: 6px; background: #FFFFFF; color: #15202E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"></path><path d="M16 9a5 5 0 0 1 0 6"></path></svg></button>
+        <button type="button" aria-label="Поиск" style="width: 44px; height: 44px; border: 1px solid #D9DEE6; border-radius: 6px; background: #FFFFFF; color: #15202E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button>
+        <button type="button" aria-label="Ещё" style="width: 44px; height: 44px; border: 1px solid #D9DEE6; border-radius: 6px; background: #FFFFFF; color: #15202E; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></button>
+      </div>
+      <div style="font-size: 13px; color: #4A5566">Иконки: линейные 1.8, 20px в рамке 44 × 44.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 14px; font-weight: 600">Статус слова — метка</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <span style="height: 32px; padding: 0 12px; border-radius: 6px; background: #EDE7FB; color: #4B2FA0; font-size: 14px; font-weight: 500; display: flex; align-items: center">Новое</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 6px; background: #FDF0DA; color: #7A4A00; font-size: 14px; font-weight: 500; display: flex; align-items: center">Учу</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 6px; background: #E1F2EC; color: #1F6048; font-size: 14px; font-weight: 500; display: flex; align-items: center">Знаю</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 6px; border: 1px dashed #9AA6B8; color: #4A5566; font-size: 14px; display: flex; align-items: center">Не оценено</span>
+      </div>
+      <div style="font-size: 13px; color: #4A5566">Четыре состояния словами вместо «1–4»; тёмный текст на светлой заливке, контраст ≥ 7:1.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

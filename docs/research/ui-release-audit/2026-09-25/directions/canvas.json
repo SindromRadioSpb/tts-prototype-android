@@ -1,0 +1,25 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-09-25T13:40:00Z" },
+  "title": "LinguistPro — дизайн-направления",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 760, "h": 844, "title": "A · Книжная страница — токены" },
+    "PhoneA.dc.html": { "x": 840, "y": 0, "w": 380, "h": 844, "title": "A · учебный режим, светлая" },
+    "PhoneADark.dc.html": { "x": 1300, "y": 0, "w": 380, "h": 844, "title": "A · учебный режим, тёмная" },
+    "TokensB.dc.html": { "x": 0, "y": 1300, "w": 760, "h": 844, "title": "B · Лексикон — токены" },
+    "PhoneB.dc.html": { "x": 840, "y": 1300, "w": 380, "h": 844, "title": "B · учебный режим, светлая" },
+    "PhoneBDark.dc.html": { "x": 1300, "y": 1300, "w": 380, "h": 844, "title": "B · учебный режим, тёмная" },
+    "TokensC.dc.html": { "x": 0, "y": 2600, "w": 760, "h": 844, "title": "C · Дружелюбный наставник — токены" },
+    "PhoneC.dc.html": { "x": 840, "y": 2600, "w": 380, "h": 844, "title": "C · учебный режим, светлая" },
+    "PhoneCDark.dc.html": { "x": 1300, "y": 2600, "w": 380, "h": 844, "title": "C · учебный режим, тёмная" }
+  },
+  "order": ["Main.dc.html", "PhoneA.dc.html", "PhoneADark.dc.html", "TokensB.dc.html", "PhoneB.dc.html", "PhoneBDark.dc.html", "TokensC.dc.html", "PhoneC.dc.html", "PhoneCDark.dc.html"],
+  "notes": {
+    "tA": { "x": 0, "y": -260, "text": "A · Книжная страница: иврит как в книге, интерфейс отступает", "kind": "title1", "maxW": 1680 },
+    "tB": { "x": 0, "y": 1040, "text": "B · Лексикон: точный инструмент, пронумерованные строки", "kind": "title1", "maxW": 1680 },
+    "tC": { "x": 0, "y": 2340, "text": "C · Дружелюбный наставник: крупно, мягко, одна гарнитура", "kind": "title1", "maxW": 1680 }
+  },
+  "designSystems": []
+}

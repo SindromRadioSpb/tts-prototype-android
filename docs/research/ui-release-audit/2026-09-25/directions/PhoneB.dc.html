@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>B · учебный режим с видео</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Sans+Hebrew:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;font-family:"IBM Plex Sans",system-ui,sans-serif}
+a{color:#1B4FB8}a:hover{color:#123A8A}
+</style>
+</helmet>
+<div style="width: 380px; height: 844px; overflow: hidden; display: flex; flex-direction: column; background: {{c.bg}}; color: {{c.ink}}; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+  <header style="height: 56px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: {{c.surface}}; border-bottom: 1px solid {{c.line}}">
+    <a href="#" aria-label="Назад в Медиатеку" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: {{c.ink}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></a>
+    <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+      <div style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Двадцать девять солдат из 51-го батальона</div>
+      <div style="font-size: 12px; color: {{c.ink2}}; font-variant-numeric: tabular-nums">Строка 2 из 353</div>
+    </div>
+    <button type="button" aria-label="Читать вслух" style="width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"></path><path d="M16 9a5 5 0 0 1 0 6"></path></svg></button>
+    <button type="button" aria-label="Поиск по тексту" style="width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: {{c.ink}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button>
+    <button type="button" aria-label="Настройки чтения" style="width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: {{c.ink}}; font: 600 16px 'IBM Plex Sans', sans-serif">Аа</button>
+  </header>
+
+  <div style="height: 214px; flex-shrink: 0; background: #0B0F16; position: relative; display: flex; align-items: center; justify-content: center">
+    <div style="position: absolute; left: 12px; top: 10px; font-size: 12px; color: #B8C2D3">Видео · YouTube</div>
+    <button type="button" aria-label="Пауза" style="width: 52px; height: 52px; border-radius: 6px; border: 0; background: rgba(255,255,255,0.14); color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg></button>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,0.18)"><div style="height: 4px; width: 6%; background: {{c.accentOnDark}}"></div></div>
+  </div>
+
+  <div style="flex-grow: 1; overflow: hidden; display: flex; flex-direction: column">
+    <div style="display: grid; grid-template-columns: 52px minmax(0, 1fr); border-bottom: 1px solid {{c.line}}; background: {{c.surface}}">
+      <button type="button" aria-label="Фрагмент видео 0:02, строка 1" style="min-height: 44px; border: 0; background: transparent; color: {{c.ink2}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 16px 0 0 0; font: 500 13px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"><span>01</span><span style="font-size: 11px; font-weight: 400">0:02</span></button>
+      <div style="padding: 14px 16px 14px 4px; display: flex; flex-direction: column; gap: 4px">
+        <div dir="rtl" lang="he" style="font-family: 'IBM Plex Sans Hebrew', sans-serif; font-size: 24px; line-height: 1.5">שָׁלוֹם לָכֶם, עֶרֶב טוֹב.</div>
+        <div style="font-size: 13px; color: {{c.ink2}}">Shalom lakhem, erev tov.</div>
+        <div style="font-size: 16px; line-height: 1.45">Здравствуйте, добрый вечер.</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 52px minmax(0, 1fr); border-bottom: 1px solid {{c.line}}; background: {{c.active}}">
+      <button type="button" aria-label="Фрагмент видео 0:07, строка 2, сейчас играет" style="min-height: 44px; border: 0; background: transparent; color: {{c.accent}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 16px 0 0 0; font: 600 13px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"><span>02</span><span style="font-size: 11px; font-weight: 500">0:07</span></button>
+      <div style="padding: 14px 16px 14px 4px; display: flex; flex-direction: column; gap: 4px">
+        <div dir="rtl" lang="he" style="font-family: 'IBM Plex Sans Hebrew', sans-serif; font-size: 24px; line-height: 1.6">שָׁלוֹם רוֹנִי. שָׁלוֹם עָמְרִי. מַה <span style="background: {{c.sNewBg}}; border-radius: 4px; padding: 0 3px">שְּׁלוֹמְךָ</span>? אֲנִי <span style="background: {{c.sLearnBg}}; border-radius: 4px; padding: 0 3px">בְּסֵדֶר</span>,</div>
+        <div style="font-size: 13px; color: {{c.ink2}}">Shalom Roni. Shalom Omri. Mah shlomkha? Ani beseder,</div>
+        <div style="font-size: 16px; line-height: 1.45">Привет, Рони. Привет, Омри. Как дела? Я в порядке,</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 52px minmax(0, 1fr); border-bottom: 1px solid {{c.line}}; background: {{c.surface}}">
+      <button type="button" aria-label="Фрагмент видео 0:12, строка 3" style="min-height: 44px; border: 0; background: transparent; color: {{c.ink2}}; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 16px 0 0 0; font: 500 13px 'IBM Plex Sans', sans-serif; font-variant-numeric: tabular-nums"><span>03</span><span style="font-size: 11px; font-weight: 400">0:12</span></button>
+      <div style="padding: 14px 16px 14px 4px; display: flex; flex-direction: column; gap: 4px">
+        <div dir="rtl" lang="he" style="font-family: 'IBM Plex Sans Hebrew', sans-serif; font-size: 24px; line-height: 1.5">הַיּוֹם אֲנִי לוֹמֵד עִבְרִית בַּבַּיִת.</div>
+        <div style="font-size: 13px; color: {{c.ink2}}">Hayom ani lomed ivrit babayit.</div>
+        <div style="font-size: 16px; line-height: 1.45">Сегодня я учу иврит дома.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":380,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const light = { bg: '#F1F3F6', surface: '#FFFFFF', ink: '#15202E', ink2: '#4A5566', line: '#D9DEE6', accent: '#1B4FB8', accentOnDark: '#7FA6F5', active: '#E3EBFA', sNewBg: '#E4DAFA', sLearnBg: '#FBE6BF' };
+    const dark = { bg: '#0E131B', surface: '#161D28', ink: '#E6EBF2', ink2: '#9AA6B8', line: '#263042', accent: '#7FA6F5', accentOnDark: '#7FA6F5', active: '#1A2740', sNewBg: '#3A2D63', sLearnBg: '#4A3712' };
+    return { c: this.props.dark ? dark : light };
+  }
+}
+</script>
+</body>
+</html>
