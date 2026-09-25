@@ -1351,6 +1351,16 @@
     #roomMediaBar[hidden] { display: none; }
     #roomMediaBar button { width: auto; }
     .room-media-note { font-size: 12px; color: var(--text-secondary); }
+    /* Исправная синхронизация молчит: пустая подпись не занимает строку над видео. */
+    .room-media-note:empty { display: none; }
+    /* «Аа» → Видео: источник и синхронизация (перенесено с учебного экрана 2026-09-25). */
+    .reader-playback-block { flex-basis: 100%; }
+    .reader-playback-head { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .reader-playback-settings .playback-source-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px 0; }
+    .reader-playback-settings button { width: auto; }
+    .reader-aids-about { flex-basis: 100%; }
+    .reader-aids-about .room-copyright-notice { margin-top: 0; }
+    .reader-copyright:empty { display: none; }
     .room-media-studio-link { font-size: 12px; }
     .room-media-local-stage { flex: 1 0 100%; border: 1px solid var(--border-soft); border-radius: 12px; padding: 8px; background: var(--bg-muted); }
     .room-media-local-stage[hidden] { display: none; }
@@ -3182,7 +3192,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.634</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.635</button>
   </div>
 </footer>
 
@@ -3370,9 +3380,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=252"></script>
-    <script src="/i18n/locales/en.js?v=252"></script>
-    <script src="/i18n/locales/he.js?v=252"></script>
+    <script src="/i18n/locales/ru.js?v=253"></script>
+    <script src="/i18n/locales/en.js?v=253"></script>
+    <script src="/i18n/locales/he.js?v=253"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3458,7 +3468,7 @@
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
-<script src="/js/study-video-source-ui.js?v=620"></script>
+<script src="/js/study-video-source-ui.js?v=635"></script>
 <script src="/js/portable-learning-package-core.js"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
@@ -3482,6 +3492,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=620"></script>
+<script type="module" src="/js/library-ui.js?v=635"></script>
 </body>
 </html>

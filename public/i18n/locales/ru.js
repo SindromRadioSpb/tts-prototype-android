@@ -2816,6 +2816,7 @@ window.I18N_LOCALES.ru = {
     // Room media player (spec 2026-08-04); остальные строки бара — общие studio.media.*
     media: {
       openInStudio: "Открыть в Студии ↗",
+      sourceSection: "Видео: источник и синхронизация",
     },
     nakdan: {
       add: "Добавить никуд",

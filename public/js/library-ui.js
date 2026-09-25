@@ -5901,12 +5901,28 @@ function roomMediaTeardown() {
   roomMediaAudio = null;
   if (roomMediaResolver) { try { roomMediaResolver.clear(); } catch (_) {} }
   for (const id of ['roomMediaBar', 'roomMediaYtMount', 'roomMediaStudioLink']) { const n = $(id); if (n) n.hidden = true; }
+  roomPlaybackSettings.replaceChildren(); roomAidsRefreshIfOpen();
   try { roomMediaApplyLayout(); } catch (_) {}   // выключить скролл-окно таблицы (медиа скрыто)
+}
+// Выбор источника видео и ремонт синхронизации — настройка, а не учебный контент: живут в
+// «Аа» (решение владельца 2026-09-25). Узел переживает пересборку панели (innerHTML = '').
+const roomPlaybackSettings = document.createElement('div');
+roomPlaybackSettings.className = 'reader-playback-settings';
+function roomAidsRefreshIfOpen() { try { const p = $('readerAids'); if (p && !p.hidden) buildAidsPanel(); } catch (_) {} }
+// «Видео и строки» — привязка YouTube к СВОЕМУ медиа-материалу. Опубликованный корпус и
+// тексты без медиа-паспорта и без записанного источника эту кнопку не получают.
+function roomStudyVideoEligible(textRow) {
+  if (!window.PlaybackSource || !textRow) return false;
+  const meta = PlaybackSource.parseMeta(textRow.source_meta_json || textRow.sourceMetaJson || textRow.source_meta);
+  if (PlaybackSource.isPublished(meta)) return false;
+  if (meta && meta.playback_source) return true;
+  try { return !!(window.MediaHost && window.MediaHost.passportFromTextRow(textRow)); } catch (_) { return false; }
 }
 async function roomMediaSetup(textRow, textId) {
   roomMediaTeardown();
   const studyButton = $('readerStudyVideo');
-  if (studyButton && window.StudyVideoSourceUI) {
+  if (studyButton) studyButton.hidden = true;
+  if (studyButton && window.StudyVideoSourceUI && roomStudyVideoEligible(textRow)) {
     studyButton.hidden = false; studyButton.textContent = StudyVideoSourceUI.label('open');
     $('readerStudyVideoStatus').textContent = '';
     studyButton.onclick = async () => {
@@ -5940,10 +5956,11 @@ async function roomMediaSetup(textRow, textId) {
   roomMediaRefresh();
   const playbackRecord=PlaybackSource.fromText(textRow,roomMediaBaseAudio);
   if(window.StudyVideoSourceUI)StudyVideoSourceUI.playerActions(bar,{
-    id:textId,audio,local:roomMediaBaseAudio && roomMediaBaseAudio.media,
+    id:textId,audio,local:roomMediaBaseAudio && roomMediaBaseAudio.media,host:roomPlaybackSettings,
     onLocal:()=>{StudyVideoSourceUI.selectSource(textId,'local');roomMediaSetup(textRow,textId);},
     onYoutube:playbackRecord && PlaybackSource.selected(playbackRecord).source?()=>{StudyVideoSourceUI.selectSource(textId,'youtube');roomMediaSetup(textRow,textId);}:null
   });
+  roomAidsRefreshIfOpen();
 }
 let roomMediaBaseAudio=null;
 window.addEventListener('playback-source-changed',async e=>{
@@ -6318,7 +6335,8 @@ function restoreReaderPosition(textId, opts, loaded) {
 // (localDb.setTextFinished) so the «Продолжить чтение» shelf drops it. POST-render Room DOM (mounted
 // after the parity-locked table) — this card is also the mount point the Epic-5 W2 handoff extends.
 let _endCardFor = null;   // textId the end card is shown for this open (idempotent per open)
-function removeEndCard() { const c = $('readerEndCard'); if (c && c.remove) c.remove(); }
+let _endCardEl = null;
+function removeEndCard() { const c = $('readerEndCard'); if (c && c.remove) c.remove(); _endCardEl = null; }
 function resetEndCard() { removeEndCard(); _endCardFor = null; }
 // True once the reader has reached the end of the text. TWO honest signals: (a) the furthest tracked
 // row is the last row (karaoke auto-scroll / resume-to-end set _sessionFurthestRow to it), or (b) the last
@@ -6349,7 +6367,7 @@ async function renderEndOfTextCard(tid) {
   try { const p = await localDb.getProgress(tid); finished = !!(p && p.finished_at); } catch (_) {}
   if (readerTextId !== tid) return;   // navigated away while awaiting
   removeEndCard();
-  const card = el('div', { class: 'reader-end' }); card.id = 'readerEndCard';
+  const card = el('div', { class: 'reader-end' }); card.id = 'readerEndCard'; _endCardEl = card;
   card.appendChild(el('div', { class: 'reader-end-head', i18n: 'room.resume.endOfText', text: tt('room.resume.endOfText', '— конец текста —') }));
   const actions = el('div', { class: 'reader-end-actions' });
   if (finished) {
@@ -6387,8 +6405,12 @@ async function renderEndOfTextCard(tid) {
   home.addEventListener('click', async () => { home.disabled = true; await closeReader({ returnHome: true }); });
   paths.appendChild(home);
   card.appendChild(paths);
-  const provNote = $('readerProvNote');
-  if (provNote && provNote.parentNode === reader) reader.insertBefore(card, provNote);
+  // Карточка — хвост прокрутки таблицы (перед дисклеймером внутри #roomReaderTable). Соседом
+  // таблицы во flex-колонке учебного режима она отнимала у неё высоту и закрывала последние
+  // строки до конца воспроизведения (владелец 2026-09-25).
+  const provNote = $('readerProvNote'), wrap = $('roomReaderTable');
+  if (provNote && wrap && provNote.parentNode === wrap) wrap.insertBefore(card, provNote);
+  else if (wrap) wrap.appendChild(card);
   else reader.appendChild(card);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   // B7: append the relative recorded-familiarity fan async (reuses the home-rail engine;
@@ -7853,6 +7875,9 @@ function roomPlaceProvNote() {
     });
   }
   if (note.parentElement !== wrap || note.nextElementSibling) wrap.appendChild(note);
+  // Карточка «конец текста» тоже живёт в mount: пересборка таблицы её уносит — вернуть.
+  const endCard = _endCardEl;
+  if (endCard && _endCardFor === readerTextId && !endCard.isConnected) wrap.insertBefore(endCard, note);
 }
 
 let roomColResize = null;
@@ -7927,6 +7952,12 @@ function buildAidsPanel() {
   studyBlock.appendChild(wRow);
   studyBlock.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.study.widthsHint', text: tt('room.study.widthsHint', 'Тяните ‖ между заголовками; двойной тап — сброс пары') }));
   panel.appendChild(studyBlock);
+  if (roomPlaybackSettings.childElementCount) {
+    const videoBlock = el('div', { class: 'reader-study-block reader-playback-block' });
+    videoBlock.appendChild(el('div', { class: 'reader-playback-head', i18n: 'room.media.sourceSection', text: tt('room.media.sourceSection', 'Видео: источник и синхронизация') }));
+    videoBlock.appendChild(roomPlaybackSettings);
+    panel.appendChild(videoBlock);
+  }
   // labeled <select> helper — opts = [[value, i18nKey, fallback]]; onChange(value). Mode changes
   // persist (saveReaderCfg) and rerender the table (column visibility + fresh fade/reveal).
   const addSelect = (labelKey, labelFallback, opts, current, onChange) => {
@@ -8018,6 +8049,11 @@ function buildAidsPanel() {
   cmLab.appendChild(el('span', { i18n: 'room.morph.contextToggle', text: tt('room.morph.contextToggle', '🎯 Точный режим (Dicta)') }));
   panel.appendChild(cmLab);
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.contextHint', text: tt('room.morph.contextHint', 'Отправляет предложение в Dicta для точного значения в контексте. Машинный разбор, не носитель.') }));
+  if (roomCopyrightOptions) {
+    const about = el('div', { class: 'reader-aids-about' });
+    about.appendChild(roomCopyrightNotice({ localPrivate: !!roomCopyrightOptions.localPrivate }));
+    panel.appendChild(about);
+  }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -12104,11 +12140,14 @@ function roomCopyrightNotice(options) {
   details.appendChild(panel);
   return details;
 }
+// «Об этом материале» — справка, не учебный контент: живёт в конце панели «Аа», а не под
+// таблицей (решение владельца 2026-09-25). #readerCopyright остаётся пустым якорем.
+let roomCopyrightOptions = null;
 function roomRenderReaderCopyright(options) {
   const host = $('readerCopyright');
-  if (!host) return;
-  host.replaceChildren();
-  if (options) host.appendChild(roomCopyrightNotice({ localPrivate: !!options.localPrivate }));
+  if (host) host.replaceChildren();
+  roomCopyrightOptions = options || null;
+  roomAidsRefreshIfOpen();
 }
 function corpusShellHeader(corpus, options) {
   const opts = options || {};

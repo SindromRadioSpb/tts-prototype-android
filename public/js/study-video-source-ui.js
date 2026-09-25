@@ -31,7 +31,8 @@
     en:'YouTube · recognition timestamps failed validation. Video and table are saved; row replay is disabled. Verified timestamps are needed. Changing the link or offset cannot restore missing timestamps.',
     he:'YouTube · חותמות הזמן של התמלול לא עברו בדיקה. הסרטון והטבלה נשמרו; הפעלת שורות מושבתת. נדרשות חותמות זמן בדוקות. שינוי הקישור או ההיסט לא ישחזר זמנים חסרים.'
   };
-  function playbackNote(audio){const t=playerText[locale()];if(audio.playbackReason==='ASR_CLOCK_UNVERIFIED')return clockNotes[locale()];return audio.playbackReason?(audio.playbackReason==='PLAYBACK_TIMING_CHANGED'?t.changed:t.pending):t.ready;}
+  // Working synchronization is silent on the study screen; only a problem earns a line.
+  function playbackNote(audio){const t=playerText[locale()];if(audio.playbackReason==='ASR_CLOCK_UNVERIFIED')return clockNotes[locale()];return audio.playbackReason?(audio.playbackReason==='PLAYBACK_TIMING_CHANGED'?t.changed:t.pending):'';}
   const subtitleTimingNotes={
     ru:{unverified:'Тайминг из субтитров; по звуку не проверен.',aligned:'Тайминг проверен по активности речи в контрольных участках.',corrected:'Автоматически применён проверенный общий сдвиг.',needs_review:'Есть признаки сдвига или дрейфа. Исходные интервалы сохранены.',manual_changes:'Есть ручные поправки. Остальные интервалы отдельно не проверялись.'},
     en:{unverified:'Subtitle timing has not been checked against the audio.',aligned:'Timing checked against speech activity in sampled sections.',corrected:'A verified global offset was applied automatically.',needs_review:'Possible offset or drift detected. Original intervals retained.',manual_changes:'Manual timing edits exist. Other intervals have not been checked separately.'},
@@ -56,7 +57,9 @@
     if(result && !result.ok && result.reason!=='YT_SEEK_CANCELLED')playerError(node,{ytCode:result.reason});
   }
   function playerActions(bar,options){
-    if(!bar)return;let actions=bar.querySelector('.playback-source-actions');if(actions)actions.remove();
+    if(!bar)return;
+    // options.host moves the source controls off the study screen (the Room keeps them in «Аа»).
+    const host=options.host || bar;let actions=host.querySelector('.playback-source-actions');if(actions)actions.remove();
     if(!options.id)return;
     actions=document.createElement('div');actions.className='study-source-actions playback-source-actions';
     function button(parent,caption,fn,key,pressed){const b=document.createElement('button');b.type='button';b.textContent=caption;b.className='btn-secondary';b.dataset.playbackLabel=key;if(pressed!=null){b.dataset.playbackSource=key;b.setAttribute('aria-pressed',String(pressed));}if(fn)b.onclick=fn;parent.append(b);return b;}
@@ -67,8 +70,8 @@
     if(hasYoutube)button(switcher,playerText[locale()].youtube,options.onYoutube,'youtube',youtubeSelected);
     if(switcher.childElementCount){
       actions.append(switcher);
-      const media=bar.querySelector('[id$="MediaLocalStage"],[id$="MediaYtMount"]');
-      bar.insertBefore(actions,media || null);
+      const media=options.host?null:bar.querySelector('[id$="MediaLocalStage"],[id$="MediaYtMount"]');
+      host.insertBefore(actions,media || null);
     }
     const note=bar.querySelector('[id$="BarNote"]');
     if(note){delete note.dataset.youtubeError;if(options.audio && options.audio.playbackKind==='youtube')note.dataset.playbackReason=options.audio.playbackReason || '';else delete note.dataset.playbackReason;}
@@ -79,7 +82,7 @@
     if(options.local&&!youtubeSelected&&window.StudyTimingRepair){
       button(actions,{ru:'Восстановить синхронизацию',en:'Restore synchronization',he:'שחזור סנכרון'}[locale()],()=>StudyTimingRepair.open(options.id),'repairTiming');
     }
-    if(options.local&&!youtubeSelected)showSubtitleTiming(bar,actions,options.id);
+    if(options.local&&!youtubeSelected)showSubtitleTiming(host,actions,options.id);
   }
   function compatibleShell(){
     const url=new URL(location.href);url.pathname=url.pathname.includes('library')?'/study-library.html':'/study-studio.html';

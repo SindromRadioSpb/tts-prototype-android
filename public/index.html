@@ -3413,6 +3413,13 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   }
 }
 #tableEditToolbar.visible { display: flex; }
+/* Телефон, учёба (не правка): панель не закреплена — уезжает при прокрутке и отдаёт
+   экран видео и таблице (владелец 2026-09-25). Вход в правку — FAB ✎; в режиме правки
+   панель снова закреплена сверху (правило выше, ради клавиатуры iOS). */
+@media (max-width: 768px) {
+  body:not(.edit-mode-active) #tableEditToolbar.visible { position: static; }
+}
+.v3-media-note:empty { display: none; }
 
 .tbl-edit-toggle-btn {
   padding: 5px 14px;
@@ -13441,9 +13448,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=252"></script>
-<script src="/i18n/locales/en.js?v=252"></script>
-<script src="/i18n/locales/he.js?v=252"></script>
+<script src="/i18n/locales/ru.js?v=253"></script>
+<script src="/i18n/locales/en.js?v=253"></script>
+<script src="/i18n/locales/he.js?v=253"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13574,7 +13581,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
-<script src="/js/study-video-source-ui.js?v=620"></script>
+<script src="/js/study-video-source-ui.js?v=635"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=633"></script>
@@ -13668,7 +13675,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.634";
+    window.APP_VERSION = "3.11.635";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

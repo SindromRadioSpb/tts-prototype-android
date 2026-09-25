@@ -2812,6 +2812,7 @@ window.I18N_LOCALES.he = {
     // Room media player (spec 2026-08-04)
     media: {
       openInStudio: "פתיחה בסטודיו ↗",
+      sourceSection: "וידאו: מקור וסנכרון",
     },
     nakdan: {
       add: "הוספת ניקוד",

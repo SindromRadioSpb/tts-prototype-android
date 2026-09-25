@@ -2802,6 +2802,7 @@ window.I18N_LOCALES.en = {
     // Room media player (spec 2026-08-04); other bar strings reuse studio.media.*
     media: {
       openInStudio: "Open in Studio ↗",
+      sourceSection: "Video: source and synchronization",
     },
     nakdan: {
       add: "Add niqqud",
