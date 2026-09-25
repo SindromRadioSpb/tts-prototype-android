@@ -57,10 +57,7 @@ a{color:#1B4FB8}a:hover{color:#123A8A}
         </div>
         <sc-for list="{{row.cells}}" as="cell" hint-placeholder-count="2">
           <div style="{{cell.style}}">
-            <sc-if value="{{cell.media}}" hint-placeholder-val="{{false}}">
-              <button type="button" aria-label="{{row.mediaLabel}}" style="{{row.mediaStyle}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"></path></svg><span>{{row.t}}</span></button>
-            </sc-if>
-            <div dir="{{cell.dir}}" lang="{{cell.lang}}" style="{{cell.textStyle}}"><sc-for list="{{cell.parts}}" as="pt" hint-placeholder-count="1"><span style="{{pt.style}}">{{pt.t}}</span></sc-for></div>
+            <div dir="{{cell.dir}}" lang="{{cell.lang}}" style="{{cell.textStyle}}"><sc-for list="{{cell.parts}}" as="pt" hint-placeholder-count="1"><span style="{{pt.style}}">{{pt.t}}</span></sc-for><sc-if value="{{cell.media}}" hint-placeholder-val="{{false}}">&#160;<button type="button" aria-label="{{row.mediaLabel}}" style="{{row.mediaStyle}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"></path></svg></button></sc-if></div>
           </div>
         </sc-for>
       </div>
@@ -160,10 +157,10 @@ class Component extends DCLogic {
         const isHe = k === 'he' || k === 'nq';
         const parts = k === 'tl' ? [P(r.tl)] : k === 'ru' ? [P(r.ru)] : (r[k] || r.he);
         const textStyle = isHe
-          ? "font-family: 'Frank Ruhl Libre', serif; font-size: " + heSize + 'px; line-height: 1.55; text-align: right; overflow-wrap: break-word'
+          ? "font-family: 'Frank Ruhl Libre', serif; font-size: " + heSize + 'px; line-height: 1.55; text-align: right; overflow-wrap: normal; word-break: normal; hyphens: none'
           : k === 'tl'
-            ? 'font-size: ' + (three ? 13 : 14) + 'px; line-height: 1.45; color: ' + c.ink2 + '; overflow-wrap: break-word'
-            : 'font-size: ' + (three ? 15 : 16) + 'px; line-height: 1.45; overflow-wrap: break-word';
+            ? 'font-size: ' + (three ? 13 : 14) + 'px; line-height: 1.45; color: ' + c.ink2 + '; overflow-wrap: normal; word-break: normal; hyphens: none'
+            : 'font-size: ' + (three ? 15 : 16) + 'px; line-height: 1.45; overflow-wrap: normal; word-break: normal; hyphens: none';
         return { style: cellBase, textStyle, parts, media: k === last, dir: isHe ? 'rtl' : 'ltr', lang: isHe ? 'he' : k === 'ru' ? 'ru' : 'he-Latn' };
       });
       return {
@@ -173,8 +170,8 @@ class Component extends DCLogic {
         numStyle: 'font-size: 13px; font-weight: ' + (r.active ? 600 : 500) + '; color: ' + (r.active ? c.accent : c.ink2) + '; font-variant-numeric: tabular-nums; line-height: 20px',
         ttsLabel: r.tts ? 'Озвучить строку ' + r.n + ' (TTS, озвучка сохранена)' : 'Озвучить строку ' + r.n + ' (TTS, будет синтезирована)',
         dotStyle: 'position: absolute; top: 9px; right: 8px; width: 7px; height: 7px; border-radius: 4px; box-sizing: border-box; ' + (r.tts ? 'background: ' + c.accent : 'border: 1.5px solid ' + c.ink2),
-        mediaLabel: 'Фрагмент видео строки ' + r.n + ', ' + r.t + (r.active ? ', сейчас играет' : ''),
-        mediaStyle: 'float: right; margin: -8px -6px 2px 6px; height: 44px; min-width: 44px; padding: 0 8px; border: 0; border-radius: 6px; display: flex; align-items: center; gap: 4px; background: ' + (r.active ? c.accentSoft : 'transparent') + '; color: ' + c.accent + "; font: 500 12px 'Golos Text', sans-serif; font-variant-numeric: tabular-nums"
+        mediaLabel: 'Звук из видео, строка ' + r.n + (r.active ? ', сейчас играет' : ''),
+        mediaStyle: 'display: inline-flex; vertical-align: middle; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -12px -12px -12px -14px; padding: 0; border: 0; border-radius: 22px; background: transparent; color: ' + c.accent + '; box-shadow: ' + (r.active ? 'inset 0 0 0 14px ' + c.accentSoft : 'none')
       };
     });
 
