@@ -75,9 +75,9 @@ const LIGHT_THEME_SOURCE = Object.freeze({
   "theme-border-soft": "#e2e8f0",
   "theme-border-medium": "#cbd5e1",
   "theme-border-strong": "#94a3b8",
-  "theme-accent": "#2563eb",
-  "theme-accent-hover": "#1d4ed8",
-  "theme-accent-soft": "#eff6ff",
+  "theme-accent": "#1B4FB8",
+  "theme-accent-hover": "#123A8A",
+  "theme-accent-soft": "#E3EBFA",
   "theme-success": "#16a34a",
   "theme-success-soft": "#dcfce7",
   "theme-warning": "#d97706",
@@ -192,8 +192,12 @@ test("VF0 stays additive and low-specificity", () => {
   const cssWithoutComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
   assert.doesNotMatch(css, /!important/);
   assert.doesNotMatch(css, /@layer\b/);
-  assert.doesNotMatch(css, /@font-face|url\s*\(\s*["']?https?:/i,
-    "VF0 must not add a font or network dependency");
+  // Owner D6 «целиком» (2026-09-26) supersedes the VF font freeze: the foundation may declare the
+  // self-hosted Golos Text faces, and still no network dependency of any kind.
+  assert.doesNotMatch(css, /url\s*\(\s*["']?https?:/i, "VF0 must not add a network dependency");
+  for (const face of css.match(/@font-face \{[^}]*\}/g) || []) {
+    assert.match(face, /font-family: "Golos Text";[\s\S]*url\("\/fonts\/golos-text\//, "only the self-hosted Golos Text faces");
+  }
   assert.doesNotMatch(cssWithoutComments, /^\s*(?:\*|html|body)(?:\s|,|\{)/m,
     "VF0 must not restyle global elements or introduce a reset");
   assert.doesNotMatch(css, /\.(?:work-card|room-|reader-|classic-|v3-|mentor-|trainer-)/,

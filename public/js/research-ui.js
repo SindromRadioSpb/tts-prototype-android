@@ -124,7 +124,7 @@
 
     // P2-5: collapsible aggregate list so users can see collected fields without opening consent
     body += '<details style="margin-top:10px;font-size:11.5px;">';
-    body += '<summary style="cursor:pointer;color:var(--theme-accent,#2563eb);font-weight:500;">' +
+    body += '<summary style="cursor:pointer;color:var(--theme-accent,#1B4FB8);font-weight:500;">' +
       escapeHtml(T('research.panel.showCollectedList', 'Что конкретно собирается →')) + '</summary>';
     body += '<ul style="margin:6px 0 4px 18px;line-height:1.6;">';
     body += '<li>' + escapeHtml(T('research.consent.collect1', 'Количество сессий и активные минуты')) + '</li>';
@@ -415,7 +415,7 @@
         let status = '';
         if (u.error)             status = '<span style="color:#c0392b;">⚠ ' + escapeHtml(u.error) + '</span>';
         else if (u.dedupe)       status = '<span style="color:#999;">↻ dedupe</span>';
-        else if (u.replayed)     status = '<span style="color:#3498db;">↻ replayed</span>';
+        else if (u.replayed)     status = '<span style="color:#1B4FB8;">↻ replayed</span>';
         else if (u.stored)       status = '<span style="color:#27ae60;">✓ stored</span>';
         else                     status = '—';
         body += '<td style="padding:6px 4px;">' + status + '</td>';

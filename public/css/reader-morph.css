@@ -28,7 +28,7 @@
   /* Retention P5 — due-кольцо (оттенок ВНЕ статусной шкалы) */
   --ws-due: #db2777;
   /* Epic 8d — confidence-pill text: на светлой теме темнее ради ≥4.5:1 на .16-филлах */
-  --prov-exact: #15803d; --prov-likely: #1d4ed8; --prov-amber: #92660f; --prov-context: #6d28d9;
+  --prov-exact: #15803d; --prov-likely: #123A8A; --prov-amber: #92660f; --prov-context: #6d28d9;
 }
 @media (prefers-color-scheme: dark) {
   body:not(.theme-light) {
@@ -329,7 +329,7 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 .room-consent-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .room-consent-actions button { width: auto; padding: 9px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid var(--border-soft); }
 .room-consent-no { background: transparent; color: var(--text-secondary); }
-.room-consent-yes { background: var(--accent, #2563eb); color: #fff; border-color: transparent; }
+.room-consent-yes { background: var(--accent, #1B4FB8); color: #fff; border-color: transparent; }
 
 /* ── Stage 2 — rich card: collapsible root-family + status selector ──────────── */
 .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }

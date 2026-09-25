@@ -140,7 +140,7 @@
       var on = active.indexOf(v) !== -1;
       var chip = el("button", { type: "button", "data-kmap-filter": dim + ":" + v });
       chip.style.cssText = "width:auto;cursor:pointer;font-size:11px;padding:2px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--theme-border-soft,#e2e8f0);" +
-        "background:" + (on ? "var(--theme-accent,#2563eb)" : "var(--theme-bg-card,#fff)") + ";color:" + (on ? "#fff" : "inherit") + ";";
+        "background:" + (on ? "var(--theme-accent,#1B4FB8)" : "var(--theme-bg-card,#fff)") + ";color:" + (on ? "#fff" : "inherit") + ";";
       if (dim === "status" && STATUS_COLOR[v]) { var sd = el("span"); sd.style.cssText = "width:8px;height:8px;border-radius:50%;background:" + STATUS_COLOR[v] + ";"; chip.appendChild(sd); }
       chip.appendChild(document.createTextNode(v));
       chip.addEventListener("click", function () {
@@ -272,7 +272,7 @@
       for (var i = 0; i < roots.length; i++) {
         var r = roots[i]; if (nq && r.rawId.indexOf(nq) === -1) continue; if (shown >= 400) break; shown++;
         var card = el("button", { "data-kmap-root": r.rawId, type: "button" });
-        card.style.cssText = "width:100%;text-align:start;display:flex;align-items:center;gap:8px;padding:9px 10px;margin:3px 0;border-radius:8px;cursor:pointer;border:1px solid " + (r.id === _state.selectedRoot ? "var(--theme-accent,#2563eb)" : "transparent") + ";background:var(--theme-bg-card,#fff);color:inherit;";
+        card.style.cssText = "width:100%;text-align:start;display:flex;align-items:center;gap:8px;padding:9px 10px;margin:3px 0;border-radius:8px;cursor:pointer;border:1px solid " + (r.id === _state.selectedRoot ? "var(--theme-accent,#1B4FB8)" : "transparent") + ";background:var(--theme-bg-card,#fff);color:inherit;";
         var dot = el("span"); dot.style.cssText = "width:10px;height:10px;border-radius:50%;flex-shrink:0;background:" + STATUS_COLOR[r.status] + ";";
         var lbl = el("span", null, r.label); lbl.style.cssText = "font-weight:600;font-size:15px;letter-spacing:1px;";
         var meta = el("span", null, "×" + r.freq + " · " + r.memberCount); meta.style.cssText = "margin-inline-start:auto;font-size:11px;opacity:.6;";
@@ -426,7 +426,7 @@
     var tId = (lemma.textIds && lemma.textIds[0]) || null;
     if (tId && typeof window.v3IdeOpenTextFromLibrary === "function") {
       var openBtn = el("button", { type: "button", "data-kmap-opentext": "1" }, "📖 " + T("knowledgeMap.openText", "Открыть текст"));
-      openBtn.style.cssText = "width:auto;margin-top:8px;cursor:pointer;font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--theme-accent,#2563eb);background:var(--theme-accent,#2563eb);color:#fff;";
+      openBtn.style.cssText = "width:auto;margin-top:8px;cursor:pointer;font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--theme-accent,#1B4FB8);background:var(--theme-accent,#1B4FB8);color:#fff;";
       openBtn.addEventListener("click", function () { var fn = window.v3IdeOpenTextFromLibrary; close(); try { fn(tId); } catch (_) {} });
       card.appendChild(openBtn);
     }
@@ -467,7 +467,7 @@
     var b = el("button", { type: "button", "data-kmap-train": "1" },
       "🎯 " + T("kmquiz.trainRoot", "Потренировать корень"));
     b.style.cssText = "width:auto;cursor:pointer;font-size:" + (big ? "14px" : "13px") + ";font-weight:600;padding:" +
-      (big ? "8px 16px" : "5px 12px") + ";border-radius:8px;border:1px solid var(--theme-accent,#2563eb);background:var(--theme-accent,#2563eb);color:#fff;";
+      (big ? "8px 16px" : "5px 12px") + ";border-radius:8px;border:1px solid var(--theme-accent,#1B4FB8);background:var(--theme-accent,#1B4FB8);color:#fff;";
     b.addEventListener("click", function () {
       var rootKey = _state.selectedRoot;
       if (!rootKey || typeof window.KnowledgeMapQuizLoader === "undefined") return;
@@ -506,7 +506,7 @@
     if (!_state.overlay) return;
     var raw = String(rootKey || "").replace(/^root:/, "");
     _state.overlay.querySelectorAll("[data-kmap-root]").forEach(function (b) {
-      b.style.borderColor = (b.getAttribute("data-kmap-root") === raw) ? "var(--theme-accent,#2563eb)" : "transparent";
+      b.style.borderColor = (b.getAttribute("data-kmap-root") === raw) ? "var(--theme-accent,#1B4FB8)" : "transparent";
     });
   }
   function close() {

@@ -11376,7 +11376,7 @@ function showValidationOverlay(text) {
   ta.value = text;
   box.appendChild(ta);
   const btns = el('div', { attrs: { style: 'display:flex;gap:8px;margin-top:10px;' } });
-  const copyBtn = el('button', { attrs: { style: 'flex:1;padding:11px;border-radius:8px;border:0;background:var(--accent,#2563eb);color:#fff;font-weight:600;width:auto;' }, text: 'Копировать' });
+  const copyBtn = el('button', { attrs: { style: 'flex:1;padding:11px;border-radius:8px;border:0;background:var(--accent,#1B4FB8);color:#fff;font-weight:600;width:auto;' }, text: 'Копировать' });
   copyBtn.addEventListener('click', async () => { try { ta.focus(); ta.select(); await navigator.clipboard.writeText(text); copyBtn.textContent = '✓ Скопировано'; } catch (_) { try { ta.select(); document.execCommand('copy'); copyBtn.textContent = '✓ Скопировано'; } catch (e2) {} } });
   const closeBtn = el('button', { attrs: { style: 'padding:11px 14px;border-radius:8px;border:1px solid var(--border-soft,#ccc);background:transparent;color:inherit;width:auto;' }, text: 'Закрыть' });
   closeBtn.addEventListener('click', () => ov.remove());

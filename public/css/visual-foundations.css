@@ -7,6 +7,15 @@
  * utilities; every surface keeps its component composition and state logic.
  */
 
+/* R5b (owner D6, 2026-09-26): Golos Text — the interface font for Cyrillic and Latin (incl. the
+   transliteration diacritics in latin-ext). Self-hosted: COEP require-corp blocks font CDNs.
+   Variable 400–900, SIL OFL 1.1 (/fonts/golos-text/OFL.txt). Hebrew falls through to the next font. */
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400 900; font-display: swap; src: url("/fonts/golos-text/golos-text-cyrillic-ext.woff2") format("woff2"); unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400 900; font-display: swap; src: url("/fonts/golos-text/golos-text-cyrillic.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400 900; font-display: swap; src: url("/fonts/golos-text/golos-text-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Golos Text"; font-style: normal; font-weight: 400 900; font-display: swap; src: url("/fonts/golos-text/golos-text-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+:where(button, input, select, textarea) { font-family: inherit; }
+
 :root {
   /* Established Studio source palette. Keep byte-equivalent while legacy
      declarations coexist; tests prevent a second visual truth from drifting. */
@@ -22,9 +31,9 @@
   --theme-border-soft: #e2e8f0;
   --theme-border-medium: #cbd5e1;
   --theme-border-strong: #94a3b8;
-  --theme-accent: #2563eb;
-  --theme-accent-hover: #1d4ed8;
-  --theme-accent-soft: #eff6ff;
+  --theme-accent: #1B4FB8;
+  --theme-accent-hover: #123A8A;
+  --theme-accent-soft: #E3EBFA;
   --theme-success: #16a34a;
   --theme-success-soft: #dcfce7;
   --theme-warning: #d97706;
@@ -37,7 +46,7 @@
 
   /* Script roles use already-shipped fonts. No new request or synthesized
      ultra-heavy weight is introduced by the foundation. */
-  --lp-font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lp-font-ui: "Golos Text", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Assistant", "Noto Sans Hebrew", sans-serif;
   --lp-font-editorial: Georgia, "Times New Roman", serif;
   --lp-font-hebrew-ui: "Assistant", "Noto Sans Hebrew", Arial, sans-serif;
   --lp-font-hebrew-reading: "Frank Ruhl Libre", Georgia, serif;
@@ -88,7 +97,7 @@
   --lp-accent-hover: var(--theme-accent-hover);
   --lp-accent-soft: var(--theme-accent-soft);
   --lp-accent-contrast: #ffffff;
-  --lp-focus-ring: #2563eb;
+  --lp-focus-ring: #1B4FB8;
   --lp-focus-offset: 3px;
 
   /* Room names are compatibility aliases only. Room's later local values
@@ -113,7 +122,7 @@
   --lp-status-info-fg: #1e40af;
   --lp-status-info-bg: #eff6ff;
   --lp-status-info-border: #93c5fd;
-  --lp-status-info-icon: #2563eb;
+  --lp-status-info-icon: #1B4FB8;
   --lp-status-success-fg: #166534;
   --lp-status-success-bg: #f0fdf4;
   --lp-status-success-border: #86efac;
@@ -151,9 +160,9 @@
     --theme-border-soft: #334155;
     --theme-border-medium: #475569;
     --theme-border-strong: #64748b;
-    --theme-accent: #60a5fa;
-    --theme-accent-hover: #93c5fd;
-    --theme-accent-soft: #1e3a8a;
+    --theme-accent: #7FA6F5;
+    --theme-accent-hover: #A9C3F8;
+    --theme-accent-soft: #1A2740;
     --theme-success: #4ade80;
     --theme-success-soft: #052e16;
     --theme-warning: #fbbf24;
@@ -171,8 +180,8 @@
     --lp-status-neutral-icon: #cbd5e1;
     --lp-status-info-fg: #bfdbfe;
     --lp-status-info-bg: #172554;
-    --lp-status-info-border: #1d4ed8;
-    --lp-status-info-icon: #60a5fa;
+    --lp-status-info-border: #123A8A;
+    --lp-status-info-icon: #7FA6F5;
     --lp-status-success-fg: #bbf7d0;
     --lp-status-success-bg: #052e16;
     --lp-status-success-border: #166534;
@@ -201,9 +210,9 @@ body.theme-dark {
   --theme-border-soft: #334155;
   --theme-border-medium: #475569;
   --theme-border-strong: #64748b;
-  --theme-accent: #60a5fa;
-  --theme-accent-hover: #93c5fd;
-  --theme-accent-soft: #1e3a8a;
+  --theme-accent: #7FA6F5;
+  --theme-accent-hover: #A9C3F8;
+  --theme-accent-soft: #1A2740;
   --theme-success: #4ade80;
   --theme-success-soft: #052e16;
   --theme-warning: #fbbf24;
@@ -221,8 +230,8 @@ body.theme-dark {
   --lp-status-neutral-icon: #cbd5e1;
   --lp-status-info-fg: #bfdbfe;
   --lp-status-info-bg: #172554;
-  --lp-status-info-border: #1d4ed8;
-  --lp-status-info-icon: #60a5fa;
+  --lp-status-info-border: #123A8A;
+  --lp-status-info-icon: #7FA6F5;
   --lp-status-success-fg: #bbf7d0;
   --lp-status-success-bg: #052e16;
   --lp-status-success-border: #166534;

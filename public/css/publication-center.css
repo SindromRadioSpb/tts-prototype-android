@@ -4,7 +4,7 @@
   --pc-paper: var(--theme-bg-elevated, #fff);
   --pc-wash: var(--theme-bg-muted, #f5f7fa);
   --pc-rule: var(--theme-border-soft, #dce2ea);
-  --pc-blue: var(--theme-accent, #2563eb);
+  --pc-blue: var(--theme-accent, #1B4FB8);
   --pc-seal: #8b2942;
   width: min(1120px, calc(100vw - 32px));
   max-height: min(900px, calc(100dvh - 32px));

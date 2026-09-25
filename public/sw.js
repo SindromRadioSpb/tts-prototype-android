@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.642";
+const CACHE_VERSION = "v3.11.643";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -68,7 +68,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
   "/mediatheque.html",
-  "/css/mediatheque.css?v=7",
+  "/css/mediatheque.css?v=643",
   "/js/mediatheque-ui.js?v=636",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
@@ -98,7 +98,7 @@ const PRECACHE_URLS = [
   "/js/learning-material-task.js?v=633",
   "/js/learning-material-task-ui.js?v=633",
 
-  "/css/catalog-discovery.css?v=485",
+  "/css/catalog-discovery.css?v=643",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/local-text-familiarity.js?v=485",
@@ -111,7 +111,7 @@ const PRECACHE_URLS = [
   // ROOM-UX-VF/VF0 — shared visual primitives and the bounded same-origin
   // icon sprite are available before any serialized component adoption.
   "/css/visual-foundations.css",
-  "/css/publication-center.css?v=415",
+  "/css/publication-center.css?v=643",
   "/icons/linguistpro-ui.svg",
   // BRR-P0-002/002a — Reading Room surface (clean sub-brand). Shares this SW
   // (scope "/") for v1; a separate lightweight sw-room.js is deferred to P0-002b.
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=639",
+  "/js/library-ui.js?v=643",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -130,8 +130,8 @@ const PRECACHE_URLS = [
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=582",
-  "/css/reader-core.css?v=638",
-  "/css/reader-morph.css?v=639",
+  "/css/reader-core.css?v=643",
+  "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -336,6 +336,10 @@ const PRECACHE_URLS = [
   "/tts/settings.js",
   // Fonts (Hebrew typography, Direction 1)
   "/fonts/frank-ruhl-libre-400.woff2",
+  "/fonts/golos-text/golos-text-cyrillic-ext.woff2",
+  "/fonts/golos-text/golos-text-cyrillic.woff2",
+  "/fonts/golos-text/golos-text-latin-ext.woff2",
+  "/fonts/golos-text/golos-text-latin.woff2",
   "/fonts/frank-ruhl-libre-500.woff2",
   "/fonts/frank-ruhl-libre-700.woff2",
   "/fonts/assistant-400.woff2",

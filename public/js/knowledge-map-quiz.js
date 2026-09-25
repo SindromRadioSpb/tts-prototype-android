@@ -466,7 +466,7 @@
   }
   function _primaryBtn(label) {
     var b = el("button", { type: "button" }, label);
-    b.style.cssText = "width:100%;min-height:46px;cursor:pointer;font-size:15px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--theme-accent,#2563eb);background:var(--theme-accent,#2563eb);color:#fff;";
+    b.style.cssText = "width:100%;min-height:46px;cursor:pointer;font-size:15px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--theme-accent,#1B4FB8);background:var(--theme-accent,#1B4FB8);color:#fff;";
     return b;
   }
   function _optionBtn(label) {

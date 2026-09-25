@@ -27,10 +27,10 @@
   <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
-  <link rel="stylesheet" href="/css/reader-core.css?v=638">
+  <link rel="stylesheet" href="/css/reader-core.css?v=643">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
-  <link rel="stylesheet" href="/css/reader-morph.css?v=639">
+  <link rel="stylesheet" href="/css/reader-morph.css?v=643">
   <link rel="stylesheet" href="/css/lexical-resolution.css?v=6">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
@@ -42,7 +42,7 @@
       --text-secondary: #475569;
       --text-faint: #64748b;
       --border-soft: #e2e8f0;
-      --accent: #2563eb;
+      --accent: #1B4FB8;
       --accent-contrast: #ffffff;
       --accent-soft: #d3e0f8;
       --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 1px 2px rgba(15, 23, 42, .04);
@@ -57,7 +57,7 @@
         --text-secondary: #cbd5e1;
         --text-faint: #a8b4c7;
         --border-soft: #334155;
-        --accent: #60a5fa;
+        --accent: #7FA6F5;
         --accent-contrast: #0b1220;
         --accent-soft: #223355;
         --shadow: 0 1px 3px rgba(0, 0, 0, .4);
@@ -66,7 +66,7 @@
     body.theme-dark {
       --bg-page: #0f172a; --bg-card: #1e293b; --bg-muted: #243349;
       --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-faint: #a8b4c7;
-      --border-soft: #334155; --accent: #60a5fa; --accent-contrast: #0b1220; --accent-soft: #223355;
+      --border-soft: #334155; --accent: #7FA6F5; --accent-contrast: #0b1220; --accent-soft: #223355;
       --shadow: 0 1px 3px rgba(0, 0, 0, .4);
     }
 
@@ -3103,7 +3103,7 @@
 
 .room-mediatheque-entry{margin-block:12px}.room-mediatheque-entry a{display:inline-flex;align-items:center;min-height:44px;padding:8px 18px;color:var(--accent);background:var(--bg-card);border:1px solid var(--border-soft);border-radius:12px;font-weight:650;text-decoration:none}.room-mediatheque-entry a:hover{border-color:var(--accent)}.room-mediatheque-entry a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
-<link rel="stylesheet" href="/css/catalog-discovery.css?v=485">
+<link rel="stylesheet" href="/css/catalog-discovery.css?v=643">
 <style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
 </head>
 <body>
@@ -3235,7 +3235,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.642</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.643</button>
   </div>
 </footer>
 
@@ -3536,6 +3536,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=639"></script>
+<script type="module" src="/js/library-ui.js?v=643"></script>
 </body>
 </html>

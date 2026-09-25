@@ -54,18 +54,18 @@
   /* Row-highlight overlays — alpha-based so they layer over any bg. */
   --row-hl-hover:    rgba(46, 125, 50, 0.22);
   --row-hl-focus:    rgba(46, 125, 50, 0.22);
-  --row-hl-active:   rgba(255, 230, 0, 0.35);
-  --row-hl-selected: rgba(255, 230, 0, 0.35);
-  --row-hl-playing:  rgba(255, 230, 0, 0.35);
+  --row-hl-active:   rgba(27, 79, 184, 0.12);
+  --row-hl-selected: rgba(27, 79, 184, 0.12);
+  --row-hl-playing:  rgba(27, 79, 184, 0.12);
   --row-rail-selected: rgba(255, 180, 0, 0.85);
-  --row-rail-playing:  rgba(52, 152, 219, 0.75);
+  --row-rail-playing:  rgba(27, 79, 184, 0.85);
   --row-rail-error:    rgba(231, 76, 60, 0.80);
 
   /* Theme tokens referenced by copied table rules (subset). */
   --theme-text-primary: #0f172a;
   --theme-bg-page: #ffffff;
   --theme-bg-card: #ffffff;
-  --theme-accent: #2563eb;
+  --theme-accent: #1B4FB8;
 }
 
 /* Auto-mode dark (no explicit class on body): track system preference. */
@@ -84,17 +84,17 @@
 
     --row-hl-hover:    rgba(74, 222, 128, 0.18);
     --row-hl-focus:    rgba(74, 222, 128, 0.18);
-    --row-hl-active:   rgba(252, 211, 77, 0.28);
-    --row-hl-selected: rgba(252, 211, 77, 0.28);
-    --row-hl-playing:  rgba(252, 211, 77, 0.28);
+    --row-hl-active:   rgba(127, 166, 245, 0.16);
+    --row-hl-selected: rgba(127, 166, 245, 0.16);
+    --row-hl-playing:  rgba(127, 166, 245, 0.16);
     --row-rail-selected: rgba(252, 191, 73, 0.95);
-    --row-rail-playing:  rgba(96, 165, 250, 0.85);
+    --row-rail-playing:  rgba(127, 166, 245, 0.9);
     --row-rail-error:    rgba(248, 113, 113, 0.90);
 
     --theme-text-primary: #f1f5f9;
     --theme-bg-page: #0f172a;
     --theme-bg-card: #1e293b;
-    --theme-accent: #60a5fa;
+    --theme-accent: #7FA6F5;
   }
 }
 
@@ -113,17 +113,17 @@ body.theme-dark {
 
   --row-hl-hover:    rgba(74, 222, 128, 0.18);
   --row-hl-focus:    rgba(74, 222, 128, 0.18);
-  --row-hl-active:   rgba(252, 211, 77, 0.28);
-  --row-hl-selected: rgba(252, 211, 77, 0.28);
-  --row-hl-playing:  rgba(252, 211, 77, 0.28);
+  --row-hl-active:   rgba(127, 166, 245, 0.16);
+  --row-hl-selected: rgba(127, 166, 245, 0.16);
+  --row-hl-playing:  rgba(127, 166, 245, 0.16);
   --row-rail-selected: rgba(252, 191, 73, 0.95);
-  --row-rail-playing:  rgba(96, 165, 250, 0.85);
+  --row-rail-playing:  rgba(127, 166, 245, 0.9);
   --row-rail-error:    rgba(248, 113, 113, 0.90);
 
   --theme-text-primary: #f1f5f9;
   --theme-bg-page: #0f172a;
   --theme-bg-card: #1e293b;
-  --theme-accent: #60a5fa;
+  --theme-accent: #7FA6F5;
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -422,8 +422,9 @@ td.col-action-cell {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 1px solid #d0d4d8;
-  background: #ffffff;
+  border: 1px solid var(--table-border, #d0d4d8);
+  background: var(--table-bg-row, #ffffff);   /* R5b: follows the table in the dark theme */
+  color: var(--table-text, #0f172a);
   cursor: pointer;
   line-height: 1;
   padding: 0;
@@ -436,7 +437,7 @@ td.col-action-cell {
     border-color var(--lp-motion-hover) var(--lp-ease-standard);
 }
 
-.row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
+.row-tts-btn:hover { background: color-mix(in srgb, var(--table-bg-row, #ffffff) 90%, var(--table-text, #0f172a)); transform: translateY(-1px); }
 .row-tts-btn:active { transform: translateY(0px); }
 
 .row-tts-btn:focus-visible {
@@ -459,7 +460,7 @@ td.col-action-cell {
 }
 
 .row-tts-btn.row-tts-playing {
-  border-color: #3498db;
+  border-color: #1B4FB8;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
 }
 
@@ -593,7 +594,7 @@ td.col-action-cell {
   height: 14px;
   padding: 0 4px;
   border-radius: 7px;
-  background: var(--theme-accent, #2563eb);
+  background: var(--theme-accent, #1B4FB8);
   color: #fff;
   font-size: 9.5px;
   font-weight: 700;
@@ -627,8 +628,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   text-align: center;
 }
 .row-edit-btn:hover { background: #f0f4f7; }
-.row-edit-btn.btn-up   { color: #1565c0; }
-.row-edit-btn.btn-down { color: #1565c0; }
+.row-edit-btn.btn-up   { color: #1B4FB8; }
+.row-edit-btn.btn-down { color: #1B4FB8; }
 .row-edit-btn.btn-del  { color: #c62828; border-color: #ffcdd2; }
 .row-edit-btn.btn-del:hover { background: #ffebee; }
 .row-edit-btn.btn-reset { color: #e65100; border-color: #ffe0b2; font-size: 0.72rem; }
