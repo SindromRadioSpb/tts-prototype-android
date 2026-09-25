@@ -25,3 +25,13 @@ test("an undecided Dicta consent never opens a modal on a word tap", () => {
   assert.doesNotMatch(provider, /promptContextConsent\(\)/);
   assert.match(provider, /if \(consent !== "granted"\) return null;/);
 });
+
+// R4b (owner 2026-09-26, option 2): on a phone the section header (title, icons, Медиатека, tabs)
+// is hidden in ANY open text — study mode stays a manual Аа switch (D5). The reader bar's back
+// button returns to the shelves, where the header is back.
+test("on a phone the Room section header hides while a text is open, study mode or not", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public/library.html"), "utf8");
+  assert.match(html, /@media \(max-width: 599px\) \{\s*body\.room-reading header\.room-header \{ display: none !important; \}/);
+  const ui = fs.readFileSync(path.join(__dirname, "..", "public/js/library-ui.js"), "utf8");
+  assert.match(ui, /classList\.remove\('room-reading'\)/, "closing the text brings the header back");
+});

@@ -1407,6 +1407,12 @@
        одна видимая строка) — 779px съедали шапка, бар, подсказка, видео,
        дисклеймер и футер. Режим отдаёт остаток экрана таблице и убирает
        арифметику высоты: раскладка — flex-колонка, а не вычисленный max-height. */
+    /* R4b (owner 2026-09-26, option 2): on a phone an open text gives the screen to the video and
+       the table — the section header hides in any open text; study mode stays a manual Аа switch.
+       The reader bar's back button returns to the shelves, where the header is back. */
+    @media (max-width: 599px) {
+      body.room-reading header.room-header { display: none !important; }
+    }
     body.room-study header.room-header,
     body.room-study #readerTip,
     body.room-study #readerCovChip,
@@ -3229,7 +3235,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.640</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.641</button>
   </div>
 </footer>
 
