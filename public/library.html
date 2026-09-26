@@ -110,11 +110,10 @@
       .room-header-row { flex-wrap: wrap; }
       .room-header-row > div:first-child { flex: 1 1 100%; }
       .room-head-controls { width: 100%; justify-content: flex-end; margin-top: 2px; }
-      .room-tab { min-width: 0; padding-inline: 8px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .room-tab { padding-inline: 8px; font-size: 13.5px; }
     }
     @media (max-width: 340px) {
-      .room-tabs { gap: 4px; }
-      .room-tab { flex-basis: auto; padding-inline: 4px; font-size: 12px; }
+      .room-tab { padding-inline: 4px; font-size: 12px; }
     }
     .room-theme-btn {
       flex: none; appearance: none; cursor: pointer; width: auto; line-height: 1; font-size: 15px;
@@ -124,13 +123,39 @@
     .room-theme-btn:hover { border-color: var(--accent); }
 
     /* ── track tabs ──────────────────────────────────────────────────────── */
-    .room-tabs { display: flex; gap: 8px; margin-top: 12px; }
+    /* R8 (audit P1-13): a segmented control — one fixed set, every label whole. */
+    .room-tabs {
+      display: flex; gap: 4px; margin-top: 12px;
+      background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 12px; padding: 4px;
+    }
     .room-tab {
-      flex: 1; appearance: none; cursor: pointer;
-      background: var(--bg-muted); color: var(--text-secondary);
-      border: 1px solid var(--border-soft); border-radius: 999px;
-      padding: 9px 12px; font-size: 14px; font-weight: 600;
+      flex: 1 1 auto; min-width: 0; min-height: 44px; appearance: none; cursor: pointer;
+      background: transparent; color: var(--text-secondary);
+      border: 1px solid transparent; border-radius: 9px;
+      padding: 6px 12px; font-size: 14px; font-weight: 600; white-space: nowrap;
       transition: background .15s, color .15s, border-color .15s;
+    }
+    .room-tab[hidden] { display: none; }
+    @media (min-width: 600px) {
+      .room-tabs { width: fit-content; }
+      .room-tab { flex: 0 0 auto; padding-inline: 20px; }
+    }
+    /* R8 (audit P1-14): shelves are shown as a skeleton while the canon and catalog load. */
+    .room-skeleton { display: grid; gap: 10px; padding: 16px 12px; }
+    .room-skeleton-caption { font-size: 13px; color: var(--text-secondary); }
+    .room-skeleton-block {
+      border-radius: 12px; background: var(--bg-muted); border: 1px solid var(--border-soft);
+      animation: room-skeleton-pulse 1.4s ease-in-out infinite;
+    }
+    .room-skeleton-feature { height: 168px; }
+    .room-skeleton-row { height: 64px; }
+    @keyframes room-skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+    @media (prefers-reduced-motion: reduce) {
+      .room-skeleton-block { animation: none; }
+    }
+    .room-sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
     }
     .room-tab[aria-selected="true"] {
       background: var(--accent); color: var(--accent-contrast); border-color: var(--accent);
@@ -503,7 +528,7 @@
     .corpus-snippet-save:active { background: var(--bg-muted); }
     .corpus-snippet-save[disabled] { color: var(--text-faint); cursor: default; }
     /* BRR-S14 — tappable author («ещё у автора») */
-    .corpus-work-author-link { cursor: pointer; color: var(--accent); }
+    .corpus-work-author-link { cursor: pointer; color: var(--text-secondary); }
     .corpus-work-author-link:active { opacity: .7; }
     /* BRR-S12 / FB-6 — recent SEARCHES row, directly under the input. A lighter «history» chip (ghost,
        no fill) distinct from the solid facet pills so it never reads as a filter/sort tab. */
@@ -777,6 +802,9 @@
     .reader-end-next-head { font-size: 13px; font-weight: 700; color: var(--text-primary); text-align: center; }
     .reader-end-next-rail { display: flex; flex-direction: column; gap: 8px; width: 100%; }
     .reader-end-next-rail .work-card { width: 100%; box-sizing: border-box; text-align: start; }
+    /* R8: the end-of-text picks are the shelf list itself (one material component). */
+    .reader-end-next-rail.learning-home-ready-list { gap: 0; text-align: start; }
+    .reader-end-next-rail.learning-home-ready-list .corpus-work-col { justify-items: start; }
     /* BRR-S15 — in-reader find bar (sticky under the reader bar) + GREEN find marks (distinct from
        the amber jump-highlight and the blue playback row). a11y: «k / N» counter + scroll = 2nd channel. */
     .reader-find {
@@ -2266,8 +2294,9 @@
     .corpus-work-len, .work-card-len, .mytext-card .mytext-tag { color: var(--text-secondary); font-size: 12px; }
     .corpus-work-author-link {
       width: fit-content; min-height: 28px; appearance: none; border: 0; background: transparent;
-      padding: 4px 6px 4px 0; color: var(--accent); font: 650 13px/1.2 inherit; text-align: start;
+      padding: 4px 6px 4px 0; color: var(--text-secondary); font: 600 13px/1.2 inherit; text-align: start;
     }
+    .corpus-work-author-link:hover, .corpus-work-author-link:focus-visible { text-decoration: underline; }
     html[dir="rtl"] .corpus-work-author-link { padding: 4px 0 4px 6px; }
     .corpus-work-listbtn { min-width: 44px; min-height: 44px; padding: 8px; }
     .reading-list-remove { min-height: 44px; max-width: 150px; padding: 7px 9px; border: 1px solid var(--border-soft); border-radius: 9px; background: transparent; color: var(--text-secondary); font: 680 11.5px/1.2 inherit; cursor: pointer; }
@@ -2507,8 +2536,12 @@
     .learning-home-ready-list .corpus-work-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .learning-home-ready-list .corpus-work-author-link { min-height: 24px; padding-block: 1px; }
     .learning-home-ready-list .work-card-difficulty {
-      grid-column: 2; grid-row: 2; min-height: 24px; height: 24px; margin: 0;
+      grid-column: 1 / -1; grid-row: 3; min-height: 24px; height: 24px; margin: 0;
       align-items: center; justify-content: flex-start; flex-wrap: nowrap; overflow: hidden;
+    }
+    /* Only the ⓘ details (no chip, as for a new profile): it sits beside the author, not on a line of its own. */
+    .learning-home-ready-list .work-card-difficulty:not(:has(.learning-signal, .learner-state-chip, .learning-media, .learning-tag, .learning-caveat)) {
+      grid-column: 2; grid-row: 2;
     }
     .learning-corpus-list { display: grid; gap: 6px; }
     .learning-corpus-entry {
@@ -3140,9 +3173,9 @@
   </div>
   <div class="room-mediatheque-entry"><a href="/mediatheque.html" data-i18n="mediatheque.title">Медиатека</a></div>
   <div class="room-tabs" id="roomTabs" role="tablist">
-    <button class="room-tab room-vf1-focus" id="tabAccessible" role="tab" aria-selected="true" data-track="accessible" data-i18n="room.tabs.accessible">Доступная</button>
+    <button class="room-tab room-vf1-focus" id="tabCorpus" role="tab" aria-selected="true" data-track="corpus" data-i18n="room.tabs.corpus">Библиотека</button>
+    <button class="room-tab room-vf1-focus" id="tabAccessible" role="tab" aria-selected="false" data-track="accessible" data-i18n="room.tabs.accessible">Доступная</button>
     <button class="room-tab room-vf1-focus" id="tabLiterary" role="tab" aria-selected="false" data-track="literary" data-i18n="room.tabs.literary">Литературная</button>
-    <button class="room-tab room-vf1-focus" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Библиотека</button>
   </div>
   <div id="roomConnectionStatus" class="room-connection-status" hidden role="status" aria-live="polite" data-state="online">
     <span id="roomConnectionText"></span>
@@ -3157,9 +3190,13 @@
 </header>
 
 <main id="roomContent">
-  <div class="room-state lp-state" data-kind="info" role="status" aria-live="polite">
-    <span class="room-state-icon lp-state__icon" data-room-icon="lp-icon-loading" aria-hidden="true"><span class="room-icon-fallback" aria-hidden="true">⏳</span></span>
-    <div class="lp-state__body"><span class="lp-state__title" data-i18n="room.state.loading">Загрузка…</span></div>
+  <div class="room-skeleton" role="status" aria-busy="true" aria-live="polite">
+    <span class="room-skeleton-caption" data-i18n="room.state.loading">Загрузка…</span>
+    <div class="room-skeleton-block room-skeleton-feature" aria-hidden="true"></div>
+    <div class="room-skeleton-block room-skeleton-row" aria-hidden="true"></div>
+    <div class="room-skeleton-block room-skeleton-row" aria-hidden="true"></div>
+    <div class="room-skeleton-block room-skeleton-row" aria-hidden="true"></div>
+    <div class="room-skeleton-block room-skeleton-row" aria-hidden="true"></div>
   </div>
 </main>
 
@@ -3237,7 +3274,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.646</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.647</button>
   </div>
 </footer>
 
@@ -3425,9 +3462,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=258"></script>
-    <script src="/i18n/locales/en.js?v=258"></script>
-    <script src="/i18n/locales/he.js?v=258"></script>
+    <script src="/i18n/locales/ru.js?v=259"></script>
+    <script src="/i18n/locales/en.js?v=259"></script>
+    <script src="/i18n/locales/he.js?v=259"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3538,6 +3575,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=644"></script>
+<script type="module" src="/js/library-ui.js?v=647"></script>
 </body>
 </html>

@@ -2301,6 +2301,10 @@ window.I18N_LOCALES.en = {
     },
   },
   room: {
+    units: {
+      rows: { one: "line", few: "lines", many: "lines", other: "lines" },
+      parts: { one: "part", few: "parts", many: "parts", other: "parts" },
+    },
     handoff: {
       reviewFailed: "Could not open the review session — refresh the page and tap «🔁 Review».",
       expired: "This link has expired or was already used — open it again.",
@@ -2840,6 +2844,8 @@ window.I18N_LOCALES.en = {
       },
     },
     home: {
+      overlineNew: "First step",
+      titleNew: "Start with a short text",
       loading: "Preparing your next step…",
       overline: "Your reading",
       title: "Continue from the right place",

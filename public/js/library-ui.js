@@ -27,7 +27,7 @@ const EMBED = (() => { try { return new URLSearchParams(location.search).get('em
 
 const TRACKS = ['accessible', 'literary', 'corpus'];
 const TAB_ID = { accessible: 'tabAccessible', literary: 'tabLiterary', corpus: 'tabCorpus' };
-let activeTrack = 'accessible';
+let activeTrack = 'corpus';   // R8: the default tab, selected in the markup from the first frame
 let shelvesByTrack = { accessible: [], literary: [], corpus: [] };
 let textByKey = new Map(); // text_key -> { id, title }
 
@@ -1231,6 +1231,11 @@ function paintLearningCompass(target, item, options) {
       target.appendChild(node);
     } else if (signal.kind === 'familiarity') {
       const value = signal.value && typeof signal.value === 'object' ? signal.value : { status: 'AVAILABLE', lower_bound_pct: signal.value };
+      // R8 (audit P1-10): a new profile gets no chip — «Нужен профиль слов» and «Не менее 0%» say
+      // nothing to a beginner. The exact state and counts stay in the ⓘ details below.
+      if (value.status === 'NEEDS_PROFILE') continue;
+      if ((value.status === 'AVAILABLE' || value.status === 'AVAILABLE_LIMITED') && Number.isFinite(Number(value.lower_bound_pct))
+        && Math.round(Number(value.lower_bound_pct)) === 0) continue;
       let copy = '';
       if ((value.status === 'AVAILABLE' || value.status === 'AVAILABLE_LIMITED') && Number.isFinite(Number(value.lower_bound_pct))) {
         copy = Number(value.uncertainty_pp) > 0
@@ -1305,11 +1310,21 @@ function paintLearningCompass(target, item, options) {
   target.hidden = !target.children.length;
 }
 
+// R8 (audit P1-14): full-page waits show the shape of the shelves, not a spinner.
+const ROOM_SKELETON_STATES = new Set(['room.state.loading', 'room.state.publishing', 'room.home.loading']);
+function roomSkeletonNode(i18nKey) {
+  const box = el('div', { class: 'room-skeleton', attrs: { role: 'status', 'aria-busy': 'true', 'aria-live': 'polite' } });
+  box.appendChild(el('span', { class: 'room-skeleton-caption', i18n: i18nKey, text: tt(i18nKey) }));
+  box.appendChild(el('div', { class: 'room-skeleton-block room-skeleton-feature', attrs: { 'aria-hidden': 'true' } }));
+  for (let i = 0; i < 4; i++) box.appendChild(el('div', { class: 'room-skeleton-block room-skeleton-row', attrs: { 'aria-hidden': 'true' } }));
+  return box;
+}
+
 function showState(i18nKey, icon) {
   const main = $('roomContent');
   if (!main) return;
   main.innerHTML = '';
-  main.appendChild(stateBoxNode(i18nKey, icon));
+  main.appendChild(ROOM_SKELETON_STATES.has(i18nKey) ? roomSkeletonNode(i18nKey) : stateBoxNode(i18nKey, icon));
   if (i18nKey === 'room.state.dbBusy' || i18nKey === 'room.state.error') {
     main.appendChild(el('a', { text: tt('dashboard.secDiag', 'Диагностика системы'), attrs: { href: '/db-diagnostics.html', target: '_blank', rel: 'noopener' } }));
   }
@@ -6547,8 +6562,9 @@ async function appendHandoffPicks(card, tid) {
   head.appendChild(document.createTextNode(meta.emoji + ' '));
   head.appendChild(el('span', { i18n: meta.key, text: tt(meta.key, meta.fb) }));
   sec.appendChild(head);
-  const rail = el('div', { class: 'reader-end-next-rail' });
-  for (const c of picks.cards) rail.appendChild(renderCorpusCard(c));   // tap → openCorpusWork (the next text)
+  const rail = el('div', { class: 'reader-end-next-rail learning-home-ready-list' });
+  // R8 (audit P1-12): the same material row as the shelves (tap → openCorpusWork, the next text).
+  for (const c of picks.cards) rail.appendChild(renderCorpusWorkRow(c, true, { compact: true, showAuthor: true, materialKind: 'handoff' }));
   sec.appendChild(rail);
   card.appendChild(sec);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -9737,6 +9753,7 @@ async function loadData() {
 // manifests load lazily on demand. Non-fatal: on failure the Корпус tab stays hidden and
 // the curated canon is unaffected.
 async function loadCorpusCatalog() {
+  let corpusTabReady = false;
   try {
     // Opt-out for structural smokes (?corpus=skip), independent of ?canon=skip.
     try { if (new URLSearchParams(location.search).get('corpus') === 'skip') return; } catch (_) {}
@@ -9745,9 +9762,8 @@ async function loadCorpusCatalog() {
     const root = await res.json();
     if (!root || !Array.isArray(root.era_taxonomy)) return;
     corpusRoot = root;
-    const tab = $('tabCorpus');
     const hasCorpus = (root.counts && root.counts.works) > 0;
-    if (tab) tab.hidden = !hasCorpus;
+    corpusTabReady = hasCorpus;
     // BRR-P2-006a — warm the always-needed FTS layer (manifest + lemma + lemmamap, ~6.5MB) in IDLE
     // so the first corpus search doesn't wait on it (owner choice: warm on Room load). Gated on the
     // corpus being present; requestIdleCallback (setTimeout fallback for iOS Safari) keeps it off the
@@ -9757,6 +9773,11 @@ async function loadCorpusCatalog() {
       (window.requestIdleCallback || function (cb) { return setTimeout(cb, 1200); })(_warm);
     }
   } catch (e) { try { console.warn('[room] corpus root load failed (non-fatal):', e); } catch (_) {} }
+  finally {
+    // R8: the tab is in the markup from the first frame; it leaves only when there is no catalog.
+    const tab = $('tabCorpus');
+    if (tab) tab.hidden = !corpusTabReady;
+  }
 }
 
 // Lazy sidecar (author index + ready rail + facet histograms) — fetched once, on the first
@@ -11505,9 +11526,18 @@ function corpusSearchRowToCard(h) {
 function corpusIsReady(c) { return !!(c && c.coverage && c.coverage.text && c.coverage.translation && c.coverage.translation !== 'none'); }
 function corpusEraTitle(era) { const e = ((corpusRoot && corpusRoot.era_taxonomy) || []).find((x) => x.era === era); return (e && e.title) || era; }
 function corpusGenreLabel(g) { return g ? tt('room.corpus.genre.' + g, g) : ''; }
+// R8: «17 строк», «1 строка», «2 части» — plural forms from the locale (room.units.<kind>.<category>).
+function roomCountLabel(n, kind) {
+  const count = Number(n) || 0;
+  let category = 'other';
+  try { category = new Intl.PluralRules((document.documentElement && document.documentElement.lang) || 'ru').select(count); } catch (_) {}
+  const pick = (key) => { const v = tt(key, ''); return v && v !== key ? v : ''; };   // tt echoes a missing key
+  const word = pick('room.units.' + kind + '.' + category) || pick('room.units.' + kind + '.other') || pick('room.units.' + kind + '.many');
+  return word ? count + ' ' + word : String(count);
+}
 function corpusLengthLabel(c) {
-  if (c && c.parts > 1) return c.parts + ' ' + tt('room.corpus.parts', 'ч.');
-  if (c && c.segments) return c.segments + ' ' + tt('room.corpus.rows', 'стр.');
+  if (c && c.parts > 1) return roomCountLabel(c.parts, 'parts');
+  if (c && c.segments) return roomCountLabel(c.segments, 'rows');
   return '';
 }
 // Honest provenance chip (shared by the ready rail + work rows). Known enums get a localized
@@ -12518,7 +12548,7 @@ function learningHomeFeature(continueRow, nextPicks) {
       const author = String(pick.author || pick.card.author);
       feature.appendChild(markRoomTextLanguage(el('p', { class: 'learning-home-feature-author', text: author }), author));
     }
-    const reason = Number.isFinite(Number(pick.familiar)) && Number(pick.denominator) > 0
+    const reason = Number.isFinite(Number(pick.familiar)) && Number(pick.familiar) > 0 && Number(pick.denominator) > 0
       ? String(pick.familiar) + '/' + String(pick.denominator) + ' ' + tt('room.home.recordedFamiliarWords', 'зафиксировано знакомыми')
       : tt('room.home.coldReason', 'Хороший первый текст · частотная лексика');
     feature.appendChild(el('p', { class: 'learning-home-feature-meta', text: reason }));
@@ -12568,7 +12598,7 @@ function learningHomeToday(readyCards) {
     short.appendChild(el('span', { class: 'learning-home-action-icon', text: 'א', attrs: { 'aria-hidden': 'true' } }));
     const copy = el('span', { class: 'learning-home-action-copy' });
     copy.appendChild(el('span', { class: 'learning-home-action-title', text: tt('room.home.shortAction', 'Короткий текст') }));
-    copy.appendChild(el('span', { class: 'learning-home-action-meta', text: Number(shortCard.segments) + ' ' + tt('room.home.rows', 'строк') }));
+    copy.appendChild(el('span', { class: 'learning-home-action-meta', text: roomCountLabel(shortCard.segments, 'rows') }));
     short.appendChild(copy);
     short.addEventListener('click', (event) => learningHomePlainClick(event, () => openCorpusWork(shortCard)));
     actions.appendChild(short);
@@ -12793,7 +12823,7 @@ async function renderCorpusHub(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
-  const loading = stateBoxNode('room.home.loading', '⏳');
+  const loading = roomSkeletonNode('room.home.loading');
   loading.classList.add('learning-home-loading');
   main.appendChild(loading);
   const [continueRow, nextPicks, ownCount, journeySummary] = await Promise.all([
@@ -12821,8 +12851,9 @@ async function renderCorpusHub(token) {
   const readyCards = ordered.slice(0, 4);
   const wrap = el('div', { class: 'corpus-nav learning-home' });
   const intro = el('header', { class: 'learning-home-intro' });
-  intro.appendChild(el('p', { class: 'learning-home-overline', text: tt('room.home.overline', 'Ваше чтение') }));
-  intro.appendChild(el('h1', { class: 'learning-home-title', text: tt('room.home.title', 'Продолжим с нужного места') }));
+  // R8 (audit P2-12): «Ваше чтение / Продолжим с нужного места» only when there is a place to continue.
+  intro.appendChild(el('p', { class: 'learning-home-overline', text: continueRow ? tt('room.home.overline', 'Ваше чтение') : tt('room.home.overlineNew', 'Первый шаг') }));
+  intro.appendChild(el('h1', { class: 'learning-home-title', text: continueRow ? tt('room.home.title', 'Продолжим с нужного места') : tt('room.home.titleNew', 'Начнём с короткого текста') }));
   intro.appendChild(el('p', { class: 'learning-home-subtitle', text: tt('room.home.subtitle', 'Один следующий шаг — и вся библиотека рядом.') }));
   wrap.appendChild(intro);
   const lead = el('div', { class: 'learning-home-lead' });
@@ -13135,7 +13166,7 @@ async function paintBenCorpusNext(host, token) {
   if (fallback) host.replaceChildren(corpusNextAction({
     kind: 'start', title: fallback.title,
     kicker: tt('room.home.startKicker', 'С чего начать'),
-    meta: [fallback.author, fallback.segments ? fallback.segments + ' ' + tt('room.home.rows', 'строк') : ''].filter(Boolean).join(' · '),
+    meta: [fallback.author, fallback.segments ? roomCountLabel(fallback.segments, 'rows') : ''].filter(Boolean).join(' · '),
     label: tt('room.home.startAction', 'Начать читать'), href: deepLinkForCorpusWork(fallback.id),
     onOpen: () => openCorpusWork(fallback),
   }));
@@ -14438,9 +14469,10 @@ async function boot() {
         roomToast('⚠ Хранилище браузера временно переключилось в резервный режим — «Мои тексты» может выглядеть пустым, но ничего не удалено. Перезагрузите страницу; сообщите разработчику, если повторится.', null, null, 60000);
       }
     } catch (_) {}
+    const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
-    await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
+    await corpusCatalogLoad;   // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
     await loadPublicCorpora(); // anonymous publication pointers load before protected memberships
     await loadGroupCorpora();  // authenticated; silently absent for signed-out/non-members
     // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
@@ -14452,6 +14484,8 @@ async function boot() {
       activeTrack = 'corpus';
     } else if (!(shelvesByTrack.accessible || []).length && (shelvesByTrack.literary || []).length) {
       activeTrack = 'literary';
+    } else {
+      activeTrack = 'accessible';
     }
     _roomRestoringHistory = !!initialPresentation;
     await setActiveTrack(activeTrack);

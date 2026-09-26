@@ -2311,6 +2311,10 @@ window.I18N_LOCALES.he = {
     },
   },
   room: {
+    units: {
+      rows: { one: "שורה", two: "שורות", few: "שורות", many: "שורות", other: "שורות" },
+      parts: { one: "חלק", two: "חלקים", few: "חלקים", many: "חלקים", other: "חלקים" },
+    },
     handoff: {
       reviewFailed: "לא ניתן לפתוח את החזרה — רעננו את הדף ולחצו על «🔁 לחזרה».",
       expired: "הקישור פג תוקף או כבר נוצל — פתחו אותו מחדש.",
@@ -2850,6 +2854,8 @@ window.I18N_LOCALES.he = {
       },
     },
     home: {
+      overlineNew: "צעד ראשון",
+      titleNew: "נתחיל בטקסט קצר",
       loading: "מכינים את הצעד הבא…",
       overline: "הקריאה שלך",
       title: "ממשיכים מהמקום הנכון",
