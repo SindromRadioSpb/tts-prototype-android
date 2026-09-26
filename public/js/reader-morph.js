@@ -1069,11 +1069,11 @@
   };
   // word-note lifecycle (from getWordNoteLifecycle): created/in_anki/learning/known/suspended.
   var LIFECYCLE = {
-    created: ["room.morph.life.created", "🆕 в моих словах"],
-    in_anki: ["room.morph.life.inAnki", "📤 в Anki"],
-    learning: ["room.morph.life.learning", "🔄 учу"],
-    known: ["room.morph.life.known", "✅ знаю"],
-    suspended: ["room.morph.life.suspended", "⏸ пауза"],
+    created: ["room.morph.life.created", "в моих словах"],
+    in_anki: ["room.morph.life.inAnki", "в Anki"],
+    learning: ["room.morph.life.learning", "учу"],
+    known: ["room.morph.life.known", "знаю"],
+    suspended: ["room.morph.life.suspended", "пауза"],
   };
   // Epic-3a — root-family chip status colour (mirrors the in-text word-status palette).
   var FAM_STATE = { known: "rm-fam-known", learning: "rm-fam-learning", weak: "rm-fam-learning", stale: "rm-fam-learning", "new": "rm-fam-new", l1: "rm-fam-l1", l2: "rm-fam-l2", l3: "rm-fam-l3", l4: "rm-fam-l4", ignore: "rm-fam-ignore" };
@@ -1103,6 +1103,9 @@
   // Cleared on every fresh open / close — never persists across words.
   var _markConfirm = null;
 
+  // R11a: line icons from the shared sprite instead of 🔊 / 🤖 (same-origin, precached).
+  var ICON_AUDIO = '<svg class="lp-icon" aria-hidden="true" focusable="false"><use href="/icons/linguistpro-ui.svg#lp-icon-audio"></use></svg>';
+  var ICON_MENTOR = '<svg class="lp-icon" aria-hidden="true" focusable="false"><use href="/icons/linguistpro-ui.svg#lp-mark-mentor"></use></svg>';
   function ensureSheet() {
     if (_sheet) return _sheet;
     var el = document.createElement("div");
@@ -1348,7 +1351,7 @@
   var _explainWordBusy = false;
   function explainWordHtml() {
     if (typeof _attachOpts.explainWord !== "function" || !_activeWordCtx || _activeWordCtx.orderIndex == null) return "";
-    return '<div class="rm-explain"><button type="button" class="rm-explain-btn" data-rm-explain aria-expanded="false">🤖 ' +
+    return '<div class="rm-explain"><button type="button" class="rm-explain-btn" data-rm-explain aria-expanded="false">' + ICON_MENTOR + ' ' +
       escapeHtml(tt("room.morph.explainWord", "Объяснить (наставник)")) + "</button>" +
       '<div class="rm-explain-out" data-rm-explain-out hidden></div></div>';
   }
@@ -1503,7 +1506,7 @@
     // Epic-3a — pronounce the headword (🔊): GCP-when-keyed → keyless browser. Shown whenever a
     // speak handler is wired (or browser TTS is available); voices the vocalized form.
     var speakBtn = (_attachOpts.speakWord || (typeof window !== "undefined" && window.v3ConjSpeak))
-      ? '<button type="button" class="rm-speak" data-rm-speak aria-label="' + escapeHtml(tt("room.morph.pronounce", "Произнести")) + '">🔊</button>'
+      ? '<button type="button" class="rm-speak" data-rm-speak aria-label="' + escapeHtml(tt("room.morph.pronounce", "Произнести")) + '">' + ICON_AUDIO + '</button>'
       : "";
     var head =
       '<div class="rm-head">' +

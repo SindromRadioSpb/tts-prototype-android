@@ -91,3 +91,15 @@ test("nav labels exist in every locale and the Room is called the same everywher
 test("the Room opens review from #review", () => {
   assert.match(read("public/js/library-ui.js"), /location\.hash === '#review'[\s\S]{0,200}startDueReview\(\)/);
 });
+
+// R11a verification: leaving the Room for Studio/Mediatheque through the old links flushed the
+// reading position and closed the local DB worker first (a bfcached Room must not keep the OPFS
+// lock). The R6 nav links were plain anchors — they now go through the same exit.
+test("leaving the Room through the nav flushes progress and closes the local DB", () => {
+  const ui = read("public/js/library-ui.js");
+  const init = ui.slice(ui.indexOf("function _roomStudioNavInit()"), ui.indexOf("function _roomStudioNavInit()") + 2600);
+  assert.match(init, /const leaveRoom = \(ev, url\) => \{/);
+  assert.match(init, /flushReaderProgress\(\)[\s\S]{0,120}localDb\.closeLocalDB\(\)/);
+  assert.match(init, /document\.querySelector\('nav\.lp-app-nav'\)/);
+  assert.match(init, /nav\.addEventListener\('click', \(ev\) => \{[\s\S]{0,300}closest\('a\[href\]'\)[\s\S]{0,300}\/library\.html/);
+});

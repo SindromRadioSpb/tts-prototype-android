@@ -19,10 +19,10 @@ const EXPECT = {
   ru: {
     "room.morph.save": "＋ Добавить в мои слова",
     "room.morph.savedToast": "Добавлено в мои слова",
-    "room.morph.life.created": "🆕 в моих словах",
-    "room.morph.study.open": "📚 Мои слова",
-    "room.morph.study.title": "📚 Мои слова",
-    "room.morph.study.modeTrain": "🎯 Повторение",
+    "room.morph.life.created": "в моих словах",
+    "room.morph.study.open": "Мои слова",
+    "room.morph.study.title": "Мои слова",
+    "room.morph.study.modeTrain": "Повторение",
     "room.morph.study.trainTitle": "Повторение",
     "room.morph.study.heatShort": "Календарь",
     "room.morph.study.reportShort": "Запоминание",
@@ -30,10 +30,10 @@ const EXPECT = {
   en: {
     "room.morph.save": "＋ Add to my words",
     "room.morph.savedToast": "Added to my words",
-    "room.morph.life.created": "🆕 in my words",
-    "room.morph.study.open": "📚 My words",
-    "room.morph.study.title": "📚 My words",
-    "room.morph.study.modeTrain": "🎯 Review",
+    "room.morph.life.created": "in my words",
+    "room.morph.study.open": "My words",
+    "room.morph.study.title": "My words",
+    "room.morph.study.modeTrain": "Review",
     "room.morph.study.trainTitle": "Review",
     "room.morph.study.heatShort": "Calendar",
     "room.morph.study.reportShort": "Memory",
@@ -41,10 +41,10 @@ const EXPECT = {
   he: {
     "room.morph.save": "＋ הוספה למילים שלי",
     "room.morph.savedToast": "נוסף למילים שלי",
-    "room.morph.life.created": "🆕 במילים שלי",
-    "room.morph.study.open": "📚 המילים שלי",
-    "room.morph.study.title": "📚 המילים שלי",
-    "room.morph.study.modeTrain": "🎯 חזרה",
+    "room.morph.life.created": "במילים שלי",
+    "room.morph.study.open": "המילים שלי",
+    "room.morph.study.title": "המילים שלי",
+    "room.morph.study.modeTrain": "חזרה",
     "room.morph.study.trainTitle": "חזרה",
     "room.morph.study.heatShort": "לוח שנה",
     "room.morph.study.reportShort": "זכירה",
@@ -62,7 +62,7 @@ test("the JS fallbacks say the same (a stale locale never shows the old chain)",
   const morph = read("public/js/reader-morph.js");
   assert.match(morph, /tt\("room\.morph\.save", "＋ Добавить в мои слова"\)/);
   assert.doesNotMatch(morph, /"＋ Сохранить слово"/);
-  assert.match(morph, /created: \["room\.morph\.life\.created", "🆕 в моих словах"\]/);
+  assert.match(morph, /created: \["room\.morph\.life\.created", "в моих словах"\]/);   // R11a: no 🆕
   assert.match(read("public/js/morph-host.js"), /_tt\("room\.morph\.savedToast", "Добавлено в мои слова"\)/);
   const ui = read("public/js/library-ui.js");
   assert.doesNotMatch(ui, /'📚 Разобрать слова'/);
@@ -72,8 +72,9 @@ test("the JS fallbacks say the same (a stale locale never shows the old chain)",
 test("the sheet's calendar and memory buttons carry visible labels", () => {
   const ui = read("public/js/library-ui.js");
   const head = ui.slice(ui.indexOf("function ensureStudySheet()"), ui.indexOf("card.appendChild(head);", ui.indexOf("function ensureStudySheet()")));
-  assert.match(head, /calBtn\.textContent = '📅 ' \+ tt\('room\.morph\.study\.heatShort', 'Календарь'\);/);
-  assert.match(head, /repBtn\.textContent = '📊 ' \+ tt\('room\.morph\.study\.reportShort', 'Запоминание'\);/);
+  // R11a: a sprite icon plus the visible label (was the '📅 ' / '📊 ' emoji + label).
+  assert.match(head, /calBtn\.replaceChildren\(roomIcon\('lp-icon-calendar', '📅'\), document\.createTextNode\(tt\('room\.morph\.study\.heatShort', 'Календарь'\)\)\);/);
+  assert.match(head, /repBtn\.replaceChildren\(roomIcon\('lp-icon-chart', '📊'\), document\.createTextNode\(tt\('room\.morph\.study\.reportShort', 'Запоминание'\)\)\);/);
   assert.match(head, /tools\.appendChild\(calBtn\);[\s\S]*tools\.appendChild\(repBtn\);\n  head\.appendChild\(tools\);/, "one row of tools");
 });
 

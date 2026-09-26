@@ -648,7 +648,11 @@ app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
     const lower = filePath.toLowerCase();
-    if (
+    if (/[\\/]icons[\\/]linguistpro-ui\.svg$/.test(lower)) {
+      // The UI sprite has one unversioned URL and grows with the icon set (R11a); revalidate it
+      // (ETag → 304) instead of pinning a year-old copy that lacks the new symbols.
+      res.setHeader("Cache-Control", "no-cache");
+    } else if (
       lower.endsWith(".woff2") ||
       lower.endsWith(".woff") ||
       /[\\/]icons[\\/].+\.(png|svg|ico)$/.test(lower) ||
@@ -1198,14 +1202,14 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=649",
+  "/js/library-ui.js?v=650",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=643",
   "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=486",
-  "/js/reader-morph.js?v=649",
+  "/js/reader-morph.js?v=650",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=648",
   "/js/room-b6-core.js?v=485",
@@ -1234,9 +1238,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=610",
-  "/i18n/locales/ru.js?v=261",
-  "/i18n/locales/en.js?v=261",
-  "/i18n/locales/he.js?v=261",
+  "/i18n/locales/ru.js?v=262",
+  "/i18n/locales/en.js?v=262",
+  "/i18n/locales/he.js?v=262",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

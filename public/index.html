@@ -11741,8 +11741,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Вставьте текст на иврите — статью, песню или диалог"></textarea>
 
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
-                            <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Добавить материал</span></button>
-                            <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
+                            <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()"><span data-studio-icon="lp-icon-import" aria-hidden="true"><span class="studio-icon-fallback" aria-hidden="true">📥</span></span> <span data-i18n="studio.import.button">Добавить материал</span></button>
+                            <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()"><span data-studio-icon="lp-icon-sparkle" aria-hidden="true"><span class="studio-icon-fallback" aria-hidden="true">✨</span></span> <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
                         </div>
 
                         <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
@@ -11754,7 +11754,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         <div id="classicPrimaryBar" class="classic-primary-bar" data-priority="table">
                             <div class="classic-primary-actions">
                                 <button id="btnAiTranslate" class="btn-success" onclick="translateTable()" data-i18n="classic.buildTable">Собрать таблицу</button>
-                                <button id="btnMainTts" class="btn-primary" onclick="playTTS()" data-i18n="classic.speak">🔊 Озвучить</button>
+                                <button id="btnMainTts" class="btn-primary" onclick="playTTS()" data-i18n="classic.speak">Озвучить</button>
                             </div>
                             <button id="v3TableJobMini" type="button" class="v3-tbp-mini" hidden onclick="v3TableProgressReveal()">
                                 <span class="v3-tbp-mini-bar" aria-hidden="true"><span id="v3TableJobMiniFill"></span></span>
@@ -11980,7 +11980,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <div class="classic-card-subtitle" data-i18n="classic.resultSubtitle">Статус и происхождение результата.</div>
                             </div>
                             <div class="classic-result-actions">
-                                <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()" data-i18n="classic.save">💾 Сохранить</button>
+                                <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()" data-i18n="classic.save">Сохранить</button>
                                 <button id="btnWord" class="btn-word disabled"
                                         data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                         onclick="downloadWord()" disabled data-i18n="classic.downloadTable">Скачать таблицу</button>
@@ -12098,7 +12098,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <div class="table-settings-row table-settings-sub studio-morph-row" aria-label="Статус слов">
                                     <label class="table-chk">
                                         <input type="checkbox" id="studioWordStatusToggle">
-                                        <span data-i18n="room.morph.statusToggle">🎨 Статус слов</span>
+                                        <span data-i18n="room.morph.statusToggle">Статус слов</span>
                                     </label>
                                     <span id="studioWordStatusLegend" class="reader-status-legend"></span>
                                     <span class="table-settings-note" data-i18n="room.morph.statusNote">Фиолетовый — явно новое; пунктир — распознано, но не оценено; без декорации — не разрешено.</span>
@@ -12707,7 +12707,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- 6.8 Diagnostic panel — full-width, collapsed by default -->
 <div id="v3DashSecDiag" class="v3-dash-section v3-dash-collapsed" data-sec="diag" style="margin-top:14px;">
   <div class="v3-dash-sec-head">
-    <h3 data-i18n="dashboard.secDiag">🔧 Диагностика системы</h3>
+    <h3 data-i18n="dashboard.secDiag">Диагностика системы</h3>
     <button class="v3-dash-sec-toggle" type="button" data-sec="diag"
       aria-label="Свернуть/развернуть: Диагностика системы" data-i18n-title="dashboard.toggleTitle" title="Свернуть/развернуть">▾</button>
   </div>
@@ -13530,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=261"></script>
-<script src="/i18n/locales/en.js?v=261"></script>
-<script src="/i18n/locales/he.js?v=261"></script>
+<script src="/i18n/locales/ru.js?v=262"></script>
+<script src="/i18n/locales/en.js?v=262"></script>
+<script src="/i18n/locales/he.js?v=262"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13605,7 +13605,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js?v=649"></script>
+<script src="/js/reader-morph.js?v=650"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13758,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.649";
+    window.APP_VERSION = "3.11.650";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34297,7 +34297,7 @@ function v3UpdateTtsCardStatus() {
   if (rate && rate.value && Number(rate.value).toFixed(1) !== "1.0") {
     parts.push("×" + Number(rate.value).toFixed(1));
   }
-  v3UpdateCardStatus("classicTtsCard", parts.length ? "🔊 " + parts.join(" · ") : "");
+  v3UpdateCardStatus("classicTtsCard", parts.length ? parts.join(" · ") : "");
 }
 
 function v3UpdateTranslationCardStatus() {
@@ -34327,7 +34327,7 @@ function v3UpdateTranslationCardStatus() {
     const f = _v3OptText(font);
     if (f) parts.push(f.length > 16 ? f.slice(0, 14) + "…" : f);
   }
-  v3UpdateCardStatus("classicTranslationCard", parts.length ? "🌐 " + parts.join(" · ") : "");
+  v3UpdateCardStatus("classicTranslationCard", parts.length ? parts.join(" · ") : "");
 }
 
 function v3InitClassicCardLiveState() {
@@ -51412,18 +51412,14 @@ document.addEventListener("i18n:changed", function () {
 <!-- ── App footer (Direction 8 — Trust signals) ───────────────────────── -->
 <footer class="app-footer" id="appFooter">
   <div class="app-footer-left">
-    <a class="privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">🔒 Данные на этом устройстве</a>
-    <span class="app-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Sindrom Radio</span></span>
+    <a class="privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">Данные на этом устройстве</a>
   </div>
   <div class="app-footer-right">
-    <a id="byokTourReplayLink" href="#" onclick="byokTourStart();return false;" data-i18n="footer.tourLink">🎯 Тур</a>
-    <a id="footerFeedbackLink" href="#" onclick="v3FeedbackOpen('bug');return false;" data-i18n="footer.feedbackLink">💬 Сообщить о проблеме</a>
+    <a id="byokTourReplayLink" href="#" onclick="byokTourStart();return false;" data-i18n="footer.tourLink">Тур</a>
+    <a id="footerFeedbackLink" href="#" onclick="v3FeedbackOpen('bug');return false;" data-i18n="footer.feedbackLink">Сообщить о проблеме</a>
     <a href="#" onclick="v3AboutOpen();return false;" data-i18n="footer.aboutLink">О приложении</a>
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
-    <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
-    <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <span class="app-footer-version" id="appFooterVersion" onclick="v3AboutOpen()" title="Open About">v3.11.32</span>
   </div>
 </footer>
 
@@ -51888,6 +51884,15 @@ document.addEventListener("i18n:changed", function () {
       <div class="v3-about-row">
         <div class="v3-about-label" data-i18n="about.repoLabel">Репозиторий</div>
         <div class="v3-about-value"><a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener">github.com/SindromRadioSpb/tts-prototype-android</a></div>
+      </div>
+      <!-- R11a (audit P2-4): moved here from the user footer. -->
+      <div class="v3-about-row">
+        <div class="v3-about-label" data-i18n="about.authorLabel">Автор</div>
+        <div class="v3-about-value"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Sindrom Radio</span></div>
+      </div>
+      <div class="v3-about-row">
+        <div class="v3-about-label" data-i18n="about.diagLabel">Диагностика</div>
+        <div class="v3-about-value"><a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a></div>
       </div>
       <div class="v3-about-row">
         <div class="v3-about-label" data-i18n="about.storageLabel">Хранение данных</div>

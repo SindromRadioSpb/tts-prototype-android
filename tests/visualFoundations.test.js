@@ -53,6 +53,11 @@ const SYSTEM_SYMBOLS = Object.freeze([
   "lp-icon-chevron-up",
   "lp-icon-close",
   "lp-icon-offline",
+  // R11a (2026-09-26): emoji → line icons, same pinned Lucide commit, exact provenance.
+  "lp-icon-calendar",
+  "lp-icon-chart",
+  "lp-icon-import",
+  "lp-icon-sparkle",
 ]);
 
 const FIRST_PARTY_SYMBOLS = Object.freeze([
@@ -232,7 +237,7 @@ test("VF0 sprite is a bounded, inert and complete audited symbol set", () => {
   const actual = [...sprite.matchAll(/<symbol\s+id="([^"]+)"/g)].map((match) => match[1]).sort();
   const expected = [...SYSTEM_SYMBOLS, ...FIRST_PARTY_SYMBOLS].sort();
   assert.deepEqual(actual, expected, "sprite IDs must equal the approved set; no generic pack dump");
-  assert.equal(SYSTEM_SYMBOLS.length, 23, "system subset remains within the approved 16–24 range");
+  assert.equal(SYSTEM_SYMBOLS.length, 27, "system subset remains within the approved 16–28 range (R11a)");
 });
 
 test("VF0 records Lucide and Feather licence notices plus reproducible provenance", () => {

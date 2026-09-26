@@ -9,7 +9,7 @@
 
 ## Policy
 
-`linguistpro-ui.svg` contains only the 23 audited system icons below and four first-party LinguistPro marks. Lucide source geometry is copied into same-origin SVG `<symbol>` elements; symbol IDs are renamed to the `lp-icon-*` contract. There is no npm/runtime dependency and no unlisted pack content.
+`linguistpro-ui.svg` contains only the 27 audited system icons below and four first-party LinguistPro marks. Lucide source geometry is copied into same-origin SVG `<symbol>` elements; symbol IDs are renamed to the `lp-icon-*` contract. There is no npm/runtime dependency and no unlisted pack content.
 
 The complete upstream ISC licence and Feather-derived MIT notice are stored verbatim in `lucide-LICENSE.txt`. The first-party `lp-mark-product`, `lp-mark-room`, `lp-mark-studio` and `lp-mark-mentor` symbols were authored for LinguistPro and are not Lucide derivatives.
 
@@ -40,6 +40,12 @@ The complete upstream ISC licence and Feather-derived MIT notice are stored verb
 | `lp-icon-chevron-up` | `icons/chevron-up.svg` | `d09f13fcbef3c493ead7e4663b5ee91804fec38d5edb5e7cc3acfbd547641cf4` |
 | `lp-icon-close` | `icons/x.svg` | `4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117` |
 | `lp-icon-offline` | `icons/cloud-off.svg` | `f1fa323fe513c96400971a5dac55823d88e41cc2c8cc9219c3ca4c62d46ebe62` |
+| `lp-icon-calendar` | `icons/calendar.svg` | `c5c59382ebf9c3c2ce6426bd9f36fdda7ef8f0a96bffb8d8316ab38dc4dcc982` |
+| `lp-icon-chart` | `icons/chart-column.svg` | `80664a4c5ca1bca10bcb88c1a99f62593c94d61d72d3a4bbf577eb3f3ea4da57` |
+| `lp-icon-import` | `icons/inbox.svg` | `1838482c53d0846badef9be96fdcf7a167064241bd4891efa995c77ebec5f187` |
+| `lp-icon-sparkle` | `icons/sparkles.svg` | `f5499f33f09d7158151e9bd2ec0faf79ff8fb57292f84fdd7286d96d0f0424d8` |
+
+The last four were added on 2026-09-26 by the UI release program R11a (emoji → line icons, owner-approved plan) from the same pinned commit; the pin was re-verified by the unchanged SHA-256 of `icons/search.svg`.
 
 ## Reproduction
 

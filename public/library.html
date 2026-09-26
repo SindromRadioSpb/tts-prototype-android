@@ -3242,7 +3242,7 @@
     <button id="readerBack" class="reader-back" type="button" data-i18n="room.reader.back">← Полки</button>
     <h2 id="readerTitle" class="reader-title"></h2>
     <button id="roomReadAloud" class="reader-aids-toggle" type="button" aria-pressed="false" data-i18n-title="room.reader.readAloud" title="Читать вслух">▶</button>
-    <button id="readerFindToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerFind" data-i18n-title="room.reader.find.label" title="Найти в тексте">🔍</button>
+    <button id="readerFindToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerFind" data-i18n-title="room.reader.find.label" data-i18n-aria-label="room.reader.find.label" aria-label="Найти в тексте" title="Найти в тексте" data-room-icon="lp-icon-search"><span class="room-icon-fallback" aria-hidden="true">🔍</span></button>
     <button id="readerAidsToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerAids" data-i18n-title="room.reader.aids" title="Настройки чтения">Аа</button>
   </div>
   <!-- Epic-6 W1-a — per-work source attribution + reader-header context (R6/R9): author · era · register · «Источник ↗».
@@ -3297,21 +3297,14 @@
 <!-- ── Trust footer (R4/R5) + Ben-Yehuda source attribution (R6/R9) ───────────── -->
 <footer class="room-footer" id="roomFooter">
   <div class="room-footer-left">
-    <a class="room-privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">🔒 Данные на этом устройстве</a>
-    <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
+    <a class="room-privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">Данные на этом устройстве</a>
     <a class="room-footer-source" href="https://benyehuda.org" target="_blank" rel="noopener" data-i18n="room.footer.source">Тексты: Проект Бен-Иегуда (общественное достояние)</a>
   </div>
   <div class="room-footer-right">
-    <a id="roomFooterStudioLink" class="room-footer-studio room-vf1-focus" href="/"><span data-room-icon="lp-mark-studio" aria-hidden="true"><span class="room-icon-fallback" aria-hidden="true">📝</span></span><span data-i18n="room.footer.studio">Студия</span></a>
     <a href="https://kolosei.com/products/linguistpro/" target="_blank" rel="noopener" data-i18n="room.footer.product">О продукте</a>
-    <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues/new" target="_blank" rel="noopener" data-i18n="footer.feedbackLink">💬 Сообщить о проблеме</a>
+    <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues/new" target="_blank" rel="noopener" data-i18n="footer.feedbackLink">Сообщить о проблеме</a>
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
-    <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
-    <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
-    <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.649</button>
   </div>
 </footer>
 
@@ -3335,6 +3328,14 @@
       <span data-i18n="room.about.versionLabel">Версия</span>&nbsp;<strong id="roomAboutVersion">—</strong>
       <span id="roomAboutUpdate" class="room-about-update"></span>
     </div>
+    <!-- R11a (audit P2-4): moved here from the user footer. #roomFooterVersion keeps its id —
+         the shell version check reads it. -->
+    <p class="room-about-links">
+      <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
+      <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
+      <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.650</button>
+    </p>
   </div>
 </div>
 
@@ -3499,9 +3500,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=261"></script>
-    <script src="/i18n/locales/en.js?v=261"></script>
-    <script src="/i18n/locales/he.js?v=261"></script>
+    <script src="/i18n/locales/ru.js?v=262"></script>
+    <script src="/i18n/locales/en.js?v=262"></script>
+    <script src="/i18n/locales/he.js?v=262"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3544,7 +3545,7 @@
 <!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
      reader-morph.js so ensureEngine can build its lexicon. -->
 <script src="/js/proclitic-segment.js"></script>
-<script src="/js/reader-morph.js?v=649"></script>
+<script src="/js/reader-morph.js?v=650"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
@@ -3612,6 +3613,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=649"></script>
+<script type="module" src="/js/library-ui.js?v=650"></script>
 </body>
 </html>

@@ -1,0 +1,120 @@
+[
+ {
+  "surface": "room-home",
+  "items": [
+   "🔬 @ roomContent  «🔬 Скоро: тематические корпуса»",
+   "🔒 @ roomFooter  «🔒 Данные на этом устройстве»",
+   "❤️ @ roomFooter  «Made with ❤️ by»",
+   "💬 @ roomFooter  «💬 Сообщить о проблеме»",
+   "🔧 @ roomFooter  «🔧 Диагностика системы»"
+  ]
+ },
+ {
+  "surface": "room-reader",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "🔍 @ readerFindToggle  «🔍»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "👆 @ readerTip  «👆 тап — разбор · долгий тап — статус»",
+   "📚 @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ proTable  «▶»",
+   "🔒 @ roomFooter  «🔒 Данные на этом устройстве»",
+   "❤️ @ roomFooter  «Made with ❤️ by»",
+   "💬 @ roomFooter  «💬 Сообщить о проблеме»",
+   "🔧 @ roomFooter  «🔧 Диагностика системы»"
+  ]
+ },
+ {
+  "surface": "room-reader-aids",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "🔍 @ readerFindToggle  «🔍»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "🎬 @ roomStudyBlock  «🎬 Учебный режим»",
+   "🎨 @ readerAids  «🎨 Статус слов»",
+   "📚 @ readerAids  «📚 Мои слова»",
+   "🎯 @ readerAids  «🎯 Точный режим (Dicta)»",
+   "👆 @ readerTip  «👆 тап — разбор · долгий тап — статус»",
+   "📚 @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ proTable  «▶»",
+   "🔒 @ roomFooter  «🔒 Данные на этом устройстве»",
+   "❤️ @ roomFooter  «Made with ❤️ by»",
+   "💬 @ roomFooter  «💬 Сообщить о проблеме»",
+   "🔧 @ roomFooter  «🔧 Диагностика системы»"
+  ]
+ },
+ {
+  "surface": "word-card",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "🔍 @ readerFindToggle  «🔍»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "👆 @ readerTip  «👆 тап — разбор · долгий тап — статус»",
+   "📚 @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ proTable  «▶»",
+   "🔒 @ roomFooter  «🔒 Данные на этом устройстве»",
+   "❤️ @ roomFooter  «Made with ❤️ by»",
+   "💬 @ roomFooter  «💬 Сообщить о проблеме»",
+   "🔧 @ roomFooter  «🔧 Диагностика системы»",
+   "🔊 @ rm-speak  «🔊»",
+   "⚠ @ rm-usage-k  «⚠ осторожно:»",
+   "↗ @ rm-link  «Открыть на Pealim ↗»",
+   "🤖 @ rm-explain-btn  «🤖 Объяснить (наставник)»"
+  ]
+ },
+ {
+  "surface": "words-sheet",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "🔍 @ readerFindToggle  «🔍»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "🎬 @ roomStudyBlock  «🎬 Учебный режим»",
+   "🎨 @ readerAids  «🎨 Статус слов»",
+   "📚 @ readerAids  «📚 Мои слова»",
+   "🎯 @ readerAids  «🎯 Точный режим (Dicta)»",
+   "👆 @ readerTip  «👆 тап — разбор · долгий тап — статус»",
+   "📚 @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ readerTip  «📚 Учить — словарь · ▶ строка — озвучка»",
+   "▶ @ proTable  «▶»",
+   "🔒 @ roomFooter  «🔒 Данные на этом устройстве»",
+   "❤️ @ roomFooter  «Made with ❤️ by»",
+   "💬 @ roomFooter  «💬 Сообщить о проблеме»",
+   "🔧 @ roomFooter  «🔧 Диагностика системы»",
+   "📚 @ room-study-title  «📚 Мои слова»",
+   "📅 @ room-study-cal  «📅 Календарь»",
+   "📊 @ room-study-cal  «📊 Запоминание»",
+   "📋 @ room-study-seg on  «📋 Список»",
+   "🎯 @ room-study-seg  «🎯 Повторение»",
+   "🚫 @ room-study-bulk-btn  «🚫 не учить»",
+   "🔊 @ room-study-speak  «🔊»",
+   "🌞 @ room-study-gloss  «🌞 солнце»"
+  ]
+ },
+ {
+  "surface": "studio-home",
+  "items": [
+   "📥 @ v3ImportEntry  «📥»",
+   "✨ @ v3RetellEntryBtn  «✨»",
+   "🔊 @ btnMainTts  «🔊 Озвучить»",
+   "🔊 @ classicTtsCard  «🔊 Online TTS · Авто (по умолчанию)»",
+   "🌐 @ classicTranslationCard  «🌐 Google Translate · Транслит: учебная »",
+   "💾 @ btnSaveToLibrary  «💾 Сохранить»",
+   "🧩 @ tableSettings  «🧩 Таблица: отображение и сценарии»",
+   "▶ @ btnPlaylistRun  «▶▶ Старт»",
+   "🎨 @ tableSettings  «🎨 Статус слов»",
+   "📚 @ studioReviewWordsBtn  «📚 Мои слова»",
+   "🔒 @ appFooter  «🔒 Данные на этом устройстве»",
+   "❤️ @ appFooter  «Made with ❤️ by»",
+   "🎯 @ byokTourReplayLink  «🎯 Тур»",
+   "💬 @ footerFeedbackLink  «💬 Сообщить о проблеме»",
+   "🔧 @ appFooter  «🔧 Диагностика системы»"
+  ]
+ },
+ {
+  "surface": "mediatheque",
+  "items": []
+ }
+]

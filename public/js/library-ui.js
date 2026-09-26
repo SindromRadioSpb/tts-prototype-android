@@ -1070,6 +1070,13 @@ function roomIcon(symbol, fallback, className) {
   return slot;
 }
 
+// R11a: speaker buttons carry the sprite's audio icon instead of the 🔊 glyph.
+function roomSpeakButton(opts) {
+  const b = el('button', opts);
+  b.appendChild(roomIcon('lp-icon-audio', '🔊'));
+  return b;
+}
+
 function setRoomIcon(target, symbol, fallback, className) {
   if (!target) return;
   target.removeAttribute('data-room-icon');
@@ -1639,8 +1646,8 @@ function showReaderTip() {
   // Two CONTROLLED lines — group the two reading gestures on line 1, the two study gestures on
   // line 2. Never free-wrap mid-phrase (premium UI: a logical group must not split across lines).
   const txt = el('div', { class: 'reader-tip-txt' });
-  txt.appendChild(el('span', { class: 'reader-tip-line', i18n: 'room.onboard.readerTip1', text: tt('room.onboard.readerTip1', '👆 тап — разбор · долгий тап — статус') }));
-  txt.appendChild(el('span', { class: 'reader-tip-line', i18n: 'room.onboard.readerTip2', text: tt('room.onboard.readerTip2', '📚 Учить — словарь · ▶ строка — озвучка') }));
+  txt.appendChild(el('span', { class: 'reader-tip-line', i18n: 'room.onboard.readerTip1', text: tt('room.onboard.readerTip1', 'Тап по слову — разбор · долгий тап — статус') }));
+  txt.appendChild(el('span', { class: 'reader-tip-line', i18n: 'room.onboard.readerTip2', text: tt('room.onboard.readerTip2', 'Мои слова — в меню «Аа» · ▶ у строки — озвучка') }));
   tip.appendChild(txt);
   const x = el('button', { class: 'reader-tip-x', text: '✕', attrs: { type: 'button', 'aria-label': tt('room.morph.close', 'Закрыть') } });
   x.addEventListener('click', () => { tip.hidden = true; readerTipSeenSet(); });
@@ -2396,12 +2403,12 @@ function _humanizeUntil(ms, nowMs) {
 }
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
-  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Мои слова') } });
+  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', 'Мои слова') } });
   sheet.hidden = true;
   const card = el('div', { class: 'room-study-card' });
   card.appendChild(el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
   const head = el('div', { class: 'room-study-head' });
-  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Мои слова') }));
+  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', 'Мои слова') }));
   const totalWrap = el('span', { class: 'room-study-total-wrap' });
   totalWrap.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
   const totalHelp = wireDismissibleDetails(el('details', { class: 'learning-compass-details room-study-total-help' }));
@@ -2411,7 +2418,7 @@ function ensureStudySheet() {
   totalHelp.appendChild(totalHelpPanel); totalWrap.appendChild(totalHelp); head.appendChild(totalWrap);
   // D7.1 — always-visible entry to the activity heatmap (findable even with no streak → honest empty state)
   const calBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности'), title: tt('room.morph.study.heatTitle', 'Календарь активности') } });
-  calBtn.textContent = '📅 ' + tt('room.morph.study.heatShort', 'Календарь');
+  calBtn.replaceChildren(roomIcon('lp-icon-calendar', '📅'), document.createTextNode(tt('room.morph.study.heatShort', 'Календарь')));
   calBtn.addEventListener('click', () => openStudyHeatmap());
   // R9: the calendar and the memory report are one labelled row of tools.
   const tools = el('div', { class: 'room-study-tools' });
@@ -2421,15 +2428,15 @@ function ensureStudySheet() {
   const repBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'data-report-open': '1',
     'aria-label': tt('room.morph.study.reportTitle', 'Как идёт запоминание'),
     title: tt('room.morph.study.reportTitle', 'Как идёт запоминание') } });
-  repBtn.textContent = '📊 ' + tt('room.morph.study.reportShort', 'Запоминание');
+  repBtn.replaceChildren(roomIcon('lp-icon-chart', '📊'), document.createTextNode(tt('room.morph.study.reportShort', 'Запоминание')));
   tools.appendChild(repBtn);
   head.appendChild(tools);
   card.appendChild(head);
   card.appendChild(_dueBadgeEl('room-study-duebadge'));   // D3 — «В работе / К повторению» (both modes)
   // 4.3b — «Список / Тренировка» mode toggle (owner decision 4)
   const modeRow = el('div', { class: 'room-study-modetoggle', attrs: { dir: uiDirRoom() } });
-  modeRow.appendChild(el('button', { class: 'room-study-seg on', i18n: 'room.morph.study.modeList', text: tt('room.morph.study.modeList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
-  modeRow.appendChild(el('button', { class: 'room-study-seg', i18n: 'room.morph.study.modeTrain', text: tt('room.morph.study.modeTrain', '🎯 Повторение'), attrs: { type: 'button', 'data-study-mode': 'train' } }));
+  modeRow.appendChild(el('button', { class: 'room-study-seg on', i18n: 'room.morph.study.modeList', text: tt('room.morph.study.modeList', 'Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
+  modeRow.appendChild(el('button', { class: 'room-study-seg', i18n: 'room.morph.study.modeTrain', text: tt('room.morph.study.modeTrain', 'Повторение'), attrs: { type: 'button', 'data-study-mode': 'train' } }));
   card.appendChild(modeRow);
   card.appendChild(el('div', { class: 'room-study-controls' }));
   card.appendChild(el('div', { class: 'room-study-bulk' }));
@@ -2532,7 +2539,7 @@ function setStudyMode(mode) {
   _studyMode = mode === 'train' ? 'train' : 'list';
   if (_studySheet) _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === _studyMode));
   _studyListChrome(_studyMode === 'list');
-  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', '📚 Мои слова'); renderStudyBody(); }
+  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', 'Мои слова'); renderStudyBody(); }
   else { _studySetTitle('room.morph.study.trainTitle', 'Повторение'); startTraining(); }
 }
 
@@ -2565,7 +2572,7 @@ function studyRowEl(w) {
   const assessmentText = w.assessment === 'explicit_new' ? tt('room.morph.study.explicitNew', 'явно новое') : (w.assessment === 'asserted' ? statusLabel(w._status) : tt('room.morph.study.unassessed', 'не оценено'));
   heWrap.appendChild(el('span', { class: 'room-study-assessment ' + assessmentClass, text: assessmentText }));
   if (w.nameSuspect) heWrap.appendChild(el('span', { class: 'room-study-nameflag', i18n: 'room.morph.study.nameSuspect', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
-  heWrap.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-study-speak': '1', 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
+  heWrap.appendChild(roomSpeakButton({ class: 'room-study-speak', attrs: { type: 'button', 'data-study-speak': '1', 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   lead.appendChild(heWrap);
   const meta = el('div', { class: 'room-study-meta', attrs: { 'data-study-card': '1' } });
   if (w.gloss) meta.appendChild(el('span', { class: 'room-study-gloss', text: w.gloss, attrs: { dir: 'ltr' } }));
@@ -2771,7 +2778,7 @@ async function roomOpenStudyList() {
   const sheet = ensureStudySheet();
   _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
   _studyMode = 'list'; _trainSession = null;
-  _studySetTitle('room.morph.study.title', '📚 Мои слова');
+  _studySetTitle('room.morph.study.title', 'Мои слова');
   sheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'list'));
   _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
@@ -3694,7 +3701,7 @@ function renderTrainTeach(item) {
   box.appendChild(el('div', { class: 'room-train-teach-tag', i18n: 'room.morph.study.teachNew', text: tt('room.morph.study.teachNew', '✦ Новое слово') }));
   const wordRow = el('div', { class: 'room-train-teach-wordrow' });
   wordRow.appendChild(el('span', { class: 'room-train-teach-word', attrs: { lang: 'he', dir: 'rtl' }, text: item.niqqud || item.surface }));
-  wordRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': item.niqqud || item.surface, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
+  wordRow.appendChild(roomSpeakButton({ class: 'room-study-speak', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': item.niqqud || item.surface, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   box.appendChild(wordRow);
   if (item.gloss) box.appendChild(el('div', { class: 'room-train-teach-gloss', attrs: { dir: 'ltr' }, text: item.gloss }));
   if (built && built.sentence) {
@@ -3702,7 +3709,7 @@ function renderTrainTeach(item) {
     // alongside the word-level 🔊 above. Owner request 2026-06-29.
     const ctxRow = el('div', { class: 'room-train-teach-ctxrow' });
     ctxRow.appendChild(el('span', { class: 'room-train-teach-ctx', attrs: { lang: 'he', dir: 'rtl' }, text: built.sentence }));
-    ctxRow.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
+    ctxRow.appendChild(roomSpeakButton({ class: 'room-study-speak room-train-rowspeak', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
     box.appendChild(ctxRow);
   }
   if (built && built.ru) box.appendChild(el('div', { class: 'room-train-teach-ru', attrs: { dir: 'ltr' }, text: built.ru }));
@@ -3723,10 +3730,10 @@ function onTrainTeachDone() {
 // disabled (with an honest hint) when its audio can't play (availableChannels). Auto-width buttons
 // (escape the global button{width:100%} trap). i18n labels via tt().
 const _TRAIN_CHANNELS = [
-  { ch: 'read', key: 'room.morph.study.chRead', fb: '📖 Чтение' },
-  { ch: 'listen', key: 'room.morph.study.chListen', fb: '🎧 Аудио' },
-  { ch: 'reverse', key: 'room.morph.study.chReverse', fb: '🔤 RU→HE' },
-  { ch: 'dictate', key: 'room.morph.study.chDictate', fb: '✍️ Диктант' },
+  { ch: 'read', key: 'room.morph.study.chRead', fb: 'Чтение' },
+  { ch: 'listen', key: 'room.morph.study.chListen', fb: 'Аудио' },
+  { ch: 'reverse', key: 'room.morph.study.chReverse', fb: 'RU→HE' },
+  { ch: 'dictate', key: 'room.morph.study.chDictate', fb: 'Диктант' },
 ];
 function _trainChannelBar() {
   const s = _trainSession;
@@ -3827,14 +3834,14 @@ function renderTrainItem() {
   if (channel === 'listen') {
     // hear the sentence (baked audio when present, else TTS), NO written Hebrew → map sound to form.
     const au = el('div', { class: 'room-train-audioprompt' });
-    au.appendChild(el('button', { class: 'room-train-bigplay', text: '🔊', attrs: { type: 'button', 'data-train-listen-row': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
+    au.appendChild(roomSpeakButton({ class: 'room-train-bigplay', attrs: { type: 'button', 'data-train-listen-row': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
     au.appendChild(el('span', { class: 'room-train-audiohint', i18n: 'room.morph.study.listenHint', text: tt('room.morph.study.listenHint', '🎧 Прослушай предложение') }));
     body.appendChild(au);
     try { _playSentenceAudio(built); } catch (_) {}   // auto-play once on render (baked asset → TTS fallback)
   } else if (channel === 'dictate') {
     // hear the ISOLATED word (vocalized TTS) → write it. Pure listening + spelling.
     const au = el('div', { class: 'room-train-audioprompt' });
-    au.appendChild(el('button', { class: 'room-train-bigplay', text: '🔊', attrs: { type: 'button', 'data-train-listen-word': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
+    au.appendChild(roomSpeakButton({ class: 'room-train-bigplay', attrs: { type: 'button', 'data-train-listen-word': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
     au.appendChild(el('span', { class: 'room-train-audiohint', i18n: 'room.morph.study.dictateHint', text: tt('room.morph.study.dictateHint', '✍️ Прослушай и впиши слово') }));
     body.appendChild(au);
     // play the sentence-INFLECTED vocalized form (built.cz.answer) — it matches what the reveal shows and
@@ -3855,7 +3862,7 @@ function renderTrainItem() {
       else cloze.appendChild(el('span', { text: seg.t }));
     });
     clozeWrap.appendChild(cloze);
-    clozeWrap.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
+    clozeWrap.appendChild(roomSpeakButton({ class: 'room-study-speak room-train-rowspeak', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
     body.appendChild(clozeWrap);
   }
   // prompt = lemma gloss (the meaning anchor — for 'reverse' this IS the question) …
@@ -4156,7 +4163,7 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   rev.appendChild(el('div', { class: 'room-train-verdict', text: skipped ? tt('room.morph.study.skipped', '— Пропущено') : (correct ? tt('room.morph.study.correct', '✓ Верно') : tt('room.morph.study.wrong', '✗ Неверно')) }));
   const ansRow = el('div', { class: 'room-train-ansrow' });
   ansRow.appendChild(el('span', { class: 'room-train-ans', attrs: { lang: 'he', dir: 'rtl' }, text: built.cz.answer }));
-  ansRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': built.cz.answer, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
+  ansRow.appendChild(roomSpeakButton({ class: 'room-study-speak', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': built.cz.answer, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   rev.appendChild(ansRow);
   // P4 — the option the learner picked is deliberately NOT the sentence form: slot options are bare
   // by design so the correct one carries no inflection tell, and P5 strips the proclitic in the B1
@@ -4352,8 +4359,8 @@ function renderTrainSummary() {
     }
   }
   const actions = el('div', { class: 'room-train-actions' });
-  actions.appendChild(el('button', { class: 'room-train-next', i18n: 'room.morph.study.again', text: tt('room.morph.study.again', '🎯 Ещё'), attrs: { type: 'button', 'data-train-again': '1' } }));
-  actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.toList', text: tt('room.morph.study.toList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
+  actions.appendChild(el('button', { class: 'room-train-next', i18n: 'room.morph.study.again', text: tt('room.morph.study.again', 'Ещё'), attrs: { type: 'button', 'data-train-again': '1' } }));
+  actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.toList', text: tt('room.morph.study.toList', 'Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
   box.appendChild(actions);
   // D7 — premium off-switch (always reachable from the summary): hide the streak entirely for learners
   // who find streak pressure counterproductive (the Anki crowd) — the visible opt-out IS the anti-dark-pattern.
@@ -5048,18 +5055,27 @@ async function _cloudRunSync(auto) {
 // Modified clicks (ctrl/cmd/shift/middle-click — "open in new tab") are left alone: a NEW tab
 // is the pre-existing, already-correct multi-tab scenario (Web-Locks owner/follower).
 function _roomStudioNavInit() {
+  const leaveRoom = (ev, url) => {
+    if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+    ev.preventDefault();
+    // Write a debounced working row before leaving: the cached Room stops its DB worker.
+    (async () => { try { if (_progressTimer) await flushReaderProgress(); } catch (_) {} try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();
+  };
   const wire = (el) => {
     if (!el) return;
-    el.addEventListener('click', (ev) => {
-      if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
-      ev.preventDefault();
-      const url = el.getAttribute('href') || '/';
-      // Write a debounced working row before leaving: the cached Room stops its DB worker.
-      (async () => { try { if (_progressTimer) await flushReaderProgress(); } catch (_) {} try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();
-    });
+    el.addEventListener('click', (ev) => leaveRoom(ev, el.getAttribute('href') || '/'));
   };
   wire($('roomStudioLink'));
-  wire($('roomFooterStudioLink'));
+  // R6 nav: its links are re-rendered on a locale change, so the exit is delegated to the <nav>.
+  // Links back into this page (Зал, Повторение = /library.html…) stay ordinary navigation.
+  const nav = document.querySelector('nav.lp-app-nav');
+  if (nav) nav.addEventListener('click', (ev) => {
+    const a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+    if (!a) return;
+    const url = a.getAttribute('href') || '/';
+    if (url.indexOf('/library.html') === 0) return;
+    leaveRoom(ev, url);
+  });
   document.querySelectorAll('.room-mediatheque-entry a').forEach(wire);
 }
 function roomCloudInit() {
@@ -8014,7 +8030,7 @@ function buildAidsPanel() {
   studyCb.checked = studyModeOn();
   studyCb.addEventListener('change', () => studyModeSet(studyCb.checked));
   studyLab.appendChild(studyCb);
-  studyLab.appendChild(el('span', { i18n: 'room.study.toggle', text: tt('room.study.toggle', '🎬 Учебный режим') }));
+  studyLab.appendChild(el('span', { i18n: 'room.study.toggle', text: tt('room.study.toggle', 'Учебный режим') }));
   studyBlock.appendChild(studyLab);
   studyBlock.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.study.hint', text: tt('room.study.hint', 'Экран отдаётся видео и таблице') }));
 
@@ -8108,11 +8124,11 @@ function buildAidsPanel() {
   wsCb.checked = wordStatusEnabled();
   wsCb.addEventListener('change', () => { wordStatusSet(wsCb.checked); applyDecorations(); });
   wsLab.appendChild(wsCb);
-  wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', '🎨 Статус слов') }));
+  wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', 'Статус слов') }));
   wsLab.appendChild(el('span', { class: 'reader-aids-info', attrs: { title: statusHint, 'aria-hidden': 'true' }, text: 'ⓘ' }));
   panel.appendChild(wsLab);
   // Epic 4 — VISIBLE status-colour legend (premium + mobile-legible; title tooltips fail @380px).
-  const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', '🎨 Статус слов') } });
+  const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', 'Статус слов') } });
   [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', tt('room.morph.status.l1', 'незнакомо')], ['l2', tt('room.morph.status.l2', 'узнаю')],
     ['l3', tt('room.morph.status.l3', 'вспоминаю')], ['l4', tt('room.morph.status.l4', 'почти знаю')],
     ['known', tt('room.morph.status.known', 'знаю')], ['ignore', tt('room.morph.status.ignore', 'не учить')]].forEach(([c, l]) => {
@@ -8124,7 +8140,7 @@ function buildAidsPanel() {
   panel.appendChild(legend);
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.statusNote', text: tt('room.morph.statusNote', 'Фиолетовый означает вашу явную отметку «новое»; пунктир — распознано, но не оценено; без декорации — не разрешено.') }));
   // Epic 4.3a — assess THIS screen's explicit-new and unassessed words.
-  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Мои слова'), attrs: { type: 'button' } });
+  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', 'Мои слова'), attrs: { type: 'button' } });
   studyBtn.addEventListener('click', roomOpenStudyList);
   panel.appendChild(studyBtn);
   panel.appendChild(_dueBadgeEl('reader-aids-duebadge'));   // D3 — due-counter under «📚 Учить» (the return CTA)
@@ -8139,7 +8155,7 @@ function buildAidsPanel() {
   cmCb.checked = contextConsent() === 'granted';
   cmCb.addEventListener('change', () => { contextConsentSet(cmCb.checked ? 'granted' : 'declined'); });
   cmLab.appendChild(cmCb);
-  cmLab.appendChild(el('span', { i18n: 'room.morph.contextToggle', text: tt('room.morph.contextToggle', '🎯 Точный режим (Dicta)') }));
+  cmLab.appendChild(el('span', { i18n: 'room.morph.contextToggle', text: tt('room.morph.contextToggle', 'Точный режим (Dicta)') }));
   panel.appendChild(cmLab);
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.contextHint', text: tt('room.morph.contextHint', 'Отправляет предложение в Dicta для точного значения в контексте. Машинный разбор, не носитель.') }));
   if (roomCopyrightOptions) {
@@ -12941,7 +12957,7 @@ async function renderCorpusHub(token) {
   }
   corpora.appendChild(list); wrap.appendChild(corpora);
   // Roadmap promise is an aside, visually and semantically outside the authorized corpus list.
-  wrap.appendChild(el('aside', { class: 'learning-home-teaser', text: '🔬 ' + tt('room.hub.soon', 'Скоро: тематические корпуса') }));
+  wrap.appendChild(el('aside', { class: 'learning-home-teaser', text: tt('room.hub.soon', 'Скоро: тематические корпуса') }));
   main.innerHTML = '';
   main.appendChild(wrap);
   _paintDueCTA();

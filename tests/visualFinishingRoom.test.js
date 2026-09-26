@@ -46,7 +46,10 @@ test("VF1 Room shell uses first-party and system icons with localized native nam
   assert.match(html, /id="roomTheme"[^>]*data-room-icon="lp-icon-theme"[^>]*aria-label="Тема"/);
   assert.match(extractFunction(js, "applyTheme", "cycleTheme"), /setAttribute\('title', lbl\)[\s\S]*setAttribute\('aria-label', lbl\)/,
     "theme owns a localized mode-specific name that generic applyI18n must not overwrite");
-  assert.match(html, /id="roomFooterStudioLink"[\s\S]*data-room-icon="lp-mark-studio"[\s\S]*data-i18n="room\.footer\.studio"/);
+  // R11a: the footer's Studio link duplicated the shared navigation (R6), which carries Studio
+  // with the same first-party mark; the footer no longer repeats it.
+  assert.doesNotMatch(html, /id="roomFooterStudioLink"/);
+  assert.match(fs.readFileSync(path.join(__dirname, "..", "public/js/app-nav.js"), "utf8"), /id: "studio", href: "\/", icon: "lp-mark-studio"/);
   assert.doesNotMatch(html, /<h1[^>]*data-i18n="room\.header\.title"/,
     "i18n text replacement must not destroy the Room mark");
   assert.match(html, /<button[^>]*class="[^"]*room-vf1-focus[^"]*"[^>]*id="roomDueCta"/,

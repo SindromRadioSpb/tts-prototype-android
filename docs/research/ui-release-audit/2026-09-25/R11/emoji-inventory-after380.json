@@ -1,0 +1,59 @@
+[
+ {
+  "surface": "room-home",
+  "items": [
+   "🔬 @ roomContent  «🔬 Скоро: тематические корпуса»"
+  ]
+ },
+ {
+  "surface": "room-reader",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "▶ @ readerTip  «Мои слова — в меню «Аа» · ▶ у строки — о»",
+   "▶ @ proTable  «▶»"
+  ]
+ },
+ {
+  "surface": "room-reader-aids",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "▶ @ readerTip  «Мои слова — в меню «Аа» · ▶ у строки — о»",
+   "▶ @ proTable  «▶»"
+  ]
+ },
+ {
+  "surface": "word-card",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "▶ @ readerTip  «Мои слова — в меню «Аа» · ▶ у строки — о»",
+   "▶ @ proTable  «▶»",
+   "⚠ @ rm-usage-k  «⚠ осторожно:»",
+   "↗ @ rm-link  «Открыть на Pealim ↗»"
+  ]
+ },
+ {
+  "surface": "words-sheet",
+  "items": [
+   "▶ @ roomReadAloud  «▶»",
+   "↗ @ readerSubtitle  «Источник: Проект Бен-Иегуда ↗»",
+   "▶ @ readerTip  «Мои слова — в меню «Аа» · ▶ у строки — о»",
+   "▶ @ proTable  «▶»",
+   "🌞 @ room-study-gloss  «🌞 солнце»"
+  ]
+ },
+ {
+  "surface": "studio-home",
+  "items": [
+   "🔊 @ classicTtsCard  «🔊 Online TTS · Авто (по умолчанию)»",
+   "🌐 @ classicTranslationCard  «🌐 Google Translate · Транслит: учебная »",
+   "▶ @ btnPlaylistRun  «▶▶ Старт»"
+  ]
+ },
+ {
+  "surface": "mediatheque",
+  "items": []
+ }
+]
