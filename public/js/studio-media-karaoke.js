@@ -78,6 +78,15 @@
     var run = cur;
     run.rafId = 0; run.pollId = 0;
     var t = run.audioEl ? run.audioEl.currentTime : 0;
+    // 2026-09-26: только что привязанный и ни разу не игравший плеер (YouTube после загрузки стоит
+    // на 0:00) — это не позиция ученика. Не красим и не сообщаем диапазон, пока не было
+    // воспроизведения, явной команды или сдвига часов (перемотка во встроенных контролах).
+    if (!run.engaged) {
+      if (run.audioEl && !run.audioEl.paused) run.engaged = true;
+      else if (run.t0 == null) run.t0 = t;
+      else if (Math.abs(t - run.t0) > 0.5) run.engaged = true;
+      if (!run.engaged) { if (cur === run) scheduleLoop(run); return; }
+    }
     if (run.stopAtT != null && t >= run.stopAtT) { try { run.audioEl.pause(); } catch (_) {} run.stopAtT = null; }
     var range = run.seeking ? null : activeSegmentRange(run.entries, run.rowCount, t);
     var idx = range ? range.idx : -1;
@@ -88,8 +97,11 @@
     if (cur === run) scheduleLoop(run);
   }
 
-  function syncCurrent() {
+  // engage=true — явное действие ученика (перемотка локального плеера, выбор строки).
+  function syncCurrent(engage) {
     if (!cur) return null;
+    if (engage === true) cur.engaged = true;
+    if (!cur.engaged) return null;   // пассивная синхронизация не выдумывает позицию
     var range = cur.seeking ? null : activeSegmentRange(cur.entries, cur.rowCount, cur.audioEl ? cur.audioEl.currentTime : 0);
     paintRange(range); cur.lastIdx = range ? range.idx : -1;
     if (typeof cur.onRangeChange === "function") { try { cur.onRangeChange(range); } catch (_) {} }
@@ -157,6 +169,7 @@
     // play (start()/playSegment() resume) → перезапустить цикл; двойной старт исключён проверкой rafId.
     var onPlayResume = function () {
       if (cur !== run) return;
+      run.engaged = true;
       cancelLoop(run); scheduleLoop(run);
     };
     var onEnded = function () {
@@ -192,7 +205,7 @@
       var source = opts.media || opts.blob;
       var run = (cur && cur.source === source && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, false, opts.stopOtherAudio);
       if (opts.onRangeChange) run.onRangeChange = opts.onRangeChange;
-      run.seekSerial = (run.seekSerial || 0) + 1; run.seeking = false;
+      run.seekSerial = (run.seekSerial || 0) + 1; run.seeking = false; run.engaged = true;
       if (run.audioEl._cancelSeek) run.audioEl._cancelSeek();
       run.stopAtT = null;
       await run.audioEl.play();
@@ -205,7 +218,7 @@
     if (k < 0) return;
     cur.seekSerial = (cur.seekSerial || 0) + 1; cur.seeking = false; cur.stopAtT = null;
     if (cur.audioEl._cancelSeek) cur.audioEl._cancelSeek();
-    try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; syncCurrent(); } catch (_) {}
+    try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; syncCurrent(true); } catch (_) {}
   }
 
   // YouTube seeks are asynchronous. Arm the segment end only after the adapter confirms
@@ -217,6 +230,7 @@
     var stopHook = (cur && cur.stopOtherAudio) || window.v3StopRowAudio;
     if (typeof stopHook === "function") { try { stopHook(); } catch (_) {} }
     var run = cur, serial = run.seekSerial = (run.seekSerial || 0) + 1;
+    run.engaged = true;
     try {
       var exactEnd = Number(cur.entries[k] && cur.entries[k].end);
       var stopAt = Number.isFinite(exactEnd) && exactEnd > Number(cur.entries[k].t)

@@ -793,7 +793,7 @@
       var syncNote = stage.querySelector('[data-i18n="studio.media.sourceSync"]');
       if (syncNote) syncNote.hidden = !entries;
       window.StudioMediaKaraoke.bind({ media: player, entries: entries, rowCount: getRowCount(), onRangeChange: onRangeChange, stopOtherAudio: stopOtherAudio });
-      player.onseeked = function () { try { window.StudioMediaKaraoke.syncCurrent(); } catch (_) {} };
+      player.onseeked = function () { try { window.StudioMediaKaraoke.syncCurrent(true); } catch (_) {} };   // перемотка ученика = позиция
       return player;
     }
     return { ensure: ensure, destroy: destroy, getPlayer: playerEl };

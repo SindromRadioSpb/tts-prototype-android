@@ -289,3 +289,46 @@ test('pause during pending YouTube seek cannot resume after backgrounding', asyn
     assert.equal((await pending).reason,'YT_SEEK_CANCELLED');assert.equal(plays,0);
   }finally{uninstallBrowserMocks();}
 });
+
+// 2026-09-26 (владелец): после F5 рабочая строка прыгала на первую. YouTube-плеер после
+// загрузки стоит на паузе на 0:00; «пробник» сообщал диапазон строки 0, а Студия и Зал
+// записывали его как позицию ученика (text_progress). Непроигранная медиа — не позиция.
+test("a freshly bound, never-played player reports no row — even when its clock sits inside row 0", () => {
+  installBrowserMocks();
+  try {
+    var polls = [];
+    global.window.setTimeout = function (fn) { polls.push(fn); return polls.length; };
+    global.window.clearTimeout = function () {};
+    var mod = freshModule(), adapter = makeFakeAdapter(), observed = [];
+    mod.bind({ media: adapter, entries: [{ o: 0, t: 0, end: 4 }, { o: 1, t: 8, end: 10 }], rowCount: 2,
+      onRangeChange: function (range) { observed.push(range); } });
+    for (var i = 0; i < 5; i++) polls.shift()();
+    assert.deepEqual(observed, [], "paused at the initial clock: no follow, no progress write");
+    assert.equal(mod.syncCurrent(), null, "a passive sync (e.g. tab visible again) does not invent a position");
+
+    adapter.currentTime = 8.5;            // native-control seek while paused → a real position
+    polls.shift()();
+    assert.deepEqual(observed.at(-1), { idx: 1, rowStart: 1, rowEnd: 2 });
+    mod.stop();
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
+test("playback or an explicit row command engages following immediately", () => {
+  installBrowserMocks();
+  try {
+    var polls = [];
+    global.window.setTimeout = function (fn) { polls.push(fn); return polls.length; };
+    global.window.clearTimeout = function () {};
+    var mod = freshModule(), adapter = makeFakeAdapter(), observed = [];
+    mod.bind({ media: adapter, entries: [{ o: 0, t: 0, end: 4 }, { o: 1, t: 8, end: 10 }], rowCount: 2,
+      onRangeChange: function (range) { observed.push(range); } });
+    adapter._paused = false;              // native play at 0:00 (no play event)
+    polls.shift()();
+    assert.deepEqual(observed.at(-1), { idx: 0, rowStart: 0, rowEnd: 1 });
+    mod.stop();
+  } finally {
+    uninstallBrowserMocks();
+  }
+});

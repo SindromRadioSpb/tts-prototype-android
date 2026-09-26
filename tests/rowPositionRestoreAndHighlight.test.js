@@ -38,3 +38,11 @@ test("row highlight follows palette D in every theme: tehelet rail, no amber", (
   assert.match(room, /tr\.rm-row-current:not\(\.row-error\) td\.rtl \{\n\s+background-color: var\(--row-hl-selected\)/,
     "Room working row uses the D «row» fill; playback deepens it");
 });
+
+test("the restored row is held in view while the layout settles, until the learner scrolls", () => {
+  assert.match(studio, /v3HoldResumeRowInView\(clamped\);/);
+  const fn = studio.slice(studio.indexOf("function v3HoldResumeRowInView"), studio.indexOf("function v3ApplyResumeSelection"));
+  assert.match(fn, /new ResizeObserver/);
+  assert.match(fn, /\["wheel", "touchstart", "keydown", "pointerdown"\]/, "any learner input ends the hold");
+  assert.match(fn, /setTimeout\(\(\) => \{ recenter\(\); finish\(\); \}, 4000\)/, "the hold is bounded");
+});

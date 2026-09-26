@@ -13694,11 +13694,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
 <script src="/js/text-card-format.js"></script>
 <script src="/js/share-service.js"></script>
-<script src="/js/studio-media-karaoke.js?v=553"></script>
+<script src="/js/studio-media-karaoke.js?v=662"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
 <script src="/js/table-presets.js?v=638"></script>
-<script src="/js/media-host.js?v=638"></script>
+<script src="/js/media-host.js?v=662"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13763,7 +13763,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.661";
+    window.APP_VERSION = "3.11.662";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -27463,6 +27463,36 @@ function v3AfterRenderStable(token, fn) {
   });
 }
 
+// 2026-09-26: после восстановления раскладка ещё меняется (YouTube-плеер, адаптивная высота
+// таблицы) и выбранная строка уезжала из кадра (ПК: выбрана 270, видна 268). Несколько секунд
+// держим её в центре при изменениях размеров — пока ученик сам не начал листать.
+function v3HoldResumeRowInView(rowIdx) {
+  if (typeof ResizeObserver !== "function") return;
+  const container = document.getElementById("tableContainer");
+  const table = document.getElementById("proTable");
+  let done = false, ro = null, timer = null;
+  const stopEvents = ["wheel", "touchstart", "keydown", "pointerdown"];
+  const finish = () => {
+    if (done) return; done = true;
+    try { if (ro) ro.disconnect(); } catch (_) {}
+    clearTimeout(timer);
+    stopEvents.forEach((ev) => window.removeEventListener(ev, finish, true));
+  };
+  const recenter = () => {
+    if (done) return;
+    const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(rowIdx) + '"].row-selected');
+    if (!tr) { finish(); return; }
+    const box = (container || document.documentElement).getBoundingClientRect();
+    const r = tr.getBoundingClientRect();
+    const top = Math.max(box.top, 0), bottom = Math.min(box.bottom, window.innerHeight);
+    if (r.top < top || r.bottom > bottom) { try { tr.scrollIntoView({ block: "center" }); } catch (_) {} }
+  };
+  stopEvents.forEach((ev) => window.addEventListener(ev, finish, { capture: true, passive: true }));
+  ro = new ResizeObserver(() => requestAnimationFrame(recenter));
+  try { if (container) ro.observe(container); if (table) ro.observe(table); ro.observe(document.body); } catch (_) {}
+  timer = setTimeout(() => { recenter(); finish(); }, 4000);
+}
+
 function v3ApplyResumeSelection(token, rowIdx) {
   const n = Number(rowIdx);
   if (!Number.isFinite(n)) return;
@@ -27480,6 +27510,7 @@ function v3ApplyResumeSelection(token, rowIdx) {
         const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(clamped) + '"]');
         if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
       } catch (_) {}
+      v3HoldResumeRowInView(clamped);
     });
   });
 }
