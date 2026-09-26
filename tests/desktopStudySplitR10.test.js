@@ -67,3 +67,10 @@ test("the docked word card still stacks above the words sheet", () => {
   assert.match(read("public/css/reader-morph.css"), /\.rm-sheet \{ position: fixed; inset: 0; z-index: 1000; \}/);
   assert.match(html, /\.room-study \{ position: fixed; inset: 0; z-index: 990; \}/);
 });
+
+// Final-review minor: a word card left open when the reader closes turned from the docked panel
+// into a bottom sheet over the shelves. Leaving the text closes it.
+test("closing the reader closes an open word card", () => {
+  const start = ui.indexOf("async function closeReader(options) {");
+  assert.match(ui.slice(start, start + 900), /window\.ReaderMorph\.isSheetOpen\(\)\) window\.ReaderMorph\.closeSheet\(\);/);
+});

@@ -179,6 +179,10 @@ window.I18N_LOCALES.en = {
     offlineReady: "App ready to work offline",
   },
   classic: {
+    ttsOptOnline: "Online voices (Google)",
+    ttsOptPiper: "Local Piper (disabled: low quality)",
+    ttsOptWasm: "Local Web WASM (disabled)",
+    ttsOptBrowser: "Browser voice (low quality)",
     provCacheDoc: "from this browser's cache",
     provCacheSegment: "partly from this browser's cache",
     provTranslatedBy: "translated by {name}",

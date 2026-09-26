@@ -8471,6 +8471,9 @@ async function closeReader(options) {
   // (the 800ms debounce may not have fired if Back is tapped quickly), then stop recording.
   const tid = readerTextId;
   tickReadingCalibration(); _readingCalibrationSession = null;
+  // A word card belongs to the text: leaving the text closes it (it would otherwise linger
+  // over the shelves — after R10 as a bottom sheet in place of the docked panel).
+  try { if (window.ReaderMorph && typeof window.ReaderMorph.isSheetOpen === 'function' && window.ReaderMorph.isSheetOpen()) window.ReaderMorph.closeSheet(); } catch (_) {}
   const presentationRestore = !!(options && options.presentationRestore);
   const returnStartedAt = performance.now();
   readerOpenEpoch++;   // pending served-on-open import / ReaderCore completion loses UI authority

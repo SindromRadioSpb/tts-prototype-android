@@ -180,6 +180,10 @@ window.I18N_LOCALES.ru = {
     offlineReady: "Приложение готово к офлайн-работе",
   },
   classic: {
+    ttsOptOnline: "Онлайн-голоса (Google)",
+    ttsOptPiper: "Локальный Piper (отключён: низкое качество)",
+    ttsOptWasm: "Локальный Web WASM (отключён)",
+    ttsOptBrowser: "Голос браузера (низкое качество)",
     provCacheDoc: "из кэша этого браузера",
     provCacheSegment: "частично из кэша этого браузера",
     provTranslatedBy: "переведена: {name}",

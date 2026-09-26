@@ -27,6 +27,7 @@ const {
 } = require("./storage");
 
 const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
+const { parsePrecacheVersions, cacheBustMismatch } = require("./release/staticVersionGuard");
 const segTable = require("./ingest/segTable.js");
 const {
   buildRowsFromGeminiPayload,
@@ -644,9 +645,15 @@ app.use("/data/benyehuda/context", express.static(path.join(DATA_DIR, "benyehuda
 
 app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
+// O-019: versioned URLs this build did not ship (a rolling deploy's other container) are never cached.
+const STATIC_SHIPPED_VERSIONS = parsePrecacheVersions(fs.readFileSync(path.join(__dirname, "public", "sw.js"), "utf8"));
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    if (cacheBustMismatch(STATIC_SHIPPED_VERSIONS, res.req && res.req.path, res.req && res.req.query && res.req.query.v)) {
+      res.setHeader("Cache-Control", "no-store");
+      return;
+    }
     const lower = filePath.toLowerCase();
     if (/[\\/]icons[\\/]linguistpro-ui\.svg$/.test(lower)) {
       // The UI sprite has one unversioned URL and grows with the icon set (R11a); revalidate it
@@ -1202,7 +1209,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=650",
+  "/js/library-ui.js?v=654",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1239,9 +1246,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=610",
-  "/i18n/locales/ru.js?v=264",
-  "/i18n/locales/en.js?v=264",
-  "/i18n/locales/he.js?v=264",
+  "/i18n/locales/ru.js?v=265",
+  "/i18n/locales/en.js?v=265",
+  "/i18n/locales/he.js?v=265",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

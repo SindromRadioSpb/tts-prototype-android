@@ -11803,10 +11803,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <div class="field-group">
                                     <label for="ttsProviderSelect" class="input-label" data-i18n="classic.ttsProvider">Провайдер озвучки</label>
                                     <select id="ttsProviderSelect">
-                                        <option value="online_tts">Online TTS</option>
-                                        <option value="hebrew_phonikud_piper" disabled>Hebrew Local Piper (disabled: low quality)</option>
-                                        <option value="local_neural_tts_piper" disabled>Local Piper / Web WASM (disabled: not used)</option>
-                                        <option value="system_fallback">Browser fallback (low quality)</option>
+                                        <option value="online_tts" data-i18n="classic.ttsOptOnline">Онлайн-голоса (Google)</option>
+                                        <option value="hebrew_phonikud_piper" disabled data-i18n="classic.ttsOptPiper">Локальный Piper (отключён: низкое качество)</option>
+                                        <option value="local_neural_tts_piper" disabled data-i18n="classic.ttsOptWasm">Локальный Web WASM (отключён)</option>
+                                        <option value="system_fallback" data-i18n="classic.ttsOptBrowser">Голос браузера (низкое качество)</option>
                                     </select>
                                 </div>
 
@@ -13530,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=264"></script>
-<script src="/i18n/locales/en.js?v=264"></script>
-<script src="/i18n/locales/he.js?v=264"></script>
+<script src="/i18n/locales/ru.js?v=265"></script>
+<script src="/i18n/locales/en.js?v=265"></script>
+<script src="/i18n/locales/he.js?v=265"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13758,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.653";
+    window.APP_VERSION = "3.11.654";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -23210,7 +23210,7 @@ updatePlaylistButtonUI();
                 '<div class="audio-block"><div class="stat-sub">Playback via browser speechSynthesis fallback. Quality is significantly lower than Online TTS.</div></div>';
         }
         clearAudioStale();
-        setResultsMeta("audio", "Browser fallback (low quality)");
+        setResultsMeta("audio", t("classic.ttsOptBrowser"));
         v3PortableTtsRenderDiagnostics(result);
     }
 

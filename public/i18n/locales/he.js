@@ -180,6 +180,10 @@ window.I18N_LOCALES.he = {
     offlineReady: "האפליקציה מוכנה לעבודה לא מקוונת",
   },
   classic: {
+    ttsOptOnline: "קולות מקוונים (Google)",
+    ttsOptPiper: "Piper מקומי (מושבת: איכות נמוכה)",
+    ttsOptWasm: "Web WASM מקומי (מושבת)",
+    ttsOptBrowser: "קול הדפדפן (איכות נמוכה)",
     provCacheDoc: "מהמטמון של הדפדפן",
     provCacheSegment: "חלקית מהמטמון של הדפדפן",
     provTranslatedBy: "תורגם: {name}",
