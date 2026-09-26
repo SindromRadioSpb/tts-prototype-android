@@ -58,6 +58,21 @@ test("phone bar: 56px plus the safe area, 44px targets, hidden in an open text",
   assert.match(css, /body\.lp-has-app-nav \.ml-crossnav/, "and the Mediatheque cross links");
 });
 
+// R7: on a desktop the sticky strip covered every scrollIntoView({ block: "start" }) target
+// (the Studio result panel landed at top 0, under a 45px nav).
+test("desktop: scroll targets land below the sticky strip", () => {
+  const css = read("public/css/app-nav.css");
+  assert.match(css, /@media \(min-width: 600px\) \{[\s\S]*?html:has\(> body\.lp-has-app-nav\) \{ scroll-padding-top: 56px; \}/);
+});
+
+// R7 verification: on a phone the fixed toasts and the Mediatheque selection bar sat on the bar.
+test("phone: toasts and the selection bar clear the navigation bar", () => {
+  const css = read("public/css/app-nav.css");
+  assert.match(css, /body\.lp-has-app-nav:not\(\.room-reading\) \.room-toast \{ bottom: calc\(72px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
+  assert.match(css, /body\.lp-has-app-nav \.ml-toast \{ inset-block-end: calc\(72px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
+  assert.match(css, /body\.lp-has-app-nav \.ml-bulk\[data-has-selection=true\] \{ bottom: calc\(68px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
+});
+
 test("nav labels exist in every locale and the Room is called the same everywhere", () => {
   for (const locale of ["ru", "en", "he"]) {
     const src = read(`public/i18n/locales/${locale}.js`);

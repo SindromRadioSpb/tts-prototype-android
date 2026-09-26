@@ -21,6 +21,8 @@
 @media (min-width: 600px) {
   .lp-app-nav { position: sticky; top: 0; z-index: 50; }
   body.lp-has-app-nav > .lp-app-nav { margin-bottom: 8px; }
+  /* scrollIntoView({ block: "start" }) targets land below the strip, not under it (R7). */
+  html:has(> body.lp-has-app-nav) { scroll-padding-top: 56px; }
 }
 
 /* Phone: a bottom bar with labels under the icons. */
@@ -34,6 +36,12 @@
   .lp-app-nav-item { flex: 1 1 0; flex-direction: column; gap: 2px; min-height: 48px; padding: 4px 2px; font-size: 11.5px; }
   .lp-app-nav-icon { width: 22px; height: 22px; }
   body.lp-has-app-nav { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  /* Studio toasts sit above the bar, not on it (R7). */
+  body.lp-has-app-nav #toastContainer,
+  body.lp-has-app-nav .v3-toast { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  body.lp-has-app-nav:not(.room-reading) .room-toast { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  body.lp-has-app-nav .ml-toast { inset-block-end: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  body.lp-has-app-nav .ml-bulk[data-has-selection=true] { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
   /* An open text gives the screen to the video and the table. */
   body.room-reading .lp-app-nav { display: none; }
   body.room-reading.lp-has-app-nav { padding-bottom: 0; }

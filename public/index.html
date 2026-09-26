@@ -50,7 +50,7 @@
     <!-- ROOM-UX-VF/VF0: additive primitives load before the complete legacy
          surface stylesheet below, preserving old/new SW compatibility. -->
     <link rel="stylesheet" href="/css/visual-foundations.css">
-    <link rel="stylesheet" href="/css/app-nav.css?v=645">
+    <link rel="stylesheet" href="/css/app-nav.css?v=646">
     <link rel="stylesheet" href="/css/publication-center.css?v=643">
 
     <style>
@@ -1166,6 +1166,35 @@
         background: #fef2f2;
         border-color: #fecaca;
         color: #b91c1c;
+    }
+
+    /* R7 (audit P1-5, P2-5): the pills and the result JSON, one tap away. */
+    .classic-result-more { margin: 0 0 12px; }
+    .classic-result-more > summary {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        cursor: pointer;
+        color: var(--theme-text-secondary, #475569);
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .classic-result-more[open] > summary { margin-bottom: 6px; }
+    .classic-result-more > summary::after,
+    #v3SaveMetaReceiptMore > summary::after {
+        content: "";
+        width: 7px;
+        height: 7px;
+        margin-inline-start: 10px;
+        margin-top: -4px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+    }
+    .classic-result-more[open] > summary::after,
+    #v3SaveMetaReceiptMore[open] > summary::after { margin-top: 4px; transform: rotate(-135deg); }
+    @media (max-width: 599px), (hover: none) {
+        #hotkeysPanel { display: none; }
     }
 
     .classic-result-summary {
@@ -3685,13 +3714,11 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   }
 }
 
-/* Mobile pill-button: orientation toggle (bottom-left, mirrors edit FAB on bottom-right) */
+/* Orientation toggle: an in-flow button above a built table (R7, audit P2-9 — it used to float
+   over the Studio from the first screen). */
 #classicOrientationFab {
   display: none;
-  position: fixed;
-  left: calc(18px + env(safe-area-inset-left, 0px));
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  z-index: 195;
+  margin: 0 0 8px;
   height: 44px;
   padding: 0 18px;
   align-items: center;
@@ -3704,9 +3731,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   cursor: pointer;
-  transition: transform 0.14s ease, box-shadow 0.18s ease, background 0.18s ease;
   -webkit-tap-highlight-color: transparent;
 }
 #classicOrientationFab:hover {
@@ -3728,6 +3753,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 }
 
 /* Toast hint for browsers where orientation lock is unavailable (iOS) */
+/* The edit pencil and the hint clear the phone navigation bar (R6). */
+body.lp-has-app-nav #tableEditFab { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area-inset-bottom, 0px)); }
 #classicOrientationHint {
   position: fixed;
   bottom: calc(88px + env(safe-area-inset-bottom, 0px));
@@ -4669,6 +4697,25 @@ body.theme-dark .p2-portable-dialog { --portable-ink:#5eead4; --portable-error:#
   margin-top: 14px;
 }
 #v3SaveMetaCompleteActions button { min-height: 48px; width: auto; }
+/* R7 (audit P1-7): the actions stay in reach while the dialog body scrolls («Готово» was cut off). */
+#v3SaveMetaModal .v3-modal-actions,
+#v3SaveMetaCompleteActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding-block: 10px 12px;
+  margin-bottom: -12px;
+  background: var(--theme-bg-card);
+}
+#v3SaveMetaReceiptMore { margin-top: 8px; }
+#v3SaveMetaReceiptMore > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--theme-text-secondary);
+  font-weight: 600;
+}
 
 @media (max-width: 600px) {
   #v3SaveMetaModal .v3-modal-panel {
@@ -10076,6 +10123,11 @@ html[lang="he"] .studio-vf3-shell {
 }
 
 @media (forced-colors: active) {
+  .btn-primary,
+  .btn-secondary { border: 2px solid ButtonText; }
+}
+
+@media (forced-colors: active) {
   .studio-vf3-focus:focus-visible,
   .v3-ide-header .studio-vf3-focus:focus-visible,
   #v3IdeTabBar .studio-vf3-focus:focus-visible {
@@ -10648,6 +10700,8 @@ body:not(.theme-light) .v3-heatmap-cell {
 @media (max-width: 600px) {
   .v3-heatmap-grid { grid-template-columns: repeat(15, 1fr); }
 }
+
+#classicStatusStrip[hidden] { display: none !important; } /* R7: server usage is diagnostics-only */
 
 /* ── Direction 4: onboarding modal (Premium Release v3.1.0) ─────────── */
 #v3OnboardingModal {
@@ -11478,7 +11532,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- IDE Panel Backdrop (for mobile overlay) -->
 <div id="v3IdePanelBackdrop" class="v3-ide-panel-backdrop" onclick="v3IdeCloseOverlays()"></div>
 
-    <details id="classicStatusStrip" class="classic-status-strip-wrap">
+    <details id="classicStatusStrip" class="classic-status-strip-wrap" hidden>
         <summary class="classic-status-strip-summary" data-i18n="classic.statusSummary">Лимиты и квоты</summary>
     <div class="dashboard-header classic-status-strip">
         <div class="stats-box">
@@ -11916,7 +11970,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         <summary class="classic-mobile-panel-summary">
                             <span class="classic-mobile-panel-copy">
                                 <span class="classic-mobile-panel-title" data-i18n="classic.resultPanelTitle">Результат</span>
-                                <span id="classicResultPanelMeta" class="classic-mobile-panel-meta" data-i18n="classic.noTable">Пока нет таблицы</span>
+                                <span id="classicResultPanelMeta" class="classic-mobile-panel-meta"></span>
                             </span>
                         </summary>
                     <section class="classic-mobile-panel-body classic-result-card" aria-labelledby="classicResultTitle">
@@ -11930,17 +11984,21 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <button id="btnWord" class="btn-word disabled"
                                         data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                         onclick="downloadWord()" disabled data-i18n="classic.downloadTable">Скачать таблицу</button>
-                                <button id="btnTableEvidenceJson" class="btn-secondary" onclick="downloadTableEvidenceJson()" disabled data-i18n="classic.downloadEvidenceJson">Скачать JSON результата</button>
                             </div>
                         </div>
 
-                        <div id="classicResultTrust" class="classic-result-trust" aria-live="polite">
-                            <span id="classicResultFreshChip" class="classic-trust-chip">Актуальность: —</span>
-                            <span id="classicResultSaveChip" class="classic-trust-chip">Library: —</span>
-                            <span id="classicResultExportChip" class="classic-trust-chip">Экспорт: —</span>
-                        </div>
-
-                        <div id="classicResultSummary" class="classic-result-summary" data-i18n="classic.buildFirst">Сначала соберите таблицу. После этого появятся provenance, экспорт и работа по строкам.</div>
+                        <div id="classicResultSummary" class="classic-result-summary"></div>
+                        <!-- R7 (audit P1-5, P2-5): one visible status line; the detailed pills and the
+                             technical JSON sit one tap away. -->
+                        <details id="classicResultMore" class="classic-result-more">
+                            <summary data-i18n="classic.resultMore">Подробнее</summary>
+                            <div id="classicResultTrust" class="classic-result-trust" aria-live="polite">
+                                <span id="classicResultFreshChip" class="classic-trust-chip">—</span>
+                                <span id="classicResultSaveChip" class="classic-trust-chip">—</span>
+                                <span id="classicResultExportChip" class="classic-trust-chip">—</span>
+                            </div>
+                            <button id="btnTableEvidenceJson" class="btn-secondary" onclick="downloadTableEvidenceJson()" disabled data-i18n="classic.downloadEvidenceJson">Скачать JSON результата</button>
+                        </details>
                         <!-- Карточка прогресса сборки таблицы (владелец, 2026-09-24): одно место вместо
                              спиннера у «Настроек озвучки». Модель — TableJob.progressModel. -->
                         <div id="v3TableJobHud" class="v3-table-job-hud v3-tbp" role="status" aria-live="polite" data-tone="busy" hidden>
@@ -12083,9 +12141,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                           </div>
                           <div id="v3MediaYtMount" hidden></div>
                         </div>
+                        <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden>↔ Альбом</button>
                         <div id="tableContainer"></div>
                         <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
-                        <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden data-i18n="classic.editOrientationLandscape">↔ Альбом</button>
                         <div id="classicOrientationHint" class="hidden" aria-live="polite"></div>
                     </div>
                     </details>
@@ -12721,18 +12779,18 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
       <div class="v3-form-row">
         <label for="v3TextMetaTags">Tags</label>
-        <input id="v3TextMetaTags" type="text" placeholder="song, idf, lyrics" />
+        <input id="v3TextMetaTags" type="text" data-i18n-placeholder="saveMeta.placeholderTags" placeholder="песня, армия, новости" />
       </div>
 
       <div class="v3-form-row">
         <label for="v3TextMetaSource" data-i18n="textMeta.labelSourceLink">Ссылка на источник</label>
-        <input id="v3TextMetaSource" type="text" placeholder="YouTube / статья / книга ..." />
+        <input id="v3TextMetaSource" type="text" data-i18n-placeholder="saveMeta.placeholderSource" placeholder="YouTube, новости, книга" />
         <div class="v3-help" data-i18n="textMeta.sourceLinkHelp">Здесь хранится ссылка или название исходного материала. Способ импорта и media identity показываются отдельно выше.</div>
       </div>
 
       <div class="v3-form-row">
         <label for="v3TextMetaTopic" data-i18n="textMeta.labelTopic">Тема</label>
-        <input id="v3TextMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
+        <input id="v3TextMetaTopic" type="text" data-i18n-placeholder="saveMeta.placeholderTopic" placeholder="песни, политика, семья" />
       </div>
 
       <!-- Direction 5: manual smart-tag override (Premium UX). -->
@@ -12786,22 +12844,24 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
       <div class="v3-form-row">
         <label for="v3SaveMetaTags" data-i18n="saveMeta.labelTags">Теги</label>
-        <input id="v3SaveMetaTags" type="text" data-i18n-placeholder="saveMeta.placeholderTags" placeholder="song, idf, lyrics" />
+        <input id="v3SaveMetaTags" type="text" data-i18n-placeholder="saveMeta.placeholderTags" placeholder="песня, армия, новости" />
       </div>
 
       <div class="v3-form-row">
         <label for="v3SaveMetaSource" data-i18n="saveMeta.labelSource">Источник</label>
-        <input id="v3SaveMetaSource" type="text" data-i18n-placeholder="saveMeta.placeholderSource" placeholder="youtube / новости / книга ..." />
+        <input id="v3SaveMetaSource" type="text" data-i18n-placeholder="saveMeta.placeholderSource" placeholder="YouTube, новости, книга" />
       </div>
 
       <div class="v3-form-row">
         <label for="v3SaveMetaTopic" data-i18n="saveMeta.labelTopic">Тема</label>
-        <input id="v3SaveMetaTopic" type="text" data-i18n-placeholder="saveMeta.placeholderTopic" placeholder="lyrics / politics / family ..." />
+        <input id="v3SaveMetaTopic" type="text" data-i18n-placeholder="saveMeta.placeholderTopic" placeholder="песни, политика, семья" />
+      </div>
+
+      <div class="v3-help" data-i18n="saveMeta.help">
+        Название обязательно. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста). Теги вводите через запятую.
       </div>
 
       <div class="v3-modal-actions">
-  <button id="v3SaveMetaCancelBtn" class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.cancel">Отмена</button>
-
   <button id="v3SaveMetaSaveAsNewBtn"
           class="btn-secondary"
           onclick="v3SaveMetaSaveAsNew()"
@@ -12812,10 +12872,6 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
   <button id="v3SaveMetaSaveBtn" class="btn-primary" onclick="v3SaveMetaSave()" data-i18n="saveMeta.save">Сохранить</button>
 </div>
-
-      <div class="v3-help" data-i18n="saveMeta.help">
-        Название обязательно. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста). Теги вводите через запятую.
-      </div>
       </div>
 
       <section id="v3SaveMetaReceipt" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" hidden>
@@ -12823,11 +12879,16 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         <dl>
           <dt data-i18n="saveMeta.titleLabel">Название</dt><dd id="v3SaveMetaReceiptCardTitle" dir="auto">—</dd>
           <dt data-i18n="saveMeta.rowsLabel">Строки</dt><dd id="v3SaveMetaReceiptRows" dir="auto">—</dd>
-          <dt data-i18n="saveMeta.providerLabel">Провайдер</dt><dd id="v3SaveMetaReceiptProvider" dir="auto">—</dd>
           <dt data-i18n="saveMeta.mediaLabel">Медиа</dt><dd id="v3SaveMetaReceiptMedia" dir="auto">—</dd>
-          <dt data-i18n="saveMeta.cacheLabel">Кэш таблицы</dt><dd id="v3SaveMetaReceiptCache" dir="auto">—</dd>
           <dt data-i18n="saveMeta.savedAtLabel">Сохранено</dt><dd id="v3SaveMetaReceiptSavedAt" dir="auto">—</dd>
         </dl>
+        <details id="v3SaveMetaReceiptMore">
+          <summary data-i18n="classic.resultMore">Подробнее</summary>
+          <dl>
+            <dt data-i18n="saveMeta.providerLabel">Провайдер</dt><dd id="v3SaveMetaReceiptProvider" dir="auto">—</dd>
+            <dt data-i18n="saveMeta.cacheLabel">Кэш таблицы</dt><dd id="v3SaveMetaReceiptCache" dir="auto">—</dd>
+          </dl>
+        </details>
         <p id="v3SaveMetaReceiptNext"></p>
       </section>
 
@@ -13469,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=257"></script>
-<script src="/i18n/locales/en.js?v=257"></script>
-<script src="/i18n/locales/he.js?v=257"></script>
+<script src="/i18n/locales/ru.js?v=258"></script>
+<script src="/i18n/locales/en.js?v=258"></script>
+<script src="/i18n/locales/he.js?v=258"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13697,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.645";
+    window.APP_VERSION = "3.11.646";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17753,6 +17814,9 @@ function v3NotesRefreshAllButtons() {
 	const btnWordEl = document.getElementById("btnWord");
     const btnTableEvidenceEl = document.getElementById("btnTableEvidenceJson");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
+    // R7 (audit P1-5): a user-started build brings the table into view on its first render with rows.
+    let v3ScrollToTablePending = false;
+    if (btnAiTranslateEl) btnAiTranslateEl.addEventListener("click", function () { v3ScrollToTablePending = true; }, true);
     const btnMainTtsEl = document.getElementById("btnMainTts");
     const classicStatusStripEl = document.getElementById("classicStatusStrip");
     const classicComposerPanelEl = document.getElementById("classicComposerPanel");
@@ -21507,6 +21571,7 @@ updatePlaylistButtonUI();
     }
 
     function classicSyncStateUi() {
+        try { orientationFabUpdate(); } catch (_) {}   // R7: the toggle appears with a built table
         const text = typeof getText === "function" ? String(getText() || "").trim() : String(inputTextEl && inputTextEl.value || "").trim();
         const hasTable = classicGetHasTable();
         const hasAudio = classicGetHasAudio();
@@ -22635,7 +22700,15 @@ updatePlaylistButtonUI();
     // ----------------------------
     // STATS / LIMITS
     // ----------------------------
+    // R7 (audit P0-3): /api/usage is the server's aggregate over ALL users, not this user's
+    // usage. Shown only in the owner's diagnostic view (?diag=1); Gemini locks come from the
+    // provider's answer for the user's own key, not from these numbers.
+    function v3ServerUsageVisible() {
+        try { return new URLSearchParams(location.search).get("diag") === "1"; } catch (_) { return false; }
+    }
     async function loadStats() {
+        if (!v3ServerUsageVisible()) return;
+        try { const strip = document.getElementById("classicStatusStrip"); if (strip) strip.hidden = false; } catch (_) {}
         try {
             const res = await fetch("/api/usage");
             if (!res.ok) throw new Error("Не удалось получить статистику");
@@ -34350,7 +34423,7 @@ function v3SaveMetaSetBusy(busy) {
   v3SaveMetaSaving = !!busy;
   const modal = v3SaveMetaEl("v3SaveMetaModal");
   if (modal) modal.setAttribute("aria-busy", v3SaveMetaSaving ? "true" : "false");
-  ["v3SaveMetaSaveBtn", "v3SaveMetaSaveAsNewBtn", "v3SaveMetaCloseBtn", "v3SaveMetaCancelBtn"]
+  ["v3SaveMetaSaveBtn", "v3SaveMetaSaveAsNewBtn", "v3SaveMetaCloseBtn"]
     .forEach(id => { const el = v3SaveMetaEl(id); if (el) el.disabled = v3SaveMetaSaving; });
 }
 
@@ -34531,7 +34604,7 @@ function v3SaveMetaShowReceipt(receipt) {
     const el = v3SaveMetaEl(id);
     if (el) el.textContent = values[id] || "—";
   });
-  v3SaveMetaSetStatus(t("saveMeta.completeSummary"), false);
+  v3SaveMetaSetStatus("", false);   // R7: the receipt itself says «Повторно сохранять не нужно.»
   v3SaveMetaSetView("complete");
   try { v3SaveMetaEl("v3SaveMetaReceipt").focus(); } catch (_) {}
   try { v3UiSyncSaveButtons(); } catch (_) {}
@@ -39078,6 +39151,17 @@ try {
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
+        if (v3ScrollToTablePending && rows && rows.length) {
+            v3ScrollToTablePending = false;
+            // Two frames: the result card and the build summary above the table settle first, and an
+            // instant jump is not cancelled by their re-layout the way a smooth one was.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                try {
+                    const tbl = document.getElementById("proTable");
+                    if (tbl) tbl.scrollIntoView({ block: "start", behavior: "auto" });
+                } catch (_) {}
+            }));
+        }
         // R2 (owner D4): row numbers as a POST-render attribute (named, like v3AudioPrefetchRefreshMarkers,
         // so smoke:reader-parity can neutralize it and keep snapshotting the pure builder output).
         try { if (typeof window.v3MarkTableRowNumbers === "function") window.v3MarkTableRowNumbers(); } catch (_) {}
@@ -39238,13 +39322,14 @@ function orientationFabUpdate() {
     const isMobile = classicIsMobileViewport();
     const libraryModal = document.getElementById("v3LibraryModal");
     const libraryOpen = !!(libraryModal && !libraryModal.classList.contains("hidden"));
-    const shouldShow = isMobile && !libraryOpen;
+    const hasTable = typeof currentTableData !== "undefined" && Array.isArray(currentTableData) && currentTableData.length > 0;
+    const shouldShow = isMobile && !libraryOpen && hasTable;
 
     fab.classList.toggle("fab-visible", shouldShow);
     fab.hidden = !shouldShow;
 
     const isLandscape = window.innerWidth > window.innerHeight;
-    fab.textContent = isLandscape ? "↕ Портрет" : "↔ Альбом";
+    fab.textContent = t(isLandscape ? "classic.editOrientationPortrait" : "classic.editOrientationLandscape");
     const label = isLandscape ? "Переключить в портретный режим" : "Переключить в альбомный режим";
     fab.title = label;
     fab.setAttribute("aria-label", label);
@@ -51257,6 +51342,7 @@ try {
 // ──────────────────────────────────────────────
 document.addEventListener("i18n:changed", function () {
   try { classicSyncMainPanels(); } catch (_) {}
+  try { classicSyncStateUi(); } catch (_) {}   // R7: the locale pass must not reset computed status lines
   try { v3UiUpdateActiveHeader(); } catch (_) {}
   try { updateTtsCostInfo(); } catch (_) {}
   if (typeof currentTableData !== "undefined" && Array.isArray(currentTableData) && currentTableData.length > 0) {
