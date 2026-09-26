@@ -1,0 +1,737 @@
+[
+ {
+  "work_id": "43342",
+  "file": "works/43342.json",
+  "text_id": "by-43342",
+  "row_id": "r0",
+  "title": "עֵינֵי־עוֹפֶרֶת [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "עיניעופרת [נוסח 'שירים']",
+   "hebrew_niqqud": "עֵינֵי־עוֹפֶרֶת [נוסח 'שירים']",
+   "translit": "ʿênê-ʿôp̄ereṯ [nwsḥ 'šyrym']",
+   "translit_ru": "ене-офэрэт [нвсх 'шйрйм']",
+   "russian": "Свинцовые очи [По мотивам 'Песен']"
+  },
+  "after": {
+   "hebrew_plain": "עיניעופרת",
+   "hebrew_niqqud": "עֵינֵי־עוֹפֶרֶת",
+   "translit": "ʿênê-ʿôp̄ereṯ",
+   "translit_ru": "ене-офэрэт",
+   "russian": "Свинцовые очи"
+  }
+ },
+ {
+  "work_id": "43349",
+  "file": "works/43349.json",
+  "text_id": "by-43349",
+  "row_id": "r0",
+  "title": "לִפְנוֹת־עֶרֶב [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "לפנותערב [נוסח 'שירים']",
+   "hebrew_niqqud": "לִפְנוֹת־עֶרֶב [נוסח 'שירים']",
+   "translit": "lip̄nôṯ-ʿereḇ [nwsḥ 'šyrym']",
+   "translit_ru": "лифнот-эрэв [нвсх 'шйрйм']",
+   "russian": "К вечеру [версия «Песни»]"
+  },
+  "after": {
+   "hebrew_plain": "לפנותערב",
+   "hebrew_niqqud": "לִפְנוֹת־עֶרֶב",
+   "translit": "lip̄nôṯ-ʿereḇ",
+   "translit_ru": "лифнот-эрэв",
+   "russian": "К вечеру"
+  }
+ },
+ {
+  "work_id": "43352",
+  "file": "works/43352.json",
+  "text_id": "by-43352",
+  "row_id": "r0",
+  "title": "עַרְבִּית [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "ערבית [נוסח 'שירים']",
+   "hebrew_niqqud": "עַרְבִּית [נוסח 'שירים']",
+   "translit": "ʿarbîṯ [nwsḥ 'šyrym']",
+   "translit_ru": "арбит [нвсх 'шйрйм']",
+   "russian": "Вечерняя [поэтический вариант]"
+  },
+  "after": {
+   "hebrew_plain": "ערבית",
+   "hebrew_niqqud": "עַרְבִּית",
+   "translit": "ʿarbîṯ",
+   "translit_ru": "арбит",
+   "russian": "Вечерняя"
+  }
+ },
+ {
+  "work_id": "43353",
+  "file": "works/43353.json",
+  "text_id": "by-43353",
+  "row_id": "r0",
+  "title": "הַיּוֹם הַשֶּׁמֶשׁ כֹּה צְנוּעָה [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "היום השמש כה צנועה [נוסח 'שירים']",
+   "hebrew_niqqud": "הַיּוֹם הַשֶּׁמֶשׁ כֹּה צְנוּעָה [נוסח 'שירים']",
+   "translit": "hayyôm haššemeš kōh ṣənûʿâ [nwsḥ 'šyrym']",
+   "translit_ru": "хайом хашэмэш кох цэнуа [нвсх 'шйрйм']",
+   "russian": "Сегодня солнце так скромно"
+  },
+  "after": {
+   "hebrew_plain": "היום השמש כה צנועה",
+   "hebrew_niqqud": "הַיּוֹם הַשֶּׁמֶשׁ כֹּה צְנוּעָה",
+   "translit": "hayyôm haššemeš kōh ṣənûʿâ",
+   "translit_ru": "хайом хашэмэш кох цэнуа",
+   "russian": "Сегодня солнце так скромно"
+  }
+ },
+ {
+  "work_id": "43354",
+  "file": "works/43354.json",
+  "text_id": "by-43354",
+  "row_id": "r0",
+  "title": "כְּבָר הִגִּיעָה הָעֵת לִשְׁכֹּחַ [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "כבר הגיעה העת לשכח [נוסח 'שירים']",
+   "hebrew_niqqud": "כְּבָר הִגִּיעָה הָעֵת לִשְׁכֹּחַ [נוסח 'שירים']",
+   "translit": "kəḇār higgîʿâ hāʿēṯ liškōaḥ [nwsḥ 'šyrym']",
+   "translit_ru": "кэвар хигиа хает лишкоах [нвсх 'шйрйм']",
+   "russian": "Уже настало время забыть"
+  },
+  "after": {
+   "hebrew_plain": "כבר הגיעה העת לשכח",
+   "hebrew_niqqud": "כְּבָר הִגִּיעָה הָעֵת לִשְׁכֹּחַ",
+   "translit": "kəḇār higgîʿâ hāʿēṯ liškōaḥ",
+   "translit_ru": "кэвар хигиа хает лишкоах",
+   "russian": "Уже настало время забыть"
+  }
+ },
+ {
+  "work_id": "43355",
+  "file": "works/43355.json",
+  "text_id": "by-43355",
+  "row_id": "r0",
+  "title": "שַׁלֶּכֶת [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "שלכת [נוסח 'שירים']",
+   "hebrew_niqqud": "שַׁלֶּכֶת [נוסח 'שירים']",
+   "translit": "šalleḵeṯ [nwsḥ 'šyrym']",
+   "translit_ru": "шалэхэт [нвсх 'шйрйм']",
+   "russian": "Листопад"
+  },
+  "after": {
+   "hebrew_plain": "שלכת",
+   "hebrew_niqqud": "שַׁלֶּכֶת",
+   "translit": "šalleḵeṯ",
+   "translit_ru": "шалэхэт",
+   "russian": "Листопад"
+  }
+ },
+ {
+  "work_id": "43356",
+  "file": "works/43356.json",
+  "text_id": "by-43356",
+  "row_id": "r0",
+  "title": "נַפְשִׁי אָבְדָה [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "נפשי אבדה [נוסח 'שירים']",
+   "hebrew_niqqud": "נַפְשִׁי אָבְדָה [נוסח 'שירים']",
+   "translit": "nap̄šî ʾāḇəḏâ [nwsḥ 'šyrym']",
+   "translit_ru": "нафши авэда [нвсх 'шйрйм']",
+   "russian": "Душа моя пропала"
+  },
+  "after": {
+   "hebrew_plain": "נפשי אבדה",
+   "hebrew_niqqud": "נַפְשִׁי אָבְדָה",
+   "translit": "nap̄šî ʾāḇəḏâ",
+   "translit_ru": "нафши авэда",
+   "russian": "Душа моя пропала"
+  }
+ },
+ {
+  "work_id": "43360",
+  "file": "works/43360.json",
+  "text_id": "by-43360",
+  "row_id": "r0",
+  "title": "גַּם אוֹתוֹ לֹא יָדַעְתִּי [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "גם אותו לא ידעתי [נוסח 'שירים']",
+   "hebrew_niqqud": "גַּם אוֹתוֹ לֹא יָדַעְתִּי [נוסח 'שירים']",
+   "translit": "gam ʾôṯô lōʾ yāḏaʿtî [nwsḥ 'šyrym']",
+   "translit_ru": "гам ото ло йадати [нвсх 'шйрйм']",
+   "russian": "И его я не знала."
+  },
+  "after": {
+   "hebrew_plain": "גם אותו לא ידעתי",
+   "hebrew_niqqud": "גַּם אוֹתוֹ לֹא יָדַעְתִּי",
+   "translit": "gam ʾôṯô lōʾ yāḏaʿtî",
+   "translit_ru": "гам ото ло йадати",
+   "russian": "И его я не знала."
+  }
+ },
+ {
+  "work_id": "43362",
+  "file": "works/43362.json",
+  "text_id": "by-43362",
+  "row_id": "r0",
+  "title": "לא הָיְתָה לִי אֵם [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "לא היתה לי אם [נוסח 'שירים']",
+   "hebrew_niqqud": "לא הָיְתָה לִי אֵם [נוסח 'שירים']",
+   "translit": "lʾ hāyəṯâ lî ʾēm [nwsḥ 'šyrym']",
+   "translit_ru": "л хайэта ли ем [нвсх 'шйрйм']",
+   "russian": "У меня не было матери,"
+  },
+  "after": {
+   "hebrew_plain": "לא היתה לי אם",
+   "hebrew_niqqud": "לא הָיְתָה לִי אֵם",
+   "translit": "lʾ hāyəṯâ lî ʾēm",
+   "translit_ru": "л хайэта ли ем",
+   "russian": "У меня не было матери,"
+  }
+ },
+ {
+  "work_id": "43363",
+  "file": "works/43363.json",
+  "text_id": "by-43363",
+  "row_id": "r0",
+  "title": "בַּדֶּרֶךְ [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "בדרך [נוסח 'שירים']",
+   "hebrew_niqqud": "בַּדֶּרֶךְ [נוסח 'שירים']",
+   "translit": "baddereḵ [nwsḥ 'šyrym']",
+   "translit_ru": "бадэрэх [нвсх 'шйрйм']",
+   "russian": "По дороге"
+  },
+  "after": {
+   "hebrew_plain": "בדרך",
+   "hebrew_niqqud": "בַּדֶּרֶךְ",
+   "translit": "baddereḵ",
+   "translit_ru": "бадэрэх",
+   "russian": "По дороге"
+  }
+ },
+ {
+  "work_id": "43366",
+  "file": "works/43366.json",
+  "text_id": "by-43366",
+  "row_id": "r0",
+  "title": "אֳרָנִים [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "ארנים [נוסח 'שירים']",
+   "hebrew_niqqud": "אֳרָנִים [נוסח 'שירים']",
+   "translit": "ʾŏrānîm [nwsḥ 'šyrym']",
+   "translit_ru": "ораним [нвсх 'шйрйм']",
+   "russian": "Сосны [по образцу «Стихотворений»]"
+  },
+  "after": {
+   "hebrew_plain": "ארנים",
+   "hebrew_niqqud": "אֳרָנִים",
+   "translit": "ʾŏrānîm",
+   "translit_ru": "ораним",
+   "russian": "Сосны"
+  }
+ },
+ {
+  "work_id": "43369",
+  "file": "works/43369.json",
+  "text_id": "by-43369",
+  "row_id": "r0",
+  "title": "חֲרוּז נִשְׁכָּח [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "חרוז נשכח [נוסח 'שירים']",
+   "hebrew_niqqud": "חֲרוּז נִשְׁכָּח [נוסח 'שירים']",
+   "translit": "ḥărûz niškāḥ [nwsḥ 'šyrym']",
+   "translit_ru": "харуз нишках [нвсх 'шйрйм']",
+   "russian": "Забытый стих"
+  },
+  "after": {
+   "hebrew_plain": "חרוז נשכח",
+   "hebrew_niqqud": "חֲרוּז נִשְׁכָּח",
+   "translit": "ḥărûz niškāḥ",
+   "translit_ru": "харуз нишках",
+   "russian": "Забытый стих"
+  }
+ },
+ {
+  "work_id": "43373",
+  "file": "works/43373.json",
+  "text_id": "by-43373",
+  "row_id": "r0",
+  "title": "נַפְשִׁי כָּלְתָה לַחֲרוּזִים [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "נפשי כלתה לחרוזים [נוסח 'שירים']",
+   "hebrew_niqqud": "נַפְשִׁי כָּלְתָה לַחֲרוּזִים [נוסח 'שירים']",
+   "translit": "nap̄šî kāləṯâ laḥărûzîm [nwsḥ 'šyrym']",
+   "translit_ru": "нафши калэта лахарузим [нвсх 'шйрйм']",
+   "russian": "Душа моя томилась по стихам,"
+  },
+  "after": {
+   "hebrew_plain": "נפשי כלתה לחרוזים",
+   "hebrew_niqqud": "נַפְשִׁי כָּלְתָה לַחֲרוּזִים",
+   "translit": "nap̄šî kāləṯâ laḥărûzîm",
+   "translit_ru": "нафши калэта лахарузим",
+   "russian": "Душа моя томилась по стихам,"
+  }
+ },
+ {
+  "work_id": "43376",
+  "file": "works/43376.json",
+  "text_id": "by-43376",
+  "row_id": "r0",
+  "title": "דִּבְרֵי־שִׁירָה מָרִים וּגְאֵיוֹנִים [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "דברישירה מרים וגאיונים [נוסח 'שירים']",
+   "hebrew_niqqud": "דִּבְרֵי־שִׁירָה מָרִים וּגְאֵיוֹנִים [נוסח 'שירים']",
+   "translit": "diḇrê-šîrâ mārîm ûḡəʾēyônîm [nwsḥ 'šyrym']",
+   "translit_ru": "дивре-шира марим угэейоним [нвсх 'шйрйм']",
+   "russian": "Стихи горьки и надменны [версия «Песен»]"
+  },
+  "after": {
+   "hebrew_plain": "דברישירה מרים וגאיונים",
+   "hebrew_niqqud": "דִּבְרֵי־שִׁירָה מָרִים וּגְאֵיוֹנִים",
+   "translit": "diḇrê-šîrâ mārîm ûḡəʾēyônîm",
+   "translit_ru": "дивре-шира марим угэейоним",
+   "russian": "Стихи горьки и надменны"
+  }
+ },
+ {
+  "work_id": "43377",
+  "file": "works/43377.json",
+  "text_id": "by-43377",
+  "row_id": "r0",
+  "title": "בַּעֲלוֹת הַשַּׁחַר [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "בעלות השחר [נוסח 'שירים']",
+   "hebrew_niqqud": "בַּעֲלוֹת הַשַּׁחַר [נוסח 'שירים']",
+   "translit": "baʿălôṯ haššaḥar [nwsḥ 'šyrym']",
+   "translit_ru": "баалот хашахар [нвсх 'шйрйм']",
+   "russian": "На заре [Из цикла «Песни»]"
+  },
+  "after": {
+   "hebrew_plain": "בעלות השחר",
+   "hebrew_niqqud": "בַּעֲלוֹת הַשַּׁחַר",
+   "translit": "baʿălôṯ haššaḥar",
+   "translit_ru": "баалот хашахар",
+   "russian": "На заре"
+  }
+ },
+ {
+  "work_id": "43380",
+  "file": "works/43380.json",
+  "text_id": "by-43380",
+  "row_id": "r0",
+  "title": "וְהָיָה דִמְיוֹנִי לִמְצִיאוּת [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "והיה דמיוני למציאות [נוסח 'שירים']",
+   "hebrew_niqqud": "וְהָיָה דִמְיוֹנִי לִמְצִיאוּת [נוסח 'שירים']",
+   "translit": "wəhāyâ ḏimyônî limṣîʾûṯ [nwsḥ 'šyrym']",
+   "translit_ru": "вэхайа димйони лимциут [нвсх 'шйрйм']",
+   "russian": "И стала явью фантазия моя."
+  },
+  "after": {
+   "hebrew_plain": "והיה דמיוני למציאות",
+   "hebrew_niqqud": "וְהָיָה דִמְיוֹנִי לִמְצִיאוּת",
+   "translit": "wəhāyâ ḏimyônî limṣîʾûṯ",
+   "translit_ru": "вэхайа димйони лимциут",
+   "russian": "И стала явью фантазия моя."
+  }
+ },
+ {
+  "work_id": "43384",
+  "file": "works/43384.json",
+  "text_id": "by-43384",
+  "row_id": "r0",
+  "title": "גְּמַלִּים [נוסח 'שירים']",
+  "before": {
+   "hebrew_plain": "גמלים [נוסח 'שירים']",
+   "hebrew_niqqud": "גְּמַלִּים [נוסח 'שירים']",
+   "translit": "gəmallîm [nwsḥ 'šyrym']",
+   "translit_ru": "гэмалим [нвсх 'шйрйм']",
+   "russian": "Верблюды [в стиле 'Стихотворений']"
+  },
+  "after": {
+   "hebrew_plain": "גמלים",
+   "hebrew_niqqud": "גְּמַלִּים",
+   "translit": "gəmallîm",
+   "translit_ru": "гэмалим",
+   "russian": "Верблюды"
+  }
+ },
+ {
+  "work_id": "43455",
+  "file": "works/43455.json",
+  "text_id": "by-43455",
+  "row_id": "r0",
+  "title": "[כְּבָר בָּאָה הָעֵת לִשְׁכֹּחַ] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[כבר באה העת לשכח] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[כְּבָר בָּאָה הָעֵת לִשְׁכֹּחַ] [נוסח 'כוס קטנה']",
+   "translit": "[kəḇār bāʾâ hāʿēṯ liškōaḥ] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[кэвар баа хает лишкоах] [нвсх 'хвс ктнх']",
+   "russian": "[Уже настало время забыть] [На мотив 'Маленькой чашки']"
+  },
+  "after": {
+   "hebrew_plain": "[כבר באה העת לשכח]",
+   "hebrew_niqqud": "[כְּבָר בָּאָה הָעֵת לִשְׁכֹּחַ]",
+   "translit": "[kəḇār bāʾâ hāʿēṯ liškōaḥ]",
+   "translit_ru": "[кэвар баа хает лишкоах]",
+   "russian": "[Уже настало время забыть]"
+  }
+ },
+ {
+  "work_id": "43456",
+  "file": "works/43456.json",
+  "text_id": "by-43456",
+  "row_id": "r0",
+  "title": "[נַפְשִׁי כָלְתָה לַחֲרוּזִים] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[נפשי כלתה לחרוזים] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[נַפְשִׁי כָלְתָה לַחֲרוּזִים] [נוסח 'כוס קטנה']",
+   "translit": "[nap̄šî ḵāləṯâ laḥărûzîm] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[нафши халэта лахарузим] [нвсх 'хвс ктнх']",
+   "russian": "Душа моя жаждет рифм [в стиле 'Маленькой чашки']"
+  },
+  "after": {
+   "hebrew_plain": "[נפשי כלתה לחרוזים]",
+   "hebrew_niqqud": "[נַפְשִׁי כָלְתָה לַחֲרוּזִים]",
+   "translit": "[nap̄šî ḵāləṯâ laḥărûzîm]",
+   "translit_ru": "[нафши халэта лахарузим]",
+   "russian": "Душа моя жаждет рифм"
+  }
+ },
+ {
+  "work_id": "43457",
+  "file": "works/43457.json",
+  "text_id": "by-43457",
+  "row_id": "r0",
+  "title": "[לֹא הָיְתָה לִי אֵם] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[לא היתה לי אם] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[לֹא הָיְתָה לִי אֵם] [נוסח 'כוס קטנה']",
+   "translit": "[lōʾ hāyəṯâ lî ʾēm] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[ло хайэта ли ем] [нвсх 'хвс ктнх']",
+   "russian": "[Не было у меня матери] [по мотивам «Маленькой чаши»]"
+  },
+  "after": {
+   "hebrew_plain": "[לא היתה לי אם]",
+   "hebrew_niqqud": "[לֹא הָיְתָה לִי אֵם]",
+   "translit": "[lōʾ hāyəṯâ lî ʾēm]",
+   "translit_ru": "[ло хайэта ли ем]",
+   "russian": "[Не было у меня матери]"
+  }
+ },
+ {
+  "work_id": "43458",
+  "file": "works/43458.json",
+  "text_id": "by-43458",
+  "row_id": "r0",
+  "title": "[נַפְשִׁי אָבְדָה וְאֵינֶנָּה] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[נפשי אבדה ואיננה] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[נַפְשִׁי אָבְדָה וְאֵינֶנָּה] [נוסח 'כוס קטנה']",
+   "translit": "[nap̄šî ʾāḇəḏâ wəʾênennâ] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[нафши авэда вэенэна] [нвсх 'хвс ктнх']",
+   "russian": "Душа моя утеряна, и нет её."
+  },
+  "after": {
+   "hebrew_plain": "[נפשי אבדה ואיננה]",
+   "hebrew_niqqud": "[נַפְשִׁי אָבְדָה וְאֵינֶנָּה]",
+   "translit": "[nap̄šî ʾāḇəḏâ wəʾênennâ]",
+   "translit_ru": "[нафши авэда вэенэна]",
+   "russian": "Душа моя утеряна, и нет её."
+  }
+ },
+ {
+  "work_id": "43459",
+  "file": "works/43459.json",
+  "text_id": "by-43459",
+  "row_id": "r0",
+  "title": "שַׁלֶּכֶת [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "שלכת [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "שַׁלֶּכֶת [נוסח 'כוס קטנה']",
+   "translit": "šalleḵeṯ [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "шалэхэт [нвсх 'хвс ктнх']",
+   "russian": "Листопад [На мотив 'Маленькой чашечки']"
+  },
+  "after": {
+   "hebrew_plain": "שלכת",
+   "hebrew_niqqud": "שַׁלֶּכֶת",
+   "translit": "šalleḵeṯ",
+   "translit_ru": "шалэхэт",
+   "russian": "Листопад"
+  }
+ },
+ {
+  "work_id": "43460",
+  "file": "works/43460.json",
+  "text_id": "by-43460",
+  "row_id": "r0",
+  "title": "[גַם אוֹתְךָ לֹא יָדַעְתִּי] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[גם אותך לא ידעתי] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[גַם אוֹתְךָ לֹא יָדַעְתִּי] [נוסח 'כוס קטנה']",
+   "translit": "[ḡam ʾôṯəḵā lōʾ yāḏaʿtî] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[гам отэха ло йадати] [нвсх 'хвс ктнх']",
+   "russian": "[И тебя не знала я] [Вариант «Маленькая чаша»]"
+  },
+  "after": {
+   "hebrew_plain": "[גם אותך לא ידעתי]",
+   "hebrew_niqqud": "[גַם אוֹתְךָ לֹא יָדַעְתִּי]",
+   "translit": "[ḡam ʾôṯəḵā lōʾ yāḏaʿtî]",
+   "translit_ru": "[гам отэха ло йадати]",
+   "russian": "[И тебя не знала я]"
+  }
+ },
+ {
+  "work_id": "43461",
+  "file": "works/43461.json",
+  "text_id": "by-43461",
+  "row_id": "r0",
+  "title": "עֵינֵי עוֹפֶרֶת (זֶמֶר) [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "עיני עופרת (זמר) [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "עֵינֵי עוֹפֶרֶת (זֶמֶר) [נוסח 'כוס קטנה']",
+   "translit": "ʿênê ʿôp̄ereṯ (zemer) [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "ене офэрэт (зэмэр) [нвсх 'хвс ктнх']",
+   "russian": "Свинцовые очи"
+  },
+  "after": {
+   "hebrew_plain": "עיני עופרת (זמר)",
+   "hebrew_niqqud": "עֵינֵי עוֹפֶרֶת (זֶמֶר)",
+   "translit": "ʿênê ʿôp̄ereṯ (zemer)",
+   "translit_ru": "ене офэрэт (зэмэр)",
+   "russian": "Свинцовые очи"
+  }
+ },
+ {
+  "work_id": "43462",
+  "file": "works/43462.json",
+  "text_id": "by-43462",
+  "row_id": "r0",
+  "title": "[דִּבְרֵי שִׁירָה מָרִים וּגְאֵיוֹנִים] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[דברי שירה מרים וגאיונים] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[דִּבְרֵי שִׁירָה מָרִים וּגְאֵיוֹנִים] [נוסח 'כוס קטנה']",
+   "translit": "[diḇrê šîrâ mārîm ûḡəʾēyônîm] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[дивре шира марим угэейоним] [нвсх 'хвс ктнх']",
+   "russian": "Горькие и гордые стихи. [На мотив 'Маленькой чашки']"
+  },
+  "after": {
+   "hebrew_plain": "[דברי שירה מרים וגאיונים]",
+   "hebrew_niqqud": "[דִּבְרֵי שִׁירָה מָרִים וּגְאֵיוֹנִים]",
+   "translit": "[diḇrê šîrâ mārîm ûḡəʾēyônîm]",
+   "translit_ru": "[дивре шира марим угэейоним]",
+   "russian": "Горькие и гордые стихи."
+  }
+ },
+ {
+  "work_id": "43463",
+  "file": "works/43463.json",
+  "text_id": "by-43463",
+  "row_id": "r0",
+  "title": "לִפְנוֹת־עֶרֶב [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "לפנותערב [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "לִפְנוֹת־עֶרֶב [נוסח 'כוס קטנה']",
+   "translit": "lip̄nôṯ-ʿereḇ [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "лифнот-эрэв [нвсх 'хвс ктнх']",
+   "russian": "К вечеру"
+  },
+  "after": {
+   "hebrew_plain": "לפנותערב",
+   "hebrew_niqqud": "לִפְנוֹת־עֶרֶב",
+   "translit": "lip̄nôṯ-ʿereḇ",
+   "translit_ru": "лифнот-эрэв",
+   "russian": "К вечеру"
+  }
+ },
+ {
+  "work_id": "43464",
+  "file": "works/43464.json",
+  "text_id": "by-43464",
+  "row_id": "r0",
+  "title": "בַּעֲלוֹת הַשַּׁחַר [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "בעלות השחר [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "בַּעֲלוֹת הַשַּׁחַר [נוסח 'כוס קטנה']",
+   "translit": "baʿălôṯ haššaḥar [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "баалот хашахар [нвсх 'хвс ктнх']",
+   "russian": "На заре [на мотив «малая чаша»]"
+  },
+  "after": {
+   "hebrew_plain": "בעלות השחר",
+   "hebrew_niqqud": "בַּעֲלוֹת הַשַּׁחַר",
+   "translit": "baʿălôṯ haššaḥar",
+   "translit_ru": "баалот хашахар",
+   "russian": "На заре"
+  }
+ },
+ {
+  "work_id": "43465",
+  "file": "works/43465.json",
+  "text_id": "by-43465",
+  "row_id": "r0",
+  "title": "עַרְבִּית [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "ערבית [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "עַרְבִּית [נוסח 'כוס קטנה']",
+   "translit": "ʿarbîṯ [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "арбит [нвсх 'хвс ктнх']",
+   "russian": "Вечер"
+  },
+  "after": {
+   "hebrew_plain": "ערבית",
+   "hebrew_niqqud": "עַרְבִּית",
+   "translit": "ʿarbîṯ",
+   "translit_ru": "арбит",
+   "russian": "Вечер"
+  }
+ },
+ {
+  "work_id": "43466",
+  "file": "works/43466.json",
+  "text_id": "by-43466",
+  "row_id": "r0",
+  "title": "[הַיּוֹם הַשֶּׁמֶשׁ כֹּה צְנוּעָה] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[היום השמש כה צנועה] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[הַיּוֹם הַשֶּׁמֶשׁ כֹּה צְנוּעָה] [נוסח 'כוס קטנה']",
+   "translit": "[hayyôm haššemeš kōh ṣənûʿâ] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[хайом хашэмэш кох цэнуа] [нвсх 'хвс ктнх']",
+   "russian": "Сегодня солнце так скромно,"
+  },
+  "after": {
+   "hebrew_plain": "[היום השמש כה צנועה]",
+   "hebrew_niqqud": "[הַיּוֹם הַשֶּׁמֶשׁ כֹּה צְנוּעָה]",
+   "translit": "[hayyôm haššemeš kōh ṣənûʿâ]",
+   "translit_ru": "[хайом хашэмэш кох цэнуа]",
+   "russian": "Сегодня солнце так скромно,"
+  }
+ },
+ {
+  "work_id": "43467",
+  "file": "works/43467.json",
+  "text_id": "by-43467",
+  "row_id": "r0",
+  "title": "אֳרָנִים [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "ארנים [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "אֳרָנִים [נוסח 'כוס קטנה']",
+   "translit": "ʾŏrānîm [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "ораним [нвсх 'хвс ктнх']",
+   "russian": "Кедры..."
+  },
+  "after": {
+   "hebrew_plain": "ארנים",
+   "hebrew_niqqud": "אֳרָנִים",
+   "translit": "ʾŏrānîm",
+   "translit_ru": "ораним",
+   "russian": "Кедры..."
+  }
+ },
+ {
+  "work_id": "43469",
+  "file": "works/43469.json",
+  "text_id": "by-43469",
+  "row_id": "r0",
+  "title": "בַּדֶּרֶךְ [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "בדרך [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "בַּדֶּרֶךְ [נוסח 'כוס קטנה']",
+   "translit": "baddereḵ [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "бадэрэх [нвсх 'хвс ктнх']",
+   "russian": "В пути"
+  },
+  "after": {
+   "hebrew_plain": "בדרך",
+   "hebrew_niqqud": "בַּדֶּרֶךְ",
+   "translit": "baddereḵ",
+   "translit_ru": "бадэрэх",
+   "russian": "В пути"
+  }
+ },
+ {
+  "work_id": "43472",
+  "file": "works/43472.json",
+  "text_id": "by-43472",
+  "row_id": "r0",
+  "title": "חֲרוּז נִשְׁכָּח [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "חרוז נשכח [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "חֲרוּז נִשְׁכָּח [נוסח 'כוס קטנה']",
+   "translit": "ḥărûz niškāḥ [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "харуз нишках [нвсх 'хвс ктнх']",
+   "russian": "Забытый стих [на мотив «Маленькой рюмки»]"
+  },
+  "after": {
+   "hebrew_plain": "חרוז נשכח",
+   "hebrew_niqqud": "חֲרוּז נִשְׁכָּח",
+   "translit": "ḥărûz niškāḥ",
+   "translit_ru": "харуз нишках",
+   "russian": "Забытый стих"
+  }
+ },
+ {
+  "work_id": "43473",
+  "file": "works/43473.json",
+  "text_id": "by-43473",
+  "row_id": "r0",
+  "title": "[וְהָיָה דִמְיוֹנִי לִמְצִיאוּת] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[והיה דמיוני למציאות] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[וְהָיָה דִמְיוֹנִי לִמְצִיאוּת] [נוסח 'כוס קטנה']",
+   "translit": "[wəhāyâ ḏimyônî limṣîʾûṯ] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[вэхайа димйони лимциут] [нвсх 'хвс ктнх']",
+   "russian": "[И моё воображение стало явью] [На мотив \"Маленькой чаши\"]"
+  },
+  "after": {
+   "hebrew_plain": "[והיה דמיוני למציאות]",
+   "hebrew_niqqud": "[וְהָיָה דִמְיוֹנִי לִמְצִיאוּת]",
+   "translit": "[wəhāyâ ḏimyônî limṣîʾûṯ]",
+   "translit_ru": "[вэхайа димйони лимциут]",
+   "russian": "[И моё воображение стало явью]"
+  }
+ },
+ {
+  "work_id": "43474",
+  "file": "works/43474.json",
+  "text_id": "by-43474",
+  "row_id": "r0",
+  "title": "[לִפְנֵי בֵיתִי עוֹבְרִים גְּמַלִּים] [נוסח 'כוס קטנה']",
+  "before": {
+   "hebrew_plain": "[לפני ביתי עוברים גמלים] [נוסח 'כוס קטנה']",
+   "hebrew_niqqud": "[לִפְנֵי בֵיתִי עוֹבְרִים גְּמַלִּים] [נוסח 'כוס קטנה']",
+   "translit": "[lip̄nê ḇêṯî ʿôḇərîm gəmallîm] [nwsḥ 'ḵws qṭnh']",
+   "translit_ru": "[лифне вети овэрим гэмалим] [нвсх 'хвс ктнх']",
+   "russian": "Возле дома проходят верблюды (На мотив «Маленькой чашечки»)"
+  },
+  "after": {
+   "hebrew_plain": "[לפני ביתי עוברים גמלים]",
+   "hebrew_niqqud": "[לִפְנֵי בֵיתִי עוֹבְרִים גְּמַלִּים]",
+   "translit": "[lip̄nê ḇêṯî ʿôḇərîm gəmallîm]",
+   "translit_ru": "[лифне вети овэрим гэмалим]",
+   "russian": "Возле дома проходят верблюды (На мотив «Маленькой чашечки»)"
+  }
+ },
+ {
+  "work_id": "51740",
+  "file": "works/51740.json",
+  "text_id": "by-51740",
+  "row_id": "r0",
+  "title": "סַבְתָּא טוֹבָה וְסַבְתָּא סָלִימָה [נוסח א]",
+  "before": {
+   "hebrew_plain": "סבתא טובה וסבתא סלימה [נוסח א]",
+   "hebrew_niqqud": "סַבְתָּא טוֹבָה וְסַבְתָּא סָלִימָה [נוסח א]",
+   "translit": "saḇtāʾ ṭôḇâ wəsaḇtāʾ sālîmâ [nwsḥ ʾ]",
+   "translit_ru": "савта това вэсавта салима [нвсх ]",
+   "russian": "Бабушка Това и бабушка Салима [Версия А]"
+  },
+  "after": {
+   "hebrew_plain": "סבתא טובה וסבתא סלימה",
+   "hebrew_niqqud": "סַבְתָּא טוֹבָה וְסַבְתָּא סָלִימָה",
+   "translit": "saḇtāʾ ṭôḇâ wəsaḇtāʾ sālîmâ",
+   "translit_ru": "савта това вэсавта салима",
+   "russian": "Бабушка Това и бабушка Салима"
+  }
+ }
+]
