@@ -27,7 +27,7 @@
   <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
-  <link rel="stylesheet" href="/css/app-nav.css?v=648">
+  <link rel="stylesheet" href="/css/app-nav.css?v=649">
   <link rel="stylesheet" href="/css/reader-core.css?v=643">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
@@ -1468,6 +1468,39 @@
        браузера. Без этого правила она уезжает на высоту бара и оставляет пустую полосу
        над первой строкой (воспроизведено в прототипе 2026-08-05). */
     body.room-study #roomReader #proTable thead th { top: 0 !important; }
+
+    /* R10 (audit P1-16, макет TableDesktop): desktop study screen with media — video left
+       (480px, 16:9, outside the scrolling table so it never moves), the word card docked under
+       it, the table right. Header rows span both columns. RTL mirrors the grid by itself. */
+    .room-word-dock-hint[hidden] { display: none; }
+    @media (min-width: 1024px) {
+      body.room-study.room-word-docked #roomReader {
+        --room-dock-w: clamp(360px, 38vw, 480px);
+        display: grid; grid-template-columns: var(--room-dock-w) minmax(0, 1fr);
+        grid-template-rows: repeat(19, auto) auto minmax(0, 1fr) auto;
+        column-gap: 20px; padding: 0 20px 20px;
+      }
+      body.room-study.room-word-docked #roomReader > * { grid-column: 1 / -1; }
+      body.room-study.room-word-docked #roomMediaBar { grid-column: 1; grid-row: 20; align-self: start; margin: 12px 0 0; }
+      body.room-study.room-word-docked #roomReaderTable { grid-column: 2; grid-row: 20 / 22; margin-top: 12px; padding: 0; }
+      body.room-study.room-word-docked #readerTaskLearningSupport,
+      body.room-study.room-word-docked #readerCopyright { grid-row: 22; }
+      body.room-study.room-word-docked #roomMediaYtMount iframe { height: auto; aspect-ratio: 16 / 9; min-height: 0; }
+      body.room-study.room-word-docked #roomWordDockHint { display: block; grid-column: 1; grid-row: 21;
+        align-self: start; margin-top: 16px; padding: 16px 18px; border: 1px dashed var(--border-soft); border-radius: 8px;
+        color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
+      /* The word card: a panel under the video instead of a modal bottom sheet. */
+      body.room-word-docked .rm-sheet {
+        inset: var(--room-dock-top, 420px) auto 20px 20px;
+        inset-inline-start: 20px; inset-inline-end: auto; width: clamp(360px, 38vw, 480px); z-index: 6;
+      }
+      body.room-word-docked .rm-sheet-backdrop { display: none; }
+      body.room-word-docked .rm-sheet-card {
+        position: static; max-width: none; max-height: 100%; height: 100%; box-sizing: border-box;
+        border: 1px solid var(--border-soft); border-radius: 8px; box-shadow: none; transform: none;
+        padding-bottom: 16px;
+      }
+    }
 
     /* Рельс: колонка сжата до 34px — иконки центрируются и теряют лишние отступы.
        Ничего не прячем: ▶ (и сегодня видимый только на активной строке), 🤖 и ☆
@@ -3231,6 +3264,7 @@
     </div>
     <div id="roomMediaYtMount" hidden></div>
   </div>
+  <div id="roomWordDockHint" class="room-word-dock-hint" data-i18n="room.reader.wordDockHint" hidden>Нажмите на слово в таблице — здесь откроется его карточка.</div>
   <div id="roomReaderTable" class="reader-table-wrap"></div>
   <div id="readerTaskLearningSupport" class="reader-task-learning-support" hidden></div>
   <div id="readerCopyright" class="reader-copyright"></div>
@@ -3277,7 +3311,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.648</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.649</button>
   </div>
 </footer>
 
@@ -3465,9 +3499,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=260"></script>
-    <script src="/i18n/locales/en.js?v=260"></script>
-    <script src="/i18n/locales/he.js?v=260"></script>
+    <script src="/i18n/locales/ru.js?v=261"></script>
+    <script src="/i18n/locales/en.js?v=261"></script>
+    <script src="/i18n/locales/he.js?v=261"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3510,7 +3544,7 @@
 <!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
      reader-morph.js so ensureEngine can build its lexicon. -->
 <script src="/js/proclitic-segment.js"></script>
-<script src="/js/reader-morph.js?v=648"></script>
+<script src="/js/reader-morph.js?v=649"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
@@ -3578,6 +3612,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=648"></script>
+<script type="module" src="/js/library-ui.js?v=649"></script>
 </body>
 </html>

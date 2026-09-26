@@ -2988,6 +2988,7 @@ window.I18N_LOCALES.ru = {
       custom: "Свой набор",
     },
     reader: {
+      wordDockHint: "Нажмите на слово в таблице — здесь откроется его карточка.",
       back: "← Полки",
       aids: "Настройки чтения",
       fadeGrad: {

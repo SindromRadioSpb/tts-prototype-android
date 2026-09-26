@@ -5838,10 +5838,27 @@ function roomUpdateTheadTop() {
 // МЕДИА-РЕЖИМ РАЗМЕТКИ: пока медиа видно (стейдж или YouTube), таблица живёт в собственном
 // скролл-окне под закреплённым плеером — зеркало #tableContainer Студии. Видео не уходит
 // с экрана: скроллится ТАБЛИЦА, а не страница. Без медиа — обычное полностраничное чтение.
+// R10 (audit P1-16): on a desktop the study screen with media splits in two — video left
+// (480px, outside the scrolling table, so it never moves), the word card docked under it, the
+// table right. The word card stops being a modal sheet there: the table stays clickable.
+function roomWordDockSync(mediaVisible) {
+  const docked = document.body.classList.contains('room-study') && !!mediaVisible && window.innerWidth >= 1024;
+  document.body.classList.toggle('room-word-docked', docked);
+  const hint = $('roomWordDockHint'); if (hint) hint.hidden = !docked;
+  if (docked) {
+    const bar = $('roomMediaBar');
+    const top = bar ? Math.round(bar.getBoundingClientRect().bottom) + 16 : 420;
+    document.documentElement.style.setProperty('--room-dock-top', top + 'px');
+  }
+  const sheet = document.querySelector('.rm-sheet');
+  if (sheet) sheet.setAttribute('aria-modal', docked ? 'false' : 'true');
+}
+
 function roomMediaApplyLayout() {
   const wrap = $('roomReaderTable'); if (!wrap) return;
   const stage = $('roomMediaLocalStage'), yt = $('roomMediaYtMount');
   const mediaVisible = (stage && !stage.hidden) || (yt && !yt.hidden);
+  roomWordDockSync(mediaVisible);
   const wasMediaScroll = wrap.classList.contains('room-media-scroll');
   const preserveWorkingRow = () => {
     if (wasMediaScroll || !wrap.classList.contains('room-media-scroll') || _sessionLastRow < 0) return;
@@ -8476,7 +8493,7 @@ async function closeReader(options) {
     if (reader) reader.hidden = true;
     if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
     if (back) back.disabled = false;
-    try { document.body.classList.remove('room-reading'); document.body.classList.remove('room-study'); } catch (_) {}
+    try { document.body.classList.remove('room-reading'); document.body.classList.remove('room-study'); document.body.classList.remove('room-word-docked'); } catch (_) {}
     scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
     openLessonStudio();
     return;
@@ -8498,7 +8515,7 @@ async function closeReader(options) {
   if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
   if (back) back.disabled = false;
   try { document.body.classList.remove('room-reading'); } catch (_) {}   // вернуть sticky шапке сайта вне ридера
-  try { document.body.classList.remove('room-study'); } catch (_) {}     // домашний экран без шапки был бы тупиком
+  try { document.body.classList.remove('room-study'); document.body.classList.remove('room-word-docked'); } catch (_) {}     // домашний экран без шапки был бы тупиком
   scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   await restoreReaderReturnContext(returnContext);

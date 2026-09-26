@@ -73,6 +73,11 @@ test("phone: toasts and the selection bar clear the navigation bar", () => {
   assert.match(css, /body\.lp-has-app-nav \.ml-bulk\[data-has-selection=true\] \{ bottom: calc\(68px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
 });
 
+test("desktop: the study-mode reader starts below the strip", () => {
+  const css = read("public/css/app-nav.css");
+  assert.match(css, /@media \(min-width: 600px\) \{[\s\S]*?body\.room-study\.lp-has-app-nav #roomReader \{ top: 45px; \}/);
+});
+
 test("nav labels exist in every locale and the Room is called the same everywhere", () => {
   for (const locale of ["ru", "en", "he"]) {
     const src = read(`public/i18n/locales/${locale}.js`);

@@ -1682,8 +1682,13 @@
     return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
   }
 
+  // R10: in the Room's desktop split the card is a docked panel beside the table, not a modal.
+  function syncSheetModality(el) {
+    try { el.setAttribute("aria-modal", document.body.classList.contains("room-word-docked") ? "false" : "true"); } catch (_) {}
+  }
   function openCardLoading() {
     var el = ensureSheet();
+    syncSheetModality(el);
     if (el.hidden) { try { _cardReturnFocus = document.activeElement; } catch (_) { _cardReturnFocus = null; } }   // fresh open → remember trigger
     el.querySelector(".rm-sheet-body").innerHTML = '<div class="rm-loading">' + escapeHtml(tt("room.morph.loading", "Анализ…")) + "</div>";
     el.hidden = false; el.classList.add("rm-open");
@@ -1692,6 +1697,7 @@
   function openCard(card, occ) {
     _activeCard = card; _activeOcc = occ || null; _activeNoteInfo = null;
     var el = ensureSheet();
+    syncSheetModality(el);
     el.querySelector(".rm-sheet-body").innerHTML = renderCardHtml(card);
     el.hidden = false; el.classList.add("rm-open");
     if (card) refreshCardMeta(card);

@@ -2984,6 +2984,7 @@ window.I18N_LOCALES.he = {
       custom: "בחירה אישית",
     },
     reader: {
+      wordDockHint: "הקישו על מילה בטבלה — הכרטיס שלה ייפתח כאן.",
       back: "← מדפים",
       aids: "הגדרות קריאה",
       fadeGrad: {

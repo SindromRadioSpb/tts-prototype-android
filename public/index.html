@@ -50,7 +50,7 @@
     <!-- ROOM-UX-VF/VF0: additive primitives load before the complete legacy
          surface stylesheet below, preserving old/new SW compatibility. -->
     <link rel="stylesheet" href="/css/visual-foundations.css">
-    <link rel="stylesheet" href="/css/app-nav.css?v=648">
+    <link rel="stylesheet" href="/css/app-nav.css?v=649">
     <link rel="stylesheet" href="/css/publication-center.css?v=643">
 
     <style>
@@ -13530,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=260"></script>
-<script src="/i18n/locales/en.js?v=260"></script>
-<script src="/i18n/locales/he.js?v=260"></script>
+<script src="/i18n/locales/ru.js?v=261"></script>
+<script src="/i18n/locales/en.js?v=261"></script>
+<script src="/i18n/locales/he.js?v=261"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13605,7 +13605,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js?v=648"></script>
+<script src="/js/reader-morph.js?v=649"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13758,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.648";
+    window.APP_VERSION = "3.11.649";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

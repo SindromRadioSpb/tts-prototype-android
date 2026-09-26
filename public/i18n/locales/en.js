@@ -2974,6 +2974,7 @@ window.I18N_LOCALES.en = {
       custom: "Custom set",
     },
     reader: {
+      wordDockHint: "Tap a word in the table — its card opens here.",
       back: "← Shelves",
       aids: "Reading settings",
       fadeGrad: {

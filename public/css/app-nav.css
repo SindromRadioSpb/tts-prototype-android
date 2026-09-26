@@ -23,6 +23,9 @@
   body.lp-has-app-nav > .lp-app-nav { margin-bottom: 8px; }
   /* scrollIntoView({ block: "start" }) targets land below the strip, not under it (R7). */
   html:has(> body.lp-has-app-nav) { scroll-padding-top: 56px; }
+  /* The study-mode reader is a fixed full-screen layer: it starts below the strip, otherwise the
+     strip covered its bar («← Полки», ▶, 🔍, Аа) (found in R10 verification). */
+  body.room-study.lp-has-app-nav #roomReader { top: 45px; }
 }
 
 /* Phone: a bottom bar with labels under the icons. */
