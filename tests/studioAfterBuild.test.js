@@ -104,3 +104,9 @@ test("primary buttons keep an edge in forced colors; Studio toasts clear the pho
   const nav = fs.readFileSync(path.join(__dirname, "..", "public/css/app-nav.css"), "utf8");
   assert.match(nav, /body\.lp-has-app-nav #toastContainer,\n  body\.lp-has-app-nav \.v3-toast \{ bottom: calc\(72px \+ env\(safe-area-inset-bottom, 0px\)\); \}/);
 });
+
+// A build that ends without rows must not leave the scroll armed for the next, unrelated table.
+test("the scroll-to-table flag is disarmed when a build ends, whatever the outcome", () => {
+  assert.match(html, /async function translateTable\(\) \{\s*try \{ return await translateTableRun\(\); \} finally \{ v3ScrollToTablePending = false; \}\s*\}/);
+  assert.match(html, /async function translateTableRun\(\) \{\s*if \(!validate\(\)\) return;/);
+});

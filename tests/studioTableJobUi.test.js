@@ -43,7 +43,7 @@ test('completion is coverage-gated, repairs only missing segments and retains a 
 // Владелец, 2026-09-24: короткая сборка одним запросом пропадала без следа — ни сводки при
 // успехе, ни причины при отказе. Каждый путь «одним запросом» обязан оставить итоговую карточку.
 test('short single-request builds end in a done or stopped card instead of vanishing', () => {
-  for (const fn of ['async function translateTable', 'async function v3TranslateTablePremiumChunked', 'async function v3TranslateTableLocalMt']) {
+  for (const fn of ['async function translateTableRun', 'async function v3TranslateTablePremiumChunked', 'async function v3TranslateTableLocalMt']) {
     const start = html.indexOf(fn);
     assert.notEqual(start, -1, fn);
     const body = html.slice(start, html.indexOf('\n    async function ', start + 20));

@@ -83,12 +83,12 @@ test("toasts rise above an open word card or words sheet", () => {
   assert.match(css, /body:has\(\.rm-sheet\.rm-open:not\(\[hidden\]\)\) \.room-toast,\nbody:has\(\.room-study\.room-study-open:not\(\[hidden\]\)\) \.room-toast,\nbody:has\(\.rm-sheet\.rm-open:not\(\[hidden\]\)\) #toastContainer \{\n  top: calc\(12px \+ env\(safe-area-inset-top, 0px\)\); bottom: auto;\n\}/);
 });
 
-test("the glossary names every term in three languages and flags the «Библиотека» clash", () => {
+test("the glossary names every term in three languages and records the «Мои материалы» decision", () => {
   const g = read("docs/planning/UI_GLOSSARY_2026_09_26.md");
   for (const term of ["Зал", "Медиатека", "Студия", "Мои слова", "Повторение", "Добавить в мои слова"]) assert.match(g, new RegExp("\\| " + term + " \\|"), term);
   assert.match(g, /המילים שלי/);
   assert.match(g, /My words/);
-  assert.match(g, /Открытый вопрос владельцу/);
+  assert.match(g, /решение владельца 2026-09-26/);   // the «Библиотека» clash is decided
 });
 
 // R9 verification (380): «Календарь» / «Запоминание» spilled out of 44px icon buttons, and the

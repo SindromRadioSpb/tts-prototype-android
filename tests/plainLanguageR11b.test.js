@@ -26,8 +26,8 @@ test("the Russian UI has no Latin «Library», «SRS Trainer», «IDE» or «off
     }
   })(ru, "");
   assert.deepEqual(bad, []);
-  assert.equal(ru.ide.tabLibrary, "Библиотека");
-  assert.equal(ru.classic.chipLibraryNeedSave, "Библиотека: нужно сохранить");
+  assert.equal(ru.ide.tabLibrary, "Мои материалы");   // owner 2026-09-26: Studio store = «Мои материалы»
+  assert.equal(ru.classic.chipLibraryNeedSave, "Мои материалы: нужно сохранить");
 });
 
 test("the table source line is plain language; the technical ids stay out of it", () => {

@@ -11288,7 +11288,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
             type="text"
             class="v3-ide-search-input"
             data-i18n-placeholder="ide.filterPlaceholder"
-            placeholder="Фильтр библиотеки..."
+            placeholder="Фильтр материалов..."
             oninput="v3IdeLibraryFilterDebounced()"
           />
           <div class="v3-ide-search-scope">
@@ -11391,7 +11391,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <div id="v3IdeCenterContent" class="v3-ide-center-content">
       <div class="v3-ide-empty">
         <div class="v3-ide-empty-icon">📖</div>
-        <div class="v3-ide-empty-text" data-i18n="ide.emptyCenter">Выберите текст из библиотеки или результатов поиска</div>
+        <div class="v3-ide-empty-text" data-i18n="ide.emptyCenter">Выберите текст из моих материалов или результатов поиска</div>
       </div>
     </div>
   </main>
@@ -11643,9 +11643,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                 <div class="classic-utility-bar" role="navigation" data-i18n-aria-label="classic.navLabel" aria-label="Навигация и режимы">
                   <!-- Row 1: Primary navigation cards -->
                   <div class="classic-nav-primary">
-                    <button id="btnLibrary" class="classic-nav-card studio-vf3-focus" onclick="v3LibraryOpen()" data-i18n-aria-label="classic.navLibrary" aria-label="Библиотека">
+                    <button id="btnLibrary" class="classic-nav-card studio-vf3-focus" onclick="v3LibraryOpen()" data-i18n-aria-label="classic.navLibrary" aria-label="Мои материалы">
                       <span class="classic-nav-icon" data-studio-icon="lp-icon-list-add" aria-hidden="true"><span class="studio-icon-fallback">▤</span></span>
-                      <span class="classic-nav-label" data-i18n="classic.navLibrary">Библиотека</span>
+                      <span class="classic-nav-label" data-i18n="classic.navLibrary">Мои материалы</span>
                     </button>
                     <button id="btnDashboard" class="classic-nav-card studio-vf3-focus" onclick="v3DashboardOpen()" data-i18n-aria-label="classic.navDashboard" aria-label="Дашборд">
                       <span class="classic-nav-icon" data-studio-icon="lp-icon-info" aria-hidden="true"><span class="studio-icon-fallback">i</span></span>
@@ -12193,7 +12193,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-  <div class="v3-modal-title" data-i18n="library.title">Библиотека (v3)</div>
+  <div class="v3-modal-title" data-i18n="library.title">Мои материалы</div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
     <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
     <button class="btn-secondary" onclick="v3FeedbackOpen('cardrequest')" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
@@ -12817,12 +12817,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- -----------------------------------------
      Week9 P1: Save Meta mini-modal (on Save current table)
 ------------------------------------------ -->
-<div id="v3SaveMetaModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Сохранить в библиотеку" data-i18n-aria-label="saveMeta.title">
+<div id="v3SaveMetaModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Сохранить в мои материалы" data-i18n-aria-label="saveMeta.title">
   <div class="v3-modal-backdrop" onclick="v3SaveMetaClose()" aria-hidden="true"></div>
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title" data-i18n="saveMeta.title">Сохранить в библиотеку</div>
+      <div class="v3-modal-title" data-i18n="saveMeta.title">Сохранить в мои материалы</div>
       <button id="v3SaveMetaCloseBtn" class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.close">Закрыть</button>
     </div>
 
@@ -12893,7 +12893,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       </section>
 
       <div id="v3SaveMetaCompleteActions" hidden>
-        <button type="button" class="btn-secondary" onclick="v3SaveMetaOpenLibrary()" data-i18n="saveMeta.openLibrary">Открыть в библиотеке</button>
+        <button type="button" class="btn-secondary" onclick="v3SaveMetaOpenLibrary()" data-i18n="saveMeta.openLibrary">Открыть в моих материалах</button>
         <button type="button" class="btn-secondary" onclick="v3SaveMetaOpenTransfer()" data-i18n="saveMeta.openTransfer">Экспорт / перенос</button>
         <button type="button" class="btn-primary" onclick="v3SaveMetaDone()" data-i18n="saveMeta.done">Готово</button>
       </div>
@@ -13285,7 +13285,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     onclick="window.LinguistProCrossTextUI && window.LinguistProCrossTextUI.openForCurrentWord()"
                     data-i18n="notes.tpl.word_study.crossText"
                     data-i18n-title="notes.tpl.word_study.crossTextTitle"
-                    title="Найти, где это слово / его корень встречается в библиотеке">
+                    title="Найти, где это слово / его корень встречается в моих материалах">
               🔎 Где встречается
             </button>
           </div>
@@ -13530,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=265"></script>
-<script src="/i18n/locales/en.js?v=265"></script>
-<script src="/i18n/locales/he.js?v=265"></script>
+<script src="/i18n/locales/ru.js?v=266"></script>
+<script src="/i18n/locales/en.js?v=266"></script>
+<script src="/i18n/locales/he.js?v=266"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13758,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.654";
+    window.APP_VERSION = "3.11.655";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14963,8 +14963,8 @@ function v3IdeRenderCenterEmpty(opts) {
   const isError = !!(opts && opts.error);
   const icon = isError ? "⚠️" : "📚";
   const title = isError ? T("ide.loadErrTitle", "Не удалось открыть текст") : T("ide.emptyTitle", "Текст не открыт");
-  const hint = isError ? v3EscapeHtml(String(opts.error)) : v3EscapeHtml(T("ide.emptyHint", "Выберите текст из библиотеки или вставьте свой, чтобы начать работу."));
-  const btnLabel = v3EscapeHtml(T("ide.emptyOpenLib", "📚 Открыть библиотеку"));
+  const hint = isError ? v3EscapeHtml(String(opts.error)) : v3EscapeHtml(T("ide.emptyHint", "Выберите текст из моих материалов или вставьте свой, чтобы начать работу."));
+  const btnLabel = v3EscapeHtml(T("ide.emptyOpenLib", "Открыть мои материалы"));
   content.innerHTML =
     '<div class="v3-ide-empty">' +
       '<div class="v3-ide-empty-icon">' + icon + '</div>' +
@@ -26444,7 +26444,7 @@ async function v3LibraryRefresh() {
           retryBtn + backupBtn + "</div>";
       }
     }
-    if (statusEl) statusEl.textContent = v3FollowerT("library.error.status", "Ошибка загрузки библиотеки") + ": " + detail.slice(0, 160);
+    if (statusEl) statusEl.textContent = v3FollowerT("library.error.status", "Ошибка загрузки материалов") + ": " + detail.slice(0, 160);
     helpHtml += "<p><a href='/db-diagnostics.html' target='_blank' rel='noopener'>" + v3EscapeHtml(v3FollowerT('dashboard.secDiag', 'Диагностика системы')) + "</a></p>";
     if (listEl) listEl.innerHTML =
       "<div class='v3-lib-card v3-lib-danger'>" +
@@ -31260,7 +31260,7 @@ function v3ExportShowCard(state) {
   const host = document.getElementById("v3LibExportCardHost");
   if (!host) return;
   host.innerHTML =
-    '<div class="v3-exp-card" id="v3LibExportCard" role="group" aria-label="' + v3ExpT("exp.cardLabel", "Экспорт библиотеки") + '">'
+    '<div class="v3-exp-card" id="v3LibExportCard" role="group" aria-label="' + v3ExpT("exp.cardLabel", "Экспорт материалов") + '">'
     +   '<div class="v3-exp-steps">'
     +     '<span class="v3-exp-step" data-step="read">' + v3ExpT("exp.stepRead", "Чтение") + '</span>'
     +     '<span class="v3-exp-step" data-step="audio">' + v3ExpT("exp.stepAudio", "Аудио") + '</span>'
@@ -31327,7 +31327,7 @@ function v3ExportPaint(state, force) {
   });
   const counts = document.getElementById("v3ExpCounts");
   if (counts) {
-    if (state.phase === "read") counts.textContent = v3ExpT("exp.reading", "Чтение библиотеки…");
+    if (state.phase === "read") counts.textContent = v3ExpT("exp.reading", "Чтение материалов…");
     else if (state.phase === "audio") counts.textContent = v3ExpT("exp.audioCount", "Аудио {done}/{total} · {mb} МБ", { done: state.audioDone, total: state.audioTotal, mb: v3ExpFmtMB(state.bytes) });
     else if (state.phase === "pack") counts.textContent = v3ExpT("exp.packing", "Упаковка… {percent}%", { percent: Math.round(state.packPercent || 0) });
     else if (state.phase === "done") counts.textContent = v3ExpT("exp.doneShort", "Готово · {mb} МБ", { mb: v3ExpFmtMB(state.bytes) });
@@ -31432,7 +31432,7 @@ function v3ExportPreflight(info) {
     };
     backdrop.innerHTML =
       '<div class="v3-exp-pf" role="dialog" aria-modal="true">'
-      +   '<h3>' + v3ExpT("exp.pfTitle", "Экспорт библиотеки") + '</h3>'
+      +   '<h3>' + v3ExpT("exp.pfTitle", "Экспорт материалов") + '</h3>'
       +   '<div class="v3-exp-pf-summary">'
       +     v3ExpT("exp.pfSummary", "<b>{texts}</b> текстов · <b>{audio}</b> аудио<br>≈ <b>{mb}</b> МБ · ~{time}", { texts: info.texts, audio: info.audio, mb: v3ExpFmtMB(info.sizeEst), time: v3ExpFmtTime(info.etaSec) })
       +   '</div>'
@@ -36673,7 +36673,11 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         }
     }
 
+    // A build that ends without rows (validation, error, cancel) disarms the one-shot scroll.
     async function translateTable() {
+        try { return await translateTableRun(); } finally { v3ScrollToTablePending = false; }
+    }
+    async function translateTableRun() {
         if (!validate()) return;
 
         const currentText = getText().trim();
@@ -38259,7 +38263,7 @@ try {
                   '<h2 style="margin:0 0 10px;font-size:18px;" data-i18n="byokOnboarding.title">Подключите свои API-ключи</h2>' +
                   '<p style="margin:0 0 12px;line-height:1.5;font-size:14px;" data-i18n="byokOnboarding.intro">LinguistPro работает по модели BYOK: ключи Gemini и Google Cloud вы создаёте сами и вводите в этом браузере. Сервер не использует общие ключи — это защищает квоты и даёт вам полный контроль.</p>' +
                   '<ul style="margin:0 0 14px;padding-left:20px;line-height:1.55;font-size:13px;">' +
-                    '<li data-i18n="byokOnboarding.bullet1">Без ключей доступны: озвучка через браузер, бесплатный Google Translate, библиотека/SRS/заметки.</li>' +
+                    '<li data-i18n="byokOnboarding.bullet1">Без ключей доступны: озвучка через браузер, бесплатный Google Translate, мои материалы, повторение и заметки.</li>' +
                     '<li data-i18n="byokOnboarding.bullet2">Премиум-функции (Gemini AI / GCP TTS / GCP Translate) требуют свой ключ AIza…</li>' +
                     '<li data-i18n="byokOnboarding.bullet3">Каждый ключ — ~5 минут в Google Console. Бесплатные квоты обычно покрывают индивидуальное использование.</li>' +
                   '</ul>' +
@@ -44610,7 +44614,7 @@ async function v3TextCardBuilderBuildAll() {
   if (statusEl) {
     const errCount = v3TcbState.jobs.filter(j => j.status === 'error').length;
     if (errCount === 0) {
-      statusEl.textContent = v3NotesT('tcb.allDone', 'Готово: {n} текстов сохранено в библиотеку').replace('{n}', String(okCount));
+      statusEl.textContent = v3NotesT('tcb.allDone', 'Готово: {n} текстов сохранено в мои материалы').replace('{n}', String(okCount));
       statusEl.className = 'v3-tcb-status v3-tcb-status-ok';
     } else {
       statusEl.textContent = v3NotesT('tcb.someErrors', '{ok} ОК, {err} с ошибкой').replace('{ok}', String(okCount)).replace('{err}', String(errCount));
