@@ -56,3 +56,7 @@ test("the Room holds its restored working row in view the same way", () => {
   assert.match(fn, /_sessionLastRow !== idx/, "a newer working row ends the hold");
   assert.equal((roomJs.match(/roomHoldRowInView\(/g) || []).length, 4, "definition + resume, continue and media-scroller restores");
 });
+
+test("a text deep link without an anchor opens at the working row (and so does F5 on it)", () => {
+  assert.match(studio, /await v3LibraryOpenText\(id, anchorSentenceId\n\s+\? \{ resumeSentenceId: anchorSentenceId, origin: "deeplink" \}\n\s+: \{ resume: true, origin: "deeplink" \}\);/);
+});

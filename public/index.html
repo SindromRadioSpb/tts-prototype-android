@@ -13763,7 +13763,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.663";
+    window.APP_VERSION = "3.11.664";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -19651,7 +19651,11 @@ async function v3DeeplinkResolveTarget(target) {
         : null;
 
       try {
-        await v3LibraryOpenText(id, { resumeSentenceId: anchorSentenceId, origin: "deeplink" });
+        // Ссылка на текст без якоря («Открыть в Студии», возврат из видео) — продолжение: открываем
+        // с последней рабочей строки. Хэш остаётся в адресе, так что это же работает и после F5.
+        await v3LibraryOpenText(id, anchorSentenceId
+          ? { resumeSentenceId: anchorSentenceId, origin: "deeplink" }
+          : { resume: true, origin: "deeplink" });
         return { ok: true };
       } catch (e) {
         const msg = e && e.message ? String(e.message) : "";
