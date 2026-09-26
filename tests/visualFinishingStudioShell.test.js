@@ -2,6 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { lockstepVersion, requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -95,18 +96,10 @@ test("VF3 shell locale labels are emoji-free and symmetric", () => {
 });
 
 test("VF3 shell remains intact in the current release and locale lock", () => {
-  const app = studio.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
-  const footer = room.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
-  const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
-  assert.ok(app && footer && worker);
-  assert.equal(app[1], "3.11.610");
-  assert.equal(footer[1], app[1]);
-  assert.equal(worker[1], app[1]);
+  lockstepVersion({ studio, room, sw });
   for (const code of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${code}.js?v=241`;
-    assert.ok(studio.includes(url), `Studio must request exact ${url}`);
-    assert.ok(room.includes(url), `Room must request exact ${url}`);
-    assert.ok(sw.includes(JSON.stringify(url)), `SW must precache exact ${url}`);
-    assert.ok(server.includes(JSON.stringify(url)), `integrity manifest must key exact ${url}`);
+    const url = requestedUrl(studio, `/i18n/locales/${code}.js`, "Studio");
+    assert.equal(requestedUrl(room, `/i18n/locales/${code}.js`, "Room"), url, `Room must request exact ${url}`);
+    assertPrecachedExactly(url, { sw, server });
   }
 });

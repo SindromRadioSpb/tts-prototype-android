@@ -2,6 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { lockstepVersion, requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -74,7 +75,6 @@ test("approved semantic foregrounds meet AA on every exact light background", ()
 });
 
 test("current release keeps Studio Room and service worker at one version", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.610"/);
-  assert.match(room, /id="roomFooterVersion"[^>]*>v3\.11\.610<\/button>/);
-  assert.match(sw, /const CACHE_VERSION\s*=\s*"v3\.11\.610"/);
+  // O-017: an invariant, not a pinned number — it held for 3.11.610 and holds for every release since.
+  lockstepVersion({ studio, room, sw });
 });

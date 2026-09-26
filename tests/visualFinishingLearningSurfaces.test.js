@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { lockstepVersion, requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -65,31 +66,16 @@ test("VF2 Mentor CSS uses the shared state, focus, motion and forced-colors gram
 });
 
 test("VF2 release lock cache-busts every changed shared asset and precaches the exact URLs", () => {
-  assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
-  assert.match(roomHtml, /\/css\/reader-morph\.css\?v=396/);
-  assert.match(studioHtml, /\/css\/reader-morph\.css\?v=396/);
-  assert.match(roomHtml, /\/js\/mentor-connection-core\.js\?v=414/);
-  assert.match(roomHtml, /\/js\/mentor-home\.js\?v=414/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=610/);
-  assert.match(roomJs, /from '\/js\/corpus-item-presenter\.js\?v=419'/,
-    "module dependencies changed by the release must be cache-busted at the import site");
-  for (const url of [
-    "/js/reader-core.js?v=582",
-    "/css/reader-core.css?v=399",
-    "/css/reader-morph.css?v=396",
-    "/js/mentor-connection-core.js?v=414",
-    "/js/mentor-home.js?v=414",
-    "/js/library-ui.js?v=610",
-    "/js/corpus-item-presenter.js?v=419",
-  ]) {
-    assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
-    assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
+  // O-017: the VF2 assets stay cache-busted and precached at the URL each shell requests.
+  assert.equal(requestedUrl(studioHtml, "/css/reader-morph.css", "Studio"), requestedUrl(roomHtml, "/css/reader-morph.css", "Room"));
+  for (const path of ["/css/reader-core.css", "/css/reader-morph.css", "/js/mentor-connection-core.js", "/js/mentor-home.js", "/js/library-ui.js"]) {
+    assertPrecachedExactly(requestedUrl(roomHtml, path, "Room"), { sw, server });
   }
+  assertPrecachedExactly(requestedUrl(roomJs, "/js/reader-core.js", "library-ui.js import"), { sw, server });
+  const presenter = roomJs.match(/from '(\/js\/corpus-item-presenter\.js\?v=[^']+)'/);
+  assert.ok(presenter, "module dependencies changed by the release must be cache-busted at the import site");
+  assertPrecachedExactly(presenter[1], { sw, server });
   assert.match(server, /new URL\(url, "http:\/\/linguistpro\.local"\)\.pathname/,
     "cache-bust queries must not become part of the filesystem path used for hashing");
-  for (const locale of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${locale}.js?v=241`;
-    assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
-    assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
-  }
+  for (const locale of ["ru", "en", "he"]) assertPrecachedExactly(requestedUrl(roomHtml, `/i18n/locales/${locale}.js`, "Room"), { sw, server });
 });

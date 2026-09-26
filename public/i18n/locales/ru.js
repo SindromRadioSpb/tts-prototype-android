@@ -441,7 +441,7 @@ window.I18N_LOCALES.ru = {
     bullet2: "Премиум-функции (Gemini AI / GCP TTS / GCP Translate) требуют свой ключ AIza…",
     bullet3: "Каждый ключ — ~5 минут в Google Console. Бесплатные квоты обычно покрывают индивидуальное использование.",
     btnLater: "Позже",
-    btnTour: "🎯 Краткий тур",
+    btnTour: "Краткий тур",
     btnGuide: "Открыть инструкцию",
   },
   tour: {

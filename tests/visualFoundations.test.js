@@ -2,6 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { lockstepVersion, requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
@@ -263,14 +264,11 @@ test("VF0 records Lucide and Feather licence notices plus reproducible provenanc
 });
 
 test("VF0 precaches foundation assets and remains locked to the current served release", () => {
+  // Foundations and the sprite are unversioned by contract: both shells request the plain URL the
+  // SW precaches (the sprite is revalidated by the server since R11a).
   assert.match(serviceWorker, /"\/css\/visual-foundations\.css"/);
+  assert.match(indexHtml, /href="\/css\/visual-foundations\.css"/);
+  assert.match(libraryHtml, /href="\/css\/visual-foundations\.css"/);
   assert.match(serviceWorker, /"\/icons\/linguistpro-ui\.svg"/);
-
-  const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
-  const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
-  const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
-  assert.ok(app && room && worker, "all public version surfaces must exist");
-  assert.equal(app[1], "3.11.610");
-  assert.equal(room[1], app[1]);
-  assert.equal(worker[1], app[1]);
+  lockstepVersion({ studio: indexHtml, room: libraryHtml, sw: serviceWorker });
 });

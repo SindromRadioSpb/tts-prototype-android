@@ -4593,6 +4593,10 @@ body.theme-dark .p2-portable-dialog { --portable-ink:#5eead4; --portable-error:#
 /* -----------------------------------------
    Week9 P1: Meta Edit mini-modal (PRO)
 ----------------------------------------- */
+/* Audit P2-6: the BYOK window is short — it sizes to its content instead of the fixed panel height. */
+#byokOnboardingModal .v3-modal-panel { height: auto; }
+#byokOnboardingModal .v3-modal-panel :is(button, a.btn-primary) { min-height: 44px; display: inline-flex; align-items: center; }
+
 #v3TextMetaModal .v3-modal-panel,
 #v3SaveMetaModal .v3-modal-panel,
 #v3AnkiModal .v3-modal-panel,
@@ -13530,9 +13534,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=266"></script>
-<script src="/i18n/locales/en.js?v=266"></script>
-<script src="/i18n/locales/he.js?v=266"></script>
+<script src="/i18n/locales/ru.js?v=267"></script>
+<script src="/i18n/locales/en.js?v=267"></script>
+<script src="/i18n/locales/he.js?v=267"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13758,7 +13762,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.657";
+    window.APP_VERSION = "3.11.658";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -38269,7 +38273,7 @@ try {
                   '</ul>' +
                   '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">' +
                     '<button class="btn-secondary" onclick="byokOnboardingDismiss(true)" style="padding:8px 14px;" data-i18n="byokOnboarding.btnLater">Позже</button>' +
-                    '<button class="btn-secondary" onclick="byokTourStart()" style="padding:8px 14px;" data-i18n="byokOnboarding.btnTour">🎯 Краткий тур</button>' +
+                    '<button class="btn-secondary" onclick="byokTourStart()" style="padding:8px 14px;" data-i18n="byokOnboarding.btnTour">Краткий тур</button>' +
                     '<a id="byokOnboardingGuideLink" href="/docs/BYOK_SETUP.md" target="_blank" rel="noopener" onclick="byokOnboardingDismiss(true)" class="btn-primary" style="padding:8px 14px;text-decoration:none;display:inline-block;" data-i18n="byokOnboarding.btnGuide">Открыть инструкцию</a>' +
                   '</div>' +
                 '</div>';

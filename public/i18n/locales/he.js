@@ -442,7 +442,7 @@ window.I18N_LOCALES.he = {
     bullet2: "פונקציות פרימיום (Gemini AI / GCP TTS / GCP Translate) דורשות מפתח AIza… משלכם.",
     bullet3: "כל מפתח לוקח ~5 דקות ב-Google Console. המכסות החינמיות בדרך כלל מכסות שימוש אישי.",
     btnLater: "מאוחר יותר",
-    btnTour: "🎯 סיור קצר",
+    btnTour: "סיור קצר",
     btnGuide: "פתח את המדריך",
   },
   tour: {

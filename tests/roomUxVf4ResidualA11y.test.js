@@ -2,6 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { lockstepVersion, requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -119,27 +120,18 @@ test("RU EN HE carry exact row-audio action and state keys", () => {
 });
 
 test("current release lock cache-busts changed Room, media host and locale assets exactly", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.613"/);
-  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.613</);
-  assert.match(sw, /const CACHE_VERSION = "v3\.11\.613"/);
-  assert.match(studio, /\/js\/media-host\.js\?v=576/);
-  assert.match(roomHtml, /\/js\/media-host\.js\?v=576/);
-  assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=611/);
-  for (const url of [
-    "/js/library-ui.js?v=611",
-    "/js/reader-core.js?v=582",
-    "/css/reader-core.css?v=399",
-    "/js/media-host.js?v=576",
-    "/i18n/locales/ru.js?v=244",
-    "/i18n/locales/en.js?v=244",
-    "/i18n/locales/he.js?v=244",
-  ]) {
-    assert.ok(sw.includes(JSON.stringify(url)), `SW missing ${url}`);
-    assert.ok(server.includes(JSON.stringify(url)), `integrity manifest missing ${url}`);
+  lockstepVersion({ studio, room: roomHtml, sw });
+  // Studio and Room request the shared media host at one URL; every locked asset is precached
+  // and integrity-keyed at exactly the URL the shell requests (O-017: invariant, not ?v=576).
+  assert.equal(requestedUrl(studio, "/js/media-host.js", "Studio"), requestedUrl(roomHtml, "/js/media-host.js", "Room"));
+  for (const path of ["/js/library-ui.js", "/css/reader-core.css", "/js/media-host.js"]) {
+    assertPrecachedExactly(requestedUrl(roomHtml, path, "Room"), { sw, server });
   }
+  // reader-core is imported by the Room module, so its versioned URL lives at the import site.
+  assertPrecachedExactly(requestedUrl(roomJs, "/js/reader-core.js", "library-ui.js import"), { sw, server });
   for (const locale of ["ru", "en", "he"]) {
-    assert.match(studio, new RegExp(`/i18n/locales/${locale}\\.js\\?v=244`));
-    assert.match(roomHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=244`));
+    const url = requestedUrl(studio, `/i18n/locales/${locale}.js`, "Studio");
+    assert.equal(requestedUrl(roomHtml, `/i18n/locales/${locale}.js`, "Room"), url, "Studio and Room share the locale key");
+    assertPrecachedExactly(url, { sw, server });
   }
 });

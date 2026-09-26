@@ -2,6 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { lockstepVersion, requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -133,22 +134,19 @@ test("shared Room identity text remains emoji-free at the current locale cache k
     assert.match(source, new RegExp(`cloud: \\{[\\s\\S]{0,120}title: "${cloud}"`));
     assert.match(source, new RegExp(`mentor: \\{[\\s\\S]{0,120}title: "${mentor}"`));
   }
+  // O-017: Room and Studio share the current locale cache key (not a pinned ?v=241).
   for (const locale of ["ru", "en", "he"]) {
-    assert.match(html, new RegExp(`/i18n/locales/${locale}\\.js\\?v=241`));
-    assert.match(indexHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=241`));
+    assert.equal(requestedUrl(html, `/i18n/locales/${locale}.js`, "Room"), requestedUrl(indexHtml, `/i18n/locales/${locale}.js`, "Studio"));
   }
 });
 
 test("current release surfaces lock together and retain the corrected Room module URL", () => {
-  const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
-  const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
-  const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
-  assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.610");
-  assert.equal(room[1], app[1]);
-  assert.equal(worker[1], app[1]);
-  assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=610"><\/script>/,
-    "a stale controlling SW must not reuse the pre-VF2 Room module URL");
+  lockstepVersion({ studio: indexHtml, room: html, sw });
+  // A stale controlling SW must not reuse an old Room module URL: the module tag and the
+  // precache entry carry the same current ?v= (O-017: invariant, not ?v=610).
+  const moduleUrl = requestedUrl(html, "/js/library-ui.js", "Room");
+  assert.match(html, new RegExp(`<script type="module" src="${moduleUrl.replace(/[.?]/g, "\\$&")}"></script>`));
+  assert.ok(sw.includes(JSON.stringify(moduleUrl)), "the Room module URL is precached exactly");
 });
 
 test("VF2 Room reports the loaded shell version honestly and has a network fallback", () => {

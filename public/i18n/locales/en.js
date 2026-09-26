@@ -440,7 +440,7 @@ window.I18N_LOCALES.en = {
     bullet2: "Premium features (Gemini AI / GCP TTS / GCP Translate) require your own AIza… key.",
     bullet3: "Each key takes ~5 minutes in Google Console. Free quotas usually cover individual usage.",
     btnLater: "Later",
-    btnTour: "🎯 Quick tour",
+    btnTour: "Quick tour",
     btnGuide: "Open the guide",
   },
   tour: {
