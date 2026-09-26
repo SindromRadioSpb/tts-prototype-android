@@ -13530,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=262"></script>
-<script src="/i18n/locales/en.js?v=262"></script>
-<script src="/i18n/locales/he.js?v=262"></script>
+<script src="/i18n/locales/ru.js?v=263"></script>
+<script src="/i18n/locales/en.js?v=263"></script>
+<script src="/i18n/locales/he.js?v=263"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13758,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.650";
+    window.APP_VERSION = "3.11.651";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -38567,30 +38567,26 @@ try {
         });
     }
 
-    function setResultsMetaWithProvenance(res) {
-        const prov = res.provenance || {};
-        const requested = prov.provider || "?";
+    // R11b (audit P1-4): the table source in plain words. Provider ids, cache levels, translator
+    // versions and fallback reasons stay in the saved provenance, not on the surface.
+    function v3TableProvenanceLabel(res) {
+        const prov = (res && res.provenance) || {};
+        const requested = prov.provider || "";
         const actual = prov.actual_provider || requested;
         const cache = prov.cache_level || "none";
-        const ver = prov.translator_version || "";
-
+        const names = { "google-free": "Google Translate", gcp: "Google Cloud Translation", gemini: "Gemini" };
+        const name = (p) => String(p).toLowerCase() === "madlad" ? t("classic.provLocal") : (names[String(p).toLowerCase()] || String(p || "—"));
         let label;
-        if (res.fromCache === true || cache === "doc") {
-            label = `сгенерирована из кэша (${requested}, doc)`;
-        } else if (cache === "segment") {
-            label = `сгенерирована из кэша сегментов (${requested})`;
-        } else if (cache === "mixed") {
-            label = `сгенерирована через ${actual}` + (ver ? ` · ${ver}` : "");
-        } else {
-            label = `сгенерирована через ${actual}` + (ver ? ` · ${ver}` : "");
-        }
-        if (actual !== requested) {
-            label += ` · fallback ${requested}→${actual} (${prov.fallback_reason || "transient"})`;
-        }
-        if (prov.nikud_degraded) {
-            label += ` · без огласовки (sidecar недоступен)`;
-        }
-        setResultsMeta("table", label);
+        if ((res && res.fromCache === true) || cache === "doc") label = t("classic.provCacheDoc");
+        else if (cache === "segment") label = t("classic.provCacheSegment");
+        else label = t("classic.provTranslatedBy", { name: name(actual) });
+        if (actual && requested && actual !== requested) label += " · " + t("classic.provFallback", { name: name(actual) });
+        if (prov.nikud_degraded) label += " · " + t("classic.provNoNiqqud");
+        return label;
+    }
+
+    function setResultsMetaWithProvenance(res) {
+        setResultsMeta("table", v3TableProvenanceLabel(res));
     }
 
     function handlePremiumError(e, provider) {
@@ -51865,7 +51861,7 @@ document.addEventListener("i18n:changed", function () {
     <header>
       <div>
         <div id="v3AboutTitle" data-i18n="about.title">О LinguistPro</div>
-        <div id="v3AboutTagline" data-i18n="about.tagline">Hebrew-learning IDE с offline-first архитектурой</div>
+        <div id="v3AboutTagline" data-i18n="about.tagline">Иврит по своим текстам: таблица, озвучка и слова. Данные хранятся на этом устройстве.</div>
       </div>
       <button id="v3AboutClose" onclick="v3AboutClose()" aria-label="Close">×</button>
     </header>

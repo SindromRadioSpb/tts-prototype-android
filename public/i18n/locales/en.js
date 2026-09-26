@@ -179,6 +179,12 @@ window.I18N_LOCALES.en = {
     offlineReady: "App ready to work offline",
   },
   classic: {
+    provCacheDoc: "from this browser's cache",
+    provCacheSegment: "partly from this browser's cache",
+    provTranslatedBy: "translated by {name}",
+    provFallback: "backup translation: {name}",
+    provNoNiqqud: "no niqqud: the niqqud service is unavailable",
+    provLocal: "local translation",
     exportHint: {
       noTable: "Export becomes available after you build the table.",
       stale: "The table is stale. Rebuild it first, then come back to save and export.",

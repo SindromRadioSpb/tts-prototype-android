@@ -180,6 +180,12 @@ window.I18N_LOCALES.he = {
     offlineReady: "האפליקציה מוכנה לעבודה לא מקוונת",
   },
   classic: {
+    provCacheDoc: "מהמטמון של הדפדפן",
+    provCacheSegment: "חלקית מהמטמון של הדפדפן",
+    provTranslatedBy: "תורגם: {name}",
+    provFallback: "תרגום חלופי: {name}",
+    provNoNiqqud: "בלי ניקוד: שירות הניקוד אינו זמין",
+    provLocal: "תרגום מקומי",
     // translate-review: HE drafted by Claude — pending native review.
     exportHint: {
       noTable: "הייצוא יופיע לאחר בניית הטבלה.",
