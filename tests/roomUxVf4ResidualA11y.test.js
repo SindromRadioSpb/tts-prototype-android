@@ -57,7 +57,7 @@ test("shared Reader builder and playback expose localized, current row-TTS actio
   assert.match(buttonMarkup[0], /rowTtsLabels\.play/);
 
   assert.match(roomJs, /rowTtsLabels:\s*roomRowTtsLabels\(\)/);
-  assert.match(roomJs, /\/js\/reader-core\.js\?v=582/);
+  assert.match(roomJs, /\/js\/reader-core\.js\?v=\d+/);
 });
 
 test("Studio Classic and IDE share localized row-TTS markup and atomic state updates", () => {

@@ -750,7 +750,12 @@ export function attachRowAudio(mount, opts) {
   }
 
   const btnOf = (idx) => mount.querySelector('button.row-tts-btn[data-row-idx="' + idx + '"]');
-  const trOf = (idx) => { const b = btnOf(idx); return b ? b.closest("tr") : null; };
+  // Строка ищется и БЕЗ своей кнопки ▶: учебный режим «Скрыта» играет её из оверлея
+  // (play(idx)), служебной колонки нет — иначе караоке слова и .row-playing молча пропадали.
+  const trOf = (idx) => {
+    const b = btnOf(idx); const tr = b ? b.closest("tr") : null;
+    return tr || mount.querySelector('tbody tr[data-row-idx="' + idx + '"]');
+  };
   const clearSpeakingWord = () => {
     if (!mount) return;
     const prev = mount.querySelectorAll(".rm-w-speaking");
