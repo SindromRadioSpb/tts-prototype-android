@@ -58,3 +58,12 @@ test("the shared word card reads the layout on every open (first open included)"
   assert.match(morph, /function syncSheetModality\(el\) \{[\s\S]{0,200}room-word-docked[\s\S]{0,40}"false" : "true"/);
   assert.equal((morph.match(/syncSheetModality\(el\);/g) || []).length, 2);
 });
+
+// Final review: a word card opened from the «Мои слова» sheet (z-index 990) must stack above it;
+// the docked panel kept the sheet's own z-index 1000 — lowering it hid that card on a desktop.
+test("the docked word card still stacks above the words sheet", () => {
+  const dock = html.match(/body\.room-word-docked \.rm-sheet \{[^}]*\}/)[0];
+  assert.doesNotMatch(dock, /z-index/, "the dock keeps .rm-sheet's z-index (1000 > .room-study 990)");
+  assert.match(read("public/css/reader-morph.css"), /\.rm-sheet \{ position: fixed; inset: 0; z-index: 1000; \}/);
+  assert.match(html, /\.room-study \{ position: fixed; inset: 0; z-index: 990; \}/);
+});
