@@ -53,7 +53,8 @@ test("loading: a shelf skeleton instead of spinners; the catalog root loads besi
   assert.match(ui, /const ROOM_SKELETON_STATES = new Set\(\['room\.state\.loading', 'room\.state\.publishing', 'room\.home\.loading'\]\);/);
   const hub = fnSource("renderCorpusHub");
   assert.match(hub, /roomSkeletonNode\('room\.home\.loading'\)/);
-  assert.match(ui, /const corpusCatalogLoad = loadCorpusCatalog\(\);[\s\S]{0,200}await autoImportCanon\(\);[\s\S]{0,200}await corpusCatalogLoad;/);
+  // O-020 added the cold-profile background branch between them.
+  assert.match(ui, /const corpusCatalogLoad = loadCorpusCatalog\(\);[\s\S]{0,1600}await autoImportCanon\(\);[\s\S]{0,200}await corpusCatalogLoad;/);
   assert.match(html, /@media \(prefers-reduced-motion: reduce\) \{\s*\.room-skeleton-block \{ animation: none; \}/);
 });
 

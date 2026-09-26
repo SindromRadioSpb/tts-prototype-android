@@ -8,7 +8,27 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDb from '/db/local-db.js?v=620';
+import * as localDbRaw from '/db/local-db.js?v=620';
+// O-020: while the canon imports in the background, its long transaction owns the DB worker, and
+// any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
+// text then failed for good). Room writes wait for the import; reads and the import itself go
+// straight through. The same gated object is exposed to reader-core/morph via window.__localDB.
+let _canonPending = false;
+let _canonReadyPromise = null;
+const ROOM_DB_WRITES = new Set(['importBundle', 'reconcileAudioLinks', 'setProgress', 'touchOpened', 'setTextFinished',
+  'clearTextFinished', 'setWordStatus', 'saveDerivedNiqqud', 'insertWordContexts', 'createNote', 'upsertAudioAsset',
+  'linkSentenceAudio', 'addBookmark', 'removeBookmark', 'recordRecall', 'updateSrsSource', 'commitReviewAttempt',
+  'appendReviewLog', 'putLearningCompassIngredients', 'putLearningCompassIngredientsBatch', 'deleteLearningCompassGroupCorpus']);
+const localDb = new Proxy(localDbRaw, {
+  get(target, key) {
+    const value = target[key];
+    if (typeof value !== 'function' || !ROOM_DB_WRITES.has(key)) return value;
+    return function gatedWrite(...args) {
+      if (_canonPending && _canonReadyPromise) return _canonReadyPromise.then(() => value.apply(target, args));
+      return value.apply(target, args);
+    };
+  },
+});
 import * as readerCore from '/js/reader-core.js?v=582';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
@@ -1502,6 +1522,7 @@ function renderTrack() {
   if (!main) return;
   // A3 — the Корпус track is a Период→Автор→Работа drill, not a shelf stack.
   if (activeTrack === 'corpus') return renderCorpus();
+  if (_canonPending) { showState('room.state.publishing', '📥'); return; }
   const shelves = shelvesByTrack[activeTrack] || [];
   const anyShelves = TRACKS.some((t) => (shelvesByTrack[t] || []).length);
   if (!anyShelves) { showState('room.shelf.empty', '📚'); return; }
@@ -9712,7 +9733,13 @@ const CANON_FLAG = 'benyehuda_canon_v4_imported';
 const CANON_BUNDLE_VERSION = 4;   // BRR-P1-008b canon refresh: bump → stale devices re-import + reconcileAudioLinks re-points default audio to current keys (fixes word-timing 404)
 const CANON_VERSION_KEY = 'benyehuda_canon_version';
 
-async function autoImportCanon() {
+// O-020: a cold profile imports the canon in the background while the «Библиотека» home (built
+// from the corpus catalog) is already on screen. The shelf tabs wait on a skeleton meanwhile.
+function canonImportLikelyNeeded() {
+  try { return (Number(localStorage.getItem(CANON_VERSION_KEY)) || 0) < CANON_BUNDLE_VERSION; } catch (_) { return false; }
+}
+
+async function autoImportCanon(opts) {
   try {
     // Opt-out for tests/embedders (room-smoke checks Room structure, not the canon
     // publish): ?canon=skip disables the shipped-bundle auto-import.
@@ -9738,7 +9765,7 @@ async function autoImportCanon() {
       return false;
     }
     if (typeof window.JSZip === 'undefined') { try { console.warn('[room] JSZip unavailable — skip canon auto-import'); } catch (_) {} return false; }
-    showState('room.state.publishing', '📥');
+    if (!(opts && opts.quiet)) showState('room.state.publishing', '📥');
     const res = await fetch(CANON_BUNDLE_URL, { cache: 'force-cache' });
     if (!res.ok) throw new Error('fetch ' + res.status);
     const zip = await window.JSZip.loadAsync(await res.arrayBuffer());
@@ -9747,16 +9774,16 @@ async function autoImportCanon() {
     const library = JSON.parse(await libFile.async('string'));
     // library.canon_version triggers the import-side dedup reconcile (orphans from a
     // prior edition removed; user content untouched).
-    const result = await localDb.importBundle({ library }, { mode: 'skip' });
+    const result = await localDbRaw.importBundle({ library }, { mode: 'skip' });   // raw: the Room's writes wait for this
     // BRR-P0-007 — attach the pre-baked audio. importBundle links audio INLINE
     // (within its batched transaction) for every freshly-imported text, so a
     // fresh install needs nothing more. Only an UPGRADING user — whose existing
     // canon texts are mode:'skip' skipped (no inline linking) — needs the
     // backfill. Gate on result.skipped so a fresh install doesn't re-check 6.6K
     // already-present links (~70s of wasted "publishing" time).
-    if (result && Number(result.skipped) > 0 && typeof localDb.reconcileAudioLinks === 'function') {
+    if (result && Number(result.skipped) > 0 && typeof localDbRaw.reconcileAudioLinks === 'function') {
       try {
-        const al = await localDb.reconcileAudioLinks({ library });
+        const al = await localDbRaw.reconcileAudioLinks({ library });
         try { console.log('[room] canon audio backfill →', JSON.stringify({ created: al && al.linksCreated, already: al && al.linksAlready, matched: al && al.textsMatched })); } catch (_) {}
       } catch (e) { try { console.warn('[room] reconcileAudioLinks failed (non-fatal):', e && e.message); } catch (_) {} }
     }
@@ -14514,8 +14541,27 @@ async function boot() {
       }
     } catch (_) {}
     const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import
-    await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
-    await loadData();
+    // O-020: on a cold profile the default «Библиотека» home does not wait for the canon import.
+    let canonInBackground = false;
+    if (canonImportLikelyNeeded() && !initialPresentation) {
+      await corpusCatalogLoad;
+      if (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0) {
+        canonInBackground = true;
+        _canonPending = true;
+        _canonReadyPromise = (async () => {
+          try { await autoImportCanon({ quiet: true }); await loadData(); }
+          catch (e) { try { console.warn('[room] background canon import failed:', e); } catch (_) {} }
+          finally {
+            _canonPending = false;
+            if (activeTrack !== 'corpus' && !(readerTextId != null)) renderTrack();
+          }
+        })();
+      }
+    }
+    if (!canonInBackground) {
+      await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
+      await loadData();
+    }
     await corpusCatalogLoad;   // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
     await loadPublicCorpora(); // anonymous publication pointers load before protected memberships
     await loadGroupCorpora();  // authenticated; silently absent for signed-out/non-members
