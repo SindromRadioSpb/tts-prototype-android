@@ -28,6 +28,7 @@ const {
 
 const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
 const { parsePrecacheVersions, cacheBustMismatch } = require("./release/staticVersionGuard");
+const { createOriginalTitleStore, isVideoId } = require("./media/originalTitle");
 const segTable = require("./ingest/segTable.js");
 const {
   buildRowsFromGeminiPayload,
@@ -1141,7 +1142,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/css/mediatheque.css?v=643",
-  "/js/mediatheque-ui.js?v=636",
+  "/js/mediatheque-ui.js?v=657",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1209,7 +1210,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=656",
+  "/js/library-ui.js?v=657",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1241,6 +1242,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/table-presets.js?v=638",
   "/js/app-nav.js?v=645",
   "/js/app-footer.js?v=653",
+  "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
   "/js/media-host.js?v=638",
   "/js/lesson-artifact.js",
@@ -4222,6 +4224,22 @@ app.get("/api/public-corpora", rlPublicCorpusRead, (req, res) => publicCorpusRea
   res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
   return res.json({ ok: true, schema_version: "public_corpora.1.0.0", corpora });
 }));
+// O-021: the original (Hebrew) YouTube title for the HE interface — fetched once per video via
+// oEmbed and cached on the data volume. Public, read-only, batched, rate-limited.
+const rlOriginalTitle = makeRateLimiter({ windowMs: 60_000, max: 30, name: "original-title" });
+const originalTitles = createOriginalTitleStore({ file: path.join(DATA_DIR, "media", "original-titles.json") });
+app.get("/api/media/original-title", rlOriginalTitle, async (req, res) => {
+  const ids = String(req.query.ids || "").split(",").map((x) => x.trim()).filter(isVideoId).slice(0, 60);
+  if (!ids.length) return res.status(400).json({ ok: false, error: "NO_VALID_IDS" });
+  try {
+    const titles = await originalTitles.getMany(ids);
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.json({ ok: true, titles });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: "UPSTREAM_UNAVAILABLE" });
+  }
+});
+
 app.get('/api/mediatheque', rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
   // Public metadata only. No session, learner data or read-time mutation.
   res.set('Cache-Control', 'no-store');

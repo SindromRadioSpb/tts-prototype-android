@@ -6128,6 +6128,8 @@ function roomMediaAugment() {
 let roomMediaYtAbort=null;
 async function roomMediaEnsureYoutubeStage(audio) {
   if(!audio || roomMediaAudio!==audio || !audio.video || !audio.video.videoId)return null;
+  // O-021: the HE interface shows this material's original (YouTube) title in the reader bar.
+  try { const titleEl = $('readerTitle'); if (titleEl && window.LpOriginalTitle) { titleEl.setAttribute('data-orig-video', audio.video.videoId); window.LpOriginalTitle.paint(titleEl.parentNode); } } catch (_) {}
   delete $('roomMediaBarNote').dataset.youtubeError;
   if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) {
     StudyVideoSourceUI.compatibleShell();
@@ -8324,6 +8326,7 @@ async function openReader(textId, title, opts) {
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
   if (titleEl) {
+    titleEl.removeAttribute('data-orig-video'); titleEl.removeAttribute('data-lp-ru-title'); titleEl.removeAttribute('lang'); titleEl.removeAttribute('title');
     titleEl.textContent = title || '';
     if (HEBREW_RE.test(title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
   }

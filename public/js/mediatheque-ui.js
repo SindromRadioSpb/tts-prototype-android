@@ -319,7 +319,7 @@ function itemHtml(item) {
   return `<article class="ml-item" data-key="${esc(item.key)}" data-selected="${selected}" ${order ? `draggable="true" data-drag-type="item" data-drag-id="${esc(item.key)}"` : ''}>
     ${manage ? `<label class="ml-selection"><input type="checkbox" data-select="${esc(item.key)}" ${selected ? 'checked' : ''} aria-label="${esc(t('selectMaterial', { title: item.title }))}">${esc(t('select'))}</label>` : ''}
     ${href ? `<a href="${esc(href)}" aria-label="${esc(item.title)}">${cover(item)}</a>` : cover(item)}
-    <div class="ml-item-copy"><h3 dir="auto">${href ? `<a href="${esc(href)}">${esc(item.title)}</a>` : esc(item.title)}</h3>
+    <div class="ml-item-copy"><h3 dir="auto">${href ? `<a href="${esc(href)}" data-orig-video="${esc(item.videoId || '')}">${esc(item.title)}</a>` : `<span data-orig-video="${esc(item.videoId || '')}">${esc(item.title)}</span>`}</h3>
       <div class="ml-item-meta"><span dir="auto">${esc(item.source || t('sourceUnknown'))}</span>${!item.videoId && item.kind !== 'text' ? `<span>${esc(duration(item.durationSeconds))}</span>` : ''}</div>
       <div class="ml-item-status"><span>${esc(item.available ? t('kind.' + item.kind) : t('unavailable'))}</span>
       ${item.hasTranslation ? `<span>${esc(t('withTranslation'))}</span>` : ''}${item.progressKnown && item.progress === 'finished' ? `<span>${esc(t('progress.finished'))}</span>` : ''}</div>
@@ -597,6 +597,8 @@ function render() {
       : state.section === 'home' ? `${d.home.description ? `<p class="ml-home-description">${esc(d.home.description)}</p>` : ''}${homeHtml()}`
       : state.section === 'catalog' ? catalogHtml() : state.section === 'topics' ? topicsHtml() : collectionsHtml()}</div>
     <p class="ml-storage">${esc(t(state.space === 'personal' ? 'localStorageNote' : 'videoOnlineNote'))}</p>`;
+  // O-021: the HE interface shows a YouTube material's original title.
+  try { const root = $('ml-root'); window.LpOriginalTitle && window.LpOriginalTitle.paint(root); } catch (_) {}
   $('ml-root').querySelectorAll('.ml-cover img').forEach(img => {
     const loaded = () => { if (img.naturalWidth) img.parentElement.dataset.loaded = 'true'; };
     if (img.complete) loaded(); else img.addEventListener('load',loaded,{once:true});
