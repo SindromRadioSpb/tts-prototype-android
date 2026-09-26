@@ -109,8 +109,8 @@
       --row-hl-focus:    rgba(46, 125, 50, 0.22);
       --row-hl-active:   rgba(27, 79, 184, 0.12);
       --row-hl-selected: rgba(27, 79, 184, 0.12);
-      --row-hl-playing:  rgba(27, 79, 184, 0.12);
-      --row-rail-selected: rgba(255, 180, 0, 0.85);
+      --row-hl-playing:  rgba(27, 79, 184, 0.20);   /* D «Нажато» D3E0F8: звучит сейчас */
+      --row-rail-selected: rgba(27, 79, 184, 0.85);   /* D: тхелет, не янтарь (янтарь = статус «Узнаю») */
       --row-rail-playing:  rgba(27, 79, 184, 0.85);
       --row-rail-error:    rgba(231, 76, 60, 0.80);
       /* Header-of-active-card strip ("Position 1. ... — Сохранён") */
@@ -176,8 +176,8 @@
         --row-hl-focus:    rgba(74, 222, 128, 0.18);
         --row-hl-active:   rgba(127, 166, 245, 0.16);
         --row-hl-selected: rgba(127, 166, 245, 0.16);
-        --row-hl-playing:  rgba(127, 166, 245, 0.16);
-        --row-rail-selected: rgba(252, 191, 73, 0.95);
+        --row-hl-playing:  rgba(127, 166, 245, 0.26);   /* D «Нажато» 223355 */
+        --row-rail-selected: rgba(127, 166, 245, 0.9);   /* D: тхелет 7FA6F5 */
         --row-rail-playing:  rgba(127, 166, 245, 0.9);
         --row-rail-error:    rgba(248, 113, 113, 0.90);
         /* Active-text-header strip in dark mode */
@@ -232,8 +232,8 @@
       --row-hl-focus:    rgba(74, 222, 128, 0.18);
       --row-hl-active:   rgba(127, 166, 245, 0.16);
       --row-hl-selected: rgba(127, 166, 245, 0.16);
-      --row-hl-playing:  rgba(127, 166, 245, 0.16);
-      --row-rail-selected: rgba(252, 191, 73, 0.95);
+      --row-hl-playing:  rgba(127, 166, 245, 0.26);   /* D «Нажато» 223355 */
+      --row-rail-selected: rgba(127, 166, 245, 0.9);   /* D: тхелет 7FA6F5 */
       --row-rail-playing:  rgba(127, 166, 245, 0.9);
       --row-rail-error:    rgba(248, 113, 113, 0.90);
       --active-hdr-bg: rgba(30, 41, 59, 0.96);
@@ -3163,7 +3163,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #proTable tbody tr.row-selected td:first-child {
     box-shadow: inset 3px 0 0 var(--row-rail-selected);
 }
-#proTable tbody tr.row-playing td:first-child {
+#proTable tbody tr.row-playing td:first-child,
+#proTable tbody tr.smk-row-active:not(.row-error) td:first-child {
     box-shadow: inset 3px 0 0 var(--row-rail-playing);
 }
 #proTable tbody tr.row-error td:first-child {
@@ -3388,7 +3389,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
    row must not mask the running audio position) but loses to playing/error. */
 #proTable tbody tr.smk-row-active:not(.row-error):not(.row-playing) td,
 #proTable tbody tr.smk-row-active:not(.row-error):not(.row-playing) td.rtl {
-  background: rgba(255, 193, 7, 0.28) !important;
+  background: var(--row-hl-playing) !important;   /* D: звучащая строка = «Нажато», как TTS */
 }
 
 /* 3) Selected (last played) */
@@ -13762,7 +13763,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.660";
+    window.APP_VERSION = "3.11.661";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -27784,7 +27785,10 @@ if (resumeSentenceId) {
   if (idxBySid >= 0) resumeRowIdx = idxBySid;
 }
 
-if (resumeRowIdx !== null) {
+// F5 (fromRestore): последняя рабочая строка — text_progress, он двигается с каждым
+// проигрыванием; якорь входа (resumeSentenceId) — только запасной, если прогресса нет.
+const preferProgress = !!(opts && opts.fromRestore);
+if (resumeRowIdx !== null && !preferProgress) {
   v3ApplyResumeSelection(renderToken, resumeRowIdx);
 } else if (resume) {
   // resume logic: fetch progress then set selected row (fallback)
@@ -27800,6 +27804,8 @@ if (resumeRowIdx !== null) {
     const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
     if (idx !== null && idx !== undefined && Number.isFinite(Number(idx))) {
       v3ApplyResumeSelection(renderToken, Number(idx));
+    } else if (resumeRowIdx !== null) {
+      v3ApplyResumeSelection(renderToken, resumeRowIdx);
     }
   } catch (e) {
     console.warn("resume progress fetch failed (non-critical)", e);
@@ -51338,7 +51344,9 @@ try {
         const opts = {
           origin: st.origin || "restore",
           openMode,
-          resume: (openMode === "resume"),
+          // Перезагрузка возвращает к последней рабочей строке и для карточки, открытой
+          // «Открыть»/из Медиатеки: F5 — это не новый вход в текст, а продолжение.
+          resume: true,
           resumeSentenceId: st.resumeSentenceId || null,
           fromRestore: true,
         };

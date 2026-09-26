@@ -28,7 +28,7 @@
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
   <link rel="stylesheet" href="/css/app-nav.css?v=653">
-  <link rel="stylesheet" href="/css/reader-core.css?v=643">
+  <link rel="stylesheet" href="/css/reader-core.css?v=661">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
   <link rel="stylesheet" href="/css/reader-morph.css?v=643">
@@ -1363,13 +1363,13 @@
     .corpus-fts-spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--border-soft); border-top-color: var(--accent); animation: ftsspin .7s linear infinite; flex: 0 0 auto; }
     @keyframes ftsspin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { .corpus-fts-spinner { animation-duration: 1.6s; } }
-    /* ROW-HIGHLIGHT B — the canonical last-worked row has one calm WARM base before,
-       during and after playback. An amber rail means "your working place"; playback
-       overlays the same base with a blue rail. Error remains the highest-priority state.
+    /* ROW-HIGHLIGHT B, палитра D (2026-09-26) — the canonical last-worked row has one calm base before,
+       during and after playback: D «Строка» + тхелет rail = "your working place"; playback
+       deepens the fill to D «Нажато». (Amber is the «Узнаю» word status in D — not a row cue.)
        aria-current="location" is applied by Room JS; the rail is the non-colour channel. */
     #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-error) td,
     #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-error) td.rtl {
-      background-color: var(--row-hl-playing) !important;
+      background-color: var(--row-hl-selected) !important;
     }
     #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-playing):not(.smk-row-active):not(.row-error) td:first-child {
       box-shadow: inset 3px 0 0 var(--row-rail-selected);
@@ -3325,7 +3325,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.660</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.661</button>
     </p>
   </div>
 </div>
