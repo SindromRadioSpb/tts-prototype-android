@@ -5904,6 +5904,7 @@ function roomMediaApplyLayout() {
     const restore = () => {
       if (readerTextId !== textId || _sessionLastRow !== rowIdx || !wrap.classList.contains('room-media-scroll')) return;
       positionReaderRow(rowIdx, 'auto');
+      roomHoldRowInView(rowIdx);
     };
     try { requestAnimationFrame(restore); } catch (_) { setTimeout(restore, 0); }
   };
@@ -6369,6 +6370,37 @@ function positionReaderRow(idx, behavior) {
   if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: behavior || 'smooth' }); } catch (_) {} }
   return true;
 }
+// 2026-09-26: после восстановления раскладка ещё меняется (кнопки ▶ медиа в строках выше,
+// высота окна таблицы под плеером) — строка 270 оказывалась обрезанной у нижнего края. До 4 с
+// держим её в кадре при изменениях размеров; любой ввод ученика прекращает удержание.
+let _roomRowHoldStop = null;
+function roomHoldRowInView(idx) {
+  if (_roomRowHoldStop) _roomRowHoldStop();
+  if (typeof ResizeObserver !== 'function') return;
+  const mount = $('roomReaderTable'); if (!mount) return;
+  const textId = readerTextId, events = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
+  let done = false, timer = null;
+  const ro = new ResizeObserver(() => requestAnimationFrame(recheck));
+  function finish() {
+    if (done) return; done = true; _roomRowHoldStop = null;
+    try { ro.disconnect(); } catch (_) {}
+    clearTimeout(timer);
+    events.forEach((ev) => window.removeEventListener(ev, finish, true));
+  }
+  function recheck() {
+    if (done) return;
+    if (readerTextId !== textId || _sessionLastRow !== idx) { finish(); return; }
+    const tr = mount.querySelector('tr[data-row-idx="' + idx + '"]'); if (!tr) return;
+    const r = tr.getBoundingClientRect();
+    const box = mount.classList.contains('room-media-scroll') ? mount.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+    const top = Math.max(box.top, 0), bottom = Math.min(box.bottom, window.innerHeight);
+    if (r.top < top || r.bottom > bottom) { _programmaticProgressUntil = Date.now() + 1500; positionReaderRow(idx, 'auto'); }
+  }
+  _roomRowHoldStop = finish;
+  events.forEach((ev) => window.addEventListener(ev, finish, { capture: true, passive: true }));
+  try { ro.observe(mount); const t = mount.querySelector('#proTable'); if (t) ro.observe(t); ro.observe(document.body); } catch (_) {}
+  timer = setTimeout(() => { recheck(); finish(); }, 4000);
+}
 function scrollToReaderRow(idx) {
   if (!positionReaderRow(idx, 'smooth')) return;
   _programmaticProgressUntil = Date.now() + 1500;
@@ -6422,10 +6454,10 @@ function restoreReaderPosition(textId, opts, loaded) {
     // Repaint it after normal open/reload without creating a write or completion claim.
     _sessionLastRow = workingTarget;
     setCurrentWorkingRow(workingTarget);
-    if (opts && opts.resume) positionReaderRow(workingTarget, 'auto');
+    if (opts && opts.resume) { positionReaderRow(workingTarget, 'auto'); roomHoldRowInView(workingTarget); }
     return;
   }
-  if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
+  if (opts && opts.resume) { scrollToReaderRow(target); roomHoldRowInView(target); }   // explicit continue-card tap → jump
   else {
     // Normal open keeps R4's non-jumping resume banner, but the saved row is still the
     // semantic working location. Seed only the session mirror so rerenders retain it;

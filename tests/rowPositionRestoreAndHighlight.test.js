@@ -46,3 +46,13 @@ test("the restored row is held in view while the layout settles, until the learn
   assert.match(fn, /\["wheel", "touchstart", "keydown", "pointerdown"\]/, "any learner input ends the hold");
   assert.match(fn, /setTimeout\(\(\) => \{ recenter\(\); finish\(\); \}, 4000\)/, "the hold is bounded");
 });
+
+test("the Room holds its restored working row in view the same way", () => {
+  const roomJs = read("public/js/library-ui.js");
+  const fn = roomJs.slice(roomJs.indexOf("function roomHoldRowInView"), roomJs.indexOf("function scrollToReaderRow"));
+  assert.match(fn, /new ResizeObserver/);
+  assert.match(fn, /\['wheel', 'touchstart', 'keydown', 'pointerdown'\]/);
+  assert.match(fn, /setTimeout\(\(\) => \{ recheck\(\); finish\(\); \}, 4000\)/);
+  assert.match(fn, /_sessionLastRow !== idx/, "a newer working row ends the hold");
+  assert.equal((roomJs.match(/roomHoldRowInView\(/g) || []).length, 4, "definition + resume, continue and media-scroller restores");
+});
