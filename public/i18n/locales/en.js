@@ -467,7 +467,7 @@ window.I18N_LOCALES.en = {
     },
     footerHelp: {
       title: "Replay the tour and help",
-      body: "You can restart this tour from here any time. Full BYOK and API-key instructions are linked nearby in the footer."
+      body: "Restart this tour from «About» — the link at the bottom of the page. The app version and help are there too."
     },
   },
   ide: {
@@ -2107,6 +2107,11 @@ window.I18N_LOCALES.en = {
     goStudioHint: "Paste a text and we build a study table",
     demoLoaded: "Example loaded — press “Create table”.",
     resetOnboarding: "Show the welcome again",
+  },
+  appFooter: {
+    label: "Service links",
+    updateAvailable: "a newer version is available",
+    upToDate: "up to date",
   },
   footer: {
     privacyBadge: "Your data stays on this device",

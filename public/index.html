@@ -50,7 +50,7 @@
     <!-- ROOM-UX-VF/VF0: additive primitives load before the complete legacy
          surface stylesheet below, preserving old/new SW compatibility. -->
     <link rel="stylesheet" href="/css/visual-foundations.css">
-    <link rel="stylesheet" href="/css/app-nav.css?v=649">
+    <link rel="stylesheet" href="/css/app-nav.css?v=653">
     <link rel="stylesheet" href="/css/publication-center.css?v=643">
 
     <style>
@@ -13530,9 +13530,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=263"></script>
-<script src="/i18n/locales/en.js?v=263"></script>
-<script src="/i18n/locales/he.js?v=263"></script>
+<script src="/i18n/locales/ru.js?v=264"></script>
+<script src="/i18n/locales/en.js?v=264"></script>
+<script src="/i18n/locales/he.js?v=264"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13758,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.652";
+    window.APP_VERSION = "3.11.653";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -38335,7 +38335,7 @@ try {
             },
             {
                 key: "footerHelp",
-                selector: "#byokTourReplayLink",
+                selector: '#appFooter [data-lp-footer-item="about"]',
             },
         ];
     }
@@ -51406,18 +51406,8 @@ document.addEventListener("i18n:changed", function () {
 </div>
 
 <!-- ── App footer (Direction 8 — Trust signals) ───────────────────────── -->
-<footer class="app-footer" id="appFooter">
-  <div class="app-footer-left">
-    <a class="privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">Данные на этом устройстве</a>
-  </div>
-  <div class="app-footer-right">
-    <a id="byokTourReplayLink" href="#" onclick="byokTourStart();return false;" data-i18n="footer.tourLink">Тур</a>
-    <a id="footerFeedbackLink" href="#" onclick="v3FeedbackOpen('bug');return false;" data-i18n="footer.feedbackLink">Сообщить о проблеме</a>
-    <a href="#" onclick="v3AboutOpen();return false;" data-i18n="footer.aboutLink">О приложении</a>
-    <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
-    <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
-  </div>
-</footer>
+<footer id="appFooter" data-lp-footer="studio"></footer>
+<script src="/js/app-footer.js?v=653"></script>
 
 <!-- ── Stage 2: «✨ Построить знания» review queue (Concept C) ──────────── -->
 <style>
@@ -51914,6 +51904,7 @@ document.addEventListener("i18n:changed", function () {
       </div>
 
       <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <a href="#" onclick="v3AboutClose();byokTourStart();return false;" style="font-size:12.5px; color:#1B4FB8; text-decoration:none; margin-inline-end:14px;" data-i18n="footer.tourLink">Тур</a>
         <a href="#" onclick="v3AboutClose();v3OnboardingReset();return false;" style="font-size:12.5px; color:#1B4FB8; text-decoration:none;" data-i18n="onboarding.resetOnboarding">Сбросить onboarding (показать снова)</a>
         <button class="btn-secondary" onclick="v3AboutClose()" data-i18n="about.closeBtn">Закрыть</button>
       </div>

@@ -1233,14 +1233,15 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/material-actions.js?v=1",
   "/js/table-presets.js?v=638",
   "/js/app-nav.js?v=645",
-  "/css/app-nav.css?v=649",
+  "/js/app-footer.js?v=653",
+  "/css/app-nav.css?v=653",
   "/js/media-host.js?v=638",
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=610",
-  "/i18n/locales/ru.js?v=263",
-  "/i18n/locales/en.js?v=263",
-  "/i18n/locales/he.js?v=263",
+  "/i18n/locales/ru.js?v=264",
+  "/i18n/locales/en.js?v=264",
+  "/i18n/locales/he.js?v=264",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

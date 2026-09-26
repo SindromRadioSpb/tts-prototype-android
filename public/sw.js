@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.652";
+const CACHE_VERSION = "v3.11.653";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -255,7 +255,8 @@ const PRECACHE_URLS = [
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
   "/js/app-nav.js?v=645",
-  "/css/app-nav.css?v=649",
+  "/js/app-footer.js?v=653",
+  "/css/app-nav.css?v=653",
   "/js/media-host.js?v=638",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
@@ -290,9 +291,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=263",
-  "/i18n/locales/en.js?v=263",
-  "/i18n/locales/he.js?v=263",
+  "/i18n/locales/ru.js?v=264",
+  "/i18n/locales/en.js?v=264",
+  "/i18n/locales/he.js?v=264",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -432,6 +433,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+  // R12: the shared footer shows the version this worker serves (the page's running version).
+  if (event.data && event.data.type === "GET_VERSION" && event.ports && event.ports[0]) {
+    event.ports[0].postMessage({ version: CACHE_VERSION.replace(/^v/, "") });
   }
 });
 

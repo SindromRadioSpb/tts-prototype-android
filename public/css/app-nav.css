@@ -78,3 +78,52 @@ body:has(.room-study.room-study-open:not([hidden])) .room-toast,
 body:has(.rm-sheet.rm-open:not([hidden])) #toastContainer {
   top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto;
 }
+
+/* R12 (owner 2026-09-26): one typed footer for Studio, Room and Mediatheque, rendered by
+   /js/app-footer.js into <footer data-lp-footer>. Colours follow each shell's own tokens. */
+footer[data-lp-footer] {
+  display: block; max-width: 1360px; margin: 32px auto 0; box-sizing: border-box;
+  padding: 8px 20px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border-soft, var(--theme-border-soft, var(--ml-line, #e2e8f0)));
+  background: transparent; font: 13px/1.4 var(--lp-font-ui, system-ui, sans-serif);
+  color: var(--text-secondary, var(--theme-text-secondary, var(--ml-muted, #475569)));
+}
+.lp-footer-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 16px; }
+.lp-footer-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
+footer[data-lp-footer] .lp-footer-link,
+footer[data-lp-footer] .lp-footer-version {
+  display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: none;
+}
+footer[data-lp-footer] .lp-footer-link:hover,
+footer[data-lp-footer] .lp-footer-version:hover { color: var(--text-primary, var(--theme-text-primary, var(--ml-text, #0f172a))); text-decoration: underline; }
+footer[data-lp-footer] .lp-footer-link:focus-visible,
+footer[data-lp-footer] .lp-footer-version:focus-visible { outline: 2px solid #1B4FB8; outline-offset: 2px; border-radius: 4px; }
+.lp-footer-chip { padding: 4px 10px; border-radius: 999px; background: #ecfdf5; color: #166534; border: 1px solid #bbf7d0; font-size: 12px; }
+footer[data-lp-footer] .lp-footer-version {
+  appearance: none; border: 0; background: transparent; padding: 0; cursor: pointer;
+  font: inherit; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 599px) {
+  footer[data-lp-footer] { padding-inline: 16px; }
+  .lp-footer-row { flex-direction: column; align-items: flex-start; }
+}
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) .lp-footer-chip { background: #052e16; border-color: #166534; color: #86efac; }
+}
+body.theme-dark .lp-footer-chip, body.ml-dark .lp-footer-chip { background: #052e16; border-color: #166534; color: #86efac; }
+
+.lp-app-about {
+  max-width: 460px; width: calc(100vw - 32px); border: 1px solid var(--border-soft, var(--theme-border-soft, var(--ml-line, #e2e8f0)));
+  border-radius: 14px; padding: 20px 18px; background: var(--bg-card, var(--theme-bg-card, var(--ml-paper, #fff)));
+  color: var(--text-primary, var(--theme-text-primary, var(--ml-text, #0f172a))); font: 14px/1.5 var(--lp-font-ui, system-ui, sans-serif);
+}
+.lp-app-about::backdrop { background: rgba(15, 23, 42, .5); }
+.lp-app-about h2 { margin: 0 0 6px; font-size: 18px; }
+.lp-app-about .lp-about-tagline { margin: 0 0 12px; color: var(--text-secondary, var(--theme-text-secondary, var(--ml-muted, #475569))); }
+.lp-app-about dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0 0 12px; }
+.lp-app-about dt { color: var(--text-secondary, var(--theme-text-secondary, var(--ml-muted, #475569))); }
+.lp-app-about dd { margin: 0; }
+.lp-app-about .lp-about-links { display: flex; flex-wrap: wrap; gap: 0 16px; margin: 0 0 8px; }
+.lp-app-about .lp-about-links a { display: inline-flex; align-items: center; min-height: 44px; color: #1B4FB8; }
+.lp-app-about form { display: flex; justify-content: flex-end; }
+.lp-app-about .lp-about-close { min-height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; cursor: pointer; }

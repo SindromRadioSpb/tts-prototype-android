@@ -27,7 +27,7 @@
   <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
-  <link rel="stylesheet" href="/css/app-nav.css?v=649">
+  <link rel="stylesheet" href="/css/app-nav.css?v=653">
   <link rel="stylesheet" href="/css/reader-core.css?v=643">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
@@ -3295,18 +3295,8 @@
 </section>
 
 <!-- ── Trust footer (R4/R5) + Ben-Yehuda source attribution (R6/R9) ───────────── -->
-<footer class="room-footer" id="roomFooter">
-  <div class="room-footer-left">
-    <a class="room-privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">Данные на этом устройстве</a>
-    <a class="room-footer-source" href="https://benyehuda.org" target="_blank" rel="noopener" data-i18n="room.footer.source">Тексты: Проект Бен-Иегуда (общественное достояние)</a>
-  </div>
-  <div class="room-footer-right">
-    <a href="https://kolosei.com/products/linguistpro/" target="_blank" rel="noopener" data-i18n="room.footer.product">О продукте</a>
-    <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues/new" target="_blank" rel="noopener" data-i18n="footer.feedbackLink">Сообщить о проблеме</a>
-    <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
-    <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-  </div>
-</footer>
+<footer id="roomFooter" data-lp-footer="room"></footer>
+<script src="/js/app-footer.js?v=653"></script>
 
 <!-- «О Зале» — lightweight info modal (what it is, source, offline, version + update status) -->
 <div id="roomAbout" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomAboutTitle">
@@ -3334,7 +3324,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.652</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.653</button>
     </p>
   </div>
 </div>
@@ -3500,9 +3490,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=263"></script>
-    <script src="/i18n/locales/en.js?v=263"></script>
-    <script src="/i18n/locales/he.js?v=263"></script>
+    <script src="/i18n/locales/ru.js?v=264"></script>
+    <script src="/i18n/locales/en.js?v=264"></script>
+    <script src="/i18n/locales/he.js?v=264"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
