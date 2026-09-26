@@ -1990,6 +1990,11 @@ async function refreshCovChip() {
     if (readerTextId !== tid) return;
     const fit = learningCompass.evaluateRecordedFamiliarityV2({ ingredients, learner_projection: projection });
     _covChipCache = { tid, fit };
+    // R9 (the R8 new-profile rule): «Нужен профиль слов» / «Не менее 0% знакомы · 0/104» tells a
+    // beginner nothing — no chip until at least one word of this text is recorded as familiar.
+    const newProfile = fit.status === 'NEEDS_PROFILE'
+      || ((fit.status === 'AVAILABLE' || fit.status === 'AVAILABLE_LIMITED') && fit.counts && Number(fit.counts.familiar) === 0);
+    if (newProfile) { clearCovChip(); return; }
     const chip = _covChipMount(); if (!chip) return;
     chip.className = 'reader-cov-chip cov-' + String(fit.status || 'unavailable').toLowerCase();
     chip.textContent = '';
@@ -2391,12 +2396,12 @@ function _humanizeUntil(ms, nowMs) {
 }
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
-  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Разобрать слова') } });
+  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Мои слова') } });
   sheet.hidden = true;
   const card = el('div', { class: 'room-study-card' });
   card.appendChild(el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
   const head = el('div', { class: 'room-study-head' });
-  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Разобрать слова') }));
+  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Мои слова') }));
   const totalWrap = el('span', { class: 'room-study-total-wrap' });
   totalWrap.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
   const totalHelp = wireDismissibleDetails(el('details', { class: 'learning-compass-details room-study-total-help' }));
@@ -2406,22 +2411,25 @@ function ensureStudySheet() {
   totalHelp.appendChild(totalHelpPanel); totalWrap.appendChild(totalHelp); head.appendChild(totalWrap);
   // D7.1 — always-visible entry to the activity heatmap (findable even with no streak → honest empty state)
   const calBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности'), title: tt('room.morph.study.heatTitle', 'Календарь активности') } });
-  calBtn.textContent = '📅';
+  calBtn.textContent = '📅 ' + tt('room.morph.study.heatShort', 'Календарь');
   calBtn.addEventListener('click', () => openStudyHeatmap());
-  head.appendChild(calBtn);
+  // R9: the calendar and the memory report are one labelled row of tools.
+  const tools = el('div', { class: 'room-study-tools' });
+  tools.appendChild(calBtn);
   // T4 — the report lives beside the calendar: both answer "how am I doing", one by activity and
   // one by memory.
   const repBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'data-report-open': '1',
     'aria-label': tt('room.morph.study.reportTitle', 'Как идёт запоминание'),
     title: tt('room.morph.study.reportTitle', 'Как идёт запоминание') } });
-  repBtn.textContent = '📊';
-  head.appendChild(repBtn);
+  repBtn.textContent = '📊 ' + tt('room.morph.study.reportShort', 'Запоминание');
+  tools.appendChild(repBtn);
+  head.appendChild(tools);
   card.appendChild(head);
   card.appendChild(_dueBadgeEl('room-study-duebadge'));   // D3 — «В работе / К повторению» (both modes)
   // 4.3b — «Список / Тренировка» mode toggle (owner decision 4)
   const modeRow = el('div', { class: 'room-study-modetoggle', attrs: { dir: uiDirRoom() } });
   modeRow.appendChild(el('button', { class: 'room-study-seg on', i18n: 'room.morph.study.modeList', text: tt('room.morph.study.modeList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
-  modeRow.appendChild(el('button', { class: 'room-study-seg', i18n: 'room.morph.study.modeTrain', text: tt('room.morph.study.modeTrain', '🎯 Тренировка'), attrs: { type: 'button', 'data-study-mode': 'train' } }));
+  modeRow.appendChild(el('button', { class: 'room-study-seg', i18n: 'room.morph.study.modeTrain', text: tt('room.morph.study.modeTrain', '🎯 Повторение'), attrs: { type: 'button', 'data-study-mode': 'train' } }));
   card.appendChild(modeRow);
   card.appendChild(el('div', { class: 'room-study-controls' }));
   card.appendChild(el('div', { class: 'room-study-bulk' }));
@@ -2524,8 +2532,8 @@ function setStudyMode(mode) {
   _studyMode = mode === 'train' ? 'train' : 'list';
   if (_studySheet) _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === _studyMode));
   _studyListChrome(_studyMode === 'list');
-  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', '📚 Разобрать слова'); renderStudyBody(); }
-  else { _studySetTitle('room.morph.study.trainTitle', 'Тренировка'); startTraining(); }
+  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', '📚 Мои слова'); renderStudyBody(); }
+  else { _studySetTitle('room.morph.study.trainTitle', 'Повторение'); startTraining(); }
 }
 
 // View = filter (C: band + hide-names) then sort (D: freq[default, already freq-desc+stable] | alpha).
@@ -2763,7 +2771,7 @@ async function roomOpenStudyList() {
   const sheet = ensureStudySheet();
   _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
   _studyMode = 'list'; _trainSession = null;
-  _studySetTitle('room.morph.study.title', '📚 Разобрать слова');
+  _studySetTitle('room.morph.study.title', '📚 Мои слова');
   sheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'list'));
   _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
@@ -3597,7 +3605,7 @@ async function startPlanSectionTraining(itemKeys, channel) {
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
   _studyMode = 'train'; _trainSession = null;
-  _studySetTitle('room.morph.study.trainTitle', 'Тренировка');
+  _studySetTitle('room.morph.study.trainTitle', 'Повторение');
   roomFocusInto(_studySheet.querySelector('.room-study-card'));
   try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
   try { _studyListChrome(false); } catch (_) {}
@@ -8099,7 +8107,7 @@ function buildAidsPanel() {
   panel.appendChild(legend);
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.statusNote', text: tt('room.morph.statusNote', 'Фиолетовый означает вашу явную отметку «новое»; пунктир — распознано, но не оценено; без декорации — не разрешено.') }));
   // Epic 4.3a — assess THIS screen's explicit-new and unassessed words.
-  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Разобрать слова'), attrs: { type: 'button' } });
+  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Мои слова'), attrs: { type: 'button' } });
   studyBtn.addEventListener('click', roomOpenStudyList);
   panel.appendChild(studyBtn);
   panel.appendChild(_dueBadgeEl('reader-aids-duebadge'));   // D3 — due-counter under «📚 Учить» (the return CTA)

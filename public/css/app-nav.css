@@ -67,3 +67,11 @@ body.ml-dark .lp-app-nav-item[aria-current="page"] { color: #7FA6F5; }
 @media (forced-colors: active) {
   .lp-app-nav-item[aria-current="page"] { outline: 2px solid LinkText; }
 }
+
+/* R9 (audit P2-7): a toast never covers the buttons of an open bottom sheet — it rises to the top
+   while the word card or the «Мои слова» sheet is open. */
+body:has(.rm-sheet.rm-open:not([hidden])) .room-toast,
+body:has(.room-study.room-study-open:not([hidden])) .room-toast,
+body:has(.rm-sheet.rm-open:not([hidden])) #toastContainer {
+  top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto;
+}

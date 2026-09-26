@@ -27,7 +27,7 @@
   <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
-  <link rel="stylesheet" href="/css/app-nav.css?v=646">
+  <link rel="stylesheet" href="/css/app-nav.css?v=648">
   <link rel="stylesheet" href="/css/reader-core.css?v=643">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
@@ -1987,9 +1987,10 @@
     .db-streak-cal { opacity: .55; }
     .db-streak[role="button"]:hover .db-streak-cal, .db-streak[role="button"]:focus-visible .db-streak-cal { opacity: 1; }
     .room-study-cal {
-      width: 44px !important; min-width: 44px; height: 44px; flex: none; appearance: none; cursor: pointer; line-height: 1;
-      background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 8px;
-      padding: 4px 8px; font-size: 15px; margin-inline-start: 8px;
+      width: auto !important; min-width: 44px; height: 44px; flex: none; appearance: none; cursor: pointer; line-height: 1;
+      display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+      background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft); border-radius: 8px;
+      padding: 4px 10px; font-size: 13px; font-weight: 600; margin-inline-start: 8px;
     }
     .room-study-cal:hover, .room-study-cal:focus-visible { border-color: var(--accent); }
     /* Epic 4.3b Phase D6 — extraction-channel selector (read/listen/reverse/dictate) + audio/reverse prompts.
@@ -2069,6 +2070,8 @@
     }
     .room-study-head { margin-bottom: 10px; padding-inline: 48px; }
     .room-study-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .room-study-tools { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+    .room-study-tools .room-study-cal { margin-inline-start: 0; padding-inline: 8px; }
     .room-study-title { font-size: 18px; font-weight: 800; }
     .room-study-total { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
     .room-study-total-wrap { position: relative; display: inline-flex; align-items: center; gap: 3px; }
@@ -3274,7 +3277,7 @@
     <a href="mailto:peter@kolosei.com" data-i18n="room.copyright.contactLabel">Сообщить о нарушении авторских прав</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
     <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.647</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.648</button>
   </div>
 </footer>
 
@@ -3462,9 +3465,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=259"></script>
-    <script src="/i18n/locales/en.js?v=259"></script>
-    <script src="/i18n/locales/he.js?v=259"></script>
+    <script src="/i18n/locales/ru.js?v=260"></script>
+    <script src="/i18n/locales/en.js?v=260"></script>
+    <script src="/i18n/locales/he.js?v=260"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3507,7 +3510,7 @@
 <!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
      reader-morph.js so ensureEngine can build its lexicon. -->
 <script src="/js/proclitic-segment.js"></script>
-<script src="/js/reader-morph.js?v=639"></script>
+<script src="/js/reader-morph.js?v=648"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
@@ -3567,7 +3570,7 @@
 <!-- Общий хост памяти слова (метка/оценка/заметки/consent) — одна реализация с Студией,
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
 <script src="/js/public-word-audio.js?v=453"></script>
-<script src="/js/morph-host.js?v=640"></script>
+<script src="/js/morph-host.js?v=648"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
@@ -3575,6 +3578,6 @@
      protected-source marker before local materialisation. -->
 <script src="/js/public-corpus-adapter.js?v=486"></script>
 <script src="/js/product-telemetry.js?v=610"></script>
-<script type="module" src="/js/library-ui.js?v=647"></script>
+<script type="module" src="/js/library-ui.js?v=648"></script>
 </body>
 </html>

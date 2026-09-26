@@ -1069,7 +1069,7 @@
   };
   // word-note lifecycle (from getWordNoteLifecycle): created/in_anki/learning/known/suspended.
   var LIFECYCLE = {
-    created: ["room.morph.life.created", "🆕 в заметках"],
+    created: ["room.morph.life.created", "🆕 в моих словах"],
     in_anki: ["room.morph.life.inAnki", "📤 в Anki"],
     learning: ["room.morph.life.learning", "🔄 учу"],
     known: ["room.morph.life.known", "✅ знаю"],
@@ -1596,7 +1596,7 @@
     // prerequisite for status colouring + Anki + i+1). The glue (DB persist) is the
     // caller's opts.saveWord; the button is shown whenever a save handler is wired.
     var saveBtn = _attachOpts.saveWord
-      ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Сохранить слово")) + "</button>"
+      ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Добавить в мои слова")) + "</button>"
       : "";
     // One canonical word_study object, two densities: the Reader offers the three personal
     // fields that matter mid-reading; Studio remains the full editor (morphology/history/links).
@@ -1737,7 +1737,7 @@
         saveBtn.classList.add("rm-save-done");
         saveBtn.setAttribute("aria-expanded", "false");
       } else {
-        saveBtn.textContent = tt("room.morph.save", "＋ Сохранить слово");
+        saveBtn.textContent = tt("room.morph.save", "＋ Добавить в мои слова");
         saveBtn.classList.remove("rm-save-done");
         saveBtn.removeAttribute("aria-expanded");
       }

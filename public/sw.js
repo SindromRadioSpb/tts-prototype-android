@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.647";
+const CACHE_VERSION = "v3.11.648";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=647",
+  "/js/library-ui.js?v=648",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -173,9 +173,9 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=639",
+  "/js/reader-morph.js?v=648",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=640",
+  "/js/morph-host.js?v=648",
   "/js/studio-morph.js?v=3",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -255,7 +255,7 @@ const PRECACHE_URLS = [
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
   "/js/app-nav.js?v=645",
-  "/css/app-nav.css?v=646",
+  "/css/app-nav.css?v=648",
   "/js/media-host.js?v=638",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
@@ -290,9 +290,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=259",
-  "/i18n/locales/en.js?v=259",
-  "/i18n/locales/he.js?v=259",
+  "/i18n/locales/ru.js?v=260",
+  "/i18n/locales/en.js?v=260",
+  "/i18n/locales/he.js?v=260",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

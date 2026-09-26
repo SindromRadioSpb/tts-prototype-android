@@ -253,7 +253,7 @@
       }
       invalidateWordStates();
       onProfileChanged();
-      toast(_tt("room.morph.savedToast", "Слово сохранено в заметки"));
+      toast(_tt("room.morph.savedToast", "Добавлено в мои слова"));
       if (!note) return { status: "created" };
       var life = {}; try { life = await ldb.getWordNoteLifecycle([note.id]); } catch (_) {}
       return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || "created" };
