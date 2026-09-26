@@ -13762,7 +13762,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.659";
+    window.APP_VERSION = "3.11.660";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -20493,13 +20493,25 @@ function setRowPlayingUI(rowIdx, playing) {
 }
 
 // Получение текста строки для озвучки по правилам видимости
+// Знаки кантилляции/ударения (U+0591–U+05AF, напр. ole ֫ от Накдана: אָמַ֫רְתִּי) Google TTS
+// читает ПО БУКВАМ. В речь уходит текст без них; огласовка остаётся. Та же граница — в
+// server.js и reader-core.js (tests/ttsSpeechText.test.js держит их равными).
+const TTS_CANTILLATION_RE = /[\u0591-\u05AF]/g;
+function ttsSpeechText(text) { return String(text || "").replace(TTS_CANTILLATION_RE, "").trim(); }
+// Сохранённый клип такой строки мог быть синтезирован до очистки (побуквенно) — не доверяем.
+function rowSpeechHasCantillation(row) {
+    if (!row || typeof row !== "object") return false;
+    const raw = String(row.he_niqqud || "").trim() || String(row.he || "").trim();
+    return /[\u0591-\u05AF]/.test(raw);
+}
+
 function getRowTtsTextForRow(row) {
     if (!row || typeof row !== "object") return "";
 
-    const niqqud = String(row.he_niqqud || "").trim();
+    const niqqud = ttsSpeechText(row.he_niqqud);
     if (niqqud) return niqqud;
 
-    const he = String(row.he || "").trim();
+    const he = ttsSpeechText(row.he);
     if (he) return he;
 
     return "";
@@ -41669,6 +41681,7 @@ function v3RowTtsMatchesCurrentProfile(row) {
   try {
     const haveKey = row && row._v3_audioAssetKey ? String(row._v3_audioAssetKey).trim() : "";
     if (!haveKey) return false;
+    if (rowSpeechHasCantillation(row)) return false; // клип до очистки текста мог читаться по буквам → через /api/tts (кэш сервера)
     const stored = v3AudioPrefetchSafeParseJson(row && row._v3_audioTtsProfileJson ? row._v3_audioTtsProfileJson : "");
     const current = v3AudioPrefetchGetCurrentProfileForCompare();
     // If either side has incomplete metadata (voiceName/language empty),

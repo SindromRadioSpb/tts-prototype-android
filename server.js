@@ -1210,7 +1210,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=659",
+  "/js/library-ui.js?v=660",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1227,7 +1227,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/vfs-order.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
-  "/js/reader-core.js?v=583",
+  "/js/reader-core.js?v=584",
   "/css/reader-core.css?v=643",
   "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
@@ -5536,7 +5536,7 @@ async function ensureAudioAsset(params) {
     pitch,
   } = params || {};
 
-  const cleanText = String(text || "").trim();
+  const cleanText = ttsSpeechText(text);
   if (!cleanText) {
     return { audioContent: "", fromCache: false, assetKey: null, relativePath: null };
   }
@@ -5639,9 +5639,16 @@ return { audioContent, fromCache, assetKey, relativePath };
 // text + profile) → mp3+timing self-cache for everyone afterwards (even keyless tier-1). The mp3 is
 // (over)written from the SAME SSML synth so the served clip matches the timepoints. Long text (over
 // the SSML byte cap) gracefully falls back to a plain mp3 with NO timing (honest sentence-level).
+// Знаки кантилляции/ударения (U+0591–U+05AF, напр. ole ֫ от Накдана: אָמַ֫רְתִּי) Google TTS
+// читает ПО БУКВАМ — слово разваливается. Огласовку (U+05B0+) оставляем. Та же граница — в
+// reader-core.js и index.html (tests/ttsSpeechText.test.js держит их равными). Текст без таких
+// знаков не меняется → ключи всех прежних клипов остаются теми же.
+const TTS_CANTILLATION_RE = /[\u0591-\u05AF]/g;
+function ttsSpeechText(text) { return String(text || "").replace(TTS_CANTILLATION_RE, "").trim(); }
+
 async function ensureAudioAssetWithTiming(params) {
   const { apiKey, text, assetType, ttsProfile, sentenceId, textId, languageCode, voiceName, speakingRate, pitch } = params || {};
-  const cleanText = String(text || "").trim();
+  const cleanText = ttsSpeechText(text);
   if (!cleanText) return { audioContent: "", fromCache: false, assetKey: null, relativePath: null };
   ensureAudioCacheDir();
 
@@ -6091,7 +6098,7 @@ app.post("/api/tts", async (req, res) => {
       }
     }
 
-    const cleanText = text.trim();
+    const cleanText = ttsSpeechText(text);
 
     const voiceName = voiceId && String(voiceId).trim()
       ? String(voiceId).trim()

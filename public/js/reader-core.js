@@ -88,13 +88,27 @@ export function buildRowTtsCacheKey(text, lang, cfg) {
 // Row TTS text by visibility rule: vocalized (niqqud) wins, else consonantal he.
 // This is the exact string fed to both the cache key and the server — keeping it
 // here guarantees audio parity across the SBL↔ru-phonetic translit switch.
+// Знаки кантилляции/ударения (U+0591–U+05AF, напр. ole ֫ от Накдана: אָמַ֫רְתִּי) Google TTS
+// читает ПО БУКВАМ. В речь уходит текст без них; огласовка остаётся. Та же граница — в
+// server.js и index.html (tests/ttsSpeechText.test.js держит их равными).
+export const TTS_CANTILLATION_RE = /[\u0591-\u05AF]/g;
+export function ttsSpeechText(text) { return String(text || "").replace(TTS_CANTILLATION_RE, "").trim(); }
+// Строка, чей текст несёт такие знаки: сохранённый клип мог быть синтезирован ДО очистки
+// (побуквенное чтение) — не доверяем ему, идём через /api/tts (чистый текст → свой ключ,
+// после первого синтеза отдаётся из кэша сервера).
+export function rowSpeechHasCantillation(row) {
+  if (!row || typeof row !== "object") return false;
+  const raw = String(row._v3_ttsText || "").trim() || String(row.he_niqqud || "").trim() || String(row.he || "").trim();
+  return /[\u0591-\u05AF]/.test(raw);
+}
+
 export function getRowTtsTextForRow(row) {
   if (!row || typeof row !== "object") return "";
-  const reviewedSpeech = String(row._v3_ttsText || "").trim();
+  const reviewedSpeech = ttsSpeechText(row._v3_ttsText);
   if (reviewedSpeech) return reviewedSpeech;
-  const niqqud = String(row.he_niqqud || "").trim();
+  const niqqud = ttsSpeechText(row.he_niqqud);
   if (niqqud) return niqqud;
-  const he = String(row.he || "").trim();
+  const he = ttsSpeechText(row.he);
   if (he) return he;
   return "";
 }
@@ -862,7 +876,10 @@ export function attachRowAudio(mount, opts) {
     notifyRow(idx);   // karaoke: a row started → Room auto-scrolls it into view
     try {
       // tier 1 — keyless cached asset
-      const assetKey = String(row._v3_audioAssetKey || "").trim();
+      // Клип строки с кантилляцией мог быть испорчен до очистки текста → при наличии ключа
+      // идём в tier 2 (сервер отдаст чистый клип из кэша или синтезирует один раз).
+      const staleSpeech = !cachedOnly && !!gcpKeyOf() && rowSpeechHasCantillation(row);
+      const assetKey = staleSpeech ? "" : String(row._v3_audioAssetKey || "").trim();
       if (assetKey) {
         const assetUrl = audioUrlOf(assetKey, row, idx);
         let ok = false;
