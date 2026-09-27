@@ -94,7 +94,8 @@
     if (step.startedAt == null) step.startedAt = now;
     step.state = "failed";
     step.endedAt = now;
-    step.error = { code: (error && error.code) || null, message: (error && error.message) || "" };
+    step.error = { code: (error && error.code) || null, message: (error && error.message) || "",
+      action: (error && error.action) === "restart" ? "restart" : "retry" };
     return step;
   }
 
@@ -204,7 +205,8 @@
       extra = '<div class="lp-ladder-error" role="alert"><p>' + esc(step.error && step.error.message) + "</p>" +
         (keptVideo ? "<p>" + esc(tr("studio.import.ladderKeptVideo")) + "</p>" : "") +
         '<button type="button" class="btn-primary" data-ladder-action="retry">' +
-        esc(tr("studio.import.ladderRetry", { step: tr(def.label) })) + "</button></div>";
+        esc(step.error && step.error.action === "restart" ? tr("studio.import.ladderRestart")
+          : tr("studio.import.ladderRetry", { step: tr(def.label) })) + "</button></div>";
     }
     var mark = state === "done" ? "✓" : state === "failed" ? "!" : "";
     return '<li class="lp-ladder-step" data-step="' + def.key + '" data-state="' + state + '">' +
@@ -232,7 +234,11 @@
       }
       html += rowHtml(m, def, opts);
     });
-    return '<ol class="lp-ladder-list">' + html + "</ol>";
+    var cancel = typeof opts.onCancel === "function" && !failedKey(m) && activeKey(m)
+      ? '<div class="lp-ladder-actions"><button type="button" class="btn-secondary" data-ladder-action="cancel">' +
+        esc(tr("studio.import.ladderCancel")) + "</button></div>"
+      : "";
+    return '<ol class="lp-ladder-list">' + html + "</ol>" + cancel;
   }
 
   function announcement(m, options) {
@@ -250,16 +256,21 @@
     var opts = options || {};
     if (!host.__lpLadder) {
       host.innerHTML = '<div class="lp-ladder-body"></div><p class="lp-ladder-live" aria-live="polite"></p>';
-      host.__lpLadder = { onRetry: null, announced: null };
+      host.__lpLadder = { onRetry: null, onCancel: null, announced: null };
       if (typeof host.addEventListener === "function") {
         host.addEventListener("click", function (event) {
           var target = event && event.target;
-          var hit = target && typeof target.closest === "function" && target.closest('[data-ladder-action="retry"]');
-          if (hit && typeof host.__lpLadder.onRetry === "function") host.__lpLadder.onRetry();
+          if (!target || typeof target.closest !== "function") return;
+          if (target.closest('[data-ladder-action="retry"]') && typeof host.__lpLadder.onRetry === "function") {
+            host.__lpLadder.onRetry();
+          } else if (target.closest('[data-ladder-action="cancel"]') && typeof host.__lpLadder.onCancel === "function") {
+            host.__lpLadder.onCancel();
+          }
         });
       }
     }
     host.__lpLadder.onRetry = opts.onRetry || null;
+    host.__lpLadder.onCancel = opts.onCancel || null;
     var body = host.querySelector && host.querySelector(".lp-ladder-body");
     if (body) body.innerHTML = renderHtml(m, opts);
     var live = host.querySelector && host.querySelector(".lp-ladder-live");

@@ -202,7 +202,7 @@
 
   // Same contract as _request (bearer token, no cookies, loopback only, same error codes), but the
   // body goes through XHR so a multi-gigabyte handoff can show bytes sent instead of a frozen line.
-  Client.prototype._uploadWithProgress = function (path, body, contentType, onProgress) {
+  Client.prototype._uploadWithProgress = function (path, body, contentType, onProgress, signal) {
     var token = String(this.tokenProvider() || "");
     if (token.length < 32) return Promise.reject(LocalAsrError("LOCAL_ASR_PAIRING_REQUIRED", "Pairing token required"));
     var xhr = this.xhrFactory(), url = BASE_URL + path;
@@ -215,9 +215,15 @@
         var total = event && event.lengthComputable ? event.total : (body && body.size) || null;
         try { onProgress({ bytes: event.loaded, total: total }); } catch (_) {}
       };
-      xhr.onerror = xhr.onabort = xhr.ontimeout = function () {
+      xhr.onerror = xhr.ontimeout = function () {
         reject(LocalAsrError("LOCAL_ASR_UNAVAILABLE", "Local media upload failed"));
       };
+      // A person's Cancel is not a companion failure: it takes the same code as a cancelled job.
+      xhr.onabort = function () { reject(LocalAsrError("MEDIA_JOB_CANCELED", "Local media upload was cancelled")); };
+      if (signal) {
+        if (signal.aborted) { reject(LocalAsrError("MEDIA_JOB_CANCELED", "Local media upload was cancelled")); return; }
+        signal.addEventListener("abort", function () { try { xhr.abort(); } catch (_) {} });
+      }
       xhr.onload = function () {
         // fetch() refuses redirects here; XHR follows them silently, so refuse any answer from elsewhere.
         if (xhr.responseURL && xhr.responseURL.indexOf(BASE_URL + "/") !== 0) {
@@ -239,7 +245,7 @@
     var contentType = file && file.type || "application/octet-stream";
     var onProgress = options && options.onUploadProgress;
     if (typeof onProgress === "function" && this.xhrFactory) {
-      return this._uploadWithProgress(path, file, contentType, onProgress);
+      return this._uploadWithProgress(path, file, contentType, onProgress, options && options.signal);
     }
     return this._request(path, { method: "POST", headers: { "content-type": contentType }, body: file });
   };

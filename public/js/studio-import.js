@@ -1546,6 +1546,7 @@
       ladderStep("begin", "upload");
       var created = await localAsrClient.createMediaJob(pendingAudio.file, {
         onUploadProgress: function (p) { ladderStep("update", "upload", { done: p.bytes, total: p.total, unit: "bytes" }); },
+        signal: mediaJobController.signal,
       });
       ladderStep("finish", "upload");
       checkKey = "probe";
@@ -2061,6 +2062,12 @@
     function staged(key) { ladderStep("finish", key); ladderKey = null; }
     material.preparationPlan = plan;
     material.working = true;
+    // One controller per attempt: it cancels the companion job (video, light copy), the OPFS
+    // stream (store) and the vocalization loop (niqqud) — whichever step is running.
+    material.abort = typeof AbortController === "function" ? new AbortController() : null;
+    material.cancelRequested = false;
+    material.restartRequired = false;
+    var cancelSignal = material.abort ? material.abort.signal : undefined;
     setBusy(true);
     setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
     var ladder = ladderModel();
@@ -2099,7 +2106,7 @@
       var job = material.preparedJob || await window.SubtitleMaterialImport.confirmMediaPlan({
         client: localAsrClient, jobId: pendingAudio.mediaJobId,
         mode: ((pendingAudio.mediaReadiness || {}).plan || {}).mode,
-        planSha256: plan.plan_sha256, waitOptions: { onStatus: encodeStatus("video") },
+        planSha256: plan.plan_sha256, waitOptions: { onStatus: encodeStatus("video"), signal: cancelSignal },
       });
       material.preparedJob = job;
       staged("video");
@@ -2107,7 +2114,7 @@
       var stored = material.stored || await window.SubtitleMaterialImport.storePreparedMedia({
         client: localAsrClient, jobId: pendingAudio.mediaJobId, job: job,
         maxBytes: window.MediaReadiness.VIDEO_MAX_BYTES,
-        onProgress: storeProgress("store", job.output_bytes),
+        onProgress: storeProgress("store", job.output_bytes), signal: cancelSignal,
       });
       material.stored = stored;
       staged("store");
@@ -2119,12 +2126,12 @@
         setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
         var liteJob = material.preparedLiteJob || await window.SubtitleMaterialImport.confirmMediaPlan({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, mode: "lite_transcode",
-          planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: encodeStatus("lite") },
+          planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: encodeStatus("lite"), signal: cancelSignal },
         });
         material.preparedLiteJob = liteJob;
         material.storedLite = await window.SubtitleMaterialImport.storePreparedMedia({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, job: liteJob, rendition: "lite",
-          onProgress: storeProgress("lite", null),
+          onProgress: storeProgress("lite", null), signal: cancelSignal,
         });
         staged("lite");
         setSubtitlePlanStatus("studio.import.subtitlePlanStoredLite",
@@ -2155,6 +2162,7 @@
           client: localAsrClient,
           transliterate: window.LocalTranslit.transliterateWithProfile,
           onProgress: function (done, total) { ladderStep("update", "niqqud", { done: done, total: total, unit: "count" }); },
+          signal: cancelSignal,
         });
         tableRows = derived.rows;
         material.tableRows = tableRows;
@@ -2185,6 +2193,14 @@
         setSubtitlePlanStatus("studio.import.subtitlePlanFailed", { code: "SUBTITLE_TABLE_NOT_APPLIED" }, "error");
       }
     } catch (error) {
+      if (material.cancelRequested) {
+        // A cancelled companion job cannot be prepared again; later steps kept their inputs.
+        material.restartRequired = ladderKey === "video" || ladderKey === "lite";
+        ladderStep("fail", ladderKey, { code: "MATERIAL_CANCELED",
+          message: tr(material.restartRequired ? "studio.import.ladderCancelledRestart" : "studio.import.ladderCancelled"),
+          action: material.restartRequired ? "restart" : "retry" });
+        return;
+      }
       ladderFail(ladderKey, error);
       if (error && (error.name === "QuotaExceededError" || error.code === "OPFS_QUOTA_LOW")) {
         if(Number.isFinite(error.requiredBytes)&&Number.isFinite(error.availableBytes)){
@@ -2243,6 +2259,20 @@
     pendingAudio.ladderView = view || null;
     renderLadder();
   }
+  function retryMaterialBuild() {
+    var material = pendingSubtitleMaterial;
+    if (material && material.restartRequired) return startMediaPreflight();
+    return buildSubtitleMaterial();
+  }
+  function cancelMaterialBuild() {
+    var material = pendingSubtitleMaterial;
+    if (!material || !material.working || !material.abort || material.cancelRequested) return;
+    material.cancelRequested = true;
+    material.abort.abort();
+  }
+  function cancelMediaCheck() {
+    if (mediaJobController) mediaJobController.abort();
+  }
   function renderLadder() {
     var L = ladderApi();
     if (!L) return;
@@ -2254,7 +2284,8 @@
       L.renderInto(host, pendingAudio.ladder, {
         tr: tr, now: Date.now(), view: name,
         humanBytes: window.MediaReadiness && window.MediaReadiness.humanBytes,
-        onRetry: name === "check" ? startMediaPreflight : buildSubtitleMaterial,
+        onRetry: name === "check" ? startMediaPreflight : retryMaterialBuild,
+        onCancel: name === "check" ? cancelMediaCheck : cancelMaterialBuild,
       });
     });
     ladderRenderedAt = Date.now();

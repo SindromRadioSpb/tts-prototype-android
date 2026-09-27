@@ -62,3 +62,17 @@ test("without a progress callback the upload stays on fetch", async () => {
   assert.equal(job.job_id, "j2");
   assert.equal(calls[0].options.redirect, "error");
 });
+
+test("aborting the upload cancels the transfer with the media-cancel code", async () => {
+  const controller = new AbortController();
+  let aborted = false;
+  const client = new C.Client({ tokenProvider: () => TOKEN, fetchFn: async () => ({}),
+    xhrFactory: () => {
+      const x = fakeXhr(() => { controller.abort(); });
+      x.abort = () => { aborted = true; x.onabort(); };
+      return x;
+    } });
+  await assert.rejects(client.createMediaJob({ name: "a.mkv", type: "", size: 1 },
+    { onUploadProgress() {}, signal: controller.signal }), (e) => e.code === "MEDIA_JOB_CANCELED");
+  assert.equal(aborted, true);
+});

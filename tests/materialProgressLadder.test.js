@@ -188,3 +188,28 @@ test("renderInto keeps one live region and wires retry once", () => {
   listeners[0][1]({ target: { closest: (s) => (s === '[data-ladder-action="retry"]' ? {} : null) } });
   assert.equal(retries, 1);
 });
+
+test("an active step offers Cancel when the caller can cancel; a finished ladder does not", () => {
+  const m = Ladder.create();
+  Ladder.begin(m, "video", 0);
+  const on = Ladder.renderHtml(m, { tr, humanBytes, now: 0, view: "build", onCancel() {} });
+  assert.match(on, /data-ladder-action="cancel"[^>]*>studio\.import\.ladderCancel</);
+  const off = Ladder.renderHtml(m, { tr, humanBytes, now: 0, view: "build" });
+  assert.doesNotMatch(off, /data-ladder-action="cancel"/);
+  Ladder.fail(m, "video", { code: "MATERIAL_CANCELED", message: "x", action: "restart" }, 1);
+  const failed = Ladder.renderHtml(m, { tr, humanBytes, now: 1, view: "build", onCancel() {} });
+  assert.doesNotMatch(failed, /data-ladder-action="cancel"/);
+  assert.match(failed, /data-ladder-action="retry"[^>]*>studio\.import\.ladderRestart</);
+});
+
+test("renderInto wires Cancel to the current handler", () => {
+  const listeners = [];
+  const host = { innerHTML: "", hidden: true, querySelector: () => ({ innerHTML: "", textContent: "" }),
+    addEventListener: (t, fn) => listeners.push(fn) };
+  let cancels = 0;
+  const m = Ladder.create();
+  Ladder.begin(m, "upload", 0);
+  Ladder.renderInto(host, m, { tr, humanBytes, now: 0, view: "check", onCancel: () => cancels++ });
+  listeners[0]({ target: { closest: (s) => (s === '[data-ladder-action="cancel"]' ? {} : null) } });
+  assert.equal(cancels, 1);
+});

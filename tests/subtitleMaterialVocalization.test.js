@@ -53,3 +53,15 @@ test("browser transliteration bundle matches the server's deterministic profiles
       canonical.transliterateWithProfile("שְׁלוֹם עוֹלָם", profile));
   }
 });
+
+test("a cancelled vocalization stops before its next batch", async () => {
+  const controller = new AbortController();
+  const rows = Array.from({ length: 40 }, (_, i) => ({ segment_index: i, he: "שלום", ru: "мир" }));
+  let calls = 0;
+  await assert.rejects(Vocalization.enrich(rows, {
+    signal: controller.signal,
+    transliterate: canonical.transliterateWithProfile,
+    client: { vocalizeTexts: async (texts) => { calls++; controller.abort(); return { results: texts.map(() => "שָׁלוֹם") }; } },
+  }), (e) => e.code === "MATERIAL_CANCELED");
+  assert.equal(calls, 1);
+});

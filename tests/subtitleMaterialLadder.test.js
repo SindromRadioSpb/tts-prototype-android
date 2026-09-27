@@ -39,7 +39,7 @@ function buildContext({ enrich, calls }) {
       : id === "v3ImportSubtitlePlanLite" ? { checked: false } : null),
     buildSubtitleTable: async () => { calls.push("table"); material.tableRows = rows; return rows; },
     applySubtitleMaterial: async () => { calls.push("apply"); return true; },
-    Date,
+    Date, AbortController,
     window: {
       MaterialProgressLadder: Ladder,
       MediaReadiness: { VIDEO_MAX_BYTES: 3 * 1024 ** 3, humanBytes: (n) => n + "B", acceptPrepared: () => ({}) },
@@ -122,4 +122,56 @@ test("progress from the companion and the store reaches the ladder counters", as
   assert.equal(m.steps.open.state, "done");
   // Check-phase steps that ran before this attempt are shown as done, never as pending.
   assert.equal(m.steps.upload.state, "done");
+});
+
+function clickCancel(host) { host.listeners.forEach((fn) => fn({ target: { closest: (s) => (s === '[data-ladder-action="cancel"]' ? {} : null) } })); }
+const tick = () => new Promise((r) => setImmediate(r));
+
+test("Cancel during niqqud stops the step and Retry resumes there with the saved video", async () => {
+  const calls = [];
+  let attempts = 0;
+  const enrich = async (rows, opts) => {
+    attempts++;
+    if (attempts === 1) {
+      await new Promise((resolve) => opts.signal.addEventListener("abort", resolve));
+      const e = new Error("stopped"); e.code = "MATERIAL_CANCELED"; throw e;
+    }
+    return { rows, warnings: [] };
+  };
+  const { context, hosts } = buildContext({ enrich, calls });
+  const run = context.buildSubtitleMaterial();
+  for (let i = 0; i < 5; i++) await tick();
+  const build = hosts.v3ImportLadderBuild;
+  assert.match(build.body.innerHTML, /data-ladder-action="cancel"/);
+  clickCancel(build);
+  await run;
+  assert.equal(stateOf(build, "niqqud"), "failed");
+  assert.match(build.body.innerHTML, /ladderCancelled/);
+  assert.match(build.body.innerHTML, /ladderRetry/);
+  build.clickRetry();
+  for (let i = 0; i < 5; i++) await tick();
+  assert.deepEqual(calls, ["prepare:full", "store:full", "table", "table", "apply"]);
+  assert.equal(build.hidden, true);
+});
+
+test("Cancel during the video step cancels the companion job and offers a fresh start", async () => {
+  const calls = [];
+  const built = buildContext({ enrich: async (rows) => ({ rows, warnings: [] }), calls });
+  let restarts = 0;
+  built.context.startMediaPreflight = () => { restarts++; };
+  built.context.window.SubtitleMaterialImport.confirmMediaPlan = async (opts) => {
+    calls.push("prepare");
+    await new Promise((resolve) => opts.waitOptions.signal.addEventListener("abort", resolve));
+    const e = new Error("canceled"); e.code = "MEDIA_JOB_CANCELED"; throw e;
+  };
+  const run = built.context.buildSubtitleMaterial();
+  for (let i = 0; i < 5; i++) await tick();
+  clickCancel(built.hosts.v3ImportLadderBuild);
+  await run;
+  const html = built.hosts.v3ImportLadderBuild.body.innerHTML;
+  assert.equal(stateOf(built.hosts.v3ImportLadderBuild, "video"), "failed");
+  assert.match(html, /ladderCancelledRestart/);
+  assert.match(html, /ladderRestart/);
+  built.hosts.v3ImportLadderBuild.clickRetry();
+  assert.equal(restarts, 1);
 });

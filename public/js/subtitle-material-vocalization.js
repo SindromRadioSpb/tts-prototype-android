@@ -79,6 +79,11 @@
     });
     var warnings = [];
     for (var start = 0; start < targetIndexes.length; start += 16) {
+      if (opts.signal && opts.signal.aborted) {
+        var cancelled = new Error("MATERIAL_CANCELED");
+        cancelled.code = "MATERIAL_CANCELED";
+        throw cancelled;
+      }
       var indexes = targetIndexes.slice(start, start + 16);
       var source = indexes.map(function (index) { return String(output[index].he || ""); });
       var result = await opts.client.vocalizeTexts(source);
