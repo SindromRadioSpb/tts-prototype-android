@@ -4,6 +4,24 @@
 // Loaded right after <footer data-lp-footer="room|studio|mediatheque">; renders at once.
 (function () {
   "use strict";
+  // O-025: boot-time readers of /api/client-config (footer, Room version, telemetry) share one
+  // request for a few seconds instead of three. Freshness probes keep fetching on their own.
+  if (!window.LPClientConfig) {
+    var sharedConfig = null, sharedAt = 0;
+    window.LPClientConfig = {
+      get: function () {
+        var now = Date.now();
+        if (!sharedConfig || now - sharedAt > 5000) {
+          sharedAt = now;
+          sharedConfig = fetch("/api/client-config", { cache: "no-store", credentials: "same-origin" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (j) { if (!j) sharedConfig = null; return j; })
+            .catch(function () { sharedConfig = null; return null; });
+        }
+        return sharedConfig;
+      },
+    };
+  }
   var ISSUES = "https://github.com/SindromRadioSpb/tts-prototype-android/issues/new";
   var REPO = "https://github.com/SindromRadioSpb/tts-prototype-android";
   var PRODUCT = "https://kolosei.com/products/linguistpro/";
@@ -134,8 +152,7 @@
   }
   function askServer() {
     try {
-      return fetch("/api/client-config", { cache: "no-store" })
-        .then(function (r) { return r.ok ? r.json() : null; })
+      return window.LPClientConfig.get()
         .then(function (j) { return j && j.version ? String(j.version).replace(/^v/, "") : null; })
         .catch(function () { return null; });
     } catch (_) { return Promise.resolve(null); }

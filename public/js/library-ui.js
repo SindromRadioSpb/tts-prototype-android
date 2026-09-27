@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=668';
+import * as localDbRaw from '/db/local-db.js?v=669';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -4810,7 +4810,7 @@ function registerRoomServiceWorker() {
 }
 async function loadRoomVersion() {
   try {
-    const j = await (await fetch('/api/client-config', { cache: 'no-store' })).json();
+    const j = window.LPClientConfig ? await window.LPClientConfig.get() : await (await fetch('/api/client-config', { cache: 'no-store' })).json();
     if (j && j.version) {
       roomAppVersion = String(j.version);
       roomVersionMismatch = !!(roomShellVersion && roomAppVersion !== roomShellVersion);
@@ -9889,14 +9889,8 @@ async function loadCorpusCatalog() {
     corpusRoot = root;
     const hasCorpus = (root.counts && root.counts.works) > 0;
     corpusTabReady = hasCorpus;
-    // BRR-P2-006a — warm the always-needed FTS layer (manifest + lemma + lemmamap, ~6.5MB) in IDLE
-    // so the first corpus search doesn't wait on it (owner choice: warm on Room load). Gated on the
-    // corpus being present; requestIdleCallback (setTimeout fallback for iOS Safari) keeps it off the
-    // critical path. The letter/prefix shards stay lazy (warmed per query by warmQuery).
-    if (hasCorpus && window.CorpusFTS && window.CorpusFTS.warm) {
-      const _warm = () => { try { ensureFtsConfigured(); window.CorpusFTS.warm(); } catch (_) {} };
-      (window.requestIdleCallback || function (cb) { return setTimeout(cb, 1200); })(_warm);
-    }
+    // O-023 (owner, 2026-09-27): the always-needed FTS layer is ~26 MB of JSON now (was ~6.5 MB
+    // when BRR-P2-006a warmed it on every Room load). It warms when search starts: warmFtsForSearch.
   } catch (e) { try { console.warn('[room] corpus root load failed (non-fatal):', e); } catch (_) {} }
   finally {
     // R8: the tab is in the markup from the first frame; it leaves only when there is no catalog.
@@ -13697,6 +13691,11 @@ function ensureFtsConfigured() {
   window.CorpusFTS.configure({ version: CORPUS_CATALOG_VERSION, dataRev: FTS_DATA_REV, base: '/data/benyehuda/' });
   _ftsConfigured = true;
 }
+// O-023 — load the always-needed lemma layer once the learner starts a search (field focus or
+// first typed query), not on Room load. Idempotent: the FTS warm is single-flight.
+function warmFtsForSearch() {
+  try { if (!window.CorpusFTS || !window.CorpusFTS.warm) return; ensureFtsConfigured(); window.CorpusFTS.warm(); } catch (_) {}
+}
 // Render one FTS sub-group section (title + paged work rows). Ready hits open into the bilingual
 // reader AT the matched line (ftsQuery → firstPhraseRow/firstMatchRow); non-ready hits are honest
 // «найдено · перевод готовится» (display-only).
@@ -14086,12 +14085,14 @@ function buildCorpusFilterBar() {
       clearTimeout(debounce);
       if (key === 'sort') corpusL1Sort = corpusFilter.sort;
       if (key === 'q') {
+        warmFtsForSearch();
         try { ensureFtsConfigured(); window.CorpusFTS?.warmQuery(window.CatalogDiscovery.parseQuery(corpusFilter.q).textQ); } catch (_) {}
         debounce = setTimeout(() => { pushRecentSearch(corpusFilter.q); refreshBody(); }, 200);
       } else { if (key === 'enter') pushRecentSearch(corpusFilter.q); refreshBody(); }
     },
   });
   corpusSearchInputEl = controls.search;
+  if (corpusSearchInputEl) corpusSearchInputEl.addEventListener('focus', warmFtsForSearch, { once: true });
   corpusFilterChromeRefresh = () => { corpusFilter.sort = corpusL1Sort === 'alpha' ? 'title_asc' : corpusL1Sort === 'opened' ? 'opened_desc' : corpusL1Sort; controls.refresh(); };
   corpusRecentsEl = el('div', { class: 'corpus-recents' });
   controls.node.querySelector('.discovery-primary').after(corpusRecentsEl);

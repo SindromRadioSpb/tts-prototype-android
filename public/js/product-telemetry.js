@@ -186,8 +186,8 @@
   function boot() {
     if (opened) return;
     opened = true;
-    fetch("/api/client-config", { credentials: "same-origin", cache: "no-store" })
-      .then(function (r) { return r.ok ? r.json() : null; })
+    (window.LPClientConfig ? window.LPClientConfig.get()
+      : fetch("/api/client-config", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }))
       .then(function (cfg) { APP_VERSION = cfg && cfg.version ? String(cfg.version) : "unknown"; return fetch("/api/product-pulse/v1/config", { credentials: "same-origin", cache: "no-store" }); })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(cfg) { disabled = disabled || !cfg || !cfg.collect; ready = true; })

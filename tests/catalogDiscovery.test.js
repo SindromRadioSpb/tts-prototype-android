@@ -122,3 +122,30 @@ test('a card the budget can never return falls back to analysis instead of loopi
   await service.prepare([{ id: '1', updated_at: 'rev' }]);
   assert.equal(analyses, 1);
 });
+
+// O-025: a text with no Hebrew tokens can never be analysed; it was re-read and re-analysed on
+// every Library open (3 owner texts, ~1 s of 3 s). The outcome is remembered per revision.
+test('an unsupported text is not re-analysed until its revision changes', async () => {
+  let analyses = 0;
+  const store = new Map();
+  const memo = { get: key => store.get(key), set: (key, value) => store.set(key, value) };
+  const db = {
+    getLearningCompassProjection: async () => ({ schema_version: compass.PROJECTION_SCHEMA, version: 'p1', tracked_lexeme_count: 1, state_by_key: { 'p:1': 'known' } }),
+    getLearningCompassIngredientsBatch: async () => ({ entries: {} }),
+    getSentences: async () => [{ he_plain: 'hello' }],
+    putLearningCompassIngredients: async () => {},
+  };
+  const analyze = async () => { analyses++; throw new Error('NO_HEBREW_TOKENS'); };
+  const first = familiarity.createService({ db, compass, analyze, unsupportedMemo: memo });
+  await first.prepare([{ id: '9', updated_at: 'r1' }]);
+  assert.equal(first.get('9').status, 'UNSUPPORTED');
+  const updates = [];
+  const second = familiarity.createService({ db: { ...db, getSentences: async () => { throw new Error('unexpected sentence read'); } }, compass, analyze, unsupportedMemo: memo, onUpdate: value => updates.push(value.state) });
+  await second.prepare([{ id: '9', updated_at: 'r1' }]);
+  assert.equal(updates[updates.length - 1], 'ready', 'a remembered last card still completes the progress');
+  assert.equal(second.get('9').status, 'UNSUPPORTED');
+  assert.equal(analyses, 1);
+  const edited = familiarity.createService({ db, compass, analyze, unsupportedMemo: memo });
+  await edited.prepare([{ id: '9', updated_at: 'r2' }]);
+  assert.equal(analyses, 2);
+});

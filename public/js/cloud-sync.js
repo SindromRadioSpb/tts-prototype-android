@@ -66,19 +66,32 @@
   }
 
   // ── session ──────────────────────────────────────────────────────────────
+  // O-025: boot-time callers asked for the session three times in a row (~130 ms each). Share
+  // one answer for a few seconds; login/logout forget it.
+  var ME_SHARE_MS = 3000;
+  var _meShared = null, _meSharedAt = 0;
   async function me() {
-    var r = await jfetch("GET", "/api/auth/me");
-    if (r.status !== 200 || !r.json || !r.json.ok) return null;
-    setCsrf(r.json.csrf);
-    return r.json;
+    var now = Date.now();
+    if (_meShared && now - _meSharedAt <= ME_SHARE_MS) return _meShared;
+    _meSharedAt = now;
+    _meShared = (async function () {
+      var r = await jfetch("GET", "/api/auth/me");
+      if (r.status !== 200 || !r.json || !r.json.ok) return null;
+      setCsrf(r.json.csrf);
+      return r.json;
+    })();
+    _meShared.catch(function () { _meShared = null; });
+    return _meShared;
   }
   async function login(secret, deviceLabel) {
+    _meShared = null;
     var r = await jfetch("POST", "/api/auth/bootstrap-login", { secret: secret, deviceLabel: deviceLabel || "" });
     if (r.status !== 200 || !r.json || !r.json.ok) return { ok: false, status: r.status, error: (r.json && r.json.error) || "LOGIN_FAILED" };
     setCsrf(r.json.csrf);
     return { ok: true, user: r.json.user };
   }
   async function logout() {
+    _meShared = null;
     try { await jfetch("POST", "/api/auth/logout"); } catch (_) {}
     setCsrf(null);
     return { ok: true };

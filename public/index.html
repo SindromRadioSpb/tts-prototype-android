@@ -29,7 +29,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=668">
+    <link rel="modulepreload" href="/db/local-db.js?v=669">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11001,7 +11001,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=668';
+  import * as _ldb from '/db/local-db.js?v=669';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -11051,19 +11051,27 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         showToast('⚠ Хранилище браузера временно переключилось в резервный режим — библиотека может выглядеть пустой, но ваши тексты не удалены. Не нажимайте «Сбросить локальную библиотеку». Перезагрузите страницу и, если это повторится, сообщите разработчику.', 'error', { ttl: 60000 });
       }
     } catch (_) {}
-    // D3: idle-time integrity_check. It is a full scan in the single DB worker: on a 548 MB
+    // D3: idle-time integrity_check. A full check is a scan in the single DB worker: on a 548 MB
     // profile 7–35 s during which every query (review counts, Library list) waits (perf
-    // 2026-09-27). Automatic runs: at most once per 7 days, never in the boot window; only a
-    // clean result is recorded, so a failure is re-checked next boot. Manual: diagnostics panel.
+    // 2026-09-27); quick_check still took 8.5 s. O-024: the weekly pass checks ONE table per idle
+    // slot (owner profile: 54 tables, 6.6 s in total, largest 1.9 s) and keeps its place across
+    // boots. Never in the boot window; only a completed clean pass is recorded, so a failure is
+    // re-checked next boot. Manual full check: diagnostics panel.
     const V3_INTEGRITY_LAST_OK_KEY = 'lp.integrity.lastOkAt';
+    const V3_INTEGRITY_ROTATION_KEY = 'lp.integrity.rotation';
     const V3_INTEGRITY_CADENCE_MS = 7 * 24 * 60 * 60 * 1000;
     const V3_INTEGRITY_BOOT_DELAY_MS = 120 * 1000;
+    const V3_INTEGRITY_STEP_GAP_MS = 10 * 1000;
+    const _scheduleICheck = (delay) => setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(_runICheck, { timeout: 30000 });
+      else _runICheck();
+    }, delay);
     const _runICheck = async () => {
       try {
         let lastOk = 0;
         try { lastOk = Number(localStorage.getItem(V3_INTEGRITY_LAST_OK_KEY)) || 0; } catch (_) {}
         if (Date.now() - lastOk < V3_INTEGRITY_CADENCE_MS) return;
-        if (document.visibilityState !== 'visible') return;
+        if (document.visibilityState !== 'visible') { _scheduleICheck(V3_INTEGRITY_STEP_GAP_MS * 6); return; }
         // async-VFS (tts-opfs-idb — iOS/CriOS без sync-хэндлов): полный integrity-скан
         // детерминированно OOM-ит wasm (замерено на устройстве владельца) и стрессует
         // сессию для последующих запросов — честно пропускаем диагностику на этом VFS.
@@ -11072,16 +11080,26 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
           console.log('[OPFS] integrity_check skipped on async VFS (' + info.name + ')');
           return;
         }
+        let rotation = null;
+        try { rotation = JSON.parse(localStorage.getItem(V3_INTEGRITY_ROTATION_KEY) || 'null'); } catch (_) {}
+        if (!rotation || !Array.isArray(rotation.done)) rotation = { startedAt: Date.now(), done: [], ms: 0 };
+        const tables = await _ldb.listIntegrityTables();
+        const pending = tables.filter((name) => !rotation.done.includes(name));
+        if (!pending.length) {
+          try { localStorage.setItem(V3_INTEGRITY_LAST_OK_KEY, String(Date.now())); localStorage.removeItem(V3_INTEGRITY_ROTATION_KEY); } catch (_) {}
+          try { (window.v3OpfsTelemetryPush || function(){})({ kind: 'integrity.ok', durationMs: rotation.ms, tables: tables.length, mode: 'per-table' }); } catch (_) {}
+          console.log('[OPFS] integrity_check OK (' + tables.length + ' tables, ' + rotation.ms + 'ms)');
+          return;
+        }
+        const table = pending[0];
         const t0 = Date.now();
-        const r = await _ldb.integrityCheck();
-        if (r.ok) { try { localStorage.setItem(V3_INTEGRITY_LAST_OK_KEY, String(Date.now())); } catch (_) {} }
-        try { (window.v3OpfsTelemetryPush || function(){})({
-          kind: r.ok ? 'integrity.ok' : 'integrity.fail',
-          durationMs: Date.now() - t0,
-          issues: (r.issues || []).slice(0, 5),
-        }); } catch (_) {}
+        const r = await _ldb.integrityCheck(table);
         if (!r.ok) {
-          console.error('[OPFS] integrity_check FAILED:', r.issues);
+          try { (window.v3OpfsTelemetryPush || function(){})({
+            kind: 'integrity.fail', table, durationMs: Date.now() - t0,
+            issues: (r.issues || []).slice(0, 5),
+          }); } catch (_) {}
+          console.error('[OPFS] integrity_check FAILED (' + table + '):', r.issues);
           try {
             if (typeof showToast === 'function') {
               // R11 честность: транзиентный сбой рантайма (iOS wa-sqlite OOB) ≠ повреждение
@@ -11093,15 +11111,15 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
               }
             }
           } catch (_) {}
-        } else {
-          console.log('[OPFS] integrity_check OK (' + (Date.now() - t0) + 'ms)');
+          return;
         }
+        rotation.done.push(table);
+        rotation.ms = (Number(rotation.ms) || 0) + (Date.now() - t0);
+        try { localStorage.setItem(V3_INTEGRITY_ROTATION_KEY, JSON.stringify(rotation)); } catch (_) {}
+        _scheduleICheck(V3_INTEGRITY_STEP_GAP_MS);
       } catch (e) { console.warn('[OPFS] integrity_check threw', e); }
     };
-    setTimeout(() => {
-      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(_runICheck, { timeout: 30000 });
-      else _runICheck();
-    }, V3_INTEGRITY_BOOT_DELAY_MS);
+    _scheduleICheck(V3_INTEGRITY_BOOT_DELAY_MS);
 
     // Phase 9.4.A — populate the `roots` table with the seed dictionary
     // (Tier 2 of the morphology layer per docs/MORPHOLOGY_REQUIREMENTS_v3_2.md).
@@ -13686,7 +13704,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
 <script src="/js/learning-compass-core.js"></script>
-<script src="/js/local-text-familiarity.js?v=667"></script>
+<script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
 <script src="/js/studio-media-package.js?v=615"></script>
@@ -13772,7 +13790,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.668";
+    window.APP_VERSION = "3.11.669";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -51484,7 +51502,7 @@ document.addEventListener("i18n:changed", function () {
 
 <!-- ── App footer (Direction 8 — Trust signals) ───────────────────────── -->
 <footer id="appFooter" data-lp-footer="studio"></footer>
-<script src="/js/app-footer.js?v=653"></script>
+<script src="/js/app-footer.js?v=669"></script>
 
 <!-- ── Stage 2: «✨ Построить знания» review queue (Concept C) ──────────── -->
 <style>
@@ -52382,6 +52400,6 @@ document.addEventListener("i18n:changed", function () {
   })();
 </script>
 
-<script src="/js/product-telemetry.js?v=610"></script>
+<script src="/js/product-telemetry.js?v=669"></script>
 </body>
 </html>

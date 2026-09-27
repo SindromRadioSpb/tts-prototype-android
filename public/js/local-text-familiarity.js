@@ -39,7 +39,25 @@
     return analyze;
   }
 
-  function createService({ db, compass, analyze = workerAnalyzer(), onUpdate = () => {}, yieldWork = () => new Promise(resolve => setTimeout(resolve, 0)) }) {
+  // O-025: texts that can never be analysed (no Hebrew tokens, over a size limit) were re-read and
+  // re-analysed on every Library open. Remember the outcome per cache key + revision + resolver in
+  // the browser; an edited text (new updated_at) or a new resolver is analysed again.
+  const UNSUPPORTED_MEMO_KEY = 'lp.familiarity.unsupported.v1';
+  function browserUnsupportedMemo() {
+    let cache = null;
+    const load = () => {
+      if (cache) return cache;
+      try { cache = JSON.parse(globalThis.localStorage.getItem(UNSUPPORTED_MEMO_KEY) || '{}') || {}; } catch (_) { cache = {}; }
+      return cache;
+    };
+    return {
+      get: key => load()[key],
+      set: (key, value) => { load()[key] = value; try { globalThis.localStorage.setItem(UNSUPPORTED_MEMO_KEY, JSON.stringify(cache)); } catch (_) {} },
+    };
+  }
+  const unsupportedFingerprint = item => [item.content_revision, item.resolver_version].join('|');
+
+  function createService({ db, compass, analyze = workerAnalyzer(), onUpdate = () => {}, yieldWork = () => new Promise(resolve => setTimeout(resolve, 0)), unsupportedMemo = browserUnsupportedMemo() }) {
     let generation = 0;
     const fits = new Map();
     const notify = (done, total, state) => onUpdate({ done, total, state, fits });
@@ -87,6 +105,13 @@
         if (epoch !== generation) return;
       }
       for (const item of missing) {
+        const remembered = unsupportedMemo.get(item.cache_key);
+        if (remembered && remembered.fingerprint === unsupportedFingerprint(item)) {
+          fits.set(item.local_id, unavailable('UNSUPPORTED', remembered.reason));
+          done++;
+          notify(done, total, done === total ? 'ready' : 'preparing');
+          continue;
+        }
         try {
           const rows = await db.getSentences(item.local_id);
           if (epoch !== generation) return;
@@ -106,7 +131,9 @@
         } catch (error) {
           if (epoch !== generation) return;
           const reason = String(error && error.message || error);
-          fits.set(item.local_id, unavailable(/TOKEN_LIMIT|TYPE_LIMIT|PACKET_LIMIT|NO_HEBREW_TOKENS/.test(reason) ? 'UNSUPPORTED' : 'UNAVAILABLE', reason));
+          const unsupported = /TOKEN_LIMIT|TYPE_LIMIT|PACKET_LIMIT|NO_HEBREW_TOKENS/.test(reason);
+          fits.set(item.local_id, unavailable(unsupported ? 'UNSUPPORTED' : 'UNAVAILABLE', reason));
+          if (unsupported) unsupportedMemo.set(item.cache_key, { fingerprint: unsupportedFingerprint(item), reason });
         }
         done++;
         notify(done, total, done === total ? 'ready' : 'preparing');

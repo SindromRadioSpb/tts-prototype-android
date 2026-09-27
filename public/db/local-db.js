@@ -342,9 +342,23 @@ export async function dbRun(sql, params) {
 // requestIdleCallback so first-paint isn't delayed.
 //
 // Returns: { ok: boolean, issues: string[], rawRows: any[] }.
-export async function integrityCheck() {
+// With `table` (O-024) the check covers one table and its indexes: the Studio's weekly pass
+// rotates through tables so the single DB worker is held ~2 s at most instead of 7–35 s. The
+// name must match sqlite_master before it reaches the PRAGMA.
+export async function listIntegrityTables() {
+  const rows = await q(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`, []);
+  return (rows || []).map((row) => String(row.name));
+}
+
+export async function integrityCheck(table) {
   try {
-    const rows = await q('PRAGMA integrity_check');
+    let sql = 'PRAGMA integrity_check';
+    if (table != null) {
+      const known = await q(`SELECT name FROM sqlite_master WHERE type='table' AND name = ?`, [String(table)]);
+      if (!known || !known.length) return { ok: true, skipped: true, issues: [], rawRows: [] };
+      sql = 'PRAGMA integrity_check("' + String(known[0].name).replace(/"/g, '""') + '")';
+    }
+    const rows = await q(sql);
     // wa-sqlite returns rows as objects keyed by column name. The
     // PRAGMA's first column is named 'integrity_check'.
     const list = (rows || []).map((row) => {

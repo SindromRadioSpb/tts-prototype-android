@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.668";
+const CACHE_VERSION = "v3.11.669";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -77,7 +77,7 @@ const PRECACHE_URLS = [
   "/data/mediatheque/research-reserve-v1.json",
   "/js/mediatheque-local-repository.js",
   "/js/mediatheque-metadata.js",
-  "/js/product-telemetry.js?v=610",
+  "/js/product-telemetry.js?v=669",
 
   "/study-video.html",
   "/study-studio.html",
@@ -101,7 +101,7 @@ const PRECACHE_URLS = [
   "/css/catalog-discovery.css?v=643",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
-  "/js/local-text-familiarity.js?v=667",
+  "/js/local-text-familiarity.js?v=669",
   "/js/studio-library-discovery.js?v=486",
   "/",
   "/index.html",
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=668",
+  "/js/library-ui.js?v=669",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -255,7 +255,7 @@ const PRECACHE_URLS = [
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
   "/js/app-nav.js?v=645",
-  "/js/app-footer.js?v=653",
+  "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
   "/js/media-host.js?v=662",
@@ -307,7 +307,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=668",
+  "/db/local-db.js?v=669",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
