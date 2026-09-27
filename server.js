@@ -8293,7 +8293,14 @@ app.post("/api/export-docx", async (req, res) => {
 // --------------------------------------------------------
 // 12. API: USAGE (для фронтенда)
 // --------------------------------------------------------
-app.get("/api/usage", (req, res) => {
+// O-013: these are the server's counters over ALL users, not the caller's. Owner-only, like the
+// Product Pulse dashboard; the Studio shows them in its ?diag=1 view.
+app.get("/api/usage", async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (String(auth.user.role || "").toLowerCase() !== "owner") {
+    return res.status(404).json({ ok: false, error: "not_found" });
+  }
   try {
     ensureGeminiDay();
     const usage = getUsage();
