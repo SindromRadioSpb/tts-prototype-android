@@ -101,6 +101,7 @@ class MediaJobManager:
         self._cancel: dict[str, asyncio.Event] = {}
         self._capacity = asyncio.Semaphore(1)
         self._reservation_lock = asyncio.Lock()
+        self._settle_interrupted()
 
     def cleanup_expired(self) -> int:
         if not self.root.is_dir():
@@ -142,19 +143,68 @@ class MediaJobManager:
     def _manifest_path(self, job_id: str) -> Path:
         return self._dir(job_id) / "job.json"
 
+    # On Windows os.replace refuses while any other handle has the target open (the Studio poll
+    # reads job.json every 500 ms; an antivirus scan does too). One refused replace used to escape
+    # and leave a job in TRANSCODING forever (owner-live 2026-09-27), so both sides retry briefly.
+    _MANIFEST_RETRIES = 40
+    _MANIFEST_RETRY_SLEEP = 0.05
+
     def _write(self, job_id: str, manifest: dict[str, Any]) -> None:
         path = self._manifest_path(job_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         manifest["updated_at"] = time.time()
         temporary = path.with_suffix(".tmp")
         temporary.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True), encoding="utf-8")
-        os.replace(temporary, path)
+        for attempt in range(self._MANIFEST_RETRIES):
+            try:
+                os.replace(temporary, path)
+                return
+            except PermissionError:
+                if attempt == self._MANIFEST_RETRIES - 1:
+                    raise
+                time.sleep(self._MANIFEST_RETRY_SLEEP)
 
     def get(self, job_id: str) -> dict[str, Any]:
         path = self._manifest_path(job_id)
         if not path.is_file():
             raise MediaJobNotFound(job_id)
-        return json.loads(path.read_text(encoding="utf-8"))
+        for attempt in range(self._MANIFEST_RETRIES):
+            try:
+                return json.loads(path.read_text(encoding="utf-8"))
+            except (PermissionError, json.JSONDecodeError):
+                if attempt == self._MANIFEST_RETRIES - 1:
+                    raise
+                time.sleep(self._MANIFEST_RETRY_SLEEP)
+        raise MediaJobNotFound(job_id)
+
+    # States that exist only while this process runs a task for the job. A fresh process has no
+    # tasks, so any job left in one of them was interrupted and must not hold a queue slot.
+    _IN_FLIGHT = {"UPLOADING", "PROBING", "EXTRACTING_SUBTITLES", "TRANSCODING", "TRANSCODING_LITE",
+                  "REPAIRING", "VERIFYING", "CANCEL_REQUESTED"}
+
+    def _settle_interrupted(self) -> None:
+        if not self.root.is_dir():
+            return
+        for path in self.root.glob("*/job.json"):
+            try:
+                manifest = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError, json.JSONDecodeError):
+                continue
+            state = manifest.get("state")
+            if state not in self._IN_FLIGHT:
+                continue
+            job_dir = path.parent
+            for partial in job_dir.glob("output.partial*.mp4"):
+                partial.unlink(missing_ok=True)
+            if state == "CANCEL_REQUESTED":
+                manifest["state"] = "CANCELED"
+            else:
+                manifest.update(state="FAILED", progress=1.0, error="MEDIA_JOB_INTERRUPTED",
+                                error_type="Interrupted", error_detail=None)
+            try:
+                self._write(job_dir.name, manifest)
+            except (OSError, MediaJobNotFound):
+                continue
 
     async def create(self, chunks: AsyncIterator[bytes], *, filename: str, content_type: str) -> dict[str, Any]:
         async with self._reservation_lock:
@@ -377,9 +427,14 @@ class MediaJobManager:
             reference_report = self.get(job_id).get("report") or {}
 
             async def progress(value: float) -> None:
-                manifest = self.get(job_id)
-                manifest["progress"] = max(float(manifest.get("progress") or 0), min(0.92, float(value)))
-                self._write(job_id, manifest)
+                # Progress is a report, not the work: a manifest that cannot be updated this once
+                # must not stop the encode (the next tick or the final state will land).
+                try:
+                    manifest = self.get(job_id)
+                    manifest["progress"] = max(float(manifest.get("progress") or 0), min(0.92, float(value)))
+                    self._write(job_id, manifest)
+                except (OSError, ValueError):
+                    pass
 
             try:
                 result = await self.prepare_fn(source, partial, mode, self._cancel[job_id], progress,
@@ -509,7 +564,9 @@ class MediaJobManager:
             self._write(job_id, manifest)
             return manifest
         self._cancel.setdefault(job_id, asyncio.Event()).set()
-        manifest["state"] = "CANCEL_REQUESTED"
+        task = self._tasks.get(job_id)
+        # Without a live task nobody will ever observe the cancel event; end the job here.
+        manifest["state"] = "CANCEL_REQUESTED" if task is not None and not task.done() else "CANCELED"
         self._write(job_id, manifest)
         return manifest
 

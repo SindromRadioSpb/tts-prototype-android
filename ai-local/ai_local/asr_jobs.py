@@ -86,7 +86,16 @@ def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
         stream.write("\n")
         stream.flush()
         os.fsync(stream.fileno())
-    os.replace(temp, path)
+    # Windows refuses the replace while a poll or a scanner holds the target open; a refused
+    # replace must not fail a long local recognition (same trap as the media manifest, 2026-09-27).
+    for attempt in range(40):
+        try:
+            os.replace(temp, path)
+            return
+        except PermissionError:
+            if attempt == 39:
+                raise
+            time.sleep(0.05)
 
 
 def _json(path: Path) -> dict[str, Any]:
