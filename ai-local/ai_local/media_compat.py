@@ -30,7 +30,9 @@ TARGET_LANGUAGE = "he"
 # intake unit, so the ceiling is 3 GiB. Shrinking the job is what LITE_MAX_BYTES is for:
 # the phone-sized copy is produced from an accepted source, so a lower intake ceiling
 # would reject the very files the light copy exists to serve.
-MAX_BYTES = 3 * 1024 * 1024 * 1024
+# Owner decision 2026-09-27: raised to 15 GiB so a whole film can become LLM-free material;
+# the paid cloud path in Studio keeps its own 2 GiB ceiling.
+MAX_BYTES = 15 * 1024 * 1024 * 1024
 MAX_DURATION_SECONDS = 3 * 60 * 60
 MAX_SUBTITLE_TRACKS = 32
 MAX_SUBTITLE_BYTES = 6 * 1024 * 1024

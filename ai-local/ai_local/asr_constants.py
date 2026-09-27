@@ -59,7 +59,9 @@ ASR_CANCEL_TERMINAL_TIMEOUT_SEC = 15
 # copy of a 1080p source lands well over 300 MiB, so the old ceiling refused files that
 # the same pipeline had just produced. Keep the MiB figure here and derive everything
 # else from it, so the enforced limit and the refusal text cannot drift apart.
-ASR_MAX_SOURCE_MIB = 700
+# Raised 700 MiB -> 15 GiB (owner decision 2026-09-27): local recognition is free, so it takes
+# the same files as the LLM-free subtitle material; the paid cloud path keeps its own 2 GiB cap.
+ASR_MAX_SOURCE_MIB = 15 * 1024
 ASR_MAX_SOURCE_BYTES = ASR_MAX_SOURCE_MIB * 1024 * 1024
 ASR_MAX_DURATION_SEC = 3 * 60 * 60
 

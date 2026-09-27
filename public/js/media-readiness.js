@@ -4,10 +4,13 @@
   "use strict";
 
   var VIDEO_RE = /\.(mp4|mov|m4v|mkv|webm|avi)$/i;
-  // Owner decision 2026-09-16: a container goes to the local companion (3 GiB), while audio still
-  // travels to a cloud provider under the existing upload ceiling. The phone-sized copy is a
-  // planned output of an accepted job, never a precondition for accepting one.
-  var VIDEO_MAX_BYTES = 3 * 1024 * 1024 * 1024;
+  // Owner decision 2026-09-27 (was 3 GiB since 2026-09-16): a container goes to the local
+  // companion, and local, LLM-free work - subtitle material, companion ASR - accepts up to 15 GiB.
+  // A paid cloud ASR call sends the file itself, so it keeps its own ceiling: 2 GiB, the provider's
+  // per-file limit. Audio files keep the upload ceiling (three hours of speech fit well under it).
+  // The phone-sized copy is a planned output of an accepted job, never a precondition for one.
+  var VIDEO_MAX_BYTES = 15 * 1024 * 1024 * 1024;
+  var CLOUD_ASR_MAX_BYTES = 2 * 1024 * 1024 * 1024;
   var AUDIO_MAX_BYTES = 300 * 1024 * 1024;
 
   function isVideo(file) {
@@ -16,6 +19,10 @@
 
   function sizeLimitFor(file) {
     return isVideo(file) ? VIDEO_MAX_BYTES : AUDIO_MAX_BYTES;
+  }
+
+  function cloudAsrAllows(file) {
+    return !!file && Number(file.size) <= CLOUD_ASR_MAX_BYTES;
   }
 
   // A material can only be built from a track whose text the companion actually extracted and
@@ -210,7 +217,8 @@
     var value = Number(bytes || 0);
     if (!value) return "—";
     if (value < 1024 * 1024) return Math.ceil(value / 1024) + " KB";
-    return (value / (1024 * 1024)).toFixed(1) + " MB";
+    if (value < 1024 * 1024 * 1024) return (value / (1024 * 1024)).toFixed(1) + " MB";
+    return (value / (1024 * 1024 * 1024)).toFixed(1) + " GB";
   }
 
   function devicePlatform(userAgent) {
@@ -312,6 +320,8 @@
 
   var API = {
     VIDEO_MAX_BYTES: VIDEO_MAX_BYTES,
+    CLOUD_ASR_MAX_BYTES: CLOUD_ASR_MAX_BYTES,
+    cloudAsrAllows: cloudAsrAllows,
     AUDIO_MAX_BYTES: AUDIO_MAX_BYTES,
     sizeLimitFor: sizeLimitFor,
     usableSubtitleTracks: usableSubtitleTracks,

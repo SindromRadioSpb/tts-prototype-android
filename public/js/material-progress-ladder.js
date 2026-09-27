@@ -128,6 +128,8 @@
       return "studio.import.ladderErrNiqqudModel";
     }
     if (code === "LOCAL_ASR_HTTP_429") return "studio.import.ladderErrCompanionBusy";
+    // An older companion enforces a lower intake ceiling than this Studio; the remedy is an update.
+    if (code === "LOCAL_ASR_HTTP_413") return "studio.import.ladderErrTooLargeForCompanion";
     if (/^MEDIA_JOB_(FAILED|CANCELED)$/.test(code)) return "studio.import.ladderErrMediaJob";
     return "studio.import.ladderErrGeneric";
   }

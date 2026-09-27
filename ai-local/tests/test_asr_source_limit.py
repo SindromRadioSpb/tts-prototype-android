@@ -22,8 +22,9 @@ from ai_local.asr_jobs import SourceTooLarge
 SRC = Path(__file__).resolve().parents[1] / "ai_local"
 
 
-def test_limit_is_the_configured_seven_hundred_mib():
-    assert ASR_MAX_SOURCE_BYTES == 700 * 1024 * 1024
+def test_limit_is_the_configured_fifteen_gib():
+    # Owner decision 2026-09-27: local recognition, like subtitle material, up to 15 GiB.
+    assert ASR_MAX_SOURCE_BYTES == 15 * 1024 * 1024 * 1024
 
 
 def test_refusal_names_the_limit_that_is_actually_enforced():

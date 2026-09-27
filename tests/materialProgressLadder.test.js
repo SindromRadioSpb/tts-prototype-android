@@ -82,6 +82,7 @@ test("failure keys name what a person can do, not the transport code", () => {
   assert.equal(Ladder.failureKey("store", { name: "QuotaExceededError" }), "studio.import.ladderErrStorage");
   assert.equal(Ladder.failureKey("video", { code: "MEDIA_JOB_FAILED" }), "studio.import.ladderErrMediaJob");
   assert.equal(Ladder.failureKey("table", { code: "X_Y" }), "studio.import.ladderErrGeneric");
+  assert.equal(Ladder.failureKey("upload", { code: "LOCAL_ASR_HTTP_413" }), "studio.import.ladderErrTooLargeForCompanion");
 });
 
 test("check view shows only file-check steps; build view shows every step with phases", () => {

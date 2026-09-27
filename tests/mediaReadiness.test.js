@@ -167,8 +167,9 @@ test('only verified text subtitle tracks can become a material', () => {
   assert.deepEqual(MediaReadiness.usableSubtitleTracks({}), []);
 });
 
-test('video carries its own 3 GiB ceiling, separate from the audio upload limit', () => {
-  assert.equal(MediaReadiness.VIDEO_MAX_BYTES, 3 * 1024 * 1024 * 1024);
+test('video carries its own 15 GiB ceiling, separate from the audio upload limit', () => {
+  // Owner decision 2026-09-27: local, LLM-free work (subtitle material, companion ASR) up to 15 GiB.
+  assert.equal(MediaReadiness.VIDEO_MAX_BYTES, 15 * 1024 * 1024 * 1024);
   assert.equal(MediaReadiness.AUDIO_MAX_BYTES, 300 * 1024 * 1024);
   assert.equal(
     MediaReadiness.sizeLimitFor({ name: 'episode.mkv', type: 'video/x-matroska' }),

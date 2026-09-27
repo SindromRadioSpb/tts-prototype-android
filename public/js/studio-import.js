@@ -1149,9 +1149,11 @@
     setStatus(null);
   }
 
+  // `extra` is either trailing text or, as an object, the parameters of the message itself.
   function setStatus(msgKey, extra) {
     var el = $("v3ImportStatus");
-    if (el) el.textContent = msgKey ? (tr(msgKey) + (extra ? " " + extra : "")) : "";
+    var params = extra && typeof extra === "object" ? extra : null;
+    if (el) el.textContent = msgKey ? (tr(msgKey, params) + (extra && !params ? " " + extra : "")) : "";
   }
 
   // True while this dialog is holding work a stray click must not discard.
@@ -2296,7 +2298,8 @@
     if (!file) return;
     var isVideo = window.MediaReadiness.isVideo(file);
     if (file.size > window.MediaReadiness.sizeLimitFor(file)) {
-      setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge");
+      setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge",
+        { limit: window.MediaReadiness.humanBytes(window.MediaReadiness.sizeLimitFor(file)) });
       return;
     }
     // Replacing a preflight must release its queue slot. Keep its files; cancellation is not deletion.
@@ -2518,8 +2521,12 @@
       pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "acquired_opfs_identity_mismatch", next_action: "repeat-remote-acquisition" };
       renderMediaReadiness(); setStatus("studio.import.mediaShaMismatch"); return false;
     }
-    var buf = await pendingAudio.file.arrayBuffer();
-    var actualSha = await window.MediaStore.sha256Hex(buf);
+    // A video may be many gigabytes: hash it in slices and keep no buffer (it is saved from the
+    // file). Audio stays in memory because the sliced-mp3 transport cuts chunks out of it.
+    var buf = pendingAudio.isVideo ? null : await pendingAudio.file.arrayBuffer();
+    var actualSha = pendingAudio.isVideo
+      ? await window.MediaStore.sha256File(pendingAudio.file)
+      : await window.MediaStore.sha256Hex(buf);
     var expectedSha = pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.canonical_sha256;
     if (pendingAudio.isVideo && expectedSha && actualSha !== expectedSha) {
       pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "canonical_sha_mismatch", next_action: "repeat-media-preflight" };
@@ -2624,6 +2631,12 @@
     if (preparedCopyPending()) { setStatus("studio.import.mediaSaveRequired"); return; }
     if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) { setStatus("studio.import.mediaBlocksAsr"); return; }
     if (selectedAudioProvider() === "local") return transcribeAudioLocal();
+    // Paid recognition sends this very file; above the provider's per-file limit the upload would
+    // fail after the wait, and a bigger file is exactly the one the local paths exist for.
+    if (!window.MediaReadiness.cloudAsrAllows(pendingAudio.file)) {
+      setStatus("studio.import.errCloudAsrTooLarge", { limit: window.MediaReadiness.humanBytes(window.MediaReadiness.CLOUD_ASR_MAX_BYTES) });
+      return;
+    }
     pendingAudio.asrMethod = "gemini-asr";
     pendingAudio.asrModel = window.AsrTranscript.ASR_MODEL;
     var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
@@ -3245,7 +3258,7 @@
       var acquiredAlreadyStored = !transcriptOnly && pendingAudio.acquiredOpfsPath && await window.MediaStore.mediaExists(pendingAudio.acquiredOpfsPath);
       var saved = acquiredAlreadyStored ? { ok: true, alreadyStored: true }
         : (!transcriptOnly && window.MediaStore.canWrite()
-          ? await window.MediaStore.saveMedia(pendingAudio.buf, fileName)
+          ? await window.MediaStore.saveMedia(pendingAudio.buf || pendingAudio.file, fileName)
           : { ok: false, reason: transcriptOnly ? "TRANSCRIPT_ONLY" : "NO_CREATE_WRITABLE" });
       audioMetaForImport = {
         v: 1,
