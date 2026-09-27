@@ -883,4 +883,16 @@ class AsrJobManager:
         return type(exc).__name__.upper()
 
 
-asr_job_manager = AsrJobManager()
+_ASR_ROOT_AT_START: Path | None = None
+
+
+def _asr_root_at_start() -> Path:
+    """The owner-chosen work folder, read once per process like the media job root."""
+    global _ASR_ROOT_AT_START
+    if _ASR_ROOT_AT_START is None:
+        from . import companion_settings
+        _ASR_ROOT_AT_START = companion_settings.asr_jobs_root()
+    return _ASR_ROOT_AT_START
+
+
+asr_job_manager = AsrJobManager(root_provider=_asr_root_at_start)

@@ -116,6 +116,30 @@ STRINGS: dict[str, dict[str, str]] = {
         "ru": "Выбор сохраняется для этой учётной записи Windows и действует без перезапуска. "
               "Для отдельного файла Студия может выбрать другой вариант.",
     },
+    "settings.workDir": {
+        "en": "Temporary copies",
+        "ru": "Временные копии",
+    },
+    "settings.workDirValue": {
+        "en": "{path}\nFree: {free}",
+        "ru": "{path}\nСвободно: {free}",
+    },
+    "settings.workDirChange": {
+        "en": "Change folder…",
+        "ru": "Изменить папку…",
+    },
+    "settings.workDirHint": {
+        "en": "Videos are copied here while Studio prepares them; a film can need up to three times "
+              "its size. Copies are removed as soon as they are no longer needed.",
+        "ru": "Сюда копируется видео, пока Студия его готовит; фильму может понадобиться до трёх своих "
+              "размеров. Копии удаляются, как только перестают быть нужны.",
+    },
+    "settings.workDirSaved": {
+        "en": "Saved. The new folder is used after the Companion restarts. Restart now? "
+              "A conversion that is running would stop.",
+        "ru": "Сохранено. Новая папка начнёт использоваться после перезапуска компаньона. "
+              "Перезапустить сейчас? Идущая подготовка видео прервётся.",
+    },
     "settings.saveFailed": {
         "en": "The setting could not be saved: {error}",
         "ru": "Не удалось сохранить настройку: {error}",

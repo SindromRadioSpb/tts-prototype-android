@@ -75,6 +75,10 @@ def _disk_sufficient(report: dict[str, Any], source_bytes: int) -> bool:
     return int(report.get("disk_free_bytes") or 0) >= needed
 
 
+# Below this much free space a failed encode is reported as a full disk.
+_DISK_FULL_BYTES = 512 * 1024 * 1024
+
+
 class MediaJobManager:
     MAX_BYTES = MAX_BYTES
     TTL_SECONDS = 24 * 60 * 60
@@ -639,6 +643,17 @@ class MediaJobManager:
             except Exception as exc:
                 partial.unlink(missing_ok=True)
                 manifest = self.get(job_id)
+                # A copy that filled its disk must say so: the remedy is space, not a retry (O-031a).
+                try:
+                    free = shutil.disk_usage(job_dir).free
+                except OSError:
+                    free = None
+                if free is not None and free < _DISK_FULL_BYTES:
+                    manifest.update(state="FAILED", progress=1.0, error="MEDIA_DISK_FULL",
+                                    error_type=type(exc).__name__,
+                                    error_detail="free %d bytes in the work folder" % free)
+                    self._write(job_id, manifest)
+                    return
                 manifest.update(
                     state="FAILED", progress=1.0,
                     error="MEDIA_PREPARE_OR_VERIFY_FAILED", error_type=type(exc).__name__,

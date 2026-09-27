@@ -219,7 +219,9 @@ model_install_manager = ModelInstallManager()
 
 
 def delete_all_jobs() -> dict[str, Any]:
-    root = config.ASR_JOB_ROOT
+    from . import companion_settings
+
+    root = companion_settings.asr_jobs_root()
     deleted = 0
     if root.exists():
         root.mkdir(parents=True, exist_ok=True)

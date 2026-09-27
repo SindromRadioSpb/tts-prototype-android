@@ -35,7 +35,10 @@ from .state import ModelSlot, registry
 from .telemetry import sample_nvidia
 
 log = logging.getLogger(__name__)
-media_job_manager = MediaJobManager(config.STATE_DIR / "media-jobs")
+# The owner-chosen work folder (companion_settings.work_dir) is read once, at start; the
+# default folder keeps being swept after a move so no copy is stranded there.
+media_job_manager = MediaJobManager(
+    companion_settings.media_jobs_root(), extra_roots=companion_settings.previous_media_roots())
 
 
 def _build_nakdan_slot() -> ModelSlot:

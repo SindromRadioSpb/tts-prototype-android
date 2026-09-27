@@ -34,9 +34,12 @@ def diagnostic_payload(app_version: str, service_status: dict[str, Any]) -> dict
     model = inspect_model(verify_hash=True)
     install = model_install_manager.status()
     pairing_exists = config.ASR_PAIRING_TOKEN_FILE.is_file()
+    from . import companion_settings
+
     job_count = 0
-    if config.ASR_JOB_ROOT.exists():
-        job_count = sum(1 for item in config.ASR_JOB_ROOT.iterdir() if item.is_dir())
+    asr_root = companion_settings.asr_jobs_root()
+    if asr_root.exists():
+        job_count = sum(1 for item in asr_root.iterdir() if item.is_dir())
     return {
         "schema": DIAGNOSTIC_SCHEMA,
         "generated_at": _utc_iso(),

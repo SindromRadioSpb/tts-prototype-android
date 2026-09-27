@@ -38,6 +38,17 @@ def _bootstrap_environment() -> Path:
     os.environ["AI_LOCAL_STATE_DIR"] = str(root / "state")
     os.environ["AI_LOCAL_JOB_ROOT"] = str(root / "jobs")
     os.environ["AI_LOCAL_HF_CACHE"] = str(root / "downloads" / "cache")
+    # The installed Companion must not share caches with other Python programs on the machine.
+    # The owner's profile points HF_HOME, XDG_CACHE_HOME and TORCH_HOME at a drive used by other
+    # tools; transformers copies trust_remote_code model code into HF_HOME/modules, and the niqqud
+    # model failed with OSError(22) when started by the installer or the tray (O-031d, 2026-09-28).
+    for name, leaf in (("HF_HOME", "hf-home"), ("HF_MODULES_CACHE", "hf-modules"),
+                       ("XDG_CACHE_HOME", "xdg-cache"), ("TORCH_HOME", "torch")):
+        os.environ[name] = str(root / "downloads" / leaf)
+    os.environ["HF_HUB_CACHE"] = os.environ["AI_LOCAL_HF_CACHE"]
+    os.environ.pop("TRANSFORMERS_CACHE", None)
+    # stdout goes to DEVNULL when the service runs detached; the log file is what survives.
+    os.environ["AI_LOCAL_LOG_FILE"] = str(root / "state" / "logs" / "companion.log")
     os.environ["AI_LOCAL_NAKDAN_EAGER"] = "0"
     os.environ["AI_LOCAL_TRANSLATOR_WARMUP"] = "0"
     os.environ["AI_LOCAL_ALLOWED_ORIGINS"] = ",".join(
@@ -455,6 +466,40 @@ class CompanionWindow:
         ttk.Label(options, text=self.t("settings.encoderHint"), wraplength=470,
                   font=("Segoe UI", 8)).pack(anchor="w")
 
+        work_row = ttk.Frame(settings)
+        work_row.pack(fill="x", pady=(10, 0))
+        ttk.Label(work_row, text=self.t("settings.workDir"), width=22).pack(side="left", anchor="n")
+        work_box = ttk.Frame(work_row)
+        work_box.pack(side="left", fill="x", expand=True)
+        self.work_dir_var = self.tk.StringVar(value=self._work_dir_text())
+        ttk.Label(work_box, textvariable=self.work_dir_var, wraplength=470).pack(anchor="w")
+        ttk.Button(work_box, text=self.t("settings.workDirChange"), command=self._choose_work_dir).pack(anchor="w", pady=(4, 0))
+        ttk.Label(work_box, text=self.t("settings.workDirHint"), wraplength=470,
+                  font=("Segoe UI", 8)).pack(anchor="w", pady=(4, 0))
+
+    def _work_dir_text(self) -> str:
+        info = companion_settings.work_dir_info()
+        free = info.get("free_bytes")
+        free_text = "%.1f GB" % (free / (1024 ** 3)) if isinstance(free, (int, float)) else "—"
+        return self.t("settings.workDirValue", path=info.get("path") or "—", free=free_text)
+
+    def _choose_work_dir(self) -> None:
+        from tkinter import filedialog, messagebox
+
+        current = companion_settings.work_dir_info().get("path") or ""
+        folder = filedialog.askdirectory(parent=self.root, initialdir=current, mustexist=False,
+                                         title=self.t("settings.workDir"))
+        if not folder:
+            return
+        try:
+            companion_settings.set_work_dir(folder)
+        except Exception as exc:
+            self._error(self.t("settings.saveFailed", error=str(exc)))
+            return
+        self.work_dir_var.set(self._work_dir_text())
+        if messagebox.askyesno(self.t("app.title"), self.t("settings.workDirSaved"), parent=self.root):
+            self._restart()
+
     def _rebuild(self) -> None:
         """Rebuild in the chosen language; the next poll refreshes the live status lines."""
         if self.frame is not None:
@@ -676,7 +721,18 @@ def main(argv: list[str] | None = None) -> int:
     # installer differently: a gate that only re-reads the same source file would have passed
     # while the window said beta.9 inside a beta.10 installer.
     group.add_argument("--app-version", action="store_true")
+    # The installer records the owner's folder for temporary media copies through the program
+    # itself, so the settings file keeps a single writer.
+    group.add_argument("--set-work-dir", metavar="FOLDER")
     args = parser.parse_args(argv)
+    if args.set_work_dir is not None:
+        try:
+            result = companion_settings.set_work_dir(args.set_work_dir)
+        except ValueError as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, sort_keys=True))
+            return 2
+        print(json.dumps({"ok": True, "work_dir": result["work_dir"]}, sort_keys=True))
+        return 0
     if args.app_version:
         print(json.dumps({"companion_version": APP_VERSION}, sort_keys=True))
         return 0

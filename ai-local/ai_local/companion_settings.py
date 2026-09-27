@@ -57,6 +57,9 @@ def _stored() -> dict[str, Any]:
         value = raw.get(key)
         if isinstance(value, str) and value.strip().lower() in allowed:
             clean[key] = value.strip().lower()
+    work_dir = raw.get(WORK_DIR_KEY)
+    if isinstance(work_dir, str) and Path(work_dir).is_absolute():
+        clean[WORK_DIR_KEY] = work_dir
     return clean
 
 
@@ -80,6 +83,7 @@ def read_settings() -> dict[str, Any]:
         "values": {key: resolve(key)["value"] for key in _KEYS},
         "sources": {key: resolve(key)["source"] for key in _KEYS},
         "allowed": {key: list(allowed) for key, (allowed, _env, _default) in _KEYS.items()},
+        "work_dir": work_dir_info(),
     }
 
 
@@ -91,14 +95,80 @@ def update_setting(key: str, value: str) -> dict[str, Any]:
     clean = str(value or "").strip().lower()
     if clean not in allowed:
         raise ValueError("UNSUPPORTED_SETTING_VALUE:%s=%s" % (key, value))
-    path = settings_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
     current = _stored()
     current[key] = clean
-    payload = {"schema": SCHEMA, **current}
+    _write(current)
+    return read_settings()
+
+
+def _write(values: dict[str, Any]) -> None:
+    path = settings_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"schema": SCHEMA, **values}
     temp = path.with_suffix(".json.tmp")
     temp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     temp.replace(path)
+
+
+# Where temporary media copies live (owner decision 2026-09-28). A film can need its size three
+# times over (source, prepared copy, light copy), so the owner may put them on a roomier disk.
+# The choice is read when the service starts; moving it never migrates running jobs.
+WORK_DIR_KEY = "work_dir"
+
+
+def _probe_writable(folder: Path) -> None:
+    probe = folder / ".linguistpro-write-probe"
+    probe.write_bytes(b"ok")
+    probe.unlink()
+
+
+def stored_work_dir() -> Path | None:
+    value = _stored().get(WORK_DIR_KEY)
+    return Path(value) if value else None
+
+
+def media_jobs_root() -> Path:
+    chosen = stored_work_dir()
+    return chosen / "media-jobs" if chosen else config.MEDIA_JOB_ROOT
+
+
+def asr_jobs_root() -> Path:
+    chosen = stored_work_dir()
+    return chosen / "asr-jobs" if chosen else config.ASR_JOB_ROOT
+
+
+def previous_media_roots() -> list[Path]:
+    """The default folder is still swept after a move, so nothing is stranded there."""
+    return [config.MEDIA_JOB_ROOT] if stored_work_dir() else []
+
+
+def work_dir_info() -> dict[str, Any]:
+    import shutil
+
+    chosen = stored_work_dir()
+    root = chosen or config.STATE_DIR
+    free = None
+    try:
+        free = shutil.disk_usage(root if root.exists() else Path(root.anchor or ".")).free
+    except OSError:
+        pass
+    return {"path": str(root), "chosen": chosen is not None, "free_bytes": free}
+
+
+def set_work_dir(value: str) -> dict[str, Any]:
+    """Validate, create and remember the folder; refuse anything that could not hold a copy."""
+    raw = str(value or "").strip().strip('"')
+    if not raw or not Path(raw).is_absolute():
+        raise ValueError("WORK_DIR_NOT_ABSOLUTE")
+    folder = Path(raw).resolve()
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        _probe_writable(folder)
+    except OSError as exc:
+        raise ValueError("WORK_DIR_NOT_WRITABLE:%s" % exc.__class__.__name__) from exc
+    current = _stored()
+    current[WORK_DIR_KEY] = str(folder)
+    _write(current)
     return read_settings()
 
 

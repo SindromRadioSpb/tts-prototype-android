@@ -101,6 +101,9 @@ ASR_PAIRING_TOKEN_FILE = Path(
     os.environ.get("AI_LOCAL_PAIRING_TOKEN_FILE", STATE_DIR / "pairing-token")
 )
 ASR_JOB_ROOT = Path(os.environ.get("AI_LOCAL_JOB_ROOT", STATE_DIR / "jobs"))
+# Default home of media-readiness jobs; an owner-chosen work folder (companion_settings.work_dir)
+# replaces this and ASR_JOB_ROOT at the next start.
+MEDIA_JOB_ROOT = Path(os.environ.get("AI_LOCAL_MEDIA_JOB_ROOT", STATE_DIR / "media-jobs"))
 
 MADLAD_MODEL_VERSION = MT_MODEL_IDENTITY
 NAKDAN_MODEL_VERSION = "dictabert-large-char-menaked@2025-03"
