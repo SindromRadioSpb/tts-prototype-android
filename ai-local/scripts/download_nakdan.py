@@ -23,13 +23,11 @@ def main() -> int:
     cache = Path(ai_config.HF_CACHE_DIR)
     cache.mkdir(parents=True, exist_ok=True)
 
-    print(f"Downloading {ai_config.NAKDAN_MODEL_ID} into {cache}")
-    AutoTokenizer.from_pretrained(ai_config.NAKDAN_MODEL_ID, cache_dir=str(cache))
-    AutoModel.from_pretrained(
-        ai_config.NAKDAN_MODEL_ID,
-        trust_remote_code=True,
-        cache_dir=str(cache),
-    )
+    from ai_local.models.nakdan import materialize_snapshot
+
+    print(f"Preparing {ai_config.NAKDAN_MODEL_ID} as real files next to {cache}")
+    # Real files, never cache symlinks: an installed service may not traverse them (O-031d).
+    print(f"Ready: {materialize_snapshot(cache, ai_config.NAKDAN_MODEL_ID)}")
     print("Done.")
     return 0
 

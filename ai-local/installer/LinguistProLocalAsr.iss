@@ -44,10 +44,13 @@ Name: "{group}\LinguistPro Local ASR Companion"; Filename: "{app}\{#MyAppExeName
 Name: "{group}\Local ASR help (RU)"; Filename: "{sys}\notepad.exe"; Parameters: """{app}\_internal\docs\LOCAL_ASR_COMPANION_GUIDE.md"""
 Name: "{group}\Local ASR third-party notices"; Filename: "{app}\THIRD_PARTY_NOTICES.md"
 Name: "{userstartup}\LinguistPro Local ASR Companion"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--autostart"; Tasks: startup
+; Started through Explorer, never as a child of Setup: processes Setup creates inherit its redirection
+; mitigation, and the Companion then could not open its own model files (WinError 448, 2026-09-28).
+Name: "{app}\Start Companion service"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--autostart"
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Parameters: "--start"; Flags: runhidden waituntilterminated skipifdoesntexist; Check: RestartOwnedService
-Filename: "{app}\{#MyAppExeName}"; Description: "Open the Local ASR Companion"; Flags: nowait postinstall skipifsilent
+Filename: "{win}\explorer.exe"; Parameters: """{app}\Start Companion service.lnk"""; Flags: runhidden nowait skipifdoesntexist; Check: RestartOwnedService
+Filename: "{win}\explorer.exe"; Parameters: """{app}\{#MyAppExeName}"""; Description: "Open the Local ASR Companion"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--stop"; Flags: runhidden waituntilterminated skipifdoesntexist
