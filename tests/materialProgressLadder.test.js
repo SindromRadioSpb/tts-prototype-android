@@ -213,3 +213,8 @@ test("renderInto wires Cancel to the current handler", () => {
   listeners[0]({ target: { closest: (s) => (s === '[data-ladder-action="cancel"]' ? {} : null) } });
   assert.equal(cancels, 1);
 });
+
+test("a companion job that failed on a full disk is named as such", () => {
+  const job = { state: "FAILED", error: "MEDIA_DISK_FULL" };
+  assert.equal(Ladder.failureKey("video", { code: "MEDIA_JOB_FAILED", message: "MEDIA_DISK_FULL", job }), "studio.import.ladderErrDiskFull");
+});

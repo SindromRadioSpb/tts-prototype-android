@@ -242,12 +242,17 @@
     var textTrack = textCandidates[0];
     reasons.text = Number.isInteger(chosen.text) ? "user_selected_track" : "target_language_full_track";
     var translationTrack = null;
-    var candidates = translationLanguage
-      ? classified.filter(function (track) { return track.language === translationLanguage && !track.forced && !track.sdh; })
-      : [];
-    if (Number.isInteger(chosen.translation)) {
-      candidates = candidates.filter(function (track) { return track.index === chosen.translation; });
-    }
+    var rejected = null;
+    // A person's explicit choice may be any full track that is not the target language, and is
+    // taken with its coverage stated (O-031c): the threshold guards only the automatic pick.
+    var explicitTranslation = Number.isInteger(chosen.translation);
+    var candidates = explicitTranslation
+      ? classified.filter(function (track) {
+          return track.index === chosen.translation && track.language !== targetLanguage && !track.forced && !track.sdh;
+        })
+      : translationLanguage
+        ? classified.filter(function (track) { return track.language === translationLanguage && !track.forced && !track.sdh; })
+        : [];
     if (!candidates.length) {
       reasons.translation = "translation_language_missing";
     } else {
@@ -256,16 +261,17 @@
         var coverage = alignTranslation(textTrack.cues, candidate.cues).coverage;
         if (!best || coverage > best.coverage) best = { track: candidate, coverage: coverage };
       });
-      if (best && best.coverage >= TRANSLATION_MIN_COVERAGE) {
+      if (best && (explicitTranslation ? best.coverage > 0 : best.coverage >= TRANSLATION_MIN_COVERAGE)) {
         translationTrack = best.track;
-        reasons.translation = Number.isInteger(chosen.translation) ? "user_selected_track" : "translation_language_aligned";
+        reasons.translation = explicitTranslation ? "user_selected_track" : "translation_language_aligned";
       } else {
         reasons.translation = "translation_coverage_too_low";
+        if (best) rejected = { index: best.track.index, language: best.track.language, coverage: best.coverage };
       }
     }
     return {
       status: "ok", text_track: textTrack, translation_track: translationTrack,
-      signal_tracks: signalTracks, reasons: reasons,
+      translation_rejected: rejected, signal_tracks: signalTracks, reasons: reasons,
     };
   }
 
@@ -481,6 +487,8 @@
         reason: selection.reasons.translation,
       } : null,
       translation_reason: selection.reasons.translation,
+      translation_rejected: selection.translation_rejected || null,
+      translation_min_coverage: TRANSLATION_MIN_COVERAGE,
       signal_track_indexes: (selection.signal_tracks || []).map(function (track) { return track.index; }),
       lite: {
         available: !!litePlan,

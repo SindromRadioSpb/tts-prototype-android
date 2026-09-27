@@ -195,3 +195,67 @@ test("own abandoned checks are released from a full companion queue; others are 
   context.rememberMediaJob("next");
   assert.deepEqual(JSON.parse(store.get("linguistpro.localAsr.ownMediaJobs")), ["next"]);
 });
+
+test("a failed video step offers a fresh start, since the companion job is final", async () => {
+  const calls = [];
+  const built = buildContext({ enrich: async (rows) => ({ rows, warnings: [] }), calls });
+  let restarts = 0;
+  built.context.startMediaPreflight = () => { restarts++; };
+  built.context.window.SubtitleMaterialImport.confirmMediaPlan = async () => {
+    const e = new Error("MEDIA_DISK_FULL"); e.code = "MEDIA_JOB_FAILED"; e.job = { state: "FAILED", error: "MEDIA_DISK_FULL" }; throw e;
+  };
+  await built.context.buildSubtitleMaterial();
+  const html = built.hosts.v3ImportLadderBuild.body.innerHTML;
+  assert.match(html, /ladderErrDiskFull/);
+  assert.match(html, /ladderRestart/);
+  built.hosts.v3ImportLadderBuild.clickRetry();
+  assert.equal(restarts, 1);
+});
+
+test("the plan refuses to start when the companion reported too little disk space", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/js/studio-import.js"), "utf8");
+  const start = source.indexOf("  function subtitlePlanRowItems(plan)");
+  const end = source.indexOf("  function renderSubtitlePlanQuestion(plan)", start);
+  const context = {
+    pendingSubtitleMaterial: { failed: [] },
+    pendingAudio: { mediaReadiness: { disk_sufficient: false, estimated_output_bytes: 3.5 * 1024 ** 3, disk_free_bytes: 3.1 * 1024 ** 3 } },
+    tr: (k, p) => k + (p ? JSON.stringify(p) : ""),
+    window: { MediaReadiness: { humanBytes: (n) => (n / 1024 ** 3).toFixed(1) + " GB" } },
+  };
+  vm.createContext(context);
+  vm.runInContext(source.slice(start, end), context);
+  const plan = { status: "ready", video: { action: "copy" }, audio: null, text: null, translation: null,
+    size: {}, lite: { available: false } };
+  const rows = context.subtitlePlanRowItems(plan);
+  const disk = rows.find((r) => /subtitlePlanDiskShort/.test(r.text));
+  assert.ok(disk, "a row names the shortage");
+  assert.equal(disk.state, "error");
+  assert.match(disk.text, /3\.5 GB/);
+  assert.match(disk.text, /3\.1 GB/);
+  assert.equal(context.subtitlePlanDiskShort(), true);
+});
+
+function planRows(plan) {
+  const source = fs.readFileSync(path.join(__dirname, "../public/js/studio-import.js"), "utf8");
+  const start = source.indexOf("  function subtitlePlanRowItems(plan)");
+  const end = source.indexOf("  function renderSubtitlePlanQuestion(plan)", start);
+  const context = { pendingSubtitleMaterial: { failed: [] }, pendingAudio: { mediaReadiness: {} },
+    tr: (k, p) => k + (p ? JSON.stringify(p) : ""), window: { MediaReadiness: { humanBytes: String } } };
+  vm.createContext(context);
+  vm.runInContext(source.slice(start, end), context);
+  return context.subtitlePlanRowItems(Object.assign({ status: "ready", video: { action: "copy" }, audio: null,
+    text: null, translation: null, size: {}, lite: { available: false }, translation_min_coverage: 0.85 }, plan));
+}
+
+test("the translation row states partial coverage and why a track was not taken", () => {
+  const partial = planRows({ translation: { index: 3, language: "ru", coverage: 0.823 } });
+  const row = partial.find((r) => /subtitlePlanTranslationPartial/.test(r.text));
+  assert.ok(row && row.state === "warn");
+  assert.match(row.text, /"coverage":82/);
+  const rejected = planRows({ translation_rejected: { index: 3, language: "ru", coverage: 0.823 } });
+  const low = rejected.find((r) => /subtitlePlanTranslationLow/.test(r.text));
+  assert.ok(low, "the refusal names the track and its coverage");
+  assert.match(low.text, /"index":3/);
+  assert.match(low.text, /"min":85/);
+  assert.ok(!rejected.some((r) => /subtitlePlanTranslationNone/.test(r.text)));
+});

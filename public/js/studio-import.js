@@ -1744,7 +1744,12 @@
     var sources = {
       Audio: (state.track_inventory || {}).audio || state.audio_choices || [],
       Text: classified.filter(function (t) { return t.language === "he" && !t.forced && !t.sdh; }),
-      Translation: classified.filter(function (t) { return t.language === subtitleTranslationLanguage() && !t.forced && !t.sdh; }),
+      // Any full non-Hebrew track may serve as the translation; the interface language comes first.
+      Translation: classified.filter(function (t) { return t.language !== "he" && !t.forced && !t.sdh; })
+        .sort(function (a, b) {
+          var pref = subtitleTranslationLanguage();
+          return (a.language === pref ? 0 : 1) - (b.language === pref ? 0 : 1) || a.index - b.index;
+        }),
     };
     ["Audio", "Text", "Translation"].forEach(function (kind) {
       var select = $("v3ImportSubtitleEdit" + kind);
@@ -1834,6 +1839,13 @@
 
   function subtitlePlanRowItems(plan) {
     var items = [];
+    if (subtitlePlanDiskShort()) {
+      var readiness = pendingAudio.mediaReadiness;
+      items.push({ state: "error", text: tr("studio.import.subtitlePlanDiskShort", {
+        needed: window.MediaReadiness.humanBytes(readiness.estimated_output_bytes),
+        free: window.MediaReadiness.humanBytes(readiness.disk_free_bytes),
+      }) });
+    }
     var videoKey = plan.video.action === "transcode" ? "studio.import.subtitlePlanVideoTranscode"
       : plan.video.action === "copy" ? "studio.import.subtitlePlanVideoCopy"
       : "studio.import.subtitlePlanVideoReady";
@@ -1844,9 +1856,21 @@
     if (plan.text) {
       items.push({ text: tr("studio.import.subtitlePlanText", { index: plan.text.index, count: plan.text.cue_count }) });
     }
-    if (plan.translation) {
+    var minCoverage = Number(plan.translation_min_coverage) || 0.85;
+    if (plan.translation && plan.translation.coverage < minCoverage) {
+      // Taken because the person chose it; the rows it does not cover stay without translation.
+      items.push({ state: "warn", text: tr("studio.import.subtitlePlanTranslationPartial", {
+        index: plan.translation.index, language: plan.translation.language || "?",
+        coverage: Math.round(plan.translation.coverage * 100),
+      }) });
+    } else if (plan.translation) {
       items.push({ text: tr("studio.import.subtitlePlanTranslation", {
         index: plan.translation.index, coverage: Math.round(plan.translation.coverage * 100),
+      }) });
+    } else if (plan.translation_rejected) {
+      items.push({ state: "warn", text: tr("studio.import.subtitlePlanTranslationLow", {
+        index: plan.translation_rejected.index, language: plan.translation_rejected.language || "?",
+        coverage: Math.round(plan.translation_rejected.coverage * 100), min: Math.round(minCoverage * 100),
       }) });
     } else {
       items.push({ text: tr("studio.import.subtitlePlanTranslationNone"), state: "warn" });
@@ -1867,6 +1891,13 @@
       items.push({ text: tr("studio.import.subtitlePlanTrackFailed", { index: entry.index, code: entry.code }), state: "warn" });
     });
     return items;
+  }
+
+  // The companion measured its work folder during the check; a build that cannot fit there
+  // failed at 79% on 2026-09-28 (O-031a), so the plan refuses to start and says by how much.
+  function subtitlePlanDiskShort() {
+    var state = (pendingAudio && pendingAudio.mediaReadiness) || {};
+    return state.disk_sufficient === false;
   }
 
   function renderSubtitlePlanQuestion(plan) {
@@ -1928,7 +1959,7 @@
       // While the ladder runs or holds a failure, its own retry is the single way forward.
       build.hidden = plan.status !== "ready" || pendingSubtitleMaterial.applied === true ||
         !!(pendingAudio && pendingAudio.ladderView === "build");
-      build.disabled = !!pendingSubtitleMaterial.working;
+      build.disabled = !!pendingSubtitleMaterial.working || subtitlePlanDiskShort();
     }
   }
 
@@ -1998,7 +2029,9 @@
       textTrackIndex: textTrack.index, textTrackSha256: textTrack.sha256,
       translationTrackIndex: translationTrack ? translationTrack.index : null,
       translationTrackSha256: translationTrack ? translationTrack.sha256 : null,
-      language: "he", translationLanguage: subtitleTranslationLanguage(),
+      language: "he",
+      // A track chosen in another language keeps its own language on the rows it fills.
+      translationLanguage: (plan.translation && plan.translation.language) || subtitleTranslationLanguage(),
     });
     // Сегменты паспорта — это ИМЕННО строки материала: соответствие «строка ↔ сегмент» утверждено
     // построением, а исходные реплики остаются в неизменной сырой дорожке (rawSource).
@@ -2217,7 +2250,9 @@
           action: material.restartRequired ? "restart" : "retry" });
         return;
       }
-      ladderFail(ladderKey, error);
+      // A companion job that failed while encoding is final; only a new check can continue.
+      material.restartRequired = ladderKey === "video" || ladderKey === "lite";
+      ladderFail(ladderKey, error, material.restartRequired ? "restart" : "retry");
       if (error && (error.name === "QuotaExceededError" || error.code === "OPFS_QUOTA_LOW")) {
         if(Number.isFinite(error.requiredBytes)&&Number.isFinite(error.availableBytes)){
           setSubtitlePlanStatus("studio.import.storageQuotaWithSizes", {required:window.MediaReadiness.humanBytes(error.requiredBytes),available:window.MediaReadiness.humanBytes(error.availableBytes)}, "error");
@@ -2258,7 +2293,7 @@
     // The first number of a step is drawn at once so a counter never starts as an empty row.
     if (action !== "update" || firstSample || now - ladderRenderedAt >= 250) renderLadder();
   }
-  function ladderFail(key, error) {
+  function ladderFail(key, error, action) {
     var L = ladderApi();
     if (!L || !key) return;
     var messageKey = L.failureKey(key, error);
@@ -2268,7 +2303,7 @@
           required: window.MediaReadiness.humanBytes(error.requiredBytes),
           available: window.MediaReadiness.humanBytes(error.availableBytes) })
       : tr(messageKey, { code: (error && (error.code || error.name)) || "UNKNOWN" });
-    ladderStep("fail", key, { code: error && error.code, message: message });
+    ladderStep("fail", key, { code: error && error.code, message: message, action: action || "retry" });
   }
   function setLadderView(view) {
     if (!pendingAudio) return;

@@ -123,6 +123,8 @@
   function failureKey(stepKey, error) {
     var code = String((error && error.code) || ""), name = String((error && error.name) || "");
     if (name === "QuotaExceededError" || code === "OPFS_QUOTA_LOW") return "studio.import.ladderErrStorage";
+    var jobError = String((error && error.job && error.job.error) || "");
+    if (jobError === "MEDIA_DISK_FULL" || (error && error.message) === "MEDIA_DISK_FULL") return "studio.import.ladderErrDiskFull";
     if (code === "LOCAL_ASR_PAIRING_REQUIRED") return "studio.import.ladderErrPairing";
     if (code === "LOCAL_ASR_UNAVAILABLE") return "studio.import.ladderErrCompanionDown";
     if (stepKey === "niqqud" && (code === "LOCAL_ASR_HTTP_503" || code === "LOCAL_VOCALIZATION_UNAVAILABLE")) {
