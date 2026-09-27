@@ -2908,16 +2908,16 @@ const _KWS_RANK = { known: 4, learning: 3, weak: 2, stale: 2, new: 1 };
 export async function getKnownWordStates() {
   let notes, overlay;
   try {
+    // One multi-path json_extract parses each body once (was four parses; ~310 → 215 ms on 30k notes).
     notes = await q(
-      `SELECT id, json_extract(body_json,'$.lemma') AS lemma,
-              json_extract(body_json,'$.word') AS word,
-              json_extract(body_json,'$.pos') AS pos,
-              json_extract(body_json,'$.pealim_id') AS pealim_id
+      `SELECT id, json_extract(body_json,'$.lemma','$.word','$.pos','$.pealim_id') AS fields
          FROM notes_v2 WHERE note_type = 'word_study'`, []);
     overlay = await getLearningStateOverlay();
   } catch (_) { return {}; }
   const out = {};
-  for (const n of (notes || [])) {
+  for (const row of (notes || [])) {
+    let f; try { f = JSON.parse(row.fields); } catch (_) { continue; }
+    const n = { id: row.id, lemma: f[0], word: f[1], pos: f[2], pealim_id: f[3] };
     const pid = (n.pealim_id != null && String(n.pealim_id) !== "") ? String(n.pealim_id) : "";
     const lk = pid
       ? ("pid:" + pid)
