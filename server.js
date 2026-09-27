@@ -1184,7 +1184,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/portable-learning-package-repository.js?v=576",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
-  "/js/studio-import.js?v=672",
+  "/js/studio-import.js?v=673",
   "/js/local-asr-client.js?v=672",
   "/js/subtitle-material-core.js?v=672",
   "/js/subtitle-material-import.js?v=584",
@@ -1249,9 +1249,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=270",
-  "/i18n/locales/en.js?v=270",
-  "/i18n/locales/he.js?v=270",
+  "/i18n/locales/ru.js?v=271",
+  "/i18n/locales/en.js?v=271",
+  "/i18n/locales/he.js?v=271",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

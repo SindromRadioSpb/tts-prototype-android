@@ -1741,15 +1741,21 @@
     if (editor.hidden) return;
     var state = (pendingAudio && pendingAudio.mediaReadiness) || {};
     var classified = window.SubtitleMaterialCore.classifyTracks(material.tracks);
+    // Every track of its kind is listed, in the player's order and numbering, so the owner can
+    // match the list against the player; the ones that cannot serve are shown but disabled.
+    var byIndex = function (a, b) { return a.index - b.index; };
+    var subtitleNote = function (t, wantHebrew) {
+      if (t.forced) return "studio.import.trackForced";
+      if (t.sdh) return "studio.import.trackSdh";
+      if (wantHebrew && t.language !== "he") return "studio.import.trackNotHebrew";
+      if (!wantHebrew && t.language === "he") return "studio.import.trackIsHebrew";
+      return null;
+    };
     var sources = {
-      Audio: (state.track_inventory || {}).audio || state.audio_choices || [],
-      Text: classified.filter(function (t) { return t.language === "he" && !t.forced && !t.sdh; }),
-      // Any full non-Hebrew track may serve as the translation; the interface language comes first.
-      Translation: classified.filter(function (t) { return t.language !== "he" && !t.forced && !t.sdh; })
-        .sort(function (a, b) {
-          var pref = subtitleTranslationLanguage();
-          return (a.language === pref ? 0 : 1) - (b.language === pref ? 0 : 1) || a.index - b.index;
-        }),
+      Audio: ((state.track_inventory || {}).audio || state.audio_choices || []).slice().sort(byIndex)
+        .map(function (t) { return { track: t, kind: "audio", note: null }; }),
+      Text: classified.slice().sort(byIndex).map(function (t) { return { track: t, kind: "subtitle", note: subtitleNote(t, true) }; }),
+      Translation: classified.slice().sort(byIndex).map(function (t) { return { track: t, kind: "subtitle", note: subtitleNote(t, false) }; }),
     };
     ["Audio", "Text", "Translation"].forEach(function (kind) {
       var select = $("v3ImportSubtitleEdit" + kind);
@@ -1759,16 +1765,16 @@
       auto.value = ""; auto.textContent = tr("studio.import.subtitlePlanAutomatic");
       // Audio selection is resolved by Companion; keep its current choice as the default.
       if (kind !== "Audio") select.appendChild(auto);
-      sources[kind].forEach(function (track) {
+      sources[kind].forEach(function (entry) {
         var option = document.createElement("option");
-        option.value = String(track.index);
-        option.textContent = "#" + track.index + " · " + (track.language || "?")
-          + (track.title ? " · " + track.title : "") + (track.codec_name ? " · " + track.codec_name : "");
+        option.value = String(entry.track.index);
+        option.textContent = trackLabel(entry.kind, entry.track) + (entry.note ? " — " + tr(entry.note) : "");
+        option.disabled = !!entry.note;
         select.appendChild(option);
       });
       var value = kind === "Audio" ? plan.audio && plan.audio.index : subtitlePlanChoices()[kind.toLowerCase()];
       select.value = value == null ? "" : String(value);
-      select.disabled = !sources[kind].length;
+      select.disabled = !sources[kind].some(function (entry) { return !entry.note; });
     });
   }
 
@@ -1851,25 +1857,28 @@
       : "studio.import.subtitlePlanVideoReady";
     items.push({ text: tr(videoKey) });
     if (plan.audio) {
-      items.push({ text: tr("studio.import.subtitlePlanAudio", { language: plan.audio.language || "?", index: plan.audio.index }) });
+      items.push({ text: tr("studio.import.subtitlePlanAudio", {
+        language: languageName(plan.audio.language), index: trackOrdinal("audio", plan.audio.index) || plan.audio.index }) });
     }
     if (plan.text) {
-      items.push({ text: tr("studio.import.subtitlePlanText", { index: plan.text.index, count: plan.text.cue_count }) });
+      items.push({ text: tr("studio.import.subtitlePlanText", {
+        index: trackOrdinal("subtitle", plan.text.index) || plan.text.index, count: plan.text.cue_count }) });
     }
     var minCoverage = Number(plan.translation_min_coverage) || 0.85;
     if (plan.translation && plan.translation.coverage < minCoverage) {
       // Taken because the person chose it; the rows it does not cover stay without translation.
       items.push({ state: "warn", text: tr("studio.import.subtitlePlanTranslationPartial", {
-        index: plan.translation.index, language: plan.translation.language || "?",
+        index: trackOrdinal("subtitle", plan.translation.index) || plan.translation.index, language: languageName(plan.translation.language),
         coverage: Math.round(plan.translation.coverage * 100),
       }) });
     } else if (plan.translation) {
       items.push({ text: tr("studio.import.subtitlePlanTranslation", {
-        index: plan.translation.index, coverage: Math.round(plan.translation.coverage * 100),
+        index: trackOrdinal("subtitle", plan.translation.index) || plan.translation.index, coverage: Math.round(plan.translation.coverage * 100),
       }) });
     } else if (plan.translation_rejected) {
       items.push({ state: "warn", text: tr("studio.import.subtitlePlanTranslationLow", {
-        index: plan.translation_rejected.index, language: plan.translation_rejected.language || "?",
+        index: trackOrdinal("subtitle", plan.translation_rejected.index) || plan.translation_rejected.index,
+        language: languageName(plan.translation_rejected.language),
         coverage: Math.round(plan.translation_rejected.coverage * 100), min: Math.round(minCoverage * 100),
       }) });
     } else {
@@ -1900,6 +1909,37 @@
     return state.disk_sufficient === false;
   }
 
+  // A player numbers each kind of track on its own and names its language; the container's
+  // stream index ("#5") matched nothing the owner could see (2026-09-28, Sweet Mud).
+  var LANGUAGE_ALIASES = { rus: "ru", heb: "he", iw: "he", eng: "en", ara: "ar", fre: "fr", fra: "fr",
+    ger: "de", deu: "de", spa: "es", ita: "it", ukr: "uk", yid: "yi", por: "pt", pol: "pl", tur: "tr" };
+  function languageName(code) {
+    var raw = String(code || "").trim().toLowerCase();
+    if (!raw || raw === "und") return tr("studio.import.trackLanguageUnknown");
+    var norm = LANGUAGE_ALIASES[raw] || raw;
+    try {
+      var locale = typeof window.appGetLocale === "function" ? window.appGetLocale() : "ru";
+      var name = new Intl.DisplayNames([locale], { type: "language" }).of(norm);
+      if (name && name.toLowerCase() !== norm) return name;
+    } catch (_) {}
+    return norm;
+  }
+  function trackOrdinal(kind, index) {
+    var state = (pendingAudio && pendingAudio.mediaReadiness) || {};
+    var list = kind === "audio"
+      ? ((state.track_inventory || {}).audio || state.audio_choices || [])
+      : (state.subtitle_tracks || (pendingSubtitleMaterial || {}).tracks || []);
+    var indexes = list.map(function (t) { return Number(t && t.index); })
+      .filter(function (n) { return Number.isInteger(n); }).sort(function (a, b) { return a - b; });
+    var position = indexes.indexOf(Number(index));
+    return position >= 0 ? position + 1 : null;
+  }
+  function trackLabel(kind, track) {
+    var n = trackOrdinal(kind, track.index);
+    return tr("studio.import.trackLabel", { n: n == null ? "?" : n, language: languageName(track.language) })
+      + (track.title ? " · " + track.title : "");
+  }
+
   function renderSubtitlePlanQuestion(plan) {
     var box = $("v3ImportSubtitlePlanQuestion"), select = $("v3ImportSubtitlePlanChoice");
     var label = $("v3ImportSubtitlePlanQuestionLabel");
@@ -1915,9 +1955,8 @@
     (question.choices || []).forEach(function (choice) {
       var option = document.createElement("option");
       option.value = String(choice.index);
-      option.textContent = "#" + choice.index + (choice.language ? " · " + choice.language : "")
-        + (choice.title ? " · " + choice.title : "")
-        + (choice.cue_count != null ? " · " + choice.cue_count : "");
+      option.textContent = trackLabel(question.kind === "audio" ? "audio" : "subtitle", choice)
+        + (choice.cue_count != null ? " · " + tr("studio.import.trackCueCount", { count: choice.cue_count }) : "");
       select.appendChild(option);
     });
   }

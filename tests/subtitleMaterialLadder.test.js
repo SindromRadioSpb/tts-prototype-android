@@ -259,3 +259,31 @@ test("the translation row states partial coverage and why a track was not taken"
   assert.match(low.text, /"min":85/);
   assert.ok(!rejected.some((r) => /subtitlePlanTranslationNone/.test(r.text)));
 });
+
+function labelContext(readiness, tracks) {
+  const source = fs.readFileSync(path.join(__dirname, "../public/js/studio-import.js"), "utf8");
+  const start = source.indexOf("  function subtitlePlanRowItems(plan)");
+  const end = source.indexOf("  function renderSubtitlePlanQuestion(plan)", start);
+  const context = { pendingSubtitleMaterial: { failed: [], tracks }, pendingAudio: { mediaReadiness: readiness },
+    tr: (k, p) => k + (p ? JSON.stringify(p) : ""), window: { MediaReadiness: { humanBytes: String }, appGetLocale: () => "ru" }, Intl };
+  vm.createContext(context);
+  vm.runInContext(source.slice(start, end), context);
+  return context;
+}
+// Sweet Mud, 2026-09-28: the player shows audio 1 [Russian], 2 [Hebrew] and subtitles
+// 1 [Russian], 2 [English], 3 [Hebrew]; Studio said "track 5" and "#5 · he".
+const SWEET_MUD = { track_inventory: { audio: [{ index: 1, language: "rus" }, { index: 2, language: "heb" }] },
+  subtitle_tracks: [{ index: 3, language: "rus" }, { index: 4, language: "eng" }, { index: 5, language: "heb" }] };
+
+test("tracks are numbered per kind and named by language, as a player shows them", () => {
+  const c = labelContext(SWEET_MUD, []);
+  assert.equal(c.trackOrdinal("subtitle", 5), 3);
+  assert.equal(c.trackOrdinal("audio", 2), 2);
+  assert.equal(c.languageName("heb"), "иврит");
+  assert.equal(c.languageName("ru"), "русский");
+  assert.match(c.trackLabel("subtitle", { index: 4, language: "en", title: "SDH" }), /trackLabel\{"n":2,"language":"английский"\} · SDH/);
+  const rows = c.subtitlePlanRowItems({ status: "ready", video: { action: "copy" }, audio: { index: 2, language: "he" },
+    text: { index: 5, cue_count: 874 }, translation: null, size: {}, lite: { available: false }, translation_min_coverage: 0.85 });
+  assert.ok(rows.some((r) => /subtitlePlanAudio\{"language":"иврит","index":2\}/.test(r.text)));
+  assert.ok(rows.some((r) => /subtitlePlanText\{"index":3,"count":874\}/.test(r.text)));
+});
