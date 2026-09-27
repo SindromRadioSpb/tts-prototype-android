@@ -29,7 +29,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=620">
+    <link rel="modulepreload" href="/db/local-db.js?v=667">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11001,7 +11001,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=620';
+  import * as _ldb from '/db/local-db.js?v=667';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -11051,10 +11051,19 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         showToast('⚠ Хранилище браузера временно переключилось в резервный режим — библиотека может выглядеть пустой, но ваши тексты не удалены. Не нажимайте «Сбросить локальную библиотеку». Перезагрузите страницу и, если это повторится, сообщите разработчику.', 'error', { ttl: 60000 });
       }
     } catch (_) {}
-    // D3: idle-time integrity_check — once per session. Heavy queries
-    // (full-table scan) shouldn't block first-paint, so defer.
+    // D3: idle-time integrity_check. It is a full scan in the single DB worker: on a 548 MB
+    // profile 7–35 s during which every query (review counts, Library list) waits (perf
+    // 2026-09-27). Automatic runs: at most once per 7 days, never in the boot window; only a
+    // clean result is recorded, so a failure is re-checked next boot. Manual: diagnostics panel.
+    const V3_INTEGRITY_LAST_OK_KEY = 'lp.integrity.lastOkAt';
+    const V3_INTEGRITY_CADENCE_MS = 7 * 24 * 60 * 60 * 1000;
+    const V3_INTEGRITY_BOOT_DELAY_MS = 120 * 1000;
     const _runICheck = async () => {
       try {
+        let lastOk = 0;
+        try { lastOk = Number(localStorage.getItem(V3_INTEGRITY_LAST_OK_KEY)) || 0; } catch (_) {}
+        if (Date.now() - lastOk < V3_INTEGRITY_CADENCE_MS) return;
+        if (document.visibilityState !== 'visible') return;
         // async-VFS (tts-opfs-idb — iOS/CriOS без sync-хэндлов): полный integrity-скан
         // детерминированно OOM-ит wasm (замерено на устройстве владельца) и стрессует
         // сессию для последующих запросов — честно пропускаем диагностику на этом VFS.
@@ -11065,6 +11074,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         }
         const t0 = Date.now();
         const r = await _ldb.integrityCheck();
+        if (r.ok) { try { localStorage.setItem(V3_INTEGRITY_LAST_OK_KEY, String(Date.now())); } catch (_) {} }
         try { (window.v3OpfsTelemetryPush || function(){})({
           kind: r.ok ? 'integrity.ok' : 'integrity.fail',
           durationMs: Date.now() - t0,
@@ -11088,11 +11098,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         }
       } catch (e) { console.warn('[OPFS] integrity_check threw', e); }
     };
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(_runICheck, { timeout: 5000 });
-    } else {
-      setTimeout(_runICheck, 2000);
-    }
+    setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(_runICheck, { timeout: 30000 });
+      else _runICheck();
+    }, V3_INTEGRITY_BOOT_DELAY_MS);
 
     // Phase 9.4.A — populate the `roots` table with the seed dictionary
     // (Tier 2 of the morphology layer per docs/MORPHOLOGY_REQUIREMENTS_v3_2.md).
@@ -13677,7 +13686,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
 <script src="/js/learning-compass-core.js"></script>
-<script src="/js/local-text-familiarity.js?v=485"></script>
+<script src="/js/local-text-familiarity.js?v=667"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
 <script src="/js/studio-media-package.js?v=615"></script>
@@ -13763,7 +13772,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.666";
+    window.APP_VERSION = "3.11.667";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

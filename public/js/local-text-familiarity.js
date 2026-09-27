@@ -62,19 +62,26 @@
       let done = 0;
       const missing = [];
       // The cache contract caps responses at 48 cards / 256 KiB. Never read all
-      // sentence bodies at once, including on iPhone.
-      for (let offset = 0; offset < total; offset += 48) {
-        const batch = descriptors.slice(offset, offset + 48);
+      // sentence bodies at once, including on iPhone. Cards the byte budget deferred
+      // lead the next request; only a response that returned nothing ends the retry.
+      let queue = descriptors.slice();
+      while (queue.length) {
+        const batch = queue.slice(0, 48);
         let cached;
         try { cached = await db.getLearningCompassIngredientsBatch(batch); } catch (_) { cached = { entries: {} }; }
         if (epoch !== generation) return;
+        const entries = cached.entries || {};
+        const deferred = new Set(Object.keys(entries).length ? cached.deferred_keys || [] : []);
+        const retry = [];
         for (const item of batch) {
-          const ingredients = cached.entries && cached.entries[item.cache_key];
+          const ingredients = entries[item.cache_key];
           if (ingredients) {
             fits.set(item.local_id, compass.evaluateRecordedFamiliarityV2({ ingredients, learner_projection: projection }));
             done++;
-          } else missing.push(item);
+          } else if (deferred.has(item.cache_key)) retry.push(item);
+          else missing.push(item);
         }
+        queue = retry.concat(queue.slice(batch.length));
         notify(done, total, done === total ? 'ready' : 'preparing');
         await yieldWork();
         if (epoch !== generation) return;

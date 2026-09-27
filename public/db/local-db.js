@@ -564,9 +564,14 @@ async function _textColsList() {
   _textColsListCache = cols.length ? cols.map((c) => 'texts."' + c + '"').join(', ') : 'texts.*';
   return _textColsListCache;
 }
+// The list never needs a media text's ASR segments/timing (~570 KB each, 25 MB of the owner's
+// 519-row list, perf 2026-09-27); opening a text reads the full row via getTextById.
+const _LIST_SOURCE_META_SQL = `CASE WHEN json_valid(texts."source_meta_json")
+  THEN json_remove(texts."source_meta_json", '$.source.audio.segments', '$.source.audio.timing', '$.source.audio.timingMap')
+  ELSE texts."source_meta_json" END AS source_meta_json`;
 export async function listTextsLight({ limit = 500, archived = false } = {}) {
   const arch = archived ? 1 : 0;
-  const cols = await _textColsList();
+  const cols = (await _textColsList()).replace('texts."source_meta_json"', _LIST_SOURCE_META_SQL);
   return q(
     `SELECT ${cols}, tp.last_row_idx AS last_row_idx,
             (SELECT GROUP_CONCAT(DISTINCT NULLIF(LOWER(TRIM(s.translation_provider)), ''))
@@ -2985,7 +2990,7 @@ export async function getLearningCompassIngredientsBatch(requests) {
   const wanted = (Array.isArray(requests) ? requests : []).slice(0, _COMPASS_BATCH_MAX_ITEMS)
     .filter((request) => request && request.cache_key)
     .map((request) => ({ ...request, cache_key: String(request.cache_key) }));
-  if (!wanted.length) return { entries: {}, stale_keys: [], invalid_keys: [], size_bytes: 0 };
+  if (!wanted.length) return { entries: {}, stale_keys: [], invalid_keys: [], deferred_keys: [], size_bytes: 0 };
   const rows = await q(
     `SELECT cache_key, content_revision, content_sha256, entitlement_revision,
             resolver_version, ingredients_json, size_bytes
@@ -2996,13 +3001,15 @@ export async function getLearningCompassIngredientsBatch(requests) {
   );
   const byKey = new Map(wanted.map((request) => [request.cache_key, request]));
   const out = {};
-  const stale = [], invalid = [];
+  // deferred = valid rows past this page's byte budget: the caller asks again, it does not rebuild.
+  const stale = [], invalid = [], deferred = [];
   let bytes = 0;
   for (const row of (rows || [])) {
     const request = byKey.get(String(row.cache_key));
     if (!_compassRequestMatches(row, request)) { stale.push(String(row.cache_key)); continue; }
     const size = Number(row.size_bytes) || _compassByteLength(row.ingredients_json || '');
-    if (size < 0 || bytes + size > _COMPASS_BATCH_MAX_BYTES) { invalid.push(String(row.cache_key)); continue; }
+    if (size < 0 || size > _COMPASS_BATCH_MAX_BYTES) { invalid.push(String(row.cache_key)); continue; }
+    if (bytes + size > _COMPASS_BATCH_MAX_BYTES) { deferred.push(String(row.cache_key)); continue; }
     try {
       const value = JSON.parse(row.ingredients_json);
       out[String(row.cache_key)] = value;
@@ -3014,7 +3021,7 @@ export async function getLearningCompassIngredientsBatch(requests) {
     await r(`UPDATE room_learning_compass_cache SET last_used_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
               WHERE cache_key IN (SELECT CAST(value AS TEXT) FROM json_each(?))`, [JSON.stringify(touched)]);
   }
-  return { entries: out, stale_keys: stale, invalid_keys: invalid, size_bytes: bytes };
+  return { entries: out, stale_keys: stale, invalid_keys: invalid, deferred_keys: deferred, size_bytes: bytes };
 }
 
 // Catalog-level readiness for the personal-text derived index. This is one aggregate

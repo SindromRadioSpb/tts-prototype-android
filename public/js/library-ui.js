@@ -8,7 +8,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=620';
+import * as localDbRaw from '/db/local-db.js?v=667';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -513,11 +513,30 @@ function scheduleCompassIdleBuild(descriptors, options) {
   return Promise.all(promises);
 }
 
+// One page (<= 48 cards) of cached ingredients. The DB returns at most 256 KiB per response
+// and defers the rest; ask again for the deferred cards instead of treating them as missing
+// (perf 2026-09-27: 36 of 519 owner cards were rebuilt on every visit). A response that
+// returned nothing ends the retry, so a card the budget can never return stays missing.
+async function readCompassIngredients(list) {
+  const merged = { entries: {}, stale_keys: [], invalid_keys: [] };
+  let queue = (list || []).filter(Boolean);
+  while (queue.length) {
+    const batch = await localDb.getLearningCompassIngredientsBatch(queue) || {};
+    const entries = batch.entries || {};
+    Object.assign(merged.entries, entries);
+    merged.stale_keys.push(...(batch.stale_keys || []));
+    merged.invalid_keys.push(...(batch.invalid_keys || []));
+    const deferred = new Set(Object.keys(entries).length ? batch.deferred_keys || [] : []);
+    queue = queue.filter((descriptor) => deferred.has(descriptor.cache_key));
+  }
+  return merged;
+}
+
 async function missingCompassDescriptors(descriptors) {
   const list = (descriptors || []).filter(Boolean).slice(0, ROOM_BROWSE_PAGE);
   if (!list.length) return [];
   let batch = { entries: {}, stale_keys: [], invalid_keys: [] };
-  try { batch = await localDb.getLearningCompassIngredientsBatch(list); } catch (_) {}
+  try { batch = await readCompassIngredients(list); } catch (_) {}
   const cached = batch && batch.entries || {};
   return list.filter((descriptor) => !cached[descriptor.cache_key]);
 }
@@ -559,7 +578,7 @@ async function loadPersonalFamiliarityRanking(options) {
     if (!matchedTotal) matchedTotal = Number(page.matchedTotal || 0);
     if (matchedTotal > COMPASS_FULL_CATALOG_MAX) return { status: 'TOO_LARGE', items: [], matchedTotal };
     const descriptors = (page.items || []).map(myCompassDescriptor);
-    const batch = await localDb.getLearningCompassIngredientsBatch(descriptors);
+    const batch = await readCompassIngredients(descriptors);
     for (let index = 0; index < page.items.length; index += 1) {
       const item = page.items[index], descriptor = descriptors[index];
       const ingredients = batch.entries && batch.entries[descriptor.cache_key];
@@ -598,7 +617,7 @@ async function prepareLearningCompassPage(descriptors) {
   const list = (descriptors || []).filter(Boolean).slice(0, ROOM_BROWSE_PAGE);
   const projection = await ensureLearningCompassProjection();
   let batch = { entries: {}, stale_keys: [], invalid_keys: [] };
-  try { batch = await localDb.getLearningCompassIngredientsBatch(list); } catch (_) {}
+  try { batch = await readCompassIngredients(list); } catch (_) {}
   const cached = batch && batch.entries || {};
   const stale = new Set(batch && batch.stale_keys || []), invalid = new Set(batch && batch.invalid_keys || []);
   const missing = [];

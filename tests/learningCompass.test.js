@@ -570,3 +570,14 @@ test("Agent Access delegates to the same v2 core and exposes no readiness band",
   const source = fs.readFileSync(path.join(__dirname, "../agent/access/textCoverageResolver.js"), "utf8");
   assert.match(source, /require\("\.\.\/\.\.\/public\/js\/learning-compass-core"\)/);
 });
+
+// Perf 2026-09-27: a valid row past the 256 KiB page budget is deferred (ask again), not invalid
+// (rebuild); every Room reader of the cache follows the deferred keys.
+test("budget overflow is deferred, and Room readers ask again for deferred cards", () => {
+  const db = fs.readFileSync(path.join(__dirname, "..", "public", "db", "local-db.js"), "utf8");
+  const ui = fs.readFileSync(path.join(__dirname, "..", "public", "js", "library-ui.js"), "utf8");
+  assert.match(db, /if \(bytes \+ size > _COMPASS_BATCH_MAX_BYTES\) \{ deferred\.push/);
+  assert.match(db, /deferred_keys: deferred/);
+  assert.match(ui, /async function readCompassIngredients\(list\)/);
+  assert.equal((ui.match(/getLearningCompassIngredientsBatch\(/g) || []).length, 1, "only the helper reads the cache directly");
+});

@@ -1226,4 +1226,7 @@ export const MIGRATIONS = [
     ON studio_portable_import_receipts(content_root_sha256,status);`,
   // 053_mediatheque_personal — no changes to materials or learner state.
   MEDIATHEQUE_SCHEMA_SQL,
+  // 054_sentences_text_provider — covering index for the Studio Library list's per-text
+  // provider summary: 934 → 64 ms on a 74k-sentence owner profile (perf 2026-09-27). Index only.
+  `CREATE INDEX IF NOT EXISTS ix_sentences_text_provider ON sentences(text_id, translation_provider);`,
 ];

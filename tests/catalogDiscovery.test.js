@@ -87,3 +87,38 @@ test('a superseded analysis never paints or caches an older text revision', asyn
   assert.equal(written.length, 0);
   assert.equal(service.get('7'), null);
 });
+
+// Perf 2026-09-27: on the owner profile 36 of 519 cached cards overflowed the 256 KiB page and
+// were re-analysed on every Library open (~300 ms each). Overflow is deferred, not missing.
+test('cards deferred by the packet budget are read again, never re-analysed', async () => {
+  let analyses = 0;
+  const requests = [];
+  const db = {
+    getLearningCompassProjection: async () => ({ schema_version: compass.PROJECTION_SCHEMA, version: 'p1', tracked_lexeme_count: 1, state_by_key: { 'p:1': 'known' } }),
+    getLearningCompassIngredientsBatch: async (batch) => {
+      requests.push(batch.map(item => item.local_id));
+      const [first, ...rest] = batch;
+      return { entries: { [first.cache_key]: ingredients() }, deferred_keys: rest.map(item => item.cache_key) };
+    },
+    getSentences: async () => { throw new Error('unexpected sentence read'); },
+    putLearningCompassIngredients: async () => { throw new Error('unexpected cache write'); },
+  };
+  const service = familiarity.createService({ db, compass, analyze: async () => { analyses++; } });
+  await service.prepare(['1', '2', '3'].map(id => ({ id, updated_at: 'rev' })));
+  assert.equal(analyses, 0);
+  for (const id of ['1', '2', '3']) assert.equal(service.get(id).recorded_familiar_pct_lower_bound, 75);
+  assert.deepEqual(requests, [['1', '2', '3'], ['2', '3'], ['3']]);
+});
+
+test('a card the budget can never return falls back to analysis instead of looping', async () => {
+  let analyses = 0;
+  const db = {
+    getLearningCompassProjection: async () => ({ schema_version: compass.PROJECTION_SCHEMA, version: 'p1', tracked_lexeme_count: 1, state_by_key: { 'p:1': 'known' } }),
+    getLearningCompassIngredientsBatch: async (batch) => ({ entries: {}, deferred_keys: batch.map(item => item.cache_key) }),
+    getSentences: async () => [{ he_plain: 'שלום' }],
+    putLearningCompassIngredients: async () => {},
+  };
+  const service = familiarity.createService({ db, compass, analyze: async () => { analyses++; return ingredients(); } });
+  await service.prepare([{ id: '1', updated_at: 'rev' }]);
+  assert.equal(analyses, 1);
+});
