@@ -995,7 +995,7 @@
         truth.textContent = tr("studio.import.providerTruthLocal");
       } else if (pendingAudio) {
         var estimate = window.AsrTranscript.estimateLongJob(pendingAudio.durationSec, {
-          video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
+          video: cloudAsrSendsVideo(), chunkSize: window.TableChunks.CHUNK_SIZE });
         truth.textContent = tr("studio.import.providerTruthCloudReady", {
           cost: Math.max(0.01, estimate.totalUsd).toFixed(2), minutes: estimate.minutes });
       } else {
@@ -1039,7 +1039,7 @@
     if (select && select.value === "local" && pendingAudio) delete pendingAudio.cloudFallbackConsent;
     if (select && select.value === "gemini" && pendingAudio && pendingAudio.localAttempted) {
       var est = window.AsrTranscript.estimateLongJob(pendingAudio.durationSec, {
-        video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
+        video: cloudAsrSendsVideo(), chunkSize: window.TableChunks.CHUNK_SIZE });
       var consent = window.confirm(tr("studio.import.localAsrCloudConsent", {
         size: (pendingAudio.file.size / (1024 * 1024)).toFixed(1),
         model: window.AsrTranscript.ASR_MODEL,
@@ -1067,7 +1067,7 @@
       return;
     }
     var est = window.AsrTranscript.estimateLongJob(pendingAudio.durationSec, {
-      video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
+      video: cloudAsrSendsVideo(), chunkSize: window.TableChunks.CHUNK_SIZE });
     button.textContent = tr("studio.import.audioGo") +
       " (≈$" + Math.max(0.01, est.totalUsd).toFixed(2) + " · ~" + est.minutes + " " + tr("studio.import.minShort") + ")";
   }
@@ -1570,7 +1570,8 @@
       if (job.state === "COMPLETE") {
         pendingAudio.mediaReadiness = window.MediaReadiness.acceptPrepared(job);
         pendingAudio.sha256 = job.output_sha256;
-        await cleanupCompletedMediaJob(pendingAudio.mediaReadiness, created.job_id);
+        // The job stays: its subtitles and its speech track are read from it later, and the
+        // companion releases it itself once idle (owner decision 2026-09-28).
       }
       renderAudioMeta();
       renderMediaReadiness();
@@ -1632,7 +1633,7 @@
         size_bytes: preparedFile.size,
       };
       pendingAudio.durationSec = job.report && job.report.duration_seconds || pendingAudio.durationSec;
-      await cleanupCompletedMediaJob(pendingAudio.mediaReadiness, pendingAudio.mediaJobId);
+      // Kept for the speech track that paid recognition sends instead of the whole video.
       renderAudioMeta();
       renderMediaReadiness();
       setStatus("studio.import.mediaPrepared");
@@ -2783,6 +2784,17 @@
     } catch (_) { setStatus("studio.import.localAsrDeleteFailed"); }
   }
 
+  // Paid recognition of a video hears only its speech track (owner decision 2026-09-28): with a
+  // paired companion that still holds the checked source, the track is extracted as small mono
+  // MP3 and sent per window; frames cost about 2.6x the audio and told the model nothing.
+  function speechFromCompanion() {
+    return !!(pendingAudio && pendingAudio.isVideo && pendingAudio.mediaJobId && localAsrClient &&
+      typeof localAsrClient.mediaSpeechAudio === "function");
+  }
+  function cloudAsrSendsVideo() {
+    return !!(pendingAudio && pendingAudio.isVideo) && !speechFromCompanion();
+  }
+
   async function transcribeAudio() {
     if (!pendingAudio) return;
     if (preparedCopyPending()) { setStatus("studio.import.mediaSaveRequired"); return; }
@@ -2790,7 +2802,7 @@
     if (selectedAudioProvider() === "local") return transcribeAudioLocal();
     // Paid recognition sends this very file; above the provider's per-file limit the upload would
     // fail after the wait, and a bigger file is exactly the one the local paths exist for.
-    if (!window.MediaReadiness.cloudAsrAllows(pendingAudio.file)) {
+    if (cloudAsrSendsVideo() && !window.MediaReadiness.cloudAsrAllows(pendingAudio.file)) {
       setStatus("studio.import.errCloudAsrTooLarge", { limit: window.MediaReadiness.humanBytes(window.MediaReadiness.CLOUD_ASR_MAX_BYTES) });
       return;
     }
@@ -2817,7 +2829,30 @@
       // Фолбэк ranged-file (видео, не-mp3, не-sliceable mp3, single-window) поведенчески НЕ
       // меняется — его пинуют существующие тесты.
       var sliceCtx = null;
-      if (!pendingAudio.isVideo && wins.length > 1 && window.Mp3Slice &&
+      var speechBlob = null;
+      pendingAudio.asrAudioSource = pendingAudio.isVideo ? "video-file" : "audio-file";
+      if (speechFromCompanion()) {
+        setStatus("studio.import.audioExtracting");
+        var speech;
+        try {
+          speech = await localAsrClient.mediaSpeechAudio(pendingAudio.mediaJobId);
+        } catch (speechError) {
+          // Never fall back to paying for the frames: say what to do instead.
+          var gone = speechError && (speechError.status === 409 || /media job not found/i.test(String(speechError.message || "")));
+          setStatus(gone ? "studio.import.audioSpeechSourceGone"
+            : speechError && speechError.status === 404 ? "studio.import.audioSpeechNeedsUpdate"
+            : "studio.import.audioSpeechFailed");
+          return;
+        }
+        speechBlob = new Blob([speech.bytes], { type: "audio/mpeg" });
+        pendingAudio.asrAudioSource = "companion-speech-mp3";
+        pendingAudio.asrSpeechSha256 = speech.sha256;
+        var speechMap = window.Mp3Slice ? window.Mp3Slice.buildFrameMap(speech.bytes) : null;
+        if (wins.length > 1 && speechMap && window.Mp3Slice.isSliceable(speechMap, pendingAudio.durationSec)) {
+          sliceCtx = { u8: speech.bytes, map: speechMap };
+        }
+        setStatus("studio.import.audioUploading");
+      } else if (!pendingAudio.isVideo && wins.length > 1 && window.Mp3Slice &&
           (/^audio\/(mpeg|mp3)$/i.test(pendingAudio.mime) || /\.mp3$/i.test(pendingAudio.name || ""))) {
         var u8 = new Uint8Array(pendingAudio.buf);
         var map = window.Mp3Slice.buildFrameMap(u8);
@@ -2857,13 +2892,15 @@
       } else {
         pendingAudio.asrTransport = "ranged-file";
         pendingAudio.sliceLog = null;
-        var up = await window.GeminiFiles.uploadFile(key, pendingAudio.file, pendingAudio.mime);
+        var rangedBody = speechBlob || pendingAudio.file;
+        var rangedMime = speechBlob ? "audio/mpeg" : pendingAudio.mime;
+        var up = await window.GeminiFiles.uploadFile(key, rangedBody, rangedMime);
         setStatus("studio.import.audioProcessing");
         if (up.state !== "ACTIVE") {
-          await window.GeminiFiles.waitActive(key, up.name, { timeoutMs: 60000 + Math.ceil(pendingAudio.file.size / 1048576) * 1000 });
+          await window.GeminiFiles.waitActive(key, up.name, { timeoutMs: 60000 + Math.ceil(rangedBody.size / 1048576) * 1000 });
         }
         transcribeFn = function (a, b) {
-          return window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime,
+          return window.GeminiFiles.transcribeAudio(key, up.fileUri, rangedMime,
             a === null ? undefined : { promptText: A2.ASR_RANGE_PROMPT(a, b) });
         };
       }

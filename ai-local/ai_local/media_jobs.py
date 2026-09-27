@@ -20,6 +20,7 @@ from .media_compat import (
     READY,
     classify_probe,
     extract_text_subtitles,
+    extract_speech_audio,
     prepare_media,
     probe_media,
     prove_lossless_equivalence,
@@ -102,7 +103,9 @@ class MediaJobManager:
         video_proof_fn: Callable[..., Awaitable[dict[str, Any]]] = prove_video_copy_equivalence,
         subtitle_sync_fn: Callable[..., dict[str, Any]] = assess_media,
         extra_roots: list[Path] | None = None,
+        speech_fn: Callable[..., Awaitable[None]] | None = None,
     ) -> None:
+        self.speech_fn = speech_fn or extract_speech_audio
         self.root = Path(root)
         # A previous work folder (before the owner chose another disk) is swept but never used.
         self.extra_roots = [Path(p) for p in (extra_roots or []) if Path(p) != Path(root)]
@@ -663,6 +666,30 @@ class MediaJobManager:
                     error_detail=str(exc)[:240] if isinstance(exc, MediaJobConflict) else None,
                 )
                 self._write(job_id, manifest)
+
+    async def speech_audio(self, job_id: str) -> dict[str, Any]:
+        """The selected audio stream as small mono MP3 for paid recognition; extracted once."""
+        manifest = self.get(job_id)
+        job_dir = self._dir(job_id)
+        source = job_dir / "source.media"
+        if manifest.get("state") not in {"COMPLETE", "WAITING_FOR_DECISION"} or not source.is_file():
+            raise MediaJobConflict("the checked source is no longer available; choose the file again")
+        stream_index = ((manifest.get("report") or {}).get("audio_selection") or {}).get("index")
+        if not isinstance(stream_index, int):
+            raise MediaJobConflict("no audio stream is selected for this file")
+        target = job_dir / "speech.mp3"
+        known = manifest.get("speech_audio") or {}
+        if target.is_file() and known.get("stream_index") == stream_index and known.get("sha256"):
+            if _sha256_file(target) == known["sha256"]:
+                return {"path": target, "sha256": known["sha256"], "size_bytes": target.stat().st_size}
+        async with self._capacity:
+            await self.speech_fn(source, target, stream_index, self._cancel.get(job_id))
+        digest = _sha256_file(target)
+        manifest = self.get(job_id)
+        manifest["speech_audio"] = {"stream_index": stream_index, "sha256": digest,
+                                    "size_bytes": target.stat().st_size}
+        self._write(job_id, manifest)
+        return {"path": target, "sha256": digest, "size_bytes": target.stat().st_size}
 
     async def wait(self, job_id: str) -> None:
         task = self._tasks.get(job_id)

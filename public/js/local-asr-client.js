@@ -285,6 +285,19 @@
     var contentType = String((response.headers && response.headers.get("content-type")) || "").toLowerCase();
     return { text: text, sha256: actual, bytes: bytes.length, format: contentType.indexOf("vtt") >= 0 ? "vtt" : "srt" };
   };
+  // Paid recognition hears only the speech track (owner decision 2026-09-28): the companion
+  // extracts it as small mono MP3, and the bytes must hash to what it says it sent.
+  Client.prototype.mediaSpeechAudio = async function (id) {
+    var response = await this._rawRequest("/v1/media/jobs/" + encodeURIComponent(id) + "/speech-audio");
+    var bytes = new Uint8Array(await response.arrayBuffer());
+    var expected = String((response.headers && response.headers.get("x-lp-media-sha256")) || "").toLowerCase();
+    var actual = await sha256Hex(bytes, this.sha256Fn);
+    if (!/^[a-f0-9]{64}$/.test(expected) || actual !== expected) {
+      throw LocalAsrError("LOCAL_MEDIA_SPEECH_SHA_MISMATCH", "Speech audio failed hash verification",
+        null, { expected_sha256: expected || null, actual_sha256: actual });
+    }
+    return { bytes: bytes, sha256: actual };
+  };
   Client.prototype.mediaSubtitleSync = function (id, streamIndex, subtitleSha256, cueStarts) {
     return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/subtitle-sync", {
       method: "POST", headers: { "content-type": "application/json" },

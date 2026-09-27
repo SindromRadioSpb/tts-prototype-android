@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import re
 
-COMPANION_VERSION = "0.3.0-beta.13"
+COMPANION_VERSION = "0.3.0-beta.14"
 
 _SEMVER = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?$")
 

@@ -378,6 +378,23 @@ async def v1_media_job_file(job_id: str, rendition: str = "full"):
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
+@app.get("/v1/media/jobs/{job_id}/speech-audio", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_speech_audio(job_id: str):
+    """Only the selected speech track, for paid recognition (owner decision 2026-09-28)."""
+    try:
+        speech = await media_job_manager.speech_audio(job_id)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail="SPEECH_AUDIO_EXTRACT_FAILED") from exc
+    return FileResponse(
+        speech["path"], media_type="audio/mpeg", filename="speech.mp3",
+        headers={"X-LP-Media-SHA256": speech["sha256"], "Cache-Control": "no-store"},
+    )
+
+
 @app.get("/v1/media/jobs/{job_id}/report", dependencies=[Depends(require_companion_auth)])
 async def v1_media_job_report(job_id: str):
     try:

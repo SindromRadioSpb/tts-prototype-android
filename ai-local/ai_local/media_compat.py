@@ -831,6 +831,26 @@ def _subtitle_arguments(entry: dict[str, Any], out_dir: Path) -> list[str]:
     return ["-map", "0:%d" % entry["index"], "-c:s", encoder, "-f", muxer, os.fspath(out_dir / entry["file"])]
 
 
+# Paid recognition hears only speech (owner decision 2026-09-28): mono 16 kHz CBR MP3 is what the
+# model resamples to anyway, is about 35 MB for a 97-minute film, and Studio's frame-map slicer
+# can cut it per window, so each window is uploaded as its own short file.
+SPEECH_AUDIO_ARGS = ("-vn", "-sn", "-dn", "-ac", "1", "-ar", "16000", "-c:a", "libmp3lame", "-b:a", "48k", "-f", "mp3")
+
+
+async def extract_speech_audio(source: Path, out_path: Path, stream_index: int,
+                               cancel: asyncio.Event | None = None) -> None:
+    partial = out_path.with_suffix(".partial.mp3")
+    args = ["ffmpeg", "-y", "-v", "error", "-nostdin", "-i", os.fspath(source),
+            "-map", "0:%d" % int(stream_index), *SPEECH_AUDIO_ARGS, os.fspath(partial)]
+    try:
+        code = await _run_cancellable(args, cancel)
+        if code or not partial.is_file() or partial.stat().st_size == 0:
+            raise RuntimeError("speech audio extraction failed")
+        os.replace(partial, out_path)
+    finally:
+        partial.unlink(missing_ok=True)
+
+
 async def extract_text_subtitles(
     source: Path,
     subtitle_streams: list[dict[str, Any]],
