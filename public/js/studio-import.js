@@ -1312,7 +1312,9 @@
                  codec.fps ? codec.fps + " fps" : null].filter(Boolean);
     if (detail) detail.textContent = parts.join(" · ") + (state.next_action ? " — " + tr("studio.import.mediaNextAction") + ": " + state.next_action : "");
     if (progress) {
-      progress.hidden = !(state.state && !["COMPLETE", "WAITING_FOR_DECISION", "BLOCKED", "FAILED", "CANCELED"].includes(state.state));
+      // The ladder owns progress while it is shown; a second bar would count the same wait twice.
+      progress.hidden = !!pendingAudio.ladderView ||
+        !(state.state && !["COMPLETE", "WAITING_FOR_DECISION", "BLOCKED", "FAILED", "CANCELED"].includes(state.state));
       progress.value = Math.round((state.progress || 0) * 100);
     }
     var prepare = $("v3ImportMediaPrepare");
@@ -1532,11 +1534,24 @@
     }
     setBusy(true);
     mediaJobController = new AbortController();
+    // Each check starts a fresh ladder: a retry re-sends the file, so old counters would lie.
+    var checkKey = null;
+    pendingAudio.ladder = null;
+    setLadderView("check");
     try {
       localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
-      var created = await localAsrClient.createMediaJob(pendingAudio.file);
+      checkKey = "upload";
+      ladderStep("begin", "upload");
+      var created = await localAsrClient.createMediaJob(pendingAudio.file, {
+        onUploadProgress: function (p) { ladderStep("update", "upload", { done: p.bytes, total: p.total, unit: "bytes" }); },
+      });
+      ladderStep("finish", "upload");
+      checkKey = "probe";
+      ladderStep("begin", "probe");
       pendingAudio.mediaJobId = created.job_id;
       var job = await localAsrClient.waitForMediaJob(created.job_id, { signal: mediaJobController.signal, onStatus: mediaJobStatus }, created);
+      ladderStep("finish", "probe");
+      checkKey = null;
       mediaJobStatus(job);
       var report = job.report || {};
       if (report.duration_seconds) pendingAudio.durationSec = report.duration_seconds;
@@ -1548,7 +1563,12 @@
       renderAudioMeta();
       renderMediaReadiness();
       await loadSubtitlePlan();
+      // The result (plan card or readiness verdict) now speaks for itself; a failed track load
+      // keeps the ladder so the failure stays next to its step.
+      if (!(pendingAudio && pendingAudio.ladder && ladderApi() && ladderApi().failedKey(pendingAudio.ladder))) setLadderView(null);
     } catch (error) {
+      if (error && error.code === "MEDIA_JOB_CANCELED") setLadderView(null);
+      else ladderFail(checkKey, error);
       if (pendingAudio) {
         if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio.mediaJobId) {
           await cleanupCompletedMediaJob(pendingAudio.mediaReadiness || {}, pendingAudio.mediaJobId);
@@ -1775,6 +1795,7 @@
     if (!window.SubtitleMaterialImport || !window.SubtitleMaterialCore) return;
     var state = pendingAudio.mediaReadiness || {};
     if (!window.MediaReadiness.usableSubtitleTracks(state).length) {
+      ladderStep("skip", "tracks");
       pendingSubtitleMaterial = null;
       renderSubtitlePlan();
       return;
@@ -1782,13 +1803,16 @@
     var host = $("v3ImportSubtitlePlan");
     if (host) host.hidden = false;
     setSubtitlePlanStatus("studio.import.subtitlePlanTracksLoading");
+    ladderStep("begin", "tracks");
     try {
       var loaded = await window.SubtitleMaterialImport.loadSubtitleTracks({
         client: localAsrClient, jobId: pendingAudio.mediaJobId, readiness: state,
       });
       pendingSubtitleMaterial = { tracks: loaded.tracks, failed: loaded.failed, choice: null, stored: null };
+      ladderStep("finish", "tracks");
       setSubtitlePlanStatus(null);
     } catch (error) {
+      ladderFail("tracks", error);
       pendingSubtitleMaterial = null;
       setSubtitlePlanStatus("studio.import.subtitlePlanFailed",
         { code: (error && error.code) || "SUBTITLE_TRACKS_FAILED" }, "error");
@@ -1889,7 +1913,9 @@
     }
     var build = $("v3ImportSubtitlePlanBuild");
     if (build) {
-      build.hidden = plan.status !== "ready" || pendingSubtitleMaterial.applied === true;
+      // While the ladder runs or holds a failure, its own retry is the single way forward.
+      build.hidden = plan.status !== "ready" || pendingSubtitleMaterial.applied === true ||
+        !!(pendingAudio && pendingAudio.ladderView === "build");
       build.disabled = !!pendingSubtitleMaterial.working;
     }
   }
@@ -2028,10 +2054,22 @@
     var material = pendingSubtitleMaterial;
     if (!material || !material.plan || material.plan.status !== "ready" || material.working) return;
     var plan = material.preparationPlan || material.plan;
+    var ladderKey = null;
+    function stage(key) { ladderKey = key; ladderStep("begin", key); }
+    function staged(key) { ladderStep("finish", key); ladderKey = null; }
     material.preparationPlan = plan;
     material.working = true;
     setBusy(true);
     setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
+    var ladder = ladderModel();
+    if (ladder) {
+      // The file check already ran before this plan could exist; an older pass without a ladder
+      // still shows it as done rather than as pending work.
+      ["upload", "probe", "tracks"].forEach(function (key) {
+        if (["done", "skipped"].indexOf(ladder.steps[key].state) < 0) ladderStep("finish", key);
+      });
+    }
+    setLadderView("build");
     renderSubtitlePlan();
     try {
       var sourceJob=material.preparedJob||await localAsrClient.getMediaJob(pendingAudio.mediaJobId);
@@ -2039,35 +2077,58 @@
         plan:plan,tracks:material.tracks,lite:!!($("v3ImportSubtitlePlanLite")&&$("v3ImportSubtitlePlanLite").checked)});
       if(material.importKey&&typeof window.ensureLocalDB==='function'&&typeof window.v3LibraryOpenText==='function'){
         var existingText=await window.SubtitleMaterialImport.findSavedMaterial(await window.ensureLocalDB(),material.importKey);
-        if(existingText){await window.v3LibraryOpenText(existingText);material.applied=true;close();return;}
+        if(existingText){setLadderView(null);await window.v3LibraryOpenText(existingText);material.applied=true;close();return;}
       }
+      // The companion reports 0.21 when a preparation starts and 0.94 when it verifies the output;
+      // the span in between is the encode the person is actually waiting for.
+      function encodeStatus(key) {
+        return function (job) {
+          mediaJobStatus(job);
+          var p = Number(job && job.progress);
+          if (Number.isFinite(p)) ladderStep("update", key, { done: Math.max(0, Math.min(1, (p - 0.21) / 0.73)), total: 1, unit: "fraction" });
+        };
+      }
+      function storeProgress(key, fallbackTotal) {
+        return function (p) {
+          ladderStep("update", key, { done: p && p.bytes, total: (p && p.total) || fallbackTotal, unit: "bytes" });
+        };
+      }
+      if (!material.preparedJob) stage("video");
       var job = material.preparedJob || await window.SubtitleMaterialImport.confirmMediaPlan({
         client: localAsrClient, jobId: pendingAudio.mediaJobId,
         mode: ((pendingAudio.mediaReadiness || {}).plan || {}).mode,
-        planSha256: plan.plan_sha256, waitOptions: { onStatus: mediaJobStatus },
+        planSha256: plan.plan_sha256, waitOptions: { onStatus: encodeStatus("video") },
       });
       material.preparedJob = job;
+      staged("video");
+      if (!material.stored) stage("store");
       var stored = material.stored || await window.SubtitleMaterialImport.storePreparedMedia({
         client: localAsrClient, jobId: pendingAudio.mediaJobId, job: job,
         maxBytes: window.MediaReadiness.VIDEO_MAX_BYTES,
+        onProgress: storeProgress("store", job.output_bytes),
       });
       material.stored = stored;
+      staged("store");
       setSubtitlePlanStatus("studio.import.subtitlePlanStored",
         { size: window.MediaReadiness.humanBytes(stored.sizeBytes) });
       var liteToggle = $("v3ImportSubtitlePlanLite");
       if (!material.storedLite && liteToggle && liteToggle.checked && plan.lite.available && plan.lite_plan_sha256) {
+        stage("lite");
         setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
         var liteJob = material.preparedLiteJob || await window.SubtitleMaterialImport.confirmMediaPlan({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, mode: "lite_transcode",
-          planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: mediaJobStatus },
+          planSha256: plan.lite_plan_sha256, rendition: "lite", waitOptions: { onStatus: encodeStatus("lite") },
         });
         material.preparedLiteJob = liteJob;
         material.storedLite = await window.SubtitleMaterialImport.storePreparedMedia({
           client: localAsrClient, jobId: pendingAudio.mediaJobId, job: liteJob, rendition: "lite",
+          onProgress: storeProgress("lite", null),
         });
+        staged("lite");
         setSubtitlePlanStatus("studio.import.subtitlePlanStoredLite",
           { size: window.MediaReadiness.humanBytes(material.storedLite.sizeBytes) });
-      }
+      } else if (material.storedLite) staged("lite");
+      else ladderStep("skip", "lite");
       // Каноническим файлом материала становится подготовленная копия, а не исходный контейнер.
       pendingAudio.mediaReadiness = window.MediaReadiness.acceptPrepared(job);
       pendingAudio.sha256 = job.output_sha256;
@@ -2077,20 +2138,34 @@
       renderMediaReadiness();
       // Таблица собирается и уезжает в Студию тем же путём, что и обычный импорт: useText()
       // создаёт медиа-пакет и закрывает диалог, поэтому итог сообщаем тостом, а не строкой в нём.
+      stage("table");
       var tableRows = await buildSubtitleTable(plan, stored, job);
+      if (tableRows) staged("table");
+      else ladderFail("table", { code: "SUBTITLE_TABLE_EMPTY" });
       setSubtitlePlanStatus("studio.import.subtitlePlanWorking");
       if (tableRows && window.SubtitleMaterialVocalization && window.LocalTranslit) {
+        stage("niqqud");
+        // The first batch waits for the model to load; show "0 of N" instead of an empty row.
+        ladderStep("update", "niqqud", { done: 0, unit: "count", total: tableRows.filter(function (row) {
+          return /[א-ת]/.test(String(row.he || ""));
+        }).length });
         var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
           client: localAsrClient,
           transliterate: window.LocalTranslit.transliterateWithProfile,
+          onProgress: function (done, total) { ladderStep("update", "niqqud", { done: done, total: total, unit: "count" }); },
         });
         tableRows = derived.rows;
         material.tableRows = tableRows;
         material.vocalizationWarnings = derived.warnings;
+        staged("niqqud");
       } else if (tableRows) {
+        stage("niqqud");
         throw new Error("LOCAL_VOCALIZATION_UNAVAILABLE");
       }
+      if (tableRows) stage("open");
       if (tableRows && await applySubtitleMaterial()) {
+        staged("open");
+        setLadderView(null);
         material.applied = true;
         showSubtitleSaveStep();
         try {
@@ -2104,9 +2179,11 @@
           }
         } catch (_) {}
       } else {
+        if (tableRows) ladderFail("open", { code: "SUBTITLE_TABLE_NOT_APPLIED" });
         setSubtitlePlanStatus("studio.import.subtitlePlanFailed", { code: "SUBTITLE_TABLE_NOT_APPLIED" }, "error");
       }
     } catch (error) {
+      ladderFail(ladderKey, error);
       if (error && (error.name === "QuotaExceededError" || error.code === "OPFS_QUOTA_LOW")) {
         if(Number.isFinite(error.requiredBytes)&&Number.isFinite(error.availableBytes)){
           setSubtitlePlanStatus("studio.import.storageQuotaWithSizes", {required:window.MediaReadiness.humanBytes(error.requiredBytes),available:window.MediaReadiness.humanBytes(error.availableBytes)}, "error");
@@ -2119,6 +2196,75 @@
       material.working = false;
       setBusy(false);
       renderSubtitlePlan();
+      renderLadder();
+    }
+  }
+
+  // Лестница этапов: одна модель на выбранный файл и два места показа. «check» — под строкой
+  // файла, пока компаньон принимает и читает его; «build» — в карточке «Материал из субтитров»
+  // после «Создать материал», вместе с уже пройденной проверкой. Без модуля всё молча отключено.
+  var ladderTicker = null, ladderRenderedAt = 0;
+  function ladderApi() { return (typeof window !== "undefined" && window.MaterialProgressLadder) || null; }
+  function ladderModel() {
+    var L = ladderApi();
+    if (!L || !pendingAudio) return null;
+    if (!pendingAudio.ladder) pendingAudio.ladder = L.create();
+    return pendingAudio.ladder;
+  }
+  function ladderStep(action, key, arg) {
+    var L = ladderApi(), m = ladderModel();
+    if (!L || !m) return;
+    var now = Date.now(), firstSample = action === "update" && m.steps[key] && !(m.steps[key].done > 0);
+    if (action === "begin") L.begin(m, key, now);
+    else if (action === "update") L.update(m, key, arg, now);
+    else if (action === "finish") L.finish(m, key, now);
+    else if (action === "skip") L.skip(m, key);
+    else if (action === "fail") L.fail(m, key, arg, now);
+    // Upload and store callbacks can fire many times a second; a counter redrawn 4×/s is enough.
+    // The first number of a step is drawn at once so a counter never starts as an empty row.
+    if (action !== "update" || firstSample || now - ladderRenderedAt >= 250) renderLadder();
+  }
+  function ladderFail(key, error) {
+    var L = ladderApi();
+    if (!L || !key) return;
+    var messageKey = L.failureKey(key, error);
+    var message = messageKey === "studio.import.ladderErrStorage" && error &&
+        Number.isFinite(error.requiredBytes) && Number.isFinite(error.availableBytes)
+      ? tr("studio.import.storageQuotaWithSizes", {
+          required: window.MediaReadiness.humanBytes(error.requiredBytes),
+          available: window.MediaReadiness.humanBytes(error.availableBytes) })
+      : tr(messageKey, { code: (error && (error.code || error.name)) || "UNKNOWN" });
+    ladderStep("fail", key, { code: error && error.code, message: message });
+  }
+  function setLadderView(view) {
+    if (!pendingAudio) return;
+    pendingAudio.ladderView = view || null;
+    renderLadder();
+  }
+  function renderLadder() {
+    var L = ladderApi();
+    if (!L) return;
+    var view = pendingAudio && pendingAudio.ladder ? pendingAudio.ladderView || null : null;
+    ["check", "build"].forEach(function (name) {
+      var host = $(name === "check" ? "v3ImportLadderCheck" : "v3ImportLadderBuild");
+      if (!host) return;
+      if (view !== name) { host.hidden = true; return; }
+      L.renderInto(host, pendingAudio.ladder, {
+        tr: tr, now: Date.now(), view: name,
+        humanBytes: window.MediaReadiness && window.MediaReadiness.humanBytes,
+        onRetry: name === "check" ? startMediaPreflight : buildSubtitleMaterial,
+      });
+    });
+    ladderRenderedAt = Date.now();
+    var status = $("v3ImportSubtitlePlanStatus");
+    if (status) status.hidden = view === "build";
+    // Elapsed time and the estimate move even when no new sample arrives (a model loading, a probe).
+    var ticking = !!(view && L.activeKey(pendingAudio.ladder));
+    if (ticking && !ladderTicker && typeof window.setInterval === "function") {
+      ladderTicker = window.setInterval(renderLadder, 1000);
+    } else if (!ticking && ladderTicker) {
+      window.clearInterval(ladderTicker);
+      ladderTicker = null;
     }
   }
 

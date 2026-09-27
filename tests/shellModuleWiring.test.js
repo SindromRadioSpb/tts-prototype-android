@@ -22,6 +22,7 @@ const PROVIDERS = {
   SubtitleMaterialCore: "subtitle-material-core.js",
   MediaBundleCore: "media-bundle-core.js",
   SubtitleMaterialVocalization: "subtitle-material-vocalization.js",
+  MaterialProgressLadder: "material-progress-ladder.js",
   LocalTranslit: "local-translit-bundle.js",
   TablePresets: "table-presets.js",
 };

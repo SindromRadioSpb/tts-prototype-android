@@ -85,6 +85,9 @@
       (typeof window !== "undefined" && window.LocalAsrNormalizer
         ? window.LocalAsrNormalizer.normalizeLocalAsrResult : null);
     this.sha256Fn = opts.sha256Fn || null;
+    // fetch() cannot report upload progress; XHR is used only when a caller asks for it.
+    this.xhrFactory = opts.xhrFactory ||
+      (typeof XMLHttpRequest === "function" ? function () { return new XMLHttpRequest(); } : null);
     if (!this.fetchFn) throw new Error("LOCAL_ASR_FETCH_UNAVAILABLE");
   }
 
@@ -197,12 +200,48 @@
     });
   };
 
-  Client.prototype.createMediaJob = function (file) {
-    return this._request("/v1/media/jobs?filename=" + encodeURIComponent(file && file.name || "media"), {
-      method: "POST",
-      headers: { "content-type": file && file.type || "application/octet-stream" },
-      body: file,
+  // Same contract as _request (bearer token, no cookies, loopback only, same error codes), but the
+  // body goes through XHR so a multi-gigabyte handoff can show bytes sent instead of a frozen line.
+  Client.prototype._uploadWithProgress = function (path, body, contentType, onProgress) {
+    var token = String(this.tokenProvider() || "");
+    if (token.length < 32) return Promise.reject(LocalAsrError("LOCAL_ASR_PAIRING_REQUIRED", "Pairing token required"));
+    var xhr = this.xhrFactory(), url = BASE_URL + path;
+    return new Promise(function (resolve, reject) {
+      xhr.open("POST", url);
+      xhr.withCredentials = false;
+      xhr.setRequestHeader("authorization", "Bearer " + token);
+      xhr.setRequestHeader("content-type", contentType);
+      xhr.upload.onprogress = function (event) {
+        var total = event && event.lengthComputable ? event.total : (body && body.size) || null;
+        try { onProgress({ bytes: event.loaded, total: total }); } catch (_) {}
+      };
+      xhr.onerror = xhr.onabort = xhr.ontimeout = function () {
+        reject(LocalAsrError("LOCAL_ASR_UNAVAILABLE", "Local media upload failed"));
+      };
+      xhr.onload = function () {
+        // fetch() refuses redirects here; XHR follows them silently, so refuse any answer from elsewhere.
+        if (xhr.responseURL && xhr.responseURL.indexOf(BASE_URL + "/") !== 0) {
+          reject(LocalAsrError("LOCAL_ASR_UNAVAILABLE", "Local media upload was redirected"));
+          return;
+        }
+        var data = null;
+        try { data = JSON.parse(xhr.responseText); } catch (_) {}
+        if (xhr.status >= 200 && xhr.status < 300) { resolve(data); return; }
+        var detail = data && (data.detail || data.error);
+        reject(LocalAsrError("LOCAL_ASR_HTTP_" + xhr.status, String(detail || "Local ASR request failed"), xhr.status, data));
+      };
+      xhr.send(body);
     });
+  };
+
+  Client.prototype.createMediaJob = function (file, options) {
+    var path = "/v1/media/jobs?filename=" + encodeURIComponent(file && file.name || "media");
+    var contentType = file && file.type || "application/octet-stream";
+    var onProgress = options && options.onUploadProgress;
+    if (typeof onProgress === "function" && this.xhrFactory) {
+      return this._uploadWithProgress(path, file, contentType, onProgress);
+    }
+    return this._request(path, { method: "POST", headers: { "content-type": contentType }, body: file });
   };
   Client.prototype.getMediaJob = function (id) { return this._request("/v1/media/jobs/" + encodeURIComponent(id)); };
   // videoEncoder is an explicit "cpu"/"gpu" pick for this one conversion; omitting it leaves

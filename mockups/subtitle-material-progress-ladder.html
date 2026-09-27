@@ -1,0 +1,265 @@
+<title>Лестница этапов материала</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@500&display=swap">
+<style>
+:root{
+  --bg-page:#f4f6f9;--bg-card:#fff;--bg-muted:#f8fafc;
+  --tx:#0f172a;--tx2:#475569;--tx3:#64748b;--tx4:#94a3b8;
+  --bd:#e2e8f0;--bd2:#cbd5e1;
+  --ac:#1B4FB8;--ac-soft:#E3EBFA;--ac-on:#fff;
+  --ok:#16a34a;--ok-soft:#dcfce7;--warn:#d97706;--warn-soft:#fef3c7;--err:#dc2626;--err-soft:#fef2f2;
+  --shadow:0 4px 12px rgba(15,23,42,.08);
+  --ui:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark;--bg-page:#0f172a;--bg-card:#1e293b;--bg-muted:#172033;
+  --tx:#f1f5f9;--tx2:#cbd5e1;--tx3:#94a3b8;--tx4:#64748b;--bd:#334155;--bd2:#475569;
+  --ac:#7FA6F5;--ac-soft:#1A2740;--ac-on:#0b1220;--ok:#4ade80;--ok-soft:#052e16;--warn:#fbbf24;--warn-soft:#422006;--err:#f87171;--err-soft:#2a0e0e;--shadow:0 4px 12px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg-page:#0f172a;--bg-card:#1e293b;--bg-muted:#172033;
+  --tx:#f1f5f9;--tx2:#cbd5e1;--tx3:#94a3b8;--tx4:#64748b;--bd:#334155;--bd2:#475569;
+  --ac:#7FA6F5;--ac-soft:#1A2740;--ac-on:#0b1220;--ok:#4ade80;--ok-soft:#052e16;--warn:#fbbf24;--warn-soft:#422006;--err:#f87171;--err-soft:#2a0e0e;--shadow:0 4px 12px rgba(0,0,0,.5)}
+body{background:var(--bg-page);color:var(--tx);font-family:var(--ui);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:28px 64px;display:grid;gap:28px}
+h1{font-size:clamp(1.5rem,1.2rem + 1vw,2rem);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:1.125rem;margin:0}
+p{margin:0}
+.lede{color:var(--tx2);max-width:68ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--tx3);font-size:13px}
+.facts b{color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls button{font:inherit;font-size:14px;padding:7px 12px;border-radius:8px;border:1px solid var(--bd2);background:var(--bg-card);color:var(--tx);cursor:pointer}
+.controls button[aria-pressed="true"]{background:var(--ac);color:var(--ac-on);border-color:var(--ac)}
+.controls button:focus-visible,.dlg button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.controls .lbl{font-size:13px;color:var(--tx3);margin-right:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start}
+.variant{display:grid;gap:10px}
+.vhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--tx3)}
+.rec{font-size:12px;font-weight:600;color:var(--ok);background:var(--ok-soft);padding:2px 8px;border-radius:999px}
+.vnote{font-size:13px;color:var(--tx2)}
+.vnote ul{margin:4px 0 0;padding-left:18px}
+/* dialog mock */
+.dlg{background:var(--bg-card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--shadow);padding:16px;display:grid;gap:12px}
+.dlg-title{font-weight:600;font-size:15px}
+.dlg-sub{font-size:13px;color:var(--tx3)}
+.plan{display:grid;gap:2px;font-size:13px;color:var(--tx2);padding:10px 12px;background:var(--bg-muted);border-radius:10px}
+.plan b{color:var(--tx);font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:999px;background:var(--bd);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--ac);border-radius:inherit;transition:width .4s ease}
+@media (prefers-reduced-motion:reduce){.bar>i{transition:none}}
+.dlg .btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:14px;padding:8px 14px;border-radius:9px;border:1px solid var(--bd2);background:var(--bg-card);color:var(--tx);cursor:pointer}
+.btn.primary{background:var(--ac);border-color:var(--ac);color:var(--ac-on);font-weight:600}
+/* A: vertical ladder */
+.lad{list-style:none;margin:0;padding:0;display:grid}
+.lad li{display:grid;grid-template-columns:22px 1fr auto;gap:0 10px;align-items:start;padding:7px 0;position:relative}
+.lad li:not(:last-child)::after{content:"";position:absolute;left:10px;top:29px;bottom:-5px;width:2px;background:var(--bd)}
+.lad li.done:not(:last-child)::after{background:var(--ok)}
+.mk{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;border:2px solid var(--bd2);color:var(--tx4);background:var(--bg-card);position:relative;z-index:1}
+.done .mk{background:var(--ok);border-color:var(--ok);color:var(--bg-card)}
+.cur .mk{border-color:var(--ac);color:var(--ac)}
+.cur .mk::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ac);animation:pulse 1.4s ease-in-out infinite}
+.fail .mk{background:var(--err);border-color:var(--err);color:var(--bg-card)}
+.skip .mk{border-style:dashed}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.cur .mk::before{animation:none}}
+.st{font-size:14px;color:var(--tx4)}
+.done .st{color:var(--tx2)}
+.cur .st{color:var(--tx);font-weight:600}
+.fail .st{color:var(--err);font-weight:600}
+.skip .st{color:var(--tx4);text-decoration:line-through}
+.meta{font-size:12.5px;color:var(--tx3);font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:1px}
+.cur .meta{color:var(--ac);font-weight:600}
+.detail{grid-column:2 / 4;display:grid;gap:5px;margin-top:6px}
+.detail .row{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--tx3);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.errbox{grid-column:2 / 4;margin-top:6px;padding:9px 11px;border-radius:9px;background:var(--err-soft);color:var(--tx);font-size:13px;display:grid;gap:8px}
+.phase{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--tx4);padding:6px 0 2px 32px}
+.collapsed{font-size:13px;color:var(--tx2);display:flex;gap:8px;align-items:center;padding:4px 0}
+.collapsed .mk{width:18px;height:18px;font-size:10px}
+/* B: segmented */
+.seg{display:flex;gap:3px}
+.seg i{height:8px;border-radius:3px;background:var(--bd);position:relative;overflow:hidden}
+.seg i.d{background:var(--ok)}
+.seg i.c{background:var(--ac-soft)}
+.seg i.c>b{position:absolute;inset:0 auto 0 0;background:var(--ac)}
+.seg i.f{background:var(--err)}
+.bline{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.bline .now{font-weight:600}
+.bline .eta{font-size:13px;color:var(--tx3)}
+details{font-size:13px;color:var(--tx2)}
+summary{cursor:pointer;color:var(--ac);font-weight:500;width:max-content}
+details ol{margin:6px 0 0;padding-left:20px;display:grid;gap:3px}
+details li.d::marker{color:var(--ok)}
+/* C: chips */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chip{flex:none;display:flex;align-items:center;gap:6px;font-size:12.5px;padding:5px 10px;border-radius:999px;border:1px solid var(--bd);color:var(--tx4);background:var(--bg-card);white-space:nowrap}
+.chip.d{color:var(--ok);border-color:transparent;background:var(--ok-soft)}
+.chip.c{color:var(--ac);border-color:var(--ac);font-weight:600}
+.chip.f{color:var(--err);border-color:var(--err);background:var(--err-soft);font-weight:600}
+.focus{padding:12px;border-radius:10px;background:var(--ac-soft);display:grid;gap:8px}
+.focus.f{background:var(--err-soft)}
+.focus .big{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.focus .big small{font-size:14px;font-weight:500;color:var(--tx2)}
+/* phone */
+.phone-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;align-items:start}
+.phone{max-width:360px;width:100%;border:10px solid var(--tx);border-radius:30px;background:var(--bg-page);padding:14px 10px;justify-self:center}
+section.block{display:grid;gap:14px}
+.src{font-family:"Frank Ruhl Libre",Georgia,serif;direction:rtl;unicode-bidi:isolate}
+.foot{font-size:13px;color:var(--tx3);max-width:78ch}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <span class="tag">LinguistPro · Студия · Добавить материал → Медиа на иврите</span>
+    <h1>Лестница этапов для «Материала из субтитров»</h1>
+    <p class="lede">Три варианта того, что человек видит, пока компаньон и браузер собирают учебную таблицу. Данные взяты из реального прогона <b>Ushpizin.mkv</b> 27.09: сейчас там 7 минут висит одна строка «Готовим материал…».</p>
+    <div class="facts">
+      <span>Файл <b>1614 МБ</b></span><span>Передача <b>≈2,5 мин</b></span><span>Подготовка видео <b>≈3 мин</b></span><span>Копия в браузер + таблица <b>≈14 с</b></span><span>Огласовка <b>1382 реплики ≈3,5 мин</b></span><span>Итог <b>1317 строк</b></span>
+    </div>
+    <div class="controls" role="group" aria-label="Состояние макета">
+      <span class="lbl">Показать момент:</span>
+      <button type="button" id="s-upload" data-s="upload">Передача файла</button>
+      <button type="button" id="s-video" data-s="video">Готовим видео</button>
+      <button type="button" id="s-niqqud" data-s="niqqud" aria-pressed="true">Огласовка</button>
+      <button type="button" id="s-fail" data-s="fail">Ошибка огласовки</button>
+      <button type="button" id="s-done" data-s="done">Готово</button>
+      <button type="button" id="s-play" data-play="1">▶ Прогнать</button>
+    </div>
+  </header>
+
+  <section class="grid" aria-label="Варианты">
+    <article class="variant">
+      <div class="vhead"><span class="tag">Вариант A</span><h2>Вертикальная лестница</h2><span class="rec">рекомендую</span></div>
+      <div class="dlg" id="A"></div>
+      <div class="vnote">Все этапы видны сразу. Пройденные этапы помечены ✓ и временем, у текущего есть полоса, счётчик и «осталось ≈». Будущие этапы бледные, пропущенные (лёгкая копия выключена) зачёркнуты.
+        <ul><li>Плюс: честно, видно, где именно ждём и что уже сохранено.</li><li>Минус: занимает ~8 строк высоты.</li></ul></div>
+    </article>
+    <article class="variant">
+      <div class="vhead"><span class="tag">Вариант B</span><h2>Сегментная полоса</h2></div>
+      <div class="dlg" id="B"></div>
+      <div class="vnote">Одна полоса, поделённая на этапы по их реальному весу. Под ней строка «сейчас · осталось». Полный список спрятан в «Подробнее».
+        <ul><li>Плюс: компактно, общий ход виден одним взглядом.</li><li>Минус: названия этапов скрыты, при ошибке нужно раскрывать список.</li></ul></div>
+    </article>
+    <article class="variant">
+      <div class="vhead"><span class="tag">Вариант C</span><h2>Цепочка + крупный счётчик</h2></div>
+      <div class="dlg" id="C"></div>
+      <div class="vnote">Этапы идут строкой-чипами, под ними крупная карточка текущего этапа с большим числом.
+        <ul><li>Плюс: самое заметное «живое» число.</li><li>Минус: на узком экране чипы уезжают вбок, прокрутка прячет конец цепочки.</li></ul></div>
+    </article>
+  </section>
+
+  <section class="block">
+    <h2>Вариант A на телефоне (380 px)</h2>
+    <p class="vnote">Пройденные этапы сворачиваются в одну строку, текущий и следующие остаются видны. Слева огласовка, справа ошибка.</p>
+    <div class="phone-row">
+      <div class="phone"><div class="dlg" id="Pm"></div></div>
+      <div class="phone"><div class="dlg" id="Pf"></div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Что общее для всех вариантов</h2>
+    <div class="vnote"><ul>
+      <li><b>Этапы из реального кода:</b> передача файла (новый счётчик байт) → чтение дорожек → подготовка видео (<code>job.progress</code> компаньона) → лёгкая копия (если включена) → сохранение в браузере (байты потока) → сборка таблицы → огласовка (реплики, <code>onProgress</code> уже есть в <code>enrich</code>) → открытие таблицы.</li>
+      <li><b>«Осталось ≈»</b> показывается только когда скорость устоялась (≥10 с данных). Раньше пишется «считаем…», чтобы не врать.</li>
+      <li><b>Ошибка остаётся на своём этапе</b>, всё пройденное помечено как сохранённое. «Повторить» продолжает с упавшего этапа: код уже держит готовое видео (<code>preparedJob</code>, <code>stored</code>), заново готовить не придётся. Текст по коду ошибки человеческий: «перезапустите компаньон» вместо <code>LOCAL_ASR_HTTP_503</code>.</li>
+      <li><b>Экранные читалки:</b> <code>aria-live="polite"</code> объявляет смену этапа, но не каждый тик счётчика.</li>
+      <li><b>Строки ru/en/he</b>, RTL-зеркалирование для иврита, тёмная тема.</li>
+    </ul></div>
+    <p class="foot">Не входит в эту работу, а записано отдельно (O-029): не передавать файл повторно, если у компаньона уже есть готовая копия, и медленная локальная передача 4–6 МБ/с.</p>
+  </section>
+</div>
+
+<script>
+const STEPS=[
+ {k:"upload",ph:1,t:"Передаём файл компаньону"},
+ {k:"probe",ph:1,t:"Читаем дорожки и субтитры"},
+ {k:"video",ph:2,t:"Готовим видео"},
+ {k:"lite",ph:2,t:"Лёгкая копия для телефона",skip:true},
+ {k:"store",ph:2,t:"Сохраняем видео в браузере"},
+ {k:"table",ph:2,t:"Собираем таблицу"},
+ {k:"niqqud",ph:2,t:"Огласовка реплик"},
+ {k:"open",ph:2,t:"Открываем таблицу"}];
+const DUR={upload:"2 мин 27 с",probe:"4 с",video:"3 мин 07 с",store:"12 с",table:"2 с",niqqud:"3 мин 27 с",open:"1 с"};
+const W={upload:150,probe:5,video:190,store:14,table:3,niqqud:210,open:2};
+let state={cur:"niqqud",f:.46,fail:false};
+const MOM={
+ upload:{cur:"upload",f:.26},video:{cur:"video",f:.64},niqqud:{cur:"niqqud",f:.46},
+ fail:{cur:"niqqud",f:.34,fail:true},done:{cur:"done",f:1}};
+function idx(k){return STEPS.findIndex(s=>s.k===k)}
+function curInfo(s){
+  const f=s.f;
+  if(s.cur==="upload")return{c:`${Math.round(1614*f)} из 1614 МБ`,e:`≈ ${Math.max(1,Math.round((1-f)*2.5))} мин`,rows:[["Скорость","10,9 МБ/с"],["Прошло","0:38"]]};
+  if(s.cur==="video")return{c:`${Math.round(f*100)}%`,e:`≈ ${Math.max(1,Math.round((1-f)*3.1))} мин`,rows:[["Кодировщик","GPU (NVENC)"],["Прошло","2:00"]]};
+  if(s.cur==="niqqud")return{c:`${Math.round(1382*f)} из 1382`,e:`≈ ${Math.max(1,Math.round((1-f)*3.5))} мин`,rows:[["Реплик в минуту","≈ 400"],["Прошло","1:36"]]};
+  return{c:"",e:"",rows:[]};
+}
+function stepState(s,i){
+  const st=STEPS[i];if(st.skip)return"skip";
+  if(s.cur==="done")return"done";
+  const ci=idx(s.cur);if(i<ci)return"done";if(i===ci)return s.fail?"fail":"cur";return"todo";
+}
+const ERR=`<div class="errbox" role="alert"><span><b>Компаньон не загрузил модель огласовки.</b> Перезапустите компаньон (значок в трее → «Перезапустить») и нажмите «Повторить». Видео уже сохранено, заново его готовить не придётся.</span><span class="btns"><button class="btn primary" type="button">Повторить с огласовки</button><button class="btn" type="button">Сохранить без огласовки</button></span></div>`;
+function header(s){
+  if(s.cur==="done")return`<div><div class="dlg-title">Материал готов · 1317 строк</div><div class="dlg-sub">Таблица открыта в Студии. Осталось сохранить карточку.</div></div>`;
+  if(s.cur==="upload")return`<div><div class="dlg-title">Проверяем файл</div><div class="dlg-sub">Ushpizin.mkv · 1614 МБ</div></div>`;
+  return`<div><div class="dlg-title">Создаём материал</div><div class="dlg-sub">Ushpizin.mkv · звук he · текст дорожка 3 · перевод rus</div></div>`;
+}
+function visible(s,i){const st=STEPS[i];return s.cur==="upload"?st.ph===1:true}
+function renderA(el,s,compact){
+  const info=curInfo(s);let h=header(s)+`<ol class="lad">`;let ph=0;
+  const doneList=STEPS.map((_,i)=>stepState(s,i)).filter(x=>x==="done").length;
+  if(compact&&s.cur!=="done"&&s.cur!=="upload"){
+    h+=`<li class="collapsed" style="display:flex"><span class="mk" style="background:var(--ok);border:0;color:var(--bg-card)">✓</span>${doneList} этапа пройдено · 5 мин 40 с</li>`;
+  }
+  STEPS.forEach((st,i)=>{
+    if(!visible(s,i))return;const ss=stepState(s,i);
+    if(compact&&ss==="done"&&s.cur!=="done"&&s.cur!=="upload")return;
+    if(compact&&ss==="skip")return;
+    if(!compact&&st.ph!==ph&&s.cur!=="upload"){ph=st.ph;h+=`<li class="phase" style="display:block">${ph===1?"Проверка файла":"Создание материала"}</li>`}
+    const mk=ss==="done"?"✓":ss==="fail"?"!":"";
+    let meta=ss==="done"?DUR[st.k]:ss==="cur"?info.c:ss==="skip"?"выключено":ss==="fail"?"остановлено":"";
+    h+=`<li class="${ss}"><span class="mk" aria-hidden="true">${mk}</span><span class="st">${st.t}</span><span class="meta num">${meta}</span>`;
+    if(ss==="cur")h+=`<div class="detail"><div class="bar"><i style="width:${s.f*100}%"></i></div><div class="row"><span>${info.rows.map(r=>r.join(" ")).join(" · ")}</span><span>осталось ${info.e}</span></div></div>`;
+    if(ss==="fail")h+=ERR;
+    h+=`</li>`;
+  });
+  h+=`</ol>`;
+  if(s.cur==="done")h+=`<div class="btns"><button class="btn primary" type="button">Сохранить карточку</button></div>`;
+  el.innerHTML=h;
+}
+function renderB(el,s){
+  const info=curInfo(s);const list=STEPS.filter((st,i)=>visible(s,i)&&!st.skip);
+  let seg=`<div class="seg" aria-hidden="true">`+list.map(st=>{const i=idx(st.k),ss=stepState(s,i);const cls=ss==="done"?"d":ss==="cur"?"c":ss==="fail"?"f":"";return`<i class="${cls}" style="flex:${W[st.k]}">${ss==="cur"?`<b style="width:${s.f*100}%"></b>`:""}</i>`}).join("")+`</div>`;
+  const ci=list.findIndex(st=>st.k===s.cur);
+  let line;
+  if(s.cur==="done")line=`<div class="bline"><span class="now" style="color:var(--ok)">✓ Готово · 1317 строк</span><span class="eta">всего 9 мин 20 с</span></div>`;
+  else line=`<div class="bline"><span class="now">Этап ${ci+1} из ${list.length} · ${STEPS[idx(s.cur)].t}${s.fail?"":": "+info.c}</span><span class="eta">${s.fail?"остановлено":"осталось "+info.e}</span></div>`;
+  let det=`<details><summary>Подробнее</summary><ol>`+list.map(st=>{const ss=stepState(s,idx(st.k));return`<li class="${ss==="done"?"d":""}">${st.t} — ${ss==="done"?"✓ "+DUR[st.k]:ss==="cur"?info.c:ss==="fail"?"ошибка":"ждёт"}</li>`}).join("")+`</ol></details>`;
+  el.innerHTML=header(s)+seg+line+(s.fail?ERR.replace('class="errbox"','class="errbox" style="margin:0"'):"")+det+(s.cur==="done"?`<div class="btns"><button class="btn primary" type="button">Сохранить карточку</button></div>`:"");
+}
+const SHORT={upload:"Передача",probe:"Дорожки",video:"Видео",store:"В браузер",table:"Таблица",niqqud:"Огласовка",open:"Открытие"};
+function renderC(el,s){
+  const info=curInfo(s);const list=STEPS.filter((st,i)=>visible(s,i)&&!st.skip);
+  let chips=`<div class="chips">`+list.map(st=>{const ss=stepState(s,idx(st.k));const c=ss==="done"?"d":ss==="cur"?"c":ss==="fail"?"f":"";return`<span class="chip ${c}">${ss==="done"?"✓ ":ss==="fail"?"! ":""}${SHORT[st.k]}</span>`}).join("")+`</div>`;
+  let focus;
+  if(s.cur==="done")focus=`<div class="focus" style="background:var(--ok-soft)"><div class="big">1317 <small>строк в таблице</small></div><div class="vnote">Всё готово за 9 мин 20 с.</div></div><div class="btns"><button class="btn primary" type="button">Сохранить карточку</button></div>`;
+  else if(s.fail)focus=`<div class="focus f"><div class="big">! <small>Огласовка остановлена на 470 из 1382</small></div>${ERR.replace('class="errbox"','class="errbox" style="margin:0;padding:0;background:none"')}</div>`;
+  else focus=`<div class="focus"><div class="vnote" style="font-weight:600;color:var(--tx)">${STEPS[idx(s.cur)].t}</div><div class="big">${info.c.replace(" из ",' <small>из</small> ')}</div><div class="bar"><i style="width:${s.f*100}%"></i></div><div class="bline"><span class="eta">${info.rows.map(r=>r.join(" ")).join(" · ")}</span><span class="eta">осталось ${info.e}</span></div></div>`;
+  el.innerHTML=header(s)+chips+focus;
+}
+function render(){
+  renderA(document.getElementById("A"),state);renderB(document.getElementById("B"),state);renderC(document.getElementById("C"),state);
+  renderA(document.getElementById("Pm"),{cur:"niqqud",f:.46},true);renderA(document.getElementById("Pf"),{cur:"niqqud",f:.34,fail:true},true);
+}
+let timer=null;
+function setMoment(k){clearInterval(timer);timer=null;state=Object.assign({fail:false},MOM[k]);document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.s===k)));render()}
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setMoment(b.dataset.s)));
+document.getElementById("s-play").addEventListener("click",()=>{
+  clearInterval(timer);document.querySelectorAll("[data-s]").forEach(b=>b.setAttribute("aria-pressed","false"));
+  const seq=STEPS.filter(s=>!s.skip).map(s=>s.k);let i=0;state={cur:seq[0],f:0,fail:false};
+  timer=setInterval(()=>{state.f+=["upload","video","niqqud"].includes(state.cur)?.08:.5;if(state.f>=1){i++;if(i>=seq.length){state={cur:"done",f:1};clearInterval(timer);timer=null}else state={cur:seq[i],f:0,fail:false}}render()},260);
+});
+render();
+</script>
