@@ -1544,10 +1544,19 @@
       localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
       checkKey = "upload";
       ladderStep("begin", "upload");
-      var created = await localAsrClient.createMediaJob(pendingAudio.file, {
+      var uploadOptions = {
         onUploadProgress: function (p) { ladderStep("update", "upload", { done: p.bytes, total: p.total, unit: "bytes" }); },
         signal: mediaJobController.signal,
-      });
+      };
+      var created;
+      try {
+        created = await localAsrClient.createMediaJob(pendingAudio.file, uploadOptions);
+      } catch (error) {
+        // A full queue made of this browser's own abandoned checks is released and tried once more.
+        if (!(error && error.status === 429) || !(await releaseOwnWaitingJobs(null))) throw error;
+        created = await localAsrClient.createMediaJob(pendingAudio.file, uploadOptions);
+      }
+      rememberMediaJob(created.job_id);
       ladderStep("finish", "upload");
       checkKey = "probe";
       ladderStep("begin", "probe");
@@ -2176,6 +2185,13 @@
       if (tableRows && await applySubtitleMaterial()) {
         staged("open");
         setLadderView(null);
+        // The material now holds the video in this browser; the companion's copies are only
+        // temporary (owner decision 2026-09-28), so release them instead of waiting for a sweep.
+        if (localAsrClient && typeof localAsrClient.deleteMediaJob === "function" && pendingAudio && pendingAudio.mediaJobId) {
+          var releasedJob = pendingAudio.mediaJobId;
+          try { await localAsrClient.deleteMediaJob(releasedJob); forgetMediaJob(releasedJob); if (pendingAudio.mediaJobId === releasedJob) pendingAudio.mediaJobId = null; }
+          catch (_) {}
+        }
         material.applied = true;
         showSubtitleSaveStep();
         try {
@@ -2259,6 +2275,42 @@
     pendingAudio.ladderView = view || null;
     renderLadder();
   }
+  // Media jobs this browser created. After a reload the page forgets its pending check, and two
+  // such checks filled the companion queue for a day (O-030); the list lets Studio release them.
+  var OWN_MEDIA_JOBS_KEY = "linguistpro.localAsr.ownMediaJobs";
+  function ownMediaJobs() {
+    try {
+      var list = JSON.parse(window.localStorage.getItem(OWN_MEDIA_JOBS_KEY) || "[]");
+      return Array.isArray(list) ? list.filter(function (id) { return typeof id === "string"; }) : [];
+    } catch (_) { return []; }
+  }
+  function saveOwnMediaJobs(list) {
+    try { window.localStorage.setItem(OWN_MEDIA_JOBS_KEY, JSON.stringify(list.slice(-20))); } catch (_) {}
+  }
+  function rememberMediaJob(id) {
+    if (!id) return;
+    saveOwnMediaJobs(ownMediaJobs().filter(function (x) { return x !== id; }).concat([id]));
+  }
+  function forgetMediaJob(id) {
+    saveOwnMediaJobs(ownMediaJobs().filter(function (x) { return x !== id; }));
+  }
+  async function releaseOwnWaitingJobs(exceptId) {
+    var released = 0;
+    var list = ownMediaJobs();
+    for (var i = 0; i < list.length; i++) {
+      var id = list[i];
+      if (id === exceptId) continue;
+      try {
+        var job = await localAsrClient.getMediaJob(id);
+        if (job.state === "WAITING_FOR_DECISION") { await localAsrClient.cancelMediaJob(id); released++; forgetMediaJob(id); }
+        else if (["COMPLETE", "FAILED", "CANCELED", "BLOCKED"].indexOf(job.state) >= 0) forgetMediaJob(id);
+      } catch (error) {
+        if (error && error.status === 404) forgetMediaJob(id);
+      }
+    }
+    return released;
+  }
+
   function retryMaterialBuild() {
     var material = pendingSubtitleMaterial;
     if (material && material.restartRequired) return startMediaPreflight();

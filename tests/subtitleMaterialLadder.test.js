@@ -32,7 +32,7 @@ function buildContext({ enrich, calls }) {
   const context = {
     pendingSubtitleMaterial: material,
     pendingAudio: { mediaJobId: "job", mediaReadiness: { plan: { mode: "transcode" } } },
-    localAsrClient: { getMediaJob: async () => ({}) },
+    localAsrClient: { getMediaJob: async () => ({}), deleteMediaJob: async (id) => { calls.push("delete:" + id); return {}; } },
     mediaJobStatus() {}, setBusy() {}, setSubtitlePlanStatus() {}, renderSubtitlePlan() {}, renderMediaReadiness() {},
     tr: (key, params) => key + (params ? JSON.stringify(params) : ""),
     $: (id) => hosts[id] || (id === "v3ImportSubtitlePlanStatus" ? status
@@ -97,8 +97,8 @@ test("a niqqud failure stays on its step, promises the kept video, and retry res
   build.clickRetry();
   await new Promise((resolve) => setImmediate(resolve));
   await new Promise((resolve) => setImmediate(resolve));
-  assert.deepEqual(calls, ["prepare:full", "store:full", "table", "table", "apply"],
-    "retry must reuse the prepared and stored video");
+  assert.deepEqual(calls, ["prepare:full", "store:full", "table", "table", "apply", "delete:job"],
+    "retry must reuse the prepared and stored video, and the finished job is released");
   assert.equal(attempts, 2);
   assert.equal(build.hidden, true, "a finished build hands over to the table");
 });
@@ -150,7 +150,7 @@ test("Cancel during niqqud stops the step and Retry resumes there with the saved
   assert.match(build.body.innerHTML, /ladderRetry/);
   build.clickRetry();
   for (let i = 0; i < 5; i++) await tick();
-  assert.deepEqual(calls, ["prepare:full", "store:full", "table", "table", "apply"]);
+  assert.deepEqual(calls, ["prepare:full", "store:full", "table", "table", "apply", "delete:job"]);
   assert.equal(build.hidden, true);
 });
 
@@ -174,4 +174,24 @@ test("Cancel during the video step cancels the companion job and offers a fresh 
   assert.match(html, /ladderRestart/);
   built.hosts.v3ImportLadderBuild.clickRetry();
   assert.equal(restarts, 1);
+});
+
+test("own abandoned checks are released from a full companion queue; others are only forgotten", async () => {
+  const { context } = buildContext({ enrich: async (rows) => ({ rows, warnings: [] }), calls: [] });
+  const store = new Map([["linguistpro.localAsr.ownMediaJobs", JSON.stringify(["waiting", "done", "gone"])]]);
+  context.window.localStorage = { getItem: (k) => store.get(k) || null, setItem: (k, v) => store.set(k, v) };
+  const cancelled = [];
+  context.localAsrClient = {
+    getMediaJob: async (id) => {
+      if (id === "gone") { const e = new Error("nf"); e.status = 404; throw e; }
+      return { job_id: id, state: id === "waiting" ? "WAITING_FOR_DECISION" : "COMPLETE" };
+    },
+    cancelMediaJob: async (id) => { cancelled.push(id); return { state: "CANCELED" }; },
+  };
+  const released = await context.releaseOwnWaitingJobs(null);
+  assert.equal(released, 1);
+  assert.deepEqual(cancelled, ["waiting"]);
+  assert.deepEqual(JSON.parse(store.get("linguistpro.localAsr.ownMediaJobs")), []);
+  context.rememberMediaJob("next");
+  assert.deepEqual(JSON.parse(store.get("linguistpro.localAsr.ownMediaJobs")), ["next"]);
 });

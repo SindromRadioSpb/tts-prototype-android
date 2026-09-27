@@ -3843,7 +3843,7 @@ window.I18N_LOCALES.en = {
       ladderErrNiqqudModel: "The companion could not load the niqqud model. Restart the companion (tray icon → Restart), then choose Retry.",
       ladderErrCompanionDown: "The companion is not responding. Make sure it is running, then choose Retry.",
       ladderErrPairing: "Studio is no longer paired with the companion. Pair it again, then choose Retry.",
-      ladderErrCompanionBusy: "The companion queue still holds unfinished video checks from earlier attempts. Choose Retry later or report it: such checks are released automatically only after a day.",
+      ladderErrCompanionBusy: "The companion queue is busy with video checks from another tab or browser. Finish or close them (abandoned checks are released automatically after 2 hours), then choose Retry.",
       ladderErrTooLargeForCompanion: "The installed companion does not accept a file this large. Update the companion to the latest version, then choose Retry.",
       ladderErrStorage: "The browser ran out of space for the video. Free up space, then choose Retry.",
       ladderErrMediaJob: "The companion could not prepare the video. Choose Retry; if it fails again, restart the companion.",

@@ -78,6 +78,13 @@ def _disk_sufficient(report: dict[str, Any], source_bytes: int) -> bool:
 class MediaJobManager:
     MAX_BYTES = MAX_BYTES
     TTL_SECONDS = 24 * 60 * 60
+    # Owner decision 2026-09-28: temporary copies live only while something can use them.
+    # A job is prepared only from WAITING_FOR_DECISION, so these states can never use their bytes.
+    DEAD_STATES = {"FAILED", "CANCELED", "BLOCKED"}
+    # A plan nobody acted on for two hours is abandoned; Studio removes a finished job itself
+    # once the material holds the video, and this is only the net for a closed tab.
+    WAITING_IDLE_SECONDS = 2 * 60 * 60
+    COMPLETE_IDLE_SECONDS = 6 * 60 * 60
     TERMINAL = {"COMPLETE", "FAILED", "BLOCKED", "CANCELED", "WAITING_FOR_DECISION"}
     CAPACITY_TERMINAL = {"COMPLETE", "FAILED", "BLOCKED", "CANCELED"}
 
@@ -90,8 +97,11 @@ class MediaJobManager:
         extract_fn: Callable[..., Awaitable[list[dict[str, Any]]]] = extract_text_subtitles,
         video_proof_fn: Callable[..., Awaitable[dict[str, Any]]] = prove_video_copy_equivalence,
         subtitle_sync_fn: Callable[..., dict[str, Any]] = assess_media,
+        extra_roots: list[Path] | None = None,
     ) -> None:
         self.root = Path(root)
+        # A previous work folder (before the owner chose another disk) is swept but never used.
+        self.extra_roots = [Path(p) for p in (extra_roots or []) if Path(p) != Path(root)]
         self.probe_fn = probe_fn
         self.prepare_fn = prepare_fn
         self.extract_fn = extract_fn
@@ -102,6 +112,82 @@ class MediaJobManager:
         self._capacity = asyncio.Semaphore(1)
         self._reservation_lock = asyncio.Lock()
         self._settle_interrupted()
+        self.sweep()
+
+    def _write_manifest_at(self, path: Path, manifest: dict[str, Any]) -> None:
+        manifest["updated_at"] = time.time()
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+        for attempt in range(self._MANIFEST_RETRIES):
+            try:
+                os.replace(temporary, path)
+                return
+            except PermissionError:
+                if attempt == self._MANIFEST_RETRIES - 1:
+                    raise
+                time.sleep(self._MANIFEST_RETRY_SLEEP)
+
+    @staticmethod
+    def _drop_files(job_dir: Path) -> None:
+        for child in job_dir.iterdir():
+            if child.name == "job.json":
+                continue
+            if child.is_dir():
+                shutil.rmtree(child, ignore_errors=True)
+            else:
+                child.unlink(missing_ok=True)
+
+    def release_if_dead(self, job_id: str) -> None:
+        """Drop the bytes of a job that can no longer be prepared; its status stays readable."""
+        try:
+            manifest = self.get(job_id)
+        except (MediaJobNotFound, OSError, ValueError):
+            return
+        task = self._tasks.get(job_id)
+        if manifest.get("state") not in self.DEAD_STATES or (task is not None and not task.done()
+                                                              and task is not asyncio.current_task()):
+            return
+        self._drop_files(self._dir(job_id))
+        if not manifest.get("files_released"):
+            manifest["files_released"] = True
+            self._write(job_id, manifest)
+
+    def sweep(self, now: float | None = None) -> dict[str, int]:
+        """Release dead, abandoned and long-finished copies in the work folder(s)."""
+        now = time.time() if now is None else now
+        counts = {"released": 0, "abandoned": 0, "removed": 0}
+        for root in [self.root, *self.extra_roots]:
+            if not root.is_dir():
+                continue
+            for manifest_path in root.glob("*/job.json"):
+                job_dir = manifest_path.parent
+                task = self._tasks.get(job_dir.name) if root == self.root else None
+                if task is not None and not task.done():
+                    continue
+                try:
+                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError, json.JSONDecodeError):
+                    continue
+                state = manifest.get("state")
+                idle = now - float(manifest.get("updated_at") or manifest.get("created_at") or now)
+                try:
+                    if state == "COMPLETE" and idle > self.COMPLETE_IDLE_SECONDS:
+                        shutil.rmtree(job_dir, ignore_errors=True)
+                        counts["removed"] += 1
+                    elif state == "WAITING_FOR_DECISION" and idle > self.WAITING_IDLE_SECONDS:
+                        self._drop_files(job_dir)
+                        manifest.update(state="CANCELED", error="MEDIA_JOB_ABANDONED", files_released=True)
+                        self._write_manifest_at(manifest_path, manifest)
+                        counts["abandoned"] += 1
+                    elif state in self.DEAD_STATES and (not manifest.get("files_released")
+                                                         or any(p.name != "job.json" for p in job_dir.iterdir())):
+                        self._drop_files(job_dir)
+                        manifest["files_released"] = True
+                        self._write_manifest_at(manifest_path, manifest)
+                        counts["released"] += 1
+                except OSError:
+                    continue
+        return counts
 
     def cleanup_expired(self) -> int:
         if not self.root.is_dir():
@@ -209,6 +295,7 @@ class MediaJobManager:
     async def create(self, chunks: AsyncIterator[bytes], *, filename: str, content_type: str) -> dict[str, Any]:
         async with self._reservation_lock:
             self.cleanup_expired()
+            self.sweep()
             if self._nonterminal_count() >= 2:
                 raise MediaJobConflict("one media job is active and one is already waiting")
             job_id = str(uuid.uuid4())
@@ -228,7 +315,7 @@ class MediaJobManager:
                 async for chunk in chunks:
                     size += len(chunk)
                     if size > self.MAX_BYTES:
-                        raise MediaTooLarge("media exceeds 3 GiB")
+                        raise MediaTooLarge("media exceeds %d GiB" % (self.MAX_BYTES // (1024 ** 3)))
                     digest.update(chunk)
                     handle.write(chunk)
         except Exception:
@@ -265,6 +352,12 @@ class MediaJobManager:
         self._write(job_id, manifest)
 
     async def _probe(self, job_id: str) -> None:
+        try:
+            await self._probe_inner(job_id)
+        finally:
+            self.release_if_dead(job_id)
+
+    async def _probe_inner(self, job_id: str) -> None:
         async with self._capacity:
             manifest = self.get(job_id)
             if self._cancel[job_id].is_set():
@@ -419,6 +512,13 @@ class MediaJobManager:
 
     async def _prepare(self, job_id: str, mode: str, plan: dict[str, Any], rendition: str = "full",
                        video_encoder: str | None = None) -> None:
+        try:
+            await self._prepare_inner(job_id, mode, plan, rendition, video_encoder)
+        finally:
+            self.release_if_dead(job_id)
+
+    async def _prepare_inner(self, job_id: str, mode: str, plan: dict[str, Any], rendition: str = "full",
+                             video_encoder: str | None = None) -> None:
         async with self._capacity:
             job_dir = self._dir(job_id)
             source = job_dir / "source.media"
@@ -562,13 +662,15 @@ class MediaJobManager:
             self._cancel.setdefault(job_id, asyncio.Event()).set()
             manifest["state"] = "CANCELED"
             self._write(job_id, manifest)
-            return manifest
+            self.release_if_dead(job_id)
+            return self.get(job_id)
         self._cancel.setdefault(job_id, asyncio.Event()).set()
         task = self._tasks.get(job_id)
         # Without a live task nobody will ever observe the cancel event; end the job here.
         manifest["state"] = "CANCEL_REQUESTED" if task is not None and not task.done() else "CANCELED"
         self._write(job_id, manifest)
-        return manifest
+        self.release_if_dead(job_id)
+        return self.get(job_id)
 
     def file_path(self, job_id: str, rendition: str = "full") -> Path:
         manifest = self.get(job_id)
@@ -597,6 +699,7 @@ class MediaJobManager:
             "deleted_lite_output": (self._dir(job_id) / "ready-lite.mp4").is_file(),
             "deleted_temporary": (self._dir(job_id) / "output.partial.mp4").is_file(),
             "deleted_subtitles": (self._dir(job_id) / "subtitles").is_dir(),
+            "files_released_earlier": bool(manifest.get("files_released")),
         }
         shutil.rmtree(self._dir(job_id), ignore_errors=False)
         self._tasks.pop(job_id, None)

@@ -114,9 +114,25 @@ async def lifespan(app: FastAPI):
     if config.ASR_ENABLED:
         await asr_job_manager.start()
 
+    async def sweep_temporary_copies() -> None:
+        # Owner decision 2026-09-28: temporary copies are released as soon as nothing can use
+        # them, not a day later; this pass also catches jobs abandoned by a closed tab.
+        while True:
+            try:
+                await asyncio.to_thread(media_job_manager.sweep)
+                await asyncio.to_thread(media_job_manager.cleanup_expired)
+                await asr_job_manager.release_idle_sources()
+                await asr_job_manager.cleanup_expired()
+            except Exception:
+                log.exception("temporary copy sweep failed")
+            await asyncio.sleep(TEMPORARY_SWEEP_INTERVAL_SEC)
+
+    sweeper = asyncio.create_task(sweep_temporary_copies())
+
     try:
         yield
     finally:
+        sweeper.cancel()
         registry.stop_accepting()
         if config.ASR_ENABLED:
             await asr_job_manager.shutdown()
@@ -137,6 +153,8 @@ async def lifespan(app: FastAPI):
         await asyncio.to_thread(asr_worker.shutdown)
         log.info("ai-local stopped")
 
+
+TEMPORARY_SWEEP_INTERVAL_SEC = 10 * 60
 
 app = FastAPI(title="ai-local", version="0.1.0", lifespan=lifespan)
 

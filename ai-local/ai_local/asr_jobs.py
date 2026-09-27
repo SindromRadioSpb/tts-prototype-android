@@ -47,6 +47,10 @@ ACTIVE_STATES = {
     "TRANSCRIBING", "VALIDATING", "COOLING", "CANCEL_REQUESTED",
 }
 SOURCE_NAME = "source.media"
+# Owner decision 2026-09-28: a finished job keeps its (up to 15 GiB) source copy for six idle hours,
+# enough to resume or retry chunks after a break, then only the record and result remain.
+ASR_SOURCE_IDLE_SEC = 6 * 60 * 60
+SOURCE_RELEASE_STATES = {"COMPLETE", "FAILED", "CANCELED", "RECOVERABLE"}
 MANIFEST_NAME = "job.json"
 RESULT_NAME = "result.json"
 
@@ -408,6 +412,9 @@ class AsrJobManager:
             record = _json(path / MANIFEST_NAME)
             if record.get("state") not in {"RECOVERABLE", "CANCELED", "FAILED"}:
                 raise ValueError("job is not resumable")
+            # Resumption re-slices from the source unless the chunks already exist on disk.
+            if not (path / SOURCE_NAME).is_file() and not any((path / "chunks").glob("*.wav")):
+                raise ValueError("the source copy was released; start a new recognition")
             if record.get("model") != model_identity():
                 raise ValueError("job model pin does not match the current L1 contract")
             record["attempt_id"] = uuid.uuid4().hex
@@ -518,6 +525,32 @@ class AsrJobManager:
                 raise ValueError("cancel the active job before deleting it")
         await asyncio.to_thread(shutil.rmtree, path)
         return {"deleted": True, "job_id": job_id, "receipt_at": utc_iso()}
+
+    async def release_idle_sources(self, now: float | None = None) -> int:
+        cutoff = (now or time.time()) - ASR_SOURCE_IDLE_SEC
+        released = 0
+        if not self.root.exists():
+            return 0
+        for path in self.root.iterdir():
+            manifest = path / MANIFEST_NAME
+            source = path / SOURCE_NAME
+            if not path.is_dir() or not manifest.is_file() or not source.is_file():
+                continue
+            try:
+                record = _json(manifest)
+                updated = datetime.fromisoformat(record["updated_at"]).timestamp()
+            except (OSError, ValueError, KeyError):
+                continue
+            if record.get("state") not in SOURCE_RELEASE_STATES or updated >= cutoff:
+                continue
+            try:
+                source.unlink()
+            except OSError:
+                continue
+            record["source_released"] = True
+            _atomic_json(manifest, record)
+            released += 1
+        return released
 
     async def cleanup_expired(self, now: float | None = None) -> int:
         cutoff = (now or time.time()) - ASR_JOB_TTL_SEC

@@ -110,7 +110,9 @@ async def test_cancel_and_delete_remove_partial_job_files(tmp_path):
     assert manager.get(job["job_id"])["state"] == "CANCELED"
     receipt = await manager.delete(job["job_id"])
     assert receipt["schema"] == "media-job-delete-receipt-v1"
-    assert receipt["deleted_source"] is True
+    # Since 2026-09-28 a cancelled job releases its copy at once; delete then removes the record.
+    assert receipt["deleted_source"] is False
+    assert receipt["files_released_earlier"] is True
     assert not (tmp_path / job["job_id"]).exists()
 
 
