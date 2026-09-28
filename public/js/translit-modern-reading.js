@@ -5,7 +5,9 @@
 // consonant letters of full spelling (מצווה, שוויץ, אייל) are two letters. Learners hear modern
 // speech, so the learner and Russian profiles read the pointed text through this pass first:
 //   - a sheva the modern speaker pronounces becomes hataf segol ("e"), every other sheva stays
-//     a sheva, which those profiles render as nothing;
+//     a sheva, which those profiles render as nothing. A ב/כ with sheva at the start of the word
+//     is the prefix (bemahalakh) unless Pealim reads the word with that letter in a cluster
+//     (bgadim, kvar: translit-cluster-words.js); an unknown word counts as prefixed;
 //   - an aleph without a vowel of its own is dropped (hu, lo, yotse, Maya);
 //   - a bare vav or yod right after a pointed one of the same letter is a spelling letter and
 //     is dropped (mitsva, Shvayts, Eyal). This last rule is orthography, so SBL uses it too;
@@ -34,6 +36,13 @@
   // ...and before these: pe'amim, behafta'a, beyakhad.
   var SPOKEN_BEFORE = "אהעי";
   var FINAL = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+  var CLUSTER_WORDS = {};
+  (function () {
+    var list = null;
+    try { list = typeof require === "function" ? require("./translit-cluster-words.js") : null; } catch (_) { list = null; }
+    if (!list && typeof globalThis !== "undefined") list = globalThis.TranslitClusterWords;
+    (list || []).forEach(function (w) { CLUSTER_WORDS[w] = 1; });
+  })();
 
   function base(letter) { return FINAL[letter] || letter; }
   // Neighbours a speaker cannot run together without a vowel: the same letter, b/v before v
@@ -83,37 +92,56 @@
     });
   }
 
-  // Where the word itself begins: after proclitics that took a full vowel and doubled the next
-  // letter (the article and its partners: הַקְּ, לַקְּ, שֶׁלְּ, מֵהַ...).
+  // Where the word itself begins: after the conjunction וּ and after proclitics that took a full
+  // vowel and doubled the next letter (the article and its partners: הַקְּ, לַקְּ, שֶׁלְּ, מֵהַ...).
+  // `prepositional`: the stem may still open with the prepositions ב/כ — nothing before it but וּ
+  // and שֶׁ; after the article (הַבְּגָדִים) the ב/כ can only be a root letter.
   function stemStart(letters) {
-    var s = 0;
-    while (s < letters.length - 2 && s < 3) {
+    var s = 0, prepositional = true;
+    if (letters.length > 2 && letters[0].ch === "ו" && letters[0].marks === DAGESH) s = 1;
+    var limit = s + 3;
+    while (s < letters.length - 2 && s < limit) {
       var l = letters[s], next = letters[s + 1];
       if (PREFIX_LETTERS.indexOf(l.ch) < 0 || !hasVowel(l)) break;
       var doubled = next.marks.indexOf(DAGESH) >= 0 && next.ch !== "ו";
       var article = next.ch === "ה" && /[ַָ]/.test(next.marks);
       if (!doubled && !article) break;
+      if (l.ch !== "ש") prepositional = false;
       s++;
     }
-    return s;
+    return { s: s, prepositional: prepositional };
+  }
+
+  function skeleton(letters) {
+    return letters.filter(function (l) { return LETTER_RE.test(l.ch); }).map(function (l) { return base(l.ch); }).join("")
+      .replace(/וו/g, "ו").replace(/יי/g, "י");
+  }
+
+  // Is the ב/כ with sheva opening the stem a preposition (bemahalakh), not a root letter (bgadim)?
+  // Read from the word as written, before letters are dropped. כְּשֶׁ is the conjunction "kshe".
+  function prefixAtStem(letters) {
+    var st = stemStart(letters), l = letters[st.s], next = letters[st.s + 1];
+    if (!st.prepositional || !next || (l.ch !== "ב" && l.ch !== "כ") || l.marks.indexOf(SHEVA) < 0) return false;
+    if (l.ch === "כ" && next.ch === "ש" && next.marks.indexOf("ֶ") >= 0) return false;
+    return CLUSTER_WORDS[skeleton(letters.slice(st.s))] !== 1;
   }
 
   // Loanwords whose doubled letter is one long consonant, not two with a vowel between (yalla,
   // not yalela). Keyed by the bare consonants; grows only from reviewed words.
   var GEMINATE_LOANS = { "יאללה": 1, "וואללה": 1, "ואללה": 1, "אללה": 1 };
 
-  function modernSheva(letters, consonants) {
+  function modernSheva(letters, consonants, prefixed) {
     // A word with no full vowel at all is an interjection (שְׁשְׁשׁ): leave it as the library reads it.
     var voiced = letters.some(function (l) { return hasVowel(l) || (l.ch === "ו" && /[ֹּ]/.test(l.marks)); });
     if (!voiced) return letters;
-    var n = letters.length, s = stemStart(letters), spokenPrev = null;
+    var n = letters.length, s = stemStart(letters).s, spokenPrev = null;
     var geminateLoan = GEMINATE_LOANS[consonants] === 1;
     return letters.map(function (l, i) {
       if (l.marks.indexOf(SHEVA) < 0) { spokenPrev = null; return l; }
       var next = letters[i + 1];
       var spoken = false;
       if (next && i < n - 1) {
-        if (i === s && (SPOKEN_FIRST.indexOf(l.ch) >= 0 || SPOKEN_BEFORE.indexOf(next.ch) >= 0 || alike(l.ch, next.ch))) spoken = true;
+        if (i === s && (prefixed || SPOKEN_FIRST.indexOf(l.ch) >= 0 || SPOKEN_BEFORE.indexOf(next.ch) >= 0 || alike(l.ch, next.ch))) spoken = true;
         else if (spokenPrev === false) spoken = true; // the second of two shevas
         else if (base(next.ch) === base(l.ch) && !geminateLoan) spoken = true; // שׁוּחְרְרוּ, before the same letter
       }
@@ -125,9 +153,10 @@
   function prepareWord(word, opts) {
     var letters = parse(word);
     var consonants = letters.map(function (l) { return l.ch; }).join("");
+    var prefixed = !!opts.sheva && prefixAtStem(letters);
     if (opts.doubled !== false) letters = collapseDoubled(letters);
     if (opts.aleph) letters = dropQuiescentAleph(letters);
-    if (opts.sheva) letters = modernSheva(letters, consonants);
+    if (opts.sheva) letters = modernSheva(letters, consonants, prefixed);
     return join(letters);
   }
 
@@ -146,5 +175,5 @@
     return markGeresh(String(text == null ? "" : text).normalize("NFD")).normalize("NFC").replace(WORD_RE, function (word) { return prepareWord(word, opts); });
   }
 
-  return { prepare: prepare, GERESH: GERESH, VERSION: "modern-reading-v2" };
+  return { prepare: prepare, GERESH: GERESH, VERSION: "modern-reading-v3" };
 });

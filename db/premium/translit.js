@@ -18,7 +18,7 @@
 // Bump the relevant version string in versions.js TRANSLIT_PROFILE_VERSIONS
 // whenever either schema changes, so segment-cache rows are invalidated.
 
-const { transliterate: _lib, Schema } = require("hebrew-transliteration");
+const { transliterate: _lib, Schema, Text: _Syllables } = require("hebrew-transliteration");
 const { sblAcademicSpirantization, sblSimple } = require("hebrew-transliteration/schemas");
 const { normalizeLearnerLatinTranslit } = require("../../public/js/table-niqqud-normalizer.js");
 const ModernReading = require("../../public/js/translit-modern-reading.js");
@@ -199,8 +199,39 @@ function _geresh(value, profile) {
   return out.split(G).join("");
 }
 
+// The library tells a qamats qatan (כָּל, חָכְמָה) by the syllables of the word as written. Once the
+// modern pass turns a prefix sheva into hataf segol (לְכָל → לֱכָל) it no longer sees one and
+// reads "lekhal", so the modern profiles take its verdict from the original word first and mark
+// it with the explicit sign ׇ, which the library always reads as o.
+const QAMATS = "ָ", QAMATS_QATAN = "ׇ";
+const WORD_RE = /[א-ת][֑-ׇא-ת]*/g;
+function _letterGroups(word) {
+  return word.normalize("NFD").match(/[א-ת][֑-ׇ]*/g) || [];
+}
+// The library knows one prefix in front of the word (לְכָל) but not two (וּלְכָל, שֶׁבְּכָל), so a
+// word opening with the conjunction וּ or with שֶׁ is asked again without it.
+const LEADING_PROCLITIC = /^(?:וּ|שׁ?ֶׁ?)(?=[א-ת])/;
+function _markWord(word) {
+  const nfd = word.normalize("NFD");
+  if (nfd.indexOf(QAMATS) < 0) return word;
+  let read = "";
+  try { read = new _Syllables(word, { qametsQatan: true }).text; } catch (_) { read = ""; }
+  const mine = _letterGroups(word), theirs = _letterGroups(read);
+  if (read.indexOf(QAMATS_QATAN) >= 0 && mine.length === theirs.length) {
+    return mine.map((group, i) => (theirs[i].indexOf(QAMATS_QATAN) >= 0 ? group.replace(QAMATS, QAMATS_QATAN) : group))
+      .join("").normalize("NFC");
+  }
+  const lead = nfd.match(LEADING_PROCLITIC);
+  return lead ? (lead[0] + _markWord(nfd.slice(lead[0].length))).normalize("NFC") : word;
+}
+function _markQamatsQatan(text) {
+  if (text.normalize("NFD").indexOf(QAMATS) < 0) return text;
+  return text.replace(WORD_RE, _markWord);
+}
+
 function _read(text, reading) {
-  return typeof text === "string" ? ModernReading.prepare(text, reading) : text;
+  if (typeof text !== "string") return text;
+  return ModernReading.prepare(reading.sheva ? _markQamatsQatan(text) : text, reading);
 }
 
 // Backward-compatible default (SBL profile).

@@ -23,9 +23,12 @@ const TRANSLIT_PROFILE_VERSIONS = {
   // v7 / v3 / v4 (O-033 tails, 2026-09-28): geresh ג' ז' צ' → j/zh/ch in every profile; Arabic
   // loans with a doubled letter (יאללה) keep one long consonant in learner and Russian.
   // v8 / v4 / v5 (2026-09-29): gershayim inside an abbreviation (צה״ל) is dropped before reading.
+  // v8 / v5 / v6 (2026-09-29): a ב/כ prefix takes its e unless Pealim reads the word in a cluster
+  // (bemahalakh, bgadim); the stem starts again after וּ; a qamats qatan survives a spoken prefix
+  // sheva (lekhol). SBL is unchanged.
   "sbl":         "sbl-v8-gershayim",
-  "ru-phonetic": "ru-phonetic-v4-gershayim",
-  "learner-latin": "learner-latin-v5-gershayim",
+  "ru-phonetic": "ru-phonetic-v5-prefix",
+  "learner-latin": "learner-latin-v6-prefix",
 };
 
 function translitProfileVersion(profile) {

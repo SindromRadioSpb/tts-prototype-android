@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.687";
+const CACHE_VERSION = "v3.11.688";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=643",
-  "/js/mediatheque-ui.js?v=687",
+  "/js/mediatheque-ui.js?v=688",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -203,7 +203,7 @@ const PRECACHE_URLS = [
   "/js/media-stream-store.js?v=584",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
-  "/js/local-translit-bundle.js?v=687",
+  "/js/local-translit-bundle.js?v=688",
   "/js/translit-display.js?v=680",
   "/js/subtitle-material-vocalization.js?v=686",
   "/js/niqqud-plausibility.js?v=685",
@@ -233,7 +233,7 @@ const PRECACHE_URLS = [
   "/js/media-package-repository.js?v=587",
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js?v=553",
-  "/js/portable-learning-package-core.js?v=687",
+  "/js/portable-learning-package-core.js?v=688",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=576",
   "/js/studio-media-package.js?v=676",

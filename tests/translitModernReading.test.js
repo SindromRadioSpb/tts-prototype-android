@@ -93,6 +93,51 @@ test("Arabic loans with a doubled letter keep one long consonant", () => {
   assert.equal(learner("שׁוּחְרְרוּ"), "shukhreru", "native words keep the spoken sheva before the same letter");
 });
 
+// O-033, 2026-09-29: a ב/כ prefix before an ordinary consonant was read as a cluster
+// (bmahalakh, btsahal) because only morphology tells it from a root letter (bgadim). Words whose
+// ב/כ is a root letter come from Pealim's own transcriptions; an unknown word is read as prefixed
+// (owner's decision): in the Ben-Yehuda corpus 9 697 of 15 445 such words carry the prefix.
+test("a ב/כ prefix takes its e, a root ב/כ stays in the cluster", () => {
+  const cases = [
+    ["בְּמַהֲלַךְ", "bemahalakh"], ["בְּצַהַ״ל", "betsahal"], ["בְּסוֹף", "besof"], ["בְּדֶרֶךְ", "bederekh"],
+    ["כְּשֵׁם", "keshem"], ["בְּתוֹךְ", "betokh"], ["בְּמֶשֶׁךְ", "bemeshekh"],
+    ["בְּגָדִים", "bgadim"], ["בְּרָכָה", "brakha"], ["כְּתִיבָה", "ktiva"], ["בְּדִיקָה", "bdika"], ["בְּרֵיכָה", "brekha"],
+    ["כְּבָר", "kvar"], ["כְּמוֹ", "kmo"], ["כְּדֵי", "kde"], ["בְּלִי", "bli"], ["כְּלוֹמַר", "klomar"],
+    ["כְּשֶׁהוּא", "kshehu"], ["הַבְּגָדִים", "habgadim"],
+  ];
+  const wrong = cases.filter(([he, want]) => learner(he) !== want).map(([he, want]) => `${he}: ${learner(he)} ≠ ${want}`);
+  assert.deepEqual(wrong, []);
+  assert.equal(T("בְּמַהֲלַךְ", "ru-phonetic"), "бэмахалах");
+  assert.equal(T("בְּגָדִים", "ru-phonetic"), "бгадим");
+});
+
+// Since 3.11.678 a spoken prefix sheva hid the qamats qatan from the library (לְכָל → lekhal).
+test("a spoken prefix sheva keeps the qamats qatan of the word after it", () => {
+  assert.equal(learner("לְכָל"), "lekhol");
+  assert.equal(learner("בְּכָל"), "bekhol");
+  assert.equal(learner("וְכָל"), "vekhol");
+  assert.equal(learner("וּלְכָל"), "ulekhol", "behind the conjunction וּ too");
+  assert.equal(learner("שֶׁבְּכָל"), "shebekhol");
+  assert.equal(T("בְּכָל", "ru-phonetic"), "бэхол");
+  assert.equal(learner("כָּל"), "kol");
+  assert.equal(learner("בְּחָכְמָה"), "bekhokhma");
+  assert.equal(learner("בְּשָׁלוֹם"), "beshalom", "a plain qamats stays a");
+});
+
+test("after the conjunction וּ the word starts again", () => {
+  assert.equal(learner("וּלְסִיבּוּב"), "ulesibuv");
+  assert.equal(learner("וּבְמַהֲלַךְ"), "uvemahalakh");
+  assert.equal(learner("וּבְגָדִים"), "uvgadim");
+  assert.equal(learner("שֶׁבְּמַהֲלַךְ"), "shebemahalakh");
+});
+
+test("the root-cluster word list is rebuilt from Pealim exactly", () => {
+  const { buildClusterWords, renderModule } = require("../scripts/premium/build-translit-cluster-words.js");
+  const fs = require("node:fs"), path = require("node:path");
+  const committed = fs.readFileSync(path.join(__dirname, "..", "public", "js", "translit-cluster-words.js"), "utf8");
+  assert.equal(committed, renderModule(buildClusterWords()), "run: node scripts/premium/build-translit-cluster-words.js");
+});
+
 // 2026-09-29: gershayim in an abbreviation stayed in the output (בְּצַהַ״ל → btsaha״l).
 test("gershayim inside an abbreviation is spelling; quotes around words stay", () => {
   assert.equal(T("צַהַ״ל", "learner-latin"), "Tsahal");
