@@ -251,7 +251,13 @@
     const uniqueRowKeys=new Set();for(const revision of model.portableTables)for(const row of revision.rows){uniqueRowKeys.add(canonicalJson({portable_row_id:row.portable_row_id,he_plain:row.he_plain,he_niqqud:row.he_niqqud,translit:row.translit,translit_ru:row.translit_ru,ru:row.ru,field_meta:row.field_meta}));}
     await Promise.all(Array.from(uniqueRowKeys).map(async(key)=>rowHashCache.set(key,await sha256Hex(key))));
     function node(id, type, canonicalHash, metadata) { artifacts.push({ id, type, canonical_hash: cleanHex(canonicalHash), schema_version: 1, canonical_ref: { store: type }, metadata: metadata || {} }); artifactIds.add(id); }
-    function edge(from, relation, to, sourceHash, fragment) { edges.push({ from, relation, to, ...(fragment ? { to_fragment: fragment } : {}), source_hash: cleanHex(sourceHash), fact_kind: 'asserted' }); }
+    // An unchanged row is one node across table revisions; revisions bound to the same caption
+    // revision assert the same mapping again. One fact, one edge (same key as validateGraph).
+    const edgeKeys = new Set();
+    function edge(from, relation, to, sourceHash, fragment) {
+      const key = [from, relation, to, fragment || ''].join('\u0000'); if (edgeKeys.has(key)) return; edgeKeys.add(key);
+      edges.push({ from, relation, to, ...(fragment ? { to_fragment: fragment } : {}), source_hash: cleanHex(sourceHash), fact_kind: 'asserted' });
+    }
     if (model.mediaId) node(model.mediaId, 'media_asset', model.mediaSha, { mime: model.input.package.mime || null, size_bytes: model.input.package.size_bytes == null ? null : Number(model.input.package.size_bytes), duration_ms: model.input.package.duration_ms == null ? null : Number(model.input.package.duration_ms), codec_hint: model.input.package.codec_hint || null });
     node(model.mediaPackageId, 'media_package', model.packageDescriptorHash, { media_included: false });
     if (model.mediaId) edge(model.mediaPackageId, 'references_media', model.mediaId, model.packageDescriptorHash);

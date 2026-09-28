@@ -14,7 +14,7 @@
 // Sentence boundaries themselves are unchanged (byte-parity corpus check).
 const SEGMENTER_VERSION = "regex-v2-lineidx";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v7-geresh"; // default; also the cache-key string for profile "sbl"
+const TRANSLIT_PROFILE  = "sbl-v8-gershayim"; // default; also the cache-key string for profile "sbl"
 
 // Stable cache-key strings per profile. Bump when the corresponding schema changes.
 const TRANSLIT_PROFILE_VERSIONS = {
@@ -22,9 +22,10 @@ const TRANSLIT_PROFILE_VERSIONS = {
   // once in every profile; learner and Russian read modern sheva and a silent aleph.
   // v7 / v3 / v4 (O-033 tails, 2026-09-28): geresh ג' ז' צ' → j/zh/ch in every profile; Arabic
   // loans with a doubled letter (יאללה) keep one long consonant in learner and Russian.
-  "sbl":         "sbl-v7-geresh",
-  "ru-phonetic": "ru-phonetic-v3-geresh",
-  "learner-latin": "learner-latin-v4-geresh",
+  // v8 / v4 / v5 (2026-09-29): gershayim inside an abbreviation (צה״ל) is dropped before reading.
+  "sbl":         "sbl-v8-gershayim",
+  "ru-phonetic": "ru-phonetic-v4-gershayim",
+  "learner-latin": "learner-latin-v5-gershayim",
 };
 
 function translitProfileVersion(profile) {

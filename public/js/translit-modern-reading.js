@@ -133,8 +133,12 @@
 
   // opts: { sheva, aleph } for modern learner/Russian reading; doubled letters always collapse
   // unless opts.doubled === false.
+  // Gershayim inside an abbreviation (צה״ל, צה"ל) is spelling, not a sound: the word is read whole.
+  var GERSHAYIM_RE = /([א-ת][֑-ׇ]*)[״"]([א-ת])/g;
+
   function markGeresh(text) {
-    return text.replace(GERESH_RE, function (_whole, letter, before, after) { return GERESH + letter + before + after; });
+    return text.replace(GERESH_RE, function (_whole, letter, before, after) { return GERESH + letter + before + after; })
+      .replace(GERSHAYIM_RE, "$1$2");
   }
 
   function prepare(text, options) {

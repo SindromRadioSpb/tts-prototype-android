@@ -58,6 +58,8 @@ function announce(message, error = false) {
   clearTimeout(toastTimer); $('ml-status').textContent = message; $('ml-status').dataset.error = String(error);
   toastTimer = setTimeout(() => { $('ml-status').textContent = ''; }, error ? 12000 : 5500);
 }
+// A code the page does not know still reaches the owner instead of a bare "check the fields".
+function withCode(code) { return /^[A-Z][A-Z0-9_]{2,80}$/.test(code) ? ' (' + code + ')' : ''; }
 function errorText(error) {
   const code = String(error && (error.code || error.message) || '');
   if (/DRAFT_VERSION_CONFLICT/.test(code)) return t('draftConflict');
@@ -76,9 +78,10 @@ function errorText(error) {
   if (/MATERIAL_ARCHIVE_UNAVAILABLE/.test(code)) return t('archiveUnavailable');
   if (/EDITION_PURGED/.test(code)) return t('editionPurged');
   if (/MATERIAL_ARCHIVE_NO_MATERIAL/.test(code)) return t('archiveNoMaterial');
-  if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid');
+  // The package verifier's own codes (GRAPH_EDGE_DUPLICATE, MANIFEST_…) name the defect: show it.
+  if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|GRAPH_|MANIFEST_|CANONICAL_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid') + withCode(code);
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF/.test(code)) return t('signInOwner');
-  return t('failed');
+  return t('failed') + withCode(code);
 }
 async function api(path, body, idempotencyKey) {
   const headers = { Accept: 'application/json' };

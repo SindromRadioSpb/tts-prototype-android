@@ -164,3 +164,22 @@ test('independent oracle accepts re-export semantic equality and rejects drift',
   const drift={...target,'learning/text-card.json':target['learning/text-card.json'].replace('привет','ошибка')};
   assert.throws(()=>Oracle.verify(drift),/ORACLE_SHA/);
 });
+
+// Owner report 2026-09-29: a material edited after the build (5 table revisions) exported archives
+// the Mediatheque rejected with GRAPH_EDGE_DUPLICATE: an unchanged mapped row is one learning-row
+// node, and every revision bound to the same caption revision emitted its maps_to_segment again.
+test('archive of a material edited after the build keeps one mapping edge per unchanged row', async () => {
+  const input = fixture();
+  const first = input.table_revisions[0];
+  const second = { ...JSON.parse(JSON.stringify(first)), table_revision_id: 'table-local-uuid-2', revision_no: 2,
+    parent_revision_id: first.table_revision_id, content_sha256: 'f'.repeat(64),
+    impact: { kind: 'inline_manual', stable_row_id: 'sentence-local-uuid', field: 'ru', zero_provider_calls: true } };
+  input.table_revisions.push(second);
+  input.material.current_table_revision_id = second.table_revision_id;
+  input.selected_table_revision_id = second.table_revision_id;
+  for (const mode of ['archive', 'snapshot']) {
+    const files = await Core.buildPackageFiles(input, { mode });
+    const verified = await Core.verifyPackageFiles(files);
+    assert.equal(verified.graph.edges.filter((edge) => edge.relation === 'maps_to_segment').length, 1, mode);
+  }
+});

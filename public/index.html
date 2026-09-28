@@ -13718,7 +13718,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=684"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
-<script src="/js/local-translit-bundle.js?v=683"></script>
+<script src="/js/local-translit-bundle.js?v=687"></script>
 <script src="/js/translit-display.js?v=680"></script>
 <script src="/js/subtitle-material-vocalization.js?v=686"></script>
 <!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
@@ -13755,7 +13755,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=633"></script>
 <script src="/js/learning-material-task-ui.js?v=633"></script>
-<script src="/js/portable-learning-package-core.js"></script>
+<script src="/js/portable-learning-package-core.js?v=687"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
 <script src="/js/learning-compass-core.js"></script>
@@ -13845,7 +13845,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.686";
+    window.APP_VERSION = "3.11.687";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -22019,7 +22019,7 @@ updatePlaylistButtonUI();
             if (localNiqqud.corrections.length > 0) {
                 cache.rows = currentTableData;
                 cache.tableCacheContract = TABLE_CACHE_CONTRACT_VERSION;
-                cache.translitProfileVersion = "learner-latin-v4-geresh";
+                cache.translitProfileVersion = "learner-latin-v5-gershayim";
                 cache.localNiqqudNormalizerVersion = localNiqqud.version;
                 cache.localNiqqudCorrections = localNiqqud.corrections;
                 v3StoreTableCache(cache);

@@ -92,3 +92,11 @@ test("Arabic loans with a doubled letter keep one long consonant", () => {
   assert.equal(T("יַאלְלָה", "ru-phonetic"), "йалла");
   assert.equal(learner("שׁוּחְרְרוּ"), "shukhreru", "native words keep the spoken sheva before the same letter");
 });
+
+// 2026-09-29: gershayim in an abbreviation stayed in the output (בְּצַהַ״ל → btsaha״l).
+test("gershayim inside an abbreviation is spelling; quotes around words stay", () => {
+  assert.equal(T("צַהַ״ל", "learner-latin"), "Tsahal");
+  assert.equal(T('צַהַ"ל', "ru-phonetic"), "цахал");
+  assert.equal(T("תַּנַ״ךְ", "sbl"), "tanaḵ");
+  assert.equal(T('הִיא אָמְרָה "כֵּן"', "learner-latin"), 'Hi amra "ken"');
+});
