@@ -11,6 +11,33 @@
       .normalize("NFC").replace(/\s+/g, " ").trim();
   }
 
+  // Asked with this marker, the model keeps each mater lectionis and marks it; subtitles are
+  // written in full spelling, so only then do its consonants match the source (O-032).
+  // A rare sign, because a subtitle may carry its own asterisks.
+  var MATRES_MARK = "¤";
+
+  // Turn the marked full-spelling answer into ordinary pointed text: a qubbuts before a marked
+  // vav becomes shuruk, a holam before a marked vav moves onto the vav, a holam doubled on the
+  // letter and on its vav keeps only the vav's, and the markers go.
+  function normalizeMatres(text) {
+    var nfd = String(text || "").normalize("NFD");
+    var letterWithMarks = /([א-ת])([֑-ׇ]*)ו([֑-ׇ]*)(¤?)/g;
+    nfd = nfd.replace(letterWithMarks, function (whole, letter, marks, vavMarks, marker) {
+      if (letter === "ו" && !marks) return whole;
+      if (marker && marks.indexOf("ֻ") >= 0 && !vavMarks) {
+        return letter + marks.replace("ֻ", "") + "וּ";
+      }
+      if (marker && marks.indexOf("ֹ") >= 0 && !vavMarks) {
+        return letter + marks.replace("ֹ", "") + "וֹ";
+      }
+      if (!marker && marks.indexOf("ֹ") >= 0 && vavMarks === "ֹ") {
+        return letter + marks.replace("ֹ", "") + "וֹ";
+      }
+      return whole;
+    });
+    return nfd.split(MATRES_MARK).join("").normalize("NFC");
+  }
+
   function tokenKey(token) {
     return plain(token).replace(/[^\u05d0-\u05ea]/g, "");
   }
@@ -86,12 +113,12 @@
       }
       var indexes = targetIndexes.slice(start, start + 16);
       var source = indexes.map(function (index) { return String(output[index].he || ""); });
-      var result = await opts.client.vocalizeTexts(source);
+      var result = await opts.client.vocalizeTexts(source, { markMatres: MATRES_MARK });
       if (!result || !Array.isArray(result.results) || result.results.length !== source.length) {
         throw new Error("LOCAL_VOCALIZATION_COUNT_MISMATCH");
       }
       indexes.forEach(function (index, offset) {
-        var row = output[index], vocalized = String(result.results[offset] || "").trim();
+        var row = output[index], vocalized = normalizeMatres(String(result.results[offset] || "")).trim();
         var projected = vocalized && projectVocalization(row.he, vocalized);
         if (!projected || !projected.matched || plain(projected.text) !== plain(row.he)) {
           row.niqqud_status = "not_vocalized";
@@ -122,5 +149,6 @@
     return { rows: output, warnings: warnings, vocalized: targetIndexes.length - warnings.filter(function (w) { return w.reason === "VOCALIZATION_SOURCE_MISMATCH"; }).length };
   }
 
-  return { enrich: enrich, plain: plain, projectVocalization: projectVocalization };
+  return { enrich: enrich, plain: plain, projectVocalization: projectVocalization, normalizeMatres: normalizeMatres,
+    MATRES_MARK: MATRES_MARK };
 });

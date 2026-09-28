@@ -250,3 +250,13 @@ test("gate retry names exact physical chunks and never re-uploads source bytes",
   assert.ok(calls[0].url.endsWith("/v1/asr/jobs/job-1/retry-chunks"));
   assert.deepEqual(JSON.parse(calls[0].options.body), { chunk_indexes: [1, 3], reason: "s12_7" });
 });
+
+test("niqqud requests can ask the model to mark matres lectionis", async () => {
+  const calls = [];
+  const client = new C.Client({ tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => { calls.push(JSON.parse(options.body)); return response(200, { results: ["x"] }); } });
+  await client.vocalizeTexts(["נקודה"], { markMatres: "¤" });
+  await client.vocalizeTexts(["נקודה"]);
+  assert.deepEqual(calls[0], { texts: ["נקודה"], mark_matres_lectionis: "¤" });
+  assert.deepEqual(calls[1], { texts: ["נקודה"] });
+});

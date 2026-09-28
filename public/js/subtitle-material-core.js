@@ -326,6 +326,43 @@
     return verdicts;
   }
 
+  // Hebrew subtitles made for players without RTL support are stored in "visual order": the full
+  // stop leads the line (".נקודה") and a dialogue dash trails it. Sweet Mud had 427 of 546 rows so
+  // (O-032). The decision is made per track - more Hebrew lines start with punctuation than end
+  // with it - and each line inside a cue is restored on its own; times and the raw track stay.
+  var VISUAL_LEADING = /^([.,!?:;…]+)\s*(.*)$/;
+  var HEBREW_LETTER = /[א-ת]/;
+  function normalizeVisualPunctuation(cues) {
+    var list = Array.isArray(cues) ? cues : [];
+    var leading = 0, trailing = 0;
+    list.forEach(function (cue) {
+      String(cue && cue.text || "").split("\n").forEach(function (line) {
+        var text = line.trim();
+        if (!HEBREW_LETTER.test(text)) return;
+        if (/^[.,!?:;…]/.test(text)) leading++;
+        else if (/[.,!?:;…]$/.test(text)) trailing++;
+      });
+    });
+    if (leading <= trailing) return { cues: list, applied: false, lines: 0 };
+    var changed = 0;
+    var fixed = list.map(function (cue) {
+      var lines = String(cue && cue.text || "").split("\n").map(function (line) {
+        var original = line.trim();
+        if (!HEBREW_LETTER.test(original)) return line;
+        var text = original;
+        var dash = /^(.*?)\s*-$/.exec(text);
+        if (dash && !/^-/.test(text)) text = dash[1].trim();
+        var lead = VISUAL_LEADING.exec(text);
+        if (lead && lead[2]) text = lead[2] + lead[1];
+        if (dash && !/^-/.test(original)) text = "- " + text;
+        if (text !== original) changed++;
+        return text;
+      });
+      return Object.assign({}, cue, { text: lines.join("\n") });
+    });
+    return { cues: fixed, applied: true, lines: changed };
+  }
+
   function buildRows(input) {
     var opts = input || {};
     var cues = Array.isArray(opts.textCues) ? opts.textCues : [];
@@ -517,6 +554,7 @@
     alignTranslation: alignTranslation,
     speechLanguage: speechLanguage,
     buildRows: buildRows,
+    normalizeVisualPunctuation: normalizeVisualPunctuation,
   };
   if (typeof window !== "undefined") window.SubtitleMaterialCore = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

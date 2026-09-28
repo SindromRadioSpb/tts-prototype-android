@@ -2040,6 +2040,12 @@
     subtitlePlanTracks().forEach(function (track) { byIndex[track.index] = track; });
     var textTrack = byIndex[plan.text.index];
     if (!textTrack) return null;
+    // Visual-order Hebrew (".נקודה") is put back in reading order before the rows are built; the
+    // raw track kept as evidence (rawSource) stays exactly as the file had it (O-032).
+    var punctuation = typeof SMC.normalizeVisualPunctuation === "function"
+      ? SMC.normalizeVisualPunctuation(textTrack.cues) : { cues: textTrack.cues, applied: false, lines: 0 };
+    var textCues = punctuation.cues;
+    material.visualPunctuation = { applied: punctuation.applied, lines: punctuation.lines };
     var translationTrack = plan.translation ? byIndex[plan.translation.index] : null;
     var forcedCues = [], languageCues = [];
     var classifiedSignals = SMC.classifyTracks(subtitlePlanTracks());
@@ -2050,18 +2056,18 @@
       if (signal.sdh) languageCues = languageCues.concat(byIndex[index].cues || []);
     });
     var translationCues = translationTrack ? translationTrack.cues : [];
-    var verdicts = SMC.speechLanguage(textTrack.cues, {
+    var verdicts = SMC.speechLanguage(textCues, {
       forcedCues: forcedCues, languageCues: languageCues, translationCues: translationCues, targetLanguage: "he",
     });
     setSubtitlePlanStatus("studio.import.subtitleSyncChecking");
     material.timingAssessment = await window.SubtitleMaterialImport.assessSubtitleSync({
       client: localAsrClient, jobId: pendingAudio.mediaJobId, track: textTrack,
       sourceSha256: job.source_sha256, audioStreamIndex: plan.audio && plan.audio.index,
-      cues: textTrack.cues.filter(function (_, i) { return verdicts[i] && ["target", "target_assumed"].includes(verdicts[i].value); }),
+      cues: textCues.filter(function (_, i) { return verdicts[i] && ["target", "target_assumed"].includes(verdicts[i].value); }),
     });
     var rows = SMC.buildRows({
-      textCues: textTrack.cues, speechLanguage: verdicts,
-      translation: translationCues.length ? SMC.alignTranslation(textTrack.cues, translationCues) : null,
+      textCues: textCues, speechLanguage: verdicts,
+      translation: translationCues.length ? SMC.alignTranslation(textCues, translationCues) : null,
       translationCues: translationCues,
     });
     if (!rows.length) return null;
@@ -2084,6 +2090,8 @@
       origin: "container-track",
       subtitleSync: material.timingAssessment,
       subtitleTrackSha256: textTrack.sha256,
+      // How many lines had their visual-order punctuation restored (0 when the track was logical).
+      visualPunctuationLines: punctuation.lines,
       sourceSha256: job.source_sha256,
       materialImportKey: material.importKey,
       audioStreamIndex: plan.audio && plan.audio.index,
