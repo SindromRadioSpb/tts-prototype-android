@@ -349,6 +349,10 @@
   // (O-032). The decision is made per track - more Hebrew lines start with punctuation than end
   // with it - and each line inside a cue is restored on its own; times and the raw track stay.
   var VISUAL_LEADING = /^([.,!?:;…]+)\s*(.*)$/;
+  // A quote mixed into the leading run (".לבוא) is the mirrored end of the line too: the stop tells
+  // it apart from an opening quote ("לבוא), which stays. Read right to left the run is reversed,
+  // so ". becomes ." and ?" becomes "?.
+  var VISUAL_LEADING_QUOTED = /^((?=[.,!?:;…"'״“”]*["'״“”])(?=[.,!?:;…"'״“”]*[.,!?:;…])[.,!?:;…"'״“”]+)\s*(.*)$/;
   var HEBREW_LETTER = /[א-ת]/;
   function normalizeVisualPunctuation(cues) {
     var list = Array.isArray(cues) ? cues : [];
@@ -357,7 +361,7 @@
       String(cue && cue.text || "").split("\n").forEach(function (line) {
         var text = line.trim();
         if (!HEBREW_LETTER.test(text)) return;
-        if (/^[.,!?:;…]/.test(text)) leading++;
+        if (/^[.,!?:;…]/.test(text) || VISUAL_LEADING_QUOTED.test(text)) leading++;
         else if (/[.,!?:;…]$/.test(text)) trailing++;
       });
     });
@@ -370,8 +374,10 @@
         var text = original;
         var dash = /^(.*?)\s*-$/.exec(text);
         if (dash && !/^-/.test(text)) text = dash[1].trim();
-        var lead = VISUAL_LEADING.exec(text);
-        if (lead && lead[2]) text = lead[2] + lead[1];
+        var quoted = VISUAL_LEADING_QUOTED.exec(text);
+        var lead = !quoted && VISUAL_LEADING.exec(text);
+        if (quoted && quoted[2]) text = quoted[2] + Array.from(quoted[1]).reverse().join("");
+        else if (lead && lead[2]) text = lead[2] + lead[1];
         if (dash && !/^-/.test(original)) text = "- " + text;
         if (text !== original) changed++;
         return text;

@@ -1187,7 +1187,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/text-card-format.js",
   "/js/studio-import.js?v=676",
   "/js/local-asr-client.js?v=675",
-  "/js/subtitle-material-core.js?v=676",
+  "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
   "/js/media-readiness.js?v=671",
   "/js/local-translit-bundle.js?v=683",

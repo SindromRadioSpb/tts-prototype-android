@@ -46,3 +46,12 @@ test("lines without Hebrew keep their text", () => {
   assert.equal(out.applied, true);
   assert.deepEqual(out.cues.map((c) => c.text), ["שלום.", "עוד.", "[music].", "..."]);
 });
+
+// O-033 tail, 2026-09-28: 15 Sweet Mud lines like ".לבוא" kept their stop at the start because the
+// quote hid the run from the rule. A stop in the run marks it as the mirrored line end.
+test("a quote in the leading run moves with the stop; a lone opening quote stays", () => {
+  const out = SMC.normalizeVisualPunctuation([cue("\".לבוא"), cue(".נקודה"), cue("\"שלום לכם"), cue("?\"באמת"), cue("\"")]);
+  assert.equal(out.applied, true);
+  assert.deepEqual(out.cues.map((c) => c.text), ["לבוא.\"", "נקודה.", "\"שלום לכם", "באמת\"?", "\""]);
+  assert.equal(out.lines, 3);
+});
