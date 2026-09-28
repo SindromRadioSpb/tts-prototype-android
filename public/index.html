@@ -13687,7 +13687,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js?v=650"></script>
+<script src="/js/reader-morph.js?v=685"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13720,8 +13720,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/local-translit-bundle.js?v=683"></script>
 <script src="/js/translit-display.js?v=680"></script>
-<script src="/js/subtitle-material-vocalization.js?v=676"></script>
-<script src="/js/material-progress-ladder.js?v=672"></script>
+<script src="/js/subtitle-material-vocalization.js?v=685"></script>
+<!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
+<script src="/js/niqqud-plausibility.js?v=685"></script>
+<script src="/js/niqqud-suspect-marks.js?v=685"></script>
+<script src="/js/material-progress-ladder.js?v=685"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
 <script src="/js/media-bundle-core.js?v=575"></script>
 <script src="/js/media-bundle-io.js?v=560"></script>
@@ -13804,7 +13807,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=676" defer></script>
+<script src="/js/studio-import.js?v=685" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13842,7 +13845,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.684";
+    window.APP_VERSION = "3.11.685";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

@@ -19,6 +19,8 @@
     { key: "lite", phase: "build", label: "studio.import.ladderStepLite" },
     { key: "table", phase: "build", label: "studio.import.ladderStepTable" },
     { key: "niqqud", phase: "build", label: "studio.import.ladderStepNiqqud" },
+    // Only when the local pointing has implausible words; skipped otherwise (O-033).
+    { key: "niqqudCheck", phase: "build", label: "studio.import.ladderStepNiqqudCheck" },
     { key: "open", phase: "build", label: "studio.import.ladderStepOpen" },
   ];
   var ETA_MIN_SAMPLE_MS = 10000;

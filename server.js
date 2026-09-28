@@ -1185,15 +1185,17 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/portable-learning-package-repository.js?v=576",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js",
-  "/js/studio-import.js?v=676",
+  "/js/studio-import.js?v=685",
   "/js/local-asr-client.js?v=675",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
   "/js/media-readiness.js?v=671",
   "/js/local-translit-bundle.js?v=683",
   "/js/translit-display.js?v=680",
-  "/js/subtitle-material-vocalization.js?v=676",
-  "/js/material-progress-ladder.js?v=672",
+  "/js/subtitle-material-vocalization.js?v=685",
+  "/js/niqqud-plausibility.js?v=685",
+  "/js/niqqud-suspect-marks.js?v=685",
+  "/js/material-progress-ladder.js?v=685",
 
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
@@ -1220,7 +1222,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/publication-center.css?v=643",
   "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=486",
-  "/js/reader-morph.js?v=650",
+  "/js/reader-morph.js?v=685",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=648",
   "/js/room-b6-core.js?v=485",
@@ -2302,7 +2304,9 @@ app.post("/api/niqqud/on-demand", requireSameOriginJson, rlNakdanOnDemand, async
   if (!requireCsrf(req, res, auth)) return;
   const body = req.body || {};
   const purpose = String(body.purpose || "");
-  if (!["IMPORT_PREVIEW", "LIBRARY_OWNER"].includes(purpose)) {
+  // SUBTITLE_CHECK: only the subtitle lines whose local pointing is implausible, after the
+  // owner's consent for that build (O-033).
+  if (!["IMPORT_PREVIEW", "LIBRARY_OWNER", "SUBTITLE_CHECK"].includes(purpose)) {
     return res.status(400).json({ ok: false, error: "NAKDAN_INVALID_INPUT" });
   }
   try {

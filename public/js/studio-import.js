@@ -2198,6 +2198,69 @@
     var ladderKey = null;
     function stage(key) { ladderKey = key; ladderStep("begin", key); }
     function staged(key) { ladderStep("finish", key); ladderKey = null; }
+    // O-033, owner decision 2026-09-28 (a): words the local model pointed impossibly get a second
+    // opinion from Dicta. Only those lines leave the browser, and only after one consent per build;
+    // declined, signed out or unavailable, the rows stay as they are and the table marks the words.
+    // Never fails the build: a second opinion is optional.
+    async function secondOpinionForDoubtfulWords(rows) {
+      var P = window.NiqqudPlausibility, V = window.SubtitleMaterialVocalization;
+      var suspects = P && V && typeof V.applySecondOpinion === "function" ? P.scanRows(rows) : [];
+      var words = suspects.reduce(function (sum, s) { return sum + s.words.length; }, 0);
+      material.niqqudCheckNote = null;
+      if (!words) { ladderStep("skip", "niqqudCheck"); return rows; }
+      stage("niqqudCheck");
+      ladderStep("update", "niqqudCheck", { done: 0, total: words, unit: "count" });
+      if (material.dictaConsent == null) {
+        material.dictaConsent = !!window.confirm(tr("studio.import.dictaConsent", { words: words, rows: suspects.length }));
+      }
+      if (!material.dictaConsent) {
+        material.niqqudCheckNote = tr("studio.import.dictaDeclined", { words: words });
+        staged("niqqudCheck");
+        return rows;
+      }
+      var lines = V.secondOpinionLines(rows, suspects), answers = [];
+      try {
+        // Small requests keep one slow answer from holding the whole check; Dicta keeps line breaks.
+        for (var start = 0; start < lines.length; start += 40) {
+          var chunk = lines.slice(start, start + 40);
+          var response = await fetch("/api/niqqud/on-demand", {
+            method: "POST", credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "X-LP-CSRF": localStorage.getItem("cloud.csrf") || "" },
+            body: JSON.stringify({ text: chunk.join("\n"), purpose: "SUBTITLE_CHECK" }),
+            signal: cancelSignal,
+          });
+          var body = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw Object.assign(new Error(body.error || ("HTTP_" + response.status)), { status: response.status });
+          var answer = String(body.niqqud || "").split("\n");
+          if (answer.length !== chunk.length) throw new Error("NAKDAN_LINE_MISMATCH");
+          answers = answers.concat(answer);
+        }
+      } catch (error) {
+        if (material.cancelRequested) throw error;
+        var code = String(error && error.message || "NAKDAN_UNAVAILABLE");
+        material.niqqudCheckNote = error && (error.status === 401 || error.status === 403)
+          ? tr("studio.import.dictaSignIn") : tr("studio.import.dictaFailed", { code: code });
+        staged("niqqudCheck");
+        return rows;
+      }
+      var merged = V.applySecondOpinion(rows, suspects, answers, {
+        wordFaults: P.wordFaults,
+        transliterate: window.LocalTranslit && window.LocalTranslit.transliterateWithProfile,
+        translitProfile: ($("translitProfileSelect") && $("translitProfileSelect").value) || "learner-latin",
+      });
+      // Dicta pointing a word exactly as the model did is an independent confirmation; the table
+      // stops marking that word on this device.
+      if (window.NiqqudSuspectMarks && merged.confirmed.length) {
+        window.NiqqudSuspectMarks.confirm(merged.confirmed.map(function (e) { return e.word; }));
+      }
+      material.niqqudCheck = { suspects: words, replaced: merged.replaced.length,
+        confirmed: merged.confirmed.length, kept: merged.kept.length };
+      material.niqqudCheckNote = tr("studio.import.dictaChecked", { fixed: merged.replaced.length,
+        confirmed: merged.confirmed.length, kept: merged.kept.length });
+      ladderStep("update", "niqqudCheck", { done: merged.replaced.length + merged.confirmed.length, total: words, unit: "count" });
+      staged("niqqudCheck");
+      return merged.rows;
+    }
     material.preparationPlan = plan;
     material.working = true;
     // One controller per attempt: it cancels the companion job (video, light copy), the OPFS
@@ -2307,6 +2370,8 @@
         material.tableRows = tableRows;
         material.vocalizationWarnings = derived.warnings;
         staged("niqqud");
+        tableRows = await secondOpinionForDoubtfulWords(tableRows);
+        material.tableRows = tableRows;
       } else if (tableRows) {
         stage("niqqud");
         throw new Error("LOCAL_VOCALIZATION_UNAVAILABLE");
@@ -2331,7 +2396,8 @@
               : syncStatus === "aligned" ? "subtitleSyncAligned"
               : syncStatus === "needs_review" ? "subtitleSyncReview" : "subtitleSyncUnverified";
             window.showToast(tr("studio.import.subtitlePlanTableReady", { rows: tableRows.length }) + " " +
-              tr("studio.import." + syncKey), syncStatus === "needs_review" ? "warning" : "success");
+              tr("studio.import." + syncKey) + (material.niqqudCheckNote ? " " + material.niqqudCheckNote : ""),
+              syncStatus === "needs_review" ? "warning" : "success");
           }
         } catch (_) {}
       } else {

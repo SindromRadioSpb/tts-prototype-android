@@ -151,6 +151,98 @@
     return { rows: output, warnings: warnings, vocalized: targetIndexes.length - warnings.filter(function (w) { return w.reason === "VOCALIZATION_SOURCE_MISMATCH"; }).length };
   }
 
-  return { enrich: enrich, plain: plain, projectVocalization: projectVocalization, normalizeMatres: normalizeMatres,
-    MATRES_MARK: MATRES_MARK };
+  // Dicta answers full spelling in defective spelling (לקראטה → לְקָרָטֶה, לסיבוב → לְסִבּוּב). Put its
+  // points back on the subtitle's own letters: a mater lectionis (א ו י) the answer left out stays
+  // unpointed, except a vav after holam or qubuts, which becomes holam male or shuruq. Any other
+  // difference in letters means a different word, and nothing is taken.
+  function fillMatres(source, answer) {
+    var src = Array.from(String(source).normalize("NFD").matchAll(/([א-ת])([ְ-ׇ]*)|([^א-ת])/g));
+    var dst = Array.from(String(answer).normalize("NFD").matchAll(/([א-ת])([ְ-ׇ]*)/g));
+    var out = [], j = 0, lastLetter = -1;
+    for (var i = 0; i < src.length; i++) {
+      var m = src[i];
+      if (!m[1]) { out.push(m[3]); continue; }
+      if (j < dst.length && dst[j][1] === m[1]) {
+        out.push(m[1] + dst[j][2]); lastLetter = out.length - 1; j++; continue;
+      }
+      if ("אוי".indexOf(m[1]) < 0 || lastLetter < 0) return null;
+      var prev = out[lastLetter];
+      if (m[1] === "ו" && prev.indexOf("ֹ") >= 0) { out[lastLetter] = prev.replace("ֹ", ""); out.push("וֹ"); }
+      else if (m[1] === "ו" && prev.indexOf("ֻ") >= 0) { out[lastLetter] = prev.replace("ֻ", ""); out.push("וּ"); }
+      else out.push(m[1]);
+      lastLetter = out.length - 1;
+    }
+    return j === dst.length ? out.join("").normalize("NFC") : null;
+  }
+
+  // A second opinion for words the local model pointed impossibly (O-033). `suspects` come from
+  // NiqqudPlausibility.scanRows, `answers[k]` is Dicta's pointing of suspects[k]'s source line.
+  // Only the suspect words can change, and only to Dicta's word when it keeps the subtitle's
+  // letters and passes the same plausibility rules. Dicta pointing the word exactly as the model
+  // did is an independent confirmation (a loanword like סְטְפָן); anything else stays as it was.
+  function applySecondOpinion(rows, suspects, answers, deps) {
+    var d = deps || {};
+    var profile = ["learner-latin", "sbl", "ru-phonetic"].indexOf(d.translitProfile) >= 0 ? d.translitProfile : "learner-latin";
+    var output = (Array.isArray(rows) ? rows : []).map(function (row) { return Object.assign({}, row); });
+    var result = { rows: output, replaced: [], confirmed: [], kept: [] };
+    (Array.isArray(suspects) ? suspects : []).forEach(function (suspect, k) {
+      var row = output[suspect.rowIndex];
+      var answer = Array.isArray(answers) ? String(answers[k] || "") : "";
+      var projected = row && answer ? projectVocalization(row.he, answer) : null;
+      var theirs = projected && projected.matched ? projected.text.split(/(\s+)/) : null;
+      var ours = String(row && row.he_niqqud || "").split(/(\s+)/);
+      var isWord = function (part) { return part && !/^\s+$/.test(part); };
+      var sourceWords = String(row && row.he || "").split(/(\s+)/).filter(isWord);
+      var answerWords = answer.split(/(\s+)/).filter(isWord);
+      // Map the k-th word to its part index; both splits come from the same source whitespace.
+      function partIndex(parts, wordIndex) {
+        for (var p = 0, w = -1; p < parts.length; p++) {
+          if (parts[p] && !/^\s+$/.test(parts[p]) && ++w === wordIndex) return p;
+        }
+        return -1;
+      }
+      var changed = false;
+      suspect.words.forEach(function (word) {
+        var entry = { rowIndex: suspect.rowIndex, index: word.index, word: word.word, reasons: word.reasons };
+        var ourAt = partIndex(ours, word.index);
+        var theirAt = theirs ? partIndex(theirs, word.index) : -1;
+        var candidate = theirAt >= 0 ? theirs[theirAt].normalize("NFC") : "";
+        var mine = ourAt >= 0 ? ours[ourAt].normalize("NFC") : "";
+        if (!/[ְ-ׇ]/.test(candidate) && sourceWords.length === answerWords.length && sourceWords[word.index]) {
+          candidate = fillMatres(sourceWords[word.index], answerWords[word.index]) || "";
+        }
+        if (!candidate || !mine || tokenKey(candidate) !== tokenKey(mine) || !/[ְ-ׇ]/.test(candidate)) {
+          result.kept.push(entry);
+        } else if (candidate === mine) {
+          result.confirmed.push(entry);
+        } else if (typeof d.wordFaults === "function" && d.wordFaults(candidate).length === 0) {
+          ours[ourAt] = candidate;
+          changed = true;
+          result.replaced.push(Object.assign(entry, { replacement: candidate }));
+        } else {
+          result.kept.push(entry);
+        }
+      });
+      if (!changed) return;
+      row.he_niqqud = ours.join("").normalize("NFC");
+      row.niqqud = row.he_niqqud;
+      row.niqqud_second_opinion = "dicta";
+      if (typeof d.transliterate === "function") {
+        row.translit = String(d.transliterate(row.he_niqqud, profile) || "");
+        row.translit_sbl = String(d.transliterate(row.he_niqqud, "sbl") || "");
+        row.translit_ru = String(d.transliterate(row.he_niqqud, "ru-phonetic") || "");
+      }
+    });
+    return result;
+  }
+
+  // Lines sent to the second opinion: the subtitle's own text, one line per suspect row.
+  function secondOpinionLines(rows, suspects) {
+    return (Array.isArray(suspects) ? suspects : []).map(function (suspect) {
+      return String((rows[suspect.rowIndex] || {}).he || "").replace(/\s+/g, " ").trim();
+    });
+  }
+
+  return { enrich: enrich, plain: plain, projectVocalization: projectVocalization, normalizeMatres: normalizeMatres, fillMatres: fillMatres,
+    applySecondOpinion: applySecondOpinion, secondOpinionLines: secondOpinionLines, MATRES_MARK: MATRES_MARK };
 });

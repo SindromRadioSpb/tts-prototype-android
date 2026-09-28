@@ -49,7 +49,7 @@ test("changing the counted unit restarts the estimate instead of mixing percent 
   assert.equal(m.steps.lite.sampleAt, 21000);
   assert.equal(Ladder.remainingMs(m.steps.lite, 21000), null);
   assert.deepEqual(Ladder.STEPS.map((s) => s.key),
-    ["upload", "probe", "tracks", "video", "store", "lite", "table", "niqqud", "open"]);
+    ["upload", "probe", "tracks", "video", "store", "lite", "table", "niqqud", "niqqudCheck", "open"]);
 });
 
 test("a visible zero does not start the rate: model load time stays out of the estimate", () => {

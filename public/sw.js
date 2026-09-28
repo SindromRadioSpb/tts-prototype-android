@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.684";
+const CACHE_VERSION = "v3.11.685";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -173,7 +173,7 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=650",
+  "/js/reader-morph.js?v=685",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=648",
   "/js/studio-morph.js?v=3",
@@ -181,7 +181,7 @@ const PRECACHE_URLS = [
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
-  "/js/studio-import.js?v=676",
+  "/js/studio-import.js?v=685",
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -205,8 +205,10 @@ const PRECACHE_URLS = [
   "/js/subtitle-material-import.js?v=584",
   "/js/local-translit-bundle.js?v=683",
   "/js/translit-display.js?v=680",
-  "/js/subtitle-material-vocalization.js?v=676",
-  "/js/material-progress-ladder.js?v=672",
+  "/js/subtitle-material-vocalization.js?v=685",
+  "/js/niqqud-plausibility.js?v=685",
+  "/js/niqqud-suspect-marks.js?v=685",
+  "/js/material-progress-ladder.js?v=685",
   "/js/media-bundle-core.js?v=575",
   "/js/media-bundle-io.js?v=560",
   "/js/local-asr-onboarding.js",
