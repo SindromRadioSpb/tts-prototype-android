@@ -3020,6 +3020,7 @@ window.I18N_LOCALES.he = {
       },
       empty: "אין עדיין שורות בטקסט הזה.",
       translit: "תעתיק",
+      profileLearner: "לטינית ללומדים",
       profileSbl: "SBL",
       profileRu: "תעתיק רוסי",
       colHe: "עברית",

@@ -64,7 +64,10 @@ const FIXTURE = [
 ];
 const CFG = { providerId: "online_tts", voiceId: "he-IL-Standard-A", rate: 1.0, pitch: 0.0 };
 const PRESETS = ["full", "he_ru"];
-const PROFILES = ["sbl", "ru-phonetic"];
+// O-033: every profile is derived from he_niqqud (TranslitDisplay + the local engine) on both
+// surfaces; a row without niqqud keeps its stored text.
+const PROFILES = ["learner-latin", "sbl", "ru-phonetic"];
+const { transliterateWithProfile: TRANSLIT } = require(path.join(REPO, "db", "premium", "translit.js"));
 
 // Normalize for a DOM-structural (whitespace-insensitive) diff:
 //   • strip layout-nondeterministic <col style="width:NN.NNNNNN%"> floats,
@@ -162,7 +165,8 @@ const PRESET_COLS = {
           }
           // A3 translit profile swap (only where translit column visible)
           if (visible.includes("translit")) {
-            const want = profile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || "");
+            const stored = profile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || "");
+            const want = row.he_niqqud ? (TRANSLIT(row.he_niqqud, profile) || stored) : stored;
             if (!c.translit || c.translit.text !== want) fail(`[${key}] row${i} translit swap wrong: got ${JSON.stringify(c.translit && c.translit.text)} want ${JSON.stringify(want)}`);
           }
         });
@@ -270,6 +274,8 @@ const PRESET_COLS = {
       let m; try { m = await import("/js/reader-core.js"); } catch (e) { return { err: "import: " + e }; }
       if (typeof m.buildBilingualTableHtml !== "function") return { err: "reader-core has no buildBilingualTableHtml" };
       const t = typeof window.t === "function" ? window.t : (k) => k;
+      const store = window.TranslitDisplay && window.LocalTranslit
+        ? window.TranslitDisplay.createStore(window.LocalTranslit.transliterateWithProfile) : null;
       const out = {};
       for (const preset of Object.keys(presetCols)) {
         for (const profile of profiles) {
@@ -277,6 +283,7 @@ const PRESET_COLS = {
             visibleColumns: JSON.parse(JSON.stringify(presetCols[preset])),
             baseWidths: [15, 20, 20, 21, 24],
             translitProfile: profile, ideMode: false, t,
+            translitDisplay: store ? store.displayNow : undefined,
             rowTtsLabels: {
               play: t("room.reader.audio.playRow"),
               loading: t("room.reader.audio.loadingRow"),

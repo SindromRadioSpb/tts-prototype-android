@@ -29,7 +29,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=584';
+import * as readerCore from '/js/reader-core.js?v=680';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=485';
@@ -1569,13 +1569,27 @@ function setActiveTrack(track) {
 //   niqqudMode: 'full' (all vocalized) | 'adaptive' (de-vocalize words you know) | 'off' (column hidden)
 //   ruMode:     'show'  (translation shown) | 'reveal' (blurred, tap a row to reveal) | 'off'
 // Persisted to localStorage (loadReaderCfg/saveReaderCfg) so the scaffolding is a JOURNEY, not reset each load.
-let readerCfg = { heOn: true, niqqudMode: 'full', translitOn: true, translitProfile: 'sbl', ruMode: 'show' };
+let readerCfg = { heOn: true, niqqudMode: 'full', translitOn: true, translitProfile: 'learner-latin', ruMode: 'show' };
+// O-033: every transliteration profile is derived from the pointed text (TranslitDisplay store,
+// same as the Studio). Until 3.11.680 the Room offered only "SBL"/"Рус" and "SBL" showed whatever
+// the card had stored — for most materials learner Latin — so a saved "sbl" from before is read
+// once as learner Latin, the text the learner was actually seeing.
+const ROOM_TRANSLIT_PROFILES = ['learner-latin', 'sbl', 'ru-phonetic'];
+let roomTranslitStore = null;
+function roomTranslit() {
+  if (!roomTranslitStore && window.TranslitDisplay && window.LocalTranslit) {
+    roomTranslitStore = window.TranslitDisplay.createStore(window.LocalTranslit.transliterateWithProfile);
+  }
+  return roomTranslitStore;
+}
 function loadReaderCfg() {
   let hasSaved = false;
   try {
     const he = localStorage.getItem('room.heOn'); if (he != null) { readerCfg.heOn = he === '1'; hasSaved = true; }
     const nm = localStorage.getItem('room.niqqudMode'); if (nm === 'full' || nm === 'adaptive' || nm === 'off') { readerCfg.niqqudMode = nm; hasSaved = true; }
-    const tp = localStorage.getItem('room.translitProfile'); if (tp === 'sbl' || tp === 'ru-phonetic') readerCfg.translitProfile = tp;
+    const tp = localStorage.getItem('room.translitProfile');
+    const tpV2 = localStorage.getItem('room.translitProfile.v2') === '1';
+    if (ROOM_TRANSLIT_PROFILES.includes(tp)) readerCfg.translitProfile = (tp === 'sbl' && !tpV2) ? 'learner-latin' : tp;
     const to = localStorage.getItem('room.translitOn'); if (to != null) { readerCfg.translitOn = to === '1'; hasSaved = true; }
     const rm = localStorage.getItem('room.ruMode'); if (rm === 'show' || rm === 'reveal' || rm === 'off') { readerCfg.ruMode = rm; hasSaved = true; }
   } catch (_) {}
@@ -1602,6 +1616,7 @@ function saveReaderCfg() {
     localStorage.setItem('room.heOn', readerCfg.heOn ? '1' : '0');
     localStorage.setItem('room.niqqudMode', readerCfg.niqqudMode);
     localStorage.setItem('room.translitProfile', readerCfg.translitProfile);
+    localStorage.setItem('room.translitProfile.v2', '1');
     localStorage.setItem('room.translitOn', readerCfg.translitOn ? '1' : '0');
     localStorage.setItem('room.ruMode', readerCfg.ruMode);
   } catch (_) {}
@@ -5673,6 +5688,7 @@ function readerConfig() {
     // normalizeVisibleBaseWidthsTo100), и результат drag'а переживает пересборку таблицы.
     baseWidths: roomTableWidths,
     translitProfile: readerCfg.translitProfile,
+    translitDisplay: roomTranslit() ? roomTranslit().display : undefined,
     ideMode: false,
     actionTitle: '▶', // Room hides note/edit → no "📝" in the action header
     t: (k) => tt(k, k),
@@ -8065,8 +8081,17 @@ function attachRoomColResize() {
 function rerenderReader() {
   const mount = $('roomReaderTable');
   if (!mount) return;
+  const translitStore = roomTranslit();
+  if (translitStore) translitStore.beginRender();
   mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
   rerenderMaterialsInlineSolution();
+  // Rows past the render budget show their stored text until the background fill derives them.
+  if (translitStore) {
+    const renderedRows = readerRows, renderedProfile = readerCfg.translitProfile;
+    translitStore.endRender(() => {
+      if (readerRows === renderedRows && readerCfg.translitProfile === renderedProfile) rerenderReader();
+    });
+  }
   attachReaderAudio();
   try { refreshFindAfterRerender(); } catch (_) {}   // BRR-S15 — re-apply find marks after a table rebuild
   try { roomMediaRefresh(); } catch (_) {}   // media player: re-bind стейджа + re-инъекция ▶︎ после пересборки таблицы
@@ -8173,8 +8198,9 @@ function buildAidsPanel() {
     ['adaptive', 'room.reader.niqqudAdaptive', 'по нужде'],
     ['off', 'room.reader.niqqudOff', 'выкл'],
   ], readerCfg.niqqudMode, (v) => { readerCfg.niqqudMode = v; saveReaderCfg(); rerenderReader(); });
-  // Транслит — профиль (SBL / Рус) + вкл/выкл.
+  // Транслит — профиль (учебная латиница / SBL / русская фонетика) + вкл/выкл (O-033).
   addSelect('room.reader.translit', 'Транслит', [
+    ['learner-latin', 'room.reader.profileLearner', 'Учебная'],
     ['sbl', 'room.reader.profileSbl', 'SBL'],
     ['ru-phonetic', 'room.reader.profileRu', 'Рус'],
   ], readerCfg.translitProfile, (v) => { readerCfg.translitProfile = v; saveReaderCfg(); rerenderReader(); });

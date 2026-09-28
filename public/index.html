@@ -13719,7 +13719,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/subtitle-material-core.js?v=676"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/local-translit-bundle.js?v=678"></script>
-<script src="/js/translit-display.js?v=679"></script>
+<script src="/js/translit-display.js?v=680"></script>
 <script src="/js/subtitle-material-vocalization.js?v=676"></script>
 <script src="/js/material-progress-ladder.js?v=672"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
@@ -13842,7 +13842,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.679";
+    window.APP_VERSION = "3.11.680";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -38693,13 +38693,18 @@ try {
         try { gcpTranslateKeyGroupSync(); } catch (_) {}
     }
 
-    // O-033: the transliteration column for the selected profile, derived from the pointed text.
-    var _v3TranslitDisplayFn = null;
-    function v3TranslitDisplay(row, profile) {
-        if (!_v3TranslitDisplayFn && window.TranslitDisplay && window.LocalTranslit) {
-            _v3TranslitDisplayFn = window.TranslitDisplay.createDisplay(window.LocalTranslit.transliterateWithProfile);
+    // O-033: the transliteration column for the selected profile, derived from the pointed text
+    // (TranslitDisplay store: a render derives within a time budget, the rest fills in the background).
+    var _v3TranslitStore = null;
+    function v3TranslitStore() {
+        if (!_v3TranslitStore && window.TranslitDisplay && window.LocalTranslit) {
+            _v3TranslitStore = window.TranslitDisplay.createStore(window.LocalTranslit.transliterateWithProfile);
         }
-        if (_v3TranslitDisplayFn) return _v3TranslitDisplayFn(row, profile);
+        return _v3TranslitStore;
+    }
+    function v3TranslitDisplay(row, profile) {
+        const store = v3TranslitStore();
+        if (store) return store.display(row, profile);
         return profile === "ru-phonetic" ? String(row.translit_ru || row.translit || "") : String(row.translit || "");
     }
 
@@ -39148,6 +39153,8 @@ try {
         currentTableHasRuTranslit = _hasRuTranslit;
         // O-033: any profile can be derived locally from the pointed text (TranslitDisplay).
         const _canDeriveTranslit = !!(window.TranslitDisplay && window.LocalTranslit);
+        const _translitStore = v3TranslitStore();
+        if (_translitStore) _translitStore.beginRender();
         // Profile selection — premium UX:
         //   • If table has translit_ru data, honour the dropdown choice
         //     (sbl ↔ ru-phonetic switch is fully effective).
@@ -39301,6 +39308,13 @@ try {
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
+        // Rows past the render budget show their stored text; once they are derived in the
+        // background the same table is drawn again with the selected profile everywhere.
+        if (_translitStore) {
+            _translitStore.endRender(function () {
+                if (rows === currentTableData && getSelectedTranslitProfile() === _selectedProfile) renderTable(currentTableData);
+            });
+        }
         if (v3ScrollToTablePending && rows && rows.length) {
             v3ScrollToTablePending = false;
             // Two frames: the result card and the build summary above the table settle first, and an

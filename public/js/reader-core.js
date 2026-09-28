@@ -427,7 +427,9 @@ export function attachColumnResize(mount, opts) {
 //     visibleColumns,   // {action,he,niqqud,translit,ru: bool}
 //     baseWidths,       // 5-element % array, index-aligned to TABLE_COL_ORDER
 //                       //   (mutated in place by the width normaliser, as renderTable does)
-//     translitProfile,  // 'sbl' | 'ru-phonetic' — the user's selection
+//     translitProfile,  // 'learner-latin' | 'sbl' | 'ru-phonetic' — the user's selection
+//     translitDisplay,  // optional (row, profile) => string — TranslitDisplay store, derives the
+//                       //   column from he_niqqud for any profile (O-033); = index.html v3TranslitDisplay
 //     ideMode,          // bool — show the resize grip on the last column too
 //     t,                // (i18n key) => string, for column titles
 //     hasNote,          // optional (sentenceId) => bool, drives row-note-active
@@ -455,12 +457,16 @@ export function buildBilingualTableHtml(rows, config) {
   let cols = TABLE_COL_ORDER.filter((k) => !!visibleColumns[k]);
   if (!cols.length) cols = TABLE_COL_ORDER.slice(); // renderTable: applyPreset('full')+recurse → full set
 
+  // = index.html renderTable: any profile is available when the column can be derived locally.
   const hasRuTranslit = rows.some((r) => r && r.translit_ru);
-  const selectedProfile = cfg.translitProfile === "ru-phonetic" ? "ru-phonetic" : "sbl";
-  const tProfile = hasRuTranslit && selectedProfile === "ru-phonetic" ? "ru-phonetic" : "sbl";
-  const tTitle = hasRuTranslit
-    ? (tProfile === "ru-phonetic" ? t("table.colTranslitRu") : t("table.colTranslitSbl"))
-    : (selectedProfile === "ru-phonetic" ? t("table.colTranslitRu") + " (нет данных)" : t("table.colTranslitSbl"));
+  const translitDisplay = typeof cfg.translitDisplay === "function" ? cfg.translitDisplay : null;
+  const selectedProfile = cfg.translitProfile;
+  const tProfile = (hasRuTranslit || !!translitDisplay) && selectedProfile === "ru-phonetic"
+    ? "ru-phonetic"
+    : (selectedProfile === "learner-latin" ? "learner-latin" : "sbl");
+  const tTitle = tProfile === "ru-phonetic"
+    ? t("table.colTranslitRu")
+    : (tProfile === "learner-latin" ? t("table.colTranslitLearnerLatin") : t("table.colTranslitSbl"));
 
   const colMeta = {
     // actionTitle defaults to "▶📝" (index.html parity); the Room passes "▶" since
@@ -501,7 +507,9 @@ export function buildBilingualTableHtml(rows, config) {
     const domRowIdx = rowIndexOffset + rowIdx;
     const he = row.he || "";
     const heNiqqud = row.he_niqqud || "";
-    const translit = tProfile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || "");
+    const translit = translitDisplay
+      ? translitDisplay(row, tProfile)
+      : (tProfile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || ""));
     const ru = row.ru || "";
     const hasSid = !!(row && row._v3_sentenceId);
     html += '<tr data-row-idx="' + domRowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : "") + ">";

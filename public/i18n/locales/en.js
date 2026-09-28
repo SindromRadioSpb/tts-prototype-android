@@ -3010,6 +3010,7 @@ window.I18N_LOCALES.en = {
       },
       empty: "This text has no lines yet.",
       translit: "Translit",
+      profileLearner: "Learner Latin",
       profileSbl: "SBL",
       profileRu: "Russian phonetic",
       colHe: "Hebrew",

@@ -3024,6 +3024,7 @@ window.I18N_LOCALES.ru = {
       },
       empty: "В этом тексте пока нет строк.",
       translit: "Транслит",
+      profileLearner: "Учебная латиница",
       profileSbl: "SBL",
       profileRu: "Рус. фонетика",
       colHe: "Иврит",
