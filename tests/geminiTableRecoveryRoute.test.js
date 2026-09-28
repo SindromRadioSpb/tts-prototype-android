@@ -28,7 +28,9 @@ function fixture(t, generate) {
     console: { error() {}, warn() {} },
   });
   const body = { geminiApiKey: 'NOT_A_REAL_KEY', direction: 'he-ru', segments: [{ i: 0, text: 'שלום' }, { i: 1, text: 'ראיתי' }] };
-  const scenario = policy.getGeminiScenario('table-seg-he-ru');
+  // Ответ, оплаченный до O-006: прежняя идентичность кэша (профиль в ключе, транслит в ответе).
+  const current = policy.getGeminiScenario('table-seg-he-ru');
+  const scenario = { model: current.model, fallbackModel: current.fallbackModel, ...current.legacy };
   const clean = segTable.buildSegInput(body.segments);
   const contentSha256 = crypto.createHash('sha256').update(clean+'\n\u0000translit_profile=learner-latin').digest('hex');
   const key = policy.buildGeminiCacheKey({ ...scenario, contentSha256 });

@@ -44,6 +44,7 @@ const {
   getGeminiScenario,
   buildGeminiCacheKey,
   cacheMatchesScenario,
+  tableCacheIdentities,
   buildGeminiStudioConfig,
 } = require("./ingest/geminiPolicy.js");
 const {
@@ -7280,13 +7281,13 @@ Strict output format (JSON only, no comments, no markdown):
       "segment_index": 1,
       "he": "...",
       "he_niqqud": "...",
-      "translit": "...",
       "ru": "..."
     }
   ]
 }
 
 Rules:
+- Do NOT output a transliteration.
 - Preserve the original order of sentences.
 - Do NOT merge semantically different sentences into a single row.
 - If the input contains line breaks, you MAY use them as additional hints for segmentation.
@@ -7323,7 +7324,6 @@ Strict output format (JSON only, no comments, no markdown):
       "segment_index": 1,
       "he": "...",
       "he_niqqud": "...",
-      "translit": "...",
       "ru": "..."
     }
   ]
@@ -7332,7 +7332,7 @@ Strict output format (JSON only, no comments, no markdown):
 Field rules for "rows":
 - "he": the HEBREW TRANSLATION of the segment, without niqqud.
 - "he_niqqud": the same Hebrew translation, fully vocalized with niqqud. Preserve the same lexical Hebrew and consonants. Standard full-to-defective spelling changes involving matres א/ה/ו/י are allowed only where required by vocalized Hebrew; never change morphology, expand abbreviations, or change digits/punctuation.
-- "translit": transliteration of the Hebrew translation (Latin letters).
+- Do NOT output a transliteration.
 - "ru": the ORIGINAL segment if it is Russian; otherwise a Russian translation of it.
 - In "segments", the "he" field holds the ORIGINAL segment text (kept for schema compatibility).
 
@@ -7389,18 +7389,20 @@ app.post("/api/translate-table", async (req, res) => {
 
     const scenarioName = segMode ? "table-seg-he-ru" : (direction === "any-he" ? "table-any-he" : "table-he-ru");
     const scenario = getGeminiScenario(scenarioName);
-    const contentSha256 = crypto.createHash("sha256")
-      .update(`${cleanText}\n\u0000translit_profile=${translitProfile}`)
-      .digest("hex");
-    const hashKey = buildGeminiCacheKey({ ...scenario, contentSha256 });
-    const cacheFile = path.join(geminiCacheDir, `table-v2-${hashKey}.json`);
-    const rawCacheFile = path.join(geminiCacheDir, `table-raw-v1-${hashKey}.json`);
+    // Текущая идентичность (ключ без профиля транслита) и прежняя, оплаченная до O-006.
+    const cacheIdentities = tableCacheIdentities({ scenario, cleanText, translitProfile })
+      .map((identity) => ({
+        ...identity,
+        cacheFile: path.join(geminiCacheDir, `table-v2-${identity.hashKey}.json`),
+        rawCacheFile: path.join(geminiCacheDir, `table-raw-v1-${identity.hashKey}.json`),
+      }));
 
-    if (fs.existsSync(cacheFile)) {
+    for (const identity of cacheIdentities) {
+      if (!fs.existsSync(identity.cacheFile)) continue;
       try {
-        const rawCache = fs.readFileSync(cacheFile, "utf8");
+        const rawCache = fs.readFileSync(identity.cacheFile, "utf8");
         const cached = JSON.parse(rawCache);
-        if (cacheMatchesScenario(cached, scenario) && Array.isArray(cached.rows)) {
+        if (cacheMatchesScenario(cached, identity.scenario) && Array.isArray(cached.rows)) {
           const local = canonicalizeGeminiTableRowsLocally(cached.rows, translitProfile);
           const warnings = Array.isArray(cached.warnings) ? [...cached.warnings] : [];
           if (local.corrections.length > 0 && !warnings.includes("LOCAL_NIQQUD_CANONICALIZED")) {
@@ -7414,10 +7416,11 @@ app.post("/api/translate-table", async (req, res) => {
             promptId: cached.promptId,
             schemaId: cached.schemaId,
             fromCache: true,
-            cacheKey: hashKey,
+            cacheKey: identity.hashKey,
             cachedAt: cached.createdAt || null,
             warnings,
-            translitProfile: cached.translitProfile || translitProfile,
+            // Строки только что пересчитаны запрошенным профилем, какой бы ни был в кэше.
+            translitProfile,
             translitProfileVersion: local.resolvedTranslitProfile,
             localNiqqudCorrections: local.corrections,
             semanticRepair: cached.semanticRepair || null,
@@ -7432,7 +7435,17 @@ app.post("/api/translate-table", async (req, res) => {
       ? segTable.HE_RU_SEG_PROMPT(cleanText)
       : (direction === "any-he" ? ANY_HE_PROMPT(cleanText) : HE_RU_PROMPT(cleanText));
 
-    const rawCached = readRawTableCache(rawCacheFile, scenario, translitProfile, cacheMatchesScenario);
+    // Оплаченный сырой ответ любой идентичности переиспользуется; новый запрос — только текущей.
+    let active = cacheIdentities[0];
+    let rawCached = null;
+    for (const identity of cacheIdentities) {
+      rawCached = readRawTableCache(identity.rawCacheFile, identity.scenario, identity.cacheProfile, cacheMatchesScenario);
+      if (rawCached) { active = identity; break; }
+    }
+    const answerScenario = active.scenario;
+    const hashKey = active.hashKey;
+    const cacheFile = active.cacheFile;
+    const rawCacheFile = active.rawCacheFile;
     let generated;
     let rawText;
     let rawFromCache = false;
@@ -7463,7 +7476,7 @@ app.post("/api/translate-table", async (req, res) => {
           rawText,
           scenario,
           modelVersion: generated.modelVersion,
-          translitProfile,
+          translitProfile: active.cacheProfile,
         }));
       } catch (e) {
         console.error("Ошибка записи сырого кэша Gemini:", e && e.message ? e.message : String(e));
@@ -7487,8 +7500,8 @@ app.post("/api/translate-table", async (req, res) => {
         model: scenario.model,
         requestedModel: scenario.model,
         modelVersion: generated.modelVersion,
-        promptId: scenario.promptId,
-        schemaId: scenario.schemaId,
+        promptId: answerScenario.promptId,
+        schemaId: answerScenario.schemaId,
         fromCache: rawFromCache,
         rawCacheKey: hashKey,
       });
@@ -7499,7 +7512,7 @@ app.post("/api/translate-table", async (req, res) => {
     // chunk or changing its source/good rows. The original raw cache is immutable.
     try {
       const recovered = await recoverTableNiqqud({
-        parsed, direction, segMode, rawText, scenario, translitProfile,
+        parsed, direction, segMode, rawText, scenario: answerScenario, translitProfile: active.cacheProfile,
         sourceSegments: segMode ? req.body.segments : null,
         cacheFile: path.join(geminiCacheDir, `table-repair-v1-${hashKey}.json`),
         // Бесплатная резервная огласовка строк, которые Gemini не смог огласовать без правки текста.
@@ -7559,8 +7572,8 @@ app.post("/api/translate-table", async (req, res) => {
         provider: "gemini",
         model: scenario.model,
         modelVersion: generated.modelVersion || null,
-        promptId: scenario.promptId,
-        schemaId: scenario.schemaId,
+        promptId: answerScenario.promptId,
+        schemaId: answerScenario.schemaId,
         translitProfile: resolvedTranslitProfile,
         localNiqqudNormalization: local.corrections.length > 0,
         semanticRepair,
@@ -7596,8 +7609,8 @@ app.post("/api/translate-table", async (req, res) => {
       warnings,
       model: scenario.model,
       modelVersion: generated.modelVersion,
-      promptId: scenario.promptId,
-      schemaId: scenario.schemaId,
+      promptId: answerScenario.promptId,
+      schemaId: answerScenario.schemaId,
       translitProfile,
       translitProfileVersion: resolvedTranslitProfile,
       localNiqqudCorrections: local.corrections,
@@ -7615,8 +7628,8 @@ app.post("/api/translate-table", async (req, res) => {
       model: scenario.model,
       requestedModel: scenario.model,
       modelVersion: generated.modelVersion,
-      promptId: scenario.promptId,
-      schemaId: scenario.schemaId,
+      promptId: answerScenario.promptId,
+      schemaId: answerScenario.schemaId,
       fromCache: rawFromCache,
       cacheKey: hashKey,
       cachedAt: cachePayload.createdAt,

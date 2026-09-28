@@ -13842,7 +13842,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.681";
+    window.APP_VERSION = "3.11.682";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -18017,8 +18017,8 @@ function v3NotesRefreshAllButtons() {
     // rows produced under another direction/transliteration contract.
     const TABLE_CACHE_CONTRACT_VERSION = "table-cache-v3-local-niqqud-normalization";
     function v3ExpectedGeminiTablePromptId(direction, segmentMode) {
-        if (segmentMode) return "he-ru-table-seg-v4";
-        return direction === "any-he" ? "any-he-table-v3" : "he-ru-table-v3";
+        if (segmentMode) return "he-ru-table-seg-v5";
+        return direction === "any-he" ? "any-he-table-v4" : "he-ru-table-v4";
     }
     let v3TableCacheWriteOutcome = { status: "unknown", error_code: null, recorded_at: null };
 

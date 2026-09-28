@@ -49,12 +49,12 @@ test("restored browser tables use the same audited local niqqud normalizer", () 
 });
 
 test("Gemini local-cache prompt identity distinguishes direction and segment mode", () => {
-  assert.match(indexHtml, /if \(segmentMode\) return "he-ru-table-seg-v4"/);
-  assert.match(indexHtml, /direction === "any-he" \? "any-he-table-v3" : "he-ru-table-v3"/);
+  assert.match(indexHtml, /if \(segmentMode\) return "he-ru-table-seg-v5"/);
+  assert.match(indexHtml, /direction === "any-he" \? "any-he-table-v4" : "he-ru-table-v4"/);
 });
 
-test("Gemini route isolates cache and recomputes transliteration by profile", () => {
-  assert.match(serverJs, /translit_profile=\$\{translitProfile\}/);
+test("Gemini route recomputes transliteration by profile from a profile-free cache", () => {
+  assert.match(serverJs, /tableCacheIdentities\(\{ scenario, cleanText, translitProfile \}\)/);
   assert.match(serverJs, /canonicalizeGeminiTableRowsLocally\(cached\.rows, translitProfile\)/);
   assert.match(serverJs, /canonicalizeGeminiTableRowsLocally\(preparedRows, translitProfile\)/);
   assert.match(serverJs, /transliterateWithProfile\(row\.he_niqqud, translitProfile\)/);
@@ -82,8 +82,43 @@ test("actual Gemini generations are counted before parse or semantic rejection",
     'no duplicate counter after validation or cache publication');
 });
 
-test("Hebrew table prompt revisions are cache-distinct v3 scenarios", () => {
-  assert.equal(getGeminiScenario("table-he-ru").promptId, "he-ru-table-v3");
-  assert.equal(getGeminiScenario("table-any-he").promptId, "any-he-table-v3");
-  assert.equal(getGeminiScenario("table-seg-he-ru").promptId, "he-ru-table-seg-v4");
+test("Hebrew table prompt revisions are cache-distinct scenarios without transliteration (O-006)", () => {
+  assert.equal(getGeminiScenario("table-he-ru").promptId, "he-ru-table-v4");
+  assert.equal(getGeminiScenario("table-any-he").promptId, "any-he-table-v4");
+  assert.equal(getGeminiScenario("table-seg-he-ru").promptId, "he-ru-table-seg-v5");
+  for (const name of ["table-he-ru", "table-any-he", "table-seg-he-ru"]) {
+    assert.equal(getGeminiScenario(name).schemaId, "studio-table-rows-schema-v2");
+  }
+});
+
+test("the model is not asked for transliteration in any table or repair prompt (O-006)", () => {
+  const segTable = require("../ingest/segTable");
+  const { buildRepairPrompt, buildRepairSchema } = require("../ingest/geminiTableRepair");
+  const { buildGeminiTableResponseSchema } = require("../ingest/geminiTableSchema");
+  const Type = { OBJECT: "OBJECT", ARRAY: "ARRAY", STRING: "STRING", INTEGER: "INTEGER" };
+  const promptsStart = serverJs.indexOf("const HE_RU_PROMPT");
+  const promptsEnd = serverJs.indexOf('app.post("/api/translate-table"');
+  const prompts = [serverJs.slice(promptsStart, promptsEnd), segTable.HE_RU_SEG_PROMPT("[0] שלום"),
+    buildRepairPrompt([{ row_index: 0, he: "שלום", he_niqqud: "שלם", ru: "мир" }])];
+  for (const prompt of prompts) assert.doesNotMatch(prompt, /"translit"|transliteration profile/);
+  const rowSchema = buildGeminiTableResponseSchema(Type).properties.rows.items;
+  assert.equal(rowSchema.properties.translit, undefined);
+  assert.ok(!rowSchema.required.includes("translit"));
+  assert.ok(!buildRepairSchema(Type).properties.repairs.items.required.includes("translit"));
+});
+
+test("answers paid before O-006 stay reachable under their old cache key", () => {
+  const crypto = require("node:crypto");
+  const { tableCacheIdentities, buildGeminiCacheKey, PROFILE_FREE_CACHE } = require("../ingest/geminiPolicy");
+  const scenario = getGeminiScenario("table-seg-he-ru");
+  const sha = (v) => crypto.createHash("sha256").update(v).digest("hex");
+  const [current, legacy] = tableCacheIdentities({ scenario, cleanText: "[0] שלום", translitProfile: "sbl" });
+  assert.equal(current.cacheProfile, PROFILE_FREE_CACHE);
+  assert.equal(current.hashKey, buildGeminiCacheKey({ ...scenario, contentSha256: sha("[0] שלום") }));
+  // Ровно та формула, что была в server.js до O-006.
+  assert.equal(legacy.hashKey, buildGeminiCacheKey({ model: scenario.model, promptId: "he-ru-table-seg-v4",
+    schemaId: "studio-table-rows-schema-v1", contentSha256: sha("[0] שלום\n\u0000translit_profile=sbl") }));
+  assert.equal(legacy.cacheProfile, "sbl");
+  const [otherProfile] = tableCacheIdentities({ scenario, cleanText: "[0] שלום", translitProfile: "ru-phonetic" });
+  assert.equal(otherProfile.hashKey, current.hashKey, "switching profile never pays Gemini again");
 });

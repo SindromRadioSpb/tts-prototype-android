@@ -16,23 +16,29 @@ const SCENARIOS = Object.freeze({
     promptId: "ingest-extract-pages-v2",
     schemaId: "ingest-extract-pages-schema-v1",
   }),
+  // Транслит у модели не просим (O-006, 2026-09-28): сервер всегда считает его из огласовки
+  // выбранным профилем, поэтому и в ключе кэша профиля больше нет. `legacy` — прежняя
+  // идентичность: уже оплаченные ответы (с транслитом и профилем в ключе) читаются как есть.
   "table-he-ru": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "he-ru-table-v3",
-    schemaId: "studio-table-rows-schema-v1",
+    promptId: "he-ru-table-v4",
+    schemaId: "studio-table-rows-schema-v2",
+    legacy: Object.freeze({ promptId: "he-ru-table-v3", schemaId: "studio-table-rows-schema-v1" }),
   }),
   "table-any-he": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "any-he-table-v3",
-    schemaId: "studio-table-rows-schema-v1",
+    promptId: "any-he-table-v4",
+    schemaId: "studio-table-rows-schema-v2",
+    legacy: Object.freeze({ promptId: "any-he-table-v3", schemaId: "studio-table-rows-schema-v1" }),
   }),
   "table-seg-he-ru": Object.freeze({
     model: GEMINI_STUDIO_MODEL,
     fallbackModel: null,
-    promptId: "he-ru-table-seg-v4",
-    schemaId: "studio-table-rows-schema-v1",
+    promptId: "he-ru-table-seg-v5",
+    schemaId: "studio-table-rows-schema-v2",
+    legacy: Object.freeze({ promptId: "he-ru-table-seg-v4", schemaId: "studio-table-rows-schema-v1" }),
   }),
   retell: Object.freeze({
     model: GEMINI_STUDIO_MODEL,
@@ -79,6 +85,31 @@ function cacheMatchesScenario(cached, scenario) {
   );
 }
 
+// Идентичности кэша таблицы: сначала текущая (без профиля транслита), затем прежняя, чей ключ
+// включал профиль. `cacheProfile` сверяется с полем сырого кэша и входит в журнал ремонта.
+const PROFILE_FREE_CACHE = "profile-free";
+
+function tableCacheIdentities({ scenario, cleanText, translitProfile }) {
+  const sha = (value) => crypto.createHash("sha256").update(value).digest("hex");
+  const identities = [{
+    scenario,
+    cacheProfile: PROFILE_FREE_CACHE,
+    hashKey: buildGeminiCacheKey({ ...scenario, contentSha256: sha(cleanText) }),
+  }];
+  if (scenario.legacy) {
+    const legacyScenario = { model: scenario.model, fallbackModel: scenario.fallbackModel, ...scenario.legacy };
+    identities.push({
+      scenario: legacyScenario,
+      cacheProfile: translitProfile,
+      hashKey: buildGeminiCacheKey({
+        ...legacyScenario,
+        contentSha256: sha(`${cleanText}\n\u0000translit_profile=${translitProfile}`),
+      }),
+    });
+  }
+  return identities;
+}
+
 function buildGeminiStudioConfig(config = {}) {
   if (!config || typeof config !== "object" || Array.isArray(config)) {
     const error = new Error("Gemini generation config must be an object");
@@ -111,5 +142,7 @@ module.exports = {
   getGeminiScenario,
   buildGeminiCacheKey,
   cacheMatchesScenario,
+  PROFILE_FREE_CACHE,
+  tableCacheIdentities,
   buildGeminiStudioConfig,
 };

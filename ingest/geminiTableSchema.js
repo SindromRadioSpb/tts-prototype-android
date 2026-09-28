@@ -13,10 +13,10 @@ function buildGeminiTableResponseSchema(SchemaType) {
             segment_index: { type: SchemaType.INTEGER },
             he: { type: SchemaType.STRING },
             he_niqqud: { type: SchemaType.STRING },
-            translit: { type: SchemaType.STRING },
             ru: { type: SchemaType.STRING },
           },
-          required: ['segment_index', 'he', 'he_niqqud', 'translit', 'ru'],
+          // Без translit (O-006): сервер считает его из he_niqqud выбранным профилем.
+          required: ['segment_index', 'he', 'he_niqqud', 'ru'],
         },
       },
     },
