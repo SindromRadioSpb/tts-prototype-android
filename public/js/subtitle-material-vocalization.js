@@ -225,7 +225,7 @@
       });
       if (!changed) return;
       row.he_niqqud = ours.join("").normalize("NFC");
-      row.niqqud = row.he_niqqud;
+      if (Object.prototype.hasOwnProperty.call(row, "niqqud")) row.niqqud = row.he_niqqud;
       row.niqqud_second_opinion = "dicta";
       if (typeof d.transliterate === "function") {
         row.translit = String(d.transliterate(row.he_niqqud, profile) || "");

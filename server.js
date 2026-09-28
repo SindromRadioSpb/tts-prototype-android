@@ -37,6 +37,7 @@ const {
 } = require("./ingest/tableRows.js");
 const { buildGeminiTableResponseSchema } = require("./ingest/geminiTableSchema.js");
 const { recoverTableNiqqud, buildRepairSchema } = require("./ingest/geminiTableRepair.js");
+const { secondOpinionForTableRows } = require("./ingest/niqqudSecondOpinion.js");
 const { classifyGeminiError: classifyTableGeminiError } = require("./ingest/geminiError.js");
 const { generateGeminiContent } = require("./ingest/geminiClient.js");
 const {
@@ -1192,7 +1193,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/media-readiness.js?v=671",
   "/js/local-translit-bundle.js?v=683",
   "/js/translit-display.js?v=680",
-  "/js/subtitle-material-vocalization.js?v=685",
+  "/js/subtitle-material-vocalization.js?v=686",
   "/js/niqqud-plausibility.js?v=685",
   "/js/niqqud-suspect-marks.js?v=685",
   "/js/material-progress-ladder.js?v=685",
@@ -7428,6 +7429,7 @@ app.post("/api/translate-table", async (req, res) => {
             translitProfileVersion: local.resolvedTranslitProfile,
             localNiqqudCorrections: local.corrections,
             semanticRepair: cached.semanticRepair || null,
+            niqqudSecondOpinion: cached.niqqudSecondOpinion || null,
           });
         }
       } catch (e) {
@@ -7567,6 +7569,13 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
 
+    // O-033 (variant A): impossible pointings get Dicta's second opinion before transliteration.
+    const secondOpinion = await secondOpinionForTableRows(preparedRows, {
+      vocalize: (lines) => nakdanOnDemand.vocalize(lines),
+    });
+    preparedRows = secondOpinion.rows;
+    const niqqudSecondOpinion = secondOpinion.stats;
+
     const local = canonicalizeGeminiTableRowsLocally(preparedRows, translitProfile);
     preparedRows = local.rows;
     const resolvedTranslitProfile = local.resolvedTranslitProfile;
@@ -7581,7 +7590,9 @@ app.post("/api/translate-table", async (req, res) => {
         translitProfile: resolvedTranslitProfile,
         localNiqqudNormalization: local.corrections.length > 0,
         semanticRepair,
+        ...(row.niqqud_second_opinion ? { niqqudSecondOpinion: row.niqqud_second_opinion } : {}),
       });
+      delete row.niqqud_second_opinion;
     });
 
     let warnings = local.corrections.length > 0 ? ["LOCAL_NIQQUD_CANONICALIZED"] : [];
@@ -7594,6 +7605,7 @@ app.post("/api/translate-table", async (req, res) => {
     if (semanticRepair && Array.isArray(semanticRepair.fallbackRows) && semanticRepair.fallbackRows.length) {
       warnings.push("NIQQUD_FALLBACK_DICTA");
     }
+    if (niqqudSecondOpinion && niqqudSecondOpinion.replaced) warnings.push("NIQQUD_SECOND_OPINION_DICTA");
     if (segMode) {
       if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {
         preparedRows.forEach((r) => { delete r.segment_index; });
@@ -7619,6 +7631,7 @@ app.post("/api/translate-table", async (req, res) => {
       translitProfileVersion: resolvedTranslitProfile,
       localNiqqudCorrections: local.corrections,
       semanticRepair,
+      niqqudSecondOpinion,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -7642,6 +7655,7 @@ app.post("/api/translate-table", async (req, res) => {
       translitProfileVersion: resolvedTranslitProfile,
       localNiqqudCorrections: local.corrections,
       semanticRepair,
+      niqqudSecondOpinion,
     });
   } catch (error) {
     // Sanitize: log only flat scalars, never the raw error object (it can

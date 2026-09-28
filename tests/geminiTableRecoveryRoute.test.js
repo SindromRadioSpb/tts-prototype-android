@@ -21,6 +21,7 @@ function fixture(t, generate) {
   const Type = { OBJECT: 'OBJECT', ARRAY: 'ARRAY', STRING: 'STRING', INTEGER: 'INTEGER' };
   vm.runInNewContext(src.slice(start, end), {
     app: { post: (_p, h) => { handler = h; } }, fs, path, crypto, ...policy, ...rawCache, ...rows, ...repair, segTable, Type,
+    ...require('../ingest/niqqudSecondOpinion'), nakdanOnDemand: { vocalize: async () => { throw new Error('NAKDAN_NOT_EXPECTED'); } },
     geminiCacheDir: dir, isPlausibleGeminiKey: () => true,
     classifyTableGeminiError: require('../ingest/geminiError').classifyGeminiError,
     canonicalizeGeminiTableRowsLocally: r => ({ rows: r, corrections: [], resolvedTranslitProfile: 'learner-latin' }),

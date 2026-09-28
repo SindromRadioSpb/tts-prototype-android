@@ -13720,7 +13720,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/local-translit-bundle.js?v=683"></script>
 <script src="/js/translit-display.js?v=680"></script>
-<script src="/js/subtitle-material-vocalization.js?v=685"></script>
+<script src="/js/subtitle-material-vocalization.js?v=686"></script>
 <!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
 <script src="/js/niqqud-plausibility.js?v=685"></script>
 <script src="/js/niqqud-suspect-marks.js?v=685"></script>
@@ -13845,7 +13845,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.685";
+    window.APP_VERSION = "3.11.686";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -42665,6 +42665,12 @@ async function v3AnkiSyncNow() {
             throw err;
         }
 
+        // O-033: words Dicta pointed exactly as the table did are confirmed; the table stops marking them.
+        try {
+            if (json && json.niqqudSecondOpinion && window.NiqqudSuspectMarks) {
+                window.NiqqudSuspectMarks.confirm(json.niqqudSecondOpinion.confirmedWords || []);
+            }
+        } catch (_) {}
         return json;
     }
 
