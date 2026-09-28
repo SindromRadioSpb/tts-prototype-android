@@ -1731,6 +1731,38 @@
     return material.trackChoices || (material.choice ? { text: material.choice.index } : {});
   }
 
+  // O-033: a track the person chose is remembered for the same subtitle inventory, so rebuilding
+  // the same film does not silently fall back to the automatic refusal of a partial translation.
+  var TRACK_CHOICES_LS_KEY = "v3.subtitleTrackChoices";
+  function readTrackChoiceStore() {
+    try { var parsed = JSON.parse(localStorage.getItem(TRACK_CHOICES_LS_KEY) || "{}"); return parsed && typeof parsed === "object" ? parsed : {}; }
+    catch (_) { return {}; }
+  }
+  function rememberTrackChoices(choices) {
+    var key = window.SubtitleMaterialCore.trackChoiceKey(subtitlePlanTracks());
+    if (!key) return;
+    var store = readTrackChoiceStore();
+    var clean = window.SubtitleMaterialCore.restoreTrackChoices(choices, subtitlePlanTracks());
+    if (clean) store[key] = Object.assign(clean, { at: Date.now() });
+    else delete store[key];
+    var keys = Object.keys(store).sort(function (a, b) { return (store[b].at || 0) - (store[a].at || 0); });
+    keys.slice(20).forEach(function (old) { delete store[old]; });
+    try { localStorage.setItem(TRACK_CHOICES_LS_KEY, JSON.stringify(store)); } catch (_) {}
+  }
+  function recallTrackChoices(tracks) {
+    var key = window.SubtitleMaterialCore.trackChoiceKey(tracks);
+    return key ? window.SubtitleMaterialCore.restoreTrackChoices(readTrackChoiceStore()[key], tracks) : null;
+  }
+
+  function useRejectedTranslation() {
+    var material = pendingSubtitleMaterial;
+    var rejected = material && material.plan && material.plan.translation_rejected;
+    if (!rejected || material.working || material.preparationPlan || material.applied) return;
+    material.trackChoices = Object.assign({}, subtitlePlanChoices(), { translation: rejected.index });
+    rememberTrackChoices(material.trackChoices);
+    renderSubtitlePlan();
+  }
+
   function renderSubtitlePlanEditor(plan) {
     var material = pendingSubtitleMaterial;
     var locked = !!(material.working || material.preparationPlan || material.applied);
@@ -1802,6 +1834,7 @@
         mediaJobStatus(await localAsrClient.chooseMediaAudioStream(pendingAudio.mediaJobId, Number(audio)));
       }
       material.trackChoices = choices;
+      rememberTrackChoices(choices);
       material.choice = null;
       material.editing = false;
       setSubtitlePlanStatus(null);
@@ -1833,6 +1866,8 @@
         client: localAsrClient, jobId: pendingAudio.mediaJobId, readiness: state,
       });
       pendingSubtitleMaterial = { tracks: loaded.tracks, failed: loaded.failed, choice: null, stored: null };
+      var recalled = recallTrackChoices(loaded.tracks);
+      if (recalled) pendingSubtitleMaterial.trackChoices = recalled;
       ladderStep("finish", "tracks");
       setSubtitlePlanStatus(null);
     } catch (error) {
@@ -1877,7 +1912,10 @@
         index: trackOrdinal("subtitle", plan.translation.index) || plan.translation.index, coverage: Math.round(plan.translation.coverage * 100),
       }) });
     } else if (plan.translation_rejected) {
-      items.push({ state: "warn", text: tr("studio.import.subtitlePlanTranslationLow", {
+      items.push({ state: "warn", action: "useRejectedTranslation",
+        actionText: tr("studio.import.subtitlePlanTranslationUse", {
+          coverage: Math.round(plan.translation_rejected.coverage * 100) }),
+        text: tr("studio.import.subtitlePlanTranslationLow", {
         index: trackOrdinal("subtitle", plan.translation_rejected.index) || plan.translation_rejected.index,
         language: languageName(plan.translation_rejected.language),
         coverage: Math.round(plan.translation_rejected.coverage * 100), min: Math.round(minCoverage * 100),
@@ -1982,6 +2020,15 @@
         var row = document.createElement("li");
         row.textContent = item.text;
         if (item.state) row.dataset.state = item.state;
+        if (item.action === "useRejectedTranslation") {
+          var take = document.createElement("button");
+          take.type = "button";
+          take.className = "v3-subtitle-plan-take";
+          take.textContent = item.actionText;
+          take.disabled = !!(pendingSubtitleMaterial.working || pendingSubtitleMaterial.preparationPlan || pendingSubtitleMaterial.applied);
+          take.onclick = useRejectedTranslation;
+          row.appendChild(take);
+        }
         list.appendChild(row);
       });
     }
@@ -2026,6 +2073,7 @@
         candidates: String(select.dataset.candidates || "").split(",").map(Number).filter(Number.isInteger),
       };
       pendingSubtitleMaterial.trackChoices = Object.assign({}, subtitlePlanChoices(), { text: index });
+      rememberTrackChoices(pendingSubtitleMaterial.trackChoices);
     }
     renderSubtitlePlan();
   }
@@ -2251,6 +2299,7 @@
         var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
           client: localAsrClient,
           transliterate: window.LocalTranslit.transliterateWithProfile,
+          translitProfile: ($("translitProfileSelect") && $("translitProfileSelect").value) || "learner-latin",
           onProgress: function (done, total) { ladderStep("update", "niqqud", { done: done, total: total, unit: "count" }); },
           signal: cancelSignal,
         });

@@ -92,3 +92,19 @@ test("vocalization asks for marked matres and fills words written in full spelli
   assert.equal(result.rows[1].niqqud, "בּוֹקֶר טוֹב");
   assert.equal(result.warnings.length, 0);
 });
+
+// O-033: the Studio had "SBL Academic" selected, yet the subtitle card showed learner Latin: this
+// path always wrote learner-latin into the one visible column.
+test("the visible transliteration follows the profile selected in the Studio", async () => {
+  const client = { vocalizeTexts: async (texts) => ({ results: texts.map(() => "שְׁלוֹם"), model_version: "t" }) };
+  for (const profile of ["learner-latin", "sbl", "ru-phonetic"]) {
+    const result = await Vocalization.enrich([{ segment_index: 0, he: "שלום" }], {
+      client, transliterate: canonical.transliterateWithProfile, translitProfile: profile,
+    });
+    assert.equal(result.rows[0].translit, canonical.transliterateWithProfile("שְׁלוֹם", profile), profile);
+  }
+  const fallback = await Vocalization.enrich([{ segment_index: 0, he: "שלום" }], {
+    client, transliterate: canonical.transliterateWithProfile, translitProfile: "unknown",
+  });
+  assert.equal(fallback.rows[0].translit, canonical.transliterateWithProfile("שְׁלוֹם", "learner-latin"));
+});

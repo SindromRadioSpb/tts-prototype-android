@@ -3887,6 +3887,7 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-subtitle-plan-rows li { overflow-wrap:anywhere; }
 .v3-subtitle-plan-rows li[data-state="warn"] { color:#79540a; }
 .v3-subtitle-plan-rows li[data-state="error"] { color:#8e2f23; }
+.v3-subtitle-plan-rows .v3-subtitle-plan-take { display:block; margin-top:6px; }
 .v3-subtitle-plan-question { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:8px; font-size:12px; }
 .v3-subtitle-plan-question select { min-height:44px; }
 .v3-subtitle-plan-editor { display:grid; gap:8px; margin-block:8px; }
@@ -13715,10 +13716,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-stream-store.js?v=584"></script>
 <!-- Materials built from container subtitle tracks: pure decisions, then byte orchestration.
      Both load before studio-import.js, which is their only consumer. -->
-<script src="/js/subtitle-material-core.js?v=675"></script>
+<script src="/js/subtitle-material-core.js?v=676"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/local-translit-bundle.js?v=573"></script>
-<script src="/js/subtitle-material-vocalization.js?v=675"></script>
+<script src="/js/subtitle-material-vocalization.js?v=676"></script>
 <script src="/js/material-progress-ladder.js?v=672"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
 <script src="/js/media-bundle-core.js?v=575"></script>
@@ -13757,7 +13758,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=576"></script>
-<script src="/js/studio-media-package.js?v=615"></script>
+<script src="/js/studio-media-package.js?v=676"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=630"></script>
@@ -13802,7 +13803,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=675" defer></script>
+<script src="/js/studio-import.js?v=676" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13840,7 +13841,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.675";
+    window.APP_VERSION = "3.11.676";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

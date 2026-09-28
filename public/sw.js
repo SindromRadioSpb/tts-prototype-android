@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.675";
+const CACHE_VERSION = "v3.11.676";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -181,7 +181,7 @@ const PRECACHE_URLS = [
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
-  "/js/studio-import.js?v=675",
+  "/js/studio-import.js?v=676",
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -201,10 +201,10 @@ const PRECACHE_URLS = [
   "/js/media-readiness.js?v=671",
   "/vendor/hash-wasm/sha256.umd.min.js",
   "/js/media-stream-store.js?v=584",
-  "/js/subtitle-material-core.js?v=675",
+  "/js/subtitle-material-core.js?v=676",
   "/js/subtitle-material-import.js?v=584",
   "/js/local-translit-bundle.js?v=573",
-  "/js/subtitle-material-vocalization.js?v=675",
+  "/js/subtitle-material-vocalization.js?v=676",
   "/js/material-progress-ladder.js?v=672",
   "/js/media-bundle-core.js?v=575",
   "/js/media-bundle-io.js?v=560",
@@ -233,7 +233,7 @@ const PRECACHE_URLS = [
   "/js/portable-learning-package-core.js",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=576",
-  "/js/studio-media-package.js?v=615",
+  "/js/studio-media-package.js?v=676",
   "/js/studio-media-editor.js?v=628",
   "/js/studio-material-revision.js",
   "/js/studio-portable-learning-package.js?v=630",

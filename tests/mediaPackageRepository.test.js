@@ -68,6 +68,58 @@ test('subtitle speech correction creates a separate revision and duplicate impor
   }finally{Studio.setRepositoryForTests(null);}
 });
 
+test('re-import of the same video with a new row layout gets its own timed revision, never one collapsed segment', async () => {
+  // O-033: Sweet Mud was built from 546 visual-order rows; after O-032 the same video produced 778
+  // rows, the reused package reconciled 778 lines against 546 segments and collapsed the film into
+  // ONE segment. Every later rebuild then met that single segment and collapsed again.
+  const h = await harness(), Studio = require('../public/js/studio-media-package.js');
+  const meta = (rows) => ({ kind: 'captions', textSnapshot: rows.map((r) => r[2]).join('\n'), captions: {
+    segments_are_final_rows: true, captions: { format: 'srt', language: 'he' },
+    segments: rows.map((r, i) => ({ i, start: r[0], end: r[1], text: r[2] })),
+    media: { sha256: 'a'.repeat(64), mime: 'video/mp4', durationSec: 120 } } });
+  const oldRows = [[1, 3, '.שלום עולם'], [4, 6, 'מה נשמע']];
+  const newRows = [[1, 2, 'שלום.'], [2, 3, 'עולם.'], [4, 6, 'מה נשמע']];
+  Studio.setRepositoryForTests(h.repo);
+  try {
+    const first = await Studio.createFromImportMeta(meta(oldRows));
+    const rebuilt = await Studio.createFromImportMeta(meta(newRows));
+    assert.equal(rebuilt.package.package_id, first.package.package_id, 'one package per video');
+    assert.deepEqual(rebuilt.revision.segments.map((s) => [s.start_ms, s.end_ms, s.text]),
+      [[1000, 2000, 'שלום.'], [2000, 3000, 'עולם.'], [4000, 6000, 'מה נשמע']]);
+    assert.ok(rebuilt.revision.segments.every((s) => s.source_segment_ids[0].startsWith('srcseg:' + 'a'.repeat(64) + ':')),
+      'rows keep naming their video for binding provenance');
+    assert.equal(rebuilt.revision.parent_revision_id, first.revision.revision_id, 'the old layout stays in history');
+    assert.equal(rebuilt.revision.operations[0].type, 'reimport_layout');
+    assert.deepEqual((await h.repo.getRevision(first.package.raw_revision_id)).segments.map((s) => s.text),
+      ['.שלום עולם', 'מה נשמע'], 'the raw original stays exactly as first imported');
+    const again = await Studio.createFromImportMeta(meta(newRows));
+    assert.equal(again.revision.revision_id, rebuilt.revision.revision_id, 'the same rebuild adds nothing');
+
+    // A package already poisoned by the old collapse is repaired by the next rebuild.
+    const collapsed = Core.applyOperation('user_corrected', again.revision.segments,
+      { type: 'replace_text_layout', text: newRows.map((r) => r[2]).join('\n') });
+    await h.repo.saveDraft(again.ref.track_id, again.ref.revision_id, collapsed.segments, [collapsed.operation]);
+    await h.repo.commitDraft(again.ref.track_id, { author_kind: 'user' });
+    const repaired = await Studio.createFromImportMeta(meta(newRows));
+    assert.equal(repaired.revision.segments.length, 3);
+    assert.equal(repaired.revision.segments[1].start_ms, 2000);
+  } finally { Studio.setRepositoryForTests(null); }
+});
+
+test('a preview the person re-cut by hand still follows the legacy re-layout path', async () => {
+  const h = await harness(), Studio = require('../public/js/studio-media-package.js');
+  const base = { segments_are_final_rows: true, captions: { format: 'srt', language: 'he' },
+    segments: [{ i: 0, start: 1, end: 2, text: 'שלום' }, { i: 1, start: 3, end: 4, text: 'עולם' }],
+    media: { sha256: 'a'.repeat(64), mime: 'video/mp4', durationSec: 120 } };
+  Studio.setRepositoryForTests(h.repo);
+  try {
+    await Studio.createFromImportMeta({ kind: 'captions', textSnapshot: 'שלום\nעולם', captions: base });
+    const edited = await Studio.createFromImportMeta({ kind: 'captions', textSnapshot: 'שלום\nעולם\nחדש', captions: base });
+    assert.notEqual(edited.revision.operations[0] && edited.revision.operations[0].type, 'reimport_layout',
+      'lines the import did not produce are the person\'s edit, not a new source layout');
+  } finally { Studio.setRepositoryForTests(null); }
+});
+
 test('a package created while the revision hash is computed is returned as reused', async () => {
   const h = await harness(), raw = await rawRevision();
   const input = { media: { sha256: 'a'.repeat(64) }, raw_revision: raw };

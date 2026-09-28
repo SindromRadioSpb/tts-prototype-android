@@ -275,6 +275,24 @@
     };
   }
 
+  // A person's track choice is remembered per subtitle inventory (O-033): the content hashes of
+  // every track name the film's subtitles regardless of the video copy or the companion job.
+  function trackChoiceKey(tracks) {
+    var list = Array.isArray(tracks) ? tracks : [];
+    if (!list.length || list.some(function (track) { return !/^[0-9a-f]{64}$/.test(String(track && track.sha256 || "")); })) return null;
+    return "subtitle-tracks:" + list.map(function (track) { return track.index + "=" + track.sha256; }).sort().join(",");
+  }
+
+  function restoreTrackChoices(saved, tracks) {
+    if (!saved || typeof saved !== "object") return null;
+    var indexes = (Array.isArray(tracks) ? tracks : []).map(function (track) { return track.index; });
+    var out = {};
+    ["text", "translation"].forEach(function (kind) {
+      if (Number.isInteger(saved[kind]) && indexes.indexOf(saved[kind]) >= 0) out[kind] = saved[kind];
+    });
+    return Object.keys(out).length ? out : null;
+  }
+
   function speechLanguage(textCues, options) {
     var opts = options || {};
     var cues = Array.isArray(textCues) ? textCues : [];
@@ -555,6 +573,8 @@
     speechLanguage: speechLanguage,
     buildRows: buildRows,
     normalizeVisualPunctuation: normalizeVisualPunctuation,
+    trackChoiceKey: trackChoiceKey,
+    restoreTrackChoices: restoreTrackChoices,
   };
   if (typeof window !== "undefined") window.SubtitleMaterialCore = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

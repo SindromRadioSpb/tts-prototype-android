@@ -42,3 +42,25 @@ test("an explicit choice with no overlap at all is still refused", () => {
   const sel = SMC.selectTracks({ tracks: far, targetLanguage: "he", translationLanguage: "ru", trackChoices: { translation: 3 } });
   assert.equal(sel.translation_track, null);
 });
+
+// O-033 (2026-09-28): the choice lived only in the open dialog, so the rebuild of the same film
+// silently fell back to the automatic refusal and the card came out with an empty translation.
+const withSha = () => tracks().map((t) => ({ ...t, sha256: String(t.index).repeat(64) }));
+
+test("the same subtitle inventory gives the same choice key, in any track order", () => {
+  const key = SMC.trackChoiceKey(withSha());
+  assert.match(key, /^subtitle-tracks:/);
+  assert.equal(SMC.trackChoiceKey(withSha().reverse()), key);
+  const other = withSha(); other[0].sha256 = "f".repeat(64);
+  assert.notEqual(SMC.trackChoiceKey(other), key);
+  const unknown = withSha(); delete unknown[1].sha256;
+  assert.equal(SMC.trackChoiceKey(unknown), null, "no key without every track's content hash");
+});
+
+test("a remembered choice is restored only onto tracks that still exist", () => {
+  assert.deepEqual(SMC.restoreTrackChoices({ text: 5, translation: 3 }, withSha()), { text: 5, translation: 3 });
+  assert.deepEqual(SMC.restoreTrackChoices({ text: 9, translation: 3 }, withSha()), { translation: 3 });
+  assert.equal(SMC.restoreTrackChoices({ text: 9 }, withSha()), null);
+  assert.equal(SMC.restoreTrackChoices(null, withSha()), null);
+  assert.equal(SMC.restoreTrackChoices({ translation: "3" }, withSha()), null, "only integer indexes");
+});

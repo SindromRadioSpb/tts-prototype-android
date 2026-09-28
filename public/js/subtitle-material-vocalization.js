@@ -98,6 +98,8 @@
     var opts = options || {};
     if (!opts.client || typeof opts.client.vocalizeTexts !== "function" ||
         typeof opts.transliterate !== "function") throw new Error("LOCAL_VOCALIZATION_UNAVAILABLE");
+    // The one visible column follows the Studio's profile, as on the Gemini path (O-033).
+    var profile = ["learner-latin", "sbl", "ru-phonetic"].indexOf(opts.translitProfile) >= 0 ? opts.translitProfile : "learner-latin";
     var output = (Array.isArray(rows) ? rows : []).map(function (row) { return Object.assign({}, row); });
     var targetIndexes = [];
     output.forEach(function (row, index) {
@@ -124,7 +126,7 @@
           row.niqqud_status = "not_vocalized";
           // Transliteration remains deterministic even when the local model cannot safely
           // supply vowel points. It is less precise without them, but preserves the column.
-          row.translit = String(opts.transliterate(row.he, "learner-latin") || "");
+          row.translit = String(opts.transliterate(row.he, profile) || "");
           row.translit_sbl = String(opts.transliterate(row.he, "sbl") || "");
           row.translit_ru = String(opts.transliterate(row.he, "ru-phonetic") || "");
           warnings.push({ segment_index: row.segment_index, reason: "VOCALIZATION_SOURCE_MISMATCH" });
@@ -137,7 +139,7 @@
           warnings.push({ segment_index: row.segment_index, reason: "PARTIAL_VOCALIZATION", matched_words: projected.matched, total_words: projected.total });
         }
         row.niqqud_model_version = String(result.model_version || "");
-        row.translit = String(opts.transliterate(projected.text, "learner-latin") || "");
+        row.translit = String(opts.transliterate(projected.text, profile) || "");
         row.translit_sbl = String(opts.transliterate(projected.text, "sbl") || "");
         row.translit_ru = String(opts.transliterate(projected.text, "ru-phonetic") || "");
         if (!row.translit || !row.translit_ru) {

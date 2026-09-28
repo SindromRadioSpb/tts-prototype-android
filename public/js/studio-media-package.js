@@ -455,6 +455,34 @@
     return { segments: next, operations: operations, changed: operations.length > 0 };
   }
 
+  // O-033: one package per video, so a rebuild of the same video with a different row layout
+  // (another text track, restored punctuation, a new ASR run) reuses the package whose corrected
+  // track still holds the old layout. Reconciling the new lines against those segments collapses
+  // the film into one untimed-to-rows segment. When the preview is exactly what this import
+  // produced, those timed segments are the truth: they become a new revision on top of the old
+  // one, which stays in history for the cards bound to it. A hand-edited preview is not rebased.
+  function rebaseOnFreshLayout(current, raw, text) {
+    var lines = String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n')
+      .map(function (line) { return line.trim(); }).filter(Boolean);
+    var fresh = (raw && raw.segments || []).map(function (s) { return String(s.text == null ? '' : s.text).trim(); });
+    if (!lines.length || lines.join('\n') !== fresh.join('\n')) return null;
+    // Only when reconciliation cannot give one segment per line (the collapsed case, including a
+    // package already collapsed into one multi-line segment); matching layouts keep their ids.
+    if (reconcileCorrectedPreview(current.segments, text).segments.length === lines.length) return null;
+    var prefix = 'cseg:' + raw.track_fingerprint.slice(0, 20) + ':r' + current.revision_no + ':';
+    var segments = getCore().createCorrectedDraft(raw.segments, {
+      id_factory: (function () { var n = 0; return function () { return prefix + n++; }; })(),
+    });
+    return {
+      segments: segments,
+      operation: {
+        type: 'reimport_layout', raw_revision_sha256: raw.canonical_sha256,
+        raw_track_fingerprint: raw.track_fingerprint,
+        tombstoned_caption_segment_ids: current.segments.map(function (s) { return s.caption_segment_id; }),
+      },
+    };
+  }
+
   async function createFromImportMeta(meta) {
     var input = passportToPromotionInput(meta), Core = getCore(), repo = browserRepository();
     var captionEvidence = input.provenance && input.provenance.captions || {};
@@ -487,7 +515,13 @@
       });
     }
     var current = await repo.getCurrentRevision(created.corrected_track_id), timingApplied = false;
-    if (canShift && created.reused === false && current.revision_id === created.corrected_revision_id) {
+    var rebased = created.reused ? rebaseOnFreshLayout(current, raw, meta && meta.textSnapshot) : null;
+    if (rebased) {
+      await repo.saveDraft(created.corrected_track_id, current.revision_id, rebased.segments, [rebased.operation]);
+      current = await repo.commitDraft(created.corrected_track_id, { author_kind: 'import',
+        provenance: { surface: 'studio-reimport', raw_revision_sha256: raw.canonical_sha256, preserves_raw: true } });
+    }
+    if (canShift && (rebased || (created.reused === false && current.revision_id === created.corrected_revision_id))) {
       var change = Core.applyOperation('user_corrected', current.segments, {type:'offset', delta_ms:shift});
       change.segments.forEach(function(segment){
         segment.authority = Object.assign({}, segment.authority, {timing:'derived'});
