@@ -14,7 +14,7 @@ test("learner Latin reproduces the approved physics-corpus style", () => {
 });
 
 test("learner Latin profile has a distinct cache version", () => {
-  assert.equal(translitProfileVersion("learner-latin"), "learner-latin-v3-modern-reading");
+  assert.equal(translitProfileVersion("learner-latin"), "learner-latin-v4-geresh");
   assert.notEqual(translitProfileVersion("learner-latin"), translitProfileVersion("sbl"));
 });
 

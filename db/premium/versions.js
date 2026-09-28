@@ -14,15 +14,17 @@
 // Sentence boundaries themselves are unchanged (byte-parity corpus check).
 const SEGMENTER_VERSION = "regex-v2-lineidx";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v6-full-spelling"; // default; also the cache-key string for profile "sbl"
+const TRANSLIT_PROFILE  = "sbl-v7-geresh"; // default; also the cache-key string for profile "sbl"
 
 // Stable cache-key strings per profile. Bump when the corresponding schema changes.
 const TRANSLIT_PROFILE_VERSIONS = {
   // v6 / v2 / v3 (O-033d, 2026-09-28): translit-modern-reading.js — full-spelling doubled ו/י read
   // once in every profile; learner and Russian read modern sheva and a silent aleph.
-  "sbl":         "sbl-v6-full-spelling",
-  "ru-phonetic": "ru-phonetic-v2-modern-reading",
-  "learner-latin": "learner-latin-v3-modern-reading",
+  // v7 / v3 / v4 (O-033 tails, 2026-09-28): geresh ג' ז' צ' → j/zh/ch in every profile; Arabic
+  // loans with a doubled letter (יאללה) keep one long consonant in learner and Russian.
+  "sbl":         "sbl-v7-geresh",
+  "ru-phonetic": "ru-phonetic-v3-geresh",
+  "learner-latin": "learner-latin-v4-geresh",
 };
 
 function translitProfileVersion(profile) {

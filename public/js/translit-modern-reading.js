@@ -8,7 +8,10 @@
 //     a sheva, which those profiles render as nothing;
 //   - an aleph without a vowel of its own is dropped (hu, lo, yotse, Maya);
 //   - a bare vav or yod right after a pointed one of the same letter is a spelling letter and
-//     is dropped (mitsva, Shvayts, Eyal). This last rule is orthography, so SBL uses it too.
+//     is dropped (mitsva, Shvayts, Eyal). This last rule is orthography, so SBL uses it too;
+//   - a geresh after ג ז צ (ג'ינס, ז'ורנל, צ'יפס, מסאז') is moved in front of its letter as ׳, where
+//     the library keeps it next to that letter's transliteration; the profile then reads the pair
+//     as j/zh/ch. Also orthography, so every profile gets it.
 // Only Hebrew words change; the text shown in the niqqud column is never touched.
 (function (root, factory) {
   var api = factory();
@@ -18,7 +21,10 @@
   "use strict";
 
   var SHEVA = "ְ", HATAF_SEGOL = "ֱ", DAGESH = "ּ";
-  var WORD_RE = /[א-ת֑-ׇ]+/g;
+  var GERESH = "׳";
+  var WORD_RE = /[א-ת֑-ׇ׳]+/g;
+  // ASCII apostrophe, right single quote or the Hebrew geresh, with points on either side.
+  var GERESH_RE = /([גזצץ])([֑-ׇ]*)['’׳]([֑-ׇ]*)/g;
   var LETTER_RE = /[א-ת]/;
   // Full vowels (not sheva): hatafs, hiriq, tsere, segol, patah, qamats, holam, qubuts, qamats qatan.
   var VOWEL_RE = /[ֱ-ׇֻ]/;
@@ -41,7 +47,8 @@
   function parse(word) {
     var out = [];
     Array.from(word.normalize("NFD")).forEach(function (ch) {
-      if (LETTER_RE.test(ch) || !out.length) out.push({ ch: ch, marks: "" });
+      // The geresh marker is its own unit so no rule attaches it to, or drops it with, a letter.
+      if (LETTER_RE.test(ch) || ch === GERESH || !out.length) out.push({ ch: ch, marks: "" });
       else out[out.length - 1].marks += ch;
     });
     return out;
@@ -91,11 +98,16 @@
     return s;
   }
 
-  function modernSheva(letters) {
+  // Loanwords whose doubled letter is one long consonant, not two with a vowel between (yalla,
+  // not yalela). Keyed by the bare consonants; grows only from reviewed words.
+  var GEMINATE_LOANS = { "יאללה": 1, "וואללה": 1, "ואללה": 1, "אללה": 1 };
+
+  function modernSheva(letters, consonants) {
     // A word with no full vowel at all is an interjection (שְׁשְׁשׁ): leave it as the library reads it.
     var voiced = letters.some(function (l) { return hasVowel(l) || (l.ch === "ו" && /[ֹּ]/.test(l.marks)); });
     if (!voiced) return letters;
     var n = letters.length, s = stemStart(letters), spokenPrev = null;
+    var geminateLoan = GEMINATE_LOANS[consonants] === 1;
     return letters.map(function (l, i) {
       if (l.marks.indexOf(SHEVA) < 0) { spokenPrev = null; return l; }
       var next = letters[i + 1];
@@ -103,7 +115,7 @@
       if (next && i < n - 1) {
         if (i === s && (SPOKEN_FIRST.indexOf(l.ch) >= 0 || SPOKEN_BEFORE.indexOf(next.ch) >= 0 || alike(l.ch, next.ch))) spoken = true;
         else if (spokenPrev === false) spoken = true; // the second of two shevas
-        else if (base(next.ch) === base(l.ch)) spoken = true; // שׁוּחְרְרוּ, before the same letter
+        else if (base(next.ch) === base(l.ch) && !geminateLoan) spoken = true; // שׁוּחְרְרוּ, before the same letter
       }
       spokenPrev = spoken;
       return spoken ? { ch: l.ch, marks: l.marks.replace(SHEVA, HATAF_SEGOL) } : l;
@@ -112,18 +124,23 @@
 
   function prepareWord(word, opts) {
     var letters = parse(word);
+    var consonants = letters.map(function (l) { return l.ch; }).join("");
     if (opts.doubled !== false) letters = collapseDoubled(letters);
     if (opts.aleph) letters = dropQuiescentAleph(letters);
-    if (opts.sheva) letters = modernSheva(letters);
+    if (opts.sheva) letters = modernSheva(letters, consonants);
     return join(letters);
   }
 
   // opts: { sheva, aleph } for modern learner/Russian reading; doubled letters always collapse
   // unless opts.doubled === false.
-  function prepare(text, options) {
-    var opts = options || {};
-    return String(text == null ? "" : text).replace(WORD_RE, function (word) { return prepareWord(word, opts); });
+  function markGeresh(text) {
+    return text.replace(GERESH_RE, function (_whole, letter, before, after) { return GERESH + letter + before + after; });
   }
 
-  return { prepare: prepare, VERSION: "modern-reading-v1" };
+  function prepare(text, options) {
+    var opts = options || {};
+    return markGeresh(String(text == null ? "" : text).normalize("NFD")).normalize("NFC").replace(WORD_RE, function (word) { return prepareWord(word, opts); });
+  }
+
+  return { prepare: prepare, GERESH: GERESH, VERSION: "modern-reading-v2" };
 });

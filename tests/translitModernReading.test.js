@@ -66,3 +66,29 @@ test("neighbouring consonants that cannot run together take the spoken sheva", (
   assert.equal(learner("תְּצַיְּירִי"), "tetsayri");
   assert.equal(learner("תְּשׁוּבָה"), "tshuva", "a dental before shin still clusters");
 });
+
+// O-033 tails, 2026-09-28: a geresh (ג'ודו, בתיה'לה in Sweet Mud) was read as a plain letter and its
+// apostrophe drifted to the end of the word (gudo'); Arabic loans with a doubled letter read as two.
+test("a geresh makes ג ז צ into j, zh, ch in every profile, with ASCII or Hebrew geresh", () => {
+  const cases = [
+    ["ג'וּדוֹ", "Judo", "ǧûḏô", "джудо"], ["גִ'ינְס", "Jins", "ǧîns", "джинс"], ["ג'ִינְס", "Jins", "ǧîns", "джинс"],
+    ["ז'וּרְנָל", "Zhurnal", "žûrənāl", "журнал"], ["צִ'יפְּס", "Chips", "čîps", "чипс"],
+    ["מָסָאז'", "Masazh", "māsāʾž", "масаж"], ["ג׳וֹרְג׳", "Jorj", "ǧôrǧ", "джордж"],
+  ];
+  for (const [he, learnerWant, sblWant, ruWant] of cases) {
+    assert.deepEqual([T(he, "learner-latin"), T(he, "sbl"), T(he, "ru-phonetic")], [learnerWant, sblWant, ruWant], he);
+  }
+  assert.equal(learner("לְג'ִינְס"), "lejins", "the geresh does not split the word for the sheva rules");
+});
+
+test("the geresh pass leaves the pointed text and other apostrophes alone", () => {
+  assert.equal(R.prepare("ג'וּדוֹ").replace("׳", ""), "גוּדוֹ", "only moves the geresh, never a point or letter");
+  assert.equal(R.prepare("אָמַר 'כֵּן'"), "אָמַר 'כֵּן'");
+});
+
+test("Arabic loans with a doubled letter keep one long consonant", () => {
+  assert.equal(learner("יַאלְלָה"), "yalla");
+  assert.equal(learner("וַואלְלָה"), "valla");
+  assert.equal(T("יַאלְלָה", "ru-phonetic"), "йалла");
+  assert.equal(learner("שׁוּחְרְרוּ"), "shukhreru", "native words keep the spoken sheva before the same letter");
+});

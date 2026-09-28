@@ -183,19 +183,35 @@ const READING = {
   "sbl": {},
 };
 
+// The modern reading pass puts ׳ in front of a geresh letter (ג'ינס → ׳גִינְס); the library keeps it
+// before that letter's output, so each profile reads the pair as its own j / zh / ch (O-033).
+const G = ModernReading.GERESH;
+const GERESH_READINGS = {
+  "learner-latin": [[/׳gg?/g, "j"], [/׳zz?/g, "zh"], [/׳(?:ts){1,2}/g, "ch"]],
+  "sbl": [[/׳[gḡ][gḡ]?/g, "ǧ"], [/׳zz?/g, "ž"], [/׳ṣṣ?/g, "č"]],
+  "ru-phonetic": [[/׳г/g, "дж"], [/׳з/g, "ж"], [/׳ц/g, "ч"]],
+};
+
+function _geresh(value, profile) {
+  if (!value || value.indexOf(G) < 0) return value;
+  let out = value;
+  for (const [pattern, reading] of GERESH_READINGS[profile] || []) out = out.replace(pattern, reading);
+  return out.split(G).join("");
+}
+
 function _read(text, reading) {
   return typeof text === "string" ? ModernReading.prepare(text, reading) : text;
 }
 
 // Backward-compatible default (SBL profile).
 function transliterate(heWithNiqqud) {
-  return _run(_read(heWithNiqqud, READING.sbl), SBL_SCHEMA);
+  return _geresh(_run(_read(heWithNiqqud, READING.sbl), SBL_SCHEMA), "sbl");
 }
 
 // Profile-aware entry point used by the pipeline.
 function transliterateWithProfile(heWithNiqqud, profile) {
   const known = Object.prototype.hasOwnProperty.call(SCHEMAS, profile) ? profile : "sbl";
-  const result = _run(_read(heWithNiqqud, READING[known]), SCHEMAS[known]);
+  const result = _geresh(_run(_read(heWithNiqqud, READING[known]), SCHEMAS[known]), known);
   return known === "learner-latin" ? _finishLearnerLatin(result) : result;
 }
 

@@ -13718,7 +13718,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=676"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
-<script src="/js/local-translit-bundle.js?v=678"></script>
+<script src="/js/local-translit-bundle.js?v=683"></script>
 <script src="/js/translit-display.js?v=680"></script>
 <script src="/js/subtitle-material-vocalization.js?v=676"></script>
 <script src="/js/material-progress-ladder.js?v=672"></script>
@@ -13842,7 +13842,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.682";
+    window.APP_VERSION = "3.11.683";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -22016,7 +22016,7 @@ updatePlaylistButtonUI();
             if (localNiqqud.corrections.length > 0) {
                 cache.rows = currentTableData;
                 cache.tableCacheContract = TABLE_CACHE_CONTRACT_VERSION;
-                cache.translitProfileVersion = "learner-latin-v3-modern-reading";
+                cache.translitProfileVersion = "learner-latin-v4-geresh";
                 cache.localNiqqudNormalizerVersion = localNiqqud.version;
                 cache.localNiqqudCorrections = localNiqqud.corrections;
                 v3StoreTableCache(cache);
