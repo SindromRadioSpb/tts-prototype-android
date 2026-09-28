@@ -14,13 +14,15 @@
 // Sentence boundaries themselves are unchanged (byte-parity corpus check).
 const SEGMENTER_VERSION = "regex-v2-lineidx";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v5-dagesh"; // default; also the cache-key string for profile "sbl"
+const TRANSLIT_PROFILE  = "sbl-v6-full-spelling"; // default; also the cache-key string for profile "sbl"
 
 // Stable cache-key strings per profile. Bump when the corresponding schema changes.
 const TRANSLIT_PROFILE_VERSIONS = {
-  "sbl":         "sbl-v5-dagesh",     // v5: DAGESH_CHAZAQ enabled (gemination)
-  "ru-phonetic": "ru-phonetic-v1",
-  "learner-latin": "learner-latin-v2-local-niqqud",
+  // v6 / v2 / v3 (O-033d, 2026-09-28): translit-modern-reading.js — full-spelling doubled ו/י read
+  // once in every profile; learner and Russian read modern sheva and a silent aleph.
+  "sbl":         "sbl-v6-full-spelling",
+  "ru-phonetic": "ru-phonetic-v2-modern-reading",
+  "learner-latin": "learner-latin-v3-modern-reading",
 };
 
 function translitProfileVersion(profile) {

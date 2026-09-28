@@ -21,6 +21,7 @@
 const { transliterate: _lib, Schema } = require("hebrew-transliteration");
 const { sblAcademicSpirantization, sblSimple } = require("hebrew-transliteration/schemas");
 const { normalizeLearnerLatinTranslit } = require("../../public/js/table-niqqud-normalizer.js");
+const ModernReading = require("../../public/js/translit-modern-reading.js");
 
 // ── SBL Academic (spirantized) ──────────────────────────────────────────────
 // Overrides vs library defaults:
@@ -41,7 +42,9 @@ const SBL_SCHEMA = new Schema({
 // collapsed (e.g. both ד and דּ → д). Matres lectionis produce plain vowels.
 const RU_SCHEMA = new Schema({
   // ── Vowels ──
-  VOCAL_SHEVA:    "э",
+  // Spoken shevas arrive as hataf segol from the modern reading pass (O-033d); a sheva the
+  // library still calls vocal is a classical reading the modern speaker drops (хукма, амру).
+  VOCAL_SHEVA:    "",
   HATAF_SEGOL:    "э",
   HATAF_PATAH:    "а",
   HATAF_QAMATS:   "о",
@@ -172,15 +175,28 @@ function _run(text, schema) {
   }
 }
 
+// Learner and Russian profiles read modern Israeli pronunciation; SBL stays the classical
+// academic transcription and only stops reading a spelling letter of full spelling twice.
+const READING = {
+  "learner-latin": { sheva: true, aleph: true },
+  "ru-phonetic": { sheva: true, aleph: true },
+  "sbl": {},
+};
+
+function _read(text, reading) {
+  return typeof text === "string" ? ModernReading.prepare(text, reading) : text;
+}
+
 // Backward-compatible default (SBL profile).
 function transliterate(heWithNiqqud) {
-  return _run(heWithNiqqud, SBL_SCHEMA);
+  return _run(_read(heWithNiqqud, READING.sbl), SBL_SCHEMA);
 }
 
 // Profile-aware entry point used by the pipeline.
 function transliterateWithProfile(heWithNiqqud, profile) {
-  const result = _run(heWithNiqqud, SCHEMAS[profile] || SBL_SCHEMA);
-  return profile === "learner-latin" ? _finishLearnerLatin(result) : result;
+  const known = Object.prototype.hasOwnProperty.call(SCHEMAS, profile) ? profile : "sbl";
+  const result = _run(_read(heWithNiqqud, READING[known]), SCHEMAS[known]);
+  return known === "learner-latin" ? _finishLearnerLatin(result) : result;
 }
 
 module.exports = { transliterate, transliterateWithProfile };
