@@ -68,3 +68,25 @@ test('sharesOpening keeps a card whose text starts like the transcript and drops
   assert.equal(C.sharesOpening('שלום עולם, טקסט אחר לגמרי', segments, deps), false);
   assert.equal(C.sharesOpening('', segments, deps), false);
 });
+
+// O-033 (2026-09-28, Sweet Mud): the whole film had been collapsed into ONE segment; "Link media"
+// found every row inside it and bound all 778 rows to it, so each ▶ replayed the film from 1:54.
+test('a segment far longer than a row replay binds nothing and says why', () => {
+  const film = { caption_segment_id: 'c0', start_ms: 114280, end_ms: 5837760, text: 'שלום מיה\nמה שלומך\nתודה רבה' };
+  const plan = C.planRebind(['שלום מיה', 'מה שלומך', 'תודה רבה'], { segments: [film] }, deps);
+  assert.equal(plan.bound, 0);
+  assert.equal(plan.rowsOnLongSegments, 3);
+  const choice = C.chooseCandidate([{ plan }]);
+  assert.equal(choice.candidate, null);
+  assert.equal(choice.reason, 'SEGMENTS_TOO_LONG');
+});
+
+test('ordinary long cues and untimed cues still bind', () => {
+  const segments = [
+    { caption_segment_id: 'a', start_ms: 0, end_ms: 30000, text: 'שלום מיה מה שלומך' },
+    { caption_segment_id: 'b', start_ms: null, end_ms: null, text: 'תודה רבה' },
+  ];
+  const plan = C.planRebind(['שלום מיה', 'מה שלומך', 'תודה רבה'], { segments }, deps);
+  assert.equal(plan.bound, 3);
+  assert.equal(plan.rowsOnLongSegments, 0);
+});

@@ -16,6 +16,14 @@
   var SEARCH_WINDOW_WORDS = 60;
   // Ниже этой доли строк с ▶ ремонт без пересборки не считается достаточным.
   var REBUILD_THRESHOLD = 0.8;
+  // ▶ у строки проигрывает её сегмент целиком. Сегмент длиннее этого — не реплика, а склеенный
+  // трек (O-033: весь фильм в одном сегменте «объяснял» все 778 строк): строки к нему не привязываются.
+  var MAX_ROW_SEGMENT_MS = 120000;
+  function tooLong(segment) {
+    var start = Number(segment && segment.start_ms), end = Number(segment && segment.end_ms);
+    return segment && segment.start_ms != null && segment.end_ms != null && Number.isFinite(start) && Number.isFinite(end)
+      && end - start > MAX_ROW_SEGMENT_MS;
+  }
 
   function resolveNormalize(deps) {
     var fn = deps && deps.normalize;
@@ -56,15 +64,17 @@
   function planRebind(rowTexts, revision, deps) {
     var segments = revision && Array.isArray(revision.segments) ? revision.segments : [];
     var aligned = alignRowsToSegmentSpans(rowTexts, segments, deps);
-    var mappingRows = [];
+    var mappingRows = [], rowsOnLongSegments = 0;
     aligned.rows.forEach(function (row) {
       if (row.segment_index == null) return;
+      if (tooLong(segments[row.segment_index])) { rowsOnLongSegments++; return; }
       var id = segments[row.segment_index] && segments[row.segment_index].caption_segment_id;
       if (id) mappingRows.push({ row_index: row.row_index, caption_segment_id: String(id) });
     });
     var total = aligned.total, ratio = total ? mappingRows.length / total : 0;
     return { mapping: { rows: mappingRows, provenance_basis: "rebind-span-alignment-v1" },
-      bound: mappingRows.length, total: total, ratio: ratio, needsRebuild: ratio < REBUILD_THRESHOLD };
+      bound: mappingRows.length, total: total, ratio: ratio, needsRebuild: ratio < REBUILD_THRESHOLD,
+      rowsOnLongSegments: rowsOnLongSegments };
   }
 
   // Дешёвый предфильтр поиска со стороны видео: первые слова текста карточки совпадают с первыми
@@ -85,13 +95,17 @@
   // Цель ремонта — транскрипт, объясняющий больше всего строк. Равенство двух лучших — не повод
   // выбрать любой: это отказ, как у резолвера медиа-контекста.
   function chooseCandidate(candidates) {
-    var list = (Array.isArray(candidates) ? candidates : []).filter(function (c) { return c && c.plan && c.plan.bound > 0; });
-    if (!list.length) return { candidate: null, reason: "NO_MATCH" };
+    var all = Array.isArray(candidates) ? candidates : [];
+    var list = all.filter(function (c) { return c && c.plan && c.plan.bound > 0; });
+    if (!list.length) {
+      var collapsed = all.some(function (c) { return c && c.plan && c.plan.rowsOnLongSegments > 0; });
+      return { candidate: null, reason: collapsed ? "SEGMENTS_TOO_LONG" : "NO_MATCH" };
+    }
     list.sort(function (a, b) { return b.plan.bound - a.plan.bound; });
     if (list.length > 1 && list[1].plan.bound === list[0].plan.bound) return { candidate: null, reason: "AMBIGUOUS" };
     return { candidate: list[0], reason: null };
   }
 
   return { alignRowsToSegmentSpans: alignRowsToSegmentSpans, planRebind: planRebind, chooseCandidate: chooseCandidate, sharesOpening: sharesOpening,
-    SEARCH_WINDOW_WORDS: SEARCH_WINDOW_WORDS, REBUILD_THRESHOLD: REBUILD_THRESHOLD };
+    SEARCH_WINDOW_WORDS: SEARCH_WINDOW_WORDS, REBUILD_THRESHOLD: REBUILD_THRESHOLD, MAX_ROW_SEGMENT_MS: MAX_ROW_SEGMENT_MS };
 });
