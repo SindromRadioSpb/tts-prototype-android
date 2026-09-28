@@ -1189,7 +1189,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/subtitle-material-core.js?v=676",
   "/js/subtitle-material-import.js?v=584",
   "/js/media-readiness.js?v=671",
-  "/js/local-translit-bundle.js?v=573",
+  "/js/local-translit-bundle.js?v=678",
   "/js/subtitle-material-vocalization.js?v=676",
   "/js/material-progress-ladder.js?v=672",
 
