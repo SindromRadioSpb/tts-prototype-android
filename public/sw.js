@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.680";
+const CACHE_VERSION = "v3.11.681";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -334,7 +334,7 @@ const PRECACHE_URLS = [
   "/db/anki-identity.js",
   "/db/anki-models.js",
   "/db/anki-apkg.js",
-  "/db/anki-srs-export.js",
+  "/db/anki-srs-export.js?v=681",
   // TTS layer
   "/tts/core.js",
   "/tts/backends.js",

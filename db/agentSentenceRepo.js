@@ -28,6 +28,7 @@
 //     + agent_text_grants (слои 2–3 энфорсятся в AA-слое). Ключи ментора агентскими не
 //     переиспользуются и наоборот.
 
+const { exportTranslit, DEFAULT_PROFILE } = require("./premium/translitExport");
 const { getDb } = require("./sqlite");
 const learnerArtifactsRepo = require("./learnerArtifactsRepo");
 
@@ -66,7 +67,9 @@ function _pickSentenceRow(payload, textKey, orderIndex, rowId) {
   return {
     he: String(row.hebrew_plain != null ? row.hebrew_plain : (row.he_plain != null ? row.he_plain : (row.he || ""))),
     he_niqqud: String(row.hebrew_niqqud != null ? row.hebrew_niqqud : (row.he_niqqud || "")),
-    translit: String(row.translit || ""),
+    // O-033: derived from the niqqud in learner Latin (the cached column may predate the current
+    // rules or carry another profile); a hand-edited cell is kept.
+    translit: exportTranslit(row, DEFAULT_PROFILE),
     ru: String(row.russian != null ? row.russian : (row.ru || "")),
     text_title: String(t.title || ""),
     order_index: Number(row.order_index),

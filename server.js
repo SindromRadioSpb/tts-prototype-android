@@ -10849,6 +10849,10 @@ app.post("/api/export/docx", requireSameOriginJson, rlExportDocx, async (req, re
     const body = (req.body && typeof req.body === "object") ? req.body : {};
     const t = (body.text && typeof body.text === "object") ? body.text : {};
     const sentences = Array.isArray(body.sentences) ? body.sentences : [];
+    // O-033: the transliteration column is written in the profile the person has selected,
+    // derived from the niqqud at export time; hand-edited cells are kept as written.
+    const { exportTranslit } = require("./db/premium/translitExport");
+    const docxTranslitProfile = body.translit_profile;
     const notesArr  = Array.isArray(body.notes) ? body.notes : [];
     const notesBySid = {};
     for (const n of notesArr) {
@@ -10948,7 +10952,7 @@ app.post("/api/export/docx", requireSameOriginJson, rlExportDocx, async (req, re
             cell(String(idx), AlignmentType.CENTER, false),
             cell(String(r.he_plain || "")),
             cell(String(r.he_niqqud || "")),
-            cell(String(r.translit || "")),
+            cell(exportTranslit(r, docxTranslitProfile)),
             cell(String(r.ru || "")),
             cell(noteText),
             linkCell(audioUrl),

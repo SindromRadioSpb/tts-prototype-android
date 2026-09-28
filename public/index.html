@@ -13826,7 +13826,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/db/anki-identity.js"></script>
 <script src="/db/anki-models.js"></script>
 <script src="/db/anki-apkg.js"></script>
-<script src="/db/anki-srs-export.js"></script>
+<script src="/db/anki-srs-export.js?v=681"></script>
 
 <script>
     // i18n safety shim: if i18n module failed to load, t() returns the key unchanged
@@ -13842,7 +13842,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.680";
+    window.APP_VERSION = "3.11.681";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17633,7 +17633,7 @@ async function v3DownloadDocxLocal(textId) {
   const r = await fetch("/api/export/docx", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, sentences, notes }),
+    body: JSON.stringify({ text, sentences, notes, translit_profile: (document.getElementById("translitProfileSelect") || {}).value || "learner-latin" }),
   });
   if (!r.ok) {
     let msg = "HTTP " + r.status;
@@ -40857,7 +40857,7 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
                 res = await fetch("/api/export/docx", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ text, sentences, notes }),
+                  body: JSON.stringify({ text, sentences, notes, translit_profile: (document.getElementById("translitProfileSelect") || {}).value || "learner-latin" }),
                 });
               } catch (e) {
                 console.error("DOCX export (local) failed:", e);
@@ -42357,7 +42357,12 @@ async function v3AnkiDownloadApkg() {
       const noteBySid = {}, audioBySid = {};
       if (includeHint) { const noteRows = await ldb.listNotes(exportId); for (const nr of (noteRows || [])) noteBySid[nr.sentence_id] = nr.note; }
       if (withAudio) { for (const s of (sents || [])) { if (s && s.audio_asset_key) { const af = await audio.attach(s.audio_asset_key); if (af) audioBySid[s.id] = af; } } }
-      groups.push(window.AnkiSrsExport.sentenceGroup(sents, { noteBySid, audioBySid, deckName: (deckBase && cardKind === "sentences") ? deckBase : "LinguistPro::SRS" }));
+      // O-033: the card carries the transliteration of the selected profile, derived from the niqqud.
+      const ankiTranslitStore = (window.TranslitDisplay && window.LocalTranslit)
+        ? window.TranslitDisplay.createStore(window.LocalTranslit.transliterateWithProfile) : null;
+      const ankiTranslitProfile = (document.getElementById("translitProfileSelect") || {}).value || "learner-latin";
+      const translitFor = ankiTranslitStore ? (row) => ankiTranslitStore.displayNow(row, ankiTranslitProfile) : null;
+      groups.push(window.AnkiSrsExport.sentenceGroup(sents, { noteBySid, audioBySid, translitFor, deckName: (deckBase && cardKind === "sentences") ? deckBase : "LinguistPro::SRS" }));
     }
     const total = groups.reduce((a, g) => a + (g.notes ? g.notes.length : 0), 0);
     if (!total) { showToast("Нет карточек для экспорта в этом тексте.", "info"); v3AnkiSetStatus("", false); return; }

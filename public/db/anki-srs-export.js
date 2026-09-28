@@ -79,12 +79,14 @@
 
   // OPFS sentence row → the 6 «SRS Card v1» fields. `noteText` = the optional per-sentence annotation (only
   // when includeHint). `audioFile` (e.g. 'lp_<key>.mp3') embeds existing audio → `[sound:…]` (else {{TTS}}-less silent).
-  function sentenceFields(s, noteText, audioFile) {
+  // translitFor(s) (optional, O-033): the transliteration in the selected profile, derived from the
+  // niqqud by the caller (TranslitDisplay); without it the stored column is used.
+  function sentenceFields(s, noteText, audioFile, translitFor) {
     s = s || {};
     return {
       Hebrew: String(s.he_plain || s.he_niqqud || s.hebrew_plain || ""),
       Niqqud: String(s.he_niqqud || s.hebrew_niqqud || ""),
-      Translit: String(s.translit || s.translit_ru || ""),
+      Translit: String((typeof translitFor === "function" ? translitFor(s) : "") || s.translit || s.translit_ru || ""),
       Russian: String(s.ru || s.russian || ""),
       Note: String(noteText || ""),
       Audio: audioFile ? ("[sound:" + audioFile + "]") : "",
@@ -97,7 +99,7 @@
     const audioBySid = opts.audioBySid || {};
     const out = [];
     for (const s of (sentences || [])) {
-      const f = sentenceFields(s, s ? noteBySid[s.id] : "", s ? audioBySid[s.id] : "");
+      const f = sentenceFields(s, s ? noteBySid[s.id] : "", s ? audioBySid[s.id] : "", opts.translitFor);
       if (!f.Hebrew && !f.Niqqud) continue;
       out.push({ guid: core.stableGuid("sent:" + (s && s.id != null ? s.id : f.Hebrew)), fields: SENT_MODEL.fieldNames.map((n) => f[n] || ""), tags: ["lp", "lp_sentence"] });
     }
