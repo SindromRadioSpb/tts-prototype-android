@@ -1,0 +1,26 @@
+# Build context is prepared by build-webui.ps1 from explicit non-secret files.
+FROM nousresearch/hermes-agent@sha256:fca358f12efd65bfaaca05884166f15c0e2788375ca30d77061ac1ebc96452b7 AS agent_sqlite
+FROM ghcr.io/nesquena/hermes-webui@sha256:48ba6ee4a837079955c00e997b751065cc0324ae6eaa0f2fec592c8f4b2a746e
+# Both pinned images use Debian 13. Match Agent's fixed SQLite instead of the
+# WebUI base's vulnerable 3.46.1 (WAL reset bug under concurrent connections).
+COPY --from=agent_sqlite /usr/local/lib/libsqlite3.so.3.53.4 /usr/local/lib/
+RUN ln -sf libsqlite3.so.3.53.4 /usr/local/lib/libsqlite3.so.0 \
+    && ln -sf libsqlite3.so.3.53.4 /usr/local/lib/libsqlite3.so \
+    && ldconfig \
+    && python3 -c "import sqlite3; assert sqlite3.sqlite_version == '3.53.4'"
+COPY legacy_audio_patch.py preserve_audio_bridge.py /opt/linguistpro-bridge/
+COPY test_audio_bridge.py /opt/linguistpro-bridge/
+COPY patch_installer.py /opt/linguistpro-bridge/
+RUN python3 /opt/linguistpro-bridge/preserve_audio_bridge.py \
+    && python3 /opt/linguistpro-bridge/test_audio_bridge.py \
+    && python3 /opt/linguistpro-bridge/patch_installer.py
+COPY webui-extension/ /opt/c2-live-extension/
+COPY token-sidecar/ /opt/c2-live-sidecar/
+RUN sed -i 's/\r$//' /opt/c2-live-extension/start-c2-webui.sh \
+    && chmod 0555 /opt/c2-live-extension/start-c2-webui.sh \
+    && chmod -R a-w /opt/c2-live-extension /opt/c2-live-sidecar /opt/linguistpro-bridge
+ENV HERMES_WEBUI_EXTENSION_DIR=/opt/c2-live-extension \
+    HERMES_WEBUI_EXTENSION_MANIFEST=manifest.json \
+    HERMES_WEBUI_CSP_CONNECT_EXTRA=wss://generativelanguage.googleapis.com
+USER root
+CMD ["/opt/c2-live-extension/start-c2-webui.sh"]
