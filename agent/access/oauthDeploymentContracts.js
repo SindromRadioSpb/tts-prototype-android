@@ -77,6 +77,13 @@ function protectedResourceMetadata() {
     resource_name: "LinguistPro Agent Access",
   });
 }
+function protectedTutorResourceMetadata() {
+  return Object.freeze({
+    ...protectedResourceMetadata(),
+    scopes_supported: Object.freeze(["tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose"]),
+    resource_name: "LinguistPro Tutor Chat",
+  });
+}
 
 function authorizationServerMetadata() {
   return Object.freeze({
@@ -125,6 +132,6 @@ function validateFixtureClient(value) {
 
 module.exports = {
   DEPLOYMENT_VERSION, ISSUER, RESOURCE, CANONICAL_ORIGIN, ENDPOINTS, FIXTURE_CLIENTS, SCOPES: C.SCOPES,
-  TTL, RATE_LIMITS, PROHIBITED_ENDPOINTS, protectedResourceMetadata,
+  TTL, RATE_LIMITS, PROHIBITED_ENDPOINTS, protectedResourceMetadata, protectedTutorResourceMetadata,
   authorizationServerMetadata, openidConfiguration, validateFixtureClient,
 };

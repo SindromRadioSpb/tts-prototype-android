@@ -339,6 +339,11 @@ try {
   assert.equal(liveCompatibilityPrmResponse.status, 200);
   assert.deepEqual(JSON.parse(liveCompatibilityPrmResponse.body), JSON.parse(liveCanonicalPrmResponse.body));
   assert.equal(JSON.parse(liveCompatibilityPrmResponse.body).resource, RESOURCE);
+  const tutorPrmResponse = await rawRequest(readinessOrigin, '/.well-known/oauth-protected-resource/agent-access/tutor/mcp', proxyHeaders);
+  assert.equal(tutorPrmResponse.status, 200);
+  assert.equal(JSON.parse(tutorPrmResponse.body).resource, RESOURCE);
+  assert.deepEqual(JSON.parse(tutorPrmResponse.body).scopes_supported,
+    ['tutor.capabilities.read', 'tutor.context.read', 'tutor.session.read', 'tutor.artifact.propose']);
   const liveAliasQueryResponse = await rawRequest(readinessOrigin, '/.well-known/oauth-protected-resource/agent-access/mcp?client=inspector', proxyHeaders);
   assert.equal(liveAliasQueryResponse.status, 404);
   const alternateDiscovery = await rawRequest(readinessOrigin, '/oauth/.well-known/oauth-authorization-server', proxyHeaders);

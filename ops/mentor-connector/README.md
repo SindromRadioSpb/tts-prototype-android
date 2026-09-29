@@ -69,7 +69,7 @@ Build on Windows with Inno Setup 6:
 `powershell -NoProfile -File ops/mentor-connector/windows/build.ps1`.
 The `.tmp/tutor-installer/` manifest records the artifact SHA256. Distribute only
 through the rollout-gated `/api/tutor/downloads` endpoint for this unsigned pilot.
-The beta.2 executable and SHA-256 manifest are pinned under `releases/` so a
+The beta.3 executable and SHA-256 manifest are pinned under `releases/` so a
 fresh deployment serves the matching helper immediately; the endpoint still
 requires a signed-in pilot account.
 The installer needs no administrator permission. Windows may warn because the
@@ -87,7 +87,7 @@ the connector. Revoke access on `/tutor-connect.html` to invalidate its credenti
 After a failed/expired approval, explicitly start Connect again.
 
 To add the four tutor tools to the existing Hermes chat, install pilot helper
-`0.1.0-beta.2` and choose **Подключить чат с наставником**. The helper prepares
+`0.1.0-beta.3` and choose **Подключить чат с наставником**. The helper prepares
 a separate `linguistpro_tutor` MCP profile and opens a short browser consent
 screen. The existing `linguistpro` profile and its OAuth grants stay intact.
 After a completed in-app explanation, **Продолжить в чате Hermes** copies a

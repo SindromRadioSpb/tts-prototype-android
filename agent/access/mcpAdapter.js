@@ -9,6 +9,9 @@ const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
 const { toolDefinitions } = require("./mcpSchemas");
 
 const MCP_PATH = "/agent-access/mcp";
+const TUTOR_MCP_PATH = "/agent-access/tutor/mcp";
+const TUTOR_TOOLS = Object.freeze(["get_tutor_capabilities", "get_active_learning_context", "get_tutor_session", "propose_learning_artifact"]);
+const TUTOR_SCOPES = "tutor.capabilities.read tutor.context.read tutor.session.read tutor.artifact.propose";
 const MCP_PROTOCOL_VERSION = "2025-11-25";
 const MCP_MODERN_PROTOCOL_VERSION = "2026-07-28";
 const MCP_SUPPORTED_PROTOCOL_VERSIONS = Object.freeze([MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION]);
@@ -55,18 +58,21 @@ function validateProtocol(body, header) {
 function safeAudit(audit, input) {
   try { audit?.record(input); } catch (_) {}
 }
-function bearerChallenge() {
-  return `Bearer resource_metadata="https://linguistpro.kolosei.com/.well-known/oauth-protected-resource/agent-access"`;
+function bearerChallenge(tutorOnly) {
+  const metadataPath = tutorOnly ? "/.well-known/oauth-protected-resource/agent-access/tutor/mcp" : "/.well-known/oauth-protected-resource/agent-access";
+  const metadata = `Bearer resource_metadata="https://linguistpro.kolosei.com${metadataPath}"`;
+  return tutorOnly ? `${metadata}, scope="${TUTOR_SCOPES}"` : metadata;
 }
 
-function createProtocolServer(runtime, trusted) {
+function createProtocolServer(runtime, trusted, allowedTools) {
   const server = new Server(
     { name: "linguistpro-agent-access", version: "aa-mcp.1.0.0" },
     { capabilities: { tools: { listChanged: false } }, supportedProtocolVersions: MCP_SUPPORTED_PROTOCOL_VERSIONS },
   );
-  server.setRequestHandler("tools/list", async () => ({ tools: toolDefinitions() }));
+  server.setRequestHandler("tools/list", async () => ({ tools: toolDefinitions().filter(tool => allowedTools.has(tool.name)) }));
   server.setRequestHandler("tools/call", async (request) => {
     const name = String(request.params?.name || "");
+    if (!allowedTools.has(name)) return { isError: true, content: [{ type: "text", text: JSON.stringify({ ok: false, error: { code: "UNKNOWN_TOOL" } }) }] };
     const args = request.params?.arguments === undefined ? {} : request.params.arguments;
     const envelope = await runtime.service.execute(trusted.principal, name, args);
     safeAudit(runtime.audit, { event_type: "mcp_tool_result", route_class: "resource", result_code: envelope.ok ? "SUCCESS" : envelope.error.code, oauth_client_id: trusted.audit.oauth_client_id, scopes: trusted.audit.scopes, connection_id: trusted.audit.connection_id, request_id: trusted.principal.request_id, jti: trusted.audit.jti, security_epoch: trusted.audit.security_epoch, rate_dimension: "none", kid: trusted.audit.kid });
@@ -76,9 +82,12 @@ function createProtocolServer(runtime, trusted) {
   return server;
 }
 
-function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags = null } = {}) {
+function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags = null, path = MCP_PATH } = {}) {
   if (typeof getRuntime !== "function") throw new TypeError("AA_MCP_GATE_BAD_RUNTIME_PROVIDER");
   if (resolveFlags !== null && typeof resolveFlags !== "function") throw new TypeError("AA_MCP_GATE_BAD_FLAG_RESOLVER");
+  if (![MCP_PATH, TUTOR_MCP_PATH].includes(path)) throw new TypeError("AA_MCP_GATE_BAD_PATH");
+  const tutorOnly = path === TUTOR_MCP_PATH;
+  const allowedTools = new Set(tutorOnly ? TUTOR_TOOLS : capabilityNames());
   return async function mcpDefaultOffGate(req, res) {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Vary", "Origin");
@@ -118,7 +127,7 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
     if (!verdict.ok) return send(res, verdict.status || 400, { error: verdict.error });
 
     const url = new URL(String(req.originalUrl || req.url || ""), "https://linguistpro.kolosei.com");
-    if (url.pathname !== MCP_PATH) return send(res, 404, { error: "not_found" });
+    if (url.pathname !== path) return send(res, 404, { error: "not_found" });
     if (url.search) return send(res, 400, { error: "AA_MCP_QUERY_FORBIDDEN" });
     if (req.headers.cookie) return send(res, 400, { error: "AA_MCP_COOKIE_FORBIDDEN" });
     if (req.headers["mcp-session-id"]) return send(res, 400, jsonRpcError(-32600, "MCP session IDs are disabled."));
@@ -139,7 +148,7 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
       const quota = runtime.limiter.takeAuthFailure(requestIp(req));
       safeAudit(runtime.audit, { event_type: "mcp_auth_denied", route_class: "resource", result_code: "AA_MCP_BEARER_INVALID", request_id: correlation, rate_dimension: quota.dimension || "ip" });
       if (!quota.ok) return send(res, 429, { error: "AA_MCP_RATE_LIMITED" }, { "Retry-After": String(Math.max(1, Math.ceil(quota.retry_after_ms / 1000))) });
-      return send(res, 401, { error: "AA_MCP_BEARER_INVALID" }, { "WWW-Authenticate": bearerChallenge() });
+      return send(res, 401, { error: "AA_MCP_BEARER_INVALID" }, { "WWW-Authenticate": bearerChallenge(tutorOnly) });
     }
 
     let body;
@@ -160,7 +169,7 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
     // Modern v2 exchanges use the SDK's safe auto mode: JSON when no related
     // message is emitted, SSE only when required. The frozen 2025 stateless
     // fallback retains its legacy SSE framing.
-    const handler = createMcpHandler(() => createProtocolServer(runtime, authenticated), { legacy: "stateless", responseMode: "auto" });
+    const handler = createMcpHandler(() => createProtocolServer(runtime, authenticated, allowedTools), { legacy: "stateless", responseMode: "auto" });
     const nodeHandler = toNodeHandler(handler);
     try {
       await nodeHandler(req, res, body);
@@ -172,4 +181,4 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
   };
 }
 
-module.exports = { MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_SUPPORTED_PROTOCOL_VERSIONS, MAX_BODY_BYTES, createMcpDefaultOffGate };
+module.exports = { MCP_PATH, TUTOR_MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_SUPPORTED_PROTOCOL_VERSIONS, MAX_BODY_BYTES, createMcpDefaultOffGate };

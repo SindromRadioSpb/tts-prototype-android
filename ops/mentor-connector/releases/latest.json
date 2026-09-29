@@ -1,7 +1,7 @@
 {
-    "version":  "0.1.0-beta.2",
-    "url":  "/api/tutor/downloads/LinguistProTutor-0.1.0-beta.2.exe",
-    "sha256":  "1df625e0e86ba22c55481cd6418b5affee009023792f5c6645271449fdaa3141",
+    "version":  "0.1.0-beta.3",
+    "url":  "/api/tutor/downloads/LinguistProTutor-0.1.0-beta.3.exe",
+    "sha256":  "64233812056216d64254df984658428171765cdb5da69e1f8afee5069e675ca3",
     "unsigned":  true,
     "audience":  "limited-pilot",
     "requires":  [

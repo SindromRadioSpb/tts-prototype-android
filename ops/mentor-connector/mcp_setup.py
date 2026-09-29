@@ -22,6 +22,7 @@ ALIAS = "linguistpro_tutor"
 TOOLS = ["get_tutor_capabilities", "get_active_learning_context", "get_tutor_session", "propose_learning_artifact"]
 SCOPES = ["tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose"]
 URL = "https://linguistpro.kolosei.com/agent-access/mcp"
+TUTOR_URL = "https://linguistpro.kolosei.com/agent-access/tutor/mcp"
 
 
 def configure(path: Path, apply: bool) -> dict:
@@ -41,7 +42,7 @@ def configure(path: Path, apply: bool) -> dict:
     if not isinstance(oauth, dict) or not oauth.get("client_id") or not isinstance(oauth.get("redirect_port"), int):
         raise RuntimeError("LINGUISTPRO_MCP_OAUTH_UNSUPPORTED")
     expected = {
-        "url": URL,
+        "url": TUTOR_URL,
         "auth": "oauth",
         "oauth": {"client_id": oauth["client_id"], "redirect_port": oauth["redirect_port"], "scope": " ".join(SCOPES)},
         "tools": {"include": TOOLS, "prompts": False, "resources": False},
@@ -50,12 +51,16 @@ def configure(path: Path, apply: bool) -> dict:
     }
     present = servers.get(ALIAS)
     if present is not None:
-        if present != expected:
+        old_alias = copy.deepcopy(expected)
+        old_alias["url"] = URL
+        if present not in (expected, old_alias):
             raise RuntimeError("TUTOR_MCP_PROFILE_CONFLICT")
-        return {"prepared": True, "changed": False, "tool_count": len(TOOLS), "scope_count": len(SCOPES)}
+        if present == expected:
+            return {"prepared": True, "changed": False, "tool_count": len(TOOLS), "scope_count": len(SCOPES)}
     if not apply:
         return {"prepared": False, "changed": False, "tool_count": len(TOOLS), "scope_count": len(SCOPES)}
     before = copy.deepcopy(data)
+    before["mcp_servers"].pop(ALIAS, None)
     servers[ALIAS] = expected
     output = io.StringIO()
     yaml.dump(data, output)

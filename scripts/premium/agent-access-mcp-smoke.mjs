@@ -11,7 +11,7 @@ import serviceModule from '../../agent/access/service.js';
 import rateModule from '../../agent/access/mcpRateLimiter.js';
 import { createMcpResourceValidator } from '../../agent/access/mcpResourceValidator.mjs';
 
-const { MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, createMcpDefaultOffGate } = adapterModule;
+const { MCP_PATH, TUTOR_MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, createMcpDefaultOffGate } = adapterModule;
 const { createAgentAccessService } = serviceModule;
 const { createMcpRateLimiter } = rateModule;
 const issuer = 'https://linguistpro.kolosei.com/oauth';
@@ -148,6 +148,7 @@ let runtimeCalls = 0;
 const app = express();
 app.set('trust proxy', 1);
 app.all(MCP_PATH, createMcpDefaultOffGate({ getRuntime: async () => { runtimeCalls += 1; return runtime; } }));
+app.all(TUTOR_MCP_PATH, createMcpDefaultOffGate({ path: TUTOR_MCP_PATH, getRuntime: async () => { runtimeCalls += 1; return runtime; } }));
 const server = http.createServer(app);
 const address = await listen(server);
 const origin = `http://127.0.0.1:${address.port}`;
@@ -167,7 +168,7 @@ async function post(body, options = {}) {
   const method = options.method || 'POST';
   const init = { method, headers };
   if (!['GET', 'HEAD'].includes(method)) init.body = options.rawBody ?? JSON.stringify(body);
-  return fetch(`${origin}${MCP_PATH}${options.query || ''}`, init);
+  return fetch(`${origin}${options.path || MCP_PATH}${options.query || ''}`, init);
 }
 async function json(response) {
   const text = await response.text();
@@ -223,6 +224,15 @@ try {
   assert.deepEqual(body.result.tools.map((tool) => tool.name), capabilities.capabilityNames());
   for (const tool of body.result.tools) { assert.equal(tool.inputSchema.additionalProperties, false); assert.equal(tool.outputSchema.additionalProperties, false); }
   checks++;
+  response = await post(rpc('tools/list', {}), { path: TUTOR_MCP_PATH, token: 'invalid' });
+  assert.equal(response.status, 401);
+  assert.match(response.headers.get('www-authenticate'), /resource_metadata="https:\/\/linguistpro\.kolosei\.com\/\.well-known\/oauth-protected-resource\/agent-access\/tutor\/mcp"/);
+  assert.match(response.headers.get('www-authenticate'), /scope="tutor\.capabilities\.read tutor\.context\.read tutor\.session\.read tutor\.artifact\.propose"/);
+  response = await post(rpc('tools/list', {}), { path: TUTOR_MCP_PATH }); body = await json(response);
+  assert.deepEqual(body.result.tools.map(tool => tool.name), ['get_tutor_capabilities', 'get_active_learning_context', 'get_tutor_session', 'propose_learning_artifact']);
+  response = await post(rpc('tools/call', { name: 'get_learning_brief', arguments: {} }), { path: TUTOR_MCP_PATH }); body = await json(response);
+  assert.equal(body.result.isError, true);
+  assert.equal(JSON.parse(body.result.content[0].text).error.code, 'UNKNOWN_TOOL'); checks++;
 
   for (const name of capabilities.capabilityNames()) {
     response = await post(rpc('tools/call', { name, arguments: args[name] })); assert.equal(response.status, 200, name);

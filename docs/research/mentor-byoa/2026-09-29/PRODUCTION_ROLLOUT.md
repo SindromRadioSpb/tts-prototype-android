@@ -217,3 +217,23 @@ only this exact obsolete image was removed. Final disk: 4.5 GB free, 88% used;
 immediate 3.11.699 rollback image `73d76e71ed16`, DB, volumes, backups and
 owner browser data are retained. Health disk percentage may lag the fresh `df`
 reading. Global rollout and new tutor MCP tools/scopes remain closed.
+
+## Tutor MCP discovery / 3.11.701 — DEPLOYED, AUTHORIZATION NOT ACCEPTED
+
+Commit `18729d3c` reached `main` and the active image `ca7fbdeffe04`.
+Before migration 075, an online SQLite snapshot was created at
+`/opt/backups/linguistpro/app-db-before-075-20260929-2134.db.gz`:
+890089472 uncompressed bytes, `quick_check=ok`, gzip integrity passed.
+The existing full data archive remains untouched. Production health reported
+DB/migrations ready; `075_tutor_agent_access.sql` and the handoff table are
+present. Seven critical served assets matched checkout SHA-256. Hermes
+discovered 35 tools, while its older profile still selected only its 31 tools.
+
+Owner authorization was deliberately stopped: Hermes 0.21.5 requested the
+entire protected-resource scope catalog despite the tutor profile's configured
+four-scope `oauth.scope`. No owner consent or tutor MCP read occurred. The
+next release adds a dedicated narrow discovery/challenge route and updates
+only the tutor alias. After the build, exact unreferenced image `73d76e71ed16`
+(3.11.699) and 2.396 GB of inactive BuildKit cache were removed; active 701
+and immediate rollback 700 were kept. This is a pilot correction, not a
+global rollout or owner-chat acceptance.

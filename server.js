@@ -207,6 +207,7 @@ app.set("trust proxy", 1);
 // + a tiny 256 KB parser (a Telegram update is small). Adjudication of critique wf_a67874c5.
 const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
 const AGENT_ACCESS_MCP_PATH = "/agent-access/mcp";
+const AGENT_ACCESS_TUTOR_MCP_PATH = "/agent-access/tutor/mcp";
 // Sync-hardening P0 (§6.3, критика F2-2): artifacts/put выведен из-под глобального парсера —
 // state_bundle (кап 24 МБ) не влезает в 10mb, а auth/CSRF/consent обязаны отработать ДО
 // тяжёлого парса (тот же инвариант, что у webhook'а: unauth не должен заставлять сервер
@@ -219,7 +220,7 @@ app.use("/api/tutor", _tutorJson, (err, _req, res, next) => {
   res.set("Cache-Control", "no-store").status(err.type === "entity.too.large" ? 413 : 400).json({ok:false,error:"invalid_request"});
 });
 const _globalJson = bodyParser.json({ limit: "10mb" });
-app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) || GROUP_CORPUS_IMPORT_RE.test(req.path) ? next() : _globalJson(req, res, next)));
+app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, AGENT_ACCESS_TUTOR_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) || GROUP_CORPUS_IMPORT_RE.test(req.path) ? next() : _globalJson(req, res, next)));
 
 // ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
 // index.html is inline-script/style heavy, so we can't enforce a strict CSP
@@ -2039,6 +2040,7 @@ const {
   createOAuthDefaultOffGate,
   PROTECTED_RESOURCE_METADATA_PATH,
   PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH,
+  PROTECTED_TUTOR_RESOURCE_METADATA_PATH,
 } = require("./agent/access/oauthDefaultOffGate");
 const { createOAuthInteractionBridge } = require("./agent/access/oauthInteractionBridge");
 const { createContentSafeOAuthAudit } = require("./agent/access/oauthAudit");
@@ -2115,6 +2117,7 @@ const agentAccessOAuthGate = createOAuthDefaultOffGate({
 });
 app.all(PROTECTED_RESOURCE_METADATA_PATH, agentAccessOAuthGate);
 app.all(PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH, agentAccessOAuthGate);
+app.all(PROTECTED_TUTOR_RESOURCE_METADATA_PATH, agentAccessOAuthGate);
 app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);
 app.all(/^\/oauth(?:\/|$)/, agentAccessOAuthGate);
 
@@ -2247,6 +2250,11 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
 app.all(AGENT_ACCESS_MCP_PATH, createMcpDefaultOffGate({
   getRuntime: getAgentAccessMcpRuntime,
   resolveFlags: () => agentAccessFlagResolver.resolve(),
+}));
+app.all(AGENT_ACCESS_TUTOR_MCP_PATH, createMcpDefaultOffGate({
+  getRuntime: getAgentAccessMcpRuntime,
+  resolveFlags: () => agentAccessFlagResolver.resolve(),
+  path: AGENT_ACCESS_TUTOR_MCP_PATH,
 }));
 function agentAccessHttpError(res, err) {
   const code = String((err && (err.code || err.message)) || "AA_CONSENT_FAILED");
