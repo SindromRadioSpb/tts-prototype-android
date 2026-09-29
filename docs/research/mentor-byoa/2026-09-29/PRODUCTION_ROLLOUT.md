@@ -58,4 +58,3 @@ race; повтор после завершения helper подтвердил �
 
 Воспроизводимый read-only verifier:
 `node scripts/premium/tutor-release-verify.js --version 3.11.692 --commit d016819d`.
-
