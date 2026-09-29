@@ -1,0 +1,43 @@
+{
+  "date": "2026-09-29T15:56:15.186Z",
+  "version": "3.11.696",
+  "commit": "cbcc79f2a08bca3ab3355d743364791c8a47ba9f",
+  "evidence": "AUTOMATED_PRODUCTION_ISOLATED_BROWSER",
+  "cross_tab_notices": 10,
+  "loading_skeletons": 0,
+  "same_home": true,
+  "same_keyboard_focus": true,
+  "real_peer_write_visible_after_refresh": true,
+  "mobile_width": 380,
+  "horizontal_overflow": false,
+  "page_errors": [],
+  "owner_ui_observation": {
+    "version": "3.11.696",
+    "home_render_id": "roomLongListBody1",
+    "stable_across_two_observations": true,
+    "one_change_notice": true,
+    "original_episode_instrumented": false
+  },
+  "active_image": "sha256:8cf852ca194f9a98c027f7382e153425fc98ee2d5e68380aeaab4d1aef19dfa8",
+  "retained_rollback_commit": "554e5482ca9466334c973fb041e1f21a3c0842b8",
+  "cleanup": {
+    "build_cache_bytes": 0,
+    "containers": 12,
+    "volumes": 4,
+    "free_disk": "6.5G",
+    "used_pct": 83
+  },
+  "health": {
+    "ok": true,
+    "uptimeSec": 197,
+    "now": "2026-09-29T15:55:52.316Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 83,
+    "disk_warn": true
+  }
+}

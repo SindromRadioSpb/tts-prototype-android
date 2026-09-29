@@ -121,3 +121,15 @@ After inventory, completed BuildKit cache pruned (2.388GB); only unreferenced
 693 and stable M2 images removed, preserving active 695 and immediate rollback
 694, all 12 containers, 4 volumes, DB and backups. Free space 6.5G / 83% used.
 Capacity policy remains O-047. Owner hub flicker takes priority before next M4 work.
+
+## Room critical fix / 3.11.696 — VERIFIED
+
+`cbcc79f2` deployment finished. [Root cause and reproduction](ROOM_HUB_REFRESH_FIX.md).
+Rolling deployment initially returned 695 then a mixed module response; verification
+was repeated after convergence and all served hashes passed. Active image
+`8cf852ca194f9a98c027f7382e153425fc98ee2d5e68380aeaab4d1aef19dfa8`.
+Fresh guest browser regression PASS, owner open tab updated and home stable.
+After inventory: completed build cache 2.388GB pruned; exact unreferenced 694 image
+removed; active 696 and rollback 695 retained. 12 containers, 4 volumes, DB and
+backups preserved; cache 0, 6.5G available, df 83%. Health DB/migrations ready;
+disk warning remains O-047. No broad prune or cache/storage reset in owner browser.

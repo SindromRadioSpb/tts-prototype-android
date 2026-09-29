@@ -30,3 +30,13 @@ the mounted home. It does not prove that the owner's original document navigated
 
 Production verification is recorded separately after deployment. This release
 does not change SQLite writes, learning grades, or service-worker activation.
+
+## Production result
+
+`cbcc79f2` / 3.11.696 deployed and verified. [Served-byte and health proof](ROOM_HUB_696_PRODUCTION.json); [browser and cleanup evidence](ROOM_HUB_696_BROWSER.json).
+`node scripts/premium/room-hub-refresh-smoke.js --production` PASS in an isolated
+guest profile: ten notices, no skeletons, preserved home/focus, real peer write
+visible after explicit refresh. Owner tab applied the PWA update; home displayed
+3.11.696, one external-change notice, and the same `roomLongListBody1` across two
+observations separated by deployment cleanup. No synthetic owner notifications
+or diagnostic owner DB writes. This is UI observation, not review_log equality.

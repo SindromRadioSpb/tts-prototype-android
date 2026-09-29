@@ -17,7 +17,7 @@
 проверил четыре поверхности и отсутствие дополнительных review writes; архив
 проверен на разделение аккаунтов, перезагрузку, дедупликацию, лимит, экспорт/удаление.
 Релиз 3.11.695 опубликован: repeated health, served-byte integrity и guest browser PASS; owner pilot остаётся ограниченным.
-Обнаруженный владельцем цикл loading главной Зала воспроизведён и исправлен отдельным 3.11.696: [evidence](../research/mentor-byoa/2026-09-29/ROOM_HUB_REFRESH_FIX.md). Production 696 pending.
+Обнаруженный владельцем цикл loading главной Зала воспроизведён и исправлен отдельным 3.11.696: [evidence](../research/mentor-byoa/2026-09-29/ROOM_HUB_REFRESH_FIX.md). Production 696 verified (`cbcc79f2`): served hashes, repeated health, isolated browser 10 notices → 0 skeletons; owner tab updated and stable. [Продолжение реализации](MENTOR_BYOA_NEXT_IMPLEMENTATION.md).
 M4 целиком не закрыт: lesson/proposal lifecycle, общий data lifecycle, MCP и живая
 проверка видео остаются следующими шагами; редакционная зависимость M2/M5 сохраняется.
 
