@@ -47,6 +47,23 @@ test("two users: context delivery, results, cancellation and sessions are isolat
   await store.complete(a.token, s.id, job.lease, reply(job));
   assert.equal((await store.read("A", s.id)).result.text, "הייתי — я был.");
 });
+test("exact caption window reaches the personal agent; missing timing is rejected", async t => {
+  const { store, pair } = await fixture(t); const conn = await pair(); await store.next(conn.token);
+  const req = request(conn);
+  req.context = { ...context("room"), source: {
+    kind: "caption", material_id: "local:video1", revision_id: "snapshot:caption1",
+    sentence_id: "row:1", excerpt: "כשהייתי ילד גרתי בחיפה",
+    media: { caption_revision: "caption:revision1", start_ms: 25000, end_ms: 31000 },
+  } };
+  const invalid = structuredClone(req); delete invalid.context.source.media;
+  await rejects(store.create("A", invalid), "invalid_context");
+  const session = await store.create("A", req);
+  const { job } = await store.next(conn.token);
+  assert.equal(job.context.source.kind, "caption");
+  assert.deepEqual(job.context.source.media, req.context.source.media);
+  await store.complete(conn.token, session.id, job.lease, reply(job));
+  assert.equal((await store.read("A", session.id)).state, "completed");
+});
 test("pairing is single-use, expiring and stores hashes only", async t => {
   const { store, db, advance } = await fixture(t); const p = await store.pair("A");
   const c = await store.claim({ pairing_code: p.pairing_code, client_nonce: nonce });

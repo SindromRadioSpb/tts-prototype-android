@@ -23,7 +23,7 @@ async function main(){
  app.get('/api/account/export',(_q,s)=>accountDeleted?s.status(401).json({ok:false}):s.json({ok:true,table_list:['tutor_practice'],tables:{tutor_practice:[{id:'fixture-practice'}]}}));
  app.post('/api/account/delete',(q,s)=>{if(q.get('X-LP-CSRF')!=='fixture-csrf'||q.body?.confirm!=='DELETE')return s.status(403).json({ok:false});accountDeleted=true;s.json({ok:true});});
  installRoutes(app,{store,enabled:()=>true,requireUser:async()=>auth,requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!==auth.session.csrf){s.status(403).json({ok:false,error:'BAD_CSRF'});return false;}return true;},limiter:(_q,_s,n)=>n()});
- app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.698',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.699',tts:{enabled:false},agent:{enabled:false}}));
  app.get('/api/mediatheque',(_q,s)=>s.json({ok:true,structure:require('../../public/js/mediatheque-core').empty(),items:[],revision:0}));
  app.use('/api',(_q,s)=>s.status(404).json({ok:false,error:'FIXTURE_ROUTE_NOT_AVAILABLE'}));
  if(surfacesMode)app.get('/js/library-ui.js',(_q,res)=>res.type('js').send(fs.readFileSync(path.join(ROOT,'public/js/library-ui.js'),'utf8')+`
@@ -53,7 +53,6 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   let before=await page.evaluate(()=>window.__localDB.countReviewLog());
   await page.locator('.row-explain-btn').first().click({timeout:30000});
   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
-  await page.getByRole('checkbox').filter({visible:true}).last().check();
   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
   await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});
   assert.equal(await page.evaluate(()=>window.__tutorXss),undefined);
@@ -111,7 +110,7 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await notebook.getByRole('button',{name:'Продолжить разбор',exact:true}).click();
    await page.getByText('Сохранённая версия фрагмента.',{exact:false}).waitFor();
    assert.equal(deliveries.length,count,'opening archive never generates');
-   assert.equal(await page.getByRole('checkbox').filter({visible:true}).last().isChecked(),false,'new question needs consent');
+   assert.equal(await page.getByRole('dialog',{name:'Разберём вместе'}).getByRole('checkbox').count(),0,'asking needs no repeated checkbox');
   }
   if(practiceMode){
    await page.getByRole('button',{name:'Посмотреть итог упражнения',exact:true}).click();
@@ -121,6 +120,13 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
 
   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
   if(surfacesMode){
+   await page.evaluate(()=>window.LPTutor.tryOpen({surface:'room',materialKey:'video:fixture',rows:[{id:'video-row',he:'שלום בעולם'}],index:0,
+    mediaPassport:{timingMap:{authority:'studio-exact-binding',revision_id:'video-r1',revision_sha256:'a'.repeat(64),row_caption_segment_ids:['caption-1']},timing:{entries:[{o:0,t:25,end:31}]}}}));
+   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
+   await page.getByText('[Fixture response]',{exact:false}).waitFor();
+   assert.equal(deliveries.at(-1).context.source.kind,'caption');
+   assert.equal(deliveries.at(-1).context.source.media.start_ms,25000);
+   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
    await page.evaluate(()=>window.__m4Fixture.launch());
    assert.equal(await page.getByRole('button',{name:'Разобрать с наставником',exact:true}).count(),0);
    await page.locator('[data-train-input]').fill('שלום');
@@ -131,7 +137,6 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    assert.ok(count>before,'real answer committed before help');
    await help.click();
    await page.getByRole('button',{name:'Вернуться к повторению',exact:true}).waitFor();
-   await page.getByRole('checkbox').filter({visible:true}).last().check();
    await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
    await page.getByText('[Fixture response]',{exact:false}).waitFor();
    assert.equal(deliveries.at(-1).context.surface,'review');
@@ -145,7 +150,6 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await page.goto(origin+'/library.html?canon=skip&open=m1%3Afixture%3Atext&from=mediatheque&return_to=%2Fmediatheque.html&tutor=choose');
    await page.locator('.row-explain-btn').first().click({timeout:30000});
    await page.getByRole('textbox',{name:'Что хотите понять?'}).fill('Проверка материала Медиатеки');
-   await page.getByRole('checkbox').filter({visible:true}).last().check();
    await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
    await page.getByText('[Fixture response]',{exact:false}).waitFor();
    assert.equal(deliveries.at(-1).context.surface,'mediatheque');
@@ -162,7 +166,6 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
   // Exact same fragment resumes the Room answer across surfaces if its identity matches.
   await page.getByRole('textbox',{name:'Что хотите понять?'}).fill('Другой вопрос для проверки Студии');
-  await page.getByRole('checkbox').filter({visible:true}).last().check();
   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('dialog')?.textContent!==undefined);
   await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});
@@ -221,7 +224,6 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   if(practiceMode){
    hold=false;
    await page.evaluate(()=>window.LPTutor.tryOpen({surface:'room',materialKey:'rtl:exercise',rows:[{id:'rtl',he:'כשהייתי ילד גרתי בחיפה'}],index:0}));
-   await page.getByRole('checkbox').filter({visible:true}).last().check();
    await page.getByRole('button',{name:'לשאול את המורה',exact:true}).click();
    await page.getByRole('button',{name:'דקה של תרגול',exact:true}).click();
    await page.getByRole('textbox',{name:'המילה מהמקור',exact:true}).waitFor();

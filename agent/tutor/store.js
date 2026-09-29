@@ -132,8 +132,8 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       closed(input, ["connection_id", "request_key", "context", "question", "consent"]);
       if (input.consent !== "selected_fragment_v1" || typeof input.question !== "string" || !input.question.trim() || input.question.length > 1000 ||
           typeof input.request_key !== "string" || !/^[A-Za-z0-9_-]{16,80}$/.test(input.request_key)) fail("invalid_request");
-      // M1 receives explicit browser snapshots only; it never trusts client corpus authority.
-      if (input.context?.source?.kind !== "local_snapshot") fail("invalid_context");
+      // Both local text and exact caption windows are browser snapshots, not server-verified corpus authority.
+      if (!["local_snapshot", "caption"].includes(input.context?.source?.kind)) fail("invalid_context");
       await sweep(); const conn = await connectionForUser(userId);
       if (!conn || conn.id !== input.connection_id) fail("connection_required");
       const requestHash = hash(JSON.stringify(input));

@@ -13,8 +13,10 @@ bounded text or typed error for the exact context/digest. No model state writes.
 
 Studio and Room host adapters capture the visible row synchronously. Revision is
 a digest of the selected window, not a verified server corpus edition. All M1
-inputs are labelled `local_snapshot`, including a displayed public text. The UI
-shows the source and optional neighbours and requires explicit transmission consent.
+text inputs are labelled `local_snapshot`, including a displayed public text;
+exact timed subtitles are labelled `caption`. Both remain browser-supplied snapshots.
+The UI shows the source, optional neighbours and the recipient. Clicking Ask sends
+the question and displayed context; no separate checkbox interrupts each question.
 HTML is displayed literally. Personal learner data/credentials are not inferred
 from model output or accepted as client authority.
 
