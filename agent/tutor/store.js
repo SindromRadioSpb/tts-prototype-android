@@ -8,7 +8,7 @@ const hash = value => createHash("sha256").update(value).digest("hex");
 const secret = () => randomBytes(32).toString("base64url");
 const ONLINE_MS = 20000, LEASE_MS = 30000, RUN_MS = 180000;
 
-function createStore(getDb, clock = Date.now) {
+function createStore(getDb, clock = Date.now, allowed = async () => true) {
   const run = (sql, p = []) => new Promise((resolve, reject) => getDb().run(sql, p, function (e) { e ? reject(e) : resolve(this); }));
   const get = (sql, p = []) => new Promise((resolve, reject) => getDb().get(sql, p, (e, r) => e ? reject(e) : resolve(r)));
   async function transaction(fn) {
@@ -20,19 +20,23 @@ function createStore(getDb, clock = Date.now) {
   }
   async function sweep() {
     const now = clock();
+    await run("DELETE FROM tutor_enrollments WHERE expires_at<=?", [now]);
     await run("DELETE FROM tutor_pairings WHERE expires_at<=?", [now]);
     // Content expires even if nobody returns to the page; routes and periodic sweep call this.
     await run("DELETE FROM tutor_sessions WHERE expires_at<=?", [now]);
     await run("UPDATE tutor_sessions SET state='failed',error_code='agent_disconnected',version=version+1 WHERE state='running' AND (lease_until<=? OR run_deadline<=?)", [now, now]);
     await run("UPDATE tutor_sessions SET state='failed',error_code='agent_offline',version=version+1 WHERE state='queued' AND created_at<=?", [now - LEASE_MS]);
   }
+  async function permit(userId) { if(!await allowed(String(userId)))fail("not_available"); }
   async function connectionForUser(userId) {
+    await permit(userId);
     return get("SELECT * FROM tutor_connections WHERE user_id=?", [String(userId)]);
   }
   async function authenticate(token) {
     if (typeof token !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(token)) fail("connection_required");
     const conn = await get("SELECT * FROM tutor_connections WHERE token_hash=?", [hash(token)]);
     if (!conn) fail("connection_required");
+    await permit(conn.user_id);
     return conn;
   }
   function binding(conn, sessionId) {
@@ -52,7 +56,41 @@ function createStore(getDb, clock = Date.now) {
   }
   return {
     sweep: () => transaction(sweep),
+    enroll: input => transaction(async()=>{
+      closed(input,["client_nonce","device_name"]);
+      if(typeof input.client_nonce!=="string"||!/^[A-Za-z0-9_-]{43}$/.test(input.client_nonce)||typeof input.device_name!=="string"||input.device_name.length<1||input.device_name.length>64||/[\x00-\x1f\x7f]/.test(input.device_name))fail("invalid_request");
+      await sweep();
+      const count=await get("SELECT count(*) AS n FROM tutor_enrollments");if(count.n>=100)fail("session_limit");
+      const device=secret(),code=randomBytes(9).toString("hex"),expires=clock()+300000;
+      await run("INSERT INTO tutor_enrollments(device_hash,code_hash,client_nonce,device_name,expires_at) VALUES(?,?,?,?,?)",[hash(device),hash(code),input.client_nonce,input.device_name,expires]);
+      return {device_code:device,user_code:code,expires_at:expires,interval:3};
+    }),
+    enrollment: (userId,input,approve=false)=>transaction(async()=>{
+      await permit(userId);closed(input,["user_code"]);
+      if(typeof input.user_code!=="string"||!/^[a-f0-9]{18}$/.test(input.user_code))fail("pairing_expired");
+      await sweep();const row=await get("SELECT * FROM tutor_enrollments WHERE code_hash=?",[hash(input.user_code)]);
+      if(!row||row.user_id&&row.user_id!==String(userId))fail("pairing_expired");
+      if(approve&&!row.user_id)await run("UPDATE tutor_enrollments SET user_id=?,approved_at=? WHERE code_hash=?",[String(userId),clock(),row.code_hash]);
+      return {device_name:row.device_name,expires_at:row.expires_at,approved:approve||!!row.user_id};
+    }),
+    enrollmentPoll: input=>transaction(async()=>{
+      closed(input,["device_code","client_nonce"]);
+      if(![input.device_code,input.client_nonce].every(v=>typeof v==='string'&&/^[A-Za-z0-9_-]{43}$/.test(v)))fail("pairing_expired");
+      await sweep();const row=await get("SELECT * FROM tutor_enrollments WHERE device_hash=?",[hash(input.device_code)]);
+      if(!row||row.client_nonce!==input.client_nonce)fail("pairing_expired");
+      if(clock()-row.poll_at<2500)fail("slow_down");
+      await run("UPDATE tutor_enrollments SET poll_at=? WHERE device_hash=?",[clock(),row.device_hash]);
+      if(!row.user_id)return {pending:true};
+      await permit(row.user_id);
+      const token=secret(),id=randomUUID();
+      await run("DELETE FROM tutor_connections WHERE user_id=?",[row.user_id]);
+      await run("DELETE FROM tutor_pairings WHERE user_id=?",[row.user_id]);
+      await run("DELETE FROM tutor_enrollments WHERE device_hash=?",[row.device_hash]);
+      await run("INSERT INTO tutor_connections(id,user_id,token_hash,consent_revision,created_at,last_seen) VALUES(?,?,?,?,?,?)",[id,row.user_id,hash(token),randomUUID(),clock(),0]);
+      return {connection_id:id,token,client_nonce:input.client_nonce};
+    }),
     pair: userId => transaction(async () => {
+      await permit(userId);
       await sweep();
       const code = secret(), expires_at = clock() + 300000;
       await run("INSERT INTO tutor_pairings(user_id,code_hash,expires_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET code_hash=excluded.code_hash,expires_at=excluded.expires_at", [String(userId), hash(code), expires_at]);
@@ -64,6 +102,7 @@ function createStore(getDb, clock = Date.now) {
       await sweep();
       const pair = await get("SELECT * FROM tutor_pairings WHERE code_hash=?", [hash(input.pairing_code)]);
       if (!pair) fail("pairing_expired");
+      await permit(pair.user_id);
       const token = secret(), id = randomUUID();
       // Atomic single-use claim; replacement revokes old jobs and credentials by cascade.
       await run("DELETE FROM tutor_connections WHERE user_id=?", [pair.user_id]);
@@ -76,6 +115,8 @@ function createStore(getDb, clock = Date.now) {
       return c ? { connection_id: c.id, status: c.last_seen > 0 && clock() - c.last_seen < ONLINE_MS ? "online" : "agent_offline" } : { status: "connection_required" };
     }),
     revoke: userId => transaction(async () => {
+      await permit(userId);
+      await run("DELETE FROM tutor_enrollments WHERE user_id=?", [String(userId)]);
       await run("DELETE FROM tutor_connections WHERE user_id=?", [String(userId)]);
       await run("DELETE FROM tutor_pairings WHERE user_id=?", [String(userId)]);
       return { revoked: true };
@@ -145,6 +186,13 @@ function createStore(getDb, clock = Date.now) {
       await run("UPDATE tutor_practice SET attempt_key=?,attempt_hash=?,receipt_json=? WHERE session_id=?",[input.attempt_key,attemptHash,JSON.stringify(receipt),id]);
       row.receipt_json=JSON.stringify(receipt);
       return {practice:practice.descriptor(row)};
+    }),
+    revokeConnector: token=>transaction(async()=>{
+      const conn=await authenticate(token);
+      await run("DELETE FROM tutor_connections WHERE id=?",[conn.id]);
+      await run("DELETE FROM tutor_pairings WHERE user_id=?",[conn.user_id]);
+      await run("DELETE FROM tutor_enrollments WHERE user_id=?",[conn.user_id]);
+      return {revoked:true};
     }),
     next: token => transaction(async () => {
       await sweep(); const conn = await authenticate(token);

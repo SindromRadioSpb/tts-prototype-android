@@ -12,7 +12,7 @@ const ROOT=path.resolve(__dirname,'../..');
 const practiceMode=process.argv.includes('--practice');
 async function main(){
  const db=new sqlite3.Database(':memory:');
- await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8'),e=>e?j(e):r()));
+ await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8'),e=>e?j(e):r()));
  const store=createStore(()=>db),app=express();app.use(express.json({limit:'40kb'}));
  app.use((_q,s,n)=>{s.set('Cross-Origin-Opener-Policy','same-origin');s.set('Cross-Origin-Embedder-Policy','require-corp');n();});
  const auth={user:{id:'fixture-A'},session:{csrf:'fixture-csrf'}};

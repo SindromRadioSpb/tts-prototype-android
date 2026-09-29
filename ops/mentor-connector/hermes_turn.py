@@ -73,10 +73,13 @@ def run(job, inspect_only=False):
 
 def main():
     logging.disable(logging.CRITICAL)
-    raw = sys.stdin.buffer.read(40001)
-    if len(raw) > 40000:
-        raise ValueError('JOB_TOO_LARGE')
-    job = json.loads(raw)
+    if '--inspect' in sys.argv:
+        job = {'context': {'context_id': 'runtime-probe', 'excerpt_digest': 'runtime-probe'}}
+    else:
+        raw = sys.stdin.buffer.read(40001)
+        if len(raw) > 40000:
+            raise ValueError('JOB_TOO_LARGE')
+        job = json.loads(raw)
     context = job['context']
     output = {'schema_version':'lp-tutor-response.1', 'context_id':context['context_id'], 'excerpt_digest':context['excerpt_digest']}
     try:

@@ -15,7 +15,7 @@ const reply = job => ({ schema_version: "lp-tutor-response.1", context_id: job.c
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
 async function fixture(t) {
   const db = new sqlite3.Database(":memory:");
-  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8"), e => e ? j(e) : r()));
+  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8")+fs.readFileSync("migrations/072_tutor_onboarding.sql", "utf8"), e => e ? j(e) : r()));
   t.after(() => new Promise(resolve => db.close(resolve)));
   let now = 100000;
   const store = createStore(() => db, () => now);
@@ -104,6 +104,11 @@ test("HTTP boundary: disabled flag, cookie/CSRF, bearer, no-store, cursor and ac
   assert.equal((await call("/pair",{})).status,401);
   assert.equal((await call("/pair",{},{"X-Test-User":"A"})).status,403);
   const owner={"X-Test-User":"A","X-LP-CSRF":"fixture"};
+  const enrollment=(await call('/connector/enroll',{client_nonce:nonce,device_name:'HTTP fixture'})).data;
+  assert.equal((await call('/enrollment/approve',{user_code:enrollment.user_code})).status,401);
+  assert.equal((await call('/enrollment/approve',{user_code:enrollment.user_code},{'X-Test-User':'A'})).status,403);
+  assert.equal((await call('/enrollment/approve',{user_code:enrollment.user_code},owner)).status,200);
+  assert.equal((await call('/enrollment',{user_code:enrollment.user_code},{'X-Test-User':'B','X-LP-CSRF':'fixture'})).status,410);
   const p=await call("/pair",{},owner); assert.equal(p.cache,"no-store");
   const c=(await call("/connector/pair",{pairing_code:p.data.pairing_code,client_nonce:nonce})).data;
   assert.equal((await call("/connector/next",{},owner)).status,401);
@@ -130,7 +135,7 @@ test("SQLite restart retains result and never redelivers an uncertain run", asyn
   const file=path.join(dir,'fixture.sqlite');let db=new sqlite3.Database(file);
   const close=()=>new Promise((r,j)=>db.close(e=>e?j(e):r()));
   t.after(async()=>{await close();fs.rmSync(dir,{recursive:true,force:true});});
-  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8'),e=>e?j(e):r()));
+  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8'),e=>e?j(e):r()));
   let store=createStore(()=>db);const p=await store.pair('A');const c=await store.claim({pairing_code:p.pairing_code,client_nonce:nonce});
   await store.next(c.token);const s=await store.create('A',request(c));const {job}=await store.next(c.token);
   await close();db=new sqlite3.Database(file);store=createStore(()=>db);
@@ -181,4 +186,38 @@ test("practice source checker ignores only niqqud, masks repeats, never claims s
  assert.equal(evaluate(c,{answer:'',skipped:true},true).outcome,'skipped');
  assert.throws(()=>build({...ctx,source:{...ctx.source,excerpt:'שלום'}},''),e=>e.code==='practice_unavailable');
  assert.throws(()=>build({...ctx,source:{...ctx.source,excerpt:'א'.repeat(601)}},''),e=>e.code==='practice_unavailable');
+});
+
+test("bounded rollout closes browser and bearer delivery, including in-flight results",async t=>{
+ const {db,advance}=await fixture(t);let now=100000;
+ const {createRollout}=require('../agent/tutor/rollout');const env={};const gate=createRollout(()=>db,env,()=>now);
+ const store=createStore(()=>db,()=>now,gate.allowed);
+ assert.equal(await gate.enabled(),false);
+ await rejects(store.pair('A'),'not_available');
+ await new Promise((r,j)=>db.run("INSERT INTO tutor_rollout VALUES('A',200000,'fixture',100000)",e=>e?j(e):r()));
+ assert.equal(await gate.enabled(),true);assert.equal(await gate.allowed('B'),false);
+ const p=await store.pair('A'),c=await store.claim({pairing_code:p.pairing_code,client_nonce:nonce});await store.next(c.token);
+ const s=await store.create('A',request(c)),{job}=await store.next(c.token);
+ env.TUTOR_BYOA_EMERGENCY_OFF='1';assert.equal(await gate.enabled(),false);
+ await rejects(store.next(c.token),'not_available');await rejects(store.complete(c.token,s.id,job.lease,reply(job)),'not_available');
+ delete env.TUTOR_BYOA_EMERGENCY_OFF;now=200001;
+ assert.equal(await gate.allowed('A'),false);await rejects(store.read('A',s.id),'not_available');
+});
+
+test("browser device enrollment: nonce, explicit approval, two users, one-time token, expiry",async t=>{
+ const {store,advance}=await fixture(t);
+ const req={client_nonce:nonce,device_name:'Hermes on Windows'};
+ const e=await store.enroll(req);
+ assert.equal((await store.enrollmentPoll({device_code:e.device_code,client_nonce:nonce})).pending,true);
+ await rejects(store.enrollmentPoll({device_code:e.device_code,client_nonce:'x'.repeat(43)}),'pairing_expired');
+ assert.equal((await store.enrollment('A',{user_code:e.user_code})).approved,false);
+ await store.enrollment('A',{user_code:e.user_code},true);
+ await rejects(store.enrollment('B',{user_code:e.user_code},true),'pairing_expired');
+ advance(3000);
+ const c=await store.enrollmentPoll({device_code:e.device_code,client_nonce:nonce});assert.equal(c.client_nonce,nonce);assert.equal(c.token.length,43);
+ await rejects(store.enrollmentPoll({device_code:e.device_code,client_nonce:nonce}),'pairing_expired');
+ assert.equal((await store.status('A')).connection_id,c.connection_id);
+ assert.equal((await store.status('B')).status,'connection_required');
+ const expired=await store.enroll(req);advance(300001);
+ await rejects(store.enrollment('A',{user_code:expired.user_code},true),'pairing_expired');
 });

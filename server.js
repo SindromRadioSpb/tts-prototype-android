@@ -1170,8 +1170,11 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/tutor-connect.html",
+  "/css/tutor-connect.css?v=1",
+  "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=1",
-  "/js/tutor-panel.js?v=2",
+  "/js/tutor-panel.js?v=3",
   "/js/tutor-practice.js?v=1",
   "/db/db-worker-runtime.js?v=545",
   "/db/sqlite-api.js?v=531",
@@ -1261,7 +1264,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=691",
+  "/js/library-ui.js?v=693",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1944,14 +1947,22 @@ function requireCsrf(req, res, auth) {
 // M1 BYOA: explicit selected-fragment transport, independently gated from legacy AI.
 // Cookie writers use the existing identity/CSRF boundary; connector credentials
 // authorize only this transport, never MCP or canonical learning writers.
-const tutorTransportEnabled = () => process.env.TUTOR_BYOA_ENABLED === "1";
-const tutorTransportStore = require("./agent/tutor/store").createStore(() => require("./db/sqlite").getDb());
+const tutorRollout = require("./agent/tutor/rollout").createRollout(() => require("./db/sqlite").getDb());
+const tutorTransportEnabled = tutorRollout.enabled;
+const tutorTransportStore = require("./agent/tutor/store").createStore(() => require("./db/sqlite").getDb(),Date.now,tutorRollout.allowed);
 require("./agent/tutor/routes").installRoutes(app, {
   store: tutorTransportStore, enabled: tutorTransportEnabled, requireUser, requireCsrf,
+  capability: async req=>{const auth=await identityRepo.validateSession(getSessionCookie(req)).catch(()=>null);return auth? tutorRollout.allowed(auth.user.id):false;},
+  enrollmentLimiter:makeRateLimiter({windowMs:60000,max:6,name:"tutor-enrollment"}),
   limiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "tutor-transport" }),
 });
+app.use("/api/tutor/downloads", async(req,res,next)=>{
+  const auth=await requireUser(req,res);if(!auth)return;
+  if(!await tutorRollout.allowed(auth.user.id))return res.status(404).json({ok:false,error:"not_available"});
+  res.set("Cache-Control","private, no-store");next();
+},express.static(path.join(DATA_DIR,"tutor-downloads"),{dotfiles:"deny",index:false,maxAge:0}));
 setInterval(() => {
-  if (tutorTransportEnabled()) tutorTransportStore.sweep().catch(() => {});
+  tutorTransportEnabled().then(on=>on&&tutorTransportStore.sweep()).catch(()=>{});
 }, 30000).unref();
 
 // RMA-1/RMA-2 — the Node application mints only a short-lived capability. It never

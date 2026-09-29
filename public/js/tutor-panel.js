@@ -47,7 +47,8 @@
     const close=node('button',words.close,{type:'button'}), login=node('a',words.login,{id:'login',href:'/library.html#cloud'}); login.hidden=true;
     const practiceButton=node('button',window.LPTutorPractice.label(lang),{id:'practiceStart',type:'button'});practiceButton.hidden=true;
     actions.append(send,practiceButton,cancel,close,login);body.append(actions);
-    const details=node('details'); details.append(node('summary',words.connect));
+    const setup=node('a',words.connect,{href:'/tutor-connect.html#lang='+lang,target:'_blank',rel:'noopener'});body.append(setup);
+    const details=node('details'); details.append(node('summary',lang==='ru'?'Ручное подключение':lang==='he'?'חיבור ידני':'Manual connection'));
     const connect=node('button',words.connect,{type:'button'}), refresh=node('button',words.refresh,{type:'button'}),revoke=node('button',words.revoke,{type:'button'});
     const pair=node('section',null,{id:'pair'}); pair.hidden=true; pair.append(node('p',words.pairHelp,{class:'meta'}),node('code',null,{id:'pairCode',dir:'ltr','aria-label':words.pair}));
     const connectionActions=node('div',null,{class:'actions'});connectionActions.append(connect,refresh,revoke); details.append(connectionActions,pair); body.append(details,node('p',words.note,{class:'meta'}));

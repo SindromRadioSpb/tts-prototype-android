@@ -50,7 +50,7 @@ class Relay:
                 return value
         except urllib.error.HTTPError as exc:
             # Do not echo response bodies, URLs, request data or credentials to logs.
-            if exc.code in (401, 403):
+            if exc.code in (401, 403, 404):
                 raise PermissionError('CONNECTION_REVOKED') from None
             raise ConnectionError('RELAY_HTTP_' + str(exc.code)) from None
 
@@ -106,6 +106,42 @@ def run_job(relay, job, runner):
                     proc.kill(); proc.wait(timeout=3)
 
 
+def write_private(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, delete=False, encoding='utf-8') as file:
+        temp = Path(file.name)
+        os.chmod(temp, 0o600)
+        json.dump(value, file, ensure_ascii=False)
+    os.replace(temp, path)
+    os.chmod(path, 0o600)
+
+
+def set_status(path, state, **extra):
+    if path:
+        write_private(path, {'state': state, 'updated_at': int(time.time()), **extra})
+
+
+def enroll_browser(relay, credentials, status_file, device_name):
+    nonce = secrets.token_urlsafe(32)
+    flow = relay.call('/connector/enroll', {'client_nonce': nonce, 'device_name': device_name})
+    code = flow['user_code']
+    if not isinstance(code, str) or len(code) != 18 or any(c not in '0123456789abcdef' for c in code):
+        raise ValueError('ENROLLMENT_INVALID')
+    set_status(status_file, 'browser_approval', verification_url=relay.origin + '/tutor-connect.html#connect=' + code)
+    while time.time() * 1000 < flow['expires_at']:
+        time.sleep(max(3, min(10, int(flow.get('interval', 3)))))
+        result = relay.call('/connector/enrollment-poll', {'device_code': flow['device_code'], 'client_nonce': nonce})
+        if result.get('pending'):
+            continue
+        if result.get('client_nonce') != nonce:
+            raise ValueError('PAIRING_BINDING_INVALID')
+        write_private(credentials, {'origin': relay.origin, 'token': result['token']})
+        set_status(status_file, 'connected')
+        return
+    set_status(status_file, 'pairing_expired')
+    raise ValueError('PAIRING_EXPIRED')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--origin', required=True)
@@ -113,6 +149,10 @@ def main():
     parser.add_argument('--pair', action='store_true')
     parser.add_argument('--allow-local', action='store_true')
     parser.add_argument('--once', action='store_true')
+    parser.add_argument('--auto-pair', action='store_true')
+    parser.add_argument('--revoke', action='store_true')
+    parser.add_argument('--status-file', type=Path)
+    parser.add_argument('--device-name', default='Hermes on Windows')
     parser.add_argument('runner', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     relay = Relay(args.origin, allow_local=args.allow_local)
@@ -123,31 +163,47 @@ def main():
         result = relay.call('/connector/pair', {'pairing_code': code, 'client_nonce': nonce})
         if result.get('client_nonce') != nonce:
             raise ValueError('PAIRING_BINDING_INVALID')
-        args.credentials.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(args.credentials, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, 'w') as file:
-            json.dump({'origin': relay.origin, 'token': result['token']}, file)
-        os.chmod(args.credentials, 0o600)
+        write_private(args.credentials, {'origin': relay.origin, 'token': result['token']})
         print('PAIRED')
         return
+    if args.auto_pair and not args.credentials.exists():
+        try:
+            enroll_browser(relay, args.credentials, args.status_file, args.device_name)
+        except (ConnectionError, PermissionError, OSError, ValueError):
+            set_status(args.status_file, 'connection_failed')
+            if args.status_file and not args.once:
+                while True:
+                    time.sleep(30)  # Wait for an explicit reconnect, never start enrollment loops.
+            return
     cfg = json.loads(args.credentials.read_text())
     if cfg['origin'] != relay.origin:
         raise ValueError('CREDENTIAL_ORIGIN_MISMATCH')
     if os.name != 'nt' and args.credentials.stat().st_mode & 0o077:
         raise ValueError('CREDENTIAL_PERMISSIONS_TOO_OPEN')
     relay.token = cfg['token']
+    if args.revoke:
+        relay.call('/connector/revoke', {})
+        args.credentials.unlink(missing_ok=True)
+        set_status(args.status_file, 'connection_revoked')
+        return
     runner = args.runner[1:] if args.runner[:1] == ['--'] else args.runner
     if not runner:
         parser.error('An explicit local runner command is required')
     while True:
         try:
             job = relay.call('/connector/next', {}).get('job')
+            set_status(args.status_file, 'answering' if job else 'connected')
             if job:
                 run_job(relay, job, runner)
         except PermissionError:
+            set_status(args.status_file, 'connection_revoked')
             print('CONNECTION_REVOKED', file=sys.stderr)
+            if args.status_file and not args.once:
+                while True:
+                    time.sleep(30)
             return
         except (ConnectionError, OSError, ValueError):
+            set_status(args.status_file, 'offline')
             print('RELAY_UNAVAILABLE', file=sys.stderr)
         if args.once:
             return

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.692";
+const CACHE_VERSION = "v3.11.693";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -67,8 +67,11 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // proved flaky on iOS WebKit with a freshly-activated SW — precaching makes the
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
+  "/tutor-connect.html",
+  "/css/tutor-connect.css?v=1",
+  "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=1",
-  "/js/tutor-panel.js?v=2",
+  "/js/tutor-panel.js?v=3",
   "/js/tutor-practice.js?v=1",
   "/mediatheque.html",
   "/css/mediatheque.css?v=643",
@@ -124,7 +127,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=691",
+  "/js/library-ui.js?v=693",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",

@@ -5,9 +5,45 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 import connector
 
 class ConnectorTests(unittest.TestCase):
+    def test_browser_pairing_requires_matching_nonce_and_keeps_token_private(self):
+        for matches in [True, False]:
+            with tempfile.TemporaryDirectory() as folder:
+                credentials, status = Path(folder)/'connection.json', Path(folder)/'status.json'
+                class Relay:
+                    origin='https://fixture.invalid'
+                    def call(self, path, body):
+                        if path.endswith('/enroll'):
+                            self.nonce=body['client_nonce']
+                            return {'user_code':'a'*18,'device_code':'device-secret','expires_at':time.time()*1000+10000}
+                        return {'client_nonce':self.nonce if matches else 'wrong','token':'token-secret'}
+                with patch.object(connector.time,'sleep'):
+                    if matches:
+                        connector.enroll_browser(Relay(),credentials,status,'fixture')
+                        self.assertEqual(json.loads(credentials.read_text())['token'],'token-secret')
+                        self.assertNotIn('token-secret',status.read_text())
+                        self.assertNotIn('device-secret',status.read_text())
+                        self.assertEqual(json.loads(status.read_text())['state'],'connected')
+                    else:
+                        with self.assertRaisesRegex(ValueError,'PAIRING_BINDING_INVALID'):
+                            connector.enroll_browser(Relay(),credentials,status,'fixture')
+                        self.assertFalse(credentials.exists())
+
+    def test_expired_enrollment_does_not_write_credentials(self):
+        with tempfile.TemporaryDirectory() as folder:
+            credentials,status=Path(folder)/'connection.json',Path(folder)/'status.json'
+            class Relay:
+                origin='https://fixture.invalid'
+                def call(self,path,body):
+                    return {'user_code':'a'*18,'expires_at':0}
+            with self.assertRaisesRegex(ValueError,'PAIRING_EXPIRED'):
+                connector.enroll_browser(Relay(),credentials,status,'fixture')
+            self.assertFalse(credentials.exists())
+            self.assertEqual(json.loads(status.read_text())['state'],'pairing_expired')
+
     def test_origin_boundary(self):
         for value in ['http://example.com', 'https://user:pass@example.com', 'https://example.com/path']:
             with self.assertRaises(ValueError):

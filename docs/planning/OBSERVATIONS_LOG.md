@@ -10,6 +10,13 @@
 
 ---
 
+## O-048 · Windows pilot: ограничения установки и восстановления
+- **Дата / где:** 2026-09-29, M3 installer 0.1.0-beta.1.
+- **Что видно:** установщик требует уже установленный поддержанный Hermes в Docker; native UI пока русский, сертификата нет. Отзыв/удаление при выключенном Docker не гарантирует серверный revoke; пользователь может отозвать доступ в браузере. Реальные quota/reauth и novice/AT ещё не приняты.
+- **Почему важно:** owner pilot не равен массовому подключению с нулевым порогом.
+- **Предложение:** clean-install flow, signed distribution, localized recovery, uninstall offline/retry и пользовательские acceptance sessions до внешнего запуска.
+- **Статус:** открыто; unsigned owner pilot разрешён владельцем, окно визуально подтверждено им.
+
 ## O-047 · Production: мало резерва для серии сборок без очистки
 - **Дата / где:** 2026-09-29, последовательные релизы наставника 3.11.691/692.
 - **Что видно:** до релизов 85%/5.5G; после первого backup/build пик 97%. После bounded cache/image cleanup и второго релиза — 7.3G available, df 80%, health 81%/disk_warn=true. Сохранены active+rollback, все volumes/containers/backups. Прямой `docker system df` один раз попал в гонку удаления helper; повтор прошёл.

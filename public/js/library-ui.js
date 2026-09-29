@@ -5577,6 +5577,14 @@ function openMentorView() {
   // replaceState — без мусора в истории и без hashchange-петли; hash = deep-link контракт (пуши)
   if (location.hash !== '#mentor') { try { history.replaceState(null, '', '#mentor'); } catch (_) {} }
   _mountMentorHome();
+  // Personal-agent setup has its own account boundary: no sync/Telegram prerequisite.
+  if(window.LPTutorClient)window.LPTutorClient.createApi().call('/capabilities').then(cap=>{
+    if(!cap.enabled||view.hidden||$('personalTutorSetup'))return;
+    const link=document.createElement('a');link.id='personalTutorSetup';link.href='/tutor-connect.html';
+    link.textContent=document.documentElement.lang==='he'?'חיבור המורה האישי':document.documentElement.lang==='en'?'Connect your personal tutor':'Подключить личного наставника';
+    link.style.cssText='display:block;padding:16px;margin:16px 0;border:1px solid #aebdb1;border-radius:12px;color:#234e40;background:#f9f8f3;font-weight:650';
+    $('roomMentorMount')?.before(link);
+  }).catch(()=>{});
 }
 function _mountLessonStudio() {
   const mount = $('roomLessonMount');
