@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const C = window.LPTutorClient, api = C.createApi();
-  const notebookCopy={ru:{save:'Сохранить на этом устройстве',saved:'Объяснение сохранено в этом браузере.',failed:'Не удалось сохранить. Проверьте место в браузере; предел — 50 объяснений.',archived:'Сохранённая версия фрагмента. Новый вопрос отправится только после вашего согласия.'},en:{save:'Save on this device',saved:'Explanation saved in this browser.',failed:'Could not save. Check browser storage; the limit is 50 explanations.',archived:'Saved version of the passage. A new question is sent only with your consent.'},he:{save:'שמירה במכשיר הזה',saved:'ההסבר נשמר בדפדפן הזה.',failed:'השמירה נכשלה. בדקו מקום פנוי; המגבלה היא 50 הסברים.',archived:'גרסה שמורה של הקטע. שאלה חדשה תישלח רק בהסכמתכם.'}};
+  const notebookCopy={ru:{save:'Сохранить на этом устройстве',saved:'Объяснение сохранено в этом браузере.',failed:'Не удалось сохранить. Проверьте место в браузере; предел — 50 объяснений.',archived:'Сохранённая версия фрагмента. Новый вопрос отправится только после вашего согласия.',dismissPractice:'Не предлагать это упражнение',dismissedPractice:'Упражнение отклонено. Объяснение осталось доступным.'},en:{save:'Save on this device',saved:'Explanation saved in this browser.',failed:'Could not save. Check browser storage; the limit is 50 explanations.',archived:'Saved version of the passage. A new question is sent only with your consent.',dismissPractice:'Dismiss this practice',dismissedPractice:'Practice dismissed. The explanation remains available.'},he:{save:'שמירה במכשיר הזה',saved:'ההסבר נשמר בדפדפן הזה.',failed:'השמירה נכשלה. בדקו מקום פנוי; המגבלה היא 50 הסברים.',archived:'גרסה שמורה של הקטע. שאלה חדשה תישלח רק בהסכמתכם.',dismissPractice:'לוותר על התרגול הזה',dismissedPractice:'התרגול נדחה. ההסבר עדיין זמין.'}};
   const copy = {
     ru: { title:'Разберём вместе', eyebrow:'ЛИЧНЫЙ НАСТАВНИК', source:'Ваш фрагмент',neighbors:'Соседние предложения, которые получит наставник', question:'Что хотите понять?', placeholder:'Например: почему здесь эта форма?', send:'Спросить наставника', close:'Вернуться к тексту', cancel:'Остановить', connect:'Подключить личного агента', refresh:'Проверить соединение', revoke:'Отключить агента', acknowledge:'Разрешаю передать этот фрагмент, соседние предложения и мой вопрос личному агенту и его модели.', waiting:'Наставник готовит объяснение…', queued:'Передаём вопрос вашему агенту…', ready:'Агент подключён', stopped:'Запрос остановлен. Можно вернуться к чтению или задать другой вопрос.', answer:'Объяснение', pair:'Одноразовый код подключения', pairHelp:'Введите этот код в личном коннекторе в течение 5 минут. Новый коннектор заменит прежнее подключение. Не передавайте код другим людям.', retry:'Повторить', login:'Войти в LinguistPro', note:'Ответ помогает разобраться, но не изменяет ваши оценки или расписание повторения.', sourceChanged:'Ответ относится к фрагменту, показанному выше.', defaultQuestion:'Объясни смысл этого предложения и одну важную грамматическую особенность простыми словами.', expired:'Срок контекста истёк. Откройте наставника у нужной строки заново.' },
     en: { title:'Let’s work through it',eyebrow:'YOUR PERSONAL TUTOR',source:'Your passage',neighbors:'Adjacent sentences shared with your tutor',question:'What would you like to understand?',placeholder:'For example: why is this form used?',send:'Ask your tutor',close:'Return to reading',cancel:'Stop',connect:'Connect your agent',refresh:'Check connection',revoke:'Disconnect agent',acknowledge:'Allow this passage, adjacent sentences and my question to be sent to my agent and its model.',waiting:'Your tutor is preparing an explanation…',queued:'Sending your question to your agent…',ready:'Agent connected',stopped:'Request stopped. Return to reading or ask another question.',answer:'Explanation',pair:'One-time connection code',pairHelp:'Enter this code in your personal connector within 5 minutes. A new connector replaces the previous connection. Do not share this code with others.',retry:'Retry',login:'Sign in to LinguistPro',note:'This explanation does not change your grades or review schedule.',sourceChanged:'This answer refers to the passage shown above.',defaultQuestion:'Explain this sentence and one useful grammar feature in simple terms.',expired:'This context has expired. Open the tutor at the relevant sentence again.' },
@@ -20,6 +20,7 @@
   function node(tag, text, attrs = {}) { const n = document.createElement(tag); if (text) n.textContent = text; Object.entries(attrs).forEach(([k,v]) => n.setAttribute(k,v)); return n; }
   function $(id) { return root.getElementById(id); }
   function status(text) { $('status').textContent = text; }
+  function practiceActions(){const offered=session?.state==='completed'&&session.practice_available===true;$('practiceStart').hidden=!offered;$('practiceStart').textContent=window.LPTutorPractice.label(lang,session?.practice_proposal_state);$('practiceDismiss').hidden=!offered||session.practice_proposal_state!=='proposed';}
   function error(e) {
     busy = false; $('send').disabled = false; $('question').readOnly=false; $('cancel').hidden = true;
     const code = e.code || e.message;
@@ -48,7 +49,8 @@
     const send=node('button',words.send,{id:'send',class:'primary',type:'button'}),cancel=node('button',words.cancel,{id:'cancel',type:'button'}); cancel.hidden=true;
     const close=node('button',words.close,{type:'button'}), login=node('a',words.login,{id:'login',href:'/library.html#cloud'}); login.hidden=true;
     const practiceButton=node('button',window.LPTutorPractice.label(lang),{id:'practiceStart',type:'button'});practiceButton.hidden=true;
-    actions.append(send,practiceButton,cancel,close,login);body.append(actions);
+    const dismissPractice=node('button',notebookCopy[lang].dismissPractice,{id:'practiceDismiss',type:'button'});dismissPractice.hidden=true;
+    actions.append(send,practiceButton,dismissPractice,cancel,close,login);body.append(actions);
     const save=node('button',notebookCopy[lang].save,{id:'saveExplanation',type:'button'});save.hidden=true;body.append(save);
     save.onclick=async()=>{try{
       if(session?.state!=='completed')return;
@@ -66,19 +68,20 @@
     const explanationView=node('div',null,{id:'explanationView'});explanationView.style.cssText='display:grid;gap:16px';
     Array.from(body.children).slice(2).forEach(child=>explanationView.append(child));body.append(explanationView);
     const practiceHost=node('section',null,{id:'practiceHost'});practiceHost.hidden=true;body.append(practiceHost);
+    dismissPractice.onclick=async()=>{try{if(!session||await api.identity()!==owner)return;await api.call('/sessions/'+encodeURIComponent(session.id)+'/practice/dismiss',{});session.practice_proposal_state='dismissed';session.practice_available=false;practiceActions();status(notebookCopy[lang].dismissedPractice);}catch(e){error(e);}};
     practiceButton.onclick=()=>{
       if(!session||session.state!=='completed')return;
       const openedPanel=panel,id=session.id;
       explanationView.hidden=true;practiceHost.hidden=false;
       window.LPTutorPractice.create({host:practiceHost,api,sessionId:id,locale:lang,owner,
         isCurrent:()=>panel===openedPanel&&panel.open&&session?.id===id&&!practiceHost.hidden,
-        onBack:()=>{practiceHost.hidden=true;explanationView.hidden=false;practiceButton.focus();},onClose:()=>openedPanel.close()});
+        onBack:async()=>{practiceHost.hidden=true;explanationView.hidden=false;try{session=await api.call('/sessions/'+encodeURIComponent(id));practiceActions();}catch(_){}practiceButton.focus();},onClose:()=>openedPanel.close()});
     };
     send.onclick=sendQuestion;
     cancel.onclick=()=>cancelQuestion(); close.onclick=()=>panel.close();
     refresh.onclick=()=>refreshConnection().catch(error);
     connect.onclick=async()=>{try{owner=await api.identity();const p=await api.call('/pair',{});$('pairCode').textContent=p.pairing_code;$('pair').hidden=false;status(words.pair);}catch(e){error(e);}};
-    revoke.onclick=async()=>{try{await api.identity();await api.call('/revoke',{});connection=null;session=null;clearTimeout(timer);generation++;busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').hidden=true;$('practiceStart').hidden=true;$('pair').hidden=true;status(errors[lang].connection_required);}catch(e){error(e);}};
+    revoke.onclick=async()=>{try{await api.identity();await api.call('/revoke',{});connection=null;session=null;clearTimeout(timer);generation++;busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').hidden=true;$('practiceStart').hidden=true;$('practiceDismiss').hidden=true;$('pair').hidden=true;status(errors[lang].connection_required);}catch(e){error(e);}};
     panel.addEventListener('close',()=>{draft=$('question').value;clearTimeout(timer);generation++;if(busy)cancelQuestion().catch(()=>{});origin?.focus();});
     document.body.append(panel);panel.showModal();question.focus();
   }
@@ -93,7 +96,7 @@
       const current=await api.call('/sessions/'+encodeURIComponent(session.id)+'?since='+session.version);
       if(turn!==generation) return;
       if(!current.unchanged) session=current;
-      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('saveExplanation').hidden=false;$('practiceStart').hidden=session.practice_available!==true;status(words.sourceChanged);requestKey=null;return;}
+      if(session.state==='completed') {if(session.practice_available!==true)session=await api.call('/sessions/'+encodeURIComponent(session.id));busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('saveExplanation').hidden=false;practiceActions();status(words.sourceChanged);requestKey=null;return;}
       if(session.state==='failed'){requestKey=null;throw Object.assign(new Error(session.error),{code:session.error});}
       if(session.state==='cancelled'){busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;requestKey=null;status(words.stopped);return;}
       status(session.state==='queued'?words.queued:words.waiting);
@@ -104,7 +107,7 @@
     if(busy) return;
     if(!$('consent').checked){$('consent').focus();status(words.acknowledge);return;}
     if(!context){status(words.expired);return;}
-    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('answer').hidden=true;$('practiceStart').hidden=true;$('saveExplanation').hidden=true;status(words.queued);
+    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('answer').hidden=true;$('practiceStart').hidden=true;$('practiceDismiss').hidden=true;$('saveExplanation').hidden=true;status(words.queued);
     const turn=++generation;
     try {
       await refreshConnection();

@@ -1,6 +1,6 @@
 "use strict";
 const { closed, fail } = require("./response");
-const STATUS = { not_available:404, slow_down:429, practice_unavailable: 409, attempt_closed: 409, invalid_request: 400, invalid_context: 400, context_too_large: 413, invalid_output: 422,
+const STATUS = { not_available:404, slow_down:429, practice_unavailable: 409, practice_dismissed: 409, attempt_closed: 409, invalid_request: 400, invalid_context: 400, context_too_large: 413, invalid_output: 422,
   context_unavailable: 404, context_expired: 410, connection_required: 401, lease_invalid: 403,
   pairing_expired: 410, agent_offline: 409, session_busy: 409, request_conflict: 409, result_rejected: 409, session_limit: 429 };
 function installRoutes(app, { store, enabled, requireUser, requireCsrf, limiter, capability = enabled, enrollmentLimiter = (_q,_s,n)=>n() }) {
@@ -41,6 +41,8 @@ function installRoutes(app, { store, enabled, requireUser, requireCsrf, limiter,
   });
   route("post", "/sessions/:id/cancel", true, (req, auth) => { closed(req.body, []); return store.cancel(auth.user.id, req.params.id); });
   route("post", "/sessions/:id/practice", true, (req,auth)=>{closed(req.body,[]);return store.practice(auth.user.id,req.params.id);});
+  route("post", "/sessions/:id/practice/cancel", true, (req,auth)=>{closed(req.body,[]);return store.practiceDecision(auth.user.id,req.params.id,'cancel');});
+  route("post", "/sessions/:id/practice/dismiss", true, (req,auth)=>{closed(req.body,[]);return store.practiceDecision(auth.user.id,req.params.id,'dismiss');});
   route("post", "/sessions/:id/practice/hint", true, (req,auth)=>{closed(req.body,[]);return store.practiceHint(auth.user.id,req.params.id);});
   route("post", "/sessions/:id/practice/attempt", true, (req,auth)=>store.practiceAttempt(auth.user.id,req.params.id,req.body));
   app.use(base+"/connector/enroll",enrollmentLimiter);

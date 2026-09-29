@@ -5,6 +5,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const express=require('express'),sqlite3=require('sqlite3');
 const {chromium}=require('playwright');
+const JSZip=require('jszip');
 const assert=require('node:assert/strict');
 const {createStore}=require('../../agent/tutor/store');
 const {installRoutes}=require('../../agent/tutor/routes');
@@ -13,13 +14,13 @@ const practiceMode=process.argv.includes('--practice');
 const surfacesMode=process.argv.includes('--surfaces');
 async function main(){
  const db=new sqlite3.Database(':memory:');
- await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8'),e=>e?j(e):r()));
+ await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/073_tutor_practice_proposals.sql'),'utf8'),e=>e?j(e):r()));
  const store=createStore(()=>db),app=express();app.use(express.json({limit:'40kb'}));
  app.use((_q,s,n)=>{s.set('Cross-Origin-Opener-Policy','same-origin');s.set('Cross-Origin-Embedder-Policy','require-corp');n();});
  const auth={user:{id:'fixture-A'},session:{csrf:'fixture-csrf'}};
  app.get('/api/auth/me',(_q,s)=>s.json({ok:true,user:auth.user,csrf:auth.session.csrf,consents:{}}));
  installRoutes(app,{store,enabled:()=>true,requireUser:async()=>auth,requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!==auth.session.csrf){s.status(403).json({ok:false,error:'BAD_CSRF'});return false;}return true;},limiter:(_q,_s,n)=>n()});
- app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.695',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.697',tts:{enabled:false},agent:{enabled:false}}));
  app.get('/api/mediatheque',(_q,s)=>s.json({ok:true,structure:require('../../public/js/mediatheque-core').empty(),items:[],revision:0}));
  app.use('/api',(_q,s)=>s.status(404).json({ok:false,error:'FIXTURE_ROUTE_NOT_AVAILABLE'}));
  if(surfacesMode)app.get('/js/library-ui.js',(_q,res)=>res.type('js').send(fs.readFileSync(path.join(ROOT,'public/js/library-ui.js'),'utf8')+`
@@ -75,6 +76,8 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await notebook.getByRole('button',{name:'Закрыть',exact:true}).click();
   }
   if(practiceMode){
+   const proposalRow=await new Promise((resolve,reject)=>db.get('SELECT proposal_state FROM tutor_practice LIMIT 1',(e,row)=>e?reject(e):resolve(row)));
+   assert.equal(proposalRow?.proposal_state,'proposed','practice should be proposed after explanation');
    await page.getByRole('button',{name:'Закрепить за минуту',exact:true}).click();
    await page.getByRole('textbox',{name:'Слово из исходника',exact:true}).fill('כשהייתי');
    let lostReceipt=true;
@@ -101,13 +104,14 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    const notebook=page.getByRole('dialog',{name:'Сохранённые объяснения',exact:true});
    await notebook.locator('summary').click();
    const download=page.waitForEvent('download');await notebook.getByRole('button',{name:'Скачать',exact:true}).click();assert.equal((await download).suggestedFilename(),'linguistpro-explanation.json');
+   const allDownload=page.waitForEvent('download');await notebook.getByRole('button',{name:'Скачать все',exact:true}).click();assert.equal((await allDownload).suggestedFilename(),'linguistpro-explanations.json');
    await notebook.getByRole('button',{name:'Продолжить разбор',exact:true}).click();
    await page.getByText('Сохранённая версия фрагмента.',{exact:false}).waitFor();
    assert.equal(deliveries.length,count,'opening archive never generates');
    assert.equal(await page.getByRole('checkbox').filter({visible:true}).last().isChecked(),false,'new question needs consent');
   }
   if(practiceMode){
-   await page.getByRole('button',{name:'Закрепить за минуту',exact:true}).click();
+   await page.getByRole('button',{name:'Посмотреть итог упражнения',exact:true}).click();
    await page.getByRole('heading',{name:'Совпало с исходником',exact:true}).waitFor();
    await page.getByRole('button',{name:'К объяснению',exact:true}).click();
   }
@@ -117,6 +121,7 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await page.evaluate(()=>window.__m4Fixture.launch());
    assert.equal(await page.getByRole('button',{name:'Разобрать с наставником',exact:true}).count(),0);
    await page.locator('[data-train-input]').fill('שלום');
+   const updateLater=page.locator('.room-update-toast .ru-later');if(await updateLater.isVisible())await updateLater.click();
    await page.locator('[data-train-submit]').click();
    const help=page.getByRole('button',{name:'Разобрать с наставником',exact:true});await help.waitFor({state:'visible'});
    const count=await page.evaluate(()=>window.__localDB.countReviewLog()),queue=await page.evaluate(()=>window.__m4Fixture.state());
@@ -162,7 +167,26 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   const after=await page.evaluate(async()=>{const db=await window.StudioAgentHost.ldb();return db.countReviewLog();});
   assert.equal(after,before,'tutor never writes review_log');
   await page.screenshot({path:path.join(shots,'studio-mobile.png')});
+  if(surfacesMode&&!practiceMode){
+   await page.getByRole('button',{name:'Сохранить на этом устройстве',exact:true}).click();
+   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
+   await page.evaluate(()=>{v3LibraryExportBundle();});
+   const zipEvent=page.waitForEvent('download',{timeout:30000});
+   await page.locator('#v3ExpPfMeta').click();
+   const zipDownload=await zipEvent;
+   const zip=await JSZip.loadAsync(fs.readFileSync(await zipDownload.path()));
+   const manifest=JSON.parse(await zip.file('manifest.json').async('string'));
+   const notebook=JSON.parse(await zip.file('personal/tutor-explanations.json').async('string'));
+   assert.equal(manifest.tutor_explanations.status,'included');
+   assert.equal(notebook.owner_id,'fixture-A');
+   assert.ok(notebook.records.length>=1);
+   assert.equal(notebook.records.some(r=>r.owner||r.id),false);
+   await page.evaluate(()=>window.StudioAgent.explainRow(0));
+   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
+  }
   if(practiceMode){
+   await page.getByRole('button',{name:'Закрепить за минуту',exact:true}).click();
+   await page.getByRole('button',{name:'Отменить упражнение',exact:true}).click();
    await page.getByRole('button',{name:'Закрепить за минуту',exact:true}).click();
    await page.getByRole('button',{name:'Показать слово',exact:true}).click();
    await page.getByRole('textbox',{name:'Слово из исходника',exact:true}).fill('כשהיה');
@@ -219,12 +243,27 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await page.getByText('Выберите предложение и нажмите кнопку наставника рядом с ним.',{exact:true}).waitFor();
    assert.equal(await page.evaluate(()=>document.activeElement.classList.contains('row-explain-btn')),true);
    await page.evaluate(()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale:'he'}));
-   const heNotebook=page.getByRole('dialog',{name:'הסברים שמורים',exact:true});await heNotebook.locator('summary').click();
+   const heNotebook=page.getByRole('dialog',{name:'הסברים שמורים',exact:true});await heNotebook.locator('summary').first().click();
    await page.screenshot({path:path.join(shots,'notebook-he-mobile.png')});
-   await heNotebook.getByRole('button',{name:'מחיקה',exact:true}).click();
+   page.once('dialog',dialog=>dialog.accept());
+   await heNotebook.getByRole('button',{name:'מחיקת הכול',exact:true}).click();
    await heNotebook.getByText('עדיין אין הסברים שמורים.',{exact:true}).waitFor();
    assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,0);
    await heNotebook.getByRole('button',{name:'סגירה',exact:true}).click();
+   await page.evaluate(async()=>{
+    const store=window.LPTutorNotebook.local(),context=await window.LPTutorClient.build(window.LPTutorClient.capture({surface:'room',materialKey:'backup-fixture',rows:[{id:'1',he:'שלום עולם'}],index:0,locale:'ru'}));
+    await store.save('fixture-A',{schema:1,status:'accepted',context,question:'Почему?',answer:'Из сохранённого ответа.'});
+    const bundle=await store.exportBundle('fixture-A');
+    if(bundle.records.length!==1||bundle.records[0].owner||bundle.records[0].id)throw Error('ARCHIVE_EXPORT_FAILED');
+    await store.removeAll('fixture-A');
+    let rejected=false;try{await store.importBundle('fixture-B',bundle);}catch(_){rejected=true;}
+    if(!rejected||(await store.list('fixture-B')).length)throw Error('ARCHIVE_ACCOUNT_BINDING_FAILED');
+    rejected=false;try{await store.importBundle('fixture-A',{...bundle,records:[bundle.records[0],{...bundle.records[0],answer:''}]});}catch(_){rejected=true;}
+    if(!rejected||(await store.list('fixture-A')).length)throw Error('ARCHIVE_ATOMIC_VALIDATION_FAILED');
+    const restored=await store.importBundle('fixture-A',bundle),duplicate=await store.importBundle('fixture-A',bundle);
+    if(restored.imported!==1||duplicate.imported!==0||(await store.list('fixture-A')).length!==1)throw Error('ARCHIVE_RESTORE_FAILED');
+    await store.removeAll('fixture-A');
+   });
    await page.evaluate(async()=>{
     const store=window.LPTutorNotebook.local(),context=await window.LPTutorClient.build(window.LPTutorClient.capture({surface:'room',materialKey:'limit',rows:[{id:'1',he:'שלום עולם'}],index:0,locale:'ru'}));
     const record={schema:1,status:'accepted',context,question:'0',answer:'fixture'};

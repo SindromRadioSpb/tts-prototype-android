@@ -49,11 +49,12 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       catch(e){if(e.code!=='practice_unavailable')throw e;}
     }
     return { id: row.id, version: row.version, state: row.state, error: row.error_code || null,
-      practice_available:practiceAvailable,
+      practice_available:practiceAvailable && row.proposal_state!=='dismissed',
+      practice_proposal_state:row.proposal_state||null,
       expires_at: row.expires_at, context: JSON.parse(row.context_json), question: row.question, result: row.result_json ? JSON.parse(row.result_json) : null };
   }
   async function owned(userId, id) {
-    const row = await get("SELECT * FROM tutor_sessions WHERE user_id=? AND id=?", [String(userId), id]);
+    const row = await get("SELECT s.*,p.proposal_state FROM tutor_sessions s LEFT JOIN tutor_practice p ON p.session_id=s.id WHERE s.user_id=? AND s.id=?", [String(userId), id]);
     if (!row) fail("context_unavailable");
     const conn = await connectionForUser(userId);
     if (!conn || conn.id !== row.connection_id) fail("connection_required");
@@ -163,15 +164,31 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       let row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
       if(!row){
         const challenge=practice.build(JSON.parse(session.context_json),session.question);
-        await run("INSERT INTO tutor_practice(session_id,challenge_json) VALUES(?,?)",[id,JSON.stringify(challenge)]);
+        await run("INSERT INTO tutor_practice(session_id,challenge_json,proposal_state) VALUES(?,?,'proposed')",[id,JSON.stringify(challenge)]);
         row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
       }
+      if(row.proposal_state==='dismissed')fail('practice_dismissed');
+      if(row.proposal_state==='proposed'){
+        await run("UPDATE tutor_practice SET proposal_state='accepted' WHERE session_id=? AND proposal_state='proposed'",[id]);
+        row.proposal_state='accepted';
+      }
       return {practice:practice.descriptor(row)};
+    }),
+    practiceDecision: (userId,id,action)=>transaction(async()=>{
+      if(!['cancel','dismiss'].includes(action))fail('invalid_request');
+      await sweep();await owned(userId,id);
+      const row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
+      if(!row)fail('practice_unavailable');
+      if(row.proposal_state==='completed')fail('attempt_closed');
+      if(row.proposal_state==='dismissed')return {proposal_state:'dismissed'};
+      const next=action==='dismiss'?'dismissed':'proposed';
+      if(row.proposal_state!==next)await run("UPDATE tutor_practice SET proposal_state=? WHERE session_id=?",[next,id]);
+      return {proposal_state:next};
     }),
     practiceHint: (userId,id) => transaction(async()=>{
       await sweep();await owned(userId,id);
       const row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
-      if(!row)fail("practice_unavailable");
+      if(!row||!['accepted','completed'].includes(row.proposal_state))fail("practice_unavailable");
       // A result already exists: never rewrite its provenance after the attempt.
       if(!row.receipt_json){await run("UPDATE tutor_practice SET hint_seen=1 WHERE session_id=?",[id]);row.hint_seen=1;}
       return {practice:practice.descriptor(row)};
@@ -182,15 +199,16 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
          (!input.skipped&&!input.answer.trim())||typeof input.attempt_key!=="string"||!/^[A-Za-z0-9_-]{16,80}$/.test(input.attempt_key))fail("invalid_request");
       await sweep();await owned(userId,id);
       const row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
-      if(!row)fail("practice_unavailable");
+      if(!row||!['accepted','completed'].includes(row.proposal_state))fail("practice_unavailable");
       const attemptHash=hash(JSON.stringify(input));
       if(row.receipt_json){
         if(row.attempt_key!==input.attempt_key||row.attempt_hash!==attemptHash)fail("attempt_closed");
         return {practice:practice.descriptor(row)};
       }
       const receipt=practice.evaluate(JSON.parse(row.challenge_json),input,row.hint_seen);
-      await run("UPDATE tutor_practice SET attempt_key=?,attempt_hash=?,receipt_json=? WHERE session_id=?",[input.attempt_key,attemptHash,JSON.stringify(receipt),id]);
+      await run("UPDATE tutor_practice SET attempt_key=?,attempt_hash=?,receipt_json=?,proposal_state='completed' WHERE session_id=?",[input.attempt_key,attemptHash,JSON.stringify(receipt),id]);
       row.receipt_json=JSON.stringify(receipt);
+      row.proposal_state='completed';
       return {practice:practice.descriptor(row)};
     }),
     revokeConnector: token=>transaction(async()=>{
@@ -231,6 +249,12 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       if (row.state !== "running") fail("result_rejected");
       const state = response.error ? "failed" : "completed";
       await run("UPDATE tutor_sessions SET state=?,version=version+1,result_json=?,result_hash=?,error_code=? WHERE id=?", [state, JSON.stringify(response), resultHash, response.error || null, id]);
+      if(state==='completed'){
+        try{
+          const challenge=practice.build(JSON.parse(row.context_json),row.question);
+          await run("INSERT OR IGNORE INTO tutor_practice(session_id,challenge_json,proposal_state) VALUES(?,?,'proposed')",[id,JSON.stringify(challenge)]);
+        }catch(e){if(e.code!=='practice_unavailable')throw e;}
+      }
       return { accepted: true, state };
     }),
   };

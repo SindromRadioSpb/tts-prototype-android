@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-29T16:24:09.515Z",
+  "ok": true,
+  "practice": true,
+  "surfaces": true,
+  "deliveries": [
+    {
+      "surface": "room",
+      "revision": "snapshot:4c1c474865a60b7b31f910ad59bcc79d91edaee4a0cc3f01d0ae9cc5f27bcd38"
+    },
+    {
+      "surface": "review",
+      "revision": "snapshot:4c1c474865a60b7b31f910ad59bcc79d91edaee4a0cc3f01d0ae9cc5f27bcd38"
+    },
+    {
+      "surface": "mediatheque",
+      "revision": "snapshot:4c1c474865a60b7b31f910ad59bcc79d91edaee4a0cc3f01d0ae9cc5f27bcd38"
+    },
+    {
+      "surface": "studio",
+      "revision": "snapshot:4c1c474865a60b7b31f910ad59bcc79d91edaee4a0cc3f01d0ae9cc5f27bcd38"
+    },
+    {
+      "surface": "room",
+      "revision": "snapshot:ef029d74e0560787c2a0ef99f1db9acbf73618bba28711d7a66dd9553f53bd96"
+    }
+  ],
+  "tutor_review_log_unchanged": true,
+  "fixture_training_attempt": true,
+  "archive_dedup_isolation_reload_export": true,
+  "archive_continuation": false,
+  "archive_delete_limit": true,
+  "pageErrors": []
+}

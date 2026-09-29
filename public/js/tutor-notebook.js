@@ -14,21 +14,33 @@
     let opening;
     const db=()=>opening||(opening=new Promise((resolve,reject)=>{const q=indexedDB.open(NAME,1);q.onupgradeneeded=()=>{const s=q.result.createObjectStore('explanations',{keyPath:'id'});s.createIndex('owner','owner');};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);}));
     async function run(mode,fn){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('explanations',mode);let result;tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('storage_unavailable'));fn(tx.objectStore('explanations'),v=>result=v,tx);});}
+    async function digest(owner,clean){
+      const bytes=new TextEncoder().encode(JSON.stringify([String(owner),clean.context.source,clean.question,clean.answer]));
+      return Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+    }
     return {
       async list(owner){if(!owner)throw Error('owner_required');return run('readonly',(s,done)=>{const q=s.index('owner').getAll(String(owner));q.onsuccess=()=>done(q.result.sort((a,b)=>b.saved_at-a.saved_at));});},
       async save(owner,record){
         if(!owner)throw Error('owner_required');const clean=validate(record);
-        const bytes=new TextEncoder().encode(JSON.stringify([String(owner),clean.context.source,clean.question,clean.answer]));
-        const id=Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+        const id=await digest(owner,clean);
         return run('readwrite',(s,done,tx)=>{const q=s.index('owner').getAll(String(owner));q.onsuccess=()=>{if(q.result.length>=LIMIT&&!q.result.some(r=>r.id===id)){tx.abort();return;}const row={...clean,id,owner:String(owner),saved_at:Date.now()};s.put(row);done(row);};});
       },
       async remove(owner,id){return run('readwrite',(s,done)=>{const q=s.get(id);q.onsuccess=()=>{if(q.result?.owner===String(owner))s.delete(id);done(true);};});},
+      async removeAll(owner){if(!owner)throw Error('owner_required');return run('readwrite',(s,done)=>{const q=s.index('owner').getAll(String(owner));q.onsuccess=()=>{for(const row of q.result)s.delete(row.id);done(q.result.length);};});},
+      async exportBundle(owner){if(!owner)throw Error('owner_required');const rows=await this.list(owner);return {schema:'lp-tutor-notebook.1',owner_id:String(owner),records:rows.map(({owner:omitOwner,id,...record})=>validate(record))};},
+      async importBundle(owner,bundle){
+        if(!owner)throw Error('owner_required');
+        if(!bundle||bundle.schema!=='lp-tutor-notebook.1'||bundle.owner_id!==String(owner)||!Array.isArray(bundle.records)||bundle.records.length>LIMIT)throw Error('invalid_archive_bundle');
+        const entries=[];
+        for(const raw of bundle.records){if(!raw||'owner'in raw||'id'in raw)throw Error('invalid_archive_bundle');const clean=validate(raw);entries.push({...clean,id:await digest(owner,clean),owner:String(owner),saved_at:Number.isFinite(raw.saved_at)&&raw.saved_at>0?raw.saved_at:Date.now()});}
+        return run('readwrite',(s,done,tx)=>{const q=s.index('owner').getAll(String(owner));q.onsuccess=()=>{const existing=new Set(q.result.map(r=>r.id)),fresh=new Map();for(const row of entries)if(!existing.has(row.id))fresh.set(row.id,row);if(existing.size+fresh.size>LIMIT){tx.abort();return;}for(const row of fresh.values())s.put(row);done({imported:fresh.size,existing:entries.length-fresh.size});};});
+      },
     };
   }
   const copy={
-    ru:{title:'Сохранённые объяснения',local:'Хранятся только в этом браузере. Не синхронизируются и не меняют оценки знаний.',empty:'Пока нет сохранённых объяснений.',close:'Закрыть',open:'Продолжить разбор',export:'Скачать',remove:'Удалить',failed:'Не удалось открыть хранилище. Проверьте доступное место в браузере.',stale:'Исходный фрагмент изменился. Это объяснение относится к сохранённой версии.',snapshot:'Сохранённый фрагмент · ответ ИИ не проверен преподавателем'},
-    en:{title:'Saved explanations',local:'Stored only in this browser. No sync or changes to knowledge grades.',empty:'No saved explanations yet.',close:'Close',open:'Continue discussion',export:'Download',remove:'Delete',failed:'Storage could not be opened. Check available browser storage.',stale:'The source passage has changed. This explanation refers to the saved version.',snapshot:'Saved passage · AI answer not reviewed by a teacher'},
-    he:{title:'הסברים שמורים',local:'נשמרים רק בדפדפן הזה. ללא סנכרון וללא שינוי בהערכות הידע.',empty:'עדיין אין הסברים שמורים.',close:'סגירה',open:'להמשיך בהסבר',export:'הורדה',remove:'מחיקה',failed:'לא ניתן לפתוח את האחסון. בדקו את המקום הפנוי בדפדפן.',stale:'קטע המקור השתנה. ההסבר מתייחס לגרסה השמורה.',snapshot:'קטע שמור · תשובת AI לא נבדקה בידי מורה'}
+    ru:{title:'Сохранённые объяснения',local:'Хранятся только в этом браузере. Не синхронизируются и не меняют оценки знаний.',empty:'Пока нет сохранённых объяснений.',close:'Закрыть',open:'Продолжить разбор',export:'Скачать',remove:'Удалить',failed:'Не удалось открыть хранилище. Проверьте доступное место в браузере.',stale:'Исходный фрагмент изменился. Это объяснение относится к сохранённой версии.',snapshot:'Сохранённый фрагмент · ответ ИИ не проверен преподавателем',exportAll:'Скачать все',importAll:'Восстановить из файла',deleteAll:'Удалить все',importConfirm:'Восстановить сохранённые объяснения из файла для этого аккаунта?',deleteConfirm:'Удалить все сохранённые объяснения этого аккаунта в этом браузере?',imported:'Объяснения восстановлены.',wrongAccount:'Файл относится к другому аккаунту или повреждён.',restoreFailed:'Не удалось восстановить объяснения. Проверьте файл и свободное место.',notIncluded:'Объяснения не вошли в ZIP: войдите в аккаунт.'},
+    en:{title:'Saved explanations',local:'Stored only in this browser. No sync or changes to knowledge grades.',empty:'No saved explanations yet.',close:'Close',open:'Continue discussion',export:'Download',remove:'Delete',failed:'Storage could not be opened. Check available browser storage.',stale:'The source passage has changed. This explanation refers to the saved version.',snapshot:'Saved passage · AI answer not reviewed by a teacher',exportAll:'Download all',importAll:'Restore from file',deleteAll:'Delete all',importConfirm:'Restore saved explanations from this file for this account?',deleteConfirm:'Delete all saved explanations for this account in this browser?',imported:'Explanations restored.',wrongAccount:'This file belongs to another account or is invalid.',restoreFailed:'Could not restore explanations. Check the file and available storage.',notIncluded:'Explanations were left out of the ZIP: sign in first.'},
+    he:{title:'הסברים שמורים',local:'נשמרים רק בדפדפן הזה. ללא סנכרון וללא שינוי בהערכות הידע.',empty:'עדיין אין הסברים שמורים.',close:'סגירה',open:'להמשיך בהסבר',export:'הורדה',remove:'מחיקה',failed:'לא ניתן לפתוח את האחסון. בדקו את המקום הפנוי בדפדפן.',stale:'קטע המקור השתנה. ההסבר מתייחס לגרסה השמורה.',snapshot:'קטע שמור · תשובת AI לא נבדקה בידי מורה',exportAll:'הורדת הכול',importAll:'שחזור מקובץ',deleteAll:'מחיקת הכול',importConfirm:'לשחזר הסברים שמורים מהקובץ לחשבון הזה?',deleteConfirm:'למחוק את כל ההסברים השמורים של החשבון הזה בדפדפן?',imported:'ההסברים שוחזרו.',wrongAccount:'הקובץ שייך לחשבון אחר או אינו תקין.',restoreFailed:'לא ניתן לשחזר את ההסברים. בדקו את הקובץ ואת המקום הפנוי.',notIncluded:'ההסברים לא נכללו בקובץ ZIP: יש להתחבר לחשבון.'}
   };
   let store;
   const local=()=>store||(store=createStore(window.indexedDB));
@@ -44,6 +56,14 @@
     dialog.addEventListener('close',()=>{dialog.remove();origin?.focus();});
     try{
       const owner=await api.identity();
+      const controls=el('div');controls.className='actions';section.insertBefore(controls,list);
+      const message=el('p');message.setAttribute('role','status');section.insertBefore(message,list);
+      const downloadBundle=el('button',c.exportAll),uploadBundle=el('button',c.importAll),deleteBundle=el('button',c.deleteAll),input=el('input');input.type='file';input.accept='.json,application/json';input.hidden=true;
+      controls.append(downloadBundle,uploadBundle,deleteBundle,input);
+      downloadBundle.onclick=async()=>{try{if(await api.identity()!==owner)return;const bundle=await local().exportBundle(owner);if(!dialog.open||await api.identity()!==owner)return;const url=URL.createObjectURL(new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'}));const link=el('a');link.href=url;link.download='linguistpro-explanations.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(_){message.textContent=c.failed;}};
+      uploadBundle.onclick=()=>input.click();
+      input.onchange=async()=>{const file=input.files?.[0];input.value='';if(!file)return;try{if(await api.identity()!==owner)return;const bundle=JSON.parse(await file.text());if(!dialog.open||await api.identity()!==owner||!window.confirm(c.importConfirm))return;if(await api.identity()!==owner)return;await local().importBundle(owner,bundle);message.textContent=c.imported;await paint();}catch(_){message.textContent=c.wrongAccount;}};
+      deleteBundle.onclick=async()=>{try{if(await api.identity()!==owner||!window.confirm(c.deleteConfirm))return;await local().removeAll(owner);await paint();close.focus();}catch(_){message.textContent=c.failed;}};
       async function paint(){
         const rows=await local().list(owner);if(!dialog.open)return;list.replaceChildren();
         if(!rows.length)list.append(el('p',c.empty));

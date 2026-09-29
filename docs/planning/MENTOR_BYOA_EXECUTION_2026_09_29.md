@@ -9,6 +9,14 @@
 
 ### M4 continuation · 2026-09-29
 
+Следующий локальный срез: ZIP/JSON перенос и удаление принятого объяснения,
+account-bound restore, `proposed/accepted/completed/dismissed` для source-recall
+с явной отменой и идемпотентностью. [Контракт и проверки](../research/mentor-byoa/2026-09-29/M4_NEXT_IMPLEMENTATION.md).
+46 Node, 233 i18n, isolated browser four-surface/practice и shell integrity PASS.
+MCP не расширен: старый `get_agent_connection` имеет закрытый 15-scope enum.
+Server account export/delete и owner-live видео остаются открытыми; 3.11.697
+пока локальная кандидатная версия, без заявления о production acceptance.
+
 Ветка `feat/mentor-byoa-m4`, база production `e877e8ea`. Реализованы помощь после
 ответа в Повторении, вход из карточки Медиатеки, точное окно сохранённых субтитров
 и явно принимаемый локальный архив объяснений с продолжением/экспортом/удалением.

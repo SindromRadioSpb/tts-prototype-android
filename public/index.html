@@ -13834,9 +13834,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/voice-draft.js"></script>
 <script src="/js/studio-agent.js"></script>
 <script src="/js/tutor-client.js?v=2"></script>
-<script src="/js/tutor-practice.js?v=1"></script>
-<script src="/js/tutor-notebook.js?v=1"></script>
-<script src="/js/tutor-panel.js?v=5"></script>
+<script src="/js/tutor-practice.js?v=2"></script>
+<script src="/js/tutor-notebook.js?v=2"></script>
+<script src="/js/tutor-panel.js?v=6"></script>
 
 <!-- ⑤ Anki-sync A2b — client-side «.apkg» export (UMD globals AnkiApkgCore → AnkiApkg → AnkiSrsExport).
      Card data never leaves the device; sql.js (/db/sql-wasm.*) lazy-loads only when the user exports.
@@ -13861,7 +13861,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.696";
+    window.APP_VERSION = "3.11.697";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -31707,6 +31707,21 @@ async function v3ExportRunLocal() {
       skippedPackages = (packageIndex && packageIndex.skipped) || [];
     }
 
+    // Tutor explanations are account-bound personal data in a separate IndexedDB.
+    // A library ZIP can be made while signed out, so record the omission explicitly.
+    payload.manifest.tutor_explanations = { status: "not_included", reason: "sign_in_required" };
+    if (window.LPTutorNotebook && window.LPTutorClient) {
+      try {
+        const tutorOwner = await window.LPTutorClient.createApi().identity();
+        const tutorBundle = await window.LPTutorNotebook.local().exportBundle(tutorOwner);
+        if (await window.LPTutorClient.createApi().identity() !== tutorOwner) throw Error("tutor_owner_changed");
+        zip.file("personal/tutor-explanations.json", JSON.stringify(tutorBundle));
+        payload.manifest.tutor_explanations = { status: "included", count: tutorBundle.records.length, schema: tutorBundle.schema };
+      } catch (e) {
+        if (!e || e.code !== "UNAUTHENTICATED") throw e;
+      }
+    }
+
     zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
     zip.file("library/library.json", JSON.stringify(payload.library, null, 2));
     if (payload.notes_advanced && payload.manifest.notes_advanced_present)
@@ -31744,8 +31759,10 @@ async function v3ExportRunLocal() {
     const audioMsg = (choice === "audio")
       ? (audioCount + "/" + keys.length + " " + v3ExpT("exp.audioFiles", "аудио файлов"))
       : v3ExpT("exp.metaOnlyMsg", "без аудио (метаданные)");
-    const missingNote = missing.length ? (" ⚠ " + missing.length) : "";
-    v3ExportFinishDone(state, btn, { texts: state.textCount, audioMsg: audioMsg, missingNote: missingNote, warn: missing.length > 0 });
+    const tutorCopy = window.LPTutorNotebook && (window.LPTutorNotebook.copy[(document.documentElement.lang || "ru").split("-")[0]] || window.LPTutorNotebook.copy.ru);
+    const tutorOmitted = payload.manifest.tutor_explanations?.status !== "included";
+    const missingNote = (missing.length ? (" ⚠ " + missing.length) : "") + (tutorOmitted && tutorCopy ? (" · " + tutorCopy.notIncluded) : "");
+    v3ExportFinishDone(state, btn, { texts: state.textCount, audioMsg: audioMsg, missingNote: missingNote, warn: missing.length > 0 || tutorOmitted });
   } catch (e) {
     if (state.cancelled) return v3ExportFinishCancelled(state, btn);
     console.warn("v3ExportRunLocal failed", e);
@@ -31912,6 +31929,25 @@ async function v3LibraryOnBundleImportSelected(ev) {
         r = await ldb.importBundle(parsed, { mode: "skip", userRestore: true });   // P2: ZIP-импорт пользователя → undelete-интенты
         if (portableRestoreZip && window.StudioPortableLearningPackage) {
           r.portable_learning_packages = await window.StudioPortableLearningPackage.restoreEmbeddedPackages(portableRestoreZip);
+        }
+        // Restore personal tutor data only after a separate choice. A foreign
+        // account's archive must never be rebound by the library import.
+        const tutorFile = portableRestoreZip && portableRestoreZip.file("personal/tutor-explanations.json");
+        if (tutorFile && window.LPTutorNotebook && window.LPTutorClient) {
+          try {
+            const tutorBundle = JSON.parse(await tutorFile.async("string"));
+            const tutorOwner = await window.LPTutorClient.createApi().identity();
+            const words = window.LPTutorNotebook.copy[(document.documentElement.lang || "ru").split("-")[0]] || window.LPTutorNotebook.copy.ru;
+            if (tutorBundle.owner_id !== tutorOwner) {
+              showToast(words.wrongAccount, "error");
+            } else if (await v3ConfirmModal({ title: words.title, body: words.importConfirm, okText: words.importAll, cancelText: words.close })) {
+              if (await window.LPTutorClient.createApi().identity() !== tutorOwner) throw Error("tutor_owner_changed");
+              r.tutor_explanations = await window.LPTutorNotebook.local().importBundle(tutorOwner, tutorBundle);
+            }
+          } catch (e) {
+            const words = window.LPTutorNotebook.copy[(document.documentElement.lang || "ru").split("-")[0]] || window.LPTutorNotebook.copy.ru;
+            showToast(words.restoreFailed, "error");
+          }
         }
         try { v3OpfsTelemetryPush({
           kind: "import.zip.success", durationMs: Date.now() - _zipImportT0,

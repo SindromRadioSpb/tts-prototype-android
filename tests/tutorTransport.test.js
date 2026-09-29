@@ -15,13 +15,24 @@ const reply = job => ({ schema_version: "lp-tutor-response.1", context_id: job.c
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
 async function fixture(t) {
   const db = new sqlite3.Database(":memory:");
-  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8")+fs.readFileSync("migrations/072_tutor_onboarding.sql", "utf8"), e => e ? j(e) : r()));
+  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8")+fs.readFileSync("migrations/072_tutor_onboarding.sql", "utf8")+fs.readFileSync("migrations/073_tutor_practice_proposals.sql", "utf8"), e => e ? j(e) : r()));
   t.after(() => new Promise(resolve => db.close(resolve)));
   let now = 100000;
   const store = createStore(() => db, () => now);
   async function pair(user = "A") { const p = await store.pair(user); return store.claim({ pairing_code: p.pairing_code, client_nonce: nonce }); }
   return { db, store, pair, advance: delta => { now += delta; } };
 }
+test("proposal migration retains legacy completed practice", async t => {
+  const db = new sqlite3.Database(":memory:");
+  t.after(() => new Promise(resolve => db.close(resolve)));
+  const sql = fs.readFileSync("migrations/070_tutor_transport.sql", "utf8") + fs.readFileSync("migrations/071_tutor_practice.sql", "utf8") +
+    "INSERT INTO tutor_practice(session_id,challenge_json) VALUES('pending','{}');" +
+    "INSERT INTO tutor_practice(session_id,challenge_json,receipt_json) VALUES('done','{}','{}');" +
+    fs.readFileSync("migrations/073_tutor_practice_proposals.sql", "utf8");
+  await new Promise((resolve,reject)=>db.exec(sql,e=>e?reject(e):resolve()));
+  const rows=await new Promise((resolve,reject)=>db.all("SELECT session_id,proposal_state FROM tutor_practice ORDER BY session_id",(e,r)=>e?reject(e):resolve(r)));
+  assert.deepEqual(rows,[{session_id:'done',proposal_state:'completed'},{session_id:'pending',proposal_state:'accepted'}]);
+});
 test("two users: context delivery, results, cancellation and sessions are isolated", async t => {
   const { store, pair } = await fixture(t); const a = await pair(), b = await pair("B");
   await store.next(a.token); await store.next(b.token);
@@ -135,7 +146,7 @@ test("SQLite restart retains result and never redelivers an uncertain run", asyn
   const file=path.join(dir,'fixture.sqlite');let db=new sqlite3.Database(file);
   const close=()=>new Promise((r,j)=>db.close(e=>e?j(e):r()));
   t.after(async()=>{await close();fs.rmSync(dir,{recursive:true,force:true});});
-  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8'),e=>e?j(e):r()));
+  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8')+fs.readFileSync('migrations/073_tutor_practice_proposals.sql','utf8'),e=>e?j(e):r()));
   let store=createStore(()=>db);const p=await store.pair('A');const c=await store.claim({pairing_code:p.pairing_code,client_nonce:nonce});
   await store.next(c.token);const s=await store.create('A',request(c));const {job}=await store.next(c.token);
   await close();db=new sqlite3.Database(file);store=createStore(()=>db);
@@ -205,6 +216,28 @@ test("bounded rollout closes browser and bearer delivery, including in-flight re
  now=1100001;await store.sweep();
  const expired=await new Promise((r,j)=>db.get('SELECT count(*) AS n FROM tutor_sessions', (e,row)=>e?j(e):r(row)));
  assert.equal(expired.n,0,'Retention still deletes expired content with rollout closed');
+});
+
+test("practice proposal needs acceptance, can be cancelled or dismissed, and completes once",async t=>{
+ const {store,pair}=await fixture(t),c=await pair();await store.next(c.token);
+ const s=await store.create('A',request(c)),{job}=await store.next(c.token);await store.complete(c.token,s.id,job.lease,reply(job));
+ assert.equal((await store.read('A',s.id)).practice_proposal_state,'proposed');
+ await rejects(store.practiceAttempt('A',s.id,{answer:'הייתי',skipped:false,attempt_key:'proposal_attempt_00001'}),'practice_unavailable');
+ assert.equal((await store.practice('A',s.id)).practice.proposal_state,'accepted');
+ assert.equal((await store.practice('A',s.id)).practice.proposal_state,'accepted');
+ assert.equal((await store.practiceDecision('A',s.id,'cancel')).proposal_state,'proposed');
+ assert.equal((await store.practiceDecision('A',s.id,'cancel')).proposal_state,'proposed');
+ await rejects(store.practiceHint('A',s.id),'practice_unavailable');
+ await store.practice('A',s.id);
+ const receipt=await store.practiceAttempt('A',s.id,{answer:'הייתי',skipped:false,attempt_key:'proposal_attempt_00001'});
+ assert.equal(receipt.practice.proposal_state,'completed');
+ assert.equal((await store.practiceAttempt('A',s.id,{answer:'הייתי',skipped:false,attempt_key:'proposal_attempt_00001'})).practice.receipt.challenge_id,receipt.practice.receipt.challenge_id);
+ await rejects(store.practiceDecision('A',s.id,'cancel'),'attempt_closed');
+ const other=await store.create('A',{...request(c),request_key:'proposal_request_0002'}),next=await store.next(c.token);await store.complete(c.token,other.id,next.job.lease,reply(next.job));
+ assert.equal((await store.practiceDecision('A',other.id,'dismiss')).proposal_state,'dismissed');
+ assert.equal((await store.practiceDecision('A',other.id,'dismiss')).proposal_state,'dismissed');
+ await rejects(store.practice('A',other.id),'practice_dismissed');
+ await rejects(store.practiceDecision('B',other.id,'cancel'),'context_unavailable');
 });
 
 test('completed short heading does not advertise unavailable practice',async t=>{

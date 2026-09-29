@@ -22,7 +22,7 @@ function build(context,question){
 function descriptor(row){
  const challenge=JSON.parse(row.challenge_json), receipt=row.receipt_json?JSON.parse(row.receipt_json):null;
  const {expected,...safe}=challenge;
- return {...safe,hint_seen:!!row.hint_seen,receipt,...(row.hint_seen||receipt?{expected}:{} )};
+ return {...safe,proposal_state:row.proposal_state||'accepted',hint_seen:!!row.hint_seen,receipt,...(row.hint_seen||receipt?{expected}:{} )};
 }
 function evaluate(challenge,{answer,skipped},hintSeen){
  return {challenge_id:challenge.id,context_id:challenge.context_id,excerpt_digest:challenge.excerpt_digest,
