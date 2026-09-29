@@ -1,24 +1,30 @@
-# Tutor session foundation
+# Tutor session transport — M1
 
-`context.js` is the first server-side boundary of M1. It is not wired into
-HTTP, MCP or the browser yet and does not itself authorize any request.
+`context.js` binds an immutable, bounded source snapshot to authenticated user,
+connection, consent revision and session. The digest detects source changes; it
+is not an authorization proof. `store.js` rechecks these bindings on delivery,
+heartbeat, read and result using canonical SQLite state.
 
-The host resolves an authenticated principal, connection, current consent
-revision and session before constructing a context. Persist the returned
-envelope in a trusted tenant-scoped store; later accept only its opaque ID,
-not a client/LLM-supplied envelope. Re-read authorization at every delivery and
-result, then call `assertContextAccess`. The digest detects accidental source
-changes; it is not a MAC or an authorization proof.
+`routes.js` mounts `/api/tutor/*`: existing browser cookie/CSRF authorization,
+one-time pairing, outbound bearer connector, idempotent sessions, cancellation,
+revocation and version cursors. `TUTOR_BYOA_ENABLED=1` is required; default is off.
+Migration: `070_tutor_transport.sql`. Response contract: `response.js` accepts only
+bounded text or typed error for the exact context/digest. No model state writes.
 
-The immutable snapshot binds material, exact revision, row, selected Unicode
-code-point offsets, neighbour text and optional caption clock/revision. It
-expires after 15 minutes and is limited to 24 KiB. Renewal must require a fresh
-authorization decision. Source strings remain untrusted text: render as text,
-never HTML, and pass to the runtime as learning material, never system policy.
+Studio and Room host adapters capture the visible row synchronously. Revision is
+a digest of the selected window, not a verified server corpus edition. All M1
+inputs are labelled `local_snapshot`, including a displayed public text. The UI
+shows the source and optional neighbours and requires explicit transmission consent.
+HTML is displayed literally. Personal learner data/credentials are not inferred
+from model output or accepted as client authority.
 
-Local OPFS data is explicitly labelled a user-supplied snapshot. This module
-does not claim to verify it against a server corpus or convert it into learner
-mastery, tools, scopes, grades or canonical state. Trusted server-source
-resolvers and permission-aware browser adapters remain M1 work.
+Context expires after 15 minutes; queued work after 30 seconds without delivery;
+active work has a 30-second renewed lease and 180-second absolute deadline.
+Periodic sweeps delete expired content (SQLite backup/physical erasure policy is
+an operations concern). One active request and at most 30 retained sessions per
+user bound the spike. An uncertain inference is never redelivered automatically.
 
-Check: `node --test tests/tutorContext.test.js`.
+See [connector setup](../../ops/mentor-connector/README.md) and
+[M1 evidence](../../docs/research/mentor-byoa/2026-09-29/M1_IMPLEMENTATION.md).
+Trusted server-source resolvers, graded educational cycles, installer, additional
+MCP capabilities and mass-launch operations remain separate staged work.

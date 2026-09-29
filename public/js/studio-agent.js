@@ -1295,10 +1295,17 @@
   else consumeDraftHandoff();
 
   // ── вход: делегированный клик по .row-agent-btn (инъекция выше) ──
-  function startExplain(rowIdx) {
+  async function startExplain(rowIdx) {
     var host = window.StudioAgentHost;
     var row = host && host.getRow ? host.getRow(rowIdx) : null;
     if (!row || !row._v3_sentenceId || !row._v3_textId) return;
+    if (window.LPTutor) {
+      var capturedRows = [rowIdx - 1, rowIdx, rowIdx + 1].map(function (i) {
+        var r = host.getRow(i); return r ? { he: r.he, he_niqqud: r.he_niqqud, he_plain: r.he_plain, _v3_sentenceId: r._v3_sentenceId } : null;
+      });
+      var tutorAnchor = await resolveAnchor(row);
+      if (tutorAnchor && await window.LPTutor.tryOpen({ surface: 'studio', materialKey: tutorAnchor.textKey, rows: capturedRows, index: 1 })) return;
+    }
     ensureModal();
     hidePanels();
     _currentRowIdx = rowIdx;

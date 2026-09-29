@@ -213,6 +213,11 @@ const AGENT_ACCESS_MCP_PATH = "/agent-access/mcp";
 // парсить мегабайты). Роут монтирует свой 32mb-парсер ПОСЛЕ гейтов.
 const LEARNER_ARTIFACTS_PUT_PATH = "/api/learner/artifacts/put";
 const GROUP_CORPUS_IMPORT_RE = /^\/api\/group-corpora\/[^/]+\/import\/(catalog|backup)$/;
+const _tutorJson = bodyParser.json({ limit: "40kb" });
+app.use("/api/tutor", _tutorJson, (err, _req, res, next) => {
+  if (!err) return next();
+  res.set("Cache-Control", "no-store").status(err.type === "entity.too.large" ? 413 : 400).json({ok:false,error:"invalid_request"});
+});
 const _globalJson = bodyParser.json({ limit: "10mb" });
 app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) || GROUP_CORPUS_IMPORT_RE.test(req.path) ? next() : _globalJson(req, res, next)));
 
@@ -1165,6 +1170,8 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // containers. The service worker verifies these content hashes before it
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
+  "/js/tutor-client.js?v=1",
+  "/js/tutor-panel.js?v=1",
   "/db/db-worker-runtime.js?v=545",
   "/db/sqlite-api.js?v=531",
   "/db/operation-lease.js?v=542",
@@ -1253,7 +1260,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=690",
+  "/js/library-ui.js?v=691",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1932,6 +1939,19 @@ function requireCsrf(req, res, auth) {
   }
   return true;
 }
+
+// M1 BYOA: explicit selected-fragment transport, independently gated from legacy AI.
+// Cookie writers use the existing identity/CSRF boundary; connector credentials
+// authorize only this transport, never MCP or canonical learning writers.
+const tutorTransportEnabled = () => process.env.TUTOR_BYOA_ENABLED === "1";
+const tutorTransportStore = require("./agent/tutor/store").createStore(() => require("./db/sqlite").getDb());
+require("./agent/tutor/routes").installRoutes(app, {
+  store: tutorTransportStore, enabled: tutorTransportEnabled, requireUser, requireCsrf,
+  limiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "tutor-transport" }),
+});
+setInterval(() => {
+  if (tutorTransportEnabled()) tutorTransportStore.sweep().catch(() => {});
+}, 30000).unref();
 
 // RMA-1/RMA-2 — the Node application mints only a short-lived capability. It never
 // resolves upstream media, receives a signed CDN URL, downloads bytes or proxies a stream.

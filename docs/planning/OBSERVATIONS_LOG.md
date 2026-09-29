@@ -10,6 +10,13 @@
 
 ---
 
+## O-045 · Ограничения M1 до массового подключения наставника
+- **Дата / где:** 2026-09-29, ветка `feat/mentor-byoa-m1`, новый BYOA transport.
+- **Что видно:** операторское pairing через stdin, Linux 0600 без Windows credential store/autostart; общий IP rate limiter и polling; настоящий quota/reauth не испытан, Hermes может поглощать provider error в generic runtime_failed. Учебные payload удаляются по TTL, но физическое стирание SQLite/backups не проверено.
+- **Почему важно:** transport PASS не означает onboarding без терминала, корректную поддержку всех отказов или массовую ёмкость.
+- **Предложение:** M3 — installer/credential store/реальные recovery cases; M7 — tenant limiter, нагрузка, retention/backup policy. До этих gates flag оставлять выключенным для массовой аудитории.
+- **Статус:** открыто; [M1 evidence](../research/mentor-byoa/2026-09-29/M1_IMPLEMENTATION.md).
+
 ## O-044 · WebUI Hermes: полный результат инструмента не раскрылся по Show more
 - **Дата / где:** 2026-09-29, owner WebUI 0.52.113, новая проверочная беседа после M0.
 - **Что видно:** обычный ответ Codex и MCP-вызов завершились, история сохранилась после restart. При `Show more` текст карточки остался сокращённым. Одновременно виден toast `Request timed out`, но причинная связь не подтверждена: `_toggleToolDiff` — локальная DOM-операция. Полный payload прочитан из DOM-атрибута кнопки: `ok:true`, work 85, одна строка. Корневая причина нераскрытия не установлена.
@@ -29,7 +36,7 @@
 - **Что видно:** UI вызывает `/api/agent/*`, использующий Gemini/OpenRouter/BYOK, а внешнее MCP — отдельный контур. Provider `openai-codex`/Hermes transport в текущем LLM path отсутствует. Сообщённая владельцем ошибка 402 не воспроизведена в его сессии; точная причина ещё не установлена.
 - **Почему важно:** успешный вход в Hermes сам по себе не исправит объяснения/пересказ/диалог в LinguistPro; сырой provider error даёт тупик вместо следующего действия.
 - **Предложение:** общий ContextEnvelope, tutor session и BYOA transport; typed recovery states. Исходную 402 проверить по endpoint/error без записи личного текста/ключей. [Продуктовый план](MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md).
-- **Статус:** открыто. Архитектурное расхождение подтверждено кодом; качество учебных сценариев требует новой реализации и приёмки.
+- **Статус:** в работе. M1 в `feat/mentor-byoa-m1` реализует общий context/transport/panel для строк Студии и Зала (flag off); полный учебный цикл и остальные поверхности ещё требуют реализации и приёмки.
 
 ## O-041 · Мастер наставника ставит AI после Telegram
 - **Дата / где:** 2026-09-29, `mentor-connection-core.js`, `mentor-home.js`; публичный браузер Зала.

@@ -7447,13 +7447,16 @@ function _explainShowMeta(text) {
 // работы без файла на сервере (26/57 canon живут только в canon-zip — тупика нет).
 const _corpusProbeCache = {};   // workId → true|false (память вкладки)
 async function probeCorpusExplain(workId) {
-  if (_corpusProbeCache[workId] == null) {
+  // BYOA sends the explicitly selected browser snapshot; it does not require a legacy works file.
+  let personalTutor = false;
+  try { personalTutor = !!(await window.LPTutorClient?.createApi().call('/capabilities'))?.enabled; } catch (_) {}
+  if (!personalTutor && _corpusProbeCache[workId] == null) {
     let ok = false;
     try { const r = await fetch('/data/benyehuda/works/' + encodeURIComponent(workId) + '.json', { method: 'HEAD' }); ok = !!r.ok; } catch (_) {}
     _corpusProbeCache[workId] = ok;
   }
   if (readerCorpusWorkId !== workId) return;   // читалка уже на другом тексте
-  readerCorpusExplainOk = _corpusProbeCache[workId];
+  readerCorpusExplainOk = personalTutor || _corpusProbeCache[workId];
   if (readerCorpusExplainOk) { try { attachExplainButtons($('roomReaderTable')); } catch (_) {} }
 }
 function attachExplainButtons(mount) {
@@ -7484,6 +7487,7 @@ async function explainRow(idx) {
   if (_explainInFlight) return;   // P6.3 — тап по другой строке при живом запросе не перерисовывает модал
   const row = readerRows[idx];
   if (!row || !readerTextKey) return;
+  if (window.LPTutor && await window.LPTutor.tryOpen({ surface: 'room', materialKey: readerTextKey, rows: readerRows, index: idx })) return;
   const isCorpus = !readerIsOwnText && !!readerCorpusWorkId;   // PAS-A1
   const orderIndex = row._v3_orderIndex != null ? Number(row._v3_orderIndex) : idx;
   const els = _explainEls(); if (!els.modal) return;

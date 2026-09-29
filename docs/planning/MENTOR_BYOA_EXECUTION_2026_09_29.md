@@ -1,7 +1,7 @@
 # Наставник BYOA: исполнимый план и критерии поставки
 
-Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **OWNER APPROVED; M0 TECHNICAL PASS; M1 STARTED**.
-Владелец утвердил план и начало исполнения 2026-09-29. Ветка исполнения: `feat/mentor-byoa-m0`.
+Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **OWNER APPROVED; M0 TECHNICAL PASS; M1 TRANSPORT TECHNICAL PASS**.
+Владелец утвердил план и начало исполнения 2026-09-29. Ветки исполнения: M0 `feat/mentor-byoa-m0`, M1 `feat/mentor-byoa-m1`.
 Продукт: [решение и контракты](MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md). Основания: [аудит](../research/mentor-byoa/2026-09-29/AUDIT.md).
 Финансирование: личный агент/подписка пользователя; для владельца без OpenAI API key и платного API fallback.
 
@@ -17,8 +17,9 @@
 | Проверка документации | PASS | Локальные ссылки, fences/UTF-8, secret-pattern scan, diff; согласованность BYOA проверена |
 | Commit/push документации | SCOPED_BRANCH | `docs/mature-mentor-byoa-20260929`; факт доставки определяется remote commit, без merge/deploy |
 | Upgrade/reconnect Hermes | TECHNICAL_PASS | Agent 0.21.5, WebUI 0.52.113, Codex OAuth gpt-6-sol, C1/C2 сохранены; [M0 evidence](../research/mentor-byoa/2026-09-29/M0_IMPLEMENTATION.md) |
-| Контекст M1 | FOUNDATION_TESTED | `agent/tutor/context.js`, 5 PASS; без transport/UI wiring |
-| Новый интерфейс/коннектор/MCP-код | NOT_IMPLEMENTED | Следующий шаг: авторизованный session/transport spike и реальные host adapters |
+| Контекст и транспорт M1 | TECHNICAL_PASS | 33 Node + 3 Python PASS; restart/isolation/cancel/revoke; [M1 evidence](../research/mentor-byoa/2026-09-29/M1_IMPLEMENTATION.md) |
+| Общая панель и личный connector | M1_TECHNICAL_PASS | Реальные Studio/Room в isolated browser; actual Hermes/Codex synthetic-source roundtrip; flag off, без production deploy |
+| Учебный цикл / новый MCP | NEXT_M2 | Независимый ключ/попытка/feedback, canonical writer; M1 не выставляет оценки |
 
 ## 2. Порядок поставок
 
