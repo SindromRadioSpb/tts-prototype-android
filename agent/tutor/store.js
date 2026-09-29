@@ -3,6 +3,7 @@ const { randomBytes, randomUUID, createHash } = require("node:crypto");
 const { createContext, assertContextAccess } = require("./context");
 const { validateResponse, fail, closed } = require("./response");
 const { withTxnLock } = require("../../db/txnLock");
+const practice = require("./practice");
 const hash = value => createHash("sha256").update(value).digest("hex");
 const secret = () => randomBytes(32).toString("base64url");
 const ONLINE_MS = 20000, LEASE_MS = 30000, RUN_MS = 180000;
@@ -108,6 +109,42 @@ function createStore(getDb, clock = Date.now) {
       await sweep(); await owned(userId, id);
       await run("UPDATE tutor_sessions SET state='cancelled',version=version+1 WHERE id=? AND state IN ('queued','running')", [id]);
       return view(await owned(userId, id));
+    }),
+    practice: (userId, id) => transaction(async () => {
+      await sweep(); const session=await owned(userId,id);
+      if(session.state!=="completed")fail("practice_unavailable");
+      let row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
+      if(!row){
+        const challenge=practice.build(JSON.parse(session.context_json),session.question);
+        await run("INSERT INTO tutor_practice(session_id,challenge_json) VALUES(?,?)",[id,JSON.stringify(challenge)]);
+        row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
+      }
+      return {practice:practice.descriptor(row)};
+    }),
+    practiceHint: (userId,id) => transaction(async()=>{
+      await sweep();await owned(userId,id);
+      const row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
+      if(!row)fail("practice_unavailable");
+      // A result already exists: never rewrite its provenance after the attempt.
+      if(!row.receipt_json){await run("UPDATE tutor_practice SET hint_seen=1 WHERE session_id=?",[id]);row.hint_seen=1;}
+      return {practice:practice.descriptor(row)};
+    }),
+    practiceAttempt: (userId,id,input) => transaction(async()=>{
+      closed(input,["answer","skipped","attempt_key"]);
+      if(typeof input.answer!=="string"||input.answer.length>160||typeof input.skipped!=="boolean"||
+         (!input.skipped&&!input.answer.trim())||typeof input.attempt_key!=="string"||!/^[A-Za-z0-9_-]{16,80}$/.test(input.attempt_key))fail("invalid_request");
+      await sweep();await owned(userId,id);
+      const row=await get("SELECT * FROM tutor_practice WHERE session_id=?",[id]);
+      if(!row)fail("practice_unavailable");
+      const attemptHash=hash(JSON.stringify(input));
+      if(row.receipt_json){
+        if(row.attempt_key!==input.attempt_key||row.attempt_hash!==attemptHash)fail("attempt_closed");
+        return {practice:practice.descriptor(row)};
+      }
+      const receipt=practice.evaluate(JSON.parse(row.challenge_json),input,row.hint_seen);
+      await run("UPDATE tutor_practice SET attempt_key=?,attempt_hash=?,receipt_json=? WHERE session_id=?",[input.attempt_key,attemptHash,JSON.stringify(receipt),id]);
+      row.receipt_json=JSON.stringify(receipt);
+      return {practice:practice.descriptor(row)};
     }),
     next: token => transaction(async () => {
       await sweep(); const conn = await authenticate(token);

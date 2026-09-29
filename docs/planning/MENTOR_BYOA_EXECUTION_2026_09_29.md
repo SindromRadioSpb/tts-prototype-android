@@ -1,7 +1,7 @@
 # Наставник BYOA: исполнимый план и критерии поставки
 
-Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **OWNER APPROVED; M0 TECHNICAL PASS; M1 TRANSPORT TECHNICAL PASS**.
-Владелец утвердил план и начало исполнения 2026-09-29. Ветки исполнения: M0 `feat/mentor-byoa-m0`, M1 `feat/mentor-byoa-m1`.
+Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **OWNER APPROVED; M0 TECHNICAL PASS; M1 PRODUCTION FLAG-OFF VERIFIED; M2 SOURCE-RECALL TECHNICAL PASS**.
+Владелец утвердил план и начало исполнения 2026-09-29. Ветки исполнения: M0 `feat/mentor-byoa-m0`, M1 `feat/mentor-byoa-m1`, M2 `feat/mentor-byoa-m2`.
 Продукт: [решение и контракты](MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md). Основания: [аудит](../research/mentor-byoa/2026-09-29/AUDIT.md).
 Финансирование: личный агент/подписка пользователя; для владельца без OpenAI API key и платного API fallback.
 
@@ -19,7 +19,9 @@
 | Upgrade/reconnect Hermes | TECHNICAL_PASS | Agent 0.21.5, WebUI 0.52.113, Codex OAuth gpt-6-sol, C1/C2 сохранены; [M0 evidence](../research/mentor-byoa/2026-09-29/M0_IMPLEMENTATION.md) |
 | Контекст и транспорт M1 | TECHNICAL_PASS | 33 Node + 3 Python PASS; restart/isolation/cancel/revoke; [M1 evidence](../research/mentor-byoa/2026-09-29/M1_IMPLEMENTATION.md) |
 | Общая панель и личный connector | M1_TECHNICAL_PASS | Реальные Studio/Room в isolated browser; actual Hermes/Codex synthetic-source roundtrip; flag off, без production deploy |
-| Учебный цикл / новый MCP | NEXT_M2 | Независимый ключ/попытка/feedback, canonical writer; M1 не выставляет оценки |
+| Первый учебный цикл M2 | SOURCE_RECALL_TECHNICAL_PASS | [M2 evidence](../research/mentor-byoa/2026-09-29/M2_IMPLEMENTATION.md): эталон из источника, помощь/попытка/итог; canonical review не пишется |
+| Полный M2 / новый MCP | IN_PROGRESS | Независимая языковая редактура и semantic grading ещё не приняты; MCP расширяется после соответствующих contracts |
+| Постепенный production rollout | OWNER_AUTHORIZED | M1 3.11.691 verified flag-off; [release evidence](../research/mentor-byoa/2026-09-29/PRODUCTION_ROLLOUT.md) |
 
 ## 2. Порядок поставок
 

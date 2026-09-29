@@ -27,11 +27,12 @@
   }
   function mount() {
     if (panel) panel.remove();
-    panel = document.createElement('dialog'); panel.setAttribute('aria-label', words.title);
+    panel = document.createElement('dialog'); panel.setAttribute('aria-label', words.title);panel.setAttribute('data-lp-tutor','');
+    if(!document.getElementById('lpTutorBackdrop')){const backdrop=node('style');backdrop.id='lpTutorBackdrop';backdrop.textContent='dialog[data-lp-tutor]::backdrop{background:rgba(20,35,30,.48);backdrop-filter:blur(5px)}';document.head.append(backdrop);}
     panel.style.cssText='padding:0;border:0;border-radius:20px;width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:#f9f8f3;color:#203c36;box-shadow:0 20px 80px #152e3840';
     const shadowHost=document.createElement('div');panel.append(shadowHost);
     root = shadowHost.attachShadow({mode:'open'});
-    const style = node('style'); style.textContent = `:host{font-family:system-ui,sans-serif;color-scheme:light}*{box-sizing:border-box}.body{padding:26px;display:grid;gap:16px;max-height:calc(100dvh - 24px);overflow:auto}h2{font-size:26px;margin:0;letter-spacing:-.6px}p{margin:0;line-height:1.6}.eyebrow{font-size:11px;font-weight:700;letter-spacing:1.8px;color:#587467}.source{border-inline-start:3px solid #b4c9a3;background:#edf0e5;padding:16px;font-size:24px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}label{display:block;font-size:14px;line-height:1.55}textarea{width:100%;font:inherit;padding:12px;border:1px solid #aebdb1;border-radius:10px;resize:vertical;min-height:84px;background:white;color:#203c36}button,a{font:inherit;min-height:44px;border-radius:10px;padding:10px 15px;cursor:pointer}button{border:1px solid #aebdb1;background:transparent;color:#203c36}button.primary{background:#234e40;color:white;border-color:#234e40}button:disabled{opacity:.55;cursor:wait}button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #51866d;outline-offset:3px}.actions{display:flex;flex-wrap:wrap;gap:8px}.meta{font-size:13px;color:#53675d}#status{min-height:24px;font-size:14px;line-height:1.5}#answer{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;font-size:17px;border-top:1px solid #ccd5c8;padding-top:18px}#pairCode{font:14px monospace;display:block;overflow-wrap:anywhere;user-select:all;background:white;padding:12px}input{width:20px;height:20px;vertical-align:middle;accent-color:#234e40;margin-inline-end:8px}[hidden]{display:none!important}summary{cursor:pointer;min-height:44px;padding-block:12px}@media(max-width:480px){.body{padding:18px;gap:13px}h2{font-size:23px}.source{font-size:22px}.actions button{flex:1 1 auto}}`;
+    const style = node('style'); style.textContent = `:host{font-family:system-ui,sans-serif;color-scheme:light}*{box-sizing:border-box}.body{padding:26px;display:grid;gap:16px;max-height:calc(100dvh - 24px);overflow:auto}h2{font-size:26px;margin:0;letter-spacing:-.6px}p{margin:0;line-height:1.6}h3{font-size:20px;margin:0}.practice-result{display:grid;gap:10px}.practice-result:empty,#practiceHost [role=status]:empty{display:none}.eyebrow{font-size:11px;font-weight:700;letter-spacing:1.8px;color:#587467}.source{border-inline-start:3px solid #b4c9a3;background:#edf0e5;padding:16px;font-size:24px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}label{display:block;font-size:14px;line-height:1.55}textarea{width:100%;font:inherit;padding:12px;border:1px solid #aebdb1;border-radius:10px;resize:vertical;min-height:84px;background:white;color:#203c36}button,a{font:inherit;min-height:44px;border-radius:10px;padding:10px 15px;cursor:pointer}button{border:1px solid #aebdb1;background:transparent;color:#203c36}button.primary{background:#234e40;color:white;border-color:#234e40}button:disabled{opacity:.55;cursor:wait}button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #51866d;outline-offset:3px}.actions{display:flex;flex-wrap:wrap;gap:8px}.meta{font-size:13px;color:#53675d}#status{min-height:24px;font-size:14px;line-height:1.5}#answer{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;font-size:17px;border-top:1px solid #ccd5c8;padding-top:18px}#pairCode{font:14px monospace;display:block;overflow-wrap:anywhere;user-select:all;background:white;padding:12px}input{width:20px;height:20px;vertical-align:middle;accent-color:#234e40;margin-inline-end:8px}[hidden]{display:none!important}summary{cursor:pointer;min-height:44px;padding-block:12px}@media(max-width:480px){.body{padding:18px;gap:13px}h2{font-size:23px}.source{font-size:22px}.actions button{flex:1 1 auto}}`;
     root.append(style);
     const body=node('section',null,{class:'body',dir:lang==='he'?'rtl':'ltr'}); root.append(body);
     body.append(node('p',words.eyebrow,{class:'eyebrow'}),node('h2',words.title),node('p',words.source,{class:'meta'}),node('div',context?.source.excerpt || '',{id:'source',class:'source',dir:'rtl'}));
@@ -44,22 +45,34 @@
     const actions=node('div',null,{class:'actions'});
     const send=node('button',words.send,{id:'send',class:'primary',type:'button'}),cancel=node('button',words.cancel,{id:'cancel',type:'button'}); cancel.hidden=true;
     const close=node('button',words.close,{type:'button'}), login=node('a',words.login,{id:'login',href:'/library.html#cloud'}); login.hidden=true;
-    actions.append(send,cancel,close,login);body.append(actions);
+    const practiceButton=node('button',window.LPTutorPractice.label(lang),{id:'practiceStart',type:'button'});practiceButton.hidden=true;
+    actions.append(send,practiceButton,cancel,close,login);body.append(actions);
     const details=node('details'); details.append(node('summary',words.connect));
     const connect=node('button',words.connect,{type:'button'}), refresh=node('button',words.refresh,{type:'button'}),revoke=node('button',words.revoke,{type:'button'});
     const pair=node('section',null,{id:'pair'}); pair.hidden=true; pair.append(node('p',words.pairHelp,{class:'meta'}),node('code',null,{id:'pairCode',dir:'ltr','aria-label':words.pair}));
     const connectionActions=node('div',null,{class:'actions'});connectionActions.append(connect,refresh,revoke); details.append(connectionActions,pair); body.append(details,node('p',words.note,{class:'meta'}));
+    const explanationView=node('div',null,{id:'explanationView'});explanationView.style.cssText='display:grid;gap:16px';
+    Array.from(body.children).slice(2).forEach(child=>explanationView.append(child));body.append(explanationView);
+    const practiceHost=node('section',null,{id:'practiceHost'});practiceHost.hidden=true;body.append(practiceHost);
+    practiceButton.onclick=()=>{
+      if(!session||session.state!=='completed')return;
+      const openedPanel=panel,id=session.id;
+      explanationView.hidden=true;practiceHost.hidden=false;
+      window.LPTutorPractice.create({host:practiceHost,api,sessionId:id,locale:lang,owner,
+        isCurrent:()=>panel===openedPanel&&panel.open&&session?.id===id&&!practiceHost.hidden,
+        onBack:()=>{practiceHost.hidden=true;explanationView.hidden=false;practiceButton.focus();},onClose:()=>openedPanel.close()});
+    };
     send.onclick=sendQuestion;
     cancel.onclick=()=>cancelQuestion(); close.onclick=()=>panel.close();
     refresh.onclick=()=>refreshConnection().catch(error);
     connect.onclick=async()=>{try{owner=await api.identity();const p=await api.call('/pair',{});$('pairCode').textContent=p.pairing_code;$('pair').hidden=false;status(words.pair);}catch(e){error(e);}};
-    revoke.onclick=async()=>{try{await api.identity();await api.call('/revoke',{});connection=null;session=null;clearTimeout(timer);generation++;busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').hidden=true;$('pair').hidden=true;status(errors[lang].connection_required);}catch(e){error(e);}};
+    revoke.onclick=async()=>{try{await api.identity();await api.call('/revoke',{});connection=null;session=null;clearTimeout(timer);generation++;busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').hidden=true;$('practiceStart').hidden=true;$('pair').hidden=true;status(errors[lang].connection_required);}catch(e){error(e);}};
     panel.addEventListener('close',()=>{draft=$('question').value;clearTimeout(timer);generation++;if(busy)cancelQuestion().catch(()=>{});origin?.focus();});
     document.body.append(panel);panel.showModal();question.focus();
   }
   async function refreshConnection() {
     const user=await api.identity();
-    if(owner && owner!==user){session=null;requestKey=null;context=null;$('source').textContent='';$('answer').hidden=true;throw Object.assign(new Error('context_unavailable'),{code:'context_unavailable'});}
+    if(owner && owner!==user){session=null;requestKey=null;context=null;$('source').textContent='';$('answer').hidden=true;$('practiceStart').hidden=true;throw Object.assign(new Error('context_unavailable'),{code:'context_unavailable'});}
     owner=user; connection=await api.call('/connection');status(connection.status==='online'?words.ready:errors[lang][connection.status]);
   }
   async function poll(turn) {
@@ -68,7 +81,7 @@
       const current=await api.call('/sessions/'+encodeURIComponent(session.id)+'?since='+session.version);
       if(turn!==generation) return;
       if(!current.unchanged) session=current;
-      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;status(words.sourceChanged);requestKey=null;return;}
+      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('practiceStart').hidden=false;status(words.sourceChanged);requestKey=null;return;}
       if(session.state==='failed'){requestKey=null;throw Object.assign(new Error(session.error),{code:session.error});}
       if(session.state==='cancelled'){busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;requestKey=null;status(words.stopped);return;}
       status(session.state==='queued'?words.queued:words.waiting);
@@ -79,7 +92,7 @@
     if(busy) return;
     if(!$('consent').checked){$('consent').focus();status(words.acknowledge);return;}
     if(!context){status(words.expired);return;}
-    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('answer').hidden=true;status(words.queued);
+    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('answer').hidden=true;$('practiceStart').hidden=true;status(words.queued);
     const turn=++generation;
     try {
       await refreshConnection();

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.691";
+const CACHE_VERSION = "v3.11.692";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -68,7 +68,8 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 // loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
   "/js/tutor-client.js?v=1",
-  "/js/tutor-panel.js?v=1",
+  "/js/tutor-panel.js?v=2",
+  "/js/tutor-practice.js?v=1",
   "/mediatheque.html",
   "/css/mediatheque.css?v=643",
   "/js/mediatheque-ui.js?v=690",

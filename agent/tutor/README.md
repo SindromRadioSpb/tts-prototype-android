@@ -28,3 +28,12 @@ See [connector setup](../../ops/mentor-connector/README.md) and
 [M1 evidence](../../docs/research/mentor-byoa/2026-09-29/M1_IMPLEMENTATION.md).
 Trusted server-source resolvers, graded educational cycles, installer, additional
 MCP capabilities and mass-launch operations remain separate staged work.
+
+## M2 source recall
+
+`practice.js` derives an exact-source recall item after a completed explanation.
+Migration 071 retains one masked challenge/attempt/receipt per session. Browser
+cookie+CSRF routes `/sessions/:id/practice`, `/hint`, `/attempt` recheck binding
+and TTL. Source-match is advisory: vowels are ignored, hint exposure is retained,
+semantic alternatives are not graded, canonical review/FSRS is never written.
+See [M2 evidence](../../docs/research/mentor-byoa/2026-09-29/M2_IMPLEMENTATION.md).

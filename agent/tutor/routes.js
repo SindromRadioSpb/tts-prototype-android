@@ -1,6 +1,6 @@
 "use strict";
 const { closed, fail } = require("./response");
-const STATUS = { invalid_request: 400, invalid_context: 400, context_too_large: 413, invalid_output: 422,
+const STATUS = { practice_unavailable: 409, attempt_closed: 409, invalid_request: 400, invalid_context: 400, context_too_large: 413, invalid_output: 422,
   context_unavailable: 404, context_expired: 410, connection_required: 401, lease_invalid: 403,
   pairing_expired: 410, agent_offline: 409, session_busy: 409, request_conflict: 409, result_rejected: 409, session_limit: 429 };
 function installRoutes(app, { store, enabled, requireUser, requireCsrf, limiter }) {
@@ -38,6 +38,9 @@ function installRoutes(app, { store, enabled, requireUser, requireCsrf, limiter 
     return req.query.since === String(out.version) ? { id: out.id, version: out.version, unchanged: true } : out;
   });
   route("post", "/sessions/:id/cancel", true, (req, auth) => { closed(req.body, []); return store.cancel(auth.user.id, req.params.id); });
+  route("post", "/sessions/:id/practice", true, (req,auth)=>{closed(req.body,[]);return store.practice(auth.user.id,req.params.id);});
+  route("post", "/sessions/:id/practice/hint", true, (req,auth)=>{closed(req.body,[]);return store.practiceHint(auth.user.id,req.params.id);});
+  route("post", "/sessions/:id/practice/attempt", true, (req,auth)=>store.practiceAttempt(auth.user.id,req.params.id,req.body));
   route("post", "/connector/pair", false, req => store.claim(req.body));
   route("post", "/connector/next", false, req => { closed(req.body, []); return store.next(token(req)); });
   for (const action of ["heartbeat", "complete"]) route("post", `/connector/:id/${action}`, false, req => {

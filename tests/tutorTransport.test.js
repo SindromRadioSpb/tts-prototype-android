@@ -15,7 +15,7 @@ const reply = job => ({ schema_version: "lp-tutor-response.1", context_id: job.c
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
 async function fixture(t) {
   const db = new sqlite3.Database(":memory:");
-  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8"), e => e ? j(e) : r()));
+  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8"), e => e ? j(e) : r()));
   t.after(() => new Promise(resolve => db.close(resolve)));
   let now = 100000;
   const store = createStore(() => db, () => now);
@@ -111,6 +111,15 @@ test("HTTP boundary: disabled flag, cookie/CSRF, bearer, no-store, cursor and ac
   const s=(await call("/sessions",request(c),owner)).data;
   assert.equal((await call(`/sessions/${s.id}?since=1`,undefined,owner)).data.unchanged,true);
   assert.equal((await call(`/sessions/${s.id}`,undefined,{"X-Test-User":"B"})).status,404);
+  const worker={Authorization:`Bearer ${c.token}`};
+  const job=(await call("/connector/next",{},worker)).data.job;
+  await call(`/connector/${s.id}/complete`,{lease:job.lease,response:reply(job)},worker);
+  assert.equal((await call(`/sessions/${s.id}/practice`,{},{"X-Test-User":"A"})).status,403);
+  assert.equal((await call(`/sessions/${s.id}/practice`,{},{"X-Test-User":"B","X-LP-CSRF":"fixture"})).status,404);
+  const exercise=await call(`/sessions/${s.id}/practice`,{},owner);
+  assert.equal(exercise.status,200);assert.equal(exercise.data.practice.expected,undefined);
+  const attempt=await call(`/sessions/${s.id}/practice/attempt`,{answer:"כשהייתי",skipped:false,attempt_key:"http_attempt_0001"},owner);
+  assert.equal(attempt.data.practice.receipt.outcome,"source_match");
   await call("/revoke",{},owner);
   assert.equal((await call("/connector/next",{},{Authorization:`Bearer ${c.token}`})).status,401);
 });
@@ -121,7 +130,7 @@ test("SQLite restart retains result and never redelivers an uncertain run", asyn
   const file=path.join(dir,'fixture.sqlite');let db=new sqlite3.Database(file);
   const close=()=>new Promise((r,j)=>db.close(e=>e?j(e):r()));
   t.after(async()=>{await close();fs.rmSync(dir,{recursive:true,force:true});});
-  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8'),e=>e?j(e):r()));
+  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8'),e=>e?j(e):r()));
   let store=createStore(()=>db);const p=await store.pair('A');const c=await store.claim({pairing_code:p.pairing_code,client_nonce:nonce});
   await store.next(c.token);const s=await store.create('A',request(c));const {job}=await store.next(c.token);
   await close();db=new sqlite3.Database(file);store=createStore(()=>db);
@@ -130,4 +139,46 @@ test("SQLite restart retains result and never redelivers an uncertain run", asyn
   await close();db=new sqlite3.Database(file);store=createStore(()=>db);
   assert.equal((await store.read('A',s.id)).result.text,reply(job).text);
   assert.equal((await store.next(c.token)).job,null);
+});
+
+test("source recall: masked answer, exact-source comparison, hints, idempotency and no cross-user writes", async t=>{
+ const {store,pair}=await fixture(t),c=await pair();await store.next(c.token);
+ const s=await store.create('A',request(c));
+ await rejects(store.practice('A',s.id),'practice_unavailable');
+ const {job}=await store.next(c.token);await store.complete(c.token,s.id,job.lease,reply(job));
+ const first=(await store.practice('A',s.id)).practice;
+ assert.equal(first.expected,undefined);assert.equal(first.receipt,null);assert.equal(first.masked,'＿＿＿ ילד גרתי בחיפה');
+ assert.equal((await store.practice('A',s.id)).practice.id,first.id);
+ await rejects(store.practice('B',s.id),'context_unavailable');
+ await rejects(store.practiceHint('B',s.id),'context_unavailable');
+ const answer={answer:'כשהייתי',skipped:false,attempt_key:'m2_attempt_000001'};
+ await rejects(store.practiceAttempt('B',s.id,answer),'context_unavailable');
+ await rejects(store.practiceAttempt('A',s.id,{...answer,grade:5}),'invalid_output');
+ const result=await store.practiceAttempt('A',s.id,answer);
+ assert.equal(result.practice.receipt.outcome,'source_match');assert.equal(result.practice.receipt.hint_seen,false);
+ assert.equal(result.practice.receipt.canonical_review_written,false);
+ assert.deepEqual(await store.practiceAttempt('A',s.id,answer),result);
+ await rejects(store.practiceAttempt('A',s.id,{...answer,answer:'היה'}),'attempt_closed');
+ assert.deepEqual((await store.practiceHint('A',s.id)).practice.receipt,result.practice.receipt,'later hint cannot alter provenance');
+ await store.revoke('A');await rejects(store.practice('A',s.id),'context_unavailable');
+});
+
+test("practice records help and expires with its original source",async t=>{
+ const {store,pair,advance}=await fixture(t),c=await pair();await store.next(c.token);
+ const s=await store.create('A',request(c)),{job}=await store.next(c.token);await store.complete(c.token,s.id,job.lease,reply(job));
+ await store.practice('A',s.id);assert.equal((await store.practiceHint('A',s.id)).practice.expected,'כשהייתי');
+ const result=await store.practiceAttempt('A',s.id,{answer:'כשהיה',skipped:false,attempt_key:'m2_attempt_000002'});
+ assert.equal(result.practice.receipt.outcome,'source_diff');assert.equal(result.practice.receipt.hint_seen,true);
+ advance(900001);await rejects(store.practiceAttempt('A',s.id,{answer:'כשהייתי',skipped:false,attempt_key:'m2_attempt_000003'}),'context_unavailable');
+});
+
+test("practice source checker ignores only niqqud, masks repeats, never claims semantic correctness",()=>{
+ const {build,evaluate}=require('../agent/tutor/practice');
+ const ctx={context_id:'c',excerpt_digest:'d',source:{excerpt:'שָׁלוֹם חבר שלום לך',revision_id:'r'}};
+ const c=build(ctx,'שלום');assert.equal(c.masked,'＿＿＿ חבר ＿＿＿ לך');
+ assert.equal(evaluate(c,{answer:'שלום',skipped:false},false).outcome,'source_match');
+ assert.equal(evaluate(c,{answer:'שלומ',skipped:false},false).outcome,'source_diff');
+ assert.equal(evaluate(c,{answer:'',skipped:true},true).outcome,'skipped');
+ assert.throws(()=>build({...ctx,source:{...ctx.source,excerpt:'שלום'}},''),e=>e.code==='practice_unavailable');
+ assert.throws(()=>build({...ctx,source:{...ctx.source,excerpt:'א'.repeat(601)}},''),e=>e.code==='practice_unavailable');
 });
