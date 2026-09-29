@@ -14,7 +14,7 @@ async function main(){
   const h=await(await get('/healthz')).json();if(!h.ok||!h.db?.ready||!h.migrations?.ready)throw Error('HEALTH');health.push(h);
  }
  const cap=await(await get('/api/tutor/capabilities')).json();if(cap.enabled!==false)throw Error('GUEST_CAPABILITY_EXPOSED');
- const paths=Object.keys(configs[1].shellIntegrity).filter(p=>/^\/js\/tutor-/.test(p)||/^\/js\/library-ui\.js/.test(p)||/^\/css\/tutor-connect/.test(p)||/^\/tutor-connect\.html/.test(p));
+ const paths=Object.keys(configs[1].shellIntegrity).filter(p=>/^\/js\/tutor-/.test(p)||/^\/js\/(library-ui|mediatheque-ui)\.js/.test(p)||/^\/i18n\/locales\//.test(p)||/^\/css\/tutor-connect/.test(p)||/^\/tutor-connect\.html/.test(p));
  const assets=[];
  for(const url of [...paths,'/sw.js']){
   const body=Buffer.from(await(await get(url)).arrayBuffer()),file='public'+url.split('?')[0];

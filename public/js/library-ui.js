@@ -1781,6 +1781,7 @@ let readerTextKey = null;
 let readerIsOwnText = false; // CLG-P6.2 — личный explain-путь (двойной consent)
 let readerCorpusWorkId = null;      // PAS-A1 — byehuda_id открытой корпусной работы (null для личных; сброс в closeReader)
 let readerCorpusExplainOk = false;  // PAS-A1 — HEAD-probe: works-файл опубликован на сервере (26/57 canon — нет)
+let readerPersonalTutorReady = false;
 let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 let readerReturnRoute = null;       // LB1: exact anchor drill-down must return to the active lesson, not strand on shelves
 let readerReturnContext = null;     // B5: ephemeral catalog place (nav + scroll + focus), never learner truth
@@ -2565,6 +2566,7 @@ function ensureStudySheet() {
   });
   document.addEventListener('keydown', (e) => {
     if (!_studySheet || _studySheet.hidden) return;
+    if (document.querySelector('dialog[data-lp-tutor][open]')) return;
     // a layered sheet (heatmap / list-picker) on top owns Escape first — don't also close the study sheet under it
     if (e.key === 'Escape') { if (document.querySelector('.list-picker-ov')) return; closeStudySheet(); return; }
     if (e.key === 'Tab') { roomFocusTrap(e, _studySheet.querySelector('.room-study-card')); return; }
@@ -4274,6 +4276,25 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.expand', text: tt('room.morph.study.expand', 'Подробнее'), attrs: { type: 'button', 'data-train-card': '1' } }));
   actions.appendChild(el('button', { class: 'room-train-next', text: tt('room.morph.study.next', 'Дальше →'), attrs: { type: 'button', 'data-train-next': '1' } }));
   rev.appendChild(actions);
+  // Help is offered only AFTER the canonical attempt committed. It never regrades it.
+  if (!skipped && built.sentence && !item._wordOnly && window.LPTutorClient) {
+    const help = el('button', { class: 'room-train-card', text: tt('room.morph.study.tutorHelp', 'Разобрать с наставником'), attrs: { type: 'button' } });
+    help.hidden = true;
+    rev.appendChild(help);
+    window.LPTutorClient.createApi().call('/capabilities').then(cap => {
+      if (_trainSession === s && s.items[s.idx] === item && help.isConnected) help.hidden = !cap.enabled;
+    }).catch(() => {});
+    help.onclick = () => {
+      if (_trainSession !== s || !s.answered || s.items[s.idx] !== item) return;
+      const ref=item._source;
+      const materialKey=ref?.textKey || readerTextKey;
+      if (!materialKey) return;
+      _stopTrainAudio();
+      window.LPTutor.tryOpen({surface:'review',materialKey,
+        rows:[{he_niqqud:built.sentence,id:ref?.sentenceId ?? ref?.orderIndex ?? built.rowIdx}],index:0,
+        question:tt('room.morph.study.tutorQuestion','Объясни, почему в этом предложении употребляется «{word}». Дай один короткий пример.').replace('{word}',built.cz.answer)});
+    };
+  }
   body.appendChild(rev);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   try { rev.scrollIntoView({ block: 'nearest' }); } catch (_) {}
@@ -5578,12 +5599,22 @@ function openMentorView() {
   if (location.hash !== '#mentor') { try { history.replaceState(null, '', '#mentor'); } catch (_) {} }
   _mountMentorHome();
   // Personal-agent setup has its own account boundary: no sync/Telegram prerequisite.
-  if(window.LPTutorClient)window.LPTutorClient.createApi().call('/capabilities').then(cap=>{
-    if(!cap.enabled||view.hidden||$('personalTutorSetup'))return;
+  if(window.LPTutorClient)window.LPTutorClient.createApi().call('/capabilities').then(async cap=>{
+    if(view.hidden||$('personalTutorNotebook'))return;
+    // Saved local work remains exportable/deletable after a pilot grant expires.
+    if(!cap.enabled){const user=await window.LPTutorClient.createApi().identity();if(!(await window.LPTutorNotebook.local().list(user)).length)return;}
+    if(view.hidden||$('personalTutorNotebook'))return;
+    if(cap.enabled){
     const link=document.createElement('a');link.id='personalTutorSetup';link.href='/tutor-connect.html';
     link.textContent=document.documentElement.lang==='he'?'חיבור המורה האישי':document.documentElement.lang==='en'?'Connect your personal tutor':'Подключить личного наставника';
     link.style.cssText='display:block;padding:16px;margin:16px 0;border:1px solid #aebdb1;border-radius:12px;color:#234e40;background:#f9f8f3;font-weight:650';
     $('roomMentorMount')?.before(link);
+    }
+    const saved=document.createElement('button');saved.id='personalTutorNotebook';saved.type='button';
+    const locale=['ru','en','he'].includes(document.documentElement.lang)?document.documentElement.lang:'ru';
+    saved.textContent=window.LPTutorNotebook.copy[locale].title;
+    saved.style.cssText='min-height:44px;padding:12px 16px;margin-bottom:16px;border:1px solid #aebdb1;border-radius:12px;background:#f9f8f3;color:#234e40';
+    saved.onclick=()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale,onContinue:cap.enabled?window.LPTutor.openSaved:null});$('roomMentorMount')?.before(saved);
   }).catch(()=>{});
 }
 function _mountLessonStudio() {
@@ -5782,6 +5813,20 @@ function attachReaderAudio() {
   applyReveal(activeReaderMorphMount());
   attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
   attachExplainButtons(mount);   // CLG-P6.2 — POST-render mentor per row (только свои тексты)
+  const tutorTextKey = readerTextKey;
+  window.LPTutorClient?.createApi().call('/capabilities').then(cap => {
+    if(readerTextKey!==tutorTextKey)return;
+    readerPersonalTutorReady=!!cap.enabled;
+    if(readerPersonalTutorReady){
+      attachExplainButtons(mount);
+      const route=new URL(location.href);
+      if(route.searchParams.get('tutor')==='choose' && mount.querySelector('.row-explain-btn')){
+        route.searchParams.delete('tutor');history.replaceState(history.state,'',route);
+        roomToast(tt('mediatheque.tutorHint','Выберите предложение и нажмите кнопку наставника рядом с ним.'));
+        mount.querySelector('.row-explain-btn').focus({preventScroll:true});
+      }
+    }
+  }).catch(()=>{});
   try { window.TablePresets && window.TablePresets.markRowNumbers(mount); } catch (_) {}   // R2 — номера строк (D4)
   attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
   roomPaintColWidths();    // ширины из persisted-состояния
@@ -7470,7 +7515,7 @@ async function probeCorpusExplain(workId) {
 function attachExplainButtons(mount) {
   // личные тексты — сразу; корпус — после успешного probe (PAS-A1)
   const corpusOk = !readerIsOwnText && !!readerCorpusWorkId && readerCorpusExplainOk;
-  if (!mount || (!readerIsOwnText && !corpusOk)) return;
+  if (!mount || (!readerIsOwnText && !corpusOk && !readerPersonalTutorReady)) return;
   mount.querySelectorAll('tr[data-row-idx]').forEach((tr) => {
     const idx = Number(tr.getAttribute('data-row-idx'));
     const row = readerRows[idx];
@@ -7495,7 +7540,8 @@ async function explainRow(idx) {
   if (_explainInFlight) return;   // P6.3 — тап по другой строке при живом запросе не перерисовывает модал
   const row = readerRows[idx];
   if (!row || !readerTextKey) return;
-  if (window.LPTutor && await window.LPTutor.tryOpen({ surface: 'room', materialKey: readerTextKey, rows: readerRows, index: idx })) return;
+  if (window.LPTutor && await window.LPTutor.tryOpen({ surface: mediathequeReturnHref() ? 'mediatheque' : 'room', materialKey: readerTextKey, rows: readerRows, index: idx, mediaPassport:roomMediaAudio,
+    onOpened:()=>{try { window.StudioMediaKaraoke?.pause(); } catch (_) {} try { roomMediaYtAdapter?.pause(); } catch (_) {} } })) return;
   const isCorpus = !readerIsOwnText && !!readerCorpusWorkId;   // PAS-A1
   const orderIndex = row._v3_orderIndex != null ? Number(row._v3_orderIndex) : idx;
   const els = _explainEls(); if (!els.modal) return;
@@ -8461,7 +8507,7 @@ async function openReader(textId, title, opts) {
   // CLG-P6.2 — own vs corpus (то же правило, что listOwnTextsForSync/maybeNudgeNiqqud):
   // корпусные работы не живут в artifact-store → объяснение наставника недоступно by-design.
   readerIsOwnText = false;
-  readerCorpusWorkId = null; readerCorpusExplainOk = false;   // безусловный сброс (singleton-reset)
+  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerPersonalTutorReady = false;   // безусловный сброс (singleton-reset)
   readerGroupCorpusId = null;
   readerPublicCorpusSlug = null; readerPublicWorkId = null;
   try {
@@ -8624,7 +8670,7 @@ async function closeReader(options) {
   clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; _roomReaderPresentationReadOnly = false; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   roomRenderReaderCopyright(null);
-  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null; readerPublicCorpusSlug = null; readerPublicWorkId = null;   // singleton-reset
+  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerPersonalTutorReady=false; readerGroupCorpusId = null; readerPublicCorpusSlug = null; readerPublicWorkId = null;   // singleton-reset
   roomReaderLinkIdentity = null;
   const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
   const readerLearning = $('readerTaskLearningSupport'); if (readerLearning) { readerLearning.replaceChildren(); readerLearning.hidden = true; }

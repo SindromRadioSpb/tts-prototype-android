@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.694";
+const CACHE_VERSION = "v3.11.695";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -70,12 +70,13 @@ const PRECACHE_URLS = [
   "/tutor-connect.html",
   "/css/tutor-connect.css?v=1",
   "/js/tutor-connect.js?v=1",
-  "/js/tutor-client.js?v=1",
-  "/js/tutor-panel.js?v=4",
+  "/js/tutor-client.js?v=2",
+  "/js/tutor-notebook.js?v=1",
+  "/js/tutor-panel.js?v=5",
   "/js/tutor-practice.js?v=1",
   "/mediatheque.html",
-  "/css/mediatheque.css?v=643",
-  "/js/mediatheque-ui.js?v=690",
+  "/css/mediatheque.css?v=695",
+  "/js/mediatheque-ui.js?v=695",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -127,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=693",
+  "/js/library-ui.js?v=695",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -302,9 +303,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=273",
-  "/i18n/locales/en.js?v=273",
-  "/i18n/locales/he.js?v=273",
+  "/i18n/locales/ru.js?v=274",
+  "/i18n/locales/en.js?v=274",
+  "/i18n/locales/he.js?v=274",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

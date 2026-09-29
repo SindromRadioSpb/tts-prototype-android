@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   const C = window.LPTutorClient, api = C.createApi();
+  const notebookCopy={ru:{save:'Сохранить на этом устройстве',saved:'Объяснение сохранено в этом браузере.',failed:'Не удалось сохранить. Проверьте место в браузере; предел — 50 объяснений.',archived:'Сохранённая версия фрагмента. Новый вопрос отправится только после вашего согласия.'},en:{save:'Save on this device',saved:'Explanation saved in this browser.',failed:'Could not save. Check browser storage; the limit is 50 explanations.',archived:'Saved version of the passage. A new question is sent only with your consent.'},he:{save:'שמירה במכשיר הזה',saved:'ההסבר נשמר בדפדפן הזה.',failed:'השמירה נכשלה. בדקו מקום פנוי; המגבלה היא 50 הסברים.',archived:'גרסה שמורה של הקטע. שאלה חדשה תישלח רק בהסכמתכם.'}};
   const copy = {
     ru: { title:'Разберём вместе', eyebrow:'ЛИЧНЫЙ НАСТАВНИК', source:'Ваш фрагмент',neighbors:'Соседние предложения, которые получит наставник', question:'Что хотите понять?', placeholder:'Например: почему здесь эта форма?', send:'Спросить наставника', close:'Вернуться к тексту', cancel:'Остановить', connect:'Подключить личного агента', refresh:'Проверить соединение', revoke:'Отключить агента', acknowledge:'Разрешаю передать этот фрагмент, соседние предложения и мой вопрос личному агенту и его модели.', waiting:'Наставник готовит объяснение…', queued:'Передаём вопрос вашему агенту…', ready:'Агент подключён', stopped:'Запрос остановлен. Можно вернуться к чтению или задать другой вопрос.', answer:'Объяснение', pair:'Одноразовый код подключения', pairHelp:'Введите этот код в личном коннекторе в течение 5 минут. Новый коннектор заменит прежнее подключение. Не передавайте код другим людям.', retry:'Повторить', login:'Войти в LinguistPro', note:'Ответ помогает разобраться, но не изменяет ваши оценки или расписание повторения.', sourceChanged:'Ответ относится к фрагменту, показанному выше.', defaultQuestion:'Объясни смысл этого предложения и одну важную грамматическую особенность простыми словами.', expired:'Срок контекста истёк. Откройте наставника у нужной строки заново.' },
     en: { title:'Let’s work through it',eyebrow:'YOUR PERSONAL TUTOR',source:'Your passage',neighbors:'Adjacent sentences shared with your tutor',question:'What would you like to understand?',placeholder:'For example: why is this form used?',send:'Ask your tutor',close:'Return to reading',cancel:'Stop',connect:'Connect your agent',refresh:'Check connection',revoke:'Disconnect agent',acknowledge:'Allow this passage, adjacent sentences and my question to be sent to my agent and its model.',waiting:'Your tutor is preparing an explanation…',queued:'Sending your question to your agent…',ready:'Agent connected',stopped:'Request stopped. Return to reading or ask another question.',answer:'Explanation',pair:'One-time connection code',pairHelp:'Enter this code in your personal connector within 5 minutes. A new connector replaces the previous connection. Do not share this code with others.',retry:'Retry',login:'Sign in to LinguistPro',note:'This explanation does not change your grades or review schedule.',sourceChanged:'This answer refers to the passage shown above.',defaultQuestion:'Explain this sentence and one useful grammar feature in simple terms.',expired:'This context has expired. Open the tutor at the relevant sentence again.' },
@@ -36,6 +37,7 @@
     root.append(style);
     const body=node('section',null,{class:'body',dir:lang==='he'?'rtl':'ltr'}); root.append(body);
     body.append(node('p',words.eyebrow,{class:'eyebrow'}),node('h2',words.title),node('p',words.source,{class:'meta'}),node('div',context?.source.excerpt || '',{id:'source',class:'source',dir:'rtl'}));
+    if(context?.source.media){const m=context.source.media,clock=ms=>new Date(ms).toISOString().slice(11,19);body.append(node('p',(lang==='ru'?'Фрагмент субтитров':lang==='he'?'קטע כתוביות':'Caption segment')+' · '+clock(m.start_ms)+'–'+clock(m.end_ms),{class:'meta'}));}
     if(context?.source.before || context?.source.after){const surrounding=node('details');surrounding.append(node('summary',words.neighbors),node('p',[context.source.before,context.source.after].filter(Boolean).join('\n'),{class:'source',dir:'rtl'}));body.append(surrounding);}
     const label=node('label',words.question,{for:'question'}), question=node('textarea',null,{id:'question',placeholder:words.placeholder,maxlength:'1000',dir:'auto'});
     question.value=draft||''; body.append(label,question);
@@ -47,6 +49,15 @@
     const close=node('button',words.close,{type:'button'}), login=node('a',words.login,{id:'login',href:'/library.html#cloud'}); login.hidden=true;
     const practiceButton=node('button',window.LPTutorPractice.label(lang),{id:'practiceStart',type:'button'});practiceButton.hidden=true;
     actions.append(send,practiceButton,cancel,close,login);body.append(actions);
+    const save=node('button',notebookCopy[lang].save,{id:'saveExplanation',type:'button'});save.hidden=true;body.append(save);
+    save.onclick=async()=>{try{
+      if(session?.state!=='completed')return;
+      const wantedOwner=owner,wantedPanel=panel,record={schema:1,status:'accepted',context,question:session.question,answer:session.result.text};
+      const user=await api.identity();if(user!==wantedOwner||panel!==wantedPanel)throw Error('owner_changed');
+      await window.LPTutorNotebook.local().save(user,record);if(panel===wantedPanel)status(notebookCopy[lang].saved);
+    }catch(_){status(notebookCopy[lang].failed);}};
+    const notebook=node('button',window.LPTutorNotebook.copy[lang].title,{type:'button'});
+    notebook.onclick=()=>window.LPTutorNotebook.show({api,locale:lang,currentSource:context?.source,onContinue:openSaved});body.append(notebook);
     const setup=node('a',words.connect,{href:'/tutor-connect.html#lang='+lang,target:'_blank',rel:'noopener'});body.append(setup);
     const details=node('details'); details.append(node('summary',lang==='ru'?'Ручное подключение':lang==='he'?'חיבור ידני':'Manual connection'));
     const connect=node('button',words.connect,{type:'button'}), refresh=node('button',words.refresh,{type:'button'}),revoke=node('button',words.revoke,{type:'button'});
@@ -82,7 +93,7 @@
       const current=await api.call('/sessions/'+encodeURIComponent(session.id)+'?since='+session.version);
       if(turn!==generation) return;
       if(!current.unchanged) session=current;
-      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('practiceStart').hidden=session.practice_available!==true;status(words.sourceChanged);requestKey=null;return;}
+      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('saveExplanation').hidden=false;$('practiceStart').hidden=session.practice_available!==true;status(words.sourceChanged);requestKey=null;return;}
       if(session.state==='failed'){requestKey=null;throw Object.assign(new Error(session.error),{code:session.error});}
       if(session.state==='cancelled'){busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;requestKey=null;status(words.stopped);return;}
       status(session.state==='queued'?words.queued:words.waiting);
@@ -93,7 +104,7 @@
     if(busy) return;
     if(!$('consent').checked){$('consent').focus();status(words.acknowledge);return;}
     if(!context){status(words.expired);return;}
-    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('answer').hidden=true;$('practiceStart').hidden=true;status(words.queued);
+    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('answer').hidden=true;$('practiceStart').hidden=true;$('saveExplanation').hidden=true;status(words.queued);
     const turn=++generation;
     try {
       await refreshConnection();
@@ -128,7 +139,12 @@
     clearTimeout(timer);generation++;session=null;requestKey=null;connection=null;owner=null;busy=false;draft='';
     if(captureError){lang=['ru','en','he'].includes(document.documentElement.lang)?document.documentElement.lang:'ru';words=copy[lang];origin=document.activeElement;context=null;mount();error(captureError);return true;}
     let built;try{built=await C.build(snapshot);}catch(e){lang=snapshot.locale;words=copy[lang];origin=document.activeElement;context=null;mount();error({code:'invalid_context'});return true;}if(openId!==opening)return true;
-    lang=snapshot.locale;words=copy[lang];origin=document.activeElement;context=built;mount();
+    lang=snapshot.locale;words={...copy[lang]};
+    if(input.surface==='review')words.close=lang==='ru'?'Вернуться к повторению':lang==='he'?'חזרה לחזרה':'Return to review';
+    origin=document.activeElement;context=built;draft=typeof input.question==='string'?input.question.slice(0,1000):'';mount();
+    $('consent').disabled=true;$('send').disabled=true;
+    panel.setAttribute('data-lp-tutor','');
+    input.onOpened?.();
     if(capability.error)error(capability.error);else {
       try {
         await refreshConnection();
@@ -138,14 +154,26 @@
           try {
             const restored=await api.call('/sessions/'+encodeURIComponent(saved.id));
             if(openId!==opening)return true;
+            if(!input.question || restored.question===input.question){
             session=restored;$('question').value=restored.question;$('consent').checked=true;
             busy=['queued','running'].includes(session.state);$('send').disabled=busy;$('question').readOnly=busy;$('cancel').hidden=!busy;
             poll(++generation);
+            }
           }catch(_){try{sessionStorage.removeItem('lp.tutor.resume');}catch(_){}}
         }
       }catch(e){if(openId===opening)error(e);}
     }
+    if(openId===opening){$('consent').disabled=false;$('send').disabled=busy;}
     return true;
   }
-  window.LPTutor={tryOpen};
+  async function openSaved(record){
+    const user=await api.identity();if(String(user)!==record.owner)return;
+    if(busy)await cancelQuestion();
+    const previousOrigin=panel?.open?origin:document.activeElement;
+    clearTimeout(timer);generation++;opening++;session=null;requestKey=null;connection=null;owner=user;busy=false;
+    context=JSON.parse(JSON.stringify(record.context));lang=context.locale;words={...copy[lang]};draft='';origin=previousOrigin;
+    if(context.surface==='review')words.close=lang==='ru'?'Вернуться к повторению':lang==='he'?'חזרה לחזרה':'Return to review';
+    mount();$('answer').textContent=record.answer;$('answer').hidden=false;status(notebookCopy[lang].archived);
+  }
+  window.LPTutor={tryOpen,openSaved};
 })();

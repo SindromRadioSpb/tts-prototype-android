@@ -14,6 +14,7 @@ const state = { space: 'public', section: 'home', filters: C.filters(), personal
   filterOpen: false, topicSearch: '', expanded: new Set(), viewId: '', publicItems: [], localItems: [], prepared: C.prepare(C.empty(), []), publicKnown: false, loading: true };
 let toastTimer, searchTimer, lastDialogFocus = null, loadEpoch = 0, dialogAction = null, dialogRevision = null, dialogCancel = null;
 let searchRouteStarted = false;
+let tutorEnabled = false;
 let filterDraft = null, topicParent = '', topicQuery = '';
 let projectionInputs = [], topicCounts = new Map(), topicSamples = new Map();
 let updateWorker = null, updateRequired = false, updateRequested = false, updateReloading = false;
@@ -219,7 +220,7 @@ async function loadPublic() {
 async function loadAll() {
   state.loading = true;
   const epoch = ++loadEpoch;
-  const results = await Promise.allSettled([loadLocal(), loadPublic(), api('/api/auth/me').then(result => { state.owner = result.user?.role === 'owner'; try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {} }).catch(() => { state.owner = false; })]);
+  const results = await Promise.allSettled([api('/api/tutor/capabilities').then(cap=>{tutorEnabled=!!cap.enabled;}).catch(()=>{tutorEnabled=false;}), loadLocal(), loadPublic(), api('/api/auth/me').then(result => { state.owner = result.user?.role === 'owner'; try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {} }).catch(() => { state.owner = false; })]);
   if (epoch !== loadEpoch) return;
   // Владелец видит неопубликованные правки витрины и вне редактора.
   if (state.owner) state.draft = await api('/api/publication/mediatheque').catch(() => state.draft);
@@ -333,6 +334,7 @@ function itemHtml(item) {
       ${item.hasTranslation ? `<span>${esc(t('withTranslation'))}</span>` : ''}${item.progressKnown && item.progress === 'finished' ? `<span>${esc(t('progress.finished'))}</span>` : ''}</div>
     </div>
     <div class="ml-item-footer">${href ? `<a class="ml-open" href="${esc(href)}">${esc(action)}</a>` : ''}
+      ${href && tutorEnabled && !manage ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : ''}
       ${publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}"`) : ''}
       ${!state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'personal' && item.ref.kind === 'public' ? button('forget-reference', t('forgetReference'), `data-key="${esc(item.key)}"`) : ''}

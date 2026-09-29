@@ -4935,3 +4935,6 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "continueEditing": "Продолжить редактирование"
 });
 window.I18N_LOCALES.ru.room.publicPage = { about: "О произведении" };
+
+Object.assign(window.I18N_LOCALES.ru.room.morph.study, {"tutorHelp":"Разобрать с наставником","tutorQuestion":"Объясни, почему в этом предложении употребляется «{word}». Дай один короткий пример."});
+Object.assign(window.I18N_LOCALES.ru.mediatheque, {"tutorRead":"Читать с наставником","tutorHint":"Выберите предложение и нажмите кнопку наставника рядом с ним."});

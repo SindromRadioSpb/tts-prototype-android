@@ -10,6 +10,7 @@ const {createStore}=require('../../agent/tutor/store');
 const {installRoutes}=require('../../agent/tutor/routes');
 const ROOT=path.resolve(__dirname,'../..');
 const practiceMode=process.argv.includes('--practice');
+const surfacesMode=process.argv.includes('--surfaces');
 async function main(){
  const db=new sqlite3.Database(':memory:');
  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8'),e=>e?j(e):r()));
@@ -18,8 +19,11 @@ async function main(){
  const auth={user:{id:'fixture-A'},session:{csrf:'fixture-csrf'}};
  app.get('/api/auth/me',(_q,s)=>s.json({ok:true,user:auth.user,csrf:auth.session.csrf,consents:{}}));
  installRoutes(app,{store,enabled:()=>true,requireUser:async()=>auth,requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!==auth.session.csrf){s.status(403).json({ok:false,error:'BAD_CSRF'});return false;}return true;},limiter:(_q,_s,n)=>n()});
- app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.691',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.695',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/mediatheque',(_q,s)=>s.json({ok:true,structure:require('../../public/js/mediatheque-core').empty(),items:[],revision:0}));
  app.use('/api',(_q,s)=>s.status(404).json({ok:false,error:'FIXTURE_ROUTE_NOT_AVAILABLE'}));
+ if(surfacesMode)app.get('/js/library-ui.js',(_q,res)=>res.type('js').send(fs.readFileSync(path.join(ROOT,'public/js/library-ui.js'),'utf8')+`
+window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false;_studySheet.classList.add('room-study-open');_studyMode='train';await _launchTrainSession([{lemmaKey:'pid:1',surface:'הייתי',niqqud:'הייתי',gloss:'я был',status:'known',_built:{sentence:'כשהייתי ילד גרתי בחיפה',cz:{answer:'הייתי',segments:[{text:'כשהייתי ילד גרתי בחיפה'}]},rowIdx:0},_source:{textKey:'m1:fixture:text',sentenceId:'m1-s0',orderIndex:0,surface:'הייתי'}}],{cross:true});},state:()=>({idx:_trainSession?.idx,answered:_trainSession?.answered,total:_trainSession?.total}),close:closeStudySheet};`));
  app.use(express.static(path.join(ROOT,'public')));
  const server=await new Promise(r=>{const s=app.listen(0,'127.0.0.1',()=>r(s));});
  const origin=`http://127.0.0.1:${server.address().port}`;
@@ -27,7 +31,7 @@ async function main(){
  const ctx=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
  await ctx.route('**/*',route=>{const url=new URL(route.request().url());return url.origin===origin||url.protocol==='blob:'?route.continue():route.abort();});
  const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
- const shots=path.join(ROOT,'docs/research/mentor-byoa/2026-09-29/'+(practiceMode?'m2-screenshots':'m1-screenshots'));fs.mkdirSync(shots,{recursive:true});
+ const shots=path.join(ROOT,'docs/research/mentor-byoa/2026-09-29/'+(surfacesMode?'m4-screenshots':practiceMode?'m2-screenshots':'m1-screenshots'));fs.mkdirSync(shots,{recursive:true});
  let token,worker,busy=false,hold=false,deliveries=[];
  try{
   const p=await store.pair('fixture-A');token=(await store.claim({pairing_code:p.pairing_code,client_nonce:'n'.repeat(43)})).token;
@@ -42,7 +46,7 @@ async function main(){
   });
   await page.goto(origin+'/library.html?canon=skip&open=m1%3Afixture%3Atext',{waitUntil:'load'});
   await page.waitForFunction(()=>window.__localDB);
-  const before=await page.evaluate(()=>window.__localDB.countReviewLog());
+  let before=await page.evaluate(()=>window.__localDB.countReviewLog());
   await page.locator('.row-explain-btn').first().click({timeout:30000});
   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
   await page.getByRole('checkbox').filter({visible:true}).last().check();
@@ -53,9 +57,23 @@ async function main(){
   assert.equal(deliveries[0].context.source.excerpt,'כשהייתי ילד גרתי בחיפה');
   assert.equal(await page.locator('dialog').locator('img').count(),0);
   await page.screenshot({path:path.join(shots,'room-desktop.png')});
-  await page.setViewportSize({width:390,height:844});
+  await page.setViewportSize({width:surfacesMode?380:390,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:path.join(shots,'room-mobile.png')});
+  if(surfacesMode){
+   const save=page.getByRole('button',{name:'Сохранить на этом устройстве',exact:true});
+   await save.click();await page.getByText('Объяснение сохранено в этом браузере.',{exact:true}).waitFor();await save.click();
+   assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1);
+   assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-B'))).length,0);
+   await page.evaluate(async()=>{const rows=await window.LPTutorNotebook.local().list('fixture-A');await window.LPTutorNotebook.local().remove('fixture-B',rows[0].id);});
+   assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1);
+   await page.getByRole('button',{name:'Сохранённые объяснения',exact:true}).click();
+   const notebook=page.getByRole('dialog',{name:'Сохранённые объяснения',exact:true});
+   await notebook.locator('summary').click();
+   assert.equal(await notebook.locator('img').count(),0);
+   await page.screenshot({path:path.join(shots,'notebook-mobile.png')});
+   await notebook.getByRole('button',{name:'Закрыть',exact:true}).click();
+  }
   if(practiceMode){
    await page.getByRole('button',{name:'Закрепить за минуту',exact:true}).click();
    await page.getByRole('textbox',{name:'Слово из исходника',exact:true}).fill('כשהייתי');
@@ -76,6 +94,18 @@ async function main(){
   await page.locator('.row-explain-btn').first().click({timeout:30000});
   await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});
   assert.equal(deliveries.length,1,'reload resumes result, does not regenerate');
+  if(surfacesMode&&!practiceMode){
+   const count=deliveries.length;
+   assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1,'accepted explanation survives reload');
+   await page.getByRole('button',{name:'Сохранённые объяснения',exact:true}).click();
+   const notebook=page.getByRole('dialog',{name:'Сохранённые объяснения',exact:true});
+   await notebook.locator('summary').click();
+   const download=page.waitForEvent('download');await notebook.getByRole('button',{name:'Скачать',exact:true}).click();assert.equal((await download).suggestedFilename(),'linguistpro-explanation.json');
+   await notebook.getByRole('button',{name:'Продолжить разбор',exact:true}).click();
+   await page.getByText('Сохранённая версия фрагмента.',{exact:false}).waitFor();
+   assert.equal(deliveries.length,count,'opening archive never generates');
+   assert.equal(await page.getByRole('checkbox').filter({visible:true}).last().isChecked(),false,'new question needs consent');
+  }
   if(practiceMode){
    await page.getByRole('button',{name:'Закрепить за минуту',exact:true}).click();
    await page.getByRole('heading',{name:'Совпало с исходником',exact:true}).waitFor();
@@ -83,6 +113,39 @@ async function main(){
   }
 
   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
+  if(surfacesMode){
+   await page.evaluate(()=>window.__m4Fixture.launch());
+   assert.equal(await page.getByRole('button',{name:'Разобрать с наставником',exact:true}).count(),0);
+   await page.locator('[data-train-input]').fill('שלום');
+   await page.locator('[data-train-submit]').click();
+   const help=page.getByRole('button',{name:'Разобрать с наставником',exact:true});await help.waitFor({state:'visible'});
+   const count=await page.evaluate(()=>window.__localDB.countReviewLog()),queue=await page.evaluate(()=>window.__m4Fixture.state());
+   assert.ok(count>before,'real answer committed before help');
+   await help.click();
+   await page.getByRole('button',{name:'Вернуться к повторению',exact:true}).waitFor();
+   await page.getByRole('checkbox').filter({visible:true}).last().check();
+   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
+   await page.getByText('[Fixture response]',{exact:false}).waitFor();
+   assert.equal(deliveries.at(-1).context.surface,'review');
+   await page.keyboard.press('Tab');
+   assert.equal(await page.evaluate(()=>document.querySelector('dialog[open]').contains(document.activeElement)),true);
+   await page.screenshot({path:path.join(shots,'review-help-mobile.png')});
+   await page.getByRole('button',{name:'Вернуться к повторению',exact:true}).click();
+   assert.deepEqual(await page.evaluate(()=>window.__m4Fixture.state()),queue);
+   assert.equal(await page.evaluate(()=>window.__localDB.countReviewLog()),count);
+   await page.evaluate(()=>window.__m4Fixture.close());
+   await page.goto(origin+'/library.html?canon=skip&open=m1%3Afixture%3Atext&from=mediatheque&return_to=%2Fmediatheque.html&tutor=choose');
+   await page.locator('.row-explain-btn').first().click({timeout:30000});
+   await page.getByRole('textbox',{name:'Что хотите понять?'}).fill('Проверка материала Медиатеки');
+   await page.getByRole('checkbox').filter({visible:true}).last().check();
+   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
+   await page.getByText('[Fixture response]',{exact:false}).waitFor();
+   assert.equal(deliveries.at(-1).context.surface,'mediatheque');
+   assert.equal(await page.evaluate(()=>window.__localDB.countReviewLog()),count);
+   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
+   // The only canonical change above was the deliberately submitted fixture answer.
+   before=count;
+  }
   await page.evaluate(()=>window.__localDB.closeLocalDB());
   const payload=Buffer.from(JSON.stringify({v:1,type:'text',id:'m1-text'})).toString('base64url');
   await page.goto(origin+'/index.html#/t/'+payload,{waitUntil:'load'});
@@ -146,8 +209,37 @@ async function main(){
   await page.evaluate(()=>{document.documentElement.lang='ru';return window.LPTutor.tryOpen({surface:'room',materialKey:'revoked:fixture',rows:[{id:'revoked',he:'שלום'}],index:0});});
   await page.getByText('Подключите личного агента, чтобы задать вопрос.',{exact:true}).waitFor();
   await page.keyboard.press('Escape');
-  console.log(JSON.stringify({ok:true,practice:practiceMode,deliveries:deliveries.map(j=>({surface:j.context.surface,revision:j.context.source.revision_id})),review_log_unchanged:true,pageErrors:errors.slice(0,8)}));
- }catch(e){console.error('PANEL_STATE',await page.locator('dialog').innerText().catch(()=>''));console.error('PAGE_ERRORS',errors.slice(-5));throw e;}
+  if(surfacesMode){
+   await page.evaluate(async()=>{const db=await window.StudioAgentHost.ldb();await db.closeLocalDB();});
+   await page.goto(origin+'/mediatheque.html?space=personal');
+   const link=page.getByRole('link',{name:'Читать с наставником',exact:true});await link.first().waitFor();
+   await page.setViewportSize({width:1280,height:900});await page.screenshot({path:path.join(shots,'mediatheque-desktop.png')});
+   await page.setViewportSize({width:380,height:844});await link.first().evaluate(e=>e.scrollIntoView({block:'center'}));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(shots,'mediatheque-mobile.png')});
+   await link.first().click();await page.locator('.row-explain-btn').first().waitFor();
+   await page.getByText('Выберите предложение и нажмите кнопку наставника рядом с ним.',{exact:true}).waitFor();
+   assert.equal(await page.evaluate(()=>document.activeElement.classList.contains('row-explain-btn')),true);
+   await page.evaluate(()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale:'he'}));
+   const heNotebook=page.getByRole('dialog',{name:'הסברים שמורים',exact:true});await heNotebook.locator('summary').click();
+   await page.screenshot({path:path.join(shots,'notebook-he-mobile.png')});
+   await heNotebook.getByRole('button',{name:'מחיקה',exact:true}).click();
+   await heNotebook.getByText('עדיין אין הסברים שמורים.',{exact:true}).waitFor();
+   assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,0);
+   await heNotebook.getByRole('button',{name:'סגירה',exact:true}).click();
+   await page.evaluate(async()=>{
+    const store=window.LPTutorNotebook.local(),context=await window.LPTutorClient.build(window.LPTutorClient.capture({surface:'room',materialKey:'limit',rows:[{id:'1',he:'שלום עולם'}],index:0,locale:'ru'}));
+    const record={schema:1,status:'accepted',context,question:'0',answer:'fixture'};
+    for(let i=0;i<50;i++)await store.save('fixture-limit',{...record,question:String(i)});
+    await store.save('fixture-limit',record);
+    let rejected=false;try{await store.save('fixture-limit',{...record,question:'overflow'});}catch(_){rejected=true;}
+    if(!rejected||(await store.list('fixture-limit')).length!==50)throw Error('ARCHIVE_LIMIT_FAILED');
+    for(const row of await store.list('fixture-limit'))await store.remove('fixture-limit',row.id);
+   });
+  }
+  assert.deepEqual(errors,[]);
+  const result={date:new Date().toISOString(),ok:true,practice:practiceMode,surfaces:surfacesMode,deliveries:deliveries.map(j=>({surface:j.context.surface,revision:j.context.source.revision_id})),tutor_review_log_unchanged:true,fixture_training_attempt:surfacesMode,archive_dedup_isolation_reload_export:surfacesMode,archive_continuation:surfacesMode&&!practiceMode,archive_delete_limit:surfacesMode,pageErrors:errors};
+  if(surfacesMode)fs.writeFileSync(path.join(ROOT,'docs/research/mentor-byoa/2026-09-29/'+(practiceMode?'M4_PRACTICE_BROWSER_RESULT.json':'M4_BROWSER_RESULT.json')),JSON.stringify(result,null,2)+'\n');
+  console.log(JSON.stringify(result));
+ }catch(e){await page.screenshot({path:path.join(shots,'failure.png')});console.error('PANEL_STATE',await page.locator('dialog').innerText().catch(()=>''));console.error('PAGE_ERRORS',errors.slice(-5));throw e;}
  finally{clearInterval(worker);await browser.close();await new Promise(r=>server.close(r));await new Promise(r=>db.close(r));}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

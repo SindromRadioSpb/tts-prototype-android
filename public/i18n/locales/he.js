@@ -4929,3 +4929,6 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "continueEditing": "המשך עריכה"
 });
 window.I18N_LOCALES.he.room.publicPage = { about: "על היצירה" };
+
+Object.assign(window.I18N_LOCALES.he.room.morph.study, {"tutorHelp":"להבין עם המורה","tutorQuestion":"הסבר למה משתמשים ב־״{word}״ במשפט הזה. תן דוגמה קצרה אחת."});
+Object.assign(window.I18N_LOCALES.he.mediatheque, {"tutorRead":"לקרוא עם המורה","tutorHint":"בחרו משפט ולחצו על כפתור המורה שלצדו."});
