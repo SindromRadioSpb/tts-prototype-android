@@ -21,7 +21,7 @@
 - **Что видно:** сохранённые объяснения теперь входят в локальный Studio ZIP при входе в аккаунт, а также имеют отдельные JSON export/import и delete-all. Серверный `/api/account/export` не содержит IndexedDB этого устройства; удаление браузерных данных другого устройства сервером невозможно. Тайминг передаётся только из exact caption binding; автоматические fixtures не подтверждают реальное owner-видео и позицию плеера.
 - **Почему важно:** нельзя обещать перенос занятий между устройствами или приёмку сценария видео по одним unit-тестам окна.
 - **Предложение:** связать типизированный архив с общим жизненным циклом персональных данных и proposals, отдельно проверить owner-video; затем MCP tools по утверждённым scopes. [Границы поставки](../research/mentor-byoa/2026-09-29/M4_IMPLEMENTATION.md).
-- **Статус:** в работе; локальный перенос/удаление и proposal lifecycle проверены в [следующем срезе](../research/mentor-byoa/2026-09-29/M4_NEXT_IMPLEMENTATION.md). Общий account lifecycle и owner-live видео не закрыты.
+- **Статус:** в работе; локальный перенос/удаление и proposal lifecycle проверены в [следующем срезе](../research/mentor-byoa/2026-09-29/M4_NEXT_IMPLEMENTATION.md). [Owner-live видео](../research/mentor-byoa/2026-09-29/M4_OWNER_VIDEO_LIVE.md) проверено через Kapture на одном реальном YouTube-материале. Общий account lifecycle остаётся открытым.
 
 ## O-049 · Deployment: transport recovery and sensitive debug output
 - **Дата / где:** 2026-09-29, операции M3.

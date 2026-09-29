@@ -285,6 +285,12 @@ async function exportUserData(userId) {
     try { out.tables[name] = await dbAll(db, `SELECT * FROM ${JSON.stringify(name)} WHERE user_id = ?`, [userId]); }
     catch (_) { out.tables[name] = []; }
   }
+  // Practice belongs to the user's tutor session but has no user_id column.
+  // Include it explicitly; the dynamic direct-user sweep cannot discover it.
+  try {
+    out.tables.tutor_practice = await dbAll(db, `SELECT p.* FROM tutor_practice p JOIN tutor_sessions s ON s.id=p.session_id WHERE s.user_id=?`, [userId]);
+    out.table_list.push("tutor_practice");
+  } catch (_) {}
   // never export another user's data or secrets: strip session token hashes (defense in depth —
   // hashes are already non-reversible, but they have no business in a user export)
   if (out.tables.user_sessions) for (const s of out.tables.user_sessions) { delete s.token_hash; delete s.csrf_token; }
@@ -305,6 +311,11 @@ async function exportUserData(userId) {
   if (out.tables.agent_authorization_codes) for (const r of out.tables.agent_authorization_codes) { delete r.code_hash; delete r.pkce_challenge; }
   if (out.tables.agent_refresh_tokens) for (const r of out.tables.agent_refresh_tokens) delete r.token_hash;
   if (out.tables.agent_access_token_denials) for (const r of out.tables.agent_access_token_denials) delete r.jti_hash;
+  if (out.tables.tutor_connections) for (const r of out.tables.tutor_connections) delete r.token_hash;
+  if (out.tables.tutor_pairings) for (const r of out.tables.tutor_pairings) delete r.code_hash;
+  if (out.tables.tutor_enrollments) for (const r of out.tables.tutor_enrollments) { delete r.device_hash; delete r.code_hash; delete r.client_nonce; }
+  if (out.tables.tutor_sessions) for (const r of out.tables.tutor_sessions) { delete r.request_key; delete r.request_hash; delete r.lease_hash; delete r.result_hash; }
+  if (out.tables.tutor_practice) for (const r of out.tables.tutor_practice) { delete r.attempt_key; delete r.attempt_hash; }
   // F1 per-memory erasure journal is deliberately outside the structural sweep so an old
   // backup cannot resurrect a deleted record. It is content-free and exported explicitly.
   try { out.memory_erasures = await dbAll(db, `SELECT memory_id,deleted_at,reason_code FROM memory_erasure_journal WHERE user_id=? ORDER BY deleted_at,memory_id`, [userId]); }
@@ -326,7 +337,14 @@ async function deleteUserData(userId) {
   await withTxnLock(async () => {
   await dbRun(db, `BEGIN IMMEDIATE`);
   try {
+    // Delete the nested practice rows even if a restored SQLite connection did
+    // not enable foreign keys; they cannot be found by the user_id sweep.
+    try {
+      await dbRun(db, `DELETE FROM tutor_practice WHERE session_id IN (SELECT id FROM tutor_sessions WHERE user_id=?)`, [userId]);
+      tables.push("tutor_practice");
+    } catch (_) {}
     for (const name of tables) {
+      if (name === "tutor_practice") continue;
       try { await dbRun(db, `DELETE FROM ${JSON.stringify(name)} WHERE user_id = ?`, [userId]); } catch (_) {}
     }
     try { await dbRun(db, `DELETE FROM memory_erasure_journal WHERE user_id = ?`, [userId]); } catch (_) {}
@@ -357,6 +375,11 @@ async function countUserRows(userId) {
       total += c;
     } catch (_) {}
   }
+  try {
+    const r = await dbGet(db, `SELECT COUNT(*) c FROM tutor_practice p JOIN tutor_sessions s ON s.id=p.session_id WHERE s.user_id=?`, [userId]);
+    const c = Number(r && r.c) || 0;
+    if (c) { perTable.tutor_practice = c; total += c; }
+  } catch (_) {}
   const u = await dbGet(db, `SELECT COUNT(*) c FROM users WHERE id = ?`, [userId]);
   if (Number(u && u.c)) { perTable.users = Number(u.c); total += Number(u.c); }
   try { const m = await dbGet(db, `SELECT COUNT(*) c FROM memory_erasure_journal WHERE user_id=?`, [userId]); if(Number(m&&m.c)){perTable.memory_erasure_journal=Number(m.c);total+=Number(m.c);} } catch (_) {}

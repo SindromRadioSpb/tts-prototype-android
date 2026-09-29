@@ -14,7 +14,11 @@ account-bound restore, `proposed/accepted/completed/dismissed` для source-rec
 с явной отменой и идемпотентностью. [Контракт и проверки](../research/mentor-byoa/2026-09-29/M4_NEXT_IMPLEMENTATION.md).
 46 Node, 233 i18n, isolated browser four-surface/practice и shell integrity PASS.
 MCP не расширен: старый `get_agent_connection` имеет закрытый 15-scope enum.
-Server account export/delete и owner-live видео остаются открытыми; 3.11.697
+Серверный экспорт/удаление аккаунта покрывает практику, связанную с сессией, и убирает tutor
+секретные/служебные хэши; локальные IndexedDB-копии требуют действий на устройстве.
+[MCP-контракт](../research/mentor-byoa/2026-09-29/M4_TUTOR_MCP_CONTRACT.md)
+записан без публикации новых tools. [Owner-live видео](../research/mentor-byoa/2026-09-29/M4_OWNER_VIDEO_LIVE.md)
+проверено через Kapture на реальном YouTube item без модельного вызова; 3.11.697
 пока локальная кандидатная версия, без заявления о production acceptance.
 
 Ветка `feat/mentor-byoa-m4`, база production `e877e8ea`. Реализованы помощь после
@@ -26,8 +30,8 @@ Server account export/delete и owner-live видео остаются откр�
 проверен на разделение аккаунтов, перезагрузку, дедупликацию, лимит, экспорт/удаление.
 Релиз 3.11.695 опубликован: repeated health, served-byte integrity и guest browser PASS; owner pilot остаётся ограниченным.
 Обнаруженный владельцем цикл loading главной Зала воспроизведён и исправлен отдельным 3.11.696: [evidence](../research/mentor-byoa/2026-09-29/ROOM_HUB_REFRESH_FIX.md). Production 696 verified (`cbcc79f2`): served hashes, repeated health, isolated browser 10 notices → 0 skeletons; owner tab updated and stable. [Продолжение реализации](MENTOR_BYOA_NEXT_IMPLEMENTATION.md).
-M4 целиком не закрыт: lesson/proposal lifecycle, общий data lifecycle, MCP и живая
-проверка видео остаются следующими шагами; редакционная зависимость M2/M5 сохраняется.
+M4 целиком не закрыт: полный lesson lifecycle, единый пользовательский маршрут
+данных аккаунта и MCP остаются следующими шагами; редакционная зависимость M2/M5 сохраняется.
 
 ### M3 continuation · 2026-09-29
 

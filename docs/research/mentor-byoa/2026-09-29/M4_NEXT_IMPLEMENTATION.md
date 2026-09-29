@@ -27,14 +27,18 @@ This is a local owner-pilot increment; it is not production or owner-video accep
   cascade on account deletion through the existing user/session foreign keys.
 
 The Studio ZIP is a local library export, separate from the server's
-`/api/account/export`. The latter still does not contain this device's IndexedDB
-records. Browser storage on another device cannot be erased by a server request;
-the archive exposes explicit local delete. A complete account-data portability
-and deletion claim still needs a unified account workflow and owner acceptance.
+`/api/account/export`. The server export now includes session-bound
+`tutor_practice` rows and strips tutor token, pairing, enrollment and
+idempotency hashes. Server account deletion explicitly removes practice before
+the user-scoped sweep, including if SQLite foreign keys are unavailable. The
+server still cannot read this device's IndexedDB archive or erase another
+device's browser storage; the archive exposes explicit local export/delete.
+A unified user-facing account workflow and owner acceptance remain.
 
 ## MCP boundary
 
-No new MCP capability was published. `get_agent_connection` in
+No new MCP capability was published. [Versioned next-slice contract](M4_TUTOR_MCP_CONTRACT.md).
+`get_agent_connection` in
 `agent/access/mcpSchemas.js` has a frozen 15-scope output enum, while
 `productionHandlers.js` deliberately filters newer grants. Adding tutor scopes
 to that old result would break cached clients. The next MCP slice needs its own
@@ -56,11 +60,14 @@ MCP grant.
   [Mobile archive and practice screenshots](m4-next-screenshots/).
 - The existing 23-check Reading Room training guard passed before the final
   identity recheck, which does not touch its writer.
-- Owner-live video acceptance is pending. The authenticated Chrome tab became
-  unavailable to computer-use automation (`Debugger unattached`) after opening
-  the reader. No source/playback-position conclusion is inferred from that.
-  Automated exact-caption tests cover only the fixture contract. Physical device
-  and assistive-technology acceptance are also separate.
+- Full-schema two-account tutor export/delete smoke passed; existing CP0 and
+  Agent Access OAuth lifecycle smokes remained green.
+- An initial computer-use connection failed (`Debugger unattached`), then
+  [Kapture owner-live evidence](M4_OWNER_VIDEO_LIVE.md) verified a real
+  YouTube item, selected caption window, pause and retained playback position
+  on the existing production pilot. Automated fixtures and this one live item
+  are distinct evidence. Physical device and assistive-technology acceptance
+  are also separate.
 
 The next dependent work is unified server-account export/delete behavior and a
 versioned tutor MCP contract. Keep global rollout closed until the corresponding
