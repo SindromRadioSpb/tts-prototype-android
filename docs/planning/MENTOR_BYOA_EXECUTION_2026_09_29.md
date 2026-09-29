@@ -1,5 +1,13 @@
 # Наставник BYOA: исполнимый план и критерии поставки
 
+> **2026-09-30: M0–M7 больше не задают активную последовательность работ.**
+> Выполнение идёт по [C0–C7](MENTOR_PRODUCT_RESET_2026_09_30.md),
+> [новой архитектуре](MENTOR_CONTINUITY_ARCHITECTURE_2026_09_30.md) и
+> [обязательной приёмке](MENTOR_MATURITY_ACCEPTANCE_2026_09_30.md).
+> Этот файл — исторический ledger. Его transport, owner и production PASS
+> относятся к названным сценариям, а не к зрелому ментору. В частности,
+> локальная история и четыре handoff tools не закрывают долгосрочную память.
+
 Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **OWNER APPROVED; M0 TECHNICAL PASS; M1 PRODUCTION FLAG-OFF VERIFIED; M2 SOURCE-RECALL TECHNICAL PASS / PRODUCTION FLAG-OFF VERIFIED**.
 Владелец утвердил план и начало исполнения 2026-09-29. Ветки исполнения: M0 `feat/mentor-byoa-m0`, M1 `feat/mentor-byoa-m1`, M2 `feat/mentor-byoa-m2`.
 Продукт: [решение и контракты](MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md). Основания: [аудит](../research/mentor-byoa/2026-09-29/AUDIT.md).
@@ -81,7 +89,7 @@ M3 existing-Hermes slice: [локальные проверки и огранич
 | Полный M2 / новый MCP | IN_PROGRESS | Независимая языковая редактура и semantic grading ещё не приняты; MCP расширяется после соответствующих contracts |
 | Постепенный production rollout | OWNER_AUTHORIZED | M1 3.11.691 и M2 slice 3.11.692 verified flag-off; [release evidence](../research/mentor-byoa/2026-09-29/PRODUCTION_ROLLOUT.md) |
 
-## 2. Порядок поставок
+## 2. Исторический порядок поставок — заменён C0–C7
 
 Оценки длительности до spike не фиксируются: compatibility, публичная модель авторизации и Hebrew QA ещё требуют замеров. Порядок задают зависимости и проверяемые результаты. За каждую поставку отвечает один согласованный owner implementation; архитектурные роли ниже не означают требование запуска нескольких агентов.
 
@@ -98,7 +106,7 @@ M3 existing-Hermes slice: [локальные проверки и огранич
 
 M5/M6 расширяют педагогическую глубину; их отсутствие не оправдывает черновой интерфейс M2. Первый slice должен быть небольшим по охвату и законченным по качеству. Существующие endpoints/функции не выключаются раньше приёмки замены; feature flags допускают возврат.
 
-## 3. Ближайшие engineering tickets
+## 3. Исторические engineering tickets — новый backlog в C1
 
 | ID | Изменение / предполагаемая область | Проверяемый результат |
 | --- | --- | --- |
