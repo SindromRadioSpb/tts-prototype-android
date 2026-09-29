@@ -167,3 +167,28 @@ containers, 4/4 active volumes, 13 images of which 11 are in use, 4.7 GB free,
 87% disk used. Active and immediate rollback images, DB, backups and owner browser
 storage were retained. Health's disk warning and capacity policy remain O-047.
 Global rollout and new tutor MCP tools/scopes remain closed.
+
+## Video question fix / 3.11.699 — VERIFIED OWNER PILOT
+
+The owner saw the local archive controls in the live browser, then a question on
+an exact-caption video failed with `invalid_context` on 697. The client had sent
+a bounded `caption` context, but the transport accepted only `local_snapshot`.
+Commit `1e71583f` accepts timed caption snapshots through the existing context
+validator and removes the per-question checkbox. Asking still explicitly sends
+the displayed passage, neighbouring sentences and question to the personal agent.
+The 698 account-data route candidate ships in the same 699 release.
+
+[Repeated health and served-byte proof](M4_699_PRODUCTION_RESULT.json) passed
+against `1e71583f`: DB and migrations ready, 13 assets/SW matching commit bytes,
+guest capability off and protected route 401. [Fresh guest browser](M4_699_PRODUCTION_BROWSER.json)
+loaded Studio, Room, Mediatheque and connector pages without page errors. Local
+browser fixtures passed a timed video question end-to-end, archive lifecycle,
+practice and all tutor surfaces without a consent checkbox. This is automated
+evidence; no owner model request was made after the release.
+
+Active image is `73d76e71ed16` tagged `1e71583f`; immediate rollback `9fcd2705`
+remains. After build completion and image inventory, only 2.389 GB of reclaimable
+BuildKit cache and two exact unreferenced older images (696/695) were removed.
+Final inventory: 12 active containers, 4 active volumes, 0 build cache, 5.8 GB
+free / 84% used. DB, backups and owner browser storage were not changed.
+Global rollout and additional MCP tools/scopes remain closed.

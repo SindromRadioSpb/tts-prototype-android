@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-29T19:54:39.918Z",
+  "version": "3.11.699",
+  "evidence": "AUTOMATED_PRODUCTION_GUEST_BROWSER",
+  "checks": [
+    {
+      "path": "/library.html?canon=skip",
+      "modules_loaded": true,
+      "guest_capability": false
+    },
+    {
+      "path": "/index.html",
+      "modules_loaded": true,
+      "guest_capability": false
+    },
+    {
+      "path": "/mediatheque.html",
+      "guest_tutor_links": 0
+    },
+    {
+      "path": "/tutor-connect.html",
+      "guest_login": true
+    }
+  ],
+  "download_guest_status": 401,
+  "pageErrors": []
+}
