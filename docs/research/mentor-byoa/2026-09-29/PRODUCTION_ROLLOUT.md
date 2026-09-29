@@ -278,3 +278,32 @@ Migration 076 adds 8766 only to the exact existing owner fixture row. A
 read-only production query confirmed its old single-URI value before the
 migration; the two-row in-memory migration test passed and left the other
 client unchanged. The callback fix is not owner-live accepted yet.
+
+## Persisted callback allowlist / 3.11.704 — verified owner pilot
+
+Commit `b9fb1203` reached 3.11.704. Two no-cache health/config probes reported
+the same version with DB and migrations ready; eight served assets/SW matched
+checkout SHA-256. A fresh guest browser loaded Room, Studio, Mediatheque and
+connector pages without page errors, found no guest tutor capability, and
+received 401 for the pilot installer. Coolify displayed the new container
+starting; its session expired before an independent post-switch image digest or
+fresh disk inventory could be recorded. No broad Docker cleanup followed.
+
+The new OAuth attempt used `http://127.0.0.1:8766/callback` and exactly four
+tutor scopes. It reached the concise owner consent screen, then the real
+callback functions extracted from installed beta.4 accepted the browser return,
+verified its state/scope and relayed it to Hermes inside Docker. The pending
+Hermes login completed with four tools. `hermes mcp test linguistpro_tutor`
+discovered those four, and a read-only `get_tutor_capabilities` call succeeded
+with one content block. After sequential Hermes agent/WebUI restarts, WebUI
+returned healthy and the old `linguistpro` profile still showed 31 selected
+tools while `linguistpro_tutor` showed four. No owner model inference or
+learner-fragment read was performed. The installed beta.4 script matches the
+release source hash; the authenticated download on 703 matched its release
+manifest SHA-256, and the guest endpoint remained 401 on 704.
+
+This is technical and owner-consent evidence, not an ordinary owner-chat
+roundtrip. The Windows button itself has not been exercised as a full GUI
+journey, and global rollout remains closed. Account archive
+download/restore/delete still lacks owner-live verification on a safe test
+record.
