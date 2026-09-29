@@ -111,3 +111,13 @@ flag off. Do not delete additive tables or restore the entire user DB for rollba
   Capacity warning remains open (O-047).
 - This closes connection and short-heading regression verification, not independent
   Hebrew review, clean-machine installation or broad-public readiness.
+
+## M4 / 3.11.695 — VERIFIED OWNER PILOT
+
+Deployment `554e5482` finished; active image tag verified. Repeated health and
+served-byte integrity: [result](M4_PRODUCTION_RESULT.json). Fresh guest browser:
+[result](M4_PRODUCTION_BROWSER.json), no page errors; BYOA remains owner-only.
+After inventory, completed BuildKit cache pruned (2.388GB); only unreferenced
+693 and stable M2 images removed, preserving active 695 and immediate rollback
+694, all 12 containers, 4 volumes, DB and backups. Free space 6.5G / 83% used.
+Capacity policy remains O-047. Owner hub flicker takes priority before next M4 work.

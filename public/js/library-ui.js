@@ -13037,6 +13037,7 @@ function learningHomeJourney(summary) {
 async function renderCorpusHub(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
+  externalLibraryDirty = false;
   main.innerHTML = '';
   const loading = roomSkeletonNode('room.home.loading');
   loading.classList.add('learning-home-loading');
@@ -13134,6 +13135,7 @@ async function renderCorpusHub(token) {
   wrap.appendChild(el('aside', { class: 'learning-home-teaser', text: tt('room.hub.soon', 'Скоро: тематические корпуса') }));
   main.innerHTML = '';
   main.appendChild(wrap);
+  if (externalLibraryDirty) showExternalLibraryChanges();
   _paintDueCTA();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
@@ -14928,16 +14930,48 @@ window.__roomReady = true;
 // Refresh shared catalogue projections without navigating, replacing a reader,
 // restarting media, or changing a Studio draft in another tab.
 let externalLibraryRefresh = null;
-function refreshExternalLibrary() {
+let externalLibraryDirty = false;
+function showExternalLibraryChanges() {
+  const home = $('roomContent')?.querySelector('.learning-home');
+  if (!home || $('roomLibraryChanges')) return;
+  const notice = el('div', { class: 'learning-home-section-head', attrs: { role: 'status' } });
+  notice.id = 'roomLibraryChanges';
+  notice.appendChild(el('span', { class: 'learning-home-subtitle', text: tt('room.home.libraryChanged', 'Библиотека изменилась в другой вкладке.') }));
+  const button = el('button', { class: 'learning-home-all', attrs: { type: 'button' }, text: tt('room.home.refreshLibrary', 'Обновить библиотеку') });
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    const token = corpusRenderToken;
+    try {
+      await loadData();
+      if (token !== corpusRenderToken || activeTrack !== 'corpus' || corpusNav.corpus !== 'hub' || !$('roomReader')?.hidden) return;
+      await renderCorpus();
+      // Explicit refresh returns keyboard focus to the newly rendered home.
+      const title = $('roomContent')?.querySelector('.learning-home-title');
+      if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+    } catch (_) { button.disabled = false; }
+  });
+  notice.appendChild(button);
+  home.querySelector('.learning-home-intro')?.appendChild(notice);
+}
+function refreshExternalLibrary(event) {
+  if (event?.type === 'visibilitychange' && !externalLibraryDirty) return;
+  externalLibraryDirty = true;
   invalidatePersonalSets(); invalidateReadableSet(); invalidateFinishedSet();
   invalidateCorpusPresentationProgress();
   _asdCache = null;
   morphHost.invalidateWordStates();
   if (document.visibilityState !== 'visible' || externalLibraryRefresh || !$('roomReader')?.hidden) return;
-  externalLibraryRefresh = loadData().then(() => renderTrack()).catch(() => {}).finally(() => { externalLibraryRefresh = null; });
+  // Boot owns its first render. Commit bursts from Studio must not repeatedly
+  // clear the Home, discard focus/disclosures, and rerun recommendation queries.
+  if (!_roomPresentationReady) return;
+  if (activeTrack === 'corpus' && corpusNav.corpus === 'hub') { showExternalLibraryChanges(); return; }
+  const token = corpusRenderToken;
+  externalLibraryRefresh = loadData().then(() => {
+    if (token === corpusRenderToken && $('roomReader')?.hidden) return renderTrack();
+  }).catch(() => {}).finally(() => { externalLibraryRefresh = null; });
 }
 window.addEventListener('localdb:changed', refreshExternalLibrary);
 window.addEventListener('localdb:refresh', refreshExternalLibrary);
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') refreshExternalLibrary();
+document.addEventListener('visibilitychange', (event) => {
+  if (document.visibilityState === 'visible') refreshExternalLibrary(event);
 });

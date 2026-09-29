@@ -4923,3 +4923,5 @@ window.I18N_LOCALES.en.room.publicPage = { about: "About this work" };
 
 Object.assign(window.I18N_LOCALES.en.room.morph.study, {"tutorHelp":"Discuss with your tutor","tutorQuestion":"Explain why “{word}” is used in this sentence. Give one short example."});
 Object.assign(window.I18N_LOCALES.en.mediatheque, {"tutorRead":"Read with your tutor","tutorHint":"Choose a sentence and use the tutor button beside it."});
+
+Object.assign(window.I18N_LOCALES.en.room.home, {"libraryChanged": "The library changed in another tab.", "refreshLibrary": "Refresh library"});

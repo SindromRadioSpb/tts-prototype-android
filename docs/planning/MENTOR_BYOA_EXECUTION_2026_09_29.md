@@ -16,7 +16,8 @@
 44 Node checks, 23 training guards, 233 i18n checks PASS. Изолированный browser
 проверил четыре поверхности и отсутствие дополнительных review writes; архив
 проверен на разделение аккаунтов, перезагрузку, дедупликацию, лимит, экспорт/удаление.
-Релиз 3.11.695 подготовлен для существующего owner pilot; production proof pending.
+Релиз 3.11.695 опубликован: repeated health, served-byte integrity и guest browser PASS; owner pilot остаётся ограниченным.
+Обнаруженный владельцем цикл loading главной Зала воспроизведён и исправлен отдельным 3.11.696: [evidence](../research/mentor-byoa/2026-09-29/ROOM_HUB_REFRESH_FIX.md). Production 696 pending.
 M4 целиком не закрыт: lesson/proposal lifecycle, общий data lifecycle, MCP и живая
 проверка видео остаются следующими шагами; редакционная зависимость M2/M5 сохраняется.
 

@@ -1265,7 +1265,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=695",
+  "/js/library-ui.js?v=696",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1303,9 +1303,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=274",
-  "/i18n/locales/en.js?v=274",
-  "/i18n/locales/he.js?v=274",
+  "/i18n/locales/ru.js?v=275",
+  "/i18n/locales/en.js?v=275",
+  "/i18n/locales/he.js?v=275",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
