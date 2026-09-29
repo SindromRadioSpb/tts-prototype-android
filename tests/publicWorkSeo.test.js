@@ -3,10 +3,19 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
 const seo = require('../public-work-seo');
 
+const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-public-work-seo-'));
+fs.mkdirSync(path.join(fixtureDir, 'benyehuda', 'works'), { recursive: true });
+fs.writeFileSync(path.join(fixtureDir, 'benyehuda', 'works', '85.json'), JSON.stringify({
+  library: { texts: [{ corpus: { byehuda_id: '85' }, rows: [{ hebrew_niqqud: 'מַגְבִּיהּ פִּתְחו' }] }] },
+}));
+test.after(() => fs.rmSync(fixtureDir, { recursive: true, force: true }));
+
 test('a baked work has a stable request URL and readable initial HTML', () => {
-  const work = seo.benyehuda('85', path.join(__dirname, '..', '.nonexistent-data'));
+  const work = seo.benyehuda('85', fixtureDir);
   assert.ok(work);
   const url = seo.canonical({ corpus_work: '85' });
   const html = seo.render(work, url);
@@ -35,7 +44,7 @@ test('publication projection requires public read permission', () => {
 });
 
 test('sitemap lists only existing baked files and published media', () => {
-  const xml = seo.sitemap([{ ref: { kind: 'public', slug: 'songs', workId: 'one' } }, { ref: { kind: 'personal', slug: 'private', workId: 'two' } }], path.join(__dirname, '..', '.nonexistent-data'));
+  const xml = seo.sitemap([{ ref: { kind: 'public', slug: 'songs', workId: 'one' } }, { ref: { kind: 'personal', slug: 'private', workId: 'two' } }], fixtureDir);
   assert.match(xml, /corpus_work=85/);
   assert.match(xml, /public_corpus=songs&amp;public_work=one/);
   assert.doesNotMatch(xml, /private/);
