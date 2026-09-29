@@ -133,3 +133,37 @@ After inventory: completed build cache 2.388GB pruned; exact unreferenced 694 im
 removed; active 696 and rollback 695 retained. 12 containers, 4 volumes, DB and
 backups preserved; cache 0, 6.5G available, df 83%. Health DB/migrations ready;
 disk warning remains O-047. No broad prune or cache/storage reset in owner browser.
+
+## M4 continuation / 3.11.697 — VERIFIED OWNER PILOT
+
+`484fd6e7` implemented the accepted-explanation ZIP/JSON lifecycle and persisted
+practice proposal states; `9fcd2705` completed server account export/delete for
+session-bound `tutor_practice` and stripped tutor credential/receipt hashes from
+account export. Both commits reached `main`; Coolify deployment of `9fcd2705`
+finished successfully at 2026-09-29 16:52:53 UTC. Active container
+`612282a4465e` runs tag `9fcd270558a989161b1cf89c5c5b0e6c2cb07628`
+(image ID prefix `d133aa9ee3e4`). Immediate rollback image `cbcc79f2` remains.
+
+Before migration 073, a private online backup completed: archive
+`app-data-20260929-164248.tar.gz` (669575698 bytes), SQLite snapshot 890089472
+bytes, archive SHA256 `61ea442136009e25526a6920d79f187348cb36029059d3c533aeb995d3d9302a`.
+The archive was confirmed present after deployment; no backup retention deletion
+was requested. Read-only SQL confirmed `tutor_practice.proposal_state` in the
+active database. The full-schema two-account lifecycle smoke passed locally;
+production owner data was not exported or changed for this check.
+
+[Release verifier](M4_697_PRODUCTION_RESULT.json) passed two no-cache health/config
+probes (DB and migrations ready), 13 served asset/SW hashes against release bytes,
+guest capability off and protected connection 401. [Fresh guest browser](M4_697_PRODUCTION_BROWSER.json)
+loaded Studio/Room modules and Mediatheque/tutor sign-in with no page errors;
+guest download remained 401. The release verifier passed again after cleanup.
+These are automated/read-only production results, not owner acceptance of the new
+archive controls or a model roundtrip on 697. The [one real YouTube video probe](M4_OWNER_VIDEO_LIVE.md)
+was performed on the preceding owner pilot.
+
+After an inventory showed completed BuildKit cache at 2.388 GB and disk at 92%,
+only `docker builder prune -af` was run. Final inventory: cache 0, 12/12 active
+containers, 4/4 active volumes, 13 images of which 11 are in use, 4.7 GB free,
+87% disk used. Active and immediate rollback images, DB, backups and owner browser
+storage were retained. Health's disk warning and capacity policy remain O-047.
+Global rollout and new tutor MCP tools/scopes remain closed.

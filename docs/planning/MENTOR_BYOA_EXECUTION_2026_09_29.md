@@ -18,8 +18,10 @@ MCP не расширен: старый `get_agent_connection` имеет зак
 секретные/служебные хэши; локальные IndexedDB-копии требуют действий на устройстве.
 [MCP-контракт](../research/mentor-byoa/2026-09-29/M4_TUTOR_MCP_CONTRACT.md)
 записан без публикации новых tools. [Owner-live видео](../research/mentor-byoa/2026-09-29/M4_OWNER_VIDEO_LIVE.md)
-проверено через Kapture на реальном YouTube item без модельного вызова; 3.11.697
-пока локальная кандидатная версия, без заявления о production acceptance.
+проверено через Kapture на реальном YouTube item без модельного вызова, до релиза 697.
+3.11.697 [поставлена и проверена](../research/mentor-byoa/2026-09-29/PRODUCTION_ROLLOUT.md)
+для owner pilot: migration ready, активный образ и served bytes, повторный health,
+guest browser и pre-migration backup. Owner-live архивных операций на 697 нет.
 
 Ветка `feat/mentor-byoa-m4`, база production `e877e8ea`. Реализованы помощь после
 ответа в Повторении, вход из карточки Медиатеки, точное окно сохранённых субтитров

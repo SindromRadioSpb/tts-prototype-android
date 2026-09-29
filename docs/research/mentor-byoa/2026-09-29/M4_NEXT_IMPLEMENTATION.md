@@ -1,7 +1,9 @@
 # M4 continuation: explanation archive and practice proposal
 
-Date: 2026-09-29. Branch: `feat/mentor-byoa-m4`. Candidate shell: 3.11.697.
-This is a local owner-pilot increment; it is not production or owner-video acceptance.
+Date: 2026-09-29. Branch: `feat/mentor-byoa-m4`. Released shell: 3.11.697.
+The increment is deployed for the owner pilot; [production release evidence](PRODUCTION_ROLLOUT.md)
+is separate from local tests and the [single owner-live video probe](M4_OWNER_VIDEO_LIVE.md)
+performed before this release.
 
 ## Implemented
 
