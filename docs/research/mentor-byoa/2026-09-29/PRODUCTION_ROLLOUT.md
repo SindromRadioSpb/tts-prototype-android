@@ -192,3 +192,28 @@ BuildKit cache and two exact unreferenced older images (696/695) were removed.
 Final inventory: 12 active containers, 4 active volumes, 0 build cache, 5.8 GB
 free / 84% used. DB, backups and owner browser storage were not changed.
 Global rollout and additional MCP tools/scopes remain closed.
+
+## Conversation and automatic local history / 3.11.700 — VERIFIED OWNER PILOT
+
+Commit `2fa4a160` is served by active image `39b9edf69a31`. Before deployment,
+a full production archive and online SQLite snapshot were created and checked;
+no backup retention deletion ran. The additive `074_tutor_conversation.sql`
+migration is present in the active database (`previous_session_id` and
+`local_history_json` columns), and health reports DB and migrations ready.
+
+[Release verification](M5_700_PRODUCTION_RESULT.json) passed twice against
+3.11.700 and the commit: 13 served assets/SW match release bytes, pilot access
+remains closed to guests, and the protected route returns 401. The
+[fresh guest browser](M5_700_PRODUCTION_BROWSER.json) loaded Room, Studio,
+Mediatheque and connection pages without JavaScript errors. Local browser tests
+covered an actual follow-up in one panel, automatic history after reload and
+all four tutor surfaces. No owner model request was made after this release;
+owner-live follow-up acceptance remains open.
+
+After the build completed, the inactive 2.39 GB BuildKit cache was removed.
+Inventory then confirmed image `d133aa9e` (3.11.697) had no container references;
+only this exact obsolete image was removed. Final disk: 4.5 GB free, 88% used;
+12 active containers, 4 active volumes, 0 build cache. Active 3.11.700 image,
+immediate 3.11.699 rollback image `73d76e71ed16`, DB, volumes, backups and
+owner browser data are retained. Health disk percentage may lag the fresh `df`
+reading. Global rollout and new tutor MCP tools/scopes remain closed.

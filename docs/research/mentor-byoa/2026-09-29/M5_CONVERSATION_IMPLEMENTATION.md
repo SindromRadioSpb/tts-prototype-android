@@ -1,4 +1,4 @@
-# Tutor conversation and automatic local history — 3.11.700 candidate
+# Tutor conversation and automatic local history — 3.11.700 verified owner pilot
 
 Source: user feedback after an owner-live question on 3.11.699. The single-answer
 panel and manual Save/Download actions interrupted learning. This implementation
@@ -21,9 +21,11 @@ bounded to 200 turns per account and never writes `review_log` or mastery.
 Validation: transport/source tests, full API smoke, 233 i18n checks, 321 shell
 checks, connector fixtures, and four-surface browser smoke including follow-up
 history, automatic save/reload, account-data export/delete, practice, 380 px RTL
-and desktop. Automated evidence is distinct from owner-live acceptance. This is
-an owner-pilot candidate until the production backup, deploy and served-byte
-verification complete.
+and desktop. Production backup, deployment, served-byte verification, guest
+browser smoke and the additive migration have passed; see
+[rollout evidence](PRODUCTION_ROLLOUT.md) and the machine-readable
+[release result](M5_700_PRODUCTION_RESULT.json). Automated evidence is distinct
+from owner-live acceptance of a real follow-up and model response.
 
 Visual fixture evidence: [mobile](m4-screenshots/tutor-chat-700-mobile.png),
 [desktop](m4-screenshots/tutor-chat-700-desktop.png),

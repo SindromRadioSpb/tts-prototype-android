@@ -1,0 +1,91 @@
+{
+  "date": "2026-09-29T20:44:34.952Z",
+  "evidence": "PRODUCTION_READ_ONLY",
+  "version": "3.11.700",
+  "commit": "2fa4a160",
+  "guest_capability_enabled": false,
+  "pilot_expected": true,
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 111,
+      "now": "2026-09-29T20:44:05.356Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 91,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 111,
+      "now": "2026-09-29T20:44:05.671Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 91,
+      "disk_warn": true
+    }
+  ],
+  "assets": [
+    {
+      "url": "/tutor-connect.html",
+      "sha256": "55704f46e3b7ed27ced218d00ff9258bbb90271fc09ef2fe4a097625a4942864"
+    },
+    {
+      "url": "/css/tutor-connect.css?v=1",
+      "sha256": "b374803968a657b979123faca87e1f10e6e3bda56317802cdeaee05e7e014702"
+    },
+    {
+      "url": "/js/tutor-connect.js?v=1",
+      "sha256": "790f143e68a889c03250b0840035f39e230e0d643a94e559d83c54593c692cfe"
+    },
+    {
+      "url": "/js/tutor-client.js?v=2",
+      "sha256": "14ba495e10b67836b5429b04681e4acc2224ec9855994ab90ac722cbfbdeaf5e"
+    },
+    {
+      "url": "/js/tutor-notebook.js?v=3",
+      "sha256": "3e7b56afdfa702e409ee3e90768b7e59a064ce1b0666d196e53166b9133d0cdb"
+    },
+    {
+      "url": "/js/tutor-panel.js?v=8",
+      "sha256": "f65da61801b67adcc6493203215bd5c01ce935cf7790f89b6c0a4dd0e32d1a6f"
+    },
+    {
+      "url": "/js/tutor-practice.js?v=2",
+      "sha256": "28d8916912cfc5e7da3d6b813f6879000fdfee58d7d18337a0f4b79499f48111"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=695",
+      "sha256": "f235928d656b216dbc125e68cfc151fff1660e51faf9d8d14c68ad79b1893d88"
+    },
+    {
+      "url": "/js/library-ui.js?v=700",
+      "sha256": "2566a86b28f5812c148b4c37533c23e1a9a9e367ef7f43110af79bc9d9c33c7f"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=277",
+      "sha256": "558d6aa6e41e109506a423e161aac080fc21f9f8438d92d3eba8aca33770a080"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=277",
+      "sha256": "c72003576abf16cde4a1035e9c4afaa84aec1ebca82086ab07cb0700424d6da3"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=277",
+      "sha256": "96d715d6d45874edc616edf819aa31eace1ef61be65392ac71131b140c00a82e"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "df077a0b42a7ae64c1cfc20c10135ae6805ca89b7f999cec75c5fd11b9f95bd7"
+    }
+  ],
+  "closed_route_status": 401
+}
