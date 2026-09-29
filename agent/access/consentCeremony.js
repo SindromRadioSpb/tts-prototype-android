@@ -8,7 +8,7 @@ const PROPOSAL_POLICY = require("./proposalPolicy");
 // S1: bumped — PERSONAL-tier scopes (личные тексты владельца) вводят новую, самую сильную
 // градацию карты. Equality-гейт версий — только approve-time (проверено критикой): живое
 // подключение Hermes НЕ рвётся; re-ceremony нужна лишь для добавления новых scope.
-const CONSENT_VERSION = "agent-access-consent-v5";
+const CONSENT_VERSION = "agent-access-consent-v6";
 const RETENTION_NOTICE_VERSION = "downstream-retention-v3";
 const MAX_PENDING = 100;
 
@@ -71,6 +71,10 @@ const SCOPE_PRESENTATION = Object.freeze({
   "reading.publication.item.read": Object.freeze({ capability: "read_published_text_window", purpose: "READ_OWNER_APPROVED_PUBLICATION_TEXT_WINDOWS", data_class: "PUBLICATION_TEXT_HE_RU_AND_IMMUTABLE_ANCHORS", retention_tier: "CONTENT", excludes: "NO_NOTES_PROGRESS_STUDY_HISTORY_PRIVATE_OR_GROUP_TEXT_NO_SILENT_EDITION_REBIND", first_party_action: "/library.html" }),
   "reading.publication.resource.read": Object.freeze({ capability: "list_published_item_resources", purpose: "READ_OWNER_APPROVED_RESOURCE_DESCRIPTORS", data_class: "CANONICAL_HTTPS_URL_MIME_BYTES_SHA256_AND_PINNED_RESOURCE_ID", retention_tier: "AGGREGATE", excludes: "NO_BINARY_IN_MCP_NO_SERVER_FETCH_NO_PREVIEW_NO_PACKAGE_OR_DERIVATIVE_WITHOUT_SEPARATE_RIGHT", first_party_action: "/library.html" }),
   "reading.publication.derivative.read": Object.freeze({ capability: "read_published_learning_support", purpose: "READ_OWNER_REVIEWED_LEARNING_DERIVATIVE", data_class: "REVIEWED_STEM_CONDITION_BEGINNER_BRIDGE_EXAM_SOLUTION_ANSWER_AND_PROVENANCE", retention_tier: "CONTENT", excludes: "NO_LEARNER_STATE_NO_GRADES_NO_NOTES_NO_PRIVATE_OR_GROUP_TEXT_EXACT_EDITION_ITEM_AND_DERIVATIVE_RIGHT_REQUIRED", first_party_action: "/library.html" }),
+  "tutor.capabilities.read": Object.freeze({ capability: "get_tutor_capabilities", purpose: "DISCOVER_TUTOR_TOOL_AVAILABILITY", data_class: "VERSION_AND_GRANT_STATUS_ONLY", retention_tier: "AGGREGATE", excludes: "NO_SOURCE_TEXT_QUESTION_ANSWER_PROFILE_OR_BROWSER_DATA", first_party_action: "/agent-access.html" }),
+  "tutor.context.read": Object.freeze({ capability: "get_active_learning_context", purpose: "READ_ONE_EXPLICITLY_SHARED_LEARNING_FRAGMENT", data_class: "BOUNDED_SELECTED_SOURCE_WINDOW_AND_EXACT_ANCHORS", retention_tier: "PERSONAL", excludes: "NO_ARBITRARY_TAB_ACCESS_NO_UNSHARED_SOURCE_NO_GRADES_OR_STUDY_RECORDS", first_party_action: "/library.html" }),
+  "tutor.session.read": Object.freeze({ capability: "get_tutor_session", purpose: "READ_ONE_EXPLICITLY_SHARED_TUTOR_SESSION", data_class: "QUESTION_ANSWER_AND_PRACTICE_PROPOSAL_STATUS", retention_tier: "PERSONAL", excludes: "NO_REVIEW_GRADE_PROVIDER_CREDENTIAL_OR_UNSHARED_SESSION", first_party_action: "/library.html" }),
+  "tutor.artifact.propose": Object.freeze({ capability: "propose_learning_artifact", purpose: "PROPOSE_SOURCE_BOUND_NOTE_DRAFT", data_class: "AGENT_AUTHORED_NOTE_DRAFT_WITH_SOURCE_DIGEST", retention_tier: "PERSONAL", excludes: "NO_CANONICAL_NOTE_OR_STUDY_STATE_WRITE", first_party_action: "/agent-access.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }

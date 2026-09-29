@@ -71,17 +71,30 @@ async function lazyExpireTx(db, userId, at) {
 // Idempotent create. Returns { proposal_id, status, expires_at, reused }.
 // status is 'PENDING' or (deny-cooldown) 'DENIED' — never CONFIRMED: the agent
 // must not learn confirmation state through the propose channel.
-async function create(userId, { oauthClientId, connectionId, kind, payload, displayTitle, nowIso } = {}) {
+async function create(userId, { oauthClientId, connectionId, kind, payload, displayTitle, idempotencyKey, nowIso } = {}) {
   if (!userId || !oauthClientId || !connectionId) error("AA_PROPOSAL_PRINCIPAL_INVALID");
   if (!POLICY.PROPOSAL_KINDS.includes(kind)) error("AA_PROPOSAL_KIND_INVALID");
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) error("AA_PROPOSAL_PAYLOAD_INVALID");
   const nowMs = nowMsOf(nowIso);
   const at = iso(nowMs);
-  const dedupeKey = dedupeKeyFor(connectionId, kind, payload);
+  if (idempotencyKey != null && (kind !== "note" || typeof idempotencyKey !== "string" || !/^[A-Za-z0-9_-]{16,80}$/.test(idempotencyKey)
+    || typeof payload.source_digest !== "string" || !/^[a-f0-9]{64}$/.test(payload.source_digest)
+    || typeof payload.session_id !== "string" || typeof payload.context_id !== "string")) error("AA_PROPOSAL_IDEMPOTENCY_INVALID");
+  const dedupeKey = idempotencyKey == null ? dedupeKeyFor(connectionId, kind, payload)
+    : crypto.createHash("sha256").update(`tutor-note:${connectionId}:${idempotencyKey}`, "utf8").digest("hex");
   const payloadJson = JSON.stringify(payload);
   if (Buffer.byteLength(payloadJson, "utf8") > 16384) error("AA_PROPOSAL_PAYLOAD_TOO_LARGE");
   return transaction(async (db) => {
     await lazyExpireTx(db, String(userId), at);
+    if (idempotencyKey != null) {
+      const prior = await get(db, `SELECT proposal_id,status,expires_at,payload_json FROM agent_proposals WHERE user_id=? AND connection_id=? AND dedupe_key=? ORDER BY created_at DESC LIMIT 1`,
+        [String(userId), String(connectionId), dedupeKey]);
+      if (prior) {
+        if (prior.payload_json !== payloadJson) error("AA_TUTOR_IDEMPOTENCY_CONFLICT");
+        if (prior.status === "EXPIRED") error("AA_TUTOR_IDEMPOTENCY_EXPIRED");
+        return { proposal_id: prior.proposal_id, status: ["DENIED", "REJECTED"].includes(prior.status) ? "DENIED" : "PENDING", expires_at: prior.expires_at, reused: true };
+      }
+    }
     // Deny-cooldown: same connection+payload recently denied → return the denial.
     const denied = await get(db,
       `SELECT proposal_id, status, expires_at FROM agent_proposals

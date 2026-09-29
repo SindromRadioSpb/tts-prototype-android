@@ -1,5 +1,5 @@
 ; User-scoped pilot installer: no admin, no credentials in Windows files.
-#define AppVersion "0.1.0-beta.1"
+#define AppVersion "0.1.0-beta.2"
 [Setup]
 AppId=LinguistProPersonalTutor
 AppName=LinguistPro Tutor
@@ -21,6 +21,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "windows\Tutor.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "connector.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hermes_turn.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "mcp_setup.py"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
 Name: "{group}\LinguistPro Tutor"; Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -STA -File ""{app}\Tutor.ps1"""; WorkingDir: "{app}"
 Name: "{userdesktop}\LinguistPro Tutor"; Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -STA -File ""{app}\Tutor.ps1"""; WorkingDir: "{app}"

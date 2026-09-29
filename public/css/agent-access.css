@@ -18,3 +18,15 @@ main{max-width:960px;margin:auto;padding:40px clamp(18px,5vw,58px) 80px}.hero{ma
 .nakdan-preview.protected{border-color:var(--line);background:#eef2f3;color:var(--muted)}
 .nakdan-preview-label{font-weight:750}
 .nakdan-preview-text{margin-top:8px;white-space:pre-wrap;font-size:18px;line-height:1.8;color:var(--ink)}
+/* A four-scope tutor authorization is one learner decision, not an operator dashboard. */
+body.tutor-consent-flow .connections,
+body.tutor-consent-flow #proposalsPanel,
+body.tutor-consent-flow #textGrantsPanel,
+body.tutor-consent-flow #currentGoalPanel,
+body.tutor-consent-flow #ownerPanel,
+body.tutor-consent-flow .authority-line,
+body.tutor-consent-flow .hero .lead,
+body.tutor-consent-flow .hero .eyebrow,
+body.tutor-consent-flow #consentForm .truth-note { display: none !important; }
+body.tutor-consent-flow .hero { margin-bottom: 1rem; }
+body.tutor-consent-flow #consentPanel { max-width: 48rem; margin-inline: auto; }

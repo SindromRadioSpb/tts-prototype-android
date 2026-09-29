@@ -55,6 +55,10 @@ const CAPABILITIES = Object.freeze({
   list_published_item_resources: Object.freeze({ scope: "reading.publication.resource.read", purpose: "EXPLICIT_PUBLISHED_RESOURCE_DESCRIPTORS", scenario_id: "agent_access.publication_resources", max_output_bytes: 12288 }),
   read_published_text_window: Object.freeze({ scope: "reading.publication.item.read", purpose: "EXPLICIT_PUBLISHED_TEXT_WINDOW", scenario_id: "agent_access.publication_text", max_output_bytes: 16384 }),
   read_published_learning_support: Object.freeze({ scope: "reading.publication.derivative.read", purpose: "EXPLICIT_REVIEWED_LEARNING_DERIVATIVE", scenario_id: "agent_access.publication_learning_support", max_output_bytes: 24576 }),
+  get_tutor_capabilities: Object.freeze({ scope: "tutor.capabilities.read", purpose: "EXPLICIT_TUTOR_CAPABILITY_DISCOVERY", scenario_id: "agent_access.tutor_capabilities", max_output_bytes: 2048 }),
+  get_active_learning_context: Object.freeze({ scope: "tutor.context.read", purpose: "EXPLICIT_SINGLE_CONTEXT_HANDOFF_READ", scenario_id: "agent_access.tutor_context", max_output_bytes: 24576 }),
+  get_tutor_session: Object.freeze({ scope: "tutor.session.read", purpose: "EXPLICIT_TUTOR_SESSION_READ", scenario_id: "agent_access.tutor_session", max_output_bytes: 8192 }),
+  propose_learning_artifact: Object.freeze({ scope: "tutor.artifact.propose", purpose: "EXPLICIT_TUTOR_NOTE_DRAFT", scenario_id: "agent_access.tutor_artifact_proposal", max_output_bytes: 1024 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

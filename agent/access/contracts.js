@@ -50,6 +50,7 @@ const SCOPES = new Set([
   "reading.publication.item.read",
   "reading.publication.resource.read",
   "reading.publication.derivative.read",
+  "tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -889,6 +890,81 @@ function publicationLearningSupport(value) {
   return Object.freeze({...x,item});
 }
 
+function tutorContextInput(value) {
+  const x = closed(value, ["context_id"], ["context_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, MAX_ARGUMENT_BYTES, "ARGUMENTS_TOO_LARGE"); id(x.context_id, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze({ context_id: x.context_id });
+}
+function tutorSessionInput(value) {
+  const x = closed(value, ["session_id"], ["session_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, MAX_ARGUMENT_BYTES, "ARGUMENTS_TOO_LARGE"); id(x.session_id, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze({ session_id: x.session_id });
+}
+function tutorArtifactInput(value) {
+  const keys = ["session_id", "idempotency_key", "kind", "title", "body", "source_digest"];
+  const x = closed(value, keys, keys, "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, MAX_ARGUMENT_BYTES, "ARGUMENTS_TOO_LARGE");
+  id(x.session_id, "ARGUMENT_SCHEMA_INVALID");
+  if (typeof x.idempotency_key !== "string" || !/^[A-Za-z0-9_-]{16,80}$/.test(x.idempotency_key)
+    || x.kind !== "note" || typeof x.title !== "string" || !x.title.trim() || Buffer.byteLength(x.title, "utf8") > 160
+    || typeof x.body !== "string" || !x.body.trim() || Buffer.byteLength(x.body, "utf8") > 2000
+    || typeof x.source_digest !== "string" || !/^[a-f0-9]{64}$/.test(x.source_digest)) fail("ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze({ ...x });
+}
+function tutorCapabilities(value) {
+  const keys = ["schema_version", "supported_schema_versions", "operations", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 2048, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.tutor_capabilities.1.0.0" || !Array.isArray(x.supported_schema_versions)
+    || x.supported_schema_versions.length !== 3 || new Set(x.supported_schema_versions).size !== 3
+    || !Array.isArray(x.operations) || x.operations.length !== 4) fail("OUTPUT_SCHEMA_INVALID");
+  const expected = ["tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose"];
+  for (let i = 0; i < 4; i++) {
+    const op = closed(x.operations[i], ["scope", "granted"], ["scope", "granted"], "OUTPUT_SCHEMA_INVALID");
+    if (op.scope !== expected[i] || typeof op.granted !== "boolean") fail("OUTPUT_SCHEMA_INVALID");
+  }
+  timestamp(x.generated_at, "OUTPUT_SCHEMA_INVALID"); return Object.freeze(x);
+}
+function tutorContextOutput(value) {
+  const keys = ["schema_version", "context_id", "session_id", "surface", "locale", "source", "excerpt_digest", "authority", "expires_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 24576, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.tutor_context.1.0.0" || !["studio", "room", "mediatheque", "review"].includes(x.surface)
+    || !["ru", "he", "en"].includes(x.locale) || !["source_snapshot", "user_supplied_snapshot"].includes(x.authority)) fail("OUTPUT_SCHEMA_INVALID");
+  id(x.context_id, "OUTPUT_SCHEMA_INVALID"); id(x.session_id, "OUTPUT_SCHEMA_INVALID");
+  if (typeof x.excerpt_digest !== "string" || !/^[a-f0-9]{64}$/.test(x.excerpt_digest)) fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.expires_at, "OUTPUT_SCHEMA_INVALID");
+  const source = closed(x.source, ["kind", "material_id", "revision_id", "sentence_id", "excerpt", "before", "after", "selection", "media"], undefined, "OUTPUT_SCHEMA_INVALID");
+  for (const key of ["material_id", "revision_id", "sentence_id"]) id(source[key], "OUTPUT_SCHEMA_INVALID");
+  for (const [key, max] of [["excerpt", 8000], ["before", 4000], ["after", 4000]]) {
+    if (typeof source[key] !== "string" || source[key].length > max) fail("OUTPUT_SCHEMA_INVALID");
+  }
+  if (!source.excerpt || !["local_snapshot", "personal_text", "public_corpus", "caption"].includes(source.kind)) fail("OUTPUT_SCHEMA_INVALID");
+  if (source.selection != null) {
+    const s = closed(source.selection, ["start", "end"], ["start", "end"], "OUTPUT_SCHEMA_INVALID");
+    integer(s.start, 0, 8000); integer(s.end, s.start + 1, 8000);
+  }
+  if (source.media != null) {
+    const m = closed(source.media, ["caption_revision", "start_ms", "end_ms"], undefined, "OUTPUT_SCHEMA_INVALID");
+    id(m.caption_revision); integer(m.start_ms, 0, 1000000000); integer(m.end_ms, m.start_ms + 1, 1000000000);
+  }
+  return Object.freeze(x);
+}
+function tutorSessionOutput(value) {
+  const keys = ["schema_version", "session_id", "context_id", "state", "question", "answer", "answer_truncated", "practice_proposal_state", "excerpt_digest", "expires_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.tutor_session.1.0.0" || !["queued", "running", "completed", "cancelled", "failed"].includes(x.state)) fail("OUTPUT_SCHEMA_INVALID");
+  id(x.session_id); id(x.context_id); string(x.question, 4000, "OUTPUT_SCHEMA_INVALID"); bool(x.answer_truncated, "OUTPUT_SCHEMA_INVALID");
+  if (x.answer != null) string(x.answer, 4000, "OUTPUT_SCHEMA_INVALID");
+  if (x.practice_proposal_state != null && !["proposed", "accepted", "completed", "dismissed"].includes(x.practice_proposal_state)) fail("OUTPUT_SCHEMA_INVALID");
+  if (typeof x.excerpt_digest !== "string" || !/^[a-f0-9]{64}$/.test(x.excerpt_digest)) fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.expires_at); return Object.freeze(x);
+}
+function tutorArtifactOutput(value) {
+  const keys = ["schema_version", "proposal_id", "state", "expires_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 1024, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.tutor_artifact_proposal.1.0.0" || !["PENDING", "DENIED"].includes(x.state)) fail("OUTPUT_SCHEMA_INVALID");
+  id(x.proposal_id); timestamp(x.expires_at); return Object.freeze(x);
+}
+
 const INPUT_VALIDATORS = Object.freeze({
   get_learning_brief: emptyInput,
   get_review_summary: emptyInput,
@@ -921,6 +997,10 @@ const INPUT_VALIDATORS = Object.freeze({
   list_published_item_resources: validatePublicationResourcesInput,
   read_published_text_window: validatePublicationTextInput,
   read_published_learning_support: validatePublicationItemInput,
+  get_tutor_capabilities: emptyInput,
+  get_active_learning_context: tutorContextInput,
+  get_tutor_session: tutorSessionInput,
+  propose_learning_artifact: tutorArtifactInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -954,6 +1034,10 @@ const OUTPUT_VALIDATORS = Object.freeze({
   list_published_item_resources: publicationResources,
   read_published_text_window: publicationText,
   read_published_learning_support: publicationLearningSupport,
+  get_tutor_capabilities: tutorCapabilities,
+  get_active_learning_context: tutorContextOutput,
+  get_tutor_session: tutorSessionOutput,
+  propose_learning_artifact: tutorArtifactOutput,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

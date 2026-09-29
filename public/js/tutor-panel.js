@@ -53,7 +53,25 @@
       await window.LPTutorNotebook.local().save(currentOwner,{schema:1,status:'accepted',session_id:currentSession.id,context:currentContext,question:currentSession.question,answer:currentSession.result.text});
     } catch (_) { if(panel===currentPanel)status(notebookCopy[lang].failed); }
   }
-  function practiceActions(){const offered=session?.state==='completed'&&session.practice_available===true;$('practiceStart').hidden=!offered;$('practiceStart').textContent=window.LPTutorPractice.label(lang,session?.practice_proposal_state);$('practiceDismiss').hidden=!offered||session.practice_proposal_state!=='proposed';}
+  function practiceActions(){const completed=session?.state==='completed';const offered=completed&&session.practice_available===true;$('practiceStart').hidden=!offered;$('practiceStart').textContent=window.LPTutorPractice.label(lang,session?.practice_proposal_state);$('practiceDismiss').hidden=!offered||session.practice_proposal_state!=='proposed';$('chatHandoff').hidden=!completed;}
+  async function shareWithChat(){
+    const selected=session;if(!selected||selected.state!=='completed')return;
+    const button=$('chatHandoff');button.disabled=true;
+    try{
+      if(await api.identity()!==owner)throw new Error('UNAUTHENTICATED');
+      const response=await fetch('/api/agent-access/connections',{credentials:'same-origin',cache:'no-store'});
+      if(!response.ok)throw new Error('AA_TUTOR_CONNECTION_REQUIRED');
+      const rows=(await response.json()).connections||[];
+      const eligible=rows.filter(row=>['ACTIVE','SCOPE_REDUCED'].includes(row.status)&&['tutor.capabilities.read','tutor.context.read','tutor.session.read','tutor.artifact.propose'].every(scope=>row.grants.some(grant=>grant.scope===scope&&grant.status==='ACTIVE')));
+      if(eligible.length!==1)throw new Error(eligible.length?'AA_TUTOR_CONNECTION_AMBIGUOUS':'AA_TUTOR_CONNECTION_REQUIRED');
+      const handoff=await api.call('/sessions/'+encodeURIComponent(selected.id)+'/mcp-handoff',{agent_connection_id:eligible[0].connection_id});
+      const prompt=({ru:'Продолжим разбор выбранного фрагмента. Получи его через get_active_learning_context с context_id ',en:'Continue discussing my selected passage. Read it with get_active_learning_context using context_id ',he:'נמשיך לדבר על הקטע שבחרתי. קראו אותו בעזרת get_active_learning_context עם context_id '})[lang]+handoff.context_id+'. '+({ru:'Затем получи ответ наставника через get_tutor_session с session_id ',en:'Then read the tutor answer with get_tutor_session using session_id ',he:'אחר כך קראו את תשובת המורה בעזרת get_tutor_session עם session_id '})[lang]+handoff.session_id+'.';
+      await navigator.clipboard.writeText(prompt);
+      $('chatOpen').hidden=false;
+      status(({ru:'Сообщение скопировано. Откройте чат и вставьте его — фрагмент доступен 15 минут.',en:'Message copied. Open chat and paste it — this passage is available for 15 minutes.',he:'ההודעה הועתקה. פתחו את הצ׳אט והדביקו אותה — הקטע זמין ל־15 דקות.'})[lang]);
+    }catch(e){const c=e.code||e.message;status(c==='AA_TUTOR_CONNECTION_AMBIGUOUS'?({ru:'Найдено несколько подключений чата. Оставьте одно активное подключение наставника в данных аккаунта.',en:'More than one tutor chat connection is active. Keep one active in account data.',he:'יש יותר מחיבור אחד לצ׳אט. השאירו חיבור מורה פעיל אחד בנתוני החשבון.'})[lang]:c==='AA_TUTOR_CONNECTION_REQUIRED'||c==='AA_TUTOR_SCOPE_REQUIRED'?({ru:'Сначала подключите чат с наставником в приложении Tutor на компьютере.',en:'Connect tutor chat in the Tutor app on your computer first.',he:'תחילה חברו את הצ׳אט של המורה באפליקציית Tutor במחשב.'})[lang]:({ru:'Не удалось передать фрагмент. Попробуйте ещё раз.',en:'Could not share the passage. Please try again.',he:'לא ניתן לשתף את הקטע. נסו שוב.'})[lang]);}
+    finally{button.disabled=false;}
+  }
   function error(e) {
     busy = false; $('send').disabled = false; $('question').readOnly=false; $('cancel').hidden = true;
     const code = e.code || e.message;
@@ -85,7 +103,9 @@
     const close=node('button',words.close,{type:'button'}), login=node('a',words.login,{id:'login',href:'/library.html#cloud'}); login.hidden=true;
     const practiceButton=node('button',window.LPTutorPractice.label(lang),{id:'practiceStart',type:'button'});practiceButton.hidden=true;
     const dismissPractice=node('button',notebookCopy[lang].dismissPractice,{id:'practiceDismiss',type:'button'});dismissPractice.hidden=true;
-    actions.append(send,close,practiceButton,dismissPractice,cancel,login);composer.append(actions);
+    const chatHandoff=node('button',lang==='ru'?'Продолжить в чате Hermes':lang==='he'?'להמשיך בצ׳אט Hermes':'Continue in Hermes chat',{id:'chatHandoff',type:'button'});chatHandoff.hidden=true;
+    const chatOpen=node('a',lang==='ru'?'Открыть чат':lang==='he'?'פתיחת הצ׳אט':'Open chat',{id:'chatOpen',href:'http://127.0.0.1:8787/',target:'_blank',rel:'noopener'});chatOpen.hidden=true;
+    actions.append(send,close,practiceButton,dismissPractice,chatHandoff,chatOpen,cancel,login);composer.append(actions);
     const setup=node('a',words.connect,{id:'setup',href:'/tutor-connect.html#lang='+lang,target:'_blank',rel:'noopener'});setup.hidden=true;body.append(setup);
     const details=node('details');details.id='connectionDetails';details.hidden=true;details.append(node('summary',lang==='ru'?'Ручное подключение':lang==='he'?'חיבור ידני':'Manual connection'));
     const connect=node('button',words.connect,{type:'button'}), refresh=node('button',words.refresh,{type:'button'}),revoke=node('button',words.revoke,{type:'button'});
@@ -95,6 +115,7 @@
     Array.from(body.children).slice(2).forEach(child=>explanationView.append(child));body.append(explanationView);
     const practiceHost=node('section',null,{id:'practiceHost'});practiceHost.hidden=true;body.append(practiceHost);
     dismissPractice.onclick=async()=>{try{if(!session||await api.identity()!==owner)return;await api.call('/sessions/'+encodeURIComponent(session.id)+'/practice/dismiss',{});session.practice_proposal_state='dismissed';session.practice_available=false;practiceActions();status(notebookCopy[lang].dismissedPractice);}catch(e){error(e);}};
+    chatHandoff.onclick=shareWithChat;
     practiceButton.onclick=()=>{
       if(!session||session.state!=='completed')return;
       const openedPanel=panel,id=session.id;
@@ -133,7 +154,7 @@
     if(busy) return;
     if(!context){status(words.expired);return;}
     draft=$('question').value.trim()||words.defaultQuestion;
-    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('practiceStart').hidden=true;$('practiceDismiss').hidden=true;status(words.queued);
+    busy=true;$('send').disabled=true;$('question').readOnly=true;$('cancel').hidden=false;$('practiceStart').hidden=true;$('practiceDismiss').hidden=true;$('chatHandoff').hidden=true;$('chatOpen').hidden=true;status(words.queued);
     const currentContext=context,currentPanel=panel;
     const turn=++generation;
     try {

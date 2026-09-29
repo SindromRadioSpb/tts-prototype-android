@@ -46,6 +46,10 @@ const TOOL_LIMITS = Object.freeze({
   list_published_item_resources: Object.freeze({ minute: 20, day: 600 }),
   read_published_text_window: Object.freeze({ minute: 20, day: 400 }),
   read_published_learning_support: Object.freeze({ minute: 12, day: 240 }),
+  get_tutor_capabilities: Object.freeze({ minute: 12, day: 240 }),
+  get_active_learning_context: Object.freeze({ minute: 6, day: 120 }),
+  get_tutor_session: Object.freeze({ minute: 6, day: 120 }),
+  propose_learning_artifact: Object.freeze({ minute: 4, day: 40 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

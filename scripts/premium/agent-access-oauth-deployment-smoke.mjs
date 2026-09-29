@@ -311,15 +311,15 @@ try {
   });
   readinessChild.stdout.on('data', (value) => readinessLogs.push(String(value)));
   readinessChild.stderr.on('data', (value) => readinessLogs.push(String(value)));
-  let ready = false;
+  let ready = false, lastHealth = '';
   for (let attempt = 0; attempt < 100; attempt += 1) {
     try {
-      const health = await rawRequest(readinessOrigin, '/healthz');
+      const health = await rawRequest(readinessOrigin, '/healthz'); lastHealth = health.body;
       if (health.status === 200 && JSON.parse(health.body).migrations?.ready) { ready = true; break; }
     } catch (_) {}
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  assert.equal(ready, true, readinessLogs.join('').slice(-1000));
+  assert.equal(ready, true, lastHealth + '\n' + readinessLogs.join('').slice(-1000));
   const proxyHeaders = {
     host: 'linguistpro.kolosei.com',
     'x-forwarded-host': 'linguistpro.kolosei.com',

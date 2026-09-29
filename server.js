@@ -1175,7 +1175,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=2",
   "/js/tutor-notebook.js?v=3",
-  "/js/tutor-panel.js?v=8",
+  "/js/tutor-panel.js?v=9",
   "/js/tutor-practice.js?v=2",
   "/db/db-worker-runtime.js?v=545",
   "/db/sqlite-api.js?v=531",
@@ -1951,8 +1951,12 @@ function requireCsrf(req, res, auth) {
 const tutorRollout = require("./agent/tutor/rollout").createRollout(() => require("./db/sqlite").getDb());
 const tutorTransportEnabled = tutorRollout.enabled;
 const tutorTransportStore = require("./agent/tutor/store").createStore(() => require("./db/sqlite").getDb(),Date.now,tutorRollout.allowed);
+const tutorMcpStore = require("./agent/access/tutorMcpStore").createTutorMcpStore({
+  getDb: () => require("./db/sqlite").getDb(), oauthRepo: require("./db/agentAccessOAuthRepo"),
+  proposalsRepo: require("./db/agentProposalsRepo"),
+});
 require("./agent/tutor/routes").installRoutes(app, {
-  store: tutorTransportStore, enabled: tutorTransportEnabled, requireUser, requireCsrf,
+  store: tutorTransportStore, tutorMcpStore, enabled: tutorTransportEnabled, requireUser, requireCsrf,
   capability: async req=>{const auth=await identityRepo.validateSession(getSessionCookie(req)).catch(()=>null);return auth? tutorRollout.allowed(auth.user.id):false;},
   enrollmentLimiter:makeRateLimiter({windowMs:60000,max:6,name:"tutor-enrollment"}),
   limiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "tutor-transport" }),
@@ -1961,7 +1965,8 @@ app.use("/api/tutor/downloads", async(req,res,next)=>{
   const auth=await requireUser(req,res);if(!auth)return;
   if(!await tutorRollout.allowed(auth.user.id))return res.status(404).json({ok:false,error:"not_available"});
   res.set("Cache-Control","private, no-store");next();
-},express.static(path.join(DATA_DIR,"tutor-downloads"),{dotfiles:"deny",index:false,cacheControl:false}));
+},express.static(path.join(__dirname,"ops/mentor-connector/releases"),{dotfiles:"deny",index:false,cacheControl:false}),
+  express.static(path.join(DATA_DIR,"tutor-downloads"),{dotfiles:"deny",index:false,cacheControl:false}));
 setInterval(() => {
   // Retention remains active when the rollout expires or is switched off.
   tutorTransportStore.sweep().catch(()=>{});
@@ -2190,6 +2195,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         textGrantsRepo: require("./db/agentTextGrantsRepo"),           // S2: standing-грант владельца
         groupCorpusRepo: require("./db/groupCorpusRepo"),             // restricted corpus; ACTIVE membership on every read
         weeklyGoalsRepo: require("./db/weeklyGoalsRepo"),             // H2.3 server-authoritative weekly goals
+        tutorMcpStore,
         publicPublicationReadService: createPublicPublicationReadService({
           rightsRepo: getPublicationAgentRightsRepo(),
           physicsRepo: getPhysicsTaskResourceRepoForAgentAccess(),

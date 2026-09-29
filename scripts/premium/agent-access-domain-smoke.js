@@ -46,7 +46,7 @@ const fixtures = Object.freeze({
   }),
   get_agent_connection: Object.freeze({
     schema_version: "aa.connection.1.0.0", connection_id: principal.connection_id, oauth_client_id: principal.oauth_client_id,
-    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read","intent.import_text.propose","intent.track_word.propose","intent.goal.propose","goal.read","reading.publication.catalog.read","reading.publication.item.read","reading.publication.resource.read","reading.publication.derivative.read"]).has(scope))),
+    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read","intent.import_text.propose","intent.track_word.propose","intent.goal.propose","goal.read","reading.publication.catalog.read","reading.publication.item.read","reading.publication.resource.read","reading.publication.derivative.read","tutor.capabilities.read","tutor.context.read","tutor.session.read","tutor.artifact.propose"]).has(scope))),
     access_expires_at: principal.access_expires_at, consent_version: "consent-1", capability_version: "aa-v0.1",
     downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: GENERATED,
   }),
@@ -139,6 +139,10 @@ const fixtures = Object.freeze({
   list_published_item_resources: Object.freeze({schema_version:"aa.published_item_resources.1.0.0",edition_id:"ed-songs-1",edition_item_id:"ei-song-1",resources:Object.freeze([Object.freeze({resource_id:"ea-song-1",resource_kind:"PUBLICATION_ASSET",revision_id:null,asset_key:"c".repeat(64),bytes:12345,sha256:"d".repeat(64),mime:"audio/mpeg",url:`https://linguistpro.kolosei.com/api/public-corpora/study-songs/assets/${"c".repeat(64)}`})]),next_cursor:null,generated_at:GENERATED}),
   read_published_text_window: Object.freeze({schema_version:"aa.published_text_window.1.0.0",item:Object.freeze({corpus_id:"pc-songs",corpus_slug:"study-songs",corpus_title:"Study Songs",edition_id:"ed-songs-1",edition_number:1,manifest_sha256:"a".repeat(64),edition_item_id:"ei-song-1",public_work_id:"song-1",position_no:1,title:"Song",creator:"Author",snapshot_sha256:"b".repeat(64)}),start_order_index:0,rows:Object.freeze([Object.freeze({order_index:0,he:"שלום",ru:"Привет"})]),rows_total:1,has_more:false,generated_at:GENERATED}),
   read_published_learning_support: Object.freeze({schema_version:"aa.published_learning_support.1.0.0",item:Object.freeze({corpus_id:"pc-physics",corpus_slug:"physics-year1-problems",corpus_title:"Physics",edition_id:"ed-physics-2",edition_number:2,manifest_sha256:"c".repeat(64),edition_item_id:"ei-physics-1",public_work_id:"work-physics-1",position_no:1,title:"Physics 1.1",creator:"",snapshot_sha256:"d".repeat(64)}),task_number:"1.1",locale:"ru",content_markdown:"# Задача 1.1\n\nПроверенный разбор.",derivative_sha256:"e".repeat(64),generated_at:GENERATED}),
+  get_tutor_capabilities: Object.freeze({schema_version:"aa.tutor_capabilities.1.0.0",supported_schema_versions:["aa.tutor_context.1.0.0","aa.tutor_session.1.0.0","aa.tutor_artifact_proposal.1.0.0"],operations:["tutor.capabilities.read","tutor.context.read","tutor.session.read","tutor.artifact.propose"].map(scope=>({scope,granted:true})),generated_at:GENERATED}),
+  get_active_learning_context: Object.freeze({schema_version:"aa.tutor_context.1.0.0",context_id:"ctx-1",session_id:"session-1",surface:"room",locale:"ru",source:{kind:"local_snapshot",material_id:"material-1",revision_id:"revision-1",sentence_id:"sentence-1",excerpt:"שלום",before:"",after:"",selection:null,media:null},excerpt_digest:"a".repeat(64),authority:"user_supplied_snapshot",expires_at:"2026-07-17T09:10:00.000Z"}),
+  get_tutor_session: Object.freeze({schema_version:"aa.tutor_session.1.0.0",session_id:"session-1",context_id:"ctx-1",state:"completed",question:"Почему?",answer:"Потому что.",answer_truncated:false,practice_proposal_state:null,excerpt_digest:"a".repeat(64),expires_at:"2026-07-17T09:10:00.000Z"}),
+  propose_learning_artifact: Object.freeze({schema_version:"aa.tutor_artifact_proposal.1.0.0",proposal_id:"proposal-1",state:"PENDING",expires_at:"2026-07-31T09:00:00.000Z"}),
 });
 
 const validArgs = Object.freeze({
@@ -173,6 +177,10 @@ const validArgs = Object.freeze({
   list_published_item_resources: Object.freeze({corpus_slug:"study-songs",edition_id:"ed-songs-1",edition_item_id:"ei-song-1",limit:10}),
   read_published_text_window: Object.freeze({corpus_slug:"study-songs",edition_id:"ed-songs-1",edition_item_id:"ei-song-1",start:0,rows:10}),
   read_published_learning_support: Object.freeze({corpus_slug:"physics-year1-problems",edition_id:"ed-physics-2",edition_item_id:"ei-physics-1"}),
+  get_tutor_capabilities: Object.freeze({}),
+  get_active_learning_context: Object.freeze({context_id:"ctx-1"}),
+  get_tutor_session: Object.freeze({session_id:"session-1"}),
+  propose_learning_artifact: Object.freeze({session_id:"session-1",idempotency_key:"fixture-unique-key-1",kind:"note",title:"Заметка",body:"Смысл фрагмента",source_digest:"a".repeat(64)}),
 });
 
 function handlers(overrides = {}) {
@@ -253,7 +261,7 @@ async function expectCode(promise, code) {
     // any future scenario pick either role freely. Reader scenarios may only
     // hold *_read capabilities; proposer scenarios only the known write repos.
     const WRITE_TOOLS = mcpSchemas.WRITE_TOOLS;
-    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "create_review_handoff", "propose_action", "propose_goal", "propose_import_text", "propose_track_word"]);
+    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "create_review_handoff", "propose_action", "propose_goal", "propose_import_text", "propose_learning_artifact", "propose_track_word"]);
     // Mint tools must NOT advertise idempotency — a retrying client would mint
     // live tokens against the cap + rate limit (adversarial critique 4b-final).
     for (const def of mcpSchemas.toolDefinitions()) {

@@ -81,6 +81,7 @@ function createProductionHandlers(options = {}) {
   const coverageResolver = options.textCoverageResolver || require("./textCoverageResolver");
   const groupCorpusRepo = options.groupCorpusRepo; // restricted shared corpus; membership checked inside repo
   const weeklyGoalsRepo = options.weeklyGoalsRepo || require("../../db/weeklyGoalsRepo");
+  const tutorMcpStore = options.tutorMcpStore;
   const unavailablePublicationRead = async () => fail("AA_PUBLICATION_ACCESS_UNAVAILABLE");
   const publicationReadService = options.publicPublicationReadService || Object.freeze({
     listCorpora: unavailablePublicationRead, searchItems: unavailablePublicationRead, getItem: unavailablePublicationRead,
@@ -764,6 +765,10 @@ function createProductionHandlers(options = {}) {
     list_published_item_resources,
     read_published_text_window,
     read_published_learning_support,
+    get_tutor_capabilities: context => tutorMcpStore.capabilities(context),
+    get_active_learning_context: (context, args) => tutorMcpStore.context(context, args.context_id),
+    get_tutor_session: (context, args) => tutorMcpStore.session(context, args.session_id),
+    propose_learning_artifact: (context, args) => tutorMcpStore.propose(context, args),
   });
 }
 

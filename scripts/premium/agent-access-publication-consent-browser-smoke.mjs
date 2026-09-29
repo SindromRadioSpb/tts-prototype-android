@@ -74,8 +74,26 @@ try {
   assert.equal(await itemCard.locator('.scope-content-badge').count(), 1); checks++;
   const derivativeCard = page.locator('.scope-card').filter({ hasText: 'reading.publication.derivative.read' });
   assert.equal(await derivativeCard.locator('.scope-content-badge').count(), 1); checks++;
+  await page.goto(`${origin}/agent-access.html?request_id=fixture-tutor`, { waitUntil: 'networkidle' });
+  await page.locator('#consentPanel').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#pageTitle').textContent(), 'Подключить наставника к чату');
+  assert.equal(await page.locator('#consentTitle').textContent(), 'Доступ к выбранному разбору');
+  assert.equal(await page.locator('#approveButton').isEnabled(), true);
+  assert.equal(await page.locator('.scope-card').count(), 0);
+  assert.equal(await page.locator('.connections').isVisible(), false);
+  assert.equal(await page.locator('#ownerPanel').isVisible(), false);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(ROOT, '.tmp', 'agent-access-tutor-consent.png'), fullPage: true });
+  checks++;
+  for (const locale of ['en', 'he']) {
+    await page.locator('#languageSelect').selectOption(locale);
+    assert.equal(await page.locator('#approveButton').isEnabled(), true);
+    assert.equal(await page.locator('#consentPanel').isVisible(), true);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+    checks++;
+  }
   console.log(JSON.stringify({ ok: true, checks, viewport_css_px: 380, locales: ['ru', 'en', 'he'], rtl: true,
-    publication_scopes: PUBLICATION_SCOPES.length, horizontal_overflow: false, keyboard_focus: true,
+    publication_scopes: PUBLICATION_SCOPES.length, tutor_consent_simple: true, horizontal_overflow: false, keyboard_focus: true,
     production_reads: 0, owner_data_writes: 0 }));
 } catch (error) {
   if (logs) process.stderr.write(logs.slice(-2000));

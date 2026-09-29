@@ -2,8 +2,10 @@
 const { closed, fail } = require("./response");
 const STATUS = { not_available:404, slow_down:429, practice_unavailable: 409, practice_dismissed: 409, attempt_closed: 409, invalid_request: 400, invalid_context: 400, context_too_large: 413, invalid_output: 422,
   context_unavailable: 404, context_expired: 410, connection_required: 401, lease_invalid: 403,
-  pairing_expired: 410, agent_offline: 409, session_busy: 409, request_conflict: 409, result_rejected: 409, session_limit: 429 };
-function installRoutes(app, { store, enabled, requireUser, requireCsrf, limiter, capability = enabled, enrollmentLimiter = (_q,_s,n)=>n() }) {
+  pairing_expired: 410, agent_offline: 409, session_busy: 409, request_conflict: 409, result_rejected: 409, session_limit: 429,
+  AA_TUTOR_HANDOFF_INVALID: 400, AA_TUTOR_CONNECTION_REQUIRED: 403, AA_TUTOR_SCOPE_REQUIRED: 403,
+  AA_TUTOR_SESSION_UNAVAILABLE: 404, AA_TUTOR_CONTEXT_TOO_LARGE: 413 };
+function installRoutes(app, { store, tutorMcpStore = null, enabled, requireUser, requireCsrf, limiter, capability = enabled, enrollmentLimiter = (_q,_s,n)=>n() }) {
   const base = "/api/tutor";
   app.get(base + "/capabilities", async (req, res) => {
     let on=false;try{on=!!await capability(req);}catch(_){}
@@ -38,6 +40,11 @@ function installRoutes(app, { store, enabled, requireUser, requireCsrf, limiter,
   route("get", "/sessions/:id", true, async (req, auth) => {
     const out = await store.read(auth.user.id, req.params.id);
     return req.query.since === String(out.version) ? { id: out.id, version: out.version, unchanged: true } : out;
+  });
+  if (tutorMcpStore) route("post", "/sessions/:id/mcp-handoff", true, async (req, auth) => {
+    closed(req.body, ["agent_connection_id"]);
+    if (typeof req.body.agent_connection_id !== "string") fail("invalid_request");
+    return tutorMcpStore.issue(auth.user.id, req.body.agent_connection_id, req.params.id);
   });
   route("post", "/sessions/:id/cancel", true, (req, auth) => { closed(req.body, []); return store.cancel(auth.user.id, req.params.id); });
   route("post", "/sessions/:id/practice", true, (req,auth)=>{closed(req.body,[]);return store.practice(auth.user.id,req.params.id);});

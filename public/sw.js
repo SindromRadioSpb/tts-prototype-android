@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.700";
+const CACHE_VERSION = "v3.11.701";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -72,7 +72,7 @@ const PRECACHE_URLS = [
   "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=2",
   "/js/tutor-notebook.js?v=3",
-  "/js/tutor-panel.js?v=8",
+  "/js/tutor-panel.js?v=9",
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/css/mediatheque.css?v=695",

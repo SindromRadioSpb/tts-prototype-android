@@ -1,0 +1,12 @@
+{
+    "version":  "0.1.0-beta.2",
+    "url":  "/api/tutor/downloads/LinguistProTutor-0.1.0-beta.2.exe",
+    "sha256":  "1df625e0e86ba22c55481cd6418b5affee009023792f5c6645271449fdaa3141",
+    "unsigned":  true,
+    "audience":  "limited-pilot",
+    "requires":  [
+                     "Windows",
+                     "Docker Desktop",
+                     "supported Hermes 0.21.5"
+                 ]
+}

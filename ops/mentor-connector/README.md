@@ -69,6 +69,9 @@ Build on Windows with Inno Setup 6:
 `powershell -NoProfile -File ops/mentor-connector/windows/build.ps1`.
 The `.tmp/tutor-installer/` manifest records the artifact SHA256. Distribute only
 through the rollout-gated `/api/tutor/downloads` endpoint for this unsigned pilot.
+The beta.2 executable and SHA-256 manifest are pinned under `releases/` so a
+fresh deployment serves the matching helper immediately; the endpoint still
+requires a signed-in pilot account.
 The installer needs no administrator permission. Windows may warn because the
 pilot has no signing certificate; do not disable Windows security controls.
 
@@ -82,6 +85,16 @@ Sign in to LinguistPro, review the agent and confirm. No key or code copy is nee
 Close the helper window to keep working in the background; **Остановить** stops
 the connector. Revoke access on `/tutor-connect.html` to invalidate its credential.
 After a failed/expired approval, explicitly start Connect again.
+
+To add the four tutor tools to the existing Hermes chat, install pilot helper
+`0.1.0-beta.2` and choose **Подключить чат с наставником**. The helper prepares
+a separate `linguistpro_tutor` MCP profile and opens a short browser consent
+screen. The existing `linguistpro` profile and its OAuth grants stay intact.
+After a completed in-app explanation, **Продолжить в чате Hermes** copies a
+short-lived, single-fragment handoff message; open chat and paste it. The chat
+may read only that fragment and answer and can propose a note for owner review.
+The helper needs a running Hermes 0.21.5 container with the existing owner MCP
+profile. A newly installed Hermes without that profile is not yet supported.
 
 Operator commands inside the deployed application:
 `node ops/mentor-connector/rollout-cli.js enable-owner` (seven days),

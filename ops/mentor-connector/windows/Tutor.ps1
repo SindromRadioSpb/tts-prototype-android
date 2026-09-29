@@ -52,7 +52,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $form=New-Object System.Windows.Forms.Form
-$form.Text='LinguistPro Tutor';$form.Size=New-Object System.Drawing.Size(630,470);$form.MinimumSize=$form.Size;$form.StartPosition='CenterScreen'
+$form.Text='LinguistPro Tutor';$form.Size=New-Object System.Drawing.Size(630,555);$form.MinimumSize=$form.Size;$form.StartPosition='CenterScreen'
 $form.BackColor=[System.Drawing.ColorTranslator]::FromHtml('#f9f8f3');$form.Font=New-Object System.Drawing.Font('Segoe UI',11)
 $title=New-Object System.Windows.Forms.Label;$title.Text='Личный наставник';$title.Font=New-Object System.Drawing.Font('Segoe UI',23,[System.Drawing.FontStyle]::Bold);$title.SetBounds(28,26,560,50)
 $intro=New-Object System.Windows.Forms.Label;$intro.Text='Hermes и ваша подписка ChatGPT. Подключение подтверждается в браузере LinguistPro.';$intro.SetBounds(30,91,545,65)
@@ -60,9 +60,10 @@ $status=New-Object System.Windows.Forms.Label;$status.Text='Нажмите «П�
 $connect=New-Object System.Windows.Forms.Button;$connect.Text='Подключить';$connect.SetBounds(30,265,173,48)
 $open=New-Object System.Windows.Forms.Button;$open.Text='Открыть LinguistPro';$open.SetBounds(215,265,205,48)
 $stop=New-Object System.Windows.Forms.Button;$stop.Text='Остановить';$stop.SetBounds(432,265,145,48)
-$note=New-Object System.Windows.Forms.Label;$note.Text='После подключения агент работает в фоне, пока запущен Docker. Чтобы отозвать доступ, откройте настройки наставника в LinguistPro. Закрытие окна не останавливает агента.';$note.SetBounds(30,330,545,78)
-$form.Controls.AddRange(@($title,$intro,$status,$connect,$open,$stop,$note))
-$script:OpenedUrl='';$script:Runtime=$null;$script:Working=$false
+$chat=New-Object System.Windows.Forms.Button;$chat.Text='Подключить чат с наставником';$chat.SetBounds(30,328,300,48)
+$note=New-Object System.Windows.Forms.Label;$note.Text='Наставник отвечает в LinguistPro. Кнопка чата добавляет его учебные инструменты в ваш Hermes без изменения прежних подключений. Вы отдельно разрешаете передачу выбранного фрагмента.';$note.SetBounds(30,395,545,85)
+$form.Controls.AddRange(@($title,$intro,$status,$connect,$open,$stop,$chat,$note))
+$script:OpenedUrl='';$script:Runtime=$null;$script:Working=$false;$script:McpJob=$null;$script:McpOpenedUrl=''
 $open.Add_Click({Start-Process ($Relay+'/tutor-connect.html')})
 $connect.Add_Click({
  if($script:Working){return};$script:Working=$true;$connect.Enabled=$false;$status.Text='Проверяем Hermes и подключение…';$form.Refresh()
@@ -80,9 +81,56 @@ $connect.Add_Click({
  finally{$script:Working=$false;$connect.Enabled=$true}
 })
 $stop.Add_Click({try{[void](Invoke-Docker @('stop','-t','5',$Container));$status.Text='Агент остановлен. Подключение сохранено в LinguistPro.'}catch{$status.Text='Агент уже остановлен или Docker недоступен.'}})
+$chat.Add_Click({
+ if($script:Working -or ($script:McpJob -and $script:McpJob.State -eq 'Running')){return}
+ $script:Working=$true;$chat.Enabled=$false;$status.Text='Готовим отдельное подключение чата…';$form.Refresh()
+ try{
+  $runtime=Get-Runtime;$script:Runtime=$runtime
+  $prepared=(Invoke-Docker (@('run','--rm')+(Common-Args $runtime)+@($PinnedImage,'/lp-tutor/mcp_setup.py','--apply')))|ConvertFrom-Json
+  if(-not $prepared.prepared){throw 'Не удалось подготовить подключение чата.'}
+  $privateDir=Join-Path $env:LOCALAPPDATA 'LinguistProTutor'
+  [void](New-Item -ItemType Directory -Force -Path $privateDir)
+  $script:McpAuthLog=Join-Path $privateDir 'mcp-login.log'
+  Remove-Item -LiteralPath $script:McpAuthLog -Force -ErrorAction SilentlyContinue
+  $script:McpOpenedUrl=''
+  $script:McpJob=Start-Job -ArgumentList $script:McpAuthLog -ScriptBlock {
+   param($log)
+   & docker.exe exec --user hermes hermes-agent /opt/hermes/.venv/bin/hermes mcp login linguistpro_tutor --flow browser 2>&1 | ForEach-Object { Add-Content -LiteralPath $log -Value ([string]$_) }
+   if($LASTEXITCODE -ne 0){throw 'Hermes MCP login failed'}
+  }
+  $status.Text='Ожидаем страницу согласия в браузере…'
+ }catch{$status.Text=$_.Exception.Message}
+ finally{$script:Working=$false;$chat.Enabled=$true}
+})
 $timer=New-Object System.Windows.Forms.Timer;$timer.Interval=3000
 $timer.Add_Tick({
  if($script:Working){return}
+ if($script:McpJob){
+  try{
+   if(Test-Path -LiteralPath $script:McpAuthLog){
+    $output=Get-Content -LiteralPath $script:McpAuthLog -Raw
+    $match=[regex]::Match($output,'https://linguistpro\.kolosei\.com/oauth/auth\?[^\s]+')
+    if($match.Success -and $script:McpOpenedUrl -ne $match.Value){
+     $script:McpOpenedUrl=$match.Value;Start-Process $match.Value
+     $status.Text='Подтвердите подключение чата на открывшейся странице.'
+    }
+   }
+   if($script:McpJob.State -ne 'Running'){
+    $state=$script:McpJob.State
+    Receive-Job $script:McpJob -ErrorAction SilentlyContinue | Out-Null
+    Remove-Job $script:McpJob -Force -ErrorAction SilentlyContinue
+    $script:McpJob=$null
+    Remove-Item -LiteralPath $script:McpAuthLog -Force -ErrorAction SilentlyContinue
+    if($state -eq 'Completed'){
+     try{
+      $probe=Invoke-Docker @('exec','--user','hermes','hermes-agent','/opt/hermes/.venv/bin/hermes','mcp','test','linguistpro_tutor')
+      if($probe -notmatch 'Connected' -or $probe -notmatch 'get_tutor_capabilities'){throw 'MCP check failed'}
+      $status.Text='Чат подключён. Доступ к конкретному фрагменту вы дадите из разговора с наставником.'
+     }catch{$status.Text='Подтверждение не завершилось. Нажмите «Подключить чат» ещё раз; прежний чат сохранён.'}
+    }else{$status.Text='Подключение чата не завершилось. Нажмите кнопку ещё раз; прежний чат сохранён.'}
+   }
+  }catch{$status.Text='Не удалось открыть согласие. Повторите подключение чата.'}
+ }
  try{
   if(-not $script:Runtime){$script:Runtime=Get-Runtime}
   $value=Invoke-Docker @('exec',$Container,'cat',($script:Runtime.State+'/status.json'))|ConvertFrom-Json
@@ -102,5 +150,9 @@ $timer.Add_Tick({
   }
  }catch{}
 })
-$form.Add_FormClosed({$timer.Stop();$timer.Dispose()});$timer.Start()
+$form.Add_FormClosed({
+ $timer.Stop();$timer.Dispose()
+ if($script:McpJob){Stop-Job $script:McpJob -ErrorAction SilentlyContinue;Remove-Job $script:McpJob -Force -ErrorAction SilentlyContinue}
+ if($script:McpAuthLog){Remove-Item -LiteralPath $script:McpAuthLog -Force -ErrorAction SilentlyContinue}
+});$timer.Start()
 [void]$form.ShowDialog()
