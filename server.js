@@ -1960,9 +1960,10 @@ app.use("/api/tutor/downloads", async(req,res,next)=>{
   const auth=await requireUser(req,res);if(!auth)return;
   if(!await tutorRollout.allowed(auth.user.id))return res.status(404).json({ok:false,error:"not_available"});
   res.set("Cache-Control","private, no-store");next();
-},express.static(path.join(DATA_DIR,"tutor-downloads"),{dotfiles:"deny",index:false,maxAge:0}));
+},express.static(path.join(DATA_DIR,"tutor-downloads"),{dotfiles:"deny",index:false,cacheControl:false}));
 setInterval(() => {
-  tutorTransportEnabled().then(on=>on&&tutorTransportStore.sweep()).catch(()=>{});
+  // Retention remains active when the rollout expires or is switched off.
+  tutorTransportStore.sweep().catch(()=>{});
 }, 30000).unref();
 
 // RMA-1/RMA-2 — the Node application mints only a short-lived capability. It never
