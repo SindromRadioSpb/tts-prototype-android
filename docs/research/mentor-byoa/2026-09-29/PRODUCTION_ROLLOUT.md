@@ -263,3 +263,18 @@ After 702 completed, 2.396 GB of BuildKit cache was removed. Image
 by exact ID; active 702 and immediate rollback 701 were kept. Fresh `df` showed
 4.3 GB free / 89% used before the next build. No database, volume or backup
 was changed by cleanup.
+
+## Windows callback repair / 3.11.703 — deployed, 8766 blocked before consent
+
+Commit `d16144e1` reached 3.11.703 with beta.4; eight served assets matched
+checkout SHA-256, DB/migrations health was ready, and authenticated pilot
+downloaded beta.4 with the manifest SHA-256. Guests received 401. The
+first real OAuth request to 8766 reached the provider, but staging the consent
+raised `AA_OAUTH_CLIENT_BINDING_INVALID`: the persistent owner client record
+still allowed only 8765. The app restarted and returned healthy. The pending
+Hermes login was stopped before consent; its tutor token was cleared by
+`hermes mcp login`, while the older `linguistpro` profile was untouched.
+Migration 076 adds 8766 only to the exact existing owner fixture row. A
+read-only production query confirmed its old single-URI value before the
+migration; the two-row in-memory migration test passed and left the other
+client unchanged. The callback fix is not owner-live accepted yet.

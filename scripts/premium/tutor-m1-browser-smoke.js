@@ -23,7 +23,7 @@ async function main(){
  app.get('/api/account/export',(_q,s)=>accountDeleted?s.status(401).json({ok:false}):s.json({ok:true,table_list:['tutor_practice'],tables:{tutor_practice:[{id:'fixture-practice'}]}}));
  app.post('/api/account/delete',(q,s)=>{if(q.get('X-LP-CSRF')!=='fixture-csrf'||q.body?.confirm!=='DELETE')return s.status(403).json({ok:false});accountDeleted=true;s.json({ok:true});});
  installRoutes(app,{store,enabled:()=>true,requireUser:async()=>auth,requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!==auth.session.csrf){s.status(403).json({ok:false,error:'BAD_CSRF'});return false;}return true;},limiter:(_q,_s,n)=>n()});
- app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.703',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.704',tts:{enabled:false},agent:{enabled:false}}));
  app.get('/api/mediatheque',(_q,s)=>s.json({ok:true,structure:require('../../public/js/mediatheque-core').empty(),items:[],revision:0}));
  app.use('/api',(_q,s)=>s.status(404).json({ok:false,error:'FIXTURE_ROUTE_NOT_AVAILABLE'}));
  if(surfacesMode)app.get('/js/library-ui.js',(_q,res)=>res.type('js').send(fs.readFileSync(path.join(ROOT,'public/js/library-ui.js'),'utf8')+`
