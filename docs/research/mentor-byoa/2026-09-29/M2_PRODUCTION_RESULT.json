@@ -1,0 +1,58 @@
+{
+  "date": "2026-09-29T14:18:27.585Z",
+  "evidence": "PRODUCTION_READ_ONLY",
+  "version": "3.11.692",
+  "commit": "d016819d",
+  "flag_enabled": false,
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 149,
+      "now": "2026-09-29T14:18:03.525Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 81,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 150,
+      "now": "2026-09-29T14:18:03.857Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 81,
+      "disk_warn": true
+    }
+  ],
+  "assets": [
+    {
+      "url": "/js/tutor-client.js?v=1",
+      "sha256": "2beb39aaad8006fcc700916ca5f18d94d6056e0c7a59b92b1959d5672c879d58"
+    },
+    {
+      "url": "/js/tutor-panel.js?v=2",
+      "sha256": "a7419b7e713e46cc987be1ac569ae180d08092c7f465a88cfebb0514ccca6b6a"
+    },
+    {
+      "url": "/js/tutor-practice.js?v=1",
+      "sha256": "6fda3e4afac2cbea50f5ddfd36f4926f8daeadc73b96fabed34ed38e88d67c46"
+    },
+    {
+      "url": "/js/library-ui.js?v=691",
+      "sha256": "1be2334e07111a5ab5aa0ddd721a9a9f807d8cd8a72f95990ba547c97cf70aff"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "0f395f4d83b881bbfb66b3632d0391d278ac312d4bd399a0bd38456f1fb62a92"
+    }
+  ],
+  "closed_route_status": 404
+}

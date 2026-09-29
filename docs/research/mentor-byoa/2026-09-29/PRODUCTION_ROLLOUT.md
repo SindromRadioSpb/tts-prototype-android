@@ -31,8 +31,31 @@ backup и owner data сохранены. Никакого docker system prune.
 Один docker system df попал в удаление временного Coolify helper и вернул snapshot
 race; повтор после завершения helper подтвердил нормальную инвентаризацию.
 
-## M2 / 3.11.692
+## M2 / 3.11.692 — VERIFIED FLAG-OFF
 
-Подготовлен source-recall цикл, flag остаётся default-off. Проверки/границы:
-[M2 evidence](M2_IMPLEMENTATION.md). Результат deployment дописывается после
-проверки реально опубликованной версии; локальный PASS не является production PASS.
+- Main/active image: `d016819d7ee20824fb7071f66bec6a681dfa22ff`.
+- Read-only SQL: `071_tutor_practice` применена, `tutor_practice` присутствует.
+- Повторные no-cache health/config probes: DB/migrations ready, 3.11.692.
+  Tutor client/panel/practice, library-ui и SW сверены не только с manifest,
+  но и с байтами опубликованного git commit: [JSON](M2_PRODUCTION_RESULT.json).
+- `/api/tutor/capabilities` enabled=false; `/api/tutor/connection` 404.
+- [Production browser probe](M2_PRODUCTION_BROWSER.json): свежий гостевой Chromium,
+  обе настоящие страницы, модули загружены, pageErrors=[]; `tryOpen` возвращает false,
+  новый dialog не появляется. Это automated production guest evidence,
+  не owner acceptance и не модельный production roundtrip.
+- После окончания сборки отдельной операцией удалён её BuildKit cache (2.385GB
+  reported). Старый образ `e8ce6b30d07a` / `390486d3` удалён только после проверки
+  отсутствия всех container refs. Теперь сохранены active `d016819d` и rollback
+  `374e26c1`; 12 контейнеров, 4 тома и все backups сохранены. Build cache 0.
+- Итог: 7.3G available, df 80%, health 81% / disk_warn=true. Предупреждение остаётся;
+  резерв для следующей сборки есть, capacity/retention занесены в O-047.
+
+[M2 functional evidence](M2_IMPLEMENTATION.md). Следующий rollout — ограниченное
+включение после owner-scoped gate и доступного подключения; текущий флаг глобальный,
+его нельзя включать всем как замену ограниченному pilot. M3 должен дать удобный
+мастер, а полный M2 — независимые языковые задания. Rollback: образ M1 с flag off;
+аддитивную таблицу 071 удалять и откатывать общую БД ради rollback не требуется.
+
+Воспроизводимый read-only verifier:
+`node scripts/premium/tutor-release-verify.js --version 3.11.692 --commit d016819d`.
+

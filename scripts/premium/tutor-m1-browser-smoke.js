@@ -41,6 +41,8 @@ async function main(){
    await db.addSentence('m1-text',{id:'m1-s0',he_plain:'כשהייתי ילד גרתי בחיפה',he_niqqud:'כשהייתי ילד גרתי בחיפה',ru:'Когда я был ребёнком, я жил в Хайфе.'});
   });
   await page.goto(origin+'/library.html?canon=skip&open=m1%3Afixture%3Atext',{waitUntil:'load'});
+  await page.waitForFunction(()=>window.__localDB);
+  const before=await page.evaluate(()=>window.__localDB.countReviewLog());
   await page.locator('.row-explain-btn').first().click({timeout:30000});
   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
   await page.getByRole('checkbox').filter({visible:true}).last().check();
@@ -70,7 +72,6 @@ async function main(){
    await page.screenshot({path:path.join(shots,'practice-match-mobile.png')});
   }
   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
-  const before=await page.evaluate(()=>window.__localDB.countReviewLog());
   await page.reload();
   await page.locator('.row-explain-btn').first().click({timeout:30000});
   await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});

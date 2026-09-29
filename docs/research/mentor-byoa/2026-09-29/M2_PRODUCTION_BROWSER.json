@@ -1,0 +1,18 @@
+{
+  "evidence": "AUTOMATED_PRODUCTION_GUEST_BROWSER",
+  "date": "2026-09-29T14:18:03.970Z",
+  "checks": [
+    {
+      "path": "/library.html?canon=skip",
+      "modules_loaded": true,
+      "tutor_opened": false,
+      "pageErrors": []
+    },
+    {
+      "path": "/index.html",
+      "modules_loaded": true,
+      "tutor_opened": false,
+      "pageErrors": []
+    }
+  ]
+}
