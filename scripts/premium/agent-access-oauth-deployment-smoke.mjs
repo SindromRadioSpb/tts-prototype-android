@@ -113,6 +113,7 @@ for (const forbidden of ['registration_endpoint', 'pushed_authorization_request_
   assert.equal(Object.hasOwn(oidcCompatibility, forbidden), false);
 }
 assert.throws(() => deploymentContracts.validateFixtureClient({ ...FIXTURE_CLIENTS[0], redirect_uris: ['http://127.0.0.1:9999/callback'] }), /AA_OAUTH_CLIENT_PROFILE_MISMATCH/);
+assert.deepEqual(FIXTURE_CLIENTS[0].redirect_uris, ['http://127.0.0.1:8765/callback', 'http://127.0.0.1:8766/callback']);
 
 const productionBoundary = boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery', method: 'GET' });
 assert.equal(productionBoundary.ok, true);
@@ -446,6 +447,15 @@ try {
     }
     principals.push({ client: client.client_id, subject: verified.payload.sub, connection: verified.payload.connection_id });
   }
+  const tutorClient = { ...FIXTURE_CLIENTS[0], redirect_uris: [FIXTURE_CLIENTS[0].redirect_uris[1]] };
+  const tutorAuth = await authorize(discovered, tutorClient, ['tutor.capabilities.read']);
+  const tutorTokenResponse = await tokenRequest(discovered, {
+    client_id: tutorClient.client_id, code: tutorAuth.code, code_verifier: tutorAuth.verifier,
+    grant_type: 'authorization_code', redirect_uri: tutorClient.redirect_uris[0], resource: RESOURCE,
+  });
+  assert.equal(tutorTokenResponse.status, 200);
+  const tutorTokens = await tutorTokenResponse.json();
+  assert.equal(typeof tutorTokens.access_token, 'string');
   assert.notEqual(principals[0].subject, principals[1].subject);
   assert.notEqual(principals[0].connection, principals[1].connection);
   for (const prohibitedPath of ['/reg', '/request', '/me', '/token/introspection', '/device/auth', '/backchannel']) {

@@ -1,5 +1,5 @@
 ; User-scoped pilot installer: no admin, no credentials in Windows files.
-#define AppVersion "0.1.0-beta.3"
+#define AppVersion "0.1.0-beta.4"
 [Setup]
 AppId=LinguistProPersonalTutor
 AppName=LinguistPro Tutor

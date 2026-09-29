@@ -64,6 +64,62 @@ $chat=New-Object System.Windows.Forms.Button;$chat.Text='Подключить ч
 $note=New-Object System.Windows.Forms.Label;$note.Text='Наставник отвечает в LinguistPro. Кнопка чата добавляет его учебные инструменты в ваш Hermes без изменения прежних подключений. Вы отдельно разрешаете передачу выбранного фрагмента.';$note.SetBounds(30,395,545,85)
 $form.Controls.AddRange(@($title,$intro,$status,$connect,$open,$stop,$chat,$note))
 $script:OpenedUrl='';$script:Runtime=$null;$script:Working=$false;$script:McpJob=$null;$script:McpOpenedUrl=''
+$script:McpListener=$null;$script:McpPending=$null;$script:McpExpectedState='';$script:McpChatConnected=$false
+function Close-McpCallback {
+ if($script:McpListener){$script:McpListener.Close();$script:McpListener=$null}
+ $script:McpPending=$null;$script:McpExpectedState=''
+}
+function Start-McpCallback([string]$AuthorizationUrl) {
+ $scope=[regex]::Match($AuthorizationUrl,'[?&]scope=([^&]+)')
+ $redirect=[regex]::Match($AuthorizationUrl,'[?&]redirect_uri=([^&]+)')
+ $expectedScopes='tutor.capabilities.read tutor.context.read tutor.session.read tutor.artifact.propose'
+ if(-not $scope.Success -or -not $redirect.Success -or
+    [uri]::UnescapeDataString($scope.Groups[1].Value.Replace('+',' ')) -cne $expectedScopes -or
+    [uri]::UnescapeDataString($redirect.Groups[1].Value) -cne 'http://127.0.0.1:8766/callback'){
+  throw 'Подключение запросило неожиданные права. Доступ не выдан.'
+ }
+ $state=[regex]::Match($AuthorizationUrl,'[?&]state=([^&]+)')
+ if(-not $state.Success){throw 'OAuth state missing'}
+ Close-McpCallback
+ $script:McpExpectedState=[uri]::UnescapeDataString($state.Groups[1].Value)
+ $script:McpListener=[System.Net.HttpListener]::new()
+ $script:McpListener.Prefixes.Add('http://127.0.0.1:8766/')
+ try{$script:McpListener.Start();$script:McpPending=$script:McpListener.GetContextAsync()}
+ catch{Close-McpCallback;throw 'Не удалось открыть локальный возврат чата.'}
+}
+function Complete-McpCallback {
+ if(-not $script:McpPending -or -not $script:McpPending.IsCompleted){return}
+ $context=$script:McpPending.GetAwaiter().GetResult()
+ $response=$context.Response
+ try{
+  $request=$context.Request
+  if($request.Url.AbsolutePath -ne '/callback' -or
+     $request.QueryString['state'] -cne $script:McpExpectedState -or
+     -not $request.QueryString['code'] -or
+     -not [System.Net.IPAddress]::IsLoopback($request.RemoteEndPoint.Address)){
+   $response.StatusCode=400;throw 'Неверный ответ подключения.'
+  }
+  # Hermes listens on container loopback. Docker's published localhost port cannot
+  # reach that listener, so forward only this verified one-time callback inside it.
+  [void](Invoke-Docker @('exec','-e',('LP_TUTOR_CALLBACK='+$request.Url.AbsoluteUri),'hermes-agent',
+   '/opt/hermes/.venv/bin/python','-c',"import os,urllib.request; urllib.request.urlopen(os.getenv('LP_TUTOR_CALLBACK'),timeout=8).read()"))
+  $response.StatusCode=200
+  $message='Наставник подключён. Можно вернуться в LinguistPro.'
+  $status.Text='Подключение подтверждено. Проверяем инструменты наставника…'
+ }catch{
+  if($response.StatusCode -ne 400){$response.StatusCode=502}
+  $message='Не удалось завершить подключение. Вернитесь в окно наставника и повторите.'
+  $status.Text=$message
+ }finally{
+  $bytes=[Text.Encoding]::UTF8.GetBytes($message)
+  $response.ContentType='text/plain; charset=utf-8'
+  $response.ContentLength64=$bytes.Length
+  $response.OutputStream.Write($bytes,0,$bytes.Length)
+  $response.Close()
+  Close-McpCallback
+ }
+}
+$form.Add_FormClosed({Close-McpCallback})
 $open.Add_Click({Start-Process ($Relay+'/tutor-connect.html')})
 $connect.Add_Click({
  if($script:Working){return};$script:Working=$true;$connect.Enabled=$false;$status.Text='Проверяем Hermes и подключение…';$form.Refresh()
@@ -85,9 +141,11 @@ $chat.Add_Click({
  if($script:Working -or ($script:McpJob -and $script:McpJob.State -eq 'Running')){return}
  $script:Working=$true;$chat.Enabled=$false;$status.Text='Готовим отдельное подключение чата…';$form.Refresh()
  try{
+  Close-McpCallback
   $runtime=Get-Runtime;$script:Runtime=$runtime
   $prepared=(Invoke-Docker (@('run','--rm')+(Common-Args $runtime)+@($PinnedImage,'/lp-tutor/mcp_setup.py','--apply')))|ConvertFrom-Json
   if(-not $prepared.prepared){throw 'Не удалось подготовить подключение чата.'}
+  $script:McpChatConnected=$false
   $privateDir=Join-Path $env:LOCALAPPDATA 'LinguistProTutor'
   [void](New-Item -ItemType Directory -Force -Path $privateDir)
   $script:McpAuthLog=Join-Path $privateDir 'mcp-login.log'
@@ -106,11 +164,13 @@ $timer=New-Object System.Windows.Forms.Timer;$timer.Interval=3000
 $timer.Add_Tick({
  if($script:Working){return}
  if($script:McpJob){
-  try{
+ try{
+   Complete-McpCallback
    if(Test-Path -LiteralPath $script:McpAuthLog){
     $output=Get-Content -LiteralPath $script:McpAuthLog -Raw
     $match=[regex]::Match($output,'https://linguistpro\.kolosei\.com/oauth/auth\?[^\s]+')
     if($match.Success -and $script:McpOpenedUrl -ne $match.Value){
+     Start-McpCallback $match.Value
      $script:McpOpenedUrl=$match.Value;Start-Process $match.Value
      $status.Text='Подтвердите подключение чата на открывшейся странице.'
     }
@@ -120,11 +180,13 @@ $timer.Add_Tick({
     Receive-Job $script:McpJob -ErrorAction SilentlyContinue | Out-Null
     Remove-Job $script:McpJob -Force -ErrorAction SilentlyContinue
     $script:McpJob=$null
+    Close-McpCallback
     Remove-Item -LiteralPath $script:McpAuthLog -Force -ErrorAction SilentlyContinue
     if($state -eq 'Completed'){
      try{
       $probe=Invoke-Docker @('exec','--user','hermes','hermes-agent','/opt/hermes/.venv/bin/hermes','mcp','test','linguistpro_tutor')
       if($probe -notmatch 'Connected' -or $probe -notmatch 'get_tutor_capabilities'){throw 'MCP check failed'}
+      $script:McpChatConnected=$true
       $status.Text='Чат подключён. Доступ к конкретному фрагменту вы дадите из разговора с наставником.'
      }catch{$status.Text='Подтверждение не завершилось. Нажмите «Подключить чат» ещё раз; прежний чат сохранён.'}
     }else{$status.Text='Подключение чата не завершилось. Нажмите кнопку ещё раз; прежний чат сохранён.'}
@@ -142,7 +204,7 @@ $timer.Add_Tick({
      if($script:OpenedUrl -ne $uri){$script:OpenedUrl=$uri;Start-Process $uri}
     }
    }
-   'connected'{$status.Text='Наставник подключён. Откройте текст в LinguistPro и задайте вопрос у нужной строки.'}
+   'connected'{if($script:McpChatConnected){$status.Text='Чат подключён. Откройте разбор в LinguistPro и продолжите разговор в Hermes.'}else{$status.Text='Наставник подключён. Откройте текст в LinguistPro и задайте вопрос у нужной строки.'}}
    'answering'{$status.Text='Наставник готовит объяснение по выбранному вами фрагменту…'}
    'offline'{$status.Text='Нет связи с LinguistPro. Агент повторит подключение автоматически.'}
    'connection_revoked'{$status.Text='Доступ отозван. Для новой связи нажмите «Подключить».'}

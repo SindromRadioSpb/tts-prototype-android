@@ -28,7 +28,10 @@ const FIXTURE_CLIENTS = Object.freeze([
     token_endpoint_auth_method: "none",
     grant_types: Object.freeze(["authorization_code", "refresh_token"]),
     response_types: Object.freeze(["code"]),
-    redirect_uris: Object.freeze(["http://127.0.0.1:8765/callback"]),
+    redirect_uris: Object.freeze([
+      "http://127.0.0.1:8765/callback",
+      "http://127.0.0.1:8766/callback",
+    ]),
   }),
   Object.freeze({
     client_id: "linguistpro-mcp-inspector-v0",

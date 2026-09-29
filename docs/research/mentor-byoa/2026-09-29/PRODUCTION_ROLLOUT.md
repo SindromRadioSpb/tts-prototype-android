@@ -237,3 +237,29 @@ only the tutor alias. After the build, exact unreferenced image `73d76e71ed16`
 (3.11.699) and 2.396 GB of inactive BuildKit cache were removed; active 701
 and immediate rollback 700 were kept. This is a pilot correction, not a
 global rollout or owner-chat acceptance.
+
+## Tutor MCP four-scope owner connection / 3.11.702
+
+Commit `58a2c935` reached production as 3.11.702. The tutor-only protected
+resource metadata reports the four tutor scopes, and the unauthenticated MCP
+challenge requests precisely those four. Hermes 0.21.5's actual authorization
+URL also requested precisely the same four. The owner consent completed;
+`hermes mcp test linguistpro_tutor` discovered only the four new tools, and a
+real read-only `get_tutor_capabilities` call returned one successful content
+block. The old `linguistpro` profile still selects 31 tools. No owner model
+request or learner-fragment read was made.
+
+The first browser return failed at `127.0.0.1:8765`: Hermes listens on container
+loopback, which Docker's published host port did not reach. An operator delivered
+the already-authorized, single-use callback within the container; Hermes then
+completed. The Windows helper in beta.3 would hit the same problem. Candidate
+beta.4 uses a separate host-local callback on port 8766, verifies state and
+exact scope/redirect URI, then forwards only that callback to container loopback.
+This helper fix requires its own deployed and owner-live validation. The owner
+chat roundtrip and global access remain open gates.
+
+After 702 completed, 2.396 GB of BuildKit cache was removed. Image
+`39b9edf69a31` (3.11.700) had no container references and was then removed
+by exact ID; active 702 and immediate rollback 701 were kept. Fresh `df` showed
+4.3 GB free / 89% used before the next build. No database, volume or backup
+was changed by cleanup.

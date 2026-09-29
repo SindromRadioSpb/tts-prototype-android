@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from ruamel.yaml import YAML
-from mcp_setup import ALIAS, SCOPES, TOOLS, URL, TUTOR_URL, configure
+from mcp_setup import ALIAS, SCOPES, TOOLS, URL, TUTOR_URL, TUTOR_REDIRECT_PORT, configure
 
 
 class TutorMcpSetupTest(unittest.TestCase):
@@ -25,6 +25,7 @@ class TutorMcpSetupTest(unittest.TestCase):
             self.assertEqual(parsed["mcp_servers"][ALIAS]["oauth"]["scope"], " ".join(SCOPES))
             self.assertEqual(parsed["mcp_servers"][ALIAS]["tools"]["include"], TOOLS)
             self.assertEqual(parsed["mcp_servers"][ALIAS]["url"], TUTOR_URL)
+            self.assertEqual(parsed["mcp_servers"][ALIAS]["oauth"]["redirect_port"], TUTOR_REDIRECT_PORT)
             self.assertIn("# owner comment", config.read_text(encoding="utf-8"))
             self.assertEqual(len(list((config.parent / "linguistpro-tutor").glob("config-before-tutor-mcp-*.yaml"))), 1)
 
@@ -36,8 +37,23 @@ class TutorMcpSetupTest(unittest.TestCase):
             self.assertTrue(configure(config, True)["changed"])
             after = YAML().load(config.read_text(encoding="utf-8"))
             self.assertEqual(after["mcp_servers"][ALIAS]["url"], TUTOR_URL)
+            self.assertEqual(after["mcp_servers"][ALIAS]["oauth"]["redirect_port"], TUTOR_REDIRECT_PORT)
             self.assertEqual(after["mcp_servers"]["linguistpro"]["url"], URL)
             self.assertNotEqual(before, config.read_text(encoding="utf-8"))
+
+    def test_upgrades_existing_tutor_url_with_old_redirect_port(self):
+        with TemporaryDirectory() as folder:
+            config = Path(folder) / "config.yaml"
+            config.write_text("mcp_servers:\n  linguistpro:\n    url: " + URL
+                + "\n    auth: oauth\n    oauth:\n      client_id: owner-fixture\n      redirect_port: 8765\n"
+                + "  linguistpro_tutor:\n    url: " + TUTOR_URL
+                + "\n    auth: oauth\n    oauth:\n      client_id: owner-fixture\n      redirect_port: 8765\n      scope: " + " ".join(SCOPES)
+                + "\n    tools:\n      include: [" + ", ".join(TOOLS)
+                + "]\n      prompts: false\n      resources: false\n    enabled: true\n    supports_parallel_tool_calls: false\n", encoding="utf-8")
+            self.assertTrue(configure(config, True)["changed"])
+            parsed = YAML().load(config.read_text(encoding="utf-8"))
+            self.assertEqual(parsed["mcp_servers"][ALIAS]["oauth"]["redirect_port"], TUTOR_REDIRECT_PORT)
+            self.assertEqual(parsed["mcp_servers"]["linguistpro"]["oauth"]["redirect_port"], 8765)
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ TOOLS = ["get_tutor_capabilities", "get_active_learning_context", "get_tutor_ses
 SCOPES = ["tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose"]
 URL = "https://linguistpro.kolosei.com/agent-access/mcp"
 TUTOR_URL = "https://linguistpro.kolosei.com/agent-access/tutor/mcp"
+TUTOR_REDIRECT_PORT = 8766
 
 
 def configure(path: Path, apply: bool) -> dict:
@@ -44,7 +45,7 @@ def configure(path: Path, apply: bool) -> dict:
     expected = {
         "url": TUTOR_URL,
         "auth": "oauth",
-        "oauth": {"client_id": oauth["client_id"], "redirect_port": oauth["redirect_port"], "scope": " ".join(SCOPES)},
+        "oauth": {"client_id": oauth["client_id"], "redirect_port": TUTOR_REDIRECT_PORT, "scope": " ".join(SCOPES)},
         "tools": {"include": TOOLS, "prompts": False, "resources": False},
         "enabled": True,
         "supports_parallel_tool_calls": False,
@@ -53,7 +54,11 @@ def configure(path: Path, apply: bool) -> dict:
     if present is not None:
         old_alias = copy.deepcopy(expected)
         old_alias["url"] = URL
-        if present not in (expected, old_alias):
+        prior_alias = copy.deepcopy(expected)
+        prior_alias["oauth"]["redirect_port"] = oauth["redirect_port"]
+        prior_old_alias = copy.deepcopy(old_alias)
+        prior_old_alias["oauth"]["redirect_port"] = oauth["redirect_port"]
+        if present not in (expected, old_alias, prior_alias, prior_old_alias):
             raise RuntimeError("TUTOR_MCP_PROFILE_CONFLICT")
         if present == expected:
             return {"prepared": True, "changed": False, "tool_count": len(TOOLS), "scope_count": len(SCOPES)}
