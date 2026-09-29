@@ -138,6 +138,7 @@ async function api(base, method, p, { cookie, csrf, headers, body } = {}) {
     // export: dynamic sweep covers the identity tables; no secrets leak
     const ex = await api(BASE, "GET", "/api/account/export", { cookie: cookieA });
     eq(ex.status === 200 && ex.json.ok === true && ex.json.user && ex.json.user.id === userId1, "export failed");
+    eq((ex.res.headers.get("cache-control") || "").includes("no-store"), "account export must not enter browser/shared caches");
     for (const t of ["devices", "user_sessions", "consent_records", "audit_log"]) {
       eq((ex.json.table_list || []).includes(t), `export table_list misses ${t} (dynamic sweep broken)`);
     }

@@ -1265,7 +1265,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=696",
+  "/js/library-ui.js?v=698",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1303,9 +1303,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=275",
-  "/i18n/locales/en.js?v=275",
-  "/i18n/locales/he.js?v=275",
+  "/i18n/locales/ru.js?v=276",
+  "/i18n/locales/en.js?v=276",
+  "/i18n/locales/he.js?v=276",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -2831,6 +2831,7 @@ app.get("/api/account/export", async (req, res) => {
   try {
     const data = await identityRepo.exportUserData(auth.user.id);
     identityRepo.audit("account_export", auth.user.id, { tables: data.table_list.length }, req.ip);
+    res.set("Cache-Control", "private, no-store, max-age=0");
     res.set("Content-Disposition", `attachment; filename="linguistpro-export-${auth.user.id}.json"`);
     res.json({ ok: true, ...data });
   } catch (e) { res.status(500).json({ ok: false, error: "EXPORT_FAILED", message: e.message }); }

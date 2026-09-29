@@ -17,10 +17,13 @@ async function main(){
  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/073_tutor_practice_proposals.sql'),'utf8'),e=>e?j(e):r()));
  const store=createStore(()=>db),app=express();app.use(express.json({limit:'40kb'}));
  app.use((_q,s,n)=>{s.set('Cross-Origin-Opener-Policy','same-origin');s.set('Cross-Origin-Embedder-Policy','require-corp');n();});
- const auth={user:{id:'fixture-A'},session:{csrf:'fixture-csrf'}};
- app.get('/api/auth/me',(_q,s)=>s.json({ok:true,user:auth.user,csrf:auth.session.csrf,consents:{}}));
+ const auth={user:{id:'fixture-A'},session:{csrf:'fixture-csrf'}};let accountDeleted=false;
+ app.get('/api/auth/me',(_q,s)=>accountDeleted?s.status(401).json({ok:false}):s.json({ok:true,user:auth.user,csrf:auth.session.csrf,consents:{}}));
+ app.post('/api/auth/logout',(_q,s)=>s.json({ok:true}));
+ app.get('/api/account/export',(_q,s)=>accountDeleted?s.status(401).json({ok:false}):s.json({ok:true,table_list:['tutor_practice'],tables:{tutor_practice:[{id:'fixture-practice'}]}}));
+ app.post('/api/account/delete',(q,s)=>{if(q.get('X-LP-CSRF')!=='fixture-csrf'||q.body?.confirm!=='DELETE')return s.status(403).json({ok:false});accountDeleted=true;s.json({ok:true});});
  installRoutes(app,{store,enabled:()=>true,requireUser:async()=>auth,requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!==auth.session.csrf){s.status(403).json({ok:false,error:'BAD_CSRF'});return false;}return true;},limiter:(_q,_s,n)=>n()});
- app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.697',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.698',tts:{enabled:false},agent:{enabled:false}}));
  app.get('/api/mediatheque',(_q,s)=>s.json({ok:true,structure:require('../../public/js/mediatheque-core').empty(),items:[],revision:0}));
  app.use('/api',(_q,s)=>s.status(404).json({ok:false,error:'FIXTURE_ROUTE_NOT_AVAILABLE'}));
  if(surfacesMode)app.get('/js/library-ui.js',(_q,res)=>res.type('js').send(fs.readFileSync(path.join(ROOT,'public/js/library-ui.js'),'utf8')+`
@@ -271,8 +274,49 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
     await store.save('fixture-limit',record);
     let rejected=false;try{await store.save('fixture-limit',{...record,question:'overflow'});}catch(_){rejected=true;}
     if(!rejected||(await store.list('fixture-limit')).length!==50)throw Error('ARCHIVE_LIMIT_FAILED');
-    for(const row of await store.list('fixture-limit'))await store.remove('fixture-limit',row.id);
+   for(const row of await store.list('fixture-limit'))await store.remove('fixture-limit',row.id);
    });
+   if(!practiceMode){
+    await page.goto(origin+'/library.html?canon=skip',{waitUntil:'load'});
+    await page.locator('#roomCloud').waitFor({state:'visible'});
+    await page.evaluate(async()=>{document.documentElement.lang='ru';const context=await window.LPTutorClient.build(window.LPTutorClient.capture({surface:'room',materialKey:'account-fixture',rows:[{id:'1',he:'שלום עולם'}],index:0,locale:'ru'}));await window.LPTutorNotebook.local().save('fixture-A',{schema:1,status:'accepted',context,question:'Почему?',answer:'Ответ для удаления.'});});
+    await page.locator('#roomCloud').click();
+    await page.locator('#roomAccountData').waitFor({state:'visible'});
+    await page.locator('#roomAccountData summary').click();
+    await page.setViewportSize({width:1280,height:900});
+    await page.locator('#roomAccountData').scrollIntoViewIfNeeded();
+    await page.locator('#roomCloudModal .room-about-card').evaluate(el=>el.scrollTop=el.scrollHeight);
+    await page.screenshot({path:path.join(shots,'account-data-desktop.png')});
+    await page.setViewportSize({width:380,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.locator('#roomAccountData').scrollIntoViewIfNeeded();
+    await page.locator('#roomAccountData').screenshot({path:path.join(shots,'account-data-mobile.png')});
+    await page.evaluate(()=>window.appSetLocale('he'));
+    await page.locator('#roomAccountData').screenshot({path:path.join(shots,'account-data-he-mobile.png')});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.evaluate(()=>window.appSetLocale('ru'));
+    const serverDownload=page.waitForEvent('download');await page.locator('#roomAccountServerExport').click();
+    const downloaded=await serverDownload;assert.equal(downloaded.suggestedFilename(),'linguistpro-server-data.json');
+    assert.equal(JSON.parse(fs.readFileSync(await downloaded.path(),'utf8')).tables.tutor_practice.length,1);
+    await page.route('**/api/auth/me',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,user:{id:'fixture-B'},csrf:'foreign'})}));
+    await page.locator('#roomAccountServerExport').click();
+    await page.getByText('Не удалось выполнить действие. Проверьте вход и повторите.',{exact:true}).waitFor();
+    await page.unroute('**/api/auth/me');
+    await page.locator('#roomAccountLocalArchive').click();
+    const archive=page.getByRole('dialog',{name:'Сохранённые объяснения'});await archive.waitFor();
+    await archive.getByRole('button',{name:'Закрыть'}).click();
+    await Promise.all([page.waitForEvent('dialog').then(dialog=>dialog.dismiss()),page.locator('#roomAccountDelete').click()]);assert.equal(accountDeleted,false);
+    await Promise.all([page.waitForEvent('dialog').then(dialog=>dialog.accept('WRONG')),page.locator('#roomAccountDelete').click()]);assert.equal(accountDeleted,false);
+    await page.route('**/api/account/delete',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({ok:false,error:'FIXTURE_FAILURE'})}));
+    await Promise.all([page.waitForEvent('dialog').then(dialog=>dialog.accept('DELETE')),page.locator('#roomAccountDelete').click()]);
+    await page.getByText('Не удалось выполнить действие. Проверьте вход и повторите.',{exact:true}).waitFor();
+    assert.equal(accountDeleted,false);assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1);
+    await page.unroute('**/api/account/delete');
+    await Promise.all([page.waitForEvent('dialog').then(dialog=>dialog.accept('DELETE')),page.locator('#roomAccountDelete').click()]);
+    await page.getByText('Аккаунт удалён. Локальные материалы на других устройствах удалите там отдельно.',{exact:true}).waitFor();
+    assert.equal(accountDeleted,true);
+    assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,0);
+   }
   }
   assert.deepEqual(errors,[]);
   const result={date:new Date().toISOString(),ok:true,practice:practiceMode,surfaces:surfacesMode,deliveries:deliveries.map(j=>({surface:j.context.surface,revision:j.context.source.revision_id})),tutor_review_log_unchanged:true,fixture_training_attempt:surfacesMode,archive_dedup_isolation_reload_export:surfacesMode,archive_continuation:surfacesMode&&!practiceMode,archive_delete_limit:surfacesMode,pageErrors:errors};

@@ -4915,6 +4915,9 @@ function _cloudEls() {
     pushState: $('roomCloudPushState'), pushOn: $('roomCloudPushOn'),
     pushTest: $('roomCloudPushTest'), pushOff: $('roomCloudPushOff'),
     role: $('roomCloudRole'), groupAccess: $('roomCloudGroupAccess'), accountHelp: $('roomCloudAccountHelpBody'),
+    accountData: $('roomAccountData'), serverExport: $('roomAccountServerExport'),
+    localArchive: $('roomAccountLocalArchive'), accountDelete: $('roomAccountDelete'),
+    accountDataStatus: $('roomAccountDataStatus'),
   };
 }
 const CLOUD_ACCOUNT_BINDING_KEY = 'cloud.account_user_id';
@@ -5009,6 +5012,7 @@ async function _cloudRender() {
   try { session = await CS.me(); } catch (_) {}
   if (!session) {
     els.loginBox.hidden = false; els.panel.hidden = true;
+    if (els.accountData) els.accountData.dataset.owner = '';
     _cloudStatus(tt('room.cloud.off', 'Не подключено. Локальный режим работает как обычно.'));
     return;
   }
@@ -5017,10 +5021,12 @@ async function _cloudRender() {
     els.loginBox.hidden = true; els.panel.hidden = false;
     if (els.role) els.role.textContent = tt('room.groupAccess.profileMismatch', 'Этот профиль браузера уже связан с другим аккаунтом. Выйдите и откройте приложение в отдельном профиле.');
     if (els.groupAccess) els.groupAccess.hidden = true;
+    if (els.accountData) els.accountData.hidden = true;
     _cloudStatus('✗ ' + tt('room.groupAccess.profileMismatchShort', 'Профиль браузера принадлежит другому аккаунту'), 'err');
     return;
   }
   els.loginBox.hidden = true; els.panel.hidden = false;
+  if (els.accountData) { els.accountData.hidden = false; els.accountData.dataset.owner = String(session.user.id); }
   _cloudStatus('✓ ' + tt('room.cloud.connected', 'Подключено'), 'ok');
   const isOwner = String(session.user && session.user.role || '').toLowerCase() === 'owner';
   if (els.role) els.role.innerHTML = '<strong>' + (isOwner ? tt('room.groupAccess.ownerRole','Вы вошли как владелец') : tt('room.groupAccess.memberRole','Вы вошли как участник')) + '</strong>';
@@ -5211,6 +5217,61 @@ function roomCloudInit() {
   });
   if (els.secret) els.secret.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); els.loginBtn && els.loginBtn.click(); } });
   if (els.syncBtn) els.syncBtn.addEventListener('click', () => _cloudRunSync(false));
+  const accountMessage = (key, fallback) => {
+    if (els.accountDataStatus) els.accountDataStatus.textContent = tt('room.cloud.accountData.' + key, fallback);
+  };
+  const freshAccount = async () => {
+    const response = await fetch('/api/auth/me', { credentials:'same-origin', cache:'no-store' });
+    const auth = response.ok ? await response.json() : null;
+    const owner = els.accountData?.dataset.owner;
+    if (!auth?.ok || !owner || String(auth.user?.id) !== owner || !roomCloudAccountBinding(owner, false).ok) throw Error('account_changed');
+    return { owner, csrf:auth.csrf };
+  };
+  const downloadAccountBlob = (blob, name) => {
+    const url = URL.createObjectURL(blob), link = document.createElement('a');
+    link.href = url; link.download = name; document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
+  if (els.serverExport) els.serverExport.addEventListener('click', async (event) => {
+    event.preventDefault();
+    try {
+      await freshAccount();
+      const response = await fetch('/api/account/export', { credentials:'same-origin', cache:'no-store' });
+      if (!response.ok || (await response.clone().json()).ok !== true) throw Error('export_failed');
+      await freshAccount();
+      downloadAccountBlob(await response.blob(), 'linguistpro-server-data.json');
+      accountMessage('serverSaved', 'Данные сервера скачаны. Сохранённые объяснения скачайте отдельно.');
+    } catch (_) { accountMessage('failed', 'Не удалось выполнить действие. Проверьте вход и повторите.'); }
+  });
+  if (els.localArchive) els.localArchive.addEventListener('click', async () => {
+    try {
+      await freshAccount();
+      await window.LPTutorNotebook.show({ api:window.LPTutorClient.createApi(), locale:(document.documentElement.lang || 'ru').split('-')[0] });
+    } catch (_) { accountMessage('failed', 'Не удалось выполнить действие. Проверьте вход и повторите.'); }
+  });
+  if (els.accountDelete) els.accountDelete.addEventListener('click', async () => {
+    let deleted = false;
+    try {
+      const {owner} = await freshAccount();
+      const typed = window.prompt(tt('room.cloud.accountData.deletePrompt', 'Сначала скачайте данные сервера и локальный архив. Для удаления аккаунта и его серверных данных введите DELETE. Локальные материалы на других устройствах останутся.'));
+      if (typed !== 'DELETE') return;
+      const current = await freshAccount();
+      if (current.owner !== owner) throw Error('account_changed');
+      els.accountDelete.disabled = true;
+      const response = await fetch('/api/account/delete', { method:'POST', credentials:'same-origin',
+        headers:{'Content-Type':'application/json','X-LP-CSRF':current.csrf}, body:JSON.stringify({confirm:'DELETE'}) });
+      if (!response.ok || (await response.json()).ok !== true) throw Error('delete_failed');
+      deleted = true;
+      let localRemoved = true;
+      try { await window.LPTutorNotebook.local().removeAll(owner); } catch (_) { localRemoved = false; }
+      try { await window.CloudSync.logout(); } catch (_) {}
+      try { await _cloudRender(); } catch (_) {}
+      _cloudStatus(tt('room.cloud.accountData.' + (localRemoved ? 'deleted' : 'deletedLocalFailed'), localRemoved
+        ? 'Аккаунт удалён. Локальные материалы на других устройствах удалите там отдельно.'
+        : 'Аккаунт удалён, но очистить сохранённые объяснения в этом браузере не удалось.'), localRemoved ? 'ok' : 'err');
+    } catch (_) { if (!deleted) accountMessage('failed', 'Не удалось выполнить действие. Проверьте вход и повторите.'); }
+    finally { els.accountDelete.disabled = false; }
+  });
   // CLG-P5.5 — класс B: галочка пишет consent-запись (append-only история) и сразу синкает
   if (els.textsCb) els.textsCb.addEventListener('change', async () => {
     const granted = !!els.textsCb.checked;

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.697";
+const CACHE_VERSION = "v3.11.698";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -128,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=696",
+  "/js/library-ui.js?v=698",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -303,9 +303,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=275",
-  "/i18n/locales/en.js?v=275",
-  "/i18n/locales/he.js?v=275",
+  "/i18n/locales/ru.js?v=276",
+  "/i18n/locales/en.js?v=276",
+  "/i18n/locales/he.js?v=276",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
