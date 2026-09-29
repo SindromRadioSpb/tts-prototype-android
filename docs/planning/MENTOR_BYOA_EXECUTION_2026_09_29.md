@@ -1,6 +1,7 @@
 # Наставник BYOA: исполнимый план и критерии поставки
 
-Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **PLAN READY; IMPLEMENTATION NOT STARTED**.
+Дата: 2026-09-29. Исходный commit `390486d3`. Статус: **OWNER APPROVED; M0 TECHNICAL PASS; M1 STARTED**.
+Владелец утвердил план и начало исполнения 2026-09-29. Ветка исполнения: `feat/mentor-byoa-m0`.
 Продукт: [решение и контракты](MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md). Основания: [аудит](../research/mentor-byoa/2026-09-29/AUDIT.md).
 Финансирование: личный агент/подписка пользователя; для владельца без OpenAI API key и платного API fallback.
 
@@ -10,13 +11,14 @@
 | --- | --- | --- |
 | Текущий код и существующий канон | COMPLETE | Аудит E01–E11; чистое дерево до записи; origin/main 0/0 |
 | Личный Hermes inventory | COMPLETE | Аудит E12–E19: старый Agent, custom WebUI, OpenRouter route |
-| Текущая работоспособность MCP | FAILED_AUTH | Один gateway-side probe требует интерактивного OAuth; без повторных auth-retry |
+| Текущая работоспособность MCP | TECHNICAL_PASS | После bounded OAuth recovery gateway обнаружил 31 tool; новая WebUI-сессия прочитала материал |
 | Модель доступа массового продукта | OWNER_DECIDED | BYOA; расходы LinguistPro минимальны |
-| Архитектура/учебные сценарии/backlog | COMPLETE_AS_PROPOSAL | Этот пакет |
+| Архитектура/учебные сценарии/backlog | OWNER_APPROVED | Владелец утвердил начало реализации |
 | Проверка документации | PASS | Локальные ссылки, fences/UTF-8, secret-pattern scan, diff; согласованность BYOA проверена |
 | Commit/push документации | SCOPED_BRANCH | `docs/mature-mentor-byoa-20260929`; факт доставки определяется remote commit, без merge/deploy |
-| Upgrade/reconnect Hermes | NOT_EXECUTED | Подготовлен отдельный переход ниже; browser OAuth ещё не пройден |
-| Новый интерфейс/коннектор/MCP-код | NOT_IMPLEMENTED | Последующие этапы |
+| Upgrade/reconnect Hermes | TECHNICAL_PASS | Agent 0.21.5, WebUI 0.52.113, Codex OAuth gpt-6-sol, C1/C2 сохранены; [M0 evidence](../research/mentor-byoa/2026-09-29/M0_IMPLEMENTATION.md) |
+| Контекст M1 | FOUNDATION_TESTED | `agent/tutor/context.js`, 5 PASS; без transport/UI wiring |
+| Новый интерфейс/коннектор/MCP-код | NOT_IMPLEMENTED | Следующий шаг: авторизованный session/transport spike и реальные host adapters |
 
 ## 2. Порядок поставок
 

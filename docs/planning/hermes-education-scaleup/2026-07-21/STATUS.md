@@ -2,12 +2,13 @@
 
 ## Проверка 2026-09-29: зрелый наставник BYOA
 
-Исследование и новый продуктовый план: **COMPLETE_AS_PROPOSAL**, реализация нового контура не начата.
+Исследование и новый продуктовый план: **OWNER_APPROVED**, реализация начата.
 Владелец выбрал личную подписку/агента каждого пользователя при минимальных расходах LinguistPro.
-Live Docker: Agent 0.18.2, custom C2 WebUI healthy, основной route `openrouter/free`;
-gateway-side MCP probe требует повторной браузерной авторизации. Права токена корректны.
-Обновление Agent/WebUI, Codex OAuth и восстановление LP OAuth **NOT_EXECUTED**;
-исторические owner-live статусы ниже не являются доказательством текущего подключения.
+Live Docker: Agent 0.21.5, WebUI 0.52.113 с C1/C2, основной route `openai-codex/gpt-6-sol`.
+M0 **TECHNICAL_PASS**: оба OAuth восстановлены, 31 MCP tool, новая обычная WebUI-беседа
+прочитала публичный материал через MCP. Платный API fallback не настроен.
+M1 начат с проверенного контракта контекста; UI/relay ещё не интегрированы.
+Текущие доказательства: [M0](../../../research/mentor-byoa/2026-09-29/M0_IMPLEMENTATION.md).
 Пакет: [продукт](../../MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md),
 [исполнение и переход Hermes](../../MENTOR_BYOA_EXECUTION_2026_09_29.md).
 Старые C1/C2 research verdicts и longitudinal gates сохраняются.
