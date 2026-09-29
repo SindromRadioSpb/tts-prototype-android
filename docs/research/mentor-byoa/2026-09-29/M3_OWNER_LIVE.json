@@ -1,0 +1,23 @@
+{
+  "date": "2026-09-29",
+  "release": "3.11.693",
+  "evidence": "OWNER_REPORTED_INSTALLER_CONNECTION_AND_AUTOMATED_OWNER_BROWSER_MODEL_ROUNDTRIP",
+  "installer": "0.1.0-beta.1",
+  "owner_reported_window": "PASS",
+  "owner_reported_connection": "PASS",
+  "browser_connection_heading": "Наставник подключён",
+  "credential_mode": "0600",
+  "credential_uid_gid": "1000:1000",
+  "surface": "Room",
+  "public_work": 57336,
+  "source": "פלאטון: \"המשתה\"",
+  "question": "Что означает המשתה в этом заголовке и зачем в начале ה? Объясни коротко по-русски.",
+  "browser_answer_received": true,
+  "answer_addresses_source_and_article": true,
+  "independent_language_review": false,
+  "runtime": "pinned Hermes 0.21.5 / openai-codex subscription adapter",
+  "api_key_or_paid_fallback": false,
+  "practice_observation": "Two-word heading correctly rejected by source checker, but button was offered before eligibility was known. Fixed for 3.11.694.",
+  "canonical_review": "Not invoked; fixture regression proves unchanged review_log. Owner OPFS review_log was not independently measured in this browser run.",
+  "learning_effectiveness_claim": false
+}

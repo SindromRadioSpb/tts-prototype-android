@@ -58,3 +58,39 @@ race; повтор после завершения helper подтвердил �
 
 Воспроизводимый read-only verifier:
 `node scripts/premium/tutor-release-verify.js --version 3.11.692 --commit d016819d`.
+
+## M3 / 3.11.693 — OWNER PILOT ENABLED
+
+- Final active image: `94d6166f92e3445dd67061f035a3eeaa33cce21c`, image ID
+  `201426354aef19186f7132e278d5c0d8af1d55eea3cc527c41a5ad2803916fc0`.
+- Pre-migration SQLite snapshot: quick_check=ok, 890089472 bytes, private backup.
+  Additive `072_tutor_onboarding` applied and verified read-only.
+- Seven-day grant for exactly the configured owner, expires 2026-10-06 15:00 UTC.
+  Global rollout remains off; anonymous capability false, protected routes 401.
+- [Served bytes/manifest/SW/health](M3_PRODUCTION_RESULT.json) match final git
+  commit; [fresh guest browser](M3_PRODUCTION_BROWSER.json) checks Studio/Room
+  modules, setup sign-in and denied installer access. No page errors.
+- Unsigned pilot installer uploaded to gated data-volume downloads; SHA256
+  `5d86104f8e9525ee80b34ecafb168e02b40534a829642d77a90e36376ee0e1e3`.
+- Windows helper installed and runtime contract verified; owner confirmed window
+  appearance and connection. [Owner browser model roundtrip](M3_OWNER_LIVE.json)
+  received a source-specific answer in Room; no independent language grade claimed.
+
+### Deployment recovery and bounded cleanup
+
+Initial M3 commit `4a34ec7e` deployed. Two subsequent attempts failed at Git SSH
+authentication, not application startup. The public repository read transport
+was changed to its same official HTTPS URL; final deployment succeeded.
+After owner authorization, the obsolete deploy key was fingerprint-matched,
+checked for other references, detached, revoked at GitHub, and deleted in Coolify.
+Its exact encoded value was redacted from 597 retained deployment records. The
+separate server connection key was unchanged. No key values/raw logs are in git.
+
+After each completed build, inventory preceded BuildKit cleanup. Exact old images
+`374e26c1` then `4a34ec7e` were removed only after checking all container image refs.
+Final retention: active `94d6166f`, stable rollback `d016819d`, all 12 containers,
+4 volumes, all DB/backups/user data. Build cache 0; 6.5G available, df 83%.
+Health disk warning remains; this is not a capacity-policy fix. No system prune.
+
+Rollback: disable owner rollout first, then use the retained M2 image with global
+flag off. Do not delete additive tables or restore the entire user DB for rollback.

@@ -1,7 +1,13 @@
 # M3: Windows pilot onboarding
 
 2026-09-29; base `c3ee1213`; branch `feat/mentor-byoa-m3`.
-Status: **LOCAL TECHNICAL PASS / OWNER REPORTED WINDOW PASS**; production pending.
+Status: **LOCAL TECHNICAL PASS / OWNER REPORTED WINDOW PASS / PRODUCTION OWNER PILOT**.
+Production 3.11.693 at `94d6166f`: [release verification](PRODUCTION_ROLLOUT.md).
+Owner installed-helper connection and production Room → Hermes → explanation:
+[live evidence](M3_OWNER_LIVE.json). The two-word title exposed a practice CTA
+eligibility defect: 3.11.694 advertises practice only when the same server checker
+can build it. Targeted context/transport/shell tests: 39 PASS; real fixture browser
+practice/retry/resume still passes with unchanged review_log.
 
 ## Delivered slice
 

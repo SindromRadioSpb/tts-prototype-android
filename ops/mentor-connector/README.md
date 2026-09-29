@@ -59,3 +59,33 @@ Opt-in owner subscription test: `node scripts/premium/tutor-m1-live-smoke.js --o
 It requires the scripts already copied to `/tmp/lp-tutor-m1` in the owner container;
 it uses a synthetic authored sentence and an isolated relay, then revokes its token.
 It consumes subscription allowance; never run as a routine CI test.
+# Windows owner pilot (M3)
+
+Build on Windows with Inno Setup 6:
+`powershell -NoProfile -File ops/mentor-connector/windows/build.ps1`.
+The `.tmp/tutor-installer/` manifest records the artifact SHA256. Distribute only
+through the rollout-gated `/api/tutor/downloads` endpoint for this unsigned pilot.
+The installer needs no administrator permission. Windows may warn because the
+pilot has no signing certificate; do not disable Windows security controls.
+
+Prerequisite: the supported pinned Hermes 0.21.5 Docker runtime, named home/source
+volumes, configured ChatGPT/Codex subscription and Docker Desktop running.
+Fresh-machine Hermes installation is a later slice, not handled by this installer.
+
+Open **LinguistPro Tutor → Подключить**. The helper checks the subscription route
+without inference, launches its outbound connector and opens the browser approval.
+Sign in to LinguistPro, review the agent and confirm. No key or code copy is needed.
+Close the helper window to keep working in the background; **Остановить** stops
+the connector. Revoke access on `/tutor-connect.html` to invalidate its credential.
+After a failed/expired approval, explicitly start Connect again.
+
+Operator commands inside the deployed application:
+`node ops/mentor-connector/rollout-cli.js enable-owner` (seven days),
+`node ops/mentor-connector/rollout-cli.js disable-owner`.
+They require exactly one configured `AGENT_ACCESS_OWNER_IDS` identity. Never
+enable the global flag to emulate a bounded pilot. Emergency off overrides grants.
+
+Uninstall removes the helper/protocol/shortcuts, attempts server revoke, and
+removes only `linguistpro-tutor` plus its own two state files. Hermes history,
+OAuth, gateway, source and home volumes are retained. With Docker unavailable,
+revoke in the browser; offline uninstall recovery remains a public-release gate.

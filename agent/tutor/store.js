@@ -43,7 +43,13 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
     return { principal_id: conn.user_id, connection_id: conn.id, consent_revision: conn.consent_revision, session_id: sessionId };
   }
   function view(row) {
+    let practiceAvailable=false;
+    if(row.state==='completed'){
+      try{practice.build(JSON.parse(row.context_json),row.question);practiceAvailable=true;}
+      catch(e){if(e.code!=='practice_unavailable')throw e;}
+    }
     return { id: row.id, version: row.version, state: row.state, error: row.error_code || null,
+      practice_available:practiceAvailable,
       expires_at: row.expires_at, context: JSON.parse(row.context_json), question: row.question, result: row.result_json ? JSON.parse(row.result_json) : null };
   }
   async function owned(userId, id) {

@@ -15,7 +15,7 @@
 подготовлен, semantic grades не включаются.
 
 M3 existing-Hermes slice: [локальные проверки и ограничения](../research/mentor-byoa/2026-09-29/M3_IMPLEMENTATION.md).
-Ветка `feat/mentor-byoa-m3`, плановый релиз 3.11.693, owner-only grant на 7 дней;
+Ветка `feat/mentor-byoa-m3`, релиз 3.11.693 verified (`94d6166f`), owner-only grant на 7 дней;
 внешний пилот и массовый доступ остаются закрыты до соответствующих gates.
 
 | Работа | Статус | Доказательство |

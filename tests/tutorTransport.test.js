@@ -202,6 +202,18 @@ test("bounded rollout closes browser and bearer delivery, including in-flight re
  await rejects(store.next(c.token),'not_available');await rejects(store.complete(c.token,s.id,job.lease,reply(job)),'not_available');
  delete env.TUTOR_BYOA_EMERGENCY_OFF;now=200001;
  assert.equal(await gate.allowed('A'),false);await rejects(store.read('A',s.id),'not_available');
+ now=1100001;await store.sweep();
+ const expired=await new Promise((r,j)=>db.get('SELECT count(*) AS n FROM tutor_sessions', (e,row)=>e?j(e):r(row)));
+ assert.equal(expired.n,0,'Retention still deletes expired content with rollout closed');
+});
+
+test('completed short heading does not advertise unavailable practice',async t=>{
+ const {store,pair}=await fixture(t),c=await pair();await store.next(c.token);
+ const input=request(c);input.context.source.excerpt='פלאטון: "המשתה"';
+ const s=await store.create('A',input),{job}=await store.next(c.token);
+ await store.complete(c.token,s.id,job.lease,reply(job));
+ assert.equal((await store.read('A',s.id)).practice_available,false);
+ await rejects(store.practice('A',s.id),'practice_unavailable');
 });
 
 test("browser device enrollment: nonce, explicit approval, two users, one-time token, expiry",async t=>{

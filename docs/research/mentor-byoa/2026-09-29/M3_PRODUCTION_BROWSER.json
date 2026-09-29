@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-29T15:01:15.958Z",
+  "evidence": "AUTOMATED_PRODUCTION_GUEST_BROWSER",
+  "checks": [
+    {
+      "path": "/library.html?canon=skip",
+      "modules_loaded": true,
+      "guest_capability": false
+    },
+    {
+      "path": "/index.html",
+      "modules_loaded": true,
+      "guest_capability": false
+    },
+    {
+      "path": "/tutor-connect.html",
+      "guest_login": true
+    }
+  ],
+  "download_guest_status": 401,
+  "pageErrors": []
+}

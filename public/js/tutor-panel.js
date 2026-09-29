@@ -82,7 +82,7 @@
       const current=await api.call('/sessions/'+encodeURIComponent(session.id)+'?since='+session.version);
       if(turn!==generation) return;
       if(!current.unchanged) session=current;
-      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('practiceStart').hidden=false;status(words.sourceChanged);requestKey=null;return;}
+      if(session.state==='completed') {busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;$('answer').textContent=session.result.text;$('answer').hidden=false;$('practiceStart').hidden=session.practice_available!==true;status(words.sourceChanged);requestKey=null;return;}
       if(session.state==='failed'){requestKey=null;throw Object.assign(new Error(session.error),{code:session.error});}
       if(session.state==='cancelled'){busy=false;$('send').disabled=false;$('question').readOnly=false;$('cancel').hidden=true;requestKey=null;status(words.stopped);return;}
       status(session.state==='queued'?words.queued:words.waiting);
