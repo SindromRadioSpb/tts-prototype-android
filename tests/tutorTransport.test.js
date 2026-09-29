@@ -15,7 +15,7 @@ const reply = job => ({ schema_version: "lp-tutor-response.1", context_id: job.c
 const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
 async function fixture(t) {
   const db = new sqlite3.Database(":memory:");
-  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8")+fs.readFileSync("migrations/072_tutor_onboarding.sql", "utf8")+fs.readFileSync("migrations/073_tutor_practice_proposals.sql", "utf8"), e => e ? j(e) : r()));
+  await new Promise((r, j) => db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A'),('B');" + fs.readFileSync("migrations/070_tutor_transport.sql", "utf8")+fs.readFileSync("migrations/071_tutor_practice.sql", "utf8")+fs.readFileSync("migrations/072_tutor_onboarding.sql", "utf8")+fs.readFileSync("migrations/073_tutor_practice_proposals.sql", "utf8")+fs.readFileSync("migrations/074_tutor_conversation.sql", "utf8"), e => e ? j(e) : r()));
   t.after(() => new Promise(resolve => db.close(resolve)));
   let now = 100000;
   const store = createStore(() => db, () => now);
@@ -63,6 +63,32 @@ test("exact caption window reaches the personal agent; missing timing is rejecte
   assert.deepEqual(job.context.source.media, req.context.source.media);
   await store.complete(conn.token, session.id, job.lease, reply(job));
   assert.equal((await store.read("A", session.id)).state, "completed");
+});
+test("follow-up delivers only completed turns from the same owner and source", async t => {
+  const { store, pair } = await fixture(t); const conn = await pair(); await store.next(conn.token);
+  const first = await store.create("A", request(conn)); const initial = (await store.next(conn.token)).job;
+  await store.complete(conn.token, first.id, initial.lease, reply(initial));
+  const followup = { ...request(conn), request_key: "request_key_00002", previous_session_id: first.id, question: "А почему именно эта форма?" };
+  const second = await store.create("A", followup);
+  const next = (await store.next(conn.token)).job;
+  assert.deepEqual(next.history, [{ question: initial.question, answer: reply(initial).text }]);
+  assert.equal(next.user_question, followup.question);
+  assert.match(next.question, /Earlier turns for context/);
+  assert.equal(second.previous_session_id, first.id);
+  await rejects(store.create("B", { ...followup, request_key: "request_key_00003" }), "connection_required");
+  await store.complete(conn.token, second.id, next.lease, reply(next));
+  const otherSource = { ...request(conn), request_key: "request_key_00004", previous_session_id: second.id, context: context() };
+  otherSource.context.source.excerpt = "שורה אחרת";
+  await rejects(store.create("A", otherSource), "context_changed");
+});
+test("saved local turns can resume a conversation after relay expiry with bounded history", async t => {
+  const { store, pair } = await fixture(t); const conn = await pair(); await store.next(conn.token);
+  const req = { ...request(conn), history: [{ question: "Что значит הייתי?", answer: "Это форма глагола быть." }] };
+  await rejects(store.create("A", { ...req, history: [{ question: "x", answer: "a".repeat(2001) }] }), "invalid_request");
+  const session = await store.create("A", req); const { job } = await store.next(conn.token);
+  assert.deepEqual(job.history, req.history);
+  assert.match(job.question, /Current learner question/);
+  await store.complete(conn.token, session.id, job.lease, reply(job));
 });
 test("pairing is single-use, expiring and stores hashes only", async t => {
   const { store, db, advance } = await fixture(t); const p = await store.pair("A");
@@ -163,7 +189,7 @@ test("SQLite restart retains result and never redelivers an uncertain run", asyn
   const file=path.join(dir,'fixture.sqlite');let db=new sqlite3.Database(file);
   const close=()=>new Promise((r,j)=>db.close(e=>e?j(e):r()));
   t.after(async()=>{await close();fs.rmSync(dir,{recursive:true,force:true});});
-  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8')+fs.readFileSync('migrations/073_tutor_practice_proposals.sql','utf8'),e=>e?j(e):r()));
+  await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('A');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8')+fs.readFileSync('migrations/073_tutor_practice_proposals.sql','utf8')+fs.readFileSync('migrations/074_tutor_conversation.sql','utf8'),e=>e?j(e):r()));
   let store=createStore(()=>db);const p=await store.pair('A');const c=await store.claim({pairing_code:p.pairing_code,client_nonce:nonce});
   await store.next(c.token);const s=await store.create('A',request(c));const {job}=await store.next(c.token);
   await close();db=new sqlite3.Database(file);store=createStore(()=>db);

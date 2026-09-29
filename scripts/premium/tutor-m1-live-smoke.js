@@ -10,7 +10,7 @@ const {installRoutes}=require('../../agent/tutor/routes');
 function exec(args,input){return new Promise((r,j)=>{const c=spawn('docker',args,{stdio:['pipe','pipe','pipe']});let out='',err='';c.stdout.on('data',b=>out+=b);c.stderr.on('data',b=>err+=b);c.on('error',j);c.on('exit',code=>code?j(new Error('CONNECTOR_PROCESS_FAILED '+code)):r({out,err}));c.stdin.end(input||'');});}
 async function main(){
  const db=new sqlite3.Database(':memory:');
- await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON;CREATE TABLE users(id TEXT PRIMARY KEY);INSERT INTO users VALUES('m1-live-fixture');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8'),e=>e?j(e):r()));
+ await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON;CREATE TABLE users(id TEXT PRIMARY KEY);INSERT INTO users VALUES('m1-live-fixture');"+fs.readFileSync('migrations/070_tutor_transport.sql','utf8')+fs.readFileSync('migrations/071_tutor_practice.sql','utf8')+fs.readFileSync('migrations/072_tutor_onboarding.sql','utf8')+fs.readFileSync('migrations/073_tutor_practice_proposals.sql','utf8')+fs.readFileSync('migrations/074_tutor_conversation.sql','utf8'),e=>e?j(e):r()));
  const store=createStore(()=>db),app=express();app.use(express.json({limit:'40kb'}));
  const auth={user:{id:'m1-live-fixture'},session:{csrf:'fixture-csrf'}};
  installRoutes(app,{store,enabled:()=>true,requireUser:async(req,res)=>{if(req.get('X-Test-Owner')!=='m1-local-only'){res.sendStatus(401);return null;}return auth;},requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!=='fixture-csrf'){s.sendStatus(403);return false;}return true;},limiter:(_q,_s,n)=>n()});

@@ -14,7 +14,7 @@ const practiceMode=process.argv.includes('--practice');
 const surfacesMode=process.argv.includes('--surfaces');
 async function main(){
  const db=new sqlite3.Database(':memory:');
- await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/073_tutor_practice_proposals.sql'),'utf8'),e=>e?j(e):r()));
+ await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('fixture-A');"+fs.readFileSync(path.join(ROOT,'migrations/070_tutor_transport.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/071_tutor_practice.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/072_tutor_onboarding.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/073_tutor_practice_proposals.sql'),'utf8')+fs.readFileSync(path.join(ROOT,'migrations/074_tutor_conversation.sql'),'utf8'),e=>e?j(e):r()));
  const store=createStore(()=>db),app=express();app.use(express.json({limit:'40kb'}));
  app.use((_q,s,n)=>{s.set('Cross-Origin-Opener-Policy','same-origin');s.set('Cross-Origin-Embedder-Policy','require-corp');n();});
  const auth={user:{id:'fixture-A'},session:{csrf:'fixture-csrf'}};let accountDeleted=false;
@@ -23,7 +23,7 @@ async function main(){
  app.get('/api/account/export',(_q,s)=>accountDeleted?s.status(401).json({ok:false}):s.json({ok:true,table_list:['tutor_practice'],tables:{tutor_practice:[{id:'fixture-practice'}]}}));
  app.post('/api/account/delete',(q,s)=>{if(q.get('X-LP-CSRF')!=='fixture-csrf'||q.body?.confirm!=='DELETE')return s.status(403).json({ok:false});accountDeleted=true;s.json({ok:true});});
  installRoutes(app,{store,enabled:()=>true,requireUser:async()=>auth,requireCsrf:(q,s)=>{if(q.get('X-LP-CSRF')!==auth.session.csrf){s.status(403).json({ok:false,error:'BAD_CSRF'});return false;}return true;},limiter:(_q,_s,n)=>n()});
- app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.699',tts:{enabled:false},agent:{enabled:false}}));
+ app.get('/api/client-config',(_q,s)=>s.json({ok:true,version:'3.11.700',tts:{enabled:false},agent:{enabled:false}}));
  app.get('/api/mediatheque',(_q,s)=>s.json({ok:true,structure:require('../../public/js/mediatheque-core').empty(),items:[],revision:0}));
  app.use('/api',(_q,s)=>s.status(404).json({ok:false,error:'FIXTURE_ROUTE_NOT_AVAILABLE'}));
  if(surfacesMode)app.get('/js/library-ui.js',(_q,res)=>res.type('js').send(fs.readFileSync(path.join(ROOT,'public/js/library-ui.js'),'utf8')+`
@@ -35,8 +35,10 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
  const ctx=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
  await ctx.route('**/*',route=>{const url=new URL(route.request().url());return url.origin===origin||url.protocol==='blob:'?route.continue():route.abort();});
  const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
+ const waitArchiveCount=async count=>{for(let i=0;i<60;i++){if(await page.evaluate(async()=>(await window.LPTutorNotebook.local().list('fixture-A')).length)===count)return;await page.waitForTimeout(100);}throw Error('ARCHIVE_COUNT_'+count);};
  const shots=path.join(ROOT,'docs/research/mentor-byoa/2026-09-29/'+(surfacesMode?'m4-screenshots':practiceMode?'m2-screenshots':'m1-screenshots'));fs.mkdirSync(shots,{recursive:true});
  let token,worker,busy=false,hold=false,deliveries=[];
+ const waitDelivery=async previous=>{for(let i=0;i<100;i++){if(deliveries.length>previous)return;await page.waitForTimeout(100);}throw Error('TUTOR_DELIVERY_TIMEOUT');};
  try{
   const p=await store.pair('fixture-A');token=(await store.claim({pairing_code:p.pairing_code,client_nonce:'n'.repeat(43)})).token;
   await store.next(token);
@@ -53,8 +55,8 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   let before=await page.evaluate(()=>window.__localDB.countReviewLog());
   await page.locator('.row-explain-btn').first().click({timeout:30000});
   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
-  await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
-  await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});
+  await page.locator('dialog[data-lp-tutor] #send').click();
+  await page.getByText('[Fixture response]',{exact:false}).last().waitFor({timeout:15000});
   assert.equal(await page.evaluate(()=>window.__tutorXss),undefined);
   assert.equal(deliveries[0].context.surface,'room');
   assert.equal(deliveries[0].context.source.excerpt,'כשהייתי ילד גרתי בחיפה');
@@ -64,16 +66,17 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:path.join(shots,'room-mobile.png')});
   if(surfacesMode){
-   const save=page.getByRole('button',{name:'Сохранить на этом устройстве',exact:true});
-   await save.click();await page.getByText('Объяснение сохранено в этом браузере.',{exact:true}).waitFor();await save.click();
+   await waitArchiveCount(1);
+   assert.equal(await page.getByRole('button',{name:'Сохранить на этом устройстве'}).count(),0);
    assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1);
    assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-B'))).length,0);
    await page.evaluate(async()=>{const rows=await window.LPTutorNotebook.local().list('fixture-A');await window.LPTutorNotebook.local().remove('fixture-B',rows[0].id);});
    assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1);
-   await page.getByRole('button',{name:'Сохранённые объяснения',exact:true}).click();
-   const notebook=page.getByRole('dialog',{name:'Сохранённые объяснения',exact:true});
-   await notebook.locator('summary').click();
+   await page.evaluate(()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale:'ru'}));
+   const notebook=page.getByRole('dialog',{name:'История с наставником',exact:true});
+   await notebook.locator('summary').first().click();
    assert.equal(await notebook.locator('img').count(),0);
+   assert.equal(await notebook.getByRole('button',{name:'Скачать все'}).count(),0,'data controls stay outside learning history');
    await page.screenshot({path:path.join(shots,'notebook-mobile.png')});
    await notebook.getByRole('button',{name:'Закрыть',exact:true}).click();
   }
@@ -97,18 +100,24 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
   await page.reload();
   await page.locator('.row-explain-btn').first().click({timeout:30000});
-  await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});
+  await page.getByText('[Fixture response]',{exact:false}).last().waitFor({timeout:15000});
   assert.equal(deliveries.length,1,'reload resumes result, does not regenerate');
   if(surfacesMode&&!practiceMode){
+   await page.locator('dialog[data-lp-tutor] #question').fill('А почему эта форма?');
+   await page.locator('dialog[data-lp-tutor] #question').press('Shift+Enter');
+   assert.match(await page.locator('dialog[data-lp-tutor] #question').inputValue(),/\n/);
+   await page.locator('dialog[data-lp-tutor] #question').fill('А почему эта форма?');
+   await page.locator('dialog[data-lp-tutor] #question').press('Enter');
+   await waitArchiveCount(2);
+   assert.deepEqual(deliveries.at(-1).history,[{question:deliveries[0].question,answer:'[Fixture response] הייתי — «я был». <img src=x onerror="window.__tutorXss=1">'}]);
    const count=deliveries.length;
-   assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,1,'accepted explanation survives reload');
-   await page.getByRole('button',{name:'Сохранённые объяснения',exact:true}).click();
-   const notebook=page.getByRole('dialog',{name:'Сохранённые объяснения',exact:true});
-   await notebook.locator('summary').click();
+   await page.evaluate(()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale:'ru',management:true,onContinue:window.LPTutor.openSaved}));
+   const notebook=page.getByRole('dialog',{name:'История с наставником',exact:true});
+   await notebook.locator('summary').first().click();
    const download=page.waitForEvent('download');await notebook.getByRole('button',{name:'Скачать',exact:true}).click();assert.equal((await download).suggestedFilename(),'linguistpro-explanation.json');
    const allDownload=page.waitForEvent('download');await notebook.getByRole('button',{name:'Скачать все',exact:true}).click();assert.equal((await allDownload).suggestedFilename(),'linguistpro-explanations.json');
-   await notebook.getByRole('button',{name:'Продолжить разбор',exact:true}).click();
-   await page.getByText('Сохранённая версия фрагмента.',{exact:false}).waitFor();
+   await notebook.getByRole('button',{name:'Открыть разговор',exact:true}).click();
+   await page.getByText('Продолжим разговор об этом фрагменте.',{exact:true}).waitFor();
    assert.equal(deliveries.length,count,'opening archive never generates');
    assert.equal(await page.getByRole('dialog',{name:'Разберём вместе'}).getByRole('checkbox').count(),0,'asking needs no repeated checkbox');
   }
@@ -122,8 +131,8 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   if(surfacesMode){
    await page.evaluate(()=>window.LPTutor.tryOpen({surface:'room',materialKey:'video:fixture',rows:[{id:'video-row',he:'שלום בעולם'}],index:0,
     mediaPassport:{timingMap:{authority:'studio-exact-binding',revision_id:'video-r1',revision_sha256:'a'.repeat(64),row_caption_segment_ids:['caption-1']},timing:{entries:[{o:0,t:25,end:31}]}}}));
-   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
-   await page.getByText('[Fixture response]',{exact:false}).waitFor();
+   await page.locator('dialog[data-lp-tutor] #send').click();
+   await page.getByText('[Fixture response]',{exact:false}).last().waitFor();
    assert.equal(deliveries.at(-1).context.source.kind,'caption');
    assert.equal(deliveries.at(-1).context.source.media.start_ms,25000);
    await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
@@ -137,9 +146,13 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    assert.ok(count>before,'real answer committed before help');
    await help.click();
    await page.getByRole('button',{name:'Вернуться к повторению',exact:true}).waitFor();
-   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
-   await page.getByText('[Fixture response]',{exact:false}).waitFor();
+   const beforeReview=deliveries.length,beforeReviewTurns=await page.locator('dialog[data-lp-tutor] .turn').count();
+   await page.locator('dialog[data-lp-tutor] #send').click();
+   await waitDelivery(beforeReview);
+   await page.locator('dialog[data-lp-tutor] .turn').nth(beforeReviewTurns).waitFor();
+   await page.getByText('[Fixture response]',{exact:false}).last().waitFor();
    assert.equal(deliveries.at(-1).context.surface,'review');
+   assert.ok(deliveries.at(-1).history.length>=1,'review keeps the same-source conversation');
    await page.keyboard.press('Tab');
    assert.equal(await page.evaluate(()=>document.querySelector('dialog[open]').contains(document.activeElement)),true);
    await page.screenshot({path:path.join(shots,'review-help-mobile.png')});
@@ -149,10 +162,14 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await page.evaluate(()=>window.__m4Fixture.close());
    await page.goto(origin+'/library.html?canon=skip&open=m1%3Afixture%3Atext&from=mediatheque&return_to=%2Fmediatheque.html&tutor=choose');
    await page.locator('.row-explain-btn').first().click({timeout:30000});
-   await page.getByRole('textbox',{name:'Что хотите понять?'}).fill('Проверка материала Медиатеки');
-   await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
-   await page.getByText('[Fixture response]',{exact:false}).waitFor();
+   await page.locator('dialog[data-lp-tutor] #question').fill('Проверка материала Медиатеки');
+   const beforeMediatheque=deliveries.length,beforeMediathequeTurns=await page.locator('dialog[data-lp-tutor] .turn').count();
+   await page.locator('dialog[data-lp-tutor] #send').click();
+   await waitDelivery(beforeMediatheque);
+   await page.locator('dialog[data-lp-tutor] .turn').nth(beforeMediathequeTurns).waitFor();
+   await page.getByText('[Fixture response]',{exact:false}).last().waitFor();
    assert.equal(deliveries.at(-1).context.surface,'mediatheque');
+   assert.ok(deliveries.at(-1).history.length>=1,'mediatheque keeps the same-source conversation');
    assert.equal(await page.evaluate(()=>window.__localDB.countReviewLog()),count);
    await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
    // The only canonical change above was the deliberately submitted fixture answer.
@@ -165,16 +182,20 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   await page.evaluate(()=>window.StudioAgent.explainRow(0));
   await page.getByRole('dialog',{name:'Разберём вместе'}).waitFor();
   // Exact same fragment resumes the Room answer across surfaces if its identity matches.
-  await page.getByRole('textbox',{name:'Что хотите понять?'}).fill('Другой вопрос для проверки Студии');
-  await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
+  await page.locator('dialog[data-lp-tutor] #question').fill('Другой вопрос для проверки Студии');
+  const beforeStudio=deliveries.length,beforeStudioTurns=await page.locator('dialog[data-lp-tutor] .turn').count();
+  await page.locator('dialog[data-lp-tutor] #send').click();
+  await waitDelivery(beforeStudio);
+  await page.locator('dialog[data-lp-tutor] .turn').nth(beforeStudioTurns).waitFor();
   await page.waitForFunction(()=>document.querySelector('dialog')?.textContent!==undefined);
-  await page.getByText('[Fixture response]',{exact:false}).waitFor({timeout:15000});
+  await page.getByText('[Fixture response]',{exact:false}).last().waitFor({timeout:15000});
   assert.equal(deliveries.at(-1).context.surface,'studio');
+  if(surfacesMode)assert.ok(deliveries.at(-1).history.length>=1,'studio keeps the same-source conversation');
   const after=await page.evaluate(async()=>{const db=await window.StudioAgentHost.ldb();return db.countReviewLog();});
   assert.equal(after,before,'tutor never writes review_log');
   await page.screenshot({path:path.join(shots,'studio-mobile.png')});
   if(surfacesMode&&!practiceMode){
-   await page.getByRole('button',{name:'Сохранить на этом устройстве',exact:true}).click();
+   for(let i=0;i<60;i++){if(await page.evaluate(async()=>(await window.LPTutorNotebook.local().list('fixture-A')).length)>=3)break;await page.waitForTimeout(100);}
    await page.getByRole('button',{name:'Вернуться к тексту',exact:true}).click();
    await page.evaluate(()=>{v3LibraryExportBundle();});
    const zipEvent=page.waitForEvent('download',{timeout:30000});
@@ -204,8 +225,8 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   }
 
   hold=true;
-  await page.getByRole('textbox',{name:'Что хотите понять?'}).fill('Проверка отмены');
-  await page.getByRole('button',{name:'Спросить наставника',exact:true}).click();
+  await page.locator('dialog[data-lp-tutor] #question').fill('Проверка отмены');
+  await page.locator('dialog[data-lp-tutor] #send').click();
   await page.getByRole('button',{name:'Остановить',exact:true}).click();
   await page.getByText('Запрос остановлен.',{exact:false}).waitFor();
   await page.keyboard.press('Escape');
@@ -224,7 +245,7 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
   if(practiceMode){
    hold=false;
    await page.evaluate(()=>window.LPTutor.tryOpen({surface:'room',materialKey:'rtl:exercise',rows:[{id:'rtl',he:'כשהייתי ילד גרתי בחיפה'}],index:0}));
-   await page.getByRole('button',{name:'לשאול את המורה',exact:true}).click();
+   await page.locator('dialog[data-lp-tutor] #send').click();
    await page.getByRole('button',{name:'דקה של תרגול',exact:true}).click();
    await page.getByRole('textbox',{name:'המילה מהמקור',exact:true}).waitFor();
    await page.screenshot({path:path.join(shots,'practice-he-mobile.png')});
@@ -247,12 +268,12 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await link.first().click();await page.locator('.row-explain-btn').first().waitFor();
    await page.getByText('Выберите предложение и нажмите кнопку наставника рядом с ним.',{exact:true}).waitFor();
    assert.equal(await page.evaluate(()=>document.activeElement.classList.contains('row-explain-btn')),true);
-   await page.evaluate(()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale:'he'}));
-   const heNotebook=page.getByRole('dialog',{name:'הסברים שמורים',exact:true});await heNotebook.locator('summary').first().click();
+   await page.evaluate(()=>window.LPTutorNotebook.show({api:window.LPTutorClient.createApi(),locale:'he',management:true}));
+   const heNotebook=page.getByRole('dialog',{name:'שיחות עם המורה',exact:true});await heNotebook.locator('summary').first().click();
    await page.screenshot({path:path.join(shots,'notebook-he-mobile.png')});
    page.once('dialog',dialog=>dialog.accept());
    await heNotebook.getByRole('button',{name:'מחיקת הכול',exact:true}).click();
-   await heNotebook.getByText('עדיין אין הסברים שמורים.',{exact:true}).waitFor();
+   await heNotebook.getByText('עדיין אין שיחות עם המורה.',{exact:true}).waitFor();
    assert.equal((await page.evaluate(()=>window.LPTutorNotebook.local().list('fixture-A'))).length,0);
    await heNotebook.getByRole('button',{name:'סגירה',exact:true}).click();
    await page.evaluate(async()=>{
@@ -272,10 +293,10 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
    await page.evaluate(async()=>{
     const store=window.LPTutorNotebook.local(),context=await window.LPTutorClient.build(window.LPTutorClient.capture({surface:'room',materialKey:'limit',rows:[{id:'1',he:'שלום עולם'}],index:0,locale:'ru'}));
     const record={schema:1,status:'accepted',context,question:'0',answer:'fixture'};
-    for(let i=0;i<50;i++)await store.save('fixture-limit',{...record,question:String(i)});
+    for(let i=0;i<200;i++)await store.save('fixture-limit',{...record,question:String(i)});
     await store.save('fixture-limit',record);
     let rejected=false;try{await store.save('fixture-limit',{...record,question:'overflow'});}catch(_){rejected=true;}
-    if(!rejected||(await store.list('fixture-limit')).length!==50)throw Error('ARCHIVE_LIMIT_FAILED');
+    if(!rejected||(await store.list('fixture-limit')).length!==200)throw Error('ARCHIVE_LIMIT_FAILED');
    for(const row of await store.list('fixture-limit'))await store.remove('fixture-limit',row.id);
    });
    if(!practiceMode){
@@ -305,7 +326,7 @@ window.__m4Fixture={launch:async()=>{ensureStudySheet();_studySheet.hidden=false
     await page.getByText('Не удалось выполнить действие. Проверьте вход и повторите.',{exact:true}).waitFor();
     await page.unroute('**/api/auth/me');
     await page.locator('#roomAccountLocalArchive').click();
-    const archive=page.getByRole('dialog',{name:'Сохранённые объяснения'});await archive.waitFor();
+    const archive=page.getByRole('dialog',{name:'История с наставником'});await archive.waitFor();
     await archive.getByRole('button',{name:'Закрыть'}).click();
     await Promise.all([page.waitForEvent('dialog').then(dialog=>dialog.dismiss()),page.locator('#roomAccountDelete').click()]);assert.equal(accountDeleted,false);
     await Promise.all([page.waitForEvent('dialog').then(dialog=>dialog.accept('WRONG')),page.locator('#roomAccountDelete').click()]);assert.equal(accountDeleted,false);

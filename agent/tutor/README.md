@@ -17,6 +17,14 @@ text inputs are labelled `local_snapshot`, including a displayed public text;
 exact timed subtitles are labelled `caption`. Both remain browser-supplied snapshots.
 The UI shows the source, optional neighbours and the recipient. Clicking Ask sends
 the question and displayed context; no separate checkbox interrupts each question.
+Migration `074_tutor_conversation.sql` links completed turns for the same principal,
+connection, surface and source revision. The relay sends up to four previous turns
+to the personal agent, with a compatible contextual question for installed pilot
+runners. After the 15-minute relay window, the browser may resume from its own
+bounded, account-scoped local conversation history; the server treats that history
+as untrusted learner-supplied text. Completed answers are saved locally without a
+second action. Export, restore and deletion remain in account data; no grades or
+cloud-sync state is changed by conversation turns.
 HTML is displayed literally. Personal learner data/credentials are not inferred
 from model output or accepted as client authority.
 

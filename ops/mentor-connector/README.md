@@ -31,7 +31,8 @@ names for fixture tests. HTTPS is required otherwise. Redirects are rejected.
 ## Boundaries
 
 - Only a selected snapshot, its adjacent sentences and question reach the runner.
-  The user previews and consents to transmission. Neighbours over 4,000 characters
+  The user sees the scope before asking. A bounded history of up to four turns
+  from the same source may accompany a follow-up. Neighbours over 4,000 characters
   are omitted. The whole server envelope is bounded to 24 KiB and expires in 15 minutes.
 - Provider OAuth remains in the owner's runtime. Relay stores hashes of connector
   credentials. A new pairing replaces the old connection; revoke deletes its jobs.
@@ -40,11 +41,14 @@ names for fixture tests. HTTPS is required otherwise. Redirects are rejected.
   Hermes MCP access remains separate; expanding tutor tools requires M2+ contracts.
 - A request is never automatically regenerated after an uncertain disconnect.
   Delivery of the same completed result can retry. SQLite retains session state
-  across relay restarts. The browser stores only a session reference.
+  across relay restarts. The browser keeps a session reference and an account-scoped
+  local copy of completed conversation turns.
 - Stop/revoke rejects late results; the worker stops on its next heartbeat
   (normally within 5 seconds, plus network timeout). Already accepted provider
   work cannot be guaranteed unconsumed.
-- This is text explanation, not graded practice, durable educational artifacts,
+- Completed conversations are saved in this browser's account-scoped local history;
+  account data controls handle export/restore/deletion. This is text explanation, not graded practice,
+  synced educational artifacts,
   grammar mastery, voice, or evidence of learning effectiveness.
 
 ## Checks

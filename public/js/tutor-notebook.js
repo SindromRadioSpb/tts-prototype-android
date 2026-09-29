@@ -1,12 +1,13 @@
-/* Explicit local explanation archive. No learner grades, cloud sync or auto-save. */
+/* Local tutor conversation history. No learner grades or cloud sync. */
 (function(root,factory){const api=factory();if(typeof module!=='undefined'&&module.exports)module.exports=api;if(root)root.LPTutorNotebook=api;})(typeof window==='undefined'?null:window,function(){
   'use strict';
-  const NAME='lp-tutor-notebook-v1',LIMIT=50;
+  const NAME='lp-tutor-notebook-v1',LIMIT=200;
   function validate(record){
     if(!record||record.schema!==1||record.status!=='accepted'||!record.context?.source)throw Error('invalid_archive');
     const c=record.context,s=c.source;
     if(!['studio','room','mediatheque','review'].includes(c.surface)||!['ru','en','he'].includes(c.locale)||c.instructional_intent!=='explain')throw Error('invalid_archive');
     if(!['local_snapshot','caption'].includes(s.kind)||!['material_id','revision_id','sentence_id','excerpt'].every(k=>typeof s[k]==='string'&&s[k].length>0))throw Error('invalid_archive');
+    if(record.session_id!=null&&(typeof record.session_id!=='string'||!/^[a-f0-9-]{36}$/.test(record.session_id)))throw Error('invalid_archive');
     if(typeof record.question!=='string'||typeof record.answer!=='string'||!record.answer||record.question.length>1000||record.answer.length>16000||s.excerpt.length>8000||JSON.stringify(record).length>40000)throw Error('invalid_archive');
     return JSON.parse(JSON.stringify(record));
   }
@@ -15,7 +16,7 @@
     const db=()=>opening||(opening=new Promise((resolve,reject)=>{const q=indexedDB.open(NAME,1);q.onupgradeneeded=()=>{const s=q.result.createObjectStore('explanations',{keyPath:'id'});s.createIndex('owner','owner');};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);}));
     async function run(mode,fn){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('explanations',mode);let result;tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('storage_unavailable'));fn(tx.objectStore('explanations'),v=>result=v,tx);});}
     async function digest(owner,clean){
-      const bytes=new TextEncoder().encode(JSON.stringify([String(owner),clean.context.source,clean.question,clean.answer]));
+      const bytes=new TextEncoder().encode(JSON.stringify([String(owner),clean.context.source,clean.session_id||'',clean.question,clean.answer]));
       return Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
     }
     return {
@@ -38,14 +39,14 @@
     };
   }
   const copy={
-    ru:{title:'Сохранённые объяснения',local:'Хранятся только в этом браузере. Не синхронизируются и не меняют оценки знаний.',empty:'Пока нет сохранённых объяснений.',close:'Закрыть',open:'Продолжить разбор',export:'Скачать',remove:'Удалить',failed:'Не удалось открыть хранилище. Проверьте доступное место в браузере.',stale:'Исходный фрагмент изменился. Это объяснение относится к сохранённой версии.',snapshot:'Сохранённый фрагмент · ответ ИИ не проверен преподавателем',exportAll:'Скачать все',importAll:'Восстановить из файла',deleteAll:'Удалить все',importConfirm:'Восстановить сохранённые объяснения из файла для этого аккаунта?',deleteConfirm:'Удалить все сохранённые объяснения этого аккаунта в этом браузере?',imported:'Объяснения восстановлены.',wrongAccount:'Файл относится к другому аккаунту или повреждён.',restoreFailed:'Не удалось восстановить объяснения. Проверьте файл и свободное место.',notIncluded:'Объяснения не вошли в ZIP: войдите в аккаунт.'},
-    en:{title:'Saved explanations',local:'Stored only in this browser. No sync or changes to knowledge grades.',empty:'No saved explanations yet.',close:'Close',open:'Continue discussion',export:'Download',remove:'Delete',failed:'Storage could not be opened. Check available browser storage.',stale:'The source passage has changed. This explanation refers to the saved version.',snapshot:'Saved passage · AI answer not reviewed by a teacher',exportAll:'Download all',importAll:'Restore from file',deleteAll:'Delete all',importConfirm:'Restore saved explanations from this file for this account?',deleteConfirm:'Delete all saved explanations for this account in this browser?',imported:'Explanations restored.',wrongAccount:'This file belongs to another account or is invalid.',restoreFailed:'Could not restore explanations. Check the file and available storage.',notIncluded:'Explanations were left out of the ZIP: sign in first.'},
-    he:{title:'הסברים שמורים',local:'נשמרים רק בדפדפן הזה. ללא סנכרון וללא שינוי בהערכות הידע.',empty:'עדיין אין הסברים שמורים.',close:'סגירה',open:'להמשיך בהסבר',export:'הורדה',remove:'מחיקה',failed:'לא ניתן לפתוח את האחסון. בדקו את המקום הפנוי בדפדפן.',stale:'קטע המקור השתנה. ההסבר מתייחס לגרסה השמורה.',snapshot:'קטע שמור · תשובת AI לא נבדקה בידי מורה',exportAll:'הורדת הכול',importAll:'שחזור מקובץ',deleteAll:'מחיקת הכול',importConfirm:'לשחזר הסברים שמורים מהקובץ לחשבון הזה?',deleteConfirm:'למחוק את כל ההסברים השמורים של החשבון הזה בדפדפן?',imported:'ההסברים שוחזרו.',wrongAccount:'הקובץ שייך לחשבון אחר או אינו תקין.',restoreFailed:'לא ניתן לשחזר את ההסברים. בדקו את הקובץ ואת המקום הפנוי.',notIncluded:'ההסברים לא נכללו בקובץ ZIP: יש להתחבר לחשבון.'}
+    ru:{title:'История с наставником',local:'Хранится в этом браузере. Можно вернуться к любому разговору.',empty:'Пока нет разговоров с наставником.',close:'Закрыть',open:'Открыть разговор',export:'Скачать',remove:'Удалить',failed:'Не удалось сохранить или открыть историю. Проверьте место в браузере.',stale:'Исходный фрагмент изменился. Это объяснение относится к сохранённой версии.',snapshot:'Фрагмент · ответ ИИ не проверен преподавателем',exportAll:'Скачать все',importAll:'Восстановить из файла',deleteAll:'Удалить все',importConfirm:'Восстановить сохранённые объяснения из файла для этого аккаунта?',deleteConfirm:'Удалить все сохранённые объяснения этого аккаунта в этом браузере?',imported:'Объяснения восстановлены.',wrongAccount:'Файл относится к другому аккаунту или повреждён.',restoreFailed:'Не удалось восстановить объяснения. Проверьте файл и свободное место.',notIncluded:'Объяснения не вошли в ZIP: войдите в аккаунт.'},
+    en:{title:'Tutor conversations',local:'Saved in this browser so you can return to a conversation.',empty:'No tutor conversations yet.',close:'Close',open:'Open conversation',export:'Download',remove:'Delete',failed:'Storage could not be opened. Check available browser storage.',stale:'The source passage has changed. This explanation refers to the saved version.',snapshot:'Saved passage · AI answer not reviewed by a teacher',exportAll:'Download all',importAll:'Restore from file',deleteAll:'Delete all',importConfirm:'Restore saved explanations from this file for this account?',deleteConfirm:'Delete all saved explanations for this account in this browser?',imported:'Explanations restored.',wrongAccount:'This file belongs to another account or is invalid.',restoreFailed:'Could not restore explanations. Check the file and available storage.',notIncluded:'Explanations were left out of the ZIP: sign in first.'},
+    he:{title:'שיחות עם המורה',local:'השיחות נשמרות בדפדפן הזה ואפשר לחזור אליהן.',empty:'עדיין אין שיחות עם המורה.',close:'סגירה',open:'פתיחת שיחה',export:'הורדה',remove:'מחיקה',failed:'לא ניתן לפתוח את האחסון. בדקו את המקום הפנוי בדפדפן.',stale:'קטע המקור השתנה. ההסבר מתייחס לגרסה השמורה.',snapshot:'קטע שמור · תשובת AI לא נבדקה בידי מורה',exportAll:'הורדת הכול',importAll:'שחזור מקובץ',deleteAll:'מחיקת הכול',importConfirm:'לשחזר הסברים שמורים מהקובץ לחשבון הזה?',deleteConfirm:'למחוק את כל ההסברים השמורים של החשבון הזה בדפדפן?',imported:'ההסברים שוחזרו.',wrongAccount:'הקובץ שייך לחשבון אחר או אינו תקין.',restoreFailed:'לא ניתן לשחזר את ההסברים. בדקו את הקובץ ואת המקום הפנוי.',notIncluded:'ההסברים לא נכללו בקובץ ZIP: יש להתחבר לחשבון.'}
   };
   let store;
   const local=()=>store||(store=createStore(window.indexedDB));
   const el=(tag,text)=>{const n=document.createElement(tag);n.textContent=text||'';return n;};
-  async function show({api,locale='ru',currentSource,onContinue}){
+  async function show({api,locale='ru',currentSource,onContinue,management=false}){
     const c=copy[locale]||copy.ru,origin=document.activeElement,dialog=el('dialog');dialog.setAttribute('data-lp-tutor','');dialog.setAttribute('aria-label',c.title);
     dialog.style.cssText='width:min(620px,calc(100vw - 28px));max-height:calc(100dvh - 28px);border:1px solid #bbc9be;border-radius:18px;padding:22px;background:#f9f8f3;color:#203c36;';
     const host=el('div');dialog.append(host);const shadow=host.attachShadow({mode:'open'});
@@ -59,7 +60,7 @@
       const controls=el('div');controls.className='actions';section.insertBefore(controls,list);
       const message=el('p');message.setAttribute('role','status');section.insertBefore(message,list);
       const downloadBundle=el('button',c.exportAll),uploadBundle=el('button',c.importAll),deleteBundle=el('button',c.deleteAll),input=el('input');input.type='file';input.accept='.json,application/json';input.hidden=true;
-      controls.append(downloadBundle,uploadBundle,deleteBundle,input);
+      if(management)controls.append(downloadBundle,uploadBundle,deleteBundle,input);
       downloadBundle.onclick=async()=>{try{if(await api.identity()!==owner)return;const bundle=await local().exportBundle(owner);if(!dialog.open||await api.identity()!==owner)return;const url=URL.createObjectURL(new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'}));const link=el('a');link.href=url;link.download='linguistpro-explanations.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(_){message.textContent=c.failed;}};
       uploadBundle.onclick=()=>input.click();
       input.onchange=async()=>{const file=input.files?.[0];input.value='';if(!file)return;try{if(await api.identity()!==owner)return;const bundle=JSON.parse(await file.text());if(!dialog.open||await api.identity()!==owner||!window.confirm(c.importConfirm))return;if(await api.identity()!==owner)return;await local().importBundle(owner,bundle);message.textContent=c.imported;await paint();}catch(_){message.textContent=c.wrongAccount;}};
@@ -75,7 +76,7 @@
           if(onContinue){const open=el('button',c.open);open.onclick=async()=>{try{if(await api.identity()!==owner)return;dialog.close();await onContinue(row);}catch(_){list.append(el('p',c.failed));}};actions.append(open);}
           const download=el('button',c.export);download.onclick=async()=>{try{if(await api.identity()!==owner)return;const{owner:omitOwner,id,...portable}=row;const url=URL.createObjectURL(new Blob([JSON.stringify(portable,null,2)],{type:'application/json'}));const link=el('a');link.href=url;link.download='linguistpro-explanation.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(_){list.append(el('p',c.failed));}};
           const remove=el('button',c.remove);remove.onclick=async()=>{try{if(await api.identity()!==owner)return;await local().remove(owner,row.id);await paint();close.focus();}catch(_){list.append(el('p',c.failed));}};
-          actions.append(download,remove);details.append(actions);a.append(details);list.append(a);
+          if(management)actions.append(download,remove);details.append(actions);a.append(details);list.append(a);
         }
       }
       await paint();

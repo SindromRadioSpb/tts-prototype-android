@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const express=require('express'),sqlite3=require('sqlite3'),{chromium}=require('playwright');
 const {createStore}=require('../../agent/tutor/store'),{createRollout}=require('../../agent/tutor/rollout'),{installRoutes}=require('../../agent/tutor/routes');
 (async()=>{
- const db=new sqlite3.Database(':memory:');await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON;CREATE TABLE users(id TEXT PRIMARY KEY);INSERT INTO users VALUES('A'),('B');"+['070_tutor_transport','071_tutor_practice','072_tutor_onboarding'].map(f=>fs.readFileSync('migrations/'+f+'.sql','utf8')).join('\n'),e=>e?j(e):r()));
+ const db=new sqlite3.Database(':memory:');await new Promise((r,j)=>db.exec("PRAGMA foreign_keys=ON;CREATE TABLE users(id TEXT PRIMARY KEY);INSERT INTO users VALUES('A'),('B');"+['070_tutor_transport','071_tutor_practice','072_tutor_onboarding','073_tutor_practice_proposals','074_tutor_conversation'].map(f=>fs.readFileSync('migrations/'+f+'.sql','utf8')).join('\n'),e=>e?j(e):r()));
  await new Promise((r,j)=>db.run("INSERT INTO tutor_rollout VALUES('A',?,'fixture',?)",[Date.now()+600000,Date.now()],e=>e?j(e):r()));
  const gate=createRollout(()=>db,{}),store=createStore(()=>db,Date.now,gate.allowed),app=express();app.use(express.json({limit:'40kb'}));
  let user='A';const auth=()=>user?{user:{id:user},session:{csrf:'fixture'}}:null;

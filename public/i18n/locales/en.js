@@ -2403,12 +2403,12 @@ window.I18N_LOCALES.en = {
       err: "Sync error",
       logout: "Log out",
       accountData: {
-        title: "My data", scope: "Download server data and saved explanations in this browser separately. Other devices keep their own local copies.",
-        serverExport: "Download server data", localArchive: "Explanations in this browser",
-        deleteScope: "Deleting your account removes server data and saved explanations in this browser. Remove other local materials and copies on other devices separately. Download any files you need first.",
+        title: "My data", scope: "Download server data and tutor conversations in this browser separately. Other devices keep their own local copies.",
+        serverExport: "Download server data", localArchive: "Tutor conversations in this browser",
+        deleteScope: "Deleting your account removes server data and tutor conversations in this browser. Remove other local materials and copies on other devices separately. Download any files you need first.",
         deleteAccount: "Delete account…", deletePrompt: "Download server data and the local archive first. To delete your account and server data, type DELETE. Local materials on other devices will remain.",
-        serverSaved: "Server data downloaded. Download saved explanations separately.", deleted: "Account deleted. Remove local materials on other devices separately.",
-        deletedLocalFailed: "Account deleted, but saved explanations could not be cleared from this browser.", failed: "Could not complete this action. Check your sign-in and try again."
+        serverSaved: "Server data downloaded. Download tutor conversations separately.", deleted: "Account deleted. Remove local materials on other devices separately.",
+        deletedLocalFailed: "Account deleted, but tutor conversations could not be cleared from this browser.", failed: "Could not complete this action. Check your sign-in and try again."
       },
       badSecret: "Wrong secret",
       tooMany: "Too many attempts — wait 10 minutes",

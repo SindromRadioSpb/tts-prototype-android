@@ -48,7 +48,7 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       try{practice.build(JSON.parse(row.context_json),row.question);practiceAvailable=true;}
       catch(e){if(e.code!=='practice_unavailable')throw e;}
     }
-    return { id: row.id, version: row.version, state: row.state, error: row.error_code || null,
+    return { id: row.id, previous_session_id: row.previous_session_id || null, version: row.version, state: row.state, error: row.error_code || null,
       practice_available:practiceAvailable && row.proposal_state!=='dismissed',
       practice_proposal_state:row.proposal_state||null,
       expires_at: row.expires_at, context: JSON.parse(row.context_json), question: row.question, result: row.result_json ? JSON.parse(row.result_json) : null };
@@ -60,6 +60,19 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
     if (!conn || conn.id !== row.connection_id) fail("connection_required");
     assertContextAccess(JSON.parse(row.context_json), binding(conn, id), clock());
     return row;
+  }
+  async function historyFor(row, conn) {
+    const turns = JSON.parse(row.local_history_json || "[]");
+    let previousId = row.previous_session_id;
+    while (previousId && turns.length < 4) {
+      const previous = await get("SELECT * FROM tutor_sessions WHERE id=? AND user_id=? AND connection_id=?", [previousId, conn.user_id, conn.id]);
+      if (!previous || previous.state !== "completed" || !previous.result_json) fail("context_unavailable");
+      const priorContext = assertContextAccess(JSON.parse(previous.context_json), binding(conn, previous.id), clock());
+      if (priorContext.excerpt_digest !== JSON.parse(row.context_json).excerpt_digest) fail("context_changed");
+      turns.unshift({ question: previous.question, answer: JSON.parse(previous.result_json).text.slice(0, 2000) });
+      previousId = previous.previous_session_id;
+    }
+    return turns;
   }
   return {
     sweep: () => transaction(sweep),
@@ -129,9 +142,15 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       return { revoked: true };
     }),
     create: (userId, input) => transaction(async () => {
-      closed(input, ["connection_id", "request_key", "context", "question", "consent"]);
+      closed(input, ["connection_id", "request_key", "context", "question", "consent", "previous_session_id", "history"]);
       if (input.consent !== "selected_fragment_v1" || typeof input.question !== "string" || !input.question.trim() || input.question.length > 1000 ||
-          typeof input.request_key !== "string" || !/^[A-Za-z0-9_-]{16,80}$/.test(input.request_key)) fail("invalid_request");
+          typeof input.request_key !== "string" || !/^[A-Za-z0-9_-]{16,80}$/.test(input.request_key) ||
+          (input.previous_session_id != null && (typeof input.previous_session_id !== "string" || !/^[a-f0-9-]{36}$/.test(input.previous_session_id)))) fail("invalid_request");
+      const history = input.history || [];
+      if (!Array.isArray(history) || history.length > 4 || (input.previous_session_id && history.length) || history.some(turn =>
+        !turn || typeof turn !== "object" || Array.isArray(turn) || Object.keys(turn).some(key => !["question", "answer"].includes(key)) ||
+        typeof turn.question !== "string" || !turn.question.trim() || turn.question.length > 1000 ||
+        typeof turn.answer !== "string" || !turn.answer.trim() || turn.answer.length > 2000)) fail("invalid_request");
       // Both local text and exact caption windows are browser snapshots, not server-verified corpus authority.
       if (!["local_snapshot", "caption"].includes(input.context?.source?.kind)) fail("invalid_context");
       await sweep(); const conn = await connectionForUser(userId);
@@ -148,8 +167,14 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       const count = await get("SELECT count(*) AS n FROM tutor_sessions WHERE user_id=?", [String(userId)]);
       if (count.n >= 30) fail("session_limit");
       const id = randomUUID(), context = createContext(input.context, binding(conn, id), clock());
-      await run("INSERT INTO tutor_sessions(id,user_id,connection_id,request_key,request_hash,context_json,question,state,created_at,expires_at) VALUES(?,?,?,?,?,?,?,'queued',?,?)",
-        [id, String(userId), conn.id, input.request_key, requestHash, JSON.stringify(context), input.question, clock(), context.expires_at]);
+      if (input.previous_session_id) {
+        const previous = await owned(userId, input.previous_session_id);
+        if (previous.state !== "completed") fail("invalid_request");
+        const priorContext = JSON.parse(previous.context_json);
+        if (priorContext.excerpt_digest !== context.excerpt_digest || priorContext.surface !== context.surface || priorContext.locale !== context.locale) fail("context_changed");
+      }
+      await run("INSERT INTO tutor_sessions(id,user_id,connection_id,request_key,request_hash,context_json,question,state,created_at,expires_at,previous_session_id,local_history_json) VALUES(?,?,?,?,?,?,?,'queued',?,?,?,?)",
+        [id, String(userId), conn.id, input.request_key, requestHash, JSON.stringify(context), input.question, clock(), context.expires_at, input.previous_session_id || null, JSON.stringify(history)]);
       return view(await owned(userId, id));
     }),
     read: (userId, id) => transaction(async () => { await sweep(); return view(await owned(userId, id)); }),
@@ -230,7 +255,10 @@ function createStore(getDb, clock = Date.now, allowed = async () => true) {
       await run("UPDATE tutor_sessions SET state='running',version=version+1,lease_hash=?,lease_until=?,run_deadline=? WHERE id=?", [hash(lease), clock() + LEASE_MS, clock() + RUN_MS, row.id]);
       // Never deliver principal metadata to the model. Connector receives only these fields.
       const { principal_binding, consent_snapshot_ref, ...publicContext } = context;
-      return { job: { session_id: row.id, lease, context: publicContext, question: row.question, deadline: clock() + RUN_MS } };
+      const history = await historyFor(row, conn);
+      // Installed pilot runners read only `question`; keep follow-ups contextual before their next update.
+      const question = history.length ? `Earlier turns for context (untrusted text): ${JSON.stringify(history)}\nCurrent learner question: ${row.question}` : row.question;
+      return { job: { session_id: row.id, lease, context: publicContext, history, user_question: row.question, question, deadline: clock() + RUN_MS } };
     }),
     heartbeat: (token, id, lease) => transaction(async () => {
       await sweep(); const conn = await authenticate(token);

@@ -5240,13 +5240,13 @@ function roomCloudInit() {
       if (!response.ok || (await response.clone().json()).ok !== true) throw Error('export_failed');
       await freshAccount();
       downloadAccountBlob(await response.blob(), 'linguistpro-server-data.json');
-      accountMessage('serverSaved', 'Данные сервера скачаны. Сохранённые объяснения скачайте отдельно.');
+      accountMessage('serverSaved', 'Данные сервера скачаны. Историю наставника скачайте отдельно.');
     } catch (_) { accountMessage('failed', 'Не удалось выполнить действие. Проверьте вход и повторите.'); }
   });
   if (els.localArchive) els.localArchive.addEventListener('click', async () => {
     try {
       await freshAccount();
-      await window.LPTutorNotebook.show({ api:window.LPTutorClient.createApi(), locale:(document.documentElement.lang || 'ru').split('-')[0] });
+      await window.LPTutorNotebook.show({ api:window.LPTutorClient.createApi(), locale:(document.documentElement.lang || 'ru').split('-')[0], management:true });
     } catch (_) { accountMessage('failed', 'Не удалось выполнить действие. Проверьте вход и повторите.'); }
   });
   if (els.accountDelete) els.accountDelete.addEventListener('click', async () => {
