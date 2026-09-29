@@ -119,16 +119,16 @@ async function studioGate(browser) {
   check(state.role === "dialog" && state.labelled === "v3TcsDialogTitle", "Studio dialog has a programmatic name");
   check(state.activeInside, "Studio focus enters the dialog");
   check(state.saveEnabled && state.shareReady, "Studio exposes a ready Save or native Share action");
-  check(!state.shareStyle.hidden && state.shareStyle.background === "rgb(37, 99, 235)" && state.shareStyle.color === "rgb(255, 255, 255)", "Studio native Share is visibly primary before the platform attempt");
+  check(!state.shareStyle.hidden && state.shareStyle.className === 'btn-primary' && state.shareStyle.color === 'rgb(255, 255, 255)', "Studio native Share is visibly primary before the platform attempt");
   check(state.advancedClosed, "Studio keeps JSON compatibility controls secondary");
   check(state.facts.join(",") === "0,0,0", "Studio reports exact zero-audio package facts");
   check(state.panelInside && state.overflow <= 0, "Studio share dialog fits 380px without horizontal overflow");
   check(state.minAction >= 44, "Studio share actions meet the 44px target floor");
-  const studioDownloadPromise = page.waitForEvent("download", { timeout: 10000 });
+  const unexpectedStudioDownloads = [];
+  page.on('download', (download) => unexpectedStudioDownloads.push(download));
   await page.click("#v3TcsBtnNative");
-  const studioDownload = await studioDownloadPromise;
-  const studioDownloadPath = await studioDownload.path();
-  const studioZip = fs.readFileSync(studioDownloadPath);
+  await page.waitForFunction(() => document.getElementById('v3TcsBtnNative').hidden);
+  check(unexpectedStudioDownloads.length === 0, 'Studio does not silently download after native Share fails');
   const studioFallback = await page.evaluate(() => {
     const share = document.getElementById("v3TcsBtnNative");
     const save = document.getElementById("v3TcsBtnZip");
@@ -136,12 +136,17 @@ async function studioGate(browser) {
       shareHidden: share.hidden,
       saveEnabled: !save.disabled,
       savePrimary: save.classList.contains("btn-primary"),
+      channelsVisible: !document.getElementById('v3TcsChannels').hidden,
       status: document.getElementById("v3TcsStatus").textContent.trim(),
     };
   });
-  check(studioDownload.suggestedFilename().endsWith("-learning.zip") && studioZip[0] === 0x50 && studioZip[1] === 0x4b, "Studio platform failure physically downloads the prepared ZIP fallback");
-  check(studioFallback.shareHidden && studioFallback.saveEnabled && studioFallback.savePrimary, "Studio retires the failed Share action and promotes Save");
-  check(studioFallback.status.includes("браузер начал сохранять ZIP"), "Studio announces the actionable save fallback in Russian");
+  check(studioFallback.shareHidden && studioFallback.saveEnabled && studioFallback.savePrimary && studioFallback.channelsVisible, "Studio offers explicit Save and app choices after native Share fails");
+  check(studioFallback.status.includes("сохраните ZIP"), "Studio explains the manual attachment path in Russian");
+  const studioDownloadPromise = page.waitForEvent('download', { timeout: 10000 });
+  await page.click('#v3TcsBtnZip');
+  const studioDownload = await studioDownloadPromise;
+  const studioZip = fs.readFileSync(await studioDownload.path());
+  check(studioDownload.suggestedFilename().endsWith('-learning.zip') && studioZip[0] === 0x50 && studioZip[1] === 0x4b, 'Studio explicit Save downloads the prepared ZIP');
   await page.screenshot({ path: path.join(OUT, "studio-send-or-save-380-ru.png") });
   for (let i = 0; i < 12; i += 1) await page.keyboard.press("Tab");
   const studioFocus = await page.evaluate(() => ({
@@ -220,11 +225,11 @@ async function roomGate(browser) {
   check(state.facts.join(",") === "0,0,0", "Room reports exact zero-audio package facts");
   check(state.saveEnabled && state.minAction >= 44, "Room exposes an enabled 44px Save action");
   check(state.panelInside && state.overflow <= 0 && state.overlayPresent, "Room share sheet fits 380px without horizontal overflow");
-  const roomDownloadPromise = page.waitForEvent("download", { timeout: 10000 });
+  const unexpectedRoomDownloads = [];
+  page.on('download', (download) => unexpectedRoomDownloads.push(download));
   await page.click(".room-share-action.primary");
-  const roomDownload = await roomDownloadPromise;
-  const roomDownloadPath = await roomDownload.path();
-  const roomZip = fs.readFileSync(roomDownloadPath);
+  await page.waitForFunction(() => document.querySelector('.room-share-sheet .room-share-action').hidden);
+  check(unexpectedRoomDownloads.length === 0, 'Room does not silently download after native Share fails');
   const roomFallback = await page.evaluate(() => {
     const dialog = document.querySelector(".room-share-sheet");
     const buttons = dialog.querySelectorAll(".room-share-action");
@@ -235,9 +240,13 @@ async function roomGate(browser) {
       status: dialog.querySelector(".room-share-status").textContent.trim(),
     };
   });
-  check(roomDownload.suggestedFilename().endsWith("-learning.zip") && roomZip[0] === 0x50 && roomZip[1] === 0x4b, "Room platform failure physically downloads the prepared ZIP fallback");
   check(roomFallback.shareHidden && roomFallback.saveEnabled && roomFallback.savePrimary, "Room retires the failed Share action and promotes Save");
-  check(roomFallback.status.includes("הדפדפן התחיל לשמור"), "Room announces the actionable save fallback in Hebrew");
+  check(roomFallback.status.includes("ZIP"), "Room explains the manual Save path in Hebrew");
+  const roomDownloadPromise = page.waitForEvent('download', { timeout: 10000 });
+  await page.click('.room-share-sheet .room-share-action.primary:not([hidden])');
+  const roomDownload = await roomDownloadPromise;
+  const roomZip = fs.readFileSync(await roomDownload.path());
+  check(roomDownload.suggestedFilename().endsWith('-learning.zip') && roomZip[0] === 0x50 && roomZip[1] === 0x4b, 'Room explicit Save downloads the prepared ZIP');
   await page.screenshot({ path: path.join(OUT, "room-send-or-save-380-he-rtl.png") });
   for (let i = 0; i < 10; i += 1) await page.keyboard.press("Tab");
   check(await page.evaluate(() => document.querySelector(".room-share-sheet").contains(document.activeElement)), "Room Tab focus stays in the dialog");

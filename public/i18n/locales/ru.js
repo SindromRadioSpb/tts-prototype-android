@@ -1317,6 +1317,12 @@ window.I18N_LOCALES.ru = {
     btnZip:    "📦 Скачать ZIP с аудио",
     btnShareZip: "Поделиться ZIP",
     btnSaveZip: "Сохранить ZIP",
+    channelNote: "На этом устройстве ZIP нужно прикрепить вручную: выберите приложение, затем файл из Загрузок.",
+    channelMessage: "LinguistPro: прикрепите сохранённый учебный ZIP из Загрузок.",
+    channelStarted: "ZIP сохранится в Загрузки. Прикрепите его вручную в выбранном приложении.",
+    viaWhatsApp: "Сохранить и открыть WhatsApp",
+    viaTelegram: "Сохранить и открыть Telegram",
+    viaEmail: "Сохранить и открыть почту",
     advanced: "Совместимость и диагностика",
     shareMsgPrefix: "Учебный ZIP из LinguistPro:",
     shareSent: "Отправлено.",
@@ -4486,6 +4492,8 @@ window.I18N_LOCALES.ru.studio.portable.mediaYoutubeOnline="YouTube \u043e\u043d\
 
 // Mediatheque: personal organization and public editorial structure.
 window.I18N_LOCALES.ru.mediatheque = {
+  "shareLink": "Поделиться ссылкой",
+  "linkCopied": "Ссылка на материал скопирована",
   "title": "Медиатека",
   "skip": "К материалам",
   "room": "Читальный зал",
@@ -4926,3 +4934,4 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "publishNow": "Опубликовать",
   "continueEditing": "Продолжить редактирование"
 });
+window.I18N_LOCALES.ru.room.publicPage = { about: "О произведении" };

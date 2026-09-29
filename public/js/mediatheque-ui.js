@@ -303,6 +303,11 @@ function materialHref(item) {
   return '/library.html?public_corpus=' + encodeURIComponent(r.slug) + '&public_work=' + encodeURIComponent(r.workId)
     + '&public_snapshot=' + r.snapshotHash + back;
 }
+function publicMaterialLink(item) {
+  const ref = item && item.ref;
+  if (!item?.available || ref?.kind !== 'public') return '';
+  return new URL('/library.html?public_corpus=' + encodeURIComponent(ref.slug) + '&public_work=' + encodeURIComponent(ref.workId), location.origin).href;
+}
 function cover(item, time = true) {
   return `<div class="ml-cover" data-kind="${esc(item.kind)}"><div class="ml-cover-type" aria-hidden="true"><span>${esc(t('kind.' + item.kind))}${item.language ? ' / ' + esc(item.language) : ''}</span><strong dir="auto">${esc(item.title || '')}</strong><small dir="auto">${esc(item.source || '')}</small></div>
     ${item.videoId ? `<img src="https://i.ytimg.com/vi/${esc(item.videoId)}/hqdefault.jpg" alt="" loading="lazy" decoding="async" crossorigin="anonymous" referrerpolicy="no-referrer">` : ''}
@@ -328,6 +333,7 @@ function itemHtml(item) {
       ${item.hasTranslation ? `<span>${esc(t('withTranslation'))}</span>` : ''}${item.progressKnown && item.progress === 'finished' ? `<span>${esc(t('progress.finished'))}</span>` : ''}</div>
     </div>
     <div class="ml-item-footer">${href ? `<a class="ml-open" href="${esc(href)}">${esc(action)}</a>` : ''}
+      ${publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}"`) : ''}
       ${!state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'personal' && item.ref.kind === 'public' ? button('forget-reference', t('forgetReference'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'public' && item.ref.kind === 'public' ? (managed(item)
@@ -890,6 +896,18 @@ async function onAction(action, node) {
   if (action === 'retry') return loadAll();
   if (action === 'retry-local') { await localDb.recoverLocalDB(); await loadLocal(); render(); return; }
   if (action === 'add-item') return addToCollection(node.dataset.key);
+  if (action === 'share-link') {
+    const item = state.prepared.byKey.get(node.dataset.key);
+    const url = publicMaterialLink(item);
+    if (!url) return;
+    if (navigator.share) {
+      try { await navigator.share({ title: item.title, url }); return; }
+      catch (error) { if (error?.name === 'AbortError') return; }
+    }
+    try { await navigator.clipboard.writeText(url); announce(t('linkCopied')); }
+    catch (_) { showDialog(t('shareLink'), `<p><a href="${esc(url)}">${esc(url)}</a></p>${formActions(t('close'))}`, closeDialog); }
+    return;
+  }
   if (action === 'use-view') { const v = structure().views.find(v => v.id === id); if (v) return navigate('catalog', v.filters, { viewId:id }); return; }
   if (action === 'exit-preview') { state.preview = false; render(); return; }
   if (action === 'publish-pending' && state.owner) { state.draft = await api('/api/publication/mediatheque'); return publishDialog(); }

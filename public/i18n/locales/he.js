@@ -1311,6 +1311,12 @@ window.I18N_LOCALES.he = {
     btnZip:    "📦 הורד ZIP עם שמע",
     btnShareZip: "שיתוף ZIP",
     btnSaveZip: "שמירת ZIP",
+    channelNote: "במכשיר זה יש לצרף את קובץ ה־ZIP ידנית: בחרו יישום ואז את הקובץ מההורדות.",
+    channelMessage: "LinguistPro: נא לצרף את קובץ ה־ZIP הלימודי שנשמר בהורדות.",
+    channelStarted: "קובץ ה־ZIP נשמר בהורדות. צרפו אותו ביישום שנבחר.",
+    viaWhatsApp: "שמירה ופתיחת WhatsApp",
+    viaTelegram: "שמירה ופתיחת Telegram",
+    viaEmail: "שמירה ופתיחת דוא״ל",
     advanced: "תאימות ואבחון",
     shareMsgPrefix: "ZIP לימודי מ־LinguistPro:",
     shareSent: "נשלח.",
@@ -4480,6 +4486,8 @@ window.I18N_LOCALES.he.studio.portable.mediaYoutubeOnline="YouTube \u05d1\u05d0\
 
 // Mediatheque: personal organization and public editorial structure.
 window.I18N_LOCALES.he.mediatheque = {
+  "shareLink": "שיתוף קישור",
+  "linkCopied": "הקישור לחומר הועתק",
   "title": "ספריית מדיה",
   "skip": "מעבר לחומרים",
   "room": "חדר קריאה",
@@ -4920,3 +4928,4 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "publishNow": "פרסום",
   "continueEditing": "המשך עריכה"
 });
+window.I18N_LOCALES.he.room.publicPage = { about: "על היצירה" };

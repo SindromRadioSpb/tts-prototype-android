@@ -16,6 +16,7 @@
       })();
     </script>
     <title>LinguistPro — Студия</title>
+    <link rel="canonical" href="https://linguistpro.kolosei.com/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Шрифты для иврита: self-hosted woff2 в public/fonts/ (см. @font-face
@@ -7166,6 +7167,9 @@ body:not(.theme-light) .v3-notes-template-banner {
   margin-top: 10px;
 }
 .v3-tcs-actions button { min-height: 44px; }
+.v3-tcs-channels { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+#v3TextCardShareModal .v3-tcs-channels button { min-height: 44px; width: auto; }
+.v3-tcs-channel-note { margin: 8px 0 0; font-size: 12px; color: var(--theme-text-secondary, #64748b); }
 /* The global legacy disabled palette uses !important. When capability detection
    promotes Save to the primary fallback, keep the enabled state visibly actionable. */
 #v3TcsBtnNative.btn-primary:not(:disabled), #v3TcsBtnZip.btn-primary:not(:disabled) {
@@ -12532,6 +12536,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         <button id="v3TcsBtnNative" class="btn-primary" onclick="v3TextCardShareNative()" data-i18n="tcs.btnShareZip" disabled>Поделиться ZIP</button>
         <button id="v3TcsBtnZip" class="btn-secondary" onclick="v3TextCardShareDownloadZip()" data-i18n="tcs.btnSaveZip" disabled>Сохранить ZIP</button>
       </div>
+      <div id="v3TcsChannels" hidden>
+        <p class="v3-tcs-channel-note" data-i18n="tcs.channelNote">На этом устройстве ZIP нужно прикрепить вручную: выберите приложение, затем файл из Загрузок.</p>
+        <div class="v3-tcs-channels">
+          <button type="button" class="btn-secondary" onclick="v3TextCardShareVia('whatsapp')" data-i18n="tcs.viaWhatsApp">Сохранить и открыть WhatsApp</button>
+          <button type="button" class="btn-secondary" onclick="v3TextCardShareVia('telegram')" data-i18n="tcs.viaTelegram">Сохранить и открыть Telegram</button>
+          <button type="button" class="btn-secondary" onclick="v3TextCardShareVia('email')" data-i18n="tcs.viaEmail">Сохранить и открыть почту</button>
+        </div>
+      </div>
       <div id="v3TcsStatus" class="v3-tcs-status" aria-live="polite"></div>
       <details class="v3-tcs-advanced">
         <summary data-i18n="tcs.advanced">Совместимость и диагностика</summary>
@@ -13612,9 +13624,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=272"></script>
-<script src="/i18n/locales/en.js?v=272"></script>
-<script src="/i18n/locales/he.js?v=272"></script>
+<script src="/i18n/locales/ru.js?v=273"></script>
+<script src="/i18n/locales/en.js?v=273"></script>
+<script src="/i18n/locales/he.js?v=273"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13845,7 +13857,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.688";
+    window.APP_VERSION = "3.11.689";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -45095,6 +45107,7 @@ async function v3TextCardShareOpen(textId) {
   const status = document.getElementById('v3TcsStatus');
   const portableSection = document.getElementById('v3TcsPortableSection');
   if (status) { status.textContent = ''; status.className = 'v3-tcs-status'; }
+  const channels = document.getElementById('v3TcsChannels'); if (channels) channels.hidden = true;
   if (portableSection) portableSection.hidden = true;
   v3TcsResetPackage();
   const shareSession = ++v3TcsShareSession;
@@ -45268,9 +45281,11 @@ async function v3TextCardPrepareZip(shareSession) {
 
     const share = document.getElementById('v3TcsBtnNative');
     const save = document.getElementById('v3TcsBtnZip');
+    const channels = document.getElementById('v3TcsChannels');
     const canShare = !!artifact.file && window.ShareService.canShareFile(artifact.file, navigator);
     if (share) { share.disabled = !canShare; share.hidden = !canShare; share.className = 'btn-primary'; }
     if (save) { save.disabled = false; save.className = canShare ? 'btn-secondary' : 'btn-primary'; }
+    if (channels) channels.hidden = canShare;
     if (artifact.manifest.portable_learning_packages_complete === false && artifact.manifest.portable_learning_packages_unavailable_reason) {
       v3TcsSetStatus(
         'tcs.portableHistoryUnavailable',
@@ -45301,7 +45316,7 @@ async function v3TextCardShareNative() {
   const save = document.getElementById('v3TcsBtnZip');
   if (share) share.disabled = true;
   if (save) save.disabled = true;
-  const result = await window.ShareService.shareFileOrSave({
+  const result = await window.ShareService.shareFile({
     file: artifact.file,
     blob: artifact.blob,
     filename: artifact.filename,
@@ -45315,19 +45330,34 @@ async function v3TextCardShareNative() {
     v3TcsSetStatus('tcs.shareCompleted', 'Меню отправки закрыто. Проверьте файл в выбранном приложении.', 'ok');
   } else if (result.code === 'SHARE_CANCELLED') {
     v3TcsSetStatus('tcs.shareCancelled', 'Отправка отменена. ZIP остаётся готовым.', '');
-  } else if (result.code === 'SHARE_FALLBACK_SAVE_STARTED') {
-    if (share) share.hidden = true;
-    if (save) save.className = 'btn-primary';
-    console.warn('[tcs] native file share unavailable; ZIP save fallback started', result.share && result.share.message || result.share && result.share.code || 'SHARE_FAILED');
-    v3TcsSetStatus('tcs.shareFallbackSaveStarted', 'Системное меню не открылось, поэтому браузер начал сохранять ZIP. Проверьте Загрузки или Files, затем прикрепите файл в Telegram, WhatsApp или другом приложении.', 'ok');
   } else {
     if (share) share.hidden = true;
     if (save) save.className = 'btn-primary';
-    console.warn('[tcs] native file share and save fallback failed', result.share && result.share.message || result && result.code || 'SHARE_FALLBACK_SAVE_FAILED');
-    v3TcsSetStatus('tcs.shareFallbackSaveFailed', 'Не удалось открыть системное меню или начать сохранение. Нажмите «Сохранить ZIP».', 'error');
+    const channels = document.getElementById('v3TcsChannels'); if (channels) channels.hidden = false;
+    v3TcsSetStatus('tcs.shareUnsupported', 'Отправка файлов здесь недоступна — сохраните ZIP и отправьте его из нужного приложения.', '');
   }
 }
 window.v3TextCardShareNative = v3TextCardShareNative;
+
+function v3TextCardShareVia(channel) {
+  const artifact = v3TcsPreparedArtifact;
+  if (!artifact || !window.ShareService) return;
+  const result = window.ShareService.saveFile({ blob: artifact.blob, filename: artifact.filename });
+  if (result.code !== 'SAVE_STARTED') {
+    v3TcsSetStatus('tcs.saveFailed', 'Не удалось начать сохранение файла.', 'error');
+    return;
+  }
+  const message = encodeURIComponent(v3NotesT('tcs.channelMessage', 'LinguistPro: прикрепите сохранённый учебный ZIP из Загрузок.'));
+  const urls = {
+    whatsapp: 'https://wa.me/?text=' + message,
+    telegram: 'https://t.me/share/url?url=' + encodeURIComponent('https://linguistpro.kolosei.com/') + '&text=' + message,
+    email: 'mailto:?subject=' + encodeURIComponent('Учебный материал LinguistPro') + '&body=' + message,
+  };
+  const url = urls[channel];
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  v3TcsSetStatus('tcs.channelStarted', 'ZIP сохранится в Загрузки. Прикрепите его вручную в выбранном приложении.', 'ok');
+}
+window.v3TextCardShareVia = v3TextCardShareVia;
 
 function v3TextCardShareDownloadJson() {
   const out = _v3TcsJsonBlob();

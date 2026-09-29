@@ -5,6 +5,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
+const publicWorkSeo = require('./public-work-seo');
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const { execFile } = require("child_process");
@@ -648,6 +649,42 @@ app.use("/data/benyehuda/context", express.static(path.join(DATA_DIR, "benyehuda
 
 app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
+// A public work has one request URL, readable metadata and a short source excerpt
+// in the initial HTML. Personal and group material never enters this projection.
+app.get('/library.html', async (req, res, next) => {
+  const id = req.query.corpus_work;
+  const slug = req.query.public_corpus;
+  const workId = req.query.public_work;
+  if (!id && !(slug && workId)) {
+    if (req.query.my_text || req.query.group_corpus || req.query.open || req.query.handoff) res.set('X-Robots-Tag', 'noindex, nofollow');
+    return next();
+  }
+  try {
+    let data;
+    if (id && !slug && !workId) data = publicWorkSeo.benyehuda(id, DATA_DIR);
+    else if (slug && workId && !id) data = publicWorkSeo.published(await getPublicationRepo().getPublicWork(slug, workId));
+    if (!data) return res.status(404).send('Material not found');
+    const url = publicWorkSeo.canonical(id ? { corpus_work: String(id) } : { public_corpus: String(slug), public_work: String(workId) });
+    res.set('Cache-Control', 'public, max-age=0, must-revalidate');
+    return res.type('html').send(publicWorkSeo.render(data, url));
+  } catch (error) {
+    if (error && (error.code === 'CORPUS_NOT_FOUND' || error.code === 'PUBLICATION_INPUT_INVALID')) return res.status(404).send('Material not found');
+    console.error('[public-work-seo] render failed:', error && error.message);
+    return res.status(503).send('Material temporarily unavailable');
+  }
+});
+app.get('/robots.txt', (_req, res) => res.type('text').send('User-agent: *\nAllow: /\nDisallow: /api/\nAllow: /api/mediatheque$\nAllow: /api/public-corpora/\nAllow: /api/public-corpora$\nSitemap: https://linguistpro.kolosei.com/sitemap.xml\n'));
+app.get('/sitemap.xml', async (_req, res) => {
+  let items = [];
+  try {
+    const media = await getPublicationRepo().getPublicMediatheque();
+    items = media.items;
+  } catch (error) {
+    console.warn('[public-work-seo] public media omitted from sitemap:', error && error.message);
+  }
+  res.set('Cache-Control', 'public, max-age=300, must-revalidate');
+  return res.type('application/xml').send(publicWorkSeo.sitemap(items, DATA_DIR));
+});
 // O-019: versioned URLs this build did not ship (a rolling deploy's other container) are never cached.
 const STATIC_SHIPPED_VERSIONS = parsePrecacheVersions(fs.readFileSync(path.join(__dirname, "public", "sw.js"), "utf8"));
 app.use(express.static(path.join(__dirname, "public"), {
@@ -1144,7 +1181,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/css/mediatheque.css?v=643",
-  "/js/mediatheque-ui.js?v=688",
+  "/js/mediatheque-ui.js?v=689",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1216,7 +1253,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=680",
+  "/js/library-ui.js?v=689",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1254,9 +1291,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=272",
-  "/i18n/locales/en.js?v=272",
-  "/i18n/locales/he.js?v=272",
+  "/i18n/locales/ru.js?v=273",
+  "/i18n/locales/en.js?v=273",
+  "/i18n/locales/he.js?v=273",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

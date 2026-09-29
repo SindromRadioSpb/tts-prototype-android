@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.688";
+const CACHE_VERSION = "v3.11.689";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -69,7 +69,7 @@ const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-r
 const PRECACHE_URLS = [
   "/mediatheque.html",
   "/css/mediatheque.css?v=643",
-  "/js/mediatheque-ui.js?v=688",
+  "/js/mediatheque-ui.js?v=689",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -121,7 +121,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=680",
+  "/js/library-ui.js?v=689",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -296,9 +296,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=272",
-  "/i18n/locales/en.js?v=272",
-  "/i18n/locales/he.js?v=272",
+  "/i18n/locales/ru.js?v=273",
+  "/i18n/locales/en.js?v=273",
+  "/i18n/locales/he.js?v=273",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -470,6 +470,14 @@ self.addEventListener("fetch", (event) => {
   // Product Pulse is an owner-only operational shell. Never let CacheStorage
   // bypass the server-side auth boundary or serve an old contract after deploy.
   if (url.pathname === "/pulse.html") return;
+
+  // Public work HTML contains work-specific canonical metadata and source
+  // text. A cached generic /library.html shell must not replace it online.
+  if (req.mode === 'navigate' && url.pathname === '/library.html'
+    && (url.searchParams.has('corpus_work') || (url.searchParams.has('public_corpus') && url.searchParams.has('public_work')))) {
+    event.respondWith(fetch(req).catch(async () => (await caches.open(PRECACHE)).match('/library.html')));
+    return;
+  }
 
   // /api/client-config — network-first with timeout, fall back to cache.
   if (CONFIG_URL_RE.test(url.pathname + url.search)) {

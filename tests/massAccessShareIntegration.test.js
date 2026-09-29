@@ -32,11 +32,13 @@ test("Studio primary Share uses a prepared learning ZIP while JSON stays compati
   const shareStart = studio.indexOf("async function v3TextCardShareNative");
   const shareEnd = studio.indexOf("window.v3TextCardShareNative", shareStart);
   const shareSource = studio.slice(shareStart, shareEnd);
-  assert.match(shareSource, /ShareService\.shareFileOrSave/);
+  assert.match(shareSource, /ShareService\.shareFile\(/);
   assert.match(shareSource, /v3TcsPreparedArtifact/);
-  assert.match(shareSource, /SHARE_FALLBACK_SAVE_STARTED/);
-  assert.match(shareSource, /SHARE_FALLBACK_SAVE_FAILED/);
+  assert.doesNotMatch(shareSource, /shareFileOrSave|SHARE_FALLBACK_SAVE_STARTED/);
   assert.doesNotMatch(shareSource, /_v3TcsJsonBlob/);
+  assert.match(modal, /v3TextCardShareVia\('whatsapp'\)/);
+  assert.match(modal, /v3TextCardShareVia\('telegram'\)/);
+  assert.match(modal, /v3TextCardShareVia\('email'\)/);
 
   const saveStart = studio.indexOf("function v3TextCardShareDownloadZip");
   const saveEnd = studio.indexOf("window.v3TextCardShareDownloadZip", saveStart);
@@ -83,7 +85,7 @@ test("Reading Room reuses the shared service for protected links and My Texts ZI
   assert.match(room, /GROUP_RESTRICTED/);
   assert.match(room, /function openMyTextShare/);
   assert.match(room, /service\.buildLearningPackage/);
-  assert.match(room, /service\.shareFileOrSave/);
+  assert.match(room, /service\.shareFile\(/);
   assert.match(room, /service\.saveFile/);
   assert.match(room, /room\.share\.open/);
   assert.match(room, /optional portable ZIP extension unavailable/);
@@ -96,7 +98,7 @@ test("RU EN HE expose the same Send or save state vocabulary", () => {
     for (const key of [
       "sendOrSave", "btnShareZip", "btnSaveZip", "advanced", "packagePreparing",
       "packageReady", "packagePartial", "portableHistoryUnavailable", "shareCompleted", "shareCancelled",
-      "shareUnsupported", "shareFallbackSaveStarted", "shareFallbackSaveFailed", "saveStarted",
+      "shareUnsupported", "channelNote", "channelMessage", "channelStarted", "viaWhatsApp", "viaTelegram", "viaEmail", "saveStarted",
       "expectedAudio", "includedAudio", "missingAudio",
     ]) {
       assert.match(source, new RegExp(`\\b${key}\\s*:`), `${locale} missing tcs.${key}`);

@@ -1303,6 +1303,12 @@ window.I18N_LOCALES.en = {
     btnZip:    "📦 Download ZIP with audio",
     btnShareZip: "Share ZIP",
     btnSaveZip: "Save ZIP",
+    channelNote: "This device cannot attach the ZIP automatically. Choose an app, then attach the file from Downloads.",
+    channelMessage: "LinguistPro: please attach the saved learning ZIP from Downloads.",
+    channelStarted: "The ZIP is being saved to Downloads. Attach it in the selected app.",
+    viaWhatsApp: "Save and open WhatsApp",
+    viaTelegram: "Save and open Telegram",
+    viaEmail: "Save and open email",
     advanced: "Compatibility and diagnostics",
     shareMsgPrefix: "Learning ZIP from LinguistPro:",
     shareSent: "Shared.",
@@ -4471,6 +4477,8 @@ window.I18N_LOCALES.en.studio.portable.mediaYoutubeOnline="YouTube online \u2014
 
 // Mediatheque: personal organization and public editorial structure.
 window.I18N_LOCALES.en.mediatheque = {
+  "shareLink": "Share link",
+  "linkCopied": "Material link copied",
   "title": "Media library",
   "skip": "Skip to materials",
   "room": "Reading Room",
@@ -4911,3 +4919,4 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "publishNow": "Publish",
   "continueEditing": "Continue editing"
 });
+window.I18N_LOCALES.en.room.publicPage = { about: "About this work" };

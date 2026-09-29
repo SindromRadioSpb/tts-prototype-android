@@ -775,8 +775,16 @@ function roomCurrentPresentationState(overrides = {}) {
   });
 }
 function roomStateUrl(state) {
-  return location.pathname + location.search + roomB6.presentationHash(state);
+  const url = new URL(location.href);
+  // Reader identity belongs in the request URL. A fragment describes only the
+  // transient presentation and cannot distinguish works to a crawler or recipient.
+  for (const key of ['corpus_work', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open']) url.searchParams.delete(key);
+  if (state.surface === 'reader' && roomReaderLinkIdentity) {
+    for (const [key, value] of Object.entries(roomReaderLinkIdentity)) url.searchParams.set(key, value);
+  }
+  return url.pathname + url.search + roomB6.presentationHash(state);
 }
+let roomReaderLinkIdentity = null;
 function roomStorePresentation(state) {
   try { sessionStorage.setItem(ROOM_PRESENTATION_KEY, roomB6.encodeSessionMirror(state, Date.now())); } catch (_) {}
 }
@@ -796,6 +804,8 @@ function roomInitialMyTextsAnchor() {
 }
 function roomDecodeInitialPresentation() {
   if (location.hash === '#mentor' || location.hash === '#lesson-builder') return null;
+  const query = new URLSearchParams(location.search);
+  if (['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open'].some((key) => query.has(key))) return null;
   const explicitHashState = roomB6.presentationStateFromHash(location.hash);
   const hasExplicitRoomHash = String(location.hash || '').startsWith('#room=');
   if (hasExplicitRoomHash && !explicitHashState) {
@@ -1869,6 +1879,7 @@ function setReaderReturnRoute(route) {
   back.setAttribute('data-i18n', key);
   back.textContent = readerReturnRoute === 'mediatheque' ? tt(key, 'Медиатека') : readerReturnRoute === 'lesson-builder'
     ? tt(key, '← К уроку') : tt(key, '← Полки');
+  back.href = readerReturnRoute === 'mediatheque' ? (mediathequeReturnHref() || '/mediatheque.html') : '/library.html';
 }
 
 function mediathequeReturnHref() {
@@ -8382,11 +8393,12 @@ async function openReader(textId, title, opts) {
     try { touchOpenedPromise = Promise.resolve(localDb.touchOpened(textId)).catch(() => false); } catch (_) {}
   }
   _roomReaderPresentationReadOnly = presentationRestore;
+  roomReaderLinkIdentity = opts && opts.linkIdentity || null;
   if (!presentationRestore) roomPushPresentationState({ surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
-  const back = $('readerBack'); if (back) back.disabled = false;
+  const back = $('readerBack'); if (back) { back.disabled = false; delete back.dataset.busy; back.removeAttribute('aria-disabled'); }
   captureReaderReturnContext();
   setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : opts && opts.returnToMediatheque ? 'mediatheque' : null);
   if (content) content.hidden = true;
@@ -8458,6 +8470,11 @@ async function openReader(textId, title, opts) {
       if (readerCorpusWorkId) probeCorpusExplain(readerCorpusWorkId);
     }
   } catch (_) { readerIsOwnText = !!readerTextKey; }
+  if (readerGroupCorpusId && roomReaderLinkIdentity?.group_work) roomReaderLinkIdentity = { group_corpus: readerGroupCorpusId, group_work: roomReaderLinkIdentity.group_work };
+  else if (readerPublicCorpusSlug && readerPublicWorkId) roomReaderLinkIdentity = { public_corpus: readerPublicCorpusSlug, public_work: readerPublicWorkId };
+  else if (readerCorpusWorkId) roomReaderLinkIdentity = { corpus_work: readerCorpusWorkId };
+  else if (readerIsOwnText) roomReaderLinkIdentity = { my_text: String(textId) };
+  if (!presentationRestore && res && res.ok) roomCommitPresentation('replace');
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskLearningSupport(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
@@ -8583,7 +8600,7 @@ async function closeReader(options) {
   const returnContext = options && options.presentationReturnContext ? options.presentationReturnContext : (returnHome
     ? { nav: { corpus: 'hub', level: 'home', era: null, author: null }, scrollX: 0, scrollY: 0, anchorTop: null, continuityKey: '', focusAction: '', focusKey: 'learning-home-feature-open', disclosures: [] }
     : readerReturnContext);
-  const back = $('readerBack'); if (back) back.disabled = true;
+  const back = $('readerBack'); if (back) { back.disabled = true; back.dataset.busy = 'true'; back.setAttribute('aria-disabled', 'true'); }
   if (presentationRestore) { if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; } }
   else { try { await flushReaderProgress(); } catch (_) {} }
   invalidateCorpusPresentationProgress();
@@ -8596,6 +8613,7 @@ async function closeReader(options) {
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   roomRenderReaderCopyright(null);
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null; readerPublicCorpusSlug = null; readerPublicWorkId = null;   // singleton-reset
+  roomReaderLinkIdentity = null;
   const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
   const readerLearning = $('readerTaskLearningSupport'); if (readerLearning) { readerLearning.replaceChildren(); readerLearning.hidden = true; }
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
@@ -8612,7 +8630,7 @@ async function closeReader(options) {
   if (returnRoute === 'lesson-builder') {
     if (reader) reader.hidden = true;
     if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
-    if (back) back.disabled = false;
+    if (back) { back.disabled = false; delete back.dataset.busy; back.removeAttribute('aria-disabled'); }
     try { document.body.classList.remove('room-reading'); document.body.classList.remove('room-study'); document.body.classList.remove('room-word-docked'); } catch (_) {}
     scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
     openLessonStudio();
@@ -8633,7 +8651,7 @@ async function closeReader(options) {
   // the hidden catalog repaints, so a fast next tap cannot target a stale row.
   if (reader) reader.hidden = true;
   if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
-  if (back) back.disabled = false;
+  if (back) { back.disabled = false; delete back.dataset.busy; back.removeAttribute('aria-disabled'); }
   try { document.body.classList.remove('room-reading'); } catch (_) {}   // вернуть sticky шапке сайта вне ридера
   try { document.body.classList.remove('room-study'); document.body.classList.remove('room-word-docked'); } catch (_) {}     // домашний экран без шапки был бы тупиком
   scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
@@ -8787,7 +8805,7 @@ async function openCorpusWork(card, openOpts) {
     }
     if (!localId) throw new Error('work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
-    await openReader(localId, card.title, Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch }));
+    await openReader(localId, card.title, Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } }));
   } catch (e) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open corpus work failed:', e); } catch (_) {}
@@ -9549,7 +9567,7 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
     }
     if (!localId) throw new Error('public work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
-    await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch }));
+    await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { public_corpus: String(slug), public_work: String(card.public_work_id) } }));
   } catch (error) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open public corpus work failed:', error); } catch (_) {}
@@ -9784,7 +9802,7 @@ async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
     }
     if (!localId) throw new Error('group work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
-    await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch }));
+    await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { group_corpus: String(corpusId), group_work: String(card.work_id) } }));
   } catch (e) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open group corpus work failed:', e); } catch (_) {}
@@ -10913,7 +10931,7 @@ function openMaterialShare(request, returnFocus) {
   shareBtn.addEventListener('click', async () => {
     if (!artifact || !artifact.file) return;
     shareBtn.disabled = true;
-    const result = await service.shareFileOrSave({
+    const result = await service.shareFile({
       file: artifact.file,
       blob: artifact.blob,
       filename: artifact.filename,
@@ -10924,17 +10942,11 @@ function openMaterialShare(request, returnFocus) {
     if (closed) return;
     if (result.code === 'SHARE_SHEET_COMPLETED') setStatus(tt('tcs.shareCompleted', 'Системное меню отправки закрыто. Доставка получателю зависит от выбранного приложения.'), 'ready');
     else if (result.code === 'SHARE_CANCELLED') setStatus(tt('tcs.shareCancelled', 'Отправка отменена. Архив остаётся готовым.'), artifact.facts.partial ? 'partial' : 'ready');
-    else if (result.code === 'SHARE_FALLBACK_SAVE_STARTED') {
-      shareBtn.hidden = true;
-      saveBtn.classList.add('primary');
-      console.warn('[room-share] native file share unavailable; ZIP save fallback started', result.share && result.share.message || result.share && result.share.code || 'SHARE_FAILED');
-      setStatus(tt('tcs.shareFallbackSaveStarted', 'Системное меню не открылось, поэтому браузер начал сохранять ZIP. Проверьте Загрузки или Files, затем прикрепите файл в Telegram, WhatsApp или другом приложении.'), 'ready');
-    }
     else {
       shareBtn.hidden = true;
       saveBtn.classList.add('primary');
-      console.warn('[room-share] native file share and save fallback failed', result.share && result.share.message || result && result.code || 'SHARE_FALLBACK_SAVE_FAILED');
-      setStatus(tt('tcs.shareFallbackSaveFailed', 'Не удалось открыть системное меню или начать сохранение. Нажмите «Сохранить ZIP».'), 'error');
+      console.warn('[room-share] native file share failed', result.message || result.code || 'SHARE_FAILED');
+      setStatus(tt('tcs.shareUnsupported', 'Отправка файлов здесь недоступна — сохраните ZIP и отправьте его из нужного приложения.'), 'ready');
     }
     shareBtn.disabled = shareBtn.hidden;
   });
@@ -14544,7 +14556,10 @@ function wireChrome() {
   _roomStudioNavInit();   // Room↔Studio cross-nav: graceful DB close before hard navigation
   // Embedded reader chrome.
   const back = $('readerBack');
-  if (back) back.addEventListener('click', closeReader);
+  if (back) back.addEventListener('click', (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault(); if (back.dataset.busy === 'true') return; closeReader();
+  });
   const dueCta = document.getElementById('roomDueCta');   // D2 — cross-text «due today» entry
   if (dueCta) dueCta.addEventListener('click', () => { try { startDueReview(); } catch (_) {} });
   const readAloud = $('roomReadAloud');
@@ -14595,6 +14610,7 @@ function consumeDueReviewHandoff() {
 }
 
 async function boot() {
+  const initialQuery = new URLSearchParams(location.search);
   const initialPresentation = roomDecodeInitialPresentation();
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   loadRoomTableWidths();   // ширины колонок Зала — до первого рендера таблицы
@@ -14673,7 +14689,7 @@ async function boot() {
     const dueReviewHandoff = consumeDueReviewHandoff();
     // Mediatheque keeps materials in the existing reader and shared progress store.
     try {
-      const myTextId = new URLSearchParams(location.search).get('my_text');
+      const myTextId = initialQuery.get('my_text');
       if (myTextId) {
         const row = await localDb.getTextByIdLite(myTextId);
         if (row) await openReader(row.id, row.title, { resume: true, returnToMediatheque: !!mediathequeReturnHref() });
@@ -14683,7 +14699,7 @@ async function boot() {
     // Anonymous public-corpus deep link. The current pointer resolves to an
     // immutable edition; no account or group entitlement is consulted.
     try {
-      const qp = new URLSearchParams(location.search);
+      const qp = initialQuery;
       const publicSlug = qp.get('public_corpus');
       const publicWorkId = qp.get('public_work');
       if (publicSlug) {
@@ -14713,7 +14729,7 @@ async function boot() {
     // membership. Unknown/inaccessible ids deliberately collapse to one generic
     // message so corpus membership cannot be enumerated.
     try {
-      const qp = new URLSearchParams(location.search);
+      const qp = initialQuery;
       const groupCorpusId = qp.get('group_corpus');
       const groupWorkId = qp.get('group_work');
       if (groupCorpusId && groupWorkId) {
@@ -14733,7 +14749,7 @@ async function boot() {
     // stable catalog id only after the catalog and LocalDb are ready, then use the canonical
     // served-on-open path. No alternate progress or import truth is introduced.
     try {
-      const bakedWorkId = new URLSearchParams(location.search).get('corpus_work');
+      const bakedWorkId = initialQuery.get('corpus_work');
       if (bakedWorkId) {
         const target = ((corpusIndex && corpusIndex.ready) || []).find((card) => String(card.id) === String(bakedWorkId));
         if (target) await openCorpusWork(target, { resume: true });
@@ -14750,7 +14766,7 @@ async function boot() {
     // MATERIALIZED text (own or corpus) and opens the Room reader. Unknown key → stay on home
     // (honest no-op; the Studio only links texts it just listed from the same OPFS).
     try {
-      const openKey = new URLSearchParams(location.search).get('open');
+      const openKey = initialQuery.get('open');
       if (openKey) {
         const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(openKey)]);
         if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true });
