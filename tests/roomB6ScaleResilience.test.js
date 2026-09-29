@@ -173,3 +173,12 @@ test("B6 history/session and safe update hooks are wired on both shared shells",
   assert.match(server, /SHELL_INTEGRITY_PATHS[\s\S]*\/js\/room-b6-core\.js[\s\S]*\/db\/local-db\.js/);
   assert.doesNotMatch(room, /history\.(pushState|replaceState)\([^\n]*myCorpusState\.q/);
 });
+
+test("an incoming material URL survives the catalog boot before the reader is ready", () => {
+  const room = read("public/js/library-ui.js");
+  assert.match(room, /const incomingMaterialLink = \[[^\n]*'corpus_work'[^\n]*\]/);
+  assert.match(room, /if \(incomingMaterialLink\) \{[\s\S]*?history\.replaceState\(state, '', location\.pathname \+ location\.search\)/);
+  assert.match(room, /opts && opts\.replaceInitialHistory \? 'replace' : 'push'/);
+  assert.match(room, /openCorpusWork\(target, \{ resume: true, replaceInitialHistory: true \}\)/);
+  assert.match(room, /openPublicCorpusWork\(publicSlug, publicWork, \{ resume: true, replaceInitialHistory: true/);
+});

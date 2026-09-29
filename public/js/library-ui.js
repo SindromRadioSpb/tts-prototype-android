@@ -8394,7 +8394,7 @@ async function openReader(textId, title, opts) {
   }
   _roomReaderPresentationReadOnly = presentationRestore;
   roomReaderLinkIdentity = opts && opts.linkIdentity || null;
-  if (!presentationRestore) roomPushPresentationState({ surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
+  if (!presentationRestore) roomCommitPresentation(opts && opts.replaceInitialHistory ? 'replace' : 'push', { surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
@@ -14611,6 +14611,7 @@ function consumeDueReviewHandoff() {
 
 async function boot() {
   const initialQuery = new URLSearchParams(location.search);
+  const incomingMaterialLink = ['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open'].some((key) => initialQuery.has(key));
   const initialPresentation = roomDecodeInitialPresentation();
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   loadRoomTableWidths();   // ширины колонок Зала — до первого рендера таблицы
@@ -14684,7 +14685,11 @@ async function boot() {
     // Every in-app entry must have a versioned state before the first Reader
     // push. Otherwise Back from a freshly loaded #room route lands on a null
     // state and cannot restore the catalog surface.
-    roomCommitPresentation('replace');
+    if (incomingMaterialLink) {
+      const state = roomCurrentPresentationState();
+      try { history.replaceState(state, '', location.pathname + location.search); } catch (_) {}
+      roomStorePresentation(state); _roomInitialState = state;
+    } else roomCommitPresentation('replace');
     if (_roomHistoryFallbackNotice) roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
     const dueReviewHandoff = consumeDueReviewHandoff();
     // Mediatheque keeps materials in the existing reader and shared progress store.
@@ -14692,7 +14697,7 @@ async function boot() {
       const myTextId = initialQuery.get('my_text');
       if (myTextId) {
         const row = await localDb.getTextByIdLite(myTextId);
-        if (row) await openReader(row.id, row.title, { resume: true, returnToMediatheque: !!mediathequeReturnHref() });
+        if (row) await openReader(row.id, row.title, { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
         else roomToast(tt('mediatheque.missingPersonal', 'Личный материал не найден в этом браузере'));
       }
     } catch (_) { roomToast(tt('mediatheque.localFailed', 'Не удалось открыть личную библиотеку')); }
@@ -14711,7 +14716,7 @@ async function boot() {
             const publicCatalog = await ensurePublicCatalog(publicSlug);
             const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
             if (publicWork && (!qp.get('public_snapshot') || qp.get('public_snapshot') === publicWork.snapshot_sha256)) {
-              await openPublicCorpusWork(publicSlug, publicWork, { resume: true, returnToMediatheque: !!mediathequeReturnHref() });
+              await openPublicCorpusWork(publicSlug, publicWork, { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
               if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
                 const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);
                 await renderReaderTaskLearningSupport(publicSlug, publicWorkId, readerOpenEpoch);
@@ -14740,7 +14745,7 @@ async function boot() {
           corpusNavToCorpus('group:' + groupCorpusId);
           const groupCatalog = await ensureGroupCatalog(groupCorpusId);
           const groupWork = groupCatalog.works.find((w) => String(w.work_id) === String(groupWorkId));
-          if (groupWork) await openGroupCorpusWork(groupCorpusId, groupWork, { resume:true });
+          if (groupWork) await openGroupCorpusWork(groupCorpusId, groupWork, { resume:true, replaceInitialHistory: true });
           else roomToast(tt('room.groupCorpus.linkUnavailable', 'Ссылка недоступна: войдите как участник учебной группы'));
         }
       }
@@ -14752,7 +14757,7 @@ async function boot() {
       const bakedWorkId = initialQuery.get('corpus_work');
       if (bakedWorkId) {
         const target = ((corpusIndex && corpusIndex.ready) || []).find((card) => String(card.id) === String(bakedWorkId));
-        if (target) await openCorpusWork(target, { resume: true });
+        if (target) await openCorpusWork(target, { resume: true, replaceInitialHistory: true });
         else roomToast(tt('room.work.unavailable', 'Текст пока недоступен'));
       }
     } catch (_) {}
@@ -14769,7 +14774,7 @@ async function boot() {
       const openKey = initialQuery.get('open');
       if (openKey) {
         const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(openKey)]);
-        if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true });
+        if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true, replaceInitialHistory: true });
       }
       // CLG-P8.5 — reading-handoff из Mini App: ?handoff=<opaque одноразовый токен> → redeem
       // (сервер отдаёт ТОЛЬКО указатели) → открыть текст на предложении. URL чистится СРАЗУ
