@@ -94,3 +94,20 @@ Health disk warning remains; this is not a capacity-policy fix. No system prune.
 
 Rollback: disable owner rollout first, then use the retained M2 image with global
 flag off. Do not delete additive tables or restore the entire user DB for rollback.
+
+## M3 follow-up / 3.11.694 — VERIFIED OWNER PILOT
+
+- Automatic deployment of `e877e8ea1ae6bd3e4349897298b15354957b086c` succeeded
+  through public HTTPS after obsolete deploy-key revocation.
+- Active image ID: `b2dfe8e385ba0ee4361e8c86a27ec5171a5950ea47ba0f23411e40957369a010`.
+- [Repeated health and served-byte proof](M3_694_PRODUCTION_RESULT.json):
+  DB/migrations ready, guest capability false, protected connection route 401.
+- Owner browser applied the PWA update and displayed v3.11.694. Reopening the
+  earlier two-word heading restored its explanation without another model request;
+  the unavailable practice CTA was absent. Return-to-reading remained available.
+- After fresh inventory, only completed-build cache was pruned (2.386GB reported).
+  Final inventory: cache 0, 12 containers, 4 volumes, 5.4G available / df 86%.
+  Active 694, immediate rollback 693 and stable M2 image remain; DB/backups unchanged.
+  Capacity warning remains open (O-047).
+- This closes connection and short-heading regression verification, not independent
+  Hebrew review, clean-machine installation or broad-public readiness.

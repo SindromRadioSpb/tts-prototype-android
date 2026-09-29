@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-29T15:11:02.451Z",
+  "evidence": "PRODUCTION_READ_ONLY",
+  "version": "3.11.694",
+  "commit": "e877e8ea",
+  "guest_capability_enabled": false,
+  "pilot_expected": true,
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 59,
+      "now": "2026-09-29T15:10:36.977Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 90,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 61,
+      "now": "2026-09-29T15:10:38.323Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 90,
+      "disk_warn": true
+    }
+  ],
+  "assets": [
+    {
+      "url": "/tutor-connect.html",
+      "sha256": "55704f46e3b7ed27ced218d00ff9258bbb90271fc09ef2fe4a097625a4942864"
+    },
+    {
+      "url": "/css/tutor-connect.css?v=1",
+      "sha256": "b374803968a657b979123faca87e1f10e6e3bda56317802cdeaee05e7e014702"
+    },
+    {
+      "url": "/js/tutor-connect.js?v=1",
+      "sha256": "790f143e68a889c03250b0840035f39e230e0d643a94e559d83c54593c692cfe"
+    },
+    {
+      "url": "/js/tutor-client.js?v=1",
+      "sha256": "2beb39aaad8006fcc700916ca5f18d94d6056e0c7a59b92b1959d5672c879d58"
+    },
+    {
+      "url": "/js/tutor-panel.js?v=4",
+      "sha256": "4b73a94469edc02eac1ad2cc5b50067e820ef58f79ccfd94f9e998faed015cb5"
+    },
+    {
+      "url": "/js/tutor-practice.js?v=1",
+      "sha256": "6fda3e4afac2cbea50f5ddfd36f4926f8daeadc73b96fabed34ed38e88d67c46"
+    },
+    {
+      "url": "/js/library-ui.js?v=693",
+      "sha256": "79dd183eba61278df27b2246a695f175293f8934d40575fdcac5550015124b2f"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "aa8bde03d252b294afb106725d7fe02ebaf8ab8fd07ab57f1f6b92750f7fa0ea"
+    }
+  ],
+  "closed_route_status": 401
+}

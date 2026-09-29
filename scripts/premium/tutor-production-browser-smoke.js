@@ -23,4 +23,3 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),{chromium}=requ
   fs.writeFileSync('docs/research/mentor-byoa/2026-09-29/M3_PRODUCTION_BROWSER.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
  }finally{await browser.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});
-
