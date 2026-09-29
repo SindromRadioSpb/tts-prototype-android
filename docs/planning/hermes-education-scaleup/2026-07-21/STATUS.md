@@ -1,5 +1,19 @@
 # STATUS — живой леджер программы hermes-education-scaleup
 
+## Проверка 2026-09-29: зрелый наставник BYOA
+
+Исследование и новый продуктовый план: **COMPLETE_AS_PROPOSAL**, реализация нового контура не начата.
+Владелец выбрал личную подписку/агента каждого пользователя при минимальных расходах LinguistPro.
+Live Docker: Agent 0.18.2, custom C2 WebUI healthy, основной route `openrouter/free`;
+gateway-side MCP probe требует повторной браузерной авторизации. Права токена корректны.
+Обновление Agent/WebUI, Codex OAuth и восстановление LP OAuth **NOT_EXECUTED**;
+исторические owner-live статусы ниже не являются доказательством текущего подключения.
+Пакет: [продукт](../../MENTOR_BYOA_PRODUCT_PLAN_2026_09_29.md),
+[исполнение и переход Hermes](../../MENTOR_BYOA_EXECUTION_2026_09_29.md).
+Старые C1/C2 research verdicts и longitudinal gates сохраняются.
+
+## Исторический леджер программы
+
 Единственный канонический источник статусов. Каждая Codex-сессия ОБЯЗАНА обновить свою строку
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно DEFERRED / BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
