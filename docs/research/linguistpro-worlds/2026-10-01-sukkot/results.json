@@ -1,0 +1,132 @@
+{
+  "base": "http://127.0.0.1:53249",
+  "passed": 22,
+  "evidence": [
+    {
+      "name": "surface 380 ru /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 ru /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 ru /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 380 ru"
+    },
+    {
+      "name": "surface 380 he /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 he /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 he /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 380 he"
+    },
+    {
+      "name": "surface 768 en /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 768 en /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 768 en /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 768 en"
+    },
+    {
+      "name": "surface 1280 ru /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 ru /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 ru /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 1280 ru"
+    },
+    {
+      "name": "surface 1280 he /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 he /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 he /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 1280 he"
+    },
+    {
+      "name": "lazy catalog, hidden/closed animation, stale-load cancellation (fallback=false)"
+    },
+    {
+      "name": "lazy catalog, hidden/closed animation, stale-load cancellation (fallback=true)"
+    }
+  ]
+}

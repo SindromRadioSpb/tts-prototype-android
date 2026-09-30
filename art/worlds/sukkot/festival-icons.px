@@ -1,0 +1,79 @@
+# Native World Engine v2 palette-grid extension: Sukkot, 2026-09-30.
+# All lettering is DOM text. No letters are baked into the art.
+. transparent
+o #292b32
+s #5b493e
+w #8d6449
+W #bb8a5c
+h #dfb67a
+c #e6d7ac
+C #fff2ce
+d #354e42
+g #526b45
+G #839653
+l #b0b76d
+r #c55c48
+R #ef9364
+y #e9bd4d
+Y #f9dc78
+b #536e7b
+B #8ba4aa
+n #3f404b
+t #847668
+@split
+
+@frame prep 12x12 anchor=6,11
+............
+............
+............
+...ooooooo..
+...ohhhsho..
+...oooosoo..
+............
+.oooooooooo.
+.ohhhshhhho.
+.oooosooooo.
+............
+............
+
+@frame build 12x12 anchor=6,11
+............
+.wwwwwwwwww.
+.wwwwwwwwww.
+..hh....hh..
+..hh....hh..
+..hh....hh..
+..hh....hh..
+..hh....hh..
+..hh....hh..
+..hh....hh..
+..hh....hh..
+............
+
+@frame decorate 12x12 anchor=6,11
+............
+............
+............
+hhhhhhhhhhhh
+..rrr..yyy..
+..rrr..yyy..
+..rrr..yyy..
+..rrr..yyy..
+............
+............
+............
+............
+
+@frame welcome 12x12 anchor=6,11
+............
+............
+....yyyy....
+....yyyy....
+.cccccccccc.
+.cccccccccc.
+.cccccccccc.
+..ww....ww..
+..ww....ww..
+..ww....ww..
+..ww....ww..
+............

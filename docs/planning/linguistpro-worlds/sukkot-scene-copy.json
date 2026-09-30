@@ -1,0 +1,261 @@
+{
+  "note": "Original educational scene copy; fictional mascot dialogue, not sacred text. Hebrew reviewed for grammar and niqqud; no blessings or divine names. Religious visuals are illustrative, not a practical halakhic ruling.",
+  "transliterationNoteRu": "Приблизительное современное израильское произношение. h — лёгкий выдох для ה; х — для ח и כ; ударение обозначено знаком ´. Сдвоенные согласные обычно не удваиваются в произношении.",
+  "labels": [
+    {
+      "id": "sukkot",
+      "he": "סֻכּוֹת",
+      "ru": "Суккот",
+      "en": "Sukkot",
+      "phoneticRu": "суко́т"
+    },
+    {
+      "id": "sukkah",
+      "he": "סֻכָּה",
+      "ru": "Сукка",
+      "en": "Sukkah",
+      "phoneticRu": "сука́"
+    },
+    {
+      "id": "schach",
+      "he": "סְכָךְ",
+      "ru": "Схах — растительное покрытие сукки",
+      "en": "Schach — plant roofing",
+      "phoneticRu": "сха́х"
+    },
+    {
+      "id": "lulav",
+      "he": "לוּלָב",
+      "ru": "Лулав — закрытый пальмовый побег",
+      "en": "Lulav — closed palm frond",
+      "phoneticRu": "лула́в"
+    },
+    {
+      "id": "etrog",
+      "he": "אֶתְרוֹג",
+      "ru": "Этрог — цитрон",
+      "en": "Etrog — citron",
+      "phoneticRu": "этро́г"
+    },
+    {
+      "id": "hadassim",
+      "he": "הֲדַסִּים",
+      "ru": "Веточки мирта",
+      "en": "Myrtle branches",
+      "phoneticRu": "hадаси́м"
+    },
+    {
+      "id": "aravot",
+      "he": "עֲרָבוֹת",
+      "ru": "Веточки ивы",
+      "en": "Willow branches",
+      "phoneticRu": "араво́т"
+    },
+    {
+      "id": "fourSpecies",
+      "he": "אַרְבַּעַת הַמִּינִים",
+      "ru": "Четыре вида растений",
+      "en": "The four species",
+      "phoneticRu": "арба́ат hа-мини́м"
+    },
+    {
+      "id": "courtyard",
+      "he": "חָצֵר",
+      "ru": "Дворик",
+      "en": "Courtyard",
+      "phoneticRu": "хацэ́р"
+    },
+    {
+      "id": "building",
+      "he": "בּוֹנִים סֻכָּה",
+      "ru": "Строим сукку",
+      "en": "Building a sukkah",
+      "phoneticRu": "бони́м сука́"
+    },
+    {
+      "id": "decorations",
+      "he": "קִשּׁוּטִים",
+      "ru": "Украшения",
+      "en": "Decorations",
+      "phoneticRu": "кишути́м"
+    },
+    {
+      "id": "guests",
+      "he": "אוֹרְחִים",
+      "ru": "Гости",
+      "en": "Guests",
+      "phoneticRu": "орхи́м"
+    },
+    {
+      "id": "welcome",
+      "he": "בְּרוּכִים הַבָּאִים",
+      "ru": "Добро пожаловать",
+      "en": "Welcome",
+      "phoneticRu": "брухи́м hаба-и́м"
+    },
+    {
+      "id": "reading",
+      "he": "פִּנַּת קְרִיאָה",
+      "ru": "Уголок чтения",
+      "en": "Reading corner",
+      "phoneticRu": "пина́т кри-а́"
+    },
+    {
+      "id": "evening",
+      "he": "עֶרֶב בַּסֻּכָּה",
+      "ru": "Вечер в сукке",
+      "en": "Evening in the sukkah",
+      "phoneticRu": "э́рэв ба-сука́"
+    },
+    {
+      "id": "cholHamoed",
+      "he": "חֹל הַמּוֹעֵד",
+      "ru": "Холь hа-моэд — промежуточные дни праздника",
+      "en": "Chol HaMoed — intermediate festival days",
+      "phoneticRu": "холь hа-моэ́д"
+    }
+  ],
+  "quips": [
+    {
+      "id": "roomForFriend",
+      "he": "יֵשׁ מָקוֹם לְעוֹד חָבֵר.",
+      "ru": "Есть место ещё для одного друга",
+      "en": "There's room for one more friend",
+      "phoneticRu": "йеш мако́м ле-о́д хавэ́р"
+    },
+    {
+      "id": "breezeBook",
+      "he": "רוּחַ קַלָּה, סֵפֶר טוֹב.",
+      "ru": "Лёгкий ветерок, хорошая книга",
+      "en": "A light breeze, a good book",
+      "phoneticRu": "ру́ах кала́, сэ́фэр тов"
+    },
+    {
+      "id": "bookWaiting",
+      "he": "הַסֵּפֶר מְחַכֶּה לָנוּ.",
+      "ru": "Книга нас ждёт",
+      "en": "The book is waiting for us",
+      "phoneticRu": "hа-сэ́фэр мэхакэ́ ла́ну"
+    },
+    {
+      "id": "starsHere",
+      "he": "הַכּוֹכָבִים כְּבָר כָּאן.",
+      "ru": "Звёзды уже здесь",
+      "en": "The stars are already here",
+      "phoneticRu": "hа-кохави́м квар кан"
+    },
+    {
+      "id": "extraChair",
+      "he": "עוֹד כִּסֵּא לָאוֹרְחִים.",
+      "ru": "Ещё один стул для гостей",
+      "en": "One more chair for the guests",
+      "phoneticRu": "од кисэ́ ла-орхи́м"
+    },
+    {
+      "id": "lovelyShade",
+      "he": "אֵיזֶה צֵל נָעִים!",
+      "ru": "Как приятно в тени!",
+      "en": "What lovely shade!",
+      "phoneticRu": "э́йзэ цэль наи́м"
+    },
+    {
+      "id": "pictureReady",
+      "he": "הַתְּמוּנָה כִּמְעַט מוּכָנָה.",
+      "ru": "Картинка почти готова",
+      "en": "The picture is almost ready",
+      "phoneticRu": "hа-тмуна́ ким-а́т мухана́"
+    },
+    {
+      "id": "quietCorner",
+      "he": "פִּנָּה שֶׁל שֶׁקֶט.",
+      "ru": "Уголок тишины",
+      "en": "A quiet corner",
+      "phoneticRu": "пина́ шэль шэ́кэт"
+    },
+    {
+      "id": "teaAnyone",
+      "he": "מִי רוֹצֶה תֵּה?",
+      "ru": "Кто хочет чаю?",
+      "en": "Who wants tea?",
+      "phoneticRu": "ми роцэ́ тэ"
+    },
+    {
+      "id": "tailRoom",
+      "he": "גַּם הַזָּנָב צָרִיךְ מָקוֹם.",
+      "ru": "Хвосту тоже нужно место",
+      "en": "A tail needs room too",
+      "phoneticRu": "гам hа-зана́в цари́х мако́м"
+    },
+    {
+      "id": "readingTonight",
+      "he": "הַלַּיְלָה קוֹרְאִים בַּסֻּכָּה.",
+      "ru": "Сегодня вечером читаем в сукке",
+      "en": "Tonight we're reading in the sukkah",
+      "phoneticRu": "hа-ла́йла кори́м ба-сука́"
+    },
+    {
+      "id": "storyReady",
+      "he": "מוּכָנִים לְסִפּוּר?",
+      "ru": "Готовы к истории?",
+      "en": "Ready for a story?",
+      "phoneticRu": "мухани́м ле-сипу́р"
+    }
+  ],
+  "sceneGuidance": [
+    "Courtyard preparation: timber, detached palm fronds, neatly stored tools, rolled wall fabric; no religious calendar/date claims.",
+    "Sukkah construction: stable walls before adding detached plant roofing; open sky above, no overhanging tree canopy, awning, or permanent roof; plant covering visually gives more shade than sunlight, with small gaps.",
+    "Decorating: colorful paper chains and fruit illustrations, preferably wall decorations to avoid unintended roofing implications. Decorative practice is common but not universal or required; do not present it as a universally observed ritual.",
+    "Welcoming guests: open entrance, extra chairs, cups and fruit; ordinary friends labeled guests. Do not identify fantasy mascot friends as the mystical ushpizin.",
+    "ReadingRoom: book and chair inside sukkah, schach visible overhead. Ordinary reading in a sukkah is a culturally grounded scene.",
+    "Mediatheque: side-wall screen inside sukkah on a fictional weekday Chol HaMoed evening. Do not call it a depiction of Shabbat/Yom Tov practice or a ritual.",
+    "Four species: one tall closed palm frond plus three myrtle sprigs and two willow sprigs, bound as one bundle; bumpy yellow citron remains separate. Myrtle leaves grouped in threes; willow leaves longer and narrower. Broad roof fronds are visually distinct from the ritual lulav.",
+    "Avoid Hanukkah menorahs, dreidels, faux sacred writing, blessings used as casual jokes, and claims that the scene establishes practical religious compliance."
+  ],
+  "sources": [
+    {
+      "title": "Chabad: How to Build a Sukkah",
+      "url": "https://www.chabad.org/library/article_cdo/aid/420823/jewish/How-to-Build-a-Sukkah.htm",
+      "supports": "Open sky, stable walls, detached plant schach, and diverse decoration customs"
+    },
+    {
+      "title": "Chabad: The Lulav and Etrog — The Four Kinds",
+      "url": "https://www.chabad.org/library/article_cdo/aid/609564/jewish/The-Lulav-and-Etrog-The-Four-Kinds.htm",
+      "supports": "One palm, two willows, at least three myrtles, one citron; palm/myrtle/willow bound together"
+    },
+    {
+      "title": "Chabad: What Is a Sukkah?",
+      "url": "https://www.chabad.org/library/article_cdo/aid/609535/jewish/What-Is-a-Sukkah.htm",
+      "supports": "Eating, learning, reading books and spending time with friends in a sukkah"
+    },
+    {
+      "title": "Chabad: Building the Sukkah",
+      "url": "https://www.chabad.org/library/article_cdo/aid/4482/jewish/Building-the-Sukkah.htm",
+      "supports": "Build walls before schach; greater shade than sunlight"
+    },
+    {
+      "title": "My Jewish Learning: Sukkot at Home",
+      "url": "https://www.myjewishlearning.com/article/sukkot-at-home/",
+      "supports": "Hospitality to living guests; ushpizin is a distinct mystical custom with variations"
+    },
+    {
+      "title": "Chabad: What Are Hadassim?",
+      "url": "https://www.chabad.org/library/article_cdo/aid/6541678/jewish/What-Are-Hadassim.htm",
+      "supports": "Myrtle branches and three-leaf groups"
+    },
+    {
+      "title": "NJOP: The Four Species",
+      "url": "https://njop.org/sukkot/the-four-species/",
+      "supports": "Long narrow willow leaves; myrtle leaves in groups of three"
+    },
+    {
+      "title": "Hebrew Academy: Sukkot, sukkah, masakh and musakh",
+      "url": "https://hebrew-academy.org.il/סוכות-סוכה-מסך-ומוסך/",
+      "supports": "Vocalized סְכָךְ and סֻכָּה"
+    },
+    {
+      "title": "Hebrew Academy: Pottery terminology",
+      "url": "https://terms.hebrew-academy.org.il/Millonim/ShowMillon?KodMillon=79",
+      "supports": "Vocalized קִשּׁוּטִים"
+    }
+  ]
+}

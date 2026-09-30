@@ -1,0 +1,38 @@
+@split
+# Hand-drawn pixel A-frame sign: 9-slice board (4px border) + legs. Hebrew stays live text on top.
+. transparent
+k #2b1d12
+w #b88a57
+W #8f6639
+o #6b4a28
+c #f4e7c8
+C #e9d9b2
+s #d9c29a
+
+@frame board 16x16 anchor=0,15
+kkkkkkkkkkkkkkkk
+ksWwwwwwwwwwwWsk
+kwWWWWWWWWWWWWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWccccccccccWok
+kwWWWWWWWWWWWWok
+ksWooooooooooWsk
+kkkkkkkkkkkkkkkk
+
+@frame legs 18x8 anchor=9,7
+....kk......kk....
+....wk......kw....
+....kk......kk....
+...wk........kw...
+...kk........kk...
+..wk..........kw..
+..kk..........kk..
+..k............k..

@@ -27,7 +27,23 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false, category: "current-events",
+      names: { ru: "Мир выборов в Израиле", en: "Israel Elections 2026", he: "עולם הבחירות 2026" },
+      noteKey: "world.elections.note", badgeKey: "world.satireBadge", greeting: "בְּחִירוֹת" },
+    "sukkot": { base: "/worlds/sukkot/", pack: "0.1.0", retired: false, category: "events",
+      names: { ru: "Мир Суккота", en: "Sukkot World", he: "עולם סוכות" },
+      note: { ru: "Дворик, сукка и друзья. Тимсах читает и встречает гостей.", en: "A courtyard, a sukkah, and friends. Timsah reads and welcomes guests.", he: "חצר, סוכה וחברים. תמסח קורא ומקבל אורחים." },
+      badge: { ru: "Сезонный мир", en: "Seasonal world", he: "עולם עונתי" },
+      routeLabel: { ru: "Маршрут Суккота", en: "Sukkot route", he: "מסלול סוכות" },
+      greeting: "סֻכּוֹת", previewLocation: "welcome" }
+  };
+  var CATEGORIES = {
+    israel: { ru: "Израиль", en: "Israel", he: "ישראל" },
+    pixel: { ru: "Пиксельные миры", en: "Pixel", he: "עולמות פיקסלים" },
+    events: { ru: "Праздники", en: "Holidays", he: "חגים" },
+    "current-events": { ru: "Актуальные события", en: "Current events", he: "אקטואליה" },
+    literature: { ru: "Литература", en: "Literature", he: "ספרות" },
+    other: { ru: "Другие миры", en: "Other worlds", he: "עולמות נוספים" }
   };
   // Owner decision 2026-09-30: the election world is ON by default (live); a learner switches to
   // Classic by hand and that explicit choice ({id:"classic"}) is kept. Retiring the default world
@@ -45,8 +61,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=711";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=711";
+  var CSS_URL = "/css/world-skin.css?v=712";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=712";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -326,7 +342,7 @@
   // ── DOM layer ──────────────────────────────────────────────────────────────
 
   var state = {
-    choice: null, pack: null, atlas: null, base: "", images: {}, governor: createGovernor(),
+    choice: null, pack: null, atlas: null, base: "", images: {}, loadEpoch: 0, lightEpoch: 0, governor: createGovernor(),
     stage: null, backdrop: null, raf: 0, lastFrame: 0, listeners: [], observers: [], styleEl: null, linkEl: null,
     location: null, walk: null, scene: null, react: null, bubble: null, nextAmbient: 0, visible: true,
     walkers: [], walkerNext: []
@@ -409,11 +425,12 @@
     });
   }
   function loadImage(file) {
+    var epoch = state.loadEpoch, images = state.images;
     if (state.images[file]) return Promise.resolve(state.images[file]);
     return new Promise(function (resolve, reject) {
       var img = new Image();
       img.decoding = "async";
-      img.onload = function () { state.images[file] = img; resolve(img); };
+      img.onload = function () { if (epoch === state.loadEpoch) images[file] = img; resolve(img); };
       img.onerror = function () { reject(new Error("image " + file)); };
       img.src = assetUrl(file);
     });
@@ -717,8 +734,9 @@
     drawOnce();
   }
   function setLighting(lighting) {
+    var epoch = state.loadEpoch, lightEpoch = ++state.lightEpoch;
     loadLighting(lighting).then(function () {
-      if (!state.pack) return;
+      if (!state.pack || epoch !== state.loadEpoch || lightEpoch !== state.lightEpoch) return;
       if (state.stage) state.stage.renderer.setLighting(lighting);
       if (state.backdrop) state.backdrop.renderer.setLighting(lighting);
       document.documentElement.setAttribute("data-world-light", lighting);
@@ -963,7 +981,8 @@
     if (!st || !st.route) return;
     var ids = Object.keys(state.pack.locations).filter(function (id) { return state.pack.locations[id].phase; });
     var progress = ids.indexOf(state.progressLocation || ids[0]);
-    st.route.setAttribute("aria-label", tr("world.routeLabel", "Маршрут выборов"));
+    var routeLabel = REGISTRY[state.pack.id].routeLabel;
+    st.route.setAttribute("aria-label", routeLabel ? (routeLabel[locale()] || routeLabel.ru) : tr("world.routeLabel", "Маршрут выборов"));
     Array.prototype.forEach.call(st.route.children, function (b, i) {
       var L = state.pack.locations[b.dataset.loc];
       var name = (L.names && (L.names[locale()] || L.names.ru)) || b.dataset.loc;
@@ -1158,6 +1177,7 @@
   }
 
   function deactivate() {
+    state.loadEpoch++; // an old asynchronous pack can never revive a dismissed world
     if (state.raf) cancelAnimationFrame(state.raf);
     state.raf = 0;
     state.scene = null; state.walk = null; state.react = null;
@@ -1171,11 +1191,13 @@
   }
 
   function activate(choice) {
+    var epoch = ++state.loadEpoch;
     var reg = REGISTRY[choice.id];
     state.base = reg.base;
     var v = encodeURIComponent(reg.pack);
     return Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v), loadScript(RENDER_URL)])
       .then(function (res) {
+        if (epoch !== state.loadEpoch) throw new Error("world load superseded");
         var check = validatePack(res[0], res[1], choice.id);
         if (!check.ok) throw new Error("pack invalid: " + check.errors.slice(0, 5).join("; "));
         if (res[0].version !== reg.pack) throw new Error("pack version " + res[0].version + " != " + reg.pack);
@@ -1184,6 +1206,7 @@
         return loadLighting(currentLighting());
       })
       .then(function () {
+        if (epoch !== state.loadEpoch) return false;
         applySkin();
         mountBackdrop();
         mountStage();
@@ -1200,6 +1223,7 @@
         return true;
       })
       .catch(function (e) {
+        if (epoch !== state.loadEpoch) return false;
         // A broken pack is a missing decoration, never a broken app: fall back to Classic.
         try { console.warn("[LPWorld] Classic fallback:", e && e.message); } catch (_) {}
         deactivate();
@@ -1216,6 +1240,7 @@
   }
 
   function set(id, mode, lighting) {
+    state.loadEpoch++; // invalidate pending work even before any pack has mounted
     var choice = id ? readChoice(JSON.stringify({ id: id, mode: mode || "live", lighting: lighting || "auto" })) : null;
     if (state.pack) deactivate();
     storageSet(choice);
@@ -1232,7 +1257,7 @@
     return n;
   }
 
-  // Live thumbnail for a world option: the same renderer, loaded only when the picker opens.
+  // Live thumbnail for a world option: the same renderer, loaded only when its canvas becomes visible.
   // A still frame under reduced motion; otherwise a gentle loop that stops when the dialog closes.
   function mountPreview(host, id, dlg) {
     var reg = REGISTRY[id];
@@ -1241,53 +1266,92 @@
     canvas.className = "lp-world-preview";
     canvas.setAttribute("aria-hidden", "true");
     host.appendChild(canvas);
-    var v = encodeURIComponent(reg.pack);
-    Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v), loadScript(RENDER_URL)]).then(function (res) {
-      var pack = res[0], atlas = res[1];
-      if (!validatePack(pack, atlas, id).ok || !dlg.isConnected) return;
-      var ids = Object.keys(pack.locations), pick = ids[ids.length - 1], loc = pack.locations[pick];
-      var images = {}, lighting = loc.lighting || "dusk";
-      var files = {};
-      (pack.scenery.layers || []).forEach(function (L) { files[atlas.atlases[typeof L.sheet === "string" ? L.sheet : L.sheet[lighting]].file] = true; });
-      var em = pack.scenery.emitters || {};
-      if (em.clouds) files[atlas.atlases[typeof em.clouds.sheet === "string" ? em.clouds.sheet : em.clouds.sheet[lighting]].file] = true;
-      Object.keys(pack.actors).forEach(function (a) { var sh = pack.actors[a].sheet; sh = typeof sh === "string" ? sh : (sh[lighting] || sh.dusk || sh.day || sh.night); if (sh) files[atlas.atlases[sh].file] = true; });
-      return Promise.all(Object.keys(files).map(function (f) {
-        return new Promise(function (ok) { var img = new Image(); img.onload = function () { images[f] = img; ok(); }; img.onerror = ok; img.src = reg.base + f + "?v=" + encodeURIComponent(pack.version); });
-      })).then(function () {
-        if (!dlg.isConnected) return;
-        var r = window.LPWorldRender.createRenderer(canvas, { pack: pack, atlas: atlas, images: images, seed: 3 });
-        var rect = host.getBoundingClientRect();
-        // a close-up at the world's own 2x scale: the mascot and the stop's set-piece, not a street
-        r.resize(Math.max(160, Math.round(rect.width)), 144, 2);
-        r.setLighting(lighting);
-        var originX = loc.x;
-        r.panTo(originX - Math.round(Math.max(160, rect.width) / 2 * 0.28), 0, performance.now());
-        var props = (loc.props || []).map(function (pr) { return { actor: pr.actor, frame: pr.frame, worldX: loc.x + pr.x, y: 0, z: 1, back: !!pr.back }; });
-        var act = pack.actors["timsah-act"] ? "timsah-act" : null;
-        function pose(t) {
-          var me = act ? { actor: act, frame: (t % 1400) < 700 ? "clip" : "clip-wow", worldX: originX, y: 0, z: 3 }
-                       : { actor: "timsah", frame: (t % 3600) < 150 ? "blink" : "idle", worldX: originX, y: 0, z: 3 };
-          return props.concat([me]);
-        }
-        var raf = 0, last = 0;
-        function tick(t) {
-          if (!dlg.isConnected || !dlg.open) return;
-          raf = requestAnimationFrame(tick);
-          if (t - last < 50) return;
-          r.setPose(pose(t)); r.render("stage", t, last ? t - last : 50); last = t;
-        }
-        r.setPose(pose(0)); r.render("stage", performance.now(), 0);
-        if (!reducedMotion()) raf = requestAnimationFrame(tick);
-        dlg.addEventListener("close", function () { if (raf) cancelAnimationFrame(raf); });
-      });
-    }).catch(function () { canvas.remove(); });
+    var disposed = false, visible = false, started = false, raf = 0, last = 0, renderFrame = null;
+    var observer = null, motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function tick(t) {
+      raf = 0;
+      if (disposed || !visible || document.hidden || !dlg.open || motion.matches || !renderFrame) return;
+      if (t - last >= 50) { renderFrame(t, last ? t - last : 0); last = t; }
+      raf = requestAnimationFrame(tick);
+    }
+    function sync() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0; last = 0;
+      if (disposed || !visible || !dlg.open || document.hidden) return;
+      if (!started) { started = true; load(); }
+      if (renderFrame) {
+        renderFrame(performance.now(), 0);
+        if (!motion.matches) raf = requestAnimationFrame(tick);
+      }
+    }
+    function inView() {
+      var a = canvas.getBoundingClientRect(), b = dlg.getBoundingClientRect();
+      visible = a.bottom > b.top && a.top < b.bottom && a.right > b.left && a.left < b.right;
+      sync();
+    }
+    function dispose() {
+      disposed = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (observer) observer.disconnect();
+      dlg.removeEventListener("scroll", inView);
+      window.removeEventListener("resize", inView);
+      document.removeEventListener("visibilitychange", sync);
+      if (motion.removeEventListener) motion.removeEventListener("change", sync);
+    }
+    dlg.addEventListener("close", dispose, { once: true });
+    document.addEventListener("visibilitychange", sync);
+    if (motion.addEventListener) motion.addEventListener("change", sync);
+    if (typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(function (entries) {
+        visible = entries[entries.length - 1].isIntersecting; sync();
+      }, { root: dlg, threshold: 0 });
+      observer.observe(canvas);
+    } else {
+      dlg.addEventListener("scroll", inView, { passive: true });
+      window.addEventListener("resize", inView);
+      requestAnimationFrame(inView);
+    }
+    function load() {
+      var v = encodeURIComponent(reg.pack);
+      Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v), loadScript(RENDER_URL)]).then(function (res) {
+        var pack = res[0], atlas = res[1];
+        if (disposed || !dlg.isConnected || !validatePack(pack, atlas, id).ok) return;
+        var ids = Object.keys(pack.locations), pick = reg.previewLocation || ids[ids.length - 1], loc = pack.locations[pick];
+        var images = {}, lighting = loc.lighting || "dusk";
+        var files = {};
+        (pack.scenery.layers || []).forEach(function (L) { files[atlas.atlases[typeof L.sheet === "string" ? L.sheet : L.sheet[lighting]].file] = true; });
+        var em = pack.scenery.emitters || {};
+        if (em.clouds) files[atlas.atlases[typeof em.clouds.sheet === "string" ? em.clouds.sheet : em.clouds.sheet[lighting]].file] = true;
+        Object.keys(pack.actors).forEach(function (a) { var sh = pack.actors[a].sheet; sh = typeof sh === "string" ? sh : (sh[lighting] || sh.dusk || sh.day || sh.night); if (sh) files[atlas.atlases[sh].file] = true; });
+        return Promise.all(Object.keys(files).map(function (f) {
+          return new Promise(function (ok) { var img = new Image(); img.onload = function () { images[f] = img; ok(); }; img.onerror = ok; img.src = reg.base + f + "?v=" + encodeURIComponent(pack.version); });
+        })).then(function () {
+          if (disposed || !dlg.isConnected) return;
+          var r = window.LPWorldRender.createRenderer(canvas, { pack: pack, atlas: atlas, images: images, seed: 3 });
+          var rect = host.getBoundingClientRect();
+          // a close-up at the world's own 2x scale: the mascot and the stop's set-piece, not a street
+          r.resize(Math.max(160, Math.round(rect.width)), 144, 2);
+          r.setLighting(lighting);
+          var originX = loc.x;
+          r.panTo(originX - Math.round(Math.max(160, rect.width) / 2 * 0.28), 0, performance.now());
+          var props = (loc.props || []).map(function (pr) { return { actor: pr.actor, frame: pr.frame, worldX: loc.x + pr.x, y: 0, z: 1, back: !!pr.back }; });
+          var act = pack.actors["timsah-act"] ? "timsah-act" : null;
+          function pose(t) {
+            var me = act ? { actor: act, frame: (t % 1400) < 700 ? "clip" : "clip-wow", worldX: originX, y: 0, z: 3 }
+                         : { actor: "timsah", frame: (t % 3600) < 150 ? "blink" : "idle", worldX: originX, y: 0, z: 3 };
+            return props.concat([me]);
+          }
+          renderFrame = function (t, dt) { r.setPose(pose(t)); r.render("stage", t, dt); };
+          sync();
+        });
+      }).catch(function () { dispose(); canvas.remove(); });
+    }
   }
 
   function openPicker() {
     ensureCss();
     var existing = document.getElementById("lpWorldPicker");
-    if (existing) existing.remove();
+    if (existing) { existing.close(); existing.remove(); }
     var dlg = el("dialog", { id: "lpWorldPicker", class: "lp-world-picker", "data-world-ui": "", "aria-labelledby": "lpWorldPickerTitle" });
     var form = el("form", { method: "dialog", class: "lp-world-picker-form" });
     form.appendChild(el("h2", { id: "lpWorldPickerTitle" }, tr("world.pickerTitle", "Оформление")));
@@ -1296,7 +1360,7 @@
     var current = state.choice ? state.choice.id : "";
     var list = el("fieldset", { class: "lp-world-options" });
     list.appendChild(el("legend", { class: "lp-world-sr" }, tr("world.pickerTitle", "Оформление")));
-    function option(value, title, note, badge) {
+    function option(value, title, note, badge, parent) {
       var label = el("label", { class: "lp-world-option" });
       var input = el("input", { type: "radio", name: "lpWorld", value: value });
       if (value === current) input.checked = true;
@@ -1305,14 +1369,26 @@
       copy.appendChild(el("span", { class: "lp-world-option-title" }, title));
       if (note) copy.appendChild(el("span", { class: "lp-world-option-note" }, note));
       label.appendChild(input); label.appendChild(copy);
-      list.appendChild(label);
+      (parent || list).appendChild(label);
+      return copy;
     }
     option("", tr("world.classic", "LinguistPro Classic"), tr("world.classicNote", ""));
-    var names = { "israel-elections-2026": { ru: "Мир выборов в Израиле", en: "Israel Elections 2026", he: "עולם הבחירות 2026" } };
-    Object.keys(REGISTRY).forEach(function (id) {
-      if (REGISTRY[id].retired) return;
-      option(id, (names[id] && names[id][locale()]) || id, tr("world.elections.note", ""), tr("world.satireBadge", ""));
-      mountPreview(list.lastChild.querySelector(".lp-world-option-copy"), id, dlg);
+    Object.keys(CATEGORIES).forEach(function (category) {
+      var ids = Object.keys(REGISTRY).filter(function (id) {
+        var reg = REGISTRY[id];
+        return !reg.retired && (CATEGORIES[reg.category] ? reg.category : "other") === category;
+      });
+      if (!ids.length) return;
+      var group = el("fieldset", { class: "lp-world-category", "data-category": category });
+      group.appendChild(el("legend", {}, CATEGORIES[category][locale()] || CATEGORIES[category].ru));
+      list.appendChild(group);
+      ids.forEach(function (id) {
+        var reg = REGISTRY[id];
+        var copy = option(id, (reg.names && reg.names[locale()]) || id,
+          reg.note ? (reg.note[locale()] || reg.note.ru) : tr(reg.noteKey, ""),
+          reg.badge ? (reg.badge[locale()] || reg.badge.ru) : tr(reg.badgeKey, ""), group);
+        mountPreview(copy, id, dlg);
+      });
     });
     form.appendChild(list);
 
@@ -1372,12 +1448,15 @@
     form.addEventListener("change", function (e) {
       syncModes();
       // choosing the world greets with its word (a direct user gesture, never on page load)
-      if (e && e.target && e.target.name === "lpWorld" && e.target.value) speakHebrew("בְּחִירוֹת");
+      if (e && e.target && e.target.name === "lpWorld" && e.target.value) {
+        var selectedReg = REGISTRY[e.target.value];
+        if (selectedReg && selectedReg.greeting) speakHebrew(selectedReg.greeting);
+      }
       applySelection();
     });
     preview.addEventListener("click", function () {
       applySelection().then(function () {
-        var first = state.pack && (state.pack.scenes || []).filter(function (s) { return s.trigger !== "ambient"; })[0];
+        var first = state.pack && (state.pack.scenes || []).filter(function (s) { return s.trigger !== "ambient" && (!s.surfaces || s.surfaces.indexOf(state.surfaceKey) >= 0); })[0];
         dlg.close();
         if (first) setTimeout(function () { play(first.id); }, 150);
       });

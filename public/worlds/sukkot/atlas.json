@@ -1,0 +1,1146 @@
+{
+  "schema": "lp-world-atlas/1",
+  "world": "sukkot",
+  "atlases": {
+    "cat": {
+      "file": "cat.png",
+      "width": 53,
+      "height": 18,
+      "bytes": 521,
+      "sha256": "7be44674bce7ae6792a86fe2932388fa43510b4577dfba54883ef79f08499c0f",
+      "colors": 16,
+      "frames": {
+        "a": {
+          "x": 0,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        },
+        "b": {
+          "x": 18,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        },
+        "sit": {
+          "x": 36,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        }
+      }
+    },
+    "courtyard-day": {
+      "file": "courtyard-day.png",
+      "width": 320,
+      "height": 30,
+      "bytes": 340,
+      "sha256": "5101c02cbd80bdc16d6f540d3aaf1f571a190d7cce9565a1af4c8993e4998571",
+      "colors": 19,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 30,
+          "anchor": [
+            160,
+            29
+          ]
+        }
+      }
+    },
+    "courtyard-dusk": {
+      "file": "courtyard-dusk.png",
+      "width": 320,
+      "height": 30,
+      "bytes": 339,
+      "sha256": "c7d40321a69bfdb4967f7a06da9bf4de6af7dff425b63e6f490d6783694f181b",
+      "colors": 19,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 30,
+          "anchor": [
+            160,
+            29
+          ]
+        }
+      }
+    },
+    "courtyard-night": {
+      "file": "courtyard-night.png",
+      "width": 320,
+      "height": 30,
+      "bytes": 338,
+      "sha256": "d7e5aca644b1a46a55df9473bbf12d7317a8b873f0c4d0271336f4206ba92b98",
+      "colors": 19,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 30,
+          "anchor": [
+            160,
+            29
+          ]
+        }
+      }
+    },
+    "festival-icons-prep": {
+      "file": "festival-icons-prep.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 113,
+      "sha256": "fbf19f2d68643e96abc22c72d9984603dbdefff5734186d927a87dddd56664bb",
+      "colors": 19,
+      "frames": {
+        "prep": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            6,
+            11
+          ]
+        }
+      }
+    },
+    "festival-icons-build": {
+      "file": "festival-icons-build.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 95,
+      "sha256": "3f2344ee081e86fa6590ec2161a20ab7a8329f040488f0282923d46cb2eb91ca",
+      "colors": 19,
+      "frames": {
+        "build": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            6,
+            11
+          ]
+        }
+      }
+    },
+    "festival-icons-decorate": {
+      "file": "festival-icons-decorate.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 98,
+      "sha256": "2c02cb8608ca04fe9ef18a70acc3da5be7c19dd7d4be69c6c59a3b4abfc89be5",
+      "colors": 19,
+      "frames": {
+        "decorate": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            6,
+            11
+          ]
+        }
+      }
+    },
+    "festival-icons-welcome": {
+      "file": "festival-icons-welcome.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 102,
+      "sha256": "53cdcf9b247d81d4c9104adf1a08a65481063f6a4b9f86cddf93b7091a52abf0",
+      "colors": 19,
+      "frames": {
+        "welcome": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            6,
+            11
+          ]
+        }
+      }
+    },
+    "festival-props": {
+      "file": "festival-props.png",
+      "width": 359,
+      "height": 66,
+      "bytes": 1513,
+      "sha256": "59ef744f80cd46fdb59e9850acac0ddda540986111bfb41a6eca65ebee88e609",
+      "colors": 19,
+      "frames": {
+        "preparation": {
+          "x": 0,
+          "y": 0,
+          "w": 116,
+          "h": 66,
+          "anchor": [
+            58,
+            64
+          ]
+        },
+        "feast": {
+          "x": 117,
+          "y": 0,
+          "w": 66,
+          "h": 33,
+          "anchor": [
+            33,
+            32
+          ]
+        },
+        "books": {
+          "x": 184,
+          "y": 0,
+          "w": 66,
+          "h": 33,
+          "anchor": [
+            33,
+            32
+          ]
+        },
+        "four-species": {
+          "x": 251,
+          "y": 0,
+          "w": 32,
+          "h": 48,
+          "anchor": [
+            16,
+            47
+          ]
+        },
+        "screen": {
+          "x": 284,
+          "y": 0,
+          "w": 51,
+          "h": 55,
+          "anchor": [
+            25,
+            54
+          ]
+        },
+        "chair": {
+          "x": 336,
+          "y": 0,
+          "w": 23,
+          "h": 33,
+          "anchor": [
+            11,
+            32
+          ]
+        }
+      }
+    },
+    "layer-city-day-strip": {
+      "file": "layer-city-day-strip.png",
+      "width": 309,
+      "height": 94,
+      "bytes": 9532,
+      "sha256": "26d8ef56782bb49bad69abd94a393adbc50c8050fe5f79d1ea80b0fb81266a44",
+      "colors": 21,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 309,
+          "h": 94,
+          "anchor": [
+            0,
+            93
+          ]
+        }
+      }
+    },
+    "layer-city-dusk-strip": {
+      "file": "layer-city-dusk-strip.png",
+      "width": 309,
+      "height": 94,
+      "bytes": 9491,
+      "sha256": "74751d60b95a781d9c021e5ebb3b24ec9a0e74fe05945622490ef927ee3544e1",
+      "colors": 23,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 309,
+          "h": 94,
+          "anchor": [
+            0,
+            93
+          ]
+        }
+      }
+    },
+    "layer-city-night-strip": {
+      "file": "layer-city-night-strip.png",
+      "width": 309,
+      "height": 94,
+      "bytes": 9519,
+      "sha256": "907a4121a13fc58a3ab40349475316673b41cf9a562fa8648cccd543bb9fecb9",
+      "colors": 23,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 309,
+          "h": 94,
+          "anchor": [
+            0,
+            93
+          ]
+        }
+      }
+    },
+    "layer-hills-day-strip": {
+      "file": "layer-hills-day-strip.png",
+      "width": 335,
+      "height": 118,
+      "bytes": 5200,
+      "sha256": "c47449ea6d537e7669435652fea61118b61c0ab980ef47a2551cf00de8f3dfec",
+      "colors": 16,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 335,
+          "h": 118,
+          "anchor": [
+            0,
+            117
+          ]
+        }
+      }
+    },
+    "layer-hills-dusk-strip": {
+      "file": "layer-hills-dusk-strip.png",
+      "width": 335,
+      "height": 118,
+      "bytes": 6173,
+      "sha256": "79c7e4ef713d6f1ccd51be1de369dc9e7f7b245e03121276cd69fda2de513e56",
+      "colors": 20,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 335,
+          "h": 118,
+          "anchor": [
+            0,
+            117
+          ]
+        }
+      }
+    },
+    "layer-hills-night-strip": {
+      "file": "layer-hills-night-strip.png",
+      "width": 335,
+      "height": 118,
+      "bytes": 5082,
+      "sha256": "0dfc461a3854a9a69cbb72da31111b47fe6368710a452caf79be9bc21a8cb8f9",
+      "colors": 15,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 335,
+          "h": 118,
+          "anchor": [
+            0,
+            117
+          ]
+        }
+      }
+    },
+    "people": {
+      "file": "people.png",
+      "width": 99,
+      "height": 44,
+      "bytes": 1264,
+      "sha256": "0b1e8edef9e0aa1d85b63f66cacef27c42e82182b26aba67b0b57f4849157c10",
+      "colors": 18,
+      "frames": {
+        "w-a": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "w-b": {
+          "x": 25,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "m-a": {
+          "x": 50,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "m-b": {
+          "x": 75,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        }
+      }
+    },
+    "scenery-sky-day": {
+      "file": "scenery-sky-day.png",
+      "width": 63,
+      "height": 7,
+      "bytes": 215,
+      "sha256": "96b84e413af67b2fad48066af5f99ba07d40932c6c6a20bed3baf535260ad7bd",
+      "colors": 34,
+      "frames": {
+        "cloud-a": {
+          "x": 0,
+          "y": 0,
+          "w": 20,
+          "h": 6,
+          "anchor": [
+            10,
+            5
+          ]
+        },
+        "cloud-b": {
+          "x": 21,
+          "y": 0,
+          "w": 14,
+          "h": 5,
+          "anchor": [
+            7,
+            4
+          ]
+        },
+        "sun": {
+          "x": 36,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "moon": {
+          "x": 44,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "bird-1": {
+          "x": 52,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        },
+        "bird-2": {
+          "x": 58,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        }
+      }
+    },
+    "scenery-sky-dusk": {
+      "file": "scenery-sky-dusk.png",
+      "width": 63,
+      "height": 7,
+      "bytes": 220,
+      "sha256": "49060ef69ae792fa9ee5d23b6b2c33694726950ec2d05e83ab77b90c26e85a44",
+      "colors": 34,
+      "frames": {
+        "cloud-a": {
+          "x": 0,
+          "y": 0,
+          "w": 20,
+          "h": 6,
+          "anchor": [
+            10,
+            5
+          ]
+        },
+        "cloud-b": {
+          "x": 21,
+          "y": 0,
+          "w": 14,
+          "h": 5,
+          "anchor": [
+            7,
+            4
+          ]
+        },
+        "sun": {
+          "x": 36,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "moon": {
+          "x": 44,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "bird-1": {
+          "x": 52,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        },
+        "bird-2": {
+          "x": 58,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        }
+      }
+    },
+    "scenery-sky-night": {
+      "file": "scenery-sky-night.png",
+      "width": 63,
+      "height": 7,
+      "bytes": 219,
+      "sha256": "fb19b66bb22e217ce4b112ae8e984a9578e04c450ab6f5e7ed138a1daf357325",
+      "colors": 34,
+      "frames": {
+        "cloud-a": {
+          "x": 0,
+          "y": 0,
+          "w": 20,
+          "h": 6,
+          "anchor": [
+            10,
+            5
+          ]
+        },
+        "cloud-b": {
+          "x": 21,
+          "y": 0,
+          "w": 14,
+          "h": 5,
+          "anchor": [
+            7,
+            4
+          ]
+        },
+        "sun": {
+          "x": 36,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "moon": {
+          "x": 44,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "bird-1": {
+          "x": 52,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        },
+        "bird-2": {
+          "x": 58,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        }
+      }
+    },
+    "sign-board": {
+      "file": "sign-board.png",
+      "width": 16,
+      "height": 16,
+      "bytes": 129,
+      "sha256": "7418f313e332031f7f6aa242921c1b8596a67306089859f10054e72f0bc48724",
+      "colors": 7,
+      "frames": {
+        "board": {
+          "x": 0,
+          "y": 0,
+          "w": 16,
+          "h": 16,
+          "anchor": [
+            0,
+            15
+          ]
+        }
+      }
+    },
+    "sign-legs": {
+      "file": "sign-legs.png",
+      "width": 18,
+      "height": 8,
+      "bytes": 118,
+      "sha256": "9a26b22e1d294e595ab0fb71e06e92c255912012dd439090a153e29f527322da",
+      "colors": 7,
+      "frames": {
+        "legs": {
+          "x": 0,
+          "y": 0,
+          "w": 18,
+          "h": 8,
+          "anchor": [
+            9,
+            7
+          ]
+        }
+      }
+    },
+    "sukkah-day": {
+      "file": "sukkah-day.png",
+      "width": 893,
+      "height": 86,
+      "bytes": 2869,
+      "sha256": "7ce876ea8f9d29a538839c479c6d61c2fec5424de0bb337f711d50cc1b4692ab",
+      "colors": 19,
+      "frames": {
+        "construction": {
+          "x": 0,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "plain": {
+          "x": 149,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "decorated": {
+          "x": 298,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "welcome": {
+          "x": 447,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "reading": {
+          "x": 596,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "cinema": {
+          "x": 745,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        }
+      }
+    },
+    "sukkah-dusk": {
+      "file": "sukkah-dusk.png",
+      "width": 893,
+      "height": 86,
+      "bytes": 2865,
+      "sha256": "9941ff0ded2d866a21e044dbedf8e3bfce20b1fe72fbb038ae21484337700d52",
+      "colors": 19,
+      "frames": {
+        "construction": {
+          "x": 0,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "plain": {
+          "x": 149,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "decorated": {
+          "x": 298,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "welcome": {
+          "x": 447,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "reading": {
+          "x": 596,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "cinema": {
+          "x": 745,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        }
+      }
+    },
+    "sukkah-night": {
+      "file": "sukkah-night.png",
+      "width": 893,
+      "height": 86,
+      "bytes": 2863,
+      "sha256": "ecb909a314986eb6ecfbec3bf6e1aae87102ce5859f59fe74fbc80fa3b6cf4b2",
+      "colors": 19,
+      "frames": {
+        "construction": {
+          "x": 0,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "plain": {
+          "x": 149,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "decorated": {
+          "x": 298,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "welcome": {
+          "x": 447,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "reading": {
+          "x": 596,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        },
+        "cinema": {
+          "x": 745,
+          "y": 0,
+          "w": 148,
+          "h": 86,
+          "anchor": [
+            74,
+            83
+          ]
+        }
+      }
+    },
+    "timsah-leisure": {
+      "file": "timsah-leisure.png",
+      "width": 115,
+      "height": 36,
+      "bytes": 1325,
+      "sha256": "1a53cb5471b9d3f7da95e57f32c64493ff867d506dbbfc02644a05354dfba0f0",
+      "colors": 16,
+      "frames": {
+        "read": {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "read-turn": {
+          "x": 29,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "watch": {
+          "x": 58,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "laugh": {
+          "x": 87,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        }
+      }
+    },
+    "timsah": {
+      "file": "timsah.png",
+      "width": 191,
+      "height": 42,
+      "bytes": 2202,
+      "sha256": "dc699c347ed79c4a7b17491f3a0c72587d4c3d49982e1dc834034da24f655f49",
+      "colors": 14,
+      "frames": {
+        "idle": {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "blink": {
+          "x": 32,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "walk-a": {
+          "x": 64,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "walk-b": {
+          "x": 96,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "hold": {
+          "x": 128,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "jump": {
+          "x": 160,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        }
+      }
+    },
+    "ui-bubble": {
+      "file": "ui-bubble.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 115,
+      "sha256": "f1dc5dd38bfcf377051acc538e07b95b55f7fa15ee81025a7cf0181a53d6f1a4",
+      "colors": 11,
+      "frames": {
+        "bubble": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            0,
+            11
+          ]
+        }
+      }
+    },
+    "ui-tail": {
+      "file": "ui-tail.png",
+      "width": 8,
+      "height": 6,
+      "bytes": 96,
+      "sha256": "bec115e19a42f25b10094614e67d4e9d8d69bec04c48e319aa50340e556214d1",
+      "colors": 11,
+      "frames": {
+        "tail": {
+          "x": 0,
+          "y": 0,
+          "w": 8,
+          "h": 6,
+          "anchor": [
+            0,
+            5
+          ]
+        }
+      }
+    },
+    "ui-icon-hq": {
+      "file": "ui-icon-hq.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 112,
+      "sha256": "f66e5ccec754c39b5bfcf021920e227f6c310f393cba6e148b4d9e229c90f951",
+      "colors": 11,
+      "frames": {
+        "icon-hq": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-icon-press": {
+      "file": "ui-icon-press.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 116,
+      "sha256": "04df2d3f6871b66486b01efba2d610639fba95160967f66a27d8c5586684b761",
+      "colors": 11,
+      "frames": {
+        "icon-press": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-icon-polling": {
+      "file": "ui-icon-polling.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 117,
+      "sha256": "dd57f7777b70b5be3b26748866598e2953c5a4ab914e749852cf3c80006063cb",
+      "colors": 11,
+      "frames": {
+        "icon-polling": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-icon-count": {
+      "file": "ui-icon-count.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 107,
+      "sha256": "4c0199e3fa1d511c8374088225a34c4fb0e1950a613a6e7ccbd62c3616c1cf98",
+      "colors": 11,
+      "frames": {
+        "icon-count": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-here": {
+      "file": "ui-here.png",
+      "width": 10,
+      "height": 6,
+      "bytes": 116,
+      "sha256": "8ef43bef6afb587289d793289f9fe2de26ac57f5f7ce7592d0a07a7debaddc8e",
+      "colors": 11,
+      "frames": {
+        "here": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 6,
+          "anchor": [
+            0,
+            5
+          ]
+        }
+      }
+    }
+  }
+}

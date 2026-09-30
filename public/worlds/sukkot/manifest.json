@@ -1,0 +1,1174 @@
+{
+  "schema": "lp-world/2",
+  "id": "sukkot",
+  "version": "0.1.0",
+  "engine": {
+    "min": 2,
+    "max": 2
+  },
+  "kind": "seasonal",
+  "names": {
+    "ru": "Мир Суккота",
+    "en": "Sukkot World",
+    "he": "עולם סוכות"
+  },
+  "blurb": {
+    "ru": "Уютный дворик: строим и украшаем сукку, встречаем друзей. Художественная сценка, не руководство по обрядам.",
+    "en": "A cozy courtyard: build and decorate a sukkah, welcome friends. An illustrated story, not a ritual guide.",
+    "he": "חצר נעימה: בונים ומקשטים סוכה ומקבלים חברים. סיפור מאויר, לא מדריך הלכתי."
+  },
+  "skin": {
+    "light": {
+      "page": "#1d1b3a",
+      "surface": "#fff9e9",
+      "surfaceSoft": "#f2e5c8",
+      "ink": "#27372f",
+      "line": "#27372f",
+      "shadow": "#0f0d24",
+      "accent": "#446149",
+      "accentInk": "#ffffff",
+      "plate": "#253c36",
+      "plateInk": "#fff3d5"
+    },
+    "dark": {
+      "page": "#070a1a",
+      "surface": "#24362f",
+      "surfaceSoft": "#304238",
+      "ink": "#f1e8ce",
+      "line": "#101b20",
+      "shadow": "#02030a",
+      "accent": "#637c51",
+      "accentInk": "#ffffff",
+      "plate": "#132823",
+      "plateInk": "#fff3d5"
+    }
+  },
+  "scenery": {
+    "sceneHeight": 176,
+    "groundY": 12,
+    "lighting": {
+      "day": {
+        "sky": [
+          "#4f8fda",
+          "#7fb2ec",
+          "#b5d4f3",
+          "#e4eff8"
+        ],
+        "actorTint": "#ffffff"
+      },
+      "dusk": {
+        "sky": [
+          "#1e1f4a",
+          "#3b3a78",
+          "#83588d",
+          "#dc845f",
+          "#f2b36b"
+        ],
+        "actorTint": "#f6dcc8"
+      },
+      "night": {
+        "sky": [
+          "#03061a",
+          "#0a1233",
+          "#162050",
+          "#262c5c"
+        ],
+        "star": "#e9eeff",
+        "actorTint": "#8e98c9",
+        "lampLight": "#ffd98c"
+      }
+    },
+    "celestial": {
+      "day": {
+        "sheet": "scenery-sky-day",
+        "frame": "sun",
+        "at": 0.82,
+        "top": 40
+      },
+      "night": {
+        "sheet": "scenery-sky-night",
+        "frame": "moon",
+        "at": 0.78,
+        "top": 40
+      }
+    },
+    "layers": [
+      {
+        "id": "hills",
+        "sheet": {
+          "day": "layer-hills-day-strip",
+          "dusk": "layer-hills-dusk-strip",
+          "night": "layer-hills-night-strip"
+        },
+        "frame": "strip",
+        "parallax": 0.12,
+        "bottom": 20
+      },
+      {
+        "id": "city",
+        "sheet": {
+          "day": "layer-city-day-strip",
+          "dusk": "layer-city-dusk-strip",
+          "night": "layer-city-night-strip"
+        },
+        "frame": "strip",
+        "parallax": 0.38,
+        "bottom": -18
+      },
+      {
+        "id": "courtyard",
+        "sheet": {
+          "day": "courtyard-day",
+          "dusk": "courtyard-dusk",
+          "night": "courtyard-night"
+        },
+        "frame": "strip",
+        "parallax": 1,
+        "bottom": 0,
+        "front": true
+      }
+    ],
+    "emitters": {
+      "clouds": {
+        "sheet": {
+          "day": "scenery-sky-day",
+          "dusk": "scenery-sky-dusk",
+          "night": "scenery-sky-night"
+        },
+        "frames": [
+          "cloud-a",
+          "cloud-b"
+        ],
+        "count": 5,
+        "y": [
+          26,
+          58
+        ],
+        "speed": [
+          2,
+          5
+        ],
+        "lighting": [
+          "day",
+          "dusk"
+        ]
+      },
+      "birds": {
+        "sheet": "scenery-sky-day",
+        "frames": [
+          "bird-1",
+          "bird-2"
+        ],
+        "lighting": [
+          "day",
+          "dusk"
+        ],
+        "every": [
+          9000,
+          16000
+        ],
+        "y": [
+          20,
+          60
+        ],
+        "speed": 22
+      },
+      "stars": {
+        "count": 70,
+        "band": 0.6
+      }
+    },
+    "backGround": 12,
+    "walkers": [
+      {
+        "actor": "cat",
+        "frames": [
+          "a",
+          "b"
+        ],
+        "rest": "sit",
+        "cycleMs": 160,
+        "speed": 14,
+        "every": [
+          9000,
+          20000
+        ],
+        "sitChance": 0.6,
+        "lane": 6
+      }
+    ],
+    "curb": true,
+    "titleVeil": true
+  },
+  "ui": {
+    "signBoard": "sign-board",
+    "signLegs": "sign-legs",
+    "bubbleFrame": "ui-bubble",
+    "bubbleTail": "ui-tail"
+  },
+  "here": "ui-here",
+  "actors": {
+    "timsah": {
+      "sheet": "timsah",
+      "fictional": true,
+      "names": {
+        "ru": "Тимсах",
+        "en": "Timsah",
+        "he": "תמסח"
+      },
+      "lines": {
+        "ru": [
+          "Есть место ещё для одного друга",
+          "Лёгкий ветерок, хорошая книга",
+          "Книга нас ждёт",
+          "Звёзды уже здесь",
+          "Ещё один стул для гостей",
+          "Как приятно в тени!",
+          "Картинка почти готова",
+          "Уголок тишины",
+          "Кто хочет чаю?",
+          "Хвосту тоже нужно место",
+          "Сегодня вечером читаем в сукке",
+          "Готовы к истории?"
+        ],
+        "en": [
+          "There's room for one more friend",
+          "A light breeze, a good book",
+          "The book is waiting for us",
+          "The stars are already here",
+          "One more chair for the guests",
+          "What lovely shade!",
+          "The picture is almost ready",
+          "A quiet corner",
+          "Who wants tea?",
+          "A tail needs room too",
+          "Tonight we're reading in the sukkah",
+          "Ready for a story?"
+        ],
+        "he": [
+          "יֵשׁ מָקוֹם לְעוֹד חָבֵר.",
+          "רוּחַ קַלָּה, סֵפֶר טוֹב.",
+          "הַסֵּפֶר מְחַכֶּה לָנוּ.",
+          "הַכּוֹכָבִים כְּבָר כָּאן.",
+          "עוֹד כִּסֵּא לָאוֹרְחִים.",
+          "אֵיזֶה צֵל נָעִים!",
+          "הַתְּמוּנָה כִּמְעַט מוּכָנָה.",
+          "פִּנָּה שֶׁל שֶׁקֶט.",
+          "מִי רוֹצֶה תֵּה?",
+          "גַּם הַזָּנָב צָרִיךְ מָקוֹם.",
+          "הַלַּיְלָה קוֹרְאִים בַּסֻּכָּה.",
+          "מוּכָנִים לְסִפּוּר?"
+        ]
+      }
+    },
+    "timsah-leisure": {
+      "sheet": "timsah-leisure",
+      "fictional": true
+    },
+    "cat": {
+      "sheet": "cat",
+      "fictional": true
+    },
+    "neighbours": {
+      "sheet": "people",
+      "fictional": true
+    },
+    "sukkah": {
+      "sheet": {
+        "day": "sukkah-day",
+        "dusk": "sukkah-dusk",
+        "night": "sukkah-night"
+      },
+      "fictional": true
+    },
+    "festival": {
+      "sheet": "festival-props",
+      "fictional": true
+    }
+  },
+  "locations": {
+    "courtyard": {
+      "phase": "add",
+      "x": 120,
+      "names": {
+        "ru": "Дворик",
+        "en": "Courtyard",
+        "he": "חָצֵר"
+      },
+      "sign": {
+        "he": "חָצֵר",
+        "translit": "khatser",
+        "gloss": {
+          "ru": "Дворик",
+          "en": "Courtyard",
+          "he": "חָצֵר"
+        },
+        "x": -54
+      },
+      "icon": "festival-icons-prep",
+      "quip": {
+        "ru": "Хвосту тоже нужно место",
+        "en": "A tail needs room too",
+        "he": "גַּם הַזָּנָב צָרִיךְ מָקוֹם."
+      },
+      "props": [
+        {
+          "actor": "festival",
+          "frame": "preparation",
+          "x": 31,
+          "y": 0
+        }
+      ]
+    },
+    "building": {
+      "phase": "table",
+      "x": 520,
+      "names": {
+        "ru": "Строим сукку",
+        "en": "Building a sukkah",
+        "he": "בּוֹנִים סֻכָּה"
+      },
+      "sign": {
+        "he": "בּוֹנִים סֻכָּה",
+        "translit": "bonim sukkah",
+        "gloss": {
+          "ru": "Строим сукку",
+          "en": "Building a sukkah",
+          "he": "בּוֹנִים סֻכָּה"
+        },
+        "x": -54
+      },
+      "icon": "festival-icons-build",
+      "quip": {
+        "ru": "Как приятно в тени!",
+        "en": "What lovely shade!",
+        "he": "אֵיזֶה צֵל נָעִים!"
+      },
+      "props": [
+        {
+          "actor": "sukkah",
+          "frame": "construction",
+          "x": 18,
+          "y": 0,
+          "back": true,
+          "ground": 12,
+          "z": 1
+        }
+      ]
+    },
+    "decorating": {
+      "phase": "save",
+      "x": 920,
+      "names": {
+        "ru": "Украшения",
+        "en": "Decorations",
+        "he": "קִשּׁוּטִים"
+      },
+      "sign": {
+        "he": "קִשּׁוּטִים",
+        "translit": "kishutim",
+        "gloss": {
+          "ru": "Украшения",
+          "en": "Decorations",
+          "he": "קִשּׁוּטִים"
+        },
+        "x": -54
+      },
+      "icon": "festival-icons-decorate",
+      "quip": {
+        "ru": "Картинка почти готова",
+        "en": "The picture is almost ready",
+        "he": "הַתְּמוּנָה כִּמְעַט מוּכָנָה."
+      },
+      "props": [
+        {
+          "actor": "sukkah",
+          "frame": "decorated",
+          "x": 18,
+          "y": 0,
+          "back": true,
+          "ground": 12,
+          "z": 1
+        },
+        {
+          "actor": "festival",
+          "frame": "four-species",
+          "x": 48,
+          "y": 0
+        }
+      ]
+    },
+    "welcome": {
+      "phase": "learn",
+      "x": 1320,
+      "names": {
+        "ru": "Добро пожаловать",
+        "en": "Welcome",
+        "he": "בְּרוּכִים הַבָּאִים"
+      },
+      "sign": {
+        "he": "בְּרוּכִים הַבָּאִים",
+        "translit": "brukhim ha-ba'im",
+        "gloss": {
+          "ru": "Добро пожаловать",
+          "en": "Welcome",
+          "he": "בְּרוּכִים הַבָּאִים"
+        },
+        "x": -54
+      },
+      "icon": "festival-icons-welcome",
+      "quip": {
+        "ru": "Есть место ещё для одного друга",
+        "en": "There's room for one more friend",
+        "he": "יֵשׁ מָקוֹם לְעוֹד חָבֵר."
+      },
+      "props": [
+        {
+          "actor": "sukkah",
+          "frame": "welcome",
+          "x": 18,
+          "y": 0,
+          "back": true,
+          "ground": 12,
+          "z": 1
+        },
+        {
+          "actor": "festival",
+          "frame": "feast",
+          "x": 35,
+          "y": 0
+        },
+        {
+          "actor": "festival",
+          "frame": "chair",
+          "x": -18,
+          "y": 0,
+          "z": 1
+        },
+        {
+          "actor": "neighbours",
+          "frame": "w-a",
+          "x": 65,
+          "y": 0
+        },
+        {
+          "actor": "neighbours",
+          "frame": "m-a",
+          "x": -33,
+          "y": 0
+        }
+      ]
+    },
+    "reading": {
+      "x": 1760,
+      "names": {
+        "ru": "Уголок чтения",
+        "en": "Reading corner",
+        "he": "פִּנַּת קְרִיאָה"
+      },
+      "sign": {
+        "he": "פִּנַּת קְרִיאָה",
+        "translit": "pinat kri'a",
+        "gloss": {
+          "ru": "Уголок чтения",
+          "en": "Reading corner",
+          "he": "פִּנַּת קְרִיאָה"
+        },
+        "x": -54
+      },
+      "quip": {
+        "ru": "Лёгкий ветерок, хорошая книга",
+        "en": "A light breeze, a good book",
+        "he": "רוּחַ קַלָּה, סֵפֶר טוֹב."
+      },
+      "props": [
+        {
+          "actor": "sukkah",
+          "frame": "reading",
+          "x": 18,
+          "y": 0,
+          "back": true,
+          "ground": 12,
+          "z": 1
+        },
+        {
+          "actor": "festival",
+          "frame": "chair",
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        {
+          "actor": "festival",
+          "frame": "books",
+          "x": 33,
+          "y": 0
+        }
+      ]
+    },
+    "cinema": {
+      "x": 2200,
+      "lighting": "night",
+      "names": {
+        "ru": "Вечер в сукке",
+        "en": "Evening in the sukkah",
+        "he": "עֶרֶב בַּסֻּכָּה"
+      },
+      "sign": {
+        "he": "עֶרֶב בַּסֻּכָּה",
+        "translit": "erev ba-sukkah",
+        "gloss": {
+          "ru": "Вечер в сукке",
+          "en": "Evening in the sukkah",
+          "he": "עֶרֶב בַּסֻּכָּה"
+        },
+        "x": -54
+      },
+      "quip": {
+        "ru": "Готовы к истории?",
+        "en": "Ready for a story?",
+        "he": "מוּכָנִים לְסִפּוּר?"
+      },
+      "props": [
+        {
+          "actor": "sukkah",
+          "frame": "cinema",
+          "x": 18,
+          "y": 0,
+          "back": true,
+          "ground": 12,
+          "z": 1
+        },
+        {
+          "actor": "festival",
+          "frame": "chair",
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        {
+          "actor": "festival",
+          "frame": "screen",
+          "x": 42,
+          "y": 0
+        },
+        {
+          "actor": "neighbours",
+          "frame": "w-a",
+          "x": -33,
+          "y": 0
+        },
+        {
+          "actor": "neighbours",
+          "frame": "m-a",
+          "x": 66,
+          "y": 0
+        }
+      ]
+    }
+  },
+  "slots": {
+    "studio-stage": {
+      "origin": 0.46,
+      "rest": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0,
+          "hero": true
+        }
+      ]
+    },
+    "room-stage": {
+      "origin": 0.46,
+      "rest": [
+        {
+          "actor": "timsah-leisure",
+          "frames": [
+            "read",
+            "read",
+            "read-turn"
+          ],
+          "cycleMs": 1800,
+          "x": 0,
+          "y": 0,
+          "hero": true
+        }
+      ]
+    },
+    "media-stage": {
+      "origin": 0.46,
+      "rest": [
+        {
+          "actor": "timsah-leisure",
+          "frames": [
+            "watch",
+            "watch",
+            "watch",
+            "laugh"
+          ],
+          "cycleMs": 1500,
+          "x": 0,
+          "y": 0,
+          "hero": true
+        }
+      ]
+    }
+  },
+  "surfaces": {
+    "studio": {
+      "slot": "studio-stage",
+      "route": true
+    },
+    "room": {
+      "slot": "room-stage",
+      "location": "reading",
+      "react": {
+        "actor": "timsah-leisure",
+        "frame": "read-turn",
+        "y": 0
+      }
+    },
+    "mediatheque": {
+      "slot": "media-stage",
+      "location": "cinema",
+      "react": {
+        "actor": "timsah-leisure",
+        "frame": "laugh",
+        "y": 0
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "arrive-courtyard",
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "trigger": "arrive.courtyard",
+      "location": "courtyard",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Дворик",
+        "en": "Courtyard",
+        "he": "חָצֵר"
+      },
+      "caption": {
+        "ru": "Хвосту тоже нужно место",
+        "en": "A tail needs room too",
+        "he": "גַּם הַזָּנָב צָרִיךְ מָקוֹם."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arrive-building",
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "trigger": "arrive.building",
+      "location": "building",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Строим сукку",
+        "en": "Building a sukkah",
+        "he": "בּוֹנִים סֻכָּה"
+      },
+      "caption": {
+        "ru": "Как приятно в тени!",
+        "en": "What lovely shade!",
+        "he": "אֵיזֶה צֵל נָעִים!"
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arrive-decorating",
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "trigger": "arrive.decorating",
+      "location": "decorating",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Украшения",
+        "en": "Decorations",
+        "he": "קִשּׁוּטִים"
+      },
+      "caption": {
+        "ru": "Картинка почти готова",
+        "en": "The picture is almost ready",
+        "he": "הַתְּמוּנָה כִּמְעַט מוּכָנָה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arrive-welcome",
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "trigger": "arrive.welcome",
+      "location": "welcome",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Добро пожаловать",
+        "en": "Welcome",
+        "he": "בְּרוּכִים הַבָּאִים"
+      },
+      "caption": {
+        "ru": "Есть место ещё для одного друга",
+        "en": "There's room for one more friend",
+        "he": "יֵשׁ מָקוֹם לְעוֹד חָבֵר."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "jump",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "welcome-preview",
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "trigger": "manual",
+      "location": "welcome",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Добро пожаловать",
+        "en": "Welcome",
+        "he": "בְּרוּכִים הַבָּאִים"
+      },
+      "caption": {
+        "ru": "Есть место ещё для одного друга",
+        "en": "There's room for one more friend",
+        "he": "יֵשׁ מָקוֹם לְעוֹד חָבֵר."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "jump",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "quiet-breeze",
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "trigger": "ambient",
+      "location": "decorating",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Украшения",
+        "en": "Decorations",
+        "he": "קִשּׁוּטִים"
+      },
+      "caption": {
+        "ru": "Картинка почти готова",
+        "en": "The picture is almost ready",
+        "he": "הַתְּמוּנָה כִּמְעַט מוּכָנָה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "turn-page",
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "trigger": "ambient",
+      "location": "reading",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Уголок чтения",
+        "en": "Reading corner",
+        "he": "פִּנַּת קְרִיאָה"
+      },
+      "caption": {
+        "ru": "Лёгкий ветерок, хорошая книга",
+        "en": "A light breeze, a good book",
+        "he": "רוּחַ קַלָּה, סֵפֶר טוֹב."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-leisure",
+          "frame": "read",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah-leisure",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "read",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "read-turn",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "read",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "evening-story",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "ambient",
+      "location": "cinema",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Вечер в сукке",
+        "en": "Evening in the sukkah",
+        "he": "עֶרֶב בַּסֻּכָּה"
+      },
+      "caption": {
+        "ru": "Готовы к истории?",
+        "en": "Ready for a story?",
+        "he": "מוּכָנִים לְסִפּוּר?"
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-leisure",
+          "frame": "watch",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah-leisure",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "watch",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "laugh",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "watch",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reading-preview",
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "trigger": "manual",
+      "location": "reading",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Уголок чтения",
+        "en": "Reading corner",
+        "he": "פִּנַּת קְרִיאָה"
+      },
+      "caption": {
+        "ru": "Лёгкий ветерок, хорошая книга",
+        "en": "A light breeze, a good book",
+        "he": "רוּחַ קַלָּה, סֵפֶר טוֹב."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-leisure",
+          "frame": "read",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah-leisure",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "read",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "read-turn",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "read",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cinema-preview",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "manual",
+      "location": "cinema",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Вечер в сукке",
+        "en": "Evening in the sukkah",
+        "he": "עֶרֶב בַּסֻּכָּה"
+      },
+      "caption": {
+        "ru": "Готовы к истории?",
+        "en": "Ready for a story?",
+        "he": "מוּכָנִים לְסִפּוּר?"
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-leisure",
+          "frame": "watch",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah-leisure",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "watch",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "laugh",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "watch",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

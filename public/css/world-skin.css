@@ -335,6 +335,8 @@ html[data-world] .ml-heading p, html[data-world] .ml-brand {
 .lp-world-picker h2 { margin: 0; font-size: 1.125rem; line-height: 1.3; }
 .lp-world-picker-lead, .lp-world-privacy { margin: 0; font-size: 0.875rem; line-height: 1.45; color: var(--theme-text-secondary, #475569); }
 .lp-world-options, .lp-world-modes { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.lp-world-category { display: grid; gap: 8px; min-width: 0; margin: 8px 0 0; padding: 0; border: 0; }
+.lp-world-category legend { padding: 0; margin-bottom: 8px; font-size: 0.9375rem; font-weight: 700; }
 .lp-world-modes legend { padding: 0; margin-bottom: 4px; font-size: 0.875rem; font-weight: 600; }
 .lp-world-modes[disabled] { opacity: 0.5; }
 .lp-world-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -345,7 +347,7 @@ html[data-world] .ml-heading p, html[data-world] .ml-brand {
 }
 .lp-world-option:has(input:checked) { border-color: var(--theme-accent, #1b4fb8); background: var(--theme-accent-soft, #e3ebfa); }
 .lp-world-preview {
-  display: block; width: 100%; height: 144px; margin-top: 6px;
+  display: block; width: 100%; height: 144px; margin-top: 6px; box-sizing: border-box;
   border: 2px solid #1b1f2e; image-rendering: pixelated; background: #3b3a78;
 }
 .lp-world-option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--theme-accent, #1b4fb8); }

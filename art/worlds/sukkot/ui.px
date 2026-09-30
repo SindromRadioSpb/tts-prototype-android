@@ -1,0 +1,92 @@
+@split
+# Hand-drawn world UI pieces: speech-bubble 9-slice + tail, route-stop icons, «you are here» head.
+. transparent
+k #1b1f2e
+w #fffdf6
+s #e2d6ba
+b #1b4fb8
+B #7aa0ec
+g #9aa3b5
+r #c24b58
+d #2f3a33
+c #eef2e6
+G #4c9a52
+l #d9e8a0
+
+@frame bubble 12x12 anchor=0,11
+..kkkkkkkk..
+.kwwwwwwwwk.
+kwwwwwwwwwwk
+kwwwwwwwwwwk
+kwwwwwwwwwwk
+kwwwwwwwwwwk
+kwwwwwwwwwwk
+kwwwwwwwwwwk
+kwwwwwwwwwsk
+kwwwwwwwwssk
+.kssssssssk.
+..kkkkkkkk..
+
+@frame tail 8x6 anchor=0,5
+kwwwwk..
+.kwwwk..
+.kwwk...
+..kwk...
+..kk....
+..k.....
+
+@frame icon-hq 10x10 anchor=0,9
+..........
+.......kk.
+....kkkwk.
+..kkwwwwk.
+kkbwwwwwk.
+kbbwwwwwk.
+kkbwwwwwk.
+..kkwwwwk.
+....kkkwk.
+.......kk.
+
+@frame icon-press 10x10 anchor=0,9
+..kkkkkk..
+..kwwwwkk.
+..kwwwwwk.
+..kwgggwk.
+..kwwwwwk.
+..kwrrwwk.
+..kwrrwwk.
+..kwwwwwk.
+..kkkkkkk.
+..........
+
+@frame icon-polling 10x10 anchor=0,9
+..........
+...kkkk...
+..kBBBBk..
+.kkkkkkkk.
+.kBkkkkBk.
+.kbbbbbbk.
+.kbwwwwbk.
+.kbbbbbbk.
+.kbbbbbbk.
+.kkkkkkkk.
+
+@frame icon-count 10x10 anchor=0,9
+kkkkkkkkkk
+kddddddddk
+kdcdcdcdck
+kdcdcdcdck
+kdcdcdcdck
+kddddddddk
+kkkkkkkkkk
+...k..k...
+..k....k..
+.k......k.
+
+@frame here 10x6 anchor=0,5
+..kkk.....
+.kwkGkkkkk
+kGGGGGGGGk
+kGwkwkwkwk
+kGllllllk.
+.kkkkkkk..
