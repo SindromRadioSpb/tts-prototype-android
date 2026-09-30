@@ -2108,6 +2108,7 @@ window.I18N_LOCALES.en = {
     densitySpacious: "Spacious",
   },
   world: {
+    signListen: "Listen",
     pause: "Pause the world",
     resume: "Bring the world to life",
     btnTitle: "Look: LinguistPro worlds",

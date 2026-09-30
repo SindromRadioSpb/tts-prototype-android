@@ -1,0 +1,326 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "at": "2026-09-30T14:41:46.034Z",
+  "results": [
+    {
+      "name": "A1 Classic: no request for world art, renderer or skin",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "A2 Classic: no data-world, stage hidden (0 px), no canvas, renderer not loaded",
+      "ok": true,
+      "detail": {
+        "attr": null,
+        "stageH": 0,
+        "stageHidden": true,
+        "canvases": 0,
+        "choice": null,
+        "render": "undefined"
+      }
+    },
+    {
+      "name": "A3 Classic: engine script cost measured",
+      "ok": true,
+      "detail": {
+        "transfer": 56326,
+        "decoded": 56026
+      }
+    },
+    {
+      "name": "A4 Classic: no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "B1 choice stored locally, lively by default",
+      "ok": true,
+      "detail": {
+        "id": "israel-elections-2026",
+        "mode": "live",
+        "paused": false
+      }
+    },
+    {
+      "name": "B2 picker targets ≥ 44px",
+      "ok": true,
+      "detail": [
+        83,
+        245,
+        65,
+        65,
+        44,
+        44
+      ]
+    },
+    {
+      "name": "B3 back to Classic: slots hidden, canvases removed, loop stopped, storage cleared",
+      "ok": true,
+      "detail": {
+        "stage": true,
+        "backdrop": true,
+        "canvases": 0,
+        "choice": null,
+        "stored": null,
+        "skinVars": false,
+        "animating": false
+      }
+    },
+    {
+      "name": "B4 picker session without page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "C0 world live: stage + backdrop mounted, animating, HQ at start",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "hq",
+        "lighting": "dusk",
+        "busy": null,
+        "animating": true,
+        "camera": 63,
+        "stage": true,
+        "backdrop": true
+      }
+    },
+    {
+      "name": "C1 only the current lighting's layers are fetched",
+      "ok": true,
+      "detail": [
+        "/worlds/israel-elections-2026/layer-hills-dusk-strip.png?v=0.3.0",
+        "/worlds/israel-elections-2026/layer-city-dusk-strip.png?v=0.3.0",
+        "/worlds/israel-elections-2026/layer-street-dusk-strip.png?v=0.3.0"
+      ]
+    },
+    {
+      "name": "C2 phase change → Timsah walks",
+      "ok": true
+    },
+    {
+      "name": "C3 arrives at the press",
+      "ok": true
+    },
+    {
+      "name": "C4 arrival at the polling station plays the story beat",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": true,
+          "lastEndAt": null
+        },
+        "scene": {
+          "id": "ballot-drop",
+          "kind": "story"
+        },
+        "walking": false,
+        "location": "polling",
+        "lighting": "dusk",
+        "busy": null,
+        "animating": true,
+        "camera": 863,
+        "stage": true,
+        "backdrop": true
+      }
+    },
+    {
+      "name": "C5 no long task (≥ 50 ms) during ~9 s of live animation and two journeys",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "C6 the living world causes no layout shift",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "name": "C7 tapping Timsah shows a localized line (decorative)",
+      "ok": true,
+      "detail": {
+        "text": "Бюллетень без огласовки? Не пропущу!",
+        "hidden": "true"
+      }
+    },
+    {
+      "name": "C8 visible world pause: 44×44, labelled, not pressed",
+      "ok": true,
+      "detail": {
+        "w": 44,
+        "h": 44,
+        "label": "Остановить мир",
+        "pressed": "false"
+      }
+    },
+    {
+      "name": "C9 pause stops the loop, is announced and remembered",
+      "ok": true,
+      "detail": {
+        "d": {
+          "choice": {
+            "id": "israel-elections-2026",
+            "mode": "live",
+            "paused": true,
+            "active": true
+          },
+          "governor": {
+            "autoCount": 0,
+            "playing": false,
+            "lastEndAt": null
+          },
+          "scene": null,
+          "walking": false,
+          "location": "polling",
+          "lighting": "dusk",
+          "busy": null,
+          "animating": false,
+          "camera": 863,
+          "stage": true,
+          "backdrop": true
+        },
+        "pressed": "true",
+        "stored": true
+      }
+    },
+    {
+      "name": "C10 nothing auto-plays while paused",
+      "ok": true,
+      "detail": {
+        "played": false,
+        "reason": "paused"
+      }
+    },
+    {
+      "name": "C11 resume restarts the loop",
+      "ok": true
+    },
+    {
+      "name": "C12 canvases stay at logical resolution (decoded memory bounded)",
+      "ok": true,
+      "detail": [
+        {
+          "w": 190,
+          "h": 400,
+          "px": 76000
+        },
+        {
+          "w": 190,
+          "h": 145,
+          "px": 27550
+        }
+      ]
+    },
+    {
+      "name": "C13 typing is detected as busy (no auto/ambient scene starts)",
+      "ok": true
+    },
+    {
+      "name": "C14 no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "D1 reduced motion: world drawn but not animating",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "hq",
+        "lighting": "dusk",
+        "busy": null,
+        "animating": false,
+        "camera": 63,
+        "stage": true,
+        "backdrop": true
+      }
+    },
+    {
+      "name": "D2 reduced motion: journey is instant, no story animation",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "polling",
+        "lighting": "dusk",
+        "busy": null,
+        "animating": false,
+        "camera": 863,
+        "stage": true,
+        "backdrop": true
+      }
+    },
+    {
+      "name": "D3 no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "E1 failed pack → Classic fallback, Studio intact",
+      "ok": true,
+      "detail": {
+        "attr": null,
+        "stage": true,
+        "ok": true
+      }
+    },
+    {
+      "name": "E2 no page errors from the failure",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "E3 tampered pack (external URL in a colour token) is refused",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "F1 ?world=off turns the world off and forgets the choice",
+      "ok": true,
+      "detail": {
+        "attr": null,
+        "stored": null
+      }
+    }
+  ]
+}

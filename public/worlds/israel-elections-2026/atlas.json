@@ -2,6 +2,96 @@
   "schema": "lp-world-atlas/1",
   "world": "israel-elections-2026",
   "atlases": {
+    "ballot": {
+      "file": "ballot.png",
+      "width": 83,
+      "height": 26,
+      "bytes": 455,
+      "sha256": "78704207080ac2c01f73e063d2cb405a3131bf923e24d340846ef63d5c2ae615",
+      "colors": 12,
+      "frames": {
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 20,
+          "h": 26,
+          "anchor": [
+            10,
+            24
+          ]
+        },
+        "box-glint": {
+          "x": 21,
+          "y": 0,
+          "w": 20,
+          "h": 26,
+          "anchor": [
+            10,
+            24
+          ]
+        },
+        "envelope": {
+          "x": 42,
+          "y": 0,
+          "w": 20,
+          "h": 26,
+          "anchor": [
+            10,
+            24
+          ]
+        },
+        "papers": {
+          "x": 63,
+          "y": 0,
+          "w": 20,
+          "h": 26,
+          "anchor": [
+            10,
+            24
+          ]
+        }
+      }
+    },
+    "cat": {
+      "file": "cat.png",
+      "width": 53,
+      "height": 18,
+      "bytes": 521,
+      "sha256": "7be44674bce7ae6792a86fe2932388fa43510b4577dfba54883ef79f08499c0f",
+      "colors": 16,
+      "frames": {
+        "a": {
+          "x": 0,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        },
+        "b": {
+          "x": 18,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        },
+        "sit": {
+          "x": 36,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        }
+      }
+    },
     "layer-city-day-strip": {
       "file": "layer-city-day-strip.png",
       "width": 309,
@@ -182,12 +272,62 @@
         }
       }
     },
+    "people": {
+      "file": "people.png",
+      "width": 99,
+      "height": 44,
+      "bytes": 1264,
+      "sha256": "0b1e8edef9e0aa1d85b63f66cacef27c42e82182b26aba67b0b57f4849157c10",
+      "colors": 18,
+      "frames": {
+        "w-a": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "w-b": {
+          "x": 25,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "m-a": {
+          "x": 50,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "m-b": {
+          "x": 75,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        }
+      }
+    },
     "place-count-night": {
       "file": "place-count-night.png",
       "width": 97,
       "height": 70,
-      "bytes": 1983,
-      "sha256": "5424073eda2cd316b7a11ed860f8dc6eb516e6864b10668aa870da7cdfd10305",
+      "bytes": 1986,
+      "sha256": "cf50f04f9eb31d1f0541b12e24c49424a461ac6621906aebeb6b093a93895126",
       "colors": 28,
       "frames": {
         "count": {
@@ -378,46 +518,6 @@
           "anchor": [
             41,
             62
-          ]
-        }
-      }
-    },
-    "props": {
-      "file": "props.png",
-      "width": 53,
-      "height": 18,
-      "bytes": 250,
-      "sha256": "4e8e5dd3bab2a3534799ac7970ec498af3d53e4238b801bee9745423703721a7",
-      "colors": 8,
-      "frames": {
-        "box": {
-          "x": 0,
-          "y": 0,
-          "w": 22,
-          "h": 18,
-          "anchor": [
-            11,
-            16
-          ]
-        },
-        "box-glint": {
-          "x": 23,
-          "y": 0,
-          "w": 22,
-          "h": 18,
-          "anchor": [
-            11,
-            16
-          ]
-        },
-        "envelope": {
-          "x": 46,
-          "y": 0,
-          "w": 7,
-          "h": 5,
-          "anchor": [
-            3,
-            4
           ]
         }
       }

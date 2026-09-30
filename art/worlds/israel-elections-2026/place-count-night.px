@@ -1,3 +1,4 @@
+# EDITED 2026-09-30: orange spotlight/interior hues → neutral warm white (orange reads as a protest colour in Israel; critic R1)
 # PIXELIZED by scripts/worlds/pixelize.py from gen/place-count-v1 (sha256 c2dfe2c07954b520…)
 # height=66 colors=28 outline=False scale=10.09 source px per logical px
 # Hand edits welcome: this .px is now the source of truth for the sprite.
@@ -19,12 +20,12 @@ n #935a50
 o #a15f4a
 p #8066da
 q #8468dd
-r #c96257
+r #cdbf90
 s #8b69db
 t #a56f5e
-u #d97759
-v #ea905c
-w #f49f5a
+u #ddcf9b
+v #efdfa7
+w #f9e8ae
 x #e8c26e
 y #c8df9c
 z #f3db77

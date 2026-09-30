@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T14:33:34.794Z",
+  "id": "npc-people-v2",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/npc-street-v1.jpg",
+      "sha256": "95c92ff8a647b93971b886a9cb36f0ed37b6e62794d2fcb6435c5cb212746e43"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and characters as the attached sprite sheet of neighbourhood extras, redraw ONLY the two people as a clean 2-frame walk cycle each, side view facing right, all at the same scale as in the reference, feet on one baseline, evenly spaced and clearly separated, flat solid magenta #FF00FF background, no ground, no shadows. One row, in this order:\n1) the woman in the green T-shirt and jeans, walking step A (left leg forward), holding the paper shopping bag with vegetables in her arm,\n2) the SAME woman, walking step B (right leg forward), STILL holding the SAME shopping bag in the same arm — identical face, hair, clothes and bag, only the legs and arm swing change,\n3) the man in the light blue shirt and brown trousers, walking step A, reading the folded newspaper held in both hands,\n4) the SAME man, walking step B, STILL reading the SAME newspaper — identical face, hair, clothes and newspaper, only the legs change.\nNo text on the newspaper or bag, no logos, no religious or political symbols. Crisp pixels, 1px dark outline.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/npc-people-v2.jpg",
+  "sha256": "8844491b3f568b7764c408bac068cfd40909e4480a7f93118f0806f7821b9c01",
+  "bytes": 478373,
+  "usage": {
+    "promptTokenCount": 510,
+    "candidatesTokenCount": 1395,
+    "totalTokenCount": 2118,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 252
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 213,
+    "serviceTier": "standard"
+  }
+}

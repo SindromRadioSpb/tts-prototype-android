@@ -1,0 +1,9 @@
+Using EXACTLY the same pixel art style, pixel size and palette as the attached reference images (a Jerusalem street at dusk and a crocodile character sheet), draw a sprite sheet of neighbourhood extras for the same game, side view facing right, all at the same scale as the crocodile (people slightly taller than him), feet on one baseline, evenly spaced and clearly separated, on a flat solid magenta #FF00FF background with no ground and no shadows. One row, in this order:
+1) a skinny Jerusalem street cat walking, step A,
+2) the same cat walking, step B,
+3) the same cat sitting and licking a paw,
+4) a woman in casual clothes carrying a shopping bag with vegetables, walking, step A,
+5) the same woman, step B,
+6) a man in a light shirt reading a folded newspaper while walking, step A,
+7) the same man, step B.
+Ordinary everyday people, friendly and neutral, no religious or political clothing or symbols, no flags, no text on the newspaper or bag, no logos. Crisp pixels, 1px dark outline like the crocodile.

@@ -1,7 +1,7 @@
 {
   "schema": "lp-world/2",
   "id": "israel-elections-2026",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engine": {
     "min": 2,
     "max": 2
@@ -53,7 +53,8 @@
           "#7fb2ec",
           "#b5d4f3",
           "#e4eff8"
-        ]
+        ],
+        "actorTint": "#ffffff"
       },
       "dusk": {
         "sky": [
@@ -62,7 +63,8 @@
           "#83588d",
           "#dc845f",
           "#f2b36b"
-        ]
+        ],
+        "actorTint": "#f6dcc8"
       },
       "night": {
         "sky": [
@@ -71,7 +73,9 @@
           "#162050",
           "#262c5c"
         ],
-        "star": "#e9eeff"
+        "star": "#e9eeff",
+        "actorTint": "#8e98c9",
+        "lampLight": "#ffd98c"
       }
     },
     "celestial": {
@@ -98,10 +102,7 @@
         },
         "frame": "strip",
         "parallax": 0.12,
-        "bottom": 34,
-        "backdrop": true,
-        "backdropBottom": 40,
-        "scrollParallax": 0.05
+        "bottom": 34
       },
       {
         "id": "city",
@@ -112,10 +113,7 @@
         },
         "frame": "strip",
         "parallax": 0.38,
-        "bottom": 30,
-        "backdrop": true,
-        "backdropBottom": 0,
-        "scrollParallax": 0.12
+        "bottom": 30
       },
       {
         "id": "street",
@@ -127,7 +125,21 @@
         "frame": "strip",
         "parallax": 1,
         "bottom": 0,
-        "front": true
+        "front": true,
+        "lamps": [
+          {
+            "x": 47,
+            "head": 82
+          },
+          {
+            "x": 142,
+            "head": 83
+          },
+          {
+            "x": 231,
+            "head": 84
+          }
+        ]
       }
     ],
     "emitters": {
@@ -176,7 +188,50 @@
         "band": 0.6
       }
     },
-    "backGround": 30
+    "backGround": 30,
+    "walkers": [
+      {
+        "actor": "cat",
+        "frames": [
+          "a",
+          "b"
+        ],
+        "rest": "sit",
+        "cycleMs": 160,
+        "speed": 14,
+        "every": [
+          9000,
+          20000
+        ],
+        "sitChance": 0.6
+      },
+      {
+        "actor": "neighbours",
+        "frames": [
+          "w-a",
+          "w-b"
+        ],
+        "cycleMs": 260,
+        "speed": 11,
+        "every": [
+          14000,
+          26000
+        ]
+      },
+      {
+        "actor": "neighbours",
+        "frames": [
+          "m-a",
+          "m-b"
+        ],
+        "cycleMs": 280,
+        "speed": 9,
+        "every": [
+          16000,
+          30000
+        ]
+      }
+    ]
   },
   "actors": {
     "timsah": {
@@ -189,31 +244,31 @@
       },
       "lines": {
         "ru": [
-          "Я не голосую — я охраняю урну!",
           "Бюллетень без огласовки? Не пропущу!",
+          "Тихо! Идёт подсчёт… слов в вашей таблице.",
           "Выборы выборами, а повторение — по расписанию.",
-          "Тихо! Идёт подсчёт… слов в вашей таблице."
+          "Конверт синий, а слово — новое. Запишем?"
         ],
         "en": [
-          "I don't vote — I guard the ballot box!",
           "A ballot without niqqud? Not on my watch!",
+          "Quiet! Counting… the words in your table.",
           "Elections come and go; reviews stay on schedule.",
-          "Quiet! Counting… the words in your table."
+          "Blue envelope, brand-new word. Shall we save it?"
         ],
         "he": [
-          "אני לא מצביע — אני שומר על הקלפי!",
           "פתק בלי ניקוד? לא במשמרת שלי!",
+          "שקט! סופרים… את המילים בטבלה שלך.",
           "בחירות באות והולכות, החזרות לפי הלוח.",
-          "שקט! סופרים… את המילים בטבלה שלך."
+          "מעטפה כחולה, מילה חדשה. נשמור אותה?"
         ]
       }
     },
     "box": {
-      "sheet": "props",
+      "sheet": "ballot",
       "fictional": true
     },
     "envelope": {
-      "sheet": "props",
+      "sheet": "ballot",
       "fictional": true
     },
     "place-hq": {
@@ -245,6 +300,18 @@
         "night": "place-count-night"
       },
       "fictional": true
+    },
+    "papers": {
+      "sheet": "ballot",
+      "fictional": true
+    },
+    "cat": {
+      "sheet": "cat",
+      "fictional": true
+    },
+    "neighbours": {
+      "sheet": "people",
+      "fictional": true
     }
   },
   "locations": {
@@ -264,7 +331,17 @@
           "back": true,
           "z": 1
         }
-      ]
+      ],
+      "sign": {
+        "he": "מַטֶּה הַבְּחִירוֹת",
+        "translit": "mate ha-bkhirot",
+        "gloss": {
+          "ru": "предвыборный штаб",
+          "en": "campaign headquarters",
+          "he": "מטה הבחירות"
+        },
+        "x": 64
+      }
     },
     "press": {
       "phase": "table",
@@ -281,8 +358,24 @@
           "x": 62,
           "back": true,
           "z": 1
+        },
+        {
+          "actor": "papers",
+          "frame": "papers",
+          "x": 34,
+          "z": 2
         }
-      ]
+      ],
+      "sign": {
+        "he": "בֵּית דְּפוּס",
+        "translit": "beit dfus",
+        "gloss": {
+          "ru": "типография",
+          "en": "printing house",
+          "he": "בית דפוס"
+        },
+        "x": 62
+      }
     },
     "polling": {
       "phase": "save",
@@ -303,10 +396,20 @@
         {
           "actor": "box",
           "frame": "box",
-          "x": 26,
+          "x": 28,
           "z": 2
         }
-      ]
+      ],
+      "sign": {
+        "he": "קַלְפִּי",
+        "translit": "kalpi",
+        "gloss": {
+          "ru": "избирательный участок, урна",
+          "en": "polling station, ballot box",
+          "he": "קלפי"
+        },
+        "x": 70
+      }
     },
     "count": {
       "phase": "learn",
@@ -325,7 +428,17 @@
           "back": true,
           "z": 1
         }
-      ]
+      ],
+      "sign": {
+        "he": "סְפִירַת קוֹלוֹת",
+        "translit": "sfirat kolot",
+        "gloss": {
+          "ru": "подсчёт голосов",
+          "en": "vote count",
+          "he": "ספירת קולות"
+        },
+        "x": 66
+      }
     }
   },
   "slots": {
@@ -366,7 +479,7 @@
         {
           "actor": "box",
           "frame": "box-glint",
-          "x": 26,
+          "x": 28,
           "z": 2
         }
       ],
@@ -425,35 +538,35 @@
             {
               "t": 0,
               "hidden": true,
-              "x": 10,
+              "x": 11,
               "y": 14,
               "hold": true
             },
             {
               "t": 1300,
               "frame": "envelope",
-              "x": 10,
+              "x": 11,
               "y": 14,
               "arc": 12
             },
             {
               "t": 1800,
               "frame": "envelope",
-              "x": 26,
-              "y": 13
+              "x": 28,
+              "y": 16
             },
             {
               "t": 1950,
               "frame": "envelope",
-              "x": 26,
-              "y": 5,
+              "x": 28,
+              "y": 8,
               "hold": true
             },
             {
               "t": 2000,
               "hidden": true,
-              "x": 26,
-              "y": 5,
+              "x": 28,
+              "y": 8,
               "hold": true
             }
           ]
@@ -465,19 +578,19 @@
             {
               "t": 0,
               "frame": "box",
-              "x": 26,
+              "x": 28,
               "hold": true
             },
             {
               "t": 1950,
               "frame": "box-glint",
-              "x": 26,
+              "x": 28,
               "hold": true
             },
             {
               "t": 2600,
               "frame": "box",
-              "x": 26,
+              "x": 28,
               "hold": true
             }
           ]

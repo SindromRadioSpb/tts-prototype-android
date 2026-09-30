@@ -68,9 +68,20 @@ html[data-world] .classic-shell-head {
      phones, where the head's cards cover the upper scene and the locations must stay legible */
   padding-bottom: calc(52px * var(--lpw-scale)) !important;
 }
+/* Phones: the street band sits right under the title, so the stage is a window nothing covers;
+   «Разделы и настройки» follows below the world instead of lying across the skyline. */
 @media (max-width: 600px) {
-  html[data-world] .classic-shell-head { padding-bottom: calc(76px * var(--lpw-scale)) !important; }
+  html[data-world] .classic-shell-head { padding-bottom: 0 !important; }
+  html[data-world] .classic-shell-copy { padding-bottom: calc(72px * var(--lpw-scale)) !important; }
 }
+/* The head's own boxes are transparent to taps where they only frame the world (the street band),
+   so Timsah and the Hebrew sign stay reachable; their real content keeps its own pointer events. */
+html[data-world] .classic-shell-copy,
+html[data-world] .classic-shell-head { pointer-events: none; }
+html[data-world] .classic-shell-copy > *,
+html[data-world] .classic-shell-head > :not(.classic-shell-copy),
+html[data-world] .lp-world-stage .lp-world-canvas,
+html[data-world] .lp-world-stage button { pointer-events: auto; }
 html[data-world] .classic-shell-head > :not(.lp-world-stage) { position: relative; z-index: 1; }
 /* Text that sits on the sky gets a solid pixel plate: legibility never depends on the scene. */
 html[data-world] .classic-screen-title,
@@ -178,6 +189,28 @@ html[data-world] .lp-world-bubble::after {
 html[data-world] .lp-world-bubble[data-side="left"]::after {
   left: auto; right: -9px; border-right: 0; border-left: 8px solid #1b1f2e;
 }
+/* A Hebrew sign on the location: a real control (tap = hear it). Hebrew in the reading font. */
+html[data-world] .lp-world-sign {
+  position: absolute; z-index: 2; display: grid; justify-items: center; gap: 1px;
+  min-width: 44px; min-height: 44px; padding: 4px 10px 5px; box-sizing: border-box;
+  border: 2px solid #2b1d12; border-radius: 0;
+  background: #f4e7c8; color: #2b1d12;
+  box-shadow: inset 0 -3px 0 0 #d8c29a, 3px 3px 0 0 rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+html[data-world] .lp-world-sign[hidden] { display: none; }
+html[data-world] .lp-world-sign:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
+html[data-world] .lp-world-sign-he { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.125rem; font-weight: 700; line-height: 1.2; }
+html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.6875rem; font-weight: 600; line-height: 1.1; opacity: 0.8; }
+/* route strip: four stops of the election journey, the current one lit */
+html[data-world] .lp-world-route {
+  position: absolute; z-index: 2; left: 12px; bottom: 16px; margin: 0; padding: 0; list-style: none;
+  display: flex; gap: 10px; align-items: center; pointer-events: none;
+}
+html[data-world][dir="rtl"] .lp-world-route { left: auto; right: 12px; flex-direction: row-reverse; }
+html[data-world] .lp-world-route li { width: 8px; height: 8px; background: rgba(255, 253, 246, 0.55); box-shadow: 0 0 0 2px #1b1f2e; }
+html[data-world] .lp-world-route li[data-state="done"] { background: #7aa0ec; }
+html[data-world] .lp-world-route li[data-state="here"] { width: 12px; height: 12px; background: #f4c542; }
 @media (forced-colors: active) {
   html[data-world] .lp-world-stage, html[data-world] .lp-world-backdrop { display: none !important; }
   html[data-world] .classic-shell-head { padding-bottom: 0 !important; }
@@ -209,6 +242,10 @@ html[data-world] .lp-world-bubble[data-side="left"]::after {
   border: 2px solid var(--theme-border-medium, #cbd5e1); cursor: pointer;
 }
 .lp-world-option:has(input:checked) { border-color: var(--theme-accent, #1b4fb8); background: var(--theme-accent-soft, #e3ebfa); }
+.lp-world-preview {
+  display: block; width: 100%; height: 112px; margin-top: 6px;
+  border: 2px solid #1b1f2e; image-rendering: pixelated; background: #3b3a78;
+}
 .lp-world-option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--theme-accent, #1b4fb8); }
 .lp-world-option-compact { align-items: center; }
 .lp-world-option-compact input { margin: 0; }
@@ -216,7 +253,7 @@ html[data-world] .lp-world-bubble[data-side="left"]::after {
 .lp-world-option-title { font-weight: 600; font-size: 0.9375rem; line-height: 1.35; }
 .lp-world-option-note { font-size: 0.8125rem; line-height: 1.4; color: var(--theme-text-secondary, #475569); }
 .lp-world-badge {
-  display: inline-block; margin-inline-start: 8px; padding: 1px 6px;
+  display: inline-block; white-space: nowrap; margin-inline-start: 8px; padding: 1px 6px;
   border: 1px solid currentColor; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.02em;
   vertical-align: 2px; color: var(--theme-text-secondary, #475569);
 }
@@ -228,6 +265,6 @@ html[data-world] .lp-world-bubble[data-side="left"]::after {
 }
 .lp-world-picker .lp-world-btn-primary { background: var(--theme-accent, #1b4fb8); color: #fff; }
 .lp-world-picker .lp-world-btn[disabled] { opacity: 0.5; cursor: default; }
-.lp-world-picker .lp-world-btn:focus-visible, .lp-world-option:focus-within { outline: 3px solid var(--theme-accent, #1b4fb8); outline-offset: 2px; }
+.lp-world-picker .lp-world-btn:focus-visible, .lp-world-option:has(input:focus-visible) { outline: 3px solid var(--theme-accent, #1b4fb8); outline-offset: 2px; }
 body.theme-dark .lp-world-picker { border-color: #8ea6d9; }
 body.theme-dark .lp-world-picker .lp-world-btn { border-color: #8ea6d9; }

@@ -1,0 +1,6 @@
+Using EXACTLY the same pixel art style, pixel size and palette as the attached reference images (a Jerusalem street at dusk and a crocodile character sheet), draw a small set of game props in one horizontal row, all at the same scale as the crocodile, evenly spaced, each clearly separated, on a flat solid magenta #FF00FF background with no ground and no shadows:
+1) a plain blue cardboard ballot box with a slot on top (no text, no emblem),
+2) the same ballot box with a small sparkle above the slot,
+3) a single blue paper envelope, flat,
+4) a small neat stack of blank white ballot papers.
+Crisp pixels, 1px dark outline like the crocodile, no text, no letters, no numbers, no logos.

@@ -2116,6 +2116,7 @@ window.I18N_LOCALES.he = {
     densitySpacious: "רווח",
   },
   world: {
+    signListen: "להאזנה",
     pause: "עצירת העולם",
     resume: "החייאת העולם",
     btnTitle: "עיצוב: העולמות של LinguistPro",

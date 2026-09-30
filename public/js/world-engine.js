@@ -27,7 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.2.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.3.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -108,7 +108,7 @@
       LIGHTINGS.forEach(function (l) {
         var li = sc.lighting && sc.lighting[l];
         if (!li || !Array.isArray(li.sky) || li.sky.length < 2 || li.sky.length > 8 || !li.sky.every(isColor)) err("lighting." + l);
-        if (li && li.star && !isColor(li.star)) err("lighting." + l + ".star");
+        ["star", "actorTint", "lampLight"].forEach(function (k) { if (li && li[k] != null && !isColor(li[k])) err("lighting." + l + "." + k); });
       });
       Object.keys(sc.celestial || {}).forEach(function (l) {
         var c = sc.celestial[l];
@@ -122,11 +122,18 @@
         sheetOk(L.sheet, L.frame, tag);
         if (!isNum(L.parallax, 0, 2) || !isNum(L.bottom || 0, 0, 400)) err(tag + " geometry");
         if (L.drift != null && !isNum(L.drift, -60, 60)) err(tag + " drift");
+        (L.lamps || []).forEach(function (lp) { if (!isNum(lp.x, 0, 4096) || !isNum(lp.head, 0, 4096)) err(tag + " lamp"); });
       });
       var em = sc.emitters || {};
       if (em.clouds) { em.clouds.frames.forEach(function (f) { sheetOk(em.clouds.sheet, f, "clouds"); }); if (!isNum(em.clouds.count, 0, 40)) err("clouds count"); }
       if (em.birds) { em.birds.frames.forEach(function (f) { sheetOk(em.birds.sheet, f, "birds"); }); }
       if (em.stars && !isNum(em.stars.count, 0, 400)) err("stars count");
+      (sc.walkers || []).forEach(function (w, i) {
+        var a = manifest.actors && manifest.actors[w.actor];
+        var frames = (w.frames || []).concat(w.rest ? [w.rest] : []);
+        if (!a || !frames.length || !frames.every(function (f) { return sheetsOf(a.sheet).every(function (s) { return atlases[s] && atlases[s].frames[f]; }); })) err("walker " + i);
+        if (!isNum(w.speed, 1, 120) || !Array.isArray(w.every) || !isNum(w.every[0], 1000, 600000) || !isNum(w.every[1], w.every[0], 600000)) err("walker " + i + " timing");
+      });
     }
     var actors = manifest.actors || {};
     Object.keys(actors).forEach(function (id) {
@@ -146,6 +153,10 @@
       if (!isName(id) || !L || PHASES.indexOf(L.phase) < 0 || !isNum(L.x, -100000, 100000)) { err("location " + id); return; }
       if (!localized(L.names)) err("location " + id + " names");
       if (L.lighting && LIGHTINGS.indexOf(L.lighting) < 0) err("location " + id + " lighting");
+      if (L.sign) {
+        var sg = L.sign;
+        if (!isPlainText(sg.he) || !/[\u05d0-\u05ea]/.test(sg.he) || !isPlainText(sg.translit) || !localized(sg.gloss) || !isNum(sg.x, -400, 400)) err("location " + id + " sign");
+      }
       (L.props || []).forEach(function (p) { if (!frameOk(p.actor, p.frame)) err("location " + id + " prop " + p.actor); });
     });
     var slots = manifest.slots || {};
@@ -275,7 +286,8 @@
   var state = {
     choice: null, pack: null, atlas: null, base: "", images: {}, governor: createGovernor(),
     stage: null, backdrop: null, raf: 0, lastFrame: 0, listeners: [], observers: [], styleEl: null, linkEl: null,
-    location: null, walk: null, scene: null, react: null, bubble: null, nextAmbient: 0, visible: true
+    location: null, walk: null, scene: null, react: null, bubble: null, nextAmbient: 0, visible: true,
+    walkers: [], walkerNext: []
   };
 
   function tr(key, fallback) {
@@ -372,9 +384,13 @@
   }
   function loadLighting(lighting) { return Promise.all(sheetsForLighting(lighting).map(loadImage)); }
 
+  // A location may force its lighting (counting night); a dark app theme means election night;
+  // otherwise the learner's local clock picks day / dusk / night.
   function currentLighting() {
     var loc = state.location && state.pack.locations[state.location];
-    return window.LPWorldRender.core.lightingFor(new Date().getHours(), loc && loc.lighting);
+    var forced = loc && loc.lighting;
+    if (!forced && document.body && document.body.classList.contains("theme-dark")) forced = "night";
+    return window.LPWorldRender.core.lightingFor(new Date().getHours(), forced);
   }
 
   // ── stage geometry: full-bleed behind the Studio head, from the page top to the street band ──
@@ -383,15 +399,23 @@
     if (!st) return;
     var host = st.el.parentElement;
     var hr = host.getBoundingClientRect();
+    // The app may declare a nearer bottom edge on narrow layouts (the street band under the title).
+    var bottom = hr.bottom;
+    var narrowSel = st.el.getAttribute("data-world-bottom-narrow");
+    if (narrowSel && window.matchMedia && window.matchMedia("(max-width: 600px)").matches) {
+      var until = host.querySelector(narrowSel);
+      if (until) bottom = until.getBoundingClientRect().bottom;
+    }
     var docW = document.documentElement.clientWidth;
     var top = hr.top + window.scrollY;                     // head top in page coordinates
+    var height = bottom - hr.top + top;
     st.el.style.left = (-hr.left) + "px";
     st.el.style.top = (-top) + "px";
     st.el.style.width = docW + "px";
-    st.el.style.height = (hr.height + top) + "px";
+    st.el.style.height = height + "px";
     var scale = stageScale(st.el);
     st.scale = scale;
-    st.renderer.resize(docW, hr.height + top, scale);
+    st.renderer.resize(docW, height, scale);
     st.originPx = Math.round(docW * state.pack.slots["studio-stage"].origin);
     if (state.backdrop) state.backdrop.renderer.resize(docW, window.innerHeight, scale);
     if (state.location && !state.walk) st.renderer.panTo(cameraFor(locX()), 0, now());
@@ -433,6 +457,7 @@
       controlled.timsah = true;
       pose.push({ actor: "timsah", frame: rt < 420 ? "jump" : "blink", worldX: base, y: hop, z: 3 });
     }
+    walkersPose(t).forEach(function (w) { pose.push(w); });
     (p.slots["studio-stage"].rest || []).forEach(function (r) {
       if (!controlled[r.actor]) pose.push({ actor: r.actor, frame: blinkFrame(r.frame, t), worldX: base + r.x, y: 0, z: 3 });
     });
@@ -445,6 +470,42 @@
     });
     return pose;
   }
+  // Street life: neighbours and a cat cross the view now and then (live mode only), in both
+  // directions; the cat may sit down halfway. Positions live in world space, so a journey pans
+  // past them naturally. Never while paused / reduced motion (the loop does not run then).
+  function walkersPose(t) {
+    var defs = state.pack.scenery.walkers || [];
+    var st = state.stage;
+    if (!st || !defs.length || !(state.choice && state.choice.mode === "live")) return [];
+    var cam = st.renderer.camera(), viewW = st.renderer.size().w;
+    defs.forEach(function (d, i) {
+      if (state.walkerNext[i] == null) state.walkerNext[i] = t + d.every[0] * (0.3 + 0.7 * ((i * 7919) % 97) / 97);
+      var busy = state.walkers.some(function (w) { return w.def === i; });
+      if (!busy && t > state.walkerNext[i]) {
+        var rightward = ((Math.floor(t) >> 4) + i) % 2 === 0;
+        var sits = d.rest && ((Math.floor(t) >> 3) % 100) / 100 < (d.sitChance || 0);
+        state.walkers.push({ def: i, x: rightward ? cam - 24 : cam + viewW + 24, dir: rightward ? 1 : -1, start: t, last: t,
+          sitAt: sits ? cam + viewW * (0.35 + 0.3 * (((Math.floor(t) >> 5) % 10) / 10)) : null, sitUntil: 0 });
+      }
+    });
+    var out = [];
+    state.walkers = state.walkers.filter(function (w) {
+      var d = defs[w.def], dt = Math.min(100, t - w.last);
+      w.last = t;
+      var frame;
+      if (w.sitUntil && t < w.sitUntil) frame = d.rest;
+      else {
+        if (w.sitAt != null && (w.dir > 0 ? w.x >= w.sitAt : w.x <= w.sitAt)) { w.sitUntil = t + 2600; w.sitAt = null; frame = d.rest; }
+        else { w.x += w.dir * d.speed * dt / 1000; frame = d.frames[Math.floor((t - w.start) / (d.cycleMs || 200)) % d.frames.length]; }
+      }
+      var gone = w.dir > 0 ? w.x > cam + viewW + 40 : w.x < cam - 40;
+      if (gone) { state.walkerNext[w.def] = t + d.every[0] + (d.every[1] - d.every[0]) * (((Math.floor(t) >> 6) % 17) / 17); return false; }
+      out.push({ actor: d.actor, frame: frame, worldX: w.x, y: 0, z: 1, flip: w.dir < 0 });
+      return true;
+    });
+    return out;
+  }
+
   // Idle life: a blink every few seconds, deterministic so screenshots are reproducible.
   function blinkFrame(frame, t) { return frame === "idle" && (t % 4200) < 160 ? "blink" : frame; }
 
@@ -465,6 +526,7 @@
       st.renderer.setPose(composePose(t));
       st.renderer.render("stage", t, dt);
       positionBubble();
+      syncSign();
     }
     if (state.backdrop) {
       state.backdrop.renderer.setScroll(window.scrollY);
@@ -638,10 +700,54 @@
     var gap = 14 * st.scale;
     var right = head + gap + b.offsetWidth <= st.el.clientWidth - 8;
     b.dataset.side = right ? "right" : "left";
-    b.style.left = (right ? head + gap : Math.max(8, head - gap - b.offsetWidth)) + "px";
+    b.style.left = "0px";
+    b.style.transform = "translateX(" + Math.round(right ? head + gap : Math.max(8, head - gap - b.offsetWidth)) + "px)";
     b.style.bottom = ((state.pack.scenery.groundY + 22) * st.scale) + "px";
   }
   function hideBubble() { if (state.bubble) { state.bubble.remove(); state.bubble = null; } }
+
+  // ── learning in the world: a Hebrew sign per location (a real control) + a route strip ──
+  function speakHebrew(text) {
+    try {
+      if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") return false;
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "he-IL"; u.rate = 0.85;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+      return true;
+    } catch (_) { return false; }
+  }
+  function syncSign() {
+    var st = state.stage;
+    if (!st || !st.sign) return;
+    var L = state.location && state.pack.locations[state.location];
+    var sg = L && L.sign;
+    if (!sg || state.walk) { st.sign.hidden = true; return; }
+    if (st.sign.dataset.loc !== state.location) {
+      st.sign.dataset.loc = state.location;
+      st.signHe.textContent = sg.he;
+      st.signTr.textContent = sg.translit;
+      st.sign.setAttribute("aria-label", sg.he + " — " + (sg.gloss[locale()] || sg.gloss.ru) + ". " + tr("world.signListen", "Послушать"));
+    }
+    st.sign.hidden = false;
+    var x = (L.x + sg.x - st.renderer.camera()) * st.scale;
+    // transform-only horizontal placement: following the camera never shifts layout
+    st.sign.style.left = "0px";
+    st.sign.style.transform = "translateX(" + Math.round(Math.max(8, Math.min(st.el.clientWidth - st.sign.offsetWidth - 64, x - st.sign.offsetWidth / 2))) + "px)";
+    st.sign.style.bottom = Math.round((state.pack.scenery.groundY + 30) * st.scale) + "px";
+    var ids = Object.keys(state.pack.locations), idx = ids.indexOf(state.location);
+    Array.prototype.forEach.call(st.route.children, function (li, i) {
+      li.dataset.state = i < idx ? "done" : i === idx ? "here" : "next";
+    });
+  }
+  function onSign() {
+    var L = state.pack.locations[state.location];
+    if (!L || !L.sign) return;
+    speakHebrew(L.sign.he);
+    state.react = { start: now() };
+    showBubble(L.sign.translit + " — " + (L.sign.gloss[locale()] || L.sign.gloss.ru));
+    if (!animating()) drawOnce(); else kick();
+  }
 
   // ── pause control (visible, WCAG 2.2.2) ──
   function syncPauseButton() {
@@ -679,8 +785,25 @@
     pause.innerHTML = '<span aria-hidden="true" class="lp-world-pause-icon"></span>';
     pause.addEventListener("click", togglePause);
     el.appendChild(pause);
+    var sign = document.createElement("button");
+    sign.type = "button";
+    sign.className = "lp-world-sign";
+    sign.setAttribute("data-world-ui", "");
+    sign.hidden = true;
+    var signHe = document.createElement("span");
+    signHe.className = "lp-world-sign-he"; signHe.lang = "he"; signHe.dir = "rtl";
+    var signTr = document.createElement("span");
+    signTr.className = "lp-world-sign-tr"; signTr.lang = "he-Latn"; signTr.setAttribute("aria-hidden", "true");
+    sign.appendChild(signHe); sign.appendChild(signTr);
+    sign.addEventListener("click", onSign);
+    el.appendChild(sign);
+    var route = document.createElement("ol");
+    route.className = "lp-world-route";
+    route.setAttribute("aria-hidden", "true");
+    Object.keys(state.pack.locations).forEach(function () { route.appendChild(document.createElement("li")); });
+    el.appendChild(route);
     var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26 });
-    state.stage = { el: el, canvas: canvas, pause: pause, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
+    state.stage = { el: el, canvas: canvas, pause: pause, sign: sign, signHe: signHe, signTr: signTr, route: route, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
     canvas.addEventListener("pointerdown", onStageTap);
     syncPauseButton();
     if (typeof ResizeObserver !== "undefined") {
@@ -723,7 +846,15 @@
     on(document, "visibilitychange", function () { if (document.hidden) endScene(); else { state.lastFrame = 0; kick(); } });
     on(window, "resize", function () { layoutStage(); });
     on(window, "scroll", function () { if (!animating()) drawOnce(); }, { passive: true });
-    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); });
+    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; });
+    if (typeof MutationObserver !== "undefined" && document.body) {
+      var themeMo = new MutationObserver(function () {
+        var l = currentLighting();
+        if (state.stage && l !== state.stage.renderer.lighting()) setLighting(l);
+      });
+      themeMo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+      state.observers.push(themeMo);
+    }
     try {
       var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
       var onMq = function () { drawOnce(); kick(); };
@@ -814,6 +945,51 @@
     return n;
   }
 
+  // Live thumbnail for a world option: the same renderer, loaded only when the picker opens.
+  // A still frame under reduced motion; otherwise a gentle loop that stops when the dialog closes.
+  function mountPreview(host, id, dlg) {
+    var reg = REGISTRY[id];
+    if (!reg) return;
+    var canvas = document.createElement("canvas");
+    canvas.className = "lp-world-preview";
+    canvas.setAttribute("aria-hidden", "true");
+    host.appendChild(canvas);
+    var v = encodeURIComponent(reg.pack);
+    Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v), loadScript(RENDER_URL)]).then(function (res) {
+      var pack = res[0], atlas = res[1];
+      if (!validatePack(pack, atlas, id).ok || !dlg.isConnected) return;
+      var images = {}, lighting = "dusk", first = Object.keys(pack.locations)[0], loc = pack.locations[first];
+      var files = {};
+      (pack.scenery.layers || []).forEach(function (L) { files[atlas.atlases[typeof L.sheet === "string" ? L.sheet : L.sheet[lighting]].file] = true; });
+      var em = pack.scenery.emitters || {};
+      if (em.clouds) files[atlas.atlases[typeof em.clouds.sheet === "string" ? em.clouds.sheet : em.clouds.sheet[lighting]].file] = true;
+      Object.keys(pack.actors).forEach(function (a) { var sh = pack.actors[a].sheet; sh = typeof sh === "string" ? sh : (sh[lighting] || sh.dusk || sh.day || sh.night); if (sh) files[atlas.atlases[sh].file] = true; });
+      return Promise.all(Object.keys(files).map(function (f) {
+        return new Promise(function (ok) { var img = new Image(); img.onload = function () { images[f] = img; ok(); }; img.onerror = ok; img.src = reg.base + f + "?v=" + encodeURIComponent(pack.version); });
+      })).then(function () {
+        if (!dlg.isConnected) return;
+        var r = window.LPWorldRender.createRenderer(canvas, { pack: pack, atlas: atlas, images: images, seed: 3 });
+        var rect = host.getBoundingClientRect();
+        r.resize(Math.max(160, Math.round(rect.width)), 112, 1);
+        r.setLighting(lighting);
+        var originX = loc.x;
+        r.panTo(originX - 70, 0, performance.now());
+        var props = (loc.props || []).map(function (pr) { return { actor: pr.actor, frame: pr.frame, worldX: loc.x + pr.x, y: 0, z: 1, back: !!pr.back }; });
+        function pose(t) { return props.concat([{ actor: "timsah", frame: (t % 3600) < 150 ? "blink" : "idle", worldX: originX, y: 0, z: 3 }]); }
+        var raf = 0, last = 0;
+        function tick(t) {
+          if (!dlg.isConnected || !dlg.open) return;
+          raf = requestAnimationFrame(tick);
+          if (t - last < 50) return;
+          r.setPose(pose(t)); r.render("stage", t, last ? t - last : 50); last = t;
+        }
+        r.setPose(pose(0)); r.render("stage", performance.now(), 0);
+        if (!reducedMotion()) raf = requestAnimationFrame(tick);
+        dlg.addEventListener("close", function () { if (raf) cancelAnimationFrame(raf); });
+      });
+    }).catch(function () { canvas.remove(); });
+  }
+
   function openPicker() {
     ensureCss();
     var existing = document.getElementById("lpWorldPicker");
@@ -843,6 +1019,7 @@
     Object.keys(REGISTRY).forEach(function (id) {
       if (REGISTRY[id].retired) return;
       option(id, (names[id] && names[id][locale()]) || id, tr("world.elections.note", ""), tr("world.satireBadge", ""));
+      mountPreview(list.lastChild.querySelector(".lp-world-option-copy"), id, dlg);
     });
     form.appendChild(list);
 

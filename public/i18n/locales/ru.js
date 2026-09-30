@@ -2122,6 +2122,7 @@ window.I18N_LOCALES.ru = {
     densitySpacious: "Просторная",
   },
   world: {
+    signListen: "Послушать",
     pause: "Остановить мир",
     resume: "Оживить мир",
     btnTitle: "Оформление: миры LinguistPro",

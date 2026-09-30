@@ -151,11 +151,32 @@
       for (; x < state.w; x += r.w) ctx.drawImage(img, r.x, r.y, r.w, r.h, x, y, r.w, r.h);
     }
 
-    function drawSprite(sheet, frame, x, bottomY, flip) {
+    // Lighting integration: actors are multiplied by the lighting's tint (cached per sheet+tint),
+    // so a daylight-saturated sprite never sits pasted onto a night street.
+    var tintCache = {};
+    function tinted(sheet, img) {
+      var tint = scenery.lighting[state.lighting] && scenery.lighting[state.lighting].actorTint;
+      if (!tint || tint.toLowerCase() === "#ffffff") return img;
+      var key = sheet + tint;
+      if (tintCache[key]) return tintCache[key];
+      var c = document.createElement("canvas");
+      c.width = img.naturalWidth || img.width; c.height = img.naturalHeight || img.height;
+      var x = c.getContext("2d");
+      x.drawImage(img, 0, 0);
+      x.globalCompositeOperation = "multiply";
+      x.fillStyle = tint; x.fillRect(0, 0, c.width, c.height);
+      x.globalCompositeOperation = "destination-in";
+      x.drawImage(img, 0, 0);
+      tintCache[key] = c;
+      return c;
+    }
+
+    function drawSprite(sheet, frame, x, bottomY, flip, tint) {
       var f = frameOf(atlas, sheet, frame);
       if (!f) return;
       var r = f.rect, img = images[atlas.atlases[sheet].file];
       if (!img) return;
+      if (tint) img = tinted(sheet, img);
       var ax = flip ? r.w - 1 - r.anchor[0] : r.anchor[0];
       var dx = Math.round(x - ax), dy = Math.round(state.h - bottomY - (r.anchor[1] + 1));
       if (flip) {
@@ -232,6 +253,46 @@
       }
     }
 
+    // A flat stepped pixel ellipse on the pavement; shrinks while the actor is in the air.
+    function contactShadow(sheet, frame, x, ground, lift) {
+      var f = frameOf(atlas, sheet, frame);
+      if (!f) return;
+      var w = Math.max(6, Math.round(f.rect.w * 0.55) - Math.min(8, lift));
+      var y = state.h - ground - 1;
+      ctx.fillStyle = "rgba(10, 8, 24, 0.28)";
+      ctx.fillRect(Math.round(x - w / 2), y, w, 1);
+      ctx.fillRect(Math.round(x - w / 2) + 2, y + 1, Math.max(2, w - 4), 1);
+    }
+
+    // Night: every street lamp gets a stepped halo and a dithered pool of light on the pavement.
+    function drawLampLight(L) {
+      var li = scenery.lighting[state.lighting];
+      if (!li || !li.lampLight || !L.lamps) return;
+      var f = frameOf(atlas, sheetName(L.sheet), L.frame);
+      if (!f) return;
+      var period = f.rect.w, off = wrapOffset(Math.round(-state.cam * L.parallax), period);
+      var rgb = hexToRgb(li.lampLight);
+      for (var base = off; base < state.w + period; base += period) {
+        for (var i = 0; i < L.lamps.length; i++) {
+          var lx = base + L.lamps[i].x, hy = state.h - (L.bottom || 0) - L.lamps[i].head - 1;
+          if (lx < -30 || lx > state.w + 30) continue;
+          for (var r = 3; r >= 1; r--) {
+            ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + (0.10 * (4 - r)) + ")";
+            ctx.fillRect(lx - r * 2, hy - r, r * 4 + 1, r * 2 + 1);
+          }
+          var gy = state.h - scenery.groundY - 1;
+          for (var row = 0; row < 6; row++) {
+            var half = 14 - row * 2;
+            for (var px = -half; px <= half; px++) {
+              if (((px + row) & 1) === 0) continue;
+              ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.16)";
+              ctx.fillRect(lx + px, gy - 2 + row, 1, 1);
+            }
+          }
+        }
+      }
+    }
+
     // back = true: buildings standing behind the street wall (drawn before front layers).
     function drawActors(back) {
       if (!state.pose) return;
@@ -243,7 +304,9 @@
         var actor = pack.actors[p.actor];
         if (!actor) continue;
         var ground = back ? (p.ground != null ? p.ground : scenery.backGround || 0) : scenery.groundY;
-        drawSprite(sheetName(actor.sheet), p.frame, p.worldX - state.cam, ground + (p.y || 0), !!p.flip);
+        var sx = p.worldX - state.cam;
+        if (!back) contactShadow(sheetName(actor.sheet), p.frame, sx, ground, p.y || 0);
+        drawSprite(sheetName(actor.sheet), p.frame, sx, ground + (p.y || 0), !!p.flip, !back);
       }
     }
 
@@ -262,6 +325,7 @@
       drawLayers(kind, t, false);
       drawActors(true);
       drawLayers(kind, t, true);
+      (scenery.layers || []).forEach(function (L) { if (L.front) drawLampLight(L); });
       drawActors(false);
     }
 

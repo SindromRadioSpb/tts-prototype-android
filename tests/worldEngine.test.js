@@ -150,7 +150,7 @@ test("scene sampling: held steps, linear moves, frame cycles and arcs", () => {
   assert.equal(at(800).envelope.hidden, true);
   const mid = at(1550).envelope;
   assert.equal(mid.hidden, false);
-  assert.ok(mid.x > 10 && mid.x < 26, "envelope travels toward the slot");
+  assert.ok(mid.x > 11 && mid.x < 30, "envelope travels toward the slot");
   assert.ok(mid.y > 14, "and arcs above the straight line");
   assert.equal(at(2100).envelope.hidden, true, "gone into the box");
   assert.equal(at(2300).box.frame, "box-glint");
@@ -218,7 +218,7 @@ test("Studio wiring: slots, picker entry, engine, renderer and skin precached un
   const studio = read("public/index.html");
   const sw = read("public/sw.js");
   const engine = read("public/js/world-engine.js");
-  assert.match(studio, /<div class="classic-shell-head studio-vf3-shell">[\s\S]{0,400}<div class="lp-world-stage" data-world-slot="studio-stage" hidden><\/div>/);
+  assert.match(studio, /<div class="classic-shell-head studio-vf3-shell">[\s\S]{0,400}<div class="lp-world-stage" data-world-slot="studio-stage" data-world-bottom-narrow="\.classic-shell-copy" hidden><\/div>/);
   assert.match(studio, /<body>\r?\n<script src="\/js\/app-nav\.js\?v=\d+"><\/script>\r?\n<div class="lp-world-backdrop" data-world-slot="page-backdrop" aria-hidden="true" hidden><\/div>/);
   assert.match(studio, /id="btnWorld"[^>]*onclick="window\.LPWorld&&window\.LPWorld\.openPicker\(\)"[^>]*data-i18n-aria-label="world\.btnTitle"/);
   const engineUrl = studio.match(/\/js\/world-engine\.js\?v=\d+/)[0];
@@ -235,10 +235,10 @@ test("Studio wiring: slots, picker entry, engine, renderer and skin precached un
 
 test("the skin never restyles the study table or learning fonts; everything else is world-scoped", () => {
   const css = read("public/css/world-skin.css").replace(/\/\*[\s\S]*?\*\//g, "");
-  assert.doesNotMatch(css, /#tableContainer|reader-core|\.rc-|font-family\s*:(?![^;]*var\(--lp-font-ui)/,
+  assert.doesNotMatch(css, /#tableContainer|reader-core|\.rc-|font-family\s*:(?![^;]*var\(--lp-font-(ui|hebrew-reading))/,
     "table internals and learning typography are out of bounds");
   for (const rule of css.split("}")) {
-    if (/font-size|font-weight|letter-spacing/.test(rule)) assert.match(rule.split("{")[0], /\.lp-world-/, `type change outside world UI: ${rule.trim().slice(0, 80)}`);
+    if (/font-size|font-weight|letter-spacing|font-family/.test(rule)) assert.match(rule.split("{")[0], /\.lp-world-/, `type change outside world UI: ${rule.trim().slice(0, 80)}`);
     const selector = rule.split("{")[0];
     if (/\{/.test(rule) && !/html\[data-world\]/.test(selector)) {
       assert.match(selector, /lp-world-|@media|^\s*$/, `unscoped rule must belong to the world UI: ${selector.trim().slice(0, 80)}`);

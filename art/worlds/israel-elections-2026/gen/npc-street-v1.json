@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-30T14:32:40.009Z",
+  "id": "npc-street-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    },
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size and palette as the attached reference images (a Jerusalem street at dusk and a crocodile character sheet), draw a sprite sheet of neighbourhood extras for the same game, side view facing right, all at the same scale as the crocodile (people slightly taller than him), feet on one baseline, evenly spaced and clearly separated, on a flat solid magenta #FF00FF background with no ground and no shadows. One row, in this order:\n1) a skinny Jerusalem street cat walking, step A,\n2) the same cat walking, step B,\n3) the same cat sitting and licking a paw,\n4) a woman in casual clothes carrying a shopping bag with vegetables, walking, step A,\n5) the same woman, step B,\n6) a man in a light shirt reading a folded newspaper while walking, step A,\n7) the same man, step B.\nOrdinary everyday people, friendly and neutral, no religious or political clothing or symbols, no flags, no text on the newspaper or bag, no logos. Crisp pixels, 1px dark outline like the crocodile.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/npc-street-v1.jpg",
+  "sha256": "95c92ff8a647b93971b886a9cb36f0ed37b6e62794d2fcb6435c5cb212746e43",
+  "bytes": 514034,
+  "usage": {
+    "promptTokenCount": 754,
+    "candidatesTokenCount": 1362,
+    "totalTokenCount": 2353,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 238
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 516
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 237,
+    "serviceTier": "standard"
+  }
+}

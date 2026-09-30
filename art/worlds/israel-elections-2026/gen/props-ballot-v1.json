@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-30T14:32:20.398Z",
+  "id": "props-ballot-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    },
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size and palette as the attached reference images (a Jerusalem street at dusk and a crocodile character sheet), draw a small set of game props in one horizontal row, all at the same scale as the crocodile, evenly spaced, each clearly separated, on a flat solid magenta #FF00FF background with no ground and no shadows:\n1) a plain blue cardboard ballot box with a slot on top (no text, no emblem),\n2) the same ballot box with a small sparkle above the slot,\n3) a single blue paper envelope, flat,\n4) a small neat stack of blank white ballot papers.\nCrisp pixels, 1px dark outline like the crocodile, no text, no letters, no numbers, no logos.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/props-ballot-v1.jpg",
+  "sha256": "3163e6dd249d415cee86861908c584eb3dc05bcbef2cba04b99ae082bb5fa81b",
+  "bytes": 334337,
+  "usage": {
+    "promptTokenCount": 680,
+    "candidatesTokenCount": 1332,
+    "totalTokenCount": 2276,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 164
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 516
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 264,
+    "serviceTier": "standard"
+  }
+}
