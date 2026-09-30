@@ -33,6 +33,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     for (const route of ["/", "/library.html", "/mediatheque.html"]) {
       await page.goto(base + route, { waitUntil: "load" });
       await page.waitForFunction(() => window.LPWorld?.current()?.active);
+      await page.waitForFunction(() => document.querySelector('link[href*="world-skin.css"]')?.sheet);
       await page.evaluate(async lang => {
         if (window.appSetLocale) window.appSetLocale(lang);
       }, lang);
@@ -57,11 +58,13 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     }
     await page.goto(base + "/", { waitUntil: "load" });
     await page.waitForFunction(() => window.LPWorld?.current()?.active);
+    await page.waitForFunction(() => document.querySelector('link[href*="world-skin.css"]')?.sheet);
     await page.evaluate(() => LPWorld.openPicker());
     if (lang === "en") await page.evaluate(() => document.body.classList.add("theme-dark"));
     await page.locator("#lpWorldPicker").waitFor({ state: "visible" });
     assert.equal(await page.locator(".lp-world-category").count(), 2);
     assert.equal(await page.locator("input[name=lpWorld]").count(), 3);
+    await page.waitForFunction(() => document.querySelector(".lp-world-preview")?.width < 300);
     await page.screenshot({ path: path.join(out, `${width}-${lang}-picker.png`) });
     await page.locator('input[name="lpWorld"][value="israel-elections-2026"]').check();
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
@@ -75,7 +78,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await page.locator("#lpWorldPicker").waitFor({ state: "detached" });
     assert.equal(await page.locator("#lpWorldPicker").count(), 0);
     await page.reload({ waitUntil: "load" });
-    await page.waitForFunction(() => LPWorld.current()?.active);
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().lighting === "night");
     assert.equal(await page.evaluate(() => LPWorld.debugState().lighting), "night");
     await page.locator(".lp-world-pause").click();
     assert.equal(await page.evaluate(() => LPWorld.current().paused), true);

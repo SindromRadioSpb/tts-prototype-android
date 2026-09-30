@@ -1,0 +1,55 @@
+{
+  "version": "3.11.712",
+  "commit": "8404178e706139b5be0ca28d477e75da222be3af",
+  "matchedFiles": 43,
+  "probes": [
+    {
+      "version": "3.11.712",
+      "health": {
+        "ok": true,
+        "uptimeSec": 264,
+        "now": "2026-09-30T23:20:21.148Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 92,
+        "disk_warn": true
+      }
+    },
+    {
+      "version": "3.11.712",
+      "health": {
+        "ok": true,
+        "uptimeSec": 270,
+        "now": "2026-09-30T23:20:26.917Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 92,
+        "disk_warn": true
+      }
+    },
+    {
+      "version": "3.11.712",
+      "health": {
+        "ok": true,
+        "uptimeSec": 276,
+        "now": "2026-09-30T23:20:32.823Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 92,
+        "disk_warn": true
+      }
+    }
+  ]
+}
