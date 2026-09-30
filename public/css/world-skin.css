@@ -66,18 +66,15 @@ html[data-world] .classic-main-card {
   border: 0 !important;
   box-shadow: none !important;
 }
-html[data-world] .classic-shell-head {
-  position: relative;
-  /* the street band where the characters live, below the head's own content; taller on
-     phones, where the head's cards cover the upper scene and the locations must stay legible */
-  padding-bottom: calc(52px * var(--lpw-scale)) !important;
+html[data-world] .classic-shell-head { position: relative; }
+/* Every width: the title owns a full row and the street band sits right under it, so the stage
+   is a window nothing covers; the Studio tools panel («Разделы и настройки») follows below the
+   world at full width instead of lying across the skyline (owner decision 2026-09-30). */
+html[data-world] .classic-shell-copy {
+  flex-basis: 100% !important;
+  padding-bottom: calc(72px * var(--lpw-scale)) !important;
 }
-/* Phones: the street band sits right under the title, so the stage is a window nothing covers;
-   «Разделы и настройки» follows below the world instead of lying across the skyline. */
-@media (max-width: 600px) {
-  html[data-world] .classic-shell-head { padding-bottom: 0 !important; }
-  html[data-world] .classic-shell-copy { padding-bottom: calc(72px * var(--lpw-scale)) !important; }
-}
+html[data-world] .classic-secondary-nav { flex-basis: 100% !important; width: 100%; }
 /* The head's own boxes are transparent to taps where they only frame the world (the street band),
    so Timsah and the Hebrew sign stay reachable; their real content keeps its own pointer events. */
 html[data-world] .classic-shell-copy,
@@ -216,16 +213,41 @@ html[data-world] .lp-world-sign::after { right: 8px; transform: skewX(-12deg); }
 html[data-world] .lp-world-sign[hidden] { display: none; }
 html[data-world] .lp-world-sign:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
 html[data-world] .lp-world-sign-he { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.125rem; font-weight: 700; line-height: 1.2; }
-html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.6875rem; font-weight: 600; line-height: 1.1; opacity: 0.8; }
-/* route strip: four stops of the election journey, the current one lit; reads in UI direction */
+html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; line-height: 1.15; opacity: 0.85; }
+/* route: four stops of the election journey as real 44px controls; the Studio's progress is lit
+   (done = blue, current step = gold), the stop where Timsah stands is framed. Reads in UI direction. */
 html[data-world] .lp-world-route {
-  position: absolute; z-index: 2; left: 50%; bottom: 6px; transform: translateX(-50%); margin: 0; padding: 0; list-style: none;
-  display: flex; gap: 10px; align-items: center; pointer-events: none;
+  position: absolute; z-index: 2; left: 50%; bottom: 0; transform: translateX(-50%); margin: 0; padding: 0;
+  display: flex; gap: 0; align-items: center;
 }
 [dir="rtl"] .lp-world-route { flex-direction: row-reverse; }
-html[data-world] .lp-world-route li { width: 8px; height: 8px; background: rgba(255, 253, 246, 0.55); box-shadow: 0 0 0 2px #1b1f2e; }
-html[data-world] .lp-world-route li[data-state="done"] { background: #7aa0ec; }
-html[data-world] .lp-world-route li[data-state="here"] { width: 12px; height: 12px; background: #f4c542; }
+html[data-world] .lp-world-stop {
+  width: 44px !important; height: 44px; min-width: 44px; padding: 0; margin: 0;
+  border: 0; border-radius: 0; background: transparent; cursor: pointer;
+  /* the square sits at the bottom edge of its 44px target, below the characters' feet */
+  display: grid; place-items: end center; padding-bottom: 5px;
+}
+html[data-world] .lp-world-stop::before {
+  content: ""; width: 10px; height: 10px; background: rgba(255, 253, 246, 0.6); box-shadow: 0 0 0 2px #1b1f2e;
+}
+html[data-world] .lp-world-stop[data-state="done"]::before { background: #7aa0ec; }
+html[data-world] .lp-world-stop[data-state="here"]::before { background: #f4c542; }
+html[data-world] .lp-world-stop[data-at="1"]::before { width: 14px; height: 14px; box-shadow: 0 0 0 2px #1b1f2e, 0 0 0 4px #fff6e0; }
+html[data-world] .lp-world-stop:focus-visible { outline: 3px solid #fff3b0; outline-offset: -4px; }
+/* campaign posters of the fictional vowel parties, pasted on the street wall */
+html[data-world] .lp-world-posters { position: absolute; left: 0; bottom: 0; width: 0; height: 0; z-index: 2; }
+html[data-world] .lp-world-poster {
+  position: absolute; left: 0; bottom: 0; display: grid; justify-items: center; align-content: center; gap: 0;
+  width: 58px !important; min-width: 44px; min-height: 58px; padding: 2px 3px 4px; box-sizing: border-box;
+  border: 2px solid #1b1f2e; border-radius: 0; background: var(--lpw-party); color: var(--lpw-party-ink);
+  box-shadow: inset 0 3px 0 0 rgba(255, 255, 255, 0.28), inset 0 -3px 0 0 rgba(0, 0, 0, 0.18);
+  transform-origin: bottom center; cursor: pointer;
+}
+html[data-world] .lp-world-poster:nth-child(2) { rotate: 2deg; }
+html[data-world] .lp-world-poster:nth-child(1) { rotate: -2deg; }
+html[data-world] .lp-world-poster:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
+html[data-world] .lp-world-poster-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.625rem; font-weight: 900; line-height: 1.05; }
+html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.02em; text-align: center; }
 @media (forced-colors: active) {
   html[data-world] .lp-world-stage, html[data-world] .lp-world-backdrop { display: none !important; }
   html[data-world] .classic-shell-head { padding-bottom: 0 !important; }

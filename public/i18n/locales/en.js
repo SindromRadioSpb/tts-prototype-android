@@ -2108,6 +2108,7 @@ window.I18N_LOCALES.en = {
     densitySpacious: "Spacious",
   },
   world: {
+    routeLabel: "Election route: tap a stop to send Timsah there",
     signListen: "Listen",
     pause: "Pause the world",
     resume: "Bring the world to life",

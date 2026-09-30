@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T18:22:33.108Z",
+  "id": "timsah-actions-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Using EXACTLY the same character, pixel art style, pixel size, colours and proportions as the attached character sheet (Timsah the friendly crocodile volunteer with the blue lanyard and white badge), draw 6 NEW action poses in one horizontal row, side view facing right, all at the same scale as the reference, feet on the same baseline, evenly spaced and clearly separated, on a flat solid magenta #FF00FF background, no ground, no shadows:\n1) holding out a small blank white flyer at arm's length, friendly smile,\n2) waving the same blank flyer high above his head, cheerful,\n3) holding a wooden rubber stamp raised up at shoulder height, concentrating, a small blank white sheet on a tiny wooden crate in front of him,\n4) pressing the rubber stamp down onto the sheet on the crate, eyes squeezed, happy,\n5) holding a clipboard and writing on it with a pencil, focused,\n6) holding the clipboard up and looking up with a surprised open mouth.\nSame face, same lanyard and badge in every pose. No text, no letters, no numbers on the flyer, sheet or clipboard, no logos. Crisp pixels, 1px dark outline, no anti-aliasing.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/timsah-actions-v1.jpg",
+  "sha256": "27b33b1af47691ff80e445cf65860f3a783c9b3c462ab9db520c733f1a82d221",
+  "bytes": 518642,
+  "usage": {
+    "promptTokenCount": 516,
+    "candidatesTokenCount": 1416,
+    "totalTokenCount": 2206,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 258
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 274,
+    "serviceTier": "standard"
+  }
+}

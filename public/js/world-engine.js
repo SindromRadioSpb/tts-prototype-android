@@ -27,7 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.4.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.6.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -39,8 +39,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=705";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=705";
+  var CSS_URL = "/css/world-skin.css?v=706";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=706";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -147,6 +147,12 @@
       var a = actors[actor];
       return !!a && sheetsOf(a.sheet).length > 0 && sheetsOf(a.sheet).every(function (s) { return !!atlasFrame(atlas, s, frame); });
     }
+    var parties = manifest.parties || {};
+    Object.keys(parties).forEach(function (id) {
+      var pt = parties[id];
+      if (!isName(id) || !pt || !isColor(pt.color) || !isColor(pt.ink) || !isPlainText(pt.mark) || !/[\u05d0-\u05ea]/.test(pt.speak || "") ||
+          !localized(pt.names) || !localized(pt.says)) err("party " + id);
+    });
     var locs = manifest.locations || {};
     Object.keys(locs).forEach(function (id) {
       var L = locs[id];
@@ -158,8 +164,10 @@
         if (!isPlainText(sg.he) || !/[\u05d0-\u05ea]/.test(sg.he) || !isPlainText(sg.translit) || !localized(sg.gloss) || !isNum(sg.x, -400, 400)) err("location " + id + " sign");
       }
       (L.props || []).forEach(function (p) { if (!frameOk(p.actor, p.frame)) err("location " + id + " prop " + p.actor); });
+      (L.posters || []).forEach(function (po) { if (!parties[po.party] || !isNum(po.x, -400, 400)) err("location " + id + " poster"); });
       (L.fx || []).forEach(function (fx) {
-        if (["papers", "searchlights"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
+        if (["papers", "searchlights", "tally"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
+        (fx.parties || []).forEach(function (p) { if (!parties[p]) err("location " + id + " fx party " + p); });
         if (fx.color != null && !isColor(fx.color)) err("location " + id + " fx color");
       });
     });
@@ -403,11 +411,12 @@
     if (!st) return;
     var host = st.el.parentElement;
     var hr = host.getBoundingClientRect();
-    // The app may declare a nearer bottom edge on narrow layouts (the street band under the title).
+    // The app may declare a nearer bottom edge (the street band under the title): everything
+    // after it in the head (e.g. the Studio tools panel) sits below the world, never over it.
     var bottom = hr.bottom;
-    var narrowSel = st.el.getAttribute("data-world-bottom-narrow");
-    if (narrowSel && window.matchMedia && window.matchMedia("(max-width: 600px)").matches) {
-      var until = host.querySelector(narrowSel);
+    var untilSel = st.el.getAttribute("data-world-bottom");
+    if (untilSel) {
+      var until = host.querySelector(untilSel);
       if (until) bottom = until.getBoundingClientRect().bottom;
     }
     var docW = document.documentElement.clientWidth;
@@ -486,7 +495,8 @@
       if (state.walkerNext[i] == null) state.walkerNext[i] = t + d.every[0] * (0.3 + 0.7 * ((i * 7919) % 97) / 97);
       var busy = state.walkers.some(function (w) { return w.def === i; });
       if (!busy && t > state.walkerNext[i]) {
-        var rightward = ((Math.floor(t) >> 4) + i) % 2 === 0;
+        // enter from the right, never walk through Timsah (they turn back before reaching him)
+        var rightward = false;
         var sits = d.rest && ((Math.floor(t) >> 3) % 100) / 100 < (d.sitChance || 0);
         state.walkers.push({ def: i, x: rightward ? cam - 24 : cam + viewW + 24, dir: rightward ? 1 : -1, start: t, last: t,
           sitAt: sits ? cam + viewW * (0.35 + 0.3 * (((Math.floor(t) >> 5) % 10) / 10)) : null, sitUntil: 0 });
@@ -499,6 +509,9 @@
       var frame;
       if (w.sitUntil && t < w.sitUntil) frame = d.rest;
       else {
+        var keepOut = locX() + 30;
+        if (w.dir < 0 && w.x <= keepOut) { w.dir = 1; w.sitAt = null; }
+        if (w.sitAt != null && w.sitAt <= keepOut) w.sitAt = null;
         if (w.sitAt != null && (w.dir > 0 ? w.x >= w.sitAt : w.x <= w.sitAt)) { w.sitUntil = t + 2600; w.sitAt = null; frame = d.rest; }
         else { w.x += w.dir * d.speed * dt / 1000; frame = d.frames[Math.floor((t - w.start) / (d.cycleMs || 200)) % d.frames.length]; }
       }
@@ -531,6 +544,7 @@
       st.renderer.render("stage", t, dt);
       positionBubble();
       syncSign();
+      syncPosters();
     }
     if (state.backdrop) {
       state.backdrop.renderer.setScroll(window.scrollY);
@@ -563,9 +577,18 @@
   }
 
   // ── scenes ──
+  // A scene tied to a location only plays there; ambient picks among the stop's own life and the
+  // generic street life, rotating so the same bit does not repeat back to back.
   function scenesFor(trigger) {
     var mode = state.choice ? state.choice.mode : "live";
-    return (state.pack.scenes || []).filter(function (s) { return s.trigger === trigger && sceneActive(s, mode, today()); });
+    var list = (state.pack.scenes || []).filter(function (s) {
+      return s.trigger === trigger && sceneActive(s, mode, today()) && (!s.location || s.location === state.location);
+    });
+    if (trigger === "ambient" && list.length > 1) {
+      state.ambientTurn = ((state.ambientTurn || 0) + 1) % list.length;
+      list = list.slice(state.ambientTurn).concat(list.slice(0, state.ambientTurn));
+    }
+    return list;
   }
   function startScene(def, kind) {
     if (state.scene) return { played: false, reason: "busy-scene" };
@@ -637,6 +660,7 @@
     var lighting = currentLighting();
     if (lighting !== prevLighting) setLighting(lighting);
     if (!silent) signal("arrive." + locId);
+    syncRoute();
     drawOnce();
   }
   function setLighting(lighting) {
@@ -650,9 +674,14 @@
   }
   function watchPhase() {
     var el = document.getElementById("classicNextStep");
-    if (!el || typeof MutationObserver === "undefined") { goTo(Object.keys(state.pack.locations)[0], true); return; }
+    if (!el || typeof MutationObserver === "undefined") {
+      state.progressLocation = Object.keys(state.pack.locations)[0];
+      goTo(state.progressLocation, true);
+      return;
+    }
     function sync(first) {
       var loc = locationForPhase(state.pack, el.getAttribute("data-phase") || "add");
+      state.progressLocation = loc;
       if (loc) goTo(loc, !!first);
     }
     var mo = new MutationObserver(function () { sync(false); });
@@ -723,7 +752,7 @@
     b.style.setProperty("--lpw-tail", Math.max(10, Math.min(b.offsetWidth - 18, head - left)) + "px");
     b.style.left = "0px";
     b.style.transform = "translateX(" + left + "px)";
-    b.style.bottom = ((state.pack.scenery.groundY + 43) * st.scale) + "px";
+    b.style.bottom = ((state.pack.scenery.groundY + 49) * st.scale) + "px";
   }
   function hideBubble() { if (state.bubble) { state.bubble.remove(); state.bubble = null; } }
 
@@ -758,11 +787,72 @@
     st.sign.style.left = "0px";
     st.sign.style.transform = "translateX(" + Math.round(Math.max(8, x)) + "px)";
     st.sign.style.bottom = Math.round((state.pack.scenery.groundY - 2) * st.scale) + "px";
-    var ids = Object.keys(state.pack.locations), idx = ids.indexOf(state.location);
-    Array.prototype.forEach.call(st.route.children, function (li, i) {
-      li.dataset.state = i < idx ? "done" : i === idx ? "here" : "next";
+    syncRoute();
+  }
+  // Campaign posters of the fictional vowel parties, pasted on the street wall at their location.
+  // Real controls: tap = hear the vowel sign's name + Timsah explains the joke.
+  function syncPosters() {
+    var st = state.stage;
+    if (!st || !st.posters) return;
+    var L = state.location && state.pack.locations[state.location];
+    var list = (L && !state.walk && L.posters) || [];
+    if (st.posters.dataset.loc !== (state.walk ? "" : state.location) || st.posters.dataset.lang !== locale()) {
+      st.posters.dataset.loc = state.walk ? "" : state.location;
+      st.posters.dataset.lang = locale();
+      while (st.posters.firstChild) st.posters.removeChild(st.posters.firstChild);
+      list.forEach(function (po) {
+        var pt = state.pack.parties[po.party];
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "lp-world-poster";
+        b.style.setProperty("--lpw-party", pt.color);
+        b.style.setProperty("--lpw-party-ink", pt.ink);
+        var mark = document.createElement("span");
+        mark.className = "lp-world-poster-mark"; mark.lang = "he"; mark.dir = "rtl"; mark.textContent = pt.mark;
+        var name = document.createElement("span");
+        name.className = "lp-world-poster-name"; name.textContent = pt.names[locale()] || pt.names.ru;
+        b.appendChild(mark); b.appendChild(name);
+        b.setAttribute("aria-label", (pt.names[locale()] || pt.names.ru) + ". " + tr("world.signListen", "Послушать"));
+        b.dataset.x = po.x;
+        b.addEventListener("click", function () {
+          speakHebrew(pt.speak);
+          state.react = { start: now() };
+          showBubble(pt.says[locale()] || pt.says.ru);
+          if (!animating()) drawOnce(); else kick();
+        });
+        st.posters.appendChild(b);
+      });
+    }
+    Array.prototype.forEach.call(st.posters.children, function (b) {
+      var x = (L.x + Number(b.dataset.x) - st.renderer.camera()) * st.scale - b.offsetWidth / 2;
+      b.style.transform = "translateX(" + Math.round(x) + "px)";
+      b.style.bottom = Math.round((state.pack.scenery.backGround || 30) * st.scale - 6) + "px";
     });
   }
+
+  function syncRoute() {
+    var st = state.stage;
+    if (!st || !st.route) return;
+    var ids = Object.keys(state.pack.locations);
+    var progress = ids.indexOf(state.progressLocation || ids[0]);
+    st.route.setAttribute("aria-label", tr("world.routeLabel", "Маршрут выборов"));
+    Array.prototype.forEach.call(st.route.children, function (b, i) {
+      var L = state.pack.locations[b.dataset.loc];
+      var name = (L.names && (L.names[locale()] || L.names.ru)) || b.dataset.loc;
+      b.dataset.state = i < progress ? "done" : i === progress ? "here" : "next";
+      b.dataset.at = b.dataset.loc === state.location ? "1" : "";
+      if (i === progress) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+      if (b.getAttribute("aria-label") !== name) { b.setAttribute("aria-label", name); b.title = name; }
+    });
+  }
+  // Explore the route by hand: Timsah walks there; the next Studio phase change takes over again.
+  function visit(id) {
+    if (!state.pack || !state.pack.locations[id]) return;
+    if (id === state.location && !state.walk) { onSign(); return; }
+    goTo(id, false);
+    syncRoute();
+  }
+
   function onSign() {
     var L = state.pack.locations[state.location];
     if (!L || !L.sign) return;
@@ -820,13 +910,27 @@
     sign.appendChild(signHe); sign.appendChild(signTr);
     sign.addEventListener("click", onSign);
     el.appendChild(sign);
-    var route = document.createElement("ol");
+    // Route stops are real controls: tap one to send Timsah there. The Studio's own progress
+    // (the «Следующий шаг» phase) stays marked with aria-current; where Timsah stands is framed.
+    var route = document.createElement("div");
     route.className = "lp-world-route";
-    route.setAttribute("aria-hidden", "true");
-    Object.keys(state.pack.locations).forEach(function () { route.appendChild(document.createElement("li")); });
+    route.setAttribute("role", "group");
+    route.setAttribute("data-world-ui", "");
+    Object.keys(state.pack.locations).forEach(function (id) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "lp-world-stop";
+      b.dataset.loc = id;
+      b.addEventListener("click", function () { visit(id); });
+      route.appendChild(b);
+    });
     el.appendChild(route);
+    var posters = document.createElement("div");
+    posters.className = "lp-world-posters";
+    posters.setAttribute("data-world-ui", "");
+    el.appendChild(posters);
     var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26 });
-    state.stage = { el: el, canvas: canvas, pause: pause, sign: sign, signHe: signHe, signTr: signTr, route: route, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
+    state.stage = { el: el, canvas: canvas, pause: pause, sign: sign, signHe: signHe, signTr: signTr, route: route, posters: posters, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
     canvas.addEventListener("pointerdown", onStageTap);
     syncPauseButton();
     if (typeof ResizeObserver !== "undefined") {
@@ -869,7 +973,7 @@
     on(document, "visibilitychange", function () { if (document.hidden) endScene(); else { state.lastFrame = 0; kick(); } });
     on(window, "resize", function () { layoutStage(); });
     on(window, "scroll", function () { if (!animating()) drawOnce(); }, { passive: true });
-    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; });
+    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); syncRoute(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; });
     if (typeof MutationObserver !== "undefined" && document.body) {
       var themeMo = new MutationObserver(function () {
         var l = currentLighting();
@@ -1110,6 +1214,7 @@
   var api = {
     core: core, boot: boot, set: set, current: current, play: play, signal: signal, goTo: function (id) { if (state.pack) goTo(id, false); },
     setLighting: function (l) { if (state.pack && LIGHTINGS.indexOf(l) >= 0) setLighting(l); },
+    visit: visit,
     togglePause: togglePause, stop: endScene, openPicker: openPicker, debugState: debugState
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { boot(); });

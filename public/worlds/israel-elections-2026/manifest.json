@@ -1,7 +1,7 @@
 {
   "schema": "lp-world/2",
   "id": "israel-elections-2026",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "engine": {
     "min": 2,
     "max": 2
@@ -254,19 +254,22 @@
           "Бюллетень без огласовки? Сейчас огласую!",
           "Тихо! Идёт подсчёт… слов в вашей таблице.",
           "Выборы выборами, а повторение — по расписанию.",
-          "Конверт синий, а слово — новое. Запишем?"
+          "Конверт синий, а слово — новое. Запишем?",
+          "Камац или патах? Звучат одинаково — голосуйте за огласовку!"
         ],
         "en": [
           "A ballot without niqqud? I'll add the vowels!",
           "Quiet! Counting… the words in your table.",
           "Elections come and go; reviews stay on schedule.",
-          "Blue envelope, brand-new word. Shall we save it?"
+          "Blue envelope, brand-new word. Shall we save it?",
+          "Kamatz or Patach? They sound the same — vote for vowels!"
         ],
         "he": [
           "פתק בלי ניקוד? מיד אנקד!",
           "שקט! סופרים… את המילים בטבלה שלך.",
           "בחירות באות והולכות, החזרות לפי הלוח.",
-          "מעטפה כחולה, מילה חדשה. נשמור אותה?"
+          "מעטפה כחולה, מילה חדשה. נשמור אותה?",
+          "קמץ או פתח? נשמעים אותו דבר — הצביעו ניקוד!"
         ]
       }
     },
@@ -319,6 +322,10 @@
     "neighbours": {
       "sheet": "people",
       "fictional": true
+    },
+    "timsah-act": {
+      "sheet": "timsah-act",
+      "fictional": true
     }
   },
   "locations": {
@@ -348,7 +355,17 @@
           "he": "מטה הבחירות"
         },
         "x": 64
-      }
+      },
+      "posters": [
+        {
+          "party": "kamatz",
+          "x": 34
+        },
+        {
+          "party": "patach",
+          "x": 84
+        }
+      ]
     },
     "press": {
       "phase": "table",
@@ -463,6 +480,15 @@
           ],
           "y": 92,
           "color": "#fff1c4"
+        },
+        {
+          "kind": "tally",
+          "x": 44,
+          "y": 44,
+          "parties": [
+            "kamatz",
+            "patach"
+          ]
         }
       ]
     }
@@ -683,6 +709,508 @@
           ]
         }
       ]
+    },
+    {
+      "id": "hq-flyers",
+      "slot": "studio-stage",
+      "location": "hq",
+      "trigger": "arrive.hq",
+      "durationMs": 2600,
+      "title": {
+        "ru": "Листовки",
+        "en": "Flyers",
+        "he": "עלונים"
+      },
+      "caption": {
+        "ru": "В штабе Тимсах раздаёт листовки «Партии Камац» и «Партии Патах» — поровну.",
+        "en": "At the HQ Timsah hands out flyers for both vowel parties — equally.",
+        "he": "במטה תמסח מחלק עלונים לשתי מפלגות הניקוד — שווה בשווה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-act",
+          "frame": "flyer",
+          "x": 0,
+          "z": 3
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "keys": [
+            {
+              "t": 0,
+              "hidden": true,
+              "x": 0,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "timsah-act",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "flyer",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 600,
+              "frame": "flyer-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1100,
+              "frame": "flyer",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1700,
+              "frame": "flyer-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 2200,
+              "frame": "flyer",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hq-flyers-amb",
+      "slot": "studio-stage",
+      "location": "hq",
+      "trigger": "ambient",
+      "durationMs": 2600,
+      "title": {
+        "ru": "Листовки",
+        "en": "Flyers",
+        "he": "עלונים"
+      },
+      "caption": {
+        "ru": "В штабе Тимсах раздаёт листовки «Партии Камац» и «Партии Патах» — поровну.",
+        "en": "At the HQ Timsah hands out flyers for both vowel parties — equally.",
+        "he": "במטה תמסח מחלק עלונים לשתי מפלגות הניקוד — שווה בשווה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-act",
+          "frame": "flyer",
+          "x": 0,
+          "z": 3
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "keys": [
+            {
+              "t": 0,
+              "hidden": true,
+              "x": 0,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "timsah-act",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "flyer",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 600,
+              "frame": "flyer-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1100,
+              "frame": "flyer",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1700,
+              "frame": "flyer-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 2200,
+              "frame": "flyer",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "press-stamp",
+      "slot": "studio-stage",
+      "location": "press",
+      "trigger": "arrive.press",
+      "durationMs": 2600,
+      "title": {
+        "ru": "Печать",
+        "en": "Stamp",
+        "he": "חותמת"
+      },
+      "caption": {
+        "ru": "В типографии Тимсах штампует пробный бюллетень.",
+        "en": "At the press Timsah stamps a proof ballot.",
+        "he": "בבית הדפוס תמסח מחתים פתק לדוגמה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-act",
+          "frame": "stamp-down",
+          "x": 0,
+          "z": 3
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "keys": [
+            {
+              "t": 0,
+              "hidden": true,
+              "x": 0,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "timsah-act",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 420,
+              "frame": "stamp-down",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 760,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1180,
+              "frame": "stamp-down",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1520,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1940,
+              "frame": "stamp-down",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 2300,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "press-stamp-amb",
+      "slot": "studio-stage",
+      "location": "press",
+      "trigger": "ambient",
+      "durationMs": 2600,
+      "title": {
+        "ru": "Печать",
+        "en": "Stamp",
+        "he": "חותמת"
+      },
+      "caption": {
+        "ru": "В типографии Тимсах штампует пробный бюллетень.",
+        "en": "At the press Timsah stamps a proof ballot.",
+        "he": "בבית הדפוס תמסח מחתים פתק לדוגמה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-act",
+          "frame": "stamp-down",
+          "x": 0,
+          "z": 3
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "keys": [
+            {
+              "t": 0,
+              "hidden": true,
+              "x": 0,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "timsah-act",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 420,
+              "frame": "stamp-down",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 760,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1180,
+              "frame": "stamp-down",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1520,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1940,
+              "frame": "stamp-down",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 2300,
+              "frame": "stamp-up",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "count-tally",
+      "slot": "studio-stage",
+      "location": "count",
+      "trigger": "arrive.count",
+      "durationMs": 2600,
+      "title": {
+        "ru": "Ничья",
+        "en": "A tie",
+        "he": "תיקו"
+      },
+      "caption": {
+        "ru": "Ночь подсчёта: Камац и Патах идут вровень — Тимсах в изумлении.",
+        "en": "Counting night: Kamatz and Patach are neck and neck — Timsah is amazed.",
+        "he": "ליל הספירה: קמץ ופתח ראש בראש — תמסח המום."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-act",
+          "frame": "clip-wow",
+          "x": 0,
+          "z": 3
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "keys": [
+            {
+              "t": 0,
+              "hidden": true,
+              "x": 0,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "timsah-act",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "clip",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 650,
+              "frame": "clip-wow",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1100,
+              "frame": "clip",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1750,
+              "frame": "clip-wow",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 2250,
+              "frame": "clip",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "count-tally-amb",
+      "slot": "studio-stage",
+      "location": "count",
+      "trigger": "ambient",
+      "durationMs": 2600,
+      "title": {
+        "ru": "Ничья",
+        "en": "A tie",
+        "he": "תיקו"
+      },
+      "caption": {
+        "ru": "Ночь подсчёта: Камац и Патах идут вровень — Тимсах в изумлении.",
+        "en": "Counting night: Kamatz and Patach are neck and neck — Timsah is amazed.",
+        "he": "ליל הספירה: קמץ ופתח ראש בראש — תמסח המום."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah-act",
+          "frame": "clip-wow",
+          "x": 0,
+          "z": 3
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "keys": [
+            {
+              "t": 0,
+              "hidden": true,
+              "x": 0,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "timsah-act",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "clip",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 650,
+              "frame": "clip-wow",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1100,
+              "frame": "clip",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1750,
+              "frame": "clip-wow",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 2250,
+              "frame": "clip",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "parties": {
+    "kamatz": {
+      "color": "#e8735a",
+      "ink": "#2b1510",
+      "mark": "אָ",
+      "speak": "קָמָץ",
+      "names": {
+        "ru": "Партия Камац",
+        "en": "Kamatz Party",
+        "he": "מִפְלֶגֶת הַקָּמָץ"
+      },
+      "says": {
+        "ru": "Партия Камац: «а»!",
+        "en": "Kamatz Party: “a”!",
+        "he": "מפלגת הקמץ: „אָ”!"
+      }
+    },
+    "patach": {
+      "color": "#2aa39a",
+      "ink": "#0c2624",
+      "mark": "אַ",
+      "speak": "פַּתָּח",
+      "names": {
+        "ru": "Партия Патах",
+        "en": "Patach Party",
+        "he": "מִפְלֶגֶת הַפַּתָּח"
+      },
+      "says": {
+        "ru": "Партия Патах: тоже «а»! Знаки разные — звук один.",
+        "en": "Patach Party: “a” as well! Different marks, same sound.",
+        "he": "מפלגת הפתח: גם „אַ”! סימנים שונים, צליל אחד."
+      }
+    }
+  }
 }

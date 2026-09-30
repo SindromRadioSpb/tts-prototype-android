@@ -218,7 +218,7 @@ test("Studio wiring: slots, picker entry, engine, renderer and skin precached un
   const studio = read("public/index.html");
   const sw = read("public/sw.js");
   const engine = read("public/js/world-engine.js");
-  assert.match(studio, /<div class="classic-shell-head studio-vf3-shell">[\s\S]{0,400}<div class="lp-world-stage" data-world-slot="studio-stage" data-world-bottom-narrow="\.classic-shell-copy" hidden><\/div>/);
+  assert.match(studio, /<div class="classic-shell-head studio-vf3-shell">[\s\S]{0,400}<div class="lp-world-stage" data-world-slot="studio-stage" data-world-bottom="\.classic-shell-copy" hidden><\/div>/);
   assert.match(studio, /<body>\r?\n<script src="\/js\/app-nav\.js\?v=\d+"><\/script>\r?\n<div class="lp-world-backdrop" data-world-slot="page-backdrop" aria-hidden="true" hidden><\/div>/);
   assert.match(studio, /id="btnWorld"[^>]*onclick="window\.LPWorld&&window\.LPWorld\.openPicker\(\)"[^>]*data-i18n-aria-label="world\.btnTitle"/);
   const bootUrl = studio.match(/\/js\/world-boot\.js\?v=\d+/)[0];
@@ -252,9 +252,30 @@ test("the skin never restyles the study table or learning fonts; everything else
   assert.match(css, /\.lp-world-pause \{[^}]*width: 44px; height: 44px;/, "the pause control is a 44px target");
 });
 
+test("the vowel parties are a balanced, fictional pair: never blue/white, never a winner", () => {
+  const m = manifest();
+  const parties = Object.entries(m.parties);
+  assert.equal(parties.length, 2, "exactly two sides");
+  const hue = (hex) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); if (mx === mn) return 0; const d = mx - mn; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360; };
+  for (const [id, p] of parties) {
+    const h = hue(p.color);
+    assert.ok(!(h >= 200 && h <= 250), `${id}: no campaign blue (real party colour)`);
+    for (const l of ["ru", "en", "he"]) assert.ok(p.names[l] && p.says[l], `${id} ${l}`);
+  }
+  assert.deepEqual(Object.keys(parties[0][1]).sort(), Object.keys(parties[1][1]).sort(), "same fields for both sides");
+  const posters = m.locations.hq.posters.map((p) => p.party).sort();
+  assert.deepEqual(posters, Object.keys(m.parties).sort(), "each side gets one poster");
+  const tally = m.locations.count.fx.find((f) => f.kind === "tally");
+  assert.deepEqual(tally.parties.slice().sort(), Object.keys(m.parties).sort(), "the tally shows both sides");
+  const bad = JSON.parse(JSON.stringify(m)); bad.locations.hq.posters.push({ party: "blue-white", x: 0 });
+  assert.ok(core.validatePack(bad, atlas(), WORLD).errors.some((e) => /poster/.test(e)));
+  // the renderer draws the tally ending level: both bars reach full height at the end of the cycle
+  assert.match(read("public/js/world-render.js"), /always landing on a tie/);
+});
+
 test("world UI strings exist in ru, en and he", () => {
   const vm = require("node:vm");
-  const keys = ["btnTitle", "pickerTitle", "pickerLead", "classic", "classicNote", "satireBadge", "modeLegend", "modeCalm", "modeLive", "privacy", "preview", "done", "pause", "resume"];
+  const keys = ["btnTitle", "pickerTitle", "pickerLead", "classic", "classicNote", "satireBadge", "modeLegend", "modeCalm", "modeLive", "privacy", "preview", "done", "pause", "resume", "signListen", "routeLabel"];
   for (const l of ["ru", "en", "he"]) {
     const box = { window: {} };
     vm.runInNewContext(read(`public/i18n/locales/${l}.js`), box);

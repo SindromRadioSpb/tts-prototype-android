@@ -2122,6 +2122,7 @@ window.I18N_LOCALES.ru = {
     densitySpacious: "Просторная",
   },
   world: {
+    routeLabel: "Маршрут выборов: коснитесь остановки, чтобы Тимсах туда пошёл",
     signListen: "Послушать",
     pause: "Остановить мир",
     resume: "Оживить мир",

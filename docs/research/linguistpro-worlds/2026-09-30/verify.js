@@ -111,7 +111,7 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     const perf = await page.evaluate(() => ({ longTasks: window.__lt.slice(), cls: window.__cls.reduce((a, b) => a + b, 0) }));
     check("C5 no long task (≥ 50 ms) during ~9 s of live animation and two journeys", perf.longTasks.length === 0, perf.longTasks);
     check("C6 the living world causes no layout shift", perf.cls === 0, perf.cls);
-    const tap = await page.evaluate(() => { const c = document.querySelector(".lp-world-stage canvas"); const r = c.getBoundingClientRect(); return { x: r.left + r.width * 0.42, y: r.bottom - 40 }; });
+    const tap = await page.evaluate(() => { const c = document.querySelector(".lp-world-stage canvas"); const r = c.getBoundingClientRect(); return { x: r.left + r.width * 0.42, y: r.bottom - 80 }; });
     await page.mouse.click(tap.x, tap.y);
     await page.waitForTimeout(250);
     const bubble = await page.evaluate(() => { const b = document.querySelector(".lp-world-bubble"); return b ? { text: b.textContent, hidden: b.getAttribute("aria-hidden") } : null; });
@@ -130,6 +130,19 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     check("C11 resume restarts the loop", (await dbg(page)).animating === true);
     const mem = await page.evaluate(() => [...document.querySelectorAll(".lp-world-canvas")].map((c) => ({ w: c.width, h: c.height, px: c.width * c.height })));
     check("C12 canvases stay at logical resolution (decoded memory bounded)", mem.every((m) => m.px < 400000), mem);
+    // route stops are real controls: tap one → Timsah walks there; the Studio's step stays aria-current
+    const stops = await page.$$eval(".lp-world-stop", (bs) => bs.map((b) => ({ loc: b.dataset.loc, label: b.getAttribute("aria-label"), cur: b.getAttribute("aria-current"), w: Math.round(b.getBoundingClientRect().width), h: Math.round(b.getBoundingClientRect().height) })));
+    check("C15 four labelled 44px route stops; Studio progress marked aria-current", stops.length === 4 && stops.every((s) => s.w >= 44 && s.h >= 44 && s.label) && stops.filter((s) => s.cur === "step").length === 1, stops);
+    await page.click('.lp-world-stop[data-loc="hq"]');
+    await page.waitForTimeout(3600);
+    const hq = await dbg(page);
+    check("C16 tapping a stop sends Timsah there (and plays that stop's action)", hq.location === "hq", hq);
+    const posters = await page.$$eval(".lp-world-poster", (ps) => ps.map((p) => p.textContent));
+    check("C17 the two vowel-party posters hang at the HQ", posters.length === 2 && /אָ/.test(posters.join("")) && /אַ/.test(posters.join("")), posters);
+    await page.click(".lp-world-poster");
+    await page.waitForTimeout(700);
+    const said = await page.evaluate(() => (document.querySelector(".lp-world-bubble") || {}).textContent || "");
+    check("C18 a poster tap explains the joke in a bubble", /Камац/.test(said), said);
     await page.focus("#inputText");
     check("C13 typing is detected as busy (no auto/ambient scene starts)", (await dbg(page)).busy === "typing");
     check("C14 no page errors", errors.length === 0, errors);

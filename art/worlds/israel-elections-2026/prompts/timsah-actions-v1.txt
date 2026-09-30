@@ -1,0 +1,8 @@
+Using EXACTLY the same character, pixel art style, pixel size, colours and proportions as the attached character sheet (Timsah the friendly crocodile volunteer with the blue lanyard and white badge), draw 6 NEW action poses in one horizontal row, side view facing right, all at the same scale as the reference, feet on the same baseline, evenly spaced and clearly separated, on a flat solid magenta #FF00FF background, no ground, no shadows:
+1) holding out a small blank white flyer at arm's length, friendly smile,
+2) waving the same blank flyer high above his head, cheerful,
+3) holding a wooden rubber stamp raised up at shoulder height, concentrating, a small blank white sheet on a tiny wooden crate in front of him,
+4) pressing the rubber stamp down onto the sheet on the crate, eyes squeezed, happy,
+5) holding a clipboard and writing on it with a pencil, focused,
+6) holding the clipboard up and looking up with a surprised open mouth.
+Same face, same lanyard and badge in every pose. No text, no letters, no numbers on the flyer, sheet or clipboard, no logos. Crisp pixels, 1px dark outline, no anti-aliasing.

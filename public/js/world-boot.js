@@ -6,7 +6,7 @@
  */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=705"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=706"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;

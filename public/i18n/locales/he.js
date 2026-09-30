@@ -2116,6 +2116,7 @@ window.I18N_LOCALES.he = {
     densitySpacious: "רווח",
   },
   world: {
+    routeLabel: "מסלול הבחירות: הקישו על תחנה כדי שתמסח ילך אליה",
     signListen: "להאזנה",
     pause: "עצירת העולם",
     resume: "החייאת העולם",

@@ -50,6 +50,7 @@ def main():
     ap.add_argument("--opaque-bottom", action="store_true", help="layer fills to the bottom edge (no trailing magenta)")
     ap.add_argument("--lights", action="store_true", help="reserve palette entries for warm light sources (buildings)")
     ap.add_argument("--clean", action="store_true", help="layer mode: remove isolated noise pixels")
+    ap.add_argument("--cuts", default="", help="source x columns to split touching poses (comma list)")
     a = ap.parse_args()
     if a.layer:
         return layer_mode(a)
@@ -67,6 +68,11 @@ def main():
                 clean[y][x] = n >= 3
     fg = clean
 
+    # Manual cuts: a 3px vertical gap at each given source column separates poses whose props touch.
+    for cx in [int(v) for v in a.cuts.split(",") if v.strip()]:
+        for y in range(H):
+            for x in range(max(0, cx - 1), min(W, cx + 2)):
+                fg[y][x] = False
     # 2D connected components (8-neighbour); poses may overlap column-wise (tails, props).
     label = [[0] * W for _ in range(H)]
     comps = []
@@ -91,8 +97,12 @@ def main():
     big = [c for c in comps if c[4] >= a.min_area * 10]
     small = [c for c in comps if c[4] < a.min_area * 10]
     owner = {c[5]: c[5] for c in big}
+    cut_cols = [int(v) for v in a.cuts.split(",") if v.strip()]
     for c in small:  # attach props/specks to the nearest pose by bbox distance
         if c[4] < 12:
+            continue
+        # a small piece touching a manual cut is a neighbour's severed tail tip, not a prop
+        if c[4] < 2500 and any(c[0] - 3 <= cx <= c[2] + 3 for cx in cut_cols):
             continue
         cx, cy = (c[0] + c[2]) / 2, (c[1] + c[3]) / 2
         near = min(big, key=lambda B: max(B[0] - cx, 0, cx - B[2]) + max(B[1] - cy, 0, cy - B[3]))
@@ -174,7 +184,7 @@ def main():
 
     budget = {"blue": 3, "white": 1, "light": 3 if a.lights else 0}
     budget["other"] = max(2, a.colors - budget["blue"] - budget["white"] - budget["light"])
-    mapping, palette = {}, []
+    mapping, palette, other_palette = {}, [], []
     for cls in ("other", "blue", "white", "light"):
         group = [c for c in opaque if hue_class(c) == cls]
         if not group:
@@ -189,9 +199,12 @@ def main():
         for c, i in zip(group, indices):
             mapping[c] = cpal[i]
         palette.extend(p for p in cpal if p not in palette)
+        if cls == "other":
+            other_palette = list(cpal)
     lum = lambda c: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
     palette.sort(key=lum)
-    darkest = palette[0]
+    # outline = darkest colour of the body (not an accent hue such as the blue lanyard)
+    darkest = min(other_palette, key=lum) if other_palette else palette[0]
 
     def nearest(c):
         return min(palette, key=lambda p: sum((p[i] - c[i]) ** 2 for i in range(3)))

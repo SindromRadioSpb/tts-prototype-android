@@ -1,6 +1,6 @@
 {
-  "base": "https://linguistpro.kolosei.com",
-  "at": "2026-09-30T18:02:36.971Z",
+  "base": "http://127.0.0.1:3000",
+  "at": "2026-09-30T18:30:29.668Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -23,7 +23,7 @@
       "name": "A3 Classic: only the boot stub is paid for (< 2 KB decoded)",
       "ok": true,
       "detail": {
-        "transfer": 1113,
+        "transfer": 1736,
         "decoded": 1436
       }
     },
@@ -101,9 +101,9 @@
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.4.0",
-        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.4.0",
-        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.4.0"
+        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.6.0",
+        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.6.0",
+        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.6.0"
       ]
     },
     {
@@ -223,6 +223,82 @@
           "px": 26790
         }
       ]
+    },
+    {
+      "name": "C15 four labelled 44px route stops; Studio progress marked aria-current",
+      "ok": true,
+      "detail": [
+        {
+          "loc": "hq",
+          "label": "Штаб кампании",
+          "cur": null,
+          "w": 44,
+          "h": 44
+        },
+        {
+          "loc": "press",
+          "label": "Типография бюллетеней",
+          "cur": null,
+          "w": 44,
+          "h": 44
+        },
+        {
+          "loc": "polling",
+          "label": "Избирательный участок",
+          "cur": "step",
+          "w": 44,
+          "h": 44
+        },
+        {
+          "loc": "count",
+          "label": "Ночь подсчёта",
+          "cur": null,
+          "w": 44,
+          "h": 44
+        }
+      ]
+    },
+    {
+      "name": "C16 tapping a stop sends Timsah there (and plays that stop's action)",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": true,
+          "lastEndAt": null
+        },
+        "scene": {
+          "id": "hq-flyers",
+          "kind": "story"
+        },
+        "walking": false,
+        "location": "hq",
+        "lighting": "night",
+        "busy": null,
+        "animating": true,
+        "camera": 40,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "name": "C17 the two vowel-party posters hang at the HQ",
+      "ok": true,
+      "detail": [
+        "אָПартия Камац",
+        "אַПартия Патах"
+      ]
+    },
+    {
+      "name": "C18 a poster tap explains the joke in a bubble",
+      "ok": true,
+      "detail": "Партия Камац: «а»!"
     },
     {
       "name": "C13 typing is detected as busy (no auto/ambient scene starts)",

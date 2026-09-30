@@ -320,6 +320,20 @@
               ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 2);
             });
           }
+          if (fx.kind === "tally" && !front) {
+            // two vowel parties, bars racing up and always landing on a tie (no winner, ever)
+            var bx = Math.round(L.x + fx.x - state.cam), by = state.h - fx.y;
+            var cyc = (t % 6000) / 6000;
+            (fx.parties || []).forEach(function (pid, n) {
+              var pt = pack.parties && pack.parties[pid];
+              if (!pt) return;
+              var wobble = cyc < 0.7 ? Math.abs(Math.sin(t / (380 + n * 170))) : 1;
+              var hgt = Math.max(2, Math.round(14 * Math.min(1, cyc / 0.7) * (0.55 + 0.45 * wobble)));
+              var x = bx + n * 8;
+              ctx.fillStyle = "#101426"; ctx.fillRect(x - 1, by - 15, 7, 16);
+              ctx.fillStyle = pt.color; ctx.fillRect(x, by - hgt, 5, hgt);
+            });
+          }
           if (fx.kind === "papers" && front) {
             if (dt > 0 && t > nextPaper) {
               papers.push({ x: L.x + fx.x, y: fx.y, vx: 8 + rand() * 14, vy: 10 + rand() * 10, born: t, spin: rand() < 0.5 });

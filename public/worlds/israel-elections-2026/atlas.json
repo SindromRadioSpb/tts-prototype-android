@@ -732,6 +732,76 @@
         }
       }
     },
+    "timsah-act": {
+      "file": "timsah-act.png",
+      "width": 185,
+      "height": 41,
+      "bytes": 2080,
+      "sha256": "19ddfc6c191caa32785da140f3d4e191d0f5ff9ca632bb107c02050e11846b0c",
+      "colors": 16,
+      "frames": {
+        "flyer": {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "flyer-up": {
+          "x": 31,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "stamp-up": {
+          "x": 62,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "stamp-down": {
+          "x": 93,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "clip": {
+          "x": 124,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "clip-wow": {
+          "x": 155,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        }
+      }
+    },
     "timsah": {
       "file": "timsah.png",
       "width": 191,
