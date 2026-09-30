@@ -1,0 +1,239 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "at": "2026-09-30T13:33:30.930Z",
+  "results": [
+    {
+      "name": "A1 Classic: no world or skin request",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "A2 Classic: no data-world, stage hidden with zero height",
+      "ok": true,
+      "detail": {
+        "attr": null,
+        "stageH": 0,
+        "stageHidden": true,
+        "engine": "object",
+        "choice": null
+      }
+    },
+    {
+      "name": "A3 Classic: engine present but idle",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "A4 Classic: engine script cost measured",
+      "ok": true,
+      "detail": {
+        "transfer": 29849,
+        "decoded": 29549
+      }
+    },
+    {
+      "name": "A5 Classic: no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "B1 picker entry ≥ 44×44 with a localized name",
+      "ok": true,
+      "detail": {
+        "w": 44,
+        "h": 44,
+        "label": "Оформление: миры LinguistPro"
+      }
+    },
+    {
+      "name": "B2 picker targets ≥ 44px",
+      "ok": true,
+      "detail": [
+        83,
+        121,
+        65,
+        65,
+        44,
+        44
+      ]
+    },
+    {
+      "name": "B3 choice stored locally only",
+      "ok": true,
+      "detail": "{\"id\":\"israel-elections-2026\",\"mode\":\"calm\"}"
+    },
+    {
+      "name": "B4 back to Classic: stage hidden, sprites removed, storage cleared, skin vars gone",
+      "ok": true,
+      "detail": {
+        "stage": true,
+        "sprites": 0,
+        "choice": null,
+        "stored": null,
+        "skinVars": false
+      }
+    },
+    {
+      "name": "B5 picker session without page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "C0 world pack requested on demand",
+      "ok": true,
+      "detail": [
+        "/worlds/israel-elections-2026/manifest.json?v=0.1.0",
+        "/worlds/israel-elections-2026/atlas.json?v=0.1.0",
+        "/css/world-skin.css?v=705",
+        "/worlds/israel-elections-2026/tiles-stone.png?v=0.1.0",
+        "/worlds/israel-elections-2026/skyline-day.png?v=0.1.0",
+        "/worlds/israel-elections-2026/timsah.png?v=0.1.0",
+        "/worlds/israel-elections-2026/props.png?v=0.1.0"
+      ]
+    },
+    {
+      "name": "C1 table-job-progress done → ballot-drop plays",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "calm",
+          "active": true
+        },
+        "governor": {
+          "autoCount": 1,
+          "playing": true,
+          "lastEndAt": null
+        },
+        "scene": {
+          "slot": "studio-stage",
+          "id": "ballot-drop"
+        },
+        "busy": null,
+        "stages": [
+          "studio-stage"
+        ]
+      }
+    },
+    {
+      "name": "C2 scene ends by itself within 3 s and returns to rest",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "calm",
+          "active": true
+        },
+        "governor": {
+          "autoCount": 1,
+          "playing": false,
+          "lastEndAt": 6888.615000009537
+        },
+        "scene": null,
+        "busy": null,
+        "stages": [
+          "studio-stage"
+        ]
+      }
+    },
+    {
+      "name": "C3 a second table-ready inside the cooldown is dropped, not queued",
+      "ok": true,
+      "detail": {
+        "autoCount": 1,
+        "playing": false,
+        "lastEndAt": 6888.615000009537
+      }
+    },
+    {
+      "name": "C4 non-final progress never triggers",
+      "ok": true
+    },
+    {
+      "name": "C5 typing is detected as busy",
+      "ok": true,
+      "detail": "typing"
+    },
+    {
+      "name": "C6 manual play bypasses the auto budget",
+      "ok": true,
+      "detail": {
+        "played": true
+      }
+    },
+    {
+      "name": "C7 no long task (≥ 50 ms) while the scene plays",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "C8 the scene causes no layout shift",
+      "ok": true,
+      "detail": 0
+    },
+    {
+      "name": "C9 sprite elements bounded (no leak across plays)",
+      "ok": true,
+      "detail": 3
+    },
+    {
+      "name": "C10 no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "D1 reduced motion: automatic reaction suppressed",
+      "ok": true,
+      "detail": {
+        "played": false,
+        "reason": "reduced-motion"
+      }
+    },
+    {
+      "name": "D2 reduced motion: manual play is a static pose",
+      "ok": true,
+      "detail": {
+        "manual": {
+          "played": true,
+          "static": true
+        },
+        "frames": [
+          "timsah@0px",
+          "box@0px"
+        ]
+      }
+    },
+    {
+      "name": "D3 no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "E1 failed pack → Classic fallback, Studio intact",
+      "ok": true,
+      "detail": {
+        "attr": null,
+        "stage": true,
+        "ok": true
+      }
+    },
+    {
+      "name": "E2 no page errors from the failure",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "E3 tampered pack (external URL in a colour token) is refused",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "F1 ?world=off turns the world off and forgets the choice",
+      "ok": true,
+      "detail": {
+        "attr": null,
+        "stored": null
+      }
+    }
+  ]
+}

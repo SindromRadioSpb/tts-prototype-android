@@ -65,6 +65,7 @@ const FIRST_PARTY_SYMBOLS = Object.freeze([
   "lp-mark-product",
   "lp-mark-room",
   "lp-mark-studio",
+  "lp-mark-world",
   "lp-mark-mentor",
 ]);
 

@@ -1,0 +1,213 @@
+/*
+ * LinguistPro Worlds — skin mapping (app-owned; loaded by world-engine.js only while a world is on).
+ *
+ * A pack supplies VALUES (--lpw-light-* / --lpw-dark-*, validated by the engine); this file decides
+ * WHERE they apply. Contract (ENGINE_CONTRACT.md, ART_BIBLE.md):
+ *   - never touched: the study table (#tableContainer internals, reader-core), learning fonts,
+ *     font sizes, focus rings, 44px targets, column widths, RTL order;
+ *   - pixel look = square corners + hard 2px outlines + offset hard shadows, never blur;
+ *   - everything is scoped to html[data-world]; with no world this file is not even requested.
+ */
+
+html[data-world] {
+  --lpw-scale: 2;
+  --lpw-page: var(--lpw-light-page);
+  --lpw-page-tile: var(--lpw-light-page-tile);
+  --lpw-page-tile-w: var(--lpw-light-page-tile-w);
+  --lpw-surface: var(--lpw-light-surface);
+  --lpw-surface-soft: var(--lpw-light-surface-soft);
+  --lpw-ink: var(--lpw-light-ink);
+  --lpw-line: var(--lpw-light-line);
+  --lpw-shadow: var(--lpw-light-shadow);
+  --lpw-accent: var(--lpw-light-accent);
+  --lpw-accent-ink: var(--lpw-light-accent-ink);
+  --lpw-stage-sky: var(--lpw-light-stage-sky);
+  --lpw-stage-haze: var(--lpw-light-stage-haze);
+  --lpw-stage-strip: var(--lpw-light-stage-strip);
+  --lpw-stage-strip-w: var(--lpw-light-stage-strip-w);
+  --lpw-stage-strip-h: var(--lpw-light-stage-strip-h);
+}
+html[data-world] body.theme-dark {
+  --lpw-page: var(--lpw-dark-page);
+  --lpw-page-tile: var(--lpw-dark-page-tile);
+  --lpw-page-tile-w: var(--lpw-dark-page-tile-w);
+  --lpw-surface: var(--lpw-dark-surface);
+  --lpw-surface-soft: var(--lpw-dark-surface-soft);
+  --lpw-ink: var(--lpw-dark-ink);
+  --lpw-line: var(--lpw-dark-line);
+  --lpw-shadow: var(--lpw-dark-shadow);
+  --lpw-accent: var(--lpw-dark-accent);
+  --lpw-accent-ink: var(--lpw-dark-accent-ink);
+  --lpw-stage-sky: var(--lpw-dark-stage-sky);
+  --lpw-stage-haze: var(--lpw-dark-stage-haze);
+  --lpw-stage-strip: var(--lpw-dark-stage-strip);
+  --lpw-stage-strip-w: var(--lpw-dark-stage-strip-w);
+  --lpw-stage-strip-h: var(--lpw-dark-stage-strip-h);
+}
+
+/* Integer art scale only: 2x on phones and tablets, 3x on wide desktops. */
+@media (min-width: 1024px) { html[data-world] { --lpw-scale: 3; } }
+
+/* ── ground ─────────────────────────────────────────────────────────────── */
+html[data-world] body {
+  background-color: var(--lpw-page) !important;
+  background-image: var(--lpw-page-tile) !important;
+  background-size: calc(var(--lpw-page-tile-w) * var(--lpw-scale) * 1px) auto !important;
+  background-repeat: repeat !important;
+  image-rendering: pixelated;
+}
+/* Text and controls keep smooth rendering — only world images are pixelated. */
+html[data-world] body * { image-rendering: auto; }
+
+/* ── pixel panels: the Studio shell and its cards ───────────────────────── */
+html[data-world] .classic-main-card {
+  background: var(--lpw-surface) !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: 0 0 0 2px var(--lpw-line), 6px 6px 0 0 var(--lpw-shadow) !important;
+}
+html[data-world] .classic-card,
+html[data-world] .classic-secondary-nav-summary,
+html[data-world] .classic-secondary-nav[open] > .classic-secondary-nav-body,
+html[data-world] #classicNextStep {
+  border-radius: 0 !important;
+  border: 2px solid var(--lpw-line) !important;
+  box-shadow: 4px 4px 0 0 var(--lpw-shadow) !important;
+}
+html[data-world] .classic-card,
+html[data-world] .classic-secondary-nav-summary { background: var(--lpw-surface) !important; }
+html[data-world] .classic-utility-bar {
+  border-radius: 0 !important;
+  border: 2px solid var(--lpw-line) !important;
+  box-shadow: 4px 4px 0 0 var(--lpw-shadow) !important;
+  background: var(--lpw-surface) !important;
+}
+html[data-world] #classicNextStep { background: var(--lpw-surface-soft) !important; }
+/* Soft radial glows and glassy gradients are the opposite of a pixel plane: flatten them. */
+html[data-world] .classic-card::before { background: none !important; }
+html[data-world] #classicPrimaryBar {
+  background: var(--lpw-surface-soft) !important;
+  border: 2px solid var(--lpw-line) !important;
+  box-shadow: none !important;
+}
+html[data-world] .classic-state-chip,
+html[data-world] .classic-result-summary,
+html[data-world] .classic-export-note,
+html[data-world] .classic-primary-bar { border-radius: 0 !important; }
+html[data-world] .classic-state-chip { border: 2px solid var(--lpw-line) !important; }
+html[data-world] #inputText {
+  border-radius: 0 !important;
+  border: 2px solid var(--lpw-line) !important;
+  box-shadow: inset 3px 3px 0 0 var(--lpw-surface-soft) !important;
+}
+
+/* ── buttons: flat plate + 3px bevel; label font and size unchanged ─────── */
+html[data-world] .classic-shell .btn-primary,
+html[data-world] .classic-shell .btn-secondary,
+html[data-world] .classic-nav-tool,
+html[data-world] .classic-nav-card,
+html[data-world] .v3-mode-toggle {
+  border-radius: 0 !important;
+}
+html[data-world] .classic-shell .btn-primary {
+  background: var(--lpw-accent) !important;
+  color: var(--lpw-accent-ink) !important;
+  border: 2px solid var(--lpw-line) !important;
+  box-shadow: inset -3px -3px 0 0 rgba(0, 0, 0, 0.28), inset 3px 3px 0 0 rgba(255, 255, 255, 0.22) !important;
+}
+html[data-world] .classic-shell .btn-primary:active { box-shadow: inset 3px 3px 0 0 rgba(0, 0, 0, 0.28) !important; }
+html[data-world] .classic-shell .btn-secondary {
+  border: 2px solid var(--lpw-line) !important;
+  box-shadow: inset -2px -2px 0 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── shared navigation ──────────────────────────────────────────────────── */
+html[data-world] .lp-app-nav {
+  background: var(--lpw-surface) !important;
+  border-color: var(--lpw-line) !important;
+  border-top-width: 2px !important;
+  border-bottom-width: 2px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── the stage (an app-declared slot; the only place world sprites may render) ── */
+.lp-world-stage { display: none; }
+html[data-world] .lp-world-stage:not([hidden]) {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  height: calc(32px * var(--lpw-scale));
+  margin: 0;
+  border: 2px solid var(--lpw-line);
+  background-color: var(--lpw-stage-sky);
+  background-image:
+    var(--lpw-stage-strip),
+    linear-gradient(to bottom, var(--lpw-stage-sky) 0 45%, var(--lpw-stage-haze) 45% 100%);
+  background-repeat: repeat-x, no-repeat;
+  background-position: left bottom, left top;
+  background-size: calc(var(--lpw-stage-strip-w) * var(--lpw-scale) * 1px) calc(var(--lpw-stage-strip-h) * var(--lpw-scale) * 1px), 100% 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  contain: layout paint;
+}
+html[data-world] .lp-world-sprite {
+  position: absolute;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transform-origin: center bottom;
+  will-change: transform;
+}
+html[data-world] .lp-world-sprite[hidden] { display: none; }
+@media (forced-colors: active) {
+  html[data-world] .lp-world-stage { display: none !important; }
+}
+
+/* ── picker dialog (also shown under Classic, so it must not rely on --lpw-*) ─ */
+.lp-world-picker {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 2px solid #1b1f2e;
+  border-radius: 0;
+  box-shadow: 6px 6px 0 0 rgba(27, 31, 46, 0.35);
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
+  font-family: var(--lp-font-ui, system-ui, sans-serif);
+}
+.lp-world-picker::backdrop { background: rgba(15, 23, 42, 0.45); }
+.lp-world-picker-form { display: grid; gap: 12px; padding: 20px; margin: 0; }
+.lp-world-picker h2 { margin: 0; font-size: 1.125rem; line-height: 1.3; }
+.lp-world-picker-lead, .lp-world-privacy { margin: 0; font-size: 0.875rem; line-height: 1.45; color: var(--theme-text-secondary, #475569); }
+.lp-world-options, .lp-world-modes { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.lp-world-modes legend { padding: 0; margin-bottom: 4px; font-size: 0.875rem; font-weight: 600; }
+.lp-world-modes[disabled] { opacity: 0.5; }
+.lp-world-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lp-world-option {
+  display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start;
+  min-height: 44px; padding: 10px 12px; box-sizing: border-box;
+  border: 2px solid var(--theme-border-medium, #cbd5e1); cursor: pointer;
+}
+.lp-world-option:has(input:checked) { border-color: var(--theme-accent, #1b4fb8); background: var(--theme-accent-soft, #e3ebfa); }
+.lp-world-option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--theme-accent, #1b4fb8); }
+.lp-world-option-compact { align-items: center; }
+.lp-world-option-compact input { margin: 0; }
+.lp-world-option-copy { display: grid; gap: 2px; min-width: 0; }
+.lp-world-option-title { font-weight: 600; font-size: 0.9375rem; line-height: 1.35; }
+.lp-world-option-note { font-size: 0.8125rem; line-height: 1.4; color: var(--theme-text-secondary, #475569); }
+.lp-world-badge {
+  display: inline-block; margin-inline-start: 8px; padding: 1px 6px;
+  border: 1px solid currentColor; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.02em;
+  vertical-align: 2px; color: var(--theme-text-secondary, #475569);
+}
+.lp-world-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.lp-world-picker .lp-world-btn {
+  width: auto !important; min-height: 44px; min-width: 44px; padding: 0 16px;
+  border: 2px solid #1b1f2e; border-radius: 0; background: var(--theme-bg-card, #fff);
+  color: inherit; font: inherit; font-weight: 600; cursor: pointer;
+}
+.lp-world-picker .lp-world-btn-primary { background: var(--theme-accent, #1b4fb8); color: #fff; }
+.lp-world-picker .lp-world-btn[disabled] { opacity: 0.5; cursor: default; }
+.lp-world-picker .lp-world-btn:focus-visible, .lp-world-option:focus-within { outline: 3px solid var(--theme-accent, #1b4fb8); outline-offset: 2px; }
+body.theme-dark .lp-world-picker { border-color: #8ea6d9; }
+body.theme-dark .lp-world-picker .lp-world-btn { border-color: #8ea6d9; }

@@ -2115,6 +2115,21 @@ window.I18N_LOCALES.he = {
     densityComfortable: "נוח",
     densitySpacious: "רווח",
   },
+  world: {
+    btnTitle: "עיצוב: העולמות של LinguistPro",
+    pickerTitle: "עיצוב",
+    pickerLead: "העולם משנה את האווירה סביב מסכי הלימוד. הטבלה, הגופנים, הכפתורים והנתונים שלך נשארים כפי שהם.",
+    classic: "LinguistPro Classic",
+    classicNote: "העיצוב הרגיל, בלי דמויות.",
+    satireBadge: "פרודיה",
+    modeLegend: "תנועה",
+    modeCalm: "רגוע — תגובות קצרות לפעולות שלך",
+    modeLive: "חי — הדמויות מטיילות לפעמים על הבמה",
+    privacy: "הבחירה נשמרת רק במכשיר הזה ולא נשלחת לשום מקום.",
+    preview: "הצג סצנה",
+    done: "סיום",
+    elections: { note: "ירושלים בפיקסלים ערב הבחירות. דמויות בדויות, בלי תעמולה ובלי דירוגים." },
+  },
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "קריאה", mediatheque: "מדיה", studio: "סטודיו", review: "חזרה", label: "אזורים" },
   onboarding: {

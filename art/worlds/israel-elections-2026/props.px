@@ -1,0 +1,58 @@
+# Election props — ballot box (generic, no emblem or lettering) and the blue voting envelope.
+# No text is drawn inside images: any caption stays a localized DOM string.
+. transparent
+k #1b1f2e
+b #1b4fb8
+B #7aa0ec
+d #123a8a
+w #fbfbf4
+W #c9cfdc
+y #f4c542
+Y #fff3b0
+
+@frame box 22x18 anchor=11,16
+......................
+....kkkkkkkkkkkkkk....
+...kBBBBBBBBBBBBBBk...
+..kBBBBBkkkkkkBBBBBk..
+.kBBBBBBBBBBBBBBBBBBk.
+.kkkkkkkkkkkkkkkkkkkk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbwwwwwwwwwwbbbddk.
+.kbbbwWWWWWWWWwbbbddk.
+.kbbbwwwwwwwwwwbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kddddddddddddddddddk.
+.kkkkkkkkkkkkkkkkkkkk.
+......................
+
+@frame box-glint 22x18 anchor=11,16
+..........y...........
+....kkkkkkYkkkkkkk.y..
+...kBBBBBBBBBBBBBBkYy.
+..kBBBBBkYYYYkBBBBBky.
+.kBBBBBBBBBBBBBBBBBBk.
+.kkkkkkkkkkkkkkkkkkkk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbwwwwwwwwwwbbbddk.
+.kbbbwWWWWWWWWwbbbddk.
+.kbbbwwwwwwwwwwbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kbbbbbbbbbbbbbbbbddk.
+.kddddddddddddddddddk.
+.kkkkkkkkkkkkkkkkkkkk.
+......................
+
+@frame envelope 7x5 anchor=3,4
+kkkkkkk
+kBbbbBk
+kbBbBbk
+kbbBbbk
+kkkkkkk

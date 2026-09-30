@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.704";
+const CACHE_VERSION = "v3.11.705";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -265,6 +265,8 @@ const PRECACHE_URLS = [
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
+  "/js/world-engine.js?v=705",
+  "/css/world-skin.css?v=705",
   "/js/app-nav.js?v=645",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
@@ -303,9 +305,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=277",
-  "/i18n/locales/en.js?v=277",
-  "/i18n/locales/he.js?v=277",
+  "/i18n/locales/ru.js?v=278",
+  "/i18n/locales/en.js?v=278",
+  "/i18n/locales/he.js?v=278",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

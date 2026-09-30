@@ -2121,6 +2121,21 @@ window.I18N_LOCALES.ru = {
     densityComfortable: "Комфортная",
     densitySpacious: "Просторная",
   },
+  world: {
+    btnTitle: "Оформление: миры LinguistPro",
+    pickerTitle: "Оформление",
+    pickerLead: "Мир меняет атмосферу вокруг учебных экранов. Таблица, шрифты, кнопки и ваши данные остаются прежними.",
+    classic: "LinguistPro Classic",
+    classicNote: "Обычное оформление без персонажей.",
+    satireBadge: "пародия",
+    modeLegend: "Движение",
+    modeCalm: "Спокойный — короткие реакции на ваши действия",
+    modeLive: "Живой — персонажи иногда прогуливаются по сцене",
+    privacy: "Выбор хранится только на этом устройстве и никуда не отправляется.",
+    preview: "Показать сценку",
+    done: "Готово",
+    elections: { note: "Пиксельный Иерусалим накануне выборов. Вымышленные персонажи, без агитации и рейтингов." },
+  },
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Зал", mediatheque: "Медиатека", studio: "Студия", review: "Повторение", label: "Разделы" },
   onboarding: {

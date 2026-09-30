@@ -1,0 +1,176 @@
+{
+  "schema": "lp-world-atlas/1",
+  "world": "israel-elections-2026",
+  "atlases": {
+    "props": {
+      "file": "props.png",
+      "width": 53,
+      "height": 18,
+      "bytes": 250,
+      "sha256": "4e8e5dd3bab2a3534799ac7970ec498af3d53e4238b801bee9745423703721a7",
+      "colors": 8,
+      "frames": {
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 22,
+          "h": 18,
+          "anchor": [
+            11,
+            16
+          ]
+        },
+        "box-glint": {
+          "x": 23,
+          "y": 0,
+          "w": 22,
+          "h": 18,
+          "anchor": [
+            11,
+            16
+          ]
+        },
+        "envelope": {
+          "x": 46,
+          "y": 0,
+          "w": 7,
+          "h": 5,
+          "anchor": [
+            3,
+            4
+          ]
+        }
+      }
+    },
+    "skyline-day": {
+      "file": "skyline-day.png",
+      "width": 160,
+      "height": 24,
+      "bytes": 565,
+      "sha256": "475fe0a7f1e6ec5ef32b5ee70690015ea164af50df563b4d6049f300b2d4bb8f",
+      "colors": 24,
+      "frames": {
+        "day": {
+          "x": 0,
+          "y": 0,
+          "w": 160,
+          "h": 24,
+          "anchor": [
+            0,
+            23
+          ]
+        }
+      }
+    },
+    "skyline-night": {
+      "file": "skyline-night.png",
+      "width": 160,
+      "height": 24,
+      "bytes": 562,
+      "sha256": "2ee3367af47db9e0986d6fef2a023b6fa9d8249468c052a4fd885b34faab31cb",
+      "colors": 24,
+      "frames": {
+        "night": {
+          "x": 0,
+          "y": 0,
+          "w": 160,
+          "h": 24,
+          "anchor": [
+            0,
+            23
+          ]
+        }
+      }
+    },
+    "tiles-stone": {
+      "file": "tiles-stone.png",
+      "width": 16,
+      "height": 16,
+      "bytes": 132,
+      "sha256": "d728209679eafa7c1077841002962a633741b828be3e63d6183d85750a79abe9",
+      "colors": 6,
+      "frames": {
+        "stone": {
+          "x": 0,
+          "y": 0,
+          "w": 16,
+          "h": 16,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "tiles-sky": {
+      "file": "tiles-sky.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 151,
+      "sha256": "283f483dcdcda4735e8ec7300d4141e1c748ee93fb8a57622650b01fb2af768c",
+      "colors": 6,
+      "frames": {
+        "sky": {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 32,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "timsah": {
+      "file": "timsah.png",
+      "width": 131,
+      "height": 32,
+      "bytes": 523,
+      "sha256": "d8580658cca3dca77d8b7103aaa17267797960b68aabdebf1e99a03101e3c4f7",
+      "colors": 8,
+      "frames": {
+        "idle": {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 32,
+          "anchor": [
+            13,
+            30
+          ]
+        },
+        "blink": {
+          "x": 33,
+          "y": 0,
+          "w": 32,
+          "h": 32,
+          "anchor": [
+            13,
+            30
+          ]
+        },
+        "walk": {
+          "x": 66,
+          "y": 0,
+          "w": 32,
+          "h": 32,
+          "anchor": [
+            13,
+            30
+          ]
+        },
+        "hold": {
+          "x": 99,
+          "y": 0,
+          "w": 32,
+          "h": 32,
+          "anchor": [
+            13,
+            30
+          ]
+        }
+      }
+    }
+  }
+}

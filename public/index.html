@@ -11715,6 +11715,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
     <div class="main-card classic-main-card" role="main">
         <div class="classic-shell">
+            <!-- LinguistPro Worlds: the only place a world may draw in Studio. Decorative, hidden from
+                 assistive technology, inert and zero-height unless the user turns a world on. -->
+            <div class="lp-world-stage" data-world-slot="studio-stage" aria-hidden="true" hidden></div>
             <div class="classic-shell-head studio-vf3-shell">
                 <div class="classic-shell-copy">
                     <div class="classic-header-top">
@@ -11767,6 +11770,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     </div>
                     <button id="btnFeedback" class="classic-nav-tool studio-vf3-focus" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком"><span data-studio-icon="lp-icon-note" aria-hidden="true"><span class="studio-icon-fallback">✉</span></span></button>
                     <button id="btnTheme" class="classic-nav-tool app-theme-toggle studio-vf3-focus" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему" aria-label="Переключить тему"><span data-studio-icon="lp-icon-theme" aria-hidden="true"><span class="studio-icon-fallback">◐</span></span></button>
+                    <button id="btnWorld" class="classic-nav-tool studio-vf3-focus" onclick="window.LPWorld&&window.LPWorld.openPicker()" data-i18n-title="world.btnTitle" data-i18n-aria-label="world.btnTitle" title="Оформление: миры LinguistPro" aria-label="Оформление: миры LinguistPro"><span data-studio-icon="lp-mark-world" aria-hidden="true"><span class="studio-icon-fallback">▦</span></span></button>
                     <button id="btnResearch" class="classic-nav-tool studio-vf3-focus" onclick="window.LinguistProResearchUI&&window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode" aria-label="Research mode"><span data-studio-icon="lp-icon-info" aria-hidden="true"><span class="studio-icon-fallback">i</span></span></button>
                     <button id="btnGraph" class="classic-nav-tool" onclick="window.LinguistProGraph&&window.LinguistProGraph.open()" data-i18n-title="graph.btnTitle" data-i18n-aria-label="graph.btnTitle" title="Карта знаний" aria-label="Карта знаний">🕸</button>
                     <button id="btnKnowledgeMap" class="classic-nav-tool" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
@@ -13624,9 +13628,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=277"></script>
-<script src="/i18n/locales/en.js?v=277"></script>
-<script src="/i18n/locales/he.js?v=277"></script>
+<script src="/i18n/locales/ru.js?v=278"></script>
+<script src="/i18n/locales/en.js?v=278"></script>
+<script src="/i18n/locales/he.js?v=278"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13792,6 +13796,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
 <script src="/js/table-presets.js?v=638"></script>
+<script src="/js/world-engine.js?v=705"></script>
 <script src="/js/media-host.js?v=662"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
@@ -13861,7 +13866,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.704";
+    window.APP_VERSION = "3.11.705";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -52523,7 +52528,9 @@ document.addEventListener("i18n:changed", function () {
           // tab, and every 30 min. Without this the browser only checks on its
           // own (throttled) schedule, so a fresh deploy could sit unseen for a
           // long time — the user would keep getting the stale precached shell.
-          const checkUpdate = () => { try { reg.update(); } catch (_) {} };
+          // update() rejects asynchronously (e.g. while the worker is still installing); a
+          // try/catch alone left that as an unhandled rejection on every page.
+          const checkUpdate = () => { try { const p = reg.update(); if (p && p.catch) p.catch(() => {}); } catch (_) {} };
           checkUpdate();
           setInterval(checkUpdate, 30 * 60 * 1000);
           document.addEventListener("visibilitychange", () => {

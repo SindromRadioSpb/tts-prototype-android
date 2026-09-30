@@ -2107,6 +2107,21 @@ window.I18N_LOCALES.en = {
     densityComfortable: "Comfortable",
     densitySpacious: "Spacious",
   },
+  world: {
+    btnTitle: "Look: LinguistPro worlds",
+    pickerTitle: "Look",
+    pickerLead: "A world changes the mood around the study screens. The table, fonts, buttons and your data stay the same.",
+    classic: "LinguistPro Classic",
+    classicNote: "The usual look, no characters.",
+    satireBadge: "parody",
+    modeLegend: "Motion",
+    modeCalm: "Calm — short reactions to what you do",
+    modeLive: "Lively — characters sometimes stroll across the stage",
+    privacy: "Your choice is stored only on this device and is sent nowhere.",
+    preview: "Show a scene",
+    done: "Done",
+    elections: { note: "Pixel Jerusalem on the eve of the elections. Fictional characters, no campaigning, no rankings." },
+  },
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", label: "Sections" },
   onboarding: {

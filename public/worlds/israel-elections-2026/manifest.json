@@ -1,0 +1,142 @@
+{
+  "schema": "lp-world/1",
+  "id": "israel-elections-2026",
+  "version": "0.1.0",
+  "engine": { "min": 1, "max": 1 },
+  "kind": "satire",
+  "names": {
+    "ru": "Мир выборов в Израиле",
+    "en": "Israel Elections 2026",
+    "he": "עולם הבחירות 2026"
+  },
+  "blurb": {
+    "ru": "Пародийное оформление: пиксельный Иерусалим накануне выборов. Персонажи вымышлены, если не указано иное.",
+    "en": "A parody skin: pixel Jerusalem on the eve of the elections. Characters are fictional unless stated otherwise.",
+    "he": "עיצוב פרודי: ירושלים בפיקסלים ערב הבחירות. הדמויות בדויות, אלא אם צוין אחרת."
+  },
+  "skin": {
+    "light": {
+      "page": "#efe8d8",
+      "pageTile": "tiles-stone",
+      "surface": "#fffdf6",
+      "surfaceSoft": "#f6f0e2",
+      "ink": "#1b1f2e",
+      "line": "#1b1f2e",
+      "shadow": "#c4ae84",
+      "accent": "#1b4fb8",
+      "accentInk": "#ffffff",
+      "stageSky": "#bcd6f5",
+      "stageHaze": "#dce9fa",
+      "stageStrip": "skyline-day"
+    },
+    "dark": {
+      "page": "#10182e",
+      "pageTile": "tiles-sky",
+      "surface": "#19213d",
+      "surfaceSoft": "#202a4a",
+      "ink": "#e8ecf8",
+      "line": "#070b18",
+      "shadow": "#070b18",
+      "accent": "#2a5bc4",
+      "accentInk": "#ffffff",
+      "stageSky": "#0b1230",
+      "stageHaze": "#18234a",
+      "stageStrip": "skyline-night"
+    }
+  },
+  "actors": {
+    "timsah": {
+      "sheet": "timsah",
+      "fictional": true,
+      "names": { "ru": "Тимсах", "en": "Timsah", "he": "תמסח" }
+    },
+    "box": { "sheet": "props", "fictional": true },
+    "envelope": { "sheet": "props", "fictional": true }
+  },
+  "slots": {
+    "studio-stage": {
+      "origin": 0.82,
+      "rest": [
+        { "actor": "timsah", "frame": "idle", "x": -30 },
+        { "actor": "box", "frame": "box", "x": 0, "z": 2 }
+      ]
+    }
+  },
+  "scenes": [
+    {
+      "id": "ballot-drop",
+      "slot": "studio-stage",
+      "trigger": "studio.table-ready",
+      "durationMs": 2800,
+      "title": {
+        "ru": "Бюллетень в урну",
+        "en": "Into the ballot box",
+        "he": "הפתק לקלפי"
+      },
+      "caption": {
+        "ru": "Таблица готова — Тимсах опускает синий конверт в урну.",
+        "en": "The table is ready — Timsah drops a blue envelope into the box.",
+        "he": "הטבלה מוכנה — תמסח מכניס מעטפה כחולה לקלפי."
+      },
+      "staticPose": [
+        { "actor": "timsah", "frame": "blink", "x": -30 },
+        { "actor": "box", "frame": "box-glint", "x": 0, "z": 2 }
+      ],
+      "tracks": [
+        { "actor": "timsah", "keys": [
+          { "t": 0, "frame": "idle", "x": -30, "hold": true },
+          { "t": 350, "frame": "blink", "x": -30, "hold": true },
+          { "t": 550, "frame": "idle", "x": -30, "hold": true },
+          { "t": 700, "frame": "hold", "x": -30, "hold": true },
+          { "t": 1400, "frame": "idle", "x": -30, "hold": true },
+          { "t": 1950, "frame": "blink", "x": -30, "hold": true },
+          { "t": 2450, "frame": "idle", "x": -30, "hold": true }
+        ] },
+        { "actor": "envelope", "z": 1, "keys": [
+          { "t": 0, "hidden": true, "x": -16, "y": 12, "hold": true },
+          { "t": 1400, "frame": "envelope", "x": -16, "y": 12, "arc": 10 },
+          { "t": 1900, "frame": "envelope", "x": 0, "y": 12 },
+          { "t": 2100, "frame": "envelope", "x": 0, "y": 3, "hold": true },
+          { "t": 2150, "hidden": true, "x": 0, "y": 3, "hold": true }
+        ] },
+        { "actor": "box", "z": 2, "keys": [
+          { "t": 0, "frame": "box", "x": 0, "hold": true },
+          { "t": 2050, "frame": "box-glint", "x": 0, "hold": true },
+          { "t": 2600, "frame": "box", "x": 0, "hold": true }
+        ] }
+      ]
+    },
+    {
+      "id": "precinct-round",
+      "slot": "studio-stage",
+      "trigger": "ambient",
+      "modes": ["live"],
+      "durationMs": 3000,
+      "title": {
+        "ru": "Обход участка",
+        "en": "Precinct round",
+        "he": "סיבוב בקלפי"
+      },
+      "caption": {
+        "ru": "Тимсах обходит участок и возвращается к урне.",
+        "en": "Timsah walks the precinct and returns to the box.",
+        "he": "תמסח מסתובב באזור הקלפי וחוזר אליה."
+      },
+      "staticPose": [
+        { "actor": "timsah", "frame": "idle", "x": -30 },
+        { "actor": "box", "frame": "box", "x": 0, "z": 2 }
+      ],
+      "tracks": [
+        { "actor": "timsah", "keys": [
+          { "t": 0, "cycle": ["walk", "idle"], "cycleMs": 180, "x": -30, "flip": true },
+          { "t": 1300, "frame": "blink", "x": -74, "flip": true, "hold": true },
+          { "t": 1700, "cycle": ["walk", "idle"], "cycleMs": 180, "x": -74 },
+          { "t": 2900, "frame": "idle", "x": -30, "hold": true }
+        ] },
+        { "actor": "box", "z": 2, "keys": [
+          { "t": 0, "frame": "box", "x": 0, "hold": true }
+        ] }
+      ]
+    }
+  ]
+}
