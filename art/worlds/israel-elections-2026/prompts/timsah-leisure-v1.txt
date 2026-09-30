@@ -1,0 +1,6 @@
+Using EXACTLY the same character, pixel art style, pixel size, colours and proportions as the attached character sheet (Timsah the friendly crocodile volunteer with the blue lanyard and white badge), draw 4 NEW poses in one horizontal row, all at the same scale as the reference, evenly spaced and clearly separated, flat solid magenta #FF00FF background, no ground, no shadows:
+1) sitting (as if on a bench, legs dangling, side view facing right) reading an open small booklet held in both hands, calm and focused,
+2) the same sitting pose turning a page of the booklet, one eyebrow raised, amused,
+3) standing, side view facing right, wearing big over-ear headphones, holding a small paper bag of popcorn, watching something attentively,
+4) the same standing pose with headphones, laughing, a piece of popcorn flying up.
+Same face, same lanyard and badge in every pose. No text, no letters, no numbers, no logos. Crisp pixels, 1px dark outline, no anti-aliasing.

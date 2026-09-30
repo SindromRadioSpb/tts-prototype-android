@@ -2116,6 +2116,11 @@ window.I18N_LOCALES.he = {
     densitySpacious: "רווח",
   },
   world: {
+    lightLegend: "תאורה",
+    lightAuto: "לפי שעות היום",
+    lightDay: "יום",
+    lightDusk: "שקיעה",
+    lightNight: "לילה",
     routeLabel: "מסלול הבחירות: הקישו על תחנה כדי שתמסח ילך אליה",
     signListen: "להאזנה",
     pause: "עצירת העולם",

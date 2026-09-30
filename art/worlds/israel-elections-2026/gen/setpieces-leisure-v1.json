@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-30T19:43:23.983Z",
+  "id": "setpieces-leisure-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    },
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference images (a Jerusalem street at dusk and the crocodile character sheet for scale), draw 3 street set-pieces as separate game props in one horizontal row, evenly spaced and clearly separated, each standing on its own ground line at the bottom, flat solid magenta #FF00FF background everywhere else, side view matching the street, no shadows on the background:\n1) a Jerusalem-stone park bench with a wooden seat, long enough for one character to sit on, and a small free book-exchange shelf box on a post beside it with a few books (no text on spines),\n2) a big outdoor TV screen on a sturdy metal stand with two small speakers, the screen is plain dark and empty (it will be filled in later), no text,\n3) a short row of three folding chairs facing right.\nStrictly no text, no letters, no numbers, no logos, no flags, no party colours. Crisp pixels, 1px dark outline, no anti-aliasing.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/setpieces-leisure-v1.jpg",
+  "sha256": "bb179ce4411a6bd395e14b0a3aed1752ea4439862b6ec612e3b886208e974e93",
+  "bytes": 383096,
+  "usage": {
+    "promptTokenCount": 743,
+    "candidatesTokenCount": 1344,
+    "totalTokenCount": 2370,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 227
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 516
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 283,
+    "serviceTier": "standard"
+  }
+}

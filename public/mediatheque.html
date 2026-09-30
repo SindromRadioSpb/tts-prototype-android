@@ -24,6 +24,9 @@
       <select id="ml-language" aria-label="Язык / Language / שפה"><option value="ru">Рус</option><option value="en">Eng</option><option value="he">עברית</option></select>
     </div>
   </header>
+  <!-- LinguistPro Worlds: the stage sits outside #ml-root (re-rendered by script); its street band
+       sits under the Mediatheque heading. Hidden and zero-cost under Classic. -->
+  <div class="lp-world-stage" data-world-slot="media-stage" data-world-bottom=".ml-heading" hidden></div>
   <main id="ml-root" class="ml-root" aria-busy="true"><p class="ml-loading" role="status" data-i18n="mediatheque.loading">Загрузка Медиатеки…</p></main>
 <footer id="mlFooter" data-lp-footer="mediatheque"></footer>
 <script src="/js/app-footer.js?v=669"></script>
@@ -33,11 +36,12 @@
     <header class="ml-dialog-header"><h2 id="ml-dialog-title"></h2><button type="button" id="ml-dialog-close" data-i18n-aria-label="mediatheque.close" aria-label="Закрыть">×</button></header>
     <div id="ml-dialog-body"></div>
   </dialog>
-  <script src="/i18n/locales/ru.js?v=279"></script>
-  <script src="/i18n/locales/en.js?v=279"></script>
-  <script src="/i18n/locales/he.js?v=279"></script>
+  <script src="/i18n/locales/ru.js?v=280"></script>
+  <script src="/i18n/locales/en.js?v=280"></script>
+  <script src="/i18n/locales/he.js?v=280"></script>
   <script src="/i18n/index.js"></script>
   <script src="/js/product-telemetry.js?v=669"></script>
   <script type="module" src="/js/mediatheque-ui.js?v=695"></script>
+<script src="/js/world-boot.js?v=709"></script>
 </body>
 </html>

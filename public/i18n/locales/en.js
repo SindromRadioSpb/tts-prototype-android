@@ -2108,6 +2108,11 @@ window.I18N_LOCALES.en = {
     densitySpacious: "Spacious",
   },
   world: {
+    lightLegend: "Lighting",
+    lightAuto: "By time of day",
+    lightDay: "Day",
+    lightDusk: "Dusk",
+    lightNight: "Night",
     routeLabel: "Election route: tap a stop to send Timsah there",
     signListen: "Listen",
     pause: "Pause the world",

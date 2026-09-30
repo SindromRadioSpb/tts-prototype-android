@@ -73,6 +73,11 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     await page.screenshot({ path: path.join(OUT, "v2-picker-world-380.png") });
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("lp_world_v1")));
     check("B1 choice stored locally, lively by default", stored && stored.id === WORLD && stored.mode === "live", stored);
+    await page.check('#lpWorldPicker input[name="lpWorldLight"][value="day"]');
+    await page.waitForTimeout(900);
+    const lit = await page.evaluate(() => ({ l: window.LPWorld.debugState().lighting, stored: JSON.parse(localStorage.getItem("lp_world_v1")).lighting }));
+    check("B1b manual lighting: «День» switches the world to day and is remembered", lit.l === "day" && lit.stored === "day", lit);
+    await page.check('#lpWorldPicker input[name="lpWorldLight"][value="auto"]');
     const targets = await page.$$eval("#lpWorldPicker label, #lpWorldPicker button", (els) => els.map((e) => Math.round(e.getBoundingClientRect().height)));
     check("B2 picker targets ≥ 44px", targets.every((h) => h >= 44), targets);
     await page.click('#lpWorldPicker button[type="submit"]');
@@ -187,6 +192,39 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     await page.waitForTimeout(1500);
     const s = await page.evaluate(() => ({ attr: document.documentElement.getAttribute("data-world"), stored: localStorage.getItem("lp_world_v1") }));
     check("F1 ?world=off turns the world off and forgets the choice", !s.attr && s.stored === null, s);
+    await browser.close();
+  }
+
+  // G. Reading Room and Mediatheque: their own stop, no route, content keeps its own background.
+  for (const [page, stop, label] of [["/library.html", "library", "Room"], ["/mediatheque.html", "debate", "Mediatheque"]]) {
+    {
+      const browser = await chromium.launch();
+      const ctx = await browser.newContext({ viewport: { width: 380, height: 800 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ru-RU" });
+      await ctx.addInitScript(() => localStorage.setItem("onboardingSeen_v1", "1"));
+      const p2 = await ctx.newPage();
+      const req = [];
+      p2.on("request", (r) => { if (/\/worlds\/|world-engine\.js|world-render\.js|world-skin\.css/.test(r.url())) req.push(r.url()); });
+      await p2.goto(BASE + page, { waitUntil: "load" });
+      await p2.waitForTimeout(3500);
+      check(`G1 ${label} under Classic: no world requests beyond the boot stub`, req.length === 0, req);
+      await browser.close();
+    }
+    const browser = await chromium.launch();
+    const ctx = await browser.newContext({ viewport: { width: 380, height: 800 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ru-RU" });
+    await ctx.addInitScript(() => { localStorage.setItem("onboardingSeen_v1", "1"); localStorage.setItem("lp_world_v1", JSON.stringify({ id: "israel-elections-2026", mode: "live" })); });
+    const p2 = await ctx.newPage();
+    const errs = [];
+    p2.on("pageerror", (e) => errs.push(String(e).slice(0, 200)));
+    await p2.goto(BASE + page, { waitUntil: "load" });
+    await p2.waitForTimeout(4500);
+    const g = await p2.evaluate(() => ({ d: window.LPWorld.debugState(), route: (() => { const r = document.querySelector(".lp-world-route"); return r ? getComputedStyle(r).display : "none"; })(),
+      bodyBg: getComputedStyle(document.body).backgroundColor, sign: (document.querySelector(".lp-world-sign-he") || {}).textContent || "" }));
+    check(`G2 ${label}: the world stands at its own stop (${stop})`, g.d.stage && g.d.location === stop && g.d.animating, g.d);
+    check(`G3 ${label}: no election route here`, g.route === "none", g.route);
+    check(`G4 ${label}: content keeps an opaque page background`, !/rgba\(0, 0, 0, 0\)|transparent/.test(g.bodyBg), g.bodyBg);
+    check(`G5 ${label}: the stop's Hebrew sign is up`, /[א-ת]/.test(g.sign), g.sign);
+    check(`G6 ${label}: no page errors`, errs.length === 0, errs);
+    await p2.screenshot({ path: path.join(OUT, `v2-${stop}-380.png`) });
     await browser.close();
   }
 

@@ -82,9 +82,9 @@ test("the stored choice is local, allowlisted, lively by default and remembers p
   assert.equal(core.readChoice(null), null);
   assert.equal(core.readChoice("not json"), null);
   assert.equal(core.readChoice(JSON.stringify({ id: "unknown-world" })), null, "only registry ids load");
-  assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD })), { id: WORLD, mode: "live", paused: false });
-  assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "calm", paused: true })), { id: WORLD, mode: "calm", paused: true });
-  assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "party" })), { id: WORLD, mode: "live", paused: false });
+  assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD })), { id: WORLD, mode: "live", paused: false, lighting: "auto" });
+  assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "calm", paused: true, lighting: "day" })), { id: WORLD, mode: "calm", paused: true, lighting: "day" });
+  assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "party", lighting: "noon" })), { id: WORLD, mode: "live", paused: false, lighting: "auto" });
   core.REGISTRY[WORLD].retired = true;
   try { assert.equal(core.readChoice(JSON.stringify({ id: WORLD })), null, "a retired world never loads again"); }
   finally { core.REGISTRY[WORLD].retired = false; }
@@ -238,6 +238,22 @@ test("Studio wiring: slots, picker entry, engine, renderer and skin precached un
   assert.doesNotMatch(sw, /\/worlds\//, "world art is fetched on demand only — never precached for Classic users");
 });
 
+test("Reading Room and Mediatheque carry their own stage slot and the same boot stub", () => {
+  const sw = read("public/sw.js");
+  for (const [shell, slot, until] of [["public/library.html", "room-stage", ".room-header-row"], ["public/mediatheque.html", "media-stage", ".ml-heading"]]) {
+    const html = read(shell);
+    assert.ok(html.includes(`data-world-slot="${slot}" data-world-bottom="${until}" hidden`), `${shell}: ${slot}`);
+    const boot = html.match(/\/js\/world-boot\.js\?v=\d+/);
+    assert.ok(boot, `${shell} loads the boot stub`);
+    assert.ok(sw.includes(JSON.stringify(boot[0])), `${boot[0]} precached exactly`);
+    assert.doesNotMatch(html, /world-engine\.js|world-render\.js/, `${shell}: engine/renderer load on demand only`);
+  }
+  const m = manifest();
+  assert.equal(m.surfaces.room.location, "library");
+  assert.equal(m.surfaces.mediatheque.location, "debate");
+  assert.ok(!m.locations.library.phase && !m.locations.debate.phase, "these stops are not on the Studio route");
+});
+
 test("the skin never restyles the study table or learning fonts; everything else is world-scoped", () => {
   const css = read("public/css/world-skin.css").replace(/\/\*[\s\S]*?\*\//g, "");
   assert.doesNotMatch(css, /#tableContainer|reader-core|\.rc-|font-family\s*:(?![^;]*var\(--lp-font-(ui|hebrew-reading))/,
@@ -280,7 +296,7 @@ test("the vowel parties are a balanced, fictional pair: never blue/white, never 
 
 test("world UI strings exist in ru, en and he", () => {
   const vm = require("node:vm");
-  const keys = ["btnTitle", "pickerTitle", "pickerLead", "classic", "classicNote", "satireBadge", "modeLegend", "modeCalm", "modeLive", "privacy", "preview", "done", "pause", "resume", "signListen", "routeLabel"];
+  const keys = ["btnTitle", "pickerTitle", "pickerLead", "classic", "classicNote", "satireBadge", "modeLegend", "modeCalm", "modeLive", "privacy", "preview", "done", "pause", "resume", "signListen", "routeLabel", "lightLegend", "lightAuto", "lightDay", "lightDusk", "lightNight"];
   for (const l of ["ru", "en", "he"]) {
     const box = { window: {} };
     vm.runInNewContext(read(`public/i18n/locales/${l}.js`), box);

@@ -45,7 +45,9 @@ html[data-world] body.theme-dark {
 @media (min-width: 1024px) { html[data-world] { --lpw-scale: 3; } }
 
 /* ── the world behind everything ────────────────────────────────────────── */
-html[data-world] body { background: transparent !important; }
+/* Only the Studio lets the world's ground show through (all its surfaces are opaque cards); the
+   Room and the Mediatheque keep their own page background under their content. */
+html[data-world] body:has(.classic-shell) { background: transparent !important; }
 /* Below the street the page is quiet ground, one flat tone per lighting — no second sky. */
 html[data-world][data-world-light="day"] { background: #6b5d4b !important; }
 html[data-world][data-world-light="dusk"] { background: #3a2e3c !important; }
@@ -232,6 +234,7 @@ html[data-world] .lp-world-route {
   background: repeating-linear-gradient(90deg, rgba(255, 246, 224, 0.7) 0 4px, transparent 4px 8px) no-repeat 22px 34px / calc(100% - 44px) 2px;
 }
 [dir="rtl"] .lp-world-route { flex-direction: row-reverse; }
+html[data-world] .lp-world-route[hidden] { display: none; }
 html[data-world] .lp-world-stop {
   position: relative; width: 44px !important; height: 44px; min-width: 44px; padding: 0 0 4px; margin: 0;
   border: 0; border-radius: 0; background: transparent; cursor: pointer;
@@ -282,6 +285,31 @@ html[data-world] .lp-world-board-stamp {
 html[data-world] .lp-world-board[data-tie="1"] .lp-world-board-stamp { opacity: 1; }
 /* the app's pale status chips on dark cards (O-052) — inside the world only */
 html[data-world] body.theme-dark .classic-state-chip { background: var(--lpw-surface-soft) !important; color: var(--lpw-ink) !important; }
+/* ── Reading Room: the header becomes a window onto the library stop ──────── */
+html[data-world] .room-header { position: relative; background: transparent !important; border-bottom-color: transparent !important; box-shadow: none !important; }
+html[data-world] .room-header > :not(.lp-world-stage) { position: relative; z-index: 1; }
+html[data-world] .room-header-row { padding-bottom: calc(72px * var(--lpw-scale)) !important; pointer-events: none; }
+html[data-world] .room-header-row > * { pointer-events: auto; }
+html[data-world] .room-title {
+  color: var(--lpw-plate-ink) !important;
+  text-shadow: 2px 0 0 var(--lpw-plate), -2px 0 0 var(--lpw-plate), 0 2px 0 var(--lpw-plate), 0 -2px 0 var(--lpw-plate);
+}
+html[data-world] .room-subtitle, html[data-world] .room-brand-block > p {
+  background: var(--lpw-plate) !important; color: var(--lpw-plate-ink) !important; width: fit-content; padding: 2px 8px;
+}
+/* ── Mediatheque: the header + heading frame the debate stop ─────────────── */
+html[data-world] .ml-header { position: relative; z-index: 1; background: transparent !important; border-bottom-color: transparent !important; box-shadow: none !important; }
+html[data-world] #ml-root { position: relative; z-index: 1; pointer-events: none; }
+html[data-world] #ml-root > :not(.ml-heading) { pointer-events: auto; }
+html[data-world] .ml-heading { padding-bottom: calc(72px * var(--lpw-scale)) !important; pointer-events: none; }
+html[data-world] .ml-heading > * { pointer-events: auto; }
+html[data-world] .ml-heading h1 {
+  color: var(--lpw-plate-ink) !important;
+  text-shadow: 2px 0 0 var(--lpw-plate), -2px 0 0 var(--lpw-plate), 0 2px 0 var(--lpw-plate), 0 -2px 0 var(--lpw-plate);
+}
+html[data-world] .ml-heading p, html[data-world] .ml-brand {
+  background: var(--lpw-plate) !important; color: var(--lpw-plate-ink) !important; width: fit-content; padding: 2px 8px;
+}
 @media (forced-colors: active) {
   html[data-world] .lp-world-stage, html[data-world] .lp-world-backdrop { display: none !important; }
   html[data-world] .classic-shell-head { padding-bottom: 0 !important; }

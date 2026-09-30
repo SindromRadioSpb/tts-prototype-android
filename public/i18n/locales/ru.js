@@ -2122,6 +2122,11 @@ window.I18N_LOCALES.ru = {
     densitySpacious: "Просторная",
   },
   world: {
+    lightLegend: "Освещение",
+    lightAuto: "По времени суток",
+    lightDay: "День",
+    lightDusk: "Закат",
+    lightNight: "Ночь",
     routeLabel: "Маршрут выборов: коснитесь остановки, чтобы Тимсах туда пошёл",
     signListen: "Послушать",
     pause: "Остановить мир",

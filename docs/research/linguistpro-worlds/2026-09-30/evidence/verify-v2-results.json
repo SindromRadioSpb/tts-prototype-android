@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T19:23:47.566Z",
+  "at": "2026-09-30T19:50:59.103Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -38,7 +38,16 @@
       "detail": {
         "id": "israel-elections-2026",
         "mode": "live",
-        "paused": false
+        "paused": false,
+        "lighting": "auto"
+      }
+    },
+    {
+      "name": "B1b manual lighting: «День» switches the world to day and is remembered",
+      "ok": true,
+      "detail": {
+        "l": "day",
+        "stored": "day"
       }
     },
     {
@@ -49,6 +58,10 @@
         278,
         65,
         65,
+        44,
+        44,
+        44,
+        44,
         44,
         44
       ]
@@ -101,9 +114,9 @@
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.9.0",
-        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.9.0",
-        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.9.0"
+        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.10.0",
+        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.10.0",
+        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.10.0"
       ]
     },
     {
@@ -298,7 +311,7 @@
     {
       "name": "C18 a poster tap explains the joke in a bubble",
       "ok": true,
-      "detail": "Камац говорит «а». Патах — тоже «а». Ничья!"
+      "detail": "Камац: «а». Патах: «а». Ничья!"
     },
     {
       "name": "C13 typing is detected as busy (no auto/ambient scene starts)",
@@ -392,6 +405,108 @@
         "attr": null,
         "stored": null
       }
+    },
+    {
+      "name": "G1 Room under Classic: no world requests beyond the boot stub",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "G2 Room: the world stands at its own stop (library)",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "library",
+        "lighting": "night",
+        "busy": null,
+        "animating": true,
+        "camera": 1672,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "name": "G3 Room: no election route here",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "name": "G4 Room: content keeps an opaque page background",
+      "ok": true,
+      "detail": "rgb(244, 246, 249)"
+    },
+    {
+      "name": "G5 Room: the stop's Hebrew sign is up",
+      "ok": true,
+      "detail": "סִפְרִיָּה"
+    },
+    {
+      "name": "G6 Room: no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "G1 Mediatheque under Classic: no world requests beyond the boot stub",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "G2 Mediatheque: the world stands at its own stop (debate)",
+      "ok": true,
+      "detail": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "debate",
+        "lighting": "night",
+        "busy": null,
+        "animating": true,
+        "camera": 2120,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "name": "G3 Mediatheque: no election route here",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "name": "G4 Mediatheque: content keeps an opaque page background",
+      "ok": true,
+      "detail": "rgb(246, 248, 252)"
+    },
+    {
+      "name": "G5 Mediatheque: the stop's Hebrew sign is up",
+      "ok": true,
+      "detail": "עִמּוּת"
+    },
+    {
+      "name": "G6 Mediatheque: no page errors",
+      "ok": true,
+      "detail": []
     }
   ]
 }

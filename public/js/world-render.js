@@ -368,6 +368,30 @@
               ctx.fillStyle = pt.color; ctx.fillRect(x, by - hgt, 5, hgt);
             });
           }
+          if (fx.kind === "debate" && front) {
+            // two podiums split-screen in the parties' colours; the speaker alternates; a tie of turns
+            var sf2 = fx.surface, sx2 = Math.round(L.x + fx.x + sf2.x0 - state.cam), sy2 = state.h - scenery.groundY - sf2.top;
+            var sw2 = sf2.x1 - sf2.x0 + 1, sh2 = sf2.top - sf2.bottom, half = Math.floor(sw2 / 2);
+            var turn = Math.floor(t / 1100) % 2;
+            (fx.parties || []).forEach(function (pid, n) {
+              var pt = pack.parties && pack.parties[pid];
+              if (!pt) return;
+              var px0 = sx2 + n * half, speaking = n === turn;
+              ctx.fillStyle = pt.color; ctx.globalAlpha = speaking ? 0.85 : 0.45;
+              ctx.fillRect(px0 + 1, sy2 + 1, half - 2, sh2 - 2);
+              ctx.globalAlpha = 1;
+              ctx.fillStyle = "#1b1f2e";
+              var cx = px0 + Math.floor(half / 2);
+              ctx.fillRect(cx - 3, sy2 + sh2 - 8, 7, 7);                 // podium
+              ctx.fillRect(cx - 2, sy2 + sh2 - 15, 5, 7);                // speaker body
+              ctx.fillRect(cx - 1, sy2 + sh2 - 18, 3, 3);                // head
+              if (speaking) {
+                ctx.fillStyle = "#fff6e0";
+                for (var k2 = 0; k2 < 3; k2++) if (((t / 180) | 0) % 3 >= k2) ctx.fillRect(cx + 4 + k2 * 2, sy2 + sh2 - 17 + k2, 1, 3 - k2);
+              }
+            });
+            ctx.fillStyle = "#1b1f2e"; ctx.fillRect(sx2 + half - 1, sy2, 1, sh2);
+          }
           if (fx.kind === "chalk" && front) {
             // chalk tally on the board: two equal columns filling in step, always a tie
             var sf = fx.surface, ox = L.x + fx.x - state.cam, gy = state.h - scenery.groundY;

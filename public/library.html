@@ -3189,6 +3189,9 @@
 <script>(function(){try{var t=localStorage.getItem("appTheme_v1");if(t==="light")document.body.classList.add("theme-light");else if(t==="dark")document.body.classList.add("theme-dark");}catch(_){}})();</script>
 
 <header class="room-header">
+  <!-- LinguistPro Worlds: the world's stage behind the Room header (canvas aria-hidden). Hidden and
+       zero-cost under Classic; the street band sits under the header row, before the tabs. -->
+  <div class="lp-world-stage" data-world-slot="room-stage" data-world-bottom=".room-header-row" hidden></div>
   <div class="room-header-row">
     <div class="room-brand-block">
       <h1 class="room-title">
@@ -3332,7 +3335,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.708</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.709</button>
     </p>
   </div>
 </div>
@@ -3509,9 +3512,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=279"></script>
-    <script src="/i18n/locales/en.js?v=279"></script>
-    <script src="/i18n/locales/he.js?v=279"></script>
+    <script src="/i18n/locales/ru.js?v=280"></script>
+    <script src="/i18n/locales/en.js?v=280"></script>
+    <script src="/i18n/locales/he.js?v=280"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3631,5 +3634,6 @@
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=3"></script>
 <script src="/js/tutor-panel.js?v=9"></script>
+<script src="/js/world-boot.js?v=709"></script>
 </body>
 </html>

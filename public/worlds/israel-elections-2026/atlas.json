@@ -732,6 +732,46 @@
         }
       }
     },
+    "setpieces-leisure": {
+      "file": "setpieces-leisure.png",
+      "width": 188,
+      "height": 56,
+      "bytes": 1764,
+      "sha256": "d6c62bbd7ff52a9e678524d4b507f6903f4c53e0be1e982957f1e3cc38f5c073",
+      "colors": 18,
+      "frames": {
+        "bench": {
+          "x": 0,
+          "y": 0,
+          "w": 62,
+          "h": 56,
+          "anchor": [
+            31,
+            54
+          ]
+        },
+        "screen": {
+          "x": 63,
+          "y": 0,
+          "w": 62,
+          "h": 56,
+          "anchor": [
+            31,
+            54
+          ]
+        },
+        "chairs": {
+          "x": 126,
+          "y": 0,
+          "w": 62,
+          "h": 56,
+          "anchor": [
+            31,
+            54
+          ]
+        }
+      }
+    },
     "setpieces": {
       "file": "setpieces.png",
       "width": 131,
@@ -888,6 +928,56 @@
           "anchor": [
             15,
             39
+          ]
+        }
+      }
+    },
+    "timsah-leisure": {
+      "file": "timsah-leisure.png",
+      "width": 115,
+      "height": 36,
+      "bytes": 1325,
+      "sha256": "1a53cb5471b9d3f7da95e57f32c64493ff867d506dbbfc02644a05354dfba0f0",
+      "colors": 16,
+      "frames": {
+        "read": {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "read-turn": {
+          "x": 29,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "watch": {
+          "x": 58,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "laugh": {
+          "x": 87,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
           ]
         }
       }

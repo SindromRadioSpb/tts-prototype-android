@@ -27,20 +27,21 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.9.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.10.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
   var LIGHTINGS = ["day", "dusk", "night"];
   var PHASES = ["add", "correct", "table", "save", "learn"];
-  var SLOTS = ["studio-stage", "page-backdrop"];
+  var SLOTS = ["studio-stage", "room-stage", "media-stage", "page-backdrop"];
+  var STAGE_SLOTS = ["studio-stage", "room-stage", "media-stage"];
   var TRIGGER_RE = /^(manual|ambient|tap|studio\.table-ready|arrive\.[a-z0-9-]+)$/;
   var COLOR_TOKENS = ["page", "surface", "surfaceSoft", "ink", "line", "shadow", "accent", "accentInk", "plate", "plateInk"];
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=708";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=708";
+  var CSS_URL = "/css/world-skin.css?v=709";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=709";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -51,7 +52,8 @@
     if (!v || typeof v !== "object" || typeof v.id !== "string") return null;
     var reg = REGISTRY[v.id];
     if (!reg || reg.retired) return null;
-    return { id: v.id, mode: MODES.indexOf(v.mode) >= 0 ? v.mode : "live", paused: v.paused === true };
+    return { id: v.id, mode: MODES.indexOf(v.mode) >= 0 ? v.mode : "live", paused: v.paused === true,
+      lighting: ["day", "dusk", "night"].indexOf(v.lighting) >= 0 ? v.lighting : "auto" };
   }
 
   function isPlainText(s) { return typeof s === "string" && s.length > 0 && s.length <= 400 && !/[<>]/.test(s); }
@@ -160,7 +162,7 @@
     var locs = manifest.locations || {};
     Object.keys(locs).forEach(function (id) {
       var L = locs[id];
-      if (!isName(id) || !L || PHASES.indexOf(L.phase) < 0 || !isNum(L.x, -100000, 100000)) { err("location " + id); return; }
+      if (!isName(id) || !L || (L.phase != null && PHASES.indexOf(L.phase) < 0) || !isNum(L.x, -100000, 100000)) { err("location " + id); return; }
       if (!localized(L.names)) err("location " + id + " names");
       if (L.lighting && LIGHTINGS.indexOf(L.lighting) < 0) err("location " + id + " lighting");
       if (L.sign) {
@@ -171,18 +173,26 @@
       (L.posters || []).forEach(function (po) { if (!parties[po.party] || !isNum(po.x, -400, 400) || !isNum(po.y || 0, 0, 200)) err("location " + id + " poster"); });
       if (L.icon && !atlases[L.icon]) err("location " + id + " icon");
       (L.fx || []).forEach(function (fx) {
-        if (["papers", "searchlights", "tally", "chalk"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
+        if (["papers", "searchlights", "tally", "chalk", "debate"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
         if (fx.stamp && !localized(fx.stamp)) err("location " + id + " fx stamp");
         (fx.parties || []).forEach(function (p) { if (!parties[p]) err("location " + id + " fx party " + p); });
         if (fx.color != null && !isColor(fx.color)) err("location " + id + " fx color");
       });
     });
     var slots = manifest.slots || {};
+    Object.keys(manifest.surfaces || {}).forEach(function (k) {
+      var su = manifest.surfaces[k];
+      if (!su || !slots[su.slot] || (su.location && !locs[su.location])) err("surface " + k);
+      if (su && su.react && !frameOk(su.react.actor, su.react.frame)) err("surface " + k + " react");
+    });
     Object.keys(slots).forEach(function (slot) {
       if (SLOTS.indexOf(slot) < 0) { err("slot not allowed: " + slot); return; }
       var s = slots[slot];
       if (!isNum(s.origin, 0, 1)) err("slot " + slot + " origin");
-      (s.rest || []).forEach(function (r) { if (!frameOk(r.actor, r.frame) || typeof r.x !== "number") err("slot " + slot + " rest " + r.actor); });
+      (s.rest || []).forEach(function (r) {
+        var fr = r.frames || [r.frame];
+        if (!fr.every(function (f) { return frameOk(r.actor, f); }) || typeof r.x !== "number") err("slot " + slot + " rest " + r.actor);
+      });
     });
     var ids = {};
     (manifest.scenes || []).forEach(function (s) {
@@ -409,9 +419,13 @@
 
   // A location may force its lighting (counting night); a dark app theme means election night;
   // otherwise the learner's local clock picks day / dusk / night.
+  // Order: a story location that must be lit its way (counting night) → the learner's own choice
+  // (day / dusk / night) → a dark app theme means election night → the local clock.
   function currentLighting() {
     var loc = state.location && state.pack.locations[state.location];
     var forced = loc && loc.lighting;
+    var own = state.choice && state.choice.lighting;
+    if (!forced && own && own !== "auto") forced = own;
     if (!forced && document.body && document.body.classList.contains("theme-dark")) forced = "night";
     return window.LPWorldRender.core.lightingFor(new Date().getHours(), forced);
   }
@@ -440,7 +454,7 @@
     var scale = stageScale(st.el);
     st.scale = scale;
     st.renderer.resize(docW, height, scale);
-    st.originPx = Math.round(docW * state.pack.slots["studio-stage"].origin);
+    st.originPx = Math.round(docW * state.pack.slots[state.slotName].origin);
     if (state.backdrop) state.backdrop.renderer.resize(docW, window.innerHeight, scale);
     if (state.location && !state.walk) st.renderer.panTo(cameraFor(locX()), 0, now());
     drawOnce();
@@ -477,13 +491,20 @@
     }
     if (state.react && !controlled.timsah) {
       var r = state.react, rt = t - r.start;
-      var hop = rt < 420 ? Math.round(8 * 4 * (rt / 420) * (1 - rt / 420)) : 0;
+      var su = state.surface && state.surface.react;
       controlled.timsah = true;
-      pose.push({ actor: "timsah", frame: rt < 420 ? "jump" : "blink", worldX: base, y: hop, z: 3 });
+      if (su) pose.push({ actor: su.actor, frame: su.frame, worldX: base, y: su.y || 0, z: 3 });
+      else {
+        var hop = rt < 420 ? Math.round(8 * 4 * (rt / 420) * (1 - rt / 420)) : 0;
+        pose.push({ actor: "timsah", frame: rt < 420 ? "jump" : "blink", worldX: base, y: hop, z: 3 });
+      }
     }
     walkersPose(t).forEach(function (w) { pose.push(w); });
-    (p.slots["studio-stage"].rest || []).forEach(function (r) {
-      if (!controlled[r.actor]) pose.push({ actor: r.actor, frame: blinkFrame(r.frame, t), worldX: base + r.x, y: 0, z: 3 });
+    // the hero at rest (Timsah in the surface's own pose); hidden while a scene/walk/reaction moves him
+    (p.slots[state.slotName].rest || []).forEach(function (r) {
+      if (controlled[r.actor] || (r.hero && controlled.timsah)) return;
+      var frame = r.frames ? r.frames[Math.floor(t / (r.cycleMs || 1200)) % r.frames.length] : blinkFrame(r.frame, t);
+      pose.push({ actor: r.actor, frame: frame, worldX: base + r.x, y: r.y || 0, z: 3 });
     });
     Object.keys(p.locations).forEach(function (id) {
       var L = p.locations[id];
@@ -594,7 +615,8 @@
   function scenesFor(trigger) {
     var mode = state.choice ? state.choice.mode : "live";
     var list = (state.pack.scenes || []).filter(function (s) {
-      return s.trigger === trigger && sceneActive(s, mode, today()) && (!s.location || s.location === state.location);
+      return s.trigger === trigger && sceneActive(s, mode, today()) && (!s.location || s.location === state.location) &&
+        (!s.surfaces || s.surfaces.indexOf(state.surfaceKey) >= 0);
     });
     if (trigger === "ambient" && list.length > 1) {
       state.ambientTurn = ((state.ambientTurn || 0) + 1) % list.length;
@@ -685,6 +707,13 @@
     }).catch(function () {});
   }
   function watchPhase() {
+    // Surfaces other than the Studio stand at their own stop (no journey, no phase hook).
+    if (state.surface && !state.surface.route) {
+      var fixed = state.surface.location || Object.keys(state.pack.locations)[0];
+      state.progressLocation = fixed;
+      goTo(fixed, true);
+      return;
+    }
     var el = document.getElementById("classicNextStep");
     if (!el || typeof MutationObserver === "undefined") {
       state.progressLocation = Object.keys(state.pack.locations)[0];
@@ -905,7 +934,7 @@
   function syncRoute() {
     var st = state.stage;
     if (!st || !st.route) return;
-    var ids = Object.keys(state.pack.locations);
+    var ids = Object.keys(state.pack.locations).filter(function (id) { return state.pack.locations[id].phase; });
     var progress = ids.indexOf(state.progressLocation || ids[0]);
     st.route.setAttribute("aria-label", tr("world.routeLabel", "Маршрут выборов"));
     Array.prototype.forEach.call(st.route.children, function (b, i) {
@@ -955,9 +984,21 @@
   }
 
   // ── mount / unmount ──
+  // One stage per page: whichever app-declared stage slot this shell carries (Studio, Reading Room
+  // or Mediatheque); the pack's surface for that slot decides route vs. a fixed stop.
+  function surfaceForSlot(slot) {
+    var su = state.pack.surfaces || {};
+    for (var k in su) if (su[k].slot === slot) { state.surfaceKey = k; return su[k]; }
+    state.surfaceKey = slot === "studio-stage" ? "studio" : slot;
+    return { slot: slot, route: slot === "studio-stage" };
+  }
   function mountStage() {
-    var el = document.querySelector('[data-world-slot="studio-stage"]');
-    if (!el || !state.pack.slots["studio-stage"]) return;
+    var el = document.querySelector(STAGE_SLOTS.map(function (s) { return '[data-world-slot="' + s + '"]'; }).join(","));
+    if (!el) return;
+    var slotName = el.getAttribute("data-world-slot");
+    if (!state.pack.slots[slotName]) return;
+    state.slotName = slotName;
+    state.surface = surfaceForSlot(slotName);
     el.hidden = false;
     var canvas = document.createElement("canvas");
     canvas.className = "lp-world-canvas";
@@ -988,7 +1029,8 @@
     route.className = "lp-world-route";
     route.setAttribute("role", "group");
     route.setAttribute("data-world-ui", "");
-    Object.keys(state.pack.locations).forEach(function (id) {
+    if (!state.surface.route) route.hidden = true;
+    Object.keys(state.pack.locations).filter(function (id) { return state.pack.locations[id].phase; }).forEach(function (id) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "lp-world-stop";
@@ -1142,8 +1184,8 @@
     return activate(choice);
   }
 
-  function set(id, mode) {
-    var choice = id ? readChoice(JSON.stringify({ id: id, mode: mode || "live" })) : null;
+  function set(id, mode, lighting) {
+    var choice = id ? readChoice(JSON.stringify({ id: id, mode: mode || "live", lighting: lighting || "auto" })) : null;
     if (state.pack) deactivate();
     storageSet(choice);
     state.choice = choice;
@@ -1253,6 +1295,18 @@
       modes.appendChild(label);
     });
     form.appendChild(modes);
+
+    var lights = el("fieldset", { class: "lp-world-modes lp-world-lights" });
+    lights.appendChild(el("legend", {}, tr("world.lightLegend", "Освещение")));
+    [["auto", tr("world.lightAuto", "По времени суток")], ["day", tr("world.lightDay", "День")],
+     ["dusk", tr("world.lightDusk", "Закат")], ["night", tr("world.lightNight", "Ночь")]].forEach(function (m) {
+      var label = el("label", { class: "lp-world-option lp-world-option-compact" });
+      var input = el("input", { type: "radio", name: "lpWorldLight", value: m[0] });
+      if (((state.choice && state.choice.lighting) || "auto") === m[0]) input.checked = true;
+      label.appendChild(input); label.appendChild(el("span", { class: "lp-world-option-title" }, m[1]));
+      lights.appendChild(label);
+    });
+    form.appendChild(lights);
     form.appendChild(el("p", { class: "lp-world-privacy" }, tr("world.privacy", "")));
 
     var actions = el("div", { class: "lp-world-actions" });
@@ -1266,18 +1320,23 @@
     function selected() {
       var w = form.querySelector("input[name=lpWorld]:checked");
       var m = form.querySelector("input[name=lpWorldMode]:checked");
-      return { id: w ? w.value : "", mode: m ? m.value : "live" };
+      var li = form.querySelector("input[name=lpWorldLight]:checked");
+      return { id: w ? w.value : "", mode: m ? m.value : "live", lighting: li ? li.value : "auto" };
     }
-    function syncModes() { modes.disabled = !selected().id; preview.disabled = !selected().id; }
+    function syncModes() { modes.disabled = !selected().id; lights.disabled = !selected().id; preview.disabled = !selected().id; }
     function applySelection() {
       var s = selected();
-      var same = state.choice && state.choice.id === s.id && state.choice.mode === s.mode;
+      var same = state.choice && state.choice.id === s.id && state.choice.mode === s.mode && (state.choice.lighting || "auto") === s.lighting;
       if (same) return Promise.resolve(true);
       if (!s.id && !state.choice) return Promise.resolve(false);
       if (state.choice && state.choice.id === s.id) {
-        state.choice.mode = s.mode; storageSet(state.choice); return Promise.resolve(true);
+        state.choice.mode = s.mode;
+        state.choice.lighting = s.lighting;
+        storageSet(state.choice);
+        if (state.pack) { var l = currentLighting(); if (state.stage && l !== state.stage.renderer.lighting()) setLighting(l); }
+        return Promise.resolve(true);
       }
-      return set(s.id || null, s.mode);
+      return set(s.id || null, s.mode, s.lighting);
     }
     form.addEventListener("change", function (e) {
       syncModes();

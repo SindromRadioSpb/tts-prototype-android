@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T19:43:05.324Z",
+  "id": "timsah-leisure-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Using EXACTLY the same character, pixel art style, pixel size, colours and proportions as the attached character sheet (Timsah the friendly crocodile volunteer with the blue lanyard and white badge), draw 4 NEW poses in one horizontal row, all at the same scale as the reference, evenly spaced and clearly separated, flat solid magenta #FF00FF background, no ground, no shadows:\n1) sitting (as if on a bench, legs dangling, side view facing right) reading an open small booklet held in both hands, calm and focused,\n2) the same sitting pose turning a page of the booklet, one eyebrow raised, amused,\n3) standing, side view facing right, wearing big over-ear headphones, holding a small paper bag of popcorn, watching something attentively,\n4) the same standing pose with headphones, laughing, a piece of popcorn flying up.\nSame face, same lanyard and badge in every pose. No text, no letters, no numbers, no logos. Crisp pixels, 1px dark outline, no anti-aliasing.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/timsah-leisure-v1.jpg",
+  "sha256": "500d5fc6857be2ad7ec03e481b395fc7a7643508fb7ac4c091670a00e4466081",
+  "bytes": 465634,
+  "usage": {
+    "promptTokenCount": 479,
+    "candidatesTokenCount": 1392,
+    "totalTokenCount": 2093,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 221
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 222,
+    "serviceTier": "standard"
+  }
+}
