@@ -269,13 +269,16 @@ html[data-world] .lp-world-poster:focus-visible { outline: 3px solid #fff3b0; ou
 html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 900; line-height: 1.1; letter-spacing: 0.04em; text-align: center; }
 html[data-world] .lp-world-poster-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.875rem; font-weight: 900; line-height: 1.05; }
 html[data-world] .lp-world-poster-slogan { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 800; line-height: 1; }
-/* the tally board's labels and the tie stamp (crisp text over the renderer's chalk) */
+/* the vowel marks centred over the counting-night TV bars (crisp text over the canvas) */
 html[data-world] .lp-world-board {
   position: absolute; left: 0; bottom: 0; z-index: 2; pointer-events: none;
   display: grid; grid-template-columns: 1fr 1fr; align-items: start; justify-items: center;
 }
 html[data-world] .lp-world-board[hidden] { display: none; }
-html[data-world] .lp-world-board-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 0.875rem; font-weight: 900; line-height: 1; margin-top: -16px; text-shadow: 0 0 2px #0b0f1a; }
+html[data-world] .lp-world-board-mark {
+  font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1rem; font-weight: 900; line-height: 1.15;
+  color: #fff6e0; background: #0b0f1a; padding: 0 3px; border-bottom: 3px solid transparent;
+}
 html[data-world] .lp-world-board-stamp {
   grid-column: 1 / -1; align-self: center; justify-self: center; rotate: -12deg;
   padding: 1px 5px; border: 2px solid #e2475a; color: #ffd6db; background: rgba(40, 8, 14, 0.55);

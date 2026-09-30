@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T20:00:08.445Z",
+  "at": "2026-09-30T21:07:23.643Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -114,9 +114,9 @@
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.10.0",
-        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.10.0",
-        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.10.0"
+        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.11.0",
+        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.11.0",
+        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.11.0"
       ]
     },
     {
@@ -283,13 +283,10 @@
         },
         "governor": {
           "autoCount": 0,
-          "playing": true,
+          "playing": false,
           "lastEndAt": null
         },
-        "scene": {
-          "id": "hq-flyers",
-          "kind": "story"
-        },
+        "scene": null,
         "walking": false,
         "location": "hq",
         "lighting": "night",

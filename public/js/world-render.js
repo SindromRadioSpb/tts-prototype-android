@@ -310,14 +310,30 @@
       var c = hexToRgb(hex), t = tint ? hexToRgb(tint) : [255, 255, 255];
       return "rgb(" + Math.round(c[0] * t[0] / 255) + "," + Math.round(c[1] * t[1] / 255) + "," + Math.round(c[2] * t[2] / 255) + ")";
     }
-    function drawPosters() {
+    // stand = true: a free-standing campaign stand on the pavement (drawn in front of the street,
+    // one wooden board behind both posters, two legs); otherwise posters are pasted on the facade.
+    function drawPosters(stand) {
       var locs = pack.locations || {};
       Object.keys(locs).forEach(function (id) {
         var L = locs[id];
-        (L.posters || []).forEach(function (po, n) {
+        var list = (L.posters || []).filter(function (po) { return !!po.stand === !!stand; });
+        if (stand && list.length) {
+          var xs = list.map(function (po) { return L.x + po.x - state.cam; });
+          var bl = Math.round(Math.min.apply(null, xs) - 18), br = Math.round(Math.max.apply(null, xs) + 18);
+          var top = state.h - scenery.groundY - (list[0].y || 0) - 34, bottom = state.h - scenery.groundY - (list[0].y || 0) + 2;
+          var legB = state.h - scenery.groundY;
+          ctx.fillStyle = mulTint("#1b1f2e");
+          ctx.fillRect(bl + 6, bottom, 3, legB - bottom); ctx.fillRect(br - 9, bottom, 3, legB - bottom);
+          ctx.fillStyle = mulTint("#6b4a28"); ctx.fillRect(bl + 7, bottom, 1, legB - bottom); ctx.fillRect(br - 8, bottom, 1, legB - bottom);
+          ctx.fillStyle = mulTint("#1b1f2e"); ctx.fillRect(bl, top, br - bl, bottom - top);
+          ctx.fillStyle = mulTint("#8f6639"); ctx.fillRect(bl + 1, top + 1, br - bl - 2, bottom - top - 2);
+          ctx.fillStyle = "rgba(10,8,24,0.28)"; ctx.fillRect(bl + 2, legB, br - bl - 4, 2);
+        }
+        list.forEach(function (po, n) {
           var pt = pack.parties && pack.parties[po.party];
           if (!pt) return;
-          var x = Math.round(L.x + po.x - 14 - state.cam), y = state.h - (scenery.backGround || 30) - (po.y || 0) - 30;
+          var base = po.stand ? scenery.groundY : (scenery.backGround || 30);
+          var x = Math.round(L.x + po.x - 14 - state.cam), y = state.h - base - (po.y || 0) - 30;
           if (x < -40 || x > state.w + 40) return;
           ctx.fillStyle = mulTint("#1b1f2e"); ctx.fillRect(x, y, 28, 30);
           ctx.fillStyle = mulTint(pt.color); ctx.fillRect(x + 1, y + 1, 26, 28);
@@ -369,11 +385,30 @@
             });
           }
           if (fx.kind === "debate" && front) {
-            // two podiums split-screen in the parties' colours; the speaker alternates; a tie of turns
+            // split-screen debate on a neutral studio background (no party colours: the vowel parties
+            // stay fictional); each side shows a parody portrait, the speaker alternates and talks
             var sf2 = fx.surface, sx2 = Math.round(L.x + fx.x + sf2.x0 - state.cam), sy2 = state.h - scenery.groundY - sf2.top;
             var sw2 = sf2.x1 - sf2.x0 + 1, sh2 = sf2.top - sf2.bottom, half = Math.floor(sw2 / 2);
-            var turn = Math.floor(t / 1100) % 2;
-            (fx.parties || []).forEach(function (pid, n) {
+            var turn = Math.floor(t / 1600) % 2;
+            if (fx.cast) {
+              fx.cast.forEach(function (cst, n) {
+                var px0 = sx2 + n * half, speaking = n === turn;
+                ctx.fillStyle = fx.screen || "#1d2a48"; ctx.fillRect(px0 + 1, sy2 + 1, half - 2, sh2 - 2);
+                ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(px0 + 1, sy2 + 1, half - 2, 3);
+                var actor = pack.actors[cst.actor];
+                var frame = speaking && ((t / 170) | 0) % 2 ? cst.frames[1] : cst.frames[0];
+                var f = frameOf(atlas, sheetName(actor.sheet), frame);
+                if (f) {
+                  var img = images[atlas.atlases[sheetName(actor.sheet)].file];
+                  var r = f.rect, w = Math.min(r.w, half - 2), hh = Math.min(r.h, sh2 - 2);
+                  var dx = px0 + 1 + Math.floor((half - 2 - w) / 2), dy = sy2 + sh2 - 1 - hh;
+                  if (img) { ctx.save(); ctx.beginPath(); ctx.rect(px0 + 1, sy2 + 1, half - 2, sh2 - 2); ctx.clip(); ctx.drawImage(img, r.x, r.y + (r.h - hh), w, hh, dx, dy, w, hh); ctx.restore(); }
+                }
+                if (!speaking) { ctx.fillStyle = "rgba(10,14,30,0.28)"; ctx.fillRect(px0 + 1, sy2 + 1, half - 2, sh2 - 2); }
+              });
+              ctx.fillStyle = "#1b1f2e"; ctx.fillRect(sx2 + half - 1, sy2, 1, sh2);
+            }
+            (fx.cast ? [] : (fx.parties || [])).forEach(function (pid, n) {
               var pt = pack.parties && pack.parties[pid];
               if (!pt) return;
               var px0 = sx2 + n * half, speaking = n === turn;
@@ -468,11 +503,12 @@
       if (kind === "backdrop") { drawLayers(kind, t); return; }
       drawLayers(kind, t, false);
       drawActors(true);
-      drawPosters();
+      drawPosters(false);
       drawFx(t, dt, false);
       drawLayers(kind, t, true);
       (scenery.layers || []).forEach(function (L) { if (L.front) drawLampLight(L); });
       if (scenery.titleVeil) titleVeil();
+      drawPosters(true);
       drawActors(false);
       drawFx(t, dt, true);
       if (scenery.curb) {

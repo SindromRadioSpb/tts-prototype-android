@@ -1,0 +1,159 @@
+# EDITED 2026-09-30: hand-drawn knitted kippah (2 colours) on debater B, both frames — lost in quantization
+# PIXELIZED by scripts/worlds/pixelize.py from gen/debaters-v1 (sha256 fd4b4e8f43603c08…)
+# height=26 colors=24 outline=True scale=28.73 source px per logical px
+# Hand edits welcome: this .px is now the source of truth for the sprite.
+. transparent
+8 #2f6fd6
+9 #e0b23a
+k #181934
+a #1b2139
+b #1b2343
+c #252f45
+d #283155
+e #2a3549
+f #3a364d
+g #674958
+h #9f6062
+i #747581
+j #c27f74
+l #7496be
+m #8e99a5
+n #de937d
+o #ce9a89
+p #dea28c
+q #eeb299
+r #b9c5d0
+s #f4be9d
+t #f8be99
+u #f8c09b
+v #f9c19b
+w #f9c39c
+x #fcfefe
+
+@frame a-quiet 16x30 anchor=8,28
+................
+................
+......kkkkk.....
+....kkimrmmkk...
+...kdmrrrrrrmk..
+...kmmmmmmmmik..
+..kmrmiqpiiiiik.
+..kmrmnwwwwwwmk.
+.kimrmnwutvvtgk.
+.kdmrmnuuuuvugk.
+..kiijniggnhggk.
+..khijnojhngjgk.
+..knhnvvutnutnk.
+..knnnuvvnpqunk.
+..kghnuutuhqqk..
+...kgntutttttk..
+...kjhntutntnk..
+..kdxjhjuuutk...
+.kdddxhhhnjhk...
+.kdddxxojhhbbk..
+.kddddxxxgxbbbk.
+.kddddxxlllbbbk.
+.kdddddlrlmbbbk.
+.kdddddxxllrbbk.
+.kddddddrllxbbk.
+.kddddddlllxbbk.
+.kdddddddlllbbk.
+.kdddddddlllbbk.
+.kbddddddlllbbk.
+..kkkkkkkkkkkk..
+
+@frame a-talk 16x30 anchor=8,28
+................
+................
+......kkkkkk....
+....kkimrrmik...
+...kdmrrrrrrmk..
+...kmmmmmmmmmk..
+..kirmipqiiiiik.
+..kmmmnwwwwwwik.
+..kmrmnwvuvvtik.
+..kirmnuuvvvvfk.
+..kiimnigfnjgfk.
+..khimnnihqhjhk.
+..kphnvuutnttqk.
+..kjnnuuunnpvnk.
+...khnuutuhhtk..
+...kghtttfgitk..
+...khhntvqtqnk..
+..kdrnhhvutqk...
+.kdddnhhhqphk...
+.kddtnxjjhhbkk..
+.kddtdxxrgxbbbk.
+.kbdttpxlllbbbk.
+.kdtttnjilrbbbk.
+.kdttthgrllrbbk.
+.kdtqghhlllxbbk.
+.kbtthhdlllxbbk.
+.kjttgddgllrbbk.
+.kijhbdddlllbbk.
+.kbllbdddlllbbk.
+..kkkkkkkkkkkk..
+
+@frame b-quiet 16x30 anchor=8,28
+................
+................
+.....k8888......
+....k89898k.....
+...kffffghdk....
+..kcffffkkcgk...
+.kckkkkanaakfk..
+.kapwwwwwpeakk..
+.kkvwwwwwufakk..
+.kkvvuuuvnakkk..
+.kkkuuuuknnkak..
+..khbhhkfjnkhk..
+..kupunquvuhjk..
+..kuvtnuvvoojk..
+..kuthhpuuogk...
+..kqpppppoogk...
+...kppsppohhk...
+...kppopphnrak..
+....kpqohjrxeak.
+...kkighjrxeeek.
+..kkgrnnrxxeeek.
+.kaalrnplxeeeak.
+.kaaaljrlleeeek.
+.kaamxrrxeeeeek.
+.kaaxxxxxeeeeek.
+.kaaxxxxeeeceek.
+.kaaxxxxeeeeeek.
+.kaaxxxeeeeeeek.
+.kaaxxxeeaeeeek.
+..kkkkkkkkkkkk..
+
+@frame b-talk 16x30 anchor=8,28
+................
+................
+.....k8888......
+....k89898k.....
+...kdffeghdk....
+..kkffffkkagk...
+.kakkkkankekfk..
+.kauwwwwwnkakk..
+.kkvwwwwwnakkk..
+.kkvuuuvvnkkkk..
+.kkhuuukjnhkak..
+.kggkngejnnahk..
+.kntnnntvunhhk..
+..kutqtvvuopnk..
+..ktjhptuoofk...
+..knpppptohhk...
+..kjoffppohjk...
+...kppppjhnrak..
+...khpphhjsxeak.
+...kkighjsxeeek.
+..kkarnnqxxeeek.
+.kaadroplxefekk.
+.kaaalmrlmeteek.
+.kaadxrrxeeneek.
+.kaarxpontqjeek.
+.kaaxpnqqjjjeek.
+.kaaxxjjjjjjhck.
+.kaaxxrhjnjjjak.
+.kaaxxxeeagjlak.
+..kkkkkkkkkkkk..

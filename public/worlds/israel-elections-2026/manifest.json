@@ -1,7 +1,7 @@
 {
   "schema": "lp-world/2",
   "id": "israel-elections-2026",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "engine": {
     "min": 2,
     "max": 2
@@ -343,6 +343,10 @@
     "leisure": {
       "sheet": "setpieces-leisure",
       "fictional": true
+    },
+    "debaters": {
+      "sheet": "debaters",
+      "prototypeRef": "CHARACTERS.md#debate-parody"
     }
   },
   "locations": {
@@ -361,12 +365,6 @@
           "x": 64,
           "back": true,
           "z": 1
-        },
-        {
-          "actor": "setpiece",
-          "frame": "table",
-          "x": 38,
-          "z": 1
         }
       ],
       "sign": {
@@ -382,16 +380,23 @@
       "posters": [
         {
           "party": "kamatz",
-          "x": 47,
-          "y": 10
+          "x": 48,
+          "y": 26,
+          "stand": true
         },
         {
           "party": "patach",
-          "x": 81,
-          "y": 10
+          "x": 80,
+          "y": 26,
+          "stand": true
         }
       ],
-      "icon": "ui-icon-hq"
+      "icon": "ui-icon-hq",
+      "quip": {
+        "ru": "Штаб! Листовки делим поровну.",
+        "en": "HQ! Flyers split fifty-fifty.",
+        "he": "המטה! עלונים חצי־חצי."
+      }
     },
     "press": {
       "phase": "table",
@@ -440,7 +445,12 @@
           "every": 260
         }
       ],
-      "icon": "ui-icon-press"
+      "icon": "ui-icon-press",
+      "quip": {
+        "ru": "Типография: бюллетени — только с огласовкой!",
+        "en": "The press: ballots with vowels only!",
+        "he": "בית הדפוס: פתקים רק עם ניקוד!"
+      }
     },
     "polling": {
       "phase": "save",
@@ -481,7 +491,12 @@
         },
         "x": 70
       },
-      "icon": "ui-icon-polling"
+      "icon": "ui-icon-polling",
+      "quip": {
+        "ru": "Участок открыт. Конверт — в урну, слово — в память!",
+        "en": "Polls are open. Envelope in the box, word in your head!",
+        "he": "הקלפי פתוחה. מעטפה לקלפי, מילה לזיכרון!"
+      }
     },
     "count": {
       "phase": "learn",
@@ -498,12 +513,6 @@
           "frame": "count",
           "x": 66,
           "back": true,
-          "z": 1
-        },
-        {
-          "actor": "setpiece",
-          "frame": "board",
-          "x": 44,
           "z": 1
         }
       ],
@@ -534,29 +543,33 @@
           "parties": [
             "kamatz",
             "patach"
-          ]
-        },
-        {
-          "kind": "chalk",
-          "x": 44,
-          "surface": {
-            "x0": -7,
-            "x1": 7,
-            "top": 26,
-            "bottom": 13
-          },
-          "parties": [
-            "kamatz",
-            "patach"
           ],
-          "stamp": {
-            "ru": "Ничья!",
-            "en": "A tie!",
-            "he": "תיקו!"
+          "labels": true,
+          "tieLines": {
+            "ru": [
+              "Ничья! Камац и Патах звучат одинаково.",
+              "50 на 50 — как «а» и «а».",
+              "Пересчёт? Всё равно выйдет «а»!"
+            ],
+            "en": [
+              "A tie! Kamatz and Patach sound the same.",
+              "50–50, just like “a” and “a”.",
+              "A recount? It still comes out “a”!"
+            ],
+            "he": [
+              "תיקו! קמץ ופתח נשמעים אותו דבר.",
+              "חמישים־חמישים, כמו אָ ואַ.",
+              "ספירה חוזרת? עדיין יוצא אָ!"
+            ]
           }
         }
       ],
-      "icon": "ui-icon-count"
+      "icon": "ui-icon-count",
+      "quip": {
+        "ru": "Считаем голоса… и гласные!",
+        "en": "Counting votes… and vowels!",
+        "he": "סופרים קולות… ותנועות!"
+      }
     },
     "library": {
       "x": 1760,
@@ -582,11 +595,15 @@
           "he": "ספרייה"
         },
         "x": 0
+      },
+      "quip": {
+        "ru": "Тсс! Читаю программы.",
+        "en": "Shh! Reading the platforms.",
+        "he": "ששש! קורא מצעים."
       }
     },
     "debate": {
       "x": 2200,
-      "lighting": "night",
       "names": {
         "ru": "Дебаты",
         "en": "The debate",
@@ -616,9 +633,22 @@
             "top": 49,
             "bottom": 23
           },
-          "parties": [
-            "kamatz",
-            "patach"
+          "screen": "#1d2a48",
+          "cast": [
+            {
+              "actor": "debaters",
+              "frames": [
+                "a-quiet",
+                "a-talk"
+              ]
+            },
+            {
+              "actor": "debaters",
+              "frames": [
+                "b-quiet",
+                "b-talk"
+              ]
+            }
           ]
         }
       ],
@@ -631,6 +661,11 @@
           "he": "עימות"
         },
         "x": 0
+      },
+      "quip": {
+        "ru": "Дебаты! Попкорн готов.",
+        "en": "Debate time! Popcorn’s ready.",
+        "he": "עימות! הפופקורן מוכן."
       }
     }
   },

@@ -92,6 +92,56 @@
         }
       }
     },
+    "debaters": {
+      "file": "debaters.png",
+      "width": 67,
+      "height": 30,
+      "bytes": 1160,
+      "sha256": "8eddf3c9515bbd3d158dd49b41b3e2cf462b5f8e79599f68cb873edea9726a58",
+      "colors": 26,
+      "frames": {
+        "a-quiet": {
+          "x": 0,
+          "y": 0,
+          "w": 16,
+          "h": 30,
+          "anchor": [
+            8,
+            28
+          ]
+        },
+        "a-talk": {
+          "x": 17,
+          "y": 0,
+          "w": 16,
+          "h": 30,
+          "anchor": [
+            8,
+            28
+          ]
+        },
+        "b-quiet": {
+          "x": 34,
+          "y": 0,
+          "w": 16,
+          "h": 30,
+          "anchor": [
+            8,
+            28
+          ]
+        },
+        "b-talk": {
+          "x": 51,
+          "y": 0,
+          "w": 16,
+          "h": 30,
+          "anchor": [
+            8,
+            28
+          ]
+        }
+      }
+    },
     "layer-city-day-strip": {
       "file": "layer-city-day-strip.png",
       "width": 309,

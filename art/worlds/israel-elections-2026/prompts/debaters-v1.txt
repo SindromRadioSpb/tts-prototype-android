@@ -1,0 +1,8 @@
+Pixel art TV-debate portraits for a light-hearted political parody game, in EXACTLY the same crisp pixel art style, pixel size and palette family as the attached reference image. Friendly caricature, respectful, expressive but not grotesque, no insults.
+
+Draw 4 head-and-shoulders portrait busts in one horizontal row, all the same size and scale, evenly spaced and clearly separated, facing the viewer slightly turned toward the centre, on a flat solid magenta #FF00FF background:
+1) Debater A, mouth closed: an older statesman with thick silver-grey hair combed back, strong jaw, heavy eyebrows, dark navy suit, white shirt, light blue tie, confident half-smile,
+2) the SAME debater A, mouth open talking, one finger raised,
+3) Debater B, mouth closed: a man in his late forties with short dark hair and a small colourful knitted kippah, dark suit with an open-collar white shirt, no tie, intense eyes, slight grin,
+4) the SAME debater B, mouth open talking, hand gesturing.
+Identical face, hair and clothes between the two frames of each debater. No text, no letters, no numbers, no logos, no flags, no party symbols. Crisp pixels, 1px dark outline, no anti-aliasing.

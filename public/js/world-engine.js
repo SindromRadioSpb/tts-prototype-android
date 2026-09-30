@@ -27,7 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.10.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false }
   };
   // Owner decision 2026-09-30: the election world is ON by default (live); a learner switches to
   // Classic by hand and that explicit choice ({id:"classic"}) is kept. Retiring the default world
@@ -45,8 +45,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=710";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=710";
+  var CSS_URL = "/css/world-skin.css?v=711";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=711";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -181,10 +181,14 @@
       }
       (L.props || []).forEach(function (p) { if (!frameOk(p.actor, p.frame)) err("location " + id + " prop " + p.actor); });
       (L.posters || []).forEach(function (po) { if (!parties[po.party] || !isNum(po.x, -400, 400) || !isNum(po.y || 0, 0, 200)) err("location " + id + " poster"); });
+      if (L.quip && !localized(L.quip)) err("location " + id + " quip");
       if (L.icon && !atlases[L.icon]) err("location " + id + " icon");
       (L.fx || []).forEach(function (fx) {
         if (["papers", "searchlights", "tally", "chalk", "debate"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
         if (fx.stamp && !localized(fx.stamp)) err("location " + id + " fx stamp");
+        if (fx.tieLines && !localizedList(fx.tieLines)) err("location " + id + " fx tieLines");
+        if (fx.screen && !isColor(fx.screen)) err("location " + id + " fx screen");
+        (fx.cast || []).forEach(function (cst) { if (!(cst.frames || []).every(function (f) { return frameOk(cst.actor, f); })) err("location " + id + " fx cast"); });
         (fx.parties || []).forEach(function (p) { if (!parties[p]) err("location " + id + " fx party " + p); });
         if (fx.color != null && !isColor(fx.color)) err("location " + id + " fx color");
       });
@@ -262,9 +266,9 @@
   // Journey between two locations: walk duration and a synthetic walking track.
   function journey(fromX, toX, cycle) {
     var dx = toX - fromX;
-    var ms = Math.max(1200, Math.min(3200, Math.abs(dx) * 3));
+    var ms = Math.max(600, Math.min(1200, Math.abs(dx) * 1.2));
     return { ms: ms, track: { actor: "timsah", keys: [
-      { t: 0, cycle: cycle || ["walk-a", "walk-b"], cycleMs: 150, x: fromX, flip: dx < 0 },
+      { t: 0, cycle: cycle || ["walk-a", "walk-b"], cycleMs: 110, x: fromX, flip: dx < 0 },
       { t: ms, frame: "idle", x: toX, hold: true }
     ] } };
   }
@@ -807,11 +811,14 @@
     // Never over a poster and never up into the title: with posters on this stop the bubble wraps
     // into the free space left of them at head height; it rises above them only if that space is too narrow.
     var posters = (L && L.posters) || [];
+    // the counting-night bars and their vowel labels are an obstacle too (5+8 art px wide, labels above)
+    var tally = L && (L.fx || []).filter(function (f) { return f.kind === "tally" && f.labels; })[0];
+    if (tally) posters = posters.concat([{ x: tally.x + 12, y: 0, tally: true }]);
     var limit = st.el.clientWidth - 8;
     if (posters.length) {
-      var pl = Math.min.apply(null, posters.map(function (po) { return (L.x + po.x - 14 - cam) * sc; }));
+      var pl = Math.min.apply(null, posters.map(function (po) { return (L.x + po.x - 14 - cam) * sc; })) - (posters.some(function (po) { return po.stand; }) ? 4 * sc : 0);
       if (pl - 12 >= 150) { limit = pl - 6; b.style.whiteSpace = "normal"; b.style.maxWidth = Math.round(limit - 8) + "px"; }
-      else posters.forEach(function (po) { rows = Math.max(rows, (state.pack.scenery.backGround || 30) + (po.y || 0) + 32); });
+      else posters.forEach(function (po) { rows = Math.max(rows, (po.stand ? state.pack.scenery.groundY : (state.pack.scenery.backGround || 30)) + (po.y || 0) + 32); });
     } else { b.style.whiteSpace = ""; b.style.maxWidth = ""; }
     var left = Math.round(Math.max(8, Math.min(limit - b.offsetWidth, head - 12 * sc)));
     b.dataset.side = "up";
@@ -891,6 +898,7 @@
         b.setAttribute("aria-label", (pt.names[locale()] || pt.names.ru) + ". " + tr("world.signListen", "Послушать"));
         b.dataset.x = po.x;
         b.dataset.y = po.y || 0;
+        b.dataset.stand = po.stand ? "1" : "";
         b.addEventListener("click", function () {
           speakHebrew(pt.speak);
           state.react = { start: now() };
@@ -906,7 +914,8 @@
       b.style.width = (28 * st.scale) + "px";
       b.style.height = (30 * st.scale) + "px";
       b.style.transform = "translateX(" + Math.round(x) + "px)";
-      b.style.bottom = Math.round(((state.pack.scenery.backGround || 30) + Number(b.dataset.y)) * st.scale) + "px";
+      var base = b.dataset.stand === "1" ? state.pack.scenery.groundY : (state.pack.scenery.backGround || 30);
+      b.style.bottom = Math.round((base + Number(b.dataset.y)) * st.scale) + "px";
     });
   }
 
@@ -914,7 +923,7 @@
     var st = state.stage;
     if (!st) return;
     var L = state.location && state.pack.locations[state.location];
-    var fx = L && !state.walk && (L.fx || []).filter(function (f) { return f.kind === "chalk"; })[0];
+    var fx = L && !state.walk && (L.fx || []).filter(function (f) { return f.kind === "tally" && f.labels; })[0];
     if (!fx) { if (st.board) st.board.hidden = true; return; }
     if (!st.board) {
       st.board = document.createElement("div");
@@ -928,22 +937,25 @@
       (fx.parties || []).forEach(function (pid) {
         var s = document.createElement("span");
         s.className = "lp-world-board-mark"; s.lang = "he"; s.textContent = state.pack.parties[pid].mark;
-        s.style.color = state.pack.parties[pid].color;
+        s.style.borderBottomColor = state.pack.parties[pid].color;
         st.board.appendChild(s);
       });
-      var stamp = document.createElement("span");
-      stamp.className = "lp-world-board-stamp";
-      stamp.textContent = fx.stamp ? (fx.stamp[locale()] || fx.stamp.ru) : "";
-      st.board.appendChild(stamp);
     }
     st.board.hidden = false;
-    var sf = fx.surface, sc = st.scale;
-    st.board.style.width = ((sf.x1 - sf.x0 + 1) * sc) + "px";
-    st.board.style.height = ((sf.top - sf.bottom) * sc) + "px";
-    st.board.style.transform = "translateX(" + Math.round((L.x + fx.x + sf.x0 - st.renderer.camera()) * sc) + "px)";
-    st.board.style.bottom = ((state.pack.scenery.groundY + sf.bottom) * sc) + "px";
-    // the tie is stamped at the end of each counting cycle (same clock as the chalk)
-    st.board.dataset.tie = ((now() % 6000) / 6000) > 0.74 ? "1" : "";
+    var sc = st.scale;
+    // two labels, each centred over its 5px bar (bars at +0 and +8 art px from fx.x)
+    st.board.style.width = (13 * sc) + "px";
+    st.board.style.height = (6 * sc) + "px";
+    st.board.style.transform = "translateX(" + Math.round((L.x + fx.x - st.renderer.camera()) * sc) + "px)";
+    st.board.style.bottom = ((fx.y + 16) * sc) + "px";
+    // when the bars reach the top together, Timsah calls the tie (once per counting cycle)
+    var cycle = Math.floor(now() / 6000), phase = (now() % 6000) / 6000;
+    if (fx.tieLines && phase > 0.72 && state.tieCycle !== cycle && !state.react && !state.scene && animating()) {
+      state.tieCycle = cycle;
+      var list = fx.tieLines[locale()] || fx.tieLines.ru;
+      state.react = { start: now() };
+      showBubble(list[cycle % list.length]);
+    }
   }
 
   function syncRoute() {
@@ -965,8 +977,12 @@
   function visit(id) {
     if (!state.pack || !state.pack.locations[id]) return;
     if (id === state.location && !state.walk) { onSign(); return; }
-    goTo(id, false);
+    goTo(id, true);                          // instant: the route is a menu, not a walk
     syncRoute();
+    var L = state.pack.locations[id];
+    signal("arrive." + id);                  // the stop's own action plays at once
+    if (L.quip) { state.react = { start: now() }; showBubble(L.quip[locale()] || L.quip.ru); }
+    if (!animating()) drawOnce(); else kick();
   }
 
   function onSign() {

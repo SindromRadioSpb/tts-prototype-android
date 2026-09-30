@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T20:55:10.854Z",
+  "id": "debaters-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Pixel art TV-debate portraits for a light-hearted political parody game, in EXACTLY the same crisp pixel art style, pixel size and palette family as the attached reference image. Friendly caricature, respectful, expressive but not grotesque, no insults.\n\nDraw 4 head-and-shoulders portrait busts in one horizontal row, all the same size and scale, evenly spaced and clearly separated, facing the viewer slightly turned toward the centre, on a flat solid magenta #FF00FF background:\n1) Debater A, mouth closed: an older statesman with thick silver-grey hair combed back, strong jaw, heavy eyebrows, dark navy suit, white shirt, light blue tie, confident half-smile,\n2) the SAME debater A, mouth open talking, one finger raised,\n3) Debater B, mouth closed: a man in his late forties with short dark hair and a small colourful knitted kippah, dark suit with an open-collar white shirt, no tie, intense eyes, slight grin,\n4) the SAME debater B, mouth open talking, hand gesturing.\nIdentical face, hair and clothes between the two frames of each debater. No text, no letters, no numbers, no logos, no flags, no party symbols. Crisp pixels, 1px dark outline, no anti-aliasing.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/debaters-v1.jpg",
+  "sha256": "fd4b4e8f43603c0841304c0936e9f622301b409cac611ec4713fe21ae574eb08",
+  "bytes": 687104,
+  "usage": {
+    "promptTokenCount": 537,
+    "candidatesTokenCount": 1398,
+    "totalTokenCount": 2266,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 279
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 331,
+    "serviceTier": "standard"
+  }
+}

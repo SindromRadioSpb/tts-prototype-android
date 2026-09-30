@@ -177,7 +177,7 @@ test("the journey follows the Studio phase: one location per phase, walk time bo
   assert.equal(core.locationForPhase(m, "learn"), "count");
   assert.equal(core.locationForPhase(m, "whatever"), "hq");
   const j = core.journey(120, 920);
-  assert.ok(j.ms >= 1200 && j.ms <= 3200, `${j.ms}`);
+  assert.ok(j.ms >= 600 && j.ms <= 1200, `${j.ms}`);
   assert.equal(core.sampleTrack(j.track, 0).flip, false);
   assert.equal(core.sampleTrack(core.journey(920, 120).track, 0).flip, true);
   assert.equal(core.sampleTrack(j.track, j.ms).x, 920);
