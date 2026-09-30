@@ -1,0 +1,31 @@
+{
+  "at": "2026-09-30T13:53:43.581Z",
+  "id": "keyart-dusk-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [],
+  "prompt": "16-bit pixel art background for a side-scrolling indie game, crisp pixels, limited palette, no anti-aliasing, hand-crafted look like the best modern indie pixel art games.\n\nScene: a Jerusalem neighbourhood on the eve of national elections, at dusk. Strong layered depth for parallax: a dithered purple-to-orange sunset sky with a few pixel clouds; distant soft Judean hills; a middle layer of Jerusalem-stone houses with arched windows, flat roofs, water tanks and solar heaters, cypress and olive trees; in front, a street of pale stone with a low stone wall, warm street lamps just switching on, strings of blue-and-white bunting across the street, and a small election campaign office with a blank blue banner and a wall of blank posters. A few windows glowing warm yellow.\n\nMood: warm, playful, a little mischievous, cozy — the calm before election night.\nStrictly: no text, no letters, no numbers, no logos, no flags with emblems, no people, no religious buildings or symbols. Wide panoramic composition, ground line near the bottom quarter.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/keyart-dusk-v1.jpg",
+  "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b",
+  "bytes": 847563,
+  "usage": {
+    "promptTokenCount": 232,
+    "candidatesTokenCount": 1351,
+    "totalTokenCount": 1809,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 232
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 226,
+    "serviceTier": "standard"
+  }
+}

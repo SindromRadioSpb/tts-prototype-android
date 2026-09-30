@@ -1,19 +1,21 @@
 /*
- * LinguistPro Worlds — skin mapping (app-owned; loaded by world-engine.js only while a world is on).
+ * LinguistPro Worlds — skin mapping v2 (app-owned; loaded by world-engine.js only while a world is
+ * on, or when the picker opens).
  *
  * A pack supplies VALUES (--lpw-light-* / --lpw-dark-*, validated by the engine); this file decides
  * WHERE they apply. Contract (ENGINE_CONTRACT.md, ART_BIBLE.md):
+ *   - the world is the ENVIRONMENT: a living canvas behind the Studio head (full bleed, up to the
+ *     page top) and a fixed backdrop behind the whole page; working surfaces float over it as
+ *     opaque pixel panels;
  *   - never touched: the study table (#tableContainer internals, reader-core), learning fonts,
  *     font sizes, focus rings, 44px targets, column widths, RTL order;
- *   - pixel look = square corners + hard 2px outlines + offset hard shadows, never blur;
- *   - everything is scoped to html[data-world]; with no world this file is not even requested.
+ *   - pixel look = square corners + hard 2px outlines + offset hard shadows, never blur or glow;
+ *   - everything is scoped to html[data-world]; under Classic these rules match nothing.
  */
 
 html[data-world] {
   --lpw-scale: 2;
   --lpw-page: var(--lpw-light-page);
-  --lpw-page-tile: var(--lpw-light-page-tile);
-  --lpw-page-tile-w: var(--lpw-light-page-tile-w);
   --lpw-surface: var(--lpw-light-surface);
   --lpw-surface-soft: var(--lpw-light-surface-soft);
   --lpw-ink: var(--lpw-light-ink);
@@ -21,16 +23,12 @@ html[data-world] {
   --lpw-shadow: var(--lpw-light-shadow);
   --lpw-accent: var(--lpw-light-accent);
   --lpw-accent-ink: var(--lpw-light-accent-ink);
-  --lpw-stage-sky: var(--lpw-light-stage-sky);
-  --lpw-stage-haze: var(--lpw-light-stage-haze);
-  --lpw-stage-strip: var(--lpw-light-stage-strip);
-  --lpw-stage-strip-w: var(--lpw-light-stage-strip-w);
-  --lpw-stage-strip-h: var(--lpw-light-stage-strip-h);
+  --lpw-plate: var(--lpw-light-plate);
+  --lpw-plate-ink: var(--lpw-light-plate-ink);
+  background: var(--lpw-page) !important;
 }
 html[data-world] body.theme-dark {
   --lpw-page: var(--lpw-dark-page);
-  --lpw-page-tile: var(--lpw-dark-page-tile);
-  --lpw-page-tile-w: var(--lpw-dark-page-tile-w);
   --lpw-surface: var(--lpw-dark-surface);
   --lpw-surface-soft: var(--lpw-dark-surface-soft);
   --lpw-ink: var(--lpw-dark-ink);
@@ -38,50 +36,67 @@ html[data-world] body.theme-dark {
   --lpw-shadow: var(--lpw-dark-shadow);
   --lpw-accent: var(--lpw-dark-accent);
   --lpw-accent-ink: var(--lpw-dark-accent-ink);
-  --lpw-stage-sky: var(--lpw-dark-stage-sky);
-  --lpw-stage-haze: var(--lpw-dark-stage-haze);
-  --lpw-stage-strip: var(--lpw-dark-stage-strip);
-  --lpw-stage-strip-w: var(--lpw-dark-stage-strip-w);
-  --lpw-stage-strip-h: var(--lpw-dark-stage-strip-h);
+  --lpw-plate: var(--lpw-dark-plate);
+  --lpw-plate-ink: var(--lpw-dark-plate-ink);
 }
 
-/* Integer art scale only: 2x on phones and tablets, 3x on wide desktops. */
-@media (min-width: 1024px) { html[data-world] { --lpw-scale: 3; } }
-
-/* ── ground ─────────────────────────────────────────────────────────────── */
-html[data-world] body {
-  background-color: var(--lpw-page) !important;
-  background-image: var(--lpw-page-tile) !important;
-  background-size: calc(var(--lpw-page-tile-w) * var(--lpw-scale) * 1px) auto !important;
-  background-repeat: repeat !important;
-  image-rendering: pixelated;
+/* ── the world behind everything ────────────────────────────────────────── */
+html[data-world] body { background: transparent !important; }
+.lp-world-backdrop, .lp-world-stage { display: none; }
+html[data-world] .lp-world-backdrop:not([hidden]) {
+  display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
 }
-/* Text and controls keep smooth rendering — only world images are pixelated. */
-html[data-world] body * { image-rendering: auto; }
+html[data-world] .lp-world-canvas {
+  position: absolute; left: 0; top: 0; display: block;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+html[data-world] .lp-world-stage:not([hidden]) {
+  display: block; position: absolute; z-index: 0; overflow: hidden;
+  /* left/top/width/height are set by the engine: full bleed from the page top to the street */
+}
+html[data-world] .lp-world-stage .lp-world-canvas { cursor: pointer; }
 
-/* ── pixel panels: the Studio shell and its cards ───────────────────────── */
+/* ── Studio head becomes a window onto the world ────────────────────────── */
 html[data-world] .classic-main-card {
-  background: var(--lpw-surface) !important;
-  border-radius: 0 !important;
+  background: transparent !important;
   border: 0 !important;
-  box-shadow: 0 0 0 2px var(--lpw-line), 6px 6px 0 0 var(--lpw-shadow) !important;
+  box-shadow: none !important;
 }
+html[data-world] .classic-shell-head {
+  position: relative;
+  /* the street band where the characters live, below the head's own content; taller on
+     phones, where the head's cards cover the upper scene and the locations must stay legible */
+  padding-bottom: calc(52px * var(--lpw-scale)) !important;
+}
+@media (max-width: 600px) {
+  html[data-world] .classic-shell-head { padding-bottom: calc(76px * var(--lpw-scale)) !important; }
+}
+html[data-world] .classic-shell-head > :not(.lp-world-stage) { position: relative; z-index: 1; }
+/* Text that sits on the sky gets a solid pixel plate: legibility never depends on the scene. */
+html[data-world] .classic-screen-title,
+html[data-world] .classic-screen-subtitle,
+html[data-world] .classic-eyebrow {
+  background: var(--lpw-plate) !important;
+  color: var(--lpw-plate-ink) !important;
+  width: fit-content;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.35);
+}
+html[data-world] .classic-screen-title { margin-inline: auto; padding: 4px 14px; }
+html[data-world] .classic-screen-subtitle { padding: 4px 10px; }
+html[data-world] .classic-eyebrow { padding: 3px 8px; opacity: 1 !important; }
+
+/* ── pixel panels: every working surface floats over the world opaque ─── */
 html[data-world] .classic-card,
 html[data-world] .classic-secondary-nav-summary,
-html[data-world] .classic-secondary-nav[open] > .classic-secondary-nav-body,
+html[data-world] .classic-utility-bar,
 html[data-world] #classicNextStep {
   border-radius: 0 !important;
   border: 2px solid var(--lpw-line) !important;
-  box-shadow: 4px 4px 0 0 var(--lpw-shadow) !important;
+  box-shadow: 5px 5px 0 0 var(--lpw-shadow) !important;
 }
 html[data-world] .classic-card,
-html[data-world] .classic-secondary-nav-summary { background: var(--lpw-surface) !important; }
-html[data-world] .classic-utility-bar {
-  border-radius: 0 !important;
-  border: 2px solid var(--lpw-line) !important;
-  box-shadow: 4px 4px 0 0 var(--lpw-shadow) !important;
-  background: var(--lpw-surface) !important;
-}
+html[data-world] .classic-secondary-nav-summary,
+html[data-world] .classic-utility-bar { background: var(--lpw-surface) !important; }
 html[data-world] #classicNextStep { background: var(--lpw-surface-soft) !important; }
 /* Soft radial glows and glassy gradients are the opposite of a pixel plane: flatten them. */
 html[data-world] .classic-card::before { background: none !important; }
@@ -106,9 +121,7 @@ html[data-world] .classic-shell .btn-primary,
 html[data-world] .classic-shell .btn-secondary,
 html[data-world] .classic-nav-tool,
 html[data-world] .classic-nav-card,
-html[data-world] .v3-mode-toggle {
-  border-radius: 0 !important;
-}
+html[data-world] .v3-mode-toggle { border-radius: 0 !important; }
 html[data-world] .classic-shell .btn-primary {
   background: var(--lpw-accent) !important;
   color: var(--lpw-accent-ink) !important;
@@ -131,36 +144,43 @@ html[data-world] .lp-app-nav {
   box-shadow: none !important;
 }
 
-/* ── the stage (an app-declared slot; the only place world sprites may render) ── */
-.lp-world-stage { display: none; }
-html[data-world] .lp-world-stage:not([hidden]) {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  height: calc(32px * var(--lpw-scale));
-  margin: 0;
-  border: 2px solid var(--lpw-line);
-  background-color: var(--lpw-stage-sky);
-  background-image:
-    var(--lpw-stage-strip),
-    linear-gradient(to bottom, var(--lpw-stage-sky) 0 45%, var(--lpw-stage-haze) 45% 100%);
-  background-repeat: repeat-x, no-repeat;
-  background-position: left bottom, left top;
-  background-size: calc(var(--lpw-stage-strip-w) * var(--lpw-scale) * 1px) calc(var(--lpw-stage-strip-h) * var(--lpw-scale) * 1px), 100% 100%;
-  image-rendering: pixelated;
+/* ── world controls on the stage ────────────────────────────────────────── */
+html[data-world] .lp-world-pause {
+  position: absolute; right: 12px; bottom: 10px; z-index: 2;
+  width: 44px; height: 44px; min-width: 44px; padding: 0;
+  border: 2px solid #1b1f2e; border-radius: 0;
+  background: rgba(255, 253, 246, 0.92); color: #1b1f2e;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+html[data-world] .lp-world-pause:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
+/* pixel pause / play glyphs drawn with borders: no font, no emoji */
+html[data-world] .lp-world-pause-icon { display: block; margin: auto; width: 14px; height: 16px; box-sizing: border-box; }
+html[data-world] .lp-world-pause[data-state="playing"] .lp-world-pause-icon { border-left: 5px solid currentColor; border-right: 5px solid currentColor; }
+html[data-world] .lp-world-pause[data-state="paused"] .lp-world-pause-icon {
+  width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 13px solid currentColor;
+}
+html[data-world][dir="rtl"] .lp-world-pause { right: auto; left: 12px; }
+
+html[data-world] .lp-world-bubble {
+  position: absolute; z-index: 2; max-width: 230px; box-sizing: border-box;
+  padding: 7px 11px; border: 2px solid #1b1f2e; border-radius: 0;
+  background: #fffdf6; color: #1b1f2e;
+  font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.8125rem; font-weight: 700; line-height: 1.35;
+  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
   pointer-events: none;
-  contain: layout paint;
 }
-html[data-world] .lp-world-sprite {
-  position: absolute;
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
-  transform-origin: center bottom;
-  will-change: transform;
+/* tail points back to the speaker's head, on the side the bubble sits */
+html[data-world] .lp-world-bubble::after {
+  content: ""; position: absolute; left: -9px; bottom: 10px;
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #1b1f2e;
 }
-html[data-world] .lp-world-sprite[hidden] { display: none; }
+html[data-world] .lp-world-bubble[data-side="left"]::after {
+  left: auto; right: -9px; border-right: 0; border-left: 8px solid #1b1f2e;
+}
 @media (forced-colors: active) {
-  html[data-world] .lp-world-stage { display: none !important; }
+  html[data-world] .lp-world-stage, html[data-world] .lp-world-backdrop { display: none !important; }
+  html[data-world] .classic-shell-head { padding-bottom: 0 !important; }
 }
 
 /* ── picker dialog (also shown under Classic, so it must not rely on --lpw-*) ─ */

@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T13:55:46.978Z",
+  "id": "layer-street-dusk-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/_gen-scratch/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONLY the front street layer as a separate parallax layer: a long, horizontally seamless, tileable strip of a pale Jerusalem-stone pavement at the bottom, a low stone wall behind it, warm street lamps (lit) every so often, small olive trees and bushes behind the wall, and a string of blue-and-white triangular bunting hanging across the top of the strip between the lamps. The strip must start and end identically so it tiles left-to-right.\nEverything above the bunting and lamps must be flat solid magenta #FF00FF. No houses, no hills, no sky, no text, no people. Wide strip composition, the pavement occupies the bottom ~15% of the image.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/layer-street-dusk-v1.jpg",
+  "sha256": "f4a74fc9359aee735822d41da3afe81c99ec01a31e5dfade4d6a4eb99850d597",
+  "bytes": 498512,
+  "usage": {
+    "promptTokenCount": 428,
+    "candidatesTokenCount": 1293,
+    "totalTokenCount": 1938,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 170
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 217,
+    "serviceTier": "standard"
+  }
+}

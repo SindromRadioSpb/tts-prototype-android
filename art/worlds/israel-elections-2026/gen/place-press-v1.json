@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T14:11:35.526Z",
+  "id": "place-press-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONE single building as an isolated game sprite, straight side-on elevation that matches the street perspective of the reference, standing on its own ground line at the bottom. Flat solid magenta #FF00FF everywhere around it (sky and ground), no street, no neighbours, no people. Strictly no text, no letters, no numbers, no logos, no emblems, no party colours, no religious symbols.\n\nBuilding: an old printing house of red brick and stone with a saw-tooth factory roof and a chimney, a big lit window through which a large printing press with rollers is visible, neat stacks of blank white ballot papers on pallets outside, a small cart.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/place-press-v1.jpg",
+  "sha256": "4e74d04871b8cfd07dd07f4beef4d307267bfb627ac60cfefc05ca36ad4c956b",
+  "bytes": 546933,
+  "usage": {
+    "promptTokenCount": 418,
+    "candidatesTokenCount": 1311,
+    "totalTokenCount": 1920,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 160
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 191,
+    "serviceTier": "standard"
+  }
+}

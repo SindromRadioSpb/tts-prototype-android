@@ -1,13 +1,14 @@
 /*
- * LinguistPro Worlds — World Engine v1 (docs/planning/linguistpro-worlds/ENGINE_CONTRACT.md).
+ * LinguistPro Worlds — World Engine v2 (docs/planning/linguistpro-worlds/ENGINE_CONTRACT.md).
  *
  * A world is a versioned, DECLARATIVE pack under /worlds/<id>/: manifest.json + atlas.json + PNG.
  * No script, HTML, CSS or network target comes from a pack. The engine owns:
  *   - which worlds may load at all (REGISTRY; a retired id never loads again after an update);
- *   - where decoration may appear (only elements the app marks with data-world-slot);
- *   - how skin values reach CSS (allowlisted tokens, validated colour/image values only);
- *   - when scenes play (one at a time, <= 3 s, cooldown, per-session cap, never over TTS/media,
- *     typing, an open dialog or a hidden page; reduced motion = static pose, no movement).
+ *   - where the world may draw (only elements the app marks with data-world-slot);
+ *   - how skin values reach CSS (allowlisted tokens, validated colour values only);
+ *   - motion: a living canvas scene (parallax, lighting, ambient life, a journey that follows the
+ *     Studio phase), a visible pause control, OS reduced motion = one still frame;
+ *   - reactions: one scene at a time, <= 3 s, cooldown and per-session cap for automatic ones.
  * Worlds decorate meaning, never alter it: no learner data, no telemetry, no queue of late events.
  * World choice lives only in this device's localStorage (lp_world_v1) and is sent nowhere.
  */
@@ -19,26 +20,27 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var ENGINE_VERSION = 1;
+  var ENGINE_VERSION = 2;
   var STORAGE_KEY = "lp_world_v1";
-  var SCHEMA = "lp-world/1";
+  var SCHEMA = "lp-world/2";
   var ATLAS_SCHEMA = "lp-world-atlas/1";
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.1.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.2.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
-  var SLOTS = ["studio-stage"];
-  var TRIGGERS = ["studio.table-ready", "manual", "ambient"];
-  var COLOR_TOKENS = ["page", "surface", "surfaceSoft", "ink", "line", "shadow", "accent", "accentInk", "stageSky", "stageHaze"];
-  var IMAGE_TOKENS = ["pageTile", "stageStrip"];
-  var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000 };
-  // Integer pixel scale comes from CSS (--lpw-scale: 2 on phones, 3 on wide layouts) so art
-  // never lands on a fractional grid; this is only the fallback.
+  var LIGHTINGS = ["day", "dusk", "night"];
+  var PHASES = ["add", "correct", "table", "save", "learn"];
+  var SLOTS = ["studio-stage", "page-backdrop"];
+  var TRIGGER_RE = /^(manual|ambient|tap|studio\.table-ready|arrive\.[a-z0-9-]+)$/;
+  var COLOR_TOKENS = ["page", "surface", "surfaceSoft", "ink", "line", "shadow", "accent", "accentInk", "plate", "plateInk"];
+  var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
-  var CSS_URL = "/css/world-skin.css?v=705"; // lockstep with the sw.js precache key
+  var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
+  var CSS_URL = "/css/world-skin.css?v=705";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=705";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -49,17 +51,26 @@
     if (!v || typeof v !== "object" || typeof v.id !== "string") return null;
     var reg = REGISTRY[v.id];
     if (!reg || reg.retired) return null;
-    return { id: v.id, mode: MODES.indexOf(v.mode) >= 0 ? v.mode : "calm" };
+    return { id: v.id, mode: MODES.indexOf(v.mode) >= 0 ? v.mode : "live", paused: v.paused === true };
   }
 
   function isPlainText(s) { return typeof s === "string" && s.length > 0 && s.length <= 400 && !/[<>]/.test(s); }
   function isColor(s) { return typeof s === "string" && /^#[0-9a-fA-F]{6}$/.test(s); }
   function isName(s) { return typeof s === "string" && /^[a-z0-9][a-z0-9._-]{0,63}$/.test(s); }
   function localized(obj) { return !!obj && LOCALES.every(function (l) { return isPlainText(obj[l]); }); }
+  function localizedList(obj) {
+    return !!obj && LOCALES.every(function (l) { return Array.isArray(obj[l]) && obj[l].length > 0 && obj[l].every(isPlainText); });
+  }
+  function isNum(n, lo, hi) { return typeof n === "number" && isFinite(n) && n >= lo && n <= hi; }
 
   function atlasFrame(atlas, sheet, frame) {
     var a = atlas && atlas.atlases && atlas.atlases[sheet];
     return a && a.frames && a.frames[frame] ? { sheet: a, rect: a.frames[frame] } : null;
+  }
+  function sheetsOf(spec) {
+    if (typeof spec === "string") return [spec];
+    if (spec && typeof spec === "object") return LIGHTINGS.map(function (l) { return spec[l]; }).filter(Boolean);
+    return [];
   }
 
   // Validates manifest + atlas against the engine contract. Returns { ok, errors }.
@@ -77,53 +88,97 @@
     Object.keys(atlases).forEach(function (k) {
       if (!isName(k) || !/^[a-z0-9-]+\.png$/.test(atlases[k].file || "")) err("atlas file " + k);
     });
+    function sheetOk(spec, frame, tag) {
+      var list = sheetsOf(spec);
+      if (!list.length) { err(tag + " sheet"); return; }
+      list.forEach(function (s) { if (!atlases[s] || (frame && !atlases[s].frames[frame])) err(tag + " sheet " + s + (frame ? "." + frame : "")); });
+    }
     ["light", "dark"].forEach(function (mode) {
       var skin = manifest.skin && manifest.skin[mode];
       if (!skin) { err("skin." + mode); return; }
       Object.keys(skin).forEach(function (k) {
         if (COLOR_TOKENS.indexOf(k) >= 0) { if (!isColor(skin[k])) err("skin." + mode + "." + k); }
-        else if (IMAGE_TOKENS.indexOf(k) >= 0) { if (!atlases[skin[k]]) err("skin." + mode + "." + k); }
         else err("skin token not allowed: " + k);
       });
     });
+    var sc = manifest.scenery;
+    if (!sc) err("scenery");
+    else {
+      if (!isNum(sc.sceneHeight, 40, 400) || !isNum(sc.groundY, 0, 200)) err("scenery size");
+      LIGHTINGS.forEach(function (l) {
+        var li = sc.lighting && sc.lighting[l];
+        if (!li || !Array.isArray(li.sky) || li.sky.length < 2 || li.sky.length > 8 || !li.sky.every(isColor)) err("lighting." + l);
+        if (li && li.star && !isColor(li.star)) err("lighting." + l + ".star");
+      });
+      Object.keys(sc.celestial || {}).forEach(function (l) {
+        var c = sc.celestial[l];
+        if (LIGHTINGS.indexOf(l) < 0 || !c) { err("celestial " + l); return; }
+        sheetOk(c.sheet, c.frame, "celestial " + l);
+        if (!isNum(c.at, 0, 1) || !isNum(c.top, 0, 400)) err("celestial " + l + " position");
+      });
+      (sc.layers || []).forEach(function (L) {
+        var tag = "layer " + (L && L.id);
+        if (!L || !isName(L.id)) { err(tag); return; }
+        sheetOk(L.sheet, L.frame, tag);
+        if (!isNum(L.parallax, 0, 2) || !isNum(L.bottom || 0, 0, 400)) err(tag + " geometry");
+        if (L.drift != null && !isNum(L.drift, -60, 60)) err(tag + " drift");
+      });
+      var em = sc.emitters || {};
+      if (em.clouds) { em.clouds.frames.forEach(function (f) { sheetOk(em.clouds.sheet, f, "clouds"); }); if (!isNum(em.clouds.count, 0, 40)) err("clouds count"); }
+      if (em.birds) { em.birds.frames.forEach(function (f) { sheetOk(em.birds.sheet, f, "birds"); }); }
+      if (em.stars && !isNum(em.stars.count, 0, 400)) err("stars count");
+    }
     var actors = manifest.actors || {};
     Object.keys(actors).forEach(function (id) {
       var a = actors[id];
-      if (!isName(id) || !a || !atlases[a.sheet]) { err("actor " + id); return; }
+      if (!isName(id) || !a || !sheetsOf(a.sheet).length || !sheetsOf(a.sheet).every(function (s) { return atlases[s]; })) { err("actor " + id); return; }
       if (a.fictional !== true && !a.prototypeRef) err("actor " + id + " must be fictional or reference a CHARACTERS card");
       if (a.names && !localized(a.names)) err("actor " + id + " names");
+      if (a.lines && !localizedList(a.lines)) err("actor " + id + " lines");
     });
-    function frameOk(actor, frame) { var a = actors[actor]; return !!(a && atlasFrame(atlas, a.sheet, frame)); }
+    function frameOk(actor, frame) {
+      var a = actors[actor];
+      return !!a && sheetsOf(a.sheet).length > 0 && sheetsOf(a.sheet).every(function (s) { return !!atlasFrame(atlas, s, frame); });
+    }
+    var locs = manifest.locations || {};
+    Object.keys(locs).forEach(function (id) {
+      var L = locs[id];
+      if (!isName(id) || !L || PHASES.indexOf(L.phase) < 0 || !isNum(L.x, -100000, 100000)) { err("location " + id); return; }
+      if (!localized(L.names)) err("location " + id + " names");
+      if (L.lighting && LIGHTINGS.indexOf(L.lighting) < 0) err("location " + id + " lighting");
+      (L.props || []).forEach(function (p) { if (!frameOk(p.actor, p.frame)) err("location " + id + " prop " + p.actor); });
+    });
     var slots = manifest.slots || {};
     Object.keys(slots).forEach(function (slot) {
       if (SLOTS.indexOf(slot) < 0) { err("slot not allowed: " + slot); return; }
       var s = slots[slot];
-      if (!(typeof s.origin === "number" && s.origin >= 0 && s.origin <= 1)) err("slot " + slot + " origin");
+      if (!isNum(s.origin, 0, 1)) err("slot " + slot + " origin");
       (s.rest || []).forEach(function (r) { if (!frameOk(r.actor, r.frame) || typeof r.x !== "number") err("slot " + slot + " rest " + r.actor); });
     });
     var ids = {};
-    (manifest.scenes || []).forEach(function (sc) {
-      var tag = "scene " + (sc && sc.id);
-      if (!sc || !isName(sc.id) || ids[sc.id]) { err(tag + " id"); return; }
-      ids[sc.id] = true;
-      if (!slots[sc.slot]) err(tag + " slot");
-      if (TRIGGERS.indexOf(sc.trigger) < 0) err(tag + " trigger");
-      var cap = sc.trigger === "manual" ? BUDGET.maxManualDurationMs : BUDGET.maxDurationMs;
-      if (!(sc.durationMs > 0 && sc.durationMs <= cap)) err(tag + " duration");
-      if (!localized(sc.title) || !localized(sc.caption)) err(tag + " text");
-      if (sc.expires && !/^\d{4}-\d{2}-\d{2}$/.test(sc.expires)) err(tag + " expires");
-      if (sc.modes && !sc.modes.every(function (m) { return MODES.indexOf(m) >= 0; })) err(tag + " modes");
-      (sc.tracks || []).forEach(function (tr) {
+    (manifest.scenes || []).forEach(function (s) {
+      var tag = "scene " + (s && s.id);
+      if (!s || !isName(s.id) || ids[s.id]) { err(tag + " id"); return; }
+      ids[s.id] = true;
+      if (!slots[s.slot]) err(tag + " slot");
+      if (typeof s.trigger !== "string" || !TRIGGER_RE.test(s.trigger)) err(tag + " trigger");
+      if (s.location && !locs[s.location]) err(tag + " location");
+      var cap = s.trigger === "manual" ? BUDGET.maxManualDurationMs : BUDGET.maxDurationMs;
+      if (!(s.durationMs > 0 && s.durationMs <= cap)) err(tag + " duration");
+      if (!localized(s.title) || !localized(s.caption)) err(tag + " text");
+      if (s.expires && !/^\d{4}-\d{2}-\d{2}$/.test(s.expires)) err(tag + " expires");
+      if (s.modes && !s.modes.every(function (m) { return MODES.indexOf(m) >= 0; })) err(tag + " modes");
+      (s.tracks || []).forEach(function (tr) {
         if (!actors[tr.actor]) { err(tag + " actor " + tr.actor); return; }
         var last = -1;
         (tr.keys || []).forEach(function (k) {
-          if (!(k.t >= last && k.t <= sc.durationMs)) err(tag + " key order " + tr.actor);
+          if (!(k.t >= last && k.t <= s.durationMs)) err(tag + " key order " + tr.actor);
           last = k.t;
           if (k.frame && !frameOk(tr.actor, k.frame)) err(tag + " frame " + tr.actor + "." + k.frame);
           (k.cycle || []).forEach(function (f) { if (!frameOk(tr.actor, f)) err(tag + " cycle " + f); });
         });
       });
-      if (!sc.staticPose || !(sc.staticPose || []).every(function (r) { return frameOk(r.actor, r.frame); })) err(tag + " staticPose");
+      if (!s.staticPose || !(s.staticPose || []).every(function (r) { return frameOk(r.actor, r.frame); })) err(tag + " staticPose");
     });
     return { ok: errors.length === 0, errors: errors };
   }
@@ -155,7 +210,31 @@
     return true;
   }
 
-  // Budget governor. Late events are dropped, never queued.
+  // Journey between two locations: walk duration and a synthetic walking track.
+  function journey(fromX, toX, cycle) {
+    var dx = toX - fromX;
+    var ms = Math.max(1200, Math.min(3200, Math.abs(dx) * 3));
+    return { ms: ms, track: { actor: "timsah", keys: [
+      { t: 0, cycle: cycle || ["walk-a", "walk-b"], cycleMs: 150, x: fromX, flip: dx < 0 },
+      { t: ms, frame: "idle", x: toX, hold: true }
+    ] } };
+  }
+
+  function locationForPhase(manifest, phase) {
+    var locs = manifest.locations || {};
+    var ids = Object.keys(locs);
+    for (var i = 0; i < ids.length; i++) if (locs[ids[i]].phase === phase) return ids[i];
+    // "correct" shares the table stop; anything unknown starts at the first location.
+    if (phase === "correct") return locationForPhase(manifest, "table");
+    return ids[0] || null;
+  }
+
+  // Budget governor. Late events are dropped, never queued. Kinds:
+  //   auto    — spontaneous reactions (table ready …): cooldown + per-session cap;
+  //   story   — the payoff of a user's own step (arriving at the polling station): no budget,
+  //             but still never while paused, hidden or under reduced motion;
+  //   ambient — background life in live mode: no budget, yields to everything else;
+  //   manual  — the user asked (gallery / picker preview): only a hidden page stops it.
   function createGovernor(budget) {
     var b = Object.assign({}, BUDGET, budget || {});
     var autoCount = 0, lastEndAt = -Infinity, playing = false;
@@ -166,29 +245,38 @@
         if (ctx.hidden) return { play: false, reason: "hidden" };
         if (kind !== "manual") {
           if (ctx.reducedMotion) return { play: false, reason: "reduced-motion" };
+          if (ctx.paused) return { play: false, reason: "paused" };
+        }
+        if (kind === "auto" || kind === "ambient") {
           if (ctx.busy) return { play: false, reason: ctx.busy };
+        }
+        if (kind === "auto") {
           if (autoCount >= b.maxAutoPerSession) return { play: false, reason: "session-cap" };
           if (now - lastEndAt < b.cooldownMs) return { play: false, reason: "cooldown" };
         }
         return { play: true };
       },
-      started: function (kind) { playing = true; if (kind !== "manual") autoCount++; },
-      ended: function (now) { playing = false; lastEndAt = now; },
+      started: function (kind) { playing = true; if (kind === "auto") autoCount++; },
+      ended: function (now, kind) { playing = false; if (kind === "auto") lastEndAt = now; },
       state: function () { return { autoCount: autoCount, playing: playing, lastEndAt: lastEndAt }; }
     };
   }
 
   var core = {
     ENGINE_VERSION: ENGINE_VERSION, STORAGE_KEY: STORAGE_KEY, REGISTRY: REGISTRY, BUDGET: BUDGET,
-    COLOR_TOKENS: COLOR_TOKENS, IMAGE_TOKENS: IMAGE_TOKENS, SLOTS: SLOTS, TRIGGERS: TRIGGERS,
+    COLOR_TOKENS: COLOR_TOKENS, SLOTS: SLOTS, TRIGGER_RE: TRIGGER_RE, PHASES: PHASES,
     readChoice: readChoice, validatePack: validatePack, sampleScene: sampleScene, sampleTrack: sampleTrack,
-    sceneActive: sceneActive, createGovernor: createGovernor
+    sceneActive: sceneActive, createGovernor: createGovernor, journey: journey, locationForPhase: locationForPhase
   };
   if (typeof document === "undefined") return { core: core };
 
   // ── DOM layer ──────────────────────────────────────────────────────────────
 
-  var state = { choice: null, pack: null, atlas: null, governor: createGovernor(), stages: {}, raf: 0, current: null, listeners: [], styleEl: null, linkEl: null };
+  var state = {
+    choice: null, pack: null, atlas: null, base: "", images: {}, governor: createGovernor(),
+    stage: null, backdrop: null, raf: 0, lastFrame: 0, listeners: [], observers: [], styleEl: null, linkEl: null,
+    location: null, walk: null, scene: null, react: null, bubble: null, nextAmbient: 0, visible: true
+  };
 
   function tr(key, fallback) {
     try { var v = window.t ? window.t(key) : null; if (v && v !== key) return v; } catch (_) {}
@@ -202,13 +290,10 @@
   function storageSet(v) { try { if (v) localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); else localStorage.removeItem(STORAGE_KEY); } catch (_) {} }
   function reducedMotion() { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (_) { return false; } }
   function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function now() { return performance.now(); }
 
-  // Why a decorative scene must not start now. Reads states only — never content.
+  // Why an automatic reaction must not start now. Reads states only — never content.
   function busyReason() {
-    try { if (window.speechSynthesis && window.speechSynthesis.speaking) return "tts"; } catch (_) {}
-    var media = document.querySelectorAll("audio, video");
-    for (var i = 0; i < media.length; i++) if (!media[i].paused && !media[i].ended) return "media";
-    if (document.querySelector(".yt-playing, [data-playing='1']")) return "media";
     var a = document.activeElement;
     if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) && !a.closest("[data-world-ui]")) return "typing";
     var dialogs = document.querySelectorAll("dialog[open], [aria-modal='true'], .v3-modal[data-open='1']");
@@ -218,28 +303,21 @@
 
   function assetUrl(file) { return state.base + file + "?v=" + encodeURIComponent(state.pack.version); }
 
+  // ── skin ──
   function applySkin() {
-    var html = document.documentElement;
     var decl = [];
     ["light", "dark"].forEach(function (mode) {
       var skin = state.pack.skin[mode];
       Object.keys(skin).forEach(function (k) {
-        var name = "--lpw-" + mode + "-" + k.replace(/[A-Z]/g, function (c) { return "-" + c.toLowerCase(); });
-        var v = IMAGE_TOKENS.indexOf(k) >= 0 ? 'url("' + assetUrl(state.atlas.atlases[skin[k]].file) + '")' : skin[k];
-        decl.push(name + ":" + v);
-        if (IMAGE_TOKENS.indexOf(k) >= 0) {
-          var a = state.atlas.atlases[skin[k]];
-          // Logical pixel sizes; CSS multiplies by the integer --lpw-scale of the current layout.
-          decl.push(name + "-w:" + a.width, name + "-h:" + a.height);
-        }
+        decl.push("--lpw-" + mode + "-" + k.replace(/[A-Z]/g, function (c) { return "-" + c.toLowerCase(); }) + ":" + skin[k]);
       });
     });
+    decl.push("--lpw-scene-h:" + state.pack.scenery.sceneHeight, "--lpw-ground:" + state.pack.scenery.groundY);
     if (!state.styleEl) { state.styleEl = document.createElement("style"); state.styleEl.setAttribute("data-world-ui", ""); document.head.appendChild(state.styleEl); }
     state.styleEl.textContent = "html[data-world]{" + decl.join(";") + "}";
     ensureCss();
-    html.setAttribute("data-world", state.pack.id);
+    document.documentElement.setAttribute("data-world", state.pack.id);
   }
-
   // The mapping stylesheet is requested only when a world turns on or the picker opens. Once
   // loaded it stays: every world rule is scoped to html[data-world], so it is inert under Classic.
   function ensureCss() {
@@ -250,172 +328,410 @@
     state.linkEl.setAttribute("data-world-ui", "");
     document.head.appendChild(state.linkEl);
   }
-
   function clearSkin() {
     document.documentElement.removeAttribute("data-world");
     if (state.styleEl) { state.styleEl.remove(); state.styleEl = null; }
   }
 
-  function makeSprite(actorId) {
-    var el = document.createElement("div");
-    el.className = "lp-world-sprite";
-    el.dataset.actor = actorId;
-    return el;
+  // ── loading ──
+  function loadScript(src) {
+    if (window.LPWorldRender) return Promise.resolve();
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = src; s.async = true; s.setAttribute("data-world-ui", "");
+      s.onload = function () { window.LPWorldRender ? resolve() : reject(new Error("renderer missing")); };
+      s.onerror = function () { reject(new Error("renderer load failed")); };
+      document.head.appendChild(s);
+    });
   }
-  function paintSprite(el, actorId, frame, x, y, originPx, flip, SCALE) {
-    var actor = state.pack.actors[actorId];
-    var f = atlasFrame(state.atlas, actor.sheet, frame);
-    if (!f) { el.hidden = true; return; }
-    var r = f.rect;
-    el.hidden = false;
-    el.style.width = (r.w * SCALE) + "px";
-    el.style.height = (r.h * SCALE) + "px";
-    el.style.backgroundImage = 'url("' + assetUrl(f.sheet.file) + '")';
-    el.style.backgroundSize = (f.sheet.width * SCALE) + "px " + (f.sheet.height * SCALE) + "px";
-    el.style.backgroundPosition = (-r.x * SCALE) + "px " + (-r.y * SCALE) + "px";
-    // anchor = ground point; the stage floor is its bottom edge. A deliberate `flip` (walking
-    // left) mirrors the sprite around its anchor; RTL never flips anything by itself.
-    var ax = flip ? (r.w - 1 - r.anchor[0]) : r.anchor[0];
-    var left = originPx + (x - ax) * SCALE;
-    var up = (y - (r.h - 1 - r.anchor[1])) * SCALE;
-    // Movement is transform-only: it composites without layout, so scenes add no layout shift.
-    el.style.left = "0px";
-    el.style.bottom = "0px";
-    el.style.transform = "translate(" + left + "px," + (-up) + "px)" + (flip ? " scaleX(-1)" : "");
+  function loadImage(file) {
+    if (state.images[file]) return Promise.resolve(state.images[file]);
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.decoding = "async";
+      img.onload = function () { state.images[file] = img; resolve(img); };
+      img.onerror = function () { reject(new Error("image " + file)); };
+      img.src = assetUrl(file);
+    });
+  }
+  // Only the sheets the current lighting needs are fetched (plus actors); others load on switch.
+  function sheetsForLighting(lighting) {
+    var p = state.pack, sc = p.scenery, set = {};
+    function add(spec) {
+      if (!spec) return;
+      var s = typeof spec === "string" ? spec : (spec[lighting] || spec.dusk || spec.day || spec.night);
+      if (s) set[s] = true;
+    }
+    (sc.layers || []).forEach(function (L) { add(L.sheet); });
+    if (sc.celestial && sc.celestial[lighting]) add(sc.celestial[lighting].sheet);
+    var em = sc.emitters || {};
+    if (em.clouds) add(em.clouds.sheet);
+    if (em.birds && em.birds.lighting.indexOf(lighting) >= 0) add(em.birds.sheet);
+    Object.keys(p.actors).forEach(function (a) { add(p.actors[a].sheet); });
+    return Object.keys(set).map(function (s) { return state.atlas.atlases[s].file; });
+  }
+  function loadLighting(lighting) { return Promise.all(sheetsForLighting(lighting).map(loadImage)); }
+
+  function currentLighting() {
+    var loc = state.location && state.pack.locations[state.location];
+    return window.LPWorldRender.core.lightingFor(new Date().getHours(), loc && loc.lighting);
   }
 
-  function stageOrigin(stage, slot) { return Math.round(stage.clientWidth * slot.origin); }
-  function stageScale(stage) {
-    var v = parseInt(getComputedStyle(stage).getPropertyValue("--lpw-scale"), 10);
+  // ── stage geometry: full-bleed behind the Studio head, from the page top to the street band ──
+  function layoutStage() {
+    var st = state.stage;
+    if (!st) return;
+    var host = st.el.parentElement;
+    var hr = host.getBoundingClientRect();
+    var docW = document.documentElement.clientWidth;
+    var top = hr.top + window.scrollY;                     // head top in page coordinates
+    st.el.style.left = (-hr.left) + "px";
+    st.el.style.top = (-top) + "px";
+    st.el.style.width = docW + "px";
+    st.el.style.height = (hr.height + top) + "px";
+    var scale = stageScale(st.el);
+    st.scale = scale;
+    st.renderer.resize(docW, hr.height + top, scale);
+    st.originPx = Math.round(docW * state.pack.slots["studio-stage"].origin);
+    if (state.backdrop) state.backdrop.renderer.resize(docW, window.innerHeight, scale);
+    if (state.location && !state.walk) st.renderer.panTo(cameraFor(locX()), 0, now());
+    drawOnce();
+  }
+  function stageScale(el) {
+    var v = parseInt(getComputedStyle(el).getPropertyValue("--lpw-scale"), 10);
     return v >= 1 && v <= 6 ? v : DEFAULT_SCALE;
   }
 
-  function paintPose(slotName, pose) {
-    var st = state.stages[slotName];
-    if (!st) return;
-    var slot = state.pack.slots[slotName];
-    var origin = stageOrigin(st.el, slot);
-    var scale = stageScale(st.el);
-    var seen = {};
-    pose.forEach(function (p) {
-      var key = p.key || p.actor;
-      seen[key] = true;
-      if (!st.sprites[key]) { st.sprites[key] = makeSprite(p.actor); st.el.appendChild(st.sprites[key]); }
-      st.sprites[key].style.zIndex = String(p.z || 1);
-      if (p.hidden) st.sprites[key].hidden = true;
-      else paintSprite(st.sprites[key], p.actor, p.frame, p.x, p.y || 0, origin, !!p.flip, scale);
-    });
-    Object.keys(st.sprites).forEach(function (k) { if (!seen[k]) st.sprites[k].hidden = true; });
-  }
-  function restPose(slotName) { return (state.pack.slots[slotName].rest || []).map(function (r) { return Object.assign({ key: r.actor }, r); }); }
-
-  function mountStages() {
-    var els = document.querySelectorAll("[data-world-slot]");
-    for (var i = 0; i < els.length; i++) {
-      var name = els[i].getAttribute("data-world-slot");
-      if (SLOTS.indexOf(name) < 0 || !state.pack.slots[name]) continue;
-      var el = els[i];
-      el.setAttribute("aria-hidden", "true");
-      el.hidden = false;
-      state.stages[name] = { el: el, sprites: {} };
-      paintPose(name, restPose(name));
-    }
-  }
-  function unmountStages() {
-    Object.keys(state.stages).forEach(function (k) {
-      var st = state.stages[k];
-      Object.keys(st.sprites).forEach(function (s) { st.sprites[s].remove(); });
-      st.el.hidden = true;
-    });
-    state.stages = {};
+  // ── actors & camera ──
+  function locX() { var L = state.pack.locations[state.location]; return L ? L.x : 0; }
+  function cameraFor(worldX) {
+    var st = state.stage;
+    return worldX - Math.round((st ? st.originPx / st.scale : 60));
   }
 
-  function stopScene() {
-    if (state.raf) cancelAnimationFrame(state.raf);
-    state.raf = 0;
-    if (state.current) {
-      var slot = state.current.slot;
-      state.current = null;
-      state.governor.ended(performance.now());
-      if (state.stages[slot]) paintPose(slot, restPose(slot));
-    }
-  }
-
-  function trackPose(scene, t) {
-    return sampleScene(scene, t).map(function (p, i) {
-      var track = scene.tracks[i];
-      return Object.assign({ key: track.key || track.actor, z: track.z }, p);
-    });
-  }
-
-  function playScene(scene, kind) {
-    if (!state.stages[scene.slot]) return { played: false, reason: "no-slot" };
-    var decision = state.governor.request(kind, performance.now(), {
-      hidden: document.hidden, reducedMotion: reducedMotion(), busy: kind === "manual" ? null : busyReason()
-    });
-    if (!decision.play) return { played: false, reason: decision.reason };
-    if (reducedMotion()) {
-      // No movement: show the scene's static substitute once, then return to rest.
-      state.governor.started(kind);
-      state.current = { slot: scene.slot, id: scene.id };
-      paintPose(scene.slot, scene.staticPose.map(function (r) { return Object.assign({ key: r.key || r.actor }, r); }));
-      state.raf = requestAnimationFrame(function wait(start) {
-        state.raf = requestAnimationFrame(function tick(now) {
-          if (now - start >= Math.min(scene.durationMs, 2000)) stopScene(); else state.raf = requestAnimationFrame(tick);
-        });
+  function composePose(t) {
+    var p = state.pack, pose = [], base = locX();
+    var controlled = {};
+    if (state.scene) {
+      var sc = state.scene;
+      var sLoc = sc.def.location ? p.locations[sc.def.location].x : base;
+      sampleScene(sc.def, t - sc.start).forEach(function (s, i) {
+        var track = sc.def.tracks[i];
+        controlled[s.actor] = true;
+        pose.push(Object.assign({ z: track.z || 1 }, s, { worldX: sLoc + s.x }));
       });
+    }
+    if (state.walk && !controlled.timsah) {
+      var w = state.walk;
+      var s2 = sampleTrack(w.track, t - w.start);
+      controlled.timsah = true;
+      pose.push(Object.assign({ z: 3 }, s2, { worldX: s2.x }));
+    }
+    if (state.react && !controlled.timsah) {
+      var r = state.react, rt = t - r.start;
+      var hop = rt < 420 ? Math.round(8 * 4 * (rt / 420) * (1 - rt / 420)) : 0;
+      controlled.timsah = true;
+      pose.push({ actor: "timsah", frame: rt < 420 ? "jump" : "blink", worldX: base, y: hop, z: 3 });
+    }
+    (p.slots["studio-stage"].rest || []).forEach(function (r) {
+      if (!controlled[r.actor]) pose.push({ actor: r.actor, frame: blinkFrame(r.frame, t), worldX: base + r.x, y: 0, z: 3 });
+    });
+    Object.keys(p.locations).forEach(function (id) {
+      var L = p.locations[id];
+      (L.props || []).forEach(function (pr) {
+        if (state.scene && state.scene.def.location === id && controlled[pr.actor]) return;
+        pose.push({ actor: pr.actor, frame: pr.frame, worldX: L.x + pr.x, y: pr.y || 0, z: pr.z || 2, back: !!pr.back, ground: pr.ground });
+      });
+    });
+    return pose;
+  }
+  // Idle life: a blink every few seconds, deterministic so screenshots are reproducible.
+  function blinkFrame(frame, t) { return frame === "idle" && (t % 4200) < 160 ? "blink" : frame; }
+
+  // ── ticker ──
+  function animating() {
+    return !!state.pack && !document.hidden && !(state.choice && state.choice.paused) && !reducedMotion();
+  }
+  function renderFrame(t, dt) {
+    var st = state.stage;
+    if (state.walk) {
+      var w = state.walk, wt = t - w.start;
+      st && st.renderer.panTo(cameraFor(sampleTrack(w.track, Math.min(wt, w.ms)).x), 0, t);
+      if (wt >= w.ms) { state.walk = null; onArrive(w.to); }
+    }
+    if (state.scene && t - state.scene.start >= state.scene.def.durationMs) endScene();
+    if (state.react && t - state.react.start > 2600) { state.react = null; hideBubble(); }
+    if (st && state.visible) {
+      st.renderer.setPose(composePose(t));
+      st.renderer.render("stage", t, dt);
+      positionBubble();
+    }
+    if (state.backdrop) {
+      state.backdrop.renderer.setScroll(window.scrollY);
+      if (st) state.backdrop.renderer.panTo(st.renderer.camera() + window.scrollY / 6, 0, t);
+      state.backdrop.renderer.render("backdrop", t, dt);
+    }
+    if (state.choice && state.choice.mode === "live" && !state.scene && !state.walk && t > state.nextAmbient) {
+      state.nextAmbient = t + BUDGET.ambientEveryMs;
+      signal("ambient");
+    }
+  }
+  function loop(ts) {
+    state.raf = 0;
+    if (!animating()) return;
+    state.raf = requestAnimationFrame(loop);
+    if (ts - state.lastFrame < FRAME_MS) return;
+    var dt = state.lastFrame ? Math.min(100, ts - state.lastFrame) : FRAME_MS;
+    state.lastFrame = ts;
+    renderFrame(ts, dt);
+  }
+  function kick() {
+    if (!state.raf && animating()) { state.lastFrame = 0; state.raf = requestAnimationFrame(loop); }
+  }
+  function drawOnce() {
+    if (!state.pack) return;
+    if (animating()) { kick(); return; }
+    // Still frame (paused / reduced motion / hidden): finish transitions instantly, draw once.
+    if (state.walk) { var to = state.walk.to; state.walk = null; onArrive(to, true); }
+    renderFrame(now(), 0);
+  }
+
+  // ── scenes ──
+  function scenesFor(trigger) {
+    var mode = state.choice ? state.choice.mode : "live";
+    return (state.pack.scenes || []).filter(function (s) { return s.trigger === trigger && sceneActive(s, mode, today()); });
+  }
+  function startScene(def, kind) {
+    if (state.scene) return { played: false, reason: "busy-scene" };
+    if (reducedMotion() || (state.choice && state.choice.paused)) {
+      // No movement: show the static substitute until the next change.
+      state.stage && state.stage.renderer.setPose(def.staticPose.map(function (r) {
+        var base = def.location ? state.pack.locations[def.location].x : locX();
+        return { actor: r.actor, frame: r.frame, worldX: base + r.x, y: 0, z: r.z || 1 };
+      }));
+      state.stage && state.stage.renderer.render("stage", now(), 0);
       return { played: true, static: true };
     }
     state.governor.started(kind);
-    state.current = { slot: scene.slot, id: scene.id };
-    var start = performance.now();
-    function tick(now) {
-      if (!state.current) return;
-      var t = now - start;
-      if (t >= scene.durationMs || document.hidden) { stopScene(); return; }
-      if (kind !== "manual" && busyReason()) { stopScene(); return; }
-      paintPose(scene.slot, trackPose(scene, t));
-      state.raf = requestAnimationFrame(tick);
-    }
-    paintPose(scene.slot, trackPose(scene, 0));
-    state.raf = requestAnimationFrame(tick);
+    state.scene = { def: def, start: now(), kind: kind };
+    kick();
     return { played: true };
   }
-
-  function scenesFor(trigger) {
-    var mode = state.choice ? state.choice.mode : "calm";
-    return (state.pack.scenes || []).filter(function (s) { return s.trigger === trigger && sceneActive(s, mode, today()); });
+  function endScene() {
+    if (!state.scene) return;
+    var kind = state.scene.kind;
+    state.scene = null;
+    state.governor.ended(now(), kind);
+    state.nextAmbient = Math.max(state.nextAmbient, now() + BUDGET.ambientEveryMs);
   }
   function signal(trigger) {
-    if (!state.pack || TRIGGERS.indexOf(trigger) < 0 || trigger === "manual") return { played: false, reason: "inactive" };
+    if (!state.pack || !TRIGGER_RE.test(trigger) || trigger === "manual") return { played: false, reason: "inactive" };
     var list = scenesFor(trigger);
     if (!list.length) return { played: false, reason: "no-scene" };
-    return playScene(list[0], "auto");
+    var kind = /^arrive\./.test(trigger) ? "story" : trigger === "ambient" ? "ambient" : "auto";
+    // A story beat or reaction pre-empts background life; ambient never pre-empts anything.
+    if (kind !== "ambient" && state.scene && state.scene.kind === "ambient") endScene();
+    var d = state.governor.request(kind, now(), { hidden: document.hidden, reducedMotion: reducedMotion(), paused: state.choice && state.choice.paused, busy: busyReason() });
+    if (!d.play) return { played: false, reason: d.reason };
+    return startScene(list[0], kind);
   }
   function play(sceneId) {
     if (!state.pack) return { played: false, reason: "inactive" };
     var sc = (state.pack.scenes || []).filter(function (s) { return s.id === sceneId; })[0];
     if (!sc) return { played: false, reason: "unknown-scene" };
-    if (state.current) stopScene();
-    return playScene(sc, "manual");
+    endScene();
+    if (sc.location && sc.location !== state.location) goTo(sc.location, true);
+    var d = state.governor.request("manual", now(), { hidden: document.hidden });
+    if (!d.play) return { played: false, reason: d.reason };
+    return startScene(sc, "manual");
+  }
+
+  // ── journey ──
+  function goTo(locId, instant) {
+    if (!state.pack.locations[locId]) return;
+    if (locId === state.location && !state.walk && !instant) return;
+    var from = state.walk ? sampleTrack(state.walk.track, now() - state.walk.start).x : locX();
+    var toX = state.pack.locations[locId].x;
+    endScene();
+    state.react = null; hideBubble();
+    if (instant || !animating()) {
+      state.walk = null;
+      state.location = locId;
+      onArrive(locId, true);
+      return;
+    }
+    var j = journey(from, toX);
+    state.walk = { track: j.track, ms: j.ms, start: now(), to: locId };
+    kick();
+  }
+  function onArrive(locId, silent) {
+    var prevLighting = state.stage && state.stage.renderer.lighting();
+    state.location = locId;
+    if (state.stage) state.stage.renderer.panTo(cameraFor(state.pack.locations[locId].x), 0, now());
+    var lighting = currentLighting();
+    if (lighting !== prevLighting) setLighting(lighting);
+    if (!silent) signal("arrive." + locId);
+    drawOnce();
+  }
+  function setLighting(lighting) {
+    loadLighting(lighting).then(function () {
+      if (!state.pack) return;
+      if (state.stage) state.stage.renderer.setLighting(lighting);
+      if (state.backdrop) state.backdrop.renderer.setLighting(lighting);
+      document.documentElement.setAttribute("data-world-light", lighting);
+      drawOnce();
+    }).catch(function () {});
+  }
+  function watchPhase() {
+    var el = document.getElementById("classicNextStep");
+    if (!el || typeof MutationObserver === "undefined") { goTo(Object.keys(state.pack.locations)[0], true); return; }
+    function sync(first) {
+      var loc = locationForPhase(state.pack, el.getAttribute("data-phase") || "add");
+      if (loc) goTo(loc, !!first);
+    }
+    var mo = new MutationObserver(function () { sync(false); });
+    mo.observe(el, { attributes: true, attributeFilter: ["data-phase"] });
+    state.observers.push(mo);
+    sync(true);
+  }
+
+  // ── tap → reaction ──
+  function lineFor(actorId) {
+    var lines = state.pack.actors[actorId].lines;
+    if (!lines) return null;
+    var list = lines[locale()] || lines.ru;
+    state.lineIndex = ((state.lineIndex == null ? -1 : state.lineIndex) + 1) % list.length;
+    return list[state.lineIndex];
+  }
+  function onStageTap(e) {
+    var st = state.stage;
+    if (!st || state.walk) return;
+    var r = st.canvas.getBoundingClientRect();
+    var lx = (e.clientX - r.left) / st.scale, ly = (r.bottom - e.clientY) / st.scale;
+    var tx = locX() - st.renderer.camera();
+    var ground = state.pack.scenery.groundY;
+    if (Math.abs(lx - tx) > 22 || ly < ground - 4 || ly > ground + 46) return;
+    endScene();
+    state.react = { start: now() };
+    showBubble(lineFor("timsah"));
+    if (!animating()) drawOnce(); else kick();
+  }
+  function showBubble(text) {
+    if (!text || !state.stage) return;
+    hideBubble();
+    var b = document.createElement("div");
+    b.className = "lp-world-bubble";
+    b.setAttribute("aria-hidden", "true");
+    b.lang = locale();
+    b.dir = "auto";
+    b.textContent = text;
+    state.stage.el.appendChild(b);
+    state.bubble = b;
+    positionBubble();
+  }
+  // The bubble sits beside the speaker's head inside the street band (never over the panels):
+  // to the right when there is room, otherwise to the left, tail pointing back at the head.
+  function positionBubble() {
+    var b = state.bubble, st = state.stage;
+    if (!b || !st) return;
+    var head = (locX() - st.renderer.camera()) * st.scale;
+    var gap = 14 * st.scale;
+    var right = head + gap + b.offsetWidth <= st.el.clientWidth - 8;
+    b.dataset.side = right ? "right" : "left";
+    b.style.left = (right ? head + gap : Math.max(8, head - gap - b.offsetWidth)) + "px";
+    b.style.bottom = ((state.pack.scenery.groundY + 22) * st.scale) + "px";
+  }
+  function hideBubble() { if (state.bubble) { state.bubble.remove(); state.bubble = null; } }
+
+  // ── pause control (visible, WCAG 2.2.2) ──
+  function syncPauseButton() {
+    var st = state.stage;
+    if (!st || !st.pause) return;
+    var paused = !!(state.choice && state.choice.paused);
+    st.pause.setAttribute("aria-pressed", paused ? "true" : "false");
+    var label = paused ? tr("world.resume", "Оживить мир") : tr("world.pause", "Остановить мир");
+    st.pause.setAttribute("aria-label", label);
+    st.pause.title = label;
+    st.pause.dataset.state = paused ? "paused" : "playing";
+  }
+  function togglePause() {
+    if (!state.choice) return;
+    state.choice.paused = !state.choice.paused;
+    storageSet(state.choice);
+    syncPauseButton();
+    if (state.choice.paused) { endScene(); state.react = null; hideBubble(); drawOnce(); }
+    else kick();
+  }
+
+  // ── mount / unmount ──
+  function mountStage() {
+    var el = document.querySelector('[data-world-slot="studio-stage"]');
+    if (!el || !state.pack.slots["studio-stage"]) return;
+    el.hidden = false;
+    var canvas = document.createElement("canvas");
+    canvas.className = "lp-world-canvas";
+    canvas.setAttribute("aria-hidden", "true");
+    el.appendChild(canvas);
+    var pause = document.createElement("button");
+    pause.type = "button";
+    pause.className = "lp-world-pause";
+    pause.setAttribute("data-world-ui", "");
+    pause.innerHTML = '<span aria-hidden="true" class="lp-world-pause-icon"></span>';
+    pause.addEventListener("click", togglePause);
+    el.appendChild(pause);
+    var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26 });
+    state.stage = { el: el, canvas: canvas, pause: pause, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
+    canvas.addEventListener("pointerdown", onStageTap);
+    syncPauseButton();
+    if (typeof ResizeObserver !== "undefined") {
+      var ro = new ResizeObserver(function () { layoutStage(); });
+      ro.observe(el.parentElement);
+      state.observers.push(ro);
+    }
+    if (typeof IntersectionObserver !== "undefined") {
+      var io = new IntersectionObserver(function (entries) { state.visible = entries[0].isIntersecting; });
+      io.observe(el);
+      state.observers.push(io);
+    }
+  }
+  function mountBackdrop() {
+    var el = document.querySelector('[data-world-slot="page-backdrop"]');
+    if (!el) return;
+    el.hidden = false;
+    var canvas = document.createElement("canvas");
+    canvas.className = "lp-world-canvas";
+    canvas.setAttribute("aria-hidden", "true");
+    el.appendChild(canvas);
+    state.backdrop = { el: el, canvas: canvas, renderer: window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 7 }) };
+  }
+  function unmount() {
+    [state.stage, state.backdrop].forEach(function (m) {
+      if (!m) return;
+      while (m.el.firstChild) m.el.removeChild(m.el.firstChild);
+      m.el.hidden = true;
+      m.el.removeAttribute("style");
+    });
+    state.stage = null; state.backdrop = null; state.bubble = null;
+    state.observers.forEach(function (o) { try { o.disconnect(); } catch (_) {} });
+    state.observers = [];
   }
 
   function on(target, type, fn, opts) { target.addEventListener(type, fn, opts); state.listeners.push([target, type, fn, opts]); }
   function wireEvents() {
-    // Studio: the existing table-job telemetry snapshot. Only `state` is read — no text, no rows.
-    on(window, "table-job-progress", function (e) {
-      if (e && e.detail && e.detail.state === "done") signal("studio.table-ready");
-    });
-    on(document, "visibilitychange", function () { if (document.hidden) stopScene(); });
-    on(window, "resize", function () { Object.keys(state.stages).forEach(function (k) { if (!state.current) paintPose(k, restPose(k)); }); });
-    var liveTimer = 0;
-    if (state.choice.mode === "live" && scenesFor("ambient").length) {
-      liveTimer = setInterval(function () { signal("ambient"); }, 45000);
-      state.listeners.push([null, "interval", liveTimer]);
-    }
+    // Studio's own table-job telemetry snapshot: only `state` is read — no text, no rows.
+    on(window, "table-job-progress", function (e) { if (e && e.detail && e.detail.state === "done") signal("studio.table-ready"); });
+    on(document, "visibilitychange", function () { if (document.hidden) endScene(); else { state.lastFrame = 0; kick(); } });
+    on(window, "resize", function () { layoutStage(); });
+    on(window, "scroll", function () { if (!animating()) drawOnce(); }, { passive: true });
+    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); });
+    try {
+      var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var onMq = function () { drawOnce(); kick(); };
+      if (mq.addEventListener) { mq.addEventListener("change", onMq); state.listeners.push([mq, "change", onMq]); }
+    } catch (_) {}
   }
   function unwireEvents() {
-    state.listeners.forEach(function (l) { if (l[1] === "interval") clearInterval(l[2]); else l[0].removeEventListener(l[1], l[2], l[3]); });
+    state.listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); });
     state.listeners = [];
   }
 
@@ -424,11 +740,14 @@
   }
 
   function deactivate() {
-    stopScene();
+    if (state.raf) cancelAnimationFrame(state.raf);
+    state.raf = 0;
+    state.scene = null; state.walk = null; state.react = null;
     unwireEvents();
-    unmountStages();
+    unmount();
     clearSkin();
-    state.pack = null; state.atlas = null;
+    document.documentElement.removeAttribute("data-world-light");
+    state.pack = null; state.atlas = null; state.images = {}; state.location = null;
     state.governor = createGovernor();
     document.dispatchEvent(new CustomEvent("lp-world:changed", { detail: { id: null } }));
   }
@@ -437,15 +756,28 @@
     var reg = REGISTRY[choice.id];
     state.base = reg.base;
     var v = encodeURIComponent(reg.pack);
-    return Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v)])
+    return Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v), loadScript(RENDER_URL)])
       .then(function (res) {
         var check = validatePack(res[0], res[1], choice.id);
         if (!check.ok) throw new Error("pack invalid: " + check.errors.slice(0, 5).join("; "));
         if (res[0].version !== reg.pack) throw new Error("pack version " + res[0].version + " != " + reg.pack);
         state.pack = res[0]; state.atlas = res[1]; state.choice = choice;
+        state.location = null;   // set by the phase hook (or the first location) after layout
+        return loadLighting(currentLighting());
+      })
+      .then(function () {
         applySkin();
-        mountStages();
+        mountBackdrop();
+        mountStage();
+        var lighting = currentLighting();
+        if (state.stage) state.stage.renderer.setLighting(lighting);
+        if (state.backdrop) state.backdrop.renderer.setLighting(lighting);
+        document.documentElement.setAttribute("data-world-light", lighting);
         wireEvents();
+        layoutStage();
+        watchPhase();
+        state.nextAmbient = now() + 8000;
+        kick();
         document.dispatchEvent(new CustomEvent("lp-world:changed", { detail: { id: choice.id, mode: choice.mode } }));
         return true;
       })
@@ -466,7 +798,7 @@
   }
 
   function set(id, mode) {
-    var choice = id ? readChoice(JSON.stringify({ id: id, mode: mode || "calm" })) : null;
+    var choice = id ? readChoice(JSON.stringify({ id: id, mode: mode || "live" })) : null;
     if (state.pack) deactivate();
     storageSet(choice);
     state.choice = choice;
@@ -516,10 +848,10 @@
 
     var modes = el("fieldset", { class: "lp-world-modes" });
     modes.appendChild(el("legend", {}, tr("world.modeLegend", "Движение")));
-    [["calm", tr("world.modeCalm", "Спокойный")], ["live", tr("world.modeLive", "Живой")]].forEach(function (m) {
+    [["live", tr("world.modeLive", "Живой")], ["calm", tr("world.modeCalm", "Спокойный")]].forEach(function (m) {
       var label = el("label", { class: "lp-world-option lp-world-option-compact" });
       var input = el("input", { type: "radio", name: "lpWorldMode", value: m[0] });
-      if ((state.choice ? state.choice.mode : "calm") === m[0]) input.checked = true;
+      if ((state.choice ? state.choice.mode : "live") === m[0]) input.checked = true;
       label.appendChild(input); label.appendChild(el("span", { class: "lp-world-option-title" }, m[1]));
       modes.appendChild(label);
     });
@@ -537,7 +869,7 @@
     function selected() {
       var w = form.querySelector("input[name=lpWorld]:checked");
       var m = form.querySelector("input[name=lpWorldMode]:checked");
-      return { id: w ? w.value : "", mode: m ? m.value : "calm" };
+      return { id: w ? w.value : "", mode: m ? m.value : "live" };
     }
     function syncModes() { modes.disabled = !selected().id; preview.disabled = !selected().id; }
     function applySelection() {
@@ -545,6 +877,9 @@
       var same = state.choice && state.choice.id === s.id && state.choice.mode === s.mode;
       if (same) return Promise.resolve(true);
       if (!s.id && !state.choice) return Promise.resolve(false);
+      if (state.choice && state.choice.id === s.id) {
+        state.choice.mode = s.mode; storageSet(state.choice); return Promise.resolve(true);
+      }
       return set(s.id || null, s.mode);
     }
     form.addEventListener("change", function () { syncModes(); applySelection(); });
@@ -561,10 +896,21 @@
     return dlg;
   }
 
-  function current() { return state.choice ? { id: state.choice.id, mode: state.choice.mode, active: !!state.pack } : null; }
-  function debugState() { return { choice: current(), governor: state.governor.state(), scene: state.current, busy: busyReason(), stages: Object.keys(state.stages) }; }
+  function current() { return state.choice ? { id: state.choice.id, mode: state.choice.mode, paused: !!state.choice.paused, active: !!state.pack } : null; }
+  function debugState() {
+    return {
+      choice: current(), governor: state.governor.state(), scene: state.scene ? { id: state.scene.def.id, kind: state.scene.kind } : null,
+      walking: !!state.walk, location: state.location, lighting: state.stage ? state.stage.renderer.lighting() : null,
+      busy: busyReason(), animating: animating(), camera: state.stage ? Math.round(state.stage.renderer.camera()) : null,
+      stage: !!state.stage, backdrop: !!state.backdrop
+    };
+  }
 
-  var api = { core: core, boot: boot, set: set, current: current, play: play, signal: signal, stop: stopScene, openPicker: openPicker, debugState: debugState };
+  var api = {
+    core: core, boot: boot, set: set, current: current, play: play, signal: signal, goTo: function (id) { if (state.pack) goTo(id, false); },
+    setLighting: function (l) { if (state.pack && LIGHTINGS.indexOf(l) >= 0) setLighting(l); },
+    togglePause: togglePause, stop: endScene, openPicker: openPicker, debugState: debugState
+  };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { boot(); });
   else boot();
   return api;

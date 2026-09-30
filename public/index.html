@@ -11243,6 +11243,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </head>
 <body>
 <script src="/js/app-nav.js?v=645"></script>
+<div class="lp-world-backdrop" data-world-slot="page-backdrop" aria-hidden="true" hidden></div>
 
 <!-- BRR-P0-002a — Room-mode return bar (visible only in body.room-mode; the one
      piece of chrome the clean reading view keeps — R4: explicit non-dead-end). -->
@@ -11715,10 +11716,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
     <div class="main-card classic-main-card" role="main">
         <div class="classic-shell">
-            <!-- LinguistPro Worlds: the only place a world may draw in Studio. Decorative, hidden from
-                 assistive technology, inert and zero-height unless the user turns a world on. -->
-            <div class="lp-world-stage" data-world-slot="studio-stage" aria-hidden="true" hidden></div>
             <div class="classic-shell-head studio-vf3-shell">
+                <!-- LinguistPro Worlds: the world's stage behind this head (canvas is aria-hidden; the
+                     stage holds only the visible world-pause button). Hidden, zero-cost under Classic. -->
+                <div class="lp-world-stage" data-world-slot="studio-stage" hidden></div>
                 <div class="classic-shell-copy">
                     <div class="classic-header-top">
                         <div class="classic-eyebrow"><span data-studio-icon="lp-mark-studio" aria-hidden="true"><span class="studio-icon-fallback">📝</span></span><span data-i18n="classic.eyebrow">Classic Mode</span></div>

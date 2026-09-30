@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T14:11:16.392Z",
+  "id": "place-hq-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONE single building as an isolated game sprite, straight side-on elevation that matches the street perspective of the reference, standing on its own ground line at the bottom. Flat solid magenta #FF00FF everywhere around it (sky and ground), no street, no neighbours, no people. Strictly no text, no letters, no numbers, no logos, no emblems, no party colours, no religious symbols.\n\nBuilding: a small election campaign office in Jerusalem stone, two storeys, a large BLANK blue fabric banner across the facade, a side wall covered with a patchwork of BLANK paper posters (some half-torn), a loudspeaker megaphone on the roof, a folding table with a stack of blank flyers by the door, warm light from the doorway.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/place-hq-v1.jpg",
+  "sha256": "217ba4827624f4a127cf03d7f3de58ca1b2d3e5ef6b02f011ba0355d51283ade",
+  "bytes": 460527,
+  "usage": {
+    "promptTokenCount": 436,
+    "candidatesTokenCount": 1307,
+    "totalTokenCount": 1916,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 178
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 173,
+    "serviceTier": "standard"
+  }
+}

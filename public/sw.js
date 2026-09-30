@@ -266,6 +266,7 @@ const PRECACHE_URLS = [
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
   "/js/world-engine.js?v=705",
+  "/js/world-render.js?v=705",
   "/css/world-skin.css?v=705",
   "/js/app-nav.js?v=645",
   "/js/app-footer.js?v=669",

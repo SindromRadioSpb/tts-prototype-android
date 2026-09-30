@@ -2116,6 +2116,8 @@ window.I18N_LOCALES.he = {
     densitySpacious: "רווח",
   },
   world: {
+    pause: "עצירת העולם",
+    resume: "החייאת העולם",
     btnTitle: "עיצוב: העולמות של LinguistPro",
     pickerTitle: "עיצוב",
     pickerLead: "העולם משנה את האווירה סביב מסכי הלימוד. הטבלה, הגופנים, הכפתורים והנתונים שלך נשארים כפי שהם.",

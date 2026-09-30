@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T14:12:12.234Z",
+  "id": "place-count-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONE single building as an isolated game sprite, straight side-on elevation that matches the street perspective of the reference, standing on its own ground line at the bottom. Flat solid magenta #FF00FF everywhere around it (sky and ground), no street, no neighbours, no people. Strictly no text, no letters, no numbers, no logos, no emblems, no party colours, no religious symbols.\n\nBuilding: a modern broadcast studio building at night on election night, a big glass front with a wall of TV screens showing abstract colourful bars and waves (no numbers, no text, no faces), a roof antenna mast with a red light, two spotlights beaming up into the air, a satellite truck dish on the roof.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/place-count-v1.jpg",
+  "sha256": "c2dfe2c07954b5202833211c38898addb70826855b16953e389b5c9f1e07ca14",
+  "bytes": 416666,
+  "usage": {
+    "promptTokenCount": 430,
+    "candidatesTokenCount": 1281,
+    "totalTokenCount": 1920,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 172
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 209,
+    "serviceTier": "standard"
+  }
+}

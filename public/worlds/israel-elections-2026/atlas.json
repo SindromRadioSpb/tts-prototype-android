@@ -2,6 +2,386 @@
   "schema": "lp-world-atlas/1",
   "world": "israel-elections-2026",
   "atlases": {
+    "layer-city-day-strip": {
+      "file": "layer-city-day-strip.png",
+      "width": 309,
+      "height": 94,
+      "bytes": 12010,
+      "sha256": "f4a3b9ae9619b364436ecd74d358cd4783ff0ddfebb3d8fe84bb754c63151ac2",
+      "colors": 27,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 309,
+          "h": 94,
+          "anchor": [
+            0,
+            93
+          ]
+        }
+      }
+    },
+    "layer-city-dusk-strip": {
+      "file": "layer-city-dusk-strip.png",
+      "width": 309,
+      "height": 94,
+      "bytes": 12110,
+      "sha256": "5440eeb2e338c8473c98c4d991c979010f8df80d82595f21aa21ee517b73db21",
+      "colors": 29,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 309,
+          "h": 94,
+          "anchor": [
+            0,
+            93
+          ]
+        }
+      }
+    },
+    "layer-city-night-strip": {
+      "file": "layer-city-night-strip.png",
+      "width": 309,
+      "height": 94,
+      "bytes": 12158,
+      "sha256": "e8cb58235664ab70a6252b7168d8c26366f29fda424631c5a08d276ebe99c1eb",
+      "colors": 29,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 309,
+          "h": 94,
+          "anchor": [
+            0,
+            93
+          ]
+        }
+      }
+    },
+    "layer-hills-day-strip": {
+      "file": "layer-hills-day-strip.png",
+      "width": 335,
+      "height": 118,
+      "bytes": 8645,
+      "sha256": "9af8aea41e78adcca387ee9b2c02b2250b20d5dc788ee6cebb60835fdd574234",
+      "colors": 23,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 335,
+          "h": 118,
+          "anchor": [
+            0,
+            117
+          ]
+        }
+      }
+    },
+    "layer-hills-dusk-strip": {
+      "file": "layer-hills-dusk-strip.png",
+      "width": 335,
+      "height": 118,
+      "bytes": 9742,
+      "sha256": "7348d9698e999fa91a68053ecdf5b3bceeac533ee3894c4bdd14f83de0bab9a8",
+      "colors": 27,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 335,
+          "h": 118,
+          "anchor": [
+            0,
+            117
+          ]
+        }
+      }
+    },
+    "layer-hills-night-strip": {
+      "file": "layer-hills-night-strip.png",
+      "width": 335,
+      "height": 118,
+      "bytes": 7703,
+      "sha256": "fa5eb31926c24b4c65d9cafb4cc86a9a2900518d6eabb476986170841320fa21",
+      "colors": 20,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 335,
+          "h": 118,
+          "anchor": [
+            0,
+            117
+          ]
+        }
+      }
+    },
+    "layer-street-day-strip": {
+      "file": "layer-street-day-strip.png",
+      "width": 287,
+      "height": 91,
+      "bytes": 8468,
+      "sha256": "66874d6b2a368332e435f7d3a4582ac8fde948f2ae9dce2615793f4a7ecd3555",
+      "colors": 28,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 287,
+          "h": 91,
+          "anchor": [
+            0,
+            90
+          ]
+        }
+      }
+    },
+    "layer-street-dusk-strip": {
+      "file": "layer-street-dusk-strip.png",
+      "width": 287,
+      "height": 91,
+      "bytes": 8831,
+      "sha256": "788cdc03a18553dd4d176acce83a0e816eb2baaf8e1416dc0a2190029752e4d5",
+      "colors": 32,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 287,
+          "h": 91,
+          "anchor": [
+            0,
+            90
+          ]
+        }
+      }
+    },
+    "layer-street-night-strip": {
+      "file": "layer-street-night-strip.png",
+      "width": 287,
+      "height": 91,
+      "bytes": 8007,
+      "sha256": "843b385b1bd626246bc7513d788e903864f81629511eacf8916679220c2a4940",
+      "colors": 29,
+      "frames": {
+        "strip": {
+          "x": 0,
+          "y": 0,
+          "w": 287,
+          "h": 91,
+          "anchor": [
+            0,
+            90
+          ]
+        }
+      }
+    },
+    "place-count-night": {
+      "file": "place-count-night.png",
+      "width": 97,
+      "height": 70,
+      "bytes": 1983,
+      "sha256": "5424073eda2cd316b7a11ed860f8dc6eb516e6864b10668aa870da7cdfd10305",
+      "colors": 28,
+      "frames": {
+        "count": {
+          "x": 0,
+          "y": 0,
+          "w": 97,
+          "h": 70,
+          "anchor": [
+            48,
+            68
+          ]
+        }
+      }
+    },
+    "place-hq-day": {
+      "file": "place-hq-day.png",
+      "width": 92,
+      "height": 66,
+      "bytes": 1964,
+      "sha256": "a106eee5aa2cb6a6475518a9e728adc784d07450852ace222a29403b1edfb1d3",
+      "colors": 25,
+      "frames": {
+        "hq": {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 66,
+          "anchor": [
+            46,
+            64
+          ]
+        }
+      }
+    },
+    "place-hq-dusk": {
+      "file": "place-hq-dusk.png",
+      "width": 92,
+      "height": 66,
+      "bytes": 2021,
+      "sha256": "bc0c1df54d6d6ec0ca923b91365b3159ab6accea803d87500a1a8309a053b41a",
+      "colors": 27,
+      "frames": {
+        "hq": {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 66,
+          "anchor": [
+            46,
+            64
+          ]
+        }
+      }
+    },
+    "place-hq-night": {
+      "file": "place-hq-night.png",
+      "width": 92,
+      "height": 66,
+      "bytes": 1851,
+      "sha256": "b1a4e5158d21fa25363443ad9e390a747e649695ffc60844c3ec7ae5c993e7b5",
+      "colors": 25,
+      "frames": {
+        "hq": {
+          "x": 0,
+          "y": 0,
+          "w": 92,
+          "h": 66,
+          "anchor": [
+            46,
+            64
+          ]
+        }
+      }
+    },
+    "place-polling-day": {
+      "file": "place-polling-day.png",
+      "width": 105,
+      "height": 60,
+      "bytes": 2340,
+      "sha256": "3ccae3d0f4c56ee7ab90041d05eb649ffbffa5a62461bc1bfd00f42f6596ad32",
+      "colors": 26,
+      "frames": {
+        "polling": {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 60,
+          "anchor": [
+            52,
+            58
+          ]
+        }
+      }
+    },
+    "place-polling-dusk": {
+      "file": "place-polling-dusk.png",
+      "width": 105,
+      "height": 60,
+      "bytes": 2405,
+      "sha256": "ebfed8734b20a1c79506fd897d60415657dc3b49a1d8bc50ff6479712b7e7de5",
+      "colors": 28,
+      "frames": {
+        "polling": {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 60,
+          "anchor": [
+            52,
+            58
+          ]
+        }
+      }
+    },
+    "place-polling-night": {
+      "file": "place-polling-night.png",
+      "width": 105,
+      "height": 60,
+      "bytes": 2293,
+      "sha256": "e231ce62371012eea848147e1b572c963e31c9dafc7ed3e8443377bcd1b14b1c",
+      "colors": 26,
+      "frames": {
+        "polling": {
+          "x": 0,
+          "y": 0,
+          "w": 105,
+          "h": 60,
+          "anchor": [
+            52,
+            58
+          ]
+        }
+      }
+    },
+    "place-press-day": {
+      "file": "place-press-day.png",
+      "width": 83,
+      "height": 64,
+      "bytes": 1997,
+      "sha256": "8de752e8c286de4eaa127cc607004ea4e590ebf22c635d9883f9c9b849291dad",
+      "colors": 22,
+      "frames": {
+        "press": {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 64,
+          "anchor": [
+            41,
+            62
+          ]
+        }
+      }
+    },
+    "place-press-dusk": {
+      "file": "place-press-dusk.png",
+      "width": 83,
+      "height": 64,
+      "bytes": 1985,
+      "sha256": "b9e8f052221fbd8ed93fd4e387e3ebe75c4deb00e1011f6f93ecc3e4c48ac00b",
+      "colors": 22,
+      "frames": {
+        "press": {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 64,
+          "anchor": [
+            41,
+            62
+          ]
+        }
+      }
+    },
+    "place-press-night": {
+      "file": "place-press-night.png",
+      "width": 83,
+      "height": 64,
+      "bytes": 2052,
+      "sha256": "5f7e0782f443ae535d650cc36e8f293168760c3f3b50f5d88eacdc66a09418be",
+      "colors": 22,
+      "frames": {
+        "press": {
+          "x": 0,
+          "y": 0,
+          "w": 83,
+          "h": 64,
+          "anchor": [
+            41,
+            62
+          ]
+        }
+      }
+    },
     "props": {
       "file": "props.png",
       "width": 53,
@@ -42,132 +422,282 @@
         }
       }
     },
-    "skyline-day": {
-      "file": "skyline-day.png",
-      "width": 160,
-      "height": 24,
-      "bytes": 565,
-      "sha256": "475fe0a7f1e6ec5ef32b5ee70690015ea164af50df563b4d6049f300b2d4bb8f",
-      "colors": 24,
+    "scenery-sky-day": {
+      "file": "scenery-sky-day.png",
+      "width": 63,
+      "height": 7,
+      "bytes": 215,
+      "sha256": "96b84e413af67b2fad48066af5f99ba07d40932c6c6a20bed3baf535260ad7bd",
+      "colors": 34,
       "frames": {
-        "day": {
+        "cloud-a": {
           "x": 0,
           "y": 0,
-          "w": 160,
-          "h": 24,
+          "w": 20,
+          "h": 6,
           "anchor": [
-            0,
-            23
+            10,
+            5
+          ]
+        },
+        "cloud-b": {
+          "x": 21,
+          "y": 0,
+          "w": 14,
+          "h": 5,
+          "anchor": [
+            7,
+            4
+          ]
+        },
+        "sun": {
+          "x": 36,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "moon": {
+          "x": 44,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "bird-1": {
+          "x": 52,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        },
+        "bird-2": {
+          "x": 58,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
           ]
         }
       }
     },
-    "skyline-night": {
-      "file": "skyline-night.png",
-      "width": 160,
-      "height": 24,
-      "bytes": 562,
-      "sha256": "2ee3367af47db9e0986d6fef2a023b6fa9d8249468c052a4fd885b34faab31cb",
-      "colors": 24,
+    "scenery-sky-dusk": {
+      "file": "scenery-sky-dusk.png",
+      "width": 63,
+      "height": 7,
+      "bytes": 220,
+      "sha256": "49060ef69ae792fa9ee5d23b6b2c33694726950ec2d05e83ab77b90c26e85a44",
+      "colors": 34,
       "frames": {
-        "night": {
+        "cloud-a": {
           "x": 0,
           "y": 0,
-          "w": 160,
-          "h": 24,
+          "w": 20,
+          "h": 6,
           "anchor": [
-            0,
-            23
+            10,
+            5
+          ]
+        },
+        "cloud-b": {
+          "x": 21,
+          "y": 0,
+          "w": 14,
+          "h": 5,
+          "anchor": [
+            7,
+            4
+          ]
+        },
+        "sun": {
+          "x": 36,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "moon": {
+          "x": 44,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "bird-1": {
+          "x": 52,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        },
+        "bird-2": {
+          "x": 58,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
           ]
         }
       }
     },
-    "tiles-stone": {
-      "file": "tiles-stone.png",
-      "width": 16,
-      "height": 16,
-      "bytes": 132,
-      "sha256": "d728209679eafa7c1077841002962a633741b828be3e63d6183d85750a79abe9",
-      "colors": 6,
+    "scenery-sky-night": {
+      "file": "scenery-sky-night.png",
+      "width": 63,
+      "height": 7,
+      "bytes": 219,
+      "sha256": "fb19b66bb22e217ce4b112ae8e984a9578e04c450ab6f5e7ed138a1daf357325",
+      "colors": 34,
       "frames": {
-        "stone": {
+        "cloud-a": {
           "x": 0,
           "y": 0,
-          "w": 16,
-          "h": 16,
+          "w": 20,
+          "h": 6,
           "anchor": [
-            0,
-            0
+            10,
+            5
           ]
-        }
-      }
-    },
-    "tiles-sky": {
-      "file": "tiles-sky.png",
-      "width": 32,
-      "height": 32,
-      "bytes": 151,
-      "sha256": "283f483dcdcda4735e8ec7300d4141e1c748ee93fb8a57622650b01fb2af768c",
-      "colors": 6,
-      "frames": {
-        "sky": {
-          "x": 0,
+        },
+        "cloud-b": {
+          "x": 21,
           "y": 0,
-          "w": 32,
-          "h": 32,
+          "w": 14,
+          "h": 5,
           "anchor": [
-            0,
-            0
+            7,
+            4
+          ]
+        },
+        "sun": {
+          "x": 36,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "moon": {
+          "x": 44,
+          "y": 0,
+          "w": 7,
+          "h": 7,
+          "anchor": [
+            3,
+            6
+          ]
+        },
+        "bird-1": {
+          "x": 52,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
+          ]
+        },
+        "bird-2": {
+          "x": 58,
+          "y": 0,
+          "w": 5,
+          "h": 3,
+          "anchor": [
+            2,
+            2
           ]
         }
       }
     },
     "timsah": {
       "file": "timsah.png",
-      "width": 131,
-      "height": 32,
-      "bytes": 523,
-      "sha256": "d8580658cca3dca77d8b7103aaa17267797960b68aabdebf1e99a03101e3c4f7",
-      "colors": 8,
+      "width": 191,
+      "height": 42,
+      "bytes": 2202,
+      "sha256": "dc699c347ed79c4a7b17491f3a0c72587d4c3d49982e1dc834034da24f655f49",
+      "colors": 14,
       "frames": {
         "idle": {
           "x": 0,
           "y": 0,
-          "w": 32,
-          "h": 32,
+          "w": 31,
+          "h": 42,
           "anchor": [
-            13,
-            30
+            15,
+            40
           ]
         },
         "blink": {
-          "x": 33,
+          "x": 32,
           "y": 0,
-          "w": 32,
-          "h": 32,
+          "w": 31,
+          "h": 42,
           "anchor": [
-            13,
-            30
+            15,
+            40
           ]
         },
-        "walk": {
-          "x": 66,
+        "walk-a": {
+          "x": 64,
           "y": 0,
-          "w": 32,
-          "h": 32,
+          "w": 31,
+          "h": 42,
           "anchor": [
-            13,
-            30
+            15,
+            40
+          ]
+        },
+        "walk-b": {
+          "x": 96,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
           ]
         },
         "hold": {
-          "x": 99,
+          "x": 128,
           "y": 0,
-          "w": 32,
-          "h": 32,
+          "w": 31,
+          "h": 42,
           "anchor": [
-            13,
-            30
+            15,
+            40
+          ]
+        },
+        "jump": {
+          "x": 160,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
           ]
         }
       }

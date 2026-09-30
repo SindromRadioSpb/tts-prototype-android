@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T13:55:29.657Z",
+  "id": "layer-city-dusk-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/_gen-scratch/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONLY the middle layer of that scene as a separate parallax layer: a long, horizontally seamless, tileable row of Jerusalem-stone houses (flat roofs, arched windows, some windows glowing warm yellow, black rooftop water tanks and solar water heaters), with tall cypress trees and a few distant rooftops behind them. The silhouette must start and end at the same height so the strip tiles left-to-right.\nEverything that is not the houses and trees must be flat solid magenta #FF00FF (sky area above AND the empty area below the houses). No sky, no hills, no street, no bunting, no lamps, no text, no people, no religious buildings. Wide strip composition.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/layer-city-dusk-v1.jpg",
+  "sha256": "29ee61846102494985908a1cb8490ec58ed87a8119913d9feceeb9bfc8fe44fc",
+  "bytes": 505009,
+  "usage": {
+    "promptTokenCount": 424,
+    "candidatesTokenCount": 1321,
+    "totalTokenCount": 1913,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 166
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 168,
+    "serviceTier": "standard"
+  }
+}

@@ -26,7 +26,7 @@ async function one(width, locale, dark) {
     try {
       localStorage.setItem("onboardingSeen_v1", JSON.stringify({ ts: 1, action: "dismissed" }));
       localStorage.setItem("app.locale", locale);
-      if (world !== "off") localStorage.setItem("lp_world_v1", JSON.stringify({ id: world, mode: "calm" }));
+      if (world !== "off") localStorage.setItem("lp_world_v1", JSON.stringify({ id: world, mode: "live" }));
     } catch (_) {}
   }, { world: world === "elections" ? "israel-elections-2026" : "off", locale });
   const page = await ctx.newPage();

@@ -1,0 +1,6 @@
+16-bit pixel art background for a side-scrolling indie game, crisp pixels, limited palette, no anti-aliasing, hand-crafted look like the best modern indie pixel art games.
+
+Scene: a Jerusalem neighbourhood on the eve of national elections, at dusk. Strong layered depth for parallax: a dithered purple-to-orange sunset sky with a few pixel clouds; distant soft Judean hills; a middle layer of Jerusalem-stone houses with arched windows, flat roofs, water tanks and solar heaters, cypress and olive trees; in front, a street of pale stone with a low stone wall, warm street lamps just switching on, strings of blue-and-white bunting across the street, and a small election campaign office with a blank blue banner and a wall of blank posters. A few windows glowing warm yellow.
+
+Mood: warm, playful, a little mischievous, cozy — the calm before election night.
+Strictly: no text, no letters, no numbers, no logos, no flags with emblems, no people, no religious buildings or symbols. Wide panoramic composition, ground line near the bottom quarter.

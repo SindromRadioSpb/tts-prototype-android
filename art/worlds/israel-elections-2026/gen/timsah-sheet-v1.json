@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T13:50:24.699Z",
+  "id": "timsah-sheet-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": ".tmp/world-preview/timsah.x8.png",
+      "sha256": "879d1523f5c3b4c9324b1896ff47a096c854239f99475899953bba0f3cf5a27d"
+    }
+  ],
+  "prompt": "Pixel art character model sheet for a 16-bit side-scroller game, in the style of polished modern indie pixel art (crisp pixels, limited palette, 1px dark outline, soft 2-tone shading, no anti-aliasing, no blur).\n\nCharacter: \"Timsah\", a friendly cartoon crocodile who volunteers at a polling station committee. He stands upright on two short legs, faces right in side view, long snout with a neat row of small white teeth, one big round eye on top of the head, a row of ridge bumps down his back and a thick tail. Colours: fresh green body, darker green shading, pale cream belly. He wears a blue lanyard with a small white ID badge (no text on it). Keep the design of the attached reference sprite (same proportions, colours and features) but render it with more craft and expression.\n\nShow 6 poses in one horizontal row, all the same size and scale, feet on the same baseline, evenly spaced, each pose clearly separated:\n1) idle standing, 2) blinking, 3) walking step A, 4) walking step B, 5) holding a blue envelope forward in one hand, 6) happy jump with arms up.\n\nEach pose about 64x64 pixels in pixel-art resolution, scaled up evenly. Plain flat solid magenta background (#FF00FF) everywhere, no ground, no shadows on the background, no text, no labels, no numbers, no frame, no watermark.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/timsah-sheet-v1.jpg",
+  "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947",
+  "bytes": 530437,
+  "usage": {
+    "promptTokenCount": 576,
+    "candidatesTokenCount": 1355,
+    "totalTokenCount": 2198,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 318
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 267,
+    "serviceTier": "standard"
+  }
+}

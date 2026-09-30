@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T14:11:54.288Z",
+  "id": "place-polling-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONE single building as an isolated game sprite, straight side-on elevation that matches the street perspective of the reference, standing on its own ground line at the bottom. Flat solid magenta #FF00FF everywhere around it (sky and ground), no street, no neighbours, no people. Strictly no text, no letters, no numbers, no logos, no emblems, no party colours, no religious symbols.\n\nBuilding: a low neighbourhood school building of Jerusalem stone used as a polling station, a BLANK sign board above the entrance, a flag pole with a plain white flag with two horizontal blue stripes (no emblem), a short queue rope with stanchions, a bench and a small tree.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/place-polling-v1.jpg",
+  "sha256": "386898c2fe48a32687aaeac0734718b9b2c92dacd72c8d4633f88df2f49ff107",
+  "bytes": 448484,
+  "usage": {
+    "promptTokenCount": 424,
+    "candidatesTokenCount": 1323,
+    "totalTokenCount": 1956,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 166
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 209,
+    "serviceTier": "standard"
+  }
+}

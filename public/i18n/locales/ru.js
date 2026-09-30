@@ -2122,6 +2122,8 @@ window.I18N_LOCALES.ru = {
     densitySpacious: "Просторная",
   },
   world: {
+    pause: "Остановить мир",
+    resume: "Оживить мир",
     btnTitle: "Оформление: миры LinguistPro",
     pickerTitle: "Оформление",
     pickerLead: "Мир меняет атмосферу вокруг учебных экранов. Таблица, шрифты, кнопки и ваши данные остаются прежними.",

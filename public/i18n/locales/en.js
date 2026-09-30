@@ -2108,6 +2108,8 @@ window.I18N_LOCALES.en = {
     densitySpacious: "Spacious",
   },
   world: {
+    pause: "Pause the world",
+    resume: "Bring the world to life",
     btnTitle: "Look: LinguistPro worlds",
     pickerTitle: "Look",
     pickerLead: "A world changes the mood around the study screens. The table, fonts, buttons and your data stay the same.",

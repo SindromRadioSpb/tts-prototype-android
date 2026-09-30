@@ -1,0 +1,40 @@
+{
+  "at": "2026-09-30T13:55:08.691Z",
+  "id": "layer-hills-dusk-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/_gen-scratch/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference image, draw ONLY the distant Judean hills as a separate parallax layer: two overlapping ranges of soft rolling hills (the farther one hazier purple, the nearer one warmer ochre) with a few tiny distant rooftops and trees along the nearer ridge. The ridge line must start and end at the same height so the strip tiles horizontally.\nEverything above the hills must be flat solid magenta #FF00FF. The hills fill down to the bottom edge. No sky, no clouds, no houses in front, no text.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/layer-hills-dusk-v1.jpg",
+  "sha256": "797bb8219f520f354a202ae27cd0a4784c7a83df3eea434e4d59cc09f1322710",
+  "bytes": 318519,
+  "usage": {
+    "promptTokenCount": 386,
+    "candidatesTokenCount": 1314,
+    "totalTokenCount": 1897,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 128
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 258
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 197,
+    "serviceTier": "standard"
+  }
+}
