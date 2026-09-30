@@ -26,7 +26,8 @@ async function session({ width = 380, world = null, reducedMotion = "no-preferen
   });
   await ctx.addInitScript(({ world }) => {
     localStorage.setItem("onboardingSeen_v1", "1");
-    if (world) localStorage.setItem("lp_world_v1", JSON.stringify({ id: world, mode: "live" }));
+    // the world is on by default now: Classic sessions must choose Classic explicitly
+    localStorage.setItem("lp_world_v1", JSON.stringify(world ? { id: world, mode: "live" } : { id: "classic" }));
     window.__lt = []; window.__cls = [];
     try { new PerformanceObserver((l) => l.getEntries().forEach((e) => window.__lt.push(Math.round(e.duration)))).observe({ type: "longtask", buffered: true }); } catch (_) {}
     try { new PerformanceObserver((l) => l.getEntries().forEach((e) => { if (!e.hadRecentInput) window.__cls.push(+e.value.toFixed(4)); })).observe({ type: "layout-shift", buffered: true }); } catch (_) {}
@@ -89,7 +90,7 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     await page.waitForTimeout(300);
     const off = await page.evaluate(() => ({ stage: document.querySelector('[data-world-slot="studio-stage"]').hidden, backdrop: document.querySelector('[data-world-slot="page-backdrop"]').hidden,
       canvases: document.querySelectorAll(".lp-world-canvas").length, choice: window.LPWorld.current(), stored: localStorage.getItem("lp_world_v1"), skinVars: !!document.querySelector("style[data-world-ui]"), animating: window.LPWorld.debugState().animating }));
-    check("B3 back to Classic: slots hidden, canvases removed, loop stopped, storage cleared", off.stage && off.backdrop && off.canvases === 0 && off.choice === null && off.stored === null && !off.skinVars && !off.animating, off);
+    check("B3 back to Classic: slots hidden, canvases removed, loop stopped, Classic remembered", off.stage && off.backdrop && off.canvases === 0 && off.choice === null && off.stored === JSON.stringify({ id: "classic" }) && !off.skinVars && !off.animating, off);
     check("B4 picker session without page errors", errors.length === 0, errors);
     await browser.close();
   }
@@ -191,7 +192,7 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     await page.goto(BASE + "/?world=off", { waitUntil: "load" });
     await page.waitForTimeout(1500);
     const s = await page.evaluate(() => ({ attr: document.documentElement.getAttribute("data-world"), stored: localStorage.getItem("lp_world_v1") }));
-    check("F1 ?world=off turns the world off and forgets the choice", !s.attr && s.stored === null, s);
+    check("F1 ?world=off turns the world off and remembers Classic", !s.attr && s.stored === JSON.stringify({ id: "classic" }), s);
     await browser.close();
   }
 
@@ -200,7 +201,7 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     {
       const browser = await chromium.launch();
       const ctx = await browser.newContext({ viewport: { width: 380, height: 800 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ru-RU" });
-      await ctx.addInitScript(() => localStorage.setItem("onboardingSeen_v1", "1"));
+      await ctx.addInitScript(() => { localStorage.setItem("onboardingSeen_v1", "1"); localStorage.setItem("lp_world_v1", JSON.stringify({ id: "classic" })); });
       const p2 = await ctx.newPage();
       const req = [];
       p2.on("request", (r) => { if (/\/worlds\/|world-engine\.js|world-render\.js|world-skin\.css/.test(r.url())) req.push(r.url()); });
@@ -225,6 +226,19 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     check(`G5 ${label}: the stop's Hebrew sign is up`, /[א-ת]/.test(g.sign), g.sign);
     check(`G6 ${label}: no page errors`, errs.length === 0, errs);
     await p2.screenshot({ path: path.join(OUT, `v2-${stop}-380.png`) });
+    await browser.close();
+  }
+
+  // H. A brand-new visitor (nothing stored) gets the election world, live.
+  {
+    const browser = await chromium.launch();
+    const ctx = await browser.newContext({ viewport: { width: 380, height: 800 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: "ru-RU" });
+    await ctx.addInitScript(() => localStorage.setItem("onboardingSeen_v1", "1"));
+    const p3 = await ctx.newPage();
+    await p3.goto(BASE + "/", { waitUntil: "load" });
+    await p3.waitForTimeout(4500);
+    const h = await p3.evaluate(() => ({ attr: document.documentElement.getAttribute("data-world"), c: window.LPWorld.current() }));
+    check("H1 new visitor: the election world is on by default, live", h.attr === "israel-elections-2026" && h.c && h.c.mode === "live", h);
     await browser.close();
   }
 

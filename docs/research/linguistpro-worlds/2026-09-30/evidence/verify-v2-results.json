@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T19:50:59.103Z",
+  "at": "2026-09-30T20:00:08.445Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -23,8 +23,8 @@
       "name": "A3 Classic: only the boot stub is paid for (< 2 KB decoded)",
       "ok": true,
       "detail": {
-        "transfer": 1736,
-        "decoded": 1436
+        "transfer": 2074,
+        "decoded": 1774
       }
     },
     {
@@ -67,14 +67,14 @@
       ]
     },
     {
-      "name": "B3 back to Classic: slots hidden, canvases removed, loop stopped, storage cleared",
+      "name": "B3 back to Classic: slots hidden, canvases removed, loop stopped, Classic remembered",
       "ok": true,
       "detail": {
         "stage": true,
         "backdrop": true,
         "canvases": 0,
         "choice": null,
-        "stored": null,
+        "stored": "{\"id\":\"classic\"}",
         "skinVars": false,
         "animating": false
       }
@@ -399,11 +399,11 @@
       "detail": null
     },
     {
-      "name": "F1 ?world=off turns the world off and forgets the choice",
+      "name": "F1 ?world=off turns the world off and remembers Classic",
       "ok": true,
       "detail": {
         "attr": null,
-        "stored": null
+        "stored": "{\"id\":\"classic\"}"
       }
     },
     {
@@ -507,6 +507,19 @@
       "name": "G6 Mediatheque: no page errors",
       "ok": true,
       "detail": []
+    },
+    {
+      "name": "H1 new visitor: the election world is on by default, live",
+      "ok": true,
+      "detail": {
+        "attr": "israel-elections-2026",
+        "c": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        }
+      }
     }
   ]
 }

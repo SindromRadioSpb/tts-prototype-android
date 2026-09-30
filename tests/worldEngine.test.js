@@ -78,16 +78,23 @@ test("parallax strips exist in all three lightings with identical geometry", () 
   }
 });
 
-test("the stored choice is local, allowlisted, lively by default and remembers pause", () => {
-  assert.equal(core.readChoice(null), null);
-  assert.equal(core.readChoice("not json"), null);
-  assert.equal(core.readChoice(JSON.stringify({ id: "unknown-world" })), null, "only registry ids load");
+test("the stored choice is local and allowlisted; the election world is on by default; Classic is explicit", () => {
+  const dflt = { id: WORLD, mode: "live", paused: false, lighting: "auto", implicit: true };
+  assert.deepEqual(core.readChoice(null), dflt, "no choice on this device → the default world, live");
+  assert.deepEqual(core.readChoice("not json"), dflt);
+  assert.equal(core.readChoice(JSON.stringify({ id: "classic" })), null, "an explicit Classic is kept");
+  assert.deepEqual(core.readChoice(JSON.stringify({ id: "unknown-world" })), dflt, "only registry ids load");
   assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD })), { id: WORLD, mode: "live", paused: false, lighting: "auto" });
   assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "calm", paused: true, lighting: "day" })), { id: WORLD, mode: "calm", paused: true, lighting: "day" });
   assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "party", lighting: "noon" })), { id: WORLD, mode: "live", paused: false, lighting: "auto" });
   core.REGISTRY[WORLD].retired = true;
-  try { assert.equal(core.readChoice(JSON.stringify({ id: WORLD })), null, "a retired world never loads again"); }
-  finally { core.REGISTRY[WORLD].retired = false; }
+  try {
+    assert.equal(core.readChoice(JSON.stringify({ id: WORLD })), null, "a retired world never loads again");
+    assert.equal(core.readChoice(null), null, "retiring the default world sends everyone back to Classic");
+  } finally { core.REGISTRY[WORLD].retired = false; }
+  const boot = read("public/js/world-boot.js");
+  assert.match(boot, /var wanted = true;/, "the boot stub loads the world unless Classic was chosen");
+  assert.match(boot, /JSON\.parse\(raw\)\.id === "classic"/);
 });
 
 test("validation refuses anything outside the declarative contract", () => {

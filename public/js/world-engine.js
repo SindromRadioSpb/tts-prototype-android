@@ -29,6 +29,11 @@
   var REGISTRY = {
     "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.10.0", retired: false }
   };
+  // Owner decision 2026-09-30: the election world is ON by default (live); a learner switches to
+  // Classic by hand and that explicit choice ({id:"classic"}) is kept. Retiring the default world
+  // in REGISTRY sends everyone without an explicit choice back to Classic.
+  var DEFAULT_WORLD = "israel-elections-2026";
+  var CLASSIC = "classic";
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
   var LIGHTINGS = ["day", "dusk", "night"];
@@ -40,18 +45,23 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=709";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=709";
+  var CSS_URL = "/css/world-skin.css?v=710";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=710";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
+  function defaultChoice() {
+    var reg = REGISTRY[DEFAULT_WORLD];
+    return reg && !reg.retired ? { id: DEFAULT_WORLD, mode: "live", paused: false, lighting: "auto", implicit: true } : null;
+  }
   function readChoice(raw) {
-    if (!raw) return null;
+    if (!raw) return defaultChoice();
     var v;
-    try { v = JSON.parse(raw); } catch (_) { return null; }
-    if (!v || typeof v !== "object" || typeof v.id !== "string") return null;
+    try { v = JSON.parse(raw); } catch (_) { return defaultChoice(); }
+    if (!v || typeof v !== "object" || typeof v.id !== "string") return defaultChoice();
+    if (v.id === CLASSIC) return null;
     var reg = REGISTRY[v.id];
-    if (!reg || reg.retired) return null;
+    if (!reg || reg.retired) return defaultChoice();
     return { id: v.id, mode: MODES.indexOf(v.mode) >= 0 ? v.mode : "live", paused: v.paused === true,
       lighting: ["day", "dusk", "night"].indexOf(v.lighting) >= 0 ? v.lighting : "auto" };
   }
@@ -302,7 +312,7 @@
   }
 
   var core = {
-    ENGINE_VERSION: ENGINE_VERSION, STORAGE_KEY: STORAGE_KEY, REGISTRY: REGISTRY, BUDGET: BUDGET,
+    ENGINE_VERSION: ENGINE_VERSION, STORAGE_KEY: STORAGE_KEY, REGISTRY: REGISTRY, BUDGET: BUDGET, DEFAULT_WORLD: DEFAULT_WORLD, CLASSIC: CLASSIC,
     COLOR_TOKENS: COLOR_TOKENS, SLOTS: SLOTS, TRIGGER_RE: TRIGGER_RE, PHASES: PHASES,
     readChoice: readChoice, validatePack: validatePack, sampleScene: sampleScene, sampleTrack: sampleTrack,
     sceneActive: sceneActive, createGovernor: createGovernor, journey: journey, locationForPhase: locationForPhase
@@ -327,7 +337,12 @@
     return LOCALES.indexOf(l) >= 0 ? l : "ru";
   }
   function storageGet() { try { return localStorage.getItem(STORAGE_KEY); } catch (_) { return null; } }
-  function storageSet(v) { try { if (v) localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); else localStorage.removeItem(STORAGE_KEY); } catch (_) {} }
+  function storageSet(v) {
+    try {
+      var out = v ? { id: v.id, mode: v.mode, paused: !!v.paused, lighting: v.lighting || "auto" } : { id: CLASSIC };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(out));
+    } catch (_) {}
+  }
   function reducedMotion() { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (_) { return false; } }
   function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function now() { return performance.now(); }

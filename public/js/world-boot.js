@@ -1,12 +1,12 @@
 /*
  * LinguistPro Worlds — boot stub (the only world code every shell loads).
- * Loads the full engine (/js/world-engine.js) only when this device has a world chosen, the
- * user opens the «Оформление» picker, or ?world=off must clear a choice. Classic pays for this
- * file alone: no engine, no renderer, no skin, no art, no timers.
+ * The election world is ON by default (owner decision 2026-09-30): the engine loads unless this
+ * device explicitly chose Classic. A Classic device pays for this file alone: no engine, no
+ * renderer, no skin, no art, no timers — until the user opens the «Оформление» picker.
  */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=709"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=710"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;
@@ -26,7 +26,14 @@
     current: function () { return null; }
   };
   window.LPWorld = stub;
-  var wanted = false;
-  try { wanted = !!localStorage.getItem("lp_world_v1") || /[?&]world=off\b/.test(location.search); } catch (_) {}
+  // The election world is on by default: load the engine unless this device explicitly chose
+  // Classic ({"id":"classic"}). ?world=off also needs the engine, to record that choice.
+  var wanted = true;
+  try {
+    var raw = localStorage.getItem("lp_world_v1");
+    var classic = false;
+    try { classic = !!raw && JSON.parse(raw).id === "classic"; } catch (_) {}
+    wanted = !classic || /[?&]world=off\b/.test(location.search);
+  } catch (_) {}
   if (wanted) load().catch(function () {});
 })();
