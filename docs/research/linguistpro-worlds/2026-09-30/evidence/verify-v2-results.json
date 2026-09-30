@@ -1,6 +1,6 @@
 {
-  "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T14:55:47.797Z",
+  "base": "https://linguistpro.kolosei.com",
+  "at": "2026-09-30T18:02:36.971Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -23,7 +23,7 @@
       "name": "A3 Classic: only the boot stub is paid for (< 2 KB decoded)",
       "ok": true,
       "detail": {
-        "transfer": 1736,
+        "transfer": 1113,
         "decoded": 1436
       }
     },
@@ -89,7 +89,7 @@
         "scene": null,
         "walking": false,
         "location": "hq",
-        "lighting": "dusk",
+        "lighting": "night",
         "busy": null,
         "animating": true,
         "camera": 40,
@@ -101,9 +101,9 @@
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-dusk-strip.png?v=0.4.0",
-        "/worlds/israel-elections-2026/layer-city-dusk-strip.png?v=0.4.0",
-        "/worlds/israel-elections-2026/layer-street-dusk-strip.png?v=0.4.0"
+        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.4.0",
+        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.4.0",
+        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.4.0"
       ]
     },
     {
@@ -135,7 +135,7 @@
         },
         "walking": false,
         "location": "polling",
-        "lighting": "dusk",
+        "lighting": "night",
         "busy": null,
         "animating": true,
         "camera": 840,
@@ -190,7 +190,7 @@
           "scene": null,
           "walking": false,
           "location": "polling",
-          "lighting": "dusk",
+          "lighting": "night",
           "busy": null,
           "animating": false,
           "camera": 840,
@@ -251,7 +251,7 @@
         "scene": null,
         "walking": false,
         "location": "hq",
-        "lighting": "dusk",
+        "lighting": "night",
         "busy": null,
         "animating": false,
         "camera": 40,
@@ -277,7 +277,7 @@
         "scene": null,
         "walking": false,
         "location": "polling",
-        "lighting": "dusk",
+        "lighting": "night",
         "busy": null,
         "animating": false,
         "camera": 840,
