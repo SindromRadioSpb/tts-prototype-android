@@ -1,6 +1,6 @@
 {
-  "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T19:02:47.669Z",
+  "base": "https://linguistpro.kolosei.com",
+  "at": "2026-09-30T19:11:09.853Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -23,7 +23,7 @@
       "name": "A3 Classic: only the boot stub is paid for (< 2 KB decoded)",
       "ok": true,
       "detail": {
-        "transfer": 1736,
+        "transfer": 1113,
         "decoded": 1436
       }
     },
