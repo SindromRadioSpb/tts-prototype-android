@@ -27,7 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.6.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.8.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -39,8 +39,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=706";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=706";
+  var CSS_URL = "/css/world-skin.css?v=707";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=707";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -101,6 +101,9 @@
         else err("skin token not allowed: " + k);
       });
     });
+    Object.keys(manifest.ui || {}).forEach(function (k) {
+      if (["signBoard", "signLegs", "bubbleFrame", "bubbleTail"].indexOf(k) < 0 || !atlases[manifest.ui[k]]) err("ui " + k);
+    });
     var sc = manifest.scenery;
     if (!sc) err("scenery");
     else {
@@ -120,7 +123,8 @@
         var tag = "layer " + (L && L.id);
         if (!L || !isName(L.id)) { err(tag); return; }
         sheetOk(L.sheet, L.frame, tag);
-        if (!isNum(L.parallax, 0, 2) || !isNum(L.bottom || 0, 0, 400)) err(tag + " geometry");
+        // a layer may sink below the street line (its foot hidden by the street) to free the sky
+        if (!isNum(L.parallax, 0, 2) || !isNum(L.bottom || 0, -200, 400)) err(tag + " geometry");
         if (L.drift != null && !isNum(L.drift, -60, 60)) err(tag + " drift");
         (L.lamps || []).forEach(function (lp) { if (!isNum(lp.x, 0, 4096) || !isNum(lp.head, 0, 4096)) err(tag + " lamp"); });
       });
@@ -151,7 +155,7 @@
     Object.keys(parties).forEach(function (id) {
       var pt = parties[id];
       if (!isName(id) || !pt || !isColor(pt.color) || !isColor(pt.ink) || !isPlainText(pt.mark) || !/[\u05d0-\u05ea]/.test(pt.speak || "") ||
-          !localized(pt.names) || !localized(pt.says)) err("party " + id);
+          !localized(pt.names) || !localized(pt.says) || (pt.slogan && !localized(pt.slogan))) err("party " + id);
     });
     var locs = manifest.locations || {};
     Object.keys(locs).forEach(function (id) {
@@ -164,7 +168,8 @@
         if (!isPlainText(sg.he) || !/[\u05d0-\u05ea]/.test(sg.he) || !isPlainText(sg.translit) || !localized(sg.gloss) || !isNum(sg.x, -400, 400)) err("location " + id + " sign");
       }
       (L.props || []).forEach(function (p) { if (!frameOk(p.actor, p.frame)) err("location " + id + " prop " + p.actor); });
-      (L.posters || []).forEach(function (po) { if (!parties[po.party] || !isNum(po.x, -400, 400)) err("location " + id + " poster"); });
+      (L.posters || []).forEach(function (po) { if (!parties[po.party] || !isNum(po.x, -400, 400) || !isNum(po.y || 0, 0, 200)) err("location " + id + " poster"); });
+      if (L.icon && !atlases[L.icon]) err("location " + id + " icon");
       (L.fx || []).forEach(function (fx) {
         if (["papers", "searchlights", "tally"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
         (fx.parties || []).forEach(function (p) { if (!parties[p]) err("location " + id + " fx party " + p); });
@@ -337,6 +342,11 @@
       });
     });
     decl.push("--lpw-scene-h:" + state.pack.scenery.sceneHeight, "--lpw-ground:" + state.pack.scenery.groundY);
+    // pixel UI pieces of the pack (validated atlas refs only) → CSS url() tokens
+    Object.keys(state.pack.ui || {}).forEach(function (k) {
+      var a = state.atlas.atlases[state.pack.ui[k]];
+      decl.push("--lpw-ui-" + k.replace(/[A-Z]/g, function (c) { return "-" + c.toLowerCase(); }) + ':url("' + assetUrl(a.file) + '")');
+    });
     if (!state.styleEl) { state.styleEl = document.createElement("style"); state.styleEl.setAttribute("data-world-ui", ""); document.head.appendChild(state.styleEl); }
     state.styleEl.textContent = "html[data-world]{" + decl.join(";") + "}";
     ensureCss();
@@ -783,7 +793,7 @@
     // An A-frame on the pavement just left of Timsah: the landmark stays uncovered, the bubble
     // (above his head) never overlaps it. transform-only: following the camera never shifts layout.
     var head = (L.x - st.renderer.camera()) * st.scale;
-    var x = head - 18 * st.scale - st.sign.offsetWidth;
+    var x = head - 22 * st.scale - st.sign.offsetWidth;
     st.sign.style.left = "0px";
     st.sign.style.transform = "translateX(" + Math.round(Math.max(8, x)) + "px)";
     st.sign.style.bottom = Math.round((state.pack.scenery.groundY - 2) * st.scale) + "px";
@@ -811,9 +821,12 @@
         mark.className = "lp-world-poster-mark"; mark.lang = "he"; mark.dir = "rtl"; mark.textContent = pt.mark;
         var name = document.createElement("span");
         name.className = "lp-world-poster-name"; name.textContent = pt.names[locale()] || pt.names.ru;
-        b.appendChild(mark); b.appendChild(name);
+        var slogan = document.createElement("span");
+        slogan.className = "lp-world-poster-slogan"; slogan.textContent = pt.slogan ? (pt.slogan[locale()] || pt.slogan.ru) : "";
+        b.appendChild(name); b.appendChild(mark); b.appendChild(slogan);
         b.setAttribute("aria-label", (pt.names[locale()] || pt.names.ru) + ". " + tr("world.signListen", "Послушать"));
         b.dataset.x = po.x;
+        b.dataset.y = po.y || 0;
         b.addEventListener("click", function () {
           speakHebrew(pt.speak);
           state.react = { start: now() };
@@ -823,10 +836,13 @@
         st.posters.appendChild(b);
       });
     }
+    // the DOM button exactly covers the pixel poster the renderer drew (22×26 art px)
     Array.prototype.forEach.call(st.posters.children, function (b) {
-      var x = (L.x + Number(b.dataset.x) - st.renderer.camera()) * st.scale - b.offsetWidth / 2;
+      var x = (L.x + Number(b.dataset.x) - 11 - st.renderer.camera()) * st.scale;
+      b.style.width = (22 * st.scale) + "px";
+      b.style.height = (26 * st.scale) + "px";
       b.style.transform = "translateX(" + Math.round(x) + "px)";
-      b.style.bottom = Math.round((state.pack.scenery.backGround || 30) * st.scale - 6) + "px";
+      b.style.bottom = Math.round(((state.pack.scenery.backGround || 30) + Number(b.dataset.y)) * st.scale) + "px";
     });
   }
 
@@ -921,6 +937,21 @@
       b.type = "button";
       b.className = "lp-world-stop";
       b.dataset.loc = id;
+      var L0 = state.pack.locations[id];
+      if (L0.icon && state.atlas.atlases[L0.icon]) {
+        var ic = document.createElement("span");
+        ic.className = "lp-world-stop-icon";
+        ic.setAttribute("aria-hidden", "true");
+        ic.style.backgroundImage = 'url("' + assetUrl(state.atlas.atlases[L0.icon].file) + '")';
+        b.appendChild(ic);
+      }
+      if (state.pack.here && state.atlas.atlases[state.pack.here]) {
+        var hd = document.createElement("span");
+        hd.className = "lp-world-stop-here";
+        hd.setAttribute("aria-hidden", "true");
+        hd.style.backgroundImage = 'url("' + assetUrl(state.atlas.atlases[state.pack.here].file) + '")';
+        b.appendChild(hd);
+      }
       b.addEventListener("click", function () { visit(id); });
       route.appendChild(b);
     });
@@ -1098,12 +1129,18 @@
         if (!dlg.isConnected) return;
         var r = window.LPWorldRender.createRenderer(canvas, { pack: pack, atlas: atlas, images: images, seed: 3 });
         var rect = host.getBoundingClientRect();
-        r.resize(Math.max(160, Math.round(rect.width)), 112, 1);
+        // a close-up at the world's own 2x scale: the mascot and the stop's set-piece, not a street
+        r.resize(Math.max(160, Math.round(rect.width)), 144, 2);
         r.setLighting(lighting);
         var originX = loc.x;
-        r.panTo(originX - Math.round(Math.max(160, rect.width) * 0.3), 0, performance.now());
+        r.panTo(originX - Math.round(Math.max(160, rect.width) / 2 * 0.28), 0, performance.now());
         var props = (loc.props || []).map(function (pr) { return { actor: pr.actor, frame: pr.frame, worldX: loc.x + pr.x, y: 0, z: 1, back: !!pr.back }; });
-        function pose(t) { return props.concat([{ actor: "timsah", frame: (t % 3600) < 150 ? "blink" : "idle", worldX: originX, y: 0, z: 3 }]); }
+        var act = pack.actors["timsah-act"] ? "timsah-act" : null;
+        function pose(t) {
+          var me = act ? { actor: act, frame: (t % 1400) < 700 ? "clip" : "clip-wow", worldX: originX, y: 0, z: 3 }
+                       : { actor: "timsah", frame: (t % 3600) < 150 ? "blink" : "idle", worldX: originX, y: 0, z: 3 };
+          return props.concat([me]);
+        }
         var raf = 0, last = 0;
         function tick(t) {
           if (!dlg.isConnected || !dlg.open) return;
@@ -1135,9 +1172,8 @@
       var input = el("input", { type: "radio", name: "lpWorld", value: value });
       if (value === current) input.checked = true;
       var copy = el("span", { class: "lp-world-option-copy" });
-      var head = el("span", { class: "lp-world-option-title" }, title);
-      if (badge) head.appendChild(el("span", { class: "lp-world-badge" }, badge));
-      copy.appendChild(head);
+      if (badge) copy.appendChild(el("span", { class: "lp-world-badge" }, badge));
+      copy.appendChild(el("span", { class: "lp-world-option-title" }, title));
       if (note) copy.appendChild(el("span", { class: "lp-world-option-note" }, note));
       label.appendChild(input); label.appendChild(copy);
       list.appendChild(label);
@@ -1187,7 +1223,12 @@
       }
       return set(s.id || null, s.mode);
     }
-    form.addEventListener("change", function () { syncModes(); applySelection(); });
+    form.addEventListener("change", function (e) {
+      syncModes();
+      // choosing the world greets with its word (a direct user gesture, never on page load)
+      if (e && e.target && e.target.name === "lpWorld" && e.target.value) speakHebrew("בְּחִירוֹת");
+      applySelection();
+    });
     preview.addEventListener("click", function () {
       applySelection().then(function () {
         var first = state.pack && (state.pack.scenes || []).filter(function (s) { return s.trigger !== "ambient"; })[0];

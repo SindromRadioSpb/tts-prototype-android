@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.706";
+const CACHE_VERSION = "v3.11.707";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -265,10 +265,10 @@ const PRECACHE_URLS = [
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
-  "/js/world-boot.js?v=706",
-  "/js/world-engine.js?v=706",
-  "/js/world-render.js?v=706",
-  "/css/world-skin.css?v=706",
+  "/js/world-boot.js?v=707",
+  "/js/world-engine.js?v=707",
+  "/js/world-render.js?v=707",
+  "/css/world-skin.css?v=707",
   "/js/app-nav.js?v=645",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",

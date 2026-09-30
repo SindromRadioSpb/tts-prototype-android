@@ -1,0 +1,6 @@
+Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference images (a Jerusalem street at dusk and the crocodile character sheet for scale), draw 4 street set-pieces as separate game props in one horizontal row, evenly spaced and clearly separated, each standing on its own ground line at the bottom, flat solid magenta #FF00FF background everywhere else, no ground, no shadows on the background. Side view matching the street. Scale: each prop about as tall as the crocodile or a bit taller.
+1) CAMPAIGN TABLE: a small folding table with two neat stacks of blank flyers, a tin cup of pencils, and a loudspeaker megaphone on a short stand next to it.
+2) DRYING LINE: two thin wooden posts with a string between them, five blank white sheets pegged on it with wooden clothes pegs, a small ink pad and a rubber stamp on a crate below.
+3) VOTING BOOTH: a classic cardboard polling booth screen (three folding panels, open at the front) with a small plain curtain, a tiny shelf inside, blank.
+4) TALLY BOARD: a large blank chalkboard on a wooden easel, with a few chalk tally marks in groups of five (just strokes, no digits, no letters), a piece of chalk on the ledge.
+Strictly no text, no letters, no numbers, no logos, no flags, no party colours. Crisp pixels, 1px dark outline, no anti-aliasing.

@@ -182,72 +182,85 @@ html[data-world] .lp-world-pause[data-state="paused"] .lp-world-pause-icon {
 
 html[data-world] .lp-world-bubble {
   position: absolute; z-index: 2; max-width: calc(100% - 16px); box-sizing: border-box; white-space: nowrap;
-  padding: 6px 10px; border: 2px solid #1b1f2e; border-radius: 0;
-  background: #fffdf6; color: #1b1f2e;
+  padding: 1px 4px; border: 6px solid transparent; border-radius: 0;
+  border-image: var(--lpw-ui-bubble-frame) 3 fill / 6px stretch; image-rendering: pixelated;
+  background: transparent; color: #1b1f2e;
   font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.8125rem; font-weight: 700; line-height: 1.35;
-  box-shadow: inset -2px -2px 0 0 #e7dcc2;
   pointer-events: none;
 }
-/* stepped pixel tail: two squares stepping down toward the speaker's head */
-html[data-world] .lp-world-bubble::before,
+/* pixel tail pointing down to the speaker's head */
 html[data-world] .lp-world-bubble::after {
-  content: ""; position: absolute; background: #fffdf6; box-shadow: 0 0 0 2px #1b1f2e;
+  content: ""; position: absolute; left: var(--lpw-tail, 16px); bottom: -14px; width: 16px; height: 12px;
+  background: var(--lpw-ui-bubble-tail) no-repeat 0 0 / 16px 12px; image-rendering: pixelated;
 }
-html[data-world] .lp-world-bubble::before { left: var(--lpw-tail, 16px); bottom: -8px; width: 8px; height: 6px; }
-html[data-world] .lp-world-bubble::after { left: calc(var(--lpw-tail, 16px) - 4px); bottom: -14px; width: 4px; height: 4px; }
 /* A-frame sign standing on the pavement: a real control (tap = hear it), Hebrew in the reading font. */
 html[data-world] .lp-world-sign {
   position: absolute; z-index: 2; display: grid; justify-items: center; gap: 1px;
-  min-width: 44px; min-height: 44px; padding: 4px 10px 5px; margin-bottom: 12px; box-sizing: border-box;
-  border: 2px solid #2b1d12; border-radius: 0;
-  background: #f4e7c8; color: #2b1d12;
-  box-shadow: inset 0 -3px 0 0 #d8c29a;
+  min-width: 44px; min-height: 44px; padding: 2px 6px 3px; margin-bottom: 16px; box-sizing: border-box;
+  /* a hand-drawn pixel board (9-slice, 4 art px border at 2x) — not a CSS box */
+  border: 8px solid transparent; border-radius: 0;
+  border-image: var(--lpw-ui-sign-board) 4 fill / 8px stretch;
+  image-rendering: pixelated;
+  background: transparent; color: #2b1d12;
   cursor: pointer;
 }
-html[data-world] .lp-world-sign::before,
+/* pixel A-frame legs + a flat contact shadow on the pavement */
 html[data-world] .lp-world-sign::after {
-  content: ""; position: absolute; bottom: -14px; width: 4px; height: 12px; background: #2b1d12;
+  content: ""; position: absolute; left: 50%; bottom: -20px; width: 36px; height: 16px; margin-left: -18px;
+  background: var(--lpw-ui-sign-legs) no-repeat 0 0 / 36px 16px; image-rendering: pixelated;
 }
-html[data-world] .lp-world-sign::before { left: 8px; transform: skewX(12deg); }
-html[data-world] .lp-world-sign::after { right: 8px; transform: skewX(-12deg); }
+html[data-world] .lp-world-sign::before {
+  content: ""; position: absolute; left: 50%; bottom: -22px; width: 44px; height: 4px; margin-left: -22px;
+  background: rgba(10, 8, 24, 0.28);
+}
+/* the sign and the posters live in the world's light, like the characters */
+html[data-world][data-world-light="dusk"] .lp-world-sign,
+html[data-world][data-world-light="dusk"] .lp-world-poster { filter: sepia(0.18) brightness(0.95); }
+html[data-world][data-world-light="night"] .lp-world-sign,
+html[data-world][data-world-light="night"] .lp-world-poster { filter: brightness(0.78) saturate(0.8); }
 html[data-world] .lp-world-sign[hidden] { display: none; }
 html[data-world] .lp-world-sign:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
-html[data-world] .lp-world-sign-he { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.125rem; font-weight: 700; line-height: 1.2; }
+html[data-world] .lp-world-sign-he { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.0625rem; font-weight: 700; line-height: 1.2; }
 html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; line-height: 1.15; opacity: 0.85; }
-/* route: four stops of the election journey as real 44px controls; the Studio's progress is lit
-   (done = blue, current step = gold), the stop where Timsah stands is framed. Reads in UI direction. */
+/* route: four stops as 44px controls with pixel icons on a dotted trail; the Studio's progress
+   is lit (done / current step), the stop where Timsah stands wears his head. Reads in UI direction. */
 html[data-world] .lp-world-route {
   position: absolute; z-index: 2; left: 50%; bottom: 0; transform: translateX(-50%); margin: 0; padding: 0;
-  display: flex; gap: 0; align-items: center;
+  display: flex; gap: 6px; align-items: end;
+  background: repeating-linear-gradient(90deg, rgba(255, 246, 224, 0.7) 0 4px, transparent 4px 8px) no-repeat 22px 34px / calc(100% - 44px) 2px;
 }
 [dir="rtl"] .lp-world-route { flex-direction: row-reverse; }
 html[data-world] .lp-world-stop {
-  width: 44px !important; height: 44px; min-width: 44px; padding: 0; margin: 0;
+  position: relative; width: 44px !important; height: 44px; min-width: 44px; padding: 0 0 4px; margin: 0;
   border: 0; border-radius: 0; background: transparent; cursor: pointer;
-  /* the square sits at the bottom edge of its 44px target, below the characters' feet */
-  display: grid; place-items: end center; padding-bottom: 5px;
+  display: grid; place-items: end center;
 }
-html[data-world] .lp-world-stop::before {
-  content: ""; width: 10px; height: 10px; background: rgba(255, 253, 246, 0.6); box-shadow: 0 0 0 2px #1b1f2e;
+html[data-world] .lp-world-stop-icon {
+  display: block; width: 20px; height: 20px; background: no-repeat 0 0 / 20px 20px; image-rendering: pixelated;
+  opacity: 0.55; filter: saturate(0.5);
 }
-html[data-world] .lp-world-stop[data-state="done"]::before { background: #7aa0ec; }
-html[data-world] .lp-world-stop[data-state="here"]::before { background: #f4c542; }
-html[data-world] .lp-world-stop[data-at="1"]::before { width: 14px; height: 14px; box-shadow: 0 0 0 2px #1b1f2e, 0 0 0 4px #fff6e0; }
-html[data-world] .lp-world-stop:focus-visible { outline: 3px solid #fff3b0; outline-offset: -4px; }
-/* campaign posters of the fictional vowel parties, pasted on the street wall */
+html[data-world] .lp-world-stop[data-state="done"] .lp-world-stop-icon { opacity: 0.9; filter: none; }
+html[data-world] .lp-world-stop[data-state="here"] .lp-world-stop-icon { opacity: 1; filter: none; box-shadow: 0 3px 0 0 #f4c542; }
+html[data-world] .lp-world-stop-here {
+  position: absolute; left: 50%; top: -6px; width: 20px; height: 12px; margin-left: -10px;
+  background: no-repeat 0 0 / 20px 12px; image-rendering: pixelated; display: none;
+}
+html[data-world] .lp-world-stop[data-at="1"] .lp-world-stop-here { display: block; }
+html[data-world] .lp-world-stop:focus-visible { outline: 3px solid #fff3b0; outline-offset: -3px; }
+/* Hebrew UI: the game title stays centred on the sky */
+html[data-world] .classic-screen-title { text-align: center; }
+/* campaign posters: the paper is drawn in the canvas; this button only carries the crisp text */
 html[data-world] .lp-world-posters { position: absolute; left: 0; bottom: 0; width: 0; height: 0; z-index: 2; }
 html[data-world] .lp-world-poster {
   position: absolute; left: 0; bottom: 0; display: grid; justify-items: center; align-content: center; gap: 0;
-  width: 58px !important; min-width: 44px; min-height: 58px; padding: 2px 3px 4px; box-sizing: border-box;
-  border: 2px solid #1b1f2e; border-radius: 0; background: var(--lpw-party); color: var(--lpw-party-ink);
-  box-shadow: inset 0 3px 0 0 rgba(255, 255, 255, 0.28), inset 0 -3px 0 0 rgba(0, 0, 0, 0.18);
-  transform-origin: bottom center; cursor: pointer;
+  min-width: 44px; min-height: 44px; padding: 3px 2px; box-sizing: border-box;
+  border: 0; border-radius: 0; background: transparent; color: var(--lpw-party-ink);
+  cursor: pointer;
 }
-html[data-world] .lp-world-poster:nth-child(2) { rotate: 2deg; }
-html[data-world] .lp-world-poster:nth-child(1) { rotate: -2deg; }
-html[data-world] .lp-world-poster:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
-html[data-world] .lp-world-poster-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.625rem; font-weight: 900; line-height: 1.05; }
-html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: 0.02em; text-align: center; }
+html[data-world] .lp-world-poster:focus-visible { outline: 3px solid #fff3b0; outline-offset: 1px; }
+html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5rem; font-weight: 800; line-height: 1.05; text-transform: uppercase; text-align: center; }
+html[data-world] .lp-world-poster-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.5rem; font-weight: 900; line-height: 1; }
+html[data-world] .lp-world-poster-slogan { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 800; line-height: 1; }
 @media (forced-colors: active) {
   html[data-world] .lp-world-stage, html[data-world] .lp-world-backdrop { display: none !important; }
   html[data-world] .classic-shell-head { padding-bottom: 0 !important; }
@@ -280,7 +293,7 @@ html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-u
 }
 .lp-world-option:has(input:checked) { border-color: var(--theme-accent, #1b4fb8); background: var(--theme-accent-soft, #e3ebfa); }
 .lp-world-preview {
-  display: block; width: 100%; height: 112px; margin-top: 6px;
+  display: block; width: 100%; height: 144px; margin-top: 6px;
   border: 2px solid #1b1f2e; image-rendering: pixelated; background: #3b3a78;
 }
 .lp-world-option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--theme-accent, #1b4fb8); }
@@ -290,7 +303,7 @@ html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-u
 .lp-world-option-title { font-weight: 600; font-size: 0.9375rem; line-height: 1.35; }
 .lp-world-option-note { font-size: 0.8125rem; line-height: 1.4; color: var(--theme-text-secondary, #475569); }
 .lp-world-badge {
-  display: inline-block; white-space: nowrap; margin-inline-start: 8px; padding: 1px 6px;
+  display: inline-block; justify-self: start; white-space: nowrap; margin: 0 0 2px; padding: 1px 6px;
   border: 1px solid currentColor; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.02em;
   vertical-align: 2px; color: var(--theme-text-secondary, #475569);
 }

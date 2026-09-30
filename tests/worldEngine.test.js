@@ -250,6 +250,11 @@ test("the skin never restyles the study table or learning fonts; everything else
     }
   }
   assert.match(css, /\.lp-world-pause \{[^}]*width: 44px; height: 44px;/, "the pause control is a 44px target");
+  // every world control the engine creates has its styles (a lost block once hid the posters)
+  for (const cls of ["lp-world-stage", "lp-world-canvas", "lp-world-pause", "lp-world-bubble", "lp-world-sign", "lp-world-sign-he",
+    "lp-world-route", "lp-world-stop", "lp-world-stop-icon", "lp-world-stop-here", "lp-world-posters", "lp-world-poster", "lp-world-poster-mark", "lp-world-picker", "lp-world-preview"]) {
+    assert.match(css, new RegExp("\\." + cls + "[\\s,:\\[{]"), `styles for .${cls}`);
+  }
 });
 
 test("the vowel parties are a balanced, fictional pair: never blue/white, never a winner", () => {

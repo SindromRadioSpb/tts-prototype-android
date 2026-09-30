@@ -326,8 +326,8 @@
       "file": "place-count-night.png",
       "width": 97,
       "height": 70,
-      "bytes": 1881,
-      "sha256": "a8c2e79a75703a0eb926558b5d9ce3898eaf4f2b953a410e01b161aace5b9c28",
+      "bytes": 1691,
+      "sha256": "8ed47e7e3a5cea9a9e8efed2162a511ace9481a5b574556ec1a79df1fbb944d6",
       "colors": 28,
       "frames": {
         "count": {
@@ -732,6 +732,96 @@
         }
       }
     },
+    "setpieces": {
+      "file": "setpieces.png",
+      "width": 171,
+      "height": 45,
+      "bytes": 1693,
+      "sha256": "69ed1048db0c2c985c48198113a436c2cfee45150c90ba3fee4fda6dbf8c974d",
+      "colors": 24,
+      "frames": {
+        "table": {
+          "x": 0,
+          "y": 0,
+          "w": 42,
+          "h": 45,
+          "anchor": [
+            21,
+            43
+          ]
+        },
+        "line": {
+          "x": 43,
+          "y": 0,
+          "w": 42,
+          "h": 45,
+          "anchor": [
+            21,
+            43
+          ]
+        },
+        "booth": {
+          "x": 86,
+          "y": 0,
+          "w": 42,
+          "h": 45,
+          "anchor": [
+            21,
+            43
+          ]
+        },
+        "board": {
+          "x": 129,
+          "y": 0,
+          "w": 42,
+          "h": 45,
+          "anchor": [
+            21,
+            43
+          ]
+        }
+      }
+    },
+    "sign-board": {
+      "file": "sign-board.png",
+      "width": 16,
+      "height": 16,
+      "bytes": 129,
+      "sha256": "7418f313e332031f7f6aa242921c1b8596a67306089859f10054e72f0bc48724",
+      "colors": 7,
+      "frames": {
+        "board": {
+          "x": 0,
+          "y": 0,
+          "w": 16,
+          "h": 16,
+          "anchor": [
+            0,
+            15
+          ]
+        }
+      }
+    },
+    "sign-legs": {
+      "file": "sign-legs.png",
+      "width": 18,
+      "height": 8,
+      "bytes": 118,
+      "sha256": "9a26b22e1d294e595ab0fb71e06e92c255912012dd439090a153e29f527322da",
+      "colors": 7,
+      "frames": {
+        "legs": {
+          "x": 0,
+          "y": 0,
+          "w": 18,
+          "h": 8,
+          "anchor": [
+            9,
+            7
+          ]
+        }
+      }
+    },
     "timsah-act": {
       "file": "timsah-act.png",
       "width": 185,
@@ -868,6 +958,146 @@
           "anchor": [
             15,
             40
+          ]
+        }
+      }
+    },
+    "ui-bubble": {
+      "file": "ui-bubble.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 115,
+      "sha256": "f1dc5dd38bfcf377051acc538e07b95b55f7fa15ee81025a7cf0181a53d6f1a4",
+      "colors": 11,
+      "frames": {
+        "bubble": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            0,
+            11
+          ]
+        }
+      }
+    },
+    "ui-tail": {
+      "file": "ui-tail.png",
+      "width": 8,
+      "height": 6,
+      "bytes": 96,
+      "sha256": "bec115e19a42f25b10094614e67d4e9d8d69bec04c48e319aa50340e556214d1",
+      "colors": 11,
+      "frames": {
+        "tail": {
+          "x": 0,
+          "y": 0,
+          "w": 8,
+          "h": 6,
+          "anchor": [
+            0,
+            5
+          ]
+        }
+      }
+    },
+    "ui-icon-hq": {
+      "file": "ui-icon-hq.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 112,
+      "sha256": "f66e5ccec754c39b5bfcf021920e227f6c310f393cba6e148b4d9e229c90f951",
+      "colors": 11,
+      "frames": {
+        "icon-hq": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-icon-press": {
+      "file": "ui-icon-press.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 116,
+      "sha256": "04df2d3f6871b66486b01efba2d610639fba95160967f66a27d8c5586684b761",
+      "colors": 11,
+      "frames": {
+        "icon-press": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-icon-polling": {
+      "file": "ui-icon-polling.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 117,
+      "sha256": "dd57f7777b70b5be3b26748866598e2953c5a4ab914e749852cf3c80006063cb",
+      "colors": 11,
+      "frames": {
+        "icon-polling": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-icon-count": {
+      "file": "ui-icon-count.png",
+      "width": 10,
+      "height": 10,
+      "bytes": 107,
+      "sha256": "4c0199e3fa1d511c8374088225a34c4fb0e1950a613a6e7ccbd62c3616c1cf98",
+      "colors": 11,
+      "frames": {
+        "icon-count": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 10,
+          "anchor": [
+            0,
+            9
+          ]
+        }
+      }
+    },
+    "ui-here": {
+      "file": "ui-here.png",
+      "width": 10,
+      "height": 6,
+      "bytes": 116,
+      "sha256": "8ef43bef6afb587289d793289f9fe2de26ac57f5f7ce7592d0a07a7debaddc8e",
+      "colors": 11,
+      "frames": {
+        "here": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 6,
+          "anchor": [
+            0,
+            5
           ]
         }
       }

@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-30T18:52:23.597Z",
+  "id": "setpieces-v1",
+  "model": "gemini-3-pro-image",
+  "refs": [
+    {
+      "path": "art/worlds/israel-elections-2026/gen/keyart-dusk-v1.jpg",
+      "sha256": "0356085581c944b47223ec641cefbc0b84ca718c3c8beecc3c6c9b204e39026b"
+    },
+    {
+      "path": "art/worlds/israel-elections-2026/gen/timsah-sheet-v1.jpg",
+      "sha256": "2a7919b268463183af1def264b45ea1189cf3e4fc4ac731520f7c658876c3947"
+    }
+  ],
+  "prompt": "Using EXACTLY the same pixel art style, pixel size, palette and dusk lighting as the attached reference images (a Jerusalem street at dusk and the crocodile character sheet for scale), draw 4 street set-pieces as separate game props in one horizontal row, evenly spaced and clearly separated, each standing on its own ground line at the bottom, flat solid magenta #FF00FF background everywhere else, no ground, no shadows on the background. Side view matching the street. Scale: each prop about as tall as the crocodile or a bit taller.\n1) CAMPAIGN TABLE: a small folding table with two neat stacks of blank flyers, a tin cup of pencils, and a loudspeaker megaphone on a short stand next to it.\n2) DRYING LINE: two thin wooden posts with a string between them, five blank white sheets pegged on it with wooden clothes pegs, a small ink pad and a rubber stamp on a crate below.\n3) VOTING BOOTH: a classic cardboard polling booth screen (three folding panels, open at the front) with a small plain curtain, a tiny shelf inside, blank.\n4) TALLY BOARD: a large blank chalkboard on a wooden easel, with a few chalk tally marks in groups of five (just strokes, no digits, no letters), a piece of chalk on the ledge.\nStrictly no text, no letters, no numbers, no logos, no flags, no party colours. Crisp pixels, 1px dark outline, no anti-aliasing.\n",
+  "usd": 0.15,
+  "ok": true,
+  "output": "art/worlds/_gen-scratch/setpieces-v1.jpg",
+  "sha256": "411dbff9afcd418d88b0165ab61b9b4a2fccb23b692958094a16a69e2baffc1a",
+  "bytes": 473526,
+  "usage": {
+    "promptTokenCount": 826,
+    "candidatesTokenCount": 1427,
+    "totalTokenCount": 2519,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 310
+      },
+      {
+        "modality": "IMAGE",
+        "tokenCount": 516
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "IMAGE",
+        "tokenCount": 1120
+      }
+    ],
+    "thoughtsTokenCount": 266,
+    "serviceTier": "standard"
+  }
+}

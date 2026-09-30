@@ -283,6 +283,13 @@
           }
           ctx.fillStyle = col(1);
           ctx.fillRect(lx - 1, hy - 1, 3, 2);
+          // a soft light cone down to the pavement
+          var gy0 = state.h - scenery.groundY - 2;
+          for (var yy = hy + 2; yy < gy0; yy += 2) {
+            var half = Math.round(2 + (yy - hy) * 0.28);
+            ctx.fillStyle = col(0.045);
+            ctx.fillRect(lx - half, yy, half * 2 + 1, 2);
+          }
           var gy = state.h - scenery.groundY - 2;
           var bands = [[20, 0.07], [14, 0.08], [8, 0.09]];
           for (var k = 0; k < bands.length; k++) {
@@ -296,6 +303,33 @@
     // Location set-pieces drawn by the engine (no extra art): paper slips flying out of the press,
     // searchlights sweeping the sky over counting night.
     var papers = [], nextPaper = 0;
+    // Campaign posters: pixel paper on the facade (party colour, light top edge, two tape strips),
+    // tinted by the world's light like everything else; the DOM only overlays the crisp text.
+    function mulTint(hex) {
+      var tint = scenery.lighting[state.lighting] && scenery.lighting[state.lighting].actorTint;
+      var c = hexToRgb(hex), t = tint ? hexToRgb(tint) : [255, 255, 255];
+      return "rgb(" + Math.round(c[0] * t[0] / 255) + "," + Math.round(c[1] * t[1] / 255) + "," + Math.round(c[2] * t[2] / 255) + ")";
+    }
+    function drawPosters() {
+      var locs = pack.locations || {};
+      Object.keys(locs).forEach(function (id) {
+        var L = locs[id];
+        (L.posters || []).forEach(function (po, n) {
+          var pt = pack.parties && pack.parties[po.party];
+          if (!pt) return;
+          var x = Math.round(L.x + po.x - 11 - state.cam), y = state.h - (scenery.backGround || 30) - (po.y || 0) - 26;
+          if (x < -30 || x > state.w + 30) return;
+          ctx.fillStyle = mulTint("#1b1f2e"); ctx.fillRect(x, y, 22, 26);
+          ctx.fillStyle = mulTint(pt.color); ctx.fillRect(x + 1, y + 1, 20, 24);
+          ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 1, y + 1, 20, 2);
+          ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(x + 1, y + 23, 20, 2);
+          ctx.fillStyle = mulTint("#efe6c8");
+          ctx.fillRect(x - 1 + (n ? 1 : 0), y - 1, 6, 3);
+          ctx.fillRect(x + 17 - (n ? 1 : 0), y - 1, 6, 3);
+        });
+      });
+    }
+
     function drawFx(t, dt, front) {
       var locs = pack.locations || {};
       Object.keys(locs).forEach(function (id) {
@@ -386,11 +420,16 @@
       if (kind === "backdrop") { drawLayers(kind, t); return; }
       drawLayers(kind, t, false);
       drawActors(true);
+      drawPosters();
       drawFx(t, dt, false);
       drawLayers(kind, t, true);
       (scenery.layers || []).forEach(function (L) { if (L.front) drawLampLight(L); });
       drawActors(false);
       drawFx(t, dt, true);
+      if (scenery.curb) {
+        ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.fillRect(0, state.h - 3, state.w, 3);
+        ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fillRect(0, state.h - 4, state.w, 1);
+      }
     }
 
     return {

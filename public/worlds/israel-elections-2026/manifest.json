@@ -1,7 +1,7 @@
 {
   "schema": "lp-world/2",
   "id": "israel-elections-2026",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "engine": {
     "min": 2,
     "max": 2
@@ -83,13 +83,13 @@
         "sheet": "scenery-sky-day",
         "frame": "sun",
         "at": 0.82,
-        "top": 14
+        "top": 40
       },
       "night": {
         "sheet": "scenery-sky-night",
         "frame": "moon",
         "at": 0.78,
-        "top": 12
+        "top": 40
       }
     },
     "layers": [
@@ -102,7 +102,7 @@
         },
         "frame": "strip",
         "parallax": 0.12,
-        "bottom": 34
+        "bottom": 20
       },
       {
         "id": "city",
@@ -113,7 +113,7 @@
         },
         "frame": "strip",
         "parallax": 0.38,
-        "bottom": 30
+        "bottom": -18
       },
       {
         "id": "street",
@@ -238,7 +238,8 @@
         ],
         "lane": 9
       }
-    ]
+    ],
+    "curb": true
   },
   "actors": {
     "timsah": {
@@ -326,6 +327,10 @@
     "timsah-act": {
       "sheet": "timsah-act",
       "fictional": true
+    },
+    "setpiece": {
+      "sheet": "setpieces",
+      "fictional": true
     }
   },
   "locations": {
@@ -344,6 +349,12 @@
           "x": 64,
           "back": true,
           "z": 1
+        },
+        {
+          "actor": "setpiece",
+          "frame": "table",
+          "x": 38,
+          "z": 1
         }
       ],
       "sign": {
@@ -359,13 +370,16 @@
       "posters": [
         {
           "party": "kamatz",
-          "x": 34
+          "x": 44,
+          "y": 14
         },
         {
           "party": "patach",
-          "x": 84
+          "x": 84,
+          "y": 14
         }
-      ]
+      ],
+      "icon": "ui-icon-hq"
     },
     "press": {
       "phase": "table",
@@ -388,6 +402,12 @@
           "frame": "papers",
           "x": 34,
           "z": 2
+        },
+        {
+          "actor": "setpiece",
+          "frame": "line",
+          "x": 40,
+          "z": 1
         }
       ],
       "sign": {
@@ -407,7 +427,8 @@
           "y": 52,
           "every": 260
         }
-      ]
+      ],
+      "icon": "ui-icon-press"
     },
     "polling": {
       "phase": "save",
@@ -430,6 +451,12 @@
           "frame": "box",
           "x": 28,
           "z": 2
+        },
+        {
+          "actor": "setpiece",
+          "frame": "booth",
+          "x": 58,
+          "z": 1
         }
       ],
       "sign": {
@@ -441,7 +468,8 @@
           "he": "קלפי"
         },
         "x": 70
-      }
+      },
+      "icon": "ui-icon-polling"
     },
     "count": {
       "phase": "learn",
@@ -458,6 +486,12 @@
           "frame": "count",
           "x": 66,
           "back": true,
+          "z": 1
+        },
+        {
+          "actor": "setpiece",
+          "frame": "board",
+          "x": 44,
           "z": 1
         }
       ],
@@ -490,12 +524,13 @@
             "patach"
           ]
         }
-      ]
+      ],
+      "icon": "ui-icon-count"
     }
   },
   "slots": {
     "studio-stage": {
-      "origin": 0.42,
+      "origin": 0.46,
       "rest": [
         {
           "actor": "timsah",
@@ -1181,8 +1216,8 @@
   ],
   "parties": {
     "kamatz": {
-      "color": "#e8735a",
-      "ink": "#2b1510",
+      "color": "#c9477f",
+      "ink": "#fff4f8",
       "mark": "אָ",
       "speak": "קָמָץ",
       "names": {
@@ -1191,14 +1226,19 @@
         "he": "מִפְלֶגֶת הַקָּמָץ"
       },
       "says": {
-        "ru": "Партия Камац: «а»!",
-        "en": "Kamatz Party: “a”!",
-        "he": "מפלגת הקמץ: „אָ”!"
+        "ru": "Камац говорит «а». Патах — тоже «а». Ничья!",
+        "en": "Kamatz says “a”. Patach says “a” too. A tie!",
+        "he": "קמץ אומר „אָ”. גם פתח אומר „אַ”. תיקו!"
+      },
+      "slogan": {
+        "ru": "«а»!",
+        "en": "“a”!",
+        "he": "/a/!"
       }
     },
     "patach": {
-      "color": "#2aa39a",
-      "ink": "#0c2624",
+      "color": "#1f8f86",
+      "ink": "#f2fffd",
       "mark": "אַ",
       "speak": "פַּתָּח",
       "names": {
@@ -1207,10 +1247,22 @@
         "he": "מִפְלֶגֶת הַפַּתָּח"
       },
       "says": {
-        "ru": "Партия Патах: тоже «а»! Знаки разные — звук один.",
-        "en": "Patach Party: “a” as well! Different marks, same sound.",
-        "he": "מפלגת הפתח: גם „אַ”! סימנים שונים, צליל אחד."
+        "ru": "Патах: «а»! Камац: «а»! Тимсах пожимает плечами.",
+        "en": "Patach: “a”! Kamatz: “a”! Timsah shrugs.",
+        "he": "פתח: „אַ”! קמץ: „אָ”! תמסח מושך בכתפיים."
+      },
+      "slogan": {
+        "ru": "«а»!",
+        "en": "“a”!",
+        "he": "/a/!"
       }
     }
-  }
+  },
+  "ui": {
+    "signBoard": "sign-board",
+    "signLegs": "sign-legs",
+    "bubbleFrame": "ui-bubble",
+    "bubbleTail": "ui-tail"
+  },
+  "here": "ui-here"
 }

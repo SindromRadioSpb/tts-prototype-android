@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T18:30:29.668Z",
+  "at": "2026-09-30T19:02:47.669Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -46,7 +46,7 @@
       "ok": true,
       "detail": [
         83,
-        245,
+        278,
         65,
         65,
         44,
@@ -92,7 +92,7 @@
         "lighting": "night",
         "busy": null,
         "animating": true,
-        "camera": 40,
+        "camera": 32,
         "stage": true,
         "backdrop": false
       }
@@ -101,9 +101,9 @@
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.6.0",
-        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.6.0",
-        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.6.0"
+        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.8.0",
+        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.8.0",
+        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.8.0"
       ]
     },
     {
@@ -138,7 +138,7 @@
         "lighting": "night",
         "busy": null,
         "animating": true,
-        "camera": 840,
+        "camera": 832,
         "stage": true,
         "backdrop": false
       }
@@ -193,7 +193,7 @@
           "lighting": "night",
           "busy": null,
           "animating": false,
-          "camera": 840,
+          "camera": 832,
           "stage": true,
           "backdrop": false
         },
@@ -282,7 +282,7 @@
         "lighting": "night",
         "busy": null,
         "animating": true,
-        "camera": 40,
+        "camera": 32,
         "stage": true,
         "backdrop": false
       }
@@ -291,14 +291,14 @@
       "name": "C17 the two vowel-party posters hang at the HQ",
       "ok": true,
       "detail": [
-        "אָПартия Камац",
-        "אַПартия Патах"
+        "Партия Камацאָ«а»!",
+        "Партия Патахאַ«а»!"
       ]
     },
     {
       "name": "C18 a poster tap explains the joke in a bubble",
       "ok": true,
-      "detail": "Партия Камац: «а»!"
+      "detail": "Камац говорит «а». Патах — тоже «а». Ничья!"
     },
     {
       "name": "C13 typing is detected as busy (no auto/ambient scene starts)",
@@ -330,7 +330,7 @@
         "lighting": "night",
         "busy": null,
         "animating": false,
-        "camera": 40,
+        "camera": 32,
         "stage": true,
         "backdrop": false
       }
@@ -356,7 +356,7 @@
         "lighting": "night",
         "busy": null,
         "animating": false,
-        "camera": 840,
+        "camera": 832,
         "stage": true,
         "backdrop": false
       }
