@@ -213,7 +213,7 @@
 
     function drawClouds(dt) {
       var em = scenery.emitters && scenery.emitters.clouds;
-      if (!em) return;
+      if (!em || (em.lighting && em.lighting.indexOf(state.lighting) < 0)) return;
       var sheet = sheetName(em.sheet);
       for (var i = 0; i < state.clouds.length; i++) {
         var c = state.clouds[i];
@@ -264,32 +264,80 @@
       ctx.fillRect(Math.round(x - w / 2) + 2, y + 1, Math.max(2, w - 4), 1);
     }
 
-    // Night: every street lamp gets a stepped halo and a dithered pool of light on the pavement.
+    // Night: every street lamp gets a stepped halo and a soft stepped pool on the pavement
+    // (solid low-alpha bands — a checkerboard reads as a rendering glitch).
     function drawLampLight(L) {
       var li = scenery.lighting[state.lighting];
       if (!li || !li.lampLight || !L.lamps) return;
       var f = frameOf(atlas, sheetName(L.sheet), L.frame);
       if (!f) return;
       var period = f.rect.w, off = wrapOffset(Math.round(-state.cam * L.parallax), period);
-      var rgb = hexToRgb(li.lampLight);
+      var rgb = hexToRgb(li.lampLight), col = function (a) { return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")"; };
       for (var base = off; base < state.w + period; base += period) {
         for (var i = 0; i < L.lamps.length; i++) {
           var lx = base + L.lamps[i].x, hy = state.h - (L.bottom || 0) - L.lamps[i].head - 1;
-          if (lx < -30 || lx > state.w + 30) continue;
-          for (var r = 3; r >= 1; r--) {
-            ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + (0.10 * (4 - r)) + ")";
+          if (lx < -40 || lx > state.w + 40) continue;
+          for (var r = 5; r >= 1; r--) {
+            ctx.fillStyle = col(0.07 * (6 - r));
             ctx.fillRect(lx - r * 2, hy - r, r * 4 + 1, r * 2 + 1);
           }
-          var gy = state.h - scenery.groundY - 1;
-          for (var row = 0; row < 6; row++) {
-            var half = 14 - row * 2;
-            for (var px = -half; px <= half; px++) {
-              if (((px + row) & 1) === 0) continue;
-              ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.16)";
-              ctx.fillRect(lx + px, gy - 2 + row, 1, 1);
-            }
+          ctx.fillStyle = col(1);
+          ctx.fillRect(lx - 1, hy - 1, 3, 2);
+          var gy = state.h - scenery.groundY - 2;
+          var bands = [[20, 0.07], [14, 0.08], [8, 0.09]];
+          for (var k = 0; k < bands.length; k++) {
+            ctx.fillStyle = col(bands[k][1]);
+            ctx.fillRect(lx - bands[k][0], gy - 1 + k, bands[k][0] * 2 + 1, 4 - k);
           }
         }
+      }
+    }
+
+    // Location set-pieces drawn by the engine (no extra art): paper slips flying out of the press,
+    // searchlights sweeping the sky over counting night.
+    var papers = [], nextPaper = 0;
+    function drawFx(t, dt, front) {
+      var locs = pack.locations || {};
+      Object.keys(locs).forEach(function (id) {
+        var L = locs[id];
+        (L.fx || []).forEach(function (fx) {
+          var sx0 = L.x + (typeof fx.x === "number" ? fx.x : 0) - state.cam;
+          if (sx0 < -160 || sx0 > state.w + 160) return;
+          if (fx.kind === "searchlights" && !front) {
+            var rgb = hexToRgb(fx.color || "#fff1c4");
+            (fx.x || []).forEach(function (ox, n) {
+              var x = L.x + ox - state.cam, y = state.h - fx.y;
+              var ang = -Math.PI / 2 + (n ? 0.35 : -0.35) + Math.sin(t / 2600 + n * 1.7) * 0.32;
+              var len = Math.max(state.h, 180), spread = 0.09;
+              ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.2)";
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + Math.cos(ang - spread) * len, y + Math.sin(ang - spread) * len);
+              ctx.lineTo(x + Math.cos(ang + spread) * len, y + Math.sin(ang + spread) * len);
+              ctx.closePath();
+              ctx.fill();
+              ctx.fillStyle = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.9)";
+              ctx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 2);
+            });
+          }
+          if (fx.kind === "papers" && front) {
+            if (dt > 0 && t > nextPaper) {
+              papers.push({ x: L.x + fx.x, y: fx.y, vx: 8 + rand() * 14, vy: 10 + rand() * 10, born: t, spin: rand() < 0.5 });
+              nextPaper = t + (fx.every || 300);
+            }
+          }
+        });
+      });
+      if (!front) return;
+      papers = papers.filter(function (p) { return t - p.born < 2600; });
+      for (var i = 0; i < papers.length; i++) {
+        var p = papers[i], age = (t - p.born) / 1000;
+        var px = Math.round(p.x + p.vx * age - state.cam), py = Math.round(state.h - (p.y + p.vy * age - 9 * age * age));
+        var flip = Math.floor((t - p.born) / 180 + (p.spin ? 1 : 0)) % 2;
+        ctx.fillStyle = "#1b1f2e";
+        ctx.fillRect(px - 1, py - 1, flip ? 5 : 4, flip ? 3 : 4);
+        ctx.fillStyle = "#fbf7ea";
+        ctx.fillRect(px, py, flip ? 3 : 2, flip ? 1 : 2);
       }
     }
 
@@ -303,7 +351,7 @@
         if (p.hidden) continue;
         var actor = pack.actors[p.actor];
         if (!actor) continue;
-        var ground = back ? (p.ground != null ? p.ground : scenery.backGround || 0) : scenery.groundY;
+        var ground = back ? (p.ground != null ? p.ground : scenery.backGround || 0) : scenery.groundY + (p.lane || 0);
         var sx = p.worldX - state.cam;
         if (!back) contactShadow(sheetName(actor.sheet), p.frame, sx, ground, p.y || 0);
         drawSprite(sheetName(actor.sheet), p.frame, sx, ground + (p.y || 0), !!p.flip, !back);
@@ -324,9 +372,11 @@
       if (kind === "backdrop") { drawLayers(kind, t); return; }
       drawLayers(kind, t, false);
       drawActors(true);
+      drawFx(t, dt, false);
       drawLayers(kind, t, true);
       (scenery.layers || []).forEach(function (L) { if (L.front) drawLampLight(L); });
       drawActors(false);
+      drawFx(t, dt, true);
     }
 
     return {

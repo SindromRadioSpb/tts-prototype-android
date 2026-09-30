@@ -221,8 +221,13 @@ test("Studio wiring: slots, picker entry, engine, renderer and skin precached un
   assert.match(studio, /<div class="classic-shell-head studio-vf3-shell">[\s\S]{0,400}<div class="lp-world-stage" data-world-slot="studio-stage" data-world-bottom-narrow="\.classic-shell-copy" hidden><\/div>/);
   assert.match(studio, /<body>\r?\n<script src="\/js\/app-nav\.js\?v=\d+"><\/script>\r?\n<div class="lp-world-backdrop" data-world-slot="page-backdrop" aria-hidden="true" hidden><\/div>/);
   assert.match(studio, /id="btnWorld"[^>]*onclick="window\.LPWorld&&window\.LPWorld\.openPicker\(\)"[^>]*data-i18n-aria-label="world\.btnTitle"/);
-  const engineUrl = studio.match(/\/js\/world-engine\.js\?v=\d+/)[0];
+  const bootUrl = studio.match(/\/js\/world-boot\.js\?v=\d+/)[0];
+  assert.ok(sw.includes(JSON.stringify(bootUrl)), `${bootUrl} precached exactly`);
+  assert.doesNotMatch(studio, /world-engine\.js/, "the shell loads only the boot stub; the engine loads on demand");
+  const boot = read("public/js/world-boot.js");
+  const engineUrl = boot.match(/var ENGINE_URL = "([^"]+)"/)[1];
   assert.ok(sw.includes(JSON.stringify(engineUrl)), `${engineUrl} precached exactly`);
+  assert.ok(Buffer.byteLength(boot) < 2000, "Classic pays for a tiny stub only");
   for (const name of ["CSS_URL", "RENDER_URL"]) {
     const url = engine.match(new RegExp(`var ${name} = "([^"]+)"`))[1];
     assert.ok(sw.includes(JSON.stringify(url)), `${url} precached exactly`);

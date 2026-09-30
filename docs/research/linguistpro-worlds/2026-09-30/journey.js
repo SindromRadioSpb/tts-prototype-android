@@ -24,7 +24,7 @@ const width = Number(w);
   await phase("save"); await page.waitForTimeout(1300 + 1450); await shot("4-polling-ballot");
   await page.waitForTimeout(2500);
   await page.mouse.click(Math.round(width * 0.3), 0); // no-op click outside the street band
-  const tap = await page.evaluate(() => { const c = document.querySelector(".lp-world-stage canvas"); const r = c.getBoundingClientRect(); return { x: r.left + r.width * 0.3, y: r.bottom - 40 }; });
+  const tap = await page.evaluate(() => { const c = document.querySelector(".lp-world-stage canvas"); const r = c.getBoundingClientRect(); return { x: r.left + r.width * 0.42, y: r.bottom - 40 }; });
   await page.mouse.click(tap.x, tap.y); await page.waitForTimeout(300); await shot("5-tap-bubble");
   await phase("learn"); await page.waitForTimeout(3600); await shot("6-count-night");
   console.log(errors.length ? "ERRORS " + JSON.stringify(errors) : "no page errors");

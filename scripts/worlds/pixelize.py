@@ -49,6 +49,7 @@ def main():
     ap.add_argument("--k", type=float, default=0, help="source px per logical px (layer mode)")
     ap.add_argument("--opaque-bottom", action="store_true", help="layer fills to the bottom edge (no trailing magenta)")
     ap.add_argument("--lights", action="store_true", help="reserve palette entries for warm light sources (buildings)")
+    ap.add_argument("--clean", action="store_true", help="layer mode: remove isolated noise pixels")
     a = ap.parse_args()
     if a.layer:
         return layer_mode(a)
@@ -300,20 +301,38 @@ def layer_mode(a):
         indices = list(q.get_flattened_data()) if hasattr(q, "get_flattened_data") else list(q.getdata())
         for c, i in zip(group, indices):
             mapping[c] = cpal[i]
-    palette = sorted(set(mapping.values()), key=lambda c: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2])
+    # Clean pass: a pixel that matches none of its 8 neighbours is generator noise, not detail;
+    # it takes the most common neighbouring colour (runs twice). Edges and 2px features survive.
+    grid = [[mapping[c] if c else None for c in r] for r in cells]
+    if a.clean:
+        from collections import Counter as _C
+        for _ in range(2):
+            nxt = [row[:] for row in grid]
+            for y in range(1, len(grid) - 1):
+                for x in range(1, width - 1):
+                    c = grid[y][x]
+                    if c is None:
+                        continue
+                    nb = [grid[y + dy][x + dx] for dy in (-1, 0, 1) for dx in (-1, 0, 1) if (dy or dx)]
+                    if c not in nb:
+                        opaque_nb = [n for n in nb if n is not None]
+                        if len(opaque_nb) >= 6:
+                            nxt[y][x] = _C(opaque_nb).most_common(1)[0][0]
+            grid = nxt
+    palette = sorted(set(c for r in grid for c in r if c), key=lambda c: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2])
     chars = {c: CHARS[i] for i, c in enumerate(palette)}
     sha = hashlib.sha256(pathlib.Path(a.src).read_bytes()).hexdigest()
     name = a.names.split(",")[0]
     lines = [
         "@split",
         f"# PIXELIZED LAYER by scripts/worlds/pixelize.py --layer from {a.source_id or a.src} (sha256 {sha[:16]}…)",
-        f"# native grid k={k} source px per logical px; seamless tile columns {x0}..{x1} (seam score {best[0]:.0f}); colours={len(palette)}",
+        f"# native grid k={k} source px per logical px; seamless tile columns {x0}..{x1} (seam score {best[0]:.0f}); colours={len(palette)}; clean={a.clean}",
         ". transparent",
     ] + [f"{chars[c]} #{c[0]:02x}{c[1]:02x}{c[2]:02x}" for c in palette]
     lines.append("")
     lines.append(f"@frame {name} {width}x{h} anchor=0,{h - 1}")
-    for r in cells:
-        lines.append("".join(chars[mapping[c]] if c else "." for c in r))
+    for r in grid:
+        lines.append("".join(chars[c] if c else "." for c in r))
     pathlib.Path(a.out).write_text(NL.join(lines) + NL, encoding="utf-8")
     print(f"{a.out}: layer {width}x{h}, {len(palette)} colours, seam {x0}..{x1} score {best[0]:.0f}")
 

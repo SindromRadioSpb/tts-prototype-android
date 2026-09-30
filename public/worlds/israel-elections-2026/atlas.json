@@ -96,9 +96,9 @@
       "file": "layer-city-day-strip.png",
       "width": 309,
       "height": 94,
-      "bytes": 12010,
-      "sha256": "f4a3b9ae9619b364436ecd74d358cd4783ff0ddfebb3d8fe84bb754c63151ac2",
-      "colors": 27,
+      "bytes": 9532,
+      "sha256": "26d8ef56782bb49bad69abd94a393adbc50c8050fe5f79d1ea80b0fb81266a44",
+      "colors": 21,
       "frames": {
         "strip": {
           "x": 0,
@@ -116,9 +116,9 @@
       "file": "layer-city-dusk-strip.png",
       "width": 309,
       "height": 94,
-      "bytes": 12110,
-      "sha256": "5440eeb2e338c8473c98c4d991c979010f8df80d82595f21aa21ee517b73db21",
-      "colors": 29,
+      "bytes": 9491,
+      "sha256": "74751d60b95a781d9c021e5ebb3b24ec9a0e74fe05945622490ef927ee3544e1",
+      "colors": 23,
       "frames": {
         "strip": {
           "x": 0,
@@ -136,9 +136,9 @@
       "file": "layer-city-night-strip.png",
       "width": 309,
       "height": 94,
-      "bytes": 12158,
-      "sha256": "e8cb58235664ab70a6252b7168d8c26366f29fda424631c5a08d276ebe99c1eb",
-      "colors": 29,
+      "bytes": 9519,
+      "sha256": "907a4121a13fc58a3ab40349475316673b41cf9a562fa8648cccd543bb9fecb9",
+      "colors": 23,
       "frames": {
         "strip": {
           "x": 0,
@@ -156,9 +156,9 @@
       "file": "layer-hills-day-strip.png",
       "width": 335,
       "height": 118,
-      "bytes": 8645,
-      "sha256": "9af8aea41e78adcca387ee9b2c02b2250b20d5dc788ee6cebb60835fdd574234",
-      "colors": 23,
+      "bytes": 5200,
+      "sha256": "c47449ea6d537e7669435652fea61118b61c0ab980ef47a2551cf00de8f3dfec",
+      "colors": 16,
       "frames": {
         "strip": {
           "x": 0,
@@ -176,9 +176,9 @@
       "file": "layer-hills-dusk-strip.png",
       "width": 335,
       "height": 118,
-      "bytes": 9742,
-      "sha256": "7348d9698e999fa91a68053ecdf5b3bceeac533ee3894c4bdd14f83de0bab9a8",
-      "colors": 27,
+      "bytes": 6173,
+      "sha256": "79c7e4ef713d6f1ccd51be1de369dc9e7f7b245e03121276cd69fda2de513e56",
+      "colors": 20,
       "frames": {
         "strip": {
           "x": 0,
@@ -196,9 +196,9 @@
       "file": "layer-hills-night-strip.png",
       "width": 335,
       "height": 118,
-      "bytes": 7703,
-      "sha256": "fa5eb31926c24b4c65d9cafb4cc86a9a2900518d6eabb476986170841320fa21",
-      "colors": 20,
+      "bytes": 5082,
+      "sha256": "0dfc461a3854a9a69cbb72da31111b47fe6368710a452caf79be9bc21a8cb8f9",
+      "colors": 15,
       "frames": {
         "strip": {
           "x": 0,
@@ -216,9 +216,9 @@
       "file": "layer-street-day-strip.png",
       "width": 287,
       "height": 91,
-      "bytes": 8468,
-      "sha256": "66874d6b2a368332e435f7d3a4582ac8fde948f2ae9dce2615793f4a7ecd3555",
-      "colors": 28,
+      "bytes": 6715,
+      "sha256": "b8dd622fa345954b82509000757e8cec378bdf8d641489e0a385182ebfd72c75",
+      "colors": 22,
       "frames": {
         "strip": {
           "x": 0,
@@ -236,9 +236,9 @@
       "file": "layer-street-dusk-strip.png",
       "width": 287,
       "height": 91,
-      "bytes": 8831,
-      "sha256": "788cdc03a18553dd4d176acce83a0e816eb2baaf8e1416dc0a2190029752e4d5",
-      "colors": 32,
+      "bytes": 7032,
+      "sha256": "b508102a58364e720c90759ab365e3e51a95e0981f156c02f7c7305bccddaead",
+      "colors": 26,
       "frames": {
         "strip": {
           "x": 0,
@@ -256,9 +256,9 @@
       "file": "layer-street-night-strip.png",
       "width": 287,
       "height": 91,
-      "bytes": 8007,
-      "sha256": "843b385b1bd626246bc7513d788e903864f81629511eacf8916679220c2a4940",
-      "colors": 29,
+      "bytes": 6382,
+      "sha256": "08de48e1083f4cc66d0b294dfbf71c1ed718ab3206e3f8313fa3fac2a72c43ba",
+      "colors": 23,
       "frames": {
         "strip": {
           "x": 0,
@@ -326,8 +326,8 @@
       "file": "place-count-night.png",
       "width": 97,
       "height": 70,
-      "bytes": 1986,
-      "sha256": "cf50f04f9eb31d1f0541b12e24c49424a461ac6621906aebeb6b093a93895126",
+      "bytes": 1881,
+      "sha256": "a8c2e79a75703a0eb926558b5d9ce3898eaf4f2b953a410e01b161aace5b9c28",
       "colors": 28,
       "frames": {
         "count": {
@@ -346,8 +346,8 @@
       "file": "place-hq-day.png",
       "width": 92,
       "height": 66,
-      "bytes": 1964,
-      "sha256": "a106eee5aa2cb6a6475518a9e728adc784d07450852ace222a29403b1edfb1d3",
+      "bytes": 1907,
+      "sha256": "58de21103d1572cd89373121732b1742c83b719f68f07d66eca002f355687c2c",
       "colors": 25,
       "frames": {
         "hq": {
@@ -366,8 +366,8 @@
       "file": "place-hq-dusk.png",
       "width": 92,
       "height": 66,
-      "bytes": 2021,
-      "sha256": "bc0c1df54d6d6ec0ca923b91365b3159ab6accea803d87500a1a8309a053b41a",
+      "bytes": 1960,
+      "sha256": "6c8a6332ced3414d3faca074997a51b206de66759d63b2c771922ff7a56f99a8",
       "colors": 27,
       "frames": {
         "hq": {
@@ -386,8 +386,8 @@
       "file": "place-hq-night.png",
       "width": 92,
       "height": 66,
-      "bytes": 1851,
-      "sha256": "b1a4e5158d21fa25363443ad9e390a747e649695ffc60844c3ec7ae5c993e7b5",
+      "bytes": 1788,
+      "sha256": "a8bf27b6fc92c69d64e80608ee554918157fe8205210f97374a13cc2b01f712c",
       "colors": 25,
       "frames": {
         "hq": {

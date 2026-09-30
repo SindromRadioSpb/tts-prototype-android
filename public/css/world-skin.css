@@ -42,6 +42,10 @@ html[data-world] body.theme-dark {
 
 /* ── the world behind everything ────────────────────────────────────────── */
 html[data-world] body { background: transparent !important; }
+/* Below the street the page is quiet ground, one flat tone per lighting — no second sky. */
+html[data-world][data-world-light="day"] { background: #5f5042 !important; }
+html[data-world][data-world-light="dusk"] { background: #33273a !important; }
+html[data-world][data-world-light="night"] { background: #0c1022 !important; }
 .lp-world-backdrop, .lp-world-stage { display: none; }
 html[data-world] .lp-world-backdrop:not([hidden]) {
   display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
@@ -84,7 +88,6 @@ html[data-world] .lp-world-stage .lp-world-canvas,
 html[data-world] .lp-world-stage button { pointer-events: auto; }
 html[data-world] .classic-shell-head > :not(.lp-world-stage) { position: relative; z-index: 1; }
 /* Text that sits on the sky gets a solid pixel plate: legibility never depends on the scene. */
-html[data-world] .classic-screen-title,
 html[data-world] .classic-screen-subtitle,
 html[data-world] .classic-eyebrow {
   background: var(--lpw-plate) !important;
@@ -92,7 +95,15 @@ html[data-world] .classic-eyebrow {
   width: fit-content;
   box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.35);
 }
-html[data-world] .classic-screen-title { margin-inline: auto; padding: 4px 14px; }
+/* The title stands on the sky like a game title: light type with a hard 2px pixel outline. */
+html[data-world] .classic-screen-title {
+  color: var(--lpw-plate-ink) !important;
+  background: none !important;
+  text-shadow:
+    2px 0 0 var(--lpw-plate), -2px 0 0 var(--lpw-plate), 0 2px 0 var(--lpw-plate), 0 -2px 0 var(--lpw-plate),
+    2px 2px 0 var(--lpw-plate), -2px 2px 0 var(--lpw-plate), 2px -2px 0 var(--lpw-plate), -2px -2px 0 var(--lpw-plate),
+    4px 4px 0 rgba(0, 0, 0, 0.35);
+}
 html[data-world] .classic-screen-subtitle { padding: 4px 10px; }
 html[data-world] .classic-eyebrow { padding: 3px 8px; opacity: 1 !important; }
 
@@ -157,13 +168,13 @@ html[data-world] .lp-app-nav {
 
 /* ── world controls on the stage ────────────────────────────────────────── */
 html[data-world] .lp-world-pause {
-  position: absolute; right: 12px; bottom: 10px; z-index: 2;
+  position: absolute; right: 8px; bottom: 6px; z-index: 2;
   width: 44px; height: 44px; min-width: 44px; padding: 0;
-  border: 2px solid #1b1f2e; border-radius: 0;
-  background: rgba(255, 253, 246, 0.92); color: #1b1f2e;
-  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.4);
-  cursor: pointer;
+  border: 0; border-radius: 0; background: transparent; color: #fff6e0;
+  filter: drop-shadow(2px 0 0 #1b1f2e) drop-shadow(-2px 0 0 #1b1f2e) drop-shadow(0 2px 0 #1b1f2e) drop-shadow(0 -2px 0 #1b1f2e);
+  opacity: 0.85; cursor: pointer;
 }
+html[data-world] .lp-world-pause:hover { opacity: 1; }
 html[data-world] .lp-world-pause:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
 /* pixel pause / play glyphs drawn with borders: no font, no emoji */
 html[data-world] .lp-world-pause-icon { display: block; margin: auto; width: 14px; height: 16px; box-sizing: border-box; }
@@ -171,43 +182,47 @@ html[data-world] .lp-world-pause[data-state="playing"] .lp-world-pause-icon { bo
 html[data-world] .lp-world-pause[data-state="paused"] .lp-world-pause-icon {
   width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 13px solid currentColor;
 }
-html[data-world][dir="rtl"] .lp-world-pause { right: auto; left: 12px; }
 
 html[data-world] .lp-world-bubble {
-  position: absolute; z-index: 2; max-width: 230px; box-sizing: border-box;
-  padding: 7px 11px; border: 2px solid #1b1f2e; border-radius: 0;
+  position: absolute; z-index: 2; max-width: calc(100% - 16px); box-sizing: border-box; white-space: nowrap;
+  padding: 6px 10px; border: 2px solid #1b1f2e; border-radius: 0;
   background: #fffdf6; color: #1b1f2e;
   font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.8125rem; font-weight: 700; line-height: 1.35;
-  box-shadow: 3px 3px 0 0 rgba(0, 0, 0, 0.35);
+  box-shadow: inset -2px -2px 0 0 #e7dcc2;
   pointer-events: none;
 }
-/* tail points back to the speaker's head, on the side the bubble sits */
+/* stepped pixel tail: two squares stepping down toward the speaker's head */
+html[data-world] .lp-world-bubble::before,
 html[data-world] .lp-world-bubble::after {
-  content: ""; position: absolute; left: -9px; bottom: 10px;
-  border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 8px solid #1b1f2e;
+  content: ""; position: absolute; background: #fffdf6; box-shadow: 0 0 0 2px #1b1f2e;
 }
-html[data-world] .lp-world-bubble[data-side="left"]::after {
-  left: auto; right: -9px; border-right: 0; border-left: 8px solid #1b1f2e;
-}
-/* A Hebrew sign on the location: a real control (tap = hear it). Hebrew in the reading font. */
+html[data-world] .lp-world-bubble::before { left: var(--lpw-tail, 16px); bottom: -8px; width: 8px; height: 6px; }
+html[data-world] .lp-world-bubble::after { left: calc(var(--lpw-tail, 16px) - 4px); bottom: -14px; width: 4px; height: 4px; }
+/* A-frame sign standing on the pavement: a real control (tap = hear it), Hebrew in the reading font. */
 html[data-world] .lp-world-sign {
   position: absolute; z-index: 2; display: grid; justify-items: center; gap: 1px;
-  min-width: 44px; min-height: 44px; padding: 4px 10px 5px; box-sizing: border-box;
+  min-width: 44px; min-height: 44px; padding: 4px 10px 5px; margin-bottom: 12px; box-sizing: border-box;
   border: 2px solid #2b1d12; border-radius: 0;
   background: #f4e7c8; color: #2b1d12;
-  box-shadow: inset 0 -3px 0 0 #d8c29a, 3px 3px 0 0 rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 -3px 0 0 #d8c29a;
   cursor: pointer;
 }
+html[data-world] .lp-world-sign::before,
+html[data-world] .lp-world-sign::after {
+  content: ""; position: absolute; bottom: -14px; width: 4px; height: 12px; background: #2b1d12;
+}
+html[data-world] .lp-world-sign::before { left: 8px; transform: skewX(12deg); }
+html[data-world] .lp-world-sign::after { right: 8px; transform: skewX(-12deg); }
 html[data-world] .lp-world-sign[hidden] { display: none; }
 html[data-world] .lp-world-sign:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
 html[data-world] .lp-world-sign-he { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.125rem; font-weight: 700; line-height: 1.2; }
 html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.6875rem; font-weight: 600; line-height: 1.1; opacity: 0.8; }
-/* route strip: four stops of the election journey, the current one lit */
+/* route strip: four stops of the election journey, the current one lit; reads in UI direction */
 html[data-world] .lp-world-route {
-  position: absolute; z-index: 2; left: 12px; bottom: 16px; margin: 0; padding: 0; list-style: none;
+  position: absolute; z-index: 2; left: 50%; bottom: 6px; transform: translateX(-50%); margin: 0; padding: 0; list-style: none;
   display: flex; gap: 10px; align-items: center; pointer-events: none;
 }
-html[data-world][dir="rtl"] .lp-world-route { left: auto; right: 12px; flex-direction: row-reverse; }
+[dir="rtl"] .lp-world-route { flex-direction: row-reverse; }
 html[data-world] .lp-world-route li { width: 8px; height: 8px; background: rgba(255, 253, 246, 0.55); box-shadow: 0 0 0 2px #1b1f2e; }
 html[data-world] .lp-world-route li[data-state="done"] { background: #7aa0ec; }
 html[data-world] .lp-world-route li[data-state="here"] { width: 12px; height: 12px; background: #f4c542; }

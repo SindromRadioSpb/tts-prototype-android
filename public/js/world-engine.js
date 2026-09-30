@@ -27,7 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.3.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.4.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -158,6 +158,10 @@
         if (!isPlainText(sg.he) || !/[\u05d0-\u05ea]/.test(sg.he) || !isPlainText(sg.translit) || !localized(sg.gloss) || !isNum(sg.x, -400, 400)) err("location " + id + " sign");
       }
       (L.props || []).forEach(function (p) { if (!frameOk(p.actor, p.frame)) err("location " + id + " prop " + p.actor); });
+      (L.fx || []).forEach(function (fx) {
+        if (["papers", "searchlights"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
+        if (fx.color != null && !isColor(fx.color)) err("location " + id + " fx color");
+      });
     });
     var slots = manifest.slots || {};
     Object.keys(slots).forEach(function (slot) {
@@ -500,7 +504,7 @@
       }
       var gone = w.dir > 0 ? w.x > cam + viewW + 40 : w.x < cam - 40;
       if (gone) { state.walkerNext[w.def] = t + d.every[0] + (d.every[1] - d.every[0]) * (((Math.floor(t) >> 6) % 17) / 17); return false; }
-      out.push({ actor: d.actor, frame: frame, worldX: w.x, y: 0, z: 1, flip: w.dir < 0 });
+      out.push({ actor: d.actor, frame: frame, worldX: w.x, y: 0, lane: d.lane || 0, z: 1, flip: w.dir < 0 });
       return true;
     });
     return out;
@@ -521,7 +525,7 @@
       if (wt >= w.ms) { state.walk = null; onArrive(w.to); }
     }
     if (state.scene && t - state.scene.start >= state.scene.def.durationMs) endScene();
-    if (state.react && t - state.react.start > 2600) { state.react = null; hideBubble(); }
+    if (state.react && t - state.react.start > 3200) { state.react = null; hideBubble(); }
     if (st && state.visible) {
       st.renderer.setPose(composePose(t));
       st.renderer.render("stage", t, dt);
@@ -686,9 +690,23 @@
     b.setAttribute("aria-hidden", "true");
     b.lang = locale();
     b.dir = "auto";
-    b.textContent = text;
     state.stage.el.appendChild(b);
     state.bubble = b;
+    if (reducedMotion()) b.textContent = text;
+    else {
+      // typewriter: the full text reserves its width first, then characters appear
+      b.textContent = text;
+      var w = b.offsetWidth;
+      b.style.width = w + "px";
+      b.textContent = "";
+      var i = 0;
+      var timer = setInterval(function () {
+        if (state.bubble !== b) { clearInterval(timer); return; }
+        i += 2;
+        b.textContent = text.slice(0, i);
+        if (i >= text.length) clearInterval(timer);
+      }, 28);
+    }
     positionBubble();
   }
   // The bubble sits beside the speaker's head inside the street band (never over the panels):
@@ -699,10 +717,13 @@
     var head = (locX() - st.renderer.camera()) * st.scale;
     var gap = 14 * st.scale;
     var right = head + gap + b.offsetWidth <= st.el.clientWidth - 8;
-    b.dataset.side = right ? "right" : "left";
+    // above the head, tail down to it; clamped inside the stage
+    var left = Math.round(Math.max(8, Math.min(st.el.clientWidth - b.offsetWidth - 8, head - 12 * st.scale)));
+    b.dataset.side = "up";
+    b.style.setProperty("--lpw-tail", Math.max(10, Math.min(b.offsetWidth - 18, head - left)) + "px");
     b.style.left = "0px";
-    b.style.transform = "translateX(" + Math.round(right ? head + gap : Math.max(8, head - gap - b.offsetWidth)) + "px)";
-    b.style.bottom = ((state.pack.scenery.groundY + 22) * st.scale) + "px";
+    b.style.transform = "translateX(" + left + "px)";
+    b.style.bottom = ((state.pack.scenery.groundY + 43) * st.scale) + "px";
   }
   function hideBubble() { if (state.bubble) { state.bubble.remove(); state.bubble = null; } }
 
@@ -730,11 +751,13 @@
       st.sign.setAttribute("aria-label", sg.he + " — " + (sg.gloss[locale()] || sg.gloss.ru) + ". " + tr("world.signListen", "Послушать"));
     }
     st.sign.hidden = false;
-    var x = (L.x + sg.x - st.renderer.camera()) * st.scale;
-    // transform-only horizontal placement: following the camera never shifts layout
+    // An A-frame on the pavement just left of Timsah: the landmark stays uncovered, the bubble
+    // (above his head) never overlaps it. transform-only: following the camera never shifts layout.
+    var head = (L.x - st.renderer.camera()) * st.scale;
+    var x = head - 18 * st.scale - st.sign.offsetWidth;
     st.sign.style.left = "0px";
-    st.sign.style.transform = "translateX(" + Math.round(Math.max(8, Math.min(st.el.clientWidth - st.sign.offsetWidth - 64, x - st.sign.offsetWidth / 2))) + "px)";
-    st.sign.style.bottom = Math.round((state.pack.scenery.groundY + 30) * st.scale) + "px";
+    st.sign.style.transform = "translateX(" + Math.round(Math.max(8, x)) + "px)";
+    st.sign.style.bottom = Math.round((state.pack.scenery.groundY - 2) * st.scale) + "px";
     var ids = Object.keys(state.pack.locations), idx = ids.indexOf(state.location);
     Array.prototype.forEach.call(st.route.children, function (li, i) {
       li.dataset.state = i < idx ? "done" : i === idx ? "here" : "next";
@@ -819,7 +842,7 @@
   }
   function mountBackdrop() {
     var el = document.querySelector('[data-world-slot="page-backdrop"]');
-    if (!el) return;
+    if (!el || !state.pack.scenery.backdrop) return;
     el.hidden = false;
     var canvas = document.createElement("canvas");
     canvas.className = "lp-world-canvas";
@@ -958,7 +981,8 @@
     Promise.all([fetchJson(reg.base + "manifest.json?v=" + v), fetchJson(reg.base + "atlas.json?v=" + v), loadScript(RENDER_URL)]).then(function (res) {
       var pack = res[0], atlas = res[1];
       if (!validatePack(pack, atlas, id).ok || !dlg.isConnected) return;
-      var images = {}, lighting = "dusk", first = Object.keys(pack.locations)[0], loc = pack.locations[first];
+      var ids = Object.keys(pack.locations), pick = ids[ids.length - 1], loc = pack.locations[pick];
+      var images = {}, lighting = loc.lighting || "dusk";
       var files = {};
       (pack.scenery.layers || []).forEach(function (L) { files[atlas.atlases[typeof L.sheet === "string" ? L.sheet : L.sheet[lighting]].file] = true; });
       var em = pack.scenery.emitters || {};
@@ -973,7 +997,7 @@
         r.resize(Math.max(160, Math.round(rect.width)), 112, 1);
         r.setLighting(lighting);
         var originX = loc.x;
-        r.panTo(originX - 70, 0, performance.now());
+        r.panTo(originX - Math.round(Math.max(160, rect.width) * 0.3), 0, performance.now());
         var props = (loc.props || []).map(function (pr) { return { actor: pr.actor, frame: pr.frame, worldX: loc.x + pr.x, y: 0, z: 1, back: !!pr.back }; });
         function pose(t) { return props.concat([{ actor: "timsah", frame: (t % 3600) < 150 ? "blink" : "idle", worldX: originX, y: 0, z: 3 }]); }
         var raf = 0, last = 0;

@@ -1,9 +1,9 @@
 {
   "base": "http://127.0.0.1:3000",
-  "at": "2026-09-30T14:41:46.034Z",
+  "at": "2026-09-30T14:55:47.797Z",
   "results": [
     {
-      "name": "A1 Classic: no request for world art, renderer or skin",
+      "name": "A1 Classic: no request for the world engine, renderer, skin or art",
       "ok": true,
       "detail": []
     },
@@ -20,11 +20,11 @@
       }
     },
     {
-      "name": "A3 Classic: engine script cost measured",
+      "name": "A3 Classic: only the boot stub is paid for (< 2 KB decoded)",
       "ok": true,
       "detail": {
-        "transfer": 56326,
-        "decoded": 56026
+        "transfer": 1736,
+        "decoded": 1436
       }
     },
     {
@@ -72,7 +72,7 @@
       "detail": []
     },
     {
-      "name": "C0 world live: stage + backdrop mounted, animating, HQ at start",
+      "name": "C0 world live: stage mounted (page ground is a quiet CSS tone, no backdrop canvas), animating, HQ at start",
       "ok": true,
       "detail": {
         "choice": {
@@ -92,18 +92,18 @@
         "lighting": "dusk",
         "busy": null,
         "animating": true,
-        "camera": 63,
+        "camera": 40,
         "stage": true,
-        "backdrop": true
+        "backdrop": false
       }
     },
     {
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-dusk-strip.png?v=0.3.0",
-        "/worlds/israel-elections-2026/layer-city-dusk-strip.png?v=0.3.0",
-        "/worlds/israel-elections-2026/layer-street-dusk-strip.png?v=0.3.0"
+        "/worlds/israel-elections-2026/layer-hills-dusk-strip.png?v=0.4.0",
+        "/worlds/israel-elections-2026/layer-city-dusk-strip.png?v=0.4.0",
+        "/worlds/israel-elections-2026/layer-street-dusk-strip.png?v=0.4.0"
       ]
     },
     {
@@ -138,9 +138,9 @@
         "lighting": "dusk",
         "busy": null,
         "animating": true,
-        "camera": 863,
+        "camera": 840,
         "stage": true,
-        "backdrop": true
+        "backdrop": false
       }
     },
     {
@@ -157,7 +157,7 @@
       "name": "C7 tapping Timsah shows a localized line (decorative)",
       "ok": true,
       "detail": {
-        "text": "Бюллетень без огласовки? Не пропущу!",
+        "text": "Бюллетень без огла",
         "hidden": "true"
       }
     },
@@ -193,9 +193,9 @@
           "lighting": "dusk",
           "busy": null,
           "animating": false,
-          "camera": 863,
+          "camera": 840,
           "stage": true,
-          "backdrop": true
+          "backdrop": false
         },
         "pressed": "true",
         "stored": true
@@ -219,13 +219,8 @@
       "detail": [
         {
           "w": 190,
-          "h": 400,
-          "px": 76000
-        },
-        {
-          "w": 190,
-          "h": 145,
-          "px": 27550
+          "h": 141,
+          "px": 26790
         }
       ]
     },
@@ -259,9 +254,9 @@
         "lighting": "dusk",
         "busy": null,
         "animating": false,
-        "camera": 63,
+        "camera": 40,
         "stage": true,
-        "backdrop": true
+        "backdrop": false
       }
     },
     {
@@ -285,9 +280,9 @@
         "lighting": "dusk",
         "busy": null,
         "animating": false,
-        "camera": 863,
+        "camera": 840,
         "stage": true,
-        "backdrop": true
+        "backdrop": false
       }
     },
     {

@@ -34,7 +34,7 @@ async function session({ width = 380, world = null, reducedMotion = "no-preferen
   const page = await ctx.newPage();
   const errors = [], worldRequests = [];
   page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
-  page.on("request", (r) => { const u = r.url(); if (/\/worlds\/|world-skin\.css|world-render\.js/.test(u)) worldRequests.push(u.replace(BASE, "")); });
+  page.on("request", (r) => { const u = r.url(); if (/\/worlds\/|world-skin\.css|world-render\.js|world-engine\.js/.test(u)) worldRequests.push(u.replace(BASE, "")); });
   if (route) await page.route(route.pattern, route.handler);
   await page.goto(BASE + "/", { waitUntil: "load" });
   await page.waitForTimeout(3500);
@@ -52,10 +52,10 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
       return { attr: document.documentElement.getAttribute("data-world"), stageH: st.getBoundingClientRect().height, stageHidden: st.hidden,
         canvases: document.querySelectorAll(".lp-world-canvas").length, choice: window.LPWorld.current(), render: typeof window.LPWorldRender };
     });
-    check("A1 Classic: no request for world art, renderer or skin", worldRequests.length === 0, worldRequests);
+    check("A1 Classic: no request for the world engine, renderer, skin or art", worldRequests.length === 0, worldRequests);
     check("A2 Classic: no data-world, stage hidden (0 px), no canvas, renderer not loaded", !s.attr && s.stageHidden && s.stageH === 0 && s.canvases === 0 && s.render === "undefined", s);
-    const engineBytes = await page.evaluate(() => { const e = performance.getEntriesByType("resource").find((r) => /world-engine\.js/.test(r.name)); return e ? { transfer: e.transferSize, decoded: e.decodedBodySize } : null; });
-    check("A3 Classic: engine script cost measured", !!engineBytes, engineBytes);
+    const bootBytes = await page.evaluate(() => { const e = performance.getEntriesByType("resource").find((r) => /world-boot\.js/.test(r.name)); return e ? { transfer: e.transferSize, decoded: e.decodedBodySize } : null; });
+    check("A3 Classic: only the boot stub is paid for (< 2 KB decoded)", bootBytes && bootBytes.decoded < 2000, bootBytes);
     check("A4 Classic: no page errors", errors.length === 0, errors);
     await browser.close();
   }
@@ -93,7 +93,7 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
   {
     const { browser, ctx, page, errors, worldRequests } = await session({ world: WORLD, video: true });
     const d0 = await dbg(page);
-    check("C0 world live: stage + backdrop mounted, animating, HQ at start", d0.stage && d0.backdrop && d0.animating && d0.location === "hq", d0);
+    check("C0 world live: stage mounted (page ground is a quiet CSS tone, no backdrop canvas), animating, HQ at start", d0.stage && !d0.backdrop && d0.animating && d0.location === "hq", d0);
     const layers = worldRequests.filter((u) => /layer-/.test(u));
     const light = d0.lighting;
     check("C1 only the current lighting's layers are fetched", layers.length === 3 && layers.every((u) => u.includes("-" + light + "-")), layers);
@@ -111,7 +111,7 @@ const phase = (page, p) => page.evaluate((p) => document.getElementById("classic
     const perf = await page.evaluate(() => ({ longTasks: window.__lt.slice(), cls: window.__cls.reduce((a, b) => a + b, 0) }));
     check("C5 no long task (≥ 50 ms) during ~9 s of live animation and two journeys", perf.longTasks.length === 0, perf.longTasks);
     check("C6 the living world causes no layout shift", perf.cls === 0, perf.cls);
-    const tap = await page.evaluate(() => { const c = document.querySelector(".lp-world-stage canvas"); const r = c.getBoundingClientRect(); return { x: r.left + r.width * 0.3, y: r.bottom - 40 }; });
+    const tap = await page.evaluate(() => { const c = document.querySelector(".lp-world-stage canvas"); const r = c.getBoundingClientRect(); return { x: r.left + r.width * 0.42, y: r.bottom - 40 }; });
     await page.mouse.click(tap.x, tap.y);
     await page.waitForTimeout(250);
     const bubble = await page.evaluate(() => { const b = document.querySelector(".lp-world-bubble"); return b ? { text: b.textContent, hidden: b.getAttribute("aria-hidden") } : null; });
