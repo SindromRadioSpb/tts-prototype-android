@@ -1,6 +1,6 @@
 {
-  "base": "https://linguistpro.kolosei.com",
-  "at": "2026-09-30T19:11:09.853Z",
+  "base": "http://127.0.0.1:3000",
+  "at": "2026-09-30T19:23:47.566Z",
   "results": [
     {
       "name": "A1 Classic: no request for the world engine, renderer, skin or art",
@@ -23,7 +23,7 @@
       "name": "A3 Classic: only the boot stub is paid for (< 2 KB decoded)",
       "ok": true,
       "detail": {
-        "transfer": 1113,
+        "transfer": 1736,
         "decoded": 1436
       }
     },
@@ -101,9 +101,9 @@
       "name": "C1 only the current lighting's layers are fetched",
       "ok": true,
       "detail": [
-        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.8.0",
-        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.8.0",
-        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.8.0"
+        "/worlds/israel-elections-2026/layer-hills-night-strip.png?v=0.9.0",
+        "/worlds/israel-elections-2026/layer-city-night-strip.png?v=0.9.0",
+        "/worlds/israel-elections-2026/layer-street-night-strip.png?v=0.9.0"
       ]
     },
     {
@@ -291,8 +291,8 @@
       "name": "C17 the two vowel-party posters hang at the HQ",
       "ok": true,
       "detail": [
-        "Партия Камацאָ«а»!",
-        "Партия Патахאַ«а»!"
+        "КАМАЦאָ«а»!",
+        "ПАТАХאַ«а»!"
       ]
     },
     {

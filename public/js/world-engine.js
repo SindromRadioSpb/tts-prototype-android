@@ -27,7 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
-    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.8.0", retired: false }
+    "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.9.0", retired: false }
   };
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -39,8 +39,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=707";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=707";
+  var CSS_URL = "/css/world-skin.css?v=708";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=708";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -155,7 +155,7 @@
     Object.keys(parties).forEach(function (id) {
       var pt = parties[id];
       if (!isName(id) || !pt || !isColor(pt.color) || !isColor(pt.ink) || !isPlainText(pt.mark) || !/[\u05d0-\u05ea]/.test(pt.speak || "") ||
-          !localized(pt.names) || !localized(pt.says) || (pt.slogan && !localized(pt.slogan))) err("party " + id);
+          !localized(pt.names) || !localized(pt.says) || (pt.slogan && !localized(pt.slogan)) || (pt.short && !localized(pt.short))) err("party " + id);
     });
     var locs = manifest.locations || {};
     Object.keys(locs).forEach(function (id) {
@@ -171,7 +171,8 @@
       (L.posters || []).forEach(function (po) { if (!parties[po.party] || !isNum(po.x, -400, 400) || !isNum(po.y || 0, 0, 200)) err("location " + id + " poster"); });
       if (L.icon && !atlases[L.icon]) err("location " + id + " icon");
       (L.fx || []).forEach(function (fx) {
-        if (["papers", "searchlights", "tally"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
+        if (["papers", "searchlights", "tally", "chalk"].indexOf(fx.kind) < 0) err("location " + id + " fx kind");
+        if (fx.stamp && !localized(fx.stamp)) err("location " + id + " fx stamp");
         (fx.parties || []).forEach(function (p) { if (!parties[p]) err("location " + id + " fx party " + p); });
         if (fx.color != null && !isColor(fx.color)) err("location " + id + " fx color");
       });
@@ -555,6 +556,7 @@
       positionBubble();
       syncSign();
       syncPosters();
+      syncBoard();
     }
     if (state.backdrop) {
       state.backdrop.renderer.setScroll(window.scrollY);
@@ -735,6 +737,7 @@
     else {
       // typewriter: the full text reserves its width first, then characters appear
       b.textContent = text;
+      positionBubble();
       var w = b.offsetWidth;
       b.style.width = w + "px";
       b.textContent = "";
@@ -753,16 +756,33 @@
   function positionBubble() {
     var b = state.bubble, st = state.stage;
     if (!b || !st) return;
-    var head = (locX() - st.renderer.camera()) * st.scale;
-    var gap = 14 * st.scale;
-    var right = head + gap + b.offsetWidth <= st.el.clientWidth - 8;
-    // above the head, tail down to it; clamped inside the stage
-    var left = Math.round(Math.max(8, Math.min(st.el.clientWidth - b.offsetWidth - 8, head - 12 * st.scale)));
+    var sc = st.scale, cam = st.renderer.camera();
+    var head = (locX() - cam) * sc;
+    var L = state.pack.locations[state.location];
+    var headRows = state.pack.scenery.groundY + 49, rows = headRows;
+    // Never over a poster and never up into the title: with posters on this stop the bubble wraps
+    // into the free space left of them at head height; it rises above them only if that space is too narrow.
+    var posters = (L && L.posters) || [];
+    var limit = st.el.clientWidth - 8;
+    if (posters.length) {
+      var pl = Math.min.apply(null, posters.map(function (po) { return (L.x + po.x - 14 - cam) * sc; }));
+      if (pl - 12 >= 150) { limit = pl - 6; b.style.whiteSpace = "normal"; b.style.maxWidth = Math.round(limit - 8) + "px"; }
+      else posters.forEach(function (po) { rows = Math.max(rows, (state.pack.scenery.backGround || 30) + (po.y || 0) + 32); });
+    } else { b.style.whiteSpace = ""; b.style.maxWidth = ""; }
+    var left = Math.round(Math.max(8, Math.min(limit - b.offsetWidth, head - 12 * sc)));
     b.dataset.side = "up";
     b.style.setProperty("--lpw-tail", Math.max(10, Math.min(b.offsetWidth - 18, head - left)) + "px");
     b.style.left = "0px";
     b.style.transform = "translateX(" + left + "px)";
-    b.style.bottom = ((state.pack.scenery.groundY + 49) * st.scale) + "px";
+    // the bubble's top never climbs out of the street band into the app's own title/copy
+    var bottomPx = rows * sc;
+    var untilSel = st.el.getAttribute("data-world-bottom");
+    var until = untilSel && st.el.parentElement.querySelector(untilSel);
+    if (until) {
+      var band = parseFloat(getComputedStyle(until).paddingBottom) || 0;
+      if (band) bottomPx = Math.max(8, Math.min(bottomPx, band - b.offsetHeight - 8));
+    }
+    b.style.bottom = Math.round(bottomPx) + "px";
   }
   function hideBubble() { if (state.bubble) { state.bubble.remove(); state.bubble = null; } }
 
@@ -820,9 +840,9 @@
         var mark = document.createElement("span");
         mark.className = "lp-world-poster-mark"; mark.lang = "he"; mark.dir = "rtl"; mark.textContent = pt.mark;
         var name = document.createElement("span");
-        name.className = "lp-world-poster-name"; name.textContent = pt.names[locale()] || pt.names.ru;
+        name.className = "lp-world-poster-name"; name.textContent = pt.short ? (pt.short[locale()] || pt.short.ru) : (pt.names[locale()] || pt.names.ru);
         var slogan = document.createElement("span");
-        slogan.className = "lp-world-poster-slogan"; slogan.textContent = pt.slogan ? (pt.slogan[locale()] || pt.slogan.ru) : "";
+        slogan.className = "lp-world-poster-slogan"; slogan.dir = "ltr"; slogan.textContent = pt.slogan ? (pt.slogan[locale()] || pt.slogan.ru) : "";
         b.appendChild(name); b.appendChild(mark); b.appendChild(slogan);
         b.setAttribute("aria-label", (pt.names[locale()] || pt.names.ru) + ". " + tr("world.signListen", "Послушать"));
         b.dataset.x = po.x;
@@ -838,12 +858,48 @@
     }
     // the DOM button exactly covers the pixel poster the renderer drew (22×26 art px)
     Array.prototype.forEach.call(st.posters.children, function (b) {
-      var x = (L.x + Number(b.dataset.x) - 11 - st.renderer.camera()) * st.scale;
-      b.style.width = (22 * st.scale) + "px";
-      b.style.height = (26 * st.scale) + "px";
+      var x = (L.x + Number(b.dataset.x) - 14 - st.renderer.camera()) * st.scale;
+      b.style.width = (28 * st.scale) + "px";
+      b.style.height = (30 * st.scale) + "px";
       b.style.transform = "translateX(" + Math.round(x) + "px)";
       b.style.bottom = Math.round(((state.pack.scenery.backGround || 30) + Number(b.dataset.y)) * st.scale) + "px";
     });
+  }
+
+  function syncBoard() {
+    var st = state.stage;
+    if (!st) return;
+    var L = state.location && state.pack.locations[state.location];
+    var fx = L && !state.walk && (L.fx || []).filter(function (f) { return f.kind === "chalk"; })[0];
+    if (!fx) { if (st.board) st.board.hidden = true; return; }
+    if (!st.board) {
+      st.board = document.createElement("div");
+      st.board.className = "lp-world-board";
+      st.board.setAttribute("aria-hidden", "true");
+      st.el.appendChild(st.board);
+    }
+    if (st.board.dataset.lang !== locale()) {
+      st.board.dataset.lang = locale();
+      st.board.textContent = "";
+      (fx.parties || []).forEach(function (pid) {
+        var s = document.createElement("span");
+        s.className = "lp-world-board-mark"; s.lang = "he"; s.textContent = state.pack.parties[pid].mark;
+        s.style.color = state.pack.parties[pid].color;
+        st.board.appendChild(s);
+      });
+      var stamp = document.createElement("span");
+      stamp.className = "lp-world-board-stamp";
+      stamp.textContent = fx.stamp ? (fx.stamp[locale()] || fx.stamp.ru) : "";
+      st.board.appendChild(stamp);
+    }
+    st.board.hidden = false;
+    var sf = fx.surface, sc = st.scale;
+    st.board.style.width = ((sf.x1 - sf.x0 + 1) * sc) + "px";
+    st.board.style.height = ((sf.top - sf.bottom) * sc) + "px";
+    st.board.style.transform = "translateX(" + Math.round((L.x + fx.x + sf.x0 - st.renderer.camera()) * sc) + "px)";
+    st.board.style.bottom = ((state.pack.scenery.groundY + sf.bottom) * sc) + "px";
+    // the tie is stamped at the end of each counting cycle (same clock as the chalk)
+    st.board.dataset.tie = ((now() % 6000) / 6000) > 0.74 ? "1" : "";
   }
 
   function syncRoute() {

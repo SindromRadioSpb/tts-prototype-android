@@ -291,7 +291,7 @@
             ctx.fillRect(lx - half, yy, half * 2 + 1, 2);
           }
           var gy = state.h - scenery.groundY - 2;
-          var bands = [[20, 0.07], [14, 0.08], [8, 0.09]];
+          var bands = [[22, 0.10], [15, 0.12], [8, 0.14]];
           for (var k = 0; k < bands.length; k++) {
             ctx.fillStyle = col(bands[k][1]);
             ctx.fillRect(lx - bands[k][0], gy - 1 + k, bands[k][0] * 2 + 1, 4 - k);
@@ -317,15 +317,15 @@
         (L.posters || []).forEach(function (po, n) {
           var pt = pack.parties && pack.parties[po.party];
           if (!pt) return;
-          var x = Math.round(L.x + po.x - 11 - state.cam), y = state.h - (scenery.backGround || 30) - (po.y || 0) - 26;
-          if (x < -30 || x > state.w + 30) return;
-          ctx.fillStyle = mulTint("#1b1f2e"); ctx.fillRect(x, y, 22, 26);
-          ctx.fillStyle = mulTint(pt.color); ctx.fillRect(x + 1, y + 1, 20, 24);
-          ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 1, y + 1, 20, 2);
-          ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(x + 1, y + 23, 20, 2);
+          var x = Math.round(L.x + po.x - 14 - state.cam), y = state.h - (scenery.backGround || 30) - (po.y || 0) - 30;
+          if (x < -40 || x > state.w + 40) return;
+          ctx.fillStyle = mulTint("#1b1f2e"); ctx.fillRect(x, y, 28, 30);
+          ctx.fillStyle = mulTint(pt.color); ctx.fillRect(x + 1, y + 1, 26, 28);
+          ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.fillRect(x + 1, y + 1, 26, 2);
+          ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(x + 1, y + 27, 26, 2);
           ctx.fillStyle = mulTint("#efe6c8");
-          ctx.fillRect(x - 1 + (n ? 1 : 0), y - 1, 6, 3);
-          ctx.fillRect(x + 17 - (n ? 1 : 0), y - 1, 6, 3);
+          ctx.fillRect(x - 1, y - 1, 6, 3);
+          ctx.fillRect(x + 23, y - 1, 6, 3);
         });
       });
     }
@@ -368,6 +368,20 @@
               ctx.fillStyle = pt.color; ctx.fillRect(x, by - hgt, 5, hgt);
             });
           }
+          if (fx.kind === "chalk" && front) {
+            // chalk tally on the board: two equal columns filling in step, always a tie
+            var sf = fx.surface, ox = L.x + fx.x - state.cam, gy = state.h - scenery.groundY;
+            var cyc2 = (t % 6000) / 6000, votes = Math.min(10, Math.floor(Math.min(1, cyc2 / 0.7) * 10));
+            ctx.fillStyle = "rgba(238,242,230,0.92)";
+            [sf.x0 + 1, 1].forEach(function (cx0) {
+              for (var v = 0; v < votes; v++) {
+                var grp = Math.floor(v / 5), k = v % 5;
+                var gx = Math.round(ox + cx0), gyTop = Math.round(gy - sf.top + 3 + grp * 6);
+                if (k < 4) ctx.fillRect(gx + k * 1 + (k > 1 ? 1 : 0) - 0 + k, gyTop, 1, 4);
+                else for (var d = 0; d < 5; d++) ctx.fillRect(gx + d + 0, gyTop + 3 - Math.floor(d * 0.8), 1, 1);
+              }
+            });
+          }
           if (fx.kind === "papers" && front) {
             if (dt > 0 && t > nextPaper) {
               papers.push({ x: L.x + fx.x, y: fx.y, vx: 8 + rand() * 14, vy: 10 + rand() * 10, born: t, spin: rand() < 0.5 });
@@ -406,6 +420,16 @@
       }
     }
 
+    function titleVeil() {
+      var sky = scenery.lighting[state.lighting].sky[0];
+      var c = hexToRgb(sky), rows = Math.round(state.h * 0.42);
+      for (var y = 0; y < rows; y += 2) {
+        var a = 0.55 * (1 - y / rows);
+        ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a.toFixed(3) + ")";
+        ctx.fillRect(0, y, state.w, 2);
+      }
+    }
+
     function render(kind, now, dt) {
       var t = now - state.t0;
       if (state.camMs) {
@@ -424,6 +448,7 @@
       drawFx(t, dt, false);
       drawLayers(kind, t, true);
       (scenery.layers || []).forEach(function (L) { if (L.front) drawLampLight(L); });
+      if (scenery.titleVeil) titleVeil();
       drawActors(false);
       drawFx(t, dt, true);
       if (scenery.curb) {

@@ -1,7 +1,7 @@
 {
   "schema": "lp-world/2",
   "id": "israel-elections-2026",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "engine": {
     "min": 2,
     "max": 2
@@ -239,7 +239,8 @@
         "lane": 9
       }
     ],
-    "curb": true
+    "curb": true,
+    "titleVeil": true
   },
   "actors": {
     "timsah": {
@@ -370,13 +371,13 @@
       "posters": [
         {
           "party": "kamatz",
-          "x": 44,
-          "y": 14
+          "x": 47,
+          "y": 10
         },
         {
           "party": "patach",
-          "x": 84,
-          "y": 14
+          "x": 81,
+          "y": 10
         }
       ],
       "icon": "ui-icon-hq"
@@ -523,6 +524,25 @@
             "kamatz",
             "patach"
           ]
+        },
+        {
+          "kind": "chalk",
+          "x": 44,
+          "surface": {
+            "x0": -7,
+            "x1": 7,
+            "top": 26,
+            "bottom": 13
+          },
+          "parties": [
+            "kamatz",
+            "patach"
+          ],
+          "stamp": {
+            "ru": "Ничья!",
+            "en": "A tie!",
+            "he": "תיקו!"
+          }
         }
       ],
       "icon": "ui-icon-count"
@@ -1226,14 +1246,19 @@
         "he": "מִפְלֶגֶת הַקָּמָץ"
       },
       "says": {
-        "ru": "Камац говорит «а». Патах — тоже «а». Ничья!",
-        "en": "Kamatz says “a”. Patach says “a” too. A tie!",
-        "he": "קמץ אומר „אָ”. גם פתח אומר „אַ”. תיקו!"
+        "ru": "Камац: «а». Патах: «а». Ничья!",
+        "en": "Kamatz: “a”. Patach: “a”. Tie!",
+        "he": "קמץ: אָ. פתח: אַ. תיקו!"
       },
       "slogan": {
         "ru": "«а»!",
         "en": "“a”!",
         "he": "/a/!"
+      },
+      "short": {
+        "ru": "КАМАЦ",
+        "en": "KAMATZ",
+        "he": "קָמָץ"
       }
     },
     "patach": {
@@ -1247,14 +1272,19 @@
         "he": "מִפְלֶגֶת הַפַּתָּח"
       },
       "says": {
-        "ru": "Патах: «а»! Камац: «а»! Тимсах пожимает плечами.",
-        "en": "Patach: “a”! Kamatz: “a”! Timsah shrugs.",
-        "he": "פתח: „אַ”! קמץ: „אָ”! תמסח מושך בכתפיים."
+        "ru": "Патах: «а»! Камац: тоже «а»!",
+        "en": "Patach: “a”! Kamatz: “a” too!",
+        "he": "פתח: אַ! קמץ: גם אָ!"
       },
       "slogan": {
         "ru": "«а»!",
         "en": "“a”!",
         "he": "/a/!"
+      },
+      "short": {
+        "ru": "ПАТАХ",
+        "en": "PATACH",
+        "he": "פַּתָּח"
       }
     }
   },

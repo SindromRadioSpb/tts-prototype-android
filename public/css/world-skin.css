@@ -40,12 +40,16 @@ html[data-world] body.theme-dark {
   --lpw-plate-ink: var(--lpw-dark-plate-ink);
 }
 
+/* Integer art scale only: 2x on phones and tablets, 3x on wide desktops (the tools panel sits
+   below the world there, so the stage can afford the height). */
+@media (min-width: 1024px) { html[data-world] { --lpw-scale: 3; } }
+
 /* ── the world behind everything ────────────────────────────────────────── */
 html[data-world] body { background: transparent !important; }
 /* Below the street the page is quiet ground, one flat tone per lighting — no second sky. */
-html[data-world][data-world-light="day"] { background: #5f5042 !important; }
-html[data-world][data-world-light="dusk"] { background: #33273a !important; }
-html[data-world][data-world-light="night"] { background: #0c1022 !important; }
+html[data-world][data-world-light="day"] { background: #6b5d4b !important; }
+html[data-world][data-world-light="dusk"] { background: #3a2e3c !important; }
+html[data-world][data-world-light="night"] { background: #1a1f36 !important; }
 .lp-world-backdrop, .lp-world-stage { display: none; }
 html[data-world] .lp-world-backdrop:not([hidden]) {
   display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
@@ -97,9 +101,7 @@ html[data-world] .classic-screen-title {
   color: var(--lpw-plate-ink) !important;
   background: none !important;
   text-shadow:
-    2px 0 0 var(--lpw-plate), -2px 0 0 var(--lpw-plate), 0 2px 0 var(--lpw-plate), 0 -2px 0 var(--lpw-plate),
-    2px 2px 0 var(--lpw-plate), -2px 2px 0 var(--lpw-plate), 2px -2px 0 var(--lpw-plate), -2px -2px 0 var(--lpw-plate),
-    4px 4px 0 rgba(0, 0, 0, 0.35);
+    2px 0 0 var(--lpw-plate), -2px 0 0 var(--lpw-plate), 0 2px 0 var(--lpw-plate), 0 -2px 0 var(--lpw-plate);
 }
 html[data-world] .classic-screen-subtitle { padding: 4px 10px; }
 html[data-world] .classic-eyebrow { padding: 3px 8px; opacity: 1 !important; }
@@ -174,8 +176,8 @@ html[data-world] .lp-world-pause {
 html[data-world] .lp-world-pause:hover { opacity: 1; }
 html[data-world] .lp-world-pause:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
 /* pixel pause / play glyphs drawn with borders: no font, no emoji */
-html[data-world] .lp-world-pause-icon { display: block; margin: auto; width: 14px; height: 16px; box-sizing: border-box; }
-html[data-world] .lp-world-pause[data-state="playing"] .lp-world-pause-icon { border-left: 5px solid currentColor; border-right: 5px solid currentColor; }
+html[data-world] .lp-world-pause-icon { display: block; margin: auto; width: 18px; height: 22px; box-sizing: border-box; }
+html[data-world] .lp-world-pause[data-state="playing"] .lp-world-pause-icon { border-left: 6px solid currentColor; border-right: 6px solid currentColor; }
 html[data-world] .lp-world-pause[data-state="paused"] .lp-world-pause-icon {
   width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 13px solid currentColor;
 }
@@ -235,16 +237,19 @@ html[data-world] .lp-world-stop {
   border: 0; border-radius: 0; background: transparent; cursor: pointer;
   display: grid; place-items: end center;
 }
+/* one marker: Timsah's head replaces the icon of the stop he stands at; the Studio's progress is
+   shown by fill (reached stops full colour, the rest dimmed) — no second, competing marker */
 html[data-world] .lp-world-stop-icon {
-  display: block; width: 20px; height: 20px; background: no-repeat 0 0 / 20px 20px; image-rendering: pixelated;
-  opacity: 0.55; filter: saturate(0.5);
+  display: block; width: 30px; height: 30px; background: no-repeat 0 0 / 30px 30px; image-rendering: pixelated;
+  opacity: 0.45; filter: saturate(0.4);
 }
-html[data-world] .lp-world-stop[data-state="done"] .lp-world-stop-icon { opacity: 0.9; filter: none; }
-html[data-world] .lp-world-stop[data-state="here"] .lp-world-stop-icon { opacity: 1; filter: none; box-shadow: 0 3px 0 0 #f4c542; }
+html[data-world] .lp-world-stop[data-state="done"] .lp-world-stop-icon,
+html[data-world] .lp-world-stop[data-state="here"] .lp-world-stop-icon { opacity: 1; filter: none; }
 html[data-world] .lp-world-stop-here {
-  position: absolute; left: 50%; top: -6px; width: 20px; height: 12px; margin-left: -10px;
-  background: no-repeat 0 0 / 20px 12px; image-rendering: pixelated; display: none;
+  display: none; width: 30px; height: 18px; margin-bottom: 6px;
+  background: no-repeat 0 0 / 30px 18px; image-rendering: pixelated;
 }
+html[data-world] .lp-world-stop[data-at="1"] .lp-world-stop-icon { display: none; }
 html[data-world] .lp-world-stop[data-at="1"] .lp-world-stop-here { display: block; }
 html[data-world] .lp-world-stop:focus-visible { outline: 3px solid #fff3b0; outline-offset: -3px; }
 /* Hebrew UI: the game title stays centred on the sky */
@@ -258,9 +263,25 @@ html[data-world] .lp-world-poster {
   cursor: pointer;
 }
 html[data-world] .lp-world-poster:focus-visible { outline: 3px solid #fff3b0; outline-offset: 1px; }
-html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5rem; font-weight: 800; line-height: 1.05; text-transform: uppercase; text-align: center; }
-html[data-world] .lp-world-poster-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.5rem; font-weight: 900; line-height: 1; }
+html[data-world] .lp-world-poster-name { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 900; line-height: 1.1; letter-spacing: 0.04em; text-align: center; }
+html[data-world] .lp-world-poster-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.875rem; font-weight: 900; line-height: 1.05; }
 html[data-world] .lp-world-poster-slogan { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.5625rem; font-weight: 800; line-height: 1; }
+/* the tally board's labels and the tie stamp (crisp text over the renderer's chalk) */
+html[data-world] .lp-world-board {
+  position: absolute; left: 0; bottom: 0; z-index: 2; pointer-events: none;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: start; justify-items: center;
+}
+html[data-world] .lp-world-board[hidden] { display: none; }
+html[data-world] .lp-world-board-mark { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 0.875rem; font-weight: 900; line-height: 1; margin-top: -16px; text-shadow: 0 0 2px #0b0f1a; }
+html[data-world] .lp-world-board-stamp {
+  grid-column: 1 / -1; align-self: center; justify-self: center; rotate: -12deg;
+  padding: 1px 5px; border: 2px solid #e2475a; color: #ffd6db; background: rgba(40, 8, 14, 0.55);
+  font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.6875rem; font-weight: 900; letter-spacing: 0.04em;
+  opacity: 0; transition: opacity 0.15s;
+}
+html[data-world] .lp-world-board[data-tie="1"] .lp-world-board-stamp { opacity: 1; }
+/* the app's pale status chips on dark cards (O-052) — inside the world only */
+html[data-world] body.theme-dark .classic-state-chip { background: var(--lpw-surface-soft) !important; color: var(--lpw-ink) !important; }
 @media (forced-colors: active) {
   html[data-world] .lp-world-stage, html[data-world] .lp-world-backdrop { display: none !important; }
   html[data-world] .classic-shell-head { padding-bottom: 0 !important; }
@@ -269,7 +290,7 @@ html[data-world] .lp-world-poster-slogan { font-family: var(--lp-font-ui, system
 /* ── picker dialog (also shown under Classic, so it must not rely on --lpw-*) ─ */
 .lp-world-picker {
   width: min(440px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
+  max-height: calc(100dvh - 32px); overflow: auto;
   padding: 0;
   border: 2px solid #1b1f2e;
   border-radius: 0;
