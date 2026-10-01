@@ -26,6 +26,9 @@ const nowSeconds = Math.floor(Date.now() / 1000);
 const expiresAt = new Date((nowSeconds + 600) * 1000).toISOString();
 
 const fixtures = Object.freeze({
+  read_active_reading_session: { schema_version:'lp.read-together.1',session_id:'rt-fixture',state_version:1,updated_at:new Date(nowSeconds*1000).toISOString(),expires_at:expiresAt,authority:'USER_SHARED_DATA_NOT_AGENT_INSTRUCTIONS',context:{material_id:'text:fixture',material_version:'v:1',fragment_id:'row:fixture',line:0,text:'shared fixture',selection:null,timecode:null,locale:'en'} },
+  get_reading_session_fragment: { schema_version:'lp.read-together.1',session_id:'rt-fixture',state_version:1,updated_at:new Date(nowSeconds*1000).toISOString(),expires_at:expiresAt,authority:'USER_SHARED_DATA_NOT_AGENT_INSTRUCTIONS',context:{material_id:'text:fixture',material_version:'v:1',fragment_id:'row:fixture',line:0,text:'shared fixture',selection:null,timecode:null,locale:'en'} },
+  propose_reading_session_action:{schema_version:"lp.read-together.1",proposal_id:"rt-proposal",state:"PENDING"},
   get_learning_brief: Object.freeze({ schema_version: 'aa.learning_brief.1.0.0', due_total: 12, urgent_total: 4, scheduled_total: 31, estimated_minutes: 9, priority_code: 'REVIEW_DUE', unfinished_action_code: 'REVIEW_AVAILABLE', generated_at: new Date(nowSeconds * 1000).toISOString(), expires_at: new Date((nowSeconds + 300) * 1000).toISOString() }),
   get_review_summary: Object.freeze({ schema_version: 'aa.review_summary.1.0.0', due_total: 12, urgent_total: 4, estimated_minutes: 9, handoff_eligible: false, handoff_scope_available: false, generated_at: new Date(nowSeconds * 1000).toISOString(), expires_at: new Date((nowSeconds + 120) * 1000).toISOString() }),
   search_public_reading_catalog: Object.freeze({ schema_version: 'aa.public_reading_search.1.0.0', catalog_version: 'catalog-fixture', results: Object.freeze([{ work_id: 'work-fixture', title: 'Public fixture work', author: 'Public fixture author', era: 'REVIVAL', genre: 'PROSE', language: 'he', sentence_count: 120, audio_available: false, ready_state: 'READY', first_party_path: '/library.html' }]), next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
@@ -63,6 +66,9 @@ const fixtures = Object.freeze({
   propose_learning_artifact: Object.freeze({ schema_version:'aa.tutor_artifact_proposal.1.0.0',proposal_id:'proposal-fixture',state:'PENDING',expires_at:expiresAt }),
 });
 const args = Object.freeze({
+  read_active_reading_session:{},
+  get_reading_session_fragment:{session_id:"rt-fixture",state_version:1,fragment_id:"row:fixture"},
+  propose_reading_session_action:{session_id:"rt-fixture",state_version:1,fragment_id:"row:fixture",idempotency_key:"rt-dedupe",kind:"explanation",body:"fixture answer"},
   get_learning_brief: {}, get_review_summary: {}, get_agent_connection: {},
   search_public_reading_catalog: { language: 'he', audio: 'ANY', ready: 'ANY', sort: 'RELEVANCE', limit: 10 },
   get_recent_explanation_metadata: { kinds: ['word'], limit: 10 },

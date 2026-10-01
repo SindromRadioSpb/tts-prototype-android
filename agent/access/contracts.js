@@ -966,6 +966,10 @@ function tutorArtifactOutput(value) {
 }
 
 const INPUT_VALIDATORS = Object.freeze({
+  read_active_reading_session: v => require("../readTogether/store").toolInput("read_active_reading_session", v),
+  get_reading_session_fragment: v => require("../readTogether/store").toolInput("get_reading_session_fragment", v),
+  propose_reading_session_action: v => require("../readTogether/store").toolInput("propose_reading_session_action", v),
+
   get_learning_brief: emptyInput,
   get_review_summary: emptyInput,
   search_public_reading_catalog: validateSearchInput,
@@ -1003,6 +1007,10 @@ const INPUT_VALIDATORS = Object.freeze({
   propose_learning_artifact: tutorArtifactInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
+  read_active_reading_session: v => require("../readTogether/store").toolOutput("read_active_reading_session",v),
+  get_reading_session_fragment: v => require("../readTogether/store").toolOutput("get_reading_session_fragment",v),
+  propose_reading_session_action: v => require("../readTogether/store").toolOutput("propose_reading_session_action",v),
+
   get_learning_brief: learningBrief,
   get_review_summary: reviewSummary,
   search_public_reading_catalog: publicSearch,

@@ -10,6 +10,8 @@ const { toolDefinitions } = require("./mcpSchemas");
 
 const MCP_PATH = "/agent-access/mcp";
 const TUTOR_MCP_PATH = "/agent-access/tutor/mcp";
+const READ_TOGETHER_MCP_PATH = "/agent-access/read-together/mcp";
+const READ_TOGETHER_TOOLS = Object.freeze(["read_active_reading_session","get_reading_session_fragment","propose_reading_session_action"]);
 const TUTOR_TOOLS = Object.freeze(["get_tutor_capabilities", "get_active_learning_context", "get_tutor_session", "propose_learning_artifact"]);
 const TUTOR_SCOPES = "tutor.capabilities.read tutor.context.read tutor.session.read tutor.artifact.propose";
 const MCP_PROTOCOL_VERSION = "2025-11-25";
@@ -85,9 +87,9 @@ function createProtocolServer(runtime, trusted, allowedTools) {
 function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags = null, path = MCP_PATH } = {}) {
   if (typeof getRuntime !== "function") throw new TypeError("AA_MCP_GATE_BAD_RUNTIME_PROVIDER");
   if (resolveFlags !== null && typeof resolveFlags !== "function") throw new TypeError("AA_MCP_GATE_BAD_FLAG_RESOLVER");
-  if (![MCP_PATH, TUTOR_MCP_PATH].includes(path)) throw new TypeError("AA_MCP_GATE_BAD_PATH");
+  if (![MCP_PATH, TUTOR_MCP_PATH, READ_TOGETHER_MCP_PATH].includes(path)) throw new TypeError("AA_MCP_GATE_BAD_PATH");
   const tutorOnly = path === TUTOR_MCP_PATH;
-  const allowedTools = new Set(tutorOnly ? TUTOR_TOOLS : capabilityNames());
+  const allowedTools = new Set(path === READ_TOGETHER_MCP_PATH ? READ_TOGETHER_TOOLS : tutorOnly ? TUTOR_TOOLS : capabilityNames());
   return async function mcpDefaultOffGate(req, res) {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Vary", "Origin");
@@ -181,4 +183,4 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
   };
 }
 
-module.exports = { MCP_PATH, TUTOR_MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_SUPPORTED_PROTOCOL_VERSIONS, MAX_BODY_BYTES, createMcpDefaultOffGate };
+module.exports = { MCP_PATH, TUTOR_MCP_PATH, READ_TOGETHER_MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_SUPPORTED_PROTOCOL_VERSIONS, MAX_BODY_BYTES, createMcpDefaultOffGate };

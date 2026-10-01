@@ -73,6 +73,7 @@ const PRECACHE_URLS = [
   "/js/tutor-client.js?v=2",
   "/js/tutor-notebook.js?v=3",
   "/js/tutor-panel.js?v=9",
+  "/js/read-together.js?v=1",
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/css/mediatheque.css?v=695",

@@ -1,6 +1,9 @@
 "use strict";
 
 const TOOL_LIMITS = Object.freeze({
+  read_active_reading_session: Object.freeze({minute:30,day:1000}),
+  get_reading_session_fragment: Object.freeze({minute:20,day:400}),
+  propose_reading_session_action: Object.freeze({minute:12,day:200}),
   get_learning_brief: Object.freeze({ minute: 12, day: 240 }),
   get_review_summary: Object.freeze({ minute: 12, day: 240 }),
   search_public_reading_catalog: Object.freeze({ minute: 30, day: 1000 }),

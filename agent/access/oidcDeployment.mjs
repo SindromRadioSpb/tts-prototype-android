@@ -4,6 +4,7 @@ import { PassThrough } from 'node:stream';
 import { errors, Provider } from 'oidc-provider';
 
 import deploymentContracts from './oauthDeploymentContracts.js';
+import approvedClients from './approvedClients.js';
 
 const { RESOURCE, TTL } = deploymentContracts;
 
@@ -45,7 +46,7 @@ export function createOidcDeployment({
   if (typeof findAccount !== 'function' || typeof interactionUrl !== 'function' || typeof principalForToken !== 'function' || typeof protocolPreflight !== 'function') fail('AA_OAUTH_CALLBACK_REQUIRED');
   if (typeof trustProxy !== 'boolean') fail('AA_OAUTH_PROXY_CONFIG_INVALID');
 
-  for (const client of clients) deploymentContracts.validateFixtureClient(client);
+  for (const client of clients) approvedClients.validateApprovedClient(client);
   const providerClients = clients.map((client) => ({
     client_id: client.client_id,
     client_name: client.client_name,

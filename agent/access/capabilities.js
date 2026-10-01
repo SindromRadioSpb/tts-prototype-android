@@ -3,6 +3,10 @@
 const CAPABILITY_VERSION = "aa-v0.1";
 
 const CAPABILITIES = Object.freeze({
+  read_active_reading_session: Object.freeze({ scope: "tutor.context.read", purpose: "EXPLICIT_READ_TOGETHER", scenario_id: "agent_access.read_together", max_output_bytes: 16384 }),
+  get_reading_session_fragment: Object.freeze({ scope: "tutor.context.read", purpose: "EXPLICIT_READ_TOGETHER", scenario_id: "agent_access.read_together", max_output_bytes: 16384 }),
+  propose_reading_session_action: Object.freeze({ scope: "tutor.artifact.propose", purpose: "EXPLICIT_READ_TOGETHER", scenario_id: "agent_access.read_together", max_output_bytes: 16384 }),
+
   get_learning_brief: Object.freeze({ scope: "learning.brief.read", purpose: "EXPLICIT_CURRENT_LEARNING_BRIEF", scenario_id: "agent_access.learning_brief", max_output_bytes: 1024 }),
   get_review_summary: Object.freeze({ scope: "review.summary.read", purpose: "EXPLICIT_REVIEW_AVAILABILITY", scenario_id: "agent_access.review_summary", max_output_bytes: 768 }),
   search_public_reading_catalog: Object.freeze({ scope: "reading.public.search", purpose: "EXPLICIT_PUBLIC_CATALOG_SEARCH", scenario_id: "agent_access.public_reading_search", max_output_bytes: 12288 }),
