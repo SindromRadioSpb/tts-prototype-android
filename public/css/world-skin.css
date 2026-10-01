@@ -15,6 +15,7 @@
 
 html[data-world] {
   --lpw-scale: 2;
+  --lpw-route-reserve: max(0px, calc(52px - var(--lpw-ground) * var(--lpw-scale) * 1px));
   --lpw-page: var(--lpw-light-page);
   --lpw-surface: var(--lpw-light-surface);
   --lpw-surface-soft: var(--lpw-light-surface-soft);
@@ -79,7 +80,11 @@ html[data-world] .classic-shell-head { position: relative; }
 html[data-world] .classic-shell-copy {
   flex-basis: 100% !important;
   padding-bottom: calc(72px * var(--lpw-scale)) !important;
+  margin-bottom: var(--lpw-route-reserve) !important;
 }
+/* The scene keeps its original height; the route sits on the road below the actors.
+   Reserve its lower portion before the next card rather than lifting the scenery. */
+html[data-world] .lp-world-stage[data-world-slot="studio-stage"] { overflow: visible; }
 html[data-world] .classic-secondary-nav { flex-basis: 100% !important; width: 100%; }
 /* The head's own boxes are transparent to taps where they only frame the world (the street band),
    so Timsah and the Hebrew sign stay reachable; their real content keeps its own pointer events. */
@@ -229,11 +234,11 @@ html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, s
 /* route: four legible 44px stops on an opaque pixel panel. Underline the Studio's current
    step; the stop where Timsah stands wears his head. Reads in UI direction. */
 html[data-world] .lp-world-route {
-  position: absolute; z-index: 2; left: 50%; bottom: 4px; transform: translateX(-50%); margin: 0; padding: 2px 4px;
-  display: flex; gap: 6px; align-items: end;
+  position: absolute; z-index: 2; left: 50%; top: calc(100% - var(--lpw-ground) * var(--lpw-scale) * 1px + 6px); transform: translateX(-50%); margin: 0; padding: 0 3px;
+  display: flex; gap: 4px; align-items: end;
   background: #20362f;
-  border: 2px solid #f0dfb2;
-  box-shadow: 3px 3px 0 #14251f;
+  border: 1px solid #f0dfb2;
+  box-shadow: 0 2px 0 #14251f;
 }
 [dir="rtl"] .lp-world-route { flex-direction: row-reverse; }
 html[data-world] .lp-world-route[hidden] { display: none; }

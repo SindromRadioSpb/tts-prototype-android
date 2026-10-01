@@ -85,6 +85,20 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       }
       await page.evaluate(() => LPWorld.setLighting("day"));
       await page.waitForFunction(() => LPWorld.debugState().lighting === "day");
+      if (route === "/") {
+        const placement = await page.evaluate(() => {
+          const stage = document.querySelector('.lp-world-stage'), strip = document.querySelector('.lp-world-route');
+          const sr = stage.getBoundingClientRect(), rr = strip.getBoundingClientRect();
+          const scale = Number(getComputedStyle(stage).getPropertyValue('--lpw-scale'));
+          return { top: rr.top, bottom: rr.bottom, height: rr.height, width: rr.width,
+            feet: sr.bottom - 12 * scale, tools: document.querySelector('.classic-secondary-nav').getBoundingClientRect().top };
+        });
+        assert.ok(placement.top >= placement.feet + 4, JSON.stringify(placement));
+        assert.ok(placement.bottom <= placement.tools - 4, JSON.stringify(placement));
+        assert.equal(placement.height, 46);
+        assert.ok(placement.width < 208);
+        pass(`route clears actors and next card ${width} ${lang}`, placement);
+      }
       if (lang === "en") await page.evaluate(() => document.body.classList.add("theme-dark"));
       await page.screenshot({ path: path.join(out, `${width}-${lang}-${d.location}.png`) });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);

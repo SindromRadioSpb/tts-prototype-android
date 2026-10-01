@@ -61,8 +61,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=713";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=713";
+  var CSS_URL = "/css/world-skin.css?v=714";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=714";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
