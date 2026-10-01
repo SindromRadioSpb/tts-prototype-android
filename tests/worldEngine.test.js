@@ -206,7 +206,7 @@ test("privacy: the world choice never reaches telemetry, and the engine talks on
   const renderer = read("public/js/world-render.js");
   const fetches = [...engine.matchAll(/fetch\(([^)]*)\)/g)].map((m) => m[1]);
   assert.deepEqual(fetches, ["url, { credentials: \"same-origin\" }"], "one fetch helper");
-  assert.match(engine, /fetchJson\(reg\.base \+ "manifest\.json\?v=" \+ v\), fetchJson\(reg\.base \+ "atlas\.json\?v=" \+ v\)/);
+  assert.match(engine, /fetchJson\(reg\.base \+ "manifest\.json\?v=" \+ v\),\s*fetchJson\(reg\.base \+ "atlas\.json\?v=" \+ v\)/);
   assert.doesNotMatch(renderer, /fetch\(|XMLHttpRequest|localStorage|document\.querySelector/, "the renderer only draws");
   for (const src of [engine, renderer]) {
     assert.doesNotMatch(src, /product-pulse|umami|sendBeacon|XMLHttpRequest|ProductPulse|\btrack\(|\bgtag\(/i);
@@ -266,10 +266,10 @@ test("the skin never restyles the study table or learning fonts; everything else
   assert.doesNotMatch(css, /#tableContainer|reader-core|\.rc-|font-family\s*:(?![^;]*var\(--lp-font-(ui|hebrew-reading))/,
     "table internals and learning typography are out of bounds");
   for (const rule of css.split("}")) {
-    if (/font-size|font-weight|letter-spacing|font-family/.test(rule)) assert.match(rule.split("{")[0], /\.lp-world-/, `type change outside world UI: ${rule.trim().slice(0, 80)}`);
+    if (/font-size|font-weight|letter-spacing|font-family/.test(rule)) assert.match(rule.split("{")[0], /\.lp-(?:world-|illustrated)/, `type change outside world UI: ${rule.trim().slice(0, 80)}`);
     const selector = rule.split("{")[0];
     if (/\{/.test(rule) && !/html\[data-world\]/.test(selector)) {
-      assert.match(selector, /lp-world-|@media|^\s*$/, `unscoped rule must belong to the world UI: ${selector.trim().slice(0, 80)}`);
+      assert.match(selector, /lp-world-|lp-illustrated|@media|^\s*$/, `unscoped rule must belong to the world UI: ${selector.trim().slice(0, 80)}`);
     }
   }
   assert.match(css, /\.lp-world-pause \{[^}]*width: 44px; height: 44px;/, "the pause control is a 44px target");

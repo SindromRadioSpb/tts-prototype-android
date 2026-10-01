@@ -1,0 +1,32 @@
+{
+  "source": "E:\\World\\Иерусалим\\PLAY\\Jerusalem-Up-Close-PLAY\\Jerusalem-Up-Close",
+  "pack": "0.2.1",
+  "engine": "2.2.1",
+  "baseCommit": "8404178e706139b5be0ca28d477e75da222be3af",
+  "files": {
+    "public/js/world-engine.js": {
+      "sourceSHA256": "e529505155560e27a976034b841b1c737b7d892a8db90cc0c40f557e7b472710",
+      "integratedSHA256": "6dedb1ffb59fb9f70e1c55e0f7497ae652814f665135e4c72d99314c76f970fd"
+    },
+    "public/js/world-render.js": {
+      "sourceSHA256": "ad968eec945df6b791fb2730820154baaf34c60d2791819ab878ea633e80386b",
+      "integratedSHA256": "ad968eec945df6b791fb2730820154baaf34c60d2791819ab878ea633e80386b"
+    },
+    "public/js/world-illustrated.js": {
+      "sourceSHA256": "8d68bea721d91788c71c3c6f98a071e0fe9c28205ef121a91f0cdc57f93f77fa",
+      "integratedSHA256": "fa8ac31361d3409028d748da02935757877614413522c203b27dad86b489ca62"
+    },
+    "public/css/world-skin.css": {
+      "sourceSHA256": "75deb2880ab24a149ef2f7be29b70cf63fbabc5e4e5b9e6e754422a5760e10b8",
+      "integratedSHA256": "178e467cb81331b316d1748875a3ecde94d3432d2b29c4684db34db61a319570"
+    },
+    "public/worlds/jerusalem-up-close/manifest.json": {
+      "sourceSHA256": "e045035eb60080321825cec9bae36bfb8eb1eac019c941b219083ab528e7075c",
+      "integratedSHA256": "e045035eb60080321825cec9bae36bfb8eb1eac019c941b219083ab528e7075c"
+    },
+    "public/worlds/jerusalem-up-close/atlas.json": {
+      "sourceSHA256": "32d5cbe3e97a73a5440a740dc0fb23bd7a0e88f0f13f6f216d322518071c574e",
+      "integratedSHA256": "32d5cbe3e97a73a5440a740dc0fb23bd7a0e88f0f13f6f216d322518071c574e"
+    }
+  }
+}

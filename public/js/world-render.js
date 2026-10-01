@@ -59,7 +59,30 @@
   // 4x4 ordered dither between two stop colours → used for pixel-art sky bands.
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
-  var core = { lightingFor: lightingFor, mulberry32: mulberry32, cameraAt: cameraAt, wrapOffset: wrapOffset, BAYER: BAYER };
+  // One projection for drawing and hit testing. Coordinates are logical canvas pixels.
+  function projectSprite(pose, rect, view, groundY) {
+    var footX = pose.worldX - view.camera;
+    var ground = pose.back ? (pose.ground != null ? pose.ground : view.backGround || 0) : groundY + (pose.lane || 0);
+    var footY = view.h - ground - (pose.y || 0) - 1;
+    return { x: Math.round(footX - (pose.flip ? rect.w - 1 - rect.anchor[0] : rect.anchor[0])),
+      y: Math.round(footY - rect.anchor[1]), w: rect.w, h: rect.h, footX: Math.round(footX), footY: Math.round(footY) };
+  }
+  function hitRect(pose, box) {
+    var h = pose.hitRegion;
+    return { x: box.footX + (pose.flip ? 1 - h.x - h.w : h.x), y: box.footY - h.y,
+      w: h.w, h: h.h };
+  }
+  function contains(rect, x, y) { return x >= rect.x && y >= rect.y && x < rect.x + rect.w && y < rect.y + rect.h; }
+  // Paint-order picking with injectable alpha sampler, shared with Node geometry tests.
+  function pickPainted(list, x, y, alphaAt) {
+    for (var i = list.length - 1; i >= 0; i--) {
+      var item = list[i];
+      if (!contains(item.box, x, y) || !alphaAt(item, x, y)) continue;
+      return item.pose.characterId && contains(item.hit, x, y) ? item.pose.characterId : null;
+    }
+    return null;
+  }
+  var core = { projectSprite: projectSprite, hitRect: hitRect, contains: contains, pickPainted: pickPainted, lightingFor: lightingFor, mulberry32: mulberry32, cameraAt: cameraAt, wrapOffset: wrapOffset, BAYER: BAYER };
   if (typeof document === "undefined") return { core: core };
 
   // ── drawing ────────────────────────────────────────────────────────────────
@@ -102,7 +125,7 @@
   // (sky + far layers only, vertical parallax from page scroll).
   function createRenderer(canvas, opts) {
     var pack = opts.pack, atlas = opts.atlas, images = opts.images;
-    var scenery = pack.scenery;
+    var scenery = Object.assign({}, pack.scenery, opts.scenery || {});
     var ctx = canvas.getContext("2d", { alpha: false });
     var rand = mulberry32(opts.seed || 26);
     var state = {
@@ -112,6 +135,7 @@
     };
 
     function resize(cssW, cssH, scale) {
+      if (state.scale === scale && state.w === Math.max(1, Math.ceil(cssW / scale)) && state.h === Math.max(1, Math.ceil(cssH / scale))) return;
       state.scale = scale;
       state.w = Math.max(1, Math.ceil(cssW / scale));
       state.h = Math.max(1, Math.ceil(cssH / scale));
@@ -124,6 +148,7 @@
     }
 
     function seedAmbient() {
+      rand = mulberry32(opts.seed || 26);
       var em = scenery.emitters || {};
       state.clouds = [];
       var nc = em.clouds ? em.clouds.count : 0;
@@ -154,6 +179,7 @@
     // Lighting integration: actors are multiplied by the lighting's tint (cached per sheet+tint),
     // so a daylight-saturated sprite never sits pasted onto a night street.
     var tintCache = {};
+    var alphaCache = {}, painted = [], targets = [], targetKey = "", ownerPixels = null, foregroundBlocks = [];
     function tinted(sheet, img) {
       var tint = scenery.lighting[state.lighting] && scenery.lighting[state.lighting].actorTint;
       if (!tint || tint.toLowerCase() === "#ffffff") return img;
@@ -389,6 +415,7 @@
             // stay fictional); each side shows a parody portrait, the speaker alternates and talks
             var sf2 = fx.surface, sx2 = Math.round(L.x + fx.x + sf2.x0 - state.cam), sy2 = state.h - scenery.groundY - sf2.top;
             var sw2 = sf2.x1 - sf2.x0 + 1, sh2 = sf2.top - sf2.bottom, half = Math.floor(sw2 / 2);
+            foregroundBlocks.push({x:sx2,y:sy2,w:sw2,h:sh2});
             var turn = Math.floor(t / 1600) % 2;
             if (fx.cast) {
               fx.cast.forEach(function (cst, n) {
@@ -436,8 +463,15 @@
               for (var v = 0; v < votes; v++) {
                 var grp = Math.floor(v / 5), k = v % 5;
                 var gx = Math.round(ox + cx0), gyTop = Math.round(gy - sf.top + 3 + grp * 6);
-                if (k < 4) ctx.fillRect(gx + k * 1 + (k > 1 ? 1 : 0) - 0 + k, gyTop, 1, 4);
-                else for (var d = 0; d < 5; d++) ctx.fillRect(gx + d + 0, gyTop + 3 - Math.floor(d * 0.8), 1, 1);
+                if (k < 4) {
+                  var strokeX = gx + k * 1 + (k > 1 ? 1 : 0) + k;
+                  ctx.fillRect(strokeX, gyTop, 1, 4);
+                  foregroundBlocks.push({x:strokeX,y:gyTop,w:1,h:4});
+                } else for (var d = 0; d < 5; d++) {
+                  var strokeY = gyTop + 3 - Math.floor(d * 0.8);
+                  ctx.fillRect(gx + d, strokeY, 1, 1);
+                  foregroundBlocks.push({x:gx+d,y:strokeY,w:1,h:1});
+                }
               }
             });
           }
@@ -455,6 +489,7 @@
         var p = papers[i], age = (t - p.born) / 1000;
         var px = Math.round(p.x + p.vx * age - state.cam), py = Math.round(state.h - (p.y + p.vy * age - 9 * age * age));
         var flip = Math.floor((t - p.born) / 180 + (p.spin ? 1 : 0)) % 2;
+        foregroundBlocks.push({x:px-1,y:py-1,w:flip?5:4,h:flip?3:4});
         ctx.fillStyle = "#1b1f2e";
         ctx.fillRect(px - 1, py - 1, flip ? 5 : 4, flip ? 3 : 4);
         ctx.fillStyle = "#fbf7ea";
@@ -463,10 +498,74 @@
     }
 
     // back = true: buildings standing behind the street wall (drawn before front layers).
+    function alphaAt(item, x, y) {
+      var spec = atlas.atlases[item.sheet], file = spec.file;
+      if (!alphaCache[file]) {
+        var source = images[file];
+        if (!source) return false;
+        var mask = document.createElement("canvas");
+        mask.width = source.naturalWidth || source.width; mask.height = source.naturalHeight || source.height;
+        var mc = mask.getContext("2d"); mc.drawImage(source, 0, 0);
+        try { alphaCache[file] = { data: mc.getImageData(0, 0, mask.width, mask.height).data, width: mask.width }; }
+        catch (_) { return false; } // unavailable image pixels never create an invisible target
+      }
+      var ax = Math.floor(x - item.box.x), ay = Math.floor(y - item.box.y), a = alphaCache[file];
+      if (item.pose.flip) ax = item.rect.w - 1 - ax;
+      return a.data[((item.rect.y + ay) * a.width + item.rect.x + ax) * 4 + 3] > 0;
+    }
+    function pickCharacter(x, y) {
+      if (x < 0 || y < 0 || x >= state.w || y >= state.h || (scenery.curb && y >= state.h - 4)) return null;
+      x = Math.floor(x); y = Math.floor(y);
+      if (!ownerPixels) return null;
+      var index = ownerPixels[y * state.w + x] - 1, item = painted[index];
+      return item && item.pose.characterId && contains(item.hit, x, y) ? item.pose.characterId : null;
+    }
+    function syncTargets() {
+      var key = state.w + ":" + state.h + ":" + state.lighting + ":" + JSON.stringify(painted.map(function (it) {
+        return [it.sheet, it.pose.frame, it.box.x, it.box.y, it.pose.flip, it.pose.characterId, it.hit, it.pose.bubbleAnchor];
+      })) + JSON.stringify(foregroundBlocks);
+      if (key === targetKey) return;
+      targetKey = key;
+      ownerPixels = new Int32Array(state.w * state.h);
+      // Rasterize ownership once in painter order. Avoid testing every target pixel against
+      // every sprite (quadratic in cast size); cached alpha makes this linear in painted area.
+      painted.forEach(function (it, index) {
+        alphaAt(it, it.box.x, it.box.y); // ensure this source's cached mask exists
+        var mask = alphaCache[atlas.atlases[it.sheet].file]; if (!mask) return;
+        var x0 = Math.max(0, it.box.x), y0 = Math.max(0, it.box.y);
+        var x1 = Math.min(state.w, it.box.x + it.box.w), y1 = Math.min(state.h, it.box.y + it.box.h);
+        for (var y = y0; y < y1; y++) {
+          var row = (it.rect.y + y - it.box.y) * mask.width, dst = y * state.w;
+          for (var x = x0; x < x1; x++) {
+            var sx = it.pose.flip ? it.rect.w - 1 - x + it.box.x : x - it.box.x;
+            if (mask.data[(row + it.rect.x + sx) * 4 + 3] > 0) ownerPixels[dst + x] = index + 1;
+          }
+        }
+      });
+      foregroundBlocks.forEach(function (block) {
+        var x0 = Math.max(0, Math.floor(block.x)), y0 = Math.max(0, Math.floor(block.y));
+        var x1 = Math.min(state.w, Math.ceil(block.x + block.w)), y1 = Math.min(state.h, Math.ceil(block.y + block.h));
+        for (var y = y0; y < y1; y++) for (var x = x0; x < x1; x++) ownerPixels[y * state.w + x] = 0;
+      });
+      targets = [];
+      painted.forEach(function (it, index) {
+        if (!it.pose.characterId) return;
+        var h = it.hit, x0 = Math.max(0, h.x, it.box.x), y0 = Math.max(0, h.y, it.box.y);
+        var x1 = Math.min(state.w, h.x + h.w, it.box.x + it.box.w), y1 = Math.min(state.h, h.y + h.h, it.box.y + it.box.h);
+        var minX = Infinity, minY = Infinity, maxX = -1, maxY = -1;
+        for (var y = y0; y < y1; y++) for (var x = x0; x < x1; x++) if (ownerPixels[y * state.w + x] === index + 1 && (!scenery.curb || y < state.h - 4)) {
+          minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+        }
+        if (maxX < 0) return;
+        var anchor = it.pose.bubbleAnchor || [0, 49];
+        targets.push({ id: it.pose.characterId, x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1,
+          headX: it.box.footX + (it.pose.flip ? -anchor[0] : anchor[0]), headY: it.box.footY - anchor[1] });
+      });
+    }
     function drawActors(back) {
       if (!state.pose) return;
       var list = state.pose.filter(function (p) { return !!p.back === !!back; })
-        .sort(function (a, b) { return (a.z || 1) - (b.z || 1); });
+        .sort(function (a, b) { return (a.z == null ? 1 : a.z) - (b.z == null ? 1 : b.z); });
       for (var i = 0; i < list.length; i++) {
         var p = list[i];
         if (p.hidden) continue;
@@ -474,6 +573,15 @@
         if (!actor) continue;
         var ground = back ? (p.ground != null ? p.ground : scenery.backGround || 0) : scenery.groundY + (p.lane || 0);
         var sx = p.worldX - state.cam;
+        if (!back) {
+          var sheet = sheetName(actor.sheet), fr = frameOf(atlas, sheet, p.frame);
+          if (fr) {
+            var box = projectSprite(p, fr.rect, { camera: state.cam, h: state.h }, scenery.groundY);
+            if (box.x + box.w > 0 && box.x < state.w && box.y + box.h > 0 && box.y < state.h) {
+              painted.push({ pose: p, rect: fr.rect, sheet: sheet, box: box, hit: p.characterId ? hitRect(p, box) : null });
+            }
+          }
+        }
         if (!back) contactShadow(sheetName(actor.sheet), p.frame, sx, ground, p.y || 0);
         drawSprite(sheetName(actor.sheet), p.frame, sx, ground + (p.y || 0), !!p.flip, !back);
       }
@@ -501,6 +609,7 @@
       drawClouds(dt);
       if (kind === "stage") drawBirds(t, dt);
       if (kind === "backdrop") { drawLayers(kind, t); return; }
+      painted = []; foregroundBlocks = [];
       drawLayers(kind, t, false);
       drawActors(true);
       drawPosters(false);
@@ -515,9 +624,12 @@
         ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.fillRect(0, state.h - 3, state.w, 3);
         ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fillRect(0, state.h - 4, state.w, 1);
       }
+      syncTargets();
     }
 
     return {
+      pickCharacter: pickCharacter,
+      targets: function () { return targets.map(function (t) { return Object.assign({}, t); }); },
       resize: resize,
       render: render,
       setLighting: function (l) { state.lighting = l; },

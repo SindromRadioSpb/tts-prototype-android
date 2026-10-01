@@ -1,0 +1,10 @@
+{
+  "environment": "WIN-5V7TAJ132KN",
+  "baseCommit": "8404178e",
+  "command": "node scripts/test-unit.js --test-reporter=spec",
+  "tests": 2324,
+  "passed": 2324,
+  "failed": 0,
+  "skipped": 0,
+  "durationMs": 49347.7351
+}

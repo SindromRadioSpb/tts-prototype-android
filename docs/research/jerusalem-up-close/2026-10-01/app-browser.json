@@ -1,0 +1,5698 @@
+{
+  "evidence": [
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "ru",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 148.41652566271858,
+          "y": 418.2222222222223,
+          "w": 443.16694867456283,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          334,
+          394
+        ],
+        "transition": false,
+        "walking": true,
+        "walkPose": "walk-0",
+        "positions": {
+          "timsah": [
+            823.9595999878406,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {},
+        "blinkTimer": false,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Почему две рамки?",
+          {
+            "x": 245.25,
+            "y": 190.859375,
+            "width": 44,
+            "height": 44,
+            "top": 190.859375,
+            "right": 289.25,
+            "bottom": 234.859375,
+            "left": 245.25
+          },
+          "left: 244.251px; top: 187.872px;"
+        ],
+        [
+          "Одна ветвь, другой взгляд",
+          {
+            "x": 201.90625,
+            "y": 256.8125,
+            "width": 44,
+            "height": 44,
+            "top": 256.8125,
+            "right": 245.90625,
+            "bottom": 300.8125,
+            "left": 201.90625
+          },
+          "left: 200.915px; top: 253.818px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "ru",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 148.41652566271858,
+          "y": 418.2222222222223,
+          "w": 443.16694867456283,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          334,
+          394
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            804.1273999878406,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7345.379999995232
+          },
+          "timsah": {
+            "at": 6122.379999995232
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Почему две рамки?",
+          {
+            "x": 245.25,
+            "y": 190.859375,
+            "width": 44,
+            "height": 44,
+            "top": 190.859375,
+            "right": 289.25,
+            "bottom": 234.859375,
+            "left": 245.25
+          },
+          "left: 244.251px; top: 187.872px;"
+        ],
+        [
+          "Одна ветвь, другой взгляд",
+          {
+            "x": 201.90625,
+            "y": 256.8125,
+            "width": 44,
+            "height": 44,
+            "top": 256.8125,
+            "right": 245.90625,
+            "bottom": 300.8125,
+            "left": 201.90625
+          },
+          "left: 200.915px; top: 253.818px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "ru",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 550.9975490196078,
+          "y": 0,
+          "w": 798.0049019607843,
+          "h": 941
+        },
+        "canvas": [
+          346,
+          408
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6472.070000052452
+          },
+          "timsah": {
+            "at": 5089.070000052452
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 229.78125,
+            "y": 229.46875,
+            "width": 44,
+            "height": 44,
+            "top": 229.46875,
+            "right": 273.78125,
+            "bottom": 273.46875,
+            "left": 229.78125
+          },
+          "left: 234.785px; top: 238.47px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 45.5,
+            "y": 305.34375,
+            "width": 44,
+            "height": 44,
+            "top": 305.34375,
+            "right": 89.5,
+            "bottom": 349.34375,
+            "left": 45.5
+          },
+          "left: 50.5133px; top: 314.346px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "ru",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 550.9975490196078,
+          "y": 0,
+          "w": 798.0049019607843,
+          "h": 941
+        },
+        "canvas": [
+          346,
+          408
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9065.47000002861
+          },
+          "timsah": {
+            "at": 6223.47000002861
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 229.78125,
+            "y": 229.46875,
+            "width": 44,
+            "height": 44,
+            "top": 229.46875,
+            "right": 273.78125,
+            "bottom": 273.46875,
+            "left": 229.78125
+          },
+          "left: 234.785px; top: 238.47px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 45.5,
+            "y": 305.34375,
+            "width": 44,
+            "height": 44,
+            "top": 305.34375,
+            "right": 89.5,
+            "bottom": 349.34375,
+            "left": 45.5
+          },
+          "left: 50.5133px; top: 314.346px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "ru",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.2354260089686,
+          "y": 0,
+          "w": 797.5291479820628,
+          "h": 941
+        },
+        "canvas": [
+          378,
+          446
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5769.569999933243
+          },
+          "timsah": {
+            "at": 7885.569999933243
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 249.75,
+            "y": 305.671875,
+            "width": 44,
+            "height": 44,
+            "top": 305.671875,
+            "right": 293.75,
+            "bottom": 349.671875,
+            "left": 249.75
+          },
+          "left: 270.759px; top: 260.68px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 48.3125,
+            "y": 388.609375,
+            "width": 44,
+            "height": 44,
+            "top": 388.609375,
+            "right": 92.3125,
+            "bottom": 432.609375,
+            "left": 48.3125
+          },
+          "left: 69.3241px; top: 343.624px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "ru",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.2354260089686,
+          "y": 0,
+          "w": 797.5291479820628,
+          "h": 941
+        },
+        "canvas": [
+          378,
+          446
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7475.59500002861
+          },
+          "timsah": {
+            "at": 6765.59500002861
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 249.75,
+            "y": 305.671875,
+            "width": 44,
+            "height": 44,
+            "top": 305.671875,
+            "right": 293.75,
+            "bottom": 349.671875,
+            "left": 249.75
+          },
+          "left: 270.759px; top: 260.68px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 48.3125,
+            "y": 388.609375,
+            "width": 44,
+            "height": 44,
+            "top": 388.609375,
+            "right": 92.3125,
+            "bottom": 432.609375,
+            "left": 48.3125
+          },
+          "left: 69.3241px; top: 343.624px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "he",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 148.41652566271858,
+          "y": 418.2222222222223,
+          "w": 443.16694867456283,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          334,
+          394
+        ],
+        "transition": false,
+        "walking": true,
+        "walkPose": "walk-0",
+        "positions": {
+          "timsah": [
+            820.425299993515,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {},
+        "blinkTimer": false,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "למה שתי מסגרות?",
+          {
+            "x": 245.25,
+            "y": 190.859375,
+            "width": 44,
+            "height": 44,
+            "top": 190.859375,
+            "right": 289.25,
+            "bottom": 234.859375,
+            "left": 245.25
+          },
+          "left: 244.251px; top: 187.872px;"
+        ],
+        [
+          "ענף אחד, מבט אחר",
+          {
+            "x": 201.90625,
+            "y": 256.8125,
+            "width": 44,
+            "height": 44,
+            "top": 256.8125,
+            "right": 245.90625,
+            "bottom": 300.8125,
+            "left": 201.90625
+          },
+          "left: 200.915px; top: 253.818px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "he",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 148.41652566271858,
+          "y": 418.2222222222223,
+          "w": 443.16694867456283,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          334,
+          394
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            797.759199993515,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6974.909999966621
+          },
+          "timsah": {
+            "at": 5909.909999966621
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "למה שתי מסגרות?",
+          {
+            "x": 245.25,
+            "y": 190.859375,
+            "width": 44,
+            "height": 44,
+            "top": 190.859375,
+            "right": 289.25,
+            "bottom": 234.859375,
+            "left": 245.25
+          },
+          "left: 244.251px; top: 187.872px;"
+        ],
+        [
+          "ענף אחד, מבט אחר",
+          {
+            "x": 201.90625,
+            "y": 256.8125,
+            "width": 44,
+            "height": 44,
+            "top": 256.8125,
+            "right": 245.90625,
+            "bottom": 300.8125,
+            "left": 201.90625
+          },
+          "left: 200.915px; top: 253.818px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "he",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 550.9975490196078,
+          "y": 0,
+          "w": 798.0049019607843,
+          "h": 941
+        },
+        "canvas": [
+          346,
+          408
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6173.699999928474
+          },
+          "timsah": {
+            "at": 7794.699999928474
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 229.78125,
+            "y": 229.46875,
+            "width": 44,
+            "height": 44,
+            "top": 229.46875,
+            "right": 273.78125,
+            "bottom": 273.46875,
+            "left": 229.78125
+          },
+          "left: 234.785px; top: 238.47px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 45.5,
+            "y": 305.34375,
+            "width": 44,
+            "height": 44,
+            "top": 305.34375,
+            "right": 89.5,
+            "bottom": 349.34375,
+            "left": 45.5
+          },
+          "left: 50.5133px; top: 314.346px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "he",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 550.9975490196078,
+          "y": 0,
+          "w": 798.0049019607843,
+          "h": 941
+        },
+        "canvas": [
+          346,
+          408
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7616.469999909401
+          },
+          "timsah": {
+            "at": 8525.469999909401
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 229.78125,
+            "y": 229.46875,
+            "width": 44,
+            "height": 44,
+            "top": 229.46875,
+            "right": 273.78125,
+            "bottom": 273.46875,
+            "left": 229.78125
+          },
+          "left: 234.785px; top: 238.47px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 45.5,
+            "y": 305.34375,
+            "width": 44,
+            "height": 44,
+            "top": 305.34375,
+            "right": 89.5,
+            "bottom": 349.34375,
+            "left": 45.5
+          },
+          "left: 50.5133px; top: 314.346px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "he",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.2354260089686,
+          "y": 0,
+          "w": 797.5291479820628,
+          "h": 941
+        },
+        "canvas": [
+          378,
+          446
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7553.545000076294
+          },
+          "timsah": {
+            "at": 8154.545000076294
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 249.75,
+            "y": 305.671875,
+            "width": 44,
+            "height": 44,
+            "top": 305.671875,
+            "right": 293.75,
+            "bottom": 349.671875,
+            "left": 249.75
+          },
+          "left: 270.759px; top: 260.68px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 48.3125,
+            "y": 388.609375,
+            "width": 44,
+            "height": 44,
+            "top": 388.609375,
+            "right": 92.3125,
+            "bottom": 432.609375,
+            "left": 48.3125
+          },
+          "left: 69.3241px; top: 343.624px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "he",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.2354260089686,
+          "y": 0,
+          "w": 797.5291479820628,
+          "h": 941
+        },
+        "canvas": [
+          378,
+          446
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7187.9400000572205
+          },
+          "timsah": {
+            "at": 7637.9400000572205
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 249.75,
+            "y": 305.671875,
+            "width": 44,
+            "height": 44,
+            "top": 305.671875,
+            "right": 293.75,
+            "bottom": 349.671875,
+            "left": 249.75
+          },
+          "left: 270.759px; top: 260.68px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 48.3125,
+            "y": 388.609375,
+            "width": 44,
+            "height": 44,
+            "top": 388.609375,
+            "right": 92.3125,
+            "bottom": 432.609375,
+            "left": 48.3125
+          },
+          "left: 69.3241px; top: 343.624px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "en",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 148.41652566271858,
+          "y": 418.2222222222223,
+          "w": 443.16694867456283,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          334,
+          394
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9890.80999994278
+          },
+          "timsah": {
+            "at": 5948.8099999427795
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Why two borders?",
+          {
+            "x": 245.25,
+            "y": 190.859375,
+            "width": 44,
+            "height": 44,
+            "top": 190.859375,
+            "right": 289.25,
+            "bottom": 234.859375,
+            "left": 245.25
+          },
+          "left: 244.251px; top: 187.872px;"
+        ],
+        [
+          "One branch, another view",
+          {
+            "x": 201.90625,
+            "y": 256.8125,
+            "width": 44,
+            "height": 44,
+            "top": 256.8125,
+            "right": 245.90625,
+            "bottom": 300.8125,
+            "left": 201.90625
+          },
+          "left: 200.915px; top: 253.818px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "en",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 148.41652566271858,
+          "y": 418.2222222222223,
+          "w": 443.16694867456283,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          334,
+          394
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9330.189999938011
+          },
+          "timsah": {
+            "at": 6332.189999938011
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Why two borders?",
+          {
+            "x": 245.25,
+            "y": 190.859375,
+            "width": 44,
+            "height": 44,
+            "top": 190.859375,
+            "right": 289.25,
+            "bottom": 234.859375,
+            "left": 245.25
+          },
+          "left: 244.251px; top: 187.872px;"
+        ],
+        [
+          "One branch, another view",
+          {
+            "x": 201.90625,
+            "y": 256.8125,
+            "width": 44,
+            "height": 44,
+            "top": 256.8125,
+            "right": 245.90625,
+            "bottom": 300.8125,
+            "left": 201.90625
+          },
+          "left: 200.915px; top: 253.818px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "en",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 550.9975490196078,
+          "y": 0,
+          "w": 798.0049019607843,
+          "h": 941
+        },
+        "canvas": [
+          346,
+          408
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8666.100000023842
+          },
+          "timsah": {
+            "at": 7485.100000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 229.78125,
+            "y": 229.46875,
+            "width": 44,
+            "height": 44,
+            "top": 229.46875,
+            "right": 273.78125,
+            "bottom": 273.46875,
+            "left": 229.78125
+          },
+          "left: 234.785px; top: 238.47px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 45.5,
+            "y": 305.34375,
+            "width": 44,
+            "height": 44,
+            "top": 305.34375,
+            "right": 89.5,
+            "bottom": 349.34375,
+            "left": 45.5
+          },
+          "left: 50.5133px; top: 314.346px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "en",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 550.9975490196078,
+          "y": 0,
+          "w": 798.0049019607843,
+          "h": 941
+        },
+        "canvas": [
+          346,
+          408
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8766.259999990463
+          },
+          "timsah": {
+            "at": 6286.259999990463
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 229.78125,
+            "y": 229.46875,
+            "width": 44,
+            "height": 44,
+            "top": 229.46875,
+            "right": 273.78125,
+            "bottom": 273.46875,
+            "left": 229.78125
+          },
+          "left: 234.785px; top: 238.47px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 45.5,
+            "y": 305.34375,
+            "width": 44,
+            "height": 44,
+            "top": 305.34375,
+            "right": 89.5,
+            "bottom": 349.34375,
+            "left": 45.5
+          },
+          "left: 50.5133px; top: 314.346px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "en",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.2354260089686,
+          "y": 0,
+          "w": 797.5291479820628,
+          "h": 941
+        },
+        "canvas": [
+          378,
+          446
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6864.285000085831
+          },
+          "timsah": {
+            "at": 7314.285000085831
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 249.75,
+            "y": 305.671875,
+            "width": 44,
+            "height": 44,
+            "top": 305.671875,
+            "right": 293.75,
+            "bottom": 349.671875,
+            "left": 249.75
+          },
+          "left: 270.759px; top: 260.68px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 48.3125,
+            "y": 388.609375,
+            "width": 44,
+            "height": 44,
+            "top": 388.609375,
+            "right": 92.3125,
+            "bottom": 432.609375,
+            "left": 48.3125
+          },
+          "left: 69.3241px; top: 343.624px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 380,
+      "lang": "en",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.2354260089686,
+          "y": 0,
+          "w": 797.5291479820628,
+          "h": 941
+        },
+        "canvas": [
+          378,
+          446
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5907.495000004768
+          },
+          "timsah": {
+            "at": 7795.495000004768
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 249.75,
+            "y": 305.671875,
+            "width": 44,
+            "height": 44,
+            "top": 305.671875,
+            "right": 293.75,
+            "bottom": 349.671875,
+            "left": 249.75
+          },
+          "left: 270.759px; top: 260.68px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 48.3125,
+            "y": 388.609375,
+            "width": 44,
+            "height": 44,
+            "top": 388.609375,
+            "right": 92.3125,
+            "bottom": 432.609375,
+            "left": 48.3125
+          },
+          "left: 69.3241px; top: 343.624px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "ru",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.1972789115646,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          696,
+          392
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7326.514999985695
+          },
+          "timsah": {
+            "at": 7925.514999985695
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Что на обороте?",
+          {
+            "x": 226.203125,
+            "y": 208.046875,
+            "width": 44,
+            "height": 44,
+            "top": 208.046875,
+            "right": 270.203125,
+            "bottom": 252.046875,
+            "left": 226.203125
+          },
+          "left: 212.205px; top: 140.054px;"
+        ],
+        [
+          "Почему две рамки?",
+          {
+            "x": 368.296875,
+            "y": 254.90625,
+            "width": 44,
+            "height": 44,
+            "top": 254.90625,
+            "right": 412.296875,
+            "bottom": 298.90625,
+            "left": 368.296875
+          },
+          "left: 354.3px; top: 186.919px;"
+        ],
+        [
+          "Одна ветвь, другой взгляд",
+          {
+            "x": 325.171875,
+            "y": 320.515625,
+            "width": 44,
+            "height": 44,
+            "top": 320.515625,
+            "right": 369.171875,
+            "bottom": 364.515625,
+            "left": 325.171875
+          },
+          "left: 311.184px; top: 252.53px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 514.515625,
+            "y": 298.03125,
+            "width": 44,
+            "height": 44,
+            "top": 298.03125,
+            "right": 558.515625,
+            "bottom": 342.03125,
+            "left": 514.515625
+          },
+          "left: 500.519px; top: 230.034px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "ru",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.1972789115646,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          696,
+          392
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8210.544999957085
+          },
+          "timsah": {
+            "at": 8660.544999957085
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Что на обороте?",
+          {
+            "x": 226.203125,
+            "y": 208.046875,
+            "width": 44,
+            "height": 44,
+            "top": 208.046875,
+            "right": 270.203125,
+            "bottom": 252.046875,
+            "left": 226.203125
+          },
+          "left: 212.205px; top: 140.054px;"
+        ],
+        [
+          "Почему две рамки?",
+          {
+            "x": 368.296875,
+            "y": 254.90625,
+            "width": 44,
+            "height": 44,
+            "top": 254.90625,
+            "right": 412.296875,
+            "bottom": 298.90625,
+            "left": 368.296875
+          },
+          "left: 354.3px; top: 186.919px;"
+        ],
+        [
+          "Одна ветвь, другой взгляд",
+          {
+            "x": 325.171875,
+            "y": 320.515625,
+            "width": 44,
+            "height": 44,
+            "top": 320.515625,
+            "right": 369.171875,
+            "bottom": 364.515625,
+            "left": 325.171875
+          },
+          "left: 311.184px; top: 252.53px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 514.515625,
+            "y": 298.03125,
+            "width": 44,
+            "height": 44,
+            "top": 298.03125,
+            "right": 558.515625,
+            "bottom": 342.03125,
+            "left": 514.515625
+          },
+          "left: 500.519px; top: 230.034px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "ru",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.21525885558583013,
+          "w": 1672,
+          "h": 940.7847411444142
+        },
+        "canvas": [
+          734,
+          413
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7765.754999995232
+          },
+          "timsah": {
+            "at": 5390.754999995232
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 474.59375,
+            "y": 286.34375,
+            "width": 44,
+            "height": 44,
+            "top": 286.34375,
+            "right": 518.59375,
+            "bottom": 330.34375,
+            "left": 474.59375
+          },
+          "left: 479.602px; top: 241.353px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 288.015625,
+            "y": 363.171875,
+            "width": 44,
+            "height": 44,
+            "top": 363.171875,
+            "right": 332.015625,
+            "bottom": 407.171875,
+            "left": 288.015625
+          },
+          "left: 293.029px; top: 318.177px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "ru",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.21525885558583013,
+          "w": 1672,
+          "h": 940.7847411444142
+        },
+        "canvas": [
+          734,
+          413
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6235.634999990463
+          },
+          "timsah": {
+            "at": 8738.634999990463
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 474.59375,
+            "y": 286.34375,
+            "width": 44,
+            "height": 44,
+            "top": 286.34375,
+            "right": 518.59375,
+            "bottom": 330.34375,
+            "left": 474.59375
+          },
+          "left: 479.602px; top: 241.353px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 288.015625,
+            "y": 363.171875,
+            "width": 44,
+            "height": 44,
+            "top": 363.171875,
+            "right": 332.015625,
+            "bottom": 407.171875,
+            "left": 288.015625
+          },
+          "left: 293.029px; top: 318.177px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "ru",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.22715404699738428,
+          "w": 1672,
+          "h": 940.7728459530026
+        },
+        "canvas": [
+          766,
+          431
+        ],
+        "transition": false,
+        "walking": true,
+        "walkPose": "walk-0",
+        "positions": {
+          "timsah": [
+            821.8124999943257,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {},
+        "blinkTimer": false,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 479.5,
+            "y": 370.859375,
+            "width": 44,
+            "height": 44,
+            "top": 370.859375,
+            "right": 523.5,
+            "bottom": 414.859375,
+            "left": 479.5
+          },
+          "left: 500.511px; top: 251.87px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 349.765625,
+            "y": 451.03125,
+            "width": 44,
+            "height": 44,
+            "top": 451.03125,
+            "right": 393.765625,
+            "bottom": 495.03125,
+            "left": 349.765625
+          },
+          "left: 370.774px; top: 332.043px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "ru",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.22715404699738428,
+          "w": 1672,
+          "h": 940.7728459530026
+        },
+        "canvas": [
+          766,
+          431
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            793.4794499943256,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8444.490000009537
+          },
+          "timsah": {
+            "at": 5321.490000009537
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 479.5,
+            "y": 370.859375,
+            "width": 44,
+            "height": 44,
+            "top": 370.859375,
+            "right": 523.5,
+            "bottom": 414.859375,
+            "left": 479.5
+          },
+          "left: 500.511px; top: 251.87px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 336.78125,
+            "y": 451.03125,
+            "width": 44,
+            "height": 44,
+            "top": 451.03125,
+            "right": 380.78125,
+            "bottom": 495.03125,
+            "left": 336.78125
+          },
+          "left: 357.793px; top: 332.043px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "he",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.1972789115646,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          696,
+          392
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8565.295000076294
+          },
+          "timsah": {
+            "at": 7454.295000076294
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "מה בצד השני?",
+          {
+            "x": 226.203125,
+            "y": 208.046875,
+            "width": 44,
+            "height": 44,
+            "top": 208.046875,
+            "right": 270.203125,
+            "bottom": 252.046875,
+            "left": 226.203125
+          },
+          "left: 212.205px; top: 140.054px;"
+        ],
+        [
+          "למה שתי מסגרות?",
+          {
+            "x": 368.296875,
+            "y": 254.90625,
+            "width": 44,
+            "height": 44,
+            "top": 254.90625,
+            "right": 412.296875,
+            "bottom": 298.90625,
+            "left": 368.296875
+          },
+          "left: 354.3px; top: 186.919px;"
+        ],
+        [
+          "ענף אחד, מבט אחר",
+          {
+            "x": 325.171875,
+            "y": 320.515625,
+            "width": 44,
+            "height": 44,
+            "top": 320.515625,
+            "right": 369.171875,
+            "bottom": 364.515625,
+            "left": 325.171875
+          },
+          "left: 311.184px; top: 252.53px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 514.515625,
+            "y": 298.03125,
+            "width": 44,
+            "height": 44,
+            "top": 298.03125,
+            "right": 558.515625,
+            "bottom": 342.03125,
+            "left": 514.515625
+          },
+          "left: 500.519px; top: 230.034px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "he",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.1972789115646,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          696,
+          392
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8653.150000095367
+          },
+          "timsah": {
+            "at": 6750.150000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "מה בצד השני?",
+          {
+            "x": 226.203125,
+            "y": 208.046875,
+            "width": 44,
+            "height": 44,
+            "top": 208.046875,
+            "right": 270.203125,
+            "bottom": 252.046875,
+            "left": 226.203125
+          },
+          "left: 212.205px; top: 140.054px;"
+        ],
+        [
+          "למה שתי מסגרות?",
+          {
+            "x": 368.296875,
+            "y": 254.90625,
+            "width": 44,
+            "height": 44,
+            "top": 254.90625,
+            "right": 412.296875,
+            "bottom": 298.90625,
+            "left": 368.296875
+          },
+          "left: 354.3px; top: 186.919px;"
+        ],
+        [
+          "ענף אחד, מבט אחר",
+          {
+            "x": 325.171875,
+            "y": 320.515625,
+            "width": 44,
+            "height": 44,
+            "top": 320.515625,
+            "right": 369.171875,
+            "bottom": 364.515625,
+            "left": 325.171875
+          },
+          "left: 311.184px; top: 252.53px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 514.515625,
+            "y": 298.03125,
+            "width": 44,
+            "height": 44,
+            "top": 298.03125,
+            "right": 558.515625,
+            "bottom": 342.03125,
+            "left": 514.515625
+          },
+          "left: 500.519px; top: 230.034px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "he",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.21525885558583013,
+          "w": 1672,
+          "h": 940.7847411444142
+        },
+        "canvas": [
+          734,
+          413
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5780.524999976158
+          },
+          "timsah": {
+            "at": 6875.524999976158
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 474.59375,
+            "y": 286.34375,
+            "width": 44,
+            "height": 44,
+            "top": 286.34375,
+            "right": 518.59375,
+            "bottom": 330.34375,
+            "left": 474.59375
+          },
+          "left: 479.602px; top: 241.353px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 288.015625,
+            "y": 363.171875,
+            "width": 44,
+            "height": 44,
+            "top": 363.171875,
+            "right": 332.015625,
+            "bottom": 407.171875,
+            "left": 288.015625
+          },
+          "left: 293.029px; top: 318.177px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "he",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.21525885558583013,
+          "w": 1672,
+          "h": 940.7847411444142
+        },
+        "canvas": [
+          734,
+          413
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6390.049999952316
+          },
+          "timsah": {
+            "at": 8402.049999952316
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 474.59375,
+            "y": 286.34375,
+            "width": 44,
+            "height": 44,
+            "top": 286.34375,
+            "right": 518.59375,
+            "bottom": 330.34375,
+            "left": 474.59375
+          },
+          "left: 479.602px; top: 241.353px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 288.015625,
+            "y": 363.171875,
+            "width": 44,
+            "height": 44,
+            "top": 363.171875,
+            "right": 332.015625,
+            "bottom": 407.171875,
+            "left": 288.015625
+          },
+          "left: 293.029px; top: 318.177px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "he",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.22715404699738428,
+          "w": 1672,
+          "h": 940.7728459530026
+        },
+        "canvas": [
+          766,
+          431
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9060.990000009537
+          },
+          "timsah": {
+            "at": 7412.990000009537
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 479.5,
+            "y": 370.859375,
+            "width": 44,
+            "height": 44,
+            "top": 370.859375,
+            "right": 523.5,
+            "bottom": 414.859375,
+            "left": 479.5
+          },
+          "left: 500.511px; top: 251.87px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 284.796875,
+            "y": 451.03125,
+            "width": 44,
+            "height": 44,
+            "top": 451.03125,
+            "right": 328.796875,
+            "bottom": 495.03125,
+            "left": 284.796875
+          },
+          "left: 305.804px; top: 332.043px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "he",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.22715404699738428,
+          "w": 1672,
+          "h": 940.7728459530026
+        },
+        "canvas": [
+          766,
+          431
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7986.995000004768
+          },
+          "timsah": {
+            "at": 7175.995000004768
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 479.5,
+            "y": 370.859375,
+            "width": 44,
+            "height": 44,
+            "top": 370.859375,
+            "right": 523.5,
+            "bottom": 414.859375,
+            "left": 479.5
+          },
+          "left: 500.511px; top: 251.87px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 284.796875,
+            "y": 451.03125,
+            "width": 44,
+            "height": 44,
+            "top": 451.03125,
+            "right": 328.796875,
+            "bottom": 495.03125,
+            "left": 284.796875
+          },
+          "left: 305.804px; top: 332.043px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "en",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.1972789115646,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          696,
+          392
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8756.629999995232
+          },
+          "timsah": {
+            "at": 6821.629999995232
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Why two borders?",
+          {
+            "x": 368.296875,
+            "y": 254.90625,
+            "width": 44,
+            "height": 44,
+            "top": 254.90625,
+            "right": 412.296875,
+            "bottom": 298.90625,
+            "left": 368.296875
+          },
+          "left: 354.3px; top: 186.919px;"
+        ],
+        [
+          "One branch, another view",
+          {
+            "x": 325.171875,
+            "y": 320.515625,
+            "width": 44,
+            "height": 44,
+            "top": 320.515625,
+            "right": 369.171875,
+            "bottom": 364.515625,
+            "left": 325.171875
+          },
+          "left: 311.184px; top: 252.53px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 514.515625,
+            "y": 298.03125,
+            "width": 44,
+            "height": 44,
+            "top": 298.03125,
+            "right": 558.515625,
+            "bottom": 342.03125,
+            "left": 514.515625
+          },
+          "left: 500.519px; top: 230.034px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "en",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.1972789115646,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          696,
+          392
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7965.599999904633
+          },
+          "timsah": {
+            "at": 8711.599999904633
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Why two borders?",
+          {
+            "x": 368.296875,
+            "y": 254.90625,
+            "width": 44,
+            "height": 44,
+            "top": 254.90625,
+            "right": 412.296875,
+            "bottom": 298.90625,
+            "left": 368.296875
+          },
+          "left: 354.3px; top: 186.919px;"
+        ],
+        [
+          "One branch, another view",
+          {
+            "x": 325.171875,
+            "y": 320.515625,
+            "width": 44,
+            "height": 44,
+            "top": 320.515625,
+            "right": 369.171875,
+            "bottom": 364.515625,
+            "left": 325.171875
+          },
+          "left: 311.184px; top: 252.53px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 514.515625,
+            "y": 298.03125,
+            "width": 44,
+            "height": 44,
+            "top": 298.03125,
+            "right": 558.515625,
+            "bottom": 342.03125,
+            "left": 514.515625
+          },
+          "left: 500.519px; top: 230.034px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "en",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.21525885558583013,
+          "w": 1672,
+          "h": 940.7847411444142
+        },
+        "canvas": [
+          734,
+          413
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6008.995000004768
+          },
+          "timsah": {
+            "at": 6849.995000004768
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 474.59375,
+            "y": 286.34375,
+            "width": 44,
+            "height": 44,
+            "top": 286.34375,
+            "right": 518.59375,
+            "bottom": 330.34375,
+            "left": 474.59375
+          },
+          "left: 479.602px; top: 241.353px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 288.015625,
+            "y": 363.171875,
+            "width": 44,
+            "height": 44,
+            "top": 363.171875,
+            "right": 332.015625,
+            "bottom": 407.171875,
+            "left": 288.015625
+          },
+          "left: 293.029px; top: 318.177px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "en",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.21525885558583013,
+          "w": 1672,
+          "h": 940.7847411444142
+        },
+        "canvas": [
+          734,
+          413
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7248.4800000190735
+          },
+          "timsah": {
+            "at": 5772.4800000190735
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 474.59375,
+            "y": 286.34375,
+            "width": 44,
+            "height": 44,
+            "top": 286.34375,
+            "right": 518.59375,
+            "bottom": 330.34375,
+            "left": 474.59375
+          },
+          "left: 479.602px; top: 241.353px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 288.015625,
+            "y": 363.171875,
+            "width": 44,
+            "height": 44,
+            "top": 363.171875,
+            "right": 332.015625,
+            "bottom": 407.171875,
+            "left": 288.015625
+          },
+          "left: 293.029px; top: 318.177px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "en",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.22715404699738428,
+          "w": 1672,
+          "h": 940.7728459530026
+        },
+        "canvas": [
+          766,
+          431
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8794.360000014305
+          },
+          "timsah": {
+            "at": 6135.360000014305
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 479.5,
+            "y": 370.859375,
+            "width": 44,
+            "height": 44,
+            "top": 370.859375,
+            "right": 523.5,
+            "bottom": 414.859375,
+            "left": 479.5
+          },
+          "left: 500.511px; top: 251.87px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 284.796875,
+            "y": 451.03125,
+            "width": 44,
+            "height": 44,
+            "top": 451.03125,
+            "right": 328.796875,
+            "bottom": 495.03125,
+            "left": 284.796875
+          },
+          "left: 305.804px; top: 332.043px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 768,
+      "lang": "en",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.22715404699738428,
+          "w": 1672,
+          "h": 940.7728459530026
+        },
+        "canvas": [
+          766,
+          431
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7493.370000004768
+          },
+          "timsah": {
+            "at": 6288.370000004768
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 479.5,
+            "y": 370.859375,
+            "width": 44,
+            "height": 44,
+            "top": 370.859375,
+            "right": 523.5,
+            "bottom": 414.859375,
+            "left": 479.5
+          },
+          "left: 500.511px; top: 251.87px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 284.796875,
+            "y": 451.03125,
+            "width": 44,
+            "height": 44,
+            "top": 451.03125,
+            "right": 328.796875,
+            "bottom": 495.03125,
+            "left": 284.796875
+          },
+          "left: 305.804px; top: 332.043px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "ru",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.3408071748877,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          1188,
+          669
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9209.215000033379
+          },
+          "timsah": {
+            "at": 6603.215000033379
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Что на обороте?",
+          {
+            "x": 386.140625,
+            "y": 317.015625,
+            "width": 44,
+            "height": 44,
+            "top": 317.015625,
+            "right": 430.140625,
+            "bottom": 361.015625,
+            "left": 386.140625
+          },
+          "left: 362.156px; top: 239.02px;"
+        ],
+        [
+          "Почему две рамки?",
+          {
+            "x": 628.65625,
+            "y": 397,
+            "width": 44,
+            "height": 44,
+            "top": 397,
+            "right": 672.65625,
+            "bottom": 441,
+            "left": 628.65625
+          },
+          "left: 604.659px; top: 319.001px;"
+        ],
+        [
+          "Одна ветвь, другой взгляд",
+          {
+            "x": 555.0625,
+            "y": 508.96875,
+            "width": 44,
+            "height": 44,
+            "top": 508.96875,
+            "right": 599.0625,
+            "bottom": 552.96875,
+            "left": 555.0625
+          },
+          "left: 531.077px; top: 430.975px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 878.1875,
+            "y": 470.578125,
+            "width": 44,
+            "height": 44,
+            "top": 470.578125,
+            "right": 922.1875,
+            "bottom": 514.578125,
+            "left": 878.1875
+          },
+          "left: 854.201px; top: 392.584px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "ru",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.3408071748877,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          1188,
+          669
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10198.100000023842
+          },
+          "timsah": {
+            "at": 6979.100000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Что на обороте?",
+          {
+            "x": 386.140625,
+            "y": 317.015625,
+            "width": 44,
+            "height": 44,
+            "top": 317.015625,
+            "right": 430.140625,
+            "bottom": 361.015625,
+            "left": 386.140625
+          },
+          "left: 362.156px; top: 239.02px;"
+        ],
+        [
+          "Почему две рамки?",
+          {
+            "x": 628.65625,
+            "y": 397,
+            "width": 44,
+            "height": 44,
+            "top": 397,
+            "right": 672.65625,
+            "bottom": 441,
+            "left": 628.65625
+          },
+          "left: 604.659px; top: 319.001px;"
+        ],
+        [
+          "Одна ветвь, другой взгляд",
+          {
+            "x": 555.0625,
+            "y": 508.96875,
+            "width": 44,
+            "height": 44,
+            "top": 508.96875,
+            "right": 599.0625,
+            "bottom": 552.96875,
+            "left": 555.0625
+          },
+          "left: 531.077px; top: 430.975px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 878.1875,
+            "y": 470.578125,
+            "width": 44,
+            "height": 44,
+            "top": 470.578125,
+            "right": 922.1875,
+            "bottom": 514.578125,
+            "left": 878.1875
+          },
+          "left: 854.201px; top: 392.584px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "ru",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3322632423755749,
+          "w": 1672,
+          "h": 940.6677367576244
+        },
+        "canvas": [
+          1246,
+          701
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6994.320000052452
+          },
+          "timsah": {
+            "at": 6036.320000052452
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 809.140625,
+            "y": 454.609375,
+            "width": 44,
+            "height": 44,
+            "top": 454.609375,
+            "right": 853.140625,
+            "bottom": 498.609375,
+            "left": 809.140625
+          },
+          "left: 814.148px; top: 409.621px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 492.421875,
+            "y": 585.03125,
+            "width": 44,
+            "height": 44,
+            "top": 585.03125,
+            "right": 536.421875,
+            "bottom": 629.03125,
+            "left": 492.421875
+          },
+          "left: 497.431px; top: 540.033px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "ru",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3322632423755749,
+          "w": 1672,
+          "h": 940.6677367576244
+        },
+        "canvas": [
+          1246,
+          701
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9456.764999985695
+          },
+          "timsah": {
+            "at": 7142.764999985695
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 809.140625,
+            "y": 454.609375,
+            "width": 44,
+            "height": 44,
+            "top": 454.609375,
+            "right": 853.140625,
+            "bottom": 498.609375,
+            "left": 809.140625
+          },
+          "left: 814.148px; top: 409.621px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 492.421875,
+            "y": 585.03125,
+            "width": 44,
+            "height": 44,
+            "top": 585.03125,
+            "right": 536.421875,
+            "bottom": 629.03125,
+            "left": 492.421875
+          },
+          "left: 497.431px; top: 540.033px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "ru",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3364632237871774,
+          "w": 1672,
+          "h": 940.6635367762128
+        },
+        "canvas": [
+          1278,
+          719
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8731.164999961853
+          },
+          "timsah": {
+            "at": 6970.164999961853
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 814.046875,
+            "y": 523.125,
+            "width": 44,
+            "height": 44,
+            "top": 523.125,
+            "right": 858.046875,
+            "bottom": 567.125,
+            "left": 814.046875
+          },
+          "left: 835.057px; top: 420.138px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 489.203125,
+            "y": 656.890625,
+            "width": 44,
+            "height": 44,
+            "top": 656.890625,
+            "right": 533.203125,
+            "bottom": 700.890625,
+            "left": 489.203125
+          },
+          "left: 510.206px; top: 553.9px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "ru",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3364632237871774,
+          "w": 1672,
+          "h": 940.6635367762128
+        },
+        "canvas": [
+          1278,
+          719
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7207.449999928474
+          },
+          "timsah": {
+            "at": 7657.449999928474
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "Папка 1919 года",
+          {
+            "x": 814.046875,
+            "y": 523.125,
+            "width": 44,
+            "height": 44,
+            "top": 523.125,
+            "right": 858.046875,
+            "bottom": 567.125,
+            "left": 814.046875
+          },
+          "left: 835.057px; top: 420.138px;"
+        ],
+        [
+          "Тимсах · память в названиях",
+          {
+            "x": 489.203125,
+            "y": 656.890625,
+            "width": 44,
+            "height": 44,
+            "top": 656.890625,
+            "right": 533.203125,
+            "bottom": 700.890625,
+            "left": 489.203125
+          },
+          "left: 510.206px; top: 553.9px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "he",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.3408071748877,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          1188,
+          669
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6333.425000071526
+          },
+          "timsah": {
+            "at": 8884.425000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "מה בצד השני?",
+          {
+            "x": 386.140625,
+            "y": 317.015625,
+            "width": 44,
+            "height": 44,
+            "top": 317.015625,
+            "right": 430.140625,
+            "bottom": 361.015625,
+            "left": 386.140625
+          },
+          "left: 362.156px; top: 239.02px;"
+        ],
+        [
+          "למה שתי מסגרות?",
+          {
+            "x": 628.65625,
+            "y": 397,
+            "width": 44,
+            "height": 44,
+            "top": 397,
+            "right": 672.65625,
+            "bottom": 441,
+            "left": 628.65625
+          },
+          "left: 604.659px; top: 319.001px;"
+        ],
+        [
+          "ענף אחד, מבט אחר",
+          {
+            "x": 555.0625,
+            "y": 508.96875,
+            "width": 44,
+            "height": 44,
+            "top": 508.96875,
+            "right": 599.0625,
+            "bottom": 552.96875,
+            "left": 555.0625
+          },
+          "left: 531.077px; top: 430.975px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 878.1875,
+            "y": 470.578125,
+            "width": 44,
+            "height": 44,
+            "top": 470.578125,
+            "right": 922.1875,
+            "bottom": 514.578125,
+            "left": 878.1875
+          },
+          "left: 854.201px; top: 392.584px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "he",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.3408071748877,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          1188,
+          669
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8607.825000047684
+          },
+          "timsah": {
+            "at": 7495.825000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "מה בצד השני?",
+          {
+            "x": 386.140625,
+            "y": 317.015625,
+            "width": 44,
+            "height": 44,
+            "top": 317.015625,
+            "right": 430.140625,
+            "bottom": 361.015625,
+            "left": 386.140625
+          },
+          "left: 362.156px; top: 239.02px;"
+        ],
+        [
+          "למה שתי מסגרות?",
+          {
+            "x": 628.65625,
+            "y": 397,
+            "width": 44,
+            "height": 44,
+            "top": 397,
+            "right": 672.65625,
+            "bottom": 441,
+            "left": 628.65625
+          },
+          "left: 604.659px; top: 319.001px;"
+        ],
+        [
+          "ענף אחד, מבט אחר",
+          {
+            "x": 555.0625,
+            "y": 508.96875,
+            "width": 44,
+            "height": 44,
+            "top": 508.96875,
+            "right": 599.0625,
+            "bottom": 552.96875,
+            "left": 555.0625
+          },
+          "left: 531.077px; top: 430.975px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 878.1875,
+            "y": 470.578125,
+            "width": 44,
+            "height": 44,
+            "top": 470.578125,
+            "right": 922.1875,
+            "bottom": 514.578125,
+            "left": 878.1875
+          },
+          "left: 854.201px; top: 392.584px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "he",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3322632423755749,
+          "w": 1672,
+          "h": 940.6677367576244
+        },
+        "canvas": [
+          1246,
+          701
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8772.504999995232
+          },
+          "timsah": {
+            "at": 6914.504999995232
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 809.140625,
+            "y": 454.609375,
+            "width": 44,
+            "height": 44,
+            "top": 454.609375,
+            "right": 853.140625,
+            "bottom": 498.609375,
+            "left": 809.140625
+          },
+          "left: 814.148px; top: 409.621px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 492.421875,
+            "y": 585.03125,
+            "width": 44,
+            "height": 44,
+            "top": 585.03125,
+            "right": 536.421875,
+            "bottom": 629.03125,
+            "left": 492.421875
+          },
+          "left: 497.431px; top: 540.033px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "he",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3322632423755749,
+          "w": 1672,
+          "h": 940.6677367576244
+        },
+        "canvas": [
+          1246,
+          701
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9139
+          },
+          "timsah": {
+            "at": 6126
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 809.140625,
+            "y": 454.609375,
+            "width": 44,
+            "height": 44,
+            "top": 454.609375,
+            "right": 853.140625,
+            "bottom": 498.609375,
+            "left": 809.140625
+          },
+          "left: 814.148px; top: 409.621px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 492.421875,
+            "y": 585.03125,
+            "width": 44,
+            "height": 44,
+            "top": 585.03125,
+            "right": 536.421875,
+            "bottom": 629.03125,
+            "left": 492.421875
+          },
+          "left: 497.431px; top: 540.033px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "he",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3364632237871774,
+          "w": 1672,
+          "h": 940.6635367762128
+        },
+        "canvas": [
+          1278,
+          719
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5682.214999914169
+          },
+          "timsah": {
+            "at": 6132.214999914169
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 814.046875,
+            "y": 523.125,
+            "width": 44,
+            "height": 44,
+            "top": 523.125,
+            "right": 858.046875,
+            "bottom": 567.125,
+            "left": 814.046875
+          },
+          "left: 835.057px; top: 420.138px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 489.203125,
+            "y": 656.890625,
+            "width": 44,
+            "height": 44,
+            "top": 656.890625,
+            "right": 533.203125,
+            "bottom": 700.890625,
+            "left": 489.203125
+          },
+          "left: 510.206px; top: 553.9px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "he",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3364632237871774,
+          "w": 1672,
+          "h": 940.6635367762128
+        },
+        "canvas": [
+          1278,
+          719
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8229.829999923706
+          },
+          "timsah": {
+            "at": 7089.829999923706
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "תיק 1919",
+          {
+            "x": 814.046875,
+            "y": 523.125,
+            "width": 44,
+            "height": 44,
+            "top": 523.125,
+            "right": 858.046875,
+            "bottom": 567.125,
+            "left": 814.046875
+          },
+          "left: 835.057px; top: 420.138px;"
+        ],
+        [
+          "תמסח · זיכרונות בשמות",
+          {
+            "x": 489.203125,
+            "y": 656.890625,
+            "width": 44,
+            "height": 44,
+            "top": 656.890625,
+            "right": 533.203125,
+            "bottom": 700.890625,
+            "left": 489.203125
+          },
+          "left: 510.206px; top: 553.9px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "en",
+      "surface": "studio",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.3408071748877,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          1188,
+          669
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7671.169999957085
+          },
+          "timsah": {
+            "at": 5767.169999957085
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "What is on the reverse?",
+          {
+            "x": 386.140625,
+            "y": 317.015625,
+            "width": 44,
+            "height": 44,
+            "top": 317.015625,
+            "right": 430.140625,
+            "bottom": 361.015625,
+            "left": 386.140625
+          },
+          "left: 362.156px; top: 239.02px;"
+        ],
+        [
+          "Why two borders?",
+          {
+            "x": 628.65625,
+            "y": 397,
+            "width": 44,
+            "height": 44,
+            "top": 397,
+            "right": 672.65625,
+            "bottom": 441,
+            "left": 628.65625
+          },
+          "left: 604.659px; top: 319.001px;"
+        ],
+        [
+          "One branch, another view",
+          {
+            "x": 555.0625,
+            "y": 508.96875,
+            "width": 44,
+            "height": 44,
+            "top": 508.96875,
+            "right": 599.0625,
+            "bottom": 552.96875,
+            "left": 555.0625
+          },
+          "left: 531.077px; top: 430.975px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 878.1875,
+            "y": 470.578125,
+            "width": 44,
+            "height": 44,
+            "top": 470.578125,
+            "right": 922.1875,
+            "bottom": 514.578125,
+            "left": 878.1875
+          },
+          "left: 854.201px; top: 392.584px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "en",
+      "surface": "studio",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 418.2222222222223,
+          "w": 928.3408071748877,
+          "h": 522.7777777777777
+        },
+        "canvas": [
+          1188,
+          669
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9775.769999980927
+          },
+          "timsah": {
+            "at": 7230.7699999809265
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "What is on the reverse?",
+          {
+            "x": 386.140625,
+            "y": 317.015625,
+            "width": 44,
+            "height": 44,
+            "top": 317.015625,
+            "right": 430.140625,
+            "bottom": 361.015625,
+            "left": 386.140625
+          },
+          "left: 362.156px; top: 239.02px;"
+        ],
+        [
+          "Why two borders?",
+          {
+            "x": 628.65625,
+            "y": 397,
+            "width": 44,
+            "height": 44,
+            "top": 397,
+            "right": 672.65625,
+            "bottom": 441,
+            "left": 628.65625
+          },
+          "left: 604.659px; top: 319.001px;"
+        ],
+        [
+          "One branch, another view",
+          {
+            "x": 555.0625,
+            "y": 508.96875,
+            "width": 44,
+            "height": 44,
+            "top": 508.96875,
+            "right": 599.0625,
+            "bottom": 552.96875,
+            "left": 555.0625
+          },
+          "left: 531.077px; top: 430.975px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 878.1875,
+            "y": 470.578125,
+            "width": 44,
+            "height": 44,
+            "top": 470.578125,
+            "right": 922.1875,
+            "bottom": 514.578125,
+            "left": 878.1875
+          },
+          "left: 854.201px; top: 392.584px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "en",
+      "surface": "room",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3322632423755749,
+          "w": 1672,
+          "h": 940.6677367576244
+        },
+        "canvas": [
+          1246,
+          701
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8849.84500002861
+          },
+          "timsah": {
+            "at": 5180.84500002861
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 809.140625,
+            "y": 454.609375,
+            "width": 44,
+            "height": 44,
+            "top": 454.609375,
+            "right": 853.140625,
+            "bottom": 498.609375,
+            "left": 809.140625
+          },
+          "left: 814.148px; top: 409.621px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 492.421875,
+            "y": 585.03125,
+            "width": 44,
+            "height": 44,
+            "top": 585.03125,
+            "right": 536.421875,
+            "bottom": 629.03125,
+            "left": 492.421875
+          },
+          "left: 497.431px; top: 540.033px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "en",
+      "surface": "room",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3322632423755749,
+          "w": 1672,
+          "h": 940.6677367576244
+        },
+        "canvas": [
+          1246,
+          701
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8561.375
+          },
+          "timsah": {
+            "at": 7548.375
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 809.140625,
+            "y": 454.609375,
+            "width": 44,
+            "height": 44,
+            "top": 454.609375,
+            "right": 853.140625,
+            "bottom": 498.609375,
+            "left": 809.140625
+          },
+          "left: 814.148px; top: 409.621px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 492.421875,
+            "y": 585.03125,
+            "width": 44,
+            "height": 44,
+            "top": 585.03125,
+            "right": 536.421875,
+            "bottom": 629.03125,
+            "left": 492.421875
+          },
+          "left: 497.431px; top: 540.033px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "en",
+      "surface": "mediatheque",
+      "theme": "light",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3364632237871774,
+          "w": 1672,
+          "h": 940.6635367762128
+        },
+        "canvas": [
+          1278,
+          719
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6719.959999918938
+          },
+          "timsah": {
+            "at": 7943.959999918938
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 814.046875,
+            "y": 523.125,
+            "width": 44,
+            "height": 44,
+            "top": 523.125,
+            "right": 858.046875,
+            "bottom": 567.125,
+            "left": 814.046875
+          },
+          "left: 835.057px; top: 420.138px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 489.203125,
+            "y": 656.890625,
+            "width": 44,
+            "height": 44,
+            "top": 656.890625,
+            "right": 533.203125,
+            "bottom": 700.890625,
+            "left": 489.203125
+          },
+          "left: 510.206px; top: 553.9px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "surface",
+      "width": 1280,
+      "lang": "en",
+      "surface": "mediatheque",
+      "theme": "dark",
+      "debug": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": "plate",
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.3364632237871774,
+          "w": 1672,
+          "h": 940.6635367762128
+        },
+        "canvas": [
+          1278,
+          719
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {
+          "timsah": [
+            680,
+            865
+          ]
+        },
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7614.495000004768
+          },
+          "timsah": {
+            "at": 8064.495000004768
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "overflow": false,
+      "overlaps": false,
+      "markerRects": [
+        [
+          "The 1919 folder",
+          {
+            "x": 814.046875,
+            "y": 523.125,
+            "width": 44,
+            "height": 44,
+            "top": 523.125,
+            "right": 858.046875,
+            "bottom": 567.125,
+            "left": 814.046875
+          },
+          "left: 835.057px; top: 420.138px;"
+        ],
+        [
+          "Timsah · memories in names",
+          {
+            "x": 489.203125,
+            "y": 656.890625,
+            "width": 44,
+            "height": 44,
+            "top": 656.890625,
+            "right": 533.203125,
+            "bottom": 700.890625,
+            "left": 489.203125
+          },
+          "left: 510.206px; top: 553.9px;"
+        ]
+      ],
+      "collisions": []
+    },
+    {
+      "test": "source opens only on click; external content not fetched",
+      "target": "https://static.parks.org.il/wp-content/uploads/2025/04/nachal-Taninim.pdf"
+    },
+    {
+      "test": "keyboard entry, seven objects, PNG and notebook reload",
+      "story": {
+        "flags": {
+          "plate-turned": true,
+          "sign-compared": true,
+          "archive-opened": true,
+          "ticho-seen": true,
+          "caption-revised": true
+        },
+        "caption": "revised",
+        "notebook": [
+          "phrase-0",
+          "phrase-1",
+          "phrase-2",
+          "phrase-3",
+          "phrase-ohannessian",
+          "phrase-ticho",
+          "phrase-4",
+          "phrase-5",
+          "phrase-names"
+        ],
+        "views": {
+          "plate": "reverse",
+          "sign": "after",
+          "ohannessian": "open",
+          "ticho": "detail",
+          "postcard": "revised",
+          "nura": "identity",
+          "timsah": "names"
+        },
+        "poses": {
+          "nura": "offer",
+          "timsah": "inspect"
+        },
+        "selected": "timsah",
+        "message": {
+          "ru": "Я собираю названия. Иногда они помнят то, чего уже не видно.",
+          "en": "I collect place names. Sometimes they remember what we can no longer see.",
+          "he": "אני אוסף שמות. לפעמים הם זוכרים דברים שכבר לא רואים."
+        },
+        "complete": true
+      }
+    },
+    {
+      "test": "reduced motion, pause, study focus",
+      "passed": true
+    },
+    {
+      "test": "catalog preservation, Auto/calm persistence, stale load and failed load Classic",
+      "passed": true
+    },
+    {
+      "test": "touch emulation Hebrew Nura",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

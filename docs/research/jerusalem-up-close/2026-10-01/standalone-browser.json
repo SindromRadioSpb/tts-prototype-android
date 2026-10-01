@@ -1,0 +1,3455 @@
+{
+  "browser": "Chromium 148.0.7778.96",
+  "rows": [
+    {
+      "width": 380,
+      "lang": "ru",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 531.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5334.600000023842
+          },
+          "timsah": {
+            "at": 5784.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "ru",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 531.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5334.600000023842
+          },
+          "timsah": {
+            "at": 5784.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "ru",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 551.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6756.900000095367
+          },
+          "timsah": {
+            "at": 7411.900000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "ru",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 551.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6756.900000095367
+          },
+          "timsah": {
+            "at": 7411.900000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "ru",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7055.900000095367
+          },
+          "timsah": {
+            "at": 6111.900000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "ru",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7055.900000095367
+          },
+          "timsah": {
+            "at": 6111.900000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "he",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 531.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5529.400000095367
+          },
+          "timsah": {
+            "at": 5979.400000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "he",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 531.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5529.400000095367
+          },
+          "timsah": {
+            "at": 5979.400000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "he",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 551.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5588
+          },
+          "timsah": {
+            "at": 6038
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "he",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 551.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 5588
+          },
+          "timsah": {
+            "at": 6038
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "he",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6883.5
+          },
+          "timsah": {
+            "at": 6126.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "he",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6883.5
+          },
+          "timsah": {
+            "at": 6126.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "en",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 531.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6345.800000071526
+          },
+          "timsah": {
+            "at": 6795.800000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "en",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 531.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 6345.800000071526
+          },
+          "timsah": {
+            "at": 6795.800000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "en",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 551.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9284.400000095367
+          },
+          "timsah": {
+            "at": 7351.400000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "en",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 551.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9284.400000095367
+          },
+          "timsah": {
+            "at": 7351.400000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "en",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9122.300000071526
+          },
+          "timsah": {
+            "at": 7127.300000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 380,
+      "lang": "en",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 521.1217798594848,
+          "y": 0,
+          "w": 797.7564402810305,
+          "h": 941
+        },
+        "canvas": [
+          362,
+          427
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9122.300000071526
+          },
+          "timsah": {
+            "at": 7127.300000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "ru",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8197
+          },
+          "timsah": {
+            "at": 7699
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "ru",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8197
+          },
+          "timsah": {
+            "at": 7699
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "ru",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9118.5
+          },
+          "timsah": {
+            "at": 8664.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "ru",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9118.5
+          },
+          "timsah": {
+            "at": 8664.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "ru",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8208.5
+          },
+          "timsah": {
+            "at": 7448.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "ru",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8208.5
+          },
+          "timsah": {
+            "at": 7448.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "he",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7362.100000023842
+          },
+          "timsah": {
+            "at": 7812.100000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "he",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7362.100000023842
+          },
+          "timsah": {
+            "at": 7812.100000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "he",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9087.600000023842
+          },
+          "timsah": {
+            "at": 7507.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "he",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9087.600000023842
+          },
+          "timsah": {
+            "at": 7507.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "he",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7007.700000047684
+          },
+          "timsah": {
+            "at": 8144.700000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "he",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 7007.700000047684
+          },
+          "timsah": {
+            "at": 8144.700000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "en",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9944.600000023842
+          },
+          "timsah": {
+            "at": 6833.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "en",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 9944.600000023842
+          },
+          "timsah": {
+            "at": 6833.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "en",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10574.700000047684
+          },
+          "timsah": {
+            "at": 8280.700000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "en",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10574.700000047684
+          },
+          "timsah": {
+            "at": 8280.700000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "en",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10027
+          },
+          "timsah": {
+            "at": 7100
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 768,
+      "lang": "en",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.7894736842105203,
+          "w": 1672,
+          "h": 940.2105263157895
+        },
+        "canvas": [
+          722,
+          406
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10027
+          },
+          "timsah": {
+            "at": 7100
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10111.5
+          },
+          "timsah": {
+            "at": 7748.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10111.5
+          },
+          "timsah": {
+            "at": 7748.5
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10143.200000047684
+          },
+          "timsah": {
+            "at": 7179.200000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10143.200000047684
+          },
+          "timsah": {
+            "at": 7179.200000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8115.600000023842
+          },
+          "timsah": {
+            "at": 8565.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8115.600000023842
+          },
+          "timsah": {
+            "at": 8565.600000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "he",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10758.300000071526
+          },
+          "timsah": {
+            "at": 7436.300000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "he",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10758.300000071526
+          },
+          "timsah": {
+            "at": 7436.300000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "he",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8940.800000071526
+          },
+          "timsah": {
+            "at": 9895.800000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "he",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 8940.800000071526
+          },
+          "timsah": {
+            "at": 9895.800000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "he",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10006.200000047684
+          },
+          "timsah": {
+            "at": 8717.200000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "he",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10006.200000047684
+          },
+          "timsah": {
+            "at": 8717.200000047684
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "rtl",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "slot": "studio-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10119.400000095367
+          },
+          "timsah": {
+            "at": 8818.400000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "slot": "studio-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 10119.400000095367
+          },
+          "timsah": {
+            "at": 8818.400000095367
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "studio",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "slot": "room-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 11779.100000023842
+          },
+          "timsah": {
+            "at": 9657.100000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "slot": "room-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 11779.100000023842
+          },
+          "timsah": {
+            "at": 9657.100000023842
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "room",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "slot": "media-stage",
+      "theme": "light",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 11331.800000071526
+          },
+          "timsah": {
+            "at": 10135.800000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "slot": "media-stage",
+      "theme": "dark",
+      "overflow": false,
+      "state": {
+        "choice": {
+          "id": "jerusalem-up-close",
+          "mode": "live",
+          "paused": false,
+          "active": true
+        },
+        "engineBuild": "world-engine/2.2.1",
+        "stage": true,
+        "backdrop": false,
+        "profile": "illustrated-exploration/1",
+        "selected": null,
+        "caption": "initial",
+        "flags": {
+          "plate-turned": false,
+          "sign-compared": false,
+          "archive-opened": false,
+          "ticho-seen": false,
+          "caption-revised": false
+        },
+        "notebook": [],
+        "paused": false,
+        "reduced": false,
+        "focused": false,
+        "lighting": "night",
+        "camera": {
+          "x": 0,
+          "y": 0.6693679092383036,
+          "w": 1672,
+          "h": 940.3306320907617
+        },
+        "canvas": [
+          1234,
+          694
+        ],
+        "transition": false,
+        "walking": false,
+        "walkPose": null,
+        "positions": {},
+        "blinks": {},
+        "blinkSchedule": {
+          "nura": {
+            "at": 11331.800000071526
+          },
+          "timsah": {
+            "at": 10135.800000071526
+          }
+        },
+        "blinkTimer": true,
+        "blinkClosed": false,
+        "blinkFailed": false,
+        "surface": "mediatheque",
+        "expanded": true
+      },
+      "dir": "ltr",
+      "canvas": true
+    },
+    {
+      "test": "story and characters",
+      "story": {
+        "flags": {
+          "plate-turned": true,
+          "sign-compared": true,
+          "archive-opened": true,
+          "ticho-seen": true,
+          "caption-revised": true
+        },
+        "caption": "revised",
+        "notebook": [
+          "phrase-0",
+          "phrase-1",
+          "phrase-2",
+          "phrase-3",
+          "phrase-ohannessian",
+          "phrase-ticho",
+          "phrase-4",
+          "phrase-5",
+          "phrase-names"
+        ],
+        "views": {
+          "plate": "reverse",
+          "sign": "after",
+          "ohannessian": "open",
+          "ticho": "detail",
+          "postcard": "revised",
+          "nura": "identity",
+          "timsah": "names"
+        },
+        "poses": {
+          "nura": "offer",
+          "timsah": "inspect"
+        },
+        "selected": "timsah",
+        "message": {
+          "ru": "Я собираю названия. Иногда они помнят то, чего уже не видно.",
+          "en": "I collect place names. Sometimes they remember what we can no longer see.",
+          "he": "אני אוסף שמות. לפעמים הם זוכרים דברים שכבר לא רואים."
+        },
+        "complete": true
+      }
+    }
+  ],
+  "errors": [
+    "Failed to execute 'toDataURL' on 'HTMLCanvasElement': Tainted canvases may not be exported.",
+    "page.waitForEvent: Timeout 30000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================\n    at C:\\Users\\lletp\\AppData\\Local\\Temp\\jerusalem-acceptance.cjs:7:12"
+  ]
+}

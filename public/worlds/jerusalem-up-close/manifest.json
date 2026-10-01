@@ -1,0 +1,1728 @@
+{
+  "schema": "lp-world/2",
+  "id": "jerusalem-up-close",
+  "version": "0.2.1",
+  "profile": "illustrated-exploration/1",
+  "engine": {
+    "min": 2.2,
+    "max": 2.2
+  },
+  "requiredCapabilities": [
+    "illustrated-exploration/1",
+    "illustrated-blink/1"
+  ],
+  "names": {
+    "ru": "Иерусалим крупным планом",
+    "en": "Jerusalem Up Close",
+    "he": "ירושלים מקרוב"
+  },
+  "blurb": {
+    "ru": "Сделай открытку, за которой стоит история",
+    "en": "Make a postcard with a story behind it",
+    "he": "צרו גלויה שיש מאחוריה סיפור"
+  },
+  "disclaimer": {
+    "ru": "Современный вымышленный двор мастерской. Нура и разговоры вымышлены; исторические предметы и источники подписаны отдельно.",
+    "en": "A fictional contemporary workshop courtyard. Nura and the dialogue are invented; historical objects and sources are identified separately.",
+    "he": "חצר סדנה בדיונית בת זמננו. נורה והשיחות בדיוניות; הפריטים ההיסטוריים והמקורות מסומנים בנפרד."
+  },
+  "illustration": {
+    "width": 1672,
+    "height": 941,
+    "background": {
+      "sheet": "courtyard",
+      "frame": "full"
+    },
+    "camera": {
+      "welcome": [
+        930,
+        490,
+        1
+      ]
+    },
+    "lighting": {
+      "authored": "golden-hour",
+      "dusk": "provisional-tint",
+      "night": "provisional-tint"
+    },
+    "layers": [
+      {
+        "id": "nura",
+        "sheet": "nura-offer",
+        "frame": "full",
+        "x": 1090,
+        "y": 855,
+        "width": 356.40593546,
+        "z": 2,
+        "actor": "nura",
+        "poses": {
+          "offer": {
+            "sheet": "nura-offer",
+            "frame": "full",
+            "width": 356.40593546
+          },
+          "inspect": {
+            "sheet": "nura-inspect",
+            "frame": "full",
+            "width": 334.07794791
+          },
+          "point": {
+            "sheet": "nura-point",
+            "frame": "full",
+            "width": 357.78727514999997
+          }
+        },
+        "blink": {
+          "schema": "lp-character-blink/1",
+          "pose": "offer",
+          "base": {
+            "sheet": "nura-offer",
+            "frame": "full",
+            "sha256": "de1f3ace22600df88a2aa2e3ce5d5c159dfcc4258ca92fb09b5d6f03eaaad196"
+          },
+          "states": {
+            "closed": [
+              {
+                "sheet": "nura-closed-far-eye",
+                "frame": "full",
+                "rect": [
+                  400,
+                  156,
+                  34,
+                  28
+                ]
+              },
+              {
+                "sheet": "nura-closed-near-eye",
+                "frame": "full",
+                "rect": [
+                  439,
+                  146,
+                  50,
+                  30
+                ]
+              }
+            ]
+          },
+          "sequence": [
+            {
+              "state": "closed",
+              "ms": 95
+            }
+          ],
+          "idleGapMs": [
+            4300,
+            7800
+          ]
+        }
+      },
+      {
+        "id": "timsah",
+        "sheet": "timsah-curious",
+        "frame": "full",
+        "x": 825,
+        "y": 865,
+        "width": 304.69135772,
+        "z": 3,
+        "actor": "timsah",
+        "poses": {
+          "curious": {
+            "sheet": "timsah-curious",
+            "frame": "full",
+            "width": 304.69135772
+          },
+          "inspect": {
+            "sheet": "timsah-inspect",
+            "frame": "full",
+            "width": 271.69631962
+          },
+          "revise": {
+            "sheet": "timsah-revise",
+            "frame": "full",
+            "width": 250.38778148
+          },
+          "walk-0": {
+            "sheet": "timsah-walk-a",
+            "frame": "full",
+            "width": 303.29289374999996
+          },
+          "walk-1": {
+            "sheet": "timsah-walk-pass-a",
+            "frame": "full",
+            "width": 277.5820376
+          },
+          "walk-2": {
+            "sheet": "timsah-walk-b",
+            "frame": "full",
+            "width": 283.5
+          },
+          "walk-3": {
+            "sheet": "timsah-walk-pass-b",
+            "frame": "full",
+            "width": 297.82771859999997
+          }
+        },
+        "blink": {
+          "schema": "lp-character-blink/1",
+          "pose": "curious",
+          "base": {
+            "sheet": "timsah-curious",
+            "frame": "full",
+            "sha256": "e94e0dbbd620ea2aac7268ae3e7cedf5f493aa684b9b25cb37ebc57a220610f7"
+          },
+          "states": {
+            "half": [
+              {
+                "sheet": "timsah-half-far-eye",
+                "frame": "full",
+                "rect": [
+                  696,
+                  88,
+                  93,
+                  103
+                ]
+              },
+              {
+                "sheet": "timsah-half-near-eye",
+                "frame": "full",
+                "rect": [
+                  573,
+                  129,
+                  127,
+                  103
+                ]
+              }
+            ],
+            "closed": [
+              {
+                "sheet": "timsah-closed-far-eye",
+                "frame": "full",
+                "rect": [
+                  696,
+                  88,
+                  93,
+                  103
+                ]
+              },
+              {
+                "sheet": "timsah-closed-near-eye",
+                "frame": "full",
+                "rect": [
+                  573,
+                  129,
+                  127,
+                  103
+                ]
+              }
+            ]
+          },
+          "sequence": [
+            {
+              "state": "half",
+              "ms": 35
+            },
+            {
+              "state": "closed",
+              "ms": 85
+            },
+            {
+              "state": "half",
+              "ms": 45
+            }
+          ],
+          "idleGapMs": [
+            3600,
+            6900
+          ]
+        }
+      },
+      {
+        "id": "craft-table",
+        "sheet": "craft-table",
+        "frame": "full",
+        "x": 370,
+        "y": 925,
+        "width": 600,
+        "z": 4
+      }
+    ],
+    "surfaces": {
+      "studio": {
+        "background": {
+          "sheet": "courtyard",
+          "frame": "full"
+        },
+        "layers": [
+          "nura",
+          "timsah",
+          "craft-table"
+        ],
+        "welcome": [
+          930,
+          490,
+          1
+        ],
+        "label": {
+          "ru": "Современный вымышленный двор",
+          "en": "Contemporary fictional courtyard",
+          "he": "חצר עכשווית בדיונית"
+        },
+        "panels": [],
+        "backgroundLighting": {
+          "day": {
+            "sheet": "courtyard-day",
+            "frame": "full"
+          },
+          "dusk": {
+            "sheet": "courtyard",
+            "frame": "full"
+          },
+          "night": {
+            "sheet": "courtyard-night",
+            "frame": "full"
+          }
+        }
+      },
+      "room": {
+        "background": {
+          "sheet": "reading-room",
+          "frame": "full"
+        },
+        "layers": [
+          "nura",
+          "timsah"
+        ],
+        "welcome": [
+          950,
+          485,
+          1
+        ],
+        "label": {
+          "ru": "Читальня · наблюдать и подписывать",
+          "en": "Reading Room · observe and caption",
+          "he": "חדר קריאה · להתבונן ולכתוב"
+        },
+        "panels": [
+          {
+            "rect": [
+              1347,
+              149,
+              94,
+              145
+            ],
+            "title": {
+              "ru": "Наблюдать",
+              "en": "Observe",
+              "he": "להתבונן"
+            },
+            "subtitle": {
+              "ru": "Наш рисунок",
+              "en": "Our study",
+              "he": "רישום שלנו"
+            },
+            "art": {
+              "sheet": "reading-room",
+              "frame": "botanical-study"
+            },
+            "tone": "paper",
+            "flag": "ticho-seen"
+          },
+          {
+            "rect": [
+              1540,
+              122,
+              94,
+              167
+            ],
+            "title": {
+              "ru": "1919",
+              "en": "1919",
+              "he": "1919"
+            },
+            "subtitle": {
+              "ru": "Учебный образец",
+              "en": "Teaching specimen",
+              "he": "דגם לימודי"
+            },
+            "art": {
+              "sheet": "plate-front",
+              "frame": "full"
+            },
+            "tone": "paper",
+            "flag": "archive-opened"
+          }
+        ]
+      },
+      "mediatheque": {
+        "background": {
+          "sheet": "mediatheque",
+          "frame": "full"
+        },
+        "layers": [
+          "nura",
+          "timsah"
+        ],
+        "welcome": [
+          920,
+          480,
+          1
+        ],
+        "label": {
+          "ru": "Медиатека · сравнивать свидетельства",
+          "en": "Mediatheque · compare evidence",
+          "he": "מדיה · להשוות עדויות"
+        },
+        "panels": [
+          {
+            "rect": [
+              268,
+              169,
+              557,
+              252
+            ],
+            "title": {
+              "ru": "У вещи есть оборот",
+              "en": "Objects have another side",
+              "he": "לחפצים יש צד נוסף"
+            },
+            "subtitle": {
+              "ru": "Учебная иллюстрация · не архивный фильм",
+              "en": "Teaching illustration · not an archival film",
+              "he": "איור לימודי · לא סרט ארכיוני"
+            },
+            "art": {
+              "sheet": "plate-front",
+              "frame": "full"
+            },
+            "tone": "screen",
+            "flag": "plate-turned"
+          },
+          {
+            "rect": [
+              1154,
+              228,
+              116,
+              54
+            ],
+            "title": {
+              "ru": "1968 · иврит",
+              "en": "1968 · Hebrew",
+              "he": "1968 · עברית"
+            },
+            "subtitle": {
+              "ru": "Добавленный слой",
+              "en": "Added section",
+              "he": "חלק נוסף"
+            },
+            "tone": "paper",
+            "flag": "sign-compared"
+          },
+          {
+            "rect": [
+              1040,
+              315,
+              57,
+              33
+            ],
+            "title": {
+              "ru": "1966",
+              "en": "1966",
+              "he": "1966"
+            },
+            "subtitle": {
+              "ru": "арабский",
+              "en": "Arabic",
+              "he": "ערבית"
+            },
+            "tone": "paper"
+          },
+          {
+            "rect": [
+              1170,
+              365,
+              114,
+              36
+            ],
+            "title": {
+              "ru": "1966 · английский",
+              "en": "1966 · English",
+              "he": "1966 · אנגלית"
+            },
+            "subtitle": {
+              "ru": "Схема, не подлинник",
+              "en": "Diagram, not an original",
+              "he": "תרשים, לא מקור"
+            },
+            "tone": "paper"
+          }
+        ]
+      }
+    }
+  },
+  "preview": {
+    "sheet": "preview",
+    "frame": "full"
+  },
+  "cast": {
+    "nura": {
+      "names": {
+        "ru": "Нура, хранительница мастерской",
+        "en": "Nura, workshop curator",
+        "he": "נורה, אוצרת הסדנה"
+      },
+      "identity": {
+        "ru": "Вымышленная современная куратор. Не портрет реального человека.",
+        "en": "Fictional contemporary curator. Not a portrait of a real person.",
+        "he": "אוצרת עכשווית בדיונית. אינה דיוקן של אדם אמיתי."
+      },
+      "portrait": {
+        "sheet": "nura-offer",
+        "frame": "full"
+      },
+      "motivation": {
+        "ru": "Когда Нура училась описывать иерусалимскую керамику, она однажды записала только узор. Позже заметила пропущенное имя мастера на обороте. Теперь начинает с автора и вопроса, а не с красивого орнамента. Это вымышленный эпизод её биографии.",
+        "en": "While learning to catalogue Jerusalem ceramics, Nura once recorded only the ornament. Later she noticed a maker’s name she had overlooked on the reverse. Now she begins with the maker and a question, not a beautiful pattern. This episode in her biography is fictional.",
+        "he": "כשלמדה לתאר קרמיקה ירושלמית, נורה רשמה פעם רק את העיטור. מאוחר יותר הבחינה בשם היוצר שהחמיצה בגב הכלי. עכשיו היא מתחילה ביוצר ובשאלה, לא בדוגמה יפה. זהו פרק בדיוני בסיפור חייה."
+      }
+    },
+    "timsah": {
+      "names": {
+        "ru": "Тимсах",
+        "en": "Timsah",
+        "he": "תמסח"
+      },
+      "identity": {
+        "ru": "Знакомый маскот, заново написанный для иллюстрированного мира.",
+        "en": "The established mascot, repainted for this illustrated world.",
+        "he": "הקמע המוכר, באיור חדש לעולם המאויר."
+      },
+      "portrait": {
+        "sheet": "timsah-curious",
+        "frame": "full"
+      },
+      "motivation": {
+        "ru": "Тимсах собирает названия мест. В его дорожном блокноте есть Нахаль-Таниним: имя реки напоминает о животных, которых здесь уже не встретить. В Иерусалим он приезжает как любопытный гость; замеченный шов уличной таблички продолжает его личную охоту за памятью в именах.",
+        "en": "Timsah collects place names. His travel notebook includes Nahal Taninim, whose name remembers animals no longer found there. In Jerusalem he is a curious visitor; a street sign's seam continues his search for the memories held in names.",
+        "he": "תמסח אוסף שמות של מקומות. במחברת המסע שלו מופיע נחל תנינים, ששמו מזכיר בעלי חיים שכבר אינם חיים בו. לירושלים הוא מגיע כאורח סקרן; החיבור בין חלקי שלט רחוב ממשיך את החיפוש שלו אחר הזיכרונות שבשמות."
+      }
+    }
+  },
+  "sources": {
+    "s01": {
+      "title": {
+        "ru": "A Glimpse of Paradise 1919–2019",
+        "en": "A Glimpse of Paradise 1919–2019",
+        "he": "A Glimpse of Paradise 1919–2019"
+      },
+      "url": "https://armenianceramics.org/2019/10/22/a-glimpse-of-paradise-one-hundred-years-of-jerusalem-armenian-ceramics-1919-2019/",
+      "note": {
+        "ru": "Внешний документальный источник. Его изображения не включены; откроется только по вашему нажатию.",
+        "en": "External documentary source. Its images are not included; opens only when you follow the link.",
+        "he": "מקור תיעודי חיצוני. תמונותיו אינן כלולות; ייפתח רק בלחיצה על הקישור."
+      }
+    },
+    "s03": {
+      "title": {
+        "ru": "The Dome of the Rock tiling project 1919",
+        "en": "The Dome of the Rock tiling project 1919",
+        "he": "The Dome of the Rock tiling project 1919"
+      },
+      "url": "https://www.jerusalempottery.biz/the-dome-of-the-rock-tiling-project-1919",
+      "note": {
+        "ru": "Внешний документальный источник. Его изображения не включены; откроется только по вашему нажатию.",
+        "en": "External documentary source. Its images are not included; opens only when you follow the link.",
+        "he": "מקור תיעודי חיצוני. תמונותיו אינן כלולות; ייפתח רק בלחיצה על הקישור."
+      }
+    },
+    "s04": {
+      "title": {
+        "ru": "Antique plate from Palestine period 1922–1948",
+        "en": "Antique plate from Palestine period 1922–1948",
+        "he": "Antique plate from Palestine period 1922–1948"
+      },
+      "url": "https://www.jerusalempottery.biz/antique-plate/",
+      "note": {
+        "ru": "Внешний документальный источник. Его изображения не включены; откроется только по вашему нажатию.",
+        "en": "External documentary source. Its images are not included; opens only when you follow the link.",
+        "he": "מקור תיעודי חיצוני. תמונותיו אינן כלולות; ייפתח רק בלחיצה על הקישור."
+      }
+    },
+    "s05": {
+      "title": {
+        "ru": "Painting the street name tiles of Jerusalem 1966–1981",
+        "en": "Painting the street name tiles of Jerusalem 1966–1981",
+        "he": "Painting the street name tiles of Jerusalem 1966–1981"
+      },
+      "url": "https://www.jerusalempottery.biz/street-names-tiles",
+      "note": {
+        "ru": "Внешний документальный источник. Его изображения не включены; откроется только по вашему нажатию.",
+        "en": "External documentary source. Its images are not included; opens only when you follow the link.",
+        "he": "מקור תיעודי חיצוני. תמונותיו אינן כלולות; ייפתח רק בלחיצה על הקישור."
+      }
+    },
+    "s11": {
+      "title": {
+        "ru": "Lifescape The Work of Anna Ticho",
+        "en": "Lifescape The Work of Anna Ticho",
+        "he": "Lifescape The Work of Anna Ticho"
+      },
+      "url": "https://www.imj.org.il/en/exhibitions/lifescape-work-anna-ticho",
+      "note": {
+        "ru": "Внешний документальный источник. Его изображения не включены; откроется только по вашему нажатию.",
+        "en": "External documentary source. Its images are not included; opens only when you follow the link.",
+        "he": "מקור תיעודי חיצוני. תמונותיו אינן כלולות; ייפתח רק בלחיצה על הקישור."
+      }
+    },
+    "s12": {
+      "title": {
+        "ru": "A Gentle Storm Large scale Works by Anna Ticho",
+        "en": "A Gentle Storm Large scale Works by Anna Ticho",
+        "he": "A Gentle Storm Large scale Works by Anna Ticho"
+      },
+      "url": "https://www.imj.org.il/en/exhibitions/gentle-storm",
+      "note": {
+        "ru": "Внешний документальный источник. Его изображения не включены; откроется только по вашему нажатию.",
+        "en": "External documentary source. Its images are not included; opens only when you follow the link.",
+        "he": "מקור תיעודי חיצוני. תמונותיו אינן כלולות; ייפתח רק בלחיצה על הקישור."
+      }
+    },
+    "t01": {
+      "title": {
+        "ru": "Нахаль-Таниним · буклет INPA",
+        "en": "Nahal Taninim · INPA brochure",
+        "he": "נחל תנינים · עלון רשות הטבע והגנים"
+      },
+      "url": "https://static.parks.org.il/wp-content/uploads/2025/04/nachal-Taninim.pdf",
+      "note": {
+        "ru": "Первичный источник, страницы 1–2. Побережье Кармеля, не Иерусалим.",
+        "en": "Primary source, pages 1–2. The Carmel coast, not Jerusalem.",
+        "he": "מקור ראשוני, עמודים 1–2. חוף הכרמל, לא ירושלים."
+      }
+    }
+  },
+  "story": {
+    "title": {
+      "ru": "Вечер открытой мастерской",
+      "en": "An evening at the open workshop",
+      "he": "ערב בסדנה פתוחה"
+    },
+    "opening": {
+      "ru": "Тимсах: Осталось придумать подпись. Хотя я уже придумал. Нура: Ты начал с подписи. Я бы начала с вопроса.",
+      "en": "Timsah: All I need is a caption. Actually, I already have one. Nura: You started with the caption. I would start with a question.",
+      "he": "תמסח: נשאר רק למצוא כיתוב. בעצם, כבר מצאתי. נורה: התחלת בכיתוב. אני הייתי מתחילה בשאלה."
+    },
+    "flags": {
+      "plate-turned": false,
+      "sign-compared": false,
+      "archive-opened": false,
+      "ticho-seen": false,
+      "caption-revised": false
+    },
+    "actions": {
+      "turn-plate": {
+        "label": {
+          "ru": "Перевернуть тарелку",
+          "en": "Turn the plate",
+          "he": "להפוך את הצלחת"
+        },
+        "object": "plate",
+        "view": "reverse",
+        "sets": {
+          "plate-turned": true
+        },
+        "requires": [],
+        "collect": [
+          "phrase-0"
+        ],
+        "message": {
+          "ru": "Тимсах: У тарелки есть титры? Нура: Иногда самое важное не на той стороне, которую выставляют.",
+          "en": "Timsah: The plate has credits? Nura: Sometimes the important part is on the side people do not display.",
+          "he": "תמסח: לצלחת יש קרדיטים? נורה: לפעמים הדבר החשוב נמצא בצד שלא מציגים."
+        },
+        "caption": "makers",
+        "poses": {
+          "nura": "inspect",
+          "timsah": "inspect"
+        }
+      },
+      "return-plate": {
+        "label": {
+          "ru": "Снова посмотреть узор",
+          "en": "Look at the pattern again",
+          "he": "לראות שוב את העיטור"
+        },
+        "object": "plate",
+        "view": "front",
+        "sets": {},
+        "requires": [],
+        "collect": [],
+        "message": {
+          "ru": "Оборот не исчезает из истории, когда мы возвращаемся к узору.",
+          "en": "The reverse stays part of the story when we return to the pattern.",
+          "he": "הצד השני נשאר חלק מהסיפור גם כשחוזרים לעיטור."
+        },
+        "poses": {
+          "nura": "offer",
+          "timsah": "curious"
+        }
+      },
+      "compare-sign": {
+        "label": {
+          "ru": "Сравнить слои",
+          "en": "Compare the layers",
+          "he": "להשוות בין השכבות"
+        },
+        "object": "sign",
+        "view": "after",
+        "sets": {
+          "sign-compared": true
+        },
+        "requires": [],
+        "collect": [
+          "phrase-1",
+          "phrase-2",
+          "phrase-3"
+        ],
+        "message": {
+          "ru": "Тимсах: Я думал, две рамки просто красивее. Нура: А теперь у тебя появился другой вопрос.",
+          "en": "Timsah: I thought two borders just looked nicer. Nura: Now you have a different question.",
+          "he": "תמסח: חשבתי ששתי מסגרות פשוט יפות יותר. נורה: ועכשיו יש לך שאלה אחרת."
+        },
+        "caption": "layers",
+        "poses": {
+          "nura": "point",
+          "timsah": "inspect"
+        }
+      },
+      "sign-before": {
+        "label": {
+          "ru": "Вернуться к 1966 году",
+          "en": "Return to 1966",
+          "he": "לחזור ל־1966"
+        },
+        "object": "sign",
+        "view": "before",
+        "sets": {},
+        "requires": [],
+        "collect": [],
+        "message": {
+          "ru": "Почему у таблички две рамки?",
+          "en": "Why does the sign have two borders?",
+          "he": "למה לשלט יש שתי מסגרות?"
+        }
+      },
+      "reveal-1919": {
+        "label": {
+          "ru": "Открыть папку 1919 года",
+          "en": "Open the 1919 folder",
+          "he": "לפתוח את תיק 1919"
+        },
+        "object": "ohannessian",
+        "view": "open",
+        "sets": {
+          "archive-opened": true
+        },
+        "requires": [],
+        "collect": [
+          "phrase-ohannessian"
+        ],
+        "message": {
+          "ru": "У знакомого городского узора было начало",
+          "en": "A familiar city pattern had a beginning",
+          "he": "גם לעיטור מוכר בעיר הייתה התחלה"
+        },
+        "poses": {
+          "nura": "offer",
+          "timsah": "curious"
+        }
+      },
+      "reveal-ticho": {
+        "label": {
+          "ru": "Посмотреть внимательнее",
+          "en": "Look more closely",
+          "he": "להסתכל מקרוב"
+        },
+        "object": "ticho",
+        "view": "detail",
+        "sets": {
+          "ticho-seen": true
+        },
+        "requires": [],
+        "collect": [
+          "phrase-ticho",
+          "phrase-4"
+        ],
+        "message": {
+          "ru": "Тимсах: Я искал знаменитый вид. А заметил ветку.",
+          "en": "Timsah: I was looking for a famous view. I noticed a branch.",
+          "he": "תמסח: חיפשתי נוף מפורסם. שמתי לב לענף."
+        },
+        "poses": {
+          "nura": "point",
+          "timsah": "inspect"
+        }
+      },
+      "revise-postcard": {
+        "label": {
+          "ru": "Переписать открытку",
+          "en": "Rewrite the postcard",
+          "he": "לכתוב מחדש את הגלויה"
+        },
+        "object": "postcard",
+        "view": "revised",
+        "sets": {
+          "caption-revised": true
+        },
+        "requires": [
+          "plate-turned",
+          "sign-compared"
+        ],
+        "collect": [
+          "phrase-5"
+        ],
+        "message": {
+          "ru": "Нура: Ещё остался вопрос без ответа. Тимсах: Отлично. Значит, на обороте есть место.",
+          "en": "Nura: There is still a question without an answer. Timsah: Good. There is room on the back.",
+          "he": "נורה: נשארה עוד שאלה בלי תשובה. תמסח: מצוין. אז יש מקום בצד השני."
+        },
+        "caption": "revised",
+        "poses": {
+          "nura": "offer",
+          "timsah": "revise"
+        }
+      },
+      "nura-introduction": {
+        "label": {
+          "ru": "Зачем ты собираешь эти вещи?",
+          "en": "Why do you collect these objects?",
+          "he": "למה את אוספת את החפצים האלה?"
+        },
+        "object": "nura",
+        "view": "identity",
+        "sets": {},
+        "requires": [],
+        "collect": [],
+        "message": {
+          "ru": "Однажды я записала только цветы и птицу. Имя мастера на обороте увидела позже. Теперь сначала переворачиваю вещь: кто её сделал?",
+          "en": "Once I wrote down only the flowers and the bird. I noticed the maker’s name on the reverse later. Now I turn the object first: who made it?",
+          "he": "פעם רשמתי רק את הפרחים ואת הציפור. רק אחר כך הבחנתי בשם היוצר בגב הכלי. עכשיו אני קודם הופכת את החפץ: מי הכין אותו?"
+        },
+        "poses": {
+          "nura": "offer",
+          "timsah": "curious"
+        }
+      },
+      "nura-question": {
+        "label": {
+          "ru": "Можно оставить вопрос без ответа?",
+          "en": "Can a question stay unanswered?",
+          "he": "אפשר להשאיר שאלה בלי תשובה?"
+        },
+        "object": "nura",
+        "view": "question",
+        "sets": {},
+        "requires": [
+          "plate-turned"
+        ],
+        "collect": [],
+        "message": {
+          "ru": "Я хотела закончить каждую подпись сама. Но один честный вопрос лучше безупречной уверенности.",
+          "en": "I wanted to finish every caption myself. But one honest question is better than perfect certainty.",
+          "he": "רציתי לסיים כל כיתוב בעצמי. אבל שאלה כנה אחת עדיפה על ודאות מושלמת."
+        },
+        "poses": {
+          "nura": "point",
+          "timsah": "revise"
+        }
+      },
+      "timsah-names": {
+        "label": {
+          "ru": "Расскажи о своей речной открытке",
+          "en": "Tell me about your river postcard",
+          "he": "ספר על גלוית הנחל שלך"
+        },
+        "object": "timsah",
+        "view": "names",
+        "sets": {},
+        "requires": [],
+        "collect": [
+          "phrase-names"
+        ],
+        "message": {
+          "ru": "Я собираю названия. Иногда они помнят то, чего уже не видно.",
+          "en": "I collect place names. Sometimes they remember what we can no longer see.",
+          "he": "אני אוסף שמות. לפעמים הם זוכרים דברים שכבר לא רואים."
+        },
+        "poses": {
+          "timsah": "inspect",
+          "nura": "offer"
+        }
+      },
+      "timsah-answer": {
+        "label": {
+          "ru": "Теперь табличка кажется другой?",
+          "en": "Does the sign look different now?",
+          "he": "השלט נראה עכשיו אחרת?"
+        },
+        "object": "timsah",
+        "view": "answer",
+        "sets": {},
+        "requires": [
+          "sign-compared"
+        ],
+        "collect": [],
+        "message": {
+          "ru": "Я собираю названия. Иногда они помнят то, чего уже не видно.",
+          "en": "I collect place names. Sometimes they remember what we can no longer see.",
+          "he": "אני אוסף שמות. לפעמים הם זוכרים דברים שכבר לא רואים."
+        },
+        "poses": {
+          "timsah": "revise",
+          "nura": "point"
+        }
+      }
+    },
+    "captions": {
+      "initial": {
+        "text": {
+          "ru": "Так было всегда",
+          "en": "It has always been this way",
+          "he": "כך זה היה תמיד"
+        },
+        "requires": []
+      },
+      "makers": {
+        "text": {
+          "ru": "У вещи есть автор и дата",
+          "en": "An object has a maker and a date",
+          "he": "לחפץ יש יוצר ותאריך"
+        },
+        "requires": [
+          "plate-turned"
+        ]
+      },
+      "layers": {
+        "text": {
+          "ru": "Город меняет подписи",
+          "en": "The city changes its captions",
+          "he": "העיר משנה את הכיתובים שלה"
+        },
+        "requires": [
+          "sign-compared"
+        ]
+      },
+      "revised": {
+        "text": {
+          "ru": "За узором — чья-то работа. В швах — время. В Иерусалиме ещё есть что открыть.",
+          "en": "Behind the pattern is someone’s work. In the seams is time. There is more to discover in Jerusalem.",
+          "he": "מאחורי העיטור יש עבודה של מישהו. בחיבורים בין החלקים יש זמן. בירושלים יש עוד מה לגלות."
+        },
+        "requires": [
+          "plate-turned",
+          "sign-compared"
+        ]
+      }
+    },
+    "phrases": {
+      "phrase-0": {
+        "he": "מי הכין את זה?",
+        "translation": {
+          "ru": "Кто это сделал?",
+          "en": "Who made this?",
+          "he": "מי הכין את זה?"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-1": {
+        "he": "מה השתנה?",
+        "translation": {
+          "ru": "Что изменилось?",
+          "en": "What changed?",
+          "he": "מה השתנה?"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-2": {
+        "he": "לפני",
+        "translation": {
+          "ru": "До",
+          "en": "Before",
+          "he": "לפני"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-3": {
+        "he": "אחרי",
+        "translation": {
+          "ru": "После",
+          "en": "After",
+          "he": "אחרי"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-4": {
+        "he": "לא ידוע",
+        "translation": {
+          "ru": "Неизвестно",
+          "en": "Unknown",
+          "he": "לא ידוע"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-5": {
+        "he": "יש עוד מה לגלות",
+        "translation": {
+          "ru": "Есть ещё что открыть",
+          "en": "There is more to discover",
+          "he": "יש עוד מה לגלות"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-ohannessian": {
+        "he": "מי עבד כאן?",
+        "translation": {
+          "ru": "Кто здесь работал?",
+          "en": "Who worked here?",
+          "he": "מי עבד כאן?"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-ticho": {
+        "he": "מה רואים כאן?",
+        "translation": {
+          "ru": "Что здесь видно?",
+          "en": "What can we see here?",
+          "he": "מה רואים כאן?"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      },
+      "phrase-names": {
+        "he": "מה פירוש השם הזה?",
+        "translation": {
+          "ru": "Что означает это название?",
+          "en": "What does this name mean?",
+          "he": "מה פירוש השם הזה?"
+        },
+        "context": {
+          "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+          "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+          "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+        }
+      }
+    },
+    "ending": {
+      "ru": "Вопрос остался. Открытка стала честнее.",
+      "en": "A question remains. The postcard is more honest.",
+      "he": "נשארה שאלה. הגלויה נעשתה כנה יותר."
+    },
+    "draftLabel": {
+      "ru": "Черновик открытки Тимсаха",
+      "en": "Timsah’s postcard draft",
+      "he": "טיוטת הגלויה של תמסח"
+    },
+    "notebookTitle": {
+      "ru": "Блокнот этого мира",
+      "en": "This world’s notebook",
+      "he": "המחברת של העולם הזה"
+    },
+    "nextLabel": {
+      "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+      "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+      "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+    },
+    "needsEvidence": {
+      "ru": "Сначала переверните учебную тарелку и сравните два времени таблички.",
+      "en": "First turn the teaching plate and compare the sign’s two moments in time.",
+      "he": "קודם הפכו את הצלחת הלימודית והשוו בין שתי התקופות של השלט."
+    },
+    "completionFlag": "caption-revised",
+    "startObject": "plate",
+    "exportSources": [
+      "s04",
+      "s05"
+    ],
+    "progressVersion": "0.2.0"
+  },
+  "objects": {
+    "plate": {
+      "title": {
+        "ru": "Что на обороте?",
+        "en": "What is on the reverse?",
+        "he": "מה בצד השני?"
+      },
+      "hook": {
+        "ru": "На лицевой стороне — узор. На обороте — биография.",
+        "en": "A pattern on the front. A life story on the back.",
+        "he": "בצד הקדמי יש עיטור. בצד האחורי יש סיפור חיים."
+      },
+      "body": {
+        "ru": "Это современная нарисованная тарелка. Переворот открывает другой вопрос, а документальная подпись ниже относится к отдельной настоящей тарелке.",
+        "en": "This is a modern illustrated plate. Turning it opens a new question; the documentary caption below concerns a separate real plate.",
+        "he": "זוהי צלחת מאוירת בת זמננו. ההפיכה פותחת שאלה חדשה; הכיתוב התיעודי למטה עוסק בצלחת אמיתית נפרדת."
+      },
+      "fiction": {
+        "ru": "Новая авторская иллюстрация учебной тарелки. Это не музейный предмет.",
+        "en": "A newly illustrated teaching plate. This is not a museum object.",
+        "he": "איור מקורי חדש של צלחת לימודית. זה אינו פריט מוזיאלי."
+      },
+      "focal": [
+        370,
+        695,
+        1.8
+      ],
+      "hit": [
+        188,
+        510,
+        190,
+        190
+      ],
+      "layer": "craft-table",
+      "sources": [
+        "s04"
+      ],
+      "actions": [
+        "turn-plate",
+        "return-plate",
+        "reveal-1919"
+      ],
+      "phrase": "phrase-0",
+      "initialView": "front",
+      "kind": {
+        "ru": "Современный учебный образец",
+        "en": "Modern teaching specimen",
+        "he": "דגם לימודי בן זמננו"
+      },
+      "views": {
+        "front": {
+          "title": {
+            "ru": "Перевернуть тарелку",
+            "en": "Turn the plate",
+            "he": "להפוך את הצלחת"
+          },
+          "text": {
+            "ru": "Новая авторская иллюстрация учебной тарелки. Это не музейный предмет.",
+            "en": "A newly illustrated teaching plate. This is not a museum object.",
+            "he": "איור מקורי חדש של צלחת לימודית. זה אינו פריט מוזיאלי."
+          },
+          "art": {
+            "sheet": "plate-front",
+            "frame": "full"
+          }
+        },
+        "reverse": {
+          "title": {
+            "ru": "Отдельный подлинный пример: Karakashian–Balian",
+            "en": "A separate real example: Karakashian–Balian",
+            "he": "דוגמה אמיתית נפרדת: קראקשיאן–באליאן"
+          },
+          "text": {
+            "ru": "На обороте настоящей тарелки Karakashian–Balian из семейной публикации есть надпись Palestine и армянские инициалы мастеров. Семья датирует её 1922–1948 годами.",
+            "en": "The real Karakashian–Balian plate shown in the family publication has Palestine and the makers’ Armenian initials on its reverse. The family dates it to 1922–1948.",
+            "he": "בגב הצלחת האמיתית של קראקשיאן–באליאן, המוצגת בפרסום המשפחתי, מופיעים הכיתוב Palestine וראשי התיבות של היוצרים בארמנית. המשפחה מתארכת אותה לשנים 1922–1948."
+          },
+          "art": {
+            "sheet": "plate-back",
+            "frame": "full"
+          },
+          "badges": [
+            {
+              "ru": "Семейная публикация · 1922–1948",
+              "en": "Family publication · 1922–1948",
+              "he": "פרסום משפחתי · 1922–1948"
+            },
+            {
+              "ru": "На настоящем обороте: Palestine и армянские инициалы",
+              "en": "On the real reverse: Palestine and Armenian initials",
+              "he": "בגב הפריט האמיתי: Palestine וראשי תיבות בארמנית"
+            },
+            {
+              "ru": "Наш учебный оборот намеренно без этой подписи",
+              "en": "Our teaching reverse deliberately omits that inscription",
+              "he": "הגב הלימודי שלנו נשאר בכוונה ללא כתובת זו"
+            }
+          ],
+          "layout": "provenance"
+        }
+      },
+      "approach": [
+        680,
+        865
+      ]
+    },
+    "sign": {
+      "title": {
+        "ru": "Почему две рамки?",
+        "en": "Why two borders?",
+        "he": "למה שתי מסגרות?"
+      },
+      "hook": {
+        "ru": "Почему у таблички две рамки?",
+        "en": "Why does the sign have two borders?",
+        "he": "למה לשלט יש שתי מסגרות?"
+      },
+      "body": {
+        "ru": "Шов — видимая деталь. Сравните два состояния схемы и проверьте рассказ мастерской.",
+        "en": "The seam is a visible clue. Compare the diagram’s two states and check the workshop’s account.",
+        "he": "החיבור בין החלקים הוא רמז שאפשר לראות. השוו את שני מצבי התרשים ובדקו את סיפור הסדנה."
+      },
+      "fiction": {
+        "ru": "Схема документированного принципа. Это не копия сохранившейся таблички; непроверенные арабские надписи не выдуманы.",
+        "en": "A diagram of a documented principle. Not a replica of a surviving sign; no unverified Arabic inscription is invented.",
+        "he": "תרשים של עיקרון מתועד. אינו העתק של שלט קיים; אין בו כתובת מומצאת בערבית."
+      },
+      "focal": [
+        490,
+        674,
+        1.75
+      ],
+      "hit": [
+        370,
+        610,
+        205,
+        115
+      ],
+      "layer": "craft-table",
+      "sources": [
+        "s05"
+      ],
+      "actions": [
+        "compare-sign",
+        "sign-before"
+      ],
+      "phrase": "phrase-1",
+      "initialView": "before",
+      "kind": {
+        "ru": "Учебная реконструкция",
+        "en": "Teaching reconstruction",
+        "he": "שחזור לימודי"
+      },
+      "views": {
+        "before": {
+          "title": {
+            "ru": "1966 · два языка",
+            "en": "1966 · two languages",
+            "he": "1966 · שתי שפות"
+          },
+          "text": {
+            "ru": "Нижняя часть: арабский и английский",
+            "en": "Lower section: Arabic and English",
+            "he": "החלק התחתון: ערבית ואנגלית"
+          },
+          "layout": "sign-before",
+          "badges": [
+            {
+              "ru": "Нижняя часть: арабский и английский",
+              "en": "Lower section: Arabic and English",
+              "he": "החלק התחתון: ערבית ואנגלית"
+            }
+          ]
+        },
+        "after": {
+          "title": {
+            "ru": "1968 · добавленный слой",
+            "en": "1968 · an added layer",
+            "he": "1968 · שכבה נוספת"
+          },
+          "text": {
+            "ru": "Добавлена отдельная верхняя часть на иврите",
+            "en": "A separate Hebrew section is added above",
+            "he": "נוסף חלק נפרד בעברית למעלה"
+          },
+          "layout": "sign-after",
+          "badges": [
+            {
+              "ru": "Добавлена отдельная верхняя часть на иврите",
+              "en": "A separate Hebrew section is added above",
+              "he": "נוסף חלק נפרד בעברית למעלה"
+            },
+            {
+              "ru": "Нижняя часть: арабский и английский",
+              "en": "Lower section: Arabic and English",
+              "he": "החלק התחתון: ערבית ואנגלית"
+            }
+          ]
+        }
+      },
+      "approach": [
+        710,
+        860
+      ]
+    },
+    "ohannessian": {
+      "title": {
+        "ru": "Папка 1919 года",
+        "en": "The 1919 folder",
+        "he": "תיק 1919"
+      },
+      "hook": {
+        "ru": "У знакомого городского узора было начало",
+        "en": "A familiar city pattern had a beginning",
+        "he": "גם לעיטור מוכר בעיר הייתה התחלה"
+      },
+      "body": {
+        "ru": "Кто привёз сюда знания и руки? Откройте датированное окно, не приглашая человека прошлого в сегодняшний двор.",
+        "en": "Who brought the skills and the hands? Open a dated window without bringing someone from the past into today’s courtyard.",
+        "he": "מי הביא את הידע ואת מלאכת היד? פתחו חלון מתוארך, בלי להביא אדם מן העבר אל החצר של היום."
+      },
+      "fiction": {
+        "ru": "Датированное архивное окно. Оганесян не встречается с героями в современном дворе; новые слова ему не приписаны.",
+        "en": "A dated archive window. Ohannessian does not meet the characters in this modern courtyard; no new words are attributed to him.",
+        "he": "חלון ארכיוני מתוארך. אוהנסיאן אינו פוגש את הדמויות בחצר העכשווית; לא מיוחסות לו מילים חדשות."
+      },
+      "focal": [
+        1090,
+        590,
+        1.6
+      ],
+      "hit": [
+        1040,
+        450,
+        105,
+        200
+      ],
+      "layer": "nura",
+      "sources": [
+        "s03",
+        "s01"
+      ],
+      "actions": [
+        "reveal-1919"
+      ],
+      "phrase": "phrase-ohannessian",
+      "initialView": "closed",
+      "kind": {
+        "ru": "Подтверждено источником",
+        "en": "Documented",
+        "he": "מתועד במקור"
+      },
+      "views": {
+        "closed": {
+          "title": {
+            "ru": "Открыть папку 1919 года",
+            "en": "Open the 1919 folder",
+            "he": "לפתוח את תיק 1919"
+          },
+          "text": {
+            "ru": "У знакомого городского узора было начало",
+            "en": "A familiar city pattern had a beginning",
+            "he": "גם לעיטור מוכר בעיר הייתה התחלה"
+          },
+          "layout": "source-window"
+        },
+        "open": {
+          "title": {
+            "ru": "1919 · начало пути",
+            "en": "1919 · the start of a journey",
+            "he": "1919 · תחילת הדרך"
+          },
+          "text": {
+            "ru": "В 1919 году Давид Оганесян собирал мастеров для проекта плиток Купола Скалы. Семейная история Karakashian называет прибытие Megerditch Karakashian осенью того года. Позднее керамика Оганесяна появилась и на других иерусалимских зданиях.",
+            "en": "In 1919 David Ohannessian recruited craftspeople for the Dome of the Rock tile project. The Karakashian family history dates Megerditch Karakashian’s arrival to that autumn. Ohannessian’s ceramics later appeared on other Jerusalem buildings.",
+            "he": "ב־1919 גייס דוד אוהנסיאן בעלי מלאכה לפרויקט האריחים בכיפת הסלע. לפי הסיפור המשפחתי של קראקשיאן, מגרדיץ׳ קראקשיאן הגיע בסתיו של אותה שנה. בהמשך הופיעה הקרמיקה של אוהנסיאן גם בבניינים אחרים בירושלים."
+          },
+          "layout": "source-window",
+          "badges": [
+            {
+              "ru": "История мастеров, не выдуманная встреча",
+              "en": "A history of craftspeople, not an invented meeting",
+              "he": "סיפורם של בעלי מלאכה, לא מפגש מומצא"
+            }
+          ]
+        }
+      },
+      "approach": [
+        900,
+        855
+      ]
+    },
+    "ticho": {
+      "title": {
+        "ru": "Одна ветвь, другой взгляд",
+        "en": "One branch, another view",
+        "he": "ענף אחד, מבט אחר"
+      },
+      "hook": {
+        "ru": "А если город начинается с одной ветви?",
+        "en": "What if the city begins with one branch?",
+        "he": "ואם העיר מתחילה בענף אחד?"
+      },
+      "body": {
+        "ru": "Пока не выбирайте знаменитый силуэт. Начните с развилки одной ветви.",
+        "en": "Do not choose a famous silhouette yet. Begin with the fork of a single branch.",
+        "he": "אל תבחרו עדיין בקו מתאר מפורסם. התחילו מהסתעפות של ענף אחד."
+      },
+      "fiction": {
+        "ru": "Растительный рисунок в сцене — новая авторская иллюстрация. Это не работа Анны Тихо. Музейные произведения доступны по ссылкам.",
+        "en": "The botanical drawing in the scene is a new original illustration. It is not an Anna Ticho work. Museum works are available through the links.",
+        "he": "הרישום הבוטני בסצנה הוא איור מקורי חדש. הוא אינו יצירה של אנה טיכו. יצירות המוזיאון זמינות בקישורים."
+      },
+      "focal": [
+        420,
+        755,
+        2
+      ],
+      "hit": [
+        310,
+        700,
+        210,
+        110
+      ],
+      "layer": "craft-table",
+      "sources": [
+        "s11",
+        "s12"
+      ],
+      "actions": [
+        "reveal-ticho"
+      ],
+      "phrase": "phrase-ticho",
+      "initialView": "wide",
+      "kind": {
+        "ru": "Подтверждено источником",
+        "en": "Documented",
+        "he": "מתועד במקור"
+      },
+      "views": {
+        "wide": {
+          "title": {
+            "ru": "Город или деталь?",
+            "en": "The city, or a detail?",
+            "he": "העיר או פרט אחד?"
+          },
+          "text": {
+            "ru": "А если город начинается с одной ветви?",
+            "en": "What if the city begins with one branch?",
+            "he": "ואם העיר מתחילה בענף אחד?"
+          },
+          "layout": "line-study"
+        },
+        "detail": {
+          "title": {
+            "ru": "1935 · «Олива», графит на бумаге",
+            "en": "1935 · Olive Tree, graphite on paper",
+            "he": "1935 · עץ זית, גרפיט על נייר"
+          },
+          "text": {
+            "ru": "У Анны Тихо есть «Олива», 1935: графит на бумаге. Музей Израиля хранит и её поздние цветные работы. Один художник, одно место, разные способы видеть.",
+            "en": "Anna Ticho’s Olive Tree, 1935, is graphite on paper. The Israel Museum also holds her later works in color. One artist, one place, different ways of seeing.",
+            "he": "אנה טיכו יצרה את עץ זית ב־1935, בגרפיט על נייר. במוזיאון ישראל שמורות גם עבודותיה המאוחרות בצבע. אמנית אחת, מקום אחד, דרכים שונות לראות."
+          },
+          "layout": "line-study",
+          "badges": [
+            {
+              "ru": "Метаданные подлинной работы; наш рисунок отдельный",
+              "en": "Metadata of a real work; our drawing is separate",
+              "he": "נתוני יצירה אמיתית; האיור שלנו נפרד"
+            }
+          ]
+        }
+      },
+      "approach": [
+        695,
+        875
+      ]
+    },
+    "postcard": {
+      "title": {
+        "ru": "Изменить открытку",
+        "en": "Change the postcard",
+        "he": "לשנות את הגלויה"
+      },
+      "hook": {
+        "ru": "Открытка та же. Взгляд уже другой.",
+        "en": "The same postcard. A different way of looking.",
+        "he": "אותה גלויה. מבט אחר."
+      },
+      "body": {
+        "ru": "Короткая подпись всё ещё возможна. Теперь в ней есть человек, время и место для неизвестного.",
+        "en": "A short caption is still possible. Now it has a maker, a time and room for the unknown.",
+        "he": "עדיין אפשר לכתוב כיתוב קצר. עכשיו יש בו יוצר, זמן ומקום למה שאינו ידוע."
+      },
+      "fiction": {
+        "ru": "Учебный блокнот этой демонстрации. Связь с профилем LinguistPro пока не подключена.",
+        "en": "This demo has its own learning notebook. It is not yet connected to your LinguistPro profile.",
+        "he": "מחברת הלמידה של ההדגמה הזאת עדיין אינה מחוברת לפרופיל LinguistPro."
+      },
+      "focal": [
+        825,
+        715,
+        1.6
+      ],
+      "hit": [
+        735,
+        570,
+        190,
+        300
+      ],
+      "layer": "timsah",
+      "sources": [
+        "s04",
+        "s05"
+      ],
+      "actions": [
+        "revise-postcard"
+      ],
+      "phrase": "phrase-5",
+      "initialView": "draft",
+      "kind": {
+        "ru": "Художественный вымысел",
+        "en": "Fiction",
+        "he": "בדיון"
+      },
+      "views": {
+        "draft": {
+          "title": {
+            "ru": "Так было всегда",
+            "en": "It has always been this way",
+            "he": "כך זה היה תמיד"
+          },
+          "text": {
+            "ru": "Открытка та же. Взгляд уже другой.",
+            "en": "The same postcard. A different way of looking.",
+            "he": "אותה גלויה. מבט אחר."
+          },
+          "layout": "postcard"
+        },
+        "revised": {
+          "title": {
+            "ru": "За узором — чья-то работа. В швах — время. В Иерусалиме ещё есть что открыть.",
+            "en": "Behind the pattern is someone’s work. In the seams is time. There is more to discover in Jerusalem.",
+            "he": "מאחורי העיטור יש עבודה של מישהו. בחיבורים בין החלקים יש זמן. בירושלים יש עוד מה לגלות."
+          },
+          "text": {
+            "ru": "Нура: Ещё остался вопрос без ответа. Тимсах: Отлично. Значит, на обороте есть место.",
+            "en": "Nura: There is still a question without an answer. Timsah: Good. There is room on the back.",
+            "he": "נורה: נשארה עוד שאלה בלי תשובה. תמסח: מצוין. אז יש מקום בצד השני."
+          },
+          "layout": "postcard"
+        }
+      },
+      "affordance": "panel"
+    },
+    "nura": {
+      "title": {
+        "ru": "Нура · люди за вещами",
+        "en": "Nura · the people behind objects",
+        "he": "נורה · האנשים שמאחורי החפצים"
+      },
+      "hook": {
+        "ru": "Почему ей трудно закончить подпись?",
+        "en": "Why is it hard for her to finish the caption?",
+        "he": "למה קשה לה לסיים את הכיתוב?"
+      },
+      "body": {
+        "ru": "Когда Нура училась описывать иерусалимскую керамику, она однажды записала только узор. Позже заметила пропущенное имя мастера на обороте. Теперь начинает с автора и вопроса, а не с красивого орнамента. Это вымышленный эпизод её биографии.",
+        "en": "While learning to catalogue Jerusalem ceramics, Nura once recorded only the ornament. Later she noticed a maker’s name she had overlooked on the reverse. Now she begins with the maker and a question, not a beautiful pattern. This episode in her biography is fictional.",
+        "he": "כשלמדה לתאר קרמיקה ירושלמית, נורה רשמה פעם רק את העיטור. מאוחר יותר הבחינה בשם היוצר שהחמיצה בגב הכלי. עכשיו היא מתחילה ביוצר ובשאלה, לא בדוגמה יפה. זהו פרק בדיוני בסיפור חייה."
+      },
+      "fiction": {
+        "ru": "Вымышленная современная куратор. Не портрет реального человека.",
+        "en": "Fictional contemporary curator. Not a portrait of a real person.",
+        "he": "אוצרת עכשווית בדיונית. אינה דיוקן של אדם אמיתי."
+      },
+      "focal": [
+        1080,
+        585,
+        1.45
+      ],
+      "hit": [
+        920,
+        290,
+        325,
+        575
+      ],
+      "layer": "nura",
+      "sources": [],
+      "actions": [
+        "nura-introduction",
+        "nura-question"
+      ],
+      "initialView": "identity",
+      "kind": {
+        "ru": "Художественный вымысел",
+        "en": "Fiction",
+        "he": "בדיון"
+      },
+      "views": {
+        "identity": {
+          "title": {
+            "ru": "Нура, хранительница мастерской",
+            "en": "Nura, workshop curator",
+            "he": "נורה, אוצרת הסדנה"
+          },
+          "text": {
+            "ru": "Вымышленная современная куратор. Не портрет реального человека.",
+            "en": "Fictional contemporary curator. Not a portrait of a real person.",
+            "he": "אוצרת עכשווית בדיונית. אינה דיוקן של אדם אמיתי."
+          },
+          "art": {
+            "sheet": "nura-offer",
+            "frame": "full"
+          }
+        },
+        "question": {
+          "title": {
+            "ru": "Оставить место вопросу",
+            "en": "Leave room for a question",
+            "he": "להשאיר מקום לשאלה"
+          },
+          "text": {
+            "ru": "Я хотела закончить каждую подпись сама. Но один честный вопрос лучше безупречной уверенности.",
+            "en": "I wanted to finish every caption myself. But one honest question is better than perfect certainty.",
+            "he": "רציתי לסיים כל כיתוב בעצמי. אבל שאלה כנה אחת עדיפה על ודאות מושלמת."
+          },
+          "art": {
+            "sheet": "nura-point",
+            "frame": "full"
+          }
+        }
+      },
+      "approach": [
+        920,
+        865
+      ]
+    },
+    "timsah": {
+      "title": {
+        "ru": "Тимсах · память в названиях",
+        "en": "Timsah · memories in names",
+        "he": "תמסח · זיכרונות בשמות"
+      },
+      "hook": {
+        "ru": "Почему Тимсах бережёт открытку реки, где больше нет крокодилов?",
+        "en": "Why does Timsah keep a postcard of a stream where crocodiles no longer live?",
+        "he": "למה תמסח שומר גלויה של נחל שכבר אין בו תנינים?"
+      },
+      "body": {
+        "ru": "Тимсах собирает названия мест. В его дорожном блокноте есть Нахаль-Таниним: имя реки напоминает о животных, которых здесь уже не встретить. В Иерусалим он приезжает как любопытный гость; замеченный шов уличной таблички продолжает его личную охоту за памятью в именах.",
+        "en": "Timsah collects place names. His travel notebook includes Nahal Taninim, whose name remembers animals no longer found there. In Jerusalem he is a curious visitor; a street sign's seam continues his search for the memories held in names.",
+        "he": "תמסח אוסף שמות של מקומות. במחברת המסע שלו מופיע נחל תנינים, ששמו מזכיר בעלי חיים שכבר אינם חיים בו. לירושלים הוא מגיע כאורח סקרן; החיבור בין חלקי שלט רחוב ממשיך את החיפוש שלו אחר הזיכרונות שבשמות."
+      },
+      "fiction": {
+        "ru": "Тимсах — вымышленный путешествующий крокодил. Его открытка и биография придуманы; река и её история настоящие.",
+        "en": "Timsah is a fictional traveling crocodile. His postcard and biography are invented; the stream and its history are real.",
+        "he": "תמסח הוא תנין מטייל בדיוני. הגלויה שלו וסיפור חייו מומצאים; הנחל וההיסטוריה שלו אמיתיים."
+      },
+      "focal": [
+        825,
+        720,
+        1.55
+      ],
+      "hit": [
+        640,
+        560,
+        345,
+        330
+      ],
+      "layer": "timsah",
+      "sources": [
+        "t01"
+      ],
+      "actions": [
+        "timsah-names",
+        "timsah-answer"
+      ],
+      "phrase": "phrase-names",
+      "initialView": "traveller",
+      "kind": {
+        "ru": "Художественный вымысел",
+        "en": "Fiction",
+        "he": "בדיון"
+      },
+      "views": {
+        "traveller": {
+          "title": {
+            "ru": "Тимсах",
+            "en": "Timsah",
+            "he": "תמסח"
+          },
+          "text": {
+            "ru": "Знакомый маскот, заново написанный для иллюстрированного мира.",
+            "en": "The established mascot, repainted for this illustrated world.",
+            "he": "הקמע המוכר, באיור חדש לעולם המאויר."
+          },
+          "art": {
+            "sheet": "timsah-curious",
+            "frame": "full"
+          }
+        },
+        "names": {
+          "title": {
+            "ru": "Нахаль-Таниним · побережье Кармеля",
+            "en": "Nahal Taninim · Carmel coast",
+            "he": "נחל תנינים · חוף הכרמל"
+          },
+          "text": {
+            "ru": "INPA связывает название Нахаль-Таниним с крокодилами болот Кабара, жившими там до начала XX века. Река находится на побережье Кармеля, не в Иерусалиме.",
+            "en": "INPA links Nahal Taninim's name to crocodiles that lived in the Kebara marshes until the early twentieth century. The stream is on the Carmel coast, not in Jerusalem.",
+            "he": "לפי רשות הטבע והגנים, שם נחל תנינים קשור לתנינים שחיו בביצות כבארה עד ראשית המאה העשרים. הנחל נמצא בחוף הכרמל, לא בירושלים."
+          },
+          "art": {
+            "sheet": "timsah-inspect",
+            "frame": "full"
+          },
+          "badges": [
+            {
+              "ru": "Подтверждено источником",
+              "en": "Documented",
+              "he": "מתועד במקור"
+            },
+            {
+              "ru": "Тимсах — вымышленный путешествующий крокодил. Его открытка и биография придуманы; река и её история настоящие.",
+              "en": "Timsah is a fictional traveling crocodile. His postcard and biography are invented; the stream and its history are real.",
+              "he": "תמסח הוא תנין מטייל בדיוני. הגלויה שלו וסיפור חייו מומצאים; הנחל וההיסטוריה שלו אמיתיים."
+            }
+          ]
+        },
+        "answer": {
+          "title": {
+            "ru": "Не всё исчезает бесследно",
+            "en": "Not everything vanishes without a trace",
+            "he": "לא הכול נעלם ללא עקבות"
+          },
+          "text": {
+            "ru": "Я собираю названия. Иногда они помнят то, чего уже не видно.",
+            "en": "I collect place names. Sometimes they remember what we can no longer see.",
+            "he": "אני אוסף שמות. לפעמים הם זוכרים דברים שכבר לא רואים."
+          },
+          "art": {
+            "sheet": "timsah-revise",
+            "frame": "full"
+          }
+        }
+      }
+    }
+  }
+}

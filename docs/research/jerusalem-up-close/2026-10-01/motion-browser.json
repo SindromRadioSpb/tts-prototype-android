@@ -1,0 +1,459 @@
+{
+  "blinks": [
+    {
+      "blinks": {
+        "timsah": "half"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "timsah": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "timsah": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "timsah": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "timsah": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "timsah": "half"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "timsah": "half"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "nura": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "nura": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "nura": "closed"
+      },
+      "poses": {}
+    },
+    {
+      "blinks": {
+        "nura": "closed"
+      },
+      "poses": {}
+    }
+  ],
+  "walking": [
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          823.1912000145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          817.5242500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          814.6912000145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          811.8573000145914,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          806.1912000145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          803.3581500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          800.5251000145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          797.6920500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          792.0251000145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          789.1920500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          786.3590000145914,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          780.6920500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          777.8590000145914,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          775.0259500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-2",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          769.3590000145914,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-2",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          766.5259500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-2",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          763.692900014591,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-2",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          758.0268000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-2",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          755.1937500145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-2",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          752.3598500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          746.6937500145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          741.0268000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          738.1937500145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          735.3607000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          729.6946000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          726.8615500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-3",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          724.0276500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          718.3607000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          715.5276500145912,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          712.6946000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          707.0285000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          704.1954500145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-0",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          701.3624000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          695.6954500145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          692.8624000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          690.0293500145913,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          684.3624000145911,
+          865
+        ]
+      }
+    },
+    {
+      "pose": "walk-1",
+      "blinks": {},
+      "positions": {
+        "timsah": [
+          681.5302000145912,
+          865
+        ]
+      }
+    }
+  ],
+  "poses": [
+    "walk-0",
+    "walk-1",
+    "walk-2",
+    "walk-3"
+  ],
+  "rapidLightFinal": "day"
+}
