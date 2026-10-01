@@ -61,8 +61,8 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=712";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=712";
+  var CSS_URL = "/css/world-skin.css?v=713";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=713";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -1049,6 +1049,8 @@
     if (!state.pack.slots[slotName]) return;
     state.slotName = slotName;
     state.surface = surfaceForSlot(slotName);
+    // Visibility belongs to this mount, not the previously selected world's stage.
+    state.visible = true;
     el.hidden = false;
     var canvas = document.createElement("canvas");
     canvas.className = "lp-world-canvas";
@@ -1118,7 +1120,11 @@
       state.observers.push(ro);
     }
     if (typeof IntersectionObserver !== "undefined") {
-      var io = new IntersectionObserver(function (entries) { state.visible = entries[0].isIntersecting; });
+      var io = new IntersectionObserver(function (entries) {
+        state.visible = entries[0].isIntersecting;
+        // Paused/reduced-motion worlds have no RAF to paint when the stage reappears.
+        if (state.visible) drawOnce();
+      });
       io.observe(el);
       state.observers.push(io);
     }

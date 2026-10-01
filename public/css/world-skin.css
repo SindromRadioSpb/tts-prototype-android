@@ -226,12 +226,14 @@ html[data-world] .lp-world-sign[hidden] { display: none; }
 html[data-world] .lp-world-sign:focus-visible { outline: 3px solid #fff3b0; outline-offset: 2px; }
 html[data-world] .lp-world-sign-he { font-family: var(--lp-font-hebrew-reading, "Frank Ruhl Libre", serif); font-size: 1.0625rem; font-weight: 700; line-height: 1.2; }
 html[data-world] .lp-world-sign-tr { font-family: var(--lp-font-ui, system-ui, sans-serif); font-size: 0.875rem; font-weight: 600; line-height: 1.15; opacity: 0.85; }
-/* route: four stops as 44px controls with pixel icons on a dotted trail; the Studio's progress
-   is lit (done / current step), the stop where Timsah stands wears his head. Reads in UI direction. */
+/* route: four legible 44px stops on an opaque pixel panel. Underline the Studio's current
+   step; the stop where Timsah stands wears his head. Reads in UI direction. */
 html[data-world] .lp-world-route {
-  position: absolute; z-index: 2; left: 50%; bottom: 0; transform: translateX(-50%); margin: 0; padding: 0;
+  position: absolute; z-index: 2; left: 50%; bottom: 4px; transform: translateX(-50%); margin: 0; padding: 2px 4px;
   display: flex; gap: 6px; align-items: end;
-  background: repeating-linear-gradient(90deg, rgba(255, 246, 224, 0.7) 0 4px, transparent 4px 8px) no-repeat 22px 34px / calc(100% - 44px) 2px;
+  background: #20362f;
+  border: 2px solid #f0dfb2;
+  box-shadow: 3px 3px 0 #14251f;
 }
 [dir="rtl"] .lp-world-route { flex-direction: row-reverse; }
 html[data-world] .lp-world-route[hidden] { display: none; }
@@ -240,20 +242,20 @@ html[data-world] .lp-world-stop {
   border: 0; border-radius: 0; background: transparent; cursor: pointer;
   display: grid; place-items: end center;
 }
-/* one marker: Timsah's head replaces the icon of the stop he stands at; the Studio's progress is
-   shown by fill (reached stops full colour, the rest dimmed) — no second, competing marker */
+/* Keep every icon at full contrast; Timsah's head replaces the icon of his current stop. */
 html[data-world] .lp-world-stop-icon {
   display: block; width: 30px; height: 30px; background: no-repeat 0 0 / 30px 30px; image-rendering: pixelated;
-  opacity: 0.45; filter: saturate(0.4);
+  opacity: 1;
 }
-html[data-world] .lp-world-stop[data-state="done"] .lp-world-stop-icon,
-html[data-world] .lp-world-stop[data-state="here"] .lp-world-stop-icon { opacity: 1; filter: none; }
 html[data-world] .lp-world-stop-here {
   display: none; width: 30px; height: 18px; margin-bottom: 6px;
   background: no-repeat 0 0 / 30px 18px; image-rendering: pixelated;
 }
 html[data-world] .lp-world-stop[data-at="1"] .lp-world-stop-icon { display: none; }
 html[data-world] .lp-world-stop[data-at="1"] .lp-world-stop-here { display: block; }
+html[data-world] .lp-world-stop[aria-current="step"] { box-shadow: inset 0 -3px #f0dfb2; }
+html[data-world] .lp-world-stop[data-at="1"] { background-color: #3d5a48; }
+html[data-world] .lp-world-stop:hover { background-color: #3d5a48; }
 html[data-world] .lp-world-stop:focus-visible { outline: 3px solid #fff3b0; outline-offset: -3px; }
 /* Hebrew UI: the game title stays centred on the sky */
 html[data-world] .classic-screen-title { text-align: center; }
