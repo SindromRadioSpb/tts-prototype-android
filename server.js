@@ -208,19 +208,26 @@ app.set("trust proxy", 1);
 const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
 const AGENT_ACCESS_MCP_PATH = "/agent-access/mcp";
 const AGENT_ACCESS_TUTOR_MCP_PATH = "/agent-access/tutor/mcp";
+const AGENT_ACCESS_READ_TOGETHER_MCP_PATH = "/agent-access/read-together/mcp";
 // Sync-hardening P0 (§6.3, критика F2-2): artifacts/put выведен из-под глобального парсера —
 // state_bundle (кап 24 МБ) не влезает в 10mb, а auth/CSRF/consent обязаны отработать ДО
 // тяжёлого парса (тот же инвариант, что у webhook'а: unauth не должен заставлять сервер
 // парсить мегабайты). Роут монтирует свой 32mb-парсер ПОСЛЕ гейтов.
 const LEARNER_ARTIFACTS_PUT_PATH = "/api/learner/artifacts/put";
 const GROUP_CORPUS_IMPORT_RE = /^\/api\/group-corpora\/[^/]+\/import\/(catalog|backup)$/;
+const _readTogetherJson = bodyParser.json({ limit: "16kb" });
+app.use("/api/read-together", _readTogetherJson, (err, _req, res, next) => {
+  if (!err) return next();
+  res.set("Cache-Control", "no-store");
+  return res.status(err.type === "entity.too.large" ? 413 : 400).json({ok:false,error:err.type === "entity.too.large" ? "RT_TOO_LARGE" : "RT_INVALID"});
+});
 const _tutorJson = bodyParser.json({ limit: "40kb" });
 app.use("/api/tutor", _tutorJson, (err, _req, res, next) => {
   if (!err) return next();
   res.set("Cache-Control", "no-store").status(err.type === "entity.too.large" ? 413 : 400).json({ok:false,error:"invalid_request"});
 });
 const _globalJson = bodyParser.json({ limit: "10mb" });
-app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, AGENT_ACCESS_TUTOR_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) || GROUP_CORPUS_IMPORT_RE.test(req.path) ? next() : _globalJson(req, res, next)));
+app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, AGENT_ACCESS_TUTOR_MCP_PATH, AGENT_ACCESS_READ_TOGETHER_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) || GROUP_CORPUS_IMPORT_RE.test(req.path) ? next() : _globalJson(req, res, next)));
 
 // ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
 // index.html is inline-script/style heavy, so we can't enforce a strict CSP
@@ -1177,6 +1184,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/tutor-client.js?v=2",
   "/js/tutor-notebook.js?v=3",
   "/js/tutor-panel.js?v=9",
+  "/js/read-together.js?v=1",
   "/js/tutor-practice.js?v=2",
   "/db/db-worker-runtime.js?v=545",
   "/db/sqlite-api.js?v=531",
@@ -1950,6 +1958,13 @@ function requireCsrf(req, res, auth) {
   return true;
 }
 
+const readTogetherStore = require("./agent/readTogether/store").createStore({
+  liveConnection: require("./agent/readTogether/consentGuard").createConsentGuard({
+    oauthRepo: require("./db/agentAccessOAuthRepo"), getDb: () => require("./db/sqlite").getDb(),
+  }),
+});
+require("./agent/readTogether/routes").installRoutes(app,{store:readTogetherStore,requireUser,requireCsrf,limiter:makeRateLimiter({windowMs:60000,max:120,name:"read-together"})});
+
 // M1 BYOA: explicit selected-fragment transport, independently gated from legacy AI.
 // Cookie writers use the existing identity/CSRF boundary; connector credentials
 // authorize only this transport, never MCP or canonical learning writers.
@@ -2167,7 +2182,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         repo: agentAccessOAuthRepo,
         issuer: agentAccessDeployment.ISSUER,
         resource: agentAccessDeployment.RESOURCE,
-        allowedClientIds: agentAccessDeployment.FIXTURE_CLIENTS.map((client) => client.client_id),
+        allowedClientIds: require("./agent/access/approvedClients").deploymentClients().map((client) => client.client_id),
         allowedOwnerIds: ownerIds,
       });
       // C4-PRE: production handlers are created only after every exact-1 gate,
@@ -2202,7 +2217,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         textGrantsRepo: require("./db/agentTextGrantsRepo"),           // S2: standing-грант владельца
         groupCorpusRepo: require("./db/groupCorpusRepo"),             // restricted corpus; ACTIVE membership on every read
         weeklyGoalsRepo: require("./db/weeklyGoalsRepo"),             // H2.3 server-authoritative weekly goals
-        tutorMcpStore,
+        tutorMcpStore, readTogetherStore,
         publicPublicationReadService: createPublicPublicationReadService({
           rightsRepo: getPublicationAgentRightsRepo(),
           physicsRepo: getPhysicsTaskResourceRepoForAgentAccess(),
@@ -2254,6 +2269,11 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
 app.all(AGENT_ACCESS_MCP_PATH, createMcpDefaultOffGate({
   getRuntime: getAgentAccessMcpRuntime,
   resolveFlags: () => agentAccessFlagResolver.resolve(),
+}));
+app.all(AGENT_ACCESS_READ_TOGETHER_MCP_PATH, createMcpDefaultOffGate({
+  getRuntime: getAgentAccessMcpRuntime,
+  resolveFlags: () => agentAccessFlagResolver.resolve(),
+  path: AGENT_ACCESS_READ_TOGETHER_MCP_PATH,
 }));
 app.all(AGENT_ACCESS_TUTOR_MCP_PATH, createMcpDefaultOffGate({
   getRuntime: getAgentAccessMcpRuntime,

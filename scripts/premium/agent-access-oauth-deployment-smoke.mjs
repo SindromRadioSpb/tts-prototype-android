@@ -313,7 +313,8 @@ try {
   readinessChild.stdout.on('data', (value) => readinessLogs.push(String(value)));
   readinessChild.stderr.on('data', (value) => readinessLogs.push(String(value)));
   let ready = false, lastHealth = '';
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  // Windows cold startup measured 10.753s. Keep readiness bounded and assert the same health invariant.
+  for (let attempt = 0; attempt < 300; attempt += 1) {
     try {
       const health = await rawRequest(readinessOrigin, '/healthz'); lastHealth = health.body;
       if (health.status === 200 && JSON.parse(health.body).migrations?.ready) { ready = true; break; }

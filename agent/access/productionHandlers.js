@@ -734,6 +734,10 @@ function createProductionHandlers(options = {}) {
   }
 
   return Object.freeze({
+    read_active_reading_session: (context,args) => options.readTogetherStore.agent(context,"read_active_reading_session",args),
+    get_reading_session_fragment: (context,args) => options.readTogetherStore.agent(context,"get_reading_session_fragment",args),
+    propose_reading_session_action: (context,args) => options.readTogetherStore.agent(context,"propose_reading_session_action",args),
+
     get_learning_brief,
     get_review_summary,
     search_public_reading_catalog,

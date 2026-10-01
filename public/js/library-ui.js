@@ -8499,6 +8499,7 @@ function productPulseRoomMediaFacts(textRow, rows) {
 }
 
 async function openReader(textId, title, opts) {
+  await window.LPReadTogether?.stop();
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
   const presentationRestore = !!(opts && opts.presentationRestore);
@@ -8565,6 +8566,12 @@ async function openReader(textId, title, opts) {
     if (HEBREW_RE.test(readerTextTitle)) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
   }
   readerTextKey = (res && res.text && res.text.text_key) || null;
+  if (mount && window.LPReadTogether) window.LPReadTogether.mount({
+    mount, locale: (document.documentElement.lang || "ru").split("-")[0],
+    get: () => ({materialKey: readerTextKey || String(textId), rows: readerRows, mediaPassport: roomMediaAudio}),
+    navigate: i => scrollToReaderRow(i),
+    highlight: i => { mount.querySelectorAll(".rt-highlight").forEach(e => e.classList.remove("rt-highlight")); mount.querySelector(`tr[data-row-idx="${i}"]`)?.classList.add("rt-highlight"); },
+  });
   // CLG-P6.2 — own vs corpus (то же правило, что listOwnTextsForSync/maybeNudgeNiqqud):
   // корпусные работы не живут в artifact-store → объяснение наставника недоступно by-design.
   readerIsOwnText = false;
@@ -8704,6 +8711,7 @@ function jumpToFtsMatch(q, loadedProgress) {
 }
 
 async function closeReader(options) {
+  window.LPReadTogether?.detach();
   // BRR-P2-002 — flush the last deliberate working position synchronously BEFORE hiding
   // (the 800ms debounce may not have fired if Back is tapped quickly), then stop recording.
   const tid = readerTextId;

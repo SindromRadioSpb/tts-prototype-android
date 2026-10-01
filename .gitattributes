@@ -29,3 +29,8 @@ docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-request-
 docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-resume-ledger.template.json text eol=crlf
 docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-sample-manifest.json text eol=crlf
 docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-verification.json text eol=crlf
+# These are byte-verified inputs to the shipped iPhone helper archive.
+# Keep the same LF bytes on Windows; do not weaken the archive/source comparison.
+scripts/premium/iphone-downloader/__main__.py text eol=lf
+scripts/premium/iphone-downloader/http_ui.py text eol=lf
+scripts/premium/iphone-downloader/runner.py text eol=lf

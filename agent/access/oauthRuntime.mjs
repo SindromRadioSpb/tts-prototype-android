@@ -4,6 +4,7 @@ import consentModule from './consentCeremony.js';
 import capabilityModule from './capabilities.js';
 import oauthContracts from './oauthContracts.js';
 import deploymentContracts from './oauthDeploymentContracts.js';
+import approvedClients from './approvedClients.js';
 import { createB0ProviderAdapter } from './oidcB0Adapter.mjs';
 import { createOidcDeployment } from './oidcDeployment.mjs';
 import { loadSigningJwksFromJson } from './oauthSigningKeys.mjs';
@@ -55,7 +56,7 @@ export async function createDefaultOffOAuthRuntime({
     privateJwks: keyset.private_jwks,
     cookieKeys,
     Adapter: b0.Adapter,
-    clients: deploymentContracts.FIXTURE_CLIENTS,
+    clients: approvedClients.deploymentClients(),
     findAccount,
     interactionUrl: (requestContext, interaction) => `${issuer}/interaction/${interaction.uid}`,
     principalForToken,

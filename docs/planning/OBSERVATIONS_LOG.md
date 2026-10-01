@@ -10,6 +10,13 @@
 
 ---
 
+## O-053 · Windows aggregate: research builder меняет tracked manifest
+- **Дата / где:** 2026-10-01, локальный `npm test`, `tests/physicsLearningDerivatives.test.js`, worktree `feat/read-with-dot`.
+- **Что видно:** aggregate запускает research builder в tracked artifacts; после успешного теста `docs/research/physics-learning-derivatives/2026-08-27/artifacts/manifest.json` имеет diff 5/5 (hash/byte size). На Windows источники с CRLF влияют на byte-derived manifest; другие generated Markdown дают только EOL/stat status. Это не изменение продукта «Читать вместе».
+- **Почему важно:** зелёный aggregate оставляет посторонний diff; широкая очистка может уничтожить работу соседнего агента.
+- **Предложение:** запускать проверку builder в отдельной временной output directory и определить canonical EOL для byte-derived inputs. В текущей сессии восстановлен только доказанно созданный тестом manifest, остальные файлы не очищались.
+- **Статус:** открыто; исправление research harness не входит в локальный сценарий совместного чтения.
+
 ## O-052 · Студия: недочёты Classic, найденные визуальным критиком миров
 - **Дата / где:** 2026-09-30, Студия (Classic), 380 и 1280 px; найдено независимым критиком по скриншотам при работе над LinguistPro Worlds (`docs/research/linguistpro-worlds/2026-09-30/critic-r1`). Все пункты воспроизводятся и **без** мира (baseline `…/baseline/`).
 - **Что видно:**
