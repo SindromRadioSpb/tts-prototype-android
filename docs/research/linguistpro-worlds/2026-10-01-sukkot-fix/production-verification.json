@@ -1,0 +1,618 @@
+{
+  "date": "2026-10-01T09:47:04.455Z",
+  "version": "3.11.713",
+  "commit": "d187804e",
+  "evidence": "PRODUCTION_READ_ONLY",
+  "assets": [
+    {
+      "url": "/tutor-connect.html",
+      "sha256": "55704f46e3b7ed27ced218d00ff9258bbb90271fc09ef2fe4a097625a4942864"
+    },
+    {
+      "url": "/css/tutor-connect.css?v=1",
+      "sha256": "b374803968a657b979123faca87e1f10e6e3bda56317802cdeaee05e7e014702"
+    },
+    {
+      "url": "/js/tutor-connect.js?v=1",
+      "sha256": "790f143e68a889c03250b0840035f39e230e0d643a94e559d83c54593c692cfe"
+    },
+    {
+      "url": "/js/tutor-client.js?v=2",
+      "sha256": "14ba495e10b67836b5429b04681e4acc2224ec9855994ab90ac722cbfbdeaf5e"
+    },
+    {
+      "url": "/js/tutor-notebook.js?v=3",
+      "sha256": "3e7b56afdfa702e409ee3e90768b7e59a064ce1b0666d196e53166b9133d0cdb"
+    },
+    {
+      "url": "/js/tutor-panel.js?v=9",
+      "sha256": "4b5c12721325051b410a133d52716d707dd2a8f0c401ffa4dfe6c65924a9e702"
+    },
+    {
+      "url": "/js/tutor-practice.js?v=2",
+      "sha256": "28d8916912cfc5e7da3d6b813f6879000fdfee58d7d18337a0f4b79499f48111"
+    },
+    {
+      "url": "/db/db-worker-runtime.js?v=545",
+      "sha256": "4b5d6c3f1c893370cbb94a39dffff925447a1a94f26ebb60646167e99f775b7b"
+    },
+    {
+      "url": "/db/sqlite-api.js?v=531",
+      "sha256": "00fadb92c3b508daf681eb4109058db3a6dfe526bf7a2d38928fdb6ad4f4a319"
+    },
+    {
+      "url": "/db/operation-lease.js?v=542",
+      "sha256": "930825857b10e15b4bec090326a6c33fed3eebe7afebd11afef1888a26b56e47"
+    },
+    {
+      "url": "/db/IDBBatchAtomicVFS.js?v=543",
+      "sha256": "c45feecb2c8bd44d13e1cb56bcaa934c40b9b469ec6ede390edde2556dc72dae"
+    },
+    {
+      "url": "/db/IDBContext.js?v=543",
+      "sha256": "0fd5499f4d2e02f00c4ea0d61210f342e2561962efce26e3c5af0f78088e5a05"
+    },
+    {
+      "url": "/db/operation-lease.js",
+      "sha256": "930825857b10e15b4bec090326a6c33fed3eebe7afebd11afef1888a26b56e47"
+    },
+    {
+      "url": "/db/runtime-diagnostics.js",
+      "sha256": "8170fb0a36dc670b0841eaf77360ceed2f8c4b1115243851b43f7d9953e2be88"
+    },
+    {
+      "url": "/db/runtime-diagnostics.js?v=544",
+      "sha256": "8170fb0a36dc670b0841eaf77360ceed2f8c4b1115243851b43f7d9953e2be88"
+    },
+    {
+      "url": "/db/diagnostic-journal.js?v=545",
+      "sha256": "d576f339312e7288198687d621f5f1297a856899db8fecd815cbcee7c8a0ab4c"
+    },
+    {
+      "url": "/db/diagnostic-page.js?v=547",
+      "sha256": "c0d4b6c687e31d29eeb99bf9110395fafbc2fe3e1e091102ce35826eda547f90"
+    },
+    {
+      "url": "/db-diagnostics.html",
+      "sha256": "678e2827a83b9f5a1e5128f792df0eece656908c57de23e2cca4b83bb2c11872"
+    },
+    {
+      "url": "/db/storage-identity.js",
+      "sha256": "6bdfa5874a8b2493ae169c6558840b995e2be1af12f40b1b5b20de7cf5eaa616"
+    },
+    {
+      "url": "/db/AccessHandlePoolVFS.js",
+      "sha256": "c82923f67358603c116f39ecb87c3fdb54c837738e6d3798c4e2b4343a68f34a"
+    },
+    {
+      "url": "/db/IDBBatchAtomicVFS.js",
+      "sha256": "c45feecb2c8bd44d13e1cb56bcaa934c40b9b469ec6ede390edde2556dc72dae"
+    },
+    {
+      "url": "/mediatheque.html",
+      "sha256": "502fa3f27baad129d3b45f114cd435000c1610c0de7a1cb15a7bc34acfb685af"
+    },
+    {
+      "url": "/css/mediatheque.css?v=695",
+      "sha256": "edab9c4b11b00b525e8e35e71018acfb9ec252c96bd82c00e024a0c50e8fa97f"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=695",
+      "sha256": "f235928d656b216dbc125e68cfc151fff1660e51faf9d8d14c68ad79b1893d88"
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "sha256": "19361a18d5efe3a6c649e6685d0aae1ae3012b395195d9e4e9fe2f13c87e4042"
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "sha256": "d8d2ec312d21b8191f52aeb0d5635f6886afe2efa64ebe772ef9f7ab593c47bb"
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "sha256": "224bdcf3bd7b79b879b8902a5b76ea677494fa90158807982f11e1c827b96861"
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "sha256": "4c0aefa9b1c7a4c5db030e0f7595d9eb358f5d5ac7f6e4a5cca345ad85f31b9a"
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "sha256": "88b3ec51ebf9c3c7a312d144809bf4b73708e67eccc60ce4e6c402e831bc7abe"
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "sha256": "757ee04103168073347cd26bb0552e00a2638195bf2396742c21043f2e5388dc"
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "sha256": "d8a429d04cb153658882b04163ddf3a419be9328bc5507840534c3a5b81d68b1"
+    },
+    {
+      "url": "/db/wa-sqlite.mjs",
+      "sha256": "3a3dfad37c128c2079ce88afff3f1cf461516868162c33a5adb6ad6c2d34fb87"
+    },
+    {
+      "url": "/db/wa-sqlite.wasm",
+      "sha256": "5384bc7d80d7981c2516f3ad6b02d886629985d178e5037e765d655f440bbf9f"
+    },
+    {
+      "url": "/db/wa-sqlite-async.mjs",
+      "sha256": "8fb02f20ba95fb9ca6cf9a57fa444c2b2d0925588eb8e7bdd95a4b01de71ff86"
+    },
+    {
+      "url": "/db/wa-sqlite-async.wasm",
+      "sha256": "91376096fe56ddd9594db83074704f08fc2566edea2cb121aa624f72a67a86b5"
+    },
+    {
+      "url": "/study-studio.html",
+      "sha256": "bae5299d792c49fad3f670387bddddc1cd911ed9889a8c5dd3bb551f76ceed58"
+    },
+    {
+      "url": "/study-library.html",
+      "sha256": "caf8fd71defcc4f78f7e44839e981fcbf2e27934d2631c61f6020f67fce19316"
+    },
+    {
+      "url": "/study-video.html",
+      "sha256": "554090670874a94c1974f59e85e125ab6032d3e98cf8a589d26012d94547f9ad"
+    },
+    {
+      "url": "/css/study-video.css",
+      "sha256": "cccbe7a22cec775f33085a3b5ab821e67d10d18c59ab0d983abcbd3dd6d0b98f"
+    },
+    {
+      "url": "/css/study-video-source.css?v=629",
+      "sha256": "6e240a6249d917bb126fcc31d53a8e9d2fcf327fc69981c71289ac78a48d20be"
+    },
+    {
+      "url": "/js/playback-source.js?v=624",
+      "sha256": "33e2fc2d0703950ab792f91d14924e9448efd1f23d43211b397fc507afd1e763"
+    },
+    {
+      "url": "/js/youtube-timing.js?v=593",
+      "sha256": "555ffcde20f96bfc25dea626795028142139f6e3e79d2459703a226115adeccf"
+    },
+    {
+      "url": "/js/youtube-full-timing.js?v=557",
+      "sha256": "67c9fc0a3dc691db6447f9c3cccd210947bac5aa12cb4503844b457bc0dd9e20"
+    },
+    {
+      "url": "/js/study-timing-repair.js?v=616",
+      "sha256": "2563d06d8bd14149ff12014049d9f5a22aa58d438bfeb9adae0c2a9ee8df48fd"
+    },
+    {
+      "url": "/js/studio-media-package.js?v=676",
+      "sha256": "4ed82700e25c7b8b7aa8ac3eff1ad62b1d6cdcfa423f0fbd917f227cfea1e0b5"
+    },
+    {
+      "url": "/js/media-package-repository.js?v=587",
+      "sha256": "cc38d4247bf6abc98958695ec5337c77f316ca897371056d0c73e65bce4bcd7e"
+    },
+    {
+      "url": "/js/media-bundle-core.js?v=575",
+      "sha256": "5ee5852c3fd75db011c6f6769123a4f8116595933b189112ec66471333ae734e"
+    },
+    {
+      "url": "/js/media-stream-store.js?v=584",
+      "sha256": "8170f0d20790caf9aabfe3854ecbe452a73e51abe60fca812c06712c2a0eab98"
+    },
+    {
+      "url": "/js/material-revision-repository.js?v=553",
+      "sha256": "03c4900a19749b5638d86f9c223b4ae8c4d9e539e21fbdda03e2e2052ac5ff9e"
+    },
+    {
+      "url": "/js/study-video-transfer.js",
+      "sha256": "79dd84b949ae6256a37cdac15d0431137d6b439c272ad1ff950de7726442202c"
+    },
+    {
+      "url": "/js/study-video.js",
+      "sha256": "1b501a113e7893c9faa33f18ff6d2ce822e210b960520066132a53d508d4f63b"
+    },
+    {
+      "url": "/js/subtitle-row-language.js?v=582",
+      "sha256": "705bb98627d5b96e6505c294e6454347f9841b1beebbece434b44daae38d9ffe"
+    },
+    {
+      "url": "/js/subtitle-timing-status.js?v=587",
+      "sha256": "a8dcf44651100bf38da59301477106cb65b48d4ea377df215de9366c34a22c2a"
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=635",
+      "sha256": "ab974a55adab6b52e78027f07cc3abe79133c7ccf9b90994a9f1da6e7e223250"
+    },
+    {
+      "url": "/js/youtube-asr.js?v=593",
+      "sha256": "dfc2289e419e9b4e73af0b4bf8215eda52b8ee0508283618b244e9f966e8b75a"
+    },
+    {
+      "url": "/js/table-source-recovery.js?v=551",
+      "sha256": "2ff5366087a55b0b97acbb22a3ab9f4b7a38a16428db254769b9edb0c146b2a3"
+    },
+    {
+      "url": "/js/learning-material-task.js?v=633",
+      "sha256": "c2b273127e96fd21aa0ec5adb617fb12e4857f1c7f55a0b03991aa8a0a61ad75"
+    },
+    {
+      "url": "/js/learning-material-task-ui.js?v=633",
+      "sha256": "b14abe9e54486216e49d267e91d082401bb43b3dd653416cfaedce92c1d4178f"
+    },
+    {
+      "url": "/js/studio-yt-player.js?v=506",
+      "sha256": "e43c840a47c2d3267715456199e73d7693436f3534979fc37ac706036f00803e"
+    },
+    {
+      "url": "/js/studio-media-karaoke.js?v=662",
+      "sha256": "d07f2e7a1de66351aaccf9a114ecbef8d5ba1dcd1252435fddd75fcebae9b27d"
+    },
+    {
+      "url": "/js/portable-learning-package-core.js?v=688",
+      "sha256": "279ffcd525780daf8b1eaf874b0aa851d63fce75cecfaa923242ea3414e14a7c"
+    },
+    {
+      "url": "/js/portable-learning-package-repository.js?v=576",
+      "sha256": "55a207199b2a34c714d589a3357350d5bb840db81a92b33bc856872949ac241b"
+    },
+    {
+      "url": "/js/import-center-core.js?v=527",
+      "sha256": "ee784fed0b1987f534f9b20e971c6fa4ba884e50d31743b0fb5c06de8941e24b"
+    },
+    {
+      "url": "/js/text-card-format.js",
+      "sha256": "c0941032b6ac06a6f5b94273466f54335ae39cb60d1c51bdcfdfffd8a0f6f6aa"
+    },
+    {
+      "url": "/js/studio-import.js?v=685",
+      "sha256": "2aa93dbc51ff152561bb0c96c952fe36e767b812d76c8a5df55b923014f224c8"
+    },
+    {
+      "url": "/js/local-asr-client.js?v=675",
+      "sha256": "42a8a0188dd494477e38e299b6249f613a243d3c5305bd0ecf2830f8e5ac9c95"
+    },
+    {
+      "url": "/js/subtitle-material-core.js?v=684",
+      "sha256": "d815e1dda976649d12f349e375606969ba0c387412b145645f8c8079d0da5155"
+    },
+    {
+      "url": "/js/subtitle-material-import.js?v=584",
+      "sha256": "ce31c2650df87e47d562fbf655e0d4ca2adbb0d45d16e9c9791a35a745f06e7a"
+    },
+    {
+      "url": "/js/media-readiness.js?v=671",
+      "sha256": "4195c9641bc6b18f3cae2a809200731641f6a087da7d521a10127b7e28e58742"
+    },
+    {
+      "url": "/js/local-translit-bundle.js?v=688",
+      "sha256": "aafbf391c6bc0d99b98b6fb9dc063a44dea70de7378535586891596cd8811529"
+    },
+    {
+      "url": "/js/translit-display.js?v=680",
+      "sha256": "ad77a72c1f8e6f0612ee50b6c89a50a575388cc8c1049bd41929f0ee276a8e06"
+    },
+    {
+      "url": "/js/subtitle-material-vocalization.js?v=686",
+      "sha256": "2d97271c75c02d7668888eb2cb11949a3f354ccce5f7e2d66cb8faf3379717e3"
+    },
+    {
+      "url": "/js/niqqud-plausibility.js?v=685",
+      "sha256": "763ba5aeda6d17c48e0524dd8b0cfefecaa943910b2a42cf88b3711588b4fc19"
+    },
+    {
+      "url": "/js/niqqud-suspect-marks.js?v=685",
+      "sha256": "1b267cc4aeb5224b82f78c014b4f90e49e4a216497bb8165e0f223772d39acdb"
+    },
+    {
+      "url": "/js/material-progress-ladder.js?v=685",
+      "sha256": "c49740a37689de97db3467048515e1709b284188ae324b1c1c750f523f5a9c5a"
+    },
+    {
+      "url": "/js/iphone-downloader-core.js?v=1",
+      "sha256": "c2842fe6e1bfce4aab712a54fc04bb354f00c488a93773d8abbec8ff0927b393"
+    },
+    {
+      "url": "/js/iphone-downloader-entry.js?v=1",
+      "sha256": "52bafb114b1b593bbd250bb8e296943a3e15e92a13c052a89e882e8d993ce573"
+    },
+    {
+      "url": "/download-media.html",
+      "sha256": "dda451f9739a42fb37cb4e7f5951eaf1f18c403c07d94c5cb4e34068720c4290"
+    },
+    {
+      "url": "/css/iphone-downloader.css?v=1",
+      "sha256": "7c4ca57615123596904f0fd13b641e33fb5993ffaa6d5dd434b434474da09e55"
+    },
+    {
+      "url": "/js/iphone-downloader.js?v=1",
+      "sha256": "faf7a4a6ae13cbe3b92318ea133646e1b908f3790d4a3453fa637e473e294191"
+    },
+    {
+      "url": "/js/iphone-downloader-release.js?v=1",
+      "sha256": "02b2d754ceb8351f91f6fc893d94f4ed1d849990ef5e1fd143c4b766267748a1"
+    },
+    {
+      "url": "/css/catalog-discovery.css?v=643",
+      "sha256": "17f03227d709527129e9f4dac40338d61162bf93e9fc6cd3915226ff1bdebd1d"
+    },
+    {
+      "url": "/js/catalog-discovery-core.js?v=485",
+      "sha256": "bcf1d8e2f72eb4bbc66a1b008b0b81b48104802915d14e847a74804e85fe74a1"
+    },
+    {
+      "url": "/js/catalog-discovery-ui.js?v=485",
+      "sha256": "41c85b3daaf7d24acd7022a97c304978eea3098a3494dc175aac97a0ab524d56"
+    },
+    {
+      "url": "/js/local-text-familiarity.js?v=669",
+      "sha256": "aa87fa9bac6ccbaac1a590d37ddbf8ecaa5e3027705e549704090f50a82961bf"
+    },
+    {
+      "url": "/js/studio-library-discovery.js?v=486",
+      "sha256": "88e60104ab8462f2c42632d766df22dfcfc9306eddec924930efc1490e05256b"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "bae5299d792c49fad3f670387bddddc1cd911ed9889a8c5dd3bb551f76ceed58"
+    },
+    {
+      "url": "/js/studio-portable-learning-package.js?v=630",
+      "sha256": "07d0afbebe6bc1abc9ed8b11b25fa50b6b735b49b95fab5c3d9964db86d85dd4"
+    },
+    {
+      "url": "/js/media-rebind-core.js?v=677",
+      "sha256": "75b67820293f9d8c94e2b176f99c7a0f3174b36d350f0cebf79793818840dc65"
+    },
+    {
+      "url": "/js/media-rebind-ui.js?v=677",
+      "sha256": "fe93e42d6b9c84bc396046d977edc1b1fab4fbc7684bc355061c8e86e6120b69"
+    },
+    {
+      "url": "/js/studio-media-editor.js?v=628",
+      "sha256": "46418bd5a7ee64cf3f9361ae911da4cafb67e91507e6eb0e75de4fe5776e3ce4"
+    },
+    {
+      "url": "/js/learning-compass-core.js",
+      "sha256": "fdddb2fe35531b6adb28cc61e4eb940e88a2dfc865718e9178c8e16513313fa7"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "caf8fd71defcc4f78f7e44839e981fcbf2e27934d2631c61f6020f67fce19316"
+    },
+    {
+      "url": "/js/library-ui.js?v=704",
+      "sha256": "2566a86b28f5812c148b4c37533c23e1a9a9e367ef7f43110af79bc9d9c33c7f"
+    },
+    {
+      "url": "/js/train-queue.js?v=461",
+      "sha256": "43dca475af192043189f0064fafe88e7d15f5d55e0c2c91117a8c1c8074df129"
+    },
+    {
+      "url": "/js/retention-report.js?v=461",
+      "sha256": "52af47579c1afe13c61a950830d8644550417d0df273b9ca47c3c4443f59ed86"
+    },
+    {
+      "url": "/js/corpus-item-presenter.js?v=419",
+      "sha256": "653b7f14e1ba65f6423654b7fa56c2ed4de00d2ddcbc4e48d3120b10b9d8ba5f"
+    },
+    {
+      "url": "/css/publication-center.css?v=643",
+      "sha256": "cf7665a7d15b87278cad96c0b8c50b454c20718add9c56fb2dffac0ff14f8ebf"
+    },
+    {
+      "url": "/js/publication-center.js?v=520",
+      "sha256": "45ba6ba483dfdc5830572430f351443cabaccd8a027e0bd98a5e42174e1eadd6"
+    },
+    {
+      "url": "/js/public-corpus-adapter.js?v=486",
+      "sha256": "f0a507e265f3f03fa90879c69c77451ac22fa6168a9f4d62178cc7ae85b52483"
+    },
+    {
+      "url": "/js/reader-morph.js?v=685",
+      "sha256": "d5fba6ac130c5cb2567cf3339a4b613966debc8c4643ea927b0e4ad55db753f5"
+    },
+    {
+      "url": "/js/public-word-audio.js?v=453",
+      "sha256": "61e4e5039f90efc91a5b8045d7c861ca43ac0a404ef14fbe4588f3324140d27d"
+    },
+    {
+      "url": "/js/morph-host.js?v=648",
+      "sha256": "bf75c4ea957fa9abeae52da970ba777183f72207ac278b5307d3c0a37ea8b256"
+    },
+    {
+      "url": "/js/room-b6-core.js?v=485",
+      "sha256": "1da2c6e78350ebd4ab6af66523ee0f8ca6d6fde71ce61d66282f59fe575fa318"
+    },
+    {
+      "url": "/db/local-db.js?v=669",
+      "sha256": "579b0d3e24cee1d5114c47d112348b8293b38c3e98752773a0534bb017b308ae"
+    },
+    {
+      "url": "/db/migrations.js",
+      "sha256": "5df5252b4f69c4ce793002077fdbe412d5db4707d1223303d532f99847098fd5"
+    },
+    {
+      "url": "/db/db-worker.js",
+      "sha256": "126c6596e985de28cb9b38ae2a4ea3b3e03657684d64e73ed1d2574ffc0cf79e"
+    },
+    {
+      "url": "/db/vfs-order.js",
+      "sha256": "c321d64a4324be820383a81e3825c1949b0a2e293b96a52cdc0ea26996bf31fe"
+    },
+    {
+      "url": "/js/mentor-connection-core.js?v=414",
+      "sha256": "f4806223d7a6c1ec6313185d1533387238e38c1c893fed8d3fe4edd55dab2eb2"
+    },
+    {
+      "url": "/js/mentor-home.js?v=414",
+      "sha256": "1915bb6217f5b9c0862535c7f5d77e9a3107077c27d0256789ba019d97e35b29"
+    },
+    {
+      "url": "/js/reader-core.js?v=680",
+      "sha256": "b2dd52a662b4f88cd71854279518424786214edec1515a6dde98cb58cb34b00c"
+    },
+    {
+      "url": "/css/reader-core.css?v=661",
+      "sha256": "2e43af8f51dfab648969cf754a8161471a56c68fe11e11169633c561a847711a"
+    },
+    {
+      "url": "/css/reader-morph.css?v=643",
+      "sha256": "a23ea12662cfdc8420b9a8175ec8ad327e233c49469b31aa4e21569318148922"
+    },
+    {
+      "url": "/css/lexical-resolution.css?v=6",
+      "sha256": "efd275205b013ed8225b4d04739aaea1533cfa7f628a067e03ce691107ce3098"
+    },
+    {
+      "url": "/js/inflection-render.js?v=1",
+      "sha256": "33db1a8becce49da383b862029488275225b2327b01a7ee03a5c28f454308892"
+    },
+    {
+      "url": "/js/obsidian-lexical-preview.js?v=10",
+      "sha256": "86066ce4c7e4b51c581b89a6004a1568a8d57f9f443f5d88b9c682d72eb7ebbd"
+    },
+    {
+      "url": "/js/lexical-resolution-core.js",
+      "sha256": "267c74b96c7c18a68860d7c18e2f0ac3a46b86511cb57cecb082854f28e55dc7"
+    },
+    {
+      "url": "/js/pealim-identity-overrides.js",
+      "sha256": "0a3f320b162948fac60ed5e9233d148ab02946a6d49c2ed45038f8b30616e428"
+    },
+    {
+      "url": "/js/lexical-resolution-repository.js",
+      "sha256": "68f6e652e819d43418f12bf20c15bb1b95a9b61a524b6371c766b8839aed0dcc"
+    },
+    {
+      "url": "/js/lexical-resolution-service.js?v=5",
+      "sha256": "58ce6c60a13f0c32cb782db435c04de7012df52f498cc4e44b8d88d57f81289a"
+    },
+    {
+      "url": "/js/lexical-resolution-ui.js?v=12",
+      "sha256": "182a4fe9f64ed46a0ca6da3ea6e47951e0d2295c6a8d0133c0971ecd8a7d5f5c"
+    },
+    {
+      "url": "/js/material-actions.js?v=1",
+      "sha256": "97ceac920c676d2af70b3d736c42a22d675fc858a449bf9870801fe195e09ead"
+    },
+    {
+      "url": "/js/table-presets.js?v=638",
+      "sha256": "932202433f591a7e2fe3b9476cd8801d16ee02fd20983b5e03f9dd8f5f1a9ef3"
+    },
+    {
+      "url": "/js/world-boot.js?v=713",
+      "sha256": "e72aa762f7ab90a3d9fe37b5ba2df1231300b8f052cb415858ad4d8122f0fee2"
+    },
+    {
+      "url": "/js/world-engine.js?v=713",
+      "sha256": "ba4bc4c20c0d572e5dae62cc301132c82c1ef1f9fcfb9d4ec1d38d1e133cf0b5"
+    },
+    {
+      "url": "/js/world-render.js?v=713",
+      "sha256": "ddf8c60d4c19fc102d52aef5fc02e1a3d2de20b46a740d5e78b844fb55c813b5"
+    },
+    {
+      "url": "/css/world-skin.css?v=713",
+      "sha256": "aaf308ed0ca72e0428680b03a32ee70d702bfc3444cdd667ee318777da714c13"
+    },
+    {
+      "url": "/js/app-nav.js?v=645",
+      "sha256": "f989a6c522ad553b077a0d26077a34e32812667e86ab1eb419763dff3e9d8073"
+    },
+    {
+      "url": "/js/app-footer.js?v=669",
+      "sha256": "d2b8b84b0102a238c5ba610e800636e837e6cc31f71bdceffcb30567049f4d80"
+    },
+    {
+      "url": "/js/original-title.js?v=657",
+      "sha256": "44445264cc276a6c624e4302dba5a75f86982973706c8ea7b29b61a1e5db43d6"
+    },
+    {
+      "url": "/css/app-nav.css?v=653",
+      "sha256": "fe9306462ae74c29541e17c434add67939dc97ab19f8125560229dc0ba635169"
+    },
+    {
+      "url": "/js/media-host.js?v=662",
+      "sha256": "2bb5cfec88174b03964f4c84bbea63ca02a89e210c9317fd3199c258adcdcf3e"
+    },
+    {
+      "url": "/js/lesson-artifact.js",
+      "sha256": "7b01aaf931fb9a841a0e58b32ed4af15b77d00adafeaa6ff986c0a6358b2895f"
+    },
+    {
+      "url": "/js/table-niqqud-normalizer.js?v=429",
+      "sha256": "acc92677f99cd99bc9bcbc80bac566a93066c7f6d042a338aaaf38231a00612b"
+    },
+    {
+      "url": "/js/product-telemetry.js?v=669",
+      "sha256": "b1cf206bcdc98716b8016d8dfb756c24c7aa17ebb3385877e71a19b730bf5645"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=280",
+      "sha256": "c611a4d3c269a426d58bce9d4f2a9effc0e96abbbc67478b170c14b2cdb87f62"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=280",
+      "sha256": "8df82c9dbe549edd7b9163300edb7c105808a808b4a4d0eef7e5ae5acd2cbf1b"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=280",
+      "sha256": "679f3a137c860af48d54be97fe5f5b8d8c8f0a9396fd5b1a06449ae1c20bce4a"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "00c3050b0bca55c949f8a74aabc7ff05067b0380d30e10edd3ead66afd4ca6ee"
+    },
+    {
+      "url": "/agent-access.html",
+      "sha256": "377fcfb1712bcd41de8b18f11c483f89cdcce7db25a85ab0242802c2da3a6888"
+    }
+  ],
+  "probes": [
+    {
+      "version": "3.11.713",
+      "health": {
+        "ok": true,
+        "uptimeSec": 104,
+        "now": "2026-10-01T09:46:52.122Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 97,
+        "disk_warn": true
+      }
+    },
+    {
+      "version": "3.11.713",
+      "health": {
+        "ok": true,
+        "uptimeSec": 109,
+        "now": "2026-10-01T09:46:57.472Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 97,
+        "disk_warn": true
+      }
+    },
+    {
+      "version": "3.11.713",
+      "health": {
+        "ok": true,
+        "uptimeSec": 114,
+        "now": "2026-10-01T09:47:02.803Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 97,
+        "disk_warn": true
+      }
+    }
+  ]
+}

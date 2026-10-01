@@ -1,0 +1,10 @@
+{
+  "version": "3.11.713",
+  "world": "sukkot",
+  "controlled": true,
+  "caches": [
+    "linguistpro-precache-v3.11.713",
+    "linguistpro-runtime-v3.11.713"
+  ],
+  "routeBackground": "rgb(32, 54, 47)"
+}
