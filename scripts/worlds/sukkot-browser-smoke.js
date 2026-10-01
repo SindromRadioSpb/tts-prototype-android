@@ -21,6 +21,40 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     base = "http://127.0.0.1:" + await waitForSmokeServer(server, 30000);
   }
   browser = await chromium.launch();
+  // Remount while the old stage is outside the viewport, then return without reloading.
+  for (const motion of ["reduce", "no-preference"]) {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block", reducedMotion: motion });
+    await ctx.addInitScript(() => {
+      localStorage.setItem("onboardingSeen_v1", "1");
+      localStorage.setItem("lp_world_v1", JSON.stringify({ id: "israel-elections-2026", lighting: "day", mode: "live" }));
+    });
+    const page = await ctx.newPage();
+    await page.goto(base + "/", { waitUntil: "load" });
+    await page.waitForFunction(() => LPWorld.current()?.active);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(150);
+    await page.evaluate(() => LPWorld.openPicker());
+    await page.locator('input[name="lpWorld"][value="sukkot"]').check();
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "sukkot");
+    await page.keyboard.press("Escape");
+    await page.locator("#lpWorldPicker").waitFor({ state: "detached" });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(150);
+    await page.screenshot({ path: path.join(out, `remount-${motion}.png`) });
+    const sky = await page.evaluate(() => Array.from(document.querySelector(".lp-world-stage canvas").getContext("2d").getImageData(0, 0, 1, 1).data));
+    assert.ok(sky[0] + sky[1] + sky[2] > 0, `world remount must paint the sky (${motion}): ${sky}`);
+    await page.locator('.lp-world-stop[data-loc="building"]').click();
+    assert.equal(await page.evaluate(() => LPWorld.debugState().location), "building");
+    await page.locator('.lp-world-stop[data-loc="decorating"]').click();
+    assert.equal(await page.evaluate(() => LPWorld.debugState().location), "decorating");
+    await page.locator('.lp-world-stop[data-loc="welcome"]').click();
+    assert.equal(await page.evaluate(() => LPWorld.debugState().location), "welcome");
+    await page.locator('.lp-world-stop[data-loc="courtyard"]').focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => LPWorld.debugState().location), "courtyard");
+    pass(`offscreen Elections → Sukkot paints without reload (${motion})`, { sky });
+    await ctx.close();
+  }
   for (const [width, lang] of [[380, "ru"], [380, "he"], [768, "en"], [1280, "ru"], [1280, "he"]]) {
     const ctx = await browser.newContext({ viewport: { width, height: 800 }, serviceWorkers: "block", reducedMotion: "reduce" });
     await ctx.addInitScript(({ lang }) => {
@@ -67,6 +101,10 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
     await page.locator('input[name="lpWorld"][value="sukkot"]').check();
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "sukkot");
+    await page.waitForFunction(() => {
+      const p = document.querySelector(".lp-world-stage canvas").getContext("2d").getImageData(0, 0, 1, 1).data;
+      return p[0] + p[1] + p[2] > 0;
+    }, null, { timeout: 3000 });
     await page.locator('input[name="lpWorldLight"][value="night"]').check();
     await page.waitForFunction(() => LPWorld.debugState().lighting === "night");
     await page.locator('input[name="lpWorldMode"][value="calm"]').check();
@@ -74,6 +112,12 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await page.keyboard.press("Escape");
     await page.locator("#lpWorldPicker").waitFor({ state: "detached" });
     assert.equal(await page.locator("#lpWorldPicker").count(), 0);
+    await page.waitForFunction(() => {
+      const c = document.querySelector(".lp-world-stage canvas");
+      const p = c.getContext("2d").getImageData(0, 0, 1, 1).data;
+      return p[0] + p[1] + p[2] > 0;
+    }, null, { timeout: 3000 });
+    await page.screenshot({ path: path.join(out, `${width}-${lang}-switched.png`) });
     await page.reload({ waitUntil: "load" });
     await page.waitForFunction(() => LPWorld.current()?.active);
     assert.equal(await page.evaluate(() => LPWorld.debugState().lighting), "night");
