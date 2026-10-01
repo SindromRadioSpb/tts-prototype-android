@@ -2,10 +2,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const testDb=require('../scripts/premium/lib/cp0-test-db');
 const oauthRepo=require('../db/agentAccessOAuthRepo'),identity=require('../db/identityRepo');
-const {CONSENT_VERSION,RETENTION_NOTICE_VERSION}=require('../agent/access/consentCeremony');
+const {CONSENT_VERSION,RETENTION_NOTICE_VERSION,createConsentCeremony}=require('../agent/access/consentCeremony');
 const {createConsentGuard}=require('../agent/readTogether/consentGuard');
 const {createStore}=require('../agent/readTogether/store');
-const scopes=['tutor.context.read','tutor.artifact.propose'];
+const scopes=['read_together.context.read','read_together.action.propose'];
 const context={material_id:'local:fixture',material_version:'v:fixture',fragment_id:'row:fixture',line:0,text:'only explicit fixture',selection:null,timecode:null,locale:'en'};
 
 test('real consent/grant database: tenant, latest consent, revoke/regrant and client status',async()=>{
@@ -14,8 +14,18 @@ test('real consent/grant database: tenant, latest consent, revoke/regrant and cl
   await oauthRepo.registerClientFixture({oauth_client_id:'rt-client',display_name:'Disposable test client',software_id:'rt-test',software_version:'1',redirect_uris:['https://example.com/exact-callback'],registration_version:'rt-test-v1'});
   await oauthRepo.createSubjectMapping('u1','rt-subject','rt-subject-v1');
   await oauthRepo.createPendingConnection('u1',{connection_id:'rt-connection',oauth_client_id:'rt-client',display_label:'Test',consent_version:CONSENT_VERSION,capability_version:'aa-v0.1',retention_notice_version:RETENTION_NOTICE_VERSION});
-  for(const scope of scopes)await identity.recordConsent('u1','external_agent_access:rt-connection:'+scope,true,CONSENT_VERSION);
-  await oauthRepo.activateConnectionWithGrants('u1','rt-connection',scopes);
+  const ceremony=createConsentCeremony({oauthRepo,recordConsent:identity.recordConsent});
+  await ceremony.stageTrustedRequest('u1',{request_id:'rt-consent',oauth_client_id:'rt-client',client_display_name:'Disposable test client',redirect_uri:'https://example.com/exact-callback',resource_uri:require('../agent/access/oauthContracts').RESOURCE_URI,requested_scopes:scopes,pkce_method:'S256',connection_id:'rt-connection',consent_version:CONSENT_VERSION,capability_version:'aa-v0.1',retention_notice_version:RETENTION_NOTICE_VERSION,expires_at:new Date(Date.now()+300000).toISOString()});
+  const preview=ceremony.preview('u1','rt-consent');
+  assert.deepEqual(preview.requested_scopes.map(x=>x.scope).sort(),scopes.slice().sort());
+  assert(preview.requested_scopes.every(x=>x.retention_tier==='PERSONAL'));
+  assert.throws(()=>ceremony.preview('u2','rt-consent'),{code:'AA_CONSENT_REQUEST_NOT_FOUND'});
+  await assert.rejects(ceremony.decide('u1',{request_id:'rt-consent',decision:'approve',selected_scopes:[...scopes,'tutor.context.read'],retention_ack:true}),{code:'AA_CONSENT_APPROVAL_INVALID'});
+  await assert.rejects(ceremony.decide('u1',{request_id:'rt-consent',decision:'approve',selected_scopes:scopes,retention_ack:false}),{code:'AA_CONSENT_APPROVAL_INVALID'});
+  await ceremony.decide('u1',{request_id:'rt-consent',decision:'approve',selected_scopes:scopes,retention_ack:true});
+  assert.deepEqual((await oauthRepo.loadConnection('u1','rt-connection')).grants.map(x=>x.scope).sort(),scopes.slice().sort());
+  // Neither an old tutor grant nor a scope from another owner is inherited.
+  await assert.rejects(createConsentGuard({oauthRepo,getDb:()=>db.db})('u1','rt-connection','tutor.context.read'),{code:'RT_ACCESS_REVOKED'});
   const liveConnection=createConsentGuard({oauthRepo,getDb:()=>db.db});
   await liveConnection('u1','rt-connection',scopes[0]);
   await assert.rejects(liveConnection('u2','rt-connection',scopes[0]),{code:'RT_ACCESS_REVOKED'});

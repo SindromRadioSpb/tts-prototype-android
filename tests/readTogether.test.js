@@ -59,9 +59,16 @@ test('MCP service validates scope and marshals new tool contracts',async()=>{
  const {store}=setup();const s=await start(store);
  const names=['read_active_reading_session','get_reading_session_fragment','propose_reading_session_action'];
  const service=createAgentAccessService({enabled:true,ownerIds:['user1'],now:()=>1000000,handlers:Object.fromEntries(names.map(n=>[n,(p,a)=>store.agent(p,n,a)]))});
- const p={...principal,oauth_client_id:'test',external_actor_id:'test',request_id:'request',scopes:['tutor.context.read','tutor.artifact.propose'],connection_status:'ACTIVE',access_expires_at:new Date(2000000).toISOString()};
+ const p={...principal,oauth_client_id:'test',external_actor_id:'test',request_id:'request',scopes:['read_together.context.read','read_together.action.propose'],connection_status:'ACTIVE',access_expires_at:new Date(2000000).toISOString()};
  assert.equal((await service.execute(p,names[0],{})).ok,true);
  assert.equal((await service.execute({...p,scopes:[]},names[0],{})).error.code,'INSUFFICIENT_SCOPE');
  assert.equal((await service.execute(p,names[1],{session_id:s.session_id,state_version:1,fragment_id:fragment.fragment_id})).ok,true);
  assert.equal((await service.execute(p,names[2],action(s))).ok,true);
+ // Minimal read-together grants cannot authorize any older tutor/general tool.
+ for(const name of require('../agent/access/capabilities').capabilityNames().filter(n=>!names.includes(n))) {
+  assert.equal((await service.execute(p,name,{})).error.code,'INSUFFICIENT_SCOPE',name);
+ }
+ assert.equal((await service.execute({...p,scopes:['tutor.context.read','tutor.artifact.propose']},names[0],{})).error.code,'INSUFFICIENT_SCOPE');
+ assert.equal((await service.execute({...p,user_id:'other'},names[0],{})).error.code,'OWNER_NOT_ALLOWED');
+ assert.equal((await service.execute(p,names[0],{session_id:'another-session'})).error.code,'RT_UNAVAILABLE');
 });

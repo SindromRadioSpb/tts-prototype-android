@@ -16,7 +16,7 @@ async function main(){
  let clock=Date.now(),revoked=false,authDelay=null,authSeen=null,useActualClock=false;
  const store=createStore({now:()=>useActualClock?Date.now():clock,liveConnection:async(u,c)=>{if(authDelay){authSeen?.();await authDelay;}if(u!=='browser-test-user'||c!=='browser-test-connection'||revoked)throw Object.assign(Error('revoked'),{code:'RT_ACCESS_REVOKED'});}});
  const app=express();
- const principal={user_id:'browser-test-user',oauth_client_id:'browser-test-client',connection_id:'browser-test-connection',external_actor_id:'browser-test-agent',request_id:'browser-test',scopes:['tutor.context.read','tutor.artifact.propose'],connection_status:'ACTIVE',access_expires_at:new Date(clock+3600000).toISOString()};
+ const principal={user_id:'browser-test-user',oauth_client_id:'browser-test-client',connection_id:'browser-test-connection',external_actor_id:'browser-test-agent',request_id:'browser-test',scopes:['read_together.context.read','read_together.action.propose'],connection_status:'ACTIVE',access_expires_at:new Date(clock+3600000).toISOString()};
  const runtime={service:createAgentAccessService({enabled:true,ownerIds:[principal.user_id],now:()=>useActualClock?Date.now():clock,handlers:Object.fromEntries(names.map(n=>[n,(p,a)=>store.agent(p,n,a)]))}),limiter:createMcpRateLimiter(),validator:{validate:async(header,rid)=>{if(header!=='Bearer browser-fixture-only')throw Error('unauthorized');return {principal:{...principal,request_id:rid},audit:{}};}}};
  app.all('/agent-access/read-together/mcp',createMcpDefaultOffGate({path:'/agent-access/read-together/mcp',getRuntime:async()=>runtime,resolveFlags:async()=>({ui:'1',oauth:'1',clients:'1',mcp:'1'})}));
  app.use(express.json({limit:'20kb'}));
@@ -34,7 +34,7 @@ async function main(){
   assert.equal((await fetch(base+'/api/read-together/sessions/invalid')).status,401);
   assert.equal((await fetch(base+'/api/read-together/sessions',{method:'POST',headers:{Cookie:'test_owner=1','Content-Type':'application/json'},body:'{}'})).status,403);
   await agent.connect(new StreamableHTTPClientTransport(new URL(base+'/agent-access/read-together/mcp'),{requestInit:{headers:{Authorization:'Bearer browser-fixture-only'}}}));
-  const list=await agent.listTools();assert(names.every(n=>list.tools.some(t=>t.name===n)));
+  const list=await agent.listTools();assert.deepEqual(list.tools.map(t=>t.name).sort(),names.slice().sort());
   const call=async(name,args={})=>{const r=await agent.callTool({name,arguments:args});return JSON.parse(r.content[0].text);};
   browser=await chromium.launch({headless:!KEEP_OPEN});
   const context=await browser.newContext({viewport:{width:1280,height:900}});await context.addCookies([{name:'test_owner',value:'1',url:base}]);

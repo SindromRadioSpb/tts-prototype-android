@@ -4,7 +4,7 @@ const { randomBytes } = require("crypto");
 const { Server, createMcpHandler } = require("@modelcontextprotocol/server");
 const { toNodeHandler } = require("@modelcontextprotocol/node");
 
-const { capabilityNames } = require("./capabilities");
+const { capabilityNames, getCapability } = require("./capabilities");
 const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
 const { toolDefinitions } = require("./mcpSchemas");
 
@@ -60,7 +60,8 @@ function validateProtocol(body, header) {
 function safeAudit(audit, input) {
   try { audit?.record(input); } catch (_) {}
 }
-function bearerChallenge(tutorOnly) {
+function bearerChallenge(tutorOnly, readTogetherOnly) {
+  if (readTogetherOnly) return 'Bearer resource_metadata="https://linguistpro.kolosei.com/.well-known/oauth-protected-resource/agent-access/read-together/mcp", scope="read_together.context.read read_together.action.propose"';
   const metadataPath = tutorOnly ? "/.well-known/oauth-protected-resource/agent-access/tutor/mcp" : "/.well-known/oauth-protected-resource/agent-access";
   const metadata = `Bearer resource_metadata="https://linguistpro.kolosei.com${metadataPath}"`;
   return tutorOnly ? `${metadata}, scope="${TUTOR_SCOPES}"` : metadata;
@@ -71,7 +72,7 @@ function createProtocolServer(runtime, trusted, allowedTools) {
     { name: "linguistpro-agent-access", version: "aa-mcp.1.0.0" },
     { capabilities: { tools: { listChanged: false } }, supportedProtocolVersions: MCP_SUPPORTED_PROTOCOL_VERSIONS },
   );
-  server.setRequestHandler("tools/list", async () => ({ tools: toolDefinitions().filter(tool => allowedTools.has(tool.name)) }));
+  server.setRequestHandler("tools/list", async () => ({ tools: toolDefinitions().filter(tool => allowedTools.has(tool.name) && (!trusted.principal.scopes.some(s => s.startsWith("read_together.")) || trusted.principal.scopes.includes(getCapability(tool.name).scope))) }));
   server.setRequestHandler("tools/call", async (request) => {
     const name = String(request.params?.name || "");
     if (!allowedTools.has(name)) return { isError: true, content: [{ type: "text", text: JSON.stringify({ ok: false, error: { code: "UNKNOWN_TOOL" } }) }] };
@@ -150,7 +151,7 @@ function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags =
       const quota = runtime.limiter.takeAuthFailure(requestIp(req));
       safeAudit(runtime.audit, { event_type: "mcp_auth_denied", route_class: "resource", result_code: "AA_MCP_BEARER_INVALID", request_id: correlation, rate_dimension: quota.dimension || "ip" });
       if (!quota.ok) return send(res, 429, { error: "AA_MCP_RATE_LIMITED" }, { "Retry-After": String(Math.max(1, Math.ceil(quota.retry_after_ms / 1000))) });
-      return send(res, 401, { error: "AA_MCP_BEARER_INVALID" }, { "WWW-Authenticate": bearerChallenge(tutorOnly) });
+      return send(res, 401, { error: "AA_MCP_BEARER_INVALID" }, { "WWW-Authenticate": bearerChallenge(tutorOnly, path === READ_TOGETHER_MCP_PATH) });
     }
 
     let body;

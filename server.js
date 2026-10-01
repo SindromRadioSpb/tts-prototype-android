@@ -2110,6 +2110,7 @@ async function getAgentAccessOAuthRuntime() {
           return auth ? auth.user : null;
         },
         privateJwksJson: String(process.env.AGENT_ACCESS_OAUTH_PRIVATE_JWKS_JSON || ""),
+        readingOwnerIds: require('./agent/access/approvedClients').deploymentClients().some(c=>require('./agent/access/approvedClients').allowedScopes(c.client_id)) ? agentAccessOwnerIds() : [],
         cookieKeys,
         audit,
         limiter: agentAccessOAuthLimiter,
@@ -2137,6 +2138,7 @@ const agentAccessOAuthGate = createOAuthDefaultOffGate({
 app.all(PROTECTED_RESOURCE_METADATA_PATH, agentAccessOAuthGate);
 app.all(PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH, agentAccessOAuthGate);
 app.all(PROTECTED_TUTOR_RESOURCE_METADATA_PATH, agentAccessOAuthGate);
+app.all("/.well-known/oauth-protected-resource/agent-access/read-together/mcp", agentAccessOAuthGate);
 app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);
 app.all(/^\/oauth(?:\/|$)/, agentAccessOAuthGate);
 

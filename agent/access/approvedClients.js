@@ -1,6 +1,13 @@
 "use strict";
 const C=require('./oauthContracts');
 const {FIXTURE_CLIENTS,validateFixtureClient}=require('./oauthDeploymentContracts');
+const READ_TOGETHER_SCOPES=Object.freeze(['read_together.context.read','read_together.action.propose']);
+// New operator-approved clients are restricted to active reading. Legacy
+// Hermes/Inspector retain their existing scopes and authorization behavior.
+function allowedScopes(clientId,clients=deploymentClients()) {
+  if(!clients.some(c=>c.client_id===clientId)||FIXTURE_CLIENTS.some(c=>c.client_id===clientId))return null;
+  return READ_TOGETHER_SCOPES;
+}
 // Operator-reviewed metadata only. No registration, credentials or grant writes.
 function validateApprovedClient(value) {
   if(FIXTURE_CLIENTS.some(c=>c.client_id===value?.client_id))return validateFixtureClient(value);
@@ -20,4 +27,4 @@ function deploymentClients(json=process.env.AGENT_ACCESS_OAUTH_APPROVED_CLIENTS_
   if(new Set(clients.map(c=>c.client_id)).size!==clients.length)C.fail('AA_OAUTH_BAD_CLIENT');
   return Object.freeze(clients);
 }
-module.exports={validateApprovedClient,deploymentClients};
+module.exports={validateApprovedClient,deploymentClients,allowedScopes,READ_TOGETHER_SCOPES};

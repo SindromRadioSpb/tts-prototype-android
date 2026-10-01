@@ -135,6 +135,13 @@ export function createOidcDeployment({
   const callback = provider.callback();
   async function nodeHandler(req, res) {
     const requestPath = new URL(req.url, issuer).pathname;
+    if(req.method==='GET'&&requestPath==='/auth') {
+      const query=new URL(req.url,issuer).searchParams;
+      const allowed=approvedClients.allowedScopes(query.get('client_id'),clients);
+      if(allowed&&String(query.get('scope')||'').split(' ').filter(Boolean).some(s=>!allowed.includes(s))) {
+        res.writeHead(400,{'content-type':'application/json'});res.end(JSON.stringify({error:'invalid_scope'}));return;
+      }
+    }
     const formRoute = requestPath.endsWith('/token/revocation') ? 'revocation' : requestPath.endsWith('/token') ? 'token' : null;
     if (req.method === 'POST' && formRoute) {
       const chunks = [];

@@ -30,7 +30,7 @@ Owner routes: `POST /api/read-together/sessions`, `POST /api/read-together/stop-
 2. `get_reading_session_fragment`
 3. `propose_reading_session_action`
 
-Используются существующие `tutor.context.read` и `tutor.artifact.propose` scopes; постоянные права не расширяются автоматически. Существующий general MCP получает три additive tools (38 всего). Default-off gates сохранены.
+В исходном локальном коммите использовались tutor scopes. Для релиза они заменены на отдельные `read_together.context.read` и `read_together.action.propose`: они не открывают старые tutor/general tools. Отдельный discovery — `/.well-known/oauth-protected-resource/agent-access/read-together/mcp`. Новые статические клиенты ограничены этими двумя scopes на authorization, token issuance и bearer validation, включая все MCP маршруты; OAuth interaction доступен только allowlisted owner. Старые clients/grants сохраняются миграцией 077. Default-off gates сохранены. См. [release packet](READ_TOGETHER_RELEASE_3_11_716.md).
 
 Сохранены HTTP MCP, protected-resource discovery и public OAuth authorization code + PKCE S256. `AGENT_ACCESS_OAUTH_APPROVED_CLIENTS_JSON` позволяет оператору добавить до четырёх проверенных статических public client profiles с точными HTTPS callbacks, без создания credentials/grants. Defaults Hermes/Inspector сохраняются. DCR и CIMD этим изменением не реализованы: если выбранный OpenAI клиент требует их, нужна отдельная реализация после проверки его фактического профиля.
 

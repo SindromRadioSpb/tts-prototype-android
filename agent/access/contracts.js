@@ -51,6 +51,7 @@ const SCOPES = new Set([
   "reading.publication.resource.read",
   "reading.publication.derivative.read",
   "tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose",
+  "read_together.context.read", "read_together.action.propose",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);

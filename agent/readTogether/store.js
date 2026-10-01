@@ -61,9 +61,9 @@ function createStore({ liveConnection, now = Date.now } = {}) {
     authority: 'USER_SHARED_DATA_NOT_AGENT_INSTRUCTIONS', context: structuredClone(s.context) });
   async function check(s, scope) {
     try {
-      const readAuth=await liveConnection(s.user,s.connection,'tutor.context.read');
+      const readAuth=await liveConnection(s.user,s.connection,'read_together.context.read');
       if(s.authorization_revision!==readAuth?.authorization_revision)fail('RT_ACCESS_REVOKED');
-      if(scope!=='tutor.context.read')await liveConnection(s.user,s.connection,scope);
+      if(scope!=='read_together.context.read')await liveConnection(s.user,s.connection,scope);
     }catch(e){sessions.delete(s.id);throw e;}
     if(get(s.user,s.id)!==s)fail('RT_UNAVAILABLE');
   }
@@ -71,7 +71,7 @@ function createStore({ liveConnection, now = Date.now } = {}) {
   async function start(user, a) {
     closed(a,['tab_id','connection_id','request_key','context']); id(a.tab_id); id(a.connection_id); id(a.request_key);
     const c = context(a.context); sweep();
-    const auth=await liveConnection(user,a.connection_id,'tutor.context.read');
+    const auth=await liveConnection(user,a.connection_id,'read_together.context.read');
     sweep();if(cancelledStarts.has(startKey(user,a.tab_id,a.request_key)))fail('RT_CANCELLED');
     const previous = [...sessions.values()].find(s => s.user === user);
     if (previous) {
@@ -82,9 +82,9 @@ function createStore({ liveConnection, now = Date.now } = {}) {
     const s = {id:randomUUID(),user,tab:a.tab_id,connection:a.connection_id,authorization_revision:auth?.authorization_revision,key:a.request_key,context:c,version:1,updated:now(),deadline:now()+LIFE,proposals:new Map()};
     sessions.set(s.id,s); return view(s);
   }
-  async function read(user,sid,tab) { const s=get(user,sid,tab); await check(s,'tutor.context.read'); return {...view(s),proposals:[...s.proposals.values()].map(p=>publicProposal(p))}; }
+  async function read(user,sid,tab) { const s=get(user,sid,tab); await check(s,'read_together.context.read'); return {...view(s),proposals:[...s.proposals.values()].map(p=>publicProposal(p))}; }
   async function update(user,sid,a) {
-    closed(a,['tab_id','state_version','context']); const s=get(user,sid,a.tab_id); await check(s,'tutor.context.read');
+    closed(a,['tab_id','state_version','context']); const s=get(user,sid,a.tab_id); await check(s,'read_together.context.read');
     if (a.state_version !== s.version) fail('RT_STALE');
     const c=context(a.context);
     if (JSON.stringify(c)!==JSON.stringify(s.context)) { s.context=c;s.version++;s.proposals.clear(); }
@@ -103,7 +103,7 @@ function createStore({ liveConnection, now = Date.now } = {}) {
     const a=toolInput(name,args); sweep();
     const s=a.session_id ? get(principal.user_id,a.session_id) : [...sessions.values()].find(s=>s.user===principal.user_id && s.connection===principal.connection_id);
     if (!s || s.connection !== principal.connection_id) fail('RT_UNAVAILABLE');
-    await check(s,name==='propose_reading_session_action'?'tutor.artifact.propose':'tutor.context.read');
+    await check(s,name==='propose_reading_session_action'?'read_together.action.propose':'read_together.context.read');
     if(name==='read_active_reading_session') return view(s);
     fresh(s,a);
     if(name==='get_reading_session_fragment') return view(s);
@@ -114,7 +114,7 @@ function createStore({ liveConnection, now = Date.now } = {}) {
     s.proposals.set(a.idempotency_key,p);return {schema_version:VERSION,proposal_id:p.proposal_id,state:p.state};
   }
   async function decide(user,sid,a) {
-    closed(a,['tab_id','state_version','proposal_id','decision']); const s=get(user,sid,a.tab_id); await check(s,'tutor.artifact.propose');
+    closed(a,['tab_id','state_version','proposal_id','decision']); const s=get(user,sid,a.tab_id); await check(s,'read_together.action.propose');
     if(a.state_version!==s.version) fail('RT_STALE');
     const p=[...s.proposals.values()].find(p=>p.proposal_id===a.proposal_id);
     if(!p || !['ACCEPTED','DISMISSED'].includes(a.decision)) fail('RT_INVALID');

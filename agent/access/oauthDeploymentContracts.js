@@ -80,6 +80,9 @@ function protectedResourceMetadata() {
     resource_name: "LinguistPro Agent Access",
   });
 }
+function protectedReadTogetherResourceMetadata() {
+  return Object.freeze({ ...protectedResourceMetadata(), scopes_supported: Object.freeze(["read_together.context.read", "read_together.action.propose"]), resource_name: "LinguistPro Read Together" });
+}
 function protectedTutorResourceMetadata() {
   return Object.freeze({
     ...protectedResourceMetadata(),
@@ -135,6 +138,6 @@ function validateFixtureClient(value) {
 
 module.exports = {
   DEPLOYMENT_VERSION, ISSUER, RESOURCE, CANONICAL_ORIGIN, ENDPOINTS, FIXTURE_CLIENTS, SCOPES: C.SCOPES,
-  TTL, RATE_LIMITS, PROHIBITED_ENDPOINTS, protectedResourceMetadata, protectedTutorResourceMetadata,
+  TTL, RATE_LIMITS, PROHIBITED_ENDPOINTS, protectedResourceMetadata, protectedTutorResourceMetadata, protectedReadTogetherResourceMetadata,
   authorizationServerMetadata, openidConfiguration, validateFixtureClient,
 };

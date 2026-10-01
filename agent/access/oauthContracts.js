@@ -40,6 +40,7 @@ const SCOPES = Object.freeze([
   "reading.publication.resource.read",
   "reading.publication.derivative.read",
   "tutor.capabilities.read", "tutor.context.read", "tutor.session.read", "tutor.artifact.propose",
+  "read_together.context.read", "read_together.action.propose",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

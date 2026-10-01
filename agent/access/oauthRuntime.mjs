@@ -25,6 +25,7 @@ export async function createDefaultOffOAuthRuntime({
   allowLoopbackFixture = false,
   fixtureIssuer,
   trustProxy = false,
+  readingOwnerIds = [],
 }) {
   if (!repo || typeof repo.ensureSubjectForUser !== 'function' || typeof repo.providerPrincipal !== 'function') fail('AA_OAUTH_RUNTIME_REPO_INVALID');
   if (!consentCeremony || !interactionBridge || typeof resolveUser !== 'function' || !limiter || typeof limiter.take !== 'function') fail('AA_OAUTH_RUNTIME_DEPENDENCY_INVALID');
@@ -47,6 +48,8 @@ export async function createDefaultOffOAuthRuntime({
 
   async function principalForToken(token) {
     const scopes = String(token.scope || '').split(' ').filter(Boolean);
+    const allowed=approvedClients.allowedScopes(token.clientId);
+    if(allowed&&scopes.some(scope=>!allowed.includes(scope)))fail('AA_OAUTH_BAD_SCOPES');
     const snapshot = await repo.providerPrincipal(token.accountId, token.clientId, token.grantId, scopes);
     return { subject: snapshot.subject_id, client_id: snapshot.oauth_client_id, connection_id: snapshot.connection_id, security_epoch: snapshot.security_epoch, subject_epoch: snapshot.subject_epoch };
   }
@@ -79,6 +82,9 @@ export async function createDefaultOffOAuthRuntime({
     const details = await deployment.provider.interactionDetails(req, res);
     if (details.uid !== uid) fail('AA_OAUTH_INTERACTION_BINDING_INVALID');
     const clientId = oauthContracts.safeId(details.params.client_id);
+    if(approvedClients.allowedScopes(clientId)&&!readingOwnerIds.includes(user.id)) {
+      res.statusCode=403;res.setHeader('content-type','application/json');res.end(JSON.stringify({error:'access_denied'}));return;
+    }
     const client = await repo.loadClientForAuthorization(clientId);
     const quota = limiter.take('interaction', { client: clientId, user: user.id });
     if (!quota.ok) {
@@ -137,6 +143,9 @@ export async function createDefaultOffOAuthRuntime({
     const user = await resolveUser(req, res);
     if (!user) return;
     const details = await deployment.provider.interactionDetails(req, res);
+    if(approvedClients.allowedScopes(details.params.client_id)&&!readingOwnerIds.includes(user.id)) {
+      res.statusCode=403;res.setHeader('content-type','application/json');res.end(JSON.stringify({error:'access_denied'}));return;
+    }
     const decision = interactionBridge.takeDecision(user.id, requestId, uid);
     if (details.uid && details.uid !== uid) fail('AA_OAUTH_INTERACTION_UID_INVALID');
     if (details.params.client_id !== decision.oauth_client_id) fail('AA_OAUTH_INTERACTION_CLIENT_INVALID');

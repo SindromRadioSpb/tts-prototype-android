@@ -11,7 +11,7 @@ import serviceModule from '../../agent/access/service.js';
 import rateModule from '../../agent/access/mcpRateLimiter.js';
 import { createMcpResourceValidator } from '../../agent/access/mcpResourceValidator.mjs';
 
-const { MCP_PATH, TUTOR_MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, createMcpDefaultOffGate } = adapterModule;
+const { MCP_PATH, TUTOR_MCP_PATH, READ_TOGETHER_MCP_PATH, MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, createMcpDefaultOffGate } = adapterModule;
 const { createAgentAccessService } = serviceModule;
 const { createMcpRateLimiter } = rateModule;
 const issuer = 'https://linguistpro.kolosei.com/oauth';
@@ -33,7 +33,7 @@ const fixtures = Object.freeze({
   get_review_summary: Object.freeze({ schema_version: 'aa.review_summary.1.0.0', due_total: 12, urgent_total: 4, estimated_minutes: 9, handoff_eligible: false, handoff_scope_available: false, generated_at: new Date(nowSeconds * 1000).toISOString(), expires_at: new Date((nowSeconds + 120) * 1000).toISOString() }),
   search_public_reading_catalog: Object.freeze({ schema_version: 'aa.public_reading_search.1.0.0', catalog_version: 'catalog-fixture', results: Object.freeze([{ work_id: 'work-fixture', title: 'Public fixture work', author: 'Public fixture author', era: 'REVIVAL', genre: 'PROSE', language: 'he', sentence_count: 120, audio_available: false, ready_state: 'READY', first_party_path: '/library.html' }]), next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_recent_explanation_metadata: Object.freeze({ schema_version: 'aa.explanation_metadata.1.0.0', items: Object.freeze([{ explanation_id: 'explanation-fixture', created_at: new Date(nowSeconds * 1000).toISOString(), kind: 'word', construct_ids: Object.freeze(['construct-fixture']), purge_state: 'AVAILABLE' }]), next_before: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
-  get_agent_connection: Object.freeze({ schema_version: 'aa.connection.1.0.0', connection_id: connectionId, oauth_client_id: clientId, client_display_name: 'Fixture client', connection_status: 'ACTIVE', granted_scopes: Object.freeze(allScopes.filter((scope) => !['morphology.read', 'learner.coverage.read', 'reading.group_corpus.read', 'learner.group_coverage.read', 'intent.import_text.propose', 'intent.track_word.propose', 'intent.goal.propose', 'goal.read', 'reading.publication.catalog.read', 'reading.publication.item.read', 'reading.publication.resource.read', 'reading.publication.derivative.read', 'tutor.capabilities.read', 'tutor.context.read', 'tutor.session.read', 'tutor.artifact.propose'].includes(scope))), access_expires_at: expiresAt, consent_version: 'consent-fixture', capability_version: 'aa-v0.1', downstream_retention_notice: 'EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_agent_connection: Object.freeze({ schema_version: 'aa.connection.1.0.0', connection_id: connectionId, oauth_client_id: clientId, client_display_name: 'Fixture client', connection_status: 'ACTIVE', granted_scopes: Object.freeze(allScopes.filter((scope) => !['read_together.context.read', 'read_together.action.propose', 'morphology.read', 'learner.coverage.read', 'reading.group_corpus.read', 'learner.group_coverage.read', 'intent.import_text.propose', 'intent.track_word.propose', 'intent.goal.propose', 'goal.read', 'reading.publication.catalog.read', 'reading.publication.item.read', 'reading.publication.resource.read', 'reading.publication.derivative.read', 'tutor.capabilities.read', 'tutor.context.read', 'tutor.session.read', 'tutor.artifact.propose'].includes(scope))), access_expires_at: expiresAt, consent_version: 'consent-fixture', capability_version: 'aa-v0.1', downstream_retention_notice: 'EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_access_window: Object.freeze({ schema_version: 'aa.access_window.1.0.0', access_lifetime: 'PERSISTENT_WINDOW', window_expires_at: null, access_expires_at: expiresAt, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_due_review_items: Object.freeze({ schema_version: 'aa.due_review_items.1.0.0', items: Object.freeze([{ display: 'כָּתַב', gloss: 'написал', struggle: 'high', due_day: '2026-07-17', content_available: true }]), due_total: 12, next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_learner_profile: Object.freeze({ schema_version: 'aa.learner_profile.1.0.0', mode: 'coach', language: 'ru', depth: 'detailed', generated_at: new Date(nowSeconds * 1000).toISOString() }),
@@ -151,10 +151,12 @@ const validator = createMcpResourceValidator({ keyset, repo, issuer, resource, a
 const service = createAgentAccessService({ enabled: true, ownerIds: [userId], handlers: handlers() });
 const runtime = Object.freeze({ validator, service, limiter, audit });
 let runtimeCalls = 0;
+let scopeProbeRuntime = null;
 const app = express();
 app.set('trust proxy', 1);
-app.all(MCP_PATH, createMcpDefaultOffGate({ getRuntime: async () => { runtimeCalls += 1; return runtime; } }));
-app.all(TUTOR_MCP_PATH, createMcpDefaultOffGate({ path: TUTOR_MCP_PATH, getRuntime: async () => { runtimeCalls += 1; return runtime; } }));
+app.all(MCP_PATH, createMcpDefaultOffGate({ getRuntime: async () => { runtimeCalls += 1; return scopeProbeRuntime || runtime; } }));
+app.all(TUTOR_MCP_PATH, createMcpDefaultOffGate({ path: TUTOR_MCP_PATH, getRuntime: async () => { runtimeCalls += 1; return scopeProbeRuntime || runtime; } }));
+app.all(READ_TOGETHER_MCP_PATH, createMcpDefaultOffGate({ path: READ_TOGETHER_MCP_PATH, getRuntime: async () => scopeProbeRuntime || runtime }));
 const server = http.createServer(app);
 const address = await listen(server);
 const origin = `http://127.0.0.1:${address.port}`;
@@ -308,6 +310,25 @@ try {
   for (const forbidden of ['createMessage(', 'registerResource', 'registerPrompt', 'setInterval(', 'setTimeout(', 'fetch(']) assert.equal(source.includes(forbidden), false, forbidden);
   assert.ok(auditRows.length > 0); assert.ok(auditRows.every((row) => !('token' in row) && !('user_id' in row))); checks++;
 
+  // Independent scope probe uses fresh rate buckets; earlier quota assertions remain unchanged.
+  scopeProbeRuntime=Object.freeze({...runtime,limiter:createMcpRateLimiter()});
+  Object.assign(process.env, { AGENT_ACCESS_MCP_ENABLED:'1', AGENT_ACCESS_OAUTH_CLIENTS_ENABLED:'1' });
+  const rtNames=['read_active_reading_session','get_reading_session_fragment','propose_reading_session_action'];
+  const rtBearer=await token({scope:'read_together.context.read read_together.action.propose'});
+  for(const path of [MCP_PATH,TUTOR_MCP_PATH,READ_TOGETHER_MCP_PATH]) {
+    const listed=await json(await post(rpc('tools/list',{}),{path,token:rtBearer}));
+    assert.deepEqual(listed.result.tools.map(t=>t.name).sort(),path===TUTOR_MCP_PATH?[]:rtNames.slice().sort()); checks++;
+    for(const name of ['get_active_learning_context','propose_learning_artifact','get_learner_profile','propose_action']) {
+      const deniedTool=await json(await post(rpc('tools/call',{name,arguments:args[name]}),{path,token:rtBearer}));
+      const envelope=JSON.parse(deniedTool.result.content[0].text);
+      assert.equal(envelope.ok,false); assert.equal(envelope.error.code,(path===READ_TOGETHER_MCP_PATH||(path===TUTOR_MCP_PATH&&!['get_active_learning_context','propose_learning_artifact'].includes(name)))?'UNKNOWN_TOOL':'INSUFFICIENT_SCOPE'); checks++;
+    }
+  }
+  const legacyBearer=await token({scope:'tutor.context.read tutor.artifact.propose'});
+  const legacyDenied=await json(await post(rpc('tools/call',{name:rtNames[0],arguments:{}}),{path:READ_TOGETHER_MCP_PATH,token:legacyBearer}));
+  assert.equal(JSON.parse(legacyDenied.result.content[0].text).error.code,'INSUFFICIENT_SCOPE');checks++;
+  const unauthRT=await post(rpc('tools/list',{}),{path:READ_TOGETHER_MCP_PATH,token:'invalid'});
+  assert.equal(unauthRT.status,401);assert(unauthRT.headers.get('www-authenticate').includes('/agent-access/read-together/mcp'));assert(unauthRT.headers.get('www-authenticate').includes('read_together.context.read'));checks++;
   console.log(JSON.stringify({ ok: true, checks, tools: capabilities.capabilityNames().length, protocols: [MCP_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION], stateless: true, sessions: 0, external_network_calls: 0, provider_calls: 0, live_data_reads: 0 }));
 } finally {
   await close(server);

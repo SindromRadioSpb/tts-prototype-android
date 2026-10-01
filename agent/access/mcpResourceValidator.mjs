@@ -6,6 +6,7 @@ import { verifyAccessToken } from './oauthSigningKeys.mjs';
 // (строка ≠ 'aa-v0.1'), либо старое Hermes (обновлённый литерал ≠ строка). Политика:
 // version НЕ бампится при additive-инструментах (AA3/AA4/S1 — прецеденты).
 import capabilitiesRegistry from './capabilities.js';
+import approvedClients from './approvedClients.js';
 const { CAPABILITY_VERSION, CAPABILITIES } = capabilitiesRegistry;
 const MAX_TOKEN_SCOPES = new Set(Object.values(CAPABILITIES).map((entry) => entry.scope)).size;
 
@@ -43,6 +44,8 @@ export function createMcpResourceValidator({ keyset, repo, issuer, resource, all
     const token = exactBearer(authorization);
     const { payload, protectedHeader } = await verifyAccessToken(token, keyset, { issuer, audience: resource });
     const tokenScopes = scopes(payload.scope);
+    const scopePolicy=approvedClients.allowedScopes(payload.client_id);
+    if(scopePolicy&&tokenScopes.some(scope=>!scopePolicy.includes(scope)))fail('AA_MCP_SCOPE_NOT_ALLOWED');
     const securityEpoch = epoch(payload.security_epoch);
     const subjectEpoch = epoch(payload.subject_epoch);
     if (!Number.isSafeInteger(payload.iat) || !Number.isSafeInteger(payload.exp) || payload.iat < 0 || payload.exp <= payload.iat) fail('AA_MCP_TOKEN_CLAIMS_INVALID');

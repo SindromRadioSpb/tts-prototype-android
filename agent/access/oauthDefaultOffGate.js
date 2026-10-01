@@ -1,10 +1,11 @@
 "use strict";
 
 const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
-const { protectedResourceMetadata, protectedTutorResourceMetadata, authorizationServerMetadata, openidConfiguration } = require("./oauthDeploymentContracts");
+const { protectedResourceMetadata, protectedTutorResourceMetadata, protectedReadTogetherResourceMetadata, authorizationServerMetadata, openidConfiguration } = require("./oauthDeploymentContracts");
 
 const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource/agent-access";
 const PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH = `${PROTECTED_RESOURCE_METADATA_PATH}/mcp`;
+const PROTECTED_READ_TOGETHER_RESOURCE_METADATA_PATH = `${PROTECTED_RESOURCE_METADATA_PATH}/read-together/mcp`;
 const PROTECTED_TUTOR_RESOURCE_METADATA_PATH = `${PROTECTED_RESOURCE_METADATA_PATH}/tutor/mcp`;
 
 function routeClass(path, method) {
@@ -13,12 +14,13 @@ function routeClass(path, method) {
   // The compatibility alias is an exact protocol path, not a prefix or a
   // query-bearing discovery surface. Keep the canonical route's historical
   // query handling unchanged while failing closed on alias variants.
-  if ([PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH, PROTECTED_TUTOR_RESOURCE_METADATA_PATH].includes(pathname)
+  if ([PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH, PROTECTED_TUTOR_RESOURCE_METADATA_PATH, PROTECTED_READ_TOGETHER_RESOURCE_METADATA_PATH].includes(pathname)
     && rawPath !== pathname) return null;
   if ([
     PROTECTED_RESOURCE_METADATA_PATH,
     PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH,
     PROTECTED_TUTOR_RESOURCE_METADATA_PATH,
+    PROTECTED_READ_TOGETHER_RESOURCE_METADATA_PATH,
     "/.well-known/oauth-authorization-server/oauth",
     "/oauth/.well-known/openid-configuration",
     "/oauth/jwks",
@@ -83,6 +85,7 @@ function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = nu
     catch (_) { return res.status(503).json({ error: "AA_OAUTH_RUNTIME_NOT_CONFIGURED" }); }
     if (!runtime || typeof runtime.nodeHandler !== "function") return res.status(503).json({ error: "AA_OAUTH_RUNTIME_NOT_CONFIGURED" });
     const path = String(req.originalUrl || req.url || "").split("?", 1)[0];
+    if (path === PROTECTED_READ_TOGETHER_RESOURCE_METADATA_PATH) return res.json(protectedReadTogetherResourceMetadata());
     if (path === PROTECTED_TUTOR_RESOURCE_METADATA_PATH) return res.json(protectedTutorResourceMetadata());
     if ([PROTECTED_RESOURCE_METADATA_PATH, PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH].includes(path)) {
       return res.json(protectedResourceMetadata());
@@ -101,4 +104,5 @@ module.exports = {
   PROTECTED_RESOURCE_METADATA_PATH,
   PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH,
   PROTECTED_TUTOR_RESOURCE_METADATA_PATH,
+  PROTECTED_READ_TOGETHER_RESOURCE_METADATA_PATH,
 };
