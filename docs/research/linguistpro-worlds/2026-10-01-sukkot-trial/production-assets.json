@@ -1,0 +1,230 @@
+{
+  "date": "2026-10-01T19:18:36.503Z",
+  "evidence": "PRODUCTION_READ_ONLY",
+  "commit": "f13d4aab",
+  "version": "3.11.715",
+  "probes": [
+    {
+      "version": "3.11.715",
+      "health": {
+        "ok": true,
+        "uptimeSec": 547,
+        "now": "2026-10-01T19:18:27.763Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 96,
+        "disk_warn": true
+      }
+    },
+    {
+      "version": "3.11.715",
+      "health": {
+        "ok": true,
+        "uptimeSec": 547,
+        "now": "2026-10-01T19:18:28.090Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 96,
+        "disk_warn": true
+      }
+    },
+    {
+      "version": "3.11.715",
+      "health": {
+        "ok": true,
+        "uptimeSec": 547,
+        "now": "2026-10-01T19:18:28.260Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 96,
+        "disk_warn": true
+      }
+    }
+  ],
+  "assets": [
+    {
+      "url": "/",
+      "sha256": "771f3fc13b446eac90a754f3fd1c4a14fc1604312d1558c361af1ad792125068"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "4f272b999e595d0c3d31a4a4e4444a6a772b711b2ce4ea180973e030de46f5f6"
+    },
+    {
+      "url": "/mediatheque.html",
+      "sha256": "0570e75569177f969c82539afed59c21e33345edb480211560b6df54055aba1e"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "e2a4df531f3fe07971702c0efc26e57d2770982d0a93ce26508cec74bfbf4435"
+    },
+    {
+      "url": "/js/world-boot.js?v=715",
+      "sha256": "9f5f898a4922a2b86edf443331fe85b707fdd167e1bd1645e0d23a594e911e09"
+    },
+    {
+      "url": "/js/world-engine.js?v=715",
+      "sha256": "e6c96a1f72011f0ea2e1cf14cd3d41ea3d0e1e8be5f88448facf06a369466f5f"
+    },
+    {
+      "url": "/js/world-render.js?v=715",
+      "sha256": "ddf8c60d4c19fc102d52aef5fc02e1a3d2de20b46a740d5e78b844fb55c813b5"
+    },
+    {
+      "url": "/css/world-skin.css?v=715",
+      "sha256": "f6dfcf49e701511c1ec38ef98a222c7a9f3486186a96dff6b2325a593901b308"
+    },
+    {
+      "url": "/worlds/sukkot/manifest.json?v=0.1.1",
+      "sha256": "0ca3839306ee8834081e4a275acf2c517067a1ba29d631221967703ee7bd2009"
+    },
+    {
+      "url": "/worlds/sukkot/atlas.json?v=0.1.1",
+      "sha256": "c4b97eb11018337ea1471f84135b18430e5ebfc837a0d5d7c52ceb5ff99935f9"
+    },
+    {
+      "url": "/worlds/sukkot/cat.png?v=0.1.1",
+      "sha256": "7be44674bce7ae6792a86fe2932388fa43510b4577dfba54883ef79f08499c0f"
+    },
+    {
+      "url": "/worlds/sukkot/courtyard-day.png?v=0.1.1",
+      "sha256": "5101c02cbd80bdc16d6f540d3aaf1f571a190d7cce9565a1af4c8993e4998571"
+    },
+    {
+      "url": "/worlds/sukkot/courtyard-dusk.png?v=0.1.1",
+      "sha256": "c7d40321a69bfdb4967f7a06da9bf4de6af7dff425b63e6f490d6783694f181b"
+    },
+    {
+      "url": "/worlds/sukkot/courtyard-night.png?v=0.1.1",
+      "sha256": "d7e5aca644b1a46a55df9473bbf12d7317a8b873f0c4d0271336f4206ba92b98"
+    },
+    {
+      "url": "/worlds/sukkot/festival-icons-prep.png?v=0.1.1",
+      "sha256": "fbf19f2d68643e96abc22c72d9984603dbdefff5734186d927a87dddd56664bb"
+    },
+    {
+      "url": "/worlds/sukkot/festival-icons-build.png?v=0.1.1",
+      "sha256": "3f2344ee081e86fa6590ec2161a20ab7a8329f040488f0282923d46cb2eb91ca"
+    },
+    {
+      "url": "/worlds/sukkot/festival-icons-decorate.png?v=0.1.1",
+      "sha256": "2c02cb8608ca04fe9ef18a70acc3da5be7c19dd7d4be69c6c59a3b4abfc89be5"
+    },
+    {
+      "url": "/worlds/sukkot/festival-icons-welcome.png?v=0.1.1",
+      "sha256": "53cdcf9b247d81d4c9104adf1a08a65481063f6a4b9f86cddf93b7091a52abf0"
+    },
+    {
+      "url": "/worlds/sukkot/festival-props.png?v=0.1.1",
+      "sha256": "59ef744f80cd46fdb59e9850acac0ddda540986111bfb41a6eca65ebee88e609"
+    },
+    {
+      "url": "/worlds/sukkot/layer-city-day-strip.png?v=0.1.1",
+      "sha256": "26d8ef56782bb49bad69abd94a393adbc50c8050fe5f79d1ea80b0fb81266a44"
+    },
+    {
+      "url": "/worlds/sukkot/layer-city-dusk-strip.png?v=0.1.1",
+      "sha256": "74751d60b95a781d9c021e5ebb3b24ec9a0e74fe05945622490ef927ee3544e1"
+    },
+    {
+      "url": "/worlds/sukkot/layer-city-night-strip.png?v=0.1.1",
+      "sha256": "907a4121a13fc58a3ab40349475316673b41cf9a562fa8648cccd543bb9fecb9"
+    },
+    {
+      "url": "/worlds/sukkot/layer-hills-day-strip.png?v=0.1.1",
+      "sha256": "c47449ea6d537e7669435652fea61118b61c0ab980ef47a2551cf00de8f3dfec"
+    },
+    {
+      "url": "/worlds/sukkot/layer-hills-dusk-strip.png?v=0.1.1",
+      "sha256": "79c7e4ef713d6f1ccd51be1de369dc9e7f7b245e03121276cd69fda2de513e56"
+    },
+    {
+      "url": "/worlds/sukkot/layer-hills-night-strip.png?v=0.1.1",
+      "sha256": "0dfc461a3854a9a69cbb72da31111b47fe6368710a452caf79be9bc21a8cb8f9"
+    },
+    {
+      "url": "/worlds/sukkot/people.png?v=0.1.1",
+      "sha256": "0b1e8edef9e0aa1d85b63f66cacef27c42e82182b26aba67b0b57f4849157c10"
+    },
+    {
+      "url": "/worlds/sukkot/scenery-sky-day.png?v=0.1.1",
+      "sha256": "96b84e413af67b2fad48066af5f99ba07d40932c6c6a20bed3baf535260ad7bd"
+    },
+    {
+      "url": "/worlds/sukkot/scenery-sky-dusk.png?v=0.1.1",
+      "sha256": "49060ef69ae792fa9ee5d23b6b2c33694726950ec2d05e83ab77b90c26e85a44"
+    },
+    {
+      "url": "/worlds/sukkot/scenery-sky-night.png?v=0.1.1",
+      "sha256": "fb19b66bb22e217ce4b112ae8e984a9578e04c450ab6f5e7ed138a1daf357325"
+    },
+    {
+      "url": "/worlds/sukkot/sign-board.png?v=0.1.1",
+      "sha256": "7418f313e332031f7f6aa242921c1b8596a67306089859f10054e72f0bc48724"
+    },
+    {
+      "url": "/worlds/sukkot/sign-legs.png?v=0.1.1",
+      "sha256": "9a26b22e1d294e595ab0fb71e06e92c255912012dd439090a153e29f527322da"
+    },
+    {
+      "url": "/worlds/sukkot/sukkah-day.png?v=0.1.1",
+      "sha256": "7ce876ea8f9d29a538839c479c6d61c2fec5424de0bb337f711d50cc1b4692ab"
+    },
+    {
+      "url": "/worlds/sukkot/sukkah-dusk.png?v=0.1.1",
+      "sha256": "9941ff0ded2d866a21e044dbedf8e3bfce20b1fe72fbb038ae21484337700d52"
+    },
+    {
+      "url": "/worlds/sukkot/sukkah-night.png?v=0.1.1",
+      "sha256": "ecb909a314986eb6ecfbec3bf6e1aae87102ce5859f59fe74fbc80fa3b6cf4b2"
+    },
+    {
+      "url": "/worlds/sukkot/timsah-leisure.png?v=0.1.1",
+      "sha256": "1a53cb5471b9d3f7da95e57f32c64493ff867d506dbbfc02644a05354dfba0f0"
+    },
+    {
+      "url": "/worlds/sukkot/timsah.png?v=0.1.1",
+      "sha256": "dc699c347ed79c4a7b17491f3a0c72587d4c3d49982e1dc834034da24f655f49"
+    },
+    {
+      "url": "/worlds/sukkot/ui-bubble.png?v=0.1.1",
+      "sha256": "f1dc5dd38bfcf377051acc538e07b95b55f7fa15ee81025a7cf0181a53d6f1a4"
+    },
+    {
+      "url": "/worlds/sukkot/ui-tail.png?v=0.1.1",
+      "sha256": "bec115e19a42f25b10094614e67d4e9d8d69bec04c48e319aa50340e556214d1"
+    },
+    {
+      "url": "/worlds/sukkot/ui-icon-hq.png?v=0.1.1",
+      "sha256": "f66e5ccec754c39b5bfcf021920e227f6c310f393cba6e148b4d9e229c90f951"
+    },
+    {
+      "url": "/worlds/sukkot/ui-icon-press.png?v=0.1.1",
+      "sha256": "04df2d3f6871b66486b01efba2d610639fba95160967f66a27d8c5586684b761"
+    },
+    {
+      "url": "/worlds/sukkot/ui-icon-polling.png?v=0.1.1",
+      "sha256": "dd57f7777b70b5be3b26748866598e2953c5a4ab914e749852cf3c80006063cb"
+    },
+    {
+      "url": "/worlds/sukkot/ui-icon-count.png?v=0.1.1",
+      "sha256": "4c0199e3fa1d511c8374088225a34c4fb0e1950a613a6e7ccbd62c3616c1cf98"
+    },
+    {
+      "url": "/worlds/sukkot/ui-here.png?v=0.1.1",
+      "sha256": "8ef43bef6afb587289d793289f9fe2de26ac57f5f7ce7592d0a07a7debaddc8e"
+    }
+  ]
+}

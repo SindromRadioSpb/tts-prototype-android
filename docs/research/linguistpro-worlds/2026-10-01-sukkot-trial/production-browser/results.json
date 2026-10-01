@@ -1,0 +1,284 @@
+{
+  "base": "https://linguistpro.kolosei.com",
+  "passed": 39,
+  "evidence": [
+    {
+      "name": "first boot Sukkot defaults and subsequent Elections choice survive reload"
+    },
+    {
+      "name": "offscreen Elections → Sukkot paints without reload (reduce)",
+      "details": {
+        "sky": [
+          78,
+          143,
+          218,
+          255
+        ]
+      }
+    },
+    {
+      "name": "offscreen Elections → Sukkot paints without reload (no-preference)",
+      "details": {
+        "sky": [
+          78,
+          143,
+          218,
+          255
+        ]
+      }
+    },
+    {
+      "name": "route clears actors and next card 380 ru",
+      "details": {
+        "top": 263.203125,
+        "bottom": 309.203125,
+        "height": 46,
+        "width": 196,
+        "feet": 257.203125,
+        "tools": 323.203125
+      }
+    },
+    {
+      "name": "surface 380 ru /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 ru /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "five Mediatheque stops, evening lighting and keyboard controls 380 ru",
+      "details": {
+        "top": 269.8125,
+        "bottom": 315.8125,
+        "width": 244,
+        "height": 46,
+        "feet": 263.8125,
+        "next": 315.8125,
+        "overflow": "visible"
+      }
+    },
+    {
+      "name": "surface 380 ru /mediatheque.html",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 380 ru"
+    },
+    {
+      "name": "route clears actors and next card 380 he",
+      "details": {
+        "top": 231.71875,
+        "bottom": 277.71875,
+        "height": 46,
+        "width": 196,
+        "feet": 225.71875,
+        "tools": 291.71875
+      }
+    },
+    {
+      "name": "surface 380 he /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 he /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "five Mediatheque stops, evening lighting and keyboard controls 380 he",
+      "details": {
+        "top": 272.8125,
+        "bottom": 318.8125,
+        "width": 244,
+        "height": 46,
+        "feet": 266.8125,
+        "next": 318.8125,
+        "overflow": "visible"
+      }
+    },
+    {
+      "name": "surface 380 he /mediatheque.html",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 380 he"
+    },
+    {
+      "name": "route clears actors and next card 768 en",
+      "details": {
+        "top": 326.890625,
+        "bottom": 372.890625,
+        "height": 46,
+        "width": 196,
+        "feet": 320.890625,
+        "tools": 390.890625
+      }
+    },
+    {
+      "name": "surface 768 en /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 768 en /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "five Mediatheque stops, evening lighting and keyboard controls 768 en",
+      "details": {
+        "top": 356.8125,
+        "bottom": 402.8125,
+        "width": 244,
+        "height": 46,
+        "feet": 350.8125,
+        "next": 402.8125,
+        "overflow": "visible"
+      }
+    },
+    {
+      "name": "surface 768 en /mediatheque.html",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 768 en"
+    },
+    {
+      "name": "route clears actors and next card 1280 ru",
+      "details": {
+        "top": 403.9375,
+        "bottom": 449.9375,
+        "height": 46,
+        "width": 196,
+        "feet": 397.9375,
+        "tools": 467.9375
+      }
+    },
+    {
+      "name": "surface 1280 ru /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 ru /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "five Mediatheque stops, evening lighting and keyboard controls 1280 ru",
+      "details": {
+        "top": 398.8125,
+        "bottom": 444.8125,
+        "width": 244,
+        "height": 46,
+        "feet": 392.8125,
+        "next": 444.8125,
+        "overflow": "visible"
+      }
+    },
+    {
+      "name": "surface 1280 ru /mediatheque.html",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 1280 ru"
+    },
+    {
+      "name": "route clears actors and next card 1280 he",
+      "details": {
+        "top": 404.375,
+        "bottom": 450.375,
+        "height": 46,
+        "width": 196,
+        "feet": 398.375,
+        "tools": 468.375
+      }
+    },
+    {
+      "name": "surface 1280 he /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 he /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "five Mediatheque stops, evening lighting and keyboard controls 1280 he",
+      "details": {
+        "top": 403.8125,
+        "bottom": 449.8125,
+        "width": 244,
+        "height": 46,
+        "feet": 397.8125,
+        "next": 449.8125,
+        "overflow": "visible"
+      }
+    },
+    {
+      "name": "surface 1280 he /mediatheque.html",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 1280 he"
+    },
+    {
+      "name": "live cat ground and surface hero /"
+    },
+    {
+      "name": "live cat ground and surface hero /library.html"
+    },
+    {
+      "name": "live cat ground and surface hero /mediatheque.html"
+    },
+    {
+      "name": "Elections retains its original cat lane after live world switch"
+    },
+    {
+      "name": "lazy catalog, hidden/closed animation, stale-load cancellation (fallback=false)"
+    },
+    {
+      "name": "lazy catalog, hidden/closed animation, stale-load cancellation (fallback=true)"
+    }
+  ]
+}

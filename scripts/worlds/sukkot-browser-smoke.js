@@ -10,6 +10,12 @@ const out = path.resolve(process.env.AUDIT_OUT || path.join(root, ".tmp/worlds-s
 fs.mkdirSync(out, { recursive: true });
 let server, browser, dataDir;
 const evidence = [];
+const navigationWaitUntil = "load";
+async function newContext(options) {
+  const ctx = await browser.newContext(options);
+  ctx.setDefaultNavigationTimeout(process.env.AUDIT_BASE ? 60000 : 30000);
+  return ctx;
+}
 function pass(name, details) { evidence.push({ name, details }); console.log("PASS", name, JSON.stringify(details || "")); }
 (async () => {
   let base = process.env.AUDIT_BASE;
@@ -22,34 +28,34 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
   }
   browser = await chromium.launch();
   {
-    const ctx = await browser.newContext({ serviceWorkers:"block" });
+    const ctx = await newContext({ serviceWorkers:"block" });
     const page = await ctx.newPage();
-    await page.goto(base + "/mediatheque.html", {waitUntil:"load"});
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().lighting === "day");
+    await page.goto(base + "/mediatheque.html", {waitUntil:navigationWaitUntil});
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage && LPWorld.debugState().lighting === "day");
     assert.equal(await page.evaluate(() => LPWorld.current().id), "sukkot");
     await page.evaluate(() => LPWorld.set("israel-elections-2026", "calm", "night"));
-    await page.reload({waitUntil:"load"});
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
+    await page.reload({waitUntil:navigationWaitUntil});
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage && LPWorld.current().id === "israel-elections-2026");
     assert.equal(await page.locator('.lp-world-route').isVisible(), false);
     pass("first boot Sukkot defaults and subsequent Elections choice survive reload");
     await ctx.close();
   }
   // Remount while the old stage is outside the viewport, then return without reloading.
   for (const motion of ["reduce", "no-preference"]) {
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block", reducedMotion: motion });
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block", reducedMotion: motion });
     await ctx.addInitScript(() => {
       localStorage.setItem("onboardingSeen_v1", "1");
       localStorage.setItem("lp_world_sukkot_trial_v1", "1");
       localStorage.setItem("lp_world_v1", JSON.stringify({ id: "israel-elections-2026", lighting: "day", mode: "live" }));
     });
     const page = await ctx.newPage();
-    await page.goto(base + "/", { waitUntil: "load" });
-    await page.waitForFunction(() => LPWorld.current()?.active);
+    await page.goto(base + "/", { waitUntil: navigationWaitUntil });
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage);
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForTimeout(150);
     await page.evaluate(() => LPWorld.openPicker());
     await page.locator('input[name="lpWorld"][value="sukkot"]').check();
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "sukkot");
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage && LPWorld.current().id === "sukkot");
     await page.keyboard.press("Escape");
     await page.locator("#lpWorldPicker").waitFor({ state: "detached" });
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -70,7 +76,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await ctx.close();
   }
   for (const [width, lang] of [[380, "ru"], [380, "he"], [768, "en"], [1280, "ru"], [1280, "he"]]) {
-    const ctx = await browser.newContext({ viewport: { width, height: 800 }, serviceWorkers: "block", reducedMotion: "reduce" });
+    const ctx = await newContext({ viewport: { width, height: 800 }, serviceWorkers: "block", reducedMotion: "reduce" });
     await ctx.addInitScript(({ lang }) => {
       localStorage.setItem("onboardingSeen_v1", "1");
       localStorage.setItem("lp_world_sukkot_trial_v1", "1");
@@ -78,10 +84,10 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       localStorage.setItem("app.locale", lang);
     }, { lang });
     const page = await ctx.newPage(), errors = [];
-    page.on("pageerror", e => errors.push(String(e)));
+    page.on("pageerror", e => errors.push(e.stack || String(e)));
     for (const route of ["/", "/library.html", "/mediatheque.html"]) {
-      await page.goto(base + route, { waitUntil: "load" });
-      await page.waitForFunction(() => window.LPWorld?.current()?.active);
+      await page.goto(base + route, { waitUntil: navigationWaitUntil });
+      await page.waitForFunction(() => window.LPWorld?.current()?.active && LPWorld.debugState().stage);
       await page.waitForFunction(() => document.querySelector('link[href*="world-skin.css"]')?.sheet);
       await page.evaluate(async lang => {
         if (window.appSetLocale) window.appSetLocale(lang);
@@ -140,8 +146,8 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
       pass(`surface ${width} ${lang} ${route}`, { location: d.location, lighting: "day/dusk/night" });
     }
-    await page.goto(base + "/", { waitUntil: "load" });
-    await page.waitForFunction(() => window.LPWorld?.current()?.active);
+    await page.goto(base + "/", { waitUntil: navigationWaitUntil });
+    await page.waitForFunction(() => window.LPWorld?.current()?.active && LPWorld.debugState().stage);
     await page.waitForFunction(() => document.querySelector('link[href*="world-skin.css"]')?.sheet);
     await page.evaluate(() => LPWorld.openPicker());
     if (lang === "en") await page.evaluate(() => document.body.classList.add("theme-dark"));
@@ -151,9 +157,9 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await page.waitForFunction(() => document.querySelector(".lp-world-preview")?.width < 300);
     await page.screenshot({ path: path.join(out, `${width}-${lang}-picker.png`) });
     await page.locator('input[name="lpWorld"][value="israel-elections-2026"]').check();
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage && LPWorld.current().id === "israel-elections-2026");
     await page.locator('input[name="lpWorld"][value="sukkot"]').check();
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "sukkot");
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage && LPWorld.current().id === "sukkot");
     await page.waitForFunction(() => {
       const p = document.querySelector(".lp-world-stage canvas").getContext("2d").getImageData(0, 0, 1, 1).data;
       return p[0] + p[1] + p[2] > 0;
@@ -171,8 +177,8 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       return p[0] + p[1] + p[2] > 0;
     }, null, { timeout: 3000 });
     await page.screenshot({ path: path.join(out, `${width}-${lang}-switched.png`) });
-    await page.reload({ waitUntil: "load" });
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().lighting === "night");
+    await page.reload({ waitUntil: navigationWaitUntil });
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().stage && LPWorld.debugState().lighting === "night");
     assert.equal(await page.evaluate(() => LPWorld.debugState().lighting), "night");
     await page.locator(".lp-world-pause").click();
     assert.equal(await page.evaluate(() => LPWorld.current().paused), true);
@@ -180,7 +186,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await page.locator('input[name="lpWorld"][value=""]').check();
     assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-world")), false);
     await page.keyboard.press("Escape");
-    await page.reload({ waitUntil: "load" });
+    await page.reload({ waitUntil: navigationWaitUntil });
     assert.equal(await page.evaluate(() => LPWorld.current()), null);
     assert.deepEqual(errors, []);
     pass(`picker, persistence, pause and Classic ${width} ${lang}`);
@@ -188,7 +194,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
   }
   // Accelerate only scheduling; the shipped actor art and ground geometry remain intact.
   {
-    const ctx = await browser.newContext({viewport:{width:1280,height:800}, serviceWorkers:"block"});
+    const ctx = await newContext({viewport:{width:1280,height:800}, serviceWorkers:"block"});
     const page = await ctx.newPage();
     await page.route("**/js/world-render.js*", route => route.fulfill({contentType:"text/javascript", body:fs.readFileSync(path.join(root,"public/js/world-render.js"),"utf8").replace("setPose: function (pose) { state.pose = pose; }", "setPose: function (pose) { state.pose = pose; window.__worldPose = pose; }")}));
     await page.route("**/worlds/*/manifest.json*", route => {
@@ -198,7 +204,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       return route.fulfill({contentType:"application/json",body:JSON.stringify(pack)});
     });
     for (const route of ["/", "/library.html", "/mediatheque.html"]) {
-      await page.goto(base+route,{waitUntil:"load"});
+      await page.goto(base+route,{waitUntil:navigationWaitUntil});
       await page.waitForFunction(() => window.__worldPose?.some(p => p.actor === "cat"));
       assert.equal(await page.evaluate(() => window.__worldPose.find(p => p.actor === "cat").lane),0);
       if (route === "/mediatheque.html") {
@@ -231,7 +237,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
   }
   // A large synthetic registry exercises the same catalog without shipping placeholder worlds.
   for (const fallback of [false, true]) {
-    const ctx = await browser.newContext({ viewport: { width: 380, height: 800 }, serviceWorkers: "block" });
+    const ctx = await newContext({ viewport: { width: 380, height: 800 }, serviceWorkers: "block" });
     await ctx.addInitScript(fallback => {
       localStorage.setItem("lp_world_v1", '{"id":"classic"}');
       localStorage.setItem("onboardingSeen_v1", "1");
@@ -247,7 +253,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       if (file === "atlas.json") { const a = JSON.parse(body); a.world = id; body = Buffer.from(JSON.stringify(a)); }
       await route.fulfill({ body, contentType: file.endsWith("png") ? "image/png" : "application/json" });
     });
-    await page.goto(base + "/", { waitUntil: "load" });
+    await page.goto(base + "/", { waitUntil: navigationWaitUntil });
     await page.evaluate(async () => {
       if (LPWorld.stub) await LPWorld.load();
       for (let i = 0; i < 18; i++) LPWorld.core.REGISTRY["catalog-" + i] = {
