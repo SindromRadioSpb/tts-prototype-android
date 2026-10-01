@@ -1,0 +1,209 @@
+{
+  "base": "https://linguistpro.kolosei.com",
+  "passed": 29,
+  "evidence": [
+    {
+      "name": "offscreen Elections → Sukkot paints without reload (reduce)",
+      "details": {
+        "sky": [
+          78,
+          143,
+          218,
+          255
+        ]
+      }
+    },
+    {
+      "name": "offscreen Elections → Sukkot paints without reload (no-preference)",
+      "details": {
+        "sky": [
+          78,
+          143,
+          218,
+          255
+        ]
+      }
+    },
+    {
+      "name": "route clears actors and next card 380 ru",
+      "details": {
+        "top": 263.203125,
+        "bottom": 309.203125,
+        "height": 46,
+        "width": 196,
+        "feet": 257.203125,
+        "tools": 323.203125
+      }
+    },
+    {
+      "name": "surface 380 ru /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 ru /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 ru /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 380 ru"
+    },
+    {
+      "name": "route clears actors and next card 380 he",
+      "details": {
+        "top": 231.71875,
+        "bottom": 277.71875,
+        "height": 46,
+        "width": 196,
+        "feet": 225.71875,
+        "tools": 291.71875
+      }
+    },
+    {
+      "name": "surface 380 he /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 he /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 380 he /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 380 he"
+    },
+    {
+      "name": "route clears actors and next card 768 en",
+      "details": {
+        "top": 326.890625,
+        "bottom": 372.890625,
+        "height": 46,
+        "width": 196,
+        "feet": 320.890625,
+        "tools": 390.890625
+      }
+    },
+    {
+      "name": "surface 768 en /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 768 en /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 768 en /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 768 en"
+    },
+    {
+      "name": "route clears actors and next card 1280 ru",
+      "details": {
+        "top": 403.9375,
+        "bottom": 449.9375,
+        "height": 46,
+        "width": 196,
+        "feet": 397.9375,
+        "tools": 467.9375
+      }
+    },
+    {
+      "name": "surface 1280 ru /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 ru /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 ru /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 1280 ru"
+    },
+    {
+      "name": "route clears actors and next card 1280 he",
+      "details": {
+        "top": 404.375,
+        "bottom": 450.375,
+        "height": 46,
+        "width": 196,
+        "feet": 398.375,
+        "tools": 468.375
+      }
+    },
+    {
+      "name": "surface 1280 he /",
+      "details": {
+        "location": "courtyard",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 he /library.html",
+      "details": {
+        "location": "reading",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "surface 1280 he /mediatheque.html",
+      "details": {
+        "location": "cinema",
+        "lighting": "day/dusk/night"
+      }
+    },
+    {
+      "name": "picker, persistence, pause and Classic 1280 he"
+    },
+    {
+      "name": "lazy catalog, hidden/closed animation, stale-load cancellation (fallback=false)"
+    },
+    {
+      "name": "lazy catalog, hidden/closed animation, stale-load cancellation (fallback=true)"
+    }
+  ]
+}

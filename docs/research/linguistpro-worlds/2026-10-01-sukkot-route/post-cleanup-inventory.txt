@@ -1,0 +1,26 @@
+sha256:ac465d68947cd70d8a54cf291be87f7a90b3c6d55911277a1c1022e3dc6c2cf2 ["glmw0wjd6nm70fntxgjy6fkp:4e84d72e5730c106cf020c351bc5057cc375b168"]
+sha256:d6a78a79396dcb8e2f8386c896d30881a906c68fefe83be2ab5d1661a5c4933f ["glmw0wjd6nm70fntxgjy6fkp:d187804ea5acbc2d78b87895a23970ca950fa5f0"]
+sha256:c434063761fe5c69ea436126f3d7395c2d74588e93e2aa34d17d4b97f7321b24 ["glmw0wjd6nm70fntxgjy6fkp:8404178e706139b5be0ca28d477e75da222be3af"]
+092833f78d9c Up 2 minutes
+9c67dbe56346 Up 9 days (healthy)
+f00646d445ef Up 9 days (healthy)
+1f58db19034a Up 2 weeks
+9739dc8e230f Up 2 weeks (healthy)
+1c8741e88576 Up 2 weeks
+26206f2b069f Up 7 weeks (healthy)
+39a1d5bb8e7a Up 3 weeks (healthy)
+5f65c2c20fd1 Up 3 weeks (healthy)
+98eb033f6675 Up 2 weeks (healthy)
+b9677a9d7b35 Up 3 weeks (healthy)
+8369a9319433 Up 4 months (healthy)
+coolify-db
+coolify-redis
+glmw0wjd6nm70fntxgjy6fkp-linguistpro-data
+p8bcejm5xx66olsks13s5dgs_postgresql-data
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          13        11        12.5GB    2.435GB (19%)
+Containers      12        12        3.687GB   0B (0%)
+Local Volumes   4         4         3.825GB   0B (0%)
+Build Cache     0         0         0B        0B
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        38G   33G  2.9G  93% /
