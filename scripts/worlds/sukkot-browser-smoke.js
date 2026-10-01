@@ -208,6 +208,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       await page.waitForFunction(() => window.__worldPose?.some(p => p.actor === "cat"));
       assert.equal(await page.evaluate(() => window.__worldPose.find(p => p.actor === "cat").lane),0);
       if (route === "/mediatheque.html") {
+        await page.locator(".ml-heading").waitFor({state:"visible"});
         for (const loc of ["courtyard","building","decorating","welcome","cinema"]) {
           await page.evaluate(loc => LPWorld.visit(loc), loc);
           await page.waitForTimeout(3400);
