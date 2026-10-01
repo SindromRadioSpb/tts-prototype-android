@@ -1,12 +1,7 @@
-/*
- * LinguistPro Worlds — boot stub (the only world code every shell loads).
- * The election world is ON by default (owner decision 2026-09-30): the engine loads unless this
- * device explicitly chose Classic. A Classic device pays for this file alone: no engine, no
- * renderer, no skin, no art, no timers — until the user opens the «Оформление» picker.
- */
+/* Worlds boot: one-time Sukkot trial defaults, then preserve the learner choice. */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=714"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=715"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;
@@ -26,10 +21,13 @@
     current: function () { return null; }
   };
   window.LPWorld = stub;
-  // The election world is on by default: load the engine unless this device explicitly chose
-  // Classic ({"id":"classic"}). ?world=off also needs the engine, to record that choice.
   var wanted = true;
   try {
+    // One-time owner-requested trial rollout. Later user choices remain authoritative.
+    if (localStorage.getItem("lp_world_sukkot_trial_v1") !== "1") {
+      localStorage.setItem("lp_world_v1", JSON.stringify({ id: "sukkot", mode: "live", paused: false, lighting: "day" }));
+      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
+    }
     var raw = localStorage.getItem("lp_world_v1");
     var classic = false;
     try { classic = !!raw && JSON.parse(raw).id === "classic"; } catch (_) {}

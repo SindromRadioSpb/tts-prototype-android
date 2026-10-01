@@ -1,7 +1,7 @@
 {
   "schema": "lp-world/2",
   "id": "sukkot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engine": {
     "min": 2,
     "max": 2
@@ -194,7 +194,7 @@
           20000
         ],
         "sitChance": 0.6,
-        "lane": 6
+        "lane": 0
       }
     ],
     "curb": true,
@@ -564,7 +564,8 @@
           "x": 66,
           "y": 0
         }
-      ]
+      ],
+      "icon": "festival-icons-welcome"
     }
   },
   "slots": {
@@ -631,11 +632,52 @@
     },
     "mediatheque": {
       "slot": "media-stage",
-      "location": "cinema",
+      "location": "courtyard",
       "react": {
         "actor": "timsah-leisure",
         "frame": "laugh",
         "y": 0
+      },
+      "route": [
+        "courtyard",
+        "building",
+        "decorating",
+        "welcome",
+        "cinema"
+      ],
+      "restByLocation": {
+        "courtyard": [
+          {
+            "actor": "timsah",
+            "frame": "idle",
+            "x": 0,
+            "hero": true
+          }
+        ],
+        "building": [
+          {
+            "actor": "timsah",
+            "frame": "idle",
+            "x": 0,
+            "hero": true
+          }
+        ],
+        "decorating": [
+          {
+            "actor": "timsah",
+            "frame": "idle",
+            "x": 0,
+            "hero": true
+          }
+        ],
+        "welcome": [
+          {
+            "actor": "timsah",
+            "frame": "idle",
+            "x": 0,
+            "hero": true
+          }
+        ]
       }
     }
   },
@@ -1163,6 +1205,324 @@
             {
               "t": 1800,
               "frame": "watch",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "media-arrive-courtyard",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "arrive.courtyard",
+      "location": "courtyard",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Дворик",
+        "en": "Courtyard",
+        "he": "חָצֵר"
+      },
+      "caption": {
+        "ru": "Хвосту тоже нужно место",
+        "en": "A tail needs room too",
+        "he": "גַּם הַזָּנָב צָרִיךְ מָקוֹם."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "media-arrive-building",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "arrive.building",
+      "location": "building",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Строим сукку",
+        "en": "Building a sukkah",
+        "he": "בּוֹנִים סֻכָּה"
+      },
+      "caption": {
+        "ru": "Как приятно в тени!",
+        "en": "What lovely shade!",
+        "he": "אֵיזֶה צֵל נָעִים!"
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "media-arrive-decorating",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "arrive.decorating",
+      "location": "decorating",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Украшения",
+        "en": "Decorations",
+        "he": "קִשּׁוּטִים"
+      },
+      "caption": {
+        "ru": "Картинка почти готова",
+        "en": "The picture is almost ready",
+        "he": "הַתְּמוּנָה כִּמְעַט מוּכָנָה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "media-arrive-welcome",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "arrive.welcome",
+      "location": "welcome",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Добро пожаловать",
+        "en": "Welcome",
+        "he": "בְּרוּכִים הַבָּאִים"
+      },
+      "caption": {
+        "ru": "Есть место ещё для одного друга",
+        "en": "There's room for one more friend",
+        "he": "יֵשׁ מָקוֹם לְעוֹד חָבֵר."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "jump",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "media-welcome-preview",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "manual",
+      "location": "welcome",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Добро пожаловать",
+        "en": "Welcome",
+        "he": "בְּרוּכִים הַבָּאִים"
+      },
+      "caption": {
+        "ru": "Есть место ещё для одного друга",
+        "en": "There's room for one more friend",
+        "he": "יֵשׁ מָקוֹם לְעוֹד חָבֵר."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "jump",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "media-quiet-breeze",
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "trigger": "ambient",
+      "location": "decorating",
+      "durationMs": 2400,
+      "title": {
+        "ru": "Украшения",
+        "en": "Decorations",
+        "he": "קִשּׁוּטִים"
+      },
+      "caption": {
+        "ru": "Картинка почти готова",
+        "en": "The picture is almost ready",
+        "he": "הַתְּמוּנָה כִּמְעַט מוּכָנָה."
+      },
+      "staticPose": [
+        {
+          "actor": "timsah",
+          "frame": "idle",
+          "x": 0
+        }
+      ],
+      "tracks": [
+        {
+          "actor": "timsah",
+          "z": 3,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "idle",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 850,
+              "frame": "blink",
+              "x": 0,
+              "hold": true
+            },
+            {
+              "t": 1800,
+              "frame": "idle",
               "x": 0,
               "hold": true
             }

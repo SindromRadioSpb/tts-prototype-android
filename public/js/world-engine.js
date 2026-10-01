@@ -30,7 +30,7 @@
     "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false, category: "current-events",
       names: { ru: "Мир выборов в Израиле", en: "Israel Elections 2026", he: "עולם הבחירות 2026" },
       noteKey: "world.elections.note", badgeKey: "world.satireBadge", greeting: "בְּחִירוֹת" },
-    "sukkot": { base: "/worlds/sukkot/", pack: "0.1.0", retired: false, category: "events",
+    "sukkot": { base: "/worlds/sukkot/", pack: "0.1.1", retired: false, category: "events",
       names: { ru: "Мир Суккота", en: "Sukkot World", he: "עולם סוכות" },
       note: { ru: "Дворик, сукка и друзья. Тимсах читает и встречает гостей.", en: "A courtyard, a sukkah, and friends. Timsah reads and welcomes guests.", he: "חצר, סוכה וחברים. תמסח קורא ומקבל אורחים." },
       badge: { ru: "Сезонный мир", en: "Seasonal world", he: "עולם עונתי" },
@@ -45,10 +45,10 @@
     literature: { ru: "Литература", en: "Literature", he: "ספרות" },
     other: { ru: "Другие миры", en: "Other worlds", he: "עולמות נוספים" }
   };
-  // Owner decision 2026-09-30: the election world is ON by default (live); a learner switches to
+  // Owner decision 2026-10-01: Sukkot is ON by default (live, day); a learner switches to
   // Classic by hand and that explicit choice ({id:"classic"}) is kept. Retiring the default world
   // in REGISTRY sends everyone without an explicit choice back to Classic.
-  var DEFAULT_WORLD = "israel-elections-2026";
+  var DEFAULT_WORLD = "sukkot";
   var CLASSIC = "classic";
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -61,14 +61,14 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=714";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=714";
+  var CSS_URL = "/css/world-skin.css?v=715";    // lockstep with the sw.js precache keys
+  var RENDER_URL = "/js/world-render.js?v=715";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
   function defaultChoice() {
     var reg = REGISTRY[DEFAULT_WORLD];
-    return reg && !reg.retired ? { id: DEFAULT_WORLD, mode: "live", paused: false, lighting: "auto", implicit: true } : null;
+    return reg && !reg.retired ? { id: DEFAULT_WORLD, mode: "live", paused: false, lighting: "day", implicit: true } : null;
   }
   function readChoice(raw) {
     if (!raw) return defaultChoice();
@@ -213,6 +213,11 @@
     Object.keys(manifest.surfaces || {}).forEach(function (k) {
       var su = manifest.surfaces[k];
       if (!su || !slots[su.slot] || (su.location && !locs[su.location])) err("surface " + k);
+      if (su && Array.isArray(su.route) && (!su.route.length || new Set(su.route).size !== su.route.length || !su.route.every(function (id) { return !!locs[id]; }))) err("surface " + k + " route");
+      Object.keys((su && su.restByLocation) || {}).forEach(function (id) {
+        var rest = su.restByLocation[id];
+        if (!locs[id] || !Array.isArray(rest) || !rest.every(function (r) { return r && frameOk(r.actor, r.frame) && isNum(r.x, -400, 400); })) err("surface " + k + " rest " + id);
+      });
       if (su && su.react && !frameOk(su.react.actor, su.react.frame)) err("surface " + k + " react");
     });
     Object.keys(slots).forEach(function (slot) {
@@ -289,6 +294,11 @@
     ] } };
   }
 
+  function routeLocations(manifest, surface) {
+    if (surface && Array.isArray(surface.route)) return surface.route.slice();
+    return Object.keys(manifest.locations || {}).filter(function (id) { return manifest.locations[id].phase; });
+  }
+
   function locationForPhase(manifest, phase) {
     var locs = manifest.locations || {};
     var ids = Object.keys(locs);
@@ -335,7 +345,7 @@
     ENGINE_VERSION: ENGINE_VERSION, STORAGE_KEY: STORAGE_KEY, REGISTRY: REGISTRY, BUDGET: BUDGET, DEFAULT_WORLD: DEFAULT_WORLD, CLASSIC: CLASSIC,
     COLOR_TOKENS: COLOR_TOKENS, SLOTS: SLOTS, TRIGGER_RE: TRIGGER_RE, PHASES: PHASES,
     readChoice: readChoice, validatePack: validatePack, sampleScene: sampleScene, sampleTrack: sampleTrack,
-    sceneActive: sceneActive, createGovernor: createGovernor, journey: journey, locationForPhase: locationForPhase
+    sceneActive: sceneActive, createGovernor: createGovernor, journey: journey, locationForPhase: locationForPhase, routeLocations: routeLocations
   };
   if (typeof document === "undefined") return { core: core };
 
@@ -527,7 +537,8 @@
     }
     if (state.react && !controlled.timsah) {
       var r = state.react, rt = t - r.start;
-      var su = state.surface && state.surface.react;
+      var hasRest = state.surface && state.surface.restByLocation && state.surface.restByLocation[state.location];
+      var su = !hasRest && state.surface && state.surface.react;
       controlled.timsah = true;
       if (su) pose.push({ actor: su.actor, frame: su.frame, worldX: base, y: su.y || 0, z: 3 });
       else {
@@ -537,7 +548,7 @@
     }
     walkersPose(t).forEach(function (w) { pose.push(w); });
     // the hero at rest (Timsah in the surface's own pose); hidden while a scene/walk/reaction moves him
-    (p.slots[state.slotName].rest || []).forEach(function (r) {
+    ((state.surface && state.surface.restByLocation && state.surface.restByLocation[state.location]) || p.slots[state.slotName].rest || []).forEach(function (r) {
       if (controlled[r.actor] || (r.hero && controlled.timsah)) return;
       var frame = r.frames ? r.frames[Math.floor(t / (r.cycleMs || 1200)) % r.frames.length] : blinkFrame(r.frame, t);
       pose.push({ actor: r.actor, frame: frame, worldX: base + r.x, y: r.y || 0, z: 3 });
@@ -745,7 +756,7 @@
   }
   function watchPhase() {
     // Surfaces other than the Studio stand at their own stop (no journey, no phase hook).
-    if (state.surface && !state.surface.route) {
+    if (state.surface && (!state.surface.route || Array.isArray(state.surface.route))) {
       var fixed = state.surface.location || Object.keys(state.pack.locations)[0];
       state.progressLocation = fixed;
       goTo(fixed, true);
@@ -979,8 +990,8 @@
   function syncRoute() {
     var st = state.stage;
     if (!st || !st.route) return;
-    var ids = Object.keys(state.pack.locations).filter(function (id) { return state.pack.locations[id].phase; });
-    var progress = ids.indexOf(state.progressLocation || ids[0]);
+    var ids = routeLocations(state.pack, state.surface);
+    var progress = ids.indexOf(Array.isArray(state.surface.route) ? state.location : state.progressLocation || ids[0]);
     var routeLabel = REGISTRY[state.pack.id].routeLabel;
     st.route.setAttribute("aria-label", routeLabel ? (routeLabel[locale()] || routeLabel.ru) : tr("world.routeLabel", "Маршрут выборов"));
     Array.prototype.forEach.call(st.route.children, function (b, i) {
@@ -1082,7 +1093,7 @@
     route.setAttribute("role", "group");
     route.setAttribute("data-world-ui", "");
     if (!state.surface.route) route.hidden = true;
-    Object.keys(state.pack.locations).filter(function (id) { return state.pack.locations[id].phase; }).forEach(function (id) {
+    routeLocations(state.pack, state.surface).forEach(function (id) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "lp-world-stop";

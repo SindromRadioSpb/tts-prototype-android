@@ -78,8 +78,8 @@ test("parallax strips exist in all three lightings with identical geometry", () 
   }
 });
 
-test("the stored choice is local and allowlisted; the election world is on by default; Classic is explicit", () => {
-  const dflt = { id: WORLD, mode: "live", paused: false, lighting: "auto", implicit: true };
+test("the stored choice is local and allowlisted; Sukkot is on by default; Classic is explicit", () => {
+  const dflt = { id: "sukkot", mode: "live", paused: false, lighting: "day", implicit: true };
   assert.deepEqual(core.readChoice(null), dflt, "no choice on this device → the default world, live");
   assert.deepEqual(core.readChoice("not json"), dflt);
   assert.equal(core.readChoice(JSON.stringify({ id: "classic" })), null, "an explicit Classic is kept");
@@ -87,11 +87,11 @@ test("the stored choice is local and allowlisted; the election world is on by de
   assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD })), { id: WORLD, mode: "live", paused: false, lighting: "auto" });
   assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "calm", paused: true, lighting: "day" })), { id: WORLD, mode: "calm", paused: true, lighting: "day" });
   assert.deepEqual(core.readChoice(JSON.stringify({ id: WORLD, mode: "party", lighting: "noon" })), { id: WORLD, mode: "live", paused: false, lighting: "auto" });
-  core.REGISTRY[WORLD].retired = true;
+  core.REGISTRY[core.DEFAULT_WORLD].retired = true;
   try {
-    assert.equal(core.readChoice(JSON.stringify({ id: WORLD })), null, "a retired world never loads again");
+    assert.equal(core.readChoice(JSON.stringify({ id: core.DEFAULT_WORLD })), null, "a retired world never loads again");
     assert.equal(core.readChoice(null), null, "retiring the default world sends everyone back to Classic");
-  } finally { core.REGISTRY[WORLD].retired = false; }
+  } finally { core.REGISTRY[core.DEFAULT_WORLD].retired = false; }
   const boot = read("public/js/world-boot.js");
   assert.match(boot, /var wanted = true;/, "the boot stub loads the world unless Classic was chosen");
   assert.match(boot, /JSON\.parse\(raw\)\.id === "classic"/);
@@ -268,7 +268,7 @@ test("the skin never restyles the study table or learning fonts; everything else
   for (const rule of css.split("}")) {
     if (/font-size|font-weight|letter-spacing|font-family/.test(rule)) assert.match(rule.split("{")[0], /\.lp-world-/, `type change outside world UI: ${rule.trim().slice(0, 80)}`);
     const selector = rule.split("{")[0];
-    if (/\{/.test(rule) && !/html\[data-world\]/.test(selector)) {
+    if (/\{/.test(rule) && !/html\[data-world(?:="sukkot")?\]/.test(selector)) {
       assert.match(selector, /lp-world-|@media|^\s*$/, `unscoped rule must belong to the world UI: ${selector.trim().slice(0, 80)}`);
     }
   }

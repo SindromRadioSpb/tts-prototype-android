@@ -11,7 +11,7 @@ def L(ru,en,he):return dict(ru=ru,en=en,he=he)
 def localized(x):return {k:x[k] for k in ['ru','en','he']}
 def sign(id,x=-54):
  a=labels[id];latin={'courtyard':'khatser','building':'bonim sukkah','decorations':'kishutim','welcome':"brukhim ha-ba'im",'reading':"pinat kri'a",'evening':'erev ba-sukkah'};return dict(he=a['he'],translit=latin[id],gloss=localized(a),x=x)
-m=dict(schema='lp-world/2',id='sukkot',version='0.1.0',engine=dict(min=2,max=2),kind='seasonal',names=L('Мир Суккота','Sukkot World','עולם סוכות'),blurb=L('Уютный дворик: строим и украшаем сукку, встречаем друзей. Художественная сценка, не руководство по обрядам.','A cozy courtyard: build and decorate a sukkah, welcome friends. An illustrated story, not a ritual guide.','חצר נעימה: בונים ומקשטים סוכה ומקבלים חברים. סיפור מאויר, לא מדריך הלכתי.'))
+m=dict(schema='lp-world/2',id='sukkot',version='0.1.1',engine=dict(min=2,max=2),kind='seasonal',names=L('Мир Суккота','Sukkot World','עולם סוכות'),blurb=L('Уютный дворик: строим и украшаем сукку, встречаем друзей. Художественная сценка, не руководство по обрядам.','A cozy courtyard: build and decorate a sukkah, welcome friends. An illustrated story, not a ritual guide.','חצר נעימה: בונים ומקשטים סוכה ומקבלים חברים. סיפור מאויר, לא מדריך הלכתי.'))
 m['skin']=copy.deepcopy(e['skin'])
 m['skin']['light'].update(surface='#fff9e9',surfaceSoft='#f2e5c8',ink='#27372f',line='#27372f',accent='#446149',accentInk='#ffffff',plate='#253c36',plateInk='#fff3d5')
 m['skin']['dark'].update(surface='#24362f',surfaceSoft='#304238',ink='#f1e8ce',line='#101b20',accent='#637c51',accentInk='#ffffff',plate='#132823',plateInk='#fff3d5')
@@ -19,6 +19,7 @@ m['scenery']=copy.deepcopy(e['scenery']);sc=m['scenery']
 sc['layers'][-1]=dict(id='courtyard',sheet={l:'courtyard-'+l for l in ['day','dusk','night']},frame='strip',parallax=1,bottom=0,front=True)
 sc['backGround']=12
 sc['walkers']=sc['walkers'][:1]
+sc['walkers'][0]['lane']=0  # The courtyard ground differs from the Elections street lane.
 m['ui']=e['ui'];m['here']=e['here']
 m['actors']={k:copy.deepcopy(e['actors'][k]) for k in ['timsah','timsah-leisure','cat','neighbours']}
 m['actors']['timsah']['lines']={lang:[a[lang] for a in copytext['quips']] for lang in ['ru','en','he']}
@@ -36,7 +37,10 @@ m['locations']={
 }
 m['slots']=copy.deepcopy(e['slots']);m['slots']['room-stage']['rest'][0]['y']=0
 m['slots']['media-stage']['origin']=0.46
-m['surfaces']=copy.deepcopy(e['surfaces']);m['surfaces']['room']['location']='reading';m['surfaces']['room']['react']['y']=0;m['surfaces']['mediatheque']['location']='cinema'
+m['surfaces']=copy.deepcopy(e['surfaces']);m['surfaces']['room']['location']='reading';m['surfaces']['room']['react']['y']=0;m['surfaces']['mediatheque']['location']='courtyard'
+m['surfaces']['mediatheque']['route']=['courtyard','building','decorating','welcome','cinema']
+m['surfaces']['mediatheque']['restByLocation']={loc:copy.deepcopy(m['slots']['studio-stage']['rest']) for loc in ['courtyard','building','decorating','welcome']}
+m['locations']['cinema']['icon']='festival-icons-welcome'
 def scene(id,loc,trigger,actor='timsah',frames=['idle','blink','idle'],slot='studio-stage',surface='studio'):
  return dict(id=id,slot=slot,surfaces=[surface],trigger=trigger,location=loc,durationMs=2400,title=m['locations'][loc]['names'],caption=m['locations'][loc]['quip'],staticPose=[dict(actor=actor,frame=frames[-1],x=0)],tracks=[dict(actor=actor,z=3,keys=[dict(t=0,frame=frames[0],x=0,hold=True),dict(t=850,frame=frames[1],x=0,hold=True),dict(t=1800,frame=frames[-1],x=0,hold=True)])])
 m['scenes']=[]
@@ -48,5 +52,9 @@ m['scenes'].append(scene('turn-page','reading','ambient','timsah-leisure',['read
 m['scenes'].append(scene('evening-story','cinema','ambient','timsah-leisure',['watch','laugh','watch'],'media-stage','mediatheque'))
 m['scenes'].append(scene('reading-preview','reading','manual','timsah-leisure',['read','read-turn','read'],'room-stage','room'))
 m['scenes'].append(scene('cinema-preview','cinema','manual','timsah-leisure',['watch','laugh','watch'],'media-stage','mediatheque'))
+# Reuse every Studio scene on the Mediatheque route without replacing its original.
+for source in list(m['scenes']):
+ if source['surfaces']==['studio']:
+  clone=copy.deepcopy(source);clone['id']='media-'+source['id'];clone['slot']='media-stage';clone['surfaces']=['mediatheque'];m['scenes'].append(clone)
 # Renderer-supported timeline only. No holiday ritual, learning state, or app content is read.
 (R/'public/worlds/sukkot/manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

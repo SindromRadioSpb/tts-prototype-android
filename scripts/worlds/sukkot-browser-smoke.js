@@ -21,11 +21,25 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     base = "http://127.0.0.1:" + await waitForSmokeServer(server, 30000);
   }
   browser = await chromium.launch();
+  {
+    const ctx = await browser.newContext({ serviceWorkers:"block" });
+    const page = await ctx.newPage();
+    await page.goto(base + "/mediatheque.html", {waitUntil:"load"});
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().lighting === "day");
+    assert.equal(await page.evaluate(() => LPWorld.current().id), "sukkot");
+    await page.evaluate(() => LPWorld.set("israel-elections-2026", "calm", "night"));
+    await page.reload({waitUntil:"load"});
+    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
+    assert.equal(await page.locator('.lp-world-route').isVisible(), false);
+    pass("first boot Sukkot defaults and subsequent Elections choice survive reload");
+    await ctx.close();
+  }
   // Remount while the old stage is outside the viewport, then return without reloading.
   for (const motion of ["reduce", "no-preference"]) {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block", reducedMotion: motion });
     await ctx.addInitScript(() => {
       localStorage.setItem("onboardingSeen_v1", "1");
+      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
       localStorage.setItem("lp_world_v1", JSON.stringify({ id: "israel-elections-2026", lighting: "day", mode: "live" }));
     });
     const page = await ctx.newPage();
@@ -59,6 +73,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     const ctx = await browser.newContext({ viewport: { width, height: 800 }, serviceWorkers: "block", reducedMotion: "reduce" });
     await ctx.addInitScript(({ lang }) => {
       localStorage.setItem("onboardingSeen_v1", "1");
+      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
       if (!localStorage.getItem("lp_world_v1")) localStorage.setItem("lp_world_v1", JSON.stringify({ id: "sukkot", lighting: "day", mode: "live" }));
       localStorage.setItem("app.locale", lang);
     }, { lang });
@@ -71,20 +86,41 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
       await page.evaluate(async lang => {
         if (window.appSetLocale) window.appSetLocale(lang);
       }, lang);
-      const expectedLocation = route === "/" ? "courtyard" : route === "/library.html" ? "reading" : "cinema";
+      const expectedLocation = route === "/" ? "courtyard" : route === "/library.html" ? "reading" : "courtyard";
       await page.waitForFunction(expected => LPWorld.debugState().location === expected, expectedLocation);
       const d = await page.evaluate(() => LPWorld.debugState());
       assert.equal(await page.evaluate(() => document.documentElement.lang), lang);
       assert.equal(d.choice.id, "sukkot");
       assert.equal(d.choice.active, true);
       assert.equal(d.animating, false);
-      assert.equal(d.location, route === "/" ? "courtyard" : route === "/library.html" ? "reading" : "cinema");
+      assert.equal(d.location, route === "/" ? "courtyard" : route === "/library.html" ? "reading" : "courtyard");
       for (const light of ["day", "dusk", "night"]) {
         await page.evaluate(light => LPWorld.setLighting(light), light);
         await page.waitForFunction(light => LPWorld.debugState().lighting === light, light);
       }
       await page.evaluate(() => LPWorld.setLighting("day"));
       await page.waitForFunction(() => LPWorld.debugState().lighting === "day");
+      if (route === "/mediatheque.html") {
+        assert.deepEqual(await page.locator(".lp-world-stop").evaluateAll(bs => bs.map(b => b.dataset.loc)), ["courtyard", "building", "decorating", "welcome", "cinema"]);
+        for (const loc of ["building", "decorating", "welcome", "cinema", "courtyard"]) {
+          await page.locator(`.lp-world-stop[data-loc="${loc}"]`).focus();
+          await page.keyboard.press("Enter");
+          await page.waitForFunction(loc => LPWorld.debugState().location === loc && LPWorld.debugState().lighting === (loc === "cinema" ? "night" : "day"), loc);
+          assert.equal(await page.locator('.lp-world-stop[aria-current="step"]').getAttribute("data-loc"), loc);
+          assert.ok(await page.locator(".lp-world-sign").isVisible());
+          await page.screenshot({ path: path.join(out, `media-${width}-${lang}-${loc}.png`) });
+        }
+        const geometry = await page.evaluate(() => {
+          const stage = document.querySelector('.lp-world-stage'), strip = document.querySelector('.lp-world-route');
+          const sr = stage.getBoundingClientRect(), rr = strip.getBoundingClientRect();
+          const next = document.querySelector('.ml-heading').nextElementSibling.getBoundingClientRect();
+          return { top:rr.top, bottom:rr.bottom, width:rr.width, height:rr.height, feet:sr.bottom - 12 * Number(getComputedStyle(stage).getPropertyValue('--lpw-scale')), next:next.top, overflow:getComputedStyle(stage).overflow };
+        });
+        assert.equal(geometry.height,46);
+        assert.equal(geometry.overflow,"visible");
+        assert.ok(geometry.top >= geometry.feet + 4 && geometry.bottom <= geometry.next, JSON.stringify(geometry));
+        pass(`five Mediatheque stops, evening lighting and keyboard controls ${width} ${lang}`, geometry);
+      }
       if (route === "/") {
         const placement = await page.evaluate(() => {
           const stage = document.querySelector('.lp-world-stage'), strip = document.querySelector('.lp-world-route');
@@ -150,12 +186,56 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     pass(`picker, persistence, pause and Classic ${width} ${lang}`);
     await ctx.close();
   }
+  // Accelerate only scheduling; the shipped actor art and ground geometry remain intact.
+  {
+    const ctx = await browser.newContext({viewport:{width:1280,height:800}, serviceWorkers:"block"});
+    const page = await ctx.newPage();
+    await page.route("**/js/world-render.js*", route => route.fulfill({contentType:"text/javascript", body:fs.readFileSync(path.join(root,"public/js/world-render.js"),"utf8").replace("setPose: function (pose) { state.pose = pose; }", "setPose: function (pose) { state.pose = pose; window.__worldPose = pose; }")}));
+    await page.route("**/worlds/*/manifest.json*", route => {
+      const id = new URL(route.request().url()).pathname.split("/")[2];
+      const pack = JSON.parse(fs.readFileSync(path.join(root,"public/worlds",id,"manifest.json"),"utf8"));
+      pack.scenery.walkers.forEach(w => {w.every=[1000,1000];});
+      return route.fulfill({contentType:"application/json",body:JSON.stringify(pack)});
+    });
+    for (const route of ["/", "/library.html", "/mediatheque.html"]) {
+      await page.goto(base+route,{waitUntil:"load"});
+      await page.waitForFunction(() => window.__worldPose?.some(p => p.actor === "cat"));
+      assert.equal(await page.evaluate(() => window.__worldPose.find(p => p.actor === "cat").lane),0);
+      if (route === "/mediatheque.html") {
+        for (const loc of ["courtyard","building","decorating","welcome","cinema"]) {
+          await page.evaluate(loc => LPWorld.visit(loc), loc);
+          await page.waitForTimeout(3400);
+          const hero = await page.evaluate(() => window.__worldPose.filter(p => ["timsah","timsah-leisure"].includes(p.actor)));
+          assert.equal(hero.length,1);
+          assert.equal(hero[0].actor,loc === "cinema" ? "timsah-leisure" : "timsah");
+          assert.ok(loc === "cinema" ? ["watch","laugh"].includes(hero[0].frame) : ["idle","blink"].includes(hero[0].frame));
+          await page.screenshot({path:path.join(out,`live-media-${loc}.png`)});
+        }
+        await page.evaluate(() => LPWorld.visit("building"));
+        await page.waitForTimeout(3400);
+        const point = await page.evaluate(() => {
+          const r=document.querySelector('.lp-world-stage canvas').getBoundingClientRect();
+          const p=window.__worldPose.find(p=>p.actor === "timsah");
+          return {x:r.left+(p.worldX-LPWorld.debugState().camera)*3, y:r.bottom-(12+20)*3};
+        });
+        await page.mouse.click(point.x,point.y);
+        assert.ok(await page.locator('.lp-world-bubble').isVisible());
+      }
+      pass(`live cat ground and surface hero ${route}`);
+    }
+    await page.evaluate(() => LPWorld.set("israel-elections-2026","live","day"));
+    await page.waitForFunction(() => window.__worldPose?.some(p=>p.actor === "cat" && p.lane === 6));
+    assert.equal(await page.evaluate(() => LPWorld.current().id),"israel-elections-2026");
+    pass("Elections retains its original cat lane after live world switch");
+    await ctx.close();
+  }
   // A large synthetic registry exercises the same catalog without shipping placeholder worlds.
   for (const fallback of [false, true]) {
     const ctx = await browser.newContext({ viewport: { width: 380, height: 800 }, serviceWorkers: "block" });
     await ctx.addInitScript(fallback => {
       localStorage.setItem("lp_world_v1", '{"id":"classic"}');
       localStorage.setItem("onboardingSeen_v1", "1");
+      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
       if (fallback) window.IntersectionObserver = undefined;
     }, fallback);
     const page = await ctx.newPage(), requests = [];
