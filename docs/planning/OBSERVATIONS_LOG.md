@@ -11,11 +11,11 @@
 ---
 
 ## O-055 — Production build consumes preflight headroom
-- **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.
-- **Observed:** previous free disk fell from 4.40 GiB after backup to 1.40 GiB after build. Fresh non-mutating df reports 1.5G available, 97% used. The current tracked COPY source is about 576 MB before clone/context/image overhead. Non-privileged Docker inspection is denied; cache reuse for another build is unverified.
-- **Impact:** the next main push automatically starts a production build. Current headroom cannot be treated as sufficient from source-diff size alone. Old approved image cleanup does not authorize deleting cache, containers, volumes or backups now.
-- **Proposal:** verify a safe build budget or reach conservative >=4 GiB free before publishing the prepared UI fix. Any exact cleanup or capacity change needs separate authorization.
-- **Status:** open; no production storage cleanup or permission change performed.
+- **When / where:** 2026-10-02, verified 3.11.716 and 3.11.717 Coolify deployments.
+- **Observed:** previous full build consumed about 3 GiB. Owner-approved precise cleanup of seven unused private cache records reclaimed 1,203,391,680 bytes. Read-only privileged inspection then verified a smaller measured path: build clean source locally, load the exact image with shared-base deduplication, and let normal Coolify deployment skip the build.
+- **Result:** UI 717/source 0bb7bead was published successfully with build skipped. Current/rollback images, container references, backups, volumes and logs were preserved. No Docker permissions, registry or app settings changed. Final free disk is 1,452,268 KiB (1.385 GiB), 97% used.
+- **Impact / next action:** publication succeeded, but capacity remains too low for an unmeasured next full build. Audit the next build budget or obtain separately authorized capacity maintenance; this rollout does not authorize further cleanup.
+- **Status:** open for ongoing disk headroom; publication blocker resolved. Details: `READ_TOGETHER_UI_REMOVAL_3_11_717.md`.
 
 ## O-053 · Windows aggregate: research builder меняет tracked manifest
 - **Дата / где:** 2026-10-01, локальный `npm test`, `tests/physicsLearningDerivatives.test.js`, worktree `feat/read-with-dot`.
