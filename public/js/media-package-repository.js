@@ -448,7 +448,47 @@
       });
     }
 
-    return { commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, getTextSourceMeta: getTextSourceMeta, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
+    async function exportTransferWorkspaces() {
+      const packages=await q('SELECT package_id FROM studio_media_packages WHERE deleted_at IS NULL ORDER BY package_id'),out=[];
+      for(const item of packages){const pkg=await getPackage(item.package_id),tracks=await listTracks(item.package_id),revisions=[];
+        for(const track of tracks)for(const row of await q('SELECT * FROM studio_caption_revisions WHERE track_id=? ORDER BY revision_no',[track.track_id]))revisions.push(revisionRow(row));
+        out.push({schema:'studio-workspace-transfer-v1',package:pkg,tracks,revisions});
+      }
+      return out;
+    }
+    // Workspace restore is a repository writer, not a raw database snapshot import. Every
+    // immutable caption is checked before the first write; existing heads are never replaced.
+    async function previewTransferWorkspace(snapshot) {
+      const pkg=snapshot&&snapshot.package,tracks=snapshot&&snapshot.tracks,revisions=snapshot&&snapshot.revisions;
+      if(snapshot?.schema!=='studio-workspace-transfer-v1'||!pkg||typeof pkg.package_id!=='string'||pkg.package_id.length>200||!Array.isArray(tracks)||!Array.isArray(revisions)||tracks.length>200||revisions.length>10000||pkg.deleted_at)throw createError('WORKSPACE_TRANSFER_INVALID');
+      const tids=new Set(),rids=new Set();for(const track of tracks){if(typeof track.track_id!=='string'||tids.has(track.track_id)||track.package_id!==pkg.package_id||!['raw_original','user_corrected'].includes(track.role))throw createError('WORKSPACE_TRACK_INVALID');tids.add(track.track_id);}
+      for(const revision of revisions){const track=tracks.find(t=>t.track_id===revision.track_id);if(!track||typeof revision.revision_id!=='string'||rids.has(revision.revision_id)||!Number.isSafeInteger(revision.revision_no)||revision.revision_no<1)throw createError('WORKSPACE_REVISION_INVALID');rids.add(revision.revision_id);Core.validateSegments(revision.segments);if(await Core.revisionHash(track.role,revision.segments,revision.operations||[])!==revision.canonical_sha256)throw createError('SOURCE_CAPTION_HASH_MISMATCH');}
+      for(const revision of revisions)if(revision.parent_revision_id&&!rids.has(revision.parent_revision_id))throw createError('WORKSPACE_PARENT_MISSING');
+      for(const track of tracks){if(track.parent_track_id&&!tids.has(track.parent_track_id)||track.current_revision_id&&!revisions.some(r=>r.revision_id===track.current_revision_id&&r.track_id===track.track_id)||track.draft_base_revision_id&&!revisions.some(r=>r.revision_id===track.draft_base_revision_id&&r.track_id===track.track_id))throw createError('WORKSPACE_HEAD_MISSING');if(track.draft){if(track.role!=='user_corrected'||track.draft.base_revision_id!==track.draft_base_revision_id)throw createError('WORKSPACE_DRAFT_INVALID');Core.validateSegments(track.draft.segments);}}
+      const existing=await getPackage(pkg.package_id),sameSha=pkg.media_sha256&&await findPackageByMediaSha(pkg.media_sha256),conflicts=[];
+      if(pkg.media_sha256&&!/^[a-f0-9]{64}$/.test(pkg.media_sha256))throw createError('WORKSPACE_MEDIA_HASH_INVALID');
+      const parents=new Map(revisions.map(r=>[r.revision_id,r.parent_revision_id]));for(const revision of revisions){const seen=new Set([revision.revision_id]);let parent=revision.parent_revision_id;while(parent){if(seen.has(parent))throw createError('WORKSPACE_HISTORY_CYCLE');seen.add(parent);parent=parents.get(parent);}}
+      const trackParents=new Map(tracks.map(t=>[t.track_id,t.parent_track_id]));for(const track of tracks){const seen=new Set([track.track_id]);let parent=track.parent_track_id;while(parent){if(seen.has(parent))throw createError('WORKSPACE_HISTORY_CYCLE');seen.add(parent);parent=trackParents.get(parent);}}
+      if(existing&&String(existing.media_sha256||'')!==String(pkg.media_sha256||'')||sameSha&&sameSha.package_id!==pkg.package_id)conflicts.push('WORKSPACE_PACKAGE_CONFLICT');
+      for(const track of tracks){const old=await getTrack(track.track_id);if(old&&(old.package_id!==pkg.package_id||old.role!==track.role||old.current_revision_id!==track.current_revision_id||json(old.draft)!==json(track.draft)))conflicts.push('WORKSPACE_TRACK_CONFLICT');}
+      for(const revision of revisions){const old=await getRevision(revision.revision_id);if(old&&(old.track_id!==revision.track_id||old.canonical_sha256!==revision.canonical_sha256||old.parent_revision_id!==revision.parent_revision_id))conflicts.push('WORKSPACE_REVISION_CONFLICT');}
+      return {can_apply:conflicts.length===0,conflicts,package_id:pkg.package_id,tracks:tracks.length,revisions:revisions.length};
+    }
+    async function importTransferWorkspace(snapshot) {
+      const plan=await previewTransferWorkspace(snapshot);if(!plan.can_apply)throw createError(plan.conflicts[0]);
+      const pkg=snapshot.package,ts=now();await x('SAVEPOINT library_transfer_workspace;');
+      try {
+        // Recheck while holding the write boundary to prevent stale conflict decisions.
+        const current=await previewTransferWorkspace(snapshot);if(!current.can_apply)throw createError(current.conflicts[0]);
+        if(!await getPackage(pkg.package_id))await r(`INSERT INTO studio_media_packages(package_id,media_sha256,mime,duration_ms,original_name,opfs_path,size_bytes,external_ref_json,created_at,updated_at,deleted_at) VALUES(?,?,?,?,?,NULL,?,?,?,?,NULL)`,[pkg.package_id,cleanHash(pkg.media_sha256),pkg.mime||null,pkg.duration_ms??null,pkg.original_name||null,pkg.size_bytes??null,json(pkg.external_ref||null),pkg.created_at||ts,pkg.updated_at||ts]);
+        const freshTracks=[];for(const track of snapshot.tracks)if(!await getTrack(track.track_id)){freshTracks.push(track);await r(`INSERT INTO studio_caption_tracks(track_id,package_id,role,language,parent_track_id,current_revision_id,draft_base_revision_id,draft_json,draft_updated_at,created_at,updated_at) VALUES(?,?,?,?,NULL,NULL,NULL,NULL,NULL,?,?)`,[track.track_id,pkg.package_id,track.role,track.language||null,track.created_at||ts,track.updated_at||ts]);}
+        const freshRevisions=[];for(const revision of snapshot.revisions)if(!await getRevision(revision.revision_id)){freshRevisions.push(revision);await r(`INSERT INTO studio_caption_revisions(revision_id,track_id,parent_revision_id,revision_no,segments_json,operations_json,canonical_sha256,author_kind,provenance_json,created_at) VALUES(?,?,NULL,?,?,?,?,?,?,?)`,[revision.revision_id,revision.track_id,revision.revision_no,json(revision.segments),json(revision.operations||[]),revision.canonical_sha256,revision.author_kind||'import',json(revision.provenance||{}),revision.created_at||ts]);}
+        for(const revision of freshRevisions)if(revision.parent_revision_id)await r('UPDATE studio_caption_revisions SET parent_revision_id=? WHERE revision_id=?',[revision.parent_revision_id,revision.revision_id]);
+        for(const track of freshTracks)await r('UPDATE studio_caption_tracks SET parent_track_id=?,current_revision_id=?,draft_base_revision_id=?,draft_json=?,draft_updated_at=? WHERE track_id=?',[track.parent_track_id||null,track.current_revision_id||null,track.draft_base_revision_id||null,track.draft?json(track.draft):null,track.draft_updated_at||null,track.track_id]);
+        await x('RELEASE library_transfer_workspace;');return {package_id:pkg.package_id,imported_tracks:freshTracks.length,imported_revisions:freshRevisions.length};
+      }catch(error){await x('ROLLBACK TO library_transfer_workspace; RELEASE library_transfer_workspace;');throw error;}
+    }
+    return { exportTransferWorkspaces, previewTransferWorkspace, importTransferWorkspace, commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, getTextSourceMeta: getTextSourceMeta, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.717";
+const CACHE_VERSION = "v3.11.718";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -71,7 +71,7 @@ const PRECACHE_URLS = [
   "/css/tutor-connect.css?v=1",
   "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=2",
-  "/js/tutor-notebook.js?v=3",
+  "/js/tutor-notebook.js?v=718",
   "/js/tutor-panel.js?v=9",
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
@@ -237,16 +237,20 @@ const PRECACHE_URLS = [
   "/js/chunk-retry.js?v=519",
   "/js/media-store.js?v=671",
   "/js/media-package-core.js",
-  "/js/media-package-repository.js?v=587",
+  "/js/media-package-repository.js?v=718",
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js?v=553",
   "/js/portable-learning-package-core.js?v=688",
   "/js/import-center-core.js?v=527",
-  "/js/portable-learning-package-repository.js?v=576",
+  "/js/portable-learning-package-repository.js?v=718",
   "/js/studio-media-package.js?v=676",
   "/js/studio-media-editor.js?v=628",
   "/js/studio-material-revision.js",
   "/js/studio-portable-learning-package.js?v=630",
+  "/js/library-transfer-core.js?v=718",
+  "/js/library-transfer-io.js?v=718",
+  "/js/library-transfer.js?v=718",
+  "/js/library-transfer-ui.js?v=718",
   "/js/media-rebind-core.js?v=677",
   "/js/media-rebind-ui.js?v=677",
   "/js/gemini-files.js",
@@ -430,7 +434,7 @@ self.addEventListener("install", (event) => {
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, PUBLIC_CORPUS_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE]);
+    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, PUBLIC_CORPUS_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE, 'linguistpro-library-audio-v1']);
     const names = await caches.keys();
     await Promise.all(
       names
@@ -516,6 +520,23 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Explicitly restored personal MP3 persist independently of shell versions. A miss
+  // keeps the normal server path; no provider call or server upload is made by restore.
+  if (req.method === 'GET' && /^\/api\/audio\/[a-f0-9]{64}$/.test(url.pathname)) {
+    event.respondWith((async () => {
+      const cached = await (await caches.open('linguistpro-library-audio-v1')).match(url.pathname);
+      if (!cached) return fetch(req);
+      const range = req.headers.get('Range');
+      if (!range) return cached;
+      const file = await cached.blob(), match = /^bytes=(\d*)-(\d*)$/.exec(range);
+      if (!match || (!match[1] && !match[2])) return new Response(null, {status:416,headers:{'Content-Range':`bytes */${file.size}`}});
+      const start = match[1] ? Number(match[1]) : Math.max(0,file.size-Number(match[2]));
+      const end = match[1] && match[2] ? Math.min(Number(match[2]),file.size-1) : file.size-1;
+      if (start>end || start>=file.size) return new Response(null,{status:416,headers:{'Content-Range':`bytes */${file.size}`}});
+      return new Response(file.slice(start,end+1),{status:206,headers:{'Content-Type':'audio/mpeg','Content-Length':String(end-start+1),'Content-Range':`bytes ${start}-${end}/${file.size}`,'Accept-Ranges':'bytes'}});
+    })());
+    return;
+  }
   // All other /api/* — network-only. Don't cache responses (would mask
   // quota/state/upload semantics).
   if (url.pathname.startsWith("/api/")) return;

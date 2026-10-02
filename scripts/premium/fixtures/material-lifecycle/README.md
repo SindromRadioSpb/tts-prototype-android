@@ -11,3 +11,9 @@ ffmpeg -f lavfi -i 'color=c=navy:s=160x90:r=10:d=3' -f lavfi -i 'sine=frequency=
 
 The portable-package browser regression uses real decodable bytes instead of a
 text buffer named `.mp4`. SHA-256 is computed from the fixture at test time.
+
+`three-second.mp3` is an independent synthetic 440 Hz tone used by the full-library transfer offline speech test:
+
+```sh
+ffmpeg -f lavfi -i sine=frequency=440:sample_rate=16000:duration=3 -c:a libmp3lame -b:a 64k three-second.mp3
+```

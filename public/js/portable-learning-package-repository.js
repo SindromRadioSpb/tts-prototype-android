@@ -703,7 +703,7 @@
       return exportReceipt(await one('SELECT * FROM studio_portable_export_receipts WHERE receipt_id=?',[receiptId]));
     }
 
-    async function restoreExportReceipts(receipts) {
+    async function restoreExportReceipts(receipts, options={}) {
       const rows=Array.isArray(receipts)?receipts:[],ordered=rows.slice().sort((a,b)=>(a&&a.event_kind==='generated'?0:1)-(b&&b.event_kind==='generated'?0:1));
       if(rows.length>10000)throw failure('EXPORT_RECEIPT_RESTORE_LIMIT');
       const generated=new Set(rows.filter(row=>row&&row.event_kind==='generated').map(row=>String(row.receipt_id)));
@@ -711,7 +711,10 @@
         if(!row||typeof row.receipt_id!=='string'||!row.receipt_id.startsWith(row.event_kind==='generated'?'export-generated:':'export-saved:'))throw failure('EXPORT_RECEIPT_RESTORE_INVALID');
         importCore.validateReceiptInput(row);
         if(row.event_kind==='owner_saved'&&!generated.has(String(row.parent_receipt_id))&&!await one("SELECT receipt_id FROM studio_portable_export_receipts WHERE receipt_id=? AND event_kind='generated'",[row.parent_receipt_id]))throw failure('EXPORT_RECEIPT_PARENT_MISSING');
+        const existing=await one('SELECT * FROM studio_portable_export_receipts WHERE receipt_id=?',[row.receipt_id]);
+        if(existing&&!['event_kind','parent_receipt_id','scope_kind','portable_scope_id','format_kind','source_state_sha256','artifact_sha256','size_bytes','destination_kind','app_version','details_json','created_at'].every(key=>String(existing[key]??'')===String(key==='details_json'?json(cleanExportDetails(row.details)):row[key]??'')))throw failure('EXPORT_RECEIPT_RESTORE_CONFLICT');
       }
+      if(options.preview===true)return {total:rows.length,can_apply:true};
       await x('SAVEPOINT p4_export_restore;');
       try{
         let restored=0,reused=0;

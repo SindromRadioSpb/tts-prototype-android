@@ -29,12 +29,23 @@
       async remove(owner,id){return run('readwrite',(s,done)=>{const q=s.get(id);q.onsuccess=()=>{if(q.result?.owner===String(owner))s.delete(id);done(true);};});},
       async removeAll(owner){if(!owner)throw Error('owner_required');return run('readwrite',(s,done)=>{const q=s.index('owner').getAll(String(owner));q.onsuccess=()=>{for(const row of q.result)s.delete(row.id);done(q.result.length);};});},
       async exportBundle(owner){if(!owner)throw Error('owner_required');const rows=await this.list(owner);return {schema:'lp-tutor-notebook.1',owner_id:String(owner),records:rows.map(({owner:omitOwner,id,...record})=>validate(record))};},
+      async previewBundle(owner,bundle){
+        if(!owner||!bundle||bundle.schema!=='lp-tutor-notebook.1'||!Array.isArray(bundle.records)||bundle.records.length>LIMIT)throw Error('invalid_archive_bundle');
+        const existing=new Set((await this.list(owner)).map(r=>r.id));for(const raw of bundle.records){if(!raw||'owner'in raw||'id'in raw)throw Error('invalid_archive_bundle');existing.add(await digest(owner,validate(raw)));}if(existing.size>LIMIT)throw Error('notebook_capacity_exceeded');return {can_apply:true,total:existing.size};
+      },
       async importBundle(owner,bundle){
         if(!owner)throw Error('owner_required');
         if(!bundle||bundle.schema!=='lp-tutor-notebook.1'||bundle.owner_id!==String(owner)||!Array.isArray(bundle.records)||bundle.records.length>LIMIT)throw Error('invalid_archive_bundle');
         const entries=[];
         for(const raw of bundle.records){if(!raw||'owner'in raw||'id'in raw)throw Error('invalid_archive_bundle');const clean=validate(raw);entries.push({...clean,id:await digest(owner,clean),owner:String(owner),saved_at:Number.isFinite(raw.saved_at)&&raw.saved_at>0?raw.saved_at:Date.now()});}
         return run('readwrite',(s,done,tx)=>{const q=s.index('owner').getAll(String(owner));q.onsuccess=()=>{const existing=new Set(q.result.map(r=>r.id)),fresh=new Map();for(const row of entries)if(!existing.has(row.id))fresh.set(row.id,row);if(existing.size+fresh.size>LIMIT){tx.abort();return;}for(const row of fresh.values())s.put(row);done({imported:fresh.size,existing:entries.length-fresh.size});};});
+      },
+      // Deliberate copying is separate from same-owner restore. It preserves attribution
+      // and cannot change access to the source account or bypass ordinary import checks.
+      async copyBundle(owner,bundle,options){
+        if(!options||options.confirmed!==true||!owner||!bundle?.owner_id)throw Error('copy_confirmation_required');
+        const source=String(bundle.owner_id),records=(bundle.records||[]).map(record=>({...record,transfer_origin:record.transfer_origin||{owner_id:source,kind:'explicit_library_copy'}}));
+        return this.importBundle(owner,{...bundle,owner_id:String(owner),records});
       },
     };
   }

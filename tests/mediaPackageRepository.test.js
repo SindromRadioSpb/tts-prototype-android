@@ -36,6 +36,28 @@ async function rawRevision(sha = 'a'.repeat(64), suffix = '') {
   });
 }
 
+test('full transfer restores workspace history and unsaved draft on a clean machine',async()=>{
+  const source=await harness(),target=await harness(),raw=await rawRevision();
+  const created=await source.repo.createPackage({media:{sha256:'a'.repeat(64),mime:'video/mp4',size_bytes:99},raw_revision:raw});
+  const current=await source.repo.getCurrentRevision(created.corrected_track_id);
+  const segments=structuredClone(current.segments);segments[0].text='draft';
+  await source.repo.saveDraft(created.corrected_track_id,current.revision_id,segments,[]);
+  const snapshots=await source.repo.exportTransferWorkspaces();assert.equal(snapshots.length,1);
+  assert.equal((await target.repo.previewTransferWorkspace(snapshots[0])).can_apply,true);
+  await target.repo.importTransferWorkspace(snapshots[0]);
+  const restored=await target.repo.exportTransferWorkspaces();assert.deepEqual(restored[0].tracks,snapshots[0].tracks);assert.deepEqual(restored[0].revisions,snapshots[0].revisions);
+  assert.equal(restored[0].package.opfs_path,null);
+  const again=await target.repo.importTransferWorkspace(snapshots[0]);assert.equal(again.imported_revisions,0);
+  assert.deepEqual(target.rows('PRAGMA foreign_key_check'),[]);
+});
+test('workspace transfer corruption and recipient draft conflicts reject before writes',async()=>{
+  const source=await harness(),target=await harness();const created=await source.repo.createPackage({media:{sha256:'a'.repeat(64)},raw_revision:await rawRevision()});
+  const [snapshot]=await source.repo.exportTransferWorkspaces(),broken=structuredClone(snapshot);broken.revisions[0].segments[0].text='corrupt';
+  await assert.rejects(()=>target.repo.importTransferWorkspace(broken),/SOURCE_CAPTION_HASH_MISMATCH/);assert.equal(target.rows('SELECT count(*) n FROM studio_media_packages')[0].n,0);
+  await target.repo.importTransferWorkspace(snapshot);const current=await target.repo.getCurrentRevision(created.corrected_track_id);await target.repo.saveDraft(created.corrected_track_id,current.revision_id,current.segments,[]);
+  await assert.rejects(()=>target.repo.importTransferWorkspace(snapshot),/WORKSPACE_TRACK_CONFLICT/);assert.ok((await target.repo.getTrack(created.corrected_track_id)).draft);
+});
+
 test('subtitle speech correction creates a separate revision and duplicate import preserves it',async()=>{
   const h=await harness(),Studio=require('../public/js/studio-media-package.js');
   const evidence={schema:'subtitle-speech-sync-v1',status:'correctable',apply_offset_ms:750,
