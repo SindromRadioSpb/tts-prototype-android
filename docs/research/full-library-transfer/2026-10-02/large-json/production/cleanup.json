@@ -1,0 +1,16 @@
+{
+  "authorization": "owner previously approved unused/backup images and unused build cache",
+  "removed_unreferenced_image": "sha256:301f4efe39c538f2b5b899a1694c0816782dfe7a8cd29cec0973898cccc621e4",
+  "retained_runtime_image": "sha256:a17898282e12e0c850c33a33fc4a159b5aeb90b60a4b72b6eb4d04b4ae44f5ea",
+  "container_count": 12,
+  "volumes_preserved": [
+    "coolify-db",
+    "coolify-redis",
+    "glmw0wjd6nm70fntxgjy6fkp-linguistpro-data",
+    "p8bcejm5xx66olsks13s5dgs_postgresql-data"
+  ],
+  "build_cache_result": "Total:\t2.485GB",
+  "disk_and_docker": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        38G   32G  4.4G  88% /\nTYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          11        11        10.09GB   0B (0%)\nContainers      12        12        3.717GB   0B (0%)\nLocal Volumes   4         4         3.828GB   0B (0%)\nBuild Cache     0         0         0B        0B",
+  "health_after_cleanup": "DB and migrations ready",
+  "version_after_cleanup": "3.11.720"
+}

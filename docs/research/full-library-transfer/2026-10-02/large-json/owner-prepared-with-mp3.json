@@ -1,0 +1,21 @@
+{
+  "audio_included": true,
+  "counts": {
+    "audio": 9124,
+    "audio_files": 9099,
+    "learning_packages": 65,
+    "rows": 85404,
+    "texts": 644,
+    "workspaces": 76
+  },
+  "evidence_kind": "owner existing-tab actual UI prepare with deployed candidate code; not a saved owner archive",
+  "excluded_media_count": 70,
+  "included_media_count": 0,
+  "material_gaps_count": 0,
+  "missing_audio_count": 121,
+  "owner_archive_saved": false,
+  "payload_bytes": 718110341,
+  "personal_included": false,
+  "save_button_ready": true,
+  "status": "PREPARED"
+}
