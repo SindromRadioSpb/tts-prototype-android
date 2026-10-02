@@ -10,6 +10,18 @@
 
 ---
 
+## O-055 — Production build consumes preflight headroom
+- **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment.
+- **Observed:** free disk fell from 4.40 GiB after backup to 1.40 GiB after build; df 97%, health sample 96%. Docker reports 1.203 GB reclaimable build cache; the prior production image remains available for rollback.
+- **Impact:** another backup/build cannot reuse the preflight headroom estimate. Unused-image permission does not automatically authorize cache/container/volume/backup deletion.
+- **Status:** observed, not fixed; recheck disk and agree exact cleanup before the next large operation.
+
+## O-054 — Existing Memory Canon migration fixture count fails CI
+- **When / where:** 2026-10-02, GitHub CI run 36945950688 for d0dc571c; baseline run 36911758992 for f13d4aab.
+- **Observed:** both fail Memory Canon 89/90 with `MIGRATIONS.length 54 != 53`, last fixture `053_mediatheque_personal`. Release unit/contracts, API/migrations, ingest, learner isolation and FSRS pass.
+- **Impact:** CI is red despite the independent release and live checks passing. This is fixture bookkeeping, not evidence that production migration 077 failed; that migration was verified separately on the live DB.
+- **Status:** targeted repair prepared in the isolated release branch after owner instruction: literal count 54 plus exact migration/index placement, applied columns/properties and covering-query-plan checks; Memory Canon PASS 94/94 locally. Main remains on deployed d0dc571c pending disk headroom; its old failed CI run is not relabeled.
+
 ## O-053 · Windows aggregate: research builder меняет tracked manifest
 - **Дата / где:** 2026-10-01, локальный `npm test`, `tests/physicsLearningDerivatives.test.js`, worktree `feat/read-with-dot`.
 - **Что видно:** aggregate запускает research builder в tracked artifacts; после успешного теста `docs/research/physics-learning-derivatives/2026-08-27/artifacts/manifest.json` имеет diff 5/5 (hash/byte size). На Windows источники с CRLF влияют на byte-derived manifest; другие generated Markdown дают только EOL/stat status. Это не изменение продукта «Читать вместе».
