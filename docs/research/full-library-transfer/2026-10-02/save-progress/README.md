@@ -1,4 +1,4 @@
-# One-operation library save — 3.11.721
+# One-operation library save — 3.11.722
 
 ## Owner path and contract
 
@@ -16,7 +16,7 @@ The existing owner save was in progress with a disabled Save button and only a b
 
 Clean-profile browser gate passed: one click, one chooser; visible preparation/write/closing bars; no saved receipt before close; automatic receipt and success afterward; no manual confirmation button. Stalled-stage screenshots inspected. Existing private/foreign restore, optional media/MP3, offline real audio/video playback and no-write rejection remain PASS. No paid calls.
 
-Production deployment and owner idle-tab activation: pending.
+Initial 3.11.721 release deployed as `92c815c5`, queue 2594 finished 20:07:58 UTC; final 3.11.722 also ensures the paint wait never stalls background tabs. The browser gate simulates a hidden document during initial save and verifies preparation still starts. Hidden-document save gate PASS. Final production verification and idle-tab activation pending.
 
 ## Platform boundary
 

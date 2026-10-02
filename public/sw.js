@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.721";
+const CACHE_VERSION = "v3.11.722";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -250,7 +250,7 @@ const PRECACHE_URLS = [
   "/js/library-transfer-core.js?v=720",
   "/js/library-transfer-io.js?v=721",
   "/js/library-transfer.js?v=721",
-  "/js/library-transfer-ui.js?v=721",
+  "/js/library-transfer-ui.js?v=722",
   "/js/media-rebind-core.js?v=677",
   "/js/media-rebind-ui.js?v=677",
   "/js/gemini-files.js",
