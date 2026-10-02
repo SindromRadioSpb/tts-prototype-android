@@ -14,14 +14,14 @@
 - **Дата / где:** 2026-10-02, read-only owner ZIP и текущий local DB.
 - **Факты:** 644 текста / 65 packages / 9106 MP3; 123 MP3 отсутствуют; source media bytes не включены, нет личной структуры Медиатеки и отдельных ASR workspaces. ZIP исправен по CRC и package payload SHA. Источники legacy text passports также требуют переноса.
 - **Решение:** полный streaming ZIP64 перенос, native/legacy media SHA binding, MP3 cache, workspace/draft/history, структура и privacy modes; проверено в чистых профилях с offline playback. [Контракт](FULL_LIBRARY_TRANSFER_2026_10_02.md), [доказательства](../research/full-library-transfer/README.md).
-- **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
+- **Статус:** закрыто (db42438c / 3.11.718), production browser roundtrip и served assets PASS. Старый файл не изменён и остаётся с исходными пробелами.
 
 ## O-055 — Production build consumes preflight headroom
 - **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.
 - **Observed:** previous free disk fell from 4.40 GiB after backup to 1.40 GiB after build. Fresh non-mutating df reports 1.5G available, 97% used. The current tracked COPY source is about 576 MB before clone/context/image overhead. Non-privileged Docker inspection is denied; cache reuse for another build is unverified.
 - **Impact:** the next main push automatically starts a production build. Current headroom cannot be treated as sufficient from source-diff size alone. Old approved image cleanup does not authorize deleting cache, containers, volumes or backups now.
 - **Proposal:** verify a safe build budget or reach conservative >=4 GiB free before publishing the prepared UI fix. Any exact cleanup or capacity change needs separate authorization.
-- **Status:** open; no production storage cleanup or permission change performed.
+- **Status:** open capacity risk. 2026-10-02 owner explicitly approved unused and backup images for full-library-transfer deployment. Three exact unreferenced app images removed, no build-cache/container/volume/data cleanup. 3.11.718 finished, ready health, but final free space 1.4G / 97%; during build disk reached 100%. Next build needs fresh headroom decision; image cleanup did not solve ongoing capacity.
 
 ## O-053 · Windows aggregate: research builder меняет tracked manifest
 - **Дата / где:** 2026-10-01, локальный `npm test`, `tests/physicsLearningDerivatives.test.js`, worktree `feat/read-with-dot`.

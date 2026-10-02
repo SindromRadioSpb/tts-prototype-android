@@ -1,6 +1,6 @@
 # Полный перенос личной библиотеки
 
-Утверждено владельцем 2026-10-02 в goal: реализовать ранее описанный сценарий целиком, проверить и опубликовать. Исходная база: `origin/main`, `0bb7bead`, production shell 3.11.717. Локальные F1–F5 подтверждены; production F6 проверяется отдельно.
+Утверждено владельцем 2026-10-02 в goal: реализовать ранее описанный сценарий целиком, проверить и опубликовать. Исходная база: `origin/main`, `0bb7bead`, production shell 3.11.717. F0–F6 выполнены: shell 3.11.718, commit `db42438c`, production и изолированный browser roundtrip подтверждены.
 
 ## Пользовательский результат
 
@@ -53,4 +53,4 @@ ASR/переводы при восстановлении не генерирую
 
 ## Текущий статус
 
-F0–F5: выполнены, локальные доказательства в `docs/research/full-library-transfer/README.md`. F6: подготовлен release 3.11.718, production verification ещё не завершена. Известный исходный пробел: текущий library-bundle содержит учебные пакеты без media bytes, не содержит mediatheque_personal и самостоятельные ASR workspaces; MP3 coverage может быть частичной. Эти ограничения не считаются выполнением нового контракта.
+F0–F6: выполнены. Production 3.11.718 / `db42438c`, три проверки version/health/asset SHA и отдельный browser roundtrip PASS. Доказательства в `docs/research/full-library-transfer/README.md`. Известный исходный пробел: текущий library-bundle содержит учебные пакеты без media bytes, не содержит mediatheque_personal и самостоятельные ASR workspaces; MP3 coverage может быть частичной. Эти ограничения не считаются выполнением нового контракта.

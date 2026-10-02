@@ -20,8 +20,16 @@ Read-only inventory ZIP: 644 текста / 85404 строки / 65 canonical le
 
 ## Разрешённая очистка
 
-До сборки удалены только два старых LinguistPro image ID, не имеющие ссылок от любых контейнеров (включая stopped): `614887af92cf` / `39c01df4fb55`. Текущий image `0422230b54cf` сохранён. До/после: 12 running containers, 4 volumes; images 13 → 11; свободное место 1.4G → 3.2G, df 97% → 92%. Build cache, containers, volumes и пользовательские файлы не удалялись. `/healthz` остался ready. Disk warning ещё активен; снижение процента не объявляется устранением capacity risk.
+До сборки удалены только два старых LinguistPro image ID, не имеющие ссылок от любых контейнеров (включая stopped): `614887af92cf` / `39c01df4fb55`. Работавший image `0422230b54cf` сохранён до успешного переключения; после штатного удаления старого контейнера Coolify повторно проверены все container refs и этот разрешённый резервный образ удалён отдельной командой. Новый runtime image `698da868a6de` сохранён. До/после: 12 running containers, 4 volumes; images 13 → 11; свободное место 1.4G → 3.2G, df 97% → 92%. Build cache, containers, volumes и пользовательские файлы не удалялись. `/healthz` остался ready. Disk warning ещё активен; снижение процента не объявляется устранением capacity risk.
 
 ## Production
 
-До финальной записи rollout verification: NOT YET VERIFIED. Нужны convergence контейнера, повторные version/health/served-asset SHA checks и production browser roundtrip.
+**PASS**, deployment queue 2591 / commit `db42438c39d89fad781b1c7d52d2856aa4509aa0`, Coolify finished 2026-10-02 16:36:10 UTC. Runtime image `698da868a6de8bf9e1a4a0fff263dd62740800868effb0b3de6866b77326b6ec`. [Три no-cache served-assets проверки](2026-10-02/production/served-assets.json), [production browser roundtrip](2026-10-02/production/browser-evidence.json).
+
+Во время rolling update build headroom был исчерпан (df 100%, временный health 502). Штатное завершение сборки удалило build helper и старый app container; затем безопасно удалён старый image без container refs. После rollout: 12 running containers, те же 4 volumes, 1.4G available / 97% used. DB/migrations health ready. Build cache не очищался. Для следующего deploy прежняя capacity problem сохраняется; требуется отдельно согласованное увеличение места или cache cleanup.
+
+Платные provider calls: 0. Owner source ZIP не изменён. Проверки получателя выполнялись только в disposable browser profiles.
+
+## Owner read-only coverage
+
+[Текущий профиль](2026-10-02/production/owner-readonly-inventory.json): 644 текста / 76 workspaces / 70 уникальных media, 68 available / 2 missing, 22 809 599 138 bytes available, 92 legacy uses, 10510 audio links. Learner signal и review count (7802) до/после совпали. Генерация нового 22.8 GB архива и восстановление поверх owner данных не выполнялись. Timing verification отключена только в этом read-only coverage probe; обычный экспорт проверяет timing basis и exact binding. Крупный экспорт в background вкладке медленнее; чтение завершилось после foreground resume.

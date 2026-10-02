@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "read_only": true,
+  "texts": 644,
+  "workspaces": 76,
+  "media": 70,
+  "included": 68,
+  "missing": 2,
+  "size_bytes": 22809599138,
+  "legacy_uses": 92,
+  "audio_links": 10510,
+  "review": 7802,
+  "timing_verification": "disabled_for_readonly_coverage_probe; actual export uses runtime proof",
+  "scope": "inventory only; no archive generation or owner restore"
+}
