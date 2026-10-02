@@ -53,15 +53,26 @@
       if(!response?.ok){missing.push({asset_key:key,reason:'audio_unavailable'});continue;}
       const load=async()=>{const cached=await d.cache.match(url);return cached?cached.blob():null;},hash=await IO().digest(await load(),options),path='audio/'+hash.sha256+'.mp3';await add(path,load);audio.push({asset_key:key,path,sha256:hash.sha256,size_bytes:hash.size_bytes});asset.relative_export_path=path;asset.size_bytes=hash.size_bytes;
     }
-    await add('library/library.json',jsonBlob(bundle.library));
+    // Texts are independent bounded metadata entries. Version 2 prevents older
+    // importers from treating an index-only header as an empty library.
+    const textChunks=[];for(const text of bundle.library.texts){checkpoint(options.signal);const source=jsonBlob(text),hash=await IO().digest(source,options),path='library/texts/'+hash.sha256+'.json';await add(path,source);textChunks.push({path,text_key:text.text_key});}
+    const {texts,...header}=bundle.library;await add('library/library.json',jsonBlob({...header,schema_version:2,text_chunks:textChunks}));
     let tutor={status:personal?'unavailable':'excluded_by_user'};
     if(personal&&d.tutorBundle){await add('personal/tutor-explanations.json',jsonBlob(d.tutorBundle));tutor={status:'included',count:d.tutorBundle.records.length};}
     else if(personal&&browser()&&window.LPTutorClient&&window.LPTutorNotebook){try{const owner=await window.LPTutorClient.createApi().identity(),data=await window.LPTutorNotebook.local().exportBundle(owner);if(owner!==await window.LPTutorClient.createApi().identity())C().fail('TRANSFER_OWNER_CHANGED');await add('personal/tutor-explanations.json',jsonBlob(data));tutor={status:'included',count:data.records.length};}catch(error){if(error.code!=='UNAUTHENTICATED')throw error;tutor={status:'unavailable',reason:'sign_in_required'};}}
     const manifest={schema:C().SCHEMA,created_at:new Date().toISOString(),app_version:browser()?window.APP_VERSION:null,mode,personal_included:personal,entries,audio,audio_included:includeAudio,excluded_audio:excludedAudio,media:plan,missing_audio:missing,material_gaps:gaps,tutor,counts:{texts:bundle.library.texts.length,rows:bundle.library.texts.reduce((n,t)=>n+(t.rows||[]).length,0),workspaces:inv.workspaces.length,learning_packages:entries.filter(e=>e.path.startsWith('learning-packages/')).length,audio:audio.length,audio_files:entries.filter(e=>e.path.startsWith('audio/')).length},partial_backup:!!(missing.length||gaps.length||tutor.status==='unavailable'||plan.some(m=>['missing','failed'].includes(m.status)))};
     C().verifyManifest(manifest);return {manifest,sources};
   }
+  async function readLibrary(read){
+    const header=await IO().json(read,'library/library.json');
+    if(header?.schema_version===1){if(read.manifest.entries.some(e=>e.path.startsWith('library/texts/')))C().fail('TRANSFER_TEXT_CHUNK_UNREFERENCED');return header;}
+    if(header?.schema_version!==2||!Array.isArray(header.text_chunks)||header.text_chunks.length>10000||!Array.isArray(header.audio_assets)||header.texts!==undefined)C().fail('TRANSFER_LIBRARY_INVALID');
+    const texts=[],seen=new Set();for(const ref of header.text_chunks){if(!ref||!/^library\/texts\/[a-f0-9]{64}\.json$/.test(ref.path||'')||seen.has(ref.path)||!read.entries.has(ref.path)||typeof ref.text_key!=='string')C().fail('TRANSFER_TEXT_CHUNK_INVALID');seen.add(ref.path);const text=await IO().json(read,ref.path);if(text?.text_key!==ref.text_key)C().fail('TRANSFER_TEXT_CHUNK_INVALID');texts.push(text);}
+    for(const entry of read.manifest.entries)if(entry.path.startsWith('library/texts/')&&!seen.has(entry.path))C().fail('TRANSFER_TEXT_CHUNK_UNREFERENCED');
+    const {text_chunks,...library}=header;return {...library,schema_version:1,texts};
+  }
   async function preview(file,options={}){
-    const d=await dependencies(options),read=await IO().verify(await IO().read(file),options),library=await IO().json(read,'library/library.json'),incoming=await IO().json(read,'library/mediatheque.json'),current=await d.db.getMediathequeStructure(),structure=C().mergeStructure(current.structure,incoming,d.structureCore),conflicts=[],workspaces=[],packages=[];
+    const d=await dependencies(options),read=await IO().verify(await IO().read(file),options),library=await readLibrary(read),incoming=await IO().json(read,'library/mediatheque.json'),current=await d.db.getMediathequeStructure(),structure=C().mergeStructure(current.structure,incoming,d.structureCore),conflicts=[],workspaces=[],packages=[];
     if(!library||library.schema_version!==1||!Array.isArray(library.texts)||library.texts.length>10000||!Array.isArray(library.audio_assets))C().fail('TRANSFER_LIBRARY_INVALID');
     const existing=await d.db.dbQuery('SELECT id,text_key,source_text FROM texts'),byKey=new Map(existing.map(t=>[t.text_key,t])),seenKeys=new Set();
     for(const text of library.texts){if(typeof text.text_key!=='string'||seenKeys.has(text.text_key)||!Array.isArray(text.rows))C().fail('TRANSFER_TEXT_INVALID');seenKeys.add(text.text_key);const old=byKey.get(text.text_key);if(old){const rows=await d.db.getSentences(old.id),projection=rows.map(r=>[r.he_plain||'',r.ru||'',r.translit||'',r.translit_ru||'']),incoming=text.rows.map(r=>[r.hebrew_plain||'',r.russian||'',r.translit||'',r.translit_ru||'']);if(old.source_text!==text.source_text||JSON.stringify(projection)!==JSON.stringify(incoming))conflicts.push({kind:'text',key:text.text_key,reason:'TEXT_KEY_CONTENT_CONFLICT'});}}
@@ -102,5 +113,5 @@
     if(personal&&read.entries.has('personal/tutor-explanations.json'))await step('tutor',async()=>{const store=d.tutorStore||(browser()&&window.LPTutorNotebook?.local()),identity=d.identity||(()=>window.LPTutorClient.createApi().identity());if(!store)C().fail('TRANSFER_TUTOR_UNAVAILABLE');const owner=await identity(),data=await IO().json(read,'personal/tutor-explanations.json');if(owner!==fresh.tutor.owner||owner!==await identity())C().fail('TRANSFER_OWNER_CHANGED');return owner===data.owner_id?store.importBundle(owner,data):store.copyBundle(owner,data,{confirmed:true});});
     report.status=read.manifest.partial_backup?'restored_with_gaps':report.excluded_media.length||report.excluded_audio.length?'restored_with_exclusions':'restored';return report;
   }
-  return {AUDIO_CACHE,inventory,build,preview,apply};
+  return {AUDIO_CACHE,inventory,build,readLibrary,preview,apply};
 });

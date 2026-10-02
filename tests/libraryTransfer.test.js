@@ -1,6 +1,27 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../public/js/library-transfer-core'),IO=require('../public/js/library-transfer-io'),M=require('../public/js/mediatheque-core');
 const hash='a'.repeat(64),play=status=>({schema:'studio-playback-source-v1',revision:1,history:[{revision:1,source:{kind:'youtube',video_id:'_suFmOyJQts'},timing:{status,basis_sha256:hash}}]});
+const Transfer=require('../public/js/library-transfer');
+test('large aliased bundle projection never serializes the wrapper or entire text array',()=>{
+  const texts=Array.from({length:644},(_,i)=>({text_key:String(i),rows:[{note:'private',source:{paid:'preserved'},hebrew_plain:'שלום'}]})),audio=[{asset_key:hash}];
+  const bundle={library:{schema_version:1,texts,audio_assets:audio},texts,audio_assets:audio,notes_advanced:{review_log:[1]}};
+  const stringify=JSON.stringify;JSON.stringify=function(value,...args){assert.notEqual(value,bundle);assert.notEqual(value,bundle.library);assert.notEqual(value,texts);return stringify(value,...args);};
+  try{for(const personal of [true,false]){const out=C.libraryForPrivacy(bundle,personal);assert.equal(out.texts,out.library.texts);assert.equal(out.audio_assets,out.library.audio_assets);assert.equal(out.library.texts.length,644);out.library.texts[0].rows[0].source.paid='changed';out.audio_assets[0].asset_key='changed';assert.equal(texts[0].rows[0].source.paid,'preserved');assert.equal(audio[0].asset_key,hash);assert.equal(out.library.texts[0].rows[0].note,personal?'private':undefined);}}finally{JSON.stringify=stringify;}
+});
+async function metadataArchive(header,chunks={}){
+  const sources={'library/library.json':new Blob([JSON.stringify(header)]),'library/mediatheque.json':new Blob([JSON.stringify(M.empty())]),...Object.fromEntries(Object.entries(chunks).map(([p,v])=>[p,new Blob([JSON.stringify(v)])]))},entries=[];
+  for(const [path,source]of Object.entries(sources))entries.push({path,...await IO.digest(source)});
+  const parts=[],manifest={schema:C.SCHEMA,mode:'share',personal_included:false,entries,media:[]};await IO.write({manifest,sources,writable:{async write(b){parts.push(b)},async close(){}}});return IO.verify(await IO.read(new Blob(parts)));
+}
+test('chunked library reconstructs all texts in order and supports legacy metadata',async()=>{
+  const texts=[{text_key:'one',rows:[{hebrew_plain:'שלום',source:{paid:'keep'}}]},{text_key:'two',rows:[]}],paths=[hash,'b'.repeat(64)].map(h=>'library/texts/'+h+'.json'),header={schema_version:2,audio_assets:[],shelves:[],text_chunks:paths.map((path,i)=>({path,text_key:texts[i].text_key}))};
+  const read=await metadataArchive(header,Object.fromEntries(paths.map((p,i)=>[p,texts[i]])));assert.deepEqual(await Transfer.readLibrary(read),{schema_version:1,audio_assets:[],shelves:[],texts});
+  const old={schema_version:1,texts,audio_assets:[]};assert.deepEqual(await Transfer.readLibrary(await metadataArchive(old)),old);
+});
+test('missing, repeated, mismatched or unreferenced text chunks fail before writes',async()=>{
+  const path='library/texts/'+hash+'.json',text={text_key:'one',rows:[]},ref={path,text_key:'one'},header={schema_version:2,audio_assets:[],text_chunks:[ref]};
+  for(const [h,c,code]of [[header,{},'TRANSFER_TEXT_CHUNK_INVALID'],[{...header,text_chunks:[ref,ref]},{[path]:text},'TRANSFER_TEXT_CHUNK_INVALID'],[header,{[path]:{...text,text_key:'other'}},'TRANSFER_TEXT_CHUNK_INVALID'],[{...header,text_chunks:[]},{[path]:text},'TRANSFER_TEXT_CHUNK_UNREFERENCED']])await assert.rejects(()=>metadataArchive(h,c).then(Transfer.readLibrary),new RegExp(code));
+});
 test('YouTube URL alone cannot auto-exclude local media; every use needs verified timing',()=>{
   const item={sha256:hash,path:'media/'+hash+'.mp4',size_bytes:99,available:true,playback_source:play('unverified')};
   assert.equal(C.planMedia([item],{excludeVerifiedYoutube:true})[0].status,'included');

@@ -3,7 +3,7 @@
   const SCHEMA='linguistpro-library-transfer-v1',HASH=/^[a-f0-9]{64}$/,MODES=['move','share'];
   function fail(code){throw Object.assign(new Error(code),{code});}
   const clone=value=>JSON.parse(JSON.stringify(value));
-  function pathAllowed(path){return typeof path==='string'&&path.length<240&&/^(manifest\.json|library\/(library|notes_advanced|mediatheque|audio-bindings|export-receipts)\.json|personal\/tutor-explanations\.json|learning-packages\/[a-f0-9]{64}\.lplp\.zip|workspace\/[a-f0-9]{64}\.json|audio\/[a-f0-9]{64}\.mp3|media\/[a-f0-9]{64}\.[a-z0-9]{1,5})$/.test(path);}
+  function pathAllowed(path){return typeof path==='string'&&path.length<240&&/^(manifest\.json|library\/(library|notes_advanced|mediatheque|audio-bindings|export-receipts)\.json|library\/texts\/[a-f0-9]{64}\.json|personal\/tutor-explanations\.json|learning-packages\/[a-f0-9]{64}\.lplp\.zip|workspace\/[a-f0-9]{64}\.json|audio\/[a-f0-9]{64}\.mp3|media\/[a-f0-9]{64}\.[a-z0-9]{1,5})$/.test(path);}
   function latestPlayback(value){if(!value||value.schema!=='studio-playback-source-v1'||!Array.isArray(value.history))return null;return value.history.find(x=>x.revision===value.revision)||null;}
   function youtubeAlternative(playback,verified=false){const current=latestPlayback(playback),source=current&&current.source,timing=current&&current.timing;
     if(!source||source.kind!=='youtube'||!/^[A-Za-z0-9_-]{11}$/.test(source.video_id||''))return null;
@@ -17,7 +17,11 @@
     }
     return [...groups.values()].map(item=>{const replaceable=item.uses.every(use=>use.youtube&&use.youtube.verified&&use.rendition==='full');const excluded=exclusions.has(item.sha256)||(options.excludeVerifiedYoutube&&replaceable);return {...item,replaceable,status:excluded?'excluded_by_user':item.available?'included':'missing'};});
   }
-  function libraryForPrivacy(bundle,personal){const out=clone(bundle);if(personal)return out;
+  // exportBundle contains compatibility aliases of the same large arrays. Clone each
+  // canonical text separately; never stringify the entire duplicated wrapper.
+  function libraryForPrivacy(bundle,personal){const library={};for(const [key,value]of Object.entries(bundle.library))library[key]=key==='texts'?value.map(clone):clone(value);
+    const out={...bundle,library,texts:library.texts,audio_assets:library.audio_assets};
+    if(personal){if(bundle.notes_advanced)out.notes_advanced=clone(bundle.notes_advanced);return out;}
     for(const text of out.library.texts){text.progress=null;text.bookmarks=[];text.is_pinned=false;text.pin_order=null;text.manual_smart_tag=null;for(const row of text.rows||[]){delete row.note;delete row.is_known;delete row.last_grade;delete row.srs;}}
     out.texts=out.library.texts;delete out.notes_advanced;return out;
   }
