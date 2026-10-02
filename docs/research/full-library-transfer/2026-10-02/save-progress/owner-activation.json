@@ -1,0 +1,12 @@
+{
+  "status": "ACTIVATED",
+  "new_transfer_modules_version": "3.11.722",
+  "owner_page_shell_version": "3.11.720",
+  "active_export_dialog": false,
+  "native_file_save_api_available": true,
+  "reload_performed": false,
+  "owner_archive_saved_again": false,
+  "original_inflight_write_restarted": false,
+  "live_old_write_progress_bar_added": true,
+  "library_data_modified": false
+}

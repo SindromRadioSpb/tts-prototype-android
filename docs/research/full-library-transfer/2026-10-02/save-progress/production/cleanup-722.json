@@ -1,0 +1,15 @@
+{
+  "removed_unreferenced_image": "sha256:bd1192b44d8da6aa9a530ff52395f49838ae816eb5a1ef38fca360229010231f",
+  "retained_runtime": "sha256:7ac3af4559e78a31686611a456eb5187c5f7dbd501dea2a806da4580b2a847e5",
+  "containers_preserved": 12,
+  "volumes_preserved": [
+    "coolify-db",
+    "coolify-redis",
+    "glmw0wjd6nm70fntxgjy6fkp-linguistpro-data",
+    "p8bcejm5xx66olsks13s5dgs_postgresql-data"
+  ],
+  "build_cache": "Total:\t2.487GB",
+  "disk": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        38G   32G  4.4G  88% /\nTYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          11        11        10.1GB    0B (0%)\nContainers      12        12        3.717GB   0B (0%)\nLocal Volumes   4         4         3.828GB   0B (0%)\nBuild Cache     0         0         0B        0B",
+  "health_after_cleanup": true,
+  "version_after_cleanup": "3.11.722"
+}

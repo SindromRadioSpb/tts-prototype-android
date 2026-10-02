@@ -16,7 +16,9 @@ The existing owner save was in progress with a disabled Save button and only a b
 
 Clean-profile browser gate passed: one click, one chooser; visible preparation/write/closing bars; no saved receipt before close; automatic receipt and success afterward; no manual confirmation button. Stalled-stage screenshots inspected. Existing private/foreign restore, optional media/MP3, offline real audio/video playback and no-write rejection remain PASS. No paid calls.
 
-Initial 3.11.721 release deployed as `92c815c5`, queue 2594 finished 20:07:58 UTC; final 3.11.722 also ensures the paint wait never stalls background tabs. The browser gate simulates a hidden document during initial save and verifies preparation still starts. Hidden-document save gate PASS. Final production verification and idle-tab activation pending.
+Initial 3.11.721 release deployed as `92c815c5`, queue 2594 finished 20:07:58 UTC; final 3.11.722 also ensures the paint wait never stalls background tabs. The browser gate simulates a hidden document during initial save and verifies preparation still starts. Hidden-document save gate PASS. Final production PASS: `9d1d11e7064e56f1fd59c281ef363cd5e174f38b`, queue 2595 finished 20:19:59 UTC. Three no-cache exact asset/version/health checks and the full production browser gate passed. The idle owner tab received the same three updated modules without reload or another save operation; its page shell remains 3.11.720, while transfer functionality is 3.11.722. Native save API is available. See `production/served-assets.json` and `production/browser-evidence.json`.
+
+Post-deploy approved cleanup removed only unreferenced prior runtime images and unused build cache after each completed release. The current runtime, all 12 running containers and all 4 data volumes were preserved. Final disk 4.4G free (88%), zero build cache, DB/migrations ready. See `production/cleanup-721.json` and `production/cleanup-722.json`.
 
 ## Platform boundary
 
