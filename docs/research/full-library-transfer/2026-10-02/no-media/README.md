@@ -1,6 +1,6 @@
 # Выбор исходного медиа и MP3 озвучки
 
-2026-10-02. Baseline `db42438c` / production 3.11.718. Подготовлена 3.11.719.
+2026-10-02. Baseline `db42438c` / production 3.11.718. Опубликована и проверена 3.11.719 / `69bdb575`.
 
 По owner screenshot отсутствовала общая команда для архива без исходных медиа. Добавлена «Исключить всё медиа», симметричная «Включить всё медиа»; отдельные флажки и проверенный YouTube bulk сохраняются.
 
@@ -19,4 +19,8 @@ Manifest additive fields: `audio_included` и `excluded_audio` с asset keys и 
 
 ## Публикация
 
-LOCAL VERIFIED / NOT DEPLOYED. Ожидается отдельное разрешение на неиспользуемый Docker build cache: 1.4G free, unused images 0, reclaimable build cache 2.422GB. Main не обновляется до получения этого разрешения. Ранее разрешённые unused/backup images не дают разрешения на cache cleanup. Данные пользователя не изменены.
+**PRODUCTION PASS.** Owner explicitly authorized unused build-cache cleanup in the next reply. Перед push: `docker builder prune -af` удалил 3.702GB unused build cache, free disk 1.4G → 4.4G; работающий image, 12 containers и 4 volumes сохранены. Затем main обновлён на `69bdb575d6de0077715547c50a0016ee549c0d9e`.
+
+Deployment queue 2592 finished 2026-10-02 18:31:01 UTC. Новый runtime image `301f4efe39c538f2b5b899a1694c0816782dfe7a8cd29cec0973898cccc621e4`. После штатного удаления старого app container проверены все container image refs, и в пределах ранее разрешённых unused/backup images удалён `698da868a6de`. После завершения сборки повторно удалён только unused build cache (2.485GB). Итог: free 4.4G / 88%, build cache 0, 11 active images, 12 running containers, те же 4 volumes. Без system/container/volume prune; данные пользователя сохранены.
+
+[Production browser roundtrip](production/browser-evidence.json) подтверждает UI exclude-all, independent TTS choice, сохранение history/voice bindings при нулевом MP3 cache, реальное offline play/seek обычного архива, explicit exclusions вместо missing audio, privacy и idempotence. Page errors/provider calls=0. [Три no-cache version/health/artifact SHA проверки](production/served-assets.json) прошли и до, и после последней очистки; финальный отчёт записан после cleanup. Physical device stress test и перенос actual owner media на USB не выполнялись.

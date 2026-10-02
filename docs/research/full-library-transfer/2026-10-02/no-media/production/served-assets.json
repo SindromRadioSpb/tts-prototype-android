@@ -1,0 +1,147 @@
+{
+  "status": "PASS",
+  "commit": "69bdb575d6de0077715547c50a0016ee549c0d9e",
+  "probes": [
+    {
+      "at": "2026-10-02T18:32:47.049Z",
+      "version": "3.11.719",
+      "health_ready": true,
+      "assets": [
+        {
+          "url": "/sw.js",
+          "sha256": "a1b91ca50b623e51cbeb44daf17178d216b3fa0c9236024fc5c40fa36ff46eb4",
+          "size_bytes": 37930
+        },
+        {
+          "url": "/js/library-transfer-core.js?v=719",
+          "sha256": "d8708614aa0b219526c26afd5027ee0fa2e548bbeb04f7f2e219c8866f04ddf1",
+          "size_bytes": 8164
+        },
+        {
+          "url": "/js/library-transfer-io.js?v=718",
+          "sha256": "a6d6239306e7cf2d602679dadc1df90d9bbd06c6cc2a034faef855f54491eec6",
+          "size_bytes": 10296
+        },
+        {
+          "url": "/js/library-transfer.js?v=719",
+          "sha256": "f0b2e1967456e9f8e7d2d169ac941e2b0e6ebab589760e6fa4d5172ae7ec6969",
+          "size_bytes": 25557
+        },
+        {
+          "url": "/js/library-transfer-ui.js?v=719",
+          "sha256": "1cb42a67ea932da89e3eae88638aa37b2d6f5e0700fcb80dfcd140147f812276",
+          "size_bytes": 26429
+        },
+        {
+          "url": "/js/media-package-repository.js?v=718",
+          "sha256": "86b31d53e53ae83d707c6f1cbb95caef5a1c59b9cd9142ed18114bab87e638e7",
+          "size_bytes": 42399
+        },
+        {
+          "url": "/js/portable-learning-package-repository.js?v=718",
+          "sha256": "2cb5e00bff21eb0658829e73c931d635a91a59842ac6317325f4b5334c27428b",
+          "size_bytes": 90039
+        },
+        {
+          "url": "/js/tutor-notebook.js?v=718",
+          "sha256": "18b140192756c13636df1ec63634a74e2a6e6dcbe6aa110a8ecb3e2cd02b29ad",
+          "size_bytes": 14984
+        }
+      ]
+    },
+    {
+      "at": "2026-10-02T18:32:48.516Z",
+      "version": "3.11.719",
+      "health_ready": true,
+      "assets": [
+        {
+          "url": "/sw.js",
+          "sha256": "a1b91ca50b623e51cbeb44daf17178d216b3fa0c9236024fc5c40fa36ff46eb4",
+          "size_bytes": 37930
+        },
+        {
+          "url": "/js/library-transfer-core.js?v=719",
+          "sha256": "d8708614aa0b219526c26afd5027ee0fa2e548bbeb04f7f2e219c8866f04ddf1",
+          "size_bytes": 8164
+        },
+        {
+          "url": "/js/library-transfer-io.js?v=718",
+          "sha256": "a6d6239306e7cf2d602679dadc1df90d9bbd06c6cc2a034faef855f54491eec6",
+          "size_bytes": 10296
+        },
+        {
+          "url": "/js/library-transfer.js?v=719",
+          "sha256": "f0b2e1967456e9f8e7d2d169ac941e2b0e6ebab589760e6fa4d5172ae7ec6969",
+          "size_bytes": 25557
+        },
+        {
+          "url": "/js/library-transfer-ui.js?v=719",
+          "sha256": "1cb42a67ea932da89e3eae88638aa37b2d6f5e0700fcb80dfcd140147f812276",
+          "size_bytes": 26429
+        },
+        {
+          "url": "/js/media-package-repository.js?v=718",
+          "sha256": "86b31d53e53ae83d707c6f1cbb95caef5a1c59b9cd9142ed18114bab87e638e7",
+          "size_bytes": 42399
+        },
+        {
+          "url": "/js/portable-learning-package-repository.js?v=718",
+          "sha256": "2cb5e00bff21eb0658829e73c931d635a91a59842ac6317325f4b5334c27428b",
+          "size_bytes": 90039
+        },
+        {
+          "url": "/js/tutor-notebook.js?v=718",
+          "sha256": "18b140192756c13636df1ec63634a74e2a6e6dcbe6aa110a8ecb3e2cd02b29ad",
+          "size_bytes": 14984
+        }
+      ]
+    },
+    {
+      "at": "2026-10-02T18:32:50.014Z",
+      "version": "3.11.719",
+      "health_ready": true,
+      "assets": [
+        {
+          "url": "/sw.js",
+          "sha256": "a1b91ca50b623e51cbeb44daf17178d216b3fa0c9236024fc5c40fa36ff46eb4",
+          "size_bytes": 37930
+        },
+        {
+          "url": "/js/library-transfer-core.js?v=719",
+          "sha256": "d8708614aa0b219526c26afd5027ee0fa2e548bbeb04f7f2e219c8866f04ddf1",
+          "size_bytes": 8164
+        },
+        {
+          "url": "/js/library-transfer-io.js?v=718",
+          "sha256": "a6d6239306e7cf2d602679dadc1df90d9bbd06c6cc2a034faef855f54491eec6",
+          "size_bytes": 10296
+        },
+        {
+          "url": "/js/library-transfer.js?v=719",
+          "sha256": "f0b2e1967456e9f8e7d2d169ac941e2b0e6ebab589760e6fa4d5172ae7ec6969",
+          "size_bytes": 25557
+        },
+        {
+          "url": "/js/library-transfer-ui.js?v=719",
+          "sha256": "1cb42a67ea932da89e3eae88638aa37b2d6f5e0700fcb80dfcd140147f812276",
+          "size_bytes": 26429
+        },
+        {
+          "url": "/js/media-package-repository.js?v=718",
+          "sha256": "86b31d53e53ae83d707c6f1cbb95caef5a1c59b9cd9142ed18114bab87e638e7",
+          "size_bytes": 42399
+        },
+        {
+          "url": "/js/portable-learning-package-repository.js?v=718",
+          "sha256": "2cb5e00bff21eb0658829e73c931d635a91a59842ac6317325f4b5334c27428b",
+          "size_bytes": 90039
+        },
+        {
+          "url": "/js/tutor-notebook.js?v=718",
+          "sha256": "18b140192756c13636df1ec63634a74e2a6e6dcbe6aa110a8ecb3e2cd02b29ad",
+          "size_bytes": 14984
+        }
+      ]
+    }
+  ]
+}

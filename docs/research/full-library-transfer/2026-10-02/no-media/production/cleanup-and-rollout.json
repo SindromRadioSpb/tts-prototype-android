@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "commit": "69bdb575d6de0077715547c50a0016ee549c0d9e",
+  "version": "3.11.719",
+  "deployment_id": 2592,
+  "deployment_status": "finished",
+  "finished_utc": "2026-10-02 18:31:01",
+  "runtime_image": "sha256:301f4efe39c538f2b5b899a1694c0816782dfe7a8cd29cec0973898cccc621e4",
+  "removed_unreferenced_old_image": "sha256:698da868a6de8bf9e1a4a0fff263dd62740800868effb0b3de6866b77326b6ec",
+  "build_cache_pruned_reported_gb": [
+    3.702,
+    2.485
+  ],
+  "final_free_disk": "4.4G",
+  "final_disk_use": "88%",
+  "running_containers": 12,
+  "volumes": 4,
+  "build_cache_bytes": 0,
+  "health_db_migrations_ready": true,
+  "data_deleted": false
+}
