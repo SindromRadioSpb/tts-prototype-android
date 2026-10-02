@@ -20,7 +20,7 @@ const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer}=require('../smo
   assert.equal((await fetch(base+'/agent-access/mcp')).status,404);
   assert.equal((await fetch(base+'/agent-access/read-together/mcp')).status,404);
   assert.equal((await fetch(base+'/js/read-together.js?v=1')).status,200);
-  const config=await(await fetch(base+'/api/client-config')).json();assert(config.shellIntegrity['/js/read-together.js?v=1']);
+  const config=await(await fetch(base+'/api/client-config')).json();assert(!config.shellIntegrity['/js/read-together.js?v=1']);assert(config.shellIntegrity['/js/library-ui.js?v=717']);
   console.log(JSON.stringify({ok:true,full_server:true,db_ready:true,migrations_ready:true,cookie_auth_denies:true,mcp_default_off:true,shell_integrity:true,external_network_calls:0}));
  }finally{child.kill();await new Promise(r=>{if(child.exitCode!==null)return r();child.once('exit',r);});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

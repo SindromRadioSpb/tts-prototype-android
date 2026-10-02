@@ -10,6 +10,13 @@
 
 ---
 
+## O-055 — Production build consumes preflight headroom
+- **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.
+- **Observed:** previous free disk fell from 4.40 GiB after backup to 1.40 GiB after build. Fresh non-mutating df reports 1.5G available, 97% used. The current tracked COPY source is about 576 MB before clone/context/image overhead. Non-privileged Docker inspection is denied; cache reuse for another build is unverified.
+- **Impact:** the next main push automatically starts a production build. Current headroom cannot be treated as sufficient from source-diff size alone. Old approved image cleanup does not authorize deleting cache, containers, volumes or backups now.
+- **Proposal:** verify a safe build budget or reach conservative >=4 GiB free before publishing the prepared UI fix. Any exact cleanup or capacity change needs separate authorization.
+- **Status:** open; no production storage cleanup or permission change performed.
+
 ## O-053 · Windows aggregate: research builder меняет tracked manifest
 - **Дата / где:** 2026-10-01, локальный `npm test`, `tests/physicsLearningDerivatives.test.js`, worktree `feat/read-with-dot`.
 - **Что видно:** aggregate запускает research builder в tracked artifacts; после успешного теста `docs/research/physics-learning-derivatives/2026-08-27/artifacts/manifest.json` имеет diff 5/5 (hash/byte size). На Windows источники с CRLF влияют на byte-derived manifest; другие generated Markdown дают только EOL/stat status. Это не изменение продукта «Читать вместе».
