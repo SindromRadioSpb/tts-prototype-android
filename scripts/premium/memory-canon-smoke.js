@@ -70,6 +70,15 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       out.mig042IsFsrs = /srs_stability/.test(String(mig.MIGRATIONS[41] || ""));
       out.mig051IsLexicalResolution = /CREATE TABLE IF NOT EXISTS lexical_resolution_events/.test(String(mig.MIGRATIONS[50] || ""));
       out.mig053IsMediatheque = /CREATE TABLE IF NOT EXISTS mediatheque_personal/.test(String(mig.MIGRATIONS[52] || ""));
+      out.mig054IsProviderIndex = String(mig.MIGRATIONS[53] || "").replace(/\s+/g, " ").trim() ===
+        "CREATE INDEX IF NOT EXISTS ix_sentences_text_provider ON sentences(text_id, translation_provider);";
+      out.providerIndexColumns = (await ldb.dbQuery("PRAGMA index_info(ix_sentences_text_provider)")).map(row => row.name);
+      const providerIndexes = (await ldb.dbQuery("PRAGMA index_list(sentences)")).filter(row => row.name === "ix_sentences_text_provider");
+      out.providerIndexOrdinary = providerIndexes.length === 1 && Number(providerIndexes[0].unique) === 0 && Number(providerIndexes[0].partial) === 0;
+      out.providerSummaryUsesIndex = (await ldb.dbQuery(
+        "EXPLAIN QUERY PLAN SELECT translation_provider, COUNT(*) FROM sentences WHERE text_id=? GROUP BY translation_provider",
+        ["canon-provider-index-fixture"]
+      )).some(row => /USING COVERING INDEX ix_sentences_text_provider/.test(String(row.detail)));
       out.migApplied = Number((await one("SELECT MAX(version) v FROM schema_migrations")).v) || 0;
       out.rlQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM review_log"));
       out.compassCacheQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM room_learning_compass_cache"));
@@ -464,8 +473,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // placement — an insert would renumber every later migration and re-run it on live profiles.
     // 051 is appended at index 50; it adds the lexical decision overlay without
     // moving review_log, FSRS, or the word-context cache.
-    eq(res.migCount === 53, `MIGRATIONS.length ${res.migCount} != 53 — verify labels and real indexes (last = 053_mediatheque_personal)`);
+    // 2026-09-27: 054 is the appended provider-summary covering index at index 53.
+    // Keep an explicit expected count and verify both its SQL placement and the applied index.
+    eq(res.migCount === 54, `MIGRATIONS.length ${res.migCount} != 54 - verify labels and real indexes (last = 054_sentences_text_provider)`);
     eq(res.mig053IsMediatheque, "053_mediatheque_personal is not at index 52");
+    eq(res.mig054IsProviderIndex, "054_sentences_text_provider is not the expected covering-index migration at index 53");
+    eq(JSON.stringify(res.providerIndexColumns) === '["text_id","translation_provider"]', "provider index columns/order do not match migration 054");
+    eq(res.providerIndexOrdinary, "provider index must be a single non-unique, non-partial index on sentences");
+    eq(res.providerSummaryUsesIndex, "per-text provider summary does not use migration 054's covering index");
     eq(res.mig051IsLexicalResolution, "051_lexical_resolution_events is not at index 50");
     eq(res.rlQueryable, "review_log not queryable");
     eq(res.compassCacheQueryable, "room_learning_compass_cache not queryable");
