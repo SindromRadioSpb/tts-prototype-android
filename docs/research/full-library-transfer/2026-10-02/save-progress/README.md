@@ -1,0 +1,23 @@
+# One-operation library save — 3.11.721
+
+## Owner path and contract
+
+The existing owner save was in progress with a disabled Save button and only a bottom status saying Preparing files 42%. No progress bar existed. A temporary sticky bar with a correct Saving to disk label was added without restarting the running write. Later the export dialog was closed; no assumption about its final filesystem location is made.
+
+- Settings have one Save archive action. The native file chooser runs first, within the click gesture. Preparation and write then proceed automatically with one operation and one cancellation control. No second Save click or File saved confirmation.
+- Waiting is visible before metadata capture begins. Preparation shows the current material/workspace/audio/text stage and counts; large media hashing reports byte progress. Write shows actual committed bytes and percentage. Close has a separate finishing label; success is shown only after close succeeds.
+- SHA/CRC are computed during preparation. The writer reuses prepared CRCs and checks payload SHA/CRC during copying; it no longer rereads every prepared payload before writing. Legacy callers without CRC keep their safe preflight.
+- Small ZIP headers and speech files are coalesced into writes of at most 4 MiB. ZIP64, bounded media memory, cancellation/abort and changed-source rejection remain enforced.
+- Successful native FileSystemWritable.close automatically records the canonical saved receipt. No manual confirmation button exists. Ordinary browser-download fallback reports download started, does not claim proven disk completion, and does not request manual confirmation.
+
+## Evidence
+
+19 tests passed: transport/integrity/cancellation, 1,500 MP3 payloads with exactly one source read each and one bounded write, changed-source abort with prepared CRC, shell parity.
+
+Clean-profile browser gate passed: one click, one chooser; visible preparation/write/closing bars; no saved receipt before close; automatic receipt and success afterward; no manual confirmation button. Stalled-stage screenshots inspected. Existing private/foreign restore, optional media/MP3, offline real audio/video playback and no-write rejection remain PASS. No paid calls.
+
+Production deployment and owner idle-tab activation: pending.
+
+## Platform boundary
+
+Without the FileSystem Access API, a page cannot observe the completion of a browser-managed download. The staging file is retained to avoid deleting a source while a download is active. This fallback needs a separate safe retention policy; native desktop Chrome does not use staging.

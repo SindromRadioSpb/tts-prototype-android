@@ -1,0 +1,57 @@
+{
+  "gate": "FULL_LIBRARY_TRANSFER_CLEAN_PROFILE_PLAYBACK",
+  "baseline": "db42438c",
+  "status": "PASS",
+  "counts": {
+    "texts": 2,
+    "rows": 4,
+    "workspaces": 2,
+    "learning_packages": 1,
+    "audio": 2,
+    "audio_files": 1
+  },
+  "no_write_preview": true,
+  "workspace_draft": true,
+  "canonical_mapping": true,
+  "idempotent": true,
+  "foreign_profile": true,
+  "foreign_notebook_consent_before_writes": true,
+  "legacy_media": true,
+  "youtube_timing_and_offset_after_exclusion": true,
+  "multiple_voices_content_dedup": true,
+  "ui_export_saved_receipt": true,
+  "ui_no_media_archive": true,
+  "ui_optional_tts_mp3": true,
+  "one_click_save": true,
+  "automatic_native_saved_receipt": true,
+  "visible_progress": true,
+  "no_audio_restore_preserves_bindings": true,
+  "corrupt_no_write": true,
+  "quota_no_write": true,
+  "share_private_excluded": true,
+  "offline_cold_playback": {
+    "legacyHash": "0edca34ffe1df39933ff696ac1b5c39af4325b036cbb77e8bb8e67595ce8041b",
+    "altStatus": 200,
+    "links": 2,
+    "mediaHash": "0edca34ffe1df39933ff696ac1b5c39af4325b036cbb77e8bb8e67595ce8041b",
+    "mp3Status": 200,
+    "media": {
+      "duration": 3,
+      "time": 1.194032,
+      "paused": false
+    },
+    "audio": {
+      "duration": 3.004082,
+      "time": 0.709955,
+      "paused": false
+    },
+    "rowStart": 1000
+  },
+  "locales": [
+    "ru",
+    "en",
+    "he"
+  ],
+  "provider_calls": 0,
+  "page_errors": 0
+}

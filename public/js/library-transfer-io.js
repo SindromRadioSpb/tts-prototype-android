@@ -12,7 +12,7 @@
   async function each(blob,fn,signal){for(let o=0;o<blob.size;o+=CHUNK){check(signal);await fn(new Uint8Array(await blob.slice(o,Math.min(o+CHUNK,blob.size)).arrayBuffer()));}}
   async function hasher(options){if(options&&options.hasherFactory)return options.hasherFactory();if(typeof hashwasm!=='undefined')return hashwasm.createSHA256();
     if(typeof require==='function'){const h=require('node:crypto').createHash('sha256');return {init(){},update:b=>h.update(b),digest:()=>h.digest('hex')};}C().fail('HASH_RUNTIME_UNAVAILABLE');}
-  async function digest(blob,options={}){const h=await hasher(options),c=crc();h.init();await each(blob,b=>{h.update(b);c.update(b);},options.signal);return {sha256:h.digest('hex'),crc32:c.value(),size_bytes:blob.size};}
+  async function digest(blob,options={}){const h=await hasher(options),c=crc();h.init();let done=0;await each(blob,b=>{h.update(b);c.update(b);done+=b.length;options.onHashProgress?.({done,total:blob.size});},options.signal);return {sha256:h.digest('hex'),crc32:c.value(),size_bytes:blob.size};}
   function header(entry,offset,central){const name=bytes(entry.path),b=new Uint8Array((central?46:30)+name.length+(central?28:20)),v=view(b),extra=(central?46:30)+name.length;
     v.setUint32(0,central?0x02014b50:0x04034b50,true);if(central){v.setUint16(4,45,true);v.setUint16(6,45,true);v.setUint32(16,entry.crc32,true);v.setUint32(20,0xffffffff,true);v.setUint32(24,0xffffffff,true);v.setUint16(28,name.length,true);v.setUint16(30,28,true);v.setUint32(42,0xffffffff,true);}
     else {v.setUint16(4,45,true);v.setUint32(14,entry.crc32,true);v.setUint32(18,0xffffffff,true);v.setUint32(22,0xffffffff,true);v.setUint16(26,name.length,true);v.setUint16(28,20,true);}
@@ -22,12 +22,22 @@
   async function write({manifest,sources,writable,signal,onProgress,hasherFactory}){
     C().verifyManifest(manifest);let written=0;const central=[],items=[];
     const source=async path=>typeof sources[path]==='function'?sources[path]():sources[path];
-    try{for(const descriptor of manifest.entries){check(signal);const blob=await source(descriptor.path);if(!blob)C().fail('TRANSFER_SOURCE_MISSING');const hash=await digest(blob,{signal,hasherFactory});if(hash.sha256!==descriptor.sha256||blob.size!==descriptor.size_bytes)C().fail('TRANSFER_SOURCE_CHANGED');items.push({...descriptor,crc32:hash.crc32});}
+    try{for(const descriptor of manifest.entries){check(signal);
+      // New exports already computed CRC/SHA during preparation. Legacy callers
+      // without CRC retain their preflight. Copy still verifies every payload.
+      if(Number.isInteger(descriptor.crc32)&&descriptor.crc32>=0&&descriptor.crc32<=0xffffffff){items.push({...descriptor});continue;}
+      const blob=await source(descriptor.path);if(!blob)C().fail('TRANSFER_SOURCE_MISSING');const hash=await digest(blob,{signal,hasherFactory});if(hash.sha256!==descriptor.sha256||blob.size!==descriptor.size_bytes)C().fail('TRANSFER_SOURCE_CHANGED');items.push({...descriptor,crc32:hash.crc32});}
+
       const manifestBlob=new Blob([JSON.stringify(manifest)]);if(manifestBlob.size>16*1024*1024)C().fail('TRANSFER_MANIFEST_LIMIT');const manifestHash=await digest(manifestBlob,{signal,hasherFactory});items.unshift({path:'manifest.json',...manifestHash});
       const total=items.reduce((s,e)=>s+e.size_bytes+header(e,0,false).length+header(e,0,true).length,98);
-      const artifact=await hasher({hasherFactory});artifact.init();const put=async b=>{check(signal);await writable.write(b);artifact.update(b);written+=b.length;if(onProgress)onProgress({written,total});};
+      const artifact=await hasher({hasherFactory});artifact.init();let buffer=new Uint8Array(CHUNK),used=0,committed=0;
+      // Coalesce tiny ZIP headers and speech files into bounded writes. A library
+      // of thousands of MP3s must not incur thousands of filesystem round trips.
+      const flush=async()=>{if(!used)return;check(signal);const block=buffer.subarray(0,used);await writable.write(block);artifact.update(block);committed+=used;used=0;buffer=new Uint8Array(CHUNK);if(onProgress)onProgress({written:committed,total});};
+      const put=async b=>{check(signal);let offset=0;written+=b.length;while(offset<b.length){const n=Math.min(CHUNK-used,b.length-offset);buffer.set(b.subarray(offset,offset+n),used);used+=n;offset+=n;if(used===CHUNK)await flush();}};
+      if(onProgress)onProgress({written:0,total});
       for(const item of items){central.push(header(item,written,true));await put(header(item,written,false));const payload=item.path==='manifest.json'?manifestBlob:await source(item.path);if(!payload||payload.size!==item.size_bytes)C().fail('TRANSFER_SOURCE_CHANGED');const h=await hasher({hasherFactory}),c=crc();h.init();await each(payload,async b=>{h.update(b);c.update(b);await put(b);},signal);if(h.digest('hex')!==item.sha256||c.value()!==item.crc32)C().fail('TRANSFER_SOURCE_CHANGED');}
-      const offset=written;for(const h of central)await put(h);await put(end(items.length,written-offset,offset,written));await writable.close();return {size_bytes:written,artifact_sha256:artifact.digest('hex'),manifest};
+      const offset=written;for(const h of central)await put(h);await put(end(items.length,written-offset,offset,written));await flush();if(onProgress)onProgress({written,total,phase:'closing'});await writable.close();return {size_bytes:written,artifact_sha256:artifact.digest('hex'),manifest};
     }catch(error){if(writable.abort)await writable.abort().catch(()=>{});throw error;}
   }
   async function slice(file,start,size){if(start<0||size<0||start+size>file.size)C().fail('TRANSFER_ZIP_BOUNDS');return new Uint8Array(await file.slice(start,start+size).arrayBuffer());}

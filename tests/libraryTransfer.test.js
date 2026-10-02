@@ -2,6 +2,18 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../public/js/library-transfer-core'),IO=require('../public/js/library-transfer-io'),M=require('../public/js/mediatheque-core');
 const hash='a'.repeat(64),play=status=>({schema:'studio-playback-source-v1',revision:1,history:[{revision:1,source:{kind:'youtube',video_id:'_suFmOyJQts'},timing:{status,basis_sha256:hash}}]});
 const Transfer=require('../public/js/library-transfer');
+test('prepared CRC enables one source read and bounded coalesced writes for thousands of audio files',async()=>{
+  const sources={'library/library.json':new Blob(['{"schema_version":1,"texts":[],"audio_assets":[]}']),'library/mediatheque.json':new Blob([JSON.stringify(M.empty())])},entries=[],audio=[];
+  for(let i=0;i<1500;i++){const b=new Blob(['audio '+i]),h=await IO.digest(b),path='audio/'+h.sha256+'.mp3';sources[path]=b;audio.push({asset_key:h.sha256,path,sha256:h.sha256,size_bytes:b.size});}
+  for(const [path,b]of Object.entries(sources))entries.push({path,...await IO.digest(b)});
+  const manifest={schema:C.SCHEMA,mode:'move',personal_included:false,entries,media:[],audio},parts=[],calls=new Map(),progress=[];
+  await IO.write({manifest,sources:Object.fromEntries(Object.entries(sources).map(([p,b])=>[p,async()=>{calls.set(p,(calls.get(p)||0)+1);return b}])),onProgress:p=>progress.push(p),writable:{async write(b){assert.ok(b.length<=IO.CHUNK);parts.push(b)},async close(){}}});
+  assert.ok([...calls.values()].every(n=>n===1),'writer reread a prepared payload before copying');assert.equal(parts.length,1,'small payloads were not coalesced');assert.equal(progress[0].written,0);assert.equal(progress.at(-1).phase,'closing');assert.equal(progress.at(-1).written,progress.at(-1).total);await IO.verify(await IO.read(new Blob(parts)));
+});
+test('prepared CRC never bypasses changed source detection or destination abort',async()=>{
+  const sources={'library/library.json':new Blob(['old']),'library/mediatheque.json':new Blob([JSON.stringify(M.empty())])},entries=[];for(const [path,b]of Object.entries(sources))entries.push({path,...await IO.digest(b)});sources['library/library.json']=new Blob(['new']);let aborted=false,closed=false;
+  await assert.rejects(()=>IO.write({manifest:{schema:C.SCHEMA,mode:'share',personal_included:false,entries,media:[]},sources,writable:{async write(){},async close(){closed=true},async abort(){aborted=true}}}),/TRANSFER_SOURCE_CHANGED/);assert.equal(aborted,true);assert.equal(closed,false);
+});
 test('large aliased bundle projection never serializes the wrapper or entire text array',()=>{
   const texts=Array.from({length:644},(_,i)=>({text_key:String(i),rows:[{note:'private',source:{paid:'preserved'},hebrew_plain:'שלום'}]})),audio=[{asset_key:hash}];
   const bundle={library:{schema_version:1,texts,audio_assets:audio},texts,audio_assets:audio,notes_advanced:{review_log:[1]}};
