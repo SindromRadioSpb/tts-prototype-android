@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "verifiedAt": "2026-10-03T22:02:01.169678+00:00",
+  "version": "3.11.727",
+  "commit": "e878b850474af6ce137feb3b882c87fbdf573175",
+  "deployment": {
+    "id": 2600,
+    "status": "finished"
+  },
+  "ci": {
+    "url": "https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/37156433999",
+    "conclusion": "success",
+    "unit": {
+      "total": 2403,
+      "passed": 2401,
+      "failed": 0,
+      "skipped": 2
+    },
+    "unitSkipped": [
+      "canonical Physics bundle plans exactly 74 cards and 425 rows",
+      "output verifier requires all 425 row links and matching audio hashes"
+    ],
+    "materialReliabilityUnit": {
+      "total": 65,
+      "passed": 65,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "productionEvidence": {
+    "servedAssets": "served-assets.json",
+    "rounds": 3,
+    "assetsPerRound": 23,
+    "crossTab": "browser/result.json",
+    "publicMaterials": "public-browser/browser.json",
+    "profile": "disposable anonymous Chromium",
+    "remoteWrites": false,
+    "ownerData": false,
+    "paidProviders": false,
+    "physicalDeviceEvidence": false,
+    "assistiveTechnologyEvidence": false
+  },
+  "capacity": {
+    "beforeCacheCleanup": {
+      "available": "1.2G",
+      "usedPercent": 97
+    },
+    "authorizedCommand": "sudo -n docker builder prune -af",
+    "reclaimedGB": 2.604,
+    "afterCacheCleanup": {
+      "available": "3.2G",
+      "usedPercent": 92,
+      "buildCacheBytes": 0
+    },
+    "retainedImages": {
+      "e878b850474af6ce137feb3b882c87fbdf573175": "a85edd769d71",
+      "4c5c986b5688f3aead42010bead4b63262630e86": "8b20c09549ef",
+      "5093d37cc9c88a7e6290103bc04c6330d0e981bf": "e84b451136f9"
+    },
+    "runningContainers": 10,
+    "volumes": 4,
+    "imagesDeletedByThisCleanup": 0,
+    "dataOrBackupsDeleted": false,
+    "openObservations": [
+      "O-047",
+      "O-055"
+    ]
+  },
+  "finalHealth": {
+    "ok": true,
+    "dbReady": true,
+    "migrationsReady": true,
+    "diskWarn": true,
+    "diskPercentUsed": 92
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "home": {
+    "catalogReads": 0,
+    "wordInvalidations": 0,
+    "events": [
+      {
+        "schema": 1,
+        "all": false,
+        "tables": [
+          "text_progress"
+        ]
+      }
+    ]
+  },
+  "media": {
+    "metadataReads": 0,
+    "refreshes": 1,
+    "renders": 0,
+    "events": [
+      {
+        "schema": 1,
+        "all": false,
+        "tables": [
+          "text_progress"
+        ]
+      }
+    ]
+  },
+  "reader": {
+    "catalogReads": 0,
+    "wordInvalidations": 0,
+    "events": [
+      {
+        "schema": 1,
+        "all": false,
+        "tables": [
+          "text_progress"
+        ]
+      }
+    ]
+  }
+}

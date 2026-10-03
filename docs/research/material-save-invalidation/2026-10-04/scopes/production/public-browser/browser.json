@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "version": "3.11.727",
+  "at": "2026-10-03T21:59:20.284Z",
+  "anonymous": true,
+  "catalogMs": 4432,
+  "materials": [
+    {
+      "slug": "media-8bf803ec75e71e8b87d0",
+      "work": "work-eeb47e95ad7e278cd95d1b6b",
+      "snapshot": "1c47c8745b028e1a86424acb193a7e5d561ac624a85a29a8776faee3d58d36be",
+      "titleMatches": true,
+      "firstRowMatches": true,
+      "queryIdentityPreserved": true,
+      "modifiedClickNewTab": true,
+      "noReloadOnFocus": true
+    },
+    {
+      "slug": "media-b0d27b30c3ddc708d506",
+      "work": "work-33e1abbcf255bda33c2e834b",
+      "snapshot": "da8f6fd3889994e44b47627eef4accda52fbb79dbe0d05023d6370c1459cadcb",
+      "titleMatches": true,
+      "firstRowMatches": true,
+      "queryIdentityPreserved": true,
+      "modifiedClickNewTab": true,
+      "noReloadOnFocus": true
+    }
+  ],
+  "errors": []
+}

@@ -19,21 +19,23 @@ Production **3.11.726 / 4c5c986b**: Coolify 2599 finished; [CI success](https://
 
 ## 2. Адресные обновления вкладок
 
-Реализован кандидат **3.11.727**. `change-scope.js` определяет таблицы DML, объединяет их в пределах транзакции и учитывает savepoint/rollback. Уже зафиксированная часть составного SQL не теряется при откате следующей транзакции. `OperationLease` передаёт область после завершения записи и освобождения storage lock. BroadcastChannel остаётся `localdb-commits-v2`; сообщения старых вкладок и неизвестные SQL/таблицы обрабатываются консервативно. Текст, параметры SQL и ID материалов в уведомления не входят. Получатель объединяет пачку за 50 мс.
+Опубликован **3.11.727**. `change-scope.js` определяет таблицы DML, объединяет их в пределах транзакции и учитывает savepoint/rollback. Уже зафиксированная часть составного SQL не теряется при откате следующей транзакции. `OperationLease` передаёт область после завершения записи и освобождения storage lock. BroadcastChannel остаётся `localdb-commits-v2`; сообщения старых вкладок и неизвестные SQL/таблицы обрабатываются консервативно. Текст, параметры SQL и ID материалов в уведомления не входят. Получатель объединяет пачку за 50 мс.
 
 Области обновления: каталог и его метаданные, личные фильтры, прогресс, словарное состояние, доступность аудио, структура Медиатеки. Progress-only событие не вызывает `loadData` Зала и не сбрасывает morph cache. Медиатека читает только text_progress; если видимый статус не изменился, DOM сохраняется. Изменение структуры читает только структуру; изменение текстов/строк обновляет metadata projection. Studio перечитывает открытый каталог только для относящейся к нему области. Reader/Home сохраняются; Home предлагает явное обновление. Пачка, пришедшая во время обновления, остаётся ожидающей; ошибка чтения повторяется при следующем возврате, без бесконечного цикла.
 
 Это адресация по таблицам/областям, не строковая репликация. Неизвестная область намеренно может потребовать полного обновления; схема/канонические writers не меняются.
 
 Проверки:
-- Общий unit **2401/2401**, затем два дополнительных теста составного SQL и rollback неопределённого результата; финальные профильные 23/23. CI дополнен новым браузерным сценарием.
+- Локальный общий unit **2401/2401**, затем два дополнительных теста составного SQL и rollback неопределённого результата; финальные профильные 23/23. Финальный CI: **2401 PASS, 0 FAIL, 2 SKIP из 2403** (два теста Physics corpus), отдельный набор надёжности **65/65**. CI дополнен новым браузерным сценарием.
 - [OPFS, четыре вкладки](scopes/local-opfs/result.json) и [IndexedDB, четыре вкладки](scopes/local-idb/result.json): progress → 0 metadata/catalog reads, 0 word invalidations; word_status → 1 word invalidation, 0 refreshes Медиатеки. Finished status, structure-only refresh, focus, настоящий metadata update, Home/Reader identity, silent rollback/savepoint, legacy burst 10→1 — PASS. Внешние провайдеры заблокированы.
 - Полный `smoke:material-reliability`: PASS — обе формы сохранения, новая вкладка/resume, поздние ответы, lifecycle, четыре поверхности/изолированные черновики/deferred dialog/local video, cold canon 79 текстов / 6646 строк с независимым digest, partial rollback и восстановлением после worker termination/browser restart.
 - API smoke: PASS. SW A/D/E/G: 8/8; integrity/precache/module URL parity проверены.
 - Замеры времени общего browser gate выполнялись вместе с SW-проверкой; они не являются сравнительным speed benchmark или production p95.
 - Первый незастабилизированный cross-tab fixture увидел четыре word invalidations в окне проверки progress. Полного списка первых событий нет, причина не доказана (O-068). Runner теперь ждёт тишину уведомлений после boot и сохраняет диагностические области; последующие прогоны прошли. Это не объявлено исправлением неизвестного production-дефекта.
 
-Production второго этапа: ожидается публикация и проверка.
+Production **3.11.727 / e878b850**: Coolify 2600 finished; [CI success](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/37156433999). [Три сверки версии/health/23 ресурсов с Git](scopes/production/served-assets.json) прошли. [Четыре вкладки на опубликованных ресурсах](scopes/production/browser/result.json): progress-only без чтения каталога и сброса словаря, word-only без перечитывания Медиатеки, rollback/savepoint без уведомления, структура/метаданные обновляются, Home/Reader и focus сохраняются, legacy burst 10→1 — PASS; pageerror отсутствует.
+
+[Два реальных публичных материала](scopes/production/public-browser/browser.json): открытие настоящей ссылкой в новой вкладке, совпадение ID/заголовка/первой строки/перевода с серверным snapshot, query identity и возврат без reload — PASS. Снимки 380 px просмотрены: Home без горизонтального overflow; существующие узкие колонки Reader отражены в O-066. Автоматизация выполнялась в одноразовых профилях, с синтетическими локальными записями для cross-tab и read-only remote requests. Owner-live, paid-provider, physical-device и assistive-technology проверки не заявляются. [Итог релиза и ёмкости](scopes/production/release.json).
 
 ## Ёмкость сервера
 
@@ -41,3 +43,5 @@ Production второго этапа: ожидается публикация и
 
 
 Дополнительная ёмкость перед вторым релизом: после 3.11.726 неиспользуемый build cache очищен в ранее разрешённой области (Docker 2.491 GB reclaimed; df 3.2G / 92%). Владелец отдельно разрешил удалить unused 7d408e2cb2f3 (d5e6c826), отсутствие container references повторно проверено; df **4.4G / 88%**. Current 4c5c986b и rollback 5093d37c сохранены. Подготовленные две поставки не дают общего разрешения на удаление будущих rollback images.
+
+После завершения 3.11.727: df 1.2G / 97%; inventory показал 2.604 GB полностью неиспользуемого build cache. Разрешённый `docker builder prune -af` освободил 2.604 GB; итог **3.2G / 92%**, build cache 0, все 10 runtime containers и четыре volumes сохранены. Образы current e878b850, rollback 4c5c986b и более ранний 5093d37c остаются. Финальный health: ok, DB/migrations ready; `disk_warn=true`, `disk_pct_used=92`. O-047/O-055 остаются открытыми.

@@ -24,6 +24,7 @@
 - **Статус:** открыто.
 
 ## O-066 · Узкие заголовки таблицы Classic Studio на 380 px
+- **Update 2026-10-04, 3.11.727:** production Reader на 380 px также показывает тесные заголовки и частые переносы текста в пяти колонках. [Снимок](../research/material-save-invalidation/2026-10-04/scopes/production/public-browser/reader-380.png). Идентичность и содержимое материала проходят проверку; layout в этой задаче не менялся.
 - **Дата / где:** 2026-10-03, isolated fixture 3.11.723, screenshot studio-380.png.
 - **Факты:** восстановленная строка видна и выделена; несколько заголовков пятиколоночной таблицы обрезаются, короткий translit переносится. CSS этой таблицы пакетом reliability не менялся; physical-device evidence отсутствует.
 - **Предложение:** отдельно проверить минимальную ширину/горизонтальный скролл и настройки колонок, сохранив караоке, позицию и доступность.
@@ -91,6 +92,7 @@
 - **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
 
 ## O-055 — Production build consumes preflight headroom
+- **Update 2026-10-04, 3.11.727:** после Coolify 2600 finished — 1.2G / 97%. Inventory: 2.604 GB unused build cache; ранее разрешённый cache-only prune дал 3.2G / 92%, cache 0. Current e878b850, rollback 4c5c986b, предыдущий 5093d37c, 10 работающих контейнеров и 4 volumes сохранены. Health ready, disk_warn=true; риск остаётся.
 - **Update 2026-10-04, перед вторым этапом:** после 3.11.726 разрешённый build-cache prune дал 3.2G / 92%; по новому отдельному разрешению удалён unused 7d408e2cb2f3 (d5e6c826), df 4.4G / 88%. Current 4c5c986b и rollback 5093d37c сохранены.
 - **Update 2026-10-04:** по отдельному разрешению владельца удалены только unused images f2f7fa29d2d6 и 7ac3af4559e7. После проверки отсутствия контейнерных ссылок df вырос с 2.1G / 95% до 4.4G / 88%. Current 5093d37c, rollback d5e6c826 и данные сохранены. [Отчёт](../research/material-save-invalidation/2026-10-04/IMPLEMENTATION.md).
 - **Update 2026-10-03, 3.11.725:** до сборки 3.2G / 92%; в пике 213M / 100%. Ранее разрешённый `docker builder prune -af` сообщил 2.489GB reclaimed; после rollout 2.1G / 95%, `disk_warn=true`. Current/rollback images, application containers, четыре volumes и данные сохранены; capacity-риск остаётся. [Evidence](../research/material-opening-lifecycle/2026-10-03/production/3.11.725/release.json).
@@ -147,6 +149,7 @@
 - **Статус:** открыто; unsigned owner pilot разрешён владельцем, окно визуально подтверждено им.
 
 ## O-047 · Production: мало резерва для серии сборок без очистки
+- **Update 2026-10-04, 3.11.727:** после rollout 1.2G / 97%; разрешённый unused build-cache prune 2.604 GB → 3.2G / 92%. Current/rollback images, 10 runtime containers и 4 volumes сохранены; `disk_warn=true`. [Evidence](../research/material-save-invalidation/2026-10-04/scopes/production/release.json).
 - **Update 2026-10-03, 3.11.725:** до сборки 3.2G / 92%; в пике 213M / 100%. Ранее разрешённый `docker builder prune -af` сообщил 2.489GB reclaimed; после rollout 2.1G / 95%, `disk_warn=true`. Current/rollback images, application containers, четыре volumes и данные сохранены; capacity-риск остаётся. [Evidence](../research/material-opening-lifecycle/2026-10-03/production/3.11.725/release.json).
 - **Повторная проверка 2026-10-01 перед 3.11.712:** `/healthz` — `disk_pct_used=94`, `disk_warn=true`; `df /` — 95%, 2.2G available. Инвентаризация Docker: build cache 2.477GB (1.201GB reclaimable), images 13.25GB. Очистка не выполнялась; вопрос резерва остаётся открытым.
 - **Дата / где:** 2026-09-29, последовательные релизы наставника 3.11.691/692.
