@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.722";
+const CACHE_VERSION = "v3.11.723";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -76,7 +76,7 @@ const PRECACHE_URLS = [
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=695",
+  "/js/mediatheque-ui.js?v=723",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -99,7 +99,7 @@ const PRECACHE_URLS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=635",
+  "/js/study-video-source-ui.js?v=723",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=633",
@@ -128,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=717",
+  "/js/library-ui.js?v=723",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -136,7 +136,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=680",
+  "/js/reader-core.js?v=723",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
@@ -243,7 +243,9 @@ const PRECACHE_URLS = [
   "/js/portable-learning-package-core.js?v=688",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=718",
-  "/js/studio-media-package.js?v=676",
+  "/js/studio-media-package.js?v=723",
+  "/js/material-open.js?v=723",
+  "/js/studio-session.js?v=723",
   "/js/studio-media-editor.js?v=628",
   "/js/studio-material-revision.js",
   "/js/studio-portable-learning-package.js?v=630",
@@ -252,7 +254,7 @@ const PRECACHE_URLS = [
   "/js/library-transfer.js?v=721",
   "/js/library-transfer-ui.js?v=722",
   "/js/media-rebind-core.js?v=677",
-  "/js/media-rebind-ui.js?v=677",
+  "/js/media-rebind-ui.js?v=723",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
@@ -311,9 +313,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=280",
-  "/i18n/locales/en.js?v=280",
-  "/i18n/locales/he.js?v=280",
+  "/i18n/locales/ru.js?v=281",
+  "/i18n/locales/en.js?v=281",
+  "/i18n/locales/he.js?v=281",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -326,15 +328,15 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=669",
+  "/db/local-db.js?v=723",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
   "/db/vfs-order.js",
   "/db/db-worker.js",
-  "/db/db-worker-runtime.js?v=545",
+  "/db/db-worker-runtime.js?v=723",
   "/db/sqlite-api.js?v=531",
-  "/db/operation-lease.js?v=542",
+  "/db/operation-lease.js?v=723",
   "/db/IDBBatchAtomicVFS.js?v=543",
   "/db/IDBContext.js?v=543",
   "/db/operation-lease.js",

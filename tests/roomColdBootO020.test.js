@@ -20,7 +20,7 @@ const fnSource = (name) => {
 
 test("a cold profile with a corpus catalog does not wait for the canon import", () => {
   assert.match(fnSource("canonImportLikelyNeeded"), /localStorage\.getItem\(CANON_VERSION_KEY\)[\s\S]*< CANON_BUNDLE_VERSION/);
-  const boot = ui.slice(ui.indexOf("const corpusCatalogLoad = loadCorpusCatalog();"), ui.indexOf("await loadPublicCorpora();"));
+  const boot = ui.slice(ui.indexOf("const corpusCatalogLoad = loadCorpusCatalog();"), ui.indexOf("await Promise.all([loadPublicCorpora(), loadGroupCorpora()]);"));
   assert.match(boot, /if \(canonImportLikelyNeeded\(\) && !initialPresentation\)/);
   assert.match(boot, /_canonPending = true;/);
   assert.match(boot, /autoImportCanon\(\{ quiet: true \}\)[\s\S]{0,80}await loadData\(\)/);

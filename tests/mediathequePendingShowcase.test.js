@@ -31,7 +31,7 @@ test('owner sees an unpublished-changes banner outside the editor and can publis
   assert.match(ui, /t\('pendingChanges', \{ count: pending \}\)/);
   assert.match(ui, /button\('publish-pending', t\('publishNow'\)/);
   assert.match(ui, /if \(action === 'publish-pending' && state\.owner\)/);
-  assert.match(ui, /if \(state\.owner\) state\.draft = await api\('\/api\/publication\/mediatheque'\)/);
+  // Loading order is covered by mediathequeLoading; the banner must not gate reading.
   global.window = {};
   for (const l of ['ru', 'en', 'he']) require('../public/i18n/locales/' + l + '.js');
   for (const l of ['ru', 'en', 'he']) for (const k of ['pendingChanges', 'publishNow', 'continueEditing'])

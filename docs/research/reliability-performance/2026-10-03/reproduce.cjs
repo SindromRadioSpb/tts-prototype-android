@@ -1,12 +1,14 @@
-// Diagnostic reproductions against the actual source; no server, profile or provider calls.
+// Historical diagnostic reproductions against baseline 9d1d11e7, not the repaired checkout.
+// No server, profile or provider calls. Current acceptance: npm run smoke:material-reliability.
 // Run from repository root: node docs/research/reliability-performance/2026-10-03/reproduce.cjs
 // A reproduced defect is NOT a passing product acceptance gate.
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../../../..');
-const read = p => fs.readFileSync(path.join(root, p), 'utf8');
+const read = p => execFileSync('git', ['show', '9d1d11e7:' + p], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const storage = initial => { const map = new Map(Object.entries(initial || {})); return { getItem: k => map.get(k) ?? null, setItem: (k,v) => map.set(k,String(v)) }; };
 

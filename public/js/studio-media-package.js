@@ -354,28 +354,41 @@
     return activeWorkspaceOptions && activeWorkspaceOptions.text_id ? String(activeWorkspaceOptions.text_id) : null;
   }
   function clearActiveWorkspace() {
+    bindingActivationSerial++;
     activeWorkspaceRef = null; activeWorkspaceOptions = {}; workspaceRefreshSerial++;
     // Entity change/clear ends the media intent too (see v3MediaIntentLost in index.html).
     if (typeof window !== 'undefined') { window.v3LastMediaPackageRef = null; window.v3MediaIntentLost = null; }
     refreshWorkspaceUi();
   }
   async function activatePackage(packageId, options) {
+    var serial = ++bindingActivationSerial;
     options = options || {};
     var workspace = await browserRepository().getWorkspace(packageId, options.track_id || null);
+    if (serial !== bindingActivationSerial) return null;
     if (!workspace) throw new Error('PACKAGE_NOT_FOUND');
     await setActiveWorkspace({ package_id: workspace.package_id, track_id: workspace.corrected_track_id,
       revision_id: workspace.current_revision_id, revision_sha256: workspace.current_revision_sha256,
       projection_sha256: workspace.current_revision_sha256, local_only: true }, options);
     return workspace;
   }
-  async function activateTextBinding(textId) {
+  var bindingActivationSerial = 0;
+  async function activateTextBinding(textId, options) {
+    var serial = ++bindingActivationSerial;
+    var current = function () { return serial === bindingActivationSerial && (!options || !options.isCurrent || options.isCurrent()); };
     var repo = browserRepository(), binding = await repo.getTextBinding(textId);
+    if (!current()) return null;
     if (!binding) { clearActiveWorkspace(); return { binding: null, stale: false, workspace: null }; }
-    var stale = await repo.isTextBindingStale(textId), workspace = await activatePackage(binding.package_id, {
-      stale: !!stale.stale, text_id: String(textId), bound_revision_id: binding.revision_id,
-    });
+    var stale = await repo.isTextBindingStale(textId), workspace = await repo.getWorkspace(binding.package_id, null);
+    if (!current()) return null;
+    if (!workspace) throw new Error('PACKAGE_NOT_FOUND');
     var revision = await repo.getRevision(binding.revision_id), media = await repo.getPackage(binding.package_id);
+    if (!current()) return null;
     var mediaPassport = revision && media ? buildExactBindingPassport(revision, binding, media) : null;
+    await setActiveWorkspace({ package_id: workspace.package_id, track_id: workspace.corrected_track_id,
+      revision_id: workspace.current_revision_id, revision_sha256: workspace.current_revision_sha256,
+      projection_sha256: workspace.current_revision_sha256, local_only: true },
+      { stale: !!stale.stale, text_id: String(textId), bound_revision_id: binding.revision_id });
+    if (!current()) return null;
     return { binding: binding, stale: !!stale.stale, workspace: workspace, media_passport: mediaPassport };
   }
   // ── F1 (packet 2026-08-06): КАКОМУ МЕДИА ПРИНАДЛЕЖИТ НОВАЯ КАРТОЧКА ────────────────────────────

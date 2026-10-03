@@ -91,7 +91,9 @@ async function main() {
       await __localDB.addSentence('mt-video', { id: 'mt-video-row', he_plain: 'שלום עולם', ru: 'Привет, мир' });
     }, videoBytes);
     await m.locator('.ml-item').filter({ hasText: 'Multitab video' }).locator('a.ml-open').first().click();
-    await m.locator('#roomReaderTable').getByText('Привет, мир', { exact: true }).waitFor({ timeout: 20000 });
+    // Translation cells also contain the replay control; assert the material's
+    // translation within the reader rather than the cell's combined exact text.
+    await m.locator('#roomReaderTable').getByText('Привет, мир', { exact: false }).waitFor({ timeout: 20000 });
     await m.locator('#roomMediaLocalPlayer').waitFor({ state: 'visible' });
     await m.evaluate(async () => { const media = document.getElementById('roomMediaLocalPlayer'); media.muted = true; await media.play(); });
     await m.waitForFunction(() => document.getElementById('roomMediaLocalPlayer').currentTime > 0.2);
@@ -104,7 +106,18 @@ async function main() {
     await m.screenshot({ path: path.join(OUT, 'video-playing-380.png') });
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({ result: 'PASS', studios: 2, room: 1, mediatheque: 1, draftsIsolated: true, noReloadOnPeerClose: true, liveCatalogueRefresh: true, deferredDialogRefresh: true, localVideoPlayback: true, frozenIdleStudio: true, errors }));
-  } catch (e) { fs.writeFileSync(path.join(OUT, 'server-failure.log'), logs.join('')); throw e; }
+  } catch (e) {
+    fs.writeFileSync(path.join(OUT, 'server-failure.log'), logs.join(''));
+    if (browser) for (const [i, page] of browser.contexts().flatMap(c => c.pages()).entries()) {
+      const diagnostics = await page.evaluate(async () => ({ locks: await navigator.locks.query(),
+        visibility: document.visibilityState, ready: window.__localDB?.isReady(),
+        diagnostics: window.__localDB?.getLastDbDiagnostics?.() })).catch(error => ({ error: error.message }));
+      fs.writeFileSync(path.join(OUT, `failure-${i}-locks.json`), JSON.stringify(diagnostics, null, 2));
+      await page.screenshot({ path: path.join(OUT, `failure-${i}.png`) }).catch(() => {});
+      fs.writeFileSync(path.join(OUT, `failure-${i}.txt`), page.url() + '\n' + await page.locator('body').innerText().catch(() => 'unavailable'));
+    }
+    throw e;
+  }
   finally {
     if (browser) await browser.close();
     server.kill();

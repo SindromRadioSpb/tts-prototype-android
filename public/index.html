@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=669">
+    <link rel="modulepreload" href="/db/local-db.js?v=723">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11055,7 +11055,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=669';
+  import * as _ldb from '/db/local-db.js?v=723';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13629,9 +13629,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=280"></script>
-<script src="/i18n/locales/en.js?v=280"></script>
-<script src="/i18n/locales/he.js?v=280"></script>
+<script src="/i18n/locales/ru.js?v=281"></script>
+<script src="/i18n/locales/en.js?v=281"></script>
+<script src="/i18n/locales/he.js?v=281"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13767,7 +13767,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
-<script src="/js/study-video-source-ui.js?v=635"></script>
+<script src="/js/study-video-source-ui.js?v=723"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=633"></script>
@@ -13779,7 +13779,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=718"></script>
-<script src="/js/studio-media-package.js?v=676"></script>
+<script src="/js/material-open.js?v=723"></script>
+<script src="/js/studio-session.js?v=723"></script>
+<script src="/js/studio-media-package.js?v=723"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=630"></script>
@@ -13790,7 +13792,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/library-transfer.js?v=721"></script>
 <script src="/js/library-transfer-ui.js?v=722"></script>
 <script src="/js/media-rebind-core.js?v=677"></script>
-<script src="/js/media-rebind-ui.js?v=677"></script>
+<script src="/js/media-rebind-ui.js?v=723"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -13873,7 +13875,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.722";
+    window.APP_VERSION = "3.11.723";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14068,6 +14070,13 @@ function v3IdeCloseColumnsPanel(ev) {
 // ============================================
 const V3_IDE_MODE_KEY = "v3_ide_mode_enabled";  // "0" | "1"
 const V3_IDE_STATE_KEY = "v3_ide_state_v1";
+
+const v3MaterialOpens = MaterialOpen.create({ surface: "studio" });
+const v3SessionStore = StudioSession.create(localStorage, sessionStorage);
+v3SessionStore.bootstrap();
+function v3RememberOpenedMaterial(textId, opts) {
+  if (!(opts && (opts.fromRestore || opts.origin === "restore"))) v3SessionStore.remember(textId);
+}
 
 let v3IdeState = {
   leftTab: "search",      // "search" | "library" | "history"
@@ -14308,11 +14317,14 @@ function v3IdeSyncHeaderOffsetVar() {
 
 function v3IdeApplyMode(enabled, fromClassicTextId) {
   const body = document.body;
+  const wasIde = body.classList.contains("v3-ide-mode");
   const header = document.getElementById("v3IdeHeader");
   const workspace = document.getElementById("v3IdeWorkspace");
   const toggleBtn = document.getElementById("v3ModeToggle");
 
   if (enabled) {
+    // Only one mounted table may own row controls and progress listeners.
+    if (!wasIde) { try { window.v3FlushProgressNow?.(); v3PrepareForNewTableRender(); } catch (_) {} }
     body.classList.add("v3-ide-mode");
     if (header) header.style.display = "flex";
     if (workspace) workspace.style.display = "flex";
@@ -14369,8 +14381,8 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     v3IdeRefreshLibrary();
 
     // Restore the one reconciled active card selected above.
-    if (restoreTextId) {
-      v3IdeOpenTextInCenter(String(restoreTextId));
+    if (restoreTextId && !String(location.hash || "").includes("/t/")) {
+      v3IdeOpenTextInCenter(String(restoreTextId), undefined, undefined, { fromRestore: true });
     } else {
       // Q1 (UX): no text to restore — show the friendly empty state instead
       // of leaving the center blank / surfacing a "Text not found" error.
@@ -14381,6 +14393,15 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     if (header) header.style.display = "none";
     if (workspace) workspace.style.display = "none";
     if (toggleBtn) syncStudioModeToggle(false);
+
+    if (wasIde) {
+      const center = document.getElementById("v3IdeCenterContent");
+      if (center) center.replaceChildren();
+      const session = v3SessionGet();
+      if (session?.textId && ["library", "saved"].includes(session.mode)) {
+        v3LibraryOpenText(session.textId, { resume: true, fromRestore: true });
+      } else v3MaterialOpens.cancel();
+    }
 
     // Restore Classic column widths
     try {
@@ -15101,7 +15122,8 @@ function v3ProductPulseMediaFacts(rows) {
   return { known: true, hasAudio, hasVideo };
 }
 
-async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex) {
+async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex, opts) {
+  const open = v3MaterialOpens.begin(textId);
   const header = document.getElementById("v3IdeCenterHeader");
   const content = document.getElementById("v3IdeCenterContent");
   if (!content) return;
@@ -15127,6 +15149,10 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex)
     t = (textData && textData.text) ? textData.text : textData;
   }
 
+  if (!open.isCurrent()) return;
+  open.assertIdentity(t);
+  v3SetSourceTextFromLibrary(String(t.source_text || t.sourceText || ""));
+
   // Keep one active-card identity across Classic and IDE. This also makes the
   // next reload deterministic after a card is opened from IDE search/history.
   try {
@@ -15136,6 +15162,7 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex)
       mode: "library",
       textId: String(textId),
       baseTextId: null,
+      baseUpdatedAt: t?.updated_at || null,
       origin: sameText ? (prior.origin || "ide") : "ide",
       openMode: (jumpToSentenceId || jumpToOrderIndex !== undefined) ? "resume" : "open",
       resumeSentenceId: jumpToSentenceId ? String(jumpToSentenceId) : null,
@@ -15172,6 +15199,12 @@ if (LOCAL_MODE) {
   const rowsData = await rowsRes.json();
   rows = rowsData.sentences || rowsData.rows || [];
 }
+
+if (!open.isCurrent()) return;
+open.assertIdentity(t, rows);
+open.mark("data");
+// Keep DB identities while giving save/playback the same row fields as Classic.
+rows = rows.map(row => ({ ...row, ...v3MapSentenceApiRowToUiRow(row, textId) }));
 
 // After rows loaded: update header rows count with actual loaded rows
 if (header) {
@@ -15213,7 +15246,8 @@ if (header) {
     window.v3MediaPackageStale = false;
     if (LOCAL_MODE && window.StudioMediaPackage) {
       try {
-        const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
+        const activation = await window.StudioMediaPackage.activateTextBinding(String(textId), { isCurrent: open.isCurrent });
+        if (!open.isCurrent()) return;
         window.v3MediaPackageStale = !!(activation && activation.stale);
         immutableMaterial = !!(activation && activation.binding);
         if (activation && activation.media_passport) {
@@ -15231,9 +15265,10 @@ if (header) {
             v3MediaResolverClear();
           }
         }
-        if (typeof v3MediaBarRefresh === "function") await v3MediaBarRefresh({ id: textId, card: t, rows, audio: window.v3ActiveMediaAudio });
+        if (typeof v3MediaBarRefresh === "function") await v3MediaBarRefresh({ id: textId, card: t, rows, audio: window.v3ActiveMediaAudio, isCurrent: open.isCurrent });
       } catch (_) {}
     }
+    if (!open.isCurrent()) return;
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -15249,22 +15284,31 @@ if (header) {
     // cached audio plays without re-synth. See v3LibraryAutoApplyCardProfile.
     try { await v3LibraryAutoApplyCardProfile(t, rows); } catch (_) {}
 
-    // Premium UX (IDE mode): lazy-fill missing translit / translit_ru in
-    // OPFS. Symmetric to v3LibraryOpenText. Idempotent.
-    if (!immutableMaterial) {
-      try { await v3LazyFillTranslit(textId, rows); } catch (_) {}
-    }
+    if (!open.isCurrent()) return;
 
+    // Paint and resume before optional transliteration and notes.
+    try { v3NotesIngest(textId, []); } catch (_) {}
+    v3IdeRenderTable(rows, textId);
+    open.mark("paint");
+    v3RememberOpenedMaterial(textId, opts);
+    if (!immutableMaterial) {
+      v3LazyFillTranslit(textId, rows, open.isCurrent).then(filled => {
+        if (filled && open.isCurrent()) v3RefreshFilledTranslit(textId, rows);
+      }).catch(() => {});
+    }
+    (async () => {
     // Load notes for this text
     try {
       if (LOCAL_MODE) {
         const ldb = await ensureLocalDB();
         const notes = await ldb.listNotes(textId);
+        if (!open.isCurrent()) return;
         if (typeof v3NotesIngest === "function") v3NotesIngest(textId, notes);
       } else {
         const notesRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes`);
         if (notesRes.ok) {
           const notesData = await notesRes.json();
+          if (!open.isCurrent()) return;
           if (typeof v3NotesIngest === "function") {
             v3NotesIngest(textId, notesData.notes || []);
           }
@@ -15275,12 +15319,26 @@ if (header) {
       try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(textId); } catch (_) {}
     } catch (e) { /* notes optional */ }
 
-    // Render table in center panel
-    v3IdeRenderTable(rows, textId);
+    if (!open.isCurrent()) return;
+
+    v3NotesRefreshAllButtons();
+    })().catch(() => {});
+
     if (Array.isArray(rows) && rows.length) {
       try { window.ProductTelemetry?.confirmMaterialOpen({ text: t, media: v3ProductPulseMediaFacts(rows) }); } catch (_) {}
     }
 
+    // A plain open resumes this card's own durable position, never another IDE card's row.
+    if (!jumpToSentenceId && jumpToOrderIndex === undefined && LOCAL_MODE) {
+      try {
+        const ldb = await ensureLocalDB();
+        const progress = await ldb.getProgress(textId);
+        if (!open.isCurrent()) return;
+        if (progress?.last_row_idx != null) jumpToOrderIndex = Math.max(0, Math.min(rows.length - 1, Number(progress.last_row_idx) || 0));
+      } catch (_) {}
+    }
+    if (!open.isCurrent()) return;
+    open.mark("ready");
     // Jump to specific row if requested
     if (jumpToSentenceId || jumpToOrderIndex !== undefined) {
       const rowIdx = jumpToOrderIndex ?? rows.findIndex(r => String(r.sentenceId || r.sentence_id) === String(jumpToSentenceId));
@@ -15288,6 +15346,7 @@ if (header) {
         v3IdeSelectRow(rowIdx);
         // Scroll to row
         setTimeout(() => {
+          if (!open.isCurrent()) return;
           const tr = content.querySelector(`tr[data-row-idx="${rowIdx}"]`);
           if (tr) tr.scrollIntoView({ behavior: "smooth", block: "center" });
         }, 100);
@@ -15298,10 +15357,13 @@ if (header) {
     v3IdeRenderLibraryList();
 
   } catch (err) {
+    if (!open.isCurrent()) return;
+    open.mark("failed");
     const msg = String((err && err.message) || err);
     // A stale/missing text id is not an error to the user — show the
     // "pick a text" empty state and clear the dangling active id.
     if (/not found/i.test(msg)) {
+      v3SessionStore.forget(textId);
       v3IdeState.activeTextId = null;
       try { v3IdeSaveState(); } catch (_) {}
       v3IdeRenderCenterEmpty();
@@ -15391,7 +15453,7 @@ function v3IdeRenderTable(rows, textId) {
   // Enrich rows with _v3_textId and _v3_sentenceId for TTS compatibility
   rows.forEach(row => {
     row._v3_textId = textId;
-    row._v3_sentenceId = row.sentenceId || row.sentence_id || row.id || "";
+    row._v3_sentenceId = row._v3_sentenceId || row.sentenceId || row.sentence_id || row.id || "";
     row._v3_audioAssetKey = row.audio_asset_key || row.audioAssetKey || row._v3_audioAssetKey || "";
     row._v3_audioTtsProfileJson = row.audio_tts_profile_json || row.audioTtsProfileJson || row._v3_audioTtsProfileJson || "";
   });
@@ -15478,7 +15540,7 @@ function v3IdeRenderTable(rows, textId) {
         </td>` : ''}
         ${showHe ? `<td class="rtl rtl-he">${he}${window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||''}</td>` : ''}
         ${showNiq ? `<td class="rtl rtl-he-niqqud">${niqqud}</td>` : ''}
-        ${showTr ? `<td>${translit}</td>` : ''}
+        ${showTr ? `<td data-col="translit">${translit}</td>` : ''}
         ${showRu ? `<td>${ru}</td>` : ''}
       </tr>
     `;
@@ -18022,17 +18084,7 @@ function v3NotesRefreshAllButtons() {
 
     let toastTimeoutId = null;
 
-    // Snapshot the pre-multitab draft once. Subsequent edits and reloads are
-    // scoped to this tab. Durable library materials remain in shared SQLite.
-    try {
-      if (!sessionStorage.getItem('studio.tabDraftMigrated.v1')) {
-        for (const key of ['ttsDashboard_text_v1', 'ttsDashboard_table_cache_v1', 'ttsDashboard_session_state_v1', 'ttsDashboard_last_selected_row_idx_v1']) {
-          const value = localStorage.getItem(key);
-          if (value !== null && sessionStorage.getItem(key) === null) sessionStorage.setItem(key, value);
-        }
-        sessionStorage.setItem('studio.tabDraftMigrated.v1', '1');
-      }
-    } catch (_) {}
+    // Tab drafts and the durable last-material pointer are owned by StudioSession.
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
     function v3TableCacheStorageKey(provider) {
@@ -18519,29 +18571,11 @@ window.addEventListener('localdb:changed', () => {
   const modal = document.getElementById('v3LibraryModal');
   if (modal && !modal.classList.contains('hidden')) v3LibraryRefresh();
 });
-function v3SessionGet() {
-  try {
-    const raw = sessionStorage.getItem(V3_SESSION_STATE_KEY);
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (!obj || typeof obj !== "object") return null;
-    return obj;
-  } catch (e) {
-    return null;
-  }
-}
-
+function v3SessionGet() { return v3SessionStore.read(); }
 function v3SessionSet(patch) {
-  try {
-    const prev = v3SessionGet() || {};
-    const next = Object.assign({}, prev, patch || {});
-    next.updatedAt = new Date().toISOString();
-    sessionStorage.setItem(V3_SESSION_STATE_KEY, JSON.stringify(next));
-  } catch (e) {
-    // non-fatal
-  }
-
-  // Keep header/status in sync with session state
+  const next = v3SessionStore.write(patch);
+  if (patch && patch.mode === "saved" && next.textId) v3SessionStore.remember(next.textId);
+  if (patch && patch.mode === "draft") v3MaterialOpens.cancel();
   try { v3UiUpdateActiveHeader(); } catch (_) {}
   try { v3UiSyncSaveButtons(); } catch (_) {}
 }
@@ -22025,7 +22059,8 @@ updatePlaylistButtonUI();
             // priority and is handled by v3DeeplinkBoot below.
             const restoreSession = (typeof v3SessionGet === "function") ? v3SessionGet() : null;
             const hasHashTarget = String(window.location.hash || "").includes("/t/");
-            if (!hasHashTarget && restoreSession &&
+            if (hasHashTarget) { v3PrepareForNewTableRender(); return; }
+            if (restoreSession &&
                 (restoreSession.mode === "library" || restoreSession.mode === "saved") &&
                 restoreSession.textId) {
                 if (v3LibraryTryRestoreFromCache(restoreSession)) return;
@@ -25754,7 +25789,8 @@ function v3MediaBarRefresh(prepared) {
       try {
         // Use the same read-only exact-binding projection as the source confirmation
         // dialog. Ambient composer timing can describe a different (positional) map.
-        const ctx=await StudyVideoSourceUI.context(id);
+        const ctx=prepared && prepared.card ? {card:prepared.card,audio:prepared.audio} : await StudyVideoSourceUI.context(id);
+        if(prepared?.isCurrent && !prepared.isCurrent())return;
         const playbackRows=prepared && Array.isArray(prepared.rows)?prepared.rows:currentTableData;
         original=ctx.audio || base;
         const record=PlaybackSource.fromText(ctx.card,original);
@@ -25767,7 +25803,7 @@ function v3MediaBarRefresh(prepared) {
         audio=original;
       }
     }
-    if(serial!==v3PlaybackSerial || base!==window.v3ActiveMediaAudio) return;
+    if(serial!==v3PlaybackSerial || base!==window.v3ActiveMediaAudio || (prepared?.isCurrent && !prepared.isCurrent())) return;
     const old=v3PlaybackAudio;
     if(prepared?.retry || JSON.stringify(old)!==JSON.stringify(audio)) {
       if(v3YtStageAbort) v3YtStageAbort.abort();
@@ -27611,8 +27647,10 @@ function v3HoldResumeRowInView(rowIdx) {
 function v3ApplyResumeSelection(token, rowIdx) {
   const n = Number(rowIdx);
   if (!Number.isFinite(n)) return;
+  const operation = v3MaterialOpens.current();
 
   v3AfterRenderStable(token, () => {
+    if (v3MaterialOpens.current() !== operation) return;
     // clamp to current table length
     const max = Array.isArray(currentTableData) ? (currentTableData.length - 1) : -1;
     const clamped = (max >= 0) ? Math.max(0, Math.min(Math.trunc(n), max)) : Math.trunc(n);
@@ -27621,6 +27659,7 @@ function v3ApplyResumeSelection(token, rowIdx) {
 
     // scroll after selection; use rAF once more to avoid rare "no scroll" on heavy DOM
     requestAnimationFrame(() => {
+      if (v3MaterialOpens.current() !== operation || token !== v3TableRenderToken) return;
       try {
         const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(clamped) + '"]');
         if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -27658,6 +27697,7 @@ function v3SetSourceTextFromLibrary(raw) {
 }
 
 async function v3LibraryOpenText(textId, opts) {
+  const open = v3MaterialOpens.begin(textId);
   const resumeSentenceId = (opts && opts.resumeSentenceId) ? String(opts.resumeSentenceId) : null;
 const resume = !!(opts && (opts.resume || resumeSentenceId));
 
@@ -27678,6 +27718,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
   let immutableMaterial = false;
   if (LOCAL_MODE) {
     const ldb = await ensureLocalDB();
+    if (!open.isCurrent()) return;
     notesPromise = ldb.listNotes(textId).then(notes => ({ ok: true, notes })).catch(e => {
       console.warn("notes preload failed (non-critical)", e);
       return { ok: false, notes: [] };
@@ -27700,6 +27741,13 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     text = meta && meta.text ? meta.text : null;
     sentences = (sents && Array.isArray(sents.sentences)) ? sents.sentences : [];
   }
+
+    if (!open.isCurrent()) return;
+    if (!text) { v3SessionStore.forget(textId); throw new Error("Text not found"); }
+    open.assertIdentity(text, sentences);
+    open.mark("data");
+    v3PrepareForNewTableRender();
+    try { v3SetSourceTextFromLibrary(""); } catch (_) {}
 
     // Persist "last opened saved text" for restore-on-reload.
     // Do this AFTER meta fetch so we can store the title.
@@ -27754,7 +27802,8 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     window.v3MediaPackageStale = false;
     if (LOCAL_MODE && window.StudioMediaPackage) {
       try {
-        const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
+        const activation = await window.StudioMediaPackage.activateTextBinding(String(textId), { isCurrent: open.isCurrent });
+        if (!open.isCurrent()) return;
         window.v3MediaPackageStale = !!(activation && activation.stale);
         immutableMaterial = !!(activation && activation.binding);
         if (activation && activation.media_passport) {
@@ -27776,6 +27825,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
     }
+    if (!open.isCurrent()) return;
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -27807,7 +27857,9 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     // majority audio_assets provenance) and mirror it in the session UI so
     // playback uses the cached audio without re-synthesis. See P035 spec
     // and the "card-level TTS profile auto-apply" UX improvement.
+    if (!open.isCurrent()) return;
     try { await v3LibraryAutoApplyCardProfile(text, sentences); } catch (_) {}
+    if (!open.isCurrent()) return;
 
     // map sentences -> UI rows
         let rows = sentences
@@ -27847,30 +27899,25 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
     v3PrepareForNewTableRender();
 
 	let renderToken = v3RenderTableFromLibrary(rows);
+    open.mark("paint");
+    v3RememberOpenedMaterial(textId, opts);
     // Resolve the playback source against THIS rendered table, after the reset above.
     // Earlier restore passes can still see the preceding card's currentTableData.
-    try { await v3MediaBarRefresh({ id: textId, card: text, rows: currentTableData, audio: window.v3ActiveMediaAudio }); } catch (_) {}
+    try { await v3MediaBarRefresh({ id: textId, card: text, rows: currentTableData, audio: window.v3ActiveMediaAudio, isCurrent: open.isCurrent }); } catch (_) {}
+    if (!open.isCurrent()) return;
     if (Array.isArray(currentTableData) && currentTableData.length) {
       try { window.ProductTelemetry?.confirmMaterialOpen({ text, media: v3ProductPulseMediaFacts(currentTableData) }); } catch (_) {}
     }
 
-    // Immutable learning-material rows reject legacy sentence writes by design.
-    // Do not issue hundreds of doomed updateSentence calls. Mutable legacy cards
-    // still receive the existing lazy fill, but the correct table is already on
-    // screen while it runs; a successful fill is then painted from the same rows.
+    // Enrichment must not delay resume or replace the mounted table under playback.
+    // The local display store already derives Classic transliteration; patch only
+    // missing stored fields and cells when the optional server fill finishes.
     if (!immutableMaterial) {
-      try {
-        const filled = await v3LazyFillTranslit(textId, sentences);
-        if (filled > 0) {
-          rows = sentences
-            .slice()
-            .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
-            .map((r) => v3MapSentenceApiRowToUiRow(r, textId));
-          v3PrepareForNewTableRender();
-          renderToken = v3RenderTableFromLibrary(rows);
-          saveLibCache();
-        }
-      } catch (_) {}
+      v3LazyFillTranslit(textId, sentences, open.isCurrent).then(filled => {
+        if (!filled || !open.isCurrent()) return;
+        v3RefreshFilledTranslit(textId, sentences);
+        saveLibCache();
+      }).catch(() => {});
     }
 
 	// BRR-P0-002b — hydrate source_text AFTER render (non-blocking). The lite fetch
@@ -27883,7 +27930,7 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	    try {
 	      const _ldb = await ensureLocalDB();
 	      const _st = await _ldb.getTextSourceText(textId);
-	      if (!_st) return;
+	      if (!_st || !open.isCurrent()) return;
 	      text.source_text = _st;
 	      try {
 	        if (window.v3SetActiveLibraryTextMeta) window.v3SetActiveLibraryTextMeta({
@@ -27899,9 +27946,10 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	      // revision during the first restore pass and was never retried. Resolve only now,
 	      // when this card's own composer text and mapped rows are both available; the timing
 	      // stays derived in memory and is never written into canon by this path.
-	      try { await v3RestoreUnboundMediaAfterSourceHydration(textId, rows); } catch (_) {}
+	      try { await v3RestoreUnboundMediaAfterSourceHydration(textId, rows, open.isCurrent); } catch (_) {}
 	      // Ведущий путь 2.4: сохранённая карточка без ▶ сама предлагает бесплатную привязку медиа.
-	      try { if (window.MediaRebindUI) await window.MediaRebindUI.mountInto(document.getElementById("v3RebindHost"), textId); } catch (_) {}
+	      if (!open.isCurrent()) return;
+      try { if (window.MediaRebindUI) await window.MediaRebindUI.mountInto(document.getElementById("v3RebindHost"), textId, { isCurrent: open.isCurrent }); } catch (_) {}
 	      saveLibCache();
 	    } catch (_) {}
 	  })();
@@ -27909,16 +27957,18 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 
 	// W10-NOTES-PREMIUM-03: async notes ingest AFTER table render (never blocks UX)
 notesPromise.then(async (notesRes) => {
+  if (!open.isCurrent()) return;
   try {
     const notes = (notesRes && notesRes.ok && Array.isArray(notesRes.notes)) ? notesRes.notes : [];
     v3NotesIngest(textId, notes);
     // R2.1 — bulk-prime per-row counts so "📝 N" badges appear without
     // requiring per-row click (Bug 2 closure on first-paint + refresh).
     try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(textId); } catch (_) {}
+    if (!open.isCurrent()) return;
     v3NotesRefreshAllButtons();
   } catch (e) {
     console.warn("async v3NotesIngest failed (non-critical)", e);
-    try { v3NotesReset(); } catch (_) {}
+    if (open.isCurrent()) { try { v3NotesReset(); } catch (_) {} }
   }
 }).catch((e) => {
   // already handled in catch above; keep non-fatal
@@ -27942,11 +27992,13 @@ if (resumeRowIdx !== null && !preferProgress) {
     let prog;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
+    if (!open.isCurrent()) return;
       prog = await ldb.getProgress(textId);
     } else {
       const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
       prog = p && p.progress ? p.progress : null;
     }
+    if (!open.isCurrent()) return;
     const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
     if (idx !== null && idx !== undefined && Number.isFinite(Number(idx))) {
       v3ApplyResumeSelection(renderToken, Number(idx));
@@ -27958,12 +28010,16 @@ if (resumeRowIdx !== null && !preferProgress) {
   }
 }
 
+    if (!open.isCurrent()) return;
+    open.mark("ready");
     showToast(resume ? "Resume: текст загружен" : "Open: текст загружен", "success");
     v3LibraryClose();
     try { v3UiSyncSaveButtons(); } catch (_) {}
     try { v3UiUpdateActiveHeader(); } catch (_) {}
     try { classicSyncMainPanels({ force: true }); } catch (_) {}
   } catch (e) {
+    if (!open.isCurrent()) return;
+    open.mark("failed");
     console.warn("v3LibraryOpenText failed", e);
     showToast(t("toast.textOpenFailed"), "error");
   }
@@ -28090,6 +28146,8 @@ function v3BuildTtsProfileForSave() {
 async function v3ClassicEnrichSavedRows(textId) {
   try {
     if (!textId) return;
+    const rowsAtStart = currentTableData, operation = v3MaterialOpens.current();
+    const isCurrent = () => currentTableData === rowsAtStart && v3MaterialOpens.current() === operation && String(v3SessionGetUpdateTextId() || "") === String(textId);
 
     // 1. Fetch saved sentences (ordered by order_index)
     let sentences, audioMap = {};
@@ -28104,7 +28162,7 @@ async function v3ClassicEnrichSavedRows(textId) {
       const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences");
       sentences = (res && Array.isArray(res.sentences)) ? res.sentences : [];
     }
-    if (!sentences.length) return;
+    if (!isCurrent() || !sentences.length) return;
 
     // 2. Enrich currentTableData rows by position (sentences are order_index-sorted)
     if (Array.isArray(currentTableData)) {
@@ -28123,9 +28181,11 @@ async function v3ClassicEnrichSavedRows(textId) {
       if (LOCAL_MODE) {
         const ldb = await ensureLocalDB();
         const notes = await ldb.listNotes(String(textId));
+        if (!isCurrent()) return;
         if (typeof v3NotesIngest === "function") v3NotesIngest(String(textId), notes);
       } else {
         const notesRes = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/notes");
+        if (!isCurrent()) return;
         if (typeof v3NotesIngest === "function") {
           v3NotesIngest(String(textId), (notesRes && notesRes.notes) ? notesRes.notes : []);
         }
@@ -28135,9 +28195,13 @@ async function v3ClassicEnrichSavedRows(textId) {
       try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(String(textId)); } catch (_) {}
     } catch (_) {}
 
+    if (!isCurrent()) return;
     // 4. Re-render table so note buttons and audio indicators appear
     if (Array.isArray(currentTableData) && currentTableData.length > 0) {
-      renderTable(currentTableData);
+      if (document.body.classList.contains("v3-ide-mode")) {
+        v3IdeRenderTable(currentTableData, textId);
+        if (Number.isInteger(v3IdeState.selectedRowIdx)) v3IdeSelectRow(v3IdeState.selectedRowIdx);
+      } else renderTable(currentTableData);
     }
 
     // 5. Refresh audio status markers (grey/green/yellow circles)
@@ -28168,6 +28232,28 @@ async function v3LibrarySaveCurrent() {
   }
 }
 
+// Capture one save intent before any storage/media await. A later open must
+// neither supply rows to this write nor receive its completion in the editor.
+function v3CaptureSaveContext(targetId) {
+  const session = v3SessionGet() || {}, operation = v3MaterialOpens.current();
+  const originalRows = currentTableData, sourceText = String(getText() || "").trim();
+  if (operation && (!operation.painted || (session.textId && String(session.textId) !== operation.id))) {
+    throw Object.assign(new Error("MATERIAL_CONTEXT_CHANGED"), { code: "MATERIAL_CONTEXT_CHANGED" });
+  }
+  MaterialOpen.assertSaveIdentity(targetId, session, originalRows);
+  const serializedRows = JSON.stringify(originalRows);
+  const serializedSession = JSON.stringify(session);
+  const isCurrent = () => v3MaterialOpens.current() === operation &&
+    currentTableData === originalRows && String(getText() || "").trim() === sourceText &&
+    JSON.stringify(v3SessionGet() || {}) === serializedSession && JSON.stringify(currentTableData) === serializedRows;
+  return { session, sourceText, rows: JSON.parse(serializedRows),
+    tableModelMeta: v3LastGeminiMeta ? JSON.parse(JSON.stringify(v3LastGeminiMeta)) : null,
+    audio: window.v3ActiveMediaAudio ? JSON.parse(JSON.stringify(window.v3ActiveMediaAudio)) : null,
+    ttsProfile: v3BuildTtsProfileForSave(), isCurrent,
+    assertCurrent() { if (!isCurrent()) throw Object.assign(new Error("MATERIAL_CONTEXT_CHANGED"), { code: "MATERIAL_CONTEXT_CHANGED" }); }
+  };
+}
+
 async function v3LibrarySaveCurrentCore(meta) {
   try {
     // Ведущий путь 2.3: медиа было, текст с транскриптом разошёлся — без явного «без видео» не сохраняем.
@@ -28185,6 +28271,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       showToast(t("toast.noTableToSaveShort"), "error");
       return null;
     }
+    const save = v3CaptureSaveContext();
     // B1: check OPFS quota in LOCAL_MODE — toast warning once per crossed
     // band; refuse save if quota completely full.
     if (LOCAL_MODE) {
@@ -28206,9 +28293,9 @@ async function v3LibrarySaveCurrentCore(meta) {
 
     const payload = {
       sourceText,
-      rows: currentTableData,
-      ttsProfile: v3BuildTtsProfileForSave(),
-      tableModelMeta: v3LastGeminiMeta || null,
+      rows: save.rows,
+      ttsProfile: save.ttsProfile,
+      tableModelMeta: save.tableModelMeta,
 
       // Week9 dashboard meta (POST supports these fields)
       title: title || null,
@@ -28223,7 +28310,9 @@ async function v3LibrarySaveCurrentCore(meta) {
       const ldb = await ensureLocalDB();
       // W2: saving performs its own W1 proof. A stale ambient ref is never enough to bind,
       // and a reload between table-build and save cannot turn media loss into silence.
+      save.assertCurrent();
       const saveMediaContext = await v3ResolveMediaContext();
+      save.assertCurrent();
       const saveMediaResolution = window.v3LastMediaContextResolution || null;
       const saveMediaIntended = !!saveMediaContext || !!(saveMediaResolution && saveMediaResolution.media_intended) ||
         !!v3MediaPassport(payload.tableModelMeta && payload.tableModelMeta.source);
@@ -28262,6 +28351,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       }
       if (mediaSha && m.allowDuplicateMedia !== true && typeof ldb.findTextsByMediaSha === "function") {
         const duplicates = await ldb.findTextsByMediaSha(mediaSha);
+        save.assertCurrent();
         if (duplicates.length) {
           // Do not silently mint another random text_key for the same physical media. Bind the
           // existing card as an explicit update target; the modal then offers Update or Save as
@@ -28279,6 +28369,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       const newTextId = task ? task.id : crypto.randomUUID();
       const textKey = 'text-' + Date.now();
       let mediaBindingOutcome = null;
+      save.assertCurrent();
       await ldb.execRaw('BEGIN;');
       try {
         await ldb.createText({
@@ -28292,7 +28383,7 @@ async function v3LibrarySaveCurrentCore(meta) {
         });
         const l3Rows = [];
         const sentenceRows = [];
-        for (const [rowIndex, row] of currentTableData.entries()) {
+        for (const [rowIndex, row] of payload.rows.entries()) {
           const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
             ? window.StudioImport.rowEditMetaForSave(row, saveMediaContext && saveMediaContext.passport || null, rowIndex)
             : (row.edit_meta_json || null);
@@ -28375,9 +28466,13 @@ async function v3LibrarySaveCurrentCore(meta) {
         try { showToast(t("toast.mediaBindRefused"), "warning"); } catch (_) {}
       }
     } else {
+      save.assertCurrent();
       const created = await v3PostJson("/api/library/texts", payload);
       text = created && created.text ? created.text : null;
     }
+
+    if (!save.isCurrent()) return text;
+    if (text?.id) { const savedOpen = v3MaterialOpens.begin(text.id); savedOpen.mark("paint"); savedOpen.mark("ready"); }
 
     // set active context for progress auto-save
     if (text && text.id) {
@@ -28443,6 +28538,7 @@ async function v3LibrarySaveCurrentCore(meta) {
 
     return text;
   } catch (e) {
+    if (e?.code === 'MATERIAL_CONTEXT_CHANGED') { showToast(t('saveMeta.contextChanged'), 'warning'); return null; }
     // 409 duplicate
     if (e && e.httpStatus === 409) {
       showToast(t("toast.duplicateInLibrary"), "error");
@@ -28471,6 +28567,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       return null;
     }
 
+    const save = v3CaptureSaveContext(textId);
     const m = (meta && typeof meta === "object") ? meta : {};
     const title = String(m.title || "").trim();
     const level = String(m.level || "").trim();
@@ -28480,9 +28577,9 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
 
     const payload = {
       sourceText,
-      rows: currentTableData,
-      ttsProfile: v3BuildTtsProfileForSave(),
-      tableModelMeta: v3LastGeminiMeta || null,
+      rows: save.rows,
+      ttsProfile: save.ttsProfile,
+      tableModelMeta: save.tableModelMeta,
 
       title: title || null,
       level: level || null,
@@ -28501,6 +28598,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       // also clear session pointers via v3SessionForgetTextIfStale, but
       // we double-check here against any race or older code path.
       const stillExists = await ldb.getTextById(textId);
+      save.assertCurrent();
       if (!stillExists) {
         try { v3SessionForgetTextIfStale(textId); } catch (_) {}
         showToast(t("toast.cardNotFoundCreatingNew"), "warning");
@@ -28513,9 +28611,9 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
           return null;
         }
       }
-      const replacementRows = currentTableData.map((row, rowIndex) => {
+      const replacementRows = payload.rows.map((row, rowIndex) => {
         const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
-          ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
+          ? window.StudioImport.rowEditMetaForSave(row, save.audio, rowIndex)
           : (row.edit_meta_json || null);
         const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
         return {
@@ -28527,8 +28625,9 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
           translation_meta_json: translation.translation_meta_json,
         };
       });
+      save.assertCurrent();
       text = await ldb.replaceStudioText(textId, {
-        expectedUpdatedAt: v3SessionGet()?.baseUpdatedAt,
+        expectedUpdatedAt: save.session.baseUpdatedAt,
         fields: {
           title: title || null, level: level || null,
           tags_json: JSON.stringify(tags || []), source: source || null, topic: topic || null,
@@ -28538,9 +28637,13 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
         rows: replacementRows,
       });
     } else {
+      save.assertCurrent();
       const updated = await v3PutJson("/api/library/texts/" + encodeURIComponent(String(textId)), payload);
       text = updated && updated.text ? updated.text : null;
     }
+
+    if (!save.isCurrent()) return text;
+    if (text?.id) { const savedOpen = v3MaterialOpens.begin(text.id); savedOpen.mark("paint"); savedOpen.mark("ready"); }
 
     if (text && text.id) {
       try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
@@ -28595,6 +28698,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
 
     return text;
   } catch (e) {
+    if (e?.code === 'MATERIAL_CONTEXT_CHANGED') { showToast(t('saveMeta.contextChanged'), 'warning'); return null; }
     if (e && e.httpStatus === 409) {
       showToast(t("toast.duplicateInLibraryAlt"), "error");
       return null;
@@ -34699,6 +34803,7 @@ function v3SessionForgetTextIfStale(deletedTextId) {
   const id = String(deletedTextId || "").trim();
   if (!id) return;
   try {
+    v3SessionStore.forget(id);
     const st = v3SessionGet() || {};
     const cur = String(st.textId || "");
     const base = String(st.baseTextId || "");
@@ -36721,7 +36826,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         return !!context && !had;
     }
 
-    async function v3RestoreUnboundMediaAfterSourceHydration(textId, rows) {
+    async function v3RestoreUnboundMediaAfterSourceHydration(textId, rows, isCurrent = () => true) {
         const expected = String(textId || "");
         const active = (typeof v3ActiveLibraryTextMeta !== "undefined" && v3ActiveLibraryTextMeta)
             ? String(v3ActiveLibraryTextMeta.textId || "") : "";
@@ -36732,7 +36837,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         const context = await v3ResolveMediaContext();
         const stillActive = (typeof v3ActiveLibraryTextMeta !== "undefined" && v3ActiveLibraryTextMeta)
             ? String(v3ActiveLibraryTextMeta.textId || "") : "";
-        if (!context || stillActive !== expected) return false;
+        if (!context || stillActive !== expected || !isCurrent()) return false;
         v3RestoreMediaFromMeta({ source: context.restored }, rows);
         return !!window.v3ActiveMediaAudio;
     }
@@ -41798,7 +41903,22 @@ function v3ApplyTtsProfileToSession(profile) {
 //
 // Toast progress is best-effort (only when ≥ 10 rows need work, to avoid
 // chatter on small cards).
-async function v3LazyFillTranslit(textId, sentences) {
+// Update enrichment in place: preserve focus, working row and playing media.
+function v3RefreshFilledTranslit(textId, sentences) {
+  const byId = new Map(sentences.map(row => [String(row.id || row.sentence_id || row.sentenceId), row]));
+  const profile = typeof getSelectedTranslitProfile === "function" ? getSelectedTranslitProfile() : "sbl";
+  (currentTableData || []).forEach((row, index) => {
+    if (String(row._v3_textId || row.text_id || "") !== String(textId)) return;
+    const source = byId.get(String(row._v3_sentenceId || row.id || row.sentence_id || row.sentenceId));
+    if (!source) return;
+    for (const key of ["translit", "translit_ru"]) if (!row[key] && source[key]) row[key] = source[key];
+    const cell = document.querySelector('#proTable tr[data-row-idx="' + index + '"] td[data-col="translit"]');
+    if (cell && !cell.isContentEditable && !cell.contains(document.activeElement)) cell.textContent = v3TranslitDisplay(row, profile);
+  });
+}
+
+async function v3LazyFillTranslit(textId, sentences, isCurrent = () => true) {
+  if (!isCurrent()) return 0;
   if (!LOCAL_MODE) return 0;
   if (!Array.isArray(sentences) || !sentences.length) return 0;
   const need = sentences.filter((s) => {
@@ -41809,7 +41929,7 @@ async function v3LazyFillTranslit(textId, sentences) {
   });
   if (!need.length) return 0;
 
-  if (need.length >= 10 && typeof showToast === "function") {
+  if (isCurrent() && need.length >= 10 && typeof showToast === "function") {
     try { showToast(t("toast.translitFillStart", { total: need.length }), "info"); } catch (_) {}
   }
 
@@ -41830,6 +41950,7 @@ async function v3LazyFillTranslit(textId, sentences) {
     return 0;
   }
 
+  if (!isCurrent()) return 0;
   if (!r || !Array.isArray(r.items)) return 0;
   const ldb = await ensureLocalDB();
   const byId = new Map();
@@ -41838,6 +41959,7 @@ async function v3LazyFillTranslit(textId, sentences) {
   let written = 0;
   let lastReport = 0;
   for (let i = 0; i < need.length; i++) {
+    if (!isCurrent()) return written;
     const s = need[i];
     const upd = byId.get(String(s.id));
     if (!upd) continue;
@@ -41860,7 +41982,7 @@ async function v3LazyFillTranslit(textId, sentences) {
       try { showToast(t("toast.translitFillProgress", { done: written, total: need.length }), "info"); } catch (_) {}
     }
   }
-  if (need.length >= 10 && typeof showToast === "function") {
+  if (isCurrent() && need.length >= 10 && typeof showToast === "function") {
     try { showToast(t("toast.translitFillDone", { done: written, total: need.length }), "success"); } catch (_) {}
   }
   return written;

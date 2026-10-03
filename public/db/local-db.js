@@ -433,7 +433,7 @@ async function _initializeLocalDB() {
 
 function _spawnWorker() {
   if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-  _worker = new Worker('/db/db-worker-runtime.js?v=545', { type: 'module' });
+  _worker = new Worker('/db/db-worker-runtime.js?v=723', { type: 'module' });
   _worker.onmessage = ({ data }) => {
     if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
     if (data.kind === 'committed') {

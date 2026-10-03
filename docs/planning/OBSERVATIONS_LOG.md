@@ -10,17 +10,29 @@
 
 ---
 
+## O-065 · Общий unit-runner пересобирает tracked research artifacts
+- **Дата / где:** 2026-10-03, `tests/physicsLearningDerivatives.test.js:149`, локальный `npm test` в отдельном worktree.
+- **Факты:** тест детерминизма дважды вызывает builder с выходом в `docs/research/physics-learning-derivatives/2026-08-27/artifacts`. После теста меняются manifest и окончания строк файлов. Эти собственные сгенерированные изменения восстановлены; результат теста не требует коммита материалов корпуса.
+- **Предложение:** дать builder явный output directory и проверять его в одноразовом каталоге; сравнение с committed artifact делать отдельно, без перезаписи.
+- **Статус:** открыто; не связано с runtime исправлениями 3.11.723.
+
+## O-064 · Единичный cold-start lock timeout при одновременном запуске четырёх поверхностей
+- **Дата / где:** 2026-10-03, fixture `studio-surfaces-smoke.js`, готовящаяся 3.11.723.
+- **Факты:** первая запись после ready получила `DB_LOCK_WAIT_TIMEOUT [held=1; holder=ready; holderId=uninstrumented; vfs=AccessHandlePool]`. Несколько предыдущих и отдельный повторный прогон прошли; на базе 3.11.722 standalone прогон тоже прошёл. Это не доказанная регрессия или устранённый дефект.
+- **Гипотеза / следующий шаг:** cold Room автоматически импортирует canon-v4 в общей транзакции; проверить длину владения OPFS и конкурирующую запись. Гипотеза ещё не подтверждена таймингом transaction begin/commit. Расширена диагностика lock snapshot при отказе.
+- **Статус:** в работе; [текущая реализация и evidence](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md).
+
 ## O-063 · Браузерные сценарии гонок и восстановления не защищены выбранными QA-гейтами
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `tests/rowPositionRestoreAndHighlight.test.js`, `.github/workflows/smoke-check.yml`.
 - **Факты:** 20 профильных тестов прошли одновременно с четырьмя изолированными воспроизведениями дефектов. Часть проверок resume — regex по исходнику. В текущем CI workflow не вызываются существующие multitab/room-b6/reader-parity/sw-update smoke; ручное выполнение и зависимость деплоя от checks не проверены.
 - **Почему важно / предложение:** добавить исполняемые A→B→late A, новая вкладка, Back/Forward, offline и rolling-update сценарии с проверкой ID/строк/плеера/прогресса, затем release gate. План и границы evidence: [исследование](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** открыто.
+- **Статус:** в работе — локальное исправление и acceptance в [IMPLEMENTATION.md](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md); production не опубликован.
 
 ## O-062 · Медиатека блокирует первый каталог ожиданием локальной библиотеки и owner draft
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `public/js/mediatheque-ui.js:203–235`; опубликованный файл совпал с checkout по SHA-256.
 - **Факты:** `loadAll` ожидает public/local/auth/tutor, затем owner draft и только потом рендерит. В изолированном сценарии public готов, local задержан — render отсутствует. В уже открытой вкладке public занял 3,80 с, затем draft ещё 3,73 с (конец около 7,69 с от навигации). Это Resource Timing одного входа, не p95/точное время отрисовки.
 - **Предложение:** независимый показ готового public, фоновый owner banner/auth/tutor, адресная загрузка личной библиотеки; фазовые метрики, затем оптимизация крупных таблиц и boot. [Evidence и план](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** открыто.
+- **Статус:** в работе — локальное исправление и acceptance в [IMPLEMENTATION.md](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md); production не опубликован.
 
 ## O-061 · Поздняя гидратация Студии подменяет исходник уже другой карточки
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `public/index.html`, `v3LibraryOpenText`, callback `getTextSourceText`.
@@ -38,7 +50,7 @@
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `index.html:18025`, `v3SessionSet`; read-only Kapture владельца, Студия `3.11.722`.
 - **Факты:** legacy `localStorage` хранит указанный владельцем материал про Ярдена Бибаса от 2026-09-13; текущая сессия указывает на него же. Маркер миграции только в `sessionStorage`; новый выбор туда же, legacy не обновляется. Изолированно: A→B в первой вкладке→новая вкладка вновь получает A.
 - **Предложение:** постоянный последний сохранённый материал отдельно от черновика вкладки, общий версионированный migration marker, позиция из `text_progress`, явная ссылка старше автопродолжения. Сохранить черновики и не переключать соседние вкладки. [Evidence и приёмка](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** открыто.
+- **Статус:** в работе — локальное исправление и acceptance в [IMPLEMENTATION.md](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md); production не опубликован.
 
 ## O-058 — Browser-download fallback: staging retention without completion signal
 - **Дата / где:** 2026-10-02, library-transfer UI 3.11.721, браузеры без FileSystem Access API.

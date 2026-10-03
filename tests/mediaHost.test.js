@@ -403,7 +403,7 @@ test('W1/W3 cold-open retries the canonical resolver after lazy source hydration
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const hydrateStart = html.indexOf('const _st = await _ldb.getTextSourceText(textId)');
   const composerHydrated = html.indexOf('v3SetSourceTextFromLibrary(String(_st))', hydrateStart);
-  const retry = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows)', hydrateStart);
+  const retry = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows, open.isCurrent)', hydrateStart);
   assert.ok(hydrateStart >= 0 && composerHydrated > hydrateStart, 'lazy Library source hydration exists');
   assert.ok(retry > composerHydrated,
     'an unbound legacy card must retry W1 only after its own composer text and rows are available');

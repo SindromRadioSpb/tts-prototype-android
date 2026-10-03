@@ -50,8 +50,13 @@ jobs:
       - name: FSRS independent reference vectors
         run: npm run smoke:fsrs
 
+      - name: Install fixture browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Material identity, resume and independent tabs
+        # Uses disposable OPFS and server fixtures; blocks provider requests.
+        run: npm run smoke:material-reliability
+
       - name: Memory canon replay and persistence
         # Browser profile and server storage are disposable; no owner profile is used.
-        run: |
-          npx playwright install --with-deps chromium
-          npm run smoke:memory-canon
+        run: npm run smoke:memory-canon

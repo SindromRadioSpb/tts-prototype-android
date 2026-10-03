@@ -1,3 +1,4 @@
+import '/js/material-open.js?v=723';
 // library-ui.js — BRR-P0-002 Reading Room surface (Layout A: track tabs +
 // vertical shelf stack with horizontal work-card carousels).
 //
@@ -8,7 +9,7 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=669';
+import * as localDbRaw from '/db/local-db.js?v=723';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -29,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=680';
+import * as readerCore from '/js/reader-core.js?v=723';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=485';
@@ -72,7 +73,9 @@ const corpusManifestCache = new Map(); // manifest file path -> works[] (fetched
 let corpusNav = { corpus: 'hub', level: 'home', era: null, author: null }; // drill position; corpus: 'hub' (L0 витрина) | 'benyehuda' | 'mytexts'
 let corpusReveal = 0;           // incremental-reveal cursor for the active long list
 let corpusRenderToken = 0;      // guards async renders against rapid navigation
-let corpusImporting = false;
+const corpusOpenQueue = globalThis.MaterialOpen.createSerialQueue();
+const readerOpens = globalThis.MaterialOpen.create({ surface: 'room' });
+window.__roomMaterialTimings = () => readerOpens.timings();
 let publicCorpora = [];         // anonymous published-corpus pointers; never membership-derived
 const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
 const physicsPublicEnhancements = new Map(); // slug -> validated sections + immutable resource index
@@ -6205,7 +6208,7 @@ async function roomMediaSetup(textRow, textId) {
   if (audio) try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}   // K1-карантин + K3-довыравнивание
   if (window.StudioMediaPackage && typeof window.StudioMediaPackage.activateTextBinding === 'function' && textId != null) {
     try {
-      const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
+      const activation = await window.StudioMediaPackage.activateTextBinding(String(textId), { isCurrent: () => serial === roomMediaSetupSerial && String(readerTextId) === String(textId) });
       if (serial !== roomMediaSetupSerial || String(readerTextId) !== String(textId)) return;
       audio = window.MediaHost.pickExactBindingPassport(audio, activation && activation.media_passport, readerRows.length);
     } catch (_) { /* legacy/non-package cards keep their saved passport */ }
@@ -8501,6 +8504,10 @@ function productPulseRoomMediaFacts(textRow, rows) {
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
+  const requestedEpoch = opts && Number(opts._readerOpenEpoch);
+  const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
+  if (openEpoch !== readerOpenEpoch) return;
+  const request = readerOpens.begin(textId);
   const presentationRestore = !!(opts && opts.presentationRestore);
   const openStartedAt = performance.now();
   // Queue the one intentional recency write before any Reader/background reads.
@@ -8514,9 +8521,6 @@ async function openReader(textId, title, opts) {
   _roomReaderPresentationReadOnly = presentationRestore;
   roomReaderLinkIdentity = opts && opts.linkIdentity || null;
   if (!presentationRestore) roomCommitPresentation(opts && opts.replaceInitialHistory ? 'replace' : 'push', { surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
-  const requestedEpoch = opts && Number(opts._readerOpenEpoch);
-  const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
-  if (openEpoch !== readerOpenEpoch) return;
   const back = $('readerBack'); if (back) { back.disabled = false; delete back.dataset.busy; back.removeAttribute('aria-disabled'); }
   captureReaderReturnContext();
   setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : opts && opts.returnToMediatheque ? 'mediatheque' : null);
@@ -8545,7 +8549,8 @@ async function openReader(textId, title, opts) {
   try { window.scrollTo(0, 0); } catch (_) {}
   const mount = $('roomReaderTable');
   const res = await readerCore.openText(textId, {
-    localDb, mount, config: readerConfig(),
+    localDb, mount, config: readerConfig(), request,
+    isCurrent: () => openEpoch === readerOpenEpoch,
     onState: (s) => {
       if (s.kind === 'loading') readerSkeleton();
       else if (s.kind === 'dbBusy') readerStateBox('room.state.dbBusy', '📑');
@@ -8629,6 +8634,7 @@ async function openReader(textId, title, opts) {
       try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
     }
     if (touchOpenedPromise) await touchOpenedPromise;    // recency for the Continue shelf; already queued before Reader reads
+    if (openEpoch !== readerOpenEpoch) return;
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
     wireProgressScroll();
@@ -8638,6 +8644,7 @@ async function openReader(textId, title, opts) {
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
     else if (opts && opts.scrollToOrderIndex != null) scrollToOrderIdx(opts.scrollToOrderIndex);   // P9 — якорь объяснения (text_key+order_index)
     else restoreReaderPosition(readerTextId, opts, loadedProgress);      // offer/perform resume (R4 reliability)
+    request.mark('ready');
     // Epic-5 W1 — a resumed-to-end / single-screen text reaches the end without a scroll event;
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
     // both the «last row visible» and the resume/karaoke-latch cases).
@@ -8714,6 +8721,7 @@ async function closeReader(options) {
   const presentationRestore = !!(options && options.presentationRestore);
   const returnStartedAt = performance.now();
   readerOpenEpoch++;   // pending served-on-open import / ReaderCore completion loses UI authority
+  readerOpens.cancel();
   const returnRoute = readerReturnRoute;
   const returnHome = !!(options && options.returnHome === true);
   const returnContext = options && options.presentationReturnContext ? options.presentationReturnContext : (returnHome
@@ -8897,7 +8905,7 @@ async function resolveLocalIdByKey(textKey) {
 // the warm reader by local id. The work file is fetched with ?v=<catalogVersion> so a
 // re-published catalog cache-busts the immutable work payloads.
 async function openCorpusWork(card, openOpts) {
-  if (!card || corpusImporting) return;
+  if (!card) return;
   const openEpoch = ++readerOpenEpoch;
   captureReaderReturnContext();
   const reader = $('roomReader'), content = $('roomContent');
@@ -8910,8 +8918,8 @@ async function openCorpusWork(card, openOpts) {
   }
   try { window.scrollTo(0, 0); } catch (_) {}
   readerStateBox('room.state.loading', '⏳');
-  corpusImporting = true;
   try {
+    await corpusOpenQueue.run(async () => {
     let localId = await resolveLocalIdByKey(card.text_key);
     if (!localId) {
       const url = '/data/benyehuda/' + card.file + '?v=' + CORPUS_CATALOG_VERSION;
@@ -8919,18 +8927,19 @@ async function openCorpusWork(card, openOpts) {
       if (!res.ok) throw new Error('fetch ' + res.status);
       const bundle = await res.json(); // { library: { texts:[…], shelves:[], audio_assets:[] } }
       if (!bundle || !bundle.library) throw new Error('malformed work payload');
+      if (openEpoch !== readerOpenEpoch) return;
       await localDb.importBundle(bundle, { mode: 'skip' });
       localId = await resolveLocalIdByKey(card.text_key);
     }
     if (!localId) throw new Error('work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
     await openReader(localId, card.title, Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } }));
+    }, () => openEpoch === readerOpenEpoch);
   } catch (e) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open corpus work failed:', e); } catch (_) {}
     readerStateBox('room.state.error', '⚠️');
   } finally {
-    corpusImporting = false;
     invalidatePersonalSets();   // a work may have just materialized → personal chips see it fresh
   }
 }
@@ -9670,10 +9679,10 @@ async function renderReaderTaskLearningSupport(slug, workId, epoch) {
 }
 
 async function openPublicCorpusWork(slug, card, openOpts = {}) {
-  if (!card || corpusImporting || !window.PublicCorpusAdapter) return;
+  if (!card || !window.PublicCorpusAdapter) return;
   const openEpoch = ++readerOpenEpoch;
-  corpusImporting = true;
   try {
+    await corpusOpenQueue.run(async () => {
     const textKey = window.PublicCorpusAdapter.localTextKey(slug, card.public_work_id, card.snapshot_sha256);
     let localId = await resolveLocalIdByKey(textKey);
     if (!localId) {
@@ -9681,17 +9690,19 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
       if (!response.ok) throw new Error('public work ' + response.status);
       const payload = expectPublicSnapshot(await response.json(), card.snapshot_sha256);
       const bundle = window.PublicCorpusAdapter.prepareImportBundle(payload);
+      if (openEpoch !== readerOpenEpoch) return;
       await localDb.importBundle(bundle, { mode: 'skip' });
       localId = await resolveLocalIdByKey(textKey);
     }
     if (!localId) throw new Error('public work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
     await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { public_corpus: String(slug), public_work: String(card.public_work_id) } }));
+    }, () => openEpoch === readerOpenEpoch);
   } catch (error) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open public corpus work failed:', error); } catch (_) {}
     roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
-  } finally { corpusImporting = false; invalidatePersonalSets(); }
+  } finally { invalidatePersonalSets(); }
 }
 
 // Restricted group corpus uses the same OPFS reader model, but its transport is
@@ -9894,10 +9905,10 @@ async function ensurePublicLearningIndex(slug, catalog) {
 }
 
 async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
-  if (!card || corpusImporting) return;
+  if (!card) return;
   const openEpoch = ++readerOpenEpoch;
-  corpusImporting = true;
   try {
+    await corpusOpenQueue.run(async () => {
     let localId = await resolveLocalIdByKey(card.text_key);
     const editionKey = 'room.groupCorpus.edition.' + corpusId + '.' + card.work_id;
     let haveEdition = ''; try { haveEdition = localStorage.getItem(editionKey) || ''; } catch (_) {}
@@ -9911,6 +9922,7 @@ async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
       if (!res.ok) throw new Error('group work ' + res.status);
       const bundle = await res.json();
       if (!bundle || !bundle.library) throw new Error('malformed group work');
+      if (openEpoch !== readerOpenEpoch) return;
       const imported = await localDb.importBundle(bundle, { mode: 'skip' });
       localId = await resolveLocalIdByKey(card.text_key);
       if (localId && imported && Number(imported.skipped) > 0 && typeof localDb.reconcileAudioLinks === 'function') {
@@ -9922,11 +9934,12 @@ async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
     if (!localId) throw new Error('group work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
     await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { group_corpus: String(corpusId), group_work: String(card.work_id) } }));
+    }, () => openEpoch === readerOpenEpoch);
   } catch (e) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open group corpus work failed:', e); } catch (_) {}
     roomToast(tt('room.state.error', 'Не получилось открыть текст'));
-  } finally { corpusImporting = false; invalidatePersonalSets(); }
+  } finally { invalidatePersonalSets(); }
 }
 
 // BRR-P0-004 — ship-as-asset: the curated canon ships as a precomputed bundle in
@@ -14734,6 +14747,7 @@ async function boot() {
   const initialQuery = new URLSearchParams(location.search);
   const incomingMaterialLink = ['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open'].some((key) => initialQuery.has(key));
   const initialPresentation = roomDecodeInitialPresentation();
+  let localLinkOpened = false;
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   loadRoomTableWidths();   // ширины колонок Зала — до первого рендера таблицы
   wireChrome();
@@ -14759,6 +14773,20 @@ async function boot() {
         roomToast('⚠ Хранилище браузера временно переключилось в резервный режим — «Мои тексты» может выглядеть пустым, но ничего не удалено. Перезагрузите страницу; сообщите разработчику, если повторится.', null, null, 60000);
       }
     } catch (_) {}
+    // A local material needs only LocalDb. Catalogs, group membership and the
+    // shipped canon are unrelated to its first readable table.
+    if ((initialQuery.has('my_text') || initialQuery.has('open')) &&
+        !['corpus_work', 'public_corpus', 'group_corpus'].some(key => initialQuery.has(key))) {
+      const row = initialQuery.has('my_text')
+        ? await localDb.getTextByIdLite(initialQuery.get('my_text'))
+        : (await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [initialQuery.get('open')]))[0];
+      if (row) {
+        activeTrack = 'corpus';
+        _roomPresentationReady = true;
+        await openReader(row.id, row.title, { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
+        localLinkOpened = true;
+      }
+    }
     const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import
     // O-020: on a cold profile the default «Библиотека» home does not wait for the canon import.
     let canonInBackground = false;
@@ -14782,8 +14810,8 @@ async function boot() {
       await loadData();
     }
     await corpusCatalogLoad;   // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
-    await loadPublicCorpora(); // anonymous publication pointers load before protected memberships
-    await loadGroupCorpora();  // authenticated; silently absent for signed-out/non-members
+    await Promise.all([loadPublicCorpora(), loadGroupCorpora()]); // independent public pointers and authenticated memberships
+    if (!localLinkOpened) {
     // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
     // canon with morphology-on-tap now leads. Fall back to the on-ramp tracks only if the corpus
     // root didn't load or is empty (mirrors the tabCorpus un-hide condition in loadCorpusCatalog).
@@ -14812,11 +14840,12 @@ async function boot() {
       roomStorePresentation(state); _roomInitialState = state;
     } else roomCommitPresentation('replace');
     if (_roomHistoryFallbackNotice) roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
+    }
     const dueReviewHandoff = consumeDueReviewHandoff();
     // Mediatheque keeps materials in the existing reader and shared progress store.
     try {
       const myTextId = initialQuery.get('my_text');
-      if (myTextId) {
+      if (myTextId && !localLinkOpened) {
         const row = await localDb.getTextByIdLite(myTextId);
         if (row) await openReader(row.id, row.title, { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
         else roomToast(tt('mediatheque.missingPersonal', 'Личный материал не найден в этом браузере'));
@@ -14893,7 +14922,7 @@ async function boot() {
     // (honest no-op; the Studio only links texts it just listed from the same OPFS).
     try {
       const openKey = initialQuery.get('open');
-      if (openKey) {
+      if (openKey && !localLinkOpened) {
         const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(openKey)]);
         if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true, replaceInitialHistory: true });
       }

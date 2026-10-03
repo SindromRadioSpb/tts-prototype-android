@@ -711,6 +711,7 @@ window.I18N_LOCALES.en = {
     retryPlain: "Build again", reasonSemantic: "The model's answer did not match the source text, so the table was not accepted. The answer is stored on the server: building again reuses it for free, so check the text first.", reasonLimit: "The translation provider reports its limit is used up. Wait, or pick another provider, and build again.", reasonInterrupted: "The build was interrupted: no answer arrived. Nothing was produced — build again.",
   },
   saveMeta: {
+    contextChanged: "The table or open material changed. Nothing was saved. Check the open card and try again.",
     concurrentChange: "This material changed in another tab. Your draft remains in this tab. Open the current version or save your draft as a new material.",
     title: "Save to My materials",
     completeTitle: "Card saved",

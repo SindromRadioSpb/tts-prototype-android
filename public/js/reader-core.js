@@ -589,11 +589,18 @@ export function buildBilingualTableHtml(rows, config) {
 //   }
 // Returns { ok, text?, rows?, reason?, error? }. Per-row audio + on-tap are wired by
 // the caller AFTER render (slice 4) — openText only paints the table.
+const readerMountOpens = new WeakMap();
 export async function openText(textId, opts) {
   opts = opts || {};
   const localDb = opts.localDb, mount = opts.mount, config = opts.config || {};
-  const emit = (s) => { try { if (opts.onState) opts.onState(s); } catch (_) {} };
   if (!localDb || !mount) return { ok: false, reason: "config" };
+  const operation = {};
+  readerMountOpens.set(mount, operation);
+  const isCurrent = () => readerMountOpens.get(mount) === operation &&
+    (!opts.request || opts.request.isCurrent()) && (!opts.isCurrent || opts.isCurrent());
+  const superseded = () => ({ ok: false, reason: 'superseded' });
+  const emit = (s) => { try { if (isCurrent() && opts.onState) opts.onState(s); } catch (_) {} };
+  if (!isCurrent()) return superseded();
   // P0-1 v2 (multi-tab unblock): a follower WITH a live proxy route reads through the owner
   // tab's connection — only a proxy-less follower is genuinely dbBusy (live-caught: the reader
   // dead-ended a fully functional proxied tab while the home behind it rendered fine).
@@ -607,14 +614,24 @@ export async function openText(textId, opts) {
       localDb.getSentences(textId),
     ]);
   } catch (error) {
+    if (!isCurrent()) return superseded();
     emit({ kind: "error", error: error });
     return { ok: false, reason: "fetch", error: error };
   }
+  if (!isCurrent()) return superseded();
   if (!text) { emit({ kind: "notFound" }); return { ok: false, reason: "notFound" }; }
+  if (String(text.id) !== String(textId) || (sentences || []).some(r => r.text_id != null && String(r.text_id) !== String(textId))) {
+    emit({ kind: 'error', error: new Error('MATERIAL_IDENTITY_MISMATCH') });
+    return { ok: false, reason: 'identity' };
+  }
+  if (opts.request) opts.request.mark('data');
   const rows = (sentences || []).slice()
     .sort((a, b) => ((a && a.order_index) || 0) - ((b && b.order_index) || 0))
     .map((r) => mapSentenceRowToUiRow(r, textId));
-  mount.innerHTML = buildBilingualTableHtml(rows, config);
+  const html = buildBilingualTableHtml(rows, config);
+  if (!isCurrent()) return superseded();
+  mount.innerHTML = html;
+  if (opts.request) opts.request.mark('paint');
   emit({ kind: rows.length ? "ready" : "empty", text: text, rows: rows });
   return { ok: true, text: text, rows: rows };
 }

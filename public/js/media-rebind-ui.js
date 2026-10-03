@@ -72,7 +72,7 @@
     if (!container || !textId || !window.MediaRebindCore || !window.StudioMediaPackage || !window.StudyVideoSourceUI) return;
     let count;
     try { count = await playableCount(textId); } catch (_) { return; }
-    if (count.playable > 0 || !count.total) return;
+    if ((opts?.isCurrent && !opts.isCurrent()) || count.playable > 0 || !count.total) return;
     const box = el('section', null, 'p4-rebind'); box.setAttribute('aria-live', 'polite');
     const heading = el('h5', t('title')), help = el('p', t('help'));
     box.append(heading, help);
@@ -152,12 +152,14 @@
   }
 
   // Студия: открытая сохранённая карточка без ▶ сама предлагает привязку.
-  async function mountInto(host, textId) {
+  async function mountInto(host, textId, opts) {
     if (!host) return;
     // Поздний повторный проход той же карточки не сбрасывает начатый человеком поиск.
     if (host.dataset.textId === String(textId) && host.childElementCount) return;
     host.replaceChildren(); host.hidden = true; host.dataset.textId = String(textId);
-    await mount(host, textId);
+    const isCurrent = () => host.dataset.textId === String(textId) && (!opts?.isCurrent || opts.isCurrent());
+    await mount(host, textId, { isCurrent });
+    if (!isCurrent()) return;
     host.hidden = !host.childElementCount;
   }
 

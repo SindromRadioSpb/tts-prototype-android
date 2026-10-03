@@ -2,6 +2,16 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+test('read-only CTEs do not broadcast writes; CTE writes and mixed SQL still invalidate', async () => {
+  const { sqlMayWrite } = await import('../public/db/operation-lease.js');
+  for (const sql of ["WITH a AS (SELECT 'DELETE; )') SELECT * FROM a", 'WITH RECURSIVE a(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM a WHERE x<3) SELECT * FROM a',
+    'WITH "update" AS (SELECT 1), b AS (SELECT 2) SELECT * FROM b', '-- UPDATE texts\nSELECT 1;', '/* UPDATE texts */ SELECT 1; SELECT 2']) assert.equal(sqlMayWrite(sql), false, sql);
+  for (const sql of ['WITH a AS (SELECT 1) DELETE FROM texts', 'WITH a AS (SELECT 1) UPDATE texts SET title=1', 'WITH a AS (SELECT 1) INSERT INTO texts SELECT * FROM a',
+    'SELECT 1; DELETE FROM texts', 'CREATE TABLE example(id)', 'WITH broken AS (SELECT 1']) assert.equal(sqlMayWrite(sql), true, sql);
+  const {lease,events}=await fixture();
+  await lease.run(()=>lease.ensureOpen(),{sql:'WITH rows AS (SELECT 1) SELECT * FROM rows'});
+  assert.equal(events.includes('commit-notification'),false);
+});
 async function fixture(options = {}) {
   const { OperationLease } = await import('../public/db/operation-lease.js');
   let tail = Promise.resolve(), physical = 0, transaction = false;

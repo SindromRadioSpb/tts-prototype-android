@@ -1,6 +1,29 @@
 // Serialized statement/transaction lifetime per worker. OPFS additionally
 // leases one physical connection per origin; IDB uses SQLite's native VFS
 // transaction locks. No tab-owner election, proxy, lock stealing or reload.
+// SQLite CTE bodies cannot write. Classify the main statement after WITH,
+// ignoring quoted identifiers, strings, comments and nested parentheses.
+// Unknown syntax stays conservatively invalidating; mixed statements never hide a write.
+export function sqlMayWrite(sql) {
+  const tokens = String(sql || '').match(/--[^\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|"(?:""|[^"])*"|`(?:``|[^`])*`|\[[^\]]*\]|[A-Za-z_][A-Za-z_0-9]*|[();]/g) || [];
+  let depth = 0, statement = [], malformed = false;
+  const writes = words => {
+    if (!words.length) return false;
+    let kind = words[0];
+    if (kind === 'WITH') kind = words.slice(1).find(word => /^(SELECT|INSERT|UPDATE|DELETE|REPLACE)$/.test(word));
+    return !/^(SELECT|PRAGMA|EXPLAIN|BEGIN|SAVEPOINT|RELEASE|COMMIT|END|ROLLBACK)$/.test(kind || '');
+  };
+  for (const token of tokens) {
+    if (/^(--|\/\*|'|"|`|\[)/.test(token)) continue;
+    if (token === '(') { depth++; continue; }
+    if (token === ')') { if (--depth < 0) malformed = true; continue; }
+    if (depth) continue;
+    if (token === ';') { if (writes(statement)) return true; statement = []; }
+    else statement.push(token.toUpperCase());
+  }
+  return malformed || depth !== 0 || writes(statement);
+}
+
 export class OperationLease {
   constructor({ locks, lockName, open, close, inTransaction, rollback, onCommit,
     waitMs = 30000, transactionIdleMs = 30000, now = () => Date.now(), requiresExternalLock = () => true,
@@ -89,9 +112,7 @@ export class OperationLease {
       let value;
       try {
         value = await operation();
-        // Conservative invalidation includes DDL and WITH ... writes. False
-        // positives refresh catalogues only, never editors or learner state.
-        if (sql && !/^\s*(SELECT|PRAGMA|EXPLAIN|BEGIN|SAVEPOINT|RELEASE|COMMIT|END|ROLLBACK)\b/i.test(sql)) this.changed = true;
+        if (sqlMayWrite(sql)) this.changed = true;
       } finally {
         if (this.opened && this.inTransaction()) {
           this.lastTransactionActivity = this.now();

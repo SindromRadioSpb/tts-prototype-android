@@ -70,6 +70,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       out.mig042IsFsrs = /srs_stability/.test(String(mig.MIGRATIONS[41] || ""));
       out.mig051IsLexicalResolution = /CREATE TABLE IF NOT EXISTS lexical_resolution_events/.test(String(mig.MIGRATIONS[50] || ""));
       out.mig053IsMediatheque = /CREATE TABLE IF NOT EXISTS mediatheque_personal/.test(String(mig.MIGRATIONS[52] || ""));
+      out.mig054IsProviderIndex = /CREATE INDEX IF NOT EXISTS ix_sentences_text_provider ON sentences\(text_id, translation_provider\)/.test(String(mig.MIGRATIONS[53] || ""));
       out.migApplied = Number((await one("SELECT MAX(version) v FROM schema_migrations")).v) || 0;
       out.rlQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM review_log"));
       out.compassCacheQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM room_learning_compass_cache"));
@@ -464,8 +465,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // placement — an insert would renumber every later migration and re-run it on live profiles.
     // 051 is appended at index 50; it adds the lexical decision overlay without
     // moving review_log, FSRS, or the word-context cache.
-    eq(res.migCount === 53, `MIGRATIONS.length ${res.migCount} != 53 — verify labels and real indexes (last = 053_mediatheque_personal)`);
+    eq(res.migCount === 54, `MIGRATIONS.length ${res.migCount} != 54 — verify labels and real indexes (last = 054_sentences_text_provider)`);
     eq(res.mig053IsMediatheque, "053_mediatheque_personal is not at index 52");
+    eq(res.mig054IsProviderIndex, "054_sentences_text_provider is not at index 53");
     eq(res.mig051IsLexicalResolution, "051_lexical_resolution_events is not at index 50");
     eq(res.rlQueryable, "review_log not queryable");
     eq(res.compassCacheQueryable, "room_learning_compass_cache not queryable");

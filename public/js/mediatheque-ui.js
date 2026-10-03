@@ -1,4 +1,4 @@
-import * as localDb from '/db/local-db.js?v=669';
+import * as localDb from '/db/local-db.js?v=723';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
@@ -200,7 +200,9 @@ function rebuild() {
   topicCounts = new Map(Array.from(keysByTopic,([id,keys])=>[id,keys.size]));
   topicSamples = new Map(Array.from(keysByTopic,([id,keys])=>[id,state.prepared.byKey.get(keys.values().next().value)]));
 }
-async function loadLocal() {
+let localLoadEpoch = 0, publicLoadEpoch = 0;
+async function loadLocal(isCurrent = () => true) {
+  const epoch = ++localLoadEpoch;
   try {
     await localDb.initLocalDB();
     if (localDb.vfsBackendChanged()) throw new Error('STORAGE_CHANGED');
@@ -209,33 +211,69 @@ async function loadLocal() {
       const batch = await localDb.listMediathequeMaterials({ after, limit: 500 }); rows.push(...batch);
       if (batch.length < 500) break; after = batch[batch.length - 1].id;
     }
+    if (!isCurrent() || epoch !== localLoadEpoch) return;
     state.personal = personal; state.localItems = rows.map(personalMaterial).filter(Boolean); state.localReady = true; state.localError = '';
-  } catch (e) { state.localError = /STORAGE_CHANGED/.test(e.message) ? t('storageChanged') : /DB_PREFERRED_STORAGE_UNAVAILABLE/.test(e.message) ? t('storageUnavailable') : t('localFailed'); state.localReady = false; }
+  } catch (e) { if (!isCurrent() || epoch !== localLoadEpoch) return; state.localError = /STORAGE_CHANGED/.test(e.message) ? t('storageChanged') : /DB_PREFERRED_STORAGE_UNAVAILABLE/.test(e.message) ? t('storageUnavailable') : t('localFailed'); state.localReady = false; }
 }
-async function loadPublic() {
+async function loadPublic(isCurrent = () => true) {
+  const epoch = ++publicLoadEpoch;
   try { const payload = await api('/api/mediatheque'); payload.structure = C.validate(payload.structure, { publicOnly: true });
+    if (!isCurrent() || epoch !== publicLoadEpoch) return;
     state.published = payload; state.publicReady = true; state.publicKnown = true; state.publicError = ''; }
-  catch (_) { state.publicError = t('publicFailed'); state.publicReady = false; }
+  catch (_) { if (!isCurrent() || epoch !== publicLoadEpoch) return; state.publicError = t('publicFailed'); state.publicReady = false; }
 }
 async function loadAll() {
+  const epoch = ++loadEpoch, isCurrent = () => epoch === loadEpoch;
+  let publicDone = false, localDone = false;
   state.loading = true;
-  const epoch = ++loadEpoch;
-  const results = await Promise.allSettled([api('/api/tutor/capabilities').then(cap=>{tutorEnabled=!!cap.enabled;}).catch(()=>{tutorEnabled=false;}), loadLocal(), loadPublic(), api('/api/auth/me').then(result => { state.owner = result.user?.role === 'owner'; try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {} }).catch(() => { state.owner = false; })]);
-  if (epoch !== loadEpoch) return;
-  // Владелец видит неопубликованные правки витрины и вне редактора.
-  if (state.owner) state.draft = await api('/api/publication/mediatheque').catch(() => state.draft);
-  if (state.localReady && state.publicReady) {
+  const started = performance.now();
+  const paint = () => {
+    if (!isCurrent()) return;
+    state.loading = !(state.space === 'personal' ? localDone : publicDone);
+    // Background results must not disrupt a dialog or an active edit.
+    if (state.busy || $('ml-dialog').open) { externalRefreshDirty = true; return; }
+    render();
+    if (!state.loading && pendingPosition) { restoreLocation(pendingPosition); pendingPosition = null; }
+  };
+  const publicTask = loadPublic(isCurrent).finally(() => {
+    publicDone = true; paint();
+    if (isCurrent() && state.publicReady) performance.measure('mediatheque.public-ready', { start: started, end: performance.now() });
+  });
+  const localTask = loadLocal(isCurrent).finally(() => { localDone = true; paint(); });
+  const tutorTask = api('/api/tutor/capabilities').then(cap => {
+    if (isCurrent()) { tutorEnabled = !!cap.enabled; paint(); }
+  }).catch(() => { if (isCurrent()) tutorEnabled = false; });
+  const ownerTask = api('/api/auth/me').then(async result => {
+    if (!isCurrent()) return;
+    state.owner = result.user?.role === 'owner';
+    try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {}
+    paint();
+    // Owner's unpublished-changes banner is useful, but never gates public reading.
+    if (state.owner) {
+      const draft = await api('/api/publication/mediatheque').catch(() => null);
+      if (!isCurrent()) return;
+      if (draft && !state.editing && !state.busy && !$('ml-dialog').open) state.draft = draft;
+      paint();
+    }
+  }).catch(() => { if (isCurrent()) { state.owner = false; paint(); } });
+  await Promise.allSettled([publicTask, localTask]);
+  if (!isCurrent()) return;
+  if (state.localReady && state.publicReady && !state.editing && !state.busy && !$('ml-dialog').open) {
     try {
       const next = C.followCurrent(state.personal.structure, (state.published.items || []).map(i => i.ref));
-      if (JSON.stringify(next) !== JSON.stringify(state.personal.structure)) state.personal = await localDb.saveMediathequeStructure(next, state.personal.revision);
+      if (JSON.stringify(next) !== JSON.stringify(state.personal.structure)) {
+        const personal = await localDb.saveMediathequeStructure(next, state.personal.revision);
+        if (!isCurrent()) return;
+        state.personal = personal;
+      }
     } catch (_) {}
   }
-  state.loading = false;
-  results.forEach(r => { if (r.status === 'rejected') announce(errorText(r.reason), true); });
-  render();
-  if (pendingPosition) { restoreLocation(pendingPosition); pendingPosition = null; }
+  // Keep optional tasks observed without putting them on the first-content path.
+  await Promise.allSettled([ownerTask, tutorTask]);
+  if (!isCurrent()) return;
   if (externalRefreshDirty) refreshVisibleLibrary();
 }
+
 async function save(next) {
   if (!canEdit()) throw new Error('PUBLISHER_FORBIDDEN');
   const revision = $('ml-dialog').open && dialogRevision !== null ? dialogRevision : documentState().revision;
@@ -299,7 +337,7 @@ function duration(value) {
 function materialHref(item) {
   if (!item.available) return '';
   const back = '&from=mediatheque&return_to=' + encodeURIComponent(makeHref({ viewId: state.viewId, page: state.page }));
-  if (item.localId) return '/library.html?my_text=' + encodeURIComponent(item.localId) + back;
+  if (state.space === 'personal' && item.localId) return '/library.html?my_text=' + encodeURIComponent(item.localId) + back;
   const r = item.ref;
   return '/library.html?public_corpus=' + encodeURIComponent(r.slug) + '&public_work=' + encodeURIComponent(r.workId)
     + '&public_snapshot=' + r.snapshotHash + back;
@@ -1098,7 +1136,8 @@ window.addEventListener('pagehide', () => rememberLocation());
 window.addEventListener('pageshow', event => { if (event.persisted) refreshVisibleLibrary(); });
 window.addEventListener('online', () => loadAll());
 let localRefresh = null, externalRefreshDirty = false;
-function refreshVisibleLibrary() {
+function refreshVisibleLibrary(event) {
+  if (['focus', 'visibilitychange'].includes(event?.type) && !externalRefreshDirty) return;
   if (document.visibilityState !== 'visible' || state.loading || state.busy || $('ml-dialog').open || localRefresh) return;
   externalRefreshDirty = false;
   localRefresh = loadLocal().then(() => render()).finally(() => {

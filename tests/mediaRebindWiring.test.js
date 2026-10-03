@@ -28,8 +28,8 @@ test('from the video side the relink task and the draft details search for the c
 test('an opened saved card without play buttons offers the rebind in the Studio', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   assert.match(html, /id="v3RebindHost"/);
-  const at = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows)');
-  assert.match(html.slice(at, at + 400), /MediaRebindUI\.mountInto\(document\.getElementById\("v3RebindHost"\), textId\)/);
+  const at = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows, open.isCurrent)');
+  assert.match(html.slice(at, at + 400), /MediaRebindUI\.mountInto\(document\.getElementById\("v3RebindHost"\), textId, \{ isCurrent: open\.isCurrent \}\)/);
 });
 
 test('a late second pass keeps the offer the person is working with, and success renames it', () => {
