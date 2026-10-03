@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.726";
+const CACHE_VERSION = "v3.11.727";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -76,7 +76,7 @@ const PRECACHE_URLS = [
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=723",
+  "/js/mediatheque-ui.js?v=727",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -128,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=725",
+  "/js/library-ui.js?v=727",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -329,15 +329,16 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=723",
+  "/db/local-db.js?v=727",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
   "/db/vfs-order.js",
   "/db/db-worker.js",
-  "/db/db-worker-runtime.js?v=723",
+  "/db/db-worker-runtime.js?v=727",
   "/db/sqlite-api.js?v=531",
-  "/db/operation-lease.js?v=723",
+  "/db/operation-lease.js?v=727",
+  "/db/change-scope.js?v=727",
   "/db/IDBBatchAtomicVFS.js?v=543",
   "/db/IDBContext.js?v=543",
   "/db/operation-lease.js",

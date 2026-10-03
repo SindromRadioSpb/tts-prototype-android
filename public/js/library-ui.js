@@ -9,7 +9,7 @@ import '/js/material-open.js?v=725';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=723';
+import * as localDbRaw from '/db/local-db.js?v=727';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -15007,6 +15007,8 @@ window.__roomReady = true;
 // restarting media, or changing a Studio draft in another tab.
 let externalLibraryRefresh = null;
 let externalLibraryDirty = false;
+let externalCatalogDataDirty = false;
+let externalLibraryRevision = 0;
 function showExternalLibraryChanges() {
   const home = $('roomContent')?.querySelector('.learning-home');
   if (!home || $('roomLibraryChanges')) return;
@@ -15016,35 +15018,51 @@ function showExternalLibraryChanges() {
   const button = el('button', { class: 'learning-home-all', attrs: { type: 'button' }, text: tt('room.home.refreshLibrary', 'Обновить библиотеку') });
   button.addEventListener('click', async () => {
     button.disabled = true;
-    const token = corpusRenderToken;
+    const token = corpusRenderToken, revision = externalLibraryRevision, reloadCatalog = externalCatalogDataDirty;
+    externalCatalogDataDirty = false;
     try {
-      await loadData();
+      if (reloadCatalog) await loadData();
       if (token !== corpusRenderToken || activeTrack !== 'corpus' || corpusNav.corpus !== 'hub' || !$('roomReader')?.hidden) return;
       await renderCorpus();
       // Explicit refresh returns keyboard focus to the newly rendered home.
       const title = $('roomContent')?.querySelector('.learning-home-title');
       if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
-    } catch (_) { button.disabled = false; }
+      if (revision !== externalLibraryRevision) { externalLibraryDirty = true; showExternalLibraryChanges(); }
+    } catch (_) { externalCatalogDataDirty ||= reloadCatalog; button.disabled = false; }
   });
   notice.appendChild(button);
   home.querySelector('.learning-home-intro')?.appendChild(notice);
 }
 function refreshExternalLibrary(event) {
-  if (event?.type === 'visibilitychange' && !externalLibraryDirty) return;
-  externalLibraryDirty = true;
-  invalidatePersonalSets(); invalidateReadableSet(); invalidateFinishedSet();
-  invalidateCorpusPresentationProgress();
-  _asdCache = null;
-  morphHost.invalidateWordStates();
+  const returning = event?.type === 'visibilitychange';
+  if (returning && !externalLibraryDirty) return;
+  if (!returning) {
+    const scope = event?.type === 'localdb:changed' ? event.detail : null;
+    const affects = domain => localDb.changesAffect(scope, domain);
+    const catalog = affects('catalog'), progress = affects('progress'), words = affects('words'), readable = affects('readable');
+    if (affects('personalSets')) invalidatePersonalSets();
+    if (readable) invalidateReadableSet();
+    if (progress) { invalidateFinishedSet(); invalidateCorpusPresentationProgress(); }
+    if (words) { _asdCache = null; morphHost.invalidateWordStates(); }
+    if (!catalog && !progress && !words && !readable) return;
+    externalLibraryDirty = true; externalLibraryRevision++;
+    externalCatalogDataDirty ||= affects('catalogData');
+  }
   if (document.visibilityState !== 'visible' || externalLibraryRefresh || !$('roomReader')?.hidden) return;
-  // Boot owns its first render. Commit bursts from Studio must not repeatedly
-  // clear the Home, discard focus/disclosures, and rerun recommendation queries.
+  // Keep mounted Home/Reader and user focus; relevant changes are applied on explicit Home refresh.
   if (!_roomPresentationReady) return;
   if (activeTrack === 'corpus' && corpusNav.corpus === 'hub') { showExternalLibraryChanges(); return; }
-  const token = corpusRenderToken;
-  externalLibraryRefresh = loadData().then(() => {
+  const token = corpusRenderToken, revision = externalLibraryRevision, reloadCatalog = externalCatalogDataDirty;
+  let succeeded = false;
+  externalLibraryDirty = false; externalCatalogDataDirty = false;
+  externalLibraryRefresh = (reloadCatalog ? loadData() : Promise.resolve()).then(() => {
+    succeeded = true;
     if (token === corpusRenderToken && $('roomReader')?.hidden) return renderTrack();
-  }).catch(() => {}).finally(() => { externalLibraryRefresh = null; });
+  }).catch(() => { succeeded = false; externalLibraryDirty = true; externalCatalogDataDirty ||= reloadCatalog; }).finally(() => {
+    externalLibraryRefresh = null;
+    if (revision !== externalLibraryRevision) externalLibraryDirty = true;
+    if (succeeded && externalLibraryDirty && token === corpusRenderToken) queueMicrotask(() => refreshExternalLibrary({ type: 'visibilitychange' }));
+  });
 }
 window.addEventListener('localdb:changed', refreshExternalLibrary);
 window.addEventListener('localdb:refresh', refreshExternalLibrary);

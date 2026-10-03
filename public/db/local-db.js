@@ -1,3 +1,5 @@
+import { normalizeChanges, createChangeBatcher } from './change-scope.js?v=727';
+export { changesAffect, mergeChanges, normalizeChanges } from './change-scope.js?v=727';
 // local-db.js — API shim поверх db-worker.js.
 // Интерфейс максимально близок к серверным REST endpoints,
 // чтобы минимизировать правки в index.html.
@@ -130,7 +132,9 @@ function _installDbLifecycle() {
   }, { passive: true });
   if (typeof BroadcastChannel === 'function') {
     _changesChannel = new BroadcastChannel('localdb-commits-v2');
-    _changesChannel.onmessage = () => window.dispatchEvent(new CustomEvent('localdb:changed'));
+    const changes = createChangeBatcher(detail => window.dispatchEvent(new CustomEvent('localdb:changed', { detail })));
+    _changesChannel.onmessage = event => changes.add(event.data?.scope);
+    window.addEventListener('pageshow', () => changes.flush());
   }
 }
 // Owner iPhone report 3.11.544: WebKit kept a cached document's dedicated
@@ -433,11 +437,11 @@ async function _initializeLocalDB() {
 
 function _spawnWorker() {
   if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-  _worker = new Worker('/db/db-worker-runtime.js?v=723', { type: 'module' });
+  _worker = new Worker('/db/db-worker-runtime.js?v=727', { type: 'module' });
   _worker.onmessage = ({ data }) => {
     if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
     if (data.kind === 'committed') {
-      try { _changesChannel?.postMessage({ changed: true }); } catch (_) {}
+      try { _changesChannel?.postMessage({ changed: true, scope: normalizeChanges(data.scope) }); } catch (_) {}
       return;
     }
     const h = _pending.get(data.id);

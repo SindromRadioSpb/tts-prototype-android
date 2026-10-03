@@ -1,4 +1,4 @@
-import * as localDb from '/db/local-db.js?v=723';
+import * as localDb from '/db/local-db.js?v=727';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
@@ -1135,18 +1135,45 @@ document.addEventListener('i18n:changed', () => { $('ml-language').value = windo
 window.addEventListener('pagehide', () => rememberLocation());
 window.addEventListener('pageshow', event => { if (event.persisted) refreshVisibleLibrary(); });
 window.addEventListener('online', () => loadAll());
-let localRefresh = null, externalRefreshDirty = false;
+let localRefresh = null, externalRefreshDirty = false, externalChanges = null;
+async function refreshLocalChanges(scope) {
+  if (!state.localReady || localDb.changesAffect(scope, 'mediathequeItems')) {
+    await loadLocal(); return true;
+  }
+  let changed = false;
+  if (localDb.changesAffect(scope, 'mediathequeStructure')) {
+    state.personal = await localDb.getMediathequeStructure(); changed = true;
+  }
+  if (localDb.changesAffect(scope, 'progress')) {
+    const rows = await localDb.dbQuery('SELECT text_id,last_row_idx,finished_at FROM text_progress');
+    const progress = new Map(rows.map(row => [String(row.text_id), row]));
+    const items = state.localItems.map(item => {
+      const row = progress.get(String(item.localId));
+      const value = row?.finished_at ? 'finished' : (row?.last_row_idx > 0 || item.openedAt) ? 'in_progress' : 'not_started';
+      if (value === item.progress) return item;
+      changed = true; return { ...item, progress: value };
+    });
+    if (changed) state.localItems = items;
+  }
+  return changed;
+}
 function refreshVisibleLibrary(event) {
   if (['focus', 'visibilitychange'].includes(event?.type) && !externalRefreshDirty) return;
   if (document.visibilityState !== 'visible' || state.loading || state.busy || $('ml-dialog').open || localRefresh) return;
-  externalRefreshDirty = false;
-  localRefresh = loadLocal().then(() => render()).finally(() => {
-    localRefresh = null;
-    if (externalRefreshDirty) refreshVisibleLibrary();
-  });
+  const scope = externalChanges;
+  externalRefreshDirty = false; externalChanges = null;
+  let succeeded = false;
+  localRefresh = refreshLocalChanges(scope).then(changed => { succeeded = true; if (changed) render(); }).catch(() => {
+    // Retry on the next focus/visibility change; do not spin on unavailable storage.
+    externalRefreshDirty = true; externalChanges = localDb.mergeChanges(externalChanges || scope, scope);
+  }).finally(() => { localRefresh = null; if (succeeded && externalRefreshDirty) queueMicrotask(refreshVisibleLibrary); });
 }
 window.addEventListener('focus', refreshVisibleLibrary);
-window.addEventListener('localdb:changed', () => { externalRefreshDirty = true; refreshVisibleLibrary(); });
+window.addEventListener('localdb:changed', event => {
+  if (!['mediathequeItems', 'mediathequeStructure', 'progress'].some(domain => localDb.changesAffect(event.detail, domain))) return;
+  externalChanges = externalRefreshDirty ? localDb.mergeChanges(externalChanges, event.detail) : event.detail;
+  externalRefreshDirty = true; refreshVisibleLibrary();
+});
 window.addEventListener('localdb:refresh', refreshVisibleLibrary);
 $('ml-dialog').addEventListener('close', () => { if (externalRefreshDirty) refreshVisibleLibrary(); });
 document.addEventListener('visibilitychange', refreshVisibleLibrary);

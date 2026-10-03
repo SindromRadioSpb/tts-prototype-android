@@ -25,7 +25,7 @@
 import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js?v=531';
 import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
-import { OperationLease } from './operation-lease.js?v=723';
+import { OperationLease } from './operation-lease.js?v=727';
 import { storageIdentity } from './storage-identity.js';
 import { createRuntimeDiagnostics, identityLockName, holdIdentityLock, holderSummary } from './runtime-diagnostics.js?v=544';
 
@@ -293,7 +293,7 @@ const lease = new OperationLease({
   close: _closeCurrentConnection,
   inTransaction: () => !!db && !sqlite3.get_autocommit(db),
   rollback: () => execMulti('ROLLBACK;'),
-  onCommit: () => self.postMessage({ kind: 'committed' }),
+  onCommit: scope => self.postMessage({ kind: 'committed', scope }),
 });
 
 function runtimeSnapshot() { return {

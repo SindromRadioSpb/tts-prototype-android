@@ -1,28 +1,8 @@
 // Serialized statement/transaction lifetime per worker. OPFS additionally
 // leases one physical connection per origin; IDB uses SQLite's native VFS
 // transaction locks. No tab-owner election, proxy, lock stealing or reload.
-// SQLite CTE bodies cannot write. Classify the main statement after WITH,
-// ignoring quoted identifiers, strings, comments and nested parentheses.
-// Unknown syntax stays conservatively invalidating; mixed statements never hide a write.
-export function sqlMayWrite(sql) {
-  const tokens = String(sql || '').match(/--[^\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|"(?:""|[^"])*"|`(?:``|[^`])*`|\[[^\]]*\]|[A-Za-z_][A-Za-z_0-9]*|[();]/g) || [];
-  let depth = 0, statement = [], malformed = false;
-  const writes = words => {
-    if (!words.length) return false;
-    let kind = words[0];
-    if (kind === 'WITH') kind = words.slice(1).find(word => /^(SELECT|INSERT|UPDATE|DELETE|REPLACE)$/.test(word));
-    return !/^(SELECT|PRAGMA|EXPLAIN|BEGIN|SAVEPOINT|RELEASE|COMMIT|END|ROLLBACK)$/.test(kind || '');
-  };
-  for (const token of tokens) {
-    if (/^(--|\/\*|'|"|`|\[)/.test(token)) continue;
-    if (token === '(') { depth++; continue; }
-    if (token === ')') { if (--depth < 0) malformed = true; continue; }
-    if (depth) continue;
-    if (token === ';') { if (writes(statement)) return true; statement = []; }
-    else statement.push(token.toUpperCase());
-  }
-  return malformed || depth !== 0 || writes(statement);
-}
+import { sqlMayWrite, createChangeTracker } from './change-scope.js?v=727';
+export { sqlMayWrite };
 
 export class OperationLease {
   constructor({ locks, lockName, open, close, inTransaction, rollback, onCommit,
@@ -33,7 +13,7 @@ export class OperationLease {
     this.queue = Promise.resolve();
     this.release = null;
     this.opened = false;
-    this.changed = false;
+    this.changes = createChangeTracker();
     this.poisoned = false;
     this.timer = null;
     this.lastTransactionActivity = 0;
@@ -89,7 +69,7 @@ export class OperationLease {
       throw Object.assign(error, { code: 'DB_STORAGE_CLOSE_FAILED' });
     }
     this.opened = false;
-    this.changed = false;
+    this.changes.clear();
     if (this.release) { this.release(); this.release = null; }
   }
   async abortExpiredTransaction() {
@@ -112,7 +92,12 @@ export class OperationLease {
       let value;
       try {
         value = await operation();
-        if (sqlMayWrite(sql)) this.changed = true;
+        this.changes.record(sql);
+      } catch (error) {
+        // A multi-statement exec may have committed an earlier statement before
+        // failing. Unknown scope must never hide that write. A later ROLLBACK clears it.
+        if (sqlMayWrite(sql)) this.changes.uncertain(this.opened && this.inTransaction());
+        throw error;
       } finally {
         if (this.opened && this.inTransaction()) {
           this.lastTransactionActivity = this.now();
@@ -120,15 +105,15 @@ export class OperationLease {
             this.queue = this.queue.then(() => this.abortExpiredTransaction()).catch(() => { this.poisoned = true; });
           }, this.transactionIdleMs);
         } else {
-          const committed = this.changed && !/^\s*ROLLBACK\b/i.test(sql);
+          const committed = this.changes.snapshot();
           // IDB owns no OPFS sync handles: SQLite xUnlock already released its
           // transaction lock. Keep its connection alive instead of reopening
           // the database for every catalogue/SRS statement. OPFS still closes
           // physical handles before releasing its external lease.
           if (!this.opened || !this.keepConnectionOpen()) await this.close();
           else if (this.release) { this.release(); this.release = null; }
-          this.changed = false;
-          if (committed) this.onCommit?.();
+          this.changes.clear();
+          if (committed.all || committed.tables.length) this.onCommit?.(committed);
         }
       }
       return value;

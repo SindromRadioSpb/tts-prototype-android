@@ -1,0 +1,71 @@
+{
+  "result": "PASS",
+  "base": "https://linguistpro.kolosei.com",
+  "remoteReadOnly": true,
+  "disposableBrowserProfile": true,
+  "freshTabMaterial": "B",
+  "restoredRow": 2,
+  "lateSourceSuppressed": true,
+  "legacyPreserved": true,
+  "localRoomIndependentOfMembership": true,
+  "localRoomMs": 5922,
+  "publicCatalogIndependentOfAccount": true,
+  "catalogMs": 2190,
+  "saveUpdateAndCopy": true,
+  "rollback": {
+    "failed": true,
+    "attempted": true,
+    "absent": true,
+    "activeUnchanged": true,
+    "reviewUnchanged": true
+  },
+  "studioModeIdentityAndSave": true,
+  "studioTimings": [
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 1557.8
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 1665.42
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 1795.52
+    },
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 170.97
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 306.68
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 307.01
+    },
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 258.85
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 383.66
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 513.16
+    }
+  ],
+  "errors": []
+}

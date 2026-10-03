@@ -1,0 +1,93 @@
+{
+  "result": "PASS",
+  "base": "http://127.0.0.1:55107",
+  "vfs": "tts-opfs-idb",
+  "remoteReadOnly": false,
+  "disposableBrowserProfile": true,
+  "progress": {
+    "home": {
+      "catalogReads": 0,
+      "wordInvalidations": 0,
+      "events": [
+        {
+          "schema": 1,
+          "all": false,
+          "tables": [
+            "text_progress"
+          ]
+        }
+      ]
+    },
+    "media": {
+      "metadataReads": 0,
+      "refreshes": 1,
+      "renders": 0,
+      "events": [
+        {
+          "schema": 1,
+          "all": false,
+          "tables": [
+            "text_progress"
+          ]
+        }
+      ]
+    },
+    "reader": {
+      "catalogReads": 0,
+      "wordInvalidations": 0,
+      "events": [
+        {
+          "schema": 1,
+          "all": false,
+          "tables": [
+            "text_progress"
+          ]
+        }
+      ]
+    }
+  },
+  "words": {
+    "home": {
+      "catalogReads": 0,
+      "wordInvalidations": 1,
+      "events": [
+        {
+          "schema": 1,
+          "all": false,
+          "tables": [
+            "word_status"
+          ]
+        }
+      ]
+    },
+    "media": {
+      "metadataReads": 0,
+      "refreshes": 0,
+      "renders": 0,
+      "events": [
+        {
+          "schema": 1,
+          "all": false,
+          "tables": [
+            "word_status"
+          ]
+        }
+      ]
+    }
+  },
+  "rolledBackTransactionSilent": true,
+  "rolledBackSavepointSilent": true,
+  "unchangedProgressPreservesCatalogDom": true,
+  "finishedStatusAndFocus": true,
+  "structureOnlyRefresh": true,
+  "actualMetadataRefresh": true,
+  "homeAndReaderPreserved": true,
+  "legacyBurst": [
+    {
+      "schema": 1,
+      "all": true,
+      "tables": []
+    }
+  ],
+  "errors": []
+}
