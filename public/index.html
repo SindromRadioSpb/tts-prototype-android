@@ -13780,6 +13780,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=718"></script>
 <script src="/js/material-open.js?v=725"></script>
+<script src="/js/material-save.js?v=726"></script>
 <script src="/js/studio-session.js?v=723"></script>
 <script src="/js/studio-media-package.js?v=723"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
@@ -13875,7 +13876,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.725";
+    window.APP_VERSION = "3.11.726";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -28183,26 +28184,26 @@ async function v3LibrarySaveCurrent() {
   }
 }
 
-// Capture one save intent before any storage/media await. A later open must
-// neither supply rows to this write nor receive its completion in the editor.
+// Thin UI adapters: the coordinator owns the snapshot and storage transaction.
 function v3CaptureSaveContext(targetId) {
-  const session = v3SessionGet() || {}, operation = v3MaterialOpens.current();
-  const originalRows = currentTableData, sourceText = String(getText() || "").trim();
-  if (operation && (!operation.painted || (session.textId && String(session.textId) !== operation.id))) {
-    throw Object.assign(new Error("MATERIAL_CONTEXT_CHANGED"), { code: "MATERIAL_CONTEXT_CHANGED" });
-  }
-  MaterialOpen.assertSaveIdentity(targetId, session, originalRows);
-  const serializedRows = JSON.stringify(originalRows);
-  const serializedSession = JSON.stringify(session);
-  const isCurrent = () => v3MaterialOpens.current() === operation &&
-    currentTableData === originalRows && String(getText() || "").trim() === sourceText &&
-    JSON.stringify(v3SessionGet() || {}) === serializedSession && JSON.stringify(currentTableData) === serializedRows;
-  return { session, sourceText, rows: JSON.parse(serializedRows),
-    tableModelMeta: v3LastGeminiMeta ? JSON.parse(JSON.stringify(v3LastGeminiMeta)) : null,
-    audio: window.v3ActiveMediaAudio ? JSON.parse(JSON.stringify(window.v3ActiveMediaAudio)) : null,
-    ttsProfile: v3BuildTtsProfileForSave(), isCurrent,
-    assertCurrent() { if (!isCurrent()) throw Object.assign(new Error("MATERIAL_CONTEXT_CHANGED"), { code: "MATERIAL_CONTEXT_CHANGED" }); }
-  };
+  const ttsProfile = v3BuildTtsProfileForSave();
+  return MaterialSave.capture(() => ({ session: v3SessionGet() || {}, operation: v3MaterialOpens.current(),
+    rows: currentTableData, sourceText: getText(), tableModelMeta: v3LastGeminiMeta,
+    audio: window.v3ActiveMediaAudio, ttsProfile }), targetId);
+}
+function v3MaterialSaveDependencies(save) {
+  return { localMode: LOCAL_MODE, getDb: ensureLocalDB,
+    resolveMedia: async () => ({ context: await v3ResolveMediaContext(), resolution: window.v3LastMediaContextResolution || null }),
+    mediaPassport: value => v3MediaPassport(value), mediaPackage: window.StudioMediaPackage,
+    studioImport: window.StudioImport, playbackSource: window.PlaybackSource,
+    revisionRepository: window.MaterialRevisionRepository, revisionCore: window.MaterialRevisionCore,
+    parseJsonObject: value => v3ParseJsonObject(value), translationFields: v3TranslationFieldsForSave,
+    postJson: (...args) => v3PostJson(...args), putJson: (...args) => v3PutJson(...args),
+    onProgress: ({ phase, written, total }) => {
+      if (!save.isCurrent()) return;
+      const key = { rows: 'saveMeta.progressRows', media: 'saveMeta.progressMedia', commit: 'saveMeta.progressCommit' }[phase];
+      v3SaveMetaSetStatus(t(key, { written, total }), false);
+    } };
 }
 
 async function v3LibrarySaveCurrentCore(meta) {
@@ -28223,6 +28224,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       return null;
     }
     const save = v3CaptureSaveContext();
+    const prepared = MaterialSave.prepare(save, meta, v3NormalizeTagsInput);
     // B1: check OPFS quota in LOCAL_MODE — toast warning once per crossed
     // band; refuse save if quota completely full.
     if (LOCAL_MODE) {
@@ -28235,193 +28237,22 @@ async function v3LibrarySaveCurrentCore(meta) {
       } catch (_) {}
     }
 
-    const m = (meta && typeof meta === "object") ? meta : {};
-    const title = String(m.title || "").trim();
-    const level = String(m.level || "").trim();
-    const tags = v3NormalizeTagsInput(m.tags);
-    const source = String(m.source || "").trim();
-    const topic = String(m.topic || "").trim();
-
-    const payload = {
-      sourceText,
-      rows: save.rows,
-      ttsProfile: save.ttsProfile,
-      tableModelMeta: save.tableModelMeta,
-
-      // Week9 dashboard meta (POST supports these fields)
-      title: title || null,
-      level: level || null,
-      tags,
-      source: source || null,
-      topic: topic || null
-    };
-
-    let text;
-    if (LOCAL_MODE) {
-      const ldb = await ensureLocalDB();
-      // W2: saving performs its own W1 proof. A stale ambient ref is never enough to bind,
-      // and a reload between table-build and save cannot turn media loss into silence.
-      save.assertCurrent();
-      const saveMediaContext = await v3ResolveMediaContext();
-      save.assertCurrent();
-      const saveMediaResolution = window.v3LastMediaContextResolution || null;
-      const saveMediaIntended = !!saveMediaContext || !!(saveMediaResolution && saveMediaResolution.media_intended) ||
-        !!v3MediaPassport(payload.tableModelMeta && payload.tableModelMeta.source);
-      // W3 timing is an open-time derivation. Keep it live for row provenance below, but never
-      // serialize the partial result into the card's canonical passport.
-      if (window.StudioMediaPackage && window.StudioMediaPackage.withoutDerivedMediaTiming) {
-        payload.tableModelMeta = window.StudioMediaPackage.withoutDerivedMediaTiming(payload.tableModelMeta);
+    const { title } = prepared.payload;
+    const result = await MaterialSave.commitCreate(prepared, v3MaterialSaveDependencies(save));
+    if (result.reason === 'duplicate-media') {
+      if (save.isCurrent()) {
+        const existing = result.existing;
+        v3SessionSet({ mode: 'draft', textId: null, baseTextId: String(existing.id), resumeSentenceId: null,
+          title: existing.title ? String(existing.title) : null, origin: 'library', openMode: null });
+        showToast(t('toast.duplicateMediaChoose'), 'warning');
       }
-      // The Import Center rebuild route does not run LearningMaterialTask's later
-      // bindPlaybackSource step. Promote the YouTube acquisition reference into the card's
-      // canonical playback_source while saving, so reopening a Google/Gemini table keeps the
-      // embedded player and row playback controls. Never replace an explicit saved choice.
-      if (window.PlaybackSource && payload.tableModelMeta &&
-          !Object.prototype.hasOwnProperty.call(payload.tableModelMeta, 'playback_source')) {
-        const importedPlayback = PlaybackSource.fromLegacy(
-          v3MediaPassport(payload.tableModelMeta && payload.tableModelMeta.source));
-        if (importedPlayback) payload.tableModelMeta = Object.assign({}, payload.tableModelMeta, {
-          playback_source: importedPlayback,
-        });
-      }
-      const mediaSha = saveMediaContext && saveMediaContext.package && saveMediaContext.package.media_sha256
-        ? String(saveMediaContext.package.media_sha256).toLowerCase()
-        : (window.StudioImport && window.StudioImport.mediaSourceSha)
-        ? window.StudioImport.mediaSourceSha(payload.tableModelMeta && payload.tableModelMeta.source)
-        : null;
-      const task = m.learningMaterialTask || null;
-      if (task && (!/^[0-9a-f-]{36}$/i.test(String(task.id || '')) || !/^[0-9a-f]{64}$/.test(String(task.signature || '')))) throw new Error('TASK_ID_INVALID');
-      if (task) {
-        const existingTaskText = await ldb.getTextById(task.id);
-        if (existingTaskText) {
-          const existingTaskMeta = v3ParseJsonObject(existingTaskText.source_meta_json);
-          if (!existingTaskMeta || !existingTaskMeta.learning_material_task || existingTaskMeta.learning_material_task.signature !== task.signature) throw new Error('TASK_SAVE_CONFLICT');
-          return existingTaskText;
-        }
-        payload.tableModelMeta = Object.assign({}, payload.tableModelMeta || {}, {learning_material_task:{id:task.id,signature:task.signature}});
-      }
-      if (mediaSha && m.allowDuplicateMedia !== true && typeof ldb.findTextsByMediaSha === "function") {
-        const duplicates = await ldb.findTextsByMediaSha(mediaSha);
-        save.assertCurrent();
-        if (duplicates.length) {
-          // Do not silently mint another random text_key for the same physical media. Bind the
-          // existing card as an explicit update target; the modal then offers Update or Save as
-          // new (the latter passes allowDuplicateMedia=true below).
-          const existing = duplicates[0];
-          try {
-            v3SessionSet({ mode: "draft", textId: null, baseTextId: String(existing.id),
-              resumeSentenceId: null, title: existing.title ? String(existing.title) : null,
-              origin: "library", openMode: null });
-          } catch (_) {}
-          showToast(t("toast.duplicateMediaChoose"), "warning");
-          return null;
-        }
-      }
-      const newTextId = task ? task.id : crypto.randomUUID();
-      const textKey = 'text-' + Date.now();
-      let mediaBindingOutcome = null;
-      save.assertCurrent();
-      await ldb.execRaw('BEGIN;');
-      try {
-        await ldb.createText({
-          id: newTextId, text_key: textKey,
-          title: title || null, source_text: sourceText,
-          level: level || null, tags_json: JSON.stringify(tags || []),
-          source: source || null, topic: topic || null,
-          tts_profile_json: JSON.stringify(payload.ttsProfile || null),
-          source_meta_json: JSON.stringify(payload.tableModelMeta || null),
-          table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
-        });
-        const l3Rows = [];
-        const sentenceRows = [];
-        for (const [rowIndex, row] of payload.rows.entries()) {
-          const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
-            ? window.StudioImport.rowEditMetaForSave(row, saveMediaContext && saveMediaContext.passport || null, rowIndex)
-            : (row.edit_meta_json || null);
-          const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
-          sentenceRows.push({
-            id: crypto.randomUUID(),
-            he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
-            translit: row.translit || '', translit_ru: row.translit_ru || '',
-            ru: row.ru || '', edit_meta_json: portableEditMeta,
-            translation_provider: translation.translation_provider,
-            translation_meta_json: translation.translation_meta_json,
-          });
-          try { const em = portableEditMeta ? JSON.parse(portableEditMeta) : null; if (em && em._studio_source) l3Rows.push({ row_index: rowIndex, ...em._studio_source }); } catch (_) {}
-        }
-        v3SaveMetaSetStatus(t("saveMeta.progressRows", { written: 0, total: sentenceRows.length }), false);
-        await ldb.addSentences(newTextId, sentenceRows, {
-          onProgress: (written, total) => v3SaveMetaSetStatus(
-            t("saveMeta.progressRows", { written, total }), false),
-        });
-        const l3ref = saveMediaContext && saveMediaContext.ref || null;
-        if (saveMediaIntended && window.StudioMediaPackage) {
-          v3SaveMetaSetStatus(t("saveMeta.progressMedia"), false);
-          // F1 (packet 2026-08-06): какому медиа принадлежит карточка, решает провенанс её строк,
-          // а не ambient v3LastMediaPackageRef — тот переживает сущность, которую описывает.
-          const l3mapping = { schema: 'studio-row-source-v2', rows: l3Rows };
-          const l3target = l3ref ? await window.StudioMediaPackage.resolveBindTarget(l3ref, l3mapping) : null;
-          if (l3target) {
-            try {
-              const binding = await window.StudioMediaPackage.browserRepository().bindText({
-                text_id: newTextId, package_id: l3target.package_id, track_id: l3target.track_id,
-                revision_id: l3target.revision_id, revision_sha256: l3target.revision_sha256,
-                mapping: l3mapping,
-              });
-              mediaBindingOutcome = window.StudioMediaPackage.buildMediaSaveOutcome({ binding, target: l3target });
-            } catch (bindError) {
-              if (!bindError || bindError.code !== 'BINDING_PROVENANCE_MISMATCH') throw bindError;
-              // The card itself remains valid. Only the disputed binding is refused.
-              mediaBindingOutcome = window.StudioMediaPackage.buildMediaSaveOutcome({ reason: bindError.code });
-            }
-          } else {
-            // Текст и таблица сохраняются полностью; молча привязать чужое медиа — нельзя.
-            mediaBindingOutcome = window.StudioMediaPackage.buildMediaSaveOutcome({
-              reason: l3ref ? 'PROVENANCE_DISAGREES' : null, resolution: saveMediaResolution,
-            });
-          }
-          const recordedOutcome = Object.assign({}, mediaBindingOutcome, { recorded_at: new Date().toISOString() });
-          payload.tableModelMeta = window.StudioMediaPackage.attachMediaSaveOutcome(payload.tableModelMeta, recordedOutcome);
-          await ldb.updateText(newTextId, {
-            source_meta_json: JSON.stringify(payload.tableModelMeta),
-            table_model_meta_json: JSON.stringify(payload.tableModelMeta),
-          });
-        }
-        v3SaveMetaSetStatus(t("saveMeta.progressCommit"), false);
-        await ldb.execRaw('COMMIT;');
-      } catch (e) { try { await ldb.execRaw('ROLLBACK;'); } catch (_) {} throw e; }
-      // §5 acceptance: a newly saved media card is immediately a first-class learning
-      // material, not an Import Center `not-prepared` compatibility projection. This is
-      // lazy promotion of this one card only — never a bulk rewrite or schema migration.
-      if (saveMediaIntended && window.MaterialRevisionRepository && window.MaterialRevisionCore) {
-        try {
-          const materialRepo = window.MaterialRevisionRepository.createRepository(ldb, window.MaterialRevisionCore);
-          await materialRepo.promoteLegacyText(newTextId);
-        } catch (promotionError) {
-          const promotionOutcome = {
-            schema: 'studio-learning-material-save-outcome-v1', status: 'not_promoted',
-            reason: String((promotionError && (promotionError.code || promotionError.message)) || 'PROMOTION_FAILED'),
-            next_action: 'OPEN_IMPORT_CENTER_PREPARE_TRANSFER', recorded_at: new Date().toISOString(),
-          };
-          payload.tableModelMeta = Object.assign({}, payload.tableModelMeta || {}, { learning_material_outcome: promotionOutcome });
-          await ldb.updateText(newTextId, {
-            source_meta_json: JSON.stringify(payload.tableModelMeta),
-            table_model_meta_json: JSON.stringify(payload.tableModelMeta),
-          });
-          try { showToast(t('toast.learningMaterialPromotionFailed'), 'warning'); } catch (_) {}
-        }
-      }
-      text = await ldb.getTextById(newTextId);
-      // Outside the optional binding branch by design: "no ref" is an outcome, not silence.
-      if (mediaBindingOutcome && mediaBindingOutcome.status === "not_bound") {
-        try { showToast(t("toast.mediaBindRefused"), "warning"); } catch (_) {}
-      }
-    } else {
-      save.assertCurrent();
-      const created = await v3PostJson("/api/library/texts", payload);
-      text = created && created.text ? created.text : null;
+      return null;
     }
-
+    const text = result.text;
+    if (result.existing) return text;
+    if (save.isCurrent()) for (const warning of result.warnings || []) {
+      showToast(t(warning === 'promotion-failed' ? 'toast.learningMaterialPromotionFailed' : 'toast.mediaBindRefused'), 'warning');
+    }
     if (!save.isCurrent()) return text;
     if (text?.id) { const savedOpen = v3MaterialOpens.begin(text.id); savedOpen.mark("paint"); savedOpen.mark("ready"); }
 
@@ -28519,80 +28350,19 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
     }
 
     const save = v3CaptureSaveContext(textId);
-    const m = (meta && typeof meta === "object") ? meta : {};
-    const title = String(m.title || "").trim();
-    const level = String(m.level || "").trim();
-    const tags = v3NormalizeTagsInput(m.tags);
-    const source = String(m.source || "").trim();
-    const topic = String(m.topic || "").trim();
-
-    const payload = {
-      sourceText,
-      rows: save.rows,
-      ttsProfile: save.ttsProfile,
-      tableModelMeta: save.tableModelMeta,
-
-      title: title || null,
-      level: level || null,
-      tags,
-      source: source || null,
-      topic: topic || null
-    };
-
-    let text;
-    if (LOCAL_MODE) {
-      const ldb = await ensureLocalDB();
-      // Premium UX: if the target text was deleted (e.g. user bulk-deleted
-      // it earlier in the same session) but session still references it,
-      // gracefully fall back to "Сохранить как новый" instead of FK-failing
-      // on the sentence loop. This is defense-in-depth — the delete paths
-      // also clear session pointers via v3SessionForgetTextIfStale, but
-      // we double-check here against any race or older code path.
-      const stillExists = await ldb.getTextById(textId);
-      save.assertCurrent();
-      if (!stillExists) {
-        try { v3SessionForgetTextIfStale(textId); } catch (_) {}
-        showToast(t("toast.cardNotFoundCreatingNew"), "warning");
-        return await v3LibrarySaveCurrentCore(meta);
+    const prepared = MaterialSave.prepare(save, meta, v3NormalizeTagsInput);
+    const result = await MaterialSave.commitUpdate(textId, prepared, v3MaterialSaveDependencies(save));
+    if (result.reason) {
+      if (!save.isCurrent()) return null;
+      if (result.reason === 'not-found') {
+        v3SessionForgetTextIfStale(textId);
+        showToast(t('toast.cardNotFoundCreatingNew'), 'warning');
+        return v3LibrarySaveCurrentCore(meta);
       }
-      if (window.StudioMediaPackage) {
-        const l3binding = await window.StudioMediaPackage.browserRepository().getTextBinding(String(textId));
-        if (l3binding) {
-          showToast(t("studio.mediaPackage.updateForbidden"), "warning");
-          return null;
-        }
-      }
-      const replacementRows = payload.rows.map((row, rowIndex) => {
-        const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
-          ? window.StudioImport.rowEditMetaForSave(row, save.audio, rowIndex)
-          : (row.edit_meta_json || null);
-        const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
-        return {
-          id: crypto.randomUUID(),
-          he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
-          translit: row.translit || '', translit_ru: row.translit_ru || '',
-          ru: row.ru || '', edit_meta_json: portableEditMeta,
-          translation_provider: translation.translation_provider,
-          translation_meta_json: translation.translation_meta_json,
-        };
-      });
-      save.assertCurrent();
-      text = await ldb.replaceStudioText(textId, {
-        expectedUpdatedAt: save.session.baseUpdatedAt,
-        fields: {
-          title: title || null, level: level || null,
-          tags_json: JSON.stringify(tags || []), source: source || null, topic: topic || null,
-          tts_profile_json: JSON.stringify(payload.ttsProfile || null),
-          table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
-        },
-        rows: replacementRows,
-      });
-    } else {
-      save.assertCurrent();
-      const updated = await v3PutJson("/api/library/texts/" + encodeURIComponent(String(textId)), payload);
-      text = updated && updated.text ? updated.text : null;
+      showToast(t('studio.mediaPackage.updateForbidden'), 'warning');
+      return null;
     }
-
+    const text = result.text;
     if (!save.isCurrent()) return text;
     if (text?.id) { const savedOpen = v3MaterialOpens.begin(text.id); savedOpen.mark("paint"); savedOpen.mark("ready"); }
 

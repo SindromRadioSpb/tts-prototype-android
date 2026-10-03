@@ -8,19 +8,29 @@ const { fork } = require('node:child_process');
 const { chromium } = require('playwright');
 const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require('../smoke-server-env');
 const ROOT = path.resolve(__dirname, '../..');
-const OUT = path.join(ROOT, '.tmp/material-reliability');
+const arg = name => process.argv.find(value => value.startsWith('--' + name + '='))?.split('=').slice(1).join('=');
+const REMOTE_BASE = arg('base');
+const OUT = path.resolve(arg('out') || path.join(ROOT, '.tmp/material-reliability'));
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
-  const server = fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: ROOT,
+  const server = REMOTE_BASE ? null : fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: ROOT,
     env: smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(), 'lp-reliability-')), 0), silent: true, windowsHide: true });
-  const logs = []; server.stdout.on('data', d => logs.push(String(d))); server.stderr.on('data', d => logs.push(String(d)));
+  const logs = []; server?.stdout.on('data', d => logs.push(String(d))); server?.stderr.on('data', d => logs.push(String(d)));
   let browser;
   try {
-    const base = `http://127.0.0.1:${await waitForSmokeServer(server, 30000)}`;
+    const base = REMOTE_BASE || `http://127.0.0.1:${await waitForSmokeServer(server, 30000)}`;
+    if (REMOTE_BASE) {
+      assert.ok(arg('version'), '--version is required');
+      assert.equal((await (await fetch(base + '/api/client-config?verify=' + Date.now())).json()).version, arg('version'));
+    }
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1280, height: 850 } });
-    await context.route(url => !url.href.startsWith(base), route => route.abort());
-    await context.addInitScript(() => { if (location.protocol !== 'http:') return; localStorage.setItem('app.locale', 'ru'); localStorage.setItem('phase6Decision_v1', 'declined'); localStorage.setItem('onboardingSeen_v1', '1'); });
+    await context.route('**/*', route => {
+      const request = route.request();
+      if (!request.url().startsWith(base) || (REMOTE_BASE && !['GET', 'HEAD', 'OPTIONS'].includes(request.method()))) return route.abort();
+      return route.continue();
+    });
+    await context.addInitScript(() => { if (!['http:', 'https:'].includes(location.protocol)) return; localStorage.setItem('app.locale', 'ru'); localStorage.setItem('phase6Decision_v1', 'declined'); localStorage.setItem('onboardingSeen_v1', '1'); });
     const errors = []; context.on('page', p => p.on('pageerror', e => errors.push(e.message)));
     const studio = await context.newPage();
     await studio.goto(base + '/?localMode=1', { waitUntil: 'domcontentloaded' });
@@ -73,6 +83,24 @@ async function main() {
     });
     assert.equal(saved.original, 'B'); assert.notEqual(saved.copy, 'B'); assert.equal(saved.updatedCopy, saved.copy);
     assert.deepEqual(saved.rows, ['B-row-0', 'B-row-1', 'B-row-2', 'B-row-3']);
+    const rollback = await fresh.evaluate(async () => {
+      const original = ensureLocalDB, db = await original();
+      const beforeReview = JSON.stringify(await db.dbQuery('SELECT * FROM review_log ORDER BY id'));
+      const active = v3SessionGet().textId;
+      let attemptedId;
+      ensureLocalDB = async () => new Proxy(db, { get(target, prop) {
+        if (prop === 'createText') return async fields => { attemptedId = fields.id; return target.createText(fields); };
+        if (prop === 'addSentences') return async (...args) => { await target.addSentences(...args); throw new Error('fixture: quota failure after rows'); };
+        return target[prop];
+      }});
+      let result;
+      try { result = await v3LibrarySaveCurrentCore({ title: 'must rollback' }); }
+      finally { ensureLocalDB = original; }
+      return { failed: result === null, attempted: !!attemptedId, absent: !(await db.getTextById(attemptedId)),
+        activeUnchanged: v3SessionGet().textId === active,
+        reviewUnchanged: beforeReview === JSON.stringify(await db.dbQuery('SELECT * FROM review_log ORDER BY id')) };
+    });
+    assert.deepEqual(rollback, { failed: true, attempted: true, absent: true, activeUnchanged: true, reviewUnchanged: true });
     // Public reading becomes available before optional account/tutor responses.
     const catalog = await context.newPage();
     let releaseOptional; const optionalGate = new Promise(r => { releaseOptional = r; });
@@ -121,10 +149,10 @@ async function main() {
     assert.equal(await fresh.locator('#proTable').count(), 1);
     assert.equal(await room.evaluate(() => window.documentSentinel), true);
     assert.deepEqual(errors, []);
-    const report = { result: 'PASS', freshTabMaterial: 'B', restoredRow: 2, lateSourceSuppressed: true,
+    const report = { result: 'PASS', base, remoteReadOnly: !!REMOTE_BASE, disposableBrowserProfile: true, freshTabMaterial: 'B', restoredRow: 2, lateSourceSuppressed: true,
       legacyPreserved: true, localRoomIndependentOfMembership: true, localRoomMs,
       publicCatalogIndependentOfAccount: true, catalogMs,
-      saveUpdateAndCopy: true,
+      saveUpdateAndCopy: true, rollback,
       studioModeIdentityAndSave: true,
       studioTimings: await studio.evaluate(() => v3MaterialOpens.timings()), errors };
     fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify(report, null, 2));
@@ -137,8 +165,8 @@ async function main() {
     }
     throw error;
   } finally {
-    if (browser) await browser.close(); server.kill();
-    await new Promise(resolve => { if (server.exitCode !== null) resolve(); else server.once('exit', resolve); });
+    if (browser) await browser.close();
+    if (server) { server.kill(); await new Promise(resolve => { if (server.exitCode !== null) resolve(); else server.once('exit', resolve); }); }
   }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

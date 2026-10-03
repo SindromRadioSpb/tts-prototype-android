@@ -85,6 +85,7 @@
 - **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
 
 ## O-055 — Production build consumes preflight headroom
+- **Update 2026-10-04:** по отдельному разрешению владельца удалены только unused images f2f7fa29d2d6 и 7ac3af4559e7. После проверки отсутствия контейнерных ссылок df вырос с 2.1G / 95% до 4.4G / 88%. Current 5093d37c, rollback d5e6c826 и данные сохранены. [Отчёт](../research/material-save-invalidation/2026-10-04/IMPLEMENTATION.md).
 - **Update 2026-10-03, 3.11.725:** до сборки 3.2G / 92%; в пике 213M / 100%. Ранее разрешённый `docker builder prune -af` сообщил 2.489GB reclaimed; после rollout 2.1G / 95%, `disk_warn=true`. Current/rollback images, application containers, четыре volumes и данные сохранены; capacity-риск остаётся. [Evidence](../research/material-opening-lifecycle/2026-10-03/production/3.11.725/release.json).
 - **Update 2026-10-03:** после 3.11.723 df 97% / 1.3G. Явно разрешённые build-cache cleanup и удаление двух idle helper от failed/cancelled сборок дали 4.3G / 89%; active+rollback images, volumes/backups сохранены. Владелец разрешил дальнейшую очистку неиспользуемого build cache по необходимости, но не произвольное удаление контейнеров/образов/данных.
 - **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.

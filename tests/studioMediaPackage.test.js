@@ -479,14 +479,15 @@ test('W2 contract: local save resolves canon and persists an outcome outside the
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const start = html.indexOf('async function v3LibrarySaveCurrentCore(meta)');
   const end = html.indexOf('async function v3LibraryUpdateCurrentCore', start);
-  const save = html.slice(start, end);
-  assert.match(save, /await v3ResolveMediaContext\(\)/, 'save must resolve canonical context itself');
+  const save = fs.readFileSync(path.join(__dirname, '../public/js/material-save.js'), 'utf8');
+  assert.match(html.slice(start, end), /MaterialSave\.commitCreate/, 'UI delegates persistence');
+  assert.match(save, /await resolveMedia\(\)/, 'save must resolve canonical context itself');
   assert.match(save, /attachMediaSaveOutcome/, 'named outcome must be written into card metadata');
   assert.match(save, /await ldb\.updateText\(newTextId/, 'outcome must be persisted before commit');
   assert.match(save, /mediaBindingOutcome\.status === ["']not_bound["']/, 'toast decision lives after the binding attempt, including no-ref saves');
   assert.match(save, /promoteLegacyText\(newTextId\)/, 'a saved media card becomes a first-class learning material');
   assert.match(save, /OPEN_IMPORT_CENTER_PREPARE_TRANSFER/, 'promotion refusal records its next action');
-  assert.match(save, /PlaybackSource\.fromLegacy/, 'manual Import Center save promotes YouTube provenance into card playback');
+  assert.match(save, /playbackSource\.fromLegacy/, 'manual Import Center save promotes YouTube provenance into card playback');
   assert.match(save, /hasOwnProperty\.call\(payload\.tableModelMeta, 'playback_source'\)/,
     'an explicit playback choice is never overwritten');
 });

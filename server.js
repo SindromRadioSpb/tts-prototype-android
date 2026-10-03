@@ -1225,6 +1225,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/study-timing-repair.js?v=616",
   "/js/studio-media-package.js?v=723",
   "/js/material-open.js?v=725",
+  "/js/material-save.js?v=726",
   "/js/studio-session.js?v=723",
   "/js/media-package-repository.js?v=718",
   "/js/media-bundle-core.js?v=575",

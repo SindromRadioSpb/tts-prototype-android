@@ -8,11 +8,12 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+const coordinator = fs.readFileSync(path.join(root, 'public/js/material-save.js'), 'utf8');
 const db = fs.readFileSync(path.join(root, 'public', 'db', 'local-db.js'), 'utf8');
 
 test('large-card save uses one guarded batch writer instead of per-row addSentence', () => {
   assert.match(db, /export async function addSentences\(textId, rows, opts\)/);
-  assert.match(html, /await ldb\.addSentences\(newTextId, sentenceRows, \{/);
+  assert.match(coordinator, /await ldb\.addSentences\(newTextId, sentenceRows, \{/);
   const saveStart = html.indexOf('async function v3LibrarySaveCurrentCore(meta)');
   const saveEnd = html.indexOf('\nasync function ', saveStart + 20);
   const body = html.slice(saveStart, saveEnd);
@@ -35,7 +36,7 @@ test('save modal exposes monotonic row progress and named commit/binding phases'
   assert.match(html, /saveMeta\.progressRows/);
   assert.match(html, /saveMeta\.progressCommit/);
   assert.match(html, /saveMeta\.progressMedia/);
-  assert.match(html, /onProgress:\s*\(written, total\)/);
+  assert.match(coordinator, /onProgress:\s*\(written, total\)/);
   for (const locale of ['ru', 'en', 'he']) {
     const source = fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', `${locale}.js`), 'utf8');
     assert.match(source, /progressRows:/, `${locale}: rows progress copy`);

@@ -147,7 +147,7 @@ test("mobile onboarding pairing controls cannot widen the Local ASR dialog", () 
 test("B+C import clears stale update authority and duplicate media is an explicit choice", () => {
   assert.match(studio, /v3SessionSet\(importSessionResetPatch\(\)\)/,
     "imported media must not inherit a prior card's baseTextId");
-  assert.match(html, /findTextsByMediaSha/);
+  assert.match(fs.readFileSync(path.join(__dirname, '../public/js/material-save.js'), 'utf8'), /findTextsByMediaSha/);
   assert.match(html, /allowDuplicateMedia/);
   assert.match(localDb, /export async function findTextsByMediaSha/);
   assert.match(localDb, /json_extract\(source_meta_json, '\$\.source\.audio\.media\.sha256'\)/);

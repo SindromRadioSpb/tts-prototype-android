@@ -6,7 +6,7 @@ const MaterialOpen = require('../public/js/material-open');
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 function fixture(db) {
   let session = { mode: 'library', textId: 'A', baseUpdatedAt: 'revision-A' }, text = 'source-A';
-  const ctx = { console, crypto: require('node:crypto').webcrypto, MaterialOpen, LOCAL_MODE: true,
+  const ctx = { console, crypto: require('node:crypto').webcrypto, MaterialOpen, MaterialSave: require('../public/js/material-save'), LOCAL_MODE: true,
     v3MaterialOpens: MaterialOpen.create(), currentTableData: [{ _v3_textId: 'A', he: 'AAAA' }],
     v3LastGeminiMeta: { material: 'A' }, window: {}, getText: () => text,
     v3SessionGet: () => session, v3SessionSet: value => { session = value; },

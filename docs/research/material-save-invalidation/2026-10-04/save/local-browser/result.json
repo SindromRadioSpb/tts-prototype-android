@@ -1,0 +1,71 @@
+{
+  "result": "PASS",
+  "base": "http://127.0.0.1:54305",
+  "remoteReadOnly": false,
+  "disposableBrowserProfile": true,
+  "freshTabMaterial": "B",
+  "restoredRow": 2,
+  "lateSourceSuppressed": true,
+  "legacyPreserved": true,
+  "localRoomIndependentOfMembership": true,
+  "localRoomMs": 1371,
+  "publicCatalogIndependentOfAccount": true,
+  "catalogMs": 380,
+  "saveUpdateAndCopy": true,
+  "rollback": {
+    "failed": true,
+    "attempted": true,
+    "absent": true,
+    "activeUnchanged": true,
+    "reviewUnchanged": true
+  },
+  "studioModeIdentityAndSave": true,
+  "studioTimings": [
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 444.53
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 559.71
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 741.07
+    },
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 183.68
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 295.01
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 295.49
+    },
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 364.15
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 489.75
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 628.28
+    }
+  ],
+  "errors": []
+}

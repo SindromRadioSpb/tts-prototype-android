@@ -146,7 +146,7 @@ test('recovery UX names broken, archived and complete receipt states without tre
   assert.match(html,/archiveText\(textId\)/);
   assert.match(html,/openMaterialActions\(textId,\{intent:'delete'\}\)/,'Library Delete opens the material deletion preview');
   assert.match(html,/studio-media-binding-outcome-v1/);
-  assert.match(html,/_studio_source/);
+  assert.match(fs.readFileSync(path.join(root, 'public/js/material-save.js'), 'utf8'), /_studio_source/);
 });
 
 test('repairable import history still exposes verified complete deletion with blocker details',()=>{

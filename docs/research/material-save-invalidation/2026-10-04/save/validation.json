@@ -1,0 +1,14 @@
+{
+  "unit": {
+    "passed": 2396,
+    "failed": 0
+  },
+  "apiSmoke": "PASS",
+  "identityRollbackBrowser": "local-browser/result.json",
+  "version": "3.11.726",
+  "serviceWorker": {
+    "passed": 8,
+    "failed": 0,
+    "scenarios": "A/D/E/G"
+  }
+}
