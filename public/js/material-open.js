@@ -20,6 +20,41 @@
       timings(){return timings.map(row=>({...row}));}
     };
   }
+  function sentenceIndex(rows, sentenceId) {
+    if (sentenceId == null) return -1;
+    return (rows || []).findIndex(row => row &&
+      String(row._v3_sentenceId ?? row.id ?? row.sentence_id ?? row.sentenceId) === String(sentenceId));
+  }
+  // Read model only: no DOM, session changes, progress writes or media activation.
+  // All surfaces receive the same validated, ordered data before presenting it.
+  async function load(id, options = {}) {
+    const isCurrent = options.isCurrent || (() => true);
+    const obsolete = () => ({ ok: false, reason: 'superseded' });
+    if (!isCurrent()) return obsolete();
+    const db = options.localDb;
+    if (db && db.isFollower?.() && !db.isProxy?.()) return { ok: false, reason: 'dbBusy' };
+    try {
+      let text, sentences;
+      if (db) {
+        [text, sentences] = await Promise.all([db.getTextByIdLite(id), db.getSentences(id)]);
+      } else {
+        const base = '/api/library/texts/' + encodeURIComponent(id);
+        const [meta, rows] = await Promise.all([options.getJson(base), options.getJson(base + '/sentences')]);
+        text = meta && (Object.prototype.hasOwnProperty.call(meta, 'text') ? meta.text : meta);
+        sentences = rows && (rows.sentences || rows.rows) || [];
+      }
+      if (!isCurrent()) return obsolete();
+      if (!text) return { ok: false, reason: 'notFound' };
+      if (String(text.id) !== String(id) || !Array.isArray(sentences) ||
+          sentences.some(row => row.text_id != null && String(row.text_id) !== String(id))) {
+        return { ok: false, reason: 'identity', error: new Error('MATERIAL_IDENTITY_MISMATCH') };
+      }
+      return { ok: true, text, sentences: sentences.slice().sort((a, b) =>
+        Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0)) };
+    } catch (error) {
+      return isCurrent() ? { ok: false, reason: 'fetch', error } : obsolete();
+    }
+  }
   // Imports may contain transactions. Queue them while allowing a newer intent
   // to invalidate queued work; a failure must not poison the following import.
   function createSerialQueue() {
@@ -39,5 +74,5 @@
           return id && expected && String(id) !== String(expected);
         })) throw Object.assign(new Error('MATERIAL_IDENTITY_MISMATCH'), { code: 'MATERIAL_CONTEXT_CHANGED' });
   }
-  return {create, createSerialQueue, assertSaveIdentity};
+  return {create, load, sentenceIndex, createSerialQueue, assertSaveIdentity};
 });

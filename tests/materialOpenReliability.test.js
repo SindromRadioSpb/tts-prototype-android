@@ -6,6 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const read = p => fs.readFileSync(path.resolve(__dirname, '..', p), 'utf8');
 const deferred = () => { let resolve, reject; const promise=new Promise((a,b)=>{resolve=a;reject=b;}); return {promise,resolve,reject}; };
+require('../public/js/material-open.js');
 const core = () => import('data:text/javascript;base64,'+Buffer.from(read('public/js/reader-core.js')).toString('base64'));
 for (const opener of ['openCorpusWork', 'openPublicCorpusWork', 'openGroupCorpusWork']) {
   test(opener + ': latest requested material is queued, never silently dropped', async () => {

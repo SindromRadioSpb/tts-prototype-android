@@ -575,11 +575,8 @@ export function buildBilingualTableHtml(rows, config) {
 }
 
 // ── Warm text-open orchestrator ──────────────────────────────────────────────
-// Mirrors index.html v3LibraryOpenText's LOCAL_MODE fetch→map→render, minus every
-// Studio concern (composer, notes editor, source_text backfill, sticky-state). It
-// reuses the ALREADY-WARM db worker that library.html's boot() initialised — the
-// whole point of the embedded reader: no cold worker page-in per open (the measured
-// ~1s lever). Fetches text + sentences in PARALLEL (index.html awaits them serially).
+// Shared MaterialOpen read model -> presentation. The warm local DB belongs to
+// the surface; this adapter owns only mount freshness and loading/error states.
 //
 //   opts = {
 //     localDb,   // the /db/local-db.js module (getTextByIdLite + getSentences + isFollower)
@@ -601,38 +598,29 @@ export async function openText(textId, opts) {
   const superseded = () => ({ ok: false, reason: 'superseded' });
   const emit = (s) => { try { if (isCurrent() && opts.onState) opts.onState(s); } catch (_) {} };
   if (!isCurrent()) return superseded();
-  // P0-1 v2 (multi-tab unblock): a follower WITH a live proxy route reads through the owner
-  // tab's connection — only a proxy-less follower is genuinely dbBusy (live-caught: the reader
-  // dead-ended a fully functional proxied tab while the home behind it rendered fine).
-  if (typeof localDb.isFollower === "function" && localDb.isFollower()
-    && !(typeof localDb.isProxy === "function" && localDb.isProxy())) { emit({ kind: "dbBusy" }); return { ok: false, reason: "dbBusy" }; }
   emit({ kind: "loading" });
-  let text, sentences;
-  try {
-    [text, sentences] = await Promise.all([
-      localDb.getTextByIdLite(textId),
-      localDb.getSentences(textId),
-    ]);
-  } catch (error) {
-    if (!isCurrent()) return superseded();
-    emit({ kind: "error", error: error });
-    return { ok: false, reason: "fetch", error: error };
-  }
-  if (!isCurrent()) return superseded();
-  if (!text) { emit({ kind: "notFound" }); return { ok: false, reason: "notFound" }; }
-  if (String(text.id) !== String(textId) || (sentences || []).some(r => r.text_id != null && String(r.text_id) !== String(textId))) {
-    emit({ kind: 'error', error: new Error('MATERIAL_IDENTITY_MISMATCH') });
-    return { ok: false, reason: 'identity' };
+  const result = await globalThis.MaterialOpen.load(textId, { localDb, isCurrent });
+  if (!isCurrent() || result.reason === 'superseded') return superseded();
+  if (!result.ok) {
+    emit({ kind: ['dbBusy', 'notFound'].includes(result.reason) ? result.reason : 'error', error: result.error });
+    return result;
   }
   if (opts.request) opts.request.mark('data');
-  const rows = (sentences || []).slice()
-    .sort((a, b) => ((a && a.order_index) || 0) - ((b && b.order_index) || 0))
-    .map((r) => mapSentenceRowToUiRow(r, textId));
+  return presentMaterial(result, { mount, config, isCurrent, request: opts.request, onState: emit });
+}
+
+// Presentation consumes an already validated read model. It never reads the DB.
+export function presentMaterial(material, opts) {
+  const { mount, config = {}, request, onState } = opts;
+  const isCurrent = opts.isCurrent || (() => true);
+  if (!isCurrent()) return { ok: false, reason: 'superseded' };
+  const text = material.text;
+  const rows = material.sentences.map(r => mapSentenceRowToUiRow(r, text.id));
   const html = buildBilingualTableHtml(rows, config);
-  if (!isCurrent()) return superseded();
+  if (!isCurrent()) return { ok: false, reason: 'superseded' };
   mount.innerHTML = html;
-  if (opts.request) opts.request.mark('paint');
-  emit({ kind: rows.length ? "ready" : "empty", text: text, rows: rows });
+  if (request) request.mark('paint');
+  if (onState) onState({ kind: rows.length ? "ready" : "empty", text, rows });
   return { ok: true, text: text, rows: rows };
 }
 
