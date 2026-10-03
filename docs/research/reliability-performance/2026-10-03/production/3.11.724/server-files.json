@@ -1,0 +1,17 @@
+{
+  "commit": "d5e6c8263728fefc5ba2fd4509b3d1a38b94bbe9",
+  "files": [
+    {
+      "file": "db/mediathequeCatalogReader.js",
+      "sha256": "850f08f36662e33bbe73d87888b017c33210566133d77ff18d0115f3bd98b463"
+    },
+    {
+      "file": "db/publicationRepo.js",
+      "sha256": "6fd0759cd816b6eae363a79fe78ec29c0bda59e882a5c2d561ed95281c65e9c8"
+    },
+    {
+      "file": "server.js",
+      "sha256": "c568e108cdc00d193e0cd03c566ae8a6459f5cfe87089eb91137a70c4e1c4a8f"
+    }
+  ]
+}

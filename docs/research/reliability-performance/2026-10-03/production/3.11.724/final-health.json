@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-03T19:59:05.767Z",
+  "version": "3.11.724",
+  "health": {
+    "ok": true,
+    "uptimeSec": 239,
+    "now": "2026-10-03T19:59:09.314Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 92,
+    "disk_warn": true
+  }
+}

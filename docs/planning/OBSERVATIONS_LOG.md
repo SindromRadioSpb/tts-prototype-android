@@ -10,8 +10,8 @@
 
 ---
 
-## O-066 · Узкие заголовки таблицы Classic Studio на 380 px
-- **Дата / где:** 2026-10-03, isolated fixture 3.11.723, screenshot studio-380.png.
+## O-066 · Узкие заголовки общей таблицы Studio/Reader на 380 px
+- **Дата / где:** 2026-10-03, isolated fixture Studio 3.11.723 и production anonymous Reader 3.11.723/724, screenshots studio-380.png и reader-380.png.
 - **Факты:** восстановленная строка видна и выделена; несколько заголовков пятиколоночной таблицы обрезаются, короткий translit переносится. CSS этой таблицы пакетом reliability не менялся; physical-device evidence отсутствует.
 - **Предложение:** отдельно проверить минимальную ширину/горизонтальный скролл и настройки колонок, сохранив караоке, позицию и доступность.
 - **Статус:** открыто; не блокирует подтверждённую идентичность материала.
@@ -27,7 +27,7 @@
 - **Дата / где:** 2026-10-03, fixture `studio-surfaces-smoke.js`, готовящаяся 3.11.723.
 - **Факты:** первая запись после ready получила `DB_LOCK_WAIT_TIMEOUT [held=1; holder=ready; holderId=uninstrumented; vfs=AccessHandlePool]`. Несколько предыдущих и отдельный повторный прогон прошли; на базе 3.11.722 standalone прогон тоже прошёл. Это не доказанная регрессия или устранённый дефект.
 - **Диагностика / исправление:** импорт 79 текстов / 6646 строк держал транзакцию 22–25 с; инструментирование нашло 65 тысяч OPFS xWrite временных журналов. Групповой writer + OPFS temp_store=MEMORY сократили fixture до 1,58 с; основной журнал и synchronous=2 сохранены. Проверены поля корпуса, частичный rollback и восстановление после worker termination с незавершённой записью >20 МБ. Исторический единичный timeout не имел полного trace.
-- **Статус:** в работе; [текущая реализация и evidence](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md).
+- **Статус:** закрыто для воспроизведённого bottleneck — `ae8cfcf5`, production 3.11.723/724; cold/concurrent/crash-recovery tests PASS. Универсальное отсутствие иных lock-timeout этим не заявляется.
 
 ## O-063 · Браузерные сценарии гонок и восстановления не защищены выбранными QA-гейтами
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `tests/rowPositionRestoreAndHighlight.test.js`, `.github/workflows/smoke-check.yml`.
@@ -78,6 +78,7 @@
 - **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
 
 ## O-055 — Production build consumes preflight headroom
+- **После 3.11.724:** повторная разрешённая очистка только build cache дала 3.2G / 92%. Runtime и все три образа приложения сохранены; disk_warn=true остаётся. Никакой cron/автоматизация удаления не создавались.
 - **Update 2026-10-03:** после 3.11.723 df 97% / 1.3G. Явно разрешённые build-cache cleanup и удаление двух idle helper от failed/cancelled сборок дали 4.3G / 89%; active+rollback images, volumes/backups сохранены. Владелец разрешил дальнейшую очистку неиспользуемого build cache по необходимости, но не произвольное удаление контейнеров/образов/данных.
 - **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.
 - **Observed:** previous free disk fell from 4.40 GiB after backup to 1.40 GiB after build. Fresh non-mutating df reports 1.5G available, 97% used. The current tracked COPY source is about 576 MB before clone/context/image overhead. Non-privileged Docker inspection is denied; cache reuse for another build is unverified.
