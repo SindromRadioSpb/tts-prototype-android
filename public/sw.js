@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.724";
+const CACHE_VERSION = "v3.11.725";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -128,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=723",
+  "/js/library-ui.js?v=725",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -136,7 +136,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=723",
+  "/js/reader-core.js?v=725",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
@@ -244,7 +244,7 @@ const PRECACHE_URLS = [
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=718",
   "/js/studio-media-package.js?v=723",
-  "/js/material-open.js?v=723",
+  "/js/material-open.js?v=725",
   "/js/studio-session.js?v=723",
   "/js/studio-media-editor.js?v=628",
   "/js/studio-material-revision.js",
@@ -279,7 +279,7 @@ const PRECACHE_URLS = [
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
-  "/js/media-host.js?v=662",
+  "/js/media-host.js?v=725",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=506",

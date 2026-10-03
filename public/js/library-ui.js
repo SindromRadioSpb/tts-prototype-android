@@ -1,4 +1,4 @@
-import '/js/material-open.js?v=723';
+import '/js/material-open.js?v=725';
 // library-ui.js — BRR-P0-002 Reading Room surface (Layout A: track tabs +
 // vertical shelf stack with horizontal work-card carousels).
 //
@@ -30,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=723';
+import * as readerCore from '/js/reader-core.js?v=725';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=485';
@@ -5983,7 +5983,17 @@ function stopKaraoke() {
 // (media-host.js, тот же, что в Студии). Honesty-состояния (noTiming/fileMissing) обязательны.
 let roomMediaAudio = null;   // активный паспорт; timing.entries — ОДНА ссылка (контракт karaoke)
 let roomMediaStage = null, roomMediaResolver = null;
-let roomMediaYtAdapter = null, roomMediaYtVideoId = null, roomMediaYtCreating = null;
+let roomMediaYtAdapter = null;
+let roomMediaLifecycleInst = null;
+function roomMediaLifecycle() {
+  if (!roomMediaLifecycleInst) roomMediaLifecycleInst = MediaHost.createLifecycle({
+    stop: () => window.StudioMediaKaraoke?.stop(),
+    destroyLocal: () => roomMediaStage?.destroy(),
+    clearResolver: () => roomMediaResolver?.clear(),
+    onAdapter: adapter => { roomMediaYtAdapter = adapter; },
+  });
+  return roomMediaLifecycleInst;
+}
 let _roomMediaWired = false;
 let roomMediaSetupSerial = 0;
 
@@ -6158,18 +6168,8 @@ function roomMediaFollowRange(range) {
 }
 function roomMediaTeardown() {
   roomMediaSetupSerial++;
-  if(roomMediaYtAbort)roomMediaYtAbort.abort();
-  try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}
-  try { if (roomMediaStage) roomMediaStage.destroy(); } catch (_) {}
-  // YT-адаптер привязан к КОНКРЕТНОМУ videoId (спека, ловушка №9) — при смене текста/закрытии
-  // обязан быть уничтожен, иначе плеер управляет видео A при таблице B.
-  if (roomMediaYtAdapter && window.StudioYtPlayer) { try { window.StudioYtPlayer.destroy(roomMediaYtAdapter); } catch (_) {} }
-  // An in-flight create owns its iframe until it resolves and proves whether it is stale.
-  // Keeping the promise here prevents a same-card reload from starting a second iframe;
-  // the stale completion destroys itself, then the current setup retries once.
-  roomMediaYtAdapter = null; roomMediaYtVideoId = null;
+  roomMediaLifecycle().reset();
   roomMediaAudio = null;
-  if (roomMediaResolver) { try { roomMediaResolver.clear(); } catch (_) {} }
   for (const id of ['roomMediaBar', 'roomMediaYtMount', 'roomMediaStudioLink']) { const n = $(id); if (n) n.hidden = true; }
   roomPlaybackSettings.replaceChildren(); roomAidsRefreshIfOpen();
   try { roomMediaApplyLayout(); } catch (_) {}   // выключить скролл-окно таблицы (медиа скрыто)
@@ -6241,8 +6241,11 @@ window.addEventListener('playback-source-changed',async e=>{
 });
 window.StudyVideoInlineOpen=async id=>{
   if(String(readerTextId)!==String(id))return;
+  const epoch = readerOpenEpoch;
   StudyVideoSourceUI.selectSource(id,'youtube');const ctx=await StudyVideoSourceUI.context(id);
-  await roomMediaSetup(ctx.card,id);$('roomMediaBar').scrollIntoView({block:'start'});
+  if (epoch !== readerOpenEpoch || String(readerTextId) !== String(id)) return;
+  await roomMediaSetup(ctx.card,id);
+  if (epoch === readerOpenEpoch && String(readerTextId) === String(id)) $('roomMediaBar').scrollIntoView({block:'start'});
 };
 function roomMediaRefresh() {
   const audio = roomMediaAudio; if (!audio) return;
@@ -6289,49 +6292,27 @@ function roomMediaAugment() {
     },
   });
 }
-let roomMediaYtAbort=null;
 async function roomMediaEnsureYoutubeStage(audio) {
-  if(!audio || roomMediaAudio!==audio || !audio.video || !audio.video.videoId)return null;
-  // O-021: the HE interface shows this material's original (YouTube) title in the reader bar.
+  const isCurrent = () => !!audio && roomMediaAudio === audio;
+  if (!isCurrent() || !audio.video?.videoId) return null;
   try { const titleEl = $('readerTitle'); if (titleEl && window.LpOriginalTitle) { titleEl.setAttribute('data-orig-video', audio.video.videoId); window.LpOriginalTitle.paint(titleEl.parentNode); } } catch (_) {}
-  delete $('roomMediaBarNote').dataset.youtubeError;
-  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) {
-    StudyVideoSourceUI.compatibleShell();
-    return null;
+  const note = $('roomMediaBarNote'); if (note) delete note.dataset.youtubeError;
+  if (!window.StudioYtPlayer || !StudioYtPlayer.capability().supported) {
+    StudyVideoSourceUI.compatibleShell(); return null;
   }
-  const entries=audio.timing ? audio.timing.entries : null;
-  const bind=adapter=>{
-    if(!adapter || roomMediaAudio!==audio)return null;
-    StudioMediaKaraoke.bind({media:adapter,entries,rowCount:readerRows.length,onRangeChange:roomMediaFollowRange,stopOtherAudio:roomMediaStopOthers});
+  const mount = $('roomMediaYtMount'); if (!mount) return null;
+  try {
+    const adapter = await roomMediaLifecycle().ensureYoutube({ owner: audio, videoId: audio.video.videoId,
+      mount, isCurrent, create: (...args) => StudioYtPlayer.create(...args), destroy: adapter => StudioYtPlayer.destroy(adapter),
+      onReady: adapter => StudyVideoSourceUI.watchPlayer(adapter, note, audio) });
+    if (!adapter || !isCurrent()) return null;
+    StudioMediaKaraoke.bind({ media: adapter, entries: audio.timing ? audio.timing.entries : null,
+      rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
     roomMediaApplyLayout();
     return adapter;
-  };
-  if(roomMediaYtAdapter)return bind(roomMediaYtAdapter);
-  if (!roomMediaYtCreating) {
-    const mountEl = $('roomMediaYtMount'); if (!mountEl) return null;
-    mountEl.hidden = false;
-    const wantedVideoId = audio.video.videoId;
-    roomMediaYtAbort=new AbortController();
-    roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId,{signal:roomMediaYtAbort.signal})
-      .then((adapter) => {
-        const stillWanted = roomMediaAudio === audio;
-        if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mountEl.hidden = true; return null; }
-        roomMediaYtAdapter = adapter; roomMediaYtVideoId = wantedVideoId;
-        StudyVideoSourceUI.watchPlayer(adapter,$('roomMediaBarNote'),audio);
-        return bind(adapter);
-      })
-      .catch((e) => { mountEl.hidden = true; throw e; })
-      .finally(() => { roomMediaYtCreating = null; });
-  }
-  try {
-    const adapter=await roomMediaYtCreating;
-    if(!adapter && roomMediaAudio===audio && !roomMediaYtCreating)return roomMediaEnsureYoutubeStage(audio);
-    return adapter;
-  }
-  catch (error) {
-    if(roomMediaAudio!==audio)return null;
-    if(error.code==='YT_CREATE_CANCELLED')return roomMediaEnsureYoutubeStage(audio);
-    StudyVideoSourceUI.playerError($('roomMediaBarNote'),error); return null;
+  } catch (error) {
+    if (isCurrent() && error.code !== 'YT_CREATE_CANCELLED') StudyVideoSourceUI.playerError(note, error);
+    return null;
   }
 }
 async function roomMediaPlayOriginal() {
@@ -8679,7 +8660,7 @@ function maybeNudgeNiqqud(text) {
 // opening a bookmark. Falls back silently if the row is absent.
 function scrollToSentence(sid) {
   sid = String(sid);
-  const idx = readerRows.findIndex((r) => r && String(r._v3_sentenceId) === sid);
+  const idx = MaterialOpen.sentenceIndex(readerRows, sid);
   if (idx >= 0) scrollToReaderRow(idx);
 }
 
@@ -8720,7 +8701,8 @@ async function closeReader(options) {
   try { if (window.ReaderMorph && typeof window.ReaderMorph.isSheetOpen === 'function' && window.ReaderMorph.isSheetOpen()) window.ReaderMorph.closeSheet(); } catch (_) {}
   const presentationRestore = !!(options && options.presentationRestore);
   const returnStartedAt = performance.now();
-  readerOpenEpoch++;   // pending served-on-open import / ReaderCore completion loses UI authority
+  readerOpenEpoch++;
+  const closeEpoch = readerOpenEpoch;   // close loses authority if a newer open begins
   readerOpens.cancel();
   const returnRoute = readerReturnRoute;
   const returnHome = !!(options && options.returnHome === true);
@@ -8730,6 +8712,7 @@ async function closeReader(options) {
   const back = $('readerBack'); if (back) { back.disabled = true; back.dataset.busy = 'true'; back.setAttribute('aria-disabled', 'true'); }
   if (presentationRestore) { if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; } }
   else { try { await flushReaderProgress(); } catch (_) {} }
+  if (closeEpoch !== readerOpenEpoch) return;
   invalidateCorpusPresentationProgress();
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   collapseMaterialsInlineSolution({ restoreFocus: false, reattach: false });
@@ -8751,6 +8734,7 @@ async function closeReader(options) {
   readerReturnContext = null;
   if (returnRoute === 'mediatheque' && !presentationRestore && !returnHome) {
     try { await localDb.closeLocalDB(); } catch (_) {}
+    if (closeEpoch !== readerOpenEpoch) return;
     location.href = mediathequeReturnHref() || '/mediatheque.html';
     return;
   }
@@ -8774,6 +8758,7 @@ async function closeReader(options) {
     if (returnContext && returnContext.nav) corpusNav = { ...returnContext.nav };
     try { await renderCorpus(); } catch (_) {}
   }
+  if (closeEpoch !== readerOpenEpoch) return;
   // Atomic surface swap: the old reader remains the only interactive surface while
   // the hidden catalog repaints, so a fast next tap cannot target a stale row.
   if (reader) reader.hidden = true;
@@ -8784,6 +8769,7 @@ async function closeReader(options) {
   scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   await restoreReaderReturnContext(returnContext);
+  if (closeEpoch !== readerOpenEpoch) return;
   if (!presentationRestore) roomReplacePresentationState(null, 0);
   roomDiagPush({ kind: 'room.return', duration_ms: performance.now() - returnStartedAt, result: presentationRestore ? 'history' : 'ok' });
 }

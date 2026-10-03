@@ -38,7 +38,7 @@
     "smoke:media-acquisition:browser": "node scripts/premium/remote-media-browser-smoke.js",
     "smoke:docs": "node scripts/docs-route-smoke.js",
     "smoke:multitab": "node scripts/multitab/owner-follower-smoke.js",
-    "smoke:material-reliability": "node --test tests/importBatchWriters.test.js tests/materialOpenReliability.test.js tests/studioSaveIdentity.test.js tests/studioSession.test.js tests/mediathequeLoading.test.js tests/operationLease.test.js && node scripts/multitab/material-reliability-smoke.js && node scripts/multitab/studio-surfaces-smoke.js && node scripts/multitab/cold-canon-smoke.js",
+    "smoke:material-reliability": "node --test tests/importBatchWriters.test.js tests/materialOpenReliability.test.js tests/materialOpeningLifecycle.test.js tests/studioSaveIdentity.test.js tests/studioSession.test.js tests/mediathequeLoading.test.js tests/operationLease.test.js && node scripts/multitab/material-reliability-smoke.js && node scripts/multitab/material-opening-lifecycle-smoke.js && node scripts/multitab/studio-surfaces-smoke.js && node scripts/multitab/cold-canon-smoke.js",
     "bench:premium": "node tests/premium/bench.js",
     "pwa:icons": "node scripts/generate-pwa-icons.js",
     "build:morphology": "node scripts/morph/build-morphology.mjs",

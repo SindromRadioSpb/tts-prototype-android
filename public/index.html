@@ -13779,7 +13779,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=718"></script>
-<script src="/js/material-open.js?v=723"></script>
+<script src="/js/material-open.js?v=725"></script>
 <script src="/js/studio-session.js?v=723"></script>
 <script src="/js/studio-media-package.js?v=723"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
@@ -13806,7 +13806,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
 <script src="/js/table-presets.js?v=638"></script>
 <script src="/js/world-boot.js?v=715"></script>
-<script src="/js/media-host.js?v=662"></script>
+<script src="/js/media-host.js?v=725"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13875,7 +13875,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.724";
+    window.APP_VERSION = "3.11.725";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -15124,6 +15124,7 @@ function v3ProductPulseMediaFacts(rows) {
 
 async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex, opts) {
   const open = v3MaterialOpens.begin(textId);
+  try { window.v3FlushProgressNow?.(); v3MediaTeardown(); } catch (_) {}
   const header = document.getElementById("v3IdeCenterHeader");
   const content = document.getElementById("v3IdeCenterContent");
   if (!content) return;
@@ -15136,21 +15137,12 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex,
   if (header) header.style.display = "none";
 
   try {
-  // Load text metadata
-  let t;
-  if (LOCAL_MODE) {
-    const ldb = await ensureLocalDB();
-    t = await ldb.getTextById(textId);
-    if (!t) throw new Error("Text not found");
-  } else {
-    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}`);
-    if (!res.ok) throw new Error("Failed to load text");
-    const textData = await res.json();
-    t = (textData && textData.text) ? textData.text : textData;
-  }
-
+  const ldb = LOCAL_MODE ? await ensureLocalDB() : null;
+  const material = await MaterialOpen.load(textId, { localDb: ldb, getJson: v3GetJson, isCurrent: open.isCurrent });
   if (!open.isCurrent()) return;
-  open.assertIdentity(t);
+  if (!material.ok) throw material.error || new Error(material.reason);
+  const t = material.text;
+  open.mark("data");
   v3SetSourceTextFromLibrary(String(t.source_text || t.sourceText || ""));
 
   // Keep one active-card identity across Classic and IDE. This also makes the
@@ -15188,23 +15180,8 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex,
     }
   }
 
-    // Load sentences (rows)
-let rows;
-if (LOCAL_MODE) {
-  const ldb = await ensureLocalDB();
-  rows = await ldb.getSentences(textId);
-} else {
-  const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/sentences`);
-  if (!rowsRes.ok) throw new Error("Failed to load sentences");
-  const rowsData = await rowsRes.json();
-  rows = rowsData.sentences || rowsData.rows || [];
-}
-
-if (!open.isCurrent()) return;
-open.assertIdentity(t, rows);
-open.mark("data");
 // Keep DB identities while giving save/playback the same row fields as Classic.
-rows = rows.map(row => ({ ...row, ...v3MapSentenceApiRowToUiRow(row, textId) }));
+let rows = material.sentences.map(row => ({ ...row, ...v3MapSentenceApiRowToUiRow(row, textId) }));
 
 // After rows loaded: update header rows count with actual loaded rows
 if (header) {
@@ -15235,7 +15212,7 @@ if (header) {
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; const ytm0 = document.getElementById("v3MediaYtMount"); if (ytm0) ytm0.hidden = true; }
+      v3MediaLifecycle().reset();
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
@@ -15291,6 +15268,20 @@ if (header) {
     v3IdeRenderTable(rows, textId);
     open.mark("paint");
     v3RememberOpenedMaterial(textId, opts);
+    if (ldb && !(t.source_text || t.sourceText)) {
+      ldb.getTextSourceText(textId).then(async source => {
+        if (!source || !open.isCurrent()) return;
+        t.source_text = source;
+        v3SetSourceTextFromLibrary(source);
+        window.v3SetActiveLibraryTextMeta?.({ textId: String(textId), sourceText: source,
+          audioAssetKey: String(t.audio_asset_key || t.audioAssetKey || ""),
+          audioTtsProfileJson: String(t.audio_tts_profile_json || t.audioTtsProfileJson || "") });
+        await v3RestoreUnboundMediaAfterSourceHydration(textId, rows, open.isCurrent);
+        if (!open.isCurrent()) return;
+        if (window.MediaRebindUI) await window.MediaRebindUI.mountInto(document.getElementById("v3RebindHost"), textId, { isCurrent: open.isCurrent });
+      }).catch(() => {});
+    }
+
     if (!immutableMaterial) {
       v3LazyFillTranslit(textId, rows, open.isCurrent).then(filled => {
         if (filled && open.isCurrent()) v3RefreshFilledTranslit(textId, rows);
@@ -15341,7 +15332,7 @@ if (header) {
     open.mark("ready");
     // Jump to specific row if requested
     if (jumpToSentenceId || jumpToOrderIndex !== undefined) {
-      const rowIdx = jumpToOrderIndex ?? rows.findIndex(r => String(r.sentenceId || r.sentence_id) === String(jumpToSentenceId));
+      const rowIdx = jumpToOrderIndex ?? MaterialOpen.sentenceIndex(rows, jumpToSentenceId);
       if (rowIdx >= 0) {
         v3IdeSelectRow(rowIdx);
         // Scroll to row
@@ -22833,7 +22824,7 @@ updatePlaylistButtonUI();
         try {
           window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
           if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-          if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; const ytm0 = document.getElementById("v3MediaYtMount"); if (ytm0) ytm0.hidden = true; }
+          v3MediaLifecycle().reset();
           if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
         } catch (_) {}
 		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
@@ -25471,7 +25462,7 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
         // B into the same text, Translate — without stop() first, row 0 lit up on B's table
         // forever.
         if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-        window.StudioYtPlayer.destroy(window.v3YtStageAdapter);
+        v3MediaLifecycle().reset();
         window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
         const ytm = document.getElementById("v3MediaYtMount"); if (ytm) ytm.hidden = true; // MINOR: don't leave an empty stage div visible
       }
@@ -25493,7 +25484,7 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
       // IMPORTANT 4 (whole-branch review 2026-07-28): stop() before destroy() — see the
       // matching comment on the `!audio` branch above for the full rationale/repro.
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      window.StudioYtPlayer.destroy(window.v3YtStageAdapter);
+      v3MediaLifecycle().reset();
       window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
       const ytm = document.getElementById("v3MediaYtMount"); if (ytm) ytm.hidden = true; // MINOR: don't leave an empty stage div visible
     }
@@ -25726,6 +25717,23 @@ function v3AdoptSavedTableMeta(textRow) {
 
 // Резолвер блоба и стейдж плеера — инстансы общего MediaHost (media-host.js); ленивые,
 // чтобы не зависеть от порядка загрузки скриптов. Кэш блоба живёт в инстансе резолвера.
+let v3MediaLifecycleInst = null;
+function v3MediaLifecycle() {
+  if (!v3MediaLifecycleInst) v3MediaLifecycleInst = MediaHost.createLifecycle({
+    stop: () => window.StudioMediaKaraoke?.stop(),
+    destroyLocal: () => v3MediaDestroyLocalStage(),
+    clearResolver: () => v3MediaResolverClear(),
+    onAdapter: (adapter, videoId) => { window.v3YtStageAdapter = adapter; window.v3YtStageVideoId = videoId; },
+  });
+  return v3MediaLifecycleInst;
+}
+function v3MediaTeardown() {
+  v3PlaybackSerial++;
+  v3PlaybackAudio = null; v3PlaybackBase = null;
+  window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
+  v3MediaLifecycle().reset();
+  const bar = document.getElementById('v3MediaBar'); if (bar) bar.hidden = true;
+}
 let v3MediaResolverInst = null, v3MediaStageInst = null;
 function v3MediaResolver() {
   if (!v3MediaResolverInst && window.MediaHost) v3MediaResolverInst = MediaHost.createBlobResolver({ getSessionBlob: () => window.v3SessionMediaBlob || null });
@@ -25806,10 +25814,7 @@ function v3MediaBarRefresh(prepared) {
     if(serial!==v3PlaybackSerial || base!==window.v3ActiveMediaAudio || (prepared?.isCurrent && !prepared.isCurrent())) return;
     const old=v3PlaybackAudio;
     if(prepared?.retry || JSON.stringify(old)!==JSON.stringify(audio)) {
-      if(v3YtStageAbort) v3YtStageAbort.abort();
-      StudioMediaKaraoke.stop(); v3MediaDestroyLocalStage();
-      if(window.v3YtStageAdapter) StudioYtPlayer.destroy(window.v3YtStageAdapter);
-      window.v3YtStageAdapter=null; window.v3YtStageVideoId=null;
+      v3MediaLifecycle().reset();
       const mount=document.getElementById('v3MediaYtMount'); if(mount)mount.hidden=true;
     } else audio=old;
     v3PlaybackBase=base; v3PlaybackAudio=audio;
@@ -25870,48 +25875,26 @@ function v3MediaRenderBar() {
   }).catch(() => { if (v3MediaCurrentAudio() === audio) { v3MediaDestroyLocalStage(); v3MediaAugmentRows(); } });
 }
 
-let v3YtStageCreatePromise = null, v3YtStageAbort = null;
-
 async function v3MediaEnsureYoutubeStage(audio) {
-  if(!audio || !audio.video || !audio.video.videoId || v3MediaCurrentAudio()!==audio)return null;
-  delete document.getElementById('v3MediaBarNote').dataset.youtubeError;
-  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) {
-    StudyVideoSourceUI.compatibleShell();
-    return null;
+  const isCurrent = () => !!audio && v3MediaCurrentAudio() === audio;
+  if (!isCurrent() || !audio.video?.videoId) return null;
+  const note = document.getElementById('v3MediaBarNote');
+  if (note) delete note.dataset.youtubeError;
+  if (!window.StudioYtPlayer || !StudioYtPlayer.capability().supported) {
+    StudyVideoSourceUI.compatibleShell(); return null;
   }
-  const entries=audio.timing ? audio.timing.entries : null;
-  const bind=adapter=>{
-    if(!adapter || v3MediaCurrentAudio()!==audio)return null;
-    StudioMediaKaraoke.bind({media:adapter,entries,rowCount:Array.isArray(currentTableData)?currentTableData.length:0,onRangeChange:v3MediaFollowTableRange});
-    return adapter;
-  };
-  if(window.v3YtStageAdapter)return bind(window.v3YtStageAdapter);
-  if (!v3YtStageCreatePromise) {
-    const mount = document.getElementById("v3MediaYtMount");
-    if (!mount) return null;
-    mount.hidden = false;
-    const wantedVideoId = audio.video.videoId;
-    v3YtStageAbort = new AbortController();
-    v3YtStageCreatePromise = window.StudioYtPlayer.create(mount, wantedVideoId, {signal:v3YtStageAbort.signal})
-      .then((adapter) => {
-        const stillWanted = v3MediaCurrentAudio() === audio;
-        if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mount.hidden = true; return null; }
-        window.v3YtStageAdapter = adapter; window.v3YtStageVideoId = wantedVideoId;
-        StudyVideoSourceUI.watchPlayer(adapter,document.getElementById('v3MediaBarNote'),audio);
-        return bind(adapter);
-      })
-      .catch((e) => { mount.hidden = true; throw e; })
-      .finally(() => { v3YtStageCreatePromise = null; });
-  }
+  const mount = document.getElementById('v3MediaYtMount'); if (!mount) return null;
   try {
-    const adapter=await v3YtStageCreatePromise;
-    if(!adapter && v3MediaCurrentAudio()===audio && !v3YtStageCreatePromise)return v3MediaEnsureYoutubeStage(audio);
+    const adapter = await v3MediaLifecycle().ensureYoutube({ owner: audio, videoId: audio.video.videoId,
+      mount, isCurrent, create: (...args) => StudioYtPlayer.create(...args), destroy: adapter => StudioYtPlayer.destroy(adapter),
+      onReady: adapter => StudyVideoSourceUI.watchPlayer(adapter, note, audio) });
+    if (!adapter || !isCurrent()) return null;
+    StudioMediaKaraoke.bind({ media: adapter, entries: audio.timing ? audio.timing.entries : null,
+      rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0, onRangeChange: v3MediaFollowTableRange });
     return adapter;
-  }
-  catch (error) {
-    if(v3MediaCurrentAudio()!==audio)return null;
-    if(error.code==='YT_CREATE_CANCELLED')return v3MediaEnsureYoutubeStage(audio);
-    StudyVideoSourceUI.playerError(document.getElementById('v3MediaBarNote'),error); return null;
+  } catch (error) {
+    if (isCurrent() && error.code !== 'YT_CREATE_CANCELLED') StudyVideoSourceUI.playerError(note, error);
+    return null;
   }
 }
 
@@ -27698,11 +27681,9 @@ function v3SetSourceTextFromLibrary(raw) {
 
 async function v3LibraryOpenText(textId, opts) {
   const open = v3MaterialOpens.begin(textId);
+  try { window.v3FlushProgressNow?.(); v3MediaTeardown(); } catch (_) {}
   const resumeSentenceId = (opts && opts.resumeSentenceId) ? String(opts.resumeSentenceId) : null;
 const resume = !!(opts && (opts.resume || resumeSentenceId));
-
-  // flush any pending progress before switching table
-  try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
   // Phase 11.0: emit text_open (with text_close for previously-open text).
   // `source` reflects how user landed here: 'library' (default), 'search',
@@ -27713,39 +27694,20 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
   v3EmitTextOpenWithClose(textId, _emitSource);
 
   try {
-  // meta + sentences (blocking) — local-db when LOCAL_MODE, else API
-  let notesPromise, text, sentences;
-  let immutableMaterial = false;
-  if (LOCAL_MODE) {
-    const ldb = await ensureLocalDB();
-    if (!open.isCurrent()) return;
-    notesPromise = ldb.listNotes(textId).then(notes => ({ ok: true, notes })).catch(e => {
-      console.warn("notes preload failed (non-critical)", e);
-      return { ok: false, notes: [] };
-    });
-    // BRR-P0-002b — lite fetch drops the `source_text` blob (not needed to render
-    // the table — rows come from sentences) to cut ~300ms off every library open.
-    // source_text is hydrated lazily below for the Studio composer + offline cache.
-    text = await ldb.getTextByIdLite(textId);
-    sentences = await ldb.getSentences(textId);
-  } else {
-    notesPromise = v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
-      .catch((e) => {
-        console.warn("notes preload failed (non-critical)", e);
-        return { ok: false, notes: [] };
-      });
-    const [meta, sents] = await Promise.all([
-      v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
-      v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences")
-    ]);
-    text = meta && meta.text ? meta.text : null;
-    sentences = (sents && Array.isArray(sents.sentences)) ? sents.sentences : [];
+  const ldb = LOCAL_MODE ? await ensureLocalDB() : null;
+  const material = await MaterialOpen.load(textId, { localDb: ldb, getJson: typeof v3GetJson === "function" ? v3GetJson : null, isCurrent: open.isCurrent });
+  if (!open.isCurrent()) return;
+  if (!material.ok) {
+    if (material.reason === 'notFound') v3SessionStore.forget(textId);
+    throw material.error || new Error(material.reason);
   }
-
-    if (!open.isCurrent()) return;
-    if (!text) { v3SessionStore.forget(textId); throw new Error("Text not found"); }
-    open.assertIdentity(text, sentences);
-    open.mark("data");
+  const { text, sentences } = material;
+  let immutableMaterial = false;
+  // Notes are optional; start after the critical reads have been queued.
+  const notesPromise = (ldb ? ldb.listNotes(textId).then(notes => ({ ok: true, notes }))
+    : v3GetJson('/api/library/texts/' + encodeURIComponent(textId) + '/notes'))
+    .catch(() => ({ ok: false, notes: [] }));
+  open.mark("data");
     v3PrepareForNewTableRender();
     try { v3SetSourceTextFromLibrary(""); } catch (_) {}
 
@@ -27781,21 +27743,15 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; const ytm0 = document.getElementById("v3MediaYtMount"); if (ytm0) ytm0.hidden = true; }
+      v3MediaLifecycle().reset();
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
-    // K3: (а) паспорт мог лежать в source_meta_json (см. v3AdoptSavedTableMeta); (б) строки
-    // этого текста маппятся в UI-форму НИЖЕ (~«map sentences -> UI rows»), поэтому
-    // currentTableData здесь ещё принадлежит ПРОШЛОМУ тексту — передаём предложения явно, в том
-    // же порядке order_index, в котором они лягут в таблицу (сортировка — литеральный близнец
-    // той, что ниже: две копии одного правила иначе однажды разъедутся).
+    // K3: source_meta_json may contain the passport; the shared read model already
+    // orders this material's sentences. Never use the preceding currentTableData here.
     try { v3AdoptSavedTableMeta(text); } catch (_) {}
     try {
-      const mediaRows = Array.isArray(sentences)
-        ? sentences.slice().sort((a, b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
-        : null;
-      v3RestoreMediaFromMeta(v3LastGeminiMeta, mediaRows);
+      v3RestoreMediaFromMeta(v3LastGeminiMeta, sentences);
     } catch (_) {}
     // L3a: a saved table remains bound to its exact immutable revision. A newer correction
     // marks the table stale; it never rewrites sentence ids/notes/history in place.
@@ -27862,12 +27818,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     if (!open.isCurrent()) return;
 
     // map sentences -> UI rows
-        let rows = sentences
-      .slice()
-      .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
-      .map((r) => {
-        return v3MapSentenceApiRowToUiRow(r, textId);
-      });
+    let rows = sentences.map(r => v3MapSentenceApiRowToUiRow(r, textId));
 
 	      // Save offline cache for restore-on-load (Offline+F5). Factored into a
 	      // closure so the BRR-P0-002b source_text backfill below can re-save with
@@ -27977,7 +27928,7 @@ notesPromise.then(async (notesRes) => {
 	// resume by sentenceId (Dashboard Continue)
 let resumeRowIdx = null;
 if (resumeSentenceId) {
-  const idxBySid = rows.findIndex(r => r && r._v3_sentenceId === resumeSentenceId);
+  const idxBySid = MaterialOpen.sentenceIndex(rows, resumeSentenceId);
   if (idxBySid >= 0) resumeRowIdx = idxBySid;
 }
 

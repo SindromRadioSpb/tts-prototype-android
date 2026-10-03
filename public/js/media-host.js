@@ -639,7 +639,76 @@
     return { context: matches[0], reason: null, match_count: 1 };
   }
 
+  // One resource owner per surface. Table rerenders keep it; material/source
+  // changes dispose it. Each pending iframe has its own mount, so an obsolete
+  // completion can remove only its resources, never the replacement player.
+  function createLifecycle(options) {
+    options = options || {};
+    var generation = 0, youtube = null;
+    function safely(fn) { try { if (fn) fn(); } catch (_) {} }
+    function dispose(attempt) {
+      if (!attempt) return;
+      attempt.controller.abort();
+      if (attempt.adapter) {
+        var adapter = attempt.adapter; attempt.adapter = null;
+        safely(function () { attempt.destroy(adapter); });
+      }
+      safely(function () { attempt.host.remove(); });
+    }
+    function reset() {
+      generation++;
+      var previous = youtube; youtube = null;
+      safely(options.stop);
+      dispose(previous);
+      if (previous) previous.mount.hidden = true;
+      safely(options.destroyLocal);
+      safely(options.clearResolver);
+      safely(function () { if (options.onAdapter) options.onAdapter(null, null); });
+    }
+    function discard(attempt) {
+      dispose(attempt);
+      // A temporarily obsolete projection can become current again without a
+      // material switch. Do not retain its resolved-null/failed create promise.
+      if (youtube === attempt) {
+        youtube = null;
+        attempt.mount.hidden = true;
+        safely(function () { if (options.onAdapter) options.onAdapter(null, null); });
+      }
+    }
+    async function ensureYoutube(spec) {
+      if (!spec.isCurrent()) return null;
+      if (youtube && (youtube.owner !== spec.owner || youtube.videoId !== spec.videoId)) reset();
+      if (youtube) return youtube.promise;
+      var attempt = { owner: spec.owner, videoId: spec.videoId, mount: spec.mount,
+        host: spec.mount.ownerDocument.createElement('div'), controller: new AbortController(),
+        destroy: spec.destroy, adapter: null };
+      var epoch = generation;
+      var current = function () { return youtube === attempt && generation === epoch && spec.isCurrent(); };
+      youtube = attempt;
+      spec.mount.hidden = false;
+      spec.mount.appendChild(attempt.host);
+      attempt.promise = Promise.resolve().then(function () {
+        if (!current()) return null;
+        return spec.create(attempt.host, spec.videoId, { signal: attempt.controller.signal });
+      }).then(function (adapter) {
+        attempt.adapter = adapter;
+        if (!current()) { discard(attempt); return null; }
+        if (options.onAdapter) options.onAdapter(adapter, spec.videoId);
+        if (spec.onReady) spec.onReady(adapter);
+        return adapter;
+      }).catch(function (error) {
+        var wasCurrent = current();
+        discard(attempt);
+        if (!wasCurrent) return null;
+        throw error;
+      });
+      return attempt.promise;
+    }
+    return { reset: reset, ensureYoutube: ensureYoutube };
+  }
+
   var PURE = {
+    createLifecycle: createLifecycle,
     passport: passport,
     DERIVED_TIMING_DROPS: DERIVED_TIMING_DROPS,
     isDerivedTimingDrop: isDerivedTimingDrop,
@@ -684,9 +753,10 @@
   // состояние ИНСТАНСА (у каждой поверхности свой), а не модуля.
   function createBlobResolver(opts) {
     var getSessionBlob = (opts && opts.getSessionBlob) || function () { return null; };
-    var cache = null; // {identity, blob}
+    var cache = null, generation = 0; // {identity, blob}
     return {
       resolve: async function (audio) {
+        var epoch = generation;
         if (!audio || !audio.media) return null;
         // Same-origin, permission-checked publication assets stream with HTTP ranges.
         // Do not buffer a complete public movie in a mobile browser.
@@ -731,10 +801,10 @@
             }
           }
         }
-        if (blob) cache = { identity: identity, blob: blob, role: role };
+        if (blob && epoch === generation) cache = { identity: identity, blob: blob, role: role };
         return blob;
       },
-      clear: function () { cache = null; },
+      clear: function () { generation++; cache = null; },
     };
   }
 

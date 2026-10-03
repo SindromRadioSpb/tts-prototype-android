@@ -12,14 +12,19 @@
 //   • no pageerror
 
 const path = require("path");
-const { spawn, spawnSync } = require("child_process");
+const { fork, spawnSync } = require("child_process");
+const fs = require("node:fs");
+const os = require("node:os");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP } = require("../smoke-server-env");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3271;
 const BASE = `http://127.0.0.1:${PORT}`;
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 function startServer() {
-  const child = spawn(process.execPath, ["server.js"], { cwd: REPO_ROOT, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] });
+  const data = fs.mkdtempSync(path.join(os.tmpdir(), "lp-room-media-"));
+  const child = fork("-e", [SMOKE_SERVER_BOOTSTRAP], { cwd: REPO_ROOT,
+    env: smokeServerEnv(data, PORT), silent: true, windowsHide: true });
   const logs = []; child.stdout.on("data", (c) => logs.push(String(c))); child.stderr.on("data", (c) => logs.push(String(c)));
   return { child, logs };
 }
@@ -157,6 +162,7 @@ async function main() {
   const ok = (cond, msg) => { if (cond) console.log("  ✓ " + msg); else { failures.push(msg); console.log("  ✗ " + msg); } };
   try {
     const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+    await ctx.route(url => !url.href.startsWith(BASE), route => route.abort());
     const pg = await ctx.newPage();
     const pageErrors = []; pg.on("pageerror", (e) => pageErrors.push(String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
@@ -165,6 +171,10 @@ async function main() {
     // в пустой OPFS замерен в ~32с (2026-08-05), то есть гейт держался на удаче.
     await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 90000 });
 
+    // The visible tab precedes the background canon transaction. Seed only after
+    // its durable completion marker, otherwise fixture BEGIN races the real import.
+    await pg.waitForFunction(() => Number(localStorage.getItem('benyehuda_canon_version')) > 0,
+      null, { timeout: 90000 });
     const seeded = await pg.evaluate(SEED).catch((e) => { failures.push("seed failed: " + e.message); return false; });
     if (seeded) {
       // «Мои тексты» corpus grid
@@ -194,6 +204,13 @@ async function main() {
       };
       const backToGrid = async () => {
         await pg.click("#readerBack");
+        await pg.waitForFunction(() => document.getElementById('roomReader').hidden);
+        // A cold presentation restore has no in-memory grid return context.
+        // Follow the visible Home route after reload, then continue the media cases.
+        if (!(await pg.locator('.mytexts-corpus .mytexts-grid').isVisible())) {
+          await pg.click('#tabCorpus');
+          await pg.locator('.learning-corpus-entry[data-corpus="mytexts"]').click();
+        }
         await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 10000 });
       };
 
@@ -241,13 +258,17 @@ async function main() {
       ok(afterStop.playing === 0 && afterStop.current,
         "t1: stopping playback removes its overlay but keeps the working-row base");
 
+      // Rerender may rebuild the table, but must retain the current player and URL.
+      await pg.evaluate(() => { window.acceptedRoomPlayer = document.getElementById('roomMediaLocalPlayer'); window.acceptedRoomSource = window.acceptedRoomPlayer.src; });
       // rerender (смена aids) → кнопки re-инъецированы
       await pg.click("#readerAidsToggle");
       await pg.waitForSelector("#readerAids:not([hidden])", { timeout: 5000 });
       await pg.evaluate(() => { const sel = document.querySelector("#readerAids select"); if (sel && sel.options.length > 1) { sel.value = sel.options[sel.selectedIndex === 0 ? 1 : 0].value; sel.dispatchEvent(new Event("change")); } });
       await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .smk-row-replay").length === 2, { timeout: 10000 }).catch(() => failures.push("t1: replay buttons did not survive rerenderReader"));
       console.log("  ✓ t1: replay buttons re-injected after aids rerender");
+      ok(await pg.evaluate(() => window.acceptedRoomPlayer === document.getElementById('roomMediaLocalPlayer') && window.acceptedRoomPlayer.src === window.acceptedRoomSource), 'aids rerender retains the mounted player and media URL');
       await backToGrid();
+      ok(await pg.evaluate(() => !window.acceptedRoomPlayer.getAttribute('src') && !StudioMediaKaraoke.getAudioEl()), 'Back releases the media source and karaoke binding');
       const barAfterClose = await pg.evaluate(() => (document.getElementById("roomMediaBar") || {}).hidden);
       ok(barAfterClose === true, "closing the reader hides the media bar");
 
@@ -474,7 +495,7 @@ async function main() {
         "media mode: browser reload keeps the saved row visible after read-only presentation restore, got "
           + JSON.stringify(t5Reload));
       const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
-      ok(hdrStatic === "static", "site header is non-sticky while reading, got " + hdrStatic);
+      ok(["static", "relative"].includes(hdrStatic), "site header is non-sticky while reading, got " + hdrStatic);
       await backToGrid();
 
       // ── rmm-t6: video-mime → <video> с playsinline (iOS не разворачивает в полный экран) ──
