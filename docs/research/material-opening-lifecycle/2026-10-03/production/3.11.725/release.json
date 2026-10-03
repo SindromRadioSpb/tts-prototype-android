@@ -1,0 +1,39 @@
+{
+  "version": "3.11.725",
+  "commit": "5093d37cc9c88a7e6290103bc04c6330d0e981bf",
+  "deployment": {
+    "id": 2598,
+    "status": "finished",
+    "container": "glmw0wjd6nm70fntxgjy6fkp-205433142668"
+  },
+  "ci": {
+    "status": "success",
+    "url": "https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/37153215437"
+  },
+  "serverSha256MatchesGit": {
+    "server.js": "d9fffa989cda09100de84d8cf1bcbcc0be81b27a49f0a877dcfa01f6b9c807ef",
+    "public/js/media-host.js": "d084b7e3fb0206fa23c329cc0806abab14940622faadce76bb39ac7518300178",
+    "public/js/material-open.js": "e36a6f81ba98b8834d2118a62f4257e6d357da759451c6e8235ca387dcddc347"
+  },
+  "evidence": {
+    "servedAssets": "served-assets.json",
+    "publicMaterials": "browser.json",
+    "remoteLifecycleFixture": "lifecycle-browser.json",
+    "finalHealth": "final-health.json"
+  },
+  "capacity": {
+    "beforeBuild": "3.2G available / 92% used",
+    "duringBuild": "213M available / 100% used",
+    "cleanup": "sudo -n docker builder prune -af",
+    "dockerReportedReclaimed": "2.489GB",
+    "afterRollout": "2.1G available / 95% used",
+    "diskWarn": true,
+    "retained": "current and rollback images, application containers, four volumes, backups and data"
+  },
+  "limitations": [
+    "First public-material browser attempt timed out after 60000 ms; unchanged path passed on repeat. Root cause unknown; O-067 remains open.",
+    "Lifecycle races use disposable browser fixtures against served production assets; provider create/destroy is simulated.",
+    "No owner-profile, physical-device or live YouTube-playback acceptance.",
+    "Catalog timing is a single observation, not production p95."
+  ]
+}

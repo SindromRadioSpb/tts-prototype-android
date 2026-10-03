@@ -1,6 +1,6 @@
 # Открытие материалов и lifecycle медиаплеера
 
-Дата: 2026-10-03. База: актуальный `origin/main` `d5e6c826` / 3.11.724, повторно проверен перед завершением. Ветка: `refactor/material-opening-lifecycle`, отдельный worktree `.tmp/material-opening-lifecycle`. Версия кандидата: 3.11.725; публикация в production этим этапом не выполняется.
+Дата: 2026-10-03. База: актуальный `origin/main` `d5e6c826` / 3.11.724, повторно проверен перед завершением. Ветка: `refactor/material-opening-lifecycle`, отдельный worktree `.tmp/material-opening-lifecycle`. Версия **3.11.725 опубликована в production** по указанию владельца; release commit `5093d37c`, Coolify deployment `2598` завершён. Проверки опубликованной версии приведены ниже.
 
 Продолжение [итогового отчёта предыдущего этапа](../../reliability-performance/2026-10-03/IMPLEMENTATION.md). Для планирования прочитан его окончательный вариант из worktree `reliability-performance-audit` на `54b7d803`: дополнительный commit содержит только отчёт/evidence, runtime совпадает с `origin/main`. Основной checkout `feat/worlds-sukkot-catalog` и его чужие изменения сохранены.
 
@@ -54,6 +54,21 @@ node scripts/multitab/material-opening-lifecycle-smoke.js --checks-only
 node scripts/multitab/material-opening-lifecycle-smoke.js --root=<baseline-worktree> --out=<result.json> --benchmark-only
 ```
 
-Все изменяющие сценарии — в одноразовых профилях/БД; owner-profile не использован. Внешние provider запросы заблокированы в новых browser fixtures. Поздние YouTube-ответы моделируются на границе provider create/destroy при настоящих surface wrappers/lifecycle; реальное внешнее YouTube-воспроизведение, физические Android/iPhone и production acceptance не заявляются. Локальное воспроизведение проверено настоящими media fixtures.
+Все изменяющие сценарии — в одноразовых профилях/БД; owner-profile не использован. Внешние provider запросы заблокированы в новых browser fixtures. Поздние YouTube-ответы моделируются на границе provider create/destroy при настоящих surface wrappers/lifecycle; реальное внешнее YouTube-воспроизведение и физические Android/iPhone не проверялись. Production-проверки имеют отдельно описанный ниже объём. Локальное воспроизведение проверено настоящими media fixtures.
 
 Выделены владельцы основных чтений и media resources. Optional notes/transliteration, passport activation и surface-specific progress policy остаются в существующих оркестраторах; этот этап не является полной переписью монолитов. Виртуализация, адресная cross-tab invalidation и отдельный save coordinator — следующие самостоятельные задачи по профилю, не часть принятого результата.
+
+
+## Публикация и проверка production
+
+Публикация разрешена владельцем 2026-10-03, включая постоянное правило выкладывать последующие проверенные изменения и проверять фактически опубликованный результат. Правило внесено в `docs/AGENT_WORKFLOW.md` и находится в `main`. [Сводка релиза](production/3.11.725/release.json), [GitHub CI](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/37153215437): success. Сборка/rollout завершены, runtime **3.11.725 / 5093d37c**.
+
+- [Три последовательные проверки без кэша](production/3.11.725/served-assets.json): версия/health и 21 опубликованный ресурс совпали с Git по SHA-256. Отдельно SHA `server.js`, `media-host.js`, `material-open.js` внутри работающего контейнера совпали с release commit.
+- [Сценарий lifecycle на опубликованных ресурсах](production/3.11.725/lifecycle-browser.json): PASS, noReload, без pageerror. Одноразовый профиль, две локальные карточки по 40 строк, источник 100010 символов; сетевые запросы к production только GET/HEAD/OPTIONS. Поздние строки A, IDE B при ожидающем источнике, строка 7 по ID, запоздалый Back и две генерации медиа проверены настоящими обработчиками поверхностей. Для доступа к внутреннему обработчику runner добавляет test-only export к загруженному модулю; remote runtime не изменяется. Provider create/destroy моделируется на границе адаптера.
+- [Два настоящих публичных материала](production/3.11.725/browser.json): заголовок, первая строка и перевод совпадают с независимыми public snapshots; query identity сохраняется после полного boot; Ctrl+Click открывает новую вкладку; возврат к вкладке не перезагружает документ. Pageerror отсутствует. Каталог 1462 мс — единичное наблюдение, не p95.
+- Снимки опубликованного UI: [каталог desktop](production/3.11.725/catalog-desktop.png), [Reader desktop](production/3.11.725/reader-desktop.png), [Reader 380 px](production/3.11.725/reader-380.png). Это Chromium с заданной шириной, не физический телефон; внешнее YouTube-воспроизведение этим runner блокируется.
+- Первая попытка public-material browser runner завершилась тайм-аутом 60000 мс при ожидании первой таблицы. Тот же путь прошёл при повторе; причина первого сбоя не установлена и исправленной не объявляется (O-067). Для следующих сбоев добавлено сохранение URL, текста страницы и screenshot в локальный `.tmp/production-browser-debug`.
+
+После сборки потребовалась ранее разрешённая очистка только неиспользуемого build cache (`docker builder prune -af`). Docker сообщил 2.489 GB reclaimed; после схождения rollout свободно около **2.1 GB / 95% занято**. Текущий и rollback images, application containers, четыре volumes, данные и backups сохранены. [Финальный health](production/3.11.725/final-health.json): ok, DB/migrations ready, но `disk_warn=true`; O-047/O-055 остаются открытыми. Запас диска для дальнейших сборок по-прежнему требует отдельного решения.
+
+Доказательства и дополнительная диагностика runner сохранены в ветке `refactor/material-opening-lifecycle`; повторная production-сборка ради отчёта не запускалась. Owner-profile и платные провайдеры не использованы.

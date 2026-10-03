@@ -10,6 +10,13 @@
 
 ---
 
+## O-067 · Единичный тайм-аут открытия публичного материала на production
+- **Дата / где:** 2026-10-03 UTC, 3.11.725, `material-reliability-production-browser.js`, одноразовый анонимный Chromium.
+- **Факты:** первая попытка ожидания строк Reader по публичной ссылке `media-b0d27b30c3ddc708d506` / `work-33e1abbcf255bda33c2e834b` завершилась через 60000 мс. Тот же путь повторно прошёл для двух материалов: ID/заголовок/строка/перевод, новая вкладка и noReload верны; pageerror отсутствует. Полного trace первой попытки нет; причина не установлена, исправление не заявляется.
+- **Почему важно / предложение:** при следующем воспроизведении отделить загрузку/навигацию от чтения и рендера. Runner теперь сохраняет URL, body и screenshot при сбое; production runtime ради непроверенной гипотезы не менялся.
+- **Доказательства:** [production-раздел отчёта](../research/material-opening-lifecycle/2026-10-03/IMPLEMENTATION.md#публикация-и-проверка-production).
+- **Статус:** открыто.
+
 ## O-066 · Узкие заголовки таблицы Classic Studio на 380 px
 - **Дата / где:** 2026-10-03, isolated fixture 3.11.723, screenshot studio-380.png.
 - **Факты:** восстановленная строка видна и выделена; несколько заголовков пятиколоночной таблицы обрезаются, короткий translit переносится. CSS этой таблицы пакетом reliability не менялся; physical-device evidence отсутствует.
@@ -78,6 +85,7 @@
 - **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
 
 ## O-055 — Production build consumes preflight headroom
+- **Update 2026-10-03, 3.11.725:** до сборки 3.2G / 92%; в пике 213M / 100%. Ранее разрешённый `docker builder prune -af` сообщил 2.489GB reclaimed; после rollout 2.1G / 95%, `disk_warn=true`. Current/rollback images, application containers, четыре volumes и данные сохранены; capacity-риск остаётся. [Evidence](../research/material-opening-lifecycle/2026-10-03/production/3.11.725/release.json).
 - **Update 2026-10-03:** после 3.11.723 df 97% / 1.3G. Явно разрешённые build-cache cleanup и удаление двух idle helper от failed/cancelled сборок дали 4.3G / 89%; active+rollback images, volumes/backups сохранены. Владелец разрешил дальнейшую очистку неиспользуемого build cache по необходимости, но не произвольное удаление контейнеров/образов/данных.
 - **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.
 - **Observed:** previous free disk fell from 4.40 GiB after backup to 1.40 GiB after build. Fresh non-mutating df reports 1.5G available, 97% used. The current tracked COPY source is about 576 MB before clone/context/image overhead. Non-privileged Docker inspection is denied; cache reuse for another build is unverified.
@@ -131,6 +139,7 @@
 - **Статус:** открыто; unsigned owner pilot разрешён владельцем, окно визуально подтверждено им.
 
 ## O-047 · Production: мало резерва для серии сборок без очистки
+- **Update 2026-10-03, 3.11.725:** до сборки 3.2G / 92%; в пике 213M / 100%. Ранее разрешённый `docker builder prune -af` сообщил 2.489GB reclaimed; после rollout 2.1G / 95%, `disk_warn=true`. Current/rollback images, application containers, четыре volumes и данные сохранены; capacity-риск остаётся. [Evidence](../research/material-opening-lifecycle/2026-10-03/production/3.11.725/release.json).
 - **Повторная проверка 2026-10-01 перед 3.11.712:** `/healthz` — `disk_pct_used=94`, `disk_warn=true`; `df /` — 95%, 2.2G available. Инвентаризация Docker: build cache 2.477GB (1.201GB reclaimable), images 13.25GB. Очистка не выполнялась; вопрос резерва остаётся открытым.
 - **Дата / где:** 2026-09-29, последовательные релизы наставника 3.11.691/692.
 - **Что видно:** до релизов 85%/5.5G; после первого backup/build пик 97%. После bounded cache/image cleanup и второго релиза — 7.3G available, df 80%, health 81%/disk_warn=true. Сохранены active+rollback, все volumes/containers/backups. Прямой `docker system df` один раз попал в гонку удаления helper; повтор прошёл.

@@ -67,6 +67,14 @@ async function main() {
     const result = { status: 'PASS', version: RELEASE, at: new Date().toISOString(), anonymous: true, catalogMs, materials, errors };
     fs.writeFileSync(path.join(OUT, 'browser.json'), JSON.stringify(result, null, 2) + '\n');
     console.log(JSON.stringify(result));
+  } catch (error) {
+    const debug = path.resolve(__dirname, '../../.tmp/production-browser-debug');
+    fs.mkdirSync(debug, { recursive: true });
+    for (const [index, page] of browser.contexts().flatMap(context => context.pages()).entries()) {
+      await page.screenshot({ path: path.join(debug, `failure-${index}.png`), timeout: 5000 }).catch(() => {});
+      fs.writeFileSync(path.join(debug, `failure-${index}.txt`), page.url() + '\n' + await page.locator('body').innerText({ timeout: 5000 }).catch(() => 'unavailable'));
+    }
+    throw error;
   } finally { await browser.close(); }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-03T21:01:11.782Z",
+  "health": {
+    "ok": true,
+    "uptimeSec": 210,
+    "now": "2026-10-03T21:01:15.470Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 95,
+    "disk_warn": true
+  }
+}
