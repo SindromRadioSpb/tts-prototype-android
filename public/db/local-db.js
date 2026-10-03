@@ -1546,26 +1546,29 @@ export async function addSentences(textId, rows, opts) {
     try { return JSON.stringify(v); } catch (_) { return null; }
   };
   let written = 0;
-  for (let i = 0; i < list.length; i++) {
-    const data = list[i];
-    if (!data || !data.id) throw new Error(`addSentences: rows[${i}].id is required`);
-    const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json,
-            translation_provider, translation_meta_json } = data;
+  // 50 × 13 = 650 parameters, below even SQLite's conservative 999 limit.
+  // Values stay bound; only placeholder groups are composed into SQL.
+  for (let offset = 0; offset < list.length; offset += 50) {
+    const chunk = list.slice(offset, offset + 50), values = [];
+    for (let i = 0; i < chunk.length; i++) {
+      const data = chunk[i];
+      if (!data || !data.id) throw new Error(`addSentences: rows[${offset + i}].id is required`);
+      const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json,
+              translation_provider, translation_meta_json } = data;
+      values.push(id, textId, startOrder + offset + i,
+        toStr(he_plain), toStr(he_niqqud), toStr(translit),
+        translit_ru == null ? null : String(translit_ru),
+        toStr(ru), toJson(meta_json), toJson(edit_meta_json),
+        translation_provider == null ? null : String(translation_provider),
+        toJson(translation_meta_json), now);
+    }
     await r(
       `INSERT INTO sentences (id, text_id, order_index, he_plain, he_niqqud, translit, translit_ru,
          ru, meta_json, edit_meta_json, translation_provider, translation_meta_json, created_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [id, textId, startOrder + i,
-       toStr(he_plain), toStr(he_niqqud), toStr(translit),
-       translit_ru == null ? null : String(translit_ru),
-       toStr(ru), toJson(meta_json), toJson(edit_meta_json),
-       translation_provider == null ? null : String(translation_provider),
-       toJson(translation_meta_json), now]
+       VALUES ` + chunk.map(() => '(?,?,?,?,?,?,?,?,?,?,?,?,?)').join(','), values
     );
-    written++;
-    if (onProgress && (written === list.length || written % 10 === 0)) {
-      try { onProgress(written, list.length); } catch (_) {}
-    }
+    written += chunk.length;
+    if (onProgress) { try { onProgress(written, list.length); } catch (_) {} }
   }
   if (written) {
     await clearDerivedNiqqud(textId);
@@ -5452,24 +5455,33 @@ export async function getTextsCreatedAfter(sinceIso) {
 
 // ── audio assets ───────────────────────────────────────────────────────────
 
-export async function upsertAudioAsset({ id, asset_key, asset_type, relative_path, mime, duration_ms, size_bytes, tts_profile_json }) {
-  const now = new Date().toISOString();
-  await r(
-    `INSERT INTO audio_assets (id, asset_key, asset_type, relative_path, mime, duration_ms, size_bytes, tts_profile_json, created_at, last_used_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?)
-     ON CONFLICT(asset_key) DO UPDATE SET
-       relative_path = excluded.relative_path,
-       mime = excluded.mime,
-       duration_ms = COALESCE(excluded.duration_ms, audio_assets.duration_ms),
-       size_bytes = COALESCE(excluded.size_bytes, audio_assets.size_bytes),
-       tts_profile_json = COALESCE(excluded.tts_profile_json, audio_assets.tts_profile_json),
-       last_used_at = excluded.last_used_at`,
-    [id, asset_key, asset_type ?? 'row', relative_path ?? `audio-cache/${asset_key}.mp3`,
-     mime ?? 'audio/mpeg', duration_ms ?? null, size_bytes ?? null,
-     tts_profile_json ?? null, now, now]
-  );
-  const rows = await q('SELECT * FROM audio_assets WHERE asset_key = ?', [asset_key]);
-  return rows[0] ?? null;
+// Shared single/batch upsert semantics; the caller still owns any transaction.
+async function upsertAudioAssets(assets) {
+  const result = new Map();
+  for (let offset = 0; offset < assets.length; offset += 50) {
+    const chunk = assets.slice(offset, offset + 50), now = new Date().toISOString();
+    await r(
+      `INSERT INTO audio_assets (id, asset_key, asset_type, relative_path, mime, duration_ms, size_bytes, tts_profile_json, created_at, last_used_at)
+       VALUES ` + chunk.map(() => '(?,?,?,?,?,?,?,?,?,?)').join(',') + `
+       ON CONFLICT(asset_key) DO UPDATE SET
+         relative_path = excluded.relative_path,
+         mime = excluded.mime,
+         duration_ms = COALESCE(excluded.duration_ms, audio_assets.duration_ms),
+         size_bytes = COALESCE(excluded.size_bytes, audio_assets.size_bytes),
+         tts_profile_json = COALESCE(excluded.tts_profile_json, audio_assets.tts_profile_json),
+         last_used_at = excluded.last_used_at`,
+      chunk.flatMap(asset => [asset.id, asset.asset_key, asset.asset_type ?? 'row',
+        asset.relative_path ?? `audio-cache/${asset.asset_key}.mp3`, asset.mime ?? 'audio/mpeg',
+        asset.duration_ms ?? null, asset.size_bytes ?? null, asset.tts_profile_json ?? null, now, now])
+    );
+    const rows = await q('SELECT * FROM audio_assets WHERE asset_key IN (' + chunk.map(() => '?').join(',') + ')', chunk.map(asset => asset.asset_key));
+    rows.forEach(row => result.set(String(row.asset_key), row));
+  }
+  return result;
+}
+
+export async function upsertAudioAsset(asset) {
+  return (await upsertAudioAssets([asset])).get(String(asset.asset_key)) ?? null;
 }
 
 export async function linkSentenceAudio(sentenceId, audioId, isDefault = 1) {
@@ -6685,29 +6697,27 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       await createText({ ...textData, text_key, id: newTextId });
 
       const sentences = textData.sentences ?? textData.rows ?? [];
+      // A whole text already lives inside sp_text. Reuse the guarded batch writer:
+      // Bounded inserts, one material check/MAX/order/derived-clear/touch, not N full-text
+      // invalidations and round trips. IDs stay stable for notes/audio/bookmarks below.
+      const preparedSentences = sentences.map(row => ({ ...row, id: crypto.randomUUID() }));
+      await addSentences(newTextId, preparedSentences);
       // P0 §6.6 — карта order_index → новый sentence-id для re-anchor закладок и
       // anchor-shaped occurrences (sentence-id регенерируются на каждом импорте).
       const _oiToNewSid = new Map();
       let _sIdx = 0;
-      // E1-ревью — кэш машинного никуда, который addSentence сносит по дороге (см. ниже).
+      // Restore imported derived evidence after the batch invalidates the assembled body.
+      const pendingAudioLinks = [];
       const _derivedMetaRestore = [];   // [newSentenceId, meta_json]
-      for (const s of sentences) {
-        const newSentenceId = crypto.randomUUID();
+      for (const [sentenceIndex, s] of sentences.entries()) {
+        const newSentenceId = preparedSentences[sentenceIndex].id;
         const _oldSid = String(s.row_id || s.id || '');
         if (_oldSid) oldToNewSentenceId.set(_oldSid, newSentenceId);
         const _oi = (s.order_index != null ? Number(s.order_index) : _sIdx);
         if (Number.isFinite(_oi) && !_oiToNewSid.has(_oi)) _oiToNewSid.set(_oi, newSentenceId);
         _sIdx++;
-        await addSentence(newTextId, { ...s, id: newSentenceId });
-        // E1-ревью (R11 do-no-harm) — addSentence завершается clearDerivedNiqqud(textId),
-        // который вырезает $.niqqud_derived у ВСЕГО текста: кэш машинного никуда привязан к
-        // хэшу тела, а тело меняется на каждой вставке. При импорте тело собирается строка за
-        // строкой, поэтому эта чистка сносила ровно тот никуд, который бандл только что привёз
-        // — включая строку, вставленную мгновением раньше. Симптом (замер на живом importBundle):
-        // meta_json приезжал как "{}", he_niqqud пустой ⇒ никуд не «скрыт до пересчёта хэша», а
-        // УНИЧТОЖЕН, и восстановить его нечем, кроме повторного прогона Nakdan.
-        // Чиним НЕ трогая addSentence (его контракт нужен всем остальным писателям): запоминаем
-        // привезённый meta_json и возвращаем его один раз, когда текст собран целиком.
+        // Imported machine niqqud remains derived evidence. addSentences clears
+        // that cache once; restore the original bytes after assembling the text.
         if (s.meta_json != null) {
           try {
             const _m = (typeof s.meta_json === 'string') ? JSON.parse(s.meta_json) : s.meta_json;
@@ -6740,7 +6750,7 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
               });
             }
           }
-          const asset = await upsertAudioAsset({
+          pendingAudioLinks.push({ sentenceId: newSentenceId, asset: {
             id: crypto.randomUUID(),
             asset_key: ak,
             asset_type: 'row',
@@ -6749,13 +6759,18 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
             duration_ms: (aaMeta && aaMeta.duration_ms) || null,
             size_bytes: (aaMeta && aaMeta.size_bytes) || null,
             tts_profile_json: ttsProfileJson,
-          });
-          if (asset && asset.id) {
-            await linkSentenceAudio(newSentenceId, asset.id, 1);
-          }
+          } });
         }
       }
-      // E1-ревью — возврат машинного никуда, снесённого clearDerivedNiqqud внутри addSentence
+      // New sentence IDs have no earlier defaults. Attach their imported audio
+      // in bounded batches, preserving the shared asset-key upsert contract.
+      const importedAudio = await upsertAudioAssets(pendingAudioLinks.map(link => link.asset));
+      const links = pendingAudioLinks.map(link => [link.sentenceId, importedAudio.get(String(link.asset.asset_key))?.id]).filter(link => link[1]);
+      for (let offset = 0; offset < links.length; offset += 50) {
+        const chunk = links.slice(offset, offset + 50);
+        await r('INSERT INTO sentence_audio (sentence_id, audio_id, is_default) VALUES ' + chunk.map(() => '(?,?,1)').join(','), chunk.flat());
+      }
+      // E1-ревью — возврат машинного никуда, снесённого clearDerivedNiqqud внутри addSentences
       // (см. развёрнутый комментарий у места накопления). Делается ПОСЛЕ последней строки:
       // тело текста уже финально, поэтому source_hash в meta совпадёт с тем, что посчитает
       // проекция getSentences(), и строка честно прочитается как DERIVED. Если тело у

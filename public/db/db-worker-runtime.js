@@ -235,6 +235,11 @@ async function initDBOnce(preferVfs) {
   }
 
   await execMulti('PRAGMA foreign_keys = ON;');
+  // OPFS sync writes are costly even inside a transaction: SAVEPOINT subjournals
+  // otherwise spill tens of thousands of tiny writes during a canon import.
+  // Keep temporary work in memory. The main rollback journal and synchronous
+  // durability stay unchanged; this is not journal_mode=MEMORY.
+  if (vfsKind === 'sync') await execMulti('PRAGMA temp_store = MEMORY;');
   if (!migrated) { setPhase('migrations'); await runMigrations(); migrated = true; }
 }
 
