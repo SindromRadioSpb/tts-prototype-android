@@ -1,0 +1,74 @@
+{
+  "status": "PARTIAL",
+  "at": "2026-10-03T22:20:47.851Z",
+  "mode": "import",
+  "rounds": 1,
+  "commit": "9d1d11e7064e56f1fd59c281ef363cd5e174f38b",
+  "version": "3.11.722",
+  "environment": {
+    "os": "win32",
+    "release": "10.0.26200",
+    "cpu": "AMD Ryzen 5 5600G with Radeon Graphics         ",
+    "logicalCPUs": 12,
+    "node": "v22.22.1",
+    "chromium": "148.0.7778.96"
+  },
+  "conditions": {
+    "sequential": true,
+    "disposableProfiles": true,
+    "serviceWorkers": false,
+    "httpCache": false,
+    "providers": false,
+    "ownerData": false,
+    "deviceEvidence": false
+  },
+  "metrics": {
+    "coldCanonTransaction": {
+      "n": 1,
+      "medianMs": 30932.71499991417,
+      "minMs": 30932.71499991417,
+      "maxMs": 30932.71499991417,
+      "samplesMs": [
+        30932.71499991417
+      ]
+    },
+    "competingWriteTimeout": {
+      "n": 1,
+      "medianMs": 30152.5709,
+      "minMs": 30152.5709,
+      "maxMs": 30152.5709,
+      "samplesMs": [
+        30152.5709
+      ]
+    },
+    "coldCanonNavigationToCommit": {
+      "n": 1,
+      "medianMs": 31771.169,
+      "minMs": 31771.169,
+      "maxMs": 31771.169,
+      "samplesMs": [
+        31771.169
+      ]
+    }
+  },
+  "results": [
+    {
+      "timings": {
+        "coldCanonTransaction": 30932.71499991417,
+        "competingWriteTimeout": 30152.5709,
+        "coldCanonNavigationToCommit": 31771.169
+      },
+      "competingWrite": {
+        "ok": false,
+        "elapsedMs": 30152.5709,
+        "error": "page.evaluate: DbUnavailableError: DB_LOCK_WAIT_TIMEOUT [browser=AbortError; held=1; holder=ready; holderId=uninstrumented; vfs=AccessHandlePool]\n    at _wrapWorkerError (http://127.0.0.1:51664/db/local-db.js?v=669:113:24)\n    at _worker.onmessage (http://127.0.0.1:51664/db/local-db.js?v=669:455:21)"
+      },
+      "sqlMessages": 66967,
+      "texts": 79,
+      "rows": 6646,
+      "rowDigest": "24f98390a1d37b395444bebd6326c740077ba63c71e4383a3e7ec7f280b73308",
+      "contentVerified": true
+    }
+  ],
+  "errors": []
+}

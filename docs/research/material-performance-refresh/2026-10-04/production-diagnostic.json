@@ -1,0 +1,1137 @@
+{
+  "status": "PASS",
+  "version": "3.11.727",
+  "at": "2026-10-03T22:29:42.318Z",
+  "chromium": "148.0.7778.96",
+  "diagnostics": true,
+  "conditions": {
+    "anonymous": true,
+    "disposableProfiles": true,
+    "serviceWorkers": false,
+    "httpCache": false,
+    "remoteWrites": false,
+    "providers": false,
+    "ownerData": false,
+    "deviceEvidence": false,
+    "serverCache": "uncontrolled",
+    "network": "actual desktop connection"
+  },
+  "metrics": {
+    "catalog": {
+      "n": 1,
+      "medianMs": 1528.9325000000001,
+      "minMs": 1528.9325000000001,
+      "maxMs": 1528.9325000000001,
+      "samplesMs": [
+        1528.9325000000001
+      ]
+    },
+    "readerFirstMaterial": {
+      "n": 1,
+      "medianMs": 28606.3417,
+      "minMs": 28606.3417,
+      "maxMs": 28606.3417,
+      "samplesMs": [
+        28606.3417
+      ]
+    },
+    "readerSecondMaterial": {
+      "n": 1,
+      "medianMs": 14129.681699999997,
+      "minMs": 14129.681699999997,
+      "maxMs": 14129.681699999997,
+      "samplesMs": [
+        14129.681699999997
+      ]
+    }
+  },
+  "results": [
+    {
+      "round": 1,
+      "catalogMs": 1528.9325000000001,
+      "materials": [
+        {
+          "slug": "media-8bf803ec75e71e8b87d0",
+          "work": "work-eeb47e95ad7e278cd95d1b6b",
+          "snapshot": "1c47c8745b028e1a86424acb193a7e5d561ac624a85a29a8776faee3d58d36be",
+          "readerMs": 28606.3417,
+          "contentVerified": true,
+          "diagnostic": {
+            "atMs": 28662.384999990463,
+            "rows": 2477,
+            "rpcCount": 1713,
+            "rpcByType": {
+              "init": 1,
+              "SELECT": 632,
+              "BEGIN": 2,
+              "SAVEPOINT": 87,
+              "INSERT": 659,
+              "RELEASE": 87,
+              "UPDATE": 241,
+              "COMMIT": 2,
+              "PRAGMA": 1,
+              "analyze": 1
+            },
+            "slowRpc": [
+              {
+                "type": "init",
+                "startMs": 1262.2649998664856,
+                "durationMs": 867.710000038147
+              },
+              {
+                "type": "SELECT",
+                "startMs": 2317.199999809265,
+                "durationMs": 34.94500017166138
+              },
+              {
+                "type": "SELECT",
+                "startMs": 2317.3899998664856,
+                "durationMs": 54.03500008583069
+              },
+              {
+                "type": "SELECT",
+                "startMs": 2317.744999885559,
+                "durationMs": 70.45499992370605
+              },
+              {
+                "type": "SELECT",
+                "startMs": 2763.359999895096,
+                "durationMs": 37.325000047683716
+              },
+              {
+                "type": "SELECT",
+                "startMs": 2763.364999771118,
+                "durationMs": 52.43500018119812
+              },
+              {
+                "type": "SELECT",
+                "startMs": 2785.1849999427795,
+                "durationMs": 45.125
+              },
+              {
+                "type": "SELECT",
+                "startMs": 3089.1749999523163,
+                "durationMs": 32.424999952316284
+              },
+              {
+                "type": "SELECT",
+                "startMs": 3089.199999809265,
+                "durationMs": 48.4300000667572
+              },
+              {
+                "type": "SELECT",
+                "startMs": 3089.2149999141693,
+                "durationMs": 69.20000004768372
+              },
+              {
+                "type": "SELECT",
+                "startMs": 3414.274999856949,
+                "durationMs": 39.08999991416931
+              },
+              {
+                "type": "SELECT",
+                "startMs": 3470.944999933243,
+                "durationMs": 32.25
+              },
+              {
+                "type": "INSERT",
+                "startMs": 3557.1799998283386,
+                "durationMs": 63.60000014305115
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 4120.439999818802,
+                "durationMs": 35.13000011444092
+              },
+              {
+                "type": "INSERT",
+                "startMs": 6897.614999771118,
+                "durationMs": 58.37000012397766
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7050.014999866486,
+                "durationMs": 84.69000005722046
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7134.629999876022,
+                "durationMs": 44.0550000667572
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7279.189999818802,
+                "durationMs": 47.99000000953674
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7405.814999818802,
+                "durationMs": 37.87000012397766
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7492.6449999809265,
+                "durationMs": 31.674999952316284
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7525.819999933243,
+                "durationMs": 31.579999923706055
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7607.859999895096,
+                "durationMs": 72.67499995231628
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7680.474999904633,
+                "durationMs": 61.22000002861023
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7831.869999885559,
+                "durationMs": 44.33500003814697
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7891.549999952316,
+                "durationMs": 30.829999923706055
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8057.169999837875,
+                "durationMs": 43.6949999332428
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8122.4349999427795,
+                "durationMs": 46.17999982833862
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8168.534999847412,
+                "durationMs": 48.34000015258789
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8258.739999771118,
+                "durationMs": 39.0550000667572
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8317.814999818802,
+                "durationMs": 47.06000018119812
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8411.144999980927,
+                "durationMs": 31.855000019073486
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8587.829999923706,
+                "durationMs": 33.28499984741211
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8654.439999818802,
+                "durationMs": 50.85000014305115
+              },
+              {
+                "type": "COMMIT",
+                "startMs": 8845.284999847412,
+                "durationMs": 197.5900001525879
+              },
+              {
+                "type": "SELECT",
+                "startMs": 9059.109999895096,
+                "durationMs": 84.23000001907349
+              },
+              {
+                "type": "INSERT",
+                "startMs": 9174.859999895096,
+                "durationMs": 52.91000008583069
+              },
+              {
+                "type": "INSERT",
+                "startMs": 9246.209999799728,
+                "durationMs": 129.88499999046326
+              },
+              {
+                "type": "INSERT",
+                "startMs": 9376.044999837875,
+                "durationMs": 52.8050000667572
+              },
+              {
+                "type": "INSERT",
+                "startMs": 9428.799999952316,
+                "durationMs": 32.33500003814697
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 9787.489999771118,
+                "durationMs": 46.64500021934509
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 9834.084999799728,
+                "durationMs": 246.26500010490417
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 10080.289999961853,
+                "durationMs": 237.28999996185303
+              },
+              {
+                "type": "COMMIT",
+                "startMs": 10318.5,
+                "durationMs": 193.29499983787537
+              },
+              {
+                "type": "SELECT",
+                "startMs": 10511.764999866486,
+                "durationMs": 237.54500007629395
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 10746.149999856949,
+                "durationMs": 498.02999997138977
+              },
+              {
+                "type": "SELECT",
+                "startMs": 10747.93499994278,
+                "durationMs": 708.5699999332428
+              },
+              {
+                "type": "PRAGMA",
+                "startMs": 10749.134999990463,
+                "durationMs": 747.9299998283386
+              },
+              {
+                "type": "SELECT",
+                "startMs": 10749.204999923706,
+                "durationMs": 1239.0550000667572
+              },
+              {
+                "type": "SELECT",
+                "startMs": 11456.479999780655,
+                "durationMs": 541.2000000476837
+              },
+              {
+                "type": "SELECT",
+                "startMs": 11497.019999980927,
+                "durationMs": 15029.074999809265
+              },
+              {
+                "type": "SELECT",
+                "startMs": 11997.644999980927,
+                "durationMs": 15634.855000019073
+              },
+              {
+                "type": "SELECT",
+                "startMs": 23858.019999980927,
+                "durationMs": 3886.7799999713898
+              },
+              {
+                "type": "SELECT",
+                "startMs": 26451.84499979019,
+                "durationMs": 2022.9900000095367
+              },
+              {
+                "type": "SELECT",
+                "startMs": 26526.014999866486,
+                "durationMs": 2074.6749999523163
+              },
+              {
+                "type": "SELECT",
+                "startMs": 27632.43499994278,
+                "durationMs": 971.039999961853
+              },
+              {
+                "type": "SELECT",
+                "startMs": 28133.34499979019,
+                "durationMs": 471.2300000190735
+              }
+            ],
+            "transactions": [
+              {
+                "startMs": 3501.984999895096,
+                "durationMs": 5540.890000104904
+              },
+              {
+                "startMs": 9141.294999837875,
+                "durationMs": 1370.5
+              }
+            ],
+            "longTasks": [
+              {
+                "startMs": 3557.569999933243,
+                "durationMs": 62
+              },
+              {
+                "startMs": 12151.40499997139,
+                "durationMs": 14374
+              },
+              {
+                "startMs": 26526.104999780655,
+                "durationMs": 1106
+              },
+              {
+                "startMs": 27745.21999979019,
+                "durationMs": 386
+              },
+              {
+                "startMs": 28132.83999991417,
+                "durationMs": 342
+              },
+              {
+                "startMs": 28475.034999847412,
+                "durationMs": 118
+              }
+            ],
+            "resources": [
+              {
+                "path": "/api/tutor/capabilities",
+                "startMs": 23858.519999980927,
+                "durationMs": 2762.0949997901917,
+                "ttfbMs": 89.8600001335144,
+                "downloadMs": 1.6399998664855957,
+                "transferSize": 360,
+                "decodedBodySize": 60
+              },
+              {
+                "path": "/data/benyehuda/canon-v4.zip",
+                "startMs": 2238.729999780655,
+                "durationMs": 1015.8150000572205,
+                "ttfbMs": 83.14000010490417,
+                "downloadMs": 930.2449998855591,
+                "transferSize": 2863142,
+                "decodedBodySize": 2862697
+              },
+              {
+                "path": "/api/public-corpora/media-8bf803ec75e71e8b87d0/works/work-eeb47e95ad7e278cd95d1b6b",
+                "startMs": 3430.0449998378754,
+                "durationMs": 672.2050001621246,
+                "ttfbMs": 335.835000038147,
+                "downloadMs": 333.375,
+                "transferSize": 675901,
+                "decodedBodySize": 3282337
+              },
+              {
+                "path": "/js/library-ui.js",
+                "startMs": 409.3599998950958,
+                "durationMs": 587.1199998855591,
+                "ttfbMs": 436.4800000190735,
+                "downloadMs": 75.79999995231628,
+                "transferSize": 327352,
+                "decodedBodySize": 1018430
+              },
+              {
+                "path": "/js/tutor-panel.js",
+                "startMs": 409.6599998474121,
+                "durationMs": 541.329999923706,
+                "ttfbMs": 446.22000002861023,
+                "downloadMs": 20.139999866485596,
+                "transferSize": 14257,
+                "decodedBodySize": 35987
+              },
+              {
+                "path": "/js/tutor-notebook.js",
+                "startMs": 409.57999992370605,
+                "durationMs": 540.0149998664856,
+                "ttfbMs": 443.1399998664856,
+                "downloadMs": 22.02999997138977,
+                "transferSize": 6307,
+                "decodedBodySize": 14984
+              },
+              {
+                "path": "/js/world-boot.js",
+                "startMs": 409.77499985694885,
+                "durationMs": 520.954999923706,
+                "ttfbMs": 442.3900001049042,
+                "downloadMs": 3.794999837875366,
+                "transferSize": 1154,
+                "decodedBodySize": 1645
+              },
+              {
+                "path": "/js/tutor-client.js",
+                "startMs": 409.4099998474121,
+                "durationMs": 514.0199999809265,
+                "ttfbMs": 437.69000005722046,
+                "downloadMs": 1.4549999237060547,
+                "transferSize": 2166,
+                "decodedBodySize": 4130
+              },
+              {
+                "path": "/js/local-translit-bundle.js",
+                "startMs": 409.23999977111816,
+                "durationMs": 509.67500019073486,
+                "ttfbMs": 429.3200001716614,
+                "downloadMs": 5.625,
+                "transferSize": 39020,
+                "decodedBodySize": 174286
+              },
+              {
+                "path": "/js/translit-display.js",
+                "startMs": 409.2849998474121,
+                "durationMs": 506.11500000953674,
+                "ttfbMs": 429.38499999046326,
+                "downloadMs": 1.9649999141693115,
+                "transferSize": 2759,
+                "decodedBodySize": 5941
+              },
+              {
+                "path": "/js/product-telemetry.js",
+                "startMs": 409.20499992370605,
+                "durationMs": 501.84500002861023,
+                "ttfbMs": 421.835000038147,
+                "downloadMs": 5.365000009536743,
+                "transferSize": 3999,
+                "decodedBodySize": 9988
+              },
+              {
+                "path": "/js/public-corpus-adapter.js",
+                "startMs": 409.16999983787537,
+                "durationMs": 500.8250000476837,
+                "ttfbMs": 419.36500000953674,
+                "downloadMs": 6.855000019073486,
+                "transferSize": 6903,
+                "decodedBodySize": 21509
+              },
+              {
+                "path": "/js/public-word-audio.js",
+                "startMs": 409.0699999332428,
+                "durationMs": 500.664999961853,
+                "ttfbMs": 419.3049998283386,
+                "downloadMs": 6.765000104904175,
+                "transferSize": 1520,
+                "decodedBodySize": 2813
+              },
+              {
+                "path": "/js/morph-host.js",
+                "startMs": 409.1099998950958,
+                "durationMs": 498.9849998950958,
+                "ttfbMs": 417.5199999809265,
+                "downloadMs": 6.994999885559082,
+                "transferSize": 9566,
+                "decodedBodySize": 28505
+              },
+              {
+                "path": "/js/portable-learning-package-repository.js",
+                "startMs": 408.72499990463257,
+                "durationMs": 494.75,
+                "ttfbMs": 412.13499999046326,
+                "downloadMs": 8.865000009536743,
+                "transferSize": 24003,
+                "decodedBodySize": 90039
+              },
+              {
+                "path": "/js/tutor-practice.js",
+                "startMs": 409.50499987602234,
+                "durationMs": 494.3800001144409,
+                "ttfbMs": 410.5199999809265,
+                "downloadMs": 8.665000200271606,
+                "transferSize": 5022,
+                "decodedBodySize": 9847
+              },
+              {
+                "path": "/js/import-center-core.js",
+                "startMs": 408.68499994277954,
+                "durationMs": 493.3250000476837,
+                "ttfbMs": 411.25,
+                "downloadMs": 8.400000095367432,
+                "transferSize": 4983,
+                "decodedBodySize": 12963
+              },
+              {
+                "path": "/js/media-stream-store.js",
+                "startMs": 408.80999994277954,
+                "durationMs": 491.5199999809265,
+                "ttfbMs": 410.64999985694885,
+                "downloadMs": 6.860000133514404,
+                "transferSize": 3835,
+                "decodedBodySize": 10145
+              },
+              {
+                "path": "/js/media-rebind-core.js",
+                "startMs": 408.96999979019165,
+                "durationMs": 489.125,
+                "ttfbMs": 408.52500009536743,
+                "downloadMs": 6.224999904632568,
+                "transferSize": 3356,
+                "decodedBodySize": 6883
+              },
+              {
+                "path": "/js/media-rebind-ui.js",
+                "startMs": 409.02499985694885,
+                "durationMs": 487.0050001144409,
+                "ttfbMs": 406.2449998855591,
+                "downloadMs": 6.380000114440918,
+                "transferSize": 6702,
+                "decodedBodySize": 15284
+              },
+              {
+                "path": "/js/subtitle-row-language.js",
+                "startMs": 408.4299998283386,
+                "durationMs": 486.99500012397766,
+                "ttfbMs": 407.3600001335144,
+                "downloadMs": 6.335000038146973,
+                "transferSize": 1250,
+                "decodedBodySize": 950
+              },
+              {
+                "path": "/js/subtitle-timing-status.js",
+                "startMs": 408.46999979019165,
+                "durationMs": 485.33000016212463,
+                "ttfbMs": 405.9100000858307,
+                "downloadMs": 5.940000057220459,
+                "transferSize": 1872,
+                "decodedBodySize": 3962
+              },
+              {
+                "path": "/js/studio-media-package.js",
+                "startMs": 407.93499994277954,
+                "durationMs": 485.00999999046326,
+                "ttfbMs": 406.1099998950958,
+                "downloadMs": 5.840000152587891,
+                "transferSize": 18076,
+                "decodedBodySize": 55281
+              },
+              {
+                "path": "/js/youtube-timing.js",
+                "startMs": 408.1099998950958,
+                "durationMs": 484.97000002861023,
+                "ttfbMs": 405.8949999809265,
+                "downloadMs": 5.900000095367432,
+                "transferSize": 7445,
+                "decodedBodySize": 17142
+              },
+              {
+                "path": "/js/study-video-transfer.js",
+                "startMs": 408.38499999046326,
+                "durationMs": 484.8149998188019,
+                "ttfbMs": 405.95500016212463,
+                "downloadMs": 5.429999828338623,
+                "transferSize": 2101,
+                "decodedBodySize": 3835
+              },
+              {
+                "path": "/js/playback-source.js",
+                "startMs": 408.05999994277954,
+                "durationMs": 484.72000002861023,
+                "ttfbMs": 405.50999999046326,
+                "downloadMs": 6.0950000286102295,
+                "transferSize": 6255,
+                "decodedBodySize": 15187
+              },
+              {
+                "path": "/js/material-revision-repository.js",
+                "startMs": 407.875,
+                "durationMs": 481.5199999809265,
+                "ttfbMs": 403.29500007629395,
+                "downloadMs": 5.200000047683716,
+                "transferSize": 5758,
+                "decodedBodySize": 18123
+              },
+              {
+                "path": "/js/media-host.js",
+                "startMs": 407.5849997997284,
+                "durationMs": 481.3900001049042,
+                "ttfbMs": 403.59500002861023,
+                "downloadMs": 5.075000047683716,
+                "transferSize": 22795,
+                "decodedBodySize": 60277
+              },
+              {
+                "path": "/js/studio-yt-player.js",
+                "startMs": 407.44999980926514,
+                "durationMs": 478.08000016212463,
+                "ttfbMs": 402.25999999046326,
+                "downloadMs": 3.370000123977661,
+                "transferSize": 6449,
+                "decodedBodySize": 14888
+              },
+              {
+                "path": "/js/studio-media-karaoke.js",
+                "startMs": 407.375,
+                "durationMs": 476.39999985694885,
+                "ttfbMs": 400.70499992370605,
+                "downloadMs": 3.384999990463257,
+                "transferSize": 6340,
+                "decodedBodySize": 15257
+              }
+            ]
+          }
+        },
+        {
+          "slug": "media-b0d27b30c3ddc708d506",
+          "work": "work-33e1abbcf255bda33c2e834b",
+          "snapshot": "da8f6fd3889994e44b47627eef4accda52fbb79dbe0d05023d6370c1459cadcb",
+          "readerMs": 14129.681699999997,
+          "contentVerified": true,
+          "diagnostic": {
+            "atMs": 14150.420000076294,
+            "rows": 1040,
+            "rpcCount": 85,
+            "rpcByType": {
+              "init": 1,
+              "SELECT": 52,
+              "BEGIN": 1,
+              "SAVEPOINT": 1,
+              "INSERT": 22,
+              "UPDATE": 4,
+              "RELEASE": 1,
+              "COMMIT": 1,
+              "PRAGMA": 1,
+              "analyze": 1
+            },
+            "slowRpc": [
+              {
+                "type": "init",
+                "startMs": 3239.5350000858307,
+                "durationMs": 1427.2300000190735
+              },
+              {
+                "type": "SELECT",
+                "startMs": 4712.140000104904,
+                "durationMs": 226.48499989509583
+              },
+              {
+                "type": "SELECT",
+                "startMs": 5033.575000047684,
+                "durationMs": 225.15499997138977
+              },
+              {
+                "type": "SELECT",
+                "startMs": 5033.735000133514,
+                "durationMs": 611.5249998569489
+              },
+              {
+                "type": "SELECT",
+                "startMs": 5034.025000095367,
+                "durationMs": 628.1900000572205
+              },
+              {
+                "type": "SELECT",
+                "startMs": 5781.640000104904,
+                "durationMs": 43.83999991416931
+              },
+              {
+                "type": "SELECT",
+                "startMs": 5796.495000123978,
+                "durationMs": 44.700000047683716
+              },
+              {
+                "type": "SELECT",
+                "startMs": 6106.164999961853,
+                "durationMs": 210.9850001335144
+              },
+              {
+                "type": "SELECT",
+                "startMs": 6106.195000171661,
+                "durationMs": 591.0999999046326
+              },
+              {
+                "type": "SELECT",
+                "startMs": 6106.215000152588,
+                "durationMs": 613.9649999141693
+              },
+              {
+                "type": "SELECT",
+                "startMs": 6910.005000114441,
+                "durationMs": 241.22000002861023
+              },
+              {
+                "type": "SELECT",
+                "startMs": 6914.080000162125,
+                "durationMs": 249.7649998664856
+              },
+              {
+                "type": "SELECT",
+                "startMs": 7151.180000066757,
+                "durationMs": 256.664999961853
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7843.180000066757,
+                "durationMs": 44.05999994277954
+              },
+              {
+                "type": "INSERT",
+                "startMs": 7897.115000009537,
+                "durationMs": 129.35000014305115
+              },
+              {
+                "type": "INSERT",
+                "startMs": 8026.410000085831,
+                "durationMs": 57.53999996185303
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 8231.56500005722,
+                "durationMs": 32.605000019073486
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 8264.134999990463,
+                "durationMs": 31.080000162124634
+              },
+              {
+                "type": "COMMIT",
+                "startMs": 8295.355000019073,
+                "durationMs": 181.69000005722046
+              },
+              {
+                "type": "UPDATE",
+                "startMs": 8493.225000143051,
+                "durationMs": 141.375
+              },
+              {
+                "type": "SELECT",
+                "startMs": 8495.495000123978,
+                "durationMs": 170.61999988555908
+              },
+              {
+                "type": "PRAGMA",
+                "startMs": 8497.28500008583,
+                "durationMs": 433.42000007629395
+              },
+              {
+                "type": "SELECT",
+                "startMs": 8497.350000143051,
+                "durationMs": 574.1349999904633
+              },
+              {
+                "type": "SELECT",
+                "startMs": 8930.664999961853,
+                "durationMs": 4560.140000104904
+              },
+              {
+                "type": "SELECT",
+                "startMs": 12500.710000038147,
+                "durationMs": 1346.6500000953674
+              },
+              {
+                "type": "SELECT",
+                "startMs": 13462.695000171661,
+                "durationMs": 580.5099999904633
+              },
+              {
+                "type": "SELECT",
+                "startMs": 13490.700000047684,
+                "durationMs": 633.1400001049042
+              },
+              {
+                "type": "SELECT",
+                "startMs": 13849.045000076294,
+                "durationMs": 276.63499999046326
+              }
+            ],
+            "transactions": [
+              {
+                "startMs": 7810.2699999809265,
+                "durationMs": 666.7750000953674
+              }
+            ],
+            "longTasks": [
+              {
+                "startMs": 7592.90499997139,
+                "durationMs": 62
+              },
+              {
+                "startMs": 9394.05999994278,
+                "durationMs": 4096
+              },
+              {
+                "startMs": 13491.049999952316,
+                "durationMs": 323
+              },
+              {
+                "startMs": 13848.634999990463,
+                "durationMs": 194
+              },
+              {
+                "startMs": 14043.350000143051,
+                "durationMs": 75
+              }
+            ],
+            "resources": [
+              {
+                "path": "/js/library-ui.js",
+                "startMs": 269.9100000858307,
+                "durationMs": 2129.9100000858307,
+                "ttfbMs": 210.21000003814697,
+                "downloadMs": 1846.9100000858307,
+                "transferSize": 327370,
+                "decodedBodySize": 1018430
+              },
+              {
+                "path": "/i18n/locales/ru.js",
+                "startMs": 265.210000038147,
+                "durationMs": 1744.5750000476837,
+                "ttfbMs": 91.06500005722046,
+                "downloadMs": 1623.7850000858307,
+                "transferSize": 154483,
+                "decodedBodySize": 488114
+              },
+              {
+                "path": "/i18n/locales/he.js",
+                "startMs": 265.36500000953674,
+                "durationMs": 1696.880000114441,
+                "ttfbMs": 119.84000015258789,
+                "downloadMs": 1547.1449999809265,
+                "transferSize": 135152,
+                "decodedBodySize": 401259
+              },
+              {
+                "path": "/i18n/locales/en.js",
+                "startMs": 265.2850000858307,
+                "durationMs": 1618.3899998664856,
+                "ttfbMs": 119.99000000953674,
+                "downloadMs": 1468.6399998664856,
+                "transferSize": 116561,
+                "decodedBodySize": 325175
+              },
+              {
+                "path": "/js/reader-morph.js",
+                "startMs": 266.8250000476837,
+                "durationMs": 1539.4249999523163,
+                "ttfbMs": 382.17500019073486,
+                "downloadMs": 1092.1499998569489,
+                "transferSize": 73183,
+                "decodedBodySize": 197554
+              },
+              {
+                "path": "/js/asr-transcript.js",
+                "startMs": 267.6449999809265,
+                "durationMs": 1312.715000152588,
+                "ttfbMs": 347.3800001144409,
+                "downloadMs": 897.5,
+                "transferSize": 47695,
+                "decodedBodySize": 128348
+              },
+              {
+                "path": "/js/local-translit-bundle.js",
+                "startMs": 269.80999994277954,
+                "durationMs": 1264.0700001716614,
+                "ttfbMs": 451.1199998855591,
+                "downloadMs": 739.9000000953674,
+                "transferSize": 39020,
+                "decodedBodySize": 174286
+              },
+              {
+                "path": "/js/mentor-home.js",
+                "startMs": 266.5900001525879,
+                "durationMs": 1244.9900000095367,
+                "ttfbMs": 269.61500000953674,
+                "downloadMs": 911.8700001239777,
+                "transferSize": 42326,
+                "decodedBodySize": 134210
+              },
+              {
+                "path": "/js/studio-portable-learning-package.js",
+                "startMs": 269.1749999523163,
+                "durationMs": 1166.045000076294,
+                "ttfbMs": 451.1050000190735,
+                "downloadMs": 642.6549999713898,
+                "transferSize": 33666,
+                "decodedBodySize": 109704
+              },
+              {
+                "path": "/js/obsidian-lexical-preview.js",
+                "startMs": 265.8900001049042,
+                "durationMs": 1160.7400000095367,
+                "ttfbMs": 193.1800000667572,
+                "downloadMs": 912.545000076294,
+                "transferSize": 41918,
+                "decodedBodySize": 138625
+              },
+              {
+                "path": "/js/portable-learning-package-repository.js",
+                "startMs": 268.83000016212463,
+                "durationMs": 1090,
+                "ttfbMs": 426.71999979019165,
+                "downloadMs": 591.5300002098083,
+                "transferSize": 24003,
+                "decodedBodySize": 90039
+              },
+              {
+                "path": "/api/tutor/capabilities",
+                "startMs": 12501.25,
+                "durationMs": 1074.840000152588,
+                "ttfbMs": 80.30999994277954,
+                "downloadMs": 1.3350000381469727,
+                "transferSize": 360,
+                "decodedBodySize": 60
+              },
+              {
+                "path": "/db/jszip.min.js",
+                "startMs": 265.50999999046326,
+                "durationMs": 1072.7200000286102,
+                "ttfbMs": 198.95000004768372,
+                "downloadMs": 819.2449998855591,
+                "transferSize": 32779,
+                "decodedBodySize": 97630
+              },
+              {
+                "path": "/js/media-host.js",
+                "startMs": 267.914999961853,
+                "durationMs": 1070.0600001811981,
+                "ttfbMs": 414.83000016212463,
+                "downloadMs": 586.6150000095367,
+                "transferSize": 22795,
+                "decodedBodySize": 60277
+              },
+              {
+                "path": "/js/study-timing-repair.js",
+                "startMs": 268.414999961853,
+                "durationMs": 1032.1050000190735,
+                "ttfbMs": 420.8250000476837,
+                "downloadMs": 540.7749998569489,
+                "transferSize": 20019,
+                "decodedBodySize": 53573
+              },
+              {
+                "path": "/fonts/golos-text/golos-text-latin.woff2",
+                "startMs": 419.9800000190735,
+                "durationMs": 1007.1800000667572,
+                "ttfbMs": 156.5149998664856,
+                "downloadMs": 827.6400001049042,
+                "transferSize": 38230,
+                "decodedBodySize": 37916
+              },
+              {
+                "path": "/js/tutor-panel.js",
+                "startMs": 270.1449999809265,
+                "durationMs": 989.8550000190735,
+                "ttfbMs": 509.664999961853,
+                "downloadMs": 405.61500000953674,
+                "transferSize": 14257,
+                "decodedBodySize": 35987
+              },
+              {
+                "path": "/js/youtube-asr.js",
+                "startMs": 268.31500005722046,
+                "durationMs": 983.7000000476837,
+                "ttfbMs": 365.14999985694885,
+                "downloadMs": 548.3900001049042,
+                "transferSize": 16302,
+                "decodedBodySize": 41483
+              },
+              {
+                "path": "/js/portable-learning-package-core.js",
+                "startMs": 268.70500016212463,
+                "durationMs": 953.6099998950958,
+                "ttfbMs": 411.0350000858307,
+                "downloadMs": 471.1449999809265,
+                "transferSize": 14059,
+                "decodedBodySize": 47544
+              },
+              {
+                "path": "/js/media-package-repository.js",
+                "startMs": 268.0050001144409,
+                "durationMs": 906.5750000476837,
+                "ttfbMs": 414.52500009536743,
+                "downloadMs": 423.11500000953674,
+                "transferSize": 12446,
+                "decodedBodySize": 42399
+              },
+              {
+                "path": "/js/study-video-source-ui.js",
+                "startMs": 268.6400001049042,
+                "durationMs": 905.3099999427795,
+                "ttfbMs": 455.90499997138977,
+                "downloadMs": 378.2699999809265,
+                "transferSize": 9485,
+                "decodedBodySize": 23050
+              },
+              {
+                "path": "/js/cloud-sync.js",
+                "startMs": 266.43499994277954,
+                "durationMs": 899.8100001811981,
+                "ttfbMs": 288.0149998664856,
+                "downloadMs": 548.7250001430511,
+                "transferSize": 15586,
+                "decodedBodySize": 39658
+              },
+              {
+                "path": "/js/corpus-fts.js",
+                "startMs": 267.414999961853,
+                "durationMs": 899.1950001716614,
+                "ttfbMs": 346.22500014305115,
+                "downloadMs": 486,
+                "transferSize": 11507,
+                "decodedBodySize": 30073
+              },
+              {
+                "path": "/js/morph-host.js",
+                "startMs": 269.52500009536743,
+                "durationMs": 897.2749998569489,
+                "ttfbMs": 500.4500000476837,
+                "downloadMs": 324.14999985694885,
+                "transferSize": 9566,
+                "decodedBodySize": 28505
+              },
+              {
+                "path": "/js/lexical-resolution-ui.js",
+                "startMs": 266.039999961853,
+                "durationMs": 884.5199999809265,
+                "ttfbMs": 254.50999999046326,
+                "downloadMs": 574.6549999713898,
+                "transferSize": 16098,
+                "decodedBodySize": 44091
+              },
+              {
+                "path": "/js/media-rebind-ui.js",
+                "startMs": 269.34500002861023,
+                "durationMs": 874.6449999809265,
+                "ttfbMs": 500.875,
+                "downloadMs": 301.16999983787537,
+                "transferSize": 6702,
+                "decodedBodySize": 15284
+              },
+              {
+                "path": "/fonts/golos-text/golos-text-cyrillic.woff2",
+                "startMs": 382.72500014305115,
+                "durationMs": 861.6849999427795,
+                "ttfbMs": 157.1599998474121,
+                "downloadMs": 691.2850000858307,
+                "transferSize": 22346,
+                "decodedBodySize": 22032
+              },
+              {
+                "path": "/js/tutor-notebook.js",
+                "startMs": 270.06500005722046,
+                "durationMs": 834.289999961853,
+                "ttfbMs": 510.24500012397766,
+                "downloadMs": 249.7849998474121,
+                "transferSize": 6307,
+                "decodedBodySize": 14984
+              },
+              {
+                "path": "/js/youtube-timing.js",
+                "startMs": 268.25999999046326,
+                "durationMs": 827.2250001430511,
+                "ttfbMs": 422.4449999332428,
+                "downloadMs": 334.67000007629395,
+                "transferSize": 7445,
+                "decodedBodySize": 17142
+              },
+              {
+                "path": "/js/fsrs-core.js",
+                "startMs": 266.17000007629395,
+                "durationMs": 809.039999961853,
+                "ttfbMs": 290.1600000858307,
+                "downloadMs": 463.3899998664856,
+                "transferSize": 10469,
+                "decodedBodySize": 22653
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

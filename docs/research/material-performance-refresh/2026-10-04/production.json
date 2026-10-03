@@ -1,0 +1,139 @@
+{
+  "status": "PASS",
+  "version": "3.11.727",
+  "at": "2026-10-03T22:25:33.143Z",
+  "chromium": "148.0.7778.96",
+  "conditions": {
+    "anonymous": true,
+    "disposableProfiles": true,
+    "serviceWorkers": false,
+    "httpCache": false,
+    "remoteWrites": false,
+    "providers": false,
+    "ownerData": false,
+    "deviceEvidence": false,
+    "serverCache": "uncontrolled",
+    "network": "actual desktop connection"
+  },
+  "metrics": {
+    "catalog": {
+      "n": 4,
+      "medianMs": 1473.8077500000036,
+      "minMs": 1438.7044999999925,
+      "maxMs": 4237.948899999999,
+      "samplesMs": [
+        4237.948899999999,
+        1497.705399999999,
+        1449.9101000000082,
+        1438.7044999999925
+      ]
+    },
+    "readerFirstMaterial": {
+      "n": 4,
+      "medianMs": 29832.740300000012,
+      "minMs": 27962.196299999996,
+      "maxMs": 35967.8895,
+      "samplesMs": [
+        27962.196299999996,
+        35967.8895,
+        29108.85590000001,
+        30556.624700000015
+      ]
+    },
+    "readerSecondMaterial": {
+      "n": 4,
+      "medianMs": 13892.12485,
+      "minMs": 12279.496199999994,
+      "maxMs": 18220.14439999999,
+      "samplesMs": [
+        14340.968699999998,
+        13443.281000000003,
+        12279.496199999994,
+        18220.14439999999
+      ]
+    }
+  },
+  "results": [
+    {
+      "round": 1,
+      "catalogMs": 4237.948899999999,
+      "materials": [
+        {
+          "slug": "media-8bf803ec75e71e8b87d0",
+          "work": "work-eeb47e95ad7e278cd95d1b6b",
+          "snapshot": "1c47c8745b028e1a86424acb193a7e5d561ac624a85a29a8776faee3d58d36be",
+          "readerMs": 27962.196299999996,
+          "contentVerified": true
+        },
+        {
+          "slug": "media-b0d27b30c3ddc708d506",
+          "work": "work-33e1abbcf255bda33c2e834b",
+          "snapshot": "da8f6fd3889994e44b47627eef4accda52fbb79dbe0d05023d6370c1459cadcb",
+          "readerMs": 14340.968699999998,
+          "contentVerified": true
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "catalogMs": 1497.705399999999,
+      "materials": [
+        {
+          "slug": "media-8bf803ec75e71e8b87d0",
+          "work": "work-eeb47e95ad7e278cd95d1b6b",
+          "snapshot": "1c47c8745b028e1a86424acb193a7e5d561ac624a85a29a8776faee3d58d36be",
+          "readerMs": 35967.8895,
+          "contentVerified": true
+        },
+        {
+          "slug": "media-b0d27b30c3ddc708d506",
+          "work": "work-33e1abbcf255bda33c2e834b",
+          "snapshot": "da8f6fd3889994e44b47627eef4accda52fbb79dbe0d05023d6370c1459cadcb",
+          "readerMs": 13443.281000000003,
+          "contentVerified": true
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "catalogMs": 1449.9101000000082,
+      "materials": [
+        {
+          "slug": "media-8bf803ec75e71e8b87d0",
+          "work": "work-eeb47e95ad7e278cd95d1b6b",
+          "snapshot": "1c47c8745b028e1a86424acb193a7e5d561ac624a85a29a8776faee3d58d36be",
+          "readerMs": 29108.85590000001,
+          "contentVerified": true
+        },
+        {
+          "slug": "media-b0d27b30c3ddc708d506",
+          "work": "work-33e1abbcf255bda33c2e834b",
+          "snapshot": "da8f6fd3889994e44b47627eef4accda52fbb79dbe0d05023d6370c1459cadcb",
+          "readerMs": 12279.496199999994,
+          "contentVerified": true
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "catalogMs": 1438.7044999999925,
+      "materials": [
+        {
+          "slug": "media-8bf803ec75e71e8b87d0",
+          "work": "work-eeb47e95ad7e278cd95d1b6b",
+          "snapshot": "1c47c8745b028e1a86424acb193a7e5d561ac624a85a29a8776faee3d58d36be",
+          "readerMs": 30556.624700000015,
+          "contentVerified": true
+        },
+        {
+          "slug": "media-b0d27b30c3ddc708d506",
+          "work": "work-33e1abbcf255bda33c2e834b",
+          "snapshot": "da8f6fd3889994e44b47627eef4accda52fbb79dbe0d05023d6370c1459cadcb",
+          "readerMs": 18220.14439999999,
+          "contentVerified": true
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

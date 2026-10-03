@@ -1,0 +1,13 @@
+{
+  "status": "FAIL",
+  "runtimeCommit": "9d1d11e7",
+  "version": "3.11.722",
+  "scenario": "first cold canon import with a competing Studio write after BEGIN acknowledgement",
+  "error": "DbUnavailableError: DB_LOCK_WAIT_TIMEOUT [browser=AbortError; held=1; holder=ready; holderId=uninstrumented; vfs=AccessHandlePool]",
+  "location": "competing Studio createText",
+  "runtimeLockDeadlineMs": 30000,
+  "transactionCompletionMeasured": false,
+  "includedInTimingSummary": false,
+  "diagnosticFollowupFailure": "A subsequent diagnostic attempt awaited import completion but tried to verify rows through the already failed Studio worker; its sticky DB_LOCK_WAIT_TIMEOUT also rejected the verification query. Final runner verifies rows through the importing Reader instead. This attempt did not produce a complete timing artifact and is excluded from numeric summaries.",
+  "followup": "Keep the original runtime deadline. Capture the competing write outcome and separately await import completion. Do not silently count the timed-out write as successful."
+}

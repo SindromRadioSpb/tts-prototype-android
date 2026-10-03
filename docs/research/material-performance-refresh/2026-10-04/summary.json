@@ -1,0 +1,268 @@
+{
+  "workflows": {
+    "sources": {
+      "before": [
+        "workflows-before-a.json",
+        "workflows-before-b.json"
+      ],
+      "after": [
+        "workflows-after-a.json",
+        "workflows-after-b.json"
+      ]
+    },
+    "before": {
+      "coldStudioDbReady": {
+        "n": 4,
+        "medianMs": 1658.0503999999999,
+        "minMs": 1409.6484999999993,
+        "maxMs": 1761.9078
+      },
+      "coldReaderNavigation": {
+        "n": 4,
+        "medianMs": 1255.0483999999992,
+        "minMs": 1242.4524000000001,
+        "maxMs": 1301.3941999999988
+      },
+      "warmOpen_classic": {
+        "n": 40,
+        "medianMs": 484.2999999523163,
+        "minMs": 453.07499980926514,
+        "maxMs": 570.9949998855591
+      },
+      "warmOpen_ide": {
+        "n": 40,
+        "medianMs": 402.1725000143051,
+        "minMs": 351.09500002861023,
+        "maxMs": 477.47499990463257
+      },
+      "warmOpen_room": {
+        "n": 40,
+        "medianMs": 201.27249991893768,
+        "minMs": 174.1100001335144,
+        "maxMs": 293.32999992370605
+      },
+      "warmSaveUpdate": {
+        "n": 40,
+        "medianMs": 226.6800000667572,
+        "minMs": 203.28999996185303,
+        "maxMs": 277.74000000953674
+      },
+      "warmSaveCopy": {
+        "n": 40,
+        "medianMs": 233.88499999046326,
+        "minMs": 202.90499997138977,
+        "maxMs": 276.9100000858307
+      },
+      "coldPersonalCatalogNavigation": {
+        "n": 4,
+        "medianMs": 695.2515500000027,
+        "minMs": 621.6928000000007,
+        "maxMs": 823.7331999999951
+      },
+      "progressCommitToMediaDone": {
+        "n": 40,
+        "medianMs": 211.329833984375,
+        "minMs": 185.179931640625,
+        "maxMs": 249.199951171875
+      },
+      "progressHandlerAfterEvent": {
+        "n": 40,
+        "medianMs": 187.62744140625,
+        "minMs": 164.85498046875,
+        "maxMs": 223.510009765625
+      }
+    },
+    "after": {
+      "coldStudioDbReady": {
+        "n": 4,
+        "medianMs": 1637.8835500000007,
+        "minMs": 1401.2803999999996,
+        "maxMs": 1770.9559000000004
+      },
+      "coldReaderNavigation": {
+        "n": 4,
+        "medianMs": 1293.8723500000006,
+        "minMs": 1276.8017999999975,
+        "maxMs": 1416.3606
+      },
+      "warmOpen_classic": {
+        "n": 40,
+        "medianMs": 475.14250004291534,
+        "minMs": 438.0149998664856,
+        "maxMs": 598.7799999713898
+      },
+      "warmOpen_ide": {
+        "n": 40,
+        "medianMs": 361.6124999523163,
+        "minMs": 341.539999961853,
+        "maxMs": 475.75999999046326
+      },
+      "warmOpen_room": {
+        "n": 40,
+        "medianMs": 193.0424998998642,
+        "minMs": 181.85999989509583,
+        "maxMs": 301.45499992370605
+      },
+      "warmSaveUpdate": {
+        "n": 40,
+        "medianMs": 218.63499999046326,
+        "minMs": 181.19500017166138,
+        "maxMs": 264.4299998283386
+      },
+      "warmSaveCopy": {
+        "n": 40,
+        "medianMs": 243.57749998569489,
+        "minMs": 202,
+        "maxMs": 278.34500002861023
+      },
+      "coldPersonalCatalogNavigation": {
+        "n": 4,
+        "medianMs": 621.830750000001,
+        "minMs": 620.5398999999998,
+        "maxMs": 683.888600000002
+      },
+      "progressCommitToMediaDone": {
+        "n": 40,
+        "medianMs": 88.3475341796875,
+        "minMs": 85.580078125,
+        "maxMs": 95.88525390625
+      },
+      "progressHandlerAfterEvent": {
+        "n": 40,
+        "medianMs": 14.1375732421875,
+        "minMs": 12.434814453125,
+        "maxMs": 16.330078125
+      }
+    },
+    "changePercent": {
+      "coldStudioDbReady": -1.216298973782648,
+      "coldReaderNavigation": 3.09342253254945,
+      "warmOpen_classic": -1.8908734070416267,
+      "warmOpen_ide": -10.085224638816959,
+      "warmOpen_room": -4.088983851439276,
+      "warmSaveUpdate": -3.5490559704979274,
+      "warmSaveCopy": 4.144130660635281,
+      "coldPersonalCatalogNavigation": -10.560321656241022,
+      "progressCommitToMediaDone": -58.19448086718337,
+      "progressHandlerAfterEvent": -92.46508232685596
+    },
+    "crossTabCounts": {
+      "before": {
+        "n": 40,
+        "metadataReads": 40,
+        "mediaRenders": 40,
+        "readerWordInvalidations": 40
+      },
+      "after": {
+        "n": 40,
+        "metadataReads": 0,
+        "mediaRenders": 0,
+        "readerWordInvalidations": 0
+      }
+    }
+  },
+  "import": {
+    "sources": {
+      "before": [
+        "import-before-a.json",
+        "import-before-b.json"
+      ],
+      "after": [
+        "import-after-a.json",
+        "import-after-b.json"
+      ]
+    },
+    "before": {
+      "coldCanonTransaction": {
+        "n": 2,
+        "medianMs": 31469.40249991417,
+        "minMs": 30932.71499991417,
+        "maxMs": 32006.08999991417
+      },
+      "competingWriteTimeout": {
+        "n": 2,
+        "medianMs": 30151.07605,
+        "minMs": 30149.5812,
+        "maxMs": 30152.5709
+      },
+      "coldCanonNavigationToCommit": {
+        "n": 2,
+        "medianMs": 32349.330700000002,
+        "minMs": 31771.169,
+        "maxMs": 32927.4924
+      }
+    },
+    "after": {
+      "coldCanonTransaction": {
+        "n": 4,
+        "medianMs": 5523.47000002861,
+        "minMs": 4897.1050000190735,
+        "maxMs": 5858.7699999809265
+      },
+      "competingWriteWait": {
+        "n": 4,
+        "medianMs": 5721.845649999999,
+        "minMs": 5122.7055,
+        "maxMs": 6083.6194000000005
+      },
+      "coldCanonNavigationToCommit": {
+        "n": 4,
+        "medianMs": 6633.828149999999,
+        "minMs": 5966.7932,
+        "maxMs": 7014.6404999999995
+      }
+    },
+    "changePercent": {
+      "coldCanonTransaction": -82.44812560377125,
+      "coldCanonNavigationToCommit": -79.49315177021576
+    },
+    "competingWrites": {
+      "before": {
+        "success": 0,
+        "failed": 2
+      },
+      "after": {
+        "success": 4,
+        "failed": 0
+      }
+    }
+  },
+  "production": {
+    "catalog": {
+      "n": 4,
+      "medianMs": 1473.8077500000036,
+      "minMs": 1438.7044999999925,
+      "maxMs": 4237.948899999999,
+      "samplesMs": [
+        4237.948899999999,
+        1497.705399999999,
+        1449.9101000000082,
+        1438.7044999999925
+      ]
+    },
+    "readerFirstMaterial": {
+      "n": 4,
+      "medianMs": 29832.740300000012,
+      "minMs": 27962.196299999996,
+      "maxMs": 35967.8895,
+      "samplesMs": [
+        27962.196299999996,
+        35967.8895,
+        29108.85590000001,
+        30556.624700000015
+      ]
+    },
+    "readerSecondMaterial": {
+      "n": 4,
+      "medianMs": 13892.12485,
+      "minMs": 12279.496199999994,
+      "maxMs": 18220.14439999999,
+      "samplesMs": [
+        14340.968699999998,
+        13443.281000000003,
+        12279.496199999994,
+        18220.14439999999
+      ]
+    }
+  }
+}

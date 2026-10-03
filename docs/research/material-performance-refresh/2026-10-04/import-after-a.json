@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "at": "2026-10-03T22:21:10.369Z",
+  "mode": "import",
+  "rounds": 2,
+  "commit": "6854c9766c3dae2a4d011e22ba6a5edf6ab32ccc",
+  "version": "3.11.727",
+  "environment": {
+    "os": "win32",
+    "release": "10.0.26200",
+    "cpu": "AMD Ryzen 5 5600G with Radeon Graphics         ",
+    "logicalCPUs": 12,
+    "node": "v22.22.1",
+    "chromium": "148.0.7778.96"
+  },
+  "conditions": {
+    "sequential": true,
+    "disposableProfiles": true,
+    "serviceWorkers": false,
+    "httpCache": false,
+    "providers": false,
+    "ownerData": false,
+    "deviceEvidence": false
+  },
+  "metrics": {
+    "coldCanonTransaction": {
+      "n": 2,
+      "medianMs": 5099.960000038147,
+      "minMs": 4897.1050000190735,
+      "maxMs": 5302.8150000572205,
+      "samplesMs": [
+        5302.8150000572205,
+        4897.1050000190735
+      ]
+    },
+    "competingWriteWait": {
+      "n": 2,
+      "medianMs": 5317.5738,
+      "minMs": 5122.7055,
+      "maxMs": 5512.4421,
+      "samplesMs": [
+        5512.4421,
+        5122.7055
+      ]
+    },
+    "coldCanonNavigationToCommit": {
+      "n": 2,
+      "medianMs": 6170.614949999999,
+      "minMs": 5966.7932,
+      "maxMs": 6374.436699999999,
+      "samplesMs": [
+        6374.436699999999,
+        5966.7932
+      ]
+    }
+  },
+  "results": [
+    {
+      "timings": {
+        "coldCanonTransaction": 5302.8150000572205,
+        "competingWriteWait": 5512.4421,
+        "coldCanonNavigationToCommit": 6374.436699999999
+      },
+      "competingWrite": {
+        "ok": true,
+        "elapsedMs": 5512.4421
+      },
+      "sqlMessages": 1598,
+      "texts": 79,
+      "rows": 6646,
+      "rowDigest": "24f98390a1d37b395444bebd6326c740077ba63c71e4383a3e7ec7f280b73308",
+      "contentVerified": true
+    },
+    {
+      "timings": {
+        "coldCanonTransaction": 4897.1050000190735,
+        "competingWriteWait": 5122.7055,
+        "coldCanonNavigationToCommit": 5966.7932
+      },
+      "competingWrite": {
+        "ok": true,
+        "elapsedMs": 5122.7055
+      },
+      "sqlMessages": 1598,
+      "texts": 79,
+      "rows": 6646,
+      "rowDigest": "24f98390a1d37b395444bebd6326c740077ba63c71e4383a3e7ec7f280b73308",
+      "contentVerified": true
+    }
+  ],
+  "errors": []
+}
