@@ -6,7 +6,8 @@ const path = require('node:path');
 const { chromium } = require('playwright');
 const BASE = 'https://linguistpro.kolosei.com';
 const RELEASE = process.env.MATERIAL_RELEASE_VERSION || '3.11.724';
-const OUT = path.resolve(__dirname, '../../docs/research/reliability-performance/2026-10-03/production', RELEASE);
+const OUT = process.env.MATERIAL_RELEASE_OUTPUT ? path.resolve(process.env.MATERIAL_RELEASE_OUTPUT)
+  : path.resolve(__dirname, '../../docs/research/reliability-performance/2026-10-03/production', RELEASE);
 const normal = text => String(text || '').replace(/\s+/g, ' ').trim();
 async function main() {
   assert.equal((await (await fetch(BASE + '/api/client-config?verify=' + Date.now())).json()).version, RELEASE);

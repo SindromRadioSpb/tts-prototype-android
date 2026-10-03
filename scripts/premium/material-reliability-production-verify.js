@@ -14,7 +14,8 @@ const version = git(['show', `${commit}:public/sw.js`]).toString().match(/const 
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 const files = git(['diff', '--name-only', '9d1d11e7', commit, '--', 'public']).toString().trim().split(/\r?\n/).filter(Boolean);
 const expected = files.map(file => ({ file, sha256: sha(git(['show', `${commit}:${file}`])) }));
-const output = path.join(ROOT, 'docs/research/reliability-performance/2026-10-03/production', version);
+const output = process.env.MATERIAL_RELEASE_OUTPUT ? path.resolve(process.env.MATERIAL_RELEASE_OUTPUT)
+  : path.join(ROOT, 'docs/research/reliability-performance/2026-10-03/production', version);
 async function get(url) {
   const response = await fetch(BASE + url + '?reliability_verify=' + Date.now(), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(30000) });
   assert.equal(response.status, 200, url); return response;

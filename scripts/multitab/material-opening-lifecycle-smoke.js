@@ -10,24 +10,33 @@ const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require('
 const arg = name => process.argv.find(value => value.startsWith('--' + name + '='))?.split('=').slice(1).join('=');
 const ROOT = path.resolve(arg('root') || path.join(__dirname, '../..'));
 const OUT = path.resolve(arg('out') || path.join(__dirname, '../../.tmp/material-opening-lifecycle/result.json'));
+const REMOTE_BASE = arg('base');
 const benchmarkOnly = process.argv.includes('--benchmark-only');
 const checksOnly = process.argv.includes('--checks-only');
 async function main() {
   const data = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-opening-'));
-  const server = fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: ROOT, env: smokeServerEnv(data, 0), silent: true, windowsHide: true });
-  const logs = []; server.stdout.on('data', chunk => logs.push(String(chunk))); server.stderr.on('data', chunk => logs.push(String(chunk)));
+  const server = REMOTE_BASE ? null : fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: ROOT, env: smokeServerEnv(data, 0), silent: true, windowsHide: true });
+  const logs = []; server?.stdout.on('data', chunk => logs.push(String(chunk))); server?.stderr.on('data', chunk => logs.push(String(chunk)));
   let browser;
   try {
-    const base = 'http://127.0.0.1:' + await waitForSmokeServer(server, 30000);
+    const base = REMOTE_BASE || 'http://127.0.0.1:' + await waitForSmokeServer(server, 30000);
+    if (REMOTE_BASE) {
+      assert.ok(arg('version'), '--version is required for a remote check');
+      assert.equal((await (await fetch(base + '/api/client-config?verify=' + Date.now())).json()).version, arg('version'));
+    }
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1280, height: 850 } });
-    await context.route(url => !url.href.startsWith(base), route => route.abort());
+    await context.route('**/*', route => {
+      const request = route.request();
+      if (!request.url().startsWith(base) || (REMOTE_BASE && !['GET', 'HEAD', 'OPTIONS'].includes(request.method()))) return route.abort();
+      return route.continue();
+    });
     // Expose the real module closures only in this isolated test; no production debug API.
     await context.route('**/js/library-ui.js?*', async route => {
       const response = await route.fetch();
       await route.fulfill({ response, body: await response.text() + '\nwindow.__openingTest = { openReader, closeReader, rerenderReader, roomMediaEnsureYoutubeStage, roomMediaTeardown, getFlush: () => flushReaderProgress, setFlush: fn => { flushReaderProgress = fn; }, setAudio: audio => { roomMediaAudio = audio; } };' });
     });
-    await context.addInitScript(() => { if (location.protocol !== 'http:') return; localStorage.setItem('app.locale', 'ru'); localStorage.setItem('phase6Decision_v1', 'declined'); });
+    await context.addInitScript(() => { if (!['http:', 'https:'].includes(location.protocol)) return; localStorage.setItem('app.locale', 'ru'); localStorage.setItem('phase6Decision_v1', 'declined'); });
     const errors = []; context.on('page', page => page.on('pageerror', error => errors.push(error.message)));
     const studio = await context.newPage();
     await studio.goto(base + '/?localMode=1', { waitUntil: 'domcontentloaded' });
@@ -168,11 +177,11 @@ async function main() {
       const sorted = [...values].sort((a, b) => a - b);
       return [key, { medianMs: Math.round((sorted[4] + sorted[5]) * 50) / 100, maxMs: sorted.at(-1), samplesMs: values }];
     }));
-    const report = { result: 'PASS', benchmarkOnly, checksOnly, samplesPerSurface: checksOnly ? 0 : 10, rows: 40, sourceChars: 100010, summary,
+    const report = { result: 'PASS', base, remoteReadOnly: !!REMOTE_BASE, disposableBrowserProfile: true, benchmarkOnly, checksOnly, samplesPerSurface: checksOnly ? 0 : 10, rows: 40, sourceChars: 100010, summary,
       noReload: true, errors, scope: 'isolated Chromium desktop; warm fixed fixtures, not production p95 or device evidence' };
     fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report));
   } catch (error) { console.error(logs.slice(-10).join('')); throw error; }
-  finally { if (browser) await browser.close(); server.kill(); }
+  finally { if (browser) await browser.close(); server?.kill(); }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
