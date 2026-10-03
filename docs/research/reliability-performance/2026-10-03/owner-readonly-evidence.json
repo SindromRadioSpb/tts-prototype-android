@@ -1,0 +1,417 @@
+{
+  "sourceCommit": "9d1d11e7",
+  "capturedAt": "2026-10-03T17:49:44.049Z",
+  "evidence": "existing desktop owner tabs; retrospective resource timings, not controlled cold load or p95",
+  "surfaces": {
+    "studio": {
+      "navigation": [
+        {
+          "dclMs": 550.4850001335144,
+          "decodedBytes": 2426678,
+          "loadMs": 783.9500000476837,
+          "transferBytes": 0,
+          "type": "navigate"
+        }
+      ],
+      "nodes": 15758,
+      "paints": [
+        {
+          "ms": 331.8100001811981,
+          "name": "first-paint"
+        },
+        {
+          "ms": 331.8100001811981,
+          "name": "first-contentful-paint"
+        }
+      ],
+      "path": "/",
+      "resources": [
+        {
+          "decodedBytes": 15149,
+          "ms": 402.87000012397766,
+          "path": "/api/client-config",
+          "startMs": 159.88499999046326,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 15149,
+          "ms": 231.6800000667572,
+          "path": "/api/client-config",
+          "startMs": 309.6600000858307,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 291,
+          "ms": 220.70500016212463,
+          "path": "/api/premium/status",
+          "startMs": 313.74000000953674,
+          "transferBytes": 300
+        },
+        {
+          "decodedBytes": 27,
+          "ms": 207.8050000667572,
+          "path": "/api/product-pulse/v1/events",
+          "startMs": 797.1600000858307,
+          "transferBytes": 327
+        },
+        {
+          "decodedBytes": 3463862,
+          "ms": 167.2699999809265,
+          "path": "/data/inflection/pealim-infl-v12.json.gz",
+          "startMs": 2534.420000076294,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 75931,
+          "ms": 157.02500009536743,
+          "path": "/api/auth/me",
+          "startMs": 543.6150000095367,
+          "transferBytes": 300
+        },
+        {
+          "decodedBytes": 27,
+          "ms": 137.6800000667572,
+          "path": "/api/product-pulse/v1/events",
+          "startMs": 3939.880000114441,
+          "transferBytes": 327
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 116.20000004768372,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 521.9400000572205,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 15149,
+          "ms": 113.59000015258789,
+          "path": "/api/client-config",
+          "startMs": 542.789999961853,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 107.7350001335144,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 13698.394999980927,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 106.9300000667572,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 784.2599999904633,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 978,
+          "ms": 103.33500003814697,
+          "path": "/js/pealim-identity-overrides.js",
+          "startMs": 39.77999997138977,
+          "transferBytes": 0
+        }
+      ],
+      "scripts": 148,
+      "tables": [
+        {
+          "id": "proTable",
+          "rows": 586,
+          "visible": true
+        }
+      ],
+      "version": "3.11.722",
+      "visible": "hidden"
+    },
+    "room": {
+      "navigation": [
+        {
+          "dclMs": 528.8150000572205,
+          "decodedBytes": 326204,
+          "loadMs": 583.210000038147,
+          "transferBytes": 0,
+          "type": "back_forward"
+        }
+      ],
+      "nodes": 1133,
+      "paints": [
+        {
+          "ms": 383.89999985694885,
+          "name": "first-paint"
+        },
+        {
+          "ms": 383.89999985694885,
+          "name": "first-contentful-paint"
+        }
+      ],
+      "path": "/library.html",
+      "resources": [
+        {
+          "decodedBytes": 27,
+          "ms": 300.585000038147,
+          "path": "/api/product-pulse/v1/events",
+          "startMs": 658.0999999046326,
+          "transferBytes": 327
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 123.09000015258789,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 583.6949999332428,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 119.71500015258789,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 12022.484999895096,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 117.0550000667572,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 14115.524999856949,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 75,
+          "ms": 115.42499995231628,
+          "path": "/api/agent-access/proposals/summary",
+          "startMs": 4279.944999933243,
+          "transferBytes": 375
+        },
+        {
+          "decodedBytes": 35,
+          "ms": 102.6800000667572,
+          "path": "/api/product-pulse/v1/config",
+          "startMs": 528.7599999904633,
+          "transferBytes": 335
+        },
+        {
+          "decodedBytes": 308,
+          "ms": 92.375,
+          "path": "/api/group-corpora",
+          "startMs": 1398.5499999523163,
+          "transferBytes": 608
+        },
+        {
+          "decodedBytes": 54443,
+          "ms": 62.709999799728394,
+          "path": "/js/studio-media-package.js",
+          "startMs": 31.305000066757202,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 8055,
+          "ms": 61.97000002861023,
+          "path": "/js/voice-draft.js",
+          "startMs": 30.625,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 42399,
+          "ms": 61.87000012397766,
+          "path": "/js/media-package-repository.js",
+          "startMs": 31.164999961853027,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 17775,
+          "ms": 61.855000019073486,
+          "path": "/js/material-revision-core.js",
+          "startMs": 31.204999923706055,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 18123,
+          "ms": 61.829999923706055,
+          "path": "/js/material-revision-repository.js",
+          "startMs": 31.25,
+          "transferBytes": 0
+        }
+      ],
+      "scripts": 88,
+      "tables": [],
+      "version": null,
+      "visible": "hidden"
+    },
+    "mediatheque": {
+      "navigation": [
+        {
+          "dclMs": 119.06500005722046,
+          "decodedBytes": 2863,
+          "loadMs": 231.22000002861023,
+          "transferBytes": 0,
+          "type": "navigate"
+        }
+      ],
+      "nodes": 314,
+      "paints": [
+        {
+          "ms": 203.39999985694885,
+          "name": "first-paint"
+        },
+        {
+          "ms": 203.39999985694885,
+          "name": "first-contentful-paint"
+        }
+      ],
+      "path": "/mediatheque.html",
+      "resources": [
+        {
+          "decodedBytes": 75931,
+          "ms": 3841.079999923706,
+          "path": "/api/auth/me",
+          "startMs": 117.82500004768372,
+          "transferBytes": 5410
+        },
+        {
+          "decodedBytes": 85270,
+          "ms": 3803.350000143051,
+          "path": "/api/mediatheque",
+          "startMs": 117.71499991416931,
+          "transferBytes": 13162
+        },
+        {
+          "decodedBytes": 35502,
+          "ms": 3726.6549999713898,
+          "path": "/api/publication/mediatheque",
+          "startMs": 3960.2549998760223,
+          "transferBytes": 7199
+        },
+        {
+          "decodedBytes": 35,
+          "ms": 3655.835000038147,
+          "path": "/api/product-pulse/v1/config",
+          "startMs": 309.164999961853,
+          "transferBytes": 335
+        },
+        {
+          "decodedBytes": 27,
+          "ms": 256.5150001049042,
+          "path": "/api/product-pulse/v1/events",
+          "startMs": 3965.914999961853,
+          "transferBytes": 327
+        },
+        {
+          "decodedBytes": 15149,
+          "ms": 226.86500000953674,
+          "path": "/api/client-config",
+          "startMs": 81.95499992370605,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 59,
+          "ms": 194.47000002861023,
+          "path": "/api/tutor/capabilities",
+          "startMs": 117.38499999046326,
+          "transferBytes": 359
+        },
+        {
+          "decodedBytes": 28943,
+          "ms": 32.21499991416931,
+          "path": "/db/sqlite-api.js",
+          "startMs": 215.0550000667572,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 65018,
+          "ms": 32.084999799728394,
+          "path": "/db/migrations.js",
+          "startMs": 215.17000007629395,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 1981,
+          "ms": 32.049999952316284,
+          "path": "/db/vfs-order.js",
+          "startMs": 215.24000000953674,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 5601,
+          "ms": 31.994999885559082,
+          "path": "/db/operation-lease.js",
+          "startMs": 215.3050000667572,
+          "transferBytes": 0
+        },
+        {
+          "decodedBytes": 1677,
+          "ms": 31.93500018119812,
+          "path": "/db/storage-identity.js",
+          "startMs": 215.37999987602234,
+          "transferBytes": 0
+        }
+      ],
+      "scripts": 13,
+      "tables": [],
+      "version": null,
+      "visible": "hidden"
+    }
+  },
+  "studioStateBefore": {
+    "currentMatchesLegacy": true,
+    "currentUpdatedAt": "2026-10-03T17:37:45.911Z",
+    "legacyUpdatedAt": "2026-09-13T16:02:42.489Z",
+    "migrationMarker": "1",
+    "ownership": "shared",
+    "progress": {
+      "lastRow": 0,
+      "updatedAt": "2026-10-02T13:32:58.119Z"
+    },
+    "reads": [
+      {
+        "metaMs": 20.15499997138977,
+        "rowCount": 585,
+        "sentencesMs": 48.390000104904175
+      },
+      {
+        "metaMs": 22.695000171661377,
+        "rowCount": 585,
+        "sentencesMs": 38.019999980926514
+      },
+      {
+        "metaMs": 22.329999923706055,
+        "rowCount": 585,
+        "sentencesMs": 43.049999952316284
+      }
+    ],
+    "review": {
+      "count": 7802,
+      "sha256": "b503e1dde4fe461047080151103cd7036bbc23cfb9097a8782194e106506a663"
+    }
+  },
+  "studioStateAfter": {
+    "currentMatchesLegacy": true,
+    "currentUpdatedAt": "2026-10-03T17:37:45.911Z",
+    "legacyUpdatedAt": "2026-09-13T16:02:42.489Z",
+    "migrationMarker": "1",
+    "ownership": "shared",
+    "progress": {
+      "lastRow": 0,
+      "updatedAt": "2026-10-02T13:32:58.119Z"
+    },
+    "reads": [
+      {
+        "metaMs": 21.420000076293945,
+        "rowCount": 585,
+        "sentencesMs": 34.15499997138977
+      },
+      {
+        "metaMs": 20.744999885559082,
+        "rowCount": 585,
+        "sentencesMs": 34.174999952316284
+      },
+      {
+        "metaMs": 23.09000015258789,
+        "rowCount": 585,
+        "sentencesMs": 41.359999895095825
+      }
+    ],
+    "review": {
+      "count": 7802,
+      "sha256": "b503e1dde4fe461047080151103cd7036bbc23cfb9097a8782194e106506a663"
+    }
+  },
+  "reviewUnchanged": true
+}
