@@ -1632,6 +1632,14 @@ initDb(DB_PATH)
     } catch (e) {
       console.warn("[b7] public learning index prewarm failed (request fallback remains):", e && e.message);
     }
+    // Derived, body-free public metadata only. Warm the immutable projection
+    // after startup checks; permissions/current editions remain live per request.
+    try {
+      const catalog = await require("./db/publicationRepo").getPublicationRepo().getPublicMediatheque();
+      console.log(`[mediatheque] public metadata ready: ${catalog.items.length} items`);
+    } catch (e) {
+      console.warn('[mediatheque] metadata prewarm failed (request fallback remains):', e && e.message);
+    }
   })
   .catch((e) => {
     // initDb уже safe и отражает ошибку в health; сюда обычно не попадаем

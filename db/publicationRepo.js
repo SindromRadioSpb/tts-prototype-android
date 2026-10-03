@@ -15,7 +15,7 @@ const IngredientCore = require("../public/js/learning-compass-ingredients.js");
 const CatalogDiscovery = require("../public/js/catalog-discovery-core.js");
 const PlaybackSource = require('../public/js/playback-source.js');
 const Mediatheque = require('../public/js/mediatheque-core.js');
-const MediathequeMetadata = require('../public/js/mediatheque-metadata.js');
+const { createMediathequeCatalogReader } = require('./mediathequeCatalogReader');
 const MaterialArchive = require('../publication/materialArchive');
 
 const PERMISSIONS = Object.freeze([
@@ -885,26 +885,7 @@ function createPublicationRepo(options = {}) {
     return { revision: row ? Number(row.revision) : 0, structure,
       canUndo: !!(row && row.undo_json), edition_id: pointer && pointer.edition_id || null, editions };
   }
-  async function mediathequeCatalog() {
-    const source = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].source_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].source_meta_json'),'{}')`;
-    const table = `COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta'),json_extract(ei.snapshot_json,'$.library.texts[0].table_model_meta_json'),'{}')`;
-    const rows = await dbAll(database, `SELECT c.slug,c.title corpus_title,e.published_at,ei.public_work_id,ei.snapshot_sha256,ei.title,ei.creator,ei.position_no,ei.package_download_allowed download_allowed,
-      (json_extract(ei.snapshot_json,'$.library.texts[0].source_meta.publication_media.sha256') IS NOT NULL) has_media_file,
-      SUBSTR(COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].topic'),''),1,256) topic,
-      COALESCE(json_extract(ei.snapshot_json,'$.library.texts[0].tags'),json_extract(ei.snapshot_json,'$.library.texts[0].tags_json'),'[]') tags_json,
-      ${MediathequeMetadata.projectionSql(source, table)} media_projection,
-      EXISTS(SELECT 1 FROM json_each(ei.snapshot_json,'$.library.texts[0].rows') r
-        WHERE LENGTH(TRIM(COALESCE(json_extract(r.value,'$.russian'),json_extract(r.value,'$.ru'),'')))>0) has_translation
-      FROM published_corpora c JOIN published_corpus_editions e ON e.edition_id=c.current_edition_id
-      JOIN published_corpus_edition_items ei ON ei.edition_id=e.edition_id
-      WHERE c.status='PUBLISHED' AND ei.public_read_allowed=1 ORDER BY c.slug,ei.position_no,ei.public_work_id`);
-    return rows.map(({ media_projection, tags_json, ...row }) => {
-      let tags; try { tags = JSON.parse(tags_json); } catch (_) {};
-      return { ...row, tags: Array.isArray(tags) ? tags.filter(t => typeof t === 'string').map(t => t.slice(0,80)).slice(0,30) : [],
-        media: MediathequeMetadata.normalize(media_projection),
-        ref: { kind: 'public', slug: row.slug, workId: row.public_work_id, snapshotHash: row.snapshot_sha256 } };
-    }).filter(item => item.media.kind !== 'text');
-  }
+  const mediathequeCatalog = createMediathequeCatalogReader({ all: (sql, params) => dbAll(database, sql, params) });
   async function getPublicMediatheque() {
     const row = await dbGet(database, `SELECT e.* FROM publication_mediatheque_pointer p
       JOIN publication_mediatheque_editions e ON e.edition_id=p.edition_id WHERE p.singleton=1`);

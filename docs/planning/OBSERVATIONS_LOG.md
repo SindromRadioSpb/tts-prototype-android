@@ -17,6 +17,7 @@
 - **Статус:** открыто; не блокирует подтверждённую идентичность материала.
 
 ## O-065 · Общий unit-runner пересобирает tracked research artifacts
+- **Связь:** повторное обнаружение O-053; исправлять одной задачей изоляции builder, а не двумя независимыми изменениями.
 - **Дата / где:** 2026-10-03, `tests/physicsLearningDerivatives.test.js:149`, локальный `npm test` в отдельном worktree.
 - **Факты:** тест детерминизма дважды вызывает builder с выходом в `docs/research/physics-learning-derivatives/2026-08-27/artifacts`. После теста меняются manifest и окончания строк файлов. Эти собственные сгенерированные изменения восстановлены; результат теста не требует коммита материалов корпуса.
 - **Предложение:** дать builder явный output directory и проверять его в одноразовом каталоге; сравнение с committed artifact делать отдельно, без перезаписи.
@@ -32,31 +33,31 @@
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `tests/rowPositionRestoreAndHighlight.test.js`, `.github/workflows/smoke-check.yml`.
 - **Факты:** 20 профильных тестов прошли одновременно с четырьмя изолированными воспроизведениями дефектов. Часть проверок resume — regex по исходнику. В текущем CI workflow не вызываются существующие multitab/room-b6/reader-parity/sw-update smoke; ручное выполнение и зависимость деплоя от checks не проверены.
 - **Почему важно / предложение:** добавить исполняемые A→B→late A, новая вкладка, Back/Forward, offline и rolling-update сценарии с проверкой ID/строк/плеера/прогресса, затем release gate. План и границы evidence: [исследование](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** в работе — локальное исправление и acceptance в [IMPLEMENTATION.md](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md); production не опубликован.
+- **Статус:** закрыто — 3.11.723, `8b50eb37` / production `136213c2`; изолированные acceptance и опубликованная поставка проверены. Owner/device acceptance не подменяется этими проверками.
 
 ## O-062 · Медиатека блокирует первый каталог ожиданием локальной библиотеки и owner draft
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `public/js/mediatheque-ui.js:203–235`; опубликованный файл совпал с checkout по SHA-256.
 - **Факты:** `loadAll` ожидает public/local/auth/tutor, затем owner draft и только потом рендерит. В изолированном сценарии public готов, local задержан — render отсутствует. В уже открытой вкладке public занял 3,80 с, затем draft ещё 3,73 с (конец около 7,69 с от навигации). Это Resource Timing одного входа, не p95/точное время отрисовки.
 - **Предложение:** независимый показ готового public, фоновый owner banner/auth/tutor, адресная загрузка личной библиотеки; фазовые метрики, затем оптимизация крупных таблиц и boot. [Evidence и план](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** в работе — локальное исправление и acceptance в [IMPLEMENTATION.md](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md); production не опубликован.
+- **Статус:** закрыто — 3.11.723, `8b50eb37` / production `136213c2`; изолированные acceptance и опубликованная поставка проверены. Owner/device acceptance не подменяется этими проверками.
 
 ## O-061 · Поздняя гидратация Студии подменяет исходник уже другой карточки
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `public/index.html`, `v3LibraryOpenText`, callback `getTextSourceText`.
 - **Факты:** фактическая функция исполнена с изолированными DB/UI fixtures: A→B→готов источник B→поздний источник A. Активная карточка B, поле исходника и библиотечные метаданные становятся A. Повреждение сохранённых данных не продемонстрировано.
 - **Почему важно / предложение:** риск неверной привязки редактирования; общий номер операции/ID/ревизия до каждого async UI commit, отдельная проверка идентичности перед записью; проверить поздние notes/translit/media. [Воспроизведение](../research/reliability-performance/2026-10-03/reproduce.cjs).
-- **Статус:** открыто, высокий приоритет.
+- **Статус:** закрыто — 3.11.723, `8b50eb37` / production `136213c2`; изолированные acceptance и опубликованная поставка проверены. Owner/device acceptance не подменяется этими проверками.
 
 ## O-060 · Проверка актуальности открытия Зала выполняется после изменения таблицы
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `library-ui.js:8547`, `reader-core.js:617`; оба опубликованных файла совпали с checkout по SHA-256.
 - **Факты:** реальное ядро в изолированном сценарии A→B, завершение B→A: состояние B сохраняется, mount получает строки A. `readerOpenEpoch` проверяется после присвоения `innerHTML`. Точная пользовательская последовательность с неверной ссылкой пока не воспроизведена.
 - **Предложение:** проверять актуальность до каждого DOM commit, включая loading/error; согласованный commit идентичности/строк/плеера. [Evidence](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** открыто, высокий приоритет.
+- **Статус:** закрыто — 3.11.723, `8b50eb37` / production `136213c2`; изолированные acceptance и опубликованная поставка проверены. Owner/device acceptance не подменяется этими проверками.
 
 ## O-059 · Новая вкладка Студии снова мигрирует старый последний материал
 - **Дата / где:** 2026-10-03, `9d1d11e7`, `index.html:18025`, `v3SessionSet`; read-only Kapture владельца, Студия `3.11.722`.
 - **Факты:** legacy `localStorage` хранит указанный владельцем материал про Ярдена Бибаса от 2026-09-13; текущая сессия указывает на него же. Маркер миграции только в `sessionStorage`; новый выбор туда же, legacy не обновляется. Изолированно: A→B в первой вкладке→новая вкладка вновь получает A.
 - **Предложение:** постоянный последний сохранённый материал отдельно от черновика вкладки, общий версионированный migration marker, позиция из `text_progress`, явная ссылка старше автопродолжения. Сохранить черновики и не переключать соседние вкладки. [Evidence и приёмка](../research/reliability-performance/2026-10-03/RESEARCH.md).
-- **Статус:** в работе — локальное исправление и acceptance в [IMPLEMENTATION.md](../research/reliability-performance/2026-10-03/IMPLEMENTATION.md); production не опубликован.
+- **Статус:** закрыто — 3.11.723, `8b50eb37` / production `136213c2`; изолированные acceptance и опубликованная поставка проверены. Owner/device acceptance не подменяется этими проверками.
 
 ## O-058 — Browser-download fallback: staging retention without completion signal
 - **Дата / где:** 2026-10-02, library-transfer UI 3.11.721, браузеры без FileSystem Access API.
@@ -77,6 +78,7 @@
 - **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
 
 ## O-055 — Production build consumes preflight headroom
+- **Update 2026-10-03:** после 3.11.723 df 97% / 1.3G. Явно разрешённые build-cache cleanup и удаление двух idle helper от failed/cancelled сборок дали 4.3G / 89%; active+rollback images, volumes/backups сохранены. Владелец разрешил дальнейшую очистку неиспользуемого build cache по необходимости, но не произвольное удаление контейнеров/образов/данных.
 - **When / where:** 2026-10-02, verified 3.11.716 Coolify deployment and 3.11.717 UI-removal preparation.
 - **Observed:** previous free disk fell from 4.40 GiB after backup to 1.40 GiB after build. Fresh non-mutating df reports 1.5G available, 97% used. The current tracked COPY source is about 576 MB before clone/context/image overhead. Non-privileged Docker inspection is denied; cache reuse for another build is unverified.
 - **Impact:** the next main push automatically starts a production build. Current headroom cannot be treated as sufficient from source-diff size alone. Old approved image cleanup does not authorize deleting cache, containers, volumes or backups now.

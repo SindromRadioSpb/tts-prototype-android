@@ -10,10 +10,11 @@ const ROOT = path.resolve(__dirname, '../..');
 const BASE = 'https://linguistpro.kolosei.com';
 const git = args => execFileSync('git', args, { cwd: ROOT, maxBuffer: 16 * 1024 * 1024 });
 const commit = process.env.MATERIAL_RELEASE_COMMIT || git(['rev-parse', 'HEAD']).toString().trim();
+const version = git(['show', `${commit}:public/sw.js`]).toString().match(/const CACHE_VERSION = "v([^"]+)"/)[1];
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 const files = git(['diff', '--name-only', '9d1d11e7', commit, '--', 'public']).toString().trim().split(/\r?\n/).filter(Boolean);
 const expected = files.map(file => ({ file, sha256: sha(git(['show', `${commit}:${file}`])) }));
-const output = path.join(ROOT, 'docs/research/reliability-performance/2026-10-03/production');
+const output = path.join(ROOT, 'docs/research/reliability-performance/2026-10-03/production', version);
 async function get(url) {
   const response = await fetch(BASE + url + '?reliability_verify=' + Date.now(), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(30000) });
   assert.equal(response.status, 200, url); return response;
@@ -24,7 +25,7 @@ async function main() {
     if (round) await new Promise(resolve => setTimeout(resolve, 10000));
     const config = await (await get('/api/client-config')).json();
     const health = await (await get('/healthz')).json();
-    assert.equal(config.version, '3.11.723');
+    assert.equal(config.version, version);
     assert.equal(health.ok, true); assert.equal(health.db.ready, true); assert.equal(health.migrations.ready, true);
     const assets = [];
     for (const item of expected) {
