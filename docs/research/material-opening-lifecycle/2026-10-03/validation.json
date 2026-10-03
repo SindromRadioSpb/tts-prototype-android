@@ -1,0 +1,60 @@
+{
+  "baseCommit": "d5e6c8263728fefc5ba2fd4509b3d1a38b94bbe9",
+  "implementationCommit": "66e0439a79c0377ed40cf9264496bd408382c890",
+  "evidence": "isolated automated; no owner writes or production deployment",
+  "unit": {
+    "result": "PASS",
+    "tests": 2389,
+    "failures": 0
+  },
+  "materialGate": {
+    "result": "PASS",
+    "profileTestsAtCombinedRun": 49,
+    "browserScenarios": 4,
+    "finalFollowup": "After the terminal stale-promise disposal refinement, all 2389 unit tests and lifecycle --checks-only passed again."
+  },
+  "mediaLifecycleFinalFocused": {
+    "result": "PASS",
+    "tests": 68
+  },
+  "apiSmoke": {
+    "result": "PASS",
+    "clientConfigVersion": "3.11.725"
+  },
+  "readerParity": {
+    "result": "PASS",
+    "leafChecks": 37,
+    "tableCases": 6,
+    "goldenUpdated": false
+  },
+  "roomMedia": {
+    "result": "PASS",
+    "checks": 48,
+    "scope": "real local OPFS media; iframe provider boundary tested separately"
+  },
+  "swFinal": {
+    "result": "PASS",
+    "passed": 8,
+    "scenarios": [
+      "A:studio",
+      "A:room",
+      "A:mediatheque",
+      "D",
+      "E:studio",
+      "E:room",
+      "E:mediatheque",
+      "G"
+    ],
+    "knownExclusion": "F: ordinary reload with waiting worker remains O-015"
+  },
+  "runtimeSha256": {
+    "public/index.html": "8323465665ce922efb4499023105992081048991855afb234de056d2265e58b9",
+    "public/library.html": "273f602682fd3ec5a4ca859a0dd769137ad6b47c79b6112a78cdf4ecf93f592d",
+    "public/js/library-ui.js": "5e4746d31a5107eafbe3f4ff18e6ec3fe3fa1570c59b5ebeb69973502d0a4c44",
+    "public/js/material-open.js": "e36a6f81ba98b8834d2118a62f4257e6d357da759451c6e8235ca387dcddc347",
+    "public/js/reader-core.js": "158e3281eece4ac551353112b21f4c10d7fd8d4b128e4a4af1037a503c8c4725",
+    "public/js/media-host.js": "d084b7e3fb0206fa23c329cc0806abab14940622faadce76bb39ac7518300178",
+    "public/sw.js": "9adac598d0472682ab22c1b586bd5b3ebc7c611ce38a024d074b6beda91fae4d",
+    "server.js": "d9fffa989cda09100de84d8cf1bcbcc0be81b27a49f0a877dcfa01f6b9c807ef"
+  }
+}

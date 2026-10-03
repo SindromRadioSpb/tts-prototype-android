@@ -1,0 +1,61 @@
+{
+  "result": "PASS",
+  "freshTabMaterial": "B",
+  "restoredRow": 2,
+  "lateSourceSuppressed": true,
+  "legacyPreserved": true,
+  "localRoomIndependentOfMembership": true,
+  "localRoomMs": 1245,
+  "publicCatalogIndependentOfAccount": true,
+  "catalogMs": 337,
+  "saveUpdateAndCopy": true,
+  "studioModeIdentityAndSave": true,
+  "studioTimings": [
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 361.58
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 448.05
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 559.41
+    },
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 69.61
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 126.76
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 127.07
+    },
+    {
+      "surface": "studio",
+      "phase": "data",
+      "ms": 189.46
+    },
+    {
+      "surface": "studio",
+      "phase": "paint",
+      "ms": 288.35
+    },
+    {
+      "surface": "studio",
+      "phase": "ready",
+      "ms": 400.21
+    }
+  ],
+  "errors": []
+}

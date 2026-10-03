@@ -1,0 +1,60 @@
+{
+  "result": "PASS",
+  "benchmarkOnly": true,
+  "samplesPerSurface": 10,
+  "rows": 40,
+  "sourceChars": 100010,
+  "summary": {
+    "classic": {
+      "medianMs": 505.42,
+      "maxMs": 539.73,
+      "samplesMs": [
+        452.82,
+        536.22,
+        498.14,
+        487.49,
+        474.6,
+        507.74,
+        521.94,
+        533.83,
+        539.73,
+        503.1
+      ]
+    },
+    "ide": {
+      "medianMs": 420.68,
+      "maxMs": 548.36,
+      "samplesMs": [
+        416.51,
+        445.59,
+        402.99,
+        525.45,
+        387.09,
+        413.23,
+        548.36,
+        373.95,
+        424.85,
+        427.52
+      ]
+    },
+    "room": {
+      "medianMs": 220.51,
+      "maxMs": 271.18,
+      "samplesMs": [
+        271.18,
+        253.21,
+        213.37,
+        202.01,
+        200.37,
+        204.57,
+        211.97,
+        227.65,
+        237.69,
+        238.65
+      ]
+    }
+  },
+  "noReload": true,
+  "errors": [],
+  "scope": "isolated Chromium desktop; warm fixed fixtures, not production p95 or device evidence"
+}

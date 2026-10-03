@@ -1,0 +1,24 @@
+{
+  "result": "PASS",
+  "benchmarkOnly": false,
+  "checksOnly": true,
+  "samplesPerSurface": 0,
+  "rows": 40,
+  "sourceChars": 100010,
+  "summary": {},
+  "noReload": true,
+  "errors": [],
+  "scope": "isolated Chromium desktop; warm fixed fixtures, not production p95 or device evidence",
+  "assertions": [
+    "Classic A late rows cannot replace IDE B",
+    "IDE shows B and resumes row 12 before source text",
+    "IDE sentence id selects row 7",
+    "Back cancels an unfinished Room open",
+    "a delayed Back cannot hide a newer Room material",
+    "late YouTube A cannot hide/destroy B on either surface",
+    "same video id across two materials creates separate generations",
+    "repeat ensure reuses accepted player",
+    "teardown removes owned hosts and adapters",
+    "document sentinels remain; no pageerror"
+  ]
+}

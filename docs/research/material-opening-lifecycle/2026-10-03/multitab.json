@@ -1,0 +1,13 @@
+{
+  "result": "PASS",
+  "studios": 2,
+  "room": 1,
+  "mediatheque": 1,
+  "draftsIsolated": true,
+  "noReloadOnPeerClose": true,
+  "liveCatalogueRefresh": true,
+  "deferredDialogRefresh": true,
+  "localVideoPlayback": true,
+  "frozenIdleStudio": true,
+  "errors": []
+}
