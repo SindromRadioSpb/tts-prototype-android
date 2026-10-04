@@ -31,11 +31,12 @@ test("profile fit is a bounded typed reader, not a new recommendation writer", (
   assert.doesNotMatch(ui, /(?:put|save|create|write)(?:Recommendation|ProfileFit|NextForYou)/);
 });
 
-test("every corpus places optional profile fit before an explicit catalog region", () => {
+test("Ben search precedes optional profile fit inside its explicit catalog region", () => {
   assert.match(ui, /function corpusCatalogRegion\(/);
   assert.match(ui, /class:\s*['"]corpus-catalog-region/);
-  assert.match(ui, /profileFitHost[\s\S]{0,700}catalogRegion/);
-  assert.match(ui, /main\.appendChild\(wrap\);\s*paintBenProfileFit\(profileFitHost, token\)/);
+  const ben = ui.slice(ui.indexOf('async function renderCorpusHome'), ui.indexOf('async function corpusRefreshL1Body'));
+  assert.ok(ben.indexOf('catalogRegion.appendChild(filterChrome)') < ben.indexOf("const profileFitHost"));
+  assert.match(ben, /corpusBrowseMode === 'read'.*paintBenProfileFit/);
   assert.match(ui, /groupProfileFitHost[\s\S]{0,1600}groupCatalogRegion/);
   assert.match(ui, /myProfileFitHost[\s\S]{0,1800}myCatalogRegion/);
   assert.match(shell, /\.corpus-profile-fit\b/);

@@ -125,7 +125,7 @@ test("B1 bounds My Texts and protected-corpus browse without hiding the total", 
   assert.doesNotMatch(myTexts, /myBrowseLimit \+=|found\.slice\(0, myBrowseLimit\)/);
   assert.match(libraryUi, /found\.slice\(groupBrowseOffset,groupBrowseOffset\+ROOM_BROWSE_PAGE\)/,
     "protected-corpus browse must mount only the active replacement page");
-  assert.match(libraryUi, /groupBrowseOffset\+=ROOM_BROWSE_PAGE;paint\(false\)/);
+  assert.match(libraryUi, /groupBrowseOffset\+=ROOM_BROWSE_PAGE;state\.start=groupBrowseOffset;roomPushPresentationState\(\);paint\(false\)/);
   assert.doesNotMatch(libraryUi, /groupBrowseLimit\+=ROOM_BROWSE_PAGE/,
     "pagination must not grow the protected-corpus DOM without bound");
 });

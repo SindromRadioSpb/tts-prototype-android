@@ -1,0 +1,108 @@
+{
+  "checks": [
+    {
+      "name": "private query: history, refresh, new tab, explicit share, Back",
+      "evidence": {
+        "privateUrlHasQuery": false,
+        "sharedFragmentContainsQuery": true
+      },
+      "result": "pass"
+    },
+    {
+      "name": "search/filter/passport/preview/repeat preserve OPFS canon",
+      "evidence": {
+        "tables": [
+          "anki_word_exports",
+          "artifact_sync_intents",
+          "audio_assets",
+          "bookmarks",
+          "events",
+          "history_events",
+          "lemma_inflection",
+          "lexical_resolution_events",
+          "lww_replace_backups",
+          "mediatheque_personal",
+          "note_link_suggestions",
+          "note_links",
+          "note_occurrences",
+          "note_versions",
+          "notes_v2",
+          "recent_rows",
+          "recent_texts",
+          "review_log",
+          "roots",
+          "sentence_audio",
+          "sentence_morph",
+          "sentences",
+          "shelves",
+          "srs_attempts",
+          "srs_card_exports",
+          "srs_card_templates",
+          "srs_cards",
+          "srs_review_events",
+          "srs_session_runs",
+          "studio_caption_revisions",
+          "studio_caption_tracks",
+          "studio_learning_materials",
+          "studio_learning_row_versions",
+          "studio_media_packages",
+          "studio_portable_export_receipts",
+          "studio_portable_import_receipts",
+          "studio_table_revision_rows",
+          "studio_table_revisions",
+          "studio_text_media_bindings",
+          "study_day",
+          "sync_state",
+          "text_audio",
+          "text_progress",
+          "text_user_meta",
+          "texts",
+          "translation_history",
+          "translation_overrides",
+          "v3_bootstrap",
+          "word_context",
+          "word_status"
+        ],
+        "bodies": 6,
+        "rowsShown": 4
+      },
+      "result": "pass"
+    },
+    {
+      "name": "fetch error and cancellation preserve canon",
+      "evidence": {},
+      "result": "pass"
+    },
+    {
+      "name": "desktop, 380px, RTL and keyboard catalog navigation",
+      "evidence": {},
+      "result": "pass"
+    },
+    {
+      "name": "public slug, query and bounded page survive refresh and Back",
+      "evidence": {
+        "items": 77,
+        "pageSize": 48
+      },
+      "result": "pass"
+    },
+    {
+      "name": "oversized pages clamp to actual results including empty Ben results",
+      "evidence": {
+        "publicLastPage": 2,
+        "emptyBenPage": 1
+      },
+      "result": "pass"
+    },
+    {
+      "name": "requests, telemetry, referrer and server logs contain no private query",
+      "evidence": {
+        "requests": 863,
+        "telemetryPackets": 5,
+        "errors": []
+      },
+      "result": "pass"
+    }
+  ],
+  "scope": "Disposable browser/server fixtures; no owner profile or live provider calls"
+}

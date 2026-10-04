@@ -1,0 +1,65 @@
+{
+  "base": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+  "runtimeHashes": {
+    "public/sw.js": "b977da2edb2bb381b78cdcb8e17f3a30fe42e3130042e669ad29e688e9cb1fa8",
+    "public/library.html": "2c4c52de6484653358d3d66c65c6d8d962fe2304f71f2907e48e66e4d46d2a00",
+    "public/mediatheque.html": "fd622c90cdd62b20e3395900f374960e089436b164188c9607fc7b826f3951d5",
+    "public/index.html": "732417bfcb8a442c93cfaeb6362744082465414a6fc9b9f535079381b3c866db",
+    "public/js/mediatheque-ui.js": "1596561f82468d8e8d119c8020518080cee6f5f0457c7e6925eb2cc73e5f3cf2",
+    "public/js/room-b6-core.js": "40dcb1d3b05e317ee70048e9eab831edc0c3d5c8ff6d42b75ac0b35b577607c4",
+    "server.js": "94aa2e641877e28ecce3e48017cc38ca73a2d8b525b40b465621bb4f4da8e20a",
+    "scripts/premium/sw-update-browser-smoke.js": "2ca9337a776799fcacc46663c5612da6954470bdd73bc1cdddabf460ace55894",
+    "public/i18n/locales/en.js": "07e90f2167d952aa5af6bc31c5005409bc5fb840d9ba4c3e77ffc0e179ae6ee5",
+    "public/i18n/locales/he.js": "ad88ed7be0043d95de74562d733ceb9a9533c2572b45acaeab0c6bce9fd78bf1",
+    "public/i18n/locales/ru.js": "02c4e1165cbf2a6c97dd088dd368a5e8301dfed0ba5548b999162590663435e1",
+    "public/js/library-ui.js": "0f5091c2fe599bdc0e90466b26ef303037289be1df2d466dc6902563333e6f7b",
+    "public/css/room-discovery.css": "fa790eac9fec3b7442046bd6f1323dd3335cbae7c91e78e75aaf5373da680b84",
+    "public/data/benyehuda/author-aliases-v1.json": "b0a07ab7a5515465b77b3bf0cf486a2a76fd308805c683536e8f3ed55cd00bf1",
+    "public/js/corpus-discovery-browser.js": "706d583975f442cda72b18d895bad3ea98da9182f78cd531bb228abf30b62f90",
+    "public/js/corpus-discovery-core.js": "e5da29e9b90158fb58af280deab0b2158f7f307e1512d751e8b6c1f2c3534618",
+    "scripts/premium/room-discovery-browser-smoke.js": "7939eeed0f1495b4013aaa413143923311f4f79d61ac8136c554d3da0da859a1",
+    "scripts/premium/room-discovery-corpus-guard.js": "bd22b8599a7f362e190d199fffb81abc07c3ce901112ae3255079a145f3d0064",
+    "scripts/premium/room-discovery-sw-preview-smoke.js": "f808b4576c3b23bb91ecb571b695ba2cda9dafab5fc8282b3cc2faa8788d909f"
+  },
+  "sw": {
+    "command": "node scripts/premium/sw-update-browser-smoke.js (no --only)",
+    "startedAt": "2026-10-04T22:52:52.262Z",
+    "completedAt": "2026-10-04T22:56:25.624Z",
+    "exitCode": 0,
+    "pass": 8,
+    "knownO015": 3,
+    "skipped": 0,
+    "scenarios": [
+      "release N=3.11.730 → N+1=3.11.731",
+      "PASS A:studio toast → one click → N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"toast\":true,\"after\":\"3.11.731\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null}}",
+      "PASS A:room toast → one click → N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"toast\":true,\"after\":\"3.11.731\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null}}",
+      "PASS A:mediatheque toast → one click → N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"toast\":true,\"after\":\"3.11.731\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null}}",
+      "PASS D:return after absence → toast within 15s {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"first\":\"3.11.730\",\"toast\":true,\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":\"installing\"}}",
+      "PASS E:studio rolling deploy → reaches N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"afterFailedInstall\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null},\"reloads\":[\"3.11.730\",\"3.11.730\"],\"toast\":true,\"after\":\"3.11.731\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null}}",
+      "PASS E:room rolling deploy → reaches N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"afterFailedInstall\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null},\"reloads\":[\"3.11.730\",\"3.11.730\"],\"toast\":true,\"after\":\"3.11.731\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null}}",
+      "PASS E:mediatheque rolling deploy → reaches N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"afterFailedInstall\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null},\"reloads\":[\"3.11.730\",\"3.11.730\"],\"toast\":true,\"after\":\"3.11.731\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":null,\"installing\":null}}",
+      "KNOWN F:studio one tab: plain reload → N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"waiting\":true,\"after\":\"3.11.730\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":\"installed\",\"installing\":null}} — O-015 (a plain reload does not deliver a waiting release; the toast does)",
+      "KNOWN F:room one tab: plain reload → N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"waiting\":true,\"after\":\"3.11.730\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":\"installed\",\"installing\":null}} — O-015",
+      "KNOWN F:mediatheque one tab: plain reload → N+1 {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"waiting\":true,\"after\":\"3.11.730\",\"sw\":{\"controller\":true,\"active\":\"activated\",\"waiting\":\"installed\",\"installing\":null}} — O-015",
+      "PASS G:two tabs: plain reload keeps N, toast offered {\"start\":{\"controlled\":true,\"firstControlled\":true,\"version\":\"3.11.730\"},\"otherControlled\":true,\"waiting\":true,\"reloaded\":\"3.11.730\",\"untouched\":\"3.11.730\",\"toast\":true}",
+      "11/11 scenarios passed"
+    ]
+  },
+  "negative": {
+    "expectedFailure": true,
+    "exitCode": 1,
+    "completedAt": "2026-10-04T22:57:20.010Z",
+    "scenarios": [
+      "release N=3.11.730 → N+1=3.11.731",
+      "FAIL F:mediatheque one tab: plain reload → N+1 {\"start\":{\"controlled\":false,\"firstControlled\":false,\"version\":\"3.11.730\",\"sw\":{\"controller\":false,\"active\":null,\"waiting\":null,\"installing\":null},\"diagnostics\":{\"pageErrors\":[],\"failedScripts\":[],\"workerErrors\":[{\"message\":\"Uncaught Error: SW_SMOKE_INTENTIONAL_INSTALL_FAILURE\",\"source\":\"/sw.js\",\"line\":1},{\"message\":\"Uncaught Error: SW_SMOKE_INTENTIONAL_INSTALL_FAILURE\",\"source\":\"/sw.js\",\"line\":1},{\"message\":\"Failed to register a ServiceWorker for scope ('http://127.0.0.1:3408/') with script ('http://127.0.0.1:3408/sw.js'): \",\"source\":\"\",\"line\":-1},{\"message\":\"Uncaught Error: SW_SMOKE_INTENTIONAL_INSTALL_FAILURE\",\"source\":\"/sw.js\",\"line\":1},{\"message\":\"Uncaught Error: SW_SMOKE_INTENTIONAL_INSTALL_FAILURE\",\"source\":\"/sw.js\",\"line\":1},{\"message\":\"Failed to register a ServiceWorker for scope ('http://127.0.0.1:3408/') with script ('http://127.0.0.1:3408/sw.js'): \",\"source\":\"\",\"line\":-1},{\"message\":\"Uncaught Error: SW_SMOKE_INTENTIONAL_INSTALL_FAILURE\",\"source\":\"/sw.js\",\"line\":1},{\"message\":\"Uncaught Error: SW_SMOKE_INTENTIONAL_INSTALL_FAILURE\",\"source\":\"/sw.js\",\"line\":1},{\"message\":\"Failed to register a ServiceWorker for scope ('http://127.0.0.1:3408/') with script ('http://127.0.0.1:3408/sw.js'): \",\"source\":\"\",\"line\":-1}]}},\"waiting\":false,\"after\":\"3.11.731\",\"sw\":{\"controller\":false,\"active\":null,\"waiting\":null,\"installing\":null}}",
+      "0/1 scenarios passed"
+    ]
+  },
+  "originalFailure": {
+    "exitCode": 1,
+    "scenarios": [
+      "FAIL A:mediatheque toast → one click → N+1 {\"start\":{\"controlled\":false,\"version\":\"3.11.730\"},\"toast\":false,\"after\":\"\",\"sw\":{\"controller\":false,\"active\":null,\"waiting\":null,\"installing\":null}}"
+    ],
+    "rootCause": "Not established; original log lacks install/page evidence. Initial release N had no registered/controller SW. Baseline failure is not claimed."
+  }
+}

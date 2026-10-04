@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.729";
+const CACHE_VERSION = "v3.11.730";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -108,6 +108,10 @@ const PRECACHE_URLS = [
   "/css/catalog-discovery.css?v=643",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
+  "/js/corpus-discovery-core.js?v=730",
+  "/js/corpus-discovery-browser.js?v=730",
+  "/css/room-discovery.css?v=730",
+  "/data/benyehuda/author-aliases-v1.json?v=730",
   "/js/local-text-familiarity.js?v=669",
   "/js/studio-library-discovery.js?v=486",
   "/",
@@ -128,8 +132,8 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=729",
-  "/js/room-b6-core.js?v=485",
+  "/js/library-ui.js?v=730",
+  "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
   "/js/learning-compass-worker.js",
@@ -474,6 +478,13 @@ self.addEventListener("fetch", (event) => {
   // Only handle same-origin requests. Cross-origin (e.g. dev tools, future
   // CDN) goes straight to network.
   if (url.origin !== self.location.origin) return;
+
+  // Bounded corpus previews are native range requests. Never tee the response
+  // into CacheStorage: that would keep downloading after the page cancels.
+  // Normal work reads keep their existing runtime/offline strategy.
+  if (/^\/data\/benyehuda\/works\/[0-9]+\.json$/.test(url.pathname)
+    && url.searchParams.get('preview') === 'bounded-v1'
+    && req.headers.get('Range') === 'bytes=0-131071') return;
 
   // CLG-P8.1: the Telegram Mini App shell is an AUTH surface — never serve it
   // (or its JS) from SW caches: a stale shell could break the initData exchange

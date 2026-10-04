@@ -1,0 +1,60 @@
+{
+  "unit": {
+    "command": "npm test",
+    "total": 2447,
+    "pass": 2447,
+    "fail": 0,
+    "exitCode": 0
+  },
+  "gates": [
+    {
+      "name": "smoke:ingest",
+      "code": 0
+    },
+    {
+      "name": "test:api-smoke",
+      "code": 0
+    },
+    {
+      "name": "smoke:fsrs",
+      "code": 0
+    },
+    {
+      "name": "smoke:learner-ingest",
+      "code": 0
+    },
+    {
+      "name": "smoke:memory-canon",
+      "code": 0
+    },
+    {
+      "name": "smoke:reader-parity",
+      "code": 0
+    },
+    {
+      "name": "smoke:reader-resume",
+      "code": 0
+    },
+    {
+      "name": "smoke:reader-notes",
+      "code": 0
+    },
+    {
+      "name": "smoke:room-media",
+      "code": 0
+    },
+    {
+      "name": "smoke:corpus-snippet",
+      "code": 0
+    },
+    {
+      "name": "smoke:corpus-authority",
+      "code": 0
+    },
+    {
+      "name": "smoke:material-reliability",
+      "code": 0
+    }
+  ],
+  "scope": "Disposable local checks; GitHub CI is reported separately"
+}

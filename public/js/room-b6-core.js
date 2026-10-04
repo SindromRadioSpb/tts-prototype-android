@@ -10,6 +10,8 @@ export const ROOM_B6_LIMITS = Object.freeze({
   apiMax: 96,
   cardPayloadBytes: 256 * 1024,
   presentationBytes: 8 * 1024,
+  presentationUrlBytes: 4096,
+  presentationPageMax: 100000,
   sessionTtlMs: 24 * 60 * 60 * 1000,
   diagnosticEntries: 120,
   diagnosticBytes: 64 * 1024,
@@ -19,7 +21,19 @@ export const ROOM_B6_LIMITS = Object.freeze({
 const CURSOR_VERSION = 1;
 const PRESENTATION_VERSION = 1;
 const SORTS = new Set(['opened_desc', 'updated_desc', 'title_asc', 'title_desc', 'topic_asc', 'level_asc']);
+const PRESENTATION_SORTS = new Set([...SORTS, 'opened', 'ready', 'alpha', 'length', 'position', 'creator_asc', 'familiar_desc', 'progress']);
+const PUBLIC_SORTS = new Set(['ready', 'alpha', 'length', 'position', 'title_asc', 'title_desc', 'creator_asc']);
 const SCOPES = new Set(['texts', 'both', 'rows', 'notes']);
+const PRESENTATION_SCOPES = new Set([...SCOPES, 'corpus', 'fulltext', 'notes+rows', 'all', 'title', 'creator']);
+const PUBLIC_SEARCH_SCOPES = new Set(['texts', 'corpus', 'fulltext', 'all', 'title', 'creator']);
+const READING_STATUSES = new Set(['all', 'new', 'reading', 'finished']);
+const AUDIO_FILTERS = new Set(['all', 'full', 'partial', 'none', 'complete', 'missing']);
+const MODES = new Set(['read', 'explore']);
+const ERAS = new Set(['biblical', 'medieval', 'haskalah', 'tehiya', 'mandate', 'modern', 'unknown']);
+const GENRES = new Set(['article', 'poetry', 'prose', 'memoir', 'fables', 'letters', 'reference', 'drama', 'lexicon']);
+const LENGTHS = new Set(['short', 'medium', 'long', 'unknown']);
+const DRILL_LEVELS = new Set(['home', 'era', 'authors', 'works']);
+const PUBLIC_FLAGS = ['readyOnly', 'hasAudio', 'reviewed', 'exactForm'];
 const TAG_MODES = new Set(['all', 'any']);
 const SURFACES = new Set(['hub', 'corpus', 'mytexts', 'group', 'reader']);
 const DIAGNOSTIC_KINDS = new Set([
@@ -118,8 +132,9 @@ export function decodeBrowseCursor(cursor, expected = {}) {
 }
 
 function cleanCorpus(value) {
-  const corpus = boundedString(value, 256);
+  const corpus = String(value == null ? '' : value).trim();
   if (corpus === 'benyehuda' || corpus === 'mytexts') return corpus;
+  if (/^public:[a-z0-9][a-z0-9-]{0,119}$/.test(corpus)) return corpus;
   if (/^group:[A-Za-z0-9._:-]{1,240}$/.test(corpus)) return corpus;
   return '';
 }
@@ -130,18 +145,35 @@ function cleanOpaqueId(value, max = 256) {
 }
 
 export function sanitizePresentationState(input = {}) {
+  input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
   const surface = SURFACES.has(input.surface) ? input.surface : 'hub';
-  const corpus = cleanCorpus(input.corpus) || (surface === 'mytexts' ? 'mytexts' : 'benyehuda');
+  // A generic group route carries no group identity. Only same-tab state may
+  // restore that identity; the host must show its chooser if it is absent.
+  const corpus = cleanCorpus(input.corpus) || (surface === 'group' ? '' : surface === 'mytexts' ? 'mytexts' : 'benyehuda');
   const drillIn = input.drill && typeof input.drill === 'object' ? input.drill : {};
   const filterIn = input.filters && typeof input.filters === 'object' ? input.filters : {};
   const anchorIn = input.anchor && typeof input.anchor === 'object' ? input.anchor : {};
   const filters = normalizeBrowseFilters(filterIn);
-  delete filters.sort;
-  filters.sort = SORTS.has(filterIn.sort) ? filterIn.sort : 'opened_desc';
+  filters.sort = PRESENTATION_SORTS.has(filterIn.sort) ? filterIn.sort : 'opened_desc';
+  filters.scope = PRESENTATION_SCOPES.has(filterIn.scope) ? filterIn.scope : 'texts';
+  for (const key of ['genre', 'lang', 'length', 'theme', 'scopeAuthor', 'scopeAuthorQid', 'scopeEra']) {
+    if (filterIn[key]) filters[key] = boundedString(filterIn[key], key === 'scopeAuthor' ? 256 : 64);
+  }
+  for (const key of [...PUBLIC_FLAGS, 'readableOnly']) {
+    if (typeof filterIn[key] === 'boolean') filters[key] = filterIn[key];
+  }
+  // Existing public/group widgets retain these only in history/session. In
+  // particular, a reading status is personal state and never a public facet.
+  if (READING_STATUSES.has(filterIn.status)) filters.status = filterIn.status;
+  if (AUDIO_FILTERS.has(filterIn.audio)) filters.audio = filterIn.audio;
+  const section = String(filterIn.section == null ? '' : filterIn.section);
+  if (section === 'all' || /^[1-9]\d{0,3}$/.test(section)) filters.section = section;
   const state = {
     v: PRESENTATION_VERSION,
     surface,
     corpus,
+    mode: MODES.has(input.mode) ? input.mode : 'read',
+    page: cleanPage(input.page),
     drill: {
       level: boundedString(drillIn.level, 32),
       eraId: cleanOpaqueId(drillIn.eraId, 128),
@@ -162,27 +194,177 @@ export function sanitizePresentationState(input = {}) {
   return state;
 }
 
+// A history entry is a complete view, never a patch over the current controls.
+// Keep the v1 wire sanitizer compatible while supplying explicit empty facets
+// for browser adapters that replace their source-specific browse state.
+export function presentationFiltersForRestore(input = {}) {
+  const safe = sanitizePresentationState(input);
+  const defaults = {
+    q: '', level: '', tags: [], tagMode: 'all', scope: 'texts', sort: 'opened_desc', smart: '', provider: '',
+    genre: '', lang: '', length: '', theme: '', scopeAuthor: '', scopeAuthorQid: '', scopeEra: '',
+    readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false,
+  };
+  if (safe.corpus === 'benyehuda') { defaults.scope = 'corpus'; defaults.sort = 'ready'; }
+  if (safe.corpus.startsWith('public:')) {
+    Object.assign(defaults, { scope: 'all', sort: 'position', status: 'all', audio: 'all', section: 'all' });
+  } else if (safe.corpus.startsWith('group:')) {
+    Object.assign(defaults, { sort: 'position', status: 'all', audio: 'all' });
+  }
+  const filters = { ...defaults, ...safe.filters, tags: safe.filters.tags.slice(), start: (safe.page - 1) * ROOM_B6_LIMITS.pageSize };
+  const supplied = input && typeof input.filters === 'object' && input.filters ? input.filters : {};
+  if (!Object.prototype.hasOwnProperty.call(supplied, 'scope')) filters.scope = defaults.scope;
+  if (!Object.prototype.hasOwnProperty.call(supplied, 'sort')) filters.sort = defaults.sort;
+  return filters;
+}
+
+export function clampBrowsePage(page, totalItems) {
+  const total = Number.isFinite(Number(totalItems)) ? Math.max(0, Math.floor(Number(totalItems))) : 0;
+  const lastPage = Math.max(1, Math.ceil(total / ROOM_B6_LIMITS.pageSize));
+  const currentPage = Math.min(cleanPage(page), lastPage);
+  const start = (currentPage - 1) * ROOM_B6_LIMITS.pageSize;
+  return { page: currentPage, lastPage, start, end: Math.min(total, start + ROOM_B6_LIMITS.pageSize), total };
+}
+
 export function presentationHash(input = {}) {
-  const state = sanitizePresentationState(input);
-  const route = state.surface === 'hub' ? 'hub' : (state.corpus || state.surface);
-  return '#room=' + encodeURIComponent(route);
+  return publicPresentationHash(sanitizePresentationState(input));
 }
 
 export function presentationStateFromHash(hash) {
-  const match = String(hash || '').match(/^#room=([^&]+)$/);
-  if (!match) return null;
-  let route = '';
-  try { route = decodeURIComponent(match[1]); } catch (_) { return null; }
-  if (route === 'hub') return sanitizePresentationState({ surface: 'hub', corpus: 'benyehuda' });
-  if (route === 'mytexts') return sanitizePresentationState({ surface: 'mytexts', corpus: 'mytexts' });
-  if (route === 'benyehuda') return sanitizePresentationState({ surface: 'corpus', corpus: 'benyehuda' });
-  if (/^group:[A-Za-z0-9._:-]+$/.test(route)) return sanitizePresentationState({ surface: 'group', corpus: route });
-  return null;
+  const raw = String(hash || '');
+  if (!raw.startsWith('#room=') || byteLength(raw) > ROOM_B6_LIMITS.presentationUrlBytes) return null;
+  let params;
+  try {
+    // URLSearchParams alone silently accepts malformed percent encoding.
+    decodeURIComponent(raw.slice(1));
+    params = new URLSearchParams(raw.slice(1));
+  } catch (_) { return null; }
+  for (const key of new Set(params.keys())) if (params.getAll(key).length !== 1) return null;
+  if (params.has('rv') && params.get('rv') !== '2') return null;
+  const route = params.get('room');
+  let input;
+  if (route === 'hub') input = { surface: 'hub', corpus: 'benyehuda' };
+  else if (route === 'mytexts') input = { surface: 'mytexts', corpus: 'mytexts' };
+  else if (route === 'group') input = { surface: 'group', corpus: '' };
+  else if (route === 'benyehuda' || isPublicCorpus(route)) input = { surface: 'corpus', corpus: route };
+  else if (cleanCorpus(route).startsWith('group:')) input = { surface: 'group', corpus: route }; // v1 decode only
+  else return null;
+  if (!isPublicCorpus(input.corpus) || input.surface === 'hub') return sanitizePresentationState(input);
+  const filters = {};
+  if (GENRES.has(params.get('genre'))) filters.genre = params.get('genre');
+  if (cleanLanguage(params.get('lang'))) filters.lang = cleanLanguage(params.get('lang'));
+  if (LENGTHS.has(params.get('length'))) filters.length = params.get('length');
+  if (cleanFacetId(params.get('theme'))) filters.theme = cleanFacetId(params.get('theme'));
+  if (PUBLIC_SORTS.has(params.get('sort'))) filters.sort = params.get('sort');
+  if (PUBLIC_SEARCH_SCOPES.has(params.get('scope'))) filters.scope = params.get('scope');
+  for (const key of PUBLIC_FLAGS) if (params.get(key) === '1' || params.get(key) === '0') filters[key] = params.get(key) === '1';
+  const authorId = cleanQid(params.get('author'));
+  const eraId = ERAS.has(params.get('era')) ? params.get('era') : '';
+  if (authorId) filters.scopeAuthorQid = authorId;
+  if (eraId) filters.scopeEra = eraId;
+  const sharedSearch = params.get('share') === '1'
+    && (!params.has('scope') || PUBLIC_SEARCH_SCOPES.has(params.get('scope')))
+    && !['tags', 'tag', 'smart', 'note', 'notes', 'profile', 'readableOnly', 'status', 'audio', 'section'].some(key => params.has(key));
+  if (sharedSearch && !hasTagQuery(params.get('q'))) filters.q = boundedString(params.get('q'), 256);
+  const state = sanitizePresentationState({ ...input, mode: params.get('mode'), page: params.get('page'), filters,
+    drill: { authorId, eraId, level: DRILL_LEVELS.has(params.get('view')) ? params.get('view') : 'home' } });
+  return sharedSearch ? { ...state, sharedSearch: true } : state;
 }
 
 export function presentationStateMatchesHash(input, hash) {
   const explicit = presentationStateFromHash(hash);
-  return !!explicit && presentationHash(input) === presentationHash(explicit);
+  if (!explicit) return false;
+  const local = sanitizePresentationState(input);
+  if (explicit.corpus.startsWith('group:') && local.corpus !== explicit.corpus) return false;
+  // v1 links named only their route; their tab-local drill/filter detail was
+  // deliberately absent. Continue restoring that detail for those old links.
+  const params = new URLSearchParams(String(hash).slice(1));
+  if (params.size === 1) {
+    const routeOnly = state => publicPresentationHash(sanitizePresentationState({
+      surface: state.surface === 'reader' ? 'corpus' : state.surface, corpus: state.corpus,
+    }));
+    return routeOnly(local) === routeOnly(explicit);
+  }
+  return presentationHash(local) === presentationHash(explicit);
+}
+
+function cleanPage(value) {
+  const text = String(value == null ? '' : value);
+  if (!/^\d{1,6}$/.test(text)) return 1;
+  const page = Number(text);
+  return page >= 1 && page <= ROOM_B6_LIMITS.presentationPageMax ? page : 1;
+}
+
+function cleanQid(value) { return /^Q[1-9]\d{0,17}$/.test(String(value || '')) ? String(value) : ''; }
+function cleanLanguage(value) { return /^(?:[a-z]{2,3}(?:-[A-Za-z]{2,8})?|unk)$/.test(String(value || '')) ? String(value) : ''; }
+function cleanFacetId(value) { return /^[a-z0-9][a-z0-9._-]{0,63}$/.test(String(value || '')) ? String(value) : ''; }
+function isPublicCorpus(value) { return value === 'benyehuda' || /^public:[a-z0-9][a-z0-9-]{0,119}$/.test(String(value || '')); }
+// These are application tag-filter operators, not a guess about the privacy of
+// arbitrary words. Tag queries always remain local, including on explicit share.
+function hasTagQuery(value) { return /(?:^|\s)(?:#|tag:)/i.test(String(value || '')); }
+
+function publicPresentationHash(state, sharedQuery) {
+  const route = state.surface === 'hub' ? 'hub' : state.surface === 'mytexts' ? 'mytexts'
+    : state.surface === 'group' || state.corpus.startsWith('group:') ? 'group' : state.corpus;
+  const params = new URLSearchParams();
+  params.set('room', route || 'hub');
+  if (isPublicCorpus(route)) {
+    const filters = state.filters;
+    if (state.mode !== 'read') params.set('mode', state.mode);
+    const author = cleanQid(filters.scopeAuthorQid) || cleanQid(state.drill.authorId);
+    const era = ERAS.has(filters.scopeEra) ? filters.scopeEra : ERAS.has(state.drill.eraId) ? state.drill.eraId : '';
+    if (author) params.set('author', author);
+    if (era) params.set('era', era);
+    if (DRILL_LEVELS.has(state.drill.level) && state.drill.level !== 'home') params.set('view', state.drill.level);
+    if (GENRES.has(filters.genre)) params.set('genre', filters.genre);
+    if (cleanLanguage(filters.lang)) params.set('lang', filters.lang);
+    if (LENGTHS.has(filters.length)) params.set('length', filters.length);
+    if (cleanFacetId(filters.theme)) params.set('theme', filters.theme);
+    if (PUBLIC_SORTS.has(filters.sort)) params.set('sort', filters.sort);
+    if (PUBLIC_SEARCH_SCOPES.has(filters.scope) && filters.scope !== 'texts') params.set('scope', filters.scope);
+    for (const key of PUBLIC_FLAGS) if (typeof filters[key] === 'boolean') params.set(key, filters[key] ? '1' : '0');
+    if (state.page > 1) params.set('page', String(state.page));
+    if (sharedQuery !== undefined) { params.set('share', '1'); params.set('q', sharedQuery); }
+    if (params.size > 1) params.set('rv', '2');
+  }
+  const hash = '#' + params.toString();
+  return byteLength(hash) <= ROOM_B6_LIMITS.presentationUrlBytes ? hash : null;
+}
+
+// Only an explicit Share action calls this helper. Normal history commits must
+// use presentationHash, which never serializes query text. No personal or group
+// scope can be shared, even if another corpus field claims to be public.
+export function sharedSearchHash(input = {}) {
+  input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
+  const state = sanitizePresentationState(input);
+  const filters = state.filters;
+  const rawFilters = input.filters && typeof input.filters === 'object' ? input.filters : {};
+  const rawScope = rawFilters.scope;
+  // Sharing a narrower local view as an unfiltered public query would be
+  // misleading. Until these facets have a public contract, refuse that share.
+  const unsharedFacet = ['status', 'audio', 'section'].some(key =>
+    rawFilters[key] != null && rawFilters[key] !== '' && rawFilters[key] !== 'all');
+  if (!isPublicCorpus(input.corpus) || !['corpus', 'reader'].includes(state.surface)
+    || (rawScope != null && !PUBLIC_SEARCH_SCOPES.has(rawScope))
+    || !PUBLIC_SEARCH_SCOPES.has(filters.scope) || filters.tags.length || filters.smart
+    || filters.readableOnly || unsharedFacet || hasTagQuery(filters.q)) return null;
+  return publicPresentationHash(state, filters.q);
+}
+
+// The host supplies history.state and a sessionStorage string. This helper only
+// chooses bounded presentation; it performs no storage or canonical data writes.
+export function restorePresentationState({ hash = '', historyState = null, sessionMirror = null } = {}, now = Date.now()) {
+  const explicit = presentationStateFromHash(hash);
+  if (String(hash || '').startsWith('#room=') && !explicit) return null;
+  // A shared search is an explicit new navigation, not a request to resurrect
+  // the previous tab's personal filters or reader anchor.
+  if (explicit && explicit.sharedSearch) return sanitizePresentationState(explicit);
+  const history = historyState && historyState.v === PRESENTATION_VERSION ? sanitizePresentationState(historyState) : null;
+  const mirror = decodeSessionMirror(sessionMirror, now);
+  const local = [history, mirror].find(state => state && (!explicit || presentationStateMatchesHash(state, hash)));
+  if (local) return local;
+  // A generic group fragment has no identity when opened in another tab.
+  if (explicit && explicit.surface === 'group' && !explicit.corpus) return sanitizePresentationState({ surface: 'hub' });
+  return explicit || null;
 }
 
 export function encodeSessionMirror(input, now = Date.now()) {

@@ -1,0 +1,67 @@
+{
+  "observedAt": "2026-10-04T22:19:02.311Z",
+  "method": "GET only; six published body samples, three curated audio samples, public index; no raw bodies retained",
+  "scope": "Sampling cannot attest all production volume assets",
+  "files": [
+    {
+      "path": "/data/benyehuda/corpus-index-v7.json",
+      "status": 200,
+      "bytes": 526200,
+      "sha256": "fdc295f093a7b2fb589f0ffdf69569086abc520b27d2b6e09bf9a7e3283ff8ea"
+    },
+    {
+      "path": "/data/benyehuda/works/101.json",
+      "status": 200,
+      "bytes": 9510,
+      "sha256": "917757bdfedb753c719737d753daf24f28fd8384f5469ac8e537c5b676faf7c1"
+    },
+    {
+      "path": "/data/benyehuda/works/26158.json",
+      "status": 200,
+      "bytes": 391727,
+      "sha256": "4eb04da41359594a7569fb7863f26336476aa9319c292c05a8521eef9c560288"
+    },
+    {
+      "path": "/data/benyehuda/works/60187.json",
+      "status": 200,
+      "bytes": 72565,
+      "sha256": "fa0bc7f693b1e47718908f7b2eb9f08e0eff847524d28947186559ef0a755e3f"
+    },
+    {
+      "path": "/data/benyehuda/works/55931.json",
+      "status": 200,
+      "bytes": 31009,
+      "sha256": "32268a023885ccbbb88e68fd3d59b73d753ecbabf53bb354a1bcb8073280f23c"
+    },
+    {
+      "path": "/data/benyehuda/works/34779.json",
+      "status": 200,
+      "bytes": 8626,
+      "sha256": "538d4b1960682b97bdb67c9825cc6fb2d8e2a3973baf0204eff27b8199b8c7b1"
+    },
+    {
+      "path": "/data/benyehuda/works/54844.json",
+      "status": 200,
+      "bytes": 1051386,
+      "sha256": "e3bfeabfce82726a16c7b16c451779847133506e1f36f78006519d1116e9d1a8"
+    },
+    {
+      "path": "/api/audio/8eff3a5b97d88085e4a8dade4aff23dad95f342420375e03dddf3bef9da88c8d",
+      "status": 200,
+      "bytes": 11520,
+      "sha256": "68203bd5fc6eec484c452c9f5c9d72146e063985b6ccdcc41fc7e83394bc7177"
+    },
+    {
+      "path": "/api/audio/a41e1687bd802e0b88f2b0b61397708178827350562bfbbe304901a5fa4b3ad0",
+      "status": 200,
+      "bytes": 5184,
+      "sha256": "60cf70649687d07d9915db1146e65d1dd994f813b3937c3d8e7929f5428f5a08"
+    },
+    {
+      "path": "/api/audio/1fb4264cd78ac1ebdb42eec12932be91e552a29a052dc03fd595f8bcdc59d1e4",
+      "status": 200,
+      "bytes": 12288,
+      "sha256": "87bc378262fe812a8a76925c3fe747a3567b0e34e41545497714165e122db761"
+    }
+  ]
+}

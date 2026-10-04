@@ -1,0 +1,583 @@
+{
+  "base": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+  "scope": "All Git-tracked published Ben-Yehuda corpus files; volume-only bodies and remote assets require separate sampling",
+  "files": [
+    {
+      "path": "public/data/benyehuda/author-era-map-v1.json",
+      "bytes": 93345,
+      "sha256": "9d42b1df42a70b53c8f7ecb63157b69d2ad4b05e0ad6ec38de287bb9b559afd1"
+    },
+    {
+      "path": "public/data/benyehuda/canon-v2.zip",
+      "bytes": 2161865,
+      "sha256": "86f870571c5512fdee90b993159714f85c0b083f8787e434b2b8792fa66d8266"
+    },
+    {
+      "path": "public/data/benyehuda/canon-v3.zip",
+      "bytes": 2862697,
+      "sha256": "d6b6c29e6f551dcb7d27eada34eb355e96c23e09cc8b9b9d128c30b2f00866e0"
+    },
+    {
+      "path": "public/data/benyehuda/canon-v4.zip",
+      "bytes": 2862697,
+      "sha256": "3a4319ad81cb9512e82b5c62a03d54d18128e4d489f4b08eeb5e2531d203069b"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-biblical-v3.json",
+      "bytes": 34622,
+      "sha256": "bb002f8a35af794a5b7dc0504dff25044287ebc6dc9ee68306012660f8996625"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-biblical-v4.json",
+      "bytes": 34622,
+      "sha256": "e729d5bfd652195f69abbb4c077d782db0229d3337966c68b8e318813bd0914a"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-biblical-v5.json",
+      "bytes": 34622,
+      "sha256": "f7860ab7c419a3fe394eba3ee79738a4be42f794d1f39b3bf4ab44958915275c"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-biblical-v6.json",
+      "bytes": 34622,
+      "sha256": "d74916ee207f0290f01dbb424a103cff9a1e7fbebcc415914b86a6d00e012a73"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-biblical-v7.json",
+      "bytes": 34622,
+      "sha256": "6cd6ff7bfb3df1b6a2d5a3a024590767883e977df295a5925b1ba102e7fff486"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b00-v3.json",
+      "bytes": 850859,
+      "sha256": "6998418b0749b9ac61f674a954546435bb77d841b9f50e033fcd87e12e290cda"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b00-v4.json",
+      "bytes": 850859,
+      "sha256": "912ab661f894328df3c5a0c29e34729d56b7dd6074be0da5c5cf7d0c3078dc22"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b00-v5.json",
+      "bytes": 850859,
+      "sha256": "cfe91071f634b63e1e8424bf5a7f3d4a0bf56deda6c0d9dca4fc8535b453f01e"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b00-v6.json",
+      "bytes": 850859,
+      "sha256": "8d22a729afe41f1ad3606c2245c7aea6bd607c7da3d005653a258dd250ee4b9d"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b00-v7.json",
+      "bytes": 850859,
+      "sha256": "9dccc3194d2b4e2f8d0f7886310c3b5d32c70bed006e11ae46c95f76c2df2f14"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b01-v3.json",
+      "bytes": 368364,
+      "sha256": "606ebe50cdbcc79daaa5520a6ffedcf7294265a261695a6495adf746936302c9"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b01-v4.json",
+      "bytes": 368364,
+      "sha256": "268cb418dc1062fd5b2bc61acb18601bd29a2073d0020df6fb68b1e6475fd654"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b01-v5.json",
+      "bytes": 368364,
+      "sha256": "3905fa20ec1fcd98903996aa0bd944a71acfe43ae730c277530458c053fee439"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b01-v6.json",
+      "bytes": 368364,
+      "sha256": "a571a2f4b8efaf64de2316fe14422e32cdefd1169b90785e4ae74b3d18a725f3"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-haskalah-b01-v7.json",
+      "bytes": 368364,
+      "sha256": "5c143a23290da43280b23a588dc4dab6e1f7b06876a9a746bc1a2b4dce9aef75"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b00-v3.json",
+      "bytes": 811703,
+      "sha256": "f573f1bf5dec3e12dd87fd8ee7a7c12fbbd683eb86aaa00b0d253e864b974983"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b00-v4.json",
+      "bytes": 847658,
+      "sha256": "bb262300798189a7b006843064d5a6ec0d050e644a5528e67dd987dec2f77eb8"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b00-v5.json",
+      "bytes": 866624,
+      "sha256": "fc371c003de13dede3a4750d968b9a991c0130e079137f1be21d82e63efb1b44"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b00-v6.json",
+      "bytes": 882023,
+      "sha256": "cc410094aa822006fc79902f6c8f440c4871b27930838d2f1307f8240b4c31c2"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b00-v7.json",
+      "bytes": 885573,
+      "sha256": "9586bd6d0e611d1b0112087467f8b2c92706ac3c884ee4fca57668b2b01e6b2e"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b01-v3.json",
+      "bytes": 818720,
+      "sha256": "2286e18f38cdb26f8517242f5803ab9660e77ae36bb7816fee3582a2e96effa7"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b01-v4.json",
+      "bytes": 818720,
+      "sha256": "4442df8a3b0e0a634cc997d3c3f78fdd0d5805a89cfe2e310796677794e93d6a"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b01-v5.json",
+      "bytes": 818720,
+      "sha256": "37d774dedcae4a8cef0f6ba1e9c7cda84182d5b6617a83c421f9644e18a441df"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b01-v6.json",
+      "bytes": 818720,
+      "sha256": "b837fe2f72d13476693f7f1dd948d7b7506426f7a7e812612e727da4d640481b"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b01-v7.json",
+      "bytes": 818720,
+      "sha256": "1912d40ee3da5a6ffce273aff452763d47c99a5ca68f98a525279060341c599a"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b02-v3.json",
+      "bytes": 500718,
+      "sha256": "5b7f8c6061da5e937d5c60bc52a6f6d3a4764bdf24bcc6f5b76be4bf60f80a1e"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b02-v4.json",
+      "bytes": 500718,
+      "sha256": "f9c63ea4cee1db5e9763c3939e0204d08979ee8e61107b7af7d0e5c8ee5c47da"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b02-v5.json",
+      "bytes": 500718,
+      "sha256": "ad25c3087b6905e1c615fff2da6b12dd996f41b6c6ddd5d80832601d49cc0e3e"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b02-v6.json",
+      "bytes": 500718,
+      "sha256": "a7c78896206b6816bd8f3815e0c91985997cfd4825fb05791aa2d48ebbc09265"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-mandate-b02-v7.json",
+      "bytes": 500718,
+      "sha256": "eface4a1305bc54cffc37004bce2758f8d74f853310dc229b8546c489765e541"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b00-v3.json",
+      "bytes": 845160,
+      "sha256": "1ec39ab55d78ac223e36b3aaea05d06932677af20a5e3a686a374f74e54af5f7"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b00-v4.json",
+      "bytes": 845160,
+      "sha256": "e2828f268e239c299f149f9f2eb61eab491154b0ad8b103868a611073eb48a89"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b00-v5.json",
+      "bytes": 845160,
+      "sha256": "8cfc629f724f9c5390500e7c3cc7b3f85599f58034173f0a2c3bcd21737274ef"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b00-v6.json",
+      "bytes": 845160,
+      "sha256": "fa7da292bee9db1dc749cb31744a43cf0cc7cd7006d057a28a4a893ab14fe609"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b00-v7.json",
+      "bytes": 845160,
+      "sha256": "34cd8ab074b790a85e1567e4f0a33a905f3cc7927453697e84cb20fbedfe2b1b"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b01-v3.json",
+      "bytes": 829870,
+      "sha256": "2a5095da803ee5dbb0db3355d920d7a6c7bb18537c640d96265728f10b7d4e58"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b01-v4.json",
+      "bytes": 829870,
+      "sha256": "3ec7cbf78cb5c42e125ef5862e7195e3c141c43127434e9a464417eabeceab5f"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b01-v5.json",
+      "bytes": 829870,
+      "sha256": "47fa892f20a0cb9bd7d97b20270b16124e8272e45d78c29e984b5a61a62421a7"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b01-v6.json",
+      "bytes": 829870,
+      "sha256": "2d3e5afe30d6eaee0262cadc8bcde54273a63685d0accbe2b18c7b2d4cb44403"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b01-v7.json",
+      "bytes": 829870,
+      "sha256": "cf411e348b7cbb0e665ab3162548da28912cd3947a44d20e9b87be7e8e3efab2"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b02-v3.json",
+      "bytes": 555723,
+      "sha256": "3d87855974b3a2aac4557e2ad196feb98c6685d7b76e80a2ed36b196b8111598"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b02-v4.json",
+      "bytes": 555723,
+      "sha256": "3cfe7471f6f1aeddf757ef8e640224e2d230cb64e654261ff1018a55d23893f1"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b02-v5.json",
+      "bytes": 555723,
+      "sha256": "fd302110b1ba1d474e2ceee6b339ae99d4e239d87593fae23869714205e167fc"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b02-v6.json",
+      "bytes": 555723,
+      "sha256": "74eecc6635ce92f342bc06b22d6895cab54858f0e3820015701fcbbcd5677ca6"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-medieval-b02-v7.json",
+      "bytes": 555723,
+      "sha256": "59d7a630361014c96a9a0fd626750dea258025aaf6d52721fef595a43688dea8"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-modern-v3.json",
+      "bytes": 29642,
+      "sha256": "08dd387b0b090d84b5a20ad5a6c3e8287f7a36a899a836a7200e35f5acecc2b6"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-modern-v4.json",
+      "bytes": 36565,
+      "sha256": "863d7cbaadfac22f9a4bca4e9c619d1c7f2bf6d1e5cd69419c086e5c8d8c6756"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-modern-v5.json",
+      "bytes": 37046,
+      "sha256": "db70e7b376542945496d16046d93571bbc1c672499840ed0e42defa27498549c"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-modern-v6.json",
+      "bytes": 37046,
+      "sha256": "930448d9329f72fd56d65e6e7101a8e2bada5858593215c92140165d9d7b3a59"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-modern-v7.json",
+      "bytes": 37046,
+      "sha256": "3ca219e4cdb65d82a1f7cca327c514dc3cda70ec349fd5d0ee741ed697fa7a78"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b00-v3.json",
+      "bytes": 828074,
+      "sha256": "eaaf4177eda4b340d6419e5ef23c91014b7c24df657a9a9f0f93802daef16d21"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b00-v4.json",
+      "bytes": 828074,
+      "sha256": "51a0cb8015982730434e03c87287431ba92421b2b003eb97268fc1c5a9dcd423"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b00-v5.json",
+      "bytes": 828074,
+      "sha256": "33397c43885c64b5cd61299502b1609ce18c33dd0e2696b24e25df9917f883ef"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b00-v6.json",
+      "bytes": 828074,
+      "sha256": "725375d4a779ab26babf1069f8985fc87044f19252ba3819e4de5fed2f4fe0ec"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b00-v7.json",
+      "bytes": 828074,
+      "sha256": "432f70b0c5b01aef0e8cfed611c3a9da983b508418dac5c58575fa7e59cd19ea"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b01-v3.json",
+      "bytes": 823093,
+      "sha256": "1f0ec25903e4e933abfd4a51fa0346d25ff91c86c6ed2a2e85df1a22b718b02c"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b01-v4.json",
+      "bytes": 823093,
+      "sha256": "9c5ab5909fc7d3e816156c11ff948959849996931fdd3c0a71d784e251cc8231"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b01-v5.json",
+      "bytes": 823093,
+      "sha256": "908c0f0fe9897a9856ed740720116052814ed1895b58582379409032e401ae22"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b01-v6.json",
+      "bytes": 823093,
+      "sha256": "5ef1353dbd0a85f703f800a247656de8a0cacce2e739ac914dff358a519de397"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b01-v7.json",
+      "bytes": 823093,
+      "sha256": "053983f790e30a16fe0a4cdbb0d8f1305ba173d5be8cc9d083636ea43372e728"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b02-v3.json",
+      "bytes": 822800,
+      "sha256": "2b6cc4253ed4510e185f8c0fa29c96b48e56e3b66e19af6c613114af43ba46b5"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b02-v4.json",
+      "bytes": 822800,
+      "sha256": "e79ce230c31bf7a63a9e5878b0a4f868f14fa305c8efbc603970ca1bc09710c1"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b02-v5.json",
+      "bytes": 822800,
+      "sha256": "c23c0e2b7be71ebe9d1bbedb94477a6475fa8c6a4e9a951fd1d870543cdcf959"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b02-v6.json",
+      "bytes": 822800,
+      "sha256": "2ce1c2b053cdf725cf6898c6799bf139bdddd607b00c53bc8036c732f77ce719"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b02-v7.json",
+      "bytes": 822800,
+      "sha256": "1763eb5248730e0b7775b9198927d80f18e6d7612533dc7eeaab3af51af97f58"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b03-v3.json",
+      "bytes": 834307,
+      "sha256": "640830e9e237c8deefab84c86ff7dbd8083d6cf518ad3d431290756fbce0fb45"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b03-v4.json",
+      "bytes": 834307,
+      "sha256": "1aae95b09765effd3758788e9741213571d1d5fa65c30280f43427ec7596d586"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b03-v5.json",
+      "bytes": 834307,
+      "sha256": "0629f10801d6b5915b46ccbf116294ffeec52f10784fa96255475f89ecfe587c"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b03-v6.json",
+      "bytes": 834307,
+      "sha256": "b55f3aa0cc5ea48bf04f4badc96d7c5f0581b79e2f9fd4ec0144bef12113be2e"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b03-v7.json",
+      "bytes": 834307,
+      "sha256": "df0dbb41b6ed19c5580d8bb7d390f3da096f5027c42289c2a428a9791213d3b5"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b04-v3.json",
+      "bytes": 829360,
+      "sha256": "2c80d538c3d45b49c1661f9708139123dcd3194e4436188c971535bed9ea1c35"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b04-v4.json",
+      "bytes": 829360,
+      "sha256": "d709b7667d471ee9a12befa82e6bc2b5c549f5ead30b1ec3735bfd6403b30cea"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b04-v5.json",
+      "bytes": 829360,
+      "sha256": "545ead301dbf84306eadee7cea6b9d592cec7ea52c6bdcb8a0633f365427b061"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b04-v6.json",
+      "bytes": 829360,
+      "sha256": "5d8ed5cdb45f93acf9f62e36eeccaaab4b6fe04b221d0655b37a56ce03ba7836"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b04-v7.json",
+      "bytes": 829360,
+      "sha256": "d2eeb552214a700554a4059862be35c2c5bfea212fd96dd057c55c5a698290fa"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b05-v3.json",
+      "bytes": 3055,
+      "sha256": "0301211b6cd9a97d85d29b061a5540c51d8d7646650e1068c5656d785817326a"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b05-v4.json",
+      "bytes": 3055,
+      "sha256": "8b4dc013db8aa1c739bb6c6270714e3114130a3ebbf0580be1a144a738ddec9f"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b05-v5.json",
+      "bytes": 3055,
+      "sha256": "ee929ef6a5cc1fc9cbe5aaa07f47181fac68156cf240fbec7a63acac4de88e30"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b05-v6.json",
+      "bytes": 3055,
+      "sha256": "cb4f6c7c52e9bacb391b01773f7e1d2d35265f27f6b5eeda015177153ca4d631"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-tehiya-b05-v7.json",
+      "bytes": 3055,
+      "sha256": "603417822958011e07ecac714828433195c9dd25a3ad058db1df1871f8f40a28"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b00-v3.json",
+      "bytes": 812458,
+      "sha256": "d870f5da4960ac9147cfe2a1f79b779d0b5dbff0edb7c323c69b49d83c0cc61e"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b00-v4.json",
+      "bytes": 812458,
+      "sha256": "4217dca2b65882004afeb0012532a1aef47512c880f3c564a873f39985fe0513"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b00-v5.json",
+      "bytes": 812458,
+      "sha256": "6320932873110b7ceeb6aee1a68cc2c006f375a010941ec484f69d13ede9bad9"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b00-v6.json",
+      "bytes": 812458,
+      "sha256": "0779c990af0a35d05211ec8b2f8c6234a50899ee70bf09a5e9c25456798a24dc"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b00-v7.json",
+      "bytes": 812458,
+      "sha256": "5fcaa59cd0733216c62c1ebc84cf5d3f9e4191d915c012efba503ae75dd87f96"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b01-v3.json",
+      "bytes": 323802,
+      "sha256": "498cf2385d25229fa1e6ef641494737e8a728d2e0097a6c164dabf896e8d3d47"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b01-v4.json",
+      "bytes": 323802,
+      "sha256": "dba913900ce7654f00f0edbde93a75a0012d5b6c5f3ae2e63fe060e9af080b9a"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b01-v5.json",
+      "bytes": 323802,
+      "sha256": "4f954843079f73c90fa1d748b169d9ae84a1218bb41e521052a9ea903ac4b12d"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b01-v6.json",
+      "bytes": 323802,
+      "sha256": "4769e6a2acc587561ddfaec61bb42317631c421ff0ee7ffc1def0427b994fb0c"
+    },
+    {
+      "path": "public/data/benyehuda/catalog/era-unknown-b01-v7.json",
+      "bytes": 323802,
+      "sha256": "ff0a36a80360c1aec92752d674c0f0e65a335f053bdfdeb2a0430007614eebdb"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-authors-v7.json",
+      "bytes": 316165,
+      "sha256": "cff49d87a76b911b91523f3b285f5197f99bbfd14c1ea51563117bfc9132cef0"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-catalog-v2.json",
+      "bytes": 386478,
+      "sha256": "ad849079928defe254eee4cdd3ca24e497ce377f504c18d7fe6c0782c203daf3"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-catalog-v3.json",
+      "bytes": 4489,
+      "sha256": "c6d6b9e8c8782514fd4fb1565300a15b48b15c437dce943bba2d394dc474c156"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-catalog-v4.json",
+      "bytes": 7363,
+      "sha256": "2205652c5c287f25aa2b2bed9b7bf8b3cbecb6540e409243aa757ee0789504c6"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-catalog-v5.json",
+      "bytes": 8689,
+      "sha256": "0220e127eafb32e4bbbd35e73719428de93288280df49c149b8aedfa63adceda"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-catalog-v6.json",
+      "bytes": 9729,
+      "sha256": "e40904c457960731d8257592676b609d133b5dc5e73422ad5238440783b6fb49"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-catalog-v7.json",
+      "bytes": 9969,
+      "sha256": "b5609674c4c2d3c4cce3722d8e115921442b6303ed73410b047ff8a8d96e87c0"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-editorial-v1.json",
+      "bytes": 6036,
+      "sha256": "45494d9fe0f9d9ca205fa0cbfd05fc92194ec271e5991fd3ca8fa0e4ecca4176"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-fts-v7.json",
+      "bytes": 10897,
+      "sha256": "557bf9ec893b442b1bdbd2aa053c00608040aface8632400f91eb8f1a192a89e"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-index-v3.json",
+      "bytes": 161628,
+      "sha256": "00b9422ecb1acd38d6012fd571ca2dafeb65f496d1e1b3085cb065f8e8fd222f"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-index-v4.json",
+      "bytes": 355771,
+      "sha256": "67345e3cd0b2aedbd0b7dae97db813900642e7f5df39b751320a3030272cdbac"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-index-v5.json",
+      "bytes": 443306,
+      "sha256": "d4b1896d8d450fcd50d09c79255dab0203e7c236aaad678fc93e2cd2df094a3f"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-index-v6.json",
+      "bytes": 510637,
+      "sha256": "5a56e459443260dd2a328c42b4369cae4014134003f2f37a51d820d7c71fba5e"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-index-v7.json",
+      "bytes": 526200,
+      "sha256": "fdc295f093a7b2fb589f0ffdf69569086abc520b27d2b6e09bf9a7e3283ff8ea"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-search-v3.json",
+      "bytes": 3483991,
+      "sha256": "0fca6f88119e1820d88cc893700eaa016e4617020a72f4b2166492e25362e420"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-search-v4.json",
+      "bytes": 3483991,
+      "sha256": "be114f40a8ef676cc8c8ed6bcde1b5d8a9838c137315aa1a2e7a23e4d4a4a4f8"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-search-v5.json",
+      "bytes": 3483991,
+      "sha256": "bc1b00955b06cbfe9be979ee69f559a890b5dae7f73428ee04b53aef255223f6"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-search-v6.json",
+      "bytes": 3483991,
+      "sha256": "730efb595921da09439df280eebacedc63f46d9aa326d710956bb38e1b6a3564"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-search-v7.json",
+      "bytes": 3833549,
+      "sha256": "2c2e1b28a4579de17ef021285789165623e01909c4bd1debbef25ef5b93892ed"
+    },
+    {
+      "path": "public/data/benyehuda/corpus-vocab-v7.json",
+      "bytes": 940806,
+      "sha256": "6269db69a7b5f1c758264a97a1c0a05d1d003f605c6dab5ef418fd2c84f5b759"
+    },
+    {
+      "path": "public/data/benyehuda/translit-ru-v7.json",
+      "bytes": 1353152,
+      "sha256": "de0a9cd64f3901955ea5b01570ab31dc851448bf9d73d842542822549afbee80"
+    }
+  ],
+  "readyIdsSha256": "eee023850ea950f910b1c0bc95f56637ad53738ba1aac16dde5dcda14c4a8e60",
+  "catalogIdsSha256": "951aa1a7792f4ff917e9ced6b91c88f5e11a2a2a10f45a91e967b8bf893bdeef"
+}

@@ -60,3 +60,11 @@ jobs:
       - name: Memory canon replay and persistence
         # Browser profile and server storage are disposable; no owner profile is used.
         run: npm run smoke:memory-canon
+
+      - name: Room discovery privacy and learner-state boundary
+        # Synthetic bodies, disposable OPFS/server, no provider calls.
+        run: node scripts/premium/room-discovery-browser-smoke.js
+
+      - name: Room preview transfer and cache boundary with active SW
+        # Actual SW source, native HTTP streams, no owner data or corpus writes.
+        run: node scripts/premium/room-discovery-sw-preview-smoke.js
