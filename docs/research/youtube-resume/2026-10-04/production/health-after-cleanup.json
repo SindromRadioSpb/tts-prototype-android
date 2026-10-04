@@ -1,0 +1,13 @@
+{
+  "version": "3.11.729",
+  "disk_warn": true,
+  "db": {
+    "ready": true
+  },
+  "migrations": {
+    "ready": true
+  },
+  "ok": true,
+  "disk_pct_used": 86,
+  "checked_at": "2026-10-04T19:44:08.8060656Z"
+}

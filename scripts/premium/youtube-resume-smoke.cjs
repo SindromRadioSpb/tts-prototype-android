@@ -1,6 +1,7 @@
 "use strict";
-// Real Studio/Room + isolated OPFS. Fake only the external YouTube API, including
-// its cued zero clock and native-control Play; no network video or owner data.
+// Real Studio/Room + isolated OPFS. Default: deterministic YouTube API fixture.
+// YT_RESUME_REAL=1: actual YouTube iframe and trusted native Play in Classic/Room.
+// Remote runs block production mutations; fixtures live only in a disposable browser.
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
 const {fork} = require('node:child_process');
@@ -17,7 +18,7 @@ async function main(){
   browser=await chromium.launch({headless:true});
   const context=await browser.newContext({serviceWorkers:'block'}), errors=[];
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
-  await context.route('**/*',route=>(!REMOTE||['GET','HEAD','OPTIONS'].includes(route.request().method()))&&(REAL||route.request().url().startsWith(base))?route.continue():route.abort());
+  await context.route('**/*',route=>(!REMOTE||!route.request().url().startsWith(base)||['GET','HEAD','OPTIONS'].includes(route.request().method()))&&(REAL||route.request().url().startsWith(base))?route.continue():route.abort());
   await context.route('**/js/library-ui.js?*',async route=>{
    const response=await route.fetch();await route.fulfill({response,body:await response.text()+'\nwindow.__resumeTest={openReader,rerenderReader};'});
   });
@@ -26,7 +27,7 @@ async function main(){
   });
   await context.addInitScript(({real})=>{
    if(!['http:','https:'].includes(location.protocol))return;
-   localStorage.setItem('app.locale','ru');localStorage.setItem('phase6Decision_v1','declined');
+   localStorage.setItem('app.locale','ru');localStorage.setItem('phase6Decision_v1','declined');localStorage.setItem('onboardingSeen_v1','1');
    window.__ytPlayers=[];if(real)return;
    window.YT={Player:function(iframe,opts){
     this.time=0;this.state=-1;this.cues=[];this.plays=0;this.destroyed=false;
@@ -54,7 +55,8 @@ async function main(){
    await page.waitForTimeout(400);
    const before=await page.evaluate(async id=>({progress:(await __localDB.getProgress(id)).last_row_idx,player:window.__ytPlayers.filter(p=>!p.destroyed).at(-1).plays,review:JSON.stringify(await __localDB.dbQuery('SELECT * FROM review_log'))}),id);
    assert.equal(before.progress,row);assert.equal(before.player,0,'no autoplay');
-   if(REAL)await page.frameLocator('iframe[src*="youtube.com/embed/"]').locator('.ytp-large-play-button').click({timeout:20000});
+   if(REAL)await page.locator('iframe[src*="youtube.com/embed/"]').evaluate(el=>el.scrollIntoView({block:'center'}));
+   if(REAL)await page.frameLocator('iframe[src*="youtube.com/embed/"]').locator('.ytp-large-play-button, .ytp-play-button, button[aria-label="Play"], button[aria-label="Play (k)"], button[aria-label="Play video"]').click({timeout:20000});
    else await page.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).playVideo());
    if(REAL)await page.waitForFunction(({target})=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1)?.adapter.currentTime>=target,{target:row*4+.25},{timeout:25000});
    await page.waitForTimeout(700);
@@ -70,7 +72,7 @@ async function main(){
   await studio.reload({waitUntil:'domcontentloaded'});await verify(studio,'yt-resume-A',12,'classic reload');
   const fresh=await context.newPage();await fresh.goto(base+'/?localMode=1',{waitUntil:'domcontentloaded'});await verify(fresh,'yt-resume-A',12,'classic new tab');
   await fresh.close();
-  await studio.evaluate(async()=>{v3IdeApplyMode(true,'yt-resume-A');await v3IdeOpenTextInCenter('yt-resume-B');});await verify(studio,'yt-resume-B',24,'ide');
+  if(!REAL){await studio.evaluate(async()=>{v3IdeApplyMode(true,'yt-resume-A');await v3IdeOpenTextInCenter('yt-resume-B');});await verify(studio,'yt-resume-B',24,'ide');}
   await studio.evaluate(async()=>{const a=v3LibraryOpenText('yt-resume-A',{resume:true});const b=v3LibraryOpenText('yt-resume-B',{resume:true});await Promise.all([a,b]);});await verify(studio,'yt-resume-B',24,'studio rapid A-B');
   const room=await context.newPage();await room.goto(base+'/library.html?my_text=yt-resume-A',{waitUntil:'domcontentloaded'});await verify(room,'yt-resume-A',12,'room');
   await room.reload({waitUntil:'domcontentloaded'});await verify(room,'yt-resume-A',12,'room reload');
@@ -81,6 +83,9 @@ async function main(){
   assert.equal(await room.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).cues.length),cuesBefore,'rerender preserves player position');
   console.log('PASS room rerender retains player and does not cue again');
   assert.deepEqual(errors,[]);console.log('PASS no page errors, unchanged review_log, isolated fixtures');
+ }catch(error){
+  if(browser){const out=path.join(ROOT,'.tmp/youtube-resume-debug');fs.mkdirSync(out,{recursive:true});for(const [i,page] of browser.contexts().flatMap(c=>c.pages()).entries()){await page.screenshot({path:path.join(out,'failure-'+i+'.png')}).catch(()=>{});for(const frame of page.frames()){console.error('FRAME',frame.url(),(await frame.locator('body').innerText().catch(()=>'' )).slice(0,800));if(frame.url().includes('youtube.com/embed'))console.error('BUTTONS',await frame.locator('button').evaluateAll(bs=>bs.map(b=>({label:b.getAttribute('aria-label'),cls:b.className}))).catch(()=>[]));}}}
+  throw error;
  }finally{await browser?.close();server?.kill();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
