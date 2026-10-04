@@ -180,7 +180,7 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=685",
+  "/js/reader-morph.js?v=728",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=648",
   "/js/studio-morph.js?v=3",

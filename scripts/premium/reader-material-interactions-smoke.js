@@ -8,7 +8,7 @@ const url='https://linguistpro.kolosei.com/library.html?public_corpus=media-8bf8
 const browser=await engine.launch({headless:true});
 try { const ctx=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
 await ctx.addInitScript(()=>{localStorage.setItem('app.locale','ru');});
-for(const name of ['library-ui.js','lexical-resolution-service.js','world-engine.js'])await ctx.route('**/js/'+name+'*',r=>r.fulfill({body:fs.readFileSync(path.join(root,'public/js',name)),contentType:'application/javascript'}));
+for(const name of ['library-ui.js','lexical-resolution-service.js','world-engine.js','reader-morph.js'])await ctx.route('**/js/'+name+'*',r=>r.fulfill({body:fs.readFileSync(path.join(root,'public/js',name)),contentType:'application/javascript'}));
 const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
 await page.locator('#roomReaderTable .rm-w').first().waitFor({timeout:90000});

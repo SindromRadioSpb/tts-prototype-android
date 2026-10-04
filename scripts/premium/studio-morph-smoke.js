@@ -122,6 +122,9 @@ function ok(cond, msg) {
 
     // Синтетическая НЕСОХРАНЁННАЯ таблица (нет _v3_textId/_v3_sentenceId)
     await pg.evaluate(() => {
+      // This fixture taps the plain-Hebrew column explicitly. The current
+      // default only shows niqqud/translation, so select the fixture's preset.
+      window.applyPreset("full");
       window.v3RenderTableFromLibrary([
         { he: "רכבת מהירה מאוד", he_niqqud: "רַכֶּבֶת מְהִירָה מְאֹד", translit: "rakevet mehira meod", ru: "очень быстрый поезд" },
         { he: "אני הולך הביתה", he_niqqud: "אֲנִי הוֹלֵךְ הַבַּיְתָה", translit: "ani holekh habayta", ru: "я иду домой" },

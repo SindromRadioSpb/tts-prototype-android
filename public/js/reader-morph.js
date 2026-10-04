@@ -1085,6 +1085,7 @@
     ["known", ["room.morph.status.known", "знаю"]], ["ignore", ["room.morph.status.ignore", "не учить"]],
   ];
   var _activeCard = null, _activeOcc = null, _activeNoteInfo = null, _attachOpts = {};
+  var _cardInteractionEpoch = 0;
   // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
   // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
   // chip cards (no sentence) so the refine button never offers an outbound it can't make.
@@ -1121,6 +1122,11 @@
       '  <div class="rm-sheet-body"></div>' +
       "</div>";
     document.body.appendChild(el);
+    // Late automatic context must never replace an editor, learner decision,
+    // drill or focus target that the learner has already engaged with.
+    ["pointerdown", "click", "keydown", "input", "wheel", "touchstart"].forEach(function (type) {
+      el.addEventListener(type, function () { _cardInteractionEpoch++; }, true);
+    });
     el.addEventListener("click", function (e) {
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
@@ -1532,10 +1538,10 @@
     // Closing here writes nothing (R4 no-dead-ends: the ✕/backdrop exits are untouched).
     var recall = (_recallCtx && _recallCtx.card === card) ? _recallCtx : null;
     if (recall && !recall.revealed) {
-      return head + niqMark +
+      return head + niqMark + contextPendingHtml(card) +
         '<div class="rm-recall" dir="' + uiDir() + '">' +
         '<div class="rm-recall-k">' + escapeHtml(tt("room.morph.recall.due", "🔁 К повторению — вспомни перевод")) + "</div>" +
-        '<button type="button" class="rm-recall-reveal" data-rm-recall-reveal>' + escapeHtml(tt("room.morph.recall.reveal", "Показать ответ")) + "</button>" +
+        '<button type="button" class="rm-recall-reveal" data-rm-recall-reveal' + (card.contextPending ? ' disabled data-rm-context-wait' : '') + '>' + escapeHtml(tt("room.morph.recall.reveal", "Показать ответ")) + "</button>" +
         "</div>" +
         '<div class="rm-rows">' + rows + "</div>";
     }
@@ -1683,7 +1689,20 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+  }
+
+  function contextPendingHtml(card) {
+    return card && card.contextPending ? '<div class="rm-refine-busy" data-rm-context-pending role="status" dir="' + uiDir() + '">' + escapeHtml(tt("room.morph.refining", "Уточняю в контексте…")) + '</div>' : '';
+  }
+
+  function clearContextPending(card) {
+    card.contextPending = false;
+    if (!_sheet || _activeCard !== card) return;
+    var pending = _sheet.querySelector('[data-rm-context-pending]');
+    if (pending) pending.remove();
+    var reveal = _sheet.querySelector('[data-rm-context-wait]');
+    if (reveal) { reveal.disabled = false; reveal.removeAttribute('data-rm-context-wait'); }
   }
 
   // R10: in the Room's desktop split the card is a docked panel beside the table, not a modal.
@@ -1978,42 +1997,76 @@
         // Tier-3 «точный режим» (opt-in, GLOBAL auto): when a contextProvider is wired it
         // gates on the user's standing consent and returns the context reading (or null when
         // declined/undecided/offline); degrade silently to offline on any miss.
-        var ctx = null;
-        if (typeof _attachOpts.contextProvider === "function" && sentence) {
-          try { ctx = await _attachOpts.contextProvider(sentence, stripNiqqud(surface)); } catch (_) { ctx = null; }
-        }
-        var card = await resolveWordLight(surface, niqqud, ctx);
-        if (card && occ && typeof _attachOpts.lookupLexicalResolution === "function") {
-          try {
-            var projection = await _attachOpts.lookupLexicalResolution(card, occ, row);
-            card = applyLexicalResolution(card, projection);
-            if (projection && projection.state === "resolved") {
-              var ownerEngine = await ensureEngine();
-              card.lemmaKey = statusKeyForCard(ownerEngine.NA, card, niqqud, surface);
-              if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
-                try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) { card.manualStatus = ""; }
+        var wordCtx = _activeWordCtx;
+        var current = function () { return _activeSpan === span && _activeWordCtx === wordCtx && _attachOpts === opts; };
+        var ctxReady = false, ctxValue = null;
+        var contextPromise = Promise.resolve().then(function () {
+          return typeof opts.contextProvider === "function" && sentence ? opts.contextProvider(sentence, stripNiqqud(surface)) : null;
+        }).then(function (ctx) { ctxReady = true; ctxValue = ctx; return ctx; }, function () { ctxReady = true; return null; });
+        // Dictionary preparation and cloud context run concurrently. A slow
+        // provider never holds the already available offline card hostage.
+        await ensureEngine();
+        var prepareCard = async function (ctx) {
+          var card = await resolveWordLight(surface, niqqud, ctx);
+          if (card && occ && typeof _attachOpts.lookupLexicalResolution === "function") {
+            try {
+              var projection = await _attachOpts.lookupLexicalResolution(card, occ, row);
+              card = applyLexicalResolution(card, projection);
+              if (projection && projection.state === "resolved") {
+                var ownerEngine = await ensureEngine();
+                card.lemmaKey = statusKeyForCard(ownerEngine.NA, card, niqqud, surface);
+                if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
+                  try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) { card.manualStatus = ""; }
+                }
               }
-            }
-          } catch (_) { /* exact projection miss must leave the resolver card unchanged */ }
-        }
-        // Retention P5 (recon §6.2, D4(b)) — a DUE word opens in «вспомни» mode. Gated exactly
-        // like the quiet marker: exact-confident only (a suppressed homograph is never graded —
-        // R10 §6.1), «ignore» excluded, a gloss to reveal must exist, and the Room must have wired
-        // both the schedule and the grade glue. Everything else opens the normal card unchanged.
-        _recallCtx = null; _markConfirm = null;   // fresh tap → no stale mark confirmation
-        try {
-          if (card && card.lemmaKey && typeof _attachOpts.getDueSchedule === "function") {
-            var schedAll = await _attachOpts.getDueSchedule();
-            // P5.6 R-3 — schedule provenance for the card's quiet «Повтор: …» line (any word).
-            card.srsRow = (schedAll && schedAll[card.lemmaKey]) || null;
-            if (card.srsRow && (Number(card.srsRow.due) || 0) <= Date.now() &&
-                card.meaning && (card.label === "exact" || card.label === "owner" || card.label === "teacher") && !card.ambiguous &&
-                card.manualStatus !== "ignore" && typeof _attachOpts.gradeReadingTap === "function") {
-              _recallCtx = { card: card, prev: card.srsRow, revealed: false, graded: false };
-            }
+            } catch (_) { /* exact projection miss must leave the resolver card unchanged */ }
           }
-        } catch (_) { _recallCtx = null; }
-        if (_activeSpan === span) openCard(card, occ);
+          // Retention P5 (recon §6.2, D4(b)) — a DUE word opens in «вспомни» mode. Gated exactly
+          // like the quiet marker: exact-confident only (a suppressed homograph is never graded —
+          // R10 §6.1), «ignore» excluded, a gloss to reveal must exist, and the Room must have wired
+          // both the schedule and the grade glue. Everything else opens the normal card unchanged.
+          try {
+            if (card && card.lemmaKey && typeof _attachOpts.getDueSchedule === "function") {
+              var schedAll = await _attachOpts.getDueSchedule();
+              // P5.6 R-3 — schedule provenance for the card's quiet «Повтор: …» line (any word).
+              card.srsRow = (schedAll && schedAll[card.lemmaKey]) || null;
+            }
+          } catch (_) {}
+          return card;
+        };
+        var setRecall = function (card, allowed) {
+          _recallCtx = null;
+          if (allowed && card && card.srsRow && (Number(card.srsRow.due) || 0) <= Date.now() &&
+              card.meaning && (card.label === "exact" || card.label === "owner" || card.label === "teacher") && !card.ambiguous &&
+              card.manualStatus !== "ignore" && typeof opts.gradeReadingTap === "function") {
+            _recallCtx = { card: card, prev: card.srsRow, revealed: false, graded: false };
+          }
+        };
+        var initialCtx = ctxReady ? ctxValue : null;
+        var card = await prepareCard(initialCtx);
+        // A cache/cloud response that finished during local reads can be used
+        // before the first render, without a needless intermediate card.
+        if (!initialCtx && ctxReady && ctxValue) card = await prepareCard(ctxValue);
+        if (!current()) return;
+        _markConfirm = null;
+        setRecall(card, true);
+        if (card) card.contextPending = !ctxReady;
+        openCard(card, occ);
+        if (ctxReady || !card) return;
+        var interactionEpoch = _cardInteractionEpoch;
+        contextPromise.then(async function (ctx) {
+          if (!current() || _activeCard !== card) return;
+          if (!ctx || _cardInteractionEpoch !== interactionEpoch) { clearContextPending(card); return; }
+          var refined;
+          try { refined = await prepareCard(ctx); } catch (_) { clearContextPending(card); return; }
+          if (!current() || _activeCard !== card) return;
+          if (_cardInteractionEpoch !== interactionEpoch) { clearContextPending(card); return; }
+          // Never start a hidden-answer quiz after a normal card already
+          // displayed its meaning. Pending recall cards keep the answer hidden.
+          var wasRecall = !!(_recallCtx && _recallCtx.card === card);
+          setRecall(refined, wasRecall);
+          openCard(refined, occ);
+        }).catch(function () { if (current() && _activeCard === card) clearContextPending(card); });
       } catch (e) { if (_activeSpan === span) openCard(null, occ); }
     };
 
