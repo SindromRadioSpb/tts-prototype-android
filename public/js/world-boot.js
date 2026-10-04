@@ -1,7 +1,7 @@
 /* Worlds boot: one-time Sukkot trial defaults, then preserve the learner choice. */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=715"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=728"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;

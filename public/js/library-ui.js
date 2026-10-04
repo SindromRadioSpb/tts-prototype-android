@@ -6862,9 +6862,12 @@ async function attachBookmarks(mount) {
   });
 }
 async function toggleBookmark(idx, btn) {
+  if (btn.disabled) return;
   const row = readerRows[idx];
   if (!row || !row._v3_sentenceId || readerTextId == null) return;
   const sid = String(row._v3_sentenceId);
+  const textId = readerTextId, textKey = readerTextKey, title = readerTextTitle;
+  const bookmarkSet = _bookmarkSet;
   const on = btn.classList.contains('bookmarked');
   const setOn = (state) => {
     btn.classList.toggle('bookmarked', state);
@@ -6872,24 +6875,35 @@ async function toggleBookmark(idx, btn) {
     btn.setAttribute('aria-pressed', String(state));
     btn.title = tt(state ? 'room.bookmark.remove' : 'room.bookmark.add', state ? 'Убрать закладку' : 'Закладка');
   };
+  // Acknowledge the tap immediately; serialize repeated taps until the
+  // canonical write finishes. Roll back the visible state on failure.
+  btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  setOn(!on);
   try {
     if (on) {
-      await localDb.removeBookmark(readerTextId, sid);
-      if (_bookmarkSet) _bookmarkSet.delete(sid);
+      await localDb.removeBookmark(textId, sid);
+      if (bookmarkSet) bookmarkSet.delete(sid);
       setOn(false);
     } else {
       const he = row.he || row.he_niqqud || '', ru = row.ru || '';
       const snippet = (he + (ru ? ' · ' + ru : '')).trim().slice(0, 200);
       await localDb.addBookmark({
-        text_id: readerTextId, text_key: readerTextKey, sentence_id: sid,
+        text_id: textId, text_key: textKey, sentence_id: sid,
         order_index: row._v3_orderIndex != null ? row._v3_orderIndex : idx,
-        title: readerTextTitle, snippet,
+        title, snippet,
       });
-      if (_bookmarkSet) _bookmarkSet.add(sid);
+      if (bookmarkSet) bookmarkSet.add(sid);
       setOn(true);
       roomToast(tt('room.bookmark.added', 'Закладка добавлена'));
     }
-  } catch (_) {}
+  } catch (_) {
+    setOn(on);
+    roomToast(tt('room.corpus.search.saveFailed', 'Не удалось сохранить'));
+  } finally {
+    btn.disabled = false;
+    btn.setAttribute('aria-busy', 'false');
+  }
 }
 
 // ============================================================================

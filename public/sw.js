@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.727";
+const CACHE_VERSION = "v3.11.728";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -128,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=727",
+  "/js/library-ui.js?v=728",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -161,7 +161,7 @@ const PRECACHE_URLS = [
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
-  "/js/lexical-resolution-service.js?v=5",
+  "/js/lexical-resolution-service.js?v=6",
   "/js/lexical-resolution-ui.js?v=12",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
@@ -272,8 +272,8 @@ const PRECACHE_URLS = [
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
-  "/js/world-boot.js?v=715",
-  "/js/world-engine.js?v=715",
+  "/js/world-boot.js?v=728",
+  "/js/world-engine.js?v=728",
   "/js/world-render.js?v=715",
   "/css/world-skin.css?v=715",
   "/js/app-nav.js?v=645",

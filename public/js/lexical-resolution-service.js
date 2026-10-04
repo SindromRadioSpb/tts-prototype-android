@@ -63,14 +63,17 @@
   async function lookupExactOccurrence(occurrence,repository,Core){
     const id=occurrenceId(occurrence);if(!id||!repository)return null;
     let events=[];
+    let indexedReadSucceeded=false;
     // Prefer the bounded indexed read. Older cached LocalDb module instances may
     // not expose it yet while the already-established per-text reader remains
     // available. The compatibility path stays exact: it filters by the same
     // occurrence id before source-anchor validation in projectExactOccurrence.
+    // A successful indexed miss is final: scanning the whole material after
+    // every unreviewed word tap defeats the bounded read on long videos.
     if(typeof repository.listLexicalResolutionEventsForOccurrence==='function'){
-      try{events=await repository.listLexicalResolutionEventsForOccurrence(id)||[];}catch(_){events=[];}
+      try{events=await repository.listLexicalResolutionEventsForOccurrence(id)||[];indexedReadSucceeded=true;}catch(_){events=[];}
     }
-    if(!events.length&&occurrence&&occurrence.text_id!=null&&typeof repository.listLexicalResolutionEventsForText==='function'){
+    if(!indexedReadSucceeded&&occurrence&&occurrence.text_id!=null&&typeof repository.listLexicalResolutionEventsForText==='function'){
       const textEvents=await repository.listLexicalResolutionEventsForText(String(occurrence.text_id))||[];
       events=textEvents.filter((event)=>String(event&&event.occurrence_id||'')===id);
     }

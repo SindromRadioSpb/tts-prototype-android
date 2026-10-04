@@ -893,7 +893,9 @@
     // An A-frame on the pavement just left of Timsah: the landmark stays uncovered, the bubble
     // (above his head) never overlaps it. transform-only: following the camera never shifts layout.
     var head = (L.x - st.renderer.camera()) * st.scale;
-    var x = head - 22 * st.scale - st.sign.offsetWidth;
+    // ResizeObserver measures the sign after layout. Reading offsetWidth on
+    // every animation frame forced layout of long reader tables after a tap.
+    var x = head - 22 * st.scale - (st.signWidth || 0);
     st.sign.style.left = "0px";
     st.sign.style.transform = "translateX(" + Math.round(Math.max(8, x)) + "px)";
     st.sign.style.bottom = Math.round((state.pack.scenery.groundY - 2) * st.scale) + "px";
@@ -992,6 +994,9 @@
     if (!st || !st.route) return;
     var ids = routeLocations(state.pack, state.surface);
     var progress = ids.indexOf(Array.isArray(state.surface.route) ? state.location : state.progressLocation || ids[0]);
+    var routeKey = [locale(), state.location, progress, ids.join(",")].join("|");
+    if (st.routeSyncKey === routeKey) return;
+    st.routeSyncKey = routeKey;
     var routeLabel = REGISTRY[state.pack.id].routeLabel;
     st.route.setAttribute("aria-label", routeLabel ? (routeLabel[locale()] || routeLabel.ru) : tr("world.routeLabel", "Маршрут выборов"));
     Array.prototype.forEach.call(st.route.children, function (b, i) {
@@ -1126,7 +1131,19 @@
     canvas.addEventListener("pointerdown", onStageTap);
     syncPauseButton();
     if (typeof ResizeObserver !== "undefined") {
-      var ro = new ResizeObserver(function () { layoutStage(); });
+      var stage = state.stage;
+      var signRo = new ResizeObserver(function (entries) {
+        var sizes = entries[0].borderBoxSize;
+        stage.signWidth = sizes && sizes.length ? sizes[0].inlineSize : entries[0].contentRect.width;
+        requestAnimationFrame(function () { if (state.stage === stage) drawOnce(); });
+      });
+      signRo.observe(sign);
+      state.observers.push(signRo);
+      var ro = new ResizeObserver(function () {
+        // Stage sizing writes DOM geometry too; keep those writes out of the
+        // observer delivery cycle (WebKit reports undelivered notifications).
+        requestAnimationFrame(function () { if (state.stage === stage) layoutStage(); });
+      });
       ro.observe(el.parentElement);
       state.observers.push(ro);
     }
