@@ -7,22 +7,27 @@ const {fork} = require('node:child_process');
 const {chromium} = require('playwright');
 const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer} = require('../smoke-server-env');
 const ROOT=path.resolve(__dirname,'../..');
+const REMOTE=process.env.YT_RESUME_BASE, REAL=process.env.YT_RESUME_REAL==='1';
 async function main(){
- const server=fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:ROOT,env:smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(),'lp-yt-resume-')),0),silent:true,windowsHide:true});
+ const server=REMOTE?null:fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:ROOT,env:smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(),'lp-yt-resume-')),0),silent:true,windowsHide:true});
  let browser;
  try{
-  const base='http://127.0.0.1:'+await waitForSmokeServer(server,30000);
+  const base=REMOTE||'http://127.0.0.1:'+await waitForSmokeServer(server,30000);
+  if(REMOTE)assert.equal((await(await fetch(base+'/api/client-config')).json()).version,process.env.YT_RESUME_VERSION);
   browser=await chromium.launch({headless:true});
   const context=await browser.newContext({serviceWorkers:'block'}), errors=[];
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
-  await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
+  await context.route('**/*',route=>(!REMOTE||['GET','HEAD','OPTIONS'].includes(route.request().method()))&&(REAL||route.request().url().startsWith(base))?route.continue():route.abort());
   await context.route('**/js/library-ui.js?*',async route=>{
    const response=await route.fetch();await route.fulfill({response,body:await response.text()+'\nwindow.__resumeTest={openReader,rerenderReader};'});
   });
-  await context.addInitScript(()=>{
+  if(REAL)await context.route('**/js/studio-yt-player.js?*',async route=>{
+   const response=await route.fetch();await route.fulfill({response,body:await response.text()+`\nconst originalCreate=StudioYtPlayer.create;StudioYtPlayer.create=async(...args)=>{const adapter=await originalCreate(...args),record={adapter,cues:[],plays:0,destroyed:false};const cue=adapter.cueAt.bind(adapter),destroy=adapter.destroy.bind(adapter);adapter.cueAt=t=>{record.target=t;record.cues.push(t);cue(t);};adapter.destroy=()=>{record.destroyed=true;destroy();};record.playVideo=()=>{record.plays++;return adapter.play();};window.__ytPlayers.push(record);return adapter;};`});
+  });
+  await context.addInitScript(({real})=>{
    if(!['http:','https:'].includes(location.protocol))return;
    localStorage.setItem('app.locale','ru');localStorage.setItem('phase6Decision_v1','declined');
-   window.__ytPlayers=[];
+   window.__ytPlayers=[];if(real)return;
    window.YT={Player:function(iframe,opts){
     this.time=0;this.state=-1;this.cues=[];this.plays=0;this.destroyed=false;
     this.getCurrentTime=()=>this.time;this.getPlayerState=()=>this.state;this.getOption=()=>[];
@@ -32,13 +37,13 @@ async function main(){
     this.seekTo=t=>{this.time=t;};this.destroy=()=>{this.destroyed=true;};
     window.__ytPlayers.push(this);setTimeout(()=>opts.events.onReady(),150);
    }};
-  });
+  },{real:REAL});
   const studio=await context.newPage();await studio.goto(base+'/?localMode=1',{waitUntil:'domcontentloaded'});
   await studio.waitForFunction(()=>window.__localDB?.isReady(),null,{timeout:45000});
   await studio.evaluate(async()=>{
    for(const id of ['yt-resume-A','yt-resume-B']){
     const rows=Array.from({length:40},(_,i)=>({id:id+'-'+i,he_plain:'שלום עולם',he:'שלום עולם',ru:id+' row '+i,order_index:i}));
-    const audio={v:1,video:{videoId:'iG9CE55wbtY'},segments:rows.map((r,i)=>({i,start:i*4+.25,end:i*4+3,text:r.he_plain})),timing:{v:1,unit:'row',entries:rows.map((r,i)=>({o:i,t:i*4+.25,end:i*4+3}))}};
+    const audio={v:1,video:{videoId:'PngchpnAS5E'},segments:rows.map((r,i)=>({i,start:i*4+.25,end:i*4+3,text:r.he_plain})),timing:{v:1,unit:'row',entries:rows.map((r,i)=>({o:i,t:i*4+.25,end:i*4+3}))}};
     await __localDB.createText({id,text_key:id,title:id,source_text:rows.map(r=>r.he_plain).join('\n'),table_model_meta_json:JSON.stringify({source:{audio}})});
     await __localDB.addSentences(id,rows);await __localDB.setProgress(id,{last_row_idx:id.endsWith('A')?12:24,last_step_id:'ru'});
    }
@@ -50,11 +55,14 @@ async function main(){
    const before=await page.evaluate(async id=>({progress:(await __localDB.getProgress(id)).last_row_idx,player:window.__ytPlayers.filter(p=>!p.destroyed).at(-1).plays,review:JSON.stringify(await __localDB.dbQuery('SELECT * FROM review_log'))}),id);
    assert.equal(before.progress,row);assert.equal(before.player,0,'no autoplay');
    await page.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).playVideo());
+   if(REAL)await page.waitForFunction(({target})=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1)?.adapter.currentTime>=target,{target:row*4+.25},{timeout:25000});
    await page.waitForTimeout(700);
-   assert.equal(await page.evaluate(async id=>(await __localDB.getProgress(id)).last_row_idx,id),row);
+   const resumed=await page.evaluate(async id=>(await __localDB.getProgress(id)).last_row_idx,id);
+   if(REAL)assert.ok(resumed>=row&&resumed<=row+3,'real YouTube starts near the saved row');else assert.equal(resumed,row);
    assert.equal(await page.evaluate(async()=>JSON.stringify(await __localDB.dbQuery('SELECT * FROM review_log'))),before.review);
    const selected=surface==='room'?'#roomReaderTable tr.rm-row-current':'#proTable tr.smk-row-active';
-   await page.locator(selected+'[data-row-idx="'+row+'"]').waitFor();
+   if(!REAL)await page.locator(selected+'[data-row-idx="'+row+'"]').waitFor();
+   if(REAL)await page.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).adapter.pause());
    console.log('PASS '+surface+' '+id+' row '+(row+1));
   }
   await studio.evaluate(()=>v3LibraryOpenText('yt-resume-A',{resume:true}));await verify(studio,'yt-resume-A',12,'classic');
@@ -72,6 +80,6 @@ async function main(){
   assert.equal(await room.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).cues.length),cuesBefore,'rerender preserves player position');
   console.log('PASS room rerender retains player and does not cue again');
   assert.deepEqual(errors,[]);console.log('PASS no page errors, unchanged review_log, isolated fixtures');
- }finally{await browser?.close();server.kill();}
+ }finally{await browser?.close();server?.kill();}
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
