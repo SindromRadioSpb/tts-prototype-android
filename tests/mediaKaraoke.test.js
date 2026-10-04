@@ -332,3 +332,46 @@ test("playback or an explicit row command engages following immediately", () => 
     uninstallBrowserMocks();
   }
 });
+
+
+test('saved row cues once, stale zero clock never follows, native Play follows the restored segment', async () => {
+  installBrowserMocks();
+  try {
+    const polls = [], frames = [], observed = [], cues = [];
+    window.setTimeout = fn => { polls.push(fn); return polls.length; };
+    window.clearTimeout = () => {};
+    window.requestAnimationFrame = fn => { frames.push(fn); return frames.length; };
+    const mod = freshModule(), adapter = makeFakeAdapter();
+    adapter.cueAt = t => { cues.push(t); }; // cued player keeps a stale clock until Play
+    const entries = [{o:0,t:0}, {o:1124,t:2400.25}, {o:1125,t:2404}];
+    const opts = {media:adapter, entries, rowCount:1126, initialRow:1124, onRangeChange:r=>observed.push(r)};
+    mod.bind(opts);
+    assert.deepEqual(cues,[2400.25]); assert.equal(adapter.paused,true);
+    for(let i=0;i<3;i++) polls.shift()();
+    assert.deepEqual(observed,[]); assert.equal(mod.syncCurrent(true),null);
+    adapter._paused=false; polls.shift()(); // native Play, but clock still 0
+    assert.deepEqual(observed,[]);
+    adapter.currentTime=2399.9; frames.shift()();
+    assert.deepEqual(observed,[],"a preceding keyframe is not the saved row");
+    adapter.currentTime=2400.4; frames.shift()();
+    assert.equal(observed.at(-1).rowStart,1124);
+    mod.bind(opts); mod.restoreRow(1124);
+    assert.deepEqual(cues,[2400.25],'rerender cannot rec cue or rewind');
+    mod.stop();
+  } finally { uninstallBrowserMocks(); }
+});
+
+test('late saved position supersedes provisional row zero; blind rows are not cued; switching isolates restore', () => {
+  installBrowserMocks();
+  try {
+    const mod=freshModule(), a=makeFakeAdapter(), b=makeFakeAdapter(), cues=[];
+    a.cueAt=t=>cues.push(t); b.cueAt=t=>cues.push(t);
+    const entries=[{o:0,t:0},{o:1,t:4.5},{o:2,t:9,blind:true}];
+    mod.bind({media:a,entries,rowCount:3,initialRow:0}); mod.restoreRow(1); mod.restoreRow(2);
+    assert.deepEqual(cues,[0,4.5]);
+    mod.bind({media:b,entries,rowCount:3,initialRow:0});
+    a.currentTime=4.5;
+    assert.equal(mod.getAudioEl(),b); assert.equal(mod.syncCurrent(),null);
+    mod.stop();
+  } finally { uninstallBrowserMocks(); }
+});

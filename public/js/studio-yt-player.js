@@ -82,7 +82,7 @@
   // mountVideo() needs to know about EVERY YT.PlayerState transition (BUFFERING, CUED, UNSTARTED
   // — not just PLAYING/PAUSED/ENDED) because YouTube's captions module can finish loading around
   // any of them, not only around the ones that already had a named event.
-  function makeAdapter(player, iframe) {
+  function makeAdapter(player, iframe, videoId) {
     var listeners = { play: [], pause: [], ended: [], error: [], statechange: [], blocked: [] };
     function emit(ev, arg) { (listeners[ev] || []).forEach(function (fn) { try { fn(arg); } catch (_) {} }); }
     // W2-S5a Task 10 live-smoke finding (2026-07-27, reproduced 9/9): playVideo()/pauseVideo() are
@@ -112,6 +112,12 @@
           // report "not paused", not "stopped".
           return st !== 1 && st !== 3;
         } catch (_) { return true; }
+      },
+      // cueVideoById retains a fractional start time and does not fetch video
+      // bytes until Play. seekTo on an unstarted player can start playback.
+      cueAt: function (seconds) {
+        if (destroyed) return;
+        player.cueVideoById({ videoId: videoId, startSeconds: seconds });
       },
       play: function () { intent = true; try { player.playVideo(); } catch (_) {} return Promise.resolve(); },
       pause: function () { intent = false; try { player.pauseVideo(); } catch (_) {} },
@@ -247,7 +253,7 @@
             onAutoplayBlocked: function () { if (adapter) { adapter._clearIntent(); adapter._emit('blocked'); } },
           },
         });
-        adapter = makeAdapter(player, iframe);
+        adapter = makeAdapter(player, iframe, videoId);
         if (signal) { signal.addEventListener('abort', abort, {once:true}); if (signal.aborted) abort(); }
       });
     });

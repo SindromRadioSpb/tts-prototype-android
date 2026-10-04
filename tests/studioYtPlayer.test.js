@@ -471,3 +471,19 @@ test("ready-timeout: destroys the YT.Player and detaches the iframe, rejects YT_
     uninstallBrowserMocks();
   }
 });
+
+
+test('cueAt sets the exact saved video time without playVideo or seekTo', async () => {
+  installBrowserMocks(); FakePlayer.instances.length=0; window.YT={Player:FakePlayer};
+  try {
+    const adapter=await freshModule().create(makeFakeEl('div'),'iG9CE55wbtY');
+    const player=FakePlayer.instances[0], cues=[];
+    player.cueVideoById=opts=>cues.push(opts);
+    player.playVideo=()=>assert.fail('restore must not autoplay');
+    player.seekTo=()=>assert.fail('restore must cue, not seek an unstarted player');
+    adapter.cueAt(2400.25);
+    assert.deepEqual(cues,[{videoId:'iG9CE55wbtY',startSeconds:2400.25}]);
+    assert.equal(adapter.paused,true);
+    adapter.destroy(); adapter.cueAt(9); assert.equal(cues.length,1);
+  } finally { uninstallBrowserMocks(); }
+});

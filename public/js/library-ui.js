@@ -6307,7 +6307,7 @@ async function roomMediaEnsureYoutubeStage(audio) {
       onReady: adapter => StudyVideoSourceUI.watchPlayer(adapter, note, audio) });
     if (!adapter || !isCurrent()) return null;
     StudioMediaKaraoke.bind({ media: adapter, entries: audio.timing ? audio.timing.entries : null,
-      rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
+      initialRow: _sessionLastRow, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
     roomMediaApplyLayout();
     return adapter;
   } catch (error) {
@@ -8622,7 +8622,6 @@ async function openReader(textId, title, opts) {
     }
     try { beginReadingCalibration(calibrationSource, readerRows); refreshCovChip(); } catch (_) {}
     attachReaderAudio();
-    Promise.resolve(roomMediaSetup(res.text, textId)).catch(() => {});   // saved passport + canonical exact Studio binding
     try { roomUpdateTheadTop(); setTimeout(() => { try { roomUpdateTheadTop(); } catch (_) {} }, 600); } catch (_) {}   // sticky-шапка: бар мог дорасти (cov-chip)
     if (!readerGroupCorpusId && !readerPublicCorpusSlug) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
@@ -8639,6 +8638,7 @@ async function openReader(textId, title, opts) {
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
     else if (opts && opts.scrollToOrderIndex != null) scrollToOrderIdx(opts.scrollToOrderIndex);   // P9 — якорь объяснения (text_key+order_index)
     else restoreReaderPosition(readerTextId, opts, loadedProgress);      // offer/perform resume (R4 reliability)
+    Promise.resolve(roomMediaSetup(res.text, textId)).catch(() => {});   // background; saved row is available before binding
     request.mark('ready');
     // Epic-5 W1 — a resumed-to-end / single-screen text reaches the end without a scroll event;
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles

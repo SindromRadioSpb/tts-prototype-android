@@ -13802,7 +13802,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
 <script src="/js/text-card-format.js"></script>
 <script src="/js/share-service.js"></script>
-<script src="/js/studio-media-karaoke.js?v=662"></script>
+<script src="/js/studio-media-karaoke.js?v=729"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
 <script src="/js/table-presets.js?v=638"></script>
@@ -13823,7 +13823,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      this page's own inline script block below (v3MediaBarRefresh/v3MediaPlayOriginal call
      window.StudioYtPlayer directly). -->
 <script src="/js/captions-parse.js"></script>
-<script src="/js/studio-yt-player.js?v=506"></script>
+<script src="/js/studio-yt-player.js?v=729"></script>
 
 <!-- W2-S11 graded-retell deps — corpus-vocab.js provides the canon coverage-zone engine
      (window.CorpusVocab.CFG.KNOWN_STATES/classifyZone) that studio-retell.js's
@@ -25892,7 +25892,7 @@ async function v3MediaEnsureYoutubeStage(audio) {
       onReady: adapter => StudyVideoSourceUI.watchPlayer(adapter, note, audio) });
     if (!adapter || !isCurrent()) return null;
     StudioMediaKaraoke.bind({ media: adapter, entries: audio.timing ? audio.timing.entries : null,
-      rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0, onRangeChange: v3MediaFollowTableRange });
+      initialRow: rowSelectedRowIdx, rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0, onRangeChange: v3MediaFollowTableRange });
     return adapter;
   } catch (error) {
     if (isCurrent() && error.code !== 'YT_CREATE_CANCELLED') StudyVideoSourceUI.playerError(note, error);
@@ -27641,6 +27641,9 @@ function v3ApplyResumeSelection(token, rowIdx) {
     const clamped = (max >= 0) ? Math.max(0, Math.min(Math.trunc(n), max)) : Math.trunc(n);
 
     setRowSelectedUI(clamped, { persist: false });
+    if (window.StudioMediaKaraoke?.getAudioEl() === window.v3YtStageAdapter) {
+      window.StudioMediaKaraoke?.restoreRow(clamped);
+    }
 
     // scroll after selection; use rAF once more to avoid rare "no scroll" on heavy DOM
     requestAnimationFrame(() => {

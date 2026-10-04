@@ -128,7 +128,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=728",
+  "/js/library-ui.js?v=729",
   "/js/room-b6-core.js?v=485",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -268,7 +268,7 @@ const PRECACHE_URLS = [
   // Package bytes, file hand-off and browser save remain separate outcomes.
   "/js/share-service.js",
   "/js/material-actions.js?v=1",
-  "/js/studio-media-karaoke.js?v=662",
+  "/js/studio-media-karaoke.js?v=729",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
@@ -283,7 +283,7 @@ const PRECACHE_URLS = [
   "/js/media-host.js?v=725",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
-  "/js/studio-yt-player.js?v=506",
+  "/js/studio-yt-player.js?v=729",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
   // Wave 2 C3a — browser-owned voice -> editable role-play draft.

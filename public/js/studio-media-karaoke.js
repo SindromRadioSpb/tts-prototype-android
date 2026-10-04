@@ -78,6 +78,12 @@
     var run = cur;
     run.rafId = 0; run.pollId = 0;
     var t = run.audioEl ? run.audioEl.currentTime : 0;
+    if (run.restoreTarget != null) {
+      // A cued video may report 0 until native Play loads its media. Ignore that
+      // stale clock; do not turn it into row 0 or a progress write.
+      if (t < run.restoreTarget) { scheduleLoop(run); return; }
+      run.restoreTarget = null; run.t0 = t;
+    }
     // 2026-09-26: только что привязанный и ни разу не игравший плеер (YouTube после загрузки стоит
     // на 0:00) — это не позиция ученика. Не красим и не сообщаем диапазон, пока не было
     // воспроизведения, явной команды или сдвига часов (перемотка во встроенных контролах).
@@ -99,7 +105,7 @@
 
   // engage=true — явное действие ученика (перемотка локального плеера, выбор строки).
   function syncCurrent(engage) {
-    if (!cur) return null;
+    if (!cur || cur.restoreTarget != null) return null;
     if (engage === true) cur.engaged = true;
     if (!cur.engaged) return null;   // пассивная синхронизация не выдумывает позицию
     var range = cur.seeking ? null : activeSegmentRange(cur.entries, cur.rowCount, cur.audioEl ? cur.audioEl.currentTime : 0);
@@ -197,7 +203,23 @@
       cur.stopOtherAudio = opts.stopOtherAudio || null;
       return cur;
     }
-    return ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, true, opts.stopOtherAudio);
+    var run = ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, true, opts.stopOtherAudio);
+    if (opts.initialRow != null) restoreRow(opts.initialRow);
+    return run;
+  }
+
+  // Cue at the saved row without loading media, autoplay, or progress writes.
+  // Rebinding a rendered table must not rewind an already used player.
+  function restoreRow(rowIdx) {
+    var run = cur, row = Number(rowIdx);
+    if (!run || !run.audioEl.isYouTube || run.engaged || rowIdx == null ||
+        !Number.isInteger(row) || row < 0 || row >= run.rowCount) return;
+    var k = segIdxForRow(run.entries, row);
+    if (k < 0 || run.restoredRow === row) return;
+    var target = Number(run.entries[k].t);
+    if (!Number.isFinite(target) || target < 0 || typeof run.audioEl.cueAt !== 'function') return;
+    run.audioEl.cueAt(target);
+    run.restoredRow = row; run.restoreTarget = target; run.t0 = target;
   }
 
   async function start(opts) {
@@ -216,7 +238,7 @@
     if (!cur || !cur.entries) return;
     var k = segIdxForRow(cur.entries, Number(rowIdx));
     if (k < 0) return;
-    cur.seekSerial = (cur.seekSerial || 0) + 1; cur.seeking = false; cur.stopAtT = null;
+    cur.seekSerial = (cur.seekSerial || 0) + 1; cur.seeking = false; cur.restoreTarget = null; cur.stopAtT = null;
     if (cur.audioEl._cancelSeek) cur.audioEl._cancelSeek();
     try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; syncCurrent(true); } catch (_) {}
   }
@@ -230,7 +252,7 @@
     var stopHook = (cur && cur.stopOtherAudio) || window.v3StopRowAudio;
     if (typeof stopHook === "function") { try { stopHook(); } catch (_) {} }
     var run = cur, serial = run.seekSerial = (run.seekSerial || 0) + 1;
-    run.engaged = true;
+    run.engaged = true; run.restoreTarget = null;
     try {
       var exactEnd = Number(cur.entries[k] && cur.entries[k].end);
       var stopAt = Number.isFinite(exactEnd) && exactEnd > Number(cur.entries[k].t)
@@ -264,7 +286,7 @@
   function getAudioEl() { return cur ? cur.audioEl : null; }
 
   var API = { activeSegmentRange: activeSegmentRange, bind: bind, start: start, stop: stop, pause: pause, isActive: isActive,
-              seekToRow: seekToRow, playSegment: playSegment, syncCurrent: syncCurrent, getAudioEl: getAudioEl,
+              restoreRow: restoreRow, seekToRow: seekToRow, playSegment: playSegment, syncCurrent: syncCurrent, getAudioEl: getAudioEl,
               _ensureRun: ensureRun };
   window.StudioMediaKaraoke = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
