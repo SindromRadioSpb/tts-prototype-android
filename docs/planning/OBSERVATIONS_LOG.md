@@ -10,6 +10,14 @@
 
 ---
 
+
+## O-071 · Production: заполнение диска блокирует завершение rollout
+- **Дата / где:** 2026-10-04 UTC, выпуск 3.11.729; read-only SSH inventory и production health.
+- **Факты:** root filesystem 38 GB, 100%, 0 свободного места. Production продолжает обслуживать 3.11.728. Образ commit 3a4a6861 уже собран, новый контейнер приложения ещё не запущен. Coolify и его PostgreSQL unhealthy; PostgreSQL пишет `PANIC: could not write to file pg_logical/replorigin_checkpoint.tmp: No space left on device`. GitHub CI 37228013402 завершился success.
+- **Инвентаризация:** 11 работающих контейнеров, 4 тома; Docker Build Cache 4.11 GB, по system df reclaimable около 1.818 GB. Все контейнеры и тома сохраняются. Очистка ещё не выполнена: запрошено отдельное разрешение только на `sudo -n docker builder prune -af`.
+- **Почему важно / продолжение:** push и успешная сборка не завершают выпуск. Проверять свободное место до запуска релиза; после разрешённой очистки проверить recovery Coolify, завершить rollout и повторить production version/health/served bytes/browser gates. Не расширять очистку на контейнеры, образы, тома или данные.
+- **Статус:** в работе; rollout и проверка 3.11.729 не завершены.
+
 ## O-070 · Локальный smoke-хост сообщает 97% заполнения диска
 - **Дата / где:** 2026-10-04, изолированный локальный сервер, проверка старта для iPhone morph interaction; свежий temp DATA_DIR, loopback.
 - **Факты:** `/healthz` вернул HTTP 200, `disk_pct_used:97`, `disk_warn:true`. Это локальная среда, не production. Запрошенная работа продолжилась; очистка не выполнялась.

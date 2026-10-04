@@ -54,7 +54,8 @@ async function main(){
    await page.waitForTimeout(400);
    const before=await page.evaluate(async id=>({progress:(await __localDB.getProgress(id)).last_row_idx,player:window.__ytPlayers.filter(p=>!p.destroyed).at(-1).plays,review:JSON.stringify(await __localDB.dbQuery('SELECT * FROM review_log'))}),id);
    assert.equal(before.progress,row);assert.equal(before.player,0,'no autoplay');
-   await page.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).playVideo());
+   if(REAL)await page.frameLocator('iframe[src*="youtube.com/embed/"]').locator('.ytp-large-play-button').click({timeout:20000});
+   else await page.evaluate(()=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1).playVideo());
    if(REAL)await page.waitForFunction(({target})=>window.__ytPlayers.filter(p=>!p.destroyed).at(-1)?.adapter.currentTime>=target,{target:row*4+.25},{timeout:25000});
    await page.waitForTimeout(700);
    const resumed=await page.evaluate(async id=>(await __localDB.getProgress(id)).last_row_idx,id);
