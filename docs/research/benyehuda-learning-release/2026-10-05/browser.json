@@ -1,0 +1,90 @@
+{
+  "checks": [
+    {
+      "name": "served candidate version and root",
+      "result": "pass",
+      "evidence": {
+        "version": "3.11.731",
+        "ready": 1421,
+        "discovery": 26455
+      }
+    },
+    {
+      "name": "passport and bounded preview preserve learner state",
+      "result": "pass",
+      "evidence": {
+        "id": "3557",
+        "publishedRows": 5,
+        "deviceRows": 7
+      }
+    },
+    {
+      "name": "existing client opens old edition without replace or body fetch",
+      "result": "pass",
+      "evidence": {
+        "deviceRows": 7,
+        "publishedRows": 5,
+        "learnerTablesUnchanged": true
+      }
+    },
+    {
+      "name": "new edition imports separately and leaves old rows, notes, bookmarks, progress, reviews and OPFS media intact",
+      "result": "pass",
+      "evidence": {
+        "oldRows": 7,
+        "newRows": 5
+      }
+    },
+    {
+      "name": "reload resolves the new edition idempotently",
+      "result": "pass",
+      "evidence": {
+        "newBodyFetches": 1
+      }
+    },
+    {
+      "name": "new long multilingual work, mobile passport, preview and reader",
+      "result": "pass",
+      "evidence": {
+        "id": "54646",
+        "rows": 157,
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "name": "passport escapes HTML and retains mixed scripts",
+      "result": "pass",
+      "evidence": {
+        "executableElements": 0
+      }
+    },
+    {
+      "name": "EN and HE material details on mobile",
+      "result": "pass",
+      "evidence": {
+        "locales": [
+          "en",
+          "he"
+        ]
+      }
+    }
+  ],
+  "pageerrors": [],
+  "manifestSummary": {
+    "baseline_version": "v3.11.730",
+    "baseline_catalog": 7,
+    "baseline_ready": 796,
+    "input_works": 688,
+    "input_rows": 39394,
+    "actions": {
+      "replaced": 63,
+      "new": 625
+    },
+    "preserved_public_works": 733,
+    "union_ready": 1421,
+    "input_not_in_discovery_catalog": [],
+    "cross_work_key_matches": 0,
+    "ready_rows_before": 76952,
+    "ready_rows_candidate": 106375
+  }
+}

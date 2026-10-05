@@ -117,9 +117,14 @@ function buildCorpusVocab(opts = {}) {
   const keyFreq = new Map();      // pid-key → global token freq (for stable id + stats)
   let processed = 0, totalTok = 0, totalMatched = 0, missingBody = 0;
   const ids = limit ? bakedIds.slice(0, limit) : bakedIds;
+  const editionFiles = new Map();
+  if (catalog.release_manifest) {
+    const release = JSON.parse(fs.readFileSync(path.join(outDir, catalog.release_manifest), 'utf8'));
+    for (const work of release.works) editionFiles.set(work.work_id, path.basename(work.body));
+  }
 
   for (const id of ids) {
-    const wf = path.join(worksDir, id + ".json");
+    const wf = path.join(worksDir, editionFiles.get(id) || id + ".json");
     if (!fs.existsSync(wf)) { missingBody++; continue; }
     let work; try { work = JSON.parse(fs.readFileSync(wf, "utf8")); } catch (_) { missingBody++; continue; }
     const toks = workTokens(work);

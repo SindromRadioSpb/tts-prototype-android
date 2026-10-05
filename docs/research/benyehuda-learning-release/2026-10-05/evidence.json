@@ -1,0 +1,232 @@
+{
+  "baseline_commit": "5f683507fd5bc993e468f9785648cdb070843ef2",
+  "status": "local candidate, awaiting independent review",
+  "inventory": {
+    "archives": 84,
+    "learning_archives": 38,
+    "evidence_archives": 46,
+    "work_records": 688,
+    "unique_work_ids": 688,
+    "rows": 39394,
+    "stored_keys": 688,
+    "recomputed_keys": 688,
+    "key_mismatches": [
+      "28026"
+    ],
+    "duplicate_id_count": 0,
+    "stored_key_collisions": {},
+    "recomputed_key_collisions": {},
+    "schema_or_integrity_problems": 0
+  },
+  "validation": {
+    "checks": "all passed",
+    "learning_works": 688,
+    "input_rows_preserved": 39394,
+    "ready_works": 1421,
+    "ready_rows": 106375,
+    "retained_bodies_byte_identical": 733,
+    "all_catalog_rows": 26455,
+    "rollback_bytes": 98808122,
+    "rollback_sha256": "b2ec3de6eef3f4c065a23cb17c6bdd66f41f3d96f35ffdc2c6bfa7927954dc63",
+    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "input_inventory_sha256": "914afa363cd829c53a313e64942a18364b2d10d20b33a7073661fba4ada7ea3a"
+  },
+  "publication": {
+    "baseline_version": "v3.11.730",
+    "baseline_catalog": 7,
+    "baseline_ready": 796,
+    "input_works": 688,
+    "input_rows": 39394,
+    "actions": {
+      "replaced": 63,
+      "new": 625
+    },
+    "preserved_public_works": 733,
+    "union_ready": 1421,
+    "input_not_in_discovery_catalog": [],
+    "cross_work_key_matches": 0,
+    "ready_rows_before": 76952,
+    "ready_rows_candidate": 106375
+  },
+  "row_coverage": {
+    "rows": 39394,
+    "plain": 39394,
+    "canonical_niqqud": 39321,
+    "derived_niqqud": 23458,
+    "combined_niqqud": 39321,
+    "russian": 39394,
+    "translit": 39394,
+    "translit_ru": 39394
+  },
+  "niqqud_probe": {
+    "texts": 688,
+    "he": 39394,
+    "voc": 39324,
+    "ru": 39394,
+    "learning_archives": 38,
+    "vocalized_ratio": 0.9982230796568006,
+    "verdict": "PASS",
+    "supporting_archives_excluded": 46,
+    "definition": "Existing probe-niqqud Hebrew range; structural coverage, not philological certification"
+  },
+  "fts": {
+    "before": 10229,
+    "after": 10821,
+    "untouched_preserved": 10133,
+    "new_edition_works": 688,
+    "shards": 334
+  },
+  "upload_dry_run": {
+    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "root_sha256": "e960129ae9029cacab2d2a914875217369741d1abacc7345453da8503df4ec3b",
+    "files": 1710,
+    "uncompressed_file_bytes": 274674697,
+    "compressed_request_bytes": 96145528,
+    "mode": "dry-run"
+  },
+  "remote_read_only": {
+    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "root_sha256": "e960129ae9029cacab2d2a914875217369741d1abacc7345453da8503df4ec3b",
+    "files": 1710,
+    "uncompressed_file_bytes": 274674697,
+    "compressed_request_bytes": 96145528,
+    "mode": "read-only-remote",
+    "absent": 1710,
+    "identical": 0,
+    "uploaded": 0,
+    "activeVersion": "7"
+  },
+  "rollback_restore": {
+    "result": "pass",
+    "restored_files": 1159,
+    "uncompressed_bytes": 273125213,
+    "ready_works": 796,
+    "archive_sha256": "b2ec3de6eef3f4c065a23cb17c6bdd66f41f3d96f35ffdc2c6bfa7927954dc63"
+  },
+  "capacity_snapshot": {
+    "measured_at_utc": "2026-10-05T21:03:55.1268353Z",
+    "total_bytes": 39964635136,
+    "used_bytes": 32636989440,
+    "available_bytes": 5638463488,
+    "used_percent": "86%",
+    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "components": {
+      "new_uncompressed_volume_bytes": 274674697,
+      "compressed_request_staging_bytes": 96145528,
+      "rollback_archive_bytes": 98808122,
+      "rollback_restore_workspace_bytes": 273125213,
+      "largest_atomic_temporary_bytes": 8383707,
+      "deploy_working_reserve_bytes": 4294967296
+    },
+    "required_available_bytes": 5046104563,
+    "shortfall_bytes": 0,
+    "spare_bytes": 592358925,
+    "capacity_gate": "pass",
+    "reserve_basis": "4 GiB build workspace: O-018 (~4 GB/deploy), O-047 (3.2G to 213M at the 725 build peak). Image descriptor size is not a build peak estimate.",
+    "cleanup": {
+      "result": "pass",
+      "reclaimed_df_bytes": 2213761024,
+      "containers_preserved": 10,
+      "volumes_preserved": 4
+    }
+  },
+  "representative_works": [
+    {
+      "work_id": "3557",
+      "action": "replaced",
+      "canonical_text_key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799",
+      "stored_text_key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799",
+      "edition_text_key": "a67233043427ed06dfa303c632d95108d1fe3ff5694a57a020b154dc45116fd8",
+      "learning_edition_id": "d6cb99c55b0ca70b7795fd860f4f9dee9c7e2c54f4bc5a5c2955622c6d4a37fc",
+      "body": "works/3557-3e77da5ee95ec697cb27cdb667c561b3.json",
+      "body_bytes": 6322,
+      "body_sha256": "3e77da5ee95ec697cb27cdb667c561b3456b609b79472e356263edf865bb8e5a",
+      "preview": "works/3557-18d3d41a250b44c2-preview.json",
+      "preview_sha256": "18d3d41a250b44c29a4c42ef86328dafa1e7f1394b56f47dbdd7db63901a93e6",
+      "rows": 5,
+      "old_body": "works/3557.json",
+      "old_body_sha256": "99e221b4d93f410a76744d0bc8cc28239152fedba7995f313413c0f2affc4182"
+    },
+    {
+      "work_id": "32577",
+      "action": "replaced",
+      "canonical_text_key": "67bd3216cca2bfcb7a9745c0004cd8cf1452de4e2c92185f2f5ee9f02cc49814",
+      "stored_text_key": "67bd3216cca2bfcb7a9745c0004cd8cf1452de4e2c92185f2f5ee9f02cc49814",
+      "edition_text_key": "6805135163cd2e88baa8047ff983691193cad9e45ef5e29a2e17d1d71ea1ddf9",
+      "learning_edition_id": "39d5937b9bc8fce9fe1ba7c2a61205030babde5690e35f36cf1511e62d0b519c",
+      "body": "works/32577-fd4fa4d6c5ca1305976ff1da7908b27a.json",
+      "body_bytes": 28152,
+      "body_sha256": "fd4fa4d6c5ca1305976ff1da7908b27a106683b9002156b3d268eaeb31819e01",
+      "preview": "works/32577-f95888a4d10e0e8e-preview.json",
+      "preview_sha256": "f95888a4d10e0e8e44f0dbf809b6394cc0c168bf5c4eb2d58db947f9000e1d47",
+      "rows": 17,
+      "old_body": "works/32577.json",
+      "old_body_sha256": "e7538d7ae23aded89fd48e63eb715e3b02b2d4adaf67d0fff0d2222fdb3d6808"
+    },
+    {
+      "work_id": "28026",
+      "action": "replaced",
+      "canonical_text_key": "8a6b7301fbb7876b90dc5ff21e84fffb9ec912247ce28641bfdadb7664d5ad80",
+      "stored_text_key": "255284edd737413b8010a6ea59f612ded4d19bf4b14cd690b4effbd6c452aca4",
+      "edition_text_key": "068a60423d6a63d723e1fab57db0abd0c9d4339f8b0fdfc1b73b3283381563df",
+      "learning_edition_id": "2e3b65541c3846e847de5a32b4b71c04a4680f82c3a93775294d54fb531e5e28",
+      "body": "works/28026-49b887d1ac9af58a867a17faba45ec87.json",
+      "body_bytes": 235928,
+      "body_sha256": "49b887d1ac9af58a867a17faba45ec8799afb5a82dee1612f852ab3c6938ce0c",
+      "preview": "works/28026-6a404bd8db68a6f6-preview.json",
+      "preview_sha256": "6a404bd8db68a6f6cc201597a98cca5a76e99b7748c0e76755db23f12d838f8c",
+      "rows": 149,
+      "old_body": "works/28026.json",
+      "old_body_sha256": "5de64ae32ed9948b743e500fcbd76383f899fb21ba2c3791263a10e51dd76035"
+    },
+    {
+      "work_id": "54646",
+      "action": "new",
+      "canonical_text_key": "1f361241baf3781c5281e552b20c8948ee28e0ef30a649027dde904054feba45",
+      "stored_text_key": "1f361241baf3781c5281e552b20c8948ee28e0ef30a649027dde904054feba45",
+      "edition_text_key": "58ee9bb793f71fc01b78ce28bcd7c191ccbe0f49d784a3469c04ac17dbab23d1",
+      "learning_edition_id": "6c0912b024848791586d5cfacea7f6b050d002d24ce0270e2e1e186fa82074d2",
+      "body": "works/54646-4df1b743f3d8f292f6204b0805d540be.json",
+      "body_bytes": 353666,
+      "body_sha256": "4df1b743f3d8f292f6204b0805d540be1cc91572bd9923016954fc56a57a9229",
+      "preview": "works/54646-fc10bc0cfe0b61d5-preview.json",
+      "preview_sha256": "fc10bc0cfe0b61d5db7c0108ab3d4f290fe3e2b0328a73e8f2d19c178a491037",
+      "rows": 157,
+      "old_body": null,
+      "old_body_sha256": null
+    }
+  ],
+  "retained_example": {
+    "work_id": "10",
+    "body": "works/10.json",
+    "sha256": "f3a036e1c6f3a6cbe21d211abefc3afbe73380d022ed4babf438b2c483048335"
+  },
+  "gates": {
+    "unit_tests": {
+      "pass": 2456,
+      "fail": 0,
+      "skip": 0
+    },
+    "edition_policy_and_boundary": 7,
+    "corpus_discovery_contract": 8,
+    "metadata": 64,
+    "catalog": 34,
+    "authority": 28,
+    "fts_parity": 30,
+    "vocabulary": 37,
+    "explain": 27,
+    "corpus_room": 20,
+    "corpus_navigation": 35,
+    "discovery_browser": 8,
+    "actual_sw_preview": 6,
+    "actual_v8_browser": 8,
+    "full_sw_update": {
+      "completed": 12,
+      "pass": 9,
+      "known_O_015": 3,
+      "exit_code": 0
+    },
+    "targeted_final": 15,
+    "build_context_static": "pass (36 required paths, four excluded canaries; actual image build pending)"
+  }
+}

@@ -52,19 +52,29 @@ function buildIndex(rowsList) {
 
 function main() {
   const VERSION = (() => { const i = process.argv.indexOf("--version"); return i >= 0 ? Number(process.argv[i + 1]) : 7; })();
-  if (!fs.existsSync(WORKS_DIR)) { console.error("no works dir: " + WORKS_DIR); process.exit(1); }
-  const files = fs.readdirSync(WORKS_DIR).filter((f) => f.endsWith(".json"));
+  const argument = (name, fallback) => { const i = process.argv.indexOf('--' + name); return i >= 0 ? process.argv[i + 1] : fallback; };
+  const worksDir = argument('works-dir', WORKS_DIR);
+  const outDir = argument('out-dir', path.join(ROOT, 'public/data/benyehuda'));
+  const catalogPath = path.join(outDir, 'corpus-catalog-v' + VERSION + '.json');
+  let files;
+  if (fs.existsSync(catalogPath)) {
+    const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+    const release = catalog.release_manifest ? JSON.parse(fs.readFileSync(path.join(outDir, catalog.release_manifest), 'utf8')) : null;
+    const editions = new Map((release?.works || []).map(work => [work.work_id, path.basename(work.body)]));
+    files = catalog.pointers.ready.map(id => editions.get(id) || id + '.json');
+  } else files = fs.readdirSync(worksDir).filter(f => /^\d+\.json$/.test(f));
+  if (!fs.existsSync(worksDir)) { console.error("no works dir"); process.exit(1); }
   const rowsList = [];
   let rows = 0;
   for (const f of files) {
-    let bundle; try { bundle = JSON.parse(fs.readFileSync(path.join(WORKS_DIR, f), "utf8")); } catch (_) { continue; }
+    let bundle; try { bundle = JSON.parse(fs.readFileSync(path.join(worksDir, f), "utf8")); } catch (_) { continue; }
     const texts = bundle && bundle.library && bundle.library.texts;
     if (!texts || !texts[0] || !Array.isArray(texts[0].rows)) continue;
     for (const r of texts[0].rows) { rows++; rowsList.push({ hebrew_plain: r.hebrew_plain, translit_ru: r.translit_ru }); }
   }
   const built = buildIndex(rowsList);
   const payload = { schema: 1, version: VERSION, cyr: built.cyr };
-  const outFile = path.join(ROOT, "public/data/benyehuda/translit-ru-v" + VERSION + ".json");
+  const outFile = path.join(outDir, "translit-ru-v" + VERSION + ".json");
   fs.writeFileSync(outFile, JSON.stringify(payload));
   const bytes = fs.statSync(outFile).size;
   console.log("build:translit → " + path.relative(ROOT, outFile));

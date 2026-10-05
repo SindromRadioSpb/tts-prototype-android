@@ -59,6 +59,8 @@ async function main() {
     await pg.click("#tabCorpus");
     await pg.waitForSelector('.learning-corpus-entry[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
     await pg.click('.learning-corpus-entry[data-corpus="benyehuda"]');
+    // Discovery v7 introduced explicit Read/Explore modes; chronology belongs to Explore.
+    await pg.click('[data-corpus-mode="explore"]');
 
     // ── L1 period grid ──────────────────────────────────────────────────────
     await pg.waitForSelector(".corpus-period-grid .period-card", { timeout: 15000 }).catch(() => {});
@@ -127,7 +129,12 @@ async function main() {
     test("L3 splits works into sections (Готовы / В каталоге)", L3.sections >= 1, "sections=" + L3.sections);
     test("L3 ready rows expose semantic title links (openable)", L3.readyRows > 0, "ready=" + L3.readyRows);
     test("L3 ready row shows a length gauge + machine badge", L3.firstReadyHasLen && L3.firstReadyHasRsBadge);
-    test("L3 unprocessed rows present + NOT openable (honest, no dead-end)", L3.laterRows > 0 && L3.laterOpenable === 0 && L3.laterDisabled > 0, JSON.stringify({ later: L3.laterRows, openable: L3.laterOpenable, disabled: L3.laterDisabled }));
+    test("L3 unprocessed rows present + NOT readable (metadata remains available)", L3.laterRows > 0 && L3.laterOpenable === 0, JSON.stringify({ later: L3.laterRows, openable: L3.laterOpenable }));
+    await pg.locator('.corpus-work-row.is-later .corpus-passport-button').first().click();
+    await pg.waitForSelector('.corpus-material-dialog');
+    test("unprocessed passport opens without a Read action", await pg.locator('.corpus-material-dialog').count() === 1 && await pg.getByRole('button', { name: 'Читать сейчас', exact: true }).count() === 0);
+    await pg.keyboard.press('Escape');
+    test("Close returns focus to the metadata action", await pg.evaluate(() => document.activeElement?.classList.contains('corpus-passport-button')));
     test("L3 unprocessed row carries «перевод позже»", L3.laterHasLaterBadge);
 
     // lazy-load budget: drilling ONE author fetched only its block(s), not the whole era
@@ -150,7 +157,7 @@ async function main() {
     test("breadcrumb back returns L2 → L1 (period grid)", backToL1);
 
     // ── A3 Slice 2 — global search + facets + L2 sort/jump-bar ────────────────
-    const FB = await pg.evaluate(() => ({ bar: !!document.querySelector(".corpus-filterbar"), input: !!document.querySelector(".corpus-search-input") }));
+    const FB = await pg.evaluate(() => ({ bar: !!document.querySelector(".catalog-discovery"), input: !!document.querySelector(".corpus-search-input") }));
     test("L1 has the global filter bar (search + facets)", FB.bar && FB.input);
     test("search index NOT fetched on Корпус open (lazy)", searchFetches.length === 0, "fetches=" + searchFetches.length);
 
@@ -174,22 +181,20 @@ async function main() {
     // genre facet narrows the set. FB filter-bar redesign — genre/lang selects now live behind the
     // «Ещё фильтры» (⚙) advanced toggle, so expand it before reaching the (otherwise hidden) select.
     const beforeGenre = SR.count;
-    if (!await pg.locator(".corpus-filter-disclosure").evaluate((node) => node.open)) await pg.locator(".corpus-filter-disclosure > summary").click();
-    if (await pg.evaluate(() => { const a = document.querySelector(".corpus-facets-advanced"); return !!a && a.hidden; })) await pg.click(".corpus-facets-gear");
-    await pg.waitForSelector(".corpus-facets-advanced .corpus-facet-select select", { state: "visible", timeout: 8000 });
-    await pg.selectOption(".corpus-facet-select select >> nth=0", { index: 1 });
+    if (!await pg.locator('.discovery-filters').evaluate(node => node.open)) await pg.locator('.discovery-filters > summary').click();
+    await pg.selectOption('#roomCorpusFacetgenre', { index: 1 });
     await sleep(300);
     const AG = await pg.evaluate(() => Number((((document.querySelector(".corpus-results-count") || {}).textContent || "").match(/\d+/) || [0])[0]));
     test("genre facet narrows the result set", AG > 0 && AG < beforeGenre, "before=" + beforeGenre + " after=" + AG);
 
     // clear → home
-    await pg.click(".corpus-facet-chip.clear");
+    await pg.locator('.discovery-reset').click();
     await pg.waitForSelector(".corpus-period-grid", { timeout: 10000 }).catch(() => {});
     test("clear resets the filter → home (period grid)", await pg.evaluate(() => !!document.querySelector(".corpus-period-grid") && !document.querySelector(".corpus-results-summary")));
 
     // «✓ Готовые» facet alone → the ready set, every row openable
-    if (!await pg.locator(".corpus-filter-disclosure").evaluate((node) => node.open)) await pg.locator(".corpus-filter-disclosure > summary").click();
-    await pg.click(".corpus-facet-chip"); // ready toggle (first chip)
+    if (!await pg.locator('.discovery-filters').evaluate(node => node.open)) await pg.locator('.discovery-filters > summary').click();
+    await pg.click('[data-toggle="readyOnly"]');
     await pg.waitForSelector(".corpus-work-row", { timeout: 10000 }).catch(() => {});
     await sleep(200);
     const RO = await pg.evaluate(() => ({
@@ -197,7 +202,7 @@ async function main() {
       allOpenable: Array.from(document.querySelectorAll(".corpus-work-row")).every((r) => !!r.querySelector(".corpus-work-open")),
     }));
     test("«Готовые» facet → ready set, every row openable", RO.count > 0 && RO.allOpenable, "count=" + RO.count);
-    await pg.click(".corpus-facet-chip.clear");
+    await pg.locator('.discovery-reset').click();
     await pg.waitForSelector(".corpus-period-grid", { timeout: 8000 }).catch(() => {});
 
     // L2 alpha sort → Hebrew jump-bar

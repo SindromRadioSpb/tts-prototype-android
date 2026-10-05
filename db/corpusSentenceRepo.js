@@ -18,6 +18,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const learningRelease = require('./benyehudaLearningRelease');
 
 const MAX_BYTES = 8 * 1024 * 1024;       // реальный максимум works-файла сегодня ~1.3MB
 const LRU_MAX = 8;                        // критика: parse до 8MB на каждый вызов — кэшируем
@@ -50,18 +51,27 @@ function _worksDirs() {
   return dirs;
 }
 
-function _loadTexts(workId) {
+function _loadTexts(workId, { includePrevious = false } = {}) {
+  let edition;
+  try { edition = learningRelease.publishedFile(workId); } catch (_) { return { ok: false, error: 'CORPUS_WORK_UNREADABLE' }; }
+  const combined = [];
+  const names = edition ? [edition.name, ...(includePrevious ? [workId + '.json'] : [])] : [workId + '.json'];
+  for (const name of names) {
   for (const dir of _worksDirs()) {
-    const p = path.join(dir, workId + ".json");
+    const p = path.join(dir, name);
     let st;
     try { st = fs.statSync(p); } catch (_) { continue; }
     if (!st.isFile()) continue;
     if (st.size > MAX_BYTES) return { ok: false, error: "CORPUS_WORK_TOO_LARGE" };
-    const cacheKey = workId + ":" + st.mtimeMs;
+    const cacheKey = p + ":" + st.mtimeMs;
     const hit = _lruGet(cacheKey);
-    if (hit) return { ok: true, texts: hit, cached: true };
+    if (hit) { combined.push(...hit); break; }
     let payload;
-    try { payload = JSON.parse(fs.readFileSync(p, "utf8")); } catch (_) {
+    try {
+      const bytes = fs.readFileSync(p);
+      if (edition && name === edition.name) learningRelease.checkBody(bytes, edition.sha256);
+      payload = JSON.parse(bytes.toString('utf8'));
+    } catch (_) {
       return { ok: false, error: "CORPUS_WORK_UNREADABLE" };
     }
     const texts = payload && payload.library && Array.isArray(payload.library.texts)
@@ -69,8 +79,11 @@ function _loadTexts(workId) {
       : (payload && Array.isArray(payload.texts) ? payload.texts : null);
     if (!texts || !texts.length) return { ok: false, error: "CORPUS_WORK_UNREADABLE" };
     _lruSet(cacheKey, texts);
-    return { ok: true, texts };
+    combined.push(...texts);
+    break;
   }
+  }
+  if (combined.length) return { ok: true, texts: combined };
   return { ok: false, error: "CORPUS_WORK_NOT_FOUND" };
 }
 
@@ -85,7 +98,7 @@ async function getCorpusSentenceContext({ corpus, work_id, text_key, order_index
   const orderIndex = Number(order_index);
   if (!Number.isInteger(orderIndex) || orderIndex < 0) return { ok: false, error: "BAD_ANCHOR" };
 
-  const loaded = _loadTexts(workId);
+  const loaded = _loadTexts(workId, { includePrevious: true });
   if (!loaded.ok) return loaded;
   const text = loaded.texts.find((t) => t && String(t.text_key || "").toLowerCase() === textKey) || null;
   if (!text) return { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" };
@@ -119,7 +132,7 @@ async function getCorpusWindow({ corpus, work_id, text_key, order_index, window 
   const base = await getCorpusSentenceContext({ corpus, work_id, text_key, order_index });
   if (!base.ok) return base;
   const win = Math.max(1, Math.min(WINDOW_MAX, Number(window) || WINDOW_MAX));
-  const loaded = _loadTexts(String(work_id).trim());
+  const loaded = _loadTexts(String(work_id).trim(), { includePrevious: true });
   if (!loaded.ok) return loaded;
   const text = loaded.texts.find((t) => t && String(t.text_key || "").toLowerCase() === String(text_key).trim().toLowerCase());
   const rows = (Array.isArray(text.rows) ? text.rows : [])
@@ -147,7 +160,7 @@ async function getCorpusLessonWindow({ corpus, work_id, text_key, start_order_in
   if (!Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > LESSON_SCOPE_ROWS_MAX) {
     return { ok: false, error: "BAD_ANCHOR" };
   }
-  const loaded = _loadTexts(workId); if (!loaded.ok) return loaded;
+  const loaded = _loadTexts(workId, { includePrevious: true }); if (!loaded.ok) return loaded;
   const text = loaded.texts.find((t) => t && String(t.text_key || "").toLowerCase() === textKey) || null;
   if (!text) return { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" };
   const all = (Array.isArray(text.rows) ? text.rows : []).slice().sort((a, b) => Number(a.order_index) - Number(b.order_index));
@@ -192,9 +205,9 @@ function listWorkTexts(work_id) {
 
 // H2.2 — full public-domain source for deterministic coverage. This is an
 // INTERNAL read: the MCP result contains aggregates/top lemmas, never the body.
-// All chapters belonging to the work_id are included, so coverage cannot silently
-// describe only texts[0]. The same path/size/traversal gates as every corpus read
-// are inherited from _loadTexts.
+// All chapters of the CURRENT publication are included. Earlier editions remain
+// available only to exact text_key requests, never added to publisher coverage.
+// The same path/size/traversal gates as every corpus read are inherited from _loadTexts.
 function getCorpusCoverageText(work_id) {
   const workId = String(work_id || "").trim();
   if (!WORK_ID_RE.test(workId)) return { ok: false, error: "BAD_WORK_ID" };
