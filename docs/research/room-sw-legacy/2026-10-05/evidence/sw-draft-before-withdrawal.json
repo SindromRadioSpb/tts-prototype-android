@@ -1,0 +1,80 @@
+{
+  "startedAt": "2026-10-05T02:34:42.578Z",
+  "legacyCommit": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+  "targetVersion": "3.11.731",
+  "expectedOutcome": "reproduce rejected marker bridge P1",
+  "scope": "Disposable native browser, actual note editor; no owner data, providers or cache/OPFS deletion",
+  "runtimeHashes": {
+    "public/sw.js": "611d59c36d6799a8dcd0b4dab4d121637ecddff70ee0a5137cc505a487aae5fc",
+    "public/library.html": "d70c2a89221d6303286cbca81bd09ce9753532e73e5ba3fd366cd9905ecd5a27",
+    "public/js/library-ui.js": "8d9a4babd531b838fec973547f7c4c73502b95eb2b0f22c782b402a9d2f1fd7d",
+    "public/index.html": "d8e4e962c8e6653733c59eca24f05bbd9c50fcb116bcfbb47c7a0f7e5918a5b9",
+    "server.js": "42dbd0c2c6d9487b1926a3a6e9e5902c8eb35528edd340be3c3b11f7dc3d21eb"
+  },
+  "cases": [
+    {
+      "name": "forged-marker",
+      "startedAt": "2026-10-05T02:34:57.936Z",
+      "explicitUpdateClicks": 0,
+      "navigations": 1,
+      "otherTabNavigations": 0,
+      "errors": [],
+      "draftBefore": {
+        "meaning": "UNSAVED-synthetic-meaning",
+        "mnemonic": "UNSAVED-synthetic-mnemonic"
+      },
+      "notesBefore": "a6dbf7f7b989e4e9161b6d8f5338ca9c4e8ae34d267a78226420532938c24ede",
+      "before": {
+        "url": "http://127.0.0.1:52136/library.html?canon=skip&room_update=3.11.731&my_text=draft-smoke#room=benyehuda",
+        "footer": "3.11.729",
+        "installing": "installing",
+        "documentTag": "draft-0.11379020492516745",
+        "workerVersion": "3.11.729"
+      },
+      "after": {
+        "url": "http://127.0.0.1:52136/library.html?canon=skip&my_text=draft-smoke#room=benyehuda&sort=ready&readyOnly=0&hasAudio=0&reviewed=0&exactForm=0&rv=2",
+        "footer": "3.11.731",
+        "workerVersion": "3.11.731"
+      },
+      "draftAfter": null,
+      "notesAfter": "a6dbf7f7b989e4e9161b6d8f5338ca9c4e8ae34d267a78226420532938c24ede",
+      "notesUnchanged": true,
+      "draftPreserved": false,
+      "result": "reproduced-p1",
+      "completedAt": "2026-10-05T02:35:05.465Z"
+    },
+    {
+      "name": "draft-after-confirmation",
+      "startedAt": "2026-10-05T02:35:10.119Z",
+      "explicitUpdateClicks": 1,
+      "navigations": 1,
+      "otherTabNavigations": 0,
+      "errors": [],
+      "draftBefore": {
+        "meaning": "UNSAVED-synthetic-meaning",
+        "mnemonic": "UNSAVED-synthetic-mnemonic"
+      },
+      "notesBefore": "0e2eea06812889390595c455d513e5448c7176ce5120b930c579e3497c164cfb",
+      "before": {
+        "url": "http://127.0.0.1:52136/library.html?canon=skip&room_update=3.11.731&my_text=draft-smoke#room=benyehuda",
+        "footer": "3.11.729",
+        "installing": "installing",
+        "documentTag": "draft-0.9132205566326093",
+        "workerVersion": "3.11.729"
+      },
+      "after": {
+        "url": "http://127.0.0.1:52136/library.html?canon=skip&my_text=draft-smoke#room=benyehuda&sort=ready&readyOnly=0&hasAudio=0&reviewed=0&exactForm=0&rv=2",
+        "footer": "3.11.731",
+        "workerVersion": "3.11.731"
+      },
+      "draftAfter": null,
+      "notesAfter": "0e2eea06812889390595c455d513e5448c7176ce5120b930c579e3497c164cfb",
+      "notesUnchanged": true,
+      "draftPreserved": false,
+      "result": "reproduced-p1",
+      "completedAt": "2026-10-05T02:35:19.299Z"
+    }
+  ],
+  "result": "reproduced-p1",
+  "completedAt": "2026-10-05T02:35:19.341Z"
+}

@@ -33,7 +33,7 @@ const localDb = new Proxy(localDbRaw, {
 import * as readerCore from '/js/reader-core.js?v=725';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js?v=731';
+import * as roomB6 from '/js/room-b6-core.js?v=730';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -894,7 +894,7 @@ let corpusBrowseMode = 'read';
 let corpusAuthorAliases = null;
 async function loadCorpusAuthorAliases() {
   if (corpusAuthorAliases) return corpusAuthorAliases;
-  try { const response = await fetch('/data/benyehuda/author-aliases-v1.json?v=731', { cache: 'force-cache', referrerPolicy: 'no-referrer' }); if (response.ok) corpusAuthorAliases = await response.json(); } catch (_) {}
+  try { const response = await fetch('/data/benyehuda/author-aliases-v1.json?v=730', { cache: 'force-cache', referrerPolicy: 'no-referrer' }); if (response.ok) corpusAuthorAliases = await response.json(); } catch (_) {}
   return corpusAuthorAliases;
 }
 // ── Uniform retrieval contract (BRR_MULTI_CORPUS_DESIGN §5): PERSONAL dimensions for the

@@ -53,11 +53,12 @@ jobs:
       - name: Install fixture browser
         run: npx playwright install --with-deps chromium
 
-      - name: Real legacy Room update before worker installation finishes
+      - name: Real legacy Room waiting update and current draft preservation
         # Historical files remain unchanged; own storage and no provider calls.
         run: |
           git fetch --no-tags --depth=1 origin 3a4a68619c8e3483b6b1f7c68e5f6e21463f79de
           node scripts/premium/sw-legacy-room-browser-smoke.js
+          node scripts/premium/sw-room-draft-browser-smoke.js
 
       - name: Material identity, resume and independent tabs
         # Uses disposable OPFS and server fixtures; blocks provider requests.

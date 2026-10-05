@@ -10,7 +10,9 @@ const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("
 const ROOT = path.resolve(__dirname, "../.."), LEGACY = "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de";
 const argument = name => process.argv.find(value => value.startsWith("--" + name + "="))?.split("=").slice(1).join("=");
 const current = path.resolve(argument("current-root") || ROOT);
-const expectTwo = process.argv.includes("--expect-two-confirmations");
+// Unsupported legacy pages keep a second explicit confirmation. A URL marker
+// cannot authorize activation or navigation after the page starts a new draft.
+const expectTwo = !process.argv.includes("--expect-one-confirmation");
 const out = fs.mkdtempSync(path.join(os.tmpdir(), "lp-sw-real-legacy-"));
 const reportPath = path.resolve(argument("report") || path.join(ROOT, ".tmp/sw-legacy-report.json"));
 const hash = value => crypto.createHash("sha256").update(value).digest("hex");

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.731";
+const CACHE_VERSION = "v3.11.730";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -108,10 +108,10 @@ const PRECACHE_URLS = [
   "/css/catalog-discovery.css?v=643",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
-  "/js/corpus-discovery-core.js?v=731",
-  "/js/corpus-discovery-browser.js?v=731",
-  "/css/room-discovery.css?v=731",
-  "/data/benyehuda/author-aliases-v1.json?v=731",
+  "/js/corpus-discovery-core.js?v=730",
+  "/js/corpus-discovery-browser.js?v=730",
+  "/css/room-discovery.css?v=730",
+  "/data/benyehuda/author-aliases-v1.json?v=730",
   "/js/local-text-familiarity.js?v=669",
   "/js/studio-library-discovery.js?v=486",
   "/",
@@ -132,8 +132,8 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=731",
-  "/js/room-b6-core.js?v=731",
+  "/js/library-ui.js?v=730",
+  "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
   "/js/learning-compass-worker.js",
@@ -436,24 +436,8 @@ self.addEventListener("install", (event) => {
       const actual = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
       if (actual !== expected) throw new Error("shell integrity mismatch");
     }
-    // Older Room shells can confirm Update while this worker is still
-    // installing. They preserve that confirmed safe point in room_update,
-    // but their controlling worker serves the previous navigation shell.
-    // Honor only a marker for this exact, integrity-verified release.
-    if ((await confirmedRoomUpdateClients()).length) await self.skipWaiting();
   })());
 });
-
-async function confirmedRoomUpdateClients() {
-  const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-  return clients.filter((client) => {
-    try {
-      const url = new URL(client.url);
-      return url.origin === self.location.origin && url.pathname === "/library.html"
-        && url.searchParams.get("room_update") === CACHE_VERSION.slice(1);
-    } catch (_) { return false; }
-  });
-}
 
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
@@ -469,13 +453,6 @@ self.addEventListener("activate", (event) => {
         .map((n) => caches.delete(n))
     );
     await self.clients.claim();
-    // Legacy network-reload confirmation has reset the old page's in-memory
-    // controllerchange flag. Finish that already-confirmed navigation with
-    // the new coherent shell; leave every other tab mounted as before.
-    const confirmed = await confirmedRoomUpdateClients();
-    // Navigation fetches wait for activation to finish. Start the navigation,
-    // but do not make activation wait for its own subsequent fetch events.
-    confirmed.forEach((client) => { client.navigate(client.url).catch(() => {}); });
   })());
 });
 

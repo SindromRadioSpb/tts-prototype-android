@@ -1,0 +1,90 @@
+{
+  "startedAt": "2026-10-05T02:30:48.992Z",
+  "legacyCommit": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+  "targetVersion": "3.11.730",
+  "expectedOutcome": "preserve draft and wait for explicit confirmation",
+  "scope": "Disposable native browser, actual note editor; no owner data, providers or cache/OPFS deletion",
+  "runtimeHashes": {
+    "public/sw.js": "b977da2edb2bb381b78cdcb8e17f3a30fe42e3130042e669ad29e688e9cb1fa8",
+    "public/library.html": "b339cedebf66e11c72edb65bb31e287870a36e6ab47ac82f8aa212831b47741c",
+    "public/js/library-ui.js": "6a57f07f8293c7ca17f7bbef8e2444076225a5ac577a6b0f737948549fe1766d",
+    "public/index.html": "732417bfcb8a442c93cfaeb6362744082465414a6fc9b9f535079381b3c866db",
+    "server.js": "94aa2e641877e28ecce3e48017cc38ca73a2d8b525b40b465621bb4f4da8e20a"
+  },
+  "cases": [
+    {
+      "name": "forged-marker",
+      "startedAt": "2026-10-05T02:31:04.244Z",
+      "explicitUpdateClicks": 0,
+      "navigations": 0,
+      "otherTabNavigations": 0,
+      "errors": [],
+      "draftBefore": {
+        "meaning": "UNSAVED-synthetic-meaning",
+        "mnemonic": "UNSAVED-synthetic-mnemonic"
+      },
+      "notesBefore": "218642b9a5e6c983fff8f5076d42a25ddd9fe7958f6fbb76ef07f2c08971a6f8",
+      "before": {
+        "url": "http://127.0.0.1:64314/library.html?canon=skip&room_update=3.11.730&my_text=draft-smoke#room=benyehuda",
+        "footer": "3.11.729",
+        "installing": "installing",
+        "documentTag": "draft-0.11662503496696563",
+        "workerVersion": "3.11.729"
+      },
+      "after": {
+        "url": "http://127.0.0.1:64314/library.html?canon=skip&room_update=3.11.730&my_text=draft-smoke#room=benyehuda",
+        "footer": "3.11.729",
+        "waiting": "installed",
+        "documentTag": "draft-0.11662503496696563",
+        "workerVersion": "3.11.729"
+      },
+      "draftAfter": {
+        "meaning": "UNSAVED-synthetic-meaning",
+        "mnemonic": "UNSAVED-synthetic-mnemonic"
+      },
+      "notesAfter": "218642b9a5e6c983fff8f5076d42a25ddd9fe7958f6fbb76ef07f2c08971a6f8",
+      "notesUnchanged": true,
+      "draftPreserved": true,
+      "result": "pass",
+      "completedAt": "2026-10-05T02:31:09.598Z"
+    },
+    {
+      "name": "draft-after-confirmation",
+      "startedAt": "2026-10-05T02:31:12.493Z",
+      "explicitUpdateClicks": 1,
+      "navigations": 0,
+      "otherTabNavigations": 0,
+      "errors": [],
+      "draftBefore": {
+        "meaning": "UNSAVED-synthetic-meaning",
+        "mnemonic": "UNSAVED-synthetic-mnemonic"
+      },
+      "notesBefore": "ebaccf341665b0a300e7ed30c54817cf7e63b254904da8de2c3db8273e6d8225",
+      "before": {
+        "url": "http://127.0.0.1:64314/library.html?canon=skip&room_update=3.11.730&my_text=draft-smoke#room=benyehuda",
+        "footer": "3.11.729",
+        "installing": "installing",
+        "documentTag": "draft-0.8776525533226098",
+        "workerVersion": "3.11.729"
+      },
+      "after": {
+        "url": "http://127.0.0.1:64314/library.html?canon=skip&room_update=3.11.730&my_text=draft-smoke#room=benyehuda",
+        "footer": "3.11.729",
+        "waiting": "installed",
+        "documentTag": "draft-0.8776525533226098",
+        "workerVersion": "3.11.729"
+      },
+      "draftAfter": {
+        "meaning": "UNSAVED-synthetic-meaning",
+        "mnemonic": "UNSAVED-synthetic-mnemonic"
+      },
+      "notesAfter": "ebaccf341665b0a300e7ed30c54817cf7e63b254904da8de2c3db8273e6d8225",
+      "notesUnchanged": true,
+      "draftPreserved": true,
+      "result": "pass",
+      "completedAt": "2026-10-05T02:31:19.511Z"
+    }
+  ],
+  "result": "pass",
+  "completedAt": "2026-10-05T02:31:19.543Z"
+}

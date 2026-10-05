@@ -1,0 +1,372 @@
+{
+  "scope": "Withdraw unsafe hotfix; regression and research only; runtime identical to production730; no merge/deploy",
+  "base": "5f683507fd5bc993e468f9785648cdb070843ef2",
+  "rejectedCommit": "eedae5cb4392ed5c0fdf508ffb533d94bd6270cd",
+  "runtimeVersion": "3.11.730",
+  "runtimeDiffToMain": 0,
+  "fileHashes": {
+    "public/sw.js": {
+      "sha256": "b977da2edb2bb381b78cdcb8e17f3a30fe42e3130042e669ad29e688e9cb1fa8",
+      "mainMatch": true
+    },
+    "public/library.html": {
+      "sha256": "b339cedebf66e11c72edb65bb31e287870a36e6ab47ac82f8aa212831b47741c",
+      "mainMatch": true
+    },
+    "public/js/library-ui.js": {
+      "sha256": "6a57f07f8293c7ca17f7bbef8e2444076225a5ac577a6b0f737948549fe1766d",
+      "mainMatch": true
+    },
+    "public/index.html": {
+      "sha256": "732417bfcb8a442c93cfaeb6362744082465414a6fc9b9f535079381b3c866db",
+      "mainMatch": true
+    },
+    "server.js": {
+      "sha256": "94aa2e641877e28ecce3e48017cc38ca73a2d8b525b40b465621bb4f4da8e20a",
+      "mainMatch": true
+    }
+  },
+  "unit": {
+    "command": "npm test",
+    "pass": 2453,
+    "fail": 0,
+    "skip": 0,
+    "exitCode": 0
+  },
+  "targeted": {
+    "command": "node --test tests/swLegacyRoomUpdate.test.js tests/roomB6ScaleResilience.test.js",
+    "pass": 15,
+    "fail": 0,
+    "exitCode": 0
+  },
+  "fullSW": {
+    "command": "npm run smoke:sw-update",
+    "total": 12,
+    "pass": 9,
+    "known": 3,
+    "exitCode": 0,
+    "results": [
+      {
+        "result": "PASS",
+        "scenario": "A:studio",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "A:room",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "A:mediatheque",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "D:return",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "first": "3.11.730",
+          "toast": true,
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": "installing"
+          }
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "E:studio",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "afterFailedInstall": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "reloads": [
+            "3.11.730",
+            "3.11.730"
+          ],
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "E:room",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "afterFailedInstall": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "reloads": [
+            "3.11.730",
+            "3.11.730"
+          ],
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "E:mediatheque",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "afterFailedInstall": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "reloads": [
+            "3.11.730",
+            "3.11.730"
+          ],
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "result": "KNOWN",
+        "scenario": "F:studio",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "waiting": true,
+          "after": "3.11.730",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": "installed",
+            "installing": null
+          }
+        },
+        "known": "O-015"
+      },
+      {
+        "result": "KNOWN",
+        "scenario": "F:room",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "waiting": true,
+          "after": "3.11.730",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": "installed",
+            "installing": null
+          }
+        },
+        "known": "O-015"
+      },
+      {
+        "result": "KNOWN",
+        "scenario": "F:mediatheque",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "waiting": true,
+          "after": "3.11.730",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": "installed",
+            "installing": null
+          }
+        },
+        "known": "O-015"
+      },
+      {
+        "result": "PASS",
+        "scenario": "G:two",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "otherControlled": true,
+          "waiting": true,
+          "reloaded": "3.11.730",
+          "untouched": "3.11.730",
+          "toast": true
+        }
+      },
+      {
+        "result": "PASS",
+        "scenario": "H:room",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.730"
+          },
+          "toast": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "staleInjected": true
+        }
+      }
+    ]
+  },
+  "draftRegression": {
+    "before": "reproduced-p1 in both cases, saved notes unchanged, unsaved fields lost",
+    "after": "pass in both cases; draft meaning/mnemonic, document identity and saved notes retained; no navigation; target remains installed waiting"
+  },
+  "legacyUpdate": {
+    "confirmations": 2,
+    "canonicalTables": 50,
+    "canonicalUnchanged": true
+  },
+  "corpus": {
+    "base": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+    "files": 115,
+    "ready": 796,
+    "catalog": 26455,
+    "result": "unchanged",
+    "exitCode": 0
+  },
+  "pollingDiagnostic": {
+    "playwrightVersion": "1.60.0",
+    "probe": "waitForFunction(async () => false, null, {timeout:500})",
+    "observed": {
+      "resolved": true,
+      "value": false,
+      "elapsedMs": 29
+    },
+    "fix": "Explicit bounded awaited polling and stable installed waiting state; application files unchanged"
+  },
+  "logHashes": {
+    "unit-withdrawn-final.log": {
+      "bytes": 665206,
+      "sha256": "9b4b41d717656f3c6e7de27f1c924cb4de45b7395864e631dad84387d91e0457"
+    },
+    "sw-full-withdrawn.log": {
+      "bytes": 3593,
+      "sha256": "83904496d9a323ab6b20850a353aa55f2513e60f46861c5ee12227a5b43ffe27"
+    },
+    "sw-legacy-withdrawn.log": {
+      "bytes": 366,
+      "sha256": "588147e57f5d8ecfd9eec92098a921835d609f8d3633e4e43a2de918ca00eac7"
+    },
+    "sw-draft-before-withdrawal-final.log": {
+      "bytes": 345,
+      "sha256": "fc762c4dd7ecf8fc536d5aaa20850c7be1495d9e2cde9b989d5600cb786da6ca"
+    },
+    "sw-draft-after-final.log": {
+      "bytes": 324,
+      "sha256": "87a398ba21e2e2459c1ffebff9fae9c3c2f1ff22f02f9ceffdc00b3d1b10b04b"
+    },
+    "sw-draft-after-initial-poll-race.log": {
+      "bytes": 477,
+      "sha256": "1910d4f5aa1a15786ddd7008ecb6e78e137b2e569fec2f5e6e2f4f4783d71f05"
+    },
+    "sw-draft-after-second-async-poll.log": {
+      "bytes": 477,
+      "sha256": "1d3d3d95a8c45c8848c26679af8bbfe7f076ef7f51a95b83454db76e29ba99e6"
+    },
+    "corpus-guard-withdrawn.log": {
+      "bytes": 450,
+      "sha256": "2b889c3632f178e83a7bd7daa80cac576abb576b98eb77e1a3df82083e1c2384"
+    }
+  },
+  "hostedCI": "Must use new exact commit; old eedae5cb green CI is not acceptance of withdrawal"
+}
