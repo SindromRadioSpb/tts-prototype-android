@@ -13,16 +13,23 @@ const path = require("node:path");
 const os = require("node:os");
 const { spawn, spawnSync } = require("node:child_process");
 const { chromium } = require("playwright");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("../smoke-server-env");
 
 const ROOT = path.resolve(__dirname, "..", "..");
-const SERVER_PORT = 3307;
-const PROXY_PORT = 3308;
-const BASE = `http://127.0.0.1:${PROXY_PORT}`;
+let SERVER_PORT = 0, PROXY_PORT = 0, BASE = 'http://127.0.0.1';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function bounded(promise, timeoutMs, code) {
+  let timer;
+  return Promise.race([promise, new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(code)), timeoutMs);
+  })]).finally(() => clearTimeout(timer));
+}
 const CURRENT = (fs.readFileSync(path.join(ROOT, "public", "sw.js"), "utf8").match(/CACHE_VERSION = "v([^"]+)"/) || [])[1];
 if (!CURRENT) throw new Error("CACHE_VERSION not found in public/sw.js");
 const NEXT = CURRENT.replace(/(\d+)$/, (n) => String(Number(n) + 1));
 const only = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7).split(",").filter(Boolean);
+const caseIds = new Set(["A", "D", "E", "F", "G", "H", ...["A", "E", "F"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
+if (only.some(id => !caseIds.has(id))) throw new Error("SW_SMOKE_UNKNOWN_CASE");
 
 let phase = "N"; // "N" | "N+1" | "mixed"
 const isShell = (pathname) => pathname === "/" || pathname.endsWith(".html");
@@ -47,18 +54,20 @@ function transform(pathname, text) {
 async function withIntegrity(jsonText) {
   const json = JSON.parse(jsonText);
   if (!json.shellIntegrity) return jsonText;
+  const signal = AbortSignal.timeout(30000);
   for (const key of Object.keys(json.shellIntegrity)) {
     const pathname = new URL(key, BASE).pathname;
     if (!rewriteTarget(pathname) || pathname === "/api/client-config") continue;
-    const raw = await (await fetch(`http://127.0.0.1:${SERVER_PORT}${key}`, { headers: { "accept-encoding": "identity" } })).text();
+    const raw = await (await fetch(`http://127.0.0.1:${SERVER_PORT}${key}`, { signal, headers: { "accept-encoding": "identity" } })).text();
     json.shellIntegrity[key] = require("node:crypto").createHash("sha256").update(Buffer.from(transform(pathname, raw), "utf8")).digest("hex");
   }
   return JSON.stringify(json);
 }
 
 function startServer() {
-  const child = spawn(process.execPath, ["server.js"], {
-    cwd: ROOT, env: { ...process.env, PORT: String(SERVER_PORT) }, stdio: ["ignore", "pipe", "pipe"], windowsHide: true,
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-sw-server-"));
+  const child = spawn(process.execPath, ["-e", SMOKE_SERVER_BOOTSTRAP], {
+    cwd: ROOT, env: smokeServerEnv(dataDir, SERVER_PORT), stdio: ["ignore", "pipe", "pipe", "ipc"], windowsHide: true,
   });
   const logs = [];
   child.stdout.on("data", (c) => logs.push(String(c)));
@@ -81,19 +90,31 @@ function startProxy() {
       const chunks = [];
       up.on("data", (c) => chunks.push(c));
       up.on("end", async () => {
-        let text = transform(pathname, Buffer.concat(chunks).toString("utf8"));
-        if (pathname === "/api/client-config" && up.statusCode === 200) text = await withIntegrity(text);
-        const body = Buffer.from(text, "utf8");
-        const out = { ...up.headers, "content-length": String(body.length) };
-        delete out["content-encoding"]; delete out.etag; delete out["last-modified"];
-        res.writeHead(up.statusCode, out);
-        res.end(body);
+        try {
+          let text = transform(pathname, Buffer.concat(chunks).toString("utf8"));
+          if (pathname === "/api/client-config" && up.statusCode === 200) text = await withIntegrity(text);
+          const body = Buffer.from(text, "utf8");
+          const out = { ...up.headers, "content-length": String(body.length) };
+          delete out["content-encoding"]; delete out.etag; delete out["last-modified"];
+          res.writeHead(up.statusCode, out);
+          res.end(body);
+        } catch (_) {
+          if (!res.headersSent) res.writeHead(502, { "cache-control": "no-store" });
+          res.end("SW_SMOKE_PROXY_INTEGRITY_FAILED");
+        }
       });
     });
+    upstream.setTimeout(30000, () => upstream.destroy(new Error("SW_SMOKE_PROXY_TIMEOUT")));
     upstream.on("error", () => { res.writeHead(502); res.end(); });
     req.pipe(upstream);
   });
-  return new Promise((resolve) => server.listen(PROXY_PORT, "127.0.0.1", () => resolve(server)));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, "127.0.0.1", () => {
+      PROXY_PORT = server.address().port; BASE = `http://127.0.0.1:${PROXY_PORT}`;
+      resolve(server);
+    });
+  });
 }
 
 async function stopServer(child) {
@@ -106,7 +127,7 @@ async function stopServer(child) {
 async function waitForServer(url, timeoutMs = 30000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    try { if ((await fetch(url)).ok) return true; } catch (_) {}
+    try { if ((await fetch(url, { signal: AbortSignal.timeout(1500) })).ok) return true; } catch (_) {}
     await sleep(250);
   }
   return false;
@@ -142,21 +163,21 @@ async function preDismiss(page) {
 }
 
 async function swState(page) {
-  return page.evaluate(async () => {
+  return bounded(page.evaluate(async () => {
     const reg = await navigator.serviceWorker.getRegistration("/");
     const s = (w) => (w ? w.state : null);
     return { controller: !!navigator.serviceWorker.controller, active: s(reg && reg.active), waiting: s(reg && reg.waiting), installing: s(reg && reg.installing) };
-  });
+  }), 10000, "SW_SMOKE_STATE_TIMEOUT");
 }
 
 async function readVersion(page) {
-  return page.evaluate(() => (document.querySelector('meta[name="lp-test-release"]') || {}).content || "").catch(() => "");
+  return bounded(page.evaluate(() => (document.querySelector('meta[name="lp-test-release"]') || {}).content || ""), 10000, "SW_SMOKE_VERSION_TIMEOUT").catch(() => "");
 }
 
 async function waitFor(fn, timeoutMs, stepMs = 250) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    try { if (await fn()) return true; } catch (_) {}
+    try { if (await bounded(Promise.resolve().then(fn), Math.min(5000, Math.max(1, timeoutMs - (Date.now() - started))), "SW_SMOKE_POLL_TIMEOUT")) return true; } catch (_) {}
     await sleep(stepMs);
   }
   return false;
@@ -164,8 +185,27 @@ async function waitFor(fn, timeoutMs, stepMs = 250) {
 
 async function freshContext(name) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `lp-sw-${name}-`));
-  const ctx = await chromium.launchPersistentContext(dir, { viewport: { width: 1280, height: 800 } });
+  const ctx = await chromium.launchPersistentContext(dir, { viewport: { width: 1280, height: 800 }, timeout: 45000 });
   const page = ctx.pages()[0] || await ctx.newPage();
+  page.setDefaultTimeout(15000);
+  page.setDefaultNavigationTimeout(30000);
+  const diagnostics = { pageErrors: [], failedScripts: [], workerErrors: [] };
+  const keep = (entries, value) => { if (entries.length < 12) entries.push(value); };
+  page.on("pageerror", error => keep(diagnostics.pageErrors, String(error).slice(0, 240)));
+  page.on("response", response => {
+    if (response.status() >= 400 && response.request().resourceType() === "script") {
+      keep(diagnostics.failedScripts, { path: new URL(response.url()).pathname, status: response.status() });
+    }
+  });
+  const cdp = await ctx.newCDPSession(page);
+  cdp.on("ServiceWorker.workerErrorReported", event => {
+    const error = event.errorMessage || {};
+    let source = "";
+    try { source = new URL(error.sourceURL).pathname; } catch (_) {}
+    keep(diagnostics.workerErrors, { message: String(error.errorMessage || "").slice(0, 240), source, line: error.lineNumber });
+  });
+  await bounded(cdp.send("ServiceWorker.enable"), 10000, "SW_SMOKE_CDP_TIMEOUT");
+  page.__swSetupDiagnostics = () => diagnostics;
   await preDismiss(page);
   if (process.env.SW_SMOKE_DEBUG) {
     page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log("  [console]", m.type(), m.text().slice(0, 180)); });
@@ -185,18 +225,22 @@ async function installN(page, surface) {
   phase = "N";
   await page.goto(BASE + SURFACES[surface].url);
   // The Studio registers its worker on window "load"; never reload before that, just wait.
-  const controlled = await waitFor(async () => (await swState(page)).controller, 45000, 500);
+  const firstControlled = await waitFor(async () => (await swState(page)).controller, 45000, 500);
   // An installed user's tab starts controlled. Reload once so the shell under test boots under
   // release N's worker (the first-visit claim race is a different case, see OBSERVATIONS_LOG).
   await page.reload();
   await waitFor(async () => (await swState(page)).controller, 20000, 500);
   await page.waitForTimeout(1500);
-  return { controlled, version: await readVersion(page) };
+  const state = await swState(page);
+  const version = await readVersion(page);
+  const controlled = state.controller && version === CURRENT;
+  return { controlled, firstControlled, version,
+    ...(!controlled ? { sw: state, diagnostics: page.__swSetupDiagnostics() } : {}) };
 }
 
 async function deployNext(page) {
   phase = "N+1";
-  await page.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration("/"); if (reg) await reg.update().catch(() => {}); });
+  await bounded(page.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration("/"); if (reg) await reg.update().catch(() => {}); }), 20000, "SW_SMOKE_UPDATE_TIMEOUT");
 }
 
 // Known, tracked gaps: reported loudly, but they do not fail the gate. Each entry names its log.
@@ -207,12 +251,14 @@ const KNOWN = {
 };
 const results = [];
 function record(name, ok, detail) {
-  const known = !ok && KNOWN[name];
+  // O-015 covers only a genuinely installed/waiting release surviving plain reload.
+  // A failed initial install or a broken page is never absorbed by that exception.
+  const known = !ok && detail.start?.controlled && detail.waiting && detail.after === CURRENT ? KNOWN[name] : null;
   results.push({ name, ok: ok || !!known, known });
   console.log(`${ok ? "PASS" : known ? "KNOWN" : "FAIL"} ${name} ${JSON.stringify(detail)}${known ? " — " + known : ""}`);
 }
 
-async function scenarioToastUpdate(surface) {
+async function scenarioToastUpdate(surface, staleController = false) {
   const { ctx, page } = await freshContext(surface);
   try {
     const start = await installN(page, surface);
@@ -221,6 +267,18 @@ async function scenarioToastUpdate(surface) {
     const toast = await waitFor(async () => (await page.locator(SURFACES[surface].toast).count()) > 0, 30000);
     let after = "";
     if (toast) {
+      if (staleController) await page.evaluate(() => {
+        const send = ServiceWorker.prototype.postMessage; let injected = false;
+        ServiceWorker.prototype.postMessage = function (message, ...args) {
+          if (message?.type === 'SKIP_WAITING' && !injected) {
+            injected = true;
+            setTimeout(() => send.call(this, message, ...args), 1000);
+            navigator.serviceWorker.dispatchEvent(new Event('controllerchange'));
+            return;
+          }
+          return send.call(this, message, ...args);
+        };
+      });
       if (process.env.SW_SMOKE_DEBUG) console.log("  [before-click]", JSON.stringify(await page.evaluate(() => ({ dialogOpen: !!(document.getElementById("ml-dialog") || {}).open, buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       const nav = page.waitForNavigation({ timeout: Number(process.env.SW_SMOKE_NAV_MS || 20000) }).catch(() => null);
       await SURFACES[surface].click(page);
@@ -229,22 +287,22 @@ async function scenarioToastUpdate(surface) {
       if (process.env.SW_SMOKE_DEBUG) console.log("  [after-click]", JSON.stringify(await page.evaluate(() => ({ href: location.href.slice(0, 90), navType: (performance.getEntriesByType("navigation")[0] || {}).type, marker: (document.querySelector('meta[name="lp-test-release"]') || {}).content, status: (document.getElementById("ml-status") || {}).textContent || "", buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       after = await readVersion(page);
     }
-    record(`A:${surface} toast → one click → N+1`, toast && after === NEXT, { start, toast, after, sw: await swState(page) });
-  } finally { await ctx.close(); }
+    record(staleController ? 'H:room stale controller notification before activation' : `A:${surface} toast → one click → N+1`, start.controlled && toast && after === NEXT, { start, toast, after, sw: await swState(page), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
+  } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 
 async function scenarioReturnAfterAbsence() {
   const { ctx, page } = await freshContext("absence");
   try {
-    await installN(page, "room");
+    const start = await installN(page, "room");
     await page.close();
     phase = "N+1";
     const again = await ctx.newPage();
     await again.goto(BASE + SURFACES.room.url);
     const first = await readVersion(again);
     const toast = await waitFor(async () => (await again.locator(SURFACES.room.toast).count()) > 0, 15000);
-    record("D:return after absence → toast within 15s", toast, { first, toast, sw: await swState(again) });
-  } finally { await ctx.close(); }
+    record("D:return after absence → toast within 15s", start.controlled && toast, { start, first, toast, sw: await swState(again) });
+  } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 
 // O-001: the rolling deploy serves the new sw.js before client-config converges; the worker's
@@ -252,9 +310,9 @@ async function scenarioReturnAfterAbsence() {
 async function scenarioRollingDeploy(surface) {
   const { ctx, page } = await freshContext("rolling-" + surface);
   try {
-    await installN(page, surface);
+    const start = await installN(page, surface);
     phase = "mixed";
-    await page.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration("/"); if (reg) await reg.update().catch(() => {}); });
+    await bounded(page.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration("/"); if (reg) await reg.update().catch(() => {}); }), 20000, "SW_SMOKE_UPDATE_TIMEOUT");
     await page.waitForTimeout(12000); // install retries 6 × 1.5 s, then fails
     const failed = await swState(page);
     phase = "N+1";
@@ -273,8 +331,8 @@ async function scenarioRollingDeploy(surface) {
       await page.waitForTimeout(2000);
       after = await readVersion(page);
     }
-    record(`E:${surface} rolling deploy → reaches N+1`, seen.includes(NEXT) || after === NEXT, { afterFailedInstall: failed, reloads: seen, toast, after, sw: await swState(page) });
-  } finally { await ctx.close(); }
+    record(`E:${surface} rolling deploy → reaches N+1`, start.controlled && (seen.includes(NEXT) || after === NEXT), { start, afterFailedInstall: failed, reloads: seen, toast, after, sw: await swState(page) });
+  } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 
 
@@ -285,7 +343,7 @@ async function waitForWaiting(page) { return waitFor(async () => (await swState(
 async function scenarioReloadSoleTab(surface) {
   const { ctx, page } = await freshContext("reload-" + surface);
   try {
-    await installN(page, surface);
+    const start = await installN(page, surface);
     await deployNext(page);
     const waiting = await waitForWaiting(page);
     if (process.env.SW_SMOKE_CDP) {
@@ -300,39 +358,46 @@ async function scenarioReloadSoleTab(surface) {
     const after = await readVersion(page);
     if (process.env.SW_SMOKE_DEBUG) console.log("  [open]", JSON.stringify(page.__openRequests ? page.__openRequests() : []));
     if (process.env.SW_SMOKE_DEBUG) console.log("  [F-ms]", Date.now() - t0, JSON.stringify(await page.evaluate(() => performance.getEntriesByType("resource").filter((e) => !e.responseEnd || e.duration > 5000).map((e) => [e.name.slice(-60), Math.round(e.duration)]))));
-    record(`F:${surface} one tab: plain reload → N+1`, waiting && after === NEXT, { waiting, after, sw: await swState(page) });
-  } finally { await ctx.close(); }
+    record(`F:${surface} one tab: plain reload → N+1`, start.controlled && waiting && after === NEXT, { start, waiting, after, sw: await swState(page) });
+  } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 async function scenarioReloadTwoTabs() {
   const { ctx, page } = await freshContext("two-tabs");
   try {
-    await installN(page, "room");
+    const start = await installN(page, "room");
     const other = await ctx.newPage();
     await other.goto(BASE + SURFACES.studio.url);
-    await waitFor(async () => (await swState(other)).controller, 30000, 500);
+    const otherControlled = await waitFor(async () => (await swState(other)).controller, 30000, 500);
     await deployNext(page);
     const waiting = await waitForWaiting(page);
     await page.reload();
     await page.waitForTimeout(6000);
     const reloaded = await readVersion(page), untouched = await readVersion(other);
     const toast = await waitFor(async () => (await page.locator(SURFACES.room.toast).count()) > 0, 15000);
-    record("G:two tabs: plain reload keeps N, toast offered", waiting && reloaded === CURRENT && untouched === CURRENT && toast, { waiting, reloaded, untouched, toast });
-  } finally { await ctx.close(); }
+    record("G:two tabs: plain reload keeps N, toast offered", start.controlled && otherControlled && waiting && reloaded === CURRENT && untouched === CURRENT && toast, { start, otherControlled, waiting, reloaded, untouched, toast });
+  } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 
 (async () => {
   const { child, logs } = startServer();
   let proxy = null;
   try {
+    SERVER_PORT = await waitForSmokeServer(child, 30000);
     if (!(await waitForServer(`http://127.0.0.1:${SERVER_PORT}/healthz`))) throw new Error("server did not start:\n" + logs.join("").slice(-2000));
     proxy = await startProxy();
+    console.log(`fixture server=${SERVER_PORT} proxy=${PROXY_PORT} owner=${child.pid}`);
     console.log(`release N=${CURRENT} → N+1=${NEXT}`);
     const run = (id) => !only.length || only.includes(id);
-    for (const surface of ["studio", "room", "mediatheque"]) if (run("A") || run("A:" + surface)) await scenarioToastUpdate(surface);
-    if (run("D")) await scenarioReturnAfterAbsence();
-    for (const surface of ["studio", "room", "mediatheque"]) if (run("E") || run("E:" + surface)) await scenarioRollingDeploy(surface);
-    for (const surface of ["studio", "room", "mediatheque"]) if (run("F") || run("F:" + surface)) await scenarioReloadSoleTab(surface);
-    if (run("G")) await scenarioReloadTwoTabs();
+    const runCase = async (id, fn) => {
+      try { await fn(); }
+      catch (error) { record(`${id} fixture/error`, false, { error: String(error).slice(0, 300) }); }
+    };
+    for (const surface of ["studio", "room", "mediatheque"]) if (run("A") || run("A:" + surface)) await runCase("A:" + surface, () => scenarioToastUpdate(surface));
+    if (run("D")) await runCase("D", scenarioReturnAfterAbsence);
+    for (const surface of ["studio", "room", "mediatheque"]) if (run("E") || run("E:" + surface)) await runCase("E:" + surface, () => scenarioRollingDeploy(surface));
+    for (const surface of ["studio", "room", "mediatheque"]) if (run("F") || run("F:" + surface)) await runCase("F:" + surface, () => scenarioReloadSoleTab(surface));
+    if (run("G")) await runCase("G", scenarioReloadTwoTabs);
+    if (run("H")) await runCase("H", () => scenarioToastUpdate('room', true));
   } finally {
     if (proxy) proxy.close();
     await stopServer(child);

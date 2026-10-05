@@ -106,8 +106,11 @@ test("production hotfix keeps explicit Room deep links authoritative", () => {
     ui.indexOf("function roomApplyStateFields"),
   );
   assert.match(decode, /presentationStateFromHash\(location\.hash\)/);
-  assert.match(decode, /presentationStateMatchesHash\(history\.state, location\.hash\)/);
-  assert.match(decode, /presentationStateMatchesHash\(mirrored, location\.hash\)/);
-  assert.ok(decode.indexOf("presentationStateFromHash(location.hash)") < decode.indexOf("history.state && history.state.v === 1"),
-    "the explicit URL route must be resolved before history/session restoration");
+  assert.match(decode, /restorePresentationState\(\{\s*hash:\s*location\.hash,\s*historyState:\s*history\.state,\s*sessionMirror\s*\}/,
+    "the shared pure authority contract must receive the explicit URL and both tab-local restore sources");
+  assert.match(decode, /sessionStorage\.getItem\(ROOM_PRESENTATION_KEY\)/);
+  assert.ok(decode.indexOf("presentationStateFromHash(location.hash)") < decode.indexOf("restorePresentationState("),
+    "malformed explicit links must be rejected before tab-local restoration");
+  assert.ok(decode.indexOf("query.has(key)") < decode.indexOf("restorePresentationState("),
+    "reader request identities must keep priority over catalog presentation restoration");
 });

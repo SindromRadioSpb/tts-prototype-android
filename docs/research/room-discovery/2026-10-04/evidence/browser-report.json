@@ -1,0 +1,421 @@
+{
+  "checks": [
+    {
+      "name": "private query: history, refresh, new tab, explicit share, Back",
+      "evidence": {
+        "privateUrlHasQuery": false,
+        "sharedFragmentContainsQuery": true
+      },
+      "result": "pass"
+    },
+    {
+      "name": "search/filter/passport/preview/repeat preserve OPFS canon",
+      "evidence": {
+        "tables": [
+          "anki_word_exports",
+          "artifact_sync_intents",
+          "audio_assets",
+          "bookmarks",
+          "events",
+          "history_events",
+          "lemma_inflection",
+          "lexical_resolution_events",
+          "lww_replace_backups",
+          "mediatheque_personal",
+          "note_link_suggestions",
+          "note_links",
+          "note_occurrences",
+          "note_versions",
+          "notes_v2",
+          "recent_rows",
+          "recent_texts",
+          "review_log",
+          "roots",
+          "sentence_audio",
+          "sentence_morph",
+          "sentences",
+          "shelves",
+          "srs_attempts",
+          "srs_card_exports",
+          "srs_card_templates",
+          "srs_cards",
+          "srs_review_events",
+          "srs_session_runs",
+          "studio_caption_revisions",
+          "studio_caption_tracks",
+          "studio_learning_materials",
+          "studio_learning_row_versions",
+          "studio_media_packages",
+          "studio_portable_export_receipts",
+          "studio_portable_import_receipts",
+          "studio_table_revision_rows",
+          "studio_table_revisions",
+          "studio_text_media_bindings",
+          "study_day",
+          "sync_state",
+          "text_audio",
+          "text_progress",
+          "text_user_meta",
+          "texts",
+          "translation_history",
+          "translation_overrides",
+          "v3_bootstrap",
+          "word_context",
+          "word_status"
+        ],
+        "bodies": 8,
+        "rowsShown": 4
+      },
+      "result": "pass"
+    },
+    {
+      "name": "fetch error and cancellation preserve canon",
+      "evidence": {},
+      "result": "pass"
+    },
+    {
+      "name": "fresh 380×850 and 1280×850 first screen: useful card, search and modes in both themes/worlds",
+      "evidence": [
+        {
+          "world": {
+            "top": 0,
+            "bottom": 178,
+            "height": 178
+          },
+          "theme": "lp-has-app-nav theme-light room-discovery-home",
+          "viewport": {
+            "width": 380,
+            "height": 850
+          },
+          "usableBottom": 792,
+          "header": {
+            "top": 0,
+            "bottom": 253,
+            "height": 253
+          },
+          "search": {
+            "top": 417.390625,
+            "bottom": 461.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 323,
+            "bottom": 381,
+            "height": 58
+          },
+          "firstCard": {
+            "top": 581.390625,
+            "bottom": 744.390625,
+            "height": 163
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "sukkot"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 178,
+            "height": 178
+          },
+          "theme": "lp-has-app-nav theme-dark room-discovery-home",
+          "viewport": {
+            "width": 380,
+            "height": 850
+          },
+          "usableBottom": 792,
+          "header": {
+            "top": 0,
+            "bottom": 253,
+            "height": 253
+          },
+          "search": {
+            "top": 417.390625,
+            "bottom": 461.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 323,
+            "bottom": 381,
+            "height": 58
+          },
+          "firstCard": {
+            "top": 581.390625,
+            "bottom": 744.390625,
+            "height": 163
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "sukkot"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 0,
+            "height": 0
+          },
+          "theme": "lp-has-app-nav theme-light room-discovery-home",
+          "viewport": {
+            "width": 380,
+            "height": 850
+          },
+          "usableBottom": 793,
+          "header": {
+            "top": 0,
+            "bottom": 157,
+            "height": 157
+          },
+          "search": {
+            "top": 321.390625,
+            "bottom": 365.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 227,
+            "bottom": 285,
+            "height": 58
+          },
+          "firstCard": {
+            "top": 485.390625,
+            "bottom": 648.390625,
+            "height": 163
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "classic"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 0,
+            "height": 0
+          },
+          "theme": "lp-has-app-nav theme-dark room-discovery-home",
+          "viewport": {
+            "width": 380,
+            "height": 850
+          },
+          "usableBottom": 793,
+          "header": {
+            "top": 0,
+            "bottom": 157,
+            "height": 157
+          },
+          "search": {
+            "top": 321.390625,
+            "bottom": 365.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 227,
+            "bottom": 285,
+            "height": 58
+          },
+          "firstCard": {
+            "top": 485.390625,
+            "bottom": 648.390625,
+            "height": 163
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "classic"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 230,
+            "height": 230
+          },
+          "theme": "lp-has-app-nav theme-light room-discovery-home",
+          "viewport": {
+            "width": 1280,
+            "height": 850
+          },
+          "usableBottom": 850,
+          "header": {
+            "top": 54,
+            "bottom": 309,
+            "height": 255
+          },
+          "search": {
+            "top": 465.390625,
+            "bottom": 509.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 383,
+            "bottom": 427,
+            "height": 44
+          },
+          "firstCard": {
+            "top": 631.390625,
+            "bottom": 744.390625,
+            "height": 113
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "sukkot"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 230,
+            "height": 230
+          },
+          "theme": "lp-has-app-nav theme-dark room-discovery-home",
+          "viewport": {
+            "width": 1280,
+            "height": 850
+          },
+          "usableBottom": 850,
+          "header": {
+            "top": 54,
+            "bottom": 309,
+            "height": 255
+          },
+          "search": {
+            "top": 465.390625,
+            "bottom": 509.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 383,
+            "bottom": 427,
+            "height": 44
+          },
+          "firstCard": {
+            "top": 631.390625,
+            "bottom": 744.390625,
+            "height": 113
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "sukkot"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 0,
+            "height": 0
+          },
+          "theme": "lp-has-app-nav theme-light room-discovery-home",
+          "viewport": {
+            "width": 1280,
+            "height": 850
+          },
+          "usableBottom": 850,
+          "header": {
+            "top": 53,
+            "bottom": 180,
+            "height": 127
+          },
+          "search": {
+            "top": 336.390625,
+            "bottom": 380.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 254,
+            "bottom": 298,
+            "height": 44
+          },
+          "firstCard": {
+            "top": 502.390625,
+            "bottom": 615.390625,
+            "height": 113
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "classic"
+        },
+        {
+          "world": {
+            "top": 0,
+            "bottom": 0,
+            "height": 0
+          },
+          "theme": "lp-has-app-nav theme-dark room-discovery-home",
+          "viewport": {
+            "width": 1280,
+            "height": 850
+          },
+          "usableBottom": 850,
+          "header": {
+            "top": 53,
+            "bottom": 180,
+            "height": 127
+          },
+          "search": {
+            "top": 336.390625,
+            "bottom": 380.390625,
+            "height": 44
+          },
+          "modes": {
+            "top": 254,
+            "bottom": 298,
+            "height": 44
+          },
+          "firstCard": {
+            "top": 502.390625,
+            "bottom": 615.390625,
+            "height": 113
+          },
+          "filtersClosed": true,
+          "overflow": false,
+          "worldId": "classic"
+        }
+      ],
+      "result": "pass"
+    },
+    {
+      "name": "localized HE/EN era labels and glosses, RTL and keyboard catalog navigation",
+      "evidence": {
+        "heTitles": [
+          "תקופת המקרא",
+          "ימי הביניים",
+          "תקופת ההשכלה",
+          "תקופת התחייה",
+          "תקופת המנדט",
+          "ספרות מודרנית",
+          "תקופה לא ידועה"
+        ],
+        "heGlosses": [
+          "הרובד הקדום ביותר של הספרות העברית",
+          "שירה ופרוזה בימי הביניים; תור הזהב של ספרד",
+          "ההשכלה היהודית; התחדשות העברית הספרותית",
+          "התחייה הלאומית; הספרות העברית החדשה",
+          "ספרות ארץ ישראל בתקופת המנדט",
+          "ספרות מדינת ישראל",
+          "תקופת המחבר טרם נקבעה"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "public slug, query and bounded page survive refresh and Back",
+      "evidence": {
+        "items": 77,
+        "pageSize": 48
+      },
+      "result": "pass"
+    },
+    {
+      "name": "oversized pages clamp to actual results including empty Ben results",
+      "evidence": {
+        "publicLastPage": 2,
+        "emptyBenPage": 1
+      },
+      "result": "pass"
+    },
+    {
+      "name": "requests, telemetry, referrer and server logs contain no private query",
+      "evidence": {
+        "requests": 868,
+        "telemetryPackets": 5,
+        "errors": []
+      },
+      "result": "pass"
+    }
+  ],
+  "scope": "Disposable browser/server fixtures; no owner profile or live provider calls"
+}

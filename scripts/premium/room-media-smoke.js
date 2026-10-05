@@ -15,10 +15,9 @@ const path = require("path");
 const { fork, spawnSync } = require("child_process");
 const fs = require("node:fs");
 const os = require("node:os");
-const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP } = require("../smoke-server-env");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("../smoke-server-env");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
-const PORT = 3271;
-const BASE = `http://127.0.0.1:${PORT}`;
+let PORT = 0, BASE = 'http://127.0.0.1';
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 function startServer() {
@@ -156,6 +155,9 @@ const SEED = `(async () => {
 async function main() {
   let pw; try { pw = require("playwright"); } catch (e) { console.error("[room-media-smoke] playwright missing:", e.message); process.exit(1); }
   const srv = startServer();
+  try { PORT = await waitForSmokeServer(srv.child, 30000); BASE = `http://127.0.0.1:${PORT}`; }
+  catch (error) { console.error(error.stack); srv.logs.forEach(l => process.stderr.write(l)); await stopServer(srv.child); process.exit(1); }
+  console.log(`[room-media-smoke] fixture port=${PORT} owner=${srv.child.pid}`);
   if (!(await ready())) { console.error("[room-media-smoke] server failed"); srv.logs.forEach((l) => process.stderr.write(l)); await stopServer(srv.child); process.exit(1); }
   const b = await pw.chromium.launch();
   const failures = [];
@@ -164,7 +166,7 @@ async function main() {
     const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
     await ctx.route(url => !url.href.startsWith(BASE), route => route.abort());
     const pg = await ctx.newPage();
-    const pageErrors = []; pg.on("pageerror", (e) => pageErrors.push(String(e)));
+    const pageErrors = []; pg.on("pageerror", (e) => pageErrors.push(e.stack || String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
     // NB: сигнатура waitForFunction(fn, arg, options) — без null во втором аргументе объект
     // опций уходит в arg, а таймаут молча остаётся дефолтным (30с). Первичный импорт канона

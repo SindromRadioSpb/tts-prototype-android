@@ -1,0 +1,62 @@
+{
+  "schema": "corpus-author-aliases-v1",
+  "version": 1,
+  "verified_at": "2026-10-04",
+  "identity_catalog": "corpus-authors-v7.json",
+  "identity_commit": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+  "method": "Wikidata identity and Russian sitelink name; given-name-first forms reordered from the cited name",
+  "entries": [
+    {
+      "qid": "Q236094",
+      "locale": "ru",
+      "verified": true,
+      "label": "Хана Сенеш",
+      "aliases": ["Сенеш, Хана"],
+      "evidence": {
+        "source_url": "https://www.wikidata.org/w/index.php?title=Q236094&oldid=2539396076",
+        "snapshot": "wikidata:2539396076",
+        "source_label": "Сенеш, Хана",
+        "sitelink": "ruwiki"
+      }
+    },
+    {
+      "qid": "Q359705",
+      "locale": "ru",
+      "verified": true,
+      "label": "Хаим Нахман Бялик",
+      "aliases": ["Бялик, Хаим Нахман"],
+      "evidence": {
+        "source_url": "https://www.wikidata.org/w/index.php?title=Q359705&oldid=2548906149",
+        "snapshot": "wikidata:2548906149",
+        "source_label": "Бялик, Хаим Нахман",
+        "sitelink": "ruwiki"
+      }
+    },
+    {
+      "qid": "Q893776",
+      "locale": "ru",
+      "verified": true,
+      "label": "Борис Шац",
+      "aliases": ["Шац, Борис"],
+      "evidence": {
+        "source_url": "https://www.wikidata.org/w/index.php?title=Q893776&oldid=2552253923",
+        "snapshot": "wikidata:2552253923",
+        "source_label": "Шац, Борис",
+        "sitelink": "ruwiki"
+      }
+    },
+    {
+      "qid": "Q241180",
+      "locale": "ru",
+      "verified": true,
+      "label": "Рахель Блувштейн",
+      "aliases": ["Блувштейн, Рахель"],
+      "evidence": {
+        "source_url": "https://www.wikidata.org/w/index.php?title=Q241180&oldid=2546136453",
+        "snapshot": "wikidata:2546136453",
+        "source_label": "Блувштейн, Рахель",
+        "sitelink": "ruwiki"
+      }
+    }
+  ]
+}

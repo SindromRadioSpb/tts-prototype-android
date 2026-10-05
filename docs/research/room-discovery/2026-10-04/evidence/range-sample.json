@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-04T23:00:34.029Z",
+  "method": "Read-only GET with Range; no raw body retained",
+  "path": "/data/benyehuda/works/54844.json?v=7&preview=bounded-v1",
+  "requestedRange": "bytes=0-131071",
+  "status": 206,
+  "contentRange": "bytes 0-131071/1051386",
+  "contentLength": "131072",
+  "bytes": 131072
+}

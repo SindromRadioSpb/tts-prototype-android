@@ -1,0 +1,58 @@
+{
+  "checks": [
+    {
+      "name": "small preview succeeds under actual active SW",
+      "result": "pass"
+    },
+    {
+      "name": "range-enabled large work never sends more than the byte limit",
+      "result": "pass",
+      "evidence": {
+        "id": "910002",
+        "preview": true,
+        "range": "bytes=0-131071",
+        "total": 1048576,
+        "sent": 16384,
+        "finished": false,
+        "closed": true
+      }
+    },
+    {
+      "name": "range-ignoring chunked response stops at stream cancellation; no background full fetch",
+      "result": "pass",
+      "evidence": {
+        "id": "910003",
+        "preview": true,
+        "range": "bytes=0-131071",
+        "total": 1048576,
+        "sent": 147456,
+        "finished": false,
+        "closed": true
+      }
+    },
+    {
+      "name": "closing an in-flight preview cancels the native transfer under active SW",
+      "result": "pass",
+      "evidence": {
+        "id": "910004",
+        "preview": true,
+        "range": "bytes=0-131071",
+        "total": 1048576,
+        "sent": 49152,
+        "finished": false,
+        "closed": true
+      }
+    },
+    {
+      "name": "preview requests create no CacheStorage entries",
+      "result": "pass"
+    },
+    {
+      "name": "ordinary full reading still caches and remains readable offline",
+      "result": "pass"
+    }
+  ],
+  "worker": "http://127.0.0.1:53578/sw.js",
+  "swSha256": "b977da2edb2bb381b78cdcb8e17f3a30fe42e3130042e669ad29e688e9cb1fa8",
+  "scope": "Actual production SW source with streamed disposable HTTP fixtures; no owner data or production mutation"
+}
