@@ -10,6 +10,15 @@
 
 ---
 
+## O-075 · Старый Room-профиль может потребовать два подтверждения обновления
+- **Дата / где:** 2026-10-05, cloud acceptance после выпуска 3.11.730. После первого click наблюдатель видел `room_update=3.11.730`, footer/module 729 и повторный toast; второй click доставил 730. Версии controller/waiting до первого click не записаны, единственная причина именно этого эпизода не установлена.
+- **Подтверждённые классы:** на неизменённых исторических файлах Chromium воспроизведены (1) controller729 + target ещё installing, waiting нет: mismatch-ветка пишет marker, старый SW возвращает cached shell, требуется второй click; (2) controller728 + реальный waiting729 + installing target: первый click доставляет промежуточный729 без marker, второй — target. Второй класс реален, но наличие marker в облаке не позволяет объявить его причиной облачного случая.
+- **Почему важно:** предыдущая одноразовая 729→730 one-click приёмка не покрывала все моменты установки и историю waiting worker. Успешный retry не заменяет установление причины; очистка cache/OPFS не требуется.
+- **Локальный кандидат:** isolated `fix/room-legacy-update`, база main `5f683507`, версия731. Integrity-verified SW распознаёт точный same-origin `/library.html?room_update=<target>` и завершает уже подтверждённый переход; other windows не navigate. В раннем marked-классе один click, в unmarked промежуточной цепочке всё ещё два. Семантика URL marker и глобального `clients.claim` требует отдельного ревью; универсальный legacy update не обещается.
+- **Доказательства:** четыре native browser опыта; synthetic text/manual translation/progress/note/review, 50 таблиц unchanged, errors0; 2453/2453 unit; полный SW — 9 PASS + 3 строгих KNOWN O-015; H требует фактический stale injection; 115 corpus files/796 ready/26455 catalog unchanged. [Отчёт и evidence](../research/room-sw-legacy/2026-10-05/README.md).
+- **Предложение:** сохранить production730; при следующем обновлении снять read-only GET_VERSION/state trace controller/active/waiting/installing + server version до и после click. Затем отдельно выбирать и проверять полный recovery protocol. Нет owner DB/cache/OPFS очисток, corpus публикации или production изменений.
+- **Статус:** в работе; ограниченное исследование завершено, частичный локальный кандидат подготовлен. Cloud root cause и unmarked цепочка не закрыты; follow-up merge/deploy не выполнялся.
+
 ## O-074 · Room мог перезагрузить старую оболочку до активации выбранного worker
 - **Дата / где:** 2026-10-05, повторная приёмка discovery; полный gate дал A:room FAIL/exit 1, версия 3.11.730 осталась при waiting:installed. Это не O-015.
 - **Причина / доказательство:** обработчик controllerchange после запроса обновления принимал любое событие за активацию целевого worker. Детерминированный H задерживает SKIP_WAITING и уведомляет о прежнем controller: чистый main 3a4a686 и кандидат воспроизводят старую версию + waiting worker. Исправленный кандидат ждёт именно выбранный waiting worker. Точный trigger исходного неинструментированного A:room не установлен; исторический failure сохранён.

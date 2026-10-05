@@ -1,0 +1,65 @@
+{
+  "startedAt": "2026-10-05T01:26:04.053Z",
+  "legacyCommit": "3a4a68619c8e3483b6b1f7c68e5f6e21463f79de",
+  "targetVersion": "3.11.731",
+  "expectedConfirmations": 1,
+  "states": [
+    {
+      "name": "Controlled unchanged legacy",
+      "at": "2026-10-05T01:26:30.823Z",
+      "url": "http://127.0.0.1:56178/library.html?canon=skip#room=hub",
+      "footer": "3.11.729",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.729",
+      "active": "activated",
+      "toast": false
+    },
+    {
+      "name": "Mismatch toast while target installs",
+      "at": "2026-10-05T01:26:35.601Z",
+      "url": "http://127.0.0.1:56178/library.html?canon=skip#room=hub",
+      "footer": "3.11.729",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.729",
+      "active": "activated",
+      "installing": "installing",
+      "toast": true
+    },
+    {
+      "name": "Confirmed before install completes",
+      "at": "2026-10-05T01:26:38.777Z",
+      "url": "http://127.0.0.1:56178/library.html?canon=skip&room_update=3.11.731#room=hub",
+      "footer": "3.11.729",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.729",
+      "active": "activated",
+      "installing": "installing",
+      "toast": true
+    },
+    {
+      "name": "Update completed",
+      "at": "2026-10-05T01:26:45.031Z",
+      "url": "http://127.0.0.1:56178/library.html?canon=skip#room=hub",
+      "footer": "3.11.731",
+      "module": "/js/library-ui.js?v=731",
+      "workerVersion": "3.11.731",
+      "active": "activated",
+      "toast": false
+    }
+  ],
+  "errors": [],
+  "runtimeHashes": {
+    "public/sw.js": "611d59c36d6799a8dcd0b4dab4d121637ecddff70ee0a5137cc505a487aae5fc",
+    "public/library.html": "d70c2a89221d6303286cbca81bd09ce9753532e73e5ba3fd366cd9905ecd5a27",
+    "public/js/library-ui.js": "8d9a4babd531b838fec973547f7c4c73502b95eb2b0f22c782b402a9d2f1fd7d",
+    "public/index.html": "d8e4e962c8e6653733c59eca24f05bbd9c50fcb116bcfbb47c7a0f7e5918a5b9",
+    "server.js": "42dbd0c2c6d9487b1926a3a6e9e5902c8eb35528edd340be3c3b11f7dc3d21eb"
+  },
+  "scope": "Real unchanged legacy source; disposable loopback servers and browser; seeded learner state; no cache or OPFS deletion",
+  "canonicalTables": 50,
+  "confirmations": 1,
+  "otherTabNavigations": 0,
+  "canonicalUnchanged": true,
+  "result": "pass",
+  "completedAt": "2026-10-05T01:26:47.519Z"
+}

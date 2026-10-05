@@ -1,0 +1,327 @@
+{
+  "scope": "Local isolated candidate; no follow-up merge/deploy; no hosted CI at evidence capture",
+  "base": "5f683507fd5bc993e468f9785648cdb070843ef2",
+  "candidateVersion": "3.11.731",
+  "unit": {
+    "command": "npm test",
+    "tests": 2453,
+    "pass": 2453,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0
+  },
+  "fullSW": {
+    "command": "npm run smoke:sw-update",
+    "total": 12,
+    "pass": 9,
+    "known": 3,
+    "fail": 0,
+    "exitCode": 0,
+    "results": [
+      {
+        "scenario": "A:studio",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "scenario": "A:room",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "scenario": "A:mediatheque",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "scenario": "D:return",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "first": "3.11.731",
+          "toast": true,
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": "installing"
+          }
+        }
+      },
+      {
+        "scenario": "E:studio",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "afterFailedInstall": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "reloads": [
+            "3.11.731",
+            "3.11.731"
+          ],
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "scenario": "E:room",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "afterFailedInstall": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "reloads": [
+            "3.11.731",
+            "3.11.731"
+          ],
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "scenario": "E:mediatheque",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "afterFailedInstall": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "reloads": [
+            "3.11.731",
+            "3.11.731"
+          ],
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          }
+        }
+      },
+      {
+        "scenario": "F:studio",
+        "result": "KNOWN",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "waiting": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": "installed",
+            "installing": null
+          }
+        },
+        "known": "O-015"
+      },
+      {
+        "scenario": "F:room",
+        "result": "KNOWN",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "waiting": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": "installed",
+            "installing": null
+          }
+        },
+        "known": "O-015"
+      },
+      {
+        "scenario": "F:mediatheque",
+        "result": "KNOWN",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "waiting": true,
+          "after": "3.11.731",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": "installed",
+            "installing": null
+          }
+        },
+        "known": "O-015"
+      },
+      {
+        "scenario": "G:two",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "otherControlled": true,
+          "waiting": true,
+          "reloaded": "3.11.731",
+          "untouched": "3.11.731",
+          "toast": true
+        }
+      },
+      {
+        "scenario": "H:room",
+        "result": "PASS",
+        "details": {
+          "start": {
+            "controlled": true,
+            "firstControlled": true,
+            "version": "3.11.731"
+          },
+          "toast": true,
+          "after": "3.11.732",
+          "sw": {
+            "controller": true,
+            "active": "activated",
+            "waiting": null,
+            "installing": null
+          },
+          "staleInjected": true
+        }
+      }
+    ]
+  },
+  "corpus": {
+    "command": "node scripts/premium/room-discovery-corpus-guard.js",
+    "files": 115,
+    "ready": 796,
+    "catalog": 26455,
+    "result": "unchanged",
+    "exitCode": 0
+  },
+  "logHashes": {
+    "unit.log": {
+      "bytes": 669839,
+      "sha256": "55a9a2101fcd6fed7888810c4a060829297065c2f13e2c098562edbb341ee151"
+    },
+    "unit-final.log": {
+      "bytes": 665265,
+      "sha256": "5a6bc5b0df39b57c8fdad6ce4ccad112f2e6b78077a74ef52c72997dd253f1d1"
+    },
+    "sw-full.log": {
+      "bytes": 3456,
+      "sha256": "4eb72348ceac78f4fe4c5b075a8c3fc88fbfbb558d98af4e1772c3c144a78c82"
+    },
+    "sw-full-final.log": {
+      "bytes": 3485,
+      "sha256": "081c3bc7492870d644a869958aff3211e5884107d0663a166efc177dbdc608d6"
+    },
+    "sw-h-verified.log": {
+      "bytes": 1799,
+      "sha256": "5f8a6336962dff706d43eeceb16652d25096eb5255c3b6f0a5b10892bd2ff3f1"
+    },
+    "corpus-guard-final.log": {
+      "bytes": 323,
+      "sha256": "4b3507d94ad202dad9aad6416aa86856c7df18d7a05135aa8e793f15310c269a"
+    }
+  },
+  "retainedFailures": [
+    {
+      "file": ".tmp/unit.log",
+      "reason": "Old B6.3 syntactic install skipWaiting ban replaced with runtime confirmed/unconfirmed/incoherent tests"
+    },
+    {
+      "file": ".tmp/sw-full.log",
+      "reason": "H entered early mismatch path and did not guarantee stale SKIP_WAITING injection; harness now verifies installed waiting and actual injection"
+    }
+  ],
+  "chainLimitation": "Both target730 and target731 need two confirmations when active728/waiting729 and no room_update marker"
+}

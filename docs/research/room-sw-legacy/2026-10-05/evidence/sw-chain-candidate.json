@@ -1,0 +1,90 @@
+{
+  "startedAt": "2026-10-05T01:44:14.421Z",
+  "legacyCommit": "54ae3733e069f8f7b2a7a0923957f80c2f84c2f3",
+  "targetVersion": "3.11.731",
+  "expectedConfirmations": 2,
+  "states": [
+    {
+      "name": "Controlled unchanged legacy728",
+      "at": "2026-10-05T01:44:30.356Z",
+      "url": "http://127.0.0.1:55058/library.html?canon=skip#room=hub",
+      "footer": "3.11.728",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.728",
+      "active": "activated",
+      "toast": false
+    },
+    {
+      "name": "Active728 with real waiting729",
+      "at": "2026-10-05T01:44:33.072Z",
+      "url": "http://127.0.0.1:55058/library.html?canon=skip#room=hub",
+      "footer": "3.11.728",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.728",
+      "active": "activated",
+      "waiting": "installed",
+      "toast": true
+    },
+    {
+      "name": "Server730 with active728 waiting729 installing730",
+      "at": "2026-10-05T01:44:34.109Z",
+      "url": "http://127.0.0.1:55058/library.html?canon=skip#room=hub",
+      "footer": "3.11.728",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.728",
+      "active": "activated",
+      "waiting": "installed",
+      "installing": "installing",
+      "toast": true
+    },
+    {
+      "name": "First click activates intermediate729",
+      "at": "2026-10-05T01:44:35.742Z",
+      "url": "http://127.0.0.1:55058/library.html?canon=skip#room=hub",
+      "footer": "3.11.729",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.729",
+      "active": "activated",
+      "installing": "installing",
+      "toast": true
+    },
+    {
+      "name": "Waiting after first confirmation",
+      "at": "2026-10-05T01:44:37.279Z",
+      "url": "http://127.0.0.1:55058/library.html?canon=skip#room=hub",
+      "footer": "3.11.729",
+      "module": "/js/library-ui.js?v=729",
+      "workerVersion": "3.11.729",
+      "active": "activated",
+      "waiting": "installed",
+      "toast": true
+    },
+    {
+      "name": "Update completed",
+      "at": "2026-10-05T01:44:38.933Z",
+      "url": "http://127.0.0.1:55058/library.html?canon=skip#room=hub",
+      "footer": "3.11.731",
+      "module": "/js/library-ui.js?v=731",
+      "workerVersion": "3.11.731",
+      "active": "activated",
+      "toast": false
+    }
+  ],
+  "errors": [],
+  "runtimeHashes": {
+    "public/sw.js": "611d59c36d6799a8dcd0b4dab4d121637ecddff70ee0a5137cc505a487aae5fc",
+    "public/library.html": "d70c2a89221d6303286cbca81bd09ce9753532e73e5ba3fd366cd9905ecd5a27",
+    "public/js/library-ui.js": "8d9a4babd531b838fec973547f7c4c73502b95eb2b0f22c782b402a9d2f1fd7d",
+    "public/index.html": "d8e4e962c8e6653733c59eca24f05bbd9c50fcb116bcfbb47c7a0f7e5918a5b9",
+    "server.js": "42dbd0c2c6d9487b1926a3a6e9e5902c8eb35528edd340be3c3b11f7dc3d21eb"
+  },
+  "scope": "Real unchanged legacy source; disposable loopback servers and browser; seeded learner state; no cache or OPFS deletion",
+  "canonicalTables": 50,
+  "intermediateWaitingVersion": "3.11.729",
+  "confirmations": 2,
+  "firstMarkerPresent": false,
+  "otherTabNavigations": 0,
+  "canonicalUnchanged": true,
+  "result": "pass",
+  "completedAt": "2026-10-05T01:44:40.281Z"
+}

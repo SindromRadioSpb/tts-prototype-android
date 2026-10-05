@@ -265,29 +265,40 @@ async function scenarioToastUpdate(surface, staleController = false) {
     await deployNext(page);
     if (process.env.SW_SMOKE_TRACE) for (let i = 0; i < 6; i++) { await page.waitForTimeout(3000); console.log("  [state]", JSON.stringify(await swState(page))); }
     const toast = await waitFor(async () => (await page.locator(SURFACES[surface].toast).count()) > 0, 30000);
-    let after = "";
+    let after = "", staleInjected = false;
     if (toast) {
-      if (staleController) await page.evaluate(() => {
+      if (staleController) {
+        // A mismatch toast can precede install completion. H specifically tests
+        // the waiting-worker message path, not that separate early-confirm case.
+        const waiting = await waitFor(async () => (await swState(page)).waiting === "installed", 30000);
+        if (!waiting) throw new Error("SW_SMOKE_H_REQUIRES_INSTALLED_WAITING_WORKER");
+        await page.exposeFunction("__swSmokeStaleNotification", () => { staleInjected = true; });
+        await page.evaluate(() => {
         const send = ServiceWorker.prototype.postMessage; let injected = false;
         ServiceWorker.prototype.postMessage = function (message, ...args) {
           if (message?.type === 'SKIP_WAITING' && !injected) {
             injected = true;
+            window.__swSmokeStaleNotification();
             setTimeout(() => send.call(this, message, ...args), 1000);
             navigator.serviceWorker.dispatchEvent(new Event('controllerchange'));
             return;
           }
           return send.call(this, message, ...args);
         };
-      });
+        });
+      }
       if (process.env.SW_SMOKE_DEBUG) console.log("  [before-click]", JSON.stringify(await page.evaluate(() => ({ dialogOpen: !!(document.getElementById("ml-dialog") || {}).open, buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       const nav = page.waitForNavigation({ timeout: Number(process.env.SW_SMOKE_NAV_MS || 20000) }).catch(() => null);
       await SURFACES[surface].click(page);
       await nav;
-      await page.waitForTimeout(1500);
+      // One confirmation may first traverse the legacy cached navigation and
+      // then finish under the verified worker. Wait for the actual target cohort,
+      // retaining the same version/activation requirements through both events.
+      await waitFor(async () => (await readVersion(page)) === NEXT && (await swState(page)).active === "activated", 30000);
       if (process.env.SW_SMOKE_DEBUG) console.log("  [after-click]", JSON.stringify(await page.evaluate(() => ({ href: location.href.slice(0, 90), navType: (performance.getEntriesByType("navigation")[0] || {}).type, marker: (document.querySelector('meta[name="lp-test-release"]') || {}).content, status: (document.getElementById("ml-status") || {}).textContent || "", buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       after = await readVersion(page);
     }
-    record(staleController ? 'H:room stale controller notification before activation' : `A:${surface} toast → one click → N+1`, start.controlled && toast && after === NEXT, { start, toast, after, sw: await swState(page), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
+    record(staleController ? 'H:room stale controller notification before activation' : `A:${surface} toast → one click → N+1`, start.controlled && toast && after === NEXT && (!staleController || staleInjected), { start, toast, after, sw: await swState(page), ...(staleController ? { staleInjected } : {}), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
   } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 

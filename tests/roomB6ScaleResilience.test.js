@@ -81,7 +81,7 @@ test("B6.2 an explicit Room hash owns its route over stale presentation state", 
   assert.equal(core.presentationStateFromHash("#mentor"), null);
 });
 
-test("B6.3 connection lifecycle is explicit and waiting updates never auto-activate", async () => {
+test("B6.3 connection lifecycle and explicit update messages remain supported", async () => {
   const core = await import(pathToFileURL(corePath).href);
   assert.equal(core.nextConnectionState("online", "offline", { localReady: true }), "offline-ready");
   assert.equal(core.nextConnectionState("online", "offline", { localReady: false }), "offline-partial");
@@ -90,9 +90,10 @@ test("B6.3 connection lifecycle is explicit and waiting updates never auto-activ
   assert.equal(core.nextConnectionState("reconnecting", "probe-failed"), "degraded-error");
 
   const sw = read("public/sw.js");
-  const install = sw.slice(sw.indexOf("self.addEventListener(\"install\""), sw.indexOf("self.addEventListener(\"activate\""));
-  assert.doesNotMatch(install, /skipWaiting\s*\(/, "install must leave an update waiting");
-  assert.match(sw, /message[\s\S]*SKIP_WAITING[\s\S]*skipWaiting\s*\(/, "only an explicit client message activates the update");
+  // Runtime install/activate coverage in swLegacyRoomUpdate.test.js verifies
+  // that ordinary clients stay waiting, only an already-confirmed exact Room
+  // target can finish the legacy path, and an incoherent cohort never activates.
+  assert.match(sw, /message[\s\S]*SKIP_WAITING[\s\S]*skipWaiting\s*\(/, "explicit client messages still activate waiting updates");
 });
 
 test("B6.4 diagnostics are bounded, local-only and reject content-shaped fields", async () => {
