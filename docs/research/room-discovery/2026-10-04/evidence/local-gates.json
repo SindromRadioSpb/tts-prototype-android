@@ -1,8 +1,8 @@
 {
   "unit": {
     "command": "npm test",
-    "total": 2447,
-    "pass": 2447,
+    "total": 2449,
+    "pass": 2449,
     "fail": 0,
     "exitCode": 0
   },
@@ -56,5 +56,37 @@
       "code": 0
     }
   ],
+  "bookmarkRace": {
+    "initialMediaFailure": [
+      "  ✗ no pageerror(s): TypeError: Cannot read properties of null (reading 'has')",
+      "FAIL — 1 assertion(s): no pageerror(s): TypeError: Cannot read properties of null (reading 'has')"
+    ],
+    "cleanMain": {
+      "mode": "main",
+      "root": "C:\\Users\\lletp\\AppData\\Local\\Temp\\lp-sw-baseline-lHa6cI\\source",
+      "serverPid": 16048,
+      "origin": "http://127.0.0.1:63579",
+      "errors": [
+        "TypeError: Cannot read properties of null (reading 'has')\n    at http://127.0.0.1:63579/js/library-ui.js?v=729:6848:20\n    at NodeList.forEach (<anonymous>)\n    at attachBookmarks (http://127.0.0.1:63579/js/library-ui.js?v=729:6842:46)"
+      ]
+    },
+    "candidateBeforeFix": {
+      "mode": "working",
+      "root": "E:\\projects\\tts-prototype-android\\.tmp\\room-discovery-release",
+      "serverPid": 39536,
+      "origin": "http://127.0.0.1:63523",
+      "errors": [
+        "TypeError: Cannot read properties of null (reading 'has')\n    at http://127.0.0.1:63523/js/library-ui.js?v=730:6869:20\n    at NodeList.forEach (<anonymous>)\n    at attachBookmarks (http://127.0.0.1:63523/js/library-ui.js?v=730:6863:46)"
+      ]
+    },
+    "candidateAfterFix": {
+      "mode": "working",
+      "root": "E:\\projects\\tts-prototype-android\\.tmp\\room-discovery-release",
+      "serverPid": 12812,
+      "origin": "http://127.0.0.1:63470",
+      "errors": []
+    },
+    "cause": "Back cleared the shared bookmark Set while an async read was pending. A still-connected hidden reader mount then used null.has. Real isolated Chromium with a held bookmark read reproduces it on clean main and old candidate; fixed code returns the local Set and guards reader ID/open epoch before decoration. The initial media log had no stack; controlled reproduction supplies the matching error and exact attachBookmarks stack."
+  },
   "scope": "Disposable local checks; GitHub CI is reported separately"
 }

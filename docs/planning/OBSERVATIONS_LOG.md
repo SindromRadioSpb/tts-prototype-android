@@ -10,12 +10,25 @@
 
 ---
 
+## O-074 · Room мог перезагрузить старую оболочку до активации выбранного worker
+- **Дата / где:** 2026-10-05, повторная приёмка discovery; полный gate дал A:room FAIL/exit 1, версия 3.11.730 осталась при waiting:installed. Это не O-015.
+- **Причина / доказательство:** обработчик controllerchange после запроса обновления принимал любое событие за активацию целевого worker. Детерминированный H задерживает SKIP_WAITING и уведомляет о прежнем controller: чистый main 3a4a686 и кандидат воспроизводят старую версию + waiting worker. Исправленный кандидат ждёт именно выбранный waiting worker. Точный trigger исходного неинструментированного A:room не установлен; исторический failure сохранён.
+- **Исправление:** waiting target выбирается из актуальной регистрации; cached active worker не используется. Reload выполняется один раз после передачи controller выбранному target. Стенды SW/media используют порты ОС и owner IPC confirmation, DATA_DIR/browser contexts одноразовые. Добавлены unit и реальный SW H; assertions/O-015 не ослаблены.
+- **Статус:** в работе; код и before/after подтверждены, полный final gate/CI и независимый readback требуются. См. [evidence](../research/room-discovery/2026-10-04/README.md).
+
+## O-073 · Запоздавшая загрузка закладок после Back обращалась к null
+- **Дата / где:** 2026-10-05, media parity gate; TypeError reading has. Исходный лог без stack сохранён.
+- **Причина (воспроизведена):** loadBookmarkSet возвращал общий _bookmarkSet; Back очищал его, пока чтение ожидало. Оставшийся в DOM скрытый reader mount затем выполнял null.has. Реальный Chromium на чистом main 3a4a686 дал stack attachBookmarks в library-ui.js?v=729:6848; кандидат до исправления — v730:6869. Fixture задерживает только bookmark read, DB/profile синтетические.
+- **Исправление:** отдельный Set конкретного чтения; decoration проверяет reader text ID и open epoch. Позднее завершение не меняет закрытый/следующий reader. Тот же browser fixture проходит, media parity проходит без pageerror; unit также проверяет нормальную загрузку закладки текущего reader. Schema/writers не менялись.
+- **Статус:** в работе; final commit/CI и независимый readback требуются. Before/after stacks находятся в local-gates evidence.
+
 ## O-072 · Независимое ревью обнаружило блокеры discovery кандидата
 - **Дата / где:** 2026-10-04, изолированный `feat/room-discovery-release`, до коммита, review fingerprint `cc7cc5fe20c445368db44aec18d725bde934fe488080b44275b81656bdb50295`.
 - **Факты:** автоматические recents записывали q в origin-wide localStorage; SW tee/cache полного work body обходил отмену preview; Back сохранял старые facets; слишком большая страница не clamp-илась; три локали обещали неопубликованный текст/офлайн. Новый smoke содержал ошибочный `request.url()`; общий SW gate завершился с code 1 на A:mediatheque.
 - **Почему важно:** предыдущие проверки с blocked SW и пустым полем новой вкладки не доказывали приватность истории или ограничение фонового скачивания. Room subset не закрывает общий SW failure.
 - **Продолжение:** tab-local recents без удаления явно сохранённых поисков; native bounded Range preview/SW bypass; полное restore defaults и clamp; честный текст; повторные regression/browser/full SW gates. Независимый reviewer проверит финальный commit до merge/deploy.
-- **Статус:** исправлено в локальном кандидате 3.11.730: tab-local recents, native Range preview/SW bypass, full defaults restore/clamp и честные локали. Финальные npm tests 2447/2447, discovery 7/7, actual SW preview 6/6, 12 обязательных/дополнительных gates code 0, полный SW gate exit 0. Независимая приёмка финального коммита ещё требуется; точный trigger первого SW failure остаётся в O-071.
+- **Повторный review ae3cf7c:** шесть технических замечаний закрыты, 36 файлов проверены на секреты/пользовательские данные. Остались два UX-блокера: первая карточка ниже viewport и русские `.title/.gloss` эпох в HE UI. В том же кандидате исправлены порядок CSS, compact Ben-home world header, порядок результатов/редакционных секций и закрытая панель подробных фильтров; добавлены RU/EN/HE display keys без изменения taxonomy/source labels. Восемь свежих Chromium профилей 380×850/1280×850, Sukkot/Classic и light/dark показывают поиск, режимы и полную первую карточку; HE/EN content assertions проходят. Новый независимый UX/runtime review до merge/deploy обязателен.
+- **Статус:** исправлено в кандидате 3.11.730: tab-local recents, native Range preview/SW bypass, full defaults restore/clamp, честные локали, compact first screen и локализованные эпохи. Финальные npm tests 2449/2449, discovery 8/8, actual SW preview 6/6, 12 обязательных/дополнительных gates code 0. Полный fresh SW gate exit 0: 12/12, девять PASS и три подтверждённых KNOWN O-015. Два дополнительных воспроизведённых пути исправлены в O-073/O-074. Новый commit/CI и независимая финальная приёмка требуются; точный trigger самого первого SW failure остаётся в O-071.
 
 ## O-071 · Общий SW smoke завершился с ошибкой без начального воркера медиатеки
 - **Дата / где:** 2026-10-04, изолированный worktree от main 3a4a686, кандидат 3.11.730, disposable loopback Chromium/server.

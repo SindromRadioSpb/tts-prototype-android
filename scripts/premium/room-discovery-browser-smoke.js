@@ -130,15 +130,56 @@ async function main() {
     bodyMode = 'slow'; await page.locator('.corpus-work-row').nth(2).locator('.corpus-passport-button').click(); await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click(); await page.keyboard.press('Escape'); await page.waitForTimeout(1700);
     assert.deepEqual(await snapshot(page), baseline); record('fetch error and cancellation preserve canon', {});
     bodyMode = 'ok';
-    for (const viewport of [{ width: 1280, height: 850 }, { width: 380, height: 844 }]) {
-      await page.setViewportSize(viewport); await page.evaluate(() => scrollTo(0,0)); await page.screenshot({ path: path.join(OUT, 'read-' + viewport.width + '.png'), fullPage: false });
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-      const order = await page.evaluate(() => !!(document.querySelector('#roomCorpusSearch').compareDocumentPosition(document.querySelector('.corpus-profile-fit-host')) & Node.DOCUMENT_POSITION_FOLLOWING)); assert.ok(order);
+    assert.ok(await page.evaluate(() => !!(document.querySelector('.corpus-ready').compareDocumentPosition(document.querySelector('.corpus-saved')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'An explicitly saved search must follow the useful ready materials');
+    const firstScreen = [];
+    // Each case has fresh storage: no recents, saved filters or existing learner profile.
+    // Let the real world stylesheet/canvas settle before measuring the usable viewport.
+    for (const width of [380, 1280]) for (const world of ['sukkot', 'classic']) for (const theme of ['light', 'dark']) {
+      const fresh = await browser.newContext({ viewport: { width, height: 850 }, serviceWorkers: 'block' });
+      fresh.setDefaultTimeout(20000);
+      await fresh.route('**/*', route => route.request().url().startsWith(base) ? route.continue() : route.abort());
+      await fresh.addInitScript(({ world, theme }) => {
+        localStorage.setItem('app.locale', 'ru'); localStorage.setItem('appTheme_v1', theme);
+        localStorage.setItem('phase6Decision_v1', 'declined'); localStorage.setItem('onboardingSeen_v1', '1');
+        localStorage.setItem('lp_world_sukkot_trial_v1', '1');
+        localStorage.setItem('lp_world_v1', JSON.stringify({ id: world, mode: 'live', paused: false, lighting: 'day' }));
+      }, { world, theme });
+      const screen = await fresh.newPage(); debugPage = screen;
+      await screen.goto(base + '/library.html?canon=skip#room=benyehuda');
+      await screen.locator('.corpus-work-row').first().waitFor({ timeout: 30000 });
+      if (world !== 'classic') await screen.locator('html[data-world="sukkot"] .lp-world-stage:not([hidden]) canvas').waitFor();
+      await screen.evaluate(() => document.fonts.ready); await screen.waitForTimeout(500);
+      const bounds = await screen.evaluate(() => {
+        const rect = selector => { const r = document.querySelector(selector)?.getBoundingClientRect(); return r ? { top: r.top, bottom: r.bottom, height: r.height } : null; };
+        const fixedTop = Array.from(document.querySelectorAll('body *')).filter(node => {
+          const s = getComputedStyle(node), r = node.getBoundingClientRect();
+          return s.position === 'fixed' && s.display !== 'none' && r.height > 0 && r.top > innerHeight / 2 && r.bottom >= innerHeight - 1;
+        }).reduce((top, node) => Math.min(top, node.getBoundingClientRect().top), innerHeight);
+        return { viewport: { width: innerWidth, height: innerHeight }, usableBottom: fixedTop, header: rect('.room-header'), world: rect('.lp-world-stage'), search: rect('#roomCorpusSearch'), modes: rect('.corpus-mode-switch'), firstCard: rect('.corpus-work-row'), filtersClosed: !document.querySelector('.discovery-filters').open, overflow: document.documentElement.scrollWidth > innerWidth + 1, theme: document.body.className, worldId: document.documentElement.dataset.world || 'classic' };
+      });
+      firstScreen.push({ world, theme, ...bounds });
+      fs.writeFileSync(path.join(OUT, 'first-screen.json'), JSON.stringify(firstScreen, null, 2));
+      const screenshot = world === 'sukkot' && theme === 'light' ? 'read-' + width + '.png' : 'read-' + width + '-' + world + '-' + theme + '.png';
+      await screen.screenshot({ path: path.join(OUT, screenshot), fullPage: false });
+      assert.equal(bounds.worldId, world); assert.ok(bounds.theme.includes('theme-' + theme));
+      assert.ok(bounds.filtersClosed && !bounds.overflow);
+      for (const name of ['search', 'modes', 'firstCard']) assert.ok(bounds[name]?.top >= 0 && bounds[name].bottom <= bounds.usableBottom, `${width}/${world}/${theme}: ${name} outside usable first screen: ${JSON.stringify(bounds)}`);
+      await fresh.close(); debugPage = page;
     }
+    record('fresh 380×850 and 1280×850 first screen: useful card, search and modes in both themes/worlds', firstScreen);
+    await page.setViewportSize({ width: 380, height: 850 });
     await page.selectOption('#roomLang', 'he'); await page.locator('[data-corpus-mode="explore"]').click();
+    const heTitles = await page.locator('.period-card-title').allTextContents();
+    const heGlosses = await page.locator('.period-card-gloss').allTextContents();
+    assert.deepEqual(heTitles, ['תקופת המקרא', 'ימי הביניים', 'תקופת ההשכלה', 'תקופת התחייה', 'תקופת המנדט', 'ספרות מודרנית', 'תקופה לא ידועה']);
+    assert.equal(heGlosses.length, 7); assert.ok(heGlosses.every(text => /[א-ת]/.test(text) && !/[А-Яа-яЁё]/.test(text)));
+    assert.ok((await page.locator('.period-card-range').allTextContents()).every(text => !/[А-Яа-яЁё]/.test(text)));
     await page.screenshot({ path: path.join(OUT, 'explore-380-he.png'), fullPage: true }); assert.equal(await page.getAttribute('html', 'dir'), 'rtl');
+    await page.selectOption('#roomLang', 'en');
+    assert.deepEqual(await page.locator('.period-card-title').allTextContents(), ['Biblical period', 'Middle Ages', 'Haskalah (Enlightenment)', 'Tehiya (Revival)', 'Mandate period', 'Modern literature', 'Period unknown']);
+    await page.selectOption('#roomLang', 'he');
     await page.locator('.period-card').first().focus(); await page.keyboard.press('Enter'); await page.locator('.corpus-author-row').first().waitFor();
-    record('desktop, 380px, RTL and keyboard catalog navigation', {});
+    record('localized HE/EN era labels and glosses, RTL and keyboard catalog navigation', { heTitles, heGlosses });
     await page.goto(base + '/library.html?canon=skip#room=public%3Adiscovery-fixture');
     await page.locator('#roomPublicCorpusSearch').waitFor();
     await page.locator('#roomPublicCorpusSearch').fill('PUBLIC-FIXTURE');

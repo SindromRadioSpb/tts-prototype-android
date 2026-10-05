@@ -52,7 +52,7 @@
       "result": "pass"
     }
   ],
-  "worker": "http://127.0.0.1:51443/sw.js",
+  "worker": "http://127.0.0.1:53578/sw.js",
   "swSha256": "b977da2edb2bb381b78cdcb8e17f3a30fe42e3130042e669ad29e688e9cb1fa8",
   "scope": "Actual production SW source with streamed disposable HTTP fixtures; no owner data or production mutation"
 }

@@ -1574,6 +1574,7 @@ function renderTrack() {
   if (!main) return;
   // A3 — the Корпус track is a Период→Автор→Работа drill, not a shelf stack.
   if (activeTrack === 'corpus') return renderCorpus();
+  document.body.classList.remove('room-discovery-home');
   if (_canonPending) { showState('room.state.publishing', '📥'); return; }
   const shelves = shelvesByTrack[activeTrack] || [];
   const anyShelves = TRACKS.some((t) => (shelvesByTrack[t] || []).length);
@@ -4813,8 +4814,12 @@ async function refreshRoomVersionBeforeNetworkReload() {
 async function applyRoomUpdate() {
   const safePoint = await prepareRoomUpdateSafePoint();
   if (!safePoint.ok) return;
-  const w = roomWaitingWorker;
+  let registration = null;
+  try { registration = await navigator.serviceWorker.getRegistration('/'); } catch (_) {}
+  const w = (registration && registration.waiting) ||
+    (roomWaitingWorker && roomWaitingWorker.state === 'installed' ? roomWaitingWorker : null);
   if (w) {
+    roomWaitingWorker = w;
     dismissRoomUpdateToast();
     roomUpdateActivationRequested = true;
     w.postMessage({ type: 'SKIP_WAITING' });
@@ -4852,6 +4857,8 @@ function registerRoomServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!roomUpdateActivationRequested || roomReloadingForUpdate) return;
+    // A queued notification for the prior controller is not activation of our target.
+    if (!roomWaitingWorker || navigator.serviceWorker.controller !== roomWaitingWorker) return;
     roomReloadingForUpdate = true; location.reload();
   });
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
@@ -6846,19 +6853,21 @@ async function startTextReviewFromHandoff() {
 // BRR-P2-003 — passage bookmarks. A ☆/★ control is injected per row POST-render on the
 // Room mount (the parity-locked reader-core builder is never touched). Bookmarks are keyed
 // by sentence_id; the snippet (plain he · ru) is denormalised so the shelf + search are body-free.
-async function loadBookmarkSet() {
-  _bookmarkSet = new Set();
-  if (readerTextId == null) return _bookmarkSet;
+async function loadBookmarkSet(textId = readerTextId, openEpoch = readerOpenEpoch) {
+  const set = new Set();
+  if (textId == null) return set;
+  if (readerTextId === textId && readerOpenEpoch === openEpoch) _bookmarkSet = set;
   try {
-    const rows = await localDb.listBookmarks(readerTextId);
-    for (const b of rows) if (b.sentence_id) _bookmarkSet.add(String(b.sentence_id));
+    const rows = await localDb.listBookmarks(textId);
+    for (const b of rows) if (b.sentence_id) set.add(String(b.sentence_id));
   } catch (_) {}
-  return _bookmarkSet;
+  return set;
 }
 async function attachBookmarks(mount) {
   if (!mount) return;
-  const set = await loadBookmarkSet();
-  if (!mount.isConnected) return;
+  const textId = readerTextId, openEpoch = readerOpenEpoch;
+  const set = await loadBookmarkSet(textId, openEpoch);
+  if (!mount.isConnected || textId !== readerTextId || openEpoch !== readerOpenEpoch) return;
   mount.querySelectorAll('tr[data-row-idx]').forEach((tr) => {
     const idx = Number(tr.getAttribute('data-row-idx'));
     const row = readerRows[idx];
@@ -11401,7 +11410,7 @@ function injectSavedSearches(body) {
     }
     sec.appendChild(chips);
     attachRoomLongListDisclosure(sec, head, [chips], 'ben:saved-searches');
-    body.insertBefore(sec, body.firstChild);
+    body.appendChild(sec);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
 }
@@ -11822,7 +11831,7 @@ function corpusSearchRowToCard(h) {
 // "Ready to read" = openable (has body) AND translated. Machine translation still counts as
 // readable; the ⚙ badge keeps it honest. Same predicate the producer used (R8 parity).
 function corpusIsReady(c) { return !!(c && c.coverage && c.coverage.text && c.coverage.translation && c.coverage.translation !== 'none'); }
-function corpusEraTitle(era) { const e = ((corpusRoot && corpusRoot.era_taxonomy) || []).find((x) => x.era === era); return (e && e.title) || era; }
+function corpusEraTitle(era) { const e = ((corpusRoot && corpusRoot.era_taxonomy) || []).find((x) => x.era === era); return tt('room.corpus.eras.' + era + '.title', (e && e.title) || era); }
 function corpusGenreLabel(g) { return g ? tt('room.corpus.genre.' + g, g) : ''; }
 // R8: «17 строк», «1 строка», «2 части» — plural forms from the locale (room.units.<kind>.<category>).
 function roomCountLabel(n, kind) {
@@ -11925,6 +11934,7 @@ function corpusCrumb(parts) {
 async function renderCorpus() {
   const main = $('roomContent');
   if (!main) return;
+  document.body.classList.toggle('room-discovery-home', corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home');
   const token = ++corpusRenderToken;
   if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
@@ -13509,15 +13519,15 @@ async function renderCorpusHome(token) {
   catalogRegion.appendChild(filterChrome);
   const curated = el('button', { class: 'corpus-curated-link', text: window.CorpusDiscoveryBrowser.label('curated'), attrs: { type: 'button' } });
   curated.addEventListener('click', () => setActiveTrack('accessible'));
-  catalogRegion.appendChild(curated);
   const nextHost = el('div', { class: 'corpus-next-host' }); filterChrome.querySelector('.discovery-primary').after(nextHost);
   if (corpusBrowseMode === 'read') paintBenCorpusNext(nextHost, token);
-  const profileFitHost = el('div', { class: 'corpus-profile-fit-host' }); catalogRegion.appendChild(profileFitHost);
-  const readyTotal = Number(corpusIndex && corpusIndex.ready && corpusIndex.ready.length || 0);
-  catalogRegion.appendChild(corpusLearningIndexStatusNode('benyehuda', readyTotal));
   const body = el('div', { class: 'corpus-l1-body' });
   corpusL1Body = body;
   catalogRegion.appendChild(body);
+  catalogRegion.appendChild(curated);
+  const profileFitHost = el('div', { class: 'corpus-profile-fit-host' }); catalogRegion.appendChild(profileFitHost);
+  const readyTotal = Number(corpusIndex && corpusIndex.ready && corpusIndex.ready.length || 0);
+  catalogRegion.appendChild(corpusLearningIndexStatusNode('benyehuda', readyTotal));
   wrap.appendChild(catalogRegion);
   const about = corpusSecondaryDisclosure(
     tt('room.shell.aboutCorpus', 'О корпусе и данных'),
@@ -13563,12 +13573,10 @@ function renderHomeInto(body) {
       corpusRefreshL1Body();
     });
     head.appendChild(all);
-    head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.readyIntro', text: tt('room.corpus.readyIntro') }));
     sec.appendChild(head);
     const rail = el('div', { class: 'corpus-work-list room-preview-list' });
     for (const c of corpusSortedReadyPreview(ready).slice(0, ROOM_PREVIEW)) rail.appendChild(renderCorpusWorkRow(c, true, { showAuthor: true, showListBtn: true, compact: true }));
     sec.appendChild(rail);
-    attachRoomLongListDisclosure(sec, head, [rail], 'ben:ready');
     body.appendChild(sec);
   }
   const periods = el('section', { class: 'corpus-periods' });
@@ -14294,6 +14302,8 @@ function buildCorpusFilterBar() {
   const sortField = controls.node.querySelector('.discovery-sort');
   const filterPanel = controls.node.querySelector('.discovery-filter-panel');
   if (sortField && filterPanel) filterPanel.prepend(sortField);
+  const activeChips = controls.node.querySelector('.discovery-active');
+  if (activeChips && filterPanel) filterPanel.prepend(activeChips);
   const share = el('button', { class: 'corpus-share-search', text: window.CorpusDiscoveryBrowser.label('share'), attrs: { type: 'button' } });
   function refreshShare() { share.hidden = !String(corpusFilter.q || '').trim(); share.disabled = share.hidden || !roomB6.sharedSearchHash(roomCurrentPresentationState()); share.title = window.CorpusDiscoveryBrowser.label('shareHint'); }
   share.addEventListener('click', () => {
@@ -14306,7 +14316,7 @@ function buildCorpusFilterBar() {
   if (corpusSearchInputEl) corpusSearchInputEl.addEventListener('focus', warmFtsForSearch, { once: true });
   corpusFilterChromeRefresh = () => { corpusFilter.sort = corpusL1Sort === 'alpha' ? 'title_asc' : corpusL1Sort === 'opened' ? 'opened_desc' : corpusL1Sort; controls.refresh(); };
   corpusRecentsEl = el('div', { class: 'corpus-recents' });
-  controls.node.querySelector('.discovery-primary').after(corpusRecentsEl);
+  if (filterPanel) filterPanel.appendChild(corpusRecentsEl);
   paintRecents(); corpusRecentsEl.hidden = corpusFilterActive();
   return controls.node;
 }
@@ -14317,10 +14327,12 @@ function buildCorpusFilterBar() {
 function renderPeriodCard(e) {
   const card = el('div', { class: 'period-card', attrs: { role: 'button', tabindex: '0' } });
   const titlerow = el('div', { class: 'period-card-titlerow' });
-  titlerow.appendChild(el('span', { class: 'period-card-title', text: e.title || e.era }));
-  if (e.range) titlerow.appendChild(el('span', { class: 'period-card-range', text: e.range }));
+  titlerow.appendChild(el('span', { class: 'period-card-title', text: corpusEraTitle(e.era) }));
+  const range = tt('room.corpus.eras.' + e.era + '.range', e.range || '');
+  if (range) titlerow.appendChild(el('span', { class: 'period-card-range', text: range }));
   card.appendChild(titlerow);
-  if (e.gloss) card.appendChild(el('span', { class: 'period-card-gloss', text: e.gloss }));
+  const gloss = tt('room.corpus.eras.' + e.era + '.gloss', e.gloss || '');
+  if (gloss) card.appendChild(el('span', { class: 'period-card-gloss', text: gloss }));
   const meta = el('div', { class: 'period-card-meta' });
   if (e.ready_count > 0) meta.appendChild(el('span', { class: 'period-chip ready', text: '✓ ' + tt('room.corpus.readyN', 'готовы') + ' ' + e.ready_count }));
   else meta.appendChild(el('span', { class: 'period-chip later', text: window.CorpusDiscoveryBrowser.label('catalogReason') }));

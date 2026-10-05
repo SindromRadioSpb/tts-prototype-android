@@ -1,7 +1,7 @@
 .corpus-mode-switch { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
 .corpus-catalog-benyehuda>.corpus-catalog-head { display:none; }
 .corpus-mode-switch button,.corpus-passport-button,.corpus-share-search { font:inherit; cursor:pointer; border:1px solid var(--border-soft,#d2d5d8); background:var(--bg-card,#fff); color:inherit; border-radius:8px; padding:8px 12px; min-height:40px; }
-.corpus-mode-switch button[aria-pressed=true] { background:var(--accent,#21594e); color:white; border-color:transparent; }
+.corpus-mode-switch button[aria-pressed=true] { background:var(--accent,#21594e); color:var(--accent-contrast,#fff); border-color:transparent; }
 .corpus-passport-button { font-size:.83rem; align-self:center; white-space:nowrap; }
 .corpus-work-row:has(.corpus-passport-button) { grid-template-columns:minmax(0,1fr) auto auto; }
 .corpus-work-row:has(.corpus-passport-button)>.corpus-work-cta { display:none; }
@@ -30,7 +30,26 @@
 .corpus-nav:has(.corpus-mode-switch) .corpus-shell-head { padding-block:8px; }
 .corpus-nav:has(.corpus-mode-switch) .corpus-browse-tools { margin-block:8px; }
 .corpus-next-host:empty,.corpus-profile-fit-host:empty { display:none; }
+/* The catalog entrance puts a usable material before editorial and optional controls.
+   Scope the compact scene to the Ben home; the reader keeps its own header layout. */
+body.room-discovery-home:not(.room-reading):not(.room-study) .room-subtitle { display:none; }
+html[data-world] body.room-discovery-home:not(.room-reading):not(.room-study) .room-header-row { padding-bottom:128px!important; }
+body.room-discovery-home .corpus-switchbar { margin-block-end:4px; padding-block:0; border:0; }
+body.room-discovery-home .corpus-switchbar .corpus-crumb-part,
+body.room-discovery-home .corpus-switchbar .corpus-crumb-sep { display:none; }
+body.room-discovery-home .corpus-catalog-benyehuda { margin-block-start:0; padding-block-start:0; border-block-start:0; }
+body.room-discovery-home .corpus-mode-switch { margin-block:4px 8px; }
+body.room-discovery-home .corpus-mode-switch button { min-height:44px; }
+body.room-discovery-home .catalog-discovery { margin-block:8px; }
+body.room-discovery-home .discovery-filters { margin-block-start:8px; }
+body.room-discovery-home .corpus-ready { margin-block:0 16px; }
+body.room-discovery-home .corpus-ready .shelf-head { grid-template-columns:minmax(0,1fr) auto; padding-block-start:0; gap:8px; }
+body.room-discovery-home .corpus-ready .room-preview-list { margin-block-start:4px; }
+body.room-discovery-home .corpus-curated-link { margin:8px 16px; min-height:44px; }
 @media(max-width:600px) {
+  html[data-world] body.room-discovery-home:not(.room-reading):not(.room-study) .room-header-row { padding-bottom:96px!important; }
+  body.room-discovery-home .room-header-row { gap:6px; }
+  body.room-discovery-home .room-tabs { margin-block-start:8px; }
   .corpus-work-row:has(.corpus-passport-button) { grid-template-columns:minmax(0,1fr) auto; gap:8px; }
   .corpus-work-row:has(.corpus-passport-button)>.corpus-work-col { grid-column:1/-1; }
   .corpus-passport-button { justify-self:start; }

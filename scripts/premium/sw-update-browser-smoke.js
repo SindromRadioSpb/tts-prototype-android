@@ -16,9 +16,7 @@ const { chromium } = require("playwright");
 const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("../smoke-server-env");
 
 const ROOT = path.resolve(__dirname, "..", "..");
-const SERVER_PORT = 3307;
-const PROXY_PORT = 3308;
-const BASE = `http://127.0.0.1:${PROXY_PORT}`;
+let SERVER_PORT = 0, PROXY_PORT = 0, BASE = 'http://127.0.0.1';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function bounded(promise, timeoutMs, code) {
   let timer;
@@ -30,7 +28,7 @@ const CURRENT = (fs.readFileSync(path.join(ROOT, "public", "sw.js"), "utf8").mat
 if (!CURRENT) throw new Error("CACHE_VERSION not found in public/sw.js");
 const NEXT = CURRENT.replace(/(\d+)$/, (n) => String(Number(n) + 1));
 const only = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7).split(",").filter(Boolean);
-const caseIds = new Set(["A", "D", "E", "F", "G", ...["A", "E", "F"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
+const caseIds = new Set(["A", "D", "E", "F", "G", "H", ...["A", "E", "F"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
 if (only.some(id => !caseIds.has(id))) throw new Error("SW_SMOKE_UNKNOWN_CASE");
 
 let phase = "N"; // "N" | "N+1" | "mixed"
@@ -110,7 +108,13 @@ function startProxy() {
     upstream.on("error", () => { res.writeHead(502); res.end(); });
     req.pipe(upstream);
   });
-  return new Promise((resolve) => server.listen(PROXY_PORT, "127.0.0.1", () => resolve(server)));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, "127.0.0.1", () => {
+      PROXY_PORT = server.address().port; BASE = `http://127.0.0.1:${PROXY_PORT}`;
+      resolve(server);
+    });
+  });
 }
 
 async function stopServer(child) {
@@ -254,7 +258,7 @@ function record(name, ok, detail) {
   console.log(`${ok ? "PASS" : known ? "KNOWN" : "FAIL"} ${name} ${JSON.stringify(detail)}${known ? " — " + known : ""}`);
 }
 
-async function scenarioToastUpdate(surface) {
+async function scenarioToastUpdate(surface, staleController = false) {
   const { ctx, page } = await freshContext(surface);
   try {
     const start = await installN(page, surface);
@@ -263,6 +267,18 @@ async function scenarioToastUpdate(surface) {
     const toast = await waitFor(async () => (await page.locator(SURFACES[surface].toast).count()) > 0, 30000);
     let after = "";
     if (toast) {
+      if (staleController) await page.evaluate(() => {
+        const send = ServiceWorker.prototype.postMessage; let injected = false;
+        ServiceWorker.prototype.postMessage = function (message, ...args) {
+          if (message?.type === 'SKIP_WAITING' && !injected) {
+            injected = true;
+            setTimeout(() => send.call(this, message, ...args), 1000);
+            navigator.serviceWorker.dispatchEvent(new Event('controllerchange'));
+            return;
+          }
+          return send.call(this, message, ...args);
+        };
+      });
       if (process.env.SW_SMOKE_DEBUG) console.log("  [before-click]", JSON.stringify(await page.evaluate(() => ({ dialogOpen: !!(document.getElementById("ml-dialog") || {}).open, buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       const nav = page.waitForNavigation({ timeout: Number(process.env.SW_SMOKE_NAV_MS || 20000) }).catch(() => null);
       await SURFACES[surface].click(page);
@@ -271,7 +287,7 @@ async function scenarioToastUpdate(surface) {
       if (process.env.SW_SMOKE_DEBUG) console.log("  [after-click]", JSON.stringify(await page.evaluate(() => ({ href: location.href.slice(0, 90), navType: (performance.getEntriesByType("navigation")[0] || {}).type, marker: (document.querySelector('meta[name="lp-test-release"]') || {}).content, status: (document.getElementById("ml-status") || {}).textContent || "", buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       after = await readVersion(page);
     }
-    record(`A:${surface} toast → one click → N+1`, start.controlled && toast && after === NEXT, { start, toast, after, sw: await swState(page), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
+    record(staleController ? 'H:room stale controller notification before activation' : `A:${surface} toast → one click → N+1`, start.controlled && toast && after === NEXT, { start, toast, after, sw: await swState(page), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
   } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 
@@ -366,9 +382,10 @@ async function scenarioReloadTwoTabs() {
   const { child, logs } = startServer();
   let proxy = null;
   try {
-    await waitForSmokeServer(child, 30000);
+    SERVER_PORT = await waitForSmokeServer(child, 30000);
     if (!(await waitForServer(`http://127.0.0.1:${SERVER_PORT}/healthz`))) throw new Error("server did not start:\n" + logs.join("").slice(-2000));
     proxy = await startProxy();
+    console.log(`fixture server=${SERVER_PORT} proxy=${PROXY_PORT} owner=${child.pid}`);
     console.log(`release N=${CURRENT} → N+1=${NEXT}`);
     const run = (id) => !only.length || only.includes(id);
     const runCase = async (id, fn) => {
@@ -380,6 +397,7 @@ async function scenarioReloadTwoTabs() {
     for (const surface of ["studio", "room", "mediatheque"]) if (run("E") || run("E:" + surface)) await runCase("E:" + surface, () => scenarioRollingDeploy(surface));
     for (const surface of ["studio", "room", "mediatheque"]) if (run("F") || run("F:" + surface)) await runCase("F:" + surface, () => scenarioReloadSoleTab(surface));
     if (run("G")) await runCase("G", scenarioReloadTwoTabs);
+    if (run("H")) await runCase("H", () => scenarioToastUpdate('room', true));
   } finally {
     if (proxy) proxy.close();
     await stopServer(child);
