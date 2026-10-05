@@ -1,0 +1,54 @@
+{
+  "checks": [
+    {
+      "name": "all current editions have readable cold public projections",
+      "result": "pass",
+      "evidence": {
+        "ready": 1421
+      }
+    },
+    {
+      "name": "sitemap contains all 1421 distinct ready works",
+      "result": "pass",
+      "evidence": {
+        "ready": 1421
+      }
+    },
+    {
+      "name": "cold HTTP, canonical JSON-LD, current excerpt and client refresh 24249",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "rows": 13,
+        "key": "9f5e188600827430930b672d78b5989bd85a1f25a9e88242f294f095edf81fae"
+      }
+    },
+    {
+      "name": "cold HTTP, canonical JSON-LD, current excerpt and client refresh 3557",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "rows": 5,
+        "key": "a67233043427ed06dfa303c632d95108d1fe3ff5694a57a020b154dc45116fd8"
+      }
+    },
+    {
+      "name": "cold HTTP, canonical JSON-LD, current excerpt and client refresh 10",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "rows": 67,
+        "key": "78c45807a3dc918efa4dc4a7095f98431d866efb55f0f029a19aaa6fc24d1ed5"
+      }
+    },
+    {
+      "name": "invalid and unknown work IDs cannot enter a public projection",
+      "result": "pass",
+      "evidence": {
+        "cases": 3
+      }
+    }
+  ],
+  "pageerrors": [],
+  "fixture_scope": "Actual sealed bodies and HTTP server; disposable profile, blocked service workers/external traffic; appended read-only reader observer, unchanged application handlers"
+}

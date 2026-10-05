@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const learningRelease = require('./db/benyehudaLearningRelease');
 
 const ORIGIN = 'https://linguistpro.kolosei.com';
 const roomSource = fs.readFileSync(path.join(__dirname, 'public', 'js', 'library-ui.js'), 'utf8');
@@ -21,13 +22,19 @@ function benyehuda(id, dataDir) {
   if (!/^\d{1,8}$/.test(String(id || ''))) return null;
   const card = baked.get(String(id));
   if (!card) return null;
-  const relative = path.join('benyehuda', 'works', String(id) + '.json');
+  const edition = learningRelease.publishedFile(id);
+  const relative = path.join('benyehuda', 'works', edition?.name || String(id) + '.json');
   const local = path.join(__dirname, 'public', 'data', relative);
   const volume = path.join(dataDir, relative);
   const file = fs.existsSync(volume) ? volume : local;
   if (!fs.existsSync(file)) return null;
-  const work = JSON.parse(fs.readFileSync(file, 'utf8')).library?.texts?.[0];
+  const bytes = fs.readFileSync(file);
+  if (edition) learningRelease.checkBody(bytes, edition.sha256);
+  const texts = JSON.parse(bytes.toString('utf8')).library?.texts;
+  const work = texts?.[0];
   if (!work || String(work.corpus?.byehuda_id || '') !== String(id)) return null;
+  if (edition?.textKey && (texts.length !== 1 || work.text_key !== edition.textKey
+    || work.rows?.length !== edition.rows || work.source_meta?.public_learning?.edition_id !== edition.editionId)) throw new Error('Published SEO identity mismatch');
   return { title: card.title, author: card.author, source: 'Project Ben-Yehuda', language: 'he', rows: work.rows || [], kind: 'benyehuda' };
 }
 
@@ -54,8 +61,7 @@ function render(data, url) {
 
 function sitemap(publicItems, dataDir) {
   const urls = [ORIGIN + '/', ORIGIN + '/library.html', ORIGIN + '/mediatheque.html',
-    ...[...baked.keys()].filter((id) => fs.existsSync(path.join(dataDir, 'benyehuda', 'works', id + '.json')) ||
-      fs.existsSync(path.join(__dirname, 'public', 'data', 'benyehuda', 'works', id + '.json'))).map((id) => canonical({ corpus_work: id })),
+    ...[...baked.keys()].filter((id) => benyehuda(id, dataDir)).map((id) => canonical({ corpus_work: id })),
     ...(publicItems || []).filter((item) => item?.ref?.kind === 'public' && item.ref.slug && item.ref.workId)
       .map((item) => canonical({ public_corpus: item.ref.slug, public_work: item.ref.workId }))];
   return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +

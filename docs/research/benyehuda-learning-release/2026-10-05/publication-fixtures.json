@@ -1,0 +1,56 @@
+{
+  "schema": "benyehuda-publication-identity-fixtures-v1",
+  "manifest_sha256": "4fbe403e77daf05b589fb9472084e2ab752b19da3991cbd0eb57450917a43d04",
+  "records": [
+    {
+      "source_work_id": "3557",
+      "stored_archive_key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799",
+      "recomputed_canonical_key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799",
+      "publisher_edition_key": "a67233043427ed06dfa303c632d95108d1fe3ff5694a57a020b154dc45116fd8",
+      "learning_edition_id": "d6cb99c55b0ca70b7795fd860f4f9dee9c7e2c54f4bc5a5c2955622c6d4a37fc",
+      "aliases": [
+        {
+          "source_work_id": "3557",
+          "key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799"
+        }
+      ]
+    },
+    {
+      "source_work_id": "28026",
+      "stored_archive_key": "255284edd737413b8010a6ea59f612ded4d19bf4b14cd690b4effbd6c452aca4",
+      "recomputed_canonical_key": "8a6b7301fbb7876b90dc5ff21e84fffb9ec912247ce28641bfdadb7664d5ad80",
+      "publisher_edition_key": "068a60423d6a63d723e1fab57db0abd0c9d4339f8b0fdfc1b73b3283381563df",
+      "learning_edition_id": "2e3b65541c3846e847de5a32b4b71c04a4680f82c3a93775294d54fb531e5e28",
+      "aliases": [
+        {
+          "source_work_id": "28026",
+          "key": "255284edd737413b8010a6ea59f612ded4d19bf4b14cd690b4effbd6c452aca4"
+        },
+        {
+          "source_work_id": "28026",
+          "key": "8a6b7301fbb7876b90dc5ff21e84fffb9ec912247ce28641bfdadb7664d5ad80"
+        }
+      ]
+    },
+    {
+      "source_work_id": "24249",
+      "stored_archive_key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98",
+      "recomputed_canonical_key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98",
+      "publisher_edition_key": "9f5e188600827430930b672d78b5989bd85a1f25a9e88242f294f095edf81fae",
+      "learning_edition_id": "f3f98b8cc4001e94750d89ada45f3144f35832ccee2108fe35560770953508f2",
+      "aliases": [
+        {
+          "source_work_id": "24249",
+          "key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98"
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "identities_checked": 688,
+    "same_work_alias_ownership": "pass",
+    "publisher_key_formula": "pass",
+    "stored_and_recomputed_input_keys": "pass"
+  },
+  "negative_case": "The native-key browser fixture changes 24249 to foreign source ID 999999; it must never reuse that local text."
+}

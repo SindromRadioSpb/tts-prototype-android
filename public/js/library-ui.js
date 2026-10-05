@@ -64,7 +64,7 @@ let textByKey = new Map(); // text_key -> { id, title }
 // sidecar (author index + ready rail + facet histograms, fetched once on first Корпус open)
 // + per-era manifest BLOCK(s) on demand (only the block(s) an author lives in — D1/R4 keeps
 // the mobile budget to root + 1 active manifest, never the 26K/10MB at once).
-const CORPUS_CATALOG_VERSION = 7;
+const CORPUS_CATALOG_VERSION = 8;
 const CORPUS_ROOT_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
 let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts, index_file, pointers }
 let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
@@ -7591,13 +7591,19 @@ async function probeCorpusExplain(workId) {
   // BYOA sends the explicitly selected browser snapshot; it does not require a legacy works file.
   let personalTutor = false;
   try { personalTutor = !!(await window.LPTutorClient?.createApi().call('/capabilities'))?.enabled; } catch (_) {}
-  if (!personalTutor && _corpusProbeCache[workId] == null) {
+  const probeKey = workId + ':' + String(readerTextKey || '');
+  if (!personalTutor && _corpusProbeCache[probeKey] == null) {
     let ok = false;
-    try { const r = await fetch('/data/benyehuda/works/' + encodeURIComponent(workId) + '.json', { method: 'HEAD' }); ok = !!r.ok; } catch (_) {}
-    _corpusProbeCache[workId] = ok;
+    try {
+      const index = await loadCorpusIndex();
+      const card = index?.ready?.find(item => String(item.id) === String(workId) && item.text_key === readerTextKey);
+      const file = card?.file || 'works/' + encodeURIComponent(workId) + '.json';
+      const r = await fetch('/data/benyehuda/' + file, { method: 'HEAD' }); ok = !!r.ok;
+    } catch (_) {}
+    _corpusProbeCache[probeKey] = ok;
   }
   if (readerCorpusWorkId !== workId) return;   // читалка уже на другом тексте
-  readerCorpusExplainOk = personalTutor || _corpusProbeCache[workId];
+  readerCorpusExplainOk = personalTutor || _corpusProbeCache[probeKey];
   if (readerCorpusExplainOk) { try { attachExplainButtons($('roomReaderTable')); } catch (_) {} }
 }
 function attachExplainButtons(mount) {
@@ -8528,6 +8534,7 @@ function productPulseRoomMediaFacts(textRow, rows) {
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
+  $('roomDeviceEdition')?.remove();
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
@@ -8950,11 +8957,30 @@ async function openCorpusWork(card, openOpts) {
   try {
     await corpusOpenQueue.run(async () => {
     let localId = await resolveLocalIdByKey(card.text_key);
+    if (localId && card.learning_edition_id) {
+      const current = await localDb.getTextById(localId);
+      let sourceId = null;
+      try { sourceId = JSON.parse(current?.source_meta_json || '{}').corpus?.byehuda_id; } catch (_) {}
+      if (String(sourceId) !== String(card.id)) throw new Error('Published local key belongs to another source work');
+    }
+    const previousIds = [];
+    if (!localId && card.learning_edition_id && !openOpts?._openPublishedEdition) {
+      for (const key of card.previous_text_keys || []) {
+        const id = await resolveLocalIdByKey(key);
+        if (!id) continue;
+        const previous = await localDb.getTextById(id);
+        let sourceId = null;
+        try { sourceId = JSON.parse(previous?.source_meta_json || '{}').corpus?.byehuda_id; } catch (_) {}
+        if (String(sourceId) === String(card.id)) previousIds.push(id);
+      }
+    }
+    const choice = window.BenYehudaLearningEdition.deviceChoice(card, localId, previousIds, !!openOpts?._openPublishedEdition);
+    localId = choice.id;
     if (!localId) {
       const url = '/data/benyehuda/' + card.file + '?v=' + CORPUS_CATALOG_VERSION;
       const res = await fetch(url, { cache: 'force-cache' });
       if (!res.ok) throw new Error('fetch ' + res.status);
-      const bundle = await res.json(); // { library: { texts:[…], shelves:[], audio_assets:[] } }
+      const bundle = await window.BenYehudaLearningEdition.verifyBundle(card, await res.arrayBuffer());
       if (!bundle || !bundle.library) throw new Error('malformed work payload');
       if (openEpoch !== readerOpenEpoch) return;
       await localDb.importBundle(bundle, { mode: 'skip' });
@@ -8962,7 +8988,23 @@ async function openCorpusWork(card, openOpts) {
     }
     if (!localId) throw new Error('work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
-    await openReader(localId, card.title, Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } }));
+    const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
+    // A cold public URL selecting either learning edition offers its saved resume.
+    // Automatic arrival must not replay a row write that clears its saved step.
+    if (card.learning_edition_id && readerOpts.replaceInitialHistory) readerOpts.resume = false;
+    await openReader(localId, card.title, readerOpts);
+    if (card.learning_edition_id && openEpoch === readerOpenEpoch && readerTextId === String(localId)) {
+      const label = window.CorpusDiscoveryBrowser.label;
+      const banner = el('div', { class: 'room-copyright-notice', attrs: { id: 'roomDeviceEdition', role: 'status' } });
+      banner.appendChild(el('p', { text: label('deviceEdition') + ': ' + label(choice.edition === 'previous' ? 'earlierEdition' : 'publishedEdition') + ' · ' + readerRows.length + ' ' + label('rows') }));
+      if (choice.edition === 'previous') {
+        banner.appendChild(el('p', { text: label('newEditionAvailable') + ' · ' + card.segments + ' ' + label('rows') + '. ' + label('preservedLearning') }));
+        const button = el('button', { text: label('openSeparateEdition'), attrs: { type: 'button' } });
+        button.addEventListener('click', () => openCorpusWork(card, { ...(openOpts || {}), _openPublishedEdition: true }));
+        banner.appendChild(button);
+      }
+      $('roomReaderTable')?.before(banner);
+    }
     }, () => openEpoch === readerOpenEpoch);
   } catch (e) {
     if (openEpoch !== readerOpenEpoch) return;
@@ -10082,6 +10124,13 @@ async function loadData() {
 // author index). This is the only corpus file fetched at boot (precached); the sidecar +
 // manifests load lazily on demand. Non-fatal: on failure the Корпус tab stays hidden and
 // the curated canon is unaffected.
+let corpusReleaseManifest = null;
+async function parseCorpusReleaseFile(response, file) {
+  const asset = corpusReleaseManifest?.assets?.[file];
+  if (asset) return window.BenYehudaLearningEdition.verifyBytes(await response.arrayBuffer(), asset.sha256);
+  if (corpusReleaseManifest && file.endsWith('-v8.json')) throw new Error('Unlisted publication asset');
+  return response.json();
+}
 async function loadCorpusCatalog() {
   let corpusTabReady = false;
   try {
@@ -10091,6 +10140,12 @@ async function loadCorpusCatalog() {
     if (!res.ok) return;
     const root = await res.json();
     if (!root || !Array.isArray(root.era_taxonomy)) return;
+    if (root.release_manifest) {
+      if (!/^learning-release-v\d+\.json$/.test(root.release_manifest)) throw new Error('Invalid release manifest path');
+      const manifestResponse = await fetch('/data/benyehuda/' + root.release_manifest, { cache: 'force-cache' });
+      if (!manifestResponse.ok) throw new Error('Release manifest unavailable');
+      corpusReleaseManifest = await window.BenYehudaLearningEdition.verifyManifest(root, await manifestResponse.arrayBuffer());
+    }
     corpusRoot = root;
     const hasCorpus = (root.counts && root.counts.works) > 0;
     corpusTabReady = hasCorpus;
@@ -10231,7 +10286,7 @@ async function loadCorpusIndex() {
   corpusIndexLoading = (async () => {
     const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
     if (!res.ok) throw new Error('corpus index ' + res.status);
-    const json = await res.json();
+    const json = await parseCorpusReleaseFile(res, file);
     corpusIndex = json;
     return json;
   })();
@@ -10249,7 +10304,7 @@ async function fetchCorpusManifest(file) {
   if (corpusManifestCache.has(file)) return corpusManifestCache.get(file);
   const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
   if (!res.ok) throw new Error('manifest ' + res.status);
-  const json = await res.json();
+  const json = await parseCorpusReleaseFile(res, file);
   const works = Array.isArray(json.works) ? json.works : [];
   corpusManifestCache.set(file, works);
   return works;
@@ -10266,7 +10321,7 @@ async function loadCorpusSearch() {
     // returning users WITHIN catalog v7 (the catalog `?v=` alone would serve a stale no-q copy).
     const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION + '.' + CORPUS_SEARCH_DATA_REV, { cache: 'force-cache' });
     if (!res.ok) throw new Error('corpus search ' + res.status);
-    const rows = await res.json();
+    const rows = await parseCorpusReleaseFile(res, file);
     for (const r of rows) r._n = corpusNrm(r.t);
     corpusSearch = rows;
     return rows;

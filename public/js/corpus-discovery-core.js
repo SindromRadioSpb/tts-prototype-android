@@ -115,6 +115,14 @@
       : coverage.text === true && !!text(coverage.translation) && coverage.translation !== 'none';
     const state = context.loadError ? 'error' : published ? 'published' : 'metadata-only';
     const baseCoverage = legacyCoverage(source);
+    const publication = obj(source.public_learning), filled = obj(publication.filled_rows);
+    if (publication.schema === 'benyehuda-public-learning-v1' && publication.work_id === String(source.id)
+      && publication.main_rows === source.segments && /^[a-f0-9]{64}$/.test(source.bundle_sha256 || '')
+      && publication.complete_learning_edition === true) {
+      baseCoverage.translation = measuredLayer(filled.russian, publication.main_rows, { basis: 'publication-manifest', scope: 'learning-edition' });
+      baseCoverage.niqqud = measuredLayer(publication.niqqud_rows, publication.main_rows, { basis: 'publication-manifest', scope: 'learning-edition' });
+      baseCoverage.transliteration = measuredLayer(Math.min(filled.translit, filled.translit_ru), publication.main_rows, { basis: 'publication-manifest', scope: 'learning-edition' });
+    }
     const measured = Array.isArray(context.rows) ? measureCoverage(context.rows, {
       completeWork: context.rowsComplete === true, expectedRows: source.segments,
       verifiedAudioRowIds: context.verifiedAudioRowIds,

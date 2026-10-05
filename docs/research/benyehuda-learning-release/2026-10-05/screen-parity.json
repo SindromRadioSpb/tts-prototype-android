@@ -1,0 +1,25 @@
+{
+  "result": "pass",
+  "sameProfile": true,
+  "measurements": [
+    {
+      "name": "baseline",
+      "firstCardTop": 581.390625,
+      "firstCardBottom": 744.390625,
+      "usableBottom": 792,
+      "footer": "3.11.730",
+      "updateNotice": false,
+      "overflow": false
+    },
+    {
+      "name": "candidate",
+      "firstCardTop": 581.390625,
+      "firstCardBottom": 744.390625,
+      "usableBottom": 792,
+      "footer": "3.11.731",
+      "updateNotice": false,
+      "overflow": false
+    }
+  ],
+  "attribution": "The earlier 8px failure ran a mismatched 731 footer versus 731-corpus-v8 server, showing an update notice. Coherent base730 and candidate731 both pass without CSS changes."
+}

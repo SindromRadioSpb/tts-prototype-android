@@ -16,7 +16,7 @@ for (const opener of ['openCorpusWork', 'openPublicCorpusWork', 'openGroupCorpus
     const context = { console, readerOpenEpoch: 0, corpusImporting: false,
       corpusOpenQueue: require('../public/js/material-open').createSerialQueue(),
       captureReaderReturnContext() {}, $: () => node, HEBREW_RE: /[א-ת]/,
-      window: { scrollTo() {}, PublicCorpusAdapter: { localTextKey: (_, id) => id } },
+      window: { scrollTo() {}, BenYehudaLearningEdition: require('../public/js/benyehuda-learning-edition'), PublicCorpusAdapter: { localTextKey: (_, id) => id } },
       readerStateBox() {}, roomToast() {}, tt: k => k, invalidatePersonalSets() {},
       localStorage: { getItem: () => 'edition' },
       resolveLocalIdByKey: key => key === 'A' ? a.promise : Promise.resolve(key),

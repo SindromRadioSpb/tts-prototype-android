@@ -1,0 +1,11 @@
+{
+  "result": "pass",
+  "previous_commit": "871fc23e772e5a394350c3b17ce8d6723c2e5200",
+  "previous_manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+  "current_manifest_sha256": "4fbe403e77daf05b589fb9472084e2ab752b19da3991cbd0eb57450917a43d04",
+  "immutable_paths_and_hashes_identical": 1710,
+  "body_and_preview_files": 1376,
+  "fts_shards": 334,
+  "immutable_changes": 0,
+  "remote_receipt_scope": "Earlier read-only receipt applies to the same immutable allowlist. Activation and collision checks must be repeated by the uploader after a new exact-commit GO."
+}

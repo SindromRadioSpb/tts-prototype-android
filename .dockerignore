@@ -75,3 +75,7 @@ Smoke-check/
 *.log
 repo_tree.txt
 Архив/
+
+# Publication staging and generated FTS payloads are private/volume-only.
+.tmp/
+public/data/benyehuda/fts/

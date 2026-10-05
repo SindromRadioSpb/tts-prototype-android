@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.730";
+const CACHE_VERSION = "v3.11.731";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -108,8 +108,9 @@ const PRECACHE_URLS = [
   "/css/catalog-discovery.css?v=643",
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
-  "/js/corpus-discovery-core.js?v=730",
-  "/js/corpus-discovery-browser.js?v=730",
+  "/js/benyehuda-learning-edition.js?v=731",
+  "/js/corpus-discovery-core.js?v=731",
+  "/js/corpus-discovery-browser.js?v=731",
   "/css/room-discovery.css?v=730",
   "/data/benyehuda/author-aliases-v1.json?v=730",
   "/js/local-text-familiarity.js?v=669",
@@ -132,7 +133,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=730",
+  "/js/library-ui.js?v=731",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -315,7 +316,7 @@ const PRECACHE_URLS = [
   // Versioned filename (corpus-catalog-v<N>) → each re-publish (new baked batch) bumps
   // the catalog version so the immutable-cached lazy files (?v=N) cache-bust; the SW
   // CACHE_VERSION bump refreshes this precached root + library-ui.js in lockstep.
-  "/data/benyehuda/corpus-catalog-v7.json",
+  "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js?v=281",

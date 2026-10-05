@@ -33,6 +33,12 @@ async function main() {
       const req = route.request(); requests.push({ url: req.url(), method: req.method(), headers: req.headers(), body: req.postData() });
       if (!req.url().startsWith(base)) return route.abort();
       const pathname = new URL(req.url()).pathname;
+      if (pathname === '/js/library-ui.js') {
+        // This privacy gate uses the committed v7 catalog as its fixture. Actual v8 bytes and
+        // device-edition boundaries are checked separately by learning-release-browser-smoke.
+        const source = fs.readFileSync(path.join(ROOT, 'public/js/library-ui.js'), 'utf8');
+        return route.fulfill({ contentType: 'text/javascript', body: source.replace(/CORPUS_CATALOG_VERSION\s*=\s*\d+/, 'CORPUS_CATALOG_VERSION = 7') });
+      }
       if (pathname === '/js/product-telemetry.js') {
         const source = fs.readFileSync(path.join(ROOT, 'public/js/product-telemetry.js'), 'utf8');
         assert.match(source, /var disabled = .*navigator\.webdriver;/);

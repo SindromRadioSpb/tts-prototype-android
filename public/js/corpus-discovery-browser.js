@@ -13,7 +13,12 @@
     en: { niqqud: 'Vocalization', transliteration: 'Transliteration', unknown: 'Unknown', present: 'Declared, completeness not measured', partial: 'Partial', full: 'Complete', declared: 'From metadata', textLocal: 'Text on this device', yes: 'Available', no: 'Not opened yet', offline: 'Complete offline availability', machineAssisted: 'Machine translation with editorial involvement', provider: 'Translation provider', model: 'Model', edition: 'Catalog version', evidence: 'Checked source snapshot' },
     he: { niqqud: 'ניקוד', transliteration: 'תעתיק', unknown: 'לא ידוע', present: 'צוין, השלמות לא נמדדה', partial: 'חלקי', full: 'מלא', declared: 'לפי המטא־נתונים', textLocal: 'הטקסט במכשיר הזה', yes: 'זמין', no: 'טרם נפתח', offline: 'זמינות מלאה ללא רשת', machineAssisted: 'תרגום מכונה במעורבות עורך', provider: 'ספק התרגום', model: 'מודל', edition: 'גרסת הקטלוג', evidence: 'צילום מקור שנבדק' },
   };
-  function label(key) { const locale = root.appGetLocale?.() || 'ru'; return (copy[locale] || copy.ru)[key] || (extraCopy[locale] || extraCopy.ru)[key] || key; }
+  const editionCopy = {
+    ru: { sourceVersion: 'Версия оригинала', sourceEdition: 'Издание источника', revisionDate: 'Дата учебной редакции', contributors: 'Переводчик источника', rights: 'Права по данным источника', publishedScope: 'Показаны данные опубликованной учебной редакции. Версия на устройстве может отличаться.', machineLimitations: 'Перевод, добавленная огласовка и транслитерации подготовлены и проверены автоматически. Экспертная филологическая проверка не заявлена; пояснения и неоднозначные чтения сохранены.', sourceRightsLimit: 'Обозначение прав передано из источника; отдельная юридическая проверка не заявлена.', deviceEdition: 'Редакция на устройстве', earlierEdition: 'Сохранена прежняя редакция', publishedEdition: 'Опубликованная учебная редакция', newEditionAvailable: 'Доступна новая учебная редакция', openSeparateEdition: 'Открыть новую редакцию отдельно', preservedLearning: 'Прежние заметки, закладки и прогресс сохранены в прежней копии.', rows: 'строк' },
+    en: { sourceVersion: 'Original version', sourceEdition: 'Source edition', revisionDate: 'Study revision date', contributors: 'Source translator', rights: 'Source-reported rights', publishedScope: 'These facts describe the published study edition. The device edition may differ.', machineLimitations: 'Translation, added vocalization and transliterations were prepared and reviewed automatically. Expert philological review is not claimed; notes and ambiguous readings are retained.', sourceRightsLimit: 'Rights labels are reported by the source; independent legal clearance is not claimed.', deviceEdition: 'Device edition', earlierEdition: 'Earlier edition retained', publishedEdition: 'Published study edition', newEditionAvailable: 'A new study edition is available', openSeparateEdition: 'Open the new edition separately', preservedLearning: 'Earlier notes, bookmarks and progress remain in the earlier copy.', rows: 'rows' },
+    he: { sourceVersion: 'גרסת המקור', sourceEdition: 'מהדורת המקור', revisionDate: 'תאריך גרסת הלימוד', contributors: 'מתרגם המקור', rights: 'זכויות לפי המקור', publishedScope: 'הנתונים מתארים את גרסת הלימוד שפורסמה. הגרסה במכשיר עשויה להיות שונה.', machineLimitations: 'התרגום, הניקוד שנוסף והתעתיקים הוכנו ונבדקו אוטומטית. לא נטענת בדיקה פילולוגית מקצועית; הערות וקריאות לא ודאיות נשמרו.', sourceRightsLimit: 'סימון הזכויות נמסר לפי המקור; לא נטענת בדיקה משפטית עצמאית.', deviceEdition: 'הגרסה במכשיר', earlierEdition: 'הגרסה הקודמת נשמרה', publishedEdition: 'גרסת הלימוד שפורסמה', newEditionAvailable: 'זמינה גרסת לימוד חדשה', openSeparateEdition: 'פתיחת הגרסה החדשה בנפרד', preservedLearning: 'הערות, סימניות והתקדמות קודמות נשמרות בעותק הקודם.', rows: 'שורות' },
+  };
+  function label(key) { const locale = root.appGetLocale?.() || 'ru'; return (copy[locale] || copy.ru)[key] || (extraCopy[locale] || extraCopy.ru)[key] || (editionCopy[locale] || editionCopy.ru)[key] || key; }
   function node(tag, text, cls) { const n = document.createElement(tag); if (text) n.textContent = text; if (cls) n.className = cls; return n; }
   function lengthPass(card, value) {
     if (!value) return true;
@@ -21,12 +26,14 @@
     return value === 'unknown' ? n <= 0 : n > 0 && (value === 'short' ? n <= 20 : value === 'medium' ? n > 20 && n <= 80 : n > 80);
   }
   async function loadRows(card, { signal, fetchImpl = root.fetch.bind(root) } = {}) {
-    if (!/^works\/[0-9]+\.json$/.test(card?.file || '')) throw new Error('preview path');
-    const key = card.file + ':7';
+    const file = card?.preview_file || card?.file;
+    if (!/^works\/[0-9]+\.json$/.test(file || '') && !root.BenYehudaLearningEdition?.PREVIEW.test(file || '')) throw new Error('preview path');
+    const version = card.catalog_version || 7;
+    const key = file + ':' + version;
     if (cache.has(key)) return cache.get(key);
     // A separate range request avoids downloading a large work just to preview it.
     // The SW explicitly leaves this request to the browser, without cloning or caching.
-    const response = await fetchImpl('/data/benyehuda/' + card.file + '?v=7&preview=bounded-v1', { cache: 'no-store', headers: { Range: 'bytes=0-' + (MAX_BYTES - 1) }, signal, referrerPolicy: 'no-referrer' });
+    const response = await fetchImpl('/data/benyehuda/' + file + '?v=' + version + '&preview=bounded-v1', { cache: 'no-store', headers: { Range: 'bytes=0-' + (MAX_BYTES - 1) }, signal, referrerPolicy: 'no-referrer' });
     if (!response.ok) throw new Error('preview fetch');
     if (Number(response.headers.get('content-length')) > MAX_BYTES) { await response.body?.cancel(); throw new Error('preview budget'); }
     const rangeTotal = /\/([0-9]+)$/.exec(response.headers.get('content-range') || '');
@@ -39,7 +46,7 @@
     if (signal?.aborted) throw new DOMException('Canceled', 'AbortError');
     const bytes = new Uint8Array(size); let offset = 0;
     for (const part of chunks) { bytes.set(part, offset); offset += part.byteLength; }
-    const bundle = JSON.parse(new TextDecoder().decode(bytes));
+    const bundle = card.preview_file ? await root.BenYehudaLearningEdition.verifyBytes(bytes, card.preview_sha256) : JSON.parse(new TextDecoder().decode(bytes));
     const rows = (bundle?.library?.texts || []).flatMap(text => Array.isArray(text.rows) ? text.rows : []);
     if (!Array.isArray(rows)) throw new Error('preview format');
     if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
@@ -69,7 +76,7 @@
     dialog.append(node('p', card.author || '', 'corpus-passport-author'));
     dialog.append(node('p', label(ready ? 'available' : 'metadata'), 'corpus-passport-status'));
     const facts = node('dl', '', 'corpus-passport-facts');
-    const material = root.CorpusDiscovery.describeMaterial(card, { published: ready, catalogRevision: 7, localText });
+    const material = root.CorpusDiscovery.describeMaterial(card, { published: ready, catalogRevision: card.catalog_version || 7, localText });
     const sourcePeriod = material.sourcePeriod;
     addFact(facts, label('sourcePeriod'), sourcePeriod.status === 'known' ? sourcePeriod.label : label('periodUnknown'));
     if (sourcePeriod.status !== 'known') addFact(facts, label('provenance'), [label(sourcePeriod.status === 'checked-absent' ? 'absent' : 'unchecked'), sourcePeriod.snapshot].filter(Boolean).join(' · '));
@@ -78,14 +85,26 @@
     addFact(facts, label('length'), Number(card.segments) > 0 ? String(card.segments) : label('unknownLength'));
     const translation = material.coverage.translation;
     addFact(facts, label('coverage'), ['partial', 'full', 'none'].includes(translation.status) ? label(translation.status) : label('unmeasured'));
-    for (const key of ['niqqud', 'transliteration']) addFact(facts, label(key), label(material.coverage[key].status));
+    for (const key of ['niqqud', 'transliteration']) {
+      const locale = root.appGetLocale?.() || 'ru', status = material.coverage[key].status;
+      addFact(facts, label(key), (extraCopy[locale] || extraCopy.ru)[status] || label(status));
+    }
     addFact(facts, label('review'), card.review_status === 'human_proofread' ? label('human') : card.review_status === 'machine_assisted' ? label('machineAssisted') : card.review_status === 'machine' ? label('machine') : label('none'));
     addFact(facts, label('audio'), card.audio_status && card.audio_status !== 'none' ? card.audio_status : label('none'));
     addFact(facts, label('textLocal'), label(localText === true ? 'yes' : localText === false ? 'no' : 'unknown'));
     addFact(facts, label('offline'), label('unknown'));
     if (material.provenance.provider) addFact(facts, label('provider'), material.provenance.provider);
     if (material.provenance.model) addFact(facts, label('model'), material.provenance.model);
-    addFact(facts, label('edition'), '7');
+    addFact(facts, label('edition'), String(card.catalog_version || 7));
+    if (card.public_learning) {
+      const info = card.public_learning;
+      for (const [key, value] of [['sourceVersion', info.source_version], ['sourceEdition', info.source_edition], ['revisionDate', info.revision_date], ['contributors', info.contributors], ['rights', info.source_reported_rights]]) {
+        if (value) addFact(facts, label(key), value);
+      }
+      dialog.append(node('p', label('publishedScope'), 'corpus-passport-status'));
+      dialog.append(node('p', label('machineLimitations')));
+      dialog.append(node('p', label('sourceRightsLimit')));
+    }
     dialog.append(facts);
     if (sourcePeriod.sourceUrl) { const a = node('a', label('evidence')); a.href = sourcePeriod.sourceUrl; a.target = '_blank'; a.rel = 'noopener noreferrer'; dialog.append(a); }
     const actions = node('div', '', 'corpus-passport-actions');

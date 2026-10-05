@@ -1,0 +1,58 @@
+{
+  "checks": [
+    {
+      "work_id": "24249",
+      "case": "stored",
+      "result": "pass",
+      "native_rows": 13,
+      "source_key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98",
+      "foreign_reused": false
+    },
+    {
+      "work_id": "3557",
+      "case": "stored",
+      "result": "pass",
+      "native_rows": 5,
+      "source_key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799",
+      "foreign_reused": false
+    },
+    {
+      "work_id": "28026",
+      "case": "stored",
+      "result": "pass",
+      "native_rows": 149,
+      "source_key": "255284edd737413b8010a6ea59f612ded4d19bf4b14cd690b4effbd6c452aca4",
+      "foreign_reused": false
+    },
+    {
+      "work_id": "28026",
+      "case": "recomputed",
+      "result": "pass",
+      "native_rows": 149,
+      "source_key": "8a6b7301fbb7876b90dc5ff21e84fffb9ec912247ce28641bfdadb7664d5ad80",
+      "foreign_reused": false
+    },
+    {
+      "work_id": "24249",
+      "case": "foreign",
+      "result": "pass",
+      "native_rows": 13,
+      "source_key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98",
+      "foreign_reused": false
+    }
+  ],
+  "pageerrors": [],
+  "fixture_scope": "One exact work selected from each freshly verified owner ZIP, native import into disposable OPFS; locks, notes and row/step progress of previous and publisher copies; repeated reload and deliberate row interaction; not a whole-archive throughput test; appended read-only reader observer and author-navigation bridge, no owner profile or external calls",
+  "progress_regression": {
+    "same_work_cases": 4,
+    "editions_per_case": 2,
+    "passive_reload_repeats": 2,
+    "seed": {
+      "last_row_idx": 2,
+      "last_step_id": "translation"
+    },
+    "deliberate_action": "Click Hebrew cell at row 3; saved row=3, step=null; other protected state unchanged",
+    "reloads_after_deliberate_action": 2,
+    "previous_copy_preserved_during_publisher_actions": true
+  }
+}
