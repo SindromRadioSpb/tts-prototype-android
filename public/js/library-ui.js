@@ -8989,9 +8989,9 @@ async function openCorpusWork(card, openOpts) {
     if (!localId) throw new Error('work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
     const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
-    // A cold public URL selecting an earlier device edition offers its saved resume.
+    // A cold public URL selecting either learning edition offers its saved resume.
     // Automatic arrival must not replay a row write that clears its saved step.
-    if (choice.edition === 'previous' && readerOpts.replaceInitialHistory) readerOpts.resume = false;
+    if (card.learning_edition_id && readerOpts.replaceInitialHistory) readerOpts.resume = false;
     await openReader(localId, card.title, readerOpts);
     if (card.learning_edition_id && openEpoch === readerOpenEpoch && readerTextId === String(localId)) {
       const label = window.CorpusDiscoveryBrowser.label;

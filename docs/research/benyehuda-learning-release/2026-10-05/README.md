@@ -1,6 +1,6 @@
 # Ben-Yehuda learning publication candidate, 2026-10-05
 
-Status: corrected local release candidate after the independent NO-GO on `871fc23e772e5a394350c3b17ce8d6723c2e5200`. No corpus upload, push, PR, merge or deployment has been performed. Baseline: `5f683507fd5bc993e468f9785648cdb070843ef2`, production `3.11.730`, catalog 7. Candidate: `3.11.731`, catalog 8. Production success requires a new exact-commit review and separate GO, fresh capacity measurement, upload verification, CI and production readback.
+Status: corrected local release candidate after independent NO-GO on `871fc23e772e5a394350c3b17ce8d6723c2e5200` and the publisher-progress edge in `5734b86818808313e17c6a846962f70a6989fe2f`. No corpus upload, push, PR, merge or deployment has been performed. Baseline: `5f683507fd5bc993e468f9785648cdb070843ef2`, production `3.11.730`, catalog 7. Candidate: `3.11.731`, catalog 8. Production success requires a new exact-commit review and separate GO, fresh capacity measurement, upload verification, CI and production readback.
 
 ## Reconciliation
 
@@ -58,6 +58,8 @@ The current seal needs 274,674,697 uncompressed volume bytes and 96,145,528 comp
 The owner's separately authorized, exact-object Docker cleanup preserved the active and rollback images, all ten containers, all four volumes and backups. Actual free-space increase measured by `df`: 2,213,761,024 bytes. At 22:13:17 UTC, 5,635,940,352 bytes were available against a conservative requirement of 5,046,104,563 bytes, including 4 GiB for the build workspace; spare capacity was 589,835,789 bytes. This snapshot is evidence, not permission to deploy later. Before upload, regenerate the same-manifest capacity gate from a read-only measurement less than ten minutes old. The capacity risk remains tracked in O-047. The 22:13:08 UTC production readback still showed version 730, catalog 7, 796 ready works and health `ok: true`.
 
 ## Validation and evidence
+
+The latest correction extends the cold-arrival read-only behavior from the earlier local edition to both learning editions. The progress writer for deliberate reader actions is unchanged. Fifteen affected policy, boundary, async-reader and progress tests passed. The strengthened five-case native fixture checks both copies independently: row 2 / step `translation` survives two passive reloads; clicking row 3 updates saved progress to row 3 / step null; two further reloads preserve that deliberate state, and locks, notes and the other copy remain unchanged. Four same-work cases cover both editions; the fifth foreign-ID case retains its refusal-to-reuse assertion. Bodies, seal and contract files were not rebuilt. Full-suite and other immutable-data results below belong to the prior candidate; they were not repeated for this one-condition correction.
 
 `evidence.json` contains sanitized counts, seals, representative mappings and gate results. `browser.json` records the actual catalog-8 browser checks; `screen-parity.json` records the same-profile baseline/candidate comparison. Screenshots are from disposable local profiles, not a production or owner-device acceptance.
 
