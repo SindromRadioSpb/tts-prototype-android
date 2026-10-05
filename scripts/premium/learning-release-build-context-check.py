@@ -23,9 +23,9 @@ def excluded(file):
             state = not include
     return state
 
-catalog = json.loads((root / 'public/data/benyehuda/corpus-catalog-v8.json').read_text())
+catalog = json.loads((root / 'public/data/benyehuda/corpus-catalog-v8.json').read_text(encoding='utf-8'))
 manifest_path = 'public/data/benyehuda/' + catalog['release_manifest']
-manifest = json.loads((root / manifest_path).read_text())
+manifest = json.loads((root / manifest_path).read_text(encoding='utf-8'))
 required = ['server.js', 'db/corpusSentenceRepo.js', 'db/benyehudaLearningRelease.js',
             'public/index.html', 'public/library.html', 'public/sw.js', 'public/js/library-ui.js',
             'public/js/benyehuda-learning-edition.js', 'public/js/corpus-discovery-core.js',

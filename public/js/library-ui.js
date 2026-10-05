@@ -8957,6 +8957,12 @@ async function openCorpusWork(card, openOpts) {
   try {
     await corpusOpenQueue.run(async () => {
     let localId = await resolveLocalIdByKey(card.text_key);
+    if (localId && card.learning_edition_id) {
+      const current = await localDb.getTextById(localId);
+      let sourceId = null;
+      try { sourceId = JSON.parse(current?.source_meta_json || '{}').corpus?.byehuda_id; } catch (_) {}
+      if (String(sourceId) !== String(card.id)) throw new Error('Published local key belongs to another source work');
+    }
     const previousIds = [];
     if (!localId && card.learning_edition_id && !openOpts?._openPublishedEdition) {
       for (const key of card.previous_text_keys || []) {
@@ -8982,7 +8988,11 @@ async function openCorpusWork(card, openOpts) {
     }
     if (!localId) throw new Error('work not resolvable after import');
     if (openEpoch !== readerOpenEpoch) return;
-    await openReader(localId, card.title, Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } }));
+    const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
+    // A cold public URL selecting an earlier device edition offers its saved resume.
+    // Automatic arrival must not replay a row write that clears its saved step.
+    if (choice.edition === 'previous' && readerOpts.replaceInitialHistory) readerOpts.resume = false;
+    await openReader(localId, card.title, readerOpts);
     if (card.learning_edition_id && openEpoch === readerOpenEpoch && readerTextId === String(localId)) {
       const label = window.CorpusDiscoveryBrowser.label;
       const banner = el('div', { class: 'room-copyright-notice', attrs: { id: 'roomDeviceEdition', role: 'status' } });

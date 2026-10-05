@@ -55,7 +55,7 @@ function _loadTexts(workId, { includePrevious = false } = {}) {
   let edition;
   try { edition = learningRelease.publishedFile(workId); } catch (_) { return { ok: false, error: 'CORPUS_WORK_UNREADABLE' }; }
   const combined = [];
-  const names = edition ? [edition.name, ...(includePrevious ? [workId + '.json'] : [])] : [workId + '.json'];
+  const names = [...new Set(edition ? [edition.name, ...(includePrevious ? [workId + '.json'] : [])] : [workId + '.json'])];
   for (const name of names) {
   for (const dir of _worksDirs()) {
     const p = path.join(dir, name);

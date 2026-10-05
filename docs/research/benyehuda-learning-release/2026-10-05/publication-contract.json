@@ -1,0 +1,65 @@
+{
+  "schema": "benyehuda-learning-publication-contract-v1",
+  "identity_fixture_file": "publication-fixtures.json",
+  "status": "candidate contract; independent corrected-commit review required",
+  "input_format": "Existing native learning ZIP, library/library.json; no new archive format or rewrite of historical ZIPs",
+  "identity_record_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": ["source_work_id", "stored_archive_key", "recomputed_canonical_key", "publisher_edition_key", "learning_edition_id", "aliases"],
+    "properties": {
+      "source_work_id": {"type": "string", "pattern": "^[0-9]{1,8}$"},
+      "stored_archive_key": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+      "recomputed_canonical_key": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+      "publisher_edition_key": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+      "learning_edition_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+      "aliases": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {
+        "type": "object", "required": ["source_work_id", "key"], "additionalProperties": false,
+        "properties": {"source_work_id": {"type": "string", "pattern": "^[0-9]{1,8}$"}, "key": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+      }}
+    },
+    "additionalProperties": false
+  },
+  "semantic_gates": ["Every alias source_work_id equals the enclosing record ID", "No alias key is owned by two source IDs", "Stored and recomputed keys both occur in aliases", "Publisher key matches the work-ID/edition-ID formula", "Every immutable body hash and all input learning fields match", "Runtime local ID check precedes alias reuse"],
+  "identity": {
+    "source_work_id": "String(text.corpus.byehuda_id); required, unique within a release",
+    "stored_archive_key": "text.text_key, validated 64 lowercase hexadecimal characters",
+    "recomputed_canonical_key": {
+      "algorithm": "SHA-256 of UTF-8 JSON.stringify({v:1,sourceText,ttsProfile:null,tableModelMeta}) in this property order",
+      "sourceText": "String(text.source_text || '').replace CRLF and CR with LF, then trim",
+      "tableModelMeta": "text.table_model_meta or null",
+      "mismatch_policy": "Keep stored and recomputed values as same-work aliases; do not merge another work or silently repair input. Historical exception 28026 is explicit."
+    },
+    "learning_edition_id": "SHA-256 of the whitelisted normalized publication text before its final text_key/text_id/edition_id are added; build-learning-release.py is the producer",
+    "publisher_edition_key": "SHA-256 UTF-8('benyehuda-learning:' + source_work_id + ':' + learning_edition_id)",
+    "aliases": "sorted unique union of verified stored_archive_key, recomputed_canonical_key and previous published keys for the SAME source_work_id",
+    "ownership_gate": "An alias belonging to more than one source work ID blocks the build. The reader checks local source_meta_json.corpus.byehuda_id before reusing any alias. A conflicting publisher key fails closed."
+  },
+  "immutable_learning_fields": ["row_id", "order_index", "hebrew_plain", "hebrew_niqqud", "russian", "translit", "translit_ru", "meta.niqqud_derived.value"],
+  "public_metadata_policy": "Whitelist source facts and sanitized machine provenance. No operational ledger, raw prompt, recovery capsule, private path, credentials or learner annotations.",
+  "card_runtime_fields": {
+    "discovery_and_filtering": ["id", "title", "author", "author_qid", "era", "genre", "orig_language", "segments", "coverage", "review_status", "audio_status"],
+    "verified_open_and_preview": ["text_key", "file", "bundle_sha256", "preview_file", "preview_sha256", "learning_edition_id", "previous_text_keys", "catalog_version"],
+    "passport": ["source_period", "translation_provenance", "public_learning.work_id", "public_learning.main_rows", "public_learning.filled_rows", "public_learning.niqqud_rows", "public_learning.source_version", "public_learning.source_edition", "public_learning.revision_date", "public_learning.contributors", "public_learning.source_reported_rights"]
+  },
+  "learner_boundary": {
+    "default_open": "Reuse a proven same-work existing local copy, display its actual row count, and offer the publisher edition separately. Cold arrival offers the existing resume without replaying a progress write.",
+    "separate_edition": "Only the explicit separate-edition action imports the publisher key when a valid earlier local edition exists; skip semantics and no canon_version",
+    "preserve": ["local text ID", "user field locks/edit_meta_json", "notes", "bookmarks", "progress row and step", "review_log", "audio links", "OPFS media"],
+    "forbidden": ["destructive replace", "projectRows migration", "canon reconciliation", "bulk learner reimport", "cross-work alias merge"]
+  },
+  "release_boundary": {
+    "body": "works/<source_work_id>-<first 32 SHA-256 body hex characters>.json; full hash verified; numeric old bodies retained",
+    "cold_routes": "SSR and sitemap resolve the same sealed current edition as the card, checking body hash/ID/key/row count",
+    "activation": "Independent exact-commit GO, fresh same-manifest capacity gate, sealed immutable upload and every GET hash verification while catalog 7 stays active, then CI and atomic image activation",
+    "completion": "Actual production version, manifest, hashes, health and UI readback; local gates alone are insufficient"
+  },
+  "fixture_cases": [
+    {"work_id": "24249", "kind": "new public work", "native_key": "stored"},
+    {"work_id": "3557", "kind": "replaced public work", "native_key": "stored"},
+    {"work_id": "28026", "kind": "historical exception", "native_key": "stored"},
+    {"work_id": "28026", "kind": "historical exception", "native_key": "recomputed"},
+    {"work_id": "24249", "kind": "negative foreign source-ID collision", "native_key": "stored"}
+  ],
+  "fixture_scope": "Exact work records selected from freshly SHA/CRC-verified real learning ZIPs, native local import, actual card Read handler, reload, explicit new-edition opt-in, repeated reload in disposable OPFS. Recomputed/foreign cases deliberately vary one key/identity. Whole-archive import throughput and owner profiles are not claimed."
+}

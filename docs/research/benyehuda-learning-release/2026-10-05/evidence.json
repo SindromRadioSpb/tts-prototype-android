@@ -1,6 +1,6 @@
 {
   "baseline_commit": "5f683507fd5bc993e468f9785648cdb070843ef2",
-  "status": "local candidate, awaiting independent review",
+  "status": "corrected local candidate after NO-GO on 871fc23; awaiting new independent exact-commit review",
   "inventory": {
     "archives": 84,
     "learning_archives": 38,
@@ -28,7 +28,7 @@
     "all_catalog_rows": 26455,
     "rollback_bytes": 98808122,
     "rollback_sha256": "b2ec3de6eef3f4c065a23cb17c6bdd66f41f3d96f35ffdc2c6bfa7927954dc63",
-    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "manifest_sha256": "4fbe403e77daf05b589fb9472084e2ab752b19da3991cbd0eb57450917a43d04",
     "input_inventory_sha256": "914afa363cd829c53a313e64942a18364b2d10d20b33a7073661fba4ada7ea3a"
   },
   "publication": {
@@ -66,8 +66,7 @@
     "learning_archives": 38,
     "vocalized_ratio": 0.9982230796568006,
     "verdict": "PASS",
-    "supporting_archives_excluded": 46,
-    "definition": "Existing probe-niqqud Hebrew range; structural coverage, not philological certification"
+    "supporting_archives_excluded": 46
   },
   "fts": {
     "before": 10229,
@@ -77,8 +76,8 @@
     "shards": 334
   },
   "upload_dry_run": {
-    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
-    "root_sha256": "e960129ae9029cacab2d2a914875217369741d1abacc7345453da8503df4ec3b",
+    "manifest_sha256": "4fbe403e77daf05b589fb9472084e2ab752b19da3991cbd0eb57450917a43d04",
+    "root_sha256": "5ec79aadb6e2175ce804afc9d35a9766c0db31dacc3a7974ce9e3746a7d18983",
     "files": 1710,
     "uncompressed_file_bytes": 274674697,
     "compressed_request_bytes": 96145528,
@@ -104,12 +103,13 @@
     "archive_sha256": "b2ec3de6eef3f4c065a23cb17c6bdd66f41f3d96f35ffdc2c6bfa7927954dc63"
   },
   "capacity_snapshot": {
-    "measured_at_utc": "2026-10-05T21:03:55.1268353Z",
-    "total_bytes": 39964635136,
-    "used_bytes": 32636989440,
-    "available_bytes": 5638463488,
+    "measured_at_utc": "2026-10-05T22:13:17.4293315Z",
     "used_percent": "86%",
-    "manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "measurement": "read-only df -B1 /",
+    "size_bytes": 39964635136,
+    "available_bytes": 5635940352,
+    "used_bytes": 32639512576,
+    "manifest_sha256": "4fbe403e77daf05b589fb9472084e2ab752b19da3991cbd0eb57450917a43d04",
     "components": {
       "new_uncompressed_volume_bytes": 274674697,
       "compressed_request_staging_bytes": 96145528,
@@ -120,7 +120,7 @@
     },
     "required_available_bytes": 5046104563,
     "shortfall_bytes": 0,
-    "spare_bytes": 592358925,
+    "spare_bytes": 589835789,
     "capacity_gate": "pass",
     "reserve_basis": "4 GiB build workspace: O-018 (~4 GB/deploy), O-047 (3.2G to 213M at the 725 build peak). Image descriptor size is not a build peak estimate.",
     "cleanup": {
@@ -129,6 +129,133 @@
       "containers_preserved": 10,
       "volumes_preserved": 4
     }
+  },
+  "production_readback": {
+    "checked_at_utc": "2026-10-05T22:13:08.639Z",
+    "production_version": "v3.11.730",
+    "active_catalog": "7",
+    "ready": 796,
+    "root_sha256": "b5609674c4c2d3c4cce3722d8e115921442b6303ed73410b047ff8a8d96e87c0",
+    "health": {
+      "ok": true,
+      "disk_warn": true,
+      "disk_pct_used": 86
+    }
+  },
+  "revision_equivalence": {
+    "result": "pass",
+    "previous_commit": "871fc23e772e5a394350c3b17ce8d6723c2e5200",
+    "previous_manifest_sha256": "71230e9d7bccf1aa4f83b2d2a9f9658319c3639a2f1067239192d2839fef2ac0",
+    "current_manifest_sha256": "4fbe403e77daf05b589fb9472084e2ab752b19da3991cbd0eb57450917a43d04",
+    "immutable_paths_and_hashes_identical": 1710,
+    "body_and_preview_files": 1376,
+    "fts_shards": 334,
+    "immutable_changes": 0,
+    "remote_receipt_scope": "Earlier read-only receipt applies to the same immutable allowlist. Activation and collision checks must be repeated by the uploader after a new exact-commit GO."
+  },
+  "cold_links": {
+    "checks": [
+      {
+        "name": "all current editions have readable cold public projections",
+        "result": "pass",
+        "evidence": {
+          "ready": 1421
+        }
+      },
+      {
+        "name": "sitemap contains all 1421 distinct ready works",
+        "result": "pass",
+        "evidence": {
+          "ready": 1421
+        }
+      },
+      {
+        "name": "cold HTTP, canonical JSON-LD, current excerpt and client refresh 24249",
+        "result": "pass",
+        "evidence": {
+          "status": 200,
+          "rows": 13,
+          "key": "9f5e188600827430930b672d78b5989bd85a1f25a9e88242f294f095edf81fae"
+        }
+      },
+      {
+        "name": "cold HTTP, canonical JSON-LD, current excerpt and client refresh 3557",
+        "result": "pass",
+        "evidence": {
+          "status": 200,
+          "rows": 5,
+          "key": "a67233043427ed06dfa303c632d95108d1fe3ff5694a57a020b154dc45116fd8"
+        }
+      },
+      {
+        "name": "cold HTTP, canonical JSON-LD, current excerpt and client refresh 10",
+        "result": "pass",
+        "evidence": {
+          "status": 200,
+          "rows": 67,
+          "key": "78c45807a3dc918efa4dc4a7095f98431d866efb55f0f029a19aaa6fc24d1ed5"
+        }
+      },
+      {
+        "name": "invalid and unknown work IDs cannot enter a public projection",
+        "result": "pass",
+        "evidence": {
+          "cases": 3
+        }
+      }
+    ],
+    "pageerrors": [],
+    "fixture_scope": "Actual sealed bodies and HTTP server; disposable profile, blocked service workers/external traffic; appended read-only reader observer, unchanged application handlers"
+  },
+  "native_keys": {
+    "checks": [
+      {
+        "work_id": "24249",
+        "case": "stored",
+        "result": "pass",
+        "native_rows": 13,
+        "source_key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98",
+        "foreign_reused": false
+      },
+      {
+        "work_id": "3557",
+        "case": "stored",
+        "result": "pass",
+        "native_rows": 5,
+        "source_key": "b13d64df2d6490d9ab8c532ceec1fab4e0b21262ae39abf1fda89085f4f36799",
+        "foreign_reused": false
+      },
+      {
+        "work_id": "28026",
+        "case": "stored",
+        "result": "pass",
+        "native_rows": 149,
+        "source_key": "255284edd737413b8010a6ea59f612ded4d19bf4b14cd690b4effbd6c452aca4",
+        "foreign_reused": false
+      },
+      {
+        "work_id": "28026",
+        "case": "recomputed",
+        "result": "pass",
+        "native_rows": 149,
+        "source_key": "8a6b7301fbb7876b90dc5ff21e84fffb9ec912247ce28641bfdadb7664d5ad80",
+        "foreign_reused": false
+      },
+      {
+        "work_id": "24249",
+        "case": "foreign",
+        "result": "pass",
+        "native_rows": 13,
+        "source_key": "a3cd3c5395494756aae94b00a766f6a8e87a6c7e33f10ba55c19a2effff9bb98",
+        "foreign_reused": false
+      }
+    ],
+    "pageerrors": [],
+    "fixture_scope": "One exact work selected from each freshly verified owner ZIP, native import into disposable OPFS; locks, notes and progress; not a whole-archive throughput test; appended read-only reader observer and author-navigation bridge, no owner profile or external calls"
+  },
+  "contract_identity_validation": {
+    "identities": 688,
+    "aliases": "ID-bound input and old-public keys; publisher formula verified"
   },
   "representative_works": [
     {
@@ -203,7 +330,7 @@
   },
   "gates": {
     "unit_tests": {
-      "pass": 2456,
+      "pass": 2457,
       "fail": 0,
       "skip": 0
     },
@@ -220,13 +347,7 @@
     "discovery_browser": 8,
     "actual_sw_preview": 6,
     "actual_v8_browser": 8,
-    "full_sw_update": {
-      "completed": 12,
-      "pass": 9,
-      "known_O_015": 3,
-      "exit_code": 0
-    },
-    "targeted_final": 15,
-    "build_context_static": "pass (36 required paths, four excluded canaries; actual image build pending)"
+    "cold_links_browser": 6,
+    "native_keys_browser": 5
   }
 }

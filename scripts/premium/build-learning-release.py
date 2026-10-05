@@ -43,6 +43,12 @@ def main():
     if inventory['problems'] or comparison['cross_work_key_matches']: raise ValueError('Unresolved inventory conflicts')
     before=load(baseline/'corpus-catalog-v7.json'); oldsearch=load(baseline/'corpus-search-v7.json'); oldindex=load(baseline/'corpus-index-v7.json')
     actions={r['work_id']:r for r in comparison['works']}; records={r['work_id']:r for r in inventory['works']}
+    # Keys are aliases only within their independently checked source work identity.
+    owners=defaultdict(set)
+    for record in inventory['works']:
+        for key in [record['stored_key'],record['recomputed_key']]:owners[key].add(record['work_id'])
+    for card in oldindex['ready']:owners[card['text_key']].add(card['id'])
+    if any(len(ids)>1 for ids in owners.values()):raise ValueError('Cross-work alias ownership conflict')
     cards={}; manifests=[]
     for entry in before['manifests']:
         manifest=load(baseline/entry['file']); manifests.append((entry,manifest)); cards.update({c['id']:c for c in manifest['works']})
@@ -87,7 +93,9 @@ def main():
                 preview={'library':{'texts':[{'rows':[fields(r,['hebrew_plain','hebrew_niqqud','russian','translit','translit_ru']) for r in safe_rows[:4]]}]}}
                 previewhash=sha(encoded(preview)); previewfile='works/'+id+'-'+previewhash[:16]+'-preview.json';put(out/previewfile,preview)
                 c=corpus; ratio=round(sum(bool(re.search('[\u0591-\u05c7]',r.get('hebrew_niqqud',''))) for r in safe_rows)/count,2)
-                card.update(title=text['title'],author=c.get('author') or card.get('author'),parts=1,segments=count,vocalized_ratio=ratio,review_status=c['review_status'],audio_status='none',text_key=normalized['text_key'],file=file,bundle_sha256=bodyhash,preview_file=previewfile,preview_sha256=previewhash,learning_edition_id=edition,learning_revision=record['revision'],source_edition_id=source_version,catalog_version=args.version,translation_provenance={'provider':' / '.join(sorted({r.get('translation_provider') for r in safe_rows if r.get('translation_provider')}))},public_learning=public_learning,previous_text_keys=actions[id]['published_keys'])
+                aliases=sorted(set(actions[id]['published_keys']+[record['stored_key'],record['recomputed_key']]))
+                if any(not re.fullmatch('[a-f0-9]{64}',key) or owners[key]!={id} for key in aliases):raise ValueError('Unverified work key alias')
+                card.update(title=text['title'],author=c.get('author') or card.get('author'),parts=1,segments=count,vocalized_ratio=ratio,review_status=c['review_status'],audio_status='none',text_key=normalized['text_key'],file=file,bundle_sha256=bodyhash,preview_file=previewfile,preview_sha256=previewhash,learning_edition_id=edition,learning_revision=record['revision'],source_edition_id=source_version,catalog_version=args.version,translation_provenance={'provider':' / '.join(sorted({r.get('translation_provider') for r in safe_rows if r.get('translation_provider')}))},public_learning=public_learning,previous_text_keys=aliases)
                 card['coverage']={'text':True,'niqqud':ratio,'translation':'machine','audio':'none','era_known':bool(card.get('era')),'tier':'machine-known' if card.get('era') and card['era']!='unknown' else 'machine-rest'}
                 classification=document.get('official_classification_evidence') or {}; listing=classification.get('listing_evidence') or {}; snapshot=listing.get('snapshot_sha256')
                 if classification.get('period') and listing.get('modern_filter_checked') and snapshot in evidence and str(document.get('id'))==id:

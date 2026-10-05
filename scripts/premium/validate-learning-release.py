@@ -16,6 +16,8 @@ def main():
     got=texts[0];assert got['corpus']['byehuda_id']==id and got['text_key']==w['edition_text_key'];assert 'canon_version'not in body['library'];assert len(got['rows'])==len(t['rows'])==w['rows'];rows+=len(t['rows'])
     for i,(before,after)in enumerate(zip(t['rows'],got['rows'])):
      assert after['order_index']==i
+     assert after.get('row_id')==before.get('row_id'),(id,i,'row ID')
+     assert after.get('order_index')==before.get('order_index'),(id,i,'input row order')
      for field in fields:assert before.get(field,'')==after.get(field,''),(id,i,field)
      derived=(before.get('meta')or{}).get('niqqud_derived')
      if derived:assert (after.get('meta')or{}).get('niqqud_derived',{}).get('value')==derived.get('value'),(id,i,'derived niqqud')
@@ -30,6 +32,14 @@ def main():
   data=load(out/record['file']);assert data['version']==8 and len(data['works'])==record['count']
   for c in data['works']:assert c['id']not in cards;cards[c['id']]=c
  ready={c['id']:c for c in index['ready']};assert len(cards)==26455 and len(ready)==root['counts']['baked']==1421;assert set(ready)==set(root['pointers']['ready'])
+ comparison=load(a.dir/'comparison.json');old_keys={w['work_id']:w['published_keys'] for w in comparison['works']}
+ owners={}
+ for record in original['works']:
+  id=record['work_id'];expected=sorted(set(old_keys[id]+[record['stored_key'],record['recomputed_key']]))
+  assert ready[id]['previous_text_keys']==expected,(id,'native edition aliases')
+  for key in expected:
+   assert key not in owners or owners[key]==id,(id,'foreign alias ownership')
+   owners[key]=id
  assert sum(r['r'] for r in search)==1421;assert [r['id']for r in search]==[r['id']for r in load(base/'data/benyehuda/corpus-search-v7.json')]
  for id,c in ready.items():
   assert c['file']==cards[id]['file'] and c['text_key']==cards[id]['text_key'];b=load(out/c['file']);assert any(t['text_key']==c['text_key'] for t in b['library']['texts']);totalrows+=sum(len(t['rows'])for t in b['library']['texts'])
