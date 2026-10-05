@@ -30,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=725';
+import * as readerCore from '/js/reader-core.js?v=732';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=730';
@@ -1797,6 +1797,44 @@ function roomFocusTrap(e, container) {
   else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
 }
 let readerRows = [];
+let readerLearningNiqqud = null;
+let learningNiqqudLoader = null;
+function prepareReaderLearningNiqqud(material, isCurrent) {
+  const api = window.BenYehudaLearningNiqqud;
+  if (!api || !window.BenYehudaLearningNiqqudManifest) return material;
+  if (!learningNiqqudLoader) learningNiqqudLoader = api.createLoader(window.BenYehudaLearningNiqqudManifest);
+  return learningNiqqudLoader.prepare(material, isCurrent);
+}
+function renderReaderLearningNiqqud() {
+  $('readerLearningNiqqud')?.remove();
+  const state = readerLearningNiqqud;
+  if (!state) return;
+  const box = $('readerSubtitle');
+  if (!box) return;
+  const button = el('button', { class: 'reader-sub-chip', attrs: { id: 'readerLearningNiqqud', type: 'button' } });
+  const update = () => {
+    const key = state.original ? 'room.reader.niqqudLayer.original' : 'room.reader.niqqudLayer.learning';
+    button.dataset.i18n = key;
+    button.dataset.i18nTitle = 'room.reader.niqqudLayer.explanation';
+    button.textContent = tt(key);
+    button.title = tt('room.reader.niqqudLayer.explanation');
+  };
+  update();
+  button.addEventListener('click', () => {
+    if (readerLearningNiqqud !== state) return;
+    const mount = $('roomReaderTable');
+    const anchor = Array.from(mount?.querySelectorAll('tbody tr') || []).find(row => row.getBoundingClientRect().bottom > 100);
+    const anchorIndex = anchor ? Array.from(anchor.parentNode.children).indexOf(anchor) : -1;
+    const anchorTop = anchor?.getBoundingClientRect().top;
+    state.original = !state.original;
+    readerRows = state.original ? state.sourceRows : state.learningRows;
+    _programmaticProgressUntil = Date.now() + 600;
+    update(); rerenderReader();
+    const target = anchorIndex >= 0 ? mount?.querySelectorAll('tbody tr')[anchorIndex] : null;
+    if (target && Number.isFinite(anchorTop)) window.scrollBy(0, target.getBoundingClientRect().top - anchorTop);
+  });
+  box.appendChild(button); box.hidden = false;
+}
 let readerAudio = null; // attachRowAudio detach handle
 let readerMorph = null; // ReaderMorph attach detach handle
 let readerTextId = null; // BRR-P2-002 — local OPFS id of the open text (for progress)
@@ -8538,6 +8576,8 @@ async function openReader(textId, title, opts) {
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
+  readerLearningNiqqud = null;
+  $('readerLearningNiqqud')?.remove();
   const request = readerOpens.begin(textId);
   const presentationRestore = !!(opts && opts.presentationRestore);
   const openStartedAt = performance.now();
@@ -8581,6 +8621,7 @@ async function openReader(textId, title, opts) {
   const mount = $('roomReaderTable');
   const res = await readerCore.openText(textId, {
     localDb, mount, config: readerConfig(), request,
+    prepareMaterial: prepareReaderLearningNiqqud,
     isCurrent: () => openEpoch === readerOpenEpoch,
     onState: (s) => {
       if (s.kind === 'loading') readerSkeleton();
@@ -8592,6 +8633,10 @@ async function openReader(textId, title, opts) {
   });
   if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
   readerRows = res && res.ok ? res.rows : [];
+  if (res?.learningNiqqud) {
+    readerLearningNiqqud = { original: false, learningRows: readerRows,
+      sourceRows: res.learningNiqqud.sourceSentences.map(row => readerCore.mapSentenceRowToUiRow(row, textId)) };
+  }
   if (res && res.ok && readerRows.length) {
     try { window.ProductTelemetry?.confirmMaterialOpen({ text: res.text, media: productPulseRoomMediaFacts(res.text, readerRows) }); } catch (_) {}
   }
@@ -8633,6 +8678,7 @@ async function openReader(textId, title, opts) {
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskLearningSupport(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
+  renderReaderLearningNiqqud();
   roomRenderReaderCopyright({ localPrivate: readerIsOwnText });
   if (res && res.ok) {
     let calibrationSource = null;
@@ -8742,6 +8788,8 @@ function jumpToFtsMatch(q, loadedProgress) {
 }
 
 async function closeReader(options) {
+  readerLearningNiqqud = null;
+  $('readerLearningNiqqud')?.remove();
   // BRR-P2-002 — flush the last deliberate working position synchronously BEFORE hiding
   // (the 800ms debounce may not have fired if Back is tapped quickly), then stop recording.
   const tid = readerTextId;
@@ -8991,7 +9039,7 @@ async function openCorpusWork(card, openOpts) {
     const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
     // A cold public URL selecting either learning edition offers its saved resume.
     // Automatic arrival must not replay a row write that clears its saved step.
-    if (card.learning_edition_id && readerOpts.replaceInitialHistory) readerOpts.resume = false;
+    if (readerOpts.replaceInitialHistory) readerOpts.resume = false;
     await openReader(localId, card.title, readerOpts);
     if (card.learning_edition_id && openEpoch === readerOpenEpoch && readerTextId === String(localId)) {
       const label = window.CorpusDiscoveryBrowser.label;

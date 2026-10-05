@@ -606,7 +606,15 @@ export async function openText(textId, opts) {
     return result;
   }
   if (opts.request) opts.request.mark('data');
-  return presentMaterial(result, { mount, config, isCurrent, request: opts.request, onState: emit });
+  // Optional verified, read-only learning layer, before the first table paint. Never persist it.
+  let prepared = result;
+  if (typeof opts.prepareMaterial === 'function') {
+    try { prepared = await opts.prepareMaterial(result, isCurrent); } catch (_) { prepared = result; }
+    if (!isCurrent()) return superseded();
+  }
+  const presented = presentMaterial(prepared, { mount, config, isCurrent, request: opts.request, onState: emit });
+  if (presented.ok && prepared.learningNiqqud) presented.learningNiqqud = prepared.learningNiqqud;
+  return presented;
 }
 
 // Presentation consumes an already validated read model. It never reads the DB.

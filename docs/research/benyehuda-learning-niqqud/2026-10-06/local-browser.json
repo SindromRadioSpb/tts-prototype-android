@@ -1,0 +1,57 @@
+{
+  "status": "pass",
+  "base": "http://127.0.0.1:62099",
+  "source_sha256": "80fd43b0ea0005d9997c80bbc360c995865d1e9305d2ea11c2b3acc5a6287a3a",
+  "layer_sha256": "6e36585cf69be520757f6f16f28e766c9289a3bf843f9c7dcd5492bfb3d03295",
+  "checks": [
+    {
+      "name": "served layer hash and immutable headers",
+      "evidence": "6e36585cf69be520757f6f16f28e766c9289a3bf843f9c7dcd5492bfb3d03295"
+    },
+    {
+      "name": "actual reader row 06 learner-latin",
+      "evidence": "Haboker hatehorim."
+    },
+    {
+      "name": "actual reader row 06 sbl",
+      "evidence": "habbôqer haṭṭəhôrîm."
+    },
+    {
+      "name": "actual reader row 06 ru-phonetic",
+      "evidence": "хабокэр хатэхорим."
+    },
+    {
+      "name": "reload, source comparison, edits, notes, progress and review_log preserved",
+      "evidence": {
+        "rows": 437,
+        "progress": [
+          {
+            "last_row_idx": 5,
+            "last_step_id": "translation"
+          }
+        ]
+      }
+    },
+    {
+      "name": "380px button target",
+      "evidence": {
+        "x": 12,
+        "y": 170.1875,
+        "width": 174.28125,
+        "height": 44
+      }
+    },
+    {
+      "name": "503 layer falls back to original",
+      "evidence": true
+    },
+    {
+      "name": "Back during layer fetch prevents late table paint",
+      "evidence": true
+    },
+    {
+      "name": "no browser page errors",
+      "evidence": true
+    }
+  ]
+}

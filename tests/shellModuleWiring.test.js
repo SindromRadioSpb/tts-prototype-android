@@ -16,6 +16,8 @@ const JS_DIR = path.join(ROOT, "public", "js");
 const SHELLS = ["public/index.html", "public/library.html", "public/mediatheque.html"];
 // global -> the file that defines it
 const PROVIDERS = {
+  BenYehudaLearningNiqqud: "benyehuda-learning-niqqud.js",
+  BenYehudaLearningNiqqudManifest: "benyehuda-learning-niqqud-manifest.js",
   LPTutorNotebook: "tutor-notebook.js",
   SubtitleRowLanguage: "subtitle-row-language.js",
   SubtitleTimingStatus: "subtitle-timing-status.js",

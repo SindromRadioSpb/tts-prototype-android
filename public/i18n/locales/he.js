@@ -4976,3 +4976,7 @@ Object.assign(window.I18N_LOCALES.he.room.morph.study, {"tutorHelp":"להבין 
 Object.assign(window.I18N_LOCALES.he.mediatheque, {"tutorRead":"לקרוא עם המורה","tutorHint":"בחרו משפט ולחצו על כפתור המורה שלצדו."});
 
 Object.assign(window.I18N_LOCALES.he.room.home, {"libraryChanged": "הספרייה השתנתה בכרטיסייה אחרת.", "refreshLibrary": "רענון הספרייה"});
+window.I18N_LOCALES.he.room.reader.niqqudLayer = {
+  learning: 'ניקוד: ללימוד · Dicta', original: 'ניקוד: מקור',
+  explanation: 'הניקוד ללימוד נוצר אוטומטית ולא עבר הגהה. לחצו להשוואה עם המקור. התעתיק מתאים לניקוד שנבחר; העריכות שלכם נשמרות.'
+};

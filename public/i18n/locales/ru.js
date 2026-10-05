@@ -4982,3 +4982,7 @@ Object.assign(window.I18N_LOCALES.ru.room.morph.study, {"tutorHelp":"Разоб�
 Object.assign(window.I18N_LOCALES.ru.mediatheque, {"tutorRead":"Читать с наставником","tutorHint":"Выберите предложение и нажмите кнопку наставника рядом с ним."});
 
 Object.assign(window.I18N_LOCALES.ru.room.home, {"libraryChanged": "Библиотека изменилась в другой вкладке.", "refreshLibrary": "Обновить библиотеку"});
+window.I18N_LOCALES.ru.room.reader.niqqudLayer = {
+  learning: 'Огласовка: учебная · Dicta', original: 'Огласовка: исходная',
+  explanation: 'Учебная огласовка машинная, не вычитана. Нажмите, чтобы сравнить с исходной. Транслит следует выбранной огласовке; ваши правки сохраняются.'
+};

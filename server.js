@@ -660,6 +660,15 @@ app.use("/data/benyehuda/context", express.static(path.join(DATA_DIR, "benyehuda
   },
 }));
 
+// Immutable, hash-pinned study pointing is separate from original work bundles.
+app.use('/data/benyehuda/learning-niqqud', express.static(path.join(DATA_DIR, 'benyehuda', 'learning-niqqud'), {
+  fallthrough: true, index: false,
+  setHeaders(res) {
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  },
+}));
+
 app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
 // A public work has one request URL, readable metadata and a short source excerpt
@@ -1269,6 +1278,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
+  "/js/benyehuda-learning-niqqud.js?v=732",
+  "/js/benyehuda-learning-niqqud-manifest.js?v=732",
   "/js/corpus-discovery-core.js?v=731",
   "/js/corpus-discovery-browser.js?v=731",
   "/css/room-discovery.css?v=730",
@@ -1286,7 +1297,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=731",
+  "/js/library-ui.js?v=732",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1303,7 +1314,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/vfs-order.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
-  "/js/reader-core.js?v=725",
+  "/js/reader-core.js?v=732",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
@@ -1328,9 +1339,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=429",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=281",
-  "/i18n/locales/en.js?v=281",
-  "/i18n/locales/he.js?v=281",
+  "/i18n/locales/ru.js?v=282",
+  "/i18n/locales/en.js?v=282",
+  "/i18n/locales/he.js?v=282",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
