@@ -1,4 +1,4 @@
-import '/js/material-open.js?v=733';
+import '/js/material-open.js?v=734';
 // library-ui.js — BRR-P0-002 Reading Room surface (Layout A: track tabs +
 // vertical shelf stack with horizontal work-card carousels).
 //
@@ -9,7 +9,7 @@ import '/js/material-open.js?v=733';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=733';
+import * as localDbRaw from '/db/local-db.js?v=734';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -30,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=733';
+import * as readerCore from '/js/reader-core.js?v=734';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=730';

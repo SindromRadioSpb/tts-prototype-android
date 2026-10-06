@@ -135,10 +135,11 @@ async function finalizeWork(out, entry, report) {
     if (!machineFragments.length) { layer.provider = 'source'; layer.model_version = 'source-pointing-v1'; }
     layer.translit_compiler = 'three-profiles-v1'; layer.translit_profile_versions = TRANSLIT_PROFILE_VERSIONS;
     for (const row of layer.rows) if (!/[א-ת]/u.test(row.he_plain) && !row.source_niqqud) row.learning_niqqud = '';
-    // A resumed compilation may reuse only a byte-verified asset with identical
-    // input layer, source, compiler and profile versions. Raw answers stay untouched.
+    // Byte-verified identical layers are a fast path. Unchanged pointed strings may
+    // also reuse profiles from the same source/compiler/versions; the engine is string-local.
+    // Changed pointing is compiled again. Raw answers stay untouched.
     const targetDir = path.join(out,'release','learning-niqqud'), expectedBase = JSON.stringify(layer);
-    let compiledRows;
+    let compiledRows; const reusableProfiles = new Map();
     for (const name of fs.readdirSync(targetDir)) {
       if (!name.startsWith(entry.id+'-') || !/^[0-9]+-[a-f0-9]{32}\.json$/.test(name)) continue;
       try {
@@ -146,6 +147,11 @@ async function finalizeWork(out, entry, report) {
         if (name !== entry.id+'-'+hash(candidateBytes).slice(0,32)+'.json') continue;
         const candidate = Layer.validateLayer(JSON.parse(candidateBytes));
         const originalRows = candidate.rows;
+        if (candidate.source_bundle_sha256 === layer.source_bundle_sha256 && candidate.source_rows_sha256 === layer.source_rows_sha256
+          && candidate.translit_compiler === layer.translit_compiler && JSON.stringify(candidate.translit_profile_versions) === JSON.stringify(layer.translit_profile_versions)) {
+          for (const row of originalRows) if (Display.PROFILES.every(profile => typeof row.translit_profiles?.[profile] === 'string'))
+            reusableProfiles.set(row.learning_niqqud,row.translit_profiles);
+        }
         candidate.rows = originalRows.map(row => {const copy={...row}; delete copy.translit_profiles; delete copy.review_signals; return copy;});
         if (JSON.stringify(candidate) !== expectedBase || originalRows.some(row => Display.PROFILES.some(profile => typeof row.translit_profiles?.[profile] !== 'string'))) continue;
         compiledRows = originalRows; break;
@@ -154,7 +160,8 @@ async function finalizeWork(out, entry, report) {
     let unresolved = 0; const suspect = [];
     for (const row of layer.rows) {
       if (!/[א-ת]/u.test(row.he_plain) && !row.source_niqqud) row.learning_niqqud = '';
-      row.translit_profiles = compiledRows ? compiledRows[row.order_index].translit_profiles : Object.fromEntries(Display.PROFILES.map(profile => [profile, transliterateWithProfile(row.learning_niqqud, profile)]));
+      row.translit_profiles = compiledRows ? compiledRows[row.order_index].translit_profiles : reusableProfiles.get(row.learning_niqqud)
+        || Object.fromEntries(Display.PROFILES.map(profile => [profile, transliterateWithProfile(row.learning_niqqud, profile)]));
       for (const [profile, value] of Object.entries(row.translit_profiles)) {
         if (typeof value !== 'string' || (/[א-ת]/u.test(row.learning_niqqud) && !value.trim() && !(profile === 'ru-phonetic' && /^[אע]$/u.test(row.learning_niqqud.trim()))) || /[א-ת]/u.test(value)) throw new Error('Invalid transliteration: ' + entry.id + ':' + row.order_index + ':' + profile);
       }

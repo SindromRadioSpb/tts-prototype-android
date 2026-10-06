@@ -1291,7 +1291,7 @@ export async function getStudySentences(textId) {
   const [text, sentences] = await Promise.all([getTextByIdLite(textId), getSentences(textId)]);
   const api = globalThis.BenYehudaLearningNiqqud;
   if (!text || !api) return sentences;
-  try { return (await api.prepare({ text, sentences })).sentences; } catch (_) { return sentences; }
+  try { return (await api.prepare({ text, sentences },undefined,{ waitForLayer:true })).sentences; } catch (_) { return sentences; }
 }
 const _studySentenceCache = new Map();
 async function _studySentence(row) {

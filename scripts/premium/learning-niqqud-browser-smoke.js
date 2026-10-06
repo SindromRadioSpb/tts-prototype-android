@@ -208,6 +208,8 @@ async function main() {
     const slow=await slowContext.newPage();slow.on('pageerror',e=>errors.push(e.message));await slow.goto(url);
     await slow.locator('#roomReaderTable tbody tr').nth(5).waitFor({timeout:45000});
     assert.equal((await slow.locator('#roomReaderTable tbody tr').nth(5).locator('[data-col="niqqud"]').textContent()).normalize('NFC'),'הבוֹקר הטהוֹרים.');
+    const exportReady=await slow.evaluate(async key=>{const db=window.__localDB,id=(await db.dbQuery('SELECT id FROM texts WHERE text_key=?',[key]))[0].id;return (await db.getStudySentences(id))[5].he_niqqud;},bundle.library.texts[0].text_key);
+    assert.equal(exportReady.normalize('NFC'),'הַבּוֹקֶר הַטְּהוֹרִים.');
     await slow.waitForFunction(async file=>!!(await (await caches.open('linguistpro-benyehuda-learning-v1')).match('/data/benyehuda/'+file)),report.file,{timeout:15000});
     await slow.reload();await slow.waitForFunction(()=>document.querySelectorAll('#roomReaderTable tbody tr')[5]?.querySelector('[data-col="translit"]')?.textContent.trim()==='Haboker hatehorim.',{timeout:45000});
     assert.equal(slowCalls,1);record('slow first download finishes in background and next open uses it without another request',true);

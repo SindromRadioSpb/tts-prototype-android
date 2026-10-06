@@ -130,14 +130,15 @@
       if (cache.size > maxMemoryLayers) cache.delete(cache.keys().next().value);
       try { return await task; } catch (_) { cache.delete(key); return null; }
     }
-    async function prepare(material, isCurrent = () => true) {
+    async function prepare(material, isCurrent = () => true, preparation = {}) {
       if (material.learningNiqqud) return material;
       const id = workId(material.text);
       const pin = pinFor(material.text, manifest);
       if (!id || !pin) return material;
       let viewTimer;
       // Keep first paint bounded while a slow immutable download can still finish into the cache.
-      const layer = await Promise.race([load(id,pin),new Promise(resolve => { viewTimer=setTimeout(()=>resolve(null),timeoutMs); })]);
+      const layer = preparation.waitForLayer ? await load(id,pin)
+        : await Promise.race([load(id,pin),new Promise(resolve => { viewTimer=setTimeout(()=>resolve(null),timeoutMs); })]);
       clearTimeout(viewTimer);
       if (!isCurrent()) return material;
       if (!layer) return { ...material, studyNiqqudStatus: 'unavailable' };
@@ -154,7 +155,7 @@
     if (!sharedLoader || sharedManifest !== manifest) { sharedManifest = manifest; sharedLoader = createLoader(manifest); }
     return sharedLoader;
   }
-  async function prepare(material, isCurrent) { return loader().prepare(material, isCurrent); }
+  async function prepare(material, isCurrent, options) { return loader().prepare(material, isCurrent, options); }
   async function portable(text) {
     const id = workId(text), pin = pinFor(text);
     const layer = id && pin ? await loader().load(id, pin) : null;

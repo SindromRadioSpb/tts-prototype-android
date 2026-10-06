@@ -2,6 +2,16 @@
 const test = require('node:test'), assert = require('node:assert/strict'), fs = require('node:fs');
 const Layer = require('../public/js/benyehuda-learning-niqqud');
 const { projectRows } = require('../scripts/premium/build-learning-niqqud');
+test('a partial row preserves fully pointed source words, including winter beside an abbreviation', () => {
+  const { completeSourceWord } = require('../scripts/premium/build-learning-niqqud');
+  for (const word of ['הַבּוֹקֶר','וָחֹרֶף','אֵם','חֲצִי','מִרְיָם']) assert.equal(completeSourceWord(word),true,word);
+  for (const word of ['הבוֹקר','הטהוֹרים','ספרים','תש']) assert.equal(completeSourceWord(word),false,word);
+  const row = { order_index:0,hebrew_plain:'תש"י בקיץ וחרף.',hebrew_niqqud:'תש"י בְּקַיִץ וָחֹרֶף.' };
+  const result = projectRows([row],'תש"י בַּקַּיִץ וְחֵרֶף.');
+  assert.equal(result.entries[0].learning_niqqud.normalize('NFC'),row.hebrew_niqqud.normalize('NFC'));
+  assert.equal(result.entries[0].unresolved_words,1);
+  assert.equal(projectRows([{order_index:0,hebrew_plain:'715716.',hebrew_niqqud:'715־716.'}],'715־716.').entries[0].learning_niqqud,'715716.');
+});
 const Translit = require('../db/premium/translit'), Display = require('../public/js/translit-display');
 async function fixture() {
   const sentences = [{ id: 'saved-id', text_id: 'fixture', order_index: 0, he_plain: 'הבוקר הטהורים.', he_niqqud: 'הבוֹקר הטהוֹרים.', ru: 'Перевод', translit: 'old', audio_asset_key: 'saved-audio', edit_meta_json: null }];
@@ -174,6 +184,9 @@ test('a slow immutable download does not delay the view and warms the next open 
   let release,calls=0;const loader=Layer.createLoader(manifest,{timeoutMs:5,fetchTimeoutMs:1000,cacheStorage:null,
     fetch:()=>{calls++;return new Promise(resolve=>{release=resolve;});}});
   assert.equal((await loader.prepare(f)).studyNiqqudStatus,'unavailable');
+  let finished=false;const exportRead=loader.prepare(f,undefined,{waitForLayer:true}).then(result=>{finished=true;return result;});
+  await new Promise(resolve=>setTimeout(resolve,10));assert.equal(finished,false);
   release(new Response(bytes));await new Promise(resolve=>setImmediate(resolve));
+  assert.equal((await exportRead).learningNiqqud.applied,1);
   assert.equal((await loader.prepare(f)).learningNiqqud.applied,1);assert.equal(calls,1);
 });

@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=733">
+    <link rel="modulepreload" href="/db/local-db.js?v=734">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11060,7 +11060,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=733';
+  import * as _ldb from '/db/local-db.js?v=734';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13750,11 +13750,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=684"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
-<script src="/js/local-translit-bundle.js?v=733"></script>
-<script src="/js/translit-display.js?v=733"></script>
+<script src="/js/local-translit-bundle.js?v=734"></script>
+<script src="/js/translit-display.js?v=734"></script>
 <script src="/js/subtitle-material-vocalization.js?v=686"></script>
 <!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
-<script src="/js/niqqud-plausibility.js?v=733"></script>
+<script src="/js/niqqud-plausibility.js?v=734"></script>
 <script src="/js/niqqud-suspect-marks.js?v=685"></script>
 <script src="/js/material-progress-ladder.js?v=685"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
@@ -13794,10 +13794,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=718"></script>
-<script src="/js/material-open.js?v=733"></script>
-<script src="/js/benyehuda-learning-niqqud.js?v=733"></script>
-<script src="/js/benyehuda-learning-niqqud-manifest.js?v=733"></script>
-<script src="/js/material-save.js?v=733"></script>
+<script src="/js/material-open.js?v=734"></script>
+<script src="/js/benyehuda-learning-niqqud.js?v=734"></script>
+<script src="/js/benyehuda-learning-niqqud-manifest.js?v=734"></script>
+<script src="/js/material-save.js?v=734"></script>
 <script src="/js/studio-session.js?v=723"></script>
 <script src="/js/studio-media-package.js?v=723"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
@@ -13817,7 +13817,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/mp3-slice.js"></script>
 <!-- E1 — ядро формата «карточка текста» v1/v2 (build/detect/adapt). Чистые функции,
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
-<script src="/js/text-card-format.js?v=733"></script>
+<script src="/js/text-card-format.js?v=734"></script>
 <script src="/js/share-service.js"></script>
 <script src="/js/studio-media-karaoke.js?v=729"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
@@ -13893,7 +13893,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.733";
+    window.APP_VERSION = "3.11.734";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

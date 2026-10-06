@@ -6,7 +6,9 @@ const Layer = require('../../public/js/benyehuda-learning-niqqud');
 const { fillMatres, normalizeMatres } = require('../../public/js/subtitle-material-vocalization');
 const cloud = require('../../db/premium/providers/dictaCloud');
 const { auditRows, atomic } = require('./learning-niqqud-corpus');
-const BUILDER_VERSION = 'source-preserving-context-v2';
+const BUILDER_VERSION = 'source-preserving-context-v3';
+// Projection changed; model inputs/configuration did not. Preserve the original raw-answer cache keys.
+const PROVIDER_CACHE_CONTEXT = 'source-preserving-context-v2';
 const LOCAL_MODEL_VERSION = 'dictabert-large-char-menaked@2025-03';
 const WORD = /[א-ת][א-ת\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*/g;
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -55,6 +57,14 @@ function alignWords(input, answer) {
   if (!aligned) throw new Error('Provider token count changed: ' + n + ' -> ' + m);
   return aligned.pairs;
 }
+function completeSourceWord(word) {
+  const letters = Array.from(String(word).normalize('NFC').matchAll(/[א-ת][\u0591-\u05c7]*/gu), x => x[0]);
+  if (letters.length < 2 || !/[\u05b0-\u05bb\u05c7]|וּ/u.test(word)) return false;
+  const vowel = value => /[\u05b0-\u05bb\u05c7]|וּ/u.test(value || '');
+  return letters.slice(0,-1).every((letter,i) => vowel(letter)
+    || (/[אהוי]/u.test(letter[0]) && i > 0 && vowel(letters[i-1]))
+    || (/^ו[\u0591-\u05c7]*[ֹּ]/u.test(letters[i+1] || '') && vowel(letters[i+1])));
+}
 function projectRows(rows, answer) {
   const sourceWords = rows.flatMap(row => Array.from(row.hebrew_plain.matchAll(WORD), x => x[0]));
   const words = alignWords(rows.map(row => row.hebrew_plain).join(' '), answer);
@@ -62,18 +72,21 @@ function projectRows(rows, answer) {
   let at = 0, matched = 0, total = 0;
   const failures = [];
   const entries = rows.map(row => {
-    const oldWords = Array.from(String(row.hebrew_niqqud || '').matchAll(WORD), x => x[0]);
+    let oldWords = [];
+    try { oldWords = alignWords(row.hebrew_plain, row.hebrew_niqqud || '').map(x => x.value); } catch (_) {}
     let inRow = 0;
     const misses = [];
     const learning = /[א-ת]/u.test(row.hebrew_plain) ? row.hebrew_plain.replace(WORD, source => {
       const candidate = words[at++].value, old = oldWords[inRow++];
       if (source.length > 1) total++;
+      const original = old && completeSourceWord(old) ? fillMatres(source, old) : null;
+      if (original) { if (source.length > 1) matched++; return original; }
       const projected = candidate ? fillMatres(source, candidate) : null;
       if (projected && /[\u05b0-\u05bb\u05c7]|וּ/u.test(projected)) { if (source.length > 1) matched++; return projected; }
       // One-letter chapter markers and quote-separated abbreviation fragments have no vowels to restore.
       if (source.length > 1) misses.push({ source, answer: candidate });
       return old ? fillMatres(source, old) || source : source;
-    }) : row.hebrew_niqqud || '';
+    }) : row.hebrew_niqqud ? (Layer.canonical(row.hebrew_niqqud) === Layer.canonical(row.hebrew_plain) ? row.hebrew_niqqud : row.hebrew_plain) : '';
     if (misses.length) failures.push({ order_index: row.order_index, words: misses });
     return { order_index: row.order_index, he_plain: row.hebrew_plain,
       source_niqqud: row.hebrew_niqqud || '', learning_niqqud: learning, unresolved_words: misses.length };
@@ -99,10 +112,10 @@ async function build(options) {
       fragments.push({ input_sha256: hash(input), authority: 'source' });
       continue;
     }
-    let config = { provider: 'dicta-cloud', adapter: cloud.MODEL_VERSION, genre: 'modern', context: 'connected-source-fragments', builder: BUILDER_VERSION };
+    let config = { provider: 'dicta-cloud', adapter: cloud.MODEL_VERSION, genre: 'modern', context: 'connected-source-fragments', builder: PROVIDER_CACHE_CONTEXT };
     let cacheKey = hash(JSON.stringify(config) + '\n' + input), file = path.join(options.cache, cacheKey + '.json');
     if (!fs.existsSync(file) && options.localFallback) {
-      const localConfig = { provider: 'dictabert-local', adapter: LOCAL_MODEL_VERSION, matres: '¤', context: 'connected-source-fragments', builder: BUILDER_VERSION };
+      const localConfig = { provider: 'dictabert-local', adapter: LOCAL_MODEL_VERSION, matres: '¤', context: 'connected-source-fragments', builder: PROVIDER_CACHE_CONTEXT };
       const localKey = hash(JSON.stringify(localConfig) + '\n' + input), localFile = path.join(options.cache, localKey + '.json');
       // Never regenerate an existing local answer when the free cloud service recovers.
       if (fs.existsSync(localFile) || !options.cloudFirst) { config = localConfig; cacheKey = localKey; file = localFile; }
@@ -129,7 +142,7 @@ async function build(options) {
     try { projection = projectRows(subset, response.answer); }
     catch (error) {
       if (!options.localFallback || response.provider !== 'dicta-cloud') throw error;
-      const localConfig = { provider: 'dictabert-local', adapter: LOCAL_MODEL_VERSION, matres: '¤', context: 'connected-source-fragments', builder: BUILDER_VERSION };
+      const localConfig = { provider: 'dictabert-local', adapter: LOCAL_MODEL_VERSION, matres: '¤', context: 'connected-source-fragments', builder: PROVIDER_CACHE_CONTEXT };
       const localKey = hash(JSON.stringify(localConfig) + '\n' + input), localFile = path.join(options.cache, localKey + '.json');
       if (fs.existsSync(localFile)) response = JSON.parse(fs.readFileSync(localFile));
       else {
@@ -181,4 +194,4 @@ if (require.main === module) {
   if (Object.values(options).some(x => !x)) { console.error('Usage: --source bundle.json --out directory --cache directory (public source only)'); process.exitCode = 1; }
   else build(options).catch(error => { console.error(error.message); process.exitCode = 1; });
 }
-module.exports = { BUILDER_VERSION, alignWords, groups, projectRows, build };
+module.exports = { BUILDER_VERSION, completeSourceWord, alignWords, groups, projectRows, build };

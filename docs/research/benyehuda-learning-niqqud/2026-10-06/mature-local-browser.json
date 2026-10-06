@@ -1,12 +1,12 @@
 {
   "status": "pass",
-  "base": "http://127.0.0.1:64295",
+  "base": "http://127.0.0.1:60414",
   "source_sha256": "80fd43b0ea0005d9997c80bbc360c995865d1e9305d2ea11c2b3acc5a6287a3a",
-  "layer_sha256": "1f89b83a4308ef41d40d2b052106c9375d56d442c8b64bd8e88af36451f0dc93",
+  "layer_sha256": "c06f56c3c8ed6d1a0cc22087e7984452a6b1af8f061319616b06569c1df5b58e",
   "checks": [
     {
       "name": "served layer hash and immutable headers",
-      "evidence": "1f89b83a4308ef41d40d2b052106c9375d56d442c8b64bd8e88af36451f0dc93"
+      "evidence": "c06f56c3c8ed6d1a0cc22087e7984452a6b1af8f061319616b06569c1df5b58e"
     },
     {
       "name": "actual reader row 06 learner-latin",
@@ -74,7 +74,7 @@
     {
       "name": "actual DOCX carries prepared pointing and current learner transliteration",
       "evidence": {
-        "bytes": 80208
+        "bytes": 80195
       }
     },
     {
