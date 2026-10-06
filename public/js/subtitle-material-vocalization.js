@@ -5,9 +5,13 @@
   if (root) root.SubtitleMaterialVocalization = api;
 })(typeof window !== "undefined" ? window : null, function () {
   "use strict";
+  // Hebrew combining marks only: maqaf, paseq, sof pasuq and geresh are
+  // punctuation, despite sitting inside the old broad U+05B0..U+05C7 range.
+  var MARK_RE = /[\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]/;
+  var MARKS_RE = /[\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]/g;
 
   function plain(text) {
-    return String(text || "").normalize("NFD").replace(/[\u05b0-\u05c7\u0300-\u036f]/g, "")
+    return String(text || "").normalize("NFD").replace(MARKS_RE, "")
       .normalize("NFC").replace(/\s+/g, " ").trim();
   }
 
@@ -21,7 +25,7 @@
   // letter and on its vav keeps only the vav's, and the markers go.
   function normalizeMatres(text) {
     var nfd = String(text || "").normalize("NFD");
-    var letterWithMarks = /([א-ת])([֑-ׇ]*)ו([֑-ׇ]*)(¤?)/g;
+    var letterWithMarks = /([א-ת])([\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)ו([\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)(¤?)/g;
     nfd = nfd.replace(letterWithMarks, function (whole, letter, marks, vavMarks, marker) {
       if (letter === "ו" && !marks) return whole;
       if (marker && marks.indexOf("ֻ") >= 0 && !vavMarks) {
@@ -44,13 +48,13 @@
 
   function projectToken(source, result) {
     var sourceNfd = String(source).normalize("NFD"), resultNfd = String(result).normalize("NFD");
-    var modelLetters = Array.from(resultNfd.matchAll(/[\u05d0-\u05ea][\u05b0-\u05c7]*/g));
+    var modelLetters = Array.from(resultNfd.matchAll(/[\u05d0-\u05ea][\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*/g));
     var position = 0, letter = 0, output = "";
     while (position < sourceNfd.length) {
       var character = sourceNfd[position++];
       if (/[\u05d0-\u05ea]/.test(character)) {
         var originalMarks = "";
-        while (position < sourceNfd.length && /[\u05b0-\u05c7]/.test(sourceNfd[position])) originalMarks += sourceNfd[position++];
+        while (position < sourceNfd.length && MARK_RE.test(sourceNfd[position])) originalMarks += sourceNfd[position++];
         var modelMatch = modelLetters[letter++];
         output += character + (modelMatch ? modelMatch[0].slice(1) || originalMarks : originalMarks);
       } else output += character;
@@ -156,8 +160,8 @@
   // unpointed, except a vav after holam or qubuts, which becomes holam male or shuruq. Any other
   // difference in letters means a different word, and nothing is taken.
   function fillMatres(source, answer) {
-    var src = Array.from(String(source).normalize("NFD").matchAll(/([א-ת])([ְ-ׇ]*)|([^א-ת])/g));
-    var dst = Array.from(String(answer).normalize("NFD").matchAll(/([א-ת])([ְ-ׇ]*)/g));
+    var src = Array.from(String(source).normalize("NFD").matchAll(/([א-ת])([\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)|([^א-ת])/g));
+    var dst = Array.from(String(answer).normalize("NFD").matchAll(/([א-ת])([\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)/g));
     var out = [], j = 0, lastLetter = -1;
     for (var i = 0; i < src.length; i++) {
       var m = src[i];

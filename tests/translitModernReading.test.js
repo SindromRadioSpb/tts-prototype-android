@@ -82,7 +82,7 @@ test("a geresh makes ג ז צ into j, zh, ch in every profile, with ASCII or Heb
 });
 
 test("the geresh pass leaves the pointed text and other apostrophes alone", () => {
-  assert.equal(R.prepare("ג'וּדוֹ").replace("׳", ""), "גוּדוֹ", "only moves the geresh, never a point or letter");
+  assert.equal(R.prepare("ג'וּדוֹ").replace(R.GERESH, ""), "גוּדוֹ", "only moves the geresh, never a point or letter");
   assert.equal(R.prepare("אָמַר 'כֵּן'"), "אָמַר 'כֵּן'");
 });
 

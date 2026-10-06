@@ -2,12 +2,13 @@
 
 // Transliteration dispatch for the premium pipeline.
 //
-// Two profiles:
+// Three profiles:
 //   "sbl"        — SBL Academic with full BeGaDKePhaT spirantization (default).
 //   "ru-phonetic" — Russian phonetic: Cyrillic output, no diacritic distinction
 //                   between spirantized/non-spirantized BeGaDKePhaT pairs where
 //                   Russian has no phoneme contrast (ג/גּ → г, ד/דּ → д, ת/תּ → т).
 //                   ה and ח both map to х; א and ע are silent.
+//   "learner-latin" — modern Israeli reading in ASCII Latin letters.
 //
 // transliterate(text)               — SBL profile, backward-compatible shorthand.
 // transliterateWithProfile(text, p) — dispatches to the correct schema.
@@ -16,12 +17,13 @@
 // unusual cluster shapes (library can throw; translit is best-effort).
 //
 // Bump the relevant version string in versions.js TRANSLIT_PROFILE_VERSIONS
-// whenever either schema changes, so segment-cache rows are invalidated.
+// whenever a reading changes, so derived display caches are invalidated.
+// Paid provider/source caches retain their existing identity.
 
 const { transliterate: _lib, Schema, Text: _Syllables } = require("hebrew-transliteration");
 const { sblAcademicSpirantization, sblSimple } = require("hebrew-transliteration/schemas");
-const { normalizeLearnerLatinTranslit } = require("../../public/js/table-niqqud-normalizer.js");
 const ModernReading = require("../../public/js/translit-modern-reading.js");
+const ReadingLexicon = require("../../public/js/hebrew-reading-lexicon.js");
 
 // ── SBL Academic (spirantized) ──────────────────────────────────────────────
 // Overrides vs library defaults:
@@ -34,6 +36,7 @@ const SBL_SCHEMA = new Schema({
   PE:            "p\u0304",
   FINAL_PE:      "p\u0304",
   DAGESH_CHAZAQ: true,
+  qametsQatan: false,
 });
 
 // ── Russian Phonetic ────────────────────────────────────────────────────────
@@ -111,7 +114,8 @@ const RU_SCHEMA = new Schema({
   PASEQ:          "",
   SOF_PASUQ:      "",
   longVowels:     true,
-  qametsQatan:    true,
+  // Qamats quality was resolved on the source before the modern sheva pass.
+  qametsQatan:    false,
   shevaAfterMeteg: true,
   sqnmlvy:        true,
   wawShureq:      true,
@@ -128,6 +132,7 @@ const RU_SCHEMA = new Schema({
 // prefix וְ- keeps "ve-", a sheva before א/ע is "e", other initial clusters
 // are compact (tnu'a, shvat). This stays deterministic and needs no model call.
 const LEARNER_SHEVA = "\uE000";
+const LEARNER_FURTIVE = "\uE002";
 const LEARNER_LATIN_SCHEMA = new Schema({
   ...sblSimple,
   ALEF: "'",
@@ -138,7 +143,19 @@ const LEARNER_LATIN_SCHEMA = new Schema({
   SEGOL_HE: "e",
   TSERE_HE: "e",
   VOCAL_SHEVA: LEARNER_SHEVA,
+  MS_SUFX: "av",
   DAGESH_CHAZAQ: false,
+  qametsQatan: false,
+  ADDITIONAL_FEATURES: [
+    ...(sblSimple.ADDITIONAL_FEATURES || []),
+    {
+      FEATURE: "cluster", HEBREW: "עַ$",
+      // Encode only an actual furtive patah. A general a' output substitution
+      // also reversed an ordinary vowel before bare final ayin (רַע → R'a).
+      TRANSLITERATION: (cluster) => cluster.syllable?.isFinal && !cluster.syllable?.isClosed
+        ? LEARNER_FURTIVE : cluster.text,
+    },
+  ],
 });
 
 const SCHEMAS = {
@@ -156,12 +173,9 @@ function _finishLearnerLatin(value) {
     .replace(/(^|[\s([])'(?=[a-z])/g, "$1")
     // The library emits furtive patah before final ע as a'; learner spelling
     // places the separator before the vowel: nose'a, ofno'a, poge'a.
-    .replace(/a'(?=$|[\s.,!?;:)\]])/g, "'a")
+    .replaceAll(LEARNER_FURTIVE, "'a")
     .replace(/(^|[.!?]\s+)([a-z])/g, (_match, before, letter) => before + letter.toUpperCase());
-  // Academy niqqud writes אוֹפַנּוֹעַ with patah and אָפְקִי with qamats
-  // qatan. The shared normalizer keeps the owner's compact modern learner
-  // spellings and repairs old browser-cache transliteration identically.
-  return normalizeLearnerLatinTranslit(finished);
+  return finished;
 }
 
 function _run(text, schema) {
@@ -183,13 +197,13 @@ const READING = {
   "sbl": {},
 };
 
-// The modern reading pass puts ׳ in front of a geresh letter (ג'ינס → ׳גִינְס); the library keeps it
+// The reading pass puts a private marker in front of a geresh letter; the library keeps it
 // before that letter's output, so each profile reads the pair as its own j / zh / ch (O-033).
 const G = ModernReading.GERESH;
 const GERESH_READINGS = {
-  "learner-latin": [[/׳gg?/g, "j"], [/׳zz?/g, "zh"], [/׳(?:ts){1,2}/g, "ch"]],
-  "sbl": [[/׳[gḡ][gḡ]?/g, "ǧ"], [/׳zz?/g, "ž"], [/׳ṣṣ?/g, "č"]],
-  "ru-phonetic": [[/׳г/g, "дж"], [/׳з/g, "ж"], [/׳ц/g, "ч"]],
+  "learner-latin": [[new RegExp(G + "gg?", "g"), "j"], [new RegExp(G + "zz?", "g"), "zh"], [new RegExp(G + "(?:ts){1,2}", "g"), "ch"]],
+  "sbl": [[new RegExp(G + "[gḡ][gḡ]?", "g"), "ǧ"], [new RegExp(G + "zz?", "g"), "ž"], [new RegExp(G + "ṣṣ?", "g"), "č"]],
+  "ru-phonetic": [[new RegExp(G + "г", "g"), "дж"], [new RegExp(G + "з", "g"), "ж"], [new RegExp(G + "ц", "g"), "ч"]],
 };
 
 function _geresh(value, profile) {
@@ -201,17 +215,17 @@ function _geresh(value, profile) {
 
 // The library tells a qamats qatan (כָּל, חָכְמָה) by the syllables of the word as written. Once the
 // modern pass turns a prefix sheva into hataf segol (לְכָל → לֱכָל) it no longer sees one and
-// reads "lekhal", so the modern profiles take its verdict from the original word first and mark
+// reads "lekhal", so all profiles resolve vowel quality on the original word first and mark
 // it with the explicit sign ׇ, which the library always reads as o.
 const QAMATS = "ָ", QAMATS_QATAN = "ׇ";
-const WORD_RE = /[א-ת][֑-ׇא-ת]*/g;
+const WORD_RE = /[א-ת][א-ת\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*/g;
 function _letterGroups(word) {
-  return word.normalize("NFD").match(/[א-ת][֑-ׇ]*/g) || [];
+  return word.normalize("NFD").match(/[א-ת][\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*/g) || [];
 }
 // The library knows one prefix in front of the word (לְכָל) but not two (וּלְכָל, שֶׁבְּכָל), so a
 // word opening with the conjunction וּ or with שֶׁ is asked again without it.
-const LEADING_PROCLITIC = /^(?:וּ|שׁ?ֶׁ?)(?=[א-ת])/;
-// Qamats classification is word-local and shared by both modern profiles. Repeated
+const LEADING_PROCLITIC = /^(?:ו[ְּ]|שׁ?ֶׁ?|הַ(?=[א-ת][\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*ּ)|[בכל]ַּ?(?=[א-ת][\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*ּ))(?=[א-ת])/;
+// Qamats classification is word-local and shared by all profiles. Repeated
 // corpus words must not rebuild the same syllable graph millions of times.
 const QAMATS_WORD_CACHE = new Map(), QAMATS_WORD_CACHE_LIMIT = 16384;
 function _markWord(word) {
@@ -226,14 +240,17 @@ function _markWord(word) {
 function _markWordUncached(word) {
   const nfd = word.normalize("NFD");
   if (nfd.indexOf(QAMATS) < 0) return word;
+  const lexical = new Map(ReadingLexicon.decisions(word).filter(([,v]) => v === "a" || v === "o"));
+  const lead = nfd.match(LEADING_PROCLITIC);
+  if (lead && !lexical.size) return (lead[0] + _markWord(nfd.slice(lead[0].length))).normalize("NFC");
   let read = "";
   try { read = new _Syllables(word, { qametsQatan: true }).text; } catch (_) { read = ""; }
   const mine = _letterGroups(word), theirs = _letterGroups(read);
   if (read.indexOf(QAMATS_QATAN) >= 0 && mine.length === theirs.length) {
-    return mine.map((group, i) => (theirs[i].indexOf(QAMATS_QATAN) >= 0 ? group.replace(QAMATS, QAMATS_QATAN) : group))
+    return mine.map((group, i) => (lexical.get(i) === "o" || (lexical.get(i) !== "a" && theirs[i].indexOf(QAMATS_QATAN) >= 0) ? group.replace(QAMATS, QAMATS_QATAN) : group))
       .join("").normalize("NFC");
   }
-  const lead = nfd.match(LEADING_PROCLITIC);
+  if (lexical.size) return mine.map((group,i) => lexical.get(i) === "o" ? group.replace(QAMATS,QAMATS_QATAN) : group).join("").normalize("NFC");
   return lead ? (lead[0] + _markWord(nfd.slice(lead[0].length))).normalize("NFC") : word;
 }
 function _markQamatsQatan(text) {
@@ -241,20 +258,21 @@ function _markQamatsQatan(text) {
   return text.replace(WORD_RE, _markWord);
 }
 
-function _read(text, reading) {
+function _read(text, reading, profile) {
   if (typeof text !== "string") return text;
-  return ModernReading.prepare(reading.sheva ? _markQamatsQatan(text) : text, reading);
+  const source = ReadingLexicon.prepare(text, profile);
+  return ModernReading.prepare(_markQamatsQatan(source), { ...reading, wordReading: reading.sheva ? ReadingLexicon.decisions : null });
 }
 
 // Backward-compatible default (SBL profile).
 function transliterate(heWithNiqqud) {
-  return _geresh(_run(_read(heWithNiqqud, READING.sbl), SBL_SCHEMA), "sbl");
+  return _geresh(_run(_read(heWithNiqqud, READING.sbl, "sbl"), SBL_SCHEMA), "sbl");
 }
 
 // Profile-aware entry point used by the pipeline.
 function transliterateWithProfile(heWithNiqqud, profile) {
   const known = Object.prototype.hasOwnProperty.call(SCHEMAS, profile) ? profile : "sbl";
-  const result = _geresh(_run(_read(heWithNiqqud, READING[known]), SCHEMAS[known]), known);
+  const result = _geresh(_run(_read(heWithNiqqud, READING[known], known), SCHEMAS[known]), known);
   return known === "learner-latin" ? _finishLearnerLatin(result) : result;
 }
 

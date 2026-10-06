@@ -31,6 +31,10 @@
     var pieces = String(word || '').match(/[א-ת][א-ת\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*/gu) || [];
     if (pieces.length > 1) return Array.from(new Set(pieces.flatMap(wordFaults)));
     var L = letters(word), reasons = [];
+    // A carrier has one vowel (sheva included); shin/sin dots are mutually exclusive.
+    // Accent marks, meteg, dagesh and rafe do not count as vowels.
+    if (L.some(function (l) { return (l.marks.match(/[\u05b0-\u05bb\u05c7]/g) || []).length > 1; })) reasons.push("MULTIPLE_VOWELS");
+    if (L.some(function (l) { return l.ch === "ש" && l.marks.indexOf("ׁ") >= 0 && l.marks.indexOf("ׂ") >= 0; })) reasons.push("CONFLICTING_SHIN_DOTS");
     if (L.length >= 3 && hasSheva(L[0]) && hasSheva(L[1])) reasons.push("INITIAL_DOUBLE_SHEVA");
     for (var i = 1; i < L.length; i++) {
       var c = L[i];
@@ -74,5 +78,5 @@
     return out;
   }
 
-  return { VERSION: "niqqud-plausibility-v2-word-boundaries", wordFaults: wordFaults, scan: scan, scanRows: scanRows, words: words };
+  return { VERSION: "niqqud-plausibility-v3-vowel-conflicts", wordFaults: wordFaults, scan: scan, scanRows: scanRows, words: words };
 });

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.734";
+const CACHE_VERSION = "v3.11.735";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -217,10 +217,10 @@ const PRECACHE_URLS = [
   "/js/media-stream-store.js?v=584",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
-  "/js/local-translit-bundle.js?v=734",
+  "/js/local-translit-bundle.js?v=735",
   "/js/translit-display.js?v=734",
-  "/js/subtitle-material-vocalization.js?v=686",
-  "/js/niqqud-plausibility.js?v=734",
+  "/js/subtitle-material-vocalization.js?v=735",
+  "/js/niqqud-plausibility.js?v=735",
   "/js/niqqud-suspect-marks.js?v=685",
   "/js/material-progress-ladder.js?v=685",
   "/js/media-bundle-core.js?v=575",
@@ -229,7 +229,7 @@ const PRECACHE_URLS = [
   "/js/local-mt-client.js",
   "/js/local-mt-table.js",
   "/js/local-mt-onboarding.js",
-  "/js/table-niqqud-normalizer.js?v=429",
+  "/js/table-niqqud-normalizer.js?v=735",
   "/docs/LOCAL_ASR_COMPANION_GUIDE.md",
   "/docs/LOCAL_ASR_COMPANION_GUIDE.en.md",
   "/docs/LOCAL_ASR_COMPANION_GUIDE.he.md",
@@ -321,9 +321,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=283",
-  "/i18n/locales/en.js?v=283",
-  "/i18n/locales/he.js?v=283",
+  "/i18n/locales/ru.js?v=284",
+  "/i18n/locales/en.js?v=284",
+  "/i18n/locales/he.js?v=284",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

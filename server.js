@@ -768,6 +768,7 @@ app.get("/vendor/hash-wasm/sha256.umd.min.js", (_req, res) => {
 // map (no req.params in the filesystem path) so there is no path-traversal
 // and no other internal docs/* file is ever exposed.
 const DOCS_WHITELIST = {
+  "TRANSLITERATION_RULES.md": { file: "TRANSLITERATION_RULES.md", lang: "ru", group: "TRANSLITERATION" },
   "PRIVACY.md": { file: "PRIVACY.md", lang: "ru", group: "PRIVACY" },
   "OPFS_USER_GUIDE.md": { file: "OPFS_USER_GUIDE.md", lang: "ru", group: "OPFS" },
   "BYOK_SETUP.md": { file: "BYOK_SETUP.md", lang: "ru", group: "BYOK_SETUP" },
@@ -780,6 +781,7 @@ const DOCS_WHITELIST = {
 
 // Filenames a group exposes per language — used by the language switcher.
 const DOC_GROUP_LANGS = {
+  TRANSLITERATION: { ru: "TRANSLITERATION_RULES.md" },
   BYOK_SETUP: { ru: "BYOK_SETUP.md", en: "BYOK_SETUP.en.md", he: "BYOK_SETUP.he.md" },
   PRIVACY:    { ru: "PRIVACY.md" },
   OPFS:       { ru: "OPFS_USER_GUIDE.md" },
@@ -1261,10 +1263,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
   "/js/media-readiness.js?v=671",
-  "/js/local-translit-bundle.js?v=734",
+  "/js/local-translit-bundle.js?v=735",
   "/js/translit-display.js?v=734",
-  "/js/subtitle-material-vocalization.js?v=686",
-  "/js/niqqud-plausibility.js?v=734",
+  "/js/subtitle-material-vocalization.js?v=735",
+  "/js/niqqud-plausibility.js?v=735",
   "/js/niqqud-suspect-marks.js?v=685",
   "/js/material-progress-ladder.js?v=685",
 
@@ -1337,11 +1339,11 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/app-nav.css?v=653",
   "/js/media-host.js?v=725",
   "/js/lesson-artifact.js",
-  "/js/table-niqqud-normalizer.js?v=429",
+  "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=283",
-  "/i18n/locales/en.js?v=283",
-  "/i18n/locales/he.js?v=283",
+  "/i18n/locales/ru.js?v=284",
+  "/i18n/locales/en.js?v=284",
+  "/i18n/locales/he.js?v=284",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

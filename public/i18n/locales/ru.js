@@ -1554,6 +1554,8 @@ window.I18N_LOCALES.ru = {
     niqqudSuspectINITIAL_DOUBLE_SHEVA: "два шва в начале слова",
     niqqudSuspectDAGESH_AFTER_SHEVA: "удвоение сразу после шва",
     niqqudSuspectTRIPLE_SHEVA: "три шва подряд",
+    niqqudSuspectMULTIPLE_VOWELS: "несколько гласных под одной буквой",
+    niqqudSuspectCONFLICTING_SHIN_DOTS: "одновременно точки шин и син",
     colTranslit: "Транслит",
     colTranslitLat: "Транслит (Латиница)",
     colTranslitRu: "Транслит (рус.)",

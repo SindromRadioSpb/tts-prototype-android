@@ -13644,9 +13644,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=283"></script>
-<script src="/i18n/locales/en.js?v=283"></script>
-<script src="/i18n/locales/he.js?v=283"></script>
+<script src="/i18n/locales/ru.js?v=284"></script>
+<script src="/i18n/locales/en.js?v=284"></script>
+<script src="/i18n/locales/he.js?v=284"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13750,11 +13750,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=684"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
-<script src="/js/local-translit-bundle.js?v=734"></script>
+<script src="/js/local-translit-bundle.js?v=735"></script>
 <script src="/js/translit-display.js?v=734"></script>
-<script src="/js/subtitle-material-vocalization.js?v=686"></script>
+<script src="/js/subtitle-material-vocalization.js?v=735"></script>
 <!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
-<script src="/js/niqqud-plausibility.js?v=734"></script>
+<script src="/js/niqqud-plausibility.js?v=735"></script>
 <script src="/js/niqqud-suspect-marks.js?v=685"></script>
 <script src="/js/material-progress-ladder.js?v=685"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
@@ -13764,7 +13764,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-mt-client.js"></script>
 <script src="/js/local-mt-table.js"></script>
 <script src="/js/local-mt-onboarding.js"></script>
-<script src="/js/table-niqqud-normalizer.js?v=429"></script>
+<script src="/js/table-niqqud-normalizer.js?v=735"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/table-job.js"></script>
 <script src="/js/local-cache-budget.js?v=519"></script>
@@ -13893,7 +13893,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.734";
+    window.APP_VERSION = "3.11.735";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -22131,13 +22131,16 @@ updatePlaylistButtonUI();
             if (cache.text !== inputTextEl.value) return;
 
             const localNiqqud = window.TableNiqqudNormalizer
-              ? window.TableNiqqudNormalizer.normalizeRows(cache.rows)
+              ? window.TableNiqqudNormalizer.normalizeRows(cache.rows, {
+                  transliterate: window.LocalTranslit && window.LocalTranslit.transliterateWithProfile,
+                  translitProfile: getSelectedTranslitProfile(),
+                })
               : { rows: cache.rows, corrections: [], version: null };
             currentTableData = localNiqqud.rows;
             if (localNiqqud.corrections.length > 0) {
                 cache.rows = currentTableData;
                 cache.tableCacheContract = TABLE_CACHE_CONTRACT_VERSION;
-                cache.translitProfileVersion = "learner-latin-v6-prefix";
+                cache.translitProfileVersion = "learner-latin-v7-source-rules";
                 cache.localNiqqudNormalizerVersion = localNiqqud.version;
                 cache.localNiqqudCorrections = localNiqqud.corrections;
                 v3StoreTableCache(cache);

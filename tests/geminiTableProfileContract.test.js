@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { getGeminiScenario } = require("../ingest/geminiPolicy");
+const { requestedUrl, assertPrecachedExactly } = require("./helpers/releaseLock");
 
 const root = path.resolve(__dirname, "..");
 const indexHtml = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");
@@ -40,12 +41,11 @@ test("Gemini resumable table jobs are bound to the pinned browser model", () => 
 });
 
 test("restored browser tables use the same audited local niqqud normalizer", () => {
-  assert.match(indexHtml, /<script src="\/js\/table-niqqud-normalizer\.js\?v=429"><\/script>/);
-  assert.match(indexHtml, /TableNiqqudNormalizer\.normalizeRows\(cache\.rows\)/);
+  const url = requestedUrl(indexHtml, "/js/table-niqqud-normalizer.js", "Studio");
+  assertPrecachedExactly(url, { sw: serviceWorker, server: serverJs });
+  assert.match(indexHtml, /TableNiqqudNormalizer\.normalizeRows\(cache\.rows,\s*\{/);
   assert.match(indexHtml, /cache\.localNiqqudCorrections = localNiqqud\.corrections/);
   assert.match(indexHtml, /таблица восстановлена и исправлена локально \(без запроса к Gemini\)/);
-  assert.match(serviceWorker, /"\/js\/table-niqqud-normalizer\.js\?v=429"/);
-  assert.match(serverJs, /"\/js\/table-niqqud-normalizer\.js\?v=429"/);
 });
 
 test("Gemini local-cache prompt identity distinguishes direction and segment mode", () => {

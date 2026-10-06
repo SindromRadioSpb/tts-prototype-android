@@ -1540,6 +1540,8 @@ window.I18N_LOCALES.en = {
     niqqudSuspectINITIAL_DOUBLE_SHEVA: "two shevas at the start of the word",
     niqqudSuspectDAGESH_AFTER_SHEVA: "doubling right after a sheva",
     niqqudSuspectTRIPLE_SHEVA: "three shevas in a row",
+    niqqudSuspectMULTIPLE_VOWELS: "multiple vowels on one letter",
+    niqqudSuspectCONFLICTING_SHIN_DOTS: "both shin and sin dots",
     colTranslit: "Translit",
     colTranslitLat: "Translit (Latin)",
     colTranslitRu: "Translit (Ru)",

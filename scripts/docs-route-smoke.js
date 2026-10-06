@@ -79,6 +79,12 @@ async function main() {
     const guide = await fetch(`${BASE}/docs/OPFS_USER_GUIDE.md`);
     test("GET /docs/OPFS_USER_GUIDE.md → 200", guide.status === 200, `status ${guide.status}`);
 
+    const rules = await fetch(`${BASE}/docs/TRANSLITERATION_RULES.md`);
+    const rulesBody = await rules.text();
+    test("transliteration report → rendered HTML with normative links", rules.status === 200 &&
+      (rules.headers.get("content-type") || "").includes("html") &&
+      rulesBody.includes("haggāḏôl") && rulesBody.includes("The-SBL-Handbook-of-Style"));
+
     const internal = await fetch(`${BASE}/docs/SMOKE-CHECK.md`);
     test("GET /docs/SMOKE-CHECK.md → 404 (not whitelisted)", internal.status === 404, `status ${internal.status}`);
 

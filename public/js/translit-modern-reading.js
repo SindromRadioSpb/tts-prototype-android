@@ -23,10 +23,11 @@
   "use strict";
 
   var SHEVA = "ְ", HATAF_SEGOL = "ֱ", DAGESH = "ּ";
-  var GERESH = "׳";
-  var WORD_RE = /[א-ת֑-ׇ׳]+/g;
+  // An internal marker must not collide with a real Hebrew apostrophe/quotation.
+  var GERESH = "\uE001";
+  var WORD_RE = /[א-ת\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\uE001]+/g;
   // ASCII apostrophe, right single quote or the Hebrew geresh, with points on either side.
-  var GERESH_RE = /([גזצץ])([֑-ׇ]*)['’׳]([֑-ׇ]*)/g;
+  var GERESH_RE = /([גזצץ])([\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)['’׳]([\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)/g;
   var LETTER_RE = /[א-ת]/;
   // Full vowels (not sheva): hatafs, hiriq, tsere, segol, patah, qamats, holam, qubuts, qamats qatan.
   var VOWEL_RE = /[ֱ-ׇֻ]/;
@@ -68,7 +69,7 @@
   }
 
   function hasVowel(l) { return VOWEL_RE.test(l.marks); }
-  function isBare(l) { return !/[֑-ׇ]/.test(l.marks); }
+  function isBare(l) { return !/[ְ-ׇּׁׂ]/.test(l.marks); }
 
   // מִצְוָוה, שְׁוַויְיץ, אֱיָיל: the second, unpointed letter only marks the consonant in full spelling.
   function collapseDoubled(letters) {
@@ -98,7 +99,8 @@
   // and שֶׁ; after the article (הַבְּגָדִים) the ב/כ can only be a root letter.
   function stemStart(letters) {
     var s = 0, prepositional = true;
-    if (letters.length > 2 && letters[0].ch === "ו" && letters[0].marks === DAGESH) s = 1;
+    if (letters.length > 2 && letters[0].ch === "ו" &&
+        (letters[0].marks === DAGESH || letters[0].marks.indexOf(SHEVA) >= 0)) s = 1;
     var limit = s + 3;
     while (s < letters.length - 2 && s < limit) {
       var l = letters[s], next = letters[s + 1];
@@ -136,12 +138,18 @@
     if (!voiced) return letters;
     var n = letters.length, s = stemStart(letters).s, spokenPrev = null;
     var geminateLoan = GEMINATE_LOANS[consonants] === 1;
+    // של + a pronominal suffix is a single possessive form, not שֶ + a new stem.
+    // Keep this morphology distinct from the article rule (הַלְּ..., שֶׁלְּמַ...).
+    var possessive = /^(?:ו)?של(?:ך|כם|כן|הם|הן)$/.test(consonants);
     return letters.map(function (l, i) {
       if (l.marks.indexOf(SHEVA) < 0) { spokenPrev = null; return l; }
       var next = letters[i + 1];
       var spoken = false;
       if (next && i < n - 1) {
-        if (i === s && (prefixed || SPOKEN_FIRST.indexOf(l.ch) >= 0 || SPOKEN_BEFORE.indexOf(next.ch) >= 0 || alike(l.ch, next.ch))) spoken = true;
+        if (l.shevaReading != null) spoken = l.shevaReading;
+        else if (l.ch === "ו" && i === 0) spoken = true;
+        else if (possessive && l.ch === "ל" && letters[i - 1] && letters[i - 1].ch === "ש" && letters[i - 1].marks.indexOf("ֶ") >= 0) spoken = false;
+        else if (i === s && (prefixed || SPOKEN_FIRST.indexOf(l.ch) >= 0 || SPOKEN_BEFORE.indexOf(next.ch) >= 0 || alike(l.ch, next.ch))) spoken = true;
         else if (spokenPrev === false) spoken = true; // the second of two shevas
         else if (base(next.ch) === base(l.ch) && !geminateLoan) spoken = true; // שׁוּחְרְרוּ, before the same letter
       }
@@ -152,6 +160,11 @@
 
   function prepareWord(word, opts) {
     var letters = parse(word);
+    if (opts.wordReading) {
+      opts.wordReading(word).forEach(function (d) {
+        if (letters[d[0]] && (d[1] === "e" || d[1] === "s")) letters[d[0]].shevaReading = d[1] === "e";
+      });
+    }
     var consonants = letters.map(function (l) { return l.ch; }).join("");
     var prefixed = !!opts.sheva && prefixAtStem(letters);
     if (opts.doubled !== false) letters = collapseDoubled(letters);
@@ -163,7 +176,7 @@
   // opts: { sheva, aleph } for modern learner/Russian reading; doubled letters always collapse
   // unless opts.doubled === false.
   // Gershayim inside an abbreviation (צה״ל, צה"ל) is spelling, not a sound: the word is read whole.
-  var GERSHAYIM_RE = /([א-ת][֑-ׇ]*)[״"]([א-ת])/g;
+  var GERSHAYIM_RE = /([א-ת][\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*)[״"]([א-ת])/g;
 
   function markGeresh(text) {
     return text.replace(GERESH_RE, function (_whole, letter, before, after) { return GERESH + letter + before + after; })
@@ -175,5 +188,5 @@
     return markGeresh(String(text == null ? "" : text).normalize("NFD")).normalize("NFC").replace(WORD_RE, function (word) { return prepareWord(word, opts); });
   }
 
-  return { prepare: prepare, GERESH: GERESH, VERSION: "modern-reading-v3" };
+  return { prepare: prepare, GERESH: GERESH, VERSION: "modern-reading-v4-boundaries" };
 });

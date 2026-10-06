@@ -14,7 +14,7 @@
 // Sentence boundaries themselves are unchanged (byte-parity corpus check).
 const SEGMENTER_VERSION = "regex-v2-lineidx";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v8-gershayim"; // default; also the cache-key string for profile "sbl"
+const TRANSLIT_PROFILE  = "sbl-v9-source-rules"; // default; also the cache-key string for profile "sbl"
 
 // Stable cache-key strings per profile. Bump when the corresponding schema changes.
 const TRANSLIT_PROFILE_VERSIONS = {
@@ -26,9 +26,9 @@ const TRANSLIT_PROFILE_VERSIONS = {
   // v8 / v5 / v6 (2026-09-29): a ב/כ prefix takes its e unless Pealim reads the word in a cluster
   // (bemahalakh, bgadim); the stem starts again after וּ; a qamats qatan survives a spoken prefix
   // sheva (lekhol). SBL is unchanged.
-  "sbl":         "sbl-v8-gershayim",
-  "ru-phonetic": "ru-phonetic-v5-prefix",
-  "learner-latin": "learner-latin-v6-prefix",
+  "sbl":         "sbl-v9-source-rules",
+  "ru-phonetic": "ru-phonetic-v6-source-rules",
+  "learner-latin": "learner-latin-v7-source-rules",
 };
 
 function translitProfileVersion(profile) {

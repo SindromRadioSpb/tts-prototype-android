@@ -1548,6 +1548,8 @@ window.I18N_LOCALES.he = {
     niqqudSuspectINITIAL_DOUBLE_SHEVA: "שני שוואים בתחילת המילה",
     niqqudSuspectDAGESH_AFTER_SHEVA: "דגש מיד אחרי שווא",
     niqqudSuspectTRIPLE_SHEVA: "שלושה שוואים ברצף",
+    niqqudSuspectMULTIPLE_VOWELS: "כמה תנועות באותה אות",
+    niqqudSuspectCONFLICTING_SHIN_DOTS: "נקודות שי״ן ושׂי״ן יחד",
     colTranslit: "תעתיק",
     colTranslitLat: "תעתיק (לטיני)",
     colTranslitRu: "תעתיק (רוסית)",
