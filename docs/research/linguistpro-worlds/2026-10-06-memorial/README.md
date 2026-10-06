@@ -23,6 +23,7 @@ The new default is applied once through lp_world_memorial_trial_v1. Later user c
 ## Acceptance
 
 - Final combined suite: 84 native/world/YouTube/speech/shell/cache/TTS/MorphHost tests pass.
+- Release correction: 233 i18n smoke assertions and 27 affected release/world tests pass. Production visual review caught the old inline APP_VERSION/footer stamp; both now match final SW 3.11.737.
 - Supplied archive adapter tests pass against the final adapter with its isolated reference engine; preview-flow and capture-engine also pass. This is CPU/DOM evidence only. The committed current native engine validates separately.
 - Real Chromium matrix: 3 scenes × 3 surfaces × 3 widths (320/380/1280) × RU/HE/EN = 81 cases. Each has screenshot, actual control clicks, pixel comparison against decoded original PNG, image geometry and non-overlap assertions. RTL and live locale change pass. `browser-contact.png` is a contact sheet of actual browser screenshots.
 - Keyboard Enter/Space, localized accessible names, 44px button bounds and picker state/geometry pass. Panel text uses #f6e5c0 on #182737; button text #f6e5c0 on #243c50; selected text #182737 on #d9c79e.
@@ -33,6 +34,6 @@ The new default is applied once through lp_world_memorial_trial_v1. Later user c
 
 Reproduce with scripts/worlds/memorial-browser-smoke.js, memorial-activity-smoke.js, memorial-visibility-smoke.js. AUDIT_BASE selects production; default local URL is recorded by the session's isolated smoke server. SKIP_LONG=1 skips wall-clock waits for bounded reruns; production acceptance uses full waits.
 
-SW release v3.11.736 precaches version-pinned adapter/activity/audio hooks, with matching server shell integrity. Native pack assets use pack-pinned URLs and existing same-origin runtime cache. Existing-client update uses the current guarded SW update flow.
+SW release v3.11.737 precaches version-pinned adapter/activity/audio hooks, with matching server shell integrity. Native pack assets use pack-pinned URLs and existing same-origin runtime cache. Existing-client update uses the current guarded SW update flow.
 
 Production acceptance is recorded in production.json after convergence. Browser emulation is not physical-device or screen-reader acceptance.

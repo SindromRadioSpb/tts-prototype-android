@@ -20,9 +20,10 @@ const dir=path.resolve('.tmp/memorial-sw-profile'),out=path.resolve('.tmp/memori
   await page.waitForFunction(async()=>{const r=await navigator.serviceWorker.getRegistration('/');return !!r.waiting;},{},{timeout:90000});
   await page.locator('#v3PwaUpdateToast button').first().click();
   await page.waitForFunction(()=>window.LPMemorialAdapter?.debug().active,{},{timeout:90000});
-  assert.equal(await version(),'3.11.736');
+  await page.waitForFunction(()=>window.APP_VERSION==='3.11.737');
+  assert.equal(await version(),'3.11.737');
   assert.equal(await page.evaluate(()=>LPWorld.current().id),'memorial-three-scenes');
-  const keys=await page.evaluate(()=>caches.keys());assert.ok(keys.includes('linguistpro-precache-v3.11.736'));assert.ok(!keys.some(k=>k.includes('3.11.735')));
+  const keys=await page.evaluate(()=>caches.keys());assert.ok(keys.includes('linguistpro-precache-v3.11.737'));assert.ok(!keys.some(k=>/3\.11\.73[56]/.test(k)));
   await page.evaluate(()=>{LPMemorialAdapter.select(2);LPMemorialAdapter.setPaused(true)});
   await page.reload({waitUntil:'load'});await page.waitForFunction(()=>window.LPMemorialAdapter?.debug().active);
   assert.equal(await page.evaluate(()=>LPMemorialAdapter.state().scene),2);assert.equal(await page.evaluate(()=>LPMemorialAdapter.state().paused),true);
