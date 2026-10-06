@@ -1,0 +1,16 @@
+{
+  "version": "3.11.737",
+  "caches": [
+    "linguistpro-graph-v3.3.6-1",
+    "linguistpro-precache-v3.11.737",
+    "linguistpro-runtime-v3.11.737",
+    "linguistpro-config-v3.11.737",
+    "linguistpro-morph-v3.11.737"
+  ],
+  "state": {
+    "scene": 2,
+    "auto": false,
+    "paused": true,
+    "elapsed": 0
+  }
+}

@@ -21,6 +21,7 @@ const dir=path.resolve('.tmp/memorial-sw-profile'),out=path.resolve('.tmp/memori
   await page.locator('#v3PwaUpdateToast button').first().click();
   await page.waitForFunction(()=>window.LPMemorialAdapter?.debug().active,{},{timeout:90000});
   await page.waitForFunction(()=>window.APP_VERSION==='3.11.737');
+  await page.waitForFunction(()=>window.LPMemorialAdapter?.debug().active);
   assert.equal(await version(),'3.11.737');
   assert.equal(await page.evaluate(()=>LPWorld.current().id),'memorial-three-scenes');
   const keys=await page.evaluate(()=>caches.keys());assert.ok(keys.includes('linguistpro-precache-v3.11.737'));assert.ok(!keys.some(k=>/3\.11\.73[56]/.test(k)));

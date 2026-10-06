@@ -1,0 +1,9 @@
+{
+  "version": "3.11.735",
+  "caches": [
+    "linguistpro-precache-v3.11.735",
+    "linguistpro-runtime-v3.11.735",
+    "linguistpro-graph-v3.3.6-1",
+    "linguistpro-config-v3.11.735"
+  ]
+}

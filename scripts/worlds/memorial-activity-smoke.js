@@ -19,6 +19,8 @@ fs.mkdirSync(out,{recursive:true});const results=[];function pass(name){results.
  });
  await p.waitForFunction(()=>!LPMemorialAdapter.debug().scheduled);
  await p.evaluate(()=>v3StopRowAudio());await p.waitForFunction(()=>LPMemorialAdapter.debug().scheduled);pass('existing detached Studio row Audio play and stop release hold');
+ await p.evaluate(()=>ensureRowAudioPlayer().play());await p.waitForFunction(()=>!LPMemorialAdapter.debug().scheduled);
+ await p.waitForFunction(()=>LPMemorialAdapter.debug().scheduled,{},{timeout:10000});pass('existing custom row Audio natural end releases hold');
  await p.evaluate(()=>{const phase=document.getElementById('classicNextStep');phase.dataset.phase='learn';});await p.waitForFunction(()=>!LPMemorialAdapter.debug().scheduled);
  await p.evaluate(()=>document.getElementById('classicNextStep').dataset.phase='add');await p.waitForFunction(()=>LPMemorialAdapter.debug().scheduled);pass('Studio real phase signal symmetric reading hold');
  await p.evaluate(()=>{LPMemorialAdapter.select(2);LPMemorialAdapter.setPaused(true)});

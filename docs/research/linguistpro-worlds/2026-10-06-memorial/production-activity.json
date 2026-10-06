@@ -1,0 +1,13 @@
+{
+  "base": "https://linguistpro.kolosei.com",
+  "results": [
+    "actual Studio editor focus holds and releases",
+    "existing detached Studio row Audio play and stop release hold",
+    "existing custom row Audio natural end releases hold",
+    "Studio real phase signal symmetric reading hold",
+    "manual scene and pause persist across all surfaces",
+    "off during fade and rapid latest command cleanup",
+    "existing world mounts and picker options preserved",
+    "actual Room open and Back reading hold symmetric"
+  ]
+}

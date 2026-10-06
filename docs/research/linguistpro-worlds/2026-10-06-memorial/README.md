@@ -36,4 +36,10 @@ Reproduce with scripts/worlds/memorial-browser-smoke.js, memorial-activity-smoke
 
 SW release v3.11.737 precaches version-pinned adapter/activity/audio hooks, with matching server shell integrity. Native pack assets use pack-pinned URLs and existing same-origin runtime cache. Existing-client update uses the current guarded SW update flow.
 
-Production acceptance is recorded in production.json after convergence. Browser emulation is not physical-device or screen-reader acceptance.
+Production 3.11.737 converged at commit 52e05e8c71852b87c8548dc71040dd192fd8b4d0. All 167 served shell/runtime hashes match canonical Git blobs (including the three original PNG hashes). DB/migrations ready. Full final production browser suite passed all 81 matrix cases, nine picker/keyboard cases, real 90s auto / 93s manual holds, pause/lighting/reload/reduced-motion/latest-off checks. Activity suite also checks natural completion of the existing custom row Audio. Ordinary-browser hidden-tab acceptance passes; old production SW profile upgrades through the actual Update control to 3.11.737 with old caches removed and scene/pause preserved.
+
+Evidence: [production.json](production.json), [production-browser.json](production-browser.json), [production-activity.json](production-activity.json), [SW before](sw-before.json), [SW intermediate](sw-intermediate.json), [SW final](sw-final.json), and production PNG screenshots at 320/380/1280px. Browser emulation is not physical-device or screen-reader acceptance.
+
+Only explicitly approved build cache and two exact old unused images (40f9efb72492, 6c3ec82cb8e9) were removed. Current e7f34a59d2c4, immediate rollback 3afe2b515a58, prior 140254db42aa and all four volumes remain. Final root approximately 4G free / 90%; disk_warn=true remains recorded as O-047, independently of successful application acceptance.
+
+Post-release evidence/test-runner refinements are pushed to feat/memorial-three-scenes without triggering another application build; deployed application source remains 52e05e8c on main.

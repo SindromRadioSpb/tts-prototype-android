@@ -18,6 +18,7 @@ const captions={ru:'7 октября. Помним.',he:'7 באוקטובר. ז�
    for(const route of ['/', '/library.html','/mediatheque.html']) {
     await page.goto(base+route,{waitUntil:'load'});
     await page.waitForFunction(()=>window.LPMemorialAdapter?.debug().active);
+    if(route==='/')assert.equal(await page.evaluate(()=>APP_VERSION),await page.evaluate(async()=> (await (await fetch('/api/client-config',{cache:'no-store'})).json()).version),'inline shell version must match the release');
     for(const lang of ['ru','he','en']) {
      await page.evaluate(l=>window.appSetLocale(l),lang);
      await page.waitForFunction(l=>document.documentElement.lang===l,lang);
