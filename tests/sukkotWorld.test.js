@@ -11,7 +11,7 @@ const atlas = JSON.parse(read("public/worlds/sukkot/atlas.json"));
 test("Sukkot satisfies the shared contract and remains an additional choice", () => {
   assert.deepEqual(core.validatePack(manifest, atlas, "sukkot").errors, []);
   assert.equal(core.REGISTRY.sukkot.pack, manifest.version);
-  assert.equal(core.DEFAULT_WORLD, "sukkot");
+  assert.equal(core.DEFAULT_WORLD, "memorial-three-scenes");
   assert.equal(core.REGISTRY.sukkot.category, "events");
   assert.equal(core.REGISTRY["israel-elections-2026"].category, "current-events");
   assert.equal(core.readChoice(JSON.stringify({ id: "sukkot" })).id, "sukkot");
@@ -60,7 +60,7 @@ test("trial defaults replace old settings once and preserve subsequent choices, 
       document: {createElement: () => ({setAttribute(){}}), head:{appendChild(){}}}
     });
     run();
-    assert.deepEqual(JSON.parse(values.get("lp_world_v1")), {id:"sukkot",mode:"live",paused:false,lighting:"day"});
+    assert.deepEqual(JSON.parse(values.get("lp_world_v1")), {id:"memorial-three-scenes",mode:"live",paused:false,lighting:"day"});
     const custom = JSON.stringify(old || {id:"classic"});
     values.set("lp_world_v1",custom);run();assert.equal(values.get("lp_world_v1"),custom);
   }

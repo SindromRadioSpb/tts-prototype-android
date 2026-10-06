@@ -1,0 +1,16 @@
+{
+  "engine": "world-engine/2.1.0",
+  "adapterSha256": "f2c6da20c615b0653b3aa0faad987b1abd77c2cf3cb52a6aef55bf7805f58e88",
+  "kind": "Unchanged reference engine + explicit DOM fixture + CPU canvas. Browser/CSS/device QA not claimed.",
+  "passed": [
+    "Actual unchanged engine validates pack",
+    "All three originals are byte-identical in runtime",
+    "Native JSON/PNG only; no character, hero, URL or audio asset",
+    "All atlas geometry/assets/hash metadata",
+    "3 scenes × 3 surfaces × 320/380/1152: visible motion, exact return, no hero; teardown",
+    "Auto 90 s, one-second crossfade teardown, manual hold indefinitely, explicit Auto resume",
+    "Pause and current scene/mode survive lighting/surface remount; reduced/hidden stop native RAF + carousel",
+    "Explicit reading/editing/audio holds; exact RU/HE/EN + RTL; idempotent install; rapid scene/pause/destroy cleanup",
+    "Static frame redraw cache skips repeated CPU canvas rebuilds"
+  ]
+}

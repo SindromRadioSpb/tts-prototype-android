@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.735";
+const CACHE_VERSION = "v3.11.736";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -135,7 +135,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=734",
+  "/js/library-ui.js?v=736",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -143,7 +143,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=734",
+  "/js/reader-core.js?v=736",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
@@ -189,7 +189,7 @@ const PRECACHE_URLS = [
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/reader-morph.js?v=728",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=648",
+  "/js/morph-host.js?v=736",
   "/js/studio-morph.js?v=3",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -279,8 +279,10 @@ const PRECACHE_URLS = [
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
   "/js/table-presets.js?v=638",
-  "/js/world-boot.js?v=728",
-  "/js/world-engine.js?v=728",
+  "/js/world-activity.js?v=736",
+  "/js/memorial-adapter.js?v=736",
+  "/js/world-boot.js?v=736",
+  "/js/world-engine.js?v=736",
   "/js/world-render.js?v=715",
   "/css/world-skin.css?v=715",
   "/js/app-nav.js?v=645",
@@ -290,7 +292,7 @@ const PRECACHE_URLS = [
   "/js/media-host.js?v=725",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
-  "/js/studio-yt-player.js?v=729",
+  "/js/studio-yt-player.js?v=736",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
   // Wave 2 C3a — browser-owned voice -> editable role-play draft.
@@ -365,7 +367,7 @@ const PRECACHE_URLS = [
   "/db/anki-srs-export.js?v=681",
   // TTS layer
   "/tts/core.js",
-  "/tts/backends.js",
+  "/tts/backends.js?v=736",
   "/tts/providerPolicy.js",
   "/tts/settings.js",
   // Fonts (Hebrew typography, Direction 1)

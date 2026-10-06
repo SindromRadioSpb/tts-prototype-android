@@ -27,6 +27,7 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
+    "memorial-three-scenes": {"base": "/worlds/memorial-three-scenes/", "pack": "1.0.0", "retired": false, "names": {"ru": "Помним · три сцены", "en": "We remember · three scenes", "he": "זוכרים · שלוש סצנות"}, "note": {"ru": "Три предоставленные автором сцены памяти. Тихий свет и долгие паузы.", "en": "Three user-provided remembrance scenes. Quiet light and long pauses.", "he": "שלוש סצנות זיכרון שסופקו על ידי המשתמש. אור שקט והפסקות ארוכות."}, "badge": {"ru": "Память", "en": "Remembrance", "he": "זיכרון"}, "routeLabel": {"ru": "Помним · три сцены", "en": "We remember · three scenes", "he": "זוכרים · שלוש סצנות"}, "greeting": "", "previewLocation": "scene-1", "category": "events"},
     "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false, category: "current-events",
       names: { ru: "Мир выборов в Израиле", en: "Israel Elections 2026", he: "עולם הבחירות 2026" },
       noteKey: "world.elections.note", badgeKey: "world.satireBadge", greeting: "בְּחִירוֹת" },
@@ -45,10 +46,10 @@
     literature: { ru: "Литература", en: "Literature", he: "ספרות" },
     other: { ru: "Другие миры", en: "Other worlds", he: "עולמות נוספים" }
   };
-  // Owner decision 2026-10-01: Sukkot is ON by default (live, day); a learner switches to
+  // Owner decision 2026-10-06: Memorial is ON by default (live, day); a learner switches to
   // Classic by hand and that explicit choice ({id:"classic"}) is kept. Retiring the default world
   // in REGISTRY sends everyone without an explicit choice back to Classic.
-  var DEFAULT_WORLD = "sukkot";
+  var DEFAULT_WORLD = "memorial-three-scenes";
   var CLASSIC = "classic";
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -1206,6 +1207,19 @@
     state.listeners = [];
   }
 
+  var memorialLoading = null;
+  function ensureMemorialAdapter(id) {
+    if (id !== "memorial-three-scenes" || window.LPMemorialAdapter) return Promise.resolve();
+    if (!memorialLoading) memorialLoading = new Promise(function (resolve, reject) {
+      var script = document.createElement("script");
+      script.src = "/js/memorial-adapter.js?v=736";
+      script.onload = function () { window.LPMemorialAdapter ? resolve() : reject(new Error("memorial adapter missing")); };
+      script.onerror = function () { memorialLoading = null; reject(new Error("memorial adapter load failed")); };
+      document.head.appendChild(script);
+    });
+    return memorialLoading;
+  }
+
   function fetchJson(url) {
     return fetch(url, { credentials: "same-origin" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
   }
@@ -1237,7 +1251,7 @@
         if (res[0].version !== reg.pack) throw new Error("pack version " + res[0].version + " != " + reg.pack);
         state.pack = res[0]; state.atlas = res[1]; state.choice = choice;
         state.location = null;   // set by the phase hook (or the first location) after layout
-        return loadLighting(currentLighting());
+        return ensureMemorialAdapter(choice.id).then(function () { return loadLighting(currentLighting()); });
       })
       .then(function () {
         if (epoch !== state.loadEpoch) return false;
@@ -1357,9 +1371,9 @@
         var em = pack.scenery.emitters || {};
         if (em.clouds) files[atlas.atlases[typeof em.clouds.sheet === "string" ? em.clouds.sheet : em.clouds.sheet[lighting]].file] = true;
         Object.keys(pack.actors).forEach(function (a) { var sh = pack.actors[a].sheet; sh = typeof sh === "string" ? sh : (sh[lighting] || sh.dusk || sh.day || sh.night); if (sh) files[atlas.atlases[sh].file] = true; });
-        return Promise.all(Object.keys(files).map(function (f) {
+        return ensureMemorialAdapter(id).then(function () { return Promise.all(Object.keys(files).map(function (f) {
           return new Promise(function (ok) { var img = new Image(); img.onload = function () { images[f] = img; ok(); }; img.onerror = ok; img.src = reg.base + f + "?v=" + encodeURIComponent(pack.version); });
-        })).then(function () {
+        })); }).then(function () {
           if (disposed || !dlg.isConnected) return;
           var r = window.LPWorldRender.createRenderer(canvas, { pack: pack, atlas: atlas, images: images, seed: 3 });
           var rect = host.getBoundingClientRect();

@@ -78,8 +78,8 @@ test("parallax strips exist in all three lightings with identical geometry", () 
   }
 });
 
-test("the stored choice is local and allowlisted; Sukkot is on by default; Classic is explicit", () => {
-  const dflt = { id: "sukkot", mode: "live", paused: false, lighting: "day", implicit: true };
+test("the stored choice is local and allowlisted; Memorial is on by default; Classic is explicit", () => {
+  const dflt = { id: "memorial-three-scenes", mode: "live", paused: false, lighting: "day", implicit: true };
   assert.deepEqual(core.readChoice(null), dflt, "no choice on this device → the default world, live");
   assert.deepEqual(core.readChoice("not json"), dflt);
   assert.equal(core.readChoice(JSON.stringify({ id: "classic" })), null, "an explicit Classic is kept");

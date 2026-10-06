@@ -1,0 +1,11 @@
+{
+  "htmlSha256": "88afb3f5a70fe1229353307733caa39dc4feb66c39cd9029e16422f81b273537",
+  "kind": "Actual reference engine and adapter with extracted offline HTML control script in explicit DOM fixture, not browser/transport QA",
+  "passed": [
+    "surface → off keeps latest off",
+    "off → on + two surfaces + lighting keeps latest requested state",
+    "paused manual scene survives lighting/surface remount",
+    "locale switch preserves state and exact single panel",
+    "rapid off/on/off fully removes world"
+  ]
+}

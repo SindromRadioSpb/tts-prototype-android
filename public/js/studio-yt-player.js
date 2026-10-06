@@ -84,7 +84,9 @@
   // any of them, not only around the ones that already had a named event.
   function makeAdapter(player, iframe, videoId) {
     var listeners = { play: [], pause: [], ended: [], error: [], statechange: [], blocked: [] };
-    function emit(ev, arg) { (listeners[ev] || []).forEach(function (fn) { try { fn(arg); } catch (_) {} }); }
+    var memorialSource = {};
+    function emit(ev, arg) {
+      if (window.LPWorldActivity && /^(play|pause|ended|error|blocked)$/.test(ev)) window.LPWorldActivity.setAudio(memorialSource, ev === "play"); (listeners[ev] || []).forEach(function (fn) { try { fn(arg); } catch (_) {} }); }
     // W2-S5a Task 10 live-smoke finding (2026-07-27, reproduced 9/9): playVideo()/pauseVideo() are
     // fire-and-forget postMessage calls — getPlayerState() does NOT reflect the new state until the
     // async onStateChange postMessage round-trips back (~100ms, measured). A native <audio>
@@ -163,6 +165,7 @@
         } catch (_) { return []; }
       },
       destroy: function () {
+        if (window.LPWorldActivity) window.LPWorldActivity.setAudio(memorialSource, false);
         destroyed = true; if (cancelSeek) cancelSeek();
         try { player.destroy(); } catch (_) {}
         if (iframe && iframe.parentNode) { try { iframe.parentNode.removeChild(iframe); } catch (_) {} }

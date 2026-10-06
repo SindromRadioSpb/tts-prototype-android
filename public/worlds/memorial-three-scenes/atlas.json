@@ -1,0 +1,308 @@
+{
+  "schema": "lp-world-atlas/1",
+  "world": "memorial-three-scenes",
+  "atlases": {
+    "scene-1-background": {
+      "file": "scene-1-original.png",
+      "width": 2048,
+      "height": 683,
+      "bytes": 1961520,
+      "sha256": "21db6cc061f5efb49ff172c95c150d06c1256b435eaf7334a6e8ff6c2f156b36",
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 2048,
+          "h": 683,
+          "anchor": [
+            1024,
+            682
+          ]
+        }
+      }
+    },
+    "scene-2-background": {
+      "file": "scene-2-original.png",
+      "width": 2048,
+      "height": 683,
+      "bytes": 1304725,
+      "sha256": "0c8fb5d752c8fd989430f37ce2a5c8c0ca86381b9959cd3cc76487c22d647d7e",
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 2048,
+          "h": 683,
+          "anchor": [
+            1024,
+            682
+          ]
+        }
+      }
+    },
+    "scene-3-background": {
+      "file": "scene-3-original.png",
+      "width": 2048,
+      "height": 683,
+      "bytes": 1556204,
+      "sha256": "6ac3a46c0c9ba326aab5246985dc724ea21d34109559ebecc4d960fdc5636f4b",
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 2048,
+          "h": 683,
+          "anchor": [
+            1024,
+            682
+          ]
+        }
+      }
+    },
+    "light-small": {
+      "file": "light-small.png",
+      "width": 128,
+      "height": 48,
+      "bytes": 306,
+      "sha256": "36d3457d8cc15812286fde097d362e1eeab0f5949f0123edfd68ff026ce0bcd2",
+      "frames": {
+        "rest": {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 48,
+          "anchor": [
+            16,
+            47
+          ]
+        },
+        "a": {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 48,
+          "anchor": [
+            16,
+            47
+          ]
+        },
+        "b": {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 48,
+          "anchor": [
+            16,
+            47
+          ]
+        },
+        "c": {
+          "x": 96,
+          "y": 0,
+          "w": 32,
+          "h": 48,
+          "anchor": [
+            16,
+            47
+          ]
+        }
+      }
+    },
+    "light-large": {
+      "file": "light-large.png",
+      "width": 320,
+      "height": 112,
+      "bytes": 483,
+      "sha256": "3305105f360bf9b4048b37d4352a2a4abe5152aaed392114204438d099b6c2ea",
+      "frames": {
+        "rest": {
+          "x": 0,
+          "y": 0,
+          "w": 80,
+          "h": 112,
+          "anchor": [
+            40,
+            111
+          ]
+        },
+        "a": {
+          "x": 80,
+          "y": 0,
+          "w": 80,
+          "h": 112,
+          "anchor": [
+            40,
+            111
+          ]
+        },
+        "b": {
+          "x": 160,
+          "y": 0,
+          "w": 80,
+          "h": 112,
+          "anchor": [
+            40,
+            111
+          ]
+        },
+        "c": {
+          "x": 240,
+          "y": 0,
+          "w": 80,
+          "h": 112,
+          "anchor": [
+            40,
+            111
+          ]
+        }
+      }
+    },
+    "light-reflection": {
+      "file": "light-reflection.png",
+      "width": 448,
+      "height": 52,
+      "bytes": 320,
+      "sha256": "9313be0915e56f0e2228bae5d8f6662c91d4bb4d37191e6d41d26992eec35d55",
+      "frames": {
+        "rest": {
+          "x": 0,
+          "y": 0,
+          "w": 112,
+          "h": 52,
+          "anchor": [
+            56,
+            51
+          ]
+        },
+        "a": {
+          "x": 112,
+          "y": 0,
+          "w": 112,
+          "h": 52,
+          "anchor": [
+            56,
+            51
+          ]
+        },
+        "b": {
+          "x": 224,
+          "y": 0,
+          "w": 112,
+          "h": 52,
+          "anchor": [
+            56,
+            51
+          ]
+        },
+        "c": {
+          "x": 336,
+          "y": 0,
+          "w": 112,
+          "h": 52,
+          "anchor": [
+            56,
+            51
+          ]
+        }
+      }
+    },
+    "light-leaf": {
+      "file": "light-leaf.png",
+      "width": 240,
+      "height": 40,
+      "bytes": 213,
+      "sha256": "cb0f28a07b5a3921b332754320fd1d52de6afb751d086881da59a35bbd3b8393",
+      "frames": {
+        "rest": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 40,
+          "anchor": [
+            30,
+            39
+          ]
+        },
+        "a": {
+          "x": 60,
+          "y": 0,
+          "w": 60,
+          "h": 40,
+          "anchor": [
+            30,
+            39
+          ]
+        },
+        "b": {
+          "x": 120,
+          "y": 0,
+          "w": 60,
+          "h": 40,
+          "anchor": [
+            30,
+            39
+          ]
+        },
+        "c": {
+          "x": 180,
+          "y": 0,
+          "w": 60,
+          "h": 40,
+          "anchor": [
+            30,
+            39
+          ]
+        }
+      }
+    },
+    "light-curtain": {
+      "file": "light-curtain.png",
+      "width": 160,
+      "height": 144,
+      "bytes": 350,
+      "sha256": "9da8c9579b33689c61e8503c2eaa774e0fdae62f4d95ce81d264989a2173f306",
+      "frames": {
+        "rest": {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 144,
+          "anchor": [
+            20,
+            143
+          ]
+        },
+        "a": {
+          "x": 40,
+          "y": 0,
+          "w": 40,
+          "h": 144,
+          "anchor": [
+            20,
+            143
+          ]
+        },
+        "b": {
+          "x": 80,
+          "y": 0,
+          "w": 40,
+          "h": 144,
+          "anchor": [
+            20,
+            143
+          ]
+        },
+        "c": {
+          "x": 120,
+          "y": 0,
+          "w": 40,
+          "h": 144,
+          "anchor": [
+            20,
+            143
+          ]
+        }
+      }
+    }
+  }
+}

@@ -843,6 +843,7 @@ export function attachRowAudio(mount, opts) {
   const ensurePlayer = () => {
     if (player) return player;
     player = new Audio();
+    if (window.LPWorldActivity) window.LPWorldActivity.trackMedia(player);
     player.addEventListener("ended", () => { if (mode === "audio") { const fin = playingIdx; clearPlaying(); if (continuous) advance(fin); } });
     return player;
   };

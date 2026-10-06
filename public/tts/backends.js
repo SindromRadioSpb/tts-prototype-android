@@ -260,6 +260,7 @@
       source.buffer = audioBuffer;
       source.connect(context.destination);
       source.onended = function () {
+        if (root.LPWorldActivity) root.LPWorldActivity.setAudio(source, false);
         this.currentSource = null;
         if (this.currentResolve) this.currentResolve = null;
         resolve({ stopped: false });
@@ -267,12 +268,14 @@
       this.currentSource = source;
       this.currentResolve = resolve;
       source.start(0);
+      if (root.LPWorldActivity) root.LPWorldActivity.setAudio(source, true);
     }.bind(this));
   };
 
   WebAudioRenderer.prototype.stop = async function () {
     if (this.currentSource) {
       try {
+        if (root.LPWorldActivity) root.LPWorldActivity.setAudio(this.currentSource, false);
         this.currentSource.stop(0);
       } catch (_) {}
       this.currentSource.disconnect();
@@ -633,11 +636,14 @@
       utterance.rate = core.normalizeSpeed(result._speech.speed, 1.0);
       utterance.pitch = 1 + (Number(result._speech.pitch || 0) / 20);
       utterance.voice = this._pickVoice(result._speech.lang);
+      utterance.onstart = function () { if (root.LPWorldActivity) root.LPWorldActivity.setAudio(utterance, true); };
       utterance.onend = function () {
+        if (root.LPWorldActivity) root.LPWorldActivity.setAudio(utterance, false);
         this.activePlayback = null;
         resolve({ stopped: false });
       }.bind(this);
       utterance.onerror = function (event) {
+        if (root.LPWorldActivity) root.LPWorldActivity.setAudio(utterance, false);
         this.activePlayback = null;
         reject(core.createTtsError("system_fallback_playback_failed", "System fallback playback failed", {
           event: event
@@ -653,6 +659,7 @@
   SystemSpeechFallbackBackend.prototype.stop = async function () {
     if (!this.speechSynthesisImpl) return;
     if (this.activePlayback && typeof this.activePlayback.resolve === "function") {
+      if (root.LPWorldActivity) root.LPWorldActivity.setAudio(this.activePlayback.utterance, false);
       var resolve = this.activePlayback.resolve;
       this.activePlayback = null;
       this.speechSynthesisImpl.cancel();

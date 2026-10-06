@@ -1,0 +1,7749 @@
+{
+  "schema": "lp-world/2",
+  "id": "memorial-three-scenes",
+  "version": "1.0.0",
+  "engine": {
+    "min": 2,
+    "max": 2.1
+  },
+  "kind": "memorial",
+  "names": {
+    "ru": "Помним · три сцены",
+    "en": "We remember · three scenes",
+    "he": "זוכרים · שלוש סצנות"
+  },
+  "blurb": {
+    "ru": "Три предоставленные автором сцены памяти. Тихий свет и долгие паузы.",
+    "en": "Three user-provided remembrance scenes. Quiet light and long pauses.",
+    "he": "שלוש סצנות זיכרון שסופקו על ידי המשתמש. אור שקט והפסקות ארוכות."
+  },
+  "skin": {
+    "light": {
+      "page": "#172637",
+      "surface": "#f1e6d0",
+      "surfaceSoft": "#ddc9a9",
+      "ink": "#302e30",
+      "line": "#988268",
+      "shadow": "#192431",
+      "accent": "#3c566b",
+      "accentInk": "#ffffff",
+      "plate": "#26394a",
+      "plateInk": "#f6e5c0"
+    },
+    "dark": {
+      "page": "#0d192a",
+      "surface": "#203244",
+      "surfaceSoft": "#2c4055",
+      "ink": "#f1e6d0",
+      "line": "#677884",
+      "shadow": "#070e18",
+      "accent": "#9ab3c3",
+      "accentInk": "#142538",
+      "plate": "#152537",
+      "plateInk": "#f1e6d0"
+    }
+  },
+  "scenery": {
+    "sceneHeight": 320,
+    "groundY": 0,
+    "backGround": 0,
+    "lighting": {
+      "day": {
+        "sky": [
+          "#101e32",
+          "#101e32"
+        ],
+        "actorTint": "#ffffff"
+      },
+      "dusk": {
+        "sky": [
+          "#101e32",
+          "#101e32"
+        ],
+        "actorTint": "#ffffff"
+      },
+      "night": {
+        "sky": [
+          "#101e32",
+          "#101e32"
+        ],
+        "actorTint": "#ffffff"
+      }
+    },
+    "layers": [],
+    "emitters": {},
+    "celestial": {},
+    "walkers": [],
+    "curb": false,
+    "titleVeil": false,
+    "backdrop": false
+  },
+  "actors": {
+    "background-1": {
+      "sheet": "scene-1-background",
+      "fictional": true
+    },
+    "background-2": {
+      "sheet": "scene-2-background",
+      "fictional": true
+    },
+    "background-3": {
+      "sheet": "scene-3-background",
+      "fictional": true
+    },
+    "light-small": {
+      "sheet": "light-small",
+      "fictional": true
+    },
+    "light-large": {
+      "sheet": "light-large",
+      "fictional": true
+    },
+    "light-reflection": {
+      "sheet": "light-reflection",
+      "fictional": true
+    },
+    "light-leaf": {
+      "sheet": "light-leaf",
+      "fictional": true
+    },
+    "light-curtain": {
+      "sheet": "light-curtain",
+      "fictional": true
+    }
+  },
+  "locations": {
+    "scene-1": {
+      "x": 0,
+      "names": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "props": [
+        {
+          "actor": "background-1",
+          "frame": "still",
+          "x": 0,
+          "y": 0,
+          "ground": 0,
+          "back": true,
+          "z": 0
+        }
+      ]
+    },
+    "scene-2": {
+      "x": 10000,
+      "names": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "props": [
+        {
+          "actor": "background-2",
+          "frame": "still",
+          "x": 0,
+          "y": 0,
+          "ground": 0,
+          "back": true,
+          "z": 0
+        }
+      ]
+    },
+    "scene-3": {
+      "x": 20000,
+      "names": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "props": [
+        {
+          "actor": "background-3",
+          "frame": "still",
+          "x": 0,
+          "y": 0,
+          "ground": 0,
+          "back": true,
+          "z": 0
+        }
+      ]
+    }
+  },
+  "slots": {
+    "room-stage": {
+      "origin": 0.5,
+      "rest": []
+    },
+    "studio-stage": {
+      "origin": 0.5,
+      "rest": []
+    },
+    "media-stage": {
+      "origin": 0.5,
+      "rest": []
+    }
+  },
+  "surfaces": {
+    "room": {
+      "slot": "room-stage",
+      "location": "scene-1",
+      "route": false
+    },
+    "studio": {
+      "slot": "studio-stage",
+      "location": "scene-1",
+      "route": false
+    },
+    "mediatheque": {
+      "slot": "media-stage",
+      "location": "scene-1",
+      "route": false
+    }
+  },
+  "scenes": [
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-room-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-room-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-room-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-room-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-room-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-curtain",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-room-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-curtain",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-room-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-room-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "room-stage",
+      "surfaces": [
+        "room"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-room-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-studio-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-studio-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-studio-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-studio-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-studio-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-curtain",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-studio-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-curtain",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-studio-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-studio-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "studio-stage",
+      "surfaces": [
+        "studio"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-studio-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-mediatheque-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-mediatheque-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-1",
+      "title": {
+        "ru": "Мемориальная площадь",
+        "en": "Memorial square",
+        "he": "כיכר זיכרון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-1-mediatheque-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -971,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -651,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 182,
+              "y": 99,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 262,
+              "y": 95,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 392,
+              "y": 165,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 565,
+              "y": 166,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 725,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 873,
+              "y": 171,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 874,
+              "y": 65,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 426,
+              "y": 23,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -692,
+              "y": 25,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-mediatheque-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-mediatheque-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-curtain",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-2",
+      "title": {
+        "ru": "Свеча у окна",
+        "en": "A candle by the window",
+        "he": "נר ליד החלון"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-2-mediatheque-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -416,
+              "y": 255,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-reflection",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -352,
+              "y": 49,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-curtain",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 795,
+              "y": 172,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-mediatheque-select",
+      "trigger": "manual",
+      "durationMs": 1,
+      "tracks": []
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-mediatheque-light",
+      "trigger": "ambient",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slot": "media-stage",
+      "surfaces": [
+        "mediatheque"
+      ],
+      "location": "scene-3",
+      "title": {
+        "ru": "Тихий закат",
+        "en": "A quiet sunset",
+        "he": "שקיעה שקטה"
+      },
+      "caption": {
+        "ru": "7 октября. Помним.",
+        "en": "October 7. We remember.",
+        "he": "7 באוקטובר. זוכרים."
+      },
+      "staticPose": [],
+      "id": "scene-3-mediatheque-preview",
+      "trigger": "manual",
+      "durationMs": 3000,
+      "tracks": [
+        {
+          "actor": "light-large",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -621,
+              "y": 193,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 106,
+              "y": 125,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 313,
+              "y": 101,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 444,
+              "y": 92,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-small",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 460,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1060,
+              "frame": "b",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 1660,
+              "frame": "c",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2310,
+              "frame": "a",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": 601,
+              "y": 66,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 620,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1220,
+              "frame": "b",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 1820,
+              "frame": "c",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2470,
+              "frame": "a",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -407,
+              "y": 542,
+              "hold": true
+            }
+          ]
+        },
+        {
+          "actor": "light-leaf",
+          "z": 4,
+          "keys": [
+            {
+              "t": 0,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 300,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 900,
+              "frame": "b",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 1500,
+              "frame": "c",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2150,
+              "frame": "a",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 2750,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            },
+            {
+              "t": 3000,
+              "frame": "rest",
+              "x": -536,
+              "y": 594,
+              "hold": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

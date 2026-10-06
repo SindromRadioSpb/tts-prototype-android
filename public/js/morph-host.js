@@ -73,13 +73,17 @@
     function primeWordStates(states) { if (states && typeof states === "object") _states = states; }
 
     // ── Аудио-синглтон (Epic-3a speakWord; один <audio> на поверхность) ────────
-    var _audio = null;
+    var _audio = null, _utterance = null;
     function _browserSpeakWord(he) {
       try {
         if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") return;
         var u = new SpeechSynthesisUtterance(he);
         u.lang = "he-IL"; u.rate = 0.9;
         try { var v = (window.speechSynthesis.getVoices() || []).find(function (x) { return /^(he|iw)/i.test(x.lang || ""); }); if (v) u.voice = v; } catch (_) {}
+        if (_utterance && window.LPWorldActivity) window.LPWorldActivity.setAudio(_utterance, false);
+        _utterance = u;
+        u.onstart = function () { if (window.LPWorldActivity) window.LPWorldActivity.setAudio(u, true); };
+        u.onend = u.onerror = function () { if (window.LPWorldActivity) window.LPWorldActivity.setAudio(u, false); };
         window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
       } catch (_) {}
     }
@@ -106,11 +110,13 @@
       } catch (_) { _browserSpeakWord(he); }
     }
     async function playUrl(src) {
-      if (!_audio) _audio = new Audio();
+      if (!_audio) { _audio = new Audio(); if (window.LPWorldActivity) window.LPWorldActivity.trackMedia(_audio); }
       try { _audio.pause(); } catch (_) {}
       _audio.src = src; await _audio.play();
     }
     function stopAudio() {
+      if (_utterance && window.LPWorldActivity) window.LPWorldActivity.setAudio(_utterance, false);
+      _utterance = null;
       try { if (_audio) _audio.pause(); } catch (_) {}
       try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
     }

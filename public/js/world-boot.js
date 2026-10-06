@@ -1,7 +1,7 @@
-/* Worlds boot: one-time Sukkot trial defaults, then preserve the learner choice. */
+/* Worlds boot: one-time Memorial trial defaults, then preserve the learner choice. */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=728"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=736"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;
@@ -24,9 +24,9 @@
   var wanted = true;
   try {
     // One-time owner-requested trial rollout. Later user choices remain authoritative.
-    if (localStorage.getItem("lp_world_sukkot_trial_v1") !== "1") {
-      localStorage.setItem("lp_world_v1", JSON.stringify({ id: "sukkot", mode: "live", paused: false, lighting: "day" }));
-      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
+    if (localStorage.getItem("lp_world_memorial_trial_v1") !== "1") {
+      localStorage.setItem("lp_world_v1", JSON.stringify({ id: "memorial-three-scenes", mode: "live", paused: false, lighting: "day" }));
+      localStorage.setItem("lp_world_memorial_trial_v1", "1");
     }
     var raw = localStorage.getItem("lp_world_v1");
     var classic = false;

@@ -26,12 +26,12 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     const page = await ctx.newPage();
     await page.goto(base + "/mediatheque.html", {waitUntil:"load"});
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().lighting === "day");
-    assert.equal(await page.evaluate(() => LPWorld.current().id), "sukkot");
+    assert.equal(await page.evaluate(() => LPWorld.current().id), "memorial-three-scenes");
     await page.evaluate(() => LPWorld.set("israel-elections-2026", "calm", "night"));
     await page.reload({waitUntil:"load"});
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
     assert.equal(await page.locator('.lp-world-route').isVisible(), false);
-    pass("first boot Sukkot defaults and subsequent Elections choice survive reload");
+    pass("first boot Memorial defaults and subsequent Elections choice survive reload");
     await ctx.close();
   }
   // Remount while the old stage is outside the viewport, then return without reloading.
@@ -39,7 +39,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block", reducedMotion: motion });
     await ctx.addInitScript(() => {
       localStorage.setItem("onboardingSeen_v1", "1");
-      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
+      localStorage.setItem("lp_world_memorial_trial_v1", "1");
       localStorage.setItem("lp_world_v1", JSON.stringify({ id: "israel-elections-2026", lighting: "day", mode: "live" }));
     });
     const page = await ctx.newPage();
@@ -73,7 +73,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     const ctx = await browser.newContext({ viewport: { width, height: 800 }, serviceWorkers: "block", reducedMotion: "reduce" });
     await ctx.addInitScript(({ lang }) => {
       localStorage.setItem("onboardingSeen_v1", "1");
-      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
+      localStorage.setItem("lp_world_memorial_trial_v1", "1");
       if (!localStorage.getItem("lp_world_v1")) localStorage.setItem("lp_world_v1", JSON.stringify({ id: "sukkot", lighting: "day", mode: "live" }));
       localStorage.setItem("app.locale", lang);
     }, { lang });
@@ -147,8 +147,8 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     if (lang === "en") await page.evaluate(() => document.body.classList.add("theme-dark"));
     await page.locator("#lpWorldPicker").waitFor({ state: "visible" });
     assert.equal(await page.locator(".lp-world-category").count(), 2);
-    assert.equal(await page.locator("input[name=lpWorld]").count(), 3);
-    await page.waitForFunction(() => document.querySelector(".lp-world-preview")?.width < 300);
+    assert.equal(await page.locator("input[name=lpWorld]").count(), 4);
+    await page.waitForFunction(() => document.querySelector('input[value="sukkot"]')?.closest("label").querySelector("canvas")?.width < 300);
     await page.screenshot({ path: path.join(out, `${width}-${lang}-picker.png`) });
     await page.locator('input[name="lpWorld"][value="israel-elections-2026"]').check();
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
@@ -189,6 +189,10 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
   // Accelerate only scheduling; the shipped actor art and ground geometry remain intact.
   {
     const ctx = await browser.newContext({viewport:{width:1280,height:800}, serviceWorkers:"block"});
+    await ctx.addInitScript(() => {
+      localStorage.setItem("lp_world_memorial_trial_v1", "1");
+      localStorage.setItem("lp_world_v1", JSON.stringify({id:"sukkot",mode:"live",lighting:"day",paused:false}));
+    });
     const page = await ctx.newPage();
     await page.route("**/js/world-render.js*", route => route.fulfill({contentType:"text/javascript", body:fs.readFileSync(path.join(root,"public/js/world-render.js"),"utf8").replace("setPose: function (pose) { state.pose = pose; }", "setPose: function (pose) { state.pose = pose; window.__worldPose = pose; }")}));
     await page.route("**/worlds/*/manifest.json*", route => {
@@ -235,7 +239,7 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     await ctx.addInitScript(fallback => {
       localStorage.setItem("lp_world_v1", '{"id":"classic"}');
       localStorage.setItem("onboardingSeen_v1", "1");
-      localStorage.setItem("lp_world_sukkot_trial_v1", "1");
+      localStorage.setItem("lp_world_memorial_trial_v1", "1");
       if (fallback) window.IntersectionObserver = undefined;
     }, fallback);
     const page = await ctx.newPage(), requests = [];
