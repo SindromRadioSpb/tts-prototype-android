@@ -1,0 +1,137 @@
+{
+  "status": "pass",
+  "base": "https://linguistpro.kolosei.com",
+  "source_sha256": "80fd43b0ea0005d9997c80bbc360c995865d1e9305d2ea11c2b3acc5a6287a3a",
+  "layer_sha256": "c06f56c3c8ed6d1a0cc22087e7984452a6b1af8f061319616b06569c1df5b58e",
+  "checks": [
+    {
+      "name": "served layer hash and immutable headers",
+      "evidence": "c06f56c3c8ed6d1a0cc22087e7984452a6b1af8f061319616b06569c1df5b58e"
+    },
+    {
+      "name": "actual reader row 06 learner-latin",
+      "evidence": "Haboker hatehorim."
+    },
+    {
+      "name": "actual reader row 06 sbl",
+      "evidence": "habbôqer haṭṭəhôrîm."
+    },
+    {
+      "name": "actual reader row 06 ru-phonetic",
+      "evidence": "хабокэр хатэхорим."
+    },
+    {
+      "name": "reload, source comparison, edits, notes, progress and review_log preserved",
+      "evidence": {
+        "rows": 437,
+        "progress": [
+          {
+            "last_row_idx": 5,
+            "last_step_id": "translation"
+          }
+        ]
+      }
+    },
+    {
+      "name": "380px button target",
+      "evidence": {
+        "x": 211.71875,
+        "y": 149.59375,
+        "width": 134.953125,
+        "height": 44
+      }
+    },
+    {
+      "name": "live locale switch updates source and resume without changing learner state",
+      "evidence": {
+        "source": "מקור: פרויקט בן-יהודה ↗",
+        "expectedSource": "מקור: פרויקט בן-יהודה ↗",
+        "resume": "עצרת בשורה 6",
+        "expectedResume": "עצרת בשורה 6"
+      }
+    },
+    {
+      "name": "Studio row 06 learner-latin",
+      "evidence": "Haboker hatehorim."
+    },
+    {
+      "name": "Studio row 06 sbl",
+      "evidence": "habbôqer haṭṭəhôrîm."
+    },
+    {
+      "name": "Studio row 06 ru-phonetic",
+      "evidence": "хабокэр хатэхорим."
+    },
+    {
+      "name": "Studio comparison, raw backup plus portable layer, export and SRS parity; zero repeated layer requests",
+      "evidence": {
+        "source": "הבוֹקר הטהוֹרים.",
+        "portable": true,
+        "study": "הַבּוֹקֶר הַטְּהוֹרִים.",
+        "review": "הַבּוֹקֶר הַטְּהוֹרִים."
+      }
+    },
+    {
+      "name": "actual DOCX carries prepared pointing and current learner transliteration",
+      "evidence": {
+        "bytes": 80196
+      }
+    },
+    {
+      "name": "native backup restores a frozen layer in a clean profile with layer network blocked",
+      "evidence": {
+        "raw": "הבוֹקר הטהוֹרים.",
+        "study": "הַבּוֹקֶר הַטְּהוֹרִים."
+      }
+    },
+    {
+      "name": "IDE visible profile control learner-latin",
+      "evidence": "Haboker hatehorim."
+    },
+    {
+      "name": "IDE visible profile control sbl",
+      "evidence": "habbôqer haṭṭəhôrîm."
+    },
+    {
+      "name": "IDE visible profile control ru-phonetic",
+      "evidence": "хабокэр хатэхорим."
+    },
+    {
+      "name": "IDE row copy uses the displayed profile and prepared pointing",
+      "evidence": true
+    },
+    {
+      "name": "IDE comparison and return to Classic preserve the selected profile",
+      "evidence": true
+    },
+    {
+      "name": "save as new preserves canonical source and frozen study binding",
+      "evidence": {
+        "raw": "הבוֹקר הטהוֹרים.",
+        "study": "הַבּוֹקֶר הַטְּהוֹרִים.",
+        "origin": "34190",
+        "corpus": false
+      }
+    },
+    {
+      "name": "503 layer falls back to original",
+      "evidence": true
+    },
+    {
+      "name": "slow first download finishes in background and next open uses it without another request",
+      "evidence": true
+    },
+    {
+      "name": "Back during layer fetch prevents late table paint",
+      "evidence": true
+    },
+    {
+      "name": "installed service worker reloads the prepared study material fully offline",
+      "evidence": true
+    },
+    {
+      "name": "no browser page errors",
+      "evidence": true
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+ID						RECLAIMABLE	SIZE		LAST ACCESSED
+nksl30i8syi8dfqo1zlqjn4jo*              	true 		20.48kB   	49 seconds ago
+1fgt43vezfqbp6b5zi1s29hll               	true 	1.037GB   	49 seconds ago
+sy1w2incgg7tq7x5htxxs9sj3*              	true 	227.9MB   	49 seconds ago
+pxun7cdogyr0ef05c0q3q3m21               	true 	43.11MB   	49 seconds ago
+qv3u0akr2hp1aslt21t6owmaz*              	true 	637.3MB   	49 seconds ago
+mlfrbfqx1jbsvypgf7jsgg066*              	true 	8.192kB   	49 seconds ago
+xbt63q4h828pwz5h0ke6ud3yk               	true 	214.5MB   	49 seconds ago
+01rotommd2vprlttdy3j0cn0t               	true 	249.9kB   	49 seconds ago
+tpi73ef8intmk39s0676nzhyr               	true 	325.2MB   	49 seconds ago
+uesh7xcnwbvhiql6dog51cp7a               	true 	4.501MB   	49 seconds ago
+lg3n0w6fit2fkdejbfcn5ybyt               	true 	8.285kB   	49 seconds ago
+7um7i7em6yih2xvrm5i2bx7ip               	true 	447B      	49 seconds ago
+jvqkmidp9vsr103jsjpdim9x3               	true 	1.262MB   	2 minutes ago
+5hff8llxqwmxbhtk1hukrtwgz               	true 	55.59MB   	2 minutes ago
+pa7xivd5cyqmko7ivqifwjo67               	true 	3.85MB    	2 minutes ago
+Total:	2.55GB
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        38G   33G  3.2G  92% /
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          14        10        10.29GB   3.896GB (37%)
+Containers      10        10        333.6MB   0B (0%)
+Local Volumes   4         4         4.343GB   0B (0%)
+Build Cache     0         0         0B        0B
+glmw0wjd6nm70fntxgjy6fkp-015643831359 glmw0wjd6nm70fntxgjy6fkp:6bb292da8bece67bb8edace7c1b2d3c2e32ac364 Up 51 seconds
+umami-p8bcejm5xx66olsks13s5dgs ghcr.io/umami-software/umami:3.0.3 Up 13 days (healthy)
+postgresql-p8bcejm5xx66olsks13s5dgs postgres:16-alpine Up 13 days (healthy)
+coolify-sentinel ghcr.io/coollabsio/sentinel:1.0.1 Up 3 weeks (healthy)
+linguistpro-media-acquisition linguistpro-media-acquisition:fd496fb4 Up 8 weeks (healthy)
+coolify-proxy traefik:v3.6 Up 3 weeks (healthy)
+coolify ghcr.io/coollabsio/coolify:4.1.1 Up 4 weeks (healthy)
+coolify-db postgres:15-alpine Up 2 weeks (healthy)
+coolify-redis redis:7-alpine Up 4 weeks (healthy)
+coolify-realtime ghcr.io/coollabsio/coolify-realtime:1.0.15 Up 4 months (healthy)

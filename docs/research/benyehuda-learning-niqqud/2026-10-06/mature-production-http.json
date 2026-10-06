@@ -1,0 +1,275 @@
+{
+  "commit": "6bb292da8bece67bb8edace7c1b2d3c2e32ac364",
+  "samples": [
+    {
+      "at": "2026-10-06T02:00:50.009Z",
+      "version": "3.11.734",
+      "health_ok": true,
+      "disk_warn": true,
+      "asset_hashes": [
+        {
+          "path": "index.html",
+          "sha256": "4771776da516774d983a63e478732e585d137d10b53ee602e87fb3eafa931467"
+        },
+        {
+          "path": "library.html",
+          "sha256": "e35124959cc641b664cb1652d95bbc631ae442301bc4e1654c430206a4700148"
+        },
+        {
+          "path": "sw.js",
+          "sha256": "e78d2ca2d0f58dff4a778fc69eee48ac43ddeafd4057f9d69a423e3273b6f002"
+        },
+        {
+          "path": "db/local-db.js",
+          "sha256": "151dc15bce34b6a093e3feea28730cd2feb375c9bc71ceb87bc9027da122d88b"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud.js",
+          "sha256": "b06d2778bc44d68e3fd3e442072d8005ac5fa5063296fffee9db95a3859f9d07"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud-manifest.js",
+          "sha256": "ee96be146ecf1597fbfe320c308db36efa5520bffb1c654e200d21b2513a0d18"
+        },
+        {
+          "path": "js/library-ui.js",
+          "sha256": "04db209078341ade8fcc84e678da7711b549c86c7d35576489359d3f09275bcc"
+        },
+        {
+          "path": "js/reader-core.js",
+          "sha256": "19e138eb64966a4c88536da9d2340a955430791ce024838cb100d0f077501ccd"
+        },
+        {
+          "path": "js/material-open.js",
+          "sha256": "f29eb2d76e32dde4f842696d205b8e4bb1937a2fc0e90b26535e3da1f2bd0bc5"
+        },
+        {
+          "path": "js/material-save.js",
+          "sha256": "77867fecb1c95d14623b9e04a268fb7777a7f91b1085769ccdc80e2ff8732572"
+        },
+        {
+          "path": "js/local-translit-bundle.js",
+          "sha256": "13c13a1e72de0e08c7113f3f13159def152b3fd4795e99d1363845f57f8f513a"
+        },
+        {
+          "path": "js/translit-display.js",
+          "sha256": "b4b67048924cbcb5aabb2121574d4e438c4aa2837cc289d3b30d011d0400adb5"
+        },
+        {
+          "path": "js/text-card-format.js",
+          "sha256": "d3d84cde975277711296e0a076423b787b4ba3abcb4f4dc8fd46de40ce112975"
+        },
+        {
+          "path": "js/niqqud-plausibility.js",
+          "sha256": "eac30687922f880c7c14205fae00693cfacb020a72f6b79e8760109390d562af"
+        },
+        {
+          "path": "js/agent-access.js",
+          "sha256": "a7e3a453dd182b1501e0e673cd177de1341fe25c360273c39a0ffdbf79833422"
+        },
+        {
+          "path": "js/mediatheque-ui.js",
+          "sha256": "af0524d76021260b3cb419014e3cf71bc22b29c02fe56b41ad9dab5e44d14b17"
+        },
+        {
+          "path": "js/study-video-source-ui.js",
+          "sha256": "bef6c2f095e8585d2d78e5cd31a1094adfe2ab4fc46a2c842cfd662740e50729"
+        },
+        {
+          "path": "i18n/locales/ru.js",
+          "sha256": "02feff2d89c06a3ecded72ebc58d196659ebdf707b591429d444fc15961a451e"
+        },
+        {
+          "path": "i18n/locales/en.js",
+          "sha256": "cf3425e6128142c2f8ad349d3ad3d6e559344724e6970b7fba94cd62f8afe163"
+        },
+        {
+          "path": "i18n/locales/he.js",
+          "sha256": "95df3007d42cf362e4244fbbb02f8d5f56bd416c93b51e4f01684d7f46141275"
+        }
+      ],
+      "source_unchanged": true,
+      "layer_hash_matched": true
+    },
+    {
+      "at": "2026-10-06T02:01:00.248Z",
+      "version": "3.11.734",
+      "health_ok": true,
+      "disk_warn": true,
+      "asset_hashes": [
+        {
+          "path": "index.html",
+          "sha256": "4771776da516774d983a63e478732e585d137d10b53ee602e87fb3eafa931467"
+        },
+        {
+          "path": "library.html",
+          "sha256": "e35124959cc641b664cb1652d95bbc631ae442301bc4e1654c430206a4700148"
+        },
+        {
+          "path": "sw.js",
+          "sha256": "e78d2ca2d0f58dff4a778fc69eee48ac43ddeafd4057f9d69a423e3273b6f002"
+        },
+        {
+          "path": "db/local-db.js",
+          "sha256": "151dc15bce34b6a093e3feea28730cd2feb375c9bc71ceb87bc9027da122d88b"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud.js",
+          "sha256": "b06d2778bc44d68e3fd3e442072d8005ac5fa5063296fffee9db95a3859f9d07"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud-manifest.js",
+          "sha256": "ee96be146ecf1597fbfe320c308db36efa5520bffb1c654e200d21b2513a0d18"
+        },
+        {
+          "path": "js/library-ui.js",
+          "sha256": "04db209078341ade8fcc84e678da7711b549c86c7d35576489359d3f09275bcc"
+        },
+        {
+          "path": "js/reader-core.js",
+          "sha256": "19e138eb64966a4c88536da9d2340a955430791ce024838cb100d0f077501ccd"
+        },
+        {
+          "path": "js/material-open.js",
+          "sha256": "f29eb2d76e32dde4f842696d205b8e4bb1937a2fc0e90b26535e3da1f2bd0bc5"
+        },
+        {
+          "path": "js/material-save.js",
+          "sha256": "77867fecb1c95d14623b9e04a268fb7777a7f91b1085769ccdc80e2ff8732572"
+        },
+        {
+          "path": "js/local-translit-bundle.js",
+          "sha256": "13c13a1e72de0e08c7113f3f13159def152b3fd4795e99d1363845f57f8f513a"
+        },
+        {
+          "path": "js/translit-display.js",
+          "sha256": "b4b67048924cbcb5aabb2121574d4e438c4aa2837cc289d3b30d011d0400adb5"
+        },
+        {
+          "path": "js/text-card-format.js",
+          "sha256": "d3d84cde975277711296e0a076423b787b4ba3abcb4f4dc8fd46de40ce112975"
+        },
+        {
+          "path": "js/niqqud-plausibility.js",
+          "sha256": "eac30687922f880c7c14205fae00693cfacb020a72f6b79e8760109390d562af"
+        },
+        {
+          "path": "js/agent-access.js",
+          "sha256": "a7e3a453dd182b1501e0e673cd177de1341fe25c360273c39a0ffdbf79833422"
+        },
+        {
+          "path": "js/mediatheque-ui.js",
+          "sha256": "af0524d76021260b3cb419014e3cf71bc22b29c02fe56b41ad9dab5e44d14b17"
+        },
+        {
+          "path": "js/study-video-source-ui.js",
+          "sha256": "bef6c2f095e8585d2d78e5cd31a1094adfe2ab4fc46a2c842cfd662740e50729"
+        },
+        {
+          "path": "i18n/locales/ru.js",
+          "sha256": "02feff2d89c06a3ecded72ebc58d196659ebdf707b591429d444fc15961a451e"
+        },
+        {
+          "path": "i18n/locales/en.js",
+          "sha256": "cf3425e6128142c2f8ad349d3ad3d6e559344724e6970b7fba94cd62f8afe163"
+        },
+        {
+          "path": "i18n/locales/he.js",
+          "sha256": "95df3007d42cf362e4244fbbb02f8d5f56bd416c93b51e4f01684d7f46141275"
+        }
+      ],
+      "source_unchanged": true,
+      "layer_hash_matched": true
+    },
+    {
+      "at": "2026-10-06T02:01:10.458Z",
+      "version": "3.11.734",
+      "health_ok": true,
+      "disk_warn": true,
+      "asset_hashes": [
+        {
+          "path": "index.html",
+          "sha256": "4771776da516774d983a63e478732e585d137d10b53ee602e87fb3eafa931467"
+        },
+        {
+          "path": "library.html",
+          "sha256": "e35124959cc641b664cb1652d95bbc631ae442301bc4e1654c430206a4700148"
+        },
+        {
+          "path": "sw.js",
+          "sha256": "e78d2ca2d0f58dff4a778fc69eee48ac43ddeafd4057f9d69a423e3273b6f002"
+        },
+        {
+          "path": "db/local-db.js",
+          "sha256": "151dc15bce34b6a093e3feea28730cd2feb375c9bc71ceb87bc9027da122d88b"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud.js",
+          "sha256": "b06d2778bc44d68e3fd3e442072d8005ac5fa5063296fffee9db95a3859f9d07"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud-manifest.js",
+          "sha256": "ee96be146ecf1597fbfe320c308db36efa5520bffb1c654e200d21b2513a0d18"
+        },
+        {
+          "path": "js/library-ui.js",
+          "sha256": "04db209078341ade8fcc84e678da7711b549c86c7d35576489359d3f09275bcc"
+        },
+        {
+          "path": "js/reader-core.js",
+          "sha256": "19e138eb64966a4c88536da9d2340a955430791ce024838cb100d0f077501ccd"
+        },
+        {
+          "path": "js/material-open.js",
+          "sha256": "f29eb2d76e32dde4f842696d205b8e4bb1937a2fc0e90b26535e3da1f2bd0bc5"
+        },
+        {
+          "path": "js/material-save.js",
+          "sha256": "77867fecb1c95d14623b9e04a268fb7777a7f91b1085769ccdc80e2ff8732572"
+        },
+        {
+          "path": "js/local-translit-bundle.js",
+          "sha256": "13c13a1e72de0e08c7113f3f13159def152b3fd4795e99d1363845f57f8f513a"
+        },
+        {
+          "path": "js/translit-display.js",
+          "sha256": "b4b67048924cbcb5aabb2121574d4e438c4aa2837cc289d3b30d011d0400adb5"
+        },
+        {
+          "path": "js/text-card-format.js",
+          "sha256": "d3d84cde975277711296e0a076423b787b4ba3abcb4f4dc8fd46de40ce112975"
+        },
+        {
+          "path": "js/niqqud-plausibility.js",
+          "sha256": "eac30687922f880c7c14205fae00693cfacb020a72f6b79e8760109390d562af"
+        },
+        {
+          "path": "js/agent-access.js",
+          "sha256": "a7e3a453dd182b1501e0e673cd177de1341fe25c360273c39a0ffdbf79833422"
+        },
+        {
+          "path": "js/mediatheque-ui.js",
+          "sha256": "af0524d76021260b3cb419014e3cf71bc22b29c02fe56b41ad9dab5e44d14b17"
+        },
+        {
+          "path": "js/study-video-source-ui.js",
+          "sha256": "bef6c2f095e8585d2d78e5cd31a1094adfe2ab4fc46a2c842cfd662740e50729"
+        },
+        {
+          "path": "i18n/locales/ru.js",
+          "sha256": "02feff2d89c06a3ecded72ebc58d196659ebdf707b591429d444fc15961a451e"
+        },
+        {
+          "path": "i18n/locales/en.js",
+          "sha256": "cf3425e6128142c2f8ad349d3ad3d6e559344724e6970b7fba94cd62f8afe163"
+        },
+        {
+          "path": "i18n/locales/he.js",
+          "sha256": "95df3007d42cf362e4244fbbb02f8d5f56bd416c93b51e4f01684d7f46141275"
+        }
+      ],
+      "source_unchanged": true,
+      "layer_hash_matched": true
+    }
+  ]
+}
