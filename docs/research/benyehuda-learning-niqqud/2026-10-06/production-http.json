@@ -1,0 +1,119 @@
+{
+  "commit": "501b483591fe0b101cb7d402c60efed315aeefab",
+  "samples": [
+    {
+      "at": "2026-10-05T23:59:51.960Z",
+      "version": "3.11.732",
+      "health_ok": true,
+      "disk_warn": true,
+      "asset_hashes": [
+        {
+          "path": "js/benyehuda-learning-niqqud.js",
+          "sha256": "1685e3586c0d7ecce6e070fc65f8b87b239db975ce0675276e9f9223b1c31434"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud-manifest.js",
+          "sha256": "11d01494f5e779e1fbd9b236a2cb8c94a40e1b717d3d4da57a08e94a440ddb5c"
+        },
+        {
+          "path": "js/library-ui.js",
+          "sha256": "1be9f1fe3b9398343f2c5fa1f691141ca350b8ff3d3f6fab60eee10598905bee"
+        },
+        {
+          "path": "js/reader-core.js",
+          "sha256": "abb6bac6ec3f40b6525d07df57b2f8ac8e4e1c9ed2f75090bfe28b80fcbdbabe"
+        },
+        {
+          "path": "i18n/locales/ru.js",
+          "sha256": "da7930c074bc5a775e97ccd1af9b419f1eb551b448b1adc9fd060890acb52649"
+        },
+        {
+          "path": "i18n/locales/en.js",
+          "sha256": "a41f22e52c400d112574b31c16720e62f7c10c6270b85b8ba8ab7b3f91d4157f"
+        },
+        {
+          "path": "i18n/locales/he.js",
+          "sha256": "6e4536adeffefb200f17dc0cd914e5ecdf6636e7bda4702bc34758e25dc2c4ba"
+        }
+      ],
+      "source_unchanged": true,
+      "layer_hash_matched": true
+    },
+    {
+      "at": "2026-10-06T00:00:01.413Z",
+      "version": "3.11.732",
+      "health_ok": true,
+      "disk_warn": true,
+      "asset_hashes": [
+        {
+          "path": "js/benyehuda-learning-niqqud.js",
+          "sha256": "1685e3586c0d7ecce6e070fc65f8b87b239db975ce0675276e9f9223b1c31434"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud-manifest.js",
+          "sha256": "11d01494f5e779e1fbd9b236a2cb8c94a40e1b717d3d4da57a08e94a440ddb5c"
+        },
+        {
+          "path": "js/library-ui.js",
+          "sha256": "1be9f1fe3b9398343f2c5fa1f691141ca350b8ff3d3f6fab60eee10598905bee"
+        },
+        {
+          "path": "js/reader-core.js",
+          "sha256": "abb6bac6ec3f40b6525d07df57b2f8ac8e4e1c9ed2f75090bfe28b80fcbdbabe"
+        },
+        {
+          "path": "i18n/locales/ru.js",
+          "sha256": "da7930c074bc5a775e97ccd1af9b419f1eb551b448b1adc9fd060890acb52649"
+        },
+        {
+          "path": "i18n/locales/en.js",
+          "sha256": "a41f22e52c400d112574b31c16720e62f7c10c6270b85b8ba8ab7b3f91d4157f"
+        },
+        {
+          "path": "i18n/locales/he.js",
+          "sha256": "6e4536adeffefb200f17dc0cd914e5ecdf6636e7bda4702bc34758e25dc2c4ba"
+        }
+      ],
+      "source_unchanged": true,
+      "layer_hash_matched": true
+    },
+    {
+      "at": "2026-10-06T00:00:10.882Z",
+      "version": "3.11.732",
+      "health_ok": true,
+      "disk_warn": true,
+      "asset_hashes": [
+        {
+          "path": "js/benyehuda-learning-niqqud.js",
+          "sha256": "1685e3586c0d7ecce6e070fc65f8b87b239db975ce0675276e9f9223b1c31434"
+        },
+        {
+          "path": "js/benyehuda-learning-niqqud-manifest.js",
+          "sha256": "11d01494f5e779e1fbd9b236a2cb8c94a40e1b717d3d4da57a08e94a440ddb5c"
+        },
+        {
+          "path": "js/library-ui.js",
+          "sha256": "1be9f1fe3b9398343f2c5fa1f691141ca350b8ff3d3f6fab60eee10598905bee"
+        },
+        {
+          "path": "js/reader-core.js",
+          "sha256": "abb6bac6ec3f40b6525d07df57b2f8ac8e4e1c9ed2f75090bfe28b80fcbdbabe"
+        },
+        {
+          "path": "i18n/locales/ru.js",
+          "sha256": "da7930c074bc5a775e97ccd1af9b419f1eb551b448b1adc9fd060890acb52649"
+        },
+        {
+          "path": "i18n/locales/en.js",
+          "sha256": "a41f22e52c400d112574b31c16720e62f7c10c6270b85b8ba8ab7b3f91d4157f"
+        },
+        {
+          "path": "i18n/locales/he.js",
+          "sha256": "6e4536adeffefb200f17dc0cd914e5ecdf6636e7bda4702bc34758e25dc2c4ba"
+        }
+      ],
+      "source_unchanged": true,
+      "layer_hash_matched": true
+    }
+  ]
+}

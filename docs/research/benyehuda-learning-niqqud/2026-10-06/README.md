@@ -43,3 +43,15 @@ node scripts/premium/learning-niqqud-browser-smoke.js --source <public-source-bu
 ```
 
 Оригинал, все raw ответы провайдера и итоговый слой сохранены вне Git в `data/benyehuda-learning-niqqud/34190/2026-10-06/` основного checkout. Повторная генерация использует cache, не расходует новые запросы; timestamp нового output изменит его hash, поэтому публикуется только явно выбранный pin. Production evidence добавляется после сходимости релиза; owner-live и physical-device проверки не заявляются.
+
+## Production: подтверждено
+
+Релиз `501b483591fe0b101cb7d402c60efed315aeefab`, 3.11.732, опубликован в main; rollout сошёлся к одному контейнеру этого образа. [Три повторных no-cache прогона](production-http.json) подтверждают версию API/Room/SW, совпадение SHA-256 семи изменённых JS/locale assets, исходного work body и нового слоя. `/healthz`: HTTP 200, `ok=true`.
+
+[Production browser](production-browser.json) повторяет девять проверок на публичном сервере в disposable OPFS: строка 06/три профиля, ручная огласовка, reload, notes/progress/review_log, сравнение с исходником, 380px, fallback и Back во время загрузки. [Production mobile](production-mobile.png), [Hebrew mobile](production-mobile-he.png). Service worker в этом fixture заблокирован: это не owner-PWA/update-activation или physical-device evidence.
+
+Во время build root disk достиг 100%. По зафиксированному постоянному разрешению удалён только BuildKit cache (`docker builder prune -af`); reclaimable 5,446 GB, после операции 90 % / 3,7 GB свободно. Активный и предыдущий образы, 10 текущих контейнеров и 4 тома сохранены; Coolify вернулся к healthy. Runtime и исходные данные не очищались. `disk_warn=true` сохраняется: общий риск вместимости не объявляется закрытым.
+
+На live смене ru→he в открытом читателе новый переключатель локализуется, но некоторые прежние подписи источника/эпохи/resume остаются на русском до повторной отрисовки. Это существующий динамический i18n-дефект, отдельно зафиксирован в O-078; полная локализация live switch не заявляется.
+
+Итог: production-пилот одного произведения завершён. Массовое распространение, вычитка и подключение к Studio/ZIP остаются отдельными следующими этапами. Для отката отключается pin 34190 в manifest и выпускается новая версия оболочки; источник и локальные данные возвращать из backup не требуется.
