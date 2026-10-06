@@ -1,0 +1,120 @@
+{
+  "time": "2026-10-06T04:55:27.933Z",
+  "version": "3.11.735",
+  "health": {
+    "ok": true,
+    "uptimeSec": 117,
+    "now": "2026-10-06T04:55:24.188Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 95,
+    "disk_warn": true
+  },
+  "assets": [
+    {
+      "path": "/index.html",
+      "status": 200,
+      "sha256": "b4dfdd5834e9f16721a4f68cced87e4077d1ab0deda0f14f31709ffeb47e86ec",
+      "match": true
+    },
+    {
+      "path": "/library.html",
+      "status": 200,
+      "sha256": "c5015596c74b5a7116f078000cfb7ab4dbb6c6f0e3711c6929f15177c2a84d0a",
+      "match": true
+    },
+    {
+      "path": "/mediatheque.html",
+      "status": 200,
+      "sha256": "84b965fa902a84111564157b0ad5b7a0a4013f8d1c549090adf230bffd6693f9",
+      "match": true
+    },
+    {
+      "path": "/sw.js",
+      "status": 200,
+      "sha256": "e40c01aeeb7670fdb0f3d6b5b819f91e71d5d42f772052d0aff50ee1a0f56802",
+      "match": true
+    },
+    {
+      "path": "/js/local-translit-bundle.js?v=735",
+      "status": 200,
+      "sha256": "cc7184dad60e552176df926b64b2a84b0ae670f1738ac555f66fc271e24a24d0",
+      "match": true
+    },
+    {
+      "path": "/js/niqqud-plausibility.js?v=735",
+      "status": 200,
+      "sha256": "4d4e41b12c0cef52ee276797a0d456d8fb70d32b5671810e765d1f57d46afccd",
+      "match": true
+    },
+    {
+      "path": "/js/subtitle-material-vocalization.js?v=735",
+      "status": 200,
+      "sha256": "96d62700a86b1a5db656e59eca631969e4c0107d087cc8ecbf4d92ed94c73f8e",
+      "match": true
+    },
+    {
+      "path": "/js/table-niqqud-normalizer.js?v=735",
+      "status": 200,
+      "sha256": "1c5a72196eef26addff829ddb2c9b079619349981db4cd89acfa4e5f9a49f553",
+      "match": true
+    },
+    {
+      "path": "/i18n/locales/ru.js?v=284",
+      "status": 200,
+      "sha256": "fb642dbfd2ca577659c74a90708884878ecbb7881a3323e5d0b56965e3a1b40f",
+      "match": true
+    },
+    {
+      "path": "/i18n/locales/en.js?v=284",
+      "status": 200,
+      "sha256": "c17b971f5c160ceba3fa6141636b813f7976587032b5415aef8aaca1bd89b532",
+      "match": true
+    },
+    {
+      "path": "/i18n/locales/he.js?v=284",
+      "status": 200,
+      "sha256": "c499715b7b2de1681aef3d31daffe7d261454ec9c87f3896ab18d0022fb0397c",
+      "match": true
+    }
+  ],
+  "releaseCommit": "0095bf9508be6a01d973ff7788fdd8c2a4938be1",
+  "browser": {
+    "context": "isolated-anonymous",
+    "work": 31248,
+    "rows": 198,
+    "profiles": [
+      "learner-latin",
+      "sbl",
+      "ru-phonetic"
+    ],
+    "row2": [
+      "Yedidkhem hagadol – enenu.",
+      "yəḏîḏəḵem haggāḏôl – ʾênennû.",
+      "йэдидхэм хагадол – енэну."
+    ],
+    "emptyOrMarkerResults": 0,
+    "controlWords": 8,
+    "viewport": 380,
+    "serviceWorkerUpdateAccepted": true,
+    "ownerProfile": false,
+    "physicalDevice": false
+  },
+  "cleanup": {
+    "deletedImages": [
+      "485eaecd (501b4835)",
+      "698734dd (7c3b9a82)"
+    ],
+    "containerStatesAndVolumeIdentitiesUnchanged": true,
+    "containers": 10,
+    "volumes": 4,
+    "rootFreeBeforeGiB": 3,
+    "rootFreeAfterCleanupGiB": 5.2,
+    "rootFreeAfterDeployGiB": 2.1,
+    "buildCacheDeletion": false
+  }
+}
