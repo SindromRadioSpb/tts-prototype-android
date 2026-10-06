@@ -1,0 +1,47 @@
+{
+  "expected": 1421,
+  "heads_passed": 1421,
+  "failures": [],
+  "samples": [
+    {
+      "id": "10",
+      "sha256": "ecee03b5dc79dc48c0ac5acdf210b045af6b3ff75d7a790978825efed1522ded",
+      "bytes": 138574
+    },
+    {
+      "id": "16",
+      "sha256": "151734bd6edb9de2589ccc52848bb7df8374b821a1e8f4aa6f24d6c7db0917dc",
+      "bytes": 4570
+    },
+    {
+      "id": "7103",
+      "sha256": "f280086304d7fb7cfefe6809097320ba0dffec25361d22a98e731b0b025966c2",
+      "bytes": 1498101
+    },
+    {
+      "id": "10753",
+      "sha256": "2ddb694bf1f73917895704d6004a5802cac81e895c19f0c705219c305bf78b17",
+      "bytes": 1003560
+    },
+    {
+      "id": "34190",
+      "sha256": "1f89b83a4308ef41d40d2b052106c9375d56d442c8b64bd8e88af36451f0dc93",
+      "bytes": 290118
+    },
+    {
+      "id": "38638",
+      "sha256": "40c8c2d6e9c1637c46b9eb0efba22f4cfb026f154dcb5b0e9fcadf90e3a9c177",
+      "bytes": 496712
+    },
+    {
+      "id": "54844",
+      "sha256": "1db8180db4279a1ab4ae39ebb6b026fe149705f2b3d10e6092054bac1c9989f3",
+      "bytes": 1164305
+    },
+    {
+      "id": "64752",
+      "sha256": "c4645de223a9ebd20427321306544a2c715027211682d0c748aeac88f143f7ca",
+      "bytes": 56776
+    }
+  ]
+}

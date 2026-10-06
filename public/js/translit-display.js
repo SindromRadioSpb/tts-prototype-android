@@ -64,6 +64,10 @@
       var stored = storedFor(row, chosen);
       var niqqud = usable ? sourceOf(row, chosen) : "";
       if (!niqqud) return stored;
+      var prepared = row && row.translit_precomputed;
+      if (prepared && prepared.source === niqqud && prepared.versions &&
+          prepared.versions[chosen] === (transliterate.profileVersions || {})[chosen] &&
+          typeof prepared.profiles?.[chosen] === 'string') return prepared.profiles[chosen];
       var k = key(chosen, niqqud);
       if (cache.has(k)) return cache.get(k) || stored;
       if (now() < deadline) return derive(chosen, niqqud) || stored;

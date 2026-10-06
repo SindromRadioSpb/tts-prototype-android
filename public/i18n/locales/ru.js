@@ -4983,6 +4983,10 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {"tutorRead":"Читать с 
 
 Object.assign(window.I18N_LOCALES.ru.room.home, {"libraryChanged": "Библиотека изменилась в другой вкладке.", "refreshLibrary": "Обновить библиотеку"});
 window.I18N_LOCALES.ru.room.reader.niqqudLayer = {
-  learning: 'Огласовка: учебная · Dicta', original: 'Огласовка: исходная',
+  reviewSignals: 'Сочетаний знаков для проверки: {count}.',
+  cellExplanation: 'Учебная огласовка подготовлена автоматически. Слова для проверки отмечены знаком ⁕.',
+  unavailable: 'Учебный слой недоступен. Показана исходная огласовка.',
+  unresolved: 'Слова для проверки: {count}.',
+  learning: 'Огласовка: учебная', original: 'Огласовка: исходная',
   explanation: 'Учебная огласовка машинная, не вычитана. Нажмите, чтобы сравнить с исходной. Транслит следует выбранной огласовке; ваши правки сохраняются.'
 };

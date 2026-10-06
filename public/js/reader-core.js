@@ -169,6 +169,9 @@ export function mapSentenceRowToUiRow(r, textId) {
   // only on the H2.4 derived projection.
   if (r.niqqud_authority != null) out.niqqud_authority = r.niqqud_authority;
   if (r.niqqud_provenance != null) out.niqqud_provenance = r.niqqud_provenance;
+  if (r.niqqud_quality != null) out.niqqud_quality = r.niqqud_quality;
+  if (r._learning_niqqud_source != null) out._learning_niqqud_source = r._learning_niqqud_source;
+  if (r.translit_precomputed != null) out.translit_precomputed = r.translit_precomputed;
   // B+C: source identity is persisted additively in edit_meta_json (same wrapper as the
   // Studio twin; window.StudioImport отсутствует в Зале → identity-возврат).
   try {
@@ -515,7 +518,10 @@ export function buildBilingualTableHtml(rows, config) {
     html += '<tr data-row-idx="' + domRowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : "") + ">";
     cols.forEach((k) => {
       const meta = colMeta[k] || {};
-      const machineNiqqud = k === "niqqud" && row && row.niqqud_authority === "DERIVED";
+      const studyNiqqud = k === "niqqud" && globalThis.BenYehudaLearningNiqqud?.isLearning(row);
+      const niqqudReviewHint = k === "niqqud" ? globalThis.BenYehudaLearningNiqqud?.reviewHint(row,t) || "" : "";
+      const uncertainNiqqud = !!niqqudReviewHint;
+      const machineNiqqud = k === "niqqud" && row && (row.niqqud_authority === "DERIVED" || studyNiqqud);
       const cellClasses = [meta.cellClass || "", machineNiqqud ? "niqqud-derived" : ""].filter(Boolean).join(" ");
       const tdClass = cellClasses ? ' class="' + cellClasses + '"' : "";
       if (k === "action") {
@@ -561,10 +567,14 @@ export function buildBilingualTableHtml(rows, config) {
       else if (k === "niqqud") value = heNiqqud;
       else if (k === "translit") value = translit;
       else if (k === "ru") value = ru;
-      const derivedAttrs = machineNiqqud
+      const derivedAttrs = studyNiqqud
+        ? ' data-niqqud-authority="learning" title="' + escapeHtml(t("room.reader.niqqudLayer.cellExplanation")) +
+          (uncertainNiqqud ? ' ' + escapeHtml(niqqudReviewHint) : '') + '"'
+        : machineNiqqud
         ? ' data-niqqud-authority="derived" title="' + escapeHtml(t("room.nakdan.derivedCell")) + ' · ' + escapeHtml(row.niqqud_provenance || "DICTA_NAKDAN") + '"'
         : "";
-      const derivedBadge = machineNiqqud ? '<span class="niqqud-derived-badge" aria-label="' + escapeHtml(t("room.nakdan.derivedCell")) + '">⁕</span>' : "";
+      const derivedBadge = uncertainNiqqud ? '<span class="niqqud-derived-badge" title="' + escapeHtml(niqqudReviewHint) + '">⁕</span>'
+        : machineNiqqud && !studyNiqqud ? '<span class="niqqud-derived-badge" aria-label="' + escapeHtml(t("room.nakdan.derivedCell")) + '">⁕</span>' : "";
       const speechBadge = k === 'he' && typeof window !== 'undefined' ? (window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||'') : '';
       html += '<td data-col="' + k + '"' + tdClass + derivedAttrs + ">" + escapeHtml(value) + derivedBadge + speechBadge + "</td>";
     });
@@ -599,7 +609,7 @@ export async function openText(textId, opts) {
   const emit = (s) => { try { if (isCurrent() && opts.onState) opts.onState(s); } catch (_) {} };
   if (!isCurrent()) return superseded();
   emit({ kind: "loading" });
-  const result = await globalThis.MaterialOpen.load(textId, { localDb, isCurrent });
+  const result = await globalThis.MaterialOpen.load(textId, { localDb, isCurrent, sourceOnly: typeof opts.prepareMaterial === 'function' });
   if (!isCurrent() || result.reason === 'superseded') return superseded();
   if (!result.ok) {
     emit({ kind: ['dbBusy', 'notFound'].includes(result.reason) ? result.reason : 'error', error: result.error });
@@ -614,6 +624,7 @@ export async function openText(textId, opts) {
   }
   const presented = presentMaterial(prepared, { mount, config, isCurrent, request: opts.request, onState: emit });
   if (presented.ok && prepared.learningNiqqud) presented.learningNiqqud = prepared.learningNiqqud;
+  if (presented.ok && prepared.studyNiqqudStatus) presented.studyNiqqudStatus = prepared.studyNiqqudStatus;
   return presented;
 }
 

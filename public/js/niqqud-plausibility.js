@@ -11,7 +11,7 @@
   "use strict";
 
   var SHEVA = "ְ", DAGESH = "ּ";
-  var BEGADKEFAT = "בגדכפת";
+  var BEGADKEFAT = "בגדכפתךף";
 
   function letters(word) {
     var out = [];
@@ -26,6 +26,10 @@
 
   // Reasons, in the order a reader would notice them.
   function wordFaults(word) {
+    // A hyphen, quote or punctuation separates letter runs. Prefixes outside a quotation
+    // and written stutters must not become one artificial consonant cluster.
+    var pieces = String(word || '').match(/[א-ת][א-ת\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]*/gu) || [];
+    if (pieces.length > 1) return Array.from(new Set(pieces.flatMap(wordFaults)));
     var L = letters(word), reasons = [];
     if (L.length >= 3 && hasSheva(L[0]) && hasSheva(L[1])) reasons.push("INITIAL_DOUBLE_SHEVA");
     for (var i = 1; i < L.length; i++) {
@@ -70,5 +74,5 @@
     return out;
   }
 
-  return { VERSION: "niqqud-plausibility-v1", wordFaults: wordFaults, scan: scan, scanRows: scanRows, words: words };
+  return { VERSION: "niqqud-plausibility-v2-word-boundaries", wordFaults: wordFaults, scan: scan, scanRows: scanRows, words: words };
 });

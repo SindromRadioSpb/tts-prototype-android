@@ -4977,6 +4977,10 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {"tutorRead":"לקרוא עם 
 
 Object.assign(window.I18N_LOCALES.he.room.home, {"libraryChanged": "הספרייה השתנתה בכרטיסייה אחרת.", "refreshLibrary": "רענון הספרייה"});
 window.I18N_LOCALES.he.room.reader.niqqudLayer = {
-  learning: 'ניקוד: ללימוד · Dicta', original: 'ניקוד: מקור',
+  reviewSignals: 'צירופי ניקוד לבדיקה: {count}.',
+  cellExplanation: 'הניקוד ללימוד הוכן אוטומטית. מילים לבדיקה מסומנות ב־⁕.',
+  unavailable: 'שכבת הלימוד אינה זמינה. מוצג ניקוד המקור.',
+  unresolved: 'מילים לבדיקה: {count}.',
+  learning: 'ניקוד: ללימוד', original: 'ניקוד: מקור',
   explanation: 'הניקוד ללימוד נוצר אוטומטית ולא עבר הגהה. לחצו להשוואה עם המקור. התעתיק מתאים לניקוד שנבחר; העריכות שלכם נשמרות.'
 };

@@ -28,6 +28,7 @@ function exportTranslit(row, profile) {
     translit: r.translit || "",
     translit_ru: r.translit_ru || "",
     edit_meta_json: r.edit_meta_json != null ? r.edit_meta_json : (r.edit_meta || null),
+    translit_precomputed: r.translit_precomputed || null,
   }, exportProfile(profile));
 }
 

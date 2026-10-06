@@ -211,7 +211,19 @@ function _letterGroups(word) {
 // The library knows one prefix in front of the word (לְכָל) but not two (וּלְכָל, שֶׁבְּכָל), so a
 // word opening with the conjunction וּ or with שֶׁ is asked again without it.
 const LEADING_PROCLITIC = /^(?:וּ|שׁ?ֶׁ?)(?=[א-ת])/;
+// Qamats classification is word-local and shared by both modern profiles. Repeated
+// corpus words must not rebuild the same syllable graph millions of times.
+const QAMATS_WORD_CACHE = new Map(), QAMATS_WORD_CACHE_LIMIT = 16384;
 function _markWord(word) {
+  if (QAMATS_WORD_CACHE.has(word)) {
+    const value = QAMATS_WORD_CACHE.get(word); QAMATS_WORD_CACHE.delete(word); QAMATS_WORD_CACHE.set(word,value); return value;
+  }
+  const value = _markWordUncached(word);
+  QAMATS_WORD_CACHE.set(word,value);
+  if (QAMATS_WORD_CACHE.size > QAMATS_WORD_CACHE_LIMIT) QAMATS_WORD_CACHE.delete(QAMATS_WORD_CACHE.keys().next().value);
+  return value;
+}
+function _markWordUncached(word) {
   const nfd = word.normalize("NFD");
   if (nfd.indexOf(QAMATS) < 0) return word;
   let read = "";
@@ -246,4 +258,6 @@ function transliterateWithProfile(heWithNiqqud, profile) {
   return known === "learner-latin" ? _finishLearnerLatin(result) : result;
 }
 
-module.exports = { transliterate, transliterateWithProfile };
+const { TRANSLIT_PROFILE_VERSIONS } = require('./versions');
+transliterateWithProfile.profileVersions = TRANSLIT_PROFILE_VERSIONS;
+module.exports = { transliterate, transliterateWithProfile, TRANSLIT_PROFILE_VERSIONS };

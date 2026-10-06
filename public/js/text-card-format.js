@@ -157,6 +157,7 @@
         // ── v2: паспорт источника (ПРОИЗВОДНЫЕ данные, R9) ──────────────────
         // Медиа-байты сюда не кладутся: в media остаётся только opfsPath+sha256.
         source_meta: meta.sourceMeta,
+        ...(inp.learningNiqqudLayer ? { learning_niqqud_layer: inp.learningNiqqudLayer } : {}),
         table_model_meta: meta.tableModelMeta,
         // Из какой колонки пришёл медиа-паспорт (чтобы импорт положил обратно туда же).
         passport_in: meta.passportIn,
@@ -272,6 +273,7 @@
       source_text: str(c.source_text),
       tts_profile_json: JSON.stringify(c.tts_profile || null),
       source_meta: smOut,
+      ...(c.learning_niqqud_layer ? { learning_niqqud_layer: c.learning_niqqud_layer } : {}),
       table_model_meta: tableModelMeta,
       rows: rows,
       // Emit the canonical Shape-A field and the old alias. importBundle folds the

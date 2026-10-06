@@ -69,7 +69,7 @@ test('late Studio source hydration cannot replace the active editor or its ident
   const db={listNotes:async()=>[],getTextByIdLite:async id=>({id,title:id}),getSentences:async id=>[{id:'r-'+id,text_id:id,he:id}],touchOpened:async()=>{},getTextSourceText:id=>(id==='A'?a:b).promise};
   const noop=()=>{};
   const ctx={LOCAL_MODE:true,console,currentTableData:[],window:{v3SetActiveTextId:id=>{active=id;},v3SetActiveLibraryTextMeta:m=>{metadata=m.textId;}},
-    ensureLocalDB:async()=>db,v3EmitTextOpenWithClose:noop,v3SessionSet:noop,v3AdoptSavedTableMeta:noop,v3RestoreMediaFromMeta:noop,
+    ensureLocalDB:async()=>db,v3EmitTextOpenWithClose:noop,v3SessionSet:noop,v3SetLearningNiqqud:noop,v3AdoptSavedTableMeta:noop,v3RestoreMediaFromMeta:noop,
     v3MediaBarRefresh:async()=>{},v3LibraryAutoApplyCardProfile:async()=>{},v3MapSentenceApiRowToUiRow:r=>r,v3LibraryCacheSave:noop,
     v3NotesIngest:noop,v3NotesReset:noop,v3PrepareForNewTableRender:noop,v3RenderTableFromLibrary:rows=>{ctx.currentTableData=rows;return 1;},
     v3LazyFillTranslit:async()=>0,v3SetSourceTextFromLibrary:s=>{source=s;},v3RestoreUnboundMediaAfterSourceHydration:async()=>{},

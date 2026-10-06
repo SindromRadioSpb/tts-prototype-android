@@ -1,0 +1,17 @@
+{
+  "expected": 1421,
+  "finalized": 1421,
+  "source_bytes": 108366562,
+  "layer_bytes": 90432307,
+  "changed_rows": 37311,
+  "unresolved_words": 7213,
+  "total_words": 947844,
+  "unresolved_rows": 3935,
+  "generated_fragments": 4108,
+  "suspect_rows": 892,
+  "translit_profile_versions": {
+    "sbl": "sbl-v8-gershayim",
+    "ru-phonetic": "ru-phonetic-v5-prefix",
+    "learner-latin": "learner-latin-v6-prefix"
+  }
+}

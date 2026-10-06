@@ -132,6 +132,7 @@ async function nakdan(texts, genre = "modern") {
   }
 
   const results = new Array(texts.length).fill("");
+  const errors = [];
 
   // Process in batches of CONCURRENCY to avoid flooding Dicta.
   for (let i = 0; i < texts.length; i += CONCURRENCY) {
@@ -144,12 +145,13 @@ async function nakdan(texts, genre = "modern") {
         } catch (e) {
           console.warn(`[dicta-cloud] segment ${idx} failed: ${e.message}`);
           results[idx] = "";
+          errors.push({ index: idx, status: Number(e.status) || 0, message: e.message });
         }
       })
     );
   }
 
-  return { ok: true, status: 200, body: { results, model_version: MODEL_VERSION } };
+  return { ok: true, status: 200, body: { results, model_version: MODEL_VERSION, ...(errors.length ? { errors } : {}) } };
 }
 
 module.exports = { nakdan, MODEL_VERSION, _tokensToNiqqud };

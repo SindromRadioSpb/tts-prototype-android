@@ -8,16 +8,18 @@ function fixture(db) {
   let session = { mode: 'library', textId: 'A', baseUpdatedAt: 'revision-A' }, text = 'source-A';
   const ctx = { console, crypto: require('node:crypto').webcrypto, MaterialOpen, MaterialSave: require('../public/js/material-save'), LOCAL_MODE: true,
     v3MaterialOpens: MaterialOpen.create(), currentTableData: [{ _v3_textId: 'A', he: 'AAAA' }],
+    v3LearningNiqqud: null, v3SessionGetUpdateTextId: () => session.textId, v3SetLearningNiqqud() { ctx.v3LearningNiqqud = null; },
     v3LastGeminiMeta: { material: 'A' }, window: {}, getText: () => text,
     v3SessionGet: () => session, v3SessionSet: value => { session = value; },
     v3BuildTtsProfileForSave: () => ({}), v3NormalizeTagsInput: () => [],
     v3TranslationFieldsForSave: () => ({}), ensureLocalDB: async () => db,
     showToast() {}, t: k => k };
   vm.createContext(ctx);
-  const helper = source.slice(source.indexOf('function v3CaptureSaveContext('), source.indexOf('\nasync function v3LibrarySaveCurrentCore'));
+  const helper = source.slice(source.indexOf('function v3SourceTextForSave('), source.indexOf('\nasync function v3LibrarySaveCurrentCore'));
   const update = source.slice(source.indexOf('async function v3LibraryUpdateCurrentCore('), source.indexOf('\nfunction v3LibraryMakeExportFilename'));
   const save = source.slice(source.indexOf('async function v3LibrarySaveCurrentCore('), source.indexOf('\nasync function v3LibraryUpdateCurrentCore'));
-  vm.runInContext(helper + '\n' + update + '\n' + save, ctx);
+  const identity = source.slice(source.indexOf('function v3CheckLearningNiqqudIdentity('), source.indexOf('async function v3ToggleLearningNiqqud('));
+  vm.runInContext(identity + '\n' + helper + '\n' + update + '\n' + save, ctx);
   return { ctx, session: () => session, switchToB() {
     session = { mode: 'library', textId: 'B' }; text = 'source-B';
     ctx.currentTableData = [{ _v3_textId: 'B', he: 'BBBB' }];

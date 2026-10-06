@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.732";
+const CACHE_VERSION = "v3.11.733";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -109,8 +109,8 @@ const PRECACHE_URLS = [
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
-  "/js/benyehuda-learning-niqqud.js?v=732",
-  "/js/benyehuda-learning-niqqud-manifest.js?v=732",
+  "/js/benyehuda-learning-niqqud.js?v=733",
+  "/js/benyehuda-learning-niqqud-manifest.js?v=733",
   "/js/corpus-discovery-core.js?v=731",
   "/js/corpus-discovery-browser.js?v=731",
   "/css/room-discovery.css?v=730",
@@ -135,7 +135,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=732",
+  "/js/library-ui.js?v=733",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -143,7 +143,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=732",
+  "/js/reader-core.js?v=733",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=643",
   "/css/lexical-resolution.css?v=6",
@@ -217,10 +217,10 @@ const PRECACHE_URLS = [
   "/js/media-stream-store.js?v=584",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
-  "/js/local-translit-bundle.js?v=688",
-  "/js/translit-display.js?v=680",
+  "/js/local-translit-bundle.js?v=733",
+  "/js/translit-display.js?v=733",
   "/js/subtitle-material-vocalization.js?v=686",
-  "/js/niqqud-plausibility.js?v=685",
+  "/js/niqqud-plausibility.js?v=733",
   "/js/niqqud-suspect-marks.js?v=685",
   "/js/material-progress-ladder.js?v=685",
   "/js/media-bundle-core.js?v=575",
@@ -251,8 +251,8 @@ const PRECACHE_URLS = [
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=718",
   "/js/studio-media-package.js?v=723",
-  "/js/material-open.js?v=725",
-  "/js/material-save.js?v=726",
+  "/js/material-open.js?v=733",
+  "/js/material-save.js?v=733",
   "/js/studio-session.js?v=723",
   "/js/studio-media-editor.js?v=628",
   "/js/studio-material-revision.js",
@@ -270,7 +270,7 @@ const PRECACHE_URLS = [
   "/js/mp3-slice.js",
   // E1 — формат «карточки текста» v1/v2 (share/import). Без него inline-код шаринга
   // молча деградировал бы до v1 (потеря паспорта), а импорт — до generic-бандла.
-  "/js/text-card-format.js",
+  "/js/text-card-format.js?v=733",
   // MASS-ACCESS I3 — one Send or save contract for Studio and Reading Room.
   // Package bytes, file hand-off and browser save remain separate outcomes.
   "/js/share-service.js",
@@ -321,9 +321,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=282",
-  "/i18n/locales/en.js?v=282",
-  "/i18n/locales/he.js?v=282",
+  "/i18n/locales/ru.js?v=283",
+  "/i18n/locales/en.js?v=283",
+  "/i18n/locales/he.js?v=283",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -336,7 +336,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=727",
+  "/db/local-db.js?v=733",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
@@ -445,7 +445,7 @@ self.addEventListener("install", (event) => {
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, PUBLIC_CORPUS_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE, 'linguistpro-library-audio-v1']);
+    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, PUBLIC_CORPUS_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE, 'linguistpro-library-audio-v1', 'linguistpro-benyehuda-learning-v1']);
     const names = await caches.keys();
     await Promise.all(
       names

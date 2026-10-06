@@ -26,7 +26,9 @@
   // Prepare synchronously before quota, DB or media resolution can yield to another action.
   function prepare(save, meta, normalizeTags) {
     const options = clone(meta && typeof meta === 'object' ? meta : {}) || {};
-    const payload = { sourceText: save.sourceText, rows: clone(save.rows), ttsProfile: clone(save.ttsProfile),
+    const api = globalThis.BenYehudaLearningNiqqud;
+    const rows = clone(save.rows).map(row => api ? api.restoreSource(row) : row);
+    const payload = { sourceText: save.sourceText, rows, ttsProfile: clone(save.ttsProfile),
       tableModelMeta: clone(save.tableModelMeta), tags: normalizeTags(options.tags) };
     for (const key of ['title', 'level', 'source', 'topic']) payload[key] = String(options[key] || '').trim() || null;
     return { save, payload, options };

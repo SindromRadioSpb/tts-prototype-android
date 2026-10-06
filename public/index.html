@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=727">
+    <link rel="modulepreload" href="/db/local-db.js?v=733">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -8850,6 +8850,11 @@ body.v3-ide-mode {
   margin-top: 4px;
 }
 
+/* Study controls remain visible in the simplified IDE header. */
+.v3-ide-study-controls { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:8px; }
+.v3-ide-study-controls label { font-size:12px; }
+.v3-ide-study-controls select { min-height:44px; max-width:100%; width:auto; }
+.v3-ide-study-controls button { min-height:44px; }
 .v3-ide-center-actions {
   display: flex;
   gap: 8px;
@@ -11055,7 +11060,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=727';
+  import * as _ldb from '/db/local-db.js?v=733';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -11445,6 +11450,15 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
+<div class="v3-ide-study-controls">
+  <label for="v3IdeTranslitProfile" data-i18n="classic.translitProfile">Профиль транслитерации</label>
+  <select id="v3IdeTranslitProfile" class="provider-select">
+    <option value="learner-latin" data-i18n="classic.translitLearnerLatin">Транслит: учебная латиница</option>
+    <option value="sbl" data-i18n="classic.translitSbl">Транслит: SBL Academic</option>
+    <option value="ru-phonetic" data-i18n="classic.translitRuPhonetic">Транслит: Русская фонетика</option>
+  </select>
+  <button id="v3IdeLearningNiqqud" type="button" class="btn-secondary" hidden onclick="v3ToggleLearningNiqqud()"></button>
+</div>
 
 <div class="v3-ide-mobile-colsbar">
   <button
@@ -11985,6 +11999,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 			                            <option value="sbl">Транслит: SBL Academic</option>
 			                            <option value="ru-phonetic">Транслит: Русская фонетика</option>
 		                            </select>
+                                    <button id="v3ClassicLearningNiqqud" type="button" class="btn-secondary" hidden onclick="v3ToggleLearningNiqqud()"></button>
                                 </div>
 
                                 <div class="field-group">
@@ -13629,9 +13644,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=282"></script>
-<script src="/i18n/locales/en.js?v=282"></script>
-<script src="/i18n/locales/he.js?v=282"></script>
+<script src="/i18n/locales/ru.js?v=283"></script>
+<script src="/i18n/locales/en.js?v=283"></script>
+<script src="/i18n/locales/he.js?v=283"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13735,11 +13750,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=684"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
-<script src="/js/local-translit-bundle.js?v=688"></script>
-<script src="/js/translit-display.js?v=680"></script>
+<script src="/js/local-translit-bundle.js?v=733"></script>
+<script src="/js/translit-display.js?v=733"></script>
 <script src="/js/subtitle-material-vocalization.js?v=686"></script>
 <!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
-<script src="/js/niqqud-plausibility.js?v=685"></script>
+<script src="/js/niqqud-plausibility.js?v=733"></script>
 <script src="/js/niqqud-suspect-marks.js?v=685"></script>
 <script src="/js/material-progress-ladder.js?v=685"></script>
 <!-- Transport container: a material that travels with its media. Byte format, then file IO. -->
@@ -13779,8 +13794,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=718"></script>
-<script src="/js/material-open.js?v=725"></script>
-<script src="/js/material-save.js?v=726"></script>
+<script src="/js/material-open.js?v=733"></script>
+<script src="/js/benyehuda-learning-niqqud.js?v=733"></script>
+<script src="/js/benyehuda-learning-niqqud-manifest.js?v=733"></script>
+<script src="/js/material-save.js?v=733"></script>
 <script src="/js/studio-session.js?v=723"></script>
 <script src="/js/studio-media-package.js?v=723"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
@@ -13800,7 +13817,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/mp3-slice.js"></script>
 <!-- E1 — ядро формата «карточка текста» v1/v2 (build/detect/adapt). Чистые функции,
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
-<script src="/js/text-card-format.js"></script>
+<script src="/js/text-card-format.js?v=733"></script>
 <script src="/js/share-service.js"></script>
 <script src="/js/studio-media-karaoke.js?v=729"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
@@ -13876,7 +13893,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.732";
+    window.APP_VERSION = "3.11.733";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14073,6 +14090,40 @@ const V3_IDE_MODE_KEY = "v3_ide_mode_enabled";  // "0" | "1"
 const V3_IDE_STATE_KEY = "v3_ide_state_v1";
 
 const v3MaterialOpens = MaterialOpen.create({ surface: "studio" });
+let v3LearningNiqqud = null;
+function v3SetLearningNiqqud(material) {
+  v3LearningNiqqud = material?.learningNiqqud ? { text: material.text, layer: material.learningNiqqud.layer, original: false } : material?.studyNiqqudStatus === 'unavailable' ? { text: material.text, unavailable: true } : material?.text && window.BenYehudaLearningNiqqud?.pinFor(material.text) ? { text: material.text, sourceOnly: true } : null;
+  v3UpdateLearningNiqqudButtons();
+}
+function v3UpdateLearningNiqqudButtons() {
+  for (const id of ['v3ClassicLearningNiqqud', 'v3IdeLearningNiqqud']) {
+    const button = document.getElementById(id);
+    if (!button) continue;
+    const state = v3LearningNiqqud;
+    button.hidden = !state || !!state.sourceOnly; button.disabled = !!state?.unavailable;
+    if (!state) continue;
+    if (state.unavailable) { button.dataset.i18n = 'room.reader.niqqudLayer.unavailable'; button.textContent = t(button.dataset.i18n); button.removeAttribute('data-i18n-title'); button.title = ''; continue; }
+    const key = 'room.reader.niqqudLayer.' + (state.original ? 'original' : 'learning');
+    button.dataset.i18n = key; button.textContent = t(key);
+    button.dataset.i18nTitle = 'room.reader.niqqudLayer.explanation'; button.title = t(button.dataset.i18nTitle);
+  }
+}
+function v3CheckLearningNiqqudIdentity() {
+  if (v3LearningNiqqud && String(v3SessionGetUpdateTextId() || '') !== String(v3LearningNiqqud.text.id)) v3SetLearningNiqqud(null);
+}
+async function v3ToggleLearningNiqqud() {
+  v3CheckLearningNiqqudIdentity();
+  const state = v3LearningNiqqud, rows = currentTableData, api = window.BenYehudaLearningNiqqud;
+  if (!state || !state.layer || state.unavailable || !api || !Array.isArray(rows)) return;
+  const original = !state.original;
+  const result = original ? rows.map(api.restoreSource) : (await api.apply(state.text, rows, state.layer)).sentences;
+  if (state !== v3LearningNiqqud || rows !== currentTableData) return;
+  state.original = original; currentTableData = result;
+  const top = window.scrollY;
+  if (document.body.classList.contains('v3-ide-mode')) v3IdeRenderTable(result, state.text.id);
+  else renderTable(result);
+  v3UpdateLearningNiqqudButtons(); window.scrollTo(0, top);
+}
 const v3SessionStore = StudioSession.create(localStorage, sessionStorage);
 v3SessionStore.bootstrap();
 function v3RememberOpenedMaterial(textId, opts) {
@@ -15125,6 +15176,7 @@ function v3ProductPulseMediaFacts(rows) {
 
 async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex, opts) {
   const open = v3MaterialOpens.begin(textId);
+  v3SetLearningNiqqud(null);
   try { window.v3FlushProgressNow?.(); v3MediaTeardown(); } catch (_) {}
   const header = document.getElementById("v3IdeCenterHeader");
   const content = document.getElementById("v3IdeCenterContent");
@@ -15142,6 +15194,7 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex,
   const material = await MaterialOpen.load(textId, { localDb: ldb, getJson: v3GetJson, isCurrent: open.isCurrent });
   if (!open.isCurrent()) return;
   if (!material.ok) throw material.error || new Error(material.reason);
+  v3SetLearningNiqqud(material);
   const t = material.text;
   open.mark("data");
   v3SetSourceTextFromLibrary(String(t.source_text || t.sourceText || ""));
@@ -15283,7 +15336,7 @@ if (header) {
       }).catch(() => {});
     }
 
-    if (!immutableMaterial) {
+    if (!immutableMaterial && !window.BenYehudaLearningNiqqud?.pinFor(t)) {
       v3LazyFillTranslit(textId, rows, open.isCurrent).then(filled => {
         if (filled && open.isCurrent()) v3RefreshFilledTranslit(textId, rows);
       }).catch(() => {});
@@ -15429,6 +15482,7 @@ function v3SetRowAudioIndicator(element, state, label, detail) {
 }
 
 function v3IdeRenderTable(rows, textId) {
+  v3CheckLearningNiqqudIdentity();
   const content = document.getElementById("v3IdeCenterContent");
   if (!content) return;
 
@@ -15507,11 +15561,16 @@ function v3IdeRenderTable(rows, textId) {
     html += '<th data-col="' + c.k + '"' + (c.hCls ? ' class="' + c.hCls + '"' : '') + '>' + c.label + grip + '</th>';
   });
   html += '</tr></thead><tbody>';
-
+  const ideTranslitProfile = getSelectedTranslitProfile();
+  const ideTranslitStore = v3TranslitStore();
+  if (ideTranslitStore) ideTranslitStore.beginRender();
   rows.forEach((row, idx) => {
     const he = v3EscapeHtml(row.he || row.he_plain || row.hebrew || "");
     const niqqud = v3EscapeHtml(row.he_niqqud || row.niqqud || "");
-    const translit = v3EscapeHtml(row.translit || row.transliteration || "");
+    const niqqudHint = window.BenYehudaLearningNiqqud?.reviewHint(row,t) || '';
+    const niqqudAttrs = window.BenYehudaLearningNiqqud?.isLearning(row) ? ' data-niqqud-authority="learning" title="' + v3EscapeHtml(t('room.reader.niqqudLayer.cellExplanation') + ' ' + niqqudHint) + '"' : '';
+    const niqqudBadge = niqqudHint ? '<span class="niqqud-derived-badge" title="' + v3EscapeHtml(niqqudHint) + '">⁕</span>' : '';
+    const translit = v3EscapeHtml(v3TranslitDisplay(row, ideTranslitProfile));
     const ru = v3EscapeHtml(row.ru || row.translation || "");
     const sentenceId = row._v3_sentenceId;
 
@@ -15531,7 +15590,7 @@ function v3IdeRenderTable(rows, textId) {
           </div>
         </td>` : ''}
         ${showHe ? `<td class="rtl rtl-he">${he}${window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||''}</td>` : ''}
-        ${showNiq ? `<td class="rtl rtl-he-niqqud">${niqqud}</td>` : ''}
+        ${showNiq ? `<td data-col="niqqud" class="rtl rtl-he-niqqud"${niqqudAttrs}>${niqqud}${niqqudBadge}</td>` : ''}
         ${showTr ? `<td data-col="translit">${translit}</td>` : ''}
         ${showRu ? `<td>${ru}</td>` : ''}
       </tr>
@@ -15544,6 +15603,9 @@ function v3IdeRenderTable(rows, textId) {
   `;
 
   content.innerHTML = html;
+  if (ideTranslitStore) ideTranslitStore.endRender(() => {
+    if (rows === currentTableData && v3IdeState.activeTextId === textId && getSelectedTranslitProfile() === ideTranslitProfile) v3IdeRenderTable(rows, textId);
+  });
 
   // Bind column resize handlers and apply stored widths
   try { if (typeof attachResizeHandlers === "function") attachResizeHandlers(); } catch(e) {}
@@ -17635,7 +17697,7 @@ function v3IdeExportCopy() {
   const parts = [
     row.he || row.hebrew || "",
     row.he_niqqud || row.niqqud || "",
-    row.translit || row.transliteration || "",
+    v3TranslitDisplay(row, getSelectedTranslitProfile()),
     row.ru || row.translation || ""
   ].filter(p => p.trim());
 
@@ -17713,7 +17775,7 @@ async function v3DownloadDocxLocal(textId) {
   const ldb = await ensureLocalDB();
   const text = await ldb.getTextById(textId);
   if (!text) throw new Error("Text not found in local DB");
-  const sentences = await ldb.getSentences(textId);
+  const sentences = await ldb.getStudySentences(textId);
   const notes = await ldb.listNotes(textId);
   const r = await fetch("/api/export/docx", {
     method: "POST",
@@ -23073,6 +23135,9 @@ updatePlaylistButtonUI();
             _v3_textId: textId ? String(textId) : null,
             _v3_orderIndex: r.order_index ?? null,
         };
+        for (const key of ['niqqud_authority', 'niqqud_provenance', 'niqqud_quality', '_learning_niqqud_source', 'translit_precomputed']) {
+          if (r[key] != null) mapped[key] = r[key];
+        }
         // B+C: source identity is persisted additively in edit_meta_json. Restore it as
         // distinct fields; never resurrect the ambiguous legacy segment_index alias.
         try {
@@ -27686,6 +27751,7 @@ function v3SetSourceTextFromLibrary(raw) {
 
 async function v3LibraryOpenText(textId, opts) {
   const open = v3MaterialOpens.begin(textId);
+  v3SetLearningNiqqud(null);
   try { window.v3FlushProgressNow?.(); v3MediaTeardown(); } catch (_) {}
   const resumeSentenceId = (opts && opts.resumeSentenceId) ? String(opts.resumeSentenceId) : null;
 const resume = !!(opts && (opts.resume || resumeSentenceId));
@@ -27706,6 +27772,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     if (material.reason === 'notFound') v3SessionStore.forget(textId);
     throw material.error || new Error(material.reason);
   }
+  v3SetLearningNiqqud(material);
   const { text, sentences } = material;
   let immutableMaterial = false;
   // Notes are optional; start after the critical reads have been queued.
@@ -27868,7 +27935,7 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
     // Enrichment must not delay resume or replace the mounted table under playback.
     // The local display store already derives Classic transliteration; patch only
     // missing stored fields and cells when the optional server fill finishes.
-    if (!immutableMaterial) {
+    if (!immutableMaterial && !window.BenYehudaLearningNiqqud?.pinFor(text)) {
       v3LazyFillTranslit(textId, sentences, open.isCurrent).then(filled => {
         if (!filled || !open.isCurrent()) return;
         v3RefreshFilledTranslit(textId, sentences);
@@ -28189,10 +28256,22 @@ async function v3LibrarySaveCurrent() {
 }
 
 // Thin UI adapters: the coordinator owns the snapshot and storage transaction.
+function v3SourceTextForSave() {
+  const input = String(getText() || "").trim();
+  if (input) return input;
+  v3CheckLearningNiqqudIdentity();
+  const state = v3LearningNiqqud;
+  if (!state || !Array.isArray(currentTableData) || !currentTableData.length) return "";
+  // Corpus table view has no source editor. Saving that visible material can still preserve its source.
+  return String(state.text.source_text || currentTableData.map(row => row.he_plain ?? row.he ?? row.hebrew_plain ?? "").join("\n")).trim();
+}
 function v3CaptureSaveContext(targetId) {
   const ttsProfile = v3BuildTtsProfileForSave();
+  v3CheckLearningNiqqudIdentity();
+  const binding = v3LearningNiqqud && window.BenYehudaLearningNiqqud?.copyBinding(v3LearningNiqqud.text);
+  const tableModelMeta = binding ? Object.assign({}, v3LastGeminiMeta || {}, binding) : v3LastGeminiMeta;
   return MaterialSave.capture(() => ({ session: v3SessionGet() || {}, operation: v3MaterialOpens.current(),
-    rows: currentTableData, sourceText: getText(), tableModelMeta: v3LastGeminiMeta,
+    rows: currentTableData, sourceText: v3SourceTextForSave(), tableModelMeta,
     audio: window.v3ActiveMediaAudio, ttsProfile }), targetId);
 }
 function v3MaterialSaveDependencies(save) {
@@ -28218,7 +28297,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       try { v3MediaLostBarRefresh(); const bar = document.getElementById("v3MediaLostBar"); if (bar) bar.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
       return null;
     }
-    const sourceText = String(getText() || "").trim();
+    const sourceText = v3SourceTextForSave();
     if (!sourceText) {
       showToast(t("toast.noSourceTextToSave"), "error");
       return null;
@@ -28339,7 +28418,7 @@ async function v3LibrarySaveCurrentCore(meta) {
 
 async function v3LibraryUpdateCurrentCore(textId, meta) {
   try {
-    const sourceText = String(getText() || "").trim();
+    const sourceText = v3SourceTextForSave();
     if (!sourceText) {
       showToast(t("toast.noSourceTextToSave"), "error");
       return null;
@@ -38617,11 +38696,20 @@ try {
                 el.value = saved;
             }
         } catch (_) {}
+        const ideSelect = document.getElementById('v3IdeTranslitProfile');
+        if (ideSelect) {
+            ideSelect.value = el.value;
+            ideSelect.addEventListener('change', () => { el.value = ideSelect.value; el.dispatchEvent(new Event('change', { bubbles: true })); });
+        }
         el.addEventListener("change", () => {
+            if (ideSelect) ideSelect.value = el.value;
             try { localStorage.setItem(TRANSLIT_PROFILE_LS_KEY, el.value); } catch (_) {}
             // The column is derived per profile from the pointed text (v3TranslitDisplay).
             if (Array.isArray(currentTableData) && currentTableData.length > 0) {
-                try { renderTable(currentTableData); } catch (_) {}
+                try {
+                  if (document.body.classList.contains('v3-ide-mode') && v3IdeState.activeTextId) v3IdeRenderTable(currentTableData, v3IdeState.activeTextId);
+                  else renderTable(currentTableData);
+                } catch (_) {}
             }
         });
     }
@@ -39007,6 +39095,7 @@ try {
     // RENDER TABLE (with colgroup + grips)
     // ----------------------------
     function renderTable(rows) {
+        v3CheckLearningNiqqudIdentity();
         try { classicCloseRowSheet(); } catch (_) {}
         if (!Array.isArray(rows) || rows.length === 0) {
     document.getElementById("tableContainer").innerHTML = "";
@@ -39198,7 +39287,10 @@ try {
 
         // Content cell: plain text only (buttons are in dedicated action column)
         const speechBadge = k === 'he' ? (window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||'') : '';
-        html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + speechBadge + '</td>';
+        const niqqudHint = k === 'niqqud' ? window.BenYehudaLearningNiqqud?.reviewHint(row,t) || '' : '';
+        const niqqudAttrs = k === 'niqqud' && window.BenYehudaLearningNiqqud?.isLearning(row) ? ' data-niqqud-authority="learning" title="' + escapeHtml(t('room.reader.niqqudLayer.cellExplanation') + ' ' + niqqudHint) + '"' : '';
+        const niqqudBadge = niqqudHint ? '<span class="niqqud-derived-badge" title="' + escapeHtml(niqqudHint) + '">⁕</span>' : '';
+        html += '<td data-col="' + k + '"' + tdClass + niqqudAttrs + '>' + escapeHtml(value) + niqqudBadge + speechBadge + '</td>';
     });
 
     html += '</tr>';
@@ -40687,7 +40779,9 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
     // ----------------------------
     function downloadTableEvidenceJson() {
         if (!Array.isArray(currentTableData) || !currentTableData.length) return;
-        const cleanRow = (row, index) => ({
+        const cleanRow = (presented, index) => {
+          const row = window.BenYehudaLearningNiqqud?.restoreSource(presented) || presented;
+          return ({
             order_index: index,
             kind: row && (row.kind || row._kind) || null,
             he_plain: row && (row.he || row.he_plain) || "",
@@ -40699,13 +40793,16 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
             translation_provider: row && (row.translation_provider || row._translationProvider) || null,
             translation_meta_json: row && (row.translation_meta_json || row._translationMetaJson) || null,
             edit_meta_json: row && row.edit_meta_json || null,
-        });
+            ...(presented._learning_niqqud_source ? { study_pointing: { he_niqqud: presented.he_niqqud,
+              provenance: presented.niqqud_provenance, quality: presented.niqqud_quality,
+              translit_profile: getSelectedTranslitProfile(), translit: v3TranslitDisplay(presented,getSelectedTranslitProfile()) } } : {}),
+        }); };
         const importMeta = window.v3LastImportMeta && typeof window.v3LastImportMeta === "object"
           ? window.v3LastImportMeta : null;
         const payload = {
           format: "linguistpro-table-evidence-v1",
           exported_at: new Date().toISOString(),
-          source_text: String(inputTextEl && inputTextEl.value || ""),
+          source_text: v3SourceTextForSave(),
           source_provenance: importMeta,
           table_provenance: (v3LastGeminiMeta && typeof v3LastGeminiMeta === "object") ? v3LastGeminiMeta : null,
           rows: currentTableData.map(cleanRow),
@@ -40752,7 +40849,7 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
                 const ldb = await ensureLocalDB();
                 const text = await ldb.getTextById(String(exportId));
                 if (!text) { showToast(t("toast.textNotFound")); return; }
-                const sentences = await ldb.getSentences(String(exportId));
+                const sentences = await ldb.getStudySentences(String(exportId));
                 const notes = await ldb.listNotes(String(exportId));
                 res = await fetch("/api/export/docx", {
                   method: "POST",
@@ -42270,7 +42367,7 @@ async function v3AnkiDownloadApkg() {
       }));
     }
     if (cardKind === "sentences" || cardKind === "both") {
-      const sents = await ldb.getSentences(exportId);
+      const sents = await ldb.getStudySentences(exportId);
       const noteBySid = {}, audioBySid = {};
       if (includeHint) { const noteRows = await ldb.listNotes(exportId); for (const nr of (noteRows || [])) noteBySid[nr.sentence_id] = nr.note; }
       if (withAudio) { for (const s of (sents || [])) { if (s && s.audio_asset_key) { const af = await audio.attach(s.audio_asset_key); if (af) audioBySid[s.id] = af; } } }
@@ -44949,6 +45046,7 @@ async function v3TcsBuildCardPayload(textId) {
 
   return window.TextCardFormat.buildCardPayload({
     text, sentences, notesBySentenceId, appTag: V3_TCS_APP_TAG,
+    learningNiqqudLayer: window.BenYehudaLearningNiqqud ? await window.BenYehudaLearningNiqqud.portable(text) : null,
   });
 }
 
@@ -50597,7 +50695,7 @@ function v3NotesEnsureSentenceContext(rowIdx) {
     const r = (Array.isArray(currentTableData) && Number.isFinite(idx)) ? currentTableData[idx] : null;
     const he = r ? String(r.he_niqqud || r.he || "").trim() : "";
     const ru = r ? String(r.ru || "").trim() : "";
-    const tr = r ? String(r.translit || "").trim() : "";
+    const tr = r ? v3TranslitDisplay(r, getSelectedTranslitProfile()).trim() : "";
 
     const parts = [];
     parts.push(`<div><b>Строка:</b> #${Number.isFinite(idx) ? (idx + 1) : "?"}</div>`);

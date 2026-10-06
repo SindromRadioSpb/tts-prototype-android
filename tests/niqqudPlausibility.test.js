@@ -22,6 +22,10 @@ test("ordinary pointings pass", () => {
     assert.deepEqual(P.wordFaults(w), [], w);
   }
 });
+test('final begadkefat and punctuation-separated quotation/stutter are not synthetic pointing faults', () => {
+  for (const word of ['וַיֵּבְךְּ', 'זְ-זְּ-זֶה', 'בְּ"וְאֵלֶּה']) assert.deepEqual(P.wordFaults(word), [], word);
+  assert.deepEqual(P.wordFaults('תְּנְגֵּב!'), ['INITIAL_DOUBLE_SHEVA']);
+});
 
 test("scan names word positions on the whitespace split, punctuation included", () => {
   assert.deepEqual(P.scan("הוּא תְּנְגֵּב  אֶת\nהַכֵּלִים."), [{ index: 1, word: "תְּנְגֵּב", reasons: ["INITIAL_DOUBLE_SHEVA"] }]);

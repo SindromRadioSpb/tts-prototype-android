@@ -10,6 +10,19 @@ const D = require("../public/js/translit-display.js");
 const { transliterateWithProfile: T } = require("../db/premium/translit.js");
 
 const row = { he_niqqud: "שָׁלוֹם לָכֶם", translit: "Shalom lakhem", translit_ru: "" };
+test('prepared profiles avoid derivation only for the exact pointing and engine version, while manual edits win', () => {
+  let calls = 0; const derive = (text, profile) => { calls++; return T(text, profile); };
+  derive.profileVersions = T.profileVersions;
+  const profiles = Object.fromEntries(D.PROFILES.map(profile => [profile, T(row.he_niqqud, profile)]));
+  const prepared = { ...row, translit_precomputed: { source: row.he_niqqud, versions: { ...T.profileVersions }, profiles } };
+  const show = D.createDisplay(derive);
+  for (const profile of D.PROFILES) assert.equal(show(prepared, profile), profiles[profile]);
+  assert.equal(calls, 0);
+  assert.equal(show({ ...prepared, edit_meta_json: { edited: { translit: true } }, translit: 'My Latin' }, 'sbl'), 'My Latin');
+  assert.equal(calls, 0);
+  show({ ...prepared, he_niqqud: 'בְּדִיקָה' }, 'sbl'); assert.equal(calls, 1);
+  prepared.translit_precomputed.versions.sbl = 'old-engine'; show(prepared, 'sbl'); assert.equal(calls, 2);
+});
 
 test("every profile is derived from the pointed text, not from the stored column", () => {
   const show = D.createDisplay(T);

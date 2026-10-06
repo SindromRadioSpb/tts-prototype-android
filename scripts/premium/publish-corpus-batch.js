@@ -225,13 +225,15 @@ function printManualBlock(next, baked) {
   console.log(tag);
   console.log("# 1) PUSH BODIES FIRST (volume — never mark cards ready before the body is on prod / R1):");
   console.log("    $env:AUDIO_UPLOAD_TOKEN='<secret>'; node scripts/premium/push-corpus-works.js --skip-existing");
+  console.log("    # Mature study manifest: finalize against this frozen catalog, then install all pinned learning-niqqud assets before publishing it.");
+  console.log("    # python3 scripts/premium/install-learning-niqqud.py --release <staged-release> --corpus <volume-data/benyehuda>");
   console.log("# 2) GIT ADD — ALLOWLIST ONLY (never `git add -A`, never works/, never index.html):");
   console.log("    git add public/data/benyehuda/corpus-catalog-v2.json \\");
   console.log("            public/data/benyehuda/corpus-catalog-v" + next + ".json \\");
   console.log("            public/data/benyehuda/corpus-index-v" + next + ".json \\");
   console.log("            public/data/benyehuda/corpus-search-v" + next + ".json \\");
   console.log("            public/data/benyehuda/catalog/era-*-v" + next + ".json \\");
-  console.log("            public/js/library-ui.js public/sw.js");
+  console.log("            public/js/library-ui.js public/sw.js public/js/benyehuda-learning-niqqud-manifest.js");
   console.log("    git status --short    # MUST show only the above. If any works/*.json → git restore --staged public/data/benyehuda/works/");
   console.log("# 3) COMMIT + PUSH (gates green first; push → Coolify deploy):");
   console.log("    git commit -m \"feat(corpus): publish batch — " + (baked != null ? baked : "<baked>") + " ready (catalog v" + next + ")\" && git push");
@@ -255,6 +257,16 @@ async function main() {
   const bakedFrom = path.join(outDir, "corpus-catalog-v2.json");
   // buildVNext reads era-map from outDir in dry-run (copied there), real DATA_DIR in apply.
   const vn = buildVNext(next, outDir, bakedFrom, eraMapForRun);
+  // The mature study layer is a publication contract. A new catalog cannot silently
+  // restore the old "any point means full niqqud" behaviour for newly baked works.
+  if (APPLY) {
+    require(path.join(REPO, 'public/js/benyehuda-learning-niqqud-manifest.js'));
+    const manifest = globalThis.BenYehudaLearningNiqqudManifest;
+    if (manifest?.revision >= 2) {
+      require('./learning-niqqud-corpus').assertPublication(manifest,
+        fs.readFileSync(path.join(outDir, 'corpus-index-v' + next + '.json')));
+    }
+  }
 
   const cacheVer = computeCacheVersion(next);
   console.log("\n[publish] version: live v" + base + " → publish v" + next + " · proposed CACHE_VERSION = " + cacheVer);

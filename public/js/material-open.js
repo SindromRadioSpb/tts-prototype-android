@@ -49,8 +49,14 @@
           sentences.some(row => row.text_id != null && String(row.text_id) !== String(id))) {
         return { ok: false, reason: 'identity', error: new Error('MATERIAL_IDENTITY_MISMATCH') };
       }
-      return { ok: true, text, sentences: sentences.slice().sort((a, b) =>
+      let material = { ok: true, text, sentences: sentences.slice().sort((a, b) =>
         Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0)) };
+      const prepare = options.prepareMaterial || globalThis.BenYehudaLearningNiqqud?.prepare;
+      if (prepare && options.sourceOnly !== true) {
+        try { material = await prepare(material, isCurrent); } catch (_) { /* saved source remains available */ }
+        if (!isCurrent()) return obsolete();
+      }
+      return material;
     } catch (error) {
       return isCurrent() ? { ok: false, reason: 'fetch', error } : obsolete();
     }

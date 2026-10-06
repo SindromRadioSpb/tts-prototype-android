@@ -1,4 +1,4 @@
-import '/js/material-open.js?v=725';
+import '/js/material-open.js?v=733';
 // library-ui.js — BRR-P0-002 Reading Room surface (Layout A: track tabs +
 // vertical shelf stack with horizontal work-card carousels).
 //
@@ -9,7 +9,7 @@ import '/js/material-open.js?v=725';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=727';
+import * as localDbRaw from '/db/local-db.js?v=733';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -30,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=732';
+import * as readerCore from '/js/reader-core.js?v=733';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=730';
@@ -1798,12 +1798,10 @@ function roomFocusTrap(e, container) {
 }
 let readerRows = [];
 let readerLearningNiqqud = null;
-let learningNiqqudLoader = null;
 function prepareReaderLearningNiqqud(material, isCurrent) {
   const api = window.BenYehudaLearningNiqqud;
   if (!api || !window.BenYehudaLearningNiqqudManifest) return material;
-  if (!learningNiqqudLoader) learningNiqqudLoader = api.createLoader(window.BenYehudaLearningNiqqudManifest);
-  return learningNiqqudLoader.prepare(material, isCurrent);
+  return api.prepare(material, isCurrent);
 }
 function renderReaderLearningNiqqud() {
   $('readerLearningNiqqud')?.remove();
@@ -1811,6 +1809,10 @@ function renderReaderLearningNiqqud() {
   if (!state) return;
   const box = $('readerSubtitle');
   if (!box) return;
+  if (state.unavailable) {
+    const notice = el('span', { class: 'reader-sub-chip', attrs: { id: 'readerLearningNiqqud', role: 'status' }, text: tt('room.reader.niqqudLayer.unavailable') });
+    box.appendChild(notice); box.hidden = false; return;
+  }
   const button = el('button', { class: 'reader-sub-chip', attrs: { id: 'readerLearningNiqqud', type: 'button' } });
   const update = () => {
     const key = state.original ? 'room.reader.niqqudLayer.original' : 'room.reader.niqqudLayer.learning';
@@ -1818,6 +1820,7 @@ function renderReaderLearningNiqqud() {
     button.dataset.i18nTitle = 'room.reader.niqqudLayer.explanation';
     button.textContent = tt(key);
     button.title = tt('room.reader.niqqudLayer.explanation');
+    if (state.unresolved) button.title += ' ' + tt('room.reader.niqqudLayer.unresolved').replace('{count}', String(state.unresolved));
   };
   update();
   button.addEventListener('click', () => {
@@ -6621,6 +6624,7 @@ function showResumeBanner(idx) {
   const reader = $('roomReader'), tbl = $('roomReaderTable');
   if (!reader || !tbl) return;
   const bar = el('div', { class: 'reader-resume' }); bar.id = 'readerResume';
+  bar.dataset.resumeRow = String(idx);
   bar.appendChild(el('span', { class: 'reader-resume-msg', text: tt('room.resume.fromRow', 'Вы остановились на строке') + ' ' + (idx + 1) }));
   const go = el('button', { class: 'reader-resume-go', i18n: 'room.resume.continue', text: tt('room.resume.continue', 'Продолжить') });
   go.type = 'button';
@@ -8480,7 +8484,9 @@ function readerCorpusMeta(textRow) {
   if (typeof sm === 'string') { try { sm = JSON.parse(sm); } catch (_) { return null; } }
   return sm && typeof sm === 'object' && sm.corpus && typeof sm.corpus === 'object' ? sm.corpus : null;
 }
+let readerSubtitleText = null;
 function setReaderSubtitle(textRow) {
+  readerSubtitleText = textRow || null;
   const box = $('readerSubtitle');
   if (!box) return;
   box.innerHTML = '';
@@ -8635,8 +8641,9 @@ async function openReader(textId, title, opts) {
   readerRows = res && res.ok ? res.rows : [];
   if (res?.learningNiqqud) {
     readerLearningNiqqud = { original: false, learningRows: readerRows,
+      unresolved: res.learningNiqqud.layer.coverage?.unresolved_words || 0,
       sourceRows: res.learningNiqqud.sourceSentences.map(row => readerCore.mapSentenceRowToUiRow(row, textId)) };
-  }
+  } else if (res?.studyNiqqudStatus === 'unavailable') readerLearningNiqqud = { unavailable: true };
   if (res && res.ok && readerRows.length) {
     try { window.ProductTelemetry?.confirmMaterialOpen({ text: res.text, media: productPulseRoomMediaFacts(res.text, readerRows) }); } catch (_) {}
   }
@@ -14891,7 +14898,16 @@ function wireChrome() {
   document.addEventListener('i18n:changed', () => {
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     try { applyTheme(getTheme()); } catch (_) {}   // re-localize the theme toggle title
-    try { const r = $('roomReader'); if (r && !r.hidden && readerRows.length) rerenderReader(); } catch (_) {}
+    try {
+      const r = $('roomReader');
+      if (r && !r.hidden && readerRows.length) { setReaderSubtitle(readerSubtitleText); renderReaderLearningNiqqud(); rerenderReader(); }
+      const banner = $('readerResume');
+      if (banner) {
+        const index = Number(banner.dataset.resumeRow);
+        banner.querySelector('.reader-resume-msg').textContent = tt('room.resume.fromRow') + ' ' + (index + 1);
+        const close = banner.querySelector('.reader-resume-x'); close.title = tt('room.resume.toStart'); close.setAttribute('aria-label', close.title);
+      }
+    } catch (_) {}
     // Corpus nav builds dynamic labels (counts, "показать ещё") in JS — re-render it on
     // locale change so they re-translate, but only when the reader isn't covering it.
     try { const rd = $('roomReader'); if (activeTrack === 'corpus' && (!rd || rd.hidden)) renderCorpus(); } catch (_) {}

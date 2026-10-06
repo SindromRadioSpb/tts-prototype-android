@@ -435,13 +435,13 @@ test("контракт: createText пишет table_model_meta_json, addSentence
 
 test("контракт: index.html экспортирует v2 и принимает обе версии", () => {
   const html = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
-  assert.ok(html.includes('<script src="/js/text-card-format.js"></script>'),
+  assert.ok(/<script src="\/js\/text-card-format\.js(?:\?v=\d+)?"><\/script>/.test(html),
     "text-card-format.js не подключён — window.TextCardFormat будет undefined");
   assert.ok(html.includes("TextCardFormat.buildCardPayload"));
   assert.ok(html.includes("TextCardFormat.cardToBundle"));
   assert.ok(/TCF\.detectCard\(/.test(html), "детект формата не подключён к ядру");
   const sw = fs.readFileSync(path.join(__dirname, "../public/sw.js"), "utf8");
-  assert.ok(sw.includes('"/js/text-card-format.js"'), "модуль не в PRECACHE — офлайн-сессия его потеряет");
+  assert.ok(/"\/js\/text-card-format\.js(?:\?v=\d+)?"/.test(sw), "модуль не в PRECACHE — офлайн-сессия его потеряет");
   assert.deepEqual(TCF.SUPPORTED_FORMATS, ["linguistpro-text-card-v1", "linguistpro-text-card-v2"]);
 });
 

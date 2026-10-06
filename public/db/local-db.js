@@ -1286,6 +1286,36 @@ export async function getSentences(textId) {
   return _nakdanDerived.applyProjection(rows, state.source_hash);
 }
 
+// Presentation/export only. Storage, backup rows and editing compare against getSentences().
+export async function getStudySentences(textId) {
+  const [text, sentences] = await Promise.all([getTextByIdLite(textId), getSentences(textId)]);
+  const api = globalThis.BenYehudaLearningNiqqud;
+  if (!text || !api) return sentences;
+  try { return (await api.prepare({ text, sentences })).sentences; } catch (_) { return sentences; }
+}
+const _studySentenceCache = new Map();
+async function _studySentence(row) {
+  if (!row?.text_id || !globalThis.BenYehudaLearningNiqqud) return row;
+  try {
+    const text = await getTextByIdLite(row.text_id), api = globalThis.BenYehudaLearningNiqqud;
+    const workId = api.workId(text);
+    if (!workId || !api.pinFor(text)) return row;
+    const key = String(row.text_id) + ':' + String(text.updated_at || '');
+    if (!_studySentenceCache.has(key)) {
+      if (_studySentenceCache.size >= 4) _studySentenceCache.delete(_studySentenceCache.keys().next().value);
+      const task = getStudySentences(row.text_id).then(rows => {
+        if (!rows.some(value => value.translit_precomputed || value._learning_niqqud_source)) _studySentenceCache.delete(key);
+        return new Map(rows.map(value => [String(value.id), value]));
+      }).catch(error => { _studySentenceCache.delete(key); throw error; });
+      _studySentenceCache.set(key, task);
+    }
+    const value = (await _studySentenceCache.get(key)).get(String(row.id));
+    if (!value || value.he_plain !== row.he_plain || value.edit_meta_json !== row.edit_meta_json) return row;
+    if ((value._learning_niqqud_source?.value ?? value.he_niqqud) !== row.he_niqqud) return row;
+    return { ...row, ...value };
+  } catch (_) { return row; }
+}
+
 // H2.4 owner-only request material. No fan-out at card-render time: the Room calls
 // this only after the owner presses “Add niqqud”. ASSERTED covers both imported/
 // verified he_niqqud and an explicit user edit; neither may reach the machine path.
@@ -3582,7 +3612,7 @@ export async function getSentenceForReview(sentenceId, textKey, orderIndex) {
   try {
     if (sentenceId) {
       const rows = await q(`${_SENT_SELECT} WHERE s.id = ?`, [String(sentenceId)]);
-      if (rows && rows[0]) return rows[0];
+      if (rows && rows[0]) return _studySentence(rows[0]);
     }
   } catch (_) {}
   try {
@@ -3591,7 +3621,7 @@ export async function getSentenceForReview(sentenceId, textKey, orderIndex) {
       const tid = t && t[0] && t[0].id;
       if (tid) {
         const rows = await q(`${_SENT_SELECT} WHERE s.text_id = ? AND s.order_index = ?`, [String(tid), Number(orderIndex)]);
-        if (rows && rows[0]) return rows[0];
+        if (rows && rows[0]) return _studySentence(rows[0]);
       }
     }
   } catch (_) {}
@@ -6101,6 +6131,8 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
         ? filterMediaPackageMetaForSlim(safeJsonParse(text.table_model_meta_json))
         : safeJsonParse(text.table_model_meta_json),
       rows,
+      learning_niqqud_layer: !slim && globalThis.BenYehudaLearningNiqqud
+        ? await globalThis.BenYehudaLearningNiqqud.portable(text) : null,
       text_audio_asset_key: (_srcMeta && _srcMeta._portable && _srcMeta._portable.text_audio_asset_key)
         ? String(_srcMeta._portable.text_audio_asset_key) : null,
       created_at: text.created_at || _exportTs,
@@ -6539,6 +6571,10 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
   const inlineFreeNoteIdByTargetKey = new Map(); // key: newTextId + ':' + newSentenceId
 
   for (const item of texts) {
+    let learningNiqqudPin = null;
+    if (item?.learning_niqqud_layer && globalThis.BenYehudaLearningNiqqud) {
+      try { learningNiqqudPin = await globalThis.BenYehudaLearningNiqqud.remember(item.learning_niqqud_layer, item); } catch (_) { /* optional derived layer cannot corrupt a source restore */ }
+    }
     let textData;
     if (item && item.text && typeof item.text === 'object') {
       // Shape B: server-nested.
@@ -6560,6 +6596,7 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
         // key. Mirrors db/premium/corpusMeta.js#mergeCorpusIntoSourceMeta.
         source_meta_json: (() => {
           const _sm = (item.source_meta && typeof item.source_meta === 'object') ? { ...item.source_meta } : {};
+          if (learningNiqqudPin) _sm._learning_niqqud_pin = learningNiqqudPin;
           if (item.corpus && typeof item.corpus === 'object') _sm.corpus = item.corpus;
           // B+C: no text-level audio column exists in the current schema. Preserve the
           // portable link inside source_meta so export/import/text-card round-trips are
