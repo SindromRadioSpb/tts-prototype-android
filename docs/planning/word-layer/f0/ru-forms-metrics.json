@@ -1,0 +1,27 @@
+{
+ "paradigms": {
+  "noun/adjective|all-cells-generated": 785,
+  "noun/adjective|meaning-not-noun": 198,
+  "noun/adjective|paradigms": 983,
+  "noun/noun|all-cells-generated": 4137,
+  "noun/noun|meaning-not-noun": 242,
+  "noun/noun|paradigms": 4447,
+  "verb|all-cells-generated": 3396,
+  "verb|meaning-not-infinitive": 50,
+  "verb|paradigms": 3453
+ },
+ "cells": {
+  "noun/adjective|ok": 3133,
+  "noun/noun|fail": 806,
+  "noun/noun|grammar": 7568,
+  "noun/noun|ok": 82197,
+  "verb|fail": 47,
+  "verb|grammar": 32493,
+  "verb|ok": 92068
+ },
+ "verb_aspect": {
+  "impf": 2400,
+  "perf": 704,
+  "copula": 299
+ }
+}

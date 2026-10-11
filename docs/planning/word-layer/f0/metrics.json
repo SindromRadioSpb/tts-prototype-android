@@ -1,0 +1,161 @@
+{
+  "M": {
+    "tokens": 5649,
+    "aligned": 5649,
+    "analyzed": 5608,
+    "prefix_agree": 5259,
+    "lemma_agree_raw_dicta": 4342,
+    "pealim_vs_gold_compared": 5013,
+    "pealim_lemma_matches_gold": 4835,
+    "gold_has_lemma": 5522,
+    "lemma_agree": 5259,
+    "pos_compared": 5608,
+    "pos_agree": 4534,
+    "pealim_paradigm": 5057,
+    "pealim_by_lemma-exact": 4537,
+    "pealim_cell": 3528,
+    "pealim_cell_vocalized": 3373,
+    "ru_meaning": 5057,
+    "pealim_invariant": 1078,
+    "binyan_compared": 1149,
+    "binyan_agree": 1028,
+    "cell_feat_agree": 1004,
+    "pealim_by_lemma-loose+cell": 388,
+    "pealim_cell_consonantal": 131,
+    "prefix_article_only_dicta": 192,
+    "pealim_by_form-exact": 82,
+    "pealim_cell_loose": 24,
+    "no_dicta_analysis": 41,
+    "pealim_by_participle-ap": 30,
+    "cell_feat_disagree": 46,
+    "pealim_by_related-adjective": 20,
+    "elapsed_s": 2,
+    "dicta_requests": 61,
+    "pealim_model": "pealim-infl-v12"
+  },
+  "strat": {
+    "pronoun": {
+      "tokens": 718,
+      "analyzed": 718,
+      "gold_has_lemma": 718,
+      "lemma_agree": 698,
+      "pealim_paradigm": 716,
+      "pealim_cell": 716
+    },
+    "adverb": {
+      "tokens": 677,
+      "analyzed": 674,
+      "gold_has_lemma": 674,
+      "lemma_agree": 615,
+      "pealim_paradigm": 604,
+      "pealim_cell": 555,
+      "no_dicta_analysis": 3
+    },
+    "verb": {
+      "tokens": 1149,
+      "analyzed": 1149,
+      "gold_has_lemma": 1149,
+      "lemma_agree": 1137,
+      "pealim_paradigm": 1137,
+      "pealim_cell": 1136
+    },
+    "adjective": {
+      "tokens": 302,
+      "analyzed": 302,
+      "gold_has_lemma": 302,
+      "lemma_agree": 292,
+      "pealim_paradigm": 261,
+      "pealim_cell": 261
+    },
+    "conjunction": {
+      "tokens": 105,
+      "analyzed": 105,
+      "gold_has_lemma": 105,
+      "lemma_agree": 105,
+      "pealim_paradigm": 104,
+      "pealim_cell": 104
+    },
+    "preposition": {
+      "tokens": 711,
+      "analyzed": 711,
+      "gold_has_lemma": 711,
+      "lemma_agree": 689,
+      "pealim_paradigm": 697,
+      "pealim_cell": 335
+    },
+    "noun": {
+      "tokens": 1582,
+      "analyzed": 1574,
+      "gold_has_lemma": 1574,
+      "lemma_agree": 1502,
+      "pealim_paradigm": 1315,
+      "pealim_cell": 1301,
+      "no_dicta_analysis": 8
+    },
+    "numeral": {
+      "tokens": 74,
+      "analyzed": 45,
+      "gold_has_lemma": 45,
+      "lemma_agree": 40,
+      "pealim_paradigm": 21,
+      "pealim_cell": 19,
+      "no_dicta_analysis": 29
+    },
+    "particle": {
+      "tokens": 50,
+      "analyzed": 50,
+      "gold_has_lemma": 50,
+      "lemma_agree": 43,
+      "pealim_paradigm": 42,
+      "pealim_cell": 27
+    },
+    "determiner": {
+      "tokens": 87,
+      "analyzed": 87,
+      "gold_has_lemma": 87,
+      "pealim_paradigm": 83,
+      "pealim_cell": 82,
+      "lemma_agree": 65
+    },
+    "other:Неразобранное": {
+      "tokens": 87,
+      "analyzed": 86,
+      "pealim_paradigm": 44,
+      "pealim_cell": 37,
+      "no_dicta_analysis": 1
+    },
+    "propernoun": {
+      "tokens": 95,
+      "analyzed": 95,
+      "gold_has_lemma": 95,
+      "lemma_agree": 63,
+      "pealim_paradigm": 30,
+      "pealim_cell": 30
+    },
+    "other:Приставочный элемент": {
+      "tokens": 1,
+      "analyzed": 1,
+      "gold_has_lemma": 1,
+      "lemma_agree": 1
+    },
+    "interjection": {
+      "tokens": 9,
+      "analyzed": 9,
+      "gold_has_lemma": 9,
+      "lemma_agree": 8,
+      "pealim_paradigm": 3,
+      "pealim_cell": 3
+    },
+    "other:Предложное выражение": {
+      "tokens": 1,
+      "analyzed": 1,
+      "gold_has_lemma": 1
+    },
+    "other:Артикль": {
+      "tokens": 1,
+      "analyzed": 1,
+      "gold_has_lemma": 1,
+      "lemma_agree": 1
+    }
+  }
+}
