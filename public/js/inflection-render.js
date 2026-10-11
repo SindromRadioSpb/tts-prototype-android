@@ -12,6 +12,9 @@
 // present. Russian labels are baked in (the Studio's display language); window.t
 // overrides per-key when the Room i18n carries notes.card.conj.* keys.
 //
+// Ф2 слоя слов: глагол — полоса настоящего + матрица «лицо × время» + инфинитив; в каждой клетке
+// русский перевод формы (window.RuForms, офлайн-сборка pymorphy3), текущая форма отмечена ▶.
+//
 // Dual export: window.InflectionRender + window.v3ConjSpeak (for inline onclick parity).
 
 (function () {
@@ -221,8 +224,47 @@
       '<div class="v3-conj-note">' + esc(note) + "</div></div>";
   }
 
+  // ── Ф2 word layer: «лицо × время» matrix + Russian translation of every cell ────────────────
+  // docs/planning/word-layer/F2_SPEC_2026_10_11.md. Rows = persons, columns = past / future /
+  // imperative; Hebrew present has no person (gender × number only) → its own strip above.
+  var MATRIX_ROWS = ["1s", "2ms", "2fs", "3ms", "3fs", "1p", "2mp", "2fp", "3mp", "3fp"];
+  // Russian form of a cell: opts.ruForm(slot) wins; else window.RuForms when loaded; else none.
+  function ruFormFn(p, opts) {
+    if (opts && typeof opts.ruForm === "function") return opts.ruForm;
+    if (opts && opts.ruForm === false) return null;
+    var RF = (typeof window !== "undefined" && window.RuForms) || null;
+    if (!RF || !RF.isReady || !RF.isReady()) return null;
+    return function (slot) { try { return RF.formFor(p, slot); } catch (_) { return null; } };
+  }
+  function renderVerbMatrix(cells, prefix, cell, withImperative) {
+    var has = function (k) { return !!(cells[k] && cells[k].he); };
+    var cols = ["PERF", "IMPF", "IMP"].filter(function (T) {
+      if (T === "IMP" && !withImperative) return false;
+      return MATRIX_ROWS.some(function (pn) { return has(prefix + T + "-" + pn); }) || (T === "PERF" && has(prefix + "PERF-3p"));
+    });
+    if (!cols.length) return "";
+    var TK = { PERF: "past", IMPF: "future", IMP: "imperative" };
+    var headRow = '<tr><th scope="col" class="v3-conj-mx-corner"></th>' + cols.map(function (T) {
+      return '<th scope="col">' + esc(groupLabel(TK[T])) + "</th>";
+    }).join("") + "</tr>";
+    var body = MATRIX_ROWS.map(function (pn) {
+      var tds = cols.map(function (T) {
+        var slot = prefix + T + "-" + pn;
+        // Pealim merges the 3rd plural past (PERF-3p): one cell spanning «они (м)» + «они (ж)»
+        if (T === "PERF" && (pn === "3mp" || pn === "3fp") && !has(slot) && has(prefix + "PERF-3p")) {
+          return pn === "3fp" ? "" : '<td rowspan="2">' + cell(prefix + "PERF-3p", true) + "</td>";
+        }
+        return "<td>" + cell(slot, true) + "</td>";
+      }).join("");
+      return '<tr><th scope="row">' + esc(slotLabel("P-" + pn)) + "</th>" + tds + "</tr>";
+    }).join("");
+    return '<div class="v3-conj-group v3-conj-mx-group"><div class="v3-conj-group-h">' + esc(t("notes.card.conj.matrix", "Лицо × время")) + "</div>" +
+      '<div class="v3-conj-mx-scroll"><table class="v3-conj-mx"><thead>' + headRow + "</thead><tbody>" + body + "</tbody></table></div></div>";
+  }
+
   function renderParadigm(p, opts) {
     var highlightForms = (opts && opts.highlightForm) ? _formVariants(opts.highlightForm) : [];
+    var highlightSlots = (opts && Array.isArray(opts.highlightSlots)) ? opts.highlightSlots : [];
     if (!p) return '<div class="v3-conj-empty">' + esc(t("notes.card.conj.noTable", "Таблица не найдена.")) + "</div>";
     if (p.kind === "pronoun") return renderPronounSet(p.highlight);
     if (!p.cells) return '<div class="v3-conj-empty">' + esc(t("notes.card.conj.noTable", "Таблица не найдена.")) + "</div>";
@@ -246,31 +288,49 @@
       : (p.pos === "adjective") ? GROUPS_ADJ
       : (cells["P-1s"] || cells["P-3ms"]) ? GROUPS_PREP
       : GROUPS_NOUN;
-    var cell = function (slot) {
+    var ruForm = ruFormFn(p, opts), anyRu = false;
+    // inMatrix: the row/column headers already name person + tense → no per-cell label
+    var cell = function (slot, inMatrix) {
       var c = cells[slot];
       if (!c || !c.he) return "";
       var trInner = c.translit_html || (c.translit ? esc(c.translit) : "");
       var tr = trInner ? '<span class="v3-conj-tr">' + trInner + "</span>" : "";
-      var isHit = highlightForms.length && highlightForms.indexOf(_normVowels(c.he)) >= 0;
-      var cls = "v3-conj-cell" + (isHit ? " v3-conj-cell-hl" : "");
+      var ru = ruForm ? ruForm(slot) : null;
+      if (ru) anyRu = true;
+      var ruHtml = ru ? '<span class="v3-conj-ru" dir="ltr">' + esc(ru) + "</span>" : "";
+      // Ф2: the slots the gloss matched (WordGloss.matchCell, dagesh-insensitive: שֶׁשָּׁמַעְתִּי ↔ שָׁמַעְתִּי) mark the
+      // cell too — the vowel-exact variant check misses a geminated root letter after a proclitic.
+      var isHit = (highlightForms.length && highlightForms.indexOf(_normVowels(c.he)) >= 0) || highlightSlots.indexOf(slot) >= 0;
+      var cls = "v3-conj-cell" + (isHit ? " v3-conj-cell-hl" : "") + (inMatrix ? " v3-conj-cell-mx" : "");
       var title = isHit ? t("notes.card.conj.formInText", "форма из вашего текста") : slotLabel(slot);
-      return '<button type="button" class="' + cls + '" dir="rtl" data-he="' + esc(c.he) + '" onclick="v3ConjSpeak(this)" title="' + esc(title) + '">' +
+      return '<button type="button" class="' + cls + '" dir="rtl" data-he="' + esc(c.he) + '" data-slot="' + esc(slot) + '" onclick="v3ConjSpeak(this)" title="' + esc(title) + '"' + (isHit ? ' aria-current="true"' : "") + ">" +
+        (isHit ? '<span class="v3-conj-cur" aria-hidden="true">▶</span>' : "") +
         '<span class="v3-conj-he">' + esc(c.he) + "</span>" +
-        '<span class="v3-conj-lab">' + esc(slotLabel(slot)) + "</span>" + tr + "</button>";
+        (inMatrix ? "" : '<span class="v3-conj-lab">' + esc(slotLabel(slot)) + "</span>") + tr + ruHtml + "</button>";
     };
     var renderGroup = function (label, slots) {
-      var inner = slots.map(cell).filter(Boolean).join("");
+      var inner = slots.map(function (s) { return cell(s); }).filter(Boolean).join("");
       if (!inner) return "";
       return '<div class="v3-conj-group"><div class="v3-conj-group-h">' + esc(label) + '</div><div class="v3-conj-grid">' + inner + "</div></div>";
     };
     var renderSet = function (gs) { return gs.map(function (g) { return renderGroup(groupLabel(g.key), g.slots); }).filter(Boolean).join(""); };
     var voiceH = function (txt) { return '<div class="v3-conj-voice-h">' + esc(txt) + "</div>"; };
     var hasPassive = (p.kind === "verb") && Object.keys(cells).some(function (k) { return /^passive-/i.test(k); });
+    // A verb voice = present strip (gender × number) + person × tense matrix + infinitive.
+    var verbVoice = function (vg, prefix, active) {
+      var byKey = {}; vg.forEach(function (g) { byKey[g.key] = g; });
+      return renderGroup(groupLabel("present"), byKey.present.slots) +
+        renderVerbMatrix(cells, prefix, cell, active) +
+        (byKey.infinitive ? renderGroup(groupLabel("infinitive"), byKey.infinitive.slots) : "");
+    };
     var fullGroups, covered;
     if (hasPassive) {
-      fullGroups = voiceH(t("notes.card.conj.voiceActive", "Действительный залог") + binLabel(p.binyan)) + renderSet(GROUPS_VERB) +
-        voiceH(t("notes.card.conj.voicePassive", "Страдательный залог") + binLabel(PASSIVE_BINYAN[p.binyan])) + renderSet(GROUPS_PASSIVE);
+      fullGroups = voiceH(t("notes.card.conj.voiceActive", "Действительный залог") + binLabel(p.binyan)) + verbVoice(GROUPS_VERB, "", true) +
+        voiceH(t("notes.card.conj.voicePassive", "Страдательный залог") + binLabel(PASSIVE_BINYAN[p.binyan])) + verbVoice(GROUPS_PASSIVE, "passive-", false);
       covered = new Set([].concat.apply([], GROUPS_VERB.concat(GROUPS_PASSIVE).map(function (g) { return g.slots; })));
+    } else if (p.kind === "verb") {
+      fullGroups = verbVoice(GROUPS_VERB, "", true);
+      covered = new Set([].concat.apply([], GROUPS_VERB.map(function (g) { return g.slots; })));
     } else {
       fullGroups = renderSet(groups);
       covered = new Set([].concat.apply([], groups.map(function (g) { return g.slots; })));
@@ -281,7 +341,9 @@
     var rootHtml = rootStr ? '<span class="v3-conj-rootlabel">' + esc(t("notes.card.rootTitle", "Корень")) + ': <span dir="rtl">' + esc(rootStr) + "</span></span>" : "";
     var gizra = p.gizra_note ? '<div class="v3-conj-gizra">' + esc(p.gizra_note) + "</div>" : "";
     var beso = p.disambig === "best-effort" ? '<div class="v3-conj-besteffort">⚠ ' + esc(t("notes.card.conj.bestEffort", "Подобрано по совпадению — сверьтесь по ссылке")) + "</div>" : "";
-    return '<div class="v3-conj-wrap"><div class="v3-conj-meta">' + badge + rootHtml + recheck + "</div>" + gizra + beso + fullGroups + "</div>";
+    // R9: the Russian of each form is machine-derived from the FIRST Pealim sense, not from context
+    var ruNote = anyRu ? '<div class="v3-conj-note v3-conj-ru-note">' + esc(t("notes.card.conj.ruNote", "Перевод форм — автоматический, по первому значению Pealim, без учёта контекста.")) + "</div>" : "";
+    return '<div class="v3-conj-wrap"><div class="v3-conj-meta">' + badge + rootHtml + recheck + "</div>" + gizra + beso + fullGroups + ruNote + "</div>";
   }
 
   var API = {

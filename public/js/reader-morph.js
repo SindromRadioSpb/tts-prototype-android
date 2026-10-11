@@ -663,7 +663,11 @@
     _engPromise = (async function () {
       var NA = window.NotesAutoGen, ID = window.InflectionDict;
       if (!NA || !ID) throw new Error("morph engine scripts not loaded");
+      // Word layer Ф2: Russian form translations (≈200 KB gz) load alongside the dataset; a
+      // failure only means no translations in the card/gloss, never a broken engine.
+      var ruReady = window.RuForms ? window.RuForms.ensureReady().catch(function () { return null; }) : null;
       var ds = await ID.ensureReady();
+      if (ruReady) await ruReady;
       if (!ds || !Array.isArray(ds.paradigms) || !ds.index) throw new Error("inflection dataset unavailable");
       var maps = NA.buildResolverMaps(ds.paradigms);
       var pidMap = new Map();
@@ -1625,6 +1629,17 @@
           '<button type="button" class="rm-meaning-cancel" data-rm-meaning-cancel>' + escapeHtml(tt("room.morph.cancel", "Отмена")) + "</button>" +
         "</div>"
       : "";
+    // Word layer Ф2 — the translation of THIS form («в тексте: что она писала»), the same line the
+    // interlinear gloss shows (WordGloss.composeGloss). Not under a learner/owner/teacher meaning:
+    // the form is built from the first Pealim sense and must not contradict a vetted gloss (R11).
+    var formLine = "";
+    if (card.meaning && !card.meaningSource && window.WordGloss && window.WordGloss.composeGloss) {
+      var fg = null; try { fg = window.WordGloss.composeGloss(card, card.niqqud); } catch (_) { fg = null; }
+      if (fg && fg.form) {
+        formLine = '<div class="rm-form-line" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.formInText", "в тексте")) + ":</span> " +
+          escapeHtml(fg.text) + "</div>";
+      }
+    }
     // F4 — homograph honesty: surface the rival readings of an ambiguous cell so the gloss
     // above reads as one possibility, not a verdict. «возможно также: год; …»
     var altGlosses = (card.alts || []).map(function (a) { return a && a.meaning; }).filter(Boolean);
@@ -1693,7 +1708,13 @@
       : "";
     var conj = "";
     if (card.paradigm && window.InflectionRender && window.InflectionRender.renderParadigm) {
-      var tbl = ""; try { tbl = window.InflectionRender.renderParadigm(card.paradigm, { highlightForm: card.niqqud }); } catch (_) { tbl = ""; }
+      // Ф2: mark the same cell(s) the interlinear gloss matched (dagesh-insensitive, after a proclitic)
+      var hlSlots = [];
+      try {
+        var hm = window.WordGloss && window.WordGloss.matchCell ? window.WordGloss.matchCell(card.paradigm, card.niqqud) : null;
+        if (hm && !hm.impossible) hlSlots = hm.slots || [];
+      } catch (_) { hlSlots = []; }
+      var tbl = ""; try { tbl = window.InflectionRender.renderParadigm(card.paradigm, { highlightForm: card.niqqud, highlightSlots: hlSlots }); } catch (_) { tbl = ""; }
       // F5 — when the reading isn't «точно», the table is for the resolver's best guess, not
       // a fact: label it «возможная парадигма» so it isn't read as the authoritative paradigm.
       var conjSure = card.label === "exact" || card.usageParadigm;   // curated function-word declension is authoritative
@@ -1727,7 +1748,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
   }
 
   function contextPendingHtml(card) {

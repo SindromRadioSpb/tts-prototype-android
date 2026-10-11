@@ -499,6 +499,22 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 .rm-conj-body .v3-conj-cell-lg { min-width: 96px; padding: 8px 14px; }
 .rm-conj-body .v3-conj-cell-lg .v3-conj-he { font-size: 22px; }
 
+/* ── Слой слов Ф2: перевод формы + матрица «лицо × время» (docs/planning/word-layer/F2_SPEC_2026_10_11.md) ──
+   Матрица прокручивается горизонтально внутри карточки (380px: 3 столбца по ~100px), не страница. */
+.rm-form-line { font-size: 13.5px; line-height: 1.35; color: var(--text-primary); margin: -6px 0 12px; }
+.rm-conj-body .v3-conj-ru { font-size: 11px; line-height: 1.25; color: var(--text-secondary); text-align: center; direction: ltr; white-space: normal; overflow-wrap: anywhere; }
+.rm-conj-body .v3-conj-cell-hl .v3-conj-ru { color: var(--text-primary); font-weight: 600; }
+.rm-conj-body .v3-conj-cur { font-size: 9px; line-height: 1; color: #f0883e; }
+.rm-conj-body .v3-conj-mx-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+/* Студия задаёт рамки/фон всем th/td — матрица их сбрасывает (пустая клетка = пустое место). */
+.rm-conj-body .v3-conj-mx { border: 0; border-collapse: separate; border-spacing: 4px; width: 100%; min-width: 300px; margin: 0 -4px; background: none; }
+.rm-conj-body .v3-conj-mx th, .rm-conj-body .v3-conj-mx td { border: 0; background: none; box-shadow: none; }
+.rm-conj-body .v3-conj-mx th { font-size: 10.5px; font-weight: 700; color: var(--text-secondary); text-align: start; vertical-align: middle; white-space: nowrap; padding: 0 2px; }
+.rm-conj-body .v3-conj-mx thead th { font-size: 10px; text-align: center; white-space: normal; letter-spacing: 0; text-transform: none; }
+.rm-conj-body .v3-conj-mx td { vertical-align: top; padding: 0; width: 31%; }
+.rm-conj-body .v3-conj-mx .v3-conj-cell { width: 100%; min-width: 0; height: 100%; padding: 3px 4px; }
+.rm-conj-body .v3-conj-mx .v3-conj-he { font-size: 15px; }
+
 /* ── Слой слов Ф1: подстрочник + лента слов (docs/planning/word-layer/F1_SPEC_2026_10_11.md) ──
    Подпись — ::before (::after занято кольцом «к повторению»), опущенная под слово через order.
    Таблица не перестраивается: только data-gloss/data-gloss-hint на .rm-w и класс на контейнере. */

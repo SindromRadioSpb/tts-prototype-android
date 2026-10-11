@@ -99,21 +99,30 @@
     var prepBase = stripNiqqud(paradigm.lemma || "");
     if (prepTable && stripNiqqud(full) === prepBase) return null;
     if (index.has(full)) return { slots: pruneSlots(index.get(full), ""), prefix: "" };
-    var cl = clusters(full);
+    var cl = clusters(full), impossible = false;
     for (var k = 1; k <= 3 && k < cl.length - 1; k++) {
       var pre = stripNiqqud(cl.slice(0, k).join(""));
       if (!PREFIX_SEQ_RE.test(pre)) break;
       var rest = cl.slice(k).join("");
       if (prepTable && stripNiqqud(rest) === prepBase) return { slots: [], prefix: pre };   // keep «что +», no person
       var hit = index.get(rest);
-      if (hit) return { slots: pruneSlots(hit, pre), prefix: pre };
+      if (hit) {
+        var kept = pruneSlots(hit, pre);
+        if (kept.length || !hit.some(function (h) { return FINITE_RE.test(h); })) return { slots: kept, prefix: pre };
+        impossible = true;   // only «preposition + finite verb» readings: try a longer prefix, else say so
+      }
     }
-    return null;
+    return impossible ? { slots: [], prefix: "", impossible: true } : null;
   }
   // A construct cell spelled like its absolute twin adds nothing, and the article excludes construct.
+  // Ф2: a preposition (ב ל כ מ) or the article never stands before a FINITE verb — בְּחָזְקָה is
+  // «в силе», not «в + она была сильной»; שֶׁלְּצַעֲרִי is «к сожалению», not «к + огорчай!».
+  var FINITE_RE = /^(?:passive-)?(?:PERF|IMPF|IMP)-/;
   function pruneSlots(slots, prefix) {
     var hasArticle = /ה$/.test(prefix || "");
+    var noFinite = /[בלכמה]/.test(prefix || "");
     return slots.filter(function (s) {
+      if (noFinite && FINITE_RE.test(s)) return false;
       if (s === "sc" && (hasArticle || slots.indexOf("s") >= 0)) return false;
       if (s === "pc" && (hasArticle || slots.indexOf("p") >= 0)) return false;
       return true;
@@ -155,8 +164,33 @@
     return out.join(" / ");
   }
 
+  // ── Ф2: Russian translation of the matched cell(s) (RuForms, offline pymorphy3 bake) ─────────
+  function ruForms() {
+    if (typeof window !== "undefined" && window.RuForms) return window.RuForms;
+    try { return typeof require === "function" ? require("./ru-forms.js") : null; } catch (_) { return null; }
+  }
+  var FORM_MAX = 48;
+  // → { text, hint } when EVERY matched slot has a form (else null: F1 meaning + hint stays).
+  // Homographic cells («תִּכְתֹּב» = ты (м) напишешь / она напишет) show both, like the hint does.
+  function cellForms(paradigm, slots) {
+    var RF = ruForms();
+    if (!RF || !RF.formFor || !slots || !slots.length) return null;
+    var forms = [], hintSlots = [];
+    for (var i = 0; i < slots.length; i++) {
+      var f = RF.formFor(paradigm, slots[i]);
+      if (!f) return null;
+      if (forms.indexOf(f) < 0) forms.push(f);
+      if (!RF.selfDescribing(slots[i])) hintSlots.push(slots[i]);
+    }
+    return { text: clip(forms.slice(0, 2).join(" / "), FORM_MAX), hint: slotsHint(hintSlots) };
+  }
+  // A conjunction prefix (ו «и», ש «что», כש «когда», מש) governs no case: «что она писала» reads
+  // as Russian. A preposition (ב ל כ מ) does: «в + дома» keeps the «+» so the case mismatch shows.
+  var CONJ_PREFIX_RE = /^ו?(?:כש|מש|ש)?ה?$/;
+
   // ── compose the learner-facing gloss from a resolved card (ReaderMorph.resolveCore payload) ──
-  // → { prefix, meaning, hint, label, text } ; text = one line for the ribbon / tooltip.
+  // → { prefix, meaning, hint, label, form, text } ; text = one line for the ribbon / tooltip;
+  // form = true when `meaning` is the translation of THIS form («она писала»), not of the lemma.
   function isPronounSet(p) { var c = (p && p.cells) || {}; return !!(c["1s"] && c["3ms"] && !c.s && !c["P-1s"]); }
   // `guessed` (a meaning-fallback guess) is NOT shown under a word: on the Ф1 sample it produced
   // שֶׁיֵּשׁ → «радоваться», בְּבָתֵּי → «кукла». The tap card still shows it with its own badge.
@@ -166,10 +200,13 @@
     var label = card.label || "unknown";
     // curated closed-class glosses are already short and their notes matter: «(винит. падеж); ты (ж.р.)»
     var meaning = card.functionWord ? clip(card.meaning, GLOSS_MAX + 6) : shortGloss(card.meaning);
-    if (!meaning || !SHOWN_LABELS[label]) return { prefix: "", meaning: "", hint: "", label: "unknown", text: "" };
-    var prefix = "", hint = "";
+    if (!meaning || !SHOWN_LABELS[label]) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
+    var prefix = "", hint = "", form = null, joiner = " + ";
     if (!card.functionWord && card.paradigm) {
       var m = matchCell(card.paradigm, niqqud || card.niqqud);
+      // The resolver's paradigm only fits as «preposition + finite verb», which Hebrew does not
+      // allow: the reading itself is wrong (בְּחָזְקָה → «быть сильным»). Silence, not a wrong gloss.
+      if (m && m.impossible) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
       if (m && isPronounSet(card.paradigm)) {
         // Pealim keeps the personal pronouns as ONE set paradigm glossed «я»: the cell IS the meaning.
         prefix = prefixGloss(m.prefix);
@@ -179,20 +216,25 @@
         // An undecided homograph (label «likely») that ALSO claims a concrete form was wrong in 20
         // of 40 sampled cases (שׁוֹנֶה → «повторять», אַחֵר → «опоздать»). Under the word we stay silent;
         // the tap card keeps the reading with its own «вероятно» badge and alternatives.
-        if (label === "likely") return { prefix: "", meaning: "", hint: "", label: "unknown", text: "" };
+        if (label === "likely") return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
         prefix = prefixGloss(m.prefix); hint = slotsHint(m.slots);
+        form = cellForms(card.paradigm, m.slots);
+        if (form) {
+          meaning = form.text; hint = form.hint;
+          if (CONJ_PREFIX_RE.test(m.prefix || "")) joiner = " ";
+        }
       }
     } else if (card.functionWord && card.gateVia === "proclitic") {
       prefix = prefixGloss(stripNiqqud(niqqud || card.word || "").charAt(0));   // the gate strips one ו/ש
     }
     var shown = (label === "likely" ? "≈" : "") + meaning;
-    var head = prefix ? prefix + " + " + shown : shown;
-    return { prefix: prefix, meaning: shown, hint: hint, label: label, text: hint ? head + " · " + hint : head };
+    var head = prefix ? prefix + joiner + shown : shown;
+    return { prefix: prefix, joiner: joiner, meaning: shown, hint: hint, label: label, form: !!form, text: hint ? head + " · " + hint : head };
   }
 
   var CORE = {
     stripNiqqud: stripNiqqud, normVowels: normVowels, shortGloss: shortGloss, prefixGloss: prefixGloss,
-    matchCell: matchCell, slotHint: slotHint, slotsHint: slotsHint, composeGloss: composeGloss, GLOSS_MAX: GLOSS_MAX,
+    matchCell: matchCell, slotHint: slotHint, slotsHint: slotsHint, cellForms: cellForms, composeGloss: composeGloss, GLOSS_MAX: GLOSS_MAX,
   };
 
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -208,6 +250,8 @@
     var key = surface + "\u0001" + niqqud;
     if (_memo.has(key)) return _memo.get(key);
     var RM = window.ReaderMorph, g = null;
+    // Ф2 form translations: loaded once (≈200 KB gz); unavailable → the F1 lemma gloss, never a stall
+    if (window.RuForms && !window.RuForms.isReady()) { try { await window.RuForms.ensureReady(); } catch (_) {} }
     if (RM && typeof RM.resolveForGloss === "function") {
       try { g = composeGloss(await RM.resolveForGloss(surface, niqqud), niqqud); } catch (_) { g = null; }
     }
@@ -231,7 +275,7 @@
   }
   function paint(span, g) {
     if (!g || !g.meaning) { span.setAttribute("data-gloss", " "); span.setAttribute("data-gloss-label", "unknown"); return; }
-    span.setAttribute("data-gloss", g.prefix ? g.prefix + " + " + g.meaning : g.meaning);
+    span.setAttribute("data-gloss", g.prefix ? g.prefix + g.joiner + g.meaning : g.meaning);
     if (g.hint) span.setAttribute("data-gloss-hint", g.hint);
     span.setAttribute("data-gloss-label", g.label);
   }

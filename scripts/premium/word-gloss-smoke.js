@@ -1,15 +1,18 @@
-// word-gloss-smoke.js — гейт слоя слов Ф1: подстрочник + лента слов, Студия и Зал.
-// Спека: docs/planning/word-layer/F1_SPEC_2026_10_11.md.
+// word-gloss-smoke.js — гейт слоя слов Ф1+Ф2: подстрочник + лента слов, Студия и Зал;
+// Ф2 — подпись = перевод встретившейся формы, карточка: «в тексте» + матрица «лицо × время».
+// Спеки: docs/planning/word-layer/F1_SPEC_2026_10_11.md, F2_SPEC_2026_10_11.md.
 //
 // Шаблон studio-morph-smoke.js / room-study-smoke.js: свой порт, serviceWorkers:"block",
 // синтетическая несохранённая таблица Студии + засеянный в OPFS текст Зала.
 //
 // Студия (380px):
 //   S1 тумблеры «Подстрочник» / «Лента слов» присутствуют
-//   S2 подстрочник: слова огласованной колонки получают data-gloss; ששמעתי → «что + слышать · я, прош.»;
+//   S2 подстрочник: слова огласованной колонки получают data-gloss; ששמעתי → «что я слышал(а)» (Ф2);
 //      подпись реально отрисована ПОД словом (::before, высота слова выросла)
 //   S3 лента: строка «звучит» (row-playing) → полоса видна, чипов столько же, сколько слов строки,
-//      подписи совпадают с подстрочником; тап по чипу открывает ту же морф-карточку
+//      подписи совпадают с подстрочником; тап по чипу открывает ту же морф-карточку;
+//   S3b карточка: «в тексте: что я слышал(а)», матрица «лицо × время», ▶ на PERF-1s с переводом,
+//      матрица не шире карточки на 380px (прокрутка внутри, не страницы)
 //   S4 смена звучащей строки (smk-row-active) → лента показывает её слова
 //   S5 режим правки снимает подстрочник и ленту
 //   S6 тумблеры OFF → атрибуты и полоса сняты; ни одной ошибки страницы
@@ -128,10 +131,10 @@ async function ribbonState(pg) {
       const g = await glossState(pg, "#tableContainer");
       if (vp.name === "380") {
         ok(g.on === g.total && g.total >= 13, `S2 все слова огласованной колонки получили подпись (${g.on}/${g.total})`);
-        ok(g.sh && /^что \+ слышать/.test(g.sh[0]) && g.sh[1] === "я, прош.", "S2 שֶׁשָּׁמַעְתִּי → «что + слышать · я, прош.» (got " + JSON.stringify(g.sh) + ")");
-        ok(g.kt && /^писать/.test(g.kt[0]) && g.kt[1] === "она, прош.", "S2 כָּתְבָה → «писать · она, прош.» (got " + JSON.stringify(g.kt) + ")");
+        ok(g.sh && g.sh[0] === "что я слышал(а)" && !g.sh[1], "S2 שֶׁשָּׁמַעְתִּי → «что я слышал(а)» (got " + JSON.stringify(g.sh) + ")");
+        ok(g.kt && g.kt[0] === "она писала" && !g.kt[1], "S2 כָּתְבָה → «она писала» (got " + JSON.stringify(g.kt) + ")");
         ok(g.lb && /^к \+ /.test(g.lb[0]), "S2 לַבַּיִת → приставка «к +» (got " + JSON.stringify(g.lb) + ")");
-        ok(g.before && g.before !== "none" && g.before.includes("слышать"), "S2 подпись реально отрисована (::before content=" + g.before.slice(0, 40) + ")");
+        ok(g.before && g.before !== "none" && g.before.includes("слышал"), "S2 подпись реально отрисована (::before content=" + g.before.slice(0, 40) + ")");
         ok(g.layout === "inline-flex/column/2", "S2 подпись стоит ПОД словом (раскладка " + g.layout + ")");
       }
 
@@ -144,7 +147,7 @@ async function ribbonState(pg) {
       if (vp.name === "380") {
         ok(r1.exists && !r1.hidden && r1.shown, "S3 лента видна, когда строка звучит");
         ok(r1.he.length === 5 && r1.he[2] === "שֶׁשָּׁמַעְתִּי", "S3 чипы = слова звучащей строки по порядку (" + r1.he.join(" ") + ")");
-        ok(r1.gl[2] === "что + слышать · я, прош.", "S3 подпись чипа = подпись подстрочника (" + r1.gl[2] + ")");
+        ok(r1.gl[2] === "что я слышал(а)", "S3 подпись чипа = подпись подстрочника (" + r1.gl[2] + ")");
       }
       await pg.evaluate(() => { const t = document.getElementById("tableContainer"); if (t) t.scrollIntoView({ block: "start" }); });
       await pg.waitForTimeout(400);
@@ -160,6 +163,28 @@ async function ribbonState(pg) {
         });
         if (!/слыш/.test(card.open)) await pg.screenshot({ path: shot("studio-chip-tap-fail") });
         ok(/слыш/.test(card.open), "S3 тап по чипу открывает морф-карточку того же слова" + (/слыш/.test(card.open) ? "" : " (" + card.open.slice(0, 300) + ")"));
+        // S3b — Ф2: строка формы + матрица «лицо × время»
+        const mx = await pg.evaluate(async () => {
+          const s = document.querySelector(".rm-sheet.rm-open");
+          const det = s && s.querySelector("details.rm-acc-conj");
+          if (det) { det.open = true; await new Promise((r) => setTimeout(r, 250)); det.scrollIntoView({ block: "start" }); }
+          const hl = s && s.querySelector(".v3-conj-mx .v3-conj-cell-hl");
+          const sc = s && s.querySelector(".v3-conj-mx-scroll");
+          return {
+            form: ((s && s.querySelector(".rm-form-line")) || {}).textContent || "",
+            mx: s ? s.querySelectorAll(".v3-conj-mx").length : 0,
+            hlSlot: hl ? hl.getAttribute("data-slot") : "", hlRu: hl ? (hl.querySelector(".v3-conj-ru") || {}).textContent : "",
+            cur: hl ? !!hl.querySelector(".v3-conj-cur") : false,
+            ruCells: s ? s.querySelectorAll(".v3-conj-ru").length : 0,
+            fits: sc ? sc.getBoundingClientRect().right <= s.getBoundingClientRect().right + 1 : false,
+            pageX: document.documentElement.scrollWidth <= window.innerWidth + 1,
+          };
+        });
+        ok(/в тексте:\s*что я слышал\(а\)/.test(mx.form), "S3b карточка: строка «в тексте: что я слышал(а)» (" + mx.form + ")");
+        ok(mx.mx >= 1 && mx.hlSlot === "PERF-1s" && mx.cur && mx.hlRu === "я слышал(а)", "S3b матрица: ▶ на PERF-1s с переводом (" + JSON.stringify(mx) + ")");
+        ok(mx.ruCells >= 20, "S3b перевод в клетках матрицы (" + mx.ruCells + ")");
+        ok(mx.fits && mx.pageX, "S3b матрица не шире карточки и страница без горизонтальной прокрутки");
+        await pg.screenshot({ path: shot("studio-card-matrix-380") });
         await pg.keyboard.press("Escape");
         await pg.waitForTimeout(400);
 
@@ -170,7 +195,7 @@ async function ribbonState(pg) {
         });
         await pg.waitForFunction(() => { const c = document.querySelector(".rm-ribbon .rm-ribbon-he"); return c && c.textContent === "הִיא"; }, null, { timeout: 10000 }).catch(() => {});
         const r2 = await ribbonState(pg);
-        ok(r2.he[0] === "הִיא" && r2.gl[1] === "писать · она, прош.", "S4 лента следует за звучащей строкой караоке (" + r2.he.join(" ") + " | " + r2.gl[1] + ")");
+        ok(r2.he[0] === "הִיא" && r2.gl[1] === "она писала", "S4 лента следует за звучащей строкой караоке (" + r2.he.join(" ") + " | " + r2.gl[1] + ")");
 
         // S5 — режим правки снимает слой
         // режим правки = класс tbl-edit-mode на #proTable (studio-morph.editModeOn); StudioMorph.refresh — штатный хук
@@ -236,7 +261,7 @@ async function ribbonState(pg) {
       const g = await glossState(pg, "#roomReaderTable");
       if (vp.name === "380") {
         ok(g.on >= 13, `Z2 подстрочник в Зале на засеянном тексте (${g.on}/${g.total})`);
-        ok(g.sh && /^что \+ слышать/.test(g.sh[0]), "Z2 та же подпись, что в Студии (" + JSON.stringify(g.sh) + ")");
+        ok(g.sh && g.sh[0] === "что я слышал(а)", "Z2 та же подпись, что в Студии (" + JSON.stringify(g.sh) + ")");
       }
       await pg.evaluate(() => { const tr = document.querySelector('#roomReaderTable #proTable tbody tr[data-row-idx="1"]'); if (tr) tr.classList.add("row-playing"); });
       await pg.waitForFunction(() => { const r = document.querySelector(".rm-ribbon"); return r && !r.hidden && r.querySelectorAll(".rm-ribbon-chip").length >= 4 && ![...r.querySelectorAll(".rm-ribbon-gloss")].some((x) => x.textContent === "…"); }, null, { timeout: 20000 }).catch(() => {});
