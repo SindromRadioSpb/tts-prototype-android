@@ -27,6 +27,7 @@ const {
   mergePageProvenance,
 } = require("./geminiExtract.js");
 const retell = require("./retell.js");
+const wordGlossCtx = require("./wordGlossCtx.js");
 
 function errStatus(code) {
   return ["FETCH_FAILED", "FETCH_TIMEOUT"].includes(code) ? 502 : 400;
@@ -261,6 +262,69 @@ function registerIngestRoutes(app, deps) {
       const c = classifyGeminiError(e);
       return res.status(c.status).json({ ok: false, error: c.error, error_code: c.error_code });
     }
+  });
+
+  // ── Word layer Ф3: contextual word gloss (docs/planning/word-layer/F3_SPEC_2026_10_11.md) ──────
+  // BYOK; per-ROW server cache keyed by the row's content (not by the offline hints), so a re-run, a
+  // shifted batch or another learner reading the same text never pays twice. A row whose answer does
+  // not cover every token is rejected and reported — the client keeps the offline gloss for it.
+  const wgLimiter = makeRateLimiter({ windowMs: 60_000, max: 60, name: "word-gloss-ctx" });
+  app.post("/api/word-gloss-ctx", wgLimiter, async (req, res) => {
+    const { rows, geminiApiKey } = req.body || {};
+    const v = wordGlossCtx.validateInput(rows);
+    if (!v.ok) return res.status(v.status).json({ ok: false, error: "Некорректный вход", error_code: v.error_code });
+    if (!geminiApiKey || typeof geminiApiKey !== "string" || !geminiApiKey.trim()) {
+      return res.status(401).json({ ok: false, error: "Gemini API Key required (BYOK)", error_code: "GEMINI_KEY_REQUIRED" });
+    }
+    if (!isPlausibleGeminiKey(geminiApiKey)) {
+      return res.status(400).json({ ok: false, error: "Неверный формат Gemini API Key", error_code: "GEMINI_KEY_INVALID" });
+    }
+    const scenario = getGeminiScenario("word-gloss-ctx");
+    const fileFor = (r) => {
+      const contentSha256 = crypto.createHash("sha256").update(wordGlossCtx.rowCacheKeyInput(r)).digest("hex");
+      return path.join(deps.geminiCacheDir, `word-gloss-ctx-v1-${buildGeminiCacheKey({ ...scenario, contentSha256 })}.json`);
+    };
+    const done = [], todo = [];
+    for (const r of rows) {
+      const f = fileFor(r);
+      let hit = null;
+      if (fs.existsSync(f)) {
+        try {
+          const c = JSON.parse(fs.readFileSync(f, "utf8"));
+          if (cacheMatchesScenario(c, scenario) && c.row && Array.isArray(c.row.glosses) && c.row.glosses.length === r.words.length) hit = c.row;
+        } catch (e) { console.error("word-gloss-ctx cache read error", e && e.message); }
+      }
+      if (hit) done.push(Object.assign({}, hit, { i: r.i, fromCache: true })); else todo.push(r);
+    }
+    let rejected = [], usage = null, modelVersion = null;
+    if (todo.length) {
+      try {
+        const generated = await generateContent({
+          apiKey: geminiApiKey.trim(), scenario, contents: wordGlossCtx.buildPrompt(todo),
+          config: { responseMimeType: "application/json", responseSchema: wordGlossCtx.buildResponseSchema(Type), maxOutputTokens: 32768 },
+        });
+        usage = generated.usageMetadata || null; modelVersion = generated.modelVersion || null;
+        let parsed = null;
+        try { parsed = wordGlossCtx.parseModelJson(generated.text); } catch (_) { parsed = null; }
+        const checked = wordGlossCtx.validateOutput(todo, parsed);
+        rejected = parsed ? checked.rejected : todo.map((r) => ({ i: r.i, reason: "json" }));
+        for (const row of checked.rows) {
+          const r = todo.find((x) => x.i === row.i);
+          try {
+            fs.writeFileSync(fileFor(r), JSON.stringify({ row: { glosses: row.glosses, mwe: row.mwe }, model: scenario.model,
+              modelVersion, promptId: scenario.promptId, schemaId: scenario.schemaId, createdAt: new Date().toISOString() }));
+          } catch (e) { console.error("word-gloss-ctx cache write error", e && e.message); }
+          done.push(Object.assign({}, row, { fromCache: false }));
+        }
+      } catch (e) {
+        console.error("word-gloss-ctx gemini error", e && e.message); // только .message — ключ не логируем
+        if (!done.length) { const c = classifyGeminiError(e); return res.status(c.status).json({ ok: false, error: c.error, error_code: c.error_code }); }
+        rejected = todo.map((r) => ({ i: r.i, reason: "gemini-error" }));
+      }
+    }
+    return res.json({ ok: rejected.length === 0, rows: done, rejected, model: scenario.model, modelVersion,
+      promptId: scenario.promptId, usage: usage ? { promptTokenCount: usage.promptTokenCount || 0,
+        candidatesTokenCount: usage.candidatesTokenCount || 0, thoughtsTokenCount: usage.thoughtsTokenCount || 0 } : null });
   });
 }
 

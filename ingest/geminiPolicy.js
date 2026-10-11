@@ -46,6 +46,14 @@ const SCENARIOS = Object.freeze({
     promptId: "retell-he-v1",
     schemaId: "plain-text-v1",
   }),
+  // Word layer Ф3 (docs/planning/word-layer/F3_SPEC_2026_10_11.md). Measured on the Shura card:
+  // 3.8-flash ≈2% misleading glosses at ≈$0.15 / 1000 words; flash-lite ≈5% at ≈$0.01 — studio model.
+  "word-gloss-ctx": Object.freeze({
+    model: GEMINI_STUDIO_MODEL,
+    fallbackModel: null,
+    promptId: "word-gloss-ctx-v1",
+    schemaId: "word-gloss-ctx-schema-v1",
+  }),
 });
 
 function getGeminiScenario(name) {

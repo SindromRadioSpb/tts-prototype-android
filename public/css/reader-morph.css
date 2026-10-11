@@ -574,3 +574,14 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 body.theme-dark .rm-ribbon { background: var(--theme-bg-card, #1e293b); border-color: var(--theme-border-soft, #334155); }
 body.theme-dark .rm-ribbon-chip { background: var(--theme-bg-muted, #0f172a); color: var(--theme-text-primary, #e2e8f0); border-color: var(--theme-border-soft, #334155); }
 @media (prefers-reduced-motion: reduce) { .rm-ribbon-list { scroll-behavior: auto; } }
+
+/* ── Слой слов Ф3: перевод слов в контексте (ИИ) — происхождение видно цветом (честность R1) ── */
+.rm-gloss-on .rm-w[data-gloss-label="ai"]::before { color: var(--theme-accent-hover, #123A8A); }
+.rm-ribbon-chip[data-gloss-label="ai"] .rm-ribbon-gloss { color: var(--theme-accent-hover, #123A8A); }
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) .rm-gloss-on .rm-w[data-gloss-label="ai"]::before,
+  body:not(.theme-light) .rm-ribbon-chip[data-gloss-label="ai"] .rm-ribbon-gloss { color: #8fb4ff; }
+}
+body.theme-dark .rm-gloss-on .rm-w[data-gloss-label="ai"]::before,
+body.theme-dark .rm-ribbon-chip[data-gloss-label="ai"] .rm-ribbon-gloss { color: #8fb4ff; }
+.wg-ai-consent .room-consent-actions .room-consent-ok { background: var(--theme-accent, #1B4FB8); color: #fff; border-color: transparent; }

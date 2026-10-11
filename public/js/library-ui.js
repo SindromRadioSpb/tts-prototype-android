@@ -2105,7 +2105,7 @@ async function applyDecorations() {
 function applyWordLayer(mount) {
   mount = mount || activeReaderMorphMount();
   if (!mount || !window.WordGloss) return;
-  try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon') }); } catch (_) {}
+  try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi') }); } catch (_) {}
 }
 
 // B7 — in-reader Learning Compass chip. The already-running local Worker supplies content-free
@@ -8442,7 +8442,9 @@ function buildAidsPanel() {
   panel.appendChild(wsLab);
   // Word layer Ф1 — подстрочник (перевод под каждым словом) и лента слов текущей строки.
   [['Gloss', 'readerWordGlossToggle', 'room.wordGloss.toggle', 'Подстрочник', 'room.wordGloss.hint', 'Короткий перевод под каждым словом; ≈ — вероятно. Тап по слову — полная карточка.'],
-   ['Ribbon', 'readerWordRibbonToggle', 'room.wordRibbon.toggle', 'Лента слов', 'room.wordRibbon.hint', 'Слова звучащей строки с переводом — под видео или внизу экрана.']]
+   ['Ribbon', 'readerWordRibbonToggle', 'room.wordRibbon.toggle', 'Лента слов', 'room.wordRibbon.hint', 'Слова звучащей строки с переводом — под видео или внизу экрана.'],
+   // Ф3 (F3_SPEC): контекстный перевод ИИ — опция, по умолчанию выкл; лениво: звучащая/видимые строки.
+   ['GlossAi', 'readerWordGlossAiToggle', 'room.wordGlossAi.toggle', 'Перевод слов ИИ (Gemini)', 'room.wordGlossAi.hint', 'Перевод каждого слова в контексте строки от Gemini по вашему ключу: строки переводятся по мере чтения и прослушивания, ≈$0,15 за 1000 слов.']]
     .forEach(([what, id, key, fb, hintKey, hintFb]) => {
       const hint = tt(hintKey, hintFb);
       const lab = el('label', { class: 'reader-aids-status', attrs: { title: hint } });
@@ -8454,6 +8456,18 @@ function buildAidsPanel() {
       lab.appendChild(el('span', { class: 'reader-aids-info', attrs: { title: hint, 'aria-hidden': 'true' }, text: 'ⓘ' }));
       panel.appendChild(lab);
     });
+  // Ф3 — весь открытый текст сразу (оценка стоимости + согласие в диалоге WordGlossAI).
+  const aiAll = el('button', { class: 'reader-aids-study', attrs: { type: 'button', id: 'readerWordGlossAiAll' }, i18n: 'room.wordGlossAi.all', text: tt('room.wordGlossAi.all', 'Перевести все слова текста (ИИ)') });
+  aiAll.addEventListener('click', async () => {
+    if (!window.WordGlossAI) return;
+    const mount = activeReaderMorphMount();
+    if (window.WordGloss && !window.WordGloss.enabled('room', 'Gloss') && !window.WordGloss.enabled('room', 'Ribbon')) { window.WordGloss.setEnabled('room', 'Gloss', true); }
+    if (window.WordGloss) window.WordGloss.setEnabled('room', 'GlossAi', true);
+    applyWordLayer(mount);
+    const msg = await window.WordGlossAI.runWholeText(mount, (s) => roomToast(s, null, null, 4000));
+    if (msg) roomToast(msg, null, null, 7000);
+  });
+  panel.appendChild(aiAll);
   // Epic 4 — VISIBLE status-colour legend (premium + mobile-legible; title tooltips fail @380px).
   const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', 'Статус слов') } });
   [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', tt('room.morph.status.l1', 'незнакомо')], ['l2', tt('room.morph.status.l2', 'узнаю')],

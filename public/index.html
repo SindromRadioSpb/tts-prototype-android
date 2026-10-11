@@ -11011,7 +11011,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Общие стили морф-карточки ReaderMorph + палитра статусов слов (одна реализация с Залом,
      форк запрещён). После инлайн-<style>: при равной специфичности выигрывает карточный файл. -->
-<link rel="stylesheet" href="/css/reader-morph.css?v=739">
+<link rel="stylesheet" href="/css/reader-morph.css?v=741">
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
 <script>
@@ -12222,6 +12222,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                         <input type="checkbox" id="studioWordRibbonToggle">
                                         <span data-i18n="room.wordRibbon.toggle">Лента слов</span>
                                     </label>
+                                    <!-- Ф3 (F3_SPEC): контекстный перевод слов ИИ — опция, по умолчанию выкл. -->
+                                    <label class="table-chk">
+                                        <input type="checkbox" id="studioWordGlossAiToggle">
+                                        <span data-i18n="room.wordGlossAi.toggle">Перевод слов ИИ (Gemini)</span>
+                                    </label>
+                                    <button type="button" id="studioWordGlossAiAll" class="btn-mini-secondary" data-i18n="room.wordGlossAi.all">Перевести все слова текста (ИИ)</button>
                                     <span class="table-settings-note" data-i18n="room.wordGloss.note">Перевод под словом и лента слов звучащей строки; ≈ — вероятно, без подписи — нет данных.</span>
                                 </div>
 
@@ -13658,9 +13664,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=287"></script>
-<script src="/i18n/locales/en.js?v=287"></script>
-<script src="/i18n/locales/he.js?v=287"></script>
+<script src="/i18n/locales/ru.js?v=288"></script>
+<script src="/i18n/locales/en.js?v=288"></script>
+<script src="/i18n/locales/he.js?v=288"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13737,7 +13743,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/ru-forms.js?v=739"></script>
 <script src="/js/reader-morph.js?v=740"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
-<script src="/js/word-gloss.js?v=740"></script>
+<script src="/js/word-gloss.js?v=741"></script>
+<!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
+<script src="/js/word-gloss-ai.js?v=741"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13852,7 +13860,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
 <script src="/js/lexical-resolution-service.js?v=6"></script>
-<script src="/js/studio-morph.js?v=4"></script>
+<script src="/js/studio-morph.js?v=5"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -13912,7 +13920,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.740";
+    window.APP_VERSION = "3.11.741";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -18126,10 +18134,25 @@ function v3NotesRefreshAllButtons() {
         const reviewBtn = document.getElementById("studioReviewWordsBtn");
         if (reviewBtn) reviewBtn.addEventListener("click", function () { window.StudioMorph.openReviewWords(); });
     })();
+    // Слой слов Ф3 — весь текст сразу: оценка стоимости и согласие в диалоге WordGlossAI.
+    (function initStudioWordGlossAiAll() {
+        const btn = document.getElementById("studioWordGlossAiAll");
+        if (!btn || !window.WordGlossAI || !window.WordGloss || !window.StudioMorph) return;
+        btn.addEventListener("click", async function () {
+            const mount = document.getElementById("tableContainer");
+            if (!mount) return;
+            if (!window.WordGloss.enabled("studio", "Gloss") && !window.WordGloss.enabled("studio", "Ribbon")) window.WordGloss.setEnabled("studio", "Gloss", true);
+            window.WordGloss.setEnabled("studio", "GlossAi", true);
+            ["studioWordGlossToggle", "studioWordGlossAiToggle"].forEach(function (id) { const cb = document.getElementById(id); if (cb) cb.checked = window.WordGloss.enabled("studio", id === "studioWordGlossToggle" ? "Gloss" : "GlossAi"); });
+            window.StudioMorph.refresh();
+            const msg = await window.WordGlossAI.runWholeText(mount, function (s) { try { showToast(s, "info"); } catch (_) {} });
+            if (msg) { try { showToast(msg, "info"); } catch (_) {} }
+        });
+    })();
     // Слой слов Ф1 — тумблеры подстрочника и ленты (WordGloss; первое чтение наследует значение Зала).
     (function initStudioWordLayerToggles() {
         if (!window.WordGloss || !window.StudioMorph) return;
-        [["studioWordGlossToggle", "Gloss"], ["studioWordRibbonToggle", "Ribbon"]].forEach(function (p) {
+        [["studioWordGlossToggle", "Gloss"], ["studioWordRibbonToggle", "Ribbon"], ["studioWordGlossAiToggle", "GlossAi"]].forEach(function (p) {
             const cb = document.getElementById(p[0]);
             if (!cb) return;
             cb.checked = window.WordGloss.enabled("studio", p[1]);

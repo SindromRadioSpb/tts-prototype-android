@@ -374,10 +374,14 @@
     });
     st.list.innerHTML = ""; st.list.appendChild(frag);
     st.list.scrollLeft = 0;
+    var AI = _aiOn && window.WordGlossAI;
     for (var i = 0; i < chips.length; i++) {
       if (st.rowIdx !== idx) return;   // playback moved on while resolving
       var c = chips[i];
-      var g = await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
+      // Ф3: the contextual (AI) gloss of this exact word in this row wins when present.
+      var ai = AI ? AI.wordAt(tr, i) : null;
+      var g = ai ? { text: ai.gloss + (ai.mwe ? " · " + ai.mwe : ""), label: "ai" }
+        : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
       var has = !!(g && g.text);
       c.gl.textContent = has ? g.text : "?";
       c.b.setAttribute("data-gloss-label", has ? g.label : "unknown");
@@ -421,14 +425,34 @@
   }
 
   // Entry point for both surfaces, called after every table render / toggle change.
-  // opts = { gloss: bool, ribbon: bool }
+  // opts = { gloss: bool, ribbon: bool, ai: bool }  — ai = Ф3 contextual gloss (opt-in, lazy).
+  var _aiOn = false;
+  function refreshRibbon(mount) { var st = _ribbons.get(mount); if (st) { st.rowIdx = undefined; renderRibbon(st); } }
   async function apply(mount, opts) {
     if (!mount) return;
     opts = opts || {};
+    var AI = window.WordGlossAI;
+    var aiWas = _aiOn;
+    _aiOn = !!(opts.ai && AI && (opts.gloss || opts.ribbon));
+    if (AI && !_aiOn) {
+      AI.stopLazy(mount);
+      if (aiWas) {   // back to the dictionary gloss: drop AI paint so the offline pass repaints it
+        Array.prototype.forEach.call(mount.querySelectorAll(".rm-w[data-gloss-ai]"), function (sp) {
+          ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "title"].forEach(function (a) { sp.removeAttribute(a); });
+        });
+      }
+    }
     if (opts.ribbon) { var st = ensureRibbon(mount); st.rowIdx = undefined; place(st); renderRibbon(st); }
     else removeRibbon(mount);
     if (opts.gloss) await applyGloss(mount);
     else { _pass++; clearGloss(mount); }
+    if (_aiOn) {
+      var trs = Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"));
+      try { await AI.hydrate(trs); } catch (_) {}
+      if (opts.gloss) AI.paintMount(mount);
+      if (opts.ribbon) refreshRibbon(mount);
+      AI.startLazy(mount, function () { return _aiOn; });
+    }
   }
 
   // Toggle storage. Studio inherits the Room value on its first read (like «Статус слов»).
@@ -447,7 +471,7 @@
 
   var API = Object.assign({}, CORE, {
     apply: apply, applyGloss: applyGloss, clearGloss: clearGloss, removeRibbon: removeRibbon,
-    enabled: enabled, setEnabled: setEnabled, _memo: _memo,
+    enabled: enabled, setEnabled: setEnabled, _memo: _memo, glossFor: glossFor, refreshRibbon: refreshRibbon,
   });
   window.WordGloss = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

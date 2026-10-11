@@ -2356,6 +2356,19 @@ window.I18N_LOCALES.en = {
       },
     },
   },
+  wordGlossAi: {
+    resultAll: "Lines translated in context: {d}.",
+    mwe: "expression",
+    consentTitle: "Word translation in context (AI)",
+    consentBody: "The lines of this text will be sent to Google Gemini with your key. Words without translation: {n}. Estimate: ≈${usd}. Lines already done are not charged again.",
+    cancel: "Cancel",
+    go: "Translate",
+    noKey: "A Gemini key is needed: Studio → settings → Gemini key.",
+    allDone: "All words are already translated in context.",
+    progress: "Word translation (AI): {d} of {n} lines",
+    failed: "Could not get the word translation: {e}. The dictionary translation is shown.",
+    result: "Lines translated in context: {d}. Failed: {f} — the dictionary translation is shown for them.",
+  },
   wordGloss: {
     prefix: { v: "and", sh: "that", ksh: "when", msh: "since", b: "in", l: "to", k: "as", m: "from" },
     tense: { past: "past", future: "fut.", imperative: "imper.", present: "pres.", passive: "pass." },
@@ -2364,6 +2377,7 @@ window.I18N_LOCALES.en = {
   },
   room: {
     wordGloss: { toggle: "Interlinear gloss", hint: "A short translation under each word; ≈ means likely. Tap a word for the full card.", note: "Translation under each word and a ribbon with the words of the playing line; ≈ likely, no label — no data." },
+    wordGlossAi: { toggle: "AI word translation (Gemini)", hint: "Each word translated in the context of its line by Gemini with your key: lines are translated as you read and listen, ≈$0.15 per 1000 words.", all: "Translate all words of the text (AI)" },
     wordRibbon: { toggle: "Word ribbon", hint: "Words of the playing line with translations — under the video or at the bottom of the screen." },
     units: {
       rows: { one: "line", few: "lines", many: "lines", other: "lines" },

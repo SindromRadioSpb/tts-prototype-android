@@ -382,7 +382,7 @@
     mount = mount || document.getElementById("tableContainer");
     if (!mount || !window.WordGloss) return;
     if (editModeOn()) { try { window.WordGloss.apply(mount, { gloss: false, ribbon: false }); } catch (_) {} return; }
-    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon") }); } catch (_) {}
+    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi") }); } catch (_) {}
   }
 
   var _t = null;
