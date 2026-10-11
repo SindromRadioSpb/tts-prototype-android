@@ -520,6 +520,26 @@
     });
     return rest && rest !== s ? rest : "";
   }
+  // Relative-particle variant (word layer Ф1, docs/planning/word-layer/F1_SPEC_2026_10_11.md):
+  // שֶׁ geminates the next consonant just like the article (שֶׁשָּׁמַעְתִּי), so the bare form missed
+  // its cell (שָׁמַעְתִּי) and the word fell to «нет данных». Fires ONLY on the particle's own
+  // signature — ש with segol AND a dagesh on the next consonant — so שֶׁמֶשׁ «солнце» / שֶׁקֶט
+  // (no gemination) never enter. בגדכפת keep the dagesh: in the bare word it is the word-initial
+  // dagesh lene (שֶׁבָּא → בָּא). Used as one more candidate under the same «strictly more decisive»
+  // rule as the article variant — it can only upgrade a reading, never override a confident one.
+  function relativeStrippedForm(niqqud) {
+    var s = String(niqqud || "");
+    if (s.charCodeAt(0) !== 0x05e9) return "";              // must start with ש
+    var i = 1, marks = "";
+    while (i < s.length && s.charCodeAt(i) >= 0x0591 && s.charCodeAt(i) <= 0x05c7) { marks += s.charAt(i); i++; }
+    if (marks.indexOf("ֶ") < 0 || marks.indexOf("ׂ") >= 0) return "";   // segol; not sin
+    if (i >= s.length) return "";
+    var m = /^([א-ת])([֑-ׇ]*)/.exec(s.slice(i));
+    if (!m || m[2].indexOf("ּ") < 0) return "";        // no gemination → not the particle
+    var head = /[בגדכפת]/.test(m[1]) ? m[1] + m[2] : m[1] + m[2].replace(/ּ/, "");
+    var rest = head + s.slice(i + m[0].length);
+    return rest && rest !== s ? rest : "";
+  }
   // R1-tail L4: is the matched form a DEFINITE participle (beinoni behind the article ה)? The
   // article substantivizes the participle (הַמַּדְרִיךְ «гид», הָעוֹלִים «репатрианты», הַמַּקִּיף) —
   // a nominal use the «точно» verb badge over-claims. Bare beinoni (כּוֹתֵב «пишет») is left
@@ -559,6 +579,8 @@
     var cands = [{ surface: stripNiqqud(n0) || surfaceOrig, niqqud: n0 }];
     var alt = articleStrippedForm(n0);
     if (alt) cands.push({ surface: stripNiqqud(alt), niqqud: alt });
+    var rel = relativeStrippedForm(n0);
+    if (rel) cands.push({ surface: stripNiqqud(rel), niqqud: rel });
     var best = null;
     for (var i = 0; i < cands.length; i++) {
       var got = await _resolveVariant(eng, cands[i].surface, cands[i].niqqud);
@@ -750,6 +772,22 @@
     var ks = _statusKeyWord(card, niqqud, surface);
     try { return NA.lemmaKey({ pealim_id: _statusPid(card, ks), lemma: card.lemma, word: ks, pos: card.pos }) || ""; }
     catch (_) { return ""; }
+  }
+  // Word layer Ф1 (docs/planning/word-layer/F1_SPEC_2026_10_11.md): the OFFLINE reading of a table
+  // word — byte-for-byte the resolveCore call decorateWords paints with — memoized per
+  // (surface, niqqud) because a text repeats its words. The tap card stays the authority for
+  // context refinement; this never calls the network and never writes learner state.
+  var _glossMemo = new Map();
+  async function resolveForGloss(surface, niqqud) {
+    surface = stripNiqqud(surface);
+    if (!surface) return null;
+    var key = surface + "|" + (niqqud || "");
+    if (_glossMemo.has(key)) return _glossMemo.get(key);
+    var eng = await ensureEngine();
+    var card = await resolveCore(eng, surface, niqqud || "");
+    if (_glossMemo.size > 20000) _glossMemo.clear();
+    _glossMemo.set(key, card);
+    return card;
   }
   async function resolveWordLight(surface, niqqud, ctx) {
     surface = stripNiqqud(surface);
@@ -2821,7 +2859,7 @@
   var API = {
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
-    stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
+    stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore, relativeStrippedForm: relativeStrippedForm,
     applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
     // context-overlay shared primitives (bake + runtime lock-step; recon §10)
@@ -2833,7 +2871,7 @@
     wrapCellHtml: wrapCellHtml, isWordChar: isWordChar, fadeDecision: fadeDecision,
     fadeGraduationReady: fadeGraduationReady, FADE_GRADUATION_MIN: FADE_GRADUATION_MIN,
     // browser
-    ensureEngine: ensureEngine, resolveWordLight: resolveWordLight,
+    ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, resolveForGloss: resolveForGloss,
     acceptStrictAnswer: acceptStrictAnswer, acceptReadAnswer: acceptReadAnswer, attach: attach,
     setProcliticOverlay: setProcliticOverlay,
     closeSheet: closeSheet, isSheetOpen: isSheetOpen, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,

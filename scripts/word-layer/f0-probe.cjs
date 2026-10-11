@@ -22,6 +22,8 @@ const https = require("https");
 const crypto = require("crypto");
 const AdmZip = require("adm-zip");
 const { _parseToken, stripNiqqud } = require("../../db/premium/providers/dictaMorph");
+// Production resolver (the one behind the tap morph-card / ②-notes), evaluated side by side (Ф1 recon).
+const NotesAutoGen = require("../../public/js/notes-autogen.js");
 
 const ROOT = path.resolve(__dirname, "../..");
 const DICTA_URL = process.env.DICTA_NAKDAN_URL || "https://nakdan-5-1.loadbalancer.dicta.org.il/api";
@@ -138,7 +140,7 @@ function loadPealim() {
     for (const k of new Set(keys.map(loose))) add(ix.loose, k, i);
     for (const [ck, cv] of Object.entries(p.cells || {})) add(ix.formExact, cons(cv.he), [i, ck]);
   });
-  return { P, ix, model: d.model_version };
+  return { P, ix, model: d.model_version, raw: d };
 }
 const PASSIVE_OF = { hufal: "hifil", pual: "piel" };
 const CLOSED = new Set(["pronoun", "adverb", "preposition", "conjunction", "interrogative", "negation"]);
@@ -257,6 +259,22 @@ const POS_RU = { "Глагол": "verb", "Существительное": "noun
 const BIN_RU = { "Пааль": "paal", "Нифъаль": "nifal", "Пиэль": "piel", "Пуаль": "pual", "Хифъиль": "hifil", "Хуфъаль": "hufal", "Хитпаэль": "hitpael" };
 const goldPrefix = (s) => [...String(s || "").matchAll(/([א-ת]+)[־-]/g)].map((m) => m[1]).join("");
 
+// ── production resolver (NotesAutoGen core, dataset-index lookup == InflectionDict.lookup) ──
+let _maps = null, _byPid = null;
+async function prodResolve(pe, tok) {
+  if (!_maps) {
+    _maps = NotesAutoGen.buildResolverMaps(pe.raw.paradigms);
+    _byPid = new Map(pe.raw.paradigms.map((p) => [String(p.pealim_id), p]));
+  }
+  const unit = NotesAutoGen.dictaTokenToUnit(Object.assign({}, tok, { niqqud: tok.niqqudRaw ? String(tok.niqqudRaw).replace(/\|/g, "") : tok.niqqud }));
+  if (!unit) return { pid: "", lemma: "", meaning: "", channel: "skip", status: "", conf: "", ambiguous: false };
+  const lookup = (key, binyan) => { const i = pe.raw.index[String(key) + " " + String(binyan || "")]; return i != null ? pe.raw.paradigms[i] : null; };
+  const base = await NotesAutoGen.pickBaseParadigm(unit, lookup);
+  const res = NotesAutoGen.resolveContentUnit(_maps, unit, base);
+  const p = res.pealim_id ? _byPid.get(String(res.pealim_id)) : null;
+  return { pid: res.pealim_id || "", lemma: p ? p.lemma : "", meaning: res.meaning || "", channel: res.channel, status: res.status, conf: res.confidence, ambiguous: res.ambiguous };
+}
+
 // ── main ───────────────────────────────────────────────────────────────────
 (async () => {
   const t0 = Date.now();
@@ -312,6 +330,7 @@ const goldPrefix = (s) => [...String(s || "").matchAll(/([א-ת]+)[־-]/g)].map(
       const tok = analyzed.length === 1 ? _parseToken(analyzed[0].t) : null;
       if (tok) tok.niqqudRaw = analyzed[0].t.options && analyzed[0].t.options[0] ? analyzed[0].t.options[0][0] : "";
       const r = tok ? resolve(pe, tok) : { method: "none" };
+      r.prod = tok ? await prodResolve(pe, tok) : null;
       rows.push({ g, aligned: acc === want, pieces: used.length, tok, r });
     }
   }
@@ -357,7 +376,8 @@ const goldPrefix = (s) => [...String(s || "").matchAll(/([א-ת]+)[־-]/g)].map(
   // per-token TSV (evidence)
   const H = ["token_id", "line", "w", "surface", "aligned", "gold_lemma", "gold_pos", "gold_binyan", "gold_prefix", "gold_ctx", "gold_status",
     "dicta_niqqud", "dicta_prefix", "dicta_lemma", "dicta_morph_id", "dicta_pos_code", "dicta_pos", "dicta_binyan", "dicta_feats", "display_lemma", "pealim_method", "pealim_id", "pealim_lemma",
-    "pealim_meaning", "pealim_cell", "cell_level", "cell_feat_agree"];
+    "pealim_meaning", "pealim_cell", "cell_level", "cell_feat_agree",
+    "prod_pid", "prod_lemma", "prod_meaning", "prod_channel", "prod_status", "prod_conf", "prod_ambiguous"];
   const esc = (v) => String(v == null ? "" : v).replace(/[\t\r\n]+/g, " ");
   const lines = [H.join("\t")];
   for (const { g, aligned, tok, r } of rows) {
@@ -365,7 +385,9 @@ const goldPrefix = (s) => [...String(s || "").matchAll(/([א-ת]+)[־-]/g)].map(
       tok ? tok.niqqudRaw : "", tok ? cons(tok.prefix) : "", tok ? tok.lemma : "", tok ? tok.morphId : "",
       tok && tok.morphId ? Number((BigInt(tok.morphId) >> 16n) & 0x1Fn) : "", tok ? tok.posDicta : "", tok ? tok.binyan : "",
       tok && tok.feats ? Object.values(tok.feats).filter(Boolean).join(",") : "", r.lemmaOut || "", r.method, r.pid || "", r.plemma || "", r.meaning || "",
-      r.cell || "", r.cellLevel || "", r.featAgree == null ? "" : r.featAgree ? 1 : 0].map(esc).join("\t"));
+      r.cell || "", r.cellLevel || "", r.featAgree == null ? "" : r.featAgree ? 1 : 0,
+      ...(r.prod ? [r.prod.pid, r.prod.lemma, r.prod.meaning, r.prod.channel, r.prod.status, r.prod.conf, r.prod.ambiguous ? 1 : 0]
+        : ["", "", "", "", "", "", ""])].map(esc).join("\t"));
   }
   fs.writeFileSync(path.join(EVIDENCE, "tokens.tsv"), lines.join("\n") + "\n");
   console.log("evidence: " + path.join(EVIDENCE, "tokens.tsv"));

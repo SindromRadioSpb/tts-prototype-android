@@ -141,6 +141,8 @@ const PAGE_RESOLVE = `async (row) => {
   // _resolveVariant builds it). located=false → could not attribute (e.g. variant drift).
   function collisionFor(niqqud, surface, winningPid){
     var cands = [niqqud]; var alt = articleStrippedForm(niqqud); if (alt) cands.push(alt);
+    // relative שֶׁ variant: exported by reader-morph itself (no mirror to drift).
+    var rel = RM.relativeStrippedForm ? RM.relativeStrippedForm(niqqud) : ""; if (rel) cands.push(rel);
     for (var ci=0; ci<cands.length; ci++){
       var u = { pos:"", binyan:"", lemma:"", stem:"", root:null, niqqud:cands[ci], sampleWord:surface, kind:null };
       var vs = NA.unitFormVariants(u);

@@ -352,7 +352,7 @@
   async function refreshDecorations() {
     var mount = document.getElementById("tableContainer");
     if (!mount || !window.ReaderMorph) return;
-    if (editModeOn()) return;                       // в режиме правки не враппим и не красим
+    if (editModeOn()) { applyWordLayer(mount); return; }   // в режиме правки не враппим и не красим; подстрочник/лента снимаются
     if (_decorBusy) { _decorDirty = true; return; } // коалесценция чанк-прогрессии
     _decorBusy = true;
     try {
@@ -369,10 +369,20 @@
         } catch (_) { dueSet = null; }
       }
       try { await window.ReaderMorph.decorateWords(mount, states, { color: color, fadeMode: "full", dueSet: dueSet }); } catch (_) {}
+      applyWordLayer(mount);
     } finally {
       _decorBusy = false;
       if (_decorDirty) { _decorDirty = false; try { refreshDecorations(); } catch (_) {} }
     }
+  }
+
+  // Word layer Ф1 (docs/planning/word-layer/F1_SPEC_2026_10_11.md) — подстрочник + лента слов,
+  // общий WordGloss (одна реализация с Залом). Ничего не пишет; в режиме правки не применяется.
+  function applyWordLayer(mount) {
+    mount = mount || document.getElementById("tableContainer");
+    if (!mount || !window.WordGloss) return;
+    if (editModeOn()) { try { window.WordGloss.apply(mount, { gloss: false, ribbon: false }); } catch (_) {} return; }
+    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon") }); } catch (_) {}
   }
 
   var _t = null;

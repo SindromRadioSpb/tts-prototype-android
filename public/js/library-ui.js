@@ -2098,6 +2098,14 @@ async function applyDecorations() {
     }
   } catch (_) {}
   try { refreshCovChip(); } catch (_) {}   // W4 — keep the in-reader coverage chip in sync on open / status / config change
+  applyWordLayer(mount);
+}
+// Word layer Ф1 (docs/planning/word-layer/F1_SPEC_2026_10_11.md) — подстрочник + лента слов. Та же
+// офлайн-трактовка, что у раскраски и карточки по тапу; ничего не пишет. Опт-ин, Аа-панель.
+function applyWordLayer(mount) {
+  mount = mount || activeReaderMorphMount();
+  if (!mount || !window.WordGloss) return;
+  try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon') }); } catch (_) {}
 }
 
 // B7 — in-reader Learning Compass chip. The already-running local Worker supplies content-free
@@ -8432,6 +8440,20 @@ function buildAidsPanel() {
   wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', 'Статус слов') }));
   wsLab.appendChild(el('span', { class: 'reader-aids-info', attrs: { title: statusHint, 'aria-hidden': 'true' }, text: 'ⓘ' }));
   panel.appendChild(wsLab);
+  // Word layer Ф1 — подстрочник (перевод под каждым словом) и лента слов текущей строки.
+  [['Gloss', 'readerWordGlossToggle', 'room.wordGloss.toggle', 'Подстрочник', 'room.wordGloss.hint', 'Короткий перевод под каждым словом; ≈ — вероятно. Тап по слову — полная карточка.'],
+   ['Ribbon', 'readerWordRibbonToggle', 'room.wordRibbon.toggle', 'Лента слов', 'room.wordRibbon.hint', 'Слова звучащей строки с переводом — под видео или внизу экрана.']]
+    .forEach(([what, id, key, fb, hintKey, hintFb]) => {
+      const hint = tt(hintKey, hintFb);
+      const lab = el('label', { class: 'reader-aids-status', attrs: { title: hint } });
+      const cb = el('input', { attrs: { type: 'checkbox', id } });
+      cb.checked = !!(window.WordGloss && window.WordGloss.enabled('room', what));
+      cb.addEventListener('change', () => { if (window.WordGloss) window.WordGloss.setEnabled('room', what, cb.checked); applyWordLayer(); });
+      lab.appendChild(cb);
+      lab.appendChild(el('span', { i18n: key, text: tt(key, fb) }));
+      lab.appendChild(el('span', { class: 'reader-aids-info', attrs: { title: hint, 'aria-hidden': 'true' }, text: 'ⓘ' }));
+      panel.appendChild(lab);
+    });
   // Epic 4 — VISIBLE status-colour legend (premium + mobile-legible; title tooltips fail @380px).
   const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', 'Статус слов') } });
   [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', tt('room.morph.status.l1', 'незнакомо')], ['l2', tt('room.morph.status.l2', 'узнаю')],

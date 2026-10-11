@@ -2354,7 +2354,15 @@ window.I18N_LOCALES.en = {
       },
     },
   },
+  wordGloss: {
+    prefix: { v: "and", sh: "that", ksh: "when", msh: "since", b: "in", l: "to", k: "as", m: "from" },
+    tense: { past: "past", future: "fut.", imperative: "imper.", present: "pres.", passive: "pass." },
+    plural: "pl.", unknown: "no data",
+    ribbon: { aria: "Words of the current line" },
+  },
   room: {
+    wordGloss: { toggle: "Interlinear gloss", hint: "A short translation under each word; ≈ means likely. Tap a word for the full card.", note: "Translation under each word and a ribbon with the words of the playing line; ≈ likely, no label — no data." },
+    wordRibbon: { toggle: "Word ribbon", hint: "Words of the playing line with translations — under the video or at the bottom of the screen." },
     units: {
       rows: { one: "line", few: "lines", many: "lines", other: "lines" },
       parts: { one: "part", few: "parts", many: "parts", other: "parts" },

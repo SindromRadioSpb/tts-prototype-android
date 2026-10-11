@@ -11011,7 +11011,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Общие стили морф-карточки ReaderMorph + палитра статусов слов (одна реализация с Залом,
      форк запрещён). После инлайн-<style>: при равной специфичности выигрывает карточный файл. -->
-<link rel="stylesheet" href="/css/reader-morph.css?v=643">
+<link rel="stylesheet" href="/css/reader-morph.css?v=738">
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
 <script>
@@ -12209,6 +12209,20 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                     <span id="studioWordStatusLegend" class="reader-status-legend"></span>
                                     <span class="table-settings-note" data-i18n="room.morph.statusNote">Фиолетовый — явно новое; пунктир — распознано, но не оценено; без декорации — не разрешено.</span>
                                     <button type="button" id="studioReviewWordsBtn" class="btn-mini-secondary" data-i18n="room.morph.study.open">📚 Разобрать слова</button>
+                                </div>
+
+                                <!-- Слой слов Ф1 (docs/planning/word-layer/F1_SPEC_2026_10_11.md): подстрочник и лента
+                                     слов текущей строки — общий WordGloss, те же ключи i18n, что в Зале. -->
+                                <div class="table-settings-row table-settings-sub studio-morph-row" aria-label="Подстрочник">
+                                    <label class="table-chk">
+                                        <input type="checkbox" id="studioWordGlossToggle">
+                                        <span data-i18n="room.wordGloss.toggle">Подстрочник</span>
+                                    </label>
+                                    <label class="table-chk">
+                                        <input type="checkbox" id="studioWordRibbonToggle">
+                                        <span data-i18n="room.wordRibbon.toggle">Лента слов</span>
+                                    </label>
+                                    <span class="table-settings-note" data-i18n="room.wordGloss.note">Перевод под словом и лента слов звучащей строки; ≈ — вероятно, без подписи — нет данных.</span>
                                 </div>
 
                                 <div class="table-settings-row table-settings-sub">
@@ -13644,9 +13658,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=284"></script>
-<script src="/i18n/locales/en.js?v=284"></script>
-<script src="/i18n/locales/he.js?v=284"></script>
+<script src="/i18n/locales/ru.js?v=285"></script>
+<script src="/i18n/locales/en.js?v=285"></script>
+<script src="/i18n/locales/he.js?v=285"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13719,7 +13733,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
-<script src="/js/reader-morph.js?v=728"></script>
+<script src="/js/reader-morph.js?v=738"></script>
+<!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
+<script src="/js/word-gloss.js?v=738"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13834,7 +13850,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
 <script src="/js/lexical-resolution-service.js?v=6"></script>
-<script src="/js/studio-morph.js?v=3"></script>
+<script src="/js/studio-morph.js?v=4"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -13894,7 +13910,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.737";
+    window.APP_VERSION = "3.11.738";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -18107,6 +18123,19 @@ function v3NotesRefreshAllButtons() {
         }
         const reviewBtn = document.getElementById("studioReviewWordsBtn");
         if (reviewBtn) reviewBtn.addEventListener("click", function () { window.StudioMorph.openReviewWords(); });
+    })();
+    // Слой слов Ф1 — тумблеры подстрочника и ленты (WordGloss; первое чтение наследует значение Зала).
+    (function initStudioWordLayerToggles() {
+        if (!window.WordGloss || !window.StudioMorph) return;
+        [["studioWordGlossToggle", "Gloss"], ["studioWordRibbonToggle", "Ribbon"]].forEach(function (p) {
+            const cb = document.getElementById(p[0]);
+            if (!cb) return;
+            cb.checked = window.WordGloss.enabled("studio", p[1]);
+            cb.addEventListener("change", function () {
+                window.WordGloss.setEnabled("studio", p[1], cb.checked);
+                window.StudioMorph.refresh();
+            });
+        });
     })();
 
 	const autoNextToggleEl = document.getElementById("autoNextToggle");

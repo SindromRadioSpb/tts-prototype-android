@@ -1,0 +1,390 @@
+// public/js/word-gloss.js — Ф1 слоя слов: подстрочник и лента слов (Студия + Зал).
+//
+// Спека: docs/planning/word-layer/F1_SPEC_2026_10_11.md. Канон: WORD_LAYER_RESEARCH_AND_PLAN_2026_10_11.md.
+//
+// ОДИН источник правды со словом по тапу: карточка, раскраска статусов и эта глосса читают один и
+// тот же офлайн-резолвер (ReaderMorph.resolveForGloss == resolveCore). Здесь — только ПРЕДСТАВЛЕНИЕ
+// уже разрешённой карточки: короткий смысл, подпись найденной формы, смысл отделённой приставки.
+// Ничего не хранится: глосса — детерминированная функция (слово, огласовка, офлайн-Pealim).
+//
+// R1/R10: подпись формы ставится ТОЛЬКО при точном совпадении огласованной формы (или её основы
+// после приставки) с клеткой найденной парадигмы; «вероятно» помечается «≈»; «нет данных» — пусто.
+// Табличный билдер parity-заморожен — DOM таблицы не перестраивается: только data-атрибуты на .rm-w
+// (CSS ::after) и отдельная полоса ленты над таблицей.
+//
+// Dual export: window.WordGloss (браузер) + module.exports (Node-тесты ядра).
+(function () {
+  "use strict";
+
+  function t(key, fallback) {
+    try {
+      if (typeof window !== "undefined" && typeof window.t === "function") {
+        var v = window.t(key);
+        if (v && v !== key) return v;
+      }
+    } catch (_) {}
+    return fallback;
+  }
+
+  // ── normalization (== NotesAutoGen.normVowels: drop cantillation + meteg, keep vowels/dagesh) ──
+  var MARK_RE = /[֑-ׇ]/;
+  function stripNiqqud(s) { return String(s == null ? "" : s).replace(/[֑-ׇ]/g, "").replace(/[‌-‏‪-‮]/g, "").trim(); }
+  function normVowels(s) {
+    return String(s == null ? "" : s).normalize("NFC").replace(/[֑-ֽ֯‌-‏‪-‮]/g, "").replace(/[־\-]$/, "").trim();
+  }
+  // letter + its marks
+  function clusters(s) {
+    var out = [], str = String(s || "");
+    for (var i = 0; i < str.length; i++) {
+      var ch = str[i];
+      if (MARK_RE.test(ch) && out.length) out[out.length - 1] += ch;
+      else out.push(ch);
+    }
+    return out;
+  }
+  // Form-match key: vowels + shin/sin dots kept, dagesh/rafe dropped — sources disagree on dagesh
+  // (Pealim אִשְׁתִי vs text אִשְׁתִּי; gemination after a proclitic שֶׁשָּׁ…), while vowels decide the form.
+  function formKey(s) { return normVowels(s).replace(/[ּֿ]/g, "").normalize("NFC"); }
+
+  // ── short sense: first sense of the Pealim meaning, parentheticals out ──────────────────────
+  var GLOSS_MAX = 24;
+  function clip(m, max) {
+    m = String(m || "").replace(/\s+/g, " ").trim();
+    if (m.length <= max) return m;
+    var cut = m.lastIndexOf(" ", max);
+    return (cut > 8 ? m.slice(0, cut) : m.slice(0, max)) + "…";
+  }
+  // First sense that still has words once parentheticals are out («(винит. падеж); ты» keeps the
+  // grammatical note only when a sense is nothing but a note).
+  function shortGloss(meaning) {
+    var senses = String(meaning || "").replace(/\*/g, "").split(";");
+    for (var i = 0; i < senses.length; i++) {
+      var m = senses[i].replace(/\([^)]*\)/g, " ").replace(/\s*\(.*$/, "").split(",")[0].trim();
+      if (m) return clip(m, GLOSS_MAX);
+    }
+    return clip(senses[0] || "", GLOSS_MAX);
+  }
+
+  // ── proclitic prefixes: a CLOSED, ordered set (ו → (כ)ש/מש → ב|ל|כ|מ → ה) ──────────────────
+  var PREFIX_SEQ_RE = /^ו?(?:כש|מש|ש)?[בלכמ]?ה?$/;
+  var PREFIX_KEY = { "ו": "v", "ש": "sh", "כש": "ksh", "מש": "msh", "ב": "b", "ל": "l", "כ": "k", "מ": "m" };
+  var PREFIX_FB = { v: "и", sh: "что", ksh: "когда", msh: "с тех пор как", b: "в", l: "к", k: "как", m: "из" };
+  function prefixGloss(cons) {
+    var s = String(cons || ""), out = [], i = 0;
+    if (!s || !PREFIX_SEQ_RE.test(s)) return "";
+    while (i < s.length) {
+      var two = s.slice(i, i + 2), key = null;
+      if (two === "כש" || two === "מש") { key = PREFIX_KEY[two]; i += 2; }
+      else { var one = s[i]; i += 1; if (one === "ה") continue; key = PREFIX_KEY[one]; }   // article: no gloss
+      if (key) out.push(t("wordGloss.prefix." + key, PREFIX_FB[key]));
+    }
+    return out.join(" ");
+  }
+
+  // ── which paradigm cell IS this word (exact vocalized match, whole or after a proclitic) ─────
+  // Returns { slots:[…], prefix:"<consonants>" } or null. Never guesses: no consonant-only match.
+  function matchCell(paradigm, niqqud) {
+    if (!paradigm || !paradigm.cells || !niqqud || !/[ְ-ׇּׁׂ]/.test(niqqud)) return null;
+    var cells = paradigm.cells, keys = Object.keys(cells), index = new Map();
+    for (var i = 0; i < keys.length; i++) {
+      var c = cells[keys[i]]; if (!c || !c.he) continue;
+      var f = formKey(c.he);
+      if (!index.has(f)) index.set(f, []);
+      index.get(f).push(keys[i]);
+    }
+    var full = formKey(niqqud);
+    // A bare preposition is its own base form, even where Pealim spells «to me» identically (לְפִי),
+    // with or without a proclitic in front (שֶׁלְּפִי).
+    var prepTable = keys.every(function (k) { return /^P-/.test(k); });
+    var prepBase = stripNiqqud(paradigm.lemma || "");
+    if (prepTable && stripNiqqud(full) === prepBase) return null;
+    if (index.has(full)) return { slots: pruneSlots(index.get(full), ""), prefix: "" };
+    var cl = clusters(full);
+    for (var k = 1; k <= 3 && k < cl.length - 1; k++) {
+      var pre = stripNiqqud(cl.slice(0, k).join(""));
+      if (!PREFIX_SEQ_RE.test(pre)) break;
+      var rest = cl.slice(k).join("");
+      if (prepTable && stripNiqqud(rest) === prepBase) return { slots: [], prefix: pre };   // keep «что +», no person
+      var hit = index.get(rest);
+      if (hit) return { slots: pruneSlots(hit, pre), prefix: pre };
+    }
+    return null;
+  }
+  // A construct cell spelled like its absolute twin adds nothing, and the article excludes construct.
+  function pruneSlots(slots, prefix) {
+    var hasArticle = /ה$/.test(prefix || "");
+    return slots.filter(function (s) {
+      if (s === "sc" && (hasArticle || slots.indexOf("s") >= 0)) return false;
+      if (s === "pc" && (hasArticle || slots.indexOf("p") >= 0)) return false;
+      return true;
+    });
+  }
+
+  // ── grammar hint for a slot (reuses InflectionRender.slotLabel → existing notes.card.conj.* keys) ──
+  var TENSE = { PERF: "past", IMPF: "future", IMP: "imperative", AP: "present" };
+  var TENSE_FB = { past: "прош.", future: "буд.", imperative: "повел.", present: "наст.", passive: "страд." };
+  var SILENT_BASE = { "s": 1, "ms-a": 1 };   // dictionary base form: no hint (noise)
+  function slotLabelOf(slot) {
+    try {
+      var IR = (typeof window !== "undefined" && window.InflectionRender) ||
+        (typeof require === "function" ? require("./inflection-render.js") : null);
+      if (IR && IR.slotLabel) return IR.slotLabel(slot);
+    } catch (_) {}
+    return slot;
+  }
+  function slotHint(slot) {
+    var s = String(slot || "");
+    if (!s || SILENT_BASE[s]) return "";
+    var passive = /^passive-/.test(s), bare = s.replace(/^passive-/, "");
+    var m = bare.match(/^(PERF|IMPF|IMP|AP)-/);
+    var voice = passive ? " " + t("wordGloss.tense.passive", TENSE_FB.passive) : "";
+    if (m) {
+      var tk = TENSE[m[1]];
+      return slotLabelOf(bare) + ", " + t("wordGloss.tense." + tk, TENSE_FB[tk]) + voice;
+    }
+    if (bare === "INF-L") return slotLabelOf(bare) + voice;
+    if (/^p-P-/.test(s)) return t("wordGloss.plural", "мн.") + ", " + slotLabelOf(s);
+    return slotLabelOf(s);
+  }
+  function slotsHint(slots) {
+    var seen = [], out = [];
+    for (var i = 0; i < (slots || []).length && out.length < 2; i++) {
+      var h = slotHint(slots[i]);
+      if (h && seen.indexOf(h) < 0) { seen.push(h); out.push(h); }
+    }
+    return out.join(" / ");
+  }
+
+  // ── compose the learner-facing gloss from a resolved card (ReaderMorph.resolveCore payload) ──
+  // → { prefix, meaning, hint, label, text } ; text = one line for the ribbon / tooltip.
+  function isPronounSet(p) { var c = (p && p.cells) || {}; return !!(c["1s"] && c["3ms"] && !c.s && !c["P-1s"]); }
+  // `guessed` (a meaning-fallback guess) is NOT shown under a word: on the Ф1 sample it produced
+  // שֶׁיֵּשׁ → «радоваться», בְּבָתֵּי → «кукла». The tap card still shows it with its own badge.
+  var SHOWN_LABELS = { exact: 1, likely: 1, "function": 1, context: 1 };
+  function composeGloss(card, niqqud) {
+    if (!card) return null;
+    var label = card.label || "unknown";
+    // curated closed-class glosses are already short and their notes matter: «(винит. падеж); ты (ж.р.)»
+    var meaning = card.functionWord ? clip(card.meaning, GLOSS_MAX + 6) : shortGloss(card.meaning);
+    if (!meaning || !SHOWN_LABELS[label]) return { prefix: "", meaning: "", hint: "", label: "unknown", text: "" };
+    var prefix = "", hint = "";
+    if (!card.functionWord && card.paradigm) {
+      var m = matchCell(card.paradigm, niqqud || card.niqqud);
+      if (m && isPronounSet(card.paradigm)) {
+        // Pealim keeps the personal pronouns as ONE set paradigm glossed «я»: the cell IS the meaning.
+        prefix = prefixGloss(m.prefix);
+        meaning = slotLabelOf("P-" + m.slots[0]);
+        label = "exact";
+      } else if (m) {
+        // An undecided homograph (label «likely») that ALSO claims a concrete form was wrong in 20
+        // of 40 sampled cases (שׁוֹנֶה → «повторять», אַחֵר → «опоздать»). Under the word we stay silent;
+        // the tap card keeps the reading with its own «вероятно» badge and alternatives.
+        if (label === "likely") return { prefix: "", meaning: "", hint: "", label: "unknown", text: "" };
+        prefix = prefixGloss(m.prefix); hint = slotsHint(m.slots);
+      }
+    } else if (card.functionWord && card.gateVia === "proclitic") {
+      prefix = prefixGloss(stripNiqqud(niqqud || card.word || "").charAt(0));   // the gate strips one ו/ש
+    }
+    var shown = (label === "likely" ? "≈" : "") + meaning;
+    var head = prefix ? prefix + " + " + shown : shown;
+    return { prefix: prefix, meaning: shown, hint: hint, label: label, text: hint ? head + " · " + hint : head };
+  }
+
+  var CORE = {
+    stripNiqqud: stripNiqqud, normVowels: normVowels, shortGloss: shortGloss, prefixGloss: prefixGloss,
+    matchCell: matchCell, slotHint: slotHint, slotsHint: slotsHint, composeGloss: composeGloss, GLOSS_MAX: GLOSS_MAX,
+  };
+
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    if (typeof module !== "undefined" && module.exports) module.exports = CORE;
+    return;
+  }
+
+  // ══ browser layer ═════════════════════════════════════════════════════════════════════════
+  var GLOSS_ON = "rm-gloss-on";
+  var _memo = new Map();   // surface\u0001niqqud → composed gloss (resolver output is deterministic)
+
+  async function glossFor(surface, niqqud) {
+    var key = surface + "\u0001" + niqqud;
+    if (_memo.has(key)) return _memo.get(key);
+    var RM = window.ReaderMorph, g = null;
+    if (RM && typeof RM.resolveForGloss === "function") {
+      try { g = composeGloss(await RM.resolveForGloss(surface, niqqud), niqqud); } catch (_) { g = null; }
+    }
+    _memo.set(key, g);
+    return g;
+  }
+
+  // The gloss column: vocalized when the table shows it, else the consonantal one — never both
+  // (the same word twice would double the noise).
+  function glossSpans(mount) {
+    var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
+    return Array.prototype.slice.call(niq.length ? niq : mount.querySelectorAll('#proTable tbody td[data-col="he"] .rm-w'));
+  }
+  function clearGloss(mount) {
+    if (!mount) return;
+    mount.classList.remove(GLOSS_ON);
+    var done = mount.querySelectorAll(".rm-w[data-gloss], .rm-w[data-gloss-hint]");
+    for (var i = 0; i < done.length; i++) {
+      done[i].removeAttribute("data-gloss"); done[i].removeAttribute("data-gloss-hint"); done[i].removeAttribute("data-gloss-label");
+    }
+  }
+  function paint(span, g) {
+    if (!g || !g.meaning) { span.setAttribute("data-gloss", " "); span.setAttribute("data-gloss-label", "unknown"); return; }
+    span.setAttribute("data-gloss", g.prefix ? g.prefix + " + " + g.meaning : g.meaning);
+    if (g.hint) span.setAttribute("data-gloss-hint", g.hint);
+    span.setAttribute("data-gloss-label", g.label);
+  }
+
+  var _pass = 0;
+  async function applyGloss(mount) {
+    if (!mount) return;
+    var my = ++_pass;
+    mount.classList.add(GLOSS_ON);
+    var spans = glossSpans(mount), i = 0;
+    while (i < spans.length) {
+      var end = Math.min(i + 60, spans.length);
+      for (; i < end; i++) {
+        if (my !== _pass) return;   // a newer pass (re-render / toggle) owns the mount
+        var sp = spans[i];
+        if (sp.hasAttribute("data-gloss")) continue;
+        paint(sp, await glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || ""));
+      }
+      await new Promise(function (r) { setTimeout(r, 0); });
+    }
+  }
+
+  // ── ribbon: words of the current row ─────────────────────────────────────────────────────────
+  // Placement follows the scroll model of the table container (the HOST):
+  //   • the host scrolls by itself (study/media layout: pinned video above a table window) → the
+  //     ribbon sits right BEFORE the host, i.e. between the video and the table;
+  //   • the page scrolls (plain reading / read-aloud) → the ribbon goes AFTER the host and sticks to
+  //     the bottom of the viewport while the table is on screen (the thead owns the top edge).
+  // The ribbon is never inside the host: a table re-render cannot wipe it, and its own DOM churn
+  // never re-triggers the row observer.
+  var CURRENT_ROW = "#proTable tbody tr.row-playing, #proTable tbody tr.smk-row-active";
+  var FALLBACK_ROW = "#proTable tbody tr.rm-row-current";
+  var _ribbons = new WeakMap();   // mount → { el, list, host, obs, rowIdx, raf }
+
+  function hostOf(mount) {
+    if (mount.matches && mount.matches(".reader-table-wrap, #tableContainer")) return mount;
+    return mount.querySelector(".reader-table-wrap, #tableContainer") || mount;
+  }
+  function hostScrolls(host) {
+    try { var oy = getComputedStyle(host).overflowY; return oy === "auto" || oy === "scroll"; } catch (_) { return false; }
+  }
+  function currentRow(host) { return host.querySelector(CURRENT_ROW) || host.querySelector(FALLBACK_ROW); }
+  function rowSpans(tr) {
+    var niq = tr.querySelectorAll('td[data-col="niqqud"] .rm-w');
+    return Array.prototype.slice.call(niq.length ? niq : tr.querySelectorAll('td[data-col="he"] .rm-w'));
+  }
+  function place(st) {
+    var host = st.host, parent = host.parentNode;
+    if (!parent) return;
+    var inWindow = hostScrolls(host);
+    st.el.classList.toggle("rm-ribbon--bar", !inWindow);
+    var want = inWindow ? host : host.nextSibling;
+    if (st.el.parentNode !== parent || st.el.nextSibling !== want) parent.insertBefore(st.el, want);
+  }
+
+  async function renderRibbon(st) {
+    var tr = currentRow(st.host);
+    var idx = tr ? tr.getAttribute("data-row-idx") : null;
+    if (idx === st.rowIdx) return;
+    st.rowIdx = idx;
+    if (!tr) { st.el.hidden = true; st.list.innerHTML = ""; return; }
+    place(st);
+    st.el.hidden = false;
+    var frag = document.createDocumentFragment();
+    var chips = rowSpans(tr).map(function (sp) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "rm-ribbon-chip";
+      var he = document.createElement("span"); he.className = "rm-ribbon-he"; he.lang = "he"; he.dir = "rtl";
+      he.textContent = sp.getAttribute("data-niqqud") || sp.textContent;
+      var gl = document.createElement("span"); gl.className = "rm-ribbon-gloss"; gl.textContent = "…";
+      b.appendChild(he); b.appendChild(gl);
+      // same word, same card: the tap goes to the table word (occurrence context included)
+      b.addEventListener("click", function () { try { sp.click(); } catch (_) {} });
+      frag.appendChild(b);
+      return { b: b, gl: gl, sp: sp };
+    });
+    st.list.innerHTML = ""; st.list.appendChild(frag);
+    st.list.scrollLeft = 0;
+    for (var i = 0; i < chips.length; i++) {
+      if (st.rowIdx !== idx) return;   // playback moved on while resolving
+      var c = chips[i];
+      var g = await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
+      var has = !!(g && g.text);
+      c.gl.textContent = has ? g.text : "?";
+      c.b.setAttribute("data-gloss-label", has ? g.label : "unknown");
+      c.b.setAttribute("aria-label", (c.sp.getAttribute("data-niqqud") || c.sp.textContent) + " — " + (has ? g.text : t("wordGloss.unknown", "нет данных")));
+    }
+  }
+
+  function ensureRibbon(mount) {
+    var host = hostOf(mount), st = _ribbons.get(mount);
+    if (st && st.host === host && st.el.isConnected) return st;
+    if (st) removeRibbon(mount);
+    var el = document.createElement("div");
+    el.className = "rm-ribbon"; el.hidden = true;
+    el.setAttribute("role", "region");
+    el.setAttribute("aria-label", t("wordGloss.ribbon.aria", "Слова текущей строки"));
+    var list = document.createElement("div"); list.className = "rm-ribbon-list"; list.dir = "rtl";
+    el.appendChild(list);
+    st = { el: el, list: list, host: host, obs: null, rowIdx: undefined, raf: 0 };
+    if (host.parentNode) host.parentNode.insertBefore(el, host);
+    var schedule = function () {
+      if (st.raf) return;
+      st.raf = requestAnimationFrame(function () { st.raf = 0; renderRibbon(st); });
+    };
+    st.obs = new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var m = muts[i];
+        if (m.type === "childList" || (m.target && m.target.tagName === "TR")) { schedule(); return; }
+      }
+    });
+    st.obs.observe(host, { subtree: true, attributes: true, attributeFilter: ["class"], childList: true });
+    _ribbons.set(mount, st);
+    return st;
+  }
+  function removeRibbon(mount) {
+    var st = _ribbons.get(mount);
+    if (!st) return;
+    try { st.obs.disconnect(); } catch (_) {}
+    if (st.raf) { try { cancelAnimationFrame(st.raf); } catch (_) {} }
+    if (st.el && st.el.parentNode) st.el.parentNode.removeChild(st.el);
+    _ribbons.delete(mount);
+  }
+
+  // Entry point for both surfaces, called after every table render / toggle change.
+  // opts = { gloss: bool, ribbon: bool }
+  async function apply(mount, opts) {
+    if (!mount) return;
+    opts = opts || {};
+    if (opts.ribbon) { var st = ensureRibbon(mount); st.rowIdx = undefined; place(st); renderRibbon(st); }
+    else removeRibbon(mount);
+    if (opts.gloss) await applyGloss(mount);
+    else { _pass++; clearGloss(mount); }
+  }
+
+  // Toggle storage. Studio inherits the Room value on its first read (like «Статус слов»).
+  function enabled(surface, what) {
+    var key = surface + ".word" + what;
+    try {
+      var v = localStorage.getItem(key);
+      if (v === null && surface === "studio") {
+        v = localStorage.getItem("room.word" + what) === "1" ? "1" : "0";
+        localStorage.setItem(key, v);
+      }
+      return v === "1";
+    } catch (_) { return false; }
+  }
+  function setEnabled(surface, what, v) { try { localStorage.setItem(surface + ".word" + what, v ? "1" : "0"); } catch (_) {} }
+
+  var API = Object.assign({}, CORE, {
+    apply: apply, applyGloss: applyGloss, clearGloss: clearGloss, removeRibbon: removeRibbon,
+    enabled: enabled, setEnabled: setEnabled, _memo: _memo,
+  });
+  window.WordGloss = API;
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+})();
