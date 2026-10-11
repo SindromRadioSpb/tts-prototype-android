@@ -56,13 +56,14 @@ function sourceLines(file) {
       const niq = toks[w].text, surface = RM.stripNiqqud(niq);
       if (!surface) continue;
       inc("words");
-      const card = await RM.resolveCore(eng, surface, niq);
+      const card = RM.enrichReading(eng, await RM.resolveCore(eng, surface, niq), surface, niq);   // == resolveForGloss
       const g = WG.composeGloss(card, niq);
       if (g && g.meaning) inc("gloss"); else inc("no_gloss");
       if (g && g.hint) inc("hint");
       if (g && g.prefix) inc("prefix");
       if (g && g.form) inc("form");
       if (g) inc("label_" + g.label);
+      if (card && card.channel && /^(enrich|form-canonical)/.test(card.channel)) inc("ch_" + card.channel);
       rows.push([l.n, w + 1, niq, card ? card.label : "", card ? (card.paradigm ? card.paradigm.lemma : "") : "", g ? g.text : "", g && g.form ? "1" : ""].join("\t"));
     }
   }

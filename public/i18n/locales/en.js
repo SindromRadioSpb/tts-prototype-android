@@ -2359,7 +2359,7 @@ window.I18N_LOCALES.en = {
   wordGloss: {
     prefix: { v: "and", sh: "that", ksh: "when", msh: "since", b: "in", l: "to", k: "as", m: "from" },
     tense: { past: "past", future: "fut.", imperative: "imper.", present: "pres.", passive: "pass." },
-    plural: "pl.", unknown: "no data",
+    plural: "pl.", unknown: "no data", name: "name",
     ribbon: { aria: "Words of the current line" },
   },
   room: {

@@ -45,6 +45,12 @@
   // Form-match key: vowels + shin/sin dots kept, dagesh/rafe dropped — sources disagree on dagesh
   // (Pealim אִשְׁתִי vs text אִשְׁתִּי; gemination after a proclitic שֶׁשָּׁ…), while vowels decide the form.
   function formKey(s) { return normVowels(s).replace(/[ּֿ]/g, "").normalize("NFC"); }
+  // Step 1: the matres-insensitive key (ReaderMorph.canonForm: Pealim עַכְשָׁיו = text עַכְשָׁו, וֹ/ֹ, וּ/ֻ).
+  function readerMorph() {
+    if (typeof window !== "undefined" && window.ReaderMorph) return window.ReaderMorph;
+    try { return typeof require === "function" ? require("./reader-morph.js") : null; } catch (_) { return null; }
+  }
+  function cellKey(s) { var RM = readerMorph(); return RM && RM.canonForm ? RM.canonForm(s) : formKey(s); }
 
   // ── short sense: first sense of the Pealim meaning, parentheticals out ──────────────────────
   var GLOSS_MAX = 24;
@@ -57,7 +63,8 @@
   // First sense that still has words once parentheticals are out («(винит. падеж); ты» keeps the
   // grammatical note only when a sense is nothing but a note).
   function shortGloss(meaning) {
-    var senses = String(meaning || "").replace(/\*/g, "").split(";");
+    // Pealim sometimes decorates a sense with a pictograph («☎️ телефон») — not part of the gloss.
+    var senses = String(meaning || "").replace(/\*/g, "").replace(/[☀-➿️]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDEFF]|\uD83E[\uDD00-\uDEFF]/g, "").split(";");
     for (var i = 0; i < senses.length; i++) {
       var m = senses[i].replace(/\([^)]*\)/g, " ").replace(/\s*\(.*$/, "").split(",")[0].trim();
       if (m) return clip(m, GLOSS_MAX);
@@ -88,26 +95,28 @@
     var cells = paradigm.cells, keys = Object.keys(cells), index = new Map();
     for (var i = 0; i < keys.length; i++) {
       var c = cells[keys[i]]; if (!c || !c.he) continue;
-      var f = formKey(c.he);
+      var f = cellKey(c.he);
       if (!index.has(f)) index.set(f, []);
       index.get(f).push(keys[i]);
     }
-    var full = formKey(niqqud);
+    var full = cellKey(niqqud);
     // A bare preposition is its own base form, even where Pealim spells «to me» identically (לְפִי),
     // with or without a proclitic in front (שֶׁלְּפִי).
     var prepTable = keys.every(function (k) { return /^P-/.test(k); });
     var prepBase = stripNiqqud(paradigm.lemma || "");
-    if (prepTable && stripNiqqud(full) === prepBase) return null;
+    if (prepTable && stripNiqqud(niqqud) === prepBase) return null;
     if (index.has(full)) return { slots: pruneSlots(index.get(full), ""), prefix: "" };
-    var cl = clusters(full), impossible = false;
+    // Split proclitics on the RAW vocalization (a word-initial וּ must stay a letter), key the rest.
+    var cl = clusters(String(niqqud).normalize("NFC")), impossible = false;
     for (var k = 1; k <= 3 && k < cl.length - 1; k++) {
       var pre = stripNiqqud(cl.slice(0, k).join(""));
       if (!PREFIX_SEQ_RE.test(pre)) break;
-      var rest = cl.slice(k).join("");
-      if (prepTable && stripNiqqud(rest) === prepBase) return { slots: [], prefix: pre };   // keep «что +», no person
-      var hit = index.get(rest);
+      var rawRest = cl.slice(k).join("");
+      if (prepTable && stripNiqqud(rawRest) === prepBase) return { slots: [], prefix: pre };   // keep «что +», no person
+      var hit = index.get(cellKey(rawRest));
       if (hit) {
-        var kept = pruneSlots(hit, pre);
+        var last = cl[k - 1] || "", merged = /^[בלכ]/.test(last) && /[ַָ]/.test(last);   // בַּבַּיִת = ב + ה
+        var kept = pruneSlots(hit, merged ? pre + "ה" : pre);
         if (kept.length || !hit.some(function (h) { return FINITE_RE.test(h); })) return { slots: kept, prefix: pre };
         impossible = true;   // only «preposition + finite verb» readings: try a longer prefix, else say so
       }
@@ -197,13 +206,22 @@
   var SHOWN_LABELS = { exact: 1, likely: 1, "function": 1, context: 1 };
   function composeGloss(card, niqqud) {
     if (!card) return null;
+    // Step 1: a proper name is honest information, not a gap («?» told the learner nothing).
+    if (card.gateVia === "name" || (card.pos === "propernoun" && !card.meaning)) {
+      var nm = t("wordGloss.name", "имя, название");
+      return { prefix: "", joiner: " + ", meaning: nm, hint: "", label: "name", form: false, text: nm };
+    }
     var label = card.label || "unknown";
     // curated closed-class glosses are already short and their notes matter: «(винит. падеж); ты (ж.р.)»
     var meaning = card.functionWord ? clip(card.meaning, GLOSS_MAX + 6) : shortGloss(card.meaning);
     if (!meaning || !SHOWN_LABELS[label]) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
     var prefix = "", hint = "", form = null, joiner = " + ";
     if (!card.functionWord && card.paradigm) {
-      var m = matchCell(card.paradigm, niqqud || card.niqqud);
+      // Step 1: an enriched reading carries the cell it was found by (matres-insensitive lookup).
+      var m = card.canon ? { slots: pruneSlots(card.canon.slots, card.canon.prefix), prefix: card.canon.prefix }
+        : matchCell(card.paradigm, niqqud || card.niqqud);
+      if (m && card.canon && !m.slots.length && card.canon.slots.length &&
+        card.canon.slots.every(function (x) { return FINITE_RE.test(x); })) m.impossible = true;
       // The resolver's paradigm only fits as «preposition + finite verb», which Hebrew does not
       // allow: the reading itself is wrong (בְּחָזְקָה → «быть сильным»). Silence, not a wrong gloss.
       if (m && m.impossible) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
@@ -216,7 +234,7 @@
         // An undecided homograph (label «likely») that ALSO claims a concrete form was wrong in 20
         // of 40 sampled cases (שׁוֹנֶה → «повторять», אַחֵר → «опоздать»). Under the word we stay silent;
         // the tap card keeps the reading with its own «вероятно» badge and alternatives.
-        if (label === "likely") return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
+        if (label === "likely" && !card.canon) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
         prefix = prefixGloss(m.prefix); hint = slotsHint(m.slots);
         form = cellForms(card.paradigm, m.slots);
         if (form) {
@@ -224,6 +242,8 @@
           if (CONJ_PREFIX_RE.test(m.prefix || "")) joiner = " ";
         }
       }
+    } else if (card.functionWord && card.procliticPrefix) {
+      prefix = prefixGloss(card.procliticPrefix);                                  // step-1 enrichment split
     } else if (card.functionWord && card.gateVia === "proclitic") {
       prefix = prefixGloss(stripNiqqud(niqqud || card.word || "").charAt(0));   // the gate strips one ו/ש
     }

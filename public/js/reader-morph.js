@@ -781,6 +781,139 @@
   // word — byte-for-byte the resolveCore call decorateWords paints with — memoized per
   // (surface, niqqud) because a text repeats its words. The tap card stays the authority for
   // context refinement; this never calls the network and never writes learner state.
+  // ── Word layer step 1 (docs/planning/word-layer/QUALITY_GAP_ANALYSIS_2026_10_11.md) ─────────
+  // Offline ENRICHMENT of an undecided reading (unknown / guessed / likely). It never touches
+  // resolveCore: the status/colour key stays the offline card's (preCtxCard), so a learner's saved
+  // marks never detach. Three deterministic sources, each measured on the Shura card:
+  //   1. closed-class word behind proclitics (וְאָז, שֶׁזֶּה, בְּכָל) — FUNCTION_GLOSS + a vowel guard on
+  //      the prefix and an allow-list for 2-letter remainders (בָּאךְ «Бах» ≠ ב+אך, וּמַכָּה ≠ ו+מ+כה);
+  //   2. lexicalised adverbs keyed by VOCALIZED form (בֶּאֱמֶת «действительно», עֲדַיִן ≠ עָדִין «нежный»);
+  //   3. matres-insensitive vocalized form lookup (Pealim עַכְשָׁיו = text עַכְשָׁו; הָמוֹן/הֲמוֹן is not
+  //      matched, ktiv male/haser is): accepted ONLY when it points to ONE paradigm.
+  // Shura: +~11% of words glossed, manual sample ≈93% correct (vs 78% for a Dicta-lemma join).
+  // The matres-insensitive reading is labelled «likely», never «exact»: on the archaic human gold
+  // (reader-morph-gold --regold) an «exact» label here cut honest-degradation recall 81.8% → 62%.
+  var _MATRES_FINAL = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+  function canonForm(s) {
+    s = String(s || "").normalize("NFC").replace(/[֑-ֽ֯‌-‏‪-‮]/g, "").replace(/[־\-]$/, "");
+    s = s.replace(/וּ(?![ְ-ׇֻ])/g, "ֻ")      // shuruk → qubuts (needs its dagesh)
+      .replace(/[ּֿ]/g, "")                                     // dagesh/rafe: sources disagree
+      .replace(/וֹ/g, "ֹ")                                  // holam male → holam
+      .replace(/ֹו(?![ְ-ׇֻ])/g, "ֹ")
+      .replace(/([ִֵֶ][ׁׂ]?)י(?![ְ-ׇֻ])/g, "$1")   // yod mater after i/e
+      .replace(/(ָ[ׁׂ]?)י(?![ְ-ׇֻ])ו/g, "$1ו")   // -ָיו: עַכְשָׁיו ~ עַכְשָׁו
+      .replace(/ׇ/g, "ָ")
+      .replace(/[ךםןףץ]/g, function (c) { return _MATRES_FINAL[c]; });
+    return s.normalize("NFC");
+  }
+  // Display-only glosses of lexicalised adverbs, keyed by canonForm of the VOCALIZED word.
+  var DISPLAY_GLOSS_VOC = {
+    "בֶּאֱמֶת": "действительно", "כְּאִלּוּ": "как будто", "הֲמוֹן": "много, масса", "יַחַד": "вместе",
+    "בְּיַחַד": "вместе", "עֲדַיִן": "ещё, пока", "קֹדֶם": "сначала; раньше", "תּוֹךְ": "в течение; внутри",
+    "מְעַט": "немного", "הַרְבֵּה": "много", "בַּסּוֹף": "в конце концов", "כָּזֶה": "такой", "כָּזֹאת": "такая",
+    "כָּאֵלֶּה": "такие", "כָּאֵלּוּ": "такие", "אֵיזֶשֶׁהוּ": "какой-то", "אֵיזוֹשֶׁהִי": "какая-то",
+    "מִתַּחַת": "под, снизу", "לְפָחוֹת": "по крайней мере", "בְּדִיּוּק": "точно, именно", "כִּמְעַט": "почти",
+    "שׁוּב": "снова", "עַכְשָׁו": "сейчас", "אָכֵן": "действительно", "הָלְאָה": "дальше", "בְּעִקָּר": "в основном",
+    "מֵאֵיפֹה": "откуда", "לְאַט": "медленно", "פִּתְאֹם": "вдруг", "בְּסֵדֶר": "в порядке", "כָּכָה": "так",
+    "אֵיךְ": "как", "לָמָּה": "почему", "בִּגְלַל": "из-за", "סְתָם": "просто так",
+  };
+  // 2-letter closed-class remainders allowed behind a proclitic (vocalized, canonForm-compared).
+  var SHORT_FUNC_VOC = ["זֶה", "זוֹ", "לֹא", "גַּם", "אָז", "כָּךְ", "מָה", "מַה", "מִי", "אִם", "עִם", "עַל", "יֵשׁ", "כָּל",
+    "כֹּל", "כֹל", "כָל", "פֹּה", "שָׁם", "כֵּן", "אַף", "אֵין", "אֶת", "אֵת", "הוּא", "הִיא", "הֵם", "הֵן", "אֵל", "אֶל"];
+  var _shortFunc = null, _dispGloss = null;
+  // proclitic letter → vowels it can carry (sheva ְ, hiriq ִ, tsere ֵ, segol ֶ, patah ַ, qamats ָ, shuruk וּ)
+  var _PRE_VOWEL = { "ו": /^(?:[ְִֶַָ]|ּ)$/, "ש": /^[ֶַ]$/, "ב": /^[ְִֵֶַָ]$/,
+    "ל": /^[ְִֵֶַָ]$/, "כ": /^[ְִֵֶַָ]$/, "מ": /^[ִֵ]$/, "ה": /^[ֶַָ]$/ };
+  function _clusters(s) {
+    var out = [], str = String(s || "");
+    for (var i = 0; i < str.length; i++) { var ch = str.charAt(i); if (/[֑-ׇ]/.test(ch) && out.length) out[out.length - 1] += ch; else out.push(ch); }
+    return out;
+  }
+  // the proclitic clusters of a vocalized word carry proclitic vowels (no dagesh/dots/meteg noise)
+  function _prefixVowelsOk(cls) {
+    for (var i = 0; i < cls.length; i++) {
+      var letter = cls[i].charAt(0), v = cls[i].slice(1).replace(/[ֽׁׂ֑-֯]/g, "");
+      if (letter !== "ו") v = v.replace(/ּ/g, "");
+      var re = _PRE_VOWEL[letter];
+      if (!re || !re.test(v)) return false;
+    }
+    return true;
+  }
+  // → [{ prefix:"<consonants>", rest:"<vocalized remainder>" }] for every valid proclitic split, short → long
+  function _procliticSplits(niqqud) {
+    var cl = _clusters(String(niqqud || "").normalize("NFC")), out = [];
+    for (var n = 1; n <= 3 && n < cl.length - 1; n++) {
+      var pre = cl.slice(0, n).map(function (c) { return c.charAt(0); }).join("");
+      if (!/^ו?(?:כש|ש|מש)?[בלכמ]?ה?$/.test(pre)) break;
+      if (!_prefixVowelsOk(cl.slice(0, n))) break;
+      out.push({ prefix: pre, rest: cl.slice(n).join("") });
+    }
+    return out;
+  }
+  function _canonIndex(eng) {
+    if (eng.canonIdx) return eng.canonIdx;
+    var idx = new Map();
+    var push = function (k, v) { if (!k) return; if (!idx.has(k)) idx.set(k, []); idx.get(k).push(v); };
+    eng.pidMap.forEach(function (p) {
+      if (!p || /^Conjugation of/.test(p.lemma || "")) return;
+      if (p.lemma_niqqud && !/[A-Za-z]/.test(p.lemma_niqqud)) push(canonForm(p.lemma_niqqud), { p: p, slot: "BASE" });
+      var cells = p.cells || {};
+      Object.keys(cells).forEach(function (k) { if (cells[k] && cells[k].he) push(canonForm(cells[k].he), { p: p, slot: k }); });
+    });
+    eng.canonIdx = idx;
+    return idx;
+  }
+  function _uniqueParadigm(hits) {
+    var id = null;
+    for (var i = 0; i < hits.length; i++) { var x = String(hits[i].p.pealim_id); if (id === null) id = x; else if (id !== x) return null; }
+    return hits[0].p;
+  }
+  var ENRICH_LABELS = { unknown: 1, guessed: 1, likely: 1 };
+  function enrichReading(eng, card, surface, niqqud) {
+    if (!card || !ENRICH_LABELS[card.label] || card.gateVia === "name" || !niqqud || !/[ְ-ּ]/.test(niqqud)) return card;
+    if (!_dispGloss) {
+      _dispGloss = new Map(); Object.keys(DISPLAY_GLOSS_VOC).forEach(function (k) { _dispGloss.set(canonForm(k), DISPLAY_GLOSS_VOC[k]); });
+      _shortFunc = new Set(SHORT_FUNC_VOC.map(canonForm));
+    }
+    var fnCard = function (meaning, prefix, via) {
+      var c = Object.assign({}, card, { meaning: meaning, label: "function", functionWord: true, gateVia: via, procliticPrefix: prefix || "",
+        paradigm: null, pealim_id: "", root: null, binyan: "", lemma: "", ambiguous: false, alts: [], channel: "enrich-" + via });
+      return c;
+    };
+    var whole = canonForm(niqqud);
+    if (_dispGloss.has(whole)) return fnCard(_dispGloss.get(whole), "", "adverb");
+    var splits = _procliticSplits(niqqud), i, sp, restC, restS;
+    // הַאִם «≈разве» must not become ה + אם «если»: the article never precedes a particle (guard
+    // below), and a likely reading whose proclitic split lands on the same word keeps its meaning.
+    // A likely ADVERB reading is a fused word whose proclitic is part of it (לְכָאן «сюда», מֵאָז
+    // «с тех пор», בְּיוֹתֵר «самый», לְמָה «почему»); a pronoun-set cell already reads right (שֶׁהֵן).
+    // Re-splitting them made «к + здесь», «из + тогда» — they keep their own reading.
+    var pc = (card.paradigm && card.paradigm.cells) || {};
+    var keepLikely = card.label === "likely" && (card.pos === "adverb" || !!(pc["1s"] && pc["3ms"] && !pc.s && !pc["P-1s"]));
+    for (i = 0; i < splits.length && !keepLikely; i++) {   // 1+2: closed class / adverb behind proclitics
+      sp = splits[i]; restC = canonForm(sp.rest); restS = stripNiqqud(sp.rest);
+      // the article ה never stands before a particle (הַאִם is the question ה), only before demonstratives
+      if (/ה$/.test(sp.prefix) && !/^(?:זה|זאת|זו|אלה|אלו)$/.test(restS)) continue;
+      if (_dispGloss.has(restC)) return fnCard(_dispGloss.get(restC), sp.prefix, "proclitic-adverb");
+      if (Object.prototype.hasOwnProperty.call(FUNCTION_GLOSS, restS) && FUNCTION_GLOSS[restS] &&
+        (restS.length >= 3 || _shortFunc.has(restC))) return fnCard(FUNCTION_GLOSS[restS], sp.prefix, "proclitic-function");
+    }
+    var idx = _canonIndex(eng), hits = idx.get(whole), pre = "";   // 3: matres-insensitive form
+    if (!hits) {
+      for (i = 0; i < splits.length && !hits; i++) { if (idx.get(canonForm(splits[i].rest))) { hits = idx.get(canonForm(splits[i].rest)); pre = splits[i].prefix; } }
+    }
+    if (!hits) return card;
+    var p = _uniqueParadigm(hits);
+    if (!p) return card;
+    if (card.label === "likely" && card.pealim_id && String(card.pealim_id) !== String(p.pealim_id)) return card;   // don't swap a homograph pick
+    var slots = hits.map(function (h) { return h.slot; }).filter(function (s) { return s !== "BASE"; });
+    return Object.assign({}, card, {
+      label: "likely", channel: "form-canonical", meaning: p.meaning || "", paradigm: p, pealim_id: String(p.pealim_id || ""),
+      pos: p.pos || "", binyan: p.binyan || "", root: p.root || null, lemma: p.lemma || "", ambiguous: false, alts: [],
+      functionWord: false, canon: { slots: slots, prefix: pre },
+    });
+  }
+
   var _glossMemo = new Map();
   async function resolveForGloss(surface, niqqud) {
     surface = stripNiqqud(surface);
@@ -788,7 +921,7 @@
     var key = surface + "|" + (niqqud || "");
     if (_glossMemo.has(key)) return _glossMemo.get(key);
     var eng = await ensureEngine();
-    var card = await resolveCore(eng, surface, niqqud || "");
+    var card = enrichReading(eng, await resolveCore(eng, surface, niqqud || ""), surface, niqqud || "");
     if (_glossMemo.size > 20000) _glossMemo.clear();
     _glossMemo.set(key, card);
     return card;
@@ -829,6 +962,9 @@
         if (card.contextUsed) { card.contextSource = ctx.source || "live"; card.contextMade = ctx.made || ""; }
       } catch (_) { /* ctx hiccup → keep offline card (silent, no dead-end) */ }
     }
+    // Word layer step 1: the same offline enrichment the gloss/ribbon use, so a tap shows what the
+    // ribbon showed. Display only — the status key below stays the offline preCtxCard's.
+    try { card = enrichReading(eng, card, surface, niqqud || ""); } catch (_) {}
     if (!card.pealim_url && window.PealimFunctionLinks) {
       try {
         var fl = window.PealimFunctionLinks.lookup(surface, card.pos || "", { lemma: surface });
@@ -2893,6 +3029,7 @@
     fadeGraduationReady: fadeGraduationReady, FADE_GRADUATION_MIN: FADE_GRADUATION_MIN,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, resolveForGloss: resolveForGloss,
+    canonForm: canonForm, enrichReading: enrichReading,
     acceptStrictAnswer: acceptStrictAnswer, acceptReadAnswer: acceptReadAnswer, attach: attach,
     setProcliticOverlay: setProcliticOverlay,
     closeSheet: closeSheet, isSheetOpen: isSheetOpen, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,

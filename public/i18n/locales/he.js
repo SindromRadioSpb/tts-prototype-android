@@ -2369,7 +2369,7 @@ window.I18N_LOCALES.he = {
   wordGloss: {
     prefix: { v: "ו־", sh: "ש־", ksh: "כש־", msh: "מש־", b: "ב־", l: "ל־", k: "כ־", m: "מ־" },
     tense: { past: "עבר", future: "עתיד", imperative: "ציווי", present: "הווה", passive: "סביל" },
-    plural: "רבים", unknown: "אין נתונים",
+    plural: "רבים", unknown: "אין נתונים", name: "שם",
     ribbon: { aria: "מילות השורה הנוכחית" },
   },
   room: {

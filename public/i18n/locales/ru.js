@@ -2373,7 +2373,7 @@ window.I18N_LOCALES.ru = {
   wordGloss: {
     prefix: { v: "и", sh: "что", ksh: "когда", msh: "с тех пор как", b: "в", l: "к", k: "как", m: "из" },
     tense: { past: "прош.", future: "буд.", imperative: "повел.", present: "наст.", passive: "страд." },
-    plural: "мн.", unknown: "нет данных",
+    plural: "мн.", unknown: "нет данных", name: "имя, название",
     ribbon: { aria: "Слова текущей строки" },
   },
   room: {
