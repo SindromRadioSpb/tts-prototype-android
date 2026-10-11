@@ -19,8 +19,11 @@ const path = require("path");
 const { spawn } = require("child_process");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3301;
-const BASE = `http://127.0.0.1:${PORT}`;
-const shot = (n) => path.join(REPO_ROOT, ".tmp", "word-gloss-" + n + ".png");
+// WORD_GLOSS_BASE=https://… → проверка опубликованного результата: свой сервер не поднимается,
+// засев идёт только в OPFS одноразового профиля браузера (данные владельца не затрагиваются).
+const EXTERNAL = process.env.WORD_GLOSS_BASE || "";
+const BASE = EXTERNAL || `http://127.0.0.1:${PORT}`;
+const shot = (n) => path.join(REPO_ROOT, ".tmp", "word-gloss-" + (EXTERNAL ? "prod-" : "") + n + ".png");
 
 function startServer() {
   return spawn(process.execPath, ["server.js"], { cwd: REPO_ROOT, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] });
@@ -81,11 +84,11 @@ async function ribbonState(pg) {
 
 (async () => {
   console.log("word-gloss: подстрочник + лента слов (Студия + Зал)");
-  const srv = startServer();
+  const srv = EXTERNAL ? null : startServer();
   let browser = null;
   const pageErrors = [];
   try {
-    if (!(await ready())) { console.error("server not ready"); process.exit(1); }
+    if (!EXTERNAL && !(await ready())) { console.error("server not ready"); process.exit(1); }
     const { chromium } = require("playwright");
     browser = await chromium.launch();
 
