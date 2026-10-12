@@ -184,6 +184,8 @@
     ps.forEach(function (p) { if (!mem.has(p.key) && !inflight.has(p.key) && !seen.has(p.key)) { seen.add(p.key); todo.push(p); } });
     var stats = { done: 0, rejected: 0, failed: 0, skipped: 0, error: "" }, total = todo.length, batches = [];
     for (var b = 0; b < todo.length; b += BATCH) batches.push(todo.slice(b, b + BATCH));
+    // the stage is visible from its first second: the denominator is known before any request
+    if (typeof opts.onProgress === "function" && total) { try { opts.onProgress({ done: 0, total: total }); } catch (_) {} }
     var next = 0;
     async function worker() {
       while (next < batches.length) {

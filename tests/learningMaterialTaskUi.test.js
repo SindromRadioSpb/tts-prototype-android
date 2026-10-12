@@ -669,3 +669,35 @@ test('without a Gemini key a text material names its own translator and offers t
   await actions.find((n) => n.textContent === 'Вернуться и настроить Gemini').onclick();
   assert.equal(opened, 1);
 });
+
+// Ф3б (владелец 2026-10-12): перевод слов ИИ — отдельный видимый этап с прогрессом, а не слепая зона
+// внутри «Готового материала». Появляется только при согласии.
+test('AI word translation is its own stage before the finish, with progress from the first second',()=>{
+  const consent = { word_gloss_ai: { enabled: true, quote: { words: 10, usd: 0.01, basis: 'text' } } };
+  const media = (phase, state) => localJob(phase, state, { input: { title: 'x', import_meta: { media_package_ref: { package_id: 'mpkg:a' } }, ...consent } });
+  assert.equal(keys(UI.stageModel(media('glossing'))), 'media,transcript,review,translating,saved,bound,wordgloss,ready');
+  assert.equal(marks(UI.stageModel(media('glossing'))),
+    'media:done transcript:done review:done translating:done saved:done bound:done wordgloss:current ready:pending');
+  assert.equal(marks(UI.stageModel(media('exporting'))).split(' ').slice(-2).join(' '), 'wordgloss:done ready:current');
+  assert.equal(marks(UI.stageModel(media('saving'))).split(' ').slice(-3).join(' '), 'bound:pending wordgloss:pending ready:pending');
+  const text = (phase) => ({ input: { title: 'x', ...consent }, phase, state: 'running' });
+  assert.equal(keys(UI.stageModel(text('glossing'))), 'imported,translating,saved,wordgloss,ready');
+  assert.equal(marks(UI.stageModel(text('glossing'))), 'imported:done translating:done saved:done wordgloss:current ready:pending');
+  assert.equal(keys(UI.stageModel(localJob('glossing'))), MEDIA_KEYS, 'no consent, no stage');
+  assert.equal(UI.liveDetail({ phase: 'glossing' }, { gloss: { done: 0, total: 473 } }).text, 'Перевод слов (ИИ): готовим 473 строк');
+  const mid = UI.liveDetail({ phase: 'glossing' }, { gloss: { done: 120, total: 473 } });
+  assert.equal(mid.percent, 25);
+  assert.equal(mid.text, 'Перевод слов (ИИ): 120 из 473 строк');
+});
+
+// Сборка владельца 2026-10-12: сохранение шло 6:44 (фаза saving), а шкала показывала 0:40 соседней фазы saved.
+test('a stage clock sums every journal phase the stage covers',()=>{
+  const t0 = 1000000, sec = (a, b) => ({ startedAt: t0 + a * 1000, endedAt: t0 + b * 1000 });
+  const job = localJob('ready', 'ready', { stage_times: { translating: sec(0, 990), table_ready: sec(990, 990), saving: sec(990, 1394),
+    saved: sec(1394, 1434), binding: sec(1434, 1471), bound: sec(1471, 1555), glossing: sec(1555, 2359), exporting: sec(2359, 2364) } });
+  const clock = (key) => UI.stageModel(job).find((s) => s.key === key).elapsedText;
+  assert.equal(clock('translating'), '16:30');
+  assert.equal(clock('saved'), '7:24');
+  assert.equal(clock('bound'), '2:01');
+  assert.equal(clock('ready'), '0:05');
+});

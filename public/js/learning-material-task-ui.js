@@ -52,17 +52,17 @@
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
   // Ф3б: перевод слов ИИ при сборке материала (владелец, 2026-10-12): по умолчанию выключен, выбор помнится.
   const wordGlossWords={
-    ru:{wordGlossOption:'Перевод слов ИИ (Gemini) для подстрочника и ленты',wordGlossPrice:'≈${usd} · {n} слов',wordGlossPriceLink:'≈${usd} · около {n} слов по длительности',
+    ru:{stageWordgloss:'Перевод слов (ИИ)',detailWordGlossStart:'Перевод слов (ИИ): готовим {n} строк',wordGlossOption:'Перевод слов ИИ (Gemini) для подстрочника и ленты',wordGlossPrice:'≈${usd} · {n} слов',wordGlossPriceLink:'≈${usd} · около {n} слов по длительности',
       wordGlossNoKey:'Нужен ключ Gemini — без него подстрочник и лента покажут словарный перевод.',wordGlossHelp:'Gemini переводит каждое слово в контексте строки: ошибок около 2% против 7% у словаря. Перевод сохраняется с материалом и едет в экспорт.',
       detailWordGloss:'Перевод слов (ИИ): {d} из {n} строк',finalWordGloss:'Перевод слов ИИ: {c} из {n} строк.',
       finalWordGlossPartial:'Без перевода ИИ строк: {k} — для них показан словарный перевод. «Догрузить» не оплачивает готовые строки повторно.',
       finalWordGlossError:'Перевод слов ИИ не получен ({code}) — подстрочник и лента показывают словарный перевод.',wordGlossRetry:'Догрузить перевод слов (ИИ)'},
-    en:{wordGlossOption:'AI word translation (Gemini) for the interlinear line and ribbon',wordGlossPrice:'≈${usd} · {n} words',wordGlossPriceLink:'≈${usd} · about {n} words by duration',
+    en:{stageWordgloss:'Word translation (AI)',detailWordGlossStart:'Word translation (AI): preparing {n} rows',wordGlossOption:'AI word translation (Gemini) for the interlinear line and ribbon',wordGlossPrice:'≈${usd} · {n} words',wordGlossPriceLink:'≈${usd} · about {n} words by duration',
       wordGlossNoKey:'A Gemini key is required — without it the interlinear line and ribbon show the dictionary translation.',wordGlossHelp:'Gemini translates every word in the context of its row: about 2% errors against 7% for the dictionary. The translation is saved with the material and goes into the export.',
       detailWordGloss:'Word translation (AI): {d} of {n} rows',finalWordGloss:'AI word translation: {c} of {n} rows.',
       finalWordGlossPartial:'Rows without AI translation: {k} — they show the dictionary translation. “Fetch the rest” does not pay again for ready rows.',
       finalWordGlossError:'AI word translation was not received ({code}) — the interlinear line and ribbon show the dictionary translation.',wordGlossRetry:'Fetch the rest of the AI word translation'},
-    he:{wordGlossOption:'תרגום מילים בבינה מלאכותית (Gemini) לשורת התרגום ולסרט המילים',wordGlossPrice:'≈${usd} · {n} מילים',wordGlossPriceLink:'≈${usd} · כ־{n} מילים לפי האורך',
+    he:{stageWordgloss:'תרגום מילים (בינה מלאכותית)',detailWordGlossStart:'תרגום מילים בבינה מלאכותית: מכינים {n} שורות',wordGlossOption:'תרגום מילים בבינה מלאכותית (Gemini) לשורת התרגום ולסרט המילים',wordGlossPrice:'≈${usd} · {n} מילים',wordGlossPriceLink:'≈${usd} · כ־{n} מילים לפי האורך',
       wordGlossNoKey:'נדרש מפתח Gemini — בלעדיו שורת התרגום וסרט המילים יציגו את תרגום המילון.',wordGlossHelp:'Gemini מתרגם כל מילה בהקשר של השורה: כ־2% שגיאות לעומת 7% במילון. התרגום נשמר עם החומר ונכלל בייצוא.',
       detailWordGloss:'תרגום מילים בבינה מלאכותית: {d} מתוך {n} שורות',finalWordGloss:'תרגום מילים בבינה מלאכותית: {c} מתוך {n} שורות.',
       finalWordGlossPartial:'שורות בלי תרגום בינה מלאכותית: {k} — בהן מוצג תרגום המילון. «השלמה» לא משלמת שוב על שורות מוכנות.',
@@ -91,7 +91,10 @@
   const MEDIA_STAGES=['media','transcript','review','translating','saved','bound','ready'];
   const PHASE_AT_MEDIA={imported:3,transcribing:1,transcribed:3,translating:3,table_ready:4,saving:4,saved:5,binding:5,bound:6,glossing:6,exporting:6,ready:6};
   // Часы этапа живут под именем фазы журнала, а не под именем пункта шкалы.
-  const CLOCK_PHASE={transcript:'transcribing'};
+  // Пункт шкалы покрывает НЕСКОЛЬКО фаз журнала: «Сохранение карточки» — это saving+saved, «Привязка
+  // видео» — binding+bound. Раньше часы брали одну соседнюю фазу и показывали 0:40 сохранения, которое
+  // шло 6:44 (сборка владельца 2026-10-12). Часы этапа = сумма его фаз.
+  const CLOCK_PHASE={transcript:['transcribing'],translating:['translating','table_ready'],saved:['saving','saved'],bound:['binding','bound'],wordgloss:['glossing'],ready:['exporting','ready']};
   function isMediaJob(job){const input=job&&job.input;if(!input)return false;if(input.youtube_source)return true;
     const meta=(job.transcript&&job.transcript.import_meta)||input.import_meta;return !!(meta&&meta.media_package_ref);}
   // Куда попадает каждая фаза журнала на шкале этапов.
@@ -99,6 +102,10 @@
   // Время каждого этапа берётся из журнала задачи: он переживает перезагрузку и возобновление,
   // поэтому итог показывает, сколько ЭТАП реально занял, а не сколько открыт диалог.
   function stageElapsedSec(job,key,now){
+    if(Array.isArray(key)){
+      const parts=key.map(k=>stageElapsedSec(job,k,now)).filter(v=>v!=null);
+      return parts.length?parts.reduce((a,b)=>a+b,0):null;
+    }
     const rec=job&&job.stage_times&&job.stage_times[key];
     // Числовая проверка, а не истинность: startedAt=0 — законная метка, и на falsy-проверке
     // часы этапа молча исчезали.
@@ -109,11 +116,16 @@
   function stageModel(job,opts){
     const now=(opts&&opts.now)||Date.now();
     const media=isMediaJob(job);
-    const stages=media?MEDIA_STAGES:TEXT_STAGES;
+    const base=media?MEDIA_STAGES:TEXT_STAGES;
+    // Ф3б: перевод слов ИИ — свой пункт шкалы перед готовым материалом, только когда на него дано согласие.
+    const gloss=!!(job&&job.input&&job.input.word_gloss_ai&&job.input.word_gloss_ai.enabled);
+    const gi=base.length-1;
+    const stages=gloss?[...base.slice(0,gi),'wordgloss',base[gi]]:base;
     // У ссылки до распознавания текущий этап — транскрипт; у файла транскрипт уже есть.
     const table=media?(job.input.youtube_source&&(job.phase==='imported'||!job.phase)?{...PHASE_AT_MEDIA,imported:1}:PHASE_AT_MEDIA):PHASE_AT;
     const at=table[job&&job.phase];
-    const reached=Number.isInteger(at)?at:0;
+    let reached=Number.isInteger(at)?at:0;
+    if(gloss)reached=['exporting','ready'].includes(job.phase)?gi+1:(job.phase==='glossing'||reached>=gi?gi:reached);
     const finished=job&&(job.state==='ready'||job.phase==='ready'||(!media&&job.phase==='bound'));
     const stalled=job&&(job.state==='paused'||job.state==='cancelled');
     return stages.map((key,i)=>({
@@ -204,6 +216,9 @@
       const chunks=Number(l.table.chunks)||1;
       const chunk=Math.min(Math.max(1,Number(l.table.chunk)||1),chunks);
       return {percent,text:fill(t('detailRows'),{ready,total,chunk,chunks})};
+    }
+    if(phase==='glossing'&&l.gloss&&!(Number(l.gloss.done)>0)&&Number(l.gloss.total)>0){
+      return {percent:0,text:fill(t('detailWordGlossStart'),{n:Number(l.gloss.total)})};
     }
     if(phase==='glossing'&&l.gloss){
       const done=Number(l.gloss.done)||0,total=Number(l.gloss.total)||0;
