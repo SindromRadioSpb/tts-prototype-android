@@ -12,6 +12,7 @@
   const PLAYBACK_SCHEMA_VERSION = 3;
   function playbackCore() { return typeof module === 'object' && module.exports ? require('./playback-source.js') : globalThis.PlaybackSource; }
   const MiB = 1024 * 1024;
+  const WORD_GLOSS_PATH = 'learning/word-gloss-ai.json';
   const LIMITS = Object.freeze({ archive: 128 * MiB, uncompressed: 512 * MiB, entries: 4096, entry: 64 * MiB, manifest: MiB, readme: 256 * 1024, ratio: 100, pathBytes: 240, depth: 5, jsonDepth: 64 });
   const NODE_TYPES = Object.freeze(['media_asset', 'media_package', 'import_run', 'caption_track', 'caption_revision', 'learning_material', 'table_revision', 'learning_row_version', 'projection', 'portable_package']);
   const RELATIONS = Object.freeze(['references_media', 'produced_from', 'derived_from', 'bound_to_revision', 'contains', 'maps_to_segment', 'projection_of', 'supersedes', 'conflicts_with', 'included_in']);
@@ -327,6 +328,9 @@
     for (const revision of model.portableTables) { revision.portable_body_sha256=await hashObject(revision); files['learning/table/revisions/' + revision.portable_table_revision_id.slice(-64) + '.json'] = canonicalJson({ schema: 'portable-table-revision-v2', ...revision }); }
     files['learning/mapping/' + model.roots.table_revision.slice(-64) + '.json'] = canonicalJson(model.mapping);
     files['learning/text-card.json'] = canonicalJson(model.textCard);
+    // Ф3б: paid AI word glosses — a derived cache layer, NOT content: outside the content root, so a
+    // material keeps one identity with or without it (re-import of a glossed package = duplicate + layer).
+    if (input.word_gloss_ai_layer) files[WORD_GLOSS_PATH] = canonicalJson(input.word_gloss_ai_layer);
     const cardHash = await semanticCardHash(model.textCard);
     const graph = await buildGraph(model, [{ id: 'projection:vtt:sha256:' + vttHash, hash: vttHash, kind: 'vtt', source: model.roots.caption_revision }, { id: 'projection:text_card:sha256:' + cardHash, hash: cardHash, kind: 'text_card', source: model.materialId }]);
     files['graph/artifacts.json'] = canonicalJson({ schema: 'portable-artifacts-v2', artifacts: graph.artifacts });
@@ -336,7 +340,7 @@
       : 'LinguistPro Portable Learning Package v2\nMedia bytes are not included. Relink by exact SHA-256.\n';
     const entries = [];
     for (const path of Object.keys(files).sort(keyCompare)) {
-      const semantic = path !== 'provenance/export.json' && path !== 'README.txt';
+      const semantic = path !== 'provenance/export.json' && path !== 'README.txt' && path !== WORD_GLOSS_PATH;
       entries.push({ path, sha256: await sha256Hex(files[path]), size_bytes: utf8(files[path]).byteLength, media_type: path.endsWith('.json') ? 'application/json' : (path.endsWith('.vtt') ? 'text/vtt' : 'text/plain'), semantic });
     }
     const semanticList = entries.filter((entry) => entry.semantic).map((entry) => [entry.path, entry.sha256, entry.size_bytes, entry.media_type]);
@@ -348,7 +352,7 @@
   }
 
   function pathAllowed(path) {
-    return ['manifest.json', 'graph/artifacts.json', 'graph/edges.json', 'source/media-ref.json', 'source/playback.json', 'provenance/import-run.json', 'provenance/export.json', 'quality/report.json', 'tracks/raw/track.json', 'tracks/corrected/track.json', 'learning/material.json', 'learning/text-card.json', 'README.txt'].includes(path)
+    return ['manifest.json', 'graph/artifacts.json', 'graph/edges.json', 'source/media-ref.json', 'source/playback.json', 'provenance/import-run.json', 'provenance/export.json', 'quality/report.json', 'tracks/raw/track.json', 'tracks/corrected/track.json', 'learning/material.json', 'learning/text-card.json', WORD_GLOSS_PATH, 'README.txt'].includes(path)
       || /^tracks\/(?:raw|corrected)\/revisions\/[a-f0-9]{64}\.json$/.test(path)
       || /^tracks\/projections\/[a-f0-9]{64}\.vtt$/.test(path)
       || /^learning\/table\/revisions\/[a-f0-9]{64}\.json$/.test(path)
@@ -442,6 +446,7 @@
     const selectedTable=tableDocs.find((item)=>item.portable_table_revision_id===manifest.roots.table_revision),cardRows=payload.text_card&&payload.text_card.card&&payload.text_card.card.rows;
     if(!selectedTable||!Array.isArray(cardRows)||cardRows.length!==selectedTable.rows.length)fail('PACKAGE_TEXT_CARD_PARITY_MISMATCH');
     for(let index=0;index<selectedTable.rows.length;index++){const row=selectedTable.rows[index],card=cardRows[index];if(String(card.hebrew_plain||'')!==row.he_plain||String(card.hebrew_niqqud||'')!==row.he_niqqud||String(card.translit||'')!==row.translit||String(card.translit_ru||'')!==row.translit_ru||String(card.russian||'')!==row.ru)fail('PACKAGE_TEXT_CARD_PARITY_MISMATCH',String(index));}
+    if (files[WORD_GLOSS_PATH]) { const entry = manifest.entries.find((item) => item.path === WORD_GLOSS_PATH); if (!entry || entry.semantic) fail('PACKAGE_WORD_GLOSS_SEMANTIC_INVALID'); payload.word_gloss_ai_layer = parseJsonStrict(files[WORD_GLOSS_PATH]); }
     if (manifest.schema_version === PLAYBACK_SCHEMA_VERSION) payload.playback_source = playbackCore().validate(parseJsonStrict(files['source/playback.json']));
     return { manifest, graph, payload, files, manifest_sha256: await sha256Hex(files['manifest.json']) };
   }

@@ -44,7 +44,7 @@ export function openPublisher(ctx) {
     const category=d.categories.find(c=>channel&&(c.id===channel.id||C.normalize(c.title)===C.normalize(channel.title)));
     const collection=d.collections.find(c=>series&&(c.id===series.id||(c.categoryId===category?.id&&C.normalize(c.title)===C.normalize(series.title))));
     const options=(xs,selected)=>'<option value="">'+esc(t('none'))+'</option>'+xs.map(x=>`<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.title)}</option>`).join('');
-    showDialog(t('publisherDetails'),`${publisherStep(t,esc,2)}<p class="ml-archive-summary">${esc(t('archiveChecked',{count:work.rowCount}))} · ${work.videoId?'YouTube':esc(t('attachedMedia'))}</p>
+    showDialog(t('publisherDetails'),`${publisherStep(t,esc,2)}<p class="ml-archive-summary">${esc(t('archiveChecked',{count:work.rowCount}))} · ${work.videoId?'YouTube':esc(t('attachedMedia'))}${work.wordGlossRows?' · '+esc(t('archiveWordGloss',{count:work.wordGlossRows})):''}</p>
       <label>${esc(t('name'))}<input name="title" maxlength="200" required value="${esc(work.title)}" dir="auto"></label>
       <label>${esc(t('description'))}<textarea name="description" maxlength="2000"></textarea></label>
       <label>${esc(t('collectionTopic'))}<select name="category">${options(d.categories,category?.id)}</select></label>

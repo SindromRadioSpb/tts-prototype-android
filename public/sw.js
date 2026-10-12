@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.741";
+const CACHE_VERSION = "v3.11.742";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -102,8 +102,8 @@ const PRECACHE_URLS = [
   "/js/study-video-source-ui.js?v=723",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
-  "/js/learning-material-task.js?v=633",
-  "/js/learning-material-task-ui.js?v=633",
+  "/js/learning-material-task.js?v=742",
+  "/js/learning-material-task-ui.js?v=742",
 
   "/css/catalog-discovery.css?v=643",
   "/js/catalog-discovery-core.js?v=485",
@@ -135,7 +135,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=741",
+  "/js/library-ui.js?v=742",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -189,8 +189,8 @@ const PRECACHE_URLS = [
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/reader-morph.js?v=740",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=741",
-  "/js/word-gloss-ai.js?v=741",
+  "/js/word-gloss.js?v=742",
+  "/js/word-gloss-ai.js?v=742",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=736",
   "/js/studio-morph.js?v=5",
@@ -250,9 +250,9 @@ const PRECACHE_URLS = [
   "/js/media-package-repository.js?v=718",
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js?v=553",
-  "/js/portable-learning-package-core.js?v=688",
+  "/js/portable-learning-package-core.js?v=742",
   "/js/import-center-core.js?v=527",
-  "/js/portable-learning-package-repository.js?v=718",
+  "/js/portable-learning-package-repository.js?v=742",
   "/js/studio-media-package.js?v=723",
   "/js/material-open.js?v=734",
   "/js/material-save.js?v=734",
@@ -273,7 +273,7 @@ const PRECACHE_URLS = [
   "/js/mp3-slice.js",
   // E1 — формат «карточки текста» v1/v2 (share/import). Без него inline-код шаринга
   // молча деградировал бы до v1 (потеря паспорта), а импорт — до generic-бандла.
-  "/js/text-card-format.js?v=734",
+  "/js/text-card-format.js?v=742",
   // MASS-ACCESS I3 — one Send or save contract for Studio and Reading Room.
   // Package bytes, file hand-off and browser save remain separate outcomes.
   "/js/share-service.js",
@@ -326,9 +326,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=288",
-  "/i18n/locales/en.js?v=288",
-  "/i18n/locales/he.js?v=288",
+  "/i18n/locales/ru.js?v=289",
+  "/i18n/locales/en.js?v=289",
+  "/i18n/locales/he.js?v=289",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -341,7 +341,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=734",
+  "/db/local-db.js?v=742",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

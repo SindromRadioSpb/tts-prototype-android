@@ -2377,7 +2377,7 @@ window.I18N_LOCALES.en = {
   },
   room: {
     wordGloss: { toggle: "Interlinear gloss", hint: "A short translation under each word; ≈ means likely. Tap a word for the full card.", note: "Translation under each word and a ribbon with the words of the playing line; ≈ likely, no label — no data." },
-    wordGlossAi: { toggle: "AI word translation (Gemini)", hint: "Each word translated in the context of its line by Gemini with your key: lines are translated as you read and listen, ≈$0.15 per 1000 words.", all: "Translate all words of the text (AI)" },
+    wordGlossAi: { toggle: "AI word translation (Gemini)", hint: "Order from Gemini, with your key, a translation of each word in the context of its line — as you read and listen, ≈$0.15 per 1000 words. Translations already received (including at material build) are always shown.", all: "Translate all words of the text (AI)" },
     wordRibbon: { toggle: "Word ribbon", hint: "Words of the playing line with translations — under the video or at the bottom of the screen." },
     units: {
       rows: { one: "line", few: "lines", many: "lines", other: "lines" },
@@ -4907,6 +4907,7 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "checkArchive": "Check archive",
   "publisherDetails": "Title and library placement",
   "archiveChecked": "Archive verified: {count} rows",
+  "archiveWordGloss": "AI word translation: {count} rows — readers see it without their own key",
   "none": "Not selected",
   "newChannel": "Or create a topic / channel",
   "newSeries": "Or create a collection",

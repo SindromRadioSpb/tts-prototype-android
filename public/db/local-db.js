@@ -6133,6 +6133,9 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
       rows,
       learning_niqqud_layer: !slim && globalThis.BenYehudaLearningNiqqud
         ? await globalThis.BenYehudaLearningNiqqud.portable(text) : null,
+      // Ф3б: paid AI word glosses of these rows (content-keyed; import re-proves each row's key).
+      word_gloss_ai_layer: !slim && globalThis.WordGlossAI
+        ? await globalThis.WordGlossAI.portable(rows).catch(() => null) : null,
       text_audio_asset_key: (_srcMeta && _srcMeta._portable && _srcMeta._portable.text_audio_asset_key)
         ? String(_srcMeta._portable.text_audio_asset_key) : null,
       created_at: text.created_at || _exportTs,
@@ -6574,6 +6577,9 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
     let learningNiqqudPin = null;
     if (item?.learning_niqqud_layer && globalThis.BenYehudaLearningNiqqud) {
       try { learningNiqqudPin = await globalThis.BenYehudaLearningNiqqud.remember(item.learning_niqqud_layer, item); } catch (_) { /* optional derived layer cannot corrupt a source restore */ }
+    }
+    if (item?.word_gloss_ai_layer && globalThis.WordGlossAI) {
+      try { await globalThis.WordGlossAI.remember(item.word_gloss_ai_layer, Array.isArray(item.rows) ? item.rows : (item.sentences || item.text?.sentences || [])); } catch (_) { /* optional derived layer cannot corrupt a source restore */ }
     }
     let textData;
     if (item && item.text && typeof item.text === 'object') {

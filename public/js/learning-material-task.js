@@ -134,8 +134,29 @@
     // Исходный ролик локального файла (необязателен): второй источник видео для других устройств.
     const origin=input&&input.youtube_origin?youtubeSource(input.youtube_origin):null;
     if(input&&input.youtube_origin&&!origin)throw new Error('TASK_INPUT_INVALID');
-    const source=safe({source_text:input.source_text||'',youtube_source:link,...(origin?{youtube_origin:origin}:{}),table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
+    // Ф3б: перевод слов ИИ — согласие с ценой подписывается вместе со входом, как цена таблицы.
+    const wordGloss=wordGlossConsent(input&&input.word_gloss_ai);
+    const source=safe({source_text:input.source_text||'',youtube_source:link,...(origin?{youtube_origin:origin}:{}),table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),...(wordGloss?{word_gloss_ai:wordGloss}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
     return {schema:SCHEMA,id:crypto.randomUUID(),signature:await P().digest(JSON.stringify(source)),input:source,phase:'imported',state:'paused',cancel_requested:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),transcript:null,table:null,saved_text_id:null,playback_bound:null,package:null,stage_times:{},error:null};
+  }
+  function wordGlossConsent(value){
+    if(value==null||value.enabled!==true)return null;
+    const q=value.quote||{},words=Number(q.words),usd=Number(q.usd);
+    if(!Number.isInteger(words)||words<0||!Number.isFinite(usd)||usd<0)throw new Error('TASK_INPUT_INVALID');
+    return {enabled:true,quote:{words,usd:Math.round(usd*10000)/10000,basis:q.basis==='duration'?'duration':'text'}};
+  }
+  // Ф3б: итог этапа «Перевод слов (ИИ)» — сколько строк карточки получили перевод ИИ. Частичный
+  // итог — не сбой материала: остальные строки честно показывают словарный перевод.
+  async function glossStage(job,operations,shouldStop){
+    try{return await operations.glossWords(clone(job),{shouldStop});}
+    catch(error){return {rows:0,covered:0,done:0,rejected:0,failed:0,skipped:0,error:String(error&&(error.code||error.message)||'ERROR').slice(0,120)};}
+  }
+  // «Догрузить»: повтор этапа на готовом материале. Оплаченные строки сервер отдаёт из кэша бесплатно.
+  async function retryWordGloss(store,operations,id){
+    const job=await store.get(id);
+    if(!job||!job.saved_text_id||!job.word_gloss||!operations.glossWords)throw new Error('TASK_WORD_GLOSS_UNAVAILABLE');
+    const outcome=await glossStage(job,operations,null);
+    return store.update(id,old=>({...old,word_gloss:outcome}));
   }
   function createStore(){
     const open=()=>new Promise((resolve,reject)=>{
@@ -287,6 +308,13 @@
           }
         }
         if(await cancelled())return await update({state:'cancelled'});
+        // Ф3б: после привязки ▶ и ДО упаковки — чтобы ZIP уже нёс слой перевода слов.
+        if(job.input.word_gloss_ai&&job.input.word_gloss_ai.enabled&&operations.glossWords&&!job.word_gloss){
+          await update({phase:'glossing'});
+          const outcome=await glossStage(job,operations,cancelled);
+          job=await update({word_gloss:safe(outcome)});
+        }
+        if(await cancelled())return await update({state:'cancelled'});
         if(!job.package){
           await update({phase:'exporting'});
           const artifact=await operations.preparePackage(clone(job));
@@ -307,5 +335,5 @@
     }
     return {run,cancel:id=>store.update(id,old=>({...old,cancel_requested:true,state:active.has(id)?'stopping':'cancelled'})),isRunning:id=>active.has(id)};
   }
-  return {SCHEMA,MAX_BYTES,safe,create,createStore,createRunner,switchTranslationProvider,effectiveImportMeta,youtubeSource,assertVideoSource,assertSavedRows,verifySource,recoverSourceTable,sourceReview,applySourceReview,sourceDiagnosis};
+  return {SCHEMA,MAX_BYTES,safe,create,wordGlossConsent,retryWordGloss,createStore,createRunner,switchTranslationProvider,effectiveImportMeta,youtubeSource,assertVideoSource,assertSavedRows,verifySource,recoverSourceTable,sourceReview,applySourceReview,sourceDiagnosis};
 });

@@ -20,29 +20,62 @@
   var USD_PER_1K_WORDS = 0.15;          // measured, gemini-3.8-flash on the Shura card (F3 spec §4)
   var BATCH = 8, CONCURRENCY = 3;       // ≤12 rows/request server-side; 8 keeps a request ≈20 s
 
-  // ── row identity: content hash (== server cache identity: Hebrew row, translation, tokens) ──
+  // ── row identity: content hash of the row DATA (vocalized words + translation) ──
+  // v2 (Ф3б): the translation is the cell VALUE only. v1 hashed the cell's textContent, which on media
+  // rows also carried the replay glyph «\u25B6\uFE0E» appended later by media-host — the same sentence got a
+  // different key per surface/moment/device (paid again) and the glyph leaked into the prompt.
+  // v1 entries already paid on this device are found by their legacy keys and copied to v2.
+  var REPLAY_GLYPH = "\u25B6\uFE0E";
   function fnv(s) {
     var h1 = 0x811c9dc5, h2 = 0x01000193;
     for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = Math.imul(h2 ^ c, 2246822519) >>> 0; }
     return h1.toString(16) + h2.toString(16);
   }
+  function normText(s) { return String(s == null ? "" : s).replace(/\s+/g, " ").trim(); }
+  function keyOf(he, ru, n) { return "r2" + fnv(he + "\u0001" + ru) + ":" + n; }
+  function legacyKeys(he, ru, n) {
+    var v1 = function (x) { return "r" + fnv(he + "\u0001" + x) + ":" + n; };
+    return [v1(ru), v1((ru ? ru + " " : "") + REPLAY_GLYPH)];
+  }
+  function payloadOf(words, ru) {
+    if (!words.length) return null;
+    var he = words.map(function (x) { return x.w; }).join(" ");
+    return { key: keyOf(he, ru, words.length), legacy: legacyKeys(he, ru, words.length), he: he, ru: ru, words: words };
+  }
   function rowSpans(tr) {
     var niq = tr.querySelectorAll('td[data-col="niqqud"] .rm-w');
     return Array.prototype.slice.call(niq.length ? niq : tr.querySelectorAll('td[data-col="he"] .rm-w'));
   }
-  function rowText(tr, col) {
+  // the cell's value text: controls (replay \u25B6\uFE0E, TTS) and badges are not part of the translation
+  function cellValue(tr, col) {
     var td = tr.querySelector('td[data-col="' + col + '"]');
-    return td ? String(td.textContent || "").replace(/\s+/g, " ").trim() : "";
+    if (!td) return "";
+    var c = td.cloneNode(true);
+    Array.prototype.forEach.call(c.querySelectorAll("button, [role=button], .niqqud-derived-badge"), function (x) { x.remove(); });
+    return normText(c.textContent);
   }
   function rowPayload(tr) {
     var spans = rowSpans(tr);
-    if (!spans.length) return null;
-    var words = spans.map(function (sp) { return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", hint: "" }; });
-    var he = words.map(function (x) { return x.w; }).join(" ");
-    var ru = rowText(tr, "ru");
-    var key = "r" + fnv(he + "\u0001" + ru) + ":" + words.length;
-    tr.setAttribute("data-wg-ai-key", key);
-    return { key: key, he: he, ru: ru, words: words, spans: spans };
+    var p = payloadOf(spans.map(function (sp) {
+      return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", surface: sp.getAttribute("data-surface") || "", hint: "" };
+    }), cellValue(tr, "ru"));
+    if (!p) return null;
+    tr.setAttribute("data-wg-ai-key", p.key);
+    p.spans = spans;
+    return p;
+  }
+  function parseObj(v) { if (!v) return null; if (typeof v === "object") return v; try { return JSON.parse(String(v)); } catch (_) { return null; } }
+  // Same identity from a stored row (sentences / bundle / text-card / task table row). A machine-vocalized
+  // row may travel with an empty he_niqqud and its value in meta.niqqud_derived (text-card R9 rule).
+  function rowPayloadFromData(row) {
+    var RM = window.ReaderMorph;
+    if (!row || !RM || typeof RM.words !== "function") return null;
+    var niq = String(row.he_niqqud || row.hebrew_niqqud || "").trim();
+    if (!niq) { var m = parseObj(row.meta_json) || parseObj(row.meta); niq = String(m && m.niqqud_derived && m.niqqud_derived.value || "").trim(); }
+    var words = niq
+      ? RM.words(niq).map(function (w) { return { w: w, surface: RM.stripNiqqud(w), hint: "" }; })
+      : RM.words(String(row.he || row.he_plain || row.hebrew_plain || "")).map(function (w) { return { w: w, surface: w, hint: "" }; });
+    return payloadOf(words, normText(row.ru != null ? row.ru : row.russian));
   }
 
   // ── storage: memory + IndexedDB (per device; the server cache is the paid source of truth) ──
@@ -69,15 +102,32 @@
     });
   }
   async function idbPut(entries) {
-    var db = await idb(); if (!db) return;
-    try { var tx = db.transaction("rows", "readwrite"), st = tx.objectStore("rows"); entries.forEach(function (e) { st.put(e[1], e[0]); }); } catch (_) {}
+    var db = await idb(); if (!db || !entries.length) return;
+    return new Promise(function (resolve) {
+      try {
+        var tx = db.transaction("rows", "readwrite"), st = tx.objectStore("rows");
+        entries.forEach(function (e) { st.put(e[1], e[0]); });
+        tx.oncomplete = function () { resolve(); }; tx.onerror = function () { resolve(); }; tx.onabort = function () { resolve(); };
+      } catch (_) { resolve(); }
+    });
+  }
+  async function hydratePayloads(ps) {
+    var need = [];
+    ps.forEach(function (p) { if (p && !mem.has(p.key)) { need.push(p.key); p.legacy.forEach(function (k) { need.push(k); }); } });
+    if (!need.length) return;
+    var got = await idbGet(need), migrate = [];
+    ps.forEach(function (p) {
+      if (!p || mem.has(p.key)) return;
+      if (got[p.key]) { mem.set(p.key, got[p.key]); return; }
+      for (var i = 0; i < p.legacy.length; i++) {
+        var v = got[p.legacy[i]];
+        if (v && v.glosses && v.glosses.length === p.words.length) { mem.set(p.key, v); migrate.push([p.key, v]); return; }
+      }
+    });
+    await idbPut(migrate);
   }
   async function hydrate(trs) {
-    var need = [];
-    trs.forEach(function (tr) { var k = tr.getAttribute("data-wg-ai-key") || (rowPayload(tr) || {}).key; if (k && !mem.has(k)) need.push(k); });
-    if (!need.length) return;
-    var got = await idbGet(need);
-    Object.keys(got).forEach(function (k) { mem.set(k, got[k]); });
+    await hydratePayloads(trs.map(function (tr) { return rowPayload(tr); }));
   }
 
   function lookup(tr) {
@@ -100,9 +150,9 @@
   }
   async function hintsFor(p) {
     if (!window.WordGloss || !window.WordGloss.glossFor) return;
-    for (var i = 0; i < p.spans.length; i++) {
-      var sp = p.spans[i];
-      try { var g = await window.WordGloss.glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || ""); p.words[i].hint = g && g.text ? g.text : ""; } catch (_) {}
+    for (var i = 0; i < p.words.length; i++) {
+      var x = p.words[i];
+      try { var g = await window.WordGloss.glossFor(x.surface || "", x.w || ""); x.hint = g && g.text ? g.text : ""; } catch (_) {}
     }
   }
   var inflight = new Map();
@@ -122,23 +172,23 @@
     await idbPut(put);
     return { ok: okKeys.length, rejected: (data.rejected || []).length, usage: data.usage || null };
   }
-  // trs → ensures AI glosses; returns { done, rejected, failed, error }
-  async function ensureRows(trs, opts) {
+  // payloads → ensures AI glosses; returns { done, rejected, failed, skipped, error }.
+  // Rows already known (memory, this device, or another surface) are neither sent nor counted.
+  async function ensurePayloads(ps, opts) {
     opts = opts || {};
+    ps = ps.filter(Boolean);
     var key = geminiKey();
-    if (!key) return { done: 0, rejected: 0, failed: trs.length, error: "GEMINI_KEY_REQUIRED" };
-    await hydrate(trs);
-    var todo = [];
-    for (var i = 0; i < trs.length; i++) {
-      var p = rowPayload(trs[i]);
-      if (p && !mem.has(p.key) && !inflight.has(p.key)) todo.push(p);
-    }
-    var stats = { done: 0, rejected: 0, failed: 0, error: "" }, total = todo.length, batches = [];
+    if (!key) return { done: 0, rejected: 0, failed: ps.length, skipped: 0, error: "GEMINI_KEY_REQUIRED" };
+    await hydratePayloads(ps);
+    var todo = [], seen = new Set();
+    ps.forEach(function (p) { if (!mem.has(p.key) && !inflight.has(p.key) && !seen.has(p.key)) { seen.add(p.key); todo.push(p); } });
+    var stats = { done: 0, rejected: 0, failed: 0, skipped: 0, error: "" }, total = todo.length, batches = [];
     for (var b = 0; b < todo.length; b += BATCH) batches.push(todo.slice(b, b + BATCH));
     var next = 0;
     async function worker() {
       while (next < batches.length) {
         if (opts.signal && opts.signal.aborted) return;
+        if (typeof opts.shouldStop === "function") { try { if (await opts.shouldStop()) { next = batches.length; return; } } catch (_) {} }
         var batch = batches[next++];
         var pr = (async function () {
           for (var j = 0; j < batch.length; j++) await hintsFor(batch[j]);
@@ -154,7 +204,34 @@
     }
     var workers = []; for (var w = 0; w < Math.min(CONCURRENCY, batches.length); w++) workers.push(worker());
     await Promise.all(workers);
+    stats.skipped = Math.max(0, total - stats.done - stats.rejected - stats.failed);
     return stats;
+  }
+  // table rows on screen
+  async function ensureRows(trs, opts) {
+    return ensurePayloads(trs.map(function (tr) { return rowPayload(tr); }), opts);
+  }
+  // stored rows (a saved card) — the material build stage; no DOM involved
+  async function ensureDataRows(rows, opts) {
+    return ensurePayloads((rows || []).map(rowPayloadFromData), opts);
+  }
+  // the material build stage (Ф3б): ensure, then report the honest coverage of the card's rows
+  async function glossCard(rows, opts) {
+    var res = await ensureDataRows(rows, opts);
+    var cov = await estimateDataRows(rows);
+    return { rows: cov.rows, covered: cov.coveredRows, done: res.done, rejected: res.rejected, failed: res.failed, skipped: res.skipped, error: res.error || "" };
+  }
+  // how many words of these stored rows still lack an AI gloss, and what that would cost
+  async function estimateDataRows(rows) {
+    var ps = (rows || []).map(rowPayloadFromData).filter(Boolean);
+    await hydratePayloads(ps);
+    var words = 0, missing = 0, covered = 0, seen = new Set();
+    ps.forEach(function (p) {
+      words += p.words.length;
+      if (mem.has(p.key)) covered++;
+      else if (!seen.has(p.key)) { seen.add(p.key); missing += p.words.length; }
+    });
+    return { rows: ps.length, coveredRows: covered, words: words, missingWords: missing, usd: missing / 1000 * USD_PER_1K_WORDS };
   }
 
   // ── presentation: repaint a row's spans with the AI gloss (provenance «ИИ») ──
@@ -263,8 +340,52 @@
       .replace("{d}", String(res.done)).replace("{f}", String(res.rejected + res.failed));
   }
 
+  // ── portable layer (Ф3б): the paid AI glosses travel with the material ─────────────────────────
+  // Export carries only rows of THIS card, each with its content key. Import recomputes the key from
+  // the imported row itself: an entry that does not belong to its row (edited text, other card, forged
+  // file) is rejected and counted, never painted. A broken layer never breaks the card import.
+  var LAYER_SCHEMA = "word-gloss-ai-layer-v1", MAX_GLOSS = 120;
+  function orderOf(row, i) { var n = Number(row && row.order_index); return Number.isFinite(n) ? n : i; }
+  function validEntry(e, n) {
+    if (!e || !Array.isArray(e.glosses) || e.glosses.length !== n) return false;
+    for (var i = 0; i < n; i++) { var g = e.glosses[i]; if (!g || typeof g.gloss !== "string" || g.gloss.length > MAX_GLOSS) return false; }
+    var mwe = e.mwe == null ? [] : e.mwe;
+    if (!Array.isArray(mwe)) return false;
+    return mwe.every(function (m) { return m && Number.isInteger(m.from) && Number.isInteger(m.to) && m.from >= 0 && m.from <= m.to && m.to < n && typeof m.gloss === "string" && m.gloss.length <= MAX_GLOSS; });
+  }
+  async function portable(rows) {
+    var list = (rows || []).map(function (r, i) { return { order: orderOf(r, i), p: rowPayloadFromData(r) }; }).filter(function (x) { return x.p; });
+    await hydratePayloads(list.map(function (x) { return x.p; }));
+    var out = [];
+    list.forEach(function (x) {
+      var v = mem.get(x.p.key);
+      if (!v || !validEntry(v, x.p.words.length)) return;
+      out.push({ order_index: x.order, key: x.p.key,
+        glosses: v.glosses.map(function (g) { return { gloss: g.gloss, wrong_hint: !!g.wrong_hint }; }),
+        mwe: (v.mwe || []).map(function (m) { return { from: m.from, to: m.to, gloss: m.gloss }; }), model: String(v.model || "") });
+    });
+    return out.length ? { schema: LAYER_SCHEMA, rows: out } : null;
+  }
+  async function remember(layer, rows) {
+    var res = { stored: 0, rejected: 0 };
+    if (!layer || layer.schema !== LAYER_SCHEMA || !Array.isArray(layer.rows)) { res.rejected = layer && Array.isArray(layer.rows) ? layer.rows.length : 0; return res; }
+    var byOrder = new Map();
+    (rows || []).forEach(function (r, i) { byOrder.set(orderOf(r, i), r); });
+    var put = [];
+    layer.rows.forEach(function (e) {
+      var p = e && byOrder.has(Number(e.order_index)) ? rowPayloadFromData(byOrder.get(Number(e.order_index))) : null;
+      if (!p || e.key !== p.key || !validEntry(e, p.words.length)) { res.rejected++; return; }
+      var val = { glosses: e.glosses.map(function (g) { return { gloss: g.gloss, wrong_hint: !!g.wrong_hint }; }),
+        mwe: (e.mwe || []).map(function (m) { return { from: m.from, to: m.to, gloss: m.gloss }; }), model: String(e.model || ""), at: Date.now(), imported: true };
+      mem.set(p.key, val); put.push([p.key, val]); res.stored++;
+    });
+    await idbPut(put);
+    return res;
+  }
+
   window.WordGlossAI = {
-    rowPayload: rowPayload, lookup: lookup, wordAt: wordAt, hydrate: hydrate, ensureRows: ensureRows,
+    rowPayload: rowPayload, rowPayloadFromData: rowPayloadFromData, lookup: lookup, ensureDataRows: ensureDataRows, estimateDataRows: estimateDataRows, glossCard: glossCard,
+    portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, hydrate: hydrate, ensureRows: ensureRows,
     paintRow: paintRow, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,
     estimate: estimate, runWholeText: runWholeText, USD_PER_1K_WORDS: USD_PER_1K_WORDS, _mem: mem,
   };

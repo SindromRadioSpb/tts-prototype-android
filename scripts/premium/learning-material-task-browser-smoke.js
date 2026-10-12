@@ -45,15 +45,18 @@ const server=http.createServer((req,res)=>{
         translate:async input=>({rows:[{he:input.source_text,ru:'Привет мир'}]}),
         save:async job=>{fixture.saved.push({id:job.id,source:job.input.youtube_source,title:job.input.title});return {id:job.id};},
         verifySaved:async()=>true,bindPlaybackSource:async()=>({revision:1}),
-        preparePackage:async()=>({sha256:'a'.repeat(64)}),openMaterial:async()=>{},download:async()=>{}
+        preparePackage:async()=>({sha256:'a'.repeat(64)}),openMaterial:async()=>{},download:async()=>{},
+        // Ф3б: перевод слов ИИ при сборке — цена по длительности ссылки, этап по сохранённой карточке.
+        estimateWordGloss:(input,sec)=>sec?{words:Math.round(sec*1.75),usd:Math.round(sec*1.75)/1000*0.15,basis:'duration'}:null,
+        glossWords:async()=>{fixture.gloss=(fixture.gloss||0)+1;return {rows:1,covered:1,done:1,rejected:0,failed:0,skipped:0,error:''};}
       };
       LearningMaterialTaskUI.configure(fixtureOps);
       document.querySelector('#entry').onclick=()=>LearningMaterialTaskUI.start();
     });
-    await page.click('#entry');await page.locator('dialog[open] input').fill('Мой новый ролик');
+    await page.click('#entry');await page.locator('dialog[open] input[type=text]').fill('Мой новый ролик');
     await page.evaluate(()=>{fixture.pending=false;});
     await page.getByRole('button',{name:'Использовать Gemini',exact:true}).click();
-    assert.equal(await page.locator('dialog[open] input').inputValue(),'Мой новый ролик');
+    assert.equal(await page.locator('dialog[open] input[type=text]').inputValue(),'Мой новый ролик');
     assert.equal(await page.locator('dialog[open] a').getAttribute('href'),'https://www.youtube.com/watch?v=MlX2x9QJIMk');
     for(const lang of ['ru','he']){
       await page.setViewportSize({width:380,height:820});
@@ -62,9 +65,18 @@ const server=http.createServer((req,res)=>{
       await page.screenshot({path:path.join(out,lang+'-380.png')});
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'no horizontal overflow '+lang);
     }
+    await page.waitForFunction(()=>/1230/.test(document.querySelector('dialog[open] .lmt-word-gloss-price')?.textContent||''));
+    const gloss=await page.evaluate(()=>{const cb=document.querySelector('dialog[open] .lmt-word-gloss-option input');return {checked:cb.checked,disabled:cb.disabled,price:document.querySelector('dialog[open] .lmt-word-gloss-price').textContent};});
+    assert.equal(gloss.checked,false,'owner default: AI word translation is off');assert.equal(gloss.disabled,false);
+    await page.locator('dialog[open] .lmt-word-gloss-option input').check();
+    await page.screenshot({path:path.join(out,'word-gloss-option-he-380.png')});
     await page.locator('dialog[open] .study-source-actions button').first().click();
     await page.waitForFunction(()=>fixture.saved.length===1);
     await page.waitForFunction(()=>document.querySelector('dialog[open] p[role="status"]')?.textContent.includes('החומר מוכן')); 
+    await page.waitForFunction(()=>/תרגום מילים בבינה מלאכותית: 1 מתוך 1/.test(document.querySelector('dialog[open] .lmt-word-gloss')?.textContent||''));
+    const glossJob=await page.evaluate(async()=>{const all=await LearningMaterialTask.createStore().listCompleted();const j=all.find(x=>x.input.word_gloss_ai);return {calls:fixture.gloss,quote:j&&j.input.word_gloss_ai.quote,outcome:j&&j.word_gloss,pref:localStorage.getItem('lmt.wordGlossAi')};});
+    assert.equal(glossJob.calls,1);assert.equal(glossJob.quote.words,1230);assert.equal(glossJob.quote.basis,'duration');assert.equal(glossJob.outcome.covered,1);assert.equal(glossJob.pref,'1','the choice is remembered on this device');
+    await page.screenshot({path:path.join(out,'word-gloss-final-he-380.png')});
     const result=await page.evaluate(async()=>({saved:fixture.saved,quotes:fixture.quotes,active:(await LearningMaterialTask.createStore().list()).length}));
     assert.equal(result.saved[0].source.video_id,'MlX2x9QJIMk');assert.equal(result.saved[0].title,'Мой новый ролик');assert.equal(result.active,2);
     // More than the old limit: each completion leaves the queue, history stays readable.
@@ -79,6 +91,6 @@ const server=http.createServer((req,res)=>{
     await page.getByRole('button',{name:/Мой новый ролик/}).waitFor();
     await page.screenshot({path:path.join(out,'history-380.png')});
     await page.setViewportSize({width:1280,height:900});await page.screenshot({path:path.join(out,'history-desktop.png')});
-    console.log(JSON.stringify({ok:true,migrated,many,source:result.saved[0].source,screenshots:out}));
+    console.log(JSON.stringify({ok:true,migrated,many,glossJob,source:result.saved[0].source,screenshots:out}));
   }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

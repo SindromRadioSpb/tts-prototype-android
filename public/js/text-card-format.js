@@ -158,6 +158,8 @@
         // Медиа-байты сюда не кладутся: в media остаётся только opfsPath+sha256.
         source_meta: meta.sourceMeta,
         ...(inp.learningNiqqudLayer ? { learning_niqqud_layer: inp.learningNiqqudLayer } : {}),
+        // Ф3б: paid AI word glosses (derived, R9) — the importer re-proves every row before storing.
+        ...(inp.wordGlossAiLayer ? { word_gloss_ai_layer: inp.wordGlossAiLayer } : {}),
         table_model_meta: meta.tableModelMeta,
         // Из какой колонки пришёл медиа-паспорт (чтобы импорт положил обратно туда же).
         passport_in: meta.passportIn,
@@ -274,6 +276,7 @@
       tts_profile_json: JSON.stringify(c.tts_profile || null),
       source_meta: smOut,
       ...(c.learning_niqqud_layer ? { learning_niqqud_layer: c.learning_niqqud_layer } : {}),
+      ...(c.word_gloss_ai_layer ? { word_gloss_ai_layer: c.word_gloss_ai_layer } : {}),
       table_model_meta: tableModelMeta,
       rows: rows,
       // Emit the canonical Shape-A field and the old alias. importBundle folds the

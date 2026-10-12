@@ -425,7 +425,9 @@
   }
 
   // Entry point for both surfaces, called after every table render / toggle change.
-  // opts = { gloss: bool, ribbon: bool, ai: bool }  — ai = Ф3 contextual gloss (opt-in, lazy).
+  // opts = { gloss: bool, ribbon: bool, ai: bool }. Ф3б (owner 2026-10-12): AI glosses already paid for
+  // (this device, an imported/published material) are SHOWN whenever the gloss line or the ribbon is on;
+  // `ai` only allows ordering NEW rows (lazy mode) — it is the spending switch, not the display switch.
   var _aiOn = false;
   function refreshRibbon(mount) { var st = _ribbons.get(mount); if (st) { st.rowIdx = undefined; renderRibbon(st); } }
   async function apply(mount, opts) {
@@ -433,14 +435,13 @@
     opts = opts || {};
     var AI = window.WordGlossAI;
     var aiWas = _aiOn;
-    _aiOn = !!(opts.ai && AI && (opts.gloss || opts.ribbon));
-    if (AI && !_aiOn) {
-      AI.stopLazy(mount);
-      if (aiWas) {   // back to the dictionary gloss: drop AI paint so the offline pass repaints it
-        Array.prototype.forEach.call(mount.querySelectorAll(".rm-w[data-gloss-ai]"), function (sp) {
-          ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "title"].forEach(function (a) { sp.removeAttribute(a); });
-        });
-      }
+    _aiOn = !!(AI && (opts.gloss || opts.ribbon));
+    var aiFetch = !!(opts.ai && _aiOn);
+    if (AI && !aiFetch) AI.stopLazy(mount);
+    if (AI && !_aiOn && aiWas) {   // gloss and ribbon off: drop AI paint so a later offline pass starts clean
+      Array.prototype.forEach.call(mount.querySelectorAll(".rm-w[data-gloss-ai]"), function (sp) {
+        ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "title"].forEach(function (a) { sp.removeAttribute(a); });
+      });
     }
     if (opts.ribbon) { var st = ensureRibbon(mount); st.rowIdx = undefined; place(st); renderRibbon(st); }
     else removeRibbon(mount);
@@ -451,7 +452,7 @@
       try { await AI.hydrate(trs); } catch (_) {}
       if (opts.gloss) AI.paintMount(mount);
       if (opts.ribbon) refreshRibbon(mount);
-      AI.startLazy(mount, function () { return _aiOn; });
+      if (aiFetch) AI.startLazy(mount, function () { return _aiOn && opts.ai; });
     }
   }
 

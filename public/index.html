@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=734">
+    <link rel="modulepreload" href="/db/local-db.js?v=742">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11060,7 +11060,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=734';
+  import * as _ldb from '/db/local-db.js?v=742';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13664,9 +13664,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=288"></script>
-<script src="/i18n/locales/en.js?v=288"></script>
-<script src="/i18n/locales/he.js?v=288"></script>
+<script src="/i18n/locales/ru.js?v=289"></script>
+<script src="/i18n/locales/en.js?v=289"></script>
+<script src="/i18n/locales/he.js?v=289"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13743,9 +13743,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/ru-forms.js?v=739"></script>
 <script src="/js/reader-morph.js?v=740"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
-<script src="/js/word-gloss.js?v=741"></script>
+<script src="/js/word-gloss.js?v=742"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
-<script src="/js/word-gloss-ai.js?v=741"></script>
+<script src="/js/word-gloss-ai.js?v=742"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13811,15 +13811,15 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-source-ui.js?v=723"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
-<script src="/js/learning-material-task.js?v=633"></script>
-<script src="/js/learning-material-task-ui.js?v=633"></script>
-<script src="/js/portable-learning-package-core.js?v=688"></script>
+<script src="/js/learning-material-task.js?v=742"></script>
+<script src="/js/learning-material-task-ui.js?v=742"></script>
+<script src="/js/portable-learning-package-core.js?v=742"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
 <script src="/js/learning-compass-core.js"></script>
 <script src="/js/local-text-familiarity.js?v=669"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
-<script src="/js/portable-learning-package-repository.js?v=718"></script>
+<script src="/js/portable-learning-package-repository.js?v=742"></script>
 <script src="/js/material-open.js?v=734"></script>
 <script src="/js/benyehuda-learning-niqqud.js?v=734"></script>
 <script src="/js/benyehuda-learning-niqqud-manifest.js?v=734"></script>
@@ -13843,7 +13843,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/mp3-slice.js"></script>
 <!-- E1 — ядро формата «карточка текста» v1/v2 (build/detect/adapt). Чистые функции,
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
-<script src="/js/text-card-format.js?v=734"></script>
+<script src="/js/text-card-format.js?v=742"></script>
 <script src="/js/share-service.js"></script>
 <script src="/js/studio-media-karaoke.js?v=729"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
@@ -13920,7 +13920,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.741";
+    window.APP_VERSION = "3.11.742";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35217,6 +35217,31 @@ window.LearningMaterialTaskUI.configure({
     const artifact=await ShareService.buildLearningPackage({JSZip:await v3LoadJSZip(),bundle,filename:'linguistpro-material-'+job.id+'.zip',generator:'learning-material-task',fetchAudio:(key,options)=>ShareService.fetchAudioAsset(key,options)});
     return ShareService.saveFile({blob:artifact.blob,filename:artifact.filename});
   },
+  // Ф3б: перевод слов ИИ по строкам СОХРАНЁННОЙ карточки (данные, не таблица на экране) — тем же
+  // маршрутом и кэшем, что ленивый режим; итог — честное покрытие строк этой карточки.
+  async glossWords(job, opts) {
+    if (!window.WordGlossAI || !window.ReaderMorph) { const e = new Error('WORD_GLOSS_UNAVAILABLE'); e.code = 'WORD_GLOSS_UNAVAILABLE'; throw e; }
+    const ldb = await ensureLocalDB();
+    const rows = await ldb.getSentences(String(job.saved_text_id));
+    return window.WordGlossAI.glossCard(rows || [], {
+      shouldStop: opts && opts.shouldStop,
+      onProgress: (x) => { try { window.dispatchEvent(new CustomEvent('word-gloss-progress', { detail: x })); } catch (_) {} },
+    });
+  },
+  // Цена перевода слов до старта: текст — точное число слов; ссылка — по длительности.
+  estimateWordGloss(input, durationSec) {
+    const usdPer1k = (window.WordGlossAI && window.WordGlossAI.USD_PER_1K_WORDS) || 0.15;
+    const text = String(input && input.source_text || '');
+    if (text.trim()) {
+      const words = window.ReaderMorph ? window.ReaderMorph.words(text).length : text.split(/\s+/).filter(Boolean).length;
+      return { words, usd: words / 1000 * usdPer1k, basis: 'text' };
+    }
+    if (Number(durationSec) > 0) {
+      const words = Math.round(Number(durationSec) * 1.75);   // measured: «Шура», 5.6K words / 53:39
+      return { words, usd: words / 1000 * usdPer1k, basis: 'duration' };
+    }
+    return null;
+  },
   // ⑥: ▶ считаются на СОХРАНЁННОЙ карточке тем же восстановлением, что рисует Зал.
   async provePlayback(job) {
     const ctx=await StudyVideoSourceUI.context(job.saved_text_id);
@@ -45107,6 +45132,7 @@ async function v3TcsBuildCardPayload(textId) {
   return window.TextCardFormat.buildCardPayload({
     text, sentences, notesBySentenceId, appTag: V3_TCS_APP_TAG,
     learningNiqqudLayer: window.BenYehudaLearningNiqqud ? await window.BenYehudaLearningNiqqud.portable(text) : null,
+    wordGlossAiLayer: window.WordGlossAI ? await window.WordGlossAI.portable(sentences).catch(() => null) : null,
   });
 }
 

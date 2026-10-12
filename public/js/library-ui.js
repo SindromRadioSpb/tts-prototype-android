@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=734';
+import * as localDbRaw from '/db/local-db.js?v=742';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -8444,7 +8444,7 @@ function buildAidsPanel() {
   [['Gloss', 'readerWordGlossToggle', 'room.wordGloss.toggle', 'Подстрочник', 'room.wordGloss.hint', 'Короткий перевод под каждым словом; ≈ — вероятно. Тап по слову — полная карточка.'],
    ['Ribbon', 'readerWordRibbonToggle', 'room.wordRibbon.toggle', 'Лента слов', 'room.wordRibbon.hint', 'Слова звучащей строки с переводом — под видео или внизу экрана.'],
    // Ф3 (F3_SPEC): контекстный перевод ИИ — опция, по умолчанию выкл; лениво: звучащая/видимые строки.
-   ['GlossAi', 'readerWordGlossAiToggle', 'room.wordGlossAi.toggle', 'Перевод слов ИИ (Gemini)', 'room.wordGlossAi.hint', 'Перевод каждого слова в контексте строки от Gemini по вашему ключу: строки переводятся по мере чтения и прослушивания, ≈$0,15 за 1000 слов.']]
+   ['GlossAi', 'readerWordGlossAiToggle', 'room.wordGlossAi.toggle', 'Перевод слов ИИ (Gemini)', 'room.wordGlossAi.hint', 'Дозаказывать у Gemini по вашему ключу перевод каждого слова в контексте строки — по мере чтения и прослушивания, ≈$0,15 за 1000 слов. Уже полученный перевод (в том числе при сборке материала) виден всегда.']]
     .forEach(([what, id, key, fb, hintKey, hintFb]) => {
       const hint = tt(hintKey, hintFb);
       const lab = el('label', { class: 'reader-aids-status', attrs: { title: hint } });

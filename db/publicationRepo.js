@@ -847,7 +847,7 @@ function createPublicationRepo(options = {}) {
     }
     const prepared={actorId:actorId(actor),createdAt:now(),snapshot:parsed.snapshot,contentRoot:parsed.contentRoot,packageSha,expectedMedia:parsed.expectedMedia};
     await fs.promises.writeFile(path.join(dir,token+'.json'),JSON.stringify(prepared),{flag:'wx'});
-    return {token,title:parsed.title,rowCount:parsed.rowCount,videoId:parsed.videoId,hasMedia:!!parsed.media,expectedMedia:parsed.expectedMedia,contentRoot:parsed.contentRoot};
+    return {token,title:parsed.title,rowCount:parsed.rowCount,wordGlossRows:parsed.wordGlossRows||0,videoId:parsed.videoId,hasMedia:!!parsed.media,expectedMedia:parsed.expectedMedia,contentRoot:parsed.contentRoot};
   }
   async function preparedMediathequeArchive(actor, token) {
     mediathequeOwner(actor); if(!/^import_[a-f0-9]{24}$/.test(token||''))fail('PUBLICATION_INPUT_INVALID',400);

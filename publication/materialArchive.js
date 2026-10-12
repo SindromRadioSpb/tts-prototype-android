@@ -66,8 +66,21 @@ async function inspectArchive(bytes, options={}) {
   delete text.source_meta_json;delete text.table_model_meta_json;
   text.rows=table.rows.map((r,i)=>({order_index:i,hebrew_plain:r.he_plain,hebrew_niqqud:r.he_niqqud,translit:r.translit,translit_ru:r.translit_ru,russian:r.ru}));
   if(!text.rows.length)fail('MATERIAL_ARCHIVE_INVALID');
+  // Ф3б: the owner's paid AI word glosses travel to public readers (owner decision 2026-10-12).
+  // Bounded shape only here; every reader re-proves each row's content key before showing it.
+  const wordGloss=wordGlossLayer(p.word_gloss_ai_layer,text.rows.length);
+  if(wordGloss)text.word_gloss_ai_layer=wordGloss;
   return {snapshot:{library:{texts:[text]}},packageBytes,media:options.mode==='youtube'?null:media,contentRoot:m.content_root_sha256,
     expectedMedia:{sha256:m.media.sha256,mime:m.media.mime,sizeBytes:m.media.size_bytes},
-    title:text.title||p.material.text.title||'Untitled',rowCount:text.rows.length,videoId:passport.video?.videoId||null};
+    title:text.title||p.material.text.title||'Untitled',rowCount:text.rows.length,wordGlossRows:wordGloss?wordGloss.rows.length:0,videoId:passport.video?.videoId||null};
 }
-module.exports={inspectArchive,sha};
+const str=(v,max)=>typeof v==='string'&&v.length<=max;
+function wordGlossLayer(layer,rowCount){
+  if(!layer||layer.schema!=='word-gloss-ai-layer-v1'||!Array.isArray(layer.rows)||layer.rows.length>rowCount)return null;
+  const rows=layer.rows.filter(r=>r&&Number.isInteger(r.order_index)&&r.order_index>=0&&r.order_index<rowCount&&str(r.key,64)&&str(r.model||'',80)
+    &&Array.isArray(r.glosses)&&r.glosses.length>0&&r.glosses.length<=80&&r.glosses.every(g=>g&&str(g.gloss,120))
+    &&Array.isArray(r.mwe||[])&&(r.mwe||[]).length<=40&&(r.mwe||[]).every(m=>m&&Number.isInteger(m.from)&&Number.isInteger(m.to)&&str(m.gloss,120)))
+    .map(r=>({order_index:r.order_index,key:r.key,model:String(r.model||''),glosses:r.glosses.map(g=>({gloss:g.gloss,wrong_hint:!!g.wrong_hint})),mwe:(r.mwe||[]).map(m=>({from:m.from,to:m.to,gloss:m.gloss}))}));
+  return rows.length?{schema:layer.schema,rows}:null;
+}
+module.exports={inspectArchive,sha,wordGlossLayer};

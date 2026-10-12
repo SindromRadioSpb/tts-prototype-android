@@ -186,7 +186,21 @@
       return !!row;
     }
 
+    // Ф3б: the optional AI word-gloss layer is stored after the material itself (also for a duplicate
+    // import — the layer sits outside the content root). Its failure never fails the import.
     async function applyVerified(verified, options) {
+      const result = await applyVerifiedCore(verified, options);
+      const layer = verified && verified.payload && verified.payload.word_gloss_ai_layer;
+      const AI = typeof globalThis !== 'undefined' ? globalThis.WordGlossAI : null;
+      if (layer && AI && typeof AI.remember === 'function') {
+        try {
+          const table = (verified.payload.table_revisions || []).find((item) => item.portable_table_revision_id === verified.manifest.roots.table_revision);
+          result.word_gloss_ai = await AI.remember(layer, ((table && table.rows) || []).map((row, index) => ({ ...row, order_index: index })));
+        } catch (error) { result.word_gloss_ai = { stored: 0, rejected: (layer.rows || []).length, error: String(error && (error.code || error.message) || 'ERROR') }; }
+      }
+      return result;
+    }
+    async function applyVerifiedCore(verified, options) {
       options = options || {};
       if (!verified || !verified.manifest || !verified.payload) throw failure('VERIFIED_PACKAGE_REQUIRED');
       const currentPlan = await dryRun(verified);
@@ -899,7 +913,11 @@
         rows: selected.rows.map((row,index)=>({ order_index:index, hebrew_plain:row.he_plain, hebrew_niqqud:row.he_niqqud, translit:row.translit, translit_ru:row.translit_ru, russian:row.ru })),
         tts_profile: null, text_audio_asset_key: null, source_meta: null, table_model_meta: null, passport_in: null,
       } };
+      const AI = typeof globalThis !== 'undefined' ? globalThis.WordGlossAI : null;
+      let wordGlossLayer = null;
+      try { if (AI && typeof AI.portable === 'function') wordGlossLayer = await AI.portable(selected.rows.map((row, index) => ({ ...row, order_index: index }))); } catch (_) { wordGlossLayer = null; }
       return {
+        ...(wordGlossLayer ? { word_gloss_ai_layer: wordGlossLayer } : {}),
         playback_source: playbackForText(material,pkg.external_ref_json),
         package: { package_id: pkg.package_id, media_sha256: pkg.media_sha256 || null, mime: pkg.mime || null, duration_ms: pkg.duration_ms == null ? null : Number(pkg.duration_ms), original_name: pkg.original_name || null, size_bytes: pkg.size_bytes == null ? null : Number(pkg.size_bytes), codec_hint: ((parse(pkg.external_ref_json, null) || {}).compatibility || {}).codec_hint || null, compatibility: (parse(pkg.external_ref_json, null) || {}).compatibility || null },
         raw_track: { track_id: rawTrack.track_id, role: rawTrack.role, language: rawTrack.language || null, current_revision_id: rawTrack.current_revision_id }, raw_revisions: rawRevisions,

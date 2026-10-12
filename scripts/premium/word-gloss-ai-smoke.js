@@ -4,7 +4,8 @@
 // По умолчанию /api/word-gloss-ctx ПОДМЕНЯЕТСЯ (page.route) — смоук бесплатный и детерминированный:
 //   A1 кнопка «весь текст» → диалог согласия с оценкой → один запрос на 3 строки → подписи ИИ
 //      (data-gloss-label=ai) у всех слов, сочетание в title, лента показывает перевод ИИ
-//   A2 выключение ИИ → возвращаются словарные подписи (шесть слов строки, ששמעתי = «что я слышал(а)»)
+//   A2 (Ф3б, владелец 2026-10-12) выключение ИИ = только «не дозаказывать»: оплаченные подписи остаются,
+//      запросов нет; выключить/включить подстрочник — подписи ИИ снова из хранилища
 //   A3 повторное включение → подписи ИИ из локального хранилища, без новых запросов
 //   A4 ленивый режим: новая таблица, строка «звучит» → запрос сам, подписи ИИ появляются
 //   A5 без ключа → понятное сообщение, ни одного запроса
@@ -94,11 +95,18 @@ const ROWS2 = [
     ok(rib[0] === "ai" && /^ИИ2:/.test(rib[1] || ""), "A1 лента показывает перевод ИИ (" + rib.join(" ") + ")");
     await pg.screenshot({ path: shot("studio-380") });
 
-    // A2 — выключение
+    // A2 — выключение ИИ: оплаченное остаётся видимым, новых запросов нет
+    const callsA2 = calls;
     await pg.evaluate(() => { const cb = document.getElementById("studioWordGlossAiToggle"); cb.checked = false; cb.dispatchEvent(new Event("change")); });
-    await pg.waitForFunction(() => document.querySelectorAll('.rm-w[data-gloss-label="ai"]').length === 0 && document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w[data-gloss]').length >= 13, null, { timeout: 20000 }).catch(() => {});
-    const a2 = await pg.evaluate(() => { const s = [...document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w')].find((x) => x.getAttribute("data-niqqud") === "שֶׁשָּׁמַעְתִּי"); return { ai: document.querySelectorAll('.rm-w[data-gloss-label="ai"]').length, g: s && s.getAttribute("data-gloss") }; });
-    ok(a2.ai === 0 && /слышал/.test(a2.g || ""), "A2 выключение ИИ возвращает словарные подписи (" + a2.g + ")");
+    await pg.waitForTimeout(1500);
+    const a2 = await pg.evaluate(() => document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w[data-gloss-label="ai"]').length);
+    ok(a2 === 13 && calls === callsA2, `A2 выключение ИИ оставляет оплаченные подписи и не шлёт запросов (ai=${a2}, запросов=${calls - callsA2})`);
+    await pg.evaluate(() => { const cb = document.getElementById("studioWordGlossToggle"); cb.checked = false; cb.dispatchEvent(new Event("change")); });
+    await pg.waitForFunction(() => document.querySelectorAll('.rm-w[data-gloss-label="ai"]').length === 0, null, { timeout: 10000 }).catch(() => {});
+    await pg.evaluate(() => { const cb = document.getElementById("studioWordGlossToggle"); cb.checked = true; cb.dispatchEvent(new Event("change")); });
+    await pg.waitForFunction(() => document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w[data-gloss-label="ai"]').length === 13, null, { timeout: 20000 }).catch(() => {});
+    const a2b = await pg.evaluate(() => document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w[data-gloss-label="ai"]').length);
+    ok(a2b === 13 && calls === callsA2, `A2 подстрочник выкл/вкл при выключенном ИИ — подписи ИИ из хранилища (ai=${a2b}, запросов=${calls - callsA2})`);
 
     // A3 — снова включить: из хранилища, без запросов
     const before = calls;

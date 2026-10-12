@@ -50,6 +50,36 @@
       reviewNote:'אפשר לתקן את התמלול עכשיו: הטבלה תיבנה מהגרסה המתוקנת, וכפתורי ▶ יקושרו למשפטים שלה.'}
   };
   for(const lang of Object.keys(journeyWords))Object.assign(words[lang],journeyWords[lang]);
+  // Ф3б: перевод слов ИИ при сборке материала (владелец, 2026-10-12): по умолчанию выключен, выбор помнится.
+  const wordGlossWords={
+    ru:{wordGlossOption:'Перевод слов ИИ (Gemini) для подстрочника и ленты',wordGlossPrice:'≈${usd} · {n} слов',wordGlossPriceLink:'≈${usd} · около {n} слов по длительности',
+      wordGlossNoKey:'Нужен ключ Gemini — без него подстрочник и лента покажут словарный перевод.',wordGlossHelp:'Gemini переводит каждое слово в контексте строки: ошибок около 2% против 7% у словаря. Перевод сохраняется с материалом и едет в экспорт.',
+      detailWordGloss:'Перевод слов (ИИ): {d} из {n} строк',finalWordGloss:'Перевод слов ИИ: {c} из {n} строк.',
+      finalWordGlossPartial:'Без перевода ИИ строк: {k} — для них показан словарный перевод. «Догрузить» не оплачивает готовые строки повторно.',
+      finalWordGlossError:'Перевод слов ИИ не получен ({code}) — подстрочник и лента показывают словарный перевод.',wordGlossRetry:'Догрузить перевод слов (ИИ)'},
+    en:{wordGlossOption:'AI word translation (Gemini) for the interlinear line and ribbon',wordGlossPrice:'≈${usd} · {n} words',wordGlossPriceLink:'≈${usd} · about {n} words by duration',
+      wordGlossNoKey:'A Gemini key is required — without it the interlinear line and ribbon show the dictionary translation.',wordGlossHelp:'Gemini translates every word in the context of its row: about 2% errors against 7% for the dictionary. The translation is saved with the material and goes into the export.',
+      detailWordGloss:'Word translation (AI): {d} of {n} rows',finalWordGloss:'AI word translation: {c} of {n} rows.',
+      finalWordGlossPartial:'Rows without AI translation: {k} — they show the dictionary translation. “Fetch the rest” does not pay again for ready rows.',
+      finalWordGlossError:'AI word translation was not received ({code}) — the interlinear line and ribbon show the dictionary translation.',wordGlossRetry:'Fetch the rest of the AI word translation'},
+    he:{wordGlossOption:'תרגום מילים בבינה מלאכותית (Gemini) לשורת התרגום ולסרט המילים',wordGlossPrice:'≈${usd} · {n} מילים',wordGlossPriceLink:'≈${usd} · כ־{n} מילים לפי האורך',
+      wordGlossNoKey:'נדרש מפתח Gemini — בלעדיו שורת התרגום וסרט המילים יציגו את תרגום המילון.',wordGlossHelp:'Gemini מתרגם כל מילה בהקשר של השורה: כ־2% שגיאות לעומת 7% במילון. התרגום נשמר עם החומר ונכלל בייצוא.',
+      detailWordGloss:'תרגום מילים בבינה מלאכותית: {d} מתוך {n} שורות',finalWordGloss:'תרגום מילים בבינה מלאכותית: {c} מתוך {n} שורות.',
+      finalWordGlossPartial:'שורות בלי תרגום בינה מלאכותית: {k} — בהן מוצג תרגום המילון. «השלמה» לא משלמת שוב על שורות מוכנות.',
+      finalWordGlossError:'תרגום המילים בבינה מלאכותית לא התקבל ({code}) — שורת התרגום וסרט המילים מציגים את תרגום המילון.',wordGlossRetry:'השלמת תרגום המילים בבינה מלאכותית'}
+  };
+  for(const lang of Object.keys(wordGlossWords))Object.assign(words[lang],wordGlossWords[lang]);
+  // Итог этапа на финальном экране — для любого готового материала, с медиа и без.
+  function wordGlossLines(job){
+    const w=job&&job.word_gloss;
+    if(!w||!(job.state==='ready'||job.state==='cancelled'))return [];
+    if(w.error&&!(Number(w.covered)>0))return [fill(t('finalWordGlossError'),{code:w.error})];
+    const lines=[fill(t('finalWordGloss'),{c:Number(w.covered)||0,n:Number(w.rows)||0})];
+    const missing=(Number(w.rows)||0)-(Number(w.covered)||0);
+    if(missing>0)lines.push(fill(t('finalWordGlossPartial'),{k:missing}));
+    return lines;
+  }
+  function wordGlossMissing(job){const w=job&&job.word_gloss;return !!(w&&(Number(w.rows)||0)>(Number(w.covered)||0));}
   // ── Модель этапов и живой детали ──
   // Правило одно: показываем ТОЛЬКО то, чему есть знаменатель. У одного ASR-вызова провайдер не
   // отдаёт доли выполненного — там честны лишь номер окна и время, но не проценты. У таблицы
@@ -59,13 +89,13 @@
   // Ведущий путь (владелец, 2026-09-24): медиа-материал — ссылка или локальный файл — проходит одну
   // шкалу от медиа до готового материала. Локальный файл входит в задачу уже с транскриптом.
   const MEDIA_STAGES=['media','transcript','review','translating','saved','bound','ready'];
-  const PHASE_AT_MEDIA={imported:3,transcribing:1,transcribed:3,translating:3,table_ready:4,saving:4,saved:5,binding:5,bound:6,exporting:6,ready:6};
+  const PHASE_AT_MEDIA={imported:3,transcribing:1,transcribed:3,translating:3,table_ready:4,saving:4,saved:5,binding:5,bound:6,glossing:6,exporting:6,ready:6};
   // Часы этапа живут под именем фазы журнала, а не под именем пункта шкалы.
   const CLOCK_PHASE={transcript:'transcribing'};
   function isMediaJob(job){const input=job&&job.input;if(!input)return false;if(input.youtube_source)return true;
     const meta=(job.transcript&&job.transcript.import_meta)||input.import_meta;return !!(meta&&meta.media_package_ref);}
   // Куда попадает каждая фаза журнала на шкале этапов.
-  const PHASE_AT={imported:0,transcribing:0,transcribed:1,translating:1,table_ready:2,saving:2,saved:3,binding:3,bound:4,exporting:4,ready:4};
+  const PHASE_AT={imported:0,transcribing:0,transcribed:1,translating:1,table_ready:2,saving:2,saved:3,binding:3,bound:4,glossing:4,exporting:4,ready:4};
   // Время каждого этапа берётся из журнала задачи: он переживает перезагрузку и возобновление,
   // поэтому итог показывает, сколько ЭТАП реально занял, а не сколько открыт диалог.
   function stageElapsedSec(job,key,now){
@@ -175,6 +205,10 @@
       const chunk=Math.min(Math.max(1,Number(l.table.chunk)||1),chunks);
       return {percent,text:fill(t('detailRows'),{ready,total,chunk,chunks})};
     }
+    if(phase==='glossing'&&l.gloss){
+      const done=Number(l.gloss.done)||0,total=Number(l.gloss.total)||0;
+      return {percent:total>0?Math.round(done*100/total):null,text:fill(t('detailWordGloss'),{d:done,n:total})};
+    }
     // Пока провайдер не прислал ни одного сигнала, единственная честная динамика — время работы.
     if(job&&job.state==='running'&&l.elapsedSec!=null){
       // Оценка времени — обещание. Когда прогон его перерос, экран обязан сказать это сам. Пока
@@ -283,6 +317,11 @@
       readyRows:Number(s2.readyRows)||0,totalRows:Number(s2.totalRows)||0,elapsedSec:liveState.table?liveState.table.elapsedSec:0};
     liveRepaint();
   }
+  function onWordGlossProgress(event){
+    const x=event.detail||{};liveState.retry=null;
+    liveState.gloss={done:Number(x.done)||0,total:Number(x.total)||0};
+    liveRepaint();
+  }
   function onRetry(event){
     const r=event.detail&&event.detail.at;
     if(!r)return;
@@ -305,6 +344,7 @@
     window.addEventListener('table-job-progress',onTableProgress);
     window.addEventListener('table-job-retry',onRetry);
     window.addEventListener('table-job-resume',onResume);
+    window.addEventListener('word-gloss-progress',onWordGlossProgress);
   }
   function ready(){if(!operations)throw new Error('TASK_UI_NOT_READY');if(!store){store=LearningMaterialTask.createStore();runner=LearningMaterialTask.createRunner(store,operations);}return store;}
   function element(tag,content){const el=document.createElement(tag);if(content)el.textContent=content;return el;}
@@ -350,6 +390,9 @@
     const finish=finishLines(job);
     if(finish.length){const box=element('div');box.className='lmt-final';box.setAttribute('role','status');
       finish.forEach((line,i)=>{const p=element(i?'p':'strong',line);box.append(p);});d.append(box);}
+    const glossLines=wordGlossLines(job);
+    if(glossLines.length){const box=element('div');box.className='lmt-final lmt-word-gloss';box.setAttribute('role','status');
+      glossLines.forEach(line=>box.append(element('p',line)));d.append(box);}
     d.__paintStages=paintStages;d.__job=job;
     // Отозванные часы — факт материала, а не деталь прогона: он виден там же, где итог.
     for(const note of paidNotes(job)){const q=element('p',note);q.className='lmt-paid-note';d.append(q);}
@@ -371,6 +414,11 @@
       const room=button(actions,t('openRoom'),async()=>{try{await operations.openInRoom(job);d.close();}catch(_){status.textContent=t('error');}});
       room.className='btn-primary';
       button(actions,t('openStudio'),async()=>{try{await operations.openInStudio(job);d.close();}catch(_){status.textContent=t('error');}});
+    }
+    if(job.state==='ready'&&wordGlossMissing(job)&&!runner.isRunning(job.id)&&operations.glossWords){
+      const more=button(actions,t('wordGlossRetry'),async()=>{more.disabled=true;
+        try{await showTask(await LearningMaterialTask.retryWordGloss(store,operations,job.id),d);}
+        catch(_){more.disabled=false;status.textContent=t('error');}});
     }
     if(runner.isRunning(job.id))button(actions,t('cancel'),async()=>{await runner.cancel(job.id);status.textContent=t('stopping');});
     // A provider policy/safety block is terminal for this exact URL. Re-running the same paid
@@ -510,6 +558,29 @@
       d.addEventListener('cancel',event=>{event.preventDefault();finish(null);});
     });
   }
+  // Флажок «Перевод слов ИИ» в окне сборки: цена рядом, без ключа недоступен, выбор помнится.
+  const GLOSS_PREF='lmt.wordGlossAi';
+  function wordGlossChoice(d,input,link){
+    let quote=null;
+    const box=element('label');box.className='lmt-word-gloss-option';
+    const cb=document.createElement('input');cb.type='checkbox';
+    const text=element('span',t('wordGlossOption'));const price=element('span','');price.className='lmt-word-gloss-price';
+    box.append(cb,text,price);
+    const help=element('p',t('wordGlossHelp'));help.className='lmt-price-note';
+    const hasKey=!!(operations.hasGeminiKey&&operations.hasGeminiKey());
+    let pref=false;try{pref=localStorage.getItem(GLOSS_PREF)==='1';}catch(_){}
+    cb.checked=hasKey&&pref;cb.disabled=!hasKey;
+    if(!hasKey)help.textContent=t('wordGlossNoKey');
+    cb.addEventListener('change',()=>{try{localStorage.setItem(GLOSS_PREF,cb.checked?'1':'0');}catch(_){}});
+    const paint=e=>{quote=e;price.textContent=e?' · '+fill(t(e.basis==='duration'?'wordGlossPriceLink':'wordGlossPrice'),{usd:money(e.usd),n:e.words}):'';};
+    if(operations.estimateWordGloss&&!link)paint(operations.estimateWordGloss(input));
+    const anchor=d.querySelector('.study-source-actions');
+    d.insertBefore(box,anchor);d.insertBefore(help,anchor);
+    return {
+      setDuration(sec){if(operations.estimateWordGloss&&link)paint(operations.estimateWordGloss({source_text:''},sec));},
+      value(){return cb.checked&&!cb.disabled?{word_gloss_ai:{enabled:true,quote:quote?{words:quote.words,usd:quote.usd,basis:quote.basis}:{words:0,usd:0}}}:{};},
+    };
+  }
   async function start(capturedInput){
     ready();const input=JSON.parse(JSON.stringify(capturedInput||operations.capture())),d=dialog(t('title'));
     const link=input.youtube_source || null;
@@ -531,7 +602,8 @@
     notes.append(element('p',t('note')+input.provider),element('p',t('cost')));
     if(link)notes.append(element('p',t('linkNote')),element('p',t('captionsFree')));
     d.append(notes);
-    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const originUrl=origin?String(origin.value||'').trim():'';const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted,...(originUrl?{youtube_origin:{url:originUrl}}:{})});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
+    const glossChoice=wordGlossChoice(d,input,link);
+    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const originUrl=origin?String(origin.value||'').trim():'';const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted,...glossChoice.value(),...(originUrl?{youtube_origin:{url:originUrl}}:{})});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
     // ③ Проверка транскрипта — внутри процесса: редактор возвращает сюда с исправленной ревизией.
     if(!link&&isMediaJob({input})&&operations.reviewTranscript){
       const reviewNote=element('p',t('reviewNote'));reviewNote.className='lmt-price-note';d.insertBefore(reviewNote,actions);
@@ -595,6 +667,7 @@
           quoted=e.table||null;timingQuoted=e.timingQuote||null;expectedSec=e.minutes?e.minutes*60:null;
           // Обе цены сразу — именно этот показ снимает второй window.confirm посреди прогона.
           price.textContent=quoteLine(e);
+          glossChoice.setDuration(e.durationSec);
           if(e.table&&!d.querySelector('.lmt-price-note')){const n=element('p',t('priceNote'));n.className='lmt-price-note';d.insertBefore(n,actions);}
           // Требование среды говорится ДО трат и рядом с ценой, а не в сноске после сбоя.
           const front=foregroundNote(e);
@@ -647,6 +720,6 @@
     button(d,t('close'),()=>d.close());
   }
   function labels(){const start=document.getElementById('v3ImportPrepareTask');if(start)start.textContent=t('start');const tasks=document.getElementById('v3LearningTasks');if(tasks)tasks.textContent=t('tasks');}
-  window.LearningMaterialTaskUI={canSwitchToGemini,configure:value=>{operations=value;if(typeof setTimeout==='function')setTimeout(()=>{resumeBanner().catch(()=>{});},0);},pickResumable,resumeBanner,start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
+  window.LearningMaterialTaskUI={wordGlossLines,canSwitchToGemini,configure:value=>{operations=value;if(typeof setTimeout==='function')setTimeout(()=>{resumeBanner().catch(()=>{});},0);},pickResumable,resumeBanner,start,list,labels,stageModel,stageSummary,finishLines,liveDetail,quoteLine,geminiRecommendation,confirmGeminiRecommendation,qualityNotes,resumeNote,foregroundNote,paidNotes,titleNotice,applyTitleNotice};
   document.addEventListener('DOMContentLoaded',labels);document.addEventListener('i18n:changed',labels);
 })();
