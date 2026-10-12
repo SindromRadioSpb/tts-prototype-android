@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1B4FB8">
+  <title>Мой словарь · LinguistPro</title>
+  <link rel="icon" href="/icons/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/css/reader-morph.css?v=746">
+  <link rel="stylesheet" href="/css/app-nav.css?v=653">
+  <link rel="stylesheet" href="/css/dictionary.css?v=747">
+</head>
+<body class="lp-dict-page">
+<script src="/js/app-nav.js?v=747"></script>
+  <a class="dict-skip" href="#dict-list" data-i18n="dictionary.skip">К словам</a>
+  <header class="dict-header">
+    <a href="/library.html" class="dict-brand" aria-label="LinguistPro"><span class="dict-brand-mark" aria-hidden="true">ל</span>LinguistPro</a>
+    <h1 class="dict-title" data-i18n="dictionary.title">Мой словарь</h1>
+  </header>
+  <main id="dict-root" class="dict-root" aria-busy="true">
+    <section class="dict-pane dict-pane-list" aria-labelledby="dict-list-title">
+      <h2 id="dict-list-title" class="dict-visually-hidden" data-i18n="dictionary.title">Мой словарь</h2>
+      <div class="dict-toolbar">
+        <label class="dict-search"><span class="dict-visually-hidden" data-i18n="dictionary.search">Поиск</span>
+          <input id="dict-q" type="search" autocomplete="off" spellcheck="false" data-i18n-placeholder="dictionary.searchPh" placeholder="Слово на иврите, перевод или корень"></label>
+        <div class="dict-scope" role="group" data-i18n-aria-label="dictionary.scope" aria-label="Какие слова">
+          <button type="button" id="dict-scope-mine" class="dict-seg on" data-scope="mine" data-i18n="dictionary.scopeMine">Мои слова</button>
+          <button type="button" id="dict-scope-met" class="dict-seg" data-scope="met" data-i18n="dictionary.scopeMet">Все встреченные</button>
+        </div>
+      </div>
+      <div id="dict-counts" class="dict-counts" role="group" data-i18n-aria-label="dictionary.byStatus" aria-label="По статусу"></div>
+      <div class="dict-controls">
+        <button type="button" id="dict-filter-btn" class="dict-btn" aria-expanded="false" aria-controls="dict-filters" data-i18n="dictionary.filters">Фильтры</button>
+        <label class="dict-sort"><span data-i18n="dictionary.sort">Сортировка</span>
+          <select id="dict-sort">
+            <option value="added" data-i18n="dictionary.sortAdded">Недавно добавленные</option>
+            <option value="due" data-i18n="dictionary.sortDue">По сроку повторения</option>
+            <option value="weak" data-i18n="dictionary.sortWeak">Самые слабые</option>
+            <option value="freq" data-i18n="dictionary.sortFreq">Чаще в моих текстах</option>
+            <option value="seen" data-i18n="dictionary.sortSeen">Недавно встреченные</option>
+            <option value="alpha" data-i18n="dictionary.sortAlpha">По алфавиту</option>
+            <option value="root" data-i18n="dictionary.sortRoot">По корню</option>
+          </select></label>
+      </div>
+      <div id="dict-filters" class="dict-filters" hidden></div>
+      <div id="dict-active" class="dict-active"></div>
+      <p id="dict-progress" class="dict-progress" role="status" aria-live="polite"></p>
+      <ol id="dict-list" class="dict-list" aria-labelledby="dict-list-title"></ol>
+      <div id="dict-more" class="dict-more"></div>
+    </section>
+    <section id="dict-article" class="dict-pane dict-pane-article" aria-live="polite" hidden></section>
+  </main>
+  <div id="dict-toast" class="dict-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="/i18n/locales/ru.js?v=291"></script>
+  <script src="/i18n/locales/en.js?v=291"></script>
+  <script src="/i18n/locales/he.js?v=291"></script>
+  <script src="/i18n/index.js"></script>
+<script src="/js/notes-autogen.js"></script>
+<script src="/js/inflection-render.js?v=2"></script>
+<script src="/js/lemma-canon.js"></script>
+<script src="/js/fsrs-core.js"></script>
+<script src="/js/inflection-dict.js"></script>
+<script src="/js/pealim-function-links.js"></script>
+<script src="/js/function-usage.js"></script>
+<script src="/js/pealim-identity-overrides.js"></script>
+<script src="/js/proclitic-segment.js"></script>
+<script src="/js/ru-forms.js?v=739"></script>
+<script src="/js/reader-morph.js?v=745"></script>
+<script src="/js/word-gloss.js?v=746"></script>
+<script src="/js/word-gloss-ai.js?v=747"></script>
+<script src="/js/morph-host.js?v=736"></script>
+<script src="/js/dictionary-core.js?v=747"></script>
+<script type="module" src="/js/dictionary-ui.js?v=747"></script>
+</body>
+</html>

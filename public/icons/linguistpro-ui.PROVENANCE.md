@@ -25,6 +25,7 @@ The complete upstream ISC licence and Feather-derived MIT notice are stored verb
 | `lp-icon-pause` | `icons/pause.svg` | `f122ec4ea7f5693a0b1baafa9c708b53980dc87b4aacb297c6e6f71c1a4c115c` |
 | `lp-icon-stop` | `icons/square.svg` | `bd979354f0ab184b95cecf03eedefe40c2dc65830ac6d7e60017b2b25a354acb` |
 | `lp-icon-audio` | `icons/volume-2.svg` | `fb404f9c128a0579de67b399177631e5edb3502fdc247ceb30e8b15754b46071` |
+| `lp-icon-dictionary` | `icons/book-open.svg` | `9b9bed0ff057283d5c5c5a1c71f8d3e927db26a56639603a92fdf7b25961510e` |
 | `lp-icon-bookmark` | `icons/bookmark.svg` | `1d5023760db81f21c3b5a63f012ef540acc01932731c733e4645012a876d39f4` |
 | `lp-icon-note` | `icons/notebook-pen.svg` | `56705c35e839977bd6f133d7ca4e9c93a6eea563c89e4be125efd0a32e1fa041` |
 | `lp-icon-list-add` | `icons/list-plus.svg` | `416b579ca6f60752c31769fced8b30d6271940775dacf980ab85ec8c15268b0c` |

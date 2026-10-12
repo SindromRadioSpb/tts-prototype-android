@@ -143,6 +143,17 @@
     var g = r.glosses[k];
     return { gloss: g.gloss, wrongHint: !!g.wrong_hint && !g.manual, mwe: m ? m.gloss : "", manual: !!g.manual, aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss, model: r.model || "" };
   }
+  // Ф4 «Словарь» — the same occurrence gloss read from a stored row (no table on screen).
+  async function wordAtData(row, k) {
+    var p = rowPayloadFromData(row);
+    if (!p) return null;
+    await hydratePayloads([p]);
+    var r = mem.get(p.key);
+    if (!r || !r.glosses || !r.glosses[k]) return null;
+    var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
+    var g = r.glosses[k];
+    return { gloss: g.gloss, manual: !!g.manual, mwe: m ? m.gloss : "", aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss };
+  }
   // Ф3в — a learner/owner correction of ONE occurrence (row + word). It is locked: no later request,
   // import or publication overwrites it; the original AI gloss is kept so the correction can be undone.
   // text = "" / null reverts to the AI gloss.
@@ -429,7 +440,7 @@
 
   window.WordGlossAI = {
     rowPayload: rowPayload, rowPayloadFromData: rowPayloadFromData, lookup: lookup, ensureDataRows: ensureDataRows, estimateDataRows: estimateDataRows, glossCard: glossCard,
-    portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, setOccurrenceGloss: setOccurrenceGloss, hydrate: hydrate, ensureRows: ensureRows,
+    portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, wordAtData: wordAtData, setOccurrenceGloss: setOccurrenceGloss, hydrate: hydrate, ensureRows: ensureRows,
     paintRow: paintRow, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,
     estimate: estimate, runWholeText: runWholeText, USD_PER_1K_WORDS: USD_PER_1K_WORDS, _mem: mem,
   };

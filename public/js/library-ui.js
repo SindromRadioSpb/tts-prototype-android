@@ -782,7 +782,7 @@ function roomStateUrl(state) {
   const url = new URL(location.href);
   // Reader identity belongs in the request URL. A fragment describes only the
   // transient presentation and cannot distinguish works to a crawler or recipient.
-  for (const key of ['corpus_work', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open']) url.searchParams.delete(key);
+  for (const key of ['corpus_work', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open', 'at']) url.searchParams.delete(key);
   if (state.surface === 'reader' && roomReaderLinkIdentity) {
     for (const [key, value] of Object.entries(roomReaderLinkIdentity)) url.searchParams.set(key, value);
   }
@@ -15009,7 +15009,12 @@ async function boot() {
       if (row) {
         activeTrack = 'corpus';
         _roomPresentationReady = true;
-        await openReader(row.id, row.title, { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
+        // Ф4 «Словарь»: ?my_text=…&at=<order_index> opens the text AT a place where the word was met.
+        const at = initialQuery.get('at');
+        const atRow = at != null && /^\d+$/.test(at) ? Number(at) : null;
+        await openReader(row.id, row.title, atRow != null
+          ? { scrollToOrderIndex: atRow, replaceInitialHistory: true }
+          : { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
         localLinkOpened = true;
       }
     }

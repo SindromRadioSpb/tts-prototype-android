@@ -9,6 +9,7 @@
     { id: "mediatheque", href: "/mediatheque.html", icon: "lp-icon-play", key: "appNav.mediatheque", fallback: "Медиатека" },
     { id: "studio", href: "/", icon: "lp-mark-studio", key: "appNav.studio", fallback: "Студия" },
     { id: "review", href: "/library.html#review", icon: "lp-icon-train", key: "appNav.review", fallback: "Повторение" },
+    { id: "dictionary", href: "/dictionary.html", icon: "lp-icon-dictionary", key: "appNav.dictionary", fallback: "Словарь" },
   ];
 
   function label(key, fallback) {
@@ -22,6 +23,7 @@
     var loc = window.location || {};
     var p = String(loc.pathname || "/");
     if (p === "/mediatheque.html") return "mediatheque";
+    if (p === "/dictionary.html") return "dictionary";
     if (p === "/library.html") return loc.hash === "#review" ? "review" : "room";
     if (p === "/" || p === "/index.html") return "studio";
     return "";

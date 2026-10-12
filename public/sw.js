@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.746";
+const CACHE_VERSION = "v3.11.747";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -75,6 +75,10 @@ const PRECACHE_URLS = [
   "/js/tutor-panel.js?v=9",
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
+  "/dictionary.html",
+  "/css/dictionary.css?v=747",
+  "/js/dictionary-core.js?v=747",
+  "/js/dictionary-ui.js?v=747",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=727",
   "/js/mediatheque-core.js",
@@ -135,7 +139,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=742",
+  "/js/library-ui.js?v=747",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -190,7 +194,7 @@ const PRECACHE_URLS = [
   "/js/reader-morph.js?v=745",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
-  "/js/word-gloss-ai.js?v=745",
+  "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=736",
   "/js/studio-morph.js?v=5",
@@ -288,7 +292,7 @@ const PRECACHE_URLS = [
   "/js/world-engine.js?v=736",
   "/js/world-render.js?v=715",
   "/css/world-skin.css?v=715",
-  "/js/app-nav.js?v=645",
+  "/js/app-nav.js?v=747",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
@@ -326,9 +330,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=290",
-  "/i18n/locales/en.js?v=290",
-  "/i18n/locales/he.js?v=290",
+  "/i18n/locales/ru.js?v=291",
+  "/i18n/locales/en.js?v=291",
+  "/i18n/locales/he.js?v=291",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

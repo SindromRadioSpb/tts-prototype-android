@@ -31,6 +31,7 @@ const provenance = read(FILES.provenance);
 const packet = read(FILES.packet);
 
 const SYSTEM_SYMBOLS = Object.freeze([
+  "lp-icon-dictionary",
   "lp-icon-sync",
   "lp-icon-theme",
   "lp-icon-search",
@@ -239,7 +240,7 @@ test("VF0 sprite is a bounded, inert and complete audited symbol set", () => {
   const actual = [...sprite.matchAll(/<symbol\s+id="([^"]+)"/g)].map((match) => match[1]).sort();
   const expected = [...SYSTEM_SYMBOLS, ...FIRST_PARTY_SYMBOLS].sort();
   assert.deepEqual(actual, expected, "sprite IDs must equal the approved set; no generic pack dump");
-  assert.equal(SYSTEM_SYMBOLS.length, 27, "system subset remains within the approved 16–28 range (R11a)");
+  assert.equal(SYSTEM_SYMBOLS.length, 28, "system subset remains within the approved 16–28 range (R11a)");
 });
 
 test("VF0 records Lucide and Feather licence notices plus reproducible provenance", () => {

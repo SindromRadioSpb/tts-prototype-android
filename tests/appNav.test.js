@@ -13,10 +13,10 @@ const ROOT = path.join(__dirname, "..");
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8").replace(/\r\n/g, "\n");
 const SHELLS = ["public/index.html", "public/library.html", "public/mediatheque.html"];
 
-test("the nav module renders the four sections with sprite icons and marks the current one", () => {
+test("the nav module renders the five sections with sprite icons and marks the current one", () => {
   const { parseHTML } = require("linkedom");
   const vm = require("node:vm");
-  for (const [url, current] of [["/library.html", "room"], ["/mediatheque.html", "mediatheque"], ["/", "studio"], ["/library.html#review", "review"]]) {
+  for (const [url, current] of [["/library.html", "room"], ["/mediatheque.html", "mediatheque"], ["/", "studio"], ["/library.html#review", "review"], ["/dictionary.html", "dictionary"]]) {
     const u = new URL("https://x" + url);
     const { window, document } = parseHTML("<!doctype html><html><body></body></html>");
     const sandbox = { window, document, location: { pathname: u.pathname, hash: u.hash } };
@@ -26,8 +26,8 @@ test("the nav module renders the four sections with sprite icons and marks the c
     const nav = document.querySelector("nav.lp-app-nav");
     assert.ok(nav, "nav mounted");
     const links = [...nav.querySelectorAll("a[data-nav-id]")];
-    assert.deepEqual(links.map((a) => a.getAttribute("data-nav-id")), ["room", "mediatheque", "studio", "review"]);
-    assert.deepEqual(links.map((a) => a.getAttribute("href")), ["/library.html", "/mediatheque.html", "/", "/library.html#review"]);
+    assert.deepEqual(links.map((a) => a.getAttribute("data-nav-id")), ["room", "mediatheque", "studio", "review", "dictionary"]);
+    assert.deepEqual(links.map((a) => a.getAttribute("href")), ["/library.html", "/mediatheque.html", "/", "/library.html#review", "/dictionary.html"]);
     assert.equal(nav.querySelector('[aria-current="page"]').getAttribute("data-nav-id"), current, url);
     for (const a of links) assert.match(a.innerHTML, /<use href="\/icons\/linguistpro-ui\.svg#lp-/);
     assert.ok(document.body.classList.contains("lp-has-app-nav"));
