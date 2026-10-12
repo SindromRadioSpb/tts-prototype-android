@@ -543,9 +543,11 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
   position: sticky; bottom: 0; z-index: 4;
   box-shadow: 0 -4px 12px rgba(15, 23, 42, .08);
 }
+/* Владелец 2026-10-12: длинная строка не уезжает вбок — слова переносятся в 2–3 ряда (3 ряда чипов по 44 px
+   + зазоры), остальное прокручивается внутри ленты, а не всей страницей. */
 .rm-ribbon-list {
-  display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain;
-  scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+  display: flex; flex-wrap: wrap; gap: 6px; overflow-x: hidden; overflow-y: auto; max-height: 152px;
+  overscroll-behavior-y: contain; scrollbar-width: thin; -webkit-overflow-scrolling: touch;
 }
 .rm-ribbon-chip {
   flex: 0 0 auto; width: auto; min-width: 44px; min-height: 44px; margin: 0;

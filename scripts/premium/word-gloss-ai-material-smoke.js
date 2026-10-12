@@ -118,6 +118,20 @@ const ROWS = [
       return { hit: !!window.WordGlossAI.lookup(tr) };
     });
     ok(m4.hit && calls === before, "M4 кнопка ▶︎ в ячейке перевода не меняет ключ строки");
+    // M5 — лента длинной строки переносится в ряды и не уезжает вбок (владелец 2026-10-12)
+    const m5 = await pg.evaluate(async () => {
+      localStorage.setItem("studio.wordRibbon", "1");
+      const long = "הַיְּלָדִים הוֹלְכִים לַבַּיִת שֶׁלָּנוּ אֲנִי זוֹכֵר שֶׁשָּׁמַעְתִּי אֶת זֶה הִיא כָּתְבָה מִכְתָּב אָרֹךְ אֲנַחְנוּ רָאִינוּ אֶת הַבַּיִת הוּא כָּתַב שִׁיר יָפֶה";
+      window.v3RenderTableFromLibrary([{ he: long.replace(/[֑-ׇ]/g, ""), he_niqqud: long, translit: "x", ru: "длинная строка" }]);
+      await new Promise((r) => setTimeout(r, 1500));
+      const cb = document.getElementById("studioWordRibbonToggle"); if (cb && !cb.checked) { cb.checked = true; cb.dispatchEvent(new Event("change")); }
+      document.querySelector('#proTable tbody tr[data-row-idx="0"]').classList.add("row-playing");
+      await new Promise((r) => setTimeout(r, 1500));
+      const list = document.querySelector(".rm-ribbon .rm-ribbon-list"); const chip = list && list.querySelector(".rm-ribbon-chip");
+      return list ? { chips: list.children.length, h: list.clientHeight, chipH: chip ? chip.offsetHeight : 0, sideways: list.scrollWidth > list.clientWidth + 1 } : null;
+    });
+    ok(m5 && m5.chips >= 20 && m5.h > m5.chipH * 1.5 && !m5.sideways, "M5 лента длинной строки переносится в ряды без прокрутки вбок (" + JSON.stringify(m5) + ")");
+    await pg.screenshot({ path: shot("ribbon-wrap-380") });
     ok(pageErrors.length === 0, "нет ошибок страницы" + (pageErrors.length ? ": " + pageErrors.slice(0, 3).join(" | ") : ""));
   } catch (e) {
     console.error(e); failures.push(String(e && e.message || e));

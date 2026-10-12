@@ -373,7 +373,7 @@
       return { b: b, gl: gl, sp: sp };
     });
     st.list.innerHTML = ""; st.list.appendChild(frag);
-    st.list.scrollLeft = 0;
+    st.list.scrollLeft = 0; st.list.scrollTop = 0;
     var AI = _aiOn && window.WordGlossAI;
     for (var i = 0; i < chips.length; i++) {
       if (st.rowIdx !== idx) return;   // playback moved on while resolving
