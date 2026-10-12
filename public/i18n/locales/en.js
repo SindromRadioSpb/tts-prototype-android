@@ -2139,6 +2139,8 @@ window.I18N_LOCALES.en = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", dictionary: "Dictionary", label: "Sections" },
   dictionary: {
+    trainThese: "Learn these ({n})",
+    trainNote: "Training in the Room on these words in the current order; answers go to the review schedule.",
     collecting: "Collecting my words: {n}",
     title: "My dictionary",
     skip: "To the words",
@@ -3327,6 +3329,8 @@ window.I18N_LOCALES.en = {
         modeTrain: "Review",
         trainTitle: "Review",
         reviewTitle: "Review",
+        setTitle: "Learn from the dictionary",
+        setEmpty: "No sentences or dictionary entries were found on this device for these words — open their texts in the Room.",
         reinforce: "Reinforcement",
         reinforced: "Reinforced again",
         saveError: "The answer could not be saved. Check local storage and try again.",

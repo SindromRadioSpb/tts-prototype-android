@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=742';
+import * as localDb from '/db/local-db.js?v=750';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -239,7 +239,7 @@ function applyView() {
   const all = Array.from(S.entries.values());
   S.view = D.sortEntries(all.filter((e) => D.matches(e, S.filters, now)), S.sort, now);
   S.shown = Math.min(S.view.length, Math.max(S.PAGE, S.shown));
-  renderCounts(all); renderActive(); renderList();
+  renderCounts(all); renderActive(); renderTrainButton(); renderList();
 }
 function memLine(e) {
   const m = D.memory(e, Date.now());
@@ -320,6 +320,19 @@ function renderFilters() {
     chip(tt('dictionary.fMine', 'есть мой перевод'), S.filters.hasMine, () => { S.filters.hasMine = !S.filters.hasMine; }),
     ...ADDED_OPTS.map(([d, k, fb]) => chip(tt(k, fb), S.filters.addedDays === d, () => { S.filters.addedDays = S.filters.addedDays === d ? 0 : d; })),
   ]));
+}
+// Д2 «Учить эти»: the current filtered view, in its order, goes to the Room's training
+function renderTrainButton() {
+  const box = $('dict-train'); if (!box) return;
+  const learnable = S.view.filter((e) => !e.metOnly && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
+  box.replaceChildren();
+  if (!learnable.length) return;
+  box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
+    on: { click: () => {
+      try { localStorage.setItem('dict.trainSet_v1', JSON.stringify({ at: Date.now(), keys: learnable.slice(0, 200).map((e) => e.key) })); } catch (_) {}
+      location.href = '/library.html?review=set&from=dictionary';
+    } } }));
+  box.appendChild(el('span', { class: 'dict-note', text: tt('dictionary.trainNote', 'Тренировка в Зале по этим словам в текущем порядке; ответы идут в расписание повторения.') }));
 }
 function renderActive() {
   const box = $('dict-active'); box.replaceChildren();

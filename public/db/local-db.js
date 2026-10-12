@@ -3339,6 +3339,40 @@ export async function getSrsSchedule() {
 // T1: the ORDER BY is deliberately NEUTRAL (due ASC, key ASC). Ranking is a PRODUCT decision and lives
 // in TrainQueue.composeSession — the previous `srs_lapses DESC` made this query a total order on
 // weakness, which pinned a large backlog to its worst dozen words for ever.
+// Ф4 · Д2 «Учить эти» — the same rows getDueWithSource serves, for an explicit list of lemma keys
+// (any schedule state, «ignore» excluded). A key with no word_status row comes back as an unscheduled,
+// unsourced entry so the training builder's honest serve-unsourced ladder can still place it.
+export async function getWordsWithSource(keys) {
+  const list = Array.from(new Set((keys || []).map((k) => String(k || "").trim()).filter(Boolean))).slice(0, 200);
+  if (!list.length) return [];
+  let rows = [];
+  try {
+    rows = (await q(`SELECT w.lemma_key, w.status, w.srs_due, w.srs_interval, w.srs_reps, w.srs_lapses,
+                            w.srs_text_key, w.srs_sentence_id, w.srs_order_index, w.srs_surface,
+                            w.srs_stability, w.srs_difficulty, w.srs_reviewed_at, w.srs_scheme,
+                            t.title AS srs_text_title
+                       FROM word_status w LEFT JOIN texts t ON t.text_key = w.srs_text_key
+                      WHERE w.lemma_key IN (${list.map(() => "?").join(",")})`, list)) || [];
+  } catch (_) { rows = []; }
+  const byKey = new Map(rows.map((w) => [String(w.lemma_key), w]));
+  const out = [];
+  for (const k of list) {
+    const w = byKey.get(k) || null;
+    if (w && w.status === "ignore") continue;
+    out.push({
+      lemmaKey: k, status: w ? String(w.status || "") : "",
+      srs: { due: w && w.srs_due ? Date.parse(w.srs_due) : 0, interval: w ? Number(w.srs_interval) || 0 : 0,
+        reps: w ? Number(w.srs_reps) || 0 : 0, lapses: w ? Number(w.srs_lapses) || 0 : 0,
+        stability: w && w.srs_stability != null ? Number(w.srs_stability) : null,
+        difficulty: w && w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
+        reviewedAt: w && w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null, scheme: (w && w.srs_scheme) || null },
+      source: { textKey: (w && w.srs_text_key) || null, sentenceId: (w && w.srs_sentence_id) || null,
+        orderIndex: w && w.srs_order_index != null ? Number(w.srs_order_index) : null, surface: (w && w.srs_surface) || null,
+        title: (w && w.srs_text_title) || null },
+    });
+  }
+  return out;
+}
 export async function getDueWithSource(nowMs) {
   const now = Number(nowMs) || 0;
   try {

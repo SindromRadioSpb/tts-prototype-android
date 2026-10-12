@@ -134,14 +134,26 @@ const ROWS = [
     await pg.click('#dict-article .dict-a-status button:has-text("почти знаю")');
     await pg.waitForTimeout(800);
     const st = await pg.evaluate(async (k) => {
-      const ldb = await import("/db/local-db.js?v=742");
+      const ldb = await import("/db/local-db.js?v=750");
       return ldb.getWordStatus(k);
     }, seed.keys.katav);
     ok(st === "l4", "D4 статус из статьи записан по тому же канон-ключу (" + st + ")");
 
+    // D6 «Учить эти» → the Room's training on this set
+    await pg.waitForSelector("#dict-train .dict-btn", { timeout: 10000 });
+    const btnText = await pg.textContent("#dict-train .dict-btn");
+    await Promise.all([pg.waitForURL(/library\.html/, { timeout: 30000 }), pg.click("#dict-train .dict-btn")]);
+    await pg.waitForFunction(() => { const s = document.querySelector(".room-study"); if (!s || s.hidden) return false; const b = s.querySelector(".room-study-body"); return b && b.innerText.trim() && !/Собираю/.test(b.innerText); }, null, { timeout: 90000 }).catch(() => {});
+    const train = await pg.evaluate(() => { const s = document.querySelector(".room-study"); const b = s && s.querySelector(".room-study-body"); return { open: !!(s && !s.hidden), title: (s && (s.querySelector(".room-study-title") || {}).textContent) || "", empty: !!(b && b.querySelector(".room-study-empty")), text: b ? b.innerText.slice(0, 160) : "", url: location.search }; });
+    ok(/Учить эти \(4\)/.test(btnText) && train.open && /словаря/.test(train.title) && !train.empty && !/review=set/.test(train.url),
+      "D6 «Учить эти (4)» открывает тренировку в Зале на этих словах («" + train.title + "»: " + train.text.replace(/\s+/g, " ").slice(0, 80) + ")");
+    await pg.screenshot({ path: shot("train-from-dictionary") });
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+
     // D5 scale: 1000 entries
     await pg.evaluate(async () => {
-      const ldb = await import("/db/local-db.js?v=742");
+      const ldb = await import("/db/local-db.js?v=750");
       const letters = "אבגדהוזחטיכלמנסעפצקרשת";
       for (let i = 0; i < 1000; i++) {
         const w = letters[i % 22] + letters[Math.floor(i / 22) % 22] + letters[Math.floor(i / 484) % 22] + "ן";   // 1000 distinct keys

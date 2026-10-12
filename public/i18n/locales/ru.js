@@ -2153,6 +2153,8 @@ window.I18N_LOCALES.ru = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Зал", mediatheque: "Медиатека", studio: "Студия", review: "Повторение", dictionary: "Словарь", label: "Разделы" },
   dictionary: {
+    trainThese: "Учить эти ({n})",
+    trainNote: "Тренировка в Зале по этим словам в текущем порядке; ответы идут в расписание повторения.",
     collecting: "Собираю мои слова: {n}",
     title: "Мой словарь",
     skip: "К словам",
@@ -3341,6 +3343,8 @@ window.I18N_LOCALES.ru = {
         modeTrain: "Повторение",
         trainTitle: "Повторение",
         reviewTitle: "Повторение",
+        setTitle: "Учить из словаря",
+        setEmpty: "Для этих слов на этом устройстве не нашлось ни предложений, ни словарной статьи — откройте их тексты в Зале.",
         reinforce: "Закрепление",
         reinforced: "Повторно закреплено",
         saveError: "Не удалось сохранить ответ. Проверь локальную память и попробуй ещё раз.",

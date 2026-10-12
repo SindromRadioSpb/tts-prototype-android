@@ -2147,6 +2147,8 @@ window.I18N_LOCALES.he = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "קריאה", mediatheque: "מדיה", studio: "סטודיו", review: "חזרה", dictionary: "מילון", label: "אזורים" },
   dictionary: {
+    trainThese: "ללמוד את אלה ({n})",
+    trainNote: "אימון באולם הקריאה על המילים האלה בסדר הנוכחי; התשובות נכנסות ללוח החזרות.",
     collecting: "אוסף את המילים שלי: {n}",
     title: "המילון שלי",
     skip: "אל המילים",
@@ -3337,6 +3339,8 @@ window.I18N_LOCALES.he = {
         modeTrain: "חזרה",
         trainTitle: "חזרה",
         reviewTitle: "חזרה",
+        setTitle: "ללמוד מהמילון",
+        setEmpty: "לא נמצאו במכשיר הזה משפטים או ערכים מילוניים למילים האלה — פתחו את הטקסטים שלהן באולם הקריאה.",
         reinforce: "חיזוק",
         reinforced: "חוזקו שוב",
         saveError: "לא ניתן לשמור את התשובה. בדקו את האחסון המקומי ונסו שוב.",

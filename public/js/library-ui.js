@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=742';
+import * as localDbRaw from '/db/local-db.js?v=750';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -3778,6 +3778,49 @@ async function startPlanSectionTraining(itemKeys, channel) {
   if (channel) { try { trainChannelSet(channel); } catch (_) {} }
   const planItems = items.slice(0, TRAIN_N);
   await _launchTrainSession(planItems, { cross: true, pool: await _crossPoolFor(planItems, rows) });
+}
+// Ф4 · Д2 «Учить эти» (docs/planning/word-layer/F4_D2_LEARNING_SPEC_2026_10_12.md): the dictionary hands over a
+// filtered list of lemma keys in its own order; the SAME cross-text training serves them (bank → stored anchor →
+// R2 ladder with re-source scan → honest word-only for pid: entries). Answers are ordinary reviews (FSRS).
+async function startSetTraining(keys) {
+  ensureStudySheet();
+  _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
+  _studyMode = 'train'; _trainSession = null;
+  _studySetTitle('room.morph.study.setTitle', 'Учить из словаря');
+  roomFocusInto(_studySheet.querySelector('.room-study-card'));
+  try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
+  try { _studyListChrome(false); } catch (_) {}
+  const body = _studySheet.querySelector('.room-study-body');
+  if (!body || !window.ReaderMorph) return;
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю…') }));
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  let rows = [];
+  try { rows = (await localDb.getWordsWithSource(keys)) || []; } catch (_) { rows = []; }
+  const size = Math.max(4, Number(trainPrefs().sessionSize) || TRAIN_N);
+  // assemble a little more than one session (some words may honestly fail to assemble), keep the dictionary's order
+  const items = await _buildDueSourcedItems(rows.slice(0, size * 2), { scanBudget: 16 });
+  if (!_studySheet || _studySheet.hidden) return;
+  if (!items.length) {
+    body.innerHTML = '';
+    body.appendChild(el('div', { class: 'room-study-empty', text: tt('room.morph.study.setEmpty', 'Для этих слов на этом устройстве не нашлось ни предложений, ни словарной статьи — откройте их тексты в Зале.') }));
+    return;
+  }
+  const order = new Map(rows.map((r, i) => [String(r.lemmaKey), i]));
+  const picked = items.sort((a, b) => (order.get(String(a.lemmaKey)) || 0) - (order.get(String(b.lemmaKey)) || 0)).slice(0, size);
+  await _launchTrainSession(picked, { cross: true, pool: await _crossPoolFor(picked, rows) });
+}
+function consumeSetTrainingHandoff() {
+  try {
+    const url = new URL(location.href);
+    if (url.searchParams.get('review') !== 'set' || url.searchParams.get('from') !== 'dictionary') return null;
+    url.searchParams.delete('review'); url.searchParams.delete('from');
+    history.replaceState(history.state, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+    const raw = JSON.parse(localStorage.getItem('dict.trainSet_v1') || 'null');
+    localStorage.removeItem('dict.trainSet_v1');
+    if (!raw || !Array.isArray(raw.keys) || !raw.keys.length || !(Date.now() - Number(raw.at) < 10 * 60 * 1000)) return null;
+    return raw.keys.map(String).slice(0, 200);
+  } catch (_) { return null; }
 }
 // Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
 // row so training is self-contained (works even if readerRows is empty/desynced).
@@ -15073,6 +15116,7 @@ async function boot() {
     if (_roomHistoryFallbackNotice) roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
     }
     const dueReviewHandoff = consumeDueReviewHandoff();
+    const setTrainingHandoff = consumeSetTrainingHandoff();
     // Mediatheque keeps materials in the existing reader and shared progress store.
     try {
       const myTextId = initialQuery.get('my_text');
@@ -15144,6 +15188,7 @@ async function boot() {
     } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
     if (dueReviewHandoff) await startDueReview();
+    else if (setTrainingHandoff) await startSetTraining(setTrainingHandoff);
     refreshAgentProposalsChip();   // AA4-4b — pending agent proposals (quiet-fail without a session)
     backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session

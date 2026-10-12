@@ -76,6 +76,8 @@ body.lp-dict-page { margin: 0; background: var(--d-bg); color: var(--d-ink); fon
 .dict-froot input { min-height: 38px; padding: 6px 10px; border: 1px solid var(--d-line); border-radius: 8px; background: var(--d-bg); color: var(--d-ink); font: 16px var(--d-font-he); width: 9em; }
 .dict-active { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 4px; }
 .dict-active .dict-chip { background: var(--d-muted-bg); }
+.dict-train { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 6px; }
+.dict-train:empty { display: none; }
 .dict-progress { min-height: 1.2em; margin: 6px 0; font-size: 13px; color: var(--d-ink-3); }
 
 .dict-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
