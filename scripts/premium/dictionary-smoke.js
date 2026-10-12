@@ -130,6 +130,36 @@ const ROWS = [
     ok(proc === "שֶׁשָּׁמַעְתִּי", "D3 место с приставкой найдено и доказано разбором («" + proc + "»)");
     await pg.click(`.dict-row[data-key="${seed.keys.katav}"]`);
     await pg.waitForTimeout(800);
+    // D7 form drill on לכתוב: two rounds, the first answer of round 1 deliberately wrong
+    await pg.click(`.dict-row[data-key="${seed.keys.katav}"]`);
+    await pg.waitForSelector("#dict-article .dict-drill-bar .dict-btn", { timeout: 30000 });
+    const drill = await pg.evaluate(async () => {
+      const art = document.getElementById("dict-article"), wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const out = { rounds: [], wrongShown: "" };
+      for (let round = 0; round < 2; round++) {
+        (round === 0 ? art.querySelector(".dict-drill-bar .dict-btn") : [...art.querySelectorAll(".dict-drill-actions .dict-btn")][0]).click();
+        await wait(50);
+        for (let q = 0; q < 12; q++) {
+          const opts = art.querySelector(".dict-drill-opts"); if (!opts || !art.querySelector(".dict-drill-opt")) break;
+          const ans = opts.getAttribute("data-answer");
+          const btns = [...opts.querySelectorAll(".dict-drill-opt")];
+          const pick = round === 0 && q === 0 ? btns.find((b) => b.getAttribute("data-he") !== ans) : btns.find((b) => b.getAttribute("data-he") === ans);
+          pick.click(); await wait(30);
+          if (round === 0 && q === 0) out.wrongShown = (art.querySelector(".dict-drill-fb") || {}).innerText || "";
+          const next = art.querySelector(".dict-drill-fb .primary"); next.click(); await wait(30);
+        }
+        out.rounds.push((art.querySelector(".dict-drill-total") || {}).textContent || "");
+      }
+      [...art.querySelectorAll(".dict-drill-actions .dict-btn")][1].click(); await wait(100);
+      out.mastered = art.querySelectorAll(".rm-conj-body .dict-mastered").length;
+      out.status = (art.querySelector(".dict-drill-bar .dict-note") || {}).textContent || "";
+      return out;
+    });
+    ok(/Правильно/.test(drill.wrongShown) && /Верно 7 из 8/.test(drill.rounds[0]) && /Верно 8 из 8/.test(drill.rounds[1]),
+      "D7 тренировка форм: ошибка показывает правильную форму, раунды " + drill.rounds.map((r) => r.split(".")[0]).join(" / "));
+    ok(drill.mastered >= 7 && /Уверенно: [7-9] из/.test(drill.status), `D7 усвоенные формы отмечены в таблице (${drill.mastered}; «${drill.status}»)`);
+    await pg.screenshot({ path: shot("drill-desktop") });
+
     // D4 status from the article = the same canon write as in the text
     await pg.click('#dict-article .dict-a-status button:has-text("почти знаю")');
     await pg.waitForTimeout(800);
@@ -200,6 +230,18 @@ const ROWS = [
     await pg.click(".dict-row");
     await pg.waitForTimeout(1200);
     await pg.screenshot({ path: shot("article-380-he") });
+    // the form drill at phone width (HE): the task panel fits without sideways scroll
+    await pg.reload({ waitUntil: "load" });   // at 380 px the article replaces the list
+    await pg.waitForFunction(() => document.querySelectorAll(".dict-row").length >= 10, null, { timeout: 60000 });
+    await pg.fill("#dict-q", "כתב"); await pg.waitForTimeout(400);
+    await pg.click(`.dict-row[data-key="${seed.keys.katav}"]`);
+    await pg.waitForSelector("#dict-article .dict-drill-bar .dict-btn", { timeout: 30000 });
+    await pg.click("#dict-article .dict-drill-bar .dict-btn");
+    await pg.waitForSelector("#dict-article .dict-drill-opt", { timeout: 10000 });
+    await pg.evaluate(() => document.querySelector("#dict-article .dict-drill-opts").scrollIntoView({ block: "center" }));
+    const drillWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    ok(!drillWide, "D7 тренировка форм на 380 px без прокрутки вбок (he)");
+    await pg.screenshot({ path: shot("drill-380-he") });
     ok(pageErrors.length === 0, "нет ошибок страницы" + (pageErrors.length ? ": " + pageErrors.slice(0, 3).join(" | ") : ""));
   } catch (e) {
     console.error(e); failures.push(String(e && e.message || e));

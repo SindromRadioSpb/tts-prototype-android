@@ -2139,6 +2139,15 @@ window.I18N_LOCALES.en = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", dictionary: "Dictionary", label: "Sections" },
   dictionary: {
+    drillStart: "Practise the forms",
+    drillSummary: "Confident: {m} of {t} forms",
+    drillDone: "{r} of {n} right. {s}.",
+    drillAgain: "Another round",
+    drillClose: "Back to the table",
+    drillRight: "Right",
+    drillWrong: "Correct:",
+    drillNext: "Next",
+    drillFinish: "Result",
     trainThese: "Learn these ({n})",
     trainNote: "Training in the Room on these words in the current order; answers go to the review schedule.",
     collecting: "Collecting my words: {n}",

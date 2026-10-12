@@ -2153,6 +2153,15 @@ window.I18N_LOCALES.ru = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Зал", mediatheque: "Медиатека", studio: "Студия", review: "Повторение", dictionary: "Словарь", label: "Разделы" },
   dictionary: {
+    drillStart: "Тренировать формы",
+    drillSummary: "Уверенно: {m} из {t} форм",
+    drillDone: "Верно {r} из {n}. {s}.",
+    drillAgain: "Ещё раунд",
+    drillClose: "К таблице",
+    drillRight: "Верно",
+    drillWrong: "Правильно:",
+    drillNext: "Дальше",
+    drillFinish: "Итог",
     trainThese: "Учить эти ({n})",
     trainNote: "Тренировка в Зале по этим словам в текущем порядке; ответы идут в расписание повторения.",
     collecting: "Собираю мои слова: {n}",

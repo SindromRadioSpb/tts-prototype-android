@@ -404,6 +404,89 @@ async function findPlaces(e, card) {
   }
   return Array.from(places.values());
 }
+// ── Д2.2 тренировка форм (FormDrillCore; память по клетке — своя, на устройстве; FSRS леммы не трогается) ──
+let _drillDb = null;
+function drillDb() {
+  if (_drillDb) return _drillDb;
+  _drillDb = new Promise((resolve) => { try { const rq = indexedDB.open('lp-form-drill', 1); rq.onupgradeneeded = () => rq.result.createObjectStore('m'); rq.onsuccess = () => resolve(rq.result); rq.onerror = () => resolve(null); } catch (_) { resolve(null); } });
+  return _drillDb;
+}
+async function drillMemory(key) {
+  const db = await drillDb(); if (!db) return {};
+  return new Promise((resolve) => { try { const r = db.transaction('m', 'readonly').objectStore('m').get(key); r.onsuccess = () => resolve(r.result || {}); r.onerror = () => resolve({}); } catch (_) { resolve({}); } });
+}
+async function drillSave(key, mem) { const db = await drillDb(); if (!db) return; try { db.transaction('m', 'readwrite').objectStore('m').put(mem, key); } catch (_) {} }
+function markMastered(body, mem) {
+  body.querySelectorAll('[data-slot]').forEach((b) => b.classList.toggle('dict-mastered', window.FormDrillCore.mastered(mem[b.getAttribute('data-slot')])));
+}
+async function mountFormDrill(sec, tableBody, key, card, metSlots, epoch) {
+  const FD = window.FormDrillCore, IR = window.InflectionRender;
+  if (!FD || !IR || !IR.projectStudyForms) return;
+  const study = IR.projectStudyForms(card.paradigm);
+  if (!study || FD.formsOf(study).length < 4) return;
+  let mem = await drillMemory(key);
+  if (epoch !== _articleEpoch) return;
+  markMastered(tableBody, mem);
+  const bar = el('div', { class: 'dict-drill-bar' });
+  const sum = () => { const x = FD.summary(study, mem); return fill(tt('dictionary.drillSummary', 'Уверенно: {m} из {t} форм'), { m: x.mastered, t: x.total }); };
+  const status = el('span', { class: 'dict-note', text: sum() });
+  const start = el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillStart', 'Тренировать формы'), on: { click: () => run() } });
+  bar.append(start, status);
+  sec.appendChild(bar);
+  const panel = el('div', { class: 'dict-drill', attrs: { role: 'group', 'aria-live': 'polite' } });
+  panel.hidden = true; sec.appendChild(panel);
+  const lemma = card.niqqud || (card.paradigm && (card.paradigm.lemma_niqqud || card.paradigm.lemma)) || '';
+  function finish(res) {
+    panel.replaceChildren();
+    const right = res.filter(Boolean).length;
+    panel.appendChild(el('p', { class: 'dict-drill-total', text: fill(tt('dictionary.drillDone', 'Верно {r} из {n}. {s}.'), { r: right, n: res.length, s: sum() }) }));
+    panel.appendChild(el('div', { class: 'dict-drill-actions' }, [
+      el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillAgain', 'Ещё раунд'), on: { click: () => run() } }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.drillClose', 'К таблице'), on: { click: () => { panel.hidden = true; tableBody.hidden = false; bar.hidden = false; status.textContent = sum(); markMastered(tableBody, mem); } } }),
+    ]));
+  }
+  function run() {
+    const deck = FD.buildDeck(study, { metSlots, memory: mem, size: 8 });
+    const res = [];
+    tableBody.hidden = true; bar.hidden = true; panel.hidden = false;
+    let i = 0;
+    const ask = () => {
+      if (i >= deck.length) { finish(res); return; }
+      const target = deck[i];
+      const ru = (window.WordGloss && window.WordGloss.cellForms) ? (window.WordGloss.cellForms(card.paradigm, [target.slot]) || {}).text || '' : '';
+      panel.replaceChildren(
+        el('div', { class: 'dict-drill-head' }, [el('span', { class: 'dict-note', text: (i + 1) + ' / ' + deck.length }), el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: lemma })]),
+        el('p', { class: 'dict-drill-q' }, [el('b', { text: (target.group ? target.group + ' · ' : '') + target.label }), ru ? el('span', { attrs: { dir: 'auto' }, text: ' — ' + ru }) : null]),
+      );
+      const opts = el('div', { class: 'dict-drill-opts', attrs: { 'data-answer': target.he } });   // read by the smoke gate
+      FD.optionsFor(target, study, 4, Date.now() % 100000 + i).forEach((o) => {
+        opts.appendChild(el('button', { class: 'dict-drill-opt', attrs: { type: 'button', lang: 'he', dir: 'rtl', 'data-he': o.he }, text: o.he, on: { click: () => answer(o) } }));
+      });
+      panel.appendChild(opts);
+      try { opts.querySelector('button').focus(); } catch (_) {}
+      function answer(o) {
+        const ok = FD.isCorrect(target, o.he);
+        res.push(ok);
+        mem = FD.grade(mem, target.slot, ok, Date.now()); drillSave(key, mem);
+        opts.querySelectorAll('button').forEach((b) => {
+          b.disabled = true;
+          if (b.getAttribute('data-he') === target.he) b.classList.add('ok');
+          else if (!ok && b.getAttribute('data-he') === o.he) b.classList.add('bad');
+        });
+        const fb = el('div', { class: 'dict-drill-fb ' + (ok ? 'ok' : 'bad') }, [
+          el('span', { text: ok ? '✓ ' + tt('dictionary.drillRight', 'Верно') : '✗ ' + tt('dictionary.drillWrong', 'Правильно:') + ' ' }),
+          ok ? null : el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: target.he }),
+          target.translit ? el('span', { class: 'dict-note', text: ' ' + target.translit }) : null,
+          el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.speak', 'Озвучить') }, text: '▶', on: { click: () => { try { morphHost.speakWord(target.he); } catch (_) {} } } }),
+          el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: i + 1 < deck.length ? tt('dictionary.drillNext', 'Дальше') : tt('dictionary.drillFinish', 'Итог'), on: { click: () => { i++; ask(); } } }),
+        ]);
+        panel.appendChild(fb);
+        try { fb.querySelector('.primary').focus(); } catch (_) {}
+      }
+    };
+    ask();
+  }
+}
 // a card built from the Pealim entry itself (pid: keys whose text form did not verify)
 function synthCard(e) {
   const p = e.paradigm, rd = e.reading || readingFromParadigm(p, e.key);
@@ -495,6 +578,7 @@ async function openArticle(key) {
     const body = el('div', { class: 'rm-conj-body' }); body.innerHTML = tbl;
     conjSec.appendChild(tbl ? body : el('p', { class: 'dict-note', text: tt('dictionary.noConj', 'Это слово не изменяется или таблицы для него нет.') }));
     if (slots.size) conjSec.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.conjMet', 'Подсвечены формы, встреченные в ваших текстах: {n}.'), { n: slots.size }) }));
+    if (tbl) await mountFormDrill(conjSec, body, key, verified, Array.from(slots), my);
   } else {
     conjSec.appendChild(el('p', { class: 'dict-note', text: verified ? tt('dictionary.noConj', 'Это слово не изменяется или таблицы для него нет.') : tt('dictionary.noReading', 'Разбор слова не подтверждён — таблицу не показываю, чтобы не ошибиться.') }));
   }

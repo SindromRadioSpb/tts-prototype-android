@@ -2147,6 +2147,15 @@ window.I18N_LOCALES.he = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "קריאה", mediatheque: "מדיה", studio: "סטודיו", review: "חזרה", dictionary: "מילון", label: "אזורים" },
   dictionary: {
+    drillStart: "תרגול צורות",
+    drillSummary: "בביטחון: {m} מתוך {t} צורות",
+    drillDone: "{r} נכונות מתוך {n}. {s}.",
+    drillAgain: "סבב נוסף",
+    drillClose: "חזרה לטבלה",
+    drillRight: "נכון",
+    drillWrong: "הנכון:",
+    drillNext: "הבא",
+    drillFinish: "סיכום",
     trainThese: "ללמוד את אלה ({n})",
     trainNote: "אימון באולם הקריאה על המילים האלה בסדר הנוכחי; התשובות נכנסות ללוח החזרות.",
     collecting: "אוסף את המילים שלי: {n}",
