@@ -8,6 +8,7 @@
 //      запросов нет; выключить/включить подстрочник — подписи ИИ снова из хранилища
 //   A3 повторное включение → подписи ИИ из локального хранилища, без новых запросов
 //   A4 ленивый режим: новая таблица, строка «звучит» → запрос сам, подписи ИИ появляются
+//   A6 (Ф3в) карточка по тапу: «в контексте (ИИ)», сочетание, правка закреплена, откат
 //   A5 без ключа → понятное сообщение, ни одного запроса
 // --live-key-file <path>: дополнительно ЖИВОЙ прогон одной строки через реальный Gemini (ключ из файла
 //   кладётся в localStorage одноразового профиля и нигде не печатается).
@@ -114,6 +115,45 @@ const ROWS2 = [
     await pg.waitForFunction(() => document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w[data-gloss-label="ai"]').length === 13, null, { timeout: 20000 }).catch(() => {});
     const a3 = await pg.evaluate(() => document.querySelectorAll('#proTable td[data-col="niqqud"] .rm-w[data-gloss-label="ai"]').length);
     ok(a3 === 13 && calls === before, `A3 повторное включение — из хранилища, без новых запросов (ai=${a3}, новых запросов=${calls - before})`);
+
+    // A6 (Ф3в) — карточка по тапу: строка «в контексте (ИИ)», сочетание, правка закреплена, откат
+    const cardText = async () => pg.evaluate(() => { const c = document.querySelector(".rm-sheet-card"); return c && c.offsetParent ? c.innerText : ""; });
+    const tapWord = async (row, k) => {
+      await pg.evaluate(([row, k]) => { const sp = document.querySelectorAll('#proTable tbody tr[data-row-idx="' + row + '"] td[data-col="niqqud"] .rm-w')[k]; sp.scrollIntoView({ block: "center" }); sp.click(); }, [row, k]);
+      await pg.waitForFunction(() => { const c = document.querySelector(".rm-sheet-card"); return c && c.offsetParent && /Мой статус|часть речи/.test(c.innerText); }, null, { timeout: 20000 }).catch(() => {});
+    };
+    const callsA6 = calls;
+    await tapWord(0, 2);
+    let txt = await cardText();
+    ok(/в контексте \(ИИ\):\s*ИИ2:/.test(txt), "A6 карточка показывает перевод ИИ этого вхождения (" + (txt.match(/в контексте[^\n]*/) || [""])[0] + ")");
+    await pg.click(".rm-sheet-card [data-rm-ai-edit]");
+    await pg.fill(".rm-sheet-card [data-rm-ai-input]", "что я слышал");
+    await pg.click(".rm-sheet-card [data-rm-ai-save]");
+    await pg.waitForFunction(() => /в контексте \(исправлено\)/.test((document.querySelector(".rm-sheet-card") || {}).innerText || ""), null, { timeout: 10000 }).catch(() => {});
+    txt = await cardText();
+    const fixed = await pg.evaluate(() => { const sp = document.querySelectorAll('#proTable tbody tr[data-row-idx="0"] td[data-col="niqqud"] .rm-w')[2]; return [sp.getAttribute("data-gloss"), sp.getAttribute("data-gloss-label")]; });
+    ok(/в контексте \(исправлено\):\s*что я слышал/.test(txt) && /ИИ предлагал:\s*ИИ2:/.test(txt) && fixed[0] === "что я слышал" && fixed[1] === "user",
+      "A6 правка: карточка «исправлено» + «ИИ предлагал», подпись слова = правка цветом «ваш» (" + fixed.join(" / ") + ")");
+    await pg.screenshot({ path: shot("card-fixed-380") });
+    // the correction survives a re-render of the table and is never re-requested
+    await pg.keyboard.press("Escape").catch(() => {});
+    await pg.evaluate((rows) => window.v3RenderTableFromLibrary(rows), ROWS);
+    await pg.waitForFunction(() => { const sp = document.querySelectorAll('#proTable tbody tr[data-row-idx="0"] td[data-col="niqqud"] .rm-w')[2]; return sp && sp.getAttribute("data-gloss") === "что я слышал"; }, null, { timeout: 20000 }).catch(() => {});
+    const kept = await pg.evaluate(() => { const sp = document.querySelectorAll('#proTable tbody tr[data-row-idx="0"] td[data-col="niqqud"] .rm-w')[2]; return sp && sp.getAttribute("data-gloss"); });
+    ok(kept === "что я слышал" && calls === callsA6, `A6 правка переживает перерисовку таблицы, без запросов (${kept}, запросов ${calls - callsA6})`);
+    // revert
+    await tapWord(0, 2);
+    await pg.click(".rm-sheet-card [data-rm-ai-edit]");
+    await pg.click(".rm-sheet-card [data-rm-ai-revert]");
+    await pg.waitForFunction(() => /в контексте \(ИИ\)/.test((document.querySelector(".rm-sheet-card") || {}).innerText || ""), null, { timeout: 10000 }).catch(() => {});
+    const back = await pg.evaluate(() => { const sp = document.querySelectorAll('#proTable tbody tr[data-row-idx="0"] td[data-col="niqqud"] .rm-w')[2]; return [sp.getAttribute("data-gloss"), sp.getAttribute("data-gloss-label")]; });
+    ok(/^ИИ2:/.test(back[0]) && back[1] === "ai", "A6 «Вернуть перевод ИИ» возвращает подпись модели (" + back.join(" / ") + ")");
+    await pg.keyboard.press("Escape").catch(() => {});
+    // an expression is named on the card of a word inside it
+    await tapWord(1, 2);
+    txt = await cardText();
+    ok(/сочетание:\s*к нашему дому/.test(txt), "A6 сочетание показано в карточке слова, входящего в него");
+    await pg.keyboard.press("Escape").catch(() => {});
 
     // A4 — ленивый режим
     await pg.evaluate((rows) => window.v3RenderTableFromLibrary(rows), ROWS2);

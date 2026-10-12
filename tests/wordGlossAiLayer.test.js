@@ -173,3 +173,44 @@ test('glossCard without a Gemini key sends nothing and names the reason', async 
     assert.equal(out.covered, 0);
   } finally { window.geminiKeyGet = saved; }
 });
+
+// Ф3в: правка перевода ОДНОГО вхождения закреплена — запрос/импорт её не перезаписывают, оригинал ИИ
+// сохраняется для «вернуть», правка едет в экспорт.
+test('an occurrence correction is locked, exported, survives an import, and reverts to the AI gloss', async () => {
+  await reset();
+  const tr = renderRow(ROW, true);
+  const p = AI.rowPayload(tr);
+  AI._mem.set(p.key, { glosses: GLOSSES.map((g) => ({ ...g, wrong_hint: false })), mwe: [], model: 'm' });
+  assert.equal(await AI.setOccurrenceGloss(tr, 2, '  сотня  '), true);
+  let x = AI.wordAt(tr, 2);
+  assert.deepEqual([x.gloss, x.manual, x.aiGloss], ['сотня', true, 'сотни']);
+  const span = tr.querySelectorAll('td[data-col="niqqud"] .rm-w')[2];
+  assert.equal(span.getAttribute('data-gloss-label'), 'user', 'the correction has the learner colour');
+
+  // export carries it; an import of the plain AI layer does not overwrite the local correction
+  const layer = await AI.portable([ROW]);
+  assert.equal(layer.rows[0].glosses[2].manual, true);
+  assert.equal(layer.rows[0].glosses[2].ai_gloss, 'сотни');
+  const plain = { schema: layer.schema, rows: [{ ...layer.rows[0], glosses: GLOSSES.map((g) => ({ gloss: g.gloss + '!' })) }] };
+  assert.deepEqual(await AI.remember(plain, [ROW]), { stored: 1, rejected: 0 });
+  x = AI.wordAt(tr, 2);
+  assert.equal(x.gloss, 'сотня', 'local correction wins over an imported AI layer');
+  assert.equal(AI.wordAt(tr, 0).gloss, 'зачем!', 'other words take the imported layer');
+
+  // on a fresh device the imported correction arrives as a correction
+  await reset();
+  assert.deepEqual(await AI.remember(layer, [ROW]), { stored: 1, rejected: 0 });
+  x = AI.wordAt(tr, 2);
+  assert.deepEqual([x.gloss, x.manual], ['сотня', true]);
+
+  // revert
+  assert.equal(await AI.setOccurrenceGloss(tr, 2, ''), true);
+  x = AI.wordAt(tr, 2);
+  assert.deepEqual([x.gloss, x.manual], ['сотни', false]);
+  assert.equal(span.getAttribute('data-gloss-label'), 'ai');
+  // a stored correction is kept on the device (IndexedDB), not only in memory
+  await AI.setOccurrenceGloss(tr, 1, 'необходимы');
+  AI._mem.clear();
+  await AI.hydrate([tr]);
+  assert.equal(AI.wordAt(tr, 1).gloss, 'необходимы');
+});

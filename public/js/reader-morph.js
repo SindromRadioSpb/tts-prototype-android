@@ -1320,6 +1320,10 @@
       if (t && t.closest && t.closest("[data-rm-refine-go]")) { onRefine(false); return; }
       if (t && t.closest && t.closest("[data-rm-refine-all]")) { onRefine(true); return; }
       if (t && t.closest && t.closest("[data-rm-refine]")) { onRefinePrompt(); return; }
+      if (t && t.closest && t.closest("[data-rm-ai-save]")) { onAiSave(false); return; }
+      if (t && t.closest && t.closest("[data-rm-ai-revert]")) { onAiSave(true); return; }
+      if (t && t.closest && t.closest("[data-rm-ai-cancel]")) { onAiEditToggle(false); return; }
+      if (t && t.closest && t.closest("[data-rm-ai-edit]")) { onAiEditToggle(true); return; }
       if (t && t.closest && t.closest("[data-rm-meaning-save]")) { onMeaningSave(); return; }
       if (t && t.closest && t.closest("[data-rm-meaning-cancel]")) { onMeaningEditToggle(false); return; }
       if (t && t.closest && (t.closest("[data-rm-meaning-add]") || t.closest("[data-rm-meaning-edit]"))) { onMeaningEditToggle(true); return; }
@@ -1335,6 +1339,11 @@
     // T-b — Enter inside the translation input saves; Esc cancels (mobile-keyboard friendly).
     el.addEventListener("keydown", function (e) {
       var t = e.target;
+      if (t && t.closest && t.closest("[data-rm-ai-input]")) {
+        if (e.key === "Enter") { e.preventDefault(); onAiSave(false); }
+        else if (e.key === "Escape") { e.preventDefault(); onAiEditToggle(false); }
+        return;
+      }
       if (!(t && t.closest && t.closest("[data-rm-meaning-input]"))) return;
       if (e.key === "Enter") { e.preventDefault(); onMeaningSave(); }
       else if (e.key === "Escape") { e.preventDefault(); onMeaningEditToggle(false); }
@@ -1676,6 +1685,56 @@
       '<div class="rm-proc-chips" dir="rtl">' + chips + "</div></div>";
   }
 
+  // ── Word layer Ф3в (docs/planning/word-layer/F3V_CARD_AI_LINE_SPEC_2026_10_12.md) ─────────────────
+  // The contextual (AI) gloss belongs to an OCCURRENCE — this word in this row — not to the lemma, so it
+  // is read from the tapped span and shown only on that word's own card (never on a drilled card).
+  // A correction is locked (WordGlossAI.setOccurrenceGloss) and keeps the AI original for «вернуть».
+  function aiOccurrence() {
+    var AI = window.WordGlossAI;
+    if (!AI || !_activeSpan || _cardStack.length || !_activeSpan.closest) return null;
+    var tr = _activeSpan.closest("tr");
+    var k = Number(_activeSpan.getAttribute("data-w-offset"));
+    if (!tr || !Number.isFinite(k)) return null;
+    var x = null; try { x = AI.wordAt(tr, k); } catch (_) { x = null; }
+    return x ? { tr: tr, k: k, x: x } : null;
+  }
+  function aiOccurrenceHtml() {
+    var o = aiOccurrence();
+    if (!o) return "";
+    var x = o.x;
+    var key = x.manual ? tt("room.morph.aiInContextFixed", "в контексте (исправлено)") : tt("room.morph.aiInContext", "в контексте (ИИ)");
+    var html = '<div class="rm-ai-line' + (x.manual ? " rm-ai-manual" : "") + '" dir="ltr" data-rm-ai-line>' +
+      '<span class="rm-alts-k">' + escapeHtml(key) + ":</span> " + '<span class="rm-ai-gloss">' + escapeHtml(x.gloss) + "</span>" +
+      ' <button type="button" class="rm-meaning-edit rm-ai-edit" data-rm-ai-edit aria-label="' + escapeHtml(tt("room.morph.aiEdit", "Исправить перевод в контексте")) + '">✎</button>' +
+      "</div>";
+    if (x.manual && x.aiGloss && x.aiGloss !== x.gloss) html += '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.aiWas", "ИИ предлагал")) + ":</span> " + escapeHtml(x.aiGloss) + "</div>";
+    if (x.mwe) html += '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.aiMwe", "сочетание")) + ":</span> " + escapeHtml(x.mwe) + "</div>";
+    if (x.wrongHint) html += '<div class="rm-alts rm-ai-warn" dir="ltr">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение выше в этой строке, вероятно, не подходит")) + "</div>";
+    html += '<div class="rm-meaning-editor" data-rm-ai-editor dir="' + uiDir() + '" hidden>' +
+      '<input type="text" class="rm-meaning-input" data-rm-ai-input dir="ltr" maxlength="120" placeholder="' + escapeHtml(tt("room.morph.aiPlaceholder", "перевод слова в этой строке")) + '" value="' + escapeHtml(x.gloss) + '" />' +
+      '<button type="button" class="rm-meaning-save" data-rm-ai-save>' + escapeHtml(tt("room.morph.saveMeaning", "Сохранить")) + "</button>" +
+      (x.manual ? '<button type="button" class="rm-meaning-cancel" data-rm-ai-revert>' + escapeHtml(tt("room.morph.aiRevert", "Вернуть перевод ИИ")) + "</button>" : "") +
+      '<button type="button" class="rm-meaning-cancel" data-rm-ai-cancel>' + escapeHtml(tt("room.morph.cancel", "Отмена")) + "</button>" +
+      "</div>";
+    return html;
+  }
+  function onAiEditToggle(open) {
+    var ed = _sheet && _sheet.querySelector("[data-rm-ai-editor]");
+    if (!ed) return;
+    ed.hidden = !open;
+    if (open) { var inp = ed.querySelector("[data-rm-ai-input]"); if (inp) { try { inp.focus(); inp.select(); } catch (_) {} } }
+  }
+  async function onAiSave(revert) {
+    var o = aiOccurrence(), AI = window.WordGlossAI;
+    if (!o || !AI || !AI.setOccurrenceGloss) return;
+    var inp = _sheet && _sheet.querySelector("[data-rm-ai-input]");
+    var val = revert ? "" : String(inp ? inp.value : "").trim();
+    if (!revert && !val) { if (inp) { try { inp.focus(); } catch (_) {} } return; }
+    try { await AI.setOccurrenceGloss(o.tr, o.k, val); } catch (_) { return; }
+    // the ribbon re-reads the row; walk up to whichever mount owns it
+    try { for (var el = o.tr; el && window.WordGloss && window.WordGloss.refreshRibbon; el = el.parentElement) window.WordGloss.refreshRibbon(el); } catch (_) {}
+    if (_activeCard) openCard(_activeCard, _activeOcc);
+  }
   function renderCardHtml(card) {
     if (!card) return '<div class="rm-card-empty">' + escapeHtml(tt("room.morph.empty", "Слово не распознано.")) + "</div>";
     var label = LABEL_TEXT[card.label] || LABEL_TEXT.unknown;
@@ -1776,6 +1835,7 @@
           escapeHtml(fg.text) + "</div>";
       }
     }
+    var aiLine = aiOccurrenceHtml();
     // F4 — homograph honesty: surface the rival readings of an ambiguous cell so the gloss
     // above reads as one possibility, not a verdict. «возможно также: год; …»
     var altGlosses = (card.alts || []).map(function (a) { return a && a.meaning; }).filter(Boolean);
@@ -1884,7 +1944,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
   }
 
   function contextPendingHtml(card) {
@@ -1928,6 +1988,8 @@
   // is whatever the reader wired via attach(); the card degrades gracefully if unwired.
   async function openWordCard(surface, niqqud) {
     _activeWordCtx = null; _cardStack = []; _recallCtx = null; _markConfirm = null;   // study-row card is never recall/confirm mode
+    // no table occurrence behind this card: a previous tap must not lend it its AI line (Ф3в)
+    if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
     openCardLoading();
     try {
       var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud);

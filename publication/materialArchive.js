@@ -78,9 +78,9 @@ const str=(v,max)=>typeof v==='string'&&v.length<=max;
 function wordGlossLayer(layer,rowCount){
   if(!layer||layer.schema!=='word-gloss-ai-layer-v1'||!Array.isArray(layer.rows)||layer.rows.length>rowCount)return null;
   const rows=layer.rows.filter(r=>r&&Number.isInteger(r.order_index)&&r.order_index>=0&&r.order_index<rowCount&&str(r.key,64)&&str(r.model||'',80)
-    &&Array.isArray(r.glosses)&&r.glosses.length>0&&r.glosses.length<=80&&r.glosses.every(g=>g&&str(g.gloss,120))
+    &&Array.isArray(r.glosses)&&r.glosses.length>0&&r.glosses.length<=80&&r.glosses.every(g=>g&&str(g.gloss,120)&&(g.ai_gloss==null||str(g.ai_gloss,120)))
     &&Array.isArray(r.mwe||[])&&(r.mwe||[]).length<=40&&(r.mwe||[]).every(m=>m&&Number.isInteger(m.from)&&Number.isInteger(m.to)&&str(m.gloss,120)))
-    .map(r=>({order_index:r.order_index,key:r.key,model:String(r.model||''),glosses:r.glosses.map(g=>({gloss:g.gloss,wrong_hint:!!g.wrong_hint})),mwe:(r.mwe||[]).map(m=>({from:m.from,to:m.to,gloss:m.gloss}))}));
+    .map(r=>({order_index:r.order_index,key:r.key,model:String(r.model||''),glosses:r.glosses.map(g=>g.manual?{gloss:g.gloss,wrong_hint:!!g.wrong_hint,manual:true,ai_gloss:String(g.ai_gloss||''),ai_wrong_hint:!!g.ai_wrong_hint}:{gloss:g.gloss,wrong_hint:!!g.wrong_hint}),mwe:(r.mwe||[]).map(m=>({from:m.from,to:m.to,gloss:m.gloss}))}));
   return rows.length?{schema:layer.schema,rows}:null;
 }
 module.exports={inspectArchive,sha,wordGlossLayer};

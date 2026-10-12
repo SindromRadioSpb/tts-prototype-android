@@ -140,7 +140,27 @@
     var r = lookup(tr);
     if (!r || !r.glosses || !r.glosses[k]) return null;
     var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
-    return { gloss: r.glosses[k].gloss, wrongHint: !!r.glosses[k].wrong_hint, mwe: m ? m.gloss : "" };
+    var g = r.glosses[k];
+    return { gloss: g.gloss, wrongHint: !!g.wrong_hint && !g.manual, mwe: m ? m.gloss : "", manual: !!g.manual, aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss, model: r.model || "" };
+  }
+  // Ф3в — a learner/owner correction of ONE occurrence (row + word). It is locked: no later request,
+  // import or publication overwrites it; the original AI gloss is kept so the correction can be undone.
+  // text = "" / null reverts to the AI gloss.
+  async function setOccurrenceGloss(tr, k, text) {
+    var p = tr ? rowPayload(tr) : null;
+    if (!p) return false;
+    await hydratePayloads([p]);
+    var v = mem.get(p.key);
+    if (!v || !v.glosses || !v.glosses[k]) return false;
+    var g = v.glosses[k], val = String(text == null ? "" : text).replace(/\s+/g, " ").trim().slice(0, MAX_GLOSS);
+    var next = Object.assign({}, v, { glosses: v.glosses.slice() });
+    if (val) next.glosses[k] = { gloss: val, wrong_hint: false, manual: true, ai_gloss: g.manual ? String(g.ai_gloss || "") : g.gloss, ai_wrong_hint: g.manual ? !!g.ai_wrong_hint : !!g.wrong_hint, at: Date.now() };
+    else if (g.manual) next.glosses[k] = { gloss: String(g.ai_gloss || ""), wrong_hint: !!g.ai_wrong_hint };
+    else return true;
+    mem.set(p.key, next);
+    await idbPut([[p.key, next]]);
+    paintRow(tr);
+    return true;
   }
 
   // ── network: batches of rows, a few in parallel; honest per-row outcome ──
@@ -244,7 +264,7 @@
       var x = wordAt(tr, k); if (!x) return;
       sp.setAttribute("data-gloss", x.gloss);
       sp.removeAttribute("data-gloss-hint");
-      sp.setAttribute("data-gloss-label", "ai");
+      sp.setAttribute("data-gloss-label", x.manual ? "user" : "ai");
       sp.setAttribute("data-gloss-ai", "1");
       if (x.mwe) sp.setAttribute("title", t("wordGlossAi.mwe", "сочетание") + ": " + x.mwe); else if (sp.getAttribute("title") && sp.getAttribute("data-gloss-ai")) sp.removeAttribute("title");
     });
@@ -361,10 +381,15 @@
   function orderOf(row, i) { var n = Number(row && row.order_index); return Number.isFinite(n) ? n : i; }
   function validEntry(e, n) {
     if (!e || !Array.isArray(e.glosses) || e.glosses.length !== n) return false;
-    for (var i = 0; i < n; i++) { var g = e.glosses[i]; if (!g || typeof g.gloss !== "string" || g.gloss.length > MAX_GLOSS) return false; }
+    for (var i = 0; i < n; i++) { var g = e.glosses[i]; if (!g || typeof g.gloss !== "string" || g.gloss.length > MAX_GLOSS || (g.ai_gloss != null && (typeof g.ai_gloss !== "string" || g.ai_gloss.length > MAX_GLOSS))) return false; }
     var mwe = e.mwe == null ? [] : e.mwe;
     if (!Array.isArray(mwe)) return false;
     return mwe.every(function (m) { return m && Number.isInteger(m.from) && Number.isInteger(m.to) && m.from >= 0 && m.from <= m.to && m.to < n && typeof m.gloss === "string" && m.gloss.length <= MAX_GLOSS; });
+  }
+  function portableGloss(g) {
+    var out = { gloss: g.gloss, wrong_hint: !!g.wrong_hint };
+    if (g.manual) { out.manual = true; out.ai_gloss = String(g.ai_gloss || "").slice(0, MAX_GLOSS); out.ai_wrong_hint = !!g.ai_wrong_hint; }
+    return out;
   }
   async function portable(rows) {
     var list = (rows || []).map(function (r, i) { return { order: orderOf(r, i), p: rowPayloadFromData(r) }; }).filter(function (x) { return x.p; });
@@ -374,7 +399,7 @@
       var v = mem.get(x.p.key);
       if (!v || !validEntry(v, x.p.words.length)) return;
       out.push({ order_index: x.order, key: x.p.key,
-        glosses: v.glosses.map(function (g) { return { gloss: g.gloss, wrong_hint: !!g.wrong_hint }; }),
+        glosses: v.glosses.map(portableGloss),
         mwe: (v.mwe || []).map(function (m) { return { from: m.from, to: m.to, gloss: m.gloss }; }), model: String(v.model || "") });
     });
     return out.length ? { schema: LAYER_SCHEMA, rows: out } : null;
@@ -384,13 +409,19 @@
     if (!layer || layer.schema !== LAYER_SCHEMA || !Array.isArray(layer.rows)) { res.rejected = layer && Array.isArray(layer.rows) ? layer.rows.length : 0; return res; }
     var byOrder = new Map();
     (rows || []).forEach(function (r, i) { byOrder.set(orderOf(r, i), r); });
-    var put = [];
+    var put = [], todo = [];
     layer.rows.forEach(function (e) {
       var p = e && byOrder.has(Number(e.order_index)) ? rowPayloadFromData(byOrder.get(Number(e.order_index))) : null;
       if (!p || e.key !== p.key || !validEntry(e, p.words.length)) { res.rejected++; return; }
-      var val = { glosses: e.glosses.map(function (g) { return { gloss: g.gloss, wrong_hint: !!g.wrong_hint }; }),
+      var val = { glosses: e.glosses.map(portableGloss),
         mwe: (e.mwe || []).map(function (m) { return { from: m.from, to: m.to, gloss: m.gloss }; }), model: String(e.model || ""), at: Date.now(), imported: true };
-      mem.set(p.key, val); put.push([p.key, val]); res.stored++;
+      todo.push({ p: p, val: val }); res.stored++;
+    });
+    await hydratePayloads(todo.map(function (x) { return x.p; }));
+    todo.forEach(function (x) {
+      var mine = mem.get(x.p.key);
+      if (mine && mine.glosses) mine.glosses.forEach(function (g, i) { if (g && g.manual && x.val.glosses[i]) x.val.glosses[i] = g; });
+      mem.set(x.p.key, x.val); put.push([x.p.key, x.val]);
     });
     await idbPut(put);
     return res;
@@ -398,7 +429,7 @@
 
   window.WordGlossAI = {
     rowPayload: rowPayload, rowPayloadFromData: rowPayloadFromData, lookup: lookup, ensureDataRows: ensureDataRows, estimateDataRows: estimateDataRows, glossCard: glossCard,
-    portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, hydrate: hydrate, ensureRows: ensureRows,
+    portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, setOccurrenceGloss: setOccurrenceGloss, hydrate: hydrate, ensureRows: ensureRows,
     paintRow: paintRow, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,
     estimate: estimate, runWholeText: runWholeText, USD_PER_1K_WORDS: USD_PER_1K_WORDS, _mem: mem,
   };

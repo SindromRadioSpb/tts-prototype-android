@@ -585,3 +585,23 @@ body.theme-dark .rm-ribbon-chip { background: var(--theme-bg-muted, #0f172a); co
 body.theme-dark .rm-gloss-on .rm-w[data-gloss-label="ai"]::before,
 body.theme-dark .rm-ribbon-chip[data-gloss-label="ai"] .rm-ribbon-gloss { color: #8fb4ff; }
 .wg-ai-consent .room-consent-actions .room-consent-ok { background: var(--theme-accent, #1B4FB8); color: #fff; border-color: transparent; }
+
+/* Word layer Ф3в — AI line on the tap card; a learner's correction has its own colour (not the model's). */
+.rm-ai-line { font-size: 13.5px; line-height: 1.35; color: var(--text-primary); margin: -6px 0 12px; }
+.rm-ai-line .rm-ai-gloss { color: var(--theme-accent-hover, #123A8A); }
+.rm-ai-line.rm-ai-manual .rm-ai-gloss,
+.rm-gloss-on .rm-w[data-gloss-label="user"]::before,
+.rm-ribbon-chip[data-gloss-label="user"] .rm-ribbon-gloss { color: #0f766e; }
+.rm-ai-warn { color: #9a3412; }
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) .rm-ai-line .rm-ai-gloss { color: #8fb4ff; }
+  body:not(.theme-light) .rm-ai-line.rm-ai-manual .rm-ai-gloss,
+  body:not(.theme-light) .rm-gloss-on .rm-w[data-gloss-label="user"]::before,
+  body:not(.theme-light) .rm-ribbon-chip[data-gloss-label="user"] .rm-ribbon-gloss { color: #5eead4; }
+  body:not(.theme-light) .rm-ai-warn { color: #fdba74; }
+}
+body.theme-dark .rm-ai-line .rm-ai-gloss { color: #8fb4ff; }
+body.theme-dark .rm-ai-line.rm-ai-manual .rm-ai-gloss,
+body.theme-dark .rm-gloss-on .rm-w[data-gloss-label="user"]::before,
+body.theme-dark .rm-ribbon-chip[data-gloss-label="user"] .rm-ribbon-gloss { color: #5eead4; }
+body.theme-dark .rm-ai-warn { color: #fdba74; }

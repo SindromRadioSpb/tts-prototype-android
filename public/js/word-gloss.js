@@ -380,7 +380,7 @@
       var c = chips[i];
       // Ф3: the contextual (AI) gloss of this exact word in this row wins when present.
       var ai = AI ? AI.wordAt(tr, i) : null;
-      var g = ai ? { text: ai.gloss + (ai.mwe ? " · " + ai.mwe : ""), label: "ai" }
+      var g = ai ? { text: ai.gloss + (ai.mwe ? " · " + ai.mwe : ""), label: ai.manual ? "user" : "ai" }
         : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
       var has = !!(g && g.text);
       c.gl.textContent = has ? g.text : "?";

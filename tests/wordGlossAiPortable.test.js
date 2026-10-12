@@ -54,3 +54,10 @@ test('text card: the layer is exported and handed to the bundle import', () => {
   const none = TextCard.buildCardPayload({ text: { title: 'T' }, sentences: [] });
   assert.equal('word_gloss_ai_layer' in none.card, false);
 });
+
+test('publication keeps an occurrence correction with its AI original (bounded)', () => {
+  const fixed = { schema: LAYER.schema, rows: [{ ...LAYER.rows[0], glosses: [{ gloss: 'здравствуй', manual: true, ai_gloss: 'привет', ai_wrong_hint: false, extra: 1 }] }] };
+  const out = Archive.wordGlossLayer(fixed, 1);
+  assert.deepEqual(out.rows[0].glosses[0], { gloss: 'здравствуй', wrong_hint: false, manual: true, ai_gloss: 'привет', ai_wrong_hint: false });
+  assert.equal(Archive.wordGlossLayer({ schema: LAYER.schema, rows: [{ ...LAYER.rows[0], glosses: [{ gloss: 'x', manual: true, ai_gloss: 'y'.repeat(121) }] }] }, 1), null);
+});
