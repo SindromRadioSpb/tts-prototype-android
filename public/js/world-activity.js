@@ -19,8 +19,19 @@
     for (const event of ['pause', 'ended', 'error', 'emptied']) player.addEventListener(event, () => setAudio(player, false));
     if (!player.paused && !player.ended) setAudio(player, true);
   }
+  // One pass per burst, not per mutation. The status colouring changes the class of every word of a
+  // long text (7 372 spans on the owner's 477-row material); calling sync for each batch ran a document-wide
+  // querySelector thousands of times and held the main thread ~19 s of every 25 (O-080, Room, 3.11.748).
+  // Word spans (.rm-w) never carry a reading/audio mode, so their mutations are ignored outright.
+  let pending = 0;
+  function schedule() { if (!pending) pending = setTimeout(() => { pending = 0; sync(); }, 80); }
+  function relevant(m) {
+    const t = m.target;
+    return !(t && t.classList && t.classList.contains('rm-w')) && !(t && t.parentElement && t.parentElement.classList && t.parentElement.classList.contains('rm-w'));
+  }
   window.LPWorldActivity = { sync, setAudio, trackMedia };
-  new MutationObserver(sync).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'data-phase', 'hidden'], childList: true });
+  new MutationObserver((muts) => { for (let i = 0; i < muts.length; i++) if (relevant(muts[i])) { schedule(); return; } })
+    .observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class', 'data-phase', 'hidden'], childList: true });
   document.addEventListener('lp-world:changed', sync);
   sync();
 })();
