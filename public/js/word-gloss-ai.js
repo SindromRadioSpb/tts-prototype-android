@@ -275,11 +275,17 @@
     var queue = function (tr) { if (!tr || lookup(tr)) return; pending.add(tr); if (!timer) timer = setTimeout(flush, 600); };
     var io = new IntersectionObserver(function (entries) { entries.forEach(function (e) { if (e.isIntersecting) queue(e.target); }); }, { rootMargin: "200px 0px" });
     var observeAll = function () { Array.prototype.forEach.call(mount.querySelectorAll("#proTable tbody tr"), function (tr) { io.observe(tr); }); };
+    var rerender = 0;
+    var onRerender = function () {   // one pass per burst of row changes, after it settles
+      if (rerender) return;
+      rerender = setTimeout(function () { rerender = 0; if (!enabledFn()) return; observeAll(); hydrate(Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"))).then(function () { if (enabledFn()) paintMount(mount); }); }, 250);
+    };
     var mo = new MutationObserver(function (muts) {
       for (var i = 0; i < muts.length; i++) {
         var m = muts[i];
         if (!enabledFn()) return;
-        if (m.type === "childList") { observeAll(); hydrate(Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"))).then(function () { if (enabledFn()) paintMount(mount); }); return; }
+        // O-080: decoration and replay buttons mutate INSIDE rows thousands of times; only rows count here.
+        if (m.type === "childList") { if (rowLevel(m)) onRerender(); continue; }
         var tr = m.target;
         if (tr && tr.tagName === "TR" && /(?:^|\s)(?:row-playing|smk-row-active)(?:\s|$)/.test(tr.className)) {
           var cur = tr; for (var a = 0; a <= LAZY_AHEAD && cur; a++) { queue(cur); cur = cur.nextElementSibling; }
@@ -289,6 +295,11 @@
     mo.observe(mount, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
     observeAll();
     _lazy.set(mount, { io: io, mo: mo });
+  }
+  function rowLevel(m) {
+    var lists = [m.addedNodes, m.removedNodes];
+    for (var a = 0; a < 2; a++) for (var b = 0; b < lists[a].length; b++) { var n = lists[a][b]; if (n.nodeType === 1 && /^(TR|TBODY|TABLE)$/.test(n.nodeName)) return true; if (n.nodeType === 1 && n.querySelector && n.querySelector("#proTable")) return true; }
+    return false;
   }
   function stopLazy(mount) {
     var s = mount && _lazy.get(mount); if (!s) return;

@@ -2398,7 +2398,7 @@
       if (painted[i].getAttribute("data-rm-due-tip")) { painted[i].removeAttribute("title"); painted[i].removeAttribute("data-rm-due-tip"); }
     }
     var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
-    for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null) niq[j].textContent = n; }
+    for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null && niq[j].textContent !== n) niq[j].textContent = n; }
   }
 
   // opts = { color: bool, fadeMode: 'full'|'adaptive'|'off', dueSet: Set<lemmaKey>|null }.
@@ -2432,7 +2432,7 @@
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
         var card; try { card = await resolveCore(eng, surface, niqqud); }
-        catch (_) { if (isNiqqud && niqqud != null) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
+        catch (_) { if (isNiqqud && niqqud != null && span.textContent !== niqqud) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
         var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
         // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident)
         // via the shared keyer, byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status
@@ -2463,7 +2463,9 @@
           }
           else dueSuppressed[lk] = 1;
         }
-        if (isNiqqud) span.textContent = (fadeDecision(confident ? raw : undefined, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud;
+        // Write only a real change: an unchanged write is still a childList mutation, and on a long table the
+        // per-word mutations woke every table observer once per word (O-080: 3.7 min of a blocked page).
+        if (isNiqqud) { var shown = (fadeDecision(confident ? raw : undefined, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud; if (span.textContent !== shown) span.textContent = shown; }
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }

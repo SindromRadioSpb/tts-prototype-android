@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.743";
+const CACHE_VERSION = "v3.11.744";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -187,10 +187,10 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=740",
+  "/js/reader-morph.js?v=744",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=742",
-  "/js/word-gloss-ai.js?v=743",
+  "/js/word-gloss.js?v=744",
+  "/js/word-gloss-ai.js?v=744",
   "/js/public-word-audio.js?v=453",
   "/js/morph-host.js?v=736",
   "/js/studio-morph.js?v=5",

@@ -13741,11 +13741,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
 <!-- Слой слов Ф2: русский перевод каждой формы парадигмы (офлайн, ленивая загрузка данных). -->
 <script src="/js/ru-forms.js?v=739"></script>
-<script src="/js/reader-morph.js?v=740"></script>
+<script src="/js/reader-morph.js?v=744"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
-<script src="/js/word-gloss.js?v=742"></script>
+<script src="/js/word-gloss.js?v=744"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
-<script src="/js/word-gloss-ai.js?v=743"></script>
+<script src="/js/word-gloss-ai.js?v=744"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13920,7 +13920,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.743";
+    window.APP_VERSION = "3.11.744";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

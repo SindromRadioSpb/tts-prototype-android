@@ -389,6 +389,11 @@
     }
   }
 
+  function rowLevelChange(m) {
+    var lists = [m.addedNodes, m.removedNodes];
+    for (var a = 0; a < 2; a++) for (var b = 0; b < lists[a].length; b++) { var n = lists[a][b]; if (n.nodeType === 1 && (/^(TR|TBODY|TABLE)$/.test(n.nodeName) || (n.querySelector && n.querySelector("#proTable")))) return true; }
+    return false;
+  }
   function ensureRibbon(mount) {
     var host = hostOf(mount), st = _ribbons.get(mount);
     if (st && st.host === host && st.el.isConnected) return st;
@@ -408,7 +413,8 @@
     st.obs = new MutationObserver(function (muts) {
       for (var i = 0; i < muts.length; i++) {
         var m = muts[i];
-        if (m.type === "childList" || (m.target && m.target.tagName === "TR")) { schedule(); return; }
+        // O-080: ignore mutations inside a word cell (decoration, replay glyph) — only rows/tables matter.
+        if (m.type === "childList" ? rowLevelChange(m) : (m.target && m.target.tagName === "TR")) { schedule(); return; }
       }
     });
     st.obs.observe(host, { subtree: true, attributes: true, attributeFilter: ["class"], childList: true });
