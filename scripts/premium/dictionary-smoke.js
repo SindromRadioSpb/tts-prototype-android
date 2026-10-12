@@ -66,6 +66,9 @@ const ROWS = [
       if (yeled.pealim_id) body.pealim_id = String(yeled.pealim_id);
       const note = await ldb.createCanonicalNote({ gen_dedup_key: window.NotesAutoGen.dedupKey(body), body, title: body.word, source: "curated", user_touched: 1 });
       await ldb.addNoteOccurrence(note.id, { text_id: tid, sentence_id: sents[1].id, word_offset: 0, surface: "הילדים" });
+      // not mine: an auto-generated note (source=auto); its word has no status or review of mine
+      const otherBody = { word: "אהבה", niqqud_variant: "אַהֲבָה", pos: "noun", meaning: "любовь" };
+      await ldb.createCanonicalNote({ gen_dedup_key: window.NotesAutoGen.dedupKey(otherBody), body: otherBody, title: "אהבה", source: "auto", user_touched: 0 });
       return { keys: { shama: shama.lemmaKey, katav: katav.lemmaKey, bayit: bayit.lemmaKey, yeled: yeled.lemmaKey }, tid };
     }, ROWS);
     console.log("  seeded", JSON.stringify(seed.keys));
@@ -77,7 +80,7 @@ const ROWS = [
     if (process.env.DICT_DEBUG) console.log(await pg.evaluate(() => JSON.stringify([...window.LPDictionary.state.entries.values()].map((e) => ({ k: e.key, s: e.surfaces, r: e.reading === undefined ? "UNDEF" : e.reading && e.reading.lemmaKey })))));
     const d1 = await pg.evaluate(() => [...document.querySelectorAll(".dict-row")].map((b) => ({ key: b.getAttribute("data-key"), he: b.querySelector(".dict-row-he").textContent, mean: b.querySelector(".dict-row-mean").textContent })));
     const byKey = Object.fromEntries(d1.map((x) => [x.key, x]));
-    ok(d1.length === 4 && Object.values(seed.keys).every((k) => byKey[k]), `D1 четыре записи — по одной на лемму из статусов и «моих слов» (${d1.length})`);
+    ok(d1.length === 4 && Object.values(seed.keys).every((k) => byKey[k]), `D1 четыре записи — по одной на лемму из статусов и «моих слов»; автозаметка не моя (${d1.length})`);
     ok(byKey[seed.keys.yeled] && byKey[seed.keys.yeled].mean === "детишки", "D1 значение: мой перевод важнее словарного (" + (byKey[seed.keys.yeled] || {}).mean + ")");
     ok(byKey[seed.keys.katav] && /писать/.test(byKey[seed.keys.katav].mean), "D1 словарное значение из офлайн-разбора (" + (byKey[seed.keys.katav] || {}).mean + ")");
     const nav = await pg.evaluate(() => { const a = document.querySelector('nav.lp-app-nav [data-nav-id="dictionary"]'); return a ? [a.getAttribute("aria-current"), a.textContent.trim()] : null; });

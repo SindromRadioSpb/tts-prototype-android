@@ -2139,6 +2139,7 @@ window.I18N_LOCALES.en = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", dictionary: "Dictionary", label: "Sections" },
   dictionary: {
+    collecting: "Collecting my words: {n}",
     title: "My dictionary",
     skip: "To the words",
     search: "Search",

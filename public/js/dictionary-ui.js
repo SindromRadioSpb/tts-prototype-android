@@ -113,23 +113,34 @@ async function loadSources() {
     localDb.getSrsSchedule().catch(() => ({})),
     q(`SELECT n.id, n.body_json, n.created_at, COUNT(o.id) AS occ, MAX(o.created_at) AS last_occ
          FROM notes_v2 n LEFT JOIN note_occurrences o ON o.note_id = n.id
-        WHERE n.note_type = 'word_study' GROUP BY n.id`),
+        WHERE n.note_type = 'word_study'
+          -- «my words» only: «Добавить в мои слова», my own translation, or a canonical note I touched.
+          -- Auto-generated notes (source='auto') and bulk-imported notes without a canon key are not mine.
+          AND (n.source = 'curated' OR json_extract(n.body_json, '$.meaning_source') = 'user'
+               OR (n.user_touched = 1 AND n.gen_dedup_key IS NOT NULL AND n.gen_dedup_key <> ''))
+        GROUP BY n.id`),
     q(`SELECT item_key, COUNT(*) AS n, MIN(reviewed_at) AS first, MAX(reviewed_at) AS last,
               SUM(CASE WHEN grade IS NOT NULL AND grade <= 1 THEN 1 ELSE 0 END) AS fails,
               MAX(json_extract(meta_json, '$.surface')) AS surface
-         FROM review_log WHERE kind IN ('review','mark','seed','skip') GROUP BY item_key`),
+         FROM review_log WHERE kind IN ('review','mark','seed','skip') AND source <> 'mark-backfill' GROUP BY item_key`),
     q('SELECT lemma_key, COUNT(*) AS occ, COUNT(DISTINCT text_key) AS texts, MAX(surface) AS surface FROM word_context GROUP BY lemma_key'),
   ]);
   const statusTimes = {}; statusRows.forEach((r) => { statusTimes[r.lemma_key] = r.updated_at; });
+  // «новое» is the default state: an explicit 'new' row counts as mine only when I did something with the
+  // word (a mark or review of mine, a schedule). A migration backfill alone is not a decision of mine.
+  const touched = new Set(logRows.map((r) => r.item_key));
+  Object.keys(statuses).forEach((k) => { if (statuses[k] === 'new' && !touched.has(k) && !schedule[k]) delete statuses[k]; });
   // notes are keyed by the SAME canon key the text uses: resolve the saved word (R11 parity)
   const notes = [];
   const noteBodies = noteRows.map((r) => { let b = {}; try { b = JSON.parse(r.body_json || '{}'); } catch (_) {} return { r, b }; });
-  const noteSurf = noteBodies.map(({ b }) => b.niqqud_variant || b.word || '').filter(Boolean);
+  // a note that names its Pealim entry IS that entry (the canon key of a Pealim word is pid:N) — no guessing
+  const noteSurf = noteBodies.filter(({ b }) => !b.pealim_id).map(({ b }) => b.niqqud_variant || b.word || '').filter(Boolean);
+  progress(fill(tt('dictionary.collecting', 'Собираю мои слова: {n}'), { n: noteBodies.length + Object.keys(statuses).length }));
   const res = await resolveSurfaces(Array.from(new Set(noteSurf)));
   noteBodies.forEach(({ r, b }) => {
     const s = b.niqqud_variant || b.word || '';
     const rd = s ? res.get(s) : null;
-    const key = (rd && rd.lemmaKey) || ('note:' + r.id);
+    const key = b.pealim_id ? 'pid:' + String(b.pealim_id) : ((rd && rd.lemmaKey) || ('note:' + r.id));
     notes.push({ key, id: r.id, word: b.word || '', niqqud: b.niqqud_variant || '', meaning: b.meaning_source === 'user' ? '' : (b.meaning || ''),
       userMeaning: b.meaning_source === 'user' ? (b.meaning || '') : '', pos: b.pos || '', root: b.root || '', binyan: b.binyan || '',
       pid: b.pealim_id || '', created: r.created_at, occ: Number(r.occ) || 0, lastOcc: r.last_occ });
@@ -164,7 +175,12 @@ async function resolveReadings(entries) {
   let done = 0, lastPaint = performance.now(), t0 = performance.now();
   for (const e of list) {
     const p = pidParadigm(e.key);
-    if (p) { e.paradigm = p; e.forms = paradigmForms(p); }
+    if (p) {   // the Pealim entry itself: authoritative, no resolution needed (a dictionary shows the lemma)
+      e.paradigm = p; e.forms = paradigmForms(p); e.reading = readingFromParadigm(p, e.key);
+      done++;
+      if (performance.now() - t0 > 24) { await yieldNow(); t0 = performance.now(); }
+      continue;
+    }
     const surfaces = e.surfaces.map((x) => x.s);
     const got = await resolveSurfaces(surfaces);
     for (const s of surfaces) {
