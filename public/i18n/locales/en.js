@@ -2176,6 +2176,13 @@ window.I18N_LOCALES.en = {
       none: "not marked",
     },
     text: {
+      notFound2: "This text is not on this device. Open it in the Room and it will appear here.",
+      pickHint2: "Choose a text — all its words will be shown, marked or not. Your texts and corpus texts (Ben-Yehuda, the Mediatheque and others) you opened in the Room are here.",
+      familiarCorpus: "{p}% of the text's words are familiar",
+      clsMine: "My texts",
+      clsByehuda: "Project Ben-Yehuda",
+      clsPublic: "Mediatheque and public texts",
+      clsGroup: "Group texts",
       notFound: "This text is not among your texts.",
       reading: "Reading the text…",
       scanning: "Analysing the words: line {d} of {n}",
@@ -2204,6 +2211,9 @@ window.I18N_LOCALES.en = {
       chip: "glossary for the text ({n})",
     },
     triage: {
+      keys: "Keys 1–7 — status, 0 — skip, ← — back",
+      note2: "Levels from «unfamiliar» to «almost know» put the word into review — with this sentence of the text. «New», «know» and «don't learn» leave the schedule alone.",
+      learn2: "Learn the words marked with a level ({n})",
       btn: "Mark up ({n})",
       title: "Marking: {n} words",
       note: "«Recognise» and «don't know» put the word into review — with this sentence of the text. «Know» and «don't learn» leave the schedule alone.",

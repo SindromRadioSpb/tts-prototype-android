@@ -391,9 +391,17 @@ function renderActive() {
 // ── «Слова этого текста» (спека F4_TEXT_LENS): срез словаря по одному моему тексту ─────────────────────
 // Слова текста собирает ReaderMorph.scanRows — тот же разбор и тот же ключ статуса, что лист «Мои слова» Зала.
 // Статус в срезе — живой (как окрашено в тексте); «знакомо X%» — тот же движок и кэш, что у Зала.
+// every text this device holds: my own, and the public ones opened in the Room (Ben-Yehuda, the Mediatheque and other
+// public corpora, group corpora) — the same class rule as the context bank (_sourceClassSql in local-db)
+const TEXT_CLASS_SQL = `CASE WHEN NOT json_valid(t.source_meta_json) THEN 'mytext'
+  WHEN json_type(t.source_meta_json, '$.group_corpus') IS NOT NULL THEN 'group'
+  WHEN json_type(t.source_meta_json, '$.public_corpus') IS NOT NULL THEN 'public'
+  WHEN json_type(t.source_meta_json, '$.corpus') IS NOT NULL THEN 'byehuda' ELSE 'mytext' END`;
+const TEXT_CLASSES = [['mytext', 'dictionary.text.clsMine', 'Мои тексты'], ['byehuda', 'dictionary.text.clsByehuda', 'Проект Бен-Иегуда'],
+  ['public', 'dictionary.text.clsPublic', 'Медиатека и общедоступные тексты'], ['group', 'dictionary.text.clsGroup', 'Тексты групп']];
 async function myTexts() {
   if (S.textList) return S.textList;
-  S.textList = await q(`SELECT t.id, t.title, t.text_key, t.updated_at FROM texts t WHERE ${PERSONAL} ORDER BY t.updated_at DESC`);
+  S.textList = await q(`SELECT t.id, t.title, t.text_key, t.updated_at, ${TEXT_CLASS_SQL} AS cls FROM texts t WHERE t.is_archived = 0 ORDER BY t.updated_at DESC`);
   return S.textList;
 }
 async function refreshLive() { try { S.live = (await localDb.getAllWordStatuses()) || {}; } catch (_) { S.live = S.live || {}; } }
@@ -417,9 +425,9 @@ async function loadText(id) {
   const my = ++_textEpoch;
   const list = await myTexts();
   const t = list.find((x) => String(x.id) === String(id));
-  if (!t) { S.text = null; toast(tt('dictionary.text.notFound', 'Текст не найден среди ваших текстов.')); return; }
+  if (!t) { S.text = null; renderTextBar(); toast(tt('dictionary.text.notFound2', 'Этого текста нет на устройстве. Откройте его в Зале — и он появится здесь.')); return; }
   S.filters.keys = null;
-  S.text = { id: String(t.id), title: t.title || '', key: t.text_key, updated_at: t.updated_at, rows: [], scan: null, fit: null };
+  S.text = { id: String(t.id), cls: t.cls || 'mytext', title: t.title || '', key: t.text_key, updated_at: t.updated_at, rows: [], scan: null, fit: null };
   renderTextBar();
   progress(tt('dictionary.text.reading', 'Читаю текст…'));
   let rows = []; try { rows = (await localDb.getSentences(t.id)) || []; } catch (_) { rows = []; }
@@ -501,7 +509,8 @@ async function fillTextPicker() {
   const sel = $('dict-text-sel'); if (!sel) return;
   const list = await myTexts();
   sel.replaceChildren(el('option', { attrs: { value: '' }, text: tt('dictionary.text.choose', 'Выберите текст…') }),
-    ...list.map((t) => el('option', { attrs: { value: String(t.id) }, text: t.title || ('#' + t.id) })));
+    ...TEXT_CLASSES.map(([cls, k, fb]) => { const items = list.filter((t) => (t.cls || 'mytext') === cls); return items.length ? el('optgroup', { attrs: { label: tt(k, fb) } },
+      items.map((t) => el('option', { attrs: { value: String(t.id) }, text: t.title || ('#' + t.id) }))) : null; }).filter(Boolean));
   if (S.text) sel.value = S.text.id;
 }
 function renderTextBar() {
@@ -510,12 +519,14 @@ function renderTextBar() {
   box.hidden = S.filters.scope !== 'text';
   if (box.hidden) return;
   const T = S.text;
-  if (!T) { box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.text.pickHint', 'Выберите текст — покажу все его слова: размеченные и нет.') })); return; }
-  box.appendChild(el('div', { class: 'dict-textbar-title' }, [el('b', { attrs: { dir: 'auto' }, text: T.title }),
+  if (!T) { box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.text.pickHint2', 'Выберите текст — покажу все его слова: размеченные и нет. Здесь ваши тексты и тексты корпусов (Бен-Иегуда, Медиатека и другие), которые вы открывали в Зале.') })); return; }
+  const clsName = (TEXT_CLASSES.find((c) => c[0] === T.cls) || TEXT_CLASSES[0]);
+  box.appendChild(el('div', { class: 'dict-textbar-title' }, [el('span', {}, [el('b', { attrs: { dir: 'auto' }, text: T.title }), T.cls && T.cls !== 'mytext' ? el('span', { class: 'dict-note', text: ' · ' + tt(clsName[1], clsName[2]) }) : null]),
     T.id ? el('a', { attrs: { href: '/library.html?my_text=' + encodeURIComponent(T.id) }, text: tt('dictionary.text.open', 'Открыть текст ›') }) : null]));
   const f = T.fit;
   const pct = f && f.recorded_familiar_pct_lower_bound != null ? Math.round(Number(f.recorded_familiar_pct_lower_bound)) : null;
-  const famText = pct != null ? fill(tt('dictionary.text.familiar', 'Знакомо {p}% слов текста (как в Зале)'), { p: pct })
+  // «как в Зале» is promised only for my texts: the Room's card numbers for corpora may come from the corpus index
+  const famText = pct != null ? fill(T.cls === 'mytext' ? tt('dictionary.text.familiar', 'Знакомо {p}% слов текста (как в Зале)') : tt('dictionary.text.familiarCorpus', 'Знакомо {p}% слов текста'), { p: pct })
     : f && f.status === 'NEEDS_PROFILE' ? tt('dictionary.text.famNeedsProfile', 'Знакомость появится, когда в словаре будут отмеченные слова.')
     : f ? tt('dictionary.text.famUnavailable', 'Знакомость для этого текста сейчас не посчитана.') : tt('dictionary.text.famLoading', 'Считаю знакомость…');
   box.appendChild(el('p', { class: 'dict-textbar-fam' + (pct != null ? '' : ' dict-note') }, [famText]));
@@ -536,7 +547,8 @@ function renderTextBar() {
 // ── Т2 быстрая разметка: по одному слову (клавиши 1–5) и массово «знаю / не учить» с отменой ──────────────────
 // Пишет тот же канон, что тап в тексте (MorphHost.markWordStatus). «Не знаю» / «узнаю» ставят слово в повторение
 // (уровень l1–l4 сеет FSRS) — с местом из этого текста, чтобы тренировка взяла это предложение.
-const TRIAGE = [['known', '1'], ['l2', '2'], ['l1', '3'], ['ignore', '4'], ['', '5']];
+// the same palette and order as the status row of a word article (and the tap card in a text): 1–7, 0 = skip
+const TRIAGE = [['new', '1'], ['l1', '2'], ['l2', '3'], ['l3', '4'], ['l4', '5'], ['known', '6'], ['ignore', '7'], ['', '0']];
 const unmarkedOf = (e) => (e.inText ? !e.textStatus : (e.metOnly && !e.status));
 function textSourceOf(e) {
   const T = S.text; if (!T || !e.inText || !e.inText.occ || !e.inText.occ.length) return null;
@@ -573,7 +585,7 @@ async function openTriage(list) {
   let i = 0;
   const back = el('button', { class: 'dict-btn dict-a-back', attrs: { type: 'button' }, text: '‹ ' + tt('dictionary.back', 'К списку'), on: { click: () => { closeArticle(); afterMarks(); } } });
   const head = el('h2', { class: 'dict-set-title', text: fill(tt('dictionary.triage.title', 'Разметка: {n} сл.'), { n: items.length }) });
-  const note = el('p', { class: 'dict-note', text: tt('dictionary.triage.note', '«Узнаю» и «не знаю» ставят слово в повторение — с этим предложением текста. «Знаю» и «не учить» расписание не трогают.') });
+  const note = el('p', { class: 'dict-note', text: tt('dictionary.triage.note2', 'Уровни от «незнакомо» до «почти знаю» ставят слово в повторение — с этим предложением текста. «Новое», «знаю» и «не учить» расписание не трогают.') });
   const panel = el('div', { class: 'dict-drill dict-triage', attrs: { role: 'group', 'aria-live': 'polite' } });
   art.replaceChildren(back, head, note, panel);
   if (window.matchMedia && window.matchMedia('(max-width: 959px)').matches) art.scrollTop = 0;
@@ -597,9 +609,13 @@ async function openTriage(list) {
       sent ? el('div', { class: 'dict-place dict-triage-sent' }, [sent.node, sent.ru ? el('div', { class: 'ru', attrs: { dir: 'auto' }, text: sent.ru }) : null]) : null,
       cur != null ? el('p', { class: 'dict-note', text: fill(tt('dictionary.triage.was', 'Уже отмечено: {s}'), { s: label(cur) }) }) : null,
     ].filter(Boolean));
-    const btns = el('div', { class: 'dict-triage-btns' }, TRIAGE.map(([st, key]) => el('button', { class: 'dict-btn' + (st === 'l1' ? ' primary' : '') + (st ? ' dict-st-btn dict-st-' + st : ''), attrs: { type: 'button', 'data-triage': st || 'skip' },
-      on: { click: () => answer(st) } }, [el('kbd', { text: key }), ' ' + label(st)])));
+    const btns = el('div', { class: 'dict-a-status dict-triage-status', attrs: { role: 'group', 'aria-label': tt('dictionary.fStatus', 'Статус') } },
+      TRIAGE.filter(([st]) => st).map(([st, key]) => el('button', { class: 'dict-st-' + st + (cur === st ? ' on' : ''), attrs: { type: 'button', 'data-triage': st, 'aria-keyshortcuts': key },
+        on: { click: () => answer(st) } }, [el('kbd', { text: key }), statusText(st)])));
     panel.appendChild(btns);
+    panel.appendChild(el('div', { class: 'dict-triage-skip' }, [
+      el('button', { class: 'dict-btn', attrs: { type: 'button', 'data-triage': 'skip', 'aria-keyshortcuts': '0' } , on: { click: () => answer('') } }, [el('kbd', { text: '0' }), ' ' + label('')]),
+      el('span', { class: 'dict-note', text: tt('dictionary.triage.keys', 'Клавиши 1–7 — статус, 0 — пропустить, ← — назад') })]));
     panel.appendChild(el('div', { class: 'dict-drill-actions' }, [
       i > 0 ? el('button', { class: 'dict-btn', attrs: { type: 'button', 'data-triage': 'back' }, text: '‹ ' + tt('dictionary.triage.prev', 'назад'), on: { click: () => { i--; show(); } } }) : null,
       el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.triage.stop', 'Закончить'), on: { click: () => finish() } }),
@@ -622,7 +638,7 @@ async function openTriage(list) {
     panel.replaceChildren(
       el('p', { class: 'dict-drill-total', text: TRIAGE.filter(([st]) => counts[st]).map(([st]) => label(st) + ': ' + counts[st]).join(' · ') || tt('dictionary.triage.none', 'Ничего не отмечено.') }),
       el('div', { class: 'dict-drill-actions' }, [
-        learn.length ? el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.triage.learn', 'Учить отмеченные «узнаю» и «не знаю» ({n})'), { n: learn.length }), on: { click: () => startTrain(learn) } }) : null,
+        learn.length ? el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.triage.learn2', 'Учить отмеченные уровнем ({n})'), { n: learn.length }), on: { click: () => startTrain(learn) } }) : null,
         el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.back', 'К списку'), on: { click: () => { closeArticle(); } } }),
       ]));
     afterMarks();

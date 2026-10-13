@@ -279,9 +279,10 @@ const ROWS = [
       // the Словарь row of לכתוב → its table block → back to the same row
       const rowOf = s2.split("<row ").find((r) => r.includes(">" + katavKey + "<"));
       const n = rowOf ? rowOf.slice(rowOf.indexOf('r="') + 3, rowOf.indexOf('"', rowOf.indexOf('r="') + 3)) : "";
-      const lk = '<hyperlink ref="Q' + n + '" location="' + "'Таблицы'!A";
-      const toTable = n && s2.includes(lk) ? s2.slice(s2.indexOf(lk) + lk.length).split('"')[0] : "";
-      const back = toTable ? s3.includes('<hyperlink ref="A' + toTable + '" location="' + "'Словарь'!A" + n + '"') : false;
+      const lk = '<hyperlink ref="Q' + n + '" location="' + "'Таблицы'!";
+      const loc = n && s2.includes(lk) ? s2.slice(s2.indexOf(lk) + lk.length).split('"')[0] : '';   // e.g. L15:L2015 (a tall range in the hidden jump column)
+      const toTable = (/^[A-Z]+(\d+):/.exec(loc) || [])[1] || '';
+      const back = toTable ? s3.includes('<hyperlink ref="A' + toTable + '" location="' + "'Словарь'!X" + n + ':') : false;
       return { words: ex.words, forms: ex.forms, tests: ex.tests, sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), toTable, back,
         boldEx: s2.includes('<rPr><b/><color rgb="FF1B4FB8"/></rPr><t xml:space="preserve">כָּתְבָה</t>'), formula: s5.includes("_xlfn.UNICHAR"),
         appLink: (await zip.file("xl/worksheets/_rels/sheet2.xml.rels").async("string")).includes("dictionary.html?word=") };
@@ -321,21 +322,23 @@ const ROWS = [
       `D12 живой статус и «в тексте: N», неразмеченные видны (${unmarked.length}), порядок по тексту`);
     ok(/Знакомо \d+% слов текста/.test(lens.bar) && /не размечено/.test(lens.counts), "D12 знакомость текста тем же движком, что Зал («" + (lens.bar.match(/Знакомо[^\n]*/) || [""])[0] + "»)");
     await pg.screenshot({ path: shot("text-lens-desktop") });
-    // one-by-one marking: «знаю» for the first, «не знаю» for the second (keys 1 and 3)
+    // one-by-one marking in the status palette of the article: «знаю» (6) for the first, «незнакомо» (2) for the second
     await pg.click("#dict-triage");
-    await pg.waitForSelector("#dict-article .dict-triage-btns", { timeout: 30000 });
+    await pg.waitForSelector("#dict-article .dict-triage-status", { timeout: 30000 });
+    const palette = await pg.evaluate(() => [...document.querySelectorAll("#dict-article .dict-triage-status button")].map((b) => b.className.replace(" on", "")));
     const t1 = await pg.evaluate(() => document.querySelector("#dict-article .dict-triage-word .he").textContent);
     await pg.screenshot({ path: shot("triage-desktop") });
     const k1 = await pg.getAttribute("#dict-article .dict-triage", "data-key");
-    await pg.keyboard.press("1"); await pg.waitForTimeout(600);
+    await pg.keyboard.press("6"); await pg.waitForTimeout(600);
     const k2 = await pg.getAttribute("#dict-article .dict-triage", "data-key");
-    await pg.keyboard.press("3"); await pg.waitForTimeout(900);
+    await pg.keyboard.press("2"); await pg.waitForTimeout(900);
     const marked = await pg.evaluate(async (keys) => {
       const ldb = await import("/db/local-db.js?v=750"), out = [];
       for (const k of keys) { const r = (await ldb.dbQuery("SELECT status, srs_text_key, srs_due FROM word_status WHERE lemma_key = ?", [k]))[0] || {}; out.push({ key: k, db: r.status, tk: r.srs_text_key, due: !!r.srs_due }); }
       return out;
     }, [k1, k2]);
     const mk = k1 !== k2 && marked[0].db === "known" ? marked[0] : null, ml1 = marked[1].db === "l1" ? marked[1] : null;
+    ok(palette.join() === "dict-st-new,dict-st-l1,dict-st-l2,dict-st-l3,dict-st-l4,dict-st-known,dict-st-ignore", "D12 разметка — палитра статусов как в статье слова (" + palette.length + " цветов)");
     ok(t1 && mk && !mk.due && ml1 && ml1.due && ml1.tk === "dict-smoke", `D12 разметка: «знаю» без расписания, «не знаю» в повторение с местом из текста (${JSON.stringify(ml1)})`);
     await pg.click("#dict-article .dict-a-back").catch(async () => { await pg.evaluate(() => document.querySelector("#dict-article .dict-a-back").click()); });
     await pg.waitForTimeout(400);
@@ -371,10 +374,25 @@ const ROWS = [
     const tx = await pg.evaluate(async () => {
       const ex = window.LPDictionary.lastExport, zip = await window.JSZip.loadAsync(ex.blob);
       const wb = await zip.file("xl/workbook.xml").async("string"), s3 = await zip.file("xl/worksheets/sheet3.xml").async("string"), s1 = await zip.file("xl/worksheets/sheet1.xml").async("string");
-      return { sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), amber: s3.includes('color rgb="FFB45309"'), links: (s3.match(/location="'Словарь'!A\d+"/g) || []).length, title: s1.includes("Слова текста «Смоук словаря»") };
+      return { sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), amber: s3.includes('color rgb="FFB45309"'), links: (s3.match(/location="'Словарь'!X\d+:X\d+"/g) || []).length, title: s1.includes("Слова текста «Смоук словаря»") };
     });
     ok(tx.sheets.join() === "Начать,Словарь,Текст,Таблицы,Формы,Проверь себя,Прогресс" && tx.amber && tx.links >= 1 && tx.title && /Смоук-словаря/.test(dl2.suggestedFilename()),
       `D13 XLSX по тексту: ${dl2.suggestedFilename()} — лист «Текст», неразмеченные оранжевым, ссылок на слова ${tx.links}`);
+
+    // D14 a public text (a Ben-Yehuda work opened in the Room) is a text of the lens too
+    await pg.evaluate(async () => {
+      const ldb = await import("/db/local-db.js?v=750");
+      await ldb.createText({ id: "by-smoke", text_key: "by-smoke", title: "Бен-Иегуда смоук", source_meta_json: JSON.stringify({ corpus: { byehuda_id: 99 } }) });
+      await ldb.addSentence("by-smoke", { id: "by-s1", order_index: 0, he_plain: "הילד כתב מכתב", he_niqqud: "הַיֶּלֶד כָּתַב מִכְתָּב", ru: "мальчик написал письмо" });
+    });
+    await pg.goto(BASE + "/dictionary.html?text=by-smoke", { waitUntil: "load" });
+    await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan && document.querySelectorAll(".dict-row").length >= 2; }, null, { timeout: 60000 }).catch(() => {});
+    const by = await pg.evaluate(() => ({ bar: document.getElementById("dict-textbar").innerText, rows: document.querySelectorAll(".dict-row").length,
+      groups: [...document.querySelectorAll("#dict-text-sel optgroup")].map((g) => g.label), toast: document.getElementById("dict-toast").innerText }));
+    ok(/Бен-Иегуда смоук/.test(by.bar) && /Проект Бен-Иегуда/.test(by.bar) && by.rows >= 2 && by.groups.includes("Мои тексты") && by.groups.includes("Проект Бен-Иегуда") && !/нет на устройстве/.test(by.toast),
+      `D14 текст корпуса Бен-Иегуда в срезе: слов ${by.rows}, группы выбора ${by.groups.join(" / ")}`);
+    await pg.goto(BASE + "/dictionary.html?text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
+    await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan; }, null, { timeout: 60000 });
 
     // phone width, Hebrew UI
     await pg.setViewportSize({ width: 380, height: 845 });
@@ -384,7 +402,7 @@ const ROWS = [
     const lensWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     await pg.screenshot({ path: shot("text-lens-380-he"), fullPage: true });
     await pg.click("#dict-triage");
-    await pg.waitForSelector("#dict-article .dict-triage-btns", { timeout: 30000 });
+    await pg.waitForSelector("#dict-article .dict-triage-status", { timeout: 30000 });
     const triWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     await pg.screenshot({ path: shot("triage-380-he") });
     ok(!lensWide && !triWide, "D12 срез текста и разметка на 380 px без прокрутки вбок (he)");
