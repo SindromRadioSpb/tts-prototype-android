@@ -25,9 +25,14 @@ test('clients request the snapshot they expect and reject a different one', () =
   const ui = read('public/js/library-ui.js');
   const raw = ui.match(/fetch\('\/api\/public-corpora\/' \+ encodeURIComponent\([^)]*\) \+ '\/works\/' \+ encodeURIComponent\([^)]*\), \{/g) || [];
   assert.deepEqual(raw, [], 'no unversioned public work fetch remains');
-  assert.equal((ui.match(/fetch\(publicWorkUrl\(/g) || []).length, 2, 'both public work fetch sites use the versioned URL');
-  assert.match(ui, /function publicWorkUrl\(/);
-  assert.match(ui, /PUBLIC_WORK_SNAPSHOT_MISMATCH/);
+  // Д6.1 (2026-10-14): the Room and «Мой словарь» download through corpus-materialize.js — both Room sites call it
+  assert.equal((ui.match(/CorpusMaterialize\.ensurePublicWork\(/g) || []).length, 2, 'both Room public work sites use the shared download');
+  const mod = read('public/js/corpus-materialize.js');
+  assert.match(mod, /deps\.fetch\(publicWorkUrl\(slug, card\.public_work_id, card\.snapshot_sha256\)/);
+  const M = require('../public/js/corpus-materialize.js'), h = 'a'.repeat(64);
+  assert.equal(M.publicWorkUrl('c', 'w/1', h), '/api/public-corpora/c/works/w%2F1?snapshot=' + h);
+  assert.equal(M.publicWorkUrl('c', 'w', ''), '/api/public-corpora/c/works/w');
+  assert.throws(() => M.expectPublicSnapshot({ item: { snapshot_sha256: 'b'.repeat(64) } }, h), /PUBLIC_WORK_SNAPSHOT_MISMATCH/);
 });
 
 test('service worker serves public works cache-first only for snapshot-versioned URLs', () => {

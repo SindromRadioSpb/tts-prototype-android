@@ -675,6 +675,8 @@ function setScope(scope) {
   if (scope !== 'text') S.filters.keys = null;
   document.querySelectorAll('[data-scope]').forEach((x) => x.classList.toggle('on', x.getAttribute('data-scope') === scope));
   const pick = $('dict-text-pick'); if (pick) pick.hidden = scope !== 'text';
+  const sbBtn = $('dict-sb-open'); if (sbBtn) sbBtn.hidden = scope !== 'text';
+  if (scope !== 'text') closeSetBuilder();
   document.querySelectorAll('#dict-sort option[data-text-sort]').forEach((o) => { o.hidden = scope !== 'text'; o.disabled = scope !== 'text'; });
   if (scope !== 'text' && /^text/.test(S.sort)) { S.sort = 'added'; $('dict-sort').value = S.sort; }
   if (scope === 'text' && !/^text/.test(S.sort)) { S.sort = 'textOrder'; $('dict-sort').value = S.sort; }
@@ -688,7 +690,7 @@ async function fillTextPicker() {
   const setGroup = (kind, k, fb) => { const xs = sets.filter((s) => s.kind === kind); return xs.length ? el('optgroup', { attrs: { label: tt(k, fb) } },
     xs.map((s) => el('option', { attrs: { value: s.id }, text: setLabel(s) }))) : null; };
   // a set opened from the Studio's multi-select (not stored anywhere — it lives in the address / a saved view)
-  const adhoc = S.text && /^@ids:/.test(S.text.id) ? el('optgroup', { attrs: { label: tt('dictionary.set.groupPicked', 'Выбранные в Студии') } },
+  const adhoc = S.text && /^@ids:/.test(S.text.id) ? el('optgroup', { attrs: { label: tt('dictionary.set.groupPicked', 'Мой набор текстов') } },
     [el('option', { attrs: { value: S.text.id }, text: S.text.title })]) : null;
   sel.replaceChildren(el('option', { attrs: { value: '' }, text: tt('dictionary.text.choose2', 'Выберите текст или подборку…') }),
     ...[adhoc, setGroup('col', 'dictionary.set.groupCol', 'Подборки Медиатеки'), setGroup('cat', 'dictionary.set.groupCat', 'Темы Медиатеки')].filter(Boolean),
@@ -721,7 +723,7 @@ function renderTextBar() {
   const T = S.text;
   if (!T) { box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.text.pickHint3', 'Выберите текст или подборку — покажу все слова: размеченные и нет. Здесь ваши тексты, тексты корпусов (Бен-Иегуда, Медиатека и другие), которые вы открывали в Зале, и подборки и темы вашей Медиатеки.') })); return; }
   const clsName = (TEXT_CLASSES.find((c) => c[0] === T.cls) || TEXT_CLASSES[0]);
-  const kindName = T.kind === 'col' ? tt('dictionary.set.kindCol', 'подборка Медиатеки') : T.kind === 'cat' ? tt('dictionary.set.kindCat', 'тема Медиатеки') : T.kind === 'ids' ? tt('dictionary.set.kindPicked', 'выбраны в Студии') : '';
+  const kindName = T.kind === 'col' ? tt('dictionary.set.kindCol', 'подборка Медиатеки') : T.kind === 'cat' ? tt('dictionary.set.kindCat', 'тема Медиатеки') : T.kind === 'ids' ? tt('dictionary.set.kindPicked', 'мой набор') : '';
   box.appendChild(el('div', { class: 'dict-textbar-title' }, [el('span', {}, [el('b', { attrs: { dir: 'auto' }, text: T.title }),
       T.isSet ? el('span', { class: 'dict-note', text: ' · ' + kindName + ' · ' + fill(tt('dictionary.set.nTexts', 'текстов: {n}'), { n: T.texts.length }) })
         : T.cls && T.cls !== 'mytext' ? el('span', { class: 'dict-note', text: ' · ' + tt(clsName[1], clsName[2]) }) : null]),
@@ -1882,8 +1884,177 @@ async function exportXlsx(list) {
   } finally { _exporting = false; }
 }
 
+// ── Д6 «Собрать набор»: тексты устройства + работы каталогов сервера (Бен-Иегуда и любой публичный корпус) ──────
+// spec docs/planning/word-layer/F4_D6_CATALOG_SETS_SPEC_2026_10_14.md. Downloads go through CorpusMaterialize — the
+// Room's own way (verification, device edition, import); the set opens as the ordinary '@ids:' lens.
+const SB = { source: 'device', q: '', picked: new Map(), by: null, pubs: null, pubCat: new Map(), busy: false, epoch: 0, note: '', report: null };
+const SB_MAX = 200, SB_SHOW = 100;
+const CM = () => window.CorpusMaterialize;
+async function sbByCatalog() {
+  if (SB.by) return SB.by;
+  const v = await (await fetch('/api/corpus-catalog/benyehuda', { cache: 'no-cache' })).json();
+  if (!v || !v.ok || !v.version) throw new Error('CATALOG_VERSION_UNAVAILABLE');
+  const res = await fetch('/data/benyehuda/' + v.index_file, { cache: 'force-cache' });
+  if (!res.ok) throw new Error('index ' + res.status);
+  const ix = await res.json();
+  SB.by = { version: Number(v.version), cards: Array.isArray(ix.ready) ? ix.ready : [] };   // works with a text only
+  return SB.by;
+}
+async function sbPublicList() {
+  if (SB.pubs) return SB.pubs;
+  try { const p = await (await fetch('/api/public-corpora', { cache: 'no-cache' })).json(); SB.pubs = (p && Array.isArray(p.corpora) ? p.corpora : []).filter((c) => c && c.slug); }
+  catch (_) { SB.pubs = []; }
+  return SB.pubs;
+}
+async function sbPublicCatalog(slug) {
+  if (SB.pubCat.has(slug)) return SB.pubCat.get(slug);
+  const res = await fetch('/api/public-corpora/' + encodeURIComponent(slug), { cache: 'no-cache' });
+  if (!res.ok) throw new Error('catalog ' + res.status);
+  const cat = window.PublicCorpusAdapter.normalizeCorpus(await res.json());
+  SB.pubCat.set(slug, cat);
+  return cat;
+}
+// the device's copy of a catalog work (the same identities the lens uses: text_key / public slug + work id)
+function sbLocalOf(kind, card, slug, list) {
+  if (kind === 'by') return list.find((t) => t.text_key === card.text_key) || null;
+  return list.find((t) => t.pslug === slug && String(t.pwork) === String(card.public_work_id)) || null;
+}
+function sbPick(it, on) {
+  if (on) { if (SB.picked.size >= SB_MAX && !SB.picked.has(it.key)) { SB.note = fill(tt('dictionary.sb.max', 'В наборе не больше {n} текстов.'), { n: SB_MAX }); return; } SB.picked.set(it.key, it); }
+  else SB.picked.delete(it.key);
+  SB.note = '';
+}
+async function openSetBuilder() {
+  const box = $('dict-setbuild'); if (!box) return;
+  box.hidden = false;
+  // a set opened from '@ids:' starts as the current cart
+  if (!SB.picked.size && S.text && S.text.kind === 'ids') S.text.texts.forEach((t) => SB.picked.set('local:' + t.id, { key: 'local:' + t.id, kind: 'local', localId: t.id, title: t.title }));
+  await renderSetBuilder();
+  try { box.querySelector('.dict-sb-q').focus(); } catch (_) {}
+}
+function closeSetBuilder() { const box = $('dict-setbuild'); if (box) box.hidden = true; SB.epoch++; }
+async function renderSetBuilder() {
+  const box = $('dict-setbuild'); if (!box || box.hidden) return;
+  const my = ++SB.epoch;
+  const [list, pubs] = await Promise.all([myTexts(), sbPublicList()]);
+  if (my !== SB.epoch) return;
+  const sel = el('select', { class: 'dict-sb-src', attrs: { 'aria-label': tt('dictionary.sb.source', 'Источник') } }, [
+    el('option', { attrs: { value: 'device' }, text: tt('dictionary.sb.device', 'На устройстве') }),
+    el('option', { attrs: { value: 'by' }, text: tt('room.hub.benyehuda.title', 'Библиотека Бен-Иегуды') }),
+    ...pubs.map((c) => el('option', { attrs: { value: 'pub:' + c.slug }, text: c.title || c.slug })),
+  ]);
+  sel.value = SB.source;
+  sel.addEventListener('change', () => { SB.source = sel.value; renderSetBuilder(); });
+  const qIn = el('input', { class: 'dict-sb-q', attrs: { type: 'search', dir: 'auto', autocomplete: 'off', placeholder: tt('dictionary.sb.searchPh', 'Название или автор'), 'aria-label': tt('dictionary.sb.searchPh', 'Название или автор'), value: SB.q } });
+  let qt = 0;
+  qIn.addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => { SB.q = qIn.value; renderResults(); }, 200); });
+  const results = el('ul', { class: 'dict-sb-results', attrs: { 'aria-live': 'polite' } });
+  const resNote = el('p', { class: 'dict-note' });
+  const cart = el('div', { class: 'dict-sb-cart' });
+  const status = el('p', { class: 'dict-note dict-sb-status', attrs: { role: 'status' }, text: SB.note });
+  const head = el('div', { class: 'dict-sb-head' }, [el('b', { text: tt('dictionary.sb.title', 'Собрать набор') }),
+    el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.cancel', 'Отмена') }, text: '✕', on: { click: closeSetBuilder } })]);
+  box.replaceChildren(head, el('p', { class: 'dict-note', text: tt('dictionary.sb.hint', 'Отметьте тексты устройства и работы каталогов — их слова покажу одним срезом. Работы, которых нет на устройстве, скачаются (как при открытии в Зале).') }),
+    el('div', { class: 'dict-sb-row' }, [sel, qIn]), results, resNote, cart, status);
+  // one row per text / work: a checkbox, the title, who wrote it, «на устройстве»
+  const row = (it, sub, onDevice) => {
+    const cb = el('input', { attrs: { type: 'checkbox', 'data-sb-key': it.key } });
+    cb.checked = SB.picked.has(it.key);
+    cb.addEventListener('change', () => { sbPick(it, cb.checked); if (!SB.picked.has(it.key)) cb.checked = false; renderCart(); });
+    return el('li', {}, [el('label', {}, [cb, el('span', { class: 'dict-sb-t', attrs: { dir: 'auto' }, text: it.title || '—' }),
+      sub ? el('span', { class: 'dict-note', attrs: { dir: 'auto' }, text: sub }) : null,
+      onDevice ? el('span', { class: 'dict-sb-on', text: tt('dictionary.sb.onDevice', 'на устройстве') }) : null])]);
+  };
+  async function renderResults() {
+    const me = SB.epoch;
+    results.replaceChildren(); resNote.textContent = tt('dictionary.loading', 'Ищу…');
+    try {
+      let found, total, rows = [];
+      if (SB.source === 'device') {
+        const r = CM().searchCards(list, SB.q, ['title'], SB_SHOW); found = r.items; total = r.total;
+        const clsName = (t) => { const c = TEXT_CLASSES.find((x) => x[0] === (t.cls || 'mytext')); return c ? tt(c[1], c[2]) : ''; };
+        rows = found.map((t) => row({ key: 'local:' + t.id, kind: 'local', localId: String(t.id), title: t.title }, clsName(t), false));
+      } else if (SB.source === 'by') {
+        resNote.textContent = tt('dictionary.sb.loadingBy', 'Загружаю каталог Бен-Иегуды…');
+        const cat = await sbByCatalog(); if (me !== SB.epoch) return;
+        const r = CM().searchCards(cat.cards, SB.q, ['title', 'author'], SB_SHOW); found = r.items; total = r.total;
+        rows = found.map((c) => { const loc = sbLocalOf('by', c, null, list);
+          return row({ key: 'by:' + c.id, kind: 'by', card: c, localId: loc ? String(loc.id) : null, title: c.title }, c.author || '', !!loc); });
+      } else {
+        const slug = SB.source.slice(4);
+        const cat = await sbPublicCatalog(slug); if (me !== SB.epoch) return;
+        const r = CM().searchCards(cat.items, SB.q, ['title', 'creator'], SB_SHOW); found = r.items; total = r.total;
+        rows = found.map((c) => { const loc = sbLocalOf('pub', c, slug, list);
+          return row({ key: 'pub:' + slug + ':' + c.public_work_id, kind: 'pub', slug, card: c, localId: loc ? String(loc.id) : null, title: c.title }, c.creator || '', !!loc); });
+      }
+      if (me !== SB.epoch) return;
+      rows.forEach((r) => results.appendChild(r));
+      resNote.textContent = !total ? tt('dictionary.sb.none', 'Ничего не найдено.')
+        : total > found.length ? fill(tt('dictionary.sb.shownOf', 'Показано {a} из {b} — уточните поиск.'), { a: found.length, b: total }) : fill(tt('dictionary.sb.found', 'Найдено: {n}'), { n: total });
+    } catch (err) {
+      if (me !== SB.epoch) return;
+      resNote.textContent = tt('dictionary.sb.catalogFailed', 'Каталог сейчас недоступен. Проверьте сеть и попробуйте ещё раз.');
+      try { console.warn('[dictionary] catalog', err); } catch (_) {}
+    }
+  }
+  function renderCart() {
+    const items = Array.from(SB.picked.values()), toGet = items.filter((x) => !x.localId);
+    cart.replaceChildren();
+    status.textContent = SB.note;
+    if (!items.length) { cart.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.sb.empty', 'Пока ничего не выбрано.') })); return; }
+    cart.appendChild(el('p', { class: 'dict-sb-sum', text: fill(tt('dictionary.sb.sum', 'Выбрано: {n} · скачать: {k}'), { n: items.length, k: toGet.length }) }));
+    const chips = el('div', { class: 'dict-sb-chips' });
+    items.forEach((x) => chips.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', dir: 'auto', 'aria-label': fill(tt('dictionary.removeFilter', 'Убрать фильтр «{f}»'), { f: x.title }) },
+      on: { click: () => { SB.picked.delete(x.key); const cb = results.querySelector('[data-sb-key="' + CSS.escape(x.key) + '"]'); if (cb) cb.checked = false; renderCart(); } } }, [(x.localId ? '' : '⬇ ') + (x.title || '—'), ' ✕'])));
+    cart.appendChild(chips);
+    cart.appendChild(el('div', { class: 'dict-drill-actions' }, [
+      el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-sb-apply' }, text: fill(tt('dictionary.sb.apply', 'Показать слова ({n})'), { n: items.length }),
+        on: { click: (ev) => { ev.currentTarget.disabled = true; applySetBuilder(status); } } }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.sb.clear', 'Очистить'), on: { click: () => { SB.picked.clear(); results.querySelectorAll('input[type=checkbox]').forEach((c) => { c.checked = false; }); renderCart(); } } }),
+    ]));
+  }
+  renderCart();
+  await renderResults();
+}
+async function applySetBuilder(status) {
+  if (SB.busy) return;
+  SB.busy = true;
+  const items = Array.from(SB.picked.values()), toGet = items.filter((x) => !x.localId);
+  const report = { got: 0, failed: [] };
+  try {
+    if (toGet.length) {
+      const by = toGet.some((x) => x.kind === 'by') ? await sbByCatalog() : null;
+      const deps = { db: localDb, fetch: (u, o) => fetch(u, o), Edition: window.BenYehudaLearningEdition, Adapter: window.PublicCorpusAdapter, catalogVersion: by ? by.version : null };
+      const r = await CM().materializeMany(toGet, (x) => (x.kind === 'by' ? CM().ensureBenYehudaWork(x.card, deps) : CM().ensurePublicWork(x.slug, x.card, deps)), {
+        onProgress: (d, n, x) => { status.textContent = x ? fill(tt('dictionary.sb.fetching', 'Скачиваю {d} из {n}: {t}'), { d: d + 1, n, t: x.title || '' }) : ''; } });
+      r.ok.forEach((o) => { o.item.localId = String(o.localId); });
+      report.got = r.ok.length;
+      report.failed = r.failed.map((f) => ({ title: f.item.title, reason: f.reason }));
+      S.textList = null;   // the device has new texts
+    }
+    const ids = items.filter((x) => x.localId).map((x) => x.localId);
+    const line = (report.got ? fill(tt('dictionary.sb.got', 'Скачано: {n}.'), { n: report.got }) + ' ' : '')
+      + (report.failed.length ? fill(tt('dictionary.sb.failed', 'Не удалось: {n} — {list}.'), { n: report.failed.length, list: report.failed.map((f) => '«' + f.title + '» (' + f.reason + ')').join(', ') }) : '');
+    if (!ids.length) { status.textContent = line || tt('dictionary.sb.nothing', 'Ни один текст не удалось получить.'); return; }
+    closeSetBuilder();
+    const id = '@ids:' + Array.from(new Set(ids)).join(',');
+    try { history.replaceState(null, '', '?text=' + encodeURIComponent(id)); } catch (_) {}
+    if (S.filters.scope !== 'text') setScope('text');
+    await loadText(id); await fillTextPicker();
+    if (line) toast(line);
+  } catch (err) {
+    status.textContent = tt('dictionary.sb.catalogFailed', 'Каталог сейчас недоступен. Проверьте сеть и попробуйте ещё раз.');
+    try { console.warn('[dictionary] set builder', err); } catch (_) {}
+  } finally {
+    SB.busy = false;
+    const b = document.getElementById('dict-sb-apply'); if (b) b.disabled = false;
+  }
+}
+window.LPDictionarySetBuilder = SB;   // smoke / diagnostics
+
 // ── wiring ─────────────────────────────────────────────────────────────────────────────────────
 function wire() {
+  $('dict-sb-open').addEventListener('click', () => { const b = $('dict-setbuild'); if (b && !b.hidden) closeSetBuilder(); else openSetBuilder(); });
   let qt = 0;
   $('dict-q').addEventListener('input', (ev) => { S.pauseUntil = performance.now() + 600; clearTimeout(qt); qt = setTimeout(() => { S.filters.q = ev.target.value; S.shown = 0; applyView(); }, 150); });
   $('dict-sort').value = S.sort;

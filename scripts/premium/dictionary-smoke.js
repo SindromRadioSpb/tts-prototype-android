@@ -528,7 +528,7 @@ const ROWS = [
     await pg.goto(BASE + "/dictionary.html?texts=" + encodeURIComponent(seed.tid) + ",by-smoke", { waitUntil: "load" });
     await pg.waitForFunction(() => { const T = window.LPDictionary && window.LPDictionary.state.text; return T && T.scan && /^@ids:/.test(document.getElementById("dict-text-sel").value); }, null, { timeout: 90000 });
     const picked = await pg.evaluate(() => { const T = window.LPDictionary.state.text; return { kind: T.kind, n: T.texts.length, title: T.title, groups: [...document.querySelectorAll("#dict-text-sel optgroup")].map((g) => g.label), sel: document.getElementById("dict-text-sel").value }; });
-    ok(picked.kind === "ids" && picked.n === 2 && /Выбранные тексты \(2\)/.test(picked.title) && picked.groups[0] === "Выбранные в Студии" && /^@ids:/.test(picked.sel),
+    ok(picked.kind === "ids" && picked.n === 2 && /Выбранные тексты \(2\)/.test(picked.title) && picked.groups[0] === "Мой набор текстов" && /^@ids:/.test(picked.sel),
       `D18 выбранные в Студии тексты — срез «${picked.title}»`);
     // (Д5.3) frequency: a band keeps exactly the rows whose shown count is in it
     await pg.click("#dict-filter-btn");
@@ -597,6 +597,97 @@ const ROWS = [
     });
     await pg.setViewportSize({ width: 1280, height: 900 });
     ok(stick.y > 0 && stick.art >= stick.nav - 0.5, `D21 статья при прокрутке списка ниже панели навигации (верх статьи ${Math.round(stick.art)} ≥ низ навигации ${Math.round(stick.nav)})`);
+
+    // D22 (Д6) «Собрать набор»: a Ben-Yehuda work (the real catalog index; its body from a fixture locally, real on
+    // production), two works of a public corpus (one answers 503) and a text of the device → one lens. The download goes
+    // through CorpusMaterialize (the Room's way); a failure is named, the rest still comes; a downloaded work is on the
+    // device afterwards. DICT_BASE (production) uses the live catalogs and needs no fixtures.
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+    const fx = await pg.evaluate(async (external) => {
+      const v = await (await fetch("/api/corpus-catalog/benyehuda")).json();
+      const ix = await (await fetch("/data/benyehuda/" + v.index_file)).json();
+      const card = ix.ready.find((c) => !c.bundle_sha256 && !c.learning_edition_id && c.title && c.segments < 60) || ix.ready.find((c) => !c.learning_edition_id && c.segments < 60);
+      // production: a real public corpus and its first work
+      let pub = null;
+      if (external) {
+        const list = (await (await fetch("/api/public-corpora")).json()).corpora || [];
+        for (const c of list) { const cat = await (await fetch("/api/public-corpora/" + encodeURIComponent(c.slug))).json(); const it = (cat.items || [])[0]; if (it) { pub = { slug: c.slug, work: it.public_work_id, title: it.title }; break; } }
+      }
+      return { version: v.version, card, pub };
+    }, EXTERNAL);
+    const byBundle = (key, title) => ({ library: { texts: [{ text_key: key, title, source_text: "הילד קרא ספר\nהספר היה ארוך", source_meta: { corpus: { byehuda_id: Number(fx.card.id) } },
+      rows: [{ order_index: 0, he_plain: "הילד קרא ספר", he_niqqud: "הַיֶּלֶד קָרָא סֵפֶר", ru: "мальчик читал книгу" }, { order_index: 1, he_plain: "הספר היה ארוך", he_niqqud: "הַסֵּפֶר הָיָה אָרֹךְ", ru: "книга была длинной" }] }] } });
+    const H = "d".repeat(64), PUB = EXTERNAL ? fx.pub.slug : "dict-smoke-pub", PUBW = EXTERNAL ? [fx.pub.work] : ["w1", "w2"];
+    const pubItem = (w, title) => ({ public_work_id: w, title, creator: "Автор смоука", snapshot_sha256: H, public_read_allowed: true, public_stream_allowed: false, package_download_allowed: false, position_no: 1,
+      expected_audio_count: 0, included_audio_count: 0, asset_missing: 0, package_complete: true });
+    if (!EXTERNAL) {
+      await ctx.route("**/data/benyehuda/works/**", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(byBundle(fx.card.text_key, fx.card.title)) }));
+      await ctx.route("**/api/public-corpora**", (route) => {
+        const u = new URL(route.request().url());
+        const edition = { edition_id: "ed_smoke", edition_number: 1, manifest_sha256: "e".repeat(64), item_count: 2, asset_count: 0, asset_missing: 0, package_complete: true };
+        const corpus = { corpus_id: "pc_smoke", slug: PUB, title: "Корпус смоука" };
+        if (u.pathname === "/api/public-corpora") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ ok: true, corpora: [corpus] }) });
+        if (u.pathname === "/api/public-corpora/" + PUB) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ corpus, edition, items: [pubItem("w1", "Первая публичная работа"), pubItem("w2", "Вторая публичная работа")] }) });
+        if (u.pathname.endsWith("/works/w2")) return route.fulfill({ status: 503, contentType: "application/json", body: "{}" });
+        if (u.pathname.endsWith("/works/w1")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ corpus, edition: Object.assign({}, edition, { item_count: 1 }), assets: [],
+          item: Object.assign(pubItem("w1", "Первая публичная работа"), { snapshot: { library: { texts: [{ text_key: "pub-src-w1", title: "Первая публичная работа", source_text: "המורה כתב שיר",
+            rows: [{ order_index: 0, he_plain: "המורה כתב שיר", he_niqqud: "הַמּוֹרֶה כָּתַב שִׁיר", ru: "учитель написал песню" }] }] } } }) }) });
+        return route.fallback();
+      });
+    }
+    await pg.reload({ waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+    await pg.click("#dict-scope-text");
+    await pg.click("#dict-sb-open");
+    await pg.waitForSelector("#dict-setbuild .dict-sb-src", { timeout: 20000 });
+    const srcs = await pg.evaluate(() => [...document.querySelectorAll("#dict-setbuild .dict-sb-src option")].map((o) => o.value));
+    // 1) Ben-Yehuda: search by the work's title
+    await pg.selectOption("#dict-setbuild .dict-sb-src", "by");
+    await pg.waitForSelector("#dict-setbuild .dict-sb-q", { timeout: 20000 });
+    await pg.fill("#dict-setbuild .dict-sb-q", fx.card.title.replace(/[֑-ׇ]/g, "").split(/\s+/).slice(0, 2).join(" "));
+    await pg.waitForFunction(() => /Найдено: \d+/.test((document.querySelector("#dict-setbuild .dict-sb-results + .dict-note") || {}).textContent || ""), null, { timeout: 60000 }).catch(() => {});
+    await pg.waitForSelector(`#dict-setbuild [data-sb-key="by:${fx.card.id}"]`, { timeout: 60000 });
+    const byNote = await pg.textContent("#dict-setbuild .dict-sb-results + .dict-note");
+    await pg.check(`#dict-setbuild [data-sb-key="by:${fx.card.id}"]`);
+    // 2) the public corpus: both works
+    await pg.selectOption("#dict-setbuild .dict-sb-src", "pub:" + PUB);
+    await pg.fill("#dict-setbuild .dict-sb-q", "");   // the query is kept across sources (one author in several catalogs)
+    await pg.waitForSelector(`#dict-setbuild [data-sb-key="pub:${PUB}:${PUBW[0]}"]`, { timeout: 30000 });
+    for (const w of PUBW) await pg.check(`#dict-setbuild [data-sb-key="pub:${PUB}:${w}"]`);
+    // 3) a text of the device
+    await pg.selectOption("#dict-setbuild .dict-sb-src", "device");
+    await pg.fill("#dict-setbuild .dict-sb-q", "Смоук словаря");
+    await pg.waitForSelector(`#dict-setbuild [data-sb-key="local:${seed.tid}"]`, { timeout: 20000 });
+    await pg.check(`#dict-setbuild [data-sb-key="local:${seed.tid}"]`);
+    const sum = await pg.textContent("#dict-setbuild .dict-sb-sum");
+    await pg.click("#dict-sb-apply");
+    await pg.waitForFunction(() => { const T = window.LPDictionary.state.text; return T && T.kind === "ids" && T.scan; }, null, { timeout: 120000 }).catch(() => {});
+    await pg.waitForTimeout(500);
+    const built = await pg.evaluate(async (k) => {
+      const T = window.LPDictionary.state.text, ldb = await import(window.__LDB_URL);
+      const by = await ldb.dbQuery("SELECT id, source_meta_json FROM texts WHERE text_key = ?", [k]);
+      return { n: T && T.texts.length, titles: T ? T.texts.map((t) => t.title) : [], toast: document.getElementById("dict-toast").innerText, sel: document.getElementById("dict-text-sel").value,
+        byOnDevice: by.length === 1, panelHidden: document.getElementById("dict-setbuild").hidden, rows: document.querySelectorAll(".dict-row").length };
+    }, fx.card.text_key);
+    ok(srcs.includes("device") && srcs.includes("by") && srcs.includes("pub:" + PUB) && /Найдено: \d+/.test(byNote) && Number((byNote.match(/Найдено: (\d+)/) || [])[1]) < 100,
+      `D22 источники набора: устройство, Бен-Иегуда, публичные корпуса с сервера (${srcs.length}); поиск по каталогу Бен-Иегуды «${byNote.trim()}»`);
+    ok(new RegExp("Выбрано: " + (PUBW.length + 2) + " · скачать: " + (PUBW.length + 1)).test(sum), `D22 корзина: «${sum.trim()}»`);
+    ok(built.n === 3 && built.byOnDevice && built.panelHidden && /^@ids:/.test(built.sel) && built.rows >= 3 && /Скачано: 2\./.test(built.toast)
+      && (EXTERNAL ? !/Не удалось/.test(built.toast) : /Не удалось: 1 — «Вторая публичная работа» \(public work 503\)/.test(built.toast)),
+      `D22 набор из 3 текстов (${built.titles.join(" · ")}), работа Бен-Иегуды теперь на устройстве; итог «${built.toast.trim()}»`);
+    await pg.click("#dict-sb-open");
+    await pg.selectOption("#dict-setbuild .dict-sb-src", "by");
+    await pg.fill("#dict-setbuild .dict-sb-q", fx.card.title.replace(/[֑-ׇ]/g, "").split(/\s+/).slice(0, 2).join(" "));
+    await pg.waitForSelector(`#dict-setbuild [data-sb-key="by:${fx.card.id}"]`, { timeout: 60000 });
+    const onDev = await pg.evaluate((id) => !!document.querySelector(`#dict-setbuild [data-sb-key="by:${id}"]`).closest("label").querySelector(".dict-sb-on"), fx.card.id);
+    await pg.setViewportSize({ width: 380, height: 845 });
+    await pg.waitForTimeout(300);
+    const sbWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    await pg.screenshot({ path: shot("setbuild-380") });
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    ok(onDev && !sbWide, "D22 скачанная работа помечена «на устройстве»; панель набора на 380 px без прокрутки вбок");
+    if (!EXTERNAL) { await ctx.unroute("**/data/benyehuda/works/**"); await ctx.unroute("**/api/public-corpora**"); }
 
     // D16 list tools: a mass status change on any view (palette → confirm → canon write → undo), a saved filter set,
     // the source filter, and «▶ медиа с этого места» for a place in a text with media timing

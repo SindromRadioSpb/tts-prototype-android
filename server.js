@@ -1213,13 +1213,13 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/dictionary.html",
-  "/css/dictionary.css?v=764",
+  "/css/dictionary.css?v=765",
   "/js/dictionary-core.js?v=763",
   "/js/form-drill-core.js?v=753",
   "/js/dictionary-progress-core.js?v=763",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=764",
+  "/js/dictionary-ui.js?v=765",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
@@ -1288,6 +1288,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/catalog-discovery-core.js?v=485",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
+  "/js/corpus-materialize.js?v=765",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
@@ -1307,7 +1308,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=758",
+  "/js/library-ui.js?v=765",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1354,9 +1355,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=304",
-  "/i18n/locales/en.js?v=304",
-  "/i18n/locales/he.js?v=304",
+  "/i18n/locales/ru.js?v=305",
+  "/i18n/locales/en.js?v=305",
+  "/i18n/locales/he.js?v=305",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4390,6 +4391,16 @@ app.get("/api/public-corpora", rlPublicCorpusRead, (req, res) => publicCorpusRea
   res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
   return res.json({ ok: true, schema_version: "public_corpora.1.0.0", corpora });
 }));
+// Д6 (F4_D6_CATALOG_SETS_SPEC): the Ben-Yehuda catalog number for clients that do not carry library-ui.js («Мой
+// словарь» downloads works by it). Read the one way the server already reads it — CORPUS_CATALOG_VERSION in
+// library-ui.js (agent/nextText.js) — so it equals the Room's number by construction. Public, read-only.
+app.get("/api/corpus-catalog/benyehuda", rlPublicCorpusRead, (req, res) => {
+  try {
+    const version = require("./agent/nextText").catalogVersion();
+    res.set("Cache-Control", "public, max-age=60");
+    return res.json({ ok: true, version, index_file: "corpus-index-v" + version + ".json" });
+  } catch (_) { return res.status(503).json({ ok: false, error: "CATALOG_VERSION_UNAVAILABLE" }); }
+});
 // O-021: the original (Hebrew) YouTube title for the HE interface — fetched once per video via
 // oEmbed and cached on the data volume. Public, read-only, batched, rate-limited.
 const rlOriginalTitle = makeRateLimiter({ windowMs: 60_000, max: 30, name: "original-title" });

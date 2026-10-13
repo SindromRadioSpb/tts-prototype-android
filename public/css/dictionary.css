@@ -279,3 +279,22 @@ body.theme-dark .dict-place .ctx b { color: #8fb4ff; }
 .dict-bulkst .dict-a-status button { min-height: 44px; }
 
 .dict-places-more { display: grid; gap: 6px; justify-items: start; margin-top: 8px; }
+
+/* Д6 «Собрать набор» — тексты устройства + работы каталогов сервера */
+.dict-sb-open { margin-top: 8px; }
+.dict-sb-open[hidden], .dict-setbuild[hidden] { display: none; }
+.dict-setbuild { display: grid; gap: 8px; margin-block: 10px 2px; padding: 12px; border-radius: 12px; background: var(--d-card); border: 1px solid var(--d-accent); min-width: 0; }
+.dict-sb-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dict-sb-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.dict-sb-row select, .dict-sb-row input { min-height: 44px; border: 1px solid var(--d-line); border-radius: 10px; background: var(--d-card); color: var(--d-ink); font: inherit; padding: 0 10px; min-width: 0; }
+.dict-sb-row select { flex: 0 1 260px; max-width: 100%; }
+.dict-sb-row input { flex: 1 1 220px; }
+.dict-sb-results { list-style: none; margin: 0; padding: 0; max-height: 46vh; overflow: auto; border-block: 1px solid var(--d-line); }
+.dict-sb-results li + li { border-top: 1px solid var(--d-line); }
+.dict-sb-results label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 44px; padding: 4px 2px; cursor: pointer; }
+.dict-sb-results input { width: 20px; height: 20px; flex: none; }
+.dict-sb-t { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.dict-sb-on { font-size: 12px; color: var(--d-good); border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; }
+.dict-sb-sum { margin: 0; font-weight: 700; }
+.dict-sb-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow: auto; }
+.dict-sb-chips .dict-chip { max-width: 100%; overflow-wrap: anywhere; }

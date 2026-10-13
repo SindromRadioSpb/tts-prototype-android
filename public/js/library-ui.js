@@ -9155,17 +9155,7 @@ function refreshFindAfterRerender() {
 
 // Resolve a stable text_key → the ephemeral local OPFS id (importBundle remaps ids on
 // import, so discovery keys on text_key and the reader opens by local id).
-// Под одним workId публикуются новые снимки (правка карточки, повторный импорт того же
-// архива). Неизменяем только адрес конкретного снимка; пришедший снимок обязан совпасть.
-function publicWorkUrl(slug, workId, snapshot) {
-  const base = '/api/public-corpora/' + encodeURIComponent(slug) + '/works/' + encodeURIComponent(workId);
-  return /^[a-f0-9]{64}$/.test(String(snapshot || '')) ? base + '?snapshot=' + snapshot : base;
-}
-function expectPublicSnapshot(payload, snapshot) {
-  const got = payload && payload.item && payload.item.snapshot_sha256;
-  if (/^[a-f0-9]{64}$/.test(String(snapshot || '')) && got !== snapshot) throw new Error('PUBLIC_WORK_SNAPSHOT_MISMATCH');
-  return payload;
-}
+// publicWorkUrl / expectPublicSnapshot live in corpus-materialize.js (Д6.1: one download path for the Room and the dictionary)
 async function resolveLocalIdByKey(textKey) {
   try {
     const rows = await localDb.dbQuery('SELECT id FROM texts WHERE text_key = ?', [textKey]);
@@ -9193,37 +9183,12 @@ async function openCorpusWork(card, openOpts) {
   readerStateBox('room.state.loading', '⏳');
   try {
     await corpusOpenQueue.run(async () => {
-    let localId = await resolveLocalIdByKey(card.text_key);
-    if (localId && card.learning_edition_id) {
-      const current = await localDb.getTextById(localId);
-      let sourceId = null;
-      try { sourceId = JSON.parse(current?.source_meta_json || '{}').corpus?.byehuda_id; } catch (_) {}
-      if (String(sourceId) !== String(card.id)) throw new Error('Published local key belongs to another source work');
-    }
-    const previousIds = [];
-    if (!localId && card.learning_edition_id && !openOpts?._openPublishedEdition) {
-      for (const key of card.previous_text_keys || []) {
-        const id = await resolveLocalIdByKey(key);
-        if (!id) continue;
-        const previous = await localDb.getTextById(id);
-        let sourceId = null;
-        try { sourceId = JSON.parse(previous?.source_meta_json || '{}').corpus?.byehuda_id; } catch (_) {}
-        if (String(sourceId) === String(card.id)) previousIds.push(id);
-      }
-    }
-    const choice = window.BenYehudaLearningEdition.deviceChoice(card, localId, previousIds, !!openOpts?._openPublishedEdition);
-    localId = choice.id;
-    if (!localId) {
-      const url = '/data/benyehuda/' + card.file + '?v=' + CORPUS_CATALOG_VERSION;
-      const res = await fetch(url, { cache: 'force-cache' });
-      if (!res.ok) throw new Error('fetch ' + res.status);
-      const bundle = await window.BenYehudaLearningEdition.verifyBundle(card, await res.arrayBuffer());
-      if (!bundle || !bundle.library) throw new Error('malformed work payload');
-      if (openEpoch !== readerOpenEpoch) return;
-      await localDb.importBundle(bundle, { mode: 'skip' });
-      localId = await resolveLocalIdByKey(card.text_key);
-    }
-    if (!localId) throw new Error('work not resolvable after import');
+    // Д6.1 one way to put a work on the device — the same module «Мой словарь» downloads with
+    const got = await window.CorpusMaterialize.ensureBenYehudaWork(card,
+      { db: localDb, fetch: (u, o) => fetch(u, o), Edition: window.BenYehudaLearningEdition, catalogVersion: CORPUS_CATALOG_VERSION },
+      { openPublished: !!openOpts?._openPublishedEdition, isCurrent: () => openEpoch === readerOpenEpoch });
+    if (!got) return;
+    const localId = got.localId, choice = { id: got.localId, edition: got.edition };
     if (openEpoch !== readerOpenEpoch) return;
     const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
     // A cold public URL selecting either learning edition offers its saved resume.
@@ -9991,18 +9956,10 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
   const openEpoch = ++readerOpenEpoch;
   try {
     await corpusOpenQueue.run(async () => {
-    const textKey = window.PublicCorpusAdapter.localTextKey(slug, card.public_work_id, card.snapshot_sha256);
-    let localId = await resolveLocalIdByKey(textKey);
-    if (!localId) {
-      const response = await fetch(publicWorkUrl(slug, card.public_work_id, card.snapshot_sha256), { cache: 'force-cache' });
-      if (!response.ok) throw new Error('public work ' + response.status);
-      const payload = expectPublicSnapshot(await response.json(), card.snapshot_sha256);
-      const bundle = window.PublicCorpusAdapter.prepareImportBundle(payload);
-      if (openEpoch !== readerOpenEpoch) return;
-      await localDb.importBundle(bundle, { mode: 'skip' });
-      localId = await resolveLocalIdByKey(textKey);
-    }
-    if (!localId) throw new Error('public work not resolvable after import');
+    const got = await window.CorpusMaterialize.ensurePublicWork(slug, card,
+      { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { isCurrent: () => openEpoch === readerOpenEpoch });
+    if (!got) return;
+    const localId = got.localId;
     if (openEpoch !== readerOpenEpoch) return;
     await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { public_corpus: String(slug), public_work: String(card.public_work_id) } }));
     }, () => openEpoch === readerOpenEpoch);
@@ -11407,16 +11364,15 @@ async function ensureActionMaterial(config) {
   let textKey = item.text_key || '';
   if (source.kind === 'public') textKey = window.PublicCorpusAdapter.localTextKey(source.slug, item.public_work_id, item.snapshot_sha256);
   let localId = await resolveLocalIdByKey(textKey);
+  // Д6.1 the Room's one way to put a public work on the device (it verifies the publication hash and keeps the
+  // device's learning edition — this path used to import an unverified Ben-Yehuda body)
   if (!localId && source.kind === 'benyehuda') {
-    const response = await fetch('/data/benyehuda/' + item.file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
-    if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
-    const bundle = await response.json(); if (!bundle || !bundle.library) throw new Error('MATERIAL_PAYLOAD_INVALID');
-    await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
+    const got = await window.CorpusMaterialize.ensureBenYehudaWork(item,
+      { db: localDb, fetch: (u, o) => fetch(u, o), Edition: window.BenYehudaLearningEdition, catalogVersion: CORPUS_CATALOG_VERSION });
+    localId = got && got.localId;
   } else if (!localId && source.kind === 'public') {
-    const response = await fetch(publicWorkUrl(source.slug, item.public_work_id, item.snapshot_sha256), { cache: 'force-cache' });
-    if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
-    const bundle = window.PublicCorpusAdapter.prepareImportBundle(expectPublicSnapshot(await response.json(), item.snapshot_sha256));
-    await localDb.importBundle(bundle, { mode: 'skip' }); localId = await resolveLocalIdByKey(textKey);
+    const got = await window.CorpusMaterialize.ensurePublicWork(source.slug, item, { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter });
+    localId = got && got.localId;
   } else if (!localId && source.kind === 'group') {
     const response = await fetch('/api/group-corpora/' + encodeURIComponent(source.corpusId) + '/works/' + encodeURIComponent(item.work_id), { cache: 'no-store' });
     if (!response.ok) throw new Error('MATERIAL_FETCH_' + response.status);
