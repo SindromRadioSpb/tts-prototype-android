@@ -423,6 +423,12 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
   box-shadow: 0 6px 24px rgba(0,0,0,.30);
 }
 
+/* The card's icons (▶ pronounce, ✎ …) are <svg class="lp-icon">; their size comes from visual-foundations.css, which
+   «Мой словарь» does not load — there the bare SVG grew to 300×150 over the card and took its clicks (owner,
+   2026-10-14). The same rule here, zero specificity: identical where the foundation is loaded, sized where it is not. */
+:where(.lp-icon) { display: inline-block; width: 1em; height: 1em; flex: 0 0 auto; overflow: visible; color: inherit; fill: none;
+  stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.125em; }
+
 /* ── Epic-3a — pronounce-headword button ─────────────────────────────────────── */
 .rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .rm-speak {

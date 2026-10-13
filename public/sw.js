@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.765";
+const CACHE_VERSION = "v3.11.766";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -154,7 +154,7 @@ const PRECACHE_URLS = [
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=736",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=746",
+  "/css/reader-morph.css?v=766",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",

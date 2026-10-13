@@ -498,6 +498,18 @@ const ROWS = [
     ok(!setWide, "D18 срез подборки и список её текстов на 380 px без прокрутки вбок");
     await pg.screenshot({ path: shot("set-lens-380") });
     await pg.setViewportSize({ width: 1280, height: 900 });
+    // (owner 2026-10-14) a word of «Не разобрано» opens the tap card; its ▶ icon has its size (on this page the bare SVG
+    // used to grow to 300×150 over the card and take its clicks)
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    // the chip calls ReaderMorph.openWordCard(surface, niqqud) — the same call, for a name the resolver can't key
+    if (await pg.$(".dict-unsure summary")) { await pg.click(".dict-unsure summary"); await pg.click(".dict-unsure-list .dict-chip"); }
+    else await pg.evaluate(() => window.ReaderMorph.openWordCard("אלפריד", "אַלְפְרִיד"));
+    await pg.waitForSelector(".rm-speak svg", { timeout: 30000 }).catch(() => {});
+    const icon = await pg.evaluate(() => { const s = document.querySelector(".rm-speak svg"), b = document.querySelector(".rm-speak");
+      if (!s || !b) return null; const r = s.getBoundingClientRect(), br = b.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), bw: Math.round(br.width) }; });
+    ok(icon && icon.w <= 24 && icon.h <= 24 && icon.bw <= 40, `D18 карточка слова из «Не разобрано»: значок ▶ ${icon && icon.w}×${icon && icon.h} px внутри кнопки ${icon && icon.bw} px`);
+    await pg.keyboard.press("Escape").catch(() => {});
+    await pg.evaluate(() => { const x = document.querySelector(".rm-sheet.rm-open .rm-sheet-x, .rm-sheet-x"); if (x) x.click(); });
     // a word only in the second text: its mark takes the place from THAT text
     await pg.fill("#dict-q", "לוח"); await pg.waitForTimeout(500);
     const luachKey = await pg.evaluate(() => { const r = document.querySelector(".dict-row"); return r && r.getAttribute("data-key"); });
