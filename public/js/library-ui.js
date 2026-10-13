@@ -3527,21 +3527,91 @@ async function _bankedContextFor(d) {
   for (let step = 0; step < bank.length; step++) {
     const ctx = TQ.pickContext(bank, reps + step);
     if (!ctx) break;
-    let sent = null;
-    try { sent = await localDb.getSentenceForReview(ctx.sentence_id, ctx.text_key, ctx.order_index); } catch (_) { sent = null; }
-    if (!sent) continue;
-    const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
-    if (!heN) continue;
-    const skel = window.ReaderMorph.stripNiqqud(String(ctx.surface || ''));
-    const cz = R.buildClozeForTarget(R.tokenize(heN), skel);
-    if (!cz) continue;
-    let card = null;
-    try { card = await R.resolveWordLight(skel, cz.answer); } catch (_) { card = null; }
-    if (!card || card.lemmaKey !== d.lemmaKey) continue;
-    if (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact') continue;
-    return { ctx, cz, card, heN, sent };
+    const ok = await _verifyBankContext(R, d, ctx);
+    if (ok) return ok;
   }
   return null;
+}
+// one bank row → a served cloze, through the canonical identity gate (the sentence still exists, the form is
+// blanked, the resolver says it IS this lemma; an unvocalized sentence needs a decisive «exact»)
+async function _verifyBankContext(R, d, ctx) {
+  let sent = null;
+  try { sent = await localDb.getSentenceForReview(ctx.sentence_id, ctx.text_key, ctx.order_index); } catch (_) { sent = null; }
+  if (!sent) return null;
+  const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
+  if (!heN) return null;
+  const skel = R.stripNiqqud(String(ctx.surface || ''));
+  const cz = R.buildClozeForTarget(R.tokenize(heN), skel);
+  if (!cz) return null;
+  let card = null;
+  try { card = await R.resolveWordLight(skel, cz.answer); } catch (_) { card = null; }
+  if (!card || card.lemmaKey !== d.lemmaKey) return null;
+  if (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact') return null;
+  return { ctx, cz, card, heN, sent };
+}
+// Ф4 · Д3 «Слово в новых предложениях» (docs/planning/word-layer/F4_D3_CONTEXT_AND_ROOT_SPEC_2026_10_13.md): one cloze
+// per word in a sentence OTHER than the one it was learnt in (the schedule anchor), another text first. The bank is
+// tried first; the rest are looked up in my texts with the R2 scan and the same identity gate, and a find grows the
+// bank. A word with no other place is NOT served its anchor — it is counted and named (honest skip).
+async function _buildNewContextItems(due, opts) {
+  opts = opts || {};
+  const R = window.ReaderMorph, LC = window.LemmaCanon;
+  const keyer = (LC && LC.KEYER_VERSION) || '';
+  const items = [], pending = [], noOther = [];
+  const isAnchor = (d, tk, oi) => !!(d.source && d.source.textKey != null && String(tk) === String(d.source.textKey) && Number(oi) === Number(d.source.orderIndex));
+  const otherText = (d, tk) => (d.source && d.source.textKey != null && String(tk) === String(d.source.textKey) ? 0 : 1);
+  const itemOf = (d, src, cz, card, heN, sent) => ({
+    lemmaKey: d.lemmaKey, surface: src.surface, niqqud: (card && card.niqqud) || cz.answer || '',
+    gloss: (card && (card.meaning || card.gloss)) || '', root: (card && card.root) || '', pos: (card && card.pos) || '',
+    status: d.status, _srs: d.srs, _card: card, _newCtx: true, _source: src,
+    _built: { cz, ru: (sent && sent.ru) || '', sentence: heN, audioAssetKey: String((sent && sent.audio_asset_key) || ''), rowIdx: null },
+  });
+  for (const d of (due || [])) {
+    let bank = [];
+    try { bank = (await localDb.getWordContexts(d.lemmaKey)) || []; } catch (_) { bank = []; }
+    const cands = bank.filter((c) => !isAnchor(d, c.text_key, c.order_index)).sort((a, b) => otherText(d, b.text_key) - otherText(d, a.text_key));
+    let served = null;
+    for (const c of cands) {
+      const ok = await _verifyBankContext(R, d, c);
+      if (ok) { served = itemOf(d, { textKey: c.text_key, sentenceId: c.sentence_id, orderIndex: c.order_index, surface: c.surface, title: c.text_title || null }, ok.cz, ok.card, ok.heN, ok.sent); break; }
+    }
+    if (served) items.push(served); else pending.push(d);
+  }
+  // the rest: one batched prefilter over my texts, the R2 identity gate, the anchor excluded
+  const budget = Number.isFinite(opts.scanBudget) ? opts.scanBudget : 16;
+  const cand = [];
+  for (const d of pending) {
+    if (cand.length >= budget) { noOther.push(d); continue; }
+    let pidEntry = null;
+    try { pidEntry = await _r2PidEntry(d.lemmaKey); } catch (_) { pidEntry = null; }
+    const surface = (d.source && d.source.surface) ? R.stripNiqqud(String(d.source.surface))
+      : ((await _r2DeriveSurface(d.lemmaKey)) || (pidEntry ? R.stripNiqqud(String(pidEntry.lemma || pidEntry.lemma_niqqud || '')).trim() : ''));
+    const needles = _r4NeedlesFor(surface, pidEntry);
+    if (needles.length) cand.push({ d, needles }); else noOther.push(d);
+  }
+  const all = [];
+  cand.forEach((c) => c.needles.forEach((n) => { if (all.indexOf(n) < 0 && all.length < 90) all.push(n); }));
+  let rows = [];
+  if (all.length) { try { rows = (await localDb.findSentencesForWords(all, 600)) || []; } catch (_) { rows = []; } }
+  for (const c of cand) {
+    const d = c.d;
+    const hits = rows.filter((row) => !isAnchor(d, row.text_key, row.order_index) && c.needles.some((n) => String(row.he_plain || '').indexOf(n) >= 0))
+      .sort((a, b) => otherText(d, b.text_key) - otherText(d, a.text_key));
+    let served = null;
+    for (const row of hits) {
+      let hit = null;
+      try { hit = await _r2VerifyCandidate(R, d, c.needles, row); } catch (_) { hit = null; }
+      if (!hit) continue;
+      const src = { textKey: row.text_key, sentenceId: row.id != null ? String(row.id) : null, orderIndex: row.order_index != null ? Number(row.order_index) : null, surface: hit.tskel, title: row.text_title || null };
+      if (keyer) { try { await localDb.insertWordContexts(d.lemmaKey, [{ textKey: src.textKey, orderIndex: src.orderIndex, sentenceId: src.sentenceId, surface: src.surface }], keyer); } catch (_) {} }
+      served = itemOf(d, src, hit.cz, hit.card, hit.heN, row);
+      break;
+    }
+    if (served) items.push(served); else noOther.push(d);
+  }
+  const order = new Map((due || []).map((d, i) => [String(d.lemmaKey), i]));
+  items.sort((a, b) => (order.get(String(a.lemmaKey)) || 0) - (order.get(String(b.lemmaKey)) || 0));
+  return { items, noOther };
 }
 const BACKFILL_BUDGET = 6;   // words per session — bounded like the R2 scan budget
 // T2 — grow the bank for words scheduled BEFORE it existed: they carry at most their one pinned
@@ -3787,11 +3857,13 @@ async function startPlanSectionTraining(itemKeys, channel) {
 // Ф4 · Д2 «Учить эти» (docs/planning/word-layer/F4_D2_LEARNING_SPEC_2026_10_12.md): the dictionary hands over a
 // filtered list of lemma keys in its own order; the SAME cross-text training serves them (bank → stored anchor →
 // R2 ladder with re-source scan → honest word-only for pid: entries). Answers are ordinary reviews (FSRS).
-async function startSetTraining(keys) {
+async function startSetTraining(keys, mode) {
+  const newCtx = mode === 'newctx';
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
   _studyMode = 'train'; _trainSession = null;
-  _studySetTitle('room.morph.study.setTitle', 'Учить из словаря');
+  if (newCtx) _studySetTitle('room.morph.study.newCtxTitle', 'Слово в новых предложениях');
+  else _studySetTitle('room.morph.study.setTitle', 'Учить из словаря');
   roomFocusInto(_studySheet.querySelector('.room-study-card'));
   try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
   try { _studyListChrome(false); } catch (_) {}
@@ -3804,13 +3876,18 @@ async function startSetTraining(keys) {
   try { rows = (await localDb.getWordsWithSource(keys)) || []; } catch (_) { rows = []; }
   const size = Math.max(4, Number(trainPrefs().sessionSize) || TRAIN_N);
   // assemble a little more than one session (some words may honestly fail to assemble), keep the dictionary's order
-  const items = await _buildDueSourcedItems(rows.slice(0, size * 2), { scanBudget: 16 });
+  let items, noOther = [];
+  if (newCtx) { const built = await _buildNewContextItems(rows.slice(0, size * 2), { scanBudget: 16 }); items = built.items; noOther = built.noOther; }
+  else items = await _buildDueSourcedItems(rows.slice(0, size * 2), { scanBudget: 16 });
   if (!_studySheet || _studySheet.hidden) return;
   if (!items.length) {
     body.innerHTML = '';
-    body.appendChild(el('div', { class: 'room-study-empty', text: tt('room.morph.study.setEmpty', 'Для этих слов на этом устройстве не нашлось ни предложений, ни словарной статьи — откройте их тексты в Зале.') }));
+    body.appendChild(el('div', { class: 'room-study-empty', text: newCtx
+      ? tt('room.morph.study.newCtxEmpty', 'Для этих слов в ваших текстах пока нет другого места, кроме того, где их учили. Прочитайте с ними новые тексты — и проверка появится.')
+      : tt('room.morph.study.setEmpty', 'Для этих слов на этом устройстве не нашлось ни предложений, ни словарной статьи — откройте их тексты в Зале.') }));
     return;
   }
+  if (newCtx && noOther.length) roomToast(tt('room.morph.study.newCtxSkipped', 'Для {n} сл. в ваших текстах пока нет другого места — их в этой проверке нет.').replace('{n}', String(noOther.length)));
   const order = new Map(rows.map((r, i) => [String(r.lemmaKey), i]));
   const picked = items.sort((a, b) => (order.get(String(a.lemmaKey)) || 0) - (order.get(String(b.lemmaKey)) || 0)).slice(0, size);
   await _launchTrainSession(picked, { cross: true, pool: await _crossPoolFor(picked, rows) });
@@ -3824,7 +3901,7 @@ function consumeSetTrainingHandoff() {
     const raw = JSON.parse(localStorage.getItem('dict.trainSet_v1') || 'null');
     localStorage.removeItem('dict.trainSet_v1');
     if (!raw || !Array.isArray(raw.keys) || !raw.keys.length || !(Date.now() - Number(raw.at) < 10 * 60 * 1000)) return null;
-    return raw.keys.map(String).slice(0, 200);
+    return { keys: raw.keys.map(String).slice(0, 200), mode: raw.mode === 'newctx' ? 'newctx' : '' };
   } catch (_) { return null; }
 }
 // Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
@@ -15193,7 +15270,7 @@ async function boot() {
     } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
     if (dueReviewHandoff) await startDueReview();
-    else if (setTrainingHandoff) await startSetTraining(setTrainingHandoff);
+    else if (setTrainingHandoff) await startSetTraining(setTrainingHandoff.keys, setTrainingHandoff.mode);
     refreshAgentProposalsChip();   // AA4-4b — pending agent proposals (quiet-fail without a session)
     backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session

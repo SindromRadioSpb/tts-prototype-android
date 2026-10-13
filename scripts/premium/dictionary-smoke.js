@@ -43,6 +43,9 @@ const ROWS = [
     const { chromium } = require("playwright");
     browser = await chromium.launch();
     const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 1280, height: 900 } });
+    // the SAME module instance as the page (a different ?v= would be a second, uninitialised local DB)
+    const LDB_URL = (/import \* as localDb from '([^']+)'/.exec(require("fs").readFileSync(path.join(REPO_ROOT, "public/js/dictionary-ui.js"), "utf8")) || [])[1];
+    await ctx.addInitScript((u) => { window.__LDB_URL = u; }, LDB_URL);
     await ctx.addInitScript(() => { try { if (!localStorage.getItem("app.locale")) localStorage.setItem("app.locale", "ru"); localStorage.setItem("v3.byokOnboardingDismissed", "1"); localStorage.setItem("room.contextConsent", "declined"); } catch (_) {} });
     const pg = await ctx.newPage();
     pg.on("pageerror", (e) => pageErrors.push(String(e)));
@@ -223,10 +226,13 @@ const ROWS = [
     await pg.waitForTimeout(800);
 
     // D4 status from the article = the same canon write as in the text
-    await pg.click('#dict-article .dict-a-status button:has-text("почти знаю")');
+    const stBefore = await pg.evaluate(async (k) => (await import(window.__LDB_URL)).getWordStatus(k), seed.keys.katav);
+    let clickErr = '';
+    await pg.click('#dict-article .dict-a-status button:has-text("почти знаю")').catch((e) => { clickErr = String(e).slice(0, 200); });
     await pg.waitForTimeout(800);
+    if (clickErr || process.env.DICT_DEBUG) console.log('    D4 debug: before=' + stBefore + ' clickErr=' + clickErr);
     const st = await pg.evaluate(async (k) => {
-      const ldb = await import("/db/local-db.js?v=750");
+      const ldb = await import(window.__LDB_URL);
       return ldb.getWordStatus(k);
     }, seed.keys.katav);
     ok(st === "l4", "D4 статус из статьи записан по тому же канон-ключу (" + st + ")");
@@ -296,6 +302,60 @@ const ROWS = [
     await pg.waitForFunction(() => { const a = document.getElementById("dict-article"); return a && !a.hidden && a.querySelector(".dict-a-word"); }, null, { timeout: 60000 }).catch(() => {});
     const deep = await pg.evaluate(() => (document.querySelector("#dict-article .dict-a-word .he") || {}).textContent || "");
     ok(/לִכְתּוֹב/.test(deep), "D11 ссылка из книги dictionary.html?word= открывает статью слова («" + deep + "»)");
+    // D15 «Корень как гнездо»: the article of לכתוב shows the root family with my statuses; the practice round
+    // tells relatives apart (options from the same family only)
+    await pg.waitForFunction(() => { const s = document.querySelector("#dict-article details.dict-a-sec summary"); return [...document.querySelectorAll("#dict-article summary")].some((x) => /Гнездо корня/.test(x.textContent)); }, null, { timeout: 30000 }).catch(() => {});
+    const nest = await pg.evaluate(() => {
+      const sum = [...document.querySelectorAll("#dict-article summary")].find((x) => /Гнездо корня/.test(x.textContent));
+      const sec = sum && sum.parentElement;
+      return { title: sum ? sum.textContent : "", chips: sec ? sec.querySelectorAll(".dict-fam button").length : 0, coloured: sec ? sec.querySelectorAll('.dict-fam button[class*="dict-st-"]').length : 0,
+        drill: !!document.getElementById("dict-nest-drill"), learn: !!document.getElementById("dict-nest-learn") };
+    });
+    ok(/Гнездо корня כתב/.test(nest.title) && nest.chips >= 3 && nest.coloured === nest.chips && nest.drill && nest.learn, `D15 гнездо корня в статье: «${nest.title}», слов ${nest.chips}, все с цветом статуса`);
+    await pg.evaluate(() => { const sum = [...document.querySelectorAll('#dict-article summary')].find((x) => /Гнездо корня/.test(x.textContent)); if (sum && !sum.parentElement.open) sum.click(); });
+    await pg.click("#dict-nest-drill");
+    await pg.waitForSelector("#dict-article .dict-drill-opt", { timeout: 10000 });
+    const nestRun = await pg.evaluate(async () => {
+      const art = document.getElementById("dict-article"), wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      let opts4 = true;
+      for (let q = 0; q < 12; q++) {
+        const area = art.querySelector(".dict-drill-area"); if (!area || !art.querySelector(".dict-drill-opt:not([disabled])")) break;
+        const btns = [...area.querySelectorAll(".dict-drill-opt")];
+        if (btns.length !== 4) opts4 = false;
+        btns.find((b) => b.getAttribute("data-key") === area.getAttribute("data-answer")).click(); await wait(20);
+        art.querySelector(".dict-drill-fb .primary").click(); await wait(20);
+      }
+      return { total: (art.querySelector(".dict-drill-total") || {}).textContent || "", opts4, title: (art.querySelector(".dict-set-title") || {}).textContent || "" };
+    });
+    ok(/Верно (\d+) из \1/.test(nestRun.total) && nestRun.opts4 && /Гнездо корня/.test(nestRun.title), `D15 тренировка гнезда: ${nestRun.total} (4 варианта из этого же гнезда)`);
+    await pg.screenshot({ path: shot("nest-desktop") });
+
+    // D15 «Слово в новых предложениях»: לכתוב was learnt in «Смоук словаря» (row 3); the check must come from another text
+    const anchor = await pg.evaluate(async (k) => {
+      const ldb = await import(window.__LDB_URL);
+      await ldb.createText({ id: "dict-smoke-2", text_key: "dict-smoke-2", title: "Второй текст смоука" });
+      await ldb.addSentence("dict-smoke-2", { id: "ds2-s1", order_index: 0, he_plain: "המורה כתב על הלוח", he_niqqud: "הַמּוֹרֶה כָּתַב עַל הַלּוּחַ", ru: "учитель написал на доске" });
+      const sid = (await ldb.dbQuery("SELECT s.id FROM sentences s JOIN texts t ON t.id = s.text_id WHERE t.text_key = 'dict-smoke' AND s.order_index = 2"))[0].id;
+      await ldb.setWordStatus(k, "l2", { due: Date.now() - 1000, interval: 1, reps: 1, lapses: 0 }, { textKey: "dict-smoke", sentenceId: String(sid), orderIndex: 2, surface: "כתבה" });
+      return (await ldb.getWordsWithSource([k]))[0];
+    }, seed.keys.katav);
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4 && document.getElementById("dict-train-newctx"), null, { timeout: 60000 });
+    await pg.fill("#dict-q", "כתב"); await pg.waitForTimeout(500);
+    const ncBtn = await pg.textContent("#dict-train-newctx");
+    await Promise.all([pg.waitForURL(/library\.html/, { timeout: 30000 }), pg.click("#dict-train-newctx")]);
+    await pg.waitForFunction(() => { const s = document.querySelector(".room-study"); if (!s || s.hidden) return false; const b = s.querySelector(".room-study-body"); return b && b.innerText.trim() && !/Собираю/.test(b.innerText); }, null, { timeout: 90000 }).catch(() => {});
+    const nc = await pg.evaluate(() => { const s = document.querySelector(".room-study"); const b = s && s.querySelector(".room-study-body");
+      return { title: (s && (s.querySelector(".room-study-title") || {}).textContent) || "", text: b ? b.innerText : "", empty: !!(b && b.querySelector(".room-study-empty")) }; });
+    ok(anchor && anchor.source && anchor.source.textKey === "dict-smoke" && /В новых предложениях \(1\)/.test(ncBtn) && /новых предложениях/.test(nc.title) && !nc.empty
+      && /учитель написал на доске|הַלּוּחַ|Второй текст смоука/.test(nc.text) && !/она написала длинное письмо/.test(nc.text),
+      `D15 слово в новом предложении: «${nc.title}» — задание из другого текста (${nc.text.replace(/\s+/g, " ").slice(0, 90)})`);
+    await pg.screenshot({ path: shot("newctx-training") });
+    // back to the status the later checks expect («почти знаю»); the schedule and its anchor stay
+    await pg.evaluate(async (k) => { const ldb = await import(window.__LDB_URL); await ldb.setWordStatus(k, "l4"); }, seed.keys.katav);
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+
 
     // D12 «Слова этого текста» (T1/T2): the Room's lemmas == the lens's lemmas (one scan, one key); live statuses
     // with «не размечено»; familiarity from the Room's engine; one-by-one marking writes the canon with the text
@@ -303,7 +363,7 @@ const ROWS = [
     await pg.goto(BASE + "/library.html?my_text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
     await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .rm-w").length >= 10, null, { timeout: 60000 });
     const roomKeys = await pg.evaluate(async () => {
-      const ldb = await import("/db/local-db.js?v=750");
+      const ldb = await import(window.__LDB_URL);
       const items = await window.ReaderMorph.collectReviewItems(document.getElementById("roomReaderTable"), await ldb.getAllWordStatuses());
       return items.map((x) => x.lemmaKey).sort();
     });
@@ -333,7 +393,7 @@ const ROWS = [
     const k2 = await pg.getAttribute("#dict-article .dict-triage", "data-key");
     await pg.keyboard.press("2"); await pg.waitForTimeout(900);
     const marked = await pg.evaluate(async (keys) => {
-      const ldb = await import("/db/local-db.js?v=750"), out = [];
+      const ldb = await import(window.__LDB_URL), out = [];
       for (const k of keys) { const r = (await ldb.dbQuery("SELECT status, srs_text_key, srs_due FROM word_status WHERE lemma_key = ?", [k]))[0] || {}; out.push({ key: k, db: r.status, tk: r.srs_text_key, due: !!r.srs_due }); }
       return out;
     }, [k1, k2]);
@@ -350,7 +410,7 @@ const ROWS = [
     await pg.click("#dict-toast .dict-toast-act");
     await pg.waitForTimeout(1000);
     const after = await pg.evaluate(async () => {
-      const ldb = await import("/db/local-db.js?v=750"), S = window.LPDictionary.state, st = await ldb.getAllWordStatuses();
+      const ldb = await import(window.__LDB_URL), S = window.LPDictionary.state, st = await ldb.getAllWordStatuses();
       const un = [...S.entries.values()].filter((e) => e.inText && !e.textStatus);
       return { n: un.length, dbClear: un.every((e) => !st[e.key]) };
     });
@@ -381,7 +441,7 @@ const ROWS = [
 
     // D14 a public text (a Ben-Yehuda work opened in the Room) is a text of the lens too
     await pg.evaluate(async () => {
-      const ldb = await import("/db/local-db.js?v=750");
+      const ldb = await import(window.__LDB_URL);
       await ldb.createText({ id: "by-smoke", text_key: "by-smoke", title: "Бен-Иегуда смоук", source_meta_json: JSON.stringify({ corpus: { byehuda_id: 99 } }) });
       await ldb.addSentence("by-smoke", { id: "by-s1", order_index: 0, he_plain: "הילד כתב מכתב", he_niqqud: "הַיֶּלֶד כָּתַב מִכְתָּב", ru: "мальчик написал письмо" });
     });
@@ -413,7 +473,7 @@ const ROWS = [
 
     // D5 scale: 1000 entries
     await pg.evaluate(async () => {
-      const ldb = await import("/db/local-db.js?v=750");
+      const ldb = await import(window.__LDB_URL);
       const letters = "אבגדהוזחטיכלמנסעפצקרשת";
       for (let i = 0; i < 1000; i++) {
         const w = letters[i % 22] + letters[Math.floor(i / 22) % 22] + letters[Math.floor(i / 484) % 22] + "ן";   // 1000 distinct keys

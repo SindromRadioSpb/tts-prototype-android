@@ -340,6 +340,10 @@ function renderTrainButton() {
   if (!S.view.length) return;
   if (learnable.length) box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-train-these' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
     on: { click: () => chooseTrain(learnable) } }));
+  // Д3 «Слово в новых предложениях»: the marked words of this view, each in a sentence other than where it was learnt
+  const transfer = learnable.filter((e) => !unmarkedOf(e) && !(e.inText && e.textStatus === 'new'));
+  if (transfer.length) box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-train-newctx', title: tt('dictionary.newCtxTip', 'Пропуск слова в другом месте ваших текстов — не там, где вы его учили') },
+    text: fill(tt('dictionary.newCtx', 'В новых предложениях ({n})'), { n: transfer.length }), on: { click: () => startTrain(transfer, 'newctx') } }));
   // Т2: mark the words of this view that have no mark yet — one by one, or all at once
   const toMark = S.view.filter((e) => unmarkedOf(e) || (e.inText && e.textStatus === 'new'));
   if (toMark.length && (S.filters.scope === 'text' || S.filters.scope === 'met')) {
@@ -672,10 +676,11 @@ async function bulkMark(st, list) {
   });
 }
 // «Учить эти» with words that have no mark yet: the learner chooses (owner decision 2026-10-13)
-function chooseTrain(learnable) {
+function chooseTrain(learnable, host) {
   const unmarked = learnable.filter(unmarkedOf), marked = learnable.filter((e) => !unmarkedOf(e));
   if (!unmarked.length) { startTrain(learnable); return; }
-  const box = $('dict-train');
+  const box = host || $('dict-train');
+  box.querySelectorAll('.dict-choice').forEach((x) => x.remove());
   const ask = el('div', { class: 'dict-choice', attrs: { role: 'group' } }, [
     el('p', { text: fill(tt('dictionary.trainUnmarked', 'В наборе {u} сл. без отметки. Тренировка учит только отмеченные слова.'), { u: unmarked.length }) }),
     el('div', { class: 'dict-drill-actions' }, [
@@ -687,6 +692,113 @@ function chooseTrain(learnable) {
   ]);
   box.appendChild(ask);
   try { ask.querySelector('.primary').focus(); } catch (_) {}
+}
+
+// ── Д3 «Корень как гнездо» (спека F4_D3_CONTEXT_AND_ROOT): the whole Pealim family of the root, my live status on each
+// word (the same canonical key the Room paints), the words I know as the support, a practice round that tells the
+// relatives apart (no schedule writes), and «Учить гнездо в Зале» for the rest.
+function nestOf(e, card) {
+  const root = (card && card.paradigm && card.paradigm.root) || D.displayOf(e).root;
+  if (!root || !_eng || !_eng.rootIndex) return null;
+  const NA = _eng.NA || window.NotesAutoGen;
+  const fam = (_eng.rootIndex.get(String(root)) || []).map((x) => {
+    let key = '';
+    try { key = NA && NA.lemmaKey ? NA.lemmaKey({ pealim_id: x.pid, lemma: x.key, word: x.key, pos: x.pos }) : (x.pid ? 'pid:' + x.pid : ''); } catch (_) { key = x.pid ? 'pid:' + x.pid : ''; }
+    return { key, he: x.disp, meaning: x.meaning || '', pos: x.pos || '', pid: x.pid, self: key === e.key, status: (key && S.live[key]) || '' };
+  }).filter((x) => x.key);
+  return { root, words: fam };
+}
+// a dictionary entry for a relative (it may not be in my dictionary yet): the Pealim entry is its reading
+function nestEntry(w) {
+  let e = S.entries.get(w.key);
+  if (!e) {
+    e = { key: w.key, status: '', srs: (S.schedule || {})[w.key] || null, note: null, log: null, ctx: null, surfaces: [{ s: w.he, from: 'root' }],
+      added: 0, lastSeen: 0, sources: ['root'], metOnly: true };
+    const p = pidParadigm(w.key);
+    if (p) { e.paradigm = p; e.forms = paradigmForms(p); e.reading = readingFromParadigm(p, w.key); }
+    S.entries.set(w.key, e);
+  }
+  return e;
+}
+const SUPPORT = { l4: 1, known: 1 };
+async function renderNest(famSec, e, card) {
+  await refreshLive();
+  const nest = nestOf(e, card);
+  const others = nest ? nest.words.filter((w) => !w.self) : [];
+  if (!nest || !others.length) { famSec.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.noFamily', 'Других слов этого корня в словаре нет.') })); return; }
+  famSec.querySelector('summary').textContent = fill(tt('dictionary.nest.title', 'Гнездо корня {r}: {n} сл.'), { r: nest.root, n: nest.words.length });
+  const support = others.filter((w) => SUPPORT[w.status]);
+  if (support.length) famSec.appendChild(el('p', { class: 'dict-nest-support' }, [el('b', { text: tt('dictionary.nest.support', 'Опора — вы знаете:') + ' ' }),
+    ...support.slice(0, 8).map((w) => el('span', { class: 'he dict-st-' + w.status, attrs: { lang: 'he', dir: 'rtl' }, text: w.he }))]));
+  const box = el('div', { class: 'dict-fam' });
+  others.slice(0, 40).forEach((w) => box.appendChild(el('button', { class: w.status ? 'dict-st-' + w.status : 'dict-st-none', attrs: { type: 'button', title: w.status ? statusText(w.status) : statusText('none') },
+    on: { click: () => { if (S.entries.has(w.key) && !S.entries.get(w.key).metOnly) openArticle(w.key); else { try { RM().openWordCard(strip(w.he), w.he); } catch (_) {} } } } },
+    [el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: w.he }), el('small', { text: w.meaning })])));
+  famSec.appendChild(box);
+  const withMeaning = nest.words.filter((w) => w.meaning);
+  const learnable = nest.words.filter((w) => !SUPPORT[w.status] && w.status !== 'ignore');
+  const acts = el('div', { class: 'dict-drill-actions' });
+  if (withMeaning.length >= 3) acts.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-nest-drill' }, text: fill(tt('dictionary.nest.drill', 'Тренировать гнездо ({n})'), { n: withMeaning.length }),
+    on: { click: () => openNestDrill(nest, withMeaning) } }));
+  if (learnable.length) acts.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-nest-learn' }, text: fill(tt('dictionary.nest.learn', 'Учить гнездо в Зале ({n})'), { n: learnable.length }),
+    on: { click: () => chooseTrain(learnable.map(nestEntry), acts) } }));
+  famSec.appendChild(acts);
+  famSec.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.nest.note', 'Тренировка гнезда учит различать слова одного корня; в расписание повторения она не пишет. «Учить в Зале» — обычное повторение незнакомых слов гнезда.') }));
+}
+// practice: «значение → какое слово корня?» and «слово → какое значение?», the options from the same nest only
+function openNestDrill(nest, words) {
+  const my = ++_articleEpoch;
+  S.selected = null;
+  const art = $('dict-article'); art.hidden = false; $('dict-root').classList.add('has-article');
+  const back = el('button', { class: 'dict-btn dict-a-back', attrs: { type: 'button' }, text: '‹ ' + tt('dictionary.back', 'К списку'), on: { click: closeArticle } });
+  const panel = el('div', { class: 'dict-drill', attrs: { role: 'group', 'aria-live': 'polite' } });
+  const support = nest.words.filter((w) => !w.self && SUPPORT[w.status]);   // the relatives I know, not the word itself
+  art.replaceChildren(back, el('h2', { class: 'dict-set-title', text: fill(tt('dictionary.nest.drillTitle', 'Гнездо корня {r}'), { r: nest.root }) }),
+    ...(support.length ? [el('p', { class: 'dict-nest-support' }, [el('b', { text: tt('dictionary.nest.support', 'Опора — вы знаете:') + ' ' }),
+      ...support.slice(0, 8).map((w) => el('span', { class: 'he dict-st-' + w.status, attrs: { lang: 'he', dir: 'rtl' }, text: w.he }))])] : []), panel);
+  if (window.matchMedia && window.matchMedia('(max-width: 959px)').matches) art.scrollTop = 0;
+  // the words to learn first, then the known ones (a short refresh); up to 10 tasks, the two directions alternate
+  const order = words.slice().sort((a, b) => (SUPPORT[a.status] ? 1 : 0) - (SUPPORT[b.status] ? 1 : 0));
+  let seed = Date.now() % 100000;
+  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  function start() {
+    const tasks = order.slice(0, 10).map((w, i) => ({ w, dir: i % 2 ? 'he2ru' : 'ru2he' }));
+    const res = [];
+    let i = 0;
+    const ask = () => {
+      if (my !== _articleEpoch) return;
+      if (i >= tasks.length) {
+        const right = res.filter(Boolean).length;
+        panel.replaceChildren(el('p', { class: 'dict-drill-total', text: fill(tt('dictionary.nest.done', 'Верно {r} из {n}.'), { r: right, n: res.length }) }),
+          el('div', { class: 'dict-drill-actions' }, [el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillAgain', 'Ещё раунд'), on: { click: start } }),
+            el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.back', 'К списку'), on: { click: closeArticle } })]));
+        return;
+      }
+      const t = tasks[i], pool = words.filter((x) => x.key !== t.w.key && (t.dir === 'ru2he' ? x.he !== t.w.he : x.meaning !== t.w.meaning));
+      const opts = pool.map((x) => ({ x, r: rnd() })).sort((a, b) => a.r - b.r).slice(0, 3).map((o) => o.x).concat([t.w]).map((x) => ({ x, r: rnd() })).sort((a, b) => a.r - b.r).map((o) => o.x);
+      const q = t.dir === 'ru2he'
+        ? el('p', { class: 'dict-drill-q' }, [el('b', { text: tt('dictionary.nest.qWord', 'Какое слово корня значит') + ' ' }), el('span', { attrs: { dir: 'auto' }, text: '«' + t.w.meaning + '»' }), '?'])
+        : el('p', { class: 'dict-drill-q' }, [el('b', { text: tt('dictionary.nest.qMeaning', 'Что значит') + ' ' }), el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: t.w.he }), '?']);
+      const area = el('div', { class: 'dict-drill-area dict-drill-opts' + (t.dir === 'he2ru' ? ' dict-nest-ru' : ''), attrs: { 'data-answer': t.w.key } });
+      opts.forEach((o) => area.appendChild(el('button', { class: 'dict-drill-opt', attrs: { type: 'button', 'data-key': o.key, lang: t.dir === 'ru2he' ? 'he' : null, dir: t.dir === 'ru2he' ? 'rtl' : 'auto' },
+        text: t.dir === 'ru2he' ? o.he : o.meaning, on: { click: () => {
+          const ok = o.key === t.w.key;
+          res.push(ok);
+          area.querySelectorAll('button').forEach((b) => { b.disabled = true; const k = b.getAttribute('data-key'); if (k === t.w.key) b.classList.add('ok'); else if (!ok && k === o.key) b.classList.add('bad'); });
+          const fb = el('div', { class: 'dict-drill-fb ' + (ok ? 'ok' : 'bad') }, [
+            el('span', { text: ok ? '✓ ' + tt('dictionary.drillRight', 'Верно') : '✗ ' + tt('dictionary.drillWrong', 'Правильно:') + ' ' }),
+            el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: t.w.he }), el('span', { attrs: { dir: 'auto' }, text: '— ' + t.w.meaning }),
+            el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.speak', 'Озвучить') }, text: '▶', on: { click: () => { try { morphHost.speakWord(t.w.he); } catch (_) {} } } }),
+            el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: i + 1 < tasks.length ? tt('dictionary.drillNext', 'Дальше') : tt('dictionary.drillFinish', 'Итог'), on: { click: () => { i++; ask(); } } })]);
+          panel.appendChild(fb);
+          try { fb.querySelector('.primary').focus(); } catch (_) {}
+        } } })));
+      panel.replaceChildren(el('div', { class: 'dict-drill-head' }, [el('span', { class: 'dict-note', text: (i + 1) + ' / ' + tasks.length })]), q, area);
+      try { area.querySelector('button').focus(); } catch (_) {}
+    };
+    ask();
+  }
+  start();
 }
 
 // ── article ────────────────────────────────────────────────────────────────────────────────────
@@ -1058,13 +1170,8 @@ async function openArticle(key) {
   } else {
     conjSec.appendChild(el('p', { class: 'dict-note', text: verified ? tt('dictionary.noConj', 'Это слово не изменяется или таблицы для него нет.') : tt('dictionary.noReading', 'Разбор слова не подтверждён — таблицу не показываю, чтобы не ошибиться.') }));
   }
-  const fam = (verified && verified.rootFamily) || [];
-  if (fam.length) {
-    const box = el('div', { class: 'dict-fam' });
-    fam.slice(0, 24).forEach((x) => box.appendChild(el('button', { attrs: { type: 'button' }, on: { click: () => { try { RM().openWordCard(x.key || strip(x.disp), x.disp || ''); } catch (_) {} } } },
-      [el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: x.disp }), el('small', { text: x.meaning || '' })])));
-    famSec.appendChild(box);
-  } else famSec.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.noFamily', 'Других слов этого корня в словаре нет.') }));
+  await renderNest(famSec, e, verified);
+  if (my !== _articleEpoch) return;
   // places
   placesSec.lastChild.remove();
   if (!places.length) placesSec.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.noPlaces', 'В ваших сохранённых текстах это слово не найдено.') }));
@@ -1111,10 +1218,10 @@ function tenseText(t) {
 const pct = (r) => Math.round(r * 100) + '%';
 const dateShort = (t) => new Date(t).toLocaleDateString(document.documentElement.lang || 'ru', { day: 'numeric', month: 'short' });
 // «Учить эти» on any list of entries (the same hand-off as the button over the list)
-function startTrain(list) {
+function startTrain(list, mode) {
   const learnable = list.filter((e) => !e.metOnly && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
   if (!learnable.length) return;
-  try { localStorage.setItem('dict.trainSet_v1', JSON.stringify({ at: Date.now(), keys: learnable.slice(0, 200).map((e) => e.key) })); } catch (_) {}
+  try { localStorage.setItem('dict.trainSet_v1', JSON.stringify({ at: Date.now(), keys: learnable.slice(0, 200).map((e) => e.key), mode: mode || '' })); } catch (_) {}
   location.href = '/library.html?review=set&from=dictionary';
 }
 function setView(v) {
