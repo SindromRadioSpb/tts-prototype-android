@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-10-13T07:15:38.897515+00:00",
+  "data_checks": {
+    "unique_videos": 1502,
+    "collections": 90,
+    "channels": 11,
+    "exact_metadata_records": 871,
+    "dates_contiguous": true,
+    "unique_primary_ids": 365,
+    "unique_distinct_backup_ids": 365,
+    "primary_backup_overlap": 0,
+    "public_catalog_matches_in_primary_or_backup": 0,
+    "all_primary_and_backup_metadata_enriched": true,
+    "series_order_and_no_episode_gaps": true,
+    "seasonal_assignments_reviewed": true,
+    "explicitly_arabic_episodes_excluded": true
+  },
+  "workbook": {
+    "sheets": [
+      "Обзор",
+      "365 дней",
+      "Выбор редактора",
+      "Подборки",
+      "Видео",
+      "Исключения",
+      "Методика"
+    ],
+    "cached_formula_errors": [],
+    "formulas": 9779,
+    "date_cells_numeric": true,
+    "native_tables": 6,
+    "native_chart": 1,
+    "chart_color_verified": true,
+    "header_and_identity_panes_verified": true,
+    "calculated_url_export_verified": true,
+    "calculated_lookup_export_verified": true,
+    "video_count": 1502,
+    "calendar_count": 365,
+    "shortlist_count": 177,
+    "ready_count": 0,
+    "calendar_lookup_test": true,
+    "partial_gate_test": true,
+    "ready_summary_test": true,
+    "formula_errors_scanned": true
+  },
+  "visual_review": "Every sheet rendered and visually reviewed; overview lower area reviewed separately. Native Microsoft Excel was not used.",
+  "sha256": {
+    "build-workbook.mjs": "32d45e1a8aaad6717211335afba8732e581782fc36d1fcb3244c1eea5b851cbd",
+    "calendar-365.csv": "d7142f34f2736c20e16c68fed8b1385fd8a2473e16890071e55280fcc51e00ac",
+    "collections.csv": "46521f94f081a8b250f2424ac2fbf581b58f4392b15e81d1c645e9503ba56d8a",
+    "LinguistPro_YouTube_365.xlsx": "07c5d92a94590c5999742dca6ddd7d60b9fb9f864163301844c4e2b5a194f568",
+    "README.md": "7059b37e36ff7e20e2bd51f335e3b322a8b43faf5f0d6c07257092599813adee",
+    "research-data.json": "020b88c5dc8a3cfe9e05bc3b9230c35bd101a5c914e5bc00d06ee7358d5ed92f",
+    "video-collection-links.csv": "bff9db065ba011df0cf6185b0bc5de9869ec8514be533e1fb0349c5332b41031",
+    "video-metadata-evidence.json": "ae56beeb9baac82bf84a98ee56a876b365712b50d459598c09c75e7c55928c8f",
+    "videos.csv": "990812184fd97947969085ca8e1a8a2defb774c4e10f4904937a07ec5f48d7cb"
+  }
+}
