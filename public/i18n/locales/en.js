@@ -2165,6 +2165,29 @@ window.I18N_LOCALES.en = {
     drillSetSummary: "Confident in these words: {m} of {t} forms",
     drillSetNone: "No word in this set has a confirmed form table.",
     trainForms: "Drill forms ({n})",
+    fSource: "Where it was met",
+    mediaHere: "media from this place",
+    mediaTip: "Opens the text at this line; the line's ▶ plays the video or audio from its start",
+    bulkSt: {
+      btn: "Change status ({n})",
+      pick: "Which status for the {n} words shown?",
+      confirm: "Set «{s}» for {n} words?",
+      already: "({k} already have it)",
+      seeds: "{k} of them will enter review: a level starts a schedule. Undo restores the status, not the schedule.",
+      apply: "Set ({n})",
+      working: "Setting statuses…",
+      done: "Status «{s}»: {n} changed",
+      failed: "{k} unchanged",
+    },
+    savedViews: {
+      mine: "My sets:",
+      delete: "Delete the set «{n}»",
+      name: "Set name",
+      untitled: "My set",
+      saved: "Set «{n}» saved on this device",
+      save: "Save",
+      saveBtn: "Save this set",
+    },
     newCtx: "In new sentences ({n})",
     newCtxTip: "The word blanked in another place of your texts — not where you learnt it",
     nest: {
@@ -3219,6 +3242,8 @@ window.I18N_LOCALES.en = {
     // Room media player (spec 2026-08-04); other bar strings reuse studio.media.*
     media: {
       openInStudio: "Open in Studio ↗",
+      cueNoTiming: "This line has no time mark in the media — open the player and find the place by hand.",
+      cueTap: "Tap ▶ — the media from the start of this line",
       sourceSection: "Video: source and synchronization",
     },
     nakdan: {

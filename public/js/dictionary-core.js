@@ -143,7 +143,9 @@
       if (f.memory === "hard" && !(m.lapses >= 3)) return false;
       if (f.memory === "never" && m.reps > 0) return false;
     }
-    if (f.keys && f.keys.length && f.keys.indexOf(e.key) < 0) return false;   // a chosen set (the text's glossary)
+    if (f.keys && f.keys.length && f.keys.indexOf(e.key) < 0) return false;
+    // where the word was met (my texts / Ben-Yehuda / public / group): any of its places in a chosen class
+    if (f.sources && f.sources.length && !(e.srcClasses && f.sources.some(function (c) { return e.srcClasses.has(c); }))) return false;   // a chosen set (the text's glossary)
     if (f.pos && f.pos.length && f.pos.indexOf(d.pos || "?") < 0) return false;
     if (f.binyan && f.binyan.length && f.binyan.indexOf(d.binyan || "?") < 0) return false;
     if (f.root && normHe(d.root) !== normHe(f.root)) return false;

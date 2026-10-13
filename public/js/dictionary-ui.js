@@ -107,7 +107,7 @@ const q = (sql, params) => localDb.dbQuery(sql, params || []).then((r) => r || [
 const PERSONAL = `t.is_archived = 0 AND (NOT json_valid(t.source_meta_json) OR (json_type(t.source_meta_json, '$.corpus') IS NULL
   AND json_type(t.source_meta_json, '$.group_corpus') IS NULL AND json_type(t.source_meta_json, '$.public_corpus') IS NULL))`;
 async function loadSources() {
-  const [statuses, statusRows, schedule, noteRows, logRows, ctxRows] = await Promise.all([
+  const [statuses, statusRows, schedule, noteRows, logRows, ctxRows, srcRows, noteSrcRows] = await Promise.all([
     localDb.getAllWordStatuses().catch(() => ({})),
     q('SELECT lemma_key, updated_at, srs_surface, srs_text_key, srs_order_index FROM word_status'),
     localDb.getSrsSchedule().catch(() => ({})),
@@ -125,6 +125,10 @@ async function loadSources() {
               MAX(json_extract(meta_json, '$.surface')) AS surface
          FROM review_log WHERE kind IN ('review','mark','seed','skip') AND source <> 'mark-backfill' GROUP BY item_key`),
     q('SELECT lemma_key, COUNT(*) AS occ, COUNT(DISTINCT text_key) AS texts, MAX(surface) AS surface FROM word_context GROUP BY lemma_key'),
+    // Д4.3 «где встречалось»: the bank's class + the class of the text holding the mark of a status
+    q(`SELECT lemma_key AS k, source_class AS c FROM word_context GROUP BY lemma_key, source_class
+        UNION SELECT ws.lemma_key AS k, ${TEXT_CLASS_SQL} AS c FROM word_status ws JOIN texts t ON t.text_key = ws.srs_text_key`),
+    q(`SELECT o.note_id AS id, ${TEXT_CLASS_SQL} AS c FROM note_occurrences o JOIN sentences s ON s.id = o.sentence_id JOIN texts t ON t.id = s.text_id GROUP BY o.note_id, c`),
   ]);
   S.schedule = schedule || {};
   const statusTimes = {}; statusRows.forEach((r) => { statusTimes[r.lemma_key] = r.updated_at; });
@@ -147,6 +151,11 @@ async function loadSources() {
       userMeaning: b.meaning_source === 'user' ? (b.meaning || '') : '', pos: b.pos || '', root: b.root || '', binyan: b.binyan || '',
       pid: b.pealim_id || '', created: r.created_at, occ: Number(r.occ) || 0, lastOcc: r.last_occ });
   });
+  const src = new Map(), addSrc = (k, c) => { if (!k || !c) return; let x = src.get(k); if (!x) { x = new Set(); src.set(k, x); } x.add(c === 'byehuda' ? 'byehuda' : c); };
+  srcRows.forEach((r) => addSrc(r.k, r.c === 'mytext' || r.c === 'byehuda' || r.c === 'public' || r.c === 'group' ? r.c : 'mytext'));
+  const noteKey = new Map(notes.map((n) => [n.id, n.key]));
+  noteSrcRows.forEach((r) => addSrc(noteKey.get(r.id), r.c));
+  S.srcByKey = src;
   return D.mergeSources({ statuses, statusTimes, schedule, notes,
     logAgg: logRows.map((r) => ({ key: r.item_key, n: Number(r.n) || 0, first: r.first, last: r.last, fails: Number(r.fails) || 0, reviews: Number(r.reviews) || 0, surface: r.surface || '' })),
     contexts: ctxRows.map((r) => ({ key: r.lemma_key, occ: Number(r.occ) || 0, texts: Number(r.texts) || 0, surface: r.surface || '' })),
@@ -236,12 +245,24 @@ async function buildMet() {
 
 // ── list ───────────────────────────────────────────────────────────────────────────────────────
 function progress(msg) { const p = $('dict-progress'); if (p) p.textContent = msg || ''; }
+// the classes of texts a word was met in: the bank + marks + notes (S.srcByKey), the scanned «met» texts (my own)
+// and the text of the lens
+function attachSources(all) {
+  const by = S.srcByKey || new Map();
+  all.forEach((e) => {
+    const c = new Set(by.get(e.key) || []);
+    if (e.met) c.add('mytext');
+    if (e.inText && S.text) c.add(S.text.cls || 'mytext');
+    e.srcClasses = c;
+  });
+}
 function applyView() {
   const now = Date.now();
   const all = Array.from(S.entries.values());
+  if (S.filters.sources && S.filters.sources.length) attachSources(all);
   S.view = D.sortEntries(all.filter((e) => D.matches(e, S.filters, now)), S.sort, now);
   S.shown = Math.min(S.view.length, Math.max(S.PAGE, S.shown));
-  renderCounts(all); renderActive(); renderTrainButton(); renderList();
+  renderCounts(all); renderActive(); renderSavedViews(); renderTrainButton(); renderList();
   const tb = $('dict-textbar'); if (tb && tb.hidden !== (S.filters.scope !== 'text')) renderTextBar();
 }
 function memLine(e) {
@@ -322,6 +343,7 @@ function renderFilters() {
   if (posVals.length) box.appendChild(group(tt('dictionary.fPos', 'Часть речи'), posVals.map((p) => chip(posText(p), S.filters.pos.indexOf(p) >= 0, () => { S.filters.pos = toggle(S.filters.pos, p); }))));
   const binVals = values((e) => D.displayOf(e).binyan);
   if (binVals.length) box.appendChild(group(tt('dictionary.fBinyan', 'Биньян'), binVals.map((b) => chip(b, S.filters.binyan.indexOf(b) >= 0, () => { S.filters.binyan = toggle(S.filters.binyan, b); }))));
+  box.appendChild(group(tt('dictionary.fSource', 'Где встречалось'), TEXT_CLASSES.map(([c, k, fb]) => chip(tt(k, fb), (S.filters.sources || []).indexOf(c) >= 0, () => { S.filters.sources = toggle(S.filters.sources || [], c); }))));
   const rootIn = el('input', { attrs: { type: 'text', dir: 'rtl', lang: 'he', 'aria-label': tt('dictionary.fRoot', 'Корень'), placeholder: 'כתב', value: S.filters.root } });
   rootIn.addEventListener('change', () => { S.filters.root = rootIn.value.trim(); S.shown = 0; applyView(); });
   box.appendChild(el('div', { class: 'dict-fgroup dict-froot' }, [el('span', { text: tt('dictionary.fRoot', 'Корень') }), rootIn]));
@@ -352,6 +374,10 @@ function renderTrainButton() {
       el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-bulk-known' }, text: fill(tt('dictionary.bulk.known', '✓ знаю ({n})'), { n: toMark.length }), on: { click: () => bulkMark('known', toMark) } }),
       el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-bulk-ignore' }, text: fill(tt('dictionary.bulk.ignore', 'не учить ({n})'), { n: toMark.length }), on: { click: () => bulkMark('ignore', toMark) } })]));
   }
+  // Д4.1 any view: change the status of every word shown
+  const statusable = S.view.filter((e) => !String(e.key).startsWith('note:'));
+  if (statusable.length) box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-bulkst' }, text: fill(tt('dictionary.bulkSt.btn', 'Сменить статус ({n})'), { n: statusable.length }),
+    on: { click: () => openBulkStatus(statusable, box) } }));
   // Д2.2+ forms of the words in this view (filter «глагол» + a binyan → that binyan's pattern)
   const forms = S.view.filter(drillable);
   if (forms.length) {
@@ -368,6 +394,7 @@ function activeSummary() {
   f.pos.forEach((p) => parts.push(posText(p)));
   f.binyan.forEach((b) => parts.push(b));
   f.statuses.forEach((s) => parts.push(statusText(s)));
+  (f.sources || []).forEach((c) => { const x = TEXT_CLASSES.find((y) => y[0] === c); if (x) parts.push(tt(x[1], x[2])); });
   if (f.scope === 'text' && S.text) parts.unshift('«' + S.text.title + '»');
   if (f.root) parts.push(tt('dictionary.root', 'корень') + ' ' + f.root);
   if (f.q) parts.push('«' + f.q + '»');
@@ -386,9 +413,11 @@ function renderActive() {
   if (f.hasMine) off(tt('dictionary.fMine', 'есть мой перевод'), () => { f.hasMine = false; });
   if (f.addedDays) { const a = ADDED_OPTS.find((x) => x[0] === f.addedDays); off(tt(a[1], a[2]), () => { f.addedDays = 0; }); }
   if (f.keys && f.keys.length) off(fill(tt('dictionary.plan.chip', 'словарик к тексту ({n})'), { n: f.keys.length }), () => { f.keys = null; });
+  (f.sources || []).forEach((c) => { const x = TEXT_CLASSES.find((y) => y[0] === c); off(tt(x[1], x[2]), () => { f.sources = f.sources.filter((z) => z !== c); }); });
   if (f.hideNames && f.scope === 'text') off(tt('room.morph.study.hideNames', 'Скрыть возможные имена'), () => { f.hideNames = false; });
-  if (chips.length > 1) chips.push(el('button', { class: 'dict-chip', attrs: { type: 'button' }, text: tt('dictionary.reset', 'Сбросить всё'),
-    on: { click: () => { Object.assign(f, { statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, hideNames: false, keys: null }); S.shown = 0; applyView(); if (!$('dict-filters').hidden) renderFilters(); } } }));
+  if (hasActiveView()) chips.push(el('button', { class: 'dict-chip dict-chip-save', attrs: { type: 'button', id: 'dict-save-view' }, text: '☆ ' + tt('dictionary.savedViews.saveBtn', 'Сохранить набор'), on: { click: openSaveView } }));
+  if (chips.length > 2) chips.push(el('button', { class: 'dict-chip', attrs: { type: 'button' }, text: tt('dictionary.reset', 'Сбросить всё'),
+    on: { click: () => { Object.assign(f, { statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, hideNames: false, keys: null, sources: [] }); S.shown = 0; applyView(); if (!$('dict-filters').hidden) renderFilters(); } } }));
   chips.forEach((c) => box.appendChild(c));
 }
 
@@ -801,6 +830,108 @@ function openNestDrill(nest, words) {
   start();
 }
 
+// ── Д4.1 массовая смена статуса (спека F4_D4_LIST_TOOLS): любой набор вида → палитра → подтверждение с честным числом
+// → пословно тем же каноном (MorphHost.markWordStatus) → сверка с базой → отмена 10 с.
+const LEVEL_RE = /^l[1-4]$/;
+const liveOf = (e) => S.live[e.key] || '';   // S.live is refreshed from the base before a mass change (openBulkStatus)
+async function openBulkStatus(list, host) {
+  host.querySelectorAll('.dict-bulkst').forEach((x) => x.remove());
+  await refreshLive();   // the «before» of every word (undo) and the «already has it» count come from the base, not a stale cache
+  const panel = el('div', { class: 'dict-choice dict-bulkst', attrs: { role: 'group' } });
+  const palette = el('div', { class: 'dict-a-status' }, D.STATUSES.map((st) => el('button', { class: 'dict-st-' + st, attrs: { type: 'button', 'data-bulk-status': st },
+    on: { click: () => confirm(st) } }, [statusText(st)])));
+  panel.append(el('p', { text: fill(tt('dictionary.bulkSt.pick', 'Какой статус поставить {n} показанным словам?'), { n: list.length }) }), palette,
+    el('div', { class: 'dict-drill-actions' }, [el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => panel.remove() } })]));
+  host.appendChild(panel);
+  function confirm(st) {
+    const change = list.filter((e) => liveOf(e) !== st);
+    const seeds = LEVEL_RE.test(st) ? change.filter((e) => !(S.schedule || {})[e.key]).length : 0;
+    panel.replaceChildren(
+      el('p', {}, [fill(tt('dictionary.bulkSt.confirm', 'Поставить «{s}» {n} сл.?'), { s: statusText(st), n: change.length }),
+        list.length - change.length ? ' ' + fill(tt('dictionary.bulkSt.already', '(у {k} уже этот статус)'), { k: list.length - change.length }) : '']),
+      seeds ? el('p', { class: 'dict-note', text: fill(tt('dictionary.bulkSt.seeds', 'Из них {k} встанут в повторение: уровень заводит расписание. Отмена вернёт статус, но не расписание.'), { k: seeds }) }) : null,
+      el('div', { class: 'dict-drill-actions' }, [
+        change.length ? el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-bulkst-apply' }, text: fill(tt('dictionary.bulkSt.apply', 'Поставить ({n})'), { n: change.length }), on: { click: () => apply(st, change) } }) : null,
+        el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => panel.remove() } })]),
+    );
+  }
+  async function apply(st, change) {
+    panel.replaceChildren(el('p', { class: 'dict-note', text: tt('dictionary.bulkSt.working', 'Ставлю статусы…') }));
+    const prev = change.map((e) => [e, liveOf(e)]);
+    for (const e of change) { try { await setStatus(e, st, true); } catch (_) {} }   // one failure never stops the rest
+    let db = {}; try { db = (await localDb.getAllWordStatuses()) || {}; } catch (_) {}
+    const ok = change.filter((e) => (db[e.key] || '') === st).length, failed = change.length - ok;
+    panel.remove();
+    afterMarks();
+    toast(fill(tt('dictionary.bulkSt.done', 'Статус «{s}»: изменено {n}'), { s: statusText(st), n: ok }) + (failed ? ' · ' + fill(tt('dictionary.bulkSt.failed', 'не изменилось {k}'), { k: failed }) : ''),
+      tt('room.morph.study.undo', 'Отменить'), async () => {
+        let restored = 0;
+        for (const [e, p] of prev) {
+          if ((S.live[e.key] || '') !== st) continue;   // changed again since — leave it
+          await setStatus(e, p, false);
+          restored++;
+        }
+        afterMarks();
+        toast(fill(tt('dictionary.bulk.undone', 'Отменено: {n}'), { n: restored }));
+      });
+  }
+}
+
+// ── Д4.2 сохранённые наборы фильтров: на этом устройстве (localStorage), применяются одним тапом ──────────────
+const VIEWS_KEY = 'dict.savedViews_v1';
+function savedViews() { try { const v = JSON.parse(localStorage.getItem(VIEWS_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; } }
+function storeViews(v) { try { localStorage.setItem(VIEWS_KEY, JSON.stringify(v.slice(0, 20))); } catch (_) {} }
+function currentView() {
+  const f = S.filters;
+  return { filters: { statuses: f.statuses.slice(), memory: f.memory, pos: f.pos.slice(), binyan: f.binyan.slice(), root: f.root, hasMine: !!f.hasMine,
+    addedDays: f.addedDays || 0, hideNames: !!f.hideNames, q: f.q || '', scope: f.scope, sources: (f.sources || []).slice() }, sort: S.sort, textId: f.scope === 'text' && S.text ? S.text.id : null };
+}
+function hasActiveView() {
+  const f = S.filters;
+  return !!(f.statuses.length || f.memory || f.pos.length || f.binyan.length || f.root || f.hasMine || f.addedDays || f.q || f.scope !== 'mine' || (f.sources || []).length);
+}
+async function applySavedView(v) {
+  Object.assign(S.filters, { statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, hideNames: false, q: '', keys: null, sources: [] }, v.filters || {});
+  $('dict-q').value = S.filters.q || '';
+  if (v.sort && D.SORTS.indexOf(v.sort) >= 0) { S.sort = v.sort; $('dict-sort').value = v.sort; }
+  const scope = S.filters.scope || 'mine';
+  setScope(scope);
+  if (v.sort && D.SORTS.indexOf(v.sort) >= 0) { S.sort = v.sort; $('dict-sort').value = v.sort; }   // setScope may reset a text sort
+  S.shown = 0;
+  if (scope === 'met' && !S.metBuilt) await buildMet();
+  if (scope === 'text' && v.textId) { await fillTextPicker(); $('dict-text-sel').value = v.textId; if (!S.text || S.text.id !== String(v.textId)) await loadText(v.textId); }
+  applyView();
+  if (!$('dict-filters').hidden) renderFilters();
+}
+function renderSavedViews() {
+  const box = $('dict-saved'); if (!box) return;
+  const views = savedViews();
+  box.replaceChildren();
+  if (views.length) {
+    box.appendChild(el('span', { class: 'dict-note', text: tt('dictionary.savedViews.mine', 'Мои наборы:') }));
+    views.forEach((v, i) => box.appendChild(el('span', { class: 'dict-saved-chip' }, [
+      el('button', { class: 'dict-chip', attrs: { type: 'button', 'data-saved-view': String(i) }, text: v.name, on: { click: () => applySavedView(v) } }),
+      el('button', { class: 'dict-chip dict-saved-del', attrs: { type: 'button', 'aria-label': fill(tt('dictionary.savedViews.delete', 'Удалить набор «{n}»'), { n: v.name }) }, text: '✕',
+        on: { click: () => { const all = savedViews(); all.splice(i, 1); storeViews(all); renderSavedViews(); } } })])));
+  }
+}
+function openSaveView() {
+  const box = $('dict-active');
+  box.querySelectorAll('.dict-saveview').forEach((x) => x.remove());
+  const input = el('input', { attrs: { type: 'text', maxlength: '60', 'aria-label': tt('dictionary.savedViews.name', 'Название набора'), value: activeSummary() || tt('dictionary.savedViews.untitled', 'Мой набор') } });
+  const form = el('form', { class: 'dict-saveview', on: { submit: (ev) => {
+    ev.preventDefault();
+    const name = input.value.trim() || tt('dictionary.savedViews.untitled', 'Мой набор');
+    const all = savedViews().filter((v) => v.name !== name);
+    all.unshift(Object.assign({ name }, currentView()));
+    storeViews(all); form.remove(); renderSavedViews();
+    toast(fill(tt('dictionary.savedViews.saved', 'Набор «{n}» сохранён на этом устройстве'), { n: name }));
+  } } }, [input, el('button', { class: 'dict-btn primary', attrs: { type: 'submit' }, text: tt('dictionary.savedViews.save', 'Сохранить') }),
+    el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => form.remove() } })]);
+  box.appendChild(form);
+  try { input.focus(); input.select(); } catch (_) {}
+}
+
 // ── article ────────────────────────────────────────────────────────────────────────────────────
 let morphHost = null, _articleEpoch = 0;
 function toast(msg, actionText, action) {
@@ -1177,6 +1308,17 @@ async function openArticle(key) {
   if (!places.length) placesSec.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.noPlaces', 'В ваших сохранённых текстах это слово не найдено.') }));
   const list = el('ul', { class: 'dict-places' });
   const aiSeen = new Map();
+  // Д4.4 texts with a media passport that has timing (MediaHost — the Room's own reader of the passport)
+  const mediaTexts = new Set();
+  try {
+    const ids = Array.from(new Set(places.slice(0, 20).map((p) => String(p.textId))));
+    if (ids.length && window.MediaHost && window.MediaHost.passportFromTextRow) {
+      (await q('SELECT id, table_model_meta_json, source_meta_json FROM texts WHERE id IN (' + ids.map(() => '?').join(',') + ')', ids)).forEach((r) => {
+        const a = window.MediaHost.passportFromTextRow(r);
+        if (a && a.timing && !a.timingDropReason) mediaTexts.add(String(r.id));
+      });
+    }
+  } catch (_) {}
   for (const p of places.slice(0, 20)) {
     const li = el('li', { class: 'dict-place' }, [highlight(p.he, p.offset)]);
     if (p.ru) li.appendChild(el('div', { class: 'ru', attrs: { dir: 'auto' }, text: p.ru }));
@@ -1188,7 +1330,8 @@ async function openArticle(key) {
       }
     } catch (_) {}
     li.appendChild(el('div', { class: 'src' }, [el('span', { text: p.title || '' }),
-      el('a', { attrs: { href: '/library.html?my_text=' + encodeURIComponent(p.textId) + '&at=' + p.order }, text: tt('dictionary.openInText', 'Открыть в тексте') })]));
+      el('a', { attrs: { href: '/library.html?my_text=' + encodeURIComponent(p.textId) + '&at=' + p.order }, text: tt('dictionary.openInText', 'Открыть в тексте') }),
+      mediaTexts.has(String(p.textId)) ? el('a', { class: 'dict-media-link', attrs: { href: '/library.html?my_text=' + encodeURIComponent(p.textId) + '&at=' + p.order + '&play=1', title: tt('dictionary.mediaTip', 'Откроет текст на этой строке; ▶ строки запустит видео или аудио с её начала') }, text: '▶ ' + tt('dictionary.mediaHere', 'медиа с этого места') }) : null]));
     list.appendChild(li);
     if (my !== _articleEpoch) return;
   }

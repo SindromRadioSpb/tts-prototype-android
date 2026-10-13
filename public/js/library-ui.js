@@ -8931,6 +8931,27 @@ function scrollToSentence(sid) {
 // P9 — jump by order_index (the explanation-anchor contract: text_key + order_index).
 // Fallback mirrors explainRow's anchor mint (order_index ?? row idx): a row without
 // _v3_orderIndex was anchored by its index.
+// Ф4 · Д4.4 the line's ▶ (media-host renders it only for a line with an honest timing): wait for it, bring it into
+// view, focus it and pulse it. No autoplay: a page that was just opened may not start sound without a tap.
+async function roomCueRowReplay(orderIndex) {
+  const oi = Number(orderIndex);
+  let idx = readerRows.findIndex((r) => r && r._v3_orderIndex != null && Number(r._v3_orderIndex) === oi);
+  if (idx < 0 && oi >= 0 && oi < readerRows.length) idx = oi;
+  if (idx < 0) return;
+  const t0 = Date.now();
+  let btn = null;
+  while (Date.now() - t0 < 12000) {
+    btn = document.querySelector('#roomReaderTable tr[data-row-idx="' + idx + '"] .smk-row-replay');
+    if (btn) break;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  if (!btn) { roomToast(tt('room.media.cueNoTiming', 'У этой строки нет отметки времени в медиа — откройте плеер и найдите место вручную.')); return; }
+  try { btn.scrollIntoView({ block: 'center' }); } catch (_) {}
+  btn.classList.add('smk-row-replay-cue');
+  try { btn.focus({ preventScroll: true }); } catch (_) {}
+  setTimeout(() => btn.classList.remove('smk-row-replay-cue'), 8000);
+  roomToast(tt('room.media.cueTap', 'Нажмите ▶ — медиа с начала этой строки'));
+}
 function scrollToOrderIdx(oi) {
   oi = Number(oi);
   if (!Number.isFinite(oi)) return;
@@ -15141,6 +15162,8 @@ async function boot() {
           ? { scrollToOrderIndex: atRow, replaceInitialHistory: true }
           : { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
         localLinkOpened = true;
+        // Ф4 · Д4.4 «▶ с этого места» from the dictionary: cue the line's media ▶ (one tap plays from its start)
+        if (atRow != null && initialQuery.get('play') === '1') roomCueRowReplay(atRow);
       }
     }
     const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import

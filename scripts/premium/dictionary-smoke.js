@@ -454,6 +454,68 @@ const ROWS = [
     await pg.goto(BASE + "/dictionary.html?text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
     await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan; }, null, { timeout: 60000 });
 
+    // D16 list tools: a mass status change on any view (palette → confirm → canon write → undo), a saved filter set,
+    // the source filter, and «▶ медиа с этого места» for a place in a text with media timing
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4 && document.getElementById("dict-bulkst"), null, { timeout: 60000 });
+    await pg.fill("#dict-q", "בית"); await pg.waitForTimeout(500);
+    const bulkBefore = await pg.evaluate(async (k) => (await import(window.__LDB_URL)).getWordStatus(k), seed.keys.bayit);
+    await pg.click("#dict-bulkst");
+    await pg.click('.dict-bulkst [data-bulk-status="l3"]');
+    const confirmText = await pg.textContent(".dict-bulkst");
+    await pg.click("#dict-bulkst-apply");
+    await pg.waitForTimeout(1000);
+    const bulkAfter = await pg.evaluate(async (k) => (await import(window.__LDB_URL)).getWordStatus(k), seed.keys.bayit);
+    const bulkToast = await pg.textContent("#dict-toast");
+    await pg.click("#dict-toast .dict-toast-act");
+    await pg.waitForTimeout(1000);
+    const bulkUndo = await pg.evaluate(async (k) => (await import(window.__LDB_URL)).getWordStatus(k), seed.keys.bayit);
+    ok(bulkBefore === "l1" && /Поставить «вспоминаю» 1 сл/.test(confirmText) && bulkAfter === "l3" && /изменено 1/.test(bulkToast) && bulkUndo === "l1",
+      `D16 массовая смена статуса: ${bulkBefore} → ${bulkAfter} («${bulkToast.split("Отменить")[0].trim()}») → отмена → ${bulkUndo}`);
+    await pg.fill("#dict-q", ""); await pg.waitForTimeout(400);
+    // a saved set: «глагол» → save → reset → apply the saved chip
+    await pg.click("#dict-filter-btn");
+    await pg.locator("#dict-filters .dict-chip").filter({ hasText: /^глагол$/ }).click();
+    await pg.click("#dict-save-view");
+    await pg.fill(".dict-saveview input", "Глаголы смоука");
+    await pg.click('.dict-saveview button[type="submit"]');
+    await pg.waitForTimeout(300);
+    await pg.locator("#dict-filters .dict-chip").filter({ hasText: /^глагол$/ }).click();
+    await pg.waitForTimeout(300);
+    const allRows = await pg.evaluate(() => document.querySelectorAll(".dict-row").length);
+    await pg.locator("#dict-saved .dict-chip").filter({ hasText: "Глаголы смоука" }).click();
+    await pg.waitForTimeout(400);
+    const setRows = await pg.evaluate(() => [...document.querySelectorAll(".dict-row .dict-row-meta")].map((m) => m.innerText));
+    const stored = await pg.evaluate(() => JSON.parse(localStorage.getItem("dict.savedViews_v1") || "[]").map((v) => v.name));
+    ok(allRows >= 4 && setRows.length >= 1 && setRows.length < allRows && setRows.every((m) => /глагол/.test(m)) && stored.includes("Глаголы смоука"),
+      `D16 сохранённый набор «Глаголы смоука»: ${setRows.length} из ${allRows}, хранится на устройстве`);
+    await pg.click('#dict-saved .dict-saved-del');
+    await pg.click('#dict-active .dict-chip:not(.dict-chip-save)').catch(() => {});
+    // the source filter
+    await pg.locator("#dict-filters .dict-chip").filter({ hasText: /^Мои тексты$/ }).click();
+    await pg.waitForTimeout(300);
+    const mine = await pg.evaluate(() => document.querySelectorAll(".dict-row").length);
+    await pg.locator("#dict-filters .dict-chip").filter({ hasText: /^Мои тексты$/ }).click();
+    await pg.locator("#dict-filters .dict-chip").filter({ hasText: /^Медиатека и общедоступные тексты$/ }).click();
+    await pg.waitForTimeout(300);
+    const pub = await pg.evaluate(() => ({ rows: document.querySelectorAll(".dict-row").length, empty: !!document.querySelector(".dict-empty") }));
+    ok(mine >= 2 && pub.rows === 0 && pub.empty, `D16 фильтр «где встречалось»: мои тексты ${mine}, Медиатека 0 (пусто честно)`);
+    await pg.click("#dict-filter-btn");
+    // «▶ медиа с этого места»: the second smoke text gets a media passport with timing
+    await pg.evaluate(async () => {
+      const ldb = await import(window.__LDB_URL);
+      await ldb.dbRun("UPDATE texts SET table_model_meta_json = ? WHERE id = 'dict-smoke-2'", [JSON.stringify({ source: { audio: { v: 1, segments: [{ start: 0, end: 2.5, text: "x" }], timing: { v: 1, rows: [{ start: 0, end: 2.5 }] } } } })]);
+    });
+    await pg.goto(BASE + "/dictionary.html?word=" + encodeURIComponent(seed.keys.katav), { waitUntil: "load" });
+    await pg.waitForFunction(() => { const a = document.getElementById("dict-article"); return a && /Места в моих текстах/.test(a.innerText) && !/Ищу…/.test(a.innerText); }, null, { timeout: 60000 }).catch(() => {});
+    const media = await pg.evaluate(() => [...document.querySelectorAll("#dict-article .dict-media-link")].map((a) => a.getAttribute("href")));
+    ok(media.length === 1 && /my_text=dict-smoke-2&at=0&play=1/.test(media[0]), "D16 «▶ медиа с этого места» только у места в тексте с таймингом (" + media.join() + ")");
+    await pg.goto(BASE + media[0], { waitUntil: "load" });
+    const cue = await pg.waitForFunction(() => /нет отметки времени|Нажмите ▶/.test((document.querySelector(".room-toast, #roomToast, [class*=toast]") || {}).innerText || document.body.innerText), null, { timeout: 30000 }).then(() => true).catch(() => false);
+    ok(cue, "D16 Зал по ссылке открывает строку и честно отвечает про ▶ (подсказка нажать или «нет отметки времени»)");
+    await pg.goto(BASE + "/dictionary.html?text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
+    await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan; }, null, { timeout: 60000 });
+
     // phone width, Hebrew UI
     await pg.setViewportSize({ width: 380, height: 845 });
     await pg.evaluate(() => localStorage.setItem("app.locale", "he"));

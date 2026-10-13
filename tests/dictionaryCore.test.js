@@ -119,3 +119,14 @@ test('text lens: only the words of the text, live status with «не разме�
   assert.deepEqual([n.total, n.known, n.none, n.new], [3, 1, 1, 1]);
   assert.equal(D.statusCounts(all).total, 2, 'the mine scope still counts only my words');
 });
+
+test('source filter: a word matches when any of its places is in a chosen class', () => {
+  const D = require('../public/js/dictionary-core.js');
+  const a = { key: 'pid:1', status: 'l1', surfaces: [], srcClasses: new Set(['mytext', 'byehuda']) };
+  const b = { key: 'pid:2', status: 'l1', surfaces: [], srcClasses: new Set(['public']) };
+  const c = { key: 'pid:3', status: 'l1', surfaces: [] };
+  const pick = (sources) => [a, b, c].filter((e) => D.matches(e, { statuses: [], sources })).map((e) => e.key);
+  assert.deepEqual(pick(['byehuda']), ['pid:1']);
+  assert.deepEqual(pick(['public', 'byehuda']), ['pid:1', 'pid:2']);
+  assert.deepEqual(pick([]), ['pid:1', 'pid:2', 'pid:3'], 'no source filter — everything');
+});
