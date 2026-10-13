@@ -106,8 +106,10 @@ async function fullCard(surface) {
 const q = (sql, params) => localDb.dbQuery(sql, params || []).then((r) => r || []).catch(() => []);
 const PERSONAL = `t.is_archived = 0 AND (NOT json_valid(t.source_meta_json) OR (json_type(t.source_meta_json, '$.corpus') IS NULL
   AND json_type(t.source_meta_json, '$.group_corpus') IS NULL AND json_type(t.source_meta_json, '$.public_corpus') IS NULL))`;
+const MY_NOTE_SQL = `n.source = 'curated' OR json_extract(n.body_json, '$.meaning_source') = 'user'
+  OR (n.user_touched = 1 AND n.gen_dedup_key IS NOT NULL AND n.gen_dedup_key <> '')`;
 async function loadSources() {
-  const [statuses, statusRows, schedule, noteRows, logRows, ctxRows, srcRows, noteSrcRows] = await Promise.all([
+  const [statuses, statusRows, schedule, noteRows, logRows, ctxRows, ctxSrcRows, textClsRows, noteTextRows] = await Promise.all([
     localDb.getAllWordStatuses().catch(() => ({})),
     q('SELECT lemma_key, updated_at, srs_surface, srs_text_key, srs_order_index FROM word_status'),
     localDb.getSrsSchedule().catch(() => ({})),
@@ -116,8 +118,7 @@ async function loadSources() {
         WHERE n.note_type = 'word_study'
           -- «my words» only: «Добавить в мои слова», my own translation, or a canonical note I touched.
           -- Auto-generated notes (source='auto') and bulk-imported notes without a canon key are not mine.
-          AND (n.source = 'curated' OR json_extract(n.body_json, '$.meaning_source') = 'user'
-               OR (n.user_touched = 1 AND n.gen_dedup_key IS NOT NULL AND n.gen_dedup_key <> ''))
+          AND (${MY_NOTE_SQL})
         GROUP BY n.id`),
     q(`SELECT item_key, COUNT(*) AS n, MIN(reviewed_at) AS first, MAX(reviewed_at) AS last,
               SUM(CASE WHEN kind = 'review' AND grade IS NOT NULL AND grade <= 1 THEN 1 ELSE 0 END) AS fails,
@@ -125,10 +126,13 @@ async function loadSources() {
               MAX(json_extract(meta_json, '$.surface')) AS surface
          FROM review_log WHERE kind IN ('review','mark','seed','skip') AND source <> 'mark-backfill' GROUP BY item_key`),
     q('SELECT lemma_key, COUNT(*) AS occ, COUNT(DISTINCT text_key) AS texts, MAX(surface) AS surface FROM word_context GROUP BY lemma_key'),
-    // Д4.3 «где встречалось»: the bank's class + the class of the text holding the mark of a status
-    q(`SELECT lemma_key AS k, source_class AS c FROM word_context GROUP BY lemma_key, source_class
-        UNION SELECT ws.lemma_key AS k, ${TEXT_CLASS_SQL} AS c FROM word_status ws JOIN texts t ON t.text_key = ws.srs_text_key`),
-    q(`SELECT o.note_id AS id, ${TEXT_CLASS_SQL} AS c FROM note_occurrences o JOIN sentences s ON s.id = o.sentence_id JOIN texts t ON t.id = s.text_id GROUP BY o.note_id, c`),
+    // Д4.3 «где встречалось»: the bank's class + the class of the text holding the mark of a status / my note.
+    // A text's class is read ONCE per text (texts × 1), never per joined row: source_meta_json of a book is up to
+    // ~1.7 MB, and classifying it per occurrence (160K rows) ran SQLite out of memory — iPhone killed the tab (3.11.760).
+    q('SELECT DISTINCT lemma_key AS k, source_class AS c FROM word_context'),
+    q(`SELECT t.id, t.text_key, ${TEXT_CLASS_SQL} AS c FROM texts t`),
+    q(`SELECT DISTINCT o.note_id AS id, s.text_id AS tid FROM notes_v2 n JOIN note_occurrences o ON o.note_id = n.id
+         JOIN sentences s ON s.id = o.sentence_id WHERE n.note_type = 'word_study' AND (${MY_NOTE_SQL})`),
   ]);
   S.schedule = schedule || {};
   const statusTimes = {}; statusRows.forEach((r) => { statusTimes[r.lemma_key] = r.updated_at; });
@@ -152,9 +156,12 @@ async function loadSources() {
       pid: b.pealim_id || '', created: r.created_at, occ: Number(r.occ) || 0, lastOcc: r.last_occ });
   });
   const src = new Map(), addSrc = (k, c) => { if (!k || !c) return; let x = src.get(k); if (!x) { x = new Set(); src.set(k, x); } x.add(c === 'byehuda' ? 'byehuda' : c); };
-  srcRows.forEach((r) => addSrc(r.k, r.c === 'mytext' || r.c === 'byehuda' || r.c === 'public' || r.c === 'group' ? r.c : 'mytext'));
+  ctxSrcRows.forEach((r) => addSrc(r.k, r.c === 'mytext' || r.c === 'byehuda' || r.c === 'public' || r.c === 'group' ? r.c : 'mytext'));
+  const clsById = new Map(), clsByKey = new Map();
+  textClsRows.forEach((r) => { clsById.set(r.id, r.c); if (r.text_key) clsByKey.set(r.text_key, r.c); });
+  statusRows.forEach((r) => { if (r.srs_text_key) addSrc(r.lemma_key, clsByKey.get(r.srs_text_key)); });
   const noteKey = new Map(notes.map((n) => [n.id, n.key]));
-  noteSrcRows.forEach((r) => addSrc(noteKey.get(r.id), r.c));
+  noteTextRows.forEach((r) => addSrc(noteKey.get(r.id), clsById.get(r.tid)));
   S.srcByKey = src;
   return D.mergeSources({ statuses, statusTimes, schedule, notes,
     logAgg: logRows.map((r) => ({ key: r.item_key, n: Number(r.n) || 0, first: r.first, last: r.last, fails: Number(r.fails) || 0, reviews: Number(r.reviews) || 0, surface: r.surface || '' })),

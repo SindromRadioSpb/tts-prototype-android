@@ -1219,7 +1219,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-progress-core.js?v=754",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=755",
-  "/js/dictionary-ui.js?v=759",
+  "/js/dictionary-ui.js?v=760",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
