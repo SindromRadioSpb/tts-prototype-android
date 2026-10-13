@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.755";
+const CACHE_VERSION = "v3.11.756";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,9 +82,9 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=754",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=755",
-  "/js/dictionary-ui.js?v=755",
+  "/js/dictionary-ui.js?v=756",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=727",
+  "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -107,7 +107,7 @@ const PRECACHE_URLS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=723",
+  "/js/study-video-source-ui.js?v=756",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=742",
@@ -143,7 +143,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=754",
+  "/js/library-ui.js?v=756",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -267,7 +267,7 @@ const PRECACHE_URLS = [
   "/js/studio-session.js?v=723",
   "/js/studio-media-editor.js?v=628",
   "/js/studio-material-revision.js",
-  "/js/studio-portable-learning-package.js?v=630",
+  "/js/studio-portable-learning-package.js?v=756",
   "/js/library-transfer-core.js?v=720",
   "/js/library-transfer-io.js?v=721",
   "/js/library-transfer.js?v=721",
@@ -334,9 +334,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=298",
-  "/i18n/locales/en.js?v=298",
-  "/i18n/locales/he.js?v=298",
+  "/i18n/locales/ru.js?v=299",
+  "/i18n/locales/en.js?v=299",
+  "/i18n/locales/he.js?v=299",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -349,7 +349,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=750",
+  "/db/local-db.js?v=756",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

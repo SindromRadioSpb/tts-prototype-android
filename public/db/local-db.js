@@ -6463,7 +6463,7 @@ async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
 // старой версии в lww_replace_backups + чистка occurrences заменяемого текста (FK нет).
 // `userRestore: true` — ПОЛЬЗОВАТЕЛЬСКИЙ импорт/Undo: ставит undelete-интенты для non-corpus
 // text_key бандла (пере-импорт снимает облачный tombstone). Cloud-sync/canon-автоимпорт НЕ передают.
-export async function importBundle(bundleObj, { mode = 'skip', canonVersion = null, userRestore = false } = {}) {
+export async function importBundle(bundleObj, { mode = 'skip', canonVersion = null, userRestore = false, reconcileCanon = !userRestore } = {}) {
   // Accept three bundle shapes:
   //   A) UNIFIED (Android v2 spec, current web export):
   //      { manifest, library: { texts: [{text_id, rows: [{hebrew_plain, ...}], ...}], audio_assets: [...] } }
@@ -6513,8 +6513,10 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
   //   • Shelves: canon iff origin='benyehuda-ingest'. Orphans deleted; re-shipped
   //     canon slugs are refreshed by the upsert below (canon shelves overwrite).
   //     User/legacy shelves (origin NULL) are never touched.
-  const _canonVer = (canonVersion != null && Number.isInteger(Number(canonVersion))) ? Number(canonVersion)
-    : (lib && Number.isInteger(Number(lib.canon_version)) ? Number(lib.canon_version) : null);
+  // Manual book/backup imports are additive even if their producer included
+  // canon_version. Automatic sync or an explicit full-canon caller may reconcile.
+  const _canonVer = reconcileCanon ? ((canonVersion != null && Number.isInteger(Number(canonVersion))) ? Number(canonVersion)
+    : (lib && Number.isInteger(Number(lib.canon_version)) ? Number(lib.canon_version) : null)) : null;
   if (_canonVer != null) {
     result.reconciled = { textsDeleted: 0, shelvesDeleted: 0, canonVersion: _canonVer };
     const _itemCorpus = (it) => {

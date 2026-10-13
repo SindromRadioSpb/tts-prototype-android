@@ -148,6 +148,8 @@ async function main() {
         localStorage.setItem('app.locale', 'ru'); localStorage.setItem('appTheme_v1', theme);
         localStorage.setItem('phase6Decision_v1', 'declined'); localStorage.setItem('onboardingSeen_v1', '1');
         localStorage.setItem('lp_world_sukkot_trial_v1', '1');
+        // Explicit fixture choice must survive the one-time Memorial rollout.
+        localStorage.setItem('lp_world_memorial_trial_v1', '1');
         localStorage.setItem('lp_world_v1', JSON.stringify({ id: world, mode: 'live', paused: false, lighting: 'day' }));
       }, { world, theme });
       const screen = await fresh.newPage(); debugPage = screen;

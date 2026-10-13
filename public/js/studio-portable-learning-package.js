@@ -29,6 +29,9 @@
   function decode(bytes){try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch(_){fail('ZIP_FILENAME_UTF8_INVALID');}}
 
   function inspectZipCentralDirectory(input, limits) {
+    return inspectRestoreCentralDirectory(input, limits, true);
+  }
+  function inspectRestoreCentralDirectory(input, limits, portable) {
     const bytes=input instanceof Uint8Array?input:new Uint8Array(input), L=limits||core().LIMITS;
     if(bytes.byteLength>L.archive)fail('PACKAGE_ARCHIVE_TOO_LARGE');
     let eocd=-1; for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65557);i--)if(u32(bytes,i)===0x06054b50){eocd=i;break;}
@@ -42,11 +45,13 @@
       const flags=u16(bytes,pos+8),method=u16(bytes,pos+10),crc32=u32(bytes,pos+16),compressed=u32(bytes,pos+20),uncompressed=u32(bytes,pos+24),nameLen=u16(bytes,pos+28),extraLen=u16(bytes,pos+30),commentLen=u16(bytes,pos+32),external=u32(bytes,pos+38),localOffset=u32(bytes,pos+42);
       if(flags&1)fail('ZIP_ENCRYPTED_UNSUPPORTED');
       if(![0,8].includes(method))fail('ZIP_COMPRESSION_UNSUPPORTED');
-      const rawName=bytes.slice(pos+46,pos+46+nameLen);if(Array.from(rawName).some((byte)=>byte>0x7f))fail('PACKAGE_INTERNAL_PATH_NON_ASCII');
+      const rawName=bytes.slice(pos+46,pos+46+nameLen);if(portable&&Array.from(rawName).some((byte)=>byte>0x7f))fail('PACKAGE_INTERNAL_PATH_NON_ASCII');
       const name=decode(rawName); if(names.has(name))fail('PACKAGE_DUPLICATE_PATH',name);names.add(name);
-      const directory=name.endsWith('/'),unixMode=(external>>>16)&0xffff,fileType=unixMode&0xf000;
+      const directory=name.endsWith('/'),safeName=directory?name.slice(0,-1):name;
+      if(!safeName||safeName.includes('\\')||safeName.includes('\0')||safeName.startsWith('/')||/^[A-Za-z]:/.test(safeName)||safeName.split('/').some(part=>!part||part==='.'||part==='..')||safeName.split('/').length>L.depth)fail('PACKAGE_PATH_INVALID',name);
+      const unixMode=(external>>>16)&0xffff,fileType=unixMode&0xf000;
       if(fileType&&fileType!==0x8000&&fileType!==0x4000)fail('PACKAGE_SPECIAL_FILE_FORBIDDEN',name);
-      if(!directory&&!core().pathAllowed(name))fail('PACKAGE_PATH_UNMANIFESTED',name);
+      if(portable&&!directory&&!core().pathAllowed(name))fail('PACKAGE_PATH_UNMANIFESTED',name);
       if(!directory&&utf8(name).byteLength>L.pathBytes)fail('PACKAGE_PATH_INVALID',name);
       if(uncompressed>L.entry||(name==='manifest.json'&&uncompressed>L.manifest)||(name==='README.txt'&&uncompressed>L.readme))fail('PACKAGE_ENTRY_TOO_LARGE',name);
       if(compressed===0&&uncompressed>0)fail('PACKAGE_COMPRESSION_RATIO_EXCEEDED',name);
@@ -59,6 +64,39 @@
     if(pos!==offset+declaredSize)fail('ZIP_CENTRAL_DIRECTORY_SIZE_MISMATCH');
     if(totalCompressed>0&&totalUncompressed/totalCompressed>L.ratio)fail('PACKAGE_AGGREGATE_RATIO_EXCEEDED');
     return {entries,total_compressed:totalCompressed,total_uncompressed:totalUncompressed};
+  }
+
+  // Library exports use their existing importer; LPLP retains its strict whitelist.
+  async function detectLibraryZip(file) {
+    if(file.size>core().LIMITS.archive)return false; // Large containers have streaming readers.
+    const bytes=file instanceof Uint8Array?file:new Uint8Array(await file.arrayBuffer());
+    const index=inspectRestoreCentralDirectory(bytes,undefined,false);
+    const names=index.entries.filter(entry=>!entry.directory).map(entry=>entry.name);
+    const paths=['library/library.json','library.json'].filter(name=>names.includes(name));
+    if(!paths.length)return false;
+    if(paths.length!==1||names.includes('graph/artifacts.json')||names.includes('source/media-ref.json'))fail('RESTORE_FORMAT_AMBIGUOUS');
+    const JSZipCtor=typeof window!=='undefined'?await window.v3LoadJSZip():require('jszip');
+    const zip=await JSZipCtor.loadAsync(bytes,{checkCRC32:true});
+    const manifestFile=zip.file('manifest.json');
+    if(manifestFile){
+      const manifest=core().parseJsonStrict(await manifestFile.async('string'));
+      if(manifest.schema===core().SCHEMA)fail('RESTORE_FORMAT_AMBIGUOUS');
+    }
+    const payload=core().parseJsonStrict(await zip.file(paths[0]).async('string'));
+    const library=payload&&payload.library&&typeof payload.library==='object'?payload.library:payload;
+    if(!library||!Array.isArray(library.texts))fail('LIBRARY_BUNDLE_INVALID');
+    if(library.texts.some(item=>!item||typeof item!=='object'||!(Array.isArray(item.rows)||Array.isArray(item.sentences)||item.text&&typeof item.text==='object')))fail('LIBRARY_BUNDLE_INVALID');
+    return true;
+  }
+  async function routeLibraryRestore(file,options={}) {
+    if(options.expectedReceipt)return false; // Receipt recovery requires its exact LPLP.
+    const transfer=typeof window!=='undefined'&&window.LibraryTransferIo;
+    const library=transfer&&await transfer.detect(file)||await detectLibraryZip(file);
+    if(!library||options.isCurrent&&!options.isCurrent())return false;
+    if(typeof window==='undefined'||typeof window.v3LibraryOnBundleImportSelected!=='function')fail('LIBRARY_IMPORT_UNAVAILABLE');
+    if(options.beforeRoute)options.beforeRoute();
+    await window.v3LibraryOnBundleImportSelected({target:{files:[file]}});
+    return true;
   }
 
   async function zipFiles(files, type) {
@@ -482,12 +520,20 @@
   }
   async function renderImport(modal,state){
     const body=modal.querySelector('#p2PortableBody'),actions=modal.querySelector('#p2PortableActions');
-    body.innerHTML=`<section class="p2-scope-card p2-import-scope"><span class="p2-scope-eyebrow">${tr('studio.portable.verifyFirst','VERIFY FIRST')}</span><h4>${tr('studio.portable.importTitle','Import a learning package')}</h4><p>${tr('studio.portable.importHelp','Select a .lplp.zip file. Verification and dry-run make no writes; Apply appears only for an unchanged safe plan.')}</p><div class="p2-portable-status" id="p2PortableStatus">${tr('studio.portable.importReady','No file selected. Your local library is unchanged.')}</div><input id="p2PortableFile" type="file" accept=".zip,.lplp.zip,application/zip" hidden><input id="p2PortableRelink" type="file" accept="audio/*,video/*" hidden></section>`;
+    body.innerHTML=`<section class="p2-scope-card p2-import-scope"><span class="p2-scope-eyebrow">${tr('studio.portable.verifyFirst','VERIFY FIRST')}</span><h4>${tr('studio.portable.importTitle','Import a learning package')}</h4><p>${tr('studio.portable.importHelp','Select a book ZIP or .lplp.zip file. The format is detected before you confirm the import.')}</p><div class="p2-portable-status" id="p2PortableStatus">${tr('studio.portable.importReady','No file selected. Your local library is unchanged.')}</div><input id="p2PortableFile" type="file" accept=".zip,.lplp.zip,application/zip" hidden><input id="p2PortableRelink" type="file" accept="audio/*,video/*" hidden></section>`;
     actions.innerHTML=`<button type="button" data-act="import" class="p2-portable-primary">${tr('studio.portable.import','Choose and verify package')}</button>`;
     const status=body.querySelector('#p2PortableStatus'),file=body.querySelector('#p2PortableFile'),relink=body.querySelector('#p2PortableRelink');
     actions.onclick=event=>{if(event.target&&event.target.dataset.act==='import'){file.value='';delete file.dataset.expectedReceipt;file.click();}};
     file.onchange=async()=>{
       const selected=file.files[0];if(!selected)return;status.tabIndex=-1;status.focus({preventScroll:true});let plan=null;
+      const selection=Symbol();file._selection=selection;
+      const current=()=>file.isConnected&&!modal.hidden&&file._selection===selection;pending=null;
+      try{
+        status.classList.remove('p2-portable-error');
+        status.textContent=tr('studio.portable.verifying','Verifying before any writes…');
+        if(await routeLibraryRestore(selected,{expectedReceipt:file.dataset.expectedReceipt,isCurrent:current,beforeRoute:()=>closeModal(modal)}))return;
+        if(!current())return;
+      }catch(error){if(current()){status.classList.add('p2-portable-error');status.textContent=formatPortableError(error,selected);}return;}
       // Архив с медиа приходит той же дверью: если файл разбирается как транспортный контейнер,
       // импорт идёт потоковым путём, иначе это обычный .lplp.zip и ничего не меняется.
       if(typeof window!=='undefined'&&window.MediaBundleIo){
@@ -498,7 +544,7 @@
           catch(error){status.classList.add('p2-portable-error');status.textContent=formatPortableError(error,selected,bundle.manifest&&bundle.manifest.media);}
           return;
         }
-      }const selection=Symbol();file._selection=selection;const current=()=>file.isConnected&&!modal.hidden&&file._selection===selection;pending=null;
+      }
       try{
         status.classList.remove('p2-portable-error');status.textContent=tr('studio.portable.verifying','Verifying before any writes…');plan=await dryRunFile(selected);if(!current())return;
         if(file.dataset.expectedReceipt&&(!plan.recovery||String(plan.recovery.receipt_id)!==String(file.dataset.expectedReceipt)))fail('RECOVERY_PACKAGE_MISMATCH');
@@ -594,5 +640,5 @@
     return {present:true,imported,reused,total:(index.packages||[]).length,export_receipts};
   }
 
-  return { inspectZipCentralDirectory, zipFiles, readZip, verifyZip, buildMaterialFiles, exportMaterial, dryRunFile, applyPending, relinkReceiptMedia, relinkTextMedia, mediaForText, mediaForReceipt, formatPortableError, listMaterials, listReceipts, materialForText, restoreLibraryProjection, repairTextMediaBinding, undoReceipt, augmentFullBackupZip, augmentTextBackupZip, backupCoverageGaps, restoreEmbeddedPackages, getCatalog, storageDiagnostics, recordBackupGenerated, confirmExportSaved, open, openForText, openMaterialActions, setRepositoryForTests(value){repositoryOverride=value;}, getPendingForTests(){return pending;} };
+  return { inspectZipCentralDirectory, detectLibraryZip, routeLibraryRestore, zipFiles, readZip, verifyZip, buildMaterialFiles, exportMaterial, dryRunFile, applyPending, relinkReceiptMedia, relinkTextMedia, mediaForText, mediaForReceipt, formatPortableError, listMaterials, listReceipts, materialForText, restoreLibraryProjection, repairTextMediaBinding, undoReceipt, augmentFullBackupZip, augmentTextBackupZip, backupCoverageGaps, restoreEmbeddedPackages, getCatalog, storageDiagnostics, recordBackupGenerated, confirmExportSaved, open, openForText, openMaterialActions, setRepositoryForTests(value){repositoryOverride=value;}, getPendingForTests(){return pending;} };
 });
