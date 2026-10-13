@@ -2152,6 +2152,8 @@ window.I18N_LOCALES.he = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "קריאה", mediatheque: "מדיה", studio: "סטודיו", review: "חזרה", dictionary: "מילון", label: "אזורים" },
   dictionary: {
+    morePlacesBtn: "הצג עוד {k} (נותרו {n})",
+    placesBudget: "החיפוש עבר על {n} המשפטים הראשונים עם צורות המילה — בטקסטים שלכם יש יותר.",
     freqZero: "לא הופיעו",
     fFreq: "שכיחות בטקסטים שלי",
     fFreqText: "שכיחות בטקסט",

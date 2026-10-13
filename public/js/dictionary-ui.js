@@ -1128,6 +1128,7 @@ function highlight(sentence, offset) {
   return out;
 }
 // every verified place of this lemma in my texts: saved occurrences, the training bank, and a search
+const PLACES_BUDGET = 3000, PLACES_PAGE = 20;
 async function findPlaces(e, card) {
   const places = new Map();
   const add = (p) => { const k = p.textId + ':' + p.order + ':' + p.offset; if (!places.has(k)) places.set(k, p); };
@@ -1148,24 +1149,30 @@ async function findPlaces(e, card) {
   e.surfaces.forEach((x) => forms.add(strip(x.s)));
   if (card && card.paradigm) paradigmForms(card.paradigm).forEach((f) => forms.add(f));
   const skels = Array.from(forms).filter((x) => x && x.length > 1).slice(0, 48);
-  const hits = skels.length ? await localDb.findSentencesForWords(skels, 160).catch(() => []) : [];
+  // every sentence that may hold a form (no early stop at a fixed number of places — the owner's 2026-10-14 report:
+  // «Места · 40» was the cap, not the count); a budget keeps one call bounded and the UI says when it was reached
+  const hits = skels.length ? await q(`SELECT s.text_id, s.order_index, s.he_plain, s.he_niqqud, s.ru, t.title AS text_title FROM sentences s
+      JOIN texts t ON t.id = s.text_id AND t.is_archived = 0 WHERE (${skels.map(() => 's.he_plain LIKE ?').join(' OR ')}) LIMIT ?`,
+    [...skels.map((x) => '%' + x + '%'), PLACES_BUDGET + 1]).catch(() => []) : [];
+  const truncated = hits.length > PLACES_BUDGET;
   const want = new Set(skels);
   // a form in a text may carry proclitics (שֶׁ+שָּׁמַעְתִּי, וְ+הַ+…): a candidate is any token that IS a wanted form or
   // ends with one behind ≤3 proclitic letters; every candidate is then proven by the resolver (lemmaKey === key)
   const PROC = /^[ובכלמשה]{1,3}$/;
   const candidate = (tok) => { const sk = strip(tok); if (want.has(sk)) return true; for (let n = 1; n <= 3 && n < sk.length - 1; n++) if (PROC.test(sk.slice(0, n)) && want.has(sk.slice(n))) return true; return false; };
-  for (const r of hits) {
-    if (places.size >= 40) break;
+  const found = [], toks = new Set();
+  hits.slice(0, PLACES_BUDGET).forEach((r) => {
     const text = String(r.he_niqqud || r.he_plain || '');
-    const toks = RM().words(text);
-    for (let i = 0; i < toks.length; i++) {
-      if (!candidate(toks[i])) continue;
-      const got = await resolveSurfaces([toks[i]]);
-      const rd = got.get(toks[i]);
-      if (rd && rd.lemmaKey === e.key) add({ textId: r.text_id, title: r.text_title, order: Number(r.order_index), offset: i, he: text, ru: r.ru, row: r });
-    }
-  }
-  return Array.from(places.values());
+    RM().words(text).forEach((tk, i) => { if (candidate(tk)) { found.push([r, text, i, tk]); toks.add(tk); } });
+  });
+  const got = toks.size ? await resolveSurfaces(Array.from(toks)) : new Map();   // one batch (cached), not one call per token
+  found.forEach(([r, text, i, tk]) => { const rd = got.get(tk); if (rd && rd.lemmaKey === e.key) add({ textId: r.text_id, title: r.text_title, order: Number(r.order_index), offset: i, he: text, ru: r.ru, row: r }); });
+  // the texts of the current lens first, then each text in reading order
+  const lensIds = new Set(S.filters.scope === 'text' && S.text ? S.text.texts.map((t) => String(t.id)) : []);
+  const out = Array.from(places.values()).sort((a, b) => (lensIds.has(String(b.textId)) - lensIds.has(String(a.textId)))
+    || String(a.title || '').localeCompare(String(b.title || '')) || String(a.textId).localeCompare(String(b.textId)) || a.order - b.order || a.offset - b.offset);
+  out.truncated = truncated;
+  return out;
 }
 // ── Д2.2 тренировка форм (FormDrillCore; память по клетке — своя, на устройстве; FSRS леммы не трогается) ──
 let _drillDb = null;
@@ -1493,19 +1500,19 @@ async function openArticle(key) {
   placesSec.lastChild.remove();
   if (!places.length) placesSec.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.noPlaces', 'В ваших сохранённых текстах это слово не найдено.') }));
   const list = el('ul', { class: 'dict-places' });
-  const aiSeen = new Map();
-  // Д4.4 texts with a media passport that has timing (MediaHost — the Room's own reader of the passport)
-  const mediaTexts = new Set();
-  try {
-    const ids = Array.from(new Set(places.slice(0, 20).map((p) => String(p.textId))));
-    if (ids.length && window.MediaHost && window.MediaHost.passportFromTextRow) {
-      (await q('SELECT id, table_model_meta_json, source_meta_json FROM texts WHERE id IN (' + ids.map(() => '?').join(',') + ')', ids)).forEach((r) => {
+  const aiSeen = new Map(), mediaTexts = new Map();
+  // Д4.4 a text whose media passport has timing (MediaHost — the Room's own reader of the passport); asked per page
+  async function mediaOf(ids) {
+    const ask = ids.filter((id) => !mediaTexts.has(id));
+    if (!ask.length || !window.MediaHost || !window.MediaHost.passportFromTextRow) return;
+    try {
+      (await q('SELECT id, table_model_meta_json, source_meta_json FROM texts WHERE id IN (' + ask.map(() => '?').join(',') + ')', ask)).forEach((r) => {
         const a = window.MediaHost.passportFromTextRow(r);
-        if (a && a.timing && !a.timingDropReason) mediaTexts.add(String(r.id));
+        mediaTexts.set(String(r.id), !!(a && a.timing && !a.timingDropReason));
       });
-    }
-  } catch (_) {}
-  for (const p of places.slice(0, 20)) {
+    } catch (_) {}
+  }
+  const placeItem = async (p) => {
     const li = el('li', { class: 'dict-place' }, [highlight(p.he, p.offset)]);
     if (p.ru) li.appendChild(el('div', { class: 'ru', attrs: { dir: 'auto' }, text: p.ru }));
     try {
@@ -1517,13 +1524,28 @@ async function openArticle(key) {
     } catch (_) {}
     li.appendChild(el('div', { class: 'src' }, [el('span', { text: p.title || '' }),
       el('a', { attrs: { href: '/library.html?my_text=' + encodeURIComponent(p.textId) + '&at=' + p.order }, text: tt('dictionary.openInText', 'Открыть в тексте') }),
-      mediaTexts.has(String(p.textId)) ? el('a', { class: 'dict-media-link', attrs: { href: '/library.html?my_text=' + encodeURIComponent(p.textId) + '&at=' + p.order + '&play=1', title: tt('dictionary.mediaTip', 'Откроет текст на этой строке; ▶ строки запустит видео или аудио с её начала') }, text: '▶ ' + tt('dictionary.mediaHere', 'медиа с этого места') }) : null]));
-    list.appendChild(li);
-    if (my !== _articleEpoch) return;
+      mediaTexts.get(String(p.textId)) ? el('a', { class: 'dict-media-link', attrs: { href: '/library.html?my_text=' + encodeURIComponent(p.textId) + '&at=' + p.order + '&play=1', title: tt('dictionary.mediaTip', 'Откроет текст на этой строке; ▶ строки запустит видео или аудио с её начала') }, text: '▶ ' + tt('dictionary.mediaHere', 'медиа с этого места') }) : null]));
+    return li;
+  };
+  // every place is reachable: a page at a time, «Показать ещё» for the rest (2026-10-14: «И ещё мест: 20» led nowhere)
+  let shownPlaces = 0;
+  const moreBox = el('div', { class: 'dict-places-more' });
+  async function showPlaces() {
+    const page = places.slice(shownPlaces, shownPlaces + PLACES_PAGE);
+    await mediaOf(Array.from(new Set(page.map((p) => String(p.textId)))));
+    for (const p of page) { const li = await placeItem(p); if (my !== _articleEpoch) return; list.appendChild(li); }
+    shownPlaces += page.length;
+    moreBox.replaceChildren();
+    const rest = places.length - shownPlaces;
+    if (rest > 0) moreBox.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-places-more' },
+      text: fill(tt('dictionary.morePlacesBtn', 'Показать ещё {k} (осталось {n})'), { k: Math.min(PLACES_PAGE, rest), n: rest }),
+      on: { click: async (ev) => { ev.currentTarget.disabled = true; await showPlaces(); } } }));
+    if (places.truncated) moreBox.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.placesBudget', 'Поиск просмотрел первые {n} предложений с формами этого слова — в ваших текстах их больше.'), { n: PLACES_BUDGET }) }));
   }
-  if (places.length) placesSec.appendChild(list);
-  placesSec.querySelector('summary').textContent = tt('dictionary.places', 'Места в моих текстах') + (places.length ? ' · ' + places.length : '');
-  if (places.length > 20) placesSec.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.morePlaces', 'И ещё мест: {n}'), { n: places.length - 20 }) }));
+  await showPlaces();
+  if (my !== _articleEpoch) return;
+  if (places.length) { placesSec.appendChild(list); placesSec.appendChild(moreBox); }
+  placesSec.querySelector('summary').textContent = tt('dictionary.places', 'Места в моих текстах') + (places.length ? ' · ' + places.length + (places.truncated ? '+' : '') : '');
   if (aiSeen.size) {
     const txt = Array.from(aiSeen.entries()).sort((a, b) => b[1] - a[1]).map(([g, n]) => n > 1 ? g + ' (' + n + ')' : g).join('; ');
     aiBox.replaceChildren(el('span', { class: 'k', text: tt('dictionary.aiMeanings', 'в контексте (ИИ)') }), el('span', { class: 'ai', text: txt }));

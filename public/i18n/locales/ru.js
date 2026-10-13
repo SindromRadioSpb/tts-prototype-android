@@ -2158,6 +2158,8 @@ window.I18N_LOCALES.ru = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Зал", mediatheque: "Медиатека", studio: "Студия", review: "Повторение", dictionary: "Словарь", label: "Разделы" },
   dictionary: {
+    morePlacesBtn: "Показать ещё {k} (осталось {n})",
+    placesBudget: "Поиск просмотрел первые {n} предложений с формами этого слова — в ваших текстах их больше.",
     freqZero: "не встречались",
     fFreq: "Частота в моих текстах",
     fFreqText: "Частота в тексте",

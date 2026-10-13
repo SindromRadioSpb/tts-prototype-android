@@ -2144,6 +2144,8 @@ window.I18N_LOCALES.en = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", dictionary: "Dictionary", label: "Sections" },
   dictionary: {
+    morePlacesBtn: "Show {k} more ({n} left)",
+    placesBudget: "The search looked through the first {n} sentences with forms of this word — your texts have more.",
     freqZero: "never met",
     fFreq: "Frequency in my texts",
     fFreqText: "Frequency in the text",

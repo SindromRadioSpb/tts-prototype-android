@@ -568,6 +568,36 @@ const ROWS = [
     const ow = await pg.evaluate(() => { const b = document.getElementById("btnDictWords"); return { on: !!b && !b.disabled, id: b && b.dataset.textId, text: b && b.textContent.trim() }; });
     ok(ow.on && ow.id === seed.tid && /Слова/.test(ow.text), `D20 открытая карточка Студии: «${ow.text}» рядом с Anki, ведёт на срез этого текста`);
 
+    // D21 (owner 2026-10-14) every place of a word is reachable — no cap at 40, «Показать ещё» past 20 — and the sticky
+    // article stays below the app strip while the list scrolls
+    await pg.evaluate(async () => {
+      const ldb = await import(window.__LDB_URL);
+      await ldb.createText({ id: "dict-smoke-many", text_key: "dict-smoke-many", title: "Много мест смоука" });
+      for (let i = 0; i < 45; i++) await ldb.addSentence("dict-smoke-many", { id: "dsm-" + i, order_index: i, he_plain: "התלמיד כתב מכתב מספר " + (i + 1), he_niqqud: "הַתַּלְמִיד כָּתַב מִכְתָּב מִסְפָּר " + (i + 1), ru: "ученик написал письмо номер " + (i + 1) });
+    });
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4 && document.querySelectorAll(".dict-row").length >= 4, null, { timeout: 60000 });
+    await pg.fill("#dict-q", "כתב"); await pg.waitForTimeout(500);
+    await pg.click(`.dict-row[data-key="${seed.keys.katav}"]`);
+    await pg.waitForSelector("#dict-places-more", { timeout: 90000 }).catch(() => {});
+    const pl1 = await pg.evaluate(() => ({ head: (document.querySelector('#dict-article [data-sec="places"] summary, #dict-article details summary') || {}).textContent || "",
+      heads: [...document.querySelectorAll("#dict-article summary")].map((x) => x.textContent), n: document.querySelectorAll("#dict-article .dict-place").length }));
+    const total = Number(((pl1.heads.find((h) => /Места в моих текстах/.test(h)) || "").match(/· (\d+)/) || [])[1] || 0);
+    let guard = 0;
+    while (await pg.$("#dict-places-more") && guard++ < 10) { await pg.click("#dict-places-more"); await pg.waitForTimeout(400); }
+    const pl2 = await pg.evaluate(() => document.querySelectorAll("#dict-article .dict-place").length);
+    ok(total >= 46 && pl1.n === 20 && pl2 === total, `D21 все места слова доступны: заголовок «${total}», сначала 20, после «Показать ещё» — ${pl2}`);
+    // the owner's case: a long list scrolled while a word is open (a short viewport makes the list longer than the window)
+    await pg.setViewportSize({ width: 1280, height: 520 });
+    await pg.fill("#dict-q", ""); await pg.waitForTimeout(600);
+    const stick = await pg.evaluate(async () => {
+      window.scrollTo(0, Math.round((document.documentElement.scrollHeight - window.innerHeight) / 2)); await new Promise((r) => setTimeout(r, 300));
+      const nav = document.querySelector(".lp-app-nav"), art = document.getElementById("dict-article");
+      return { nav: nav ? nav.getBoundingClientRect().bottom : 0, art: art ? art.getBoundingClientRect().top : -1, y: window.scrollY };
+    });
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    ok(stick.y > 0 && stick.art >= stick.nav - 0.5, `D21 статья при прокрутке списка ниже панели навигации (верх статьи ${Math.round(stick.art)} ≥ низ навигации ${Math.round(stick.nav)})`);
+
     // D16 list tools: a mass status change on any view (palette → confirm → canon write → undo), a saved filter set,
     // the source filter, and «▶ медиа с этого места» for a place in a text with media timing
     await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
