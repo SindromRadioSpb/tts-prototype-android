@@ -187,6 +187,12 @@ function readingFromParadigm(p, key) {
   return { lemmaKey: key, niqqud: p.lemma_niqqud || p.lemma || '', word: strip(p.lemma || ''), lemma: p.lemma || '', meaning: p.meaning || '',
     pos: p.pos || '', binyan: p.binyan || '', root: p.root || '', label: 'exact', pid: p.pealim_id != null ? String(p.pealim_id) : '', surface: p.lemma_niqqud || p.lemma || '', source: 'pealim' };
 }
+// an export must not race the background reading pass: the buttons show up before it ends (a fast load clicked
+// early handed the Studio words without a headword or Pealim id — half of the deck was dropped, 3.11.760)
+async function ensureReadings(list) {
+  const todo = list.filter((e) => e.reading === undefined);
+  if (todo.length) { try { await resolveReadings(new Map(todo.map((e) => [e.key, e]))); } catch (_) {} }
+}
 async function resolveReadings(entries) {
   const list = Array.from(entries.values()).filter((e) => e.reading === undefined);
   await engine();
@@ -1557,10 +1563,11 @@ function lemmaTranslit(p) {
 // a note (its full body, mnemonic included, is used), else the dictionary's own reading; the example from my texts
 async function exportApkg(list) {
   progress(tt('dictionary.apkgPreparing', 'Готовлю колоду Anki…'));
+  await ensureReadings(list);
   const examples = await examplesFor(list);
   const items = list.slice(0, 2000).map((e) => {
     const d = D.displayOf(e), mean = D.meaningOf(e), p = paradigmOf(e), r = e.reading || {};
-    const pid = (p && p.pealim_id != null) ? String(p.pealim_id) : (r.pid || (e.note && e.note.pid) || '');
+    const pid = (p && p.pealim_id != null) ? String(p.pealim_id) : (r.pid || (e.note && e.note.pid) || ((/^pid:(d+)$/.exec(e.key) || [])[1]) || '');
     const body = { word: strip(d.lemma || d.he), niqqud_variant: d.he || '', lemma: d.lemma || '', meaning: mean.text || '', pos: d.pos || '', part_of_speech: d.pos || '',
       binyan: d.binyan || '', root: d.root || '' };
     if (pid) body.pealim_id = pid;
@@ -1583,6 +1590,7 @@ async function exportXlsx(list) {
   try {
     progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: 0, n: list.length }));
     const JSZip = await zipLib();
+    await ensureReadings(list);
     const memAll = new Map((await drillAll()).map((r) => [r.key, r.mem]));
     const lens = S.filters.scope === 'text' && S.text && S.text.scan ? S.text : null;
     const examples = await examplesFor(list);

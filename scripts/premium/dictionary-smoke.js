@@ -520,6 +520,8 @@ const ROWS = [
     // word-card builder (same guid = lemma key, same fields as a Studio text export)
     await pg.waitForSelector("#dict-apkg", { timeout: 30000 });
     const apkgBtn = await pg.textContent("#dict-apkg");
+    // the button shows up before the background reading pass ends: export with readings still pending (3.11.761)
+    await pg.evaluate(() => window.LPDictionary.state.entries.forEach((e) => { e.reading = undefined; e.paradigm = undefined; }));
     const [studio] = await Promise.all([ctx.waitForEvent("page", { timeout: 30000 }), pg.click("#dict-apkg")]);
     const dlA = await studio.waitForEvent("download", { timeout: 120000 }).catch(() => null);
     const apkg = await studio.evaluate(() => window.__lpLastDictionaryApkg || null).catch(() => null);
