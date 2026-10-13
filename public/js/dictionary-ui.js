@@ -1231,6 +1231,14 @@ function synthCard(e) {
     .filter((x) => !(p.pealim_id != null && x.pid === String(p.pealim_id)) && x.key !== selfKey).slice(0, 16);
   return { lemmaKey: e.key, paradigm: p, niqqud: rd.niqqud, rootFamily: fam, label: 'exact' };
 }
+const SEC_KEY = 'dict.secOpen_v1';
+function secOpenState() { try { return JSON.parse(localStorage.getItem(SEC_KEY) || '{}') || {}; } catch (_) { return {}; } }
+function foldSec(id, openByDefault, title, children) {
+  const st = secOpenState(), open = Object.prototype.hasOwnProperty.call(st, id) ? !!st[id] : openByDefault;
+  const d = el('details', { class: 'dict-a-sec', attrs: Object.assign({ 'data-sec': id }, open ? { open: '' } : {}) }, [el('summary', { text: title })].concat(children));
+  d.addEventListener('toggle', () => { const x = secOpenState(); x[id] = d.open; try { localStorage.setItem(SEC_KEY, JSON.stringify(x)); } catch (_) {} });
+  return d;
+}
 async function openArticle(key) {
   const e = S.entries.get(key); if (!e) return;
   const my = ++_articleEpoch;
@@ -1271,10 +1279,11 @@ async function openArticle(key) {
   const aiBox = el('div', {}); meanBox.appendChild(aiBox);
   const openCard = el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.openCard', 'Карточка слова: мой перевод, заметка, Pealim'),
     on: { click: () => { try { RM().openWordCard(strip(surface), hasNiqqud(surface) ? surface : ''); } catch (_) {} } } });
-  const placesSec = el('section', { class: 'dict-a-sec' }, [el('h3', { text: tt('dictionary.places', 'Места в моих текстах') }), el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') })]);
-  const conjSec = el('details', { class: 'dict-a-sec', attrs: { open: '' } }, [el('summary', { text: tt('dictionary.conj', 'Спряжение / склонение') }), el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') })]);
-  const famSec = el('details', { class: 'dict-a-sec' }, [el('summary', { text: tt('dictionary.family', 'Слова от этого корня') })]);
-  const memSec = el('details', { class: 'dict-a-sec' }, [el('summary', { text: tt('dictionary.memory', 'Память') })]);
+  // the article's sections fold like «Спряжение»; the open/closed choice is remembered on this device for every word
+  const placesSec = foldSec('places', true, tt('dictionary.places', 'Места в моих текстах'), [el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') })]);
+  const conjSec = foldSec('conj', true, tt('dictionary.conj', 'Спряжение / склонение'), [el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') })]);
+  const famSec = foldSec('family', false, tt('dictionary.family', 'Слова от этого корня'), []);
+  const memSec = foldSec('memory', false, tt('dictionary.memory', 'Память'), []);
   art.replaceChildren(back, head, statusBox,
     el('section', { class: 'dict-a-sec' }, [el('h3', { text: tt('dictionary.meanings', 'Значения') }), meanBox, el('p', {}, [openCard])]),
     placesSec, conjSec, famSec, memSec);
@@ -1353,6 +1362,7 @@ async function openArticle(key) {
     if (my !== _articleEpoch) return;
   }
   if (places.length) placesSec.appendChild(list);
+  placesSec.querySelector('summary').textContent = tt('dictionary.places', 'Места в моих текстах') + (places.length ? ' · ' + places.length : '');
   if (places.length > 20) placesSec.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.morePlaces', 'И ещё мест: {n}'), { n: places.length - 20 }) }));
   if (aiSeen.size) {
     const txt = Array.from(aiSeen.entries()).sort((a, b) => b[1] - a[1]).map(([g, n]) => n > 1 ? g + ' (' + n + ')' : g).join('; ');
