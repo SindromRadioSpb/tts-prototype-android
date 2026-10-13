@@ -133,3 +133,18 @@ test('set deck: round-robin across words, weak words first, options from the wor
   assert.ok(deck.every((x) => x.study === (x.key === 'pid:a' ? study : dStudy)));
   assert.equal(F.buildSetDeck([], { size: 5 }).length, 0);
 });
+
+test('pleneOf: the full spelling by the vowel rule, accepted by checkTyped', () => {
+  const t = formOf(dStudy, 'PERF-1s');
+  assert.equal(F.pleneOf(t.he), 'דיברתי');
+  assert.equal(F.pleneOf(formOf(study, 'IMPF-1s').he), 'אכתוב');
+  assert.equal(F.pleneOf(formOf(study, 'PERF-1p').he), 'כתבנו');
+  assert.equal(F.pleneOf(formOf(study, 'INF-L').he), 'לכתוב', 'a hiriq in a closed syllable takes no yod');
+  assert.equal(F.checkTyped(formOf(study, 'INF-L'), study, 'ליכתוב').ok, false);
+  const bayit = IR.projectStudyForms(ds.paradigms.find((p) => p.lemma === 'בית' && p.pos === 'noun'));
+  const sg = F.formsOf(bayit).find((f) => F.skeleton(f.he) === 'בית');
+  assert.equal(F.pleneOf(sg.he), 'בית', 'no yod after a hiriq under the yod itself');
+  assert.equal(F.checkTyped(sg, bayit, 'ביית').ok, false);
+  assert.equal(F.checkTyped(sg, bayit, 'בית').ok, true);
+  F.formsOf(dStudy).concat(F.formsOf(study)).forEach((f) => assert.equal(F.checkTyped(f, f.groupKey ? (F.formsOf(dStudy).includes(f) ? dStudy : study) : study, F.pleneOf(f.he)).ok, true, f.he));
+});

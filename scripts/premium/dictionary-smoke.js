@@ -264,21 +264,37 @@ const ROWS = [
     ok(/Тренировка форм: [1-9]/.test(fromProg), "D10 «Тренировать формы» из слабого места открывает раунд («" + fromProg + "»)");
     await pg.click('[data-view="words"]');
 
-    // D11 XLSX of the current view: three sheets, the words and the forms of their tables
+    // D11 XLSX study book of the current view: six sheets; word ↔ table links; example in bold; self-test formulas
     await pg.waitForSelector("#dict-xlsx", { timeout: 30000 });
     const xlsxBtn = await pg.textContent("#dict-xlsx");
     const [dl] = await Promise.all([pg.waitForEvent("download", { timeout: 60000 }), pg.click("#dict-xlsx")]);
     const xlsxPath = path.join(REPO_ROOT, ".tmp", "dictionary-export.xlsx");
     await dl.saveAs(xlsxPath);
-    const xl = await pg.evaluate(async () => {
+    const xl = await pg.evaluate(async (katavKey) => {
       const ex = window.LPDictionary.lastExport; if (!ex) return null;
       const zip = await window.JSZip.loadAsync(ex.blob);
       const wb = await zip.file("xl/workbook.xml").async("string");
-      const s1 = await zip.file("xl/worksheets/sheet1.xml").async("string"), s2 = await zip.file("xl/worksheets/sheet2.xml").async("string");
-      return { name: ex.name, words: ex.words, forms: ex.forms, sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), katav: s1.includes('<t xml:space="preserve">לִכְתּוֹב</t>'), kotev: /כּוֹתֵב/.test(s2), rtl: /s="2"><is><t xml:space="preserve">[א-ת]/.test(s1) };
-    });
-    ok(/Скачать XLSX \(4\)/.test(xlsxBtn) && xl && xl.words === 4 && xl.forms > 40 && xl.sheets.join() === "Словарь,Формы,Прогресс" && xl.katav && xl.kotev && xl.rtl && /^linguistpro-dictionary-\d{4}-\d\d-\d\d\.xlsx$/.test(dl.suggestedFilename()),
-      `D11 XLSX: ${dl.suggestedFilename()} — листы ${xl && xl.sheets.join("/")}, слов ${xl && xl.words}, форм ${xl && xl.forms}`);
+      const sh = async (i) => zip.file("xl/worksheets/sheet" + i + ".xml").async("string");
+      const s2 = await sh(2), s3 = await sh(3), s5 = await sh(5);
+      // the Словарь row of לכתוב → its table block → back to the same row
+      const rowOf = s2.split("<row ").find((r) => r.includes(">" + katavKey + "<"));
+      const n = rowOf ? rowOf.slice(rowOf.indexOf('r="') + 3, rowOf.indexOf('"', rowOf.indexOf('r="') + 3)) : "";
+      const lk = '<hyperlink ref="Q' + n + '" location="' + "'Таблицы'!A";
+      const toTable = n && s2.includes(lk) ? s2.slice(s2.indexOf(lk) + lk.length).split('"')[0] : "";
+      const back = toTable ? s3.includes('<hyperlink ref="A' + toTable + '" location="' + "'Словарь'!A" + n + '"') : false;
+      return { words: ex.words, forms: ex.forms, tests: ex.tests, sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), toTable, back,
+        boldEx: s2.includes('<rPr><b/><color rgb="FF1B4FB8"/></rPr><t xml:space="preserve">כָּתְבָה</t>'), formula: s5.includes("_xlfn.UNICHAR"),
+        appLink: (await zip.file("xl/worksheets/_rels/sheet2.xml.rels").async("string")).includes("dictionary.html?word=") };
+    }, seed.keys.katav);
+    ok(xlsxBtn.includes("Скачать XLSX (4)") && xl && xl.words === 4 && xl.forms > 40 && xl.sheets.join() === "Начать,Словарь,Таблицы,Формы,Проверь себя,Прогресс" && /^linguistpro-dictionary-[0-9-]{10}[.]xlsx$/.test(dl.suggestedFilename()),
+      `D11 XLSX: ${dl.suggestedFilename()} — листы ${xl && xl.sheets.join("/")}, слов ${xl && xl.words}, форм ${xl && xl.forms}, заданий ${xl && xl.tests}`);
+    ok(xl && xl.toTable && xl.back, "D11 переход слово → его таблица → обратно к той же строке (Таблицы!A" + (xl && xl.toTable) + ")");
+    ok(xl && xl.boldEx && xl.formula && xl.appLink, "D11 пример со словом жирным, формулы проверки, ссылка «в приложении»");
+    // «открыть ↗» lands on the word's article
+    await pg.goto(BASE + "/dictionary.html?word=" + encodeURIComponent(seed.keys.katav), { waitUntil: "load" });
+    await pg.waitForFunction(() => { const a = document.getElementById("dict-article"); return a && !a.hidden && a.querySelector(".dict-a-word"); }, null, { timeout: 60000 }).catch(() => {});
+    const deep = await pg.evaluate(() => (document.querySelector("#dict-article .dict-a-word .he") || {}).textContent || "");
+    ok(/לִכְתּוֹב/.test(deep), "D11 ссылка из книги dictionary.html?word= открывает статью слова («" + deep + "»)");
 
     // D5 scale: 1000 entries
     await pg.evaluate(async () => {

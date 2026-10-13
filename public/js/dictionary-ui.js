@@ -911,7 +911,7 @@ async function renderProgress() {
   box.replaceChildren(...kids);
 }
 
-// ── XLSX «Мой словарь»: текущий вид (фильтры + сортировка) → книга «Словарь / Формы / Прогресс» ──────────
+// ── XLSX «Мой словарь»: текущий вид (фильтры + сортировка) → учебная книга (DictionaryWorkbook, спека F4_XLSX_PREMIUM) ──
 let _zipLib = null;
 function zipLib() {
   if (window.JSZip) return Promise.resolve(window.JSZip);
@@ -923,78 +923,115 @@ function zipLib() {
   return _zipLib;
 }
 const isoDay = (t) => { if (!t) return ''; const d = new Date(t); return Number.isFinite(d.getTime()) ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : ''; };
+// one example sentence per word from MY texts: the training bank, a saved occurrence of «my word», the place a
+// status was set — the word's offset in the sentence is found by its surface (bold in the book)
+async function examplesFor(list) {
+  const want = new Set(list.map((e) => e.key)), out = new Map();
+  const put = (key, he, surface, ru, title) => {
+    if (!want.has(key) || out.has(key) || !he) return;
+    let at = -1, len = 0, pos = 0;
+    try {
+      for (const tk of RM().tokenize(he)) {
+        if (tk.isWord && at < 0 && surface && strip(tk.text) === strip(surface)) { at = pos; len = tk.text.length; }
+        pos += tk.text.length;
+      }
+    } catch (_) {}
+    out.set(key, { he, at, len, ru: ru || '', title: title || '' });
+  };
+  (await q(`SELECT wc.lemma_key, wc.surface, s.he_niqqud, s.he_plain, s.ru, t.title FROM word_context wc
+             JOIN texts t ON t.text_key = wc.text_key AND t.is_archived = 0 JOIN sentences s ON s.text_id = t.id AND s.order_index = wc.order_index
+            WHERE wc.source_class = 'mytext' ORDER BY wc.verified_at DESC`)).forEach((r) => put(r.lemma_key, r.he_niqqud || r.he_plain, r.surface, r.ru, r.title));
+  const byNote = new Map(); list.forEach((e) => { if (e.note && e.note.id && !out.has(e.key)) byNote.set(e.note.id, e.key); });
+  if (byNote.size) {
+    (await q(`SELECT o.note_id, o.word_offset, s.he_niqqud, s.he_plain, s.ru, t.title FROM note_occurrences o JOIN sentences s ON s.id = o.sentence_id
+               JOIN texts t ON t.id = s.text_id AND t.is_archived = 0`)).forEach((r) => {
+      const key = byNote.get(r.note_id); if (!key) return;
+      const he = r.he_niqqud || r.he_plain || '', w = RM().words(he)[Number(r.word_offset)];
+      put(key, he, w, r.ru, r.title);
+    });
+  }
+  for (const e of list) {
+    if (out.has(e.key) || !e.mark || e.mark.textKey == null) continue;
+    const r = (await q(`SELECT s.he_niqqud, s.he_plain, s.ru, t.title FROM sentences s JOIN texts t ON t.id = s.text_id AND t.is_archived = 0
+                         WHERE t.text_key = ? AND s.order_index = ?`, [e.mark.textKey, e.mark.order]))[0];
+    if (r) put(e.key, r.he_niqqud || r.he_plain, e.mark.surface, r.ru, r.title);
+  }
+  return out;
+}
+// the lemma's own transliteration: the paradigm cell spelled like the lemma (infinitive, singular…)
+function lemmaTranslit(p) {
+  if (!p || !p.cells) return '';
+  const want = strip(p.lemma_niqqud || p.lemma || '');
+  for (const c of Object.values(p.cells)) if (c && c.he && strip(c.he) === want && c.translit) return c.translit;
+  return '';
+}
 let _exporting = false;
 async function exportXlsx(list) {
   if (_exporting || !list.length) return;
   _exporting = true;
   const FD = window.FormDrillCore, IR = window.InflectionRender, now = Date.now();
+  const L = (k, fb) => tt(k, fb);
   try {
     progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: 0, n: list.length }));
     const JSZip = await zipLib();
     const memAll = new Map((await drillAll()).map((r) => [r.key, r.mem]));
-    const words = [], forms = [];
+    const examples = await examplesFor(list);
+    const words = [];
     let t0 = performance.now();
     for (let i = 0; i < list.length; i++) {
       const e = list[i], d = D.displayOf(e), m = D.memory(e, now);
       const p = paradigmOf(e);
       let study = null; if (p) { try { study = IR.projectStudyForms(p); } catch (_) { study = null; } }
       const mem = memAll.get(e.key) || {};
-      const sum = study ? FD.summary(study, mem) : null;
-      words.push([d.he, d.lemma && strip(d.lemma) !== strip(d.he) ? d.lemma : '', (e.reading && e.reading.meaning) || (e.note && e.note.meaning) || '',
-        (e.note && e.note.userMeaning) || '', posText(d.pos), d.binyan, d.root, e.metOnly ? '' : statusText(e.status || 'new'),
-        m.strength == null ? null : Math.round(m.strength * 100), e.srs && e.srs.due > 0 ? isoDay(e.srs.due) : '', m.reps || null, m.lapses || null,
-        D.occurrences(e) || null, isoDay(e.added), isoDay(e.lastSeen), sum && sum.total ? sum.mastered + ' / ' + sum.total : '', e.key]);
-      if (study) {
-        const met = new Set(metSlotsOf(e, p)), lemma = lemmaOf(p, d.he);
-        FD.formsOf(study).forEach((f) => {
-          const c = mem[f.slot] || {};
-          forms.push([lemma, f.group, f.label, f.he, f.translit, ruOf(p, f.slot), met.has(f.slot) ? '✓' : '',
-            c.seen ? (Number(c.right) || 0) + ' / ' + c.seen : '', FD.mastered(c) ? '✓' : '']);
-        });
+      let table = null, total = 0, mastered = 0;
+      if (study && FD.formsOf(study).length) {
+        const met = new Set(metSlotsOf(e, p));
+        table = { groups: study.groups.map((g) => ({ key: g.key, label: g.label, forms: (g.forms || []).filter((f) => f && f.he && f.slot).map((f) => {
+          const c = mem[f.slot] || {}, done = FD.mastered(c);
+          total++; if (done) mastered++;
+          return { slot: f.slot, label: f.label || f.slot, he: f.he, translit: f.translit || '', ru: ruOf(p, f.slot), met: met.has(f.slot), mastered: done, seen: Number(c.seen) || 0, right: Number(c.right) || 0 };
+        }) })).filter((g) => g.forms.length) };
       }
+      words.push({ key: e.key, he: d.he || (p && (p.lemma_niqqud || p.lemma)) || '', translit: lemmaTranslit(p),
+        meaning: (e.reading && e.reading.meaning) || (e.note && e.note.meaning) || '', mine: (e.note && e.note.userMeaning) || '',
+        posText: posText(d.pos), binyan: d.binyan, root: d.root, status: e.metOnly ? '' : (e.status || 'new'), statusText: e.metOnly ? '' : statusText(e.status || 'new'),
+        strength: m.strength == null ? null : Math.round(m.strength * 100), due: e.srs && e.srs.due > 0 ? e.srs.due : null, reps: m.reps, lapses: m.lapses,
+        occ: D.occurrences(e), added: e.added, lastSeen: e.lastSeen, example: examples.get(e.key) || null,
+        pealimUrl: (p && p.pealim_url) || '', appUrl: location.origin + '/dictionary.html?word=' + encodeURIComponent(e.key),
+        table, formsTotal: total, formsMastered: mastered });
       if (performance.now() - t0 > 30) { progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: i + 1, n: list.length })); await yieldNow(); t0 = performance.now(); }
     }
-    const H = (k, fb) => tt('dictionary.xlsx.' + k, fb);
-    const wordCols = [
-      { header: H('word', 'Слово'), rtl: true, width: 16 }, { header: H('lemma', 'Лемма'), rtl: true, width: 14 }, { header: H('meaning', 'Значение (словарь)'), width: 32, wrap: true },
-      { header: H('mine', 'Мой перевод'), width: 24, wrap: true }, { header: H('pos', 'Часть речи'), width: 11 }, { header: H('binyan', 'Биньян'), width: 10 },
-      { header: H('root', 'Корень'), rtl: true, width: 9 }, { header: H('status', 'Статус'), width: 12 }, { header: H('strength', 'Сила памяти, %'), width: 10 },
-      { header: H('due', 'Следующее повторение'), width: 13 }, { header: H('reps', 'Повторений'), width: 9 }, { header: H('lapses', 'Срывов'), width: 8 },
-      { header: H('occ', 'Встреч в текстах'), width: 9 }, { header: H('added', 'Добавлено'), width: 12 }, { header: H('seen', 'Последний раз'), width: 12 },
-      { header: H('forms', 'Формы уверенно'), width: 10 }, { header: H('key', 'Ключ'), width: 16 },
-    ];
-    const formCols = [
-      { header: H('lemma', 'Лемма'), rtl: true, width: 14 }, { header: H('group', 'Время / группа'), width: 22 }, { header: H('person', 'Лицо'), width: 12 },
-      { header: H('form', 'Форма'), rtl: true, width: 16 }, { header: H('translit', 'Транслит'), width: 14 }, { header: H('formRu', 'Перевод формы'), width: 24 },
-      { header: H('met', 'Встречена у меня'), width: 10 }, { header: H('drill', 'Тренировка: верно / всего'), width: 12 }, { header: H('mastered', 'Уверенно'), width: 9 },
-    ];
-    // progress: the same numbers as the Progress tab, over my words (not just this view)
+    // progress: the same numbers as the Progress tab, over all my words (not just this view)
     const pd = await progressData(now), c = pd.dyn.now, W = pd.dyn.periods;
-    const prog = D.STATUSES.filter((s) => c[s] || W.week.then[s] || W.month.then[s]).map((s) => [statusText(s), c[s], c[s] - W.week.then[s], c[s] - W.month.then[s]]);
-    prog.push(['', null, null, null]);
-    prog.push([tt('dictionary.progWeek', 'За неделю'), fill(tt('dictionary.progLine', 'стало «знаю» +{k} · поднялись по шкале {u} · новых слов {a}'), { k: W.week.known, u: W.week.up, a: W.week.added }), null, null]);
-    prog.push([tt('dictionary.progMonth', 'За месяц'), fill(tt('dictionary.progLine', 'стало «знаю» +{k} · поднялись по шкале {u} · новых слов {a}'), { k: W.month.known, u: W.month.up, a: W.month.added }), null, null]);
-    [['pos', posText], ['binyan', (b) => b]].forEach(([dim, lab]) => {
-      const r = P().weakSpots(pd.mine.filter((e) => e.status !== 'ignore').map((e) => ({ value: D.displayOf(e)[dim], reviews: (e.log && e.log.reviews) || 0, fails: (e.log && e.log.fails) || 0 })));
-      r.groups.forEach((g) => prog.push([lab(g.value) + (g.weak ? ' — ' + tt('dictionary.progWeakFlag', 'слабое место') : ''),
-        fill(tt('dictionary.progWeakLine', 'срывов {f} из {r} ({p}) · слов {w}'), { f: g.fails, r: g.reviews, p: pct(g.rate), w: g.words }), null, null]));
+    const statuses = D.STATUSES.filter((s) => c[s] || W.week.then[s] || W.month.then[s]).map((s) => ({ key: s, label: statusText(s), now: c[s], dWeek: c[s] - W.week.then[s], dMonth: c[s] - W.month.then[s] }));
+    const lineOf = (x) => fill(tt('dictionary.progLine', 'стало «знаю» +{k} · поднялись по шкале {u} · новых слов {a}'), { k: x.known, u: x.up, a: x.added });
+    const weak = [];
+    [['pos', tt('dictionary.fPos', 'Часть речи'), posText], ['binyan', tt('dictionary.fBinyan', 'Биньян'), (b) => b]].forEach(([dim, dimLabel, labf]) => {
+      P().weakSpots(pd.mine.filter((e) => e.status !== 'ignore').map((e) => ({ value: D.displayOf(e)[dim], reviews: (e.log && e.log.reviews) || 0, fails: (e.log && e.log.fails) || 0 })))
+        .groups.forEach((g) => weak.push({ dim: dimLabel, label: labf(g.value), fails: g.fails, of: g.reviews, rate: g.rate, words: g.words, weak: g.weak }));
     });
-    const sheets = [
-      { name: H('sheetWords', 'Словарь'), columns: wordCols, rows: words },
-      { name: H('sheetForms', 'Формы'), columns: formCols, rows: forms },
-      { name: H('sheetProgress', 'Прогресс'), columns: [{ header: tt('dictionary.fStatus', 'Статус'), width: 26 }, { header: tt('dictionary.progColNow', 'Сейчас'), width: 50, wrap: true },
-        { header: tt('dictionary.progWeek', 'За неделю') + ', Δ', width: 14 }, { header: tt('dictionary.progMonth', 'За месяц') + ', Δ', width: 14 }], rows: prog },
-    ];
+    const fw = P().formWeakSpots(pd.drill.map((r) => { const en = S.entries.get(r.key); return { key: r.key, binyan: en ? D.displayOf(en).binyan : '', mem: r.mem }; }));
+    const formsDim = tt('dictionary.progWeakForms', 'Слабые места — формы');
+    fw.binyan.forEach((g) => weak.push({ dim: formsDim, label: tt('dictionary.fBinyan', 'Биньян') + ' ' + g.value, fails: g.wrong, of: g.seen, rate: g.rate, words: g.words, weak: g.weak }));
+    fw.tense.forEach((g) => weak.push({ dim: formsDim, label: tenseText(g.value), fails: g.wrong, of: g.seen, rate: g.rate, words: g.words, weak: g.weak }));
+    const weekly = P().weekly(pd.days, now, 8).map((w) => ({ label: dateShort(w.from) + '–' + dateShort(w.to), n: w.n, fails: w.fails }));
+    const progressBlock = { statuses, maxStatus: Math.max(1, ...statuses.map((s) => s.now)),
+      lines: [[tt('dictionary.progWeek', 'За неделю'), lineOf(W.week)], [tt('dictionary.progMonth', 'За месяц'), lineOf(W.month)]],
+      noHistory: pd.dyn.noHistory ? fill(tt('dictionary.progNoHistory', 'Слов без журнала отметок: {n}. Они считаются в нынешнем статусе с даты добавления.'), { n: pd.dyn.noHistory }) : '',
+      weekly, maxWeek: Math.max(1, ...weekly.map((w) => w.n)), weak };
+    const legend = D.STATUSES.filter((s) => s !== 'ignore' || c.ignore).map((s) => ({ key: s, label: statusText(s) }));
+    const book = window.DictionaryWorkbook.build({ now, dateText: new Date(now).toLocaleDateString(document.documentElement.lang || 'ru'), filterText: activeSummary(),
+      words, progress: progressBlock, statusLegend: legend }, L);
     const zip = new JSZip();
-    Object.entries(window.XlsxCore.buildParts(sheets)).forEach(([k, v]) => zip.file(k, v));
+    Object.entries(window.XlsxCore.buildParts(book)).forEach(([k, v]) => zip.file(k, v));
     const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', compression: 'DEFLATE' });
     const name = 'linguistpro-dictionary-' + isoDay(now) + '.xlsx';
-    window.LPDictionary.lastExport = { name, size: blob.size, words: words.length, forms: forms.length, blob };   // smoke / diagnostics
+    window.LPDictionary.lastExport = { name, size: blob.size, words: words.length, forms: book.meta.forms, tests: book.meta.tests, blob };   // smoke / diagnostics
     const url = URL.createObjectURL(blob), a = el('a', { attrs: { href: url, download: name } });
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     progress('');
-    toast(fill(tt('dictionary.xlsxDone', 'Таблица готова: {w} слов, {f} форм'), { w: words.length, f: forms.length }));
+    toast(fill(tt('dictionary.xlsxDone', 'Таблица готова: {w} слов, {f} форм'), { w: words.length, f: book.meta.forms }));
   } catch (err) {
     progress('');
     toast(tt('dictionary.xlsxFailed', 'Не удалось собрать таблицу. Попробуйте ещё раз.'));
@@ -1048,6 +1085,8 @@ async function boot() {
   progress(tt('dictionary.loading', 'Ищу…'));
   await reload();
   $('dict-root').setAttribute('aria-busy', 'false');
+  // «Открыть в LinguistPro ↗» from the XLSX book: dictionary.html?word=<key> opens that word's article
+  try { const w = new URLSearchParams(location.search).get('word'); if (w && S.entries.has(w)) openArticle(w); } catch (_) {}
 }
 let _reloadT = 0;
 function reloadSoon() { clearTimeout(_reloadT); _reloadT = setTimeout(() => reload(), 300); }

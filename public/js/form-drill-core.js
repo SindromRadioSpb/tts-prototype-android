@@ -140,10 +140,12 @@
   // Plene spelling (ktiv male) is accepted by rule, not by «looks similar»: an extra ו only after a letter with
   // holam / qubutz / qamats katan (or doubling a consonantal ו), an extra י only after a hiriq (or doubling a
   // consonantal י). דִּבַּרְתִּי → דיברתי yes; דבירתי, דוברתי no.
-  function insertAllowed(prev, ch) {
+  // a hiriq in a closed syllable (the next letter carries a sheva: לִכְתֹּב, מִכְתָּב) takes no י: ליכתוב is wrong;
+  // nor does a hiriq under the yod itself (בַּיִת → בית, not ביית)
+  function insertAllowed(prev, ch, next) {
     if (!prev) return false;
     if (ch === "ו") return /[ׇֹֺֻ]/.test(prev.marks) || (prev.ch === "ו" && !/ֹ/.test(prev.marks));
-    if (ch === "י") return /ִ/.test(prev.marks) || prev.ch === "י";
+    if (ch === "י") return (prev.ch !== "י" && /ִ/.test(prev.marks) && !(next && /ְ/.test(next.marks))) || (prev.ch === "י" && !/ִ/.test(prev.marks));
     return false;
   }
   function pleneMatch(sk, targetHe) {
@@ -154,10 +156,23 @@
       var r;
       if (i === sk.length) r = j === t.length;
       else r = (j < t.length && sk[i] === t[j].ch && go(i + 1, j + 1, 0)) ||
-        (!ins && j > 0 && (sk[i] === "ו" || sk[i] === "י") && insertAllowed(t[j - 1], sk[i]) && go(i + 1, j, 1));
+        (!ins && j > 0 && (sk[i] === "ו" || sk[i] === "י") && insertAllowed(t[j - 1], sk[i], t[j]) && go(i + 1, j, 1));
       memo[k] = !!r; return !!r;
     }
     return go(0, 0, 0);
+  }
+  // The full plene spelling a form allows by the same rule (for answer keys outside the app, e.g. the XLSX
+  // self-test): ו after holam / qubutz / qamats katan, י after a hiriq not already followed by י. Folded finals.
+  function pleneOf(he) {
+    var t = lettersOf(he), out = "";
+    t.forEach(function (x, i) {
+      out += x.ch;
+      var next = t[i + 1];
+      if (!next) return;   // a word-final vowel needs no mater here (final ִי / וֹ are written already)
+      if (/[ׇֹֻ]/.test(x.marks) && x.ch !== "ו" && next.ch !== "ו") out += "ו";
+      else if (/ִ/.test(x.marks) && x.ch !== "י" && next.ch !== "י" && !/ְ/.test(next.marks)) out += "י";
+    });
+    return out;
   }
   // A typed / tiled answer is right when its letters spell THIS cell (defective, or plene by rule). If they spell
   // another cell, that cell is named (an explained miss). niqqudAmbiguous: the same letters are also another
@@ -207,5 +222,5 @@
 
   return { MASTER_STREAK: MASTER_STREAK, formsOf: formsOf, buildDeck: buildDeck, optionsFor: optionsFor, isCorrect: isCorrect,
     grade: grade, mastered: mastered, summary: summary,
-    buildSetDeck: buildSetDeck, skeleton: skeleton, checkTyped: checkTyped, fromLayout: fromLayout, tilesFor: tilesFor };
+    buildSetDeck: buildSetDeck, skeleton: skeleton, pleneOf: pleneOf, checkTyped: checkTyped, fromLayout: fromLayout, tilesFor: tilesFor };
 });
