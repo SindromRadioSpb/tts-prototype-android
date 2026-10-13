@@ -2602,26 +2602,61 @@
             if (rowTo != null && ri > rowTo) continue;
           }
         }
-        var surface = span.getAttribute("data-surface") || "";
-        var niqqud = span.getAttribute("data-niqqud") || "";
-        var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { continue; }
-        // Only confidently-resolved content words (a real root/gloss). Function/unknown → excluded.
-        if (!card || (card.label !== "exact" && card.label !== "likely")) continue;
-        var lk = statusKeyForCard(NA, card, niqqud, surface);
-        if (!lk) continue;
-        var g = group.get(lk);
-        if (!g) {
-          var skel = stripNiqqud(card.word || surface);
-          g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, nameSuspect: !!NAME_HINT[skel], occ: [], _i: i };
-          group.set(lk, g);
-        }
-        g.freq++;
-        var off = Number(span.getAttribute("data-w-offset"));
-        if (Number.isFinite(ri) && Number.isFinite(off) && g.occ.length < 12) g.occ.push({ rowIdx: ri, wordOffset: off });
+        await _addScannedToken(eng, NA, group, null, span.getAttribute("data-surface") || "", span.getAttribute("data-niqqud") || "",
+          ri, Number(span.getAttribute("data-w-offset")), i);
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
     return group;
+  }
+  // ONE token of a scan (Room DOM spans or plain rows): resolve → only confident content words (a real root/gloss)
+  // are grouped by the canonical status key (statusKeyForCard: collect == save == paint). Others, when `unsure`
+  // is given, are counted there by skeleton (function words are not learning items and are left out).
+  async function _addScannedToken(eng, NA, group, unsure, surface, niqqud, ri, off, i) {
+    var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { card = null; }
+    if (!card || (card.label !== "exact" && card.label !== "likely")) {
+      if (unsure && !(card && card.label === "function")) {
+        var sk = stripNiqqud(surface || niqqud);
+        if (sk) { var u = unsure.get(sk); if (!u) { u = { surface: surface || sk, niqqud: niqqud, freq: 0, label: (card && card.label) || "unknown", nameSuspect: !!NAME_HINT[sk], occ: [], _i: i }; unsure.set(sk, u); } u.freq++; if (Number.isFinite(ri) && Number.isFinite(off) && u.occ.length < 12) u.occ.push({ rowIdx: ri, wordOffset: off }); }
+      }
+      return null;
+    }
+    var lk = statusKeyForCard(NA, card, niqqud, surface);
+    if (!lk) return null;
+    var g = group.get(lk);
+    if (!g) {
+      var skel = stripNiqqud(card.word || surface);
+      g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, nameSuspect: !!NAME_HINT[skel], occ: [], _i: i };
+      group.set(lk, g);
+    }
+    g.freq++;
+    if (Number.isFinite(ri) && Number.isFinite(off) && g.occ.length < 12) g.occ.push({ rowIdx: ri, wordOffset: off });
+    return lk;
+  }
+  // The same scan over sentence ROWS (no DOM): the Room's he cell is the plain text with the vocalized form
+  // aligned to it (wrapMount → alignSurfaceNiqqud), so the pairs and the keys are the Room's own. rows[i] =
+  // { he_plain|he, he_niqqud }; rowIdx = the row's index in `rows`. → { group, unsure, rowKeys } — rowKeys[row][word
+  // offset] = the lemma key of that word (null: not a confident content word), for painting a whole text.
+  async function scanRows(rows, opts) {
+    opts = opts || {};
+    var group = new Map(), unsure = new Map(), rowKeys = [];
+    var NA = window.NotesAutoGen;
+    var eng; try { eng = await ensureEngine(); } catch (_) { return { group: group, unsure: unsure, rowKeys: rowKeys }; }
+    try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
+    var i = 0, t0 = Date.now();
+    for (var ri = 0; ri < (rows || []).length; ri++) {
+      var row = rows[ri] || {};
+      var plain = String(row.he_plain != null ? row.he_plain : row.he || ""), vocal = String(row.he_niqqud || "");
+      var pairs;
+      if (plain) {
+        var aligned = alignSurfaceNiqqud(plain, vocal), w = 0;
+        pairs = tokenize(plain).filter(function (tk) { return tk.isWord; }).map(function (tk) { var p = aligned[w++] || {}; return [p.surface || tk.text, p.niqqud || ""]; });
+      } else pairs = tokenize(vocal).filter(function (tk) { return tk.isWord; }).map(function (tk) { return [stripNiqqud(tk.text), tk.text]; });
+      rowKeys[ri] = [];
+      for (var k = 0; k < pairs.length; k++) rowKeys[ri].push(await _addScannedToken(eng, NA, group, unsure, pairs[k][0], pairs[k][1], ri, k, i++));
+      if (Date.now() - t0 > 30) { await new Promise(function (r) { setTimeout(r, 0); }); t0 = Date.now(); if (opts.onProgress) opts.onProgress(ri + 1, rows.length); }
+    }
+    return { group: group, unsure: unsure, rowKeys: rowKeys };
   }
   async function collectNewWords(mount, statesMap, opts) {
     opts = opts || {};
@@ -3079,7 +3114,7 @@
 
   var API = {
     // pure core (Node-testable)
-    tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
+    tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore, relativeStrippedForm: relativeStrippedForm,
     applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,

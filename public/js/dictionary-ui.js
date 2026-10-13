@@ -27,7 +27,7 @@ const yieldNow = () => new Promise((r) => setTimeout(r, 0));
 const STATUS_LABEL = {
   new: ['room.morph.status.new', 'новое'], l1: ['room.morph.status.l1', 'незнакомо'], l2: ['room.morph.status.l2', 'узнаю'],
   l3: ['room.morph.status.l3', 'вспоминаю'], l4: ['room.morph.status.l4', 'почти знаю'], known: ['room.morph.status.known', 'знаю'],
-  ignore: ['room.morph.status.ignore', 'не учить'],
+  ignore: ['room.morph.status.ignore', 'не учить'], none: ['dictionary.status.none', 'не размечено'],
 };
 const statusText = (s) => { const x = STATUS_LABEL[s || 'new']; return x ? tt(x[0], x[1]) : s; };
 const POS_LABEL = { verb: ['dictionary.pos.verb', 'глагол'], noun: ['dictionary.pos.noun', 'сущ.'], adjective: ['dictionary.pos.adjective', 'прил.'],
@@ -42,7 +42,7 @@ try { const th = localStorage.getItem('appTheme_v1'); if (th === 'dark') documen
 const S = {
   entries: new Map(), cards: new Map(), view: [], shown: 0, PAGE: 60, selected: null,
   filters: { q: '', statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, scope: 'mine' },
-  sort: 'added', viewMode: 'words', metBuilt: false, metBuilding: false, pauseUntil: 0,
+  sort: 'added', viewMode: 'words', text: null, textList: null, live: {}, schedule: {}, metBuilt: false, metBuilding: false, pauseUntil: 0,
 };
 try { const v = JSON.parse(localStorage.getItem('dict.view_v1') || 'null'); if (v && D.SORTS.indexOf(v.sort) >= 0) S.sort = v.sort; } catch (_) {}
 function saveView() { try { localStorage.setItem('dict.view_v1', JSON.stringify({ sort: S.sort })); } catch (_) {} }
@@ -126,6 +126,7 @@ async function loadSources() {
          FROM review_log WHERE kind IN ('review','mark','seed','skip') AND source <> 'mark-backfill' GROUP BY item_key`),
     q('SELECT lemma_key, COUNT(*) AS occ, COUNT(DISTINCT text_key) AS texts, MAX(surface) AS surface FROM word_context GROUP BY lemma_key'),
   ]);
+  S.schedule = schedule || {};
   const statusTimes = {}; statusRows.forEach((r) => { statusTimes[r.lemma_key] = r.updated_at; });
   // «новое» is the default state: an explicit 'new' row counts as mine only when I did something with the
   // word (a mark or review of mine, a schedule). A migration backfill alone is not a decision of mine.
@@ -241,6 +242,7 @@ function applyView() {
   S.view = D.sortEntries(all.filter((e) => D.matches(e, S.filters, now)), S.sort, now);
   S.shown = Math.min(S.view.length, Math.max(S.PAGE, S.shown));
   renderCounts(all); renderActive(); renderTrainButton(); renderList();
+  const tb = $('dict-textbar'); if (tb && tb.hidden !== (S.filters.scope !== 'text')) renderTextBar();
 }
 function memLine(e) {
   const m = D.memory(e, Date.now());
@@ -257,11 +259,16 @@ function rowFor(e) {
   const meta = [];
   if (d.pos) meta.push(el('span', { text: posText(d.pos) + (d.binyan ? ' · ' + d.binyan : '') }));
   if (d.root) meta.push(el('span', {}, [tt('dictionary.root', 'корень') + ' ', el('span', { class: 'he', text: d.root })]));
-  if (!e.metOnly) meta.push(el('span', { text: statusText(e.status || 'new') }));
+  const inText = S.filters.scope === 'text' && e.inText, st = inText ? D.statusOf(e, 'text') : (e.metOnly ? '' : (e.status || 'new'));
+  if (st) meta.push(el('span', { class: st === 'none' ? 'dict-unmarked' : null, text: statusText(st) }));
+  if (inText) {
+    meta.push(el('span', { text: fill(tt('dictionary.text.inText', 'в тексте: {n}'), { n: e.inText.freq }) }));
+    if (e.inText.nameSuspect) meta.push(el('span', { class: 'dict-unmarked', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
+  }
   const occ = D.occurrences(e);
-  if (occ) meta.push(el('span', { text: fill(tt('dictionary.occ', 'встреч: {n}'), { n: occ }) }));
+  if (occ && !inText) meta.push(el('span', { text: fill(tt('dictionary.occ', 'встреч: {n}'), { n: occ }) }));
   const ml = memLine(e); if (ml) meta.push(ml);
-  const he = el('span', { class: 'dict-row-he' + (e.metOnly ? '' : ' dict-st-' + (e.status || 'new')), attrs: { lang: 'he', dir: 'rtl' }, text: d.he || '…' });
+  const he = el('span', { class: 'dict-row-he' + (st ? ' dict-st-' + st : ''), attrs: { lang: 'he', dir: 'rtl' }, text: d.he || (inText && (e.inText.niqqud || e.inText.surface)) || '…' });
   const mn = el('span', { attrs: { dir: 'auto' }, class: 'dict-row-mean' + (mean.from === 'user' ? ' from-user' : '') + (mean.text ? '' : ' empty'), text: mean.text || (e.reading === undefined ? tt('dictionary.resolvingOne', 'разбираю…') : tt('dictionary.noMeaning', 'перевод не найден офлайн')) });
   const btn = el('button', { class: 'dict-row' + (S.selected === e.key ? ' sel' : ''), attrs: { type: 'button', 'data-key': e.key }, on: { click: () => openArticle(e.key) } },
     [he, mn, el('span', { class: 'dict-row-meta' }, meta)]);
@@ -288,9 +295,9 @@ function renderList() {
 }
 function renderCounts(all) {
   const box = $('dict-counts'); if (!box) return;
-  const c = D.statusCounts(all);
-  box.replaceChildren(el('span', { class: 'dict-note', text: fill(tt('dictionary.total', 'Слов: {n}'), { n: c.total }) }));
-  D.STATUSES.forEach((s) => {
+  const scope = S.filters.scope, c = D.statusCounts(all, scope);
+  box.replaceChildren(el('span', { class: 'dict-note', text: fill(tt(scope === 'text' ? 'dictionary.text.total' : 'dictionary.total', scope === 'text' ? 'Лемм в тексте: {n}' : 'Слов: {n}'), { n: c.total }) }));
+  (scope === 'text' ? ['none'].concat(D.STATUSES) : D.STATUSES).forEach((s) => {
     if (!c[s]) return;
     const on = S.filters.statuses.length === 1 && S.filters.statuses[0] === s;
     box.appendChild(el('button', { class: 'dict-chip' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false' },
@@ -302,12 +309,13 @@ const MEMORY_OPTS = [['due', 'dictionary.memDue', 'к повторению'], ['
 const ADDED_OPTS = [[7, 'dictionary.addedWeek', 'за неделю'], [30, 'dictionary.addedMonth', 'за месяц']];
 function renderFilters() {
   const box = $('dict-filters'); box.replaceChildren();
-  const all = Array.from(S.entries.values()).filter((e) => S.filters.scope === 'met' || !e.metOnly);
+  const scope = S.filters.scope;
+  const all = Array.from(S.entries.values()).filter((e) => (scope === 'text' ? !!e.inText : scope === 'met' || !e.metOnly));
   const toggle = (arr, v) => (arr.indexOf(v) >= 0 ? arr.filter((x) => x !== v) : arr.concat([v]));
   const group = (label, items) => el('div', { class: 'dict-fgroup' }, [el('span', { text: label }), el('div', { class: 'dict-fopts' }, items)]);
   const chip = (text, on, fn, dot) => el('button', { class: 'dict-chip' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false' }, on: { click: () => { fn(); S.shown = 0; applyView(); renderFilters(); } } },
     [dot ? el('span', { class: 'dict-dot ' + dot }) : null, text]);
-  box.appendChild(group(tt('dictionary.fStatus', 'Статус'), D.STATUSES.map((s) => chip(statusText(s), S.filters.statuses.indexOf(s) >= 0, () => { S.filters.statuses = toggle(S.filters.statuses, s); }, 'dict-st-' + s))));
+  box.appendChild(group(tt('dictionary.fStatus', 'Статус'), (scope === 'text' ? ['none'].concat(D.STATUSES) : D.STATUSES).map((s) => chip(statusText(s), S.filters.statuses.indexOf(s) >= 0, () => { S.filters.statuses = toggle(S.filters.statuses, s); }, 'dict-st-' + s))));
   box.appendChild(group(tt('dictionary.fMemory', 'Память'), MEMORY_OPTS.map(([v, k, fb]) => chip(tt(k, fb), S.filters.memory === v, () => { S.filters.memory = S.filters.memory === v ? '' : v; }))));
   const values = (fn) => Array.from(new Set(all.map(fn).filter(Boolean))).sort();
   const posVals = values((e) => D.displayOf(e).pos);
@@ -319,17 +327,27 @@ function renderFilters() {
   box.appendChild(el('div', { class: 'dict-fgroup dict-froot' }, [el('span', { text: tt('dictionary.fRoot', 'Корень') }), rootIn]));
   box.appendChild(group(tt('dictionary.fMore', 'Ещё'), [
     chip(tt('dictionary.fMine', 'есть мой перевод'), S.filters.hasMine, () => { S.filters.hasMine = !S.filters.hasMine; }),
+    ...(scope === 'text' ? [chip(tt('room.morph.study.hideNames', 'Скрыть возможные имена'), !!S.filters.hideNames, () => { S.filters.hideNames = !S.filters.hideNames; })] : []),
     ...ADDED_OPTS.map(([d, k, fb]) => chip(tt(k, fb), S.filters.addedDays === d, () => { S.filters.addedDays = S.filters.addedDays === d ? 0 : d; })),
   ]));
 }
 // Д2 «Учить эти»: the current filtered view, in its order, goes to the Room's training
 function renderTrainButton() {
   const box = $('dict-train'); if (!box) return;
-  const learnable = S.view.filter((e) => !e.metOnly && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
+  // in «все встреченные» / the text lens a word may have no mark yet — «Учить эти» then asks (chooseTrain)
+  const learnable = S.view.filter((e) => e.status !== 'ignore' && e.textStatus !== 'ignore' && !String(e.key).startsWith('note:'));
   box.replaceChildren();
   if (!S.view.length) return;
-  if (learnable.length) box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
-    on: { click: () => startTrain(learnable) } }));
+  if (learnable.length) box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-train-these' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
+    on: { click: () => chooseTrain(learnable) } }));
+  // Т2: mark the words of this view that have no mark yet — one by one, or all at once
+  const toMark = S.view.filter((e) => unmarkedOf(e) || (e.inText && e.textStatus === 'new'));
+  if (toMark.length && (S.filters.scope === 'text' || S.filters.scope === 'met')) {
+    box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-triage' }, text: fill(tt('dictionary.triage.btn', 'Разметить ({n})'), { n: toMark.length }), on: { click: () => openTriage(toMark) } }));
+    box.appendChild(el('span', { class: 'dict-bulk' }, [el('span', { class: 'dict-note', text: tt('dictionary.bulk.label', 'Все показанные без отметки:') }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-bulk-known' }, text: fill(tt('dictionary.bulk.known', '✓ знаю ({n})'), { n: toMark.length }), on: { click: () => bulkMark('known', toMark) } }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-bulk-ignore' }, text: fill(tt('dictionary.bulk.ignore', 'не учить ({n})'), { n: toMark.length }), on: { click: () => bulkMark('ignore', toMark) } })]));
+  }
   // Д2.2+ forms of the words in this view (filter «глагол» + a binyan → that binyan's pattern)
   const forms = S.view.filter(drillable);
   if (forms.length) {
@@ -346,6 +364,7 @@ function activeSummary() {
   f.pos.forEach((p) => parts.push(posText(p)));
   f.binyan.forEach((b) => parts.push(b));
   f.statuses.forEach((s) => parts.push(statusText(s)));
+  if (f.scope === 'text' && S.text) parts.unshift('«' + S.text.title + '»');
   if (f.root) parts.push(tt('dictionary.root', 'корень') + ' ' + f.root);
   if (f.q) parts.push('«' + f.q + '»');
   return parts.join(' · ');
@@ -362,14 +381,306 @@ function renderActive() {
   if (f.root) off(tt('dictionary.root', 'корень') + ' ' + f.root, () => { f.root = ''; });
   if (f.hasMine) off(tt('dictionary.fMine', 'есть мой перевод'), () => { f.hasMine = false; });
   if (f.addedDays) { const a = ADDED_OPTS.find((x) => x[0] === f.addedDays); off(tt(a[1], a[2]), () => { f.addedDays = 0; }); }
+  if (f.keys && f.keys.length) off(fill(tt('dictionary.plan.chip', 'словарик к тексту ({n})'), { n: f.keys.length }), () => { f.keys = null; });
+  if (f.hideNames && f.scope === 'text') off(tt('room.morph.study.hideNames', 'Скрыть возможные имена'), () => { f.hideNames = false; });
   if (chips.length > 1) chips.push(el('button', { class: 'dict-chip', attrs: { type: 'button' }, text: tt('dictionary.reset', 'Сбросить всё'),
-    on: { click: () => { Object.assign(f, { statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0 }); S.shown = 0; applyView(); if (!$('dict-filters').hidden) renderFilters(); } } }));
+    on: { click: () => { Object.assign(f, { statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, hideNames: false, keys: null }); S.shown = 0; applyView(); if (!$('dict-filters').hidden) renderFilters(); } } }));
   chips.forEach((c) => box.appendChild(c));
+}
+
+// ── «Слова этого текста» (спека F4_TEXT_LENS): срез словаря по одному моему тексту ─────────────────────
+// Слова текста собирает ReaderMorph.scanRows — тот же разбор и тот же ключ статуса, что лист «Мои слова» Зала.
+// Статус в срезе — живой (как окрашено в тексте); «знакомо X%» — тот же движок и кэш, что у Зала.
+async function myTexts() {
+  if (S.textList) return S.textList;
+  S.textList = await q(`SELECT t.id, t.title, t.text_key, t.updated_at FROM texts t WHERE ${PERSONAL} ORDER BY t.updated_at DESC`);
+  return S.textList;
+}
+async function refreshLive() { try { S.live = (await localDb.getAllWordStatuses()) || {}; } catch (_) { S.live = S.live || {}; } }
+// put the text's lemmas onto the entries (a word not in my dictionary becomes a «met-only» entry of this text)
+function attachText() {
+  S.entries.forEach((e) => { delete e.inText; delete e.textStatus; });
+  const T = S.text; if (!T || !T.scan) return;
+  T.scan.group.forEach((g, key) => {
+    let e = S.entries.get(key);
+    if (!e) {
+      e = { key, status: '', srs: (S.schedule || {})[key] || null, note: null, log: null, ctx: null, surfaces: [{ s: g.niqqud || g.surface, from: 'text' }],
+        added: 0, lastSeen: 0, sources: ['text'], metOnly: true };
+      S.entries.set(key, e);
+    }
+    e.inText = { freq: g.freq, first: g._i, occ: g.occ, nameSuspect: g.nameSuspect, surface: g.surface, niqqud: g.niqqud, textId: T.id };
+    e.textStatus = S.live[key] || '';
+  });
+}
+let _textEpoch = 0;
+async function loadText(id) {
+  const my = ++_textEpoch;
+  const list = await myTexts();
+  const t = list.find((x) => String(x.id) === String(id));
+  if (!t) { S.text = null; toast(tt('dictionary.text.notFound', 'Текст не найден среди ваших текстов.')); return; }
+  S.filters.keys = null;
+  S.text = { id: String(t.id), title: t.title || '', key: t.text_key, updated_at: t.updated_at, rows: [], scan: null, fit: null };
+  renderTextBar();
+  progress(tt('dictionary.text.reading', 'Читаю текст…'));
+  let rows = []; try { rows = (await localDb.getSentences(t.id)) || []; } catch (_) { rows = []; }
+  if (my !== _textEpoch) return;
+  S.text.rows = rows;
+  await refreshLive();
+  const scan = await RM().scanRows(rows, { onProgress: (d, n) => progress(fill(tt('dictionary.text.scanning', 'Разбираю слова текста: строка {d} из {n}'), { d, n })) });
+  if (my !== _textEpoch) return;
+  S.text.scan = scan;
+  attachText();
+  progress('');
+  S.shown = 0; applyView();
+  resolveReadings(S.entries).then(() => { if (my === _textEpoch) applyView(); });
+  textFamiliarity();
+}
+// «знакомо X%» exactly as the Room shows it: the same service, cache and evaluator (no recount here)
+let _famService = null;
+async function textFamiliarity() {
+  const T = S.text; if (!T || !window.LocalTextFamiliarity || !window.LearningCompassCore) return;
+  if (!_famService) _famService = window.LocalTextFamiliarity.createService({ db: localDb, compass: window.LearningCompassCore,
+    onUpdate: ({ fits }) => { const f = S.text && fits.get(S.text.id); if (f && f.status !== 'PENDING') { S.text.fit = f; renderTextBar(); textPlan(); } } });
+  try { await _famService.prepare([{ id: T.id, text_key: T.key, updated_at: T.updated_at }]); } catch (_) {}
+}
+// Т4 «словарик к тексту»: the most useful unfamiliar lemmas and the forecast — the Room's evaluator on the Room's cache
+let _planEpoch = 0;
+async function textPlan() {
+  const T = S.text; if (!T || !T.scan || !T.fit || T.fit.recorded_familiar_pct_lower_bound == null) return;
+  const my = ++_planEpoch, C = window.LearningCompassCore;
+  try {
+    const desc = window.LocalTextFamiliarity.descriptor({ id: T.id, text_key: T.key, updated_at: T.updated_at }, C);
+    const [batch, projection] = await Promise.all([localDb.getLearningCompassIngredientsBatch([desc]), localDb.getLearningCompassProjection()]);
+    const ingredients = batch && batch.entries && batch.entries[desc.cache_key];
+    if (my !== _planEpoch || !ingredients || !projection) return;
+    const candidates = Array.from(S.entries.values()).filter((e) => e.inText && !(e.inText.nameSuspect)).map((e) => e.key);
+    T.plan = P().textPlan({ ingredients, projection, evaluate: C.evaluateRecordedFamiliarityV2, candidates, sizes: [10, 25, 50], target: 95 });
+    if (T.planPick == null && T.plan) T.planPick = 0;
+    renderTextBar();
+  } catch (_) {}
+}
+function planOptions(plan) {
+  if (!plan) return [];
+  const opts = plan.steps.map((st) => ({ n: st.n, pct: st.pct, keys: st.keys }));
+  if (plan.toTarget && !opts.some((o) => o.n === plan.toTarget.n)) opts.push({ n: plan.toTarget.n, pct: plan.toTarget.pct, keys: plan.toTarget.keys, target: true });
+  return opts.sort((a, b) => a.n - b.n);
+}
+function renderPlan(box) {
+  const T = S.text, plan = T && T.plan; if (!plan || !plan.frontier.length) return;
+  const opts = planOptions(plan); if (!opts.length) return;
+  const cur = opts[Math.min(T.planPick || 0, opts.length - 1)];
+  const entries = cur.keys.map((k) => S.entries.get(k)).filter(Boolean);
+  const sec = el('div', { class: 'dict-plan' }, [el('b', { text: tt('dictionary.plan.title', 'Словарик к тексту') })]);
+  const sel = el('select', { attrs: { 'aria-label': tt('dictionary.plan.size', 'Сколько слов') } }, opts.map((o, i) => el('option', { attrs: { value: String(i) },
+    text: (o.target ? fill(tt('dictionary.plan.toTarget', 'до {t}%: {n} сл.'), { t: plan.target, n: o.n }) : fill(tt('dictionary.plan.n', '{n} сл.'), { n: o.n })) })));
+  sel.value = String(opts.indexOf(cur));
+  sel.addEventListener('change', () => { T.planPick = Number(sel.value); renderTextBar(); });
+  sec.appendChild(el('p', { class: 'dict-plan-line' }, [fill(tt('dictionary.plan.line', 'Выучите самые частые незнакомые слова текста: знакомость {a}% → {b}%'), { a: Math.round(plan.now), b: Math.round(cur.pct) }), ' ', sel]));
+  if (!plan.toTarget && plan.now < plan.target) sec.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.plan.noTarget', 'До {t}% только размеченными словами текста не дойти: часть слов не разобрана или это имена.'), { t: plan.target }) }));
+  sec.appendChild(el('div', { class: 'dict-drill-actions' }, [
+    el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-plan-show' }, text: fill(tt('dictionary.plan.show', 'Показать эти ({n})'), { n: entries.length }),
+      on: { click: () => { S.filters.keys = cur.keys.slice(); S.sort = 'textFreq'; $('dict-sort').value = 'textFreq'; S.shown = 0; applyView(); } } }),
+    el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-plan-learn' }, text: fill(tt('dictionary.plan.learn', 'Отметить незнакомыми и учить ({n})'), { n: entries.length }),
+      on: { click: async () => { for (const e of entries) if (!e.textStatus || e.textStatus === 'new') await setStatus(e, 'l1', true); morphHost.invalidateWordStates(); startTrain(entries); } } }),
+    el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-plan-xlsx' }, text: tt('dictionary.plan.xlsx', 'XLSX по ним'), on: { click: () => exportXlsx(entries) } }),
+  ]));
+  box.appendChild(sec);
+}
+function setScope(scope) {
+  S.filters.scope = scope;
+  if (scope !== 'text') S.filters.keys = null;
+  document.querySelectorAll('[data-scope]').forEach((x) => x.classList.toggle('on', x.getAttribute('data-scope') === scope));
+  const pick = $('dict-text-pick'); if (pick) pick.hidden = scope !== 'text';
+  document.querySelectorAll('#dict-sort option[data-text-sort]').forEach((o) => { o.hidden = scope !== 'text'; o.disabled = scope !== 'text'; });
+  if (scope !== 'text' && /^text/.test(S.sort)) { S.sort = 'added'; $('dict-sort').value = S.sort; }
+  if (scope === 'text' && !/^text/.test(S.sort)) { S.sort = 'textOrder'; $('dict-sort').value = S.sort; }
+  S.shown = 0;
+  renderTextBar();
+}
+async function fillTextPicker() {
+  const sel = $('dict-text-sel'); if (!sel) return;
+  const list = await myTexts();
+  sel.replaceChildren(el('option', { attrs: { value: '' }, text: tt('dictionary.text.choose', 'Выберите текст…') }),
+    ...list.map((t) => el('option', { attrs: { value: String(t.id) }, text: t.title || ('#' + t.id) })));
+  if (S.text) sel.value = S.text.id;
+}
+function renderTextBar() {
+  const box = $('dict-textbar'); if (!box) return;
+  box.replaceChildren();
+  box.hidden = S.filters.scope !== 'text';
+  if (box.hidden) return;
+  const T = S.text;
+  if (!T) { box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.text.pickHint', 'Выберите текст — покажу все его слова: размеченные и нет.') })); return; }
+  box.appendChild(el('div', { class: 'dict-textbar-title' }, [el('b', { attrs: { dir: 'auto' }, text: T.title }),
+    T.id ? el('a', { attrs: { href: '/library.html?my_text=' + encodeURIComponent(T.id) }, text: tt('dictionary.text.open', 'Открыть текст ›') }) : null]));
+  const f = T.fit;
+  const pct = f && f.recorded_familiar_pct_lower_bound != null ? Math.round(Number(f.recorded_familiar_pct_lower_bound)) : null;
+  const famText = pct != null ? fill(tt('dictionary.text.familiar', 'Знакомо {p}% слов текста (как в Зале)'), { p: pct })
+    : f && f.status === 'NEEDS_PROFILE' ? tt('dictionary.text.famNeedsProfile', 'Знакомость появится, когда в словаре будут отмеченные слова.')
+    : f ? tt('dictionary.text.famUnavailable', 'Знакомость для этого текста сейчас не посчитана.') : tt('dictionary.text.famLoading', 'Считаю знакомость…');
+  box.appendChild(el('p', { class: 'dict-textbar-fam' + (pct != null ? '' : ' dict-note') }, [famText]));
+  if (pct != null) box.appendChild(el('div', { class: 'dict-fambar', attrs: { role: 'img', 'aria-label': famText } }, [el('i', { attrs: { style: 'width:' + pct + '%' } })]));
+  if (!T.scan) return;
+  renderPlan(box);
+  const unsure = Array.from(T.scan.unsure.values()).sort((a, b) => b.freq - a.freq);
+  if (unsure.length) {
+    const det = el('details', { class: 'dict-unsure' }, [el('summary', { text: fill(tt('dictionary.text.unsure', 'Не разобрано: {n} — имена и слова без уверенного разбора'), { n: unsure.length }) })]);
+    const ul = el('div', { class: 'dict-unsure-list' });
+    unsure.slice(0, 120).forEach((u) => ul.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
+      on: { click: () => { try { RM().openWordCard(u.surface, u.niqqud || ''); } catch (_) {} } } }, [u.niqqud || u.surface, u.freq > 1 ? el('b', { text: String(u.freq) }) : null])));
+    det.appendChild(ul);
+    box.appendChild(det);
+  }
+}
+
+// ── Т2 быстрая разметка: по одному слову (клавиши 1–5) и массово «знаю / не учить» с отменой ──────────────────
+// Пишет тот же канон, что тап в тексте (MorphHost.markWordStatus). «Не знаю» / «узнаю» ставят слово в повторение
+// (уровень l1–l4 сеет FSRS) — с местом из этого текста, чтобы тренировка взяла это предложение.
+const TRIAGE = [['known', '1'], ['l2', '2'], ['l1', '3'], ['ignore', '4'], ['', '5']];
+const unmarkedOf = (e) => (e.inText ? !e.textStatus : (e.metOnly && !e.status));
+function textSourceOf(e) {
+  const T = S.text; if (!T || !e.inText || !e.inText.occ || !e.inText.occ.length) return null;
+  const o = e.inText.occ[0], row = T.rows[o.rowIdx];
+  if (!row) return null;
+  return { textKey: T.key, sentenceId: row.id != null ? String(row.id) : null, orderIndex: row.order_index != null ? Number(row.order_index) : o.rowIdx, surface: e.inText.surface };
+}
+async function setStatus(e, st, withSource) {
+  const src = withSource && /^l[1-4]$/.test(st) ? textSourceOf(e) : null;
+  try { await morphHost.markWordStatus(e.key, st, src); } catch (_) {}
+  S.live[e.key] = st;
+  if (e.inText) e.textStatus = st;
+  if (st) { e.status = st; e.metOnly = false; } else if (e.metOnly) e.status = '';
+  if (/^l[1-4]$/.test(st)) { try { const sch = await localDb.getSrsSchedule(); e.srs = sch[e.key] || e.srs; S.schedule = sch; } catch (_) {} }
+}
+function afterMarks() {
+  morphHost.invalidateWordStates();
+  applyView();
+  if (S.text) textFamiliarity();   // → onUpdate → textPlan()
+}
+// the sentence of this text where the word first occurs, the word highlighted
+function textSentence(e) {
+  const T = S.text; if (!T || !e.inText || !e.inText.occ.length) return null;
+  const o = e.inText.occ[0], row = T.rows[o.rowIdx]; if (!row) return null;
+  const plain = String(row.he_plain || ''), voc = String(row.he_niqqud || '');
+  const useVoc = voc && RM().words(voc).length === RM().words(plain).length;
+  return { node: highlight(useVoc ? voc : (plain || voc), o.wordOffset), ru: row.ru || '' };
+}
+async function openTriage(list) {
+  const my = ++_articleEpoch;
+  S.selected = null;
+  const art = $('dict-article'); art.hidden = false; $('dict-root').classList.add('has-article');
+  const items = list.slice(), done = new Map();
+  let i = 0;
+  const back = el('button', { class: 'dict-btn dict-a-back', attrs: { type: 'button' }, text: '‹ ' + tt('dictionary.back', 'К списку'), on: { click: () => { closeArticle(); afterMarks(); } } });
+  const head = el('h2', { class: 'dict-set-title', text: fill(tt('dictionary.triage.title', 'Разметка: {n} сл.'), { n: items.length }) });
+  const note = el('p', { class: 'dict-note', text: tt('dictionary.triage.note', '«Узнаю» и «не знаю» ставят слово в повторение — с этим предложением текста. «Знаю» и «не учить» расписание не трогают.') });
+  const panel = el('div', { class: 'dict-drill dict-triage', attrs: { role: 'group', 'aria-live': 'polite' } });
+  art.replaceChildren(back, head, note, panel);
+  if (window.matchMedia && window.matchMedia('(max-width: 959px)').matches) art.scrollTop = 0;
+  const label = (st) => (st === '' ? tt('dictionary.triage.skip', 'пропустить') : statusText(st));
+  async function show() {
+    if (my !== _articleEpoch) return;
+    if (i >= items.length) return finish();
+    const e = items[i];
+    if (e.reading === undefined) { try { await resolveReadings(new Map([[e.key, e]])); } catch (_) {} }
+    if (my !== _articleEpoch) return;
+    const d = D.displayOf(e), mean = D.meaningOf(e), sent = textSentence(e);
+    const cur = done.get(e.key);
+    panel.setAttribute('data-key', e.key);   // read by the smoke gate
+    panel.replaceChildren(...[
+      el('div', { class: 'dict-drill-head' }, [el('span', { class: 'dict-note', text: (i + 1) + ' / ' + items.length }),
+        e.inText ? el('span', { class: 'dict-note', text: fill(tt('dictionary.text.inText', 'в тексте: {n}'), { n: e.inText.freq }) }) : null]),
+      el('div', { class: 'dict-triage-word' }, [
+        el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.speak', 'Озвучить') }, text: '▶', on: { click: () => { try { morphHost.speakWord(d.he); } catch (_) {} } } }),
+        el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: d.he || (e.inText && (e.inText.niqqud || e.inText.surface)) || '' })]),
+      el('p', { class: 'dict-triage-mean', attrs: { dir: 'auto' }, text: [mean.text || tt('dictionary.noMeaning', 'перевод не найден офлайн'), d.pos ? posText(d.pos) + (d.binyan ? ' · ' + d.binyan : '') : ''].filter(Boolean).join(' — ') }),
+      sent ? el('div', { class: 'dict-place dict-triage-sent' }, [sent.node, sent.ru ? el('div', { class: 'ru', attrs: { dir: 'auto' }, text: sent.ru }) : null]) : null,
+      cur != null ? el('p', { class: 'dict-note', text: fill(tt('dictionary.triage.was', 'Уже отмечено: {s}'), { s: label(cur) }) }) : null,
+    ].filter(Boolean));
+    const btns = el('div', { class: 'dict-triage-btns' }, TRIAGE.map(([st, key]) => el('button', { class: 'dict-btn' + (st === 'l1' ? ' primary' : '') + (st ? ' dict-st-btn dict-st-' + st : ''), attrs: { type: 'button', 'data-triage': st || 'skip' },
+      on: { click: () => answer(st) } }, [el('kbd', { text: key }), ' ' + label(st)])));
+    panel.appendChild(btns);
+    panel.appendChild(el('div', { class: 'dict-drill-actions' }, [
+      i > 0 ? el('button', { class: 'dict-btn', attrs: { type: 'button', 'data-triage': 'back' }, text: '‹ ' + tt('dictionary.triage.prev', 'назад'), on: { click: () => { i--; show(); } } }) : null,
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.triage.stop', 'Закончить'), on: { click: () => finish() } }),
+    ]));
+  }
+  let busy = false;
+  async function answer(st) {
+    if (busy || i >= items.length) return;
+    busy = true;
+    const e = items[i];
+    if (st) await setStatus(e, st, true);
+    done.set(e.key, st);
+    i++; busy = false;
+    show();
+  }
+  function finish() {
+    document.removeEventListener('keydown', onKey);
+    const counts = {}; done.forEach((st) => { counts[st] = (counts[st] || 0) + 1; });
+    const learn = items.filter((e) => /^l[1-4]$/.test(done.get(e.key) || ''));
+    panel.replaceChildren(
+      el('p', { class: 'dict-drill-total', text: TRIAGE.filter(([st]) => counts[st]).map(([st]) => label(st) + ': ' + counts[st]).join(' · ') || tt('dictionary.triage.none', 'Ничего не отмечено.') }),
+      el('div', { class: 'dict-drill-actions' }, [
+        learn.length ? el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.triage.learn', 'Учить отмеченные «узнаю» и «не знаю» ({n})'), { n: learn.length }), on: { click: () => startTrain(learn) } }) : null,
+        el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.back', 'К списку'), on: { click: () => { closeArticle(); } } }),
+      ]));
+    afterMarks();
+  }
+  function onKey(ev) {
+    if (my !== _articleEpoch) { document.removeEventListener('keydown', onKey); return; }
+    if (ev.target && /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
+    const k = TRIAGE.find((x) => x[1] === ev.key);
+    if (k) { ev.preventDefault(); answer(k[0]); }
+    else if ((ev.key === 'Backspace' || ev.key === 'ArrowLeft') && i > 0) { ev.preventDefault(); i--; show(); }
+  }
+  document.addEventListener('keydown', onKey);
+  show();
+}
+// mass «знаю» / «не учить» on the unmarked words shown, with undo (no schedule involved)
+async function bulkMark(st, list) {
+  const targets = list.filter((e) => unmarkedOf(e) || (e.inText && e.textStatus === 'new'));
+  if (!targets.length) return;
+  const prev = targets.map((e) => [e, e.inText ? e.textStatus || '' : e.status || '']);
+  for (const e of targets) await setStatus(e, st, false);
+  afterMarks();
+  toast(fill(tt('dictionary.bulk.done', 'Отмечено «{s}»: {n}'), { s: statusText(st), n: targets.length }), tt('room.morph.study.undo', 'Отменить'), async () => {
+    let restored = 0;
+    for (const [e, p] of prev) {
+      if ((S.live[e.key] || '') !== st) continue;   // changed again since — leave it
+      await setStatus(e, p, false); if (!p && !e.note && !e.srs && !e.log) { e.metOnly = true; e.status = ''; }
+      restored++;
+    }
+    afterMarks();
+    toast(fill(tt('dictionary.bulk.undone', 'Отменено: {n}'), { n: restored }));
+  });
+}
+// «Учить эти» with words that have no mark yet: the learner chooses (owner decision 2026-10-13)
+function chooseTrain(learnable) {
+  const unmarked = learnable.filter(unmarkedOf), marked = learnable.filter((e) => !unmarkedOf(e));
+  if (!unmarked.length) { startTrain(learnable); return; }
+  const box = $('dict-train');
+  const ask = el('div', { class: 'dict-choice', attrs: { role: 'group' } }, [
+    el('p', { text: fill(tt('dictionary.trainUnmarked', 'В наборе {u} сл. без отметки. Тренировка учит только отмеченные слова.'), { u: unmarked.length }) }),
+    el('div', { class: 'dict-drill-actions' }, [
+      el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-train-markl1' }, text: fill(tt('dictionary.trainMarkL1', 'Отметить их как «незнакомо» и учить ({n})'), { n: learnable.length }),
+        on: { click: async () => { for (const e of unmarked) await setStatus(e, 'l1', true); morphHost.invalidateWordStates(); startTrain(learnable); } } }),
+      marked.length ? el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: fill(tt('dictionary.trainMarkedOnly', 'Учить только размеченные ({n})'), { n: marked.length }), on: { click: () => startTrain(marked) } }) : null,
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => ask.remove() } }),
+    ]),
+  ]);
+  box.appendChild(ask);
+  try { ask.querySelector('.primary').focus(); } catch (_) {}
 }
 
 // ── article ────────────────────────────────────────────────────────────────────────────────────
 let morphHost = null, _articleEpoch = 0;
-function toast(msg) { const t = $('dict-toast'); if (!t) return; t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 3200); }
+function toast(msg, actionText, action) {
+  const t = $('dict-toast'); if (!t) return;
+  t.replaceChildren(document.createTextNode(msg));
+  if (actionText && action) t.appendChild(el('button', { class: 'dict-toast-act', attrs: { type: 'button' }, text: actionText, on: { click: () => { t.classList.remove('on'); action(); } } }));
+  t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), actionText ? 10000 : 3200);
+}
 function highlight(sentence, offset) {
   const out = el('div', { class: 'he', attrs: { lang: 'he', dir: 'rtl' } });
   let wi = 0;
@@ -671,7 +982,7 @@ async function openArticle(key) {
         const next = on && s !== 'new' ? 'new' : s;
         try { await morphHost.markWordStatus(key, next, null); } catch (_) {}
         morphHost.invalidateWordStates();
-        e.status = next; e.metOnly = false;
+        e.status = next; e.metOnly = false; S.live[key] = next; if (e.inText) e.textStatus = next;
         const sch = await localDb.getSrsSchedule().catch(() => ({})); e.srs = sch[key] || e.srs;
         toast(fill(tt('dictionary.statusSet', 'Статус: {s}'), { s: statusText(next) }));
         applyView(); openArticle(key);
@@ -975,7 +1286,18 @@ async function exportXlsx(list) {
     progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: 0, n: list.length }));
     const JSZip = await zipLib();
     const memAll = new Map((await drillAll()).map((r) => [r.key, r.mem]));
+    const lens = S.filters.scope === 'text' && S.text && S.text.scan ? S.text : null;
     const examples = await examplesFor(list);
+    // the text lens: the example is the word's first sentence in THIS text
+    if (lens) list.forEach((e) => {
+      if (!e.inText || !e.inText.occ.length) return;
+      const o = e.inText.occ[0], row = lens.rows[o.rowIdx]; if (!row) return;
+      const plain = String(row.he_plain || ''), voc = String(row.he_niqqud || ''), useVoc = voc && RM().words(voc).length === RM().words(plain).length;
+      const he = useVoc ? voc : (plain || voc);
+      let at = -1, len = 0, pos = 0, w = 0;
+      for (const tk of RM().tokenize(he)) { if (tk.isWord) { if (w === o.wordOffset) { at = pos; len = tk.text.length; } w++; } pos += tk.text.length; }
+      examples.set(e.key, { he, at, len, ru: row.ru || '', title: lens.title });
+    });
     const words = [];
     let t0 = performance.now();
     for (let i = 0; i < list.length; i++) {
@@ -994,9 +1316,10 @@ async function exportXlsx(list) {
       }
       words.push({ key: e.key, he: d.he || (p && (p.lemma_niqqud || p.lemma)) || '', translit: lemmaTranslit(p),
         meaning: (e.reading && e.reading.meaning) || (e.note && e.note.meaning) || '', mine: (e.note && e.note.userMeaning) || '',
-        posText: posText(d.pos), binyan: d.binyan, root: d.root, status: e.metOnly ? '' : (e.status || 'new'), statusText: e.metOnly ? '' : statusText(e.status || 'new'),
+        posText: posText(d.pos), binyan: d.binyan, root: d.root,
+        status: lens && e.inText ? (e.textStatus || 'none') : (e.metOnly ? '' : (e.status || 'new')), statusText: lens && e.inText ? statusText(e.textStatus || 'none') : (e.metOnly ? '' : statusText(e.status || 'new')),
         strength: m.strength == null ? null : Math.round(m.strength * 100), due: e.srs && e.srs.due > 0 ? e.srs.due : null, reps: m.reps, lapses: m.lapses,
-        occ: D.occurrences(e), added: e.added, lastSeen: e.lastSeen, example: examples.get(e.key) || null,
+        occ: lens && e.inText ? e.inText.freq : D.occurrences(e), added: e.added, lastSeen: e.lastSeen, example: examples.get(e.key) || null,
         pealimUrl: (p && p.pealim_url) || '', appUrl: location.origin + '/dictionary.html?word=' + encodeURIComponent(e.key),
         table, formsTotal: total, formsMastered: mastered });
       if (performance.now() - t0 > 30) { progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: i + 1, n: list.length })); await yieldNow(); t0 = performance.now(); }
@@ -1019,13 +1342,31 @@ async function exportXlsx(list) {
       lines: [[tt('dictionary.progWeek', 'За неделю'), lineOf(W.week)], [tt('dictionary.progMonth', 'За месяц'), lineOf(W.month)]],
       noHistory: pd.dyn.noHistory ? fill(tt('dictionary.progNoHistory', 'Слов без журнала отметок: {n}. Они считаются в нынешнем статусе с даты добавления.'), { n: pd.dyn.noHistory }) : '',
       weekly, maxWeek: Math.max(1, ...weekly.map((w) => w.n)), weak };
-    const legend = D.STATUSES.filter((s) => s !== 'ignore' || c.ignore).map((s) => ({ key: s, label: statusText(s) }));
+    const legend = (lens ? ['none'] : []).concat(D.STATUSES.filter((s) => s !== 'ignore' || c.ignore)).map((s) => ({ key: s, label: statusText(s) }));
+    // «Текст» sheet: every line, each word with its lemma key and live status (the same scan as the lens)
+    let textData = null;
+    if (lens) {
+      const f = lens.fit, pct = f && f.recorded_familiar_pct_lower_bound != null ? Math.round(Number(f.recorded_familiar_pct_lower_bound)) : null;
+      textData = { title: lens.title, famText: pct != null ? fill(tt('dictionary.text.familiar', 'Знакомо {p}% слов текста (как в Зале)'), { p: pct }) : '',
+        rows: lens.rows.map((row, ri) => {
+          const keys = lens.scan.rowKeys[ri] || [], plain = String(row.he_plain || ''), voc = String(row.he_niqqud || '');
+          const useVoc = voc && RM().words(voc).length === keys.length;
+          let w = 0;
+          const tokens = RM().tokenize(useVoc ? voc : (plain || voc)).map((tk) => {
+            if (!tk.isWord) return { t: tk.text };
+            const key = keys[w++] || null, en = key ? S.entries.get(key) : null;
+            return { t: tk.text, key, status: key ? (S.live[key] || 'none') : '', lemma: en ? D.displayOf(en).he : '' };
+          });
+          return { n: Number(row.order_index != null ? row.order_index : ri) + 1, tokens, ru: row.ru || '' };
+        }) };
+    }
     const book = window.DictionaryWorkbook.build({ now, dateText: new Date(now).toLocaleDateString(document.documentElement.lang || 'ru'), filterText: activeSummary(),
-      words, progress: progressBlock, statusLegend: legend }, L);
+      words, progress: progressBlock, statusLegend: legend, text: textData }, L);
     const zip = new JSZip();
     Object.entries(window.XlsxCore.buildParts(book)).forEach(([k, v]) => zip.file(k, v));
     const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', compression: 'DEFLATE' });
-    const name = 'linguistpro-dictionary-' + isoDay(now) + '.xlsx';
+    const slug = lens ? '-' + String(lens.title || 'text').replace(/[\\/:*?"<>|\s]+/g, '-').slice(0, 40) : '';
+    const name = 'linguistpro-dictionary' + slug + '-' + isoDay(now) + '.xlsx';
     window.LPDictionary.lastExport = { name, size: blob.size, words: words.length, forms: book.meta.forms, tests: book.meta.tests, blob };   // smoke / diagnostics
     const url = URL.createObjectURL(blob), a = el('a', { attrs: { href: url, download: name } });
     document.body.appendChild(a); a.click(); a.remove();
@@ -1051,11 +1392,12 @@ function wire() {
     if (open) renderFilters();
   });
   document.querySelectorAll('[data-scope]').forEach((b) => b.addEventListener('click', () => {
-    S.filters.scope = b.getAttribute('data-scope');
-    document.querySelectorAll('[data-scope]').forEach((x) => x.classList.toggle('on', x === b));
-    S.shown = 0;
-    if (S.filters.scope === 'met' && !S.metBuilt) buildMet(); else applyView();
+    setScope(b.getAttribute('data-scope'));
+    if (S.filters.scope === 'met' && !S.metBuilt) buildMet();
+    else if (S.filters.scope === 'text') { fillTextPicker(); applyView(); }
+    else applyView();
   }));
+  $('dict-text-sel').addEventListener('change', (ev) => { if (ev.target.value) { try { history.replaceState(null, '', '?text=' + encodeURIComponent(ev.target.value)); } catch (_) {} loadText(ev.target.value); } });
   document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.getAttribute('data-view'))));
   document.addEventListener('i18n:changed', () => { applyView(); if (S.viewMode === 'progress') renderProgress(); if (!$('dict-filters').hidden) renderFilters(); if (S.selected) openArticle(S.selected); });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('dict-article').hidden && !document.querySelector('.rm-sheet.rm-open')) closeArticle(); });
@@ -1087,6 +1429,8 @@ async function boot() {
   $('dict-root').setAttribute('aria-busy', 'false');
   // «Открыть в LinguistPro ↗» from the XLSX book: dictionary.html?word=<key> opens that word's article
   try { const w = new URLSearchParams(location.search).get('word'); if (w && S.entries.has(w)) openArticle(w); } catch (_) {}
+  // «Слова этого текста»: dictionary.html?text=<id> (from the Room / Studio) opens the text lens
+  try { const tx = new URLSearchParams(location.search).get('text'); if (tx) { setScope('text'); await fillTextPicker(); $('dict-text-sel').value = tx; await loadText(tx); } } catch (_) {}
 }
 let _reloadT = 0;
 function reloadSoon() { clearTimeout(_reloadT); _reloadT = setTimeout(() => reload(), 300); }
@@ -1095,6 +1439,7 @@ async function reload() {
   // keep readings and «met» entries already computed
   S.entries.forEach((old, k) => { const e = fresh.get(k); if (e && old.reading !== undefined) { e.reading = old.reading; e.paradigm = old.paradigm; e.forms = old.forms; } if (!e && old.metOnly) fresh.set(k, old); else if (e && old.met) e.met = old.met; });
   S.entries = fresh;
+  if (S.text && S.text.scan) { await refreshLive(); attachText(); }
   applyView();
   await resolveReadings(S.entries);
   applyView();

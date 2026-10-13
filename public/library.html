@@ -2131,6 +2131,7 @@
     .room-study-sel-lab { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
     .room-study-sel-lab select { font-size: 12.5px; padding: 4px 6px; border-radius: 7px; border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-primary); }
     .room-study-check { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; }
+    .room-study-dictlink { display: inline-flex; align-items: center; min-height: 36px; font-size: 13px; font-weight: 600; color: var(--accent, #1B4FB8); text-decoration: underline; }
     .room-study-bulk { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; padding: 8px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
     .room-study-bulk-k { font-size: 11.5px; color: var(--text-faint); margin-inline-end: 2px; }
     .room-study-bulk-btn { appearance: none; cursor: pointer; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 12px; font-weight: 600; }
@@ -3339,7 +3340,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.753</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.754</button>
     </p>
   </div>
 </div>
@@ -3516,9 +3517,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=296"></script>
-    <script src="/i18n/locales/en.js?v=296"></script>
-    <script src="/i18n/locales/he.js?v=296"></script>
+    <script src="/i18n/locales/ru.js?v=297"></script>
+    <script src="/i18n/locales/en.js?v=297"></script>
+    <script src="/i18n/locales/he.js?v=297"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3563,7 +3564,7 @@
 <script src="/js/proclitic-segment.js"></script>
 <!-- Слой слов Ф2: русский перевод каждой формы парадигмы (офлайн, ленивая загрузка данных). -->
 <script src="/js/ru-forms.js?v=739"></script>
-<script src="/js/reader-morph.js?v=745"></script>
+<script src="/js/reader-morph.js?v=754"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=746"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
@@ -3644,7 +3645,7 @@
      and store as the Studio table). -->
 <script src="/js/local-translit-bundle.js?v=735"></script>
 <script src="/js/translit-display.js?v=734"></script>
-<script type="module" src="/js/library-ui.js?v=750"></script>
+<script type="module" src="/js/library-ui.js?v=754"></script>
 <script src="/js/tutor-client.js?v=2"></script>
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=718"></script>

@@ -122,13 +122,20 @@
     return Math.max(a + b, m);
   }
 
+  // the status a list shows: in the text lens — the word's LIVE status as painted in the text ('none' = not marked);
+  // elsewhere — the dictionary status («новое» is the default of a word of mine)
+  function statusOf(e, scope) {
+    if (scope === "text") return e.textStatus || "none";
+    return e.status || (e.metOnly ? "" : "new");
+  }
   // filters = { q, statuses:[], memory:'due'|'overdue'|'hard'|'never'|'', pos:[], binyan:[], root:'', hasMine:bool,
-  //             hasAi:bool, addedDays:n, scope:'mine'|'met' }
+  //             hasAi:bool, addedDays:n, scope:'mine'|'met'|'text', hideNames:bool }
   function matches(e, f, now) {
     f = f || {};
-    if (f.scope !== "met" && e.metOnly) return false;
+    if (f.scope === "text") { if (!e.inText) return false; if (f.hideNames && e.inText.nameSuspect) return false; }
+    else if (f.scope !== "met" && e.metOnly) return false;
     var d = displayOf(e);
-    if (f.statuses && f.statuses.length && f.statuses.indexOf(e.status || (e.metOnly ? "" : "new")) < 0) return false;
+    if (f.statuses && f.statuses.length && f.statuses.indexOf(statusOf(e, f.scope)) < 0) return false;
     if (f.memory) {
       var m = memory(e, now);
       if (f.memory === "due" && !(m.state === "due" || m.state === "overdue")) return false;
@@ -136,6 +143,7 @@
       if (f.memory === "hard" && !(m.lapses >= 3)) return false;
       if (f.memory === "never" && m.reps > 0) return false;
     }
+    if (f.keys && f.keys.length && f.keys.indexOf(e.key) < 0) return false;   // a chosen set (the text's glossary)
     if (f.pos && f.pos.length && f.pos.indexOf(d.pos || "?") < 0) return false;
     if (f.binyan && f.binyan.length && f.binyan.indexOf(d.binyan || "?") < 0) return false;
     if (f.root && normHe(d.root) !== normHe(f.root)) return false;
@@ -163,7 +171,7 @@
     return true;
   }
 
-  var SORTS = ["alpha", "added", "due", "weak", "freq", "seen", "root"];
+  var SORTS = ["alpha", "added", "due", "weak", "freq", "seen", "root", "textOrder", "textFreq"];
   function sortEntries(list, by, now) {
     now = now || Date.now();
     var alphaKey = function (e) { return normHe(displayOf(e).lemma || displayOf(e).he); };
@@ -182,6 +190,9 @@
       },
       freq: function (a, b) { return occurrences(b) - occurrences(a) || cmpAlpha(a, b); },
       seen: function (a, b) { return (b.lastSeen || 0) - (a.lastSeen || 0) || cmpAlpha(a, b); },
+      // the text lens: order of first appearance / frequency in THIS text
+      textOrder: function (a, b) { return ((a.inText && a.inText.first) || 0) - ((b.inText && b.inText.first) || 0); },
+      textFreq: function (a, b) { return ((b.inText && b.inText.freq) || 0) - ((a.inText && a.inText.freq) || 0) || ((a.inText && a.inText.first) || 0) - ((b.inText && b.inText.first) || 0); },
       root: function (a, b) {
         var ra = normHe(displayOf(a).root) || "￿", rb = normHe(displayOf(b).root) || "￿";
         return ra < rb ? -1 : ra > rb ? 1 : cmpAlpha(a, b);
@@ -190,15 +201,18 @@
     return list.slice().sort(cmp);
   }
 
-  // counts per status for the header chips (scope-aware)
-  function statusCounts(list) {
-    var out = { total: 0 };
+  // counts per status for the header chips (scope-aware: the text lens counts every lemma of the text by its live status)
+  function statusCounts(list, scope) {
+    var out = { total: 0, none: 0 };
     STATUSES.forEach(function (s) { out[s] = 0; });
-    list.forEach(function (e) { if (e.metOnly) return; out.total++; var s = e.status || "new"; if (out[s] != null) out[s]++; });
+    list.forEach(function (e) {
+      if (scope === "text") { if (!e.inText) return; } else if (e.metOnly) return;
+      out.total++; var s = statusOf(e, scope); if (out[s] != null) out[s]++;
+    });
     return out;
   }
 
   return { STATUSES: STATUSES, LEVEL: LEVEL, SORTS: SORTS, keySurface: keySurface, normHe: normHe, normRu: normRu,
     mergeSources: mergeSources, memory: memory, meaningOf: meaningOf, displayOf: displayOf, occurrences: occurrences,
-    matches: matches, sortEntries: sortEntries, statusCounts: statusCounts };
+    matches: matches, sortEntries: sortEntries, statusCounts: statusCounts, statusOf: statusOf };
 });

@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/css/reader-morph.css?v=746">
   <link rel="stylesheet" href="/css/app-nav.css?v=653">
-  <link rel="stylesheet" href="/css/dictionary.css?v=752">
+  <link rel="stylesheet" href="/css/dictionary.css?v=754">
 </head>
 <body class="lp-dict-page">
 <script src="/js/app-nav.js?v=747"></script>
@@ -32,8 +32,12 @@
         <div class="dict-scope" role="group" data-i18n-aria-label="dictionary.scope" aria-label="Какие слова">
           <button type="button" id="dict-scope-mine" class="dict-seg on" data-scope="mine" data-i18n="dictionary.scopeMine">Мои слова</button>
           <button type="button" id="dict-scope-met" class="dict-seg" data-scope="met" data-i18n="dictionary.scopeMet">Все встреченные</button>
+          <button type="button" id="dict-scope-text" class="dict-seg" data-scope="text" data-i18n="dictionary.scopeText">Из текста</button>
         </div>
+        <label id="dict-text-pick" class="dict-text-pick" hidden><span class="dict-visually-hidden" data-i18n="dictionary.text.choose">Выберите текст…</span>
+          <select id="dict-text-sel"></select></label>
       </div>
+      <div id="dict-textbar" class="dict-textbar" aria-live="polite" hidden></div>
       <div id="dict-counts" class="dict-counts" role="group" data-i18n-aria-label="dictionary.byStatus" aria-label="По статусу"></div>
       <div class="dict-controls">
         <button type="button" id="dict-filter-btn" class="dict-btn" aria-expanded="false" aria-controls="dict-filters" data-i18n="dictionary.filters">Фильтры</button>
@@ -46,6 +50,8 @@
             <option value="seen" data-i18n="dictionary.sortSeen">Недавно встреченные</option>
             <option value="alpha" data-i18n="dictionary.sortAlpha">По алфавиту</option>
             <option value="root" data-i18n="dictionary.sortRoot">По корню</option>
+            <option value="textOrder" data-text-sort="1" hidden disabled data-i18n="dictionary.sortTextOrder">По порядку в тексте</option>
+            <option value="textFreq" data-text-sort="1" hidden disabled data-i18n="dictionary.sortTextFreq">Чаще в этом тексте</option>
           </select></label>
       </div>
       <div id="dict-filters" class="dict-filters" hidden></div>
@@ -60,9 +66,9 @@
     <section id="dict-article" class="dict-pane dict-pane-article" aria-live="polite" hidden></section>
   </main>
   <div id="dict-toast" class="dict-toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="/i18n/locales/ru.js?v=296"></script>
-  <script src="/i18n/locales/en.js?v=296"></script>
-  <script src="/i18n/locales/he.js?v=296"></script>
+  <script src="/i18n/locales/ru.js?v=297"></script>
+  <script src="/i18n/locales/en.js?v=297"></script>
+  <script src="/i18n/locales/he.js?v=297"></script>
   <script src="/i18n/index.js"></script>
 <script src="/js/notes-autogen.js"></script>
 <script src="/js/inflection-render.js?v=2"></script>
@@ -74,15 +80,17 @@
 <script src="/js/pealim-identity-overrides.js"></script>
 <script src="/js/proclitic-segment.js"></script>
 <script src="/js/ru-forms.js?v=739"></script>
-<script src="/js/reader-morph.js?v=745"></script>
+<script src="/js/reader-morph.js?v=754"></script>
 <script src="/js/word-gloss.js?v=746"></script>
 <script src="/js/word-gloss-ai.js?v=747"></script>
 <script src="/js/morph-host.js?v=736"></script>
-<script src="/js/dictionary-core.js?v=747"></script>
+<script src="/js/learning-compass-core.js"></script>
+<script src="/js/local-text-familiarity.js?v=669"></script>
+<script src="/js/dictionary-core.js?v=754"></script>
 <script src="/js/form-drill-core.js?v=753"></script>
-<script src="/js/dictionary-progress-core.js?v=752"></script>
+<script src="/js/dictionary-progress-core.js?v=754"></script>
 <script src="/js/xlsx-core.js?v=753"></script>
-<script src="/js/dictionary-workbook.js?v=753"></script>
-<script type="module" src="/js/dictionary-ui.js?v=753"></script>
+<script src="/js/dictionary-workbook.js?v=754"></script>
+<script type="module" src="/js/dictionary-ui.js?v=754"></script>
 </body>
 </html>

@@ -116,3 +116,23 @@ test('X10 print: «Словарь» prints its main columns with the header repe
   assert.match(parts['xl/workbook.xml'], /<definedName name="_xlnm.Print_Area" localSheetId="1">'Словарь'!\$A\$1:\$P\$5<\/definedName>/);
   assert.match(parts['xl/workbook.xml'], /<definedName name="_xlnm.Print_Titles" localSheetId="1">'Словарь'!\$1:\$2<\/definedName>/);
 });
+
+test('text lens book: «Текст» sheet after «Словарь», words coloured by status, line words link to their rows', () => {
+  const tw = words.map((w) => Object.assign({}, w));
+  tw[2] = Object.assign({}, tw[2], { status: 'none', statusText: 'не размечено' });
+  const k0 = tw[0].key, k2 = tw[2].key;
+  const tb = W.build(Object.assign({}, data, { words: tw, text: { title: 'Мой рассказ', famText: 'Знакомо 61% слов текста',
+    rows: [{ n: 1, ru: 'она написала любовь', tokens: [{ t: 'הִיא' }, { t: ' ' }, { t: 'כָּתְבָה', key: k0, status: 'l2', lemma: 'לִכְתּוֹב' }, { t: ' ' }, { t: 'אַהֲבָה', key: k2, status: 'none', lemma: 'אַהֲבָה' }, { t: ' ' }, { t: 'בַּיִת', key: 'pid:x', status: 'known' }] }] } }), null);
+  assert.deepEqual(tb.sheets.map((s) => s.name), ['Начать', 'Словарь', 'Текст', 'Таблицы', 'Формы', 'Проверь себя', 'Прогресс']);
+  const ts = tb.sheets[2], row = ts.rows[0].cells;
+  const runs = row[1].rich;
+  assert.equal(runs.find((r) => r.t === 'כָּתְבָה').color, 'FFB45F06', 'a word being learnt wears its status colour');
+  assert.equal(runs.find((r) => r.t === 'אַהֲבָה').color, 'FFB45309', 'an unmarked word is amber');
+  assert.ok(!runs.find((r) => r.t === 'בַּיִת').color, 'a known word is plain');
+  assert.deepEqual(row.slice(3).map((c) => c.link), [{ sheet: 'Словарь', ref: 'A3' }, { sheet: 'Словарь', ref: 'A5' }], 'line words link to their dictionary rows; known ones are left out');
+  const startTitle = tb.sheets[0].rows[0].cells[0].v;
+  assert.equal(startTitle, 'Слова текста «Мой рассказ»');
+  const p2 = X.buildParts(tb);
+  assert.match(p2['xl/worksheets/sheet1.xml'], /location="'Текст'!A1"/, 'contents links the text sheet');
+  assert.match(p2['xl/worksheets/sheet3.xml'], /location="'Словарь'!A5"/);
+});

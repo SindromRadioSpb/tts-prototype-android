@@ -47,6 +47,14 @@
     weak: { font: { b: true, color: BAD } },
   };
   Object.keys(STATUS_FILL).forEach(function (s) { STYLES["st_" + s] = { fill: STATUS_FILL[s], align: { h: "center" } }; STYLES["sw_" + s] = { fill: STATUS_FILL[s] }; });
+  // «не размечено» (the text lens): no fill, an amber frame and amber bold text — a word nobody has assessed yet
+  var UNMARKED = "FFB45309";
+  STYLES.st_none = { font: { b: true, color: UNMARKED }, align: { h: "center" }, border: { color: UNMARKED } };
+  STYLES.sw_none = { font: { b: true, color: UNMARKED }, border: { color: UNMARKED } };
+  STYLES.textRow = { font: { sz: 13 }, align: { h: "right", v: "top", wrap: true, rtl: true } };
+  STYLES.wordLink = { font: { u: true, sz: 12, color: ACCENT }, align: { h: "center", v: "top", rtl: true } };
+  // word colours inside a text line (rich runs carry a font colour, not a fill)
+  var RUN_COLOR = { none: UNMARKED, "new": "FF7C3AED", l1: "FFB3261E", l2: "FFB45F06", l3: "FF2E7D32", l4: "FF1B4FB8" };
 
   var SHEET = { start: "start", words: "words", tables: "tables", forms: "forms", test: "test", progress: "progress" };
   function lab(L, k, fb) { return (L && L(k, fb)) || fb; }
@@ -80,7 +88,8 @@
     data = data || {};
     var words = data.words || [], now = data.now || Date.now();
     var T = function (k, fb) { return lab(L, "dictionary.book." + k, fb); };
-    var names = { start: T("sheetStart", "Начать"), words: T("sheetWords", "Словарь"), tables: T("sheetTables", "Таблицы"), forms: T("sheetForms", "Формы"),
+    var TX = data.text || null;   // the text lens: { title, famText, rows: [{ n, tokens: [{ t, key, status }], ru }] }
+    var names = { text: T("sheetText", "Текст"), start: T("sheetStart", "Начать"), words: T("sheetWords", "Словарь"), tables: T("sheetTables", "Таблицы"), forms: T("sheetForms", "Формы"),
       test: T("sheetTest", "Проверь себя"), progress: T("sheetProgress", "Прогресс") };
     var toStart = function () { return { v: "‹ " + names.start, link: { sheet: names.start, ref: "A1" } }; };
 
@@ -98,7 +107,7 @@
       { header: T("cPos", "Часть речи"), width: 10 }, { header: T("cBinyan", "Биньян"), width: 9 }, { header: T("cRoot", "Корень"), width: 8, rtl: true },
       { header: T("cStatus", "Статус"), width: 11 }, { header: T("cStrength", "Память, %"), width: 9, style: "num" },
       { header: T("cDue", "Повторить"), width: 11, style: "date" }, { header: T("cReps", "Повторений"), width: 11, style: "num" },
-      { header: T("cLapses", "Срывов"), width: 8, style: "num" }, { header: T("cOcc", "Встреч"), width: 8, style: "num" },
+      { header: T("cLapses", "Срывов"), width: 8, style: "num" }, { header: TX ? T("cInText", "В этом тексте") : T("cOcc", "Встреч"), width: 8, style: "num" },
       { header: T("cExample", "Пример из моих текстов"), width: 38, rtl: true, wrap: true }, { header: T("cExampleRu", "Перевод примера"), width: 30, wrap: true },
       { header: T("cSource", "Текст"), width: 16, wrap: true }, { header: T("cTable", "Формы"), width: 14 },
       { header: "Pealim", width: 9 }, { header: T("cApp", "В приложении"), width: 12 },
@@ -254,7 +263,8 @@
     // ── Начать ──
     var sRows = [], sMerge = [];
     var add = function (cells, h, merge) { sRows.push(h ? { cells: cells, height: h } : cells); if (merge) sMerge.push(merge.replace(/#/g, sRows.length)); };
-    add([{ v: T("title", "Мой словарь · LinguistPro"), s: "title" }], 34);
+    add([{ v: TX ? fill(T("titleText", "Слова текста «{t}»"), { t: TX.title }) : T("title", "Мой словарь · LinguistPro"), s: "title" }], 34, TX ? "A#:C#" : null);
+    if (TX && TX.famText) add([{ v: TX.famText, s: "bold" }], 20, "A#:C#");
     add([{ v: fill(T("meta", "Выгружено {date} · слов: {n} · с таблицами форм: {t}{filter}"), { date: data.dateText || "", n: words.length, t: Object.keys(tableRow).length, filter: data.filterText ? " · " + T("filter", "фильтр") + ": " + data.filterText : "" }), s: "subtitle" }], 20, "A#:C#");
     add([{ v: T("snapshot", "Это снимок словаря для работы вне программы. Правки в файле не меняют программу; чтобы отметить слово или повторить его в тренировке, откройте его по ссылке «В приложении ↗»."), s: "note" }], 32, "A#:C#");
     add([]);
@@ -273,12 +283,12 @@
     add([{ v: T("scoreLeft", "Осталось") }, { f: tests.length + "-COUNTIF(" + rng + ",\"✓*\")-COUNTIF(" + rng + ",\"✗*\")", s: "bold" }]);
     add([]);
     add([{ v: T("contents", "Содержание"), s: "h2" }], 22);
-    [[names.words, "A1", T("tocWords", "Все слова: значение, статус и память, пример из ваших текстов со словом жирным, ссылки на таблицу форм, Pealim и программу.")],
+    (TX ? [[names.text, "A1", T("tocText", "Текст строка за строкой с переводом: неразмеченные слова — оранжевым, изучаемые — цветом статуса; справа от строки — её незнакомые слова, каждое ведёт к своей строке «Словаря».")]] : []).concat([[names.words, "A1", T("tocWords", "Все слова: значение, статус и память, пример из ваших текстов со словом жирным, ссылки на таблицу форм, Pealim и программу.")],
      [names.tables, "A1", T("tocTables", "Спряжение / склонение каждого слова, как у Pealim: время в строке, в клетке лицо, форма, транслит и перевод. Жёлтым — формы из ваших текстов.")],
      [names.forms, "A1", T("tocForms", "Все формы всех слов одним списком. Фильтр по времени, лицу, «встречена у меня», «уверенно» — для работы по шаблону сразу на многих словах.")],
      [names.test, "D" + D0, T("tocTest", "Напишите слово или форму на иврите в жёлтой клетке — справа сразу появится ✓ или правильный ответ. Огласовка не нужна; краткое и полное написание принимаются.")],
-     [names.progress, "A1", T("tocProgress", "Статусы и их изменение за неделю и месяц, повторения по неделям, слабые места по части речи, биньяну и времени.")]].forEach(function (x) {
-      add([{ v: x[0] + " ›", link: { sheet: x[0], ref: x[1] }, s: "toc" }, { v: x[2], s: "textTop" }], 34, "B#:C#");
+     [names.progress, "A1", T("tocProgress", "Статусы и их изменение за неделю и месяц, повторения по неделям, слабые места по части речи, биньяну и времени.")]]).forEach(function (x) {
+      add([{ v: x[0] + " ›", link: { sheet: x[0], ref: x[1] }, s: "toc" }, { v: x[2], s: "textTop" }], Math.max(34, 16 * linesFor(x[2], 76) + 4), "B#:C#");
     });
     add([]);
     add([{ v: T("how", "Как заниматься"), s: "h2" }], 22);
@@ -296,7 +306,30 @@
     add([{ v: T("legendOverdue", "дата повторения"), s: "overdue" }, { v: T("legendOverdueHint", "срок наступил — красным, пересчитывается каждый день"), s: "note" }]);
     var startSheet = { name: names.start, tabColor: "FF0F172A", header: false, selected: true, gridLines: false, columns: [{ width: 30 }, { width: 62 }, { width: 18 }], rows: sRows, merges: sMerge, print: { fitWidth: true } };
 
-    return { sheets: [startSheet, wordsSheet, tablesSheet, formsSheet, testSheet, progressSheet], styles: STYLES,
+    // ── Текст (the text lens) ──
+    var textSheet = null;
+    if (TX) {
+      var MAXW = 8, xRows = [{ cells: ["", toStart(), { v: T("textAbout", "Оранжевым — слова без отметки, цветом — изучаемые; справа — незнакомые слова строки, каждое ведёт в «Словарь»."), s: "note" }], height: 30 }];
+      var xCols = [{ header: "№", width: 5, style: "num" }, { header: T("cHebrew", "Иврит"), width: 58 }, { header: T("cRu", "Перевод"), width: 44, wrap: true }];
+      for (var wi = 0; wi < MAXW; wi++) xCols.push({ header: wi === 0 ? T("cLineWords", "Незнакомые слова строки") : "", width: wi === 0 ? 16 : 13 });
+      (TX.rows || []).forEach(function (row) {
+        var runs = (row.tokens || []).map(function (tk) {
+          var c = tk.key && RUN_COLOR[tk.status];
+          return c ? { t: tk.t, b: true, color: c } : { t: tk.t };
+        });
+        var seen = {}, wcells = [];
+        (row.tokens || []).forEach(function (tk) {
+          if (!tk.key || seen[tk.key] || !RUN_COLOR[tk.status] || wcells.length >= MAXW) return;
+          seen[tk.key] = 1;
+          wcells.push(wordRow[tk.key] ? { v: tk.lemma || tk.t, link: { sheet: names.words, ref: "A" + wordRow[tk.key] }, s: "wordLink" } : { v: tk.lemma || tk.t, s: "wordLink" });
+        });
+        var h = 18 * Math.max(1, linesFor((row.tokens || []).map(function (x) { return x.t; }).join(""), 52), linesFor(row.ru, 44)) + 6;
+        xRows.push({ height: Math.min(120, h), cells: [row.n, { rich: runs.length ? runs : [{ t: "" }], s: "textRow" }, row.ru || ""].concat(wcells) });
+      });
+      textSheet = { name: names.text, tabColor: "FFB45309", top: xRows.slice(0, 1), freeze: { rows: 2, cols: 0 }, autoFilter: false, columns: xCols, rows: xRows.slice(1),
+        merges: ["C1:G1"], print: { landscape: true, fitWidth: true, titleRows: true } };
+    }
+    return { sheets: [startSheet, wordsSheet].concat(textSheet ? [textSheet] : []).concat([tablesSheet, formsSheet, testSheet, progressSheet]), styles: STYLES,
       meta: { tableRow: tableRow, wordRow: wordRow, tests: tests.length, forms: fRows.length } };
   }
 

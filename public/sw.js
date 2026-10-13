@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.753";
+const CACHE_VERSION = "v3.11.754";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -76,13 +76,13 @@ const PRECACHE_URLS = [
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/dictionary.html",
-  "/css/dictionary.css?v=752",
-  "/js/dictionary-core.js?v=747",
+  "/css/dictionary.css?v=754",
+  "/js/dictionary-core.js?v=754",
   "/js/form-drill-core.js?v=753",
-  "/js/dictionary-progress-core.js?v=752",
+  "/js/dictionary-progress-core.js?v=754",
   "/js/xlsx-core.js?v=753",
-  "/js/dictionary-workbook.js?v=753",
-  "/js/dictionary-ui.js?v=753",
+  "/js/dictionary-workbook.js?v=754",
+  "/js/dictionary-ui.js?v=754",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=727",
   "/js/mediatheque-core.js",
@@ -143,7 +143,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=750",
+  "/js/library-ui.js?v=754",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -195,7 +195,7 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=745",
+  "/js/reader-morph.js?v=754",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
@@ -334,9 +334,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=296",
-  "/i18n/locales/en.js?v=296",
-  "/i18n/locales/he.js?v=296",
+  "/i18n/locales/ru.js?v=297",
+  "/i18n/locales/en.js?v=297",
+  "/i18n/locales/he.js?v=297",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

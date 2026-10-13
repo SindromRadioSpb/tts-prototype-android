@@ -296,6 +296,103 @@ const ROWS = [
     const deep = await pg.evaluate(() => (document.querySelector("#dict-article .dict-a-word .he") || {}).textContent || "");
     ok(/לִכְתּוֹב/.test(deep), "D11 ссылка из книги dictionary.html?word= открывает статью слова («" + deep + "»)");
 
+    // D12 «Слова этого текста» (T1/T2): the Room's lemmas == the lens's lemmas (one scan, one key); live statuses
+    // with «не размечено»; familiarity from the Room's engine; one-by-one marking writes the canon with the text
+    // place; bulk «знаю» with undo; «Учить эти» with unmarked words asks first.
+    await pg.goto(BASE + "/library.html?my_text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
+    await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .rm-w").length >= 10, null, { timeout: 60000 });
+    const roomKeys = await pg.evaluate(async () => {
+      const ldb = await import("/db/local-db.js?v=750");
+      const items = await window.ReaderMorph.collectReviewItems(document.getElementById("roomReaderTable"), await ldb.getAllWordStatuses());
+      return items.map((x) => x.lemmaKey).sort();
+    });
+    await pg.goto(BASE + "/dictionary.html?text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
+    await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan && document.querySelectorAll(".dict-row").length >= 3; }, null, { timeout: 60000 });
+    await pg.waitForFunction(() => /Знакомо \d+%|не посчитана|появится/.test(document.getElementById("dict-textbar").innerText), null, { timeout: 60000 }).catch(() => {});
+    const lens = await pg.evaluate(() => {
+      const S = window.LPDictionary.state;
+      const keys = [...S.entries.values()].filter((e) => e.inText).map((e) => e.key).sort();
+      const rows = [...document.querySelectorAll(".dict-row")].map((b) => ({ key: b.getAttribute("data-key"), meta: b.querySelector(".dict-row-meta").innerText }));
+      return { keys, rows, bar: document.getElementById("dict-textbar").innerText, counts: document.getElementById("dict-counts").innerText, sort: document.getElementById("dict-sort").value };
+    });
+    ok(roomKeys.length >= 5 && JSON.stringify(roomKeys) === JSON.stringify(lens.keys), `D12 леммы текста в словаре = леммы Зала (${lens.keys.length} = ${roomKeys.length})`);
+    const katavRow = lens.rows.find((r) => r.key === seed.keys.katav), unmarked = lens.rows.filter((r) => /не размечено/.test(r.meta));
+    ok(katavRow && /почти знаю/.test(katavRow.meta) && /в тексте: 1/.test(katavRow.meta) && unmarked.length >= 2 && lens.sort === "textOrder",
+      `D12 живой статус и «в тексте: N», неразмеченные видны (${unmarked.length}), порядок по тексту`);
+    ok(/Знакомо \d+% слов текста/.test(lens.bar) && /не размечено/.test(lens.counts), "D12 знакомость текста тем же движком, что Зал («" + (lens.bar.match(/Знакомо[^\n]*/) || [""])[0] + "»)");
+    await pg.screenshot({ path: shot("text-lens-desktop") });
+    // one-by-one marking: «знаю» for the first, «не знаю» for the second (keys 1 and 3)
+    await pg.click("#dict-triage");
+    await pg.waitForSelector("#dict-article .dict-triage-btns", { timeout: 30000 });
+    const t1 = await pg.evaluate(() => document.querySelector("#dict-article .dict-triage-word .he").textContent);
+    await pg.screenshot({ path: shot("triage-desktop") });
+    const k1 = await pg.getAttribute("#dict-article .dict-triage", "data-key");
+    await pg.keyboard.press("1"); await pg.waitForTimeout(600);
+    const k2 = await pg.getAttribute("#dict-article .dict-triage", "data-key");
+    await pg.keyboard.press("3"); await pg.waitForTimeout(900);
+    const marked = await pg.evaluate(async (keys) => {
+      const ldb = await import("/db/local-db.js?v=750"), out = [];
+      for (const k of keys) { const r = (await ldb.dbQuery("SELECT status, srs_text_key, srs_due FROM word_status WHERE lemma_key = ?", [k]))[0] || {}; out.push({ key: k, db: r.status, tk: r.srs_text_key, due: !!r.srs_due }); }
+      return out;
+    }, [k1, k2]);
+    const mk = k1 !== k2 && marked[0].db === "known" ? marked[0] : null, ml1 = marked[1].db === "l1" ? marked[1] : null;
+    ok(t1 && mk && !mk.due && ml1 && ml1.due && ml1.tk === "dict-smoke", `D12 разметка: «знаю» без расписания, «не знаю» в повторение с местом из текста (${JSON.stringify(ml1)})`);
+    await pg.click("#dict-article .dict-a-back").catch(async () => { await pg.evaluate(() => document.querySelector("#dict-article .dict-a-back").click()); });
+    await pg.waitForTimeout(400);
+    // bulk «знаю» on the rest + undo
+    const before = await pg.evaluate(() => [...window.LPDictionary.state.entries.values()].filter((e) => e.inText && !e.textStatus).length);
+    await pg.click("#dict-bulk-known");
+    await pg.waitForTimeout(800);
+    const mid = await pg.evaluate(() => [...window.LPDictionary.state.entries.values()].filter((e) => e.inText && !e.textStatus).length);
+    await pg.click("#dict-toast .dict-toast-act");
+    await pg.waitForTimeout(1000);
+    const after = await pg.evaluate(async () => {
+      const ldb = await import("/db/local-db.js?v=750"), S = window.LPDictionary.state, st = await ldb.getAllWordStatuses();
+      const un = [...S.entries.values()].filter((e) => e.inText && !e.textStatus);
+      return { n: un.length, dbClear: un.every((e) => !st[e.key]) };
+    });
+    ok(before >= 1 && mid === 0 && after.n === before && after.dbClear, `D12 массово «знаю» (${before}) и отмена вернула их неразмеченными`);
+    // «Учить эти» with unmarked words asks first
+    await pg.click("#dict-train-these");
+    const choice = await pg.waitForSelector("#dict-train-markl1", { timeout: 5000 }).then(() => pg.textContent("#dict-train-markl1")).catch(() => "");
+    ok(/Отметить их как «незнакомо» и учить/.test(choice), "D12 «Учить эти» с неразмеченными словами предлагает выбор («" + choice + "»)");
+    // D13 (T4) «словарик к тексту»: forecast by the Room's engine → «Показать эти»; (T3) XLSX of the text with «Текст»
+    await pg.reload({ waitUntil: "load" });
+    await pg.waitForSelector("#dict-plan-show", { timeout: 60000 }).catch(() => {});
+    const plan = await pg.evaluate(() => { const T = window.LPDictionary.state.text; return { line: (document.querySelector(".dict-plan-line") || {}).innerText || "", n: T && T.plan ? T.plan.frontier.length : -1, now: T && T.plan ? T.plan.now : null }; });
+    let shown = -1;
+    if (plan.n > 0) { await pg.click("#dict-plan-show"); await pg.waitForTimeout(400); shown = await pg.evaluate(() => document.querySelectorAll(".dict-row").length); }
+    ok(plan.n > 0 && /знакомость \d+% → \d+%/.test(plan.line) && shown > 0 && shown <= plan.n, `D13 словарик к тексту: «${plan.line.split("\n")[0]}», показано ${shown}`);
+    await pg.screenshot({ path: shot("text-plan-desktop") });
+    await pg.click('#dict-active .dict-chip').catch(() => {});
+    await pg.waitForTimeout(300);
+    const [dl2] = await Promise.all([pg.waitForEvent("download", { timeout: 60000 }), pg.click("#dict-xlsx")]);
+    await dl2.saveAs(path.join(REPO_ROOT, ".tmp", "dictionary-text-export.xlsx"));
+    const tx = await pg.evaluate(async () => {
+      const ex = window.LPDictionary.lastExport, zip = await window.JSZip.loadAsync(ex.blob);
+      const wb = await zip.file("xl/workbook.xml").async("string"), s3 = await zip.file("xl/worksheets/sheet3.xml").async("string"), s1 = await zip.file("xl/worksheets/sheet1.xml").async("string");
+      return { sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), amber: s3.includes('color rgb="FFB45309"'), links: (s3.match(/location="'Словарь'!A\d+"/g) || []).length, title: s1.includes("Слова текста «Смоук словаря»") };
+    });
+    ok(tx.sheets.join() === "Начать,Словарь,Текст,Таблицы,Формы,Проверь себя,Прогресс" && tx.amber && tx.links >= 1 && tx.title && /Смоук-словаря/.test(dl2.suggestedFilename()),
+      `D13 XLSX по тексту: ${dl2.suggestedFilename()} — лист «Текст», неразмеченные оранжевым, ссылок на слова ${tx.links}`);
+
+    // phone width, Hebrew UI
+    await pg.setViewportSize({ width: 380, height: 845 });
+    await pg.evaluate(() => localStorage.setItem("app.locale", "he"));
+    await pg.reload({ waitUntil: "load" });
+    await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan && document.querySelectorAll(".dict-row").length >= 3; }, null, { timeout: 60000 });
+    const lensWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    await pg.screenshot({ path: shot("text-lens-380-he"), fullPage: true });
+    await pg.click("#dict-triage");
+    await pg.waitForSelector("#dict-article .dict-triage-btns", { timeout: 30000 });
+    const triWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    await pg.screenshot({ path: shot("triage-380-he") });
+    ok(!lensWide && !triWide, "D12 срез текста и разметка на 380 px без прокрутки вбок (he)");
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    await pg.evaluate(() => localStorage.setItem("app.locale", "ru"));
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+
     // D5 scale: 1000 entries
     await pg.evaluate(async () => {
       const ldb = await import("/db/local-db.js?v=750");

@@ -139,6 +139,46 @@
     return { overall: all, binyan: fin(byB), tense: fin(byT) };
   }
 
-  return { STATUSES: STATUSES, statusAt: statusAt, indexMarks: indexMarks, dynamics: dynamics, weekly: weekly,
+  // Т4 «словарик к тексту»: which unfamiliar lemmas of a text to learn first and what that does to the text's
+  // familiarity — computed by the SAME evaluator the Room shows (evaluate = LearningCompassCore.evaluate…V2) on the
+  // same cached ingredients, with the chosen keys added to the learner projection as «learning» (l1).
+  // candidates: the keys the learner can act on (the text lens); the frontier is ordered by uses in the text.
+  function textPlan(input) {
+    input = input || {};
+    var ing = input.ingredients, proj = input.projection, evaluate = input.evaluate;
+    if (!ing || !proj || typeof evaluate !== "function") return null;
+    var base = evaluate({ ingredients: ing, learner_projection: proj });
+    if (!base || base.recorded_familiar_pct_lower_bound == null) return { now: null, steps: [], frontier: [] };
+    var states = proj.state_by_key || {}, sched = {};
+    (proj.scheduled_keys || []).forEach(function (k) { sched[k] = true; });
+    var FAM = { known: 1, learning: 1, weak: 1, stale: 1, l1: 1, l2: 1, l3: 1, l4: 1 };
+    var allow = input.candidates ? new Set(input.candidates) : null;
+    var frontier = (ing.key_frequencies || []).map(function (r) { return Array.isArray(r) ? { key: r[0], n: r[1] } : { key: r.key, n: r.token_count }; })
+      .filter(function (r) { var st = states[r.key]; return st !== "ignore" && !FAM[st] && !sched[r.key] && (!allow || allow.has(r.key)); })
+      .sort(function (a, b) { return b.n - a.n || (a.key < b.key ? -1 : 1); });
+    function pctWith(keys) {
+      var st = Object.assign({}, states); keys.forEach(function (k) { st[k] = "l1"; });
+      var r = evaluate({ ingredients: ing, learner_projection: Object.assign({}, proj, { state_by_key: st }) });
+      return r && r.recorded_familiar_pct_lower_bound;
+    }
+    var target = input.target || 95, steps = [];
+    (input.sizes || [10, 25, 50]).forEach(function (n) {
+      if (n >= frontier.length && steps.length && steps[steps.length - 1].n >= frontier.length) return;
+      var k = Math.min(n, frontier.length); if (!k) return;
+      steps.push({ n: k, pct: pctWith(frontier.slice(0, k).map(function (r) { return r.key; })), keys: frontier.slice(0, k).map(function (r) { return r.key; }) });
+    });
+    // the smallest prefix that reaches the target (binary search: the familiarity grows with every added key)
+    var toTarget = null;
+    if (base.recorded_familiar_pct_lower_bound < target && frontier.length) {
+      var lo = 1, hi = frontier.length, all = frontier.map(function (r) { return r.key; });
+      if (pctWith(all) >= target) {
+        while (lo < hi) { var mid = (lo + hi) >> 1; if (pctWith(all.slice(0, mid)) >= target) hi = mid; else lo = mid + 1; }
+        toTarget = { n: lo, pct: pctWith(all.slice(0, lo)), keys: all.slice(0, lo) };
+      }
+    }
+    return { now: base.recorded_familiar_pct_lower_bound, steps: steps, toTarget: toTarget, frontier: frontier, target: target };
+  }
+
+  return { STATUSES: STATUSES, textPlan: textPlan, statusAt: statusAt, indexMarks: indexMarks, dynamics: dynamics, weekly: weekly,
     weakSpots: weakSpots, tenseOf: tenseOf, formWeakSpots: formWeakSpots };
 });

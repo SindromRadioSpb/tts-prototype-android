@@ -92,7 +92,7 @@ test('sorts: alphabet by skeleton, newest, due, weakest, frequency, root groups'
   assert.equal(keys('weak')[0], 'pid:11');
   assert.equal(keys('freq')[0], 'pid:11');
   assert.deepEqual(keys('root'), ['אהבה#noun', 'בית#noun', 'כתב#verb', 'pid:11']);
-  assert.deepEqual(D.statusCounts(list), { total: 4, new: 1, l1: 1, l2: 1, l3: 0, l4: 0, known: 1, ignore: 0 });
+  assert.deepEqual(D.statusCounts(list), { total: 4, none: 0, new: 1, l1: 1, l2: 1, l3: 0, l4: 0, known: 1, ignore: 0 });
   assert.deepEqual(D.meaningOf(map.get('pid:11')), { text: 'услышать', from: 'user' });
 });
 
@@ -100,4 +100,22 @@ test('search finds a word by any form of its table', () => {
   const e = { key: 'pid:2250', status: 'l2', surfaces: [{ s: 'לִשְׁמוֹעַ', from: 'pealim' }], forms: ['שמעתי', 'שומע', 'לשמוע'], sources: ['status'] };
   assert.equal(D.matches(e, { q: 'שָׁמַעְתִּי' }), true);
   assert.equal(D.matches(e, { q: 'כתב' }), false);
+});
+
+test('text lens: only the words of the text, live status with «не размечено», names hidden on request, text sorts', () => {
+  const D = require('../public/js/dictionary-core.js');
+  const a = { key: 'pid:1', status: 'known', textStatus: 'known', surfaces: [], inText: { freq: 1, first: 5 } };
+  const b = { key: 'pid:2', metOnly: true, status: '', textStatus: '', surfaces: [], inText: { freq: 4, first: 9 } };
+  const c = { key: 'pid:3', metOnly: true, status: '', textStatus: 'new', surfaces: [], inText: { freq: 2, first: 1, nameSuspect: true } };
+  const d = { key: 'pid:4', status: 'l2', surfaces: [] };   // mine, not in this text
+  const all = [a, b, c, d];
+  const f = { scope: 'text', statuses: [] };
+  assert.deepEqual(all.filter((e) => D.matches(e, f)).map((e) => e.key), ['pid:1', 'pid:2', 'pid:3']);
+  assert.deepEqual(all.filter((e) => D.matches(e, { scope: 'text', statuses: ['none'] })).map((e) => e.key), ['pid:2']);
+  assert.deepEqual(all.filter((e) => D.matches(e, { scope: 'text', statuses: [], hideNames: true })).map((e) => e.key), ['pid:1', 'pid:2']);
+  assert.deepEqual(D.sortEntries([a, b, c], 'textOrder').map((e) => e.key), ['pid:3', 'pid:1', 'pid:2']);
+  assert.deepEqual(D.sortEntries([a, b, c], 'textFreq').map((e) => e.key), ['pid:2', 'pid:3', 'pid:1']);
+  const n = D.statusCounts(all, 'text');
+  assert.deepEqual([n.total, n.known, n.none, n.new], [3, 1, 1, 1]);
+  assert.equal(D.statusCounts(all).total, 2, 'the mine scope still counts only my words');
 });

@@ -2788,6 +2788,11 @@ function renderStudyControls() {
     hn.appendChild(cb);
     hn.appendChild(el('span', { i18n: 'room.morph.study.hideNames', text: tt('room.morph.study.hideNames', 'Скрыть возможные имена') }));
     wrap.appendChild(hn);
+    // Ф4 «Слова этого текста»: the whole text in «Мой словарь» — every lemma (marked or not), fast marking, XLSX
+    if (readerTextId != null) {
+      wrap.appendChild(el('a', { class: 'room-study-dictlink', i18n: 'room.morph.study.inDictionary', text: tt('room.morph.study.inDictionary', 'Все слова текста в «Моём словаре» ›'),
+        attrs: { href: '/dictionary.html?text=' + encodeURIComponent(readerTextId) } }));
+    }
     // wire control changes (delegated change for selects/checkbox)
     wrap.querySelectorAll('[data-study-scope]').forEach((b) => b.addEventListener('click', () => { _studyView.scope = b.getAttribute('data-study-scope'); _studyView.shown = STUDY_CHUNK; recollectStudy(); }));
     wrap.querySelectorAll('[data-study-select]').forEach((s) => s.addEventListener('change', (e) => { _studyView[s.getAttribute('data-study-select')] = e.target.value; _studyView.shown = STUDY_CHUNK; renderStudyBody(); }));

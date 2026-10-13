@@ -81,3 +81,19 @@ test('form drill weak spots by binyan and tense', () => {
   assert.equal(r.tense[0].wrong, 5);
   assert.equal(r.tense[0].words, 2);
 });
+
+test('T4 text plan: the Room evaluator decides the forecast; frontier by uses; smallest set reaching 95%', () => {
+  const LC = require('../public/js/learning-compass-core.js');
+  const ing = { schema_version: 'room.learning_ingredients.2.0.1', resolver_version: LC.RESOLVER_VERSION || 'recorded-familiarity-v2',
+    key_frequencies: [['pid:a', 50], ['pid:b', 20], ['pid:c', 10], ['pid:d', 5], ['pid:e', 1], ['pid:k', 14]], unresolved_token_count: 0, proper_name_token_count: 0, total_token_count: 100 };
+  const proj = { version: 'v', tracked_lexeme_count: 1, state_by_key: { 'pid:k': 'known', 'pid:e': 'ignore' }, scheduled_keys: [] };
+  const plan = P.textPlan({ ingredients: ing, projection: proj, evaluate: LC.evaluateRecordedFamiliarityV2, sizes: [1, 2, 10] });
+  assert.equal(plan.now, Math.round(14 * 10000 / 99) / 100, 'base = the Room\'s number (ignored words excluded)');
+  assert.deepEqual(plan.frontier.map((r) => r.key), ['pid:a', 'pid:b', 'pid:c', 'pid:d']);
+  assert.deepEqual(plan.steps.map((s) => s.n), [1, 2, 4], 'a size past the frontier is capped once');
+  assert.equal(plan.steps[0].pct, Math.round(64 * 10000 / 99) / 100);
+  assert.equal(plan.toTarget.n, 4, '95% needs all four (99 of 99)');
+  const only = P.textPlan({ ingredients: ing, projection: proj, evaluate: LC.evaluateRecordedFamiliarityV2, candidates: ['pid:b', 'pid:d'], sizes: [10] });
+  assert.deepEqual(only.frontier.map((r) => r.key), ['pid:b', 'pid:d'], 'only words the learner can act on');
+  assert.equal(only.toTarget, null, '95% is out of reach with these');
+});
