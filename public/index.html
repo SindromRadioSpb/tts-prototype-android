@@ -13664,9 +13664,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=301"></script>
-<script src="/i18n/locales/en.js?v=301"></script>
-<script src="/i18n/locales/he.js?v=301"></script>
+<script src="/i18n/locales/ru.js?v=302"></script>
+<script src="/i18n/locales/en.js?v=302"></script>
+<script src="/i18n/locales/he.js?v=302"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13920,7 +13920,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.758";
+    window.APP_VERSION = "3.11.759";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -42482,6 +42482,46 @@ async function v3AnkiDownloadApkg() {
   }
 }
 window.v3AnkiDownloadApkg = v3AnkiDownloadApkg;
+
+// Ф4 · Д4.5 «Скачать .apkg» from «Мой словарь» (docs/planning/word-layer/F4_D4_LIST_TOOLS_SPEC_2026_10_13.md). The
+// dictionary hands over a word set (localStorage dict.ankiSet_v1); the deck is built HERE by the same rich builder as
+// the Studio's own export (v3AnkiBuildWordGroup → v3AnkiBuildWordCardFields + v3AnkiResolveParadigm), so a card from
+// the dictionary equals the card of a Studio text: same guid (lemma key) and the same fields — a later import never
+// overwrites a rich card with a lean one. A word with a note of mine exports that note's own body (mnemonic etc.).
+async function v3AnkiDownloadDictionarySet() {
+  let raw = null;
+  try { raw = JSON.parse(localStorage.getItem("dict.ankiSet_v1") || "null"); localStorage.removeItem("dict.ankiSet_v1"); } catch (_) { raw = null; }
+  try { const u = new URL(location.href); u.searchParams.delete("anki"); history.replaceState(history.state, "", u.pathname + (u.searchParams.toString() ? "?" + u.searchParams.toString() : "") + u.hash); } catch (_) {}
+  if (!raw || !Array.isArray(raw.items) || !raw.items.length || !(Date.now() - Number(raw.at) < 10 * 60 * 1000)) {
+    showToast(t("anki.dictSetExpired") !== "anki.dictSetExpired" ? t("anki.dictSetExpired") : "Набор из словаря не найден или устарел — нажмите «Скачать .apkg» в словаре ещё раз.", "warning");
+    return;
+  }
+  if (!window.AnkiSrsExport || !window.AnkiApkg) { showToast("Экспорт .apkg недоступен (модуль не загружен).", "error"); return; }
+  try {
+    const ldb = await ensureLocalDB();
+    const notes = [];
+    for (const it of raw.items.slice(0, 2000)) {
+      let note = null;
+      if (it && it.noteId) { try { note = await ldb.getNoteById(it.noteId); } catch (_) { note = null; } }
+      const bodyJson = note && note.body_json ? note.body_json : JSON.stringify((it && it.body) || {});
+      notes.push({ body_json: bodyJson, example: "", example_he: (it && it.example_he) || "", example_ru: (it && it.example_ru) || "" });
+    }
+    showToast("Собираю .apkg из словаря: " + notes.length + " сл.…", "info");
+    const group = await v3AnkiBuildWordGroup(notes, { withAudio: false, deckName: raw.deck || "LinguistPro::Words" });
+    const n = (group && group.notes) ? group.notes.length : 0;
+    if (!n) { showToast("В наборе нет слов для карточек.", "info"); return; }
+    const fname = "LinguistPro-dictionary-" + new Date().toISOString().slice(0, 10) + ".apkg";
+    const res = await window.AnkiApkg.downloadApkg({ groups: [group], media: [] }, fname);
+    window.__lpLastDictionaryApkg = { cards: n, filename: res && res.filename, fields: Object.fromEntries(group.fieldNames.map((nm, i) => [nm, group.notes[0].fields[i]])) };   // smoke / diagnostics
+    showToast("Скачано " + n + " карточек слов → " + (res && res.filename ? res.filename : fname), "success");
+  } catch (e) {
+    showToast("Не удалось собрать .apkg: " + (e && e.message ? e.message : String(e)), "error");
+  }
+}
+window.v3AnkiDownloadDictionarySet = v3AnkiDownloadDictionarySet;
+document.addEventListener("DOMContentLoaded", () => {
+  try { if (new URLSearchParams(location.search).get("anki") === "dictionary") setTimeout(() => { v3AnkiDownloadDictionarySet(); }, 400); } catch (_) {}
+});
 
 async function v3AnkiPushNow() {
   const exportId = v3AnkiGetExportId();

@@ -384,6 +384,10 @@ function renderTrainButton() {
     box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-train-forms' }, text: fill(tt('dictionary.trainForms', 'Тренировать формы ({n})'), { n: Math.min(30, forms.length) }),
       on: { click: () => openSetDrill(forms, { subtitle: activeSummary() }) } }));
   }
+  // Д4.5 the set as an Anki deck — built in the Studio by its own word-card builder (equal cards, same guid)
+  const ankiable = S.view.filter((e) => e.status !== 'ignore' && !String(e.key).startsWith('note:'));
+  if (ankiable.length) box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-apkg', title: tt('dictionary.apkgTip', 'Колода Anki по этим словам — те же карточки, что экспорт Anki в Студии') },
+    text: fill(tt('dictionary.apkgBtn', 'Скачать .apkg ({n})'), { n: ankiable.length }), on: { click: () => exportApkg(ankiable) } }));
   box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-xlsx' }, text: fill(tt('dictionary.xlsxBtn', 'Скачать XLSX ({n})'), { n: S.view.length }),
     on: { click: () => exportXlsx(S.view.slice()) } }));
   if (learnable.length) box.appendChild(el('span', { class: 'dict-note', text: tt('dictionary.trainNote', 'Тренировка в Зале по этим словам в текущем порядке; ответы идут в расписание повторения.') }));
@@ -1541,6 +1545,27 @@ function lemmaTranslit(p) {
   const want = strip(p.lemma_niqqud || p.lemma || '');
   for (const c of Object.values(p.cells)) if (c && c.he && strip(c.he) === want && c.translit) return c.translit;
   return '';
+}
+// Д4.5: each word as the body of a word card (the Studio's own builder takes it from there): my note's id when I have
+// a note (its full body, mnemonic included, is used), else the dictionary's own reading; the example from my texts
+async function exportApkg(list) {
+  progress(tt('dictionary.apkgPreparing', 'Готовлю колоду Anki…'));
+  const examples = await examplesFor(list);
+  const items = list.slice(0, 2000).map((e) => {
+    const d = D.displayOf(e), mean = D.meaningOf(e), p = paradigmOf(e), r = e.reading || {};
+    const pid = (p && p.pealim_id != null) ? String(p.pealim_id) : (r.pid || (e.note && e.note.pid) || '');
+    const body = { word: strip(d.lemma || d.he), niqqud_variant: d.he || '', lemma: d.lemma || '', meaning: mean.text || '', pos: d.pos || '', part_of_speech: d.pos || '',
+      binyan: d.binyan || '', root: d.root || '' };
+    if (pid) body.pealim_id = pid;
+    if (mean.from === 'user') body.meaning_source = 'user';
+    const ex = examples.get(e.key) || null;
+    return { key: e.key, noteId: e.note && e.note.id ? e.note.id : null, body, example_he: ex ? ex.he : '', example_ru: ex ? ex.ru : '' };
+  });
+  try { localStorage.setItem('dict.ankiSet_v1', JSON.stringify({ at: Date.now(), items, deck: 'LinguistPro::Words' })); } catch (_) { progress(''); toast(tt('dictionary.apkgFailed', 'Не удалось передать набор в Студию.')); return; }
+  progress('');
+  const w = window.open('/index.html?anki=dictionary', '_blank');
+  if (!w) location.href = '/index.html?anki=dictionary';
+  toast(tt('dictionary.apkgOpened', 'Колода собирается в Студии — файл скачается там.'));
 }
 let _exporting = false;
 async function exportXlsx(list) {

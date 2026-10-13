@@ -341,7 +341,8 @@ const ROWS = [
     }, seed.keys.katav);
     await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
     await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4 && document.getElementById("dict-train-newctx"), null, { timeout: 60000 });
-    await pg.fill("#dict-q", "כתב"); await pg.waitForTimeout(500);
+    await pg.fill("#dict-q", "כתב");
+    await pg.waitForFunction(() => /\(1\)/.test((document.getElementById("dict-train-newctx") || {}).textContent || ""), null, { timeout: 30000 }).catch(() => {});
     const ncBtn = await pg.textContent("#dict-train-newctx");
     await Promise.all([pg.waitForURL(/library\.html/, { timeout: 30000 }), pg.click("#dict-train-newctx")]);
     await pg.waitForFunction(() => { const s = document.querySelector(".room-study"); if (!s || s.hidden) return false; const b = s.querySelector(".room-study-body"); return b && b.innerText.trim() && !/Собираю/.test(b.innerText); }, null, { timeout: 90000 }).catch(() => {});
@@ -349,7 +350,7 @@ const ROWS = [
       return { title: (s && (s.querySelector(".room-study-title") || {}).textContent) || "", text: b ? b.innerText : "", empty: !!(b && b.querySelector(".room-study-empty")) }; });
     ok(anchor && anchor.source && anchor.source.textKey === "dict-smoke" && /В новых предложениях \(1\)/.test(ncBtn) && /новых предложениях/.test(nc.title) && !nc.empty
       && /учитель написал на доске|הַלּוּחַ|Второй текст смоука/.test(nc.text) && !/она написала длинное письмо/.test(nc.text),
-      `D15 слово в новом предложении: «${nc.title}» — задание из другого текста (${nc.text.replace(/\s+/g, " ").slice(0, 90)})`);
+      `D15 слово в новом предложении (${ncBtn}): «${nc.title}» — задание из другого текста (${nc.text.replace(/\s+/g, " ").slice(0, 90)})`);
     await pg.screenshot({ path: shot("newctx-training") });
     // back to the status the later checks expect («почти знаю»); the schedule and its anchor stay
     await pg.evaluate(async (k) => { const ldb = await import(window.__LDB_URL); await ldb.setWordStatus(k, "l4"); }, seed.keys.katav);
@@ -513,6 +514,22 @@ const ROWS = [
     await pg.goto(BASE + media[0], { waitUntil: "load" });
     const cue = await pg.waitForFunction(() => /нет отметки времени|Нажмите ▶/.test((document.querySelector(".room-toast, #roomToast, [class*=toast]") || {}).innerText || document.body.innerText), null, { timeout: 30000 }).then(() => true).catch(() => false);
     ok(cue, "D16 Зал по ссылке открывает строку и честно отвечает про ▶ (подсказка нажать или «нет отметки времени»)");
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+    // D17 «Скачать .apkg»: the dictionary hands the set to the Studio; the deck is built by the Studio's own rich
+    // word-card builder (same guid = lemma key, same fields as a Studio text export)
+    await pg.waitForSelector("#dict-apkg", { timeout: 30000 });
+    const apkgBtn = await pg.textContent("#dict-apkg");
+    const [studio] = await Promise.all([ctx.waitForEvent("page", { timeout: 30000 }), pg.click("#dict-apkg")]);
+    const dlA = await studio.waitForEvent("download", { timeout: 120000 }).catch(() => null);
+    const apkg = await studio.evaluate(() => window.__lpLastDictionaryApkg || null).catch(() => null);
+    const apkgName = dlA ? dlA.suggestedFilename() : "";
+    if (dlA) await dlA.saveAs(path.join(REPO_ROOT, ".tmp", "dictionary-set.apkg"));
+    const nA = Number((apkgBtn.match(/\((\d+)\)/) || [])[1]);
+    ok(apkg && apkg.cards === nA && /^LinguistPro-dictionary-\d{4}-\d\d-\d\d\.apkg$/.test(apkgName) && apkg.fields && "Conjugation" in apkg.fields && "Mnemonic" in apkg.fields,
+      `D17 .apkg из словаря собран построителем Студии: ${apkgName}, карточек ${apkg && apkg.cards} из ${nA}, поля ${apkg && apkg.fields ? Object.keys(apkg.fields).join("/") : "—"}`);
+    await studio.close().catch(() => {});
+
     await pg.goto(BASE + "/dictionary.html?text=" + encodeURIComponent(seed.tid), { waitUntil: "load" });
     await pg.waitForFunction(() => { const S = window.LPDictionary && window.LPDictionary.state; return S && S.text && S.text.scan; }, null, { timeout: 60000 });
 
