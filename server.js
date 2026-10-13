@@ -1213,10 +1213,12 @@ const SHELL_INTEGRITY_PATHS = [
   "/db/IDBBatchAtomicVFS.js",
   "/mediatheque.html",
   "/dictionary.html",
-  "/css/dictionary.css?v=751",
+  "/css/dictionary.css?v=752",
   "/js/dictionary-core.js?v=747",
-  "/js/form-drill-core.js?v=751",
-  "/js/dictionary-ui.js?v=751",
+  "/js/form-drill-core.js?v=752",
+  "/js/dictionary-progress-core.js?v=752",
+  "/js/xlsx-core.js?v=752",
+  "/js/dictionary-ui.js?v=752",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=727",
   "/js/mediatheque-core.js",
@@ -1351,9 +1353,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=294",
-  "/i18n/locales/en.js?v=294",
-  "/i18n/locales/he.js?v=294",
+  "/i18n/locales/ru.js?v=295",
+  "/i18n/locales/en.js?v=295",
+  "/i18n/locales/he.js?v=295",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

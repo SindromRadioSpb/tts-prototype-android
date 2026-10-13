@@ -160,6 +160,68 @@ const ROWS = [
     ok(drill.mastered >= 7 && /Уверенно: [7-9] из/.test(drill.status), `D7 усвоенные формы отмечены в таблице (${drill.mastered}; «${drill.status}»)`);
     await pg.screenshot({ path: shot("drill-desktop") });
 
+    // D8 production answers: typing (another cell is named; Russian layout converted) and letter tiles
+    const prod = await pg.evaluate(async () => {
+      const art = document.getElementById("dict-article"), wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const strip = (s) => String(s || "").replace(/[֑-ׇ]/g, "");
+      const HE2RU = { "א": "е", "ב": "с", "ג": "в", "ד": "ы", "ה": "м", "ו": "г", "ז": "я", "ח": "о", "ט": "н", "י": "р", "ך": "д", "כ": "а", "ל": "л", "ם": "щ", "מ": "т", "ן": "ш", "נ": "и", "ס": "ч", "ע": "п", "ף": "ж", "פ": "з", "ץ": "ю", "צ": "ь", "ק": "у", "ר": "к", "ש": "ф", "ת": "б" };
+      const out = {};
+      art.querySelector(".dict-drill-bar .dict-btn").click(); await wait(50);
+      art.querySelector('.dict-drill-modes [data-mode="type"]').click(); await wait(30);
+      const typeIn = async (text) => { const inp = art.querySelector(".dict-drill-input"); inp.value = text; inp.dispatchEvent(new Event("input")); out.converted = inp.value; await wait(10); art.querySelector(".dict-drill-type .primary").click(); await wait(30); };
+      let ans = art.querySelector(".dict-drill-area").getAttribute("data-answer");
+      const other = [...art.querySelectorAll(".rm-conj-body [data-slot]")].map((c) => strip(c.textContent).replace(/[^א-ת]/g, "")).find((x) => x && x !== strip(ans));
+      await typeIn(other);
+      out.otherNamed = (art.querySelector(".dict-drill-why") || {}).textContent || "";
+      out.firstBad = !!art.querySelector(".dict-drill-fb.bad");
+      art.querySelector(".dict-drill-fb .primary").click(); await wait(30);
+      ans = art.querySelector(".dict-drill-area").getAttribute("data-answer");
+      await typeIn(strip(ans).split("").map((c) => HE2RU[c] || c).join(""));
+      out.layoutOk = !!art.querySelector(".dict-drill-fb.ok");
+      out.layoutNote = (art.querySelector(".dict-drill-area .dict-note") || {}).textContent || "";
+      art.querySelector(".dict-drill-fb .primary").click(); await wait(30);
+      art.querySelector('.dict-drill-modes [data-mode="tiles"]').click(); await wait(30);
+      ans = art.querySelector(".dict-drill-area").getAttribute("data-answer");
+      for (const ch of strip(ans).replace(/[^א-ת]/g, "")) { const b = [...art.querySelectorAll(".dict-tiles .dict-tile")].find((x) => !x.disabled && x.getAttribute("data-ch") === ch); if (b) b.click(); await wait(5); }
+      await wait(30);
+      out.tilesOk = !!art.querySelector(".dict-drill-fb.ok");
+      out.tiles = art.querySelectorAll(".dict-tiles .dict-tile").length;
+      art.querySelector('.dict-drill-modes [data-mode="choice"]') && null;
+      return out;
+    });
+    ok(prod.firstBad && /другую форму/.test(prod.otherNamed), "D8 ввод: чужая клетка названа («" + prod.otherNamed + "»)");
+    ok(prod.layoutOk && /[א-ת]/.test(prod.converted) && /раскладк/.test(prod.layoutNote), "D8 ввод в русской раскладке переведён по клавишам и засчитан (" + prod.converted + ")");
+    ok(prod.tilesOk && prod.tiles > 4, "D8 плитки: собрано по буквам и засчитано (плиток " + prod.tiles + ")");
+    await pg.screenshot({ path: shot("drill-tiles-desktop") });
+    await pg.evaluate(() => { try { localStorage.setItem("dict.drillMode_v1", "choice"); } catch (_) {} });
+
+    // D9 the set: «Тренировать формы (N)» over the list — a round alternates between words
+    await pg.click("#dict-article .dict-a-back").catch(() => {});
+    await pg.reload({ waitUntil: "load" });
+    await pg.waitForSelector("#dict-train-forms", { timeout: 60000 });
+    const setBtn = await pg.textContent("#dict-train-forms");
+    await pg.click("#dict-train-forms");
+    await pg.waitForSelector("#dict-article .dict-drill-opt", { timeout: 30000 });
+    const setRun = await pg.evaluate(async () => {
+      const art = document.getElementById("dict-article"), wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const lemmas = new Set();
+      for (let q = 0; q < 14; q++) {
+        const area = art.querySelector(".dict-drill-opts"); if (!area || !art.querySelector(".dict-drill-opt")) break;
+        lemmas.add(art.querySelector(".dict-drill-head .he").textContent);
+        const ans = area.getAttribute("data-answer");
+        [...area.querySelectorAll(".dict-drill-opt")].find((b) => b.getAttribute("data-he") === ans).click(); await wait(20);
+        art.querySelector(".dict-drill-fb .primary").click(); await wait(20);
+      }
+      return { title: (art.querySelector(".dict-set-title") || {}).textContent || "", total: (art.querySelector(".dict-drill-total") || {}).textContent || "", lemmas: lemmas.size };
+    });
+    ok(/Тренировать формы \([2-4]\)/.test(setBtn) && /Тренировка форм/.test(setRun.title) && /Верно 10 из 10/.test(setRun.total) && setRun.lemmas >= 2,
+      `D9 набор из словаря: ${setBtn} → «${setRun.title}», ${setRun.total.split(".")[0]}, слов в раунде ${setRun.lemmas}`);
+    await pg.screenshot({ path: shot("drill-set-desktop") });
+    await pg.click(".dict-drill-actions .dict-btn:nth-child(2)").catch(() => {});
+    await pg.click(`.dict-row[data-key="${seed.keys.katav}"]`);
+    await pg.waitForSelector("#dict-article .dict-a-status", { timeout: 30000 });
+    await pg.waitForTimeout(800);
+
     // D4 status from the article = the same canon write as in the text
     await pg.click('#dict-article .dict-a-status button:has-text("почти знаю")');
     await pg.waitForTimeout(800);
@@ -180,6 +242,43 @@ const ROWS = [
     await pg.screenshot({ path: shot("train-from-dictionary") });
     await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
     await pg.waitForFunction(() => window.LPDictionary && window.LPDictionary.state.entries.size >= 4, null, { timeout: 60000 });
+    await pg.waitForFunction(() => [...window.LPDictionary.state.entries.values()].every((e) => e.reading !== undefined), null, { timeout: 60000 }).catch(() => {});
+
+    // D10 «Прогресс»: counts by status, change over a week (all marks are from today), form weak spots → drill
+    await pg.click('[data-view="progress"]');
+    await pg.waitForFunction(() => { const v = document.getElementById("dict-prog-view"); return v && !v.hidden && v.querySelector(".dict-pbar"); }, null, { timeout: 30000 });
+    const prog = await pg.evaluate(() => {
+      const v = document.getElementById("dict-prog-view");
+      return { text: v.innerText, segs: v.querySelectorAll(".dict-pbar i").length, rows: v.querySelectorAll(".dict-ptable tbody tr").length, weeks: v.querySelectorAll(".dict-pweek").length,
+        formBtns: [...v.querySelectorAll(".dict-pweak .dict-btn")].map((b) => b.textContent), listHidden: document.getElementById("dict-words-view").hidden };
+    });
+    ok(/Сейчас: 4 слов/.test(prog.text) && prog.segs >= 3 && prog.rows >= 3 && prog.listHidden, `D10 прогресс: сейчас 4 слова, полоса из ${prog.segs} статусов, таблица ${prog.rows} строк`);
+    ok(/За неделю: стало «знаю» \+0 · поднялись по шкале 0 · новых слов 4/.test(prog.text), "D10 динамика по журналу отметок: за неделю новых слов 4 (" + (prog.text.match(/За неделю:[^\n]*/) || [""])[0] + ")");
+    console.log("    D10 weeks", prog.weeks, JSON.stringify((prog.text.match(/[^\n]*7 дней[^\n]*/) || [""])[0]));
+    ok(prog.weeks === 8 && /Последние 7 дней: \d+ повторений|За последние 7 дней повторений не было/.test(prog.text), "D10 повторения по неделям: 8 столбцов и строка за 7 дней");
+    ok(/Слабые места — формы/.test(prog.text) && prog.formBtns.some((t) => /Тренировать формы/.test(t)), "D10 слабые места форм с кнопкой «Тренировать формы» (" + prog.formBtns.join(" | ") + ")");
+    await pg.screenshot({ path: shot("progress-desktop"), fullPage: true });
+    await pg.locator("#dict-prog-view .dict-pweak .dict-btn").filter({ hasText: "Тренировать формы" }).first().click();
+    await pg.waitForSelector("#dict-article .dict-drill-area", { timeout: 30000 });
+    const fromProg = await pg.evaluate(() => (document.querySelector("#dict-article .dict-set-title") || {}).textContent || "");
+    ok(/Тренировка форм: [1-9]/.test(fromProg), "D10 «Тренировать формы» из слабого места открывает раунд («" + fromProg + "»)");
+    await pg.click('[data-view="words"]');
+
+    // D11 XLSX of the current view: three sheets, the words and the forms of their tables
+    await pg.waitForSelector("#dict-xlsx", { timeout: 30000 });
+    const xlsxBtn = await pg.textContent("#dict-xlsx");
+    const [dl] = await Promise.all([pg.waitForEvent("download", { timeout: 60000 }), pg.click("#dict-xlsx")]);
+    const xlsxPath = path.join(REPO_ROOT, ".tmp", "dictionary-export.xlsx");
+    await dl.saveAs(xlsxPath);
+    const xl = await pg.evaluate(async () => {
+      const ex = window.LPDictionary.lastExport; if (!ex) return null;
+      const zip = await window.JSZip.loadAsync(ex.blob);
+      const wb = await zip.file("xl/workbook.xml").async("string");
+      const s1 = await zip.file("xl/worksheets/sheet1.xml").async("string"), s2 = await zip.file("xl/worksheets/sheet2.xml").async("string");
+      return { name: ex.name, words: ex.words, forms: ex.forms, sheets: [...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), katav: s1.includes('<t xml:space="preserve">לִכְתּוֹב</t>'), kotev: /כּוֹתֵב/.test(s2), rtl: /s="2"><is><t xml:space="preserve">[א-ת]/.test(s1) };
+    });
+    ok(/Скачать XLSX \(4\)/.test(xlsxBtn) && xl && xl.words === 4 && xl.forms > 40 && xl.sheets.join() === "Словарь,Формы,Прогресс" && xl.katav && xl.kotev && xl.rtl && /^linguistpro-dictionary-\d{4}-\d\d-\d\d\.xlsx$/.test(dl.suggestedFilename()),
+      `D11 XLSX: ${dl.suggestedFilename()} — листы ${xl && xl.sheets.join("/")}, слов ${xl && xl.words}, форм ${xl && xl.forms}`);
 
     // D5 scale: 1000 entries
     await pg.evaluate(async () => {
@@ -242,6 +341,20 @@ const ROWS = [
     const drillWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     ok(!drillWide, "D7 тренировка форм на 380 px без прокрутки вбок (he)");
     await pg.screenshot({ path: shot("drill-380-he") });
+    for (const m of ["tiles", "type"]) {
+      await pg.click(`#dict-article .dict-drill-modes [data-mode="${m}"]`);
+      await pg.waitForTimeout(150);
+      const w = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+      ok(!w, `D8 «${m}» на 380 px без прокрутки вбок (he)`);
+      await pg.screenshot({ path: shot("drill-380-he-" + m) });
+    }
+    await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => document.querySelectorAll(".dict-row").length >= 10, null, { timeout: 60000 });
+    await pg.click('[data-view="progress"]');
+    await pg.waitForSelector("#dict-prog-view .dict-pbar", { timeout: 60000 });
+    const progWide = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    ok(!progWide, "D10 прогресс на 380 px без прокрутки вбок (he)");
+    await pg.screenshot({ path: shot("progress-380-he"), fullPage: true });
     ok(pageErrors.length === 0, "нет ошибок страницы" + (pageErrors.length ? ": " + pageErrors.slice(0, 3).join(" | ") : ""));
   } catch (e) {
     console.error(e); failures.push(String(e && e.message || e));

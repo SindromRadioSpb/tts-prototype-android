@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/css/reader-morph.css?v=746">
   <link rel="stylesheet" href="/css/app-nav.css?v=653">
-  <link rel="stylesheet" href="/css/dictionary.css?v=751">
+  <link rel="stylesheet" href="/css/dictionary.css?v=752">
 </head>
 <body class="lp-dict-page">
 <script src="/js/app-nav.js?v=747"></script>
@@ -17,10 +17,15 @@
   <header class="dict-header">
     <a href="/library.html" class="dict-brand" aria-label="LinguistPro"><span class="dict-brand-mark" aria-hidden="true">ל</span>LinguistPro</a>
     <h1 class="dict-title" data-i18n="dictionary.title">Мой словарь</h1>
+    <div class="dict-scope dict-views" role="group" data-i18n-aria-label="dictionary.views" aria-label="Раздел словаря">
+      <button type="button" class="dict-seg on" data-view="words" aria-pressed="true" data-i18n="dictionary.viewWords">Слова</button>
+      <button type="button" class="dict-seg" data-view="progress" aria-pressed="false" data-i18n="dictionary.viewProgress">Прогресс</button>
+    </div>
   </header>
   <main id="dict-root" class="dict-root" aria-busy="true">
     <section class="dict-pane dict-pane-list" aria-labelledby="dict-list-title">
       <h2 id="dict-list-title" class="dict-visually-hidden" data-i18n="dictionary.title">Мой словарь</h2>
+      <div id="dict-words-view">
       <div class="dict-toolbar">
         <label class="dict-search"><span class="dict-visually-hidden" data-i18n="dictionary.search">Поиск</span>
           <input id="dict-q" type="search" autocomplete="off" spellcheck="false" data-i18n-placeholder="dictionary.searchPh" placeholder="Слово на иврите, перевод или корень"></label>
@@ -49,13 +54,15 @@
       <p id="dict-progress" class="dict-progress" role="status" aria-live="polite"></p>
       <ol id="dict-list" class="dict-list" aria-labelledby="dict-list-title"></ol>
       <div id="dict-more" class="dict-more"></div>
+      </div>
+      <div id="dict-prog-view" class="dict-prog" hidden></div>
     </section>
     <section id="dict-article" class="dict-pane dict-pane-article" aria-live="polite" hidden></section>
   </main>
   <div id="dict-toast" class="dict-toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="/i18n/locales/ru.js?v=294"></script>
-  <script src="/i18n/locales/en.js?v=294"></script>
-  <script src="/i18n/locales/he.js?v=294"></script>
+  <script src="/i18n/locales/ru.js?v=295"></script>
+  <script src="/i18n/locales/en.js?v=295"></script>
+  <script src="/i18n/locales/he.js?v=295"></script>
   <script src="/i18n/index.js"></script>
 <script src="/js/notes-autogen.js"></script>
 <script src="/js/inflection-render.js?v=2"></script>
@@ -72,7 +79,9 @@
 <script src="/js/word-gloss-ai.js?v=747"></script>
 <script src="/js/morph-host.js?v=736"></script>
 <script src="/js/dictionary-core.js?v=747"></script>
-<script src="/js/form-drill-core.js?v=751"></script>
-<script type="module" src="/js/dictionary-ui.js?v=751"></script>
+<script src="/js/form-drill-core.js?v=752"></script>
+<script src="/js/dictionary-progress-core.js?v=752"></script>
+<script src="/js/xlsx-core.js?v=752"></script>
+<script type="module" src="/js/dictionary-ui.js?v=752"></script>
 </body>
 </html>

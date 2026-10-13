@@ -42,7 +42,7 @@ try { const th = localStorage.getItem('appTheme_v1'); if (th === 'dark') documen
 const S = {
   entries: new Map(), cards: new Map(), view: [], shown: 0, PAGE: 60, selected: null,
   filters: { q: '', statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, scope: 'mine' },
-  sort: 'added', metBuilt: false, metBuilding: false, pauseUntil: 0,
+  sort: 'added', viewMode: 'words', metBuilt: false, metBuilding: false, pauseUntil: 0,
 };
 try { const v = JSON.parse(localStorage.getItem('dict.view_v1') || 'null'); if (v && D.SORTS.indexOf(v.sort) >= 0) S.sort = v.sort; } catch (_) {}
 function saveView() { try { localStorage.setItem('dict.view_v1', JSON.stringify({ sort: S.sort })); } catch (_) {} }
@@ -120,7 +120,8 @@ async function loadSources() {
                OR (n.user_touched = 1 AND n.gen_dedup_key IS NOT NULL AND n.gen_dedup_key <> ''))
         GROUP BY n.id`),
     q(`SELECT item_key, COUNT(*) AS n, MIN(reviewed_at) AS first, MAX(reviewed_at) AS last,
-              SUM(CASE WHEN grade IS NOT NULL AND grade <= 1 THEN 1 ELSE 0 END) AS fails,
+              SUM(CASE WHEN kind = 'review' AND grade IS NOT NULL AND grade <= 1 THEN 1 ELSE 0 END) AS fails,
+              SUM(CASE WHEN kind = 'review' THEN 1 ELSE 0 END) AS reviews,
               MAX(json_extract(meta_json, '$.surface')) AS surface
          FROM review_log WHERE kind IN ('review','mark','seed','skip') AND source <> 'mark-backfill' GROUP BY item_key`),
     q('SELECT lemma_key, COUNT(*) AS occ, COUNT(DISTINCT text_key) AS texts, MAX(surface) AS surface FROM word_context GROUP BY lemma_key'),
@@ -146,7 +147,7 @@ async function loadSources() {
       pid: b.pealim_id || '', created: r.created_at, occ: Number(r.occ) || 0, lastOcc: r.last_occ });
   });
   return D.mergeSources({ statuses, statusTimes, schedule, notes,
-    logAgg: logRows.map((r) => ({ key: r.item_key, n: Number(r.n) || 0, first: r.first, last: r.last, fails: Number(r.fails) || 0, surface: r.surface || '' })),
+    logAgg: logRows.map((r) => ({ key: r.item_key, n: Number(r.n) || 0, first: r.first, last: r.last, fails: Number(r.fails) || 0, reviews: Number(r.reviews) || 0, surface: r.surface || '' })),
     contexts: ctxRows.map((r) => ({ key: r.lemma_key, occ: Number(r.occ) || 0, texts: Number(r.texts) || 0, surface: r.surface || '' })),
     marks: statusRows.filter((r) => r.srs_surface).map((r) => ({ key: r.lemma_key, surface: r.srs_surface, textKey: r.srs_text_key, order: r.srs_order_index })) });
 }
@@ -326,13 +327,28 @@ function renderTrainButton() {
   const box = $('dict-train'); if (!box) return;
   const learnable = S.view.filter((e) => !e.metOnly && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
   box.replaceChildren();
-  if (!learnable.length) return;
-  box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
-    on: { click: () => {
-      try { localStorage.setItem('dict.trainSet_v1', JSON.stringify({ at: Date.now(), keys: learnable.slice(0, 200).map((e) => e.key) })); } catch (_) {}
-      location.href = '/library.html?review=set&from=dictionary';
-    } } }));
-  box.appendChild(el('span', { class: 'dict-note', text: tt('dictionary.trainNote', 'Тренировка в Зале по этим словам в текущем порядке; ответы идут в расписание повторения.') }));
+  if (!S.view.length) return;
+  if (learnable.length) box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
+    on: { click: () => startTrain(learnable) } }));
+  // Д2.2+ forms of the words in this view (filter «глагол» + a binyan → that binyan's pattern)
+  const forms = S.view.filter(drillable);
+  if (forms.length) {
+    box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-train-forms' }, text: fill(tt('dictionary.trainForms', 'Тренировать формы ({n})'), { n: Math.min(30, forms.length) }),
+      on: { click: () => openSetDrill(forms, { subtitle: activeSummary() }) } }));
+  }
+  box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-xlsx' }, text: fill(tt('dictionary.xlsxBtn', 'Скачать XLSX ({n})'), { n: S.view.length }),
+    on: { click: () => exportXlsx(S.view.slice()) } }));
+  if (learnable.length) box.appendChild(el('span', { class: 'dict-note', text: tt('dictionary.trainNote', 'Тренировка в Зале по этим словам в текущем порядке; ответы идут в расписание повторения.') }));
+}
+// a short line of the active filters for a drill's subtitle («глагол · пиэль»)
+function activeSummary() {
+  const f = S.filters, parts = [];
+  f.pos.forEach((p) => parts.push(posText(p)));
+  f.binyan.forEach((b) => parts.push(b));
+  f.statuses.forEach((s) => parts.push(statusText(s)));
+  if (f.root) parts.push(tt('dictionary.root', 'корень') + ' ' + f.root);
+  if (f.q) parts.push('«' + f.q + '»');
+  return parts.join(' · ');
 }
 function renderActive() {
   const box = $('dict-active'); box.replaceChildren();
@@ -415,77 +431,210 @@ async function drillMemory(key) {
   const db = await drillDb(); if (!db) return {};
   return new Promise((resolve) => { try { const r = db.transaction('m', 'readonly').objectStore('m').get(key); r.onsuccess = () => resolve(r.result || {}); r.onerror = () => resolve({}); } catch (_) { resolve({}); } });
 }
+// every lemma's cell memory (Д2.3 «слабые места — формы»)
+async function drillAll() {
+  const db = await drillDb(); if (!db) return [];
+  return new Promise((resolve) => {
+    const out = [];
+    try {
+      const rq = db.transaction('m', 'readonly').objectStore('m').openCursor();
+      rq.onsuccess = () => { const c = rq.result; if (!c) { resolve(out); return; } out.push({ key: String(c.key), mem: c.value || {} }); c.continue(); };
+      rq.onerror = () => resolve(out);
+    } catch (_) { resolve(out); }
+  });
+}
 async function drillSave(key, mem) { const db = await drillDb(); if (!db) return; try { db.transaction('m', 'readwrite').objectStore('m').put(mem, key); } catch (_) {} }
 function markMastered(body, mem) {
   body.querySelectorAll('[data-slot]').forEach((b) => b.classList.toggle('dict-mastered', window.FormDrillCore.mastered(mem[b.getAttribute('data-slot')])));
 }
+const DRILL_MODES = [['choice', 'dictionary.drillModeChoice', 'Выбор'], ['tiles', 'dictionary.drillModeTiles', 'Плитки'], ['type', 'dictionary.drillModeType', 'Ввод']];
+let drillMode = 'choice';
+try { const m = localStorage.getItem('dict.drillMode_v1'); if (DRILL_MODES.some((x) => x[0] === m)) drillMode = m; } catch (_) {}
+const lemmaOf = (paradigm, fallback) => (paradigm && (paradigm.lemma_niqqud || paradigm.lemma)) || fallback || '';
+const ruOf = (paradigm, slot) => (window.WordGloss && window.WordGloss.cellForms ? (window.WordGloss.cellForms(paradigm, [slot]) || {}).text || '' : '');
+const askText = (t) => (t.group ? t.group + ' · ' : '') + t.label;
+
+// One round runner for the article (one word) and for a set of words (Д2.2+).
+// task = { key, lemma, study, paradigm, target }; mems: Map key → cell memory (saved per word).
+function runDrill(panel, makeDeck, mems, opts) {
+  const FD = window.FormDrillCore;
+  opts = opts || {};
+  const res = [];
+  let deck = [], i = 0;
+  function finish() {
+    if (opts.onRound) opts.onRound();
+    panel.replaceChildren();
+    const right = res.filter(Boolean).length;
+    panel.appendChild(el('p', { class: 'dict-drill-total', text: fill(tt('dictionary.drillDone', 'Верно {r} из {n}. {s}.'), { r: right, n: res.length, s: opts.summary() }) }));
+    panel.appendChild(el('div', { class: 'dict-drill-actions' }, [
+      el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillAgain', 'Ещё раунд'), on: { click: start } }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: opts.closeText || tt('dictionary.drillClose', 'К таблице'), on: { click: () => opts.onClose && opts.onClose() } }),
+    ]));
+    try { panel.querySelector('.primary').focus(); } catch (_) {}
+  }
+  function start() { deck = makeDeck(); res.length = 0; i = 0; if (!deck.length) { finish(); return; } ask(); }
+  function modeBar(rerender) {
+    return el('div', { class: 'dict-seg-group dict-drill-modes', attrs: { role: 'group', 'aria-label': tt('dictionary.drillMode', 'Как отвечать') } },
+      DRILL_MODES.map(([m, k, fb]) => el('button', { class: 'dict-seg' + (drillMode === m ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': drillMode === m ? 'true' : 'false', 'data-mode': m }, text: tt(k, fb),
+        on: { click: () => { if (drillMode === m) return; drillMode = m; try { localStorage.setItem('dict.drillMode_v1', m); } catch (_) {} rerender(); } } })));
+  }
+  function ask() {
+    if (i >= deck.length) { finish(); return; }
+    const task = deck[i], target = task.target, mode = drillMode, ru = ruOf(task.paradigm, target.slot);
+    let done = false;
+    panel.replaceChildren(
+      el('div', { class: 'dict-drill-head' }, [el('span', { class: 'dict-note', text: (i + 1) + ' / ' + deck.length }), el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: task.lemma })]),
+      modeBar(ask),
+      el('p', { class: 'dict-drill-q' }, [el('b', { attrs: { dir: 'auto' }, text: askText(target) }), ru ? ' — ' : null, ru ? el('span', { attrs: { dir: 'auto' }, text: ru }) : null]),
+    );
+    const area = el('div', { class: 'dict-drill-area', attrs: { 'data-answer': target.he, 'data-mode': mode } });   // read by the smoke gate
+    panel.appendChild(area);
+    function grade(ok, info) {
+      if (done) return; done = true;
+      res.push(ok);
+      const mem = FD.grade(mems.get(task.key) || {}, target.slot, ok, Date.now(), mode);
+      mems.set(task.key, mem); drillSave(task.key, mem);
+      area.querySelectorAll('button, input').forEach((b) => { b.disabled = true; });
+      panel.querySelectorAll('.dict-drill-modes button').forEach((b) => { b.disabled = true; });
+      const kids = [el('span', { text: ok ? '✓ ' + tt('dictionary.drillRight', 'Верно') : '✗ ' + tt('dictionary.drillWrong', 'Правильно:') + ' ' })];
+      // a produced answer is checked by letters: the vowels are always shown, and named when they decide
+      if (!ok || mode !== 'choice') kids.push(el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: target.he }));
+      if (target.translit) kids.push(el('span', { class: 'dict-note', text: target.translit }));
+      kids.push(el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.speak', 'Озвучить') }, text: '▶', on: { click: () => { try { morphHost.speakWord(target.he); } catch (_) {} } } }));
+      const fb = el('div', { class: 'dict-drill-fb ' + (ok ? 'ok' : 'bad') }, kids);
+      if (info && info.other) fb.appendChild(el('p', { class: 'dict-drill-why', text: fill(tt('dictionary.drillOther', 'Вы написали другую форму: {f}.'), { f: askText(info.other) }) }));
+      else if (info && info.niqqudAmbiguous) fb.appendChild(el('p', { class: 'dict-drill-why', text: tt('dictionary.drillVowels', 'По буквам верно. Так же пишется ещё одна форма — различает огласовка.') }));
+      fb.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: i + 1 < deck.length ? tt('dictionary.drillNext', 'Дальше') : tt('dictionary.drillFinish', 'Итог'), on: { click: () => { i++; ask(); } } }));
+      panel.appendChild(fb);
+      try { fb.querySelector('.primary').focus(); } catch (_) {}
+    }
+    if (mode === 'choice') {
+      area.classList.add('dict-drill-opts');
+      FD.optionsFor(target, task.study, 4, Date.now() % 100000 + i).forEach((o) => {
+        area.appendChild(el('button', { class: 'dict-drill-opt', attrs: { type: 'button', lang: 'he', dir: 'rtl', 'data-he': o.he }, text: o.he, on: { click: () => {
+          const ok = FD.isCorrect(target, o.he);
+          area.querySelectorAll('button').forEach((b) => { const h = b.getAttribute('data-he'); if (h === target.he) b.classList.add('ok'); else if (!ok && h === o.he) b.classList.add('bad'); });
+          grade(ok, null);
+        } } }));
+      });
+      try { area.querySelector('button').focus(); } catch (_) {}
+    } else if (mode === 'tiles') {
+      const tiles = FD.tilesFor(target, task.study, 3, Date.now() % 100000 + i);
+      const need = FD.skeleton(target.he).length;
+      const picked = [];
+      const ans = el('div', { class: 'dict-tiles-ans he', attrs: { lang: 'he', dir: 'rtl', 'aria-label': tt('dictionary.drillYourAnswer', 'Ваш ответ') } });
+      const pool = el('div', { class: 'dict-tiles', attrs: { dir: 'rtl' } });
+      const paint = () => {
+        ans.replaceChildren(...(picked.length ? picked.map((t) => el('button', { class: 'dict-tile in', attrs: { type: 'button', lang: 'he', 'aria-label': fill(tt('dictionary.drillTileBack', 'Убрать букву {c}'), { c: t.ch }) }, text: t.ch,
+          on: { click: () => { picked.splice(picked.indexOf(t), 1); paint(); } } })) : [el('span', { class: 'dict-note', text: tt('dictionary.drillTilesHint', 'Нажимайте буквы по порядку') })]));
+        pool.replaceChildren(...tiles.map((t) => el('button', { class: 'dict-tile', attrs: { type: 'button', lang: 'he', 'data-ch': t.ch }, text: t.ch, on: { click: () => {
+          picked.push(t); paint();
+          if (picked.length === need) check();
+        } } })).map((b, k) => { if (picked.indexOf(tiles[k]) >= 0) b.disabled = true; return b; }));
+      };
+      const check = () => { const r = FD.checkTyped(target, task.study, picked.map((t) => t.ch).join('')); grade(r.ok, r); };
+      paint();
+      area.append(ans, pool, el('div', { class: 'dict-drill-actions' }, [
+        el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.drillClear', 'Стереть'), on: { click: () => { picked.length = 0; paint(); } } }),
+        el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillCheck', 'Проверить'), on: { click: () => { if (picked.length) check(); } } }),
+      ]));
+      try { pool.querySelector('button').focus(); } catch (_) {}
+    } else {
+      const input = el('input', { class: 'dict-drill-input he', attrs: { type: 'text', lang: 'he', dir: 'rtl', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', enterkeyhint: 'done',
+        'aria-label': tt('dictionary.drillYourAnswer', 'Ваш ответ') } });
+      const note = el('p', { class: 'dict-note', text: tt('dictionary.drillTypeHint', 'Без огласовки; полное и краткое написание принимаются.') });
+      input.addEventListener('input', () => {
+        const r = window.FormDrillCore.fromLayout(input.value);
+        if (r.converted) { input.value = r.text; note.textContent = tt('dictionary.drillLayout', 'Набрано не в ивритской раскладке — перевёл по клавишам.'); }
+      });
+      const form = el('form', { class: 'dict-drill-type', on: { submit: (ev) => { ev.preventDefault(); if (!input.value.trim()) return; const r = FD.checkTyped(target, task.study, input.value); grade(r.ok, r); } } },
+        [input, el('button', { class: 'dict-btn primary', attrs: { type: 'submit' }, text: tt('dictionary.drillCheck', 'Проверить') })]);
+      area.append(form, note);
+      try { input.focus(); } catch (_) {}
+    }
+  }
+  start();
+}
+
 async function mountFormDrill(sec, tableBody, key, card, metSlots, epoch) {
   const FD = window.FormDrillCore, IR = window.InflectionRender;
   if (!FD || !IR || !IR.projectStudyForms) return;
   const study = IR.projectStudyForms(card.paradigm);
   if (!study || FD.formsOf(study).length < 4) return;
-  let mem = await drillMemory(key);
+  const mems = new Map([[key, await drillMemory(key)]]);
   if (epoch !== _articleEpoch) return;
-  markMastered(tableBody, mem);
+  markMastered(tableBody, mems.get(key));
   const bar = el('div', { class: 'dict-drill-bar' });
-  const sum = () => { const x = FD.summary(study, mem); return fill(tt('dictionary.drillSummary', 'Уверенно: {m} из {t} форм'), { m: x.mastered, t: x.total }); };
+  const sum = () => { const x = FD.summary(study, mems.get(key)); return fill(tt('dictionary.drillSummary', 'Уверенно: {m} из {t} форм'), { m: x.mastered, t: x.total }); };
   const status = el('span', { class: 'dict-note', text: sum() });
-  const start = el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillStart', 'Тренировать формы'), on: { click: () => run() } });
-  bar.append(start, status);
-  sec.appendChild(bar);
   const panel = el('div', { class: 'dict-drill', attrs: { role: 'group', 'aria-live': 'polite' } });
-  panel.hidden = true; sec.appendChild(panel);
-  const lemma = card.niqqud || (card.paradigm && (card.paradigm.lemma_niqqud || card.paradigm.lemma)) || '';
-  function finish(res) {
-    panel.replaceChildren();
-    const right = res.filter(Boolean).length;
-    panel.appendChild(el('p', { class: 'dict-drill-total', text: fill(tt('dictionary.drillDone', 'Верно {r} из {n}. {s}.'), { r: right, n: res.length, s: sum() }) }));
-    panel.appendChild(el('div', { class: 'dict-drill-actions' }, [
-      el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillAgain', 'Ещё раунд'), on: { click: () => run() } }),
-      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.drillClose', 'К таблице'), on: { click: () => { panel.hidden = true; tableBody.hidden = false; bar.hidden = false; status.textContent = sum(); markMastered(tableBody, mem); } } }),
-    ]));
-  }
-  function run() {
-    const deck = FD.buildDeck(study, { metSlots, memory: mem, size: 8 });
-    const res = [];
+  panel.hidden = true;
+  const lemma = card.niqqud || lemmaOf(card.paradigm);
+  const start = el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: tt('dictionary.drillStart', 'Тренировать формы'), on: { click: () => {
     tableBody.hidden = true; bar.hidden = true; panel.hidden = false;
-    let i = 0;
-    const ask = () => {
-      if (i >= deck.length) { finish(res); return; }
-      const target = deck[i];
-      const ru = (window.WordGloss && window.WordGloss.cellForms) ? (window.WordGloss.cellForms(card.paradigm, [target.slot]) || {}).text || '' : '';
-      panel.replaceChildren(
-        el('div', { class: 'dict-drill-head' }, [el('span', { class: 'dict-note', text: (i + 1) + ' / ' + deck.length }), el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: lemma })]),
-        el('p', { class: 'dict-drill-q' }, [el('b', { text: (target.group ? target.group + ' · ' : '') + target.label }), ru ? el('span', { attrs: { dir: 'auto' }, text: ' — ' + ru }) : null]),
-      );
-      const opts = el('div', { class: 'dict-drill-opts', attrs: { 'data-answer': target.he } });   // read by the smoke gate
-      FD.optionsFor(target, study, 4, Date.now() % 100000 + i).forEach((o) => {
-        opts.appendChild(el('button', { class: 'dict-drill-opt', attrs: { type: 'button', lang: 'he', dir: 'rtl', 'data-he': o.he }, text: o.he, on: { click: () => answer(o) } }));
-      });
-      panel.appendChild(opts);
-      try { opts.querySelector('button').focus(); } catch (_) {}
-      function answer(o) {
-        const ok = FD.isCorrect(target, o.he);
-        res.push(ok);
-        mem = FD.grade(mem, target.slot, ok, Date.now()); drillSave(key, mem);
-        opts.querySelectorAll('button').forEach((b) => {
-          b.disabled = true;
-          if (b.getAttribute('data-he') === target.he) b.classList.add('ok');
-          else if (!ok && b.getAttribute('data-he') === o.he) b.classList.add('bad');
-        });
-        const fb = el('div', { class: 'dict-drill-fb ' + (ok ? 'ok' : 'bad') }, [
-          el('span', { text: ok ? '✓ ' + tt('dictionary.drillRight', 'Верно') : '✗ ' + tt('dictionary.drillWrong', 'Правильно:') + ' ' }),
-          ok ? null : el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: target.he }),
-          target.translit ? el('span', { class: 'dict-note', text: ' ' + target.translit }) : null,
-          el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.speak', 'Озвучить') }, text: '▶', on: { click: () => { try { morphHost.speakWord(target.he); } catch (_) {} } } }),
-          el('button', { class: 'dict-btn primary', attrs: { type: 'button' }, text: i + 1 < deck.length ? tt('dictionary.drillNext', 'Дальше') : tt('dictionary.drillFinish', 'Итог'), on: { click: () => { i++; ask(); } } }),
-        ]);
-        panel.appendChild(fb);
-        try { fb.querySelector('.primary').focus(); } catch (_) {}
-      }
-    };
-    ask();
+    runDrill(panel, () => FD.buildDeck(study, { metSlots, memory: mems.get(key), size: 8 }).map((target) => ({ key, lemma, study, paradigm: card.paradigm, target })), mems, {
+      summary: sum,
+      onClose: () => { panel.hidden = true; tableBody.hidden = false; bar.hidden = false; status.textContent = sum(); markMastered(tableBody, mems.get(key)); },
+    });
+  } } });
+  bar.append(start, status);
+  sec.append(bar, panel);
+}
+
+// Д2.2+ the set: words of the current view with a confirmed Pealim table (≥4 forms). The paradigm comes from the
+// verified reading's Pealim id (reading.lemmaKey === entry key, R11) or the pid: entry itself.
+function paradigmOf(e) {
+  if (e.paradigm) return e.paradigm;
+  const r = e.reading;
+  if (!r || !r.pid || r.lemmaKey !== e.key || !_eng || !_eng.pidMap) return null;
+  return _eng.pidMap.get(String(r.pid)) || null;
+}
+function drillable(e) {
+  const p = paradigmOf(e);
+  return !!(p && p.cells && Object.keys(p.cells).length >= 4 && e.status !== 'ignore');
+}
+function metSlotsOf(e, p) {
+  const slots = new Set();
+  const WG = window.WordGloss;
+  if (!WG || !WG.matchCell) return [];
+  e.surfaces.forEach((x) => { try { const hm = WG.matchCell(p, x.s); if (hm && !hm.impossible) (hm.slots || []).forEach((sl) => slots.add(sl)); } catch (_) {} });
+  return Array.from(slots);
+}
+async function openSetDrill(entries, opts) {
+  opts = opts || {};
+  const FD = window.FormDrillCore, IR = window.InflectionRender;
+  const my = ++_articleEpoch;
+  S.selected = null;
+  const items = [];
+  for (const e of entries.filter(drillable).slice(0, 30)) {
+    const p = paradigmOf(e);
+    let study = null; try { study = IR.projectStudyForms(p); } catch (_) { study = null; }
+    if (!study || FD.formsOf(study).length < 4) continue;
+    items.push({ key: e.key, lemma: lemmaOf(p, D.displayOf(e).he), study, paradigm: p, metSlots: metSlotsOf(e, p) });
   }
+  const mems = new Map();
+  for (const it of items) mems.set(it.key, await drillMemory(it.key));
+  if (my !== _articleEpoch) return;
+  const art = $('dict-article'); art.hidden = false; $('dict-root').classList.add('has-article');
+  const back = el('button', { class: 'dict-btn dict-a-back', attrs: { type: 'button' }, text: '‹ ' + tt('dictionary.back', 'К списку'), on: { click: closeArticle } });
+  const words = items.length;
+  const sum = () => {
+    let m = 0, t = 0;
+    items.forEach((it) => { const x = FD.summary(it.study, mems.get(it.key)); m += x.mastered; t += x.total; });
+    return fill(tt('dictionary.drillSetSummary', 'Уверенно в этих словах: {m} из {t} форм'), { m, t });
+  };
+  const status = el('p', { class: 'dict-note', text: sum() });
+  const panel = el('div', { class: 'dict-drill', attrs: { role: 'group', 'aria-live': 'polite' } });
+  art.replaceChildren(back,
+    el('h2', { class: 'dict-set-title', text: fill(tt('dictionary.drillSetTitle', 'Тренировка форм: {n} сл.'), { n: words }) }),
+    ...(opts.subtitle ? [el('p', { class: 'dict-note', text: opts.subtitle })] : []),
+    status, panel);
+  if (window.matchMedia && window.matchMedia('(max-width: 959px)').matches) art.scrollTop = 0;
+  if (!items.length) { panel.replaceChildren(el('p', { class: 'dict-note', text: tt('dictionary.drillSetNone', 'В этом наборе нет слов с подтверждённой таблицей форм.') })); return; }
+  runDrill(panel, () => {
+    items.forEach((it) => { it.memory = mems.get(it.key); });
+    return FD.buildSetDeck(items, { size: 10, focusGroups: opts.focusGroups }).map((x) => ({ key: x.key, lemma: x.lemma, study: x.study, paradigm: x.item.paradigm, target: x.target }));
+  }, mems, { summary: sum, onRound: () => { status.textContent = sum(); }, closeText: tt('dictionary.back', 'К списку'), onClose: closeArticle });
 }
 // a card built from the Pealim entry itself (pid: keys whose text form did not verify)
 function synthCard(e) {
@@ -623,6 +772,236 @@ function closeArticle() {
   document.querySelectorAll('.dict-row.sel').forEach((b) => b.classList.remove('sel'));
 }
 
+// ── Д2.3 «Прогресс словаря» (DictionaryProgress: статусы из журнала отметок, слабые места) ─────────
+const P = () => window.DictionaryProgress;
+const TENSE_LABEL = { present: ['dictionary.tense.present', 'настоящее'], past: ['dictionary.tense.past', 'прошедшее'], future: ['dictionary.tense.future', 'будущее'],
+  imperative: ['dictionary.tense.imperative', 'повелительное'], infinitive: ['dictionary.tense.infinitive', 'инфинитив'] };
+function tenseText(t) {
+  const passive = /^passive_/.test(t), x = TENSE_LABEL[t.replace(/^passive_/, '')];
+  const base = x ? tt(x[0], x[1]) : t;
+  return passive ? tt('dictionary.tense.passive', 'страдат.') + ' · ' + base : base;
+}
+const pct = (r) => Math.round(r * 100) + '%';
+const dateShort = (t) => new Date(t).toLocaleDateString(document.documentElement.lang || 'ru', { day: 'numeric', month: 'short' });
+// «Учить эти» on any list of entries (the same hand-off as the button over the list)
+function startTrain(list) {
+  const learnable = list.filter((e) => !e.metOnly && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
+  if (!learnable.length) return;
+  try { localStorage.setItem('dict.trainSet_v1', JSON.stringify({ at: Date.now(), keys: learnable.slice(0, 200).map((e) => e.key) })); } catch (_) {}
+  location.href = '/library.html?review=set&from=dictionary';
+}
+function setView(v) {
+  S.viewMode = v;
+  document.querySelectorAll('[data-view]').forEach((b) => { const on = b.getAttribute('data-view') === v; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  $('dict-words-view').hidden = v !== 'words';
+  $('dict-prog-view').hidden = v !== 'progress';
+  if (v === 'progress') renderProgress();
+}
+function showWords(filters) {
+  Object.assign(S.filters, { statuses: [], memory: '', pos: [], binyan: [], root: '', hasMine: false, addedDays: 0, q: '' }, filters || {});
+  $('dict-q').value = '';
+  S.shown = 0; setView('words'); applyView();
+  if (!$('dict-filters').hidden) renderFilters();
+}
+let _progEpoch = 0;
+async function progressData(now) {
+  const mine = Array.from(S.entries.values()).filter((e) => !e.metOnly);
+  const [marks, days, drill] = await Promise.all([
+    q(`SELECT item_key, reviewed_at, json_extract(meta_json, '$.status') AS status FROM review_log WHERE kind = 'mark'`),
+    q(`SELECT substr(reviewed_at, 1, 10) AS day, COUNT(*) AS n, SUM(CASE WHEN grade <= 1 THEN 1 ELSE 0 END) AS fails
+         FROM review_log WHERE kind = 'review' AND reviewed_at >= ? GROUP BY day`, [new Date(now - 60 * 86400000).toISOString()]),
+    drillAll(),
+  ]);
+  const dyn = P().dynamics(mine.map((e) => ({ key: e.key, status: e.status || 'new', added: e.added })),
+    marks.map((m) => ({ key: m.item_key, at: m.reviewed_at, status: m.status || '' })), now);
+  return { mine, dyn, days, drill };
+}
+async function renderProgress() {
+  const box = $('dict-prog-view'); if (!box) return;
+  const my = ++_progEpoch;
+  box.replaceChildren(el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') }));
+  const now = Date.now();
+  const { mine, dyn, days, drill } = await progressData(now);
+  if (my !== _progEpoch) return;
+  const kids = [];
+
+  // now: one stacked bar + legend with numbers (each opens the list filtered by that status)
+  const c = dyn.now, order = D.STATUSES.filter((s) => c[s]);
+  kids.push(el('h3', { text: fill(tt('dictionary.progNow', 'Сейчас: {n} слов'), { n: c.total }) }));
+  if (c.total) {
+    kids.push(el('div', { class: 'dict-pbar', attrs: { role: 'img', 'aria-label': order.map((s) => statusText(s) + ' ' + c[s]).join(', ') } },
+      order.map((s) => el('i', { class: 'dict-st-' + s, attrs: { style: 'flex-grow:' + c[s], title: statusText(s) + ': ' + c[s] } }))));
+    kids.push(el('div', { class: 'dict-plegend' }, order.map((s) => el('button', { class: 'dict-chip', attrs: { type: 'button' }, on: { click: () => showWords({ statuses: [s] }) } },
+      [el('span', { class: 'dict-dot dict-st-' + s }), statusText(s), el('b', { text: String(c[s]) })]))));
+  } else kids.push(el('p', { class: 'dict-note', text: tt('dictionary.emptyAll', 'Здесь появятся слова, которые вы отметите статусом, добавите в «мои слова» или будете повторять. Откройте текст в Зале и нажмите на слово.') }));
+
+  // change: headline per period + table now / a week ago / a month ago
+  kids.push(el('h3', { text: tt('dictionary.progChange', 'Как менялось') }));
+  [['week', 'dictionary.progWeek', 'За неделю'], ['month', 'dictionary.progMonth', 'За месяц']].forEach(([p, k, fb]) => {
+    const x = dyn.periods[p];
+    kids.push(el('p', { class: 'dict-pline' }, [el('b', { text: tt(k, fb) + ': ' }),
+      fill(tt('dictionary.progLine', 'стало «знаю» +{k} · поднялись по шкале {u} · новых слов {a}'), { k: x.known, u: x.up, a: x.added })]));
+  });
+  const delta = (a, b) => { const d = a - b; return d > 0 ? '+' + d : d < 0 ? '−' + Math.abs(d) : '0'; };
+  const rowsSt = D.STATUSES.filter((s) => c[s] || dyn.periods.week.then[s] || dyn.periods.month.then[s]);
+  if (rowsSt.length) {
+    kids.push(el('div', { class: 'dict-ptable-wrap' }, [el('table', { class: 'dict-ptable' }, [
+      el('thead', {}, [el('tr', {}, [el('th', { text: tt('dictionary.fStatus', 'Статус') }), el('th', { text: tt('dictionary.progColNow', 'Сейчас') }),
+        el('th', { text: tt('dictionary.progWeek', 'За неделю') }), el('th', { text: tt('dictionary.progMonth', 'За месяц') })])]),
+      el('tbody', {}, rowsSt.map((s) => el('tr', {}, [el('th', {}, [el('span', { class: 'dict-dot dict-st-' + s }), statusText(s)]), el('td', { text: String(c[s]) }),
+        el('td', {}, [el('bdi', { attrs: { dir: 'ltr' }, text: delta(c[s], dyn.periods.week.then[s]) })]), el('td', {}, [el('bdi', { attrs: { dir: 'ltr' }, text: delta(c[s], dyn.periods.month.then[s]) })])]))),
+    ])]));
+  }
+  if (dyn.noHistory) kids.push(el('p', { class: 'dict-note', text: fill(tt('dictionary.progNoHistory', 'Слов без журнала отметок: {n}. Они считаются в нынешнем статусе с даты добавления.'), { n: dyn.noHistory }) }));
+
+  // reviews per week (one series: count; the fail share in the tooltip and the caption)
+  const wk = P().weekly(days, now, 8), maxN = Math.max(1, ...wk.map((w) => w.n)), last = wk[wk.length - 1];
+  kids.push(el('h3', { text: tt('dictionary.progReviews', 'Повторения по неделям') }));
+  kids.push(el('div', { class: 'dict-pweeks', attrs: { role: 'list' } }, wk.map((w, i) => {
+    const label = dateShort(w.from) + '–' + dateShort(w.to) + ': ' + fill(tt('dictionary.progWeekTip', '{n} повторений, срывов {f}'), { n: w.n, f: w.fails });
+    return el('div', { class: 'dict-pweek', attrs: { role: 'listitem', title: label, 'aria-label': label, tabindex: '0' } }, [
+      el('span', { class: 'v', text: i === wk.length - 1 || w.n === maxN ? String(w.n) : '' }),
+      el('i', { attrs: { style: 'height:' + Math.max(w.n ? 4 : 0, Math.round(w.n / maxN * 100)) + '%' } }),
+      el('span', { class: 'd', text: dateShort(w.to) })]);
+  })));
+  kids.push(el('p', { class: 'dict-note', text: last.n ? fill(tt('dictionary.progLastWeek', 'Последние 7 дней: {n} повторений, точность {p}.'), { n: last.n, p: pct(1 - last.fails / last.n) }) : tt('dictionary.progNoReviews', 'За последние 7 дней повторений не было.') }));
+
+  // weak spots — word memory (fail share of reviews) by part of speech and binyan
+  kids.push(el('h3', { text: tt('dictionary.progWeakWords', 'Слабые места — память слов') }));
+  const rows = (dim) => mine.filter((e) => e.status !== 'ignore').map((e) => ({ value: D.displayOf(e)[dim], reviews: (e.log && e.log.reviews) || 0, fails: (e.log && e.log.fails) || 0 }));
+  let anyWeak = false;
+  [['pos', 'dictionary.fPos', 'Часть речи', posText], ['binyan', 'dictionary.fBinyan', 'Биньян', (b) => b]].forEach(([dim, k, fb, lab]) => {
+    const r = P().weakSpots(rows(dim));
+    if (!r.groups.length) return;
+    anyWeak = true;
+    kids.push(el('p', { class: 'dict-psub' }, [el('b', { text: tt(k, fb) }), ' · ' + fill(tt('dictionary.progAvg', 'в среднем срывов {p}'), { p: pct(r.overall.rate) })]));
+    kids.push(el('ul', { class: 'dict-pweak' }, r.groups.slice(0, 6).map((g) => {
+      const list = mine.filter((e) => D.displayOf(e)[dim] === g.value && e.status !== 'ignore');
+      return el('li', { class: g.weak ? 'weak' : '' }, [
+        el('div', {}, [el('b', { text: lab(g.value) }), g.weak ? el('span', { class: 'dict-pflag', text: tt('dictionary.progWeakFlag', 'слабое место') }) : null]),
+        el('div', { class: 'dict-note', text: fill(tt('dictionary.progWeakLine', 'срывов {f} из {r} ({p}) · слов {w}'), { f: g.fails, r: g.reviews, p: pct(g.rate), w: g.words }) }),
+        el('div', { class: 'dict-pacts' }, [
+          el('button', { class: 'dict-btn' + (g.weak ? ' primary' : ''), attrs: { type: 'button' }, text: tt('dictionary.progTrainThis', 'Тренировать это'), on: { click: () => startTrain(D.sortEntries(list, 'weak', Date.now())) } }),
+          el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.progShowWords', 'Показать слова'), on: { click: () => { showWords(dim === 'pos' ? { pos: [g.value] } : { binyan: [g.value] }); S.sort = 'weak'; $('dict-sort').value = 'weak'; applyView(); } } }),
+        ]),
+      ]);
+    })));
+  });
+  if (!anyWeak) kids.push(el('p', { class: 'dict-note', text: tt('dictionary.progWeakFew', 'Пока мало данных: группе нужно хотя бы 3 слова и 8 повторений.') }));
+
+  // weak spots — forms (cell memory of the form drill) by binyan and tense
+  kids.push(el('h3', { text: tt('dictionary.progWeakForms', 'Слабые места — формы') }));
+  const recs = drill.map((r) => { const e = S.entries.get(r.key); return { key: r.key, binyan: e ? D.displayOf(e).binyan : '', mem: r.mem }; });
+  const fw = P().formWeakSpots(recs);
+  const formRows = [].concat(fw.binyan.slice(0, 4).map((g) => ['binyan', g]), fw.tense.slice(0, 4).map((g) => ['tense', g]));
+  if (!formRows.length) kids.push(el('p', { class: 'dict-note', text: tt('dictionary.progFormsFew', 'Пока мало ответов в тренировке форм: нужно хотя бы 6 ответов в группе.') }));
+  else {
+    kids.push(el('p', { class: 'dict-psub', text: fill(tt('dictionary.progFormsAvg', 'в среднем ошибок {p}'), { p: pct(fw.overall.rate) }) }));
+    kids.push(el('ul', { class: 'dict-pweak' }, formRows.map(([kind, g]) => {
+      const list = kind === 'binyan' ? Array.from(S.entries.values()).filter((e) => D.displayOf(e).binyan === g.value) : g.keys.map((k) => S.entries.get(k)).filter(Boolean);
+      const name = kind === 'binyan' ? tt('dictionary.fBinyan', 'Биньян') + ' ' + g.value : tenseText(g.value);
+      return el('li', { class: g.weak ? 'weak' : '' }, [
+        el('div', {}, [el('b', { text: name }), g.weak ? el('span', { class: 'dict-pflag', text: tt('dictionary.progWeakFlag', 'слабое место') }) : null]),
+        el('div', { class: 'dict-note', text: fill(tt('dictionary.progFormsLine', 'ошибок {f} из {r} ({p}) · слов {w}'), { f: g.wrong, r: g.seen, p: pct(g.rate), w: g.words }) }),
+        el('div', { class: 'dict-pacts' }, [el('button', { class: 'dict-btn' + (g.weak ? ' primary' : ''), attrs: { type: 'button' }, text: tt('dictionary.drillStart', 'Тренировать формы'),
+          on: { click: () => openSetDrill(list, { subtitle: name, focusGroups: kind === 'tense' ? [g.value] : null }) } })]),
+      ]);
+    })));
+  }
+  box.replaceChildren(...kids);
+}
+
+// ── XLSX «Мой словарь»: текущий вид (фильтры + сортировка) → книга «Словарь / Формы / Прогресс» ──────────
+let _zipLib = null;
+function zipLib() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  if (!_zipLib) _zipLib = new Promise((resolve, reject) => {
+    const sc = document.createElement('script'); sc.src = '/db/jszip.min.js';
+    sc.onload = () => (window.JSZip ? resolve(window.JSZip) : reject(new Error('JSZip'))); sc.onerror = () => { _zipLib = null; reject(new Error('JSZip')); };
+    document.head.appendChild(sc);
+  });
+  return _zipLib;
+}
+const isoDay = (t) => { if (!t) return ''; const d = new Date(t); return Number.isFinite(d.getTime()) ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : ''; };
+let _exporting = false;
+async function exportXlsx(list) {
+  if (_exporting || !list.length) return;
+  _exporting = true;
+  const FD = window.FormDrillCore, IR = window.InflectionRender, now = Date.now();
+  try {
+    progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: 0, n: list.length }));
+    const JSZip = await zipLib();
+    const memAll = new Map((await drillAll()).map((r) => [r.key, r.mem]));
+    const words = [], forms = [];
+    let t0 = performance.now();
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i], d = D.displayOf(e), m = D.memory(e, now);
+      const p = paradigmOf(e);
+      let study = null; if (p) { try { study = IR.projectStudyForms(p); } catch (_) { study = null; } }
+      const mem = memAll.get(e.key) || {};
+      const sum = study ? FD.summary(study, mem) : null;
+      words.push([d.he, d.lemma && strip(d.lemma) !== strip(d.he) ? d.lemma : '', (e.reading && e.reading.meaning) || (e.note && e.note.meaning) || '',
+        (e.note && e.note.userMeaning) || '', posText(d.pos), d.binyan, d.root, e.metOnly ? '' : statusText(e.status || 'new'),
+        m.strength == null ? null : Math.round(m.strength * 100), e.srs && e.srs.due > 0 ? isoDay(e.srs.due) : '', m.reps || null, m.lapses || null,
+        D.occurrences(e) || null, isoDay(e.added), isoDay(e.lastSeen), sum && sum.total ? sum.mastered + ' / ' + sum.total : '', e.key]);
+      if (study) {
+        const met = new Set(metSlotsOf(e, p)), lemma = lemmaOf(p, d.he);
+        FD.formsOf(study).forEach((f) => {
+          const c = mem[f.slot] || {};
+          forms.push([lemma, f.group, f.label, f.he, f.translit, ruOf(p, f.slot), met.has(f.slot) ? '✓' : '',
+            c.seen ? (Number(c.right) || 0) + ' / ' + c.seen : '', FD.mastered(c) ? '✓' : '']);
+        });
+      }
+      if (performance.now() - t0 > 30) { progress(fill(tt('dictionary.xlsxPreparing', 'Готовлю таблицу: {d} из {n}'), { d: i + 1, n: list.length })); await yieldNow(); t0 = performance.now(); }
+    }
+    const H = (k, fb) => tt('dictionary.xlsx.' + k, fb);
+    const wordCols = [
+      { header: H('word', 'Слово'), rtl: true, width: 16 }, { header: H('lemma', 'Лемма'), rtl: true, width: 14 }, { header: H('meaning', 'Значение (словарь)'), width: 32, wrap: true },
+      { header: H('mine', 'Мой перевод'), width: 24, wrap: true }, { header: H('pos', 'Часть речи'), width: 11 }, { header: H('binyan', 'Биньян'), width: 10 },
+      { header: H('root', 'Корень'), rtl: true, width: 9 }, { header: H('status', 'Статус'), width: 12 }, { header: H('strength', 'Сила памяти, %'), width: 10 },
+      { header: H('due', 'Следующее повторение'), width: 13 }, { header: H('reps', 'Повторений'), width: 9 }, { header: H('lapses', 'Срывов'), width: 8 },
+      { header: H('occ', 'Встреч в текстах'), width: 9 }, { header: H('added', 'Добавлено'), width: 12 }, { header: H('seen', 'Последний раз'), width: 12 },
+      { header: H('forms', 'Формы уверенно'), width: 10 }, { header: H('key', 'Ключ'), width: 16 },
+    ];
+    const formCols = [
+      { header: H('lemma', 'Лемма'), rtl: true, width: 14 }, { header: H('group', 'Время / группа'), width: 22 }, { header: H('person', 'Лицо'), width: 12 },
+      { header: H('form', 'Форма'), rtl: true, width: 16 }, { header: H('translit', 'Транслит'), width: 14 }, { header: H('formRu', 'Перевод формы'), width: 24 },
+      { header: H('met', 'Встречена у меня'), width: 10 }, { header: H('drill', 'Тренировка: верно / всего'), width: 12 }, { header: H('mastered', 'Уверенно'), width: 9 },
+    ];
+    // progress: the same numbers as the Progress tab, over my words (not just this view)
+    const pd = await progressData(now), c = pd.dyn.now, W = pd.dyn.periods;
+    const prog = D.STATUSES.filter((s) => c[s] || W.week.then[s] || W.month.then[s]).map((s) => [statusText(s), c[s], c[s] - W.week.then[s], c[s] - W.month.then[s]]);
+    prog.push(['', null, null, null]);
+    prog.push([tt('dictionary.progWeek', 'За неделю'), fill(tt('dictionary.progLine', 'стало «знаю» +{k} · поднялись по шкале {u} · новых слов {a}'), { k: W.week.known, u: W.week.up, a: W.week.added }), null, null]);
+    prog.push([tt('dictionary.progMonth', 'За месяц'), fill(tt('dictionary.progLine', 'стало «знаю» +{k} · поднялись по шкале {u} · новых слов {a}'), { k: W.month.known, u: W.month.up, a: W.month.added }), null, null]);
+    [['pos', posText], ['binyan', (b) => b]].forEach(([dim, lab]) => {
+      const r = P().weakSpots(pd.mine.filter((e) => e.status !== 'ignore').map((e) => ({ value: D.displayOf(e)[dim], reviews: (e.log && e.log.reviews) || 0, fails: (e.log && e.log.fails) || 0 })));
+      r.groups.forEach((g) => prog.push([lab(g.value) + (g.weak ? ' — ' + tt('dictionary.progWeakFlag', 'слабое место') : ''),
+        fill(tt('dictionary.progWeakLine', 'срывов {f} из {r} ({p}) · слов {w}'), { f: g.fails, r: g.reviews, p: pct(g.rate), w: g.words }), null, null]));
+    });
+    const sheets = [
+      { name: H('sheetWords', 'Словарь'), columns: wordCols, rows: words },
+      { name: H('sheetForms', 'Формы'), columns: formCols, rows: forms },
+      { name: H('sheetProgress', 'Прогресс'), columns: [{ header: tt('dictionary.fStatus', 'Статус'), width: 26 }, { header: tt('dictionary.progColNow', 'Сейчас'), width: 50, wrap: true },
+        { header: tt('dictionary.progWeek', 'За неделю') + ', Δ', width: 14 }, { header: tt('dictionary.progMonth', 'За месяц') + ', Δ', width: 14 }], rows: prog },
+    ];
+    const zip = new JSZip();
+    Object.entries(window.XlsxCore.buildParts(sheets)).forEach(([k, v]) => zip.file(k, v));
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', compression: 'DEFLATE' });
+    const name = 'linguistpro-dictionary-' + isoDay(now) + '.xlsx';
+    window.LPDictionary.lastExport = { name, size: blob.size, words: words.length, forms: forms.length, blob };   // smoke / diagnostics
+    const url = URL.createObjectURL(blob), a = el('a', { attrs: { href: url, download: name } });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    progress('');
+    toast(fill(tt('dictionary.xlsxDone', 'Таблица готова: {w} слов, {f} форм'), { w: words.length, f: forms.length }));
+  } catch (err) {
+    progress('');
+    toast(tt('dictionary.xlsxFailed', 'Не удалось собрать таблицу. Попробуйте ещё раз.'));
+    try { console.warn('[dictionary] xlsx', err); } catch (_) {}
+  } finally { _exporting = false; }
+}
+
 // ── wiring ─────────────────────────────────────────────────────────────────────────────────────
 function wire() {
   let qt = 0;
@@ -640,7 +1019,8 @@ function wire() {
     S.shown = 0;
     if (S.filters.scope === 'met' && !S.metBuilt) buildMet(); else applyView();
   }));
-  document.addEventListener('i18n:changed', () => { applyView(); if (!$('dict-filters').hidden) renderFilters(); if (S.selected) openArticle(S.selected); });
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.getAttribute('data-view'))));
+  document.addEventListener('i18n:changed', () => { applyView(); if (S.viewMode === 'progress') renderProgress(); if (!$('dict-filters').hidden) renderFilters(); if (S.selected) openArticle(S.selected); });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('dict-article').hidden && !document.querySelector('.rm-sheet.rm-open')) closeArticle(); });
 }
 
@@ -679,7 +1059,8 @@ async function reload() {
   applyView();
   await resolveReadings(S.entries);
   applyView();
+  if (S.viewMode === 'progress') renderProgress();
   if (S.selected && S.entries.has(S.selected)) openArticle(S.selected);
 }
-window.LPDictionary = { state: S, reload, openArticle };   // smoke / diagnostics
+window.LPDictionary = { state: S, reload, openArticle, setView };   // smoke / diagnostics
 boot();

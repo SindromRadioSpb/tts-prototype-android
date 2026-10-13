@@ -53,3 +53,83 @@ test('homograph cells count as one form; memory streak marks a form mastered', (
   assert.equal(F.mastered(m['PERF-1p']), false, 'a miss resets the streak');
   assert.deepEqual(F.summary(study, m), { total: F.formsOf(study).length, mastered: 0, tried: 1 });
 });
+
+// ── Д2.2+ : ввод / плитки / набор слов ─────────────────────────────────────────────────────────
+const dibber = ds.paradigms.find((p) => p.lemma === 'לדבר' && p.binyan === 'piel');
+const dStudy = IR.projectStudyForms(dibber);
+const formOf = (st, slot) => F.formsOf(st).find((f) => f.slot === slot);
+
+test('typed answer: letters only, finals folded, niqqud ignored', () => {
+  const t = formOf(study, 'PERF-1p');   // כָּתַבְנוּ
+  assert.equal(F.checkTyped(t, study, 'כתבנו').ok, true);
+  assert.equal(F.checkTyped(t, study, 'כָּתַבְנוּ').ok, true);
+  assert.equal(F.checkTyped(t, study, ' כתבנו ').ok, true);
+  const t2 = formOf(study, 'PERF-2mp');  // כְּתַבְתֶּם
+  assert.equal(F.checkTyped(t2, study, 'כתבתמ').ok, true, 'a non-final mem at the end is the same letter');
+  assert.equal(F.checkTyped(t, study, 'כתבתי').ok, false);
+});
+
+test('typed answer: plene spelling only where the vowels allow it', () => {
+  const t = formOf(dStudy, 'PERF-1s');   // דִּבַּרְתִּי
+  assert.equal(F.checkTyped(t, dStudy, 'דברתי').ok, true, 'defective');
+  assert.equal(F.checkTyped(t, dStudy, 'דיברתי').ok, true, 'yod after hiriq');
+  assert.equal(F.checkTyped(t, dStudy, 'דבירתי').ok, false, 'yod after a patah is not plene');
+  assert.equal(F.checkTyped(t, dStudy, 'דוברתי').ok, false, 'vav after a hiriq is not plene');
+  const fut = formOf(study, 'IMPF-1s');  // אֶכְתֹּב
+  assert.equal(F.checkTyped(fut, study, 'אכתוב').ok, true, 'vav after holam');
+});
+
+test('typed answer that is another cell names that cell; homograph cell counts', () => {
+  const t = formOf(study, 'PERF-1p');
+  const r = F.checkTyped(t, study, 'כתבתי');
+  assert.equal(r.ok, false);
+  assert.ok(r.other && r.other.slot === 'PERF-1s', 'the produced form is «я · прошедшее»');
+  const t3fs = formOf(study, 'IMPF-3fs');
+  assert.equal(F.checkTyped(t3fs, study, 'תכתוב').ok, true);
+  const r2 = F.checkTyped(formOf(study, 'PERF-2ms'), study, 'כתבת');
+  assert.equal(r2.ok, true, 'letters right');
+  assert.equal(r2.niqqudAmbiguous, true, 'כתבת is also «ты (ж)» — the vowels decide, shown to the learner');
+});
+
+test('keyboard layout: Russian and Latin keys on a Hebrew layout are converted', () => {
+  assert.deepEqual(F.fromLayout('албыщ'), { text: 'כלתדם', converted: true });
+  assert.deepEqual(F.fromLayout('fk,so'), { text: 'כלתדם', converted: true });
+  assert.deepEqual(F.fromLayout('כתב'), { text: 'כתב', converted: false });
+});
+
+test('tiles: the letters of the form plus decoys from the same tense, deterministic', () => {
+  const t = formOf(study, 'PERF-1p');
+  const tiles = F.tilesFor(t, study, 3, 5);
+  const letters = tiles.map((x) => x.ch);
+  'כתבנו'.split('').forEach((c) => assert.ok(letters.includes(c), c));
+  assert.ok(tiles.length >= 6 && tiles.length <= 8, 'up to 3 decoys');
+  assert.equal(new Set(tiles.map((x) => x.id)).size, tiles.length);
+  assert.deepEqual(F.tilesFor(t, study, 3, 5), tiles, 'same seed, same tiles');
+  assert.equal(F.checkTyped(t, study, 'כתבנו').ok, true);
+});
+
+test('grade counts production answers separately', () => {
+  let m = F.grade({}, 'PERF-1p', true, 1, 'type');
+  m = F.grade(m, 'PERF-1p', true, 2, 'choice');
+  assert.equal(m['PERF-1p'].prod, 1);
+  assert.equal(m['PERF-1p'].right, 2);
+});
+
+test('focus groups narrow the deck to one tense', () => {
+  const deck = F.buildDeck(study, { size: 6, focusGroups: ['future'] });
+  assert.ok(deck.length === 6 && deck.every((f) => f.groupKey === 'future'));
+});
+
+test('set deck: round-robin across words, weak words first, options from the word\'s own table', () => {
+  const items = [
+    { key: 'pid:a', lemma: 'כתב', study, memory: Object.fromEntries(F.formsOf(study).map((f) => [f.slot, { streak: 2, last: 1 }])) },
+    { key: 'pid:b', lemma: 'דבר', study: dStudy, memory: {}, metSlots: ['PERF-1s'] },
+  ];
+  const deck = F.buildSetDeck(items, { size: 6 });
+  assert.equal(deck.length, 6);
+  assert.equal(deck[0].key, 'pid:b', 'the word with unlearnt forms met in my texts starts');
+  assert.equal(deck[0].target.slot, 'PERF-1s');
+  assert.deepEqual(deck.map((x) => x.key), ['pid:b', 'pid:a', 'pid:b', 'pid:a', 'pid:b', 'pid:a']);
+  assert.ok(deck.every((x) => x.study === (x.key === 'pid:a' ? study : dStudy)));
+  assert.equal(F.buildSetDeck([], { size: 5 }).length, 0);
+});
