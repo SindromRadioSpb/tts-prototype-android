@@ -99,6 +99,19 @@
     var wordRow = {}; words.forEach(function (w, i) { wordRow[w.key] = i + D0; });
     var tableRow = {}, r = 3;
     words.forEach(function (w) { if (w.table && w.table.groups && w.table.groups.length) { tableRow[w.key] = r; r += 1 + w.table.groups.length + 1; } });
+    // A link to one cell leaves it at the BOTTOM of the window when it lies below the view (Excel scrolls the least).
+    // A link to a range taller than the window puts the range's first row at the TOP — so every jump targets a tall
+    // range in a hidden helper column of the target sheet: the word's row lands first, its table right below it,
+    // nothing visible is selected and the view does not move sideways (verified in Excel via COM).
+    var JUMP = 2000, HID = {};
+    var jump = function (sheetKey, row) { return { sheet: names[sheetKey], ref: HID[sheetKey] + row + ":" + HID[sheetKey] + (row + JUMP) }; };
+    var maxCells = 1;
+    words.forEach(function (w) { ((w.table && w.table.groups) || []).forEach(function (g) { maxCells = Math.max(maxCells, (g.forms || []).length); }); });
+    maxCells = Math.min(maxCells, 12);
+    var tCols = [{ width: 20 }]; for (var c = 0; c < Math.max(9, maxCells); c++) tCols.push({ width: 15 });
+    tCols.push({ hidden: true, width: 2 });   // the jump column
+    HID.tables = X.colName(tCols.length - 1);
+
 
     // ── Словарь ──
     var wc = [
@@ -113,7 +126,9 @@
       { header: "Pealim", width: 9 }, { header: T("cApp", "В приложении"), width: 12 },
       { header: T("cAdded", "Добавлено"), width: 11, style: "date" }, { header: T("cSeen", "Последний раз"), width: 11, style: "date" },
       { header: T("cMyNote", "Моя заметка"), width: 24, wrap: true }, { header: T("cKey", "Ключ"), width: 12, style: "gray" },
+      { header: "", hidden: true },   // the jump column (see jump())
     ];
+    HID.words = X.colName(wc.length - 1);
     var wordRows = words.map(function (w) {
       var ex = w.example, exRich = null;
       if (ex && ex.he) {
@@ -126,7 +141,7 @@
         { v: w.statusText || "", s: w.status ? "st_" + w.status : null },
         w.strength == null ? "" : w.strength, w.due ? X.dateSerial(w.due) : "", w.reps || "", w.lapses || "", w.occ || "",
         exRich ? { rich: exRich } : "", (ex && ex.ru) || "", (ex && ex.title) || "",
-        tableRow[w.key] ? { v: (w.formsTotal ? w.formsMastered + "/" + w.formsTotal + " " : "") + T("toTable", "таблица ›"), link: { sheet: names.tables, ref: "A" + tableRow[w.key] }, tip: T("toTableTip", "Спряжение / склонение этого слова") } : "",
+        tableRow[w.key] ? { v: (w.formsTotal ? w.formsMastered + "/" + w.formsTotal + " " : "") + T("toTable", "таблица ›"), link: jump("tables", tableRow[w.key]), tip: T("toTableTip", "Спряжение / склонение этого слова") } : "",
         w.pealimUrl ? { v: "Pealim ↗", link: { url: w.pealimUrl } } : "",
         w.appUrl ? { v: T("openApp", "открыть ↗"), link: { url: w.appUrl }, tip: T("openAppTip", "Статья слова в LinguistPro") } : "",
         w.added ? X.dateSerial(w.added) : "", w.lastSeen ? X.dateSerial(w.lastSeen) : "", "", w.key,
@@ -141,10 +156,6 @@
       print: { landscape: true, fitWidth: true, titleRows: true, area: "A1:P" + nW } };
 
     // ── Таблицы ──
-    var maxCells = 1;
-    words.forEach(function (w) { ((w.table && w.table.groups) || []).forEach(function (g) { maxCells = Math.max(maxCells, (g.forms || []).length); }); });
-    maxCells = Math.min(maxCells, 12);
-    var tCols = [{ width: 20 }]; for (var c = 0; c < Math.max(9, maxCells); c++) tCols.push({ width: 15 });
     var tRows = [
       { cells: [{ v: T("tablesTitle", "Спряжение и склонение моих слов"), s: "title" }], height: 30 },
       { cells: [toStart(), { v: T("tablesLegend", "Жёлтым — формы, встреченные в ваших текстах. Зелёная рамка и ✓ — форма уверенно освоена в тренировке. «‹ к слову» возвращает в «Словарь»."), s: "note" }], height: 30 },
@@ -155,7 +166,7 @@
       // A ‹ к слову · B слово · C–D значение и транслит · E–G часть речи, биньян, корень, «уверенно m из t» · H Pealim · I LinguistPro
       var info = [w.posText, w.binyan, w.root ? T("root", "корень") + " " + w.root : "", w.formsTotal ? fill(T("formsSure", "уверенно {m} из {t}"), { m: w.formsMastered, t: w.formsTotal }) : ""].filter(Boolean).join(" · ");
       var head = [
-        { v: "‹ " + T("toWord", "к слову"), link: { sheet: names.words, ref: "A" + wordRow[w.key] }, s: "blockLink" },
+        { v: "‹ " + T("toWord", "к слову"), link: jump("words", wordRow[w.key]), s: "blockLink" },
         { v: w.he, s: "blockWord" }, { v: [w.meaning, w.translit].filter(Boolean).join(" · "), s: "blockHead" }, { v: "", s: "blockHead" },
         { v: info, s: "blockHead" }, { v: "", s: "blockHead" }, { v: "", s: "blockHead" },
         w.pealimUrl ? { v: "Pealim ↗", link: { url: w.pealimUrl }, s: "blockLink" } : { v: "", s: "blockHead" },
@@ -182,9 +193,9 @@
     words.forEach(function (w) {
       ((w.table && w.table.groups) || []).forEach(function (g) {
         (g.forms || []).forEach(function (f) {
-          fRows.push([{ v: w.he, link: { sheet: names.words, ref: "A" + wordRow[w.key] } }, g.label, f.label, { v: f.he }, f.translit || "", f.ru || "",
+          fRows.push([{ v: w.he, link: jump("words", wordRow[w.key]) }, g.label, f.label, { v: f.he }, f.translit || "", f.ru || "",
             f.met ? "✓" : "", f.seen ? (f.right || 0) + " / " + f.seen : "", f.mastered ? "✓" : "",
-            { v: T("toTable", "таблица ›"), link: { sheet: names.tables, ref: "A" + tableRow[w.key] } }]);
+            { v: T("toTable", "таблица ›"), link: jump("tables", tableRow[w.key]) }]);
         });
       });
     });
@@ -215,7 +226,7 @@
       return { height: 24, cells: [
         t.kind, t.word ? { v: t.word, s: "big" } : "", t.prompt, { v: "", s: "input" },
         { f: "IF(D" + n + "=\"\",\"\",IF(OR(" + normFormula("D" + n) + "=H" + n + "," + normFormula("D" + n) + "=I" + n + "),\"" + okText + "\"&G" + n + ",\"" + badText + "\"&G" + n + "))", s: "check" },
-        tableRow[t.key] ? { v: T("hint", "подсказка ›"), link: { sheet: names.tables, ref: "A" + tableRow[t.key] } } : { v: T("toWord", "к слову"), link: { sheet: names.words, ref: "A" + wordRow[t.key] } },
+        tableRow[t.key] ? { v: T("hint", "подсказка ›"), link: jump("tables", tableRow[t.key]) } : { v: T("toWord", "к слову"), link: jump("words", wordRow[t.key]) },
         t.answer, defective, plene,
       ] };
     });
@@ -271,7 +282,7 @@
     add([{ v: T("today", "Повторить сегодня"), s: "h2" }], 22);
     var due = words.filter(function (w) { return w.due && w.due <= now + 86400000 && w.status !== "ignore"; }).sort(function (a, b) { return a.due - b.due; });
     if (due.length) due.slice(0, 15).forEach(function (w) {
-      add([{ v: w.he, link: { sheet: names.words, ref: "A" + wordRow[w.key] }, s: "toc" }, w.meaning || "", { v: X.dateSerial(w.due), s: "date" }]);
+      add([{ v: w.he, link: jump("words", wordRow[w.key]), s: "toc" }, w.meaning || "", { v: X.dateSerial(w.due), s: "date" }]);
     });
     else add([{ v: T("todayNone", "Сегодня по расписанию повторять нечего — начните с листа «Проверь себя»."), s: "note" }], 18, "A#:C#");
     if (due.length > 15) add([{ v: fill(T("todayMore", "и ещё {n} — отсортируйте «Словарь» по колонке «Повторить»"), { n: due.length - 15 }), s: "note" }], 18, "A#:C#");
@@ -321,7 +332,7 @@
         (row.tokens || []).forEach(function (tk) {
           if (!tk.key || seen[tk.key] || !RUN_COLOR[tk.status] || wcells.length >= MAXW) return;
           seen[tk.key] = 1;
-          wcells.push(wordRow[tk.key] ? { v: tk.lemma || tk.t, link: { sheet: names.words, ref: "A" + wordRow[tk.key] }, s: "wordLink" } : { v: tk.lemma || tk.t, s: "wordLink" });
+          wcells.push(wordRow[tk.key] ? { v: tk.lemma || tk.t, link: jump("words", wordRow[tk.key]), s: "wordLink" } : { v: tk.lemma || tk.t, s: "wordLink" });
         });
         var h = 18 * Math.max(1, linesFor((row.tokens || []).map(function (x) { return x.t; }).join(""), 52), linesFor(row.ru, 44)) + 6;
         xRows.push({ height: Math.min(120, h), cells: [row.n, { rich: runs.length ? runs : [{ t: "" }], s: "textRow" }, row.ru || ""].concat(wcells) });

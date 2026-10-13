@@ -47,11 +47,15 @@ test('six sheets in study order, «Начать» opens first', () => {
 });
 
 test('X1 word → its table block → back to the same word row', () => {
-  const tableLink = /<hyperlink ref="Q3" location="'Таблицы'!(A\d+)"/.exec(xmlOf(2));
+  // every jump is a tall range in the target sheet's hidden column: Excel then puts its first row at the top
+  const tableLink = /<hyperlink ref="Q3" location="'Таблицы'!([A-Z]+)(\d+):\1(\d+)"/.exec(xmlOf(2));
   assert.ok(tableLink, 'Словарь row of לכתוב links to its table');
   const block = book.meta.tableRow['pid:' + katav.pealim_id];
-  assert.equal(tableLink[1], 'A' + block);
-  const back = new RegExp('<hyperlink ref="A' + block + '" location="\'Словарь\'!A3"').exec(xmlOf(3));
+  assert.equal(Number(tableLink[2]), block);
+  assert.ok(Number(tableLink[3]) - block >= 1000, 'taller than any window');
+  const cols = book.sheets[2].columns;
+  assert.ok(cols[cols.length - 1].hidden && tableLink[1] === X.colName(cols.length - 1), 'the jump column of «Таблицы» is hidden');
+  const back = new RegExp('<hyperlink ref="A' + block + '" location="\'Словарь\'!X3:X\\d+"').exec(xmlOf(3));
   assert.ok(back, 'the block header links back to row 3 of «Словарь»');
   assert.ok(!/<hyperlink ref="Q5"/.test(xmlOf(2)), 'a word without a table has no table link');
   // every sheet links back to «Начать»
@@ -91,7 +95,7 @@ test('X3 «Повторить сегодня» lists due words with a link to th
   const start = sheet('Начать').rows.map((r) => (Array.isArray(r) ? r : r.cells));
   const i = start.findIndex((c) => c[0] && c[0].v === 'Повторить сегодня');
   assert.equal(start[i + 1][0].v, katav.lemma_niqqud || katav.lemma);
-  assert.deepEqual(start[i + 1][0].link, { sheet: 'Словарь', ref: 'A3' });
+  assert.deepEqual(start[i + 1][0].link, { sheet: 'Словарь', ref: 'X3:X2003' });
   assert.ok(!start.some((c) => c[0] && c[0].v === (dibber.lemma_niqqud || dibber.lemma)), 'not due yet');
   assert.equal(sheet('Словарь').rows[0].cells[9], X.dateSerial(NOW - 2 * 864e5));
   assert.match(xmlOf(2), /<formula>AND\(J3&lt;&gt;&quot;&quot;,J3&lt;=TODAY\(\)\)<\/formula>/);
@@ -129,10 +133,10 @@ test('text lens book: «Текст» sheet after «Словарь», words colou
   assert.equal(runs.find((r) => r.t === 'כָּתְבָה').color, 'FFB45F06', 'a word being learnt wears its status colour');
   assert.equal(runs.find((r) => r.t === 'אַהֲבָה').color, 'FFB45309', 'an unmarked word is amber');
   assert.ok(!runs.find((r) => r.t === 'בַּיִת').color, 'a known word is plain');
-  assert.deepEqual(row.slice(3).map((c) => c.link), [{ sheet: 'Словарь', ref: 'A3' }, { sheet: 'Словарь', ref: 'A5' }], 'line words link to their dictionary rows; known ones are left out');
+  assert.deepEqual(row.slice(3).map((c) => c.link), [{ sheet: 'Словарь', ref: 'X3:X2003' }, { sheet: 'Словарь', ref: 'X5:X2005' }], 'line words link to their dictionary rows; known ones are left out');
   const startTitle = tb.sheets[0].rows[0].cells[0].v;
   assert.equal(startTitle, 'Слова текста «Мой рассказ»');
   const p2 = X.buildParts(tb);
   assert.match(p2['xl/worksheets/sheet1.xml'], /location="'Текст'!A1"/, 'contents links the text sheet');
-  assert.match(p2['xl/worksheets/sheet3.xml'], /location="'Словарь'!A5"/);
+  assert.match(p2['xl/worksheets/sheet3.xml'], /location="'Словарь'!X5:X2005"/);
 });

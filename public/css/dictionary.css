@@ -247,3 +247,7 @@ body.theme-dark .dict-place .ctx b { color: #8fb4ff; }
 .dict-plan { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--d-line); }
 .dict-plan-line { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
 .dict-plan select { min-height: 36px; border: 1px solid var(--d-line); border-radius: 8px; background: var(--d-card); color: var(--d-ink); font: inherit; padding: 0 6px; }
+/* разметка — та же палитра статусов, что в статье слова; крупнее для пальца */
+.dict-triage-status button { min-height: 48px; padding: 0 14px; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+.dict-triage-status kbd, .dict-triage-skip kbd { font: 600 11px/1 ui-monospace, monospace; padding: 2px 5px; border-radius: 4px; border: 1px solid rgba(0,0,0,.25); background: rgba(255,255,255,.55); color: var(--d-ink-2); }
+.dict-triage-skip { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
