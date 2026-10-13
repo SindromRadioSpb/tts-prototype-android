@@ -179,6 +179,30 @@
     return { now: base.recorded_familiar_pct_lower_bound, steps: steps, toTarget: toTarget, frontier: frontier, target: target };
   }
 
-  return { STATUSES: STATUSES, textPlan: textPlan, statusAt: statusAt, indexMarks: indexMarks, dynamics: dynamics, weekly: weekly,
+  // Д5.1 the ingredients of a set of texts = the sum of the texts' ingredients (frequencies per key and the token
+  // counters are additive), so the Room's evaluator on the sum gives the token-weighted familiarity of the set.
+  // Mixed resolver / schema versions are not summed (null) — a stale text must be rebuilt, not blended in.
+  function mergeIngredients(list) {
+    var xs = (list || []).filter(Boolean);
+    if (!xs.length) return null;
+    var head = xs[0], freq = Object.create(null), unresolved = 0, names = 0, total = 0;
+    for (var i = 0; i < xs.length; i++) {
+      var x = xs[i];
+      if (x.resolver_version !== head.resolver_version || (x.schema_version || "") !== (head.schema_version || "")) return null;
+      (x.key_frequencies || []).forEach(function (r) {
+        var k = Array.isArray(r) ? r[0] : r && r.key, n = Number(Array.isArray(r) ? r[1] : r && r.token_count) || 0;
+        if (k && n > 0) freq[k] = (freq[k] || 0) + n;
+      });
+      unresolved += Number(x.unresolved_token_count) || 0;
+      names += Number(x.proper_name_token_count) || 0;
+      total += Number(x.total_token_count) || 0;
+    }
+    return { schema_version: head.schema_version, resolver_version: head.resolver_version,
+      lexical_resolver_version: head.lexical_resolver_version, dataset_version: head.dataset_version,
+      key_frequencies: Object.keys(freq).sort().map(function (k) { return [k, freq[k]]; }),
+      unresolved_token_count: unresolved, proper_name_token_count: names, total_token_count: total, parts: xs.length };
+  }
+
+  return { STATUSES: STATUSES, textPlan: textPlan, mergeIngredients: mergeIngredients, statusAt: statusAt, indexMarks: indexMarks, dynamics: dynamics, weekly: weekly,
     weakSpots: weakSpots, tenseOf: tenseOf, formWeakSpots: formWeakSpots };
 });

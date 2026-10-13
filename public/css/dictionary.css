@@ -229,7 +229,12 @@ body.theme-dark .dict-place .ctx b { color: #8fb4ff; }
 .dict-textbar-fam { margin: 0; font-weight: 600; }
 .dict-fambar { height: 8px; border-radius: 4px; background: var(--d-muted-bg); overflow: hidden; }
 .dict-fambar i { display: block; height: 100%; background: var(--d-good); }
-.dict-unsure summary { cursor: pointer; color: var(--d-ink-2); }
+.dict-unsure summary, .dict-set-texts summary { cursor: pointer; color: var(--d-ink-2); }
+/* Д5.1 the texts of a set: title · its familiarity · its lens · the Room */
+.dict-set-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.dict-set-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 6px 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--d-line); }
+.dict-set-list .dict-set-title { overflow-wrap: anywhere; min-width: 0; }
+@media (max-width: 520px) { .dict-set-list li { grid-template-columns: minmax(0, 1fr) auto; } .dict-set-list li .dict-btn, .dict-set-list li a { justify-self: start; } }
 .dict-unsure-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .dict-unsure-list .dict-chip { font-family: var(--d-font-he); font-size: 1.05rem; }
 .dict-bulk { display: inline-flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }

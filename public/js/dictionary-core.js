@@ -128,8 +128,42 @@
     if (scope === "text") return e.textStatus || "none";
     return e.status || (e.metOnly ? "" : "new");
   }
+  // Д5.3 «Частота»: the number the list row shows — in the text lens the occurrences in the text (or the set of texts),
+  // elsewhere «встреч: N» (recorded places; the full count of my texts in «все встреченные»). Bands = the Room's «Мои слова».
+  var FREQ_BANDS = ["4plus", "2to3", "rare", "zero"];
+  function freqCount(e, scope) { return scope === "text" ? ((e.inText && Number(e.inText.freq)) || 0) : occurrences(e); }
+  function freqBandOf(n) { return n >= 4 ? "4plus" : n >= 2 ? "2to3" : n === 1 ? "rare" : "zero"; }
+
+  // Д5.1 a set of texts = a collection / a topic of my Mediatheque: the ordered member keys (MediathequeCore.refKey form:
+  // 'my/<textKey>' | 'public/<slug>/<workId>/<hash>'). A topic = its items, its sub-topics' items and the items of the
+  // collections inside (the rule of the Mediatheque's own topic filter).
+  function mediathequeMembers(d, kind, id) {
+    if (!d || !id) return [];
+    var cats = Array.isArray(d.categories) ? d.categories : [], cols = Array.isArray(d.collections) ? d.collections : [];
+    var out = [], seen = {};
+    var push = function (xs) { (xs || []).forEach(function (k) { if (typeof k === "string" && !seen[k]) { seen[k] = 1; out.push(k); } }); };
+    if (kind === "col") { cols.forEach(function (c) { if (c && c.id === id) push(c.items); }); return out; }
+    if (kind !== "cat" || !cats.some(function (c) { return c && c.id === id; })) return [];
+    var children = {};
+    cats.forEach(function (c) { if (!c) return; var p = c.parentId == null ? "" : c.parentId; (children[p] = children[p] || []).push(c.id); });
+    var queue = [id], found = {};
+    for (var i = 0; i < queue.length; i++) { var x = queue[i]; if (found[x]) continue; found[x] = 1; queue.push.apply(queue, children[x] || []); }
+    queue.forEach(function (cid) {
+      cats.forEach(function (c) { if (c && c.id === cid) push(c.items); });
+      cols.forEach(function (c) { if (c && c.categoryId === cid) push(c.items); });
+    });
+    return out;
+  }
+  // 'my/<textKey>' → { kind:'personal', textKey }; 'public/<slug>/<workId>/<hash>' → { kind:'public', slug, workId }
+  function parseRefKey(k) {
+    var s = str(k), dec = function (x) { try { return decodeURIComponent(x); } catch (_) { return x; } };
+    if (s.indexOf("my/") === 0) return { kind: "personal", textKey: dec(s.slice(3)) };
+    var m = /^public\/([^/]+)\/([^/]+)\/[^/]+$/.exec(s);
+    return m ? { kind: "public", slug: m[1], workId: dec(m[2]) } : null;
+  }
+
   // filters = { q, statuses:[], memory:'due'|'overdue'|'hard'|'never'|'', pos:[], binyan:[], root:'', hasMine:bool,
-  //             hasAi:bool, addedDays:n, scope:'mine'|'met'|'text', hideNames:bool }
+  //             hasAi:bool, addedDays:n, freq:[band], scope:'mine'|'met'|'text', hideNames:bool }
   function matches(e, f, now) {
     f = f || {};
     if (f.scope === "text") { if (!e.inText) return false; if (f.hideNames && e.inText.nameSuspect) return false; }
@@ -151,6 +185,7 @@
     if (f.root && normHe(d.root) !== normHe(f.root)) return false;
     if (f.hasMine && !(e.note && e.note.userMeaning)) return false;
     if (f.hasAi && !(e.aiCount > 0)) return false;
+    if (f.freq && f.freq.length && f.freq.indexOf(freqBandOf(freqCount(e, f.scope))) < 0) return false;
     if (f.addedDays && !(e.added && e.added >= (now || Date.now()) - f.addedDays * DAY)) return false;
     if (f.q) {
       var q = str(f.q).trim();
@@ -216,5 +251,6 @@
 
   return { STATUSES: STATUSES, LEVEL: LEVEL, SORTS: SORTS, keySurface: keySurface, normHe: normHe, normRu: normRu,
     mergeSources: mergeSources, memory: memory, meaningOf: meaningOf, displayOf: displayOf, occurrences: occurrences,
-    matches: matches, sortEntries: sortEntries, statusCounts: statusCounts, statusOf: statusOf };
+    matches: matches, sortEntries: sortEntries, statusCounts: statusCounts, statusOf: statusOf,
+    FREQ_BANDS: FREQ_BANDS, freqCount: freqCount, freqBandOf: freqBandOf, mediathequeMembers: mediathequeMembers, parseRefKey: parseRefKey };
 });

@@ -130,3 +130,34 @@ test('source filter: a word matches when any of its places is in a chosen class'
   assert.deepEqual(pick(['public', 'byehuda']), ['pid:1', 'pid:2']);
   assert.deepEqual(pick([]), ['pid:1', 'pid:2', 'pid:3'], 'no source filter — everything');
 });
+
+// Д5.3 «Частота»: the bands of the Room's «Мои слова»; the count is the one the row shows
+test('frequency bands: the lens counts the text, elsewhere the recorded places', () => {
+  assert.equal(D.freqBandOf(0), 'zero'); assert.equal(D.freqBandOf(1), 'rare');
+  assert.equal(D.freqBandOf(3), '2to3'); assert.equal(D.freqBandOf(4), '4plus');
+  const a = { key: 'pid:1', status: 'l1', note: { occ: 2 }, ctx: { occ: 3 }, surfaces: [], inText: { freq: 1 } };
+  const b = { key: 'pid:2', status: 'l1', surfaces: [] };
+  assert.equal(D.freqCount(a, 'mine'), 5); assert.equal(D.freqCount(a, 'text'), 1);
+  const pick = (freq, scope) => [a, b].filter((e) => D.matches(e, { statuses: [], freq, scope })).map((e) => e.key);
+  assert.deepEqual(pick(['4plus'], 'mine'), ['pid:1']);
+  assert.deepEqual(pick(['zero'], 'mine'), ['pid:2']);
+  assert.deepEqual(pick(['rare'], 'text'), ['pid:1'], 'in the lens only the words of the text, counted in it');
+  assert.deepEqual(pick(['rare', 'zero'], 'mine'), ['pid:2']);
+  assert.deepEqual(pick([], 'mine'), ['pid:1', 'pid:2']);
+});
+
+// Д5.1 a set of texts from my Mediatheque: a collection in its order; a topic = its items + sub-topics + collections inside
+test('mediatheque set members: collection order, topic subtree, no duplicates', () => {
+  const d = {
+    categories: [{ id: 'c1', parentId: null, items: ['my/a'] }, { id: 'c2', parentId: 'c1', items: ['my/b', 'my/a'] }, { id: 'c3', parentId: null, items: ['my/z'] }],
+    collections: [{ id: 'k1', categoryId: 'c2', items: ['public/ch/w%2F1/abc', 'my/c'] }, { id: 'k2', categoryId: null, items: ['my/c', 'my/d'] }],
+  };
+  assert.deepEqual(D.mediathequeMembers(d, 'col', 'k2'), ['my/c', 'my/d']);
+  assert.deepEqual(D.mediathequeMembers(d, 'cat', 'c1'), ['my/a', 'my/b', 'public/ch/w%2F1/abc', 'my/c']);
+  assert.deepEqual(D.mediathequeMembers(d, 'cat', 'c3'), ['my/z']);
+  assert.deepEqual(D.mediathequeMembers(d, 'cat', 'nope'), []);
+  assert.deepEqual(D.mediathequeMembers(null, 'col', 'k1'), []);
+  assert.deepEqual(D.parseRefKey('my/t%201'), { kind: 'personal', textKey: 't 1' });
+  assert.deepEqual(D.parseRefKey('public/ch/w%2F1/abc'), { kind: 'public', slug: 'ch', workId: 'w/1' });
+  assert.equal(D.parseRefKey('junk'), null);
+});

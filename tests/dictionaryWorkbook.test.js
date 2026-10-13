@@ -140,3 +140,16 @@ test('text lens book: «Текст» sheet after «Словарь», words colou
   assert.match(p2['xl/worksheets/sheet1.xml'], /location="'Текст'!A1"/, 'contents links the text sheet');
   assert.match(p2['xl/worksheets/sheet3.xml'], /location="'Словарь'!X5:X2005"/);
 });
+
+// Д5.1 a set of texts: the «Текст» sheet carries every text under a title row; the book is named after the set
+test('set lens book: a title row before each text, the start page names the set', () => {
+  const tb = W.build(Object.assign({}, data, { text: { title: 'Сериал', isSet: true, famText: '',
+    rows: [{ heading: 'Серия 1' }, { n: 1, ru: 'а', tokens: [{ t: 'הִיא' }] }, { heading: 'Серия 2' }, { n: 1, ru: 'б', tokens: [{ t: 'הוּא' }] }] } }), null);
+  const ts = tb.sheets[2];
+  assert.equal(ts.rows.length, 4);
+  assert.equal(ts.rows[0].cells[1].v, 'Серия 1'); assert.equal(ts.rows[0].cells[1].s, 'blockHead');
+  assert.equal(ts.rows[2].cells[1].v, 'Серия 2');
+  assert.equal(ts.rows[1].cells[0], 1, 'line numbers restart inside each text');
+  assert.equal(tb.sheets[0].rows[0].cells[0].v, 'Слова подборки «Сериал»');
+  X.buildParts(tb);   // the sheet still serialises
+});

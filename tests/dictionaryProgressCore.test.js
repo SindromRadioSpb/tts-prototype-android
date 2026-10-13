@@ -97,3 +97,20 @@ test('T4 text plan: the Room evaluator decides the forecast; frontier by uses; s
   assert.deepEqual(only.frontier.map((r) => r.key), ['pid:b', 'pid:d'], 'only words the learner can act on');
   assert.equal(only.toTarget, null, '95% is out of reach with these');
 });
+
+// Д5.1 the familiarity of a set of texts = the evaluator on the summed ingredients (token-weighted)
+test('merged ingredients of a set sum frequencies and counters; mixed versions are refused', () => {
+  const C = require('../public/js/learning-compass-core.js');
+  const one = { schema_version: 's', resolver_version: 'r', key_frequencies: [['a', 3], ['b', 1]], unresolved_token_count: 1, proper_name_token_count: 0, total_token_count: 5 };
+  const two = { schema_version: 's', resolver_version: 'r', key_frequencies: [{ key: 'b', token_count: 4 }, { key: 'c', token_count: 2 }], unresolved_token_count: 0, proper_name_token_count: 1, total_token_count: 7 };
+  const m = P.mergeIngredients([one, null, two]);
+  assert.deepEqual(m.key_frequencies, [['a', 3], ['b', 5], ['c', 2]]);
+  assert.equal(m.total_token_count, 12); assert.equal(m.unresolved_token_count, 1); assert.equal(m.proper_name_token_count, 1); assert.equal(m.parts, 2);
+  assert.equal(P.mergeIngredients([one, Object.assign({}, two, { resolver_version: 'old' })]), null);
+  assert.equal(P.mergeIngredients([]), null);
+  // the evaluator accepts the sum exactly as it accepts one text (counts reconcile)
+  const real = Object.assign({}, m, { resolver_version: C.RESOLVER_VERSION, schema_version: undefined });
+  const r = C.evaluateRecordedFamiliarityV2({ ingredients: real, learner_projection: { state_by_key: { b: 'known' }, scheduled_keys: [] } });
+  assert.equal(r.counts.familiar, 5);
+  assert.equal(r.recorded_familiar_pct_lower_bound, Math.round(5 * 10000 / 11) / 100);
+});

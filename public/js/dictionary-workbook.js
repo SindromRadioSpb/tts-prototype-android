@@ -274,7 +274,7 @@
     // ── Начать ──
     var sRows = [], sMerge = [];
     var add = function (cells, h, merge) { sRows.push(h ? { cells: cells, height: h } : cells); if (merge) sMerge.push(merge.replace(/#/g, sRows.length)); };
-    add([{ v: TX ? fill(T("titleText", "Слова текста «{t}»"), { t: TX.title }) : T("title", "Мой словарь · LinguistPro"), s: "title" }], 34, TX ? "A#:C#" : null);
+    add([{ v: TX ? fill(TX.isSet ? T("titleSet", "Слова подборки «{t}»") : T("titleText", "Слова текста «{t}»"), { t: TX.title }) : T("title", "Мой словарь · LinguistPro"), s: "title" }], 34, TX ? "A#:C#" : null);
     if (TX && TX.famText) add([{ v: TX.famText, s: "bold" }], 20, "A#:C#");
     add([{ v: fill(T("meta", "Выгружено {date} · слов: {n} · с таблицами форм: {t}{filter}"), { date: data.dateText || "", n: words.length, t: Object.keys(tableRow).length, filter: data.filterText ? " · " + T("filter", "фильтр") + ": " + data.filterText : "" }), s: "subtitle" }], 20, "A#:C#");
     add([{ v: T("snapshot", "Это снимок словаря для работы вне программы. Правки в файле не меняют программу; чтобы отметить слово или повторить его в тренировке, откройте его по ссылке «В приложении ↗»."), s: "note" }], 32, "A#:C#");
@@ -324,6 +324,8 @@
       var xCols = [{ header: "№", width: 5, style: "num" }, { header: T("cHebrew", "Иврит"), width: 58 }, { header: T("cRu", "Перевод"), width: 44, wrap: true }];
       for (var wi = 0; wi < MAXW; wi++) xCols.push({ header: wi === 0 ? T("cLineWords", "Незнакомые слова строки") : "", width: wi === 0 ? 16 : 13 });
       (TX.rows || []).forEach(function (row) {
+        // a set of texts: a title row before each text
+        if (row.heading) { xRows.push({ height: 22, cells: ["", { v: row.heading, s: "blockHead" }, { v: "", s: "blockHead" }] }); return; }
         var runs = (row.tokens || []).map(function (tk) {
           var c = tk.key && RUN_COLOR[tk.status];
           return c ? { t: tk.t, b: true, color: c } : { t: tk.t };

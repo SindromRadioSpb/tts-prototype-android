@@ -42,10 +42,14 @@
   }
   function t(key, fb) { try { if (typeof window.t === "function") { var v = window.t(key); if (v && v !== key) return v; } } catch (_) {} return fb; }
 
-  // Pealim links (= v3WordCardPealim*).
-  function pealimDictUrl(id) { return "https://www.pealim.com/ru/dict/" + encodeURIComponent(id) + "/"; }
-  function pealimSearchUrl(lemma) { return "https://www.pealim.com/ru/search/?q=" + encodeURIComponent(_stripNiqqud(lemma)); }
-  function pealimLinkLabel(hasPid) { return hasPid ? t("notes.card.conj.pageLink", "страница Pealim") : t("notes.card.conj.searchLink", "поиск Pealim"); }
+  // Pealim links — the Studio's single source (v3WordCardPealimDictUrl / v3WordCardPealimUrl / v3WordCardPealimLinkLabel):
+  // the same URL and the same localized label on every surface (Д5.4: the Studio renders through this module).
+  function pealimDictUrl(id) { return "https://www.pealim.com/ru/dict/" + encodeURIComponent(String(id || "")) + "-/"; }
+  function pealimSearchUrl(lemma) { return "https://www.pealim.com/ru/search/?from_lang=he&q=" + encodeURIComponent(String(lemma || "")); }
+  function pealimLinkLabel(hasPid) {
+    return hasPid ? t("notes.card.conj.recheckDirect", t("notes.card.conj.recheck", "страница Pealim"))
+      : t("notes.card.conj.recheckSearch", t("notes.card.conj.recheck", "поиск на Pealim"));
+  }
 
   var POS_LABEL = {
     verb: ["notes.tpl.word_study.posVerb", "глагол"], noun: ["notes.tpl.word_study.posNoun", "существительное"],

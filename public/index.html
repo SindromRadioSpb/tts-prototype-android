@@ -1674,6 +1674,10 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+/* Д5.2 «📖 Слова» — the text's words in «Мой словарь» (same shape and rules as the Anki button) */
+.btn-anki.btn-dict-words { background-color: #0f766e; }
+.btn-anki.btn-dict-words:not(.disabled):hover { background-color: #0b5f59; }
+
     .btn-word.disabled {
         background-color: #d0d4d8 !important;
         color: #888 !important;
@@ -7792,6 +7796,17 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
 }
 .v3-conj-cell-hl .v3-conj-he { color: var(--theme-accent, #b45309); }
 .v3-conj-he { font-size: 15px; font-weight: 600; color: var(--theme-text-primary); direction: rtl; }
+/* Д5.4 the shared renderer's «лицо × время» matrix + Russian of each form (= .rm-conj-body rules of the Room) */
+.v3-conj-ru { font-size: 11px; line-height: 1.25; color: var(--theme-text-muted); text-align: center; direction: ltr; white-space: normal; overflow-wrap: anywhere; }
+.v3-conj-cell-hl .v3-conj-ru { color: var(--theme-text-primary); font-weight: 600; }
+.v3-conj-cur { font-size: 9px; line-height: 1; color: #f0883e; }
+.v3-conj-mx-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+table.v3-conj-mx { border: 0; border-collapse: separate; border-spacing: 4px; width: 100%; min-width: 300px; margin: 0 -4px; background: none; }
+table.v3-conj-mx th, table.v3-conj-mx td { border: 0; background: none; box-shadow: none; }
+table.v3-conj-mx th { font-size: 10.5px; font-weight: 700; color: var(--theme-text-muted); text-align: start; vertical-align: middle; white-space: nowrap; padding: 0 2px; }
+table.v3-conj-mx thead th { font-size: 10px; text-align: center; white-space: normal; letter-spacing: 0; text-transform: none; word-break: normal; overflow-wrap: normal; hyphens: auto; }
+table.v3-conj-mx td { vertical-align: top; padding: 0; width: 31%; }
+table.v3-conj-mx .v3-conj-cell { width: 100%; min-width: 0; height: 100%; padding: 3px 4px; }
 .v3-conj-lab {
   font-size: 9px; font-weight: 700; color: var(--theme-text-muted);
   text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap;
@@ -12143,6 +12158,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             <button id="btnAnki" class="btn-anki disabled"
                                     data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                     onclick="v3AnkiOpenModal()" disabled data-i18n="classic.anki">Anki</button>
+
+                            <button id="btnDictWords" class="btn-anki btn-dict-words disabled"
+                                    data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
+                                    onclick="v3OpenDictionaryWords()" disabled data-i18n="classic.dictWords">📖 Слова</button>
                         </div>
 
                         <div id="audioContainer" style="margin-bottom: 4px;"></div>
@@ -12458,6 +12477,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkClear()">Снять выбор</button>
 	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkArchive()">📦 Архивировать</button>
 	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkPublish()" data-i18n="publication.addSelected">Добавить в публичный корпус</button>
+	    <button id="v3LibraryBulkDictWords" class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3OpenDictionaryWords(Array.from(v3LibSelected))" data-i18n="library.bulkDictWords">📖 Слова выбранных</button>
 	    <button class="btn-secondary" style="background:#dc2626; color:#fff; border-color:#dc2626; min-height:36px; font-weight:600;" onclick="v3LibraryBulkDelete()">🗑 Удалить выбранные</button>
 	  </div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
@@ -13664,9 +13684,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=302"></script>
-<script src="/i18n/locales/en.js?v=302"></script>
-<script src="/i18n/locales/he.js?v=302"></script>
+<script src="/i18n/locales/ru.js?v=303"></script>
+<script src="/i18n/locales/en.js?v=303"></script>
+<script src="/i18n/locales/he.js?v=303"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13706,7 +13726,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/notes-autogen.js"></script>
 <!-- Shared ReaderMorph Pealim table renderer. Load after NotesAutoGen and before
      reader-morph.js so Studio and Reading Room expose the same rich word card. -->
-<script src="/js/inflection-render.js"></script>
+<script src="/js/inflection-render.js?v=763"></script>
 <!-- Retention P3 — the Studio Trainer's scheduler is now FSRS-6 (recon §3.5/D5): the SAME pure
      engine + canon keyer the Reading Room uses, so word memory is unified via review_log. UMD
      globals only (window.FsrsCore / window.LemmaCanon); no side effects. reviewCard degrades to
@@ -13920,7 +13940,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.762";
+    window.APP_VERSION = "3.11.763";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -16270,12 +16290,24 @@ hr { border: none; border-top: 1px solid #d1d5db; margin: 14px 0; }
 .v3-conj-cell-lg .v3-conj-he { font-size: 22px; }
 .v3-conj-note { font-size: 11px; color: #6b7280; margin-top: 6px; }
 .v3-conj-empty { font-size: 12px; color: #6b7280; }
+.v3-conj-ru { display: block; font-size: 10px; line-height: 1.25; color: #475569; direction: ltr; white-space: normal; }
+.v3-conj-cell-hl .v3-conj-ru { color: #1f2937; font-weight: 600; }
+.v3-conj-cur { font-size: 9px; line-height: 1; color: #D55E00; }
+.v3-conj-mx-scroll { overflow-x: auto; max-width: 100%; }
+table.v3-conj-mx { border: 0; border-collapse: separate; border-spacing: 4px; width: 100%; margin: 0 auto; }
+table.v3-conj-mx th, table.v3-conj-mx td { border: 0; background: none; padding: 0; }
+table.v3-conj-mx th { font-size: 10px; font-weight: 700; color: #475569; white-space: nowrap; vertical-align: middle; }
+table.v3-conj-mx td { vertical-align: top; width: 31%; }
+table.v3-conj-mx .v3-conj-cell { width: 100%; min-width: 0; box-sizing: border-box; padding: 3px 4px; }
+.v3-conj-ru-note { font-size: 10px; }
 .nightMode .card { color: #e5e7eb; background-color: #1f2937; }
 .nightMode .russian { color: #f1f5f9; }
 .nightMode .wc-meta .wc-root { color: #f1f5f9; }
 .nightMode .wc-example { background: #334155; color: #e5e7eb; }
 .nightMode .v3-conj-cell { background: #334155; border-color: #475569; }
-.nightMode .v3-conj-he { color: #e5e7eb; }`.trim();
+.nightMode .v3-conj-he { color: #e5e7eb; }
+.nightMode .v3-conj-ru, .nightMode table.v3-conj-mx th { color: #cbd5e1; }
+.nightMode .v3-conj-cell-hl .v3-conj-ru { color: #fef3c7; }`.trim();
   const front =
     '<div class="he">{{Word}}</div>\n' +
     '{{#Niqqud}}<div class="niqqud">{{Niqqud}}</div>{{/Niqqud}}\n' +
@@ -16371,6 +16403,7 @@ function v3AnkiParadigmTranslit(p, niqqud) {
 // table — R1, no fabrication). Async + impure → lives in the export path; the
 // pure v3AnkiBuildWordCardFields takes the already-resolved paradigm.
 async function v3AnkiResolveParadigm(body) {
+  await v3RuFormsReady();   // the Conjugation field carries the Russian of each form (Д5.4)
   try {
     const ldb = await ensureLocalDB();
     if (!ldb || typeof ldb.getLemmaInflection !== 'function') return null;
@@ -26282,6 +26315,13 @@ function v3UiSyncSaveButtons() {
             btnAnkiEl.classList.remove("disabled");
             btnAnkiEl.title = "Экспорт в Anki (AnkiConnect)";
           }
+          const btnDictWordsEl = document.getElementById("btnDictWords");
+          if (btnDictWordsEl) {
+            btnDictWordsEl.disabled = false;
+            btnDictWordsEl.classList.remove("disabled");
+            btnDictWordsEl.dataset.textId = exportId;
+            btnDictWordsEl.title = t("classic.dictWordsTitle", "Все слова этого текста в «Моём словаре»");
+          }
 
           if (typeof btnAudioPrefetchEl !== "undefined" && btnAudioPrefetchEl) {
             btnAudioPrefetchEl.disabled = false;
@@ -26297,6 +26337,13 @@ function v3UiSyncSaveButtons() {
             btnAnkiEl.disabled = true;
             btnAnkiEl.classList.add("disabled");
             btnAnkiEl.title = unsavedTip;
+          }
+          const btnDictWordsOff = document.getElementById("btnDictWords");
+          if (btnDictWordsOff) {
+            btnDictWordsOff.disabled = true;
+            btnDictWordsOff.classList.add("disabled");
+            delete btnDictWordsOff.dataset.textId;
+            btnDictWordsOff.title = unsavedTip;
           }
 
           if (typeof btnAudioPrefetchEl !== "undefined" && btnAudioPrefetchEl) {
@@ -27562,6 +27609,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
         <button class="btn-success" data-act="resume">${t("library.resume")}</button>
         <button class="btn-primary" data-act="open">${t("library.open")}</button>
         ${_isCorpusText ? "" : `<button class="btn-secondary" data-act="openroom" title="${v3EscapeHtml(_ttc("library.openInRoomTitle", "Чтение с морфологией-на-тапе — в Читальном зале"))}">${v3EscapeHtml(_ttc("library.openInRoomShort", "В Зале"))}</button>`}
+        <button class="btn-secondary" data-act="dictwords" title="${v3EscapeHtml(_ttc("library.dictWordsTitle", "Все слова этого текста в «Моём словаре»: размеченные и нет, знакомость, словарик к тексту"))}">${v3EscapeHtml(_ttc("library.dictWords", "📖 Слова"))}</button>
         <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
         <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
         <button class="btn-secondary" data-act="enrich" data-enrich-id="${v3EscapeHtml(id)}" title="${t("library.enrichTitle")}">${t("library.enrich")}</button>
@@ -27589,6 +27637,9 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     // own texts: a secondary «В Зале» — the same reading surface the corpus uses (uniform contract)
     const btnOpenRoom = card.querySelector('button[data-act="openroom"]');
     if (btnOpenRoom) btnOpenRoom.addEventListener("click", () => window.open(_roomHref, "_blank", "noopener"));
+    // Д5.2 the words of this text in «Мой словарь» (the text lens), a new tab — the Studio keeps its state
+    const btnDictWords = card.querySelector('button[data-act="dictwords"]');
+    if (btnDictWords) btnDictWords.addEventListener("click", () => v3OpenDictionaryWords([id]));
     if (_isCorpusText) {
       if (btnResume) btnResume.style.display = "none";
       if (btnOpen) { btnOpen.textContent = _ttc("library.openInRoom", "Открыть в Зале"); btnOpen.title = _ttc("library.openInRoomTitle", "Чтение канона — в Читальном зале"); }
@@ -31191,6 +31242,18 @@ function v3LibraryBulkClear() {
   });
   v3LibraryUpdateBulkBar();
 }
+
+// Д5.2 «Мой словарь» → «Из текста» for one text or a set of texts (spec F4_D5 Д5.2); a new tab, so the Studio keeps
+// its state. One id → dictionary.html?text=<id>; several → ?texts=<id>,<id> (the dictionary caps the list at 200).
+function v3OpenDictionaryWords(ids) {
+  const list = (Array.isArray(ids) ? ids : [(document.getElementById("btnDictWords") || {}).dataset && document.getElementById("btnDictWords").dataset.textId])
+    .map((x) => String(x || "").trim()).filter(Boolean);
+  if (!list.length) return;
+  const url = list.length === 1 ? "/dictionary.html?text=" + encodeURIComponent(list[0])
+    : "/dictionary.html?texts=" + list.slice(0, 200).map(encodeURIComponent).join(",");
+  window.open(url, "_blank", "noopener");
+}
+window.v3OpenDictionaryWords = v3OpenDictionaryWords;
 
 function v3LibraryBulkPublish() {
   if (!window.PublicationCenter) return;
@@ -49365,41 +49428,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // it (here + provider) re-scrapes paradigms.
 const V3_PEALIM_INFL_MODEL = "pealim-infl-v12"; // MUST equal pealim.js MODEL_VERSION; v12: stem-aware scoring matches prefixed surfaces (כזאת→זאת) via Dicta stem
 
-// Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
-// state + possessive blocks. The provider returns a lossless raw slot→form map
-// so this client-side grouping can evolve without re-scraping.
-const V3_CONJ_GROUPS_VERB = [
-  { key: "present",     slots: ["AP-ms", "AP-fs", "AP-mp", "AP-fp"] },
-  { key: "past",        slots: ["PERF-1s", "PERF-2ms", "PERF-2fs", "PERF-3ms", "PERF-3fs", "PERF-1p", "PERF-2mp", "PERF-2fp", "PERF-3mp", "PERF-3fp", "PERF-3p"] },
-  { key: "future",      slots: ["IMPF-1s", "IMPF-2ms", "IMPF-2fs", "IMPF-3ms", "IMPF-3fs", "IMPF-1p", "IMPF-2mp", "IMPF-2fp", "IMPF-3mp", "IMPF-3fp", "IMPF-3p"] },
-  { key: "imperative",  slots: ["IMP-2ms", "IMP-2fs", "IMP-2mp", "IMP-2fp"] },
-  { key: "infinitive",  slots: ["INF-L"] },
-];
-// Passive voice (Pealim piel→pual, hifil→hufal): same scheme, "passive-" prefix.
-const V3_CONJ_GROUPS_PASSIVE = [
-  { key: "present",     slots: ["passive-AP-ms", "passive-AP-fs", "passive-AP-mp", "passive-AP-fp"] },
-  { key: "past",        slots: ["passive-PERF-1s", "passive-PERF-2ms", "passive-PERF-2fs", "passive-PERF-3ms", "passive-PERF-3fs", "passive-PERF-1p", "passive-PERF-2mp", "passive-PERF-2fp", "passive-PERF-3mp", "passive-PERF-3fp", "passive-PERF-3p"] },
-  { key: "future",      slots: ["passive-IMPF-1s", "passive-IMPF-2ms", "passive-IMPF-2fs", "passive-IMPF-3ms", "passive-IMPF-3fs", "passive-IMPF-1p", "passive-IMPF-2mp", "passive-IMPF-2fp", "passive-IMPF-3mp", "passive-IMPF-3fp", "passive-IMPF-3p"] },
-];
-// Passive binyan that pairs with an active one (Pealim shows both on one page).
-const V3_PASSIVE_BINYAN = { piel: "pual", hifil: "hufal" };
-const V3_CONJ_GROUPS_NOUN = [
-  { key: "absolute",      slots: ["s", "p"] },
-  { key: "construct",     slots: ["sc", "pc"] },
-  { key: "possessive_sg", slots: ["s-P-1s", "s-P-2ms", "s-P-2fs", "s-P-3ms", "s-P-3fs", "s-P-1p", "s-P-2mp", "s-P-2fp", "s-P-3mp", "s-P-3fp"] },
-  { key: "possessive_pl", slots: ["p-P-1s", "p-P-2ms", "p-P-2fs", "p-P-3ms", "p-P-3fs", "p-P-1p", "p-P-2mp", "p-P-2fp", "p-P-3mp", "p-P-3fp"] },
-];
-// Adjectives decline by gender×number (Pealim slots ms-a/fs-a/mp-a/fp-a, "-a"
-// = absolute). Selected by pos==="adjective" (their page kind is "noun").
-const V3_CONJ_GROUPS_ADJ = [
-  { key: "adj", slots: ["ms-a", "fs-a", "mp-a", "fp-a"] },
-];
-// Declined prepositions (Pealim slots P-1s…P-3fp = preposition + pronoun suffix,
-// e.g. את→אותי/אותך). Selected by the presence of P-* cells (their page pos is
-// parsed as "noun").
-const V3_CONJ_GROUPS_PREP = [
-  { key: "prep", slots: ["P-1s", "P-2ms", "P-2fs", "P-3ms", "P-3fs", "P-1p", "P-2mp", "P-2fp", "P-3mp", "P-3fp"] },
-];
+// Slot grouping of the displayed grid lives in js/inflection-render.js (Д5.4: one renderer for every surface).
 // Personal pronouns — a closed, finite class (R1). Hebrew personal pronouns are
 // distinct lexemes, NOT an inflection of one lemma, so Pealim has no single
 // "paradigm" page and resolveLemma honestly returns no_confident_match. But the
@@ -49600,148 +49629,37 @@ function v3NormVowels(s) {
   return String(s == null ? "" : s).normalize("NFC")
     .replace(/[֑-֯]/g, "").replace(/ֽ/g, "").replace(/[​-‏‪-‮⁦-⁩﻿]/g, "").trim();
 }
-// Highlight-form variants: the form + its proclitic-stripped stem, so a prefixed
-// surface (וּבוֹרַחַת) still highlights the bare paradigm cell (בּוֹרַחַת).
-function v3FormVariants(form) {
-  const a = v3NormVowels(form);
-  const b = v3NormVowels(String(form == null ? "" : form).replace(/^[והשכלבמ][֑-ׇ]*/, ""));
-  return b && b !== a ? [a, b] : (a ? [a] : []);
-}
 
 // ②.6 — render a paradigm envelope → compact RTL table HTML.
 // opts.highlightForm (optional): the text's vocalized form; the matching cell is
 // highlighted (`.v3-conj-cell-hl`) so the learner sees their exact form in context.
 function v3RenderInflectionParadigm(p, opts) {
-  const highlightForms = (opts && opts.highlightForm) ? v3FormVariants(opts.highlightForm) : [];
-  if (!p) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
-  // Personal pronoun → the full closed-class SET (static); has no `cells`, so this
-  // must precede the cells guard below.
-  if (p.kind === "pronoun") return v3RenderPronounSet(p.highlight);
-  if (!p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
-  const _badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
-  const _recheckUrl = p.pealim_id ? v3WordCardPealimDictUrl(p.pealim_id) : v3WordCardPealimUrl(p.lemma || "");
-  const _recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(_recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3WordCardPealimLinkLabel(!!p.pealim_id))} ↗</a>`;
-  // Invariant words (adverb/pronoun/conjunction/particle) — no paradigm, but a
-  // premium single-form "profile": vocalized form + red-stress translit +
-  // tap-to-hear (same cell aesthetic) + POS + honest note + Pealim link.
-  if (p.kind === "invariant") {
-    const f = p.form || {};
-    const trInner = f.translit_html || (f.translit ? v3EscapeHtml(f.translit) : "");
-    const posKey = V3_WORDCARD_POS_KEY[p.pos];
-    const posLabel = posKey ? v3NotesT("notes.tpl.word_study." + posKey, p.pos) : "";
-    const cellHtml = f.he ? `<button type="button" class="v3-conj-cell v3-conj-cell-lg" dir="rtl" data-he="${v3EscapeHtml(f.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(posLabel || "")}">
-      <span class="v3-conj-he">${v3EscapeHtml(f.he)}</span>
-      ${posLabel ? `<span class="v3-conj-lab">${v3EscapeHtml(posLabel)}</span>` : ""}
-      ${trInner ? `<span class="v3-conj-tr">${trInner}</span>` : ""}
-    </button>` : "";
-    return `<div class="v3-conj-wrap">
-      <div class="v3-conj-meta">${_badge}${_recheck}</div>
-      <div class="v3-conj-grid v3-conj-invariant">${cellHtml}</div>
-      <div class="v3-conj-note">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>
-    </div>`;
-  }
-  const cells = p.cells;
-  // Group selection by POS: verb → tenses; adjective → gender×number (ms-a…);
-  // else nominal (s/p/sc/pc/possessive). Adjective pages have kind="noun", so
-  // we key on pos, not kind.
-  const groups = (p.kind === "verb") ? V3_CONJ_GROUPS_VERB
-    : (p.pos === "adjective") ? V3_CONJ_GROUPS_ADJ
-    : (cells["P-1s"] || cells["P-3ms"]) ? V3_CONJ_GROUPS_PREP   // declined preposition
-    : V3_CONJ_GROUPS_NOUN;
-  const cell = (slot) => {
-    const c = cells[slot];
-    if (!c || !c.he) return "";
-    // translit_html is our own safe HTML (escaped + <b class="v3-conj-stress">);
-    // fall back to the plain (escaped) translit for legacy v1 cache.
-    const trInner = c.translit_html || (c.translit ? v3EscapeHtml(c.translit) : "");
-    const tr = trInner ? `<span class="v3-conj-tr">${trInner}</span>` : "";
-    // Highlight the cell whose vocalized form == the form in the learner's text
-    // (or its proclitic-stripped stem, so prefixed surfaces still highlight).
-    const isHit = highlightForms.length && highlightForms.indexOf(v3NormVowels(c.he)) >= 0;
-    const cls = "v3-conj-cell" + (isHit ? " v3-conj-cell-hl" : "");
-    const title = isHit ? v3NotesT("notes.card.conj.formInText", "форма из вашего текста") : v3ConjSlotLabel(slot);
-    return `<button type="button" class="${cls}" dir="rtl" data-he="${v3EscapeHtml(c.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(title)}">
-      <span class="v3-conj-he">${v3EscapeHtml(c.he)}</span>
-      <span class="v3-conj-lab">${v3EscapeHtml(v3ConjSlotLabel(slot))}</span>${tr}
-    </button>`;
-  };
-  // Full paradigm shown directly (Layout B) — no compact "primary" block, no
-  // inner "show full" toggle (user feedback: the partial preview reads as noise).
-  const renderGroup = (label, slots) => {
-    const inner = slots.map(cell).filter(Boolean).join("");
-    if (!inner) return "";
-    return `<div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(label)}</div><div class="v3-conj-grid">${inner}</div></div>`;
-  };
-  const renderSet = (gs) => gs.map((g) => renderGroup(v3ConjGroupLabel(g.key), g.slots)).filter(Boolean).join("");
-  const voiceH = (txt) => `<div class="v3-conj-voice-h">${v3EscapeHtml(txt)}</div>`;
-  const binLabel = (b) => (b && V3_WORDCARD_BINYAN_LABEL[b]) ? " · " + V3_WORDCARD_BINYAN_LABEL[b] : "";
-  // A verb page can carry BOTH voices (Pealim piel↔pual, hifil↔hufal). Render
-  // them as two labeled sections (Действительный / Страдательный залог) instead
-  // of dumping the passive forms into the catch-all.
-  const hasPassive = (p.kind === "verb") && Object.keys(cells).some((k) => /^passive-/i.test(k));
-  let fullGroups, covered;
-  if (hasPassive) {
-    fullGroups =
-      voiceH(v3NotesT("notes.card.conj.voiceActive", "Действительный залог") + binLabel(p.binyan)) + renderSet(V3_CONJ_GROUPS_VERB) +
-      voiceH(v3NotesT("notes.card.conj.voicePassive", "Страдательный залог") + binLabel(V3_PASSIVE_BINYAN[p.binyan])) + renderSet(V3_CONJ_GROUPS_PASSIVE);
-    covered = new Set([...V3_CONJ_GROUPS_VERB, ...V3_CONJ_GROUPS_PASSIVE].flatMap((g) => g.slots));
-  } else {
-    fullGroups = renderSet(groups);
-    covered = new Set(groups.flatMap((g) => g.slots));
-  }
-  // Catch-all: any cell NOT covered by the selected groups still renders (so an
-  // unmapped Pealim slot never yields a blank table when cells exist).
-  const leftover = Object.keys(cells).filter((k) => !covered.has(k) && cells[k] && cells[k].he);
-  if (leftover.length) fullGroups += renderGroup(v3ConjGroupLabel("other"), leftover);
-
-  const badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
-  const rootStr = p.root ? String(p.root).split("").join(" - ") : "";
-  const rootHtml = rootStr
-    ? `<span class="v3-conj-rootlabel">${v3EscapeHtml(v3NotesT("notes.card.rootTitle", "Корень"))}: <span dir="rtl">${v3EscapeHtml(rootStr)}</span></span>` : "";
-  const gizra = p.gizra_note ? `<div class="v3-conj-gizra">${v3EscapeHtml(p.gizra_note)}</div>` : "";
-  const beso = p.disambig === "best-effort" ? `<div class="v3-conj-besteffort">⚠ ${v3EscapeHtml(v3NotesT("notes.card.conj.bestEffort", "Подобрано по совпадению — сверьтесь по ссылке"))}</div>` : "";
-  const recheckUrl = p.pealim_id ? v3WordCardPealimDictUrl(p.pealim_id) : v3WordCardPealimUrl(p.lemma || "");
-  const recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3WordCardPealimLinkLabel(!!p.pealim_id))} ↗</a>`;
-
-  return `<div class="v3-conj-wrap">
-    <div class="v3-conj-meta">${badge}${rootHtml}${recheck}</div>
-    ${gizra}
-    ${beso}
-    ${fullGroups}
-  </div>`;
+  // Д5.4 (F4_D5): one renderer for every surface — the Room's word card, «Мой словарь» and the Studio (card accordion +
+  // the Anki «Conjugation» field) all draw through InflectionRender: the «лицо × время» matrix, Russian in every cell.
+  return window.InflectionRender.renderParadigm(p, opts);
 }
 
 // Render the personal-pronoun SET (static, offline), highlighting the opened
 // word. No Pealim source/link — this is our own authoritative closed-class data.
 function v3RenderPronounSet(highlight) {
-  const lab = (slot) => v3NotesT("notes.card.conj.person." + slot, V3_CONJ_PERSON_FB[slot] || slot);
-  const cell = (r) => {
-    const hl = (v3PronounStrip(r.he) === highlight) ? " v3-conj-cell-hl" : "";
-    return `<button type="button" class="v3-conj-cell${hl}" dir="rtl" data-he="${v3EscapeHtml(r.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(lab(r.slot))}">
-      <span class="v3-conj-he">${v3EscapeHtml(r.he)}</span>
-      <span class="v3-conj-lab">${v3EscapeHtml(lab(r.slot))}</span>
-      ${r.tr ? `<span class="v3-conj-tr">${v3EscapeHtml(r.tr)}</span>` : ""}
-    </button>`;
-  };
-  const grid = V3_PRONOUN_PERSONAL.map(cell).join("");
-  const title = v3NotesT("notes.card.conj.pronoun.personal", "Личные местоимения");
-  const badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.pronounRef", "Справочный набор"))}</span>`;
-  const note = v3NotesT("notes.card.conj.pronounNote", "Местоимения — закрытый класс: формы заданы, а не выводятся.");
-  return `<div class="v3-conj-wrap">
-    <div class="v3-conj-meta">${badge}</div>
-    <div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(title)}</div><div class="v3-conj-grid">${grid}</div></div>
-    <div class="v3-conj-note">${v3EscapeHtml(note)}</div>
-  </div>`;
+  return window.InflectionRender.renderPronounSet(highlight);
 }
 
 // Lazy-load a card's conjugation/declension accordion on first open.
 //   Personal pronoun → static SET (offline). Else:
 //   OPFS cache hit → instant (offline). Miss + online + consent → fetch+cache.
 //   Miss + offline / no consent → honest message + Pealim link.
+// Д5.4 Russian of every form (the shared renderer reads RuForms synchronously): load it once before the table is drawn.
+// Offline or a failed load → the table is drawn without the Russian line (never a guess).
+async function v3RuFormsReady() {
+  try { if (window.RuForms && typeof window.RuForms.ensureReady === "function") await window.RuForms.ensureReady(); } catch (_) {}
+}
+
 async function v3WordCardLoadInflection(detailsEl) {
   if (!detailsEl || detailsEl.getAttribute("data-conj-loaded") === "1") return;
   const body = detailsEl.querySelector(".v3-conj-body");
   if (!body) return;
+  await v3RuFormsReady();
   const lemma = (detailsEl.getAttribute("data-conj-lemma") || detailsEl.getAttribute("data-conj-word") || "").trim();
   const binyan = detailsEl.getAttribute("data-conj-binyan") || "";
   const pos = detailsEl.getAttribute("data-conj-pos") || "";

@@ -182,6 +182,17 @@ async function main() {
          r2.stress && r2.rootLabel && /Pealim/.test(r2.badge) && r2.recheck && r2.heRtl === "rtl",
          JSON.stringify(r2));
 
+    // ── Case 2c (Д5.4): the Studio draws through the shared renderer — the Room's and the dictionary's HTML, verbatim ──
+    const r2s = await pg.evaluate((sample) => {
+      const a = window.v3RenderInflectionParadigm(sample, { highlightForm: "כָּתַב" }), b = window.InflectionRender.renderParadigm(sample, { highlightForm: "כָּתַב" });
+      const d = document.createElement("div"); d.innerHTML = a;
+      return { same: a === b, matrix: !!d.querySelector("table.v3-conj-mx"), hl: !!d.querySelector(".v3-conj-cell-hl"),
+        pron: window.v3RenderPronounSet("הוא") === window.InflectionRender.renderPronounSet("הוא"),
+        link: (d.querySelector(".v3-conj-recheck") || {}).href || "" };
+    }, SAMPLE);
+    test("Case 2c: Studio = shared InflectionRender (matrix «лицо × время», highlight, pronoun set, canonical Pealim link)",
+         r2s.same && r2s.matrix && r2s.hl && r2s.pron && /pealim\.com\/ru\/(dict\/[^/]+-\/|search\/\?from_lang=he)/.test(r2s.link), JSON.stringify(r2s));
+
     // ── Case 2b: adjective (pos:adjective, kind:noun, slots ms-a…) renders ──
     // + catch-all: an UNKNOWN slot id still shows (never blank when cells exist).
     const r2b = await pg.evaluate(() => {
@@ -421,8 +432,9 @@ async function main() {
       const otherGroup = [...d.querySelectorAll(".v3-conj-group-h")].some((e) => /Другие формы/.test(e.textContent));
       return {
         voices, cells: d.querySelectorAll(".v3-conj-cell").length,
-        hasActive: voices.some((t) => /Действительный/.test(t) && /pi'el/.test(t)),
-        hasPassive: voices.some((t) => /Страдательный/.test(t) && /pu'al/.test(t)),
+        // Д5.4 the shared renderer names the binyan as the Room and the dictionary do (пиэль / пуаль)
+        hasActive: voices.some((t) => /Действительный/.test(t) && /пиэль/.test(t)),
+        hasPassive: voices.some((t) => /Страдательный/.test(t) && /пуаль/.test(t)),
         perf3p: /גִּלְגְּלוּ/.test(d.textContent),
         passiveForm: /מְגֻלְגָּל/.test(d.textContent),
         noOther: !otherGroup,
