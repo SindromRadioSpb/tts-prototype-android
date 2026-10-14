@@ -31,9 +31,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     const pg = await ctx.newPage();
     const errs = []; pg.on("pageerror", (e) => errs.push(String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
+    // O-085: the page's OWN database module (the same ?v= URL the Room imported) — a second, unversioned instance in the
+    // same tab raced the page's start-up reads/writes; and let the page's start-up DB work settle first
+    await pg.waitForFunction(() => performance.getEntriesByType("resource").some((e) => /\/db\/local-db\.js/.test(e.name)), null, { timeout: 30000 });
+    await pg.waitForTimeout(3000);
 
     const res = await pg.evaluate(async () => {
-      const ldb = await import("/db/local-db.js");
+      const ldbUrl = performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n));
+      const ldb = await import(ldbUrl);
       await ldb.initLocalDB();        // idempotent — starts the DB worker + runs migrations (incl. 057)
       const KEY = "pid:99977001";   // synthetic lemma, no note
       await ldb.setWordStatus(KEY, "known");

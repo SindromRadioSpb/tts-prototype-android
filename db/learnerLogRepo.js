@@ -81,6 +81,10 @@ const META_ALLOW = new Set([
   // (tiles|keyboard) и hint_kind (context|sentence_audio) обязаны доезжать до канона, иначе
   // charter-§3-таксономия остаётся только на challenge-строке (которая смертна).
   "input_mode", "hint_kind",
+  // T3 interval fuzz (fsrs-core v3): the applied fuzz is RECORDED on the review event and replay prefers it — a scheduler
+  // fact (a number of days), not content. Missing here, every fuzzed review was rejected and blocked the owner's sync
+  // cursor from 2026-09 (found 2026-10-14: 42 rows «meta_key:fuzz_days»).
+  "fuzz_days",
 ]);
 // Known CONTENT keys → stripped (accepted row, cleaned meta). Everything else unknown → reject.
 const META_STRIP = new Set([

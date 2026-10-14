@@ -81,3 +81,17 @@ test("alias: the mentor's manual axis folds onto the word; an absorbed spelling'
   assert.equal(manual["pid:9"], "ignore");
   assert.equal(manual["בלילה#"], undefined);
 });
+
+test("ingest keeps the recorded interval fuzz (meta.fuzz_days) — the server replays the same schedule", async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "lp-fuzz-"));
+  t.after(async () => { await sqlite.closeDb(); fs.rmSync(root, { recursive: true, force: true }); });
+  await sqlite.initDb(path.join(root, "app.db"));
+  const db = sqlite.getDb();
+  await sqlite._exec(db, "CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES ('u');");
+  await sqlite._exec(db, fs.readFileSync(path.join(__dirname, "../migrations", "021_cloud_event_log.sql"), "utf8"));
+  const r = await ingestBatch("u", "dev", { idempotency_key: "f1", review_log: [{ id: "app:fz1", item_key: "pid:5", kind: "review", grade: 3,
+    source: "room-recall", reviewed_at: "2026-09-10T10:00:00.000Z", meta_json: JSON.stringify({ scheduler: "fsrs", fuzz_days: 2 }) }] });
+  assert.equal(r.review_log.rejected, 0, JSON.stringify(r));
+  const row = await sqlite._get(db, "SELECT meta_json FROM review_log WHERE id = 'app:fz1'");
+  assert.equal(JSON.parse(row.meta_json).fuzz_days, 2);
+});
