@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.769";
+const CACHE_VERSION = "v3.11.770";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -76,13 +76,13 @@ const PRECACHE_URLS = [
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/dictionary.html",
-  "/css/dictionary.css?v=769",
+  "/css/dictionary.css?v=770",
   "/js/dictionary-core.js?v=769",
   "/js/form-drill-core.js?v=753",
   "/js/dictionary-progress-core.js?v=767",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=769",
+  "/js/dictionary-ui.js?v=770",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
@@ -183,6 +183,7 @@ const PRECACHE_URLS = [
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
   "/js/fsrs-core.js",
+  "/js/key-alias-core.js?v=770",
   "/js/grade-policy.js",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
@@ -198,7 +199,7 @@ const PRECACHE_URLS = [
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/dicta-lexicon.js?v=769",
   "/js/dicta-enrich.js?v=769",
-  "/js/reader-morph.js?v=769",
+  "/js/reader-morph.js?v=770",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
@@ -337,9 +338,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=307",
-  "/i18n/locales/en.js?v=307",
-  "/i18n/locales/he.js?v=307",
+  "/i18n/locales/ru.js?v=308",
+  "/i18n/locales/en.js?v=308",
+  "/i18n/locales/he.js?v=308",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -352,7 +353,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=769",
+  "/db/local-db.js?v=770",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

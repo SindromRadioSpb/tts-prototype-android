@@ -2886,6 +2886,100 @@
     try { console.info("[identity] spelling marks → lemma:", JSON.stringify(sum)); } catch (_) {}
     return sum;
   }
+  // ── Ф4 · Д8-К3 одна история слова (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md) ──────────────
+  // A key that is not a word key (a spelling key `אביו#`, a function form) with a history (reviews, seeds, marks) gets an
+  // alias to the ONE key every place of its spelling in my texts gets now (Д7 + the device's Dicta lexicon). The plan
+  // writes nothing (R13 dry-run on the owner's profile); apply appends alias events (the log is never rewritten); undo
+  // appends the inverse events.
+  var ALIAS_KEY = "lp.keyAlias_v1";
+  function _isWordKey(k) { return /^(pid:|dl:|note:|sent:)/.test(k); }
+  async function planKeyAliases(ldb, opts) {
+    opts = opts || {};
+    var eng = await ensureEngine(), NA = (typeof window !== "undefined" && window.NotesAutoGen) || eng.NA;
+    var progress = typeof opts.onProgress === "function" ? opts.onProgress : function () {};
+    var keyRows = (await ldb.dbQuery("SELECT item_key, COUNT(*) AS n, SUM(kind IN ('review','seed')) AS reviews FROM review_log WHERE kind != 'alias' GROUP BY item_key", [])) || [];
+    var stRows = (await ldb.dbQuery("SELECT lemma_key AS item_key, status FROM word_status WHERE status != '' OR srs_due IS NOT NULL", [])) || [];
+    var aliasMap = typeof ldb.getAliasMap === "function" ? await ldb.getAliasMap() : new Map();
+    var cand = new Map();
+    keyRows.concat(stRows).forEach(function (r) {
+      var k = String(r.item_key || ""); if (!k || _isWordKey(k) || aliasMap.has(k)) return;
+      var c = cand.get(k); if (!c) { c = { key: k, rows: 0, reviews: 0 }; cand.set(k, c); }
+      c.rows += Number(r.n) || 0; c.reviews += Number(r.reviews) || 0;
+    });
+    var bySk = new Map();
+    cand.forEach(function (c) {
+      var h = c.key.indexOf("#"), sk = stripNiqqud(h >= 0 ? c.key.slice(0, h) : c.key);
+      if (!/[א-ת]/.test(sk)) return;
+      if (!bySk.has(sk)) bySk.set(sk, []);
+      bySk.get(sk).push(c);
+    });
+    // the pointed forms of those spellings in my texts ('' = a row without pointing — the lexicon still reads it)
+    var forms = new Map(), off = 0, PAGE = 1500;
+    for (;;) {
+      var part = await ldb.dbQuery("SELECT s.he_plain, s.he_niqqud FROM sentences s JOIN texts t ON t.id = s.text_id ORDER BY s.rowid LIMIT ? OFFSET ?", [PAGE, off]);
+      if (!part || !part.length) break;
+      for (var pi = 0; pi < part.length; pi++) {
+        var plain = String(part[pi].he_plain || ""); if (!plain) continue;
+        var al = alignSurfaceNiqqud(plain, String(part[pi].he_niqqud || "")), ws = words(plain);
+        for (var wi = 0; wi < ws.length; wi++) {
+          var pr = al[wi] || {}, sk2 = stripNiqqud(pr.surface || ws[wi]);
+          if (!bySk.has(sk2)) continue;
+          if (!forms.has(sk2)) forms.set(sk2, new Set());
+          if (forms.get(sk2).size < 12) forms.get(sk2).add(pr.niqqud || "");
+        }
+      }
+      off += part.length; progress("scan", off);
+      await new Promise(function (r) { setTimeout(r, 0); });
+      if (part.length < PAGE) break;
+    }
+    var plan = [], sum = { at: new Date().toISOString(), candidates: cand.size, aliases: 0, toPealim: 0, toDicta: 0, reviewsJoined: 0, ambiguous: 0, noPlace: 0, unchanged: 0 };
+    var entries = Array.from(bySk.entries()), done = 0;
+    for (var ei = 0; ei < entries.length; ei++) {
+      var sk3 = entries[ei][0], list = entries[ei][1], fs = Array.from(forms.get(sk3) || []);
+      for (var ci = 0; ci < list.length; ci++) {
+        var c3 = list[ci], targets = new Set(), seen = 0;
+        for (var fi = 0; fi < fs.length; fi++) {
+          var n = fs[fi], before = await _resolveOffline(eng, sk3, n);
+          if (statusKeyForCard(NA, before, n, sk3) !== c3.key) continue;   // a place of THIS key only
+          seen++;
+          targets.add(statusKeyForCard(NA, await resolveCore(eng, sk3, n), n, sk3));
+        }
+        if (!seen) { sum.noPlace++; continue; }
+        if (targets.size !== 1) { sum.ambiguous++; continue; }
+        var to = Array.from(targets)[0];
+        if (!to || to === c3.key || !/^(pid:|dl:)/.test(to)) { sum.unchanged++; continue; }
+        plan.push({ from: c3.key, to: to, rows: c3.rows, reviews: c3.reviews });
+        sum.aliases++; sum.reviewsJoined += c3.reviews; if (/^pid:/.test(to)) sum.toPealim++; else sum.toDicta++;
+      }
+      if (++done % 200 === 0) { progress("resolve", done, entries.length); await new Promise(function (r) { setTimeout(r, 0); }); }
+    }
+    plan.sort(function (a, b) { return b.reviews - a.reviews || b.rows - a.rows; });
+    return { summary: sum, plan: plan };
+  }
+  async function applyKeyAliases(ldb, plan) {
+    var KA = (typeof window !== "undefined" && window.KeyAliasCore) || null;
+    if (!KA || !ldb || typeof ldb.appendReviewLog !== "function" || typeof ldb.applyAliasProjection !== "function") throw new Error("ALIAS_UNSUPPORTED");
+    var at = new Date().toISOString();
+    var rows = (plan || []).map(function (p) { return KA.aliasRow(p.from, p.to, at, "d8k3"); });
+    if (!rows.length) return { applied: 0 };
+    var touched = await ldb.aliasTouchedKeys(rows);
+    var res = await ldb.appendReviewLog(rows);
+    var proj = await ldb.applyAliasProjection(touched);
+    try { localStorage.setItem(ALIAS_KEY, JSON.stringify({ at: at, applied: rows.length, plan: plan.map(function (p) { return [p.from, p.to]; }) })); } catch (_) {}
+    return { applied: res.accepted, refused: res.refused, touched: touched.length, statuses: proj.statuses };
+  }
+  async function undoKeyAliases(ldb) {
+    var KA = (typeof window !== "undefined" && window.KeyAliasCore) || null, last = null;
+    try { last = JSON.parse(localStorage.getItem(ALIAS_KEY) || "null"); } catch (_) { last = null; }
+    if (!KA || !last || !last.plan || !last.plan.length) return { undone: 0 };
+    var at = new Date().toISOString();
+    var rows = last.plan.map(function (p) { return KA.aliasRow(p[0], p[0], at, "d8k3-undo"); });
+    var touched = await ldb.aliasTouchedKeys(rows);
+    var res = await ldb.appendReviewLog(rows);
+    await ldb.applyAliasProjection(touched, { clearWithoutMark: last.plan.map(function (p) { return p[1]; }) });
+    try { localStorage.setItem(ALIAS_KEY, JSON.stringify({ at: at, undone: rows.length, undoneOf: last.at })); } catch (_) {}
+    return { undone: res.accepted };
+  }
   async function collectNewWords(mount, statesMap, opts) {
     opts = opts || {};
     var topN = (opts.topN != null) ? Number(opts.topN) : null;   // omit → FULL frontier (caller paginates)
@@ -3376,7 +3470,7 @@
     availableChannels: availableChannels,
     // Retention P0 — exported so smoke:memory-canon can assert the LemmaCanon delegate stays
     // byte-identical to the inline fallback (keyer-conformance gate, recon B1).
-    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
+    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, planKeyAliases: planKeyAliases, applyKeyAliases: applyKeyAliases, undoKeyAliases: undoKeyAliases, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

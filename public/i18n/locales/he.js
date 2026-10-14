@@ -2152,6 +2152,26 @@ window.I18N_LOCALES.he = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "קריאה", mediatheque: "מדיה", studio: "סטודיו", review: "חזרה", dictionary: "מילון", label: "אזורים" },
   dictionary: {
+    hist: {
+      title: "היסטוריה אחת למילה",
+      intro: "מילים שלמדתם בכתיב ישן אפשר לחבר לרשומה שלהן במילון: החזרות והסימונים יהפכו להיסטוריה אחת. יומן החזרות אינו נכתב מחדש — אפשר לבטל את האיחוד.",
+      check: "לבדוק",
+      checking0: "בודק כתיבים…",
+      none: "אין מה לאחד: לכל מילה היסטוריה אחת.",
+      cancel: "סגירה",
+      summary: "אפשר לאחד: {a} (עם מילים מ־Pealim — {p}, עם מילים לפי ניתוח Dicta — {k}); חזרות שיעברו: {r}. דו־משמעיים: {amb}, בלי מקום בטקסטים: {np} — יישארו כמו שהם.",
+      reviews: "חזרות: {n}",
+      apply: "לאחד ({n})",
+      scanning: "קורא את הטקסטים שלכם: {d} שורות",
+      checking: "בודק כתיבים: {d} מתוך {n}",
+      failed: "לא ניתן לבדוק את היסטוריית המילים.",
+      applying: "מאחד…",
+      applied: "אוחדו: {n}.",
+      failed2: "לא ניתן לאחד.",
+      undo: "לבטל את האיחוד",
+      undoing: "מבטל…",
+      undone: "האיחוד בוטל: {n}.",
+    },
     dicta: {
       loading: "קורא את ניתוח Dicta…",
       nameCheck: "נראה כמו שם — כדאי לבדוק",

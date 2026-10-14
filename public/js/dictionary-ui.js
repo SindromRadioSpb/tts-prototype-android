@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=769';
+import * as localDb from '/db/local-db.js?v=770';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -274,6 +274,76 @@ function attachSources(all) {
     e.srcClasses = c;
   });
 }
+// ── Д8-К3 «Одна история слова» (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md) ────────────────────
+// A word learned under its old spelling key (before Д7/Д8-К) has a second history; the dry-run shows how many, the owner
+// decides, the merge appends alias events (the log is never rewritten) and can be undone.
+const H = { state: 'idle', res: null, applied: null };
+function histKeyText(k) {
+  k = String(k || '');
+  if (/^pid:/.test(k)) { const p = pidParadigm(k); return p ? (p.lemma_niqqud || p.lemma || k) : k; }
+  if (/^dl:/.test(k)) { const pk = window.DictaLexicon && window.DictaLexicon.parseKey(k); return pk ? pk.lemma : k; }
+  const i = k.indexOf('#'); return i > 0 ? k.slice(0, i) : k;
+}
+function renderHistory() {
+  const box = $('dict-history'); if (!box) return;
+  box.hidden = S.filters.scope !== 'mine' || !window.ReaderMorph || typeof RM().planKeyAliases !== 'function';
+  if (box.hidden) return;
+  box.replaceChildren();
+  let last = null; try { last = JSON.parse(localStorage.getItem('lp.keyAlias_v1') || 'null'); } catch (_) {}
+  const head = el('div', { class: 'dict-hist-head' }, [el('b', { text: tt('dictionary.hist.title', 'Одна история слова') })]);
+  box.appendChild(head);
+  if (H.state === 'idle') {
+    box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.hist.intro', 'Слова, которые вы учили под старым написанием, можно соединить с их записью в словаре: повторения и отметки сложатся в одну историю. Журнал повторений не переписывается — объединение можно откатить.') }));
+    const row = el('div', { class: 'dict-choice-btns' }, [el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-hist-check' }, text: tt('dictionary.hist.check', 'Проверить'), on: { click: histCheck } })]);
+    if (last && last.applied) row.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-hist-undo' }, text: tt('dictionary.hist.undo', 'Откатить объединение'), on: { click: histUndo } }));
+    box.appendChild(row);
+  } else if (H.state === 'running') {
+    box.appendChild(el('p', { class: 'dict-note', text: H.note || tt('dictionary.hist.checking0', 'Проверяю написания…') }));
+  } else if (H.state === 'plan') {
+    const s = H.res.summary, plan = H.res.plan;
+    if (!plan.length) {
+      box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.hist.none', 'Объединять нечего: у всех слов одна история.') }));
+      box.appendChild(el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.hist.cancel', 'Закрыть'), on: { click: () => { H.state = 'idle'; renderHistory(); } } }));
+      return;
+    }
+    box.appendChild(el('p', { text: fill(tt('dictionary.hist.summary', 'Можно объединить: {a} (со словами Pealim — {p}, со словами по разбору Dicta — {k}); повторений перейдёт: {r}. Неоднозначных: {amb}, без мест в текстах: {np} — они останутся как есть.'),
+      { a: s.aliases, p: s.toPealim, k: s.toDicta, r: s.reviewsJoined, amb: s.ambiguous, np: s.noPlace }) }));
+    const ul = el('ul', { class: 'dict-hist-list' });
+    plan.slice(0, 12).forEach((x) => ul.appendChild(el('li', {}, [el('span', { attrs: { lang: 'he', dir: 'rtl' }, text: histKeyText(x.from) }), ' → ',
+      el('span', { attrs: { lang: 'he', dir: 'rtl' }, text: histKeyText(x.to) }), x.reviews ? el('span', { class: 'dict-note', text: ' · ' + fill(tt('dictionary.hist.reviews', 'повторений: {n}'), { n: x.reviews }) }) : null])));
+    box.appendChild(ul);
+    box.appendChild(el('div', { class: 'dict-choice-btns' }, [
+      el('button', { class: 'dict-btn dict-btn-primary', attrs: { type: 'button', id: 'dict-hist-apply' }, text: fill(tt('dictionary.hist.apply', 'Объединить ({n})'), { n: plan.length }), on: { click: histApply } }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.hist.cancel', 'Закрыть'), on: { click: () => { H.state = 'idle'; renderHistory(); } } })]));
+  }
+}
+async function histCheck() {
+  H.state = 'running'; renderHistory();
+  try { await morphHost.ensureDictaLexicon(); } catch (_) {}
+  try {
+    H.res = await RM().planKeyAliases(localDb, { onProgress: (phase, d, n) => {
+      H.note = phase === 'scan' ? fill(tt('dictionary.hist.scanning', 'Читаю ваши тексты: {d} строк'), { d }) : fill(tt('dictionary.hist.checking', 'Проверяю написания: {d} из {n}'), { d, n });
+      const p = $('dict-history'); const n2 = p && p.querySelector('.dict-note'); if (n2) n2.textContent = H.note; } });
+    H.state = 'plan';
+  } catch (e) { H.state = 'idle'; toast(tt('dictionary.hist.failed', 'Не удалось проверить истории слов.')); }
+  renderHistory();
+}
+async function histApply() {
+  const plan = H.res && H.res.plan; if (!plan || !plan.length) return;
+  H.state = 'running'; H.note = tt('dictionary.hist.applying', 'Объединяю…'); renderHistory();
+  try {
+    const r = await RM().applyKeyAliases(localDb, plan);
+    toast(fill(tt('dictionary.hist.applied', 'Объединено: {n}.'), { n: r.applied }));
+    morphHost.invalidateWordStates();
+  } catch (_) { toast(tt('dictionary.hist.failed2', 'Не удалось объединить.')); }
+  H.state = 'idle'; H.res = null; renderHistory(); reload();
+}
+async function histUndo() {
+  H.state = 'running'; H.note = tt('dictionary.hist.undoing', 'Откатываю…'); renderHistory();
+  try { const r = await RM().undoKeyAliases(localDb); toast(fill(tt('dictionary.hist.undone', 'Объединение откачено: {n}.'), { n: r.undone })); morphHost.invalidateWordStates(); }
+  catch (_) { toast(tt('dictionary.hist.failed2', 'Не удалось объединить.')); }
+  H.state = 'idle'; renderHistory(); reload();
+}
 function applyView() {
   const now = Date.now();
   const all = Array.from(S.entries.values());
@@ -282,6 +352,7 @@ function applyView() {
   S.shown = Math.min(S.view.length, Math.max(S.PAGE, S.shown));
   renderCounts(all); renderActive(); renderSavedViews(); renderTrainButton(); renderList();
   const tb = $('dict-textbar'); if (tb && tb.hidden !== (S.filters.scope !== 'text')) renderTextBar();
+  const hb = $('dict-history'); if (hb && hb.hidden !== (S.filters.scope !== 'mine')) renderHistory();
 }
 function memLine(e) {
   const m = D.memory(e, Date.now());

@@ -3340,8 +3340,10 @@ export async function backfillMarkRows() {
 // CLG-P3.2 — the LWW fold: last mark row per item_key (reviewed_at ASC, id ASC order) = the axis.
 export async function lastMarkStatus(itemKey) {
   try {
-    const rows = await q(`SELECT meta_json FROM review_log WHERE item_key = ? AND kind = 'mark'
-                          ORDER BY reviewed_at DESC, id DESC LIMIT 1`, [String(itemKey || "")]);
+    const KA = _KA(), map = await getAliasMap(), key = String(itemKey || "");
+    const members = KA && map.size ? KA.membersOf(map, key) : [key];   // Д8-К3: the latest mark among the word's keys
+    const rows = await q(`SELECT meta_json FROM review_log WHERE item_key IN (${members.map(() => "?").join(",")}) AND kind = 'mark'
+                          ORDER BY reviewed_at DESC, id DESC LIMIT 1`, members);
     if (!rows || !rows.length) return null;
     const m = JSON.parse(rows[0].meta_json || "{}");
     return m.status != null ? String(m.status) : null;
@@ -3759,7 +3761,61 @@ export async function getStudyDays(sinceDayStr) {
 // нейтрален к нему до CLG-P4; хранится, чтобы down-sync (CLG-P3) не терял серверные строки.
 // 'mark' (CLG-P3.2, §4.7): ручная ось как append-only событие (status в meta, grade NULL,
 // replay-нейтрален) — LWW-редьюсер кросс-девайс оси. Метрики/оптимизатор фильтруют по kind.
-const _RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1 };
+const _RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1, alias: 1 };
+// Ф4 · Д8-К3 (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md): «old key → new key» is a log event
+// (kind 'alias'); the fold rule is KeyAliasCore — the same file the mentor's server requires.
+const _KA = () => (typeof globalThis !== "undefined" ? globalThis.KeyAliasCore : null);
+let _aliasMapCache = null;
+export async function getAliasMap() {
+  if (_aliasMapCache) return _aliasMapCache;
+  const KA = _KA();
+  if (!KA) return new Map();
+  let rows = [];
+  try { rows = (await q(`SELECT id, item_key, kind, reviewed_at, meta_json FROM review_log WHERE kind = 'alias'`, [])) || []; } catch (_) { rows = []; }
+  _aliasMapCache = KA.mapFromRows(rows);
+  return _aliasMapCache;
+}
+export async function canonicalKey(itemKey) {
+  const KA = _KA(), map = await getAliasMap();
+  return KA && map.size ? KA.canonical(map, String(itemKey || "")) : String(itemKey || "");
+}
+// the history of a word: its own rows and the rows of every key aliased to it (by time); an aliased-away key has none
+export async function getReviewLogFolded(itemKey) {
+  const KA = _KA(), map = await getAliasMap(), key = String(itemKey || "");
+  if (!KA || !map.size) return (await getReviewLog(key)).filter((r) => r.kind !== "alias");
+  if (KA.canonical(map, key) !== key) return [];
+  const members = KA.membersOf(map, key);
+  if (members.length === 1) return (await getReviewLog(key)).filter((r) => r.kind !== KA.KIND);
+  const rows = await q(`SELECT * FROM review_log WHERE item_key IN (${members.map(() => "?").join(",")}) ORDER BY reviewed_at ASC, id ASC`, members);
+  return (rows || []).filter((r) => r.kind !== KA.KIND);
+}
+// the keys an alias event touches: both ends and the word the old key belonged to before it (read BEFORE appending it)
+export async function aliasTouchedKeys(rows) {
+  const KA = _KA(); if (!KA) return [];
+  const map = await getAliasMap(), out = new Set(KA.touchedKeys(rows || []));
+  (rows || []).forEach((r) => { if (r && r.kind === KA.KIND) out.add(KA.canonical(map, String(r.item_key || ""))); });
+  return Array.from(out).filter(Boolean);
+}
+// re-project the touched words: schedules from the folded histories; the manual status of a word = the latest mark
+// among its keys; an aliased-away key keeps neither (projection-only writes — no new events)
+export async function applyAliasProjection(keys, opts) {
+  const KA = _KA(); const list = Array.from(new Set((keys || []).map(String).filter(Boolean)));
+  // a word that only had the status through the merge loses it on undo (its own keys carry no mark)
+  const clearWithoutMark = new Set(((opts && opts.clearWithoutMark) || []).map(String));
+  if (!KA || !list.length) return { keys: 0 };
+  _aliasMapCache = null;
+  const map = await getAliasMap();
+  await recomputeSrsFromLog(list);
+  let statuses = 0;
+  for (const k of list) {
+    const target = KA.canonical(map, k);
+    if (target !== k) { if (await getWordStatus(k)) { await applyWordStatusFromSync(k, ""); statuses++; } continue; }
+    let st = await lastMarkStatus(k);
+    if (st == null && clearWithoutMark.has(k)) st = "";
+    if (st != null && String((await getWordStatus(k)) || "") !== st) { await applyWordStatusFromSync(k, st); statuses++; }
+  }
+  return { keys: list.length, statuses };
+}
 export async function appendReviewLog(rows) {
   const list = Array.isArray(rows) ? rows : [rows];
   let accepted = 0, refused = 0;
@@ -3771,7 +3827,8 @@ export async function appendReviewLog(rows) {
     const kind = row && row.kind != null ? String(row.kind) : "review";
     if (!id || !itemKey || !at || !source || !_RL_KINDS[kind]) { refused++; continue; }
     const grade = row.grade == null ? null : (Number(row.grade) || 0);
-    if (kind !== "seed" && kind !== "annul" && kind !== "mark" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
+    if (kind !== "seed" && kind !== "annul" && kind !== "mark" && kind !== "alias" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
+    if (kind === "alias") { const KA = _KA(); if (!KA || !KA.validate(row).ok) { refused++; continue; } }
     const meta = typeof row.meta_json === "string" ? row.meta_json : JSON.stringify(row.meta || {});
     // P7.0a — зеркало серверного annul_without_target (learnerLogRepo): annul без цели —
     // мусор, который сервер вечно реджектит → постоянный count-mismatch и heal-цикл синка.
@@ -3784,9 +3841,10 @@ export async function appendReviewLog(rows) {
       await r(
         `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
          VALUES (?,?,?,?,?,?,?,?,?)`,
-        [id, itemKey, kind, at, (kind === "seed" || kind === "annul" || kind === "mark") ? null : grade, source,
+        [id, itemKey, kind, at, (kind === "seed" || kind === "annul" || kind === "mark" || kind === "alias") ? null : grade, source,
          row.channel != null ? String(row.channel) : null,
          row.latency_ms != null ? (Number(row.latency_ms) || 0) : null, meta]);
+      if (kind === "alias") _aliasMapCache = null;
       accepted++;
     } catch (_) { refused++; }
   }
@@ -4175,7 +4233,7 @@ export async function recomputeSrsFromLog(itemKeys) {
   for (const key of keys) {
     if (key.indexOf("sent:") === 0) continue;   // sentence-card state lives in srs_cards.meta_json.fsrs, not word_status
     try {
-      const rows = await getReviewLog(key);
+      const rows = await getReviewLogFolded(key);   // Д8-К3: one history per word
       const state = FC.replay(rows);
       if (!state || !(state.stability > 0)) {
         if (await clearSrsState(key)) cleared++;

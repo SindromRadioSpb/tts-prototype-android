@@ -2144,6 +2144,26 @@ window.I18N_LOCALES.en = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", dictionary: "Dictionary", label: "Sections" },
   dictionary: {
+    hist: {
+      title: "One history per word",
+      intro: "Words you studied under an old spelling can be joined with their dictionary entry: reviews and marks become one history. The review log is not rewritten — the merge can be undone.",
+      check: "Check",
+      checking0: "Checking spellings…",
+      none: "Nothing to merge: every word has one history.",
+      cancel: "Close",
+      summary: "Can be merged: {a} (with Pealim words — {p}, with Dicta-parsed words — {k}); reviews moving: {r}. Ambiguous: {amb}, with no place in texts: {np} — they stay as they are.",
+      reviews: "reviews: {n}",
+      apply: "Merge ({n})",
+      scanning: "Reading your texts: {d} rows",
+      checking: "Checking spellings: {d} of {n}",
+      failed: "Could not check word histories.",
+      applying: "Merging…",
+      applied: "Merged: {n}.",
+      failed2: "Could not merge.",
+      undo: "Undo the merge",
+      undoing: "Undoing…",
+      undone: "Merge undone: {n}.",
+    },
     dicta: {
       loading: "Reading the Dicta parse…",
       nameCheck: "looks like a name — check",

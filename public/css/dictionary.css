@@ -268,6 +268,12 @@ body.theme-dark .dict-place .ctx b { color: #8fb4ff; }
 .dict-choice-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .dict-choice label { display: flex; align-items: flex-start; gap: 6px; color: var(--d-ink-2); }
 .dict-unsure-list[hidden] { display: none; }
+/* Д8-К3 «Одна история слова» */
+.dict-history { margin: 8px 0; padding: 12px; border-radius: 12px; border: 1px solid var(--d-line); background: var(--d-card); display: grid; gap: 8px; }
+.dict-history[hidden] { display: none; }
+.dict-history p { margin: 0; }
+.dict-hist-list { margin: 0; padding-inline-start: 18px; display: grid; gap: 2px; }
+.dict-hist-list [lang="he"] { font-family: var(--d-font-he); font-size: 1.05rem; }
 .dict-toast-act { margin-inline-start: 12px; padding: 4px 10px; border-radius: 8px; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
 .dict-triage-word { display: flex; align-items: center; gap: 12px; }
 .dict-triage-word .he { font: 700 2rem/1.2 var(--d-font-he); }

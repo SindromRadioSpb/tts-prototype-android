@@ -40,7 +40,10 @@ const FUTURE_SLACK_MS = 5 * 60_000;
 const CANON_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 
 // 'mark' (CLG-P3.2, §4.7): ручная ось как append-only событие — grade NULL, status в meta.
-const RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1 };
+const RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1, alias: 1 };
+// Ф4 · Д8-К3 (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md): «old key → new key» is an event of this
+// log (kind 'alias', meta.alias_to); ONE fold rule shared with the browser (key-alias-core.js, parity by construction).
+const KA = require(require("path").join(__dirname, "..", "public", "js", "key-alias-core.js"));
 
 // §5 B5 — meta allowlist: identifiers + scheduler facts. item_key anchors (text_key/sentence_id/
 // order_index) are identifiers per §5; the lemma itself is the item_key and is disclosed in the
@@ -50,6 +53,8 @@ const META_ALLOW = new Set([
   "anki_card_id", "anki_type", "postTeach", "mode", "confidence", "grader",
   "interval", "reps", "lapses", "sm2", "fsrs", "d0", "stability", "difficulty",
   "annul_of", "reason", "pos",
+  // Д8-К3 alias event: the target KEY (an identifier, like item_key) + a short enum reason
+  "alias_to", "alias_reason",
   // P7.0b — идентификаторные поля грейдер-провенанса (критика wf_ccbad91d: без них
   // ingest реджектил бы 6 из 7 полей владельца; это версии/enum'ы/item_key — НЕ контент;
   // сырой ответ/скелеты остаются в META_STRIP — privacy-класс сырого ответа = явное
@@ -136,7 +141,7 @@ function validateReviewRow(raw, nowMs) {
   const t = validateTime(raw.reviewed_at, nowMs);
   if (!t.ok) return { ok: false, reason: t.reason };
   const grade = raw.grade == null ? null : Number(raw.grade);
-  if (kind === "seed" || kind === "annul" || kind === "mark") {
+  if (kind === "seed" || kind === "annul" || kind === "mark" || kind === "alias") {
     if (grade != null) return { ok: false, reason: "grade_on_" + kind };
   } else if (!(grade >= 1 && grade <= 4)) return { ok: false, reason: "bad_grade" };
   let meta = raw.meta_json != null ? raw.meta_json : (raw.meta || {});
@@ -147,6 +152,7 @@ function validateReviewRow(raw, nowMs) {
   if (kind === "annul" && !(mc.cleaned.annul_of && String(mc.cleaned.annul_of).trim())) {
     return { ok: false, reason: "annul_without_target" };
   }
+  if (kind === "alias") { const av = KA.validate({ kind, grade: null, meta: mc.cleaned }); if (!av.ok) return { ok: false, reason: av.reason }; }
   if (t.clamped) mc.cleaned.ts_clamped_server = 1;
   const metaStr = JSON.stringify(mc.cleaned);
   if (Buffer.byteLength(metaStr, "utf8") > MAX_META_BYTES) return { ok: false, reason: "meta_too_big" };
@@ -155,7 +161,7 @@ function validateReviewRow(raw, nowMs) {
     strippedKeys: mc.strippedKeys,
     row: {
       id, item_key: itemKey, kind, reviewed_at: t.value,
-      grade: (kind === "seed" || kind === "annul") ? null : grade,
+      grade: (kind === "seed" || kind === "annul" || kind === "alias") ? null : grade,
       source, channel: raw.channel != null ? String(raw.channel).slice(0, 60) : null,
       latency_ms: raw.latency_ms != null ? (Number(raw.latency_ms) || 0) : null,
       meta_json: metaStr,
@@ -264,6 +270,8 @@ async function ingestBatch(userId, deviceId, batch, opts) {
         if (!ex) { result.review_log.rejected++; rejects(v.row.id, "reserved_source"); continue; }
       }
       result.stripped_meta_keys += v.strippedKeys.length;
+      // Д8-К3: the word the key belonged to BEFORE this decision is recomputed too (an undo returns its history)
+      const priorTarget = v.row.kind === "alias" ? KA.canonical(await aliasMap(userId), v.row.item_key) : null;
       const r = await dbRun(db,
         `INSERT OR IGNORE INTO review_log
            (user_id, id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json,
@@ -274,7 +282,8 @@ async function ingestBatch(userId, deviceId, batch, opts) {
          v.row.rowKeyerVersion != null ? v.row.rowKeyerVersion : keyerVersion]);
       if (r.changes > 0) {
         result.review_log.new++;
-        if (v.row.kind !== "mark") newKeys.add(v.row.item_key);
+        if (v.row.kind === "alias") { _aliasCache.delete(String(userId)); KA.touchedKeys([v.row]).concat([priorTarget]).forEach((k) => { if (k) newKeys.add(k); }); }
+        else if (v.row.kind !== "mark") newKeys.add(v.row.item_key);
       } else result.review_log.dup++;
     }
     for (const raw of events) {
@@ -335,12 +344,36 @@ async function counts(userId) {
 // UTC-Z делает лексикографический == хронологическому). Единственная точка истины этого
 // ORDER: learnerProjectionRepo и agent/reviewer читают ОТСЮДА (критика: копипаста SQL
 // в два репо = молчаливый дрейф порядка фолда vs rows грейдера).
+// Д8-К3: the user's alias map (key → its new key), cached per user and dropped when an alias event is ingested
+const _aliasCache = new Map();
+async function aliasMap(userId) {
+  const k = String(userId);
+  if (_aliasCache.has(k)) return _aliasCache.get(k);
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = (await dbAll(db, `SELECT id, item_key, kind, reviewed_at, meta_json FROM review_log WHERE user_id = ? AND kind = 'alias'`, [userId])) || [];
+  const map = KA.mapFromRows(rows);
+  _aliasCache.set(k, map);
+  return map;
+}
+// The history of a word: its own rows and, after Д8-К3, the rows of every key aliased to it (by time); a key aliased
+// away has no history of its own (its projection is removed). Alias events are not reviews.
 async function itemRows(userId, itemKey) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
-  return (await dbAll(db,
+  const key = String(itemKey || "");
+  const map = await aliasMap(userId);
+  if (!map.size) {
+    return ((await dbAll(db,
+      `SELECT id, item_key, kind, reviewed_at, grade, source, channel, meta_json
+         FROM review_log WHERE user_id = ? AND item_key = ? ORDER BY reviewed_at ASC, id ASC`,
+      [userId, key])) || []).filter((r) => r.kind !== KA.KIND);
+  }
+  if (KA.canonical(map, key) !== key) return [];
+  const members = KA.membersOf(map, key);
+  const rows = (await dbAll(db,
     `SELECT id, item_key, kind, reviewed_at, grade, source, channel, meta_json
-       FROM review_log WHERE user_id = ? AND item_key = ? ORDER BY reviewed_at ASC, id ASC`,
-    [userId, String(itemKey || "")])) || [];
+       FROM review_log WHERE user_id = ? AND item_key IN (${members.map(() => "?").join(",")}) ORDER BY reviewed_at ASC, id ASC`,
+    [userId].concat(members))) || [];
+  return rows.filter((r) => r.kind !== KA.KIND);
 }
 
 // P7.3c — CROSS-SURFACE engagement для backoff (критика wf_e9b7e615 MAJOR: review_log ловит только
@@ -371,7 +404,7 @@ async function getRowById(userId, id) {
        FROM review_log WHERE user_id = ? AND id = ?`, [userId, String(id || "")])) || null;
 }
 
-module.exports = {
+module.exports = { aliasMap,
   ingestBatch, readLog, counts, itemRows, getRowById, engagedSince,
   SUPPORTED_SCHEMA_VERSION, SUPPORTED_KEYER_VERSION, MAX_BATCH_ROWS,
   META_ALLOW,   // P7.0b: read-only для гейта «провенанс-полям грейдера есть где жить»

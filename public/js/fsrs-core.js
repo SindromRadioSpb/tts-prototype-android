@@ -385,6 +385,7 @@
       if (row.kind === "seed" && j !== start) continue;   // D3: later seeds skipped (earliest-wins)
       if (row.kind === "annul") continue;                  // annul — метасобытие проекции, не память
       if (row.kind === "mark") continue;                   // CLG-P3.2: manual-axis event — never memory
+      if (row.kind === "alias") continue;                  // Д8-К3: identity event (old key → new key) — never memory
       if (isAnnullableKind(row.kind) && annulled[String(row.id)]) continue;   // P7.0a: аннулированный target исключён
       state = applyRow(state, row, opts);
     }

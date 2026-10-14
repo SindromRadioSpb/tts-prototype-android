@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=769">
+    <link rel="modulepreload" href="/db/local-db.js?v=770">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11075,7 +11075,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=769';
+  import * as _ldb from '/db/local-db.js?v=770';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13684,9 +13684,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=307"></script>
-<script src="/i18n/locales/en.js?v=307"></script>
-<script src="/i18n/locales/he.js?v=307"></script>
+<script src="/i18n/locales/ru.js?v=308"></script>
+<script src="/i18n/locales/en.js?v=308"></script>
+<script src="/i18n/locales/he.js?v=308"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13733,6 +13733,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      legacy SM2 if these fail to load (honest fallback). -->
 <script src="/js/lemma-canon.js"></script>
 <script src="/js/fsrs-core.js"></script>
+<script src="/js/key-alias-core.js?v=770"></script>
 
 <!-- v3.4 C1 — inline [[ autocomplete in the note editor (A-G1).
      Self-contained; read-only candidate search; links materialised
@@ -13763,7 +13764,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/ru-forms.js?v=739"></script>
 <script src="/js/dicta-lexicon.js?v=769"></script>
 <script src="/js/dicta-enrich.js?v=769"></script>
-<script src="/js/reader-morph.js?v=769"></script>
+<script src="/js/reader-morph.js?v=770"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=746"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
@@ -13942,7 +13943,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.769";
+    window.APP_VERSION = "3.11.770";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

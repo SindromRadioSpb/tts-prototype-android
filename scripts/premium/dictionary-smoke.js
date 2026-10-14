@@ -806,6 +806,38 @@ const ROWS = [
     await pg.setViewportSize({ width: 1280, height: 900 });
     ok(funcShown24 && !wide24, "D24 галочка показывает служебные слова; срез на 380 px без прокрутки вбок");
 
+    // D25 (Д8-К3, owner 2026-10-14; docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md) one history per word:
+    // a word studied under its old spelling key before Д8-К — the dry-run finds it, the merge (alias events, the log not
+    // rewritten) folds both schedules and the mark onto the word, the undo returns both histories
+    const d25 = await pg.evaluate(async () => {
+      const ldb = await import(window.__LDB_URL), RM = window.ReaderMorph;
+      const OLD = "פודקאסט#", NEW = "dl:פודקאסט#noun";
+      await ldb.appendReviewLog([
+        { id: "k3-r1", item_key: OLD, kind: "review", grade: 3, source: "room-recall", reviewed_at: "2026-09-01T10:00:00.000Z" },
+        { id: "k3-r2", item_key: OLD, kind: "review", grade: 3, source: "room-recall", reviewed_at: "2026-09-05T10:00:00.000Z" },
+        { id: "k3-r3", item_key: NEW, kind: "review", grade: 1, source: "room-recall", reviewed_at: "2026-09-03T10:00:00.000Z" }]);
+      await ldb.recomputeSrsFromLog([OLD, NEW]);
+      await ldb.setWordStatus(OLD, "l2");
+      const reps = (sch, k) => (sch[k] ? sch[k].reps : 0);
+      const sch0 = await ldb.getSrsSchedule();
+      const plan = await RM.planKeyAliases(ldb);
+      const item = plan.plan.find((p) => p.from === OLD) || null;
+      const app = await RM.applyKeyAliases(ldb, plan.plan.filter((p) => p.from === OLD));
+      const sch1 = await ldb.getSrsSchedule(), st1 = await ldb.getAllWordStatuses();
+      const und = await RM.undoKeyAliases(ldb);
+      const sch2 = await ldb.getSrsSchedule(), st2 = await ldb.getAllWordStatuses();
+      const events = (await ldb.dbQuery("SELECT COUNT(*) n FROM review_log WHERE kind = 'alias'", []))[0].n;
+      const rowsKept = (await ldb.dbQuery("SELECT COUNT(*) n FROM review_log WHERE id IN ('k3-r1','k3-r2','k3-r3')", []))[0].n;
+      return { item, sum: plan.summary, app, und, before: [reps(sch0, OLD), reps(sch0, NEW)], merged: [reps(sch1, OLD), reps(sch1, NEW)], st1: [st1[OLD] || "", st1[NEW] || ""],
+        undone: [reps(sch2, OLD), reps(sch2, NEW)], st2: [st2[OLD] || "", st2[NEW] || ""], events, rowsKept };
+    });
+    ok(d25.item && d25.item.to === "dl:פודקאסט#noun" && d25.item.reviews === 2,
+      `D25 пробный прогон: ${JSON.stringify(d25.item)}; итог ${JSON.stringify(d25.sum)}`);
+    ok(d25.before.join() === "2,1" && d25.merged.join() === "0,3" && d25.st1.join() === ",l2" && d25.app.applied === 1,
+      `D25 объединение: повторений до ${d25.before.join("+")} → после ${d25.merged.join("/")}, отметка ${JSON.stringify(d25.st1)}`);
+    ok(d25.undone.join() === "2,1" && d25.st2.join() === "l2," && d25.events === 2 && d25.rowsKept === 3,
+      `D25 откат: повторений ${d25.undone.join("/")}, отметка ${JSON.stringify(d25.st2)}; событий соответствия ${d25.events}, журнал цел (${d25.rowsKept} из 3)`);
+
     // D16 list tools: a mass status change on any view (palette → confirm → canon write → undo), a saved filter set,
     // the source filter, and «▶ медиа с этого места» for a place in a text with media timing
     await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });

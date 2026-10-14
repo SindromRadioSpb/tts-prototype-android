@@ -16,6 +16,7 @@ const { getDb } = require("./sqlite");
 const learnerLogRepo = require("./learnerLogRepo");
 const FC = require(path.join(__dirname, "..", "public", "js", "fsrs-core.js"));
 const GP = require(path.join(__dirname, "..", "public", "js", "grade-policy.js"));
+const KA = require(path.join(__dirname, "..", "public", "js", "key-alias-core.js"));
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
@@ -107,7 +108,13 @@ async function recomputeForKeys(userId, itemKeys) {
 async function distinctItemKeys(userId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const rows = await dbAll(db, `SELECT DISTINCT item_key FROM review_log WHERE user_id = ?`, [userId]);
-  return (rows || []).map((r) => String(r.item_key));
+  const keys = (rows || []).map((r) => String(r.item_key));
+  // Д8-К3: an aliased-away key has no projection; its new key has one even if it has no rows of its own
+  const map = learnerLogRepo.aliasMap ? await learnerLogRepo.aliasMap(userId) : null;
+  if (!map || !map.size) return keys;
+  const out = new Set();
+  keys.forEach((k) => out.add(KA.canonical(map, k)));
+  return Array.from(out);
 }
 
 async function rebuildAll(userId) {

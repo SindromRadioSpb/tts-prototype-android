@@ -28,7 +28,7 @@
   // DOWN cursor v2 = server ROWID (hole-free; the v1 ingested_at cursor could skip rows whose
   // batch committed after the read — found live on the owner's iPhone). The old "down_cursor"
   // key is simply abandoned: an empty rid cursor restarts from 0, INSERT OR IGNORE dedupes.
-  var UP_CURSOR = "up_cursor", DOWN_CURSOR = "down_cursor_rid", CUTOVER_OK = "cutover_ok", LAST_SYNC = "last_sync_at";
+  var UP_CURSOR = "up_cursor", DOWN_CURSOR = "down_cursor_rid", CUTOVER_OK = "cutover_ok", LAST_SYNC = "last_sync_at", ALIAS_REPULL = "alias_repull_v1";
   var BATCH_UP = 400, BATCH_DOWN = 500;
   // Negative batch results used to be cached under the same deterministic key.
   // Version the envelope so a repaired server contract can revalidate the same
@@ -176,6 +176,12 @@
 
   // ── download ─────────────────────────────────────────────────────────────
   async function syncDown(ldb) {
+    // Д8-К3: a device that ran an older version skipped the 'alias' events it did not know (appendReviewLog refused
+    // them, the cursor moved on) — once, re-read the log from the start; INSERT OR IGNORE dedupes the rest
+    if (!(await ldb.getSyncState(ALIAS_REPULL))) {
+      await ldb.setSyncState(DOWN_CURSOR, "0");
+      await ldb.setSyncState(ALIAS_REPULL, new Date().toISOString());
+    }
     var afterRid = Number(await ldb.getSyncState(DOWN_CURSOR)) || 0;
     var addedKeys = new Set(); var pulled = 0; var lwwApplied = 0;
     for (;;) {
@@ -186,9 +192,13 @@
       // Projection keys include rows already inserted by an interrupted prior attempt.
       // The cursor is the commit boundary, not INSERT novelty: retrying a page must retry
       // every derived write that was supposed to precede that cursor.
-      var pageSrsKeys = new Set(); var pageMarkKeys = new Set();
+      var pageSrsKeys = new Set(); var pageMarkKeys = new Set(); var pageAliasKeys = new Set();
       for (var i = 0; i < rows.length; i++) {
         var w = rows[i];
+        // Д8-К3: the keys an alias touches are read BEFORE it is appended (the word the old key belonged to)
+        if (w.kind === "alias" && typeof ldb.aliasTouchedKeys === "function") {
+          try { (await ldb.aliasTouchedKeys([w])).forEach(function (k) { pageAliasKeys.add(k); }); } catch (_) {}
+        }
         // per-row existence pre-check: appendReviewLog's OR IGNORE can't tell new from dup,
         // and we need the NEW item_keys for the projection recompute (§4.3: before repaint).
         var isNew = !(await ldb.hasReviewLogRow(w.id));
@@ -212,6 +222,10 @@
       // вечно» (counts-reconcile равен, engine-heal не срабатывает, новых событий по
       // слову нет). Recompute идемпотентен — повтор страницы после ретрая безопасен;
       // провал вызова НЕ продвигает курсор (следующий sync дотянет, OR IGNORE дедупит).
+      if (pageAliasKeys.size && typeof ldb.applyAliasProjection === "function") {
+        try { await ldb.applyAliasProjection(Array.from(pageAliasKeys)); }
+        catch (e) { return { ok: false, error: "ALIAS_PROJECTION_FAILED", pulled: pulled }; }
+      }
       if (pageSrsKeys.size && typeof ldb.recomputeSrsFromLog === "function") {
         try { await ldb.recomputeSrsFromLog(Array.from(pageSrsKeys)); }
         catch (e) { return { ok: false, error: "RECOMPUTE_FAILED", pulled: pulled }; }
@@ -222,8 +236,9 @@
         if (typeof ldb.lastMarkStatus !== "function" || typeof ldb.getWordStatus !== "function" || typeof ldb.applyWordStatusFromSync !== "function") {
           return { ok: false, error: "MARK_PROJECTION_FAILED", pulled: pulled };
         }
-        for (const mk of pageMarkKeys) {
+        for (const mk0 of pageMarkKeys) {
           try {
+            var mk = typeof ldb.canonicalKey === "function" ? await ldb.canonicalKey(mk0) : mk0;   // Д8-К3
             var target = await ldb.lastMarkStatus(mk);
             if (target == null) continue;
             var current = await ldb.getWordStatus(mk);
@@ -263,7 +278,10 @@
       for (var i = 0; i < (markRows || []).length; i++) {
         var row = markRows[i]; var status = null;
         try { var meta = JSON.parse(row.meta_json || "{}"); if (meta.status != null) status = String(meta.status); } catch (_) {}
-        if (row.item_key && status != null) latest.set(String(row.item_key), status);
+        // Д8-К3: a mark on an aliased-away key belongs to its word (ascending order → the word's latest mark wins)
+        var mkey = String(row.item_key || "");
+        if (mkey && typeof ldb.canonicalKey === "function") { try { mkey = await ldb.canonicalKey(mkey); } catch (_) {} }
+        if (mkey && status != null) latest.set(mkey, status);
       }
       var current = await ldb.getAllWordStatuses(); var applied = 0;
       for (const entry of latest.entries()) {
