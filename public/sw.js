@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.770";
+const CACHE_VERSION = "v3.11.771";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -183,7 +183,7 @@ const PRECACHE_URLS = [
   "/js/lemma-canon.js",
   // Retention P2 — pure FSRS-6 scheduler core (recall-loop engine)
   "/js/fsrs-core.js",
-  "/js/key-alias-core.js?v=770",
+  "/js/key-alias-core.js?v=771",
   "/js/grade-policy.js",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
@@ -353,7 +353,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=770",
+  "/db/local-db.js?v=771",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

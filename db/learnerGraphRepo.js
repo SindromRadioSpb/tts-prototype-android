@@ -13,6 +13,28 @@
 const { getDb } = require("./sqlite");
 const LC = require("../public/js/lemma-canon");
 const FC = require("../public/js/fsrs-core");
+const KA = require("../public/js/key-alias-core");
+const learnerLogRepo = require("./learnerLogRepo");
+
+// Д8-К3 (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md): the manual axis of a WORD — marks (ascending
+// (reviewed_at, id)) folded onto the canonical key; an absorbed spelling's clear (status "") is not the word's
+// (KeyAliasCore.foldMarks, the client's rule). `strict(code)` → malformed mark JSON fails closed (aggregates).
+async function foldManualMarks(userId, rows, strictCode) {
+  const map = learnerLogRepo.aliasMap ? await learnerLogRepo.aliasMap(userId) : new Map();
+  const out = {};
+  for (const r of (rows || [])) {
+    let m;
+    try { m = JSON.parse(r.meta_json || "{}"); } catch (_) { if (strictCode) throw new Error(strictCode); continue; }
+    if (strictCode && (!m || typeof m !== "object" || Array.isArray(m))) throw new Error(strictCode);
+    if (!m || m.status == null) continue;
+    const raw = String(r.item_key), key = map.size ? KA.canonical(map, raw) : raw, status = String(m.status);
+    if (strictCode === "AA_COVERAGE_PROJECTION_INVALID" && status.length > 32) throw new Error(strictCode);
+    if (key !== raw && status === "") continue;
+    out[key] = status;   // ascending order: later rows overwrite = LWW
+  }
+  for (const k of Object.keys(out)) if (out[k] === "") delete out[k];   // '' = cleared
+  return out;
+}
 
 const COVERAGE_PROJECTION_VERSION = `review-log-keyer-v${LC.KEYER_VERSION}+${FC.ENGINE_VERSION}+stale-engine-filter-v1`;
 
@@ -46,15 +68,7 @@ async function manualStatusMap(userId) {
   const rows = await dbAll(db,
     `SELECT item_key, meta_json FROM review_log
       WHERE user_id = ? AND kind = 'mark' ORDER BY reviewed_at ASC, id ASC`, [userId]);
-  const out = {};
-  for (const r of (rows || [])) {
-    try {
-      const m = JSON.parse(r.meta_json || "{}");
-      if (m.status != null) out[String(r.item_key)] = String(m.status);   // later rows overwrite = LWW
-    } catch (_) {}
-  }
-  for (const k of Object.keys(out)) if (out[k] === "") delete out[k];      // '' = cleared
-  return out;
+  return foldManualMarks(userId, rows, null);
 }
 
 // AA2-C4-PRE — bounded aggregate for external read-only projections. This is
@@ -73,15 +87,7 @@ async function getAgentAccessReviewAggregates(userId, { nowMs } = {}) {
   const marks = await dbAll(db,
     `SELECT item_key, meta_json FROM review_log
       WHERE user_id = ? AND kind = 'mark' ORDER BY reviewed_at ASC, id ASC`, [userId]);
-  const manual = {};
-  for (const row of marks || []) {
-    let meta;
-    try { meta = JSON.parse(row.meta_json || "{}"); }
-    catch (_) { throw new Error("AA_REVIEW_AGGREGATE_MARK_JSON_INVALID"); }
-    if (!meta || typeof meta !== "object" || Array.isArray(meta)) throw new Error("AA_REVIEW_AGGREGATE_MARK_JSON_INVALID");
-    if (meta.status != null) manual[String(row.item_key)] = String(meta.status);
-  }
-  for (const key of Object.keys(manual)) if (manual[key] === "") delete manual[key];
+  const manual = await foldManualMarks(userId, marks, "AA_REVIEW_AGGREGATE_MARK_JSON_INVALID");
 
   const rows = await dbAll(db,
     `SELECT item_key, due FROM srs_projections WHERE user_id = ? AND due IS NOT NULL`, [userId]);
@@ -164,18 +170,7 @@ async function getCoverageProjection(userId, { nowMs } = {}) {
   const marks = await dbAll(db,
     `SELECT item_key, meta_json FROM review_log
       WHERE user_id = ? AND kind = 'mark' ORDER BY reviewed_at ASC, id ASC`, [userId]);
-  const manual = {};
-  for (const row of marks || []) {
-    let meta;
-    try { meta = JSON.parse(row.meta_json || "{}"); } catch (_) { throw new Error("AA_COVERAGE_PROJECTION_INVALID"); }
-    if (!meta || typeof meta !== "object" || Array.isArray(meta)) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
-    if (meta.status != null) {
-      const status = String(meta.status);
-      if (status.length > 32) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
-      manual[String(row.item_key)] = status;
-    }
-  }
-  for (const key of Object.keys(manual)) if (manual[key] === "") delete manual[key];
+  const manual = await foldManualMarks(userId, marks, "AA_COVERAGE_PROJECTION_INVALID");
 
   const rows = await dbAll(db,
     `SELECT item_key, due, engine FROM srs_projections WHERE user_id = ? ORDER BY item_key`, [userId]);

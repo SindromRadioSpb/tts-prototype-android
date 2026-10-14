@@ -3341,7 +3341,11 @@ export async function backfillMarkRows() {
 export async function lastMarkStatus(itemKey) {
   try {
     const KA = _KA(), map = await getAliasMap(), key = String(itemKey || "");
-    const members = KA && map.size ? KA.membersOf(map, key) : [key];   // Д8-К3: the latest mark among the word's keys
+    const members = KA && map.size ? KA.membersOf(map, key) : [key];
+    if (members.length > 1) {   // Д8-К3: the word's status from all its keys — an absorbed spelling's clear is not the word's
+      const all = await q(`SELECT id, item_key, reviewed_at, meta_json FROM review_log WHERE item_key IN (${members.map(() => "?").join(",")}) AND kind = 'mark'`, members);
+      return KA.foldMarks(all || [], key);
+    }
     const rows = await q(`SELECT meta_json FROM review_log WHERE item_key IN (${members.map(() => "?").join(",")}) AND kind = 'mark'
                           ORDER BY reviewed_at DESC, id DESC LIMIT 1`, members);
     if (!rows || !rows.length) return null;

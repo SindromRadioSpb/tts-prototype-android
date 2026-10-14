@@ -279,8 +279,9 @@
         var row = markRows[i]; var status = null;
         try { var meta = JSON.parse(row.meta_json || "{}"); if (meta.status != null) status = String(meta.status); } catch (_) {}
         // Д8-К3: a mark on an aliased-away key belongs to its word (ascending order → the word's latest mark wins)
-        var mkey = String(row.item_key || "");
+        var rkey = String(row.item_key || ""), mkey = rkey;
         if (mkey && typeof ldb.canonicalKey === "function") { try { mkey = await ldb.canonicalKey(mkey); } catch (_) {} }
+        if (mkey !== rkey && status === "") continue;   // an absorbed spelling's clear is not the word's (KeyAliasCore.foldMarks)
         if (mkey && status != null) latest.set(mkey, status);
       }
       var current = await ldb.getAllWordStatuses(); var applied = 0;

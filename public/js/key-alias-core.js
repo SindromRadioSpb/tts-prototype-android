@@ -73,6 +73,20 @@
     var meta = { alias_to: t }; if (reason) meta.alias_reason = str(reason).slice(0, 40);
     return { id: "alias:" + fnv(o + "\u0001" + t + "\u0001" + ts), item_key: o, kind: KIND, reviewed_at: ts, grade: null, source: SOURCE, channel: null, meta_json: JSON.stringify(meta) };
   }
+  // The manual status of a word from the mark events of its keys (Д8-К3, owner incident 2026-10-14): the word's own marks
+  // count whatever they say; an absorbed spelling's marks count only when they ASSERT a status — its clear (status "")
+  // means «this spelling no longer carries the mark» (Д7.2 moved it), never «the learner cleared the word». The latest
+  // counted mark wins (reviewed_at, id). marks: [{ item_key, reviewed_at, id, meta_json|meta }] → status | null.
+  function foldMarks(marks, target) {
+    var best = null;
+    (marks || []).forEach(function (m) {
+      if (!m) return;
+      var s = metaOf(m).status; if (s == null) return; s = str(s);
+      if (str(m.item_key) !== str(target) && s === "") return;
+      if (!best || cmp(best, m) < 0) best = { reviewed_at: m.reviewed_at, id: m.id, s: s };
+    });
+    return best ? best.s : null;
+  }
   // validator shared by the client's appendReviewLog and the server's ingest
   function validate(row) {
     if (!row || row.kind !== KIND) return { ok: true };
@@ -83,5 +97,5 @@
     return { ok: true };
   }
   return { KIND: KIND, SOURCE: SOURCE, mapFromRows: mapFromRows, canonical: canonical, membersOf: membersOf, mergeRows: mergeRows,
-    touchedKeys: touchedKeys, aliasRow: aliasRow, validate: validate };
+    touchedKeys: touchedKeys, aliasRow: aliasRow, validate: validate, foldMarks: foldMarks };
 });

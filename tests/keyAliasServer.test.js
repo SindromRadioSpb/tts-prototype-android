@@ -55,3 +55,29 @@ test("alias: one history per word on the server; undo restores both", async (t) 
   assert.equal(Number(undone.find((p) => p.item_key === "pid:7").reps), 1);
   assert.equal(Number(undone.find((p) => p.item_key === "אביו#").reps), 2, "alias events are never memory");
 });
+
+test("alias: the mentor's manual axis folds onto the word; an absorbed spelling's clear is not the word's", async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "lp-alias-marks-"));
+  t.after(async () => { await sqlite.closeDb(); fs.rmSync(root, { recursive: true, force: true }); });
+  await sqlite.initDb(path.join(root, "app.db"));
+  const db = sqlite.getDb();
+  await sqlite._exec(db, "CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES ('u');");
+  for (const m of ["021_cloud_event_log.sql", "022_srs_projections.sql", "025_channel_stats.sql"]) {
+    await sqlite._exec(db, fs.readFileSync(path.join(__dirname, "../migrations", m), "utf8"));
+  }
+  const mark = (id, key, at, status) => ({ id, item_key: key, kind: "mark", grade: null, source: "word-mark", reviewed_at: at, meta_json: JSON.stringify({ status }) });
+  await ingestBatch("u", "dev", { idempotency_key: "m1", review_log: [
+    mark("m1", "בלילה#", "2026-07-15T10:00:00.000Z", "l4"),
+    mark("m2", "מלילה#", "2026-10-14T13:27:38.000Z", ""),     // Д7.2 cleared this spelling later
+    mark("m3", "תיק#", "2026-07-01T10:00:00.000Z", "ignore")] });
+  await ingestBatch("u", "dev", { idempotency_key: "m2", review_log: [
+    KA.aliasRow("בלילה#", "pid:4234", "2026-10-14T19:00:00.000Z"), KA.aliasRow("מלילה#", "pid:4234", "2026-10-14T19:00:00.000Z"),
+    KA.aliasRow("תיק#", "pid:9", "2026-10-14T19:00:00.000Z")] });
+  const G = require("../db/learnerGraphRepo");
+  const fn = G.manualStatusMap || G._manualStatusMap;
+  assert.ok(typeof fn === "function", "manualStatusMap exported");
+  const manual = await fn("u");
+  assert.equal(manual["pid:4234"], "l4");
+  assert.equal(manual["pid:9"], "ignore");
+  assert.equal(manual["בלילה#"], undefined);
+});

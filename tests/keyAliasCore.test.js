@@ -42,3 +42,13 @@ test("the event: deterministic id per decision, a valid log row; the validator",
   assert.strictEqual(KA.validate({ kind: "alias", grade: 3, meta_json: JSON.stringify({ alias_to: "x" }) }).ok, false);
   assert.deepStrictEqual(KA.validate(rv("x", "2026-10-01T00:00:00.000Z")), { ok: true });
 });
+
+test("foldMarks: an absorbed spelling's clear is not the word's; the word's own clear is (owner incident 2026-10-14)", () => {
+  const mk = (key, at, status) => ({ id: key + at, item_key: key, kind: "mark", reviewed_at: at, meta_json: JSON.stringify({ status }) });
+  // Д7.2 moved מלילה# → the word and cleared the spelling later than the learner's l4 on בלילה#
+  const marks = [mk("בלילה#", "2026-07-15T00:00:00.000Z", "l4"), mk("מלילה#", "2026-10-14T13:27:38.000Z", "")];
+  assert.strictEqual(KA.foldMarks(marks, "pid:4234"), "l4");
+  // the word's own later clear does clear it
+  assert.strictEqual(KA.foldMarks(marks.concat([mk("pid:4234", "2026-10-15T00:00:00.000Z", "")]), "pid:4234"), "");
+  assert.strictEqual(KA.foldMarks([], "x"), null);
+});
