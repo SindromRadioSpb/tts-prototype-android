@@ -34,7 +34,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // O-085: the page's OWN database module (the same ?v= URL the Room imported) — a second, unversioned instance in the
     // same tab raced the page's start-up reads/writes; and let the page's start-up DB work settle first
     await pg.waitForFunction(() => performance.getEntriesByType("resource").some((e) => /\/db\/local-db\.js/.test(e.name)), null, { timeout: 30000 });
-    await pg.waitForTimeout(3000);
+    await pg.waitForFunction(() => !!window.__roomSettled, null, { timeout: 30000 });
+    await pg.evaluate(() => window.__roomSettled);   // boot + the background canon import (O-081)
 
     const res = await pg.evaluate(async () => {
       const ldbUrl = performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n));

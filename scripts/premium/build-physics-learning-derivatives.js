@@ -13,7 +13,8 @@ const SOLUTION_RU_PATH = path.join(PACKET, 'solution-ledger.ru.json');
 const EXAM_SOLUTION_PATH = path.join(PACKET, 'exam-solution-ledger.ru.json');
 const BEGINNER_PEDAGOGY_PATH = path.join(PACKET, 'beginner-pedagogy-ledger.ru.json');
 const TUTOR_PROMPT_PATH = path.join(ROOT, 'docs', 'planning', 'PHYSICS_YEAR1_BEGINNER_TUTOR_MASTER_PROMPT_R11_2026_08_28.md');
-const OUT = path.join(PACKET, 'artifacts');
+// O-082: the unit test builds into a temporary folder — the runner must not rewrite tracked artifacts.
+const OUT = process.env.PHYSICS_DERIVATIVES_OUT ? path.resolve(process.env.PHYSICS_DERIVATIVES_OUT) : path.join(PACKET, 'artifacts');
 const TASKS_OUT = path.join(OUT, 'tasks');
 
 function readJson(file) {
@@ -629,7 +630,8 @@ function main() {
   const solutionRuLedger = readJson(SOLUTION_RU_PATH);
   const examSolutionLedger = readJson(EXAM_SOLUTION_PATH);
   const beginnerPedagogyLedger = readJson(BEGINNER_PEDAGOGY_PATH);
-  const tutorPrompt = fs.readFileSync(TUTOR_PROMPT_PATH, 'utf8');
+  // O-082: a Windows checkout (core.autocrlf) gives the prompt CRLF; the artifact and its hash must not depend on it
+  const tutorPrompt = fs.readFileSync(TUTOR_PROMPT_PATH, 'utf8').replace(/\r\n/g, '\n');
   const answerMap = indexByTask(answerLedger.entries, 'answer ledger');
   const sourceSolutionMap = indexByTask(solutionLedger.entries, 'solution ledger');
   const solutionRuMap = indexByTask(solutionRuLedger.entries, 'Russian solution localization');

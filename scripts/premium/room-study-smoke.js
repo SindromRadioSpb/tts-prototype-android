@@ -47,8 +47,13 @@ async function main() {
     // вкладка = импорт закончен = БД стабильна. Таймаут с запасом на медленную машину.
     // NB: сигнатура waitForFunction(fn, arg, options) — без null во втором аргументе
     // объект опций уходит в arg, а таймаут молча остаётся дефолтным (30с).
-    const waitCorpusReady = () => pg.waitForFunction(
-      () => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 90000 });
+    // O-081: the corpus tab shows before the canon import ends; rows seeded inside its open transaction were rolled
+    // back with it («В этом тексте пока нет строк»). Wait for the Room's own start-up to settle.
+    const waitCorpusReady = async () => {
+      await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 90000 });
+      await pg.waitForFunction(() => !!window.__roomSettled, null, { timeout: 30000 });
+      await pg.evaluate(() => window.__roomSettled);
+    };
     await waitCorpusReady();
 
     // ── Секция 1: чистая математика связанного ресайза ──────────────────────
@@ -133,19 +138,15 @@ async function main() {
     });
     // Открыть засеянный материал: Корпус → «Мои тексты» → карточка RST STUDY.
     // Путь тот же, что в room-media-smoke — карточки «Моих текстов» живут в .mytexts-grid.
+    // O-081: open by the Room's own deep link (?my_text=, the dictionary's path). The catalog route raced the Room
+    // reopening the last open text on load (F5 returns to the same card) — the corpus tab was hidden under the reader.
+    const STUDY_IDS = { "RST STUDY": "rst-t1", "RST MEDIA": "rst-t2" };
     const openStudyText = async (marker = "RST STUDY") => {
-      await pg.goto(BASE + "/library.html", { waitUntil: "load" });
-      await waitCorpusReady();
-      await pg.click("#tabCorpus");
-      await pg.waitForSelector(".learning-home", { timeout: 20000 });
-      await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');
-      await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 20000 });
-      await pg.evaluate((m) => {
-        const cards = [...document.querySelectorAll(".mytexts-grid .mytext-card-v")];
-        const c = cards.find((x) => (x.textContent || "").includes(m));
-        if (c) c.click();
-      }, marker);
-      await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, null, { timeout: 20000 });
+      await pg.goto(BASE + "/library.html?my_text=" + STUDY_IDS[marker], { waitUntil: "load" });
+      await pg.waitForFunction(() => !!window.__roomSettled, null, { timeout: 30000 });
+      await pg.evaluate(() => window.__roomSettled);
+      await pg.waitForFunction((m) => { const r = document.getElementById("roomReader");
+        return r && !r.hidden && (document.getElementById("readerTitle") || r).textContent.includes(m); }, marker, { timeout: 20000 });
       await pg.waitForSelector("#proTable tbody tr", { timeout: 25000 });
       await waitLayoutSettled();
     };
@@ -234,7 +235,10 @@ async function main() {
         hasSeg: !!p.querySelector("#roomActionColSeg"),
         segButtons: [...p.querySelectorAll("#roomActionColSeg button")].map((b) => b.getAttribute("data-mode")),
         hasReset: !!p.querySelector("#roomWidthsReset"),
-        firstBlockIsStudy: !!(p.firstElementChild && p.firstElementChild.id === "roomStudyBlock"),
+        // R2 (owner, UI_RELEASE_PROGRAM_2026_09_25 §2.2): the column presets sit ABOVE the switches — the study
+        // block comes right after them (first when there are no presets)
+        firstBlockIsStudy: (() => { const kids = [...p.children]; const i = kids.findIndex((k) => k.id === "roomStudyBlock");
+          return i === 0 || (i === 1 && !!kids[0].querySelector(".reader-preset-row")); })(),
         rawKeys: /room\.study\./.test(p.textContent || ""),
         // Набор управляющих кнопок бара сверяем ПОИМЕННО: #readerCovChip — это чип
         // покрытия, который инжектится в тот же .reader-bar, поэтому счётчик врал бы.
@@ -245,10 +249,12 @@ async function main() {
     ok(panel.hasSeg && panel.segButtons.join(",") === "full,rail,hidden",
       "панель: сегмент служебной колонки full/rail/hidden, получено " + panel.segButtons.join(","));
     ok(panel.hasReset, "панель: кнопка сброса ширин присутствует");
-    ok(panel.firstBlockIsStudy, "панель: блок учебного режима идёт ПЕРВЫМ");
+    ok(panel.firstBlockIsStudy, "панель: блок учебного режима идёт первым после наборов колонок");
     ok(!panel.rawKeys, "панель: нет непереведённых ключей room.study.* в тексте");
-    ok(panel.barIds === "readerAidsToggle,readerBack,readerCovChip,readerFindToggle,roomReadAloud",
-      "в .reader-bar тот же набор кнопок — новых не добавили (решение D2), получено " + panel.barIds);
+    // D2: no NEW buttons in the bar. The coverage chip is created only when the text has marks; «← Полки» is a link.
+    const BAR_ALLOWED = ["readerAidsToggle", "readerBack", "readerCovChip", "readerFindToggle", "roomReadAloud"];
+    ok(panel.barIds.split(",").every((id) => BAR_ALLOWED.includes(id)) && panel.barIds.includes("readerAidsToggle"),
+      "в .reader-bar нет новых кнопок (решение D2), получено " + panel.barIds);
 
     // дефолт служебной колонки при первом включении режима — «Рельс» (решение D4)
     await pg.evaluate(() => { localStorage.removeItem("room.actionColMode"); localStorage.removeItem("room.studyMode"); });
@@ -330,7 +336,8 @@ async function main() {
         hasBookmark: !!(cell && cell.querySelector(".row-bookmark-btn")),
       };
     });
-    ok(Math.abs(rail.action - 34) <= 2, "рельс: служебная колонка ~34px, получено " + Math.round(rail.action));
+    // R2 (2026-09-25): the row ▶ is a 44px touch target — the rail is that button plus the cell's edges, not 34px
+    ok(rail.action >= 44 && rail.action <= 56, "рельс: служебная колонка = кнопка 44px + края (44–56px), получено " + Math.round(rail.action));
     ok(rail.actionPct < 15,
       "АНТИ-РЕГРЕСС: доля служебной колонки не раздувается при двух содержательных колонках " +
       "(было 25.4%), получено " + rail.actionPct.toFixed(1) + "%");
@@ -353,7 +360,7 @@ async function main() {
       const th = document.querySelector('#proTable thead th[data-col="action"]');
       return th ? th.getBoundingClientRect().width : 0;
     });
-    ok(Math.abs(afterRerender - 34) <= 2, "рельс переживает rerenderReader, получено " + Math.round(afterRerender));
+    ok(Math.abs(afterRerender - rail.action) <= 2, "рельс переживает rerenderReader (" + Math.round(rail.action) + "px), получено " + Math.round(afterRerender));
 
     // «Скрыта» убирает колонку из НАБОРА (вход билдера, не CSS)
     await pg.evaluate(() => { const b2 = document.querySelector('#roomActionColSeg button[data-mode="hidden"]'); if (b2) b2.click(); });
@@ -451,6 +458,8 @@ async function main() {
       const w = document.getElementById("roomReaderTable");
       return !!(w && w.classList.contains("room-media-scroll") && /px/.test(w.style.maxHeight || ""));
     }, null, { timeout: 20000 });
+    await waitLayoutSettled();
+    await pg.waitForTimeout(1500);
     const h1 = await pg.evaluate(() => parseFloat(document.getElementById("roomReaderTable").style.maxHeight) || 0);
     await pg.setViewportSize({ width: 380, height: 640 });
     await pg.waitForTimeout(800);

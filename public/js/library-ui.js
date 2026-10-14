@@ -6564,6 +6564,14 @@ function roomMediaWireOnce() {
   window.addEventListener('resize', relayout, { passive: true });
   window.addEventListener('orientationchange', relayout, { passive: true });
   window.addEventListener('scroll', relayout, { passive: true });
+  // O-081: the chrome above the table settles AFTER the first layout (the one-time tip strip, the coverage chip in the
+  // bar, the media bar) — the window kept the height from before it (40px below the fold on a fresh profile) and, after
+  // ✕ on the tip, stayed 58px short. Any size change of that chrome re-lays the window out.
+  try {
+    const chromeRo = new ResizeObserver(relayout);
+    ['readerTip', 'roomMediaBar'].forEach((id) => { const n = $(id); if (n) chromeRo.observe(n); });
+    const bar = $('roomReader') && $('roomReader').querySelector('.reader-bar'); if (bar) chromeRo.observe(bar);
+  } catch (_) {}
 }
 
 // BRR-P2-002 «Продолжить чтение» — record the deliberate working row (debounced) and
@@ -15350,8 +15358,16 @@ async function boot() {
   }
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-else boot();
+// O-081/O-085: a harness that writes to the device DB must wait for the Room's start-up work — the canon import holds one
+// open transaction, and rows written into it vanish with its rollback. __roomSettled resolves after boot AND the
+// background canon import (whatever path boot took); __roomReady only says the module ran.
+let _roomSettledResolve = null;
+window.__roomSettled = new Promise((resolve) => { _roomSettledResolve = resolve; });
+function runBoot() {
+  Promise.resolve().then(boot).catch(() => {}).then(() => _canonReadyPromise).catch(() => {}).then(() => _roomSettledResolve(true));
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runBoot);
+else runBoot();
 
 // Exposed for the screenshot/smoke harness to await readiness.
 window.__roomReady = true;

@@ -9,7 +9,10 @@ const ROOT = path.resolve(__dirname, '..');
 const PACKET = path.join(ROOT, 'docs', 'research', 'physics-learning-derivatives', '2026-08-27');
 const CORPUS = path.join(ROOT, 'docs', 'research', 'physics-corpus', '2026-08-24', 'physics-year1-corpus-records.json');
 const BUILDER = path.join(ROOT, 'scripts', 'premium', 'build-physics-learning-derivatives.js');
-const OUT = path.join(PACKET, 'artifacts');
+// O-082: build into a temporary folder; the tracked artifacts stay untouched by the runner
+const OUT = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'lp-physics-derivatives-'));
+const BUILD_ENV = { ...process.env, PHYSICS_DERIVATIVES_OUT: OUT };
+test.after(() => fs.rmSync(OUT, { recursive: true, force: true }));
 const { normalizePhysicsNotation } = require(BUILDER);
 
 function json(relative) {
@@ -147,12 +150,16 @@ test('all ledgers match the exact 74-task corpus set', () => {
 });
 
 test('builder is deterministic and manifests every generated learning artifact', () => {
-  execFileSync(process.execPath, [BUILDER], { cwd: ROOT });
+  execFileSync(process.execPath, [BUILDER], { cwd: ROOT, env: BUILD_ENV });
   const firstManifest = sha256(path.join(OUT, 'manifest.json'));
   const firstHtml = sha256(path.join(OUT, 'physics-year1-solutions.html'));
-  execFileSync(process.execPath, [BUILDER], { cwd: ROOT });
+  execFileSync(process.execPath, [BUILDER], { cwd: ROOT, env: BUILD_ENV });
   assert.equal(sha256(path.join(OUT, 'manifest.json')), firstManifest);
   assert.equal(sha256(path.join(OUT, 'physics-year1-solutions.html')), firstHtml);
+  // the committed artifacts are the builder's output (a stale commit is reported, not silently rewritten)
+  const committed = path.join(PACKET, 'artifacts', 'manifest.json');
+  assert.equal(fs.readFileSync(committed, 'utf8').replace(/\r\n/g, '\n'), fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8'),
+    'docs/research/physics-learning-derivatives artifacts are stale: rebuild with node scripts/premium/build-physics-learning-derivatives.js');
 
   const manifest = JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8'));
   assert.equal(manifest.task_count, 74);
