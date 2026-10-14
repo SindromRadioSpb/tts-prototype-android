@@ -7,7 +7,7 @@
   "beginner_pedagogy_task_count": 74,
   "beginner_pedagogy_schema": "physics_beginner_pedagogy.1.0.0",
   "beginner_pedagogy_sha256": "c0da1698cf60008d158b5558f40cc513b970da63eacb7cc41bd84c358465bc0e",
-  "tutor_prompt_sha256": "68f3cfc792fb6ec4fb89eb5c7b5f7905fdb081e3c9274ba7d7a9706b28bfda08",
+  "tutor_prompt_sha256": "b8d25a489ad1ce39e9db67c59dbe4876d9403e3bde04c2b737b71f06fc4af0cb",
   "mismatch_count": 7,
   "confirmed_key_error_count": 7,
   "open_mismatch_count": 0,
@@ -29,8 +29,8 @@
     },
     {
       "path": "physics-year1-agent-guide.md",
-      "bytes": 654617,
-      "sha256": "347c68a0f5b1842799175fd55431bc07241a37e52df685df3e30c342dea4f993"
+      "bytes": 654495,
+      "sha256": "3f4f362a33f03c1cb3a65d73543122d5bdb61a88d765774f7bbc6c9dc8902de0"
     },
     {
       "path": "physics-year1-solutions.html",
@@ -39,8 +39,8 @@
     },
     {
       "path": "physics-year1-tutor-system-prompt.md",
-      "bytes": 10508,
-      "sha256": "68f3cfc792fb6ec4fb89eb5c7b5f7905fdb081e3c9274ba7d7a9706b28bfda08"
+      "bytes": 10386,
+      "sha256": "b8d25a489ad1ce39e9db67c59dbe4876d9403e3bde04c2b737b71f06fc4af0cb"
     },
     {
       "path": "tasks/task-1.1.md",
