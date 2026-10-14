@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=771';
+import * as localDbRaw from '/db/local-db.js?v=774';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -282,9 +282,19 @@ function compassFailureContext(error) {
   return compassStatusContext(unsupported ? 'UNSUPPORTED' : 'UNAVAILABLE', code.slice(0, 80));
 }
 
-function myCompassDescriptor(item) {
-  return window.LocalTextFamiliarity.descriptor(item, learningCompass);
+// O-083: own-text cards stand on the dictionary's list keys (TextKeyScan); _myKeysGen = what those keys depend on
+// (Dicta lexicon / alias / name decisions), read from the DB at boot and when the lexicon reloads.
+let _myKeysGen = null;
+function myKeysScanOn() { return !!(window.TextKeyScan && window.ReaderMorph && learningCompass); }
+async function refreshMyKeysGen() {
+  if (!myKeysScanOn()) { _myKeysGen = null; return null; }
+  try { _myKeysGen = await window.TextKeyScan.generation(localDb); } catch (_) { _myKeysGen = null; }
+  return _myKeysGen;
 }
+function myCompassDescriptor(item) {
+  return window.LocalTextFamiliarity.descriptor(item, learningCompass, _myKeysGen);
+}
+const isKeysDescriptor = (d) => !!(d && d.source_class === 'mytext' && /\|keys:/.test(String(d.resolver_version || '')));
 
 function groupCompassDescriptor(corpusId, work, localRow) {
   if (!work || !work.bundle_sha256) return null;
@@ -324,7 +334,8 @@ function contextFromIngredients(ingredients, projection, primaryFlags) {
   const compass = learningCompass.evaluateRecordedFamiliarityV2({ ingredients: evaluatedIngredients, learner_projection: projection });
   const readingTime = ingredients && compass.status !== 'UNSUPPORTED'
     ? readingCalibrationDisabled() ? { status: 'DISABLED', min_minutes: null, max_minutes: null }
-      : learningCompass.estimateReadingRange(ingredients.total_token_count, readCalibrationLedger()) : null;
+      // O-083: list-key ingredients leave closed-class words out of the familiarity count — reading time counts every word
+      : learningCompass.estimateReadingRange(ingredients.text_token_count || ingredients.total_token_count, readCalibrationLedger()) : null;
   return {
     compass, readingTime,
     primaryReason: learningCompass.choosePrimaryReason({ ...(primaryFlags || {}), recorded_familiarity: compass }),
@@ -347,10 +358,12 @@ function repaintPreparedCompass(cacheKey) {
 
 async function buildAndCacheCompassDescriptor(descriptor, rows) {
   if (!descriptor || !learningCompass) return null;
-  const ingredients = await analyzeLearningRows({
-    rows, source_class: descriptor.source_class, source_key: descriptor.source_key,
-    content_revision: descriptor.content_revision, entitlement_revision: descriptor.entitlement_revision,
-  });
+  const ingredients = isKeysDescriptor(descriptor)
+    ? await window.TextKeyScan.textIngredients(localDb, { id: descriptor.local_id, text_key: descriptor.source_key }, rows, descriptor)
+    : await analyzeLearningRows({
+      rows, source_class: descriptor.source_class, source_key: descriptor.source_key,
+      content_revision: descriptor.content_revision, entitlement_revision: descriptor.entitlement_revision,
+    });
   await localDb.putLearningCompassIngredients({ ...descriptor, ingredients, content_sha256: ingredients.content_sha256 });
   const projection = await ensureLearningCompassProjection();
   const context = contextFromIngredients(ingredients, projection);
@@ -381,7 +394,8 @@ function scheduleCompassProgressPaint(immediate) {
     const nodes = document.querySelectorAll('[data-learning-index-status="mytexts"]');
     if (!nodes.length || !learningCompass || typeof localDb.getPersonalTextCompassProgress !== 'function') return;
     let progress;
-    try { progress = await localDb.getPersonalTextCompassProgress(learningCompass.RESOLVER_VERSION); }
+    // O-083: the same version the own-text descriptors carry (with the keys generation)
+    try { progress = await localDb.getPersonalTextCompassProgress(myCompassDescriptor({ id: '_' }).resolver_version); }
     catch (_) { return; }
     const ready = Math.max(0, Number(progress && progress.prepared || 0));
     const total = Math.max(0, Number(progress && progress.total || 0));
@@ -8861,7 +8875,8 @@ async function openReader(textId, title, opts) {
   if (res && res.ok) {
     let calibrationSource = null;
     if (readerIsOwnText) {
-      const cacheDescriptor = myCompassDescriptor({ ...res.text, id: textId });
+      // O-083: the worker's calibration ingredients count every word — they never become the card's cache on list keys
+      const cacheDescriptor = myKeysScanOn() && _myKeysGen ? null : myCompassDescriptor({ ...res.text, id: textId });
       calibrationSource = { text_id: textId, source_class: 'mytext', source_key: String(readerTextKey || textId),
         content_revision: String((res.text && res.text.updated_at) || 'unknown'), cache_descriptor: cacheDescriptor };
     } else if (readerPublicCorpusSlug) {
@@ -15096,6 +15111,8 @@ async function boot() {
   maybeStartWkDebug();           // BRR-P1-008b ?wkdebug=1 on-device karaoke diagnostic
   try {
     await localDb.initLocalDB();
+    await refreshMyKeysGen();   // O-083: before the first own-text card descriptor
+    try { window.addEventListener('lp:dicta-lexicon', () => { refreshMyKeysGen(); }); } catch (_) {}
     if (!navigator.onLine) setRoomConnectionState(roomB6.nextConnectionState('online', 'offline', { localReady: roomOfflineHasLocalTruth() }));
     // P0-1 v2: a follower WITH a live proxy route is fully functional (queries go to the owner
     // tab's single OPFS connection) — only a proxy-less follower still dead-ends on «БД занята».

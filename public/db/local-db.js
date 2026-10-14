@@ -3133,7 +3133,9 @@ function _normalizeLearningCompassEntry(entry) {
   if (!entry || !entry.cache_key || !entry.ingredients) throw new Error('Learning Compass cache entry is required');
   const allowedIngredientKeys = new Set(['schema_version','source_class','source_key','content_revision','content_sha256',
     'entitlement_revision','resolver_version','lexical_resolver_version','dataset_version','key_frequencies',
-    'unresolved_token_count','proper_name_token_count','total_token_count','built_at']);
+    'unresolved_token_count','proper_name_token_count','total_token_count','built_at',
+    // O-083: own texts scanned on the dictionary's list keys carry every word of the text for the reading-time estimate
+    'text_token_count']);
   if (Object.keys(entry.ingredients).some((key) => !allowedIngredientKeys.has(key))) throw new Error('Learning Compass ingredients contain a forbidden field');
   if (!Array.isArray(entry.ingredients.key_frequencies) || entry.ingredients.key_frequencies.length > 50000) throw new Error('Learning Compass ingredients have invalid frequencies');
   // Persist frequencies as compact tuples. The pure core accepts both the

@@ -6,13 +6,23 @@
   if (root) root.LocalTextFamiliarity = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  function descriptor(item, compass) {
+  // O-083: with keysGen the card stands on the dictionary's list keys (TextKeyScan); the cache row's resolver_version
+  // carries what those keys depend on, so a grown Dicta lexicon / an alias / a name decision re-keys the card.
+  function descriptor(item, compass, keysGen) {
     if (!item || item.id == null) return null;
+    const base = compass && compass.RESOLVER_VERSION;
     return {
       cache_key: 'mytext:' + String(item.id), source_class: 'mytext', source_key: String(item.text_key || item.id),
       local_id: String(item.id), content_revision: String(item.updated_at || 'unknown'), content_sha256: '',
-      entitlement_revision: null, resolver_version: compass && compass.RESOLVER_VERSION,
+      entitlement_revision: null, resolver_version: keysGen ? base + '|keys:' + keysGen : base,
     };
+  }
+  // O-083: the analyzer of an own text = the dictionary's scan (one function: TextKeyScan.textIngredients)
+  function scanAvailable() { return !!(globalThis.TextKeyScan && globalThis.ReaderMorph && globalThis.LearningCompassCore); }
+  function scanAnalyzer(db) {
+    const analyze = payload => globalThis.TextKeyScan.textIngredients(db, { id: payload.local_id, text_key: payload.source_key }, payload.rows || [], payload);
+    analyze.cancel = () => {};
+    return analyze;
   }
   const unavailable = (status, reason) => ({ status, reason_code: reason || status, rank_eligible: false,
     recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, counts: null });
@@ -57,7 +67,10 @@
   }
   const unsupportedFingerprint = item => [item.content_revision, item.resolver_version].join('|');
 
-  function createService({ db, compass, analyze = workerAnalyzer(), onUpdate = () => {}, yieldWork = () => new Promise(resolve => setTimeout(resolve, 0)), unsupportedMemo = browserUnsupportedMemo() }) {
+  function createService({ db, compass, analyze, keysGeneration, onUpdate = () => {}, yieldWork = () => new Promise(resolve => setTimeout(resolve, 0)), unsupportedMemo = browserUnsupportedMemo() }) {
+    const scan = !analyze && scanAvailable();
+    if (!analyze) analyze = scan ? scanAnalyzer(db) : workerAnalyzer();
+    if (!keysGeneration) keysGeneration = scan ? () => globalThis.TextKeyScan.generation(db) : async () => null;
     let generation = 0;
     const fits = new Map();
     const notify = (done, total, state) => onUpdate({ done, total, state, fits });
@@ -65,7 +78,10 @@
       const epoch = ++generation;
       if (analyze.cancel) analyze.cancel();
       fits.clear();
-      const descriptors = (items || []).map(item => descriptor(item, compass)).filter(Boolean);
+      let keysGen = null;
+      try { keysGen = await keysGeneration(); } catch (_) { keysGen = null; }
+      if (epoch !== generation) return;
+      const descriptors = (items || []).map(item => descriptor(item, compass, keysGen)).filter(Boolean);
       const total = descriptors.length;
       for (const item of descriptors) fits.set(item.local_id, unavailable('PENDING'));
       notify(0, total, 'preparing');
@@ -145,5 +161,5 @@
     return { prepare, get: id => fits.get(String(id)) || null,
       cancel() { generation++; fits.clear(); if (analyze.cancel) analyze.cancel(); } };
   }
-  return Object.freeze({ descriptor, createService, workerAnalyzer });
+  return Object.freeze({ descriptor, createService, workerAnalyzer, scanAnalyzer, scanAvailable });
 });

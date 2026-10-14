@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=771';
+import * as localDb from '/db/local-db.js?v=774';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -24,6 +24,7 @@ function el(tag, opts, kids) {
   return e;
 }
 const yieldNow = () => new Promise((r) => setTimeout(r, 0));
+const TKS = () => window.TextKeyScan;   // O-083: one scan of a text for the dictionary and the own-text cards
 const STATUS_LABEL = {
   new: ['room.morph.status.new', 'новое'], l1: ['room.morph.status.l1', 'незнакомо'], l2: ['room.morph.status.l2', 'узнаю'],
   l3: ['room.morph.status.l3', 'вспоминаю'], l4: ['room.morph.status.l4', 'почти знаю'], known: ['room.morph.status.known', 'знаю'],
@@ -628,42 +629,13 @@ function attachText() {
   });
 }
 // the text (of the lens) a scanned row belongs to, and the row's own order index in it
-function rowPlace(T, rowIdx) {
-  const ti = T.rowText[rowIdx], t = T.texts[ti], row = T.rows[rowIdx];
-  if (!t || !row) return null;
-  return { t, row, orderIndex: row.order_index != null ? Number(row.order_index) : rowIdx - t.from };
-}
+function rowPlace(T, rowIdx) { return TKS().rowPlace(T, rowIdx); }
 // ── Д8-К (docs/planning/word-layer/F4_D8K_ROLE_CRITIQUE_2026_10_14.md) ───────────────────────────────────────────
 // a scanned row's word unit at a tokenizer offset — the same tokens, alignment and joins as ReaderMorph.scanRows
-function unitAt(row, off) {
-  const R = RM(), plain = String(row.he_plain != null ? row.he_plain : row.he || ''), vocal = String(row.he_niqqud || '');
-  let toks, pairs;
-  if (plain) {
-    const al = R.alignSurfaceNiqqud(plain, vocal); let w = 0; toks = R.tokenize(plain);
-    pairs = toks.filter((t) => t.isWord).map((t) => { const a = al[w++] || {}; return [a.surface || t.text, a.niqqud || '']; });
-  } else { toks = R.tokenize(vocal); pairs = toks.filter((t) => t.isWord).map((t) => [R.stripNiqqud(t.text), t.text]); }
-  return (R.joinSplitWords(toks, pairs) || []).find((u) => u.off === off) || null;
-}
+function unitAt(row, off) { return TKS().unitAt(row, off); }
 // the word layer (Ф3, paid at build) of the lens: the translation of each place, read only where the layer's word count
 // is the scan's (a row whose pointing splits words differently is skipped, never misaligned) → { at(ri, off), nameAt }
-async function readWordLayer(T) {
-  const W = window.WordGlossAI, R = RM(), out = { gloss: new Map(), nameAt: new Set(), at(ri, off) { return this.gloss.get(ri + ':' + off) || ''; } };
-  if (!W || typeof W.wordAtData !== 'function') return out;
-  let t0 = performance.now();
-  for (let ri = 0; ri < T.rows.length; ri++) {
-    const row = T.rows[ri], plain = String(row.he_plain || ''), voc = String(row.he_niqqud || '');
-    const n = R.tokenize(plain || voc).filter((t) => t.isWord).length;
-    if (voc && plain && R.words(voc).length !== n) continue;
-    for (let k = 0; k < n; k++) {
-      let g = null; try { g = await W.wordAtData(row, k); } catch (_) { g = null; }
-      if (!g || !g.gloss) continue;
-      out.gloss.set(ri + ':' + k, g.gloss);
-      if (/^\s*имя\s*:/i.test(g.gloss)) out.nameAt.add(ri + ':' + k);
-    }
-    if (performance.now() - t0 > 24) { await yieldNow(); t0 = performance.now(); }
-  }
-  return out;
-}
+function readWordLayer(T) { return TKS().wordLayer(T); }
 const layerNameText = (g) => String(g || '').replace(/^\s*имя\s*:\s*/i, '').trim();
 // a Dicta entry's reading: Dicta's lemma and part of speech, the meaning = the layer's translations of its places
 function dictaReading(e, g, T) {
@@ -685,29 +657,8 @@ function nameCheckOf(T) {
 }
 // the learner's «это имя (здесь)» decisions for the lens (lexical_resolution_events, manual_correction → propernoun),
 // each re-proved against its exact place (source anchor) → Set('rowIdx:offset')
-async function nameDecisionsFor(T) {
-  const out = new Set(), Core = window.LexicalResolutionCore, Svc = window.LexicalResolutionService;
-  if (!Core || !Svc || typeof localDb.listLexicalResolutionEventsForTexts !== 'function') return out;
-  let events = []; try { events = (await localDb.listLexicalResolutionEventsForTexts(T.texts.map((t) => t.id))) || []; } catch (_) { events = []; }
-  if (!events.length) return out;
-  const rowOf = new Map(); T.rows.forEach((r, ri) => rowOf.set(String(r.id), ri));
-  const ids = new Set(events.map((e) => e.occurrence_id));
-  for (const id of ids) {
-    const latest = Core.latest(events, id);
-    if (!latest || latest.action !== 'manual_correction' || (latest.chosen_analysis || {}).lp_pos !== 'propernoun') continue;
-    const ri = rowOf.get(String(latest.sentence_id)); if (ri == null) continue;
-    const occ = occurrenceOf(T, ri, latest.word_offset); if (!occ) continue;
-    let proj = null; try { proj = await Svc.projectExactOccurrence(occ, events, Core); } catch (_) { proj = null; }
-    if (proj && proj.state === 'resolved') out.add(ri + ':' + latest.word_offset);
-  }
-  return out;
-}
-function occurrenceOf(T, ri, off) {
-  const pl = rowPlace(T, ri), u = pl && unitAt(pl.row, Number(off));
-  if (!pl || !u) return null;
-  return { text_id: String(pl.t.id), sentence_id: String(pl.row.id), word_offset: Number(off), text_key: pl.t.key || String(pl.t.id), order_index: pl.orderIndex,
-    surface: u.surface, niqqud: u.niqqud, sentence_he_niqqud: pl.row.he_niqqud || '', sentence_he: pl.row.he_plain || '' };
-}
+function nameDecisionsFor(T) { return TKS().nameDecisions(localDb, T); }
+function occurrenceOf(T, ri, off) { return TKS().occurrenceOf(T, ri, off); }
 // «Это имя (здесь)»: one owner decision per place of this word in the lens — the Room's tap reads the same events
 async function markNameHere(item) {
   const T = S.text, Core = window.LexicalResolutionCore;
@@ -762,13 +713,13 @@ async function loadText(id) {
   progress(tt('dictionary.dicta.loading', 'Читаю разбор Dicta…'));
   try { await morphHost.ensureDictaLexicon(); } catch (_) {}
   if (my !== _textEpoch) return;
-  const nameAt = await nameDecisionsFor(T);
-  T.layer = await readWordLayer(T);
-  if (my !== _textEpoch) return;
-  const scan = await RM().scanRows(rows, { nameAt, nameHintAt: T.layer.nameAt, onProgress: (d, n) => progress(fill(T.isSet ? tt('dictionary.set.scanning', 'Разбираю слова подборки: строка {d} из {n}') : tt('dictionary.text.scanning', 'Разбираю слова текста: строка {d} из {n}'), { d, n })) });
+  // O-083: the same scan as the cards of own texts in the Room and the Studio (TextKeyScan.scanLens)
+  const lens = await TKS().scanLens(localDb, T, { onProgress: (d, n) => progress(fill(T.isSet ? tt('dictionary.set.scanning', 'Разбираю слова подборки: строка {d} из {n}') : tt('dictionary.text.scanning', 'Разбираю слова текста: строка {d} из {n}'), { d, n })) });
+  T.layer = lens.layer;
+  const scan = lens.scan;
   if (my !== _textEpoch) return;
   T.scan = scan;
-  T.nameAt = nameAt;
+  T.nameAt = lens.nameAt;
   T.nameCheck = nameCheckOf(T);
   try { T.dictaCov = await window.DictaEnrich.coverage(localDb, T.texts.map((t) => t.id)); } catch (_) { T.dictaCov = null; }
   attachText();
@@ -784,7 +735,7 @@ async function textFamiliarity() {
   const T = S.text, C = window.LearningCompassCore; if (!T || !T.scan || !C) return;
   let projection = null; try { projection = await localDb.getLearningCompassProjection(); } catch (_) { projection = null; }
   if (S.text !== T) return;
-  const ing = (from, to) => P().scanIngredients({ rowKeys: T.scan.rowKeys, rowStats: T.scan.rowStats, from, to, resolverVersion: C.RESOLVER_VERSION });
+  const ing = (from, to) => TKS().listIngredients({ rowKeys: T.scan.rowKeys, rowStats: T.scan.rowStats, from, to, resolverVersion: C.RESOLVER_VERSION });
   const fitOf = (x) => (projection ? C.evaluateRecordedFamiliarityV2({ ingredients: x, learner_projection: projection }) : { status: 'UNAVAILABLE', recorded_familiar_pct_lower_bound: null });
   T.texts.forEach((t) => { t.fit = fitOf(ing(t.from, t.from + t.n)); });
   T.ingredients = ing(0, T.rows.length);

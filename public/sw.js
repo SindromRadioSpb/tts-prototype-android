@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.773";
+const CACHE_VERSION = "v3.11.774";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -79,10 +79,10 @@ const PRECACHE_URLS = [
   "/css/dictionary.css?v=770",
   "/js/dictionary-core.js?v=769",
   "/js/form-drill-core.js?v=753",
-  "/js/dictionary-progress-core.js?v=767",
+  "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=770",
+  "/js/dictionary-ui.js?v=774",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
@@ -124,7 +124,8 @@ const PRECACHE_URLS = [
   "/js/corpus-discovery-browser.js?v=731",
   "/css/room-discovery.css?v=730",
   "/data/benyehuda/author-aliases-v1.json?v=730",
-  "/js/local-text-familiarity.js?v=669",
+  "/js/text-key-scan.js?v=774",
+  "/js/local-text-familiarity.js?v=774",
   "/js/studio-library-discovery.js?v=486",
   "/",
   "/index.html",
@@ -144,7 +145,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=773",
+  "/js/library-ui.js?v=774",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -204,7 +205,7 @@ const PRECACHE_URLS = [
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=769",
+  "/js/morph-host.js?v=774",
   "/js/studio-morph.js?v=5",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -353,7 +354,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=771",
+  "/db/local-db.js?v=774",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

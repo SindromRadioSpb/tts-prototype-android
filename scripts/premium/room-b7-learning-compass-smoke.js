@@ -65,7 +65,7 @@ function calibrationLedger() {
 
 async function seed(page, withProfile) {
   return page.evaluate(async ({ profile, ledger }) => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     for (let index = 1; index <= 8; index += 1) {
       const suffix = String(index).padStart(2, "0");
       await db.createText({
@@ -82,6 +82,10 @@ async function seed(page, withProfile) {
       await db.applyWordStatusFromSync("pid:1", "known");
       await db.applyWordStatusFromSync("pid:2", "new");
     }
+    // O-083: an own-text card's cache row carries the keys generation — seed under the version the Room expects
+    const cardVersion = window.LocalTextFamiliarity && window.TextKeyScan
+      ? window.LocalTextFamiliarity.descriptor({ id: "_" }, window.LearningCompassCore, await window.TextKeyScan.generation(db)).resolver_version
+      : "recorded-familiarity-v2";
     const listed = await db.listPersonalTextsPage({ limit: 48, sort: "title_asc" });
     for (let index = 0; index < listed.items.length; index += 1) {
       if (index === 4) continue; // honest NOT_PREPARED; idle behavior is scenario-controlled.
@@ -106,7 +110,7 @@ async function seed(page, withProfile) {
       await db.putLearningCompassIngredients({
         cache_key: `mytext:${item.id}`, source_class: "mytext", source_key: item.text_key,
         content_revision: ingredients.content_revision, content_sha256: ingredients.content_sha256,
-        entitlement_revision: null, resolver_version: "recorded-familiarity-v2", ingredients,
+        entitlement_revision: null, resolver_version: cardVersion, ingredients,
       });
     }
     localStorage.setItem("room.learningCompass.calibration.v2", JSON.stringify(ledger));
@@ -114,6 +118,8 @@ async function seed(page, withProfile) {
   }, { profile: withProfile, ledger: calibrationLedger() });
 }
 
+// O-085/O-083: every page.evaluate imports the page's OWN database module (the ?v= URL it loaded) — an unversioned
+// import is a second, uninitialized instance («Local database is not initialized»).
 async function runColdLibraryScenario(browser) {
   const coldTotal = 115;
   const context = await browser.newContext({
@@ -129,7 +135,7 @@ async function runColdLibraryScenario(browser) {
   await page.goto(BASE + "/library.html?canon=skip#room=mytexts", { waitUntil: "load", timeout: 60000 });
   await page.waitForFunction(() => window.__localDB?.isReady?.(), null, { timeout: 60000 });
   const seeded = await page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     const total = 115;
     for (let index = 1; index <= total; index += 1) {
       const suffix = String(index).padStart(3, "0"), id = `b7-cold-${suffix}`;
@@ -164,7 +170,7 @@ async function runColdLibraryScenario(browser) {
   }, null, { timeout: 120000 });
   await page.waitForFunction(() => document.querySelector("[data-learning-index-status]")?.getAttribute("data-state") === "ready", null, { timeout: 120000 });
   const final = await page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     return {
       cards: document.querySelectorAll(".mytexts-grid .mytext-card").length,
       available: document.querySelectorAll(".mytexts-grid .coverage-available,.mytexts-grid .coverage-available_limited").length,
@@ -191,7 +197,7 @@ async function runColdLibraryScenario(browser) {
   check(JSON.stringify(final.canonical.texts) === JSON.stringify(seeded.canonical.texts), "cold-library: analysis changes no personal text or last-opened state");
   check(errors.length === 0, `cold-library: no page errors (${errors.join(" | ")})`);
   const packetFixture = await page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     const requests = [];
     for (let index = 1; index <= 48; index += 1) {
       const cacheKey = `mytext:b7-packet-${index}`;
@@ -219,7 +225,7 @@ async function runColdLibraryScenario(browser) {
   check(packetFixture.sizeBytes <= 256 * 1024, `cold-library: compact 48-card packet stays within 256 KiB (${packetFixture.sizeBytes})`);
   check(packetFixture.tupleStored, "cold-library: derived cache persists compact [key,count] rows");
   const sortFixture = await page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     const rows = await db.dbQuery("SELECT cache_key,ingredients_json FROM room_learning_compass_cache WHERE cache_key IN ('mytext:b7-cold-001','mytext:b7-cold-115') ORDER BY cache_key");
     const parsed = rows.map((row) => ({ key: row.cache_key, frequencies: JSON.parse(row.ingredients_json).key_frequencies || [] }));
     const pair = (entry) => Array.isArray(entry) ? [String(entry[0]), Number(entry[1]) || 0] : [entry.key, Number(entry.token_count) || 0];
@@ -278,11 +284,14 @@ async function runColdLibraryScenario(browser) {
 
 async function directBatchMetrics(page) {
   return page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     const listed = await db.listPersonalTextsPage({ limit: 48, sort: "title_asc" });
+    const cardVersion = window.LocalTextFamiliarity && window.TextKeyScan   // O-083: the version the Room's cards read
+      ? window.LocalTextFamiliarity.descriptor({ id: "_" }, window.LearningCompassCore, await window.TextKeyScan.generation(db)).resolver_version
+      : "recorded-familiarity-v2";
     const requests = listed.items.map((item) => ({
       cache_key: `mytext:${item.id}`, content_revision: String(item.updated_at || "unknown"),
-      content_sha256: "", entitlement_revision: null, resolver_version: "recorded-familiarity-v2",
+      content_sha256: "", entitlement_revision: null, resolver_version: cardVersion,
     }));
     const times = [];
     let last;
@@ -441,7 +450,7 @@ async function runScenario(browser, scenario) {
     check(!/unresolved-above-rank-limit/.test(limitedDisclosure), `${scenario.name}: raw caveat code is not exposed`);
     const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
     const canonicalBefore = await page.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
       return {
         review_log: await db.dbQuery("SELECT * FROM review_log ORDER BY id", []),
         word_status: await db.dbQuery("SELECT * FROM word_status ORDER BY lemma_key", []),
@@ -453,7 +462,7 @@ async function runScenario(browser, scenario) {
     const reset = page.locator(".mytexts-grid .learning-calibration-reset").first();
     await reset.focus(); await page.keyboard.press("Enter");
     const resetProof = await page.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
       return {
         ledger: JSON.parse(localStorage.getItem("room.learningCompass.calibration.v2") || "null"),
         after: {
@@ -470,7 +479,7 @@ async function runScenario(browser, scenario) {
     const toggle = page.locator(".mytexts-grid .learning-calibration-toggle").first();
     await toggle.focus(); await page.keyboard.press("Enter");
     const disableProof = await page.evaluate(async () => {
-      const db = await import("/db/local-db.js");
+      const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
       return {
         disabled: localStorage.getItem("room.learningCompass.calibrationDisabled.v2"),
         ledger: JSON.parse(localStorage.getItem("room.learningCompass.calibration.v2") || "null"),
@@ -508,7 +517,7 @@ async function runBenRailDisclosureScenario(browser) {
   await page.goto(BASE + "/library.html?canon=skip#room=benyehuda", { waitUntil: "load", timeout: 60000 });
   await page.waitForFunction(() => window.__localDB?.isReady?.(), null, { timeout: 60000 });
   await page.evaluate(async () => {
-    const db = await import("/db/local-db.js");
+    const db = await import(performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/db\/local-db\.js/.test(n)) || "/db/local-db.js");
     await db.applyWordStatusFromSync("pid:b7-ben-rail-profile", "known");
   });
   await page.reload({ waitUntil: "load", timeout: 60000 });

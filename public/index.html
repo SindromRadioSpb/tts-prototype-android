@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=771">
+    <link rel="modulepreload" href="/db/local-db.js?v=774">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11075,7 +11075,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=771';
+  import * as _ldb from '/db/local-db.js?v=774';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13840,7 +13840,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=485"></script>
 <script src="/js/learning-compass-core.js"></script>
-<script src="/js/local-text-familiarity.js?v=669"></script>
+<script src="/js/text-key-scan.js?v=774"></script>
+<script src="/js/local-text-familiarity.js?v=774"></script>
 <script src="/js/studio-library-discovery.js?v=486"></script>
 <script src="/js/portable-learning-package-repository.js?v=742"></script>
 <script src="/js/material-open.js?v=734"></script>
@@ -13878,7 +13879,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
-<script src="/js/morph-host.js?v=769"></script>
+<script src="/js/morph-host.js?v=774"></script>
 <!-- Exact owner morphology decisions are shared with Reading Room. Load the
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
@@ -13943,7 +13944,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.773";
+    window.APP_VERSION = "3.11.774";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

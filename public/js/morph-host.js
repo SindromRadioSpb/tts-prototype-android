@@ -46,9 +46,17 @@
   var _identityMigrationScheduled = false;
   // Ф4 · Д8-К — the device's Dicta lexicon: one load per page, shared by every host on it. resolveCore reads it, so the
   // Room's paint, a tap, the trainers and «Мой словарь» key a word Pealim does not read in the same way.
-  var _dictaLexPromise = null, _autoParseScheduled = false;
+  var _dictaLexPromise = null, _dictaLexCalled = [], _autoParseScheduled = false;
   function _loadDictaLexicon(ldbOf, onLoaded) {
-    if (_dictaLexPromise) return _dictaLexPromise;
+    // every caller's onLoaded runs, whoever started the load (O-083: a card scan may come before the host's own kick)
+    if (_dictaLexPromise) {
+      if (typeof onLoaded === "function" && _dictaLexCalled.indexOf(onLoaded) < 0) {
+        _dictaLexCalled.push(onLoaded);
+        _dictaLexPromise.then(function (lex) { if (lex && lex.size) { try { onLoaded(lex); } catch (_) {} } });
+      }
+      return _dictaLexPromise;
+    }
+    if (typeof onLoaded === "function") _dictaLexCalled.push(onLoaded);
     _dictaLexPromise = (async function () {
       var RM = typeof window !== "undefined" ? window.ReaderMorph : null, DLX = typeof window !== "undefined" ? window.DictaLexicon : null;
       var ldb = await ldbOf();
@@ -58,7 +66,7 @@
       try { window.dispatchEvent(new CustomEvent("lp:dicta-lexicon", { detail: { size: lex.size } })); } catch (_) {}
       if (lex.size && typeof onLoaded === "function") { try { onLoaded(lex); } catch (_) {} }
       return lex;
-    })().catch(function (e) { _dictaLexPromise = null; try { console.warn("[dicta-lexicon]", e); } catch (_) {} return null; });
+    })().catch(function (e) { _dictaLexPromise = null; _dictaLexCalled = []; try { console.warn("[dicta-lexicon]", e); } catch (_) {} return null; });
     return _dictaLexPromise;
   }
   function createHost(env) {
@@ -490,9 +498,10 @@
     // Ф4 · Д7.2 once per device: marks on spelling keys move to the lemma (ReaderMorph.migrateSpellingMarks), in the
     // background after the page settles; one tab at a time (Web Lock). A moved mark repaints the word states.
     // the lexicon first (a paint before it keys an unread word by its spelling; the repaint after it agrees with the list)
-    function ensureDictaLexicon() { return _loadDictaLexicon(ldbOf, function () { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }); }
+    var _onDictaLexicon = function () { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} };
+    function ensureDictaLexicon() { return _loadDictaLexicon(ldbOf, _onDictaLexicon); }
     // after new Dicta parses were saved (Studio «Обогатить», the dictionary's «Разобрать через Dicta», an import)
-    function refreshDictaLexicon() { _dictaLexPromise = null; return ensureDictaLexicon(); }
+    function refreshDictaLexicon() { _dictaLexPromise = null; _dictaLexCalled = []; return ensureDictaLexicon(); }
     // in the page's idle time, not during its own start-up reads and writes (the dictionary awaits it explicitly; the
     // Room repaints when it lands)
     try {
@@ -565,7 +574,8 @@
     };
   }
 
-  var api = { createHost: createHost };
+  // O-083: TextKeyScan waits for the SAME lexicon promise before a card scan (a scan before it keys words wrongly)
+  var api = { createHost: createHost, loadDictaLexicon: function (ldbOf) { return _loadDictaLexicon(ldbOf); } };
   if (typeof window !== "undefined") window.MorphHost = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();
