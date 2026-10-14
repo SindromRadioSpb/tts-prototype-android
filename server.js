@@ -4177,10 +4177,12 @@ app.get("/api/learner/artifacts/get", rlLearnerArtifacts, async (req, res) => {
     if (!row) return res.status(404).json({ ok: false, error: "NOT_FOUND" });
     // Raw-passthrough (§6.3, критика F2-9): payload_json валидирован на PUT — не тратим
     // event-loop 1.5-vCPU контейнера на JSON.parse+re-stringify многомегабайтного блоба.
+    // O-088: сжатый state_bundle отдаётся как есть только заявившему ?enc=gzip; старой вкладке — распакованным.
+    const payloadJson = await learnerArtifactsRepo.payloadJsonFor(row, req.query.enc === "gzip");
     res.set("Content-Type", "application/json; charset=utf-8");
     res.send('{"ok":true,"artifact_key":' + JSON.stringify(row.artifact_key)
       + ',"updated_at":' + JSON.stringify(row.updated_at)
-      + ',"payload":' + row.payload_json + '}');
+      + ',"payload":' + payloadJson + '}');
   } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_GET_FAILED", message: e.message }); }
 });
 

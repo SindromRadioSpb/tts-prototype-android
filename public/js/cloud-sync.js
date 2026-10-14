@@ -313,6 +313,37 @@
   // эту же константу (config-string-match-by-construction). Bump версии = новая карта =
   // обязательный re-consent (грант старой версии НЕ переносится молча — решение владельца).
   var CLOUD_TEXTS_CONSENT_VERSION = "v2";
+  // O-088 (2026-10-14): state_bundle владельца вырос до 44,9 МБ (заметки 24 тыс., вхождения 136 тыс.) —
+  // больше парсера /put (32 МБ) и капа (24 МБ); gzip сжимает его в 7,6 раза. Конверт хранится на
+  // сервере как есть (сервер содержимое состояния не читает); GET без ?enc=gzip отдаёт распакованное
+  // (старые вкладки). Строку формата сервер require'ит отсюда же (совпадение по построению).
+  var STATE_ENVELOPE_FORMAT = "lp-gzip-b64-v1";
+  function _b64FromBytes(u8) {
+    var s = "", CH = 0x8000;
+    for (var i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH));
+    return btoa(s);
+  }
+  function _bytesFromB64(b64) {
+    var s = atob(b64), u8 = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) u8[i] = s.charCodeAt(i);
+    return u8;
+  }
+  async function _pipe(bytes, stream) {
+    return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+  }
+  // state payload → конверт (без CompressionStream — как раньше, открытым JSON)
+  async function packState(payload) {
+    if (typeof CompressionStream !== "function") return payload;
+    var raw = new TextEncoder().encode(JSON.stringify(payload));
+    var gz = await _pipe(raw, new CompressionStream("gzip"));
+    return { format: STATE_ENVELOPE_FORMAT, inner_format: payload && payload.format || null, raw_bytes: raw.length, data: _b64FromBytes(gz) };
+  }
+  async function unpackState(payload) {
+    if (!payload || payload.format !== STATE_ENVELOPE_FORMAT) return payload;
+    if (typeof DecompressionStream !== "function") throw new Error("STATE_ENVELOPE_UNSUPPORTED");
+    var raw = await _pipe(_bytesFromB64(String(payload.data || "")), new DecompressionStream("gzip"));
+    return JSON.parse(new TextDecoder().decode(raw));
+  }
   async function syncArtifacts(ldb, session, opts) {
     opts = opts || {};
     var consents = (session && session.consents) || {};
@@ -415,6 +446,10 @@
         var needMigrate = slim && !migrated && srvAt && Date.parse(srvAt) === Date.parse(t.updated_at);
         if (srvAt && Date.parse(srvAt) >= Date.parse(t.updated_at) && !needMigrate) { out.upSkipped++; continue; }
         var bundle = await ldb.exportBundle({ textIds: [t.id], slim: slim });
+        // O-088: exportBundle кладёт тот же список текстов дважды (library.texts и верхний texts —
+        // один объект, сериализуется дважды). В slim полки пусты; приёмник (importBundle) и серверные
+        // читатели берут верхний texts — дубль удваивал вес длинного медиатекста (11,4 → 6,7 МБ).
+        if (slim && bundle && bundle.library && Array.isArray(bundle.texts)) delete bundle.library;
         var put = await jfetch("POST", "/api/learner/artifacts/put", {
           artifact_key: t.text_key, updated_at: t.updated_at, payload: bundle,
           replace_equal: needMigrate ? true : undefined,
@@ -498,14 +533,15 @@
       await ldb.setSyncState("state_up_at", String(Date.now()));
     };
     if (needDown) {
-      var got = await jfetch("GET", "/api/learner/artifacts/get?kind=" + STATE_KIND + "&key=" + encodeURIComponent(STATE_KEY));
+      var got = await jfetch("GET", "/api/learner/artifacts/get?kind=" + STATE_KIND + "&key=" + encodeURIComponent(STATE_KEY) + "&enc=gzip");
       if (got.status !== 200 || !got.json || !got.json.ok) {
         st.ok = false; st.error = (got.json && got.json.error) || ("STATE_GET_HTTP_" + got.status);
         return st;
       }
-      st.merged = await ldb.importStateBundle(got.json.payload);
+      var srvPayload = await unpackState(got.json.payload);
+      st.merged = await ldb.importStateBundle(srvPayload);
       var expAfter = await ldb.exportStateBundle();
-      var serverCanon = JSON.stringify((got.json.payload && got.json.payload.state) || null);
+      var serverCanon = JSON.stringify((srvPayload && srvPayload.state) || null);
       if (JSON.stringify(expAfter.state) === serverCanon) {
         await _finish(serverState.updated_at, expAfter);
         st.action = "downloaded";
@@ -517,7 +553,7 @@
         ? expAfter.updated_at
         : new Date(srvTsMs + 1).toISOString();
       var putM = await jfetch("POST", "/api/learner/artifacts/put", {
-        kind: STATE_KIND, artifact_key: STATE_KEY, updated_at: upTs, payload: expAfter,
+        kind: STATE_KIND, artifact_key: STATE_KEY, updated_at: upTs, payload: await packState(expAfter),
       });
       if (putM.status === 200 && putM.json && putM.json.stored) {
         if (putM.json.warn === "NEAR_CAP") st.nearCap = true;
@@ -536,7 +572,7 @@
     var exp = await ldb.exportStateBundle();
     if (!exp.updated_at) { st.action = "empty"; return st; }
     var put2 = await jfetch("POST", "/api/learner/artifacts/put", {
-      kind: STATE_KIND, artifact_key: STATE_KEY, updated_at: exp.updated_at, payload: exp,
+      kind: STATE_KIND, artifact_key: STATE_KEY, updated_at: exp.updated_at, payload: await packState(exp),
     });
     if (put2.status === 200 && put2.json && put2.json.stored) {
       if (put2.json.warn === "NEAR_CAP") st.nearCap = true;
@@ -650,6 +686,7 @@
     CONTENT_META_KEYS: CONTENT_META_KEYS, INGEST_KEY_VERSION: INGEST_KEY_VERSION,
     PROJECTION_HEAL_KEY: PROJECTION_HEAL_KEY, PROJECTION_HEAL_VERSION: PROJECTION_HEAL_VERSION,
     CLOUD_TEXTS_CONSENT_VERSION: CLOUD_TEXTS_CONSENT_VERSION,
+    STATE_ENVELOPE_FORMAT: STATE_ENVELOPE_FORMAT, packState: packState, unpackState: unpackState,
     KEYS: { UP_CURSOR: UP_CURSOR, DOWN_CURSOR: DOWN_CURSOR, CUTOVER_OK: CUTOVER_OK, LAST_SYNC: LAST_SYNC },
   };
 });

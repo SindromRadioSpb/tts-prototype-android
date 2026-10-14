@@ -204,9 +204,12 @@ async function ready(srv, ms = 30000) {
         notes: (na.notes || []).map((n) => n.id).sort(),
         occ: (na.occurrences || []).length,
         shelves: ((g.payload.library && g.payload.library.shelves) || []).length,
-        bookmarks: (((g.payload.library && g.payload.library.texts) || [])[0] || {}).bookmarks || [],
+        bookmarks: ((g.payload.texts || (g.payload.library && g.payload.library.texts) || [])[0] || {}).bookmarks || [],   // O-088: синк шлёт без дубля library
         updated_at: g.updated_at,
+        noLibraryDup: !!(g.payload && Array.isArray(g.payload.texts) && !g.payload.library),
       };
+      // O-088: состояние хранится сжатым конвертом; без ?enc=gzip сервер отдаёт открытый JSON (ниже)
+      out.stateEnvFormat = await fetch("/api/learner/artifacts/get?kind=state_bundle&key=__state__&enc=gzip", { credentials: "same-origin" }).then((r) => r.json()).then((j) => j.payload && j.payload.format);
       // state-состав
       const gs = await fetch("/api/learner/artifacts/get?kind=state_bundle&key=__state__", { credentials: "same-origin" }).then((r) => r.json());
       const stt = (gs.payload && gs.payload.state) || {};
@@ -237,6 +240,8 @@ async function ready(srv, ms = 30000) {
     eq(JSON.stringify(aRes.t1.notes) === JSON.stringify(["nn-tb1"]), "A: slim несёт ТОЛЬКО text-bound заметки: " + JSON.stringify(aRes.t1.notes));
     eq(aRes.t1.shelves === 0, "A: slim не несёт полки");
     eq(aRes.t1.occ >= 1, "A: slim несёт occurrences этого текста (dedup-key якоря)");
+    eq(aRes.t1.noLibraryDup === true, "O-088: текст едет без дубля library");
+    eq(aRes.stateEnvFormat === "lp-gzip-b64-v1", "O-088: state_bundle хранится сжатым конвертом: " + aRes.stateEnvFormat);
     eq(aRes.t1.bookmarks.length === 1 && aRes.t1.bookmarks[0].order_index === 1, "A: закладка едет в бандле: " + JSON.stringify(aRes.t1.bookmarks));
     eq(aRes.t1.updated_at === ARGS.T0, "A: server updated_at == фикстурному (учебное время), got " + aRes.t1.updated_at);
     eq((aRes.rowBytes.find((r) => r.k === "sl-t1") || {}).b < 200 * 1024, "A: slim-артефакт < 200 КБ: " + JSON.stringify(aRes.rowBytes));
@@ -529,12 +534,12 @@ async function ready(srv, ms = 30000) {
     await stop(srv.c);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 50;
+  const total = 52;
   if (failures.length) {
     console.error(`smoke:sync-slim FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:sync-slim OK (${total}/${total}) — P0: slim-состав (без full-state, <200КБ, закладки едут) · state_bundle (заметки/якоря без корпуса/полки/override/anki/study_day/roots) · updated_at-инвариантность (пинг-понг погашен) · fresh-restore=фикстура · LWW body-merge · occurrence-only signal · двухдевайсный union · fat-откат+replace_equal-миграция · skew-guard · P2: интент-delete+tombstone (без ресуррекции) · Undo=last-intent-wins · DELETED_OLDER · «правка воскрешает» · битый server-newer не теряет текст · revoke=purge+re-grant re-upload`);
+    console.log(`smoke:sync-slim OK (${total}/${total}) — P0: slim-состав (без full-state, <200КБ, закладки едут) · state_bundle (заметки/якоря без корпуса/полки/override/anki/study_day/roots) · updated_at-инвариантность (пинг-понг погашен) · fresh-restore=фикстура · LWW body-merge · occurrence-only signal · двухдевайсный union · fat-откат+replace_equal-миграция · skew-guard · P2: интент-delete+tombstone (без ресуррекции) · Undo=last-intent-wins · DELETED_OLDER · «правка воскрешает» · битый server-newer не теряет текст · revoke=purge+re-grant re-upload · O-088: текст без дубля library, state сжатым конвертом`);
   }
 })();

@@ -21,6 +21,11 @@ const { getDb } = require("./sqlite");
 // и иерархические пре-чеки агент-путей остаются any-granted (right-to-delete и уже-согласованные
 // ОТДЕЛЬНЫМИ ключами agent_read_texts* чтения не запираются за новой картой синка).
 const REQUIRED_CONSENT_VERSION = require("../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION;
+// O-088 — сжатый конверт state_bundle (gzip+base64). Строка формата — из клиентского модуля (по построению).
+const STATE_ENVELOPE_FORMAT = require("../public/js/cloud-sync.js").STATE_ENVELOPE_FORMAT;
+const zlib = require("zlib");
+// потолок распакованного состояния: защита от gzip-бомбы (сегодня 45 МБ у владельца)
+const MAX_STATE_INFLATED_BYTES = 160 * 1024 * 1024;
 
 const KIND = "text_bundle";
 const STATE_KIND = "state_bundle";
@@ -115,6 +120,12 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
   // Разбор нужен и для валидации, и для sidecar-меты (S1 §1.1) — один парс на оба.
   let parsedPayload = null;
   try { parsedPayload = JSON.parse(payloadStr); } catch (_) { return { ok: false, error: "BAD_JSON" }; }
+  // O-088: конверт — только у состояния (тексты читают агент и мета — им нужен открытый JSON);
+  // целостность проверяется распаковкой ДО записи: битый блоб на сервере = потерянное состояние.
+  if (parsedPayload && parsedPayload.format === STATE_ENVELOPE_FORMAT) {
+    if (k !== STATE_KIND) return { ok: false, error: "BAD_ENCODING" };
+    try { await inflateEnvelope(parsedPayload); } catch (_) { return { ok: false, error: "BAD_ENCODING" }; }
+  }
   const existing = await dbGet(db, `SELECT updated_at FROM learner_artifacts WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
   if (existing) {
     const exMs = Date.parse(existing.updated_at), atMs = Date.parse(at);
@@ -157,6 +168,27 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
   const out = { ok: true, stored: true };
   if (bytes > cap * 0.75) { out.warn = "NEAR_CAP"; out.bytes = bytes; out.cap = cap; }
   return out;
+}
+
+// O-088: конверт → открытый JSON-текст состояния (асинхронно, в пуле потоков: event loop не стоит).
+function inflateEnvelope(env) {
+  return new Promise((resolve, reject) => {
+    if (!env || env.format !== STATE_ENVELOPE_FORMAT || typeof env.data !== "string" || !env.data) return reject(new Error("BAD_ENCODING"));
+    zlib.gunzip(Buffer.from(env.data, "base64"), { maxOutputLength: MAX_STATE_INFLATED_BYTES }, (e, buf) => {
+      if (e) return reject(e);
+      const text = buf.toString("utf8");
+      if (text[0] !== "{") return reject(new Error("BAD_ENCODING"));
+      resolve(text);
+    });
+  });
+}
+// GET для клиента, не заявившего ?enc=gzip: сжатый payload → открытый JSON-текст; иначе как есть.
+async function payloadJsonFor(row, acceptsEnvelope) {
+  const s = row && row.payload_json;
+  // формат — первое поле конверта: проверка головы строки не гоняет JSON.parse по 45-МБ открытым состояниям
+  if (acceptsEnvelope || typeof s !== "string" || s.slice(0, 200).indexOf(STATE_ENVELOPE_FORMAT) < 0) return s;
+  let env = null; try { env = JSON.parse(s); } catch (_) { return s; }
+  return env && env.format === STATE_ENVELOPE_FORMAT ? await inflateEnvelope(env) : s;
 }
 
 // ── S1 — sidecar bounded-метаданных (мигр. 050; derived-at-put, rebuildable) ────────────────
@@ -340,4 +372,4 @@ async function reconcileRevokedPurges() {
   return { users, artifacts };
 }
 
-module.exports = { hasConsent, hasConsentVersioned, list, listWithMeta, findTextKeyByNormalizedBody, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
+module.exports = { inflateEnvelope, payloadJsonFor, STATE_ENVELOPE_FORMAT, hasConsent, hasConsentVersioned, list, listWithMeta, findTextKeyByNormalizedBody, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
