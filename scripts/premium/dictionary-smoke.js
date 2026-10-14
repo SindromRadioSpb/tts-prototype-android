@@ -502,7 +502,7 @@ const ROWS = [
     // used to grow to 300×150 over the card and take its clicks)
     await pg.setViewportSize({ width: 1280, height: 900 });
     // the chip calls ReaderMorph.openWordCard(surface, niqqud) — the same call, for a name the resolver can't key
-    if (await pg.$(".dict-unsure summary")) { await pg.click(".dict-unsure summary"); await pg.click(".dict-unsure-list .dict-chip"); }
+    if (await pg.$(".dict-unsure summary")) { await pg.click(".dict-unsure summary"); await pg.click(".dict-unsure[open] .dict-unsure-list .dict-chip"); }
     else await pg.evaluate(() => window.ReaderMorph.openWordCard("אלפריד", "אַלְפְרִיד"));
     await pg.waitForSelector(".rm-speak svg", { timeout: 30000 }).catch(() => {});
     const icon = await pg.evaluate(() => { const s = document.querySelector(".rm-speak svg"), b = document.querySelector(".rm-speak");
@@ -730,14 +730,81 @@ const ROWS = [
     await pg.goto(BASE + "/dictionary.html?text=dict-smoke-id", { waitUntil: "load" });
     await pg.waitForFunction(() => { const T = window.LPDictionary && window.LPDictionary.state.text; return T && T.scan && T.fit; }, null, { timeout: 60000 });
     const idl = await pg.evaluate(() => { const T = window.LPDictionary.state.text, S = window.LPDictionary.state;
-      return { keys: Array.from(T.scan.group.keys()), unsure: Array.from(T.scan.unsure.keys()), groups: [...document.querySelectorAll(".dict-unsure-group .dict-unsure-h")].map((x) => x.textContent),
-        fam: document.getElementById("dict-textbar").innerText, counts: T.fit && T.fit.counts, chips: document.querySelectorAll(".dict-unsure-list .dict-chip").length }; });
+      return { keys: Array.from(T.scan.group.keys()), unsure: Array.from(T.scan.unsure.keys()), groups: [...document.querySelectorAll(".dict-unsure > summary")].map((x) => x.textContent),
+        fam: document.getElementById("dict-textbar").innerText, counts: T.fit && T.fit.counts,
+        chips: document.querySelectorAll('[data-unsure-group="name"] .dict-chip, [data-unsure-group="none"] .dict-chip').length }; });
     // (owner 2026-10-14) every unparsed word has its chip: a capped list (120) hid most of «Нет в словаре»
     ok(idl.unsure.length > 0 && idl.chips === idl.unsure.length, `D23 «Не разобрано»: в списке ${idl.chips} слов из ${idl.unsure.length}`);
     ok(idl.keys.includes("pid:3610") && idl.keys.includes("pid:2650") && idl.keys.includes("pid:7738") && idl.unsure.includes("אלפריד") && !idl.unsure.includes("ילדי")
-      && idl.groups.some((g) => /Нет в словаре|Похоже на имя/.test(g)) && /Знакомо \d+% слов текста/.test(idl.fam) && /Считается по словам этого списка/.test(idl.fam)
+      && idl.groups.some((g) => /Имена и названия|Не разобрано/.test(g)) && /Знакомо \d+% слов текста/.test(idl.fam) && /Считается по словам этого списка/.test(idl.fam)
       && idl.counts && idl.counts.eligible_denominator === idl.counts.familiar + idl.counts.explicit_new + idl.counts.untracked + idl.counts.unresolved,
       `D23 срез: формы לתלמידי/ילדי/והשועל — леммы ${idl.keys.filter((k) => /3610|2650|7738/.test(k)).join(",")}; не разобрано: ${idl.unsure.join(",")} (${idl.groups.join(" | ")}); знакомость по ключам списка ${JSON.stringify(idl.counts)}`);
+
+
+    // D24 (Д8-К, owner 2026-10-14; docs/planning/word-layer/F4_D8K_ROLE_CRITIQUE_2026_10_14.md) every word of a text has a
+    // place: a word Pealim does not know is a Dicta entry (its key == the Room tap's key), its meaning is the word layer's;
+    // a name goes to «Имена и названия», a function word behind a prefix under the checkbox; a Pealim word the layer calls
+    // a name is flagged and «Это имя (здесь)» moves it — for this text only; the device's Dicta lexicon is stored
+    const d24 = await pg.evaluate(async () => {
+      const ldb = await import(window.__LDB_URL), W = window.WordGlossAI;
+      await ldb.createText({ id: "dict-smoke-dicta", text_key: "dict-smoke-dicta", title: "Слова Dicta" });
+      const rows = [
+        { id: "dsd-1", order_index: 0, he_plain: "פודקאסט חדש עם זהב ג'יהאד", he_niqqud: "פּוֹדְקַאסְט חָדָשׁ עִם זָהָב גִּ'יהָאד", ru: "новый подкаст с Захавом, джихад" },
+        { id: "dsd-2", order_index: 1, he_plain: "וזה אלחנן", he_niqqud: "וְזֶה אֶלְחָנָן", ru: "и это Эльханан" },
+      ];
+      for (const r of rows) await ldb.addSentence("dict-smoke-dicta", r);
+      const t = (word, niqqud, posDicta, lemma, stem, prefix) => ({ word, niqqud, posDicta, lemma, lemmas: lemma ? [lemma] : [], stem: stem || word, prefix: prefix || "", confident: false });
+      await ldb.saveSentenceMorph("dict-smoke-dicta", "dsd-1", "dicta-morph-v1", [t("פודקאסט", "פּוֹדְקַאסְט", "noun", ""), t("חדש", "חָדָשׁ", "adjective", "חדש"),
+        t("עם", "עִם", "preposition", "עם"), t("זהב", "זָהָב", "noun", "זהב"), t("ג'יהאד", "גִּ'יהָאד", "noun", "", "ג'יהאד")], "dicta-morph");
+      await ldb.saveSentenceMorph("dict-smoke-dicta", "dsd-2", "dicta-morph-v1", [t("וזה", "וְזֶה", "pronoun", "זה", "זה", "ו"), t("אלחנן", "אֶלְחָנָן", "propernoun", "אלחנן")], "dicta-morph");
+      const g = (x) => ({ gloss: x, wrong_hint: false });
+      const layer = { schema: W.LAYER_SCHEMA, rows: [
+        { order_index: 0, key: W.rowPayloadFromData(rows[0]).key, glosses: [g("подкаст"), g("новый"), g("с"), g("имя: Захав"), g("джихад"), g("джихад")], mwe: [] },   // the layer counts the pointed words: גִּ'יהָאד is two
+        { order_index: 1, key: W.rowPayloadFromData(rows[1]).key, glosses: [g("и это"), g("имя: Эльханан")], mwe: [] }] };
+      const rem = await W.remember(layer, rows);
+      const lex = await window.LPDictionary.morphHost.refreshDictaLexicon();
+      const stored = (await ldb.dbQuery("SELECT skeleton, lemma, cls FROM dicta_lexicon WHERE skeleton IN ('פודקאסט','גיהאד','וזה','אלחננ')", [])) || [];   // the stored skeleton folds finals
+      return { rem, lexSize: lex ? lex.size : 0, stored: stored.map((r) => r.skeleton + ":" + r.cls) };
+    });
+    await pg.goto(BASE + "/dictionary.html?text=dict-smoke-dicta", { waitUntil: "load" });
+    await pg.waitForFunction(() => { const T = window.LPDictionary && window.LPDictionary.state.text; return T && T.scan && T.fit && T.title === "Слова Dicta"; }, null, { timeout: 60000 });
+    const look24 = async () => pg.evaluate(async () => {
+      const T = window.LPDictionary.state.text, RM = window.ReaderMorph;
+      const row = (k) => { const b = document.querySelector('.dict-row[data-key="' + k + '"]'); return b ? b.innerText : ""; };
+      const tap = await RM.resolveWordLight("פודקאסט", "פּוֹדְקַאסְט");
+      const sec = (g) => [...document.querySelectorAll('[data-unsure-group="' + g + '"] .dict-chip')].map((c) => c.textContent);
+      return { keys: Array.from(T.scan.group.keys()), unsure: Array.from(T.scan.unsure.keys()), func: Array.from(T.scan.func.keys()),
+        podcastRow: row("dl:פודקאסט#noun"), jihadRow: row("dl:גיהאד#noun"), tapKey: tap && tap.lemmaKey, tapLabel: tap && tap.label,
+        names: sec("name"), none: sec("none"), check: sec("name-check"), funcHidden: !!(document.querySelector('[data-unsure-group="func"]') || {}).hidden,
+        hasNameHere: !!document.querySelector('[data-name-here]') };
+    });
+    const a24 = await look24();
+    ok(d24.rem.stored === 2 && d24.lexSize >= 4 && ["פודקאסט:content", "גיהאד:content", "וזה:function", "אלחננ:name"].every((x) => d24.stored.includes(x)),
+      `D24 лексикон Dicta устройства сохранён: ${d24.stored.join(", ")} (слой перевода: ${d24.rem.stored} строки)`);
+    ok(/по разбору Dicta/.test(a24.podcastRow) && /подкаст/.test(a24.podcastRow) && a24.tapKey === "dl:פודקאסט#noun" && a24.tapLabel === "dicta",
+      `D24 запись Dicta: «${a24.podcastRow.replace(/\s+/g, " ").trim()}»; тап в Зале — тот же ключ ${a24.tapKey} (${a24.tapLabel})`);
+    ok(a24.keys.includes("dl:גיהאד#noun") && /джихад/.test(a24.jihadRow) && !a24.unsure.some((u) => /^(ג|יהאד)$/.test(u)),
+      `D24 ג'יהאד — одно слово, не обрывки: «${a24.jihadRow.replace(/\s+/g, " ").trim()}»`);
+    ok(a24.func.includes("וזה") && a24.funcHidden && a24.names.some((x) => /אֶלְחָנָן/.test(x)) && a24.none.length === 0,
+      `D24 וְזֶה — служебное (под галочкой, скрыто); имена: ${a24.names.join(" ")}; «Не разобрано» пусто`);
+    ok(a24.hasNameHere && a24.check.some((x) => /זָהָב/.test(x)),
+      `D24 זָהָב: «золото» по словарю, «имя: Захав» по переводу → «Проверьте: похоже на имя»`);
+    await pg.click('[data-name-here]');
+    await pg.waitForFunction(() => { const T = window.LPDictionary.state.text; return T && T.scan && T.nameAt && T.nameAt.size > 0
+      && [...document.querySelectorAll('[data-unsure-group="name"] .dict-chip')].some((c) => /זָהָב/.test(c.textContent)); }, null, { timeout: 60000 });
+    const b24 = await look24();
+    const goldKey = a24.keys.find((k) => /^pid:/.test(k) && !b24.keys.includes(k));
+    ok(b24.names.some((x) => /זָהָב/.test(x)) && b24.check.length === 0 && !!goldKey,
+      `D24 «Это имя (здесь)»: זָהָב теперь в «Имена и названия» (${b24.names.join(" ")}), в списке слов нет ${goldKey}`);
+    await pg.click("#dict-show-func");
+    const funcShown24 = await pg.evaluate(() => !(document.querySelector('[data-unsure-group="func"]') || {}).hidden);
+    await pg.setViewportSize({ width: 380, height: 845 });
+    await pg.evaluate(() => document.querySelectorAll(".dict-unsure").forEach((d) => { d.open = true; }));
+    await pg.waitForTimeout(300);
+    const wide24 = await pg.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    await pg.screenshot({ path: shot("dicta-lens-380"), fullPage: true });
+    await pg.setViewportSize({ width: 1280, height: 900 });
+    ok(funcShown24 && !wide24, "D24 галочка показывает служебные слова; срез на 380 px без прокрутки вбок");
 
     // D16 list tools: a mass status change on any view (palette → confirm → canon write → undo), a saved filter set,
     // the source filter, and «▶ медиа с этого места» for a place in a text with media timing

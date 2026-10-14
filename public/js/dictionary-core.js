@@ -24,6 +24,7 @@
   function keySurface(key) {
     var k = str(key);
     if (!k || /^pid:/.test(k)) return "";
+    if (/^dl:/.test(k)) k = k.slice(3);   // Д8-К: dl:<Dicta lemma>#<pos> — the lemma is the key's surface
     var i = k.indexOf("#");
     var s = i >= 0 ? k.slice(0, i) : k;
     return /[א-ת]/.test(s) ? s : "";
@@ -108,7 +109,7 @@
   function meaningOf(e) {
     var n = e.note || {}, r = e.reading || {};
     if (n.userMeaning) return { text: n.userMeaning, from: "user" };
-    if (r.meaning) return { text: r.meaning, from: r.label === "exact" ? "dictionary" : "likely" };
+    if (r.meaning) return { text: r.meaning, from: r.label === "exact" ? "dictionary" : r.label === "dicta" ? "text" : "likely" };
     if (n.meaning) return { text: n.meaning, from: "note" };
     return { text: "", from: "" };
   }

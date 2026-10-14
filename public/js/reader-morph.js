@@ -579,6 +579,39 @@
   // reading: «likely», never «exact». One place — so the paint, the long-press, the card, the Room's and the
   // dictionary's lists and the Studio key the word identically. Closed-class / adverb glosses (steps 1–2) stay display.
   async function resolveCore(eng, surfaceOrig, niqqudOrig) {
+    var card = await _resolveBase(eng, surfaceOrig, niqqudOrig);
+    if (!card || (card.label !== "unknown" && card.label !== "guessed") || !eng || !eng.dictaLex) return card;
+    // Ф4 · Д8-К: a word the offline dictionary does not read takes its identity from the device's Dicta lexicon
+    // (Dicta's parse of the learner's own texts, context-free, append-only — the same answer on every surface).
+    // Pealim still wins where it agrees: the TEXT's pointing of Dicta's stem resolves to Dicta's own lemma (Д8-1).
+    var DLX = (typeof window !== "undefined" && window.DictaLexicon) || _DictaLexiconNode;
+    var e = DLX ? DLX.lookup(eng.dictaLex, surfaceOrig || niqqudOrig) : null;
+    // the offline gazetteer's name (הָלְאָה «дальше» ≠ Leah) or a preposition+suffix split read off the bare letters
+    // (עָלָה «поднялся» ≠ על+ה) yields to Dicta's word, marked disputed; any other function reading stays
+    var gateOverride = card.gateVia === "name" || card.gateVia === "prep+suf";
+    if (!e || e.cls !== "content" || (card.functionWord && !gateOverride)) return card;
+    // a closed-class word behind proclitics (וְגַם, בְּכָל, וְיֵשׁ) stays a function word whatever Dicta calls it (adverb, no
+    // class); only a LEXICAL adverb (עַכְשָׁו, בְּדִיּוּק, סְתָם) becomes a word of the dictionary
+    try { var fnr = enrichReading(eng, card, surfaceOrig, String(niqqudOrig || "")); if (fnr && fnr.label === "function" && !/adverb/.test(fnr.gateVia || "")) return card; } catch (_) {}
+    var conf = null;
+    try { conf = await _dictaConfirmed(eng, surfaceOrig, niqqudOrig, { prefix: e.prefix, lemma: e.lemma, lemmas: [], posDicta: e.pos || null, niqqud: e.nq }); } catch (_) { conf = null; }
+    if (conf) return Object.assign({}, conf.card, { word: surfaceOrig || stripNiqqud(niqqudOrig), niqqud: String(niqqudOrig || ""), identityVia: "dicta-confirmed" });
+    return Object.assign({}, card, {
+      label: "dicta", channel: "dicta-lexicon", identityVia: "dicta-lexicon", dictaKey: DLX.keyOf(e),
+      lemma: e.lemma, pos: e.pos, meaning: "", root: null, binyan: "", paradigm: null, pealim_id: "", pealim_url: "",
+      ambiguous: !!e.amb || gateOverride, alts: [], functionWord: false, gateVia: "", dictaNoLemma: !!e.noLemma,
+    });
+  }
+  var _DictaLexiconNode = null;
+  try { if (typeof module !== "undefined" && module.exports && typeof require === "function") _DictaLexiconNode = require("./dicta-lexicon.js"); } catch (_) { _DictaLexiconNode = null; }
+  // the device's Dicta lexicon (Map skeleton → entry), set by the host after reading local-db; null = off
+  function setDictaLexicon(lex) {
+    var eng = _eng; if (eng) eng.dictaLex = lex || null;
+    _pendingDictaLex = lex || null;
+    try { _glossMemo.clear(); } catch (_) {}
+  }
+  var _pendingDictaLex = null;
+  async function _resolveBase(eng, surfaceOrig, niqqudOrig) {
     var card = await _resolveOffline(eng, surfaceOrig, niqqudOrig);
     if (!card || (card.label !== "unknown" && card.label !== "guessed")) return card;
     var up = null;
@@ -731,7 +764,7 @@
           });
         }
       } catch (_) { procLex = null; }
-      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex, procLex: procLex };
+      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex, procLex: procLex, dictaLex: _pendingDictaLex };
       return _eng;
     })().catch(function (e) { _engPromise = null; throw e; });
     return _engPromise;
@@ -785,6 +818,7 @@
       }
     } catch (_) {}
     if (!NA || !NA.lemmaKey) return "";
+    if (card && card.label === "dicta" && /^dl:/.test(String(card.dictaKey || ""))) return String(card.dictaKey);   // == LemmaCanon.canonKey
     var ks = _statusKeyWord(card, niqqud, surface);
     try { return NA.lemmaKey({ pealim_id: _statusPid(card, ks), lemma: card.lemma, word: ks, pos: card.pos }) || ""; }
     catch (_) { return ""; }
@@ -1221,6 +1255,7 @@
     guessed: ["room.morph.prov.guessed", "подобрано"],
     "function": ["room.morph.prov.function", "служебное слово"],
     context: ["room.morph.prov.context", "контекст (Dicta)"],
+    dicta: ["room.morph.prov.dicta", "по разбору Dicta"],
     unknown: ["room.morph.prov.unknown", "не определено офлайн"],
   };
   // Epic-2 #1 — confidence-taxonomy legend (one-line meaning per badge, behind a «?»). The
@@ -1233,9 +1268,10 @@
     context: ["room.morph.legend.context", "значение выбрано по контексту (Dicta, машина)"],
     "function": ["room.morph.legend.function", "служебное слово — показываем роль, не парадигму"],
     guessed: ["room.morph.legend.guessed", "приблизительно — по родственному слову"],
+    dicta: ["room.morph.legend.dicta", "лемма из разбора Dicta ваших текстов; в словаре Pealim нет — без таблиц форм"],
     unknown: ["room.morph.legend.unknown", "офлайн не определено — уточни по ссылке"],
   };
-  var LEGEND_ORDER = ["owner", "teacher", "exact", "likely", "context", "function", "guessed", "unknown"];
+  var LEGEND_ORDER = ["owner", "teacher", "exact", "likely", "context", "dicta", "function", "guessed", "unknown"];
   // UI text direction (rtl for the he locale) — the legend/niqqud-prov copy is UI-localized,
   // so it must follow the locale, not the card's dir="rtl" (which is for the Hebrew headword).
   function uiDir() { try { return (document.documentElement && document.documentElement.getAttribute("dir")) || "ltr"; } catch (_) { return "ltr"; } }
@@ -2650,21 +2686,10 @@
       var after = toks[list[b].tok + 1];
       if (after && !after.isWord && _APOS[after.text.charAt(0)] && (after.text.length === 1 || /^\s/.test(after.text.slice(1)))) { surf += "׳"; if (nq) nq += "׳"; }
       var sk = _d8Skel(surf);
-      out.push({ surface: surf, niqqud: nq, off: first.w, span: span, fragment: sk.length <= 1 && surf.indexOf("׳") < 0 });
+      // a lone ו/ב/ל/כ/מ/ש/ה is a real word (ב 7 באוקטובר, ל 30 שנה — a proclitic before a number); any other lone letter
+      // left after the joins is a cut-off piece, not a word (measured on the owner's text: none of them was a word)
+      out.push({ surface: surf, niqqud: nq, off: first.w, span: span, fragment: sk.length === 1 && span === 1 && surf.indexOf("׳") < 0 && !/[ובלכמשה]/.test(sk) });
       a = b;
-    }
-    return out;
-  }
-  // a row's units ↔ Dicta's tokens of the same sentence (its own tokenization): in order, by skeleton, a short look-ahead
-  function _alignDicta(units, entry) {
-    var toks = entry && (Array.isArray(entry) ? entry : entry.tokens), out = new Array(units.length);
-    if (!toks || !toks.length) return out;
-    var p = 0;
-    for (var k = 0; k < units.length; k++) {
-      var sk = _d8Skel(units[k].surface); if (!sk) continue;
-      for (var j = p; j < Math.min(toks.length, p + 5); j++) {
-        if (_d8Skel(toks[j] && toks[j].word) === sk) { out[k] = toks[j]; p = j + 1; break; }
-      }
     }
     return out;
   }
@@ -2689,8 +2714,6 @@
       return rest.join("");
     };
     var stemPlain = stripNiqqud(surface).replace(/[^א-ת]/g, "").slice(pre.length);
-    // the TEXT's pointing (what the learner reads) is read; Dicta's own pointing only where the row has none —
-    // where the two disagree (וְהֵקִינוּ vs Dicta's וְהַקִּינוֹ «и гнездо») Dicta's lemma is not taken
     // the TEXT's pointing (what the learner reads) is read; Dicta's own pointing only where the row has none. Measured on
     // the owner's text: taking Dicta's pointing where it differs (וְהֵקִינוּ vs Dicta's וְהַקִּינוֹ «и гнездо», even «close» vowels:
     // אָבִיבִי «тель-авивский» → «весна») doubled the wrong readings — the owner chose precision (Д8-1)
@@ -2698,7 +2721,7 @@
     else if (dt.niqqud) cands.push(stemOf(dt.niqqud));
     for (var c = 0; c < cands.length; c++) {
       if (!cands[c] || !/[ְ-ּ]/.test(cands[c])) continue;
-      var card; try { card = await resolveCore(eng, stemPlain, cands[c]); } catch (_) { card = null; }
+      var card; try { card = await _resolveBase(eng, stemPlain, cands[c]); } catch (_) { card = null; }
       if (!card || (card.label !== "exact" && card.label !== "likely") || card.functionWord) continue;
       var par = card.paradigm || {};
       var mine = [card.lemma, par.lemma, par.lemma_niqqud].filter(Boolean).map(_d8Loose);
@@ -2710,18 +2733,20 @@
   async function _addScannedToken(eng, NA, group, unsure, surface, niqqud, ri, off, i, stats, x) {
     x = x || {};
     var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { card = null; }
-    var dt = x.dicta || null, dPos = dt ? String(dt.posDicta || "") : "";
-    if (unsure && (!card || (card.label !== "exact" && card.label !== "likely"))) {
-      // Д8-1 (owner 2026-10-14): Dicta's own parse of this sentence CONFIRMS a reading only when the resolver,
-      // run on Dicta's stem, lands on the same lemma — two independent sources agree, no offline guess.
-      var conf = null; try { conf = await _dictaConfirmed(eng, surface, niqqud, dt); } catch (_) { conf = null; }
-      if (conf) { card = conf.card; niqqud = conf.niqqud; surface = conf.surface; }
-    }
-    if (!card || (card.label !== "exact" && card.label !== "likely")) {
-      // Д8-2: a closed-class word behind proclitics (וְזֶה, כְּשֶׁאַתָּה, בְּכָל) is a function word like זֶה itself —
-      // the shared enrichment (vowel-guarded); Dicta, where it parsed the sentence, vetoes a content word
-      var fn = card && card.label === "function" ? card : null;
-      if (!fn && card && !_DICTA_CONTENT[dPos]) { try { var en = enrichReading(eng, card, surface, niqqud); if (en && en.label === "function") fn = en; } catch (_) {} }
+    // Д8-К: the device's Dicta lexicon (the same one resolveCore read) gives the class of a word Pealim does not read
+    var DLX = (typeof window !== "undefined" && window.DictaLexicon) || _DictaLexiconNode;
+    var lx = (unsure && eng && eng.dictaLex && DLX) ? DLX.lookup(eng.dictaLex, surface || niqqud) : null;
+    var keyed = !!(card && (card.label === "exact" || card.label === "likely" || card.label === "dicta"));
+    // Д8-К · К-2: the learner said «это имя (здесь)» for this exact place (lexical_resolution_events, verified by the host)
+    if (x.forceName && unsure) { keyed = false; card = Object.assign({}, card || {}, { label: "unknown", functionWord: false, pos: "propernoun" }); lx = { cls: "name" }; }
+    if (!keyed) {
+      // Д8-2: a closed-class word (וְזֶה, כְּשֶׁאַתָּה, בְּכָל — the shared vowel-guarded enrichment, or Dicta's own class)
+      // is a function word like זֶה itself: not a learning item, listed under the «служебные слова» checkbox
+      var fn = !x.forceName && card && card.label === "function" ? card : null;
+      // the same rule as resolveCore: the vowel-guarded enrichment decides a closed-class word; a lexical adverb it knows
+      // is a function word only where the device has no Dicta parse to make it a word
+      if (!fn && card && !x.forceName) { try { var en = enrichReading(eng, card, surface, niqqud); if (en && en.label === "function" && (!lx || !/adverb/.test(en.gateVia || ""))) fn = en; } catch (_) {} }
+      if (!fn && !x.forceName && lx && lx.cls === "function") fn = { meaning: "", procliticPrefix: lx.prefix || "" };
       if (fn) {
         var fk = stripNiqqud(surface || niqqud);
         if (x.func && fk) { var fw = x.func.get(fk); if (!fw) { fw = { surface: surface || fk, niqqud: niqqud, freq: 0, prefix: fn.procliticPrefix || "", gloss: fn.meaning || "", _i: i }; x.func.set(fk, fw); } fw.freq++; }
@@ -2731,11 +2756,11 @@
         var sk = stripNiqqud(surface || niqqud);
         if (sk) {
           var u = unsure.get(sk);
-          // Д7.3 the group a learner sees: a name (hint list / proper-noun reading), a guess, or not in the dictionary.
-          // Д8: Dicta's POS decides a name both ways (מְדִינָה is a noun, אֶלְחָנָן a name) where it parsed the sentence.
-          var nameS = dPos === "propernoun" ? true : _DICTA_CONTENT[dPos] ? false
-            : (!!NAME_HINT[sk] || (card && card.pos) === "propernoun" || (card && card.gateVia) === "name");
-          if (!u) { u = { surface: surface || sk, niqqud: niqqud, freq: 0, label: (card && card.label) || "unknown", pos: (card && card.pos) || "", nameSuspect: nameS, dicta: !!dt, occ: [], _i: i }; unsure.set(sk, u); }
+          // Д7.3 the group a learner sees: a name, a guess, or not parsed. Д8-К: Dicta's class decides a name both ways
+          // (אֶלְחָנָן a name, מְדִינָה a word) where the device has its parse.
+          var nameS = !!x.nameHint || (lx ? lx.cls === "name"
+            : (!!NAME_HINT[sk] || (card && card.pos) === "propernoun" || (card && card.gateVia) === "name"));
+          if (!u) { u = { surface: surface || sk, niqqud: niqqud, freq: 0, label: (card && card.label) || "unknown", pos: (card && card.pos) || "", nameSuspect: nameS, dicta: !!lx, occ: [], _i: i }; unsure.set(sk, u); }
           u.freq++; if (Number.isFinite(ri) && Number.isFinite(off) && u.occ.length < 12) u.occ.push({ rowIdx: ri, wordOffset: off });
           if (stats) { stats.u++; if (u.nameSuspect) stats.n++; }
         }
@@ -2747,7 +2772,9 @@
     var g = group.get(lk);
     if (!g) {
       var skel = stripNiqqud(card.word || surface);
-      g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, nameSuspect: !!NAME_HINT[skel], occ: [], _i: i };
+      g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0,
+        nameSuspect: card.label !== "dicta" && !!NAME_HINT[skel], dicta: card.label === "dicta", lemma: card.lemma || "", ambiguous: !!card.ambiguous,
+        via: card.identityVia || "", occ: [], _i: i };
       group.set(lk, g);
     }
     g.freq++;
@@ -2777,11 +2804,12 @@
       rowKeys[ri] = []; rowStats[ri] = { u: 0, n: 0 };   // per row: unsure tokens, of them name-like (Д7.4 familiarity)
       // Д8-3: a word the tokenizer cut at an ASCII apostrophe (ג'יהאד, החבר'ה) or a dotted acronym (המ.פ., די.אן.איי)
       // is ONE word: the key goes on its first offset, the other parts are not words. A lone letter left over is not a word.
-      var units = joinSplitWords(toks, pairs), dts = _alignDicta(units, opts.morph && opts.morph[ri]);
+      var units = joinSplitWords(toks, pairs);
       for (var k = 0; k < units.length; k++) {
         var un = units[k];
         if (un.fragment) { for (var z = 0; z < un.span; z++) rowKeys[ri].push(null); i++; continue; }
-        rowKeys[ri].push(await _addScannedToken(eng, NA, group, unsure, un.surface, un.niqqud, ri, un.off, i++, rowStats[ri], { dicta: dts[k], func: func }));
+        rowKeys[ri].push(await _addScannedToken(eng, NA, group, unsure, un.surface, un.niqqud, ri, un.off, i++, rowStats[ri],
+          { func: func, forceName: !!(opts.nameAt && opts.nameAt.has(ri + ":" + un.off)), nameHint: !!(opts.nameHintAt && opts.nameHintAt.has(ri + ":" + un.off)) }));
         for (var z2 = 1; z2 < un.span; z2++) rowKeys[ri].push(null);
       }
       if (Date.now() - t0 > 30) { await new Promise(function (r) { setTimeout(r, 0); }); t0 = Date.now(); if (opts.onProgress) opts.onProgress(ri + 1, rows.length); }
@@ -2800,7 +2828,7 @@
     try { if (!opts.force && typeof localStorage !== "undefined" && localStorage.getItem(MIGRATION_KEY)) return null; } catch (_) {}
     if (!ldb || typeof ldb.dbQuery !== "function" || typeof ldb.setWordStatus !== "function") return null;
     var eng = await ensureEngine(), NA = (typeof window !== "undefined" && window.NotesAutoGen) || eng.NA;
-    var rows = await ldb.dbQuery("SELECT lemma_key, status, updated_at FROM word_status WHERE status != '' AND lemma_key NOT LIKE 'pid:%' AND lemma_key NOT LIKE 'note:%' AND lemma_key NOT LIKE 'sent:%'", []);
+    var rows = await ldb.dbQuery("SELECT lemma_key, status, updated_at FROM word_status WHERE status != '' AND lemma_key NOT LIKE 'pid:%' AND lemma_key NOT LIKE 'note:%' AND lemma_key NOT LIKE 'sent:%' AND lemma_key NOT LIKE 'dl:%'", []);
     var bySk = new Map();
     (rows || []).forEach(function (r) {
       var k = String(r.lemma_key || ""), h = k.indexOf("#"), sk = stripNiqqud(h >= 0 ? k.slice(0, h) : k);
@@ -3314,7 +3342,7 @@
 
   var API = {
     // pure core (Node-testable)
-    tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords,
+    tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords, setDictaLexicon: setDictaLexicon,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore, relativeStrippedForm: relativeStrippedForm,
     applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,

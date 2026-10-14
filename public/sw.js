@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.768";
+const CACHE_VERSION = "v3.11.769";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -76,13 +76,13 @@ const PRECACHE_URLS = [
   "/js/tutor-practice.js?v=2",
   "/mediatheque.html",
   "/dictionary.html",
-  "/css/dictionary.css?v=768",
-  "/js/dictionary-core.js?v=763",
+  "/css/dictionary.css?v=769",
+  "/js/dictionary-core.js?v=769",
   "/js/form-drill-core.js?v=753",
   "/js/dictionary-progress-core.js?v=767",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=768",
+  "/js/dictionary-ui.js?v=769",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
@@ -144,7 +144,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=765",
+  "/js/library-ui.js?v=769",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -154,7 +154,7 @@ const PRECACHE_URLS = [
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=736",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=766",
+  "/css/reader-morph.css?v=769",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -196,12 +196,14 @@ const PRECACHE_URLS = [
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
-  "/js/reader-morph.js?v=767",
+  "/js/dicta-lexicon.js?v=769",
+  "/js/dicta-enrich.js?v=769",
+  "/js/reader-morph.js?v=769",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=767",
+  "/js/morph-host.js?v=769",
   "/js/studio-morph.js?v=5",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -335,9 +337,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=306",
-  "/i18n/locales/en.js?v=306",
-  "/i18n/locales/he.js?v=306",
+  "/i18n/locales/ru.js?v=307",
+  "/i18n/locales/en.js?v=307",
+  "/i18n/locales/he.js?v=307",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -350,7 +352,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=756",
+  "/db/local-db.js?v=769",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

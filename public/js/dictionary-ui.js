@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=756';
+import * as localDb from '/db/local-db.js?v=769';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -198,6 +198,11 @@ async function resolveReadings(entries) {
   await engine();
   let done = 0, lastPaint = performance.now(), t0 = performance.now();
   for (const e of list) {
+    if (window.DictaLexicon && window.DictaLexicon.isDictaKey(e.key)) {   // Д8-К: Dicta's lemma; no Pealim table by construction
+      const pk = window.DictaLexicon.parseKey(e.key) || {};
+      e.reading = { niqqud: (e.surfaces[0] && e.surfaces[0].s) || '', lemma: pk.lemma || '', pos: pk.pos || '', binyan: '', root: '', meaning: '', label: 'dicta', lemmaKey: e.key };
+      done++; continue;
+    }
     const p = pidParadigm(e.key);
     if (p) {   // the Pealim entry itself: authoritative, no resolution needed (a dictionary shows the lemma)
       e.paradigm = p; e.forms = paradigmForms(p); e.reading = readingFromParadigm(p, e.key);
@@ -303,6 +308,11 @@ function rowFor(e) {
   if (inText) {
     meta.push(el('span', { text: inTextLabel(e) }));
     if (e.inText.nameSuspect) meta.push(el('span', { class: 'dict-unmarked', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
+    if (S.text && (S.text.nameCheck || []).some((x) => x.key === e.key)) meta.push(el('span', { class: 'dict-prov dict-prov-check', text: tt('dictionary.dicta.nameCheck', 'похоже на имя — проверьте') }));
+  }
+  if (e.reading && e.reading.label === 'dicta') {
+    meta.push(el('span', { class: 'dict-prov dict-prov-dicta', attrs: { title: tt('dictionary.dicta.provTip', 'Лемма из разбора Dicta ваших текстов; в словаре Pealim такого слова нет — без таблиц форм. Значение — перевод этого места в тексте.') },
+      text: tt('dictionary.dicta.prov', 'по разбору Dicta') + (e.reading.ambiguous ? ' · ' + tt('dictionary.dicta.disputed', 'спорно') : '') }));
   }
   const occ = D.occurrences(e);
   if (occ && !inText) meta.push(el('span', { text: fill(tt('dictionary.occ', 'встреч: {n}'), { n: occ }) }));
@@ -539,6 +549,7 @@ function attachText() {
         added: 0, lastSeen: 0, sources: ['text'], metOnly: true };
       S.entries.set(key, e);
     }
+    if (g.dicta) e.reading = dictaReading(e, g, T);
     const ts = inTexts.get(key) || new Set([T.rowText[(g.occ[0] || {}).rowIdx] || 0]);
     e.inText = { freq: g.freq, first: g._i, occ: g.occ, nameSuspect: g.nameSuspect, surface: g.surface, niqqud: g.niqqud, textId: T.id,
       nTexts: ts.size, cls: new Set(Array.from(ts).map((ti) => (T.texts[ti] && T.texts[ti].cls) || 'mytext')) };
@@ -550,6 +561,102 @@ function rowPlace(T, rowIdx) {
   const ti = T.rowText[rowIdx], t = T.texts[ti], row = T.rows[rowIdx];
   if (!t || !row) return null;
   return { t, row, orderIndex: row.order_index != null ? Number(row.order_index) : rowIdx - t.from };
+}
+// ── Д8-К (docs/planning/word-layer/F4_D8K_ROLE_CRITIQUE_2026_10_14.md) ───────────────────────────────────────────
+// a scanned row's word unit at a tokenizer offset — the same tokens, alignment and joins as ReaderMorph.scanRows
+function unitAt(row, off) {
+  const R = RM(), plain = String(row.he_plain != null ? row.he_plain : row.he || ''), vocal = String(row.he_niqqud || '');
+  let toks, pairs;
+  if (plain) {
+    const al = R.alignSurfaceNiqqud(plain, vocal); let w = 0; toks = R.tokenize(plain);
+    pairs = toks.filter((t) => t.isWord).map((t) => { const a = al[w++] || {}; return [a.surface || t.text, a.niqqud || '']; });
+  } else { toks = R.tokenize(vocal); pairs = toks.filter((t) => t.isWord).map((t) => [R.stripNiqqud(t.text), t.text]); }
+  return (R.joinSplitWords(toks, pairs) || []).find((u) => u.off === off) || null;
+}
+// the word layer (Ф3, paid at build) of the lens: the translation of each place, read only where the layer's word count
+// is the scan's (a row whose pointing splits words differently is skipped, never misaligned) → { at(ri, off), nameAt }
+async function readWordLayer(T) {
+  const W = window.WordGlossAI, R = RM(), out = { gloss: new Map(), nameAt: new Set(), at(ri, off) { return this.gloss.get(ri + ':' + off) || ''; } };
+  if (!W || typeof W.wordAtData !== 'function') return out;
+  let t0 = performance.now();
+  for (let ri = 0; ri < T.rows.length; ri++) {
+    const row = T.rows[ri], plain = String(row.he_plain || ''), voc = String(row.he_niqqud || '');
+    const n = R.tokenize(plain || voc).filter((t) => t.isWord).length;
+    if (voc && plain && R.words(voc).length !== n) continue;
+    for (let k = 0; k < n; k++) {
+      let g = null; try { g = await W.wordAtData(row, k); } catch (_) { g = null; }
+      if (!g || !g.gloss) continue;
+      out.gloss.set(ri + ':' + k, g.gloss);
+      if (/^\s*имя\s*:/i.test(g.gloss)) out.nameAt.add(ri + ':' + k);
+    }
+    if (performance.now() - t0 > 24) { await yieldNow(); t0 = performance.now(); }
+  }
+  return out;
+}
+const layerNameText = (g) => String(g || '').replace(/^\s*имя\s*:\s*/i, '').trim();
+// a Dicta entry's reading: Dicta's lemma and part of speech, the meaning = the layer's translations of its places
+function dictaReading(e, g, T) {
+  const seen = [];
+  (g.occ || []).forEach((o) => { const x = T.layer ? T.layer.at(o.rowIdx, o.wordOffset) : ''; if (x && seen.indexOf(x) < 0 && seen.length < 3) seen.push(x); });
+  return { niqqud: g.niqqud || g.surface, lemma: g.lemma || '', pos: g.pos || '', binyan: '', root: '', meaning: seen.join(' · '), label: 'dicta',
+    ambiguous: !!g.ambiguous, lemmaKey: e.key };
+}
+// К-2: a Pealim entry whose place the layer calls a name («имя: Дейф») → «проверьте: похоже на имя» (never re-keyed silently)
+function nameCheckOf(T) {
+  const out = [];
+  if (!T.layer || !T.scan) return out;
+  T.scan.group.forEach((g, key) => {
+    if (g.dicta) return;
+    const at = (g.occ || []).filter((o) => T.layer.nameAt.has(o.rowIdx + ':' + o.wordOffset));
+    if (at.length) out.push({ key, g, occ: at, name: layerNameText(T.layer.at(at[0].rowIdx, at[0].wordOffset)) });
+  });
+  return out.sort((a, b) => b.g.freq - a.g.freq);
+}
+// the learner's «это имя (здесь)» decisions for the lens (lexical_resolution_events, manual_correction → propernoun),
+// each re-proved against its exact place (source anchor) → Set('rowIdx:offset')
+async function nameDecisionsFor(T) {
+  const out = new Set(), Core = window.LexicalResolutionCore, Svc = window.LexicalResolutionService;
+  if (!Core || !Svc || typeof localDb.listLexicalResolutionEventsForTexts !== 'function') return out;
+  let events = []; try { events = (await localDb.listLexicalResolutionEventsForTexts(T.texts.map((t) => t.id))) || []; } catch (_) { events = []; }
+  if (!events.length) return out;
+  const rowOf = new Map(); T.rows.forEach((r, ri) => rowOf.set(String(r.id), ri));
+  const ids = new Set(events.map((e) => e.occurrence_id));
+  for (const id of ids) {
+    const latest = Core.latest(events, id);
+    if (!latest || latest.action !== 'manual_correction' || (latest.chosen_analysis || {}).lp_pos !== 'propernoun') continue;
+    const ri = rowOf.get(String(latest.sentence_id)); if (ri == null) continue;
+    const occ = occurrenceOf(T, ri, latest.word_offset); if (!occ) continue;
+    let proj = null; try { proj = await Svc.projectExactOccurrence(occ, events, Core); } catch (_) { proj = null; }
+    if (proj && proj.state === 'resolved') out.add(ri + ':' + latest.word_offset);
+  }
+  return out;
+}
+function occurrenceOf(T, ri, off) {
+  const pl = rowPlace(T, ri), u = pl && unitAt(pl.row, Number(off));
+  if (!pl || !u) return null;
+  return { text_id: String(pl.t.id), sentence_id: String(pl.row.id), word_offset: Number(off), text_key: pl.t.key || String(pl.t.id), order_index: pl.orderIndex,
+    surface: u.surface, niqqud: u.niqqud, sentence_he_niqqud: pl.row.he_niqqud || '', sentence_he: pl.row.he_plain || '' };
+}
+// «Это имя (здесь)»: one owner decision per place of this word in the lens — the Room's tap reads the same events
+async function markNameHere(item) {
+  const T = S.text, Core = window.LexicalResolutionCore;
+  if (!T || !Core || typeof localDb.appendLexicalResolutionEvent !== 'function') return 0;
+  const fp = await Core.candidateFingerprint({ alternatives: [], candidate_evidence: [] });
+  let n = 0;
+  for (const o of item.occ) {
+    const occ = occurrenceOf(T, o.rowIdx, o.wordOffset); if (!occ) continue;
+    const anchor = await Core.sourceAnchor(occ);
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+    try {
+      await localDb.appendLexicalResolutionEvent({ id, occurrence_id: 'lpro:' + occ.text_id + ':' + occ.sentence_id + ':' + occ.word_offset,
+        text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, text_key: occ.text_key, order_index: occ.order_index,
+        surface_norm: strip(occ.surface), source_anchor: anchor, action: 'manual_correction',
+        chosen_analysis: { lemma: strip(occ.surface), lp_pos: 'propernoun', meaning_ru: item.name || '' },
+        candidate_fingerprint: fp, actor_kind: 'owner', note: 'dictionary: name here (Д8-К)', created_at: new Date().toISOString() });
+      n++;
+    } catch (_) {}
+  }
+  return n;
 }
 let _textEpoch = 0;
 async function loadText(id) {
@@ -579,9 +686,20 @@ async function loadText(id) {
   }
   T.rows = rows; T.rowText = rowText;
   await refreshLive();
-  const scan = await RM().scanRows(rows, { onProgress: (d, n) => progress(fill(T.isSet ? tt('dictionary.set.scanning', 'Разбираю слова подборки: строка {d} из {n}') : tt('dictionary.text.scanning', 'Разбираю слова текста: строка {d} из {n}'), { d, n })) });
+  // Д8-К: the device's Dicta lexicon first (the scan and the Room key a word Pealim does not read through it), the
+  // learner's «это имя (здесь)» decisions, and the word layer's own «имя:» readings of unparsed words
+  progress(tt('dictionary.dicta.loading', 'Читаю разбор Dicta…'));
+  try { await morphHost.ensureDictaLexicon(); } catch (_) {}
+  if (my !== _textEpoch) return;
+  const nameAt = await nameDecisionsFor(T);
+  T.layer = await readWordLayer(T);
+  if (my !== _textEpoch) return;
+  const scan = await RM().scanRows(rows, { nameAt, nameHintAt: T.layer.nameAt, onProgress: (d, n) => progress(fill(T.isSet ? tt('dictionary.set.scanning', 'Разбираю слова подборки: строка {d} из {n}') : tt('dictionary.text.scanning', 'Разбираю слова текста: строка {d} из {n}'), { d, n })) });
   if (my !== _textEpoch) return;
   T.scan = scan;
+  T.nameAt = nameAt;
+  T.nameCheck = nameCheckOf(T);
+  try { T.dictaCov = await window.DictaEnrich.coverage(localDb, T.texts.map((t) => t.id)); } catch (_) { T.dictaCov = null; }
   attachText();
   progress('');
   S.shown = 0; applyView();
@@ -719,26 +837,93 @@ function renderTextBar() {
   if (T.isSet) box.appendChild(setTextsList(T));
   if (!T.scan) return;
   renderPlan(box);
+  // Д8-К (docs/planning/word-layer/F4_D8K_ROLE_CRITIQUE_2026_10_14.md): every word of the text has a place — a word
+  // (Pealim or Dicta), a name, a function word; «не разобрано» is only what has no parse at all
   const unsure = Array.from(T.scan.unsure.values()).sort((a, b) => b.freq - a.freq);
-  if (unsure.length) {
-    // Д7.3 the groups come from what the parse already knows — no manual sorting, no AI
-    const det = el('details', { class: 'dict-unsure' }, [el('summary', { text: fill(tt('dictionary.text.unsure2', 'Не разобрано: {n}'), { n: unsure.length }) })]);
-    const groups = [
-      ['name', tt('dictionary.unsure.names', 'Похоже на имя'), (u) => !!u.nameSuspect],
-      ['guess', tt('dictionary.unsure.guess', 'Есть догадка разбора — архаичные и редкие формы'), (u) => !u.nameSuspect && u.label === 'guessed'],
-      ['none', tt('dictionary.unsure.none', 'Нет в словаре'), (u) => !u.nameSuspect && u.label !== 'guessed'],
-    ];
-    groups.forEach(([gid, title, is]) => {
-      const items = unsure.filter(is); if (!items.length) return;
-      const ul = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': gid } });
-      // every word of the group: a capped list hid 375 of 495 «not in the dictionary» words (owner 2026-10-14)
-      items.forEach((u) => ul.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
-        on: { click: () => { try { RM().openWordCard(u.surface, u.niqqud || ''); } catch (_) {} } } }, [u.niqqud || u.surface, u.freq > 1 ? el('b', { text: String(u.freq) }) : null])));
-      det.appendChild(el('div', { class: 'dict-unsure-group' }, [el('p', { class: 'dict-unsure-h', text: title + ' · ' + items.length }), ul]));
+  const chipOf = (u, extra) => el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
+    on: { click: () => { try { RM().openWordCard(u.surface, u.niqqud || ''); } catch (_) {} } } }, [u.niqqud || u.surface, u.freq > 1 ? el('b', { text: String(u.freq) }) : null, extra || null]);
+  const section = (cls, summary, body, open) => { const d = el('details', { class: 'dict-unsure ' + cls }, [el('summary', { text: summary })]); if (open) d.open = true; body.forEach((x) => x && d.appendChild(x)); return d; };
+  // 1) Dicta's parse of the lens: how much of it the device has, and the way to get the rest
+  const cov = T.dictaCov || [];
+  const covN = cov.reduce((a, t) => a + t.n, 0), covHave = cov.reduce((a, t) => a + Math.min(t.have, t.n), 0);
+  if (covN && covHave < covN) {
+    const missing = cov.filter((t) => t.have < t.n);
+    box.appendChild(el('div', { class: 'dict-dicta-cov' }, [
+      el('p', { class: 'dict-note', text: fill(tt('dictionary.dicta.coverage', 'Разбор Dicta есть для {a} из {b} предложений — слова остальных не определяются.'), { a: covHave, b: covN }) }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button', id: 'dict-dicta-parse' }, text: fill(tt('dictionary.dicta.parseBtn', 'Разобрать через Dicta ({n})'), { n: covN - covHave }),
+        on: { click: (ev) => askDictaParse(missing, ev.currentTarget, box) } })]));
+  }
+  // 2) the layer called a Pealim word of this text a name (К-2): «это имя (здесь)» — a decision for these places only
+  const check = T.nameCheck || [];
+  if (check.length) {
+    const list = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': 'name-check' } });
+    check.forEach((c) => {
+      const btn = el('button', { class: 'dict-btn dict-btn-mini', attrs: { type: 'button', 'data-name-here': c.key }, text: tt('dictionary.dicta.nameHere', 'Это имя (здесь)'),
+        on: { click: async (ev) => { ev.currentTarget.disabled = true; const n = await markNameHere(c); toast(n ? fill(tt('dictionary.dicta.nameDone', 'Отмечено как имя: {n} мест(а) в этом тексте.'), { n }) : tt('dictionary.dicta.nameFail', 'Не удалось сохранить решение.')); if (n) loadText(T.id); } } });
+      list.appendChild(el('span', { class: 'dict-name-check' }, [
+        chipOf({ surface: c.g.surface, niqqud: c.g.niqqud, freq: c.occ.length }),
+        el('span', { class: 'dict-note', text: '«' + c.name + '» · ' + tt('dictionary.dicta.inDict', 'в словаре: ') + (c.g.gloss || '').split(/[;,]/)[0] }), btn]));
     });
-    box.appendChild(det);
+    box.appendChild(section('dict-name-check-sec', fill(tt('dictionary.dicta.nameCheckH', 'Проверьте: похоже на имя · {n}'), { n: check.length }), [
+      el('p', { class: 'dict-note', text: tt('dictionary.dicta.nameCheckNote', 'Перевод текста называет это слово именем, а словарь — обычным словом. Решение действует только в этом тексте.') }), list], true));   // asks for a decision → open
+  }
+  // 3) names (Dicta's class, the layer's «имя:», my decisions) — not learning items, outside the familiarity
+  const names = unsure.filter((u) => u.nameSuspect), rest = unsure.filter((u) => !u.nameSuspect);
+  if (names.length) {
+    const ul = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': 'name' } });
+    names.forEach((u) => ul.appendChild(chipOf(u)));
+    box.appendChild(section('dict-names', fill(tt('dictionary.dicta.names', 'Имена и названия · {n}'), { n: names.length }), [ul]));
+  }
+  // 4) not parsed at all (no Dicta parse, or a cut-off acronym)
+  if (rest.length) {
+    const ul = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': 'none' } });
+    rest.forEach((u) => ul.appendChild(chipOf(u)));
+    box.appendChild(section('dict-unparsed', fill(tt('dictionary.text.unsure2', 'Не разобрано: {n}'), { n: rest.length }), [
+      el('p', { class: 'dict-note', text: tt('dictionary.dicta.unparsedNote', 'Слова без разбора Dicta и сокращения, которые программа не смогла определить.') }), ul]));
+  }
+  // 5) Д8-2: function words and the like — hidden by default, the checkbox shows them (the familiarity never counts them)
+  const func = Array.from((T.scan.func || new Map()).values()).sort((a, b) => b.freq - a.freq);
+  if (func.length) {
+    let showFunc = false; try { showFunc = localStorage.getItem('dict.showFunc_v1') === '1'; } catch (_) {}
+    const cb = el('input', { attrs: { type: 'checkbox', id: 'dict-show-func' } }); cb.checked = showFunc;
+    const ul = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': 'func' } });
+    func.forEach((u) => ul.appendChild(chipOf(u, u.gloss ? el('span', { class: 'dict-note', text: u.gloss }) : null)));
+    ul.hidden = !showFunc;
+    cb.addEventListener('change', () => { ul.hidden = !cb.checked; try { localStorage.setItem('dict.showFunc_v1', cb.checked ? '1' : '0'); } catch (_) {} });
+    box.appendChild(el('div', { class: 'dict-func' }, [el('label', { class: 'dict-func-toggle', attrs: { for: 'dict-show-func' } }, [cb,
+      ' ' + fill(tt('dictionary.dicta.showFunc', 'Показывать служебные слова ({n})'), { n: func.length })]), ul]));
   }
 }
+// «Разобрать через Dicta»: the sentences go to Dicta (consent, R15) — the Studio's consent for these texts, and on request
+// the automatic parse of new personal texts; the lexicon is refolded and the lens re-read
+async function askDictaParse(missing, btn, box) {
+  const DE = window.DictaEnrich; if (!DE || !missing.length) return;
+  const n = missing.reduce((a, t) => a + (t.n - t.have), 0);
+  const panel = el('div', { class: 'dict-choice', attrs: { role: 'group' } });
+  const auto = el('input', { attrs: { type: 'checkbox', id: 'dict-dicta-auto' } }); auto.checked = DE.hasAuto();
+  const go = el('button', { class: 'dict-btn dict-btn-primary', attrs: { type: 'button' }, text: tt('dictionary.dicta.consentOk', 'Отправить в Dicta') });
+  const no = el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.dicta.cancel', 'Отмена'), on: { click: () => panel.remove() } });
+  panel.append(
+    el('p', { text: fill(tt('dictionary.dicta.consentBody', 'Предложения ({n}) будут отправлены в облачный анализатор Dicta (dicta.org.il). Результат сохраняется на этом устройстве; на наших серверах текст не хранится.'), { n }) }),
+    el('label', { attrs: { for: 'dict-dicta-auto' } }, [auto, ' ' + tt('dictionary.dicta.consentAuto', 'И разбирать новые личные тексты автоматически (можно отключить здесь же)')]),
+    el('div', { class: 'dict-choice-btns' }, [go, no]));
+  btn.after(panel);
+  go.addEventListener('click', async () => {
+    go.disabled = true; no.disabled = true;
+    if (auto.checked) DE.grant({ auto: true }); else { DE.grant({ auto: false }); DE.revokeAuto(); }
+    let enriched = 0, failed = 0, error = '';
+    for (let i = 0; i < missing.length; i++) {
+      const r = await DE.enrichText(localDb, missing[i].id, { onProgress: (d, total) => progress(fill(tt('dictionary.dicta.parsing', 'Dicta разбирает текст {i} из {k}: {d} из {n}'), { i: i + 1, k: missing.length, d, n: total })) });
+      enriched += r.enriched; failed += r.failed; if (r.error) { error = r.error; break; }
+    }
+    progress('');
+    panel.remove();
+    toast(error ? fill(tt('dictionary.dicta.parseOffline', 'Разобрано {a}; остальное ({b}) не отправлено — нет связи с Dicta.'), { a: enriched, b: failed })
+      : fill(tt('dictionary.dicta.parseDone', 'Dicta разобрала {a} предложений.'), { a: enriched }));
+    if (enriched) { try { await morphHost.refreshDictaLexicon(); } catch (_) {} loadText(S.text.id); }
+  });
+}
+
 
 // ── Т2 быстрая разметка: по одному слову (клавиши 1–5) и массово «знаю / не учить» с отменой ──────────────────
 // Пишет тот же канон, что тап в тексте (MorphHost.markWordStatus). «Не знаю» / «узнаю» ставят слово в повторение
@@ -880,7 +1065,7 @@ function chooseTrain(learnable, host) {
       el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-train-markl1' }, text: fill(tt('dictionary.trainMarkL1', 'Отметить их как «незнакомо» и учить ({n})'), { n: learnable.length }),
         on: { click: async () => { for (const e of unmarked) await setStatus(e, 'l1', true); morphHost.invalidateWordStates(); startTrain(learnable); } } }),
       marked.length ? el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: fill(tt('dictionary.trainMarkedOnly', 'Учить только размеченные ({n})'), { n: marked.length }), on: { click: () => startTrain(marked) } }) : null,
-      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => ask.remove() } }),
+      el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.dicta.cancel', 'Отмена'), on: { click: () => ask.remove() } }),
     ]),
   ]);
   box.appendChild(ask);
@@ -1005,7 +1190,7 @@ async function openBulkStatus(list, host) {
   const palette = el('div', { class: 'dict-a-status' }, D.STATUSES.map((st) => el('button', { class: 'dict-st-' + st, attrs: { type: 'button', 'data-bulk-status': st },
     on: { click: () => confirm(st) } }, [statusText(st)])));
   panel.append(el('p', { text: fill(tt('dictionary.bulkSt.pick', 'Какой статус поставить {n} показанным словам?'), { n: list.length }) }), palette,
-    el('div', { class: 'dict-drill-actions' }, [el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => panel.remove() } })]));
+    el('div', { class: 'dict-drill-actions' }, [el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.dicta.cancel', 'Отмена'), on: { click: () => panel.remove() } })]));
   host.appendChild(panel);
   function confirm(st) {
     const change = list.filter((e) => liveOf(e) !== st);
@@ -1016,7 +1201,7 @@ async function openBulkStatus(list, host) {
       seeds ? el('p', { class: 'dict-note', text: fill(tt('dictionary.bulkSt.seeds', 'Из них {k} встанут в повторение: уровень заводит расписание. Отмена вернёт статус, но не расписание.'), { k: seeds }) }) : null,
       el('div', { class: 'dict-drill-actions' }, [
         change.length ? el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-bulkst-apply' }, text: fill(tt('dictionary.bulkSt.apply', 'Поставить ({n})'), { n: change.length }), on: { click: () => apply(st, change) } }) : null,
-        el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => panel.remove() } })]),
+        el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.dicta.cancel', 'Отмена'), on: { click: () => panel.remove() } })]),
     );
   }
   async function apply(st, change) {
@@ -1091,7 +1276,7 @@ function openSaveView() {
     storeViews(all); form.remove(); renderSavedViews();
     toast(fill(tt('dictionary.savedViews.saved', 'Набор «{n}» сохранён на этом устройстве'), { n: name }));
   } } }, [input, el('button', { class: 'dict-btn primary', attrs: { type: 'submit' }, text: tt('dictionary.savedViews.save', 'Сохранить') }),
-    el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.cancel', 'Отмена'), on: { click: () => form.remove() } })]);
+    el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.dicta.cancel', 'Отмена'), on: { click: () => form.remove() } })]);
   box.appendChild(form);
   try { input.focus(); input.select(); } catch (_) {}
 }
@@ -1938,7 +2123,7 @@ async function renderSetBuilder() {
   const cart = el('div', { class: 'dict-sb-cart' });
   const status = el('p', { class: 'dict-note dict-sb-status', attrs: { role: 'status' }, text: SB.note });
   const head = el('div', { class: 'dict-sb-head' }, [el('b', { text: tt('dictionary.sb.title', 'Собрать набор') }),
-    el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.cancel', 'Отмена') }, text: '✕', on: { click: closeSetBuilder } })]);
+    el('button', { class: 'dict-btn', attrs: { type: 'button', 'aria-label': tt('dictionary.dicta.cancel', 'Отмена') }, text: '✕', on: { click: closeSetBuilder } })]);
   box.replaceChildren(head, el('p', { class: 'dict-note', text: tt('dictionary.sb.hint', 'Отметьте тексты устройства и работы каталогов — их слова покажу одним срезом. Работы, которых нет на устройстве, скачаются (как при открытии в Зале).') }),
     el('div', { class: 'dict-sb-row' }, [sel, qIn]), results, resNote, cart, status);
   // one row per text / work: a checkbox, the title, who wrote it, «на устройстве»
@@ -2110,5 +2295,5 @@ async function reload() {
   if (S.viewMode === 'progress') renderProgress();
   if (S.selected && S.entries.has(S.selected)) openArticle(S.selected);
 }
-window.LPDictionary = { state: S, reload, openArticle, setView };   // smoke / diagnostics
+window.LPDictionary = { state: S, reload, openArticle, setView, get morphHost() { return morphHost; } };   // smoke / diagnostics
 boot();

@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=756';
+import * as localDbRaw from '/db/local-db.js?v=769';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -3431,8 +3431,9 @@ async function _r2DeriveSurface(lemmaKey) {
   } catch (_) {}
   const k = String(lemmaKey || '');
   if (k.startsWith('pid:')) return null;
-  const h = k.lastIndexOf('#');
-  const skel = (h > 0 ? k.slice(0, h) : k).trim();
+  const kb = k.replace(/^dl:/, '');   // Д8-К dl:<Dicta lemma>#<pos>
+  const h = kb.lastIndexOf('#');
+  const skel = (h > 0 ? kb.slice(0, h) : kb).trim();
   return /[א-ת]/.test(skel) ? skel : null;
 }
 // R2.1 — pid:-keyed word → its paradigm entry in the shipped offline dict (eng.pidMap): lemma +
@@ -4795,8 +4796,9 @@ async function openRetentionReport() {
 function _leechLabel(key) {
   const k = String(key || '');
   if (k.indexOf('pid:') === 0) return k;
-  const h = k.lastIndexOf('#');
-  return h > 0 ? k.slice(0, h) : k;
+  const kb = k.replace(/^dl:/, '');   // Д8-К dl:<Dicta lemma>#<pos>
+  const h = kb.lastIndexOf('#');
+  return h > 0 ? kb.slice(0, h) : kb;
 }
 // Reuse the trainer's OWN channel names rather than inventing a second vocabulary for the same
 // four things — a report that renames what the tabs call something else teaches the learner two

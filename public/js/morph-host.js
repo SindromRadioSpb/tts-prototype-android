@@ -44,6 +44,23 @@
   }
 
   var _identityMigrationScheduled = false;
+  // Ф4 · Д8-К — the device's Dicta lexicon: one load per page, shared by every host on it. resolveCore reads it, so the
+  // Room's paint, a tap, the trainers and «Мой словарь» key a word Pealim does not read in the same way.
+  var _dictaLexPromise = null, _autoParseScheduled = false;
+  function _loadDictaLexicon(ldbOf, onLoaded) {
+    if (_dictaLexPromise) return _dictaLexPromise;
+    _dictaLexPromise = (async function () {
+      var RM = typeof window !== "undefined" ? window.ReaderMorph : null, DLX = typeof window !== "undefined" ? window.DictaLexicon : null;
+      var ldb = await ldbOf();
+      if (!RM || typeof RM.setDictaLexicon !== "function" || !DLX || !ldb || typeof ldb.getDictaLexiconRows !== "function") return null;
+      var lex = await DLX.refresh(ldb);
+      RM.setDictaLexicon(lex);
+      try { window.dispatchEvent(new CustomEvent("lp:dicta-lexicon", { detail: { size: lex.size } })); } catch (_) {}
+      if (lex.size && typeof onLoaded === "function") { try { onLoaded(lex); } catch (_) {} }
+      return lex;
+    })().catch(function (e) { _dictaLexPromise = null; try { console.warn("[dicta-lexicon]", e); } catch (_) {} return null; });
+    return _dictaLexPromise;
+  }
   function createHost(env) {
     env = env || {};
     var ldbOf = typeof env.ldb === "function" ? env.ldb : async function () { return null; };
@@ -472,6 +489,36 @@
 
     // Ф4 · Д7.2 once per device: marks on spelling keys move to the lemma (ReaderMorph.migrateSpellingMarks), in the
     // background after the page settles; one tab at a time (Web Lock). A moved mark repaints the word states.
+    // the lexicon first (a paint before it keys an unread word by its spelling; the repaint after it agrees with the list)
+    function ensureDictaLexicon() { return _loadDictaLexicon(ldbOf, function () { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }); }
+    // after new Dicta parses were saved (Studio «Обогатить», the dictionary's «Разобрать через Dicta», an import)
+    function refreshDictaLexicon() { _dictaLexPromise = null; return ensureDictaLexicon(); }
+    // in the page's idle time, not during its own start-up reads and writes (the dictionary awaits it explicitly; the
+    // Room repaints when it lands)
+    try {
+      if (typeof window !== "undefined") {
+        var kick = function () { ensureDictaLexicon(); };
+        if (typeof window.requestIdleCallback === "function") setTimeout(function () { window.requestIdleCallback(kick, { timeout: 4000 }); }, 1500);
+        else setTimeout(kick, 2500);
+      }
+    } catch (_) {}
+    // К-4: new personal texts get Dicta's parse in the background — only with the learner's automatic-parse consent
+    // (DictaEnrich), one request at a time, a sentence budget per page; the lexicon is refolded after it
+    if (!_autoParseScheduled && typeof window !== "undefined" && window.DictaEnrich && window.DictaEnrich.hasAuto()) {
+      _autoParseScheduled = true;
+      setTimeout(function () {
+        var run = async function () {
+          try {
+            var r = await window.DictaEnrich.autoEnrich(await ldbOf(), { budget: 2000 });
+            if (r && r.enriched) await refreshDictaLexicon();
+          } catch (e) { try { console.warn("[dicta-autoparse]", e); } catch (_) {} }
+        };
+        try {
+          if (navigator.locks && navigator.locks.request) navigator.locks.request("lp-dicta-autoparse", { ifAvailable: true }, function (lock) { return lock ? run() : null; });
+          else run();
+        } catch (_) { run(); }
+      }, 8000);
+    }
     if (!_identityMigrationScheduled && typeof window !== "undefined" && window.ReaderMorph && typeof window.ReaderMorph.migrateSpellingMarks === "function") {
       _identityMigrationScheduled = true;
       setTimeout(function () {
@@ -512,7 +559,7 @@
       lookupUserMeaning: lookupUserMeaning,
       saveUserMeaning: saveUserMeaning,
       occToVerifiedSource: occToVerifiedSource,
-      markWordStatus: markWordStatus,
+      markWordStatus: markWordStatus, ensureDictaLexicon: ensureDictaLexicon, refreshDictaLexicon: refreshDictaLexicon,
       bumpTapStat: bumpTapStat,
       gradeReadingTap: gradeReadingTap,
     };

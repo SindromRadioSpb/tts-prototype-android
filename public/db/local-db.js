@@ -1391,6 +1391,39 @@ export async function getSentenceMorphForText(textId) {
   return out;
 }
 
+// ── Ф4 · Д8-К — the device's Dicta lexicon (migration 055; DictaLexicon.refresh folds sentence_morph into it) ──
+// Rows of sentence_morph not folded yet (by rowid; an upsert keeps a row's rowid).
+export async function listSentenceMorphSince(lastRowid, limit) {
+  return q(`SELECT rowid AS rid, tokens_json FROM sentence_morph WHERE rowid > ? ORDER BY rowid LIMIT ?`,
+    [Number(lastRowid) || 0, Math.max(1, Math.min(5000, Number(limit) || 1500))]);
+}
+export async function getDictaLexiconRows() {
+  return q(`SELECT skeleton, lemma, pos, cls, prefix, niqqud, n, alt_n, no_lemma FROM dicta_lexicon`, []);
+}
+export async function getDictaLexiconState() {
+  const rows = await q(`SELECT last_morph_rowid FROM dicta_lexicon_state WHERE id = 1`, []);
+  return { lastRowid: rows && rows[0] ? Number(rows[0].last_morph_rowid) || 0 : 0 };
+}
+// rows: DictaLexicon.toRow(entry)[]. Append-only: on conflict only the counters move (lemma/pos/cls/prefix stay first).
+// NO explicit transaction: this runs in the background on every page, and a BEGIN here would swallow (or fail) a
+// learner's concurrent write (setWordStatus) — each 200-row statement is atomic by itself, and folding a page twice only
+// raises the counters (the reading of a spelling never changes), so a partial page is harmless.
+export async function saveDictaLexicon(rows, lastRowid) {
+  const now = new Date().toISOString();
+  const list = Array.isArray(rows) ? rows : [];
+  for (let i = 0; i < list.length; i += 200) {
+    const chunk = list.slice(i, i + 200);
+    const params = [];
+    chunk.forEach((e) => params.push(String(e.skeleton), String(e.lemma || ''), String(e.pos || ''), String(e.cls || 'content'), String(e.prefix || ''),
+      String(e.niqqud || ''), Number(e.n) || 0, Number(e.alt_n) || 0, e.no_lemma ? 1 : 0, now, now));
+    await r(`INSERT INTO dicta_lexicon (skeleton, lemma, pos, cls, prefix, niqqud, n, alt_n, no_lemma, first_at, updated_at)
+             VALUES ${chunk.map(() => '(?,?,?,?,?,?,?,?,?,?,?)').join(',')}
+             ON CONFLICT(skeleton) DO UPDATE SET n = excluded.n, alt_n = excluded.alt_n, updated_at = excluded.updated_at`, params);
+  }
+  await r(`INSERT INTO dicta_lexicon_state (id, last_morph_rowid, updated_at) VALUES (1, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET last_morph_rowid = excluded.last_morph_rowid, updated_at = excluded.updated_at`, [Number(lastRowid) || 0, now]);
+}
+
 // One sentence's stored morphology (parsed tokens) or null.
 export async function getSentenceMorph(sentenceId) {
   if (!sentenceId) return null;

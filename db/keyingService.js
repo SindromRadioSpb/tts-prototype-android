@@ -306,9 +306,13 @@ async function dictateFormForItemKey(itemKey) {
 // alts = леммы, делящие ЛЮБОЙ сенс глосса (синоним-набор §3), кроме собственной.
 async function glossForItemKey(itemKey) {
   const k = String(itemKey || "");
+  // Ф4 · Д8-К: dl:<лемма Dicta>#<pos> — слово, которого нет в Pealim (или Pealim его не подтвердил). Глосса Pealim у
+  // него НЕТ по построению: чужой перевод омографа хуже честного «нет перевода» (R11, O-084).
+  if (k.startsWith("dl:")) return null;
   const b = await ensureLoaded();
   const gi = _buildGlossIndex(b.ds);
   let pids = [];
+  let spellingFallback = false;
   if (k.startsWith("pid:")) {
     pids = [k.slice(4)];
   } else {
@@ -317,13 +321,17 @@ async function glossForItemKey(itemKey) {
     const lemStrip = LC.stripNiqqud(k.slice(0, i));
     const pos = k.slice(i + 1).toLowerCase();
     pids = gi.lemmaPos.get(lemStrip + "#" + pos) || [];
-    if (!pids.length) {
-      // fallback: любой pos с той же леммой (item_key pos может отличаться от датасетного)
+    if (!pids.length && !pos) {
+      // O-084 (2026-10-14): ключ-написание без части речи (`אבא#`) — лемма с ЛЮБОЙ частью речи, но только однозначная
+      // (ниже: decisive); ключ С частью речи, которой нет у Pealim (`אין#particle` ↔ Pealim noun), — честное null:
+      // раньше фолбэк «any pos» подставлял перевод другого слова-омографа.
       for (const [lk, arr] of gi.lemmaPos) if (lk.slice(0, lk.indexOf("#")) === lemStrip) { pids = pids.concat(arr); }
+      spellingFallback = true;
     }
   }
   const uniq = [...new Set(pids)];
   if (!uniq.length) return null;
+  if (spellingFallback && uniq.length > 1 && new Set(uniq.map((pid) => _normGloss(gi.pidGloss.get(pid) || ""))).size > 1) return null;
   const senseId = uniq[0];
   const gloss = gi.pidGloss.get(senseId);
   if (!gloss || !String(gloss).trim()) return null;
@@ -353,8 +361,9 @@ async function glossForItemKey(itemKey) {
 async function displayForItemKey(itemKey) {
   const k = String(itemKey || "");
   if (!k.startsWith("pid:")) {
-    const i = k.indexOf("#");
-    return i > 0 ? k.slice(0, i) : k;
+    const kb = k.startsWith("dl:") ? k.slice(3) : k;   // Д8-К dl:<лемма Dicta>#<pos>
+    const i = kb.lastIndexOf("#");
+    return i > 0 ? kb.slice(0, i) : kb;
   }
   const pid = k.slice(4);
   const b = await ensureLoaded();

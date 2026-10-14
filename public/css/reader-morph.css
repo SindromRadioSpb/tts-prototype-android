@@ -102,6 +102,8 @@ body.theme-dark {
 .rm-prov-guessed, .rm-prov-unknown { background: rgba(210,153,34,.16); color: var(--prov-amber); }
 .rm-prov-function { background: var(--bg-muted); color: var(--text-secondary); }
 .rm-prov-context { background: rgba(163,113,247,.18); color: var(--prov-context); }
+/* Д8-К: a word read from the device's Dicta lexicon (no Pealim table) — the context family, not a dictionary claim */
+.rm-prov-dicta { background: rgba(163,113,247,.12); color: var(--prov-context); }
 /* Epic-2 #1 — «?» badge-helper + collapsed confidence-taxonomy legend. */
 .rm-prov-line { display: inline-flex; align-items: center; gap: 6px; }
 .rm-prov-help {

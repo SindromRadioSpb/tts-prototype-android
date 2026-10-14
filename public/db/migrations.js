@@ -1229,4 +1229,26 @@ export const MIGRATIONS = [
   // 054_sentences_text_provider — covering index for the Studio Library list's per-text
   // provider summary: 934 → 64 ms on a 74k-sentence owner profile (perf 2026-09-27). Index only.
   `CREATE INDEX IF NOT EXISTS ix_sentences_text_provider ON sentences(text_id, translation_provider);`,
+  // 055_dicta_lexicon — Ф4 · Д8-К (docs/planning/word-layer/F4_D8K_ROLE_CRITIQUE_2026_10_14.md). The device's Dicta
+  // lexicon: spelling skeleton → Dicta's lemma / part of speech / class, folded from sentence_morph. APPEND-ONLY by
+  // construction: an upsert updates only the counters, never lemma/pos/cls — the first reading of a spelling stays its
+  // key. Derived and rebuildable from sentence_morph; no learner rows change.
+  `CREATE TABLE IF NOT EXISTS dicta_lexicon (
+    skeleton   TEXT PRIMARY KEY,
+    lemma      TEXT NOT NULL,
+    pos        TEXT NOT NULL DEFAULT '',
+    cls        TEXT NOT NULL CHECK(cls IN ('content','function','name')),
+    prefix     TEXT NOT NULL DEFAULT '',
+    niqqud     TEXT NOT NULL DEFAULT '',
+    n          INTEGER NOT NULL DEFAULT 0,
+    alt_n      INTEGER NOT NULL DEFAULT 0,
+    no_lemma   INTEGER NOT NULL DEFAULT 0,
+    first_at   TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS dicta_lexicon_state (
+    id               INTEGER PRIMARY KEY CHECK(id = 1),
+    last_morph_rowid INTEGER NOT NULL DEFAULT 0,
+    updated_at       TEXT NOT NULL
+  );`,
 ];

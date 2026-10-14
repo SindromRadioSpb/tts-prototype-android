@@ -71,6 +71,9 @@
   // NA.lemmaKey. Returns "" when NA is unavailable (caller treats as unkeyable — never guesses).
   function canonKey(NA, card, niqqud, surface, links) {
     if (!NA || !NA.lemmaKey || !card) return "";
+    // Ф4 · Д8-К: a word read from the device's Dicta lexicon carries its own key (dl:<lemma>#<pos>) — never a
+    // spelling key and never a Pealim key (docs/planning/word-layer/F4_D8K_ROLE_CRITIQUE_2026_10_14.md)
+    if (card.label === "dicta" && /^dl:/.test(String(card.dictaKey || ""))) return String(card.dictaKey);
     var ks = keyWord(card, niqqud, surface);
     try { return NA.lemmaKey({ pealim_id: functionPid(card, ks, card.pos, links), lemma: card.lemma, word: ks, pos: card.pos }) || ""; }
     catch (_) { return ""; }
