@@ -43,6 +43,7 @@
     return e;
   }
 
+  var _identityMigrationScheduled = false;
   function createHost(env) {
     env = env || {};
     var ldbOf = typeof env.ldb === "function" ? env.ldb : async function () { return null; };
@@ -469,6 +470,23 @@
       return sched;
     }
 
+    // Ф4 · Д7.2 once per device: marks on spelling keys move to the lemma (ReaderMorph.migrateSpellingMarks), in the
+    // background after the page settles; one tab at a time (Web Lock). A moved mark repaints the word states.
+    if (!_identityMigrationScheduled && typeof window !== "undefined" && window.ReaderMorph && typeof window.ReaderMorph.migrateSpellingMarks === "function") {
+      _identityMigrationScheduled = true;
+      setTimeout(function () {
+        var run = async function () {
+          try {
+            var r = await window.ReaderMorph.migrateSpellingMarks(await ldbOf());
+            if (r && r.moved) { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }
+          } catch (e) { try { console.warn("[identity] migration", e); } catch (_) {} }
+        };
+        try {
+          if (navigator.locks && navigator.locks.request) navigator.locks.request("lp-identity-migration", { ifAvailable: true }, function (lock) { return lock ? run() : null; });
+          else run();
+        } catch (_) { run(); }
+      }, 6000);
+    }
     return {
       ensureWordStates: ensureWordStates,
       invalidateWordStates: invalidateWordStates,

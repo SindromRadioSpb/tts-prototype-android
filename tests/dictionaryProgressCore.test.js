@@ -114,3 +114,17 @@ test('merged ingredients of a set sum frequencies and counters; mixed versions a
   assert.equal(r.counts.familiar, 5);
   assert.equal(r.recorded_familiar_pct_lower_bound, Math.round(5 * 10000 / 11) / 100);
 });
+
+
+// Д7.4 the familiarity of a lens on the keys of its list (the scan): names out of the denominator, unsure = unknown
+test('scan ingredients: list keys counted per row range, unsure as unknown, names excluded', () => {
+  const C = require('../public/js/learning-compass-core.js');
+  const scan = { rowKeys: [['pid:1', null, 'pid:2'], ['pid:1', null], [null]], rowStats: [{ u: 1, n: 0 }, { u: 1, n: 1 }, { u: 1, n: 0 }] };
+  const all = P.scanIngredients({ ...scan, resolverVersion: C.RESOLVER_VERSION });
+  assert.deepEqual(all.key_frequencies, [['pid:1', 2], ['pid:2', 1]]);
+  assert.equal(all.unresolved_token_count, 2); assert.equal(all.proper_name_token_count, 1); assert.equal(all.total_token_count, 6);
+  const first = P.scanIngredients({ ...scan, from: 0, to: 1, resolverVersion: C.RESOLVER_VERSION });
+  assert.equal(first.total_token_count, 3);
+  const r = C.evaluateRecordedFamiliarityV2({ ingredients: all, learner_projection: { state_by_key: { 'pid:1': 'known' }, scheduled_keys: [] } });
+  assert.equal(r.counts.familiar, 2); assert.equal(r.counts.eligible_denominator, 5, 'the name leaves the denominator');
+});

@@ -427,7 +427,7 @@
   // CONTEXT_GLOSS growth). Sidecars stamped with an older rev degrade their authoritative
   // misses to soft misses at runtime (B4: a resolver improvement must never leave a baked
   // work silently worse than an un-baked one).
-  var RESOLVER_REV = "ctx-r1";
+  var RESOLVER_REV = "ctx-r2";   // ctx-r2 (3.11.767): a form that is ONE Pealim cell is that lemma (Д7.1)
   // The ONE sentence-key normalization both the bake and the tap-time lookup use (B1/R10#8:
   // two independent implementations WILL drift on maqaf/bidi rows). Plain text is already
   // bare of niqqud — stripNiqqud here is defensive symmetry.
@@ -573,7 +573,19 @@
   // root/gloss/binyan/pos come from the winning variant. R1: a variant is preferred
   // ONLY when it is strictly more decisive, so it can upgrade precision (e.g. correctly
   // read "the dawn"), never fabricate or override a confident base reading.
+  // Ф4 · Д7.1 (docs/planning/word-layer/F4_D7_FORM_IDENTITY_SPEC_2026_10_14.md, owner 2026-10-14): the identity of a
+  // word. When the offline reading is not sure (unknown / guessed) but its vocalized form is a cell of exactly ONE
+  // Pealim paradigm (enrichReading step 3, channel form-canonical — יַלְדֵי = construct plural of ילד), that IS the
+  // reading: «likely», never «exact». One place — so the paint, the long-press, the card, the Room's and the
+  // dictionary's lists and the Studio key the word identically. Closed-class / adverb glosses (steps 1–2) stay display.
   async function resolveCore(eng, surfaceOrig, niqqudOrig) {
+    var card = await _resolveOffline(eng, surfaceOrig, niqqudOrig);
+    if (!card || (card.label !== "unknown" && card.label !== "guessed")) return card;
+    var up = null;
+    try { up = enrichReading(eng, card, surfaceOrig, String(niqqudOrig || "")); } catch (_) { up = null; }
+    return up && up.channel === "form-canonical" && up.pealim_id ? Object.assign({}, up, { identityVia: "form-canonical" }) : card;
+  }
+  async function _resolveOffline(eng, surfaceOrig, niqqudOrig) {
     var pidMap = eng.pidMap;
     var n0 = String(niqqudOrig || "");
     var cands = [{ surface: stripNiqqud(n0) || surfaceOrig, niqqud: n0 }];
@@ -2612,12 +2624,18 @@
   // ONE token of a scan (Room DOM spans or plain rows): resolve → only confident content words (a real root/gloss)
   // are grouped by the canonical status key (statusKeyForCard: collect == save == paint). Others, when `unsure`
   // is given, are counted there by skeleton (function words are not learning items and are left out).
-  async function _addScannedToken(eng, NA, group, unsure, surface, niqqud, ri, off, i) {
+  async function _addScannedToken(eng, NA, group, unsure, surface, niqqud, ri, off, i, stats) {
     var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { card = null; }
     if (!card || (card.label !== "exact" && card.label !== "likely")) {
       if (unsure && !(card && card.label === "function")) {
         var sk = stripNiqqud(surface || niqqud);
-        if (sk) { var u = unsure.get(sk); if (!u) { u = { surface: surface || sk, niqqud: niqqud, freq: 0, label: (card && card.label) || "unknown", nameSuspect: !!NAME_HINT[sk], occ: [], _i: i }; unsure.set(sk, u); } u.freq++; if (Number.isFinite(ri) && Number.isFinite(off) && u.occ.length < 12) u.occ.push({ rowIdx: ri, wordOffset: off }); }
+        if (sk) {
+          var u = unsure.get(sk);
+          // Д7.3 the group a learner sees: a name (hint list / proper-noun reading), a guess, or not in the dictionary
+          if (!u) { u = { surface: surface || sk, niqqud: niqqud, freq: 0, label: (card && card.label) || "unknown", pos: (card && card.pos) || "", nameSuspect: !!NAME_HINT[sk] || (card && card.pos) === "propernoun" || (card && card.gateVia) === "name", occ: [], _i: i }; unsure.set(sk, u); }
+          u.freq++; if (Number.isFinite(ri) && Number.isFinite(off) && u.occ.length < 12) u.occ.push({ rowIdx: ri, wordOffset: off });
+          if (stats) { stats.u++; if (u.nameSuspect) stats.n++; }
+        }
       }
       return null;
     }
@@ -2639,9 +2657,9 @@
   // offset] = the lemma key of that word (null: not a confident content word), for painting a whole text.
   async function scanRows(rows, opts) {
     opts = opts || {};
-    var group = new Map(), unsure = new Map(), rowKeys = [];
+    var group = new Map(), unsure = new Map(), rowKeys = [], rowStats = [];
     var NA = window.NotesAutoGen;
-    var eng; try { eng = await ensureEngine(); } catch (_) { return { group: group, unsure: unsure, rowKeys: rowKeys }; }
+    var eng; try { eng = await ensureEngine(); } catch (_) { return { group: group, unsure: unsure, rowKeys: rowKeys, rowStats: rowStats }; }
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
     var i = 0, t0 = Date.now();
     for (var ri = 0; ri < (rows || []).length; ri++) {
@@ -2652,11 +2670,81 @@
         var aligned = alignSurfaceNiqqud(plain, vocal), w = 0;
         pairs = tokenize(plain).filter(function (tk) { return tk.isWord; }).map(function (tk) { var p = aligned[w++] || {}; return [p.surface || tk.text, p.niqqud || ""]; });
       } else pairs = tokenize(vocal).filter(function (tk) { return tk.isWord; }).map(function (tk) { return [stripNiqqud(tk.text), tk.text]; });
-      rowKeys[ri] = [];
-      for (var k = 0; k < pairs.length; k++) rowKeys[ri].push(await _addScannedToken(eng, NA, group, unsure, pairs[k][0], pairs[k][1], ri, k, i++));
+      rowKeys[ri] = []; rowStats[ri] = { u: 0, n: 0 };   // per row: unsure tokens, of them name-like (Д7.4 familiarity)
+      for (var k = 0; k < pairs.length; k++) rowKeys[ri].push(await _addScannedToken(eng, NA, group, unsure, pairs[k][0], pairs[k][1], ri, k, i++, rowStats[ri]));
       if (Date.now() - t0 > 30) { await new Promise(function (r) { setTimeout(r, 0); }); t0 = Date.now(); if (opts.onProgress) opts.onProgress(ri + 1, rows.length); }
     }
-    return { group: group, unsure: unsure, rowKeys: rowKeys };
+    return { group: group, unsure: unsure, rowKeys: rowKeys, rowStats: rowStats };
+  }
+  // ── Ф4 · Д7.2 перенос отметок с ключа-написания на лемму (spec F4_D7_FORM_IDENTITY_SPEC_2026_10_14.md) ─────────
+  // Once per device, in the background. A mark on a spelling key moves to the lemma only when EVERY vocalized place of
+  // that spelling in my texts that keyed to it before (the offline reading) now keys to the SAME pid (Д7.1). Through the
+  // canonical setWordStatus (a mark event in the log); the later mark wins a conflict (owner 2026-10-14); the spelling's
+  // mark is cleared. A review schedule is NOT moved — it is the fold of the review log by key (sync and the mentor's
+  // server replay it); the word's reviews go on under the old key.
+  var MIGRATION_KEY = "lp.identityMigration_v1";
+  async function migrateSpellingMarks(ldb, opts) {
+    opts = opts || {};
+    try { if (!opts.force && typeof localStorage !== "undefined" && localStorage.getItem(MIGRATION_KEY)) return null; } catch (_) {}
+    if (!ldb || typeof ldb.dbQuery !== "function" || typeof ldb.setWordStatus !== "function") return null;
+    var eng = await ensureEngine(), NA = (typeof window !== "undefined" && window.NotesAutoGen) || eng.NA;
+    var rows = await ldb.dbQuery("SELECT lemma_key, status, updated_at FROM word_status WHERE status != '' AND lemma_key NOT LIKE 'pid:%' AND lemma_key NOT LIKE 'note:%' AND lemma_key NOT LIKE 'sent:%'", []);
+    var bySk = new Map();
+    (rows || []).forEach(function (r) {
+      var k = String(r.lemma_key || ""), h = k.indexOf("#"), sk = stripNiqqud(h >= 0 ? k.slice(0, h) : k);
+      if (!/[א-ת]/.test(sk)) return;
+      if (!bySk.has(sk)) bySk.set(sk, []);
+      bySk.get(sk).push(r);
+    });
+    var sum = { at: new Date().toISOString(), candidates: (rows || []).length, moved: 0, conflictLaterSpelling: 0, conflictLaterLemma: 0, ambiguous: 0, noPlace: 0, unchanged: 0 };
+    var backup = [];   // every changed row as it was (reversible): spelling key + its mark, lemma key + its previous mark
+    if (bySk.size) {
+      // one pass over my texts' rows, a page at a time: the vocalized forms of those spellings
+      var forms = new Map(), off = 0, PAGE = 1500;
+      for (;;) {
+        var part = await ldb.dbQuery("SELECT s.he_plain, s.he_niqqud FROM sentences s JOIN texts t ON t.id = s.text_id WHERE s.he_niqqud IS NOT NULL AND s.he_niqqud != '' ORDER BY s.rowid LIMIT ? OFFSET ?", [PAGE, off]);
+        if (!part || !part.length) break;
+        for (var pi = 0; pi < part.length; pi++) {
+          var plain = String(part[pi].he_plain || ""); if (!plain) continue;
+          var al = alignSurfaceNiqqud(plain, String(part[pi].he_niqqud || "")), ws = words(plain);
+          for (var wi = 0; wi < ws.length; wi++) {
+            var pr = al[wi] || {}, sk2 = stripNiqqud(pr.surface || ws[wi]);
+            if (!pr.niqqud || !bySk.has(sk2)) continue;
+            if (!forms.has(sk2)) forms.set(sk2, new Set());
+            if (forms.get(sk2).size < 12) forms.get(sk2).add(pr.niqqud);
+          }
+        }
+        off += part.length;
+        await new Promise(function (r) { setTimeout(r, 0); });
+        if (part.length < PAGE) break;
+      }
+      var entries = Array.from(bySk.entries());
+      for (var ei = 0; ei < entries.length; ei++) {
+        var sk3 = entries[ei][0], list = entries[ei][1], fs = Array.from(forms.get(sk3) || []);
+        for (var ri = 0; ri < list.length; ri++) {
+          var row = list[ri], oldK = String(row.lemma_key), targets = new Set(), seen = 0;
+          for (var fi = 0; fi < fs.length; fi++) {
+            var n = fs[fi], before = await _resolveOffline(eng, sk3, n);
+            if (statusKeyForCard(NA, before, n, sk3) !== oldK) continue;   // a place of THIS mark only
+            seen++;
+            targets.add(statusKeyForCard(NA, await resolveCore(eng, sk3, n), n, sk3));
+          }
+          if (!seen) { sum.noPlace++; continue; }
+          if (targets.size !== 1) { sum.ambiguous++; continue; }
+          var newK = Array.from(targets)[0];
+          if (!newK || newK === oldK || newK.indexOf("pid:") !== 0) { sum.unchanged++; continue; }
+          var cur = ((await ldb.dbQuery("SELECT status, updated_at FROM word_status WHERE lemma_key = ?", [newK])) || [])[0];
+          backup.push({ from: oldK, status: row.status, at: row.updated_at, to: newK, toStatus: cur ? cur.status : null, toAt: cur ? cur.updated_at : null });
+          if (!cur || !cur.status) { await ldb.setWordStatus(newK, row.status); sum.moved++; }
+          else if (String(row.updated_at || "") > String(cur.updated_at || "")) { await ldb.setWordStatus(newK, row.status); sum.moved++; sum.conflictLaterSpelling++; }
+          else { sum.moved++; sum.conflictLaterLemma++; }
+          await ldb.setWordStatus(oldK, "");
+        }
+      }
+    }
+    try { if (typeof localStorage !== "undefined") { if (backup.length) localStorage.setItem(MIGRATION_KEY + ".backup", JSON.stringify(backup)); localStorage.setItem(MIGRATION_KEY, JSON.stringify(sum)); } } catch (_) {}
+    try { console.info("[identity] spelling marks → lemma:", JSON.stringify(sum)); } catch (_) {}
+    return sum;
   }
   async function collectNewWords(mount, statesMap, opts) {
     opts = opts || {};
@@ -3148,7 +3236,7 @@
     availableChannels: availableChannels,
     // Retention P0 — exported so smoke:memory-canon can assert the LemmaCanon delegate stays
     // byte-identical to the inline fallback (keyer-conformance gate, recon B1).
-    statusKeyForCard: statusKeyForCard,
+    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

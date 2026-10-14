@@ -384,7 +384,11 @@ function renderTrainButton() {
   const box = $('dict-train'); if (!box) return;
   // in «все встреченные» / the text lens a word may have no mark yet — «Учить эти» then asks (chooseTrain)
   const learnable = S.view.filter((e) => e.status !== 'ignore' && e.textStatus !== 'ignore' && !String(e.key).startsWith('note:'));
+  // an open question (mass status change, «учить неразмеченные») survives a repaint — the boot's late readings used to
+  // rebuild this box under the learner's click and drop the confirmation they were answering
+  const keep = box.querySelector('.dict-choice');
   box.replaceChildren();
+  if (keep) queueMicrotask(() => { if (!keep.isConnected) box.appendChild(keep); });
   if (!S.view.length) return;
   if (learnable.length) box.appendChild(el('button', { class: 'dict-btn primary', attrs: { type: 'button', id: 'dict-train-these' }, text: fill(tt('dictionary.trainThese', 'Учить эти ({n})'), { n: learnable.length }),
     on: { click: () => chooseTrain(learnable) } }));
@@ -584,59 +588,31 @@ async function loadText(id) {
   resolveReadings(S.entries).then(() => { if (my === _textEpoch) applyView(); });
   textFamiliarity();
 }
-// «знакомо X%» exactly as the Room shows it: the same service, cache and evaluator (no recount here).
-// A set: every text's own number, and the set's = the same evaluator on the summed ingredients (token-weighted).
-let _famService = null;
+// Д7.4 (owner 2026-10-14) «знакомо X%» and the glossary stand on the keys of the LIST: the lens's own scan → the
+// Room's evaluator (evaluateRecordedFamiliarityV2) on those keys. Each text of a set its own number; the set's is the
+// same sum (token-weighted). Names and closed-class words are outside, as in the list.
 async function textFamiliarity() {
-  const T = S.text; if (!T || !window.LocalTextFamiliarity || !window.LearningCompassCore) return;
-  if (!_famService) _famService = window.LocalTextFamiliarity.createService({ db: localDb, compass: window.LearningCompassCore,
-    onUpdate: ({ fits }) => {
-      const L = S.text; if (!L) return;
-      L.texts.forEach((t) => { const f = fits.get(t.id); if (f) t.fit = f; });
-      if (!L.isSet) { const f = fits.get(L.texts[0].id); if (f && f.status !== 'PENDING') { L.fit = f; renderTextBar(); textPlan(); } return; }
-      if (L.texts.every((t) => t.fit && t.fit.status !== 'PENDING')) setFamiliarity(L);
-      else renderTextBar();
-    } });
-  try { await _famService.prepare(T.texts.map((t) => ({ id: t.id, text_key: t.key, updated_at: t.updated_at }))); } catch (_) {}
+  const T = S.text, C = window.LearningCompassCore; if (!T || !T.scan || !C) return;
+  let projection = null; try { projection = await localDb.getLearningCompassProjection(); } catch (_) { projection = null; }
+  if (S.text !== T) return;
+  const ing = (from, to) => P().scanIngredients({ rowKeys: T.scan.rowKeys, rowStats: T.scan.rowStats, from, to, resolverVersion: C.RESOLVER_VERSION });
+  const fitOf = (x) => (projection ? C.evaluateRecordedFamiliarityV2({ ingredients: x, learner_projection: projection }) : { status: 'UNAVAILABLE', recorded_familiar_pct_lower_bound: null });
+  T.texts.forEach((t) => { t.fit = fitOf(ing(t.from, t.from + t.n)); });
+  T.ingredients = ing(0, T.rows.length);
+  T.fit = fitOf(T.ingredients);
+  renderTextBar();
+  textPlan();
 }
-// the cached ingredients of the lens's texts (the cache answers ≤ 48 cards / 256 KiB a call; deferred ones lead the next)
-async function lensIngredients(T) {
-  const C = window.LearningCompassCore, descs = T.texts.map((t) => window.LocalTextFamiliarity.descriptor({ id: t.id, text_key: t.key, updated_at: t.updated_at }, C));
-  const got = new Map(); let queue = descs.slice();
-  while (queue.length) {
-    const batch = queue.slice(0, 48);
-    const r = await localDb.getLearningCompassIngredientsBatch(batch);
-    const entries = (r && r.entries) || {}, deferred = new Set(Object.keys(entries).length ? (r && r.deferred_keys) || [] : []);
-    batch.forEach((d) => { if (entries[d.cache_key]) got.set(d.cache_key, entries[d.cache_key]); });
-    queue = batch.filter((d) => deferred.has(d.cache_key)).concat(queue.slice(batch.length));
-  }
-  return descs.map((d) => got.get(d.cache_key) || null);
-}
-let _setFamEpoch = 0;
-async function setFamiliarity(T) {
-  const my = ++_setFamEpoch, C = window.LearningCompassCore;
-  try {
-    const [parts, projection] = await Promise.all([lensIngredients(T), localDb.getLearningCompassProjection()]);
-    if (my !== _setFamEpoch || S.text !== T) return;
-    const ready = parts.filter(Boolean);
-    T.famParts = { ready: ready.length, total: T.texts.length };
-    T.ingredients = P().mergeIngredients(ready);
-    T.fit = T.ingredients && projection ? C.evaluateRecordedFamiliarityV2({ ingredients: T.ingredients, learner_projection: projection })
-      : { status: projection && !Number(projection.tracked_lexeme_count) ? 'NEEDS_PROFILE' : 'UNAVAILABLE', recorded_familiar_pct_lower_bound: null };
-    renderTextBar(); textPlan();
-  } catch (_) { if (S.text === T) { T.fit = { status: 'UNAVAILABLE', recorded_familiar_pct_lower_bound: null }; renderTextBar(); } }
-}
-// Т4 «словарик к тексту»: the most useful unfamiliar lemmas and the forecast — the Room's evaluator on the Room's cache
+// Т4 «словарик к тексту»: the most useful unfamiliar lemmas of the list and the forecast — the same evaluator
 let _planEpoch = 0;
 async function textPlan() {
-  const T = S.text; if (!T || !T.scan || !T.fit || T.fit.recorded_familiar_pct_lower_bound == null) return;
+  const T = S.text; if (!T || !T.scan || !T.fit || T.fit.recorded_familiar_pct_lower_bound == null || !T.ingredients) return;
   const my = ++_planEpoch, C = window.LearningCompassCore;
   try {
-    const [ingredients, projection] = T.isSet ? [T.ingredients, await localDb.getLearningCompassProjection()]
-      : await Promise.all([lensIngredients(T).then((xs) => xs[0]), localDb.getLearningCompassProjection()]);
-    if (my !== _planEpoch || S.text !== T || !ingredients || !projection) return;
+    const projection = await localDb.getLearningCompassProjection();
+    if (my !== _planEpoch || S.text !== T || !projection) return;
     const candidates = Array.from(S.entries.values()).filter((e) => e.inText && !(e.inText.nameSuspect)).map((e) => e.key);
-    T.plan = P().textPlan({ ingredients, projection, evaluate: C.evaluateRecordedFamiliarityV2, candidates, sizes: [10, 25, 50], target: 95 });
+    T.plan = P().textPlan({ ingredients: T.ingredients, projection, evaluate: C.evaluateRecordedFamiliarityV2, candidates, sizes: [10, 25, 50], target: 95 });
     if (T.planPick == null && T.plan) T.planPick = 0;
     renderTextBar();
   } catch (_) {}
@@ -731,26 +707,34 @@ function renderTextBar() {
   if (T.isSet && T.missing) box.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.set.missing', 'Не на устройстве: {n} — откройте их в Зале, и они войдут в срез.'), { n: T.missing }) }));
   const f = T.fit;
   const pct = f && f.recorded_familiar_pct_lower_bound != null ? Math.round(Number(f.recorded_familiar_pct_lower_bound)) : null;
-  // «как в Зале» is promised only for my texts: the Room's card numbers for corpora may come from the corpus index
-  const parts = T.isSet && T.famParts && T.famParts.ready < T.famParts.total ? ' ' + fill(tt('dictionary.set.famParts', '(посчитано по {m} из {n} текстов)'), { m: T.famParts.ready, n: T.famParts.total }) : '';
-  const famText = pct != null ? (T.isSet ? fill(tt('dictionary.set.familiar', 'Знакомо {p}% слов подборки'), { p: pct }) + parts
-      : fill(T.cls === 'mytext' ? tt('dictionary.text.familiar', 'Знакомо {p}% слов текста (как в Зале)') : tt('dictionary.text.familiarCorpus', 'Знакомо {p}% слов текста'), { p: pct }))
+  // Д7.4 the number of the list's own words (not the Room card's ingredient number — O-083)
+  const famText = pct != null ? (T.isSet ? fill(tt('dictionary.set.familiar', 'Знакомо {p}% слов подборки'), { p: pct })
+      : fill(tt('dictionary.text.familiarCorpus', 'Знакомо {p}% слов текста'), { p: pct }))
     : f && f.status === 'NEEDS_PROFILE' ? tt('dictionary.text.famNeedsProfile', 'Знакомость появится, когда в словаре будут отмеченные слова.')
     : f ? (T.isSet ? tt('dictionary.set.famUnavailable', 'Знакомость подборки сейчас не посчитана.') : tt('dictionary.text.famUnavailable', 'Знакомость для этого текста сейчас не посчитана.'))
-    : T.isSet ? fill(tt('dictionary.set.famLoading', 'Считаю знакомость: {d} из {n} текстов…'), { d: T.texts.filter((t) => t.fit && t.fit.status !== 'PENDING').length, n: T.texts.length })
     : tt('dictionary.text.famLoading', 'Считаю знакомость…');
   box.appendChild(el('p', { class: 'dict-textbar-fam' + (pct != null ? '' : ' dict-note') }, [famText]));
   if (pct != null) box.appendChild(el('div', { class: 'dict-fambar', attrs: { role: 'img', 'aria-label': famText } }, [el('i', { attrs: { style: 'width:' + pct + '%' } })]));
+  if (pct != null) box.appendChild(el('p', { class: 'dict-note', text: tt('dictionary.text.famBasis', 'Считается по словам этого списка: служебные слова и имена не входят, неразобранные — как незнакомые.') }));
   if (T.isSet) box.appendChild(setTextsList(T));
   if (!T.scan) return;
   renderPlan(box);
   const unsure = Array.from(T.scan.unsure.values()).sort((a, b) => b.freq - a.freq);
   if (unsure.length) {
-    const det = el('details', { class: 'dict-unsure' }, [el('summary', { text: fill(tt('dictionary.text.unsure', 'Не разобрано: {n} — имена и слова без уверенного разбора'), { n: unsure.length }) })]);
-    const ul = el('div', { class: 'dict-unsure-list' });
-    unsure.slice(0, 120).forEach((u) => ul.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
-      on: { click: () => { try { RM().openWordCard(u.surface, u.niqqud || ''); } catch (_) {} } } }, [u.niqqud || u.surface, u.freq > 1 ? el('b', { text: String(u.freq) }) : null])));
-    det.appendChild(ul);
+    // Д7.3 the groups come from what the parse already knows — no manual sorting, no AI
+    const det = el('details', { class: 'dict-unsure' }, [el('summary', { text: fill(tt('dictionary.text.unsure2', 'Не разобрано: {n}'), { n: unsure.length }) })]);
+    const groups = [
+      ['name', tt('dictionary.unsure.names', 'Похоже на имя'), (u) => !!u.nameSuspect],
+      ['guess', tt('dictionary.unsure.guess', 'Есть догадка разбора — архаичные и редкие формы'), (u) => !u.nameSuspect && u.label === 'guessed'],
+      ['none', tt('dictionary.unsure.none', 'Нет в словаре'), (u) => !u.nameSuspect && u.label !== 'guessed'],
+    ];
+    groups.forEach(([gid, title, is]) => {
+      const items = unsure.filter(is); if (!items.length) return;
+      const ul = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': gid } });
+      items.slice(0, 120).forEach((u) => ul.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
+        on: { click: () => { try { RM().openWordCard(u.surface, u.niqqud || ''); } catch (_) {} } } }, [u.niqqud || u.surface, u.freq > 1 ? el('b', { text: String(u.freq) }) : null])));
+      det.appendChild(el('div', { class: 'dict-unsure-group' }, [el('p', { class: 'dict-unsure-h', text: title + ' · ' + items.length }), ul]));
+    });
     box.appendChild(det);
   }
 }
@@ -1862,7 +1846,7 @@ async function exportXlsx(list) {
         rows.push({ n: (pl ? pl.orderIndex : ri) + 1, tokens, ru: row.ru || '' });
       });
       textData = { title: lens.title, isSet: !!lens.isSet, rows,
-        famText: pct == null ? '' : lens.isSet ? fill(tt('dictionary.set.familiar', 'Знакомо {p}% слов подборки'), { p: pct }) : fill(tt('dictionary.text.familiar', 'Знакомо {p}% слов текста (как в Зале)'), { p: pct }) };
+        famText: pct == null ? '' : lens.isSet ? fill(tt('dictionary.set.familiar', 'Знакомо {p}% слов подборки'), { p: pct }) : fill(tt('dictionary.text.familiarCorpus', 'Знакомо {p}% слов текста'), { p: pct }) };
     }
     const book = window.DictionaryWorkbook.build({ now, dateText: new Date(now).toLocaleDateString(document.documentElement.lang || 'ru'), filterText: activeSummary(),
       words, progress: progressBlock, statusLegend: legend, text: textData }, L);

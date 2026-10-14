@@ -2144,6 +2144,11 @@ window.I18N_LOCALES.en = {
   // UI release program R6: one navigation for Studio, Reading Room and Mediatheque.
   appNav: { room: "Reading", mediatheque: "Media", studio: "Studio", review: "Review", dictionary: "Dictionary", label: "Sections" },
   dictionary: {
+    unsure: {
+      names: "Looks like a name",
+      guess: "A guess exists — archaic and rare forms",
+      none: "Not in the dictionary",
+    },
     sb: {
       open: "＋ Build a set…",
       title: "Build a set",
@@ -2276,6 +2281,8 @@ window.I18N_LOCALES.en = {
       none: "not marked",
     },
     text: {
+      famBasis: "Counted over the words of this list: function words and names are left out, unparsed words count as unfamiliar.",
+      unsure2: "Not parsed: {n}",
       choose2: "Choose a text or a set…",
       pickHint3: "Choose a text or a set — I will show all its words, marked or not. Here are your texts, the corpus texts you opened in the Room (Ben-Yehuda, the Mediatheque and others), and the collections and topics of your Mediatheque.",
       notFound2: "This text is not on this device. Open it in the Room and it will appear here.",

@@ -203,6 +203,23 @@
       unresolved_token_count: unresolved, proper_name_token_count: names, total_token_count: total, parts: xs.length };
   }
 
-  return { STATUSES: STATUSES, textPlan: textPlan, mergeIngredients: mergeIngredients, statusAt: statusAt, indexMarks: indexMarks, dynamics: dynamics, weekly: weekly,
+  // Д7.4 the familiarity of a lens on the keys of its LIST (the Room's word scan): rows [from, to) of a scan →
+  // ingredients for the same evaluator. Keyed tokens count by their list key; unsure tokens are «unknown»; name-like
+  // unsure tokens leave the denominator; closed-class words are not in the list and not here either.
+  function scanIngredients(input) {
+    input = input || {};
+    var keys = input.rowKeys || [], stats = input.rowStats || [], from = input.from || 0, to = input.to == null ? keys.length : input.to;
+    var freq = Object.create(null), unresolved = 0, names = 0, keyed = 0;
+    for (var ri = from; ri < to; ri++) {
+      (keys[ri] || []).forEach(function (k) { if (k) { freq[k] = (freq[k] || 0) + 1; keyed++; } });
+      var st = stats[ri] || {};
+      names += Number(st.n) || 0;
+      unresolved += Math.max(0, (Number(st.u) || 0) - (Number(st.n) || 0));
+    }
+    return { resolver_version: input.resolverVersion, key_frequencies: Object.keys(freq).sort().map(function (k) { return [k, freq[k]]; }),
+      unresolved_token_count: unresolved, proper_name_token_count: names, total_token_count: keyed + unresolved + names };
+  }
+
+  return { STATUSES: STATUSES, textPlan: textPlan, mergeIngredients: mergeIngredients, scanIngredients: scanIngredients, statusAt: statusAt, indexMarks: indexMarks, dynamics: dynamics, weekly: weekly,
     weakSpots: weakSpots, tenseOf: tenseOf, formWeakSpots: formWeakSpots };
 });

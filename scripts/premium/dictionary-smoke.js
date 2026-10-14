@@ -701,6 +701,37 @@ const ROWS = [
     ok(onDev && !sbWide, "D22 скачанная работа помечена «на устройстве»; панель набора на 380 px без прокрутки вбок");
     if (!EXTERNAL) { await ctx.unroute("**/data/benyehuda/works/**"); await ctx.unroute("**/api/public-corpora**"); }
 
+    // D23 (Д7, owner 2026-10-14) a form that is ONE Pealim cell is its lemma; marks on the spelling key move to the lemma
+    // once (the later mark wins a conflict); the set list counts the form under the lemma; «Не разобрано» is grouped
+    const mig = await pg.evaluate(async () => {
+      const ldb = await import(window.__LDB_URL), RM = window.ReaderMorph, eng = await RM.ensureEngine(), NA = window.NotesAutoGen;
+      await ldb.createText({ id: "dict-smoke-id", text_key: "dict-smoke-id", title: "Формы смоука" });
+      await ldb.addSentence("dict-smoke-id", { id: "dsi-1", order_index: 0, he_plain: "לתלמידי ילדי אלפריד", he_niqqud: "לְתַלְמִידֵי יַלְדֵי אַלְפְרִיד", ru: "ученикам — детям Альфреда" });
+      await ldb.addSentence("dict-smoke-id", { id: "dsi-2", order_index: 1, he_plain: "והשועל ראה", he_niqqud: "וְהַשּׁוּעָל רָאָה", ru: "и лис увидел" });
+      const oldKey = async (s, n) => RM.statusKeyForCard(NA, await RM.resolveOffline(eng, s, n), n, s);
+      const kShir = await oldKey("לתלמידי", "לְתַלְמִידֵי"), kShual = await oldKey("והשועל", "וְהַשּׁוּעָל"), kAlf = await oldKey("אלפריד", "אַלְפְרִיד");
+      const at = (k, iso) => ldb.dbQuery("UPDATE word_status SET updated_at = ? WHERE lemma_key = ?", [iso, k]);
+      await ldb.setWordStatus(kShir, "l1");                                   // A: the lemma has no mark → moves
+      await ldb.setWordStatus("pid:7738", "known"); await at("pid:7738", "2026-01-01T00:00:00.000Z");
+      await ldb.setWordStatus(kShual, "l3"); await at(kShual, "2026-06-01T00:00:00.000Z");   // B: the spelling is later → wins
+      await ldb.setWordStatus(kAlf, "l2");                                     // C: a name — no lemma, stays
+      const sum = await RM.migrateSpellingMarks(ldb, { force: true });
+      const st = async (k) => (await ldb.getWordStatus(k)) || "";
+      return { kShir, kShual, kAlf, sum, shir: await st("pid:3610"), shirOld: await st(kShir), shual: await st("pid:7738"), shualOld: await st(kShual), alf: await st(kAlf),
+        again: await RM.migrateSpellingMarks(ldb, {}), backup: JSON.parse(localStorage.getItem("lp.identityMigration_v1.backup") || "[]") };
+    });
+    ok(/#/.test(mig.kShir) && mig.shir === "l1" && mig.shirOld === "" && mig.shual === "l3" && mig.shualOld === "" && mig.alf === "l2" && mig.again === null && mig.backup.length === 2 && mig.backup.some((x) => x.to === "pid:7738" && x.toStatus === "known"),
+      `D23 перенос отметок: ${mig.kShir}→pid:3610 «${mig.shir}», ${mig.kShual}→pid:7738 «${mig.shual}» (поздняя отметка написания победила), имя ${mig.kAlf} осталось «${mig.alf}»; повторный запуск не идёт; итог ${JSON.stringify(mig.sum)}`);
+    await pg.goto(BASE + "/dictionary.html?text=dict-smoke-id", { waitUntil: "load" });
+    await pg.waitForFunction(() => { const T = window.LPDictionary && window.LPDictionary.state.text; return T && T.scan && T.fit; }, null, { timeout: 60000 });
+    const idl = await pg.evaluate(() => { const T = window.LPDictionary.state.text, S = window.LPDictionary.state;
+      return { keys: Array.from(T.scan.group.keys()), unsure: Array.from(T.scan.unsure.keys()), groups: [...document.querySelectorAll(".dict-unsure-group .dict-unsure-h")].map((x) => x.textContent),
+        fam: document.getElementById("dict-textbar").innerText, counts: T.fit && T.fit.counts }; });
+    ok(idl.keys.includes("pid:3610") && idl.keys.includes("pid:2650") && idl.keys.includes("pid:7738") && idl.unsure.includes("אלפריד") && !idl.unsure.includes("ילדי")
+      && idl.groups.some((g) => /Нет в словаре|Похоже на имя/.test(g)) && /Знакомо \d+% слов текста/.test(idl.fam) && /Считается по словам этого списка/.test(idl.fam)
+      && idl.counts && idl.counts.eligible_denominator === idl.counts.familiar + idl.counts.explicit_new + idl.counts.untracked + idl.counts.unresolved,
+      `D23 срез: формы לתלמידי/ילדי/והשועל — леммы ${idl.keys.filter((k) => /3610|2650|7738/.test(k)).join(",")}; не разобрано: ${idl.unsure.join(",")} (${idl.groups.join(" | ")}); знакомость по ключам списка ${JSON.stringify(idl.counts)}`);
+
     // D16 list tools: a mass status change on any view (palette → confirm → canon write → undo), a saved filter set,
     // the source filter, and «▶ медиа с этого места» for a place in a text with media timing
     await pg.goto(BASE + "/dictionary.html", { waitUntil: "load" });

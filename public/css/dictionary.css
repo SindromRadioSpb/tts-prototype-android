@@ -298,3 +298,8 @@ body.theme-dark .dict-place .ctx b { color: #8fb4ff; }
 .dict-sb-sum { margin: 0; font-weight: 700; }
 .dict-sb-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow: auto; }
 .dict-sb-chips .dict-chip { max-width: 100%; overflow-wrap: anywhere; }
+
+/* Д7.3 «Не разобрано» по группам */
+.dict-unsure-group { margin-top: 8px; }
+.dict-unsure-h { margin: 0; font-size: 13px; font-weight: 700; color: var(--d-ink-2); }
+.dict-unsure-group .dict-unsure-list { margin-top: 4px; }
