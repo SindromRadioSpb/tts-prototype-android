@@ -731,7 +731,8 @@ function renderTextBar() {
     groups.forEach(([gid, title, is]) => {
       const items = unsure.filter(is); if (!items.length) return;
       const ul = el('div', { class: 'dict-unsure-list', attrs: { 'data-unsure-group': gid } });
-      items.slice(0, 120).forEach((u) => ul.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
+      // every word of the group: a capped list hid 375 of 495 «not in the dictionary» words (owner 2026-10-14)
+      items.forEach((u) => ul.appendChild(el('button', { class: 'dict-chip', attrs: { type: 'button', lang: 'he', dir: 'rtl', title: tt('dictionary.text.unsureTip', 'Открыть карточку слова') },
         on: { click: () => { try { RM().openWordCard(u.surface, u.niqqud || ''); } catch (_) {} } } }, [u.niqqud || u.surface, u.freq > 1 ? el('b', { text: String(u.freq) }) : null])));
       det.appendChild(el('div', { class: 'dict-unsure-group' }, [el('p', { class: 'dict-unsure-h', text: title + ' · ' + items.length }), ul]));
     });

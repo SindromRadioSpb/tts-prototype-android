@@ -155,6 +155,17 @@ body.theme-dark .dict-place .ctx b { color: #8fb4ff; }
 .rm-conj-body [data-slot].dict-mastered { box-shadow: inset 0 0 0 2px var(--d-good); }
 .rm-conj-body [data-slot].dict-mastered::after { content: "✓"; position: absolute; inset-block-start: 2px; inset-inline-end: 4px; font-size: 11px; color: var(--d-good); }
 .rm-conj-body [data-slot] { position: relative; }
+/* The tap card (reader-morph.css) takes its colours from the shared theme (--theme-*), which this page does not load:
+   its background was transparent and the page showed through the dimmed card (owner 2026-10-14). The page's own palette,
+   light and dark, is the card's here. */
+.rm-sheet, .rm-statpop, .reader-status-legend {
+  --theme-bg-page: var(--d-bg); --theme-bg-card: var(--d-card); --theme-bg-muted: var(--d-muted-bg);
+  --theme-text-primary: var(--d-ink); --theme-text-secondary: var(--d-ink-2); --theme-text-faint: var(--d-ink-3); --theme-text-muted: var(--d-ink-3);
+  --theme-border-soft: var(--d-line); --theme-accent: var(--d-accent); --theme-accent-hover: var(--d-accent);
+  --bg-page: var(--d-bg); --bg-card: var(--d-card); --bg-muted: var(--d-muted-bg); --bg: var(--d-card);
+  --text-primary: var(--d-ink); --text-secondary: var(--d-ink-2); --text-faint: var(--d-ink-3);
+  --border-soft: var(--d-line); --accent: var(--d-accent); --accent-contrast: var(--d-accent-ink); --lp-accent-contrast: var(--d-accent-ink);
+}
 .dict-drill { display: grid; gap: 12px; padding: 14px; border-radius: 12px; background: var(--d-muted-bg); }
 .dict-drill-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .dict-drill-head .he { font: 600 1.3rem/1.2 var(--d-font-he); }

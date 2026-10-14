@@ -508,6 +508,11 @@ const ROWS = [
     const icon = await pg.evaluate(() => { const s = document.querySelector(".rm-speak svg"), b = document.querySelector(".rm-speak");
       if (!s || !b) return null; const r = s.getBoundingClientRect(), br = b.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), bw: Math.round(br.width) }; });
     ok(icon && icon.w <= 24 && icon.h <= 24 && icon.bw <= 40, `D18 карточка слова из «Не разобрано»: значок ▶ ${icon && icon.w}×${icon && icon.h} px внутри кнопки ${icon && icon.bw} px`);
+    // (owner 2026-10-14) the card is ON TOP and opaque: this page has no shared theme, the card's background was transparent
+    const face = await pg.evaluate(() => { const c = document.querySelector(".rm-sheet.rm-open .rm-sheet-card"); if (!c) return null;
+      const r = c.getBoundingClientRect(), top = document.elementFromPoint(r.left + r.width / 2, r.top + Math.min(40, r.height / 2));
+      return { bg: getComputedStyle(c).backgroundColor, onTop: !!(top && c.contains(top)) }; });
+    ok(face && face.onTop && !/rgba\(0, 0, 0, 0\)|transparent/.test(face.bg), `D18 карточка слова поверх страницы и непрозрачна: фон ${face && face.bg}`);
     await pg.keyboard.press("Escape").catch(() => {});
     await pg.evaluate(() => { const x = document.querySelector(".rm-sheet.rm-open .rm-sheet-x, .rm-sheet-x"); if (x) x.click(); });
     // a word only in the second text: its mark takes the place from THAT text
@@ -726,7 +731,9 @@ const ROWS = [
     await pg.waitForFunction(() => { const T = window.LPDictionary && window.LPDictionary.state.text; return T && T.scan && T.fit; }, null, { timeout: 60000 });
     const idl = await pg.evaluate(() => { const T = window.LPDictionary.state.text, S = window.LPDictionary.state;
       return { keys: Array.from(T.scan.group.keys()), unsure: Array.from(T.scan.unsure.keys()), groups: [...document.querySelectorAll(".dict-unsure-group .dict-unsure-h")].map((x) => x.textContent),
-        fam: document.getElementById("dict-textbar").innerText, counts: T.fit && T.fit.counts }; });
+        fam: document.getElementById("dict-textbar").innerText, counts: T.fit && T.fit.counts, chips: document.querySelectorAll(".dict-unsure-list .dict-chip").length }; });
+    // (owner 2026-10-14) every unparsed word has its chip: a capped list (120) hid most of «Нет в словаре»
+    ok(idl.unsure.length > 0 && idl.chips === idl.unsure.length, `D23 «Не разобрано»: в списке ${idl.chips} слов из ${idl.unsure.length}`);
     ok(idl.keys.includes("pid:3610") && idl.keys.includes("pid:2650") && idl.keys.includes("pid:7738") && idl.unsure.includes("אלפריד") && !idl.unsure.includes("ילדי")
       && idl.groups.some((g) => /Нет в словаре|Похоже на имя/.test(g)) && /Знакомо \d+% слов текста/.test(idl.fam) && /Считается по словам этого списка/.test(idl.fam)
       && idl.counts && idl.counts.eligible_denominator === idl.counts.familiar + idl.counts.explicit_new + idl.counts.untracked + idl.counts.unresolved,
