@@ -16,6 +16,8 @@
 
   var NIQQUD_RE = /[֑-ׇ]/g;
   var FINALS = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+  // closed-class lemmas (measured on two owner texts 2026-10-14: Dicta gives these no part of speech)
+  var FUNCTION_LEMMA = { "איזה": 1, "זה": 1, "זאת": 1, "כל": 1, "מה": 1, "מי": 1, "יש": 1, "אין": 1, "הוא": 1, "היא": 1, "הם": 1, "הן": 1, "אני": 1, "אתה": 1, "את": 1, "אנחנו": 1, "של": 1, "עם": 1, "על": 1, "גם": 1, "כן": 1, "לא": 1 };
   var FUNCTION_POS = { pronoun: 1, preposition: 1, conjunction: 1, negation: 1, interrogative: 1, particle: 1, determiner: 1, quantifier: 1 };
 
   function str(v) { return v == null ? "" : String(v); }
@@ -42,6 +44,8 @@
       if (!t) return;
       var sk = skeleton(t.word);
       var pos = str(t.posDicta || t.pos), cls = classOf(pos || null);
+      // Dicta leaves some closed-class forms without a part of speech (אֵיזֶשֶׁהוּ, אֵיזוֹשֶׁהִי): their lemma decides
+      if (!pos && FUNCTION_LEMMA[strip(t.lemma)]) cls = "function";
       // Dicta gives no lemma for a word it does not know (פּוֹדְקַאסְט, רַבְשַׁ"ץ) but still its stem: the stem stands in,
       // marked (noLemma) — never for a function word
       var lemma = strip(t.lemma), noLemma = false;

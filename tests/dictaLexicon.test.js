@@ -109,3 +109,11 @@ test("refresh: folds only new sentence_morph rows; a stored entry keeps its firs
   lex = await DL.refresh(ldb);
   assert.strictEqual(lex.get("חמאס").n, 1);
 });
+
+test("observe: a closed-class lemma without Dicta's part of speech is a function word (אֵיזֶשֶׁהוּ)", () => {
+  const lex = new Map();
+  DL.observe(lex, [tok("איזשהו", "איזה", null), tok("שלום", "שלום", null)]);
+  assert.strictEqual(lex.get("איזשהו").cls, "function");
+  assert.strictEqual(DL.keyOf(lex.get("איזשהו")), "");
+  assert.strictEqual(lex.get("שלומ").cls, "content");
+});
