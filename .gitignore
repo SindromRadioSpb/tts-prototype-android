@@ -174,3 +174,6 @@ public/data/benyehuda/context/
 # Durable user-facing artifacts belong under docs/research or output/ instead.
 /tmp/
 art/worlds/_gen-scratch/
+
+# Рабочие копии git worktree — только здесь (docs/AGENT_WORKFLOW.md, 2026-10-14)
+/.worktrees/
