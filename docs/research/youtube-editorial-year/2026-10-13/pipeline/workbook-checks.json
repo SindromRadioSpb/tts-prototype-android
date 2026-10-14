@@ -1,0 +1,19 @@
+{
+  "sheets": [
+    "Обзор",
+    "365 дней",
+    "Выбор редактора",
+    "Подборки",
+    "Видео",
+    "Исключения",
+    "Методика"
+  ],
+  "video_count": 1502,
+  "calendar_count": 365,
+  "shortlist_count": 177,
+  "ready_count": 0,
+  "calendar_lookup_test": true,
+  "partial_gate_test": true,
+  "ready_summary_test": true,
+  "formula_errors_scanned": true
+}
