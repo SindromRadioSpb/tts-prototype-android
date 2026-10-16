@@ -940,7 +940,8 @@ async function askDictaParse(missing, btn, box) {
     }
     progress('');
     panel.remove();
-    toast(error ? fill(tt('dictionary.dicta.parseOffline', 'Разобрано {a}; остальное ({b}) не отправлено — нет связи с Dicta.'), { a: enriched, b: failed })
+    toast(error === 'RATE_LIMITED' ? fill(tt('dictionary.dicta.parseBusy', 'Разобрано {a}; Dicta попросила паузу — остальное ({b}) пока не разобрано. Повторите через несколько минут.'), { a: enriched, b: failed })
+      : error ? fill(tt('dictionary.dicta.parseOffline', 'Разобрано {a}; остальное ({b}) не отправлено — нет связи с Dicta.'), { a: enriched, b: failed })
       : fill(tt('dictionary.dicta.parseDone', 'Dicta разобрала {a} предложений.'), { a: enriched }));
     if (enriched) { try { await morphHost.refreshDictaLexicon(); } catch (_) {} loadText(S.text.id); }
   });

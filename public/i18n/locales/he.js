@@ -2194,6 +2194,7 @@ window.I18N_LOCALES.he = {
       consentAuto: "ולנתח טקסטים אישיים חדשים אוטומטית (אפשר לכבות כאן)",
       parsing: "Dicta מנתחת טקסט {i} מתוך {k}: {d} מתוך {n}",
       parseOffline: "נותחו {a}; השאר ({b}) לא נשלח — אין חיבור ל־Dicta.",
+      parseBusy: "נותחו {a}; Dicta ביקשה הפסקה — השאר ({b}) עדיין לא נותח. נסו שוב בעוד כמה דקות.",
       parseDone: "Dicta ניתחה {a} משפטים.",
       cancel: "ביטול",
     },

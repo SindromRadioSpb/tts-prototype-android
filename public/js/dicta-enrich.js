@@ -67,6 +67,8 @@
         } else out.failed++;
       }
       if (typeof opts.onProgress === "function") { try { opts.onProgress(Math.min(i + CHUNK, todo.length), todo.length); } catch (_) {} }
+      // Dicta refused the server (HTTP 503/429): stop, the rest stays unparsed and is retried on a later run
+      if (data && data.rate_limited) { out.failed += todo.length - (i + slice.length); out.error = "RATE_LIMITED"; out.retryAfterMs = Number(data.retry_after_ms) || 0; break; }
     }
     return out;
   }

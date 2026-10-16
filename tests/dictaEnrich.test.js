@@ -61,3 +61,14 @@ test("autoEnrich: does nothing without the automatic consent; within a budget wi
   assert.strictEqual(r.enriched, 25);
   assert.deepStrictEqual(calls, [25]);
 });
+
+test("enrichText: Dicta refused the server (rate_limited) — stop after this request, the rest counted, not sent", async () => {
+  const sents = Array.from({ length: 90 }, (_, i) => ({ id: "s" + i, he_plain: "שלום " + i }));
+  const ldb = fakeLdb(sents);
+  const calls = [];
+  const r = await DE.enrichText(ldb, "t1", { fetch: async (url, init) => { const b = JSON.parse(init.body); calls.push(b.sentences.length);
+    return { json: async () => ({ rate_limited: true, retry_after_ms: 120000,
+      results: b.sentences.map((_, i) => (i < 3 ? { ok: true, tokens: [{ word: "x" }] } : { ok: false, tokens: [], degraded: true, reason: "rate_limited" })) }) }; } });
+  assert.deepStrictEqual(calls, [40]);
+  assert.deepStrictEqual([r.enriched, r.failed, r.error, r.retryAfterMs], [3, 87, "RATE_LIMITED", 120000]);
+});

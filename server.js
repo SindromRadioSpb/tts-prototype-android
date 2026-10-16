@@ -1219,7 +1219,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=777",
+  "/js/dictionary-ui.js?v=778",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
@@ -1317,7 +1317,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=486",
   "/js/dicta-lexicon.js?v=769",
-  "/js/dicta-enrich.js?v=769",
+  "/js/dicta-enrich.js?v=778",
   "/js/key-alias-core.js?v=771",
   "/js/reader-morph.js?v=777",
   "/js/ru-forms.js?v=739",
@@ -1359,9 +1359,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=308",
-  "/i18n/locales/en.js?v=308",
-  "/i18n/locales/he.js?v=308",
+  "/i18n/locales/ru.js?v=309",
+  "/i18n/locales/en.js?v=309",
+  "/i18n/locales/he.js?v=309",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -8215,8 +8215,8 @@ app.post("/api/morphology/batch", async (req, res) => {
     if (sentences.length > 400) {
       return res.status(413).json({ ok: false, results: [], reason: "too many sentences (max 400 per request)" });
     }
-    const { analyze, MODEL_VERSION } = require("./db/premium/morphologyGateway");
-    const CONCURRENCY = 4;
+    const { analyze, rateLimitedUntil, MODEL_VERSION } = require("./db/premium/morphologyGateway");
+    const CONCURRENCY = 2;   // a sustained higher load gets this server's IP refused by Dicta (HTTP 503) for everyone
     const results = new Array(sentences.length).fill(null);
     for (let i = 0; i < sentences.length; i += CONCURRENCY) {
       const slice = sentences.slice(i, i + CONCURRENCY);
@@ -8224,13 +8224,15 @@ app.post("/api/morphology/batch", async (req, res) => {
         const idx = i + j;
         try {
           const out = await analyze(String(s || ""), { genre });
-          results[idx] = { ok: !!out.ok, tokens: out.tokens || [], degraded: !!out.degraded };
+          results[idx] = { ok: !!out.ok, tokens: out.tokens || [], degraded: !!out.degraded, reason: out.reason };
         } catch (e) {
           results[idx] = { ok: false, tokens: [], degraded: true, reason: e && e.message };
         }
       }));
     }
-    res.json({ ok: true, results, model_version: MODEL_VERSION });
+    const until = rateLimitedUntil();
+    res.json({ ok: true, results, model_version: MODEL_VERSION,
+      rate_limited: !!until, retry_after_ms: until ? Math.max(0, until - Date.now()) : 0 });
   } catch (e) {
     console.error("[morphology:batch] error:", e);
     res.status(500).json({ ok: false, results: [], reason: e.message || "Internal error" });

@@ -2186,6 +2186,7 @@ window.I18N_LOCALES.en = {
       consentAuto: "And parse new personal texts automatically (can be turned off here)",
       parsing: "Dicta is parsing text {i} of {k}: {d} of {n}",
       parseOffline: "Parsed {a}; the rest ({b}) was not sent — no connection to Dicta.",
+      parseBusy: "Parsed {a}; Dicta asked for a pause — the rest ({b}) is not parsed yet. Try again in a few minutes.",
       parseDone: "Dicta parsed {a} sentences.",
       cancel: "Cancel",
     },
