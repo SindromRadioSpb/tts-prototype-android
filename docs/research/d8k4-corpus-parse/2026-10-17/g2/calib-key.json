@@ -1,0 +1,1034 @@
+{
+ "cal001": {
+  "gold_pos": "verb",
+  "gold_lemma": "הלך",
+  "stratum": "collision",
+  "work": "56059"
+ },
+ "cal002": {
+  "gold_pos": "preposition",
+  "gold_lemma": "עד",
+  "stratum": "tail",
+  "work": "10"
+ },
+ "cal003": {
+  "gold_pos": "adverb",
+  "gold_lemma": "באמת",
+  "stratum": "tail",
+  "work": "10"
+ },
+ "cal004": {
+  "gold_pos": "adverb",
+  "gold_lemma": "להפך",
+  "stratum": "tail",
+  "work": "10"
+ },
+ "cal005": {
+  "gold_pos": "adverb",
+  "gold_lemma": "הרבה",
+  "stratum": "tail",
+  "work": "10"
+ },
+ "cal006": {
+  "gold_pos": "noun",
+  "gold_lemma": "חזקה",
+  "stratum": "tail",
+  "work": "10"
+ },
+ "cal007": {
+  "gold_pos": "noun",
+  "gold_lemma": "הורה",
+  "stratum": "tail",
+  "work": "1663"
+ },
+ "cal008": {
+  "gold_pos": "noun",
+  "gold_lemma": "הורה",
+  "stratum": "tail",
+  "work": "1663"
+ },
+ "cal009": {
+  "gold_pos": "adjective",
+  "gold_lemma": "סוער",
+  "stratum": "tail",
+  "work": "1663"
+ },
+ "cal010": {
+  "gold_pos": "preposition",
+  "gold_lemma": "סביב",
+  "stratum": "tail",
+  "work": "1663"
+ },
+ "cal011": {
+  "gold_pos": "noun",
+  "gold_lemma": "שכם",
+  "stratum": "tail",
+  "work": "1663"
+ },
+ "cal012": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "אירופה",
+  "stratum": "tail",
+  "work": "218"
+ },
+ "cal013": {
+  "gold_pos": "preposition",
+  "gold_lemma": "בשביל",
+  "stratum": "tail",
+  "work": "218"
+ },
+ "cal014": {
+  "gold_pos": "preposition",
+  "gold_lemma": "בשביל",
+  "stratum": "tail",
+  "work": "218"
+ },
+ "cal015": {
+  "gold_pos": "noun",
+  "gold_lemma": "מחנך",
+  "stratum": "tail",
+  "work": "218"
+ },
+ "cal016": {
+  "gold_pos": "adverb",
+  "gold_lemma": "שוב",
+  "stratum": "tail",
+  "work": "25"
+ },
+ "cal017": {
+  "gold_pos": "adverb",
+  "gold_lemma": "שוב",
+  "stratum": "tail",
+  "work": "25"
+ },
+ "cal018": {
+  "gold_pos": "noun",
+  "gold_lemma": "עולה",
+  "stratum": "tail",
+  "work": "31646"
+ },
+ "cal019": {
+  "gold_pos": "verb",
+  "gold_lemma": "כלה",
+  "stratum": "tail",
+  "work": "31646"
+ },
+ "cal020": {
+  "gold_pos": "verb",
+  "gold_lemma": "דבק",
+  "stratum": "tail",
+  "work": "31646"
+ },
+ "cal021": {
+  "gold_pos": "adjective",
+  "gold_lemma": "דומה",
+  "stratum": "tail",
+  "work": "32573"
+ },
+ "cal022": {
+  "gold_pos": "adjective",
+  "gold_lemma": "נשאר",
+  "stratum": "tail",
+  "work": "32573"
+ },
+ "cal023": {
+  "gold_pos": "noun",
+  "gold_lemma": "תקווה",
+  "stratum": "tail",
+  "work": "32573"
+ },
+ "cal024": {
+  "gold_pos": "preposition",
+  "gold_lemma": "עד",
+  "stratum": "tail",
+  "work": "34713"
+ },
+ "cal025": {
+  "gold_pos": "adverb",
+  "gold_lemma": "היום",
+  "stratum": "tail",
+  "work": "34713"
+ },
+ "cal026": {
+  "gold_pos": "adverb",
+  "gold_lemma": "לערך",
+  "stratum": "tail",
+  "work": "34713"
+ },
+ "cal027": {
+  "gold_pos": "numeral",
+  "gold_lemma": "אלף",
+  "stratum": "tail",
+  "work": "34713"
+ },
+ "cal028": {
+  "gold_pos": "numeral",
+  "gold_lemma": "אלף",
+  "stratum": "tail",
+  "work": "34713"
+ },
+ "cal029": {
+  "gold_pos": "verb",
+  "gold_lemma": "שית",
+  "stratum": "tail",
+  "work": "34776"
+ },
+ "cal030": {
+  "gold_pos": "verb",
+  "gold_lemma": "ניעור",
+  "stratum": "tail",
+  "work": "34776"
+ },
+ "cal031": {
+  "gold_pos": "preposition",
+  "gold_lemma": "לקראת",
+  "stratum": "tail",
+  "work": "34776"
+ },
+ "cal032": {
+  "gold_pos": "verb",
+  "gold_lemma": "שאב",
+  "stratum": "tail",
+  "work": "34790"
+ },
+ "cal033": {
+  "gold_pos": "adjective",
+  "gold_lemma": "איום",
+  "stratum": "tail",
+  "work": "34803"
+ },
+ "cal034": {
+  "gold_pos": "adjective",
+  "gold_lemma": "מצל",
+  "stratum": "tail",
+  "work": "34816"
+ },
+ "cal035": {
+  "gold_pos": "adjective",
+  "gold_lemma": "מכסיף",
+  "stratum": "tail",
+  "work": "34816"
+ },
+ "cal036": {
+  "gold_pos": "noun",
+  "gold_lemma": "זלזל",
+  "stratum": "tail",
+  "work": "34816"
+ },
+ "cal037": {
+  "gold_pos": "adjective",
+  "gold_lemma": "ענו",
+  "stratum": "tail",
+  "work": "34887"
+ },
+ "cal038": {
+  "gold_pos": "adjective",
+  "gold_lemma": "רופף",
+  "stratum": "tail",
+  "work": "34887"
+ },
+ "cal039": {
+  "gold_pos": "preposition",
+  "gold_lemma": "מעל",
+  "stratum": "tail",
+  "work": "35086"
+ },
+ "cal040": {
+  "gold_pos": "adverb",
+  "gold_lemma": "שוב",
+  "stratum": "tail",
+  "work": "35099"
+ },
+ "cal041": {
+  "gold_pos": "adverb",
+  "gold_lemma": "היום",
+  "stratum": "tail",
+  "work": "35666"
+ },
+ "cal042": {
+  "gold_pos": "adverb",
+  "gold_lemma": "הרבה",
+  "stratum": "tail",
+  "work": "35679"
+ },
+ "cal043": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "יעקב",
+  "stratum": "tail",
+  "work": "37811"
+ },
+ "cal044": {
+  "gold_pos": "noun",
+  "gold_lemma": "צרה",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal045": {
+  "gold_pos": "noun",
+  "gold_lemma": "עלילה",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal046": {
+  "gold_pos": "adjective",
+  "gold_lemma": "חזק",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal047": {
+  "gold_pos": "noun",
+  "gold_lemma": "עלילה",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal048": {
+  "gold_pos": "noun",
+  "gold_lemma": "שנה",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal049": {
+  "gold_pos": "noun",
+  "gold_lemma": "אח",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal050": {
+  "gold_pos": "adjective",
+  "gold_lemma": "אחר",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal051": {
+  "gold_pos": "adjective",
+  "gold_lemma": "טוב",
+  "stratum": "hedged",
+  "work": "10"
+ },
+ "cal052": {
+  "gold_pos": "verb",
+  "gold_lemma": "שלח",
+  "stratum": "hedged",
+  "work": "11782"
+ },
+ "cal053": {
+  "gold_pos": "verb",
+  "gold_lemma": "דיבר",
+  "stratum": "hedged",
+  "work": "11782"
+ },
+ "cal054": {
+  "gold_pos": "verb",
+  "gold_lemma": "קרא",
+  "stratum": "hedged",
+  "work": "132"
+ },
+ "cal055": {
+  "gold_pos": "adjective",
+  "gold_lemma": "רע",
+  "stratum": "hedged",
+  "work": "132"
+ },
+ "cal056": {
+  "gold_pos": "numeral",
+  "gold_lemma": "שני",
+  "stratum": "hedged",
+  "work": "132"
+ },
+ "cal057": {
+  "gold_pos": "pronoun",
+  "gold_lemma": "אותו",
+  "stratum": "hedged",
+  "work": "132"
+ },
+ "cal058": {
+  "gold_pos": "noun",
+  "gold_lemma": "דם",
+  "stratum": "hedged",
+  "work": "132"
+ },
+ "cal059": {
+  "gold_pos": "noun",
+  "gold_lemma": "גולה",
+  "stratum": "hedged",
+  "work": "1663"
+ },
+ "cal060": {
+  "gold_pos": "noun",
+  "gold_lemma": "שיר",
+  "stratum": "hedged",
+  "work": "1663"
+ },
+ "cal061": {
+  "gold_pos": "noun",
+  "gold_lemma": "צרה",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal062": {
+  "gold_pos": "noun",
+  "gold_lemma": "יתום",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal063": {
+  "gold_pos": "noun",
+  "gold_lemma": "יתום",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal064": {
+  "gold_pos": "noun",
+  "gold_lemma": "שעה",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal065": {
+  "gold_pos": "adjective",
+  "gold_lemma": "קשה",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal066": {
+  "gold_pos": "noun",
+  "gold_lemma": "עתיד",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal067": {
+  "gold_pos": "pronoun",
+  "gold_lemma": "עצמו",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal068": {
+  "gold_pos": "noun",
+  "gold_lemma": "מורה",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal069": {
+  "gold_pos": "noun",
+  "gold_lemma": "צרה",
+  "stratum": "hedged",
+  "work": "218"
+ },
+ "cal070": {
+  "gold_pos": "noun",
+  "gold_lemma": "זקן",
+  "stratum": "hedged",
+  "work": "25"
+ },
+ "cal071": {
+  "gold_pos": "noun",
+  "gold_lemma": "פנים",
+  "stratum": "hedged",
+  "work": "25"
+ },
+ "cal072": {
+  "gold_pos": "adjective",
+  "gold_lemma": "יבש",
+  "stratum": "hedged",
+  "work": "25"
+ },
+ "cal073": {
+  "gold_pos": "noun",
+  "gold_lemma": "זקנה",
+  "stratum": "hedged",
+  "work": "25"
+ },
+ "cal074": {
+  "gold_pos": "adjective",
+  "gold_lemma": "מלא",
+  "stratum": "hedged",
+  "work": "25"
+ },
+ "cal075": {
+  "gold_pos": "noun",
+  "gold_lemma": "חיים",
+  "stratum": "hedged",
+  "work": "300"
+ },
+ "cal076": {
+  "gold_pos": "noun",
+  "gold_lemma": "טוהר",
+  "stratum": "hedged",
+  "work": "31582"
+ },
+ "cal077": {
+  "gold_pos": "noun",
+  "gold_lemma": "מראה",
+  "stratum": "hedged",
+  "work": "31582"
+ },
+ "cal078": {
+  "gold_pos": "noun",
+  "gold_lemma": "מחילה",
+  "stratum": "hedged",
+  "work": "31646"
+ },
+ "cal079": {
+  "gold_pos": "verb",
+  "gold_lemma": "רץ",
+  "stratum": "hedged",
+  "work": "32573"
+ },
+ "cal080": {
+  "gold_pos": "verb",
+  "gold_lemma": "ספר",
+  "stratum": "hedged",
+  "work": "32573"
+ },
+ "cal081": {
+  "gold_pos": "noun",
+  "gold_lemma": "טוב",
+  "stratum": "hedged",
+  "work": "32573"
+ },
+ "cal082": {
+  "gold_pos": "noun",
+  "gold_lemma": "לבנה",
+  "stratum": "hedged",
+  "work": "34763"
+ },
+ "cal083": {
+  "gold_pos": "noun",
+  "gold_lemma": "חמה",
+  "stratum": "hedged",
+  "work": "34790"
+ },
+ "cal084": {
+  "gold_pos": "adjective",
+  "gold_lemma": "תם",
+  "stratum": "hedged",
+  "work": "34790"
+ },
+ "cal085": {
+  "gold_pos": "verb",
+  "gold_lemma": "ראה",
+  "stratum": "hedged",
+  "work": "34803"
+ },
+ "cal086": {
+  "gold_pos": "adjective",
+  "gold_lemma": "דל",
+  "stratum": "hedged",
+  "work": "34887"
+ },
+ "cal087": {
+  "gold_pos": "noun",
+  "gold_lemma": "פנים",
+  "stratum": "hedged",
+  "work": "34887"
+ },
+ "cal088": {
+  "gold_pos": "noun",
+  "gold_lemma": "מין",
+  "stratum": "hedged",
+  "work": "34949"
+ },
+ "cal089": {
+  "gold_pos": "adjective",
+  "gold_lemma": "קטן",
+  "stratum": "hedged",
+  "work": "35099"
+ },
+ "cal090": {
+  "gold_pos": "verb",
+  "gold_lemma": "התנשא",
+  "stratum": "hedged",
+  "work": "35099"
+ },
+ "cal091": {
+  "gold_pos": "noun",
+  "gold_lemma": "פגיעה",
+  "stratum": "hedged",
+  "work": "35666"
+ },
+ "cal092": {
+  "gold_pos": "verb",
+  "gold_lemma": "שוח",
+  "stratum": "hedged",
+  "work": "35666"
+ },
+ "cal093": {
+  "gold_pos": "noun",
+  "gold_lemma": "עת",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal094": {
+  "gold_pos": "adjective",
+  "gold_lemma": "אחרון",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal095": {
+  "gold_pos": "verb",
+  "gold_lemma": "עשה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal096": {
+  "gold_pos": "adjective",
+  "gold_lemma": "מעציב",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal097": {
+  "gold_pos": "noun",
+  "gold_lemma": "לב",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal098": {
+  "gold_pos": "noun",
+  "gold_lemma": "איש",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal099": {
+  "gold_pos": "noun",
+  "gold_lemma": "התחדשות",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal100": {
+  "gold_pos": "adjective",
+  "gold_lemma": "ישן",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal101": {
+  "gold_pos": "verb",
+  "gold_lemma": "היה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal102": {
+  "gold_pos": "noun",
+  "gold_lemma": "עין",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal103": {
+  "gold_pos": "adjective",
+  "gold_lemma": "חדש",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal104": {
+  "gold_pos": "noun",
+  "gold_lemma": "ביניים",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal105": {
+  "gold_pos": "verb",
+  "gold_lemma": "הצטיין",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal106": {
+  "gold_pos": "noun",
+  "gold_lemma": "רוח",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal107": {
+  "gold_pos": "noun",
+  "gold_lemma": "עם",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal108": {
+  "gold_pos": "noun",
+  "gold_lemma": "מעשה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal109": {
+  "gold_pos": "noun",
+  "gold_lemma": "ארץ",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal110": {
+  "gold_pos": "adjective",
+  "gold_lemma": "רחוק",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal111": {
+  "gold_pos": "verb",
+  "gold_lemma": "הגיע",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal112": {
+  "gold_pos": "noun",
+  "gold_lemma": "שמועה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal113": {
+  "gold_pos": "verb",
+  "gold_lemma": "אמר",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal114": {
+  "gold_pos": "noun",
+  "gold_lemma": "רוח",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal115": {
+  "gold_pos": "noun",
+  "gold_lemma": "עם",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal116": {
+  "gold_pos": "verb",
+  "gold_lemma": "ראה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal117": {
+  "gold_pos": "noun",
+  "gold_lemma": "חיזיון",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal118": {
+  "gold_pos": "noun",
+  "gold_lemma": "סיבה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal119": {
+  "gold_pos": "adjective",
+  "gold_lemma": "חיצוני",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal120": {
+  "gold_pos": "noun",
+  "gold_lemma": "רוח",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal121": {
+  "gold_pos": "noun",
+  "gold_lemma": "ביניים",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal122": {
+  "gold_pos": "verb",
+  "gold_lemma": "היה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal123": {
+  "gold_pos": "noun",
+  "gold_lemma": "מקרה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal124": {
+  "gold_pos": "adjective",
+  "gold_lemma": "רגיל",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal125": {
+  "gold_pos": "verb",
+  "gold_lemma": "עמד",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal126": {
+  "gold_pos": "noun",
+  "gold_lemma": "גורל",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal127": {
+  "gold_pos": "verb",
+  "gold_lemma": "היה",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal128": {
+  "gold_pos": "noun",
+  "gold_lemma": "מקום",
+  "stratum": "control",
+  "work": "10"
+ },
+ "cal129": {
+  "gold_pos": "preposition",
+  "gold_lemma": "בין",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal130": {
+  "gold_pos": "particle",
+  "gold_lemma": "כל",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal131": {
+  "gold_pos": "verb",
+  "gold_lemma": "התחדש",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal132": {
+  "gold_pos": "preposition",
+  "gold_lemma": "על",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal133": {
+  "gold_pos": "adverb",
+  "gold_lemma": "בייחוד",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal134": {
+  "gold_pos": "noun",
+  "gold_lemma": "רושם",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal135": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "ישראל",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal136": {
+  "gold_pos": "noun",
+  "gold_lemma": "עלילת דם",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal137": {
+  "gold_pos": "adjective",
+  "gold_lemma": "נתעב",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal138": {
+  "gold_pos": "pronoun",
+  "gold_lemma": "זה",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal139": {
+  "gold_pos": "preposition",
+  "gold_lemma": "בכל",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal140": {
+  "gold_pos": "verb",
+  "gold_lemma": "היה",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal141": {
+  "gold_pos": "adverb",
+  "gold_lemma": "תמיד",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal142": {
+  "gold_pos": "noun",
+  "gold_lemma": "יום",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal143": {
+  "gold_pos": "adverb",
+  "gold_lemma": "עתה",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal144": {
+  "gold_pos": "noun",
+  "gold_lemma": "פעולה",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal145": {
+  "gold_pos": "preposition",
+  "gold_lemma": "על",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal146": {
+  "gold_pos": "particle",
+  "gold_lemma": "לא",
+  "stratum": "fill",
+  "work": "10"
+ },
+ "cal147": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "שלום",
+  "stratum": "tail",
+  "work": "37811"
+ },
+ "cal148": {
+  "gold_pos": "noun",
+  "gold_lemma": "מאה",
+  "stratum": "tail",
+  "work": "37811"
+ },
+ "cal149": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "הלל",
+  "stratum": "tail",
+  "work": "37811"
+ },
+ "cal150": {
+  "gold_pos": "noun",
+  "gold_lemma": "באר",
+  "stratum": "tail",
+  "work": "4233"
+ },
+ "cal151": {
+  "gold_pos": "noun",
+  "gold_lemma": "שירה",
+  "stratum": "tail",
+  "work": "43343"
+ },
+ "cal152": {
+  "gold_pos": "adjective",
+  "gold_lemma": "נשכח",
+  "stratum": "tail",
+  "work": "43369"
+ },
+ "cal153": {
+  "gold_pos": "verb",
+  "gold_lemma": "רעד",
+  "stratum": "tail",
+  "work": "43395"
+ },
+ "cal154": {
+  "gold_pos": "verb",
+  "gold_lemma": "בער",
+  "stratum": "tail",
+  "work": "43464"
+ },
+ "cal155": {
+  "gold_pos": "adjective",
+  "gold_lemma": "רחב",
+  "stratum": "tail",
+  "work": "43988"
+ },
+ "cal156": {
+  "gold_pos": "preposition",
+  "gold_lemma": "לשם",
+  "stratum": "tail",
+  "work": "43988"
+ },
+ "cal157": {
+  "gold_pos": "participle",
+  "gold_lemma": "הקיף",
+  "stratum": "tail",
+  "work": "47094"
+ },
+ "cal158": {
+  "gold_pos": "participle",
+  "gold_lemma": "הקיף",
+  "stratum": "tail",
+  "work": "47094"
+ },
+ "cal159": {
+  "gold_pos": "verb",
+  "gold_lemma": "הקיף",
+  "stratum": "tail",
+  "work": "47094"
+ },
+ "cal160": {
+  "gold_pos": "numeral",
+  "gold_lemma": "מאה",
+  "stratum": "tail",
+  "work": "54827"
+ },
+ "cal161": {
+  "gold_pos": "numeral",
+  "gold_lemma": "אלף",
+  "stratum": "tail",
+  "work": "54827"
+ },
+ "cal162": {
+  "gold_pos": "numeral",
+  "gold_lemma": "מאה",
+  "stratum": "tail",
+  "work": "54827"
+ },
+ "cal163": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "הנוער העובד",
+  "stratum": "tail",
+  "work": "55759"
+ },
+ "cal164": {
+  "gold_pos": "preposition",
+  "gold_lemma": "בתוך",
+  "stratum": "tail",
+  "work": "55759"
+ },
+ "cal165": {
+  "gold_pos": "preposition",
+  "gold_lemma": "בפני",
+  "stratum": "tail",
+  "work": "55759"
+ },
+ "cal166": {
+  "gold_pos": "noun",
+  "gold_lemma": "מחצית",
+  "stratum": "tail",
+  "work": "55916"
+ },
+ "cal167": {
+  "gold_pos": "adverb",
+  "gold_lemma": "היום",
+  "stratum": "tail",
+  "work": "55916"
+ },
+ "cal168": {
+  "gold_pos": "numeral",
+  "gold_lemma": "שני",
+  "stratum": "tail",
+  "work": "55916"
+ },
+ "cal169": {
+  "gold_pos": "noun",
+  "gold_lemma": "מדריך",
+  "stratum": "tail",
+  "work": "55929"
+ },
+ "cal170": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "הצופים",
+  "stratum": "tail",
+  "work": "55929"
+ },
+ "cal171": {
+  "gold_pos": "propernoun",
+  "gold_lemma": "הצופים העובדים",
+  "stratum": "tail",
+  "work": "55929"
+ },
+ "cal172": {
+  "gold_pos": "noun",
+  "gold_lemma": "המשך",
+  "stratum": "tail",
+  "work": "55929"
+ }
+}

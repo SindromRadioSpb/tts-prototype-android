@@ -1,0 +1,100 @@
+{
+ "n": 172,
+ "lemma_strict": 86,
+ "lemma_soft": 91.9,
+ "pos": 84.9,
+ "perStratum": {
+  "collision": {
+   "n": 1,
+   "lemma": 1
+  },
+  "tail": {
+   "n": 68,
+   "lemma": 59
+  },
+  "hedged": {
+   "n": 49,
+   "lemma": 47
+  },
+  "control": {
+   "n": 36,
+   "lemma": 36
+  },
+  "fill": {
+   "n": 18,
+   "lemma": 15
+  }
+ },
+ "misses": [
+  {
+   "id": "cal003",
+   "gold": "באמת/adverb",
+   "exam": "אמת/noun"
+  },
+  {
+   "id": "cal034",
+   "gold": "מצל/adjective",
+   "exam": "הצל/verb"
+  },
+  {
+   "id": "cal035",
+   "gold": "מכסיף/adjective",
+   "exam": "הכסיף/verb"
+  },
+  {
+   "id": "cal052",
+   "gold": "שלח/verb",
+   "exam": "נשלח/verb"
+  },
+  {
+   "id": "cal054",
+   "gold": "קרא/verb",
+   "exam": "נקרא/verb"
+  },
+  {
+   "id": "cal133",
+   "gold": "בייחוד/adverb",
+   "exam": "ייחוד/noun"
+  },
+  {
+   "id": "cal136",
+   "gold": "עלילת דם/noun",
+   "exam": "עלילה/noun"
+  },
+  {
+   "id": "cal139",
+   "gold": "בכל/preposition",
+   "exam": "כל/noun"
+  },
+  {
+   "id": "cal156",
+   "gold": "לשם/preposition",
+   "exam": "שם/noun"
+  },
+  {
+   "id": "cal163",
+   "gold": "הנוער העובד/propernoun",
+   "exam": "עבד/verb"
+  },
+  {
+   "id": "cal164",
+   "gold": "בתוך/preposition",
+   "exam": "תוך/preposition"
+  },
+  {
+   "id": "cal165",
+   "gold": "בפני/preposition",
+   "exam": "פנים/noun"
+  },
+  {
+   "id": "cal170",
+   "gold": "הצופים/propernoun",
+   "exam": "צופה/noun"
+  },
+  {
+   "id": "cal171",
+   "gold": "הצופים העובדים/propernoun",
+   "exam": "עבד/verb"
+  }
+ ]
+}
