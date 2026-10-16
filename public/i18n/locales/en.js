@@ -127,7 +127,7 @@ window.I18N_LOCALES.en = {
     "reset": "Reset filters",
     "profileHelp": "Mark familiar words while reading. Their share in each text will appear here.",
     "familiarHelp": "The share of words recorded as familiar in your word profile. This does not measure text comprehension.",
-    "limitedHelp": "Too many ambiguous words for reliable ranking. Only the lower bound is shown.",
+    "limitedHelp": "Too many unparsed words for an exact score: the lower bound is shown. When sorting, this text comes after the reliably scored ones.",
     "preparing": "Familiarity: checked {done} of {total}",
     "analysisRetry": "Your word profile could not be loaded. Refresh the library to try again.",
     "sortLevel": "By level",

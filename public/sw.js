@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.779";
+const CACHE_VERSION = "v3.11.780";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,9 +82,9 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=778",
+  "/js/dictionary-ui.js?v=780",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=779",
+  "/js/mediatheque-ui.js?v=780",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -107,14 +107,14 @@ const PRECACHE_URLS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=756",
+  "/js/study-video-source-ui.js?v=780",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=742",
   "/js/learning-material-task-ui.js?v=743",
 
   "/css/catalog-discovery.css?v=643",
-  "/js/catalog-discovery-core.js?v=485",
+  "/js/catalog-discovery-core.js?v=780",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
   "/js/corpus-materialize.js?v=765",
@@ -126,7 +126,7 @@ const PRECACHE_URLS = [
   "/data/benyehuda/author-aliases-v1.json?v=730",
   "/js/text-key-scan.js?v=777",
   "/js/local-text-familiarity.js?v=774",
-  "/js/studio-library-discovery.js?v=486",
+  "/js/studio-library-discovery.js?v=780",
   "/",
   "/index.html",
   "/manifest.json",
@@ -145,7 +145,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=777",
+  "/js/library-ui.js?v=780",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -339,9 +339,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=309",
-  "/i18n/locales/en.js?v=309",
-  "/i18n/locales/he.js?v=309",
+  "/i18n/locales/ru.js?v=310",
+  "/i18n/locales/en.js?v=310",
+  "/i18n/locales/he.js?v=310",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -354,7 +354,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=777",
+  "/db/local-db.js?v=780",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

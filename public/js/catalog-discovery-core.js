@@ -36,17 +36,28 @@
     const found = new Set((values || []).map(normalize));
     return mode === 'any' ? wanted.some(tag => found.has(normalize(tag))) : wanted.every(tag => found.has(normalize(tag)));
   }
-  function familiarityValue(fit) {
-    if (!fit || fit.status !== 'AVAILABLE' || !fit.rank_eligible) return null;
-    const value = fit.recorded_familiar_pct_lower_bound;
+  function boundValue(fit) {
+    const value = fit && fit.recorded_familiar_pct_lower_bound;
     if (value == null || value === '') return null;
     const number = Number(value);
     return Number.isFinite(number) && number >= 0 && number <= 100 ? number : null;
   }
+  function familiarityValue(fit) {
+    if (!fit || fit.status !== 'AVAILABLE' || !fit.rank_eligible) return null;
+    return boundValue(fit);
+  }
+  // O-026: a reliable score sorts first; a limited one (too many unparsed words) is not dropped to the
+  // original order but follows as its own tier by its lower bound — «знакомо не меньше X%», still marked
+  // limited. Reliability (RANK_UNRESOLVED_LIMIT_PP) is unchanged; a missing score stays last.
+  function familiarityTier(fit) {
+    const reliable = familiarityValue(fit);
+    if (reliable != null) return { tier: 0, value: reliable };
+    const limited = fit && fit.status === 'AVAILABLE_LIMITED' ? boundValue(fit) : null;
+    return limited != null ? { tier: 1, value: limited } : { tier: 2, value: 0 };
+  }
   function compareFamiliarity(left, right) {
-    const a = familiarityValue(left), b = familiarityValue(right);
-    if (a == null || b == null) return a == null ? b == null ? 0 : 1 : -1;
-    return b - a;
+    const a = familiarityTier(left), b = familiarityTier(right);
+    return (a.tier - b.tier) || (b.value - a.value);
   }
   function tagFacets(items, readTags, selected = [], limit = 18) {
     const counts = new Map();
@@ -111,5 +122,5 @@
       level: String(input.level || ''), provider: String(input.provider || ''),
     };
   }
-  return Object.freeze({ SMART_FILTERS, SORTS, normalize, parseQuery, matchesText, matchesTags, familiarityValue, compareFamiliarity, tagFacets, normalizeProvider, translationProvenance, matchesProvider, state });
+  return Object.freeze({ SMART_FILTERS, SORTS, normalize, parseQuery, matchesText, matchesTags, familiarityValue, familiarityTier, compareFamiliarity, tagFacets, normalizeProvider, translationProvenance, matchesProvider, state });
 });

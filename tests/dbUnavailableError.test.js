@@ -74,3 +74,27 @@ test("Retry cannot terminate a live worker based on a historical lock timeout", 
   assert.ok(recovery.indexOf("_worker?.terminate()") < recovery.indexOf("await closeLocalDB()"));
   assert.match(recovery, /await closeLocalDB\(\);\s*_initialized = false;\s*await initLocalDB\(\)/);
 });
+
+test("O-038: a statement's SQLite error is returned to its caller, not remembered as a DB outage", () => {
+  const vm = require("node:vm");
+  const start = localDbSource.indexOf("function _wrapWorkerError(");
+  const end = localDbSource.indexOf("\n}\n", start) + 3;
+  const context = vm.createContext({ _workerCrashed: false, _lastDbError: null,
+    _crashRegex: (m) => /memory access out of bounds/.test(m),
+    DbUnavailableError: class extends Error { constructor(code, m) { super(m); this.name = "DbUnavailableError"; this.code = code; } } });
+  vm.runInContext(localDbSource.slice(start, end), context);
+  const sql = context._wrapWorkerError("no such table: missing_table", 1);
+  assert.equal(sql.name, "Error");
+  assert.equal(sql.code, 1, "the SQLite code stays readable for the caller");
+  assert.equal(context._lastDbError, null, "ensureLocalDB() keeps working");
+  const plain = context._wrapWorkerError("Unknown type: x", null);
+  assert.equal(context._lastDbError, null);
+  assert.equal(plain.code, undefined);
+  const lock = context._wrapWorkerError("lock wait timed out", "DB_LOCK_WAIT_TIMEOUT");
+  assert.equal(lock.name, "DbUnavailableError");
+  assert.equal(context._lastDbError, lock, "a typed DB failure is still sticky");
+  context._lastDbError = null;
+  const crash = context._wrapWorkerError("RuntimeError: memory access out of bounds", 1);
+  assert.equal(crash.code, "DB_WORKER_CRASHED");
+  assert.equal(context._lastDbError, crash);
+});

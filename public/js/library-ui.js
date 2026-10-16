@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=777';
+import * as localDbRaw from '/db/local-db.js?v=780';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -607,16 +607,7 @@ async function loadPersonalFamiliarityRanking(options) {
     }
     cursor = page.nextCursor;
   } while (cursor && all.length < COMPASS_FULL_CATALOG_MAX);
-  all.sort((a, b) => {
-    const ar = !!(a.fit && a.fit.status === 'AVAILABLE' && a.fit.rank_eligible);
-    const br = !!(b.fit && b.fit.status === 'AVAILABLE' && b.fit.rank_eligible);
-    if (ar !== br) return ar ? -1 : 1;
-    if (ar && br) {
-      const delta = Number(b.fit.recorded_familiar_pct_lower_bound || 0) - Number(a.fit.recorded_familiar_pct_lower_bound || 0);
-      if (delta) return delta;
-    }
-    return a.ordinal - b.ordinal;
-  });
+  all.sort((a, b) => window.CatalogDiscovery.compareFamiliarity(a.fit, b.fit) || a.ordinal - b.ordinal);
   return { status: 'AVAILABLE', items: all.map((entry) => entry.item), matchedTotal,
     rankEligibleTotal: reliableFamiliarityCount(all.map((entry) => entry.fit)) };
 }
@@ -13879,14 +13870,7 @@ function corpusL1Comparator(mode, readyMap) {
   if (mode === 'familiar_desc') return (a, b) => {
     const af = _benFamiliarityScores && _benFamiliarityScores.get(String(a.id));
     const bf = _benFamiliarityScores && _benFamiliarityScores.get(String(b.id));
-    const ar = !!(af && af.status === 'AVAILABLE' && af.rank_eligible);
-    const br = !!(bf && bf.status === 'AVAILABLE' && bf.rank_eligible);
-    if (ar !== br) return ar ? -1 : 1;
-    if (ar && br) {
-      const delta = Number(bf.recorded_familiar_pct_lower_bound || 0) - Number(af.recorded_familiar_pct_lower_bound || 0);
-      if (delta) return delta;
-    }
-    return (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));
+    return window.CatalogDiscovery.compareFamiliarity(af, bf) || (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));
   };
   if (mode === 'alpha') return (a, b) => String(a.t || '').localeCompare(String(b.t || ''));
   if (mode === 'length') return (a, b) => (corpusL1Len(b, readyMap) - corpusL1Len(a, readyMap)) || String(a.t || '').localeCompare(String(b.t || ''));
@@ -14808,10 +14792,7 @@ async function renderCorpusWorks(era, author, token) {
 function corpusWorkComparator(mode) {
   if (mode === 'familiar_desc') return (a, b) => {
     const af=_benFamiliarityScores&&_benFamiliarityScores.get(String(a.id)),bf=_benFamiliarityScores&&_benFamiliarityScores.get(String(b.id));
-    const ar=!!(af&&af.status==='AVAILABLE'&&af.rank_eligible),br=!!(bf&&bf.status==='AVAILABLE'&&bf.rank_eligible);
-    if(ar!==br)return ar?-1:1;
-    if(ar&&br){const delta=Number(bf.recorded_familiar_pct_lower_bound||0)-Number(af.recorded_familiar_pct_lower_bound||0);if(delta)return delta;}
-    return String(a.id).localeCompare(String(b.id));
+    return window.CatalogDiscovery.compareFamiliarity(af,bf)||String(a.id).localeCompare(String(b.id));
   };
   if (mode === 'alpha') return (a, b) => String(a.title || '').localeCompare(String(b.title || ''));
   if (mode === 'length') return (a, b) => ((b.segments || 0) - (a.segments || 0)) || String(a.id).localeCompare(String(b.id));

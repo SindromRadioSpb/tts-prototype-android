@@ -19,7 +19,7 @@
     }
     const explanation = fit && fit.status === 'NEEDS_PROFILE' ? t('discovery.profileHelp', 'Отмечайте знакомые слова во время чтения. Здесь появится их доля в тексте.')
       : t('discovery.familiarHelp', 'Доля слов, знакомство с которыми записано в вашем профиле. Это не оценка понимания текста.');
-    const limited = fit && fit.status === 'AVAILABLE_LIMITED' ? '<p>' + esc(t('discovery.limitedHelp', 'Для надёжной сортировки слишком много неоднозначных слов. Показана только нижняя граница.')) + '</p>' : '';
+    const limited = fit && fit.status === 'AVAILABLE_LIMITED' ? '<p>' + esc(t('discovery.limitedHelp', 'Слишком много неразобранных слов для точной оценки: показана нижняя граница. В сортировке такой текст идёт после надёжно оценённых.')) + '</p>' : '';
     return '<summary>' + esc(label) + '</summary><div class="v3-familiarity-help"><p>' + esc(explanation) + '</p>' + limited + '</div>';
   }
   function badge(id) {

@@ -43,7 +43,7 @@ import '../js/nakdan-derived-core.js';
 import { createDiagnosticJournal } from './diagnostic-journal.js?v=545';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
-import '../js/catalog-discovery-core.js?v=485';
+import '../js/catalog-discovery-core.js?v=780';
 import '../js/mediatheque-core.js';
 import '../js/mediatheque-local-repository.js';
 import '../js/mediatheque-metadata.js';
@@ -112,8 +112,17 @@ export async function acquireDbOwnership() { /* Physical ownership lives in db-w
 function _wrapWorkerError(rawMsg, code) {
   const msg = String(rawMsg || 'Worker error');
   if (_crashRegex(msg)) { _workerCrashed = true; code = 'DB_WORKER_CRASHED'; }
-  const error = code ? new DbUnavailableError(code, msg) : new Error(msg);
-  if (code) _lastDbError = error;
+  // O-038: only a typed DB_* failure means the database is unavailable and is
+  // remembered for ensureLocalDB(). A statement's own SQLite error (numeric
+  // code, e.g. "no such table") belongs to its caller and must not block the
+  // next save or open.
+  if (typeof code !== 'string' || !code.startsWith('DB_')) {
+    const error = new Error(msg);
+    if (code != null) error.code = code;
+    return error;
+  }
+  const error = new DbUnavailableError(code, msg);
+  _lastDbError = error;
   return error;
 }
 function _installDbLifecycle() {

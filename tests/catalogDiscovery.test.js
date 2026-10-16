@@ -149,3 +149,13 @@ test('an unsupported text is not re-analysed until its revision changes', async 
   await edited.prepare([{ id: '9', updated_at: 'r2' }]);
   assert.equal(analyses, 2);
 });
+
+test('O-026: limited scores follow the reliable ones as their own tier, by lower bound', () => {
+  const fit = (pct, status = 'AVAILABLE', eligible = true) => ({ status, rank_eligible: eligible, recorded_familiar_pct_lower_bound: pct });
+  const rows = [{ id: 'lim-low', fit: fit(20, 'AVAILABLE_LIMITED', false) }, { id: 'none' }, { id: 'rel-low', fit: fit(10) },
+    { id: 'lim-high', fit: fit(60, 'AVAILABLE_LIMITED', false) }, { id: 'rel-high', fit: fit(40) },
+    { id: 'unsupported', fit: { status: 'UNSUPPORTED', rank_eligible: false, recorded_familiar_pct_lower_bound: null } }];
+  const sorted = rows.slice().sort((a, b) => discovery.compareFamiliarity(a.fit, b.fit));
+  assert.deepEqual(sorted.map(x => x.id), ['rel-high', 'rel-low', 'lim-high', 'lim-low', 'none', 'unsupported']);
+  assert.equal(discovery.familiarityValue(fit(60, 'AVAILABLE_LIMITED', false)), null, 'a limited score is never presented as reliable');
+});
