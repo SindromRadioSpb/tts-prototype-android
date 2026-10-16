@@ -578,9 +578,19 @@
   // Pealim paradigm (enrichReading step 3, channel form-canonical — יַלְדֵי = construct plural of ילד), that IS the
   // reading: «likely», never «exact». One place — so the paint, the long-press, the card, the Room's and the
   // dictionary's lists and the Studio key the word identically. Closed-class / adverb glosses (steps 1–2) stay display.
-  async function resolveCore(eng, surfaceOrig, niqqudOrig) {
-    var card = await _resolveBase(eng, surfaceOrig, niqqudOrig);
-    if (!card || (card.label !== "unknown" && card.label !== "guessed") || !eng || !eng.dictaLex) return card;
+  // opts.noD9 — the reading BEFORE the Д9 rules (the Д9.2 mark migration's «before»; never for display)
+  async function resolveCore(eng, surfaceOrig, niqqudOrig, opts) {
+    var d9 = !(opts && opts.noD9);
+    var card = await _resolveBase(eng, surfaceOrig, niqqudOrig, opts);
+    if (!card || (card.label !== "unknown" && card.label !== "guessed")) return card;
+    // Д9-B: תָּ׳דּוֹר = אֶת הַ+דּוֹר — the word after a ת׳ / ש׳ contraction is the word
+    var rest = d9 ? _contractionRest(niqqudOrig || surfaceOrig) : null;
+    if (rest) {
+      var rc = null; try { rc = await _resolveBase(eng, stripNiqqud(rest), rest, opts); } catch (_) { rc = null; }
+      if (rc && (rc.label === "exact" || rc.label === "likely") && !rc.functionWord)
+        return Object.assign({}, rc, { word: surfaceOrig || stripNiqqud(niqqudOrig), niqqud: String(niqqudOrig || ""), label: "likely", identityVia: "contraction" });
+    }
+    if (!eng || !eng.dictaLex) return card;
     // Ф4 · Д8-К: a word the offline dictionary does not read takes its identity from the device's Dicta lexicon
     // (Dicta's parse of the learner's own texts, context-free, append-only — the same answer on every surface).
     // Pealim still wins where it agrees: the TEXT's pointing of Dicta's stem resolves to Dicta's own lemma (Д8-1).
@@ -590,12 +600,18 @@
     // (עָלָה «поднялся» ≠ על+ה) yields to Dicta's word, marked disputed; any other function reading stays
     var gateOverride = card.gateVia === "name" || card.gateVia === "prep+suf";
     if (!e || e.cls !== "content" || (card.functionWord && !gateOverride)) return card;
+    // Д9-B: an acronym Dicta lemmatized to its BARE letters (פַתַ״ח → פתח «вход») is not that word — left unparsed, with
+    // the names; an acronym Dicta keeps as an acronym (צה״ל, שב״כ, ממ״ד) is its own word and stays one
+    if (d9 && _ACRONYM_RE.test(String(surfaceOrig || niqqudOrig || "")) && !/["״]/.test(String(e.lemma || ""))) return card;
     // a closed-class word behind proclitics (וְגַם, בְּכָל, וְיֵשׁ) stays a function word whatever Dicta calls it (adverb, no
     // class); only a LEXICAL adverb (עַכְשָׁו, בְּדִיּוּק, סְתָם) becomes a word of the dictionary
     try { var fnr = enrichReading(eng, card, surfaceOrig, String(niqqudOrig || "")); if (fnr && fnr.label === "function" && !/adverb/.test(fnr.gateVia || "")) return card; } catch (_) {}
     var conf = null;
-    try { conf = await _dictaConfirmed(eng, surfaceOrig, niqqudOrig, { prefix: e.prefix, lemma: e.lemma, lemmas: [], posDicta: e.pos || null, niqqud: e.nq }); } catch (_) { conf = null; }
+    try { conf = await _dictaConfirmed(eng, surfaceOrig, niqqudOrig, { prefix: e.prefix, lemma: e.lemma, lemmas: [], posDicta: e.pos || null, niqqud: e.nq }, opts); } catch (_) { conf = null; }
     if (conf) return Object.assign({}, conf.card, { word: surfaceOrig || stripNiqqud(niqqudOrig), niqqud: String(niqqudOrig || ""), identityVia: "dicta-confirmed" });
+    // Д9-B: Dicta's reading whose bare letters are one Pealim entry's cell — that entry (בֵּדוּאִים → בדואי)
+    var bySk = d9 ? _pealimBySkeleton(eng, e, surfaceOrig || stripNiqqud(niqqudOrig), niqqudOrig) : "";
+    if (bySk) return _cardForPid(eng, card, bySk, "dicta-pealim");
     return Object.assign({}, card, {
       label: "dicta", channel: "dicta-lexicon", identityVia: "dicta-lexicon", dictaKey: DLX.keyOf(e),
       lemma: e.lemma, pos: e.pos, meaning: "", root: null, binyan: "", paradigm: null, pealim_id: "", pealim_url: "",
@@ -611,8 +627,180 @@
     try { _glossMemo.clear(); } catch (_) {}
   }
   var _pendingDictaLex = null;
-  async function _resolveBase(eng, surfaceOrig, niqqudOrig) {
+  // ── Ф4 · Д9 (independent identity audit 2026-10-16, docs/research/my-dictionary-identity-audit/2026-10-16/RESULTS.md):
+  // a «likely» reading took another paradigm's CELL where the form has its OWN Pealim entry (מַכּוֹת → «бить», not
+  // מכה «удар»; נָחוּשׁ → «чувствовать», not «непреклонный»; שְׁנִיָּה → «второй», not «секунда»; הַיּוֹם → «день», not
+  // «сегодня») — 16 % false keys on that path. Two rules, offline, in this one place (paint, tap, lists agree):
+  //  A1 the paradigm whose CITATION form (its lemma, the singular / masculine singular cell) IS the text's vocalized
+  //     form wins over a cell of another paradigm — the headword is the word;
+  //  A2 an honest homograph (a verb's present-tense cell = a noun's / adjective's cell: מַכּוֹת, מַדְהִימִים) is decided
+  //     by the device's Dicta lexicon (Dicta's reading of this spelling in the learner's own texts), when exactly one
+  //     candidate agrees with its part of speech and lemma; otherwise the reading stays as it was.
+  var _CITATION_CELLS = ["s", "ms-a"];
+  function _nv(s) { var NA = (typeof window !== "undefined" && window.NotesAutoGen) || null; return NA && NA.normVowels ? NA.normVowels(String(s || "")) : String(s || "").normalize("NFC"); }
+  function _citationForms(par) {
+    var out = [];
+    if (!par) return out;
+    if (par.lemma_niqqud) out.push(_nv(par.lemma_niqqud));
+    for (var i = 0; i < _CITATION_CELLS.length; i++) { var c = par.cells && par.cells[_CITATION_CELLS[i]]; if (c && c.he) out.push(_nv(c.he)); }
+    return out;
+  }
+  // paradigms without cells (adverbs such as הַיּוֹם «сегодня») are in no form index: their citation form, once per engine
+  function _cellLessIndex(eng) {
+    if (eng._cellLess) return eng._cellLess;
+    var m = new Map();
+    if (eng.pidMap) eng.pidMap.forEach(function (p, pid) {
+      if (!p || (p.cells && Object.keys(p.cells).length) || !p.lemma_niqqud) return;
+      var k = _nv(p.lemma_niqqud); if (!m.has(k)) m.set(k, []); m.get(k).push(pid);
+    });
+    eng._cellLess = m;
+    return m;
+  }
+  function _cardForPid(eng, card, pid, via) {
+    var par = eng.pidMap && eng.pidMap.get(String(pid));
+    if (!par) return card;
+    var prev = card.pealim_id ? [{ pealim_id: String(card.pealim_id), pos: card.pos || "", meaning: card.meaning || "", root: card.root || null }] : [];
+    return Object.assign({}, card, {
+      pealim_id: String(pid), lemma: par.lemma || "", pos: par.pos || "", meaning: par.meaning || "", root: par.root || null,
+      binyan: par.binyan || "", paradigm: par, pealim_url: par.pealim_url || "", label: "likely", identityVia: via, functionWord: false,
+      ambiguous: true, alts: prev.concat((card.alts || []).filter(function (a) { return String(a && a.pealim_id || "") !== String(pid); })),
+    });
+  }
+  var _D9_POS = { noun: "noun", adjective: "adjective", verb: "verb", adverb: "adverb", numeral: "numeral" };
+  function _posKin(a, b) { return a === b || ((a === "noun" || a === "adjective") && (b === "noun" || b === "adjective")); }
+  function _preferOwnEntry(eng, card, surfaceOrig, niqqudOrig) {
+    if (!card || card.label !== "likely" || card.functionWord || !card.pealim_id || !eng || !eng.pidMap) return card;
+    var form = _nv(niqqudOrig);
+    if (!form || !/[ְ-ּ]/.test(form)) return card;
+    var pids = [String(card.pealim_id)];
+    (card.alts || []).forEach(function (a) { if (a && a.pealim_id && pids.indexOf(String(a.pealim_id)) < 0) pids.push(String(a.pealim_id)); });
+    (_cellLessIndex(eng).get(form) || []).forEach(function (pid) { if (pids.indexOf(pid) < 0) pids.push(pid); });
+    var DLX = (typeof window !== "undefined" && window.DictaLexicon) || _DictaLexiconNode;
+    var e = (DLX && eng.dictaLex) ? DLX.lookup(eng.dictaLex, surfaceOrig || niqqudOrig) : null;
+    // Dicta's reading of the spelling counts where it DOMINATES (בָּא: verb 157 of 158 — one stray reading is not «ambiguous»);
+    // where Dicta itself is split (טוֹבָה: «хорошая» / «одолжение», 53 other readings of 58) the spelling is a true homograph
+    // and no Д9 rule decides it
+    if (e && e.cls !== "content") e = null;
+    var eLemma = e ? _d8Loose(e.lemma) : "";   // Dicta's first lemma — read even where it is split (see A1)
+    if (e && (Number(e.altN) || 0) > 0.2 * (Number(e.n) || 1)) e = null;
+    var dLemma = e ? _d8Loose(e.lemma) : "";
+    var dictaReads = function (par) {   // does Dicta's reading fit this paradigm? (part of speech, else the lemma)
+      if (!e || !par) return false;
+      if (e.pos && _D9_POS[e.pos]) return _posKin(par.pos || "", e.pos);
+      return [par.lemma, par.lemma_niqqud].filter(Boolean).map(_d8Loose).indexOf(dLemma) >= 0;
+    };
+    // A2 first where it is decisive: Dicta's dominant reading names exactly ONE candidate by its EXACT part of speech and
+    // lemma (טוֹבָה → טוב «хороший», not the headword טובה «одолжение»; מַכּוֹת → מכה «удар»)
+    var dictaPick = function () {
+      if (!e || !e.pos || !_D9_POS[e.pos] || pids.length < 2) return "";
+      var hit = pids.filter(function (pid) {
+        var p = eng.pidMap.get(pid); if (!p || (p.pos || "") !== e.pos) return false;
+        return [p.lemma, p.lemma_niqqud].filter(Boolean).map(_d8Loose).indexOf(dLemma) >= 0;
+      });
+      return hit.length === 1 ? hit[0] : "";
+    };
+    var dp = dictaPick();
+    if (dp) return dp === String(card.pealim_id) ? card : _cardForPid(eng, card, dp, "dicta-tiebreak");
+    // A1 — with Dicta's veto: where the device's Dicta lexicon reads this spelling as the current reading and not as the
+    // headword (בָּא «пришёл», not «следующий»; צְרִיכָה «нужна», not «потребление»), the reading stays
+    var own = pids.filter(function (pid) { return _citationForms(eng.pidMap.get(pid)).indexOf(form) >= 0; });
+    // the headword vs an INFLECTED form of a sibling Dicta lemmatizes to (טוֹבָה: noun טובה «одолжение» vs the feminine of
+    // טוב «хороший»; Dicta: lemma טוב) — Dicta's lemma decides, even where its readings are split
+    if (own.length === 1 && eLemma) {
+      var ownPos = (eng.pidMap.get(own[0]) || {}).pos || "";
+      var sib = pids.filter(function (pid) {
+        if (pid === own[0]) return false;
+        var p = eng.pidMap.get(pid) || {};
+        // one family only (noun ~ adjective): הַיּוֹם «сегодня» (adverb) is not ה+יוֹם «день» because Dicta segments it so
+        if (!_posKin(p.pos || "", ownPos) || ownPos === "adverb") return false;
+        return [p.lemma, p.lemma_niqqud].filter(Boolean).map(_d8Loose).indexOf(eLemma) >= 0;
+      });
+      var ownLemmaIsDicta = [(eng.pidMap.get(own[0]) || {}).lemma].filter(Boolean).map(_d8Loose).indexOf(eLemma) >= 0;
+      if (sib.length === 1 && !ownLemmaIsDicta) return sib[0] === String(card.pealim_id) ? card : _cardForPid(eng, card, sib[0], "dicta-tiebreak");
+    }
+    // a present participle of piel / hifil / hitpael / pual / hufal (מְנַהֵל «руководит», מְעַנְיֵן «интересует», מַצְחִיק) is
+    // more often the verb than the headword it lexicalized into (מנהל «начальник») — measured on the owner's corpus
+    // (fresh sample: 7 of 9 participle errors); A1 leaves it to Dicta's reading (A2 above) or as it was
+    var curPar = eng.pidMap.get(String(card.pealim_id)) || {};
+    var derivedParticiple = curPar.pos === "verb" && /^(piel|hifil|hitpael|pual|hufal)$/.test(String(curPar.binyan || "")) &&
+      Object.keys(curPar.cells || {}).some(function (k) { return /^AP-/.test(k) && curPar.cells[k] && _nv(curPar.cells[k].he) === form; });
+    if (own.length === 1 && own[0] !== String(card.pealim_id) && !derivedParticiple) {
+      var veto = dictaReads(eng.pidMap.get(String(card.pealim_id)) || card) && !dictaReads(eng.pidMap.get(own[0]));
+      if (!veto) return _cardForPid(eng, card, own[0], "own-entry");
+      return card;
+    }
+    if (own.length === 1) return card;
+    return card;
+  }
+  // Д9-B: the Dicta lexicon must not turn into a word (measured S4: 16 % false keys)
+  //  · an acronym with gershayim Pealim does not read (פַתַ״ח → «вход», צה״ל) — a name / organization, left unparsed;
+  //  · a colloquial ת׳ / ש׳ contraction (תָּ׳דּוֹר = אֶת הַ+דּוֹר): the word after the geresh is the word;
+  //  · a Dicta reading whose bare letters (after Dicta's prefix) are the cell of exactly one Pealim entry of a kindred part
+  //    of speech (בֵּדוּאִים, pointed with tsere where Pealim has segol → Dicta's plural «lemma») — the Pealim entry.
+  var _ACRONYM_RE = /[א-ת](["״])[א-ת]/;
+  var _CONTRACTION_RE = /^([תש])[׳'](?=[א-ת])/;
+  function _contractionRest(s) {
+    var m = _CONTRACTION_RE.exec(stripNiqqud(String(s || "")));
+    if (!m) return null;
+    var nq = String(s || "").normalize("NFC"), i = nq.search(/[׳']/);
+    return i >= 0 ? nq.slice(i + 1) : null;
+  }
+  // the vowel class of each consonant of a vocalized word: a (patah/qamats/hataf-patah), e (tsere/segol/hataf-segol),
+  // i, o (holam, holam male), u (qubuts, shuruk); sheva/dagesh/dots ignored, matres (וֹ וּ, a bare יו) give their vowel to the
+  // consonant before. בֵּדוּאִים ≡ בֶּדוּאִים (tsere ~ segol), צִיּוֹן ≠ צִיּוּן (Zion ≠ «отметка»).
+  var _VCLASS = { "ַ": "a", "ָ": "a", "ֲ": "a", "ֵ": "e", "ֶ": "e", "ֱ": "e", "ִ": "i", "ֹ": "o", "ֺ": "o", "ֳ": "o", "ֻ": "u" };
+  function _vowelClasses(nq) {
+    var cl = _clusters(String(nq || "").normalize("NFC")), out = [];
+    for (var i = 0; i < cl.length; i++) {
+      var letter = cl[i].charAt(0), marks = cl[i].slice(1);
+      if (!/[א-ת]/.test(letter)) continue;
+      var v = ""; for (var j = 0; j < marks.length; j++) if (_VCLASS[marks.charAt(j)]) v = _VCLASS[marks.charAt(j)];
+      if (letter === "ו" && out.length && (marks === "ֹ" || marks === "ּ")) { out[out.length - 1] = marks === "ֹ" ? "o" : "u"; continue; }
+      if ((letter === "י" || letter === "ו") && !v && !/ּ/.test(marks) && out.length) continue;   // a bare mater
+      out.push(v);
+    }
+    return out.join(",");
+  }
+  function _pealimBySkeleton(eng, e, surface, niqqud) {
+    var maps = eng && eng.maps; if (!maps || !maps.cell || !eng.pidMap) return "";
+    // the vowels decide; an unpointed place reads Dicta's own pointing of this spelling (the lexicon keeps it) — so הָעָם
+    // and an unpointed העם get ONE key, never two entries of one word
+    if (!/[ְ-ּ]/.test(String(niqqud || ""))) niqqud = e.nq || "";
+    if (!/[ְ-ּ]/.test(String(niqqud || ""))) return "";
+    // maps.cell keys keep final letters (בדואים) — no final folding here
+    var sk = stripNiqqud(String(surface || "")).replace(/[^א-ת]/g, ""), pre = stripNiqqud(String(e.prefix || "")).replace(/[^א-ת]/g, "");
+    if (pre && (sk.indexOf(pre) !== 0 || sk.length - pre.length < 2)) pre = "";
+    sk = sk.slice(pre.length);
+    var hits = maps.cell.get(sk) || [];
+    var pids = [];
+    hits.forEach(function (h) { if (h && h.pealim_id && _posKin(h.pos || "", e.pos || "") && pids.indexOf(String(h.pealim_id)) < 0) pids.push(String(h.pealim_id)); });
+    if (pids.length !== 1) return "";
+    var par = eng.pidMap.get(pids[0]) || {};
+    // a noun of Dicta's becomes a Pealim adjective only where Pealim itself gives the noun use (בדואי «бедуин (как
+    // существительное)»); חַיִּים «жизнь» is not חי «живой»
+    if (e.pos === "noun" && par.pos === "adjective" && !/существительн/.test(String(par.meaning || ""))) return "";
+    if (e.pos === "adjective" && par.pos === "noun") return "";
+    // R11: only a KINDRED lemma replaces Dicta's (בדואים ~ בדואי) — a chance letter match with another word never does
+    var pl = _d8Loose(par.lemma), dl = _d8Loose(e.lemma);
+    // Dicta's lemma that only echoes the form (בדואים for בֵּדוּאִים) is no lemma — the kindred Pealim lemma may stand in
+    var echo = e.noLemma || dl === _d8Loose(sk);
+    if (!(pl && dl && (dl === pl || (echo && dl.indexOf(pl) === 0)))) return "";
+    // …and the text's own vowels are that cell's (by class): עֲרָבִי «араб» is not עַרְבֵי «вечера», צִיּוֹן not צִיּוּן
+    // a TEXT letter left unpointed (a partly pointed word: קוֹדם) matches any vowel; the cell's sheva is a real vowel (עַרְבִּי)
+    var textV = _vowelClasses(niqqud).split(",").slice(pre.length);
+    var sameV = function (cellV) {
+      if (cellV.length !== textV.length) return false;
+      for (var i = 0; i < cellV.length; i++) if (textV[i] && cellV[i] !== textV[i]) return false;
+      return true;
+    };
+    var match = Object.keys(par.cells || {}).some(function (k) {
+      var c = par.cells[k]; return c && c.he && stripNiqqud(c.he) === sk && sameV(_vowelClasses(c.he).split(","));
+    });
+    return match ? pids[0] : "";
+  }
+  async function _resolveBase(eng, surfaceOrig, niqqudOrig, opts) {
     var card = await _resolveOffline(eng, surfaceOrig, niqqudOrig);
+    if (!(opts && opts.noD9)) card = _preferOwnEntry(eng, card, surfaceOrig, niqqudOrig);
     if (!card || (card.label !== "unknown" && card.label !== "guessed")) return card;
     var up = null;
     try { up = enrichReading(eng, card, surfaceOrig, String(niqqudOrig || "")); } catch (_) { up = null; }
@@ -2697,7 +2885,7 @@
   // resolver agree: Dicta splits off its prefix (or gives its own pointing), the resolver reads the stem, and the
   // paradigm's lemma IS Dicta's lemma. Otherwise null — the word stays in «Не разобрано».
   var _BGDKPT = { "ב": 1, "ג": 1, "ד": 1, "כ": 1, "פ": 1, "ת": 1 };
-  async function _dictaConfirmed(eng, surface, niqqud, dt) {
+  async function _dictaConfirmed(eng, surface, niqqud, dt, opts) {
     if (!dt || !_DICTA_CONTENT[String(dt.posDicta || "")] && dt.posDicta) return null;
     var lemmas = [dt.lemma].concat(dt.lemmas || []).filter(Boolean).map(_d8Loose).filter(Boolean);
     if (!lemmas.length) return null;
@@ -2721,7 +2909,7 @@
     else if (dt.niqqud) cands.push(stemOf(dt.niqqud));
     for (var c = 0; c < cands.length; c++) {
       if (!cands[c] || !/[ְ-ּ]/.test(cands[c])) continue;
-      var card; try { card = await _resolveBase(eng, stemPlain, cands[c]); } catch (_) { card = null; }
+      var card; try { card = await _resolveBase(eng, stemPlain, cands[c], opts); } catch (_) { card = null; }
       if (!card || (card.label !== "exact" && card.label !== "likely") || card.functionWord) continue;
       var par = card.paradigm || {};
       var mine = [card.lemma, par.lemma, par.lemma_niqqud].filter(Boolean).map(_d8Loose);
@@ -2758,7 +2946,8 @@
           var u = unsure.get(sk);
           // Д7.3 the group a learner sees: a name, a guess, or not parsed. Д8-К: Dicta's class decides a name both ways
           // (אֶלְחָנָן a name, מְדִינָה a word) where the device has its parse.
-          var nameS = !!x.nameHint || (lx ? lx.cls === "name"
+          // Д9-B: an acronym Pealim does not read (פַתַ״ח, צה״ל) sits with the names
+          var nameS = !!x.nameHint || _ACRONYM_RE.test(String(surface || niqqud || "")) || (lx ? lx.cls === "name"
             : (!!NAME_HINT[sk] || (card && card.pos) === "propernoun" || (card && card.gateVia) === "name"));
           if (!u) { u = { surface: surface || sk, niqqud: niqqud, freq: 0, label: (card && card.label) || "unknown", pos: (card && card.pos) || "", nameSuspect: nameS, dicta: !!lx, occ: [], _i: i }; unsure.set(sk, u); }
           u.freq++; if (Number.isFinite(ri) && Number.isFinite(off) && u.occ.length < 12) u.occ.push({ rowIdx: ri, wordOffset: off });
@@ -2886,6 +3075,69 @@
     try { console.info("[identity] spelling marks → lemma:", JSON.stringify(sum)); } catch (_) {}
     return sum;
   }
+  // ── Ф4 · Д9.2 marks follow the word the learner saw (docs/planning/word-layer/F4_D9_OWN_ENTRY_SPEC_2026_10_16.md) ─────
+  // Д9 re-keys some places (טוֹב: «быть хорошим» → «хороший»). A mark made on the old key was made SEEING those places:
+  // where ≥ 80 % of the old key's places in my texts now key to ONE other key, the mark goes there too (the later mark
+  // wins a conflict, as Д7.2); where EVERY place moved, the old key's mark is cleared. Below 80 % (יוֹם → הַיּוֹם 37 %)
+  // nothing moves. Review schedules stay (Д7.2's rule). Once per device; a backup of every changed row.
+  var MIGRATION_D9_KEY = "lp.identityMigrationD9_v1";
+  var D9_SHARE = 0.8;
+  async function migrateIdentityD9(ldb, opts) {
+    opts = opts || {};
+    try { if (!opts.force && typeof localStorage !== "undefined" && localStorage.getItem(MIGRATION_D9_KEY)) return null; } catch (_) {}
+    if (!ldb || typeof ldb.dbQuery !== "function" || typeof ldb.setWordStatus !== "function") return null;
+    var eng = opts.engine || await ensureEngine(), NA = (typeof window !== "undefined" && window.NotesAutoGen) || eng.NA;
+    var marks = (await ldb.dbQuery("SELECT lemma_key, status, updated_at FROM word_status WHERE status != '' AND lemma_key NOT LIKE 'note:%' AND lemma_key NOT LIKE 'sent:%'", [])) || [];
+    var marked = new Map(marks.map(function (r) { return [String(r.lemma_key), r]; }));
+    var sum = { at: new Date().toISOString(), marked: marked.size, keysMoving: 0, copied: 0, cleared: 0, conflictLaterOld: 0, conflictLaterNew: 0, belowShare: 0 };
+    var backup = [];
+    if (marked.size) {
+      var total = new Map(), to = new Map(), memo = new Map(), off = 0, PAGE = 1500;
+      for (;;) {
+        var part = await ldb.dbQuery("SELECT s.he_plain, s.he_niqqud FROM sentences s JOIN texts t ON t.id = s.text_id ORDER BY s.rowid LIMIT ? OFFSET ?", [PAGE, off]);
+        if (!part || !part.length) break;
+        for (var pi = 0; pi < part.length; pi++) {
+          var plain = String(part[pi].he_plain || ""), vocal = String(part[pi].he_niqqud || ""), toks, pairs;
+          if (plain) { var al = alignSurfaceNiqqud(plain, vocal), w = 0; toks = tokenize(plain); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { var a = al[w++] || {}; return [a.surface || x.text, a.niqqud || ""]; }); }
+          else { toks = tokenize(vocal); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { return [stripNiqqud(x.text), x.text]; }); }
+          var units = joinSplitWords(toks, pairs) || [];
+          for (var ui = 0; ui < units.length; ui++) {
+            var un = units[ui]; if (un.fragment) continue;
+            var mk = un.surface + "\u0001" + un.niqqud, m = memo.get(mk);
+            if (!m) {
+              var ko = statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud, { noD9: true }), un.niqqud, un.surface);
+              m = { ko: ko, kn: marked.has(ko) ? statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud), un.niqqud, un.surface) : ko };
+              memo.set(mk, m);
+            }
+            if (!m.ko || !marked.has(m.ko)) continue;
+            total.set(m.ko, (total.get(m.ko) || 0) + 1);
+            if (m.kn !== m.ko) { var tm = to.get(m.ko) || new Map(); tm.set(m.kn, (tm.get(m.kn) || 0) + 1); to.set(m.ko, tm); }
+          }
+        }
+        off += part.length;
+        await new Promise(function (r) { setTimeout(r, 0); });
+        if (part.length < PAGE) break;
+      }
+      var froms = Array.from(to.keys());
+      for (var fi = 0; fi < froms.length; fi++) {
+        var oldK = froms[fi], tm2 = to.get(oldK), n = total.get(oldK) || 0, best = "", bestN = 0;
+        tm2.forEach(function (c, k) { if (k && c > bestN) { best = k; bestN = c; } });
+        if (!best || !n) continue;
+        sum.keysMoving++;
+        if (bestN / n < D9_SHARE) { sum.belowShare++; continue; }
+        var row = marked.get(oldK), whole = bestN === n;
+        var cur = ((await ldb.dbQuery("SELECT status, updated_at FROM word_status WHERE lemma_key = ?", [best])) || [])[0];
+        backup.push({ from: oldK, status: row.status, at: row.updated_at, to: best, toStatus: cur ? cur.status : null, toAt: cur ? cur.updated_at : null, share: bestN / n, whole: whole });
+        if (!cur || !cur.status) { await ldb.setWordStatus(best, row.status); sum.copied++; }
+        else if (String(row.updated_at || "") > String(cur.updated_at || "")) { await ldb.setWordStatus(best, row.status); sum.copied++; sum.conflictLaterOld++; }
+        else sum.conflictLaterNew++;
+        if (whole) { await ldb.setWordStatus(oldK, ""); sum.cleared++; }
+      }
+    }
+    try { if (typeof localStorage !== "undefined") { if (backup.length) localStorage.setItem(MIGRATION_D9_KEY + ".backup", JSON.stringify(backup)); localStorage.setItem(MIGRATION_D9_KEY, JSON.stringify(sum)); } } catch (_) {}
+    try { console.info("[identity] Д9 marks follow the word:", JSON.stringify(sum)); } catch (_) {}
+    return sum;
+  }
   // ── Ф4 · Д8-К3 одна история слова (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md) ──────────────
   // A key that is not a word key (a spelling key `אביו#`, a function form) with a history (reviews, seeds, marks) gets an
   // alias to the ONE key every place of its spelling in my texts gets now (Д7 + the device's Dicta lexicon). The plan
@@ -2967,6 +3219,79 @@
     var proj = await ldb.applyAliasProjection(touched);
     try { localStorage.setItem(ALIAS_KEY, JSON.stringify({ at: at, applied: rows.length, plan: plan.map(function (p) { return [p.from, p.to]; }) })); } catch (_) {}
     return { applied: res.accepted, refused: res.refused, touched: touched.length, statuses: proj.statuses };
+  }
+  // ── Ф4 · Д9.3 audit of the applied aliases with the Д9 resolver (spec F4_D9_OWN_ENTRY_SPEC_2026_10_16.md) ──────────
+  // The same algorithm as planKeyAliases, over the ACTIVE aliases: keep (the one key is still the target), retarget (every
+  // place now gets ONE other word key), undo (no single word key any more). Dry run — writes nothing.
+  async function auditKeyAliases(ldb, opts) {
+    opts = opts || {};
+    var eng = opts.engine || await ensureEngine(), NA = (typeof window !== "undefined" && window.NotesAutoGen) || eng.NA;
+    var aliasMap = typeof ldb.getAliasMap === "function" ? await ldb.getAliasMap() : new Map();
+    var bySk = new Map();
+    aliasMap.forEach(function (to, from) {
+      if (!from || to === from) return;
+      var h = from.indexOf("#"), sk = stripNiqqud(h >= 0 ? from.slice(0, h) : from);
+      if (!/[א-ת]/.test(sk)) return;
+      if (!bySk.has(sk)) bySk.set(sk, []);
+      bySk.get(sk).push({ from: from, to: to });
+    });
+    var forms = new Map(), off = 0, PAGE = 1500;
+    for (;;) {
+      var part = await ldb.dbQuery("SELECT s.he_plain, s.he_niqqud FROM sentences s JOIN texts t ON t.id = s.text_id ORDER BY s.rowid LIMIT ? OFFSET ?", [PAGE, off]);
+      if (!part || !part.length) break;
+      for (var pi = 0; pi < part.length; pi++) {
+        var plain = String(part[pi].he_plain || ""); if (!plain) continue;
+        var al = alignSurfaceNiqqud(plain, String(part[pi].he_niqqud || "")), ws = words(plain);
+        for (var wi = 0; wi < ws.length; wi++) {
+          var pr = al[wi] || {}, sk2 = stripNiqqud(pr.surface || ws[wi]);
+          if (!bySk.has(sk2)) continue;
+          if (!forms.has(sk2)) forms.set(sk2, new Set());
+          if (forms.get(sk2).size < 12) forms.get(sk2).add(pr.niqqud || "");
+        }
+      }
+      off += part.length;
+      await new Promise(function (r) { setTimeout(r, 0); });
+      if (part.length < PAGE) break;
+    }
+    var out = [], sum = { at: new Date().toISOString(), aliases: 0, keep: 0, retarget: 0, undo: 0, noPlace: 0 };
+    var entries = Array.from(bySk.entries());
+    for (var ei = 0; ei < entries.length; ei++) {
+      var sk3 = entries[ei][0], list = entries[ei][1], fs = Array.from(forms.get(sk3) || []);
+      for (var li = 0; li < list.length; li++) {
+        var a = list[li], targets = new Set(), seen = 0;
+        sum.aliases++;
+        for (var fi = 0; fi < fs.length; fi++) {
+          var n = fs[fi], before = await _resolveOffline(eng, sk3, n);
+          if (statusKeyForCard(NA, before, n, sk3) !== a.from) continue;
+          seen++;
+          var t = statusKeyForCard(NA, await resolveCore(eng, sk3, n), n, sk3);
+          targets.add(/^(pid:|dl:)/.test(t) ? t : "");
+        }
+        var verdict = "keep", now = "";
+        if (!seen) sum.noPlace++;
+        else if (targets.size === 1 && Array.from(targets)[0] === a.to) verdict = "keep";
+        else if (targets.size === 1 && Array.from(targets)[0]) { verdict = "retarget"; now = Array.from(targets)[0]; }
+        else verdict = "undo";
+        sum[verdict]++;
+        if (verdict !== "keep") out.push({ from: a.from, to: a.to, now: now, verdict: verdict });
+      }
+    }
+    return { summary: sum, decisions: out };
+  }
+  // decisions: [{ from, to, now, verdict: retarget|undo }] → alias events (a new target, or «key → itself» = undone); the
+  // log is only appended. A backup of the decisions (with the targets before) for a later reversal.
+  async function applyAliasAudit(ldb, decisions) {
+    var KA = (typeof window !== "undefined" && window.KeyAliasCore) || null;
+    if (!KA || !ldb || typeof ldb.appendReviewLog !== "function" || typeof ldb.applyAliasProjection !== "function") throw new Error("ALIAS_UNSUPPORTED");
+    var at = new Date().toISOString();
+    var rows = (decisions || []).filter(function (d) { return d && (d.verdict === "undo" || (d.verdict === "retarget" && d.now)); })
+      .map(function (d) { return d.verdict === "undo" ? KA.aliasRow(d.from, d.from, at, "d9-undo") : KA.aliasRow(d.from, d.now, at, "d9-retarget"); });
+    if (!rows.length) return { applied: 0 };
+    var touched = await ldb.aliasTouchedKeys(rows);
+    var res = await ldb.appendReviewLog(rows);
+    var proj = await ldb.applyAliasProjection(touched, { clearWithoutMark: (decisions || []).map(function (d) { return d.to; }) });
+    try { localStorage.setItem("lp.aliasAuditD9_v1", JSON.stringify({ at: at, applied: rows.length, decisions: decisions })); } catch (_) {}
+    return { applied: res.accepted, refused: res.refused, touched: touched.length, statuses: proj && proj.statuses };
   }
   async function undoKeyAliases(ldb) {
     var KA = (typeof window !== "undefined" && window.KeyAliasCore) || null, last = null;
@@ -3470,7 +3795,7 @@
     availableChannels: availableChannels,
     // Retention P0 — exported so smoke:memory-canon can assert the LemmaCanon delegate stays
     // byte-identical to the inline fallback (keyer-conformance gate, recon B1).
-    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, planKeyAliases: planKeyAliases, applyKeyAliases: applyKeyAliases, undoKeyAliases: undoKeyAliases, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
+    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, migrateIdentityD9: migrateIdentityD9, planKeyAliases: planKeyAliases, applyKeyAliases: applyKeyAliases, undoKeyAliases: undoKeyAliases, auditKeyAliases: auditKeyAliases, applyAliasAudit: applyAliasAudit, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

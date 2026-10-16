@@ -82,7 +82,7 @@
     var push = function (map, kk, par) {
       if (!kk) return; if (!map.has(kk)) map.set(kk, []);
       var list = map.get(kk);
-      if (!list.some(function (x) { return x.binyan === (par.binyan || "") && x.meaning === par.meaning; })) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning });
+      if (!list.some(function (x) { return x.binyan === (par.binyan || "") && x.meaning === par.meaning; })) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning, pealim_id: par.pealim_id || null });
     };
     var pushForm = function (kk, par) {
       if (!kk) return; if (!formIdx.has(kk)) formIdx.set(kk, []);

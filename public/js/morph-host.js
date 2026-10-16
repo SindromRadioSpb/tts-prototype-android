@@ -535,6 +535,12 @@
           try {
             var r = await window.ReaderMorph.migrateSpellingMarks(await ldbOf());
             if (r && r.moved) { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }
+            // Ф4 · Д9.2: marks follow the word the learner saw — after the Dicta lexicon (rules A2/B read it)
+            if (typeof window.ReaderMorph.migrateIdentityD9 === "function") {
+              await ensureDictaLexicon();
+              var r9 = await window.ReaderMorph.migrateIdentityD9(await ldbOf());
+              if (r9 && (r9.copied || r9.cleared)) { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }
+            }
           } catch (e) { try { console.warn("[identity] migration", e); } catch (_) {} }
         };
         try {
