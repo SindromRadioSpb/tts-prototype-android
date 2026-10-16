@@ -38,3 +38,21 @@ test("every shell polls for a new worker on load, on tab return and periodically
   }
 });
 
+
+test("O-015: a plain reload of the only tab activates the waiting release from the worker", () => {
+  const sw = read("public/sw.js");
+  const fn = sw.slice(sw.indexOf("async function reloadIntoWaitingRelease"), sw.indexOf("async function staleWhileRevalidate"));
+  assert.match(sw, /req\.mode === "navigate" && self\.registration\.waiting[\s\S]{0,120}reloadIntoWaitingRelease\(/);
+  assert.match(fn, /includeUncontrolled: true/, "counts every window, controlled or not");
+  assert.match(fn, /windows\.length === 1[\s\S]{0,120}visibilityState === "visible"[\s\S]{0,120}pathname === url\.pathname/,
+    "another open tab keeps its code: only the visible tab reloading this page qualifies");
+  assert.match(fn, /Date\.now\(\) - reloadActivationAt < 15000/, "a stalled activation can never loop the refresh");
+  assert.doesNotMatch(fn, /await[^;]*skipWaiting|await[^;]*statechange/, "activation waits for this fetch event; never await it here");
+  assert.match(fn, /controllerchange/, "the placeholder reloads once the new worker claims it");
+});
+
+test("O-016: the Mediatheque never offers a first install as an update", () => {
+  assert.match(mediatheque, /registration\.waiting && navigator\.serviceWorker\.controller/);
+  assert.match(mediatheque, /if \(!hadController && !updateRequested\) \{ hadController = true;/,
+    "the first claim is absorbed once; a later controller change marks the release");
+});

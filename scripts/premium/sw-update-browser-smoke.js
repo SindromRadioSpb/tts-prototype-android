@@ -28,7 +28,7 @@ const CURRENT = (fs.readFileSync(path.join(ROOT, "public", "sw.js"), "utf8").mat
 if (!CURRENT) throw new Error("CACHE_VERSION not found in public/sw.js");
 const NEXT = CURRENT.replace(/(\d+)$/, (n) => String(Number(n) + 1));
 const only = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7).split(",").filter(Boolean);
-const caseIds = new Set(["A", "D", "E", "F", "G", "H", ...["A", "E", "F"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
+const caseIds = new Set(["A", "D", "E", "F", "G", "H", "I", ...["A", "E", "F", "I"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
 if (only.some(id => !caseIds.has(id))) throw new Error("SW_SMOKE_UNKNOWN_CASE");
 
 let phase = "N"; // "N" | "N+1" | "mixed"
@@ -221,9 +221,16 @@ async function freshContext(name) {
   return { ctx, page };
 }
 
-async function installN(page, surface) {
+async function installN(page, surface, firstVisit = false) {
   phase = "N";
   await page.goto(BASE + SURFACES[surface].url);
+  if (firstVisit) {
+    // O-016: the tab loaded uncontrolled and is claimed mid-session; no reload before the release.
+    const controlled = await waitFor(async () => (await swState(page)).controller, 45000, 500);
+    await page.waitForTimeout(1500);
+    const version = await readVersion(page);
+    return { controlled: controlled && version === CURRENT, firstVisit: true, version };
+  }
   // The Studio registers its worker on window "load"; never reload before that, just wait.
   const firstControlled = await waitFor(async () => (await swState(page)).controller, 45000, 500);
   // An installed user's tab starts controlled. Reload once so the shell under test boots under
@@ -244,11 +251,7 @@ async function deployNext(page) {
 }
 
 // Known, tracked gaps: reported loudly, but they do not fail the gate. Each entry names its log.
-const KNOWN = {
-  "F:studio one tab: plain reload → N+1": "O-015 (a plain reload does not deliver a waiting release; the toast does)",
-  "F:room one tab: plain reload → N+1": "O-015",
-  "F:mediatheque one tab: plain reload → N+1": "O-015",
-};
+const KNOWN = {};
 const results = [];
 function record(name, ok, detail) {
   // O-015 covers only a genuinely installed/waiting release surviving plain reload.
@@ -258,10 +261,10 @@ function record(name, ok, detail) {
   console.log(`${ok ? "PASS" : known ? "KNOWN" : "FAIL"} ${name} ${JSON.stringify(detail)}${known ? " — " + known : ""}`);
 }
 
-async function scenarioToastUpdate(surface, staleController = false) {
+async function scenarioToastUpdate(surface, staleController = false, firstVisit = false) {
   const { ctx, page } = await freshContext(surface);
   try {
-    const start = await installN(page, surface);
+    const start = await installN(page, surface, firstVisit);
     await deployNext(page);
     if (process.env.SW_SMOKE_TRACE) for (let i = 0; i < 6; i++) { await page.waitForTimeout(3000); console.log("  [state]", JSON.stringify(await swState(page))); }
     const toast = await waitFor(async () => (await page.locator(SURFACES[surface].toast).count()) > 0, 30000);
@@ -287,7 +290,7 @@ async function scenarioToastUpdate(surface, staleController = false) {
       if (process.env.SW_SMOKE_DEBUG) console.log("  [after-click]", JSON.stringify(await page.evaluate(() => ({ href: location.href.slice(0, 90), navType: (performance.getEntriesByType("navigation")[0] || {}).type, marker: (document.querySelector('meta[name="lp-test-release"]') || {}).content, status: (document.getElementById("ml-status") || {}).textContent || "", buttons: document.querySelectorAll("[data-action='update-app']").length }))));
       after = await readVersion(page);
     }
-    record(staleController ? 'H:room stale controller notification before activation' : `A:${surface} toast → one click → N+1`, start.controlled && toast && after === NEXT, { start, toast, after, sw: await swState(page), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
+    record(staleController ? 'H:room stale controller notification before activation' : `${firstVisit ? 'I' : 'A'}:${surface} ${firstVisit ? 'first visit, ' : ''}toast → one click → N+1`, start.controlled && toast && after === NEXT, { start, toast, after, sw: await swState(page), ...(!toast ? { diagnostics: page.__swSetupDiagnostics() } : {}) });
   } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
 }
 
@@ -397,6 +400,7 @@ async function scenarioReloadTwoTabs() {
     for (const surface of ["studio", "room", "mediatheque"]) if (run("E") || run("E:" + surface)) await runCase("E:" + surface, () => scenarioRollingDeploy(surface));
     for (const surface of ["studio", "room", "mediatheque"]) if (run("F") || run("F:" + surface)) await runCase("F:" + surface, () => scenarioReloadSoleTab(surface));
     if (run("G")) await runCase("G", scenarioReloadTwoTabs);
+    for (const surface of ["studio", "room", "mediatheque"]) if (run("I") || run("I:" + surface)) await runCase("I:" + surface, () => scenarioToastUpdate(surface, false, true));
     if (run("H")) await runCase("H", () => scenarioToastUpdate('room', true));
   } finally {
     if (proxy) proxy.close();

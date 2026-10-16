@@ -1221,7 +1221,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=778",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=756",
+  "/js/mediatheque-ui.js?v=779",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",

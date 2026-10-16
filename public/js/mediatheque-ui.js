@@ -18,7 +18,8 @@ let tutorEnabled = false;
 let filterDraft = null, topicParent = '', topicQuery = '';
 let projectionInputs = [], topicCounts = new Map(), topicSamples = new Map();
 let updateWorker = null, updateRequired = false, updateRequested = false, updateReloading = false;
-const wasControlled = !!navigator.serviceWorker?.controller;
+// O-016: on a first visit the first worker claims the page; only a later controller change is a release.
+let hadController = !!navigator.serviceWorker?.controller;
 function focusSelector(node) {
   if (!node || !node.closest?.('#ml-root')) return '';
   if (node.id) return '#' + CSS.escape(node.id);
@@ -1183,13 +1184,14 @@ loadAll();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if (!wasControlled && !updateRequested) return;
+    if (!hadController && !updateRequested) { hadController = true; updateWorker = null; render(); return; }
     updateWorker = null; updateRequired = true;
     if (updateRequested && !state.busy && !$('ml-dialog').open && !updateReloading) { updateReloading = true; rememberLocation(); location.reload(); }
     else render();
   });
   navigator.serviceWorker.register('/sw.js').then(registration=>{
-    const show = () => { if (registration.waiting) { updateWorker = registration.waiting; render(); } };
+    // A first install also passes through `waiting`; it is not an update until a worker controls the page.
+    const show = () => { if (registration.waiting && navigator.serviceWorker.controller) { updateWorker = registration.waiting; render(); } };
     show(); registration.addEventListener('updatefound',()=>{ const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed')show();}); });
     // Like the Studio and the Room: look for a new release now, on tab return and every 30 min.
     const check = async () => { try { await registration.update(); show(); } catch (_) {} };

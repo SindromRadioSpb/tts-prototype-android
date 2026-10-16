@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.778";
+const CACHE_VERSION = "v3.11.779";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -84,7 +84,7 @@ const PRECACHE_URLS = [
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=778",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=756",
+  "/js/mediatheque-ui.js?v=779",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -522,6 +522,15 @@ self.addEventListener("fetch", (event) => {
   // bypass the server-side auth boundary or serve an old contract after deploy.
   if (url.pathname === "/pulse.html") return;
 
+  // O-015: a plain reload of the only open tab brings a waiting release. The
+  // reloading document is already leaving, so nothing else runs this worker's
+  // code: answer with an instant self-refresh and activate the waiting worker,
+  // whose shell the refresh then loads. Another open tab keeps the toast path.
+  if (req.mode === "navigate" && self.registration.waiting && !url.pathname.startsWith("/api/")) {
+    event.respondWith(reloadIntoWaitingRelease(req, url));
+    return;
+  }
+
   // Public work HTML contains work-specific canonical metadata and source
   // text. A cached generic /library.html shell must not replace it online.
   if (req.mode === 'navigate' && url.pathname === '/library.html'
@@ -609,6 +618,40 @@ self.addEventListener("fetch", (event) => {
 });
 
 // ── strategies ───────────────────────────────────────────────────────────
+// O-015. Only when no other top-level window runs this worker's code: the
+// sole window must be the visible tab reloading this same page (a new tab
+// opened beside an old one hides the old one). A refused or stalled activation
+// is tried once per 15 s, so the refresh can never loop; the toast stays.
+let reloadActivationAt = 0;
+async function reloadIntoWaitingRelease(req, url) {
+  const normal = () => (url.pathname === "/library.html"
+    && (url.searchParams.has("corpus_work") || (url.searchParams.has("public_corpus") && url.searchParams.has("public_work"))))
+    ? fetch(req).catch(async () => (await caches.open(PRECACHE)).match("/library.html"))
+    : staleWhileRevalidate(req);
+  try {
+    const waiting = self.registration.waiting;
+    if (!waiting || Date.now() - reloadActivationAt < 15000) return normal();
+    const windows = (await self.clients.matchAll({ type: "window", includeUncontrolled: true }))
+      .filter((c) => c.frameType !== "nested");
+    const sole = windows.length === 0 || (windows.length === 1
+      && windows[0].visibilityState === "visible"
+      && new URL(windows[0].url).pathname === url.pathname);
+    if (!sole) return normal();
+    reloadActivationAt = Date.now();
+    waiting.postMessage({ type: "SKIP_WAITING" });
+    // Never await activation here: it waits for this very fetch event to end.
+    // The placeholder reloads once the new worker claims it (or after 3 s).
+    return new Response(
+      '<!doctype html><meta charset="utf-8"><meta name="color-scheme" content="light dark">'
+      + "<script>(function(){var done=false;function go(){if(!done){done=true;location.reload();}}"
+      + "try{navigator.serviceWorker.addEventListener('controllerchange',go);}catch(e){}setTimeout(go,3000);})();</script>"
+      + '<noscript><meta http-equiv="refresh" content="1"></noscript>',
+      { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+  } catch (_) {
+    return normal();
+  }
+}
+
 async function staleWhileRevalidate(req) {
   // Try precache first, then runtime cache, then network.
   const precache = await caches.open(PRECACHE);
