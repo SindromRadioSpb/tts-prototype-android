@@ -174,6 +174,9 @@ async function runColdLibraryScenario(browser) {
     return {
       cards: document.querySelectorAll(".mytexts-grid .mytext-card").length,
       available: document.querySelectorAll(".mytexts-grid .coverage-available,.mytexts-grid .coverage-available_limited").length,
+      // R8: a 0% lower bound shows no chip; a prepared card is one with no unresolved state and its ⓘ details
+      prepared: Array.from(document.querySelectorAll(".mytexts-grid .mytext-card")).filter((card) => card.querySelector(".learning-compass-details")
+        && !card.querySelector(".coverage-not_prepared,.coverage-pending,.coverage-unavailable,.coverage-stale")).length,
       progress: document.querySelector("[data-learning-index-copy]")?.textContent || "",
       readerOpen: document.body.classList.contains("room-reading"),
       cache: Number((await db.dbQuery("SELECT COUNT(*) n FROM room_learning_compass_cache WHERE source_class='mytext'"))[0]?.n || 0),
@@ -188,7 +191,7 @@ async function runColdLibraryScenario(browser) {
   check(initial.cards === 48, `cold-library: bounded first page renders 48 of ${coldTotal} cards (${initial.cards})`);
   check(initial.unprepared + initial.pending === 48, `cold-library: every visible card starts in an honest preparation state (${initial.unprepared}+${initial.pending})`);
   check(!initial.readerOpen && !final.readerOpen, "cold-library: preparation completes without opening Reader");
-  check(final.available === 48, `cold-library: every visible card becomes usable for familiarity matching (${final.available}/48)`);
+  check(final.prepared === 48, `cold-library: every visible card becomes usable for familiarity matching (${final.prepared}/48)`);
   check(final.cache === coldTotal, `cold-library: all ${coldTotal} personal texts receive a derived cache entry (${final.cache}/${coldTotal})`);
   check(new RegExp(`${coldTotal}\\s+текст`).test(final.progress), `cold-library: full catalog readiness is visible (${final.progress})`);
   check(JSON.stringify(final.canonical.review_log) === JSON.stringify(seeded.canonical.review_log), "cold-library: analysis writes no review events");
@@ -248,7 +251,7 @@ async function runColdLibraryScenario(browser) {
       rows: titles.length,
       vertical: !!profile && !profile.querySelector(".shelf-rail"),
       beforeCatalog: !!(profile && catalog && (profile.compareDocumentPosition(catalog) & Node.DOCUMENT_POSITION_FOLLOWING)),
-      ownsControls: !!document.querySelector(".corpus-catalog-region .mytexts-filter-controls"),
+      ownsControls: !!document.querySelector(".corpus-catalog-region #roomMyTextsSort"),
       duplicatesHero: !!heroTitle && titles.includes(heroTitle),
     };
   });
@@ -347,14 +350,15 @@ async function audit(page, scenario) {
 
 async function runScenario(browser, scenario) {
   const context = await browser.newContext({
-    viewport: { width: scenario.width, height: scenario.height || 844 },
+    viewport: { width: scenario.width, height: scenario.height || 844 }, deviceScaleFactor: scenario.deviceScaleFactor || 1,
     locale: scenario.locale === "he" ? "he-IL" : scenario.locale === "en" ? "en-US" : "ru-RU",
     colorScheme: scenario.theme, reducedMotion: scenario.reduced ? "reduce" : "no-preference", serviceWorkers: "block",
   });
   const page = await context.newPage();
   const errors = [], telemetry = [];
   page.on("pageerror", (error) => errors.push(String(error.message || error)));
-  page.on("request", (request) => { if (/rum|telemetry|analytics/i.test(request.url())) telemetry.push(request.url()); });
+  // Loading product-telemetry.js is not a telemetry request: it disables itself on localhost/webdriver. Count what leaves.
+  page.on("request", (request) => { if (request.resourceType() !== "script" && /rum|telemetry|analytics|product-pulse\/v1\/events/i.test(request.url())) telemetry.push(request.url()); });
   if (scenario.worker === "pending") {
     await page.route("**/data/inflection/pealim-infl-v12.json.gz", async (route) => { await sleep(20000); await route.abort(); });
   } else if (scenario.worker === "failed") {
@@ -372,7 +376,9 @@ async function runScenario(browser, scenario) {
   const started = Date.now();
   await page.reload({ waitUntil: "load", timeout: 60000 });
   await page.waitForSelector(".mytexts-grid .mytext-card", { timeout: 60000 });
-  await page.waitForFunction(() => document.querySelectorAll(".mytexts-grid .learning-familiar").length >= 5, null, { timeout: 30000 });
+  // R8 (audit P1-10): an empty profile shows no familiarity chip — its state lives in the ⓘ details only.
+  if (scenario.profile) await page.waitForFunction(() => document.querySelectorAll(".mytexts-grid .learning-familiar").length >= 5, null, { timeout: 30000 });
+  else await page.waitForFunction(() => document.querySelectorAll(".mytexts-grid .learning-compass-details").length >= 8, null, { timeout: 30000 });
   if (scenario.worker === "pending") await page.waitForSelector(".learning-familiar.coverage-pending", { timeout: 10000 });
   if (scenario.worker === "failed") await page.waitForSelector(".learning-familiar.coverage-unavailable", { timeout: 15000 });
   const settleMs = Date.now() - started;
@@ -401,7 +407,9 @@ async function runScenario(browser, scenario) {
   check(errors.length === 0, `${scenario.name}: no page errors (${errors.join(" | ")})`);
   check(telemetry.length === 0, `${scenario.name}: no RUM/telemetry requests`);
   if (scenario.profile) check(result.range_count > 0, `${scenario.name}: calibrated range is visible`);
-  else check(result.status_classes.includes("coverage-needs_profile"), `${scenario.name}: empty profile is NEEDS_PROFILE`);
+  // R8 (audit P1-10): NEEDS_PROFILE is not a chip; the card must not claim any familiarity percentage instead.
+  else check(!result.status_classes.some((c) => /^coverage-available/.test(c)) && result.familiarity_copy.every((copy) => !/\d%/.test(copy)),
+    `${scenario.name}: empty profile claims no familiarity (${JSON.stringify(result.familiarity_copy)})`);
   if (scenario.name === "380-ru-light") {
     check(result.familiarity_copy.some((copy) => /^Не менее \d+% знакомы$/.test(copy)), `${scenario.name}: compact lower-bound familiarity copy is rendered`);
     check(result.familiarity_copy.some((copy) => /^\d+% знакомы$/.test(copy)), `${scenario.name}: compact exact familiarity copy is rendered`);
@@ -510,7 +518,7 @@ async function runBenRailDisclosureScenario(browser) {
   const page = await context.newPage();
   const errors = [], telemetry = [];
   page.on("pageerror", (error) => errors.push(String(error.message || error)));
-  page.on("request", (request) => { if (/rum|telemetry|analytics/i.test(request.url())) telemetry.push(request.url()); });
+  page.on("request", (request) => { if (request.resourceType() !== "script" && /rum|telemetry|analytics|product-pulse\/v1\/events/i.test(request.url())) telemetry.push(request.url()); });
   await page.addInitScript(() => {
     localStorage.setItem("app.locale", "ru"); localStorage.setItem("appTheme_v1", "light");
   });
@@ -523,14 +531,16 @@ async function runBenRailDisclosureScenario(browser) {
   await page.reload({ waitUntil: "load", timeout: 60000 });
   await page.waitForFunction(() => document.querySelector('[data-learning-index-status="benyehuda"]')?.getAttribute("data-state") === "ready", null, { timeout: 60000 });
   const benPrepared = await page.evaluate(async () => {
-    const corpus = await (await fetch("/data/benyehuda/corpus-index-v7.json")).json();
+    // the index the page itself loaded — a pinned version goes stale with every corpus release (v7 → v8)
+    const indexUrl = performance.getEntriesByType("resource").map((e) => e.name).find((n) => /\/data\/benyehuda\/corpus-index-v\d+\.json/.test(n));
+    const corpus = indexUrl ? await (await fetch(indexUrl)).json() : { ready: [] };
     return {
       expected: Array.isArray(corpus.ready) ? corpus.ready.length : 0,
       copy: document.querySelector('[data-learning-index-status="benyehuda"] [data-learning-index-copy]')?.textContent || "",
       familiarSort: !!document.querySelector('#roomCorpusSort option[value="familiar_desc"]'),
     };
   });
-  check(benPrepared.expected > 0 && benPrepared.copy.includes(String(benPrepared.expected)), `ben-rail: every readable public work is prepared (${benPrepared.copy})`);
+  check(benPrepared.expected > 0 && benPrepared.copy.replace(/[\s\u00a0\u202f]/g, "").includes(String(benPrepared.expected)), `ben-rail: every readable public work is prepared (${benPrepared.copy})`);
   check(benPrepared.familiarSort, "ben-rail: public corpus exposes the shared familiarity sort");
   const firstCard = page.locator(".corpus-profile-fit .corpus-work-row[data-work-id]").first();
   await firstCard.waitFor({ state: "visible", timeout: 60000 });
@@ -599,7 +609,9 @@ async function runBenRailDisclosureScenario(browser) {
     { name: "380-ru-light", width: 380, height: 844, locale: "ru", theme: "light", reduced: false, profile: true, idle: "delayed" },
     { name: "430-ru-pending-reduced", width: 430, height: 900, locale: "ru", theme: "dark", reduced: true, profile: true, idle: "immediate", worker: "pending" },
     { name: "510-he-worker-failure", width: 510, height: 900, locale: "he", theme: "light", reduced: false, profile: true, idle: "immediate", worker: "failed" },
-    { name: "1280-en-200pct", width: 1280, height: 900, locale: "en", theme: "dark", reduced: false, profile: true, idle: "delayed", zoom: 2 },
+    // Browser zoom 200% on a 1280×900 window = a 640×450 CSS viewport at 2× density. CSS `zoom` on the root is not
+    // that: it doubles 100vw layers (the Worlds stage → 2560 px) that real zoom keeps at the viewport width.
+    { name: "1280-en-200pct", width: 640, height: 450, deviceScaleFactor: 2, locale: "en", theme: "dark", reduced: false, profile: true, idle: "delayed" },
   ];
   const matrix = [];
   try {

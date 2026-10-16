@@ -2748,7 +2748,7 @@
     .room-row-more::-webkit-details-marker { display: none; }
     .room-row-more:hover, .room-row-more:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); }
     .mytext-secondary-panel { position: absolute; z-index: 12; inset-block-start: calc(100% + 5px); inset-inline-end: 0; width: max-content; padding: 6px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); box-shadow: 0 10px 28px rgba(15,23,42,.16); }
-    .mytext-secondary-panel .mytext-nakdan, .mytext-secondary-panel .mytext-share, .mytext-secondary-panel .mytext-morph-review { white-space: nowrap; }
+    .mytext-secondary-panel .mytext-nakdan, .mytext-secondary-panel .mytext-share, .mytext-secondary-panel .mytext-morph-review { white-space: nowrap; min-height: 32px; }
     .work-card > .mytext-secondary { position: absolute; inset-block-end: 7px; inset-inline-end: 7px; }
     .work-card:has(> .mytext-secondary) { position: relative; padding-block-end: 48px; }
     .work-card > .mytext-secondary .room-row-more { width: 36px; height: 36px; }
@@ -2917,10 +2917,12 @@
       .group-work-card .learning-compass-panel { inset-inline-start: 0; }
       .corpus-ready .learning-familiar,
       .learning-home-ready-list .learning-familiar,
-      .public-corpus .group-work-card .learning-familiar { order: -2; }
+      .public-corpus .group-work-card .learning-familiar,
+      .mytext-card .learning-familiar { order: -2; }
       .corpus-ready .learning-compass-details,
       .learning-home-ready-list .learning-compass-details,
-      .public-corpus .group-work-card .learning-compass-details {
+      .public-corpus .group-work-card .learning-compass-details,
+      .mytext-card .learning-compass-details {
         order: -1; position: sticky; inset-inline-end: 0; background: var(--bg-card);
       }
     }
@@ -3343,7 +3345,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.774</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.775</button>
     </p>
   </div>
 </div>
