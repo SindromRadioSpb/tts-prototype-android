@@ -1,0 +1,1002 @@
+[
+ {
+  "id": "C001",
+  "lemma": "ניהול",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C002",
+  "lemma": "לימוד",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C003",
+  "lemma": "1983",
+  "upos": "NUM"
+ },
+ {
+  "id": "C004",
+  "lemma": "נשמר",
+  "upos": "VERB"
+ },
+ {
+  "id": "C005",
+  "lemma": "ארגון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C006",
+  "lemma": "סך",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C007",
+  "lemma": "מבנה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C008",
+  "lemma": "מוקד",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C009",
+  "lemma": "שילם",
+  "upos": "VERB"
+ },
+ {
+  "id": "C010",
+  "lemma": "טשטש",
+  "upos": "VERB"
+ },
+ {
+  "id": "C011",
+  "lemma": "20,000",
+  "upos": "NUM"
+ },
+ {
+  "id": "C012",
+  "lemma": "נכס",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C013",
+  "lemma": "צד",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C014",
+  "lemma": "לימוד",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C015",
+  "lemma": "גם",
+  "upos": "ADV"
+ },
+ {
+  "id": "C016",
+  "lemma": "2018",
+  "upos": "NUM"
+ },
+ {
+  "id": "C017",
+  "lemma": "הולם",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C018",
+  "lemma": "הלוואה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C019",
+  "lemma": "כסף",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C020",
+  "lemma": "קיבל",
+  "upos": "VERB"
+ },
+ {
+  "id": "C021",
+  "lemma": "יש",
+  "upos": "VERB"
+ },
+ {
+  "id": "C022",
+  "lemma": "סוכנות",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C023",
+  "lemma": "דיאליזה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C024",
+  "lemma": "מוכר",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C025",
+  "lemma": "בני",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C026",
+  "lemma": "גבה",
+  "upos": "VERB"
+ },
+ {
+  "id": "C027",
+  "lemma": "פרקליט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C028",
+  "lemma": "משותף",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C029",
+  "lemma": "היה",
+  "upos": "AUX"
+ },
+ {
+  "id": "C030",
+  "lemma": "גזעי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C031",
+  "lemma": "מיליון",
+  "upos": "NUM"
+ },
+ {
+  "id": "C032",
+  "lemma": "הונאה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C033",
+  "lemma": "מכון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C034",
+  "lemma": "טיפול",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C035",
+  "lemma": "בנק",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C036",
+  "lemma": "נערך",
+  "upos": "VERB"
+ },
+ {
+  "id": "C037",
+  "lemma": "ים",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C038",
+  "lemma": "טלפון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C039",
+  "lemma": "אלון",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C040",
+  "lemma": "כ",
+  "upos": "ADV"
+ },
+ {
+  "id": "C041",
+  "lemma": "תמיכה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C042",
+  "lemma": "טקס",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C043",
+  "lemma": "ירדן",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C044",
+  "lemma": "אונר\"א",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C045",
+  "lemma": "שיר",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C046",
+  "lemma": "דבר",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C047",
+  "lemma": "צפק",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C048",
+  "lemma": "מקסימוב",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C049",
+  "lemma": "זמר",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C050",
+  "lemma": "העסיק",
+  "upos": "VERB"
+ },
+ {
+  "id": "C051",
+  "lemma": "עיבוד",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C052",
+  "lemma": "מהלך",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C053",
+  "lemma": "פליט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C054",
+  "lemma": "שתנן",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C055",
+  "lemma": "מנע",
+  "upos": "VERB"
+ },
+ {
+  "id": "C056",
+  "lemma": "שנה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C057",
+  "lemma": "נוזל",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C058",
+  "lemma": "קרב",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C059",
+  "lemma": "אישום",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C060",
+  "lemma": "ריבית",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C061",
+  "lemma": "בנק",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C062",
+  "lemma": "תואר",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C063",
+  "lemma": "מדינה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C064",
+  "lemma": "אזור",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C065",
+  "lemma": "כוזב",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C066",
+  "lemma": "העסיק",
+  "upos": "VERB"
+ },
+ {
+  "id": "C067",
+  "lemma": "מנדט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C068",
+  "lemma": "אלבום",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C069",
+  "lemma": "אפיק",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C070",
+  "lemma": "הוליד",
+  "upos": "VERB"
+ },
+ {
+  "id": "C071",
+  "lemma": "עירום",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C072",
+  "lemma": "יד",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C073",
+  "lemma": "צורך",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C074",
+  "lemma": "שנה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C075",
+  "lemma": "הולנד",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C076",
+  "lemma": "קנס",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C077",
+  "lemma": "עיסוק",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C078",
+  "lemma": "ספיקה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C079",
+  "lemma": "במה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C080",
+  "lemma": "פליט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C081",
+  "lemma": "כלא",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C082",
+  "lemma": "27",
+  "upos": "NUM"
+ },
+ {
+  "id": "C083",
+  "lemma": "משה",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C084",
+  "lemma": "וולטר",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C085",
+  "lemma": "חמאס",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C086",
+  "lemma": "שימש",
+  "upos": "VERB"
+ },
+ {
+  "id": "C087",
+  "lemma": "ארגון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C088",
+  "lemma": "כן",
+  "upos": "ADV"
+ },
+ {
+  "id": "C089",
+  "lemma": "שכנע",
+  "upos": "VERB"
+ },
+ {
+  "id": "C090",
+  "lemma": "ביותר",
+  "upos": "ADV"
+ },
+ {
+  "id": "C091",
+  "lemma": "מרנפתח",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C092",
+  "lemma": "בת",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C093",
+  "lemma": "הופיע",
+  "upos": "VERB"
+ },
+ {
+  "id": "C094",
+  "lemma": "איבר",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C095",
+  "lemma": "כליה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C096",
+  "lemma": "ביצע",
+  "upos": "VERB"
+ },
+ {
+  "id": "C097",
+  "lemma": "חוץ",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C098",
+  "lemma": "נתן",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C099",
+  "lemma": "גונה",
+  "upos": "VERB"
+ },
+ {
+  "id": "C100",
+  "lemma": "שר",
+  "upos": "VERB"
+ },
+ {
+  "id": "C101",
+  "lemma": "הגיש",
+  "upos": "VERB"
+ },
+ {
+  "id": "C102",
+  "lemma": "חרוב",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C103",
+  "lemma": "ישירות",
+  "upos": "ADV"
+ },
+ {
+  "id": "C104",
+  "lemma": "גנדלמן",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C105",
+  "lemma": "מדינה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C106",
+  "lemma": "משכנתא",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C107",
+  "lemma": "נעשה",
+  "upos": "VERB"
+ },
+ {
+  "id": "C108",
+  "lemma": "הפיק",
+  "upos": "VERB"
+ },
+ {
+  "id": "C109",
+  "lemma": "אונר\"א",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C110",
+  "lemma": "מים",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C111",
+  "lemma": "קרא",
+  "upos": "VERB"
+ },
+ {
+  "id": "C112",
+  "lemma": "גניבה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C113",
+  "lemma": "מקסימוב",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C114",
+  "lemma": "נ\"ל",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C115",
+  "lemma": "הנדלמן",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C116",
+  "lemma": "דצמבר",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C117",
+  "lemma": "אדמונד",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C118",
+  "lemma": "15",
+  "upos": "NUM"
+ },
+ {
+  "id": "C119",
+  "lemma": "קידם",
+  "upos": "VERB"
+ },
+ {
+  "id": "C120",
+  "lemma": "מידתיות",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C121",
+  "lemma": "הוזמן",
+  "upos": "VERB"
+ },
+ {
+  "id": "C122",
+  "lemma": "דלקת",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C123",
+  "lemma": "התנגד",
+  "upos": "VERB"
+ },
+ {
+  "id": "C124",
+  "lemma": "פתיחה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C125",
+  "lemma": "נמצא",
+  "upos": "VERB"
+ },
+ {
+  "id": "C126",
+  "lemma": "חוקי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C127",
+  "lemma": "מכתב",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C128",
+  "lemma": "שעה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C129",
+  "lemma": "רואה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C130",
+  "lemma": "עבר",
+  "upos": "VERB"
+ },
+ {
+  "id": "C131",
+  "lemma": "פליט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C132",
+  "lemma": "כלנית",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C133",
+  "lemma": "פליט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C134",
+  "lemma": "המשיך",
+  "upos": "VERB"
+ },
+ {
+  "id": "C135",
+  "lemma": "מאיר",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C136",
+  "lemma": "ראה",
+  "upos": "VERB"
+ },
+ {
+  "id": "C137",
+  "lemma": "לקוח",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C138",
+  "lemma": "הגדרה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C139",
+  "lemma": "נושא",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C140",
+  "lemma": "שימור",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C141",
+  "lemma": "יצחק",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C142",
+  "lemma": "קרום",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C143",
+  "lemma": "ישירות",
+  "upos": "ADV"
+ },
+ {
+  "id": "C144",
+  "lemma": "נכלל",
+  "upos": "VERB"
+ },
+ {
+  "id": "C145",
+  "lemma": "חוב",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C146",
+  "lemma": "מטלטל",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C147",
+  "lemma": "בעל",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C148",
+  "lemma": "UNHCR",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C149",
+  "lemma": "חי",
+  "upos": "VERB"
+ },
+ {
+  "id": "C150",
+  "lemma": "רצוי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C151",
+  "lemma": "משפט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C152",
+  "lemma": "פופולרי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C153",
+  "lemma": "ביטחון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C154",
+  "lemma": "היוודע",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C155",
+  "lemma": "חוק",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C156",
+  "lemma": "נפתוח",
+  "upos": "PROPN"
+ },
+ {
+  "id": "C157",
+  "lemma": "פלילי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C158",
+  "lemma": "חוסר",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C159",
+  "lemma": "נגנב",
+  "upos": "VERB"
+ },
+ {
+  "id": "C160",
+  "lemma": "מדינה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C161",
+  "lemma": "ספיקה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C162",
+  "lemma": "פלסטיני",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C163",
+  "lemma": "שלישי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C164",
+  "lemma": "בלון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C165",
+  "lemma": "מלאכותי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C166",
+  "lemma": "מזון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C167",
+  "lemma": "הגשים",
+  "upos": "VERB"
+ },
+ {
+  "id": "C168",
+  "lemma": "מומס",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C169",
+  "lemma": "פגיעה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C170",
+  "lemma": "מקום",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C171",
+  "lemma": "היה",
+  "upos": "AUX"
+ },
+ {
+  "id": "C172",
+  "lemma": "נכלל",
+  "upos": "VERB"
+ },
+ {
+  "id": "C173",
+  "lemma": "ראוי",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C174",
+  "lemma": "ביצע",
+  "upos": "VERB"
+ },
+ {
+  "id": "C175",
+  "lemma": "סרטון",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C176",
+  "lemma": "עורך",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C177",
+  "lemma": "פרויקט",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C178",
+  "lemma": "נרחב",
+  "upos": "ADJ"
+ },
+ {
+  "id": "C179",
+  "lemma": "שירות",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C180",
+  "lemma": "שנה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C181",
+  "lemma": "שחרור",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C182",
+  "lemma": "הפך",
+  "upos": "VERB"
+ },
+ {
+  "id": "C183",
+  "lemma": "נמצא",
+  "upos": "VERB"
+ },
+ {
+  "id": "C184",
+  "lemma": "התרחש",
+  "upos": "VERB"
+ },
+ {
+  "id": "C185",
+  "lemma": "דיאליזה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C186",
+  "lemma": "התנהל",
+  "upos": "VERB"
+ },
+ {
+  "id": "C187",
+  "lemma": "שתיים",
+  "upos": "NUM"
+ },
+ {
+  "id": "C188",
+  "lemma": "רשות",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C189",
+  "lemma": "ייצוג",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C190",
+  "lemma": "יחסית",
+  "upos": "ADV"
+ },
+ {
+  "id": "C191",
+  "lemma": "זמרת",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C192",
+  "lemma": "המשך",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C193",
+  "lemma": "חובה",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C194",
+  "lemma": "סעיף",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C195",
+  "lemma": "היה",
+  "upos": "AUX"
+ },
+ {
+  "id": "C196",
+  "lemma": "ייעוץ",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C197",
+  "lemma": "עדיין",
+  "upos": "ADV"
+ },
+ {
+  "id": "C198",
+  "lemma": "מס",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C199",
+  "lemma": "דם",
+  "upos": "NOUN"
+ },
+ {
+  "id": "C200",
+  "lemma": "דיאליזה",
+  "upos": "NOUN"
+ }
+]

@@ -1,0 +1,452 @@
+[
+ {
+  "id": "S4-214",
+  "no": 1,
+  "answer": "и",
+  "chosen": "",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S1-039",
+  "no": 2,
+  "answer": "б",
+  "chosen": "דיבר",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-073",
+  "no": 3,
+  "answer": "в",
+  "chosen": "בעוד",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "right"
+ },
+ {
+  "id": "S3-154",
+  "no": 4,
+  "answer": "в",
+  "chosen": "גרוש",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S1-056",
+  "no": 5,
+  "answer": "а",
+  "chosen": "גב",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-217",
+  "no": 6,
+  "answer": "и",
+  "chosen": "",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-184",
+  "no": 7,
+  "answer": "б",
+  "chosen": "בדואי",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S1-057",
+  "no": 8,
+  "answer": "а",
+  "chosen": "כוח",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-081",
+  "no": 9,
+  "answer": "а",
+  "chosen": "שנה",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S1-022",
+  "no": 10,
+  "answer": "а",
+  "chosen": "פתאומי",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-065",
+  "no": 11,
+  "answer": "б",
+  "chosen": "הם",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-211",
+  "no": 12,
+  "answer": "а",
+  "chosen": "חצי",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-076",
+  "no": 13,
+  "answer": "а",
+  "chosen": "ביותר",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "right"
+ },
+ {
+  "id": "S3-120",
+  "no": 14,
+  "answer": "б",
+  "chosen": "שלח",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-213",
+  "no": 15,
+  "answer": "а",
+  "chosen": "אסלאם",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-092",
+  "no": 16,
+  "answer": "б",
+  "chosen": "שנייה",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-179",
+  "no": 17,
+  "answer": "б",
+  "chosen": "חצי",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-087",
+  "no": 18,
+  "answer": "а",
+  "chosen": "מדהים",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-182",
+  "no": 19,
+  "answer": "б",
+  "chosen": "שמנוני",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-075",
+  "no": 20,
+  "answer": "а",
+  "chosen": "בא",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-088",
+  "no": 21,
+  "answer": "а",
+  "chosen": "נחוש",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S3-144",
+  "no": 22,
+  "answer": "а",
+  "chosen": "רק",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S3-126",
+  "no": 23,
+  "answer": "а",
+  "chosen": "אוכלוסיה",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S1-020",
+  "no": 24,
+  "answer": "и",
+  "chosen": "",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S3-111",
+  "no": 25,
+  "answer": "б",
+  "chosen": "לידי",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-077",
+  "no": 26,
+  "answer": "?",
+  "chosen": "",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "unknown"
+ },
+ {
+  "id": "S4-172",
+  "no": 27,
+  "answer": "а",
+  "chosen": "מדינה",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-220",
+  "no": 28,
+  "answer": "?",
+  "chosen": "",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "unknown"
+ },
+ {
+  "id": "S3-151",
+  "no": 29,
+  "answer": "а",
+  "chosen": "צד",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-192",
+  "no": 30,
+  "answer": "а",
+  "chosen": "חצי",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-199",
+  "no": 31,
+  "answer": "б",
+  "chosen": "דור",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-209",
+  "no": 32,
+  "answer": "а",
+  "chosen": "אסף",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-200",
+  "no": 33,
+  "answer": "б",
+  "chosen": "קרביות",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-185",
+  "no": 34,
+  "answer": "б",
+  "chosen": "אחד",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-215",
+  "no": 35,
+  "answer": "и",
+  "chosen": "",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S1-042",
+  "no": 36,
+  "answer": "б",
+  "chosen": "קלות",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-181",
+  "no": 37,
+  "answer": "б",
+  "chosen": "הביתה",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S3-140",
+  "no": 38,
+  "answer": "а",
+  "chosen": "יצק",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-194",
+  "no": 39,
+  "answer": "а",
+  "chosen": "מילה",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S4-219",
+  "no": 40,
+  "answer": "б",
+  "chosen": "בר",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-107",
+  "no": 41,
+  "answer": "а",
+  "chosen": "שבעתיים",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S1-033",
+  "no": 42,
+  "answer": "б",
+  "chosen": "חלקה",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-173",
+  "no": 43,
+  "answer": "а",
+  "chosen": "רב",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-101",
+  "no": 44,
+  "answer": "б",
+  "chosen": "היום",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S2-068",
+  "no": 45,
+  "answer": "б",
+  "chosen": "מכה",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S2-108",
+  "no": 46,
+  "answer": "б",
+  "chosen": "קרה",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "right"
+ },
+ {
+  "id": "S1-032",
+  "no": 47,
+  "answer": "а",
+  "chosen": "היה",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ },
+ {
+  "id": "S2-069",
+  "no": 48,
+  "answer": "б",
+  "chosen": "היום",
+  "control": false,
+  "examiners_vote": "wrong",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S4-198",
+  "no": 49,
+  "answer": "а",
+  "chosen": "חיות",
+  "control": false,
+  "examiners_vote": "disputed",
+  "verdict": "wrong"
+ },
+ {
+  "id": "S2-109",
+  "no": 50,
+  "answer": "а",
+  "chosen": "לגמרי",
+  "control": true,
+  "examiners_vote": "right",
+  "verdict": "right"
+ }
+]

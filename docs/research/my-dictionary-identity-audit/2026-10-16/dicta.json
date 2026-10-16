@@ -1,0 +1,2102 @@
+[
+ {
+  "id": "S1-001",
+  "dicta_lemma": "אהב",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-002",
+  "dicta_lemma": "בן",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-003",
+  "dicta_lemma": "כוח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-004",
+  "dicta_lemma": "ענין",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-005",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-006",
+  "dicta_lemma": "שלח",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-007",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-008",
+  "dicta_lemma": "ערב",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-009",
+  "dicta_lemma": "פלא",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-010",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-011",
+  "dicta_lemma": "מות",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-012",
+  "dicta_lemma": "הלך",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-013",
+  "dicta_lemma": "צודק",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-014",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-015",
+  "dicta_lemma": "שעה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-016",
+  "dicta_lemma": "תפלה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-017",
+  "dicta_lemma": "עני",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-018",
+  "dicta_lemma": "טעות",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-019",
+  "dicta_lemma": "חבילה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-020",
+  "dicta_lemma": "זיו",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-021",
+  "dicta_lemma": "סכל",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-022",
+  "dicta_lemma": "פתאומי",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-023",
+  "dicta_lemma": "זהי",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-024",
+  "dicta_lemma": "רצון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-025",
+  "dicta_lemma": "נקדה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-026",
+  "dicta_lemma": "לקח",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-027",
+  "dicta_lemma": "יד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-028",
+  "dicta_lemma": "שיא",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-029",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-030",
+  "dicta_lemma": "נורא",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-031",
+  "dicta_lemma": "חזק",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-032",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-033",
+  "dicta_lemma": "החלקה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-034",
+  "dicta_lemma": "סליחה",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-035",
+  "dicta_lemma": "צעקה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-036",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-037",
+  "dicta_lemma": "שטח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-038",
+  "dicta_lemma": "צחק",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-039",
+  "dicta_lemma": "דבר",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-040",
+  "dicta_lemma": "עבר",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-041",
+  "dicta_lemma": "סמן",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-042",
+  "dicta_lemma": "קלות",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-043",
+  "dicta_lemma": "יכל",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-044",
+  "dicta_lemma": "על",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-045",
+  "dicta_lemma": "ילד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-046",
+  "dicta_lemma": "צלקת",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-047",
+  "dicta_lemma": "שאל",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-048",
+  "dicta_lemma": "תרנגלת",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-049",
+  "dicta_lemma": "ישוב",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-050",
+  "dicta_lemma": "אהב",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-051",
+  "dicta_lemma": "דין",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-052",
+  "dicta_lemma": "ידע",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-053",
+  "dicta_lemma": "פטור",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-054",
+  "dicta_lemma": "אדם",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-055",
+  "dicta_lemma": "על",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-056",
+  "dicta_lemma": "גב",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-057",
+  "dicta_lemma": "כוח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-058",
+  "dicta_lemma": "רוח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-059",
+  "dicta_lemma": "קני",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S1-060",
+  "dicta_lemma": "פלא",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-061",
+  "dicta_lemma": "איך",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-062",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-063",
+  "dicta_lemma": "ככה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-064",
+  "dicta_lemma": "חי",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-065",
+  "dicta_lemma": "הוא",
+  "dicta_upos": "PRON",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-066",
+  "dicta_lemma": "צריך",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-067",
+  "dicta_lemma": "הרבה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-068",
+  "dicta_lemma": "מכה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-069",
+  "dicta_lemma": "יום",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-070",
+  "dicta_lemma": "זה",
+  "dicta_upos": "PRON",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-071",
+  "dicta_lemma": "לאט",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-072",
+  "dicta_lemma": "ככה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-073",
+  "dicta_lemma": "עוד",
+  "dicta_upos": "ADP",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-074",
+  "dicta_lemma": "ככה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-075",
+  "dicta_lemma": "בוא",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-076",
+  "dicta_lemma": "יותר",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-077",
+  "dicta_lemma": "צבע",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-078",
+  "dicta_lemma": "שמש",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-079",
+  "dicta_lemma": "זה",
+  "dicta_upos": "PRON",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-080",
+  "dicta_lemma": "תמיד",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-081",
+  "dicta_lemma": "שנה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-082",
+  "dicta_lemma": "יהודי",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-083",
+  "dicta_lemma": "אמת",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-084",
+  "dicta_lemma": "מין",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-085",
+  "dicta_lemma": "קצת",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-086",
+  "dicta_lemma": "כאשר",
+  "dicta_upos": "CCONJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-087",
+  "dicta_lemma": "מדהים",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-088",
+  "dicta_lemma": "נחוש",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-089",
+  "dicta_lemma": "אחר",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-090",
+  "dicta_lemma": "קשה",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-091",
+  "dicta_lemma": "אזרחי",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-092",
+  "dicta_lemma": "שניה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-093",
+  "dicta_lemma": "מחבל",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-094",
+  "dicta_lemma": "ככה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-095",
+  "dicta_lemma": "נכון",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-096",
+  "dicta_lemma": "למה",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-097",
+  "dicta_lemma": "מי",
+  "dicta_upos": "",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-098",
+  "dicta_lemma": "חם",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-099",
+  "dicta_lemma": "עדין",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-100",
+  "dicta_lemma": "מחבל",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-101",
+  "dicta_lemma": "יום",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-102",
+  "dicta_lemma": "שנה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-103",
+  "dicta_lemma": "נושא",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-104",
+  "dicta_lemma": "קשה",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-105",
+  "dicta_lemma": "טוב",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-106",
+  "dicta_lemma": "הרבה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-107",
+  "dicta_lemma": "שבעה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-108",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-109",
+  "dicta_lemma": "לגמרי",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S2-110",
+  "dicta_lemma": "טוב",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-111",
+  "dicta_lemma": "יד",
+  "dicta_upos": "ADP",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-112",
+  "dicta_lemma": "מאלתר",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-113",
+  "dicta_lemma": "ילדות",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מ",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-114",
+  "dicta_lemma": "למד",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-115",
+  "dicta_lemma": "גבוה",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-116",
+  "dicta_lemma": "שיחה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-117",
+  "dicta_lemma": "היי",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "כש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-118",
+  "dicta_lemma": "עולם",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-119",
+  "dicta_lemma": "הכי",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-120",
+  "dicta_lemma": "שלח",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-121",
+  "dicta_lemma": "אחר",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-122",
+  "dicta_lemma": "אחד",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-123",
+  "dicta_lemma": "אחרי",
+  "dicta_upos": "ADP",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-124",
+  "dicta_lemma": "קלט",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-125",
+  "dicta_lemma": "נשיאה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-126",
+  "dicta_lemma": "אכלוסיה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-127",
+  "dicta_lemma": "דרש",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-128",
+  "dicta_lemma": "מקור",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-129",
+  "dicta_lemma": "דרך",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-130",
+  "dicta_lemma": "טפה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-131",
+  "dicta_lemma": "מטה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-132",
+  "dicta_lemma": "ארך",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-133",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-134",
+  "dicta_lemma": "שר",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-135",
+  "dicta_lemma": "חתיכה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-136",
+  "dicta_lemma": "צד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "שה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-137",
+  "dicta_lemma": "מצוה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ול",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-138",
+  "dicta_lemma": "ארצות",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "שב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-139",
+  "dicta_lemma": "טלפון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-140",
+  "dicta_lemma": "יצוק",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-141",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-142",
+  "dicta_lemma": "חזר",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-143",
+  "dicta_lemma": "מסקנה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-144",
+  "dicta_lemma": "רק",
+  "dicta_upos": "CCONJ",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-145",
+  "dicta_lemma": "בקר",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-146",
+  "dicta_lemma": "כבוד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-147",
+  "dicta_lemma": "בן",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-148",
+  "dicta_lemma": "גבור",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-149",
+  "dicta_lemma": "ילד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "שה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-150",
+  "dicta_lemma": "אשכרה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "שב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-151",
+  "dicta_lemma": "צד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מ",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-152",
+  "dicta_lemma": "בטחון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-153",
+  "dicta_lemma": "לב",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-154",
+  "dicta_lemma": "גרוש",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-155",
+  "dicta_lemma": "שנה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-156",
+  "dicta_lemma": "בן",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-157",
+  "dicta_lemma": "בטחון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-158",
+  "dicta_lemma": "אזרח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-159",
+  "dicta_lemma": "שלושה",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-160",
+  "dicta_lemma": "יועץ",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-161",
+  "dicta_lemma": "מזרח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-162",
+  "dicta_lemma": "היי",
+  "dicta_upos": "",
+  "dicta_prefix": "כש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-163",
+  "dicta_lemma": "מיון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-164",
+  "dicta_lemma": "רק",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-165",
+  "dicta_lemma": "הן",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-166",
+  "dicta_lemma": "זינה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-167",
+  "dicta_lemma": "מדרון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מ",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-168",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-169",
+  "dicta_lemma": "פרץ",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S3-170",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-171",
+  "dicta_lemma": "גורם",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-172",
+  "dicta_lemma": "מדינה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-173",
+  "dicta_lemma": "רב",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-174",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-175",
+  "dicta_lemma": "פתיחה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-176",
+  "dicta_lemma": "שבוע",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-177",
+  "dicta_lemma": "פוטנציאל",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-178",
+  "dicta_lemma": "נסי",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-179",
+  "dicta_lemma": "חצי",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-180",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-181",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-182",
+  "dicta_lemma": "שמנוני",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-183",
+  "dicta_lemma": "סתם",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-184",
+  "dicta_lemma": "בדואים",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-185",
+  "dicta_lemma": "אחד",
+  "dicta_upos": "",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-186",
+  "dicta_lemma": "גיל",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-187",
+  "dicta_lemma": "עם",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-188",
+  "dicta_lemma": "רק",
+  "dicta_upos": "CCONJ",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-189",
+  "dicta_lemma": "נדבך",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-190",
+  "dicta_lemma": "חמשים",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-191",
+  "dicta_lemma": "עמד",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-192",
+  "dicta_lemma": "חצי",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-193",
+  "dicta_lemma": "ישיבה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-194",
+  "dicta_lemma": "מלה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-195",
+  "dicta_lemma": "סוף",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-196",
+  "dicta_lemma": "עם",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-197",
+  "dicta_lemma": "גם",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-198",
+  "dicta_lemma": "חיות",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-199",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-200",
+  "dicta_lemma": "קרבי",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-201",
+  "dicta_lemma": "בררה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-202",
+  "dicta_lemma": "מגזר",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-203",
+  "dicta_lemma": "הכרעה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-204",
+  "dicta_lemma": "טרור",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "מה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-205",
+  "dicta_lemma": "קונפליקט",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-206",
+  "dicta_lemma": "עכשו",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-207",
+  "dicta_lemma": "אנטי",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-208",
+  "dicta_lemma": "ערבי",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-209",
+  "dicta_lemma": "אסף",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-210",
+  "dicta_lemma": "משנה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-211",
+  "dicta_lemma": "חצי",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-212",
+  "dicta_lemma": "בינתים",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-213",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-214",
+  "dicta_lemma": "ועדה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-215",
+  "dicta_lemma": "אביסה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-216",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-217",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-218",
+  "dicta_lemma": "קבלן",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-219",
+  "dicta_lemma": "בר",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S4-220",
+  "dicta_lemma": "אדם",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-221",
+  "dicta_lemma": "משחטה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-222",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-223",
+  "dicta_lemma": "אנושיות",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-224",
+  "dicta_lemma": "אל",
+  "dicta_upos": "ADP",
+  "dicta_prefix": "מ",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-225",
+  "dicta_lemma": "ה",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-226",
+  "dicta_lemma": "ידידה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-227",
+  "dicta_lemma": "ספסוף",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-228",
+  "dicta_lemma": "דיק",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "שה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-229",
+  "dicta_lemma": "חסום",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-230",
+  "dicta_lemma": "יבש",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-231",
+  "dicta_lemma": "ערפאת",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "מ",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-232",
+  "dicta_lemma": "כסי",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-233",
+  "dicta_lemma": "טקסס",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-234",
+  "dicta_lemma": "ה",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-235",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-236",
+  "dicta_lemma": "אלהים",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-237",
+  "dicta_lemma": "קשיות",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-238",
+  "dicta_lemma": "להט",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-239",
+  "dicta_lemma": "ה",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-240",
+  "dicta_lemma": "",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-241",
+  "dicta_lemma": "שטשגולסקי",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-242",
+  "dicta_lemma": "מצרי",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-243",
+  "dicta_lemma": "שילר",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-244",
+  "dicta_lemma": "פילוסוף",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-245",
+  "dicta_lemma": "חפש",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-246",
+  "dicta_lemma": "עתה",
+  "dicta_upos": "ADV",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-247",
+  "dicta_lemma": "חציהמנחות",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "לכ",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-248",
+  "dicta_lemma": "מטריצה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-249",
+  "dicta_lemma": "ל",
+  "dicta_upos": "NUM",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-250",
+  "dicta_lemma": "תפוצה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-251",
+  "dicta_lemma": "מוח",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-252",
+  "dicta_lemma": "סנקציה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-253",
+  "dicta_lemma": "גולדמן",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-254",
+  "dicta_lemma": "אלברט",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-255",
+  "dicta_lemma": "טרוריסטי",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-256",
+  "dicta_lemma": "טוקאן",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-257",
+  "dicta_lemma": "פפא",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-258",
+  "dicta_lemma": "ערמוני",
+  "dicta_upos": "ADJ",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-259",
+  "dicta_lemma": "נגד",
+  "dicta_upos": "ADP",
+  "dicta_prefix": "ול",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-260",
+  "dicta_lemma": "מורד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-261",
+  "dicta_lemma": "זקנקן",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-262",
+  "dicta_lemma": "פקעת",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-263",
+  "dicta_lemma": "אזן",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-264",
+  "dicta_lemma": "שעע",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-265",
+  "dicta_lemma": "השריה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-266",
+  "dicta_lemma": "תמהון",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-267",
+  "dicta_lemma": "מורה",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-268",
+  "dicta_lemma": "דרוזי",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-269",
+  "dicta_lemma": "בוא",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S5-270",
+  "dicta_lemma": "גיח",
+  "dicta_upos": "VERB",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-271",
+  "dicta_lemma": "מאיה",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-272",
+  "dicta_lemma": "חמד",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-273",
+  "dicta_lemma": "גולני",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-274",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-275",
+  "dicta_lemma": "עדן",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-276",
+  "dicta_lemma": "חג",
+  "dicta_upos": "NOUN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-277",
+  "dicta_lemma": "יעל",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-278",
+  "dicta_lemma": "סין",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ל",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-279",
+  "dicta_lemma": "שרון",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-280",
+  "dicta_lemma": "אי",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-281",
+  "dicta_lemma": "רפיח",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-282",
+  "dicta_lemma": "ליברמן",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-283",
+  "dicta_lemma": "מושיב",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-284",
+  "dicta_lemma": "רוסיה",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-285",
+  "dicta_lemma": "סער",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-286",
+  "dicta_lemma": "פריז",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-287",
+  "dicta_lemma": "סין",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ש",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-288",
+  "dicta_lemma": "ישראל",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-289",
+  "dicta_lemma": "דיטים",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-290",
+  "dicta_lemma": "וואלה",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-291",
+  "dicta_lemma": "אוקטובר",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-292",
+  "dicta_lemma": "ירושלם",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-293",
+  "dicta_lemma": "אירופה",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ב",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-294",
+  "dicta_lemma": "",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-295",
+  "dicta_lemma": "נעמי",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-296",
+  "dicta_lemma": "",
+  "dicta_upos": "",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-297",
+  "dicta_lemma": "ערפאת",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ה",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-298",
+  "dicta_lemma": "יסמין",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "ו",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-299",
+  "dicta_lemma": "מתיאס",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ },
+ {
+  "id": "S6-300",
+  "dicta_lemma": "נתנאל",
+  "dicta_upos": "PROPN",
+  "dicta_prefix": "",
+  "dicta_degraded": false
+ }
+]

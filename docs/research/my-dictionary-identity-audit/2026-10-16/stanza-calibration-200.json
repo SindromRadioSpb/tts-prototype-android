@@ -1,0 +1,1002 @@
+[
+ {
+  "id": "C001",
+  "stanza_lemma": "ניהול",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C002",
+  "stanza_lemma": "לימוד",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C003",
+  "stanza_lemma": "1983",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C004",
+  "stanza_lemma": "נשמר",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C005",
+  "stanza_lemma": "ארגון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C006",
+  "stanza_lemma": "סך",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C007",
+  "stanza_lemma": "מבנה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C008",
+  "stanza_lemma": "מוקד",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C009",
+  "stanza_lemma": "שילם",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C010",
+  "stanza_lemma": "טשטש",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C011",
+  "stanza_lemma": "20,000",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C012",
+  "stanza_lemma": "נכס",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C013",
+  "stanza_lemma": "צד",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C014",
+  "stanza_lemma": "לימוד",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C015",
+  "stanza_lemma": "גם",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C016",
+  "stanza_lemma": "2018",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C017",
+  "stanza_lemma": "הולם",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C018",
+  "stanza_lemma": "הלוואה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C019",
+  "stanza_lemma": "כסף",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C020",
+  "stanza_lemma": "קיבל",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C021",
+  "stanza_lemma": "יש",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C022",
+  "stanza_lemma": "סוכנות",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C023",
+  "stanza_lemma": "דיאליזה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C024",
+  "stanza_lemma": "מוכר",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C025",
+  "stanza_lemma": "בן",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C026",
+  "stanza_lemma": "גבה",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C027",
+  "stanza_lemma": "פרקליט",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C028",
+  "stanza_lemma": "משותף",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C029",
+  "stanza_lemma": "היה",
+  "stanza_upos": "AUX"
+ },
+ {
+  "id": "C030",
+  "stanza_lemma": "גזעי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C031",
+  "stanza_lemma": "מיליון",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C032",
+  "stanza_lemma": "הונאה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C033",
+  "stanza_lemma": "מכון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C034",
+  "stanza_lemma": "טיפול",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C035",
+  "stanza_lemma": "בנק",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C036",
+  "stanza_lemma": "נערך",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C037",
+  "stanza_lemma": "ים",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C038",
+  "stanza_lemma": "טלפון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C039",
+  "stanza_lemma": "אלון",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C040",
+  "stanza_lemma": "כ",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C041",
+  "stanza_lemma": "תמיכה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C042",
+  "stanza_lemma": "טקס",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C043",
+  "stanza_lemma": "ירדן",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C044",
+  "stanza_lemma": "אונר\"א",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C045",
+  "stanza_lemma": "שיר",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C046",
+  "stanza_lemma": "דבר",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C047",
+  "stanza_lemma": "צפק",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C048",
+  "stanza_lemma": "מקסימוב",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C049",
+  "stanza_lemma": "זמר",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C050",
+  "stanza_lemma": "מעסיק",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C051",
+  "stanza_lemma": "עיבוד",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C052",
+  "stanza_lemma": "מהלך",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C053",
+  "stanza_lemma": "פליט",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C054",
+  "stanza_lemma": "שתנן",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C055",
+  "stanza_lemma": "מנע",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C056",
+  "stanza_lemma": "שנה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C057",
+  "stanza_lemma": "נוזל",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C058",
+  "stanza_lemma": "מקרב",
+  "stanza_upos": "ADP"
+ },
+ {
+  "id": "C059",
+  "stanza_lemma": "אישום",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C060",
+  "stanza_lemma": "בריבית",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C061",
+  "stanza_lemma": "בנק",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C062",
+  "stanza_lemma": "תואר",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C063",
+  "stanza_lemma": "מדינה",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C064",
+  "stanza_lemma": "אזור",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C065",
+  "stanza_lemma": "כוזב",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C066",
+  "stanza_lemma": "העסיק",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C067",
+  "stanza_lemma": "מנדט",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C068",
+  "stanza_lemma": "אלבום",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C069",
+  "stanza_lemma": "אפיק",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C070",
+  "stanza_lemma": "הוליד",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C071",
+  "stanza_lemma": "עירום",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C072",
+  "stanza_lemma": "יד",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C073",
+  "stanza_lemma": "צורך",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C074",
+  "stanza_lemma": "שנה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C075",
+  "stanza_lemma": "מהולנד",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C076",
+  "stanza_lemma": "קנס",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C077",
+  "stanza_lemma": "עיסוק",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C078",
+  "stanza_lemma": "ספיקה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C079",
+  "stanza_lemma": "במה",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C080",
+  "stanza_lemma": "פליט",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C081",
+  "stanza_lemma": "כלא",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C082",
+  "stanza_lemma": "27",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C083",
+  "stanza_lemma": "משה",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C084",
+  "stanza_lemma": "וולטר",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C085",
+  "stanza_lemma": "חמאס",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C086",
+  "stanza_lemma": "שימש",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C087",
+  "stanza_lemma": "ארגון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C088",
+  "stanza_lemma": "כן",
+  "stanza_upos": "PRON"
+ },
+ {
+  "id": "C089",
+  "stanza_lemma": "שכנע",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C090",
+  "stanza_lemma": "ביותר",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C091",
+  "stanza_lemma": "מרנפתח",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C092",
+  "stanza_lemma": "בת",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C093",
+  "stanza_lemma": "הופיע",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C094",
+  "stanza_lemma": "איבר",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C095",
+  "stanza_lemma": "כליה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C096",
+  "stanza_lemma": "ביצע",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C097",
+  "stanza_lemma": "חוץ",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C098",
+  "stanza_lemma": "נתן",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C099",
+  "stanza_lemma": "גנה",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C100",
+  "stanza_lemma": "שר",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C101",
+  "stanza_lemma": "הגיש",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C102",
+  "stanza_lemma": "חרוב",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C103",
+  "stanza_lemma": "ישירות",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C104",
+  "stanza_lemma": "גנדלמן",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C105",
+  "stanza_lemma": "מדינה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C106",
+  "stanza_lemma": "משכנתא",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C107",
+  "stanza_lemma": "נעשה",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C108",
+  "stanza_lemma": "הפיק",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C109",
+  "stanza_lemma": "אונר\"א",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C110",
+  "stanza_lemma": "מים",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C111",
+  "stanza_lemma": "קרא",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C112",
+  "stanza_lemma": "גניבה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C113",
+  "stanza_lemma": "מקסימוב",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C114",
+  "stanza_lemma": "נ\"ל",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C115",
+  "stanza_lemma": "נדלמן",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C116",
+  "stanza_lemma": "דצמבר",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C117",
+  "stanza_lemma": "אדמונד",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C118",
+  "stanza_lemma": "15",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C119",
+  "stanza_lemma": "קידם",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C120",
+  "stanza_lemma": "מידתיות",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C121",
+  "stanza_lemma": "הוזמן",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C122",
+  "stanza_lemma": "דלקת",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C123",
+  "stanza_lemma": "התנגד",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C124",
+  "stanza_lemma": "פתיחה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C125",
+  "stanza_lemma": "נמצא",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C126",
+  "stanza_lemma": "חוקי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C127",
+  "stanza_lemma": "מכתב",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C128",
+  "stanza_lemma": "שעה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C129",
+  "stanza_lemma": "רואה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C130",
+  "stanza_lemma": "עבר",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C131",
+  "stanza_lemma": "פליט",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C132",
+  "stanza_lemma": "כלנית",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C133",
+  "stanza_lemma": "פליט",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C134",
+  "stanza_lemma": "המשיך",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C135",
+  "stanza_lemma": "מאיר",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C136",
+  "stanza_lemma": "ראה",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C137",
+  "stanza_lemma": "לקוח",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C138",
+  "stanza_lemma": "הגדרה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C139",
+  "stanza_lemma": "נושא",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C140",
+  "stanza_lemma": "שימור",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C141",
+  "stanza_lemma": "יצחק",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C142",
+  "stanza_lemma": "קרום",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C143",
+  "stanza_lemma": "ישירות",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C144",
+  "stanza_lemma": "נכלל",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C145",
+  "stanza_lemma": "חוב",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C146",
+  "stanza_lemma": "מטלטל",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C147",
+  "stanza_lemma": "בעל",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C148",
+  "stanza_lemma": "UNHCR",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C149",
+  "stanza_lemma": "חי",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C150",
+  "stanza_lemma": "רצוי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C151",
+  "stanza_lemma": "משפט",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C152",
+  "stanza_lemma": "פופולרי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C153",
+  "stanza_lemma": "ביטחון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C154",
+  "stanza_lemma": "יוודע",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C155",
+  "stanza_lemma": "חוק",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C156",
+  "stanza_lemma": "נפתוח",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C157",
+  "stanza_lemma": "פלילי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C158",
+  "stanza_lemma": "חוסר",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C159",
+  "stanza_lemma": "נגנב",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C160",
+  "stanza_lemma": "מדינה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C161",
+  "stanza_lemma": "ספיקה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C162",
+  "stanza_lemma": "פלסטיני",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C163",
+  "stanza_lemma": "שלישי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C164",
+  "stanza_lemma": "בלון",
+  "stanza_upos": "PROPN"
+ },
+ {
+  "id": "C165",
+  "stanza_lemma": "מלאכותי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C166",
+  "stanza_lemma": "מזון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C167",
+  "stanza_lemma": "הגשים",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C168",
+  "stanza_lemma": "מומסה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C169",
+  "stanza_lemma": "פגיעה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C170",
+  "stanza_lemma": "מקום",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C171",
+  "stanza_lemma": "היה",
+  "stanza_upos": "AUX"
+ },
+ {
+  "id": "C172",
+  "stanza_lemma": "נכלל",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C173",
+  "stanza_lemma": "ראוי",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C174",
+  "stanza_lemma": "ביצע",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C175",
+  "stanza_lemma": "סרטון",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C176",
+  "stanza_lemma": "עורך",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C177",
+  "stanza_lemma": "פרויקט",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C178",
+  "stanza_lemma": "נרחב",
+  "stanza_upos": "ADJ"
+ },
+ {
+  "id": "C179",
+  "stanza_lemma": "שירות",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C180",
+  "stanza_lemma": "שנה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C181",
+  "stanza_lemma": "שחרור",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C182",
+  "stanza_lemma": "הפך",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C183",
+  "stanza_lemma": "נמצא",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C184",
+  "stanza_lemma": "התרחש",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C185",
+  "stanza_lemma": "דיאליזה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C186",
+  "stanza_lemma": "התנהל",
+  "stanza_upos": "VERB"
+ },
+ {
+  "id": "C187",
+  "stanza_lemma": "שתיים",
+  "stanza_upos": "NUM"
+ },
+ {
+  "id": "C188",
+  "stanza_lemma": "רשות",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C189",
+  "stanza_lemma": "ייצוג",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C190",
+  "stanza_lemma": "יחסית",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C191",
+  "stanza_lemma": "כזמרת",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C192",
+  "stanza_lemma": "המשך",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C193",
+  "stanza_lemma": "חובה",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C194",
+  "stanza_lemma": "לסעיף",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C195",
+  "stanza_lemma": "היה",
+  "stanza_upos": "AUX"
+ },
+ {
+  "id": "C196",
+  "stanza_lemma": "ייעוץ",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C197",
+  "stanza_lemma": "עדיין",
+  "stanza_upos": "ADV"
+ },
+ {
+  "id": "C198",
+  "stanza_lemma": "מס",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C199",
+  "stanza_lemma": "דם",
+  "stanza_upos": "NOUN"
+ },
+ {
+  "id": "C200",
+  "stanza_lemma": "דיאליזה",
+  "stanza_upos": "NOUN"
+ }
+]
