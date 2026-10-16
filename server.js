@@ -2485,7 +2485,10 @@ app.post("/api/niqqud/on-demand", requireSameOriginJson, rlNakdanOnDemand, async
     if (code === "NAKDAN_INVALID_INPUT") return res.status(400).json({ ok: false, error: code });
     const retryMs = Number(error && error.retry_after_ms) || 0;
     if (retryMs > 0) res.set("Retry-After", String(Math.max(1, Math.ceil(retryMs / 1000))));
-    return res.status(503).json({ ok: false, error: "NAKDAN_UNAVAILABLE" });
+    // O-090: Dicta refused this server's IP — every Dicta call is paused, not just this one.
+    const limited = !!require("./db/premium/dictaBreaker").openUntil();
+    return res.status(503).json({ ok: false, error: "NAKDAN_UNAVAILABLE",
+      ...(limited ? { rate_limited: true, retry_after_ms: retryMs } : {}) });
   }
 });
 // AA4-4b — count-only badge feed for Studio/Room chips. By construction the

@@ -7,16 +7,13 @@
 
 const dictaMorph = require("./providers/dictaMorph");
 
-// Circuit-breaker: Dicta answers a sustained load with HTTP 503/429 to EVERY caller of this server's IP (one bulk parse
-// banned the live card for everyone). After one, nobody calls Dicta until the cooldown ends (2 min, doubling on each
-// repeated refusal up to 15 min); the first call after it is the probe, and a success resets the breaker.
-const COOLDOWN_MIN_MS = 120000, COOLDOWN_MAX_MS = 900000;
-const breaker = { until: 0, ms: 0 };
-function _now() { return breaker.clock ? breaker.clock() : Date.now(); }
-function rateLimitedUntil() { return breaker.until > _now() ? breaker.until : 0; }
+// Circuit-breaker shared with niqqud (dictaBreaker.js): Dicta's ban is per server IP, so a refusal to any of our
+// Dicta calls pauses all of them.
+const dictaBreaker = require("./dictaBreaker");
+function rateLimitedUntil() { return dictaBreaker.openUntil(); }
 function _limited() {
   return { ok: false, tokens: [], model_version: dictaMorph.MODEL_VERSION, provider: "none", degraded: true,
-    reason: "rate_limited", retry_after_ms: Math.max(0, breaker.until - _now()) };
+    reason: "rate_limited", retry_after_ms: dictaBreaker.retryAfterMs() };
 }
 
 // analyze(sentence) → { ok, tokens, model_version, provider, degraded, reason? }
@@ -52,17 +49,12 @@ async function analyze(sentence, opts) {
 async function _analyzeGuarded(text, genre) {
   try {
     const r = await dictaMorph.analyzeSentence(text, genre);
-    breaker.ms = 0;
+    dictaBreaker.noteSuccess();
     return r;
   } catch (e) {
-    if (e && (e.status === 503 || e.status === 429)) {
-      breaker.ms = Math.min(COOLDOWN_MAX_MS, breaker.ms ? breaker.ms * 2 : COOLDOWN_MIN_MS);
-      breaker.until = _now() + breaker.ms;
-      console.warn(`[morphology] Dicta HTTP ${e.status}: pausing calls for ${Math.round(breaker.ms / 1000)} s`);
-      e.rateLimited = true;
-    }
+    if (e && dictaBreaker.noteRefusal(e.status, "morphology")) e.rateLimited = true;
     throw e;
   }
 }
 
-module.exports = { analyze, rateLimitedUntil, MODEL_VERSION: dictaMorph.MODEL_VERSION, _breaker: breaker };
+module.exports = { analyze, rateLimitedUntil, MODEL_VERSION: dictaMorph.MODEL_VERSION, _breaker: dictaBreaker._state };

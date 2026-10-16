@@ -20,7 +20,9 @@
 //     model_version: string,
 //     provider: "local-sidecar" | "dicta-cloud" | "none",
 //     degraded: boolean,
-//     reason?: string,          // present only when degraded
+//     reason?: string,          // present only when degraded; "rate_limited" = Dicta asked for a pause
+//     rate_limited?: true,      // Dicta refused (some) texts — the shared breaker pauses every Dicta call
+//     retry_after_ms?: number,  //   …for this long
 //   }
 //
 //   annotate(text, opts?) → {
@@ -35,6 +37,7 @@
 
 const pythonClient               = require("./pythonClient");
 const dictaCloud                 = require("./providers/dictaCloud");
+const dictaBreaker               = require("./dictaBreaker");
 const { transliterateWithProfile } = require("./translit");
 const { NIKUD_VERSION }          = require("./versions");
 
@@ -77,6 +80,12 @@ async function fetchNiqqud(texts /* , _opts = {} */) {
 
   // ── Provider 2: Dicta cloud (when the sidecar is unreachable OR a foreign service
   //    answered its port — both mean "no local niqqud available") ────────────────
+  if ((sidecarResp.status === 0 || foreignResponder) && dictaBreaker.openUntil()) {
+    // O-090: Dicta refused this server's IP — another call now only prolongs the ban for every user.
+    return { results: texts.map(() => ""), model_version: NIKUD_VERSION, provider: "none", degraded: true,
+      reason: "rate_limited", rate_limited: true, retry_after_ms: dictaBreaker.retryAfterMs() };
+  }
+  let cloudLimited = null;
   if (sidecarResp.status === 0 || foreignResponder) {
     console.warn(`[niqqud-gateway] sidecar ${sidecarReason} — trying Dicta cloud (texts=${texts.length})`);
     try {
@@ -85,6 +94,7 @@ async function fetchNiqqud(texts /* , _opts = {} */) {
         console.warn(`[niqqud-gateway] Dicta cloud failed: ${cloudResp.error}`);
       } else {
         const anyFilled = cloudResp.body.results.some(r => r && r.trim());
+        if (cloudResp.body.rate_limited) cloudLimited = { rate_limited: true, retry_after_ms: dictaBreaker.retryAfterMs() };
         if (anyFilled) {
           console.log(`[niqqud-gateway] provider=dicta-cloud texts=${texts.length}`);
           return {
@@ -92,6 +102,7 @@ async function fetchNiqqud(texts /* , _opts = {} */) {
             model_version: cloudResp.body.model_version || NIKUD_VERSION,
             provider:      "dicta-cloud",
             degraded:      false,
+            ...(cloudLimited || {}),
           };
         }
         console.warn(`[niqqud-gateway] Dicta cloud returned empty results`);
@@ -110,7 +121,8 @@ async function fetchNiqqud(texts /* , _opts = {} */) {
     model_version: NIKUD_VERSION,
     provider:      "none",
     degraded:      true,
-    reason:        sidecarReason,
+    reason:        cloudLimited ? "rate_limited" : sidecarReason,
+    ...(cloudLimited || {}),
   };
 }
 
@@ -130,7 +142,7 @@ async function annotate(text /* , opts = {} */) {
     try { ruPhonetic  = transliterateWithProfile(niqqud, "ru-phonetic") || ""; } catch (_) {}
   }
 
-  if (result.degraded) warnings.push("Niqqud provider unavailable");
+  if (result.degraded) warnings.push(result.rate_limited ? "Dicta asked for a pause" : "Niqqud provider unavailable");
 
   return {
     ok:      !result.degraded,
@@ -139,6 +151,7 @@ async function annotate(text /* , opts = {} */) {
     translit: { sblAcademic, ruPhonetic },
     provider: result.provider || "none",
     degraded: result.degraded || false,
+    ...(result.rate_limited ? { reason: "rate_limited", rate_limited: true, retry_after_ms: result.retry_after_ms } : {}),
     warnings,
   };
 }

@@ -6,15 +6,18 @@
 // providers transparently:
 //   nakdan(texts) → { ok, status, body: { results: string[], model_version } }
 //
-// Rate/concurrency: up to CONCURRENCY requests in flight at once (default 3).
+// Rate/concurrency: up to CONCURRENCY requests in flight at once (default 2 — a sustained higher load gets this
+// server's IP refused by Dicta for every user, O-090). After a 503/429 the shared breaker (dictaBreaker.js) stops
+// every Dicta call — the rest of this batch included — until its cooldown ends.
 // Timeout: TIMEOUT_MS per request (default 8 s).
 
 const https = require("https");
+const dictaBreaker = require("../dictaBreaker");
 
 const DICTA_URL     = process.env.DICTA_NAKDAN_URL || "https://nakdan-5-1.loadbalancer.dicta.org.il/api";
 const MODEL_VERSION = "dicta-nakdan-cloud-v1";
 const TIMEOUT_MS    = Number(process.env.DICTA_TIMEOUT_MS  || 8000);
-const CONCURRENCY   = Number(process.env.DICTA_CONCURRENCY || 3);
+const CONCURRENCY   = Number(process.env.DICTA_CONCURRENCY || 2);
 
 // ── HTTP helper ───────────────────────────────────────────────────────────────
 
@@ -140,18 +143,27 @@ async function nakdan(texts, genre = "modern") {
     await Promise.all(
       slice.map(async (t, j) => {
         const idx = i + j;
+        if (dictaBreaker.openUntil()) {          // not sent: Dicta asked for a pause
+          errors.push({ index: idx, status: 0, message: "rate_limited", rate_limited: true });
+          return;
+        }
         try {
           results[idx] = await _niqqudOne(t, genre);
+          dictaBreaker.noteSuccess();
         } catch (e) {
+          const limited = dictaBreaker.noteRefusal(e && e.status, "niqqud");
           console.warn(`[dicta-cloud] segment ${idx} failed: ${e.message}`);
           results[idx] = "";
-          errors.push({ index: idx, status: Number(e.status) || 0, message: e.message });
+          errors.push({ index: idx, status: Number(e.status) || 0, message: e.message, ...(limited ? { rate_limited: true } : {}) });
         }
       })
     );
   }
 
-  return { ok: true, status: 200, body: { results, model_version: MODEL_VERSION, ...(errors.length ? { errors } : {}) } };
+  errors.sort((a, b) => a.index - b.index);
+  const limited = errors.some((e) => e.rate_limited);
+  return { ok: true, status: 200, body: { results, model_version: MODEL_VERSION, ...(errors.length ? { errors } : {}),
+    ...(limited ? { rate_limited: true, retry_after_ms: dictaBreaker.retryAfterMs() } : {}) } };
 }
 
 module.exports = { nakdan, MODEL_VERSION, _tokensToNiqqud };

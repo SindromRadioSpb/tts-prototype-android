@@ -6,6 +6,7 @@
 // owner action must instead fail loudly with the stable NAKDAN_UNAVAILABLE code.
 
 const crypto = require("crypto");
+const dictaBreaker = require("./dictaBreaker");
 
 const DEFAULT_URL = process.env.DICTA_NAKDAN_URL || "https://nakdan-5-1.loadbalancer.dicta.org.il/api";
 const MODEL_VERSION = "dicta-nakdan-modern-2026-07-23";
@@ -66,6 +67,9 @@ function createNakdanClient(options = {}) {
   const sleep = options.sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
   const url = options.url || DEFAULT_URL;
   const timeoutMs = options.timeoutMs || TIMEOUT_MS;
+  // The server-wide Dicta breaker (O-090): a 503/429 here pauses morphology and batch niqqud too, and their
+  // refusal pauses this path. Only the default client gets it; a client built for a mock keeps its own circuit.
+  const breaker = options.breaker || null;
   const cache = new Map();
   const inflight = new Map();
   let queue = Promise.resolve();
@@ -83,6 +87,9 @@ function createNakdanClient(options = {}) {
     if (at < circuitOpenUntil) {
       throw new NakdanError("NAKDAN_UNAVAILABLE", { retry_after_ms: circuitOpenUntil - at });
     }
+    if (breaker && breaker.openUntil()) {
+      throw new NakdanError("NAKDAN_UNAVAILABLE", { retry_after_ms: breaker.retryAfterMs() });
+    }
     const waitMs = Math.max(0, MIN_START_INTERVAL_MS - (at - lastStartAt));
     if (waitMs) await sleep(waitMs);
     lastStartAt = now();
@@ -99,12 +106,19 @@ function createNakdanClient(options = {}) {
         body: JSON.stringify({ task: "nakdan", genre: "modern", data: text, addmorph: false, keepqq: false }),
         signal: controller.signal,
       });
-      if (!response || !response.ok) throw new NakdanError("NAKDAN_UNAVAILABLE");
+      if (!response || !response.ok) {
+        if (response && breaker && breaker.noteRefusal(response.status, "on-demand niqqud")) {
+          throw new NakdanError("NAKDAN_UNAVAILABLE", { retry_after_ms: breaker.retryAfterMs() });
+        }
+        throw new NakdanError("NAKDAN_UNAVAILABLE");
+      }
       const niqqud = parseResponse(await response.json());
       consecutiveFailures = 0;
       circuitOpenUntil = 0;
+      if (breaker) breaker.noteSuccess();
       return niqqud;
     } catch (error) {
+      if (error && error.code === "NAKDAN_UNAVAILABLE" && error.retry_after_ms > 0) throw error;
       consecutiveFailures++;
       if (consecutiveFailures >= CIRCUIT_FAILURES) circuitOpenUntil = now() + CIRCUIT_OPEN_MS;
       if (error && error.code === "NAKDAN_UNAVAILABLE") throw error;
@@ -156,7 +170,7 @@ function createNakdanClient(options = {}) {
   return Object.freeze({ vocalize, parseResponse, sourceHash });
 }
 
-const defaultClient = createNakdanClient();
+const defaultClient = createNakdanClient({ breaker: dictaBreaker });
 
 module.exports = {
   vocalize: defaultClient.vocalize,

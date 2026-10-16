@@ -161,6 +161,8 @@ async function reniqqudWork(id, led) {
     let res;
     try { res = await dictaCloud.nakdan(texts, GENRE); }
     catch (e) { led.works[id] = { id, status: "failed", err: "dicta:" + e.message, before_pct: before.pct }; return; }
+    // Dicta asked for a pause (O-090): the skipped rows would read as "nothing to fill" — fail the work, retry next run.
+    if (res && res.body && res.body.rate_limited) { led.works[id] = { id, status: "failed", err: "dicta:rate_limited", before_pct: before.pct }; return; }
     const out = (res && res.body && res.body.results) || [];
     for (let j = 0; j < slice.length; j++) {
       const voc = String(out[j] || "");
