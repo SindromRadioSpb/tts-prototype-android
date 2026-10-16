@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.776";
+const CACHE_VERSION = "v3.11.777";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,7 +82,7 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=774",
+  "/js/dictionary-ui.js?v=777",
   "/css/mediatheque.css?v=695",
   "/js/mediatheque-ui.js?v=756",
   "/js/mediatheque-core.js",
@@ -124,7 +124,7 @@ const PRECACHE_URLS = [
   "/js/corpus-discovery-browser.js?v=731",
   "/css/room-discovery.css?v=730",
   "/data/benyehuda/author-aliases-v1.json?v=730",
-  "/js/text-key-scan.js?v=774",
+  "/js/text-key-scan.js?v=777",
   "/js/local-text-familiarity.js?v=774",
   "/js/studio-library-discovery.js?v=486",
   "/",
@@ -145,7 +145,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=774",
+  "/js/library-ui.js?v=777",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -200,12 +200,12 @@ const PRECACHE_URLS = [
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/dicta-lexicon.js?v=769",
   "/js/dicta-enrich.js?v=769",
-  "/js/reader-morph.js?v=776",
+  "/js/reader-morph.js?v=777",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=776",
+  "/js/morph-host.js?v=777",
   "/js/studio-morph.js?v=5",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -354,7 +354,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=774",
+  "/db/local-db.js?v=777",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

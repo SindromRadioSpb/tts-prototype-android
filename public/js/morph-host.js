@@ -69,9 +69,61 @@
     })().catch(function (e) { _dictaLexPromise = null; _dictaLexCalled = []; try { console.warn("[dicta-lexicon]", e); } catch (_) {} return null; });
     return _dictaLexPromise;
   }
+  // Ф4 · Д10 the places' data for ReaderMorph (one loader per page): per sentence id — its units, the stored Dicta parse
+  // aligned to them (sentence_morph), the learner's verified decisions for its places (lexical_resolution_events:
+  // «Проверить морфологию» — a Pealim entry, or «это имя»). Only stored data: the same on every surface.
+  var _placeLoaderSet = false;
+  function _installPlaceLoader(ldbOf) {
+    var RM = typeof window !== "undefined" ? window.ReaderMorph : null;
+    if (_placeLoaderSet || !RM || typeof RM.setPlaceLoader !== "function") return;
+    _placeLoaderSet = true;
+    RM.setPlaceLoader(async function (sids) {
+      var out = new Map(), ldb = await ldbOf();
+      if (!ldb || typeof ldb.dbQuery !== "function") return out;
+      var Core = window.LexicalResolutionCore, Svc = window.LexicalResolutionService;
+      for (var i = 0; i < sids.length; i += 400) {
+        var part = sids.slice(i, i + 400), qm = part.map(function () { return "?"; }).join(",");
+        var rows = (await ldb.dbQuery("SELECT s.id, s.text_id, s.order_index, s.he_plain, s.he_niqqud, t.text_key FROM sentences s LEFT JOIN texts t ON t.id = s.text_id WHERE s.id IN (" + qm + ")", part)) || [];
+        var morph = new Map();
+        ((await ldb.dbQuery("SELECT sentence_id, tokens_json FROM sentence_morph WHERE sentence_id IN (" + qm + ")", part)) || []).forEach(function (m) {
+          try { morph.set(String(m.sentence_id), JSON.parse(m.tokens_json || "[]")); } catch (_) {}
+        });
+        var events = [];
+        if (Core && Svc && typeof ldb.listLexicalResolutionEventsForTexts === "function") {
+          var tids = Array.from(new Set(rows.map(function (r) { return String(r.text_id); })));
+          try { events = ((await ldb.listLexicalResolutionEventsForTexts(tids)) || []).filter(function (e) { return part.indexOf(String(e.sentence_id)) >= 0; }); } catch (_) { events = []; }
+        }
+        for (var ri = 0; ri < rows.length; ri++) {
+          var r = rows[ri], sid = String(r.id), pu = RM.placeUnits(r, morph.get(sid) || null), dec = new Map();
+          var mine = events.filter(function (e) { return String(e.sentence_id) === sid; });
+          var occIds = Array.from(new Set(mine.map(function (e) { return e.occurrence_id; })));
+          for (var oi = 0; oi < occIds.length; oi++) {
+            var latest = Core.latest(mine, occIds[oi]);
+            if (!latest || latest.action !== "manual_correction") continue;
+            var off = Number(latest.word_offset), sk = pu.sk[off];
+            if (!sk) continue;
+            // the decision holds only where its anchor is still this word in this sentence
+            var occ = { text_id: String(r.text_id), sentence_id: sid, word_offset: off, text_key: r.text_key || String(r.text_id), order_index: r.order_index,
+              surface: sk, niqqud: "", sentence_he_niqqud: r.he_niqqud || "", sentence_he: r.he_plain || "" };
+            // the scan's own unit at this offset (TextKeyScan.unitAt) — the same anchor the decision was saved with
+            var un = window.TextKeyScan && typeof window.TextKeyScan.unitAt === "function" ? window.TextKeyScan.unitAt(r, off) : null;
+            if (un) { occ.surface = un.surface; occ.niqqud = un.niqqud; }
+            var proj = null; try { proj = await Svc.projectExactOccurrence(occ, mine, Core); } catch (_) { proj = null; }
+            if (!proj || proj.state !== "resolved") continue;
+            var a = (latest.chosen_analysis || {});
+            if (a.lp_pos === "propernoun") dec.set(off, { name: true });
+            else if (a.pealim_id) dec.set(off, { pid: String(a.pealim_id) });
+          }
+          out.set(sid, { sk: pu.sk, at: pu.at, dec: dec });
+        }
+      }
+      return out;
+    });
+  }
   function createHost(env) {
     env = env || {};
     var ldbOf = typeof env.ldb === "function" ? env.ldb : async function () { return null; };
+    _installPlaceLoader(ldbOf);
     var toast = typeof env.toast === "function" ? env.toast : function () {};
     var onProfileChanged = typeof env.onProfileChanged === "function" ? env.onProfileChanged : function () {};
     var applyI18n = typeof env.applyI18n === "function" ? env.applyI18n : function () {};
@@ -501,7 +553,12 @@
     var _onDictaLexicon = function () { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} };
     function ensureDictaLexicon() { return _loadDictaLexicon(ldbOf, _onDictaLexicon); }
     // after new Dicta parses were saved (Studio «Обогатить», the dictionary's «Разобрать через Dicta», an import)
-    function refreshDictaLexicon() { _dictaLexPromise = null; _dictaLexCalled = []; return ensureDictaLexicon(); }
+    function refreshDictaLexicon() {
+      _dictaLexPromise = null; _dictaLexCalled = [];
+      // Д10: new Dicta parses change the places too
+      try { if (window.ReaderMorph && window.ReaderMorph.invalidatePlaces) window.ReaderMorph.invalidatePlaces(); } catch (_) {}
+      return ensureDictaLexicon();
+    }
     // in the page's idle time, not during its own start-up reads and writes (the dictionary awaits it explicitly; the
     // Room repaints when it lands)
     try {
@@ -540,6 +597,9 @@
               await ensureDictaLexicon();
               var r9 = await window.ReaderMorph.migrateIdentityD9(await ldbOf());
               if (r9 && (r9.copied || r9.cleared)) { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }
+              // Ф4 · Д10.2: the same for the place keys (a homograph read by its sentence)
+              var r10 = await window.ReaderMorph.migrateIdentityD9(await ldbOf(), { places: true });
+              if (r10 && (r10.copied || r10.cleared)) { invalidateWordStates(); try { onProfileChanged(); } catch (_) {} }
             }
           } catch (e) { try { console.warn("[identity] migration", e); } catch (_) {} }
         };

@@ -578,8 +578,103 @@
   // Pealim paradigm (enrichReading step 3, channel form-canonical — יַלְדֵי = construct plural of ילד), that IS the
   // reading: «likely», never «exact». One place — so the paint, the long-press, the card, the Room's and the
   // dictionary's lists and the Studio key the word identically. Closed-class / adverb glosses (steps 1–2) stay display.
+  // ── Ф4 · Д10 the word at its PLACE (spec docs/planning/word-layer/F4_D10_PLACE_CONTEXT_SPEC_2026_10_16.md) ──────────
+  // A homograph is read by its sentence: (В) the learner's own decision for this exact place («Проверить морфологию»,
+  // lexical_resolution_events — a Pealim entry or «это имя») beats (А) the sentence's STORED Dicta parse (sentence_morph:
+  // the one candidate entry whose exact part of speech and lemma are Dicta's), which beats the spelling's reading.
+  // One store, one rule: the paint, the tap and its saved key, the lists and the trainers read the same place.
+  // Only stored data decides the key (a live Dicta request of the card is display — it is not there on every surface).
+  // Store: sentence id → { sk: [bare letters per word offset], at: Map(offset → Dicta token), dec: Map(offset → {pid}|{name}) }.
+  var _places = new Map(), _placeLoader = null, _placeGen = 0;
+  function setPlaceLoader(fn) { _placeLoader = typeof fn === "function" ? fn : null; _places.clear(); _placeGen++; }
+  function invalidatePlaces(sids) {
+    if (!sids) _places.clear(); else (Array.isArray(sids) ? sids : [sids]).forEach(function (s) { _places.delete(String(s)); });
+    _placeGen++;
+  }
+  function placeGeneration() { return _placeGen; }
+  async function ensurePlaces(sids) {
+    if (!_placeLoader || !sids) return;
+    var need = []; (Array.isArray(sids) ? sids : Array.from(sids)).forEach(function (s) { s = String(s || ""); if (s && !_places.has(s) && need.indexOf(s) < 0) need.push(s); });
+    if (!need.length) return;
+    // a bounded store (the iPhone memory lesson, 3.11.760): a whole-library pass must not keep every sentence resident
+    if (_places.size + need.length > 6000) _places.clear();
+    var got = null; try { got = await _placeLoader(need); } catch (_) { got = null; }
+    need.forEach(function (s) { _places.set(s, (got && got.get && got.get(s)) || null); });
+  }
+  function placeOfSpan(span) {
+    if (!span || !span.closest) return null;
+    var tr = span.closest("tr"); if (!tr) return null;
+    var sid = tr.getAttribute("data-sentence-id");
+    if (!sid) { var holder = tr.querySelector("[data-sentence-id]"); sid = holder ? holder.getAttribute("data-sentence-id") : ""; }
+    var off = Number(span.getAttribute("data-w-offset"));
+    return sid && Number.isFinite(off) ? { sid: String(sid), off: off } : null;
+  }
+  // a loader's helper (pure): the units of a row — the scan's own tokens/joins — and its Dicta tokens aligned to them by
+  // bare letters; → { sk, at }
+  function placeUnits(row, dictaTokens) {
+    var plain = String(row && (row.he_plain != null ? row.he_plain : row.he) || ""), vocal = String(row && row.he_niqqud || ""), toks, pairs;
+    if (plain) { var al = alignSurfaceNiqqud(plain, vocal), w = 0; toks = tokenize(plain); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { var a = al[w++] || {}; return [a.surface || x.text, a.niqqud || ""]; }); }
+    else { toks = tokenize(vocal); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { return [stripNiqqud(x.text), x.text]; }); }
+    var units = (joinSplitWords(toks, pairs) || []).filter(function (u) { return !u.fragment; });
+    var sk = [], at = new Map(), dt = Array.isArray(dictaTokens) ? dictaTokens : [], di = 0;
+    units.forEach(function (u) {
+      sk[u.off] = stripNiqqud(u.surface);
+      if (!dt.length) return;
+      var j = di; while (j < dt.length && stripNiqqud(dt[j] && dt[j].word) !== sk[u.off]) j++;
+      if (j < dt.length) { at.set(u.off, dt[j]); di = j + 1; }
+    });
+    return { sk: sk, at: at };
+  }
+  var _PLACE_POS = { noun: 1, adjective: 1, verb: 1, adverb: 1, numeral: 1 };
+  function _placeCandidates(eng, card, niqqud) {
+    var pids = [];
+    if (card && card.pealim_id) pids.push(String(card.pealim_id));
+    (card && card.alts || []).forEach(function (a) { if (a && a.pealim_id && pids.indexOf(String(a.pealim_id)) < 0) pids.push(String(a.pealim_id)); });
+    var NA = eng && eng.NA;
+    if (niqqud && /[ְ-ּ]/.test(niqqud) && NA && NA.unitFormVariants && eng.maps && eng.maps.formIdx) {
+      NA.unitFormVariants({ pos: "", binyan: "", lemma: "", stem: "", root: null, niqqud: niqqud, sampleWord: stripNiqqud(niqqud), kind: null }).forEach(function (v) {
+        (eng.maps.formIdx.get(v) || []).forEach(function (x) { if (x.pealim_id && pids.indexOf(String(x.pealim_id)) < 0) pids.push(String(x.pealim_id)); });
+      });
+    }
+    return pids;
+  }
+  function _placeCitations(p) {
+    var out = [p.lemma, p.lemma_niqqud];
+    ["PERF-3ms", "INF-L", "s", "ms-a"].forEach(function (k) { if (p.cells && p.cells[k] && p.cells[k].he) out.push(p.cells[k].he); });
+    return out.filter(Boolean).map(_d8Loose);
+  }
+  function _atPlace(eng, card, surfaceOrig, niqqudOrig, place) {
+    var p = place ? _places.get(String(place.sid)) : null;
+    if (!p || !card) return card;
+    // the place must still be this word (the row may have been edited since the data was stored)
+    if (p.sk[place.off] !== stripNiqqud(surfaceOrig || niqqudOrig)) return card;
+    var dec = p.dec && p.dec.get(place.off);
+    if (dec && dec.name) return Object.assign({}, card, { label: "unknown", functionWord: false, pos: "propernoun", pealim_id: "", lemma: "", meaning: "", identityVia: "owner-name", placeDecided: "owner" });
+    if (dec && dec.pid && eng.pidMap && eng.pidMap.get(String(dec.pid))) {
+      return String(dec.pid) === String(card.pealim_id) ? Object.assign({}, card, { placeDecided: "owner" })
+        : Object.assign(_cardForPid(eng, card, dec.pid, "owner"), { placeDecided: "owner" });
+    }
+    // А — the sentence's stored Dicta parse; never over a decisive offline reading or a function word (R11)
+    var dt = p.at && p.at.get(place.off);
+    if (!dt || !dt.posDicta || !_PLACE_POS[dt.posDicta] || card.label === "exact" || card.label === "function" || card.functionWord) return card;
+    var pids = _placeCandidates(eng, card, niqqudOrig);
+    if (!pids.length || (card.label === "likely" && pids.length < 2)) return card;
+    var L = _d8Loose(dt.lemma || "");
+    var hit = pids.filter(function (pid) {
+      var par = eng.pidMap.get(pid); if (!par || (par.pos || "") !== dt.posDicta) return false;
+      return L && _placeCitations(par).indexOf(L) >= 0;
+    });
+    if (hit.length !== 1) return card;
+    if (hit[0] === String(card.pealim_id)) return Object.assign({}, card, { placeDecided: "dicta" });
+    return Object.assign(_cardForPid(eng, Object.assign({}, card, { functionWord: false }), hit[0], "dicta-context"), { placeDecided: "dicta" });
+  }
   // opts.noD9 — the reading BEFORE the Д9 rules (the Д9.2 mark migration's «before»; never for display)
+  // opts.place — { sid, off }: the word's place (Д10); without it the spelling's reading
   async function resolveCore(eng, surfaceOrig, niqqudOrig, opts) {
+    var card0 = await _resolveCoreSpelling(eng, surfaceOrig, niqqudOrig, opts);
+    return opts && opts.place ? _atPlace(eng, card0, surfaceOrig, niqqudOrig, opts.place) : card0;
+  }
+  async function _resolveCoreSpelling(eng, surfaceOrig, niqqudOrig, opts) {
     var d9 = !(opts && opts.noD9);
     var card = await _resolveBase(eng, surfaceOrig, niqqudOrig, opts);
     if (!card || (card.label !== "unknown" && card.label !== "guessed")) return card;
@@ -1160,11 +1255,13 @@
     _glossMemo.set(key, card);
     return card;
   }
-  async function resolveWordLight(surface, niqqud, ctx) {
+  // place (Д10) — { sid, off } of the tapped word: its key is the place's (the same as the paint's)
+  async function resolveWordLight(surface, niqqud, ctx, place) {
     surface = stripNiqqud(surface);
     if (!surface) return null;
     var eng = await ensureEngine();
-    var card = await resolveCore(eng, surface, niqqud);
+    if (place) { try { await ensurePlaces([place.sid]); } catch (_) {} }
+    var card = await resolveCore(eng, surface, niqqud, place ? { place: place } : undefined);
     // The learner's status identity is the OFFLINE reading — the same card decorateWords paints
     // with — so the save-key can never split from the paint-key when a context merge swaps or
     // re-glosses the card (recon §10 R11-F3; the ktiv-parity lesson, now for context).
@@ -1354,7 +1451,9 @@
     if (!matched || !itemKey) return false;
     try {
       var stemCard = await resolveWordLight(matched.skel, matched.raw);
-      if (!(stemCard && stemCard.lemmaKey === itemKey)) return false;
+      // Д10: an item keyed by its place (מַכּוֹת «удары») is the form's alternative reading, still the same word
+      var altOk = stemCard && /^pid:/.test(itemKey) && (stemCard.alts || []).some(function (a) { return a && "pid:" + a.pealim_id === itemKey; });
+      if (!(stemCard && (stemCard.lemmaKey === itemKey || altOk))) return false;
       // An added leading letter may itself form a confident different lexeme (לב→כלב). Reject that
       // competing identity; an unresolved whole prefixed form may still use the proven stem.
       if (ansBare !== ans) {
@@ -1837,7 +1936,7 @@
     var ctx = null;
     try { ctx = await _attachOpts.refineContext(wc.sentence, wc.surface); } catch (_) { ctx = null; }
     try {
-      var card = await resolveWordLight(wc.surface, wc.niqqud, ctx);
+      var card = await resolveWordLight(wc.surface, wc.niqqud, ctx, placeOfSpan(_activeSpan));
       if (card) { card.refineTried = true; if (_activeWordCtx === wc) openCard(card, _activeOcc); }
     } catch (_) { /* keep the (now busy-cleared) card; a re-tap retries */ }
   }
@@ -2222,13 +2321,22 @@
   // Reuses resolveWordLight + openCard verbatim (R11: no parallel morphology view). No sentence
   // context → no per-card refine (like a root-family chip card). _attachOpts (status/save/speak)
   // is whatever the reader wired via attach(); the card degrades gracefully if unwired.
-  async function openWordCard(surface, niqqud) {
+  // opts.lemmaKey (Д10): the key the list / trainer item carries — a word read by its place (מַכּוֹת «удары» in that
+  // sentence) — the card opens that entry and saves to that key, never the spelling's other word
+  async function openWordCard(surface, niqqud, opts) {
+    opts = opts || {};
     _activeWordCtx = null; _cardStack = []; _recallCtx = null; _markConfirm = null;   // study-row card is never recall/confirm mode
     // no table occurrence behind this card: a previous tap must not lend it its AI line (Ф3в)
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
     openCardLoading();
     try {
       var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud);
+      var lk = String(opts.lemmaKey || "");
+      if (card && lk && lk !== card.lemmaKey) {
+        var eng9 = await ensureEngine(), m9 = /^pid:(.+)$/.exec(lk);
+        if (m9 && eng9.pidMap && eng9.pidMap.get(m9[1])) card = Object.assign(_cardForPid(eng9, card, m9[1], "list"), { pealim_url: (eng9.pidMap.get(m9[1]) || {}).pealim_url || card.pealim_url });
+        card.lemmaKey = lk;
+      }
       // P5.6 R-3 — the study-row card carries the same quiet schedule line as a reader tap.
       try {
         if (card && card.lemmaKey && typeof _attachOpts.getDueSchedule === "function") {
@@ -2499,8 +2607,9 @@
         // Dictionary preparation and cloud context run concurrently. A slow
         // provider never holds the already available offline card hostage.
         await ensureEngine();
+        var tapPlace = placeOfSpan(span);
         var prepareCard = async function (ctx) {
-          var card = await resolveWordLight(surface, niqqud, ctx);
+          var card = await resolveWordLight(surface, niqqud, ctx, tapPlace);
           if (card && occ && typeof _attachOpts.lookupLexicalResolution === "function") {
             try {
               var projection = await _attachOpts.lookupLexicalResolution(card, occ, row);
@@ -2720,6 +2829,9 @@
     // keys function words by pid (consistent with resolveWordLight). Idempotent + offline-cheap.
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
     var spans = Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
+    // Д10: the words' places (the sentence's stored Dicta parse, the learner's decisions) before the paint
+    var places = spans.map(placeOfSpan);
+    try { await ensurePlaces(places.filter(Boolean).map(function (pl) { return pl.sid; })); } catch (_) {}
     var i = 0;
     while (i < spans.length) {
       var end = Math.min(i + 60, spans.length);
@@ -2729,7 +2841,7 @@
         var isNiqqud = _colOf(span) === "niqqud";
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
-        var card; try { card = await resolveCore(eng, surface, niqqud); }
+        var card; try { card = await resolveCore(eng, surface, niqqud, places[i] ? { place: places[i] } : undefined); }
         catch (_) { if (isNiqqud && niqqud != null && span.textContent !== niqqud) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
         var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
         // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident)
@@ -2825,6 +2937,8 @@
     var eng; try { eng = await ensureEngine(); } catch (_) { return group; }
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
     var spans = _studyWordSpans(mount);
+    var places = spans.map(placeOfSpan);   // Д10: the trainers key a word by its place, as the paint does
+    try { await ensurePlaces(places.filter(Boolean).map(function (pl) { return pl.sid; })); } catch (_) {}
     var i = 0;
     while (i < spans.length) {
       var end = Math.min(i + 60, spans.length);
@@ -2839,7 +2953,7 @@
           }
         }
         await _addScannedToken(eng, NA, group, null, span.getAttribute("data-surface") || "", span.getAttribute("data-niqqud") || "",
-          ri, Number(span.getAttribute("data-w-offset")), i);
+          ri, Number(span.getAttribute("data-w-offset")), i, null, { place: places[i] });
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
@@ -2920,7 +3034,7 @@
   }
   async function _addScannedToken(eng, NA, group, unsure, surface, niqqud, ri, off, i, stats, x) {
     x = x || {};
-    var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { card = null; }
+    var card; try { card = await resolveCore(eng, surface, niqqud, x.place ? { place: x.place } : undefined); } catch (_) { card = null; }
     // Д8-К: the device's Dicta lexicon (the same one resolveCore read) gives the class of a word Pealim does not read
     var DLX = (typeof window !== "undefined" && window.DictaLexicon) || _DictaLexiconNode;
     var lx = (unsure && eng && eng.dictaLex && DLX) ? DLX.lookup(eng.dictaLex, surface || niqqud) : null;
@@ -2980,6 +3094,8 @@
     var NA = window.NotesAutoGen;
     var eng; try { eng = opts.engine || await ensureEngine(); } catch (_) { return { group: group, unsure: unsure, func: func, rowKeys: rowKeys, rowStats: rowStats }; }
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
+    // Д10: rows with an id read their places (the sentence's stored Dicta parse, the learner's decisions)
+    try { await ensurePlaces((rows || []).map(function (r) { return r && r.id; }).filter(Boolean)); } catch (_) {}
     var i = 0, t0 = Date.now();
     for (var ri = 0; ri < (rows || []).length; ri++) {
       var row = rows[ri] || {};
@@ -2998,7 +3114,8 @@
         var un = units[k];
         if (un.fragment) { for (var z = 0; z < un.span; z++) rowKeys[ri].push(null); i++; continue; }
         rowKeys[ri].push(await _addScannedToken(eng, NA, group, unsure, un.surface, un.niqqud, ri, un.off, i++, rowStats[ri],
-          { func: func, forceName: !!(opts.nameAt && opts.nameAt.has(ri + ":" + un.off)), nameHint: !!(opts.nameHintAt && opts.nameHintAt.has(ri + ":" + un.off)) }));
+          { func: func, forceName: !!(opts.nameAt && opts.nameAt.has(ri + ":" + un.off)), nameHint: !!(opts.nameHintAt && opts.nameHintAt.has(ri + ":" + un.off)),
+            place: row.id ? { sid: String(row.id), off: un.off } : null }));
         for (var z2 = 1; z2 < un.span; z2++) rowKeys[ri].push(null);
       }
       if (Date.now() - t0 > 30) { await new Promise(function (r) { setTimeout(r, 0); }); t0 = Date.now(); if (opts.onProgress) opts.onProgress(ri + 1, rows.length); }
@@ -3082,9 +3199,13 @@
   // nothing moves. Review schedules stay (Д7.2's rule). Once per device; a backup of every changed row.
   var MIGRATION_D9_KEY = "lp.identityMigrationD9_v1";
   var D9_SHARE = 0.8;
+  // opts.places (Д10.2): the same rule for the PLACE keys — «before» = the spelling's key, «after» = the place's key
+  // (the sentence's stored Dicta parse, the learner's decisions); its own once-flag lp.identityMigrationD10_v1
+  var MIGRATION_D10_KEY = "lp.identityMigrationD10_v1";
   async function migrateIdentityD9(ldb, opts) {
     opts = opts || {};
-    try { if (!opts.force && typeof localStorage !== "undefined" && localStorage.getItem(MIGRATION_D9_KEY)) return null; } catch (_) {}
+    var FLAG = opts.places ? MIGRATION_D10_KEY : MIGRATION_D9_KEY;
+    try { if (!opts.force && typeof localStorage !== "undefined" && localStorage.getItem(FLAG)) return null; } catch (_) {}
     if (!ldb || typeof ldb.dbQuery !== "function" || typeof ldb.setWordStatus !== "function") return null;
     var eng = opts.engine || await ensureEngine(), NA = (typeof window !== "undefined" && window.NotesAutoGen) || eng.NA;
     var marks = (await ldb.dbQuery("SELECT lemma_key, status, updated_at FROM word_status WHERE status != '' AND lemma_key NOT LIKE 'note:%' AND lemma_key NOT LIKE 'sent:%'", [])) || [];
@@ -3094,10 +3215,12 @@
     if (marked.size) {
       var total = new Map(), to = new Map(), memo = new Map(), off = 0, PAGE = 1500;
       for (;;) {
-        var part = await ldb.dbQuery("SELECT s.he_plain, s.he_niqqud FROM sentences s JOIN texts t ON t.id = s.text_id ORDER BY s.rowid LIMIT ? OFFSET ?", [PAGE, off]);
+        var part = await ldb.dbQuery("SELECT s.id, s.he_plain, s.he_niqqud FROM sentences s JOIN texts t ON t.id = s.text_id ORDER BY s.rowid LIMIT ? OFFSET ?", [PAGE, off]);
         if (!part || !part.length) break;
+        if (opts.places) { try { await ensurePlaces(part.map(function (r) { return r.id; })); } catch (_) {} }
         for (var pi = 0; pi < part.length; pi++) {
           var plain = String(part[pi].he_plain || ""), vocal = String(part[pi].he_niqqud || ""), toks, pairs;
+          var pdata = opts.places ? _places.get(String(part[pi].id)) : null;
           if (plain) { var al = alignSurfaceNiqqud(plain, vocal), w = 0; toks = tokenize(plain); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { var a = al[w++] || {}; return [a.surface || x.text, a.niqqud || ""]; }); }
           else { toks = tokenize(vocal); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { return [stripNiqqud(x.text), x.text]; }); }
           var units = joinSplitWords(toks, pairs) || [];
@@ -3105,9 +3228,14 @@
             var un = units[ui]; if (un.fragment) continue;
             var mk = un.surface + "\u0001" + un.niqqud, m = memo.get(mk);
             if (!m) {
-              var ko = statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud, { noD9: true }), un.niqqud, un.surface);
-              m = { ko: ko, kn: marked.has(ko) ? statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud), un.niqqud, un.surface) : ko };
+              var ko = opts.places ? statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud), un.niqqud, un.surface)
+                : statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud, { noD9: true }), un.niqqud, un.surface);
+              m = { ko: ko, kn: !opts.places && marked.has(ko) ? statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud), un.niqqud, un.surface) : ko };
               memo.set(mk, m);
+            }
+            // Д10.2: a place with stored data keys by its place (only those are read twice; not memoized — per place)
+            if (opts.places && pdata && marked.has(m.ko) && ((pdata.at && pdata.at.has(un.off)) || (pdata.dec && pdata.dec.has(un.off)))) {
+              m = { ko: m.ko, kn: statusKeyForCard(NA, await resolveCore(eng, un.surface, un.niqqud, { place: { sid: String(part[pi].id), off: un.off } }), un.niqqud, un.surface) };
             }
             if (!m.ko || !marked.has(m.ko)) continue;
             total.set(m.ko, (total.get(m.ko) || 0) + 1);
@@ -3115,6 +3243,7 @@
           }
         }
         off += part.length;
+        if (opts.places) part.forEach(function (r) { _places.delete(String(r.id)); });   // this page is done
         await new Promise(function (r) { setTimeout(r, 0); });
         if (part.length < PAGE) break;
       }
@@ -3134,8 +3263,8 @@
         if (whole) { await ldb.setWordStatus(oldK, ""); sum.cleared++; }
       }
     }
-    try { if (typeof localStorage !== "undefined") { if (backup.length) localStorage.setItem(MIGRATION_D9_KEY + ".backup", JSON.stringify(backup)); localStorage.setItem(MIGRATION_D9_KEY, JSON.stringify(sum)); } } catch (_) {}
-    try { console.info("[identity] Д9 marks follow the word:", JSON.stringify(sum)); } catch (_) {}
+    try { if (typeof localStorage !== "undefined") { if (backup.length) localStorage.setItem(FLAG + ".backup", JSON.stringify(backup)); localStorage.setItem(FLAG, JSON.stringify(sum)); } } catch (_) {}
+    try { console.info("[identity] " + (opts.places ? "Д10" : "Д9") + " marks follow the word:", JSON.stringify(sum)); } catch (_) {}
     return sum;
   }
   // ── Ф4 · Д8-К3 одна история слова (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md) ──────────────
@@ -3795,7 +3924,7 @@
     availableChannels: availableChannels,
     // Retention P0 — exported so smoke:memory-canon can assert the LemmaCanon delegate stays
     // byte-identical to the inline fallback (keyer-conformance gate, recon B1).
-    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, migrateIdentityD9: migrateIdentityD9, planKeyAliases: planKeyAliases, applyKeyAliases: applyKeyAliases, undoKeyAliases: undoKeyAliases, auditKeyAliases: auditKeyAliases, applyAliasAudit: applyAliasAudit, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
+    statusKeyForCard: statusKeyForCard, migrateSpellingMarks: migrateSpellingMarks, migrateIdentityD9: migrateIdentityD9, setPlaceLoader: setPlaceLoader, invalidatePlaces: invalidatePlaces, ensurePlaces: ensurePlaces, placeOfSpan: placeOfSpan, placeUnits: placeUnits, placeGeneration: placeGeneration, planKeyAliases: planKeyAliases, applyKeyAliases: applyKeyAliases, undoKeyAliases: undoKeyAliases, auditKeyAliases: auditKeyAliases, applyAliasAudit: applyAliasAudit, resolveOffline: _resolveOffline,   // the pre-Д7.1 reading (migration gate)
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

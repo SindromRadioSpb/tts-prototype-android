@@ -1,4 +1,4 @@
-import * as localDb from '/db/local-db.js?v=774';
+import * as localDb from '/db/local-db.js?v=777';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';

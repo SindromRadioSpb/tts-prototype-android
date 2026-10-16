@@ -12,7 +12,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  var SCAN_VERSION = "list-keys-scan-v1";
+  var SCAN_VERSION = "list-keys-scan-v2";   // v2: keys by place (Д10: the sentence's stored Dicta parse, the learner's decisions)
   // every Hebrew word of a row, as the B7 worker counts them — the reading-time measure (not the familiarity one)
   var HEBREW_TOKEN = /[א-ת][א-ת֑-ׇ׳״'’-]*/gu;
   function G() { return typeof globalThis !== "undefined" ? globalThis : {}; }
@@ -148,7 +148,8 @@
     var lex = await count("SELECT COUNT(*) n FROM dicta_lexicon");
     var alias = await count("SELECT COUNT(*) n FROM review_log WHERE kind = 'alias'");
     var names = await count("SELECT COUNT(*) n FROM lexical_resolution_events");
-    return [SCAN_VERSION, lex, alias, names].join(":");
+    var morph = await count("SELECT COUNT(*) n FROM sentence_morph");   // Д10: a new stored parse re-keys its places
+    return [SCAN_VERSION, lex, alias, names, morph].join(":");
   }
 
   return { SCAN_VERSION: SCAN_VERSION, rowPlace: rowPlace, unitAt: unitAt, occurrenceOf: occurrenceOf, wordLayer: wordLayer,

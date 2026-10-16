@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=774';
+import * as localDb from '/db/local-db.js?v=777';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -1132,7 +1132,7 @@ async function renderNest(famSec, e, card) {
     ...support.slice(0, 8).map((w) => el('span', { class: 'he dict-st-' + w.status, attrs: { lang: 'he', dir: 'rtl' }, text: w.he }))]));
   const box = el('div', { class: 'dict-fam' });
   others.slice(0, 40).forEach((w) => box.appendChild(el('button', { class: w.status ? 'dict-st-' + w.status : 'dict-st-none', attrs: { type: 'button', title: w.status ? statusText(w.status) : statusText('none') },
-    on: { click: () => { if (S.entries.has(w.key) && !S.entries.get(w.key).metOnly) openArticle(w.key); else { try { RM().openWordCard(strip(w.he), w.he); } catch (_) {} } } } },
+    on: { click: () => { if (S.entries.has(w.key) && !S.entries.get(w.key).metOnly) openArticle(w.key); else { try { RM().openWordCard(strip(w.he), w.he, { lemmaKey: w.key }); } catch (_) {} } } } },
     [el('span', { class: 'he', attrs: { lang: 'he', dir: 'rtl' }, text: w.he }), el('small', { text: w.meaning })])));
   famSec.appendChild(box);
   const withMeaning = nest.words.filter((w) => w.meaning);
@@ -1639,7 +1639,7 @@ async function openArticle(key) {
   meanBox.appendChild(el('div', {}, [el('span', { class: 'k', text: tt('dictionary.dictMeaning', 'словарь') }), el('span', { attrs: { dir: 'auto' }, text: dictMeaning || tt('dictionary.noMeaning', 'перевод не найден офлайн') })]));
   const aiBox = el('div', {}); meanBox.appendChild(aiBox);
   const openCard = el('button', { class: 'dict-btn', attrs: { type: 'button' }, text: tt('dictionary.openCard', 'Карточка слова: мой перевод, заметка, Pealim'),
-    on: { click: () => { try { RM().openWordCard(strip(surface), hasNiqqud(surface) ? surface : ''); } catch (_) {} } } });
+    on: { click: () => { try { RM().openWordCard(strip(surface), hasNiqqud(surface) ? surface : '', { lemmaKey: key }); } catch (_) {} } } });
   // the article's sections fold like «Спряжение»; the open/closed choice is remembered on this device for every word
   const placesSec = foldSec('places', true, tt('dictionary.places', 'Места в моих текстах'), [el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') })]);
   const conjSec = foldSec('conj', true, tt('dictionary.conj', 'Спряжение / склонение'), [el('p', { class: 'dict-note', text: tt('dictionary.loading', 'Ищу…') })]);

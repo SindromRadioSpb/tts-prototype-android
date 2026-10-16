@@ -34,14 +34,14 @@ async function main() {
   await holder.goto(BASE+'/__storage-holder');
   const secondary = await holder.evaluate(async () => {
    localStorage.setItem('opfsVfsPreference_v1','tts-opfs-idb');
-   const db = await import('/db/local-db.js?v=520'); await db.initLocalDB();
+   const db = await import('/db/local-db.js?v=777'); await db.initLocalDB();
    await db.createText({id:'secondary-proof',text_key:'secondary-proof',title:'Другая физическая библиотека'});
    const before=await db.dbQuery('SELECT * FROM texts ORDER BY id',[]);
    await db.closeLocalDB();localStorage.setItem('opfsVfsPreference_v1','AccessHandlePool');return before;
   });
   await holder.reload();
   await holder.evaluate(async () => {
-   const db = window.fixtureDb = await import('/db/local-db.js?v=520'); await db.initLocalDB();
+   const db = window.fixtureDb = await import('/db/local-db.js?v=777'); await db.initLocalDB();
    await db.dbRun("INSERT INTO texts(id,text_key,title,source_text,created_at,updated_at) VALUES('storage-fixture','storage-fixture','Исходная библиотека','שלום',datetime('now'),datetime('now'))", []);
    await db.dbRun("INSERT INTO review_log(id,item_key,kind,reviewed_at,grade,source,channel,latency_ms,meta_json) VALUES('storage-proof','lemma:proof','review',datetime('now'),3,'fixture','lab',123,'{}')",[]);
   });
@@ -56,13 +56,13 @@ async function main() {
   await page.waitForFunction(() => document.querySelector('.ml-item h3')?.textContent.includes('Исходная библиотека'), null, { timeout:15000 });
   check('Retry reconnects to the original OPFS library after its lock is released', await page.locator('.ml-banner-error').count()===0);
   check('sticky storage identity is preserved', await page.evaluate(()=>localStorage.getItem('opfsVfsPreference_v1'))==='AccessHandlePool');
-  const restored = await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return {texts:await db.dbQuery('SELECT * FROM texts ORDER BY id',[]),reviews:await db.dbQuery('SELECT * FROM review_log ORDER BY id',[])};});
+  const restored = await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=777');return {texts:await db.dbQuery('SELECT * FROM texts ORDER BY id',[]),reviews:await db.dbQuery('SELECT * FROM review_log ORDER BY id',[])};});
   check('original material and nonempty review log remain byte-equivalent',JSON.stringify(original)===JSON.stringify(restored));
   await page.screenshot({ path:path.join(OUT,'recovered-380.png') });
   for(const lang of ['en','he']) { await page.evaluate(l=>window.appSetLocale(l),lang);await page.screenshot({path:path.join(OUT,'recovered-380-'+lang+'.png')}); }
-  await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');await db.closeLocalDB();localStorage.setItem('opfsVfsPreference_v1','tts-opfs-idb');});
+  await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=777');await db.closeLocalDB();localStorage.setItem('opfsVfsPreference_v1','tts-opfs-idb');});
   await page.reload();await ready(page);
-  const secondaryAfter=await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');return db.dbQuery('SELECT * FROM texts ORDER BY id',[]);});
+  const secondaryAfter=await page.evaluate(async()=>{const db=await import('/db/local-db.js?v=777');return db.dbQuery('SELECT * FROM texts ORDER BY id',[]);});
   check('separate IndexedDB library remains byte-equivalent and can still be opened',JSON.stringify(secondary)===JSON.stringify(secondaryAfter));
   await page.locator('.ml-crossnav a[href="/library.html"]').click();
   await page.waitForFunction(()=>window.__localDB?.isReady(),null,{timeout:60000});
@@ -74,7 +74,7 @@ async function main() {
   const transient=await browser.newContext({serviceWorkers:'block'});
   await transient.route('**/__storage-holder',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>Transient lock fixture</title>'}));
   const outgoing=await transient.newPage();await outgoing.addInitScript(()=>Object.defineProperty(navigator,'locks',{value:undefined}));
-  await outgoing.goto(BASE+'/__storage-holder');await outgoing.evaluate(async()=>{const db=await import('/db/local-db.js?v=520');await db.initLocalDB();await db.createText({id:'transient',text_key:'transient',title:'После перехода'});});
+  await outgoing.goto(BASE+'/__storage-holder');await outgoing.evaluate(async()=>{const db=await import('/db/local-db.js?v=777');await db.initLocalDB();await db.createText({id:'transient',text_key:'transient',title:'После перехода'});});
   const incoming=await transient.newPage();let release=null;
   incoming.on('console',msg=>{if(msg.text().includes('AccessHandlePool VFS init failed')&&!release)release=outgoing.close();});
   await incoming.goto(BASE+'/mediatheque.html?space=personal&section=catalog');await ready(incoming);if(release)await release;

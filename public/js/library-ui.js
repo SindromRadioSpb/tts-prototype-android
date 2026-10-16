@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=774';
+import * as localDbRaw from '/db/local-db.js?v=777';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -2853,7 +2853,7 @@ function onStudyExpand(row) {
   const surface = row.dataset.surface || row.dataset.he || '';
   const niqqud = row.dataset.he || '';
   if (!surface && !niqqud) return;
-  try { window.ReaderMorph.openWordCard(surface, niqqud); } catch (_) {}
+  try { window.ReaderMorph.openWordCard(surface, niqqud, { lemmaKey: row.dataset.key || '' }); } catch (_) {}
 }
 // D — bulk: set status on every CURRENTLY-VISIBLE word (filtered + shown) at once (fast name pruning).
 async function onStudyBulk(status) {
@@ -4581,7 +4581,7 @@ async function onTrainLeechIgnore(box) {
 function onTrainCard() {
   const s = _trainSession; if (!s || !s._built) return;
   const item = s.items[s.idx];
-  try { window.ReaderMorph.openWordCard(item.surface || s._built.cz.answer, s._built.cz.answer); } catch (_) {}
+  try { window.ReaderMorph.openWordCard(item.surface || s._built.cz.answer, s._built.cz.answer, { lemmaKey: item.lemmaKey || '' }); } catch (_) {}
 }
 async function onTrainSource() {
   const s = _trainSession, item = s && s.items[s.idx], src = item && item._source;

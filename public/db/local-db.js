@@ -311,8 +311,12 @@ function _lexResRepo() {
   }
   return _lexicalResolutionRepo;
 }
-export async function appendLexicalResolutionEvent(event) { return _lexResRepo().append(event); }
-export async function appendLexicalResolutionBatch(events) { return _lexResRepo().appendBatch(events); }
+// Д10: a decision for a place re-keys that word — the ReaderMorph places of its sentence are re-read
+function _placesChanged(events) {
+  try { const RM = typeof window !== "undefined" ? window.ReaderMorph : null; if (RM && RM.invalidatePlaces) RM.invalidatePlaces((events || []).map((e) => e && e.sentence_id).filter(Boolean)); } catch (_) {}
+}
+export async function appendLexicalResolutionEvent(event) { const r = await _lexResRepo().append(event); _placesChanged([event]); return r; }
+export async function appendLexicalResolutionBatch(events) { const r = await _lexResRepo().appendBatch(events); _placesChanged(events); return r; }
 export async function listLexicalResolutionEventsForText(textId) { return _lexResRepo().listForText(textId); }
 export async function listLexicalResolutionEventsForTexts(textIds) { return _lexResRepo().listForTexts(textIds); }
 export async function listLexicalResolutionEventsForOccurrence(occurrenceId) { return _lexResRepo().listForOccurrence(occurrenceId); }

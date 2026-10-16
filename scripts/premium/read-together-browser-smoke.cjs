@@ -24,8 +24,8 @@ async function main(){
    if(phase==='old'&&oldFiles.has(pathname))body=oldFiles.get(pathname);
    if(phase==='old'&&pathname==='/api/client-config'){
     const config=JSON.parse(body);config.version='3.11.716';
-    delete config.shellIntegrity['/js/library-ui.js?v=717'];
-    config.shellIntegrity['/js/library-ui.js?v=704']=crypto.createHash('sha256').update(oldFiles.get('/js/library-ui.js')).digest('hex');
+    delete config.shellIntegrity['/js/library-ui.js?v=777'];
+    config.shellIntegrity['/js/library-ui.js?v=777']=crypto.createHash('sha256').update(oldFiles.get('/js/library-ui.js')).digest('hex');
     config.shellIntegrity['/js/read-together.js?v=1']=crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'public/js/read-together.js'))).digest('hex');
     for(const [url,bytes] of oldFiles)if(config.shellIntegrity[url])config.shellIntegrity[url]=crypto.createHash('sha256').update(bytes).digest('hex');
     body=Buffer.from(JSON.stringify(config));
