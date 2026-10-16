@@ -1,0 +1,824 @@
+{
+  "measured_at": "2026-10-16T21:29:03.487Z",
+  "prod": "https://linguistpro.kolosei.com",
+  "dicta_requests": 0,
+  "dicta_cache": {
+    "file": "proclitic-overlay-dicta-cache.json",
+    "sentences": 67202
+  },
+  "benyehuda": {
+    "works": 1421,
+    "rows": 106375,
+    "heRows": 105472,
+    "words": 943352,
+    "vocalRows": 102099,
+    "cached": 67545,
+    "cachedRich": 58179,
+    "worksFull": 717,
+    "worksPartial": 125,
+    "worksNone": 579,
+    "missingFiles": 0,
+    "uniqueRows": 96744,
+    "cachedPct": 64,
+    "era": {
+      "haskalah": {
+        "works": 57,
+        "heRows": 4631,
+        "cached": 4050
+      },
+      "tehiya": {
+        "works": 63,
+        "heRows": 4650,
+        "cached": 3784
+      },
+      "mandate": {
+        "works": 947,
+        "heRows": 78306,
+        "cached": 56746
+      },
+      "modern": {
+        "works": 65,
+        "heRows": 7253,
+        "cached": 2949
+      },
+      "unknown": {
+        "works": 289,
+        "heRows": 10632,
+        "cached": 16
+      }
+    },
+    "learningEditions": 688
+  },
+  "mediatheque": {
+    "works": 283,
+    "rows": 39662,
+    "heRows": 39181,
+    "words": 290589,
+    "vocalRows": 39009,
+    "cached": 470,
+    "cachedRich": 36,
+    "worksFull": 0,
+    "worksPartial": 0,
+    "worksNone": 0,
+    "missingFiles": 0,
+    "shipped": 3065,
+    "coveredEither": 3523,
+    "uniqueRows": 36964,
+    "cachedPct": 1.2,
+    "corpora": [
+      {
+        "slug": "media-67a8ead8552b444a83bb",
+        "title": "C14",
+        "items": 9,
+        "heRows": 2526,
+        "words": 21146,
+        "cached": 22,
+        "shipped": 0
+      },
+      {
+        "slug": "media-98da6a37f9648d7b90dc",
+        "title": "Films",
+        "items": 1,
+        "heRows": 1315,
+        "words": 6752,
+        "cached": 29,
+        "shipped": 0
+      },
+      {
+        "slug": "media-8bf803ec75e71e8b87d0",
+        "title": "Sheinkin40",
+        "items": 1,
+        "heRows": 2477,
+        "words": 18757,
+        "cached": 18,
+        "shipped": 0
+      },
+      {
+        "slug": "media-193d1830a8f567dcf21e",
+        "title": "yes tv (יס)",
+        "items": 4,
+        "heRows": 1292,
+        "words": 8459,
+        "cached": 49,
+        "shipped": 0
+      },
+      {
+        "slug": "materials-science-year1-problem-book-2",
+        "title": "Материаловедение — задачник 2",
+        "items": 60,
+        "heRows": 667,
+        "words": 5075,
+        "cached": 1,
+        "shipped": 0
+      },
+      {
+        "slug": "study-songs",
+        "title": "Учебные песни",
+        "items": 77,
+        "heRows": 3065,
+        "words": 14295,
+        "cached": 12,
+        "shipped": 3065
+      },
+      {
+        "slug": "physics-year1-problems",
+        "title": "Физика — задачник, 1 год",
+        "items": 74,
+        "heRows": 425,
+        "words": 5361,
+        "cached": 0,
+        "shipped": 0
+      },
+      {
+        "slug": "media-9962527a5a781c6fc9c1",
+        "title": "אידיוטים שימושיים - עקיבא ביגמן",
+        "items": 3,
+        "heRows": 2072,
+        "words": 14420,
+        "cached": 65,
+        "shipped": 0
+      },
+      {
+        "slug": "media-b0d27b30c3ddc708d506",
+        "title": "גדי טאוב: שומר סף",
+        "items": 4,
+        "heRows": 2730,
+        "words": 23699,
+        "cached": 24,
+        "shipped": 0
+      },
+      {
+        "slug": "media-77c5596063ec51bd2610",
+        "title": "הרבנות הצבאית",
+        "items": 1,
+        "heRows": 728,
+        "words": 5618,
+        "cached": 1,
+        "shipped": 0
+      },
+      {
+        "slug": "media-2a87a30a3b779aa6662f",
+        "title": "חגי ישראל",
+        "items": 7,
+        "heRows": 397,
+        "words": 3253,
+        "cached": 1,
+        "shipped": 0
+      },
+      {
+        "slug": "media-95475ce1aba21aea3e64",
+        "title": "חדשות 13",
+        "items": 1,
+        "heRows": 579,
+        "words": 4033,
+        "cached": 11,
+        "shipped": 0
+      },
+      {
+        "slug": "media-55d62b6c607b22bb973d",
+        "title": "יהיה טוב",
+        "items": 1,
+        "heRows": 798,
+        "words": 6220,
+        "cached": 5,
+        "shipped": 0
+      },
+      {
+        "slug": "media-8c30cc63a5e5e39a0acd",
+        "title": "כאן 11 - תאגיד השידור הישראלי",
+        "items": 24,
+        "heRows": 13957,
+        "words": 97609,
+        "cached": 178,
+        "shipped": 0
+      },
+      {
+        "slug": "media-85b4d609fb2f7b7d3cbc",
+        "title": "כאן | דיגיטל - תאגיד השידור הישראלי",
+        "items": 1,
+        "heRows": 208,
+        "words": 1452,
+        "cached": 7,
+        "shipped": 0
+      },
+      {
+        "slug": "media-d9606390af5817f0a500",
+        "title": "כאן | חדשות - תאגיד השידור הישראלי",
+        "items": 10,
+        "heRows": 2151,
+        "words": 22915,
+        "cached": 20,
+        "shipped": 0
+      },
+      {
+        "slug": "media-66f626981f964bd6e75d",
+        "title": "עובד לב ארי",
+        "items": 1,
+        "heRows": 244,
+        "words": 2381,
+        "cached": 2,
+        "shipped": 0
+      },
+      {
+        "slug": "media-478afda533089ab343b7",
+        "title": "פרויקט 001",
+        "items": 3,
+        "heRows": 2915,
+        "words": 23307,
+        "cached": 24,
+        "shipped": 0
+      },
+      {
+        "slug": "media-4cabf720f6cee1867b0a",
+        "title": "רשת 13",
+        "items": 1,
+        "heRows": 635,
+        "words": 5837,
+        "cached": 1,
+        "shipped": 0
+      }
+    ],
+    "rights_basis": {
+      "OWNER_ATTESTATION_MEDIA_2026_09_22": 6,
+      "OWNER_ATTESTATION_MEDIA_2026_09_23": 34,
+      "OWNER_ATTESTATION_MEDIA_2026_09_28": 3,
+      "OWNER_ATTESTATION_MEDIA_2026_10_06": 2,
+      "OWNER_ATTESTATION_MEDIA_2026_10_07": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_09_27": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_10_03": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_10_12": 2,
+      "OWNER_ATTESTATION_MEDIA_2026_10_13": 4,
+      "OWNER_ATTESTATION_MATERIALS_PB2_2026_08_30": 60,
+      "OWNER_ATTESTATION_2026_08_20": 77,
+      "OWNER_ATTESTATION_PHYSICS_YEAR1_2026_08_25": 74,
+      "OWNER_ATTESTATION_MEDIA_2026_10_02": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_10_09": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_10_01": 7,
+      "OWNER_ATTESTATION_MEDIA_2026_09_25": 2,
+      "OWNER_ATTESTATION_MEDIA_2026_09_24": 2,
+      "OWNER_ATTESTATION_MEDIA_2026_09_26": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_10_05": 1,
+      "OWNER_ATTESTATION_MEDIA_2026_10_15": 2,
+      "OWNER_ATTESTATION_MEDIA_2026_09_29": 1
+    }
+  },
+  "to_fetch_rows": {
+    "benyehuda": 37927,
+    "mediatheque": 38711
+  },
+  "distribution_file": {
+    "works": 842,
+    "rows": 67545,
+    "raw_bytes": 33018583,
+    "gzip_bytes": 7139621,
+    "gzip_bytes_per_row": 105.7,
+    "max_gzip_bytes": 196197,
+    "max_work": "7103"
+  },
+  "effect_d10_fresh_profile": {
+    "works": 842,
+    "rows": 67545,
+    "words": 498182,
+    "multi": 27877,
+    "ruleA": 14353,
+    "changed": 8421,
+    "byEraChanged": {
+      "haskalah": 638,
+      "tehiya": 1090,
+      "mandate": 6431,
+      "modern": 262
+    },
+    "byEraRuleA": {
+      "haskalah": 1137,
+      "tehiya": 1902,
+      "mandate": 10844,
+      "modern": 470
+    },
+    "samples": [
+      {
+        "work": "101",
+        "era": "haskalah",
+        "word": "טֹהַר",
+        "from": "טוהר",
+        "to": "לטהר"
+      },
+      {
+        "work": "159",
+        "era": "haskalah",
+        "word": "חֲכָמִים",
+        "from": "חכם",
+        "to": "חכם"
+      },
+      {
+        "work": "159",
+        "era": "haskalah",
+        "word": "בְּרֵאשִׁית",
+        "from": "בראשית",
+        "to": "ראשית"
+      },
+      {
+        "work": "159",
+        "era": "haskalah",
+        "word": "בְּשָׁעָה",
+        "from": "לשעות",
+        "to": "שעה"
+      },
+      {
+        "work": "159",
+        "era": "haskalah",
+        "word": "קְטַנָּה",
+        "from": "לקטון",
+        "to": "קטן"
+      },
+      {
+        "work": "159",
+        "era": "haskalah",
+        "word": "הַיּוֹם",
+        "from": "היום",
+        "to": "יום"
+      },
+      {
+        "work": "159",
+        "era": "haskalah",
+        "word": "אֱלֹהִים",
+        "from": "אלוהים",
+        "to": "אלוה"
+      },
+      {
+        "work": "37",
+        "era": "haskalah",
+        "word": "הַסּוֹפֵר",
+        "from": "לספור",
+        "to": "סופר"
+      },
+      {
+        "work": "37",
+        "era": "haskalah",
+        "word": "הָרָחָב",
+        "from": "לרחוב",
+        "to": "רחב"
+      },
+      {
+        "work": "37",
+        "era": "haskalah",
+        "word": "אֱלֹהִים",
+        "from": "אלוהים",
+        "to": "אלוה"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "בָּא",
+        "from": "בא",
+        "to": "לבוא"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "פָּנָיו",
+        "from": "פן",
+        "to": "פנים"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "פְּנֵיהֶם",
+        "from": "פן",
+        "to": "פנים"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "יָפוֹת",
+        "from": "ליפות",
+        "to": "יפה"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "דַּקָּה",
+        "from": "דקה",
+        "to": "דק"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "הָאוֹפֶה",
+        "from": "לאפות",
+        "to": "אופה"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "הַיְּהוּדִי",
+        "from": "יהודי",
+        "to": "יהודי"
+      },
+      {
+        "work": "40",
+        "era": "haskalah",
+        "word": "יָפוֹת",
+        "from": "ליפות",
+        "to": "יפה"
+      },
+      {
+        "work": "428",
+        "era": "haskalah",
+        "word": "אֱלֹהִים",
+        "from": "אלוהים",
+        "to": "אלוה"
+      },
+      {
+        "work": "428",
+        "era": "haskalah",
+        "word": "מִמְקוֹמָם",
+        "from": "לקומם",
+        "to": "מקום"
+      },
+      {
+        "work": "47",
+        "era": "haskalah",
+        "word": "לְשָׁנָה",
+        "from": "לשנות",
+        "to": "שנה"
+      },
+      {
+        "work": "60",
+        "era": "haskalah",
+        "word": "קָשִׁים",
+        "from": "לקשות",
+        "to": "קשה"
+      },
+      {
+        "work": "64",
+        "era": "haskalah",
+        "word": "בְּשָׂרִי",
+        "from": "בשרי",
+        "to": "בשר"
+      },
+      {
+        "work": "70",
+        "era": "haskalah",
+        "word": "הַתַּמָּה",
+        "from": "לתום",
+        "to": "תם"
+      },
+      {
+        "work": "84",
+        "era": "haskalah",
+        "word": "הַמְּזִמָּה",
+        "from": "להזים",
+        "to": "מזימה"
+      },
+      {
+        "work": "105",
+        "era": "haskalah",
+        "word": "סוֹפְרִים",
+        "from": "לספור",
+        "to": "סופר"
+      },
+      {
+        "work": "125",
+        "era": "tehiya",
+        "word": "הַטִּבְעִי",
+        "from": "לטבוע",
+        "to": "טבעי"
+      },
+      {
+        "work": "218",
+        "era": "tehiya",
+        "word": "הַשָּׁנָה",
+        "from": "לשנות",
+        "to": "שנה"
+      },
+      {
+        "work": "10",
+        "era": "tehiya",
+        "word": "רְעֵבִים",
+        "from": "לרעוב",
+        "to": "רעב"
+      },
+      {
+        "work": "171",
+        "era": "tehiya",
+        "word": "הָאִישִׁי",
+        "from": "איש",
+        "to": "אישי"
+      },
+      {
+        "work": "220",
+        "era": "tehiya",
+        "word": "בָּא",
+        "from": "בא",
+        "to": "לבוא"
+      },
+      {
+        "work": "448",
+        "era": "tehiya",
+        "word": "הַמַּחֲנוֹת",
+        "from": "להחנות",
+        "to": "מחנה"
+      },
+      {
+        "work": "178",
+        "era": "tehiya",
+        "word": "וְטוֹב",
+        "from": "לטוב",
+        "to": "טוב"
+      },
+      {
+        "work": "212",
+        "era": "tehiya",
+        "word": "הַנִּסְתָּרִים",
+        "from": "להיסתר",
+        "to": "נסתר"
+      },
+      {
+        "work": "229",
+        "era": "tehiya",
+        "word": "בָּא",
+        "from": "בא",
+        "to": "לבוא"
+      },
+      {
+        "work": "229",
+        "era": "tehiya",
+        "word": "הַקְּטַנָּה",
+        "from": "לקטון",
+        "to": "קטן"
+      },
+      {
+        "work": "229",
+        "era": "tehiya",
+        "word": "פָּנֶיהָ",
+        "from": "פן",
+        "to": "פנים"
+      },
+      {
+        "work": "229",
+        "era": "tehiya",
+        "word": "יְהוּדִי",
+        "from": "יהודי",
+        "to": "יהודי"
+      },
+      {
+        "work": "229",
+        "era": "tehiya",
+        "word": "רָעָה",
+        "from": "לרעות",
+        "to": "רע"
+      },
+      {
+        "work": "229",
+        "era": "tehiya",
+        "word": "נְעִימוֹת",
+        "from": "נעים",
+        "to": "נעימה"
+      }
+    ],
+    "seconds": 59,
+    "distinctPairs": 1595,
+    "topPairs": [
+      [
+        "B הַשּׁוֹמֵר : לשמור → שומר",
+        238
+      ],
+      [
+        "B הַנֹּעַר : לנער → נוער",
+        151
+      ],
+      [
+        "B הַפּוֹעֲלִים : לפעול → פועל",
+        149
+      ],
+      [
+        "B שׁוֹנִים : לשנות → שונה",
+        138
+      ],
+      [
+        "B הָעִבְרִי : לעבור → עברי",
+        117
+      ],
+      [
+        "B בָּא : בא → לבוא",
+        116
+      ],
+      [
+        "B הַיְּהוּדִי : יהודי → יהודי",
+        108
+      ],
+      [
+        "B הַיּוֹם : היום → יום",
+        107
+      ],
+      [
+        "B בַּגּוֹלָה : לגלות → גולה",
+        103
+      ],
+      [
+        "A בָּא : בא → לבוא",
+        77
+      ],
+      [
+        "A הַיּוֹם : היום → יום",
+        74
+      ],
+      [
+        "B שׁוֹנוֹת : לשנות → שונה",
+        61
+      ],
+      [
+        "A אֱלֹהִים : אלוהים → אלוה",
+        57
+      ],
+      [
+        "B בָּא : בא → לבוא",
+        57
+      ],
+      [
+        "B הַפָּרָה : לפרות → פרה",
+        55
+      ],
+      [
+        "B אֱלֹהִים : אלוהים → אלוה",
+        53
+      ],
+      [
+        "B בְּשָׁעָה : לשעות → שעה",
+        52
+      ],
+      [
+        "B הַשָּׁנָה : לשנות → שנה",
+        52
+      ],
+      [
+        "B הַמְּאֻחָד : לאחד → מאוחד",
+        52
+      ],
+      [
+        "B פּוֹעֲלִים : לפעול → פועל",
+        51
+      ],
+      [
+        "B טוֹבָה : טובה → טוב",
+        50
+      ],
+      [
+        "B הַתַּפְקִיד : להפקיד → תפקיד",
+        45
+      ],
+      [
+        "B טוֹבִים : לטוב → טוב",
+        42
+      ],
+      [
+        "A הַסּוֹפְרִים : לספור → סופר",
+        41
+      ],
+      [
+        "B הַפּוֹעֵל : לפעול → פועל",
+        41
+      ],
+      [
+        "B הַטּוֹב : לטוב → טוב",
+        40
+      ],
+      [
+        "B פָּנֶיהָ : פן → פנים",
+        40
+      ],
+      [
+        "A פָּנָיו : פן → פנים",
+        39
+      ],
+      [
+        "B הַשּׁוֹנִים : לשנות → שונה",
+        39
+      ],
+      [
+        "B קְטַנּוֹת : לקטון → קטן",
+        39
+      ],
+      [
+        "B קָשָׁה : לקשות → קשה",
+        38
+      ],
+      [
+        "B מְלֵאִים : למלאת → מלא",
+        37
+      ],
+      [
+        "B מְיֻחֶדֶת : לייחד → מיוחד",
+        36
+      ],
+      [
+        "B הַשָּׁעָה : לשעות → שעה",
+        35
+      ],
+      [
+        "B קְטַנִּים : לקטון → קטן",
+        35
+      ],
+      [
+        "B קְטַנָּה : לקטון → קטן",
+        34
+      ],
+      [
+        "B יַעֲלוּ : לעלות → לייעל",
+        33
+      ],
+      [
+        "B כָּבֵד : לכבוד → כבד",
+        33
+      ],
+      [
+        "A יוֹשֵׁב : יושב → לשבת",
+        32
+      ],
+      [
+        "B רְחָבָה : רחבה → רחב",
+        32
+      ],
+      [
+        "B בְּרֵאשִׁית : בראשית → ראשית",
+        32
+      ],
+      [
+        "B קָשִׁים : לקשות → קשה",
+        32
+      ],
+      [
+        "B הַגּוֹלָה : לגלות → גולה",
+        31
+      ],
+      [
+        "B הַחַקְלָאִי : חקלאי → חקלאי",
+        31
+      ],
+      [
+        "B יְהוּדִי : יהודי → יהודי",
+        30
+      ],
+      [
+        "B הַלְּאֻמִּי : לאום → לאומי",
+        30
+      ],
+      [
+        "B הַחַיָּה : לחיות → חיה",
+        30
+      ],
+      [
+        "B הָאַרְצִי : ארץ → ארצי",
+        30
+      ],
+      [
+        "B עָבִים : לעבות → עבה",
+        29
+      ],
+      [
+        "B קְטַנָּה : לקטון → קטן",
+        28
+      ],
+      [
+        "B נוֹסָפִים : להיווסף → נוסף",
+        28
+      ],
+      [
+        "B הַצְּבָאִי : צבא → צבאי",
+        28
+      ],
+      [
+        "B הַכְּלָלִי : כלל → כללי",
+        27
+      ],
+      [
+        "B קָשׁוֹת : לקשות → קשה",
+        26
+      ],
+      [
+        "B לְבָנָה : לבנה → לבן",
+        26
+      ],
+      [
+        "B בְּשָׁעָה : לשעות → שעה",
+        26
+      ],
+      [
+        "B נוֹסֶפֶת : להיווסף → נוסף",
+        26
+      ],
+      [
+        "A הַיְּהוּדִי : יהודי → יהודי",
+        25
+      ],
+      [
+        "B הָרִים : להרות → הר",
+        25
+      ],
+      [
+        "B רְחָבִים : לרחוב → רחב",
+        25
+      ]
+    ]
+  }
+}
