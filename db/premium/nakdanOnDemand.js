@@ -90,6 +90,17 @@ function createNakdanClient(options = {}) {
     if (breaker && breaker.openUntil()) {
       throw new NakdanError("NAKDAN_UNAVAILABLE", { retry_after_ms: breaker.retryAfterMs() });
     }
+    if (breaker && typeof breaker.withSlot === "function") {
+      try { return await breaker.withSlot(() => send(text, at)); }
+      catch (error) {
+        // the server-wide gate is full: a «come back later», not a Dicta failure (no local circuit count)
+        if (error && error.gateBusy) throw new NakdanError("NAKDAN_UNAVAILABLE", { retry_after_ms: error.retryAfterMs });
+        throw error;
+      }
+    }
+    return send(text, at);
+  }
+  async function send(text, at) {
     const waitMs = Math.max(0, MIN_START_INTERVAL_MS - (at - lastStartAt));
     if (waitMs) await sleep(waitMs);
     lastStartAt = now();

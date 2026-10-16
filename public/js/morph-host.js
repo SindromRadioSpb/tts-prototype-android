@@ -73,6 +73,58 @@
   // aligned to them (sentence_morph), the learner's verified decisions for its places (lexical_resolution_events:
   // «Проверить морфологию» — a Pealim entry, or «это имя»). Only stored data: the same on every surface.
   var _placeLoaderSet = false;
+  // Ф4 · Д8-К4 v2 (К4.3/К4.4): a corpus work met by the place loader gets its baked Dicta facts in the background
+  // (CorpusPlaceParse — one work at a time, once a session); after new facts land, the marks follow the word again
+  // (Д10.2, the 80 % rule) and the run's summary is kept (lp.identityMigrationD10_runs, last 20).
+  var _cppSeen = new Set(), _cppQueue = [], _cppBusy = false, _d10Timer = null;
+  function _sha256Hex(s) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function (b) {
+      return Array.from(new Uint8Array(b)).map(function (x) { return x.toString(16).padStart(2, "0"); }).join("");
+    });
+  }
+  function _rerunPlaceMarks(ldbOf) {
+    if (_d10Timer) clearTimeout(_d10Timer);
+    _d10Timer = setTimeout(function () {
+      _d10Timer = null;
+      var run = async function () {
+        var RM = window.ReaderMorph; if (!RM || typeof RM.migrateIdentityD9 !== "function") return;
+        var r = null; try { r = await RM.migrateIdentityD9(await ldbOf(), { places: true, force: true }); } catch (e) { try { console.warn("[corpus-parse] Д10.2", e); } catch (_) {} }
+        if (!r) return;
+        try {
+          var runs = JSON.parse(localStorage.getItem("lp.identityMigrationD10_runs") || "[]");
+          runs.push({ at: r.at || new Date().toISOString(), why: "corpus-parse", marked: r.marked, keysMoving: r.keysMoving, copied: r.copied, cleared: r.cleared, belowShare: r.belowShare });
+          localStorage.setItem("lp.identityMigrationD10_runs", JSON.stringify(runs.slice(-20)));
+        } catch (_) {}
+        try { window.dispatchEvent(new CustomEvent("lp:place-marks-migrated", { detail: r })); } catch (_) {}
+      };
+      try {
+        if (navigator.locks && navigator.locks.request) navigator.locks.request("lp-identity-migration", function () { return run(); });
+        else run();
+      } catch (_) { run(); }
+    }, 10000);
+  }
+  function _corpusParseLater(ldbOf, text) {
+    var CPP = window.CorpusPlaceParse;
+    if (!CPP || !text || _cppSeen.has(String(text.id))) return;
+    _cppSeen.add(String(text.id));            // a personal text is looked at once a session too
+    if (!CPP.sourceOf(text)) return;
+    _cppQueue.push(text);
+    if (_cppBusy) return;
+    _cppBusy = true;
+    setTimeout(async function next() {
+      var t = _cppQueue.shift();
+      if (!t) { _cppBusy = false; return; }
+      try {
+        var ldb = await ldbOf();
+        var r = ldb ? await CPP.apply(t, { db: ldb, RM: window.ReaderMorph, fetch: fetch.bind(window), sha256Hex: _sha256Hex }) : null;
+        if (r && r.applied) {
+          try { window.dispatchEvent(new CustomEvent("lp:corpus-parse-applied", { detail: { textId: String(t.id), applied: r.applied } })); } catch (_) {}
+          _rerunPlaceMarks(ldbOf);
+        }
+      } catch (e) { try { console.warn("[corpus-parse]", e); } catch (_) {} }
+      setTimeout(next, 500);
+    }, 2000);
+  }
   function _installPlaceLoader(ldbOf) {
     var RM = typeof window !== "undefined" ? window.ReaderMorph : null;
     if (_placeLoaderSet || !RM || typeof RM.setPlaceLoader !== "function") return;
@@ -88,6 +140,15 @@
         ((await ldb.dbQuery("SELECT sentence_id, tokens_json FROM sentence_morph WHERE sentence_id IN (" + qm + ")", part)) || []).forEach(function (m) {
           try { morph.set(String(m.sentence_id), JSON.parse(m.tokens_json || "[]")); } catch (_) {}
         });
+        // a corpus work whose rows here carry no stored parse: fetch its baked facts in the background (once a session)
+        // (the text's metadata is read once per text, never joined per row — the 3.11.760 iPhone lesson)
+        var bare = Array.from(new Set(rows.filter(function (r) { return !morph.has(String(r.id)) && !_cppSeen.has(String(r.text_id)); }).map(function (r) { return String(r.text_id); })));
+        if (bare.length) {
+          try {
+            ((await ldb.dbQuery("SELECT id, text_key, source_meta_json FROM texts WHERE id IN (" + bare.map(function () { return "?"; }).join(",") + ")", bare)) || [])
+              .forEach(function (t) { _corpusParseLater(ldbOf, t); });
+          } catch (_) {}
+        }
         var events = [];
         if (Core && Svc && typeof ldb.listLexicalResolutionEventsForTexts === "function") {
           var tids = Array.from(new Set(rows.map(function (r) { return String(r.text_id); })));
@@ -569,13 +630,15 @@
       }
     } catch (_) {}
     // К-4: new personal texts get Dicta's parse in the background — only with the learner's automatic-parse consent
-    // (DictaEnrich), one request at a time, a sentence budget per page; the lexicon is refolded after it
-    if (!_autoParseScheduled && typeof window !== "undefined" && window.DictaEnrich && window.DictaEnrich.hasAuto()) {
+    // (DictaEnrich); Д8-К4 v2 · К4.5 a slow trickle (DictaEnrich.TRICKLE: a session budget, a pause between requests,
+    // only while the page is visible); the lexicon is refolded after it
+    function scheduleAutoParse(delayMs) {
+      if (_autoParseScheduled || typeof window === "undefined" || !window.DictaEnrich || !window.DictaEnrich.hasAuto()) return;
       _autoParseScheduled = true;
       setTimeout(function () {
         var run = async function () {
           try {
-            var r = await window.DictaEnrich.autoEnrich(await ldbOf(), { budget: 2000 });
+            var r = await window.DictaEnrich.autoEnrich(await ldbOf(), { shouldContinue: function () { return typeof document === "undefined" || document.visibilityState === "visible"; } });
             if (r && r.enriched) await refreshDictaLexicon();
           } catch (e) { try { console.warn("[dicta-autoparse]", e); } catch (_) {} }
         };
@@ -583,8 +646,11 @@
           if (navigator.locks && navigator.locks.request) navigator.locks.request("lp-dicta-autoparse", { ifAvailable: true }, function (lock) { return lock ? run() : null; });
           else run();
         } catch (_) { run(); }
-      }, 8000);
+      }, delayMs == null ? 8000 : delayMs);
     }
+    scheduleAutoParse();
+    // the learner just said yes (DictaAutoParseOffer): start now, not at the next start-up
+    try { if (typeof window !== "undefined") window.addEventListener("lp:dicta-autoparse-granted", function () { scheduleAutoParse(1500); }); } catch (_) {}
     if (!_identityMigrationScheduled && typeof window !== "undefined" && window.ReaderMorph && typeof window.ReaderMorph.migrateSpellingMarks === "function") {
       _identityMigrationScheduled = true;
       setTimeout(function () {

@@ -660,6 +660,20 @@ app.use("/data/benyehuda/context", express.static(path.join(DATA_DIR, "benyehuda
   },
 }));
 
+// Ф4 · Д8-К4 v2 — a corpus work's Dicta facts per place, baked off-server (never from this server's IP, O-090) and kept on
+// the volume (DATA_DIR/corpus-parse/by/<text_key>.json, gzip bytes). Served KEYLESS (Ben-Yehuda is public domain) as
+// gzip-encoded JSON, immutable (the address carries the edition's text_key). Plan F4_D8K4_V2_CORPUS_PLACE_PARSE_PLAN_2026_10_17.
+const CORPUS_PARSE_DIR = path.join(DATA_DIR, "corpus-parse");
+const CORPUS_PARSE_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8", "Content-Encoding": "gzip",
+  "Cache-Control": "public, max-age=31536000, immutable", "Cross-Origin-Resource-Policy": "same-origin", "X-Content-Type-Options": "nosniff",
+};
+app.use("/data/corpus-parse/by", express.static(path.join(CORPUS_PARSE_DIR, "by"), {
+  fallthrough: true,
+  index: false,
+  setHeaders(res) { for (const [k, v] of Object.entries(CORPUS_PARSE_HEADERS)) res.setHeader(k, v); },
+}));
+
 // Immutable, hash-pinned study pointing is separate from original work bundles.
 app.use('/data/benyehuda/learning-niqqud', express.static(path.join(DATA_DIR, 'benyehuda', 'learning-niqqud'), {
   fallthrough: true, index: false,
@@ -1219,9 +1233,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=780",
+  "/js/dictionary-ui.js?v=781",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=780",
+  "/js/mediatheque-ui.js?v=781",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1255,7 +1269,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=780",
+  "/js/study-video-source-ui.js?v=781",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=742",
@@ -1309,7 +1323,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=780",
+  "/js/library-ui.js?v=781",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1317,16 +1331,18 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=486",
   "/js/dicta-lexicon.js?v=769",
-  "/js/dicta-enrich.js?v=778",
+  "/js/dicta-enrich.js?v=781",
+  "/js/dicta-autoparse-offer.js?v=781",
   "/js/key-alias-core.js?v=771",
-  "/js/reader-morph.js?v=777",
+  "/js/reader-morph.js?v=781",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=777",
+  "/js/corpus-place-parse.js?v=781",
+  "/js/morph-host.js?v=781",
   "/js/room-b6-core.js?v=730",
-  "/db/local-db.js?v=780",
+  "/db/local-db.js?v=781",
   "/db/migrations.js",
   "/db/db-worker.js",
   "/db/vfs-order.js",
@@ -1359,9 +1375,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=310",
-  "/i18n/locales/en.js?v=310",
-  "/i18n/locales/he.js?v=310",
+  "/i18n/locales/ru.js?v=311",
+  "/i18n/locales/en.js?v=311",
+  "/i18n/locales/he.js?v=311",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4563,6 +4579,21 @@ app.get("/api/public-corpora/:slug/works/:workId/learning-support", rlPublicCorp
     return res.json({ ok: true, ...body });
   });
 });
+// Ф4 · Д8-К4 v2 — a public work's Dicta facts per place (DATA_DIR/corpus-parse/pc/<snapshot>.json, gzip bytes), served
+// under the SAME read right as the work: only for its current published snapshot; a withdrawn work or another snapshot
+// has no parse.
+app.get("/api/public-corpora/:slug/works/:workId/parse", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
+  const published = await repo.getPublicWork(req.params.slug, req.params.workId);
+  const snapshot = String(published.item.snapshot_sha256 || "").toLowerCase();
+  if (String(req.query.snapshot || "").toLowerCase() !== snapshot || !/^[0-9a-f]{64}$/.test(snapshot)) {
+    res.set("Cache-Control", "no-store");
+    return res.status(409).json({ ok: false, error: "PUBLIC_WORK_CHANGED" });
+  }
+  const file = path.join(CORPUS_PARSE_DIR, "pc", snapshot + ".json");
+  if (!fs.existsSync(file)) { res.set("Cache-Control", "no-store"); return res.status(404).json({ ok: false, error: "NO_PARSE" }); }
+  res.set(CORPUS_PARSE_HEADERS);
+  return res.sendFile(file);
+}));
 app.get("/api/public-corpora/:slug/learning-support/assets/:assetSha256", rlPublicCorpusRead, (req, res) => {
   if (req.params.slug !== "materials-science-year1-problem-book-2"
     || !materialsPb2LearningSupportPublicReadEnabled()) return publicCorpusNotFound(res, "no-store");
@@ -7334,6 +7365,35 @@ app.post("/api/benyehuda/context/upload", rlWorksUpload, async (req, res) => {
   } catch (e) {
     console.error("POST /api/benyehuda/context/upload error:", e);
     return res.status(500).json({ ok: false, error: "OVERLAY_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
+  }
+});
+
+// POST /api/corpus-parse/upload — Д8-К4 v2. Owner-token push of ONE baked file (gzip bytes, base64) onto the volume:
+// { kind: "by", name: <text_key> } → corpus-parse/by/<text_key>.json; { kind: "pc", name: <snapshot_sha256> } →
+// corpus-parse/pc/<snapshot>.json. The content is checked (gzip → { v: 1, src.edition = name, rows[] }) before the
+// atomic replace. Same gate as the other corpus uploads.
+app.post("/api/corpus-parse/upload", rlWorksUpload, express.json({ limit: "4mb" }), async (req, res) => {
+  try {
+    if (!requireAudioUploadAuth(req, res)) return;
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const kind = String(body.kind || ""), name = String(body.name || "").toLowerCase();
+    if (!(kind === "by" || kind === "pc") || !/^[0-9a-f]{64}$/.test(name)) return res.status(400).json({ ok: false, error: "BAD_NAME" });
+    let gz; try { gz = Buffer.from(String(body.gz_b64 || ""), "base64"); } catch (_) { gz = null; }
+    if (!gz || !gz.length || gz.length > 3 * 1024 * 1024) return res.status(400).json({ ok: false, error: "BAD_PAYLOAD" });
+    let file = null;
+    try { file = JSON.parse(require("zlib").gunzipSync(gz).toString("utf8")); } catch (_) { file = null; }
+    if (!file || file.v !== 1 || !file.src || String(file.src.edition).toLowerCase() !== name || !Array.isArray(file.rows)) {
+      return res.status(400).json({ ok: false, error: "BAD_CONTENT" });
+    }
+    const dir = path.join(CORPUS_PARSE_DIR, kind), absPath = path.join(dir, name + ".json");
+    try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    const tmp = absPath + ".tmp-" + crypto.randomBytes(6).toString("hex");
+    try { fs.writeFileSync(tmp, gz); fs.renameSync(tmp, absPath); }
+    catch (e) { try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) {} return res.status(500).json({ ok: false, error: "WRITE_FAILED" }); }
+    return res.json({ ok: true, kind, name, bytes: gz.length, rows: file.rows.length });
+  } catch (e) {
+    console.error("POST /api/corpus-parse/upload error:", e);
+    return res.status(500).json({ ok: false, error: "UPLOAD_FAILED" });
   }
 });
 

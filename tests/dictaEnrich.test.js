@@ -72,3 +72,30 @@ test("enrichText: Dicta refused the server (rate_limited) — stop after this re
   assert.deepStrictEqual(calls, [40]);
   assert.deepStrictEqual([r.enriched, r.failed, r.error, r.retryAfterMs], [3, 87, "RATE_LIMITED", 120000]);
 });
+
+test("Д8-К4 v2 trickle: 600 sentences a session, a pause between requests, a stop when the page is hidden", async () => {
+  global.localStorage = storage(); DE.grant({ auto: true });
+  const sents = Array.from({ length: 1000 }, (_, i) => ({ id: "s" + i, he_plain: "מילה " + i }));
+  const calls = [], sleeps = [];
+  const r = await DE.autoEnrich(fakeLdb(sents), { fetch: okFetch(calls), sleep: async (ms) => { sleeps.push(ms); } });
+  assert.deepStrictEqual([r.enriched, calls.length, calls.every((n) => n <= 40)], [600, 15, true]);
+  assert.ok(sleeps.length === 14 && sleeps.every((ms) => ms === DE.TRICKLE.gapMs));
+  let visible = 3;
+  const calls2 = [];
+  const h = await DE.autoEnrich(fakeLdb(sents), { fetch: okFetch(calls2), sleep: async () => {}, shouldContinue: () => --visible > 0 });
+  assert.deepStrictEqual([calls2.length, h.stopped], [3, "paused"]);
+});
+
+test("Д8-К4 v2 trickle: Dicta's «come back later» is remembered across sessions (at least 15 min)", async () => {
+  global.localStorage = storage(); DE.grant({ auto: true });
+  const sents = Array.from({ length: 100 }, (_, i) => ({ id: "s" + i, he_plain: "מילה " + i }));
+  const limited = async (url, init) => ({ json: async () => ({ rate_limited: true, retry_after_ms: 1000, results: JSON.parse(init.body).sentences.map(() => ({ ok: false, tokens: [] })) }) });
+  const t0 = 1e12;
+  const r = await DE.autoEnrich(fakeLdb(sents), { fetch: limited, sleep: async () => {}, now: () => t0 });
+  assert.strictEqual(r.error, "RATE_LIMITED");
+  const calls = [];
+  assert.deepStrictEqual(await DE.autoEnrich(fakeLdb(sents), { fetch: okFetch(calls), now: () => t0 + 60000 }), { ran: false, pausedUntil: t0 + DE.TRICKLE.minPauseMs });
+  assert.strictEqual(calls.length, 0);
+  const later = await DE.autoEnrich(fakeLdb(sents), { fetch: okFetch(calls), sleep: async () => {}, now: () => t0 + DE.TRICKLE.minPauseMs + 1 });
+  assert.strictEqual(later.enriched, 100);
+});

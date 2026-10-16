@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=780';
+import * as localDb from '/db/local-db.js?v=781';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -414,6 +414,7 @@ function renderList() {
   }
   if (S.view.length) more.appendChild(el('p', { class: 'dict-note', text: fill(tt('dictionary.shown', 'Показано {a} из {b}'), { a: Math.min(S.shown, S.view.length), b: S.view.length }) }));
 }
+try { window.addEventListener('lp:place-marks-migrated', () => { try { if (typeof applyView === 'function') applyView(); } catch (_) {} }); } catch (_) {}
 function renderCounts(all) {
   const box = $('dict-counts'); if (!box) return;
   const scope = S.filters.scope, c = D.statusCounts(all, scope);
@@ -424,7 +425,12 @@ function renderCounts(all) {
     box.appendChild(el('button', { class: 'dict-chip' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false' },
       on: { click: () => { S.filters.statuses = on ? [] : [s]; S.shown = 0; applyView(); } } },
       [el('span', { class: 'dict-dot dict-st-' + s }), statusText(s), el('b', { text: String(c[s]) })]));
-  });
+  });  // Д8-К4 v2 (К4.4): the last time marks followed the word after a corpus work's Dicta facts landed (Д10.2, the 80 % rule)
+  let run = null; try { run = (JSON.parse(localStorage.getItem('lp.identityMigrationD10_runs') || '[]') || []).filter((r) => r.why === 'corpus-parse').pop() || null; } catch (_) { run = null; }
+  if (run && run.marked && Date.now() - Date.parse(run.at) < 14 * 86400000) {
+    box.appendChild(el('span', { class: 'dict-note dict-place-run', text: fill(tt('dictionary.placeMarksRun', 'Разбор корпуса {date}: отметки перенесены — {copied}, сняты — {cleared}, остались на месте (меньше 80 %) — {below}'),
+      { date: new Date(run.at).toLocaleDateString(), copied: run.copied || 0, cleared: run.cleared || 0, below: run.belowShare || 0 }) }));
+  }
 }
 const MEMORY_OPTS = [['due', 'dictionary.memDue', 'к повторению'], ['overdue', 'dictionary.memOverdue', 'просрочено'], ['hard', 'dictionary.memHard', 'трудные'], ['never', 'dictionary.memNever', 'ещё не повторялось']];
 const ADDED_OPTS = [[7, 'dictionary.addedWeek', 'за неделю'], [30, 'dictionary.addedMonth', 'за месяц']];

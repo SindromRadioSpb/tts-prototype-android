@@ -148,9 +148,14 @@ async function nakdan(texts, genre = "modern") {
           return;
         }
         try {
-          results[idx] = await _niqqudOne(t, genre);
+          results[idx] = await dictaBreaker.withSlot(() => _niqqudOne(t, genre));
           dictaBreaker.noteSuccess();
         } catch (e) {
+          if (e && e.gateBusy) {                 // the server-wide gate is full: not sent, come back later
+            results[idx] = "";
+            errors.push({ index: idx, status: 0, message: "rate_limited", rate_limited: true, retry_after_ms: e.retryAfterMs });
+            return;
+          }
           const limited = dictaBreaker.noteRefusal(e && e.status, "niqqud");
           console.warn(`[dicta-cloud] segment ${idx} failed: ${e.message}`);
           results[idx] = "";
@@ -163,7 +168,7 @@ async function nakdan(texts, genre = "modern") {
   errors.sort((a, b) => a.index - b.index);
   const limited = errors.some((e) => e.rate_limited);
   return { ok: true, status: 200, body: { results, model_version: MODEL_VERSION, ...(errors.length ? { errors } : {}),
-    ...(limited ? { rate_limited: true, retry_after_ms: dictaBreaker.retryAfterMs() } : {}) } };
+    ...(limited ? { rate_limited: true, retry_after_ms: Math.max(dictaBreaker.retryAfterMs(), ...errors.map((e) => e.retry_after_ms || 0)) } : {}) } };
 }
 
 module.exports = { nakdan, MODEL_VERSION, _tokensToNiqqud };

@@ -1391,23 +1391,37 @@ export async function saveSentenceMorph(textId, sentenceId, modelVersion, tokens
   );
 }
 
+// Ф4 · Д8-К4 v2: a corpus work's Dicta facts from the server file (provider 'corpus-dicta') — only where the sentence has
+// no parse yet: the learner's own parse and a parse that came inside a published snapshot are never overwritten.
+export async function saveSentenceMorphIfAbsent(textId, sentenceId, modelVersion, tokens, provider) {
+  if (!textId || !sentenceId) throw new Error('saveSentenceMorphIfAbsent: textId + sentenceId required');
+  const now = new Date().toISOString();
+  await r(
+    `INSERT INTO sentence_morph (sentence_id, text_id, model_version, tokens_json, provider, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(sentence_id) DO NOTHING`,
+    [String(sentenceId), String(textId), String(modelVersion || ''), JSON.stringify(Array.isArray(tokens) ? tokens : []), provider || null, now, now]
+  );
+}
+
 // All stored morphology for a text, keyed by sentence_id (tokens parsed).
 export async function getSentenceMorphForText(textId) {
   if (!textId) return {};
-  const rows = await q(`SELECT sentence_id, model_version, tokens_json FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
+  const rows = await q(`SELECT sentence_id, model_version, tokens_json, provider FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
   const out = {};
   for (const row of (rows || [])) {
     let tokens = [];
     try { tokens = JSON.parse(row.tokens_json || '[]'); } catch (_) { tokens = []; }
-    out[String(row.sentence_id)] = { model_version: row.model_version, tokens };
+    out[String(row.sentence_id)] = { model_version: row.model_version, tokens, provider: row.provider || 'dicta-morph' };
   }
   return out;
 }
 
 // ── Ф4 · Д8-К — the device's Dicta lexicon (migration 055; DictaLexicon.refresh folds sentence_morph into it) ──
-// Rows of sentence_morph not folded yet (by rowid; an upsert keeps a row's rowid).
+// Rows of sentence_morph not folded yet (by rowid; an upsert keeps a row's rowid). Д8-К4 v2 (Р1-А): a corpus work's
+// facts ('corpus-dicta') key words only at their place (Д10) — never the device lexicon, which keys a spelling for good in
+// the learner's own texts too.
 export async function listSentenceMorphSince(lastRowid, limit) {
-  return q(`SELECT rowid AS rid, tokens_json FROM sentence_morph WHERE rowid > ? ORDER BY rowid LIMIT ?`,
+  return q(`SELECT rowid AS rid, tokens_json FROM sentence_morph WHERE rowid > ? AND (provider IS NULL OR provider != 'corpus-dicta') ORDER BY rowid LIMIT ?`,
     [Number(lastRowid) || 0, Math.max(1, Math.min(5000, Number(limit) || 1500))]);
 }
 export async function getDictaLexiconRows() {
@@ -6453,7 +6467,10 @@ async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
       const m = await getSentenceMorphForText(tid);
       for (const sid in m) {
         if (!Object.prototype.hasOwnProperty.call(m, sid)) continue;
-        sentenceMorph.push({ sentence_id: String(sid), text_id: String(tid), model_version: m[sid].model_version || '', provider: 'dicta-morph', tokens: m[sid].tokens || [] });
+        // Д8-К4 v2: a corpus work's facts come back from the server file — not carried by sync (slim); a full export keeps
+        // their origin
+        if (slim && m[sid].provider === 'corpus-dicta') continue;
+        sentenceMorph.push({ sentence_id: String(sid), text_id: String(tid), model_version: m[sid].model_version || '', provider: m[sid].provider || 'dicta-morph', tokens: m[sid].tokens || [] });
       }
     } catch (_) {}
   }

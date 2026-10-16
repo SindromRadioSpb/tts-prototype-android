@@ -643,6 +643,18 @@
     ["PERF-3ms", "INF-L", "s", "ms-a"].forEach(function (k) { if (p.cells && p.cells[k] && p.cells[k].he) out.push(p.cells[k].he); });
     return out.filter(Boolean).map(_d8Loose);
   }
+  // Dicta's lemmatization conventions that are not context (Д8-К4 v2 blind examiner, archaic stratum: 9 of 14 errors):
+  // Dicta lemmatizes אֱלֹהִים «Бог» as אלוה — the place keeps Pealim's אלוהים. Loose forms (no niqqud, no ו/י); the word
+  // ends with the stem (a proclitic before it is fine).
+  var _DICTA_LEMMA_CONVENTIONS = [{ lemma: "אלה", stem: "אלהמ", to: "אלהמ" }];
+  function _dictaLemmaAt(L, skel) {
+    var w = _d8Loose(skel);
+    for (var i = 0; i < _DICTA_LEMMA_CONVENTIONS.length; i++) {
+      var c = _DICTA_LEMMA_CONVENTIONS[i];
+      if (L === c.lemma && w.length >= c.stem.length && w.slice(-c.stem.length) === c.stem) return c.to;
+    }
+    return L;
+  }
   function _atPlace(eng, card, surfaceOrig, niqqudOrig, place) {
     var p = place ? _places.get(String(place.sid)) : null;
     if (!p || !card) return card;
@@ -659,7 +671,7 @@
     if (!dt || !dt.posDicta || !_PLACE_POS[dt.posDicta] || card.label === "exact" || card.label === "function" || card.functionWord) return card;
     var pids = _placeCandidates(eng, card, niqqudOrig);
     if (!pids.length || (card.label === "likely" && pids.length < 2)) return card;
-    var L = _d8Loose(dt.lemma || "");
+    var L = _dictaLemmaAt(_d8Loose(dt.lemma || ""), p.sk[place.off]);
     var hit = pids.filter(function (pid) {
       var par = eng.pidMap.get(pid); if (!par || (par.pos || "") !== dt.posDicta) return false;
       return L && _placeCitations(par).indexOf(L) >= 0;

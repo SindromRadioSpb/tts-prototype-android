@@ -31,6 +31,11 @@
     try { set("dictaAutoParseConsent_v1.at", new Date().toISOString()); } catch (_) {}
   }
   function revokeAuto() { var s = ls(); try { if (s) s.removeItem(AUTO_KEY); } catch (_) {} }
+  // Д8-К4 v2: the learner answered the background-parse question (yes, or «not now» — recorded with the text's version,
+  // never asked again; it can be turned on in «Мой словарь» or the morphology settings)
+  var DECLINED_KEY = "dictaAutoParseConsent_v1.declined";
+  function decline() { set(DECLINED_KEY, AUTO_VERSION); try { set(DECLINED_KEY + "_at", new Date().toISOString()); } catch (_) {} }
+  function decided() { return hasAuto() || get(DECLINED_KEY) === AUTO_VERSION; }
 
   // texts (personal unless ids are given) with sentences Dicta has not parsed: [{ id, title, n, have }], newest first
   async function coverage(ldb, ids) {
@@ -69,22 +74,38 @@
       if (typeof opts.onProgress === "function") { try { opts.onProgress(Math.min(i + CHUNK, todo.length), todo.length); } catch (_) {} }
       // Dicta refused the server (HTTP 503/429): stop, the rest stays unparsed and is retried on a later run
       if (data && data.rate_limited) { out.failed += todo.length - (i + slice.length); out.error = "RATE_LIMITED"; out.retryAfterMs = Number(data.retry_after_ms) || 0; break; }
+      // Д8-К4 v2 · К4.5 the background trickle: a pause between requests, and a stop when the page is hidden
+      if (i + CHUNK < todo.length) {
+        if (opts.gapMs) await (opts.sleep || sleep)(opts.gapMs);
+        if (opts.shouldContinue && !opts.shouldContinue()) { out.stopped = "paused"; break; }
+      }
     }
     return out;
   }
-  // background (consented): new personal texts without a parse, newest first, within a sentence budget per run
+  // background (consented): new personal texts without a parse, newest first — a slow trickle (Д8-К4 v2 · К4.5): at
+  // most TRICKLE.budget sentences a session, 40 per request, TRICKLE.gapMs between requests, only while the page is
+  // visible; Dicta's «come back later» (rate_limited) is remembered across sessions (PAUSE_KEY), never retried at once.
+  // The server holds the real limit for everyone (one gate for the whole server, dictaBreaker.withSlot).
+  var TRICKLE = { budget: 600, gapMs: 20000, minPauseMs: 15 * 60 * 1000 }, PAUSE_KEY = "dictaAutoParse.pauseUntil";
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   async function autoEnrich(ldb, opts) {
     opts = opts || {};
     if (!hasAuto()) return { ran: false };
-    var budget = opts.budget != null ? opts.budget : 2000, done = { ran: true, texts: 0, enriched: 0 };
+    var now = opts.now ? opts.now() : Date.now(), until = Number(get(PAUSE_KEY)) || 0;
+    if (until > now) return { ran: false, pausedUntil: until };
+    var budget = opts.budget != null ? opts.budget : TRICKLE.budget, done = { ran: true, texts: 0, enriched: 0 };
+    var gapMs = opts.gapMs != null ? opts.gapMs : TRICKLE.gapMs;
     var list = (await coverage(ldb)).filter(function (t) { return t.n > 0 && t.have < t.n; });
     for (var i = 0; i < list.length && budget > 0; i++) {
-      var r = await enrichText(ldb, list[i].id, { budget: budget, fetch: opts.fetch });
+      var r = await enrichText(ldb, list[i].id, { budget: budget, fetch: opts.fetch, gapMs: gapMs, sleep: opts.sleep, shouldContinue: opts.shouldContinue });
       budget -= r.total; done.texts++; done.enriched += r.enriched;
+      if (r.error === "RATE_LIMITED") set(PAUSE_KEY, String(now + Math.max(TRICKLE.minPauseMs, r.retryAfterMs || 0)));
       if (r.error) { done.error = r.error; break; }
+      if (r.stopped) { done.stopped = r.stopped; break; }
+      if (i + 1 < list.length && budget > 0 && gapMs) await (opts.sleep || sleep)(gapMs);
     }
     return done;
   }
   return { MODEL: MODEL, CONSENT_KEY: CONSENT_KEY, AUTO_KEY: AUTO_KEY, hasConsent: hasConsent, hasAuto: hasAuto, grant: grant,
-    revokeAuto: revokeAuto, coverage: coverage, enrichText: enrichText, autoEnrich: autoEnrich };
+    revokeAuto: revokeAuto, decline: decline, decided: decided, coverage: coverage, enrichText: enrichText, autoEnrich: autoEnrich, TRICKLE: TRICKLE, PAUSE_KEY: PAUSE_KEY };
 });

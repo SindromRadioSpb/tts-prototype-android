@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=780">
+    <link rel="modulepreload" href="/db/local-db.js?v=781">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11075,7 +11075,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=780';
+  import * as _ldb from '/db/local-db.js?v=781';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13684,9 +13684,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=310"></script>
-<script src="/i18n/locales/en.js?v=310"></script>
-<script src="/i18n/locales/he.js?v=310"></script>
+<script src="/i18n/locales/ru.js?v=311"></script>
+<script src="/i18n/locales/en.js?v=311"></script>
+<script src="/i18n/locales/he.js?v=311"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13763,8 +13763,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- Слой слов Ф2: русский перевод каждой формы парадигмы (офлайн, ленивая загрузка данных). -->
 <script src="/js/ru-forms.js?v=739"></script>
 <script src="/js/dicta-lexicon.js?v=769"></script>
-<script src="/js/dicta-enrich.js?v=778"></script>
-<script src="/js/reader-morph.js?v=777"></script>
+<script src="/js/dicta-enrich.js?v=781"></script>
+<script src="/js/dicta-autoparse-offer.js?v=781"></script>
+<script src="/js/reader-morph.js?v=781"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=746"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
@@ -13831,7 +13832,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
-<script src="/js/study-video-source-ui.js?v=780"></script>
+<script src="/js/study-video-source-ui.js?v=781"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=742"></script>
@@ -13879,7 +13880,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
-<script src="/js/morph-host.js?v=777"></script>
+<script src="/js/corpus-place-parse.js?v=781"></script>
+<script src="/js/morph-host.js?v=781"></script>
 <!-- Exact owner morphology decisions are shared with Reading Room. Load the
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
@@ -13944,7 +13946,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.780";
+    window.APP_VERSION = "3.11.781";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -28490,6 +28492,8 @@ async function v3LibrarySaveCurrentCore(meta) {
     } catch (_) {}
 
     showToast(t("toast.savedToLibrary"), "success");
+    // Д8-К4 v2 · К4.5: the background-parse question — once, at the first own text, as a card (no pre-selection)
+    try { if (window.DictaAutoParseOffer) window.DictaAutoParseOffer.offer(); } catch (_) {}
 
     // Enrich rows with sentenceIds/audioKeys and re-render so note buttons,
     // audio indicators and Audio/Anki work immediately without re-opening.

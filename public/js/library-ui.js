@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=780';
+import * as localDbRaw from '/db/local-db.js?v=781';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -15094,6 +15094,8 @@ async function boot() {
     await localDb.initLocalDB();
     await refreshMyKeysGen();   // O-083: before the first own-text card descriptor
     try { window.addEventListener('lp:dicta-lexicon', () => { refreshMyKeysGen(); }); } catch (_) {}
+    // Д8-К4 v2: a corpus work's baked Dicta facts just landed — the keys changed; the open text repaints its places
+    try { window.addEventListener('lp:corpus-parse-applied', (e) => { refreshMyKeysGen(); if (readerTextId && e.detail && String(e.detail.textId) === String(readerTextId)) applyDecorations(); }); } catch (_) {}
     if (!navigator.onLine) setRoomConnectionState(roomB6.nextConnectionState('online', 'offline', { localReady: roomOfflineHasLocalTruth() }));
     // P0-1 v2: a follower WITH a live proxy route is fully functional (queries go to the owner
     // tab's single OPFS connection) — only a proxy-less follower still dead-ends on «БД занята».

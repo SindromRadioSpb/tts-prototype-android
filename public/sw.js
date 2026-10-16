@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.780";
+const CACHE_VERSION = "v3.11.781";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,9 +82,9 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=780",
+  "/js/dictionary-ui.js?v=781",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=780",
+  "/js/mediatheque-ui.js?v=781",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -107,7 +107,7 @@ const PRECACHE_URLS = [
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
-  "/js/study-video-source-ui.js?v=780",
+  "/js/study-video-source-ui.js?v=781",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=742",
@@ -145,7 +145,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=780",
+  "/js/library-ui.js?v=781",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -199,13 +199,15 @@ const PRECACHE_URLS = [
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/dicta-lexicon.js?v=769",
-  "/js/dicta-enrich.js?v=778",
-  "/js/reader-morph.js?v=777",
+  "/js/dicta-enrich.js?v=781",
+  "/js/dicta-autoparse-offer.js?v=781",
+  "/js/reader-morph.js?v=781",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
-  "/js/morph-host.js?v=777",
+  "/js/corpus-place-parse.js?v=781",
+  "/js/morph-host.js?v=781",
   "/js/studio-morph.js?v=5",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -339,9 +341,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=310",
-  "/i18n/locales/en.js?v=310",
-  "/i18n/locales/he.js?v=310",
+  "/i18n/locales/ru.js?v=311",
+  "/i18n/locales/en.js?v=311",
+  "/i18n/locales/he.js?v=311",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -354,7 +356,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=780",
+  "/db/local-db.js?v=781",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
@@ -549,6 +551,9 @@ self.addEventListener("fetch", (event) => {
   // Pointer/catalog reads are network-first with an offline fallback; immutable
   // work snapshots and content-hash audio are cache-first after first access.
   // Corpus ZIPs remain network-only to avoid silently retaining a large archive.
+  // Д8-К4 v2: a corpus work's baked Dicta facts go straight into the device's database once — never into a PWA cache
+  // (a second copy of the same facts; plan F4_D8K4_V2 К4.2)
+  if (url.pathname.startsWith("/data/corpus-parse/") || /^\/api\/public-corpora\/[^/]+\/works\/[^/]+\/parse$/.test(url.pathname)) return;
   if (req.method === "GET" && url.pathname.startsWith("/api/public-corpora")) {
     if (url.pathname.endsWith("/package")) return;
     // Owner-curated task PDFs are immutable but can be large and are served

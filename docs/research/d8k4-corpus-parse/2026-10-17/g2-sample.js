@@ -21,18 +21,21 @@ const zlib = require("zlib");
 
 const REPO = path.resolve(__dirname, "..", "..", "..", "..");
 const TMP = path.join(REPO, ".tmp", "d8k4");
-const OUT = path.join(TMP, "g2");
+const OUT = path.join(TMP, process.env.D8K4_G2_OUT || "g2");   // повторный экзамен: D8K4_G2_OUT=g2b
 const CACHE = process.env.D8K4_DICTA_CACHE || path.resolve(REPO, "..", "..", ".tmp", "benyehuda", "proclitic-overlay-dicta-cache.json");
 const RM = require(path.join(REPO, "public", "js", "reader-morph.js"));
 globalThis.ReaderMorph = RM;
 const NA = require(path.join(REPO, "public", "js", "notes-autogen.js"));
 const TKS = require(path.join(REPO, "public", "js", "text-key-scan.js"));
 
+const SEED = Number(process.env.D8K4_SEED) || 20261017;
+const ONLY = (process.env.D8K4_STRATA || "").split(",").filter(Boolean);   // повторный экзамен архаики: D8K4_STRATA=a
 const QUOTA = { a: 100, b: 100, c: 100, g: 60, k: 30 };
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-const rnd = mulberry32(20261017);
+const rnd = mulberry32(SEED);
 const res = {}, seen = {};
 function offer(stratum, item) {
+  if (ONLY.length && ONLY.indexOf(stratum) < 0) return;
   const r = res[stratum] || (res[stratum] = []); seen[stratum] = (seen[stratum] || 0) + 1;
   if (r.length < QUOTA[stratum]) r.push(item);
   else { const j = Math.floor(rnd() * seen[stratum]); if (j < QUOTA[stratum]) r[j] = item; }
@@ -142,7 +145,7 @@ async function main() {
   const half = Math.ceil(all.length / 2);
   fs.writeFileSync(path.join(OUT, "sheet-1.json"), JSON.stringify(all.slice(0, half), null, 1));
   fs.writeFileSync(path.join(OUT, "sheet-2.json"), JSON.stringify(all.slice(half), null, 1));
-  fs.writeFileSync(path.join(OUT, "key.json"), JSON.stringify({ seed: 20261017, quota: QUOTA, counts, key }, null, 1));
+  fs.writeFileSync(path.join(OUT, "key.json"), JSON.stringify({ seed: SEED, quota: QUOTA, counts, key }, null, 1));
   console.log(JSON.stringify(counts));
 }
 main().catch((e) => { console.error(e); process.exit(1); });

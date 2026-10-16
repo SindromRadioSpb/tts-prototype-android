@@ -27,4 +27,44 @@ function noteRefusal(status, who) {
 
 function noteSuccess() { state.ms = 0; }
 
-module.exports = { openUntil, retryAfterMs, isRefusal, noteRefusal, noteSuccess, COOLDOWN_MIN_MS, COOLDOWN_MAX_MS, _state: state };
+// Д8-К4 v2 · К4.5 — one gate for the whole server: at most GATE.max Dicta calls at once from this process, a minimum
+// gap between their starts, a bounded queue. Before, each HTTP request limited itself (2 at once), so N learners parsing
+// in the background meant 2N calls — the load that got the IP banned (O-090). A caller that cannot get a slot in time
+// (queue full, wait too long, or the breaker opened while it waited) gets an error with gateBusy and retryAfterMs —
+// a «come back later», never a refusal from Dicta (it does not open the breaker).
+const GATE = { max: 2, gapMs: 250, queueMax: 64, waitMaxMs: 30000, busyRetryMs: 15000 };
+const gate = { active: 0, lastStart: 0, queue: [], timer: null };
+function _busy(why) {
+  const e = new Error("Dicta gate: " + why);
+  e.gateBusy = true; e.reason = why;
+  e.retryAfterMs = openUntil() ? retryAfterMs() : GATE.busyRetryMs;
+  return e;
+}
+function _pump() {
+  while (gate.active < GATE.max && gate.queue.length) {
+    const wait = gate.lastStart + GATE.gapMs - Date.now();   // real pacing, not the breaker's test clock
+    if (wait > 0) { if (!gate.timer) gate.timer = setTimeout(() => { gate.timer = null; _pump(); }, wait); return; }
+    const w = gate.queue.shift();
+    clearTimeout(w.timeout);
+    gate.active++; gate.lastStart = Date.now();
+    w.resolve();
+  }
+}
+async function withSlot(fn) {
+  if (openUntil()) throw _busy("rate_limited");
+  if (gate.queue.length >= GATE.queueMax) throw _busy("busy");
+  await new Promise((resolve, reject) => {
+    const w = { resolve };
+    w.timeout = setTimeout(() => { const i = gate.queue.indexOf(w); if (i >= 0) gate.queue.splice(i, 1); reject(_busy("busy")); }, GATE.waitMaxMs);
+    gate.queue.push(w);
+    _pump();
+  });
+  try {
+    if (openUntil()) throw _busy("rate_limited");      // Dicta refused someone while this call waited
+    return await fn();
+  } finally { gate.active--; _pump(); }
+}
+function gateStats() { return { active: gate.active, queued: gate.queue.length }; }
+
+module.exports = { openUntil, retryAfterMs, isRefusal, noteRefusal, noteSuccess, withSlot, gateStats, COOLDOWN_MIN_MS, COOLDOWN_MAX_MS,
+  GATE, _state: state, _gate: gate };

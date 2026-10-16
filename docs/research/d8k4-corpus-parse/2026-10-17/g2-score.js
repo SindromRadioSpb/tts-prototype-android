@@ -6,7 +6,7 @@
 // Запуск: node g2-score.js <answers-1.json> <answers-2.json>  → .tmp/d8k4/g2/score.json
 const fs = require("fs"), path = require("path");
 const REPO = path.resolve(__dirname, "..", "..", "..", "..");
-const G2 = path.join(REPO, ".tmp", "d8k4", "g2");
+const G2 = path.join(REPO, ".tmp", "d8k4", process.env.D8K4_G2_OUT || "g2");   // повторный экзамен: D8K4_G2_OUT=g2b
 const key = JSON.parse(fs.readFileSync(path.join(G2, "key.json"), "utf8")).key;
 const ans = new Map(); process.argv.slice(2).forEach((f) => JSON.parse(fs.readFileSync(f, "utf8")).forEach((a) => ans.set(a.id, a)));
 function wilson(k, n) { if (!n) return [0, 0]; const z = 1.96, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), m = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [+(100 * (c - m) / d).toFixed(1), +(100 * (c + m) / d).toFixed(1)]; }

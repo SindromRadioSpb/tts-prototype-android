@@ -11,9 +11,9 @@ const dictaMorph = require("./providers/dictaMorph");
 // Dicta calls pauses all of them.
 const dictaBreaker = require("./dictaBreaker");
 function rateLimitedUntil() { return dictaBreaker.openUntil(); }
-function _limited() {
+function _limited(ms) {
   return { ok: false, tokens: [], model_version: dictaMorph.MODEL_VERSION, provider: "none", degraded: true,
-    reason: "rate_limited", retry_after_ms: dictaBreaker.retryAfterMs() };
+    reason: "rate_limited", retry_after_ms: ms != null ? ms : dictaBreaker.retryAfterMs() };
 }
 
 // analyze(sentence) → { ok, tokens, model_version, provider, degraded, reason? }
@@ -41,6 +41,7 @@ async function analyze(sentence, opts) {
     }
     return { ok: false, tokens: [], model_version: dictaMorph.MODEL_VERSION, provider: "none", degraded: true, reason: "provider_empty" };
   } catch (e) {
+    if (e && e.gateBusy) return _limited(e.retryAfterMs);   // the server-wide gate is full: come back later
     if (e && e.rateLimited) return _limited();
     return { ok: false, tokens: [], model_version: dictaMorph.MODEL_VERSION, provider: "none", degraded: true, reason: String(e && e.message ? e.message : e) };
   }
@@ -48,11 +49,11 @@ async function analyze(sentence, opts) {
 
 async function _analyzeGuarded(text, genre) {
   try {
-    const r = await dictaMorph.analyzeSentence(text, genre);
+    const r = await dictaBreaker.withSlot(() => dictaMorph.analyzeSentence(text, genre));
     dictaBreaker.noteSuccess();
     return r;
   } catch (e) {
-    if (e && dictaBreaker.noteRefusal(e.status, "morphology")) e.rateLimited = true;
+    if (e && !e.gateBusy && dictaBreaker.noteRefusal(e.status, "morphology")) e.rateLimited = true;
     throw e;
   }
 }

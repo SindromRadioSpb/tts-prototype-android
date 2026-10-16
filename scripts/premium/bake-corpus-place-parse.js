@@ -19,6 +19,7 @@
 //
 //   node scripts/premium/bake-corpus-place-parse.js --works=by:101,pc:study-songs/work-…  [--retry-missing]
 //   node scripts/premium/bake-corpus-place-parse.js --all-by | --all-pc   [--limit=N] [--dry-run]
+//   node scripts/premium/bake-corpus-place-parse.js --works-file=<list, one ref per line>
 //   node scripts/premium/bake-corpus-place-parse.js --status
 
 const fs = require("fs");
@@ -54,6 +55,7 @@ function lock() {
   if (cur && cur.pid !== process.pid && Date.now() - cur.ts < 10 * 60 * 1000) throw new Error("another bake holds " + LOCK + " (pid " + cur.pid + ")");
   fs.mkdirSync(TMP, { recursive: true }); fs.writeFileSync(LOCK, JSON.stringify({ pid: process.pid, ts: Date.now() }));
 }
+function heartbeat() { try { fs.writeFileSync(LOCK, JSON.stringify({ pid: process.pid, ts: Date.now() })); } catch (_) {} }   // a long run keeps its lock fresh
 function unlock() { const cur = readJson(LOCK, null); if (cur && cur.pid === process.pid) try { fs.unlinkSync(LOCK); } catch (_) {} }
 
 // ── sources ────────────────────────────────────────────────────────────────
@@ -148,7 +150,7 @@ async function bakeWork(w, caches, stats) {
     for (let i = lane; i < todo.length; i += 2) {
       if (breaker.stopped) return;
       const toks = await ask(todo[i].plain);
-      if (toks) { todo[i].toks = toks; caches.place[todo[i].plain] = toks; fetched++; if (++dirty >= 25) { atomicWrite(CACHE, JSON.stringify(caches.place)); dirty = 0; } }
+      if (toks) { todo[i].toks = toks; caches.place[todo[i].plain] = toks; fetched++; if (++dirty >= 25) { atomicWrite(CACHE, JSON.stringify(caches.place)); heartbeat(); dirty = 0; } }
     }
   }));
   atomicWrite(CACHE, JSON.stringify(caches.place));
@@ -174,6 +176,7 @@ async function main() {
     const cat = await byCatalog();
     const byIndex = new Map(cat.map((w) => [String(w.id), w]));
     let refs = (opt("works", "") || "").split(",").filter(Boolean);
+    if (opt("works-file", "")) refs = refs.concat(fs.readFileSync(opt("works-file", ""), "utf8").split(String.fromCharCode(10)).map((x) => x.trim()).filter(Boolean));
     if (has("all-by")) refs = refs.concat(cat.map((w) => "by:" + w.id));
     if (has("all-pc")) {
       const corp = JSON.parse(await getText(PROD + "/api/public-corpora", "public-corpora.json")).corpora || [];

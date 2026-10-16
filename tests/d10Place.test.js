@@ -58,6 +58,15 @@ test('В: the learner\'s decision for the place beats Dicta — a Pealim entry, 
   assert.equal(n.label, 'unknown'); assert.equal(n.via, 'owner-name');
 });
 
+test('Д8-К4 v2: Dicta lemmatizes אֱלֹהִים «Бог» as אלוה (its convention, not context) — the place keeps אלוהים', async () => {
+  const row = { id: 's3', he_plain: 'יראת אלהים', he_niqqud: 'יִרְאַת אֱלֹהִים' };
+  const dicta = [{ word: 'יראת', lemma: 'יראה', posDicta: 'noun' }, { word: 'אלהים', lemma: 'אלוה', posDicta: 'noun' }];
+  RM.setPlaceLoader(async (sids) => { const m = new Map(); if (sids.includes('s3')) { const pu = RM.placeUnits(row, dicta); m.set('s3', { sk: pu.sk, at: pu.at, dec: new Map() }); } return m; });
+  assert.equal((await keyAt('אֱלֹהִים', { sid: 's3', off: 1 })).key, (await keyAt('אֱלֹהִים')).key);
+  assert.notEqual((await keyAt('אֱלֹהִים', { sid: 's3', off: 1 })).key, 'pid:6408');
+  RM.setPlaceLoader(null);
+});
+
 test('the list scan and the tap key a place identically', async () => {
   install();
   const scan = await RM.scanRows([ROW], { engine: eng });

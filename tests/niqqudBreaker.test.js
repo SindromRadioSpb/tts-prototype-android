@@ -46,11 +46,13 @@ test("a bulk niqqud stops at the first refusal: the rest of the batch is not sen
   reset(); status = 503;
   const texts = ["שלום", "עולם", "אני", "לומד", "עברית", "היום", "מחר", "תמיד"];
   const r = await dictaCloud.nakdan(texts);
-  assert.strictEqual(dictaCalls, 2);                        // only the first pair was in flight (concurrency 2)
+  // Д8-К4 v2 server-wide gate: starts are ≥ 250 ms apart, so the second call is still waiting when the first refusal
+  // opens the breaker — it is never sent (before the gate the first pair went out together: 2 calls into the ban)
+  assert.strictEqual(dictaCalls, 1);
   assert.strictEqual(r.body.rate_limited, true);
   assert.strictEqual(r.body.retry_after_ms, 120000);       // two parallel refusals count once — no doubling
   assert.strictEqual(r.body.errors.length, texts.length);
-  assert.ok(r.body.errors.slice(2).every((e) => e.rate_limited && e.status === 0));
+  assert.ok(r.body.errors.slice(1).every((e) => e.rate_limited && e.status === 0));
   assert.deepStrictEqual(r.body.results, texts.map(() => ""));
 });
 
@@ -99,9 +101,32 @@ test("after the cooldown the next call is the probe: a refusal doubles the pause
   await dictaCloud.nakdan(["שלום"]);
   now += 120001;
   const probe = await dictaCloud.nakdan(["שלום", "עולם", "אני"]);
-  assert.deepStrictEqual([dictaCalls, probe.body.retry_after_ms], [3, 240000]);
+  assert.deepStrictEqual([dictaCalls, probe.body.retry_after_ms], [2, 240000]);   // the refused probe stops the rest (gate)
   now += 240001; status = 200;
   const ok = await gateway.fetchNiqqud(["שלום"]);
   assert.deepStrictEqual([ok.degraded, ok.provider, ok.results[0], ok.rate_limited], [false, "dicta-cloud", "שָׁלוֹם", undefined]);
   assert.deepStrictEqual([breaker._state.ms, breaker.openUntil()], [0, 0]);
+});
+
+test("Д8-К4 v2: one gate for the whole server — parallel requests never run more than 2 Dicta calls at once", async () => {
+  reset(); delete breaker._state.clock;
+  let inFlight = 0, peak = 0;
+  const slow = () => new Promise((r) => { inFlight++; peak = Math.max(peak, inFlight); setTimeout(() => { inFlight--; r("ok"); }, 600); });   // longer than the 250 ms start gap
+  const out = await Promise.all(Array.from({ length: 5 }, () => breaker.withSlot(slow)));
+  assert.deepStrictEqual([out.length, peak], [5, 2]);
+  assert.deepStrictEqual(breaker.gateStats(), { active: 0, queued: 0 });
+});
+
+test("Д8-К4 v2: a full queue answers «come back later» without calling Dicta and without opening the breaker", async () => {
+  reset(); delete breaker._state.clock;
+  const max = breaker.GATE.queueMax; breaker.GATE.queueMax = 1;
+  try {
+    const hold = () => new Promise((r) => setTimeout(r, 300));
+    const running = [breaker.withSlot(hold), breaker.withSlot(hold)];   // one starts, one waits in the queue (start gap)
+    await assert.rejects(breaker.withSlot(hold), (e) => e.gateBusy === true && e.retryAfterMs > 0);
+    await Promise.all(running);
+    assert.strictEqual(breaker.openUntil(), 0);
+    const r = await morphology.analyze("שלום");                       // the gateway still works after the queue drains
+    assert.strictEqual(r.ok, true);
+  } finally { breaker.GATE.queueMax = max; }
 });
