@@ -24,4 +24,4 @@ Read-only inventory ZIP: 644 текста / 85404 строки / 65 canonical le
 
 ## Production
 
-До финальной записи rollout verification: NOT YET VERIFIED. Нужны convergence контейнера, повторные version/health/served-asset SHA checks и production browser roundtrip.
+2026-10-17, production 3.11.782: `LIBRARY_TRANSFER_BASE_URL=https://linguistpro.kolosei.com node scripts/premium/library-transfer-browser-smoke.js` — **PASS** в чистых browser contexts (localMode, без записи на сервер): экспорт → импорт в чужой профиль, медиа и TTS MP3, привязки YouTube, офлайн-воспроизведение, ru/en/he, provider_calls 0, page_errors 0. Отчёт: [save-progress/production/browser-evidence.json](2026-10-02/save-progress/production/browser-evidence.json).

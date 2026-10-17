@@ -167,13 +167,13 @@
 - **Дата / где:** 2026-10-05, повторная приёмка discovery; полный gate дал A:room FAIL/exit 1, версия 3.11.730 осталась при waiting:installed. Это не O-015.
 - **Причина / доказательство:** обработчик controllerchange после запроса обновления принимал любое событие за активацию целевого worker. Детерминированный H задерживает SKIP_WAITING и уведомляет о прежнем controller: чистый main 3a4a686 и кандидат воспроизводят старую версию + waiting worker. Исправленный кандидат ждёт именно выбранный waiting worker. Точный trigger исходного неинструментированного A:room не установлен; исторический failure сохранён.
 - **Исправление:** waiting target выбирается из актуальной регистрации; cached active worker не используется. Reload выполняется один раз после передачи controller выбранному target. Стенды SW/media используют порты ОС и owner IPC confirmation, DATA_DIR/browser contexts одноразовые. Добавлены unit и реальный SW H; assertions/O-015 не ослаблены.
-- **Статус:** в работе; код и before/after подтверждены, полный final gate/CI и независимый readback требуются. См. [evidence](../research/room-discovery/2026-10-04/README.md).
+- **Статус:** закрыто — в main: `applyRoomUpdate` берёт ожидающий worker из актуальной регистрации, перезагрузка одна, по controllerchange (слито с PR #11). Сверено с кодом 2026-10-17.
 
 ## O-073 · Запоздавшая загрузка закладок после Back обращалась к null
 - **Дата / где:** 2026-10-05, media parity gate; TypeError reading has. Исходный лог без stack сохранён.
 - **Причина (воспроизведена):** loadBookmarkSet возвращал общий _bookmarkSet; Back очищал его, пока чтение ожидало. Оставшийся в DOM скрытый reader mount затем выполнял null.has. Реальный Chromium на чистом main 3a4a686 дал stack attachBookmarks в library-ui.js?v=729:6848; кандидат до исправления — v730:6869. Fixture задерживает только bookmark read, DB/profile синтетические.
 - **Исправление:** отдельный Set конкретного чтения; decoration проверяет reader text ID и open epoch. Позднее завершение не меняет закрытый/следующий reader. Тот же browser fixture проходит, media parity проходит без pageerror; unit также проверяет нормальную загрузку закладки текущего reader. Schema/writers не менялись.
-- **Статус:** в работе; final commit/CI и независимый readback требуются. Before/after stacks находятся в local-gates evidence.
+- **Статус:** закрыто — в main: `loadBookmarkSet(textId, openEpoch)` пишет набор только для того же текста и открытия (`library-ui.js`, слито с PR #11). Сверено с кодом 2026-10-17.
 
 ## O-072 · Независимое ревью обнаружило блокеры discovery кандидата
 - **Дата / где:** 2026-10-04, изолированный `feat/room-discovery-release`, до коммита, review fingerprint `cc7cc5fe20c445368db44aec18d725bde934fe488080b44275b81656bdb50295`.
@@ -181,7 +181,7 @@
 - **Почему важно:** предыдущие проверки с blocked SW и пустым полем новой вкладки не доказывали приватность истории или ограничение фонового скачивания. Room subset не закрывает общий SW failure.
 - **Продолжение:** tab-local recents без удаления явно сохранённых поисков; native bounded Range preview/SW bypass; полное restore defaults и clamp; честный текст; повторные regression/browser/full SW gates. Независимый reviewer проверит финальный commit до merge/deploy.
 - **Повторный review ae3cf7c:** шесть технических замечаний закрыты, 36 файлов проверены на секреты/пользовательские данные. Остались два UX-блокера: первая карточка ниже viewport и русские `.title/.gloss` эпох в HE UI. В том же кандидате исправлены порядок CSS, compact Ben-home world header, порядок результатов/редакционных секций и закрытая панель подробных фильтров; добавлены RU/EN/HE display keys без изменения taxonomy/source labels. Восемь свежих Chromium профилей 380×850/1280×850, Sukkot/Classic и light/dark показывают поиск, режимы и полную первую карточку; HE/EN content assertions проходят. Новый независимый UX/runtime review до merge/deploy обязателен.
-- **Статус:** исправлено в кандидате 3.11.730: tab-local recents, native Range preview/SW bypass, full defaults restore/clamp, честные локали, compact first screen и локализованные эпохи. Финальные npm tests 2449/2449, discovery 8/8, actual SW preview 6/6, 12 обязательных/дополнительных gates code 0. Полный fresh SW gate exit 0: 12/12, девять PASS и три подтверждённых KNOWN O-015. Два дополнительных воспроизведённых пути исправлены в O-073/O-074. Новый commit/CI и независимая финальная приёмка требуются; точный trigger самого первого SW failure остаётся в O-071.
+- **Статус:** закрыто — кандидат слит в main (PR #11, `5f683507`, 3.11.730); гейты поиска восстановлены в 3.11.775 (`9269cca1`). Сверено с кодом 2026-10-17.
 
 ## O-071 · Общий SW smoke завершился с ошибкой без начального воркера медиатеки
 - **Дата / где:** 2026-10-04, изолированный worktree от main 3a4a686, кандидат 3.11.730, disposable loopback Chromium/server.
@@ -284,7 +284,7 @@
 - **Дата / где:** 2026-10-02, read-only owner ZIP и текущий local DB.
 - **Факты:** 644 текста / 65 packages / 9106 MP3; 123 MP3 отсутствуют; source media bytes не включены, нет личной структуры Медиатеки и отдельных ASR workspaces. ZIP исправен по CRC и package payload SHA. Источники legacy text passports также требуют переноса.
 - **Решение:** полный streaming ZIP64 перенос, native/legacy media SHA binding, MP3 cache, workspace/draft/history, структура и privacy modes; проверено в чистых профилях с offline playback. [Контракт](FULL_LIBRARY_TRANSFER_2026_10_02.md), [доказательства](../research/full-library-transfer/README.md).
-- **Статус:** реализация готова к 3.11.718; production проверяется. Старый файл не изменён и остаётся с исходными пробелами.
+- **Статус:** закрыто — выпущено в 3.11.718 (+ большие библиотеки, архив без медиа, прогресс сохранения); 2026-10-17 production roundtrip на 3.11.782 PASS в чистых профилях (офлайн-воспроизведение, ru/en/he, 0 платных вызовов) — [evidence](../research/full-library-transfer/2026-10-02/save-progress/production/browser-evidence.json). Старый ZIP по-прежнему неполон; полный резерв — новый экспорт.
 
 ## O-055 — Production build consumes preflight headroom
 - **Update 2026-10-04, перед вторым этапом:** после 3.11.726 разрешённый build-cache prune дал 3.2G / 92%; по новому отдельному разрешению удалён unused 7d408e2cb2f3 (d5e6c826), df 4.4G / 88%. Current 4c5c986b и rollback 5093d37c сохранены.
