@@ -521,3 +521,18 @@ test('receipt undo follows source-track dependencies instead of hash order and b
   await assert.rejects(h.repo.undo(receipt.receipt_id,{confirm:true}),/EXTERNAL_REFERENCE/);assert.equal(count(h,'studio_caption_tracks'),2);
   h.db.run("DELETE FROM texts WHERE id='neighbor'");await h.repo.undo(receipt.receipt_id,{confirm:true});assert.equal(count(h,'studio_caption_tracks'),0);assert.equal(count(h,'studio_media_packages'),0);assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
 });
+
+// O-008 (владелец 2026-10-17): каталог показывает все ваши карточки, а не только созданные с медиа-намерением.
+test('own cards without a media binding are in the catalog as not prepared; corpus works are not', async () => {
+  const h=await harness();
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text,source_meta_json,created_at,updated_at) VALUES('own','own-key','חאן יונס','x','{\"provider\":\"gemini\"}','t','t')");
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text,source_meta_json,created_at,updated_at) VALUES('plain','plain-key','בלי מטא','x',NULL,'t','t')");
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text,source_meta_json,created_at,updated_at) VALUES('by','by-key','חלום','x','{\"corpus\":{\"byehuda_id\":\"43405\"}}','t','t')");
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text,source_meta_json,created_at,updated_at) VALUES('pc','pc-key','שיר','x','{\"public_corpus\":{\"slug\":\"s\"}}','t','t')");
+  h.db.run("INSERT INTO texts(id,text_key,title,source_text,source_meta_json,created_at,updated_at) VALUES('grp','grp-key','קבוצה','x','{\"group_corpus\":{\"id\":\"g\"}}','t','t')");
+  const items=await h.repo.lifecycleInventory();
+  assert.deepEqual(items.map(i=>i.text_id).sort(),['own','plain']);
+  for(const item of items){assert.equal(item.material_id,null);assert.equal(item.import_integrity_state,'not-promoted');}
+  const [card]=ImportCenterCore.buildCatalog(items.filter(i=>i.text_id==='own'),[],{},null);
+  assert.equal(card.import_state,'not-promoted');
+});

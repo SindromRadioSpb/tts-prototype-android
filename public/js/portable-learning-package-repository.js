@@ -795,18 +795,23 @@
       // их здесь не было вовсе — каталог строился только по studio_learning_materials, и владелец
       // не мог ни перенести такую карточку, ни понять, почему её нет в списке. Промоушен ленивый по
       // замыслу; невидимость — нет.
+      // O-008 (владелец 2026-10-17): каталог — это список ВАШИХ материалов, а не журнал одного способа их создания.
+      // Карточка, сохранённая без медиа-намерения или потерявшая привязку («Хан Юнес»), тоже здесь; работы корпусов
+      // (corpus / group_corpus / public_corpus) — нет: это чтение, не ваш материал (то же правило, что «свой текст» в Зале).
       const unpromoted=await q(`SELECT t.id AS text_id,t.text_key AS portable_text_key,t.title,t.is_archived,t.created_at,
         b.package_id,b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
         ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
         p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,t.source_meta_json,t.table_model_meta_json,
         (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=b.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
-        FROM studio_text_media_bindings b
-        JOIN texts t ON t.id=b.text_id
-        LEFT JOIN studio_learning_materials m ON m.text_id=b.text_id
+        FROM texts t
+        LEFT JOIN studio_text_media_bindings b ON b.text_id=t.id
+        LEFT JOIN studio_learning_materials m ON m.text_id=t.id
         LEFT JOIN studio_caption_tracks ct ON ct.track_id=b.track_id
         LEFT JOIN studio_caption_revisions cr ON cr.revision_id=ct.current_revision_id
         LEFT JOIN studio_media_packages p ON p.package_id=b.package_id AND p.deleted_at IS NULL
-        WHERE m.material_id IS NULL ORDER BY t.created_at DESC`);
+        WHERE m.material_id IS NULL AND (b.text_id IS NOT NULL OR (t.text_key IS NOT NULL AND (t.source_meta_json IS NULL OR NOT json_valid(t.source_meta_json) OR
+          (json_extract(t.source_meta_json,'$.corpus') IS NULL AND json_extract(t.source_meta_json,'$.group_corpus') IS NULL AND json_extract(t.source_meta_json,'$.public_corpus') IS NULL))))
+        ORDER BY t.created_at DESC`);
       for(const row of unpromoted){
         const scope='local-text:'+String(row.text_id);
         const item={
