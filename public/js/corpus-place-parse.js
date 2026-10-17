@@ -9,7 +9,8 @@
 // Memory (3.11.760 lesson): one work at a time, rows read and written a page at a time.
 // Dependencies come as arguments (Node-testable):
 //   db: { dbQuery(sql, params), saveSentenceMorphIfAbsent(textId, sid, model, tokens, provider) },
-//   fetch, sha256Hex(string) → Promise<hex>, RM: ReaderMorph (placeUnits, invalidatePlaces).
+//   fetch, sha256Hex(string) → Promise<hex>, RM: ReaderMorph (placeUnits, invalidatePlaces),
+//   done (optional): { has(textId), add(textId) } — the works applied under this ALIGN.
 (function (root, factory) {
   var api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -18,6 +19,9 @@
   "use strict";
 
   var PROVIDER = "corpus-dicta", PAGE = 200, MIN_ALIGNED = 0.9;
+  // ALIGN — the alignment's version (O-092, 2: quoted abbreviations). A work applied under an older one is applied once
+  // more: rows that now align get their facts, rows with facts are kept (deps.done remembers the works done under ALIGN).
+  var ALIGN = 2;
   var HASH64 = /^[0-9a-f]{64}$/, KEY = /^[0-9a-f]{64}$/;
 
   function meta(text) { try { return JSON.parse((text && text.source_meta_json) || "{}") || {}; } catch (_) { return {}; } }
@@ -47,7 +51,7 @@
     if (!src || !db) return { status: "skip" };
     var tid = String(text.id);
     var have = ((await db.dbQuery("SELECT COUNT(*) AS n FROM sentence_morph WHERE text_id = ? AND provider = ?", [tid, PROVIDER])) || [])[0];
-    if (have && Number(have.n) > 0) return { status: "skip", reason: "applied before" };
+    if (have && Number(have.n) > 0 && (!deps.done || deps.done.has(tid))) return { status: "skip", reason: "applied before" };
     var res;
     try { res = await deps.fetch(src.url, { cache: "default" }); } catch (e) { return { status: "error", reason: String(e && e.message || e) }; }
     if (!res || res.status === 404 || res.status === 409) return { status: "none" };
@@ -72,14 +76,15 @@
         var tokens = packed.map(unpack);
         // the same alignment the place loader will run: the facts must sit on this row's words
         var pu = deps.RM.placeUnits(row, tokens), units = pu.sk.filter(Boolean).length;
-        if (!units || pu.at.size < units * MIN_ALIGNED) { out.misaligned++; continue; }
+        if (!units || pu.at.size + (pu.cover ? pu.cover.size : 0) < units * MIN_ALIGNED) { out.misaligned++; continue; }
         await db.saveSentenceMorphIfAbsent(tid, String(row.id), String(file.model || ""), tokens, PROVIDER);
         out.applied++; touched.push(String(row.id));
       }
     }
     if (touched.length && deps.RM.invalidatePlaces) deps.RM.invalidatePlaces(touched);
+    if (deps.done) { try { deps.done.add(tid); } catch (_) {} }
     return out;
   }
 
-  return { PROVIDER: PROVIDER, sourceOf: sourceOf, unpack: unpack, apply: apply };
+  return { PROVIDER: PROVIDER, ALIGN: ALIGN, sourceOf: sourceOf, unpack: unpack, apply: apply };
 });

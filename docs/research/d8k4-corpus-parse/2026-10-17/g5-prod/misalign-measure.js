@@ -1,9 +1,9 @@
+// usage: node misalign-measure.js <worktree with .tmp/d8k4> [code worktree]
 // Read-only: how many baked Ben-Yehuda rows does the device drop as «misaligned» (< 90 % of words matched), and why.
 // No Dicta, no network. One work at a time (memory).
 const fs = require("fs"), path = require("path"), zlib = require("zlib"), crypto = require("crypto");
-// usage: node misalign-measure.js <worktree with .tmp/d8k4 (ledger, by/, out/)>
 const WT = process.argv[2];
-const RM = require(path.join(WT, "public/js/reader-morph.js"));
+const RM = require(path.join(process.argv[3] || WT, "public/js/reader-morph.js"));
 const ledger = JSON.parse(fs.readFileSync(path.join(WT, ".tmp/d8k4/ledger.json"), "utf8")).works;
 const sha = (s) => crypto.createHash("sha256").update(s, "utf8").digest("hex");
 const QUOTE = /["״׳']/;
@@ -24,7 +24,7 @@ for (const [ref, L] of Object.entries(ledger)) {
     rows++;
     const pu = RM.placeUnits({ he_plain: r.hebrew_plain, he_niqqud: r.hebrew_niqqud }, packed.map((a) => ({ word: a[0] })));
     const units = pu.sk.filter(Boolean);
-    if (!units.length || pu.at.size >= units.length * 0.9) continue;
+    if (!units.length || pu.at.size + (pu.cover ? pu.cover.size : 0) >= units.length * 0.9) continue;
     mis++; unitsLost += units.length;
     const q = QUOTE.test(plain);
     if (q) { misQuote++; if (quoteSamples.length < 4) quoteSamples.push({ id, sk: units.join(" ").slice(0, 120), d: packed.map((a) => a[0]).join(" ").slice(0, 120) }); }

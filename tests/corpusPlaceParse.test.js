@@ -65,3 +65,43 @@ test('applied facts are what the place rule reads: the homograph at its place', 
   assert.equal(pu.at.get(0).lemma, 'מכה');
   assert.equal(pu.at.get(1).posDicta, 'adjective');
 });
+
+// O-092: the device cuts an abbreviation at its quote, Dicta keeps it one word; a geresh comes as ׳ or '.
+// Real rows of the baked corpus (works 191, 55): the row keeps its facts, a fragment gets no token.
+test('a quoted abbreviation does not drop the row: its pieces are covered, the other words keep their facts', () => {
+  const tok = (w) => ({ word: w, lemma: w, posDicta: 'noun' });
+  const kk = RM.placeUnits({ he_plain: 'אי אפשר לבזבז כ"כ על דברים טפלים', he_niqqud: '' },
+    ['אי', 'אפשר', 'לבזבז', 'כ"כ', 'על', 'דברים', 'טפלים'].map(tok));
+  const units = kk.sk.filter(Boolean).length;
+  assert.equal(kk.at.size + kk.cover.size, units, 'every unit aligned or covered');
+  for (const off of kk.cover) assert.ok(!kk.at.has(off), 'a piece never borrows the whole word\'s parse');
+  assert.equal([...kk.at.values()].map((t) => t.word).join(' '), 'אי אפשר לבזבז על דברים טפלים');
+  const year = RM.placeUnits({ he_plain: 'נאום פתיחה ניסן תרפ"ז', he_niqqud: '' }, ['נאום', 'פתיחה', 'ניסן', 'תרפ"ז'].map(tok));
+  assert.equal(year.at.size + year.cover.size, year.sk.filter(Boolean).length);
+  const rabbi = RM.placeUnits({ he_plain: 'הנני ר׳ פתחיה', he_niqqud: '' }, ['הנני', "ר'", 'פתחיה'].map(tok));
+  assert.equal(rabbi.at.size, 3, 'geresh ׳ and \' are the same word');
+  const book = RM.placeUnits({ he_plain: 'להנחיל את התנ"ך לבית הספר', he_niqqud: '' }, ['להנחיל', 'את', 'התנ"ך', 'לבית', 'הספר'].map(tok));
+  assert.equal(book.at.get(book.sk.indexOf('לבית')).word, 'לבית', 'the cursor moves past the abbreviation');
+});
+
+test('a work applied before the quote fix is applied once more: the dropped quoted rows get their facts', async () => {
+  const plain = 'שהוא כ"כ אהב';
+  const T = { id: 't9', text_key: 'd'.repeat(64), source_meta_json: JSON.stringify({ corpus: { byehuda_id: '191' } }) };
+  const F = { v: 1, model: 'm', src: { kind: 'by', id: '191', edition: 'd'.repeat(64) }, rows: [
+    [h16('מכות קשות'), 0, [['מכות', 'מכה', [], 'noun', '', '', ''], ['קשות', 'קשה', [], 'adjective', '', '', '']]],
+    [h16(plain), 1, [['שהוא', 'הוא', [], 'pronoun', '', '', ''], ['כ"כ', 'כל כך', [], 'adverb', '', '', ''], ['אהב', 'אהב', [], 'verb', '', '', '']]],
+  ] };
+  const rows = [{ id: 'a0', order_index: 0, he_plain: 'מכות קשות', he_niqqud: '' }, { id: 'a1', order_index: 1, he_plain: plain, he_niqqud: '' }];
+  const morph = new Map([['a0', { provider: 'corpus-dicta' }]]);   // the first apply (ALIGN 1) dropped a1
+  const db = { dbQuery: async (sql, p) => {
+    if (/COUNT\(\*\) AS n FROM sentence_morph/.test(sql)) return [{ n: [...morph.values()].filter((m) => m.provider === p[1]).length }];
+    if (/FROM sentences s WHERE s.text_id/.test(sql)) return rows.slice(p[2], p[2] + p[1]).map((r) => Object.assign({}, r, { has: morph.has(r.id) ? 1 : 0 }));
+    throw new Error(sql);
+  }, saveSentenceMorphIfAbsent: async (tid, sid, model, tokens, provider) => { if (!morph.has(sid)) morph.set(sid, { tokens, provider }); } };
+  const seen = new Set(), done = { has: (id) => seen.has(id), add: (id) => seen.add(id) };
+  const r = await CPP.apply(T, { db, RM, sha256Hex, fetch: fetchOf(F), done });
+  assert.deepEqual([r.status, r.applied, r.kept, r.misaligned], ['applied', 1, 1, 0]);
+  assert.equal(morph.get('a1').provider, 'corpus-dicta');
+  assert.ok(seen.has('t9'));
+  assert.equal((await CPP.apply(T, { db, RM, sha256Hex, fetch: async () => { throw new Error('must not fetch'); }, done })).status, 'skip');
+});

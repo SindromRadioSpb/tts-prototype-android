@@ -76,7 +76,16 @@
   // Ф4 · Д8-К4 v2 (К4.3/К4.4): a corpus work met by the place loader gets its baked Dicta facts in the background
   // (CorpusPlaceParse — one work at a time, once a session); after new facts land, the marks follow the word again
   // (Д10.2, the 80 % rule) and the run's summary is kept (lp.identityMigrationD10_runs, last 20).
-  var _cppSeen = new Set(), _cppQueue = [], _cppBusy = false, _d10Timer = null;
+  var _cppSeen = new Set(), _cppQueue = [], _cppBusy = false, _d10Timer = null, _cppWait = new Map(), _cppStartTimer = null;
+  // O-092: the works applied under the current alignment (CorpusPlaceParse.ALIGN); an older one is applied once more
+  function _cppDoneStore(CPP) {
+    var key = "lp.corpusParse.aligned.v" + (CPP && CPP.ALIGN || 1);
+    function read() { return JSON.parse(localStorage.getItem(key) || "[]"); }
+    return {
+      has: function (id) { try { return read().indexOf(String(id)) >= 0; } catch (_) { return true; } },   // no storage: as before
+      add: function (id) { try { var a = read(); if (a.indexOf(String(id)) < 0) { a.push(String(id)); localStorage.setItem(key, JSON.stringify(a.slice(-3000))); } } catch (_) {} },
+    };
+  }
   function _sha256Hex(s) {
     return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function (b) {
       return Array.from(new Uint8Array(b)).map(function (x) { return x.toString(16).padStart(2, "0"); }).join("");
@@ -103,34 +112,65 @@
       } catch (_) { run(); }
     }, 10000);
   }
-  function _corpusParseLater(ldbOf, text) {
-    var CPP = window.CorpusPlaceParse;
-    if (!CPP || !text || _cppSeen.has(String(text.id))) return;
-    _cppSeen.add(String(text.id));            // a personal text is looked at once a session too
-    if (!CPP.sourceOf(text)) return;
-    _cppQueue.push(text);
-    if (_cppBusy) return;
-    _cppBusy = true;
-    setTimeout(async function next() {
-      var t = _cppQueue.shift();
-      if (!t) { _cppBusy = false; return; }
-      try {
-        var ldb = await ldbOf();
-        var r = ldb ? await CPP.apply(t, { db: ldb, RM: window.ReaderMorph, fetch: fetch.bind(window), sha256Hex: _sha256Hex }) : null;
-        if (r && r.applied) {
-          try { window.dispatchEvent(new CustomEvent("lp:corpus-parse-applied", { detail: { textId: String(t.id), applied: r.applied } })); } catch (_) {}
-          _rerunPlaceMarks(ldbOf);
-        }
-      } catch (e) { try { console.warn("[corpus-parse]", e); } catch (_) {} }
-      setTimeout(next, 500);
-    }, 2000);
+  // → a promise of the work's apply result (null: not a corpus work / already done this session). O-091: `now` — a tap or
+  // an opened work waits for it: the work goes to the front of the queue and the queue starts at once.
+  function _corpusParseLater(ldbOf, text, now) {
+    var CPP = window.CorpusPlaceParse, id = text ? String(text.id) : "";
+    if (!CPP || !id) return null;
+    if (_cppSeen.has(id)) {
+      var waiting = _cppWait.get(id) || null;
+      if (waiting && now) {
+        var qi = _cppQueue.findIndex(function (j) { return String(j.text.id) === id; });
+        if (qi > 0) _cppQueue.unshift(_cppQueue.splice(qi, 1)[0]);
+        _cppStartNow(ldbOf);
+      }
+      return waiting;
+    }
+    _cppSeen.add(id);            // a personal text is looked at once a session too
+    if (!CPP.sourceOf(text)) return null;
+    var done = null, p = new Promise(function (res) { done = res; });
+    _cppWait.set(id, p);
+    var job = { text: text, done: done };
+    if (now) _cppQueue.unshift(job); else _cppQueue.push(job);
+    if (!_cppBusy) { _cppBusy = true; _cppStartTimer = setTimeout(function () { _cppStartTimer = null; _cppNext(ldbOf); }, now ? 0 : 2000); }
+    else if (now) _cppStartNow(ldbOf);
+    return p;
+  }
+  // a waiter does not sit out the queue's quiet start (the 2 s left to the page's boot)
+  function _cppStartNow(ldbOf) {
+    if (!_cppStartTimer) return;
+    clearTimeout(_cppStartTimer); _cppStartTimer = null;
+    _cppNext(ldbOf);
+  }
+  async function _cppNext(ldbOf) {
+    var job = _cppQueue.shift();
+    if (!job) { _cppBusy = false; return; }
+    var CPP = window.CorpusPlaceParse, t = job.text, r = null;
+    try {
+      var ldb = await ldbOf();
+      r = ldb ? await CPP.apply(t, { db: ldb, RM: window.ReaderMorph, fetch: fetch.bind(window), sha256Hex: _sha256Hex, done: _cppDoneStore(CPP) }) : null;
+      if (r && r.applied) {
+        try { window.dispatchEvent(new CustomEvent("lp:corpus-parse-applied", { detail: { textId: String(t.id), applied: r.applied } })); } catch (_) {}
+        _rerunPlaceMarks(ldbOf);
+      }
+    } catch (e) { try { console.warn("[corpus-parse]", e); } catch (_) {} }
+    _cppWait.delete(String(t.id));
+    try { job.done(r); } catch (_) {}
+    setTimeout(function () { _cppNext(ldbOf); }, 500);
+  }
+  // O-091: an opened text starts its corpus parse now (the first tap need not wait for it)
+  async function _corpusParseSoon(ldbOf, textId) {
+    var id = String(textId || ""); if (!id || _cppSeen.has(id) || !window.CorpusPlaceParse) return null;
+    var ldb = await ldbOf(); if (!ldb || typeof ldb.dbQuery !== "function") return null;
+    var t = ((await ldb.dbQuery("SELECT id, text_key, source_meta_json FROM texts WHERE id = ?", [id])) || [])[0];
+    return t ? _corpusParseLater(ldbOf, t, true) : null;
   }
   function _installPlaceLoader(ldbOf) {
     var RM = typeof window !== "undefined" ? window.ReaderMorph : null;
     if (_placeLoaderSet || !RM || typeof RM.setPlaceLoader !== "function") return;
     _placeLoaderSet = true;
-    RM.setPlaceLoader(async function (sids) {
-      var out = new Map(), ldb = await ldbOf();
+    RM.setPlaceLoader(async function (sids, lopts) {
+      var out = new Map(), ldb = await ldbOf(), waitMs = lopts && Number(lopts.wait) > 0 ? Number(lopts.wait) : 0;
       if (!ldb || typeof ldb.dbQuery !== "function") return out;
       var Core = window.LexicalResolutionCore, Svc = window.LexicalResolutionService;
       for (var i = 0; i < sids.length; i += 400) {
@@ -146,8 +186,28 @@
         if (bare.length) {
           try {
             ((await ldb.dbQuery("SELECT id, text_key, source_meta_json FROM texts WHERE id IN (" + bare.map(function () { return "?"; }).join(",") + ")", bare)) || [])
-              .forEach(function (t) { _corpusParseLater(ldbOf, t); });
+              .forEach(function (t) { _corpusParseLater(ldbOf, t, !!waitMs); });
           } catch (_) {}
+        }
+        // O-091: a tap waits (bounded) for its work's parse, then reads the stored parse again
+        if (waitMs) {
+          var pend = [];
+          rows.forEach(function (r) {
+            var tid = String(r.text_id);
+            if (morph.has(String(r.id)) || !_cppSeen.has(tid)) return;
+            var pw = _corpusParseLater(ldbOf, { id: tid }, true);   // seen: its promise (and the front of the queue)
+            if (pw && pend.indexOf(pw) < 0) pend.push(pw);
+          });
+          if (pend.length) {
+            var timer = null;
+            await Promise.race([Promise.all(pend), new Promise(function (res) { timer = setTimeout(res, waitMs); })]);
+            if (timer) clearTimeout(timer);
+            try {
+              ((await ldb.dbQuery("SELECT sentence_id, tokens_json FROM sentence_morph WHERE sentence_id IN (" + qm + ")", part)) || []).forEach(function (m) {
+                try { morph.set(String(m.sentence_id), JSON.parse(m.tokens_json || "[]")); } catch (_) {}
+              });
+            } catch (_) {}
+          }
         }
         var events = [];
         if (Core && Svc && typeof ldb.listLexicalResolutionEventsForTexts === "function") {
@@ -701,6 +761,7 @@
       saveUserMeaning: saveUserMeaning,
       occToVerifiedSource: occToVerifiedSource,
       markWordStatus: markWordStatus, ensureDictaLexicon: ensureDictaLexicon, refreshDictaLexicon: refreshDictaLexicon,
+      corpusParseSoon: function (textId) { return _corpusParseSoon(ldbOf, textId).catch(function () { return null; }); },
       bumpTapStat: bumpTapStat,
       gradeReadingTap: gradeReadingTap,
     };

@@ -8789,6 +8789,8 @@ async function openReader(textId, title, opts) {
   setContextOverlay(null);              // context-overlay — same never-leak rule
   _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0;
   readerTextId = textId != null ? String(textId) : null;
+  // O-091: a corpus work's baked Dicta parse starts with the open, not with the first tap
+  if (readerTextId) { try { morphHost.corpusParseSoon(readerTextId); } catch (_) {} }
   const titleEl = $('readerTitle');
   if (titleEl) {
     titleEl.removeAttribute('data-orig-video'); titleEl.removeAttribute('data-lp-ru-title'); titleEl.removeAttribute('lang'); titleEl.removeAttribute('title');

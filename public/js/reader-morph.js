@@ -592,13 +592,14 @@
     _placeGen++;
   }
   function placeGeneration() { return _placeGen; }
-  async function ensurePlaces(sids) {
+  // opts.wait — ms the loader may wait for the work's stored parse to arrive (a tap, O-091); the paint never waits
+  async function ensurePlaces(sids, opts) {
     if (!_placeLoader || !sids) return;
     var need = []; (Array.isArray(sids) ? sids : Array.from(sids)).forEach(function (s) { s = String(s || ""); if (s && !_places.has(s) && need.indexOf(s) < 0) need.push(s); });
     if (!need.length) return;
     // a bounded store (the iPhone memory lesson, 3.11.760): a whole-library pass must not keep every sentence resident
     if (_places.size + need.length > 6000) _places.clear();
-    var got = null; try { got = await _placeLoader(need); } catch (_) { got = null; }
+    var got = null; try { got = await _placeLoader(need, opts || {}); } catch (_) { got = null; }
     need.forEach(function (s) { _places.set(s, (got && got.get && got.get(s)) || null); });
   }
   function placeOfSpan(span) {
@@ -610,20 +611,36 @@
     return sid && Number.isFinite(off) ? { sid: String(sid), off: off } : null;
   }
   // a loader's helper (pure): the units of a row — the scan's own tokens/joins — and its Dicta tokens aligned to them by
-  // bare letters; → { sk, at }
+  // bare letters; → { sk, at, cover }
+  // O-092: the device cuts an abbreviation at its quote (כ"כ → כ | כ, תרפ"ז → תרפ), Dicta keeps it one word; and a geresh
+  // comes as ׳ or '. Letters are compared without quote marks; the pieces of a quoted Dicta word are COVERED (they count
+  // as aligned, so the row keeps its facts) but get no token — a fragment never borrows the whole word's parse (R11).
+  var _PLACE_QUOTES = /["'`׳״“”‘’]/g;
+  function _placeLetters(s) { return stripNiqqud(String(s || "")).replace(_PLACE_QUOTES, ""); }
   function placeUnits(row, dictaTokens) {
     var plain = String(row && (row.he_plain != null ? row.he_plain : row.he) || ""), vocal = String(row && row.he_niqqud || ""), toks, pairs;
     if (plain) { var al = alignSurfaceNiqqud(plain, vocal), w = 0; toks = tokenize(plain); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { var a = al[w++] || {}; return [a.surface || x.text, a.niqqud || ""]; }); }
     else { toks = tokenize(vocal); pairs = toks.filter(function (x) { return x.isWord; }).map(function (x) { return [stripNiqqud(x.text), x.text]; }); }
     var units = (joinSplitWords(toks, pairs) || []).filter(function (u) { return !u.fragment; });
-    var sk = [], at = new Map(), dt = Array.isArray(dictaTokens) ? dictaTokens : [], di = 0;
+    var sk = [], at = new Map(), cover = new Set(), dt = Array.isArray(dictaTokens) ? dictaTokens : [], di = 0, rest = null;
     units.forEach(function (u) {
       sk[u.off] = stripNiqqud(u.surface);
       if (!dt.length) return;
-      var j = di; while (j < dt.length && stripNiqqud(dt[j] && dt[j].word) !== sk[u.off]) j++;
+      var key = _placeLetters(sk[u.off]);
+      if (!key) return;
+      // a piece of the quoted Dicta word at the cursor
+      var cur = di < dt.length ? String(dt[di] && dt[di].word || "") : "";
+      if (rest === null && /["'׳״]/.test(cur) && _placeLetters(cur) !== key) rest = _placeLetters(cur);
+      if (rest !== null) {
+        var k = rest.indexOf(key);
+        if (k >= 0) { cover.add(u.off); rest = rest.slice(k + key.length); if (!rest) { di++; rest = null; } return; }
+        if (rest !== _placeLetters(cur)) di++;   // a begun quoted word is over (letters the device dropped stay uncounted)
+        rest = null;
+      }
+      var j = di; while (j < dt.length && _placeLetters(dt[j] && dt[j].word) !== key) j++;
       if (j < dt.length) { at.set(u.off, dt[j]); di = j + 1; }
     });
-    return { sk: sk, at: at };
+    return { sk: sk, at: at, cover: cover };
   }
   var _PLACE_POS = { noun: 1, adjective: 1, verb: 1, adverb: 1, numeral: 1 };
   function _placeCandidates(eng, card, niqqud) {
@@ -1272,7 +1289,9 @@
     surface = stripNiqqud(surface);
     if (!surface) return null;
     var eng = await ensureEngine();
-    if (place) { try { await ensurePlaces([place.sid]); } catch (_) {} }
+    // O-091: the first tap in a corpus work just opened waits (bounded) for the work's baked parse, so the card
+    // and the key it saves are the place's from the first tap, not only from the second
+    if (place) { try { await ensurePlaces([place.sid], { wait: 4000 }); } catch (_) {} }
     var card = await resolveCore(eng, surface, niqqud, place ? { place: place } : undefined);
     // The learner's status identity is the OFFLINE reading — the same card decorateWords paints
     // with — so the save-key can never split from the paint-key when a context merge swaps or
