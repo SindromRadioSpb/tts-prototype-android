@@ -1204,6 +1204,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/tutor-connect.html",
+  "/js/cloud-sync.js?v=782",
   "/css/tutor-connect.css?v=1",
   "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=2",
@@ -1252,7 +1253,7 @@ const SHELL_INTEGRITY_PATHS = [
   '/study-library.html',
   "/study-video.html",
   "/css/study-video.css",
-  "/css/study-video-source.css?v=629",
+  "/css/study-video-source.css?v=782",
   "/js/playback-source.js?v=624",
   "/js/youtube-timing.js?v=593",
   "/js/youtube-full-timing.js?v=557",

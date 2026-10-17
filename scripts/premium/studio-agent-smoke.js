@@ -34,7 +34,7 @@ const pkg = JSON.parse(read("package.json"));
 
 // ── 2. index.html: касания исчерпываются тегами + кнопкой + bridge ───────────
 eq(indexHtml.includes('<script src="/js/studio-agent.js"></script>'), "index.html must load /js/studio-agent.js");
-eq(indexHtml.includes('<script src="/js/cloud-sync.js"></script>'), "index.html must load /js/cloud-sync.js (CS.me consents)");
+eq(indexHtml.includes('<script src="/js/cloud-sync.js?v=782"></script>'), "index.html must load /js/cloud-sync.js (CS.me consents)");
 eq(indexHtml.includes("window.StudioAgentHost"), "index.html must define StudioAgentHost bridge");
 // renderTable ЗАМОРОЖЕН byte-parity гейтом (smoke:reader-parity golden) — кнопка
 // НЕ эмитится в index.html, а инжектится post-render обёрткой (паттерн studio-karaoke)
