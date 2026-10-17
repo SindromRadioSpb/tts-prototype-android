@@ -9,7 +9,8 @@
 // (--exclude-era). Each file is re-validated before upload (v1, edition = name).
 //
 //   AUDIO_UPLOAD_TOKEN=… node scripts/premium/push-corpus-place-parse.js [--base https://linguistpro.kolosei.com]
-//        [--only=by|pc] [--exclude-era=haskalah,tehiya] [--skip-existing] [--limit=N] [--dry-run]
+//        [--only=by|pc] [--exclude-era=haskalah,tehiya] [--skip-existing] [--no-partial] [--refs=by:1,by:2]
+//        [--limit=N] [--dry-run]
 //
 // ⚠ OUTWARD-FACING: publishes to the live server.
 const fs = require("fs");
@@ -23,6 +24,8 @@ const has = (f) => argv.includes("--" + f);
 const opt = (f, d) => { const a = argv.find((x) => x.startsWith("--" + f + "=")); return a ? a.slice(f.length + 3) : d; };
 const BASE = opt("base", "https://linguistpro.kolosei.com");
 const TOKEN = process.env.AUDIO_UPLOAD_TOKEN || "";
+// --refs=by:8176,… re-pushes exactly these works (replaces the file on the volume; combine without --skip-existing)
+const REFS = new Set(opt("refs", "").split(",").filter(Boolean));
 const ONLY = opt("only", ""), EXCLUDE = new Set(opt("exclude-era", "").split(",").filter(Boolean)), LIMIT = Number(opt("limit", 0)) || 0;
 
 async function main() {
@@ -34,6 +37,9 @@ async function main() {
   for (const ref of Object.keys(ledger)) {
     const L = ledger[ref];
     if (!L.file || !(L.status === "done" || L.status === "partial")) continue;
+    // a device applies a work's parse once, so a partial file would block the full one later
+    if (has("no-partial") && L.status === "partial") continue;
+    if (REFS.size && !REFS.has(ref)) continue;
     if (ref.startsWith("by:")) {
       if (ONLY && ONLY !== "by") continue;
       const w = byId.get(ref.slice(3)); if (!w) continue;
