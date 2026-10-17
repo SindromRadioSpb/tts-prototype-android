@@ -101,7 +101,7 @@ const fromProvider = (t) => ({ word: t.word, prefix: t.prefix || "", stem: t.ste
 const unpack = (a) => ({ word: a[0], lemma: a[1], lemmas: [a[1]].concat(a[2] || []).filter(Boolean), posDicta: a[3], niqqud: a[4], binyan: a[5] || null, prefix: a[6] || "", stem: "" });
 const pack = (t) => [t.word, t.lemma || "", (t.lemmas || []).filter((x) => x !== t.lemma), t.posDicta || "", t.niqqud || "", t.binyan || "", t.prefix || ""];
 
-const breaker = { pauseMs: 0, until: 0, failedProbes: 0, stopped: false, refusals: 0 };
+const breaker = { pauseMs: 0, until: 0, failedProbes: 0, stopped: false, refusals: 0, okRun: 0 };
 let lastStart = 0, inFlight = 0;
 async function ask(sentence) {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -111,13 +111,23 @@ async function ask(sentence) {
     inFlight++; lastStart = Date.now();
     try {
       const r = await dictaMorph.analyzeSentence(sentence, "modern");
-      breaker.pauseMs = 0; breaker.failedProbes = 0;
+      // a ban that lets every other call through is still a ban: the doubling resets only after 20 successes in a row
+      breaker.failedProbes = 0;
+      if (++breaker.okRun >= 20) breaker.pauseMs = 0;
       if (r && r.ok && Array.isArray(r.tokens) && (r.tokens.length || !HEB.test(sentence))) return r.tokens.map(fromProvider);
     } catch (e) {
       if (e && (e.status === 503 || e.status === 429)) {
-        breaker.refusals++;
+        breaker.refusals++; breaker.okRun = 0;
+        // a parallel request refused by the same ban (the pause is already set) counts once
+        if (breaker.until > Date.now()) { attempt--; continue; }
+        // a partial ban lets some calls through, so «3 probes in a row» may never happen: also stop after 6 refusals
+        // within 30 minutes, successes in between or not
+        const now = Date.now();
+        breaker.recent = (breaker.recent || []).filter((t) => now - t < 30 * 60 * 1000).concat(now);
         const probe = breaker.pauseMs > 0;
-        if (probe && ++breaker.failedProbes >= 3) { breaker.stopped = true; log("✋ Dicta refused 3 probes in a row — stopping; rerun later continues from the ledger"); return null; }
+        if ((probe && ++breaker.failedProbes >= 3) || breaker.recent.length >= 6) {
+          breaker.stopped = true; log("✋ Dicta keeps refusing (" + breaker.recent.length + " in 30 min) — stopping; rerun later continues from the ledger"); return null;
+        }
         breaker.pauseMs = breaker.pauseMs ? Math.min(MAX_PAUSE, breaker.pauseMs * 2) : 2 * 60 * 1000;
         breaker.until = Date.now() + breaker.pauseMs;
         log("⏸ Dicta HTTP " + e.status + " — pause " + Math.round(breaker.pauseMs / 1000) + " s");
