@@ -1634,7 +1634,7 @@ function loadReaderCfg() {
   } catch (_) {}
   // R2 (owner D8): a profile without saved columns opens with the preset for its screen —
   // «Огласовка и перевод» on a phone, all columns on a desktop. Saved choices always win.
-  if (!hasSaved && window.TablePresets) applyRoomPresetCols(window.TablePresets.toColumns(window.TablePresets.defaultFor(window.innerWidth)));
+  if (!hasSaved && window.TablePresets) applyRoomPresetCols(window.TablePresets.toColumns(window.TablePresets.screenDefault(window)));
 }
 // A preset switches columns on/off; a column that stays visible keeps its mode, so adaptive
 // niqqud and tap-to-reveal translation survive a preset change.

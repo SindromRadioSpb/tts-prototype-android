@@ -28,6 +28,13 @@ test("phone default is niqqud + translation, desktop shows all", () => {
   assert.equal(P.defaultFor(600), "all");
 });
 
+test("the screen default looks at the shorter side, so a phone in landscape stays a phone", () => {
+  assert.equal(P.screenDefault({ innerWidth: 380, innerHeight: 800 }), "niqqud");
+  assert.equal(P.screenDefault({ innerWidth: 844, innerHeight: 390 }), "niqqud");
+  assert.equal(P.screenDefault({ innerWidth: 1280, innerHeight: 800 }), "all");
+  assert.equal(P.screenDefault({ innerWidth: 1024, innerHeight: 768 }), "all");
+});
+
 const fs = require("node:fs");
 const path = require("node:path");
 const readLf = (p) => fs.readFileSync(path.join(__dirname, "..", p), "utf8").replace(/\r\n/g, "\n");
@@ -41,7 +48,7 @@ const fnBody = (src, name) => {
 test("Room applies the viewport default only to a profile without saved columns", () => {
   const load = fnBody(roomUi, "loadReaderCfg");
   assert.match(load, /room\.niqqudMode/);
-  assert.match(load, /TablePresets\.defaultFor\(/);
+  assert.match(load, /TablePresets\.screenDefault\(window\)/);
   assert.match(load, /if \(!hasSaved/, "default only when nothing is stored");
 });
 
@@ -80,5 +87,5 @@ test("the Studio offers the same presets and applies them without touching the a
 
 test("a Studio profile without saved table settings opens with the preset for its screen", () => {
   const load = fnBody(studio, "loadTableSettings");
-  assert.match(load, /if \(!raw\)[\s\S]{0,200}TablePresets\.defaultFor\(window\.innerWidth\)/);
+  assert.match(load, /if \(!raw\)[\s\S]{0,200}TablePresets\.screenDefault\(window\)/);
 });

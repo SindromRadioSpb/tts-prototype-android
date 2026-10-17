@@ -13873,7 +13873,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-media-karaoke.js?v=729"></script>
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
-<script src="/js/table-presets.js?v=638"></script>
+<script src="/js/table-presets.js?v=782"></script>
 <script src="/js/world-activity.js?v=749"></script>
 <script src="/js/world-boot.js?v=736"></script>
 <script src="/js/media-host.js?v=725"></script>
@@ -20924,9 +20924,9 @@ loadRowAudioCacheFromStorage();
             if (!raw) {
                 // R2 (owner D8): no saved settings → the preset for this screen.
                 if (window.TablePresets) {
-                    const cols = window.TablePresets.toColumns(window.TablePresets.defaultFor(window.innerWidth));
+                    tablePreset = window.TablePresets.screenDefault(window);
+                    const cols = window.TablePresets.toColumns(tablePreset);
                     tableVisibleColumns = { action: true, he: cols.he, niqqud: cols.niqqud, translit: cols.translit, ru: cols.ru };
-                    tablePreset = window.TablePresets.defaultFor(window.innerWidth);
                     normalizeVisibleBaseWidthsTo100();
                 }
                 return;

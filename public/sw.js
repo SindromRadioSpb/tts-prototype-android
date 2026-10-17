@@ -296,7 +296,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js?v=729",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/table-presets.js?v=638",
+  "/js/table-presets.js?v=782",
   "/js/world-activity.js?v=749",
   "/js/memorial-adapter.js?v=736",
   "/js/world-boot.js?v=736",

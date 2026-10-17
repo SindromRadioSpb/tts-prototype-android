@@ -25,6 +25,12 @@
     return "custom";
   }
   function defaultFor(width) { return Number(width) < 600 ? "niqqud" : "all"; }
+  // A phone is a phone in either orientation: decide by the shorter side, so a profile first
+  // opened in landscape (844 px wide) still gets the phone preset (owner, O-066, 2026-10-17).
+  function screenDefault(win) {
+    win = win || window;
+    return defaultFor(Math.min(Number(win.innerWidth) || 0, Number(win.innerHeight) || Infinity));
+  }
   // Owner D4: row numbers make long tables traceable. Post-render attribute on the «Действие»
   // cell (drawn by CSS ::before), numbered from the row index so filtering never renumbers rows.
   function markRowNumbers(root) {
@@ -38,7 +44,7 @@
       cell.setAttribute("data-row-n", n < 10 ? "0" + n : String(n));
     }
   }
-  var API = { PRESETS: PRESETS, toColumns: toColumns, fromColumns: fromColumns, defaultFor: defaultFor, markRowNumbers: markRowNumbers };
+  var API = { PRESETS: PRESETS, toColumns: toColumns, fromColumns: fromColumns, defaultFor: defaultFor, screenDefault: screenDefault, markRowNumbers: markRowNumbers };
   if (typeof window !== "undefined") window.TablePresets = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })();
