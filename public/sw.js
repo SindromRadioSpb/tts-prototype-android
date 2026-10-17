@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.782";
+const CACHE_VERSION = "v3.11.783";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -264,7 +264,7 @@ const PRECACHE_URLS = [
   "/js/media-package-core.js",
   "/js/media-package-repository.js?v=718",
   "/js/material-revision-core.js",
-  "/js/material-revision-repository.js?v=553",
+  "/js/material-revision-repository.js?v=783",
   "/js/portable-learning-package-core.js?v=742",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=742",
@@ -307,7 +307,7 @@ const PRECACHE_URLS = [
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
-  "/js/media-host.js?v=725",
+  "/js/media-host.js?v=783",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js?v=736",
@@ -341,9 +341,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=311",
-  "/i18n/locales/en.js?v=311",
-  "/i18n/locales/he.js?v=311",
+  "/i18n/locales/ru.js?v=783",
+  "/i18n/locales/en.js?v=783",
+  "/i18n/locales/he.js?v=783",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

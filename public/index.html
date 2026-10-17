@@ -13684,9 +13684,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=311"></script>
-<script src="/i18n/locales/en.js?v=311"></script>
-<script src="/i18n/locales/he.js?v=311"></script>
+<script src="/i18n/locales/ru.js?v=783"></script>
+<script src="/i18n/locales/en.js?v=783"></script>
+<script src="/i18n/locales/he.js?v=783"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13823,7 +13823,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-core.js"></script>
 <script src="/js/media-package-repository.js?v=718"></script>
 <script src="/js/material-revision-core.js"></script>
-<script src="/js/material-revision-repository.js?v=553"></script>
+<script src="/js/material-revision-repository.js?v=783"></script>
 <link rel="stylesheet" href="/css/study-video-source.css?v=782">
 <script src="/js/playback-source.js?v=624"></script>
 <script src="/js/youtube-timing.js?v=593"></script>
@@ -13876,7 +13876,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/table-presets.js?v=782"></script>
 <script src="/js/world-activity.js?v=749"></script>
 <script src="/js/world-boot.js?v=736"></script>
-<script src="/js/media-host.js?v=725"></script>
+<script src="/js/media-host.js?v=783"></script>
 <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
@@ -13946,7 +13946,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.782";
+    window.APP_VERSION = "3.11.783";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -37470,7 +37470,9 @@ try {
         bar.innerHTML = segs.map((part) => '<span class="v3-tbp-seg" data-part="' + part + '">'
             + (part === "fill" ? "<span></span>" : "") + "</span>").join("");
         if (model.percent != null) bar.style.setProperty("--tbp-p", model.percent + "%");
-        el("v3TableJobChunk").textContent = model.chunks > 1 ? t("tableJob.chunk", { chunk: model.chunk, chunks: model.chunks }) : "";
+        // O-007 (владелец 2026-10-17): внутри части долей нет — честная подпись, сколько обычно идёт часть
+        el("v3TableJobChunk").textContent = model.chunks > 1 ? t("tableJob.chunk", { chunk: model.chunk, chunks: model.chunks })
+            + (model.tone === "busy" && model.state === "generate" ? " · " + t("tableJob.partTypical") : "") : "";
         el("v3TableJobAttempt").textContent = model.retryAttempt ? t("tableJob.attempt", { attempt: model.retryAttempt }) : "";
         el("v3TableJobElapsed").textContent = model.elapsedSec == null ? ""
             : t(model.tone === "busy" ? "tableJob.elapsed" : "tableJob.took", { time: v3TableProgressClock(model.elapsedSec) });
@@ -39977,12 +39979,22 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
         // sbl path: payload is already { translit: newVal }, leave it alone.
     }
 
+    // O-036 (вариант Б): правка иврита рвёт доказательство строки по тексту — строка закрепляет реплику, доказанную до правки
+    let pinSource = null;
+    if (field === "he_plain") {
+        try {
+            let em0 = row.edit_meta_json ? (typeof row.edit_meta_json === "string" ? JSON.parse(row.edit_meta_json) : row.edit_meta_json) : null;
+            if (!(em0 && em0._studio_source) && window.MediaHost && typeof MediaHost.provenRowSource === "function")
+                pinSource = MediaHost.provenRowSource(window.v3ActiveMediaAudio, rowIdx, row.he);
+        } catch (_) { pinSource = null; }
+    }
+
     var sentencePromise = LOCAL_MODE
         ? ensureLocalDB().then(function(ldb) {
             // L3a.3: once lazily promoted, texts/sentences are a compatibility projection.
             // Route the edit through an immutable table revision; null means legacy/unpromoted.
             if (window.MaterialRevisionWorkspace && window.MaterialRevisionWorkspace.commitInlineCell) {
-              return window.MaterialRevisionWorkspace.commitInlineCell(tid, sid, apiField, newVal).then(function(promoted) {
+              return window.MaterialRevisionWorkspace.commitInlineCell(tid, sid, apiField, newVal, { pin: pinSource }).then(function(promoted) {
                 if (promoted) return promoted;
                 return null;
               }).then(function(promoted) {
@@ -40003,6 +40015,7 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
               : {};
             for (const k of Object.keys(payload)) editedMeta[k] = true;
             const newMeta = { ...(existingMeta || {}), edited: editedMeta };
+            if (pinSource && !newMeta._studio_source) newMeta._studio_source = pinSource;
             const newMetaJson = JSON.stringify(newMeta);
             const fullPayload = { ...payload, edit_meta_json: newMetaJson };
             return ldb.updateSentence(tid, sid, fullPayload).then(function() {

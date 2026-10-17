@@ -167,6 +167,9 @@
       const existing = parse(existingJson, {}) || {};
       const edited = { ...(existing.edited || {}) };
       for (const field of Core.FIELD_NAMES) if (row.field_meta[field] && row.field_meta[field].authority === 'user') edited[field] = true;
+      // O-036: a source pinned at a manual edit becomes the sentence's row identity (never over an existing one)
+      const pinned = row.mapping_meta && row.mapping_meta.pinned_source;
+      if (pinned && !existing._studio_source) existing._studio_source = pinned;
       return json({ ...existing, edited, _studio_material: { schema: 'material-projection-v1', material_id: materialId, table_revision_id: revisionId, field_meta: row.field_meta } });
     }
 

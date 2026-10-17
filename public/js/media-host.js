@@ -198,7 +198,8 @@
           typeof AT.alignRowsToSegmentsPartialProven === "function" &&
           typeof AT.buildPartialProvenTiming === "function") {
         var partial = AT.alignRowsToSegmentsPartialProven(texts, segs);
-        var built = AT.buildPartialProvenTiming(segs, partial.rowSegIdx, clockBlindRanges(audio));
+        var pinnedMerge = mergePinnedRows(partial.rowSegIdx, pinnedEditRowSegIdx(audio, list));
+        var built = AT.buildPartialProvenTiming(segs, pinnedMerge.rowSegIdx, clockBlindRanges(audio));
         var coverage = d.MR && typeof d.MR.summarizeProvenAlignment === "function"
           ? d.MR.summarizeProvenAlignment(built.rowSegIdx, list.length)
           : { mapped_rows: built.mappedRows, total_rows: list.length,
@@ -211,7 +212,7 @@
             segments: segs.length, ok: true, mode: "partial-proven",
             strictReason: al.reason || (hasBlindSegments ? "BLIND_CANON_SEGMENT" : null), reason: null,
             alignedSegments: null, alignedRows: coverage.mapped_rows,
-            coverage: coverage, codeVersion: d.appVersion,
+            coverage: coverage, codeVersion: d.appVersion, pinnedRows: pinnedMerge.added,
             entries: built.timing.entries.length, replaced: !!audio.timing };
           rememberBasisAlias(audio, audio.timing && audio.timing.entries);
           if (partial.orderProvenRows && partial.orderProvenRows.length) {
@@ -295,6 +296,60 @@
     var src = parsed && parsed._studio_source;
     if (!src || (src.schema !== "studio-row-source-v1" && src.schema !== "studio-row-source-v2")) return null;
     return src;
+  }
+
+  // O-036 (вариант Б, владелец 2026-10-17): ручная правка иврита рвёт доказательство строки по тексту, и ▶ пропадало.
+  // В момент правки строка закрепляет реплику, доказанную ДО правки (pinned_by: "manual-edit"); здесь — её чтение.
+  function mediaShaOf(audio) {
+    return String(audio && audio.media && (audio.media.sha256 || audio.media.media_sha256) || "").toLowerCase();
+  }
+  function segmentSourceId(segment) { return segment ? (segment.source_segment_id || segment.id || null) : null; }
+  // the source of the row's proven segment, to pin before its text changes; null when not proven by text, ambiguous,
+  // or the row's old text is not inside that segment (an independent check of the index)
+  function provenRowSource(audio, rowIdx, oldText, deps) {
+    var map = audio && audio.timingMap, how = String(audio && audio.timingSource || "");
+    if (!map || !Array.isArray(map.row_seg_idx) || (how !== "aligned-offline" && how !== "aligned-partial-proven")) return null;
+    var pos = map.row_seg_idx[rowIdx];
+    if (!Number.isInteger(pos) || map.row_seg_idx.filter(function (x) { return x === pos; }).length !== 1) return null;
+    var raw = Array.isArray(audio.segments) ? audio.segments : [], segment = raw[pos];
+    if (!segment || segment.blind || (Array.isArray(segment.quality_flags) && segment.quality_flags.indexOf("blind") >= 0)) return null;
+    var AT = resolveDeps(deps).AT, seg = segmentsForTiming(audio)[pos];
+    if (!AT || typeof AT.alignRowsToSegmentsPartialProven !== "function" || !seg) return null;
+    var check = AT.alignRowsToSegmentsPartialProven([String(oldText || "")], [seg]);
+    if (!check || !Array.isArray(check.rowSegIdx) || check.rowSegIdx[0] !== 0) return null;
+    var sid = segmentSourceId(segment);
+    return { schema: "studio-row-source-v2", pinned_by: "manual-edit", media_sha256: mediaShaOf(audio) || null,
+      source_segment_id: sid ? String(sid) : null, source_segment_ids: sid ? [String(sid)] : [],
+      caption_segment_id: segment.caption_segment_id ? String(segment.caption_segment_id) : null,
+      source_line_index: pos, sentence_index: null };
+  }
+  // rows pinned at a manual edit → their segment position (timing index), else null
+  function pinnedEditRowSegIdx(audio, rows) {
+    var raw = Array.isArray(audio && audio.segments) ? audio.segments : [], timingSegments = segmentsForTiming(audio), sha = mediaShaOf(audio);
+    return (Array.isArray(rows) ? rows : []).map(function (row) {
+      var src = persistedRowSource(row);
+      if (!src || src.pinned_by !== "manual-edit") return null;
+      if (src.media_sha256 && sha && String(src.media_sha256).toLowerCase() !== sha) return null;
+      var pos = Number(src.source_line_index), segment = raw[pos];
+      if (!Number.isInteger(pos) || !segment || segment.blind || (Array.isArray(segment.quality_flags) && segment.quality_flags.indexOf("blind") >= 0)) return null;
+      if (src.caption_segment_id && String(segment.caption_segment_id || "") !== String(src.caption_segment_id)) return null;
+      if (src.source_segment_id && String(segmentSourceId(segment) || "") !== String(src.source_segment_id)) return null;
+      return Number.isInteger(timingSegments[pos] && timingSegments[pos].i) ? timingSegments[pos].i : pos;
+    });
+  }
+  // a pinned row fills only its own gap: its segment is not another row's and keeps the rows' order
+  function mergePinnedRows(rowSegIdx, pinned) {
+    var out = rowSegIdx.slice(), used = new Set(rowSegIdx.filter(Number.isInteger)), added = 0;
+    for (var r = 0; r < out.length; r++) {
+      var p = pinned[r];
+      if (out[r] != null || !Number.isInteger(p) || used.has(p)) continue;
+      var prev = null, next = null, k;
+      for (k = r - 1; k >= 0; k--) if (Number.isInteger(out[k])) { prev = out[k]; break; }
+      for (k = r + 1; k < out.length; k++) if (Number.isInteger(out[k])) { next = out[k]; break; }
+      if ((prev != null && p <= prev) || (next != null && p >= next)) continue;
+      out[r] = p; used.add(p); added++;
+    }
+    return { rowSegIdx: out, added: added };
   }
 
   function restorePersistedRowIdentityTiming(audio, rows, deps) {
@@ -719,6 +774,9 @@
     resolveUniqueRevisionContext: resolveUniqueRevisionContext,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restorePersistedRowIdentityTiming: restorePersistedRowIdentityTiming,
+    provenRowSource: provenRowSource,
+    pinnedEditRowSegIdx: pinnedEditRowSegIdx,
+    mergePinnedRows: mergePinnedRows,
     restoreForRows: restoreForRows,
     rowReplayAllowed: rowReplayAllowed,
     replayCoverage: replayCoverage,

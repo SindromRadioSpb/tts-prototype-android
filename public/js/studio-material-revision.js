@@ -390,10 +390,14 @@
     var current=id===state.base.table_revision_id;renderRows(revision.rows,!current);$('l3MaterialCompare').textContent=current?'':tr('studio.material.comparePrevious','Просмотр immutable v')+revision.revision_no+' · '+revision.content_sha256.slice(0,12);
   }
 
-  async function commitInlineCell(textId,sentenceId,field,value) {
+  // opts.pin (O-036): the media segment this row was proven against BEFORE the edit (MediaHost.provenRowSource);
+  // kept in the row's mapping_meta and projected to the sentence's _studio_source, so the edit keeps its ▶
+  async function commitInlineCell(textId,sentenceId,field,value,opts) {
     var material=await repo().getMaterialByText(String(textId)); if(!material)return null;
     var base=await repo().getCurrentRevision(material.material_id), rows=clone(base.rows), row=rows.find(function(x){return x.stable_row_id===String(sentenceId);}); if(!row)throw new Error('PROMOTED_ROW_NOT_FOUND');
     row[field]=String(value??'');row.field_meta={...(row.field_meta||{})};row.field_meta[field]={authority:'user',locked:true,status:'current'};
+    var pin=opts&&opts.pin;
+    if(pin&&field==='he_plain'&&!row.caption_segment_id&&!(row.source_segment_ids&&row.source_segment_ids.length)&&!(row.mapping_meta&&row.mapping_meta.pinned_source))row.mapping_meta={...(row.mapping_meta||{}),pinned_source:pin};
     var committed=await repo().commitRevision({material_id:material.material_id,base_table_revision_id:base.table_revision_id,rows:rows,impact:{kind:'inline_manual',stable_row_id:String(sentenceId),field:field,zero_provider_calls:true}});
     return {sentence:committed.rows.find(function(x){return x.stable_row_id===String(sentenceId);})};
   }

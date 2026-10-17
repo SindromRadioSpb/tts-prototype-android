@@ -714,7 +714,7 @@ window.I18N_LOCALES.he = {
   },
   tableJob: {
     state: { cache: "משתמשים בחלקים שנשמרו", generate: "בונים את טבלת הלימוד", retry: "מנסים שוב", repair: "בודקים ומשחזרים את התשובה", split: "מפצלים חלק", done: "הטבלה מוכנה", stopped: "הבנייה נעצרה" },
-    chunk: "חלק {chunk} מתוך {chunks}", attempt: "ניסיון חוזר {attempt}", rows: "{ready} / {total} מקטעים", elapsed: "{time} בהרצה זו", took: "נמשך {time}", nextAction: "הפעולה הבאה: {action}",
+    chunk: "חלק {chunk} מתוך {chunks}", partTypical: "חלק נמשך בדרך כלל כ־2 דקות", attempt: "ניסיון חוזר {attempt}", rows: "{ready} / {total} מקטעים", elapsed: "{time} בהרצה זו", took: "נמשך {time}", nextAction: "הפעולה הבאה: {action}",
     buildingTitle: "בונים את הטבלה", mediaBound: "🎬 הסרטון מקושר", mediaDeferred: "הנגן וכפתורי ▶ יתחברו כשהטבלה תהיה מוכנה.", resumedFrom: "ממשיכים: {parts} חלקים מוכנים נלקחו מהשמירה ולא ישולמו שוב.",
     summaryRows: "{n} שורות", summaryPlayable: "▶ ב־{n} מתוך {total}", summaryUnvocalized: "{n} ללא ניקוד", retryButton: "להמשיך לבנות",
     actionTaskContinues: "המשימה תשמור את הכרטיס ותקשר את הסרטון בעצמה", actionWait: "להמתין לתשובה", actionRepair: "משחזרים רק את המקטעים החסרים", actionRetry: "ללחוץ על „להמשיך לבנות”; החלקים שהושלמו ישוחזרו מקומית", actionRetryMissing: "ללחוץ על „להמשיך לבנות”; נמשיך רק מהמקטעים החסרים", actionReview: "לבדוק את התוצאה ולשמור את הכרטיס", coverageIncomplete: "הטבלה אינה שלמה: חסרים {missing} מתוך {total} מקטעים. השורות שהושלמו נשמרו במכשיר.", mediaExact: "SHA של המדיה: {sha}", mediaIntended: "מקור המדיה נמצא; קישור השורות ייבדק בשמירה", mediaNone: "לא הוצהרה מדיה",

@@ -709,7 +709,7 @@ window.I18N_LOCALES.en = {
   },
   tableJob: {
     state: { cache: "Reusing saved parts", generate: "Building the study table", retry: "Retrying the request", repair: "Checking and recovering the response", split: "Splitting a part", done: "Table ready", stopped: "Build stopped" },
-    chunk: "Part {chunk} of {chunks}", attempt: "retry, attempt {attempt}", rows: "{ready} / {total} segments", elapsed: "{time} in this run", took: "took {time}", nextAction: "Next action: {action}",
+    chunk: "Part {chunk} of {chunks}", partTypical: "a part usually takes ~2 min", attempt: "retry, attempt {attempt}", rows: "{ready} / {total} segments", elapsed: "{time} in this run", took: "took {time}", nextAction: "Next action: {action}",
     buildingTitle: "Building the table", mediaBound: "🎬 Video linked", mediaDeferred: "The player and ▶ buttons connect when the table is ready.", resumedFrom: "Resuming: {parts} finished part(s) reused from the saved run, not paid again.",
     summaryRows: "{n} rows", summaryPlayable: "▶ on {n} of {total}", summaryUnvocalized: "{n} without niqqud", retryButton: "Continue building",
     actionTaskContinues: "the task saves the card and links the video itself", actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press “Continue building”; completed parts will restore locally", actionRetryMissing: "press “Continue building”; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media source found; row binding is checked on save", mediaNone: "No media declared",
