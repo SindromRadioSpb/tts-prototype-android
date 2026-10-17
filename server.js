@@ -668,6 +668,18 @@ const CORPUS_PARSE_HEADERS = {
   "Content-Type": "application/json; charset=utf-8", "Content-Encoding": "gzip",
   "Cache-Control": "public, max-age=31536000, immutable", "Cross-Origin-Resource-Policy": "same-origin", "X-Content-Type-Options": "nosniff",
 };
+// A copy imported under an older edition knows only its work number: point it at the current edition's file. The
+// device binds each row by its own hash + number, so rows the edition changed get nothing.
+app.get("/data/corpus-parse/by-work/:id.json", (req, res) => {
+  const id = String(req.params.id || "");
+  if (!/^\d{1,8}$/.test(id)) return res.status(404).end();
+  let card = null;
+  try { card = require("./agent/nextText").indexReady().get(id); } catch (_) {}
+  const key = card && String(card.text_key || "").toLowerCase();
+  if (!key || !/^[0-9a-f]{64}$/.test(key) || !fs.existsSync(path.join(CORPUS_PARSE_DIR, "by", key + ".json"))) return res.status(404).end();
+  res.set("Cache-Control", "public, max-age=3600");
+  return res.redirect(302, "/data/corpus-parse/by/" + key + ".json");
+});
 app.use("/data/corpus-parse/by", express.static(path.join(CORPUS_PARSE_DIR, "by"), {
   fallthrough: true,
   index: false,
@@ -1340,7 +1352,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/word-gloss.js?v=746",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
-  "/js/corpus-place-parse.js?v=782",
+  "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=782",
   "/js/room-b6-core.js?v=730",
   "/db/local-db.js?v=781",

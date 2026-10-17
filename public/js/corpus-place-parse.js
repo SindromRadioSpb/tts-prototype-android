@@ -34,7 +34,8 @@
         url: "/api/public-corpora/" + encodeURIComponent(pc.slug) + "/works/" + encodeURIComponent(pc.public_work_id) + "/parse?snapshot=" + pc.snapshot_sha256 };
     }
     if (m.corpus && m.corpus.byehuda_id && KEY.test(String(text.text_key || ""))) {
-      return { kind: "by", edition: String(text.text_key), url: "/data/corpus-parse/by/" + text.text_key + ".json" };
+      return { kind: "by", edition: String(text.text_key), url: "/data/corpus-parse/by/" + text.text_key + ".json",
+        workId: /^\d{1,8}$/.test(String(m.corpus.byehuda_id)) ? String(m.corpus.byehuda_id) : null };
     }
     return null;
   }
@@ -53,11 +54,20 @@
     var have = ((await db.dbQuery("SELECT COUNT(*) AS n FROM sentence_morph WHERE text_id = ? AND provider = ?", [tid, PROVIDER])) || [])[0];
     if (have && Number(have.n) > 0 && (!deps.done || deps.done.has(tid))) return { status: "skip", reason: "applied before" };
     var res;
-    try { res = await deps.fetch(src.url, { cache: "default" }); } catch (e) { return { status: "error", reason: String(e && e.message || e) }; }
+    var byWork = false;
+    try {
+      res = await deps.fetch(src.url, { cache: "default" });
+      // a copy of an older edition: the current edition's file of the same work (rows still bind by hash + number)
+      if (res && res.status === 404 && src.kind === "by" && src.workId) {
+        byWork = true;
+        res = await deps.fetch("/data/corpus-parse/by-work/" + src.workId + ".json", { cache: "default" });
+      }
+    } catch (e) { return { status: "error", reason: String(e && e.message || e) }; }
     if (!res || res.status === 404 || res.status === 409) return { status: "none" };
     if (!res.ok) return { status: "error", reason: "HTTP " + res.status };
     var file = await res.json();
-    if (!file || file.v !== 1 || !file.src || String(file.src.edition) !== String(src.edition) || !Array.isArray(file.rows)) {
+    var ownFile = file && file.src && (byWork ? String(file.src.id) === String(src.workId) : String(file.src.edition) === String(src.edition));
+    if (!file || file.v !== 1 || !ownFile || !Array.isArray(file.rows)) {
       return { status: "error", reason: "file does not belong to this edition" };
     }
     var byKey = new Map();

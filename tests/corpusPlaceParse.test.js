@@ -105,3 +105,18 @@ test('a work applied before the quote fix is applied once more: the dropped quot
   assert.ok(seen.has('t9'));
   assert.equal((await CPP.apply(T, { db, RM, sha256Hex, fetch: async () => { throw new Error('must not fetch'); }, done })).status, 'skip');
 });
+
+test('a copy of an older edition finds the current file by its work number; rows bind by hash, another work is refused', async () => {
+  const OLD = { id: 't9', text_key: 'f'.repeat(64), source_meta_json: TEXT.source_meta_json };
+  const urls = [];
+  const fetch = async (u) => { urls.push(u); return u.includes('/by-work/') ? fetchOf(FILE)(u) : fetchOf(null, 404)(u); };
+  const db = fakeDb({ s2: { provider: 'dicta-morph', tokens: [] } });
+  const r = await CPP.apply(OLD, { db, RM, sha256Hex, fetch });
+  assert.deepEqual(urls, ['/data/corpus-parse/by/' + 'f'.repeat(64) + '.json', '/data/corpus-parse/by-work/101.json']);
+  assert.deepEqual([r.status, r.applied, r.unmatched, r.kept], ['applied', 1, 1, 1]);
+  const stranger = Object.assign({}, FILE, { src: { kind: 'by', id: '202', edition: KEY } });
+  const r2 = await CPP.apply(OLD, { db: fakeDb(), RM, sha256Hex, fetch: async (u) => (u.includes('/by-work/') ? fetchOf(stranger)(u) : fetchOf(null, 404)(u)) });
+  assert.equal(r2.status, 'error');
+  const none = await CPP.apply(OLD, { db: fakeDb(), RM, sha256Hex, fetch: fetchOf(null, 404) });
+  assert.equal(none.status, 'none');
+});

@@ -174,4 +174,4 @@ async function explain(ctx, { pick } = {}) {
   };
 }
 
-module.exports = { explain, buildNextTextPayload, catalogVersion, SCENARIO, FRONTIER_MAX, _resetForTest };
+module.exports = { explain, buildNextTextPayload, catalogVersion, indexReady, SCENARIO, FRONTIER_MAX, _resetForTest };
