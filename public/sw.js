@@ -266,7 +266,7 @@ const PRECACHE_URLS = [
   "/js/chunk-retry.js?v=519",
   "/js/media-store.js?v=671",
   "/js/media-package-core.js?v=796",
-  "/js/media-package-repository.js?v=718",
+  "/js/media-package-repository.js?v=796",
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js?v=783",
   "/js/portable-learning-package-core.js?v=742",
