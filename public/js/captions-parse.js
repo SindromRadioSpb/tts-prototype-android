@@ -149,6 +149,16 @@
     var cues = parseCueBlocks(txt);
     if (!cues.length) return fail("CAPTIONS_EMPTY");
     if (isRolling(cues)) return finish(fromRollingCues(cues, txt, doMerge, maxSec), doMerge); // Task 2
+    // O-095: a caller may restore visual-order lines (".נקודה") per cue line, before the lines of
+    // a cue are joined and before merging looks for sentence ends. Times are not touched.
+    var restoredLines;
+    if (opts && typeof opts.normalizeCueLines === "function") {
+      var restored = opts.normalizeCueLines(cues.map(function (cue) { return { text: cue.lines.join("\n") }; }));
+      restoredLines = (restored && restored.lines) || 0;
+      if (restored && restored.applied) {
+        cues.forEach(function (cue, k) { cue.lines = String(restored.cues[k].text).split("\n"); });
+      }
+    }
     var rawSegs = [];
     for (var c = 0; c < cues.length; c++) {
       var text = cleanText(cues[c].lines.join(" "));
@@ -156,9 +166,11 @@
       rawSegs.push({ start: cues[c].start, end: cues[c].end, text: text });
     }
     var segments = doMerge ? mergeSegments(rawSegs, maxSec) : toSegments(rawSegs);
-    return finish({ format: format, rolling: false, language: languageFromHeader(txt),
+    var result = finish({ format: format, rolling: false, language: languageFromHeader(txt),
                     kindHint: "unknown", segments: segments, droppedHeadings: 0, warnings: [],
                     cueCount: rawSegs.length, merged: doMerge }, doMerge);
+    if (result.ok && restoredLines !== undefined) result.visualPunctuationLines = restoredLines;
+    return result;
   }
 
   // Катящиеся авто-субтитры YouTube: каждая реплика приходит трижды — как строка с пословными

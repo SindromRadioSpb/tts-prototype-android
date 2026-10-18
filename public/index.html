@@ -3903,6 +3903,8 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-subtitle-plan button { margin-top:8px; min-height:44px; }
 .v3-subtitle-plan-status { margin:6px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
 .v3-subtitle-plan-status[hidden] { display:none; }
+/* O-095: the subtitle file's code page sits inside the source line, at its text size. */
+#v3ImportProv .v3-import-encoding select { font:inherit; width:auto; min-height:0; height:auto; padding:1px 4px; margin:0; }
 /* Лестница этапов материала (утверждено владельцем 2026-09-27, вариант A). Логические свойства —
    для зеркального RTL; цвета только из токенов темы. */
 .lp-ladder { margin-top:10px; }
@@ -13700,9 +13702,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=793"></script>
-<script src="/i18n/locales/en.js?v=793"></script>
-<script src="/i18n/locales/he.js?v=793"></script>
+<script src="/i18n/locales/ru.js?v=794"></script>
+<script src="/i18n/locales/en.js?v=794"></script>
+<script src="/i18n/locales/he.js?v=794"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13844,7 +13846,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/playback-source.js?v=624"></script>
 <script src="/js/youtube-timing.js?v=593"></script>
 <script src="/js/youtube-full-timing.js?v=557"></script>
-<script src="/js/study-timing-repair.js?v=616"></script>
+<script src="/js/subtitle-text-decode.js?v=794"></script>
+<script src="/js/study-timing-repair.js?v=794"></script>
 <script src="/js/study-video-transfer.js"></script>
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
@@ -13908,7 +13911,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
      this page's own inline script block below (v3MediaBarRefresh/v3MediaPlayOriginal call
      window.StudioYtPlayer directly). -->
-<script src="/js/captions-parse.js"></script>
+<script src="/js/captions-parse.js?v=794"></script>
 <script src="/js/studio-yt-player.js?v=736"></script>
 
 <!-- W2-S11 graded-retell deps — corpus-vocab.js provides the canon coverage-zone engine
@@ -13921,7 +13924,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=793" defer></script>
+<script src="/js/studio-import.js?v=794" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13963,7 +13966,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.793";
+    window.APP_VERSION = "3.11.794";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

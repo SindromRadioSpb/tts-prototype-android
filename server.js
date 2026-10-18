@@ -1269,7 +1269,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/playback-source.js?v=624",
   "/js/youtube-timing.js?v=593",
   "/js/youtube-full-timing.js?v=557",
-  "/js/study-timing-repair.js?v=616",
+  "/js/subtitle-text-decode.js?v=794",
+  "/js/captions-parse.js?v=794",
+  "/js/study-timing-repair.js?v=794",
   "/js/studio-media-package.js?v=723",
   "/js/material-open.js?v=734",
   "/js/material-save.js?v=734",
@@ -1294,7 +1296,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js?v=742",
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=793",
+  "/js/studio-import.js?v=794",
   "/js/local-asr-client.js?v=792",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
@@ -1389,9 +1391,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=793",
-  "/i18n/locales/en.js?v=793",
-  "/i18n/locales/he.js?v=793",
+  "/i18n/locales/ru.js?v=794",
+  "/i18n/locales/en.js?v=794",
+  "/i18n/locales/he.js?v=794",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

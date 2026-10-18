@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.793";
+const CACHE_VERSION = "v3.11.794";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -102,7 +102,8 @@ const PRECACHE_URLS = [
   "/js/playback-source.js?v=624",
   "/js/youtube-timing.js?v=593",
   "/js/youtube-full-timing.js?v=557",
-  "/js/study-timing-repair.js?v=616",
+  "/js/subtitle-text-decode.js?v=794",
+  "/js/study-timing-repair.js?v=794",
   "/js/study-video-transfer.js",
   "/js/study-video.js",
   "/js/subtitle-row-language.js?v=582",
@@ -214,7 +215,7 @@ const PRECACHE_URLS = [
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=793",
+  "/js/studio-import.js?v=794",
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -310,7 +311,7 @@ const PRECACHE_URLS = [
   "/css/app-nav.css?v=653",
   "/js/media-host.js?v=783",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
-  "/js/captions-parse.js",
+  "/js/captions-parse.js?v=794",
   "/js/studio-yt-player.js?v=736",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
@@ -342,9 +343,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=793",
-  "/i18n/locales/en.js?v=793",
-  "/i18n/locales/he.js?v=793",
+  "/i18n/locales/ru.js?v=794",
+  "/i18n/locales/en.js?v=794",
+  "/i18n/locales/he.js?v=794",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

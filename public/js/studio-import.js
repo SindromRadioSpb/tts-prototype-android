@@ -3786,6 +3786,10 @@
                     subtitle_track_sha256: pendingCaptions.subtitleTrackSha256 || undefined,
                     source_sha256: pendingCaptions.sourceSha256 || undefined,
                     material_import_key: pendingCaptions.materialImportKey || undefined,
+                    // O-095: how the file's bytes became the text above.
+                    source_encoding: pendingCaptions.decoding ? pendingCaptions.decoding.encoding : undefined,
+                    source_encoding_detected_by: pendingCaptions.decoding ? pendingCaptions.decoding.detected_by : undefined,
+                    visual_punctuation_lines: pendingCaptions.decoding ? pendingCaptions.decoding.visualPunctuationLines : undefined,
                     audio_stream_index: pendingCaptions.audioStreamIndex },
         video: pendingCaptions.video || undefined,
         // S4c: субтитры из контейнера приходят вместе с локальным видео — без media паспорт
@@ -4274,22 +4278,73 @@
     return msg;
   }
 
-  function acceptCaptions(parsed, origin, fileName, rawSource) {
+  function acceptCaptions(parsed, origin, fileName, rawSource, decoding) {
     if (!parsed.ok) { setStatus(errKey(parsed.error_code)); return; }
     pendingCaptions = pendingCaptions || {};
     pendingCaptions.parsed = parsed;
     pendingCaptions.origin = origin;
     pendingCaptions.fileName = fileName || null;
     pendingCaptions.rawSource = rawSource == null ? null : String(rawSource);
+    // O-095: only a chosen file has bytes; paste and companion tracks are text already.
+    pendingCaptions.decoding = decoding || null;
     var warn = [];
     if (parsed.kindHint === "auto") warn.push("AUTO_CAPTIONS");
     if (parsed.droppedHeadings > 0) warn.push("HEADINGS_DROPPED");
+    if (decoding && decoding.detected_by === "unrecognized") warn.push("ENCODING_UNRECOGNIZED");
     showPreview({
       kind: "captions", source: fileName || tr("studio.import.captionsSourcePaste"),
       method: origin === "file" ? "captions-file" : "captions-panel", model: null,
       warnings: warn,
       text: parsed.segments.map(function (s) { return s.text; }).join("\n"),
     });
+    renderCaptionsEncoding();
+  }
+
+  // O-095: the file's code page is named next to its source, and another one can be chosen
+  // when the text still looks wrong; the retained bytes are decoded again, nothing is re-read.
+  function renderCaptionsEncoding() {
+    var prov = $("v3ImportProv"), decoding = pendingCaptions && pendingCaptions.decoding;
+    if (!prov || !decoding || !window.SubtitleTextDecode) return;
+    var label = document.createElement("label");
+    label.className = "v3-import-encoding";
+    label.appendChild(document.createTextNode(" · " + tr("studio.import.captionsEncodingLabel") + " "));
+    var select = document.createElement("select");
+    select.id = "v3ImportCaptionsEncoding";
+    window.SubtitleTextDecode.ENCODINGS.forEach(function (encoding) {
+      var option = document.createElement("option");
+      option.value = encoding;
+      option.textContent = encoding === decoding.encoding && decoding.detected_by !== "chosen"
+        ? tr("studio.import.captionsEncodingAuto", { encoding: encoding }) : encoding;
+      select.appendChild(option);
+    });
+    select.value = decoding.encoding;
+    select.addEventListener("change", function () { redecodeCaptions(select.value); });
+    label.appendChild(select);
+    if (decoding.visualPunctuationLines > 0) {
+      label.appendChild(document.createTextNode(" · " + tr("studio.import.captionsVisualOrderFixed", { lines: decoding.visualPunctuationLines })));
+    }
+    prov.appendChild(label);
+  }
+
+  function parseCaptionsFileText(text) {
+    var SMC = window.SubtitleMaterialCore;
+    return window.CaptionsParse.parse(text, SMC && typeof SMC.normalizeVisualPunctuation === "function"
+      ? { normalizeCueLines: SMC.normalizeVisualPunctuation } : undefined);
+  }
+
+  function acceptCaptionsBytes(bytes, fileName, encoding) {
+    var decoded = window.SubtitleTextDecode.decodeSubtitleBytes(bytes, encoding ? { encoding: encoding } : undefined);
+    var parsed = parseCaptionsFileText(decoded.text);
+    acceptCaptions(parsed, "file", fileName, decoded.text, {
+      bytes: bytes, encoding: decoded.encoding, detected_by: decoded.detected_by,
+      visualPunctuationLines: parsed.visualPunctuationLines || 0,
+    });
+  }
+
+  function redecodeCaptions(encoding) {
+    var decoding = pendingCaptions && pendingCaptions.decoding;
+    if (!decoding || !decoding.bytes) return;
+    acceptCaptionsBytes(decoding.bytes, pendingCaptions.fileName, encoding);
   }
 
   function remoteAcquisitionPassport(acquired) {
@@ -4364,13 +4419,9 @@
     ev.target.value = "";
     if (!file) return;
     if (file.size > MAX_FILE_BYTES) { setStatus("studio.import.errTooLarge"); return; }
-    var reader = new FileReader();
-    reader.onerror = function () { setStatus("studio.import.errGeneric"); };
-    reader.onload = function () {
-      var raw = String(reader.result || "");
-      acceptCaptions(window.CaptionsParse.parse(raw), "file", file.name, raw);
-    };
-    reader.readAsText(file, "utf-8");
+    file.arrayBuffer().then(function (buffer) {
+      acceptCaptionsBytes(new Uint8Array(buffer), file.name, null);
+    }, function () { setStatus("studio.import.errGeneric"); });
   }
 
   function useCaptionsPaste() {

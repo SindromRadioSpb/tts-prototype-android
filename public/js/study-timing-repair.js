@@ -326,7 +326,7 @@
     const fileLabel=el('label',tr('subtitle')),file=el('input');file.type='file';file.accept='.srt,.vtt';fileLabel.append(file);advanced.append(fileLabel);
     file.onchange=()=>action(async()=>{
       if(!file.files[0])return;
-      const raw=await file.files[0].text(),cues=MediaPackageCore.parseSubtitles(raw).segments;
+      const raw=window.SubtitleTextDecode?(await window.SubtitleTextDecode.readSubtitleFile(file.files[0])).text:await file.files[0].text(),cues=MediaPackageCore.parseSubtitles(raw).segments;
       const matched=YoutubeTiming.fromSubtitles(base,cues,ctx.source.durationSec);
       times=local?base.map((s,i)=>matched[i].startSec==null?{...s}:{...s,startSec:matched[i].startSec,endSec:matched[i].endSec})
         :YoutubeTiming.mergeRecovered(base,matched);
