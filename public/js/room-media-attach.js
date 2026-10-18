@@ -154,6 +154,12 @@
         var code = (error && (error.code || error.message)) || "MEDIA_FAILED";
         status.textContent = code === "COMPANION_REQUIRED" ? tr("room.mediaAttach.needsCompanion")
           : code === "MEDIA_ALREADY_IN_PACKAGE" ? tr("room.mediaAttach.alreadyUsed")
+          // The browser's storage is full: the same words the Studio's build ladder uses.
+          : code === "OPFS_QUOTA_LOW" || (error && error.name === "QuotaExceededError")
+            ? (Number.isFinite(error.requiredBytes) && Number.isFinite(error.availableBytes) && window.MediaReadiness
+              ? tr("studio.import.storageQuotaWithSizes", { required: window.MediaReadiness.humanBytes(error.requiredBytes),
+                available: window.MediaReadiness.humanBytes(error.availableBytes) })
+              : tr("studio.import.ladderErrStorage"))
           : tr("room.mediaAttach.failed", { code: code + (error && error.detail ? " · " + error.detail : "") });
       } finally { pick.disabled = false; lite.disabled = false; }
     };
