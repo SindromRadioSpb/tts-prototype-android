@@ -1,4 +1,4 @@
-// Windows invite-only Local ASR beta enrollment and onboarding.
+// Local AI Companion setup: opt-in per browser (owner decision 2026-10-18, out of invite beta).
 (function () {
   "use strict";
 
@@ -47,13 +47,14 @@
     modal.innerHTML = [
       '<div class="local-asr-beta-panel">',
       '  <button type="button" id="localAsrBetaClose" class="local-asr-beta-close" aria-label="Close">×</button>',
-      '  <div class="local-asr-beta-eyebrow">WINDOWS INVITE-ONLY BETA</div>',
+      '  <div class="local-asr-beta-eyebrow">LOCAL AI COMPANION · WINDOWS</div>',
       '  <h2 id="localAsrBetaTitle"></h2>',
       '  <p id="localAsrBetaIntro" class="local-asr-beta-intro"></p>',
+      '  <label class="local-asr-optin"><input id="localAsrOptIn" type="checkbox"> <span id="localAsrOptInLabel"></span></label>',
       '  <div class="local-asr-privacy"><span>MEDIA</span><b>→</b><span>THIS COMPUTER</span><b>→</b><code>127.0.0.1</code><em>CLOUD OFF</em></div>',
       '  <div class="local-asr-requirements" id="localAsrRequirements"></div>',
       '  <ol class="local-asr-steps">',
-      '    <li><div><b id="localAsrDownloadTitle"></b><span id="localAsrDownloadNote"></span></div><a id="localAsrDownload" class="btn-secondary" rel="noopener"></a></li>',
+      '    <li><div><b id="localAsrDownloadTitle"></b><span id="localAsrDownloadNote"></span></div><a id="localAsrDownload" class="btn-secondary" target="_blank" rel="noopener"></a></li>',
       '    <li><div><b id="localAsrConnectTitle"></b><span id="localAsrConnectNote"></span><details class="local-asr-token-help"><summary id="localAsrTokenHelpTitle"></summary><ol><li id="localAsrTokenStep1"></li><li id="localAsrTokenStep2"></li><li id="localAsrTokenStep3"></li></ol><p id="localAsrTokenSecurity"></p></details></div><div class="local-asr-inline"><input id="localAsrToken" type="password" autocomplete="off" spellcheck="false"><button id="localAsrConnect" type="button" class="btn-secondary"></button></div></li>',
       '    <li><div><b id="localAsrDeviceTitle"></b><span id="localAsrDeviceState"></span></div><button id="localAsrDeviceCheck" type="button" class="btn-secondary"></button></li>',
       '    <li><div><b id="localAsrModelTitle"></b><span id="localAsrModelState"></span><progress id="localAsrModelProgress" max="100" value="0"></progress></div><div class="local-asr-actions"><button id="localAsrInstall" type="button" class="btn-primary"></button><button id="localAsrInstallCancel" type="button" class="btn-secondary"></button><button id="localAsrModelDelete" type="button" class="btn-secondary"></button></div></li>',
@@ -72,6 +73,9 @@
   function localize() {
     text("localAsrBetaTitle", T("studio.localAsrBeta.title", "Experimental Local ASR"));
     text("localAsrBetaIntro", T("studio.localAsrBeta.intro", "Transcribe Hebrew audio on this Windows computer. Gemini stays the default and is never called after a Local error."));
+    text("localAsrOptInLabel", T("studio.localAsrBeta.optIn", "Use Local AI Companion on this computer"));
+    var optIn = el("localAsrOptIn");
+    if (optIn) optIn.checked = window.LocalAsrClient.isExperimentalEnabled();
     text("localAsrRequirements", T("studio.localAsrBeta.requirements", "Windows 11 · NVIDIA/CUDA · at least 8 GB VRAM · Chrome · model download about 1.62 GB"));
     text("localAsrDownloadTitle", T("studio.localAsrBeta.downloadTitle", "Download Companion"));
     text("localAsrDownloadNote", config.companionDownloadUrl
@@ -105,6 +109,9 @@
 
   function bind() {
     el("localAsrBetaClose").addEventListener("click", close);
+    el("localAsrOptIn").addEventListener("change", function () {
+      if (el("localAsrOptIn").checked) optIn(); else leaveBeta(true);
+    });
     el("localAsrConnect").addEventListener("click", connect);
     el("localAsrToken").addEventListener("input", function () { setConnectionState(false); });
     el("localAsrDeviceCheck").addEventListener("click", checkDevice);
@@ -143,8 +150,19 @@
     }
   }
 
+  // Ticking the box is the whole opt-in: no invite link, no hidden hash.
+  function optIn() {
+    try { window.LocalAsrClient.enroll(); } catch (_) { return false; }
+    revealEntry();
+    window.dispatchEvent(new CustomEvent("local-asr-beta-change"));
+    var box = el("localAsrOptIn");
+    if (box) box.checked = true;
+    return true;
+  }
+
   async function connect() {
     setConnectionState(false);
+    if (!window.LocalAsrClient.isExperimentalEnabled() && !optIn()) return;
     try {
       window.LocalAsrClient.setPairingToken(el("localAsrToken").value);
       client = new window.LocalAsrClient.Client();
@@ -208,11 +226,13 @@
     }
   }
 
-  function leaveBeta() {
+  function leaveBeta(keepOpen) {
     window.LocalAsrClient.unenroll();
     client = null;
     setConnectionState(false);
-    close();
+    var box = el("localAsrOptIn");
+    if (box) box.checked = false;
+    if (keepOpen !== true) close();
     revealEntry();
     window.dispatchEvent(new CustomEvent("local-asr-beta-change"));
   }
@@ -240,14 +260,20 @@
     pollTimer = setTimeout(async function () { await refresh(); }, 1000);
   }
 
+  function desktop() {
+    return !(window.MediaReadiness && window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, true).mobile);
+  }
+
+  // Every desktop browser sees the entry while the server allows the Companion; a phone never
+  // does (its 127.0.0.1 is the phone itself).
   function revealEntry() {
     var entry = el("btnLocalAsrSettings");
-    if (entry) entry.hidden = !window.LocalAsrClient.isExperimentalEnabled();
+    if (entry) entry.hidden = !(window.LocalAsrClient.isAvailable() && desktop());
   }
 
   function open() {
     ensureModal();
-    if (!window.LocalAsrClient.isExperimentalEnabled()) return;
+    if (!window.LocalAsrClient.isAvailable() || !desktop()) return;
     localize();
     var download = el("localAsrDownload");
     if (config.companionDownloadUrl) {

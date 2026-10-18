@@ -978,6 +978,8 @@
     var needsCompanionMedia = !!(pendingAudio && pendingAudio.isVideo && !policy.mobile);
     var providerWrap = $("v3ImportAudioProviderWrap");
     if (providerWrap) providerWrap.hidden = !policy.show_provider;
+    var offer = $("v3ImportLocalAsrOffer");
+    if (offer) offer.hidden = !(window.LocalAsrClient && window.LocalAsrClient.isAvailable() && !enabled && !policy.mobile);
     var select = $("v3ImportAudioProvider"), localOption = select && select.querySelector('option[value="local"]');
     if (localOption) { localOption.disabled = !policy.allow_local; localOption.hidden = !policy.allow_local; }
     if (select && !policy.allow_local) select.value = "gemini";
@@ -3499,7 +3501,10 @@
     if (ai) ai.hidden = true;
     pendingAudio = null;
     var provider = $("v3ImportAudioProvider");
-    if (provider) provider.value = "gemini"; // experimental Local never changes the product default
+    // Owner decision 2026-10-18: a browser that opted in and holds a pairing token opens on Local.
+    // Gemini stays one explicit choice away; a Local error never switches provider by itself.
+    var localPreferred = localAsrExperimental() && !!window.LocalAsrClient.getPairingToken();
+    if (provider) provider.value = localPreferred ? "local" : "gemini";
     setLocalAsrConnectionState(false);
     setLocalAsrPairStatus(null);
     var deleteButton = $("v3ImportLocalAsrDelete");
@@ -3507,6 +3512,8 @@
     var retryButton = $("v3ImportLocalAsrRetry");
     if (retryButton) retryButton.hidden = true;
     refreshLocalAsrControls();
+    // Say at once whether the Companion answers, instead of after the owner picks a 2 GB file.
+    if (localPreferred && selectedAudioProvider() === "local") pairLocalAsr();
     // MINOR (whole-branch review 2026-07-28): reopening the dialog after a captions-paste
     // import showed the PREVIOUS paste sitting in the textarea — clear it, matching the
     // pendingAudio reset just above.

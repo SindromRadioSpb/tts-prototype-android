@@ -1294,8 +1294,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js?v=742",
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=789",
-  "/js/local-asr-client.js?v=675",
+  "/js/studio-import.js?v=791",
+  "/js/local-asr-client.js?v=791",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
   "/js/media-readiness.js?v=671",
@@ -1389,9 +1389,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=789",
-  "/i18n/locales/en.js?v=789",
-  "/i18n/locales/he.js?v=789",
+  "/i18n/locales/ru.js?v=791",
+  "/i18n/locales/en.js?v=791",
+  "/i18n/locales/he.js?v=791",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -1518,7 +1518,12 @@ app.get("/api/client-config", (_req, res) => {
   const localAsrBetaEnabled = !(
     localAsrBetaRaw === "false" || localAsrBetaRaw === "0" || localAsrBetaRaw === "off"
   );
-  const localAsrDownloadRaw = String(process.env.LOCAL_ASR_COMPANION_DOWNLOAD_URL || "").trim();
+  // Owner decision 2026-10-18: the Companion is out of invite beta and every desktop user can
+  // download it. The default points at the public GitHub release page (requirements, SmartScreen
+  // note, SHA-256, licences); the env var still overrides it.
+  const LOCAL_ASR_COMPANION_RELEASE_URL =
+    "https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.3.0-beta.15";
+  const localAsrDownloadRaw = String(process.env.LOCAL_ASR_COMPANION_DOWNLOAD_URL || LOCAL_ASR_COMPANION_RELEASE_URL).trim();
   const localAsrCompanionDownloadUrl =
     (/^https:\/\//i.test(localAsrDownloadRaw) || (/^\/(?!\/)/.test(localAsrDownloadRaw)))
       ? localAsrDownloadRaw

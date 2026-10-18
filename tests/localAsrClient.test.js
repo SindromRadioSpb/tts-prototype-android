@@ -260,3 +260,20 @@ test("niqqud requests can ask the model to mark matres lectionis", async () => {
   assert.deepEqual(calls[0], { texts: ["נקודה"], mark_matres_lectionis: "¤" });
   assert.deepEqual(calls[1], { texts: ["נקודה"] });
 });
+
+// Owner decision 2026-10-18: the token survives a browser restart; an old session token moves over.
+test("the pairing token lives in localStorage and an older session token is moved there once", () => {
+  const local = store(), session = store({ "linguistpro.localAsr.pairingToken": TOKEN });
+  const saved = global.window;
+  global.window = { localStorage: local, sessionStorage: session };
+  try {
+    assert.equal(C.getPairingToken(), TOKEN);
+    assert.equal(local.getItem("linguistpro.localAsr.pairingToken"), TOKEN, "moved to localStorage");
+    assert.equal(session.getItem("linguistpro.localAsr.pairingToken"), null, "session copy removed");
+    const other = "u".repeat(48);
+    C.setPairingToken(other);
+    assert.equal(local.getItem("linguistpro.localAsr.pairingToken"), other);
+    C.unenroll();
+    assert.equal(C.getPairingToken(), "", "disconnect removes the persistent token");
+  } finally { global.window = saved; }
+});

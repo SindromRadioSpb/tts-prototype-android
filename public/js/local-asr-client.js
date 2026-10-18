@@ -46,24 +46,43 @@
   function unenroll(store) {
     var local = store || (typeof window !== "undefined" ? browserStore("local") : null);
     var session = typeof window !== "undefined" ? browserStore("session") : null;
-    try { if (local) local.removeItem(EXPERIMENT_KEY); } catch (_) {}
+    try { if (local) { local.removeItem(EXPERIMENT_KEY); local.removeItem(TOKEN_KEY); } } catch (_) {}
     try { if (session) session.removeItem(TOKEN_KEY); } catch (_) {}
   }
 
+  // Owner decision 2026-10-18 (Companion out of beta): the pairing token lives in this
+  // browser's localStorage, so a browser restart no longer asks for it again. A token left in
+  // sessionStorage by an older build is moved over on first read. Disconnect removes both.
   function getPairingToken(store) {
-    var target = store || (typeof window !== "undefined" ? browserStore("session") : null);
-    try { return target ? String(target.getItem(TOKEN_KEY) || "") : ""; }
-    catch (_) { return ""; }
+    if (store) {
+      try { return String(store.getItem(TOKEN_KEY) || ""); } catch (_) { return ""; }
+    }
+    if (typeof window === "undefined") return "";
+    var local = browserStore("local"), session = browserStore("session");
+    try {
+      var kept = local ? String(local.getItem(TOKEN_KEY) || "") : "";
+      if (kept) return kept;
+      var legacy = session ? String(session.getItem(TOKEN_KEY) || "") : "";
+      if (legacy && local) { local.setItem(TOKEN_KEY, legacy); session.removeItem(TOKEN_KEY); }
+      return legacy;
+    } catch (_) { return ""; }
   }
 
   function setPairingToken(token, store) {
     var value = String(token || "").trim();
     if (value.length < 32) throw new Error("LOCAL_ASR_PAIRING_TOKEN_INVALID");
-    var target = store || (typeof window !== "undefined" ? browserStore("session") : null);
-    if (!target) throw new Error("LOCAL_ASR_SESSION_STORAGE_UNAVAILABLE");
+    var target = store || (typeof window !== "undefined" ? browserStore("local") : null);
+    if (!target) throw new Error("LOCAL_ASR_STORAGE_UNAVAILABLE");
     target.setItem(TOKEN_KEY, value);
+    if (!store && typeof window !== "undefined") {
+      var session = browserStore("session");
+      try { if (session) session.removeItem(TOKEN_KEY); } catch (_) {}
+    }
     return value;
   }
+
+  // The server still has a kill switch; when it is on, every desktop browser may opt in.
+  function isAvailable() { return runtimeBetaEnabled; }
 
   function delay(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
@@ -388,6 +407,7 @@
     unenroll: unenroll,
     runtimeConfig: function () { return { beta: runtimeBetaEnabled, companionDownloadUrl: companionDownloadUrl }; },
     isExperimentalEnabled: isExperimentalEnabled,
+    isAvailable: isAvailable,
     getPairingToken: getPairingToken,
     setPairingToken: setPairingToken,
     Client: Client,

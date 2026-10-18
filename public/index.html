@@ -3972,6 +3972,8 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 #localAsrConnect[data-connected="true"],#v3ImportLocalAsrPair[data-connected="true"] { border-color:#0b7673; background:#0b7673; color:#fff; }
 #localAsrConnect[data-connected="true"]:hover,#v3ImportLocalAsrPair[data-connected="true"]:hover { border-color:#086561; background:#086561; color:#fff; }
 .local-asr-beta-modal[hidden], #btnLocalAsrSettings[hidden] { display:none !important; }
+.local-asr-optin { display:flex; align-items:center; gap:8px; margin:10px 0 4px; font-weight:600; }
+.local-asr-optin input { width:18px; height:18px; }
 .local-asr-beta-modal { position:fixed; inset:0; z-index:10080; display:grid; place-items:center; padding:18px; background:rgba(13,25,37,.62); backdrop-filter:blur(5px); }
 .local-asr-beta-panel { box-sizing:border-box; position:relative; width:min(720px,100%); max-width:100%; max-height:min(88vh,780px); overflow:auto; padding:26px; border:1px solid color-mix(in srgb,var(--theme-border-soft,#d8e0e6) 78%,#0b7c78); border-radius:16px; background:var(--theme-bg-card,#fff); color:var(--theme-text,#17212b); box-shadow:0 28px 80px rgba(4,23,31,.28); }
 .local-asr-beta-panel button { width:auto !important; }
@@ -11815,7 +11817,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnGraph" class="classic-nav-tool" onclick="window.LinguistProGraph&&window.LinguistProGraph.open()" data-i18n-title="graph.btnTitle" data-i18n-aria-label="graph.btnTitle" title="Карта знаний" aria-label="Карта знаний">🕸</button>
                     <button id="btnKnowledgeMap" class="classic-nav-tool" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
                     <button id="btnMorphSettings" class="classic-nav-tool studio-vf3-focus" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология"><span data-studio-icon="lp-icon-settings" aria-hidden="true"><span class="studio-icon-fallback">⚙</span></span></button>
-                    <button id="btnLocalAsrSettings" class="classic-nav-tool" onclick="window.LocalAsrOnboarding&&window.LocalAsrOnboarding.open()" data-i18n-title="studio.localAsrBeta.btnTitle" data-i18n-aria-label="studio.localAsrBeta.btnTitle" title="Experimental Local ASR" aria-label="Experimental Local ASR" hidden>◉</button>
+                    <button id="btnLocalAsrSettings" class="classic-nav-tool" onclick="window.LocalAsrOnboarding&&window.LocalAsrOnboarding.open()" data-i18n-title="studio.localAsrBeta.btnTitle" data-i18n-aria-label="studio.localAsrBeta.btnTitle" title="Local AI Companion" aria-label="Local AI Companion" hidden>◉</button>
                     <button id="btnLocalMtSettings" class="classic-nav-tool" onclick="window.LocalMtOnboarding&&window.LocalMtOnboarding.open()" data-i18n-title="studio.localMt.btnTitle" data-i18n-aria-label="studio.localMt.btnTitle" title="MADLAD local translation" aria-label="MADLAD local translation" hidden>MT</button>
                     <button id="studioReviewAnkiExport" class="classic-nav-tool studio-review-anki" onclick="v3SrsDownloadApkg(event)" data-i18n="studioReview.anki" data-i18n-title="studioReview.ankiTitle" title="Скачать словарь для Anki">📦 Anki</button>
                   </div>
@@ -13696,9 +13698,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=789"></script>
-<script src="/i18n/locales/en.js?v=789"></script>
-<script src="/i18n/locales/he.js?v=789"></script>
+<script src="/i18n/locales/ru.js?v=791"></script>
+<script src="/i18n/locales/en.js?v=791"></script>
+<script src="/i18n/locales/he.js?v=791"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13797,7 +13799,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
-<script src="/js/local-asr-client.js?v=675"></script>
+<script src="/js/local-asr-client.js?v=791"></script>
 <script src="/js/media-readiness.js?v=671"></script>
 <!-- Audited incremental SHA-256 runtime served from node_modules by an allowlisted route. The
      store below hashes a 1.6 GB stream chunk by chunk, which crypto.subtle cannot do, so this
@@ -13917,7 +13919,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=789" defer></script>
+<script src="/js/studio-import.js?v=791" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13959,7 +13961,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.790";
+    window.APP_VERSION = "3.11.791";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -52001,6 +52003,9 @@ document.addEventListener("i18n:changed", function () {
               <option value="local" data-i18n="studio.import.audioProviderLocal">Local companion (эксперимент)</option>
             </select>
           </div>
+          <p id="v3ImportLocalAsrOffer" class="v3-import-hint" hidden>
+            <a href="#" onclick="event.preventDefault(); window.LocalAsrOnboarding && window.LocalAsrOnboarding.open();" data-i18n="studio.import.localAsrOffer">Распознавать бесплатно на своём ПК, без отправки в облако — Local AI Companion →</a>
+          </p>
           <p id="v3ImportAudioProviderTruth" class="v3-import-hint" aria-live="polite" data-i18n="studio.import.providerTruthCloud">Gemini работает в облаке; файл отправляется только после отдельного запуска распознавания.</p>
           <div id="v3ImportLocalAsrSetup" class="v3-local-asr-setup" hidden>
             <label for="v3ImportLocalAsrToken" data-i18n="studio.import.localAsrTokenLabel">Pairing token локального companion</label>

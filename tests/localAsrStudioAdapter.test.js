@@ -10,11 +10,14 @@ const sw = fs.readFileSync(path.join(root, "public/sw.js"), "utf8");
 const localDb = fs.readFileSync(path.join(root, "public/db/local-db.js"), "utf8");
 const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
 
-test("Local provider UI is hidden by default and Gemini remains first/reset default", () => {
+// Owner decision 2026-10-18: out of invite beta. A browser that opted in and holds a token opens
+// on Local; any other browser opens on Gemini, which stays first in the list.
+test("Local provider UI is hidden until opt-in and opens on Local only with a pairing token", () => {
   assert.match(html, /id="v3ImportAudioProviderWrap"[^>]*hidden/);
   const select = html.match(/<select id="v3ImportAudioProvider"[\s\S]*?<\/select>/)[0];
   assert.ok(select.indexOf('value="gemini"') < select.indexOf('value="local"'));
-  assert.match(studio, /provider\.value = "gemini"; \/\/ experimental Local never changes the product default/);
+  assert.match(studio, /var localPreferred = localAsrExperimental\(\) && !!window\.LocalAsrClient\.getPairingToken\(\);/);
+  assert.match(studio, /provider\.value = localPreferred \? "local" : "gemini";/);
   assert.match(studio, /LocalAsrClient\.isExperimentalEnabled\(\)/);
 });
 
@@ -57,14 +60,14 @@ test("onboarding states the privacy boundary and never calls Gemini", () => {
   assert.match(studio, /localAsrModelIntegrity/);
 });
 
-test("pairing help names the exact Companion control and remains session-only", () => {
+test("pairing help names the exact Companion control and the token persists in this browser", () => {
   assert.match(onboarding, /localAsrTokenHelpTitle/);
   assert.match(onboarding, /Copy token for browser/);
   assert.match(onboarding, /Windows Start/);
   assert.match(onboarding, /LOCAL_ASR_COMPANION_GUIDE/);
   const client = fs.readFileSync(path.join(root, "public/js/local-asr-client.js"), "utf8");
-  assert.match(client, /getPairingToken[\s\S]*browserStore\("session"\)/);
-  assert.doesNotMatch(client, /localStorage[^\n]*PAIRING_TOKEN|PAIRING_TOKEN[^\n]*localStorage/i);
+  assert.match(client, /function setPairingToken[\s\S]*?browserStore\("local"\)/);
+  assert.match(client, /function unenroll[\s\S]*?local\.removeItem\(TOKEN_KEY\)/);
 });
 
 test("both Local ASR connection actions expose a proximal connected state and reset it honestly", () => {

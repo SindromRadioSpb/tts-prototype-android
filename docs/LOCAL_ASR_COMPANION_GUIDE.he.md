@@ -2,21 +2,23 @@
 
 Local ASR מתמלל אודיו בעברית במחשב Windows שלכם. אחרי שגיאת Local ASR קובץ האודיו אינו נשלח אוטומטית ל-Gemini; מעבר ל-Gemini הוא ידני ודורש אישור נפרד.
 
-המדריך מיועד לבטא בהזמנה בלבד. התצורה הנתמכת היא **Windows 11 + NVIDIA/CUDA תואמים + Chrome**. Edge ו-Firefox אינם נתמכים בבטא הראשונה.
+מאז 18.10.2026 ה-Companion זמין לכל משתמשי המחשב, ללא הזמנה. התצורה הנתמכת היא **Windows 11 + NVIDIA/CUDA תואמים + Chrome**. Edge ו-Firefox עדיין אינם נתמכים.
+
+הורדת המתקין: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.3.0-beta.15
 
 RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.en.md`.
 
 
 ## המסלול הקצר
 
-1. התקינו את **LinguistPro Local ASR Companion** שסופק בהזמנה.
+1. הורידו והתקינו את **LinguistPro Local AI Companion** מדף הגרסה (הקישור למעלה או כפתור ◉ בסטודיו).
 2. פתחו **התחל של Windows → LinguistPro → LinguistPro Local ASR Companion**.
 3. המתינו למצב **Companion: RUNNING**.
 4. באזור **Connect LinguistPro in Chrome** לחצו **Copy token for browser**.
-5. חזרו ל-LinguistPro: **הגדרות → Experimental Local ASR**.
+5. חזרו ל-LinguistPro: כפתור **◉ Local AI Companion** בסטודיו, סמנו **שימוש ב-Local AI Companion במחשב הזה**.
 6. הדביקו את האסימון בשלב 2 ולחצו **חיבור**.
 7. הפעילו בדיקת מכשיר, התקינו את המודל ובצעו warmup.
-8. פתחו ייבוא אודיו ובחרו במפורש **Local**. Gemini נשאר ברירת המחדל.
+8. פתחו ייבוא מדיה: כשה-Companion מחובר, **Local** נבחר. Gemini נשאר ברשימה כבחירה מפורשת.
 
 
 ## מאיפה מקבלים את אסימון הצימוד
@@ -28,12 +30,12 @@ RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.e
 3. לחצו **Copy token for browser**.
 4. חזרו ללשונית LinguistPro, הדביקו ולחצו **חיבור**.
 
-LinguistPro שומר את האסימון רק בסשן הדפדפן הנוכחי. אחרי סגירת הלשונית יש לחזור על ארבעת השלבים. אל תשתפו את האסימון ואל תכללו אותו באבחון או בצילום מסך.
+LinguistPro שומר את האסימון בדפדפן הזה עד שתלחצו «ניתוק ה-Companion בדפדפן הזה»: אין צורך להדביק אותו שוב אחרי הפעלה מחדש של הדפדפן. אל תשתפו את האסימון ואל תכללו אותו באבחון או בצילום מסך.
 
 
 ## התקנת Companion
 
-המתקין של בטא פנימית זו אינו חתום. השתמשו רק בקובץ שהתקבל בהזמנה מהימנה ואמתו SHA-256 מול הסכום שסיפק הבעלים לאותה גרסה.
+המתקין אינו חתום דיגיטלית. הורידו אותו רק מדף הגרסה במאגר הזה ואמתו SHA-256 לפני ההפעלה: `1c8d878b40371053ff976691fece3a6ca06664982653e56b647cebfaa132dde3` (גרסה 0.3.0-beta.15).
 
 אם Windows מציג SmartScreen, המשיכו דרך **מידע נוסף → הפעל בכל זאת** רק לאחר שהשם וה-SHA-256 תואמים. עצרו אם הסכום חסר או שונה. ההתקנה היא למשתמש הנוכחי ואינה דורשת Python, venv או Uvicorn ידניים.
 
