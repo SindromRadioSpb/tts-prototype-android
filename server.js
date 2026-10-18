@@ -1527,7 +1527,7 @@ app.get("/api/client-config", (_req, res) => {
   // download it. The default points at the public GitHub release page (requirements, SmartScreen
   // note, SHA-256, licences); the env var still overrides it.
   const LOCAL_ASR_COMPANION_RELEASE_URL =
-    "https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.1";
+    "https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.3";
   const localAsrDownloadRaw = String(process.env.LOCAL_ASR_COMPANION_DOWNLOAD_URL || LOCAL_ASR_COMPANION_RELEASE_URL).trim();
   const localAsrCompanionDownloadUrl =
     (/^https:\/\//i.test(localAsrDownloadRaw) || (/^\/(?!\/)/.test(localAsrDownloadRaw)))

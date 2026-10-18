@@ -101,7 +101,8 @@
     if (sync.status === "aligned") return { key: p + "captionsSyncAligned" };
     if (sync.status === "correctable" && sync.apply_scale && sync.apply_scale !== 1) {
       return { key: p + "captionsSyncStretch", params: { percent: (Math.abs(sync.apply_scale - 1) * 100).toFixed(1) },
-        directionKey: p + (sync.apply_scale > 1 ? "captionsSyncSlower" : "captionsSyncFaster") };
+        // scale > 1: the file's times must grow to meet the speech, i.e. the subtitles run ahead.
+        directionKey: p + (sync.apply_scale > 1 ? "captionsSyncFaster" : "captionsSyncSlower") };
     }
     if (sync.status === "correctable") return { key: p + "captionsSyncShift", params: { seconds: (sync.apply_offset_ms / 1000).toFixed(1) } };
     if (sync.status === "needs_review") {

@@ -162,3 +162,13 @@ test("O-099: an old Companion (422) or a foreign answer moves nothing", async ()
   assert.equal(A.acceptExternalSync(goodSync({ status: "aligned", apply_scale: 1 }), FILE).status, "aligned");
   assert.equal(A.acceptExternalSync(goodSync({ apply_scale: 1, apply_offset_ms: 800 }), FILE).status, "correctable");
 });
+
+test("O-099: a stretch above 1 means the subtitles run ahead of the speech", () => {
+  const ahead = A.syncMessage({ status: "correctable", apply_scale: 25 / 23.976, apply_offset_ms: 0 });
+  assert.equal(ahead.key, "studio.import.captionsSyncStretch");
+  assert.equal(ahead.directionKey, "studio.import.captionsSyncFaster");
+  assert.equal(ahead.params.percent, "4.3");
+  assert.equal(A.syncMessage({ status: "correctable", apply_scale: 23.976 / 25, apply_offset_ms: 0 }).directionKey, "studio.import.captionsSyncSlower");
+  assert.equal(A.syncMessage({ status: "needs_review", reason: "ambiguous_frame_rate" }).key, "studio.import.captionsSyncAmbiguous");
+  assert.equal(A.syncMessage({ status: "unverified", reason: "insufficient_evidence" }).key, "studio.import.captionsSyncNoClearSpeech");
+});
