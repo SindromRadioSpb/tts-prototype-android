@@ -4,7 +4,7 @@ Local ASR מתמלל אודיו בעברית במחשב Windows שלכם. אחר
 
 מאז 18.10.2026 ה-Companion זמין לכל משתמשי המחשב, ללא הזמנה. התצורה הנתמכת היא **Windows 11 + NVIDIA/CUDA תואמים + Chrome**. Edge ו-Firefox עדיין אינם נתמכים.
 
-הורדת המתקין: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.3.0-beta.15
+הורדת המתקין: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.0
 
 RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.en.md`.
 
@@ -14,7 +14,7 @@ RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.e
 1. הורידו והתקינו את **LinguistPro Local AI Companion** מדף הגרסה (הקישור למעלה או כפתור ◉ בסטודיו).
 2. פתחו **התחל של Windows → LinguistPro → LinguistPro Local ASR Companion**.
 3. המתינו למצב **Companion: RUNNING**.
-4. באזור **Connect LinguistPro in Chrome** לחצו **Copy token for browser**.
+4. גרסה 0.4.0 ומעלה: לחצו **חיבור** ב-LinguistPro; חלון ה-Companion יבקש אישור ויציג קוד — השוו אותו ולחצו **כן**. אז אין צורך בשלבים 5–6. לפני 0.4.0: באזור **Connect LinguistPro in Chrome** לחצו **Copy token for browser**.
 5. חזרו ל-LinguistPro: כפתור **◉ Local AI Companion** בסטודיו, סמנו **שימוש ב-Local AI Companion במחשב הזה**.
 6. הדביקו את האסימון בשלב 2 ולחצו **חיבור**.
 7. הפעילו בדיקת מכשיר, התקינו את המודל ובצעו warmup.
@@ -35,7 +35,7 @@ LinguistPro שומר את האסימון בדפדפן הזה עד שתלחצו �
 
 ## התקנת Companion
 
-המתקין אינו חתום דיגיטלית. הורידו אותו רק מדף הגרסה במאגר הזה ואמתו SHA-256 לפני ההפעלה: `1c8d878b40371053ff976691fece3a6ca06664982653e56b647cebfaa132dde3` (גרסה 0.3.0-beta.15).
+המתקין אינו חתום דיגיטלית. הורידו אותו רק מדף הגרסה במאגר הזה ואמתו SHA-256 לפני ההפעלה: `5bee21e0b2ef7d1151a39dceebe75d0cfe957c6cbd5a1d6aa7134859ed954bba` (גרסה 0.4.0).
 
 אם Windows מציג SmartScreen, המשיכו דרך **מידע נוסף → הפעל בכל זאת** רק לאחר שהשם וה-SHA-256 תואמים. עצרו אם הסכום חסר או שונה. ההתקנה היא למשתמש הנוכחי ואינה דורשת Python, venv או Uvicorn ידניים.
 

@@ -4,7 +4,7 @@ Local ASR расшифровывает ивритское аудио на ваш
 
 С 18.10.2026 компаньон доступен всем пользователям на компьютере, приглашение не нужно. Поддерживается **Windows 11 + совместимая NVIDIA/CUDA + Chrome**. Edge и Firefox пока не поддерживаются.
 
-Скачать установщик: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.3.0-beta.15
+Скачать установщик: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.0
 
 EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.en.md`. HE: `/docs/LOCAL_ASR_COMPANION_GUIDE.he.md`.
 
@@ -14,7 +14,7 @@ EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.en.md`. HE: `/docs/LOCAL_ASR_COMPANION_GUID
 1. Скачайте и установите **LinguistPro Local AI Companion** со страницы релиза (ссылка выше или кнопка ◉ в Студии).
 2. Откройте меню Windows **Пуск → LinguistPro → LinguistPro Local ASR Companion**.
 3. Дождитесь состояния **Companion: RUNNING**.
-4. В блоке **Connect LinguistPro in Chrome** нажмите **Copy token for browser**.
+4. Версия 0.4.0 и новее: в LinguistPro нажмите **Подключить**, в окне компаньона появится запрос с кодом — сверьте код и нажмите **Да**. Шаги 5–6 тогда не нужны. Версии до 0.4.0: в блоке **Connect LinguistPro in Chrome** нажмите **Copy token for browser**.
 5. Вернитесь в LinguistPro: кнопка **◉ Local AI Companion** в Студии, отметьте **Использовать Local AI Companion на этом ПК**.
 6. Вставьте token в поле шага 2 и нажмите **Подключить**.
 7. Выполните проверку устройства, установите модель и сделайте warmup.
@@ -35,7 +35,7 @@ LinguistPro хранит token в этом браузере, пока вы не 
 
 ## Установка Companion
 
-Установщик не подписан цифровой подписью. Скачивайте его только со страницы релиза в этом репозитории и до запуска сравните SHA-256: `1c8d878b40371053ff976691fece3a6ca06664982653e56b647cebfaa132dde3` (сборка 0.3.0-beta.15).
+Установщик не подписан цифровой подписью. Скачивайте его только со страницы релиза в этом репозитории и до запуска сравните SHA-256: `5bee21e0b2ef7d1151a39dceebe75d0cfe957c6cbd5a1d6aa7134859ed954bba` (сборка 0.4.0).
 
 Если Windows показывает SmartScreen:
 

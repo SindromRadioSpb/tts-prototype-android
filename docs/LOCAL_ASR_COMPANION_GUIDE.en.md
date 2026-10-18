@@ -4,7 +4,7 @@ Local ASR transcribes Hebrew audio on your Windows computer. An audio file is ne
 
 Since 2026-10-18 the Companion is available to every desktop user; no invitation is needed. The supported configuration is **Windows 11 + compatible NVIDIA/CUDA + Chrome**. Edge and Firefox are not supported yet.
 
-Download the installer: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.3.0-beta.15
+Download the installer: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.0
 
 RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. HE: `/docs/LOCAL_ASR_COMPANION_GUIDE.he.md`.
 
@@ -14,7 +14,7 @@ RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. HE: `/docs/LOCAL_ASR_COMPANION_GUIDE.h
 1. Download and install **LinguistPro Local AI Companion** from the release page (link above, or the ◉ button in Studio).
 2. Open **Windows Start → LinguistPro → LinguistPro Local ASR Companion**.
 3. Wait for **Companion: RUNNING**.
-4. In **Connect LinguistPro in Chrome**, click **Copy token for browser**.
+4. Version 0.4.0 and later: click **Connect** in LinguistPro; the Companion window asks to allow it and shows a code — compare it and click **Yes**. Steps 5–6 are then not needed. Before 0.4.0: in **Connect LinguistPro in Chrome**, click **Copy token for browser**.
 5. Return to LinguistPro: the **◉ Local AI Companion** button in Studio, tick **Use Local AI Companion on this computer**.
 6. Paste the token in step 2 and click **Connect**.
 7. Run the device check, install the model, and warm it up.
@@ -35,7 +35,7 @@ LinguistPro keeps the token in this browser until you click “Disconnect the Co
 
 ## Install the Companion
 
-The installer is not code-signed. Download it only from the release page of this repository and verify its SHA-256 before running it: `1c8d878b40371053ff976691fece3a6ca06664982653e56b647cebfaa132dde3` (build 0.3.0-beta.15).
+The installer is not code-signed. Download it only from the release page of this repository and verify its SHA-256 before running it: `5bee21e0b2ef7d1151a39dceebe75d0cfe957c6cbd5a1d6aa7134859ed954bba` (build 0.4.0).
 
 If Windows shows SmartScreen:
 
