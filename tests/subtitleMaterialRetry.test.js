@@ -73,7 +73,7 @@ test('active subtitle assembly hides generic draft actions without hiding other 
     },
     tr: key => key,
     document: { getElementById: () => null },
-    setStatus() {}, window: {},
+    setStatus() {}, renderCaptionsMedia() {}, window: {},
   };
   vm.createContext(context);
   vm.runInContext(source.slice(start, end), context);

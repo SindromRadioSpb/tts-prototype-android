@@ -3904,6 +3904,16 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-subtitle-plan-status { margin:6px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
 .v3-subtitle-plan-status[hidden] { display:none; }
 /* O-095: the subtitle file's code page sits inside the source line, at its text size. */
+.v3-captions-media { margin:8px 0; padding:8px 10px; border:1px solid var(--border,#d7dce2); border-radius:8px; font-size:13px; }
+.v3-captions-media[hidden], .v3-captions-media [hidden] { display:none; }
+.v3-captions-media-help { margin:4px 0 6px; font-size:12px; color:var(--text-muted,#6c757d); }
+.v3-captions-media-row { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin-top:6px; }
+.v3-captions-media-row input[type="url"] { flex:1 1 220px; min-width:0; }
+.v3-captions-media-lite { font-size:12px; }
+.v3-captions-media progress { width:100%; margin-top:6px; }
+.v3-captions-media-status { margin:6px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
+.v3-captions-media-status[data-state="error"] { color:var(--danger,#b42318); }
+.v3-captions-media-status[data-state="warn"] { color:var(--warning,#9a6700); }
 #v3ImportProv .v3-import-encoding select { font:inherit; width:auto; min-height:0; height:auto; padding:1px 4px; margin:0; }
 /* Лестница этапов материала (утверждено владельцем 2026-09-27, вариант A). Логические свойства —
    для зеркального RTL; цвета только из токенов темы. */
@@ -13702,9 +13712,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=794"></script>
-<script src="/i18n/locales/en.js?v=794"></script>
-<script src="/i18n/locales/he.js?v=794"></script>
+<script src="/i18n/locales/ru.js?v=795"></script>
+<script src="/i18n/locales/en.js?v=795"></script>
+<script src="/i18n/locales/he.js?v=795"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13818,6 +13828,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=684"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
+<script src="/js/subtitle-media-attach.js?v=795"></script>
 <script src="/js/local-translit-bundle.js?v=735"></script>
 <script src="/js/translit-display.js?v=734"></script>
 <script src="/js/subtitle-material-vocalization.js?v=735"></script>
@@ -13924,7 +13935,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=794" defer></script>
+<script src="/js/studio-import.js?v=795" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13966,7 +13977,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.794";
+    window.APP_VERSION = "3.11.795";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -52136,6 +52147,25 @@ document.addEventListener("i18n:changed", function () {
         </div>
         <div class="input-label" data-i18n="studio.import.previewLabel">Извлечённый текст (проверьте!)</div>
         <div id="v3ImportProv" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
+        <!-- O-096 (владелец, 2026-10-18): к файлу субтитров подключается медиа. Выбирается, пока
+             субтитры на экране: перекодирование идёт, пока текст проверяют; материал создаётся
+             уже с итоговым хешем медиа и открывается с плеером. -->
+        <section id="v3ImportCaptionsMedia" class="v3-captions-media" hidden aria-labelledby="v3ImportCaptionsMediaTitle">
+          <strong id="v3ImportCaptionsMediaTitle" data-i18n="studio.import.captionsMediaTitle">Медиа для материала</strong>
+          <p class="v3-captions-media-help" data-i18n="studio.import.captionsMediaHelp">Таблица собирается из субтитров, а готовый материал откроется с этим видео или аудио.</p>
+          <div class="v3-captions-media-row">
+            <button type="button" id="v3ImportCaptionsMediaLocal" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsMediaFile').click()" data-i18n="studio.import.captionsMediaLocalBtn">Локальное видео или аудио…</button>
+            <input type="file" id="v3ImportCaptionsMediaFile" accept="video/*,audio/*,.avi,.mkv,.m4a,.opus,.oga" hidden onchange="StudioImport.onCaptionsMediaChosen(event)">
+            <label class="v3-captions-media-lite"><input type="checkbox" id="v3ImportCaptionsMediaLite" checked> <span data-i18n="studio.import.subtitlePlanLiteToggle">Сделать лёгкую копию для телефона</span></label>
+          </div>
+          <div class="v3-captions-media-row">
+            <input type="url" id="v3ImportCaptionsMediaUrl" dir="ltr" placeholder="https://www.youtube.com/watch?v=…" data-i18n-aria-label="studio.import.captionsMediaYtLabel" aria-label="Ссылка YouTube">
+            <button type="button" id="v3ImportCaptionsMediaYt" class="btn-secondary" onclick="StudioImport.attachCaptionsYoutube()" data-i18n="studio.import.captionsMediaYtBtn">Подключить YouTube</button>
+          </div>
+          <progress id="v3ImportCaptionsMediaProgress" max="100" value="0" hidden></progress>
+          <p id="v3ImportCaptionsMediaStatus" class="v3-captions-media-status" aria-live="polite"></p>
+          <button type="button" id="v3ImportCaptionsMediaRemove" class="btn-secondary" hidden onclick="StudioImport.detachCaptionsMedia()" data-i18n="studio.import.captionsMediaRemove">Убрать медиа</button>
+        </section>
         <!-- The table provider and its key live here too: the build step must not send the owner
              to the settings panel, because leaving this dialog used to cost the finished ASR. -->
         <div id="v3ImportBuildProvider" class="v3-build-provider" hidden>

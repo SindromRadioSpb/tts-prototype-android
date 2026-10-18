@@ -1031,13 +1031,21 @@ async def prepare_media(
         if bitrate <= 0:
             raise ValueError("light copy plan has no video bitrate")
         budget = int(plan.get("max_output_bytes") or LITE_MAX_BYTES)
+        # O-100: left alone, x264 declares the lowest level the picture fits (2.1 for a 480x360
+        # copy of a 25 fps DVD rip), below the floor the same Companion then checks the copy
+        # against. The level is set from the copy's own geometry by that check's rule.
+        source_width, source_height = int(source_video.get("width") or 0), int(source_video.get("height") or 0)
+        out_height = min(source_height, height) if source_height else height
+        out_width = int(round(source_width * out_height / source_height / 2.0)) * 2 if source_height and source_width else 0
+        lite_level = minimum_h264_level(out_width, out_height, target_fps) if out_width else None
+        level_args = ["-level:v", "%d.%d" % (lite_level // 10, lite_level % 10)] if lite_level else []
         for attempt, factor in enumerate((1.0, 0.85)):
             attempt_bitrate = int(bitrate * factor)
             args = [
                 "ffmpeg", "-y", "-v", "error", "-i", os.fspath(source),
                 "-map", video_map, "-map", audio_map, "-map_chapters", "-1",
                 "-vf", "scale=-2:'min(ih,%d)',fps=%.3f,format=yuv420p" % (height, target_fps),
-                "-c:v", "libx264", "-profile:v", "main", "-preset", str(plan.get("video_preset") or "faster"),
+                "-c:v", "libx264", "-profile:v", "main", *level_args, "-preset", str(plan.get("video_preset") or "faster"),
                 "-b:v", str(attempt_bitrate), "-maxrate", str(int(attempt_bitrate * 1.45)),
                 "-bufsize", str(attempt_bitrate * 2),
                 "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",

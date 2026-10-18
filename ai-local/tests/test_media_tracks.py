@@ -672,3 +672,31 @@ async def test_light_copy_is_a_second_verified_rendition_of_the_same_job(tmp_pat
     assert renditions["lite"]["role"] == "lite"
     assert manager.file_path(job["job_id"]).read_bytes() == b"full-bytes"
     assert manager.file_path(job["job_id"], rendition="lite").read_bytes() == b"lite-bytes"
+
+
+@pytest.mark.asyncio
+@pytest.mark.timeout(180)
+async def test_real_light_copy_of_a_4_3_dvd_rip_meets_the_level_floor(tmp_path):
+    # Owner, 2026-10-18 (O-100): a 640x480 25 fps XviD film. x264 picked level 2.1 for the
+    # 480x360 copy and the Companion's own check (floor 3.0) refused the copy it had just made.
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        pytest.skip("Companion FFmpeg runtime is not installed")
+    source = tmp_path / "dvdrip.avi"
+    subprocess.run([
+        "ffmpeg", "-y", "-v", "error",
+        "-f", "lavfi", "-i", "testsrc2=size=640x480:rate=25",
+        "-f", "lavfi", "-i", "sine=frequency=220:sample_rate=44100",
+        "-t", "3", "-c:v", "mpeg4", "-vtag", "XVID", "-c:a", "libmp3lame", str(source),
+    ], check=True)
+    report = await probe_media(source)
+    lite_plan = report["lite_plan"]
+    assert lite_plan["height"] == 360
+    output = tmp_path / "output.partial.mp4"
+
+    async def progress(_value):
+        return None
+
+    await prepare_media(source, output, "lite_transcode", asyncio.Event(), progress, plan=lite_plan)
+    after = await probe_media(output)
+    assert after["outcome"] == READY, after.get("reason")
+    assert after["codec_summary"]["declared_level"] >= after["codec_summary"]["required_level"]

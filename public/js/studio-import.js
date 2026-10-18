@@ -3266,6 +3266,7 @@
       p.kind === "captions" && p.method === "container-subtitle-track");
     var exportOcrButton = $("v3ImportExportOcrBtn");
     if (exportOcrButton) exportOcrButton.hidden = !(Array.isArray(p.pages) && p.pages.length && (p.kind === "pdf" || p.kind === "image"));
+    renderCaptionsMedia();
     if ((p.kind === "pdf" || p.kind === "image") && writeOcrDraft(window.localStorage, p, p.text, Date.now())) {
       refreshOcrDraftUi();
     }
@@ -3602,6 +3603,7 @@
     // leaving the Video tab (T2-fix) — leaving the player live would keep a YouTube iframe (and
     // possibly playing audio) mounted indefinitely.
     teardownVideo();
+    resetCaptionsMedia();
     pendingCaptions = null;
     if (wasOpen) {
       restoreImportBackground();
@@ -3768,6 +3770,8 @@
       if (!saved.ok && !transcriptOnly) window.v3SessionMediaBlob = pendingAudio.file;
       if (editedAway) toast("studio.import.audioTimingDropped", "warning");
     }
+    // O-096: media chosen for these subtitles must be final before the package fixes its hash.
+    if (pending.kind === "captions" && !(await settleCaptionsMedia())) { setStatus(null); return false; }
     var captionsMetaForImport = null;
     if (pending.kind === "captions" && pendingCaptions && pendingCaptions.parsed) {
       var cl = text.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
@@ -3790,6 +3794,8 @@
                     source_encoding: pendingCaptions.decoding ? pendingCaptions.decoding.encoding : undefined,
                     source_encoding_detected_by: pendingCaptions.decoding ? pendingCaptions.decoding.detected_by : undefined,
                     visual_punctuation_lines: pendingCaptions.decoding ? pendingCaptions.decoding.visualPunctuationLines : undefined,
+                    // O-096: how the media chosen for this file was prepared and checked.
+                    media_attachment: pendingCaptions.mediaAttachment || undefined,
                     audio_stream_index: pendingCaptions.audioStreamIndex },
         video: pendingCaptions.video || undefined,
         // S4c: субтитры из контейнера приходят вместе с локальным видео — без media паспорт
@@ -4298,6 +4304,11 @@
       text: parsed.segments.map(function (s) { return s.text; }).join("\n"),
     });
     renderCaptionsEncoding();
+    // Media already chosen stays (a conversion is expensive), but is checked against these cues.
+    if (captionsMedia && captionsMedia.media && window.SubtitleMediaAttach) {
+      captionsMedia.check = window.SubtitleMediaAttach.durationCheck(parsed.segments, captionsMedia.media.durationSec);
+    }
+    renderCaptionsMedia();
   }
 
   // O-095: the file's code page is named next to its source, and another one can be chosen
@@ -4339,6 +4350,177 @@
       bytes: bytes, encoding: decoded.encoding, detected_by: decoded.detected_by,
       visualPunctuationLines: parsed.visualPunctuationLines || 0,
     });
+  }
+
+  // ── O-096: media for a material built from a subtitle file ────────────────────────────────
+  // {kind:"local"|"youtube", state:"preparing"|"ready"|"failed", promise, media, video, check,
+  //  error, abort, fileName}. Chosen while the subtitles are on screen; useText() waits for it.
+  var captionsMedia = null;
+
+  function captionsMediaEligible() {
+    return !!(pending && pending.kind === "captions" && pendingCaptions && pendingCaptions.parsed &&
+      (pendingCaptions.origin === "file" || pendingCaptions.origin === "paste") &&
+      // A video mounted in the Video tab already belongs to these captions.
+      !(pendingCaptions.video && !captionsMedia));
+  }
+
+  function setCaptionsMediaStatus(text, state) {
+    var node = $("v3ImportCaptionsMediaStatus");
+    if (!node) return;
+    node.textContent = text || "";
+    node.dataset.state = state || "";
+  }
+
+  function captionsMediaCheckText(check) {
+    if (!check || check.status !== "subtitles_outrun_media") return "";
+    return " " + tr("studio.import.captionsMediaOutrun", { subs: clockOf(check.subtitle_end_sec), media: clockOf(check.media_sec) });
+  }
+
+  function renderCaptionsMedia() {
+    var host = $("v3ImportCaptionsMedia");
+    if (!host) return;
+    host.hidden = !captionsMediaEligible();
+    if (host.hidden) return;
+    var busy = !!(captionsMedia && captionsMedia.state === "preparing");
+    ["v3ImportCaptionsMediaLocal", "v3ImportCaptionsMediaYt", "v3ImportCaptionsMediaUrl", "v3ImportCaptionsMediaLite"].forEach(function (id) {
+      var node = $(id); if (node) node.disabled = busy;
+    });
+    var remove = $("v3ImportCaptionsMediaRemove");
+    if (remove) {
+      remove.hidden = !captionsMedia;
+      remove.textContent = tr(busy ? "studio.import.captionsMediaCancel" : "studio.import.captionsMediaRemove");
+    }
+    if (!busy) { var bar = $("v3ImportCaptionsMediaProgress"); if (bar) bar.hidden = true; }
+    if (!captionsMedia) { setCaptionsMediaStatus(tr("studio.import.captionsMediaNone")); return; }
+    if (captionsMedia.state === "failed") {
+      setCaptionsMediaStatus(tr("studio.import.captionsMediaFailed", { name: captionsMedia.fileName || "",
+        code: (captionsMedia.error || "MEDIA_FAILED") + (captionsMedia.errorDetail ? " · " + captionsMedia.errorDetail : "") }), "error");
+    } else if (captionsMedia.state === "ready" && captionsMedia.kind === "youtube") {
+      setCaptionsMediaStatus(tr("studio.import.captionsMediaYtReady", { id: captionsMedia.video.videoId }));
+    } else if (captionsMedia.state === "ready") {
+      var m = captionsMedia.media;
+      var outrun = captionsMedia.check && captionsMedia.check.status === "subtitles_outrun_media";
+      setCaptionsMediaStatus(tr("studio.import.captionsMediaReady", {
+        name: captionsMedia.fileName, size: window.MediaReadiness.humanBytes(m.sizeBytes),
+        duration: m.durationSec ? clockOf(m.durationSec) : "?",
+      }) + (m.renditions ? " " + tr("studio.import.captionsMediaLiteMade") : "")
+        + (m.lite_error ? " " + tr("studio.import.captionsMediaLiteFailed", { code: m.lite_error.code + (m.lite_error.detail ? " · " + m.lite_error.detail : "") }) : "")
+        + (m.audio ? " " + tr("studio.import.captionsMediaAudioPicked", { language: languageName(m.audio.language) }) : "")
+        + captionsMediaCheckText(captionsMedia.check), outrun ? "warn" : "");
+    }
+  }
+
+  var CAPTIONS_MEDIA_STEPS = { upload: 0.1, probe: 0.15, video: 0.75, store: 0.95, lite: 1 };
+  function captionsMediaProgress(step, p) {
+    if (!captionsMedia || captionsMedia.state !== "preparing") return;
+    var bar = $("v3ImportCaptionsMediaProgress");
+    var keys = Object.keys(CAPTIONS_MEDIA_STEPS), at = keys.indexOf(step);
+    var from = at > 0 ? CAPTIONS_MEDIA_STEPS[keys[at - 1]] : 0, to = CAPTIONS_MEDIA_STEPS[step] || 1;
+    var share = p && Number(p.total) > 0 ? Math.max(0, Math.min(1, Number(p.done) / Number(p.total))) : 0;
+    if (bar) { bar.hidden = false; bar.value = Math.round((from + (to - from) * share) * 100); }
+    setCaptionsMediaStatus(tr("studio.import.captionsMediaStep_" + step, { name: captionsMedia.fileName }));
+  }
+
+  function resetCaptionsMedia() {
+    if (captionsMedia && captionsMedia.abort) { try { captionsMedia.abort.abort(); } catch (_) {} }
+    if (captionsMedia && pendingCaptions) {
+      if (captionsMedia.kind === "youtube") delete pendingCaptions.video;
+      delete pendingCaptions.media;
+    }
+    captionsMedia = null;
+  }
+
+  function onCaptionsMediaChosen(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    if (!file || !captionsMediaEligible()) return;
+    resetCaptionsMedia();
+    var A = window.SubtitleMediaAttach;
+    var video = A.isVideoFile(file);
+    if (video && !window.LocalAsrClient.getPairingToken()) {
+      captionsMedia = { kind: "local", state: "failed", fileName: file.name, error: "COMPANION_REQUIRED" };
+      renderCaptionsMedia();
+      setCaptionsMediaStatus(tr("studio.import.captionsMediaNeedsCompanion"), "error");
+      return;
+    }
+    if (video) localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
+    var entry = { kind: "local", state: "preparing", fileName: file.name,
+      abort: typeof AbortController === "function" ? new AbortController() : null };
+    captionsMedia = entry;
+    renderCaptionsMedia();
+    entry.promise = A.prepareLocalMedia({
+      file: file, client: video ? localAsrClient : null, importer: window.SubtitleMaterialImport,
+      readiness: window.MediaReadiness, store: window.MediaStore,
+      lite: !!($("v3ImportCaptionsMediaLite") && $("v3ImportCaptionsMediaLite").checked),
+      signal: entry.abort ? entry.abort.signal : undefined,
+      sha256: async function (buffer) {
+        var digest = await crypto.subtle.digest("SHA-256", buffer);
+        return Array.from(new Uint8Array(digest)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      },
+      probeDuration: probeAudioDuration,
+      onStep: captionsMediaProgress,
+    }).then(function (media) {
+      if (captionsMedia !== entry) return;
+      entry.state = "ready";
+      entry.media = media;
+      entry.check = A.durationCheck(pendingCaptions && pendingCaptions.parsed && pendingCaptions.parsed.segments, media.durationSec);
+      renderCaptionsMedia();
+    }, function (error) {
+      if (captionsMedia !== entry) return;
+      entry.state = "failed";
+      entry.error = (error && (error.code || error.message)) || "MEDIA_FAILED";
+      entry.errorDetail = error && error.detail || null;
+      renderCaptionsMedia();
+    });
+  }
+
+  function attachCaptionsYoutube() {
+    if (!captionsMediaEligible()) return;
+    var field = $("v3ImportCaptionsMediaUrl"), url = String(field && field.value || "").trim();
+    var videoId = window.StudioYtPlayer && window.StudioYtPlayer.parseVideoId(url);
+    if (!videoId || !VIDEO_ID_RE.test(videoId)) {
+      setCaptionsMediaStatus(tr("studio.import.captionsMediaYtInvalid"), "error");
+      return;
+    }
+    resetCaptionsMedia();
+    // The person states which video these subtitles belong to; the passport says so.
+    captionsMedia = { kind: "youtube", state: "ready",
+      video: { platform: "youtube", videoId: videoId, url: "https://www.youtube.com/watch?v=" + videoId, binding: "owner-asserted" } };
+    renderCaptionsMedia();
+  }
+
+  function detachCaptionsMedia() {
+    resetCaptionsMedia();
+    renderCaptionsMedia();
+  }
+
+  // Called by useText() for a captions import: waits for a preparation still running and puts
+  // the chosen media into the passport. false = the person chose not to continue.
+  async function settleCaptionsMedia() {
+    var entry = captionsMedia;
+    if (!entry || !pendingCaptions || (pendingCaptions.origin !== "file" && pendingCaptions.origin !== "paste")) return true;
+    if (entry.state === "preparing") {
+      setStatus("studio.import.captionsMediaWaiting");
+      try { await entry.promise; } catch (_) {}
+      if (captionsMedia !== entry) return false;
+    }
+    if (entry.state === "failed") {
+      return window.confirm(tr("studio.import.captionsMediaFailedConfirm", { code: entry.error || "MEDIA_FAILED" }));
+    }
+    if (entry.check && entry.check.status === "subtitles_outrun_media" &&
+        !window.confirm(tr("studio.import.captionsMediaOutrunConfirm", { subs: clockOf(entry.check.subtitle_end_sec), media: clockOf(entry.check.media_sec) }))) {
+      return false;
+    }
+    if (entry.kind === "youtube") pendingCaptions.video = entry.video;
+    else {
+      var m = entry.media;
+      pendingCaptions.media = { opfsPath: m.opfsPath, sha256: m.sha256, mime: m.mime, sizeBytes: m.sizeBytes,
+        durationSec: m.durationSec, originalName: m.originalName, compatibility: m.compatibility, renditions: m.renditions };
+      pendingCaptions.mediaAttachment = { v: 1, method: m.compatibility ? "companion-prepared" : "stored-as-is",
+        source_sha256: m.source_sha256 || null, audio_stream: m.audio || null, duration_check: entry.check || null,
+        lite: m.renditions ? "made" : (m.lite_error ? { failed: m.lite_error } : (m.lite_requested ? "unavailable" : "not_requested")) };
+    }
+    return true;
   }
 
   function redecodeCaptions(encoding) {
@@ -4451,6 +4633,8 @@
                            buildSubtitleMaterial: buildSubtitleMaterial,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
+                           onCaptionsMediaChosen: onCaptionsMediaChosen, attachCaptionsYoutube: attachCaptionsYoutube,
+                           detachCaptionsMedia: detachCaptionsMedia,
                            exportOcrEvidence: exportOcrEvidence,
                            restoreOcrDraft: restoreOcrDraft, clearOcrDraft: clearOcrDraft,
                            acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,
