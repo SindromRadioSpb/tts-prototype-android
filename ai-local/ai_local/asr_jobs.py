@@ -147,6 +147,7 @@ def _runtime_provenance(ffmpeg: str) -> dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=5,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         rows = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
         if len(rows) == 1:

@@ -108,7 +108,7 @@ def _probe_nvenc() -> bool:
             ["ffmpeg", "-hide_banner", "-v", "error", "-f", "lavfi",
              "-i", "color=c=black:s=320x240:d=0.1", "-c:v", "h264_nvenc",
              "-frames:v", "1", "-f", "null", "-"],
-            capture_output=True, timeout=30,
+            capture_output=True, timeout=30, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         _NVENC_PROBE_CACHE = proc.returncode == 0
     except Exception:

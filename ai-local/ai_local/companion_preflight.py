@@ -48,7 +48,10 @@ def _result(code: str, ok: bool, observed: Any, required: Any = None) -> dict[st
 
 
 def _run(args: list[str], timeout: int = 8) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(args, check=True, capture_output=True, text=True, timeout=timeout)
+    # The Companion window may run without a console of its own; a console child would then
+    # flash a terminal window on every status poll (owner report 2026-10-18).
+    return subprocess.run(args, check=True, capture_output=True, text=True, timeout=timeout,
+                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
 
 def _windows_check() -> dict[str, Any]:

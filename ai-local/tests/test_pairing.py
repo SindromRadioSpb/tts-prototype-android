@@ -106,3 +106,39 @@ def test_routes_require_an_allowed_origin_and_carry_no_token(client):
     # The token it carries really opens the protected API.
     caps = client.get("/v1/capabilities", headers={"Origin": STUDIO, "Authorization": "Bearer " + approved["token"]})
     assert caps.status_code == 200
+
+
+def test_no_console_child_can_flash_a_terminal_window():
+    """Owner report 2026-10-18: a window opened by the service had no console, and every
+    nvidia-smi/ffmpeg poll flashed a terminal. Every console child must ask for no window."""
+    import ast
+    import pathlib
+
+    root = pathlib.Path(__file__).resolve().parents[1] / "ai_local"
+    offenders = []
+    for path in root.glob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) \
+                    and node.func.attr in ("run", "Popen") and getattr(node.func.value, "id", "") == "subprocess":
+                if not any(k.arg == "creationflags" for k in node.keywords):
+                    first = node.args[0] if node.args else None
+                    if isinstance(first, ast.List) and first.elts and getattr(first.elts[0], "value", "") == "notepad.exe":
+                        continue  # a GUI program, it is meant to open a window
+                    offenders.append(f"{path.name}:{node.lineno}")
+    assert offenders == []
+
+
+def test_service_opens_the_window_like_the_start_menu(monkeypatch):
+    import subprocess
+    import sys
+
+    calls = []
+    monkeypatch.setattr(pairing, "window_alive", lambda now=None: False)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(subprocess, "Popen", lambda args, **kw: calls.append((args, kw)))
+    assert pairing.open_window() is True
+    args, kw = calls[0]
+    if pairing.os.name == "nt":
+        assert args[0] == "explorer.exe"
+    assert not (kw.get("creationflags", 0) & getattr(subprocess, "DETACHED_PROCESS", 0x8))

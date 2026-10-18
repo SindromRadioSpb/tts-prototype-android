@@ -190,12 +190,14 @@ def open_window() -> bool:
 
     if window_alive() or not getattr(sys, "frozen", False):
         return window_alive()
-    flags = 0
-    if os.name == "nt":
-        flags = subprocess.DETACHED_PROCESS | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    # Through explorer.exe, exactly like the Start menu: the window then hides its own console
+    # and its nvidia-smi/ffmpeg children inherit it. Started as a detached child of the service
+    # it had no console at all, and every status poll flashed a terminal window (2026-10-18).
+    args = ["explorer.exe", sys.executable] if os.name == "nt" else [sys.executable]
     try:
-        subprocess.Popen([sys.executable], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                         stderr=subprocess.DEVNULL, close_fds=True, creationflags=flags)
+        subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, close_fds=True,
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         return True
     except OSError:
         return False

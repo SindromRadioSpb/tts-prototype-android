@@ -115,6 +115,7 @@ def probe_source(path: Path, selected_stream_index: int | None = None) -> Source
         capture_output=True,
         text=True,
         timeout=30,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     try:
         payload = json.loads(completed.stdout)
@@ -155,7 +156,8 @@ def probe_source(path: Path, selected_stream_index: int | None = None) -> Source
 
 def ffmpeg_version() -> str:
     completed = subprocess.run(
-        ["ffmpeg", "-version"], check=True, capture_output=True, text=True, timeout=10
+        ["ffmpeg", "-version"], check=True, capture_output=True, text=True, timeout=10,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     first = completed.stdout.splitlines()[0] if completed.stdout else ""
     parts = first.split()

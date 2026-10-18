@@ -68,6 +68,7 @@ def sample_nvidia() -> GpuSample:
         capture_output=True,
         text=True,
         timeout=5,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
     )
     rows = list(csv.reader(io.StringIO(completed.stdout)))
     if len(rows) != 1 or len(rows[0]) != 6:
