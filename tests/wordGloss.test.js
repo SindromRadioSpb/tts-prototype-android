@@ -95,8 +95,11 @@ test('guessed (meaning-fallback) readings are not shown under a word', () => {
 });
 
 test('closed-class glosses keep their grammatical note and a stripped proclitic', () => {
+  // O-104: the vowels pick the word; without vowels the curated note stays whole.
   const et = WG.composeGloss({ label: 'function', meaning: '(винит. падеж); ты (ж.р.)', functionWord: true, gateVia: 'flat' }, 'אֶת');
-  assert.equal(et.text, '(винит. падеж); ты (ж.р.)');
+  assert.equal(et.text, '(винит. падеж)');
+  const bare = WG.composeGloss({ label: 'function', meaning: '(винит. падеж); ты (ж.р.)', functionWord: true, gateVia: 'flat' }, 'את');
+  assert.equal(bare.text, '(винит. падеж); ты (ж.р.)');
   const vehi = WG.composeGloss({ label: 'function', meaning: 'она', functionWord: true, gateVia: 'proclitic', word: 'והיא' }, 'וְהִיא');
   assert.equal(vehi.text, 'и + она');
   const sheze = WG.composeGloss({ label: 'function', meaning: 'это, этот', functionWord: true, gateVia: 'proclitic' }, 'שֶׁזֶּה');

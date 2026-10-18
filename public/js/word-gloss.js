@@ -200,6 +200,81 @@
   // ── compose the learner-facing gloss from a resolved card (ReaderMorph.resolveCore payload) ──
   // → { prefix, meaning, hint, label, form, text } ; text = one line for the ribbon / tooltip;
   // form = true when `meaning` is the translation of THIS form («она писала»), not of the lemma.
+  // ── O-104: a closed-class word whose consonants hide several words; the vowels already in the
+  // row decide which one it is («אֶת» object marker vs «אַתְּ» you-f., «אַל» don't vs «אֶל» to).
+  // Only the gloss under the word changes: the resolver, the tap card and the word keys do not.
+  var VOCALIZED_FUNCTION_SRC = {
+    "אֶת": "(винит. падеж)", "אֵת": "(винит. падеж)", "אַתְּ": "ты (ж.р.)", "אַת": "ты (ж.р.)",
+    "אֶל": "к", "אַל": "не (запрет)",
+    "לָכֵן": "поэтому", "לָכֶן": "вам (ж.)",
+    "לוֹ": "ему", "לוּ": "если бы",
+    "עִם": "с", "עַם": "народ",
+    "אִם": "если", "אֵם": "мать",
+    "שָׁם": "там", "שֵׁם": "имя",
+    "עַד": "до", "עֵד": "свидетель",
+    "הַיְינוּ": "то есть, а именно", "הָיִינוּ": "мы были",
+    "הֲרֵי": "ведь, вот", "הָרֵי": "горы (сопряж.)",
+    "מִי": "кто", "מֵי": "воды (сопряж.)",
+    "לְךָ": "тебе (м.)", "לָךְ": "тебе (ж.)",
+    "אוֹתְךָ": "тебя (м.)", "אוֹתָךְ": "тебя (ж.)",
+    "שֶׁלְּךָ": "твой (м.)", "שֶׁלָּךְ": "твой (ж.)",
+    "עָלֶיךָ": "на тебя (м.)", "עָלַיִךְ": "на тебя (ж.)",
+    "אֵלֶיךָ": "к тебе (м.)", "אֵלַיִךְ": "к тебе (ж.)",
+    "מִמְּךָ": "от тебя (м.)", "מִמֵּךְ": "от тебя (ж.)",
+    "כָּמוֹךָ": "как ты (м.)", "כְּמוֹךָ": "как ты (м.)", "כָּמוֹךְ": "как ты (ж.)",
+  };
+  var _vocalizedFunction = null;
+  function vocalizedFunctionTable() {
+    if (_vocalizedFunction) return _vocalizedFunction;
+    _vocalizedFunction = new Map();
+    Object.keys(VOCALIZED_FUNCTION_SRC).forEach(function (k) { _vocalizedFunction.set(formKey(k), VOCALIZED_FUNCTION_SRC[k]); });
+    return _vocalizedFunction;
+  }
+  // The proclitic the gate split off (וְ, שֶׁ, …) is not part of the closed-class word itself.
+  function functionCore(card, niqqud) {
+    var cl = clusters(String(niqqud || "").normalize("NFC")), drop = 0;
+    if (card.procliticPrefix) drop = stripNiqqud(card.procliticPrefix).length;
+    else if (card.gateVia === "proclitic") drop = 1;
+    return cl.slice(Math.min(drop, Math.max(0, cl.length - 1))).join("");
+  }
+  function vocalizedFunctionGloss(card, niqqud) {
+    if (!niqqud || !/[ְ-ׇ]/.test(niqqud)) return null;
+    return vocalizedFunctionTable().get(formKey(functionCore(card, niqqud))) || null;
+  }
+
+  // ── O-106: an undecided reading («likely») is shown with «≈» only in classes where it held on
+  // the owner's AI-glossed text (Professor Moshe Sharon, 6046 words, AI gloss as the oracle):
+  // the base form of an adjective, a bare singular/plural noun, an active participle without the
+  // article, or a reading Dicta confirmed. Finite verbs and passive participles stay silent —
+  // there the lemma meaning was the wrong word (רָצוּ «хотели» → «бежать»).
+  var ADJ_BASE_RE = /^[mf][sp]-a$/, NOUN_BASE_RE = /^[sp]$/, ACTIVE_PART_RE = /^AP-[mf][sp]$/;
+  function hasArticle(prefix, niqqud) {
+    var pre = String(prefix || "");
+    if (!pre) return false;
+    if (pre.charAt(pre.length - 1) === "ה") return true;
+    var cl = clusters(String(niqqud || "").normalize("NFC")), last = cl[pre.length - 1] || "";
+    return /^[בלכ]/.test(last) && /[ַָ]/.test(last);   // בַּ / לַ / כַּ = preposition + article
+  }
+  function likelyShowable(card, m, niqqud) {
+    if (!card || !m || /[A-Za-z]/.test(String(card.meaning || ""))) return false;
+    var via = String(card.identityVia || "");
+    if (via === "dicta-confirmed" || via === "dicta-pealim") return true;
+    var slots = m.slots || [];
+    if (!slots.length) return false;
+    if (card.pos === "adjective") return slots.every(function (x) { return ADJ_BASE_RE.test(x); });
+    if (card.pos === "noun") return slots.every(function (x) { return NOUN_BASE_RE.test(x); });
+    // Only conjunction proclitics (ו, ש, כש…) may stand before a participle read as a verb: after a
+    // preposition it is a noun or an adverb (בְּנוֹסָף «вдобавок», not «в + быть добавленным»).
+    if (card.pos === "verb") return slots.every(function (x) { return ACTIVE_PART_RE.test(x); }) && !hasArticle(m.prefix, niqqud) &&
+      (!m.prefix || CONJ_PREFIX_RE.test(m.prefix));
+    return false;
+  }
+  // ── O-107: a participle WITH the article is a noun («הַנּוֹצְרִים» = Christians, not «охраняют»):
+  // a «likely» verb form there is the wrong word, so the line under it stays empty.
+  function articleParticiple(m, niqqud) {
+    return !!(m && m.slots && m.slots.length && m.slots.every(function (x) { return /^(?:passive-)?AP-/.test(x); }) && hasArticle(m.prefix, niqqud));
+  }
+
   function isPronounSet(p) { var c = (p && p.cells) || {}; return !!(c["1s"] && c["3ms"] && !c.s && !c["P-1s"]); }
   // `guessed` (a meaning-fallback guess) is NOT shown under a word: on the Ф1 sample it produced
   // שֶׁיֵּשׁ → «радоваться», בְּבָתֵּי → «кукла». The tap card still shows it with its own badge.
@@ -208,12 +283,12 @@
     if (!card) return null;
     // Step 1: a proper name is honest information, not a gap («?» told the learner nothing).
     if (card.gateVia === "name" || (card.pos === "propernoun" && !card.meaning)) {
-      var nm = t("wordGloss.name", "имя, название");
+      var nm = t("wordGloss.nameMark", "(имя)");
       return { prefix: "", joiner: " + ", meaning: nm, hint: "", label: "name", form: false, text: nm };
     }
     var label = card.label || "unknown";
     // curated closed-class glosses are already short and their notes matter: «(винит. падеж); ты (ж.р.)»
-    var meaning = card.functionWord ? clip(card.meaning, GLOSS_MAX + 6) : shortGloss(card.meaning);
+    var meaning = card.functionWord ? clip(vocalizedFunctionGloss(card, niqqud || card.niqqud) || card.meaning, GLOSS_MAX + 6) : shortGloss(card.meaning);
     if (!meaning || !SHOWN_LABELS[label]) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
     var prefix = "", hint = "", form = null, joiner = " + ";
     if (!card.functionWord && card.paradigm) {
@@ -234,7 +309,13 @@
         // An undecided homograph (label «likely») that ALSO claims a concrete form was wrong in 20
         // of 40 sampled cases (שׁוֹנֶה → «повторять», אַחֵר → «опоздать»). Under the word we stay silent;
         // the tap card keeps the reading with its own «вероятно» badge and alternatives.
-        if (label === "likely" && !card.canon) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
+        if (label === "likely" && !card.canon) {
+          if (!likelyShowable(card, m, niqqud || card.niqqud)) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
+          prefix = prefixGloss(m.prefix);
+          var shownLemma = "≈" + meaning, headLemma = prefix ? prefix + joiner + shownLemma : shownLemma;
+          return { prefix: prefix, joiner: joiner, meaning: shownLemma, hint: "", label: label, form: false, text: headLemma };
+        }
+        if (label === "likely" && articleParticiple(m, niqqud || card.niqqud)) return { prefix: "", joiner: " + ", meaning: "", hint: "", label: "unknown", form: false, text: "" };
         prefix = prefixGloss(m.prefix); hint = slotsHint(m.slots);
         form = cellForms(card.paradigm, m.slots);
         if (form) {
@@ -255,6 +336,7 @@
   var CORE = {
     stripNiqqud: stripNiqqud, normVowels: normVowels, shortGloss: shortGloss, prefixGloss: prefixGloss,
     matchCell: matchCell, slotHint: slotHint, slotsHint: slotsHint, cellForms: cellForms, composeGloss: composeGloss, GLOSS_MAX: GLOSS_MAX,
+    vocalizedFunctionGloss: vocalizedFunctionGloss, likelyShowable: likelyShowable, articleParticiple: articleParticiple,
   };
 
   if (typeof window === "undefined" || typeof document === "undefined") {

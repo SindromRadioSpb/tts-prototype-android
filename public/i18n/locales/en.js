@@ -2849,6 +2849,7 @@ window.I18N_LOCALES.en = {
     result: "Lines translated in context: {d}. Failed: {f} — the dictionary translation is shown for them.",
   },
   wordGloss: {
+    nameMark: "(name)",
     prefix: { v: "and", sh: "that", ksh: "when", msh: "since", b: "in", l: "to", k: "as", m: "from" },
     tense: { past: "past", future: "fut.", imperative: "imper.", present: "pres.", passive: "pass." },
     plural: "pl.", unknown: "no data", name: "name",

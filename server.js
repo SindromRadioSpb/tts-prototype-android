@@ -1355,7 +1355,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/key-alias-core.js?v=771",
   "/js/reader-morph.js?v=782",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=746",
+  "/js/word-gloss.js?v=798",
   "/js/word-gloss-ai.js?v=747",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
@@ -1394,9 +1394,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=797",
-  "/i18n/locales/en.js?v=797",
-  "/i18n/locales/he.js?v=797",
+  "/i18n/locales/ru.js?v=798",
+  "/i18n/locales/en.js?v=798",
+  "/i18n/locales/he.js?v=798",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

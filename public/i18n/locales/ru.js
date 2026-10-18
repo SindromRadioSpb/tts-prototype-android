@@ -2863,6 +2863,7 @@ window.I18N_LOCALES.ru = {
     result: "Переведено в контексте строк: {d}. Не удалось: {f} — для них показан словарный перевод.",
   },
   wordGloss: {
+    nameMark: "(имя)",
     prefix: { v: "и", sh: "что", ksh: "когда", msh: "с тех пор как", b: "в", l: "к", k: "как", m: "из" },
     tense: { past: "прош.", future: "буд.", imperative: "повел.", present: "наст.", passive: "страд." },
     plural: "мн.", unknown: "нет данных", name: "имя, название",

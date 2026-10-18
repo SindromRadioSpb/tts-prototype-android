@@ -2859,6 +2859,7 @@ window.I18N_LOCALES.he = {
     result: "שורות שתורגמו בהקשר: {d}. נכשלו: {f} — עבורן מוצג תרגום מהמילון.",
   },
   wordGloss: {
+    nameMark: "(שם)",
     prefix: { v: "ו־", sh: "ש־", ksh: "כש־", msh: "מש־", b: "ב־", l: "ל־", k: "כ־", m: "מ־" },
     tense: { past: "עבר", future: "עתיד", imperative: "ציווי", present: "הווה", passive: "סביל" },
     plural: "רבים", unknown: "אין נתונים", name: "שם",
