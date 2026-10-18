@@ -424,31 +424,45 @@ class MediaJobManager:
         self._settle(job_id, manifest)
         return self.get(job_id)
 
-    async def assess_subtitle_sync(self, job_id: str, stream_index: int, subtitle_sha256: str,
-                                   cue_starts: list[float]) -> dict[str, Any]:
+    async def assess_subtitle_sync(self, job_id: str, stream_index: int | None, subtitle_sha256: str,
+                                   cue_starts: list[float], subtitle_source: str = "container") -> dict[str, Any]:
         async with self._capacity:
             manifest = self.get(job_id)
             if manifest["state"] not in {"WAITING_FOR_DECISION", "COMPLETE"}:
                 raise MediaJobConflict("media job is not ready for subtitle verification")
-            _, track = self.subtitle_file(job_id, stream_index)
-            if track["sha256"] != subtitle_sha256:
-                raise MediaJobConflict("subtitle verification source changed")
+            # O-099: a separate subtitle file never passed through this job; its identity is the
+            # browser's hash of the file, echoed back so the browser can bind the result to it.
+            external = subtitle_source == "external"
+            if external:
+                if stream_index is not None:
+                    raise MediaJobConflict("a separate subtitle file has no stream index")
+            else:
+                if stream_index is None:
+                    raise MediaJobConflict("a container subtitle track needs its stream index")
+                _, track = self.subtitle_file(job_id, stream_index)
+                if track["sha256"] != subtitle_sha256:
+                    raise MediaJobConflict("subtitle verification source changed")
             report = manifest.get("report") or {}
             audio = report.get("source_audio_selection", report.get("audio_selection")) or {}
             duration = float(report.get("source_duration_seconds", report.get("duration_seconds")) or 0)
             if not isinstance(audio.get("index"), int) or not math.isfinite(duration) or duration <= 0:
                 raise MediaJobConflict("selected audio is unavailable")
-            if len(cue_starts) > 20000 or any(not math.isfinite(t) or t < 0 or t >= duration for t in cue_starts):
+            # A file made for a slower frame rate may run past the end before it is stretched.
+            limit = duration * (1.06 if external else 1.0)
+            if len(cue_starts) > 20000 or any(not math.isfinite(t) or t < 0 or t >= limit for t in cue_starts):
                 raise MediaJobConflict("invalid subtitle verification intervals")
             inputs = {"method": "silero-onset-grid-v1", "source_sha256": manifest["source_sha256"], "audio_stream_index": audio["index"],
                       "subtitle_sha256": subtitle_sha256, "cue_starts": sorted(set(cue_starts))}
+            if external:
+                inputs["subtitle_source"] = "external"
             key = hashlib.sha256(json.dumps(inputs, sort_keys=True).encode()).hexdigest()
             previous = manifest.get("subtitle_sync") or {}
             if previous.get("input_sha256") == key:
                 return previous
             try:
+                extra = {"subtitle_source": "external"} if external else {}
                 assessment = await asyncio.to_thread(self.subtitle_sync_fn, self._dir(job_id)/"source.media",
-                                                     audio["index"], inputs["cue_starts"], duration)
+                                                     audio["index"], inputs["cue_starts"], duration, **extra)
             except Exception as exc:
                 assessment = {"schema": "subtitle-speech-sync-v1", "status": "unverified", "apply_offset_ms": 0,
                               "reason": "local_speech_analysis_unavailable", "error_type": type(exc).__name__}
@@ -458,7 +472,8 @@ class MediaJobManager:
             if current_audio != audio or current["state"] != manifest["state"]:
                 raise MediaJobConflict("media selection changed during subtitle verification")
             assessment.update(input_sha256=key, source_sha256=inputs["source_sha256"],
-                              audio_stream_index=audio["index"], subtitle_sha256=subtitle_sha256)
+                              audio_stream_index=audio["index"], subtitle_sha256=subtitle_sha256,
+                              subtitle_source="external" if external else "container")
             # A missing local runtime may be repaired; do not durably cache its failure.
             if assessment.get("reason") != "local_speech_analysis_unavailable":
                 current["subtitle_sync"] = assessment

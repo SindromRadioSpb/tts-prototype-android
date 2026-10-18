@@ -132,3 +132,38 @@ async def test_media_queue_is_bounded_to_one_active_plus_one_waiting(tmp_path):
     release.set()
     await manager.wait(first["job_id"])
     await manager.wait(second["job_id"])
+
+
+@pytest.mark.asyncio
+async def test_a_separate_subtitle_file_is_assessed_by_its_own_hash(tmp_path):
+    # O-099: the file never passed through the job; the browser's hash is echoed back, the
+    # stretch search is asked for, and container rules (stream index) do not apply.
+    calls = []
+    file_digest = hashlib.sha256(b"external.srt").hexdigest()
+
+    async def probe(_path):
+        return {"outcome": "LOSSLESS_REPAIR", "plan": {"mode": "lossless_repair"},
+                "plan_sha256": "a"*64, "duration_seconds": 2000,
+                "audio_selection": {"index": 1, "language": "he"}, "probe": {"subtitle_streams": []}}
+
+    async def extract(_source, _streams, directory, _cancel):
+        directory.mkdir(parents=True, exist_ok=True)
+        return []
+
+    def assess(source, audio, cues, duration, subtitle_source="container"):
+        calls.append((audio, cues, subtitle_source))
+        return {"status": "correctable", "apply_offset_ms": 0, "apply_scale": 25 / 23.976}
+
+    manager = MediaJobManager(tmp_path, probe_fn=probe, extract_fn=extract, subtitle_sync_fn=assess)
+    job = await manager.create(chunks(b"video"), filename="film.avi", content_type="video/x-msvideo")
+    await manager.wait(job["job_id"])
+    # A slower-rate file may run past the end before it is stretched.
+    result = await manager.assess_subtitle_sync(job["job_id"], None, file_digest, [3, 2050], "external")
+    assert calls == [(1, [3, 2050], "external")]
+    assert result["subtitle_sha256"] == file_digest
+    assert result["subtitle_source"] == "external"
+    assert result["audio_stream_index"] == 1
+    with pytest.raises(MediaJobConflict):
+        await manager.assess_subtitle_sync(job["job_id"], 4, file_digest, [3], "external")
+    with pytest.raises(MediaJobConflict):
+        await manager.assess_subtitle_sync(job["job_id"], None, file_digest, [3])

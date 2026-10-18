@@ -80,7 +80,40 @@ def assess_windows(samples):
             "apply_offset_ms": offset}
 
 
-def assess_media(source, audio_stream_index, cue_starts, duration):
+# O-099: a subtitle file made for another release runs at another frame rate. Subtitle time t
+# then belongs at t * scale in this media: PAL speed-up (25 vs 23.976/24), NTSC 1000/1001.
+STRETCH_SCALES = tuple(sorted({a / b for a, b in (
+    (25, 23.976), (23.976, 25), (25, 24), (24, 25), (24, 23.976), (23.976, 24),
+    (30, 29.97), (29.97, 30))}))
+
+
+def assess_stretch(windows, cue_starts):
+    """Try each known frame-rate ratio on the same speech windows; adopt one only when all three
+    windows agree, exactly as a plain shift must. Returns the best evidence otherwise."""
+    starts = sorted(float(t) for t in cue_starts if isinstance(t, (int, float)) and math.isfinite(t) and t >= 0)
+    best = None
+    for scale in STRETCH_SCALES:
+        samples = [{"start": w["start"], "speech": w["speech"],
+                    "cues": [t * scale - w["start"] for t in starts if w["start"] + 5 <= t * scale <= w["start"] + 115]}
+                   for w in windows]
+        result = assess_windows(samples)
+        good = [w for w in result["windows"] if w["usable"]]
+        # Moving every row needs all three independent windows, as for a plain shift.
+        if result["status"] not in {"aligned", "correctable"} or len(good) < 3:
+            continue
+        score = statistics.mean(w["score"] for w in good)
+        if best is None or score > best[0]:
+            best = (score, scale, result)
+    if best is None:
+        return {"schema": "subtitle-speech-sync-v1", "method": "silero-onset-grid-stretch-v1", "status": "unverified",
+                "apply_offset_ms": 0, "apply_scale": 1, "reason": "no_frame_rate_match"}
+    _, scale, result = best
+    offset = result.get("estimated_offset_ms", 0)
+    return {**result, "method": "silero-onset-grid-stretch-v1", "status": "correctable", "reason": "frame_rate_stretch",
+            "apply_scale": scale, "apply_offset_ms": 0 if abs(offset) <= 300 else offset}
+
+
+def assess_media(source, audio_stream_index, cue_starts, duration, subtitle_source="container"):
     """At most three 120-second PCM windows; bundled Silero VAD runs on CPU.
 
     No Whisper model is loaded and no model download is attempted. The caller
@@ -108,4 +141,11 @@ def assess_media(source, audio_stream_index, cue_starts, duration):
             min_speech_duration_ms=150, min_silence_duration_ms=150, speech_pad_ms=0))
         samples.append({"start": start, "speech": [item["start"]/16000 for item in speech],
                         "cues": [t-start for t in starts if start+5 <= t <= start+115]})
-    return assess_windows(samples)
+    result = assess_windows(samples)
+    # A container track was cut for this very picture; only a separate file may be stretched.
+    if subtitle_source == "external" and result["status"] not in {"aligned", "correctable"} and len(samples) >= 3:
+        stretched = assess_stretch(samples, starts)
+        if stretched["status"] == "correctable":
+            return stretched
+        result["stretch_checked"] = True
+    return result

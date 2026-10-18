@@ -261,9 +261,11 @@ class MediaAudioStreamRequest(BaseModel):
 
 
 class SubtitleSyncRequest(BaseModel):
-    stream_index: int = Field(..., ge=0, le=4096)
+    # O-099: a separate subtitle file has no stream index; it says so with subtitle_source.
+    stream_index: int | None = Field(None, ge=0, le=4096)
     subtitle_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
     cue_starts: list[float] = Field(..., max_length=20000)
+    subtitle_source: str = Field("container", pattern=r"^(container|external)$")
 
 
 # ---------- endpoints ----------
@@ -385,7 +387,7 @@ async def v1_media_job_prepare(job_id: str, body: MediaPrepareRequest):
 async def v1_media_subtitle_sync(job_id: str, body: SubtitleSyncRequest):
     try:
         return await media_job_manager.assess_subtitle_sync(
-            job_id, body.stream_index, body.subtitle_sha256, body.cue_starts)
+            job_id, body.stream_index, body.subtitle_sha256, body.cue_starts, body.subtitle_source)
     except MediaJobNotFound as exc:
         raise HTTPException(status_code=404, detail="media job not found") from exc
     except MediaJobConflict as exc:
