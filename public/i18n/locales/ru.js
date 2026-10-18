@@ -4623,6 +4623,7 @@ window.I18N_LOCALES.ru = {
       captionsMediaYtLabel: "Ссылка YouTube",
       captionsMediaYtBtn: "Подключить YouTube",
       captionsMediaRemove: "Убрать медиа",
+      buildFromFiles: "Перевод таблицы — из файла «{name}», платный переводчик не нужен.",
       captionsMediaStep_sync: "Сверяю субтитры с речью в фильме…",
       captionsSyncAligned: "Субтитры совпадают с речью.",
       captionsSyncShift: "Субтитры сдвинуты на {seconds} с — время строк будет поправлено, исходный файл сохранится.",

@@ -4609,6 +4609,7 @@ window.I18N_LOCALES.en = {
       captionsMediaYtLabel: "YouTube link",
       captionsMediaYtBtn: "Attach YouTube",
       captionsMediaRemove: "Remove media",
+      buildFromFiles: "Table translation comes from the file “{name}”; no paid translator is needed.",
       captionsMediaStep_sync: "Matching the subtitles with the speech in the film…",
       captionsSyncAligned: "The subtitles match the speech.",
       captionsSyncShift: "The subtitles are shifted by {seconds} s — line times will be corrected; the original file is kept.",

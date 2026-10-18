@@ -1289,8 +1289,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/study-video-source-ui.js?v=796",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
-  "/js/learning-material-task.js?v=742",
-  "/js/learning-material-task-ui.js?v=788",
+  "/js/learning-material-task.js?v=797",
+  "/js/learning-material-task-ui.js?v=797",
   "/js/studio-yt-player.js?v=736",
   "/js/studio-media-karaoke.js?v=729",
   "/js/portable-learning-package-core.js?v=742",
@@ -1298,7 +1298,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js?v=742",
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=796",
+  "/js/studio-import.js?v=797",
   "/js/local-asr-client.js?v=796",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
@@ -1394,9 +1394,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=796",
-  "/i18n/locales/en.js?v=796",
-  "/i18n/locales/he.js?v=796",
+  "/i18n/locales/ru.js?v=797",
+  "/i18n/locales/en.js?v=797",
+  "/i18n/locales/he.js?v=797",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

@@ -13714,9 +13714,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=796"></script>
-<script src="/i18n/locales/en.js?v=796"></script>
-<script src="/i18n/locales/he.js?v=796"></script>
+<script src="/i18n/locales/ru.js?v=797"></script>
+<script src="/i18n/locales/en.js?v=797"></script>
+<script src="/i18n/locales/he.js?v=797"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13868,8 +13868,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/study-video-source-ui.js?v=796"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
-<script src="/js/learning-material-task.js?v=742"></script>
-<script src="/js/learning-material-task-ui.js?v=788"></script>
+<script src="/js/learning-material-task.js?v=797"></script>
+<script src="/js/learning-material-task-ui.js?v=797"></script>
 <script src="/js/portable-learning-package-core.js?v=742"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=780"></script>
@@ -13938,7 +13938,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=796" defer></script>
+<script src="/js/studio-import.js?v=797" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13980,7 +13980,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.796";
+    window.APP_VERSION = "3.11.797";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35267,6 +35267,18 @@ window.LearningMaterialTaskUI.configure({
         throw e;
       }
     }
+    // O-103: «Из файлов субтитров» — строки и перевод уже из файлов; этап таблицы — огласовка
+    // Компаньоном (+ Dicta по согласию из окна задачи). Платного переводчика здесь нет.
+    if(input.provider==='subtitle-files'){
+      if(!window.StudioImport||typeof window.StudioImport.vocalizeSubtitleRows!=='function')throw new Error('TASK_TABLE_INCOMPLETE');
+      document.getElementById('translitProfileSelect').value=input.translit_profile;
+      currentTableData=[];v3LastGeminiMeta=null;tableIsStale=true;
+      const voiced=await window.StudioImport.vocalizeSubtitleRows(input.subtitle_table,{translitProfile:input.translit_profile,
+        onProgress:(step,done,total)=>{try{window.dispatchEvent(new CustomEvent('table-job-progress',{detail:{kind:'vocalize',step,readyRows:done,totalRows:total,chunk:1,chunks:1}}));}catch(_){}}});
+      const applied=window.v3ApplySubtitleTable(voiced.rows);
+      if(!applied||!applied.applied||tableIsStale||!currentTableData.length)throw new Error('TASK_TABLE_INCOMPLETE');
+      return {rows:currentTableData,meta:v3LastGeminiMeta||null};
+    }
     document.getElementById('providerSelect').value=input.provider;
     document.getElementById('translitProfileSelect').value=input.translit_profile;
     if(getTableDirection()!==input.direction)throw new Error('TASK_DIRECTION_CHANGED');
@@ -52187,6 +52199,8 @@ document.addEventListener("i18n:changed", function () {
         </section>
         <!-- The table provider and its key live here too: the build step must not send the owner
              to the settings panel, because leaving this dialog used to cost the finished ASR. -->
+        <!-- O-103: файл перевода выбран — переводчик таблицы не нужен, это сказано вместо выбора. -->
+        <p id="v3ImportBuildFromFiles" class="v3-build-provider" hidden></p>
         <div id="v3ImportBuildProvider" class="v3-build-provider" hidden>
           <label for="v3ImportBuildProviderSelect" data-i18n="studio.import.buildProviderLabel">Перевод таблицы</label>
           <select id="v3ImportBuildProviderSelect" class="provider-select" onchange="StudioImport.onBuildProviderChanged()"></select>

@@ -4619,6 +4619,7 @@ window.I18N_LOCALES.he = {
       captionsMediaYtLabel: "קישור YouTube",
       captionsMediaYtBtn: "חיבור YouTube",
       captionsMediaRemove: "הסרת המדיה",
+      buildFromFiles: "תרגום הטבלה מהקובץ „{name}”; אין צורך במתרגם בתשלום.",
       captionsMediaStep_sync: "משווה את הכתוביות לדיבור בסרט…",
       captionsSyncAligned: "הכתוביות תואמות לדיבור.",
       captionsSyncShift: "הכתוביות מוזזות ב-{seconds} שניות — זמני השורות יתוקנו; הקובץ המקורי נשמר.",

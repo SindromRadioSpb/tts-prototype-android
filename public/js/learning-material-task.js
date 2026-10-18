@@ -33,6 +33,14 @@
   // Медиа-задача: у транскрипта есть пакет медиа. Её таблица и карточка обязаны доказать медиа,
   // иначе потеря привязки проходит молча до конца (владелец, «Хан Юнес», 2026-09-24).
   function hasMedia(job){const meta=effectiveImportMeta(job);return !!(meta&&meta.media_package_ref);}
+  // O-103: subtitles from files always make a timed package, but ▶ exists only when a video or
+  // audio was chosen for them; a material of text and translation alone has nothing to prove.
+  function hasPlayableMedia(job){
+    if(!hasMedia(job))return false;
+    if(job.input.provider!=='subtitle-files')return true;
+    const c=(effectiveImportMeta(job)||{}).captions||{};
+    return !!((c.media&&c.media.sha256)||c.video);
+  }
   function codeError(code){const e=new Error(code);e.code=code;return e;}
   function sourceText(job){return job.transcript?job.transcript.text:job.input.source_text;}
   const textIdentity=value=>String(value||'').normalize('NFD').replace(/[^\p{L}\p{N}]/gu,'');
@@ -128,7 +136,13 @@
     // P5: материал начинается ЛИБО с готового текста, ЛИБО со ссылки, транскрипт за которую
     // задача добудет и заплатит сама. Ссылка проверяется тем же разбором, что и канон источника.
     const link=input&&input.youtube_source?youtubeSource(input.youtube_source):null;
-    if(!input||(input.youtube_source&&!link)||(!String(input.source_text||'').trim()&&!link)||!String(input.title||'').trim()||!['gemini','gcp','google-free','madlad'].includes(input.provider))throw new Error('TASK_INPUT_INVALID');
+    if(!input||(input.youtube_source&&!link)||(!String(input.source_text||'').trim()&&!link)||!String(input.title||'').trim()||!['gemini','gcp','google-free','madlad','subtitle-files'].includes(input.provider))throw new Error('TASK_INPUT_INVALID');
+    // O-103: «Из файлов субтитров» — строки и человеческий перевод уже собраны из двух файлов;
+    // задача их огласует, сохранит и упакует. Строки живут в журнале, чтобы продолжение после
+    // перезагрузки не зависело от экрана импорта, и принадлежат только этому провайдеру.
+    const subtitleTable=input.subtitle_table||null;
+    if((input.provider==='subtitle-files')!==!!subtitleTable)throw new Error('TASK_INPUT_INVALID');
+    if(subtitleTable&&(!Array.isArray(subtitleTable.rows)||!subtitleTable.rows.length||subtitleTable.rows.some(r=>!r||!Number.isInteger(r.segment_index)||!String(r.he||'').trim())))throw new Error('TASK_INPUT_INVALID');
     // Согласованная цена — часть того, на что человек согласился, поэтому живёт в журнале задачи,
     // а не в переменной страницы: иначе возобновление её теряет и маршрут спрашивает заново.
     // Исходный ролик локального файла (необязателен): второй источник видео для других устройств.
@@ -136,7 +150,7 @@
     if(input&&input.youtube_origin&&!origin)throw new Error('TASK_INPUT_INVALID');
     // Ф3б: перевод слов ИИ — согласие с ценой подписывается вместе со входом, как цена таблицы.
     const wordGloss=wordGlossConsent(input&&input.word_gloss_ai);
-    const source=safe({source_text:input.source_text||'',youtube_source:link,...(origin?{youtube_origin:origin}:{}),table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),...(wordGloss?{word_gloss_ai:wordGloss}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
+    const source=safe({source_text:input.source_text||'',youtube_source:link,...(origin?{youtube_origin:origin}:{}),table_quote:input.table_quote||null,...(input.timing_quote?{timing_quote:input.timing_quote}:{}),...(wordGloss?{word_gloss_ai:wordGloss}:{}),...(subtitleTable?{subtitle_table:{rows:subtitleTable.rows,dicta_consent:subtitleTable.dicta_consent===true,translation_file:subtitleTable.translation_file||null}}:{}),title:input.title,import_meta:input.import_meta||null,provider:input.provider,model:input.model||null,translit_profile:input.translit_profile||'learner-latin',direction:input.direction||'he-ru'});
     return {schema:SCHEMA,id:crypto.randomUUID(),signature:await P().digest(JSON.stringify(source)),input:source,phase:'imported',state:'paused',cancel_requested:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),transcript:null,table:null,saved_text_id:null,playback_bound:null,package:null,stage_times:{},error:null};
   }
   function wordGlossConsent(value){
@@ -288,7 +302,7 @@
         }
         if(job.input.youtube_source)await operations.verifySaved(clone(job));
         // ⑥ Привязка ▶ доказывается подсчётом на сохранённой карточке тем же путём, что рисует Зал.
-        if(hasMedia(job)&&operations.provePlayback&&!job.playback_proof){
+        if(hasPlayableMedia(job)&&operations.provePlayback&&!job.playback_proof){
           await update({phase:'binding'});
           const proof=await operations.provePlayback(clone(job));
           // Часы распознавания не подтверждены: ▶ честно нет ни у одной строки, и «Продолжить» этого не

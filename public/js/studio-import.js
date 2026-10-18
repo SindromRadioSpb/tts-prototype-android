@@ -3465,8 +3465,15 @@
     var row = $("v3ImportBuildProvider"), select = $("v3ImportBuildProviderSelect");
     var main = document.getElementById("providerSelect");
     var show = !!(row && select && main && pending && (pending.kind === "audio" || pending.kind === "captions"));
-    if (row) row.hidden = !show;
-    if (!show) return;
+    // O-103: with a translation file nobody translates the table — the choice would only mislead.
+    var fromFiles = show && captionsTranslationUsable();
+    var filesNote = $("v3ImportBuildFromFiles");
+    if (filesNote) {
+      filesNote.hidden = !fromFiles;
+      if (fromFiles) filesNote.textContent = tr("studio.import.buildFromFiles", { name: captionsTranslation.fileName });
+    }
+    if (row) row.hidden = !show || fromFiles;
+    if (!show || fromFiles) return;
     if (main.dataset.importMirrorBound !== "1") {
       main.dataset.importMirrorBound = "1";
       main.addEventListener("change", function () { try { renderBuildProvider(); } catch (_) {} });
@@ -4415,6 +4422,7 @@
     if (!busy) { var bar = $("v3ImportCaptionsMediaProgress"); if (bar) bar.hidden = true; }
     var tbtn = $("v3ImportCaptionsTranslationBtn"); if (tbtn) tbtn.disabled = captionsTableWorking;
     renderCaptionsTranslation();
+    try { renderBuildProvider(); } catch (_) {}
     if (!captionsMedia) { setCaptionsMediaStatus(tr("studio.import.captionsMediaNone")); return; }
     if (captionsMedia.state === "failed") {
       setCaptionsMediaStatus(tr("studio.import.captionsMediaFailed", { name: captionsMedia.fileName || "",
@@ -4673,23 +4681,23 @@
   // O-097: the table is built from the two files by time, exactly as from a film's own tracks
   // (rows by sentence, translation by overlap, speech language by the translation's marks), the
   // Companion vocalizes it, Dicta gives a second opinion; no paid translation.
+  // O-103 (owner, 2026-10-18): the two files become rows here, at once; the rest is the same task
+  // every material goes through — named, saved, bound, packaged, resumable — and its table stage
+  // is vocalization (vocalizeSubtitleRows). No build runs blind behind a closed dialog.
   var captionsTableWorking = false;
   async function buildCaptionsFileTable() {
     var SMC = window.SubtitleMaterialCore, t = captionsTranslation;
     if (captionsTableWorking || !captionsTranslationUsable() || !SMC) return false;
+    if (!window.LearningMaterialTaskUI || typeof window.LearningMaterialTaskUI.start !== "function") return false;
     var preview = String(($("v3ImportPreview") || {}).value || "").trim();
     var original = pendingCaptions.parsed.segments.map(function (seg) { return seg.text; }).join("\n").trim();
     if (preview !== original && !window.confirm(tr("studio.import.captionsTableEditedConfirm"))) return false;
     if (!window.LocalAsrClient.getPairingToken()) { setStatus("studio.import.captionsTableNeedsCompanion"); return false; }
-    localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
     if (!(await settleCaptionsMedia())) return false;
     var heb = hebrewFileCues();
     if (!heb.ok) { setStatus(errKey(heb.error_code)); return false; }
     captionsTableWorking = true;
-    setBusy(true);
-    var material = { dictaConsent: null, cancelRequested: false, niqqudCheckNote: null };
     try {
-      setStatus("studio.import.captionsTableBuilding");
       var textCues = heb.cues, translationCues = t.cues;
       var verdicts = SMC.speechLanguage(textCues, { translationCues: translationCues, targetLanguage: "he" });
       var alignment = SMC.alignTranslation(textCues, translationCues);
@@ -4701,16 +4709,11 @@
         textTrackIndex: null, textTrackSha256: textSha, translationTrackIndex: null, translationTrackSha256: t.sha256 || null,
         language: "he", translationLanguage: t.language || subtitleTranslationLanguage(),
       });
-      var total = tableRows.filter(function (row) { return /[א-ת]/.test(String(row.he || "")); }).length;
-      setStatus("studio.import.captionsTableNiqqud", { done: 0, total: total });
-      var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
-        client: localAsrClient,
-        transliterate: window.LocalTranslit.transliterateWithProfile,
-        translitProfile: ($("translitProfileSelect") && $("translitProfileSelect").value) || "learner-latin",
-        onProgress: function (done, all) { setStatus("studio.import.captionsTableNiqqud", { done: done, total: all }); },
-      });
-      tableRows = await secondOpinionForDoubtfulWords(material, derived.rows, undefined, function () {}, function () {});
       var prev = pendingCaptions, translated = tableRows.filter(function (row) { return String(row.ru || "").trim(); }).length;
+      var translationFile = { v: 1, name: t.fileName, sha256: t.sha256 || null, encoding: t.encoding,
+        encoding_detected_by: t.detected_by, format: t.format, language: t.language, language_basis: "script", script: t.script, cues: t.cues.length,
+        coverage: Math.round(alignment.coverage * 1000) / 1000, rows_translated: translated, rows: tableRows.length,
+        fps: (t.format === "microdvd" || prev.parsed.format === "microdvd") ? (captionsFps || mediaFps()) : undefined };
       pendingCaptions = {
         parsed: { ok: true, format: prev.parsed.format, kindHint: "subtitle-file", rolling: false, language: "he",
           droppedHeadings: 0, warnings: [],
@@ -4722,31 +4725,68 @@
         media: prev.media, video: prev.video, mediaAttachment: prev.mediaAttachment,
         subtitleSync: prev.subtitleSync || { schema: "subtitle-speech-sync-v1", status: "unverified", apply_offset_ms: 0, reason: "external_subtitle_file" },
         sourceSha256: prev.sourceSha256, audioStreamIndex: prev.audioStreamIndex,
-        translationFile: { v: 1, name: t.fileName, sha256: t.sha256 || null, encoding: t.encoding,
-          encoding_detected_by: t.detected_by, format: t.format, language: t.language, language_basis: "script", script: t.script, cues: t.cues.length,
-          coverage: Math.round(alignment.coverage * 1000) / 1000, rows_translated: translated, rows: tableRows.length,
-          fps: (t.format === "microdvd" || prev.parsed.format === "microdvd") ? (captionsFps || mediaFps()) : undefined },
+        translationFile: translationFile,
       };
       showPreview({ kind: "captions", source: prev.fileName, method: "subtitle-file-table", model: null, warnings: [],
         text: rows.map(function (row) { return row.text; }).join("\n") });
-      if (!await useText()) return false;
-      var applied = typeof window.v3ApplySubtitleTable === "function" && window.v3ApplySubtitleTable(tableRows);
-      if (!applied || !applied.applied) { setStatus("studio.import.subtitlePlanFailed", { code: "SUBTITLE_TABLE_NOT_APPLIED" }); return false; }
-      showSubtitleSaveStep();
-      try {
-        if (typeof window.showToast === "function") {
-          window.showToast(tr("studio.import.captionsTableReady", { rows: tableRows.length, translated: translated })
-            + (material.niqqudCheckNote ? " " + material.niqqudCheckNote : ""), translated < tableRows.length ? "warning" : "success");
-        }
-      } catch (_) {}
+      // Lands the text and the media package (the import dialog closes), then the task takes over.
+      if (!await useText(false, true)) return false;
+      var landed = pending;
+      // The rows ride in the task journal with their per-row provenance, so a reload resumes them.
+      var mediaName = prev.media && prev.media.originalName;
+      await window.LearningMaterialTaskUI.start(undefined, {
+        inputPatch: { provider: "subtitle-files", model: null,
+          // A film is named by its file, not by its first spoken line.
+          title: titleFromFileName(mediaName) || titleFromFileName(prev.fileName) || undefined,
+          subtitle_table: { rows: tableRows, translation_file: translationFile } },
+        onCreated: function () { if (landed) landed.landed = true; forgetRecognition(); },
+      });
       return true;
     } catch (error) {
       setStatus("studio.import.subtitlePlanFailed", { code: (error && (error.code || error.message)) || "SUBTITLE_TABLE_FAILED" });
       return false;
     } finally {
       captionsTableWorking = false;
-      setBusy(false);
     }
+  }
+
+  // "Mivtza.Savta.DVDRip.XviD.640x480.Hebrew.srt" → "Mivtza Savta": release tags end the title.
+  var RELEASE_TAG = /^(dvdrip|dvd|xvid|divx|x264|x265|h264|h265|hevc|hdtv|web|webrip|web-dl|bluray|brrip|bdrip|hdrip|nf|amzn|\d{3,4}p|\d+x\d+|hebrew|heb|rus|russian|eng|english|\d+cd|subs?)$/i;
+  function titleFromFileName(name) {
+    var base = String(name || "").replace(/\.[a-z0-9]{2,4}$/i, "");
+    if (!base) return "";
+    var words = base.split(/[._\s]+/).filter(Boolean), out = [];
+    for (var i = 0; i < words.length; i++) { if (RELEASE_TAG.test(words[i])) break; out.push(words[i]); }
+    return out.join(" ").trim().slice(0, 160);
+  }
+
+  // The table stage of a subtitle-files task: the Companion vocalizes the prepared rows and, with
+  // the consent given in the task dialog, Dicta gives its second opinion on doubtful words.
+  async function vocalizeSubtitleRows(subtitleTable, options) {
+    var opts = options || {}, say = typeof opts.onProgress === "function" ? opts.onProgress : function () {};
+    var rows = (subtitleTable && subtitleTable.rows) || [];
+    if (!rows.length) throw Object.assign(new Error("TASK_TABLE_INCOMPLETE"), { code: "TASK_TABLE_INCOMPLETE" });
+    if (!window.LocalAsrClient || !window.LocalAsrClient.getPairingToken()) {
+      throw Object.assign(new Error("COMPANION_REQUIRED"), { code: "COMPANION_REQUIRED" });
+    }
+    localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
+    var total = rows.filter(function (row) { return /[א-ת]/.test(String(row.he || "")); }).length;
+    say("niqqud", 0, total);
+    var derived = await window.SubtitleMaterialVocalization.enrich(rows, {
+      client: localAsrClient,
+      transliterate: window.LocalTranslit.transliterateWithProfile,
+      translitProfile: opts.translitProfile || "learner-latin",
+      onProgress: function (done, all) { say("niqqud", done, all); },
+      signal: opts.signal,
+    });
+    var P = window.NiqqudPlausibility;
+    var suspects = P && typeof P.scanRows === "function" ? P.scanRows(derived.rows) : [];
+    var words = suspects.reduce(function (sum, x) { return sum + x.words.length; }, 0);
+    if (words) say("dicta", 0, words);
+    var material = { dictaConsent: !!(subtitleTable && subtitleTable.dicta_consent), cancelRequested: false, niqqudCheckNote: null };
+    var checked = await secondOpinionForDoubtfulWords(material, derived.rows, opts.signal, function () {}, function () {});
+    if (words) say("dicta", words, words);
+    return { rows: checked, note: material.niqqudCheckNote, warnings: derived.warnings || [] };
   }
 
   function redecodeCaptions(encoding) {
@@ -4862,7 +4902,8 @@
                            onCaptionsMediaChosen: onCaptionsMediaChosen, attachCaptionsYoutube: attachCaptionsYoutube,
                            detachCaptionsMedia: detachCaptionsMedia,
                            onCaptionsTranslationChosen: onCaptionsTranslationChosen, detachCaptionsTranslation: detachCaptionsTranslation,
-                           chooseCaptionsFps: chooseCaptionsFps, buildCaptionsFileTable: buildCaptionsFileTable,
+                           chooseCaptionsFps: chooseCaptionsFps, buildCaptionsFileTable: buildCaptionsFileTable, vocalizeSubtitleRows: vocalizeSubtitleRows,
+                           titleFromFileName: titleFromFileName,
                            exportOcrEvidence: exportOcrEvidence,
                            restoreOcrDraft: restoreOcrDraft, clearOcrDraft: clearOcrDraft,
                            acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,
