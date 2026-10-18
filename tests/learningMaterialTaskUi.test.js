@@ -744,3 +744,24 @@ test('without a Gemini key the start dialog takes the key in place and continues
   assert.ok(names(second).includes('Собрать учебный материал'), names(second).join(' | '));
   assert.equal(created, 0, 'no task exists until the owner starts it');
 });
+
+// Владелец 2026-10-18: «0 из 914» стояло почти 6 минут — без пояснения это читается как зависание.
+test('a table that has no ready rows yet explains that portions arrive whole and the first is the longest', () => {
+  const live = { table: { readyRows: 0, totalRows: 914, chunk: 1, chunks: 8 } };
+  const waiting = UI.liveDetail({ phase: 'translating', state: 'running', input: {} }, live).text;
+  assert.match(waiting, /готово строк 0 из 914/);
+  assert.match(waiting, /≈114 строк/);
+  assert.match(waiting, /не зависание/);
+  const moving = UI.liveDetail({ phase: 'translating', state: 'running', input: {} }, { table: { readyRows: 124, totalRows: 914, chunk: 2, chunks: 8 } }).text;
+  assert.doesNotMatch(moving, /зависание/);
+});
+
+test('total build time is the sum of journal phases, shown while running and at the end', () => {
+  const t0 = 1000000, s = (a, b) => ({ startedAt: t0 + a * 1000, endedAt: b == null ? undefined : t0 + b * 1000 });
+  const running = { state: 'running', phase: 'glossing', stage_times: { translating: s(0, 1190), saving: s(1190, 1233), binding: s(1233, 1236), glossing: s(1236) } };
+  assert.equal(UI.totalElapsedSec(running, t0 + 1358 * 1000), 1358);
+  assert.equal(UI.totalLine(running, t0 + 1358 * 1000), 'Общее время: 22:38');
+  const ready = { state: 'ready', phase: 'ready', stage_times: { translating: s(0, 3000), glossing: s(3000, 3725) } };
+  assert.equal(UI.totalLine(ready), 'Общее время сборки: 1:02:05');
+  assert.equal(UI.totalLine({ state: 'running', phase: 'translating' }), '', 'no journal, no invented time');
+});
