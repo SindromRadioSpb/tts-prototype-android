@@ -75,6 +75,7 @@ from ai_local import companion_i18n, companion_settings, config  # noqa: E402
 from ai_local.asr_constants import ASR_MODEL_REVISION  # noqa: E402
 from ai_local.companion_diagnostics import export_diagnostics  # noqa: E402
 from ai_local.companion_preflight import preflight_report  # noqa: E402
+from ai_local import pairing  # noqa: E402
 from ai_local.security import pairing_token  # noqa: E402
 from ai_local.version import COMPANION_VERSION  # noqa: E402
 
@@ -357,6 +358,8 @@ class CompanionWindow:
         threading.Thread(target=self._ensure_started, daemon=True).start()
         threading.Thread(target=self._probe_encoder, daemon=True).start()
         self.root.after(400, self._poll)
+        self._asked_pairing: set[str] = set()
+        self.root.after(300, self._watch_pairing)
 
     def t(self, key: str, **fields: Any) -> str:
         return companion_i18n.translate(self.language, key, **fields)
@@ -405,6 +408,7 @@ class CompanionWindow:
         pairing_actions = ttk.Frame(pairing)
         pairing_actions.pack(fill="x", pady=(9, 2))
         ttk.Button(pairing_actions, text=self.t("pairing.copy"), command=self._copy_token).pack(side="left")
+        ttk.Button(pairing_actions, text=self.t("pairing.revoke"), command=self._revoke_all).pack(side="left", padx=(8, 0))
         ttk.Label(pairing_actions, textvariable=self.pairing_var, wraplength=455).pack(side="left", padx=(12, 0), fill="x", expand=True)
 
         service = ttk.LabelFrame(frame, text=self.t("service.frame"), padding=10)
@@ -580,6 +584,58 @@ class CompanionWindow:
 
     def _restart(self) -> None:
         self._run(restart_service)
+
+    # Owner decision 2026-10-18: a browser asks to pair and a person allows it here, comparing
+    # the 4-digit code with the one LinguistPro shows. The heartbeat tells the service that this
+    # window is open, so it does not start a second one.
+    def _watch_pairing(self) -> None:
+        try:
+            pairing.write_window_heartbeat()
+            for request in pairing.pending_requests():
+                if request["id"] in self._asked_pairing:
+                    continue
+                self._asked_pairing.add(request["id"])
+                self._ask_pairing(request)
+        except Exception:
+            pass
+        finally:
+            self.root.after(1000, self._watch_pairing)
+
+    def _ask_pairing(self, request: dict[str, Any]) -> None:
+        from tkinter import messagebox
+
+        try:
+            self.root.deiconify()
+            self.root.lift()
+            self.root.attributes("-topmost", True)
+        except Exception:
+            pass
+        try:
+            allow = messagebox.askyesno(
+                self.t("pairing.requestTitle"),
+                self.t("pairing.requestBody", origin=request["origin"], code=request["code"]),
+                parent=self.root,
+            )
+        finally:
+            try:
+                self.root.attributes("-topmost", False)
+            except Exception:
+                pass
+        state = pairing.decide(request["id"], bool(allow))
+        if state == "approved":
+            self.pairing_var.set(self.t("pairing.allowed", origin=request["origin"]))
+        elif state == "denied":
+            self.pairing_var.set(self.t("pairing.denied"))
+        else:
+            self.pairing_var.set(self.t("pairing.expired"))
+
+    def _revoke_all(self) -> None:
+        from tkinter import messagebox
+
+        if not messagebox.askyesno(self.t("pairing.revoke"), self.t("pairing.revokeConfirm"), parent=self.root):
+            return
+        pairing.revoke_all()
+        self.pairing_var.set(self.t("pairing.revoked"))
 
     def _copy_token(self) -> None:
         token = pairing_token()

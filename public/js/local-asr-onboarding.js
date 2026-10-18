@@ -55,7 +55,7 @@
       '  <div class="local-asr-requirements" id="localAsrRequirements"></div>',
       '  <ol class="local-asr-steps">',
       '    <li><div><b id="localAsrDownloadTitle"></b><span id="localAsrDownloadNote"></span></div><a id="localAsrDownload" class="btn-secondary" target="_blank" rel="noopener"></a></li>',
-      '    <li><div><b id="localAsrConnectTitle"></b><span id="localAsrConnectNote"></span><details class="local-asr-token-help"><summary id="localAsrTokenHelpTitle"></summary><ol><li id="localAsrTokenStep1"></li><li id="localAsrTokenStep2"></li><li id="localAsrTokenStep3"></li></ol><p id="localAsrTokenSecurity"></p></details></div><div class="local-asr-inline"><input id="localAsrToken" type="password" autocomplete="off" spellcheck="false"><button id="localAsrConnect" type="button" class="btn-secondary"></button></div></li>',
+      '    <li><div><b id="localAsrConnectTitle"></b><span id="localAsrConnectNote"></span><div class="local-asr-oneclick"><button id="localAsrPairOneClick" type="button" class="btn-primary"></button> <span id="localAsrPairCode" aria-live="polite"></span></div><details class="local-asr-token-help"><summary id="localAsrTokenHelpTitle"></summary><ol><li id="localAsrTokenStep1"></li><li id="localAsrTokenStep2"></li><li id="localAsrTokenStep3"></li></ol><p id="localAsrTokenSecurity"></p></details></div><div class="local-asr-inline"><input id="localAsrToken" type="password" autocomplete="off" spellcheck="false"><button id="localAsrConnect" type="button" class="btn-secondary"></button></div></li>',
       '    <li><div><b id="localAsrDeviceTitle"></b><span id="localAsrDeviceState"></span></div><button id="localAsrDeviceCheck" type="button" class="btn-secondary"></button></li>',
       '    <li><div><b id="localAsrModelTitle"></b><span id="localAsrModelState"></span><progress id="localAsrModelProgress" max="100" value="0"></progress></div><div class="local-asr-actions"><button id="localAsrInstall" type="button" class="btn-primary"></button><button id="localAsrInstallCancel" type="button" class="btn-secondary"></button><button id="localAsrModelDelete" type="button" class="btn-secondary"></button></div></li>',
       '    <li><div><b id="localAsrWarmTitle"></b><span id="localAsrWarmState"></span></div><button id="localAsrWarm" type="button" class="btn-secondary"></button></li>',
@@ -84,6 +84,7 @@
     text("localAsrDownload", T("studio.localAsrBeta.download", "Download Companion"));
     text("localAsrConnectTitle", T("studio.localAsrBeta.connectTitle", "Connect this browser session"));
     text("localAsrConnectNote", T("studio.localAsrBeta.connectNote", "The Companion creates the token automatically. Copy it from the connection section and paste it here."));
+    text("localAsrPairOneClick", T("studio.localAsrBeta.pairOneClick", "Connect"));
     text("localAsrTokenHelpTitle", T("studio.localAsrBeta.tokenHelpTitle", "Where do I get the token?"));
     text("localAsrTokenStep1", T("studio.localAsrBeta.tokenStep1", "Open Windows Start → LinguistPro → LinguistPro Local ASR Companion."));
     text("localAsrTokenStep2", T("studio.localAsrBeta.tokenStep2", "Wait for RUNNING, then click Copy token for browser in Connect LinguistPro in Chrome."));
@@ -113,6 +114,7 @@
       if (el("localAsrOptIn").checked) optIn(); else leaveBeta(true);
     });
     el("localAsrConnect").addEventListener("click", connect);
+    el("localAsrPairOneClick").addEventListener("click", connectOneClick);
     el("localAsrToken").addEventListener("input", function () { setConnectionState(false); });
     el("localAsrDeviceCheck").addEventListener("click", checkDevice);
     el("localAsrInstall").addEventListener("click", installModel);
@@ -158,6 +160,32 @@
     var box = el("localAsrOptIn");
     if (box) box.checked = true;
     return true;
+  }
+
+  // Companion 0.4.0+: no copying. The Companion window asks "Allow?" with the same code.
+  async function connectOneClick() {
+    var button = el("localAsrPairOneClick");
+    button.disabled = true;
+    setConnectionState(false);
+    if (!window.LocalAsrClient.isExperimentalEnabled() && !optIn()) { button.disabled = false; return; }
+    try {
+      var token = await window.LocalAsrClient.pairAutomatically({
+        onCode: function (code, windowState) {
+          text("localAsrPairCode", T(windowState === "closed" ? "studio.localAsrBeta.pairCodeOpen" : "studio.localAsrBeta.pairCode",
+            "Allow the request in the Companion window. Code: " + code, { code: code }));
+        },
+      });
+      el("localAsrToken").value = token;
+      text("localAsrPairCode", "");
+      await connect();
+    } catch (error) {
+      var code = error && error.code;
+      text("localAsrPairCode", code === "LOCAL_ASR_PAIRING_UNSUPPORTED"
+        ? T("studio.localAsrBeta.pairOld", "This Companion is older than 0.4.0: copy the token by hand below, or install the new version.")
+        : code === "LOCAL_ASR_PAIRING_DENIED" ? T("studio.localAsrBeta.pairDenied", "Declined in the Companion window.")
+        : code === "LOCAL_ASR_PAIRING_EXPIRED" ? T("studio.localAsrBeta.pairExpired", "Nobody allowed the request within 2 minutes. Click Connect again.")
+        : T("studio.localAsrBeta.errDown", "The Companion is unavailable. Start it on this computer; Gemini was not called."));
+    } finally { button.disabled = false; }
   }
 
   async function connect() {

@@ -277,3 +277,39 @@ test("the pairing token lives in localStorage and an older session token is move
     assert.equal(C.getPairingToken(), "", "disconnect removes the persistent token");
   } finally { global.window = saved; }
 });
+
+// Companion 0.4.0 one-click pairing: the token arrives only after "Allow" in the Companion window.
+test("one-click pairing shows the code, waits for Allow and stores the token", async () => {
+  const local = store();
+  const calls = [];
+  let polls = 0;
+  const fetchFn = async (url, options) => {
+    calls.push([options.method, url.replace(C.BASE_URL, ""), options.headers]);
+    if (url.endsWith("/v1/hello")) return response(200, { pairing: "v1", version: "0.4.0" });
+    if (url.endsWith("/v1/pair/request")) return response(201, { id: "req1", code: "4821", expires_in: 120, window: "open" });
+    polls += 1;
+    return response(200, polls < 3 ? { state: "pending" } : { state: "approved", token: TOKEN });
+  };
+  let shown = null;
+  const token = await C.pairAutomatically({ fetchFn, store: local, wait: async () => {}, onCode: (code, win) => { shown = [code, win]; } });
+  assert.equal(token, TOKEN);
+  assert.deepEqual(shown, ["4821", "open"]);
+  assert.equal(local.getItem(C.TOKEN_KEY), TOKEN);
+  assert.ok(calls.every(([, , headers]) => !headers), "no Authorization header is sent while pairing");
+  assert.deepEqual(calls.slice(0, 2).map(([m, p]) => m + " " + p), ["GET /v1/hello", "POST /v1/pair/request"]);
+});
+
+test("one-click pairing names an old Companion, a decline and a timeout", async () => {
+  const old = async () => response(404, { detail: "Not Found" });
+  await assert.rejects(C.pairAutomatically({ fetchFn: old, store: store() }), (e) => e.code === "LOCAL_ASR_PAIRING_UNSUPPORTED");
+  const denied = async (url) => url.endsWith("/hello") ? response(200, { pairing: "v1" })
+    : url.endsWith("/request") ? response(201, { id: "r", code: "0001", expires_in: 120 }) : response(200, { state: "denied" });
+  await assert.rejects(C.pairAutomatically({ fetchFn: denied, store: store(), wait: async () => {} }), (e) => e.code === "LOCAL_ASR_PAIRING_DENIED");
+  let t = 0;
+  const pending = async (url) => url.endsWith("/hello") ? response(200, { pairing: "v1" })
+    : url.endsWith("/request") ? response(201, { id: "r", code: "0001", expires_in: 1 }) : response(200, { state: "pending" });
+  await assert.rejects(C.pairAutomatically({ fetchFn: pending, store: store(), wait: async () => { t += 1000; }, now: () => t }),
+    (e) => e.code === "LOCAL_ASR_PAIRING_EXPIRED");
+  const down = async () => { throw new TypeError("Failed to fetch"); };
+  await assert.rejects(C.pairAutomatically({ fetchFn: down, store: store() }), (e) => e.code === "LOCAL_ASR_UNAVAILABLE");
+});

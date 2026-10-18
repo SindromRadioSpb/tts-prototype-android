@@ -25,7 +25,9 @@ from .mt_model_store import inspect_mt_model
 from .companion_model import delete_all_jobs, model_install_manager
 from .companion_preflight import preflight_report
 from .media_jobs import MediaJobConflict, MediaJobManager, MediaJobNotFound, MediaTooLarge
+from . import pairing
 from .security import (
+    origin_allowed,
     loopback_security_middleware,
     require_browser_auth,
     require_companion_auth,
@@ -265,6 +267,44 @@ class SubtitleSyncRequest(BaseModel):
 
 
 # ---------- endpoints ----------
+
+
+# ---------- pairing without copying the token (owner decision 2026-10-18) ----------
+# These three routes carry no token: they are how a browser obtains one. They still require an
+# allowed Origin, and the token leaves only after a person clicks "Allow" in the Companion window.
+
+
+def _require_allowed_origin(request: Request) -> str:
+    origin = request.headers.get("origin") or ""
+    if not origin_allowed(origin):
+        raise HTTPException(status_code=403, detail="origin is not allowed")
+    return origin
+
+
+@app.get("/v1/hello")
+async def v1_hello(request: Request):
+    _require_allowed_origin(request)
+    from .version import COMPANION_VERSION
+
+    return {"product": "linguistpro-local-ai-companion", "version": COMPANION_VERSION,
+            "pairing": "v1", "asr_enabled": config.ASR_ENABLED, "mt_enabled": config.MT_ENABLED}
+
+
+@app.post("/v1/pair/request", status_code=201)
+async def v1_pair_request(request: Request):
+    origin = _require_allowed_origin(request)
+    try:
+        created = pairing.create_request(origin)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=429, detail=str(exc))
+    created["window"] = "open" if pairing.open_window() else "closed"
+    return created
+
+
+@app.get("/v1/pair/status/{request_id}")
+async def v1_pair_status(request_id: str, request: Request):
+    origin = _require_allowed_origin(request)
+    return JSONResponse(pairing.status(request_id, origin), headers={"Cache-Control": "no-store"})
 
 
 @app.get("/v1/capabilities", dependencies=[Depends(require_companion_auth)])

@@ -58,9 +58,23 @@ STRINGS: dict[str, dict[str, str]] = {
         "ru": "Подключите LinguistPro в Chrome",
     },
     "pairing.steps": {
-        "en": "1. Wait for Companion: RUNNING   2. Copy the token   3. Paste it in Local ASR or MADLAD settings",
-        "ru": "1. Дождитесь Companion: RUNNING   2. Скопируйте токен   3. Вставьте его в настройках Local ASR или MADLAD",
+        "en": "In LinguistPro click Connect: this window asks you to allow it and shows a code. Compare the code and click Yes. Copying the token by hand still works.",
+        "ru": "В LinguistPro нажмите «Подключить»: это окно спросит разрешение и покажет код. Сверьте код и нажмите «Да». Скопировать токен вручную по-прежнему можно.",
     },
+    "pairing.requestTitle": {"en": "Allow LinguistPro?", "ru": "Разрешить LinguistPro?"},
+    "pairing.requestBody": {
+        "en": "{origin} asks to use Local AI Companion on this computer.\n\nCode: {code}\n\nAllow only if LinguistPro shows the same code.",
+        "ru": "{origin} просит доступ к Local AI Companion на этом компьютере.\n\nКод: {code}\n\nРазрешайте, только если LinguistPro показывает тот же код.",
+    },
+    "pairing.allowed": {"en": "Connected: {origin}", "ru": "Подключено: {origin}"},
+    "pairing.denied": {"en": "Request declined.", "ru": "Запрос отклонён."},
+    "pairing.expired": {"en": "The request expired. Click Connect in LinguistPro again.", "ru": "Запрос устарел. Нажмите «Подключить» в LinguistPro ещё раз."},
+    "pairing.revoke": {"en": "Disconnect all browsers", "ru": "Отключить все браузеры"},
+    "pairing.revokeConfirm": {
+        "en": "Every connected browser will have to connect again. Continue?",
+        "ru": "Всем подключённым браузерам придётся подключиться заново. Продолжить?",
+    },
+    "pairing.revoked": {"en": "All browsers disconnected. A new token was created.", "ru": "Все браузеры отключены. Создан новый токен."},
     "pairing.copy": {"en": "Copy token for browser", "ru": "Скопировать токен для браузера"},
     "pairing.idle": {
         "en": "The token is created automatically. Start the service, then copy it here.",

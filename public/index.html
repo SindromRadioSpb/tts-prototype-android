@@ -13698,9 +13698,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=791"></script>
-<script src="/i18n/locales/en.js?v=791"></script>
-<script src="/i18n/locales/he.js?v=791"></script>
+<script src="/i18n/locales/ru.js?v=792"></script>
+<script src="/i18n/locales/en.js?v=792"></script>
+<script src="/i18n/locales/he.js?v=792"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13799,7 +13799,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
-<script src="/js/local-asr-client.js?v=791"></script>
+<script src="/js/local-asr-client.js?v=792"></script>
 <script src="/js/media-readiness.js?v=671"></script>
 <!-- Audited incremental SHA-256 runtime served from node_modules by an allowlisted route. The
      store below hashes a 1.6 GB stream chunk by chunk, which crypto.subtle cannot do, so this
@@ -13919,7 +13919,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=791" defer></script>
+<script src="/js/studio-import.js?v=792" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13961,7 +13961,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.791";
+    window.APP_VERSION = "3.11.792";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -52008,6 +52008,8 @@ document.addEventListener("i18n:changed", function () {
           </p>
           <p id="v3ImportAudioProviderTruth" class="v3-import-hint" aria-live="polite" data-i18n="studio.import.providerTruthCloud">Gemini работает в облаке; файл отправляется только после отдельного запуска распознавания.</p>
           <div id="v3ImportLocalAsrSetup" class="v3-local-asr-setup" hidden>
+            <button type="button" id="v3ImportLocalAsrAuto" class="btn-primary" onclick="StudioImport.pairLocalAsrAuto()"
+                    data-i18n="studio.import.localAsrPairAuto">Подключить компаньон</button>
             <label for="v3ImportLocalAsrToken" data-i18n="studio.import.localAsrTokenLabel">Pairing token локального companion</label>
             <div class="v3-local-asr-pair-row">
               <input id="v3ImportLocalAsrToken" type="password" autocomplete="off" spellcheck="false"

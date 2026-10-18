@@ -952,7 +952,8 @@
   function setLocalAsrPairStatus(msgKey, extra, kind) {
     var node = $("v3ImportLocalAsrPairStatus");
     if (!node) return;
-    node.textContent = msgKey ? (tr(msgKey) + (extra ? " " + extra : "")) : "";
+    var params = extra && typeof extra === "object" ? extra : null;
+    node.textContent = msgKey ? (tr(msgKey, params) + (extra && !params ? " " + extra : "")) : "";
     node.hidden = !msgKey;
     node.dataset.kind = kind || "ok";
   }
@@ -1081,6 +1082,38 @@
   function shortMediaSha(value) {
     var text = String(value || "");
     return text ? text.slice(0, 8) + "…" + text.slice(-6) : "—";
+  }
+
+  // One click instead of copying the token (Companion 0.4.0+). The Companion window asks the
+  // person to allow it and shows the same code; an older Companion falls back to the token field.
+  async function pairLocalAsrAuto() {
+    var button = $("v3ImportLocalAsrAuto");
+    if (button) button.disabled = true;
+    setLocalAsrConnectionState(false);
+    setLocalAsrPairStatus(null);
+    try {
+      if (!localAsrExperimental()) {
+        try { window.LocalAsrClient.enroll(); window.dispatchEvent(new CustomEvent("local-asr-beta-change")); } catch (_) {}
+      }
+      var token = await window.LocalAsrClient.pairAutomatically({
+        onCode: function (code, windowState) {
+          setLocalAsrPairStatus(windowState === "closed" ? "studio.import.localAsrPairCodeOpen" : "studio.import.localAsrPairCode",
+            { code: code }, "warn");
+        },
+      });
+      var input = $("v3ImportLocalAsrToken");
+      if (input) input.value = token;
+      await pairLocalAsr();
+    } catch (error) {
+      var key = {
+        LOCAL_ASR_PAIRING_UNSUPPORTED: "studio.import.localAsrPairOld",
+        LOCAL_ASR_PAIRING_DENIED: "studio.import.localAsrPairDenied",
+        LOCAL_ASR_PAIRING_EXPIRED: "studio.import.localAsrPairExpired",
+      }[error && error.code] || "studio.import.localAsrUnavailable";
+      setLocalAsrPairStatus(key, "", "error");
+    } finally {
+      if (button) button.disabled = false;
+    }
   }
 
   async function pairLocalAsr() {
@@ -4347,7 +4380,7 @@
                            openDownrFromField: openDownrFromField, chooseDownloadedMedia: chooseDownloadedMedia,
                            discardDownrHandoff: discardDownrHandoff,
                            onFileChosen: onFileChosen, chooseAudioFile: chooseAudioFile, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
-                           discardResume: discardResume, onBuildProviderChanged: onBuildProviderChanged, saveBuildKey: saveBuildKey,
+                           discardResume: discardResume, pairLocalAsrAuto: pairLocalAsrAuto, onBuildProviderChanged: onBuildProviderChanged, saveBuildKey: saveBuildKey,
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
                            onLocalAsrTokenChanged: onLocalAsrTokenChanged,
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,

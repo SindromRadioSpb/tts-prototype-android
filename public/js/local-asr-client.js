@@ -397,8 +397,54 @@
     return this.waitForJob(created.job_id, options, created);
   };
 
+  // ---------- one-click pairing (Companion 0.4.0+, owner decision 2026-10-18) ----------
+  // No token is sent here: these calls are how the browser obtains one. The Companion asks a
+  // person in its own window ("Allow?", with the same 4-digit code) before it hands the token over.
+  async function pairingCall(fetchFn, path, method) {
+    var response;
+    try {
+      response = await fetchFn(BASE_URL + path, { method: method || "GET", cache: "no-store", credentials: "omit", redirect: "error" });
+    } catch (error) { throw LocalAsrError("LOCAL_ASR_UNAVAILABLE", error && error.message); }
+    var data = null;
+    try { data = await response.json(); } catch (_) {}
+    if (!response.ok) {
+      throw LocalAsrError("LOCAL_ASR_HTTP_" + response.status, String(data && (data.detail || data.error) || "pairing failed"), response.status, data);
+    }
+    return data;
+  }
+
+  // Resolves with the token once the person allows; onCode(code, windowState) fires as soon as
+  // the request exists so the page can show the code to compare.
+  async function pairAutomatically(options) {
+    var opts = options || {};
+    var fetchFn = opts.fetchFn || (typeof fetch === "function" ? fetch.bind(globalThis) : null);
+    var wait = opts.wait || delay;
+    var now = opts.now || function () { return Date.now(); };
+    var hello;
+    try { hello = await pairingCall(fetchFn, "/v1/hello"); }
+    catch (error) {
+      // An older Companion has no /v1/hello: the page falls back to pasting the token.
+      if (error && error.status === 404) throw LocalAsrError("LOCAL_ASR_PAIRING_UNSUPPORTED", "Companion predates one-click pairing", 404);
+      throw error;
+    }
+    if (!hello || hello.pairing !== "v1") throw LocalAsrError("LOCAL_ASR_PAIRING_UNSUPPORTED", "Companion predates one-click pairing");
+    var created = await pairingCall(fetchFn, "/v1/pair/request", "POST");
+    if (typeof opts.onCode === "function") opts.onCode(created.code, created.window, hello);
+    var deadline = now() + (Number(created.expires_in) || 120) * 1000 + 2000;
+    while (now() < deadline) {
+      if (opts.signal && opts.signal.aborted) throw LocalAsrError("LOCAL_ASR_PAIRING_CANCELED", "Pairing canceled");
+      var state = await pairingCall(fetchFn, "/v1/pair/status/" + encodeURIComponent(created.id));
+      if (state && state.state === "approved" && state.token) { setPairingToken(state.token, opts.store); return state.token; }
+      if (state && state.state === "denied") throw LocalAsrError("LOCAL_ASR_PAIRING_DENIED", "Declined in the Companion window");
+      if (state && (state.state === "expired" || state.state === "unknown" || state.state === "delivered")) break;
+      await wait(1000);
+    }
+    throw LocalAsrError("LOCAL_ASR_PAIRING_EXPIRED", "Nobody allowed the request in time");
+  }
+
   var API = {
     BASE_URL: BASE_URL,
+    pairAutomatically: pairAutomatically,
     EXPERIMENT_KEY: EXPERIMENT_KEY,
     TOKEN_KEY: TOKEN_KEY,
     TERMINAL: TERMINAL,
