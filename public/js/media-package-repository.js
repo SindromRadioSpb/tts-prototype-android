@@ -392,6 +392,31 @@
         preview: preview, errors: [] };
     }
 
+    // O-102 (owner, 2026-10-18): a material built without media gets its video later. Only a
+    // package that never had media may take one, in place: its tracks are named by the subtitles,
+    // not by the media, so a second package for the same subtitles would collide with them. The
+    // raw revision keeps saying "unbound" — that was true at import — and the rows do not change.
+    async function attachMediaToUnboundPackage(packageId, media, provenance) {
+      var pkg = await getPackage(packageId); if (!pkg) throw createError('PACKAGE_NOT_FOUND');
+      if (pkg.media_sha256) throw createError('PACKAGE_MEDIA_ALREADY_BOUND');
+      var item = media || {}, sha = cleanHash(item.sha256), path = String(item.opfs_path || '');
+      var bytes = Number(item.size_bytes), duration = Math.round(Number(item.duration_ms));
+      if (!sha) throw createError('MEDIA_SHA_INVALID');
+      if (!new RegExp('^media/' + sha + '\\.[a-z0-9]{1,5}$').test(path)) throw createError('MEDIA_PATH_INVALID');
+      if (!Number.isSafeInteger(bytes) || bytes <= 0 || !Number.isFinite(duration) || duration <= 0) throw createError('MEDIA_METADATA_INVALID');
+      var other = await one('SELECT package_id FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL LIMIT 1', [sha]);
+      if (other) throw createError('MEDIA_ALREADY_IN_PACKAGE', other.package_id);
+      var external = pkg.external_ref && typeof pkg.external_ref === 'object' ? Object.assign({}, pkg.external_ref) : {};
+      if (item.compatibility) external.compatibility = item.compatibility;
+      external.attached_media = Object.assign({ v: 1, at: now() }, provenance || {});
+      var changed = await r(`UPDATE studio_media_packages SET media_sha256=?,mime=?,duration_ms=?,original_name=?,opfs_path=?,
+        size_bytes=?,external_ref_json=?,updated_at=? WHERE package_id=? AND media_sha256 IS NULL AND deleted_at IS NULL`,
+        [sha, String(item.mime || 'video/mp4'), duration, item.original_name || null, path, bytes, json(external), now(), packageId]);
+      var after = await getPackage(packageId);
+      if (!after || after.media_sha256 !== sha) throw createError('PACKAGE_MEDIA_ATTACH_RACE', changed && changed.changes);
+      return after;
+    }
+
     async function relinkMedia(packageId, media) {
       var pkg = await getPackage(packageId); if (!pkg) throw createError('PACKAGE_NOT_FOUND');
       var actual = cleanHash(media && media.sha256);
@@ -488,7 +513,7 @@
         await x('RELEASE library_transfer_workspace;');return {package_id:pkg.package_id,imported_tracks:freshTracks.length,imported_revisions:freshRevisions.length};
       }catch(error){await x('ROLLBACK TO library_transfer_workspace; RELEASE library_transfer_workspace;');throw error;}
     }
-    return { exportTransferWorkspaces, previewTransferWorkspace, importTransferWorkspace, commitTimingRepair: commitTimingRepair, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, getTextSourceMeta: getTextSourceMeta, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
+    return { exportTransferWorkspaces, previewTransferWorkspace, importTransferWorkspace, commitTimingRepair: commitTimingRepair, attachMediaToUnboundPackage: attachMediaToUnboundPackage, createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, getTextSourceMeta: getTextSourceMeta, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, registerRendition: registerRendition, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

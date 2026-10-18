@@ -2855,6 +2855,7 @@ window.I18N_LOCALES.en = {
     ribbon: { aria: "Words of the current line" },
   },
   room: {
+    mediaAttach: { title: "Video or audio for this material", help: "The material was built without media. Choose a file — line times stay as they are; a shift or another frame rate that is found is corrected as a separate edit.", done: "✓ “{name}” attached. The player and the ▶ buttons appear the next time you open it.", timingApplied: "Line times corrected.", declined: "Media not attached.", needsCompanion: "Video is prepared by the Local AI Companion on this computer — connect it in the Studio. An audio file can be attached without the Companion.", alreadyUsed: "This video already belongs to another material.", failed: "Could not attach the media: {code}." },
     wordGloss: { toggle: "Interlinear gloss", hint: "A short translation under each word; ≈ means likely. Tap a word for the full card.", note: "Translation under each word and a ribbon with the words of the playing line; ≈ likely, no label — no data." },
     wordGlossAi: { toggle: "AI word translation (Gemini)", hint: "Order from Gemini, with your key, a translation of each word in the context of its line — as you read and listen, ≈$0.15 per 1000 words. Translations already received (including at material build) are always shown.", all: "Translate all words of the text (AI)" },
     wordRibbon: { toggle: "Word ribbon", hint: "Words of the playing line with translations — under the video or at the bottom of the screen." },
@@ -4617,6 +4618,8 @@ window.I18N_LOCALES.en = {
       captionsSyncReview: "⚠ The subtitles drift from the speech unevenly — check the sync after building.",
       captionsSyncNeedsUpdate: "Companion 0.4.3 or newer checks the sync with the speech.",
       captionsSyncUnverified: "The sync with the speech could not be checked.",
+      captionsSyncAmbiguous: "The subtitles may be for another frame rate, but it could not be told for certain — line times are kept as in the file.",
+      captionsSyncNoClearSpeech: "The recording has too little clear speech without music to match the subtitles — line times are kept as in the file.",
       captionsTableReady: "The table is ready: {rows} rows, {translated} with the translation from the file. Check and save.",
       captionsTableNiqqud: "Vocalization: {done} of {total} lines…",
       captionsTableBuilding: "Building rows from the subtitles and the translation…",

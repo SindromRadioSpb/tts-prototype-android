@@ -147,6 +147,8 @@
     if(current && current.source){url.value=current.source.url;offset.value=String(current.offset_ms/1000);}
     field(t.url,url);field(t.offset,offset);
     const note=document.createElement('p');note.textContent=ctx.basis?t.note:t.noTiming;dialog.append(note);
+    // O-102: a material without media can take its own video or audio here.
+    if(window.RoomMediaAttach)RoomMediaAttach.mount(dialog,String(id)).catch(()=>{});
     const actions=document.createElement('div');actions.className='study-source-actions';dialog.append(actions,status);
     const input=()=>({url:url.value,offset_ms:Math.round(Number(offset.value)*1000)});
     const published=PlaybackSource.isPublished(PlaybackSource.parseMeta(ctx.card.source_meta_json));

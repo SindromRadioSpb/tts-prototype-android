@@ -94,6 +94,24 @@
     }
   }
 
+  // What the Companion heard, as a locale key: only "correctable" moves rows.
+  function syncMessage(sync) {
+    if (!sync) return null;
+    var p = "studio.import.";
+    if (sync.status === "aligned") return { key: p + "captionsSyncAligned" };
+    if (sync.status === "correctable" && sync.apply_scale && sync.apply_scale !== 1) {
+      return { key: p + "captionsSyncStretch", params: { percent: (Math.abs(sync.apply_scale - 1) * 100).toFixed(1) },
+        directionKey: p + (sync.apply_scale > 1 ? "captionsSyncSlower" : "captionsSyncFaster") };
+    }
+    if (sync.status === "correctable") return { key: p + "captionsSyncShift", params: { seconds: (sync.apply_offset_ms / 1000).toFixed(1) } };
+    if (sync.status === "needs_review") {
+      return { key: p + (sync.reason === "ambiguous_frame_rate" ? "captionsSyncAmbiguous" : "captionsSyncReview") };
+    }
+    if (sync.reason === "companion_update_required") return { key: p + "captionsSyncNeedsUpdate" };
+    if (sync.reason === "insufficient_evidence" || sync.reason === "no_frame_rate_match") return { key: p + "captionsSyncNoClearSpeech" };
+    return { key: p + "captionsSyncUnverified" };
+  }
+
   function errorSummary(error) {
     var job = error && error.job || {};
     var detail = job.error_detail || job.error || (error && error.message !== (error && error.code) ? error.message : null) || null;
@@ -205,7 +223,7 @@
 
   var API = {
     prepareLocalMedia: prepareLocalMedia, durationCheck: durationCheck, pickAudioStream: pickAudioStream,
-    acceptExternalSync: acceptExternalSync,
+    acceptExternalSync: acceptExternalSync, syncMessage: syncMessage,
     isVideoFile: isVideoFile, OUTRUN_TOLERANCE_SEC: OUTRUN_TOLERANCE_SEC,
   };
   if (typeof window !== "undefined") window.SubtitleMediaAttach = API;

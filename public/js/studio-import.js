@@ -4387,15 +4387,10 @@
 
   // O-099: what the Companion heard, said plainly; only "correctable" will move rows.
   function captionsSyncText(sync) {
-    if (!sync) return "";
-    if (sync.status === "aligned") return " " + tr("studio.import.captionsSyncAligned");
-    if (sync.status === "correctable" && sync.apply_scale && sync.apply_scale !== 1) {
-      return " " + tr("studio.import.captionsSyncStretch", { percent: (Math.abs(sync.apply_scale - 1) * 100).toFixed(1),
-        direction: tr(sync.apply_scale > 1 ? "studio.import.captionsSyncSlower" : "studio.import.captionsSyncFaster") });
-    }
-    if (sync.status === "correctable") return " " + tr("studio.import.captionsSyncShift", { seconds: (sync.apply_offset_ms / 1000).toFixed(1) });
-    if (sync.status === "needs_review") return " " + tr("studio.import.captionsSyncReview");
-    return " " + tr(sync.reason === "companion_update_required" ? "studio.import.captionsSyncNeedsUpdate" : "studio.import.captionsSyncUnverified");
+    var m = window.SubtitleMediaAttach && window.SubtitleMediaAttach.syncMessage(sync);
+    if (!m) return "";
+    var params = Object.assign({}, m.params || {}, m.directionKey ? { direction: tr(m.directionKey) } : {});
+    return " " + tr(m.key, params);
   }
 
   function captionsMediaCheckText(check) {

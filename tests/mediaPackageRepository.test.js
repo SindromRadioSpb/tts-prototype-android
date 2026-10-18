@@ -527,3 +527,31 @@ test('O-099: a frame-rate stretch from the companion becomes a derived revision;
     } finally { Studio.setRepositoryForTests(null); }
   }
 });
+
+test('O-102: a package built without media takes its video once, in place; rows and raw stay', async () => {
+  const h = await harness();
+  const raw = await Core.createRawRevision({ format: 'srt', provider: 'subtitle-import',
+    segments: [{ start_ms: 0, end_ms: 1000, text: 'שלום' }, { start_ms: 1100, end_ms: 2200, text: 'מה' }] });
+  const created = await h.repo.createPackage({ media: {}, raw_revision: raw });
+  assert.match(created.package_id, /^mpkg:unbound:/);
+  const before = await h.repo.getCurrentRevision(created.corrected_track_id);
+  const sha = 'b'.repeat(64);
+  const media = { sha256: sha, opfs_path: 'media/' + sha + '.mp4', size_bytes: 5000, duration_ms: 3000, mime: 'video/mp4',
+    original_name: 'film.avi', compatibility: { contract: 'linguistpro-mobile-v1', outcome: 'READY', canonical_sha256: sha } };
+  await assert.rejects(h.repo.attachMediaToUnboundPackage(created.package_id, { ...media, opfs_path: 'media/other.mp4' }), /MEDIA_PATH_INVALID/);
+  const pkg = await h.repo.attachMediaToUnboundPackage(created.package_id, media, { method: 'companion-prepared', source_sha256: 'c'.repeat(64) });
+  assert.equal(pkg.media_sha256, sha);
+  assert.equal(pkg.opfs_path, 'media/' + sha + '.mp4');
+  assert.equal(pkg.duration_ms, 3000);
+  assert.equal(pkg.external_ref.compatibility.canonical_sha256, sha);
+  assert.equal(pkg.external_ref.attached_media.method, 'companion-prepared');
+  const after = await h.repo.getCurrentRevision(created.corrected_track_id);
+  assert.equal(after.revision_id, before.revision_id, 'the bound revision does not move');
+  const lite = 'd'.repeat(64);
+  await h.repo.registerRendition(created.package_id, { role: 'lite', canonical_sha256: sha, sha256: lite,
+    opfs_path: 'media/' + lite + '.mp4', size_bytes: 100, duration_ms: 3000 });
+  await assert.rejects(h.repo.attachMediaToUnboundPackage(created.package_id, media), /PACKAGE_MEDIA_ALREADY_BOUND/);
+  const raw2 = await Core.createRawRevision({ format: 'srt', segments: [{ start_ms: 0, end_ms: 900, text: 'אחר' }] });
+  const second = await h.repo.createPackage({ media: {}, raw_revision: raw2 });
+  await assert.rejects(h.repo.attachMediaToUnboundPackage(second.package_id, media), /MEDIA_ALREADY_IN_PACKAGE/);
+});
