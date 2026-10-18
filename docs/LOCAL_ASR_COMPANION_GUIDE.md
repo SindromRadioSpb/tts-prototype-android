@@ -4,7 +4,7 @@ Local ASR расшифровывает ивритское аудио на ваш
 
 С 18.10.2026 компаньон доступен всем пользователям на компьютере, приглашение не нужно. Поддерживается **Windows 11 + совместимая NVIDIA/CUDA + Chrome**. Edge и Firefox пока не поддерживаются.
 
-Скачать установщик: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.0
+Скачать установщик: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.1
 
 EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.en.md`. HE: `/docs/LOCAL_ASR_COMPANION_GUIDE.he.md`.
 
@@ -35,7 +35,7 @@ LinguistPro хранит token в этом браузере, пока вы не 
 
 ## Установка Companion
 
-Установщик не подписан цифровой подписью. Скачивайте его только со страницы релиза в этом репозитории и до запуска сравните SHA-256: `5bee21e0b2ef7d1151a39dceebe75d0cfe957c6cbd5a1d6aa7134859ed954bba` (сборка 0.4.0).
+Установщик не подписан цифровой подписью. Скачивайте его только со страницы релиза в этом репозитории и до запуска сравните SHA-256: `6ee1c012ca0da3bc1628cbf676a461fd467ab31e53bf51bf2591d4ed454d6c53` (сборка 0.4.1).
 
 Если Windows показывает SmartScreen:
 

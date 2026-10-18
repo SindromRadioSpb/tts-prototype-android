@@ -4,7 +4,7 @@ Local ASR מתמלל אודיו בעברית במחשב Windows שלכם. אחר
 
 מאז 18.10.2026 ה-Companion זמין לכל משתמשי המחשב, ללא הזמנה. התצורה הנתמכת היא **Windows 11 + NVIDIA/CUDA תואמים + Chrome**. Edge ו-Firefox עדיין אינם נתמכים.
 
-הורדת המתקין: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.0
+הורדת המתקין: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.1
 
 RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. EN: `/docs/LOCAL_ASR_COMPANION_GUIDE.en.md`.
 
@@ -35,7 +35,7 @@ LinguistPro שומר את האסימון בדפדפן הזה עד שתלחצו �
 
 ## התקנת Companion
 
-המתקין אינו חתום דיגיטלית. הורידו אותו רק מדף הגרסה במאגר הזה ואמתו SHA-256 לפני ההפעלה: `5bee21e0b2ef7d1151a39dceebe75d0cfe957c6cbd5a1d6aa7134859ed954bba` (גרסה 0.4.0).
+המתקין אינו חתום דיגיטלית. הורידו אותו רק מדף הגרסה במאגר הזה ואמתו SHA-256 לפני ההפעלה: `6ee1c012ca0da3bc1628cbf676a461fd467ab31e53bf51bf2591d4ed454d6c53` (גרסה 0.4.1).
 
 אם Windows מציג SmartScreen, המשיכו דרך **מידע נוסף → הפעל בכל זאת** רק לאחר שהשם וה-SHA-256 תואמים. עצרו אם הסכום חסר או שונה. ההתקנה היא למשתמש הנוכחי ואינה דורשת Python, venv או Uvicorn ידניים.
 

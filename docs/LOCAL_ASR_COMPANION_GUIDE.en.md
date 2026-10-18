@@ -4,7 +4,7 @@ Local ASR transcribes Hebrew audio on your Windows computer. An audio file is ne
 
 Since 2026-10-18 the Companion is available to every desktop user; no invitation is needed. The supported configuration is **Windows 11 + compatible NVIDIA/CUDA + Chrome**. Edge and Firefox are not supported yet.
 
-Download the installer: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.0
+Download the installer: https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/companion-v0.4.1
 
 RU: `/docs/LOCAL_ASR_COMPANION_GUIDE.md`. HE: `/docs/LOCAL_ASR_COMPANION_GUIDE.he.md`.
 
@@ -35,7 +35,7 @@ LinguistPro keeps the token in this browser until you click “Disconnect the Co
 
 ## Install the Companion
 
-The installer is not code-signed. Download it only from the release page of this repository and verify its SHA-256 before running it: `5bee21e0b2ef7d1151a39dceebe75d0cfe957c6cbd5a1d6aa7134859ed954bba` (build 0.4.0).
+The installer is not code-signed. Download it only from the release page of this repository and verify its SHA-256 before running it: `6ee1c012ca0da3bc1628cbf676a461fd467ab31e53bf51bf2591d4ed454d6c53` (build 0.4.1).
 
 If Windows shows SmartScreen:
 
