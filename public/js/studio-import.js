@@ -2575,11 +2575,23 @@
     });
   }
 
+  // A refused file used to leave only a status line at the bottom of the dialog while the media
+  // block looked untouched, so the owner believed the file was attached. The refusal now stands
+  // under the media button and names the file.
+  function showAudioRejection(fileName, msgKey, params) {
+    var box = $("v3ImportAudioReject");
+    setStatus(msgKey, params);
+    if (!box) return;
+    if (!msgKey) { box.textContent = ""; box.hidden = true; return; }
+    box.textContent = tr("studio.import.audioRejected", { name: fileName || "", reason: tr(msgKey, params || null) });
+    box.hidden = false;
+  }
+
   async function acceptAudioFile(file, sourceHandle) {
     if (!file) return;
     var isVideo = window.MediaReadiness.isVideo(file);
     if (file.size > window.MediaReadiness.sizeLimitFor(file)) {
-      setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge",
+      showAudioRejection(file.name, isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge",
         { limit: window.MediaReadiness.humanBytes(window.MediaReadiness.sizeLimitFor(file)) });
       return;
     }
@@ -2590,22 +2602,22 @@
         var previousJob = await localAsrClient.getMediaJob(pendingAudio.mediaJobId);
         if (previousJob.state === "WAITING_FOR_DECISION") await localAsrClient.cancelMediaJob(previousJob.job_id);
       } catch (error) {
-        if (!error || error.status !== 404) { setStatus("studio.import.mediaPreflightFailed"); return; }
+        if (!error || error.status !== 404) { showAudioRejection(file.name, "studio.import.mediaPreflightFailed"); return; }
       }
     }
     $("v3ImportAudioInfo").hidden = true;
     pendingAudio = null;
     if (!isVideo && selectedAudioProvider() === "gemini") {
       var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
-      if (!key) { setStatus("studio.import.errNoKey"); return; }
+      if (!key) { showAudioRejection(file.name, "studio.import.errNoKey"); return; }
     } else if (!isVideo && !window.LocalAsrClient.getPairingToken()) {
-      setStatus("studio.import.localAsrPairingRequired"); return;
+      showAudioRejection(file.name, "studio.import.localAsrPairingRequired"); return;
     }
     var dur = null;
     if (!isVideo) {
       try { dur = await probeAudioDuration(file); }
-      catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
-      if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
+      catch (_) { showAudioRejection(file.name, "studio.import.errAudioBadFile"); return; }
+      if (dur > MAX_AUDIO_SEC + 1) { showAudioRejection(file.name, "studio.import.errAudioTooLong"); return; }
     }
     var mime = file.type || (isVideo ? "video/mp4" : "audio/mpeg");
     pendingAudio = { file: file, originalFile: file, sourceHandle: sourceHandle || null, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo,
@@ -2617,7 +2629,7 @@
     $("v3ImportAudioInfo").hidden = false;
     refreshLocalAsrControls();
     renderMediaReadiness();
-    setStatus(null);
+    showAudioRejection(null, null);
     // The actual selected File is now the authority; the external-service return hint has done
     // its job. Picker cancellation and rejected files return earlier and keep the hint.
     discardDownrIntent(window.localStorage);

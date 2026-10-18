@@ -4314,6 +4314,7 @@ window.I18N_LOCALES.en = {
       errGeneric: "Import failed — please try again",
       // W2-S4 — Import → Audio (BYOK Gemini ASR)
       audioBtn: "Hebrew media → transcript",
+      audioRejected: "File “{name}” was not attached: {reason}",
       audioGo: "Transcribe",
       audioUploading: "Uploading audio to Google…",
       audioExtracting: "Extracting the speech audio from the video in the companion…",

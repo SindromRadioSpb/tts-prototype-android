@@ -4324,6 +4324,7 @@ window.I18N_LOCALES.he = {
       errGeneric: "הייבוא נכשל — נסו שוב",
       // W2-S4 — ייבוא ← אודיו (BYOK Gemini ASR)
       audioBtn: "מדיה בעברית לתמלול",
+      audioRejected: "הקובץ „{name}” לא צורף: {reason}",
       audioGo: "תמלל",
       audioUploading: "מעלה אודיו ל-Google…",
       audioExtracting: "מחלצים את שמע הדיבור מהווידאו ב-Companion…",

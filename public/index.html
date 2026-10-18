@@ -4033,6 +4033,8 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-import-how-title { font-weight: 600; margin-bottom: 6px; color: var(--theme-text, #1e293b); }
 .v3-import-how-steps { margin: 0 0 8px; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 4px; }
 .v3-import-hint { font-size: 12px; color: var(--theme-text-secondary, #64748b); margin: 4px 0 8px; }
+.v3-import-reject { font-size: 13px; color: var(--theme-danger, #b42318); background: var(--theme-danger-soft, rgba(180,35,24,.08)); border-inline-start: 3px solid currentColor; border-radius: 4px; padding: 6px 10px; margin: 6px 0 8px; }
+.v3-import-reject[hidden] { display: none; }
 /* #v3ImportOpenYt is a real <a>, not a <button> — the mobile trap's `button.btn-secondary` rule
    only selects `button` elements, so this anchor is never forced to width:100%; .btn-secondary is
    an untagged class so it still gets the same visual look. display:inline-block keeps the box
@@ -13684,9 +13686,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=783"></script>
-<script src="/i18n/locales/en.js?v=783"></script>
-<script src="/i18n/locales/he.js?v=783"></script>
+<script src="/i18n/locales/ru.js?v=786"></script>
+<script src="/i18n/locales/en.js?v=786"></script>
+<script src="/i18n/locales/he.js?v=786"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13904,7 +13906,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=685" defer></script>
+<script src="/js/studio-import.js?v=786" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13946,7 +13948,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.785";
+    window.APP_VERSION = "3.11.786";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -51983,6 +51985,7 @@ document.addEventListener("i18n:changed", function () {
           <button type="button" class="v3-import-file-btn" id="v3ImportAudioPicker"
                   onclick="StudioImport.chooseAudioFile()"
                   data-i18n="studio.import.audioBtn">Медиа на иврите → транскрипт</button>
+          <p id="v3ImportAudioReject" class="v3-import-reject" role="alert" hidden></p>
           <p class="v3-import-hint" data-i18n="studio.import.mediaFlowHelp">Если видео требует конвертации, Studio создаст отдельный файл с окончанием -mobile-ready.mp4. Оригинал не изменится; перед ASR сохраните новую копию и переносите именно её.</p>
           <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
                  onchange="StudioImport.onAudioChosen(event)">

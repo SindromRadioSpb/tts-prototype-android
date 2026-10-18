@@ -4328,6 +4328,7 @@ window.I18N_LOCALES.ru = {
       errGeneric: "Ошибка импорта — попробуйте ещё раз",
       // W2-S4 — Импорт → Аудио (BYOK Gemini ASR)
       audioBtn: "Медиа на иврите → транскрипт",
+      audioRejected: "Файл «{name}» не прикреплён: {reason}",
       audioGo: "Транскрибировать",
       audioUploading: "Загрузка аудио в Google…",
       audioExtracting: "Извлекаем звук речи из видео у компаньона…",
