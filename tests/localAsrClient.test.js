@@ -24,6 +24,9 @@ test("subtitle speech assessment sends verified cue identity only to the paired 
   await client.mediaSubtitleSync("job/1", 7, "a".repeat(64), [1, 5]);
   assert.match(calls[0].url, /^http:\/\/127\.0\.0\.1:8799\/v1\/media\/jobs\/job%2F1\/subtitle-sync$/);
   assert.deepEqual(JSON.parse(calls[0].options.body), { stream_index: 7, subtitle_sha256: "a".repeat(64), cue_starts: [1, 5] });
+  // O-099: a separate file sends no stream index and names itself.
+  await client.mediaSubtitleSync("job/1", null, "b".repeat(64), [2], "external");
+  assert.deepEqual(JSON.parse(calls[1].options.body), { subtitle_sha256: "b".repeat(64), cue_starts: [2], subtitle_source: "external" });
 });
 
 test("experimental local ASR is strictly default-off and pairing token is session-scoped", () => {

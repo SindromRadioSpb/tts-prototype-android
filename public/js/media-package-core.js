@@ -280,6 +280,17 @@
         s.start_ms = start; s.end_ms = end; s.authority = Object.assign({}, s.authority, { timing: 'user' });
       });
       operation = { type: 'offset', delta_ms: delta, clamped_count: clamped };
+    } else if (op.type === 'retime') {
+      // O-099: subtitles made for another frame rate: t -> t * scale + delta, rounded to ms.
+      var scale = Number(op.scale), shift = op.delta_ms == null ? 0 : finiteInt(op.delta_ms);
+      if (!Number.isFinite(scale) || scale < 0.9 || scale > 1.1 || scale === 1 || !Number.isFinite(shift)) fail('RETIME_INVALID');
+      segments.forEach(function (s) {
+        if (s.start_ms == null) { s.end_ms = null; s.quality_flags = uniqueStrings((s.quality_flags || []).concat(['blind'])); return; }
+        var start = Math.round(s.start_ms * scale) + shift, end = s.end_ms == null ? null : Math.round(s.end_ms * scale) + shift;
+        if (start < 0) fail('RETIME_NEGATIVE');
+        s.start_ms = start; s.end_ms = end; s.authority = Object.assign({}, s.authority, { timing: 'user' });
+      });
+      operation = { type: 'retime', scale: scale, delta_ms: shift };
     } else if (op.type === 'replace_text_layout') {
       var replacementText = nfc(op.text).replace(/\r\n?/g, '\n').trim();
       if (!replacementText || !segments.length) fail('REPLACEMENT_TEXT_REQUIRED');

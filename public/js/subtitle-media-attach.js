@@ -56,6 +56,44 @@
     };
   }
 
+  var SYNC_STATUSES = ["aligned", "correctable", "needs_review", "unverified"];
+  function unverifiedSync(reason, sha) {
+    return { schema: "subtitle-speech-sync-v1", status: "unverified", apply_offset_ms: 0, apply_scale: 1,
+      reason: reason, subtitle_source: "external", subtitle_sha256: sha || null };
+  }
+
+  // The answer moves rows only when it is about this file, this audio, and inside the bounds a
+  // plain shift (0.3–1.5 s) or a known frame-rate stretch (±6%) allows. Anything else is kept as
+  // evidence but changes nothing.
+  function acceptExternalSync(result, sha) {
+    var r = result || {};
+    if (r.schema !== "subtitle-speech-sync-v1" || SYNC_STATUSES.indexOf(r.status) < 0 || r.subtitle_sha256 !== sha ||
+        r.subtitle_source !== "external" || !SHA_RE.test(String(r.source_sha256 || "")) ||
+        !SHA_RE.test(String(r.input_sha256 || "")) || !Number.isInteger(r.audio_stream_index)) {
+      return unverifiedSync("assessment_identity_mismatch", sha);
+    }
+    var offset = r.apply_offset_ms, scale = r.apply_scale == null ? 1 : Number(r.apply_scale);
+    var safe = r.status === "correctable"
+      ? Number.isInteger(offset) && (scale === 1 ? Math.abs(offset) > 300 && Math.abs(offset) <= 1500
+        : Number.isFinite(scale) && scale >= 0.94 && scale <= 1.06 && Math.abs(offset) <= 1500)
+      : offset === 0 && scale === 1;
+    if (!safe) return Object.assign(unverifiedSync("unsafe_timing_correction", sha), { evidence: r });
+    return Object.assign({}, r, { apply_scale: scale });
+  }
+
+  async function assessExternalSync(client, jobId, input) {
+    var sha = input && String(input.sha256 || "").toLowerCase();
+    var starts = input && Array.isArray(input.cueStarts) ? input.cueStarts.filter(function (t) { return Number.isFinite(t) && t >= 0; }) : [];
+    if (!SHA_RE.test(sha || "") || !starts.length) return unverifiedSync("subtitle_identity_missing", sha);
+    if (typeof client.mediaSubtitleSync !== "function") return unverifiedSync("companion_update_required", sha);
+    try {
+      return acceptExternalSync(await client.mediaSubtitleSync(jobId, null, sha, starts, "external"), sha);
+    } catch (error) {
+      // Companion 0.4.2 and older require a stream index and answer 422.
+      return unverifiedSync(error && error.status === 422 ? "companion_update_required" : "local_speech_analysis_unavailable", sha);
+    }
+  }
+
   function errorSummary(error) {
     var job = error && error.job || {};
     var detail = job.error_detail || job.error || (error && error.message !== (error && error.code) ? error.message : null) || null;
@@ -114,6 +152,13 @@
           liteError = errorSummary(error);
         }
       }
+      // O-099: while the job still holds the original audio, the companion compares the
+      // subtitle file's cue starts with speech. The file's hash binds the answer to that file.
+      var subtitleSync = null;
+      if (typeof opts.syncInput === "function") {
+        step("sync");
+        subtitleSync = await assessExternalSync(client, jobId, await opts.syncInput());
+      }
       var prepared = readiness.acceptPrepared(job);
       return {
         opfsPath: stored.opfsPath, sha256: stored.sha256, mime: stored.mimeType || "video/mp4",
@@ -122,6 +167,7 @@
         compatibility: readiness.compatibilityEvidence(prepared) || undefined,
         renditions: renditions, audio: audio, source_sha256: job.source_sha256 || null,
         lite_requested: !!opts.lite, lite_available: !!report.lite_plan_sha256, lite_error: liteError,
+        subtitleSync: subtitleSync,
       };
     } catch (error) {
       // The companion job is released below, so what it said about the failure travels here.
@@ -159,6 +205,7 @@
 
   var API = {
     prepareLocalMedia: prepareLocalMedia, durationCheck: durationCheck, pickAudioStream: pickAudioStream,
+    acceptExternalSync: acceptExternalSync,
     isVideoFile: isVideoFile, OUTRUN_TOLERANCE_SEC: OUTRUN_TOLERANCE_SEC,
   };
   if (typeof window !== "undefined") window.SubtitleMediaAttach = API;

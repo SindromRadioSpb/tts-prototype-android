@@ -97,9 +97,9 @@ test("B1 carries landmark, contrast, target-size and accessible-name contracts",
 });
 
 test("Reading Room restores the canonical exact media binding before deriving row timing", () => {
-  assert.match(libraryHtml, /<script src="\/js\/media-package-core\.js"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/media-package-core\.js(?:\?v=\d+)?"><\/script>/);
   assert.match(libraryHtml, /<script src="\/js\/media-package-repository\.js\?v=718"><\/script>/);
-  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js\?v=723"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js\?v=\d+"><\/script>/);
   assert.match(libraryUi, /StudioMediaPackage\.activateTextBinding\(String\(textId\), \{ isCurrent:/);
   assert.match(libraryUi, /MediaHost\.pickExactBindingPassport\(/);
 });

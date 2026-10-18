@@ -320,10 +320,15 @@
     }
     return { bytes: bytes, sha256: actual };
   };
-  Client.prototype.mediaSubtitleSync = function (id, streamIndex, subtitleSha256, cueStarts) {
+  // O-099: a separate subtitle file (subtitleSource "external") has no stream index; Companion
+  // 0.4.3 assesses it by its hash and may find a frame-rate stretch.
+  Client.prototype.mediaSubtitleSync = function (id, streamIndex, subtitleSha256, cueStarts, subtitleSource) {
+    var body = { subtitle_sha256: subtitleSha256, cue_starts: cueStarts };
+    if (subtitleSource === "external") body.subtitle_source = "external";
+    else body.stream_index = streamIndex;
     return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/subtitle-sync", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ stream_index: streamIndex, subtitle_sha256: subtitleSha256, cue_starts: cueStarts }),
+      body: JSON.stringify(body),
     });
   };
   // Returns the live response: prepared video is streamed into OPFS, never buffered whole.

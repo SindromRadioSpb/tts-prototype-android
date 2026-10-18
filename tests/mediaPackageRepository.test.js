@@ -494,3 +494,36 @@ test('lite rendition keeps the canonical media hash and exact binding intact', a
   assert.equal((await h.repo.getCurrentRevision(created.corrected_track_id)).revision_id,
     created.corrected_revision_id);
 });
+
+test('O-099: a frame-rate stretch from the companion becomes a derived revision; raw stays', async () => {
+  const Studio = require('../public/js/studio-media-package.js');
+  const scale = 25 / 23.976;
+  const sync = { schema: 'subtitle-speech-sync-v1', status: 'correctable', reason: 'frame_rate_stretch', apply_offset_ms: 0,
+    apply_scale: scale, subtitle_source: 'external', audio_stream_index: 1, input_sha256: 'c'.repeat(64),
+    source_sha256: 'd'.repeat(64), subtitle_sha256: 'e'.repeat(64) };
+  const meta = (s) => ({ kind: 'captions', textSnapshot: 'שלום\nמה', captions: {
+    segments_are_final_rows: true, segments: [{ start: 100, end: 102, text: 'שלום' }, { start: 2000, end: 2003, text: 'מה' }],
+    media: { sha256: 'a'.repeat(64), durationSec: 3000 }, captions: { format: 'srt', subtitle_sync: s,
+      audio_stream_index: 1, source_sha256: 'd'.repeat(64), subtitle_track_sha256: 'e'.repeat(64) } } });
+  const h = await harness();
+  Studio.setRepositoryForTests(h.repo);
+  try {
+    const result = await Studio.createFromImportMeta(meta(sync));
+    assert.equal(result.timing_correction_applied, true);
+    assert.equal(result.revision.segments[0].start_ms, Math.round(100000 * scale));
+    assert.equal(result.revision.segments[1].end_ms, Math.round(2003000 * scale));
+    assert.equal(result.revision.segments[0].authority.timing, 'derived');
+    assert.equal(result.revision.operations[0].type, 'retime');
+    const tracks = await h.repo.listTracks(result.ref.package_id);
+    const raw = await h.repo.getCurrentRevision(tracks.find((t) => t.role === 'raw_original').track_id);
+    assert.equal(raw.segments[0].start_ms, 100000, 'the file\'s own times stay in the raw revision');
+  } finally { Studio.setRepositoryForTests(null); }
+  for (const change of [{ apply_scale: 1.2 }, { subtitle_sha256: 'f'.repeat(64) }, { apply_offset_ms: 1600 }]) {
+    const h2 = await harness();
+    Studio.setRepositoryForTests(h2.repo);
+    try {
+      const result = await Studio.createFromImportMeta(meta({ ...sync, ...change }));
+      assert.equal(result.timing_correction_applied, false, JSON.stringify(change));
+    } finally { Studio.setRepositoryForTests(null); }
+  }
+});

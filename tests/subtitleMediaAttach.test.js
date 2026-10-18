@@ -128,3 +128,37 @@ test("a failed conversion carries the companion's reason after the job is releas
   importer.confirmMediaPlan = async () => { throw Object.assign(new Error("MEDIA_JOB_FAILED"), { code: "MEDIA_JOB_FAILED", job: { error: "disk full" } }); };
   await assert.rejects(A.prepareLocalMedia({ client, importer, readiness: R, file: { name: "x.avi", size: 1 } }), (e) => e.detail === "disk full");
 });
+
+const FILE = "f".repeat(64);
+const goodSync = (over) => ({ schema: "subtitle-speech-sync-v1", status: "correctable", reason: "frame_rate_stretch",
+  apply_offset_ms: 0, apply_scale: 25 / 23.976, subtitle_source: "external", subtitle_sha256: FILE,
+  source_sha256: SRC, input_sha256: PLAN, audio_stream_index: 1, ...over });
+
+test("O-099: the speech check runs before the job is released and binds to the file's hash", async () => {
+  const { client, importer } = fakeCompanion();
+  client.mediaSubtitleSync = async (id, index, sha, starts, source) => { client.calls.push(["sync", index, sha, starts.length, source]); return goodSync(); };
+  const media = await A.prepareLocalMedia({ client, importer, readiness: R, file: { name: "x.avi", size: 1 },
+    syncInput: async () => ({ sha256: FILE, cueStarts: [1, 2, 3] }) });
+  assert.deepEqual(client.calls.find((c) => c[0] === "sync"), ["sync", null, FILE, 3, "external"]);
+  assert.ok(client.calls.findIndex((c) => c[0] === "sync") < client.calls.findIndex((c) => c[0] === "delete"));
+  assert.equal(media.subtitleSync.status, "correctable");
+  assert.equal(media.subtitleSync.apply_scale, 25 / 23.976);
+});
+
+test("O-099: an old Companion (422) or a foreign answer moves nothing", async () => {
+  const { client, importer } = fakeCompanion();
+  client.mediaSubtitleSync = async () => { throw Object.assign(new Error("HTTP 422"), { status: 422 }); };
+  const media = await A.prepareLocalMedia({ client, importer, readiness: R, file: { name: "x.avi", size: 1 },
+    syncInput: async () => ({ sha256: FILE, cueStarts: [1] }) });
+  assert.equal(media.subtitleSync.status, "unverified");
+  assert.equal(media.subtitleSync.reason, "companion_update_required");
+  for (const change of [{ subtitle_sha256: "0".repeat(64) }, { subtitle_source: "container" }, { audio_stream_index: null }]) {
+    assert.equal(A.acceptExternalSync(goodSync(change), FILE).reason, "assessment_identity_mismatch");
+  }
+  for (const change of [{ apply_scale: 1.2 }, { apply_scale: 1, apply_offset_ms: 100 }, { apply_offset_ms: 2000 },
+    { status: "needs_review", apply_offset_ms: 500, apply_scale: 1 }]) {
+    assert.equal(A.acceptExternalSync(goodSync(change), FILE).reason, "unsafe_timing_correction", JSON.stringify(change));
+  }
+  assert.equal(A.acceptExternalSync(goodSync({ status: "aligned", apply_scale: 1 }), FILE).status, "aligned");
+  assert.equal(A.acceptExternalSync(goodSync({ apply_scale: 1, apply_offset_ms: 800 }), FILE).status, "correctable");
+});

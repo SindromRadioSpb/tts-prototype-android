@@ -2232,6 +2232,71 @@
     }, 150);
   }
 
+  // O-033, owner decision 2026-09-28 (a): words the local model pointed impossibly get a second
+  // opinion from Dicta. Only those lines leave the browser, and only after one consent per build;
+  // declined, signed out or unavailable, the rows stay as they are and the table marks the words.
+  // Never fails the build: a second opinion is optional.
+  // stage/staged report progress (the build ladder); material carries consent and the note.
+  async function secondOpinionForDoubtfulWords(material, rows, cancelSignal, stage, staged) {
+    var P = window.NiqqudPlausibility, V = window.SubtitleMaterialVocalization;
+    var suspects = P && V && typeof V.applySecondOpinion === "function" ? P.scanRows(rows) : [];
+    var words = suspects.reduce(function (sum, s) { return sum + s.words.length; }, 0);
+    material.niqqudCheckNote = null;
+    if (!words) { ladderStep("skip", "niqqudCheck"); return rows; }
+    stage("niqqudCheck");
+    ladderStep("update", "niqqudCheck", { done: 0, total: words, unit: "count" });
+    if (material.dictaConsent == null) {
+      material.dictaConsent = !!window.confirm(tr("studio.import.dictaConsent", { words: words, rows: suspects.length }));
+    }
+    if (!material.dictaConsent) {
+      material.niqqudCheckNote = tr("studio.import.dictaDeclined", { words: words });
+      staged("niqqudCheck");
+      return rows;
+    }
+    var lines = V.secondOpinionLines(rows, suspects), answers = [];
+    try {
+      // Small requests keep one slow answer from holding the whole check; Dicta keeps line breaks.
+      for (var start = 0; start < lines.length; start += 40) {
+        var chunk = lines.slice(start, start + 40);
+        var response = await fetch("/api/niqqud/on-demand", {
+          method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-LP-CSRF": localStorage.getItem("cloud.csrf") || "" },
+          body: JSON.stringify({ text: chunk.join("\n"), purpose: "SUBTITLE_CHECK" }),
+          signal: cancelSignal,
+        });
+        var body = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw Object.assign(new Error(body.error || ("HTTP_" + response.status)), { status: response.status });
+        var answer = String(body.niqqud || "").split("\n");
+        if (answer.length !== chunk.length) throw new Error("NAKDAN_LINE_MISMATCH");
+        answers = answers.concat(answer);
+      }
+    } catch (error) {
+      if (material.cancelRequested) throw error;
+      var code = String(error && error.message || "NAKDAN_UNAVAILABLE");
+      material.niqqudCheckNote = error && (error.status === 401 || error.status === 403)
+        ? tr("studio.import.dictaSignIn") : tr("studio.import.dictaFailed", { code: code });
+      staged("niqqudCheck");
+      return rows;
+    }
+    var merged = V.applySecondOpinion(rows, suspects, answers, {
+      wordFaults: P.wordFaults,
+      transliterate: window.LocalTranslit && window.LocalTranslit.transliterateWithProfile,
+      translitProfile: ($("translitProfileSelect") && $("translitProfileSelect").value) || "learner-latin",
+    });
+    // Dicta pointing a word exactly as the model did is an independent confirmation; the table
+    // stops marking that word on this device.
+    if (window.NiqqudSuspectMarks && merged.confirmed.length) {
+      window.NiqqudSuspectMarks.confirm(merged.confirmed.map(function (e) { return e.word; }));
+    }
+    material.niqqudCheck = { suspects: words, replaced: merged.replaced.length,
+      confirmed: merged.confirmed.length, kept: merged.kept.length };
+    material.niqqudCheckNote = tr("studio.import.dictaChecked", { fixed: merged.replaced.length,
+      confirmed: merged.confirmed.length, kept: merged.kept.length });
+    ladderStep("update", "niqqudCheck", { done: merged.replaced.length + merged.confirmed.length, total: words, unit: "count" });
+    staged("niqqudCheck");
+    return merged.rows;
+  }
+
   async function buildSubtitleMaterial() {
     var material = pendingSubtitleMaterial;
     if (!material || !material.plan || material.plan.status !== "ready" || material.working) return;
@@ -2239,69 +2304,7 @@
     var ladderKey = null;
     function stage(key) { ladderKey = key; ladderStep("begin", key); }
     function staged(key) { ladderStep("finish", key); ladderKey = null; }
-    // O-033, owner decision 2026-09-28 (a): words the local model pointed impossibly get a second
-    // opinion from Dicta. Only those lines leave the browser, and only after one consent per build;
-    // declined, signed out or unavailable, the rows stay as they are and the table marks the words.
-    // Never fails the build: a second opinion is optional.
-    async function secondOpinionForDoubtfulWords(rows) {
-      var P = window.NiqqudPlausibility, V = window.SubtitleMaterialVocalization;
-      var suspects = P && V && typeof V.applySecondOpinion === "function" ? P.scanRows(rows) : [];
-      var words = suspects.reduce(function (sum, s) { return sum + s.words.length; }, 0);
-      material.niqqudCheckNote = null;
-      if (!words) { ladderStep("skip", "niqqudCheck"); return rows; }
-      stage("niqqudCheck");
-      ladderStep("update", "niqqudCheck", { done: 0, total: words, unit: "count" });
-      if (material.dictaConsent == null) {
-        material.dictaConsent = !!window.confirm(tr("studio.import.dictaConsent", { words: words, rows: suspects.length }));
-      }
-      if (!material.dictaConsent) {
-        material.niqqudCheckNote = tr("studio.import.dictaDeclined", { words: words });
-        staged("niqqudCheck");
-        return rows;
-      }
-      var lines = V.secondOpinionLines(rows, suspects), answers = [];
-      try {
-        // Small requests keep one slow answer from holding the whole check; Dicta keeps line breaks.
-        for (var start = 0; start < lines.length; start += 40) {
-          var chunk = lines.slice(start, start + 40);
-          var response = await fetch("/api/niqqud/on-demand", {
-            method: "POST", credentials: "same-origin",
-            headers: { "Content-Type": "application/json", "X-LP-CSRF": localStorage.getItem("cloud.csrf") || "" },
-            body: JSON.stringify({ text: chunk.join("\n"), purpose: "SUBTITLE_CHECK" }),
-            signal: cancelSignal,
-          });
-          var body = await response.json().catch(function () { return {}; });
-          if (!response.ok) throw Object.assign(new Error(body.error || ("HTTP_" + response.status)), { status: response.status });
-          var answer = String(body.niqqud || "").split("\n");
-          if (answer.length !== chunk.length) throw new Error("NAKDAN_LINE_MISMATCH");
-          answers = answers.concat(answer);
-        }
-      } catch (error) {
-        if (material.cancelRequested) throw error;
-        var code = String(error && error.message || "NAKDAN_UNAVAILABLE");
-        material.niqqudCheckNote = error && (error.status === 401 || error.status === 403)
-          ? tr("studio.import.dictaSignIn") : tr("studio.import.dictaFailed", { code: code });
-        staged("niqqudCheck");
-        return rows;
-      }
-      var merged = V.applySecondOpinion(rows, suspects, answers, {
-        wordFaults: P.wordFaults,
-        transliterate: window.LocalTranslit && window.LocalTranslit.transliterateWithProfile,
-        translitProfile: ($("translitProfileSelect") && $("translitProfileSelect").value) || "learner-latin",
-      });
-      // Dicta pointing a word exactly as the model did is an independent confirmation; the table
-      // stops marking that word on this device.
-      if (window.NiqqudSuspectMarks && merged.confirmed.length) {
-        window.NiqqudSuspectMarks.confirm(merged.confirmed.map(function (e) { return e.word; }));
-      }
-      material.niqqudCheck = { suspects: words, replaced: merged.replaced.length,
-        confirmed: merged.confirmed.length, kept: merged.kept.length };
-      material.niqqudCheckNote = tr("studio.import.dictaChecked", { fixed: merged.replaced.length,
-        confirmed: merged.confirmed.length, kept: merged.kept.length });
-      ladderStep("update", "niqqudCheck", { done: merged.replaced.length + merged.confirmed.length, total: words, unit: "count" });
-      staged("niqqudCheck");
-      return merged.rows;
-    }
+    function secondOpinion(rows) { return secondOpinionForDoubtfulWords(material, rows, cancelSignal, stage, staged); }
     material.preparationPlan = plan;
     material.working = true;
     // One controller per attempt: it cancels the companion job (video, light copy), the OPFS
@@ -2411,7 +2414,7 @@
         material.tableRows = tableRows;
         material.vocalizationWarnings = derived.warnings;
         staged("niqqud");
-        tableRows = await secondOpinionForDoubtfulWords(tableRows);
+        tableRows = await secondOpinion(tableRows);
         material.tableRows = tableRows;
       } else if (tableRows) {
         stage("niqqud");
@@ -3388,6 +3391,7 @@
     CAPTIONS_EMPTY: "studio.import.errCaptionsEmpty",
     CAPTIONS_NO_TIMESTAMPS: "studio.import.errCaptionsNoTimestamps",
     CAPTIONS_UNPARSEABLE: "studio.import.errCaptionsUnparseable",
+    CAPTIONS_NEEDS_FPS: "studio.import.errCaptionsNeedsFps",
     CAPTIONS_TOO_MANY: "studio.import.errCaptionsTooMany",
   };
   function errKey(code) { return ERROR_KEY[code] || "studio.import.errGeneric"; }
@@ -3604,6 +3608,7 @@
     // possibly playing audio) mounted indefinitely.
     teardownVideo();
     resetCaptionsMedia();
+    captionsTranslation = null; captionsFps = null; pendingCaptionsFileBytes = null;
     pendingCaptions = null;
     if (wasOpen) {
       restoreImportBackground();
@@ -3796,6 +3801,7 @@
                     visual_punctuation_lines: pendingCaptions.decoding ? pendingCaptions.decoding.visualPunctuationLines : undefined,
                     // O-096: how the media chosen for this file was prepared and checked.
                     media_attachment: pendingCaptions.mediaAttachment || undefined,
+                    translation_file: pendingCaptions.translationFile || undefined,
                     audio_stream_index: pendingCaptions.audioStreamIndex },
         video: pendingCaptions.video || undefined,
         // S4c: субтитры из контейнера приходят вместе с локальным видео — без media паспорт
@@ -3881,6 +3887,8 @@
   // The recognition stays resumable until the build task actually exists: the start dialog can
   // still be closed (to fetch a key, for instance) and the import must not be gone by then.
   async function useTextAndPrepare() {
+    // O-097: with a translation file the rows come from the two files by time, like film tracks.
+    if (captionsTranslationUsable()) { await buildCaptionsFileTable(); return; }
     if (!await useText(false, true)) return;
     var landed = pending;
     await window.LearningMaterialTaskUI.start(undefined, { onCreated: function () {
@@ -4304,6 +4312,7 @@
       text: parsed.segments.map(function (s) { return s.text; }).join("\n"),
     });
     renderCaptionsEncoding();
+    if (captionsTranslation) measureTranslation();
     // Media already chosen stays (a conversion is expensive), but is checked against these cues.
     if (captionsMedia && captionsMedia.media && window.SubtitleMediaAttach) {
       captionsMedia.check = window.SubtitleMediaAttach.durationCheck(parsed.segments, captionsMedia.media.durationSec);
@@ -4339,17 +4348,22 @@
 
   function parseCaptionsFileText(text) {
     var SMC = window.SubtitleMaterialCore;
-    return window.CaptionsParse.parse(text, SMC && typeof SMC.normalizeVisualPunctuation === "function"
-      ? { normalizeCueLines: SMC.normalizeVisualPunctuation } : undefined);
+    var opts = { fps: captionsFps || mediaFps() || undefined, keepEnd: true };
+    if (SMC && typeof SMC.normalizeVisualPunctuation === "function") opts.normalizeCueLines = SMC.normalizeVisualPunctuation;
+    return window.CaptionsParse.parse(text, opts);
   }
 
+  var pendingCaptionsFileBytes = null;
   function acceptCaptionsBytes(bytes, fileName, encoding) {
+    pendingCaptionsFileBytes = { bytes: bytes, name: fileName };
     var decoded = window.SubtitleTextDecode.decodeSubtitleBytes(bytes, encoding ? { encoding: encoding } : undefined);
     var parsed = parseCaptionsFileText(decoded.text);
-    acceptCaptions(parsed, "file", fileName, decoded.text, {
-      bytes: bytes, encoding: decoded.encoding, detected_by: decoded.detected_by,
-      visualPunctuationLines: parsed.visualPunctuationLines || 0,
-    });
+    renderCaptionsFps(parsed.error_code === "CAPTIONS_NEEDS_FPS");
+    var decoding = { bytes: bytes, encoding: decoded.encoding, detected_by: decoded.detected_by,
+      visualPunctuationLines: parsed.visualPunctuationLines || 0 };
+    // O-099: the file's hash names it to the Companion's speech check and to the passport.
+    decoding.shaPromise = bytesSha256(bytes).then(function (sha) { decoding.sha256 = sha; return sha; });
+    acceptCaptions(parsed, "file", fileName, decoded.text, decoding);
   }
 
   // ── O-096: media for a material built from a subtitle file ────────────────────────────────
@@ -4369,6 +4383,19 @@
     if (!node) return;
     node.textContent = text || "";
     node.dataset.state = state || "";
+  }
+
+  // O-099: what the Companion heard, said plainly; only "correctable" will move rows.
+  function captionsSyncText(sync) {
+    if (!sync) return "";
+    if (sync.status === "aligned") return " " + tr("studio.import.captionsSyncAligned");
+    if (sync.status === "correctable" && sync.apply_scale && sync.apply_scale !== 1) {
+      return " " + tr("studio.import.captionsSyncStretch", { percent: (Math.abs(sync.apply_scale - 1) * 100).toFixed(1),
+        direction: tr(sync.apply_scale > 1 ? "studio.import.captionsSyncSlower" : "studio.import.captionsSyncFaster") });
+    }
+    if (sync.status === "correctable") return " " + tr("studio.import.captionsSyncShift", { seconds: (sync.apply_offset_ms / 1000).toFixed(1) });
+    if (sync.status === "needs_review") return " " + tr("studio.import.captionsSyncReview");
+    return " " + tr(sync.reason === "companion_update_required" ? "studio.import.captionsSyncNeedsUpdate" : "studio.import.captionsSyncUnverified");
   }
 
   function captionsMediaCheckText(check) {
@@ -4391,6 +4418,8 @@
       remove.textContent = tr(busy ? "studio.import.captionsMediaCancel" : "studio.import.captionsMediaRemove");
     }
     if (!busy) { var bar = $("v3ImportCaptionsMediaProgress"); if (bar) bar.hidden = true; }
+    var tbtn = $("v3ImportCaptionsTranslationBtn"); if (tbtn) tbtn.disabled = captionsTableWorking;
+    renderCaptionsTranslation();
     if (!captionsMedia) { setCaptionsMediaStatus(tr("studio.import.captionsMediaNone")); return; }
     if (captionsMedia.state === "failed") {
       setCaptionsMediaStatus(tr("studio.import.captionsMediaFailed", { name: captionsMedia.fileName || "",
@@ -4406,11 +4435,12 @@
       }) + (m.renditions ? " " + tr("studio.import.captionsMediaLiteMade") : "")
         + (m.lite_error ? " " + tr("studio.import.captionsMediaLiteFailed", { code: m.lite_error.code + (m.lite_error.detail ? " · " + m.lite_error.detail : "") }) : "")
         + (m.audio ? " " + tr("studio.import.captionsMediaAudioPicked", { language: languageName(m.audio.language) }) : "")
-        + captionsMediaCheckText(captionsMedia.check), outrun ? "warn" : "");
+        + captionsMediaCheckText(captionsMedia.check) + captionsSyncText(m.subtitleSync),
+        outrun || (m.subtitleSync && m.subtitleSync.status === "needs_review") ? "warn" : "");
     }
   }
 
-  var CAPTIONS_MEDIA_STEPS = { upload: 0.1, probe: 0.15, video: 0.75, store: 0.95, lite: 1 };
+  var CAPTIONS_MEDIA_STEPS = { upload: 0.1, probe: 0.15, video: 0.7, store: 0.85, lite: 0.95, sync: 1 };
   function captionsMediaProgress(step, p) {
     if (!captionsMedia || captionsMedia.state !== "preparing") return;
     var bar = $("v3ImportCaptionsMediaProgress");
@@ -4459,6 +4489,11 @@
       },
       probeDuration: probeAudioDuration,
       onStep: captionsMediaProgress,
+      syncInput: async function () {
+        var d = pendingCaptions && pendingCaptions.decoding, heb = hebrewFileCues();
+        var sha = d && (d.sha256 || (d.shaPromise && await d.shaPromise));
+        return sha && heb.ok ? { sha256: sha, cueStarts: heb.cues.map(function (c) { return c.start; }) } : null;
+      },
     }).then(function (media) {
       if (captionsMedia !== entry) return;
       entry.state = "ready";
@@ -4516,11 +4551,207 @@
       var m = entry.media;
       pendingCaptions.media = { opfsPath: m.opfsPath, sha256: m.sha256, mime: m.mime, sizeBytes: m.sizeBytes,
         durationSec: m.durationSec, originalName: m.originalName, compatibility: m.compatibility, renditions: m.renditions };
+      // The speech check is about the file it was given; another file chosen since is unchecked.
+      var fileSha = pendingCaptions.decoding && pendingCaptions.decoding.sha256;
+      if (m.subtitleSync && m.subtitleSync.subtitle_sha256 && m.subtitleSync.subtitle_sha256 === fileSha) {
+        pendingCaptions.subtitleSync = m.subtitleSync;
+        pendingCaptions.subtitleTrackSha256 = fileSha;
+        pendingCaptions.sourceSha256 = m.subtitleSync.source_sha256 || undefined;
+        pendingCaptions.audioStreamIndex = m.subtitleSync.audio_stream_index;
+      } else if (m.subtitleSync) {
+        pendingCaptions.subtitleSync = { schema: "subtitle-speech-sync-v1", status: "unverified", apply_offset_ms: 0, reason: "subtitle_file_changed" };
+      }
       pendingCaptions.mediaAttachment = { v: 1, method: m.compatibility ? "companion-prepared" : "stored-as-is",
         source_sha256: m.source_sha256 || null, audio_stream: m.audio || null, duration_check: entry.check || null,
         lite: m.renditions ? "made" : (m.lite_error ? { failed: m.lite_error } : (m.lite_requested ? "unavailable" : "not_requested")) };
     }
     return true;
+  }
+
+  // ── O-097/O-098: translation file and frame rate for subtitle files ─────────────────────────
+  // {fileName, bytes, encoding, detected_by, text, cues, sha256, language, format, coverage, error}
+  var captionsTranslation = null;
+  var captionsFps = null; // chosen for MicroDVD files that do not declare it
+
+  function bytesSha256(bytes) {
+    return crypto.subtle.digest("SHA-256", bytes).then(function (digest) {
+      return Array.from(new Uint8Array(digest)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+    });
+  }
+
+  function mediaFps() {
+    var m = captionsMedia && captionsMedia.media, fps = m && m.compatibility && m.compatibility.codec_summary && Number(m.compatibility.codec_summary.fps);
+    return fps > 0 ? fps : null;
+  }
+
+  function cueOptions(withVisualOrder) {
+    var SMC = window.SubtitleMaterialCore, opts = { fps: captionsFps || mediaFps() || undefined };
+    if (withVisualOrder && SMC && typeof SMC.normalizeVisualPunctuation === "function") opts.normalizeCueLines = SMC.normalizeVisualPunctuation;
+    return opts;
+  }
+
+  // The subtitle file's own cues (not the merged preview lines), with ends, for rows by time.
+  function hebrewFileCues() {
+    if (!pendingCaptions || pendingCaptions.rawSource == null) return { ok: false, error_code: "CAPTIONS_EMPTY", cues: [] };
+    return window.CaptionsParse.parseCues(pendingCaptions.rawSource, cueOptions(true));
+  }
+
+  function captionsTranslationUsable() {
+    return !!(captionsTranslation && captionsTranslation.cues && captionsTranslation.cues.length && pending &&
+      pending.kind === "captions" && pendingCaptions && (pendingCaptions.origin === "file" || pendingCaptions.origin === "paste"));
+  }
+
+  function measureTranslation() {
+    var SMC = window.SubtitleMaterialCore, t = captionsTranslation;
+    if (!t || !t.cues || !SMC) return;
+    var heb = hebrewFileCues();
+    t.coverage = heb.ok ? SMC.alignTranslation(heb.cues, t.cues).coverage : null;
+  }
+
+  function parseTranslation() {
+    var t = captionsTranslation, SMC = window.SubtitleMaterialCore;
+    var decoded = window.SubtitleTextDecode.decodeSubtitleBytes(t.bytes, t.chosenEncoding ? { encoding: t.chosenEncoding } : undefined);
+    t.encoding = decoded.encoding; t.detected_by = decoded.detected_by; t.text = decoded.text;
+    var parsed = window.CaptionsParse.parseCues(decoded.text, cueOptions(false));
+    t.format = parsed.format || null; t.error = parsed.ok ? null : parsed.error_code; t.cues = parsed.ok ? parsed.cues : null;
+    // A file names no language: it is read from the script, and the passport says so.
+    t.script = parsed.ok && SMC ? SMC.detectScriptLanguage(parsed.cues.map(function (c) { return c.text; }).join(" ")) : null;
+    t.language = ({ cyrillic: "ru", latin: "en", ar: "ar", he: "he" })[t.script] || null;
+    measureTranslation();
+  }
+
+  function onCaptionsTranslationChosen(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    if (!file || !captionsMediaEligible()) return;
+    if (file.size > MAX_FILE_BYTES) { setStatus("studio.import.errTooLarge"); return; }
+    file.arrayBuffer().then(function (buffer) {
+      var bytes = new Uint8Array(buffer);
+      captionsTranslation = { fileName: file.name, bytes: bytes };
+      parseTranslation();
+      return bytesSha256(bytes).then(function (sha) { if (captionsTranslation && captionsTranslation.bytes === bytes) captionsTranslation.sha256 = sha; });
+    }).then(renderCaptionsMedia, function () { setStatus("studio.import.errGeneric"); });
+  }
+
+  function detachCaptionsTranslation() {
+    captionsTranslation = null;
+    renderCaptionsMedia();
+  }
+
+  function chooseCaptionsFps(value) {
+    captionsFps = Number(value) > 0 ? Number(value) : null;
+    var decoding = pendingCaptions && pendingCaptions.decoding;
+    if (pendingCaptionsFileBytes) acceptCaptionsBytes(pendingCaptionsFileBytes.bytes, pendingCaptionsFileBytes.name, decoding && decoding.detected_by === "chosen" ? decoding.encoding : null);
+    if (captionsTranslation) parseTranslation();
+    renderCaptionsMedia();
+  }
+
+  function renderCaptionsFps(needed) {
+    var box = $("v3ImportCaptionsFps"), select = $("v3ImportCaptionsFpsSelect");
+    if (!box) return;
+    box.hidden = !needed && !captionsFps;
+    if (select && captionsFps) select.value = String(captionsFps);
+  }
+
+  function renderCaptionsTranslation() {
+    var status = $("v3ImportCaptionsTranslationStatus"), remove = $("v3ImportCaptionsTranslationRemove");
+    var t = captionsTranslation;
+    if (remove) remove.hidden = !t;
+    if (!status) return;
+    status.dataset.state = "";
+    if (!t) { status.textContent = tr("studio.import.captionsTranslationNone"); return; }
+    if (t.error) {
+      status.textContent = tr(t.error === "CAPTIONS_NEEDS_FPS" ? "studio.import.captionsNeedsFps" : "studio.import.captionsTranslationUnreadable", { name: t.fileName, code: t.error });
+      status.dataset.state = "error";
+      if (t.error === "CAPTIONS_NEEDS_FPS") renderCaptionsFps(true);
+      return;
+    }
+    // 99.7% must not read as 100%: two rows without a pair are worth seeing.
+    var pct = t.coverage == null ? "?" : String(Math.floor(t.coverage * 1000) / 10);
+    var text = tr("studio.import.captionsTranslationReady", { name: t.fileName, language: languageName(t.language),
+      encoding: t.encoding, cues: t.cues.length, coverage: pct });
+    if (t.language === "he") { text += " " + tr("studio.import.captionsTranslationSameLanguage"); status.dataset.state = "warn"; }
+    else if (t.coverage != null && t.coverage < 0.85) { text += " " + tr("studio.import.captionsTranslationLow", { coverage: pct }); status.dataset.state = "warn"; }
+    status.textContent = text;
+  }
+
+  // O-097: the table is built from the two files by time, exactly as from a film's own tracks
+  // (rows by sentence, translation by overlap, speech language by the translation's marks), the
+  // Companion vocalizes it, Dicta gives a second opinion; no paid translation.
+  var captionsTableWorking = false;
+  async function buildCaptionsFileTable() {
+    var SMC = window.SubtitleMaterialCore, t = captionsTranslation;
+    if (captionsTableWorking || !captionsTranslationUsable() || !SMC) return false;
+    var preview = String(($("v3ImportPreview") || {}).value || "").trim();
+    var original = pendingCaptions.parsed.segments.map(function (seg) { return seg.text; }).join("\n").trim();
+    if (preview !== original && !window.confirm(tr("studio.import.captionsTableEditedConfirm"))) return false;
+    if (!window.LocalAsrClient.getPairingToken()) { setStatus("studio.import.captionsTableNeedsCompanion"); return false; }
+    localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
+    if (!(await settleCaptionsMedia())) return false;
+    var heb = hebrewFileCues();
+    if (!heb.ok) { setStatus(errKey(heb.error_code)); return false; }
+    captionsTableWorking = true;
+    setBusy(true);
+    var material = { dictaConsent: null, cancelRequested: false, niqqudCheckNote: null };
+    try {
+      setStatus("studio.import.captionsTableBuilding");
+      var textCues = heb.cues, translationCues = t.cues;
+      var verdicts = SMC.speechLanguage(textCues, { translationCues: translationCues, targetLanguage: "he" });
+      var alignment = SMC.alignTranslation(textCues, translationCues);
+      var rows = SMC.buildRows({ textCues: textCues, speechLanguage: verdicts, translation: alignment, translationCues: translationCues });
+      if (!rows.length) { setStatus("studio.import.errCaptionsEmpty"); return false; }
+      var decoding = pendingCaptions.decoding || {};
+      var textSha = decoding.bytes ? await bytesSha256(decoding.bytes) : null;
+      var tableRows = SMC.buildTableRows(rows, {
+        textTrackIndex: null, textTrackSha256: textSha, translationTrackIndex: null, translationTrackSha256: t.sha256 || null,
+        language: "he", translationLanguage: t.language || subtitleTranslationLanguage(),
+      });
+      var total = tableRows.filter(function (row) { return /[א-ת]/.test(String(row.he || "")); }).length;
+      setStatus("studio.import.captionsTableNiqqud", { done: 0, total: total });
+      var derived = await window.SubtitleMaterialVocalization.enrich(tableRows, {
+        client: localAsrClient,
+        transliterate: window.LocalTranslit.transliterateWithProfile,
+        translitProfile: ($("translitProfileSelect") && $("translitProfileSelect").value) || "learner-latin",
+        onProgress: function (done, all) { setStatus("studio.import.captionsTableNiqqud", { done: done, total: all }); },
+      });
+      tableRows = await secondOpinionForDoubtfulWords(material, derived.rows, undefined, function () {}, function () {});
+      var prev = pendingCaptions, translated = tableRows.filter(function (row) { return String(row.ru || "").trim(); }).length;
+      pendingCaptions = {
+        parsed: { ok: true, format: prev.parsed.format, kindHint: "subtitle-file", rolling: false, language: "he",
+          droppedHeadings: 0, warnings: [],
+          segments: rows.map(function (row, index) { return { i: index, start: row.start, end: row.end, text: row.text }; }) },
+        origin: "subtitle-file-table", fileName: prev.fileName, rawSource: prev.rawSource, decoding: prev.decoding,
+        subtitleTrackSha256: textSha, visualPunctuationLines: heb.visualPunctuationLines || 0,
+        // One row is one segment, as for film tracks; the raw file stays as evidence (rawSource).
+        segmentsAreFinalRows: true,
+        media: prev.media, video: prev.video, mediaAttachment: prev.mediaAttachment,
+        subtitleSync: prev.subtitleSync || { schema: "subtitle-speech-sync-v1", status: "unverified", apply_offset_ms: 0, reason: "external_subtitle_file" },
+        sourceSha256: prev.sourceSha256, audioStreamIndex: prev.audioStreamIndex,
+        translationFile: { v: 1, name: t.fileName, sha256: t.sha256 || null, encoding: t.encoding,
+          encoding_detected_by: t.detected_by, format: t.format, language: t.language, language_basis: "script", script: t.script, cues: t.cues.length,
+          coverage: Math.round(alignment.coverage * 1000) / 1000, rows_translated: translated, rows: tableRows.length,
+          fps: (t.format === "microdvd" || prev.parsed.format === "microdvd") ? (captionsFps || mediaFps()) : undefined },
+      };
+      showPreview({ kind: "captions", source: prev.fileName, method: "subtitle-file-table", model: null, warnings: [],
+        text: rows.map(function (row) { return row.text; }).join("\n") });
+      if (!await useText()) return false;
+      var applied = typeof window.v3ApplySubtitleTable === "function" && window.v3ApplySubtitleTable(tableRows);
+      if (!applied || !applied.applied) { setStatus("studio.import.subtitlePlanFailed", { code: "SUBTITLE_TABLE_NOT_APPLIED" }); return false; }
+      showSubtitleSaveStep();
+      try {
+        if (typeof window.showToast === "function") {
+          window.showToast(tr("studio.import.captionsTableReady", { rows: tableRows.length, translated: translated })
+            + (material.niqqudCheckNote ? " " + material.niqqudCheckNote : ""), translated < tableRows.length ? "warning" : "success");
+        }
+      } catch (_) {}
+      return true;
+    } catch (error) {
+      setStatus("studio.import.subtitlePlanFailed", { code: (error && (error.code || error.message)) || "SUBTITLE_TABLE_FAILED" });
+      return false;
+    } finally {
+      captionsTableWorking = false;
+      setBusy(false);
+    }
   }
 
   function redecodeCaptions(encoding) {
@@ -4635,6 +4866,8 @@
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            onCaptionsMediaChosen: onCaptionsMediaChosen, attachCaptionsYoutube: attachCaptionsYoutube,
                            detachCaptionsMedia: detachCaptionsMedia,
+                           onCaptionsTranslationChosen: onCaptionsTranslationChosen, detachCaptionsTranslation: detachCaptionsTranslation,
+                           chooseCaptionsFps: chooseCaptionsFps, buildCaptionsFileTable: buildCaptionsFileTable,
                            exportOcrEvidence: exportOcrEvidence,
                            restoreOcrDraft: restoreOcrDraft, clearOcrDraft: clearOcrDraft,
                            acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,

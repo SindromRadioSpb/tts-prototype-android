@@ -15,6 +15,10 @@
   var MAX_SEG_TEXT = 2000;
 
   var CUE_RE = /^(?:(\d+):)?(\d{1,2}):(\d{1,2})[.,](\d{1,3})\s*-->\s*(?:(\d+):)?(\d{1,2}):(\d{1,2})[.,](\d{1,3})(?:\s+(.*))?$/;
+  // O-098: SubViewer 2 ("00:00:17.90,00:00:23.00", [br] = new line) and MicroDVD
+  // ("{250}{300}text", | = new line, frames; "{1}{1}25" declares the frame rate).
+  var SUBVIEWER_RE = /^(\d{1,2}):(\d{2}):(\d{2})\.(\d{1,3}),(\d{1,2}):(\d{2}):(\d{2})\.(\d{1,3})$/;
+  var MICRODVD_RE = /^\{(\d+)\}\{(\d*)\}(.*)$/;
   var PANEL_TS_RE = /^(?:(\d+):)?(\d{1,2}):(\d{2})$/;
   var WORD_TAG_RE = /<\d{1,2}:\d{2}:\d{2}\.\d{1,3}>|<\/?c[^>]*>/;
   var ANY_TAG_RE = /<[^>]*>/g;
@@ -46,6 +50,8 @@
     for (var i = 0; i < lines.length; i++) {
       var l = lines[i].trim();
       if (CUE_RE.test(l)) return l.indexOf(",") >= 0 ? "srt" : "vtt";
+      if (SUBVIEWER_RE.test(l)) return "subviewer";
+      if (MICRODVD_RE.test(l)) return "microdvd";
       if (PANEL_TS_RE.test(l)) return "youtube-panel";
     }
     return null;
@@ -69,6 +75,79 @@
       });
     }
     return cues;
+  }
+
+  function parseSubViewer(txt) {
+    var lines = txt.split("\n"), cues = [], cur = null;
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i].trim(), m = SUBVIEWER_RE.exec(l);
+      if (m) {
+        cur = { start: hmsToSec(m[1], m[2], m[3], m[4]), end: hmsToSec(m[5], m[6], m[7], m[8]), lines: [] };
+        cues.push(cur);
+      } else if (!l) {
+        cur = null;
+      } else if (cur) {
+        cur.lines = cur.lines.concat(l.split(/\[br\]/i));
+      }
+    }
+    return cues;
+  }
+
+  function parseMicroDvd(txt, fps) {
+    var lines = txt.split("\n"), parsed = [], declared = null;
+    for (var i = 0; i < lines.length; i++) {
+      var m = MICRODVD_RE.exec(lines[i].trim());
+      if (!m) continue;
+      var body = m[3].replace(/\{[a-zA-Z]:[^}]*\}/g, "").trim();
+      if (!parsed.length && declared == null && /^\d+(?:\.\d+)?$/.test(body) && Number(m[1]) <= 1) {
+        declared = Number(body);
+        continue;
+      }
+      parsed.push({ a: Number(m[1]), b: m[2] === "" ? null : Number(m[2]), lines: body.split("|") });
+    }
+    var rate = Number(fps) > 0 ? Number(fps) : (declared > 0 ? declared : null);
+    if (!rate) return { error: "CAPTIONS_NEEDS_FPS" };
+    return { fps: rate, cues: parsed.map(function (c) {
+      return { start: c.a / rate, end: (c.b == null ? c.a + 2 * rate : c.b) / rate, lines: c.lines };
+    }) };
+  }
+
+  // Cues of any timed format, with their ends and lines kept (cue-level work: alignment, rows).
+  function extractCues(txt, format, opts) {
+    if (format === "subviewer") return { cues: parseSubViewer(txt) };
+    if (format === "microdvd") return parseMicroDvd(txt, opts && opts.fps);
+    return { cues: parseCueBlocks(txt) };
+  }
+
+  // O-095: a caller may restore visual-order lines (".נקודה") per cue line, before the lines of
+  // a cue are joined and before merging looks for sentence ends. Times are not touched.
+  function restoreCueLines(cues, opts) {
+    if (!(opts && typeof opts.normalizeCueLines === "function")) return undefined;
+    var restored = opts.normalizeCueLines(cues.map(function (cue) { return { text: cue.lines.join("\n") }; }));
+    if (restored && restored.applied) {
+      cues.forEach(function (cue, k) { cue.lines = String(restored.cues[k].text).split("\n"); });
+    }
+    return (restored && restored.lines) || 0;
+  }
+
+  function parseCues(raw, opts) {
+    var txt = normalise(raw);
+    if (!txt.trim()) return { ok: false, error_code: "CAPTIONS_EMPTY", cues: [] };
+    var format = (opts && opts.hint) || detectFormat(txt);
+    if (!format || format === "youtube-panel") return { ok: false, error_code: "CAPTIONS_UNPARSEABLE", cues: [] };
+    var extracted = extractCues(txt, format, opts);
+    if (extracted.error) return { ok: false, format: format, error_code: extracted.error, cues: [] };
+    var restoredLines = restoreCueLines(extracted.cues, opts);
+    var cues = [];
+    extracted.cues.forEach(function (cue) {
+      var text = cue.lines.map(cleanText).filter(Boolean).join("\n");
+      if (text) cues.push({ start: cue.start, end: cue.end, text: text });
+    });
+    if (!cues.length) return { ok: false, format: format, error_code: "CAPTIONS_EMPTY", cues: [] };
+    var out = { ok: true, format: format, cues: cues };
+    if (extracted.fps) out.fps = extracted.fps;
+    if (restoredLines !== undefined) out.visualPunctuationLines = restoredLines;
+    return out;
   }
 
   function languageFromHeader(txt) {
@@ -109,7 +188,7 @@
   var SENTENCE_END_RE = /[.!?…:]["'»)\]]?\s*$/;
   var MERGE_PAUSE_SEC = 2;
 
-  function mergeSegments(cues, maxSec) {
+  function mergeSegments(cues, maxSec, keepEnd) {
     var out = [], cur = null;
     for (var k = 0; k < cues.length; k++) {
       var c = cues[k];
@@ -118,15 +197,22 @@
         (c.end - cur.start) > maxSec ||                       // сегмент не длиннее maxSec
         SENTENCE_END_RE.test(cur.text);                       // предыдущая фраза закончена
       if (breaks) {
-        if (cur) out.push({ i: out.length, start: cur.start, text: cur.text });
+        if (cur) out.push(segmentOf(out.length, cur, keepEnd));
         cur = { start: c.start, lastEnd: c.end, text: c.text };
       } else {
         cur.text += " " + c.text;
         cur.lastEnd = c.end;
       }
     }
-    if (cur) out.push({ i: out.length, start: cur.start, text: cur.text });
+    if (cur) out.push(segmentOf(out.length, cur, keepEnd));
     return out;
+  }
+
+  // O-099: keepEnd adds the last merged cue's end — a timing correction needs both edges.
+  function segmentOf(index, cur, keepEnd) {
+    var seg = { i: index, start: cur.start, text: cur.text };
+    if (keepEnd && Number.isFinite(cur.lastEnd)) seg.end = cur.lastEnd;
+    return seg;
   }
 
   // merge:false (оракульный режим задачи 4) — тот же массив реплик, без склейки.
@@ -146,26 +232,19 @@
     var doMerge = !(opts && opts.merge === false);
     var maxSec = (opts && Number(opts.mergeMaxSec)) || 15;
     if (format === "youtube-panel") return parsePanel(txt, doMerge, maxSec); // Task 3
-    var cues = parseCueBlocks(txt);
+    var extracted = extractCues(txt, format, opts);
+    if (extracted.error) return fail(extracted.error);
+    var cues = extracted.cues;
     if (!cues.length) return fail("CAPTIONS_EMPTY");
     if (isRolling(cues)) return finish(fromRollingCues(cues, txt, doMerge, maxSec), doMerge); // Task 2
-    // O-095: a caller may restore visual-order lines (".נקודה") per cue line, before the lines of
-    // a cue are joined and before merging looks for sentence ends. Times are not touched.
-    var restoredLines;
-    if (opts && typeof opts.normalizeCueLines === "function") {
-      var restored = opts.normalizeCueLines(cues.map(function (cue) { return { text: cue.lines.join("\n") }; }));
-      restoredLines = (restored && restored.lines) || 0;
-      if (restored && restored.applied) {
-        cues.forEach(function (cue, k) { cue.lines = String(restored.cues[k].text).split("\n"); });
-      }
-    }
+    var restoredLines = restoreCueLines(cues, opts);
     var rawSegs = [];
     for (var c = 0; c < cues.length; c++) {
       var text = cleanText(cues[c].lines.join(" "));
       if (!text) continue;
       rawSegs.push({ start: cues[c].start, end: cues[c].end, text: text });
     }
-    var segments = doMerge ? mergeSegments(rawSegs, maxSec) : toSegments(rawSegs);
+    var segments = doMerge ? mergeSegments(rawSegs, maxSec, !!(opts && opts.keepEnd)) : toSegments(rawSegs);
     var result = finish({ format: format, rolling: false, language: languageFromHeader(txt),
                     kindHint: "unknown", segments: segments, droppedHeadings: 0, warnings: [],
                     cueCount: rawSegs.length, merged: doMerge }, doMerge);
@@ -242,7 +321,7 @@
                     cueCount: rawSegs.length, merged: doMerge }, doMerge);
   }
 
-  var API = { parse: parse, detectFormat: detectFormat, MAX_SEGMENTS: MAX_SEGMENTS, MAX_SEG_TEXT: MAX_SEG_TEXT };
+  var API = { parse: parse, parseCues: parseCues, detectFormat: detectFormat, MAX_SEGMENTS: MAX_SEGMENTS, MAX_SEG_TEXT: MAX_SEG_TEXT };
   if (typeof window !== "undefined") window.CaptionsParse = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })();

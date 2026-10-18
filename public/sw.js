@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.795";
+const CACHE_VERSION = "v3.11.796";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -215,7 +215,7 @@ const PRECACHE_URLS = [
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=795",
+  "/js/studio-import.js?v=796",
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -231,13 +231,13 @@ const PRECACHE_URLS = [
   "/js/asr-transcript.js",
   // L1-D default-off local companion adapter; inert without explicit browser-local opt-in.
   "/js/local-asr-normalizer.js",
-  "/js/local-asr-client.js?v=792",
+  "/js/local-asr-client.js?v=796",
   "/js/media-readiness.js?v=671",
   "/vendor/hash-wasm/sha256.umd.min.js",
   "/js/media-stream-store.js?v=584",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
-  "/js/subtitle-media-attach.js?v=795",
+  "/js/subtitle-media-attach.js?v=796",
   "/js/local-translit-bundle.js?v=735",
   "/js/translit-display.js?v=734",
   "/js/subtitle-material-vocalization.js?v=735",
@@ -264,14 +264,14 @@ const PRECACHE_URLS = [
   "/js/local-cache-budget.js?v=519",
   "/js/chunk-retry.js?v=519",
   "/js/media-store.js?v=671",
-  "/js/media-package-core.js",
+  "/js/media-package-core.js?v=796",
   "/js/media-package-repository.js?v=718",
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js?v=783",
   "/js/portable-learning-package-core.js?v=742",
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=784",
-  "/js/studio-media-package.js?v=723",
+  "/js/studio-media-package.js?v=796",
   "/js/material-open.js?v=734",
   "/js/material-save.js?v=734",
   "/js/studio-session.js?v=723",
@@ -312,7 +312,7 @@ const PRECACHE_URLS = [
   "/css/app-nav.css?v=653",
   "/js/media-host.js?v=783",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
-  "/js/captions-parse.js?v=794",
+  "/js/captions-parse.js?v=796",
   "/js/studio-yt-player.js?v=736",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
@@ -344,9 +344,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=795",
-  "/i18n/locales/en.js?v=795",
-  "/i18n/locales/he.js?v=795",
+  "/i18n/locales/ru.js?v=796",
+  "/i18n/locales/en.js?v=796",
+  "/i18n/locales/he.js?v=796",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

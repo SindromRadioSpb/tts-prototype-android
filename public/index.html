@@ -3910,6 +3910,8 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-captions-media-row { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; margin-top:6px; }
 .v3-captions-media-row input[type="url"] { flex:1 1 220px; min-width:0; }
 .v3-captions-media-lite { font-size:12px; }
+.v3-captions-fps { display:inline-flex; gap:6px; align-items:center; margin-inline-start:8px; font-size:12px; }
+.v3-captions-fps[hidden] { display:none; }
 .v3-captions-media progress { width:100%; margin-top:6px; }
 .v3-captions-media-status { margin:6px 0 0; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
 .v3-captions-media-status[data-state="error"] { color:var(--danger,#b42318); }
@@ -13712,9 +13714,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=795"></script>
-<script src="/i18n/locales/en.js?v=795"></script>
-<script src="/i18n/locales/he.js?v=795"></script>
+<script src="/i18n/locales/ru.js?v=796"></script>
+<script src="/i18n/locales/en.js?v=796"></script>
+<script src="/i18n/locales/he.js?v=796"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13813,7 +13815,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
-<script src="/js/local-asr-client.js?v=792"></script>
+<script src="/js/local-asr-client.js?v=796"></script>
 <script src="/js/media-readiness.js?v=671"></script>
 <!-- Audited incremental SHA-256 runtime served from node_modules by an allowlisted route. The
      store below hashes a 1.6 GB stream chunk by chunk, which crypto.subtle cannot do, so this
@@ -13828,7 +13830,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Both load before studio-import.js, which is their only consumer. -->
 <script src="/js/subtitle-material-core.js?v=684"></script>
 <script src="/js/subtitle-material-import.js?v=584"></script>
-<script src="/js/subtitle-media-attach.js?v=795"></script>
+<script src="/js/subtitle-media-attach.js?v=796"></script>
 <script src="/js/local-translit-bundle.js?v=735"></script>
 <script src="/js/translit-display.js?v=734"></script>
 <script src="/js/subtitle-material-vocalization.js?v=735"></script>
@@ -13849,7 +13851,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-cache-budget.js?v=519"></script>
 <script src="/js/chunk-retry.js?v=519"></script>
 <script src="/js/media-store.js?v=671"></script>
-<script src="/js/media-package-core.js"></script>
+<script src="/js/media-package-core.js?v=796"></script>
 <script src="/js/media-package-repository.js?v=718"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js?v=783"></script>
@@ -13880,7 +13882,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/benyehuda-learning-niqqud-manifest.js?v=734"></script>
 <script src="/js/material-save.js?v=734"></script>
 <script src="/js/studio-session.js?v=723"></script>
-<script src="/js/studio-media-package.js?v=723"></script>
+<script src="/js/studio-media-package.js?v=796"></script>
 <script src="/js/studio-media-editor.js?v=628"></script>
 <script src="/js/studio-material-revision.js"></script>
 <script src="/js/studio-portable-learning-package.js?v=756"></script>
@@ -13922,7 +13924,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
      this page's own inline script block below (v3MediaBarRefresh/v3MediaPlayOriginal call
      window.StudioYtPlayer directly). -->
-<script src="/js/captions-parse.js?v=794"></script>
+<script src="/js/captions-parse.js?v=796"></script>
 <script src="/js/studio-yt-player.js?v=736"></script>
 
 <!-- W2-S11 graded-retell deps — corpus-vocab.js provides the canon coverage-zone engine
@@ -13935,7 +13937,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=795" defer></script>
+<script src="/js/studio-import.js?v=796" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13977,7 +13979,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.795";
+    window.APP_VERSION = "3.11.796";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -51994,8 +51996,8 @@ document.addEventListener("i18n:changed", function () {
                   onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Использовать расшифровку</button>
           <button type="button" class="v3-import-file-btn" id="v3ImportCaptionsPicker"
                   onclick="document.getElementById('v3ImportCaptionsFile').click()"
-                  data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</button>
-          <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
+                  data-i18n="studio.import.captionsFileBtn">Файл субтитров (.srt / .vtt / .sub)</button>
+          <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,.sub,text/vtt" hidden
                  onchange="StudioImport.onCaptionsFileChosen(event)">
         </div>
       </div>
@@ -52123,8 +52125,17 @@ document.addEventListener("i18n:changed", function () {
         </div>
 
         <div style="margin-top:10px;">
-          <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelCaptions">Файл субтитров (.vtt / .srt)</label>
+          <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelCaptions">Файл субтитров (.srt / .vtt / .sub)</label>
           <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsFile').click()" data-i18n="studio.import.fileBtnCaptions">Выбрать файл субтитров…</button>
+          <!-- O-098: MicroDVD без объявленной частоты кадров — спросить её, а не угадывать. -->
+          <span id="v3ImportCaptionsFps" class="v3-captions-fps" hidden>
+            <label for="v3ImportCaptionsFpsSelect" data-i18n="studio.import.captionsFpsLabel">Частота кадров видео</label>
+            <select id="v3ImportCaptionsFpsSelect" onchange="StudioImport.chooseCaptionsFps(this.value)">
+              <option value="" data-i18n="studio.import.captionsFpsPick">выберите…</option>
+              <option value="23.976">23.976</option><option value="24">24</option><option value="25">25</option>
+              <option value="29.97">29.97</option><option value="30">30</option>
+            </select>
+          </span>
           <input type="file" id="l3ImportPackageFile" accept=".zip,application/zip" hidden onchange="StudioMediaPackage.handleSlimImport(event)">
           <button type="button" class="btn-secondary" onclick="document.getElementById('l3ImportPackageFile').click()" data-i18n="studio.mediaPackage.importSlim">Импорт slim Media Package…</button>
         </div>
@@ -52151,8 +52162,8 @@ document.addEventListener("i18n:changed", function () {
              субтитры на экране: перекодирование идёт, пока текст проверяют; материал создаётся
              уже с итоговым хешем медиа и открывается с плеером. -->
         <section id="v3ImportCaptionsMedia" class="v3-captions-media" hidden aria-labelledby="v3ImportCaptionsMediaTitle">
-          <strong id="v3ImportCaptionsMediaTitle" data-i18n="studio.import.captionsMediaTitle">Медиа для материала</strong>
-          <p class="v3-captions-media-help" data-i18n="studio.import.captionsMediaHelp">Таблица собирается из субтитров, а готовый материал откроется с этим видео или аудио.</p>
+          <strong id="v3ImportCaptionsMediaTitle" data-i18n="studio.import.captionsMediaTitle">Медиа и перевод для материала</strong>
+          <p class="v3-captions-media-help" data-i18n="studio.import.captionsMediaHelp">Таблица собирается из субтитров. Готовый материал откроется с выбранным видео или аудио; перевод из файла встанет в строки по времени.</p>
           <div class="v3-captions-media-row">
             <button type="button" id="v3ImportCaptionsMediaLocal" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsMediaFile').click()" data-i18n="studio.import.captionsMediaLocalBtn">Локальное видео или аудио…</button>
             <input type="file" id="v3ImportCaptionsMediaFile" accept="video/*,audio/*,.avi,.mkv,.m4a,.opus,.oga" hidden onchange="StudioImport.onCaptionsMediaChosen(event)">
@@ -52162,6 +52173,13 @@ document.addEventListener("i18n:changed", function () {
             <input type="url" id="v3ImportCaptionsMediaUrl" dir="ltr" placeholder="https://www.youtube.com/watch?v=…" data-i18n-aria-label="studio.import.captionsMediaYtLabel" aria-label="Ссылка YouTube">
             <button type="button" id="v3ImportCaptionsMediaYt" class="btn-secondary" onclick="StudioImport.attachCaptionsYoutube()" data-i18n="studio.import.captionsMediaYtBtn">Подключить YouTube</button>
           </div>
+          <!-- O-097: человеческий перевод вторым файлом; строки получают его по времени. -->
+          <div class="v3-captions-media-row">
+            <button type="button" id="v3ImportCaptionsTranslationBtn" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsTranslationFile').click()" data-i18n="studio.import.captionsTranslationBtn">Файл перевода…</button>
+            <input type="file" id="v3ImportCaptionsTranslationFile" accept=".srt,.vtt,.sub" hidden onchange="StudioImport.onCaptionsTranslationChosen(event)">
+            <button type="button" id="v3ImportCaptionsTranslationRemove" class="btn-secondary" hidden onclick="StudioImport.detachCaptionsTranslation()" data-i18n="studio.import.captionsTranslationRemove">Убрать перевод</button>
+          </div>
+          <p id="v3ImportCaptionsTranslationStatus" class="v3-captions-media-status" aria-live="polite"></p>
           <progress id="v3ImportCaptionsMediaProgress" max="100" value="0" hidden></progress>
           <p id="v3ImportCaptionsMediaStatus" class="v3-captions-media-status" aria-live="polite"></p>
           <button type="button" id="v3ImportCaptionsMediaRemove" class="btn-secondary" hidden onclick="StudioImport.detachCaptionsMedia()" data-i18n="studio.import.captionsMediaRemove">Убрать медиа</button>
