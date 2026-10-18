@@ -95,3 +95,58 @@ def test_no_stretch_is_invented_for_unrelated_subtitles():
     result = assess_stretch(windows, noise)
     assert result["status"] != "correctable"
     assert result.get("apply_scale", 1) == 1
+
+
+def _ratio_scorer(windows, usable_at):
+    """score_window stand-in: the stretch loop scores every window once per ratio, in order, so
+    the call count tells which ratio is being tried; usable_at(scale, start) decides the window."""
+    import ai_local.subtitle_sync as ss
+    state = {"i": 0}
+
+    def score(sample):
+        scale = ((1.0,) + ss.STRETCH_SCALES)[state["i"] // len(windows)]
+        state["i"] += 1
+        return {"start": sample["start"], "usable": usable_at(scale, sample["start"]), "offset_ms": 200,
+                "score": .6, "cue_count": 20, "speech_count": 20}
+    return score
+
+
+def test_two_far_windows_at_a_unique_ratio_are_enough(monkeypatch):
+    import ai_local.subtitle_sync as ss
+    target = 25 / 23.976
+    windows = [{"start": float(s), "speech": [1.0]} for s in (300, 900, 1500, 2100, 2700, 3300)]
+    monkeypatch.setattr(ss, "score_window", _ratio_scorer(windows, lambda scale, start: scale == target and start in (900.0, 2100.0)))
+    result = ss.assess_stretch(windows, [10.0, 20.0])
+    assert result["status"] == "correctable"
+    assert result["apply_scale"] == target
+    assert result["apply_offset_ms"] == 0
+
+
+def test_two_ratios_that_both_fit_are_ambiguous_and_move_nothing(monkeypatch):
+    import ai_local.subtitle_sync as ss
+    windows = [{"start": float(s), "speech": [1.0]} for s in (300, 900, 1500, 2100, 2700, 3300)]
+    ok = {25 / 23.976, 25 / 24}
+    state = {"i": 0}
+    def score(sample):
+        scale = ((1.0,) + ss.STRETCH_SCALES)[state["i"] // len(windows)]
+        state["i"] += 1
+        usable = scale in ok and sample["start"] in (900.0, 2100.0)
+        return {"start": sample["start"], "usable": usable, "offset_ms": 100, "score": .6, "cue_count": 20, "speech_count": 20}
+    monkeypatch.setattr(ss, "score_window", score)
+    result = ss.assess_stretch(windows, [10.0])
+    assert result["status"] == "needs_review"
+    assert result["reason"] == "ambiguous_frame_rate"
+    assert result["apply_offset_ms"] == 0 and result["apply_scale"] == 1
+
+
+def test_two_close_windows_are_not_enough(monkeypatch):
+    import ai_local.subtitle_sync as ss
+    windows = [{"start": float(s), "speech": [1.0]} for s in (300, 600, 1500, 2100, 2700, 3300)]
+    state = {"i": 0}
+    def score(sample):
+        scale = ((1.0,) + ss.STRETCH_SCALES)[state["i"] // len(windows)]
+        state["i"] += 1
+        usable = scale == 25 / 23.976 and sample["start"] in (300.0, 600.0)
+        return {"start": sample["start"], "usable": usable, "offset_ms": 100, "score": .6, "cue_count": 20, "speech_count": 20}
+    monkeypatch.setattr(ss, "score_window", score)
+    assert ss.assess_stretch(windows, [10.0])["status"] == "unverified"
