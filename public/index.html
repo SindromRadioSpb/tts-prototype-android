@@ -11836,6 +11836,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
             </section>
             <!-- Ведущий путь 2.2: незаконченная задача материала напоминает о себе после перезагрузки. -->
             <div id="lmtResumeBanner" class="lmt-resume-banner" role="status" aria-live="polite" hidden></div>
+            <!-- Распознанное, но не собранное в материал, переживает перезагрузку (владелец, 2026-10-18). -->
+            <div id="v3ImportResumeHost" class="lmt-resume-banner" role="status" aria-live="polite" hidden></div>
             <!-- Ведущий путь 2.3: медиа было, но текст разошёлся с транскриптом — сказать об этом до сохранения. -->
             <div id="v3MediaLostBar" class="lmt-resume-banner is-warning" role="alert" hidden></div>
             <!-- Ведущий путь 2.4: открытая карточка без ▶ — предложение привязать медиа. -->
@@ -13694,9 +13696,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=787"></script>
-<script src="/i18n/locales/en.js?v=787"></script>
-<script src="/i18n/locales/he.js?v=787"></script>
+<script src="/i18n/locales/ru.js?v=789"></script>
+<script src="/i18n/locales/en.js?v=789"></script>
+<script src="/i18n/locales/he.js?v=789"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13914,7 +13916,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=787" defer></script>
+<script src="/js/studio-import-resume.js?v=789" defer></script>
+<script src="/js/studio-import.js?v=789" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13956,7 +13959,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.788";
+    window.APP_VERSION = "3.11.789";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

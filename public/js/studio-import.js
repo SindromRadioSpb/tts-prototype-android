@@ -1480,6 +1480,7 @@
         }
         copy.saved = true;
         copy.method = "file-system";
+        pendingAudio.preparedHandle = handle; // a reload resumes from the copy that was recognised
         copy.destination_name = handle.name || options.suggestedName;
       } else {
         var url = URL.createObjectURL(pendingAudio.file);
@@ -3192,6 +3193,14 @@
   function showPreview(p) {
     pending = p;
     $("v3ImportPreview").value = p.text;
+    if (p.kind === "audio") {
+      var editable = $("v3ImportPreview");
+      if (editable && editable.dataset.resumeBound !== "1") {
+        editable.dataset.resumeBound = "1";
+        editable.addEventListener("input", function () { if (pending && pending.kind === "audio") persistRecognitionSoon(); });
+      }
+      persistRecognition();
+    }
     var provKey = p.kind === "audio" && p.method === "local-faster-whisper"
       ? "studio.import.provAudioLocal"
       : { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio", captions: "studio.import.provCaptions" }[p.kind];
@@ -3402,6 +3411,7 @@
 
   function discardResume() {
     if (pending) pending.landed = true;
+    forgetRecognition();
     showResumeBar(false);
     open();
   }
@@ -3621,7 +3631,7 @@
   // Возвращает true, ТОЛЬКО если текст реально приземлён в поле ввода. Отказ владельца в
   // R11-подтверждении (потеря >5%) — это НЕ приземление, и вызывающий (useTextAndRetell) обязан
   // это различать, иначе после отмены открылся бы модал пересказа поверх ничего.
-  async function useText(openCorrector) {
+  async function useText(openCorrector, keepResumable) {
     if (!pending) return false;
     var text = ($("v3ImportPreview").value || "").trim(); // пользователь мог поправить в превью — это ок
     if (!text) { setStatus("studio.import.errEmpty"); return false; }
@@ -3799,7 +3809,10 @@
     try { if (window.v3SessionSet) window.v3SessionSet(importSessionResetPatch()); } catch (_) {}
     window.v3LastImportMeta = importMeta;
     document.dispatchEvent(new CustomEvent("studio:source-context-changed", { detail: { resolve: false } }));
-    pending.landed = true; // from here the result lives in Studio; reopening starts clean
+    // From here the result lives in Studio and reopening starts clean — unless the caller still
+    // needs it to survive an abandoned build dialog (useTextAndPrepare).
+    pending.landed = !keepResumable;
+    if (pending.landed) forgetRecognition();
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
@@ -3813,10 +3826,145 @@
   // The recognition stays resumable until the build task actually exists: the start dialog can
   // still be closed (to fetch a key, for instance) and the import must not be gone by then.
   async function useTextAndPrepare() {
-    if (!await useText()) return;
+    if (!await useText(false, true)) return;
     var landed = pending;
-    if (landed) landed.landed = false;
-    await window.LearningMaterialTaskUI.start(undefined, { onCreated: function () { if (landed) landed.landed = true; } });
+    await window.LearningMaterialTaskUI.start(undefined, { onCreated: function () {
+      if (landed) landed.landed = true;
+      forgetRecognition();
+    } });
+  }
+
+  // ── A finished recognition survives a reload (owner, 2026-10-18) ─────────────────────────
+  var resumeStore = window.StudioImportResume ? window.StudioImportResume.createStore() : null;
+  var persistTimer = null;
+
+  function persistRecognition() {
+    if (!resumeStore || !pending || pending.landed || !pendingAudio) return;
+    var preview = $("v3ImportPreview");
+    var record = window.StudioImportResume.snapshot(pending, pendingAudio, preview ? preview.value : null);
+    if (record) resumeStore.save(record).catch(function () {});
+  }
+
+  function persistRecognitionSoon() {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(persistRecognition, 800);
+  }
+
+  function forgetRecognition() {
+    clearTimeout(persistTimer);
+    if (resumeStore) resumeStore.clear().catch(function () {});
+    var host = $("v3ImportResumeHost");
+    if (host) { host.hidden = true; host.textContent = ""; }
+  }
+
+  function clockOf(sec) {
+    var s = Math.max(0, Math.round(Number(sec) || 0)), h = Math.floor(s / 3600);
+    var mm = String(Math.floor(s % 3600 / 60)), ss = String(s % 60).padStart(2, "0");
+    return h ? h + ":" + mm.padStart(2, "0") + ":" + ss : mm + ":" + ss;
+  }
+
+  // A picker needs a fresh click, so a failed check never opens one by itself: it offers a button.
+  function pickResumeFile() {
+    if (typeof window.showOpenFilePicker === "function") {
+      return window.showOpenFilePicker({ id: "linguistpro-studio-media", multiple: false })
+        .then(function (handles) {
+          var handle = handles && handles[0];
+          return handle ? handle.getFile().then(function (file) { return { file: file, handle: handle }; }) : null;
+        })
+        .catch(function () { return null; });
+    }
+    return new Promise(function (resolve) {
+      var input = document.createElement("input");
+      input.type = "file";
+      input.accept = "audio/*,video/*,.m4a,.oga,.opus";
+      input.onchange = function () { resolve(input.files && input.files[0] ? { file: input.files[0], handle: null } : null); };
+      input.click();
+    });
+  }
+
+  async function resumeFromRecord(record, ui) {
+    var file = null, handle = record.fileHandle || null, check = null;
+    if (handle && typeof handle.getFile === "function") {
+      try {
+        var permission = typeof handle.queryPermission === "function" ? await handle.queryPermission({ mode: "read" }) : "granted";
+        if (permission !== "granted" && typeof handle.requestPermission === "function") permission = await handle.requestPermission({ mode: "read" });
+        if (permission === "granted") file = await handle.getFile();
+      } catch (_) { file = null; }
+    }
+    if (file) {
+      ui.say("studio.import.resumeChecking");
+      check = await window.StudioImportResume.verifyFile(record, file, window.MediaStore);
+    }
+    if (!check || !check.ok) { ui.askForFile(check ? "studio.import.resumeFileChanged" : "studio.import.resumePickFile"); return; }
+    finishResume(record, file, handle, check.buf);
+  }
+
+  async function resumeWithPickedFile(record, ui) {
+    var picked = await pickResumeFile();
+    if (!picked) return;
+    ui.say("studio.import.resumeChecking");
+    var check = await window.StudioImportResume.verifyFile(record, picked.file, window.MediaStore);
+    if (!check.ok) { ui.askForFile("studio.import.resumeWrongFile"); return; }
+    finishResume(record, picked.file, picked.handle || record.fileHandle || null, check.buf);
+  }
+
+  function finishResume(record, file, handle, buf) {
+    pendingAudio = window.StudioImportResume.restoreAudio(record, file, handle, buf);
+    pending = record.pending;
+    pending.landed = false;
+    var host = $("v3ImportResumeHost");
+    if (host) { host.hidden = true; host.textContent = ""; }
+    open();
+    showPreview(pending);
+    var preview = $("v3ImportPreview");
+    if (preview) preview.value = record.previewText;
+    var info = $("v3ImportAudioInfo");
+    if (info) info.hidden = false;
+    renderAudioMeta();
+    updateAudioActionLabel();
+    renderMediaReadiness();
+    showResumeBar(true);
+    persistRecognition();
+  }
+
+  async function offerStoredRecognition() {
+    var host = $("v3ImportResumeHost");
+    if (!host || !resumeStore || pending) return;
+    var record = await resumeStore.load();
+    if (!window.StudioImportResume.usable(record)) { if (record) resumeStore.clear().catch(function () {}); return; }
+    if (pending) return; // the owner started something while the record was loading
+    var params = { name: record.name, duration: clockOf(record.durationSec) };
+    var text = document.createElement("span");
+    text.textContent = tr("studio.import.resumeStored", params);
+    var note = document.createElement("span");
+    note.className = "v3-import-resume-note";
+    note.hidden = true;
+    var go = document.createElement("button");
+    go.type = "button"; go.className = "btn-primary";
+    go.textContent = tr("studio.import.resumeContinue");
+    var pick = document.createElement("button");
+    pick.type = "button"; pick.className = "btn-secondary"; pick.hidden = true;
+    pick.textContent = tr("studio.import.resumePickBtn");
+    var drop = document.createElement("button");
+    drop.type = "button"; drop.className = "btn-secondary";
+    drop.textContent = tr("studio.import.resumeForget");
+    var ui = {
+      say: function (key) { note.textContent = tr(key, params); note.hidden = false; },
+      askForFile: function (key) { note.textContent = tr(key, params); note.hidden = false; go.hidden = true; pick.hidden = false; pick.disabled = false; },
+    };
+    go.onclick = async function () {
+      go.disabled = true;
+      try { await resumeFromRecord(record, ui); } catch (_) { ui.askForFile("studio.import.resumePickFile"); }
+      go.disabled = false;
+    };
+    pick.onclick = async function () {
+      pick.disabled = true;
+      try { await resumeWithPickedFile(record, ui); } catch (_) { ui.askForFile("studio.import.resumePickFile"); }
+      pick.disabled = false;
+    };
+    drop.onclick = function () { forgetRecognition(); };
+    host.replaceChildren(text, note, go, pick, drop);
+    host.hidden = false;
   }
 
   // P5 — учебный материал прямо из ссылки: медиа не скачивается вовсе, транскрипт делает провайдер
@@ -4229,4 +4377,6 @@
                            // скриншот НАСТОЯЩЕГО блока, а не его копии в тестовом скрипте: копия
                            // разошлась бы с оригиналом ровно тогда, когда это перестанут замечать.
                            renderAsrSummary: renderAsrSummary };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { offerStoredRecognition().catch(function () {}); }, { once: true });
+  else setTimeout(function () { offerStoredRecognition().catch(function () {}); }, 0);
 })();
