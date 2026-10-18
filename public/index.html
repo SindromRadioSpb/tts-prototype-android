@@ -13959,7 +13959,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.789";
+    window.APP_VERSION = "3.11.790";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -21543,6 +21543,12 @@ updatePlaylistButtonUI();
         _premiumStatusRefreshTimer = setTimeout(fetchPremiumStatus, 500);
     }
 
+    // Owner, 2026-10-18: these keys used to be declared ~17k lines BELOW this call in the same
+    // script. Reading them here hit the temporal dead zone, the try/catch swallowed it, and the
+    // saved translator and transliteration profile were never restored after a reload (the select
+    // fell back to its first option, Google Translate). They must stay above the bootstrap.
+    const PROVIDER_LS_KEY        = "v3.translateProvider";
+    const TRANSLIT_PROFILE_LS_KEY = "v3.translitProfile";
     // Now safe to bootstrap — all let/const above is initialized.
     initProviderSelect();
     initTranslitProfileSelect();
@@ -38240,8 +38246,8 @@ try {
     // ----------------------------
     // PROVIDER SELECTOR (Phase 1.9)
     // ----------------------------
-    const PROVIDER_LS_KEY        = "v3.translateProvider";
-    const TRANSLIT_PROFILE_LS_KEY = "v3.translitProfile";
+    // PROVIDER_LS_KEY / TRANSLIT_PROFILE_LS_KEY are declared above the bootstrap call
+    // (initProviderSelect); see the note there.
 
     function getSelectedProvider() {
         const el = document.getElementById("providerSelect");
@@ -38294,7 +38300,11 @@ try {
     // раньше этого и geminiKeyGet там ещё не определён.
     function v3ApplyDefaultProviderFromKey() {
         try {
-            if (localStorage.getItem(PROVIDER_LS_KEY)) return;   // выбор уже сделан
+            if (localStorage.getItem(PROVIDER_LS_KEY)) {   // выбор уже сделан
+                // initProviderSelect ran before the key helpers existed: resync their panel.
+                try { geminiKeyGroupSync(); } catch (_) {}
+                return;
+            }
             const el = document.getElementById("providerSelect");
             if (el && geminiKeyGet()) {
                 el.value = "gemini";
