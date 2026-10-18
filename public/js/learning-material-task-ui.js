@@ -6,9 +6,9 @@
     en:{title:'Prepare material',tasks:'Preparation tasks',name:'Material title',start:'Build the study material',resume:'Continue',cancel:'Stop after current step',close:'Close',download:'Download ZIP',open:'Open material',empty:'No unfinished tasks.',note:'A new card and a ZIP package will be prepared. Selected Studio translator: ',cost:'Translation may use your quota. Completed steps are saved on this device.',imported:'Source saved',transcribing:'Recognising speech from the link',transcribed:'Transcript received',binding:'Attaching the video to the card',bound:'Video attached',causeTAB_BACKGROUNDED:'the tab was in the background',causePROVIDER_OVERLOADED:'provider is busy',causeNETWORK:'network failed',causeSERVER_ERROR:'server error',causeJSON_DAMAGED:'damaged answer',detailForeground:'the tab was in the background · come back to it and I carry on',foregroundNote:'Keep this tab in front: Chrome freezes background tabs and cuts the request off. Finished chunks are kept — nothing is paid for twice.',resumeFrom:'Continued from chunk {from} of {of} — earlier work is not paid for again.',resumeRefused:'The previous journal did not fit ({what}) — the table is built from scratch.',resumeRefusedUnknown:'The previous journal did not fit — the table is built from scratch.',fieldtext:'the text changed',fieldsegments:'the utterances changed',fieldmodel:'the model changed',fieldprovider:'the translator changed',fieldchunkSize:'the chunk size changed',titleReady:'✅ Material ready',titleStopped:'⚠️ Run stopped',paidTranscript:'Recognition is already paid for and saved — continuing does not repeat it.',causeYT_OVERLOADED:'provider is busy',causeYT_QUOTA:'rate limited',causeYT_FAILED:'provider error',markDone:'done',markCurrent:'running',markPending:'waiting',markStalled:'stopped',stageImported:'Source',stageTranscribing:'Speech recognition',stageTranslating:'Study table',stageSaved:'Saving the card',stageBound:'Video attached',stageReady:'Package',detailRetry:'{why} · retry in {sec} s (attempt {i} of {n})',detailSlow:'running {time} · longer than usual',detailElapsed:'running {time}',detailWindow:'window {i} of {n} · {time}',detailRows:'{ready} of {total} rows ready · chunk {chunk} of {chunks}',priceFull:'Video {d} · recognition ≈${asr} · table ≈${tlo}–{thi} · total ≈${lo}–{hi}',minutesNote:'usually {n} min',priceNote:'The table price is a range: how many utterances there are is known only after recognition.',price:'Video {d} · speech recognition ≈${p}',parts:'{n} parts',estimating:'Working out the cost…',estimateFailed:'The cost could not be worked out.',retryEstimate:'Try the estimate again',linkNote:'The material is built straight from the link: nothing has to be downloaded.',captionsFree:'If the video has captions of its own, importing them with “Show video” costs nothing.',blindNote:'Some rows have no trustworthy timing — karaoke stays silent there.',unvocalizedNote:'{n} rows without niqqud: the model could not vocalize them without changing the text. The text, translation and transliteration are there.',translating:'Building study table',table_ready:'Table saved',saving:'Saving card',saved:'Card saved',exporting:'Checking package',ready:'Material ready. Download the ZIP and save it in Files.',paused:'Task paused. Source and completed steps are saved.',cancelled:'Task stopped. Continue from the saved step.',stopping:'Stopping after the current step; its result will be saved.',error:'Could not finish this step. Check the selected translator, network and free storage, then continue.',TASK_TABLE_INCOMPLETE:'The table did not come back from the provider. The transcript is kept — press “Continue”; it is not paid for twice.',TASK_TRANSCRIPT_INCOMPLETE:'Recognition returned no text. Press “Continue” to try again.',YT_QUOTA:'The provider rate-limited the key (429). Completed steps are saved — continue in a minute or two.',YT_OVERLOADED:'The provider is busy right now. This passes: press “Continue”.',YT_URL_REJECTED:'The link was not accepted. Private and unlisted videos cannot be used; check the address.',ASR_TRUNCATED:'The recognition answer did not fit in one piece. Continue and the recording is taken in parts.',ASR_BLOCKED:'The provider refused to transcribe this recording.',GEMINI_KEY_REQUIRED:'Your Gemini key is needed — add it in Studio settings.',busy:'Another tab is already preparing a material.',remove:'Remove task from list',missing:'Add text or captions first.',downloaded:'ZIP download started. Check that the file was saved on your device.'},
     he:{title:'הכנת חומר',tasks:'משימות הכנה',name:'שם החומר',start:'בניית חומר הלימוד',resume:'המשך',cancel:'עצירה אחרי השלב הנוכחי',close:'סגירה',download:'הורדת ZIP',open:'פתיחת החומר',empty:'אין משימות שלא הושלמו.',note:'ייווצר כרטיס חדש ותוכן חבילת ZIP. המתרגם שנבחר בסטודיו: ',cost:'התרגום עשוי לנצל את המכסה שלכם. שלבים שהושלמו נשמרים במכשיר הזה.',imported:'המקור נשמר',transcribing:'מזהים דיבור מתוך הקישור',transcribed:'התמלול התקבל',binding:'מקשרים את הווידאו לכרטיס',bound:'הווידאו קושר',causeTAB_BACKGROUNDED:'הלשונית הייתה ברקע',causePROVIDER_OVERLOADED:'הספק עמוס',causeNETWORK:'הרשת נפלה',causeSERVER_ERROR:'תקלת שרת',causeJSON_DAMAGED:'תשובה פגומה',detailForeground:'הלשונית הייתה ברקע · חזרו אליה ואמשיך',foregroundNote:'השאירו את הלשונית הזאת בחזית: כרום מקפיא לשוניות רקע ומנתק את הבקשה. המקטעים שהושלמו נשמרים — לא משלמים פעמיים.',resumeFrom:'ממשיכים ממקטע {from} מתוך {of} — מה שכבר נעשה לא ישולם שוב.',resumeRefused:'יומן הריצה הקודמת לא התאים ({what}) — הטבלה נבנית מחדש.',resumeRefusedUnknown:'יומן הריצה הקודמת לא התאים — הטבלה נבנית מחדש.',fieldtext:'הטקסט השתנה',fieldsegments:'המשפטים השתנו',fieldmodel:'הדגם השתנה',fieldprovider:'המתרגם השתנה',fieldchunkSize:'גודל המקטע השתנה',titleReady:'✅ החומר מוכן',titleStopped:'⚠️ הריצה נעצרה',paidTranscript:'הזיהוי כבר שולם ונשמר — המשך לא יחזור עליו.',causeYT_OVERLOADED:'הספק עמוס',causeYT_QUOTA:'הגבלת קצב',causeYT_FAILED:'תקלת ספק',markDone:'הושלם',markCurrent:'בעבודה',markPending:'ממתין',markStalled:'נעצר',stageImported:'מקור',stageTranscribing:'זיהוי דיבור',stageTranslating:'טבלת לימוד',stageSaved:'שמירת הכרטיס',stageBound:'קישור הווידאו',stageReady:'חבילה',detailRetry:'{why} · ניסיון חוזר בעוד {sec} שנ׳ (ניסיון {i} מתוך {n})',detailSlow:'בעבודה {time} · יותר מהרגיל',detailElapsed:'בעבודה {time}',detailWindow:'חלון {i} מתוך {n} · {time}',detailRows:'{ready} מתוך {total} שורות מוכנות · מקטע {chunk} מתוך {chunks}',priceFull:'סרטון {d} · זיהוי ≈${asr} · טבלה ≈${tlo}–{thi} · סה\"כ ≈${lo}–{hi}',minutesNote:'בדרך כלל {n} דק׳',priceNote:'מחיר הטבלה הוא טווח: מספר המשפטים ידוע רק אחרי הזיהוי.',price:'סרטון {d} · זיהוי דיבור ≈${p}',parts:'{n} חלקים',estimating:'מחשבים עלות…',estimateFailed:'לא הצלחנו לחשב את העלות.',retryEstimate:'לחשב שוב',linkNote:'החומר נוצר ישירות מהקישור: אין צורך להוריד דבר.',captionsFree:'אם לסרטון יש כתוביות משלו, אפשר לייבא אותן בחינם דרך «הצגת וידאו».',blindNote:'לחלק מהשורות אין תזמון אמין — שם הקריוקי שותק.',unvocalizedNote:'{n} שורות ללא ניקוד: המודל לא הצליח לנקד אותן בלי לשנות את הטקסט. הטקסט, התרגום והתעתיק במקום.',translating:'יוצרים טבלת לימוד',table_ready:'הטבלה נשמרה',saving:'שומרים כרטיס',saved:'הכרטיס נשמר',exporting:'בודקים את החבילה',ready:'החומר מוכן. הורידו ZIP ושמרו אותו בקבצים.',paused:'המשימה הושהתה. המקור והשלבים שהושלמו נשמרו.',cancelled:'המשימה נעצרה. אפשר להמשיך מהשלב שנשמר.',stopping:'המשימה תיעצר אחרי השלב הנוכחי; התוצאה שלו תישמר.',error:'השלב לא הושלם. בדקו את המתרגם שנבחר, הרשת והמקום הפנוי ואז המשיכו.',TASK_TABLE_INCOMPLETE:'הטבלה לא חזרה מהספק. התמלול נשמר — לחצו «המשך», לא ישולם עליו שוב.',TASK_TRANSCRIPT_INCOMPLETE:'הזיהוי לא החזיר טקסט. לחצו «המשך» כדי לנסות שוב.',YT_QUOTA:'הספק הגביל את קצב הבקשות (429). השלבים שהושלמו נשמרו — המשיכו בעוד דקה או שתיים.',YT_OVERLOADED:'הספק עמוס כרגע. זה זמני: לחצו «המשך».',YT_URL_REJECTED:'הקישור לא התקבל. סרטונים פרטיים ולא רשומים אינם נתמכים; בדקו את הכתובת.',ASR_TRUNCATED:'תשובת הזיהוי לא נכנסה בבת אחת. המשיכו וההקלטה תפוענח בחלקים.',ASR_BLOCKED:'הספק סירב לתמלל את ההקלטה הזאת.',GEMINI_KEY_REQUIRED:'נדרש מפתח Gemini שלכם — הוסיפו אותו בהגדרות הסטודיו.',busy:'חומר כבר נמצא בהכנה בלשונית אחרת.',remove:'הסרת המשימה מהרשימה',missing:'הוסיפו קודם טקסט או כתוביות.',downloaded:'הורדת ZIP החלה. ודאו שהקובץ נשמר במכשיר.'}
   };
-  Object.assign(words.ru,{geminiRecommended:'Для более качественной учебной таблицы рекомендуем Gemini. Ключ и провайдер настраиваются в «Настройки перевода и таблицы».',geminiRequiredForLink:'Для распознавания видео по ссылке нужен ключ Gemini. Google Translate может переводить готовый текст, но не распознаёт речь из видео.',useGemini:'Использовать Gemini',openTranslationSettings:'Вернуться и настроить Gemini',continueGoogle:'Продолжить с Google Translate'});
-  Object.assign(words.en,{geminiRecommended:'For a higher-quality study table, we recommend Gemini. Configure the key and provider in Translation and table settings.',geminiRequiredForLink:'A Gemini key is required to transcribe a linked video. Google Translate can translate prepared text, but cannot recognise speech from the video.',useGemini:'Use Gemini',openTranslationSettings:'Go back and configure Gemini',continueGoogle:'Continue with Google Translate'});
-  Object.assign(words.he,{geminiRecommended:'לטבלת לימוד איכותית יותר מומלץ להשתמש ב-Gemini. אפשר להגדיר את המפתח והספק בהגדרות התרגום והטבלה.',geminiRequiredForLink:'נדרש מפתח Gemini כדי לתמלל סרטון מקישור. Google Translate יכול לתרגם טקסט מוכן, אך אינו מזהה דיבור מתוך הסרטון.',useGemini:'שימוש ב-Gemini',openTranslationSettings:'חזרה להגדרת Gemini',continueGoogle:'המשך עם Google Translate'});
+  Object.assign(words.ru,{geminiRecommended:'Для более качественной учебной таблицы рекомендуем Gemini. Ключ и провайдер настраиваются в «Настройки перевода и таблицы».',geminiRequiredForLink:'Для распознавания видео по ссылке нужен ключ Gemini. Google Translate может переводить готовый текст, но не распознаёт речь из видео.',useGemini:'Использовать Gemini',openTranslationSettings:'Вернуться и настроить Gemini',continueGoogle:'Продолжить с Google Translate',keyLabel:'Ключ Gemini API',keySave:'Сохранить ключ и продолжить с Gemini',keyBad:'Ключ не принят: нужен ключ вида AIza… или AQ.… (aistudio.google.com).',keyHere:'Ключ можно вставить прямо здесь — он сохранится в этом браузере, как в настройках.'});
+  Object.assign(words.en,{geminiRecommended:'For a higher-quality study table, we recommend Gemini. Configure the key and provider in Translation and table settings.',geminiRequiredForLink:'A Gemini key is required to transcribe a linked video. Google Translate can translate prepared text, but cannot recognise speech from the video.',useGemini:'Use Gemini',openTranslationSettings:'Go back and configure Gemini',continueGoogle:'Continue with Google Translate',keyLabel:'Gemini API key',keySave:'Save key and continue with Gemini',keyBad:'Key not accepted: it should look like AIza… or AQ.… (aistudio.google.com).',keyHere:'You can paste the key right here — it is saved in this browser, same as in settings.'});
+  Object.assign(words.he,{geminiRecommended:'לטבלת לימוד איכותית יותר מומלץ להשתמש ב-Gemini. אפשר להגדיר את המפתח והספק בהגדרות התרגום והטבלה.',geminiRequiredForLink:'נדרש מפתח Gemini כדי לתמלל סרטון מקישור. Google Translate יכול לתרגם טקסט מוכן, אך אינו מזהה דיבור מתוך הסרטון.',useGemini:'שימוש ב-Gemini',openTranslationSettings:'חזרה להגדרת Gemini',continueGoogle:'המשך עם Google Translate',keyLabel:'מפתח Gemini API',keySave:'שמירת המפתח והמשך עם Gemini',keyBad:'המפתח לא התקבל: הוא צריך להיראות כמו AIza… או AQ.… (aistudio.google.com).',keyHere:'אפשר להדביק את המפתח כאן — הוא יישמר בדפדפן הזה, כמו בהגדרות.'});
   Object.assign(words.ru,{history:'Завершённые материалы',historyNote:'Готовые задачи автоматически переходят в историю и не занимают очередь. Материалы и результаты обработки сохранены.',TASK_SOURCE_MISMATCH:'Источник задачи не совпадает с расшифровкой или карточкой. Сохранение остановлено; полученные результаты сохранены. Проверьте ссылку в задаче.',TASK_STORAGE_UPGRADE_BLOCKED:'Закройте другие вкладки Студии и повторите: обновляется журнал задач.',removeConfirm:'Убрать задачу и её журнал обработки? Сохранённый библиотечный материал останется. Незавершённые результаты этой задачи будут удалены.'});
   Object.assign(words.en,{history:'Completed materials',historyNote:'Completed tasks move to history automatically and free the queue. Materials and processing results are retained.',TASK_SOURCE_MISMATCH:'The task source does not match the transcript or card. Saving stopped; received results are retained. Check the task link.',TASK_STORAGE_UPGRADE_BLOCKED:'Close other Studio tabs and retry: the task journal needs an upgrade.',removeConfirm:'Remove this task and its processing journal? The saved library material will remain. Unfinished results for this task will be deleted.'});
   Object.assign(words.he,{history:'חומרים שהושלמו',historyNote:'משימות שהושלמו עוברות אוטומטית להיסטוריה ומפנות את התור. החומרים ותוצאות העיבוד נשמרים.',TASK_SOURCE_MISMATCH:'מקור המשימה אינו תואם לתמלול או לכרטיס. השמירה נעצרה; התוצאות שהתקבלו נשמרו. בדקו את הקישור במשימה.',TASK_STORAGE_UPGRADE_BLOCKED:'סגרו לשוניות אחרות של הסטודיו ונסו שוב: נדרש עדכון של יומן המשימות.',removeConfirm:'להסיר את המשימה ואת יומן העיבוד שלה? החומר השמור בספרייה יישאר. תוצאות של משימה שלא הושלמה יימחקו.'});
@@ -365,6 +365,25 @@
   function element(tag,content){const el=document.createElement(tag);if(content)el.textContent=content;return el;}
   function dialog(title){if(currentDialog)currentDialog.close();const d=element('dialog');d.className='study-source-dialog';d.setAttribute('aria-label',title);d.append(element('h2',title));const focus=document.activeElement;d.addEventListener('close',()=>{d.remove();if(currentDialog===d)currentDialog=null;if(focus&&focus.isConnected)focus.focus();});document.body.append(d);d.showModal();currentDialog=d;return d;}
   function button(parent,label,fn){const b=element('button',label);b.type='button';b.onclick=fn;parent.append(b);return b;}
+  // Владелец, 2026-10-18: «Вернуться и настроить Gemini» закрывало это окно до создания задачи,
+  // и вернуться к уже распознанному транскрипту было некуда. Ключ вводится здесь же; кнопка
+  // настроек остаётся лишь там, где Студия не умеет сохранить ключ сама.
+  function geminiKeyRow(d,before,onSaved){
+    if(typeof operations.saveGeminiKey!=='function')return null;
+    const row=element('div');row.className='lmt-key-row';
+    const hint=element('p',t('keyHere'));hint.className='lmt-price-note';
+    const input=element('input');input.type='password';input.autocomplete='off';input.spellcheck=false;input.dir='ltr';
+    input.placeholder='AIza… / AQ.…';input.setAttribute('aria-label',t('keyLabel'));
+    const error=element('p','');error.setAttribute('role','alert');error.hidden=true;
+    const save=button(row,t('keySave'),async()=>{save.disabled=true;error.hidden=true;
+      try{
+        if(!await operations.saveGeminiKey(String(input.value||'').trim())){error.textContent=t('keyBad');error.hidden=false;save.disabled=false;return;}
+        input.value='';await onSaved();
+      }catch(_){error.textContent=t('keyBad');error.hidden=false;save.disabled=false;}});
+    save.className='btn-primary';row.insertBefore(input,save);
+    d.insertBefore(hint,before);d.insertBefore(row,before);d.insertBefore(error,before);
+    return row;
+  }
   async function showTask(job,d){
     d=d||dialog(t('title'));d.replaceChildren(element('h2',job.input.title));sourceLink(d,job.input);
     // Финал медиа-материала говорит об учёбе, а не о ZIP: пакет остаётся второстепенной кнопкой.
@@ -456,7 +475,7 @@
         // Цена — на самой кнопке: согласие на неё и есть нажатие, второго окна посреди сборки нет.
         if(operations.estimateTable&&isMediaJob(job))(async()=>{try{const e=await operations.estimateTable({...job.input,provider:'gemini'});
           if(e&&e.table){go.__quote=e.table;go.textContent=t('continueWithGemini')+' · ≈$'+money(e.table.highUsd);}}catch(_){}})();
-      }else button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
+      }else if(!geminiKeyRow(d,actions,async()=>{await showTask(await store.get(job.id),d);}))button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
     }
     if(job.error==='TASK_SOURCE_MISMATCH'&&!runner.isRunning(job.id)){
       if(!job.error_reason||job.error_reason==='table')button(actions,t('reviewSource'),()=>showSourceReview(job.id,d));
@@ -596,7 +615,8 @@
       value(){return cb.checked&&!cb.disabled?{word_gloss_ai:{enabled:true,quote:quote?{words:quote.words,usd:quote.usd,basis:quote.basis}:{words:0,usd:0}}}:{};},
     };
   }
-  async function start(capturedInput){
+  async function start(capturedInput,hooks){
+    hooks=hooks||{};
     ready();const input=JSON.parse(JSON.stringify(capturedInput||operations.capture())),d=dialog(t('title'));
     const link=input.youtube_source || null;
     if(!input.source_text && !link){d.append(element('p',t('missing')));button(d,t('close'),()=>d.close());return;}
@@ -618,7 +638,7 @@
     if(link)notes.append(element('p',t('linkNote')),element('p',t('captionsFree')));
     d.append(notes);
     const glossChoice=wordGlossChoice(d,input,link);
-    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const originUrl=origin?String(origin.value||'').trim():'';const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted,...glossChoice.value(),...(originUrl?{youtube_origin:{url:originUrl}}:{})});await store.add(job);liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
+    const startButton=button(actions,t('start'),async()=>{startButton.disabled=true;try{const originUrl=origin?String(origin.value||'').trim():'';const job=await LearningMaterialTask.create({...input,title:title.value,table_quote:quoted,timing_quote:timingQuoted,...glossChoice.value(),...(originUrl?{youtube_origin:{url:originUrl}}:{})});await store.add(job);try{if(typeof hooks.onCreated==='function')hooks.onCreated(job);}catch(_){}liveState.expectedSec=expectedSec;await execute(job.id,d);}catch(error){const message=element('p',t(error.code||error.message)||t('error'));message.setAttribute('role','alert');d.append(message);startButton.disabled=false;}});
     // ③ Проверка транскрипта — внутри процесса: редактор возвращает сюда с исправленной ревизией.
     if(!link&&isMediaJob({input})&&operations.reviewTranscript){
       const reviewNote=element('p',t('reviewNote'));reviewNote.className='lmt-price-note';d.insertBefore(reviewNote,actions);
@@ -627,7 +647,7 @@
         // Отказ редактора (нет исправляемой дорожки) не рвёт процесс: задача открывается снова.
         try{await operations.reviewTranscript(input);}catch(_){}
         const fresh=operations.capture();
-        await start({...fresh,title:edited||fresh.title});
+        await start({...fresh,title:edited||fresh.title},hooks);
       });
     }
     button(actions,t('close'),()=>d.close());title.focus();
@@ -637,8 +657,12 @@
       if(recommendation.canContinue&&recommendation.needsKey){
         // Нет ключа Gemini: готовый текст соберёт и выбранный переводчик, а путь к ключу — рядом.
         startButton.textContent=fill(t('continueWith'),{p:providerName(input.provider)});
-        const settings=button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
-        actions.insertBefore(settings,startButton);
+        const switchHere=async()=>{await operations.selectGemini();const selected=operations.capture();
+          d.close();await start({...input,title:title.value,provider:selected.provider,model:selected.model},hooks);};
+        if(!geminiKeyRow(d,actions,switchHere)){
+          const settings=button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
+          actions.insertBefore(settings,startButton);
+        }
       }else if(recommendation.canContinue){
         startButton.textContent=link?t('continueGoogle'):fill(t('continueWith'),{p:providerName(input.provider)});
         const use=button(actions,t('useGemini'),async()=>{use.disabled=true;try{
@@ -646,13 +670,17 @@
           const selected=operations.capture();
           // The import modal has already cleared its temporary YouTube link. Keep
           // this dialog's source and edited title; only refresh provider settings.
-          d.close();await start({...input,title:title.value,provider:selected.provider,model:selected.model});
+          d.close();await start({...input,title:title.value,provider:selected.provider,model:selected.model},hooks);
         }catch(_){use.disabled=false;}});
         actions.insertBefore(use,startButton);
       }else{
         startButton.disabled=true;
-        const settings=button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
-        actions.insertBefore(settings,startButton);
+        const switchLink=async()=>{await operations.selectGemini();const selected=operations.capture();
+          d.close();await start({...input,title:title.value,provider:selected.provider,model:selected.model},hooks);};
+        if(!geminiKeyRow(d,actions,switchLink)){
+          const settings=button(actions,t('openTranslationSettings'),()=>{d.close();operations.openTranslationSettings();});
+          actions.insertBefore(settings,startButton);
+        }
       }
     }
     // Платный шаг не начинается вслепую: пока цена не показана, «Подготовить» недоступно. Смета

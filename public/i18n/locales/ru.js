@@ -4329,6 +4329,13 @@ window.I18N_LOCALES.ru = {
       // W2-S4 — Импорт → Аудио (BYOK Gemini ASR)
       audioBtn: "Медиа на иврите → транскрипт",
       audioRejected: "Файл «{name}» не прикреплён: {reason}",
+      resumeLabel: "Распознанный «{name}» ещё не собран в материал — можно продолжить.",
+      resumeDiscard: "Начать заново",
+      buildProviderLabel: "Перевод таблицы",
+      buildKeyLabel: "Ключ Gemini API",
+      buildKeySave: "Сохранить ключ",
+      buildKeyNeeded: "Вставьте ключ Gemini — он сохранится в этом браузере, как в настройках.",
+      buildKeyReady: "Gemini готов: ключ задан.",
       audioGo: "Транскрибировать",
       audioUploading: "Загрузка аудио в Google…",
       audioExtracting: "Извлекаем звук речи из видео у компаньона…",

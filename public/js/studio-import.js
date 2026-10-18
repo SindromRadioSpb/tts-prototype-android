@@ -3210,16 +3210,7 @@
     // текст") would have rendered the literal untranslated key until Task 7 adds this string to
     // the locales. Miss-checked here instead, matching the T(key, fb) idiom used elsewhere in
     // this codebase (reader-morph.js tt(), knowledge-map-quiz-loader.js T(), …).
-    try {
-      var provSel = document.getElementById("providerSelect");
-      if ((p.kind === "audio" || p.kind === "captions") && provSel && provSel.value !== "gemini") {
-        var hint = document.createElement("div");
-        hint.style.cssText = "font-size:12px;color:#b8860b;margin-top:4px;";
-        var hintKey = "studio.retell.providerHint", hintVal = tr(hintKey);
-        hint.textContent = (hintVal && hintVal !== hintKey) ? hintVal : "Для караоке и длинных таблиц включите провайдер Gemini";
-        $("v3ImportProv").appendChild(hint);
-      }
-    } catch (_) {}
+    try { renderBuildProvider(); } catch (_) {}
     // The subtitle plan is still assembling its table. Its generic draft actions would
     // compete with the running job and can land an incomplete card.
     $("v3ImportPreviewWrap").hidden = !!(pendingSubtitleMaterial && pendingSubtitleMaterial.working &&
@@ -3395,6 +3386,73 @@
     }
   }
 
+  // A finished recognition that never reached Studio. Closing the dialog (for example to set
+  // up the table provider) used to discard it on the next open, forcing a second 70-minute ASR.
+  function resumableRecognition() {
+    return !!(pending && !pending.landed && pending.kind === "audio" && pendingAudio && pendingAudio.parsed);
+  }
+
+  function showResumeBar(visible) {
+    var bar = $("v3ImportResumeBar");
+    if (!bar) return;
+    bar.hidden = !visible;
+    var label = $("v3ImportResumeLabel");
+    if (label) label.textContent = visible ? tr("studio.import.resumeLabel", { name: pendingAudio.name || "" }) : "";
+  }
+
+  function discardResume() {
+    if (pending) pending.landed = true;
+    showResumeBar(false);
+    open();
+  }
+
+  function renderBuildProvider() {
+    var row = $("v3ImportBuildProvider"), select = $("v3ImportBuildProviderSelect");
+    var main = document.getElementById("providerSelect");
+    var show = !!(row && select && main && pending && (pending.kind === "audio" || pending.kind === "captions"));
+    if (row) row.hidden = !show;
+    if (!show) return;
+    if (main.dataset.importMirrorBound !== "1") {
+      main.dataset.importMirrorBound = "1";
+      main.addEventListener("change", function () { try { renderBuildProvider(); } catch (_) {} });
+    }
+    select.textContent = "";
+    Array.prototype.forEach.call(main.options, function (option) {
+      var copy = document.createElement("option");
+      copy.value = option.value;
+      copy.textContent = option.textContent;
+      select.appendChild(copy);
+    });
+    select.value = main.value;
+    var gemini = main.value === "gemini";
+    var hasKey = typeof window.geminiKeyGet === "function" && !!window.geminiKeyGet();
+    var keyRow = $("v3ImportBuildKeyRow");
+    if (keyRow) keyRow.hidden = !(gemini && !hasKey);
+    var hint = $("v3ImportBuildProviderHint");
+    if (hint) hint.textContent = !gemini ? tr("studio.retell.providerHint")
+      : tr(hasKey ? "studio.import.buildKeyReady" : "studio.import.buildKeyNeeded");
+  }
+
+  // The settings panel stays the owner of both values: the mirror writes through its select
+  // (whose change handler persists the choice) and through its own key-save routine.
+  function onBuildProviderChanged() {
+    var main = document.getElementById("providerSelect"), select = $("v3ImportBuildProviderSelect");
+    if (!main || !select || main.value === select.value) return;
+    main.value = select.value;
+    main.dispatchEvent(new Event("change", { bubbles: true }));
+    renderBuildProvider();
+  }
+
+  function saveBuildKey() {
+    var input = $("v3ImportBuildKey"), settingsInput = document.getElementById("geminiApiKeyInput");
+    if (!input || !settingsInput || typeof window.geminiKeySave !== "function") return;
+    settingsInput.value = input.value;
+    window.geminiKeySave();
+    settingsInput.value = "";
+    if (typeof window.geminiKeyGet === "function" && window.geminiKeyGet()) input.value = "";
+    renderBuildProvider();
+  }
+
   function open() {
     var m = $("v3ImportModal");
     if (m) {
@@ -3407,6 +3465,22 @@
         m.addEventListener("keydown", onImportModalKeydown);
       }
     }
+    if (resumableRecognition()) {
+      switchTab("file");
+      var resumeInfo = $("v3ImportAudioInfo");
+      if (resumeInfo) resumeInfo.hidden = false;
+      var resumeWrap = $("v3ImportPreviewWrap");
+      if (resumeWrap) resumeWrap.hidden = false;
+      refreshLocalAsrControls();
+      renderBuildProvider();
+      showResumeBar(true);
+      window.setTimeout(function () {
+        var primary = $("v3ImportPrepareTask");
+        if (primary) primary.focus({ preventScroll: false });
+      }, 0);
+      return;
+    }
+    showResumeBar(false);
     var pw = $("v3ImportPreviewWrap");
     if (pw) pw.hidden = true;
     var exportOcrButton = $("v3ImportExportOcrBtn");
@@ -3725,6 +3799,7 @@
     try { if (window.v3SessionSet) window.v3SessionSet(importSessionResetPatch()); } catch (_) {}
     window.v3LastImportMeta = importMeta;
     document.dispatchEvent(new CustomEvent("studio:source-context-changed", { detail: { resolve: false } }));
+    pending.landed = true; // from here the result lives in Studio; reopening starts clean
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
@@ -3735,7 +3810,14 @@
   }
 
   async function useTextAndCorrect() { return useText(true); }
-  async function useTextAndPrepare() { if(await useText())await window.LearningMaterialTaskUI.start(); }
+  // The recognition stays resumable until the build task actually exists: the start dialog can
+  // still be closed (to fetch a key, for instance) and the import must not be gone by then.
+  async function useTextAndPrepare() {
+    if (!await useText()) return;
+    var landed = pending;
+    if (landed) landed.landed = false;
+    await window.LearningMaterialTaskUI.start(undefined, { onCreated: function () { if (landed) landed.landed = true; } });
+  }
 
   // P5 — учебный материал прямо из ссылки: медиа не скачивается вовсе, транскрипт делает провайдер
   // по самой ссылке. Здесь только опознание ссылки и имя материала; смета и запуск — в диалоге
@@ -4110,6 +4192,7 @@
                            openDownrFromField: openDownrFromField, chooseDownloadedMedia: chooseDownloadedMedia,
                            discardDownrHandoff: discardDownrHandoff,
                            onFileChosen: onFileChosen, chooseAudioFile: chooseAudioFile, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
+                           discardResume: discardResume, onBuildProviderChanged: onBuildProviderChanged, saveBuildKey: saveBuildKey,
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
                            onLocalAsrTokenChanged: onLocalAsrTokenChanged,
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,

@@ -4315,6 +4315,13 @@ window.I18N_LOCALES.en = {
       // W2-S4 — Import → Audio (BYOK Gemini ASR)
       audioBtn: "Hebrew media → transcript",
       audioRejected: "File “{name}” was not attached: {reason}",
+      resumeLabel: "“{name}” is recognized but not built into material yet — you can continue.",
+      resumeDiscard: "Start over",
+      buildProviderLabel: "Table translation",
+      buildKeyLabel: "Gemini API key",
+      buildKeySave: "Save key",
+      buildKeyNeeded: "Paste a Gemini key — it is saved in this browser, same as in settings.",
+      buildKeyReady: "Gemini is ready: key is set.",
       audioGo: "Transcribe",
       audioUploading: "Uploading audio to Google…",
       audioExtracting: "Extracting the speech audio from the video in the companion…",

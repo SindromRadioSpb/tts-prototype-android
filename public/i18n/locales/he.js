@@ -4325,6 +4325,13 @@ window.I18N_LOCALES.he = {
       // W2-S4 — ייבוא ← אודיו (BYOK Gemini ASR)
       audioBtn: "מדיה בעברית לתמלול",
       audioRejected: "הקובץ „{name}” לא צורף: {reason}",
+      resumeLabel: "„{name}” זוהה אך עדיין לא נבנה לחומר — אפשר להמשיך.",
+      resumeDiscard: "להתחיל מחדש",
+      buildProviderLabel: "תרגום הטבלה",
+      buildKeyLabel: "מפתח Gemini API",
+      buildKeySave: "שמירת מפתח",
+      buildKeyNeeded: "הדביקו מפתח Gemini — הוא יישמר בדפדפן הזה, כמו בהגדרות.",
+      buildKeyReady: "Gemini מוכן: המפתח מוגדר.",
       audioGo: "תמלל",
       audioUploading: "מעלה אודיו ל-Google…",
       audioExtracting: "מחלצים את שמע הדיבור מהווידאו ב-Companion…",

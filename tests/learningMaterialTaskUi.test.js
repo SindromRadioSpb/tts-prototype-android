@@ -701,3 +701,46 @@ test('a stage clock sums every journal phase the stage covers',()=>{
   assert.equal(clock('bound'), '2:01');
   assert.equal(clock('ready'), '0:05');
 });
+
+// Владелец 2026-10-18: «Вернуться и настроить Gemini» закрывало окно до создания задачи, и к уже
+// распознанному транскрипту вернуться было некуда. Ключ вводится в самом окне, задача не теряется.
+test('without a Gemini key the start dialog takes the key in place and continues with Gemini', async () => {
+  class Element {
+    constructor(tag) { this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.style = {}; this.value = ''; }
+    append(...nodes) { this.children.push(...nodes); }
+    insertBefore(node, before) { const i = this.children.indexOf(before); this.children.splice(i < 0 ? this.children.length : i, 0, node); }
+    setAttribute() {} addEventListener(name, fn) { this.events[name] = fn; }
+    focus() {} showModal() {} remove() {} close() { this.closed = true; if (this.events.close) this.events.close(); }
+    querySelector() { return null; }
+  }
+  const body = new Element('body');
+  const document = { body, documentElement: { lang: 'ru' }, createElement: tag => new Element(tag), addEventListener() {} };
+  const window = {};
+  let key = '', provider = 'google-free', settingsOpened = 0, created = 0;
+  vm.runInNewContext(source, { window, document, LearningMaterialTask: { createStore: () => ({}), createRunner: () => ({}) } });
+  const ui = window.LearningMaterialTaskUI;
+  ui.configure({ hasGeminiKey: () => !!key, openTranslationSettings: () => { settingsOpened++; },
+    saveGeminiKey: value => { if (!value.startsWith('AIza')) return false; key = value; return true; },
+    selectGemini: async () => { provider = 'gemini'; },
+    capture: () => ({ source_text: 'שלום', title: 'Text', provider, model: null, direction: 'he-ru', import_meta: null }) });
+  await ui.start(undefined, { onCreated: () => { created++; } });
+  const first = body.children.at(-1);
+  const flat = node => [node, ...(node.children || []).flatMap(flat)];
+  const names = d => flat(d).filter(n => n.tag === 'button').map(n => n.textContent);
+  assert.ok(!names(first).includes('Вернуться и настроить Gemini'), 'no exit from the dialog to the settings panel');
+  const input = flat(first).find(n => n.tag === 'input' && n.type === 'password');
+  const save = flat(first).find(n => n.tag === 'button' && n.textContent === 'Сохранить ключ и продолжить с Gemini');
+  input.value = 'bad';
+  await save.onclick();
+  assert.equal(key, '');
+  assert.ok(flat(first).some(n => n.textContent && n.textContent.startsWith('Ключ не принят') && !n.hidden));
+  input.value = 'AIzaSyTESTKEYTESTKEYTEST';
+  await save.onclick();
+  assert.equal(key, 'AIzaSyTESTKEYTESTKEYTEST');
+  assert.equal(provider, 'gemini');
+  assert.equal(settingsOpened, 0);
+  const second = body.children.at(-1);
+  assert.notEqual(second, first, 'the dialog reopens with Gemini selected');
+  assert.ok(names(second).includes('Собрать учебный материал'), names(second).join(' | '));
+  assert.equal(created, 0, 'no task exists until the owner starts it');
+});

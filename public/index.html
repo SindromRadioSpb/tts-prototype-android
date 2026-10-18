@@ -4035,6 +4035,14 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-import-hint { font-size: 12px; color: var(--theme-text-secondary, #64748b); margin: 4px 0 8px; }
 .v3-import-reject { font-size: 13px; color: var(--theme-danger, #b42318); background: var(--theme-danger-soft, rgba(180,35,24,.08)); border-inline-start: 3px solid currentColor; border-radius: 4px; padding: 6px 10px; margin: 6px 0 8px; }
 .v3-import-reject[hidden] { display: none; }
+.v3-import-resume { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:13px; padding:6px 10px; margin-bottom:8px; border-radius:4px; background: var(--theme-accent-soft); border-inline-start: 3px solid var(--theme-accent); }
+.v3-import-resume[hidden] { display:none; }
+.v3-build-provider { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:6px 0 8px; font-size:13px; }
+.v3-build-provider[hidden] { display:none; }
+.v3-build-provider .v3-import-hint { margin:0; flex-basis:100%; }
+.v3-build-provider-key { display:flex; flex-wrap:wrap; gap:6px; flex-basis:100%; }
+.v3-build-provider-key[hidden] { display:none; }
+.v3-build-provider-key input { flex:1 1 220px; min-width:0; }
 /* #v3ImportOpenYt is a real <a>, not a <button> — the mobile trap's `button.btn-secondary` rule
    only selects `button` elements, so this anchor is never forced to width:100%; .btn-secondary is
    an untagged class so it still gets the same visual look. display:inline-block keeps the box
@@ -13686,9 +13694,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=786"></script>
-<script src="/i18n/locales/en.js?v=786"></script>
-<script src="/i18n/locales/he.js?v=786"></script>
+<script src="/i18n/locales/ru.js?v=787"></script>
+<script src="/i18n/locales/en.js?v=787"></script>
+<script src="/i18n/locales/he.js?v=787"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13838,7 +13846,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=742"></script>
-<script src="/js/learning-material-task-ui.js?v=743"></script>
+<script src="/js/learning-material-task-ui.js?v=787"></script>
 <script src="/js/portable-learning-package-core.js?v=742"></script>
 <script src="/js/import-center-core.js?v=527"></script>
 <script src="/js/catalog-discovery-core.js?v=780"></script>
@@ -13906,7 +13914,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
-<script src="/js/studio-import.js?v=786" defer></script>
+<script src="/js/studio-import.js?v=787" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13948,7 +13956,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.786";
+    window.APP_VERSION = "3.11.787";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35126,6 +35134,17 @@ window.LearningMaterialTaskUI.configure({
     provider.value = 'gemini';
     provider.dispatchEvent(new Event('change', { bubbles: true }));
   },
+  // Same validation and storage as the settings panel: the key is saved through its routine.
+  saveGeminiKey(value) {
+    const key = String(value || '').trim();
+    const ok = (key.startsWith('AIza') && key.length >= 20) || (key.startsWith('AQ.') && key.length >= 10);
+    const input = document.getElementById('geminiApiKeyInput');
+    if (!ok || !input || typeof window.geminiKeySave !== 'function') return false;
+    input.value = key;
+    window.geminiKeySave();
+    input.value = '';
+    return !!(typeof window.geminiKeyGet === 'function' && window.geminiKeyGet() === key);
+  },
   openTranslationSettings() {
     const card = document.getElementById('classicTranslationCard');
     if (card) {
@@ -52090,8 +52109,23 @@ document.addEventListener("i18n:changed", function () {
       <div id="v3ImportStatus" style="margin-top:10px; font-size:13px; color:#6c757d;" aria-live="polite"></div>
 
       <div id="v3ImportPreviewWrap" hidden style="margin-top:10px;">
+        <div id="v3ImportResumeBar" class="v3-import-resume" hidden>
+          <span id="v3ImportResumeLabel"></span>
+          <button type="button" class="btn-secondary" onclick="StudioImport.discardResume()" data-i18n="studio.import.resumeDiscard">Начать заново</button>
+        </div>
         <div class="input-label" data-i18n="studio.import.previewLabel">Извлечённый текст (проверьте!)</div>
         <div id="v3ImportProv" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
+        <!-- The table provider and its key live here too: the build step must not send the owner
+             to the settings panel, because leaving this dialog used to cost the finished ASR. -->
+        <div id="v3ImportBuildProvider" class="v3-build-provider" hidden>
+          <label for="v3ImportBuildProviderSelect" data-i18n="studio.import.buildProviderLabel">Перевод таблицы</label>
+          <select id="v3ImportBuildProviderSelect" class="provider-select" onchange="StudioImport.onBuildProviderChanged()"></select>
+          <span id="v3ImportBuildProviderHint" class="v3-import-hint"></span>
+          <div id="v3ImportBuildKeyRow" class="v3-build-provider-key" hidden>
+            <input id="v3ImportBuildKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza… / AQ.…" data-i18n-aria-label="studio.import.buildKeyLabel" aria-label="Ключ Gemini API">
+            <button type="button" class="btn-secondary" onclick="StudioImport.saveBuildKey()" data-i18n="studio.import.buildKeySave">Сохранить ключ</button>
+          </div>
+        </div>
         <textarea id="v3ImportPreview" dir="auto" style="width:100%; min-height:140px; box-sizing:border-box;"></textarea>
         <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
           <!-- Ведущий путь (владелец, 2026-09-24): одна главная кнопка ведёт от транскрипта до готового
