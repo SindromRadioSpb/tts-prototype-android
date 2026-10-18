@@ -3969,8 +3969,10 @@ body.lp-has-app-nav #classicOrientationHint { bottom: calc(144px + env(safe-area
 .v3-local-asr-pair-status[hidden] { display:none; }
 .v3-local-asr-pair-status[data-kind="warn"] { color:#79540a; }
 .v3-local-asr-pair-status[data-kind="error"] { color:#8e2f23; }
-#localAsrConnect[data-connected="true"],#v3ImportLocalAsrPair[data-connected="true"] { border-color:#0b7673; background:#0b7673; color:#fff; }
-#localAsrConnect[data-connected="true"]:hover,#v3ImportLocalAsrPair[data-connected="true"]:hover { border-color:#086561; background:#086561; color:#fff; }
+#localAsrPairOneClick[data-connected="true"] { border-color:#0b7673; background:#0b7673; color:#fff; }
+#localAsrPairOneClick[data-connected="true"]:hover { border-color:#086561; background:#086561; color:#fff; }
+.v3-local-asr-download { display:inline-block; margin-top:4px; font-size:13px; }
+.v3-local-asr-download[hidden] { display:none; }
 .local-asr-beta-modal[hidden], #btnLocalAsrSettings[hidden] { display:none !important; }
 .local-asr-optin { display:flex; align-items:center; gap:8px; margin:10px 0 4px; font-weight:600; }
 .local-asr-optin input { width:18px; height:18px; }
@@ -13698,9 +13700,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=792"></script>
-<script src="/i18n/locales/en.js?v=792"></script>
-<script src="/i18n/locales/he.js?v=792"></script>
+<script src="/i18n/locales/ru.js?v=793"></script>
+<script src="/i18n/locales/en.js?v=793"></script>
+<script src="/i18n/locales/he.js?v=793"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13919,7 +13921,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=792" defer></script>
+<script src="/js/studio-import.js?v=793" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13961,7 +13963,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.792";
+    window.APP_VERSION = "3.11.793";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -52010,16 +52012,12 @@ document.addEventListener("i18n:changed", function () {
           <div id="v3ImportLocalAsrSetup" class="v3-local-asr-setup" hidden>
             <button type="button" id="v3ImportLocalAsrAuto" class="btn-primary" onclick="StudioImport.pairLocalAsrAuto()"
                     data-i18n="studio.import.localAsrPairAuto">Подключить компаньон</button>
-            <label for="v3ImportLocalAsrToken" data-i18n="studio.import.localAsrTokenLabel">Pairing token локального companion</label>
-            <div class="v3-local-asr-pair-row">
-              <input id="v3ImportLocalAsrToken" type="password" autocomplete="off" spellcheck="false"
-                     data-i18n-placeholder="studio.import.localAsrTokenPlaceholder" placeholder="Вставьте token из ai-local state"
-                     oninput="StudioImport.onLocalAsrTokenChanged()">
-              <button type="button" id="v3ImportLocalAsrPair" class="btn-secondary"
-                      onclick="StudioImport.pairLocalAsr()" data-i18n="studio.import.localAsrPair">Проверить companion</button>
-            </div>
-            <div class="v3-import-hint" data-i18n="studio.import.localAsrPrivacyHint">Файл идёт только в 127.0.0.1; переход в Gemini возможен лишь отдельным выбором.</div>
+            <!-- Owner, 2026-10-18: one button and one status. The token is never shown or typed;
+                 Companion 0.4.0+ hands it over after "Yes" in its own window. -->
+            <div class="v3-import-hint" data-i18n="studio.import.localAsrPrivacyHint">Файл не покидает этот компьютер.</div>
             <div id="v3ImportLocalAsrPairStatus" class="v3-local-asr-pair-status" aria-live="polite" hidden></div>
+            <a id="v3ImportLocalAsrDownload" class="v3-local-asr-download" target="_blank" rel="noopener" hidden
+               data-i18n="studio.import.localAsrDownload">Скачать Local AI Companion</a>
           </div>
           <button type="button" class="v3-import-file-btn" id="v3ImportAudioPicker"
                   onclick="StudioImport.chooseAudioFile()"

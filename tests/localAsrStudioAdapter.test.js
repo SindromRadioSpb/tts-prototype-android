@@ -60,23 +60,24 @@ test("onboarding states the privacy boundary and never calls Gemini", () => {
   assert.match(studio, /localAsrModelIntegrity/);
 });
 
-test("pairing help names the exact Companion control and the token persists in this browser", () => {
-  assert.match(onboarding, /localAsrTokenHelpTitle/);
-  assert.match(onboarding, /Copy token for browser/);
-  assert.match(onboarding, /Windows Start/);
+// Owner, 2026-10-18: Companion 0.4.0+ only. The browser never shows or takes a token: one
+// "Connect" button, "Yes" in the Companion window, then one status line.
+test("connection is one button: no token field anywhere in Studio, the token persists in this browser", () => {
+  assert.doesNotMatch(html, /id="v3ImportLocalAsrToken"|id="v3ImportLocalAsrPair"/);
+  assert.doesNotMatch(onboarding, /id="localAsrToken"|id="localAsrConnect"/);
+  assert.match(html, /id="v3ImportLocalAsrAuto"[^>]*onclick="StudioImport\.pairLocalAsrAuto\(\)"/);
+  assert.match(onboarding, /id="localAsrPairOneClick"/);
   assert.match(onboarding, /LOCAL_ASR_COMPANION_GUIDE/);
   const client = fs.readFileSync(path.join(root, "public/js/local-asr-client.js"), "utf8");
   assert.match(client, /function setPairingToken[\s\S]*?browserStore\("local"\)/);
   assert.match(client, /function unenroll[\s\S]*?local\.removeItem\(TOKEN_KEY\)/);
 });
 
-test("both Local ASR connection actions expose a proximal connected state and reset it honestly", () => {
+test("connected state replaces the button with a status and resets honestly", () => {
   assert.match(onboarding, /setConnectionState\(true\)[\s\S]*studio\.localAsrBeta\.connected/);
-  assert.match(onboarding, /localAsrToken[\s\S]*addEventListener\("input"[\s\S]*setConnectionState\(false\)/);
   assert.match(studio, /setLocalAsrConnectionState\(true\)[\s\S]*studio\.import\.localAsrReady/);
-  assert.match(studio, /function onLocalAsrTokenChanged\(\)[\s\S]*setLocalAsrConnectionState\(false\)/);
-  assert.match(html, /id="v3ImportLocalAsrToken"[\s\S]*oninput="StudioImport\.onLocalAsrTokenChanged\(\)"/);
-  assert.match(html, /#localAsrConnect\[data-connected="true"\],#v3ImportLocalAsrPair\[data-connected="true"\]/);
+  assert.match(studio, /function renderLocalAsrConnectionState\(\)[\s\S]*?button\.hidden = localAsrConnected/);
+  assert.match(html, /#localAsrPairOneClick\[data-connected="true"\]/);
 });
 
 test("Import keeps companion pairing feedback inside the Local setup block", () => {
@@ -86,7 +87,7 @@ test("Import keeps companion pairing feedback inside the Local setup block", () 
   );
   const pairFlow = studio.match(/async function pairLocalAsr\(\)[\s\S]*?\n  }/)[0];
   assert.match(pairFlow, /setLocalAsrPairStatus\(key,/);
-  assert.match(pairFlow, /setLocalAsrPairStatus\(error/);
+  assert.match(pairFlow, /error\.status === 401/);
   assert.doesNotMatch(pairFlow, /setStatus\(/);
 });
 

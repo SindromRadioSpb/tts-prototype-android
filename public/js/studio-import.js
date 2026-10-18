@@ -934,14 +934,18 @@
   function tr(key, params) { return (typeof window.t === "function") ? window.t(key, params) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
 
+  // Connected: the button steps aside and the status says so. Not connected: one button.
   function renderLocalAsrConnectionState() {
-    var button = $("v3ImportLocalAsrPair");
-    if (!button) return;
-    button.textContent = tr(localAsrConnected
-      ? "studio.import.localAsrConnected"
-      : "studio.import.localAsrPair");
-    button.dataset.connected = localAsrConnected ? "true" : "false";
-    button.setAttribute("aria-pressed", localAsrConnected ? "true" : "false");
+    var button = $("v3ImportLocalAsrAuto");
+    if (button) button.hidden = localAsrConnected;
+  }
+
+  function showCompanionDownload(visible) {
+    var link = $("v3ImportLocalAsrDownload");
+    if (!link) return;
+    var url = window.LocalAsrClient && window.LocalAsrClient.runtimeConfig().companionDownloadUrl;
+    if (url) link.href = url;
+    link.hidden = !(visible && url);
   }
 
   function setLocalAsrConnectionState(value) {
@@ -956,6 +960,7 @@
     node.textContent = msgKey ? (tr(msgKey, params) + (extra && !params ? " " + extra : "")) : "";
     node.hidden = !msgKey;
     node.dataset.kind = kind || "ok";
+    if (msgKey) showCompanionDownload(/^studio\.import\.localAsr(PairOld|Unavailable)$/.test(msgKey));
   }
 
   function onLocalAsrTokenChanged() {
@@ -1101,8 +1106,7 @@
             { code: code }, "warn");
         },
       });
-      var input = $("v3ImportLocalAsrToken");
-      if (input) input.value = token;
+      if (!token) throw new Error("LOCAL_ASR_PAIRING_EXPIRED");
       await pairLocalAsr();
     } catch (error) {
       var key = {
@@ -1120,7 +1124,7 @@
     setLocalAsrConnectionState(false);
     setLocalAsrPairStatus(null);
     try {
-      window.LocalAsrClient.setPairingToken($("v3ImportLocalAsrToken").value);
+      if (!window.LocalAsrClient.getPairingToken()) { renderLocalAsrConnectionState(); return; }
       localAsrClient = new window.LocalAsrClient.Client();
       var capabilities = await localAsrClient.capabilities();
       if (pendingAudio && pendingAudio.isVideo) {
@@ -1136,11 +1140,12 @@
       setLocalAsrConnectionState(true);
       var key = model && model.verified ? "studio.import.localAsrReady" : "studio.import.localAsrModelMissing";
       var capModel = capabilities && capabilities.local_asr && capabilities.local_asr.model;
-      setLocalAsrPairStatus(key, capModel && capModel.revision ? capModel.revision.slice(0, 12) : "", model && model.verified ? "ok" : "warn");
+      setLocalAsrPairStatus(key, "", model && model.verified ? "ok" : "warn");
     } catch (error) {
       setLocalAsrConnectionState(false);
-      setLocalAsrPairStatus(error && error.code === "LOCAL_ASR_PAIRING_REQUIRED"
-        ? "studio.import.localAsrPairingRequired" : "studio.import.localAsrUnavailable", "", "error");
+      // 401: the Companion rotated its token ("Disconnect all browsers") - reconnect, not "not running".
+      var stale = error && (error.code === "LOCAL_ASR_PAIRING_REQUIRED" || error.status === 401);
+      setLocalAsrPairStatus(stale ? "studio.import.localAsrPairingRequired" : "studio.import.localAsrUnavailable", "", "error");
     }
   }
 
