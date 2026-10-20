@@ -1,0 +1,22 @@
+{
+  "checks": [],
+  "base": "https://linguistpro.kolosei.com",
+  "checkout": "030f2437e183eaddef093ae5072b0cab4f486843",
+  "shellHashes": {},
+  "packHashes": {},
+  "health": {
+    "ok": true,
+    "uptimeSec": 27,
+    "now": "2026-10-20T13:25:13.899Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 90,
+    "disk_warn": true
+  },
+  "result": "failed",
+  "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '3.11.798'\n- '3.11.799'\n          ^\n\n    at E:\\projects\\tts-ulpan-release\\docs\\research\\linguistpro-worlds\\2026-10-20-ulpan-release\\src\\backend_acceptance.cjs:20:84\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+}

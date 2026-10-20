@@ -1,0 +1,84 @@
+{
+  "time": "2026-10-20T13:27:29.768Z",
+  "release": "030f2437e183eaddef093ae5072b0cab4f486843",
+  "probes": [
+    {
+      "time": "2026-10-20T13:27:31.590Z",
+      "version": "3.11.799",
+      "health": {
+        "ok": true,
+        "uptimeSec": 157,
+        "now": "2026-10-20T13:27:24.213Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 88,
+        "disk_warn": true
+      },
+      "hashes": {
+        "/sw.js": "7548f86de2b451fb679bcc09a537403e43715072be50b84a600192edda62d061",
+        "/js/world-boot.js?v=799": "790631effd35214471aafabd49a1567f2d4893813150ad9e8e9368e638ae6df1",
+        "/js/world-engine.js?v=799": "6aa665536da024a11fd264db7ae47fdfefc7d6c3d53dd7301bce782b1bfc49d3",
+        "/js/ulpan-world.js?v=799": "459cf1e40584e8d78b1e5321c63e2cff2133abecf63d0580f8e7f944b3f5f67d",
+        "/css/world-skin.css?v=799": "84cf120e943701d4731883d93f8d39e2de61be097fbeb4f201a879d560029ed0",
+        "/worlds/ulpan-journey/scene-reading.png": "e1d0ee153649520f4225ae1ad364ae02e90cb6974953da9665e04af7a8b21d24",
+        "/worlds/ulpan-journey/scene-cinema.png": "0f7b415c76d1c308683f3b28192859b46e1db98ab2ae51884f9cabf3d3c808d0"
+      }
+    },
+    {
+      "time": "2026-10-20T13:27:32.639Z",
+      "version": "3.11.799",
+      "health": {
+        "ok": true,
+        "uptimeSec": 159,
+        "now": "2026-10-20T13:27:25.754Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 88,
+        "disk_warn": true
+      },
+      "hashes": {
+        "/sw.js": "7548f86de2b451fb679bcc09a537403e43715072be50b84a600192edda62d061",
+        "/js/world-boot.js?v=799": "790631effd35214471aafabd49a1567f2d4893813150ad9e8e9368e638ae6df1",
+        "/js/world-engine.js?v=799": "6aa665536da024a11fd264db7ae47fdfefc7d6c3d53dd7301bce782b1bfc49d3",
+        "/js/ulpan-world.js?v=799": "459cf1e40584e8d78b1e5321c63e2cff2133abecf63d0580f8e7f944b3f5f67d",
+        "/css/world-skin.css?v=799": "84cf120e943701d4731883d93f8d39e2de61be097fbeb4f201a879d560029ed0",
+        "/worlds/ulpan-journey/scene-reading.png": "e1d0ee153649520f4225ae1ad364ae02e90cb6974953da9665e04af7a8b21d24",
+        "/worlds/ulpan-journey/scene-cinema.png": "0f7b415c76d1c308683f3b28192859b46e1db98ab2ae51884f9cabf3d3c808d0"
+      }
+    },
+    {
+      "time": "2026-10-20T13:27:33.696Z",
+      "version": "3.11.799",
+      "health": {
+        "ok": true,
+        "uptimeSec": 160,
+        "now": "2026-10-20T13:27:26.802Z",
+        "db": {
+          "ready": true
+        },
+        "migrations": {
+          "ready": true
+        },
+        "disk_pct_used": 88,
+        "disk_warn": true
+      },
+      "hashes": {
+        "/sw.js": "7548f86de2b451fb679bcc09a537403e43715072be50b84a600192edda62d061",
+        "/js/world-boot.js?v=799": "790631effd35214471aafabd49a1567f2d4893813150ad9e8e9368e638ae6df1",
+        "/js/world-engine.js?v=799": "6aa665536da024a11fd264db7ae47fdfefc7d6c3d53dd7301bce782b1bfc49d3",
+        "/js/ulpan-world.js?v=799": "459cf1e40584e8d78b1e5321c63e2cff2133abecf63d0580f8e7f944b3f5f67d",
+        "/css/world-skin.css?v=799": "84cf120e943701d4731883d93f8d39e2de61be097fbeb4f201a879d560029ed0",
+        "/worlds/ulpan-journey/scene-reading.png": "e1d0ee153649520f4225ae1ad364ae02e90cb6974953da9665e04af7a8b21d24",
+        "/worlds/ulpan-journey/scene-cinema.png": "0f7b415c76d1c308683f3b28192859b46e1db98ab2ae51884f9cabf3d3c808d0"
+      }
+    }
+  ]
+}

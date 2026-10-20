@@ -33,6 +33,7 @@ async function canvasHash(page){return page.locator('[data-world-slot$="stage"] 
      for(const id of ids){
       await page.locator(`.lp-world-stop[data-loc="${id}"]`).click();
       await page.waitForFunction(id=>LPWorld.debugState().location===id,id);
+      if(lang==='ru'&&(id==='reading'||id==='cinema')){await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.screenshot({path:path.join(out,`${route==='/'?'studio':route.includes('library')?'room':'media'}-${width}-${id}-sign.png`)});}
       const hero=page.locator('.lp-world-actor[data-actor="hero"]');await hero.click();
       await page.waitForFunction(()=>document.querySelector('.lp-world-bubble')?.textContent.length>10);
       const first=await page.locator('.lp-world-bubble').innerText();

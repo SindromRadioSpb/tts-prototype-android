@@ -1,0 +1,10 @@
+{
+  "release": "030f2437e183eaddef093ae5072b0cab4f486843",
+  "version": "3.11.799",
+  "image": "sha256:e6f072e13bd97ae57e4ca0b292c348a9c13f5e142313f820481e9302e331f5e4",
+  "preflightAvailableBytes": 8157560832,
+  "postDeploymentAvailableBytes": 4623433728,
+  "diskWarningOpen": true,
+  "cleanupPerformed": false,
+  "ownerCheckoutChangesPreserved": true
+}

@@ -25,7 +25,20 @@ The source builders and NATIVE_INTEGRATION.md are retained as historical provena
 
 Before push: SSH works; root 7.7 GiB free / 79%, health reports 80% with disk_warn=true (threshold 80%), DB/migrations ready. This exceeds the historical 4 GiB single-build allowance. No cleanup performed. Capacity risk remains tracked as O-047; only an independent update in the release checkout was made, without copying the owner's dirty observations log.
 
-Status: validated candidate; deployment and production acceptance pending.
+Status: **deployed and verified on production**, 2026-10-20, release commit `030f2437e183eaddef093ae5072b0cab4f486843`.
+
+Coolify built and replaced the previous container. Final runtime image: `sha256:e6f072e13bd97ae57e4ca0b292c348a9c13f5e142313f820481e9302e331f5e4`.
+
+Production evidence:
+
+- `reports/production/backend-acceptance.json`: version 3.11.799, healthy DB/migrations, 181 shell hashes compared to exact Git blobs, all 20 world-pack files exact; real Chrome SW installation, old precache removal, Memorial default, explicit Ulpan choice retained across reload.
+- `reports/production/matrix/browser-qa.json`: 35 checks passed, zero page errors. All three actual application surfaces, 1280/380 px, RU/EN/HE, seven scenes, tap and Enter, NPC replies, pause/reduced motion, audio bridge, picker, cleanup and return to elections/Memorial/Classic.
+- `reports/production/matrix`: 54 screenshots, including 12 unobscured sign screenshots. Both compact signs were visually inspected in production screenshots, including mobile Ulpan and desktop cinema. These are emulated mobile viewport checks, not physical-device acceptance.
+- `reports/production/final-convergence.json`: three additional no-cache probes of version, health and seven key asset hashes after the interaction matrix.
+- First production comparison exposed a runner EOL mistake for `.mjs`: Windows working-copy CRLF differed from production Git LF; served content matched its server integrity hash. The runner now compares directly to release Git blobs. A separate probe hit the prior version during rolling deployment. Both initial reports are retained; acceptance started again after four consecutive 3.11.799 probes.
+- Final SSH disk sample: 4,623,433,728 bytes available (4.31 GiB), `df` 88%; health uses its own sample/accounting and reports 90%, `disk_warn=true`. DB/migrations ready, no cleanup performed. O-047 remains open; further deployments require another capacity preflight.
+
+The release code is in main. Final production evidence and runner refinements are saved on `release/ulpan-journey-799` so saving the report does not trigger another unchanged application build. The root checkout and all its existing owner changes remain untouched.
 
 Reproduce backend acceptance from the checkout root:
 

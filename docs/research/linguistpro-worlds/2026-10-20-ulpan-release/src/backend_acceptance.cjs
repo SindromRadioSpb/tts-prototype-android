@@ -1,7 +1,7 @@
 'use strict';
 // Anonymous, isolated backend/SW acceptance. Never invokes a paid provider.
 const fs=require('fs'),path=require('path'),os=require('os'),crypto=require('crypto'),assert=require('assert/strict');
-const {spawn}=require('child_process'),{chromium}=require('playwright');
+const {spawn,execFileSync}=require('child_process'),{chromium}=require('playwright');
 const root=process.cwd(),out=path.resolve(process.env.ULPAN_NATIVE_OUT),report={checks:[]};
 fs.mkdirSync(out,{recursive:true});
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -14,19 +14,19 @@ const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
    child=spawn(process.execPath,['-e',SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(),'lp-ulpan-')),0),stdio:['ignore','ignore','ignore','ipc']});
    base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);
   }
-  report.base=base;
+  report.base=base;report.checkout=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();report.shellHashes={};report.packHashes={};
   const get=async url=>{const r=await fetch(base+url,{headers:{'Cache-Control':'no-cache'}});assert.ok(r.ok,url+' '+r.status);return r};
   let health;for(let i=0;i<60;i++){health=await(await get('/healthz?ulpan='+Date.now())).json();if(health.ok&&health.db.ready&&health.migrations.ready)break;await new Promise(r=>setTimeout(r,1000))}report.health=health;assert.equal(health.ok,true);assert.equal(health.db.ready,true);assert.equal(health.migrations.ready,true);report.health=health;
   const cfg=await(await get('/api/client-config?ulpan='+Date.now())).json();assert.equal(cfg.version,'3.11.799');report.version=cfg.version;
   for(const [url,expected] of Object.entries(cfg.shellIntegrity)){
-   const bytes=Buffer.from(await(await get(url+(url.includes('?')?'&':'?')+'ulpan='+Date.now())).arrayBuffer());assert.equal(hash(bytes),expected,url);
+   const bytes=Buffer.from(await(await get(url+(url.includes('?')?'&':'?')+'ulpan='+Date.now())).arrayBuffer());assert.equal(hash(bytes),expected,url);report.shellHashes[url]=hash(bytes);
    let pathname=new URL(url,base).pathname;pathname=({'/study-studio.html':'/index.html','/study-library.html':'/library.html'})[pathname]||pathname;
-   const local=fs.readFileSync(path.join(root,'public',pathname));assert.equal(hash(bytes),hash(/\.(js|html|css|json|svg|txt)$/.test(pathname)?Buffer.from(local.toString('utf8').replace(/\r\n/g,'\n')):local),url+' vs checkout');
+   const local=process.env.ULPAN_NATIVE_BASE?execFileSync('git',['show','HEAD:public'+pathname],{cwd:root,maxBuffer:32*1024*1024}):fs.readFileSync(path.join(root,'public',pathname));assert.equal(hash(bytes),hash(local),url+' vs release Git blob');
   }
   report.checks.push('health, DB/migrations, version, '+Object.keys(cfg.shellIntegrity).length+' served shell hashes vs checkout');
   for(const f of fs.readdirSync(path.join(root,'public/worlds/ulpan-journey'))){
    const bytes=Buffer.from(await(await get('/worlds/ulpan-journey/'+f+'?ulpan='+Date.now())).arrayBuffer());
-   assert.equal(hash(bytes),hash(fs.readFileSync(path.join(root,'public/worlds/ulpan-journey',f))),f);
+   assert.equal(hash(bytes),hash(fs.readFileSync(path.join(root,'public/worlds/ulpan-journey',f))),f);report.packHashes[f]=hash(bytes);
   }
   report.checks.push('all Ulpan pack bytes exact');
   browser=await chromium.launch({channel:'chrome',headless:true});report.browser=browser.version();
