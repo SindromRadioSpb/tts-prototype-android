@@ -1,0 +1,157 @@
+{
+  "evidence": "PRODUCTION_ANONYMOUS_READ_ONLY",
+  "date": "2026-10-20T19:29:22.535Z",
+  "version": "3.11.801",
+  "commit": "a5955da4549ec8beccc156fdee0dbe49bbbb563c",
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 168,
+      "now": "2026-10-20T19:29:10.069Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 89,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 168,
+      "now": "2026-10-20T19:29:10.380Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 89,
+      "disk_warn": true
+    }
+  ],
+  "assets": [
+    {
+      "url": "/agent-access.html",
+      "sha256": "a9464f7f44b5a37bf6ecca57ba81cfd9b7b6a1d5f8930e5e56af2cff7f2d5ef0"
+    },
+    {
+      "url": "/css/reader-morph.css?v=801",
+      "sha256": "39c9e1a75c63030f3a5f518f0683318700d18293e5d07f8f28ec4bed09f60364"
+    },
+    {
+      "url": "/db/local-db.js?v=801",
+      "sha256": "fd593d3ac6c5af0df63f6bf519bc024eec3939ae08bd82b347e83cf99e1c2f6c"
+    },
+    {
+      "url": "/dictionary.html",
+      "sha256": "12a8423f9fece7d77db3fd05739eee1690609aa7e330d9e99bd17a80f7949544"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=801",
+      "sha256": "311b642f2b3b2d3862b0ac14e8d7c0d674be6c3ddb9cafadf97de17ad436c2e5"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=801",
+      "sha256": "67d54d9d6802380375a232f0844d55980b9e9dc2107ece224fc8e0ad652a440d"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=801",
+      "sha256": "9ea0f7e57295c116eb6b5790f24c37ec3faede91615faa8d80b0d2018e0efbfd"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "1b204cf81f5a1619f04bc082b38d43e46766342e09ef1da38584ac111ed44b6b"
+    },
+    {
+      "url": "/js/agent-access.js",
+      "sha256": "a0023d27640b091b59d5da80401ce10991099c2e686e7d2f8419bfa5d5f58d39"
+    },
+    {
+      "url": "/js/corpus-materialize.js?v=801",
+      "sha256": "40b5f80e76b9c7edadde1172be391c3d18771ad040f2e02fd0ebfc113c2b6263"
+    },
+    {
+      "url": "/js/dictionary-ui.js?v=801",
+      "sha256": "245a0d00b0649ceb335a9349b89d8d7b2322c38bfd1f7530ff19cd96adfcb062"
+    },
+    {
+      "url": "/js/learning-field-provenance.js?v=801",
+      "sha256": "6b8a681b46d5f22129a4cfdf93ba7419fff5a3fee8aadc4c935d648f8029fffe"
+    },
+    {
+      "url": "/js/lexical-resolution-service.js?v=801",
+      "sha256": "ec6bd864f6115303cf98d29f6f68ca5fe3aaee338aab8d5774dfa9457473d844"
+    },
+    {
+      "url": "/js/library-ui.js?v=801",
+      "sha256": "97b2b0346a09999b9d6c8554272f18f7b714b744120f11801a91799eb139a6dd"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=801",
+      "sha256": "ab69c06b91797ece09a67d47a0d1313731b98fc391e8537555cf5f2f7f45d901"
+    },
+    {
+      "url": "/js/morph-host.js?v=801",
+      "sha256": "e6d19ed06e87f73abc5a33b0b1b1a5b87c9cf89eb3d87c5a1702d74ceb3c3b56"
+    },
+    {
+      "url": "/js/pealim-function-links.js?v=801",
+      "sha256": "25f47ad069e9bc1c0d1a9e874e38a4826a8c9e95119e72287a89e2494a665fa4"
+    },
+    {
+      "url": "/js/portable-learning-package-repository.js?v=801",
+      "sha256": "3ac294faa52d0ab66594161dac3aa454653d71801d8007c3fea1e695c761d6af"
+    },
+    {
+      "url": "/js/public-corpus-adapter.js?v=801",
+      "sha256": "bace10f143ffbf9df86c4dab40559ffef29d0e4bc371fdd50c29d31d6d1d4329"
+    },
+    {
+      "url": "/js/reader-core.js?v=801",
+      "sha256": "5c9d23a22fa2decd3a44fe97d97feccaccf95d0d147b678bb48fe5d436c15116"
+    },
+    {
+      "url": "/js/reader-morph.js?v=801",
+      "sha256": "1d82f21e92ec3c2f919103c54586c1717db2b94d20ba0c8cdd086ae9faac4db7"
+    },
+    {
+      "url": "/js/studio-import.js?v=801",
+      "sha256": "274a7b5d1768f3154d6c92b494e586e75acd92fb5831e201b8a5bc7a9787ce67"
+    },
+    {
+      "url": "/js/studio-morph.js",
+      "sha256": "5fdf44ec87ca6766ec4a105e2520fd2c0df51afcf5cb5df5da1d70804e7d10fa"
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=801",
+      "sha256": "16da172af53dbf44004476be7aafe816871fcba525731ecb1957f77eca1f7707"
+    },
+    {
+      "url": "/js/word-gloss-ai.js?v=801",
+      "sha256": "c2f5c66135fb75b044f775535103ac6c527448a22759a526c4ead63d1c08d6ec"
+    },
+    {
+      "url": "/js/word-gloss.js?v=801",
+      "sha256": "786abc30c77ad6d523206199ff6d98f8300d9dfab88765fc0b0fca3c9ea304bf"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "8d1c11d321aed94fbcc8b0471c723f5f394a5b877a23effc2ba3e31d1d8df21e"
+    },
+    {
+      "url": "/mediatheque.html",
+      "sha256": "29876e667212f1b4702da8da01b18d3493f4a007e481bf494572ab93511af6d9"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "c0c38e349980677cc31b9f7e499cf9bb579d1a2fc02b1960163933cf2f43390f"
+    }
+  ],
+  "fieldEvidence": {
+    "rows": 499,
+    "attributedNiqqud": 499,
+    "snapshot": "723787c77c5fe15facbdc9ae5fb2b5e03898d6690f85c04cc9a2bf696ec962c3"
+  }
+}

@@ -1,6 +1,6 @@
 # План: однозначная морфологическая карта и объект знания
 
-Дата: 2026-10-20. Статус: утверждён и реализован локально для 3.11.801; production acceptance ожидается.
+Дата: 2026-10-20. Статус: реализован и проверен на production 3.11.801, `a5955da4`.
 База анализа: код `32204e7c` (3.11.800), диагностический отчёт `fe0d5e08`.
 Основание: [יוֹפִי follow-up](../../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md), O-111–O-114.
 Это следующий этап после [CP-1–CP-6](CONTEXT_PROVENANCE_REQUIREMENTS_2026_10_20.md), не замена отчёта об архивной сохранности.
@@ -133,6 +133,6 @@ DictaLexicon, word-gloss/portable, memory-canon, reader-parity, i18n и shell in
 
 - [x] Шаги 1–5: кандидаты, решения точного вхождения, карта и объект знания реализованы.
 - [x] Шаг 6: локальные gates и изолированные браузерные сценарии пройдены.
-- [ ] Шаг 7: выпуск и production acceptance.
+- [x] Шаг 7: выпуск и production acceptance. [Итог](../../research/hamam-context/2026-10-20/MORPH_RESOLUTION_PRODUCTION.md).
 
 [Реализация и evidence](../../research/hamam-context/2026-10-20/MORPH_RESOLUTION_IMPLEMENTATION.md).

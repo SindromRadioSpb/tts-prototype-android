@@ -2,7 +2,7 @@
 
 2026-10-20. База кода `32204e7c`, ветка `fix/morph-card-resolution`.
 [Утверждённый план](../../../planning/word-layer/MORPH_CARD_RESOLUTION_PLAN_2026_10_20.md), O-111–O-114.
-Статус: локальная реализация и проверки; production acceptance будет добавлена после выпуска.
+Статус: выпущено и проверено на production 3.11.801. [Приёмка](MORPH_RESOLUTION_PRODUCTION.md).
 
 ## Реализация
 

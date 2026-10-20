@@ -1,0 +1,62 @@
+{
+  "evidence": "PRODUCTION_OWNER_READ_ONLY_ACCEPTANCE",
+  "version": "3.11.801",
+  "rows": 499,
+  "words": 2193,
+  "domGlosses": 2193,
+  "mismatches": [],
+  "yofi": {
+    "candidates": [
+      {
+        "id": "5856",
+        "label": "יופי · красота · существительное"
+      },
+      {
+        "id": "5857",
+        "label": "יופי · отлично! замечательно! · наречие"
+      }
+    ],
+    "headerBadgeVisible": false,
+    "statusButtonsBeforeChoice": 0,
+    "niqqudSource": "Огласовка: OpenAI assistant · указан в архиве"
+  },
+  "shaul": {
+    "archivedContextGlossPreserved": true,
+    "generalCorrectionAvailable": true
+  },
+  "learnerState": {
+    "tables": {
+      "review_log": {
+        "same": true,
+        "count": 11743
+      },
+      "srs_attempts": {
+        "same": true,
+        "count": 0
+      },
+      "srs_card_exports": {
+        "same": true,
+        "count": 0
+      },
+      "srs_cards": {
+        "same": true,
+        "count": 0
+      },
+      "srs_review_events": {
+        "same": true,
+        "count": 0
+      },
+      "srs_session_runs": {
+        "same": true,
+        "count": 0
+      },
+      "word_status": {
+        "same": true,
+        "count": 5164
+      }
+    },
+    "positionsSame": true,
+    "positions": 224
+  },
+  "ownerConfirmationsOrGradesWritten": false
+}

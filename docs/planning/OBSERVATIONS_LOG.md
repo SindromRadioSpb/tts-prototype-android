@@ -14,25 +14,25 @@
 - **Дата / где:** 2026-10-20, production 3.11.800, «Хаммам», строка 4, יוֹפִי.
 - **Факты:** сверху AI «отлично»; статус готов записаться по `dl:יפי#noun`, без отображения конкретного значения у кнопок. Отметки журналируются; l1–l4 могут создать FSRS seed. На момент проверки отметки по ключу нет; диагностика не нажимала статусы.
 - **Предложение:** явно показывать объект статуса (слово + значение + POS), при конфликте дать выбрать чтение до отметки; старые mark/review/FSRS не переносить молча.
-- **Статус:** в работе; локальная реализация 3.11.801 проверена, ожидается production acceptance. [Проверка и требования](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
+- **Статус:** закрыто (3.11.801, `a5955da4`); локальные gates, изолированный production smoke Studio/Room и исходная owner-карта проверены. [Приёмка](../research/hamam-context/2026-10-20/MORPH_RESOLUTION_PRODUCTION.md). [Проверка и требования](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
 
 ## O-113 · PealimFunctionLinks связывает существительное с ID наречия
 - **Дата / где:** 2026-10-20, production 3.11.800, runtime יוֹפִי.
 - **Причина проверена:** lookup для noun возвращает POS-mismatched fallback adverb/5857; resolveWordLight присваивает ID, оставляя pos=noun. lemmaKey отдельно остаётся Dicta `dl:יפי#noun`. UI показывает поиск из-за ambiguous, но внутренний объект противоречив.
 - **Предложение:** ссылки и идентичность кандидата согласовывать с POS/леммой; поиск не должен присваивать чужой ID.
-- **Статус:** в работе; локальная реализация 3.11.801 проверена, ожидается production acceptance. [Проверка](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
+- **Статус:** закрыто (3.11.801, `a5955da4`); локальные gates, изолированный production smoke Studio/Room и исходная owner-карта проверены. [Приёмка](../research/hamam-context/2026-10-20/MORPH_RESOLUTION_PRODUCTION.md). [Проверка](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
 
 ## O-112 · יוֹפִי: локальные варианты Pealim потеряны при выборе разбора
 - **Дата / где:** 2026-10-20, production 3.11.800.
 - **Факты:** в dataset есть 5856 noun «красота» и 5857 adverb «отлично! замечательно!». Для יוֹפִי offline даёт meaning-fallback, затем Dicta обнуляет meaning/alts. Для יֹפִי получается exact noun без альтернатив. Наречие имеет пустые cells, но самостоятельную статью.
 - **Предложение:** сохранять реальные кандидаты, учитывать статьи без cells и допустимые варианты написания; совпадение формы не выдавать за однозначность смысла.
-- **Статус:** в работе; локальная реализация 3.11.801 проверена, ожидается production acceptance. [Проверка](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
+- **Статус:** закрыто (3.11.801, `a5955da4`); локальные gates, изолированный production smoke Studio/Room и исходная owner-карта проверены. [Приёмка](../research/hamam-context/2026-10-20/MORPH_RESOLUTION_PRODUCTION.md). [Проверка](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
 
 ## O-111 · Контекстная карта: неясная область метки Dicta и универсальная кнопка имени
 - **Дата / где:** 2026-10-20, скриншот владельца и production-карта יוֹפִי, 3.11.800.
 - **Факты:** общий верхний badge Dicta отделён от свёрнутого словарного анализа контекстным gloss/источником огласовки. «Это имя здесь» показывается для любого неподтверждённого AI occurrence, в том числе «отлично». Легенда утверждает отсутствие в Pealim, хотя обе статьи есть локально.
 - **Предложение:** источник относится к своему анализу/полю; общая коррекция «Уточнить значение здесь» с именем как отдельным вариантом, без навязывания гипотезы.
-- **Статус:** в работе; локальная реализация 3.11.801 проверена, ожидается production acceptance. [Проверка и рекомендуемый UI](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
+- **Статус:** закрыто (3.11.801, `a5955da4`); локальные gates, изолированный production smoke Studio/Room и исходная owner-карта проверены. [Приёмка](../research/hamam-context/2026-10-20/MORPH_RESOLUTION_PRODUCTION.md). [Проверка и рекомендуемый UI](../research/hamam-context/2026-10-20/YOFI_FOLLOWUP.md).
 
 ## O-110 · ИИ-gloss не уточняет морфологическую идентичность имени
 - **Дата / где:** 2026-10-20, owner Chrome / «Хаммам 1», 3.11.799.
@@ -486,6 +486,7 @@
 - **Статус:** открыто; unsigned owner pilot разрешён владельцем, окно визуально подтверждено им.
 
 ## O-047 · Production: мало резерва для серии сборок без очистки
+- **Update 2026-10-20, 3.11.801:** после холодной сборки 95% / 2.0 GiB; только build-кэш очищен в пределах ранее выданного разрешения владельца. Итог 89% / 4.0 GiB, cache 0 B; все 15 images, 11 running containers, 4 volumes и active/rollback сохранены. DB/migrations ready; capacity-риск серии сборок остаётся открытым. [Приёмка](../research/hamam-context/2026-10-20/MORPH_RESOLUTION_PRODUCTION.md).
 - **Update 2026-10-20, 3.11.800:** после rollout 95% / 2.0 GiB. По отдельному разрешению владельца выполнен только `docker builder prune -af`; затем 86% / 5.3 GiB, build cache 0 B. Сохранены 14 images, 11 running containers, 4 volumes и active/rollback. DB/migrations ready; `disk_warn=true` остаётся, capacity-риск серии сборок открыт. [Приёмка](../research/hamam-context/2026-10-20/PRODUCTION_ACCEPTANCE.md).
 - **Update 2026-10-20, Ulpan 3.11.799 preflight:** SSH `df /`: 7.7 GiB available / 79%; health: DB/migrations ready, disk_pct_used=80, disk_warn=true (порог 80%). Запас превышает исторический ориентир 4 GiB на одну сборку; очистка не выполнялась. Риск серии сборок остаётся открытым. Итоговые замеры: `docs/research/linguistpro-worlds/2026-10-20-ulpan-release/RELEASE.md`.
 - **Update 2026-10-06, Memorial 3.11.736:** по явному разрешению владельца выполнен только `docker builder prune -af`: 2.552GB reclaimed, root 95% / 2.1G → 89% / около 4G. Все 13 images, 10 containers и 4 volumes сохранены; DB/migrations ready. `disk_warn=true` остаётся; риск серии сборок открыт. Итоговый замер после релиза — [Memorial acceptance](../research/linguistpro-worlds/2026-10-06-memorial/README.md).
