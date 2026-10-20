@@ -1,0 +1,73 @@
+{
+  "mode": "PRODUCTION_OWNER_BROWSER_AND_READ_ONLY_RELEASE_CHECKS",
+  "version": "3.11.802",
+  "commit": "90013ec9f134ebb82a2e386564cfe2ff6a5c5530",
+  "before": {
+    "snapshotBytes": 17598187,
+    "items": 25,
+    "bodyTimeoutMs": 30000
+  },
+  "metadata": {
+    "bytes": 76203,
+    "ms": 261,
+    "items": 25,
+    "includesSnapshots": false
+  },
+  "preparation": {
+    "requestMs": [
+      {
+        "operation": "detail",
+        "ms": 259
+      },
+      {
+        "operation": "detail",
+        "ms": 137
+      },
+      {
+        "operation": "/draft/material-archive",
+        "ms": 308
+      },
+      {
+        "operation": "/draft/material-rights",
+        "ms": 111
+      },
+      {
+        "operation": "/draft:validate",
+        "ms": 1115
+      },
+      {
+        "operation": "detail",
+        "ms": 141
+      }
+    ],
+    "learnerTablesMatched": true,
+    "apiRequestsSucceeded": true,
+    "previewReached": true,
+    "publicationClickByAgent": false
+  },
+  "afterConcurrentBrowserActions": {
+    "materialVisibleInPublicCatalog": true,
+    "publishedItems": 26,
+    "previousItemsPreservedWithSameHashesAndPermissions": 25
+  },
+  "release": {
+    "assetsMatched": 30,
+    "dbReady": true,
+    "migrationsReady": true
+  },
+  "capacity": {
+    "peakDiskPercent": 100,
+    "peakFreeMiB": 41,
+    "cleanup": "docker builder prune -af",
+    "reportedReclaimed": "2.69GB",
+    "finalDiskPercent": 93,
+    "finalFreeGiB": 2.7,
+    "buildCacheBytes": 0,
+    "runningContainers": 11,
+    "volumes": 4,
+    "images": 16,
+    "activeImage": "sha256:c0fdf3940c48a58595ba5a0f02c3b04eadeeb7184c47eb34c550110e444c0e5b",
+    "rollbackImage": "sha256:fd1d77c6a2e677522e7ffa6e5cb77c771c8829d01c625b78225be781d2a66051",
+    "diskWarning": true
+  }
+}

@@ -10,6 +10,11 @@
 
 ---
 
+## O-115 · Подготовка архива в Медиатеке прерывается с HTTP_200
+- **Дата / где:** 2026-10-20, production 3.11.801, `Hamam-3-clean.learning.zip`, канал KAN11.
+- **Факты:** проверка ZIP проходит, detail корпуса прерывается по 30-секундному тайм-ауту. `SELECT *` отдаёт 17,6 MB полных снимков 25 материалов; обработчик скрывает ошибку чтения тела HTTP 200 и обвиняет поля формы.
+- **Статус:** закрыто (3.11.802, `90013ec9`): SQL-проекция без тел снимков, сохранение ошибок чтения ответа, отдельные сообщения и состояние ожидания. Исходная production-форма дошла до предпросмотра примерно за 1,8 с. [Причина и приёмка](../research/mediatheque-preview/2026-10-20/README.md).
+
 ## O-114 · Карта позволяет поставить статус другой лексической сущности под AI gloss
 - **Дата / где:** 2026-10-20, production 3.11.800, «Хаммам», строка 4, יוֹפִי.
 - **Факты:** сверху AI «отлично»; статус готов записаться по `dl:יפי#noun`, без отображения конкретного значения у кнопок. Отметки журналируются; l1–l4 могут создать FSRS seed. На момент проверки отметки по ключу нет; диагностика не нажимала статусы.
@@ -486,6 +491,7 @@
 - **Статус:** открыто; unsigned owner pilot разрешён владельцем, окно визуально подтверждено им.
 
 ## O-047 · Production: мало резерва для серии сборок без очистки
+- **Update 2026-10-21, 3.11.802:** preflight 4,0 GiB / 89%, cache 0 B оказался недостаточным комфортным резервом: пик 41 MiB / 100%. Разрешённый `docker builder prune -af` освободил 2,69 GB по Docker; после rollout 2,7 GiB / 93%, cache 0 B, 16 images / 11 running containers / 4 volumes. Active 802, rollback 801 и 800 сохранены; DB/migrations ready. Capacity-риск открыт; следующая холодная сборка требует нового расчёта/восстановления резерва. [Evidence](../research/mediatheque-preview/2026-10-20/production-evidence.json).
 - **Update 2026-10-20, 3.11.800:** после rollout 95% / 2.0 GiB. По отдельному разрешению владельца выполнен только `docker builder prune -af`; затем 86% / 5.3 GiB, build cache 0 B. Сохранены 14 images, 11 running containers, 4 volumes и active/rollback. DB/migrations ready; `disk_warn=true` остаётся, capacity-риск серии сборок открыт. [Приёмка](../research/hamam-context/2026-10-20/PRODUCTION_ACCEPTANCE.md).
 - **Update 2026-10-20, Ulpan 3.11.799 preflight:** SSH `df /`: 7.7 GiB available / 79%; health: DB/migrations ready, disk_pct_used=80, disk_warn=true (порог 80%). Запас превышает исторический ориентир 4 GiB на одну сборку; очистка не выполнялась. Риск серии сборок остаётся открытым. Итоговые замеры: `docs/research/linguistpro-worlds/2026-10-20-ulpan-release/RELEASE.md`.
 - **Update 2026-10-06, Memorial 3.11.736:** по явному разрешению владельца выполнен только `docker builder prune -af`: 2.552GB reclaimed, root 95% / 2.1G → 89% / около 4G. Все 13 images, 10 containers и 4 volumes сохранены; DB/migrations ready. `disk_warn=true` остаётся; риск серии сборок открыт. Итоговый замер после релиза — [Memorial acceptance](../research/linguistpro-worlds/2026-10-06-memorial/README.md).
