@@ -65,8 +65,8 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
     await page.waitForFunction(()=>{const r=document.querySelector('.rm-sheet.rm-open .rm-head')?.getBoundingClientRect();return r&&r.top<innerHeight-200;});
     await page.screenshot({animations:'disabled',path:path.join(shots,surface+'-'+width+'-unconfirmed.png')});
    }
-   await page.locator('[data-rm-name-propose]').click();await page.locator('[data-rm-name-save]').click();
-   await page.waitForFunction(()=>document.querySelector('.rm-sheet.rm-open .rm-head .rm-prov')?.textContent==='проверено вами');
+   await page.locator('.rm-analysis-correction summary').click();await page.locator('[data-rm-candidate="name"]').click();await page.locator('[data-rm-analysis-save]').click();
+   await page.waitForSelector('.rm-analysis-reviewed');
    assert.equal(await page.locator('.rm-dictionary-reading').count(),0);
    assert.doesNotMatch(await page.locator('.rm-rows').innerText(),/שאל|прилагательное/);
    assert.match(await page.locator('.rm-rows').innerText(),/имя/);

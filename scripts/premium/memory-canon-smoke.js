@@ -581,6 +581,17 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         await ldb.initLocalDB();
         await ldb.createText({ id: "r4t-1", text_key: "r4-key-1", title: "r4", source_text: "" });
         await ldb.addSentence("r4t-1", { id: "r4t-1:s1", he_plain: "היא צריכה ספר חדש", he_niqqud: "הִיא צְרִיכָה סֵפֶר חָדָשׁ", ru: "ей нужна новая книга" });
+        // צריכה is a real noun/adjective homograph. Prove abstention before choosing
+        // its adjective reading; a spelling-only dictionary guess is not an oracle.
+        const initial = await ReaderMorph.resolveWordLight('צריכה','צְרִיכָה');
+        if (!initial.selectionRequired) throw Error('R4_EXPECTED_AMBIGUOUS_READING');
+        await ldb.updateSrsState("pid:6018", { due: Date.now() + 3600e3, interval: 3, reps: 1, lapses: 0, stability: 3, difficulty: 5, scheme: "fsrs" });
+        await window.__r4HealDrain();
+        const beforeChoice = await ldb.dbQuery("SELECT srs_sentence_id FROM word_status WHERE lemma_key='pid:6018'");
+        if (beforeChoice[0]?.srs_sentence_id) throw Error('R4_AMBIGUOUS_SOURCE_WAS_ACCEPTED');
+        const host = MorphHost.createHost({ldb:async()=>ldb});
+        await host.confirmOccurrenceAnalysis({text_id:'r4t-1',sentence_id:'r4t-1:s1',word_offset:1,surface:'צריכה',
+          sentence_he:'היא צריכה ספר חדש',sentence_he_niqqud:'הִיא צְרִיכָה סֵפֶר חָדָשׁ'}, {pealim_id:'6018'});
         // due within the drain's +400d horizon (a 2100 due would fall OUTSIDE the pool)
         await ldb.updateSrsState("pid:6018", { due: Date.now() + 3600e3, interval: 3, reps: 1, lapses: 0, stability: 3, difficulty: 5, scheme: "fsrs" });
         await window.__r4HealDrain();

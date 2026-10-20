@@ -44,23 +44,23 @@
     }
     return'';
   }
-  async function projectExactOccurrence(occurrence,events,Core){
+  async function projectExactOccurrence(occurrence,events,Core,candidates){
     if(!Core||!Core.sourceAnchor||!Core.evaluate)return null;
     const id=occurrenceId(occurrence);if(!id)return null;
     const item={...occurrence,lp_occurrence_id:id};
     const latest=Core.latest(events||[],id);
-    if(!latest||latest.action!=='manual_correction')return null;
+    if(!latest||!['manual_correction','confirm_candidate'].includes(latest.action))return null;
     item.source_anchor=await matchSourceAnchor(item,latest,Core);
-    if(!item.source_anchor)return null;
-    // The reader has no current resolver candidate set. A manual correction is
-    // still safe because Core.evaluate deliberately keys it only to the exact
-    // source anchor; candidate confirmations remain fail-closed here.
-    item.candidate_fingerprint='';
+    if(!item.source_anchor)return latest.action==='confirm_candidate'?{state:'stale',stale_reason:'source_anchor_changed'}:null;
+    // Manual corrections are source-anchored. Candidate confirmations additionally
+    // require the current complete candidate set, never a guessed empty fingerprint.
+    if(latest.action==='confirm_candidate'&&!Array.isArray(candidates))return null;
+    item.candidate_fingerprint=latest.action==='confirm_candidate'?await Core.candidateFingerprint({alternatives:candidates}):'';
     const effective=Core.evaluate(item,events||[]);
-    if(effective.state!=='resolved')return null;
+    if(effective.state!=='resolved')return latest.action==='confirm_candidate'?{state:effective.state,stale_reason:effective.stale_reason||''}:null;
     return{state:'resolved',analysis:effective.chosen_analysis,event_id:latest.id,actor_kind:latest.actor_kind,created_at:latest.created_at};
   }
-  async function lookupExactOccurrence(occurrence,repository,Core){
+  async function lookupExactOccurrence(occurrence,repository,Core,candidates){
     const id=occurrenceId(occurrence);if(!id||!repository)return null;
     let events=[];
     let indexedReadSucceeded=false;
@@ -77,7 +77,7 @@
       const textEvents=await repository.listLexicalResolutionEventsForText(String(occurrence.text_id))||[];
       events=textEvents.filter((event)=>String(event&&event.occurrence_id||'')===id);
     }
-    return projectExactOccurrence(occurrence,events,Core);
+    return projectExactOccurrence(occurrence,events,Core,candidates);
   }
   async function hydrate(report,events,Core,options){
     // A refresh/clear must fold over the machine source, not the previous

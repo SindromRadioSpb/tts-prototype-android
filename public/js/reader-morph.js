@@ -65,17 +65,23 @@
     next.meaningSource = projection.actor_kind === "teacher" ? "teacher" : "owner";
     next.label = next.meaningSource;
     next.ambiguous = false;
+    next.selectionRequired = false;
+    next.dictaKey = "";
+    next.alts = (next.alts || []).filter(function (x) { return String(x.pealim_id || "") !== String(a.pealim_id || ""); });
+    next.placeDecided = projection.actor_kind || "owner";
     next.contextPos = "";
     next.contextUsed = false;
     next.rootFamily = [];
     next.usage = null;
-    next.paradigm = null;
+    next.paradigm = card.paradigm && String(card.paradigm.pealim_id || '') === String(a.pealim_id || '') && card.paradigm.pos === next.pos ? card.paradigm : null;
     next.pealim_id = String(a.pealim_id || "").trim();
     next.pealim_direct = !!next.pealim_id;
     next.pealim_url = next.pealim_id
       ? "https://www.pealim.com/ru/dict/" + encodeURIComponent(next.pealim_id) + "/"
       : "https://www.pealim.com/ru/search/?q=" + encodeURIComponent(next.word || "");
     next.resolutionEventId = String(projection.event_id || "");
+    next.identityVia = next.meaningSource;
+    next.channel = next.pos === 'propernoun' ? 'owner-name' : 'reviewed-analysis';
     return next;
   }
 
@@ -427,7 +433,7 @@
   // CONTEXT_GLOSS growth). Sidecars stamped with an older rev degrade their authoritative
   // misses to soft misses at runtime (B4: a resolver improvement must never leave a baked
   // work silently worse than an un-baked one).
-  var RESOLVER_REV = "ctx-r2";   // ctx-r2 (3.11.767): a form that is ONE Pealim cell is that lemma (Д7.1)
+  var RESOLVER_REV = "ctx-r3";   // preserve all lexical candidates; form match does not settle homographs
   // The ONE sentence-key normalization both the bake and the tap-time lookup use (B1/R10#8:
   // two independent implementations WILL drift on maqaf/bidi rows). Plain text is already
   // bare of niqqud — stripNiqqud here is defensive symmetry.
@@ -678,6 +684,11 @@
     // the place must still be this word (the row may have been edited since the data was stored)
     if (p.sk[place.off] !== stripNiqqud(surfaceOrig || niqqudOrig)) return card;
     var dec = p.dec && p.dec.get(place.off);
+    if (dec && dec.projection) {
+      var chosen = applyLexicalResolution(card, dec.projection), paradigm = eng.pidMap && eng.pidMap.get(chosen.pealim_id);
+      if (paradigm && paradigm.pos === chosen.pos) chosen.paradigm = paradigm;
+      return chosen;
+    }
     if (dec && dec.name) return Object.assign({}, card, { label: "unknown", functionWord: false, pos: "propernoun", pealim_id: "", lemma: "", meaning: "", identityVia: "owner-name", placeDecided: "owner" });
     if (dec && dec.pid && eng.pidMap && eng.pidMap.get(String(dec.pid))) {
       return String(dec.pid) === String(card.pealim_id) ? Object.assign({}, card, { placeDecided: "owner" })
@@ -701,7 +712,71 @@
   // opts.place — { sid, off }: the word's place (Д10); without it the spelling's reading
   async function resolveCore(eng, surfaceOrig, niqqudOrig, opts) {
     var card0 = await _resolveCoreSpelling(eng, surfaceOrig, niqqudOrig, opts);
-    return opts && opts.place ? _atPlace(eng, card0, surfaceOrig, niqqudOrig, opts.place) : card0;
+    card0 = withAnalysisCandidates(eng, card0, surfaceOrig, niqqudOrig);
+    var effective = opts && opts.place ? _atPlace(eng, card0, surfaceOrig, niqqudOrig, opts.place) : card0;
+    if (effective.placeDecided === "owner" || effective.placeDecided === "teacher") effective.selectionRequired = false;
+    return effective;
+  }
+
+  // Candidate existence is independent of a resolver's preferred reading. Include citation
+  // entries without inflection cells; the same bounded index serves tap, paint and decisions.
+  function candidateForm(s) {
+    return String(s || "").normalize("NFD").replace(/ו\u05b9/g, "\u05b9")
+      .replace(/[\u0591-\u05af\u05bc\u05bd\u05bf]/g, "").replace(/[־-]$/g, "");
+  }
+  function analysisCandidates(eng, surface, niqqud) {
+    if (!eng || !eng.pidMap) return [];
+    if (!eng._analysisIndex) {
+      var index = new Map();
+      eng.pidMap.forEach(function (p, pid) {
+        if (!p) return;
+        var forms = [p.lemma, p.lemma_niqqud, p.form && p.form.he].filter(Boolean);
+        var keys = forms.map(stripNiqqud).concat(forms.map(function (f) { return stripNiqqud(candidateForm(f)); }));
+        Array.from(new Set(keys)).forEach(function (key) {
+          if (!index.has(key)) index.set(key, []);
+          index.get(key).push(String(pid));
+        });
+      });
+      eng._analysisIndex = index; eng._analysisForms = new Map();
+    }
+    var sk = stripNiqqud(surface || niqqud), vocal = niqqud && /[ְ-ׇ]/.test(niqqud), form = candidateForm(niqqud);
+    var pids = [], shortSk = stripNiqqud(form);
+    [sk,shortSk].forEach(function (key) {
+      pids = pids.concat(eng._analysisIndex.get(key) || []);
+      ((eng.maps && eng.maps.cell && eng.maps.cell.get(key)) || []).forEach(function (x) { if (x.pealim_id) pids.push(String(x.pealim_id)); });
+    });
+    if (vocal && eng.NA && eng.NA.unitFormVariants && eng.maps && eng.maps.formIdx) {
+      eng.NA.unitFormVariants({niqqud:niqqud,stem:'',pos:''}).forEach(function (v) {
+        (eng.maps.formIdx.get(v) || []).forEach(function (x) { if (x.pealim_id) pids.push(String(x.pealim_id)); });
+      });
+    }
+    var out = [];
+    Array.from(new Set(pids)).forEach(function (pid) {
+      var p = eng.pidMap.get(pid); if (!p) return;
+      if (!eng._analysisForms.has(pid)) {
+        var forms = [p.lemma_niqqud,p.form && p.form.he].concat(Object.keys(p.cells || {}).map(function (k) { return p.cells[k] && p.cells[k].he; })).filter(Boolean);
+        eng._analysisForms.set(pid,forms.map(candidateForm));
+      }
+      if (vocal && eng._analysisForms.get(pid).indexOf(form) < 0) return;
+      out.push({ pealim_id:pid,lemma:p.lemma || '',lp_pos:p.pos || '',meaning_ru:p.meaning || '',root:p.root || '',binyan:p.binyan || '' });
+    });
+    return out.sort(function (a,b) { return a.pealim_id.localeCompare(b.pealim_id); });
+  }
+  function withAnalysisCandidates(eng, card, surface, niqqud) {
+    if (!card) return card;
+    var candidates = analysisCandidates(eng, surface, niqqud);
+    var selected = card.placeDecided === "owner" || card.placeDecided === "teacher" || card.meaningSource === "owner" || card.meaningSource === "teacher";
+    var conflict = candidates.length > 1 || (candidates.length === 1 && card.pos && candidates[0].lp_pos !== card.pos && !card.functionWord);
+    var next = Object.assign({}, card, { analysisCandidates: candidates, selectionRequired: !selected && conflict });
+    if (conflict && !selected) {
+      next.ambiguous = true;
+      if (next.label === "exact") next.label = "likely";
+      var ids = new Set((next.alts || []).map(function (a) { return String(a.pealim_id || ""); }));
+      next.alts = (next.alts || []).concat(candidates.filter(function (a) { return a.pealim_id !== String(card.pealim_id || "") && !ids.has(a.pealim_id); }).map(function (a) {
+        return { pealim_id:a.pealim_id, pos:a.lp_pos, meaning:a.meaning_ru, root:a.root };
+      }));
+    }
+    return next;
   }
   async function _resolveCoreSpelling(eng, surfaceOrig, niqqudOrig, opts) {
     var d9 = !(opts && opts.noD9);
@@ -1330,7 +1405,7 @@
     if (!card.pealim_url && window.PealimFunctionLinks) {
       try {
         var fl = window.PealimFunctionLinks.lookup(surface, card.pos || "", { lemma: surface });
-        if (fl && fl.id != null) {
+        if (fl && fl.id != null && (!card.pos || !fl.pos || fl.pos === card.pos)) {
           card.pealim_id = String(fl.id);
           card.pealim_url = "https://www.pealim.com/ru/dict/" + encodeURIComponent(fl.id) + "/";
           if (fl.pos && (!card.pos || card.label === "unknown")) { card.pos = fl.pos; card.label = "function"; }
@@ -1586,7 +1661,7 @@
     context: ["room.morph.legend.context", "значение выбрано по контексту (Dicta, машина)"],
     "function": ["room.morph.legend.function", "служебное слово — показываем роль, не парадигму"],
     guessed: ["room.morph.legend.guessed", "приблизительно — по родственному слову"],
-    dicta: ["room.morph.legend.dicta", "лемма из разбора Dicta ваших текстов; в словаре Pealim нет — без таблиц форм"],
+    dicta: ["room.morph.legend.dicta", "лемма и часть речи из локального разбора Dicta; применимость в этой строке требует проверки"],
     unknown: ["room.morph.legend.unknown", "офлайн не определено — уточни по ссылке"],
   };
   var LEGEND_ORDER = ["owner", "teacher", "exact", "likely", "context", "dicta", "function", "guessed", "unknown"];
@@ -1680,6 +1755,10 @@
       if (gbtn) { onRecallGrade(gbtn.getAttribute("data-rm-recall-grade")); return; }
       var sbtn = t && t.closest ? t.closest("[data-rm-status]") : null;
       if (sbtn) { onStatusSet(sbtn.getAttribute("data-rm-status")); return; }
+      var candidateBtn = t && t.closest ? t.closest("[data-rm-candidate]") : null;
+      if (candidateBtn) { previewAnalysis(candidateBtn); return; }
+      if (t && t.closest && t.closest("[data-rm-analysis-save]")) { saveAnalysis(false); return; }
+      if (t && t.closest && t.closest("[data-rm-analysis-clear]")) { saveAnalysis(true); return; }
       if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
       if (t && t.closest && t.closest("[data-rm-explain]")) { onExplainWord(); return; }   // PAS-A4
       if (t && t.closest && t.closest("[data-rm-legend]")) { onLegendToggle(); return; }
@@ -1761,7 +1840,84 @@
   // Epic 4 — one-tap manual status selector (new/1/2/3/4/known/ignore). Shown when a setWordStatus
   // handler is wired + we have a canonical lemmaKey. The active value is highlighted; re-tapping it
   // clears to «new». LingQ-style: known→clears the highlight, ignore→excluded from i+1.
+  function statusText(status) { var entry = STATUS_OPTS.find(function (o) { return o[0] === status; }); return entry ? tt(entry[1][0], entry[1][1]) : status; }
+  function posText(pos) { var entry = POS_TEXT[pos]; return entry ? tt(entry[0], entry[1]) : (pos || ""); }
+  function analysisChoicesHtml(card) {
+    if (!_activeOcc || !_activeOcc.sentence_id || typeof _attachOpts.confirmOccurrenceAnalysis !== "function") return "";
+    var candidates = card.analysisCandidates || [];
+    var reviewed = card.meaningSource === "owner" || card.meaningSource === "teacher";
+    var html = '<section class="rm-analysis-choices" dir="' + uiDir() + '"><h3>' + escapeHtml(tt("analysis.variants", "Варианты значения")) + '</h3>';
+    if (card.resolutionState === 'stale') html += '<p class="rm-analysis-notice">' + escapeHtml(tt("analysis.stale", "Сохранённый выбор устарел: текст или варианты изменились. Проверьте значение снова.")) + '</p>';
+    html += '<div class="rm-analysis-options" role="group" aria-label="' + escapeHtml(tt("analysis.variants", "Варианты значения")) + '">';
+    candidates.forEach(function (a) {
+      var selected = reviewed && a.pealim_id === String(card.pealim_id || "");
+      html += '<div class="rm-analysis-option"><button type="button" data-rm-candidate="' + escapeHtml(a.pealim_id) + '" aria-pressed="' + selected + '">' +
+        '<span lang="he" dir="rtl">' + escapeHtml(a.lemma) + '</span> · ' + escapeHtml(a.meaning_ru || tt("analysis.noMeaning", "значение не указано")) +
+        ' · ' + escapeHtml(posText(a.lp_pos)) + '</button><a target="_blank" rel="noopener noreferrer" href="https://www.pealim.com/ru/dict/' + encodeURIComponent(a.pealim_id) + '/">Pealim ↗</a></div>';
+    });
+    html += '</div><details class="rm-analysis-correction"><summary>' + escapeHtml(tt("analysis.refine", "Уточнить значение здесь")) + '</summary>' +
+      '<button type="button" data-rm-candidate="name" aria-pressed="' + (reviewed && card.pos === 'propernoun') + '">' + escapeHtml(tt("analysis.properName", "Имя собственное")) + '</button></details>';
+    html += '<p data-rm-analysis-preview role="status">' + escapeHtml(reviewed ? tt("analysis.confirmed", "Выбор сохранён для этого места") :
+      card.selectionRequired ? tt("analysis.choose", "Выберите значение для этой строки") : tt("analysis.optional", "При необходимости уточните чтение для этого места")) + '</p>' +
+      '<button type="button" class="rm-analysis-save" data-rm-analysis-save disabled>' + escapeHtml(tt("analysis.useHere", "Использовать здесь")) + '</button>';
+    if (reviewed) html += '<button type="button" data-rm-analysis-clear>' + escapeHtml(tt("analysis.clear", "Сбросить мой выбор")) + '</button>';
+    return html + '</section>';
+  }
+  function previewAnalysis(button) {
+    if (!_activeCard || !_sheet) return;
+    _sheet.querySelectorAll('[data-rm-candidate]').forEach(function (b) { b.setAttribute('aria-pressed', b === button ? 'true' : 'false'); });
+    var save = _sheet.querySelector('[data-rm-analysis-save]');
+    if (save) { save.disabled = false; save.dataset.choice = button.getAttribute('data-rm-candidate'); }
+    var preview = _sheet.querySelector('[data-rm-analysis-preview]');
+    if (preview) preview.textContent = tt("analysis.preview", "Предварительный выбор") + ': ' + button.textContent.trim();
+  }
+  var analysisWrites = new WeakSet();
+  async function saveAnalysis(clear) {
+    var card = _activeCard, occ = _activeOcc, span = _activeSpan, host = _attachOpts;
+    if (!card || !occ || analysisWrites.has(card) || typeof host.confirmOccurrenceAnalysis !== "function") return;
+    var save = _sheet.querySelector('[data-rm-analysis-save]'), choice = save && save.dataset.choice;
+    if (!clear && !choice) return;
+    analysisWrites.add(card);
+    var current = function () { return _activeCard === card && _activeOcc === occ && _activeSpan === span && _attachOpts === host; };
+    if (save) save.disabled = true;
+    try {
+      var Core = window.LexicalResolutionCore;
+      var fingerprint = await Core.candidateFingerprint({alternatives:card.analysisCandidates || []});
+      var x = aiOccurrence();
+      var selection = clear ? {clear:true} : choice === 'name' ? {name:true,meaning:x ? x.x.gloss : card.meaning} : {pealim_id:choice};
+      var projection = await host.confirmOccurrenceAnalysis(occ, selection, {fingerprint:fingerprint,isCurrent:current});
+      if (!current()) return;
+      var eng = await ensureEngine(), next;
+      if (clear) {
+        await ensurePlaces([occ.sentence_id]);
+        next = await resolveWordLight(occ.surface, occ.niqqud, null, {sid:occ.sentence_id,off:occ.word_offset});
+      } else next = applyLexicalResolution(card, projection);
+      next.lemmaKey = statusKeyForCard(eng.NA, next, occ.niqqud, occ.surface);
+      next.manualStatus = typeof host.getWordStatus === 'function' ? await host.getWordStatus(next.lemmaKey) || '' : '';
+      var schedules = typeof host.getDueSchedule === 'function' ? await host.getDueSchedule() || {} : {};
+      next.srsRow = schedules[next.lemmaKey] || null;
+      var par = next.pealim_id && eng.pidMap.get(String(next.pealim_id));
+      if (par && par.pos === next.pos) next.paradigm = par;
+      if (!current()) return;
+      _recallCtx = null; _markConfirm = null;
+      openCard(next, occ);
+      var focusTarget = _sheet.querySelector('.rm-status-target');
+      if (focusTarget) { focusTarget.tabIndex = -1; focusTarget.focus(); }
+    } catch (_) {
+      if (current()) {
+        try { console.warn('[lexical-choice]', _.message || String(_)); } catch (_) {}
+        var preview = _sheet.querySelector('[data-rm-analysis-preview]');
+        if (preview) preview.textContent = tt("analysis.changed", "Не удалось сохранить выбор. Откройте слово снова и проверьте актуальные варианты.");
+        if (save) save.disabled = false;
+      }
+    } finally { analysisWrites.delete(card); }
+  }
   function statusSelectorHtml(card) {
+    var target = [card.word, card.meaning, posText(card.pos)].filter(Boolean).join(" — ");
+    var scope = '<p class="rm-status-target" dir="' + uiDir() + '">' + escapeHtml(tt("analysis.statusFor", "Мой статус для") + ": " + target) + '</p>';
+    if (card.selectionRequired) return scope + '<p class="rm-analysis-notice" dir="' + uiDir() + '">' +
+      escapeHtml(tt("analysis.chooseBeforeStatus", "Выберите значение для этой строки перед отметкой знания")) +
+      (card.manualStatus ? ' · ' + escapeHtml(tt("analysis.previousMark", "Ранее сохранённая отметка этого разбора") + ": " + statusText(card.manualStatus)) : '') + '</p>';
     if (!card || !card.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return "";
     // Highlight the EFFECTIVE status: an explicit manual status, else «new» ONLY for a confident
     // word (which auto-shows the purple «new wall»); an unconfident word with no status highlights
@@ -1772,10 +1928,10 @@
       var lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : escapeHtml(val);
       return '<button type="button" class="rm-status-btn rm-status-' + val + (cur === val ? " rm-status-active" : "") + '" data-rm-status="' + val + '">' + lab + "</button>";
     }).join("");
-    return '<div class="rm-status" dir="' + uiDir() + '"><span class="rm-status-k">' + escapeHtml(tt("room.morph.status.title", "Мой статус")) + ":</span>" + btns + "</div>";
+    return scope + '<div class="rm-status" dir="' + uiDir() + '"><span class="rm-status-k">' + escapeHtml(tt("room.morph.status.title", "Мой статус")) + ":</span>" + btns + "</div>";
   }
   async function onStatusSet(value) {
-    if (!_activeCard || !_activeCard.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return;
+    if (!_activeCard || _activeCard.selectionRequired || !_activeCard.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return;
     // Toggle on the ACTUAL stored status (not «new», which is now a real storable status): re-tap
     // the stored value → clear; otherwise store the tapped value (incl. «new» → purple).
     var st = (_activeCard.manualStatus === value) ? "" : value;
@@ -1873,7 +2029,10 @@
     var lk = "", cur = "", isConf = false;
     try {
       var eng = await ensureEngine();
-      var card = await resolveCore(eng, stripNiqqud(niqqud) || surface, niqqud);
+      var place = placeOfSpan(span);
+      if (place) await ensurePlaces([place.sid]);
+      var card = await resolveCore(eng, surface, niqqud, place ? {place:place} : undefined);
+      if (card.selectionRequired) return false;
       // Key IDENTICALLY to the card (resolveWordLight) + decorateWords via the shared keyer, so a
       // long-press status lands on the same key the paint looks up.
       lk = statusKeyForCard(eng.NA, card, niqqud, stripNiqqud(niqqud) || surface);
@@ -2144,7 +2303,7 @@
       '<div class="rm-head">' +
       '<span class="rm-word-wrap"><span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" + speakBtn + "</span>" +
       '<span class="rm-badges">' +
-      '<span class="rm-prov-line">' +
+      '<span class="rm-prov-line"' + (_activeOcc ? ' hidden' : '') + '>' +
       '<span class="rm-prov rm-prov-' + escapeHtml(card.label) + '">' + escapeHtml(tt(label[0], label[1])) + "</span>" +
       '<button type="button" class="rm-prov-help" data-rm-legend aria-expanded="false" aria-label="' + escapeHtml(tt("room.morph.legend.title", "Что значат бейджи уверенности?")) + '">?</button>' +
       "</span>" +
@@ -2188,7 +2347,7 @@
     // T-b — manual translation: when the resolver has no offline gloss, let the learner add
     // their OWN (a real word_study note, Anki-synced). A user-asserted meaning is tagged «ваш»
     // (R9 provenance ≠ machine) and stays editable; the inline editor is hidden until invoked.
-    var canEditMeaning = typeof _attachOpts.saveUserMeaning === "function" && card.meaningSource !== "owner" && card.meaningSource !== "teacher";
+    var canEditMeaning = !card.selectionRequired && typeof _attachOpts.saveUserMeaning === "function" && card.meaningSource !== "owner" && card.meaningSource !== "teacher";
     var meaning;
     if (card.meaning) {
       var provBadge = card.meaningSource === "user"
@@ -2204,7 +2363,7 @@
       var addBtn = canEditMeaning
         ? ' <button type="button" class="rm-meaning-add" data-rm-meaning-add>' + escapeHtml(tt("room.morph.addMeaning", "＋ Добавить перевод")) + "</button>"
         : "";
-      meaning = '<div class="rm-meaning rm-meaning-empty" dir="ltr">' + escapeHtml(tt("room.morph.noGloss", "Перевод не найден офлайн.")) + addBtn + "</div>";
+      meaning = '<div class="rm-meaning rm-meaning-empty" dir="ltr">' + escapeHtml(_activeOcc ? tt("analysis.missingMeaning", "В этом разборе перевод не указан.") : tt("room.morph.noGloss", "Перевод не найден офлайн.")) + addBtn + "</div>";
     }
     var meaningEditor = canEditMeaning
       ? '<div class="rm-meaning-editor" data-rm-meaning-editor dir="' + uiDir() + '" hidden>' +
@@ -2245,7 +2404,7 @@
     // «Сохранить» — frictionless capture: turns the word into a word_study note (the
     // prerequisite for status colouring + Anki + i+1). The glue (DB persist) is the
     // caller's opts.saveWord; the button is shown whenever a save handler is wired.
-    var saveBtn = _attachOpts.saveWord
+    var saveBtn = !card.selectionRequired && _attachOpts.saveWord
       ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Добавить в мои слова")) + "</button>"
       : "";
     // One canonical word_study object, two densities: the Reader offers the three personal
@@ -2294,7 +2453,7 @@
         }).join("") + "</div></details>"
       : "";
     var conj = "";
-    if (card.paradigm && window.InflectionRender && window.InflectionRender.renderParadigm) {
+    if (card.paradigm && Object.keys(card.paradigm.cells || {}).length && window.InflectionRender && window.InflectionRender.renderParadigm) {
       // Ф2: mark the same cell(s) the interlinear gloss matched (dagesh-insensitive, after a proclitic)
       var hlSlots = [];
       try {
@@ -2304,7 +2463,7 @@
       var tbl = ""; try { tbl = window.InflectionRender.renderParadigm(card.paradigm, { highlightForm: card.niqqud, highlightSlots: hlSlots }); } catch (_) { tbl = ""; }
       // F5 — when the reading isn't «точно», the table is for the resolver's best guess, not
       // a fact: label it «возможная парадигма» so it isn't read as the authoritative paradigm.
-      var conjSure = card.label === "exact" || card.usageParadigm;   // curated function-word declension is authoritative
+      var conjSure = card.label === "exact" || card.label === "owner" || card.label === "teacher" || card.usageParadigm;
       var conjLabel = conjSure ? tt("room.morph.conj", "Спряжение / Склонение") : tt("room.morph.possibleParadigm", "возможная парадигма");
       if (tbl) conj = '<details class="rm-acc rm-acc-conj' + (conjSure ? "" : " rm-acc-uncertain") + '"><summary class="rm-acc-sum">' + escapeHtml(conjLabel) + "</summary>" +
         '<div class="rm-conj-body">' + tbl + "</div></details>";
@@ -2336,12 +2495,21 @@
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
     var reviewed = card.meaningSource === "owner" || card.meaningSource === "teacher" || card.channel === "owner-name";
-    var dictionaryDetails = meaning + formLine + meaningEditor + altLine + ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + fam + conj;
+    var scopedProvenance = '<div class="rm-analysis-source" dir="' + uiDir() + '">' +
+      escapeHtml([card.lemma || card.word, posText(card.pos)].filter(Boolean).join(' · ')) + '<br>' +
+      escapeHtml(tt("analysis.source", "Источник разбора") + ': ' + tt(label[0],label[1])) + '</div>';
+    var dictionaryDetails = scopedProvenance + meaning + formLine + meaningEditor + (_activeOcc ? '' : altLine) + ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + fam + conj;
     var occurrence = aiOccurrence();
     var contextual = !!(occurrence && !reviewed);
-    var nameAction = contextual && _activeOcc && _activeOcc.sentence_id && typeof _attachOpts.confirmOccurrenceName === "function"
+    var nameAction = contextual && ! _attachOpts.confirmOccurrenceAnalysis && _activeOcc && _activeOcc.sentence_id && typeof _attachOpts.confirmOccurrenceName === "function"
       ? '<div class="rm-context-review"><button type="button" class="rm-meaning-add" data-rm-name-propose>' + escapeHtml(tt("contextLayer.nameHere", "Это имя здесь")) + '</button><div data-rm-name-confirm hidden><p>' + escapeHtml(tt("contextLayer.confirmName", "Подтвердить имя только в этом месте? Статусы знания и повторы не изменятся.")) + '</p><button type="button" class="rm-meaning-save" data-rm-name-save>' + escapeHtml(tt("contextLayer.confirm", "Подтвердить")) + '</button></div></div>' : "";
     if (contextual) dictionaryDetails = '<details class="rm-acc rm-dictionary-reading"><summary class="rm-acc-sum">' + escapeHtml(tt("contextLayer.dictionary", "Словарный перевод; применимость здесь не подтверждена")) + '</summary>' + dictionaryDetails + '<div class="rm-actions">' + saveBtn + link + '</div></details>';
+    var savedGloss = reviewed && aiLine ? '<details class="rm-acc"><summary class="rm-acc-sum">' + escapeHtml(tt("analysis.savedGloss", "Сохранённый подстрочник")) + '</summary>' + aiLine + '</details>' : aiLine;
+    if (_activeOcc) return backRow + head + niqMark + contextPendingHtml(card) + (!reviewed ? savedGloss : '') +
+      (reviewed ? '<p class="rm-analysis-reviewed">' + escapeHtml(tt(label[0],label[1]) + ': ' + card.meaning + ' · ' + posText(card.pos)) + '</p>' : '') +
+      (reviewed ? savedGloss : '') + nameAction + analysisChoicesHtml(card) + dictionaryDetails + recallHtml + statusSelectorHtml(card) +
+      ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
+      (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : '') + noteEditor + explainWordHtml() + refineHtml;
     var conflict = contextual && occurrence.x.wrongHint ? '<p class="rm-ai-warn">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение, вероятно, не подходит")) + '</p>' : "";
     if (!contextual) return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
     return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
@@ -2471,7 +2639,7 @@
     if (_recallCtx === rc && _activeCard === rc.card) openCard(_activeCard, _activeOcc);
   }
   async function onSaveClick() {
-    if (!_activeCard || !_attachOpts.saveWord) return;
+    if (!_activeCard || _activeCard.selectionRequired || !_attachOpts.saveWord) return;
     var saveBtn = _sheet && _sheet.querySelector(".rm-save");
     if (_activeNoteInfo && _activeNoteInfo.noteId && typeof _attachOpts.loadWordNote === "function") {
       onNoteEditorToggle(true);
@@ -2559,7 +2727,7 @@
     }
   }
   async function onMeaningSave() {
-    if (!_activeCard || typeof _attachOpts.saveUserMeaning !== "function") return;
+    if (!_activeCard || _activeCard.selectionRequired || typeof _attachOpts.saveUserMeaning !== "function") return;
     var input = _sheet && _sheet.querySelector("[data-rm-meaning-input]");
     var val = input ? String(input.value || "").trim() : "";
     if (!val) { if (input) { try { input.focus(); } catch (_) {} } return; }
@@ -2682,6 +2850,7 @@
           if (card && occ && typeof _attachOpts.lookupLexicalResolution === "function") {
             try {
               var projection = await _attachOpts.lookupLexicalResolution(card, occ, row);
+              if (projection && projection.state === "stale") card.resolutionState = "stale";
               card = applyLexicalResolution(card, projection);
               if (projection && projection.state === "resolved") {
                 var ownerEngine = await ensureEngine();
@@ -3107,7 +3276,8 @@
     // Д8-К: the device's Dicta lexicon (the same one resolveCore read) gives the class of a word Pealim does not read
     var DLX = (typeof window !== "undefined" && window.DictaLexicon) || _DictaLexiconNode;
     var lx = (unsure && eng && eng.dictaLex && DLX) ? DLX.lookup(eng.dictaLex, surface || niqqud) : null;
-    var keyed = !!(card && (card.label === "exact" || card.label === "likely" || card.label === "dicta"));
+    var keyed = !!(card && !card.selectionRequired && (card.label === "exact" || card.label === "likely" || card.label === "dicta" ||
+      ((card.label === "owner" || card.label === "teacher") && card.pos !== "propernoun")));
     // Д8-К · К-2: the learner said «это имя (здесь)» for this exact place (lexical_resolution_events, verified by the host)
     if (x.forceName && unsure) { keyed = false; card = Object.assign({}, card || {}, { label: "unknown", functionWord: false, pos: "propernoun" }); lx = { cls: "name" }; }
     if (!keyed) {
@@ -3965,7 +4135,7 @@
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
     // context-overlay shared primitives (bake + runtime lock-step; recon §10)
     RESOLVER_REV: RESOLVER_REV, normSent: normSent, fnv1a: fnv1a, contextPromotionGuard: contextPromotionGuard,
-    overlayContext: overlayContext,
+    overlayContext: overlayContext, analysisCandidates: analysisCandidates,
     // gazetteers (single source of truth — proclitic-segment.buildLexicon reads these so the
     // detector's name/function guard never drifts from the resolver's).
     NAME_PROPER: NAME_PROPER, FUNCTION_GLOSS: FUNCTION_GLOSS,

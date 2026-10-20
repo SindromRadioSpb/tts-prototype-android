@@ -185,7 +185,7 @@
     exact.text_key = String(exact.text_key || await _textKey(exact.text_id) || "");
     if (!exact.text_id || !exact.sentence_id || !exact.text_key || exact.order_index == null ||
         !Number.isInteger(Number(exact.word_offset)) || Number(exact.word_offset) < 0) return null;
-    return window.LexicalResolutionService.lookupExactOccurrence(exact, ldb, window.LexicalResolutionCore);
+    return window.LexicalResolutionService.lookupExactOccurrence(exact, ldb, window.LexicalResolutionCore, _card.analysisCandidates);
   }
 
   function _localDayStr(d) {
@@ -332,6 +332,7 @@
       lookupUserMeaning: function (c) { return ensureHost().lookupUserMeaning(c); },
       lookupLexicalResolution: lookupLexicalResolution,
       confirmOccurrenceName: function (o, m) { return ensureHost().confirmOccurrenceName(o, m); },
+      confirmOccurrenceAnalysis: function (o, s, options) { return ensureHost().confirmOccurrenceAnalysis(o, s, options); },
       saveUserMeaning: function (c, o, m) { return ensureHost().saveUserMeaning(c, o, m); },
       contextProvider: h.makeContextProvider(),
       refineContext: h.makeRefineProvider(),

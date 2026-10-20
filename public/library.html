@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="/css/reader-core.css?v=661">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
-  <link rel="stylesheet" href="/css/reader-morph.css?v=800">
+  <link rel="stylesheet" href="/css/reader-morph.css?v=801">
   <link rel="stylesheet" href="/css/lexical-resolution.css?v=6">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
@@ -3345,7 +3345,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.800</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.801</button>
     </p>
   </div>
 </div>
@@ -3522,9 +3522,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=800"></script>
-    <script src="/i18n/locales/en.js?v=800"></script>
-    <script src="/i18n/locales/he.js?v=800"></script>
+    <script src="/i18n/locales/ru.js?v=801"></script>
+    <script src="/i18n/locales/en.js?v=801"></script>
+    <script src="/i18n/locales/he.js?v=801"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3541,7 +3541,7 @@
 <!-- Owner-reviewed morphology decisions and deterministic Obsidian projection. -->
 <script src="/js/obsidian-lexical-preview.js?v=10"></script>
 <script src="/js/lexical-resolution-core.js"></script>
-<script src="/js/lexical-resolution-service.js?v=6"></script>
+<script src="/js/lexical-resolution-service.js?v=801"></script>
 <script src="/js/lexical-resolution-ui.js?v=12"></script>
 <!-- Retention P0 — THE single canonical word-memory keyer + review-log ids (pure; reader-morph's
      statusKeyForCard delegates here so save==paint==review share one keyer; recon B1/B5). -->
@@ -3563,7 +3563,7 @@
     <script src="/js/mentor-connection-core.js?v=414"></script>
     <script src="/js/mentor-home.js?v=414"></script>
 <script src="/js/inflection-dict.js"></script>
-<script src="/js/pealim-function-links.js"></script>
+<script src="/js/pealim-function-links.js?v=801"></script>
 <script src="/js/function-usage.js"></script>
 <script src="/js/pealim-identity-overrides.js"></script>
 <!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
@@ -3573,12 +3573,12 @@
 <script src="/js/ru-forms.js?v=739"></script>
 <script src="/js/dicta-lexicon.js?v=769"></script>
 <script src="/js/dicta-enrich.js?v=781"></script>
-<script src="/js/learning-field-provenance.js?v=800"></script>
-<script src="/js/reader-morph.js?v=800"></script>
+<script src="/js/learning-field-provenance.js?v=801"></script>
+<script src="/js/reader-morph.js?v=801"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
-<script src="/js/word-gloss.js?v=800"></script>
+<script src="/js/word-gloss.js?v=801"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
-<script src="/js/word-gloss-ai.js?v=800"></script>
+<script src="/js/word-gloss-ai.js?v=801"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
 <!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
@@ -3586,7 +3586,7 @@
 <script src="/js/catalog-discovery-core.js?v=780"></script>
 <script src="/js/catalog-discovery-ui.js?v=485"></script>
 <script src="/js/benyehuda-learning-edition.js?v=731"></script>
-<script src="/js/corpus-materialize.js?v=800"></script>
+<script src="/js/corpus-materialize.js?v=801"></script>
 <script src="/js/benyehuda-learning-niqqud.js?v=734"></script>
 <script src="/js/benyehuda-learning-niqqud-manifest.js?v=734"></script>
 <script src="/js/corpus-discovery-core.js?v=731"></script>
@@ -3635,10 +3635,10 @@
 <script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/subtitle-media-attach.js?v=796"></script>
 <script src="/js/room-media-attach.js?v=796"></script>
-<script src="/js/study-video-source-ui.js?v=800"></script>
+<script src="/js/study-video-source-ui.js?v=801"></script>
 <script src="/js/portable-learning-package-core.js?v=742"></script>
 <script src="/js/import-center-core.js?v=527"></script>
-<script src="/js/portable-learning-package-repository.js?v=800"></script>
+<script src="/js/portable-learning-package-repository.js?v=801"></script>
 <!-- The Room imports bundles too, and bundle import writes media bytes through this store,
      which hashes the incoming stream incrementally through the hash-wasm runtime. -->
 <script src="/vendor/hash-wasm/sha256.umd.min.js"></script>
@@ -3652,19 +3652,19 @@
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
 <script src="/js/public-word-audio.js?v=453"></script>
 <script src="/js/corpus-place-parse.js?v=785"></script>
-<script src="/js/morph-host.js?v=800"></script>
+<script src="/js/morph-host.js?v=801"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
 <!-- MASS-ACCESS I4 — validates anonymous publication payloads and strips any
      protected-source marker before local materialisation. -->
-<script src="/js/public-corpus-adapter.js?v=800"></script>
+<script src="/js/public-corpus-adapter.js?v=801"></script>
 <script src="/js/product-telemetry.js?v=669"></script>
 <!-- O-033: all three transliteration profiles, derived locally from the pointed text (same engine
      and store as the Studio table). -->
 <script src="/js/local-translit-bundle.js?v=735"></script>
 <script src="/js/translit-display.js?v=734"></script>
-<script type="module" src="/js/library-ui.js?v=800"></script>
+<script type="module" src="/js/library-ui.js?v=801"></script>
 <script src="/js/tutor-client.js?v=2"></script>
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=718"></script>

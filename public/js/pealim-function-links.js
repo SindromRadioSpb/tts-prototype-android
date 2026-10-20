@@ -32,7 +32,7 @@
   }
 
   // Synchronous lookup (returns null until ensureReady has resolved). Prefer an
-  // entry whose POS matches the requested one; else any. Tries the surface word, the
+  // entry whose POS matches the requested one. Tries the surface word, the
   // Dicta stem, and the lemma (all niqqud-stripped).
   function lookup(word, pos, extra) {
     if (!_map) return null;
@@ -44,7 +44,7 @@
       if (!pos || !e.pos || e.pos === pos) return e;     // POS-matched (or unknown) → best
       if (!fallback) fallback = e;
     }
-    return fallback;                                      // POS-mismatched same-spelling entry, last resort
+    return pos ? null : fallback;  // another POS is another lexical entry, never an identity fallback
   }
 
   window.PealimFunctionLinks = { ensureReady: ensureReady, lookup: lookup, getForm: getForm, isReady: function () { return !!_map; } };

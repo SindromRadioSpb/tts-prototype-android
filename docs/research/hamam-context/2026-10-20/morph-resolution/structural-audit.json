@@ -1,0 +1,12 @@
+{
+  "evidence": "LOCAL_READ_ONLY_STRUCTURAL",
+  "rows": 499,
+  "words": 2193,
+  "withCandidates": 1598,
+  "multipleCandidates": 360,
+  "withCellLess": 458,
+  "inconsistentIdPos": 0,
+  "sourceSame": true,
+  "elapsedMs": 818,
+  "independentLinguisticReview": false
+}

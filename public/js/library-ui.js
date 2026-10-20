@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=800';
+import * as localDbRaw from '/db/local-db.js?v=801';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -30,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=800';
+import * as readerCore from '/js/reader-core.js?v=801';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=730';
@@ -3505,10 +3505,22 @@ async function _r2VerifyCandidate(R, d, needles, sent) {
   const cz = R.buildClozeForTarget(tokens, tskel);
   if (!cz) return null;
   let card = null;
-  try { card = await R.resolveWordLight(tskel, cz.answer); } catch (_) { card = null; }
-  if (!card || !card.lemmaKey || card.lemmaKey !== d.lemmaKey) return null;
+  const places = [];
+  if (sent.id != null) {
+    const units = R.placeUnits(sent, null).sk;
+    for (const off of Object.keys(units)) {
+      const unit = window.TextKeyScan?.unitAt(sent, Number(off));
+      if (R.stripNiqqud(unit?.niqqud || units[off]) === tskel) places.push({ sid: String(sent.id), off: Number(off) });
+    }
+    // Every blank must refer to this same lexical entry, including repeated homographs.
+    if (places.length !== cz.count) return null;
+  }
+  for (const place of (places.length ? places : [null])) {
+    try { card = await R.resolveWordLight(tskel, cz.answer, null, place); } catch (_) { card = null; }
+    if (!card || card.selectionRequired || !card.lemmaKey || card.lemmaKey !== d.lemmaKey) return null;
+  }
   // unvocalized sentence → no niqqud discriminator for homographs → require a decisive resolve
-  if (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact') return null;
+  if (!_HEB_VOWELED_RE.test(cz.answer || '') && !['exact','owner','teacher'].includes(card.label)) return null;
   return { cz, tskel, card, heN };
 }
 // Общая сборка кросс-текстовых айтемов из source-якорных строк (вынесено из startDueReview
@@ -4871,7 +4883,7 @@ const roomLookupUserMeaning = (card) => morphHost.lookupUserMeaning(card);
 const roomLookupLexicalResolution = async (_card, occurrence) => {
   if (!occurrence || !window.LexicalResolutionService || !window.LexicalResolutionCore ||
       typeof window.LexicalResolutionService.lookupExactOccurrence !== 'function') return null;
-  return window.LexicalResolutionService.lookupExactOccurrence(occurrence, localDb, window.LexicalResolutionCore);
+  return window.LexicalResolutionService.lookupExactOccurrence(occurrence, localDb, window.LexicalResolutionCore, _card.analysisCandidates);
 };
 const roomSaveUserMeaning = (card, occ, meaning) => morphHost.saveUserMeaning(card, occ, meaning);
 const roomSaveWordPersonal = (card, occ, fields) => morphHost.saveWordPersonal(card, occ, fields);
@@ -8210,6 +8222,7 @@ function attachReaderMorph(mount, overrides) {
   opts.lookupUserMeaning = roomLookupUserMeaning;
   opts.lookupLexicalResolution = roomLookupLexicalResolution;
   opts.confirmOccurrenceName = (occ, meaning) => morphHost.confirmOccurrenceName(occ, meaning);
+  opts.confirmOccurrenceAnalysis = (occ, selection, options) => morphHost.confirmOccurrenceAnalysis(occ, selection, options);
   opts.saveUserMeaning = roomSaveUserMeaning;
   // Retention P5 — reading-native retrieval glue (recon §6, D4(b)+D8(a)): getDueSchedule feeds the
   // recall-mode gate with the SAME extended rows fsrsStep resumes from, and rides the status-axis

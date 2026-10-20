@@ -220,7 +220,7 @@
           var occIds = Array.from(new Set(mine.map(function (e) { return e.occurrence_id; })));
           for (var oi = 0; oi < occIds.length; oi++) {
             var latest = Core.latest(mine, occIds[oi]);
-            if (!latest || latest.action !== "manual_correction") continue;
+            if (!latest || (latest.action !== "manual_correction" && latest.action !== "confirm_candidate")) continue;
             var off = Number(latest.word_offset), sk = pu.sk[off];
             if (!sk) continue;
             // the decision holds only where its anchor is still this word in this sentence
@@ -229,11 +229,14 @@
             // the scan's own unit at this offset (TextKeyScan.unitAt) — the same anchor the decision was saved with
             var un = window.TextKeyScan && typeof window.TextKeyScan.unitAt === "function" ? window.TextKeyScan.unitAt(r, off) : null;
             if (un) { occ.surface = un.surface; occ.niqqud = un.niqqud; }
-            var proj = null; try { proj = await Svc.projectExactOccurrence(occ, mine, Core); } catch (_) { proj = null; }
+            var proj = null; try {
+              var engine = await RM.ensureEngine();
+              var candidates = RM.analysisCandidates(engine, occ.surface, occ.niqqud);
+              proj = await Svc.projectExactOccurrence(occ, mine, Core, candidates);
+            } catch (_) { proj = null; }
             if (!proj || proj.state !== "resolved") continue;
             var a = (latest.chosen_analysis || {});
-            if (a.lp_pos === "propernoun") dec.set(off, { name: true });
-            else if (a.pealim_id) dec.set(off, { pid: String(a.pealim_id) });
+            dec.set(off, { projection: proj });
           }
           out.set(sid, { sk: pu.sk, at: pu.at, dec: dec });
         }
@@ -563,6 +566,10 @@
     }
 
     async function confirmOccurrenceName(occ, meaning) {
+      return confirmOccurrenceAnalysis(occ, {name:true,meaning:meaning});
+    }
+    async function confirmOccurrenceAnalysis(occ, selection, options) {
+      selection = selection || {}; options = options || {};
       var ldb = await ldbOf(), Core = window.LexicalResolutionCore, Scan = window.TextKeyScan;
       if (!ldb || !Core || !Scan || !occ || !occ.text_id || !occ.sentence_id) throw new Error("EXACT_OCCURRENCE_REQUIRED");
       var rows = await ldb.dbQuery("SELECT s.*,t.text_key FROM sentences s JOIN texts t ON t.id=s.text_id WHERE s.id=? AND s.text_id=?", [String(occ.sentence_id),String(occ.text_id)]);
@@ -574,15 +581,38 @@
       var exact = {text_id:String(row.text_id),sentence_id:String(row.id),text_key:row.text_key||String(row.text_id),
         order_index:row.order_index,word_offset:off,surface:unit.surface,niqqud:unit.niqqud,
         sentence_he:row.he_plain||"",sentence_he_niqqud:row.he_niqqud||""};
+      var candidates = [];
+      if (!selection.name || options.fingerprint) {
+        var engine = await RM.ensureEngine(); candidates = RM.analysisCandidates(engine, unit.surface, unit.niqqud);
+      }
+      var fingerprint = await Core.candidateFingerprint({alternatives:candidates});
+      if (options.fingerprint && options.fingerprint !== fingerprint) throw new Error("LEXICAL_CANDIDATES_CHANGED");
+      var chosen = candidates.find(function (c) { return c.pealim_id === String(selection.pealim_id || ""); });
+      var action = selection.clear ? "clear" : selection.name ? "manual_correction" : "confirm_candidate";
+      if (action === "confirm_candidate" && !chosen) throw new Error("LEXICAL_CANDIDATE_MISSING");
+      if (selection.name) chosen = {lemma:RM.stripNiqqud(unit.surface),lp_pos:"propernoun",root:"",binyan:"",pealim_id:"",meaning_ru:String(selection.meaning||"").slice(0,120)};
+      var fresh = (await ldb.dbQuery("SELECT he_plain,he_niqqud FROM sentences WHERE id=?",[String(row.id)]))[0];
+      if (!fresh || fresh.he_plain !== row.he_plain || fresh.he_niqqud !== row.he_niqqud ||
+          (typeof options.isCurrent === "function" && !options.isCurrent())) throw new Error("LEXICAL_SOURCE_CHANGED");
       var event = {id:crypto.randomUUID(),occurrence_id:"lpro:"+exact.text_id+":"+exact.sentence_id+":"+off,
         text_id:exact.text_id,sentence_id:exact.sentence_id,text_key:exact.text_key,order_index:exact.order_index,word_offset:off,
         surface_norm:RM.stripNiqqud(unit.surface),source_anchor:await Core.sourceAnchor(exact),
-        candidate_fingerprint:await Core.candidateFingerprint({}),action:"manual_correction",actor_kind:"owner",
-        chosen_analysis:{lemma:RM.stripNiqqud(unit.surface),lp_pos:"propernoun",root:"",binyan:"",pealim_id:"",meaning_ru:String(meaning||"").slice(0,120)},
+        candidate_fingerprint:fingerprint,action:action,actor_kind:"owner",
+        chosen_analysis:chosen || {},
         created_at:new Date().toISOString()};
       await ldb.appendLexicalResolutionEvent(event);
       RM.invalidatePlaces([String(row.id)]);
-      return {state:"resolved",analysis:event.chosen_analysis,event_id:event.id,actor_kind:"owner"};
+      // A new exact reading makes a previously negative source search obsolete.
+      // This is a bounded lookup cache, not learner data or a provider response.
+      if (chosen && chosen.pealim_id) {
+        try {
+          var misses = JSON.parse(localStorage.getItem("room.r2.scanMiss.v3") || "{}");
+          delete misses["pid:" + chosen.pealim_id]; delete misses["bf:pid:" + chosen.pealim_id];
+          localStorage.setItem("room.r2.scanMiss.v3", JSON.stringify(misses));
+        } catch (_) {}
+      }
+      invalidateWordStates(); onProfileChanged();
+      return {state:selection.clear?"unresolved":"resolved",analysis:event.chosen_analysis,event_id:event.id,actor_kind:"owner"};
     }
     // ── Ручная метка (P5.6 R-2a) — сеет FSRS oracle-clean (library-ui.js:5242) ─
     async function markWordStatus(lemmaKey, status, source) {
@@ -783,6 +813,7 @@
       saveUserMeaning: saveUserMeaning,
       occToVerifiedSource: occToVerifiedSource,
       confirmOccurrenceName: confirmOccurrenceName,
+      confirmOccurrenceAnalysis: confirmOccurrenceAnalysis,
       markWordStatus: markWordStatus, ensureDictaLexicon: ensureDictaLexicon, refreshDictaLexicon: refreshDictaLexicon,
       corpusParseSoon: function (textId) { return _corpusParseSoon(ldbOf, textId).catch(function () { return null; }); },
       bumpTapStat: bumpTapStat,
