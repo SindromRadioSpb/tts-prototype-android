@@ -5596,22 +5596,30 @@ window.I18N_LOCALES.en.room.reader.niqqudLayer = {
 
 window.I18N_LOCALES.en.analysis = {
   "statusFor": "My status for",
-  "chooseBeforeStatus": "Choose the meaning in this sentence before marking your knowledge",
+  "chooseBeforeStatus": "Choose an analysis for this sentence before marking knowledge",
   "previousMark": "Previously saved mark for this analysis",
-  "variants": "Possible meanings",
+  "variants": "Alternative analyses",
   "noMeaning": "no meaning provided",
-  "refine": "Clarify the meaning here",
+  "refine": "Correct the analysis in this sentence",
   "properName": "Proper name",
-  "confirmed": "Your choice is saved for this occurrence",
-  "choose": "Choose the meaning in this sentence",
+  "confirmed": "Analysis saved for this sentence",
+  "choose": "Choose an analysis for this sentence",
   "optional": "Clarify this occurrence if needed",
-  "useHere": "Use here",
+  "useHere": "Save analysis for this sentence",
   "clear": "Clear my choice",
   "preview": "Preview",
   "changed": "Could not save your choice. Reopen the word and check the current options.",
-  "source": "Analysis source"
+  "source": "Analysis source",
+  "single": "Found analysis",
+  "lemma": "Dictionary form",
+  "current": "Analysis in this sentence",
+  "nameHere": "This is a proper noun here",
+  "nameSaved": "Marked as a proper noun in this sentence",
+  "undo": "Undo",
+  "name": "Name"
 };
 
+window.I18N_LOCALES.en.analysis.saveFailed = "Could not save. Please try again.";
 window.I18N_LOCALES.en.analysis.stale = "Your saved choice is out of date: the text or options changed. Check the meaning again.";
 
 window.I18N_LOCALES.en.analysis.missingMeaning = "This analysis has no meaning provided.";

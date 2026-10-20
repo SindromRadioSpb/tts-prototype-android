@@ -58,16 +58,17 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
    await page.locator('#proTable [data-col=niqqud] .rm-w').first().click();
    await page.waitForSelector('.rm-sheet.rm-open .rm-ai-gloss');
    assert.match(await page.locator('.rm-niqqud-prov').innerText(),/OpenAI assistant.*архиве/);
-   assert.match(await page.locator('.rm-head .rm-prov').innerText(),/форма совпадает/);
-   assert.equal(await page.locator('.rm-dictionary-reading .rm-meaning').isVisible(),false);
+   assert.match(await page.locator('.rm-current-reading .rm-analysis-source').innerText(),/форма совпадает/);
+   assert.equal(await page.locator('.rm-current-reading .rm-meaning').isVisible(),true);
    for(const width of [1280,380]){
     await page.setViewportSize({width,height:900});
     await page.waitForFunction(()=>{const r=document.querySelector('.rm-sheet.rm-open .rm-head')?.getBoundingClientRect();return r&&r.top<innerHeight-200;});
     await page.screenshot({animations:'disabled',path:path.join(shots,surface+'-'+width+'-unconfirmed.png')});
    }
-   await page.locator('.rm-analysis-correction summary').click();await page.locator('[data-rm-candidate="name"]').click();await page.locator('[data-rm-analysis-save]').click();
+   await page.locator('.rm-analysis-choices > summary').click();await page.locator('[data-rm-analysis-name]').click();
    await page.waitForSelector('.rm-analysis-reviewed');
    assert.equal(await page.locator('.rm-dictionary-reading').count(),0);
+   assert.match(await page.locator('.rm-current-reading .rm-meaning').innerText(),/перевод не указан/);
    assert.doesNotMatch(await page.locator('.rm-rows').innerText(),/שאל|прилагательное/);
    assert.match(await page.locator('.rm-rows').innerText(),/имя/);
    await page.screenshot({animations:'disabled',path:path.join(shots,surface+'-380-confirmed.png')});

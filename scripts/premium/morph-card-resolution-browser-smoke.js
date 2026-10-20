@@ -14,7 +14,10 @@ function fnv(s){let h1=0x811c9dc5,h2=0x01000193;for(let i=0;i<s.length;i++){let 
 const metadata={_studio_material:{schema:'material-projection-v1',imported:true,field_meta:{he_niqqud:{authority:'provider',provider:'OpenAI assistant',status:'current'}}}};
 const rows=[0,1].map(i=>({order_index:i,hebrew_plain:'שאול,',hebrew_niqqud:'שָׁאוּל,',russian:'Шауль,',translit:"Sha'ul",edit_meta:metadata}));
 rows.push({order_index:2,hebrew_plain:'יופי',hebrew_niqqud:'יוֹפִי',russian:'Отлично',edit_meta:metadata});
-function layer(rows){return {schema:'word-gloss-ai-layer-v1',rows:rows.map((r,i)=>{let words=RM.words(r.hebrew_niqqud);return {order_index:i,key:'r2'+fnv(words.join(' ')+'\u0001'+r.russian)+':'+words.length,model:'OpenAI assistant',glosses:[{gloss:i===2?'отлично':i?'Шауль':'Шауль, имя',wrong_hint:false}],mwe:[]};})};}
+rows.push({order_index:3,hebrew_plain:'שפחדת',hebrew_niqqud:'שֶׁפָּחַדְתָּ',russian:'что ты боялся',edit_meta:metadata});
+rows.push({order_index:4,hebrew_plain:'נותר',hebrew_niqqud:'נוֹתַר',russian:'осталось',edit_meta:metadata});
+rows.push({order_index:5,hebrew_plain:'זזזזז',hebrew_niqqud:'זזזזז',russian:'неизвестное слово',edit_meta:metadata});
+function layer(rows){return {schema:'word-gloss-ai-layer-v1',rows:rows.map((r,i)=>{let words=RM.words(r.hebrew_niqqud);return {order_index:i,key:'r2'+fnv(words.join(' ')+'\u0001'+r.russian)+':'+words.length,model:'OpenAI assistant',glosses:[{gloss:i===2?'отлично':i===3?'что ты испугался':i===4?'осталось':i?'Шауль':'Шауль, имя',wrong_hint:false}],mwe:[]};})};}
 const snapshot={library:{texts:[{title:'Контекст: проверка',text_key:'context-browser',source_text:'שאול,\nשאול,\nשלום',rows,word_gloss_ai_layer:layer(rows)}]}};
 const item={public_work_id:'work-1',position_no:1,title:'Контекст: проверка',snapshot_sha256:'c'.repeat(64),public_read_allowed:1,public_stream_allowed:0,package_download_allowed:0,asset_missing:0,package_complete:0,expected_audio_count:0,included_audio_count:0};
 const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',title:'Контекст'},edition:{edition_id:'ed_context',edition_number:1,manifest_sha256:'b'.repeat(64),item_count:1,asset_count:0,asset_missing:0,package_complete:false},items:[item]};
@@ -24,7 +27,7 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
   for(const surface of (process.env.CONTEXT_SURFACE?[process.env.CONTEXT_SURFACE]:['studio','room'])){
    const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'});
    let paid=0;const errors=[];
-   const page=await context.newPage();
+   const page=await context.newPage();page.setDefaultTimeout(20000);
    if(baseline)await page.route('**/js/reader-morph.js*',r=>r.fulfill({contentType:'application/javascript',body:baselineSource}));
    page.on('pageerror',error=>errors.push(String(error)));
    page.on('console',msg=>{if(msg.text().includes('[lexical-choice]'))console.log(msg.text());});
@@ -55,8 +58,53 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
     },snapshot);
    }
 
-   await page.waitForFunction(()=>document.querySelectorAll('#proTable tbody tr').length===3,null,{timeout:60000});
+   await page.waitForFunction(n=>document.querySelectorAll('#proTable tbody tr').length===n,rows.length,{timeout:60000});
    const dbBefore=await page.evaluate(async()=>({reviews:await __localDB.dbQuery('SELECT * FROM review_log ORDER BY rowid'),marks:await __localDB.dbQuery('SELECT * FROM word_status ORDER BY rowid')}));
+   if(!baseline){
+    const open=async i=>{await page.locator('#proTable tr[data-row-idx="'+i+'"] [data-col=niqqud] .rm-w').click();await page.waitForSelector('.rm-sheet.rm-open .rm-current-reading');};
+    const close=()=>page.locator('.rm-sheet-x').click();
+    await open(3);
+    assert.match(await page.locator('.rm-current-reading').innerText(),/לפחוד/);
+    assert.match(await page.locator('.rm-form-line').innerText(),/שֶׁפָּחַדְתָּ[\s\S]*что ты боялся/);
+    assert.match(await page.locator('.rm-form-grammar').innerText(),/ты.*прош/);
+    assert.equal(await page.locator('.rm-analysis-choices').getAttribute('open'),null);
+    await page.locator('.rm-analysis-choices > summary').click();
+    assert.equal(await page.locator('[data-rm-candidate="1612"]').count(),1);
+    assert.match(await page.locator('.rm-analysis-choices h3').innerText(),/Найденный разбор/);
+    assert.equal(await page.locator('[data-rm-analysis-save]').isVisible(),false);
+    for(const width of [1280,380]){await page.setViewportSize({width,height:900});await page.locator('.rm-sheet-card').evaluate(e=>e.scrollTop=0);await page.screenshot({path:path.join(shots,surface+'-'+width+'-fear.png')});assert.equal(await page.locator('.rm-sheet-card').evaluate(e=>e.scrollWidth<=e.clientWidth+2),true);}
+    await close();await open(4);console.log(surface+": form candidates passed");
+    await page.locator('.rm-analysis-choices > summary').click();
+    assert.equal(await page.locator('[data-rm-candidate]').count(),1);
+    assert.match(await page.locator('[data-rm-candidate="867"]').innerText(),/נוֹתַר[\s\S]*להיוותר/);
+    await page.evaluate(()=>__localDB.dbRun("CREATE TRIGGER name_fail BEFORE INSERT ON lexical_resolution_events BEGIN SELECT RAISE(FAIL,'injected name failure'); END"));
+    await page.locator('[data-rm-analysis-name]').click();
+    await page.waitForFunction(()=>/Не удалось/.test(document.querySelector('[data-rm-analysis-preview]')?.textContent||''));
+    assert.equal(await page.locator('[data-rm-analysis-name]').isEnabled(),true);
+    await page.evaluate(()=>__localDB.dbRun('DROP TRIGGER name_fail'));
+    await page.locator('[data-rm-analysis-name]').evaluate(e=>{e.click();e.click();});
+    await page.waitForSelector('[data-rm-analysis-undo]');console.log(surface+': name saved');
+    assert.match(await page.locator('.rm-analysis-reviewed').innerText(),/отмечено как имя/);
+    const named=await page.evaluate(async()=>({events:await __localDB.dbQuery('SELECT * FROM lexical_resolution_events'),reviews:await __localDB.dbQuery('SELECT * FROM review_log ORDER BY rowid'),marks:await __localDB.dbQuery('SELECT * FROM word_status ORDER BY rowid')}));
+    assert.equal(named.events.length,1);assert.equal(JSON.parse(named.events[0].chosen_json).meaning_ru,'');
+    assert.deepEqual(named.reviews,dbBefore.reviews);assert.deepEqual(named.marks,dbBefore.marks);
+    await page.locator('[data-rm-analysis-undo]').click();
+    await page.waitForFunction(()=>!document.querySelector('.rm-analysis-reviewed'));
+    assert.match(await page.locator('.rm-current-reading').innerText(),/להיוותר/);console.log(surface+': name undone');
+    // A name over an existing human choice must undo to that choice, not erase it.
+    await page.locator('.rm-analysis-choices > summary').click();
+    await page.locator('[data-rm-candidate="867"]').click();await page.locator('[data-rm-analysis-save]').click();
+    await page.waitForSelector('.rm-analysis-reviewed');
+    await page.locator('.rm-analysis-choices > summary').click();await page.locator('[data-rm-analysis-name]').click();
+    await page.waitForSelector('[data-rm-analysis-undo]');await close();await open(4);
+    await page.waitForSelector('[data-rm-analysis-undo]');await page.locator('[data-rm-analysis-undo]').click();
+    await page.waitForFunction(()=>/להיוותר/.test(document.querySelector('.rm-dictionary-lemma')?.textContent||'')&&!document.querySelector('[data-rm-analysis-undo]'));
+    await close();await open(5);await page.locator('.rm-analysis-choices > summary').click();
+    assert.equal(await page.locator('.rm-analysis-choices h3').count(),0);
+    assert.equal(await page.locator('[data-rm-candidate]').count(),0);
+    assert.equal(await page.locator('[data-rm-analysis-save]').isVisible(),false);
+    await close();
+   }
    const target='#proTable tr[data-row-idx="2"] [data-col=niqqud] .rm-w';
    const started=Date.now();await page.locator(target).click();
    if(baseline){await page.waitForSelector('.rm-sheet.rm-open .rm-word');console.log(JSON.stringify({surface,baselineColdMs:Date.now()-started}));await context.close();continue;}
@@ -68,11 +116,11 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
    assert.equal(await page.locator('.rm-head .rm-prov:visible').count(),0);
    await page.locator('[data-rm-candidate="5857"]').click();
    assert.match(await page.locator('[data-rm-analysis-preview]').innerText(),/отлично/);
-   assert.equal(await page.evaluate(async()=> (await __localDB.dbQuery('SELECT * FROM lexical_resolution_events')).length),0,'preview must not persist');
+   assert.equal(await page.evaluate(async()=> (await __localDB.dbQuery('SELECT * FROM lexical_resolution_events WHERE order_index=2')).length),0,'preview must not persist');
    await page.locator('[data-rm-analysis-save]').click();
    try {await page.waitForSelector('.rm-analysis-reviewed',{timeout:8000});}catch(e){console.log(await page.locator('[data-rm-analysis-preview]').innerText());throw e;}
    assert.match(await page.locator('.rm-status-target').innerText(),/отлично.*наречие/);
-   const chosen=await page.evaluate(async()=>({reviews:await __localDB.dbQuery('SELECT * FROM review_log ORDER BY rowid'),marks:await __localDB.dbQuery('SELECT * FROM word_status ORDER BY rowid'),events:await __localDB.dbQuery('SELECT * FROM lexical_resolution_events')}));
+   const chosen=await page.evaluate(async()=>({reviews:await __localDB.dbQuery('SELECT * FROM review_log ORDER BY rowid'),marks:await __localDB.dbQuery('SELECT * FROM word_status ORDER BY rowid'),events:await __localDB.dbQuery('SELECT * FROM lexical_resolution_events WHERE order_index=2')}));
    assert.deepEqual(chosen.reviews,dbBefore.reviews);assert.deepEqual(chosen.marks,dbBefore.marks);
    assert.equal(chosen.events.length,1);assert.equal(chosen.events[0].action,'confirm_candidate');
    await page.setViewportSize({width:380,height:850});
@@ -113,15 +161,16 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
      const eng=await ReaderMorph.ensureEngine(),candidates=ReaderMorph.analysisCandidates(eng,u.surface,u.niqqud);
      const projection=await LexicalResolutionService.lookupExactOccurrence(occ,__localDB,LexicalResolutionCore,candidates);
      await __localDB.importBundle(bundle,{mode:'skip'});
-     return{state:projection?.state,pid:projection?.analysis?.pealim_id,events:(await __localDB.listLexicalResolutionEventsForText(text.id)).length};
+     return{state:projection?.state,pid:projection?.analysis?.pealim_id,events:(await __localDB.listLexicalResolutionEventsForText(text.id)).filter(e=>e.order_index===2).length};
     },bundle);
     assert.deepEqual(result,{state:'resolved',pid:'5857',events:1});
     await importedContext.close();
    }
+   await page.locator('.rm-analysis-choices > summary').click();
    await page.locator('[data-rm-analysis-clear]').click();
    await page.waitForFunction(()=>!document.querySelector('.rm-analysis-reviewed'));
    assert.equal(await page.locator('.rm-status-btn').count(),0);
-   const cleared=await page.evaluate(async()=>({events:await __localDB.dbQuery('SELECT * FROM lexical_resolution_events'),marks:await __localDB.dbQuery("SELECT * FROM word_status WHERE lemma_key='pid:5857'")}));
+   const cleared=await page.evaluate(async()=>({events:await __localDB.dbQuery('SELECT * FROM lexical_resolution_events WHERE order_index=2'),marks:await __localDB.dbQuery("SELECT * FROM word_status WHERE lemma_key='pid:5857'")}));
    assert.equal(cleared.events.length,2);assert.equal(cleared.events[1].action,'clear');
    if(surface==='room')assert.equal(cleared.marks[0].status,'l2');
    await page.locator('[data-rm-candidate="5856"]').click();await page.locator('[data-rm-analysis-save]').click();
@@ -132,6 +181,7 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
    assert.equal(await page.locator('[data-rm-status="l2"].rm-status-active').count(),0,'knowledge must not move from adverb to noun');
    await page.evaluate(()=>window.appSetLocale('he'));
    if(await page.locator('.rm-sheet-x').isVisible())await page.locator('.rm-sheet-x').click();await page.locator(target).click();
+   await page.locator('.rm-analysis-choices > summary').click();
    await page.waitForSelector('[data-rm-candidate="5857"]');
    await page.screenshot({animations:'disabled',path:path.join(shots,surface+'-380-hebrew.png')});
    assert.equal(await page.locator('.rm-sheet-card').evaluate(e=>e.scrollWidth<=e.clientWidth+2),true);

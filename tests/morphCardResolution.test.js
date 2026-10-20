@@ -3,6 +3,23 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const R=require('../public/js/reader-morph'),NA=require('../public/js/notes-autogen');
 const ds=JSON.parse(zlib.gunzipSync(fs.readFileSync(require('node:path').join(__dirname,'../public/data/inflection/pealim-infl-v12.json.gz'))));
 const eng={NA,maps:NA.buildResolverMaps(ds.paradigms),pidMap:new Map(ds.paradigms.map(p=>[String(p.pealim_id),p])),lookup:(k,b)=>ds.paradigms[ds.index[k+' '+(b||'')]]};
+test('prefixed vocalized form retains the main fear analysis in candidates',async()=>{
+ const c=await R.resolveCore(eng,'שפחדת','שֶׁפָּחַדְתָּ');
+ assert.equal(c.pealim_id,'1612');
+ assert.deepEqual(c.analysisCandidates.map(x=>x.pealim_id),['1612']);
+ assert.equal(c.analysisCandidates[0].lemma,'לפחוד');
+ assert.equal(c.selectionRequired,false);
+});
+test('pointed notar does not gain the differently pointed present or prefix alternatives',()=>{
+ assert.deepEqual(R.analysisCandidates(eng,'נותר','נוֹתַר').map(x=>x.pealim_id),['867']);
+ const WG=require('../public/js/word-gloss');
+ assert.deepEqual(WG.matchCell(eng.pidMap.get('867'),'נוֹתַר').slots,['PERF-3ms']);
+});
+test('prefix candidates cannot strip arbitrary letters or put a preposition before a finite verb',()=>{
+ assert.ok(!R.analysisCandidates(eng,'בפחדת','בְּפָחַדְתָּ').some(x=>x.pealim_id==='1612'));
+ assert.ok(!R.analysisCandidates(eng,'שפחדת','שִׁפָּחַדְתָּ').some(x=>x.pealim_id==='1612'));
+ assert.ok(!R.analysisCandidates(eng,'אפחדת','אַפָּחַדְתָּ').some(x=>x.pealim_id==='1612'));
+});
 for(const form of ['יוֹפִי','יֹפִי'])test(form+' retains both real lexical entries, including the adverb without cells',async()=>{
  const c=await R.resolveCore(eng,'יופי',form);
  assert.deepEqual(c.analysisCandidates.map(x=>x.pealim_id).sort(),['5856','5857']);

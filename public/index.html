@@ -11054,7 +11054,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Общие стили морф-карточки ReaderMorph + палитра статусов слов (одна реализация с Залом,
      форк запрещён). После инлайн-<style>: при равной специфичности выигрывает карточный файл. -->
-<link rel="stylesheet" href="/css/reader-morph.css?v=804">
+<link rel="stylesheet" href="/css/reader-morph.css?v=805">
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
 <script>
@@ -13715,9 +13715,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=804"></script>
-<script src="/i18n/locales/en.js?v=804"></script>
-<script src="/i18n/locales/he.js?v=804"></script>
+<script src="/i18n/locales/ru.js?v=805"></script>
+<script src="/i18n/locales/en.js?v=805"></script>
+<script src="/i18n/locales/he.js?v=805"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13798,7 +13798,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/dicta-autoparse-offer.js?v=781"></script>
 <script src="/js/learning-field-provenance.js?v=802"></script>
 <script src="/js/learning-targets.js?v=804"></script>
-<script src="/js/reader-morph.js?v=804"></script>
+<script src="/js/reader-morph.js?v=805"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=802"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
@@ -13917,7 +13917,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
 <script src="/js/corpus-place-parse.js?v=785"></script>
-<script src="/js/morph-host.js?v=804"></script>
+<script src="/js/morph-host.js?v=805"></script>
 <!-- Exact owner morphology decisions are shared with Reading Room. Load the
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
@@ -13983,7 +13983,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.804";
+    window.APP_VERSION = "3.11.805";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
