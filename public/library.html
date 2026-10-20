@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="/css/reader-core.css?v=661">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
-  <link rel="stylesheet" href="/css/reader-morph.css?v=803">
+  <link rel="stylesheet" href="/css/reader-morph.css?v=804">
   <link rel="stylesheet" href="/css/lexical-resolution.css?v=6">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
@@ -3345,7 +3345,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.803</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.804</button>
     </p>
   </div>
 </div>
@@ -3522,9 +3522,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=802"></script>
-    <script src="/i18n/locales/en.js?v=802"></script>
-    <script src="/i18n/locales/he.js?v=802"></script>
+    <script src="/i18n/locales/ru.js?v=804"></script>
+    <script src="/i18n/locales/en.js?v=804"></script>
+    <script src="/i18n/locales/he.js?v=804"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3549,7 +3549,7 @@
 <!-- Retention P2 — pure FSRS-6 scheduler core (golden-gated vs ts-fsrs@5.4.1); the recall loop's
      checkTrainAnswer steps it via ReaderMorph.fsrsStep (lazy-seed handover from SM2-lite). -->
 <script src="/js/fsrs-core.js"></script>
-<script src="/js/key-alias-core.js?v=771"></script>
+<script src="/js/key-alias-core.js?v=804"></script>
 <!-- D1 (CLG-P6 prep) — channel-aware grade policy: production-провал (dictate/reverse) на
      рецептивно-сильном слове → Hard(2), не Again. Pure, общий с сервером; применяется на записи. -->
 <script src="/js/grade-policy.js"></script>
@@ -3574,7 +3574,8 @@
 <script src="/js/dicta-lexicon.js?v=769"></script>
 <script src="/js/dicta-enrich.js?v=781"></script>
 <script src="/js/learning-field-provenance.js?v=802"></script>
-<script src="/js/reader-morph.js?v=803"></script>
+<script src="/js/learning-targets.js?v=804"></script>
+<script src="/js/reader-morph.js?v=804"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=802"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
@@ -3652,7 +3653,7 @@
      форк запрещён. Должен загрузиться ДО library-ui.js (module отложен — порядок гарантирован). -->
 <script src="/js/public-word-audio.js?v=453"></script>
 <script src="/js/corpus-place-parse.js?v=785"></script>
-<script src="/js/morph-host.js?v=802"></script>
+<script src="/js/morph-host.js?v=804"></script>
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
@@ -3664,7 +3665,7 @@
      and store as the Studio table). -->
 <script src="/js/local-translit-bundle.js?v=735"></script>
 <script src="/js/translit-display.js?v=734"></script>
-<script type="module" src="/js/library-ui.js?v=802"></script>
+<script type="module" src="/js/library-ui.js?v=804"></script>
 <script src="/js/tutor-client.js?v=2"></script>
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=718"></script>

@@ -5617,3 +5617,11 @@ window.I18N_LOCALES.en.analysis.stale = "Your saved choice is out of date: the t
 window.I18N_LOCALES.en.analysis.missingMeaning = "This analysis has no meaning provided.";
 
 window.I18N_LOCALES.en.analysis.savedGloss = "Saved interlinear gloss";
+window.I18N_LOCALES.en.learningTarget = {
+  word: 'Word', form: 'This form', choose: 'Learning target', learn: 'Learn this form',
+  chooseReading: 'Choose a form to learn', wordStatus: 'My word status', formStatus: 'My form status',
+  practice: 'Practise this form', saveFailed: 'Could not save. Please try again.',
+  sourceRequired: 'Reviewing this form requires an example. Open the material where it appeared.',
+  selectedForms: 'Selected forms', formScope: 'The status and review belong to this form.',
+  unavailable: 'No verified exercise for this form is available on this device.'
+};

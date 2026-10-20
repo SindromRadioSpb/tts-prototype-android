@@ -617,6 +617,9 @@
     // ── Ручная метка (P5.6 R-2a) — сеет FSRS oracle-clean (library-ui.js:5242) ─
     async function markWordStatus(lemmaKey, status, source) {
       var ldb = await ldbOf();
+      if (window.LearningTargets && window.LearningTargets.isFormKey(lemmaKey)) {
+        return markLearningTarget(lemmaKey, status, source, false);
+      }
       try { await ldb.setWordStatus(lemmaKey, status); } catch (_) {}
       var isLevel = /^l[1-4]$/.test(String(status || ""));
       try {
@@ -651,6 +654,33 @@
       catch (_) { return null; }
     }
 
+    async function markLearningTarget(key, status, source, enrollOnly) {
+      var ldb = await ldbOf(), LT = window.LearningTargets, LC = window.LemmaCanon;
+      if (!LT || !LT.parse(key) || !LC || !ldb.commitLearningTargetMark) throw new Error('LEARNING_TARGET_UNAVAILABLE');
+      var sched = (await ldb.getSrsSchedule()) || {}, seedRow = null, seed = null;
+      if (!enrollOnly && /^l[1-4]$/.test(status) && !sched[key]) {
+        if (await ldb.hasSeedRow(key)) await ldb.recomputeSrsFromLog([key]);
+        else {
+          var now = Date.now();
+          seed = window.ReaderMorph.manualMarkSeed(window.FsrsCore, status, now);
+          if (!seed) throw new Error('LEARNING_TARGET_SCHEDULER_UNAVAILABLE');
+          var meta = Object.assign({}, seed.seedMeta, {keyer_version:LC.KEYER_VERSION});
+          seedRow = {id:LC.seedId(key,meta),item_key:key,kind:'seed',reviewed_at:new Date(now).toISOString(),source:'seed-manual',meta:meta};
+        }
+      }
+      var result = await ldb.commitLearningTargetMark({key:key,status:status,source:source||null,enrollOnly:!!enrollOnly,seedRow:seedRow,sched:seed&&seed.sched});
+      if (!result || !result.committed) throw new Error('LEARNING_TARGET_SAVE_FAILED');
+      invalidateWordStates(); onProfileChanged();
+      var all = (await ldb.getSrsSchedule()) || {};
+      return {created:result.created,status:result.status,dueMs:all[key]&&all[key].due};
+    }
+    async function enrollLearningTarget(card, targetKey, occ) {
+      var LT = window.LearningTargets;
+      if (!LT || !LT.matches(targetKey,card,card.niqqud)) throw new Error('LEARNING_TARGET_READING_CHANGED');
+      var source = null; try { source = await occToVerifiedSource(occ); } catch (_) {}
+      return markLearningTarget(targetKey,'new',source,true);
+    }
+
     // ── Статистика тапов (P6; ОБЩИЙ ключ обеих поверхностей) ───────────────────
     function bumpTapStat(kind) {
       try {
@@ -664,6 +694,7 @@
     // D8(a): ручной уровень НЕ двигается; P4.1: srs-carrier персистится srs-only.
     async function gradeReadingTap(card, occ, correct, prev) {
       if (!card || !card.lemmaKey) return null;
+      if (window.LearningTargets && window.LearningTargets.isFormKey(card.lemmaKey)) return gradeLearningTarget(card,occ,correct,prev,'reading:form');
       var ldb = await ldbOf();
       var now = Date.now();
       var fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, prev || null, correct, now) : null;
@@ -718,6 +749,30 @@
       // перекраска/бейджи — забота поверхности
       onProfileChanged();
       return sched;
+    }
+
+    async function gradeLearningTarget(card, occ, correct, prev, channel) {
+      var ldb = await ldbOf(), LC = window.LemmaCanon, LT = window.LearningTargets;
+      if (!LC || !LT || !LT.parse(card && card.lemmaKey) || !ldb.commitReviewAttempt) throw new Error('LEARNING_TARGET_UNAVAILABLE');
+      var now = Date.now(), fs = window.ReaderMorph.fsrsStep(window.FsrsCore, prev || null, correct, now, {itemKey:card.lemmaKey});
+      if (!fs) throw new Error('LEARNING_TARGET_SCHEDULER_UNAVAILABLE');
+      var source = null; try { source = await occToVerifiedSource(occ); } catch (_) {}
+      var row = {item_key:card.lemmaKey,kind:'review',reviewed_at:new Date(now).toISOString(),grade:correct?3:1,
+        source:'form-practice',channel:channel||'reading:form',meta:{keyer_version:LC.KEYER_VERSION,pos:card.pos,
+          scheduler:{scheme:'fsrs',engine_version:window.FsrsCore.ENGINE_VERSION,request_retention:window.FsrsCore.REQUEST_RETENTION}}};
+      row.meta.evidence_scope = /:(?:type|tiles)$/.test(channel||'') ? 'unsupported_production' : 'recognition';
+      if(fs.state&&fs.state.intervalDays!==fs.state.refIntervalDays)row.meta.fuzz_days=fs.state.intervalDays;
+      row.id = LC.reviewId(row);
+      var seedRow = null;
+      if (fs.seeded && !(await ldb.hasSeedRow(card.lemmaKey))) {
+        var meta = Object.assign({},fs.seedMeta,{keyer_version:LC.KEYER_VERSION});
+        seedRow = {id:LC.seedId(card.lemmaKey,meta),item_key:card.lemmaKey,kind:'seed',reviewed_at:new Date(now-1).toISOString(),source:'seed-sm2',meta:meta};
+      }
+      var res = await ldb.commitReviewAttempt({row:row,seedRow:seedRow,sched:fs.sched,source:source});
+      if (!res || !res.committed) throw new Error('LEARNING_TARGET_REVIEW_FAILED');
+      bumpTapStat('graded');
+      try { await ldb.recordRecall(env.dayStr ? env.dayStr() : '',getDueNowCount()||0); } catch (_) {}
+      invalidateWordStates(); onProfileChanged(); return fs.sched;
     }
 
     // Ф4 · Д7.2 once per device: marks on spelling keys move to the lemma (ReaderMorph.migrateSpellingMarks), in the
@@ -818,6 +873,7 @@
       corpusParseSoon: function (textId) { return _corpusParseSoon(ldbOf, textId).catch(function () { return null; }); },
       bumpTapStat: bumpTapStat,
       gradeReadingTap: gradeReadingTap,
+      enrollLearningTarget: enrollLearningTarget, gradeLearningTarget: gradeLearningTarget,
     };
   }
 

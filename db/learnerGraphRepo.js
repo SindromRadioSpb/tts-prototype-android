@@ -150,10 +150,12 @@ async function getKnownWords(userId) {
   const scheduled = new Map((proj || []).map((r) => [String(r.item_key), r]));
   const words = {};
   for (const [k, st] of Object.entries(manual)) {
+    if (k.startsWith('ft1:')) continue;
     const p = scheduled.get(k);
     words[k] = { status: st, scheduled: !!p, due: p ? p.due : null, stability: p ? p.stability : null };
   }
   for (const [k, p] of scheduled) {
+    if (k.startsWith('ft1:')) continue;
     if (!words[k]) words[k] = { status: "", scheduled: true, due: p.due, stability: p.stability };
   }
   return words;
@@ -183,8 +185,9 @@ async function getCoverageProjection(userId, { nowMs } = {}) {
     if (row.engine && String(row.engine) !== String(FC.ENGINE_VERSION)) continue;
     const dueMs = row.due == null ? null : Date.parse(String(row.due));
     if (row.due != null && !Number.isFinite(dueMs)) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
-    scheduled.push(Object.freeze({ item_key: String(row.item_key), due_ms: dueMs }));
+    if (!String(row.item_key).startsWith('ft1:')) scheduled.push(Object.freeze({ item_key: String(row.item_key), due_ms: dueMs }));
   }
+  for (const key of Object.keys(manual)) if (key.startsWith('ft1:')) delete manual[key];
   return Object.freeze({
     version: COVERAGE_PROJECTION_VERSION,
     generated_at_ms: now,
@@ -408,7 +411,11 @@ async function getAgentContext(userId, { nowMs } = {}) {
     }
   }
   const manualCounts = {};
-  for (const st of Object.values(manual)) manualCounts[st] = (manualCounts[st] || 0) + 1;
+  const formCounts = {};
+  for (const [key, st] of Object.entries(manual)) {
+    const target = key.startsWith('ft1:') ? formCounts : manualCounts;
+    target[st] = (target[st] || 0) + 1;
+  }
   // due_now under the SAME rule as getDue (ignore-excluded) — the context must never
   // over-claim vs what the due endpoint would actually serve (R11 honest count).
   const dueKeys = await dbAll(db,
@@ -423,6 +430,7 @@ async function getAgentContext(userId, { nowMs } = {}) {
       scheduled: Number(counts.scheduled) || 0, due_now: dueNow,
     },
     manual: manualCounts,
+    selected_forms: formCounts,
     last_review_at: counts.last_review_at || null,
     due_sample: due,
     weak_sample: weak,

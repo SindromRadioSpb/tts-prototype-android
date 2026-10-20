@@ -26,7 +26,7 @@
   function mapFromRows(rows) {
     var latest = new Map();
     (rows || []).forEach(function (r) {
-      if (!r || r.kind !== KIND) return;
+      if (!r || r.kind !== KIND || !validate(r).ok) return;
       var k = str(r.item_key).trim(); if (!k) return;
       var prev = latest.get(k);
       if (!prev || cmp(prev, r) < 0) latest.set(k, r);
@@ -93,6 +93,8 @@
     var to = str(metaOf(row).alias_to).trim();
     if (!to) return { ok: false, reason: "alias_without_target" };
     if (to.length > 300) return { ok: false, reason: "alias_target_too_long" };
+    if ((str(row.item_key).indexOf('ft1:') === 0 || to.indexOf('ft1:') === 0) && to !== str(row.item_key))
+      return { ok: false, reason: "learning_target_identity_is_fixed" };
     if (row.grade != null) return { ok: false, reason: "grade_on_alias" };
     return { ok: true };
   }

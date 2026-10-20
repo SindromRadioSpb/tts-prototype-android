@@ -5626,3 +5626,11 @@ window.I18N_LOCALES.he.analysis.stale = "הבחירה השמורה אינה עד
 window.I18N_LOCALES.he.analysis.missingMeaning = "לא צוינה משמעות לניתוח הזה.";
 
 window.I18N_LOCALES.he.analysis.savedGloss = "התרגום השמור למילה";
+window.I18N_LOCALES.he.learningTarget = {
+  word: 'מילה', form: 'הצורה הזאת', choose: 'יעד לימוד', learn: 'ללמוד את הצורה הזאת',
+  chooseReading: 'בחירת צורה ללימוד', wordStatus: 'המצב שלי למילה', formStatus: 'המצב שלי לצורה',
+  practice: 'לתרגל את הצורה הזאת', saveFailed: 'השמירה נכשלה. אפשר לנסות שוב.',
+  sourceRequired: 'לחזרה על הצורה דרושה דוגמה. יש לפתוח את החומר שבו היא מופיעה.',
+  selectedForms: 'צורות שנבחרו', formScope: 'המצב והחזרה מתייחסים לצורה הזאת.',
+  unavailable: 'אין במכשיר הזה תרגיל מאומת לצורה הזאת.'
+};

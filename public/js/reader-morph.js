@@ -1519,6 +1519,37 @@
     return card;
   }
 
+  async function loadLearningTargets(card) {
+    if (!card) return;
+    var LT = typeof window !== 'undefined' && window.LearningTargets;
+    card.learningTargets = LT ? LT.candidates(card,card.niqqud) : [];
+    var rows = [];
+    if (card.learningTargets.length && typeof _attachOpts.listLearningTargets === 'function') {
+      try { rows = await _attachOpts.listLearningTargets(card.lemmaKey); } catch (_) { rows = []; }
+    }
+    card.learningTargets.forEach(function (target) {
+      var row = rows.find(function (r) { return r.lemma_key === target.key; });
+      target.enrolled = !!row; target.manualStatus = row && row.status || '';
+      target.srsRow = row && row.srs_due ? {due:Date.parse(row.srs_due),interval:row.srs_interval||0,reps:row.srs_reps||0,
+        lapses:row.srs_lapses||0,stability:row.srs_stability,difficulty:row.srs_difficulty,
+        reviewedAt:row.srs_reviewed_at?Date.parse(row.srs_reviewed_at):null,scheme:row.srs_scheme} : null;
+    });
+  }
+  async function resolveLearningTarget(key, niqqud) {
+    var LT = window.LearningTargets, target = LT && LT.parse(key);
+    if (!target) return null;
+    var eng = await ensureEngine(), par = eng.pidMap.get(target.pid);
+    var description = LT.describe(key,par,niqqud);
+    if (!description || !description.available) return description ? {target:description,card:null} : null;
+    var card = {word:description.word,niqqud:description.niqqud,lemma:par.lemma||'',meaning:par.meaning||'',
+      pos:par.pos,root:par.root||'',binyan:par.binyan||'',pealim_id:target.pid,paradigm:par,label:'exact',
+      pealim_direct:true,pealim_url:par.pealim_url||'https://www.pealim.com/ru/dict/'+target.pid+'/',
+      lemmaKey:target.parentKey,manualStatus:'',selectionRequired:false,ambiguous:false,rootFamily:[]};
+    if (_attachOpts.getWordStatus) card.manualStatus = await _attachOpts.getWordStatus(card.lemmaKey) || '';
+    await loadLearningTargets(card);
+    return {target:description,card:card};
+  }
+
   // G0 Wave 2 — guarded non-strict acceptance for the READING trainer only.
   // Exact normalized forms are accepted immediately. A one-letter proclitic-assisted match is
   // accepted only when resolving the learner's actual answer returns the SAME canonical lemma key
@@ -1704,6 +1735,67 @@
     ["known", ["room.morph.status.known", "знаю"]], ["ignore", ["room.morph.status.ignore", "не учить"]],
   ];
   var _activeCard = null, _activeOcc = null, _activeNoteInfo = null, _attachOpts = {};
+  var _learningState = null, _cardRequestEpoch = 0;
+  var _learningWrites = new WeakSet();
+  function learningView(card) {
+    var state = _learningState;
+    var target = state && state.card === card && state.targets.find(function (t) { return t.key === state.selected; });
+    return target ? Object.assign({},card,{lemmaKey:target.key,parentLemmaKey:card.lemmaKey,learningTarget:target,
+      meaning:target.meaning,word:target.word,niqqud:target.niqqud,manualStatus:target.manualStatus,srsRow:target.srsRow}) : card;
+  }
+  function learningControlsHtml(card) {
+    var state = _learningState;
+    if (!state || state.card !== card || !state.targets.length || typeof _attachOpts.enrollLearningTarget !== 'function') return '';
+    var enrolled = state.targets.filter(function (t) { return t.enrolled; });
+    if (!enrolled.length) return '';
+    var tabs = '<button type="button" data-rm-target="word" aria-pressed="' + (!state.selected) + '">' + escapeHtml(tt('learningTarget.word','Слово')) + '</button>';
+    tabs += enrolled.map(function (t) {
+      var label = tt('learningTarget.form','Эта форма') + (enrolled.length > 1 ? ' · ' + t.grammar : '');
+      if (t.srsRow && t.srsRow.due <= Date.now()) label += ' ↻';
+      return '<button type="button" data-rm-target="' + escapeHtml(t.key) + '" aria-pressed="' + (state.selected === t.key) + '">' + escapeHtml(label) + '</button>';
+    }).join('');
+    return '<div class="rm-target-tabs" role="group" dir="' + uiDir() + '" aria-label="' + escapeHtml(tt('learningTarget.choose','Учебная цель')) + '">' + tabs + '</div>';
+  }
+  function learnFormHtml(card) {
+    var state = _learningState;
+    if (!state || state.card !== card || typeof _attachOpts.enrollLearningTarget !== 'function') return '';
+    var targets = state.targets.filter(function (t) { return !t.enrolled; });
+    if (!targets.length) return '';
+    var button = function (t) {
+      return '<button type="button" class="rm-learn-form" data-rm-enroll="' + escapeHtml(t.key) + '">' +
+        escapeHtml(targets.length === 1 && state.targets.length === 1 ? tt('learningTarget.learn','Учить эту форму') : t.grammar + ' — ' + t.meaning) + '</button>';
+    };
+    if (state.targets.length === 1) return button(targets[0]);
+    return '<details class="rm-target-choices"><summary>' + escapeHtml(tt('learningTarget.chooseReading','Выбрать форму для изучения')) + '</summary><div>' + targets.map(button).join('') + '</div></details>';
+  }
+  function learningError(error) {
+    var status = _sheet && _sheet.querySelector('[data-rm-target-error]');
+    if (status) { status.hidden = false; status.textContent = tt('learningTarget.saveFailed','Не удалось сохранить. Попробуйте ещё раз.'); }
+    try { console.warn('[learning-target]',error && error.message || error); } catch (_) {}
+  }
+  async function enrollLearningTarget(key) {
+    var card = _activeCard, state = _learningState, occ = _activeOcc, host = _attachOpts;
+    if (!card || !state || state.card !== card || _learningWrites.has(card) || typeof host.enrollLearningTarget !== 'function') return;
+    var target = state.targets.find(function (t) { return t.key === key; });
+    if (!target || target.enrolled) return;
+    _learningWrites.add(card);
+    var buttons = _sheet.querySelectorAll('[data-rm-enroll],[data-rm-status],[data-rm-target],[data-rm-practice-target]'); buttons.forEach(function (b) { b.disabled = true; });
+    try {
+      var result = await host.enrollLearningTarget(card,key,occ);
+      if (!result) throw new Error('LEARNING_TARGET_SAVE_FAILED');
+      target.enrolled = true; target.manualStatus = result.status || 'new';
+      if (_activeCard !== card || _learningState !== state || _attachOpts !== host || !_sheet.classList.contains('rm-open')) return;
+      state.selected = key; _markConfirm = null; openCard(card,occ);
+    } catch (error) { if (_activeCard === card && _learningState === state) learningError(error); }
+    finally { _learningWrites.delete(card); buttons.forEach(function (b) { b.disabled = false; }); }
+  }
+  function selectLearningTarget(key) {
+    var state = _learningState;
+    if (!state || state.card !== _activeCard || _learningWrites.has(_activeCard)) return;
+    if (key !== 'word' && !state.targets.some(function (t) { return t.key === key && t.enrolled; })) return;
+    state.selected = key === 'word' ? null : key; _markConfirm = null; _recallCtx = null;
+    openCard(_activeCard,_activeOcc);
+  }
   var _cardInteractionEpoch = 0;
   // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
   // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
@@ -1755,6 +1847,18 @@
       if (gbtn) { onRecallGrade(gbtn.getAttribute("data-rm-recall-grade")); return; }
       var sbtn = t && t.closest ? t.closest("[data-rm-status]") : null;
       if (sbtn) { onStatusSet(sbtn.getAttribute("data-rm-status")); return; }
+      var targetBtn = t && t.closest ? t.closest('[data-rm-target]') : null;
+      if (targetBtn) { selectLearningTarget(targetBtn.getAttribute('data-rm-target')); return; }
+      var enrollBtn = t && t.closest ? t.closest('[data-rm-enroll]') : null;
+      if (enrollBtn) { enrollLearningTarget(enrollBtn.getAttribute('data-rm-enroll')); return; }
+      if (t && t.closest && t.closest('[data-rm-practice-target]')) {
+        var view = learningView(_activeCard);
+        if (view && view.learningTarget && typeof _attachOpts.practiceLearningTarget === 'function') {
+          var practice = _attachOpts.practiceLearningTarget, targetKey = view.lemmaKey;
+          closeSheet(); practice(targetKey);
+        }
+        return;
+      }
       var candidateBtn = t && t.closest ? t.closest("[data-rm-candidate]") : null;
       if (candidateBtn) { previewAnalysis(candidateBtn); return; }
       if (t && t.closest && t.closest("[data-rm-analysis-save]")) { saveAnalysis(false); return; }
@@ -1800,12 +1904,15 @@
   }
 
   function closeSheet() {
+    _cardRequestEpoch++;
     if (_sheet) { _sheet.hidden = true; _sheet.classList.remove("rm-open"); }
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
     _cardStack = [];   // drilling history dies with the sheet
     // P5 — closing without a grade writes NOTHING (recon §6.2: abandonment was already tallied at
     // reveal via noteRecallShown; the missing grade is the MNAR signal, never a fabricated row).
     _recallCtx = null;
+    _learningState = null;
+    _activeWordCtx = null;
     _markConfirm = null;   // P5.7 — the mark confirmation is transient to this word/session
     try { if (_cardReturnFocus && _cardReturnFocus.focus) _cardReturnFocus.focus(); } catch (_) {}   // WCAG 2.4.3 — restore focus
     _cardReturnFocus = null;
@@ -1822,6 +1929,7 @@
   // «знаю» from before R-2 seeding) honestly says it is not scheduled yet. Untracked words show
   // nothing (no noise). card.srsRow is attached by the tap/openWordCard glue (getDueSchedule).
   function srsLineHtml(card) {
+    card = learningView(card);
     if (!card || !card.lemmaKey) return "";
     var row = card.srsRow;
     if (row && row.due) {
@@ -1898,6 +2006,7 @@
       next.srsRow = schedules[next.lemmaKey] || null;
       var par = next.pealim_id && eng.pidMap.get(String(next.pealim_id));
       if (par && par.pos === next.pos) next.paradigm = par;
+      await loadLearningTargets(next);
       if (!current()) return;
       _recallCtx = null; _markConfirm = null;
       openCard(next, occ);
@@ -1913,8 +2022,11 @@
     } finally { analysisWrites.delete(card); }
   }
   function statusSelectorHtml(card) {
-    var target = [card.word, card.meaning, posText(card.pos)].filter(Boolean).join(" — ");
-    var scope = '<p class="rm-status-target" dir="' + uiDir() + '">' + escapeHtml(tt("analysis.statusFor", "Мой статус для") + ": " + target) + '</p>';
+    var base = card, controls = learningControlsHtml(base);
+    card = learningView(card);
+    var target = [card.learningTarget ? card.niqqud || card.word : card.lemma || card.word, card.meaning, card.learningTarget ? card.learningTarget.grammar : posText(card.pos)].filter(Boolean).join(" — ");
+    var title = card.learningTarget ? tt('learningTarget.formStatus','Мой статус формы') : tt('learningTarget.wordStatus','Мой статус слова');
+    var scope = controls + '<p class="rm-status-target" data-rm-status-key="' + escapeHtml(card.lemmaKey || '') + '" dir="' + uiDir() + '">' + escapeHtml(title + ": " + target) + '</p>';
     if (card.selectionRequired) return scope + '<p class="rm-analysis-notice" dir="' + uiDir() + '">' +
       escapeHtml(tt("analysis.chooseBeforeStatus", "Выберите значение для этой строки перед отметкой знания")) +
       (card.manualStatus ? ' · ' + escapeHtml(tt("analysis.previousMark", "Ранее сохранённая отметка этого разбора") + ": " + statusText(card.manualStatus)) : '') + '</p>';
@@ -1928,28 +2040,43 @@
       var lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : escapeHtml(val);
       return '<button type="button" class="rm-status-btn rm-status-' + val + (cur === val ? " rm-status-active" : "") + '" data-rm-status="' + val + '">' + lab + "</button>";
     }).join("");
-    return scope + '<div class="rm-status" dir="' + uiDir() + '"><span class="rm-status-k">' + escapeHtml(tt("room.morph.status.title", "Мой статус")) + ":</span>" + btns + "</div>";
+    var practice = card.learningTarget && typeof _attachOpts.practiceLearningTarget === 'function'
+      ? '<button type="button" class="rm-learn-form" data-rm-practice-target>' + escapeHtml(tt('learningTarget.practice','Потренировать эту форму')) + '</button>' : '';
+    return scope + '<div class="rm-status" dir="' + uiDir() + '"><span class="rm-status-k">' + escapeHtml(tt("room.morph.status.title", "Мой статус")) + ":</span>" + btns + "</div>" + practice +
+      '<p data-rm-target-error role="status" hidden></p>';
   }
   async function onStatusSet(value) {
     if (!_activeCard || _activeCard.selectionRequired || !_activeCard.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return;
     // Toggle on the ACTUAL stored status (not «new», which is now a real storable status): re-tap
     // the stored value → clear; otherwise store the tapped value (incl. «new» → purple).
-    var st = (_activeCard.manualStatus === value) ? "" : value;
+    var card = _activeCard, view = learningView(card), state = _learningState, selected = state && state.selected, host = _attachOpts, occ = _activeOcc;
+    if (_learningWrites.has(card)) return;
+    _learningWrites.add(card);
+    var pendingButtons = _sheet.querySelectorAll('[data-rm-status],[data-rm-target]');
+    pendingButtons.forEach(function (b) { b.disabled = true; });
+    var st = (view.manualStatus === value) ? "" : value;
     _markConfirm = null;
     // setWordStatus returns {dueMs} when the mark SCHEDULED the word (l1–l4 seed, recon P5.6) —
     // independent of the 🎨 axis, so the closure shows even with colouring off.
     // R1 source-at-mark: pass the tap occurrence as an ADDITIVE 3rd arg — hosts that don't
     // take it (Studio wires no setWordStatus at all) are untouched; the Зал host persists a source.
     var res = null;
-    try { res = await _attachOpts.setWordStatus(_activeCard.lemmaKey, st, _activeOcc); } catch (_) {}
-    _activeCard.manualStatus = st;
+    try {
+      res = await host.setWordStatus(view.lemmaKey,st,occ);
+      if (view.learningTarget && !res) throw new Error('LEARNING_TARGET_SAVE_FAILED');
+    } catch (error) { if (_activeCard === card) learningError(error); return; }
+    finally { _learningWrites.delete(card); pendingButtons.forEach(function (b) { b.disabled = false; }); }
+    if (view.learningTarget) view.learningTarget.manualStatus = st;
+    else card.manualStatus = st;
+    if (_activeCard !== card || _attachOpts !== host || _learningState !== state || (state && state.selected !== selected)) return;
     // P5.7 Т1 — a level mark scheduled the word → re-render with the in-card closure (confirmation +
     // live schedule line + a one-time «what the colours/ring mean» explainer) + pulse the word.
     if (/^l[1-4]$/.test(st) && res && res.dueMs) {
-      _activeCard.srsRow = { due: res.dueMs, scheme: "fsrs" };
+      if (view.learningTarget) view.learningTarget.srsRow = { due: res.dueMs, scheme: 'fsrs' };
+      else card.srsRow = { due: res.dueMs, scheme: "fsrs" };
       var first = false;
       try { first = (typeof localStorage !== "undefined") && localStorage.getItem("room.loopCoach.seen") !== "1"; } catch (_) {}
-      _markConfirm = { lemmaKey: _activeCard.lemmaKey, dueMs: res.dueMs, firstTime: first };
+      _markConfirm = { lemmaKey: view.lemmaKey, dueMs: res.dueMs, firstTime: first };
       if (first) { try { localStorage.setItem("room.loopCoach.seen", "1"); } catch (_) {} }
       if (_activeSpan) { var sp = _activeSpan; try { sp.classList.add("rm-w-pulse"); setTimeout(function () { try { sp.classList.remove("rm-w-pulse"); } catch (_) {} }, 1000); } catch (_) {} }
       openCard(_activeCard, _activeOcc);
@@ -1964,6 +2091,7 @@
   // mark). «✓ В повторении · вернётся завтра» + one-time explainer teaching the visual language
   // (colour = tracked, ring = due). firstTime is decided ONCE (localStorage) at mark time.
   function markConfirmHtml(card) {
+    card = learningView(card);
     var mc = _markConfirm;
     if (!mc || !card || card.lemmaKey !== mc.lemmaKey) return "";
     var when = mc.dueMs
@@ -2131,6 +2259,7 @@
     try {
       if (_activeWordCtx !== wc || _activeCard !== before) return;
       var card = await resolveWordLight(wc.surface, wc.niqqud, ctx, placeOfSpan(_activeSpan));
+      await loadLearningTargets(card);
       if (card) { card.refineTried = true; if (_activeWordCtx === wc && _activeCard === before) openCard(card, _activeOcc); }
     } catch (_) { /* keep the (now busy-cleared) card; a re-tap retries */ }
   }
@@ -2384,9 +2513,10 @@
         formLine = '<div class="rm-reading-group rm-form-line" dir="' + uiDir() + '">' +
           '<div class="rm-reading-heading"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.formInText", "в тексте")) + ':</span> ' +
           '<bdi class="rm-reading-he" dir="rtl" lang="he">' + escapeHtml(card.niqqud || card.word) + '</bdi></div>' +
-          '<div class="rm-form-meaning" dir="ltr">' + escapeHtml(fg.text) + "</div></div>";
+          '<div class="rm-form-meaning" dir="ltr">' + escapeHtml(fg.text) + '</div>' + learnFormHtml(card) + "</div>";
       }
     }
+    if (!formLine) formLine = learnFormHtml(card);
     var aiLine = aiOccurrenceHtml();
     // F4 — homograph honesty: surface the rival readings of an ambiguous cell so the gloss
     // above reads as one possibility, not a verdict. «возможно также: год; …»
@@ -2513,13 +2643,13 @@
     if (_activeOcc) return backRow + head + niqMark + contextPendingHtml(card) + (!reviewed ? savedGloss : '') +
       (reviewed ? '<p class="rm-analysis-reviewed">' + escapeHtml(tt(label[0],label[1]) + ': ' + card.meaning + ' · ' + posText(card.pos)) + '</p>' : '') +
       (reviewed ? savedGloss : '') + nameAction + analysisChoicesHtml(card) + dictionaryDetails + recallHtml + statusSelectorHtml(card) +
-      ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
+      ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
       (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : '') + noteEditor + explainWordHtml() + refineHtml;
     var conflict = contextual && occurrence.x.wrongHint ? '<p class="rm-ai-warn">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение, вероятно, не подходит")) + '</p>' : "";
-    if (!contextual) return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    if (!contextual) return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
     return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
       (contextual ? '<p class="rm-dictionary-scope">' + escapeHtml(tt("contextLayer.statusScope", "Статус ниже относится к словарному чтению")) + '</p>' : "") +
-      statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
+      statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
       (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : "") + noteEditor + explainWordHtml() + refineHtml;
 
   }
@@ -2542,6 +2672,7 @@
     try { el.setAttribute("aria-modal", document.body.classList.contains("room-word-docked") ? "false" : "true"); } catch (_) {}
   }
   function openCardLoading() {
+    _cardRequestEpoch++;
     var el = ensureSheet();
     syncSheetModality(el);
     if (el.hidden) { try { _cardReturnFocus = document.activeElement; } catch (_) { _cardReturnFocus = null; } }   // fresh open → remember trigger
@@ -2551,6 +2682,7 @@
   }
   function openCard(card, occ) {
     _activeCard = card; _activeOcc = occ || null; _activeNoteInfo = null;
+    if (!_learningState || _learningState.card !== card) _learningState = {card:card,targets:card && card.learningTargets || [],selected:card && card.selectedLearningTarget || null};
     var el = ensureSheet();
     syncSheetModality(el);
     el.querySelector(".rm-sheet-body").innerHTML = renderCardHtml(card);
@@ -2571,7 +2703,19 @@
     // no table occurrence behind this card: a previous tap must not lend it its AI line (Ф3в)
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
     openCardLoading();
+    var requestEpoch = _cardRequestEpoch;
     try {
+      if (window.LearningTargets && window.LearningTargets.isFormKey(opts.lemmaKey)) {
+        var resolvedTarget = await resolveLearningTarget(opts.lemmaKey,niqqud);
+        if (requestEpoch !== _cardRequestEpoch) return;
+        if (!resolvedTarget || !resolvedTarget.card) {
+          var targetSheet = ensureSheet();
+          targetSheet.querySelector('.rm-sheet-body').innerHTML = '<p>' + escapeHtml(tt('learningTarget.sourceRequired','Для повторения этой формы нужен её пример. Откройте материал, где она встречалась.')) + '</p>';
+          return;
+        }
+        resolvedTarget.card.selectedLearningTarget = opts.lemmaKey;
+        openCard(resolvedTarget.card,null); return;
+      }
       var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud);
       var lk = String(opts.lemmaKey || "");
       if (card && lk && lk !== card.lemmaKey) {
@@ -2586,9 +2730,11 @@
           card.srsRow = (sAll && sAll[card.lemmaKey]) || null;
         }
       } catch (_) {}
+      await loadLearningTargets(card);
+      if (requestEpoch !== _cardRequestEpoch) return;
       openCard(card, null);
     }
-    catch (_) { openCard(null, null); }
+    catch (_) { if (requestEpoch === _cardRequestEpoch) openCard(null, null); }
   }
   function lifecycleText(status) { var L = LIFECYCLE[status] || LIFECYCLE.created; return tt(L[0], L[1]); }
   // Reflect whether this word is already a saved note (+ its SRS lifecycle) onto the
@@ -2640,7 +2786,8 @@
     if (typeof _attachOpts.gradeReadingTap !== "function") return;
     rc.graded = true;
     var correct = String(g) === "3";
-    try { await _attachOpts.gradeReadingTap(_activeCard, _activeOcc, correct, rc.prev); } catch (_) {}
+    try { await _attachOpts.gradeReadingTap(learningView(_activeCard), _activeOcc, correct, rc.prev); }
+    catch (error) { if (_recallCtx === rc) { rc.graded = false; learningError(error); } return; }
     if (_recallCtx === rc && _activeCard === rc.card) openCard(_activeCard, _activeOcc);
   }
   async function onSaveClick() {
@@ -2772,8 +2919,9 @@
     if (_activeCard) _cardStack.push({ card: _activeCard, occ: _activeOcc });   // drill → remember where we came from
     _activeWordCtx = null;   // chip card has no sentence → no per-card refine offered
     openCardLoading();
-    try { var card = await resolveWordLight(surface, disp); openCard(card, null); }
-    catch (_) { openCard(null, null); }
+    var requestEpoch = _cardRequestEpoch;
+    try { var card = await resolveWordLight(surface, disp); await loadLearningTargets(card); if (requestEpoch === _cardRequestEpoch) openCard(card, null); }
+    catch (_) { if (requestEpoch === _cardRequestEpoch) openCard(null, null); }
   }
 
   // ── Public: attach the learner layer to a painted reader mount ──────────────
@@ -2877,6 +3025,7 @@
               card.srsRow = (schedAll && schedAll[card.lemmaKey]) || null;
             }
           } catch (_) {}
+          await loadLearningTargets(card);
           return card;
         };
         var setRecall = function (card, allowed) {
@@ -3775,7 +3924,7 @@
     if (statusMap) for (var k in statusMap) { if (_INPROG[statusMap[k]]) inProgress++; }
     if (schedule) for (var lk in schedule) {
       var e = schedule[lk]; if (!e) continue;
-      if (statusMap && statusMap[lk] === "ignore") continue;   // ignored words are not «to review» (badge==trainer)
+      if ((statusMap && statusMap[lk] === "ignore") || e.status === "ignore") continue;
       var due = Number(e.due) || 0;
       if (due <= now) dueNow++;                                 // overdue / due-now scheduled word
       else if (nextDue === null || due < nextDue) nextDue = due;
@@ -3791,7 +3940,7 @@
     var now = Number(nowMs) || 0, out = new Set();
     if (schedule) for (var lk in schedule) {
       var e = schedule[lk]; if (!e) continue;
-      if (statusMap && statusMap[lk] === "ignore") continue;
+      if (String(lk).indexOf('ft1:') === 0 || (statusMap && statusMap[lk] === "ignore") || e.status === "ignore") continue;
       if ((Number(e.due) || 0) <= now) out.add(lk);
     }
     return out;
@@ -4148,6 +4297,7 @@
     fadeGraduationReady: fadeGraduationReady, FADE_GRADUATION_MIN: FADE_GRADUATION_MIN,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, resolveForGloss: resolveForGloss,
+    resolveLearningTarget: resolveLearningTarget,
     canonForm: canonForm, enrichReading: enrichReading,
     acceptStrictAnswer: acceptStrictAnswer, acceptReadAnswer: acceptReadAnswer, attach: attach,
     setProcliticOverlay: setProcliticOverlay,

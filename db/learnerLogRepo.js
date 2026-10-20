@@ -44,6 +44,7 @@ const RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1, alias: 1 };
 // Ф4 · Д8-К3 (docs/planning/word-layer/F4_D8K3_KEY_ALIAS_DESIGN_2026_10_14.md): «old key → new key» is an event of this
 // log (kind 'alias', meta.alias_to); ONE fold rule shared with the browser (key-alias-core.js, parity by construction).
 const KA = require(require("path").join(__dirname, "..", "public", "js", "key-alias-core.js"));
+const LT = require('../public/js/learning-targets.js');
 
 // §5 B5 — meta allowlist: identifiers + scheduler facts. item_key anchors (text_key/sentence_id/
 // order_index) are identifiers per §5; the lemma itself is the item_key and is disclosed in the
@@ -140,6 +141,7 @@ function validateReviewRow(raw, nowMs) {
   const source = raw.source != null ? String(raw.source).trim() : "";
   if (!id || id.length > 200) return { ok: false, reason: "bad_id" };
   if (!itemKey || itemKey.length > 300) return { ok: false, reason: "bad_item_key" };
+  if (LT.isFormKey(itemKey) && !LT.parse(itemKey)) return {ok:false,reason:'bad_learning_target_key'};
   if (!RL_KINDS[kind]) return { ok: false, reason: "bad_kind" };
   if (!source || source.length > 60) return { ok: false, reason: "bad_source" };
   const t = validateTime(raw.reviewed_at, nowMs);
@@ -156,7 +158,7 @@ function validateReviewRow(raw, nowMs) {
   if (kind === "annul" && !(mc.cleaned.annul_of && String(mc.cleaned.annul_of).trim())) {
     return { ok: false, reason: "annul_without_target" };
   }
-  if (kind === "alias") { const av = KA.validate({ kind, grade: null, meta: mc.cleaned }); if (!av.ok) return { ok: false, reason: av.reason }; }
+  if (kind === "alias") { const av = KA.validate({ kind, item_key: itemKey, grade: null, meta: mc.cleaned }); if (!av.ok) return { ok: false, reason: av.reason }; }
   if (t.clamped) mc.cleaned.ts_clamped_server = 1;
   const metaStr = JSON.stringify(mc.cleaned);
   if (Buffer.byteLength(metaStr, "utf8") > MAX_META_BYTES) return { ok: false, reason: "meta_too_big" };

@@ -5632,3 +5632,11 @@ window.I18N_LOCALES.ru.analysis.stale = "Сохранённый выбор ус�
 window.I18N_LOCALES.ru.analysis.missingMeaning = "В этом разборе перевод не указан.";
 
 window.I18N_LOCALES.ru.analysis.savedGloss = "Сохранённый подстрочник";
+window.I18N_LOCALES.ru.learningTarget = {
+  word: 'Слово', form: 'Эта форма', choose: 'Учебная цель', learn: 'Учить эту форму',
+  chooseReading: 'Выбрать форму для изучения', wordStatus: 'Мой статус слова', formStatus: 'Мой статус формы',
+  practice: 'Потренировать эту форму', saveFailed: 'Не удалось сохранить. Попробуйте ещё раз.',
+  sourceRequired: 'Для повторения этой формы нужен её пример. Откройте материал, где она встречалась.',
+  selectedForms: 'Выбранные формы', formScope: 'Статус и повторение относятся к этой форме.',
+  unavailable: 'Для этой формы нет проверенного упражнения на этом устройстве.'
+};
