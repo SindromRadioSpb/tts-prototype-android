@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=781';
+import * as localDbRaw from '/db/local-db.js?v=800';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -30,7 +30,7 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=736';
+import * as readerCore from '/js/reader-core.js?v=800';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=730';
@@ -2110,7 +2110,8 @@ async function applyDecorations() {
 function applyWordLayer(mount) {
   mount = mount || activeReaderMorphMount();
   if (!mount || !window.WordGloss) return;
-  try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi') }); } catch (_) {}
+  if (window.WordGlossAI) window.WordGlossAI.bindRows(mount, readerRows);
+  try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi'), strict: window.WordGloss.enabled('room', 'GlossStrict') }); } catch (_) {}
 }
 
 // B7 — in-reader Learning Compass chip. The already-running local Worker supplies content-free
@@ -8208,6 +8209,7 @@ function attachReaderMorph(mount, overrides) {
   // (lookup) + persist a new one into the canonical word_study note (save, Anki-synced).
   opts.lookupUserMeaning = roomLookupUserMeaning;
   opts.lookupLexicalResolution = roomLookupLexicalResolution;
+  opts.confirmOccurrenceName = (occ, meaning) => morphHost.confirmOccurrenceName(occ, meaning);
   opts.saveUserMeaning = roomSaveUserMeaning;
   // Retention P5 — reading-native retrieval glue (recon §6, D4(b)+D8(a)): getDueSchedule feeds the
   // recall-mode gate with the SAME extended rows fsrsStep resumes from, and rides the status-axis
@@ -8582,6 +8584,7 @@ function buildAidsPanel() {
   panel.appendChild(wsLab);
   // Word layer Ф1 — подстрочник (перевод под каждым словом) и лента слов текущей строки.
   [['Gloss', 'readerWordGlossToggle', 'room.wordGloss.toggle', 'Подстрочник', 'room.wordGloss.hint', 'Короткий перевод под каждым словом; ≈ — вероятно. Тап по слову — полная карточка.'],
+   ['GlossStrict', 'readerWordGlossStrictToggle', 'contextLayer.strict', 'Только контекстный перевод', 'contextLayer.strictHint', 'Пропуски показаны знаком —'],
    ['Ribbon', 'readerWordRibbonToggle', 'room.wordRibbon.toggle', 'Лента слов', 'room.wordRibbon.hint', 'Слова звучащей строки с переводом — под видео или внизу экрана.'],
    // Ф3 (F3_SPEC): контекстный перевод ИИ — опция, по умолчанию выкл; лениво: звучащая/видимые строки.
    ['GlossAi', 'readerWordGlossAiToggle', 'room.wordGlossAi.toggle', 'Перевод слов ИИ (Gemini)', 'room.wordGlossAi.hint', 'Дозаказывать у Gemini по вашему ключу перевод каждого слова в контексте строки — по мере чтения и прослушивания, ≈$0,15 за 1000 слов. Уже полученный перевод (в том числе при сборке материала) виден всегда.']]
@@ -9975,7 +9978,7 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
   try {
     await corpusOpenQueue.run(async () => {
     const got = await window.CorpusMaterialize.ensurePublicWork(slug, card,
-      { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { isCurrent: () => openEpoch === readerOpenEpoch });
+      { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { restoreEvidence: true, isCurrent: () => openEpoch === readerOpenEpoch });
     if (!got) return;
     const localId = got.localId;
     if (openEpoch !== readerOpenEpoch) return;
@@ -11389,7 +11392,7 @@ async function ensureActionMaterial(config) {
       { db: localDb, fetch: (u, o) => fetch(u, o), Edition: window.BenYehudaLearningEdition, catalogVersion: CORPUS_CATALOG_VERSION });
     localId = got && got.localId;
   } else if (!localId && source.kind === 'public') {
-    const got = await window.CorpusMaterialize.ensurePublicWork(source.slug, item, { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter });
+    const got = await window.CorpusMaterialize.ensurePublicWork(source.slug, item, { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { restoreEvidence: true });
     localId = got && got.localId;
   } else if (!localId && source.kind === 'group') {
     const response = await fetch('/api/group-corpora/' + encodeURIComponent(source.corpusId) + '/works/' + encodeURIComponent(item.work_id), { cache: 'no-store' });

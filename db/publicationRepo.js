@@ -720,7 +720,23 @@ function createPublicationRepo(options = {}) {
     }
     return result;
   }
-  async function getPublicWork(slug, workId) {
+  const fieldEvidenceCache = new Map();
+  async function publicFieldEvidence(snapshot) {
+    const archive = snapshot?.library?.texts?.[0]?.source_meta?.publication_archive;
+    const hash = archive && archive.package_sha256;
+    if (!/^[a-f0-9]{64}$/.test(String(hash || ''))) return null;
+    try {
+      const file = sourcePath('publication-imports/packages/' + hash + '.zip');
+      const stat = await fs.promises.stat(file);
+      if (!stat.isFile() || stat.size > 12 * 1024 * 1024) return null;
+      const bytes = await fs.promises.readFile(file);
+      if (MaterialArchive.sha(bytes) !== hash) return null;
+      const evidence = await MaterialArchive.fieldEvidence(bytes, snapshot);
+      // Values are matched to this immutable snapshot; do not share across another snapshot of the package.
+      return evidence;
+    } catch (_) { return null; }
+  }
+  async function getPublicWork(slug, workId, options = {}) {
     const published = await getPublicCorpus(slug);
     const item = await dbGet(database, `SELECT * FROM published_corpus_edition_items WHERE edition_id=? AND public_work_id=? AND public_read_allowed=1`, [published.edition.edition_id, cleanId(workId, "CORPUS_NOT_FOUND")]);
     if (!item) fail("CORPUS_NOT_FOUND", 404);
@@ -740,7 +756,14 @@ function createPublicationRepo(options = {}) {
       assets = await dbAll(database, `SELECT asset_key,bytes,sha256,mime,public_stream_allowed,package_download_allowed FROM published_corpus_assets
         WHERE edition_id=? AND public_stream_allowed=1 AND asset_key IN (${keys.map(() => "?").join(",")}) ORDER BY asset_key`, [published.edition.edition_id, ...keys]);
     }
-    return { ...published, item: { ...item, snapshot, snapshot_json: undefined }, assets };
+    const evidenceKey = item.snapshot_sha256;
+    let fieldEvidence = options.fieldEvidence ? fieldEvidenceCache.get(evidenceKey) : null;
+    if (options.fieldEvidence && fieldEvidence === undefined) {
+      fieldEvidence = await publicFieldEvidence(snapshot);
+      if (fieldEvidenceCache.size >= 8) fieldEvidenceCache.delete(fieldEvidenceCache.keys().next().value);
+      fieldEvidenceCache.set(evidenceKey, fieldEvidence);
+    }
+    return { ...published, item: { ...item, snapshot, snapshot_json: undefined }, assets, field_evidence: fieldEvidence };
   }
   async function getPublicAsset(slug, assetKey, purpose = "stream") {
     const published = await getPublicCorpus(slug);

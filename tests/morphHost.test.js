@@ -3,6 +3,31 @@ const assert = require('node:assert/strict');
 
 const MorphHost = require('../public/js/morph-host.js');
 
+test('confirming a name appends only an anchored owner decision and refuses a stale word', async () => {
+  const previousWindow=global.window,previousRM=global.ReaderMorph;
+  const RM=require('../public/js/reader-morph.js'),Core=require('../public/js/lexical-resolution-core.js');
+  const Scan=require('../public/js/text-key-scan.js');
+  global.ReaderMorph=RM;
+  global.window={ReaderMorph:RM,LexicalResolutionCore:Core,TextKeyScan:Scan};
+  const row={id:'sid',text_id:'tid',text_key:'key',order_index:0,he_plain:'שאול,',he_niqqud:'שָׁאוּל,'};
+  const events=[];
+  const db={dbQuery:async()=>[row],appendLexicalResolutionEvent:async event=>events.push(Core.normalizeEvent(event))};
+  try {
+    const host=MorphHost.createHost({ldb:async()=>db});
+    const occ={text_id:'tid',sentence_id:'sid',word_offset:0,surface:'שאול',sentence_he:row.he_plain,sentence_he_niqqud:row.he_niqqud};
+    const result=await host.confirmOccurrenceName(occ,'Шауль');
+    assert.equal(result.analysis.lp_pos,'propernoun');
+    assert.equal(result.analysis.root,'');
+    assert.equal(events.length,1);
+    const service=require('../public/js/lexical-resolution-service.js');
+    const exact={...row,sentence_id:row.id,text_id:row.text_id,text_key:row.text_key,word_offset:0,surface:'שאול',niqqud:'שָׁאוּל',sentence_he:row.he_plain,sentence_he_niqqud:row.he_niqqud};
+    assert.equal((await service.projectExactOccurrence(exact,events,Core)).state,'resolved');
+    await assert.rejects(host.confirmOccurrenceName({...occ,surface:'אחר'},'Другое'),/LEXICAL_SOURCE_CHANGED/);
+    await assert.rejects(host.confirmOccurrenceName({...occ,sentence_he_niqqud:'אַחֵר'},'Другое'),/LEXICAL_SOURCE_CHANGED/);
+    assert.equal(events.length,1,'stale confirmations have no side effects');
+  } finally {global.window=previousWindow;global.ReaderMorph=previousRM;}
+});
+
 test('MorphHost exposes one reference-stable word-state cache to Room consumers', async () => {
   const loaded = { 'pid:1': 'l2' };
   const primed = { 'pid:2': 'known' };

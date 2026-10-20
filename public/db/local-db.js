@@ -6741,9 +6741,6 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
     if (item?.learning_niqqud_layer && globalThis.BenYehudaLearningNiqqud) {
       try { learningNiqqudPin = await globalThis.BenYehudaLearningNiqqud.remember(item.learning_niqqud_layer, item); } catch (_) { /* optional derived layer cannot corrupt a source restore */ }
     }
-    if (item?.word_gloss_ai_layer && globalThis.WordGlossAI) {
-      try { await globalThis.WordGlossAI.remember(item.word_gloss_ai_layer, Array.isArray(item.rows) ? item.rows : (item.sentences || item.text?.sentences || [])); } catch (_) { /* optional derived layer cannot corrupt a source restore */ }
-    }
     let textData;
     if (item && item.text && typeof item.text === 'object') {
       // Shape B: server-nested.
@@ -6879,6 +6876,30 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
         const _oldTid = String(textData.id || '');
         if (_oldTid) oldToNewTextId.set(_oldTid, String(existing[0].id));
         result.skipped++;
+        // Restore only missing, value-matched field attribution from the immutable source.
+        // CAS preserves a concurrent editor; no source text, learner state or review is rewritten.
+        if (globalThis.LearningFieldProvenance) {
+          try {
+            const sources = textData.sentences || [], localRows = await getSentences(existing[0].id);
+            const signature = row => JSON.stringify([row.he_plain ?? row.hebrew_plain ?? '', row.he_niqqud ?? row.hebrew_niqqud ?? '', row.ru ?? row.russian ?? '', row.translit || '', row.translit_ru || '']);
+            if (sources.length === localRows.length && sources.every((row,i)=>signature(row)===signature(localRows[i]))) {
+              const evidenceByValue = new Map(), ambiguous = new Set();
+              for (const source of sources) {
+                const key = signature(source), evidence = JSON.stringify(['he_plain','he_niqqud','ru','translit','translit_ru'].map(field=>globalThis.LearningFieldProvenance.field(source,field)));
+                if (evidenceByValue.has(key) && evidenceByValue.get(key) !== evidence) ambiguous.add(key);
+                evidenceByValue.set(key,evidence);
+              }
+              for (let i=0;i<localRows.length;i++) {
+                if (ambiguous.has(signature(sources[i]))) continue;
+                const merged = globalThis.LearningFieldProvenance.mergeImported(localRows[i], sources[i]);
+                if (merged) await r("UPDATE sentences SET edit_meta_json=? WHERE id=? AND COALESCE(edit_meta_json,'')=?", [JSON.stringify(merged),localRows[i].id,localRows[i].edit_meta_json||'']);
+              }
+            }
+          } catch (_) { /* absence of evidence is not an import error */ }
+        }
+        if (item?.word_gloss_ai_layer && globalThis.WordGlossAI) {
+          try { await globalThis.WordGlossAI.remember(item.word_gloss_ai_layer, await getSentences(existing[0].id)); } catch (_) {}
+        }
         continue;
       }
 
@@ -7040,6 +7061,9 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       result.imported++;
       result.importedIds.push(newTextId);
       await x('RELEASE sp_text;');
+      if (item?.word_gloss_ai_layer && globalThis.WordGlossAI) {
+        try { await globalThis.WordGlossAI.remember(item.word_gloss_ai_layer, await getSentences(newTextId)); } catch (_) { /* optional layer never fails source restore */ }
+      }
     } catch (e) {
       result.errors.push({ title: textData.title, error: e && e.message ? e.message : String(e) });
       // BRR-P0-004 — per-text atomicity via SAVEPOINT (replaces the deleteText+CASCADE

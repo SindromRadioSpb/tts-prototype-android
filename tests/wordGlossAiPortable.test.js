@@ -61,3 +61,21 @@ test('publication keeps an occurrence correction with its AI original (bounded)'
   assert.deepEqual(out.rows[0].glosses[0], { gloss: 'здравствуй', wrong_hint: false, manual: true, ai_gloss: 'привет', ai_wrong_hint: false });
   assert.equal(Archive.wordGlossLayer({ schema: LAYER.schema, rows: [{ ...LAYER.rows[0], glosses: [{ gloss: 'x', manual: true, ai_gloss: 'y'.repeat(121) }] }] }, 1), null);
 });
+
+test('publication retains per-field attribution and restores it outside an immutable old snapshot', async () => {
+  const input=fixture();
+  input.table_revisions[0].rows[0].field_meta.he_niqqud={authority:'provider',provider:'OpenAI assistant',status:'current',secret:'discard'};
+  const bytes=Buffer.from(await Portable.zipFiles(await Core.buildPackageFiles(input,OPTS),'nodebuffer'));
+  const parsed=await Archive.inspectArchive(bytes,{mode:'media'});
+  const row=parsed.snapshot.library.texts[0].rows[0];
+  assert.equal(row.edit_meta._studio_material.field_meta.he_niqqud.provider,'OpenAI assistant');
+  assert.equal(row.edit_meta._studio_material.field_meta.he_niqqud.secret,undefined);
+  const old=structuredClone(parsed.snapshot);
+  delete old.library.texts[0].rows[0].edit_meta;
+  const before=JSON.stringify(old);
+  const evidence=await Archive.fieldEvidence(bytes,old);
+  assert.equal(JSON.stringify(old),before,'snapshot is immutable');
+  assert.equal(evidence.rows[0].field_meta.he_niqqud.provider,'OpenAI assistant');
+  old.library.texts[0].rows[0].hebrew_niqqud='אַחֵר';
+  assert.equal((await Archive.fieldEvidence(bytes,old)).rows[0].field_meta.he_niqqud,undefined,'never attribute a changed value');
+});

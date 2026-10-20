@@ -5,6 +5,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { parseHTML } = require('linkedom');
+const StudioImportCore = require('../public/js/studio-import.js');
 
 // ── a minimal IndexedDB: one database, object stores keyed out of line ──
 function fakeIndexedDB() {
@@ -66,6 +67,78 @@ async function reset() { (await deviceStore()).clear(); AI._mem.clear(); }
 
 const ROW = { order_index: 0, he_plain: 'למה צריכים מאות מקומות', he_niqqud: 'לָמָּה צְרִיכִים מֵאוֹת מְקוֹמוֹת', ru: 'Зачем нужны сотни мест?' };
 const GLOSSES = [{ gloss: 'зачем' }, { gloss: 'нужны' }, { gloss: 'сотни' }, { gloss: 'мест' }];
+
+test('duplicate occurrences retain distinct imported glosses through reload, reorder and portable rebind', async () => {
+  await reset();
+  const rows = [{ ...ROW, id: 'first', order_index: 0 }, { ...ROW, id: 'second', order_index: 1 }];
+  const key = AI.rowPayloadFromData(rows[0]).key;
+  const layer = { schema: AI.LAYER_SCHEMA, rows: rows.map((r, i) => ({
+    order_index: i, key, model: 'imported AI', glosses: GLOSSES.map(g => ({ gloss: g.gloss + i })), mwe: []
+  })) };
+  await AI.remember(layer, rows);
+  assert.equal((await AI.wordAtData(rows[0], 0)).gloss, 'зачем0');
+  assert.equal((await AI.wordAtData(rows[1], 0)).gloss, 'зачем1');
+  AI._mem.clear();
+  assert.equal((await AI.wordAtData({ ...rows[0], order_index: 1 }, 0)).gloss, 'зачем0', 'stable identity survives reorder');
+  assert.equal((await AI.wordAtData({ ...rows[1], order_index: 0 }, 0)).gloss, 'зачем1');
+  assert.equal(await AI.wordAtData({ ...rows[0], ru: 'изменено' }, 0), null, 'edited content does not inherit old result');
+  const exported = await AI.portable(rows);
+  await reset();
+  const rebound = rows.map((r, i) => ({ ...r, id: 'new-device-' + i }));
+  await AI.remember(exported, rebound);
+  assert.equal((await AI.wordAtData(rebound[0], 0)).gloss, 'зачем0');
+  assert.equal((await AI.wordAtData(rebound[1], 0)).gloss, 'зачем1');
+});
+
+test('bound manual correction affects only one occurrence, survives reimport and keeps paid common cache', async () => {
+  await reset();
+  const rows = [{ ...ROW, id: 'first', order_index: 0 }, { ...ROW, id: 'second', order_index: 1 }];
+  const key = AI.rowPayloadFromData(rows[0]).key;
+  (await deviceStore()).set(key, { glosses: GLOSSES, mwe: [], model: 'paid' });
+  const tr = renderRow(ROW, false);
+  AI.bindRows(document.getElementById('m'), rows);
+  await AI.hydrate([tr]);
+  await AI.setOccurrenceGloss(tr, 0, 'для чего');
+  assert.equal((await AI.wordAtData(rows[0], 0)).gloss, 'для чего');
+  assert.equal((await AI.wordAtData(rows[1], 0)).gloss, 'зачем');
+  const layer = { schema: AI.LAYER_SCHEMA, rows: rows.map((r, i) => ({ order_index: i, key, glosses: GLOSSES, mwe: [] })) };
+  await AI.remember(layer, rows);
+  assert.equal((await AI.wordAtData(rows[0], 0)).gloss, 'для чего');
+  assert.equal((await deviceStore()).get(key).glosses[0].gloss, 'зачем', 'paid cache not overwritten');
+});
+
+test('draft corrections survive cloned render models and acquire saved IDs without leaking to repeated rows', async () => {
+  await reset();
+  const card=[{...ROW,order_index:0},{...ROW,order_index:1}];
+  const render=rows=>{
+    const first=renderRow(rows[0],false),second=first.cloneNode(true);
+    second.setAttribute('data-row-idx','1');first.parentElement.appendChild(second);
+    AI.bindRows(document.getElementById('m'),rows);
+    return [first,second];
+  };
+  const key=AI.rowPayloadFromData(ROW).key;
+  (await deviceStore()).set(key,{glosses:GLOSSES,mwe:[],model:'paid'});
+  let trs=render(card);await AI.hydrate(trs);
+  await AI.setOccurrenceGloss(trs[0],0,'для чего');
+  const cloned=card.map(r=>{const next={...r};delete next._lpGlossOccurrenceId;return next;});
+  trs=render(cloned);await AI.hydrate(trs);
+  assert.equal(AI.wordAt(trs[0],0).gloss,'для чего');
+  assert.equal(AI.wordAt(trs[1],0).gloss,'зачем');
+  const Import=StudioImportCore;
+  const saved=cloned.map((row,i)=>{
+    const next={...row,id:'saved-'+i,edit_meta_json:Import.rowEditMetaForSave(row,null,i)};
+    delete next._lpGlossOccurrenceId;return next;
+  });
+  AI._mem.clear();
+  assert.equal((await AI.wordAtData(saved[0],0)).gloss,'для чего');
+  assert.equal((await AI.wordAtData(saved[1],0)).gloss,'зачем');
+  // A later Save as New carries the latest saved occurrence, not an older draft version.
+  const first=renderRow(saved[0],false);AI.bindRows(document.getElementById('m'),saved);await AI.hydrate([first]);
+  await AI.setOccurrenceGloss(first,0,'с какой целью');
+  const copy={...saved[0],id:'copied',edit_meta_json:Import.rowEditMetaForSave(saved[0],null,0)};
+  AI._mem.clear();
+  assert.equal((await AI.wordAtData(copy,0)).gloss,'с какой целью');
+});
 
 // the table row as the shells render it: wrapped niqqud cell, translation cell + the media replay glyph
 function renderRow(row, withReplay) {

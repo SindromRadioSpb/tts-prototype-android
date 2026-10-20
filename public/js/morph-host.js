@@ -562,6 +562,28 @@
       return { textKey: tk, sentenceId: sid, orderIndex: oix, surface: String(occ.surface) };
     }
 
+    async function confirmOccurrenceName(occ, meaning) {
+      var ldb = await ldbOf(), Core = window.LexicalResolutionCore, Scan = window.TextKeyScan;
+      if (!ldb || !Core || !Scan || !occ || !occ.text_id || !occ.sentence_id) throw new Error("EXACT_OCCURRENCE_REQUIRED");
+      var rows = await ldb.dbQuery("SELECT s.*,t.text_key FROM sentences s JOIN texts t ON t.id=s.text_id WHERE s.id=? AND s.text_id=?", [String(occ.sentence_id),String(occ.text_id)]);
+      var row = rows && rows[0], off = Number(occ.word_offset), unit = row && Scan.unitAt(row, off);
+      var RM = window.ReaderMorph;
+      if (!unit || !RM || RM.stripNiqqud(unit.surface) !== RM.stripNiqqud(occ.surface) ||
+          String(row.he_niqqud || "") !== String(occ.sentence_he_niqqud || "") ||
+          String(row.he_plain || "") !== String(occ.sentence_he || "")) throw new Error("LEXICAL_SOURCE_CHANGED");
+      var exact = {text_id:String(row.text_id),sentence_id:String(row.id),text_key:row.text_key||String(row.text_id),
+        order_index:row.order_index,word_offset:off,surface:unit.surface,niqqud:unit.niqqud,
+        sentence_he:row.he_plain||"",sentence_he_niqqud:row.he_niqqud||""};
+      var event = {id:crypto.randomUUID(),occurrence_id:"lpro:"+exact.text_id+":"+exact.sentence_id+":"+off,
+        text_id:exact.text_id,sentence_id:exact.sentence_id,text_key:exact.text_key,order_index:exact.order_index,word_offset:off,
+        surface_norm:RM.stripNiqqud(unit.surface),source_anchor:await Core.sourceAnchor(exact),
+        candidate_fingerprint:await Core.candidateFingerprint({}),action:"manual_correction",actor_kind:"owner",
+        chosen_analysis:{lemma:RM.stripNiqqud(unit.surface),lp_pos:"propernoun",root:"",binyan:"",pealim_id:"",meaning_ru:String(meaning||"").slice(0,120)},
+        created_at:new Date().toISOString()};
+      await ldb.appendLexicalResolutionEvent(event);
+      RM.invalidatePlaces([String(row.id)]);
+      return {state:"resolved",analysis:event.chosen_analysis,event_id:event.id,actor_kind:"owner"};
+    }
     // ── Ручная метка (P5.6 R-2a) — сеет FSRS oracle-clean (library-ui.js:5242) ─
     async function markWordStatus(lemmaKey, status, source) {
       var ldb = await ldbOf();
@@ -760,6 +782,7 @@
       lookupUserMeaning: lookupUserMeaning,
       saveUserMeaning: saveUserMeaning,
       occToVerifiedSource: occToVerifiedSource,
+      confirmOccurrenceName: confirmOccurrenceName,
       markWordStatus: markWordStatus, ensureDictaLexicon: ensureDictaLexicon, refreshDictaLexicon: refreshDictaLexicon,
       corpusParseSoon: function (textId) { return _corpusParseSoon(ldbOf, textId).catch(function () { return null; }); },
       bumpTapStat: bumpTapStat,

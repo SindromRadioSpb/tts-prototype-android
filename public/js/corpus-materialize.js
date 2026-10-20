@@ -68,22 +68,32 @@
     return payload;
   }
   // A work of a public corpus (any corpus listed by /api/public-corpora). → { localId, imported }
+  var evidenceRestored = new WeakMap();
   async function ensurePublicWork(slug, card, deps, opts) {
     deps = deps || {}; opts = opts || {};
     var db = deps.db, Adapter = deps.Adapter;
     if (!card || !card.public_work_id) throw new Error("PUBLIC_CARD_INCOMPLETE");
     var textKey = Adapter.localTextKey(slug, card.public_work_id, card.snapshot_sha256);
     var localId = await localIdByKey(db, textKey);
-    if (localId) return { localId: localId, imported: false };
-    var response = await deps.fetch(publicWorkUrl(slug, card.public_work_id, card.snapshot_sha256), { cache: "force-cache" });
+    var restored = evidenceRestored.get(db);
+    if (!restored) { restored = new Set(); evidenceRestored.set(db, restored); }
+    if (localId && (!opts.restoreEvidence || restored.has(textKey))) return { localId: localId, imported: false };
+    var response;
+    var url = publicWorkUrl(slug, card.public_work_id, card.snapshot_sha256);
+    if (opts.restoreEvidence) url += (url.indexOf("?") >= 0 ? "&" : "?") + "evidence=1";
+    try { response = await deps.fetch(url, { cache: opts.restoreEvidence ? "no-cache" : "force-cache" }); }
+    catch (error) { if (localId) return {localId:localId,imported:false}; throw error; }
+    if (!response.ok && localId) return {localId:localId,imported:false};
     if (!response.ok) throw new Error("public work " + response.status);
     var payload = expectPublicSnapshot(await response.json(), card.snapshot_sha256);
     var bundle = Adapter.prepareImportBundle(payload);
     if (opts.isCurrent && !opts.isCurrent()) return null;
     await db.importBundle(bundle, { mode: "skip" });
+    restored.add(textKey);
+    var alreadyLocal = !!localId;
     localId = await localIdByKey(db, textKey);
     if (!localId) throw new Error("public work not resolvable after import");
-    return { localId: localId, imported: true };
+    return { localId: localId, imported: !alreadyLocal };
   }
 
   // Many works, one at a time (no parallel load on the server), never stopping at a failure.

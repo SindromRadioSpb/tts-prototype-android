@@ -1,6 +1,8 @@
 // Locale: English
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.en = {
+  fieldProvenance: {"niqqud": "Vocalization", "unknown": "source unknown", "declared": "attributed in the material", "archive": "attributed in the archive", "manual": "manual edit", "stale": "needs review"},
+  contextLayer: {"shared": "Translation shared by identical rows; this occurrence was not checked separately", "strict": "Context translations only", "missing": "Context translation missing", "dictionary": "Dictionary reading; use in this context is unconfirmed", "context": "Translation in context", "coverage": "Context translation: {covered} of {total} words", "strictHint": "Missing translations are shown as —", "fallbackHint": "◇ — dictionary translation", "statusScope": "The status below applies to the dictionary reading", "nameHere": "This is a name here", "confirmName": "Confirm a name only at this occurrence? Knowledge status and reviews will not change.", "confirm": "Confirm", "sourceChanged": "Could not save. Open the word again."},
   phoneDownload: {
     "title": "Download video",
     "intro": "Video with sound, directly on your iPhone.",
@@ -3664,7 +3666,7 @@ window.I18N_LOCALES.en = {
       possibleParadigm: "possible paradigm",
       contextSuggests: "in context, maybe",
       usage: { title: "Usage", governs: "governs", suffix: "declension", position: "position", collocations: "collocations", pitfalls: "watch out", register: "register", examples: "Examples" },
-      prov: { owner: "reviewed by you", teacher: "teacher-reviewed", exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", contextBaked: "context (offline, precomputed)", dicta: "from the Dicta parse", unknown: "not resolved offline" },
+      prov: { owner: "reviewed by you", teacher: "teacher-reviewed", exact: "form matches the dictionary", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", contextBaked: "context (offline, precomputed)", dicta: "from the Dicta parse", unknown: "not resolved offline" },
       niqqudMachine: "vocalization is machine-made (Dicta)",
       refine: "🎯 Refine by context",
       refineNote: "Sends this sentence to the Dicta cloud once to pick the context-correct meaning. Machine analysis, not a native speaker.",

@@ -372,7 +372,7 @@
     mount.classList.remove(GLOSS_ON);
     var done = mount.querySelectorAll(".rm-w[data-gloss], .rm-w[data-gloss-hint]");
     for (var i = 0; i < done.length; i++) {
-      done[i].removeAttribute("data-gloss"); done[i].removeAttribute("data-gloss-hint"); done[i].removeAttribute("data-gloss-label");
+      ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "data-gloss-source", "title"].forEach(function (a) { done[i].removeAttribute(a); });
     }
   }
   function paint(span, g) {
@@ -394,7 +394,18 @@
         if (my !== _pass) return;   // a newer pass (re-render / toggle) owns the mount
         var sp = spans[i];
         if (sp.hasAttribute("data-gloss")) continue;
-        paint(sp, await glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || ""));
+        var tr = sp.closest("tr"), ai = window.WordGlossAI && window.WordGlossAI.wordAt(tr, Number(sp.getAttribute("data-w-offset")));
+        if (ai) { window.WordGlossAI.paintRow(tr); continue; }
+        if (_strict) {
+          sp.setAttribute("data-gloss", "—"); sp.setAttribute("data-gloss-label", "unknown");
+          sp.setAttribute("data-gloss-source", "missing"); sp.setAttribute("title", t("contextLayer.missing", "Контекстный перевод отсутствует"));
+        } else {
+          var dictionary = await glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || "");
+          if (my !== _pass) return;
+          paint(sp, dictionary);
+          sp.setAttribute("data-gloss", "◇ " + (sp.getAttribute("data-gloss") || ""));
+          sp.setAttribute("data-gloss-source", "dictionary"); sp.setAttribute("title", t("contextLayer.dictionary", "Словарный перевод; применимость здесь не подтверждена"));
+        }
       }
       await new Promise(function (r) { setTimeout(r, 0); });
     }
@@ -437,6 +448,7 @@
     var tr = currentRow(st.host);
     var idx = tr ? tr.getAttribute("data-row-idx") : null;
     if (idx === st.rowIdx) return;
+    var epoch = st.epoch = (st.epoch || 0) + 1;
     st.rowIdx = idx;
     if (!tr) { st.el.hidden = true; st.list.innerHTML = ""; return; }
     place(st);
@@ -463,10 +475,12 @@
       // Ф3: the contextual (AI) gloss of this exact word in this row wins when present.
       var ai = AI ? AI.wordAt(tr, i) : null;
       var g = ai ? { text: ai.gloss + (ai.mwe ? " · " + ai.mwe : ""), label: ai.manual ? "user" : "ai" }
-        : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
+        : _strict ? null : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
       var has = !!(g && g.text);
-      c.gl.textContent = has ? g.text : "?";
+      if (st.epoch !== epoch || currentRow(st.host) !== tr) return;
+      c.gl.textContent = has ? ((!ai && !_strict ? "◇ " : "") + g.text) : (_strict ? "—" : "?");
       c.b.setAttribute("data-gloss-label", has ? g.label : "unknown");
+      c.b.setAttribute("title", ai ? t("contextLayer.context", "Перевод в контексте") : t(_strict ? "contextLayer.missing" : "contextLayer.dictionary", _strict ? "Контекстный перевод отсутствует" : "Словарный перевод; применимость здесь не подтверждена"));
       c.b.setAttribute("aria-label", (c.sp.getAttribute("data-niqqud") || c.sp.textContent) + " — " + (has ? g.text : t("wordGloss.unknown", "нет данных")));
     }
   }
@@ -516,12 +530,27 @@
   // opts = { gloss: bool, ribbon: bool, ai: bool }. Ф3б (owner 2026-10-12): AI glosses already paid for
   // (this device, an imported/published material) are SHOWN whenever the gloss line or the ribbon is on;
   // `ai` only allows ordering NEW rows (lazy mode) — it is the spending switch, not the display switch.
-  var _aiOn = false;
+  var _aiOn = false, _strict = false;
+  var _coverage = new WeakMap();
+  var _applyGeneration = new WeakMap();
+  function updateCoverage(mount) {
+    var e = _coverage.get(mount);
+    if (!e || !e.isConnected || !window.WordGlossAI) return;
+    var est = window.WordGlossAI.estimate(mount);
+    e.hidden = !_aiOn || est.words === 0;
+    e.textContent = t("contextLayer.coverage", "Контекстный перевод: {covered} из {total} слов")
+      .replace("{covered}", String(est.words - est.missingWords)).replace("{total}", String(est.words));
+    if (est.missingWords) e.textContent += " · " + t(_strict ? "contextLayer.strictHint" : "contextLayer.fallbackHint", _strict ? "Пропуски показаны знаком —" : "Для остальных — словарный перевод");
+  }
   function refreshRibbon(mount) { var st = _ribbons.get(mount); if (st) { st.rowIdx = undefined; renderRibbon(st); } }
   async function apply(mount, opts) {
     if (!mount) return;
+    var generation = (_applyGeneration.get(mount) || 0) + 1;
+    _applyGeneration.set(mount, generation);
+    _pass++;
     opts = opts || {};
     var AI = window.WordGlossAI;
+    _strict = !!opts.strict;
     var aiWas = _aiOn;
     _aiOn = !!(AI && (opts.gloss || opts.ribbon));
     var aiFetch = !!(opts.ai && _aiOn);
@@ -533,15 +562,28 @@
     }
     if (opts.ribbon) { var st = ensureRibbon(mount); st.rowIdx = undefined; place(st); renderRibbon(st); }
     else removeRibbon(mount);
+    if (_aiOn) { try { await AI.hydrate(Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"))); } catch (_) {} }
+    if (_applyGeneration.get(mount) !== generation) return;
+    clearGloss(mount);
     if (opts.gloss) await applyGloss(mount);
     else { _pass++; clearGloss(mount); }
+    if (_applyGeneration.get(mount) !== generation) return;
     if (_aiOn) {
       var trs = Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"));
       try { await AI.hydrate(trs); } catch (_) {}
+      if (_applyGeneration.get(mount) !== generation) return;
       if (opts.gloss) AI.paintMount(mount);
       if (opts.ribbon) refreshRibbon(mount);
       if (aiFetch) AI.startLazy(mount, function () { return _aiOn && opts.ai; });
     }
+    var coverage = _coverage.get(mount), host = hostOf(mount);
+    if (_aiOn && !coverage) {
+      coverage = document.createElement("div"); coverage.className = "rm-context-coverage"; coverage.setAttribute("role", "status");
+      if (host.parentNode) host.parentNode.insertBefore(coverage, host);
+      _coverage.set(mount, coverage);
+    }
+    if (coverage) coverage.hidden = !_aiOn;
+    updateCoverage(mount);
   }
 
   // Toggle storage. Studio inherits the Room value on its first read (like «Статус слов»).
@@ -560,7 +602,7 @@
 
   var API = Object.assign({}, CORE, {
     apply: apply, applyGloss: applyGloss, clearGloss: clearGloss, removeRibbon: removeRibbon,
-    enabled: enabled, setEnabled: setEnabled, _memo: _memo, glossFor: glossFor, refreshRibbon: refreshRibbon,
+    enabled: enabled, setEnabled: setEnabled, _memo: _memo, glossFor: glossFor, refreshRibbon: refreshRibbon, updateCoverage: updateCoverage,
   });
   window.WordGloss = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

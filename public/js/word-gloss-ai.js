@@ -37,10 +37,17 @@
     var v1 = function (x) { return "r" + fnv(he + "\u0001" + x) + ":" + n; };
     return [v1(ru), v1((ru ? ru + " " : "") + REPLAY_GLYPH)];
   }
-  function payloadOf(words, ru) {
+  function payloadOf(words, ru, row) {
     if (!words.length) return null;
     var he = words.map(function (x) { return x.w; }).join(" ");
-    return { key: keyOf(he, ru, words.length), legacy: legacyKeys(he, ru, words.length), he: he, ru: ru, words: words };
+    var key = keyOf(he, ru, words.length);
+    var edit = parseObj(row && (row.edit_meta_json || row.edit_meta));
+    var origin = row && row._lpGlossOccurrenceId || edit && edit._word_gloss_origin_id;
+    var identity = row && (row._v3_sentenceId || row.id || row.stable_row_id || row.row_id || row.portable_row_id);
+    identity = identity || origin;
+    var storageKey = identity ? "o1:" + encodeURIComponent(String(identity)) + ":" + key : key;
+    return { storageKey: storageKey, aliases: origin && origin !== identity ? ["o1:" + encodeURIComponent(String(origin)) + ":" + key] : [],
+      key: key, legacy: legacyKeys(he, ru, words.length), he: he, ru: ru, words: words };
   }
   function rowSpans(tr) {
     var niq = tr.querySelectorAll('td[data-col="niqqud"] .rm-w');
@@ -58,9 +65,10 @@
     var spans = rowSpans(tr);
     var p = payloadOf(spans.map(function (sp) {
       return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", surface: sp.getAttribute("data-surface") || "", hint: "" };
-    }), cellValue(tr, "ru"));
+    }), cellValue(tr, "ru"), tr.__lpLearningRow);
     if (!p) return null;
     tr.setAttribute("data-wg-ai-key", p.key);
+    tr.setAttribute("data-wg-occurrence-key", p.storageKey);
     p.spans = spans;
     return p;
   }
@@ -75,7 +83,33 @@
     var words = niq
       ? RM.words(niq).map(function (w) { return { w: w, surface: RM.stripNiqqud(w), hint: "" }; })
       : RM.words(String(row.he || row.he_plain || row.hebrew_plain || "")).map(function (w) { return { w: w, surface: w, hint: "" }; });
-    return payloadOf(words, normText(row.ru != null ? row.ru : row.russian));
+    return payloadOf(words, normText(row.ru != null ? row.ru : row.russian), row);
+  }
+
+  // Hosts pass their current row model, never a row index from a previous material.
+  // Unsaved rows receive a session-only ID; stored/portable rows retain their durable identity.
+  var draftSets = new WeakMap(), temporaryNo = 0;
+  var sessionId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random();
+  function bindRows(mount, rows) {
+    if (!mount || !Array.isArray(rows)) return;
+    var draftIds = [];
+    if (rows.some(function (row) { return row && !(row._v3_sentenceId || row.id || row.stable_row_id || row.row_id || row.portable_row_id); })) {
+      var signature = rows.map(function (row) { var p = rowPayloadFromData(row); return p ? p.key : ""; }).join("|");
+      var sets = draftSets.get(mount); if (!sets) { sets = new Map(); draftSets.set(mount, sets); }
+      if (!sets.has(signature)) { if (sets.size >= 16) sets.delete(sets.keys().next().value); sets.set(signature, []); }
+      draftIds = sets.get(signature);
+    }
+    Array.prototype.forEach.call(mount.querySelectorAll("#proTable tbody tr"), function (tr) {
+      var i = Number(tr.getAttribute("data-row-idx")), row = rows[i];
+      if (!row) { delete tr.__lpLearningRow; return; }
+      if (!(row._v3_sentenceId || row.id || row.stable_row_id || row.row_id || row.portable_row_id)) {
+        var edit = parseObj(row.edit_meta_json || row.edit_meta);
+        var id = row._lpGlossOccurrenceId || edit && edit._word_gloss_origin_id || draftIds[i] || "draft:" + sessionId + ":" + (++temporaryNo);
+        row._lpGlossOccurrenceId = id; draftIds[i] = id;
+      }
+      tr.__lpLearningRow = row;
+      tr.removeAttribute("data-wg-ai-key"); tr.removeAttribute("data-wg-occurrence-key");
+    });
   }
 
   // ── storage: memory + IndexedDB (per device; the server cache is the paid source of truth) ──
@@ -113,15 +147,24 @@
   }
   async function hydratePayloads(ps) {
     var need = [];
-    ps.forEach(function (p) { if (p && !mem.has(p.key)) { need.push(p.key); p.legacy.forEach(function (k) { need.push(k); }); } });
+    ps.forEach(function (p) { if (p && !mem.has(p.storageKey)) { need.push(p.storageKey, p.key); p.aliases.concat(p.legacy).forEach(function (k) { need.push(k); }); } });
     if (!need.length) return;
     var got = await idbGet(need), migrate = [];
     ps.forEach(function (p) {
-      if (!p || mem.has(p.key)) return;
-      if (got[p.key]) { mem.set(p.key, got[p.key]); return; }
+      if (!p || mem.has(p.storageKey)) return;
+      if (got[p.storageKey] && validEntry(got[p.storageKey], p.words.length)) { mem.set(p.storageKey, got[p.storageKey]); return; }
+      for (var a = 0; a < p.aliases.length; a++) {
+        var own = mem.get(p.aliases[a]) || got[p.aliases[a]];
+        if (own && validEntry(own, p.words.length)) { mem.set(p.storageKey, own); migrate.push([p.storageKey, own]); return; }
+      }
+      var common = mem.get(p.key) || got[p.key];
+      if (common && validEntry(common, p.words.length)) {
+        var carried = Object.assign({}, common, { shared: p.storageKey !== p.key });
+        mem.set(p.storageKey, carried); migrate.push([p.storageKey, carried]); return;
+      }
       for (var i = 0; i < p.legacy.length; i++) {
         var v = got[p.legacy[i]];
-        if (v && v.glosses && v.glosses.length === p.words.length) { mem.set(p.key, v); migrate.push([p.key, v]); return; }
+        if (v && validEntry(v, p.words.length)) { var carried = Object.assign({}, v, { shared: p.storageKey !== p.key }); mem.set(p.storageKey, carried); migrate.push([p.storageKey, carried]); return; }
       }
     });
     await idbPut(migrate);
@@ -131,8 +174,8 @@
   }
 
   function lookup(tr) {
-    var k = tr && tr.getAttribute("data-wg-ai-key");
-    if (!k) { var p = tr ? rowPayload(tr) : null; k = p && p.key; }
+    var k = tr && tr.getAttribute("data-wg-occurrence-key");
+    if (!k) { var p = tr ? rowPayload(tr) : null; k = p && p.storageKey; }
     return k ? mem.get(k) || null : null;
   }
   // { gloss, mwe } for the k-th word of a row, or null
@@ -141,14 +184,14 @@
     if (!r || !r.glosses || !r.glosses[k]) return null;
     var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
     var g = r.glosses[k];
-    return { gloss: g.gloss, wrongHint: !!g.wrong_hint && !g.manual, mwe: m ? m.gloss : "", manual: !!g.manual, aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss, model: r.model || "" };
+    return { gloss: g.gloss, wrongHint: !!g.wrong_hint && !g.manual, mwe: m ? m.gloss : "", manual: !!g.manual, aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss, model: r.model || "", shared: !!r.shared, imported: !!r.imported };
   }
   // Ф4 «Словарь» — the same occurrence gloss read from a stored row (no table on screen).
   async function wordAtData(row, k) {
     var p = rowPayloadFromData(row);
     if (!p) return null;
     await hydratePayloads([p]);
-    var r = mem.get(p.key);
+    var r = mem.get(p.storageKey);
     if (!r || !r.glosses || !r.glosses[k]) return null;
     var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
     var g = r.glosses[k];
@@ -161,15 +204,15 @@
     var p = tr ? rowPayload(tr) : null;
     if (!p) return false;
     await hydratePayloads([p]);
-    var v = mem.get(p.key);
+    var v = mem.get(p.storageKey);
     if (!v || !v.glosses || !v.glosses[k]) return false;
     var g = v.glosses[k], val = String(text == null ? "" : text).replace(/\s+/g, " ").trim().slice(0, MAX_GLOSS);
     var next = Object.assign({}, v, { glosses: v.glosses.slice() });
     if (val) next.glosses[k] = { gloss: val, wrong_hint: false, manual: true, ai_gloss: g.manual ? String(g.ai_gloss || "") : g.gloss, ai_wrong_hint: g.manual ? !!g.ai_wrong_hint : !!g.wrong_hint, at: Date.now() };
     else if (g.manual) next.glosses[k] = { gloss: String(g.ai_gloss || ""), wrong_hint: !!g.ai_wrong_hint };
     else return true;
-    mem.set(p.key, next);
-    await idbPut([[p.key, next]]);
+    mem.set(p.storageKey, next);
+    await idbPut([[p.storageKey, next]]);
     paintRow(tr);
     return true;
   }
@@ -201,6 +244,7 @@
       mem.set(p.key, val); put.push([p.key, val]); okKeys.push(p.key);
     });
     await idbPut(put);
+    await hydratePayloads(batch);
     return { ok: okKeys.length, rejected: (data.rejected || []).length, usage: data.usage || null };
   }
   // payloads → ensures AI glosses; returns { done, rejected, failed, skipped, error }.
@@ -212,7 +256,7 @@
     if (!key) return { done: 0, rejected: 0, failed: ps.length, skipped: 0, error: "GEMINI_KEY_REQUIRED" };
     await hydratePayloads(ps);
     var todo = [], seen = new Set();
-    ps.forEach(function (p) { if (!mem.has(p.key) && !inflight.has(p.key) && !seen.has(p.key)) { seen.add(p.key); todo.push(p); } });
+    ps.forEach(function (p) { if (!mem.has(p.storageKey) && !mem.has(p.key) && !inflight.has(p.key) && !seen.has(p.key)) { seen.add(p.key); todo.push(p); } });
     var stats = { done: 0, rejected: 0, failed: 0, skipped: 0, error: "" }, total = todo.length, batches = [];
     for (var b = 0; b < todo.length; b += BATCH) batches.push(todo.slice(b, b + BATCH));
     // the stage is visible from its first second: the denominator is known before any request
@@ -237,6 +281,7 @@
     }
     var workers = []; for (var w = 0; w < Math.min(CONCURRENCY, batches.length); w++) workers.push(worker());
     await Promise.all(workers);
+    await hydratePayloads(ps);
     stats.skipped = Math.max(0, total - stats.done - stats.rejected - stats.failed);
     return stats;
   }
@@ -261,7 +306,7 @@
     var words = 0, missing = 0, covered = 0, seen = new Set();
     ps.forEach(function (p) {
       words += p.words.length;
-      if (mem.has(p.key)) covered++;
+      if (mem.has(p.storageKey)) covered++;
       else if (!seen.has(p.key)) { seen.add(p.key); missing += p.words.length; }
     });
     return { rows: ps.length, coveredRows: covered, words: words, missingWords: missing, usd: missing / 1000 * USD_PER_1K_WORDS };
@@ -277,6 +322,7 @@
       sp.removeAttribute("data-gloss-hint");
       sp.setAttribute("data-gloss-label", x.manual ? "user" : "ai");
       sp.setAttribute("data-gloss-ai", "1");
+      sp.setAttribute("data-gloss-source", x.manual ? "user" : "ai");
       if (x.mwe) sp.setAttribute("title", t("wordGlossAi.mwe", "сочетание") + ": " + x.mwe); else if (sp.getAttribute("title") && sp.getAttribute("data-gloss-ai")) sp.removeAttribute("title");
     });
     return true;
@@ -285,6 +331,7 @@
     if (!mount) return 0;
     var n = 0;
     Array.prototype.forEach.call(mount.querySelectorAll("#proTable tbody tr"), function (tr) { if (lookup(tr) && paintRow(tr)) n++; });
+    if (window.WordGloss && window.WordGloss.updateCoverage) window.WordGloss.updateCoverage(mount);
     return n;
   }
 
@@ -392,7 +439,7 @@
   function orderOf(row, i) { var n = Number(row && row.order_index); return Number.isFinite(n) ? n : i; }
   function validEntry(e, n) {
     if (!e || !Array.isArray(e.glosses) || e.glosses.length !== n) return false;
-    for (var i = 0; i < n; i++) { var g = e.glosses[i]; if (!g || typeof g.gloss !== "string" || g.gloss.length > MAX_GLOSS || (g.ai_gloss != null && (typeof g.ai_gloss !== "string" || g.ai_gloss.length > MAX_GLOSS))) return false; }
+    for (var i = 0; i < n; i++) { var g = e.glosses[i]; if (!g || typeof g.gloss !== "string" || !g.gloss.trim() || g.gloss.length > MAX_GLOSS || (g.ai_gloss != null && (typeof g.ai_gloss !== "string" || g.ai_gloss.length > MAX_GLOSS))) return false; }
     var mwe = e.mwe == null ? [] : e.mwe;
     if (!Array.isArray(mwe)) return false;
     return mwe.every(function (m) { return m && Number.isInteger(m.from) && Number.isInteger(m.to) && m.from >= 0 && m.from <= m.to && m.to < n && typeof m.gloss === "string" && m.gloss.length <= MAX_GLOSS; });
@@ -407,9 +454,10 @@
     await hydratePayloads(list.map(function (x) { return x.p; }));
     var out = [];
     list.forEach(function (x) {
-      var v = mem.get(x.p.key);
+      var v = mem.get(x.p.storageKey);
       if (!v || !validEntry(v, x.p.words.length)) return;
       out.push({ order_index: x.order, key: x.p.key,
+        ...(v.shared ? {shared:true} : {}),
         glosses: v.glosses.map(portableGloss),
         mwe: (v.mwe || []).map(function (m) { return { from: m.from, to: m.to, gloss: m.gloss }; }), model: String(v.model || "") });
     });
@@ -425,20 +473,22 @@
       var p = e && byOrder.has(Number(e.order_index)) ? rowPayloadFromData(byOrder.get(Number(e.order_index))) : null;
       if (!p || e.key !== p.key || !validEntry(e, p.words.length)) { res.rejected++; return; }
       var val = { glosses: e.glosses.map(portableGloss),
+        ...(e.shared === true ? {shared:true} : {}),
         mwe: (e.mwe || []).map(function (m) { return { from: m.from, to: m.to, gloss: m.gloss }; }), model: String(e.model || ""), at: Date.now(), imported: true };
       todo.push({ p: p, val: val }); res.stored++;
     });
     await hydratePayloads(todo.map(function (x) { return x.p; }));
     todo.forEach(function (x) {
-      var mine = mem.get(x.p.key);
+      var mine = mem.get(x.p.storageKey);
       if (mine && mine.glosses) mine.glosses.forEach(function (g, i) { if (g && g.manual && x.val.glosses[i]) x.val.glosses[i] = g; });
-      mem.set(x.p.key, x.val); put.push([x.p.key, x.val]);
+      mem.set(x.p.storageKey, x.val); put.push([x.p.storageKey, x.val]);
     });
     await idbPut(put);
     return res;
   }
 
   window.WordGlossAI = {
+    bindRows: bindRows,
     rowPayload: rowPayload, rowPayloadFromData: rowPayloadFromData, lookup: lookup, ensureDataRows: ensureDataRows, estimateDataRows: estimateDataRows, glossCard: glossCard,
     portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, wordAtData: wordAtData, setOccurrenceGloss: setOccurrenceGloss, hydrate: hydrate, ensureRows: ensureRows,
     paintRow: paintRow, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,

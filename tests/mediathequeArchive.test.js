@@ -62,6 +62,11 @@ for(const mode of ['youtube','media'])test(mode+' archive uses canonical publica
   assert.equal(catalogue.items.length,1);
   assert.equal(catalogue.items[0].media.kind,'video');
   const payload=await repo.getPublicWork('editorial-'+mode,published.items[0].public_work_id);
+  const enriched=await repo.getPublicWork('editorial-'+mode,published.items[0].public_work_id,{fieldEvidence:true});
+  assert.deepEqual(enriched.item.snapshot,payload.item.snapshot,'evidence never changes the published snapshot');
+  assert.equal(enriched.item.snapshot_sha256,payload.item.snapshot_sha256);
+  assert.equal(enriched.field_evidence.schema,'published-field-evidence-v1');
+  assert.equal(enriched.field_evidence.rows[0].field_meta.ru.authority,'user');
   assert.equal(payload.assets.length,media?1:0);
   assert.equal(payload.item.package_download_allowed,0);
   if(media){

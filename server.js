@@ -1246,9 +1246,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=781",
+  "/js/dictionary-ui.js?v=800",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=781",
+  "/js/mediatheque-ui.js?v=800",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1286,7 +1286,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
   "/js/room-media-attach.js?v=796",
-  "/js/study-video-source-ui.js?v=796",
+  "/js/study-video-source-ui.js?v=800",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=797",
@@ -1294,11 +1294,11 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-yt-player.js?v=736",
   "/js/studio-media-karaoke.js?v=729",
   "/js/portable-learning-package-core.js?v=742",
-  "/js/portable-learning-package-repository.js?v=784",
+  "/js/portable-learning-package-repository.js?v=800",
   "/js/import-center-core.js?v=527",
   "/js/text-card-format.js?v=742",
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=797",
+  "/js/studio-import.js?v=800",
   "/js/local-asr-client.js?v=796",
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
@@ -1321,7 +1321,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/catalog-discovery-core.js?v=780",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
-  "/js/corpus-materialize.js?v=765",
+  "/js/corpus-materialize.js?v=800",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
@@ -1342,34 +1342,35 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=782",
+  "/js/library-ui.js?v=800",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
   "/css/publication-center.css?v=643",
   "/js/publication-center.js?v=520",
-  "/js/public-corpus-adapter.js?v=486",
+  "/js/public-corpus-adapter.js?v=800",
   "/js/dicta-lexicon.js?v=769",
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/key-alias-core.js?v=771",
-  "/js/reader-morph.js?v=782",
+  "/js/learning-field-provenance.js?v=800",
+  "/js/reader-morph.js?v=800",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=798",
-  "/js/word-gloss-ai.js?v=747",
+  "/js/word-gloss.js?v=800",
+  "/js/word-gloss-ai.js?v=800",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
-  "/js/morph-host.js?v=782",
+  "/js/morph-host.js?v=800",
   "/js/room-b6-core.js?v=730",
-  "/db/local-db.js?v=781",
+  "/db/local-db.js?v=800",
   "/db/migrations.js",
   "/db/db-worker.js",
   "/db/vfs-order.js",
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
-  "/js/reader-core.js?v=736",
+  "/js/reader-core.js?v=800",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=769",
+  "/css/reader-morph.css?v=800",
   "/css/lexical-resolution.css?v=6",
   "/js/inflection-render.js?v=763",
   "/js/obsidian-lexical-preview.js?v=10",
@@ -1395,9 +1396,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=799",
-  "/i18n/locales/en.js?v=799",
-  "/i18n/locales/he.js?v=799",
+  "/i18n/locales/ru.js?v=800",
+  "/i18n/locales/en.js?v=800",
+  "/i18n/locales/he.js?v=800",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4548,7 +4549,8 @@ app.get("/api/public-corpora/:slug/works", rlPublicCorpusRead, (req, res) => pub
     items: page, matched_total: items.length, next_cursor: cursor + page.length < items.length ? String(cursor + page.length) : null });
 }));
 app.get("/api/public-corpora/:slug/works/:workId", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
-  const published = await repo.getPublicWork(req.params.slug, req.params.workId);
+  const withEvidence = req.query.evidence === "1";
+  const published = await repo.getPublicWork(req.params.slug, req.params.workId, { fieldEvidence: withEvidence });
   // Под одним workId публикуются новые снимки (правка карточки, повторный импорт архива):
   // неизменяем только адрес конкретного снимка, без него — ревалидация по ETag.
   const wanted = String(req.query.snapshot || "").toLowerCase();
@@ -4556,7 +4558,7 @@ app.get("/api/public-corpora/:slug/works/:workId", rlPublicCorpusRead, (req, res
     res.set("Cache-Control", "no-store");
     return res.status(409).json({ ok: false, error: "PUBLIC_WORK_CHANGED" });
   }
-  publicCorpusEtag(res, published.item.snapshot_sha256);
+  publicCorpusEtag(res, published.item.snapshot_sha256 + (withEvidence ? "-fields-v1" : ""));
   res.set("Cache-Control", wanted ? "public, max-age=31536000, immutable" : "public, max-age=0, must-revalidate");
   return res.json({ ok: true, schema_version: "public_corpus_work.1.0.0", ...published });
 }));

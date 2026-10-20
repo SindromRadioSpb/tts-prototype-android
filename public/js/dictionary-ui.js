@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=781';
+import * as localDb from '/db/local-db.js?v=800';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -1352,7 +1352,7 @@ async function findPlaces(e, card) {
   const skels = Array.from(forms).filter((x) => x && x.length > 1).slice(0, 48);
   // every sentence that may hold a form (no early stop at a fixed number of places — the owner's 2026-10-14 report:
   // «Места · 40» was the cap, not the count); a budget keeps one call bounded and the UI says when it was reached
-  const hits = skels.length ? await q(`SELECT s.text_id, s.order_index, s.he_plain, s.he_niqqud, s.ru, t.title AS text_title FROM sentences s
+  const hits = skels.length ? await q(`SELECT s.id, s.text_id, s.order_index, s.he_plain, s.he_niqqud, s.ru, t.title AS text_title FROM sentences s
       JOIN texts t ON t.id = s.text_id AND t.is_archived = 0 WHERE (${skels.map(() => 's.he_plain LIKE ?').join(' OR ')}) LIMIT ?`,
     [...skels.map((x) => '%' + x + '%'), PLACES_BUDGET + 1]).catch(() => []) : [];
   const truncated = hits.length > PLACES_BUDGET;
@@ -1717,7 +1717,7 @@ async function openArticle(key) {
     const li = el('li', { class: 'dict-place' }, [highlight(p.he, p.offset)]);
     if (p.ru) li.appendChild(el('div', { class: 'ru', attrs: { dir: 'auto' }, text: p.ru }));
     try {
-      const ai = window.WordGlossAI ? await window.WordGlossAI.wordAtData({ he_niqqud: p.row.he_niqqud, he_plain: p.row.he_plain, ru: p.row.ru }, p.offset) : null;
+      const ai = window.WordGlossAI ? await window.WordGlossAI.wordAtData(p.row, p.offset) : null;
       if (ai && ai.gloss) {
         li.appendChild(el('div', { class: 'ctx' }, [tt(ai.manual ? 'room.morph.aiInContextFixed' : 'room.morph.aiInContext', ai.manual ? 'в контексте (исправлено)' : 'в контексте (ИИ)') + ': ', el('b', { text: ai.gloss }), ai.mwe ? ' · ' + tt('room.morph.aiMwe', 'сочетание') + ': ' + ai.mwe : '']));
         aiSeen.set(ai.gloss, (aiSeen.get(ai.gloss) || 0) + 1);

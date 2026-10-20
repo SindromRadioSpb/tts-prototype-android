@@ -331,6 +331,7 @@
       saveWordPersonal: function (c, o, f) { return ensureHost().saveWordPersonal(c, o, f); },
       lookupUserMeaning: function (c) { return ensureHost().lookupUserMeaning(c); },
       lookupLexicalResolution: lookupLexicalResolution,
+      confirmOccurrenceName: function (o, m) { return ensureHost().confirmOccurrenceName(o, m); },
       saveUserMeaning: function (c, o, m) { return ensureHost().saveUserMeaning(c, o, m); },
       contextProvider: h.makeContextProvider(),
       refineContext: h.makeRefineProvider(),
@@ -381,8 +382,15 @@
   function applyWordLayer(mount) {
     mount = mount || document.getElementById("tableContainer");
     if (!mount || !window.WordGloss) return;
+    if (window.WordGlossAI && window.StudioAgentHost) {
+      var bound = [];
+      Array.prototype.forEach.call(mount.querySelectorAll("#proTable tbody tr"), function (tr) {
+        var i = Number(tr.getAttribute("data-row-idx")); bound[i] = window.StudioAgentHost.getRow(i);
+      });
+      window.WordGlossAI.bindRows(mount, bound);
+    }
     if (editModeOn()) { try { window.WordGloss.apply(mount, { gloss: false, ribbon: false }); } catch (_) {} return; }
-    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi") }); } catch (_) {}
+    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi"), strict: window.WordGloss.enabled("studio", "GlossStrict") }); } catch (_) {}
   }
 
   var _t = null;

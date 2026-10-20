@@ -597,7 +597,16 @@ body.theme-dark .rm-ribbon-chip[data-gloss-label="ai"] .rm-ribbon-gloss { color:
 .wg-ai-consent .room-consent-actions .room-consent-ok { background: var(--theme-accent, #1B4FB8); color: #fff; border-color: transparent; }
 
 /* Word layer Ф3в — AI line on the tap card; a learner's correction has its own colour (not the model's). */
-.rm-ai-line { font-size: 13.5px; line-height: 1.35; color: var(--text-primary); margin: -6px 0 12px; }
+.rm-ai-line { font-size: 13.5px; line-height: 1.35; color: var(--text-primary); margin: 6px 0 12px; }
+.rm-context-coverage { font-size: 12px; line-height: 1.5; padding: 6px 10px; color: var(--text-secondary, #555); overflow-wrap: anywhere; }
+.rm-context-coverage[hidden] { display: none; }
+.rm-gloss-on .rm-w[data-gloss-source="missing"]::before { opacity: .7; }
+.rm-dictionary-reading { margin-block: 10px; }
+.rm-dictionary-reading > summary { white-space: normal; font-size: 12px; line-height: 1.5; }
+.rm-dictionary-scope { font-size: 11px; color: var(--text-secondary); margin-block: 10px 2px; }
+.rm-context-review { margin-block: 8px; }
+.rm-context-review button { width: auto; max-width: 100%; white-space: normal; }
+.rm-context-review p { font-size: 12px; line-height: 1.5; }
 .rm-ai-line .rm-ai-gloss { color: var(--theme-accent-hover, #123A8A); }
 .rm-ai-line.rm-ai-manual .rm-ai-gloss,
 .rm-gloss-on .rm-w[data-gloss-label="user"]::before,

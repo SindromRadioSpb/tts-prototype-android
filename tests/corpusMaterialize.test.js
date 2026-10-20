@@ -54,6 +54,24 @@ test('public corpus: the exact snapshot is requested, imported once, then reused
   assert.equal(calls.length, 1);
 });
 
+test('public evidence restoration keeps existing text identity, requests an isolated evidence URL once, and works offline', async () => {
+  const h='d'.repeat(64),calls=[];
+  const key='pub:s:existing:'+h;
+  const db=fakeDb({[key]:{id:'existing-local'}});
+  db.importBundle=async(bundle,options)=>{assert.equal(options.mode,'skip');db.imported.push(bundle);};
+  const Adapter={localTextKey:()=>key,prepareImportBundle:()=>({library:{texts:[{text_key:key}]}})};
+  const fetch=async url=>{calls.push(url);return {ok:true,json:async()=>({item:{snapshot_sha256:h}})};};
+  const card={public_work_id:'existing',snapshot_sha256:h};
+  const first=await M.ensurePublicWork('s',card,{db,fetch,Adapter},{restoreEvidence:true});
+  assert.equal(first.localId,'existing-local');assert.equal(first.imported,false);
+  await M.ensurePublicWork('s',card,{db,fetch,Adapter},{restoreEvidence:true});
+  assert.equal(calls.length,1);
+  assert.match(calls[0],/snapshot=d{64}&evidence=1$/);
+  const offlineDb=fakeDb({[key]:{id:'offline-local'}});
+  const offline=await M.ensurePublicWork('s',card,{db:offlineDb,fetch:async()=>{throw Error('offline')},Adapter},{restoreEvidence:true});
+  assert.equal(offline.localId,'offline-local');
+});
+
 test('many works: one at a time, a failure does not stop the rest, every failure is named', async () => {
   const seen = [], progress = [];
   const r = await M.materializeMany(['a', 'bad', 'c'], async (x) => { seen.push(x); if (x === 'bad') throw new Error('fetch 503'); return { localId: 'id-' + x, imported: true }; },

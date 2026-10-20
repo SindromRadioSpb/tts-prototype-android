@@ -1568,7 +1568,7 @@
   var LABEL_TEXT = {
     owner: ["room.morph.prov.owner", "проверено вами"],
     teacher: ["room.morph.prov.teacher", "проверено преподавателем"],
-    exact: ["room.morph.prov.exact", "точно"],
+    exact: ["room.morph.prov.exact", "форма совпадает со словарём"],
     likely: ["room.morph.prov.likely", "вероятно"],
     guessed: ["room.morph.prov.guessed", "подобрано"],
     "function": ["room.morph.prov.function", "служебное слово"],
@@ -1689,6 +1689,8 @@
       if (t && t.closest && t.closest("[data-rm-ai-save]")) { onAiSave(false); return; }
       if (t && t.closest && t.closest("[data-rm-ai-revert]")) { onAiSave(true); return; }
       if (t && t.closest && t.closest("[data-rm-ai-cancel]")) { onAiEditToggle(false); return; }
+      if (t && t.closest && t.closest("[data-rm-name-propose]")) { var box = _sheet.querySelector("[data-rm-name-confirm]"); if (box) box.hidden = false; return; }
+      if (t && t.closest && t.closest("[data-rm-name-save]")) { onConfirmName(t.closest("[data-rm-name-save]")); return; }
       if (t && t.closest && t.closest("[data-rm-ai-edit]")) { onAiEditToggle(true); return; }
       if (t && t.closest && t.closest("[data-rm-meaning-save]")) { onMeaningSave(); return; }
       if (t && t.closest && t.closest("[data-rm-meaning-cancel]")) { onMeaningEditToggle(false); return; }
@@ -1960,15 +1962,17 @@
   }
   async function onRefine(grantAll) {
     if (typeof _attachOpts.refineContext !== "function" || !_activeWordCtx || !_activeWordCtx.sentence) return;
+    if (_activeCard && (_activeCard.meaningSource === "owner" || _activeCard.meaningSource === "teacher")) return;
     if (grantAll && typeof _attachOpts.grantContextConsent === "function") { try { _attachOpts.grantContextConsent(); } catch (_) {} }
     var box = _sheet && _sheet.querySelector(".rm-refine");
     if (box) box.innerHTML = '<div class="rm-refine-busy">' + escapeHtml(tt("room.morph.refining", "Уточняю в контексте…")) + "</div>";
-    var wc = _activeWordCtx;
+    var wc = _activeWordCtx, before = _activeCard;
     var ctx = null;
     try { ctx = await _attachOpts.refineContext(wc.sentence, wc.surface); } catch (_) { ctx = null; }
     try {
+      if (_activeWordCtx !== wc || _activeCard !== before) return;
       var card = await resolveWordLight(wc.surface, wc.niqqud, ctx, placeOfSpan(_activeSpan));
-      if (card) { card.refineTried = true; if (_activeWordCtx === wc) openCard(card, _activeOcc); }
+      if (card) { card.refineTried = true; if (_activeWordCtx === wc && _activeCard === before) openCard(card, _activeOcc); }
     } catch (_) { /* keep the (now busy-cleared) card; a re-tap retries */ }
   }
 
@@ -2073,6 +2077,7 @@
       '<span class="rm-alts-k">' + escapeHtml(key) + ":</span> " + '<span class="rm-ai-gloss">' + escapeHtml(x.gloss) + "</span>" +
       ' <button type="button" class="rm-meaning-edit rm-ai-edit" data-rm-ai-edit aria-label="' + escapeHtml(tt("room.morph.aiEdit", "Исправить перевод в контексте")) + '">✎</button>' +
       "</div>";
+    if (x.shared) html += '<div class="rm-alts" dir="' + uiDir() + '">' + escapeHtml(tt("contextLayer.shared", "Перевод из общего слоя одинаковых строк; отдельный контекст не подтверждён")) + "</div>";
     if (x.manual && x.aiGloss && x.aiGloss !== x.gloss) html += '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.aiWas", "ИИ предлагал")) + ":</span> " + escapeHtml(x.aiGloss) + "</div>";
     if (x.mwe) html += '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.aiMwe", "сочетание")) + ":</span> " + escapeHtml(x.mwe) + "</div>";
     if (x.wrongHint) html += '<div class="rm-alts rm-ai-warn" dir="ltr">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение выше в этой строке, вероятно, не подходит")) + "</div>";
@@ -2100,6 +2105,23 @@
     // the ribbon re-reads the row; walk up to whichever mount owns it
     try { for (var el = o.tr; el && window.WordGloss && window.WordGloss.refreshRibbon; el = el.parentElement) window.WordGloss.refreshRibbon(el); } catch (_) {}
     if (_activeCard) openCard(_activeCard, _activeOcc);
+  }
+  async function onConfirmName(button) {
+    var o = aiOccurrence(), occ = _activeOcc, span = _activeSpan;
+    if (!o || !occ || typeof _attachOpts.confirmOccurrenceName !== "function") return;
+    button.disabled = true;
+    try {
+      var projection = await _attachOpts.confirmOccurrenceName(occ, o.x.gloss);
+      if (_activeSpan !== span || _activeOcc !== occ || !_activeCard) return;
+      var next = applyLexicalResolution(_activeCard, projection), eng = await ensureEngine();
+      next.lemmaKey = statusKeyForCard(eng.NA, next, occ.niqqud, occ.surface);
+      next.manualStatus = "";
+      if (next.lemmaKey && typeof _attachOpts.getWordStatus === "function") next.manualStatus = await _attachOpts.getWordStatus(next.lemmaKey) || "";
+      if (_activeSpan !== span || _activeOcc !== occ) return;
+      openCard(next, occ);
+    } catch (_) {
+      if (_activeSpan === span) { button.disabled = false; button.textContent = tt("contextLayer.sourceChanged", "Не удалось сохранить. Откройте слово заново."); }
+    }
   }
   function renderCardHtml(card) {
     if (!card) return '<div class="rm-card-empty">' + escapeHtml(tt("room.morph.empty", "Слово не распознано.")) + "</div>";
@@ -2129,10 +2151,13 @@
       '<span class="rm-life" data-rm-life hidden></span>' +
       "</span>" +
       "</div>";
-    // Epic-2 #3 — niqqud honesty (R9 derived-as-asserted): the vocalization shown is machine-made
-    // (Dicta/Gemini), not native — say so when the headword actually carries niqqud points.
+    // Presence of vowel marks cannot identify their author. Read this field's evidence only.
+    var provenanceRow = !_cardStack.length && _activeWordCtx ? _activeWordCtx.row : null;
+    if (_activeWordCtx && String(card.niqqud || "").normalize("NFC") !== String(_activeWordCtx.niqqud || "").normalize("NFC")) provenanceRow = null;
+    var provenance = window.LearningFieldProvenance;
+    var sourceLabel = provenance ? provenance.label(provenanceRow, "he_niqqud", tt) : tt("fieldProvenance.unknown", "источник неизвестен");
     var niqMark = (card.niqqud && /[֑-ׇ]/.test(card.niqqud))
-      ? '<div class="rm-niqqud-prov" dir="' + uiDir() + '"><span class="rm-niqqud-prov-ic" aria-hidden="true">ⓜ</span> ' + escapeHtml(tt("room.morph.niqqudMachine", "огласовка — машинная (Dicta)")) + "</div>"
+      ? '<div class="rm-niqqud-prov" dir="' + uiDir() + '">' + escapeHtml(tt("fieldProvenance.niqqud", "Огласовка") + ": " + sourceLabel) + "</div>"
       : "";
     // Retention P5 (recon §6.2, B7) — «вспомни» pre-reveal: the ANSWER is hidden (gloss, alt
     // glosses, usage, Pealim link, root family — anything that leaks the meaning); only the word,
@@ -2290,7 +2315,7 @@
     // sets to (online && global auto-mode OFF). Granted users already auto-refine every tap, so
     // the button would be redundant; offline it is hidden (R5 privacy: no silent outbound).
     var refineWired = card && typeof _attachOpts.refineContext === "function" && _activeWordCtx && _activeWordCtx.sentence;
-    var refineEligible = refineWired && !card.contextUsed && card.label !== "exact" && card.label !== "function" &&
+    var refineEligible = refineWired && card.meaningSource !== "owner" && card.meaningSource !== "teacher" && !card.contextUsed && card.label !== "exact" && card.label !== "function" &&
       (typeof _attachOpts.canRefine !== "function" || _attachOpts.canRefine());
     var refineHtml = "";
     if (card && card.refineTried && !card.contextUsed) {
@@ -2310,7 +2335,20 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    var reviewed = card.meaningSource === "owner" || card.meaningSource === "teacher" || card.channel === "owner-name";
+    var dictionaryDetails = meaning + formLine + meaningEditor + altLine + ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + fam + conj;
+    var occurrence = aiOccurrence();
+    var contextual = !!(occurrence && !reviewed);
+    var nameAction = contextual && _activeOcc && _activeOcc.sentence_id && typeof _attachOpts.confirmOccurrenceName === "function"
+      ? '<div class="rm-context-review"><button type="button" class="rm-meaning-add" data-rm-name-propose>' + escapeHtml(tt("contextLayer.nameHere", "Это имя здесь")) + '</button><div data-rm-name-confirm hidden><p>' + escapeHtml(tt("contextLayer.confirmName", "Подтвердить имя только в этом месте? Статусы знания и повторы не изменятся.")) + '</p><button type="button" class="rm-meaning-save" data-rm-name-save>' + escapeHtml(tt("contextLayer.confirm", "Подтвердить")) + '</button></div></div>' : "";
+    if (contextual) dictionaryDetails = '<details class="rm-acc rm-dictionary-reading"><summary class="rm-acc-sum">' + escapeHtml(tt("contextLayer.dictionary", "Словарный перевод; применимость здесь не подтверждена")) + '</summary>' + dictionaryDetails + '<div class="rm-actions">' + saveBtn + link + '</div></details>';
+    var conflict = contextual && occurrence.x.wrongHint ? '<p class="rm-ai-warn">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение, вероятно, не подходит")) + '</p>' : "";
+    if (!contextual) return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
+      (contextual ? '<p class="rm-dictionary-scope">' + escapeHtml(tt("contextLayer.statusScope", "Статус ниже относится к словарному чтению")) + '</p>' : "") +
+      statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
+      (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : "") + noteEditor + explainWordHtml() + refineHtml;
+
   }
 
   function contextPendingHtml(card) {
@@ -2622,7 +2660,7 @@
         var resolved = rowForSpan(span), row = resolved.row;
         var sentence = typeof opts.getSentence === "function" ? String(opts.getSentence(row) || "") :
           (row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "");
-        _activeWordCtx = { surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence,
+        _activeWordCtx = { row: row, surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence,
           orderIndex: occ && occ.order_index != null ? occ.order_index : null };   // PAS-A4 — якорь для explain-word
         if (typeof opts.onOccurrenceActive === "function") { try { opts.onOccurrenceActive(span, row, occ); } catch (_) {} }
         _cardStack = [];   // a fresh word tap starts a new drill history

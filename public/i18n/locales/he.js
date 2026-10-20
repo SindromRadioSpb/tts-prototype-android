@@ -1,6 +1,8 @@
 // Locale: Hebrew (RTL)
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.he = {
+  fieldProvenance: {"niqqud": "ניקוד", "unknown": "המקור אינו ידוע", "declared": "מיוחס בחומר", "archive": "מיוחס בארכיון", "manual": "תיקון ידני", "stale": "דורש בדיקה"},
+  contextLayer: {"shared": "תרגום משותף לשורות זהות; המופע הזה לא נבדק בנפרד", "strict": "תרגומים בהקשר בלבד", "missing": "חסר תרגום בהקשר", "dictionary": "ניתוח מילוני; ההתאמה להקשר לא אושרה", "context": "תרגום בהקשר", "coverage": "תרגום בהקשר: {covered} מתוך {total} מילים", "strictHint": "תרגומים חסרים מסומנים ב־—", "fallbackHint": "◇ — תרגום מילוני", "statusScope": "המצב למטה מתייחס לקריאה המילונית", "nameHere": "זה שם כאן", "confirmName": "לאשר שם רק במופע הזה? מצב הלמידה והחזרות לא ישתנו.", "confirm": "אישור", "sourceChanged": "השמירה נכשלה. פתחו שוב את המילה."},
   phoneDownload: {
     "title": "הורדת וידאו",
     "intro": "וידאו עם קול, ישירות ל־iPhone.",
@@ -3674,7 +3676,7 @@ window.I18N_LOCALES.he = {
       possibleParadigm: "פרדיגמה אפשרית",
       contextSuggests: "בהקשר, ייתכן",
       usage: { title: "שימוש", governs: "שולט ב־", suffix: "נטייה", position: "מיקום", collocations: "צירופים", pitfalls: "שים לב", register: "משלב", examples: "דוגמאות" },
-      prov: { owner: "נבדק על ידכם", teacher: "נבדק בידי מורה", exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", contextBaked: "הקשר (לא־מקוון, מחושב מראש)", dicta: "לפי ניתוח Dicta", unknown: "לא זוהה במצב לא־מקוון" },
+      prov: { owner: "נבדק על ידכם", teacher: "נבדק בידי מורה", exact: "הצורה תואמת למילון", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", contextBaked: "הקשר (לא־מקוון, מחושב מראש)", dicta: "לפי ניתוח Dicta", unknown: "לא זוהה במצב לא־מקוון" },
       niqqudMachine: "הניקוד ממוחשב (Dicta)",
       refine: "🎯 לדייק לפי הקשר",
       refineNote: "שולח את המשפט פעם אחת לענן Dicta כדי לבחור את המשמעות בהקשר. ניתוח מכונה, לא דובר יליד.",

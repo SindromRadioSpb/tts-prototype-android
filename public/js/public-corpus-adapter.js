@@ -64,6 +64,18 @@
     const work = normalizeWork(payload), bundle = clone(work.snapshot);
     const streamable = new Set(work.assets.filter(asset => asset.stream).map(asset => asset.asset_key));
     for (const [index, sourceText] of bundle.library.texts.entries()) {
+      if (index === 0 && payload.field_evidence && payload.field_evidence.schema === 'published-field-evidence-v1') {
+        const evidence = payload.field_evidence.rows;
+        if (Array.isArray(evidence) && evidence.length === (sourceText.rows || []).length) {
+          sourceText.rows.forEach((row, i) => {
+            const e = evidence[i];
+            if (!e || e.order_index !== i || !e.field_meta || typeof e.field_meta !== 'object') return;
+            const edit = parseMeta(row.edit_meta || row.edit_meta_json);
+            row.edit_meta = { ...edit, _studio_material: { ...(edit._studio_material || {}), schema:'material-projection-v1', imported:true,
+              field_meta: { ...e.field_meta, ...(edit._studio_material?.field_meta || {}) } } };
+          });
+        }
+      }
       const meta = parseMeta(sourceText.source_meta || sourceText.source_meta_json);
       delete meta.group_corpus;
       meta.public_corpus = {

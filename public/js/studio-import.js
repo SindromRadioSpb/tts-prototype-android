@@ -207,6 +207,8 @@
   function rowEditMetaForSave(row, audio, rowIndex) {
     var r = row || {};
     var meta = parseObject(r.edit_meta_json != null ? r.edit_meta_json : r.edit_meta);
+    var glossOrigin = r._v3_sentenceId || r.id || r.stable_row_id || r.row_id || r._lpGlossOccurrenceId;
+    if (typeof glossOrigin === "string") meta._word_gloss_origin_id = glossOrigin;
     var timingEntries = audio && audio.timing && Array.isArray(audio.timing.entries)
       ? audio.timing.entries : [];
     var entry = timingEntries.find(function (e) {
@@ -246,6 +248,7 @@
       sentenceIndex = finiteIndex(r.segment_index);
     }
     if (!sourceSegmentId && sourceLine == null && sentenceIndex == null) {
+      if (meta._word_gloss_origin_id) return JSON.stringify(meta);
       return r.edit_meta_json != null ? r.edit_meta_json : (r.edit_meta != null ? r.edit_meta : null);
     }
     meta._studio_source = captionSegmentId || sourceSegmentIds.length ? {

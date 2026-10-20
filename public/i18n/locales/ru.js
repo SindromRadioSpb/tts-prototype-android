@@ -1,6 +1,8 @@
 // Locale: Russian (default)
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.ru = {
+  fieldProvenance: {"niqqud": "Огласовка", "unknown": "источник неизвестен", "declared": "указан в материале", "archive": "указан в архиве", "manual": "ручная правка", "stale": "требует перепроверки"},
+  contextLayer: {"shared": "Перевод из общего слоя одинаковых строк; отдельный контекст не подтверждён", "strict": "Только контекстный перевод", "missing": "Контекстный перевод отсутствует", "dictionary": "Словарный разбор; применимость здесь не подтверждена", "context": "Перевод в контексте", "coverage": "Контекстный перевод: {covered} из {total} слов", "strictHint": "Пропуски показаны знаком —", "fallbackHint": "◇ — словарный перевод", "statusScope": "Статус ниже относится к словарному чтению", "nameHere": "Это имя здесь", "confirmName": "Подтвердить имя только в этом месте? Статусы знания и повторы не изменятся.", "confirm": "Подтвердить", "sourceChanged": "Не удалось сохранить. Откройте слово заново."},
   phoneDownload: {
     "title": "Скачать видео",
     "intro": "Видео со звуком — прямо на iPhone.",
@@ -3678,7 +3680,7 @@ window.I18N_LOCALES.ru = {
       possibleParadigm: "возможная парадигма",
       contextSuggests: "по контексту, возможно",
       usage: { title: "Употребление", governs: "управляет", suffix: "склонение", position: "позиция", collocations: "сочетания", pitfalls: "осторожно", register: "регистр", examples: "Примеры" },
-      prov: { owner: "проверено вами", teacher: "проверено преподавателем", exact: "точно", likely: "вероятно", guessed: "подобрано", "function": "служебное слово", context: "контекст (Dicta)", contextBaked: "контекст (офлайн, предвыч.)", dicta: "по разбору Dicta", unknown: "не определено офлайн" },
+      prov: { owner: "проверено вами", teacher: "проверено преподавателем", exact: "форма совпадает со словарём", likely: "вероятно", guessed: "подобрано", "function": "служебное слово", context: "контекст (Dicta)", contextBaked: "контекст (офлайн, предвыч.)", dicta: "по разбору Dicta", unknown: "не определено офлайн" },
       niqqudMachine: "огласовка — машинная (Dicta)",
       refine: "🎯 Уточнить в контексте",
       refineNote: "Разово отправит это предложение в облако Dicta, чтобы выбрать значение по контексту. Машинный разбор, не носитель.",

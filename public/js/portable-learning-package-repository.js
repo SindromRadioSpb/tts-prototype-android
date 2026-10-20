@@ -195,7 +195,9 @@
       if (layer && AI && typeof AI.remember === 'function') {
         try {
           const table = (verified.payload.table_revisions || []).find((item) => item.portable_table_revision_id === verified.manifest.roots.table_revision);
-          result.word_gloss_ai = await AI.remember(layer, ((table && table.rows) || []).map((row, index) => ({ ...row, order_index: index })));
+          const tid = result.receipt && result.receipt.id_map && result.receipt.id_map.text && result.receipt.id_map.text.local_id;
+          const localRows = tid ? await q('SELECT * FROM sentences WHERE text_id=? ORDER BY order_index', [tid]) : [];
+          result.word_gloss_ai = await AI.remember(layer, localRows.length ? localRows : ((table && table.rows) || []).map((row, index) => ({ ...row, order_index: index })));
         } catch (error) { result.word_gloss_ai = { stored: 0, rejected: (layer.rows || []).length, error: String(error && (error.code || error.message) || 'ERROR') }; }
       }
       return result;
@@ -370,9 +372,9 @@
           const edited = {};
           for (const [field, meta] of Object.entries(row.field_meta || {})) if (meta && meta.authority === 'user' && meta.locked) edited[field] = true;
           const sentenceId=rowIds[row.portable_row_id];wantedIds.add(sentenceId);
-          if(priorIds.has(sentenceId))await r(`UPDATE sentences SET order_index=?,he_plain=?,he_niqqud=?,translit=?,translit_ru=?,ru=?,edit_meta_json=?,translation_provider=NULL,translation_meta_json=NULL WHERE id=? AND text_id=?`,[Number(row.order_index),row.he_plain,row.he_niqqud,row.translit,row.translit_ru,row.ru,json({edited,_studio_material:{schema:'material-projection-v1',material_id:materialId,table_revision_id:selectedTableId,field_meta:row.field_meta||{}}}),sentenceId,effectiveTextId]);
+          if(priorIds.has(sentenceId))await r(`UPDATE sentences SET order_index=?,he_plain=?,he_niqqud=?,translit=?,translit_ru=?,ru=?,edit_meta_json=?,translation_provider=NULL,translation_meta_json=NULL WHERE id=? AND text_id=?`,[Number(row.order_index),row.he_plain,row.he_niqqud,row.translit,row.translit_ru,row.ru,json({edited,_studio_material:{schema:'material-projection-v1',imported:true,material_id:materialId,table_revision_id:selectedTableId,field_meta:row.field_meta||{}}}),sentenceId,effectiveTextId]);
           else await r(`INSERT INTO sentences(id,text_id,order_index,he_plain,he_niqqud,translit,translit_ru,ru,meta_json,edit_meta_json,translation_provider,translation_meta_json,created_at)
-            VALUES(?,?,?,?,?,?,?,?,NULL,?,?,NULL,?)`, [sentenceId, effectiveTextId, Number(row.order_index), row.he_plain, row.he_niqqud, row.translit, row.translit_ru, row.ru, json({ edited, _studio_material: { schema: 'material-projection-v1', material_id: materialId, table_revision_id: selectedTableId, field_meta: row.field_meta || {} } }), null, ts]);
+            VALUES(?,?,?,?,?,?,?,?,NULL,?,?,NULL,?)`, [sentenceId, effectiveTextId, Number(row.order_index), row.he_plain, row.he_niqqud, row.translit, row.translit_ru, row.ru, json({ edited, _studio_material: { schema: 'material-projection-v1', imported: true, material_id: materialId, table_revision_id: selectedTableId, field_meta: row.field_meta || {} } }), null, ts]);
         }
         for(const old of priorProjection)if(!wantedIds.has(String(old.id)))await r('DELETE FROM sentences WHERE id=? AND text_id=?',[old.id,effectiveTextId]);
         await r('UPDATE texts SET is_archived=0,updated_at=? WHERE id=?', [ts, effectiveTextId]);

@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=781">
+    <link rel="modulepreload" href="/db/local-db.js?v=800">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11054,7 +11054,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Общие стили морф-карточки ReaderMorph + палитра статусов слов (одна реализация с Залом,
      форк запрещён). После инлайн-<style>: при равной специфичности выигрывает карточный файл. -->
-<link rel="stylesheet" href="/css/reader-morph.css?v=769">
+<link rel="stylesheet" href="/css/reader-morph.css?v=800">
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
 <script>
@@ -11103,7 +11103,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=781';
+  import * as _ldb from '/db/local-db.js?v=800';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -12276,6 +12276,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                         <input type="checkbox" id="studioWordGlossAiToggle">
                                         <span data-i18n="room.wordGlossAi.toggle">Перевод слов ИИ (Gemini)</span>
                                     </label>
+                                    <label class="reader-aids-status"><input type="checkbox" id="studioWordGlossStrictToggle"><span data-i18n="contextLayer.strict">Только контекстный перевод</span></label>
                                     <button type="button" id="studioWordGlossAiAll" class="btn-mini-secondary" data-i18n="room.wordGlossAi.all">Перевести все слова текста (ИИ)</button>
                                     <span class="table-settings-note" data-i18n="room.wordGloss.note">Перевод под словом и лента слов звучащей строки; ≈ — вероятно, без подписи — нет данных.</span>
                                 </div>
@@ -13714,9 +13715,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=799"></script>
-<script src="/i18n/locales/en.js?v=799"></script>
-<script src="/i18n/locales/he.js?v=799"></script>
+<script src="/i18n/locales/ru.js?v=800"></script>
+<script src="/i18n/locales/en.js?v=800"></script>
+<script src="/i18n/locales/he.js?v=800"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13795,11 +13796,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/dicta-lexicon.js?v=769"></script>
 <script src="/js/dicta-enrich.js?v=781"></script>
 <script src="/js/dicta-autoparse-offer.js?v=781"></script>
-<script src="/js/reader-morph.js?v=782"></script>
+<script src="/js/learning-field-provenance.js?v=800"></script>
+<script src="/js/reader-morph.js?v=800"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
-<script src="/js/word-gloss.js?v=798"></script>
+<script src="/js/word-gloss.js?v=800"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
-<script src="/js/word-gloss-ai.js?v=747"></script>
+<script src="/js/word-gloss-ai.js?v=800"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13865,7 +13867,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
 <script src="/js/room-media-attach.js?v=796"></script>
-<script src="/js/study-video-source-ui.js?v=796"></script>
+<script src="/js/study-video-source-ui.js?v=800"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=797"></script>
@@ -13877,7 +13879,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/text-key-scan.js?v=777"></script>
 <script src="/js/local-text-familiarity.js?v=774"></script>
 <script src="/js/studio-library-discovery.js?v=780"></script>
-<script src="/js/portable-learning-package-repository.js?v=784"></script>
+<script src="/js/portable-learning-package-repository.js?v=800"></script>
 <script src="/js/material-open.js?v=734"></script>
 <script src="/js/benyehuda-learning-niqqud.js?v=734"></script>
 <script src="/js/benyehuda-learning-niqqud-manifest.js?v=734"></script>
@@ -13914,12 +13916,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
 <script src="/js/public-word-audio.js?v=453"></script>
 <script src="/js/corpus-place-parse.js?v=785"></script>
-<script src="/js/morph-host.js?v=782"></script>
+<script src="/js/morph-host.js?v=800"></script>
 <!-- Exact owner morphology decisions are shared with Reading Room. Load the
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
 <script src="/js/lexical-resolution-service.js?v=6"></script>
-<script src="/js/studio-morph.js?v=5"></script>
+<script src="/js/studio-morph.js?v=800"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -13938,7 +13940,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import-resume.js?v=789" defer></script>
-<script src="/js/studio-import.js?v=797" defer></script>
+<script src="/js/studio-import.js?v=800" defer></script>
 <script src="/js/iphone-downloader-core.js?v=1" defer></script>
 <script src="/js/iphone-downloader-entry.js?v=1" defer></script>
 
@@ -13980,7 +13982,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.799";
+    window.APP_VERSION = "3.11.800";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -18225,7 +18227,7 @@ function v3NotesRefreshAllButtons() {
     // Слой слов Ф1 — тумблеры подстрочника и ленты (WordGloss; первое чтение наследует значение Зала).
     (function initStudioWordLayerToggles() {
         if (!window.WordGloss || !window.StudioMorph) return;
-        [["studioWordGlossToggle", "Gloss"], ["studioWordRibbonToggle", "Ribbon"], ["studioWordGlossAiToggle", "GlossAi"]].forEach(function (p) {
+        [["studioWordGlossToggle", "Gloss"], ["studioWordRibbonToggle", "Ribbon"], ["studioWordGlossAiToggle", "GlossAi"], ["studioWordGlossStrictToggle", "GlossStrict"]].forEach(function (p) {
             const cb = document.getElementById(p[0]);
             if (!cb) return;
             cb.checked = window.WordGloss.enabled("studio", p[1]);
@@ -23265,6 +23267,7 @@ updatePlaylistButtonUI();
             translit_ru: String(r.translit_ru ?? ""),
             ru: String(r.ru ?? ""),
             edit_meta_json: r.edit_meta_json ?? null,
+    meta_json: r.meta_json ?? null,
             translation_provider: r.translation_provider ?? r.translationProvider ?? null,
             translation_meta_json: r.translation_meta_json ?? r.translationMetaJson ?? null,
             _v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),

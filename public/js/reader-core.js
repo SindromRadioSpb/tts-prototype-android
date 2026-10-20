@@ -154,6 +154,7 @@ export function mapSentenceRowToUiRow(r, textId) {
     translit_ru: String(r.translit_ru ?? ""),
     ru: String(r.ru ?? ""),
     edit_meta_json: r.edit_meta_json ?? null,
+    meta_json: r.meta_json ?? null,
     // MADLAD provenance sync (index.html v3MapSentenceApiRowToUiRow добавил эти поля в
     // 473773c8 БЕЗ зеркала здесь — parity-гейт был красным; поля аддитивные, null у строк
     // без локального перевода).
@@ -571,7 +572,7 @@ export function buildBilingualTableHtml(rows, config) {
         ? ' data-niqqud-authority="learning" title="' + escapeHtml(t("room.reader.niqqudLayer.cellExplanation")) +
           (uncertainNiqqud ? ' ' + escapeHtml(niqqudReviewHint) : '') + '"'
         : machineNiqqud
-        ? ' data-niqqud-authority="derived" title="' + escapeHtml(t("room.nakdan.derivedCell")) + ' · ' + escapeHtml(row.niqqud_provenance || "DICTA_NAKDAN") + '"'
+        ? ' data-niqqud-authority="derived" title="' + escapeHtml(t("room.nakdan.derivedCell")) + ' · ' + escapeHtml(globalThis.LearningFieldProvenance?.label(row, "he_niqqud", t) || t("fieldProvenance.unknown")) + '"'
         : "";
       const derivedBadge = uncertainNiqqud ? '<span class="niqqud-derived-badge" title="' + escapeHtml(niqqudReviewHint) + '">⁕</span>'
         : machineNiqqud && !studyNiqqud ? '<span class="niqqud-derived-badge" aria-label="' + escapeHtml(t("room.nakdan.derivedCell")) + '">⁕</span>' : "";
