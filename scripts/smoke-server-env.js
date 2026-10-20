@@ -43,4 +43,21 @@ function waitForSmokeServer(child, timeoutMs = 15000) {
     child.once("error", failed);
   });
 }
-module.exports = { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer };
+// Listening/liveness can precede asynchronous SQLite open and migrations. A
+// stateful API smoke must wait for these advertised readiness signals as well.
+async function waitForSmokeHealth(baseUrl, options = {}) {
+  const timeoutMs = options.timeoutMs || 15000;
+  const pollMs = options.pollMs == null ? 250 : options.pollMs;
+  const fetchHealth = options.fetchImpl || fetch;
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetchHealth(`${baseUrl}/healthz`);
+      const health = response.ok && await response.json();
+      if (health && health.ok && health.db && health.db.ready && health.migrations && health.migrations.ready) return;
+    } catch (_) {}
+    await new Promise(resolve => setTimeout(resolve, pollMs));
+  }
+  throw new Error(`Smoke server database and migrations did not become ready within ${timeoutMs} ms`);
+}
+module.exports = { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer, waitForSmokeHealth };

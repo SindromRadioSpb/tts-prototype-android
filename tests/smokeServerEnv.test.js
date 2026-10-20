@@ -2,8 +2,28 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
-const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("../scripts/smoke-server-env");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer, waitForSmokeHealth } = require("../scripts/smoke-server-env");
 const vm = require("node:vm");
+
+test('HTTP liveness cannot release a stateful smoke before DB and migrations are ready', async () => {
+  const states = [
+    {ok:true,db:{ready:false},migrations:{ready:false}},
+    {ok:true,db:{ready:true},migrations:{ready:false}},
+    {ok:true,db:{ready:true},migrations:{ready:true}}
+  ];
+  let calls=0;
+  await waitForSmokeHealth('http://fixture', {pollMs:0,fetchImpl:async url=>{
+    assert.equal(url,'http://fixture/healthz');
+    return {ok:true,json:async()=>states[calls++]};
+  }});
+  assert.equal(calls,3);
+});
+
+test('missing readiness fails the smoke within a bounded wait', async () => {
+  await assert.rejects(waitForSmokeHealth('http://fixture', {timeoutMs:20,pollMs:1,
+    fetchImpl:async()=>({ok:true,json:async()=>({ok:true,db:{ready:false}})})
+  }), /database and migrations did not become ready/);
+});
 
 test("smoke server isolates all storage and drops inherited credentials and background flags", () => {
   const root = path.resolve("disposable-smoke");
