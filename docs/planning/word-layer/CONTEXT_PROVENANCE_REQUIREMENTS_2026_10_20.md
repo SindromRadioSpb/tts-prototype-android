@@ -1,6 +1,6 @@
 # Контекстный слой: источник, вхождение и морфология
 
-Статус: утверждено владельцем 2026-10-20; реализация начата.
+Статус: утверждено владельцем 2026-10-20; реализовано и проверено на production 3.11.800, `32204e7c`.
 База: origin/main 030f2437 (3.11.799). Ветка: fix/context-learning-provenance.
 Основание: [аудит Хаммама](../../research/hamam-context/2026-10-20/AUDIT.md), O-108–O-110.
 Объём: утверждённый вариант Б. Генерация нового ИИ-морфологического слоя (вариант В) не входит.
@@ -33,7 +33,7 @@
 2. [x] CP-3/CP-6: привязка gloss к вхождениям, совместимость старого кэша и архивов.
 3. [x] CP-4/CP-5: покрытие, обозначенный fallback/строгий режим, согласованная карта и подтверждённые решения.
 4. [x] Релевантные automated gates; локальный Chromium Studio/Room/ZIP/карта на desktop, 380 px, RTL.
-5. [ ] Предрелизный capacity/health preflight; release contract; production version/hash/health convergence и исходный owner-сценарий без изменения review_log.
+5. [x] Предрелизный capacity/health preflight; release contract; production version/hash/health convergence и исходный owner-сценарий без изменения review_log. [Приёмка](../../research/hamam-context/2026-10-20/PRODUCTION_ACCEPTANCE.md).
 
 ## Контрольный материал
 
