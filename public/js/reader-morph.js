@@ -2381,8 +2381,10 @@
     if (card.meaning && !card.meaningSource && window.WordGloss && window.WordGloss.composeGloss) {
       var fg = null; try { fg = window.WordGloss.composeGloss(card, card.niqqud); } catch (_) { fg = null; }
       if (fg && fg.form) {
-        formLine = '<div class="rm-form-line" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.formInText", "в тексте")) + ":</span> " +
-          escapeHtml(fg.text) + "</div>";
+        formLine = '<div class="rm-reading-group rm-form-line" dir="' + uiDir() + '">' +
+          '<div class="rm-reading-heading"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.formInText", "в тексте")) + ':</span> ' +
+          '<bdi class="rm-reading-he" dir="rtl" lang="he">' + escapeHtml(card.niqqud || card.word) + '</bdi></div>' +
+          '<div class="rm-form-meaning" dir="ltr">' + escapeHtml(fg.text) + "</div></div>";
       }
     }
     var aiLine = aiOccurrenceHtml();
@@ -2496,9 +2498,12 @@
       : "";
     var reviewed = card.meaningSource === "owner" || card.meaningSource === "teacher" || card.channel === "owner-name";
     var scopedProvenance = '<div class="rm-analysis-source" dir="' + uiDir() + '">' +
-      escapeHtml([card.lemma || card.word, posText(card.pos)].filter(Boolean).join(' · ')) + '<br>' +
       escapeHtml(tt("analysis.source", "Источник разбора") + ': ' + tt(label[0],label[1])) + '</div>';
-    var dictionaryDetails = scopedProvenance + meaning + formLine + meaningEditor + (_activeOcc ? '' : altLine) + ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + fam + conj;
+    var lemmaMeaning = '<div class="rm-reading-group rm-dictionary-lemma" dir="' + uiDir() + '">' +
+      '<div class="rm-reading-heading"><bdi class="rm-reading-he" dir="rtl" lang="he">' + escapeHtml(card.lemma || card.word) + '</bdi>' +
+      (card.pos ? ' <span class="rm-reading-pos">· ' + escapeHtml(posText(card.pos)) + '</span>' : '') + '</div>' +
+      meaning + meaningEditor + '</div>';
+    var dictionaryDetails = scopedProvenance + lemmaMeaning + formLine + (_activeOcc ? '' : altLine) + ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + fam + conj;
     var occurrence = aiOccurrence();
     var contextual = !!(occurrence && !reviewed);
     var nameAction = contextual && ! _attachOpts.confirmOccurrenceAnalysis && _activeOcc && _activeOcc.sentence_id && typeof _attachOpts.confirmOccurrenceName === "function"

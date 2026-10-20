@@ -247,7 +247,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁנָה</td></tr></tbody></table>';
       document.body.appendChild(mount);
       const rows = [{ he: "שנה", he_niqqud: "שָׁנָה" }];
-      window.ReaderMorph.attach(mount, { getRow: (i) => rows[i] });
+      // The legend belongs to a standalone dictionary reading; occurrence cards
+      // deliberately move their provenance into the dictionary section.
+      window.ReaderMorph.attach(mount, { getRow: (i) => rows[i], buildOccurrence: () => null });
     });
     await pg.locator('#rm-amb td[data-col="he"] .rm-w').first().click();
     await pg.waitForSelector(".rm-sheet.rm-open", { timeout: 10000 });
