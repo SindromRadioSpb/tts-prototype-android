@@ -589,17 +589,39 @@
       if (options.fingerprint && options.fingerprint !== fingerprint) throw new Error("LEXICAL_CANDIDATES_CHANGED");
       var chosen = candidates.find(function (c) { return c.pealim_id === String(selection.pealim_id || ""); });
       var action = selection.clear ? "clear" : selection.name ? "manual_correction" : "confirm_candidate";
-      if (action === "confirm_candidate" && !chosen) throw new Error("LEXICAL_CANDIDATE_MISSING");
+      if (action === "confirm_candidate" && !chosen && !selection.undo) throw new Error("LEXICAL_CANDIDATE_MISSING");
       if (selection.name) chosen = {lemma:RM.stripNiqqud(unit.surface),lp_pos:"propernoun",root:"",binyan:"",pealim_id:"",meaning_ru:String(selection.meaning||"").slice(0,120)};
+      var occurrenceId = "lpro:"+exact.text_id+":"+exact.sentence_id+":"+off;
+      var readEvents = async function () {
+        if (typeof ldb.listLexicalResolutionEventsForOccurrence === 'function') return ldb.listLexicalResolutionEventsForOccurrence(occurrenceId);
+        if (typeof ldb.listLexicalResolutionEventsForText === 'function') return ldb.listLexicalResolutionEventsForText(exact.text_id);
+        throw new Error('LEXICAL_UNDO_UNAVAILABLE');
+      };
+      var priorEvents = typeof ldb.listLexicalResolutionEventsForOccurrence === 'function' || typeof ldb.listLexicalResolutionEventsForText === 'function' ? await readEvents() : [];
+      var latestKnown = Core.latest(priorEvents, occurrenceId);
+      if (selection.undo) {
+        var events = priorEvents, latest = latestKnown;
+        if (!latest || latest.id !== selection.undo || latest.actor_kind !== 'owner') throw new Error('LEXICAL_DECISION_CHANGED');
+        var Service = window.LexicalResolutionService;
+        if (!Service) throw new Error('LEXICAL_UNDO_UNAVAILABLE');
+        var currentProjection = await Service.projectExactOccurrence(exact, events, Core, candidates);
+        if (!currentProjection || currentProjection.state !== 'resolved') throw new Error('LEXICAL_SOURCE_CHANGED');
+        var previous = await Service.projectExactOccurrence(exact, events.filter(function (e) { return e.id !== latest.id; }), Core, candidates);
+        action = previous && previous.state === 'resolved' ? 'manual_correction' : 'clear';
+        chosen = previous && previous.state === 'resolved' ? previous.analysis : null;
+      }
+      var sourceAnchor = await Core.sourceAnchor(exact);
       var fresh = (await ldb.dbQuery("SELECT he_plain,he_niqqud FROM sentences WHERE id=?",[String(row.id)]))[0];
       if (!fresh || fresh.he_plain !== row.he_plain || fresh.he_niqqud !== row.he_niqqud ||
           (typeof options.isCurrent === "function" && !options.isCurrent())) throw new Error("LEXICAL_SOURCE_CHANGED");
-      var event = {id:crypto.randomUUID(),occurrence_id:"lpro:"+exact.text_id+":"+exact.sentence_id+":"+off,
+      if (selection.undo && Core.latest(await readEvents(), occurrenceId).id !== selection.undo) throw new Error('LEXICAL_DECISION_CHANGED');
+      var event = {id:crypto.randomUUID(),occurrence_id:occurrenceId,
         text_id:exact.text_id,sentence_id:exact.sentence_id,text_key:exact.text_key,order_index:exact.order_index,word_offset:off,
-        surface_norm:RM.stripNiqqud(unit.surface),source_anchor:await Core.sourceAnchor(exact),
+        surface_norm:RM.stripNiqqud(unit.surface),source_anchor:sourceAnchor,
         candidate_fingerprint:fingerprint,action:action,actor_kind:"owner",
         chosen_analysis:chosen || {},
-        created_at:new Date().toISOString()};
+        supersedes_id:selection.undo || '',created_at:new Date(Math.max(Date.now(), latestKnown ? Date.parse(latestKnown.created_at) + 1 : 0)).toISOString()};
+      if (typeof options.isCurrent === 'function' && !options.isCurrent()) throw new Error('LEXICAL_SOURCE_CHANGED');
       await ldb.appendLexicalResolutionEvent(event);
       RM.invalidatePlaces([String(row.id)]);
       // A new exact reading makes a previously negative source search obsolete.
@@ -612,7 +634,7 @@
         } catch (_) {}
       }
       invalidateWordStates(); onProfileChanged();
-      return {state:selection.clear?"unresolved":"resolved",analysis:event.chosen_analysis,event_id:event.id,actor_kind:"owner"};
+      return {state:action === 'clear'?"unresolved":"resolved",analysis:event.chosen_analysis,event_id:event.id,actor_kind:"owner"};
     }
     // ── Ручная метка (P5.6 R-2a) — сеет FSRS oracle-clean (library-ui.js:5242) ─
     async function markWordStatus(lemmaKey, status, source) {

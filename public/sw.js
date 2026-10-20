@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.804";
+const CACHE_VERSION = "v3.11.805";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -158,7 +158,7 @@ const PRECACHE_URLS = [
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=802",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=804",
+  "/css/reader-morph.css?v=805",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -207,13 +207,13 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=804",
+  "/js/reader-morph.js?v=805",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=802",
   "/js/word-gloss-ai.js?v=802",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
-  "/js/morph-host.js?v=804",
+  "/js/morph-host.js?v=805",
   "/js/studio-morph.js?v=804",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
@@ -350,9 +350,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=804",
-  "/i18n/locales/en.js?v=804",
-  "/i18n/locales/he.js?v=804",
+  "/i18n/locales/ru.js?v=805",
+  "/i18n/locales/en.js?v=805",
+  "/i18n/locales/he.js?v=805",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

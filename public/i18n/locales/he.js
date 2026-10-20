@@ -5605,22 +5605,30 @@ window.I18N_LOCALES.he.room.reader.niqqudLayer = {
 
 window.I18N_LOCALES.he.analysis = {
   "statusFor": "מצב הידע שלי עבור",
-  "chooseBeforeStatus": "יש לבחור את המשמעות במשפט לפני סימון רמת הידע",
+  "chooseBeforeStatus": "בחרו ניתוח למשפט הזה לפני סימון רמת ההיכרות",
   "previousMark": "סימון שנשמר קודם לניתוח הזה",
-  "variants": "משמעויות אפשריות",
+  "variants": "אפשרויות ניתוח",
   "noMeaning": "לא צוינה משמעות",
-  "refine": "בירור המשמעות כאן",
+  "refine": "תיקון הניתוח במשפט הזה",
   "properName": "שם פרטי",
-  "confirmed": "הבחירה נשמרה למופע הזה",
-  "choose": "בחרו את המשמעות במשפט הזה",
+  "confirmed": "הניתוח נשמר למשפט הזה",
+  "choose": "בחרו ניתוח למשפט הזה",
   "optional": "אפשר לברר את המופע הזה לפי הצורך",
-  "useHere": "להשתמש כאן",
+  "useHere": "שמירת הניתוח למשפט הזה",
   "clear": "ביטול הבחירה שלי",
   "preview": "תצוגה מקדימה של הבחירה",
   "changed": "לא ניתן לשמור את הבחירה. פתחו שוב את המילה ובדקו את האפשרויות העדכניות.",
-  "source": "מקור הניתוח"
+  "source": "מקור הניתוח",
+  "single": "הניתוח שנמצא",
+  "lemma": "צורת המילון",
+  "current": "הניתוח במשפט הזה",
+  "nameHere": "זהו שם פרטי במשפט הזה",
+  "nameSaved": "סומן כשם פרטי במשפט הזה",
+  "undo": "ביטול",
+  "name": "שם"
 };
 
+window.I18N_LOCALES.he.analysis.saveFailed = "השמירה נכשלה. נסו שוב.";
 window.I18N_LOCALES.he.analysis.stale = "הבחירה השמורה אינה עדכנית: הטקסט או האפשרויות השתנו. יש לבדוק שוב את המשמעות.";
 
 window.I18N_LOCALES.he.analysis.missingMeaning = "לא צוינה משמעות לניתוח הזה.";

@@ -724,7 +724,12 @@
     return String(s || "").normalize("NFD").replace(/ו\u05b9/g, "\u05b9")
       .replace(/[\u0591-\u05af\u05bc\u05bd\u05bf]/g, "").replace(/[־-]$/g, "");
   }
-  function analysisCandidates(eng, surface, niqqud) {
+  function wordGlossApi() {
+    if (typeof window !== 'undefined' && window.WordGloss) return window.WordGloss;
+    try { if (typeof module !== 'undefined' && module.exports) return require('./word-gloss.js'); } catch (_) {}
+    return null;
+  }
+  function analysisCandidates(eng, surface, niqqud, bareOnly) {
     if (!eng || !eng.pidMap) return [];
     if (!eng._analysisIndex) {
       var index = new Map();
@@ -760,6 +765,18 @@
       if (vocal && eng._analysisForms.get(pid).indexOf(form) < 0) return;
       out.push({ pealim_id:pid,lemma:p.lemma || '',lp_pos:p.pos || '',meaning_ru:p.meaning || '',root:p.root || '',binyan:p.binyan || '' });
     });
+    // Whole-word evidence wins. Only a missing whole reading may reuse the
+    // existing vocalized proclitic splits and the form gloss's grammatical guard.
+    // Candidate production must be identical in the card, host and place loader.
+    if (!out.length && vocal && !bareOnly) {
+      var WG = wordGlossApi(), splits = _procliticSplits(niqqud);
+      for (var i = 0; WG && WG.matchCell && i < splits.length && !out.length; i++) {
+        out = analysisCandidates(eng, stripNiqqud(splits[i].rest), splits[i].rest, true).filter(function (a) {
+          var hit = WG.matchCell(eng.pidMap.get(a.pealim_id), niqqud);
+          return hit && !hit.impossible && hit.prefix === splits[i].prefix;
+        });
+      }
+    }
     return out.sort(function (a,b) { return a.pealim_id.localeCompare(b.pealim_id); });
   }
   function withAnalysisCandidates(eng, card, surface, niqqud) {
@@ -1861,6 +1878,8 @@
       }
       var candidateBtn = t && t.closest ? t.closest("[data-rm-candidate]") : null;
       if (candidateBtn) { previewAnalysis(candidateBtn); return; }
+      if (t && t.closest && t.closest('[data-rm-analysis-name]')) { saveAnalysis(false, 'name'); return; }
+      if (t && t.closest && t.closest('[data-rm-analysis-undo]')) { saveAnalysis(false, 'undo'); return; }
       if (t && t.closest && t.closest("[data-rm-analysis-save]")) { saveAnalysis(false); return; }
       if (t && t.closest && t.closest("[data-rm-analysis-clear]")) { saveAnalysis(true); return; }
       if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
@@ -1954,49 +1973,55 @@
     if (!_activeOcc || !_activeOcc.sentence_id || typeof _attachOpts.confirmOccurrenceAnalysis !== "function") return "";
     var candidates = card.analysisCandidates || [];
     var reviewed = card.meaningSource === "owner" || card.meaningSource === "teacher";
-    var html = '<section class="rm-analysis-choices" dir="' + uiDir() + '"><h3>' + escapeHtml(tt("analysis.variants", "Варианты значения")) + '</h3>';
+    var html = '<details class="rm-analysis-choices" dir="' + uiDir() + '"' + (card.selectionRequired || card.resolutionState === 'stale' ? ' open' : '') + '><summary>' + escapeHtml(tt('analysis.refine', 'Исправить разбор в этой строке')) + '</summary><div class="rm-analysis-editor">';
     if (card.resolutionState === 'stale') html += '<p class="rm-analysis-notice">' + escapeHtml(tt("analysis.stale", "Сохранённый выбор устарел: текст или варианты изменились. Проверьте значение снова.")) + '</p>';
-    html += '<div class="rm-analysis-options" role="group" aria-label="' + escapeHtml(tt("analysis.variants", "Варианты значения")) + '">';
+    if (candidates.length) html += '<h3>' + escapeHtml(candidates.length > 1 ? tt('analysis.variants', 'Варианты разбора') : tt('analysis.single', 'Найденный разбор')) + '</h3>';
+    if (candidates.length) html += '<div class="rm-analysis-options" role="group" aria-label="' + escapeHtml(tt("analysis.variants", "Варианты разбора")) + '">';
     candidates.forEach(function (a) {
       var selected = reviewed && a.pealim_id === String(card.pealim_id || "");
+      var p = _eng && _eng.pidMap.get(a.pealim_id), WG = wordGlossApi(), fg = null;
+      if (WG && p) try { fg = WG.composeGloss({word:card.word,niqqud:card.niqqud,paradigm:p,meaning:a.meaning_ru,pos:a.lp_pos,label:'exact'}, card.niqqud); } catch (_) {}
+      var matched = WG && p && WG.matchCell(p, card.niqqud), grammar = matched && !matched.impossible ? WG.slotsHint(matched.slots) : '';
       html += '<div class="rm-analysis-option"><button type="button" data-rm-candidate="' + escapeHtml(a.pealim_id) + '" aria-pressed="' + selected + '">' +
-        '<span lang="he" dir="rtl">' + escapeHtml(a.lemma) + '</span> · ' + escapeHtml(a.meaning_ru || tt("analysis.noMeaning", "значение не указано")) +
-        ' · ' + escapeHtml(posText(a.lp_pos)) + '</button><a target="_blank" rel="noopener noreferrer" href="https://www.pealim.com/ru/dict/' + encodeURIComponent(a.pealim_id) + '/">Pealim ↗</a></div>';
+        '<span class="rm-candidate-form"><bdi lang="he" dir="rtl">' + escapeHtml(card.niqqud || card.word) + '</bdi>' + (fg && fg.form ? ' — ' + escapeHtml(fg.text) : '') + '</span>' +
+        (grammar && (!fg || fg.text.indexOf(grammar) < 0) ? '<span class="rm-candidate-grammar">' + escapeHtml(grammar) + '</span>' : '') +
+        '<span class="rm-candidate-lemma">' + escapeHtml(tt('analysis.lemma', 'Словарная форма')) + ': <bdi lang="he" dir="rtl">' + escapeHtml(a.lemma) + '</bdi> — ' + escapeHtml(a.meaning_ru || tt("analysis.noMeaning", "значение не указано")) +
+        ' · ' + escapeHtml(posText(a.lp_pos)) + '</span></button><a target="_blank" rel="noopener noreferrer" href="https://www.pealim.com/ru/dict/' + encodeURIComponent(a.pealim_id) + '/">Pealim ↗</a></div>';
     });
-    html += '</div><details class="rm-analysis-correction"><summary>' + escapeHtml(tt("analysis.refine", "Уточнить значение здесь")) + '</summary>' +
-      '<button type="button" data-rm-candidate="name" aria-pressed="' + (reviewed && card.pos === 'propernoun') + '">' + escapeHtml(tt("analysis.properName", "Имя собственное")) + '</button></details>';
-    html += '<p data-rm-analysis-preview role="status">' + escapeHtml(reviewed ? tt("analysis.confirmed", "Выбор сохранён для этого места") :
-      card.selectionRequired ? tt("analysis.choose", "Выберите значение для этой строки") : tt("analysis.optional", "При необходимости уточните чтение для этого места")) + '</p>' +
-      '<button type="button" class="rm-analysis-save" data-rm-analysis-save disabled>' + escapeHtml(tt("analysis.useHere", "Использовать здесь")) + '</button>';
+    if (candidates.length) html += '</div>';
+    html += '<p data-rm-analysis-preview role="status">' + escapeHtml(card.selectionRequired ? tt('analysis.choose', 'Выберите разбор для этой строки') : '') + '</p>' +
+      '<button type="button" class="rm-analysis-save" data-rm-analysis-save hidden disabled>' + escapeHtml(tt('analysis.useHere', 'Сохранить разбор для этой строки')) + '</button>';
+    if (!(reviewed && card.pos === 'propernoun')) html += '<div class="rm-analysis-correction"><button type="button" data-rm-analysis-name>' + escapeHtml(tt('analysis.nameHere', 'Здесь это имя собственное')) + '</button></div>';
     if (reviewed) html += '<button type="button" data-rm-analysis-clear>' + escapeHtml(tt("analysis.clear", "Сбросить мой выбор")) + '</button>';
-    return html + '</section>';
+    return html + '</div></details>';
   }
   function previewAnalysis(button) {
     if (!_activeCard || !_sheet) return;
     _sheet.querySelectorAll('[data-rm-candidate]').forEach(function (b) { b.setAttribute('aria-pressed', b === button ? 'true' : 'false'); });
     var save = _sheet.querySelector('[data-rm-analysis-save]');
-    if (save) { save.disabled = false; save.dataset.choice = button.getAttribute('data-rm-candidate'); }
+    if (save) { save.hidden = false; save.disabled = false; save.dataset.choice = button.getAttribute('data-rm-candidate'); }
     var preview = _sheet.querySelector('[data-rm-analysis-preview]');
-    if (preview) preview.textContent = tt("analysis.preview", "Предварительный выбор") + ': ' + button.textContent.trim();
+    if (preview) preview.textContent = tt("analysis.preview", "Предварительный выбор") + ': ' + (button.innerText || button.textContent).trim();
   }
   var analysisWrites = new WeakSet();
-  async function saveAnalysis(clear) {
+  async function saveAnalysis(clear, directChoice) {
     var card = _activeCard, occ = _activeOcc, span = _activeSpan, host = _attachOpts;
     if (!card || !occ || analysisWrites.has(card) || typeof host.confirmOccurrenceAnalysis !== "function") return;
-    var save = _sheet.querySelector('[data-rm-analysis-save]'), choice = save && save.dataset.choice;
+    var save = _sheet.querySelector('[data-rm-analysis-save]'), choice = directChoice || (save && save.dataset.choice);
     if (!clear && !choice) return;
     analysisWrites.add(card);
     var current = function () { return _activeCard === card && _activeOcc === occ && _activeSpan === span && _attachOpts === host; };
-    if (save) save.disabled = true;
+    var controls = Array.from(_sheet.querySelectorAll('.rm-analysis-choices button, [data-rm-analysis-undo]'));
+    controls.forEach(function (b) { b.disabled = true; });
     try {
       var Core = window.LexicalResolutionCore;
       var fingerprint = await Core.candidateFingerprint({alternatives:card.analysisCandidates || []});
-      var x = aiOccurrence();
-      var selection = clear ? {clear:true} : choice === 'name' ? {name:true,meaning:x ? x.x.gloss : card.meaning} : {pealim_id:choice};
+      // Classification alone never asserts the old dictionary/AI meaning.
+      var selection = clear ? {clear:true} : choice === 'name' ? {name:true} : choice === 'undo' ? {undo:card.resolutionEventId} : {pealim_id:choice};
       var projection = await host.confirmOccurrenceAnalysis(occ, selection, {fingerprint:fingerprint,isCurrent:current});
       if (!current()) return;
       var eng = await ensureEngine(), next;
-      if (clear) {
+      if (projection.state !== 'resolved') {
         await ensurePlaces([occ.sentence_id]);
         next = await resolveWordLight(occ.surface, occ.niqqud, null, {sid:occ.sentence_id,off:occ.word_offset});
       } else next = applyLexicalResolution(card, projection);
@@ -2010,14 +2035,15 @@
       if (!current()) return;
       _recallCtx = null; _markConfirm = null;
       openCard(next, occ);
-      var focusTarget = _sheet.querySelector('.rm-status-target');
+      var focusTarget = _sheet.querySelector('.rm-analysis-reviewed, .rm-current-reading');
       if (focusTarget) { focusTarget.tabIndex = -1; focusTarget.focus(); }
     } catch (_) {
       if (current()) {
         try { console.warn('[lexical-choice]', _.message || String(_)); } catch (_) {}
         var preview = _sheet.querySelector('[data-rm-analysis-preview]');
-        if (preview) preview.textContent = tt("analysis.changed", "Не удалось сохранить выбор. Откройте слово снова и проверьте актуальные варианты.");
-        if (save) save.disabled = false;
+        if (preview) preview.textContent = /LEXICAL_(SOURCE|CANDIDATE|DECISION)/.test(_.message || '') ? tt("analysis.changed", "Не удалось сохранить выбор. Откройте слово снова и проверьте актуальные варианты.") : tt('analysis.saveFailed', 'Не удалось сохранить. Повторите попытку.');
+        var editor = _sheet.querySelector('.rm-analysis-choices'); if (editor) editor.open = true;
+        controls.forEach(function (b) { b.disabled = false; });
       }
     } finally { analysisWrites.delete(card); }
   }
@@ -2399,7 +2425,7 @@
     if (!o || !occ || typeof _attachOpts.confirmOccurrenceName !== "function") return;
     button.disabled = true;
     try {
-      var projection = await _attachOpts.confirmOccurrenceName(occ, o.x.gloss);
+      var projection = await _attachOpts.confirmOccurrenceName(occ);
       if (_activeSpan !== span || _activeOcc !== occ || !_activeCard) return;
       var next = applyLexicalResolution(_activeCard, projection), eng = await ensureEngine();
       next.lemmaKey = statusKeyForCard(eng.NA, next, occ.niqqud, occ.surface);
@@ -2510,10 +2536,12 @@
     if (card.meaning && !card.meaningSource && window.WordGloss && window.WordGloss.composeGloss) {
       var fg = null; try { fg = window.WordGloss.composeGloss(card, card.niqqud); } catch (_) { fg = null; }
       if (fg && fg.form) {
+        var fm = window.WordGloss.matchCell(card.paradigm, card.niqqud), grammar = fm && !fm.impossible ? window.WordGloss.slotsHint(fm.slots) : '';
         formLine = '<div class="rm-reading-group rm-form-line" dir="' + uiDir() + '">' +
           '<div class="rm-reading-heading"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.formInText", "в тексте")) + ':</span> ' +
           '<bdi class="rm-reading-he" dir="rtl" lang="he">' + escapeHtml(card.niqqud || card.word) + '</bdi></div>' +
-          '<div class="rm-form-meaning" dir="ltr">' + escapeHtml(fg.text) + '</div>' + learnFormHtml(card) + "</div>";
+          '<div class="rm-form-meaning" dir="ltr">' + escapeHtml(fg.text) + '</div>' +
+          (grammar && fg.text.indexOf(grammar) < 0 ? '<div class="rm-form-grammar">' + escapeHtml(grammar) + '</div>' : '') + learnFormHtml(card) + "</div>";
       }
     }
     if (!formLine) formLine = learnFormHtml(card);
@@ -2630,7 +2658,7 @@
     var scopedProvenance = '<div class="rm-analysis-source" dir="' + uiDir() + '">' +
       escapeHtml(tt("analysis.source", "Источник разбора") + ': ' + tt(label[0],label[1])) + '</div>';
     var lemmaMeaning = '<div class="rm-reading-group rm-dictionary-lemma" dir="' + uiDir() + '">' +
-      '<div class="rm-reading-heading"><bdi class="rm-reading-he" dir="rtl" lang="he">' + escapeHtml(card.lemma || card.word) + '</bdi>' +
+      '<div class="rm-reading-heading">' + (_activeOcc ? '<span class="rm-alts-k">' + escapeHtml((card.pos === 'propernoun' ? tt('analysis.name', 'Имя') : tt('analysis.lemma', 'Словарная форма'))) + ':</span> ' : '') + '<bdi class="rm-reading-he" dir="rtl" lang="he">' + escapeHtml(card.lemma || card.word) + '</bdi>' +
       (card.pos ? ' <span class="rm-reading-pos">· ' + escapeHtml(posText(card.pos)) + '</span>' : '') + '</div>' +
       meaning + meaningEditor + '</div>';
     var dictionaryDetails = scopedProvenance + lemmaMeaning + formLine + (_activeOcc ? '' : altLine) + ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + fam + conj;
@@ -2640,11 +2668,16 @@
       ? '<div class="rm-context-review"><button type="button" class="rm-meaning-add" data-rm-name-propose>' + escapeHtml(tt("contextLayer.nameHere", "Это имя здесь")) + '</button><div data-rm-name-confirm hidden><p>' + escapeHtml(tt("contextLayer.confirmName", "Подтвердить имя только в этом месте? Статусы знания и повторы не изменятся.")) + '</p><button type="button" class="rm-meaning-save" data-rm-name-save>' + escapeHtml(tt("contextLayer.confirm", "Подтвердить")) + '</button></div></div>' : "";
     if (contextual) dictionaryDetails = '<details class="rm-acc rm-dictionary-reading"><summary class="rm-acc-sum">' + escapeHtml(tt("contextLayer.dictionary", "Словарный перевод; применимость здесь не подтверждена")) + '</summary>' + dictionaryDetails + '<div class="rm-actions">' + saveBtn + link + '</div></details>';
     var savedGloss = reviewed && aiLine ? '<details class="rm-acc"><summary class="rm-acc-sum">' + escapeHtml(tt("analysis.savedGloss", "Сохранённый подстрочник")) + '</summary>' + aiLine + '</details>' : aiLine;
-    if (_activeOcc) return backRow + head + niqMark + contextPendingHtml(card) + (!reviewed ? savedGloss : '') +
-      (reviewed ? '<p class="rm-analysis-reviewed">' + escapeHtml(tt(label[0],label[1]) + ': ' + card.meaning + ' · ' + posText(card.pos)) + '</p>' : '') +
-      (reviewed ? savedGloss : '') + nameAction + analysisChoicesHtml(card) + dictionaryDetails + recallHtml + statusSelectorHtml(card) +
+    if (_activeOcc) {
+      var reviewedLine = reviewed ? '<p class="rm-analysis-reviewed" role="status">' + escapeHtml(card.pos === 'propernoun' && !card.meaning ? tt('analysis.nameSaved', 'В этой строке отмечено как имя собственное') : tt('analysis.confirmed', 'Разбор сохранён для этой строки')) +
+        (card.meaning ? ': ' + escapeHtml(card.meaning + ' · ' + posText(card.pos)) : '') +
+        (card.pos === 'propernoun' && card.resolutionEventId && card.meaningSource === 'owner' ? ' <button type="button" data-rm-analysis-undo>' + escapeHtml(tt('analysis.undo', 'Отменить')) + '</button>' : '') + '</p>' : '';
+      var currentReading = '<section class="rm-current-reading" dir="' + uiDir() + '"><h3>' + escapeHtml(tt('analysis.current', 'Разбор в этой строке')) + '</h3>' + reviewedLine + savedGloss + scopedProvenance + lemmaMeaning + formLine + '</section>';
+      return backRow + head + niqMark + contextPendingHtml(card) + currentReading + nameAction + analysisChoicesHtml(card) +
+      ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + '</div>' + procliticHtml(card) + fam + conj + recallHtml + statusSelectorHtml(card) +
       ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
-      (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : '') + noteEditor + explainWordHtml() + refineHtml;
+      '<div class="rm-actions">' + saveBtn + link + '</div>' + noteEditor + explainWordHtml() + refineHtml;
+    }
     var conflict = contextual && occurrence.x.wrongHint ? '<p class="rm-ai-warn">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение, вероятно, не подходит")) + '</p>' : "";
     if (!contextual) return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
     return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +

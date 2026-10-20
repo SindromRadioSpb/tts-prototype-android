@@ -69,6 +69,10 @@ jobs:
         # Disposable OPFS/server; parent history, exact form answers, import, RTL and rollback.
         run: node scripts/premium/learning-targets-browser-smoke.js
 
+      - name: Occurrence analysis correction and undo
+        # Real OPFS/host, isolated profiles; name classification never inherits an AI gloss.
+        run: node scripts/premium/morph-analysis-browser-gate.js
+
       - name: Room preview transfer and cache boundary with active SW
         # Actual SW source, native HTTP streams, no owner data or corpus writes.
         run: node scripts/premium/room-discovery-sw-preview-smoke.js
