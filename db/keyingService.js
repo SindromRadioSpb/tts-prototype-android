@@ -367,7 +367,8 @@ async function displayForItemKey(itemKey) {
     const target = require('../public/js/learning-targets').parse(k);
     if (!target) return k;
     const lemma = await displayForItemKey(target.parentKey);
-    return lemma + ' · ' + target.slot + (target.prefix ? ' · ' + target.prefix + '…' : '');
+    const grammar = require('../public/js/word-gloss').slotHint(target.slot);
+    return lemma + ' · форма' + (grammar ? ': ' + grammar : '') + (target.prefix ? ' · ' + target.prefix + '…' : '');
   }
   if (!k.startsWith("pid:")) {
     const kb = k.startsWith("dl:") ? k.slice(3) : k;   // Д8-К dl:<лемма Dicta>#<pos>

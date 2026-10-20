@@ -49,5 +49,6 @@ test('unsupported server exercise channels never substitute the lemma for a form
   const KS=require('../db/keyingService');
   assert.equal(await KS.glossForItemKey(child),null);assert.equal(await KS.clozeFormsForItemKey(child),null);
   assert.equal(await KS.dictateFormForItemKey(child),null);
-  assert.match(await KS.displayForItemKey(child),/PERF-2ms/);KS.unloadNow();
+  const display=await KS.displayForItemKey(child);
+  assert.match(display,/לפחוד.*форма/);assert.doesNotMatch(display,/PERF-2ms/);KS.unloadNow();
 });
