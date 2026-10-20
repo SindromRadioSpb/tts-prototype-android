@@ -22,7 +22,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
-const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require("./smoke-server-env");
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer, waitForSmokeHealth } = require("./smoke-server-env");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const PORT = Number(process.env.API_SMOKE_PORT || 0);
@@ -41,22 +41,6 @@ const GONE_ENDPOINTS = [
   "/api/srs/templates",
   "/api/srs/today?limit=10",
 ];
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForHealth(baseUrl, timeoutMs = 15000) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    try {
-      const res = await fetch(`${baseUrl}/healthz`);
-      if (res.ok) return;
-    } catch (_) {}
-    await sleep(250);
-  }
-  throw new Error(`Server did not become healthy within ${timeoutMs} ms`);
-}
 
 async function readBody(res) {
   const text = await res.text();
@@ -125,7 +109,7 @@ async function run() {
   try {
     const port = await ready;
     const BASE_URL = `http://127.0.0.1:${port}`;
-    await waitForHealth(BASE_URL);
+    await waitForSmokeHealth(BASE_URL);
     console.log(`PASS /healthz -> server booted on ${BASE_URL}`);
 
     // 1. Phase-6 tripwire: removed stateful endpoints must stay 410 GONE_PHASE6.
