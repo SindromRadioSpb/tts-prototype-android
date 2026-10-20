@@ -69,6 +69,7 @@ async function harness(){
  const ctx={q,r,x:async sql=>db.run(sql),globalThis:{WordGlossAI:ai},console,crypto:require('node:crypto').webcrypto,CANON_ORIGIN:'benyehuda-ingest',
   createText:async t=>r('INSERT INTO texts(id,text_key,title,source_meta_json) VALUES(?,?,?,?)',[t.id,t.text_key,t.title,t.source_meta_json]),
   addSentences:async(id,rows)=>{for(const s of rows)await r('INSERT INTO sentences VALUES(?,?,?,?,?,?)',[s.id,id,s.order_index,s.he_plain,s.he_niqqud,s.ru]);},
+  getSentences:async id=>query('SELECT * FROM sentences WHERE text_id=? ORDER BY order_index',[id]),
   upsertAudioAssets:async()=>new Map(),
   setProgress:async(id,p)=>r('INSERT OR REPLACE INTO text_progress VALUES(?,?,?)',[id,p.last_row_idx,p.last_step_id]),
  };
@@ -81,13 +82,15 @@ test('new book import and repeats preserve keys, manual rows, progress, review l
  const bundle={library:{texts:[{...item,progress:{last_row_idx:0},word_gloss_ai_layer:layer}]}};
  const first=await h.importBundle(bundle,{userRestore:true});assert.equal(first.imported,1);assert.equal(first.errors.length,0);
  const id=h.query('SELECT id FROM texts')[0].id;
+ const restoredPayload=h.ai.rowPayloadFromData(h.query('SELECT * FROM sentences')[0]);
+ assert.ok(h.ai._mem.has(restoredPayload.storageKey),'the restored gloss is scoped to its new occurrence');
  h.db.run("UPDATE sentences SET ru='ручной перевод';UPDATE text_progress SET last_row_idx=7;INSERT INTO review_log VALUES('review','unchanged');");
- h.ai._mem.get(p.key).glosses[0]={gloss:'ручная подсказка',manual:true,ai_gloss:'привет'};
+ h.ai._mem.get(restoredPayload.storageKey).glosses[0]={gloss:'ручная подсказка',manual:true,ai_gloss:'привет'};
  const before=JSON.stringify(h.db.exec('SELECT * FROM texts;SELECT * FROM sentences;SELECT * FROM text_progress;SELECT * FROM review_log'));
  for(let i=0;i<2;i++){const result=await h.importBundle(bundle,{userRestore:true});assert.equal(result.skipped,1);assert.equal(result.imported,0);assert.equal(result.errors.length,0);}
  assert.equal(h.query('SELECT id FROM texts')[0].id,id);
  assert.equal(JSON.stringify(h.db.exec('SELECT * FROM texts;SELECT * FROM sentences;SELECT * FROM text_progress;SELECT * FROM review_log')),before);
- assert.equal(h.ai._mem.get(p.key).glosses[0].gloss,'ручная подсказка');
+ assert.equal(h.ai._mem.get(restoredPayload.storageKey).glosses[0].gloss,'ручная подсказка');
  assert.equal((await h.ai.remember(layer,[{...row,russian:'другой перевод'}])).rejected,1);
  }finally{h.db.close();}
 });

@@ -20,7 +20,7 @@ function discover(dir) {
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-unit-tests-"));
 try {
   const result = spawnSync(process.execPath,
-    ["--test", "--test-concurrency=4", ...process.argv.slice(2), ...discover(path.join(root, "tests"))],
+    ["--test", "--test-concurrency=4", ...process.argv.slice(2), ...discover(path.join(root, "tests")).map(file => path.relative(root, file))],
     { cwd: root, env: smokeServerEnv(dataDir, 0), stdio: "inherit" });
   if (result.error) console.error(result.error.message);
   process.exitCode = result.status === null ? 1 : result.status;

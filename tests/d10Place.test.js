@@ -67,8 +67,15 @@ test('Д8-К4 v2: Dicta lemmatizes אֱלֹהִים «Бог» as אלוה (its 
   RM.setPlaceLoader(null);
 });
 
-test('the list scan and the tap key a place identically', async () => {
+test('the scan waits for a conflicting occurrence choice; a selected place shares the tap key', async () => {
   install();
+  const pending = await RM.scanRows([ROW], { engine: eng });
+  const unresolved = await RM.resolveCore(eng, 'מכות', 'מַכּוֹת', {place:{sid:'s1',off:0}});
+  assert.equal(unresolved.selectionRequired,true);
+  assert.equal(pending.rowKeys[0][0],null,'an unconfirmed homograph is not a painted word');
+  assert.equal(pending.rowKeys[0][1],null);
+  assert.ok(pending.unsure.has('מכות'));
+  install(new Map([[0,{pid:'3957'}],[1,{pid:'4445'}]]));
   const scan = await RM.scanRows([ROW], { engine: eng });
   const tap = await keyAt('מַכּוֹת', { sid: 's1', off: 0 });
   assert.equal(scan.rowKeys[0][0], tap.key);
