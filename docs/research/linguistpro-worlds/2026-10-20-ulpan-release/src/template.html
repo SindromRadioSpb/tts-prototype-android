@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Человек-Паук: в поисках первого Ульпана · v6</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101c2b;color:#f4e4c7}*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:20px}h1{font-size:clamp(22px,3vw,30px);line-height:1.2;margin:12px 0}p{line-height:1.5}.intro{color:#bbccd4;margin:8px 0 20px}.episode{border:1px solid #476174;border-radius:12px;overflow:hidden;background:#14293b}canvas{width:100%;height:auto;aspect-ratio:640/228;image-rendering:pixelated;display:block;background:#0c1b29}.scene-head{padding:14px 18px 0}.eyebrow{color:#b9cbd5;font-size:14px}h2{font-size:21px;line-height:1.3;margin:6px 0 0}.dialogue{padding:14px 18px 18px;min-height:145px;border-inline-start:4px solid #e2bb79}#speaker{color:#f1cf8b;font-size:14px;font-weight:700}#line{font-size:20px;line-height:1.55;margin:8px 0 0;overflow-wrap:anywhere}.phrase{padding:14px 18px;background:#29485a;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.phrase p{margin:0}.he{font-size:24px;font-weight:700;color:#b9f2df}.translation{font-size:16px}nav,.settings,.line-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}nav{margin:16px 0 10px}.line-controls{padding:0 18px 16px}button,select,summary{font:inherit}button,select{border:1px solid #56768b;border-radius:8px;background:#25485b;color:#fff;min-height:44px;padding:10px 14px}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}#play{background:#e2bb79;color:#132739;border-color:#e2bb79;font-weight:700}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #ffd073;outline-offset:3px}label{line-height:1.5}.settings{margin:14px 0;gap:14px}input[type=checkbox]{width:20px;height:20px;vertical-align:middle;margin-inline-end:6px}input[type=range]{width:100%;min-height:36px;accent-color:#e2bb79}.timeline{display:flex;justify-content:space-between;font-size:14px;color:#bbccd4}.note{font-size:14px;color:#bbccd4}#lesson,details{margin-top:18px;padding:16px;background:#1c3346;border-radius:8px}#lesson h2{margin-top:0}details p{margin-bottom:8px}summary{cursor:pointer;min-height:44px;padding:10px 0}.transcript-scene{border-top:1px solid #476174;padding:12px 0}.transcript-scene p{margin:8px 0}.quiet{font-size:14px;color:#bbccd4}#error{color:#ffbca8}a{color:#b9f2df}@media(max-width:500px){main{padding:12px}.scene-head{padding:12px 14px 0}.dialogue{padding:12px 14px;min-height:190px}#line{font-size:18px}h2{font-size:19px}.phrase{padding:12px 14px;display:block}.he{margin-top:8px!important}.line-controls{padding:0 14px 14px}nav button{flex:1 1 auto}.settings{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body><main>
+<h1>Человек-Паук: в поисках первого Ульпана</h1>
+<p class="intro">Тимсах помогает освоиться в Израиле. Семь сцен, первый разговор и маленькая победа.</p>
+<section class="episode" aria-label="История поиска ульпана">
+<canvas width="1280" height="456" role="img" aria-label="Набережная Тель-Авива. Человек-паук и Тимсах"></canvas>
+<div class="scene-head"><div class="eyebrow" id="city"></div><h2 id="scene-title"></h2></div>
+<div class="dialogue" aria-live="off" id="dialogue"><span id="speaker"></span><p id="line"></p></div>
+<div class="line-controls"><button id="previous-line" type="button" aria-label="Предыдущая реплика">← Реплика</button><span class="quiet" id="line-count"></span><button id="next-line" type="button" aria-label="Следующая реплика">Реплика →</button></div>
+<div class="phrase"><p class="translation" id="translation"></p><p class="he" id="he" lang="he" dir="rtl"></p></div>
+</section>
+<nav aria-label="Управление эпизодом"><button id="play" type="button" disabled>Загрузка…</button><button id="prev" type="button" disabled>Предыдущая сцена</button><button id="next" type="button" disabled>Следующая сцена</button><button id="replay" type="button" disabled>Сначала</button></nav>
+<label for="scene">Сцена</label> <select id="scene" disabled></select>
+<label for="seek" class="quiet" style="display:block;margin-top:14px">Позиция в истории</label><input id="seek" type="range" min="0" max="1" step="0.1" value="0" disabled>
+<div class="timeline"><span id="clock">0:00</span><span id="total"></span></div>
+<div class="settings"><label><input id="manual" type="checkbox" checked>Читать в своём темпе</label><label><input id="reduced" type="checkbox">Уменьшить движение</label></div>
+<p class="quiet" id="status" role="status" aria-live="polite">Загружаем сцены…</p><p id="error" role="alert" hidden></p>
+<button id="learning" type="button" disabled>Спокойный урок</button>
+<section id="lesson" hidden aria-labelledby="lesson-title"><h2 id="lesson-title">Спросим дорогу</h2><p class="he" lang="he" dir="rtl">סליחה, איפה האולפן?</p><p>Извините, где ульпан?</p><p>Попробуйте вспомнить: в каком городе друзья нашли ульпан и как туда добрались?</p><button id="answer" type="button" aria-expanded="false" aria-controls="solution">Показать ответ</button><p id="solution" hidden>В Хайфе. Они приехали на поезде из Тель-Авива, затем дошли по адресу.</p></section>
+<details id="transcript"><summary>Вся история текстом</summary><div id="transcript-content"></div></details>
+<p class="note">Локальный прототип v6 · без озвучки. Ульпан вымышленный; вид из поезда — иллюстрация маршрута. Фоны и исходный облик героев сохранены. <a href="ATTRIBUTION.md">Происхождение материалов</a>.</p>
+</main><script>__ASSETS__</script><script>__SCRIPT__</script></body></html>

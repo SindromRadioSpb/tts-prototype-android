@@ -1,0 +1,866 @@
+{
+  "schema": "lp-world/2",
+  "engine": {
+    "min": 2,
+    "max": 2
+  },
+  "skin": {
+    "light": {
+      "page": "#1d1b3a",
+      "surface": "#fffdf6",
+      "surfaceSoft": "#f6f0e2",
+      "ink": "#1b1f2e",
+      "line": "#1b1f2e",
+      "shadow": "#0f0d24",
+      "accent": "#1b4fb8",
+      "accentInk": "#ffffff",
+      "plate": "#1b1f2e",
+      "plateInk": "#fff6e0"
+    },
+    "dark": {
+      "page": "#070a1a",
+      "surface": "#19213d",
+      "surfaceSoft": "#202a4a",
+      "ink": "#e8ecf8",
+      "line": "#05070f",
+      "shadow": "#02030a",
+      "accent": "#2a5bc4",
+      "accentInk": "#ffffff",
+      "plate": "#05070f",
+      "plateInk": "#fff6e0"
+    }
+  },
+  "id": "ulpan-journey",
+  "version": "1.0.0",
+  "kind": "story",
+  "names": {
+    "ru": "Человек-Паук: в поисках первого Ульпана",
+    "en": "Spider-Man: finding the first ulpan",
+    "he": "ספיידרמן: בדרך לאולפן הראשון"
+  },
+  "blurb": {
+    "ru": "Тимсах и Человек-паук ищут ульпан. Нажмите на персонажей, чтобы поговорить.",
+    "en": "Timsah and Spider-Man look for an ulpan. Tap the characters to talk.",
+    "he": "תמסח וספיידרמן מחפשים אולפן. לחצו על הדמויות כדי לדבר."
+  },
+  "scenery": {
+    "sceneHeight": 228,
+    "groundY": 0,
+    "lighting": {
+      "day": {
+        "sky": [
+          "#173b47",
+          "#173b47"
+        ],
+        "actorTint": "#ffffff"
+      },
+      "dusk": {
+        "sky": [
+          "#173b47",
+          "#173b47"
+        ],
+        "actorTint": "#ffffff"
+      },
+      "night": {
+        "sky": [
+          "#173b47",
+          "#173b47"
+        ],
+        "actorTint": "#ffffff"
+      }
+    },
+    "layers": []
+  },
+  "actors": {
+    "cat": {
+      "sheet": "cat",
+      "fictional": true
+    },
+    "coastal-panorama": {
+      "sheet": "coastal-panorama",
+      "fictional": true
+    },
+    "hero-seated": {
+      "sheet": "hero-seated",
+      "fictional": true
+    },
+    "hero": {
+      "sheet": "hero",
+      "fictional": true
+    },
+    "people": {
+      "sheet": "people",
+      "fictional": true
+    },
+    "scene-cinema": {
+      "sheet": "scene-cinema",
+      "fictional": true
+    },
+    "scene-jaffa": {
+      "sheet": "scene-jaffa",
+      "fictional": true
+    },
+    "scene-market": {
+      "sheet": "scene-market",
+      "fictional": true
+    },
+    "scene-promenade": {
+      "sheet": "scene-promenade",
+      "fictional": true
+    },
+    "scene-reading": {
+      "sheet": "scene-reading",
+      "fictional": true
+    },
+    "scene-workshop": {
+      "sheet": "scene-workshop",
+      "fictional": true
+    },
+    "timsah-act": {
+      "sheet": "timsah-act",
+      "fictional": true
+    },
+    "timsah-leisure": {
+      "sheet": "timsah-leisure",
+      "fictional": true
+    },
+    "timsah": {
+      "sheet": "timsah",
+      "fictional": true
+    },
+    "train-interior": {
+      "sheet": "train-interior",
+      "fictional": true
+    },
+    "ui-bubble": {
+      "sheet": "ui-bubble",
+      "fictional": true
+    },
+    "ui-tail": {
+      "sheet": "ui-tail",
+      "fictional": true
+    },
+    "ui-here": {
+      "sheet": "ui-here",
+      "fictional": true
+    }
+  },
+  "ui": {
+    "bubbleFrame": "ui-bubble",
+    "bubbleTail": "ui-tail"
+  },
+  "here": "ui-here",
+  "slots": {
+    "studio-stage": {
+      "origin": 0.5,
+      "rest": []
+    },
+    "room-stage": {
+      "origin": 0.5,
+      "rest": []
+    },
+    "media-stage": {
+      "origin": 0.5,
+      "rest": []
+    }
+  },
+  "surfaces": {
+    "studio": {
+      "slot": "studio-stage",
+      "location": "promenade",
+      "route": [
+        "promenade",
+        "market",
+        "workshop",
+        "jaffa",
+        "travel",
+        "reading",
+        "cinema"
+      ]
+    },
+    "room": {
+      "slot": "room-stage",
+      "location": "promenade",
+      "route": [
+        "promenade",
+        "market",
+        "workshop",
+        "jaffa",
+        "travel",
+        "reading",
+        "cinema"
+      ]
+    },
+    "mediatheque": {
+      "slot": "media-stage",
+      "location": "promenade",
+      "route": [
+        "promenade",
+        "market",
+        "workshop",
+        "jaffa",
+        "travel",
+        "reading",
+        "cinema"
+      ]
+    }
+  },
+  "locations": {
+    "promenade": {
+      "x": 0,
+      "symbol": "🌊",
+      "names": {
+        "ru": "Тель-Авив · набережная",
+        "en": "Tel Aviv promenade",
+        "he": "טיילת תל אביב"
+      }
+    },
+    "market": {
+      "x": 1000,
+      "symbol": "🍅",
+      "names": {
+        "ru": "Тель-Авив · рынок",
+        "en": "Tel Aviv market",
+        "he": "שוק בתל אביב"
+      }
+    },
+    "workshop": {
+      "x": 2000,
+      "symbol": "🔧",
+      "names": {
+        "ru": "Тель-Авив · мастерская",
+        "en": "Workshop",
+        "he": "בית המלאכה"
+      }
+    },
+    "jaffa": {
+      "x": 3000,
+      "symbol": "🗺",
+      "names": {
+        "ru": "Тель-Авив—Яффо",
+        "en": "Jaffa viewpoint",
+        "he": "תצפית ביפו"
+      }
+    },
+    "travel": {
+      "x": 4000,
+      "symbol": "🚆",
+      "names": {
+        "ru": "В пути · Тель-Авив → Хайфа",
+        "en": "Train to Haifa",
+        "he": "רכבת לחיפה"
+      }
+    },
+    "reading": {
+      "x": 5000,
+      "symbol": "📖",
+      "names": {
+        "ru": "Хайфа · вымышленный ульпан",
+        "en": "First ulpan",
+        "he": "האולפן הראשון"
+      }
+    },
+    "cinema": {
+      "x": 6000,
+      "symbol": "🎬",
+      "names": {
+        "ru": "Хайфа · кинодвор после урока",
+        "en": "Cinema courtyard",
+        "he": "חצר הקולנוע"
+      }
+    }
+  },
+  "scenes": [],
+  "ulpan": {
+    "story": [
+      {
+        "id": "promenade",
+        "city": "Тель-Авив · набережная",
+        "title": "Суперсила: начать разговор",
+        "arrival": true,
+        "he": "אני מחפש אולפן.",
+        "translation": "Я ищу ульпан.",
+        "beats": [
+          {
+            "who": "hero",
+            "text": {
+              "ru": "По стенам я уже хожу. А вот разговор с соседями пока не получается.",
+              "en": "I can already climb walls. Talking to my neighbours is still a challenge.",
+              "he": "על קירות אני כבר יודע לטפס. לדבר עם השכנים עדיין קצת קשה לי."
+            },
+            "seconds": 7,
+            "pose": "greet"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Начнём с малого. Что ты ищешь?",
+              "en": "Let's start small. What are you looking for?",
+              "he": "נתחיל בקטן. מה אתה מחפש?"
+            },
+            "seconds": 5,
+            "pose": "listen"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Ани мехапэс ульпан. Я ищу ульпан.",
+              "en": "אני מחפש אולפן. I'm looking for an ulpan.",
+              "he": "אני מחפש אולפן."
+            },
+            "seconds": 5,
+            "pose": "greet"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Отлично. Первый шаг сделан. Причём по земле.",
+              "en": "Great. You've taken the first step. On the ground, too.",
+              "he": "מצוין. עשית את הצעד הראשון. ואפילו על הקרקע."
+            },
+            "seconds": 6,
+            "pose": "laugh"
+          }
+        ]
+      },
+      {
+        "id": "market",
+        "city": "Тель-Авив · рынок",
+        "title": "Сначала — «извините»",
+        "arrival": true,
+        "he": "סליחה, איפה האולפן?",
+        "translation": "Извините, где ульпан?",
+        "beats": [
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Начни со «слиха». Паутину доставать не обязательно.",
+              "en": "Start with 'slicha'. No need to get the web out.",
+              "he": "תתחיל ב׳סליחה׳. לא צריך להוציא את הקורים."
+            },
+            "seconds": 6,
+            "pose": "listen"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Слиха, эйфо hа-ульпан? Извините, где ульпан?",
+              "en": "סליחה, איפה האולפן? Excuse me, where is the ulpan?",
+              "he": "סליחה, איפה האולפן?"
+            },
+            "seconds": 6,
+            "pose": "greet"
+          },
+          {
+            "who": "seller",
+            "text": {
+              "ru": "Про ульпан спроси у мастера за углом. А помидоры — здесь.",
+              "en": "Ask the craftsman around the corner about the ulpan. The tomatoes are here.",
+              "he": "על האולפן תשאל את בעל המלאכה מעבר לפינה. העגבניות כאן."
+            },
+            "seconds": 7,
+            "pose": "listen"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Уже понимаю, почему нельзя учить язык голодным.",
+              "en": "I'm beginning to see why you shouldn't study on an empty stomach.",
+              "he": "אני מתחיל להבין למה לא כדאי ללמוד על בטן ריקה."
+            },
+            "seconds": 6,
+            "pose": "greet"
+          }
+        ]
+      },
+      {
+        "id": "workshop",
+        "city": "Тель-Авив · мастерская",
+        "title": "В Хайфе нас уже ждут",
+        "arrival": false,
+        "he": "האולפן בחיפה.",
+        "translation": "Ульпан в Хайфе.",
+        "beats": [
+          {
+            "who": "master",
+            "text": {
+              "ru": "Моя знакомая преподаёт в Хайфе. Я ей позвоню — сегодня как раз занятие для начинающих.",
+              "en": "A friend of mine teaches in Haifa. I'll call her: there's a beginners' class today.",
+              "he": "חברה שלי מלמדת בחיפה. אתקשר אליה: יש היום שיעור למתחילים."
+            },
+            "seconds": 9,
+            "pose": "listen"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "А совсем для начинающих?",
+              "en": "For complete beginners?",
+              "he": "גם למתחילים ממש?"
+            },
+            "seconds": 4,
+            "pose": "greet"
+          },
+          {
+            "who": "master",
+            "text": {
+              "ru": "Конечно. Все когда-нибудь впервые говорят «шалом». Она вас ждёт!",
+              "en": "Of course. Everyone says 'shalom' for the first time once. She's expecting you!",
+              "he": "בטח. כולם אומרים פעם ראשונה ׳שלום׳. היא מחכה לכם!"
+            },
+            "seconds": 7,
+            "pose": "listen"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Записываю адрес. Сегодня чиним пробелы в иврите.",
+              "en": "I'm writing down the address. Today we're fixing gaps in our Hebrew.",
+              "he": "אני רושם את הכתובת. היום מתקנים חורים בעברית."
+            },
+            "seconds": 6,
+            "pose": "note"
+          }
+        ]
+      },
+      {
+        "id": "jaffa",
+        "city": "Тель-Авив—Яффо",
+        "title": "Маршрут с удобными креслами",
+        "arrival": false,
+        "he": "נוסעים לחיפה ברכבת.",
+        "translation": "Едем в Хайфу на поезде.",
+        "beats": [
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Сначала на станцию. Потом поезд до Хайфы. От станции дойдём по адресу.",
+              "en": "First, the station. Then a train to Haifa. We'll walk to the address from there.",
+              "he": "קודם לתחנה, ואז רכבת לחיפה. מהתחנה נלך ברגל לכתובת."
+            },
+            "seconds": 8,
+            "pose": "map"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "По крышам нельзя?",
+              "en": "Can't we take the rooftops?",
+              "he": "אי אפשר דרך הגגות?"
+            },
+            "seconds": 4,
+            "pose": "greet"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Можно. Но в поезде есть кресла.",
+              "en": "We can. But the train has seats.",
+              "he": "אפשר. אבל ברכבת יש מושבים."
+            },
+            "seconds": 5,
+            "pose": "laugh"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Убедительно. Носъим ле-Хейфа ба-ракэвет — едем в Хайфу на поезде.",
+              "en": "Convincing. נוסעים לחיפה ברכבת. We're going to Haifa by train.",
+              "he": "משכנע. נוסעים לחיפה ברכבת."
+            },
+            "seconds": 8,
+            "pose": "map"
+          }
+        ]
+      },
+      {
+        "id": "travel",
+        "city": "В пути · Тель-Авив → Хайфа",
+        "title": "Пока едем — попробуем ещё раз",
+        "arrival": false,
+        "he": "תודה!",
+        "translation": "Спасибо!",
+        "arrivalHe": "הגענו לחיפה!",
+        "arrivalTranslation": "Мы приехали в Хайфу!",
+        "beats": [
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Проверим: «эйфо» — где, «тода» — спасибо?",
+              "en": "Let's check: 'eifo' means where, and 'toda' means thank you?",
+              "he": "נבדוק: ׳איפה׳ זאת שאלת מקום, ו׳תודה׳ אומרים כשמקבלים עזרה?"
+            },
+            "seconds": 6,
+            "pose": "listen"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Верно. Составишь предложение?",
+              "en": "Correct. Can you make a sentence?",
+              "he": "נכון. תוכל להרכיב משפט?"
+            },
+            "seconds": 5,
+            "pose": "read"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Где мой ульпан? Спасибо, что едешь со мной.",
+              "en": "Where is my ulpan? Thank you for coming with me.",
+              "he": "איפה האולפן שלי? תודה שבאת איתי."
+            },
+            "seconds": 6,
+            "pose": "greet"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Вот и разговор получился.",
+              "en": "There you go: a conversation.",
+              "he": "הנה, כבר יש לנו שיחה."
+            },
+            "seconds": 5,
+            "pose": "laugh"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Хига́ну ле-Хейфа! Мы приехали в Хайфу. Теперь идём по адресу.",
+              "en": "הגענו לחיפה! We've arrived in Haifa. Now let's find the address.",
+              "he": "הגענו לחיפה! עכשיו נלך לכתובת."
+            },
+            "seconds": 7,
+            "pose": "arrival"
+          }
+        ]
+      },
+      {
+        "id": "reading",
+        "city": "Хайфа · вымышленный ульпан",
+        "title": "Здесь можно спрашивать ещё раз",
+        "arrival": true,
+        "he": "שלום! אני לומד עברית.",
+        "translation": "Привет! Я учу иврит.",
+        "beats": [
+          {
+            "who": "teacher",
+            "text": {
+              "ru": "Добро пожаловать! Что ты уже умеешь говорить?",
+              "en": "Welcome! What can you already say?",
+              "he": "ברוך הבא! מה אתה כבר יודע להגיד?"
+            },
+            "seconds": 6,
+            "pose": "listen"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Шалом! Ани ломэд иврит. Привет! Я учу иврит.",
+              "en": "שלום! אני לומד עברית. Hello! I'm learning Hebrew.",
+              "he": "שלום! אני לומד עברית."
+            },
+            "seconds": 6,
+            "pose": "greet"
+          },
+          {
+            "who": "teacher",
+            "text": {
+              "ru": "А если что-нибудь непонятно?",
+              "en": "And if you don't understand something?",
+              "he": "ואם משהו לא ברור?"
+            },
+            "seconds": 5,
+            "pose": "listen"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Тогда спрашиваем ещё раз. Здесь это тоже суперспособность.",
+              "en": "Then we ask again. That's a superpower here, too.",
+              "he": "אז שואלים שוב. גם זאת כאן יכולת־על."
+            },
+            "seconds": 7,
+            "pose": "note"
+          }
+        ]
+      },
+      {
+        "id": "cinema",
+        "city": "Хайфа · кинодвор после урока",
+        "title": "Первое слово вне класса",
+        "arrival": true,
+        "he": "סרט",
+        "translation": "Фильм. Знакомое слово на новой афише!",
+        "beats": [
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Сэрэт… סרט! Это слово я уже знаю. Фильм!",
+              "en": "סרט! Seret! I know that word already. A film!",
+              "he": "סרט! את המילה הזאת אני כבר מכיר!"
+            },
+            "seconds": 6,
+            "pose": "greet"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Выбираем сеанс?",
+              "en": "Shall we choose a screening?",
+              "he": "נבחר הקרנה?"
+            },
+            "seconds": 4,
+            "pose": "listen"
+          },
+          {
+            "who": "hero",
+            "text": {
+              "ru": "Только без супергероев. У меня сегодня выходной.",
+              "en": "Just no superheroes. It's my day off.",
+              "he": "רק בלי גיבורי־על. היום אני בחופש."
+            },
+            "seconds": 6,
+            "pose": "greet"
+          },
+          {
+            "who": "timsah",
+            "text": {
+              "ru": "Тогда два билета. Следующая языковая миссия — касса.",
+              "en": "Two tickets, then. Our next language mission: the box office.",
+              "he": "אז שני כרטיסים. המשימה הבאה בעברית: הקופה."
+            },
+            "seconds": 7,
+            "pose": "laugh"
+          }
+        ]
+      }
+    ],
+    "heroClips": {
+      "idle": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        }
+      ],
+      "walk": [
+        {
+          "x": 576,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 672,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 864,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 960,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 1056,
+          "y": 0,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 0,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 96,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 192,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 288,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 384,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 480,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        }
+      ],
+      "greet": [
+        {
+          "x": 576,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 672,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 768,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 864,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 960,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 1056,
+          "y": 96,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 0,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 96,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 192,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 288,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        }
+      ],
+      "map": [
+        {
+          "x": 384,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 480,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 576,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 672,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 768,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 864,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 960,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        },
+        {
+          "x": 1056,
+          "y": 192,
+          "w": 96,
+          "h": 96
+        }
+      ]
+    }
+  }
+}

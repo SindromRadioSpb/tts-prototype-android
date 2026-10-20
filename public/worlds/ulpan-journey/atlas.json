@@ -1,0 +1,896 @@
+{
+  "schema": "lp-world-atlas/1",
+  "world": "ulpan-journey",
+  "atlases": {
+    "cat": {
+      "file": "cat.png",
+      "width": 53,
+      "height": 18,
+      "bytes": 521,
+      "sha256": "7be44674bce7ae6792a86fe2932388fa43510b4577dfba54883ef79f08499c0f",
+      "colors": 16,
+      "frames": {
+        "a": {
+          "x": 0,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        },
+        "b": {
+          "x": 18,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        },
+        "sit": {
+          "x": 36,
+          "y": 0,
+          "w": 17,
+          "h": 18,
+          "anchor": [
+            8,
+            16
+          ]
+        }
+      }
+    },
+    "coastal-panorama": {
+      "file": "coastal-panorama.png",
+      "width": 1280,
+      "height": 426,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 426,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 1103629,
+      "sha256": "89c3377769aff47deaa40e3ebcbf5c4d7a87564adda81cb9688a4bc73a9c5bf2"
+    },
+    "hero-seated": {
+      "file": "hero-seated.png",
+      "width": 128,
+      "height": 128,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 128,
+          "h": 128,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 9860,
+      "sha256": "f3d72a76f04201de71e03968a90abf240beef46b6a30a657d2793a24bc6066bc"
+    },
+    "hero": {
+      "file": "hero.png",
+      "width": 1152,
+      "height": 288,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 1152,
+          "h": 288,
+          "anchor": [
+            0,
+            0
+          ]
+        },
+        "idle-0": {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "idle-1": {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "idle-2": {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "idle-3": {
+          "x": 288,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "idle-4": {
+          "x": 384,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "idle-5": {
+          "x": 480,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-0": {
+          "x": 576,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-1": {
+          "x": 672,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-2": {
+          "x": 768,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-3": {
+          "x": 864,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-4": {
+          "x": 960,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-5": {
+          "x": 1056,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-6": {
+          "x": 0,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-7": {
+          "x": 96,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-8": {
+          "x": 192,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-9": {
+          "x": 288,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-10": {
+          "x": 384,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "walk-11": {
+          "x": 480,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-0": {
+          "x": 576,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-1": {
+          "x": 672,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-2": {
+          "x": 768,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-3": {
+          "x": 864,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-4": {
+          "x": 960,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-5": {
+          "x": 1056,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-6": {
+          "x": 0,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-7": {
+          "x": 96,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-8": {
+          "x": 192,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "greet-9": {
+          "x": 288,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-0": {
+          "x": 384,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-1": {
+          "x": 480,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-2": {
+          "x": 576,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-3": {
+          "x": 672,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-4": {
+          "x": 768,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-5": {
+          "x": 864,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-6": {
+          "x": 960,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        },
+        "map-7": {
+          "x": 1056,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "anchor": [
+            48,
+            90
+          ]
+        }
+      },
+      "bytes": 122725,
+      "sha256": "a99d7258e0b86dfbad70cb065f874b1521e4ce1c6ff99c0d693a895ecf9aaf59"
+    },
+    "people": {
+      "file": "people.png",
+      "width": 99,
+      "height": 44,
+      "bytes": 1264,
+      "sha256": "0b1e8edef9e0aa1d85b63f66cacef27c42e82182b26aba67b0b57f4849157c10",
+      "colors": 18,
+      "frames": {
+        "w-a": {
+          "x": 0,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "w-b": {
+          "x": 25,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "m-a": {
+          "x": 50,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        },
+        "m-b": {
+          "x": 75,
+          "y": 0,
+          "w": 24,
+          "h": 44,
+          "anchor": [
+            12,
+            42
+          ]
+        }
+      }
+    },
+    "scene-cinema": {
+      "file": "scene-cinema.png",
+      "width": 480,
+      "height": 160,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 480,
+          "h": 160,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 170415,
+      "sha256": "0f7b415c76d1c308683f3b28192859b46e1db98ab2ae51884f9cabf3d3c808d0"
+    },
+    "scene-jaffa": {
+      "file": "scene-jaffa.png",
+      "width": 480,
+      "height": 160,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 480,
+          "h": 160,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 152368,
+      "sha256": "17542b05e0cd6c2435b3e0e929549c5b141fa859cf6d9d72268f84e087b703a0"
+    },
+    "scene-market": {
+      "file": "scene-market.png",
+      "width": 480,
+      "height": 160,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 480,
+          "h": 160,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 172103,
+      "sha256": "57684fb7d2152e01fddb1c3bbdb2a36abf1b428f84cb5ebe1a3c0c6c4749dee7"
+    },
+    "scene-promenade": {
+      "file": "scene-promenade.png",
+      "width": 480,
+      "height": 160,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 480,
+          "h": 160,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 171882,
+      "sha256": "7047da117cda9f0184f8d6e89e63263b3178469bf3002de88341c7aef6c1d50f"
+    },
+    "scene-reading": {
+      "file": "scene-reading.png",
+      "width": 480,
+      "height": 160,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 480,
+          "h": 160,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 142437,
+      "sha256": "e1d0ee153649520f4225ae1ad364ae02e90cb6974953da9665e04af7a8b21d24"
+    },
+    "scene-workshop": {
+      "file": "scene-workshop.png",
+      "width": 480,
+      "height": 160,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 480,
+          "h": 160,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 145856,
+      "sha256": "9d4616b8987c4cdf97a2304c54be4028aeba3ca251a7769111d2db6111c84429"
+    },
+    "timsah-act": {
+      "file": "timsah-act.png",
+      "width": 185,
+      "height": 41,
+      "bytes": 2080,
+      "sha256": "19ddfc6c191caa32785da140f3d4e191d0f5ff9ca632bb107c02050e11846b0c",
+      "colors": 16,
+      "frames": {
+        "flyer": {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "flyer-up": {
+          "x": 31,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "stamp-up": {
+          "x": 62,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "stamp-down": {
+          "x": 93,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "clip": {
+          "x": 124,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        },
+        "clip-wow": {
+          "x": 155,
+          "y": 0,
+          "w": 30,
+          "h": 41,
+          "anchor": [
+            15,
+            39
+          ]
+        }
+      }
+    },
+    "timsah-leisure": {
+      "file": "timsah-leisure.png",
+      "width": 115,
+      "height": 36,
+      "bytes": 1325,
+      "sha256": "1a53cb5471b9d3f7da95e57f32c64493ff867d506dbbfc02644a05354dfba0f0",
+      "colors": 16,
+      "frames": {
+        "read": {
+          "x": 0,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "read-turn": {
+          "x": 29,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "watch": {
+          "x": 58,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        },
+        "laugh": {
+          "x": 87,
+          "y": 0,
+          "w": 28,
+          "h": 36,
+          "anchor": [
+            14,
+            34
+          ]
+        }
+      }
+    },
+    "timsah": {
+      "file": "timsah.png",
+      "width": 191,
+      "height": 42,
+      "bytes": 2202,
+      "sha256": "dc699c347ed79c4a7b17491f3a0c72587d4c3d49982e1dc834034da24f655f49",
+      "colors": 14,
+      "frames": {
+        "idle": {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "blink": {
+          "x": 32,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "walk-a": {
+          "x": 64,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "walk-b": {
+          "x": 96,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "hold": {
+          "x": 128,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        },
+        "jump": {
+          "x": 160,
+          "y": 0,
+          "w": 31,
+          "h": 42,
+          "anchor": [
+            15,
+            40
+          ]
+        }
+      }
+    },
+    "train-interior": {
+      "file": "train-interior.png",
+      "width": 640,
+      "height": 228,
+      "frames": {
+        "still": {
+          "x": 0,
+          "y": 0,
+          "w": 640,
+          "h": 228,
+          "anchor": [
+            0,
+            0
+          ]
+        }
+      },
+      "bytes": 234182,
+      "sha256": "1d9802e3ecaf1e868bac2d75eb208a3eac9b1bd103aa206bd08bcd71147689b1"
+    },
+    "ui-bubble": {
+      "file": "ui-bubble.png",
+      "width": 12,
+      "height": 12,
+      "bytes": 115,
+      "sha256": "f1dc5dd38bfcf377051acc538e07b95b55f7fa15ee81025a7cf0181a53d6f1a4",
+      "colors": 11,
+      "frames": {
+        "bubble": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 12,
+          "anchor": [
+            0,
+            11
+          ]
+        }
+      }
+    },
+    "ui-tail": {
+      "file": "ui-tail.png",
+      "width": 8,
+      "height": 6,
+      "bytes": 96,
+      "sha256": "bec115e19a42f25b10094614e67d4e9d8d69bec04c48e319aa50340e556214d1",
+      "colors": 11,
+      "frames": {
+        "tail": {
+          "x": 0,
+          "y": 0,
+          "w": 8,
+          "h": 6,
+          "anchor": [
+            0,
+            5
+          ]
+        }
+      }
+    },
+    "ui-here": {
+      "file": "ui-here.png",
+      "width": 10,
+      "height": 6,
+      "bytes": 116,
+      "sha256": "8ef43bef6afb587289d793289f9fe2de26ac57f5f7ce7592d0a07a7debaddc8e",
+      "colors": 11,
+      "frames": {
+        "here": {
+          "x": 0,
+          "y": 0,
+          "w": 10,
+          "h": 6,
+          "anchor": [
+            0,
+            5
+          ]
+        }
+      }
+    }
+  }
+}

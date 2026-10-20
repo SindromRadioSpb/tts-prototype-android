@@ -1,0 +1,73 @@
+[
+  {
+    "id": "promenade", "city": "Тель-Авив · набережная", "title": "Суперсила: начать разговор", "arrival": true,
+    "he": "אני מחפש אולפן.", "translation": "Я ищу ульпан.",
+    "beats": [
+      {"who":"hero","text":"По стенам я уже хожу. А вот разговор с соседями пока не получается.","seconds":7,"pose":"greet"},
+      {"who":"timsah","text":"Начнём с малого. Что ты ищешь?","seconds":5,"pose":"listen"},
+      {"who":"hero","text":"Ани мехапэс ульпан. Я ищу ульпан.","seconds":5,"pose":"greet"},
+      {"who":"timsah","text":"Отлично. Первый шаг сделан. Причём по земле.","seconds":6,"pose":"laugh"}
+    ]
+  },
+  {
+    "id":"market", "city":"Тель-Авив · рынок", "title":"Сначала — «извините»", "arrival":true,
+    "he":"סליחה, איפה האולפן?", "translation":"Извините, где ульпан?",
+    "beats":[
+      {"who":"timsah","text":"Начни со «слиха». Паутину доставать не обязательно.","seconds":6,"pose":"listen"},
+      {"who":"hero","text":"Слиха, эйфо hа-ульпан? Извините, где ульпан?","seconds":6,"pose":"greet"},
+      {"who":"seller","text":"Про ульпан спроси у мастера за углом. А помидоры — здесь.","seconds":7,"pose":"listen"},
+      {"who":"hero","text":"Уже понимаю, почему нельзя учить язык голодным.","seconds":6,"pose":"greet"}
+    ]
+  },
+  {
+    "id":"workshop", "city":"Тель-Авив · мастерская", "title":"В Хайфе нас уже ждут", "arrival":false,
+    "he":"האולפן בחיפה.", "translation":"Ульпан в Хайфе.",
+    "beats":[
+      {"who":"master","text":"Моя знакомая преподаёт в Хайфе. Я ей позвоню — сегодня как раз занятие для начинающих.","seconds":9,"pose":"listen"},
+      {"who":"hero","text":"А совсем для начинающих?","seconds":4,"pose":"greet"},
+      {"who":"master","text":"Конечно. Все когда-нибудь впервые говорят «шалом». Она вас ждёт!","seconds":7,"pose":"listen"},
+      {"who":"timsah","text":"Записываю адрес. Сегодня чиним пробелы в иврите.","seconds":6,"pose":"note"}
+    ]
+  },
+  {
+    "id":"jaffa", "city":"Тель-Авив—Яффо", "title":"Маршрут с удобными креслами", "arrival":false,
+    "he":"נוסעים לחיפה ברכבת.", "translation":"Едем в Хайфу на поезде.",
+    "beats":[
+      {"who":"timsah","text":"Сначала на станцию. Потом поезд до Хайфы. От станции дойдём по адресу.","seconds":8,"pose":"map"},
+      {"who":"hero","text":"По крышам нельзя?","seconds":4,"pose":"greet"},
+      {"who":"timsah","text":"Можно. Но в поезде есть кресла.","seconds":5,"pose":"laugh"},
+      {"who":"hero","text":"Убедительно. Носъим ле-Хейфа ба-ракэвет — едем в Хайфу на поезде.","seconds":8,"pose":"map"}
+    ]
+  },
+  {
+    "id":"travel", "city":"В пути · Тель-Авив → Хайфа", "title":"Пока едем — попробуем ещё раз", "arrival":false,
+    "he":"תודה!", "translation":"Спасибо!", "arrivalHe":"הגענו לחיפה!", "arrivalTranslation":"Мы приехали в Хайфу!",
+    "beats":[
+      {"who":"hero","text":"Проверим: «эйфо» — где, «тода» — спасибо?","seconds":6,"pose":"listen"},
+      {"who":"timsah","text":"Верно. Составишь предложение?","seconds":5,"pose":"read"},
+      {"who":"hero","text":"Где мой ульпан? Спасибо, что едешь со мной.","seconds":6,"pose":"greet"},
+      {"who":"timsah","text":"Вот и разговор получился.","seconds":5,"pose":"laugh"},
+      {"who":"timsah","text":"Хига́ну ле-Хейфа! Мы приехали в Хайфу. Теперь идём по адресу.","seconds":7,"pose":"arrival"}
+    ]
+  },
+  {
+    "id":"reading", "city":"Хайфа · вымышленный ульпан", "title":"Здесь можно спрашивать ещё раз", "arrival":true,
+    "he":"שלום! אני לומד עברית.", "translation":"Привет! Я учу иврит.",
+    "beats":[
+      {"who":"teacher","text":"Добро пожаловать! Что ты уже умеешь говорить?","seconds":6,"pose":"listen"},
+      {"who":"hero","text":"Шалом! Ани ломэд иврит. Привет! Я учу иврит.","seconds":6,"pose":"greet"},
+      {"who":"teacher","text":"А если что-нибудь непонятно?","seconds":5,"pose":"listen"},
+      {"who":"timsah","text":"Тогда спрашиваем ещё раз. Здесь это тоже суперспособность.","seconds":7,"pose":"note"}
+    ]
+  },
+  {
+    "id":"cinema", "city":"Хайфа · кинодвор после урока", "title":"Первое слово вне класса", "arrival":true,
+    "he":"סרט", "translation":"Фильм. Знакомое слово на новой афише!",
+    "beats":[
+      {"who":"hero","text":"Сэрэт… סרט! Это слово я уже знаю. Фильм!","seconds":6,"pose":"greet"},
+      {"who":"timsah","text":"Выбираем сеанс?","seconds":4,"pose":"listen"},
+      {"who":"hero","text":"Только без супергероев. У меня сегодня выходной.","seconds":6,"pose":"greet"},
+      {"who":"timsah","text":"Тогда два билета. Следующая языковая миссия — касса.","seconds":7,"pose":"laugh"}
+    ]
+  }
+]

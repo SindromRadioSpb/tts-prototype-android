@@ -27,6 +27,11 @@
   // Kill switch: an id missing here, or retired, never loads — the next successful app update
   // withdraws a world everywhere (offline clients keep the old shell until they update).
   var REGISTRY = {
+    "ulpan-journey": { base: "/worlds/ulpan-journey/", pack: "1.0.0", retired: false, category: "israel",
+      names: { ru: "Человек-Паук: в поисках первого Ульпана", en: "Spider-Man: finding the first ulpan", he: "ספיידרמן: בדרך לאולפן הראשון" },
+      note: { ru: "Нажмите на героев, чтобы поговорить. Семь локаций от Тель-Авива до Хайфы.", en: "Tap the characters to talk. Seven stops from Tel Aviv to Haifa.", he: "לחצו על הדמויות כדי לדבר. שבע תחנות מתל אביב לחיפה." },
+      routeLabel: { ru: "В поисках первого ульпана", en: "Finding the first ulpan", he: "בדרך לאולפן הראשון" },
+      greeting: "שלום", previewLocation: "promenade" },
     "memorial-three-scenes": {"base": "/worlds/memorial-three-scenes/", "pack": "1.0.0", "retired": false, "names": {"ru": "Помним · три сцены", "en": "We remember · three scenes", "he": "זוכרים · שלוש סצנות"}, "note": {"ru": "Три предоставленные автором сцены памяти. Тихий свет и долгие паузы.", "en": "Three user-provided remembrance scenes. Quiet light and long pauses.", "he": "שלוש סצנות זיכרון שסופקו על ידי המשתמש. אור שקט והפסקות ארוכות."}, "badge": {"ru": "Память", "en": "Remembrance", "he": "זיכרון"}, "routeLabel": {"ru": "Помним · три сцены", "en": "We remember · three scenes", "he": "זוכרים · שלוש סצנות"}, "greeting": "", "previewLocation": "scene-1", "category": "events"},
     "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false, category: "current-events",
       names: { ru: "Мир выборов в Израиле", en: "Israel Elections 2026", he: "עולם הבחירות 2026" },
@@ -62,7 +67,7 @@
   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
-  var CSS_URL = "/css/world-skin.css?v=715";    // lockstep with the sw.js precache keys
+  var CSS_URL = "/css/world-skin.css?v=799";    // lockstep with the sw.js precache keys
   var RENDER_URL = "/js/world-render.js?v=715";
 
   // ── pure core ──────────────────────────────────────────────────────────────
@@ -191,6 +196,7 @@
       var L = locs[id];
       if (!isName(id) || !L || (L.phase != null && PHASES.indexOf(L.phase) < 0) || !isNum(L.x, -100000, 100000)) { err("location " + id); return; }
       if (!localized(L.names)) err("location " + id + " names");
+      if (L.symbol && (!isPlainText(L.symbol) || L.symbol.length > 8)) err("location " + id + " symbol");
       if (L.lighting && LIGHTINGS.indexOf(L.lighting) < 0) err("location " + id + " lighting");
       if (L.sign) {
         var sg = L.sign;
@@ -618,7 +624,7 @@
       if (wt >= w.ms) { state.walk = null; onArrive(w.to); }
     }
     if (state.scene && t - state.scene.start >= state.scene.def.durationMs) endScene();
-    if (state.react && t - state.react.start > 3200) { state.react = null; hideBubble(); }
+    if (state.react && t - state.react.start > (state.react.durationMs || 3200)) { state.react = null; hideBubble(); }
     if (st && state.visible) {
       st.renderer.setPose(composePose(t));
       st.renderer.render("stage", t, dt);
@@ -788,10 +794,21 @@
     state.lineIndex = ((state.lineIndex == null ? -1 : state.lineIndex) + 1) % list.length;
     return list[state.lineIndex];
   }
+  function activateActor(id) {
+    var st = state.stage;
+    if (!st || !st.renderer.dialogue) return;
+    var reply = st.renderer.dialogue(id, locale());
+    if (!reply) return;
+    endScene();
+    state.react = { start: now(), durationMs: Math.max(6000, Math.min(14000, reply.length * 65)) };
+    showBubble(reply);
+    if (!animating()) drawOnce(); else kick();
+  }
   function onStageTap(e) {
     var st = state.stage;
     if (!st || state.walk) return;
     var r = st.canvas.getBoundingClientRect();
+    if (st.renderer.hitTest) { var actor = st.renderer.hitTest(e.clientX-r.left, e.clientY-r.top); if (actor) activateActor(actor); return; }
     var lx = (e.clientX - r.left) / st.scale, ly = (r.bottom - e.clientY) / st.scale;
     var tx = locX() - st.renderer.camera();
     var ground = state.pack.scenery.groundY;
@@ -806,12 +823,13 @@
     hideBubble();
     var b = document.createElement("div");
     b.className = "lp-world-bubble";
-    b.setAttribute("aria-hidden", "true");
+    if (state.stage.renderer.dialogue) { b.setAttribute("role", "status"); b.setAttribute("aria-live", "polite"); }
+    else b.setAttribute("aria-hidden", "true");
     b.lang = locale();
     b.dir = "auto";
     state.stage.el.appendChild(b);
     state.bubble = b;
-    if (reducedMotion()) b.textContent = text;
+    if (reducedMotion() || state.stage.renderer.dialogue) b.textContent = text;
     else {
       // typewriter: the full text reserves its width first, then characters appear
       b.textContent = text;
@@ -834,6 +852,15 @@
   function positionBubble() {
     var b = state.bubble, st = state.stage;
     if (!b || !st) return;
+    if (st.renderer.bubbleAnchor) {
+      var a = st.renderer.bubbleAnchor();
+      b.style.whiteSpace = "normal"; b.style.maxWidth = Math.min(360, st.el.clientWidth - 16) + "px";
+      var bx = Math.max(8, Math.min(st.el.clientWidth - b.offsetWidth - 8, a.x - b.offsetWidth / 2));
+      b.style.left = bx + "px"; b.style.transform = "none";
+      b.style.bottom = Math.min(st.el.clientHeight - b.offsetHeight - 8, a.bottom + 8) + "px";
+      b.style.setProperty("--lpw-tail", Math.max(8, Math.min(b.offsetWidth - 20, a.x - bx)) + "px");
+      return;
+    }
     var sc = st.scale, cam = st.renderer.camera();
     var head = (locX() - cam) * sc;
     var L = state.pack.locations[state.location];
@@ -1105,6 +1132,7 @@
       b.className = "lp-world-stop";
       b.dataset.loc = id;
       var L0 = state.pack.locations[id];
+      if (L0.symbol) { var symbol = document.createElement("span"); symbol.className = "lp-world-stop-icon"; symbol.textContent = L0.symbol; symbol.setAttribute("aria-hidden", "true"); b.appendChild(symbol); }
       if (L0.icon && state.atlas.atlases[L0.icon]) {
         var ic = document.createElement("span");
         ic.className = "lp-world-stop-icon";
@@ -1127,7 +1155,7 @@
     posters.className = "lp-world-posters";
     posters.setAttribute("data-world-ui", "");
     el.appendChild(posters);
-    var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26 });
+    var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26, onActor: activateActor });
     state.stage = { el: el, canvas: canvas, pause: pause, sign: sign, signHe: signHe, signTr: signTr, route: route, posters: posters, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
     canvas.addEventListener("pointerdown", onStageTap);
     syncPauseButton();
@@ -1171,6 +1199,7 @@
   function unmount() {
     [state.stage, state.backdrop].forEach(function (m) {
       if (!m) return;
+      if (m.renderer && m.renderer.destroy) m.renderer.destroy();
       while (m.el.firstChild) m.el.removeChild(m.el.firstChild);
       m.el.hidden = true;
       m.el.removeAttribute("style");
@@ -1187,7 +1216,7 @@
     on(document, "visibilitychange", function () { if (document.hidden) endScene(); else { state.lastFrame = 0; kick(); } });
     on(window, "resize", function () { layoutStage(); });
     on(window, "scroll", function () { if (!animating()) drawOnce(); }, { passive: true });
-    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); syncRoute(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; });
+    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); syncRoute(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; drawOnce(); });
     if (typeof MutationObserver !== "undefined" && document.body) {
       var themeMo = new MutationObserver(function () {
         var l = currentLighting();
@@ -1207,8 +1236,19 @@
     state.listeners = [];
   }
 
+  var ulpanLoading = null;
+  function ensureUlpanRenderer() {
+    if (window.LPUlpanWorld) return Promise.resolve();
+    if (!ulpanLoading) ulpanLoading = new Promise(function(resolve, reject) {
+      var s = document.createElement("script"); s.src = "/js/ulpan-world.js?v=799";
+      s.onload = function() { if (window.LPUlpanWorld) resolve(); else { ulpanLoading=null; reject(new Error("ulpan renderer missing")); } };
+      s.onerror = function() { ulpanLoading=null; reject(new Error("ulpan renderer failed")); }; document.head.appendChild(s);
+    });
+    return ulpanLoading;
+  }
   var memorialLoading = null;
   function ensureMemorialAdapter(id) {
+    if (id === "ulpan-journey") return ensureUlpanRenderer();
     if (id !== "memorial-three-scenes" || window.LPMemorialAdapter) return Promise.resolve();
     if (!memorialLoading) memorialLoading = new Promise(function (resolve, reject) {
       var script = document.createElement("script");

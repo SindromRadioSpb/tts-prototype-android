@@ -10,6 +10,7 @@
     // Speech playback uses the same existing row state as the custom player UI.
     const speechOrRow = !!document.querySelector('.row-tts-playing, .row-playing');
     window.LPMemorialAdapter?.setActivity({ reading, audio: sources.size > 0 || speechOrRow });
+    window.LPUlpanWorld?.setActivity({ reading, audio: sources.size > 0 || speechOrRow });
   }
   function setAudio(source, playing) { if (playing) sources.add(source); else sources.delete(source); sync(); }
   function trackMedia(player) {

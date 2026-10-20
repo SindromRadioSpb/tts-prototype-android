@@ -1,0 +1,30 @@
+{
+  "checks": [
+    "health, DB/migrations, version, 181 served shell hashes vs checkout",
+    "all Ulpan pack bytes exact",
+    "real Chrome SW activated, shell integrity install succeeded, exact painter/boot cache keys",
+    "35 browser matrix checks against live backend"
+  ],
+  "base": "http://127.0.0.1:60549",
+  "health": {
+    "ok": true,
+    "uptimeSec": 11,
+    "now": "2026-10-20T13:19:10.279Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 92,
+    "disk_warn": true
+  },
+  "version": "3.11.799",
+  "browser": "155.0.8059.80",
+  "sw": {
+    "keys": 278,
+    "painter": true,
+    "boot": true
+  },
+  "result": "passed"
+}
