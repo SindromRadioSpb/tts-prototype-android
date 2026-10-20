@@ -48,7 +48,7 @@
     var map = new Map();
     function entry(key) {
       key = str(key).trim();
-      if (!key) return null;
+      if (!key || /^ft1:/.test(key)) return null;
       var e = map.get(key);
       if (!e) {
         e = { key: key, status: "", srs: null, note: null, log: null, ctx: null, surfaces: [], added: 0, lastSeen: 0, sources: [] };
@@ -90,6 +90,20 @@
       addSurface(e, m.surface, "mark");
       if (m.textKey && m.order != null) e.mark = { textKey: m.textKey, order: Number(m.order), surface: str(m.surface) };
     });
+    var LT = typeof globalThis !== 'undefined' && globalThis.LearningTargets;
+    if (!LT && typeof require === 'function') { try { LT = require('./learning-targets.js'); } catch (_) {} }
+    if (LT) {
+      var formKeys = new Set(Object.keys(st).concat(Object.keys(sc)));
+      formKeys.forEach(function (key) {
+        var target = LT.parse(key); if (!target) return;
+        var existed = map.has(target.parentKey), parent = entry(target.parentKey);
+        if (!parent) return;
+        if (!existed) parent.targetOnly = true;
+        if (!parent.targets) parent.targets = [];
+        parent.targets.push(Object.assign({},target,{status:st[key]||'',srs:sc[key]||null}));
+        if (parent.sources.indexOf('targets') < 0) parent.sources.push('targets');
+      });
+    }
     map.forEach(function (e) { addSurface(e, keySurface(e.key), "key"); });
     return map;
   }
@@ -127,7 +141,7 @@
   // elsewhere — the dictionary status («новое» is the default of a word of mine)
   function statusOf(e, scope) {
     if (scope === "text") return e.textStatus || "none";
-    return e.status || (e.metOnly ? "" : "new");
+    return e.status || (e.metOnly || e.targetOnly ? "" : "new");
   }
   // Д5.3 «Частота»: the number the list row shows — in the text lens the occurrences in the text (or the set of texts),
   // elsewhere «встреч: N» (recorded places; the full count of my texts in «все встреченные»). Bands = the Room's «Мои слова».
@@ -244,7 +258,7 @@
     var out = { total: 0, none: 0 };
     STATUSES.forEach(function (s) { out[s] = 0; });
     list.forEach(function (e) {
-      if (scope === "text") { if (!e.inText) return; } else if (e.metOnly) return;
+      if (scope === "text") { if (!e.inText) return; } else if (e.metOnly || (e.targetOnly && !e.status)) return;
       out.total++; var s = statusOf(e, scope); if (out[s] != null) out[s]++;
     });
     return out;

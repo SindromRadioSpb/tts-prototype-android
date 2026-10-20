@@ -6,7 +6,7 @@
 // офлайн ReaderMorph.resolveWordLight с проверкой личности: запись получает разбор ТОЛЬКО если lemmaKey
 // резолвера совпал с её ключом (R11). Статус пишется тем же MorphHost.markWordStatus, что в тексте.
 // Урок O-080: никакого сплошного перебора на главном потоке — разбор порциями с уступками.
-import * as localDb from '/db/local-db.js?v=802';
+import * as localDb from '/db/local-db.js?v=804';
 
 const D = window.DictionaryCore;
 const RM = () => window.ReaderMorph;
@@ -375,7 +375,7 @@ function rowFor(e) {
   const meta = [];
   if (d.pos) meta.push(el('span', { text: posText(d.pos) + (d.binyan ? ' · ' + d.binyan : '') }));
   if (d.root) meta.push(el('span', {}, [tt('dictionary.root', 'корень') + ' ', el('span', { class: 'he', text: d.root })]));
-  const inText = S.filters.scope === 'text' && e.inText, st = inText ? D.statusOf(e, 'text') : (e.metOnly ? '' : (e.status || 'new'));
+  const inText = S.filters.scope === 'text' && e.inText, st = D.statusOf(e, inText ? 'text' : undefined);
   if (st) meta.push(el('span', { class: st === 'none' ? 'dict-unmarked' : null, text: statusText(st) }));
   if (inText) {
     meta.push(el('span', { text: inTextLabel(e) }));
@@ -1311,7 +1311,7 @@ function openSaveView() {
 }
 
 // ── article ────────────────────────────────────────────────────────────────────────────────────
-let morphHost = null, _articleEpoch = 0;
+let morphHost = null, _articleEpoch = 0, _activeDrillPanel = null;
 function toast(msg, actionText, action) {
   const t = $('dict-toast'); if (!t) return;
   t.replaceChildren(document.createTextNode(msg));
@@ -1412,6 +1412,7 @@ const askText = (t) => (t.group ? t.group + ' · ' : '') + t.label;
 // One round runner for the article (one word) and for a set of words (Д2.2+).
 // task = { key, lemma, study, paradigm, target }; mems: Map key → cell memory (saved per word).
 function runDrill(panel, makeDeck, mems, opts) {
+  _activeDrillPanel = panel;
   const FD = window.FormDrillCore;
   opts = opts || {};
   const res = [];
@@ -1442,13 +1443,28 @@ function runDrill(panel, makeDeck, mems, opts) {
       modeBar(ask),
       el('p', { class: 'dict-drill-q' }, [el('b', { attrs: { dir: 'auto' }, text: askText(target) }), ru ? ' — ' : null, ru ? el('span', { attrs: { dir: 'auto' }, text: ru }) : null]),
     );
-    const area = el('div', { class: 'dict-drill-area', attrs: { 'data-answer': target.he, 'data-mode': mode } });   // read by the smoke gate
+    const area = el('div', { class: 'dict-drill-area', attrs: { 'data-answer': target.he, 'data-mode': mode,
+      'data-drill-target-key': window.LearningTargets && window.LearningTargets.keyFor(task.paradigm.pealim_id,target.slot,'') } });
     panel.appendChild(area);
-    function grade(ok, info) {
+    async function grade(ok, info) {
       if (done) return; done = true;
+      const controls = Array.from(panel.querySelectorAll('button, input')).filter(b => !b.disabled);
+      controls.forEach(b => { b.disabled = true; });
+      const LT=window.LearningTargets,key=LT&&LT.keyFor(task.paradigm.pealim_id,target.slot,'');
+      if(key){
+        try{
+          const enrolled=(await localDb.listLearningTargets(task.key)).some(r=>r.lemma_key===key);
+          if(enrolled){
+            const resolved=await RM().resolveLearningTarget(key,target.he),schedules=await localDb.getSrsSchedule();
+            if(!resolved||!resolved.card)throw Error('LEARNING_TARGET_READING_CHANGED');
+            await morphHost.gradeLearningTarget(Object.assign({},resolved.card,{lemmaKey:key}),null,ok,schedules[key]||null,'form-drill:'+mode);
+          }
+        }catch(error){done=false;controls.forEach(b=>{b.disabled=false;});toast(tt('learningTarget.saveFailed','Не удалось сохранить. Попробуйте ещё раз.'));return;}
+      }
       res.push(ok);
       const mem = FD.grade(mems.get(task.key) || {}, target.slot, ok, Date.now(), mode);
       mems.set(task.key, mem); drillSave(task.key, mem);
+      if (!area.isConnected) return;
       area.querySelectorAll('button, input').forEach((b) => { b.disabled = true; });
       panel.querySelectorAll('.dict-drill-modes button').forEach((b) => { b.disabled = true; });
       const kids = [el('span', { text: ok ? '✓ ' + tt('dictionary.drillRight', 'Верно') : '✗ ' + tt('dictionary.drillWrong', 'Правильно:') + ' ' })];
@@ -1608,6 +1624,7 @@ function foldSec(id, openByDefault, title, children) {
   return d;
 }
 async function openArticle(key) {
+  _activeDrillPanel = null;
   const e = S.entries.get(key); if (!e) return;
   const my = ++_articleEpoch;
   S.selected = key;
@@ -1628,7 +1645,7 @@ async function openArticle(key) {
   // status: the same canon write as a tap in the text (MorphHost.markWordStatus)
   const statusBox = el('div', { class: 'dict-a-status', attrs: { role: 'group', 'aria-label': tt('dictionary.fStatus', 'Статус') } });
   if (!String(key).startsWith('note:')) D.STATUSES.forEach((s) => {
-    const on = (e.status || (e.metOnly ? '' : 'new')) === s;
+    const on = D.statusOf(e) === s;
     statusBox.appendChild(el('button', { class: 'dict-st-' + s + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': on ? 'true' : 'false' }, text: statusText(s),
       on: { click: async () => {
         const next = on && s !== 'new' ? 'new' : s;
@@ -1655,6 +1672,9 @@ async function openArticle(key) {
   art.replaceChildren(back, head, statusBox,
     el('section', { class: 'dict-a-sec' }, [el('h3', { text: tt('dictionary.meanings', 'Значения') }), meanBox, el('p', {}, [openCard])]),
     placesSec, conjSec, famSec, memSec);
+  const targetSection=el('section',{class:'dict-a-sec',attrs:{'data-learning-targets':key}},[el('h3',{text:tt('learningTarget.selectedForms','Выбранные формы')})]);
+  art.insertBefore(targetSection,memSec);
+  mountSelectedTargets(targetSection,key,my).catch(() => { if (my === _articleEpoch) targetSection.append(el('p', { class: 'dict-note', text: tt('learningTarget.unavailable', 'Форма пока недоступна') })); });
   if (window.matchMedia && window.matchMedia('(max-width: 959px)').matches) { art.scrollTop = 0; try { back.focus(); } catch (_) {} }
 
   // memory (synchronous from the entry + the log)
@@ -1752,6 +1772,35 @@ async function openArticle(key) {
     aiBox.replaceChildren(el('span', { class: 'k', text: tt('dictionary.aiMeanings', 'в контексте (ИИ)') }), el('span', { class: 'ai', text: txt }));
   }
 }
+
+async function mountSelectedTargets(section,parentKey,epoch){
+  const LT=window.LearningTargets,rows=await localDb.listLearningTargets(parentKey);
+  if(epoch!==_articleEpoch||!LT)return;
+  if(!rows.length){section.hidden=true;return;}
+  for(const row of rows){
+    let resolved=null;
+    if(row.srs_sentence_id||row.srs_text_key){
+      const sent=await localDb.getSentenceForReview(row.srs_sentence_id,row.srs_text_key,row.srs_order_index);
+      for(const word of RM().words(sent&&(sent.he_niqqud||sent.he_plain)||'')){
+        const candidate=await RM().resolveLearningTarget(row.lemma_key,word);
+        if(candidate&&candidate.card){resolved=candidate;break;}
+      }
+    }
+    if(!resolved)resolved=await RM().resolveLearningTarget(row.lemma_key,'');
+    if(epoch!==_articleEpoch)return;
+    if(!resolved)continue;
+    const t=resolved.target,box=el('div',{class:'dict-choice',attrs:{'data-learning-target-key':row.lemma_key}});
+    box.append(el('p',{},[el('b',{class:'he',attrs:{lang:'he',dir:'rtl'},text:t.niqqud||t.lemma}), ' — '+(t.meaning||t.grammar)]),
+      el('p',{class:'dict-note',text:t.grammar+' · '+statusText(row.status||'new')+(row.srs_due?' · '+new Date(row.srs_due).toLocaleDateString(document.documentElement.lang||'ru'):'')}));
+    if(resolved.card){
+      box.append(el('button',{class:'dict-btn',attrs:{type:'button'},text:tt('dictionary.fullCard','Морфологическая карточка'),on:{click:()=>RM().openWordCard(t.word,t.niqqud,{lemmaKey:t.key})}}),
+        el('button',{class:'dict-btn',attrs:{type:'button'},text:tt('learningTarget.practice','Потренировать эту форму'),on:{click:()=>{
+          localStorage.setItem('dict.trainSet_v1',JSON.stringify({at:Date.now(),keys:[t.key]}));location.href='/library.html?review=set&from=dictionary';
+        }}}));
+    }else box.append(el('p',{class:'dict-note',text:tt('learningTarget.sourceRequired','Для повторения этой формы нужен её пример. Откройте материал, где она встречалась.')}));
+    section.append(box);
+  }
+}
 function closeArticle() {
   _articleEpoch++;
   S.selected = null;
@@ -1772,7 +1821,7 @@ const pct = (r) => Math.round(r * 100) + '%';
 const dateShort = (t) => new Date(t).toLocaleDateString(document.documentElement.lang || 'ru', { day: 'numeric', month: 'short' });
 // «Учить эти» on any list of entries (the same hand-off as the button over the list)
 function startTrain(list, mode) {
-  const learnable = list.filter((e) => !e.metOnly && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
+  const learnable = list.filter((e) => !e.metOnly && !(e.targetOnly && !e.status) && e.status !== 'ignore' && !String(e.key).startsWith('note:'));
   if (!learnable.length) return;
   try { localStorage.setItem('dict.trainSet_v1', JSON.stringify({ at: Date.now(), keys: learnable.slice(0, 200).map((e) => e.key), mode: mode || '' })); } catch (_) {}
   location.href = '/library.html?review=set&from=dictionary';
@@ -1792,7 +1841,7 @@ function showWords(filters) {
 }
 let _progEpoch = 0;
 async function progressData(now) {
-  const mine = Array.from(S.entries.values()).filter((e) => !e.metOnly);
+  const mine = Array.from(S.entries.values()).filter((e) => !e.metOnly && !(e.targetOnly && !e.status));
   const [marks, days, drill] = await Promise.all([
     q(`SELECT item_key, reviewed_at, json_extract(meta_json, '$.status') AS status FROM review_log WHERE kind = 'mark'`),
     q(`SELECT substr(reviewed_at, 1, 10) AS day, COUNT(*) AS n, SUM(CASE WHEN grade <= 1 THEN 1 ELSE 0 END) AS fails
@@ -2016,7 +2065,7 @@ async function exportXlsx(list) {
       words.push({ key: e.key, he: d.he || (p && (p.lemma_niqqud || p.lemma)) || '', translit: lemmaTranslit(p),
         meaning: (e.reading && e.reading.meaning) || (e.note && e.note.meaning) || '', mine: (e.note && e.note.userMeaning) || '',
         posText: posText(d.pos), binyan: d.binyan, root: d.root,
-        status: lens && e.inText ? (e.textStatus || 'none') : (e.metOnly ? '' : (e.status || 'new')), statusText: lens && e.inText ? statusText(e.textStatus || 'none') : (e.metOnly ? '' : statusText(e.status || 'new')),
+        status: D.statusOf(e, lens && e.inText ? 'text' : undefined), statusText: D.statusOf(e, lens && e.inText ? 'text' : undefined) ? statusText(D.statusOf(e, lens && e.inText ? 'text' : undefined)) : '',
         strength: m.strength == null ? null : Math.round(m.strength * 100), due: e.srs && e.srs.due > 0 ? e.srs.due : null, reps: m.reps, lapses: m.lapses,
         occ: lens && e.inText ? e.inText.freq : D.occurrences(e), added: e.added, lastSeen: e.lastSeen, example: examples.get(e.key) || null,
         pealimUrl: (p && p.pealim_url) || '', appUrl: location.origin + '/dictionary.html?word=' + encodeURIComponent(e.key),
@@ -2292,6 +2341,9 @@ async function boot() {
       saveWord: (c, o) => morphHost.saveWord(c, o), lookupNote: (c) => morphHost.lookupNote(c), loadWordNote: (c) => morphHost.loadWordNote(c),
       saveWordPersonal: (c, o, f) => morphHost.saveWordPersonal(c, o, f), speakWord: (t) => morphHost.speakWord(t),
       getWordStates: () => morphHost.ensureWordStates(), getWordStatus: (lk) => localDb.getWordStatus(lk),
+      listLearningTargets: (key) => localDb.listLearningTargets(key),
+      enrollLearningTarget: (card,key,occ) => morphHost.enrollLearningTarget(card,key,occ),
+      practiceLearningTarget: (key) => {localStorage.setItem('dict.trainSet_v1',JSON.stringify({at:Date.now(),keys:[key]}));location.href='/library.html?review=set&from=dictionary';},
       setWordStatus: async (lk, st) => { const r = await morphHost.markWordStatus(lk, st, null); morphHost.invalidateWordStates(); reloadSoon(); return r; },
       lookupUserMeaning: (c) => morphHost.lookupUserMeaning(c), saveUserMeaning: async (c, o, v) => { const r = await morphHost.saveUserMeaning(c, o, v); reloadSoon(); return r; },
     });
@@ -2322,7 +2374,7 @@ async function reload() {
   await resolveReadings(S.entries);
   applyView();
   if (S.viewMode === 'progress') renderProgress();
-  if (S.selected && S.entries.has(S.selected)) openArticle(S.selected);
+  if (S.selected && S.entries.has(S.selected) && !(_activeDrillPanel && _activeDrillPanel.isConnected && !_activeDrillPanel.hidden)) openArticle(S.selected);
 }
 window.LPDictionary = { state: S, reload, openArticle, setView, get morphHost() { return morphHost; } };   // smoke / diagnostics
 boot();

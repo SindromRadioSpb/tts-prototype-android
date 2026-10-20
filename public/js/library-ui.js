@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=802';
+import * as localDbRaw from '/db/local-db.js?v=804';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -19,7 +19,7 @@ let _canonReadyPromise = null;
 const ROOM_DB_WRITES = new Set(['importBundle', 'reconcileAudioLinks', 'setProgress', 'touchOpened', 'setTextFinished',
   'clearTextFinished', 'setWordStatus', 'saveDerivedNiqqud', 'insertWordContexts', 'createNote', 'upsertAudioAsset',
   'linkSentenceAudio', 'addBookmark', 'removeBookmark', 'recordRecall', 'updateSrsSource', 'commitReviewAttempt',
-  'appendReviewLog', 'putLearningCompassIngredients', 'putLearningCompassIngredientsBatch', 'deleteLearningCompassGroupCorpus']);
+  'appendReviewLog', 'commitLearningTargetMark', 'putLearningCompassIngredients', 'putLearningCompassIngredientsBatch', 'deleteLearningCompassGroupCorpus']);
 const localDb = new Proxy(localDbRaw, {
   get(target, key) {
     const value = target[key];
@@ -3707,6 +3707,11 @@ async function _buildDueSourcedItems(due, opts) {
   const R = window.ReaderMorph, laddered = [];
   let items = [];
   for (const d of due) {
+    if (window.LearningTargets && window.LearningTargets.isFormKey(d.lemmaKey)) {
+      const formItem = await _learningTargetReviewItem(d);
+      if (formItem) items.push(formItem);
+      continue; // A selected form can never fall through to the lemma-only recovery ladder.
+    }
     // T1: no prefix cut here — the caller already SELECTED this list, so every member must be
     // given a chance to assemble. Bounding assembly BEFORE selection is what made the tail of a
     // large backlog unreachable.
@@ -3839,6 +3844,32 @@ async function _buildDueSourcedItems(due, opts) {
   }
   return _separateSameRoot(items);
 }
+
+async function _learningTargetReviewItem(d) {
+  const R=window.ReaderMorph, LT=window.LearningTargets, target=LT&&LT.parse(d.lemmaKey);
+  if(!R||!target)return null;
+  let source=d.source||{},sent=null,resolved=null,cz=null;
+  if(source.sentenceId||source.textKey){
+    try{sent=await localDb.getSentenceForReview(source.sentenceId,source.textKey,source.orderIndex);}catch(_){}
+    if(sent){
+      const he=String(sent.he_niqqud||sent.he_plain||'');
+      for(const word of R.words(he)){
+        const candidate=await R.resolveLearningTarget(d.lemmaKey,word);
+        if(candidate&&candidate.card){resolved=candidate;cz=R.buildClozeForTarget(R.tokenize(he),R.stripNiqqud(word));if(cz)cz.answer=word;break;}
+      }
+    }
+  }
+  if(!resolved)resolved=await R.resolveLearningTarget(d.lemmaKey,'');
+  if(!resolved||!resolved.card||!resolved.target.available)return null;
+  const t=resolved.target, parent=resolved.card;
+  if(!cz)cz={answer:t.niqqud,segments:[{blank:true}],count:1};
+  const sourceOk=!!(sent&&cz&&resolved.card&&R.words(String(sent.he_niqqud||'')).some(w=>LT.matches(d.lemmaKey,parent,w)));
+  const formCard=Object.assign({},parent,{lemmaKey:d.lemmaKey,parentLemmaKey:target.parentKey,learningTarget:t,meaning:t.meaning,manualStatus:d.status||'',srsRow:d.srs});
+  return {lemmaKey:d.lemmaKey,parentLemmaKey:target.parentKey,learningTarget:t,surface:t.word,niqqud:t.niqqud,gloss:t.meaning,
+    root:parent.root,pos:parent.pos,status:d.status||'new',_srs:d.srs&&d.srs.due?d.srs:null,_card:formCard,_wordOnly:!sourceOk,
+    _source:sourceOk?Object.assign({},source,{surface:t.word}):null,
+    _built:{cz,ru:sourceOk?sent.ru||'':'',sentence:sourceOk?sent.he_niqqud||'':'',audioAssetKey:'',rowIdx:null}};
+}
 // P6.5 (owner 2026-07-06: «работать по плану невозможно») — запуск тренировки ПО СЕКЦИИ
 // плана наставника: те же кросс-текстовые механики, что startDueReview, но пул = item_keys
 // секции (due-фильтра нет: gap-слова могут быть не просрочены), канал = рекомендация
@@ -3901,7 +3932,8 @@ async function startSetTraining(keys, mode) {
   if (!_studySheet || _studySheet.hidden) return;
   if (!items.length) {
     body.innerHTML = '';
-    body.appendChild(el('div', { class: 'room-study-empty', text: newCtx
+    body.appendChild(el('div', { class: 'room-study-empty', text: keys.some(key=>window.LearningTargets&&window.LearningTargets.isFormKey(key))
+      ? tt('learningTarget.sourceRequired','Для повторения этой формы нужен её пример. Откройте материал, где она встречалась.') : newCtx
       ? tt('room.morph.study.newCtxEmpty', 'Для этих слов в ваших текстах пока нет другого места, кроме того, где их учили. Прочитайте с ними новые тексты — и проверка появится.')
       : tt('room.morph.study.setEmpty', 'Для этих слов на этом устройстве не нашлось ни предложений, ни словарной статьи — откройте их тексты в Зале.') }));
     return;
@@ -3914,7 +3946,7 @@ async function startSetTraining(keys, mode) {
 function consumeSetTrainingHandoff() {
   try {
     const url = new URL(location.href);
-    if (url.searchParams.get('review') !== 'set' || url.searchParams.get('from') !== 'dictionary') return null;
+    if (url.searchParams.get('review') !== 'set' || !['dictionary','studio'].includes(url.searchParams.get('from'))) return null;
     url.searchParams.delete('review'); url.searchParams.delete('from');
     history.replaceState(history.state, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
     const raw = JSON.parse(localStorage.getItem('dict.trainSet_v1') || 'null');
@@ -4081,6 +4113,7 @@ function renderTrainItem() {
   // fall back to tap-letters (not free typing — keyboard-free on mobile).
   const trainingStage = item._trainingStage || item.status || 'new';
   let mode = window.ReaderMorph.isMcLevel(trainingStage) ? 'mc' : (trainingStage === 'known' ? 'type' : 'tiles');
+  if (item.learningTarget && mode === 'mc') mode = 'tiles'; // Lexeme MC drops clitics; a form task must ask for the complete form.
   // R2 word-only: free typing rejects valid paradigm forms the gloss-only prompt licenses (an
   // infinitive answer to a verb gloss — critique r17-4) → tiles steer to the target's own letters.
   // A bare (unvocalized) answer among vocalized MC options is a visual tell → tiles (critique r4-5).
@@ -4103,6 +4136,8 @@ function renderTrainItem() {
   s._questionShownAt = Date.now();
   body.innerHTML = '';
   body.appendChild(_trainChannelBar());   // D6 — read/listen/reverse/dictate selector (availability-gated)
+  if (item.learningTarget) body.appendChild(el('p',{class:'room-train-wordonly-note',attrs:{'data-train-target':item.lemmaKey,dir:uiDirRoom()},
+    text:tt('learningTarget.form','Эта форма')+' · '+item.learningTarget.grammar+' — '+item.gloss}));
   if (s._saveError) {
     body.appendChild(el('div', { class: 'room-train-saveerror', attrs: { role: 'alert' },
       i18n: 'room.morph.study.saveError', text: tt('room.morph.study.saveError', 'Не удалось сохранить ответ. Проверь соединение с локальной памятью и попробуй ещё раз.') }));
@@ -4235,7 +4270,9 @@ async function onTrainSubmit() {
   let correct = false;
   try {
     const family = String(_trainSession._effChannel || _trainSession.channel || 'read');
-    correct = family === 'read'
+    correct = item.learningTarget
+      ? window.LearningTargets.acceptAnswer(item.lemmaKey,item._card.paradigm,built.cz.answer,val)
+      : family === 'read'
       ? !!(window.ReaderMorph && window.ReaderMorph.acceptReadAnswer &&
           await window.ReaderMorph.acceptReadAnswer([built.cz.answer, item.surface, item.niqqud], val, item.lemmaKey))
       : !!(window.ReaderMorph && window.ReaderMorph.acceptStrictAnswer &&
@@ -4283,6 +4320,7 @@ function onTrainSkip() {
 // an event and nothing syncs: the bank is a derived cache, so a failure is silent and harmless —
 // the next answer refills it.
 async function _harvestContexts(item) {
+  if (item && window.LearningTargets && window.LearningTargets.isFormKey(item.lemmaKey)) return 0;
   if (!item || !item.lemmaKey || !localDb.insertWordContexts) return 0;
   const LC = window.LemmaCanon;
   const keyer = (LC && LC.KEYER_VERSION) || '';
@@ -8199,13 +8237,16 @@ function attachReaderMorph(mount, overrides) {
   // Epic 4 — one-tap manual status: persist (separate word_status store, no flashcard) then
   // invalidate the cached states + repaint the text so the colour updates immediately.
   opts.getWordStatus = (lk) => localDb.getWordStatus(lk);
+  opts.listLearningTargets = (parentKey) => localDb.listLearningTargets(parentKey);
+  opts.enrollLearningTarget = (card,key,occ) => morphHost.enrollLearningTarget(card,key,occ);
+  opts.practiceLearningTarget = (key) => startSetTraining([key]);
   opts.setWordStatus = async (lk, st, occ) => {
     let res = null;
     // R1 source-at-mark: the tap/long-press occurrence (additive 3rd arg from reader-morph) becomes
     // a verified source, so a fresh mark is immediately visible to the sourced-due queue/ahead pool.
     let source = null;
     try { source = await occToVerifiedSource(occ); } catch (_) {}
-    try { res = await markWordStatus(lk, st, source); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
+    try { res = await markWordStatus(lk, st, source); } catch (error) { if (window.LearningTargets && window.LearningTargets.isFormKey(lk)) throw error; }   // P5.6 R-2(a): l1–l4 mark seeds the schedule
     morphHost.invalidateWordStates();
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // seeding may change the future-due horizon

@@ -43,6 +43,8 @@ import '../js/nakdan-derived-core.js';
 import { createDiagnosticJournal } from './diagnostic-journal.js?v=545';
 import '../js/lexical-resolution-core.js';
 import '../js/lexical-resolution-repository.js';
+import '../js/learning-targets.js?v=804';
+import '../js/learning-target-repository.js?v=804';
 import '../js/catalog-discovery-core.js?v=780';
 import '../js/mediatheque-core.js';
 import '../js/mediatheque-local-repository.js';
@@ -3045,7 +3047,7 @@ export async function getKnownWordStates() {
   // SRS states; the reader/colouring + i+1 map these (a distinct axis from the review schedule).
   try {
     const manual = await getAllWordStatuses();
-    for (const lk in manual) { if (manual[lk]) out[lk] = manual[lk]; }
+    for (const lk in manual) { if (manual[lk] && !String(lk).startsWith('ft1:')) out[lk] = manual[lk]; }
   } catch (_) {}
   return out;
 }
@@ -3388,7 +3390,7 @@ export async function getSrsSchedule() {
   try {
     // P2 — also carry the FSRS derived state (stability/difficulty/reviewedAt/scheme, migration 042)
     // so fsrsStep can resume an FSRS-owned word without re-seeding. Legacy rows have them NULL.
-    const rows = await q(`SELECT lemma_key, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme FROM word_status WHERE srs_due IS NOT NULL`, []);
+    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme FROM word_status WHERE srs_due IS NOT NULL`, []);
     const out = {};
     for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = {
       due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0,
@@ -3397,6 +3399,7 @@ export async function getSrsSchedule() {
       difficulty: w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
       reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null,
       scheme: w.srs_scheme || null,
+      ...(String(w.lemma_key).startsWith('ft1:') ? { status: w.status } : {}),
     };
     return out;
   } catch (_) { return {}; }
@@ -3735,6 +3738,16 @@ export async function getWordStatus(lemmaKey) {
   try { const rows = await q(`SELECT status FROM word_status WHERE lemma_key = ?`, [lk]); return (rows && rows[0] && String(rows[0].status)) || ""; }
   catch (_) { return ""; }
 }
+// Explicit enrollment/marks of a selected form: event + projection + initial source are atomic.
+function _learningTargetsRepository() {
+  return globalThis.LearningTargetRepository.createRepository({query:q,run:r,exec:x}, globalThis.LearningTargets, globalThis.LemmaCanon);
+}
+export async function commitLearningTargetMark(input) {
+  return _learningTargetsRepository().mark(input);
+}
+export async function listLearningTargets(parentKey) {
+  return _learningTargetsRepository().list(parentKey);
+}
 export async function getAllWordStatuses() {
   try {
     const rows = await q(`SELECT lemma_key, status FROM word_status`, []);
@@ -3858,7 +3871,8 @@ export async function appendReviewLog(rows) {
     const at = row && row.reviewed_at != null ? String(row.reviewed_at).trim() : "";
     const source = row && row.source != null ? String(row.source).trim() : "";
     const kind = row && row.kind != null ? String(row.kind) : "review";
-    if (!id || !itemKey || !at || !source || !_RL_KINDS[kind]) { refused++; continue; }
+    if (!id || !itemKey || !at || !source || !_RL_KINDS[kind] ||
+        (String(itemKey).startsWith('ft1:') && !(globalThis.LearningTargets && globalThis.LearningTargets.parse(itemKey)))) { refused++; continue; }
     const grade = row.grade == null ? null : (Number(row.grade) || 0);
     if (kind !== "seed" && kind !== "annul" && kind !== "mark" && kind !== "alias" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
     if (kind === "alias") { const KA = _KA(); if (!KA || !KA.validate(row).ok) { refused++; continue; } }
@@ -3899,7 +3913,8 @@ export async function commitReviewAttempt(input) {
   const reviewedAt = row && row.reviewed_at != null ? String(row.reviewed_at).trim() : "";
   const eventSource = row && row.source != null ? String(row.source).trim() : "";
   const grade = row && row.grade != null ? Number(row.grade) : 0;
-  if (!id || !itemKey || !reviewedAt || !eventSource || (kind !== "review" && kind !== "skip") || !(grade >= 1 && grade <= 4) || !sched || typeof sched !== "object") {
+  if (!id || !itemKey || !reviewedAt || !eventSource || (kind !== "review" && kind !== "skip") || !(grade >= 1 && grade <= 4) || !sched || typeof sched !== "object" ||
+      (itemKey.startsWith('ft1:') && !(globalThis.LearningTargets && globalThis.LearningTargets.parse(itemKey)))) {
     return { committed: false, duplicate: false, error: "REVIEW_COMMIT_INVALID" };
   }
   const due = sched.due != null ? new Date(sched.due).toISOString() : null;
@@ -7708,7 +7723,7 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
   for (const w of (Array.isArray(payload.word_status) ? payload.word_status : [])) {
     const lk = w && w.lemma_key != null ? String(w.lemma_key).trim() : '';
     const st = w && w.status != null ? String(w.status).trim() : '';
-    if (!lk || !st || !_WS_VALUES[st]) { out.word_status.dropped++; continue; }
+    if (!lk || !st || !_WS_VALUES[st] || (lk.startsWith('ft1:') && !globalThis.LearningTargets.parse(lk))) { out.word_status.dropped++; continue; }
     try {
       await r(
         `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)

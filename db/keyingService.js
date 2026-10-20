@@ -306,6 +306,9 @@ async function dictateFormForItemKey(itemKey) {
 // alts = леммы, делящие ЛЮБОЙ сенс глосса (синоним-набор §3), кроме собственной.
 async function glossForItemKey(itemKey) {
   const k = String(itemKey || "");
+  // These server exercise channels cannot reconstruct a selected source reading yet.
+  // In particular a form key must never resolve as its parent word or the whole paradigm.
+  if (k.startsWith('ft1:')) return null;
   // Ф4 · Д8-К: dl:<лемма Dicta>#<pos> — слово, которого нет в Pealim (или Pealim его не подтвердил). Глосса Pealim у
   // него НЕТ по построению: чужой перевод омографа хуже честного «нет перевода» (R11, O-084).
   if (k.startsWith("dl:")) return null;
@@ -360,6 +363,13 @@ async function glossForItemKey(itemKey) {
 // фолбэк — сырой ключ, форму НИКОГДА не выдумываем (R1).
 async function displayForItemKey(itemKey) {
   const k = String(itemKey || "");
+  if (k.startsWith('ft1:')) {
+    const target = require('../public/js/learning-targets').parse(k);
+    if (!target) return k;
+    const lemma = await displayForItemKey(target.parentKey);
+    const grammar = require('../public/js/word-gloss').slotHint(target.slot);
+    return lemma + ' · форма' + (grammar ? ': ' + grammar : '') + (target.prefix ? ' · ' + target.prefix + '…' : '');
+  }
   if (!k.startsWith("pid:")) {
     const kb = k.startsWith("dl:") ? k.slice(3) : k;   // Д8-К dl:<лемма Dicta>#<pos>
     const i = kb.lastIndexOf("#");

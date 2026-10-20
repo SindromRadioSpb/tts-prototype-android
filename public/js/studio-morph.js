@@ -305,6 +305,12 @@
       },
       getWordStates: function () { return ensureHost().ensureWordStates(); },
       getWordStatus: async function (lk) { try { var ldb = await _ldb(); return ldb ? await ldb.getWordStatus(lk) : ""; } catch (_) { return ""; } },
+      listLearningTargets: async function (parentKey) { return (await _ldb()).listLearningTargets(parentKey); },
+      enrollLearningTarget: function (card,key,occ) { return ensureHost().enrollLearningTarget(card,key,occ); },
+      practiceLearningTarget: function (key) {
+        localStorage.setItem('dict.trainSet_v1',JSON.stringify({at:Date.now(),keys:[key]}));
+        window.location.href='/library.html?review=set&from=studio';
+      },
       // Канон метки (P5.6): occ → verified source → markWordStatus (FSRS-посев) → перекраска.
       // Тот же контракт, что обёртка Зала (library-ui attachReaderMorph.setWordStatus).
       setWordStatus: async function (lk, st, occ) {
@@ -312,7 +318,7 @@
         var source = null;
         try { source = await h2.occToVerifiedSource(occ); } catch (_) {}
         var res = null;
-        try { res = await h2.markWordStatus(lk, st, source); } catch (_) {}
+        try { res = await h2.markWordStatus(lk, st, source); } catch (error) { if (window.LearningTargets && window.LearningTargets.isFormKey(lk)) throw error; }
         h2.invalidateWordStates();
         try { refreshDecorations(); } catch (_) {}
         // закрытие поповер-пути (P5.7 Т1): карточка не открыта → тихий тост о повторении
