@@ -3,7 +3,7 @@
 Дата: 2026-10-20. Требования утверждены владельцем.
 База: 030f2437, ветка fix/context-learning-provenance.
 [Требования CP-1–CP-6](../../../planning/word-layer/CONTEXT_PROVENANCE_REQUIREMENTS_2026_10_20.md).
-Статус этого среза: локальные проверки пройдены; production acceptance фиксируется после выпуска.
+Статус: локальные проверки пройдены; выпуск 3.11.800 и исходный owner-сценарий подтверждены. [Production acceptance](PRODUCTION_ACCEPTANCE.md).
 
 ## Что изменено
 

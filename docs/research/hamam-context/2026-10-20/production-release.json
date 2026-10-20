@@ -1,0 +1,149 @@
+{
+  "evidence": "PRODUCTION_ANONYMOUS_READ_ONLY",
+  "date": "2026-10-20T18:02:49.734Z",
+  "version": "3.11.800",
+  "commit": "32204e7c8a08e2afdbd677ae485d330e13fa5f20",
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 366,
+      "now": "2026-10-20T18:02:38.602Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 86,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 366,
+      "now": "2026-10-20T18:02:38.921Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 86,
+      "disk_warn": true
+    }
+  ],
+  "assets": [
+    {
+      "url": "/agent-access.html",
+      "sha256": "ad20d77c2ec22b1f3b29ff9709890d66b354939d5efa98b564282b6b4c40e958"
+    },
+    {
+      "url": "/css/reader-morph.css?v=800",
+      "sha256": "8d66873f7e8f869ca45f82b2a3f91fe4e0d67cdace51bc6a20667d631b72e0b2"
+    },
+    {
+      "url": "/db/local-db.js?v=800",
+      "sha256": "fd593d3ac6c5af0df63f6bf519bc024eec3939ae08bd82b347e83cf99e1c2f6c"
+    },
+    {
+      "url": "/dictionary.html",
+      "sha256": "8f65fa6b7c3d7237938e130f2b0bd60bd37565d5e0013c3d5fb364cfcb482ab5"
+    },
+    {
+      "url": "/i18n/locales/en.js?v=800",
+      "sha256": "b6a7797ae65219007eda25aa1f96da8f829c7006d4643726cd6f4f9155be0193"
+    },
+    {
+      "url": "/i18n/locales/he.js?v=800",
+      "sha256": "f895f53d263e89e2078e809b421b8ca2a0b436c36dc8cdcc01f7004d5e15f9c9"
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=800",
+      "sha256": "3b409ebb02168464313ba3cc45b6e04b14726253827fa0871b1725e2a85d9689"
+    },
+    {
+      "url": "/index.html",
+      "sha256": "edcffb363b310eaed8130645247ec68efe97a1f8771de020745879755baea759"
+    },
+    {
+      "url": "/js/agent-access.js",
+      "sha256": "6cc6e9c37b7ac487b2a4fabe29841dd991de37add6d675a880055e7baa11b379"
+    },
+    {
+      "url": "/js/corpus-materialize.js?v=800",
+      "sha256": "40b5f80e76b9c7edadde1172be391c3d18771ad040f2e02fd0ebfc113c2b6263"
+    },
+    {
+      "url": "/js/dictionary-ui.js?v=800",
+      "sha256": "0be9e38bb2416978fda5b4444349f2ef0337ef9606292897a05d759fe2563906"
+    },
+    {
+      "url": "/js/learning-field-provenance.js?v=800",
+      "sha256": "6b8a681b46d5f22129a4cfdf93ba7419fff5a3fee8aadc4c935d648f8029fffe"
+    },
+    {
+      "url": "/js/library-ui.js?v=800",
+      "sha256": "3c0c10d1115b8bedecbddefecdab7d093e4e2d49d059796622a98beebfed2360"
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=800",
+      "sha256": "21371708629228e6e5b3f9213c2b572c26e8c532afbd14b14bd04d85101dc10f"
+    },
+    {
+      "url": "/js/morph-host.js?v=800",
+      "sha256": "21a879d2d4c5774b8763ccbec0a79039b0111094a0ebf9ce0518a8d1e450a431"
+    },
+    {
+      "url": "/js/portable-learning-package-repository.js?v=800",
+      "sha256": "3ac294faa52d0ab66594161dac3aa454653d71801d8007c3fea1e695c761d6af"
+    },
+    {
+      "url": "/js/public-corpus-adapter.js?v=800",
+      "sha256": "bace10f143ffbf9df86c4dab40559ffef29d0e4bc371fdd50c29d31d6d1d4329"
+    },
+    {
+      "url": "/js/reader-core.js?v=800",
+      "sha256": "5c9d23a22fa2decd3a44fe97d97feccaccf95d0d147b678bb48fe5d436c15116"
+    },
+    {
+      "url": "/js/reader-morph.js?v=800",
+      "sha256": "1d428536951a87b738f299a98d02d9609bde28337b057001732090d23bd05a2f"
+    },
+    {
+      "url": "/js/studio-import.js?v=800",
+      "sha256": "274a7b5d1768f3154d6c92b494e586e75acd92fb5831e201b8a5bc7a9787ce67"
+    },
+    {
+      "url": "/js/studio-morph.js",
+      "sha256": "6afb3f6b9c54e831448512fe31e197ae45cdc224c70397f6b0c3a01ccd629c84"
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=800",
+      "sha256": "987a8f342c01887c1b0f531cf1d1b4e77964aa2ac47f624bb6ab5f2ac6bc4245"
+    },
+    {
+      "url": "/js/word-gloss-ai.js?v=800",
+      "sha256": "c2f5c66135fb75b044f775535103ac6c527448a22759a526c4ead63d1c08d6ec"
+    },
+    {
+      "url": "/js/word-gloss.js?v=800",
+      "sha256": "786abc30c77ad6d523206199ff6d98f8300d9dfab88765fc0b0fca3c9ea304bf"
+    },
+    {
+      "url": "/library.html",
+      "sha256": "6329b31d7c67a9ef9e5fefedc299f3dc1e838532858c31e9a85d499d28442658"
+    },
+    {
+      "url": "/mediatheque.html",
+      "sha256": "84828485a676e7d3710bea4f1c334fd3fc1701367289ce054966bd8ff8109918"
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "ab588c9e9a6737db12feb661ba00f08179acf18cb3ef98235e5c8f055313ddf0"
+    }
+  ],
+  "fieldEvidence": {
+    "rows": 499,
+    "attributedNiqqud": 499,
+    "snapshot": "723787c77c5fe15facbdc9ae5fb2b5e03898d6690f85c04cc9a2bf696ec962c3"
+  }
+}
