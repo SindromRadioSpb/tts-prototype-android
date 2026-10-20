@@ -10,6 +10,13 @@
 
 ---
 
+## O-115 · Общий CI main падает на трёх ранее существовавших проверках
+- **Дата / где:** 2026-10-21, GitHub Actions `smoke-check`: baseline `90013ec9` ([run 39496558077](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/39496558077)) и UI-fix `2952e5da` ([run 39500711867](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/39500711867)).
+- **Факты:** оба запуска дают 2754 passed, 3 failed, 2 skipped. Одинаковые падения: `bookRestoreRouting.test.js:78` (`undefined.glosses`); `d10Place.test.js:70` (`null` вместо `pid:3957`); `studioLexicalResolutionProjection.test.js:11` (ожидание фиксированного `studio-morph.js?v=5`). Общий CI не является зелёным подтверждением выпуска.
+- **Почему важно:** регрессии импорта/лексической идентичности могут теряться на фоне постоянно красного набора. Причины первых двух падений в этой задаче не исследованы.
+- **Предложение:** отдельно воспроизвести первые два сценария с независимыми fixture-ожиданиями; проверить загрузочный контракт адаптера вместо устаревшей жёсткой версии. Профильные `smoke:reader-morph`, `smoke:studio-morph`, i18n 233/233 и static-version 3/3 для исправления группировки прошли.
+- **Статус:** открыто.
+
 ## O-114 · Карта позволяет поставить статус другой лексической сущности под AI gloss
 - **Дата / где:** 2026-10-20, production 3.11.800, «Хаммам», строка 4, יוֹפִי.
 - **Факты:** сверху AI «отлично»; статус готов записаться по `dl:יפי#noun`, без отображения конкретного значения у кнопок. Отметки журналируются; l1–l4 могут создать FSRS seed. На момент проверки отметки по ключу нет; диагностика не нажимала статусы.
@@ -430,6 +437,8 @@
 - **Статус:** закрыто — выпущено в 3.11.718 (+ большие библиотеки, архив без медиа, прогресс сохранения); 2026-10-17 production roundtrip на 3.11.782 PASS в чистых профилях (офлайн-воспроизведение, ru/en/he, 0 платных вызовов) — [evidence](../research/full-library-transfer/2026-10-02/save-progress/production/browser-evidence.json). Старый ZIP по-прежнему неполон; полный резерв — новый экспорт.
 
 ## O-055 — Production build consumes preflight headroom
+- **После rollout 3.11.803 (2026-10-21):** обслуживается `2952e5da`, `/api/client-config` повторно возвращает 3.11.803; JS/CSS/SW/оба shell совпали по SHA-256 с checkout. Реальный public-work «Хаммам, серия 2», строка 22: карточка проверена при 1280/380 px, порядок источник → лемма/перевод → форма из текста/перевод; ошибок страницы и платных вызовов нет. Owner `review_log` до/после: 11748 записей, одинаковый SHA-256. Финальный `df` 1.8G / 96%, `disk_warn=true`; build cache 2.69GB. Согласованные current/rollback images и четыре volumes сохранены. Дальнейшая очистка не выполнялась; capacity-риск остаётся открытым.
+- **Update 2026-10-21, подготовка 3.11.803:** до сборки `df` 2.6G / 93%, build cache 0B. По отдельному разрешению владельца, после проверки отсутствия container references удалены только `786e551b3e8e` (56c5b4de) и `87ebe5222db1` (5380b6bd). После очистки 5.0G / 87%; current `c0fdf3940c48` (90013ec9), rollback `fd1d77c6a2e6` (a5955da4), все 11 running containers, четыре volumes, БД и backups сохранены. `/healthz` — DB/migrations ready. Дальнейшая очистка этим разрешением не покрыта.
 - **Update 2026-10-04, перед вторым этапом:** после 3.11.726 разрешённый build-cache prune дал 3.2G / 92%; по новому отдельному разрешению удалён unused 7d408e2cb2f3 (d5e6c826), df 4.4G / 88%. Current 4c5c986b и rollback 5093d37c сохранены.
 - **Update 2026-10-04:** по отдельному разрешению владельца удалены только unused images f2f7fa29d2d6 и 7ac3af4559e7. После проверки отсутствия контейнерных ссылок df вырос с 2.1G / 95% до 4.4G / 88%. Current 5093d37c, rollback d5e6c826 и данные сохранены. [Отчёт](../research/material-save-invalidation/2026-10-04/IMPLEMENTATION.md).
 - **Update 2026-10-03, 3.11.725:** до сборки 3.2G / 92%; в пике 213M / 100%. Ранее разрешённый `docker builder prune -af` сообщил 2.489GB reclaimed; после rollout 2.1G / 95%, `disk_warn=true`. Current/rollback images, application containers, четыре volumes и данные сохранены; capacity-риск остаётся. [Evidence](../research/material-opening-lifecycle/2026-10-03/production/3.11.725/release.json).
