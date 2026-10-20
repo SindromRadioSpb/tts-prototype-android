@@ -1,0 +1,107 @@
+{
+  "runtimeCommit": "bf4af1b324b5344dfbf840f3ababb587d33a8eee",
+  "probes": [
+    {
+      "at": "2026-10-20T23:58:50.878Z",
+      "version": "3.11.805",
+      "dbReady": true,
+      "migrationsReady": true,
+      "diskPctUsed": 90,
+      "diskWarn": true,
+      "assets": [
+        {
+          "url": "/js/reader-morph.js?v=805",
+          "sha256": "712b04e2cb91d9367a32ebd1ac86b695feb793f6071c32b372bb9c0f3001e1e1"
+        },
+        {
+          "url": "/js/morph-host.js?v=805",
+          "sha256": "f0576425332acbca050cdbea3591c60605572b3fcec704a3bec7ea7530a29638"
+        },
+        {
+          "url": "/css/reader-morph.css?v=805",
+          "sha256": "504691276b641de973d779f307b4689595fc4d64886fe0e107c853d06115c624"
+        },
+        {
+          "url": "/i18n/locales/ru.js?v=805",
+          "sha256": "d7c85ead309a506277109a3c19b75d0cbc338b832847b4276497ba5fb9602780"
+        },
+        {
+          "url": "/i18n/locales/en.js?v=805",
+          "sha256": "fbfdd6475c08d7b7678cee268690e3b4e7eb0474c3e6890905e44acf1a818aa7"
+        },
+        {
+          "url": "/i18n/locales/he.js?v=805",
+          "sha256": "456461855904f0bd5e09e1d3c60bf2fce24b921a7cfdc30aa1519347422666e8"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-20T23:58:51.905Z",
+      "version": "3.11.805",
+      "dbReady": true,
+      "migrationsReady": true,
+      "diskPctUsed": 90,
+      "diskWarn": true,
+      "assets": [
+        {
+          "url": "/js/reader-morph.js?v=805",
+          "sha256": "712b04e2cb91d9367a32ebd1ac86b695feb793f6071c32b372bb9c0f3001e1e1"
+        },
+        {
+          "url": "/js/morph-host.js?v=805",
+          "sha256": "f0576425332acbca050cdbea3591c60605572b3fcec704a3bec7ea7530a29638"
+        },
+        {
+          "url": "/css/reader-morph.css?v=805",
+          "sha256": "504691276b641de973d779f307b4689595fc4d64886fe0e107c853d06115c624"
+        },
+        {
+          "url": "/i18n/locales/ru.js?v=805",
+          "sha256": "d7c85ead309a506277109a3c19b75d0cbc338b832847b4276497ba5fb9602780"
+        },
+        {
+          "url": "/i18n/locales/en.js?v=805",
+          "sha256": "fbfdd6475c08d7b7678cee268690e3b4e7eb0474c3e6890905e44acf1a818aa7"
+        },
+        {
+          "url": "/i18n/locales/he.js?v=805",
+          "sha256": "456461855904f0bd5e09e1d3c60bf2fce24b921a7cfdc30aa1519347422666e8"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-20T23:58:52.833Z",
+      "version": "3.11.805",
+      "dbReady": true,
+      "migrationsReady": true,
+      "diskPctUsed": 90,
+      "diskWarn": true,
+      "assets": [
+        {
+          "url": "/js/reader-morph.js?v=805",
+          "sha256": "712b04e2cb91d9367a32ebd1ac86b695feb793f6071c32b372bb9c0f3001e1e1"
+        },
+        {
+          "url": "/js/morph-host.js?v=805",
+          "sha256": "f0576425332acbca050cdbea3591c60605572b3fcec704a3bec7ea7530a29638"
+        },
+        {
+          "url": "/css/reader-morph.css?v=805",
+          "sha256": "504691276b641de973d779f307b4689595fc4d64886fe0e107c853d06115c624"
+        },
+        {
+          "url": "/i18n/locales/ru.js?v=805",
+          "sha256": "d7c85ead309a506277109a3c19b75d0cbc338b832847b4276497ba5fb9602780"
+        },
+        {
+          "url": "/i18n/locales/en.js?v=805",
+          "sha256": "fbfdd6475c08d7b7678cee268690e3b4e7eb0474c3e6890905e44acf1a818aa7"
+        },
+        {
+          "url": "/i18n/locales/he.js?v=805",
+          "sha256": "456461855904f0bd5e09e1d3c60bf2fce24b921a7cfdc30aa1519347422666e8"
+        }
+      ]
+    }
+  ]
+}

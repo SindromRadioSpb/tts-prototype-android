@@ -1,0 +1,18 @@
+{
+  "action": "docker builder prune -af",
+  "approvedScope": "unused build cache only",
+  "imageCount": 15,
+  "containerCount": 11,
+  "volumeCount": 4,
+  "imagesUnchanged": true,
+  "containersUnchanged": true,
+  "volumesUnchanged": true,
+  "allContainersRunning": true,
+  "availableBytesBefore": 425713664,
+  "availableBytesAfter": 3974832128,
+  "bytesFreed": 3549118464,
+  "percentUsedAfter": "90%",
+  "cacheAfter": "Build Cache     0         0         0B        0B",
+  "currentImageRetained": true,
+  "rollbackImagesRetained": true
+}
