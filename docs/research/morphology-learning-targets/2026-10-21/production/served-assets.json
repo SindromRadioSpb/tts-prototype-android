@@ -1,0 +1,1107 @@
+{
+  "at": "2026-10-20T22:46:23.576Z",
+  "version": "3.11.804",
+  "releaseCommit": "b3ebc514169a9f6039653316cfbeea2e7b461a05",
+  "count": 181,
+  "health": {
+    "ok": true,
+    "uptimeSec": 91,
+    "now": "2026-10-20T22:46:16.464Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 89,
+    "disk_warn": true
+  },
+  "assets": [
+    {
+      "url": "/css/app-nav.css?v=653",
+      "sha256": "fe9306462ae74c29541e17c434add67939dc97ab19f8125560229dc0ba635169",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/catalog-discovery.css?v=643",
+      "sha256": "17f03227d709527129e9f4dac40338d61162bf93e9fc6cd3915226ff1bdebd1d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/dictionary.css?v=770",
+      "sha256": "f09dc1b1ab77f392521e58364d7c61d72f287a2ac141c9f8688995507f191791",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/iphone-downloader.css?v=1",
+      "sha256": "7c4ca57615123596904f0fd13b641e33fb5993ffaa6d5dd434b434474da09e55",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/lexical-resolution.css?v=6",
+      "sha256": "efd275205b013ed8225b4d04739aaea1533cfa7f628a067e03ce691107ce3098",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/mediatheque.css?v=695",
+      "sha256": "edab9c4b11b00b525e8e35e71018acfb9ec252c96bd82c00e024a0c50e8fa97f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/publication-center.css?v=643",
+      "sha256": "cf7665a7d15b87278cad96c0b8c50b454c20718add9c56fb2dffac0ff14f8ebf",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/reader-core.css?v=661",
+      "sha256": "2e43af8f51dfab648969cf754a8161471a56c68fe11e11169633c561a847711a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/reader-morph.css?v=804",
+      "sha256": "4f5dfb208ee1b8e3050c96487b17c0ade5f283916cf3df66dea0d660c74a7e0a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/room-discovery.css?v=730",
+      "sha256": "71bb2ae5260225614ce50e3bc851d98290d43244ce80dcfa1da10bd28a377bc2",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/study-video-source.css?v=788",
+      "sha256": "d97c708527420bfaee60b9bd6a872ac71e528e2dc3d0d86066a340feb0eb8b38",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/study-video.css",
+      "sha256": "cccbe7a22cec775f33085a3b5ab821e67d10d18c59ab0d983abcbd3dd6d0b98f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/tutor-connect.css?v=1",
+      "sha256": "b374803968a657b979123faca87e1f10e6e3bda56317802cdeaee05e7e014702",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/css/world-skin.css?v=799",
+      "sha256": "84cf120e943701d4731883d93f8d39e2de61be097fbeb4f201a879d560029ed0",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/data/benyehuda/author-aliases-v1.json?v=730",
+      "sha256": "b0a07ab7a5515465b77b3bf0cf486a2a76fd308805c683536e8f3ed55cd00bf1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "sha256": "4c0aefa9b1c7a4c5db030e0f7595d9eb358f5d5ac7f6e4a5cca345ad85f31b9a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "sha256": "88b3ec51ebf9c3c7a312d144809bf4b73708e67eccc60ce4e6c402e831bc7abe",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db-diagnostics.html",
+      "sha256": "678e2827a83b9f5a1e5128f792df0eece656908c57de23e2cca4b83bb2c11872",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/AccessHandlePoolVFS.js",
+      "sha256": "c82923f67358603c116f39ecb87c3fdb54c837738e6d3798c4e2b4343a68f34a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/change-scope.js?v=727",
+      "sha256": "53b650990e52faf33ecee62e61e01aec9dda899affd9236c6d1ab7dc161ba719",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/db-worker-runtime.js?v=727",
+      "sha256": "1511e5a57ce7ecc76751e110482be30cfb3b994dfc5d6e0e26ba0cc7a84a59b5",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/db-worker.js",
+      "sha256": "126c6596e985de28cb9b38ae2a4ea3b3e03657684d64e73ed1d2574ffc0cf79e",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/diagnostic-journal.js?v=545",
+      "sha256": "d576f339312e7288198687d621f5f1297a856899db8fecd815cbcee7c8a0ab4c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/diagnostic-page.js?v=547",
+      "sha256": "c0d4b6c687e31d29eeb99bf9110395fafbc2fe3e1e091102ce35826eda547f90",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/IDBBatchAtomicVFS.js",
+      "sha256": "c45feecb2c8bd44d13e1cb56bcaa934c40b9b469ec6ede390edde2556dc72dae",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/IDBBatchAtomicVFS.js?v=543",
+      "sha256": "c45feecb2c8bd44d13e1cb56bcaa934c40b9b469ec6ede390edde2556dc72dae",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/IDBContext.js?v=543",
+      "sha256": "0fd5499f4d2e02f00c4ea0d61210f342e2561962efce26e3c5af0f78088e5a05",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/local-db.js?v=804",
+      "sha256": "69ccf511889d4d932336b8e397578ecaeb036faf3a2f6d29f0f41363c156a8ab",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/migrations.js",
+      "sha256": "71f809dffb27dd9c38deb558654295ca3fd9723e737c4ed9699c608d640a8ad1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/operation-lease.js",
+      "sha256": "76bf03abad28ecafa19325dea91131016d7b28c9399f1785c241f8e2cc55d18a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/operation-lease.js?v=727",
+      "sha256": "76bf03abad28ecafa19325dea91131016d7b28c9399f1785c241f8e2cc55d18a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/runtime-diagnostics.js",
+      "sha256": "8170fb0a36dc670b0841eaf77360ceed2f8c4b1115243851b43f7d9953e2be88",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/runtime-diagnostics.js?v=544",
+      "sha256": "8170fb0a36dc670b0841eaf77360ceed2f8c4b1115243851b43f7d9953e2be88",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/sqlite-api.js?v=531",
+      "sha256": "00fadb92c3b508daf681eb4109058db3a6dfe526bf7a2d38928fdb6ad4f4a319",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/storage-identity.js",
+      "sha256": "6bdfa5874a8b2493ae169c6558840b995e2be1af12f40b1b5b20de7cf5eaa616",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/db/vfs-order.js",
+      "sha256": "c321d64a4324be820383a81e3825c1949b0a2e293b96a52cdc0ea26996bf31fe",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/dictionary.html",
+      "sha256": "f1cfbb4f4715f0e8adb85ce03bec8185d0568b5fd0b01c197382ad88144183d4",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/download-media.html",
+      "sha256": "bf57be2959e8d3bfa368900f23fe76378d101419eb678636a2f872b9f36e5ede",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/i18n/locales/en.js?v=804",
+      "sha256": "eb8377d2a79a25e20c4dfcd2edc7d5f4cfcd03951a42c079909ddb2b4defe9e2",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/i18n/locales/he.js?v=804",
+      "sha256": "74992d0eea4dd2619286738ed750868017c473eac44b28a4d15432f0c3e0c03d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=804",
+      "sha256": "655dfe35fc8030ab1a7fa85b69016330a049fe1ceb2183aa50dd7f7c98e635dc",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/index.html",
+      "sha256": "5ba0afcbbc428cedb2bd229ac805b473117a506cd319ce1045375dab43edf16f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/app-footer.js?v=669",
+      "sha256": "d2b8b84b0102a238c5ba610e800636e837e6cc31f71bdceffcb30567049f4d80",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/app-nav.js?v=747",
+      "sha256": "6e3945cad841a03cd50db97f23813f72780da3a10c255a26c59daa3fdc9191de",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/benyehuda-learning-edition.js?v=731",
+      "sha256": "cb19c48e1dc94eb047ed8ac9ed0adf567c8d93c574faa74f12b393ac668b4913",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/benyehuda-learning-niqqud-manifest.js?v=734",
+      "sha256": "ee96be146ecf1597fbfe320c308db36efa5520bffb1c654e200d21b2513a0d18",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/benyehuda-learning-niqqud.js?v=734",
+      "sha256": "b06d2778bc44d68e3fd3e442072d8005ac5fa5063296fffee9db95a3859f9d07",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/captions-parse.js?v=796",
+      "sha256": "9e594836729e84f4cddeea187a8b0dad2cd18d8c1b0f58d4e5d1021558a8131a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/catalog-discovery-core.js?v=780",
+      "sha256": "241db1a507d72a4e207f0387e8309a2be3ee9b6868b73263951602ed8efa399a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/catalog-discovery-ui.js?v=485",
+      "sha256": "41c85b3daaf7d24acd7022a97c304978eea3098a3494dc175aac97a0ab524d56",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/cloud-sync.js?v=782",
+      "sha256": "171bdfa8fb704aab3888283ad92620ff6e693711526fece3cc65c7b89e4cc3c0",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/corpus-discovery-browser.js?v=731",
+      "sha256": "8c914c50f9b8eb2b58d0ff7e9d7640f757afeb6f08c41eaffa75c438418cbbe1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/corpus-discovery-core.js?v=731",
+      "sha256": "5282e440e371dd6c83376f76dbfc64ac11cb28893cd4cc34f1bbef25946959e6",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/corpus-item-presenter.js?v=419",
+      "sha256": "653b7f14e1ba65f6423654b7fa56c2ed4de00d2ddcbc4e48d3120b10b9d8ba5f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/corpus-materialize.js?v=802",
+      "sha256": "40b5f80e76b9c7edadde1172be391c3d18771ad040f2e02fd0ebfc113c2b6263",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/corpus-place-parse.js?v=785",
+      "sha256": "831160ac70f01951307ce742c06468dc924c37945e0f39760d5ed5e446ec7b8b",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dicta-autoparse-offer.js?v=781",
+      "sha256": "f9666c9c3278baa1e22881b928e7ff4dc4b2c85c2462749e9e6a0716e0b3c81a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dicta-enrich.js?v=781",
+      "sha256": "fc6d0c9ee0918b494d2a708129a62d7a0c50237520d9c766c1bd5bfa58cf1820",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dicta-lexicon.js?v=769",
+      "sha256": "efcf2380cd926318576f01c645b4aaf056c3f5ac424758c9a4c2da8696368a25",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dictionary-core.js?v=804",
+      "sha256": "c62dd49ee8c4a29c3dc318e0a7acd8e34f460c03599ab5e36968b4e7bb6c30e1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dictionary-progress-core.js?v=774",
+      "sha256": "2101f8f0a6bf66142656452a5c08d9a4c4cd6deda9232c6c538d468e227ccbce",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dictionary-ui.js?v=804",
+      "sha256": "bc851e25cb61c21bc30e80d74f5efee13a7d6fe6728934966a113c8c409b7baa",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/dictionary-workbook.js?v=763",
+      "sha256": "8b30da3e92c04930059331d0dd558c3bf4747967246b48f4e45b640c833fb3cd",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/form-drill-core.js?v=753",
+      "sha256": "95876a867eef6a6712505fe8146b0786c0a48128386f4bb9955e67a25b2d2485",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/import-center-core.js?v=527",
+      "sha256": "ee784fed0b1987f534f9b20e971c6fa4ba884e50d31743b0fb5c06de8941e24b",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/inflection-render.js?v=763",
+      "sha256": "dcf0618a9505fceea834e17dbbb3a4b807da173b6f5fcaa50947044466b05de9",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/iphone-downloader-core.js?v=1",
+      "sha256": "c2842fe6e1bfce4aab712a54fc04bb354f00c488a93773d8abbec8ff0927b393",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/iphone-downloader-entry.js?v=1",
+      "sha256": "52bafb114b1b593bbd250bb8e296943a3e15e92a13c052a89e882e8d993ce573",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/iphone-downloader-release.js?v=1",
+      "sha256": "02b2d754ceb8351f91f6fc893d94f4ed1d849990ef5e1fd143c4b766267748a1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/iphone-downloader.js?v=1",
+      "sha256": "faf7a4a6ae13cbe3b92318ea133646e1b908f3790d4a3453fa637e473e294191",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/key-alias-core.js?v=804",
+      "sha256": "c38ce81771af9c6a71f08d0400f4b636b76af9cfabdcc135552fe46b95f9542f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/learning-compass-core.js",
+      "sha256": "fdddb2fe35531b6adb28cc61e4eb940e88a2dfc865718e9178c8e16513313fa7",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/learning-field-provenance.js?v=802",
+      "sha256": "6b8a681b46d5f22129a4cfdf93ba7419fff5a3fee8aadc4c935d648f8029fffe",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/learning-material-task-ui.js?v=797",
+      "sha256": "5538fb086cbafebd249db169b72149efddab1e65992565caf0f87029d9b07af1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/learning-material-task.js?v=797",
+      "sha256": "c96f6fa1aa05cdf09a2134f7cd879ba838b49a245cb37d9908038aac48c70598",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/learning-target-repository.js?v=804",
+      "sha256": "45f26dac8e4f1d02335e3dcb8177fa5d8149ca7713bb1f83bb606db8c5808313",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/learning-targets.js?v=804",
+      "sha256": "3ded87ada842f60834f019e664e8d4cec989ee1fd0b3363072b7b1fc1301462a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/lesson-artifact.js",
+      "sha256": "7b01aaf931fb9a841a0e58b32ed4af15b77d00adafeaa6ff986c0a6358b2895f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/lexical-resolution-core.js",
+      "sha256": "267c74b96c7c18a68860d7c18e2f0ac3a46b86511cb57cecb082854f28e55dc7",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/lexical-resolution-repository.js",
+      "sha256": "68f6e652e819d43418f12bf20c15bb1b95a9b61a524b6371c766b8839aed0dcc",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/lexical-resolution-service.js?v=802",
+      "sha256": "ec6bd864f6115303cf98d29f6f68ca5fe3aaee338aab8d5774dfa9457473d844",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/lexical-resolution-ui.js?v=12",
+      "sha256": "182a4fe9f64ed46a0ca6da3ea6e47951e0d2295c6a8d0133c0971ecd8a7d5f5c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/library-transfer-core.js?v=720",
+      "sha256": "dfb2c66bc27a365b21afa6163abfe76eb5830322413d9e164a12ecf4bc89a148",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/library-transfer-io.js?v=721",
+      "sha256": "22dd4279c2c4c1b1035e8c939f3cdd271568d223677b88b9e7d97505243cbe44",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/library-transfer-ui.js?v=722",
+      "sha256": "a001e6e156734f642a755f4d24f6b2287d4f67953f51d9c6cdf0607307c9e905",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/library-transfer.js?v=721",
+      "sha256": "7ef2926f1adb467127f44eedca7378b4625111ecc029022ca3bc739634cc3d3d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/library-ui.js?v=804",
+      "sha256": "e3b440a37ce4c181933148bc84abf61e9ae24314e8043556941498485d5c61a5",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/local-asr-client.js?v=796",
+      "sha256": "1cab42d32b880183174cd13e90282c2cd07728ef9119c14c51e392930476194e",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/local-text-familiarity.js?v=774",
+      "sha256": "f753a9dc6fe1b09a4a1e185ed78f89d3ece14e22181ef4db8c59f8466e874f9d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/local-translit-bundle.js?v=735",
+      "sha256": "cc7184dad60e552176df926b64b2a84b0ae670f1738ac555f66fc271e24a24d0",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/material-actions.js?v=1",
+      "sha256": "97ceac920c676d2af70b3d736c42a22d675fc858a449bf9870801fe195e09ead",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/material-open.js?v=734",
+      "sha256": "f29eb2d76e32dde4f842696d205b8e4bb1937a2fc0e90b26535e3da1f2bd0bc5",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/material-progress-ladder.js?v=685",
+      "sha256": "c49740a37689de97db3467048515e1709b284188ae324b1c1c750f523f5a9c5a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/material-revision-repository.js?v=783",
+      "sha256": "9b33250e7a1d49f103781f1d6b2fa36038de79c8bd4669d565c4fe8802a0622e",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/material-save.js?v=734",
+      "sha256": "77867fecb1c95d14623b9e04a268fb7777a7f91b1085769ccdc80e2ff8732572",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-bundle-core.js?v=575",
+      "sha256": "5ee5852c3fd75db011c6f6769123a4f8116595933b189112ec66471333ae734e",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-host.js?v=783",
+      "sha256": "e9ec8785dd332acca9a0ad2af69f4c76adf3842253c763f88938f8bf26c401aa",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-package-core.js?v=796",
+      "sha256": "bebc457fdc5fa2a01d400c7fc1d7a6e6b0e436cde4cb449f47fd06b96715b508",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-package-repository.js?v=796",
+      "sha256": "ac1f15d2ef325c5c96ea526db5687c805c33ded4d5e5e0718aeb381df1990cb0",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-readiness.js?v=671",
+      "sha256": "4195c9641bc6b18f3cae2a809200731641f6a087da7d521a10127b7e28e58742",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-rebind-core.js?v=677",
+      "sha256": "75b67820293f9d8c94e2b176f99c7a0f3174b36d350f0cebf79793818840dc65",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-rebind-ui.js?v=723",
+      "sha256": "092defa952b388f84b1f6e9d24826cf0826a993b228a4158a35443836799e54c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/media-stream-store.js?v=584",
+      "sha256": "8170f0d20790caf9aabfe3854ecbe452a73e51abe60fca812c06712c2a0eab98",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-api.js?v=802",
+      "sha256": "1e12d977466b0883a06202bf2aaa4bcc161a717235c8ee8a8bbe82fdb0809635",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "sha256": "19361a18d5efe3a6c649e6685d0aae1ae3012b395195d9e4e9fe2f13c87e4042",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "sha256": "d8d2ec312d21b8191f52aeb0d5635f6886afe2efa64ebe772ef9f7ab593c47bb",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "sha256": "757ee04103168073347cd26bb0552e00a2638195bf2396742c21043f2e5388dc",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "sha256": "d8a429d04cb153658882b04163ddf3a419be9328bc5507840534c3a5b81d68b1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "sha256": "e505bb1099fd0734c24361ba9ad79508d1e452b55190f35ae9bfd25b344563de",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=802",
+      "sha256": "99b0ce7d6b50e2d0b10a459ff06a2365d5a7a77891f5adaa9975c3e2d56eff2d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/memorial-adapter.js?v=736",
+      "sha256": "4e210cf140dbe47fd1551f975e5f2c32d1035a92aaac0d9ba7c4bc0a73d92d5c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mentor-connection-core.js?v=414",
+      "sha256": "f4806223d7a6c1ec6313185d1533387238e38c1c893fed8d3fe4edd55dab2eb2",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/mentor-home.js?v=414",
+      "sha256": "1915bb6217f5b9c0862535c7f5d77e9a3107077c27d0256789ba019d97e35b29",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/morph-host.js?v=804",
+      "sha256": "a1c31316e10236290d9c35c291880d9b9cbb9982e32840078271fba116ecd82f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/niqqud-plausibility.js?v=735",
+      "sha256": "4d4e41b12c0cef52ee276797a0d456d8fb70d32b5671810e765d1f57d46afccd",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/niqqud-suspect-marks.js?v=685",
+      "sha256": "1b267cc4aeb5224b82f78c014b4f90e49e4a216497bb8165e0f223772d39acdb",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/obsidian-lexical-preview.js?v=10",
+      "sha256": "86066ce4c7e4b51c581b89a6004a1568a8d57f9f443f5d88b9c682d72eb7ebbd",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/original-title.js?v=657",
+      "sha256": "44445264cc276a6c624e4302dba5a75f86982973706c8ea7b29b61a1e5db43d6",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/pealim-function-links.js?v=802",
+      "sha256": "25f47ad069e9bc1c0d1a9e874e38a4826a8c9e95119e72287a89e2494a665fa4",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/pealim-identity-overrides.js",
+      "sha256": "0a3f320b162948fac60ed5e9233d148ab02946a6d49c2ed45038f8b30616e428",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/playback-source.js?v=624",
+      "sha256": "33e2fc2d0703950ab792f91d14924e9448efd1f23d43211b397fc507afd1e763",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/portable-learning-package-core.js?v=742",
+      "sha256": "ce8d80fbaed5093563bb5ce1fcf1bdf26a8b074170441b4c279bed6fb59763cd",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/portable-learning-package-repository.js?v=802",
+      "sha256": "3ac294faa52d0ab66594161dac3aa454653d71801d8007c3fea1e695c761d6af",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/product-telemetry.js?v=669",
+      "sha256": "b1cf206bcdc98716b8016d8dfb756c24c7aa17ebb3385877e71a19b730bf5645",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/public-corpus-adapter.js?v=802",
+      "sha256": "bace10f143ffbf9df86c4dab40559ffef29d0e4bc371fdd50c29d31d6d1d4329",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/public-word-audio.js?v=453",
+      "sha256": "61e4e5039f90efc91a5b8045d7c861ca43ac0a404ef14fbe4588f3324140d27d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/publication-center.js?v=520",
+      "sha256": "45ba6ba483dfdc5830572430f351443cabaccd8a027e0bd98a5e42174e1eadd6",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/reader-core.js?v=802",
+      "sha256": "5c9d23a22fa2decd3a44fe97d97feccaccf95d0d147b678bb48fe5d436c15116",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/reader-morph.js?v=804",
+      "sha256": "7fed6cd4e5e3ac4f42d214be63639ff6334cb59eca8dc120c15e313a95cc413c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/retention-report.js?v=461",
+      "sha256": "52af47579c1afe13c61a950830d8644550417d0df273b9ca47c3c4443f59ed86",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/room-b6-core.js?v=730",
+      "sha256": "40dcb1d3b05e317ee70048e9eab831edc0c3d5c8ff6d42b75ac0b35b577607c4",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/room-media-attach.js?v=796",
+      "sha256": "406270682a146de19a8b8f897ec306f8f3fde7cb567e49184b5adbc32cf19f3f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/ru-forms.js?v=739",
+      "sha256": "428f9ef530e3994b2eea83eb235c70c163b01937d8d998674eedb5d41af30324",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-import-resume.js?v=789",
+      "sha256": "11bd5a0e3f1589861b95f24d3336a74fa53965505a076a982c9bdd3757aa0a95",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-import.js?v=802",
+      "sha256": "274a7b5d1768f3154d6c92b494e586e75acd92fb5831e201b8a5bc7a9787ce67",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-library-discovery.js?v=780",
+      "sha256": "a45c911fe6ff393537a1e62cbb8128cce4c0f4338d3da9565596f5a845726e66",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-media-editor.js?v=628",
+      "sha256": "46418bd5a7ee64cf3f9361ae911da4cafb67e91507e6eb0e75de4fe5776e3ce4",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-media-karaoke.js?v=729",
+      "sha256": "56bf8a8682cd18139155956692d7c48553e30c5ef8251aa23b87bf62fd5af94f",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-media-package.js?v=796",
+      "sha256": "03b318aae5b36aa792f709491b3f944cf747a8d88169e5b0c1967d234576025a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-portable-learning-package.js?v=756",
+      "sha256": "c915bae902a03ac168f6303df93b9e4b7839814f918def6576587dd1a44098b9",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-session.js?v=723",
+      "sha256": "7078148ab032f83b31423fbb3634d09533501f2ddbfc21be3867c1ffb8a341b6",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/studio-yt-player.js?v=736",
+      "sha256": "9cdff1470b286d7eb787fbf971dff681ba0584ec0919eb7ca385ecdb265113fd",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/study-timing-repair.js?v=794",
+      "sha256": "9b825393af7f334881882953c1e2176668f56063cb8a7a4a6c94aa74a419cb8a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=802",
+      "sha256": "0c4e368fa02188b643fc696eca03c0b4684ba82f62c6aebdf5d70401d673bd7c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/study-video-transfer.js",
+      "sha256": "79dd84b949ae6256a37cdac15d0431137d6b439c272ad1ff950de7726442202c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/study-video.js",
+      "sha256": "1b501a113e7893c9faa33f18ff6d2ce822e210b960520066132a53d508d4f63b",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-material-core.js?v=684",
+      "sha256": "d815e1dda976649d12f349e375606969ba0c387412b145645f8c8079d0da5155",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-material-import.js?v=584",
+      "sha256": "ce31c2650df87e47d562fbf655e0d4ca2adbb0d45d16e9c9791a35a745f06e7a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-material-vocalization.js?v=735",
+      "sha256": "96d62700a86b1a5db656e59eca631969e4c0107d087cc8ecbf4d92ed94c73f8e",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-media-attach.js?v=796",
+      "sha256": "1d9d61c9b95688481c3ed0b1be27000b3f5f514c30bf02b1a83990daad2c2cae",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-row-language.js?v=582",
+      "sha256": "705bb98627d5b96e6505c294e6454347f9841b1beebbece434b44daae38d9ffe",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-text-decode.js?v=794",
+      "sha256": "0a707c8b24fc4226fadee4ab4227dbc7b4e0bcc685defaf4a2d4ff577d422e20",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/subtitle-timing-status.js?v=587",
+      "sha256": "a8dcf44651100bf38da59301477106cb65b48d4ea377df215de9366c34a22c2a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/table-niqqud-normalizer.js?v=735",
+      "sha256": "1c5a72196eef26addff829ddb2c9b079619349981db4cd89acfa4e5f9a49f553",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/table-presets.js?v=782",
+      "sha256": "4d635d0c6922d37d766d1b8e4e1372ef4f6518febab3aa191d50ea7a513cf350",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/table-source-recovery.js?v=551",
+      "sha256": "2ff5366087a55b0b97acbb22a3ab9f4b7a38a16428db254769b9edb0c146b2a3",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/text-card-format.js?v=742",
+      "sha256": "68879518a74990fe895343340bfa6105068e8e86f7b7ee7f7a8bf1fdb1c4b031",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/text-key-scan.js?v=777",
+      "sha256": "8495ea9cf9dc46979901acb758544440347173f3910f9c27c21aafa2d410fa09",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/train-queue.js?v=461",
+      "sha256": "43dca475af192043189f0064fafe88e7d15f5d55e0c2c91117a8c1c8074df129",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/translit-display.js?v=734",
+      "sha256": "b4b67048924cbcb5aabb2121574d4e438c4aa2837cc289d3b30d011d0400adb5",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/tutor-client.js?v=2",
+      "sha256": "14ba495e10b67836b5429b04681e4acc2224ec9855994ab90ac722cbfbdeaf5e",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/tutor-connect.js?v=1",
+      "sha256": "790f143e68a889c03250b0840035f39e230e0d643a94e559d83c54593c692cfe",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/tutor-notebook.js?v=718",
+      "sha256": "18b140192756c13636df1ec63634a74e2a6e6dcbe6aa110a8ecb3e2cd02b29ad",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/tutor-panel.js?v=9",
+      "sha256": "4b5c12721325051b410a133d52716d707dd2a8f0c401ffa4dfe6c65924a9e702",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/tutor-practice.js?v=2",
+      "sha256": "28d8916912cfc5e7da3d6b813f6879000fdfee58d7d18337a0f4b79499f48111",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/ulpan-world.js?v=799",
+      "sha256": "459cf1e40584e8d78b1e5321c63e2cff2133abecf63d0580f8e7f944b3f5f67d",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/word-gloss-ai.js?v=802",
+      "sha256": "c2f5c66135fb75b044f775535103ac6c527448a22759a526c4ead63d1c08d6ec",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/word-gloss.js?v=802",
+      "sha256": "786abc30c77ad6d523206199ff6d98f8300d9dfab88765fc0b0fca3c9ea304bf",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/world-activity.js?v=799",
+      "sha256": "0d0987e3e58361a0fea312f6f15009e6403286bcc73929903881be960ad521f3",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/world-boot.js?v=799",
+      "sha256": "790631effd35214471aafabd49a1567f2d4893813150ad9e8e9368e638ae6df1",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/world-engine.js?v=799",
+      "sha256": "6aa665536da024a11fd264db7ae47fdfefc7d6c3d53dd7301bce782b1bfc49d3",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/world-render.js?v=715",
+      "sha256": "ddf8c60d4c19fc102d52aef5fc02e1a3d2de20b46a740d5e78b844fb55c813b5",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/xlsx-core.js?v=753",
+      "sha256": "d2d70953f9058e55b819fe8dff3b45db8e74f2be32ab517244b45b2acd94d922",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/youtube-asr.js?v=593",
+      "sha256": "dfc2289e419e9b4e73af0b4bf8215eda52b8ee0508283618b244e9f966e8b75a",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/youtube-full-timing.js?v=557",
+      "sha256": "67c9fc0a3dc691db6447f9c3cccd210947bac5aa12cb4503844b457bc0dd9e20",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/js/youtube-timing.js?v=593",
+      "sha256": "555ffcde20f96bfc25dea626795028142139f6e3e79d2459703a226115adeccf",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/library.html",
+      "sha256": "5b863f03da6599f44cf0abefe0563e986af564859f70ae4d940ccb96e89eda3c",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/mediatheque.html",
+      "sha256": "ff740ad57dbeef29e9c6994610d2bbcf0271b85970707c8be971f64a9c6f6aec",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/study-video.html",
+      "sha256": "554090670874a94c1974f59e85e125ab6032d3e98cf8a589d26012d94547f9ad",
+      "match": true,
+      "integrityMatch": true
+    },
+    {
+      "url": "/sw.js",
+      "sha256": "92531ec04bb3dea13913d7370edb8e73b211fb43ca10a0af66c812bdcdbbe061",
+      "match": true,
+      "integrityMatch": null
+    },
+    {
+      "url": "/tutor-connect.html",
+      "sha256": "55704f46e3b7ed27ced218d00ff9258bbb90271fc09ef2fe4a097625a4942864",
+      "match": true,
+      "integrityMatch": true
+    }
+  ]
+}

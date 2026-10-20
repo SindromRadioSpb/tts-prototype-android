@@ -1,0 +1,20 @@
+{
+  "activeStatus": "l4",
+  "canEnroll": true,
+  "count": 11748,
+  "form": "в тексте: שֶׁפָּחַדְתָּчто ты боялсяУчить эту форму",
+  "parent": [
+    {
+      "srs_due": "2026-10-29T13:00:02.243Z",
+      "srs_interval": 57,
+      "srs_lapses": 1,
+      "srs_reps": 5,
+      "status": "l4"
+    }
+  ],
+  "sha256": "73d3fcae17a0bf6d9268f7e6e011b6ac1a86a91e986b743a44210eda586d683e",
+  "statusTarget": "Мой статус слова: לפחוד — бояться, опасаться, страшиться — глагол",
+  "targetKey": "pid:1612",
+  "version": "3.11.804",
+  "word": "שֶׁפָּחַדְתָּ"
+}

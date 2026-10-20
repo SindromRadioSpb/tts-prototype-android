@@ -1,0 +1,9 @@
+{"version":"3.11.804","health":{"ok":true,"uptimeSec":193,"now":"2026-10-20T22:47:58.387Z","db":{"ready":true},"migrations":{"ready":true},"disk_pct_used":84,"disk_warn":true}}
+{"file":"public/js/reader-morph.js","status":200,"match":true,"sha256":"7fed6cd4e5e3ac4f42d214be63639ff6334cb59eca8dc120c15e313a95cc413c"}
+{"file":"public/css/reader-morph.css","status":200,"match":true,"sha256":"4f5dfb208ee1b8e3050c96487b17c0ade5f283916cf3df66dea0d660c74a7e0a"}
+{"file":"public/sw.js","status":200,"match":true,"sha256":"92531ec04bb3dea13913d7370edb8e73b211fb43ca10a0af66c812bdcdbbe061"}
+{"file":"public/index.html","status":200,"match":true,"sha256":"5ba0afcbbc428cedb2bd229ac805b473117a506cd319ce1045375dab43edf16f"}
+{"file":"public/library.html","status":200,"match":true,"sha256":"5b863f03da6599f44cf0abefe0563e986af564859f70ae4d940ccb96e89eda3c"}
+{"title":"החמאם 2 — Хаммам, серия 2 — LinguistPro","width":1280,"card":{"statusTarget":"Мой статус слова: לפחוד — бояться, опасаться, страшиться — глагол","targetKey":"pid:1612","canEnroll":true,"word":"שֶׁפָּחַדְתָּ","source":"Источник разбора: форма совпадает со словарём","lemma":"לפחוד\n· глагол\nбояться, опасаться, страшиться ✎","form":"в тексте:\nשֶׁפָּחַדְתָּ\nчто ты боялся\nУчить эту форму","overflow":false}}
+{"title":"החמאם 2 — Хаммам, серия 2 — LinguistPro","width":380,"card":{"statusTarget":"Мой статус слова: לפחוד — бояться, опасаться, страшиться — глагол","targetKey":"pid:1612","canEnroll":true,"word":"שֶׁפָּחַדְתָּ","source":"Источник разбора: форма совпадает со словарём","lemma":"לפחוד\n· глагол\nбояться, опасаться, страшиться ✎","form":"в тексте:\nשֶׁפָּחַדְתָּ\nчто ты боялся\nУчить эту форму","overflow":false}}
+{"errors":[],"paidCalls":0,"reviewsUnchanged":true}
