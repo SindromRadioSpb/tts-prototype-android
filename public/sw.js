@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.801";
+const CACHE_VERSION = "v3.11.802";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,12 +82,13 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=801",
+  "/js/dictionary-ui.js?v=802",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=801",
+  "/js/mediatheque-ui.js?v=802",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
+  "/js/mediatheque-api.js?v=802",
   "/data/mediatheque/editorial-seed-v1.json",
   "/data/mediatheque/research-reserve-v1.json",
   "/js/mediatheque-local-repository.js",
@@ -109,7 +110,7 @@ const PRECACHE_URLS = [
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
   "/js/room-media-attach.js?v=796",
-  "/js/study-video-source-ui.js?v=801",
+  "/js/study-video-source-ui.js?v=802",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=797",
@@ -119,7 +120,7 @@ const PRECACHE_URLS = [
   "/js/catalog-discovery-core.js?v=780",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
-  "/js/corpus-materialize.js?v=801",
+  "/js/corpus-materialize.js?v=802",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
@@ -147,7 +148,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=801",
+  "/js/library-ui.js?v=802",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -155,9 +156,9 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=801",
+  "/js/reader-core.js?v=802",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=801",
+  "/css/reader-morph.css?v=802",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -171,7 +172,7 @@ const PRECACHE_URLS = [
   // Offline Pealim inflection dict loader (dataset itself is lazy, not precached)
   "/js/inflection-dict.js",
   // Function-word → Pealim dict-page link map loader (map JSON is lazy via /data/inflection/)
-  "/js/pealim-function-links.js?v=801",
+  "/js/pealim-function-links.js?v=802",
   // Epic-3b — curated function-word USAGE loader (store JSON is lazy via /data/usage/)
   "/js/function-usage.js",
   "/js/pealim-identity-overrides.js",
@@ -180,7 +181,7 @@ const PRECACHE_URLS = [
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
-  "/js/lexical-resolution-service.js?v=801",
+  "/js/lexical-resolution-service.js?v=802",
   "/js/lexical-resolution-ui.js?v=12",
   // Retention P0 — canonical word-memory keyer + review-log content ids (pure, tiny)
   "/js/lemma-canon.js",
@@ -193,7 +194,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js?v=782",
   "/js/publication-center.js?v=520",
-  "/js/public-corpus-adapter.js?v=801",
+  "/js/public-corpus-adapter.js?v=802",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",
@@ -203,21 +204,21 @@ const PRECACHE_URLS = [
   "/js/dicta-lexicon.js?v=769",
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
-  "/js/learning-field-provenance.js?v=801",
-  "/js/reader-morph.js?v=801",
+  "/js/learning-field-provenance.js?v=802",
+  "/js/reader-morph.js?v=802",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=801",
-  "/js/word-gloss-ai.js?v=801",
+  "/js/word-gloss.js?v=802",
+  "/js/word-gloss-ai.js?v=802",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
-  "/js/morph-host.js?v=801",
-  "/js/studio-morph.js?v=801",
+  "/js/morph-host.js?v=802",
+  "/js/studio-morph.js?v=802",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
   "/js/studio-import-resume.js?v=789",
-  "/js/studio-import.js?v=801",
+  "/js/studio-import.js?v=802",
   "/js/iphone-downloader-core.js?v=1",
   "/js/iphone-downloader-entry.js?v=1",
   "/download-media.html",
@@ -272,7 +273,7 @@ const PRECACHE_URLS = [
   "/js/material-revision-repository.js?v=783",
   "/js/portable-learning-package-core.js?v=742",
   "/js/import-center-core.js?v=527",
-  "/js/portable-learning-package-repository.js?v=801",
+  "/js/portable-learning-package-repository.js?v=802",
   "/js/studio-media-package.js?v=796",
   "/js/material-open.js?v=734",
   "/js/material-save.js?v=734",
@@ -347,9 +348,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v8.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=801",
-  "/i18n/locales/en.js?v=801",
-  "/i18n/locales/he.js?v=801",
+  "/i18n/locales/ru.js?v=802",
+  "/i18n/locales/en.js?v=802",
+  "/i18n/locales/he.js?v=802",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -362,7 +363,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=801",
+  "/db/local-db.js?v=802",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",

@@ -1,0 +1,20 @@
+{
+  "mode": "ISOLATED_BROWSER_CANONICAL_API",
+  "checks": [
+    "busy label is visible and submit cannot be repeated",
+    "ru 1366 dialog fits",
+    "ru 380 dialog fits",
+    "he 380 dialog fits",
+    "actual archive reaches material preview beside 25 large materials",
+    "metadata response stays below 100 KB for 26 items",
+    "source archive remains byte-identical",
+    "preview does not publish a corpus",
+    "no browser errors"
+  ],
+  "errors": [],
+  "previewMs": 798,
+  "detailBytes": 31383,
+  "items": 26,
+  "archiveSha256": "1cfad22ce7ed0354d6c503c07ea99c9123969eef7d9fefec0933f8423aa24343",
+  "status": "PASS"
+}

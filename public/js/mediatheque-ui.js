@@ -1,7 +1,8 @@
-import * as localDb from '/db/local-db.js?v=801';
+import * as localDb from '/db/local-db.js?v=802';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
+import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
 const $ = id => document.getElementById(id);
 const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -63,7 +64,9 @@ function announce(message, error = false) {
 // A code the page does not know still reaches the owner instead of a bare "check the fields".
 function withCode(code) { return /^[A-Z][A-Z0-9_]{2,80}$/.test(code) ? ' (' + code + ')' : ''; }
 function errorText(error) {
+  if (['TimeoutError', 'AbortError'].includes(error?.name)) return t('requestInterrupted');
   const code = String(error && (error.code || error.message) || '');
+  if (code === 'PUBLICATION_RESPONSE_INVALID') return t('responseInvalid');
   if (/DRAFT_VERSION_CONFLICT/.test(code)) return t('draftConflict');
   if (/CONFLICT/.test(code)) return t('conflict');
   if (/UNAVAILABLE|REFERENCE_MISSING/.test(code)) return t('referenceUnavailable');
@@ -93,9 +96,7 @@ async function api(path, body, idempotencyKey) {
   }
   const response = await fetch(path, { signal: AbortSignal.timeout(/:publish|materials:/.test(path) ? 300000 : 30000), method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store', headers,
     body: body === undefined ? undefined : JSON.stringify(body) });
-  const json = await response.json().catch(() => ({}));
-  if (!response.ok || !json.ok) { const e = new Error(json.error || 'HTTP_' + response.status); e.code = e.message; throw e; }
-  return json;
+  return readPublicationResponse(response);
 }
 function documentState() { return state.space === 'personal' ? state.personal : state.editing && state.draft ? state.draft : state.published; }
 function structure() { return documentState().structure; }
@@ -1111,7 +1112,10 @@ $('ml-dialog').addEventListener('cancel', event => { event.preventDefault(); if 
 $('ml-dialog').addEventListener('submit', async event => {
   event.preventDefault(); if (!dialogAction || state.busy) return;
   const action = dialogAction, data = new FormData(event.target); state.busy = true;
-  const submit = event.target.querySelector('button[type=submit]'); if (submit) submit.disabled = true;
+  const submit = event.target.querySelector('button[type=submit]'), label = submit?.textContent;
+  if (submit) { submit.disabled = true; submit.textContent = t('working'); }
+  event.target.setAttribute('aria-busy', 'true');
+  const priorError = event.target.querySelector('#ml-form-error'); if (priorError) priorError.hidden = true;
   const cancelHook = dialogCancel; dialogCancel = null;
   try { await action(data); }
   catch (e) {
@@ -1123,7 +1127,11 @@ $('ml-dialog').addEventListener('submit', async event => {
     }
     else { const error = $('ml-form-error'); if (error) { error.hidden = false; error.textContent = errorText(e); } }
   }
-  finally { state.busy = false; if (externalRefreshDirty) queueMicrotask(refreshVisibleLibrary); if (submit?.isConnected) submit.disabled = event.target.dataset.conflict === 'true'; }
+  finally {
+    state.busy = false; event.target.removeAttribute('aria-busy');
+    if (externalRefreshDirty) queueMicrotask(refreshVisibleLibrary);
+    if (submit?.isConnected) { submit.disabled = event.target.dataset.conflict === 'true'; submit.textContent = label; }
+  }
 });
 function applyTheme() {
   let theme; try { theme = localStorage.getItem('appTheme_v1'); } catch (_) {}

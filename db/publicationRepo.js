@@ -593,7 +593,11 @@ function createPublicationRepo(options = {}) {
   async function getPublisherCorpus(actor, corpusId) {
     const corpus = await corpusForActor(actor, corpusId);
     const draft = await dbGet(database, "SELECT * FROM publication_drafts WHERE corpus_id=? AND state='ACTIVE'", [corpus.corpus_id]);
-    const items = draft ? await dbAll(database, "SELECT * FROM publication_draft_items WHERE draft_id=? ORDER BY position_no", [draft.draft_id]) : [];
+    // Editor lists need identity, ordering and rights, not every material's full
+    // learning snapshot. Keep bodies in canonical storage for validation/publish.
+    const items = draft ? await dbAll(database, `SELECT item_id,draft_id,position_no,source_domain,source_corpus_id,source_work_id,
+      source_revision,source_hash,snapshot_sha256,title,creator,expected_audio_count,copied_at
+      FROM publication_draft_items WHERE draft_id=? ORDER BY position_no`, [draft.draft_id]) : [];
     const enriched = [];
     for (const item of items) enriched.push({ ...item, rights: await latestRights(item.item_id) });
     const editions = await dbAll(database, `SELECT edition_id,edition_number,manifest_sha256,item_count,asset_count,asset_missing,package_complete,package_bytes,package_sha256,published_by,published_at

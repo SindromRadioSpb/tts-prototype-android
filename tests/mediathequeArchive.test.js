@@ -40,8 +40,28 @@ async function setup(t){
   for(const m of ['020_identity.sql','056_group_song_corpus_p0.sql','057_group_corpus_audio_revisions.sql','058_group_corpus_catalog_metadata.sql','063_publication_domain.sql','067_mediatheque_structure.sql','068_mediatheque_material_purge.sql'])await sql(db,fs.readFileSync(path.join(__dirname,'../migrations',m),'utf8'));
   await sql(db,"INSERT INTO users(id,role,display_name) VALUES('owner','owner','Owner'),('other','owner','Other')");
   t.after(async()=>{await new Promise(r=>db.close(r));fs.rmSync(dir,{recursive:true,force:true});});
-  return {repo:createPublicationRepo({db,dataDir:dir}),owner:{id:'owner',role:'owner'},dir};
+  return {repo:createPublicationRepo({db,dataDir:dir}),owner:{id:'owner',role:'owner'},dir,db};
 }
+
+test('large corpus editor details omit snapshots and still prepare the next archive',async t=>{
+  const {repo,owner,db}=await setup(t), opts=name=>({idempotencyKey:'large-editor-'+name});
+  const corpus=await repo.createCorpus(owner,{slug:'large-channel',title:'Channel'},opts('create'));
+  const largeSnapshot={library:{texts:[{text_key:'large',rows:[{order_index:0,hebrew_plain:'שלום',russian:'Привет',translit:'x'.repeat(720000)}]}],audio_assets:[]}};
+  const copied=await repo.copyMyTextItems(owner,corpus.corpus_id,{expectedVersion:1,items:Array.from({length:25},(_,i)=>({sourceWorkId:'existing-'+i,title:'Existing '+i,expectedAudioCount:0,snapshot:largeSnapshot}))},opts('existing'));
+  const before=await new Promise((resolve,reject)=>db.all('SELECT item_id,snapshot_sha256,length(snapshot_json) bytes FROM publication_draft_items ORDER BY item_id',(e,r)=>e?reject(e):resolve(r)));
+  const detail=await repo.getPublisherCorpus(owner,corpus.corpus_id);
+  assert.equal(detail.items.length,25);
+  assert.equal(detail.draft.version,copied.draft_version);
+  assert.ok(Buffer.byteLength(JSON.stringify(detail))<100000,'editor payload must not grow with transcript bodies');
+  assert.ok(detail.items.every(i=>!('snapshot_json' in i)&&i.snapshot_sha256&&i.source_work_id&&i.rights));
+  const prepared=await repo.prepareMediathequeArchive(owner,await archive(),{mode:'youtube'});
+  const next=await repo.copyMediathequeArchive(owner,corpus.corpus_id,{token:prepared.token,title:'Next episode',creator:'Channel',expectedVersion:detail.draft.version},opts('next'));
+  assert.equal(next.items.length,1);
+  const after=await repo.getPublisherCorpus(owner,corpus.corpus_id);
+  assert.equal(after.items.length,26);
+  assert.ok(after.items.some(i=>i.source_work_id==='archive_'+prepared.contentRoot));
+  assert.deepEqual(await new Promise((resolve,reject)=>db.all('SELECT item_id,snapshot_sha256,length(snapshot_json) bytes FROM publication_draft_items WHERE item_id<>? ORDER BY item_id',[next.items[0].item_id],(e,r)=>e?reject(e):resolve(r))),before);
+});
 for(const mode of ['youtube','media'])test(mode+' archive uses canonical publication with independent download permission',async t=>{
   const {repo,owner,dir}=await setup(t),media=mode==='media'?Buffer.from('fixture-media-bytes'):null;
   const bytes=await archive(media);
