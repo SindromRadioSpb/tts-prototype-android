@@ -1,0 +1,17 @@
+{
+ "schema": "modern-release-backup-v1",
+ "verified_at": "2026-10-22T21:01:55+00:00",
+ "backup_location": "owner PC, separate drive (F:), LinguistPro-Backup/modern-release/2026-10-23/",
+ "files": 275,
+ "bytes": 2753505749,
+ "registry_archives": 270,
+ "registry_archives_verified": 270,
+ "sha_mismatches": [],
+ "extra_files_not_in_registry": [
+  "Free_Hebrew_48_YouTube_LinguistPro_2026-10-08.xlsx",
+  "library-bundle-10 октября 2026 (полная библиотека без локального медиа медиатеки и прогресса,  но с TTS).zip",
+  "library-bundle-10 октября 2026 (полная библиотека без локального медиа медиатеки и прогресса,  но с TTS)_1.zip",
+  "library-bundle-10 октября 2026.zip",
+  "Интерактивный календарь на 56 дней.docx"
+ ]
+}

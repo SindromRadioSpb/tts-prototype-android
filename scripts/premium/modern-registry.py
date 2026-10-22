@@ -443,10 +443,34 @@ def boundaries(work_parts):
     return out
 
 
+def rows_to_about(part, rows, decisions):
+    """Rows the owner moves out of the learning rows into 'About the material' (decisions file).
+    Counted here so the rule is proven on real data before the release builder applies it."""
+    found = []
+    for rule in decisions.get('rules', []):
+        rx = re.compile(rule['match'])
+        scope = rows[:2] if rule.get('position') == 'first_two_rows' else rows
+        for r in scope:
+            if rx.search(str(r.get('hebrew_plain') or '').strip()):
+                found.append({'rule': rule['id'], 'order_index': r.get('order_index'), 'about_kind': rule['about_kind'],
+                              'text': str(r.get('hebrew_plain'))[:120]})
+    for move in decisions.get('works', {}).get(part['work_id'], {}).get('move_rows_to_about', []):
+        rx = re.compile(move['match'])
+        for r in rows:
+            if rx.search(str(r.get('hebrew_plain') or '').strip()):
+                found.append({'rule': 'work:' + part['work_id'], 'order_index': r.get('order_index'), 'about_kind': move['about_kind'],
+                              'text': str(r.get('hebrew_plain'))[:120]})
+    return found
+
+
 def build(args):
     catalog, catalog_version = load_catalog(args.catalog_index)
     pseudo = load_pseudocatalogue(args.pseudocatalogue)
+    decisions_path = getattr(args, 'decisions', None)
+    decisions = json.loads(Path(decisions_path).read_text(encoding='utf-8')) if decisions_path else {}
     archives, parts = scan(args.library_root, catalog, pseudo, args.txt_cache, args.fetch)
+    for p in parts:
+        p['rows_to_about'] = rows_to_about(p, p['_rows'], decisions) if p['folder'] not in (1, 2, 3) else []
 
     # Same work + byte-identical rows in several archives = one part. The copy carrying the AI layer
     # represents it, so a layer-only pilot over a published text is never discarded as a duplicate.
@@ -524,8 +548,13 @@ def build(args):
         })
 
     for w in work_records:
+        decision = decisions.get('works', {}).get(w['work_id'], {})
         if w['action'] != 'published' and w['rows_unanchored'] >= ABSENT_BLOCK_ROWS:
-            w['blocked'] = f"{w['rows_unanchored']} rows match no Ben-Yehuda source text"
+            if decision.get('provenance_confirmed_by_owner'):
+                w['provenance'] = 'owner-confirmed (' + decisions.get('decided_at', '') + ')'
+            else:
+                w['blocked'] = f"{w['rows_unanchored']} rows match no Ben-Yehuda source text"
+        w['rows_to_about'] = [m for p in works[w['work_id']] for m in p.get('rows_to_about', [])]
     for p in dedup:
         p.pop('_rows', None)
         p.pop('_spans', None)
@@ -537,6 +566,8 @@ def build(args):
         'actions_parts': dict(Counter(a for w in work_records for a in [w['action']] * w['parts'])),
         'text_id_conflicts': len(conflicts),
         'blocked_works': sorted(w['work_id'] for w in work_records if w.get('blocked')),
+        'owner_confirmed_provenance': sorted(w['work_id'] for w in work_records if w.get('provenance')),
+        'rows_to_about': dict(Counter(m['rule'] for w in work_records for m in w.get('rows_to_about', []))),
         'html_entity_rows_unpublished': sum(w['html_entity_rows'] for w in work_records if w['action'] != 'published'),
     }
     return {'schema': 'modern-release-registry-v1', 'catalog_version': catalog_version, 'counts': counts,
@@ -572,6 +603,8 @@ def report(reg):
             continue
         if w['source']['status'] != 'ok':
             problems.append(f"- {w['work_id']}: исходник не получен ({w['source']['status']})")
+        for m in w.get('rows_to_about', []):
+            problems.append(f"- {w['work_id']}: строка {m['order_index']} → «О материале» ({m['rule']}): {m['text'][:60]}")
         if w.get('blocked'):
             problems.append(f"- **БЛОК** {w['work_id']} {w['title'][:40]}: {w['blocked']}")
         if w['html_entity_rows']:
@@ -613,6 +646,7 @@ def main(argv=None):
     p.add_argument('--txt-cache', type=Path, required=True, help='Ben-Yehuda dump txt cache (txt/pNN/mNNN.txt layout)')
     p.add_argument('--official-cache', type=Path, help='cache for official benyehuda.org text downloads (works newer than the dump)')
     p.add_argument('--fetch', action='store_true', help='download missing source texts into the caches')
+    p.add_argument('--decisions', type=Path, help='owner decisions JSON (docs/planning/modern-release/.../owner-decisions.json)')
     p.add_argument('--out', type=Path, required=True)
     args = p.parse_args(argv)
     reg = build(args)

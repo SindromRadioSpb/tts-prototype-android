@@ -1,0 +1,14 @@
+{
+  "schema": "modern-release-owner-decisions-v1",
+  "decided_at": "2026-10-23",
+  "works": {
+    "30443": {"provenance_confirmed_by_owner": true, "note": "Footnotes absent from every Ben-Yehuda text; owner knows the origin and approved publication."},
+    "31968": {"provenance_confirmed_by_owner": true, "note": "Footnotes absent from every Ben-Yehuda text; owner knows the origin and approved publication."},
+    "10290": {"move_rows_to_about": [{"match": "^\\[קיצור מטעם המערכת\\.\\]", "about_kind": "abridgement_note"}],
+              "note": "Editorial abridgement note leaves the learning rows and goes to 'About the material'."}
+  },
+  "rules": [
+    {"id": "byline-row-to-about", "match": "^מאת [^.!?]{2,60}$", "position": "first_two_rows",
+     "about_kind": "byline", "note": "A leading 'מאת <author>' row is removed from the learning rows; the author stays in About."}
+  ]
+}

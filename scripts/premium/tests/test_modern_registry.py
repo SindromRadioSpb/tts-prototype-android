@@ -91,6 +91,14 @@ class AnchorTest(unittest.TestCase):
         self.assertEqual(body_letters, len(R.letters(body)))
         self.assertEqual(covered, body_letters)
 
+    def test_rows_to_about_rules(self):
+        decisions = {'rules': [{'id': 'byline', 'match': '^מאת [^.!?]{2,60}$', 'position': 'first_two_rows', 'about_kind': 'byline'}],
+                     'works': {'7': {'move_rows_to_about': [{'match': '^\\[קיצור', 'about_kind': 'abridgement_note'}]}}}
+        rows = [row(0, 'כותרת'), row(1, 'מאת ישעיהו פרס'), row(2, 'מאת שם בתוך הטקסט'), row(3, '[קיצור מטעם המערכת.] הושמט')]
+        found = R.rows_to_about({'work_id': '7'}, rows, decisions)
+        self.assertEqual([(m['rule'], m['order_index']) for m in found], [('byline', 1), ('work:7', 3)])
+        self.assertEqual(R.rows_to_about({'work_id': '8'}, rows, decisions)[0]['order_index'], 1)
+
     def test_secret_scan_ignores_niqqud_token_field(self):
         self.assertEqual(R.scan_secrets('{"point":"U+05C2","token":"י"}'), [])
         self.assertTrue(R.scan_secrets('{"api_key":"x"}'))
