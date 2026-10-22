@@ -1323,6 +1323,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
   "/js/corpus-materialize.js?v=806",
+  "/js/work-parts.js?v=807",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",

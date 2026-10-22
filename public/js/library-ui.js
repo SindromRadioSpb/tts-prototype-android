@@ -64,7 +64,7 @@ let textByKey = new Map(); // text_key -> { id, title }
 // sidecar (author index + ready rail + facet histograms, fetched once on first Корпус open)
 // + per-era manifest BLOCK(s) on demand (only the block(s) an author lives in — D1/R4 keeps
 // the mobile budget to root + 1 active manifest, never the 26K/10MB at once).
-const CORPUS_CATALOG_VERSION = 9;
+const CORPUS_CATALOG_VERSION = 10;
 const CORPUS_ROOT_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
 let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts, index_file, pointers }
 let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
@@ -787,7 +787,7 @@ function roomStateUrl(state) {
   const url = new URL(location.href);
   // Reader identity belongs in the request URL. A fragment describes only the
   // transient presentation and cannot distinguish works to a crawler or recipient.
-  for (const key of ['corpus_work', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open', 'at']) url.searchParams.delete(key);
+  for (const key of ['corpus_work', 'part', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open', 'at']) url.searchParams.delete(key);
   if (state.surface === 'reader' && roomReaderLinkIdentity) {
     for (const [key, value] of Object.entries(roomReaderLinkIdentity)) url.searchParams.set(key, value);
   }
@@ -6972,6 +6972,7 @@ async function renderEndOfTextCard(tid) {
   // Карточка — хвост прокрутки таблицы (перед дисклеймером внутри #roomReaderTable). Соседом
   // таблицы во flex-колонке учебного режима она отнимала у неё высоту и закрывала последние
   // строки до конца воспроизведения (владелец 2026-09-25).
+  appendNextPartToEndCard(card);   // F4 — «Следующая часть» before the general «что дальше»
   const provNote = $('readerProvNote'), wrap = $('roomReaderTable');
   if (provNote && wrap && provNote.parentNode === wrap) wrap.insertBefore(card, provNote);
   else if (wrap) wrap.appendChild(card);
@@ -8939,6 +8940,7 @@ async function openReader(textId, title, opts) {
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskLearningSupport(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
+  Promise.resolve(attachPartContext(res && res.ok ? res.text : null, openEpoch)).catch(() => {});   // F4 — part bar + next part
   renderReaderLearningNiqqud();
   roomRenderReaderCopyright({ localPrivate: readerIsOwnText });
   if (res && res.ok) {
@@ -9108,6 +9110,7 @@ async function closeReader(options) {
   const readerResources = $('readerTaskResources'); if (readerResources) { readerResources.replaceChildren(); readerResources.hidden = true; }
   const readerLearning = $('readerTaskLearningSupport'); if (readerLearning) { readerLearning.replaceChildren(); readerLearning.hidden = true; }
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
+  readerPartContext = null; $('roomPartBar')?.remove(); $('roomReader')?.classList.remove('is-work-page');
   if (revealMount && revealHandler) { try { revealMount.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; revealMount = null; }
   const reader = $('roomReader'), content = $('roomContent');
   if (content) content.setAttribute('aria-busy', 'true');
@@ -9261,8 +9264,225 @@ async function resolveLocalIdByKey(textKey) {
 // absent, fetch its per-work JSON, importBundle it (mode:'skip' — idempotent), then open
 // the warm reader by local id. The work file is fetched with ?v=<catalogVersion> so a
 // re-published catalog cache-busts the immutable work payloads.
+// ── Modern release F4 — a work made of parts: one card, a table of contents, parts that are ordinary
+// learning editions (docs/planning/modern-release/2026-10-23/F4_WORK_PARTS_DESIGN.md). The work page lives
+// on the reader surface, so the reader's Back keeps its return route; progress belongs to each part text.
+let readerPartContext = null;   // { card, toc, part, nav } while a part of a multi-part work is open
+const _workTocCache = new Map();
+async function loadWorkToc(card) {
+  const key = String(card.id) + ':' + card.toc_sha256;
+  if (_workTocCache.has(key)) return _workTocCache.get(key);
+  const res = await fetch('/data/benyehuda/' + card.toc_file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+  if (!res.ok) throw new Error('toc ' + res.status);
+  const bytes = await res.arrayBuffer();
+  await window.BenYehudaLearningEdition.verifyBytes(bytes, card.toc_sha256);   // sealed by the catalog card
+  const toc = window.WorkParts.parseToc(card, new TextDecoder().decode(bytes));
+  _workTocCache.set(key, toc);
+  return toc;
+}
+function workPartTitle(card, part) {
+  // «Рабочий в Стране Израиля · 03 · Продолжение» → «03 · Продолжение» inside its own work.
+  const parts = String(part.title || '').split(' · ');
+  return parts.length > 1 ? parts.slice(1).join(' · ') : String(part.title || '');
+}
+async function workProgressByKey(toc) {
+  const keys = toc.parts.map((p) => p.text_key);
+  const map = new Map();
+  try {
+    const marks = keys.map(() => '?').join(',');
+    const rows = await localDb.dbQuery(
+      'SELECT t.text_key AS k, tp.last_row_idx AS r, tp.finished_at AS f, tp.updated_at AS u FROM texts t LEFT JOIN text_progress tp ON tp.text_id = t.id WHERE t.text_key IN (' + marks + ')', keys);
+    for (const r of rows || []) map.set(String(r.k), r.r == null && !r.f && !r.u ? { last_row_idx: null, finished_at: null, updated_at: null, local: true } : { last_row_idx: r.r, finished_at: r.f, updated_at: r.u, local: true });
+  } catch (_) {}
+  return map;
+}
+function workScopeLabel(card) {
+  if (card.scope === 'complete') return tt('room.work.scopeComplete', 'Полный текст');
+  if (card.scope === 'selected') return tt('room.work.scopeSelected', 'Выбранные фрагменты');
+  return '';
+}
+function fmt(key, fallback, vars) { let s = tt(key, fallback); for (const [k, v] of Object.entries(vars || {})) s = s.split('{' + k + '}').join(String(v)); return s; }
+
+async function openWorkPage(card, opts) {
+  const epoch = ++readerOpenEpoch;
+  if (!opts || !opts.fromPart) captureReaderReturnContext();
+  else { try { await flushReaderProgress(); } catch (_) {} }
+  readerPartContext = null;
+  $('roomPartBar')?.remove();
+  $('roomDeviceEdition')?.remove();   // a part's edition banner belongs to that part, not to the work page
+  try { clearResumeBanner(); resetEndCard(); } catch (_) {}
+  readerTextId = null;
+  try { setReaderSubtitle(null); } catch (_) {}
+  const reader = $('roomReader'), content = $('roomContent');
+  if (content) content.hidden = true;
+  if (reader) { reader.hidden = false; reader.classList.add('is-work-page'); }
+  const titleEl = $('readerTitle');
+  if (titleEl) { titleEl.textContent = card.title || ''; if (HEBREW_RE.test(card.title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir'); }
+  try { window.scrollTo(0, 0); } catch (_) {}
+  roomReaderLinkIdentity = { corpus_work: String(card.id) };
+  try { roomCommitPresentation(opts && opts.replaceInitialHistory ? 'replace' : 'push', { surface: 'reader', anchor: { itemId: '', rowIndex: 0 } }); } catch (_) {}
+  readerStateBox('room.state.loading', '⏳');
+  let toc;
+  try { toc = await loadWorkToc(card); }
+  catch (e) {
+    if (epoch !== readerOpenEpoch) return;
+    try { console.warn('[room] work contents unavailable:', e); } catch (_) {}
+    readerStateBox('room.work.tocUnavailable', '⚠️');
+    return;
+  }
+  const progress = await workProgressByKey(toc);
+  if (epoch !== readerOpenEpoch) return;
+  renderWorkPage(card, toc, progress);
+}
+
+function renderWorkPage(card, toc, progress) {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  mount.innerHTML = '';
+  const page = el('div', { class: 'work-page', attrs: { id: 'roomWorkPage' } });
+  const head = el('div', { class: 'work-page-head' });
+  if (card.author) { const a = el('p', { class: 'work-page-author', text: card.author }); if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl'); head.appendChild(a); }
+  const facts = el('p', { class: 'work-page-facts' });
+  const mainCount = toc.parts.filter((p) => p.track === 'text').length;
+  facts.textContent = [fmt('room.work.partsCount', '{n} частей', { n: mainCount }), fmt('room.work.rowsCount', '{n} строк', { n: Number(toc.work_rows || card.work_rows || 0).toLocaleString() }), workScopeLabel(card)].filter(Boolean).join(' · ');
+  head.appendChild(facts);
+  const about = el('button', { class: 'corpus-passport-button', text: window.CorpusDiscoveryBrowser.label('passport'), attrs: { type: 'button' } });
+  about.addEventListener('click', () => window.CorpusDiscoveryBrowser.passport(card, true, { trigger: about, eraLabel: corpusEraTitle, read: () => {}, localText: null, addToList: () => openListPicker(card, about, true) }));
+  head.appendChild(about);
+  page.appendChild(head);
+
+  const wp = window.WorkParts.workProgress(toc, progress);
+  const cta = el('button', { class: 'work-page-cta', attrs: { type: 'button' } });
+  if (wp.last) {
+    const nav = window.WorkParts.navigation(toc, wp.last.part.part_id);
+    cta.textContent = fmt('room.work.continuePart', 'Продолжить: часть {n} · строка {row}', { n: nav ? nav.number : 1, row: Number(wp.last.row || 0) + 1 });
+    cta.addEventListener('click', () => openCorpusWork(card, { partId: wp.last.part.part_id, resume: true }));
+  } else {
+    const first = toc.parts.find((p) => p.track === 'text') || toc.parts[0];
+    cta.textContent = tt('room.work.start', 'Начать чтение');
+    cta.addEventListener('click', () => openCorpusWork(card, { partId: first.part_id }));
+  }
+  page.appendChild(cta);
+  if (wp.rowsRead > 0) {
+    const bar = el('div', { class: 'work-page-progress', attrs: { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(wp.percent) } });
+    bar.appendChild(el('span', { class: 'work-page-progress-fill', attrs: { style: 'width:' + wp.percent + '%' } }));
+    page.appendChild(bar);
+    page.appendChild(el('p', { class: 'work-page-progress-text', text: fmt('room.work.progress', 'Прочитано частей: {done} из {total} · {pct}% строк', { done: wp.partsDone, total: wp.partsTotal, pct: wp.percent }) }));
+  }
+
+  page.appendChild(el('h3', { class: 'work-page-toc-title', text: tt('room.work.toc', 'Оглавление') }));
+  const list = el('ol', { class: 'work-toc' });
+  const current = wp.last ? (window.WorkParts.navigation(toc, wp.last.part.part_id) || {}).part : null;
+  const item = (p, number) => {
+    const st = window.WorkParts.partState(p, progress.get(p.text_key));
+    const row = el('button', { class: 'work-toc-part' + (st.state === 'done' ? ' is-done' : '') + (current && (current.part_id === p.part_id || current.parent === p.part_id) ? ' is-current' : ''), attrs: { type: 'button', 'data-part': p.part_id } });
+    if (number != null) row.appendChild(el('span', { class: 'work-toc-num', text: String(number) }));
+    const title = el('span', { class: 'work-toc-title', text: workPartTitle(card, p) });
+    if (HEBREW_RE.test(title.textContent)) title.setAttribute('dir', 'rtl');
+    row.appendChild(title);
+    const meta = st.state === 'done' ? tt('room.work.partDone', '✓ прочитано') : st.state === 'reading' ? st.percent + '%' : progress.has(p.text_key) ? tt('room.work.onDevice', 'на устройстве') : fmt('room.work.rowsCount', '{n} строк', { n: p.rows });
+    row.appendChild(el('span', { class: 'work-toc-meta', text: meta }));
+    row.addEventListener('click', () => openCorpusWork(card, { partId: p.part_id, resume: true }));
+    return row;
+  };
+  let n = 0;
+  for (const p of window.WorkParts.mainParts(toc)) {
+    const li = el('li', { class: 'work-toc-item' });
+    li.appendChild(item(p, ++n));
+    const kids = window.WorkParts.children(toc, p.part_id);
+    if (kids.length) {
+      const d = el('details', { class: 'work-toc-children' });
+      const label = kids.map((k) => k.track).filter((v, i, a) => a.indexOf(v) === i).map((t) => tt('room.work.track.' + t, t === 'notes' ? 'Примечания к главе' : t === 'structure' ? 'Структура главы' : 'Приложение')).join(' · ');
+      d.appendChild(el('summary', { text: label + ' (' + kids.length + ')' }));
+      for (const k of kids) d.appendChild(item(k, null));
+      li.appendChild(d);
+    }
+    list.appendChild(li);
+  }
+  page.appendChild(list);
+  mount.appendChild(page);
+  const cur = page.querySelector('.work-toc-part.is-current');
+  if (cur && toc.parts.length > 12) { const jump = el('button', { class: 'work-page-jump', text: tt('room.work.toCurrent', 'К текущей части'), attrs: { type: 'button' } }); jump.addEventListener('click', () => cur.scrollIntoView({ block: 'center' })); page.insertBefore(jump, list); }
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// The part bar and «Следующая часть» follow the OPEN text, whatever way it was opened (catalog, Continue
+// shelf, a link, a bookmark): the body names its work and part; the sealed table of contents does the rest.
+async function attachPartContext(textRow, epoch) {
+  readerPartContext = null;
+  $('roomPartBar')?.remove();
+  $('roomReader')?.classList.remove('is-work-page');
+  let meta = textRow && textRow.source_meta_json;
+  if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch (_) { meta = null; } }
+  const part = meta && meta.public_learning && meta.public_learning.part;
+  if (!part || !part.work_id || !window.WorkParts) return;
+  try { if (!corpusIndex) await loadCorpusIndex(); } catch (_) { return; }
+  const card = corpusReadyMap().get(String(part.work_id));
+  if (!card || !window.WorkParts.isMultipart(card)) return;
+  let toc;
+  try { toc = await loadWorkToc(card); } catch (_) { return; }
+  if (epoch !== readerOpenEpoch) return;
+  const own = toc.parts.find((p) => p.text_key === textRow.text_key) || window.WorkParts.findPart(toc, part.part_id);
+  const nav = own ? window.WorkParts.navigation(toc, own.part_id) : null;
+  if (!nav) return;
+  readerPartContext = { card, toc, part: own, nav };
+  roomReaderLinkIdentity = { corpus_work: String(card.id), part: own.part_id };
+  try { roomCommitPresentation('replace'); } catch (_) {}
+  renderPartBar();
+}
+function renderPartBar() {
+  $('roomPartBar')?.remove();
+  const ctx = readerPartContext;
+  const table = $('roomReaderTable');
+  if (!ctx || !table) return;
+  const bar = el('nav', { class: 'room-part-bar', attrs: { id: 'roomPartBar', 'aria-label': tt('room.work.partsNav', 'Части произведения') } });
+  const go = (p) => () => openCorpusWork(ctx.card, { partId: p.part_id, resume: true });
+  const rtl = (document.documentElement.getAttribute('dir') || '') === 'rtl';   // arrows follow the reading direction
+  const prev = el('button', { class: 'room-part-prev', text: (rtl ? '› ' : '‹ ') + tt('room.work.prev', 'Предыдущая'), attrs: { type: 'button' } });
+  if (ctx.nav.prev) prev.addEventListener('click', go(ctx.nav.prev)); else prev.disabled = true;
+  const toc = el('button', { class: 'room-part-toc', attrs: { type: 'button' } });
+  toc.textContent = ctx.nav.parent
+    ? fmt('room.work.partOfNote', 'Часть {n} из {total} · {track}', { n: ctx.nav.number, total: ctx.nav.total, track: tt('room.work.track.' + ctx.part.track, ctx.part.track === 'notes' ? 'Примечания к главе' : ctx.part.track === 'structure' ? 'Структура главы' : 'Приложение') })
+    : fmt('room.work.partOf', 'Часть {n} из {total}', { n: ctx.nav.number, total: ctx.nav.total });
+  toc.title = tt('room.work.toc', 'Оглавление');
+  toc.addEventListener('click', () => openWorkPage(ctx.card, { fromPart: true }));
+  const next = el('button', { class: 'room-part-next', text: tt('room.work.next', 'Следующая') + (rtl ? ' ‹' : ' ›'), attrs: { type: 'button' } });
+  if (ctx.nav.next) next.addEventListener('click', go(ctx.nav.next)); else next.disabled = true;
+  bar.append(prev, toc, next);
+  table.before(bar);
+}
+// The end card offers the next part first; the last part of the main text says the work is finished.
+function appendNextPartToEndCard(card) {
+  const ctx = readerPartContext;
+  if (!ctx || !card) return;
+  const box = el('div', { class: 'reader-end-next-part' });
+  if (ctx.nav.next) {
+    const b = el('button', { class: 'reader-end-next-part-btn', attrs: { type: 'button' } });
+    b.textContent = fmt('room.work.nextPart', 'Следующая часть: {title}', { title: workPartTitle(ctx.card, ctx.nav.next) }) + ' (' + fmt('room.work.rowsCount', '{n} строк', { n: ctx.nav.next.rows }) + ')';
+    b.addEventListener('click', () => openCorpusWork(ctx.card, { partId: ctx.nav.next.part_id, resume: true }));
+    box.appendChild(b);
+  } else if (!ctx.nav.parent) {
+    box.appendChild(el('p', { class: 'reader-end-work-done', text: tt('room.work.lastPart', 'Это последняя часть произведения') }));
+  }
+  const toc = el('button', { class: 'reader-end-toc', text: tt('room.work.toc', 'Оглавление'), attrs: { type: 'button' } });
+  toc.addEventListener('click', () => openWorkPage(ctx.card, { fromPart: true }));
+  box.appendChild(toc);
+  card.insertBefore(box, card.children[1] || null);
+}
+
 async function openCorpusWork(card, openOpts) {
   if (!card) return;
+  // A multi-part work opens its page (table of contents); a part opens as its own verified learning edition.
+  if (window.WorkParts && window.WorkParts.isMultipart(card)) {
+    if (!(openOpts && openOpts.partId)) return openWorkPage(card, openOpts);
+    let toc = null;
+    try { toc = await loadWorkToc(card); } catch (_) {}
+    const part = toc && window.WorkParts.findPart(toc, openOpts.partId);
+    if (!part) { roomToast(tt('room.work.partUnavailable', 'Эта часть сейчас недоступна')); return openWorkPage(card, openOpts); }
+    if (readerTextId) { try { await flushReaderProgress(); } catch (_) {} }   // leaving one part for another keeps its place
+    $('roomReader')?.classList.remove('is-work-page');
+    card = window.WorkParts.partCard(card, part);
+  }
   const openEpoch = ++readerOpenEpoch;
   captureReaderReturnContext();
   const reader = $('roomReader'), content = $('roomContent');
@@ -9285,7 +9505,7 @@ async function openCorpusWork(card, openOpts) {
     noticeWordGlossOutcome(got.wordGlossAi);
     const localId = got.localId, choice = { id: got.localId, edition: got.edition };
     if (openEpoch !== readerOpenEpoch) return;
-    const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
+    const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: card.part_id ? { corpus_work: String(card.id), part: card.part_id } : { corpus_work: String(card.id) } });
     // A cold public URL selecting either learning edition offers its saved resume.
     // Automatic arrival must not replay a row write that clears its saved step.
     if (readerOpts.replaceInitialHistory) readerOpts.resume = false;
@@ -11141,6 +11361,7 @@ async function injectContinueReading(body) {
 async function buildContinueRailSection(limit) {
   let items = [];
   try { items = await localDb.getContinueReading(limit || 12); } catch (_) { items = []; }
+  if (window.WorkParts) items = window.WorkParts.groupContinue(items);   // F4 — one card per work made of parts
   if (!items || !items.length) return null;
   const sec = el('section', { class: 'shelf corpus-continue' });
   const head = el('div', { class: 'shelf-head' });
@@ -15351,7 +15572,7 @@ async function boot() {
       const bakedWorkId = initialQuery.get('corpus_work');
       if (bakedWorkId) {
         const target = ((corpusIndex && corpusIndex.ready) || []).find((card) => String(card.id) === String(bakedWorkId));
-        if (target) await openCorpusWork(target, { resume: true, replaceInitialHistory: true });
+        if (target) await openCorpusWork(target, { resume: true, replaceInitialHistory: true, partId: initialQuery.get('part') || undefined });
         else roomToast(tt('room.work.unavailable', 'Текст пока недоступен'));
       }
     } catch (_) {}

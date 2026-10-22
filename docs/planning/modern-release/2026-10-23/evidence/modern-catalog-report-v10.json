@@ -1,0 +1,18 @@
+{
+ "added": 358,
+ "replaced": 4,
+ "enriched": 1,
+ "multipart": 18,
+ "toc_files": 18,
+ "bodies": 719,
+ "new_cards": 59,
+ "ready": 1779,
+ "ready_by_period": {
+  "ancient": 0,
+  "medieval": 0,
+  "enlightenment": 57,
+  "revival": 680,
+  "modern": 1041,
+  "none": 1
+ }
+}

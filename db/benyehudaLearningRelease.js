@@ -1,14 +1,18 @@
 // Read-only resolution of the immutable release deployed with this application image.
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
-const MANIFEST = path.join(__dirname, '../public/data/benyehuda/learning-release-v8.json');
+// The release that ships with this image is the one the Room uses (CORPUS_CATALOG_VERSION), not a frozen v8:
+// newer catalogs add works the server must also resolve (links, server-side text).
+const ROOM_VERSION = Number((fs.readFileSync(path.join(__dirname, '../public/js/library-ui.js'), 'utf8').match(/const CORPUS_CATALOG_VERSION = (\d+);/) || [])[1]);
+if (!Number.isInteger(ROOM_VERSION)) throw new Error('CORPUS_CATALOG_VERSION missing');
+const MANIFEST = path.join(__dirname, '../public/data/benyehuda/learning-release-v' + ROOM_VERSION + '.json');
 let cached;
 function publishedFile(workId, manifestPath = MANIFEST) {
   if (!/^\d{1,8}$/.test(String(workId))) return null;
   if (!fs.existsSync(manifestPath)) return null;
   let manifest;
   if (manifestPath === MANIFEST) {
-    const rootPath = path.join(path.dirname(MANIFEST), 'corpus-catalog-v8.json');
+    const rootPath = path.join(path.dirname(MANIFEST), 'corpus-catalog-v' + ROOM_VERSION + '.json');
     const stamps = [manifestPath, rootPath].map(file => { const s = fs.statSync(file); return s.mtimeMs + ':' + s.size; }).join('|');
     if (!cached || cached.stamps !== stamps) {
       const bytes = fs.readFileSync(manifestPath), root = JSON.parse(fs.readFileSync(rootPath, 'utf8'));

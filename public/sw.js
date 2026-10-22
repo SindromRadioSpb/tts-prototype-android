@@ -121,6 +121,7 @@ const PRECACHE_URLS = [
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
   "/js/corpus-materialize.js?v=806",
+  "/js/work-parts.js?v=807",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
@@ -347,7 +348,7 @@ const PRECACHE_URLS = [
   // Versioned filename (corpus-catalog-v<N>) → each re-publish (new baked batch) bumps
   // the catalog version so the immutable-cached lazy files (?v=N) cache-bust; the SW
   // CACHE_VERSION bump refreshes this precached root + library-ui.js in lockstep.
-  "/data/benyehuda/corpus-catalog-v9.json",
+  "/data/benyehuda/corpus-catalog-v10.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js?v=806",

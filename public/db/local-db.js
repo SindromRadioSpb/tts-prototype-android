@@ -4976,7 +4976,8 @@ export async function clearTextFinished(textId) {
 export async function getContinueReading(limit = 12) {
   return q(
     `SELECT t.id, t.title, t.text_key, tp.last_row_idx AS last_row_idx, tp.updated_at AS updated_at,
-            (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows
+            (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows,
+            json_extract(t.source_meta_json, '$.public_learning.part.work_id') AS part_work_id
      FROM text_progress tp JOIN texts t ON t.id = tp.text_id
      WHERE COALESCE(t.is_archived, 0) = 0 AND tp.last_row_idx > 0
        AND tp.finished_at IS NULL

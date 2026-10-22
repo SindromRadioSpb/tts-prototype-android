@@ -179,6 +179,7 @@ test("an incoming material URL survives the catalog boot before the reader is re
   assert.match(room, /const incomingMaterialLink = \[[^\n]*'corpus_work'[^\n]*\]/);
   assert.match(room, /if \(incomingMaterialLink\) \{[\s\S]*?history\.replaceState\(state, '', location\.pathname \+ location\.search\)/);
   assert.match(room, /opts && opts\.replaceInitialHistory \? 'replace' : 'push'/);
-  assert.match(room, /openCorpusWork\(target, \{ resume: true, replaceInitialHistory: true \}\)/);
+  // F4: a part link (?corpus_work=…&part=…) rides the same replace-history open.
+  assert.match(room, /openCorpusWork\(target, \{ resume: true, replaceInitialHistory: true(?:, partId: [^}]+)? \}\)/);
   assert.match(room, /openPublicCorpusWork\(publicSlug, publicWork, \{ resume: true, replaceInitialHistory: true/);
 });
