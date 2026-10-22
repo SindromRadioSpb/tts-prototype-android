@@ -8,13 +8,13 @@ const path = require('path');
 const { chromium } = require('playwright');
 
 const REPO = path.resolve(__dirname, '..', '..');
-const PORT = 3291, BASE = `http://127.0.0.1:${PORT}`;
+const PORT = 3291, BASE = process.env.SHOT_BASE || `http://127.0.0.1:${PORT}`;   // SHOT_BASE=https://… checks a live deployment
 const out = path.resolve(process.argv[2] || path.join(REPO, '.tmp', 'room-periods-shot'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   fs.mkdirSync(out, { recursive: true });
-  const child = spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = process.env.SHOT_BASE ? null : spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'pipe', 'pipe'] });
   try {
     for (let i = 0; i < 60; i++) { try { if ((await fetch(BASE + '/healthz')).ok) break; } catch (_) {} await sleep(500); }
     const browser = await chromium.launch();
@@ -54,6 +54,6 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     fs.writeFileSync(path.join(out, 'report.json'), JSON.stringify(report, null, 1));
     console.log(JSON.stringify(report.map((r) => ({ tag: r.tag, title: r.grid.title, cards: r.grid.cards.map((c) => c.title + ' | ' + c.source + ' | ' + c.note + (c.range ? ' | ' + c.range : '')), rawKey: r.grid.rawKey, hOverflow: r.grid.hOverflow, authors: r.authors, errors: r.errors.slice(0, 3) })), null, 1));
   } finally {
-    if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' }); else child.kill('SIGKILL');
+    if (child) { if (process.platform === 'win32') spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' }); else child.kill('SIGKILL'); }
   }
 })().catch((e) => { console.error(e); process.exit(1); });
