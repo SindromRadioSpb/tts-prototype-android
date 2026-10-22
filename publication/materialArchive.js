@@ -69,11 +69,11 @@ async function inspectArchive(bytes, options={}) {
   if(!text.rows.length)fail('MATERIAL_ARCHIVE_INVALID');
   // Ф3б: the owner's paid AI word glosses travel to public readers (owner decision 2026-10-12).
   // Bounded shape only here; every reader re-proves each row's content key before showing it.
-  const wordGloss=wordGlossLayer(p.word_gloss_ai_layer,text.rows.length);
+  const glossReport=wordGlossLayerReport(p.word_gloss_ai_layer,text.rows.length),wordGloss=glossReport.layer;
   if(wordGloss)text.word_gloss_ai_layer=wordGloss;
   return {snapshot:{library:{texts:[text]}},packageBytes,media:options.mode==='youtube'?null:media,contentRoot:m.content_root_sha256,
     expectedMedia:{sha256:m.media.sha256,mime:m.media.mime,sizeBytes:m.media.size_bytes},
-    title:text.title||p.material.text.title||'Untitled',rowCount:text.rows.length,wordGlossRows:wordGloss?wordGloss.rows.length:0,videoId:passport.video?.videoId||null};
+    title:text.title||p.material.text.title||'Untitled',rowCount:text.rows.length,wordGlossRows:wordGloss?wordGloss.rows.length:0,wordGlossRejected:glossReport.rejected.length,wordGlossRejectedReasons:rejectedReasons(glossReport.rejected),videoId:passport.video?.videoId||null};
 }
 const str=(v,max)=>typeof v==='string'&&v.length<=max;
 function boundedFieldMeta(input) {
@@ -99,12 +99,41 @@ async function fieldEvidence(bytes,snapshot) {
     return {order_index:i,field_meta:fields};
   })};
 }
-function wordGlossLayer(layer,rowCount){
-  if(!layer||layer.schema!=='word-gloss-ai-layer-v1'||!Array.isArray(layer.rows)||layer.rows.length>rowCount)return null;
-  const rows=layer.rows.filter(r=>r&&Number.isInteger(r.order_index)&&r.order_index>=0&&r.order_index<rowCount&&str(r.key,64)&&str(r.model||'',80)
-    &&Array.isArray(r.glosses)&&r.glosses.length>0&&r.glosses.length<=80&&r.glosses.every(g=>g&&str(g.gloss,120)&&(g.ai_gloss==null||str(g.ai_gloss,120)))
-    &&Array.isArray(r.mwe||[])&&(r.mwe||[]).length<=40&&(r.mwe||[]).every(m=>m&&Number.isInteger(m.from)&&Number.isInteger(m.to)&&str(m.gloss,120)))
-    .map(r=>({order_index:r.order_index,key:r.key,...(r.shared===true?{shared:true}:{}),model:String(r.model||''),glosses:r.glosses.map(g=>g.manual?{gloss:g.gloss,wrong_hint:!!g.wrong_hint,manual:true,ai_gloss:String(g.ai_gloss||''),ai_wrong_hint:!!g.ai_wrong_hint}:{gloss:g.gloss,wrong_hint:!!g.wrong_hint}),mwe:(r.mwe||[]).map(m=>({from:m.from,to:m.to,gloss:m.gloss}))}));
-  return rows.length?{schema:layer.schema,rows}:null;
+// The row key ends with the row's word count («r2<hash>:<n>», word-gloss-ai.js keyOf), so the shape is
+// checked against the row itself instead of fixed caps: long literary rows (up to ~800 words) keep their
+// paid layer. Every dropped row is returned with a reason — a text import never hides a lost layer row.
+const LAYER_KEY=/^[A-Za-z0-9]{1,48}:(\d{1,5})$/;
+function layerRowProblem(r,rowCount){
+  if(!r||!Number.isInteger(r.order_index)||r.order_index<0)return 'ROW_INVALID';
+  if(r.order_index>=rowCount)return 'ROW_OUTSIDE_CARD';
+  const m=typeof r.key==='string'&&r.key.match(LAYER_KEY);
+  if(!m)return 'KEY_INVALID';
+  if(!str(r.model||'',80))return 'MODEL_INVALID';
+  const words=Number(m[1]);
+  if(!Array.isArray(r.glosses)||!r.glosses.length||r.glosses.length!==words)return 'GLOSS_COUNT_MISMATCH';
+  if(!r.glosses.every(g=>g&&typeof g.gloss==='string'))return 'GLOSS_INVALID';
+  if(!r.glosses.every(g=>str(g.gloss,120)&&(g.ai_gloss==null||str(g.ai_gloss,120))))return 'GLOSS_TOO_LONG';
+  if(!Array.isArray(r.mwe||[]))return 'MWE_INVALID';
+  if(!(r.mwe||[]).every(x=>x&&Number.isInteger(x.from)&&Number.isInteger(x.to)&&x.from>=0&&x.from<=x.to&&x.to<words))return 'MWE_OUT_OF_ROW';
+  if(!(r.mwe||[]).every(x=>str(x.gloss,120)))return 'GLOSS_TOO_LONG';
+  return null;
 }
-module.exports={inspectArchive,sha,wordGlossLayer,fieldEvidence,boundedFieldMeta};
+function wordGlossLayerReport(layer,rowCount){
+  if(!layer||layer.schema!=='word-gloss-ai-layer-v1'||!Array.isArray(layer.rows))
+    return {layer:null,rejected:layer&&Array.isArray(layer.rows)?layer.rows.map(r=>({order_index:r&&r.order_index,reason:'SCHEMA_INVALID'})):[]};
+  const rows=[],rejected=[],seen=new Set();
+  for(const r of layer.rows){
+    const problem=layerRowProblem(r,rowCount)||(seen.has(r.order_index)?'ROW_DUPLICATE':null);
+    if(problem){rejected.push({order_index:r&&r.order_index,reason:problem});continue;}
+    seen.add(r.order_index);
+    rows.push({order_index:r.order_index,key:r.key,...(r.shared===true?{shared:true}:{}),model:String(r.model||''),glosses:r.glosses.map(g=>g.manual?{gloss:g.gloss,wrong_hint:!!g.wrong_hint,manual:true,ai_gloss:String(g.ai_gloss||''),ai_wrong_hint:!!g.ai_wrong_hint}:{gloss:g.gloss,wrong_hint:!!g.wrong_hint}),mwe:(r.mwe||[]).map(m=>({from:m.from,to:m.to,gloss:m.gloss}))});
+  }
+  return {layer:rows.length?{schema:layer.schema,rows}:null,rejected};
+}
+function rejectedReasons(rejected){
+  const out={};for(const r of rejected)out[r.reason]=(out[r.reason]||0)+1;return out;
+}
+function wordGlossLayer(layer,rowCount){
+  return wordGlossLayerReport(layer,rowCount).layer;
+}
+module.exports={inspectArchive,sha,wordGlossLayer,wordGlossLayerReport,fieldEvidence,boundedFieldMeta};

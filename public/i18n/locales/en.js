@@ -5498,6 +5498,7 @@ Object.assign(window.I18N_LOCALES.en.mediatheque, {
   "publisherDetails": "Title and library placement",
   "archiveChecked": "Archive verified: {count} rows",
   "archiveWordGloss": "AI word translation: {count} rows — readers see it without their own key",
+  "archiveWordGlossRejected": "AI word translation failed the check in {count} rows and will not be published for them: {reasons}",
   "none": "Not selected",
   "newChannel": "Or create a topic / channel",
   "newSeries": "Or create a collection",

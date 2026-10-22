@@ -46,6 +46,34 @@ test('publication: the owner\'s layer reaches the public snapshot, bounded', asy
   assert.equal('secret' in extra.rows[0], false, 'only known fields are kept');
 });
 
+test('publication: long rows keep their layer — the word count comes from the row key, not a fixed cap', () => {
+  const n = 784; // the longest real learning row (Modern release, 2026-10-22)
+  const glosses = Array.from({ length: n }, (_, i) => ({ gloss: 'слово' + i }));
+  const mwe = Array.from({ length: 164 }, (_, i) => ({ from: i, to: i + 1, gloss: 'сочетание' }));
+  const layer = { schema: LAYER.schema, rows: [{ order_index: 0, key: 'r2abc:' + n, model: 'm', glosses, mwe }] };
+  const report = Archive.wordGlossLayerReport(layer, 1);
+  assert.equal(report.layer.rows[0].glosses.length, n);
+  assert.equal(report.layer.rows[0].mwe.length, 164);
+  assert.deepEqual(report.rejected, []);
+});
+
+test('publication: every dropped layer row is reported with its reason', () => {
+  const ok = LAYER.rows[0];
+  const layer = { schema: LAYER.schema, rows: [
+    ok,
+    { ...ok, order_index: 1, key: 'r2abc:2' },                                         // 1 gloss for 2 words
+    { ...ok, order_index: 2, mwe: [{ from: 0, to: 3, gloss: 'x' }] },                   // phrase outside the row
+    { ...ok, order_index: 3, glosses: [{ gloss: 'x'.repeat(121) }] },                   // gloss too long
+    { ...ok, order_index: 9 },                                                           // row outside the card
+    { ...ok, order_index: 4, key: 'no-count' },                                          // key without word count
+  ] };
+  const report = Archive.wordGlossLayerReport(layer, 5);
+  assert.deepEqual(report.layer.rows.map(r => r.order_index), [0]);
+  assert.deepEqual(report.rejected.map(r => [r.order_index, r.reason]), [
+    [1, 'GLOSS_COUNT_MISMATCH'], [2, 'MWE_OUT_OF_ROW'], [3, 'GLOSS_TOO_LONG'], [9, 'ROW_OUTSIDE_CARD'], [4, 'KEY_INVALID']]);
+  assert.deepEqual(Archive.wordGlossLayer(layer, 5), report.layer, 'the compact form stays the same layer');
+});
+
 test('text card: the layer is exported and handed to the bundle import', () => {
   const payload = TextCard.buildCardPayload({ text: { title: 'T' }, sentences: [{ id: 's', order_index: 0, he_plain: 'שלום', he_niqqud: 'שָׁלוֹם', ru: 'привет' }], wordGlossAiLayer: LAYER });
   assert.deepEqual(payload.card.word_gloss_ai_layer, LAYER);

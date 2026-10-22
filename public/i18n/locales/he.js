@@ -5507,6 +5507,7 @@ Object.assign(window.I18N_LOCALES.he.mediatheque, {
   "publisherDetails": "שם ומיקום בספרייה",
   "archiveChecked": "הארכיון אומת: {count} שורות",
   "archiveWordGloss": "תרגום מילים בבינה מלאכותית: {count} שורות — הקוראים יראו אותו בלי מפתח משלהם",
+  "archiveWordGlossRejected": "תרגום המילים בבינה מלאכותית לא עבר בדיקה ב־{count} שורות ולא יפורסם עבורן: {reasons}",
   "none": "לא נבחר",
   "newChannel": "או יצירת נושא / ערוץ",
   "newSeries": "או יצירת אוסף",

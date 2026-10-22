@@ -5513,6 +5513,7 @@ Object.assign(window.I18N_LOCALES.ru.mediatheque, {
   "publisherDetails": "Название и место в Медиатеке",
   "archiveChecked": "Архив проверен: {count} строк",
   "archiveWordGloss": "ИИ-перевод слов: {count} строк — читатели увидят его без своего ключа",
+  "archiveWordGlossRejected": "ИИ-перевод слов не прошёл проверку в {count} строках и не будет опубликован для них: {reasons}",
   "none": "Не выбрано",
   "newChannel": "Или создать тему / канал",
   "newSeries": "Или создать подборку",

@@ -1,0 +1,3326 @@
+{
+ "summary": {
+  "works": 363,
+  "parts": 697,
+  "rows_in": 114095,
+  "rows_out": 114083,
+  "moved_to_about": 12,
+  "moved_with_layer": 3,
+  "cleaned_rows": 975,
+  "rekeyed_layer_rows": 0,
+  "layer_in": 46742,
+  "layer_out": 46739,
+  "layer_dropped": 0,
+  "client_stored": 46739,
+  "client_rejected": 0,
+  "too_large": [],
+  "fragmented_parts": 12,
+  "max_body_bytes": 4018841,
+  "dropped_row_fields": {},
+  "dropped_meta_fields": {
+   "canonical_batch_index": 1658,
+   "editorial_contribution_ids": 1449,
+   "source_offset_namespace": 543,
+   "editorial_supplement_ids": 209,
+   "source_fragment_id": 248,
+   "source_old_unit_id": 248,
+   "old_source_unit_id": 172,
+   "entry_local_range": 172,
+   "source_scope_kind": 172,
+   "original_source_index": 518
+  }
+ },
+ "works": [
+  {
+   "work_id": "10128",
+   "title": "על שום מה",
+   "parts": 1,
+   "rows": 73,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "10129",
+   "title": "סמבטיון",
+   "parts": 1,
+   "rows": 770,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "10290",
+   "title": "הנפט זורם לים התיכון",
+   "parts": 2,
+   "rows": 1651,
+   "scope": "complete",
+   "about": [
+    "abridgement_note"
+   ],
+   "fragmented": 2
+  },
+  {
+   "work_id": "10291",
+   "title": "ארץ לא זרועה",
+   "parts": 3,
+   "rows": 6639,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 3
+  },
+  {
+   "work_id": "10572",
+   "title": "מלון אורחים",
+   "parts": 1,
+   "rows": 847,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "10749",
+   "title": "עלומים",
+   "parts": 1,
+   "rows": 2362,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "10750",
+   "title": "בית סבתא שחרב",
+   "parts": 1,
+   "rows": 1203,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "10754",
+   "title": "ימים יחפים",
+   "parts": 2,
+   "rows": 1431,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 2
+  },
+  {
+   "work_id": "10927",
+   "title": "עלי בריקדות: יומן הכלא של מיכאל אשבל",
+   "parts": 1,
+   "rows": 266,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "11765",
+   "title": "הַרְפַּתְקָאוֹת יוּבַל",
+   "parts": 1,
+   "rows": 1259,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "17966",
+   "title": "הנער משה",
+   "parts": 12,
+   "rows": 1828,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "23820",
+   "title": "ויהי ערב",
+   "parts": 1,
+   "rows": 64,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "23822",
+   "title": "בני וגיטה: סיפור",
+   "parts": 1,
+   "rows": 2440,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24259",
+   "title": "לַזּוֹרֵעַ",
+   "parts": 1,
+   "rows": 15,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24260",
+   "title": "עִירִי",
+   "parts": 1,
+   "rows": 14,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24261",
+   "title": "[עַל הַסְּפָרִים יָשַׁבְתִּי]",
+   "parts": 1,
+   "rows": 21,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24262",
+   "title": "[וַהֲיָדַעַתְּ לְמַה הִתְפַּלַּלְתִּי]",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24263",
+   "title": "[נָדַד הַיּוֹם עַל פְּנֵי אֲרָצוֹת וְיַמִּים]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24264",
+   "title": "[מַה זֶּה הָיָה]",
+   "parts": 1,
+   "rows": 11,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24265",
+   "title": "[דָּם אֶל דָּם קוֹרֵא]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24266",
+   "title": "[קַוִּים עַד לְקִצֵּי הַחֶדְוָה]",
+   "parts": 1,
+   "rows": 5,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24267",
+   "title": "לְאִמִּי",
+   "parts": 1,
+   "rows": 3,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24268",
+   "title": "[וּבִמְשֹׁךְ הַקֶּשֶׁת יָאִירוּ]",
+   "parts": 1,
+   "rows": 3,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24269",
+   "title": "[הוֹי שׁוֹשַׁנַּת הָעֲמָקִים]",
+   "parts": 1,
+   "rows": 1,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24270",
+   "title": "[כָּל הָאֲבָנִים]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24271",
+   "title": "[נַעֲלֶה נֵרוֹת הָרוּחַ]",
+   "parts": 1,
+   "rows": 2,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24272",
+   "title": "[מֵאַחֲרֵי דַרְדַּר וְדֵרָאוֹן]",
+   "parts": 1,
+   "rows": 6,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24273",
+   "title": "[עֵת חָגָה מַחֲשַׁבְתָּם]",
+   "parts": 1,
+   "rows": 1,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24274",
+   "title": "[אֶת לִבִּי אָכַל]",
+   "parts": 1,
+   "rows": 2,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24275",
+   "title": "עַל מַה נָּבַל דִּגְלְכֶם",
+   "parts": 1,
+   "rows": 23,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24276",
+   "title": "[שַׁחַר שֶׁל מִי]",
+   "parts": 1,
+   "rows": 11,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24277",
+   "title": "לְאַנְקָה",
+   "parts": 1,
+   "rows": 4,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24278",
+   "title": "[אֲנִי מִכְתָּב קִבַּלְתִּי]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24279",
+   "title": "[מֵת הָעוֹלָם הִתְפּוֹרֵר שִׁלְדּוֹ]",
+   "parts": 1,
+   "rows": 11,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24280",
+   "title": "[כָּכָה הָיוּ רֵאשִׁית גַּעְגּוּעֵינוּ]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24281",
+   "title": "[יוֹם מָלֵא פָרַח עַל עוֹלָם נִדָּח]",
+   "parts": 1,
+   "rows": 7,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24282",
+   "title": "[כָּל הַצִּפֳּרִים עָפוּ]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24283",
+   "title": "הַדֶּגֶל בּוֹעֵר",
+   "parts": 1,
+   "rows": 9,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24284",
+   "title": "[עֲלֵה עֲלֵה]",
+   "parts": 1,
+   "rows": 6,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24287",
+   "title": "[בְּהִלַּת הָאֲוִיר הַמּוּרָם]",
+   "parts": 1,
+   "rows": 3,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24288",
+   "title": "[שִׂים שָׁלוֹם עַל עֵינַי]",
+   "parts": 1,
+   "rows": 2,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24338",
+   "title": "שָׁם בָּעֲיָרָה יֵשׁ בַּיִת...",
+   "parts": 1,
+   "rows": 25,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "24374",
+   "title": "דברים על הפילוסופיה של הדת",
+   "parts": 2,
+   "rows": 2359,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 2
+  },
+  {
+   "work_id": "25450",
+   "title": "ימים ולילות בלטרון: יומן מעצר",
+   "parts": 1,
+   "rows": 1641,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "26501",
+   "title": "מחניים",
+   "parts": 1,
+   "rows": 1478,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "28023",
+   "title": "נעורים בגולה",
+   "parts": 12,
+   "rows": 156,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "28024",
+   "title": "בארץ",
+   "parts": 67,
+   "rows": 1670,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "29108",
+   "title": "כפר השילוח",
+   "parts": 3,
+   "rows": 3011,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 3
+  },
+  {
+   "work_id": "29289",
+   "title": "מבחר מכתבים ורשימות",
+   "parts": 2,
+   "rows": 467,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 2
+  },
+  {
+   "work_id": "30441",
+   "title": "מריבה על קרקעה של ארץ־ישראל בעת העתיקה",
+   "parts": 1,
+   "rows": 463,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30442",
+   "title": "דברי ציצרו על היהודים בנאום הסניגוריה על פלאקוס",
+   "parts": 1,
+   "rows": 859,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30443",
+   "title": "דברי טאציטוּס על קדמוניות היהודים ומידותיהם",
+   "parts": 1,
+   "rows": 1541,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30664",
+   "title": "בסערת ימים",
+   "parts": 1,
+   "rows": 1451,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30738",
+   "title": "מאה שנה בירושלים - מזכרונות איש ירושלים",
+   "parts": 3,
+   "rows": 3362,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 3
+  },
+  {
+   "work_id": "30765",
+   "title": "הִסְתַּדְּרוּת הַנֹּעַר הָעוֹבֵד",
+   "parts": 1,
+   "rows": 21,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30768",
+   "title": "עִם הָאַזְעָקָה",
+   "parts": 1,
+   "rows": 21,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30770",
+   "title": "הַהִסְתַּדְרוּת בַּת כ\"ה",
+   "parts": 1,
+   "rows": 24,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "30785",
+   "title": "אַרְבָּעָה עָשָׂר בְּיוּלִי",
+   "parts": 1,
+   "rows": 18,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "31036",
+   "title": "שָׁלוֹם עֲלֵיכֶם",
+   "parts": 1,
+   "rows": 38,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "31968",
+   "title": "יוליינוס קיסר ובניין הבית",
+   "parts": 1,
+   "rows": 547,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "32580",
+   "title": "ולהתחיל מבראשית: מכתבים",
+   "parts": 1,
+   "rows": 544,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "34231",
+   "title": "הר הצופים: ארבע שנים מחייו של דניאל גפן: רומן",
+   "parts": 2,
+   "rows": 1832,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 2
+  },
+  {
+   "work_id": "36670",
+   "title": "פדות",
+   "parts": 1,
+   "rows": 113,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "36850",
+   "title": "[ובניך]",
+   "parts": 1,
+   "rows": 4,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "38407",
+   "title": "[מֶלֶךְ תָּר כָּל סִתְרֵי גְנָזִים] (רהיט)",
+   "parts": 1,
+   "rows": 23,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "38426",
+   "title": "מתוך המחברת \"משא גיא החזיון\"",
+   "parts": 1,
+   "rows": 19,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "40721",
+   "title": "[יָהּ מַלְכִּי מִנְעָה מִבְּכִי] (רשות לקדיש)",
+   "parts": 1,
+   "rows": 34,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "40722",
+   "title": "הַיְרֻשָּׁה (הַשַּׁעַר הַי\"ד מִסֵּפֶר הַמַּחְבָּרוֹת)",
+   "parts": 1,
+   "rows": 37,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "40791",
+   "title": "פְּתִיחָה לְשִׁיר נִשּׂוּאִין: הַיּוֹם לְהִשְׁתַּקְשֵׁק יָצָאתִי חוּצָה",
+   "parts": 1,
+   "rows": 45,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41552",
+   "title": "הרצאה ראשונה: היהודים בבבל בתקופת הגאונים",
+   "parts": 1,
+   "rows": 325,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41553",
+   "title": "הרצאה שנייה: ראשי הגולה",
+   "parts": 1,
+   "rows": 394,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41604",
+   "title": "ירושלים שלמנהג",
+   "parts": 1,
+   "rows": 52,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41606",
+   "title": "בפתח הסיפורים מאת דב נוי",
+   "parts": 1,
+   "rows": 78,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41626",
+   "title": "קינה קדומה על חורבן הקהלות בארץ ישראל",
+   "parts": 1,
+   "rows": 115,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41627",
+   "title": "על ראשית התישבותם של היהודים בירושלים אחרי הכבוש הערבי",
+   "parts": 1,
+   "rows": 83,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41630",
+   "title": "מגנזי ה\"גניזה\"",
+   "parts": 1,
+   "rows": 166,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41636",
+   "title": "זוטות",
+   "parts": 1,
+   "rows": 23,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41637",
+   "title": "תשובה נגד חבור ספרי דינים ביידיש",
+   "parts": 1,
+   "rows": 19,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41638",
+   "title": "החרמת ספרים יהודים בפאריס",
+   "parts": 1,
+   "rows": 16,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41641",
+   "title": "מכתב מאת מרן ר' יוסף קארו ז\"ל",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41642",
+   "title": "ממצרים לעדן ולהודו",
+   "parts": 1,
+   "rows": 54,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41644",
+   "title": "נתן העזתי בקשטוריה",
+   "parts": 1,
+   "rows": 55,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41645",
+   "title": "לתולדותיו של ר' אברהם רוויגו",
+   "parts": 1,
+   "rows": 35,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41646",
+   "title": "מכתב מיהודי צפתי שנתגלגל לפרס",
+   "parts": 1,
+   "rows": 34,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41647",
+   "title": "על כתב־יד אחד מקוג'ין",
+   "parts": 1,
+   "rows": 66,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41714",
+   "title": "סיפורי־עם ספאניוליים (CONSEJAS)",
+   "parts": 1,
+   "rows": 38,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41715",
+   "title": "הרומאנסות הספאניוליות",
+   "parts": 1,
+   "rows": 14,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41716",
+   "title": "שירי חתונה ולידה של יהודי ספרד",
+   "parts": 1,
+   "rows": 135,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41717",
+   "title": "קומפלאס די פורים",
+   "parts": 1,
+   "rows": 60,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41718",
+   "title": "פתגמי־עם על אחוה ואחדות מפי יהודי סאראייבו",
+   "parts": 1,
+   "rows": 101,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41719",
+   "title": "החוטר הספרדי",
+   "parts": 1,
+   "rows": 70,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41720",
+   "title": "סגולות וקמיעות נוסח ספרד",
+   "parts": 1,
+   "rows": 71,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41722",
+   "title": "הילד בפולקלור היהודי־ספרדי",
+   "parts": 1,
+   "rows": 83,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "41723",
+   "title": "מורשת התרבות של היהודים הספרדים",
+   "parts": 1,
+   "rows": 147,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42660",
+   "title": "הרצאה רביעית: הישיבות בבבל (המשך)",
+   "parts": 1,
+   "rows": 283,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42661",
+   "title": "הרצאה חמישית: היהודים בא\"י בתקופת הגאונים",
+   "parts": 1,
+   "rows": 164,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42662",
+   "title": "הרצאה ששית: הישובים היהודיים בא\"י בתקופת הגאונים",
+   "parts": 1,
+   "rows": 304,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42663",
+   "title": "הרצאה שביעית:  העליה לא\"י וארגון הישוב",
+   "parts": 1,
+   "rows": 181,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42664",
+   "title": "הרצאה שמינית:  הישיבה הארצישראלית",
+   "parts": 1,
+   "rows": 81,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42665",
+   "title": "הרצאה תשיעית: הקשרים בין בבל וא\"י ובין תפוצות הגולה",
+   "parts": 1,
+   "rows": 202,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42666",
+   "title": "הרצאה עשירית: על החנוך בתקופת הגאונים",
+   "parts": 1,
+   "rows": 123,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42667",
+   "title": "הרצאה אחת־עשרה:  הקראים",
+   "parts": 1,
+   "rows": 168,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42668",
+   "title": "הרצאה שתים־עשרה:  סופן של הישיבות הבבליות",
+   "parts": 1,
+   "rows": 135,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42673",
+   "title": "הרצאה ראשונה: ראשיתה של ספרות הגאונים",
+   "parts": 1,
+   "rows": 71,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42674",
+   "title": "הרצאה שניה: פירושי הגאונים למשנה ותלמוד",
+   "parts": 1,
+   "rows": 207,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42675",
+   "title": "הרצאה שלישית: ספרי המבואות לתלמוד",
+   "parts": 1,
+   "rows": 130,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42676",
+   "title": "הרצאה רביעית:  השאילתות",
+   "parts": 1,
+   "rows": 221,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42677",
+   "title": "הרצאה חמישית:  הלכות פסוקות והלכות  גדולות",
+   "parts": 1,
+   "rows": 148,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42678",
+   "title": "הרצאה ששית:  ספרות ההלכה בא\"י בתקופת   הגאונים",
+   "parts": 1,
+   "rows": 149,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42679",
+   "title": "הרצאה שביעית:  סדור רב עמרם",
+   "parts": 1,
+   "rows": 109,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42680",
+   "title": "הרצאה שמינית: ספרי ההלכה של רב סעדיה",
+   "parts": 1,
+   "rows": 193,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42681",
+   "title": "הרצאה תשיעית: ספרי ההלכה של רב שמואל בן חפני",
+   "parts": 1,
+   "rows": 99,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42682",
+   "title": "הרצאה עשירית: רב האיי גאון וספריו ההלכיים",
+   "parts": 1,
+   "rows": 103,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42683",
+   "title": "הרצאה אחת עשרה: שאר חיבורי הלכה מתקופת הגאונים",
+   "parts": 1,
+   "rows": 181,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42684",
+   "title": "הרצאה שתים עשרה: תשובות הגאונים",
+   "parts": 1,
+   "rows": 213,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42708",
+   "title": "[שְׁתִיקָתְךָ בְּלִבִּי מְנַגֶּנֶת]",
+   "parts": 1,
+   "rows": 8,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42711",
+   "title": "יֵשׁ גִּיל",
+   "parts": 1,
+   "rows": 21,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42725",
+   "title": "חלופי מנהגים והוראות בין ישיבות סורא ופומבדיתא",
+   "parts": 1,
+   "rows": 254,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42731",
+   "title": "בְּשׂוֹרָה",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42733",
+   "title": "בֹּקֶר",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42735",
+   "title": "כְּנִצָּן אֵחַר...",
+   "parts": 1,
+   "rows": 10,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42736",
+   "title": "לְרָחֵל",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42738",
+   "title": "בָּצִיר",
+   "parts": 1,
+   "rows": 42,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42739",
+   "title": "שָׂדִי",
+   "parts": 1,
+   "rows": 36,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42754",
+   "title": "מקום קבורתו של הרמב\"ם ז\"ל",
+   "parts": 1,
+   "rows": 63,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42755",
+   "title": "\"תוצאות ארץ ישראל\"",
+   "parts": 1,
+   "rows": 172,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42756",
+   "title": "ר' יהודה אלברצלוני על אגרת יוסף מלך הכוזרים",
+   "parts": 1,
+   "rows": 22,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42757",
+   "title": "לדברי ר' יהודה ברצלוני על הכוזרים",
+   "parts": 1,
+   "rows": 63,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42758",
+   "title": "מקורות לקורות היהודים בספרד",
+   "parts": 1,
+   "rows": 276,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42766",
+   "title": "הַקֵּן הַזֶּה...",
+   "parts": 1,
+   "rows": 73,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42770",
+   "title": "הַגָּדַת יְעָרוֹת",
+   "parts": 1,
+   "rows": 87,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42777",
+   "title": "בְּכִי כַּלָּה...",
+   "parts": 1,
+   "rows": 48,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42780",
+   "title": "שִׁיר וָזֶמֶר",
+   "parts": 1,
+   "rows": 40,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42781",
+   "title": "עוֹד שָׂדִי פּוֹרֵחַ",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42782",
+   "title": "רַקָפוֹת",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42786",
+   "title": "כַּרְמִי",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42787",
+   "title": "עֲנָבַי",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42788",
+   "title": "שִׁיר הַפֶּלֶךְ",
+   "parts": 1,
+   "rows": 83,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42789",
+   "title": "דְּקָלִים",
+   "parts": 1,
+   "rows": 40,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42790",
+   "title": "רוּחַ סַעַר",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42791",
+   "title": "עַל אֶחָד שֶׁשָּׂרָה...",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42792",
+   "title": "לְכָל עֲצֵי הַגָּן",
+   "parts": 1,
+   "rows": 14,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42793",
+   "title": "פִּנָּתִי בִּלְבַב חֵלֵד",
+   "parts": 1,
+   "rows": 48,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42800",
+   "title": "מֻכֵּי הַבָּרָד",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42801",
+   "title": "תְּפִילַּת הַדֶּרֶךּ",
+   "parts": 1,
+   "rows": 52,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42803",
+   "title": "לְעוֹלָם...",
+   "parts": 1,
+   "rows": 36,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42804",
+   "title": "עַל קֶבֶר אָבוֹת",
+   "parts": 1,
+   "rows": 28,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42805",
+   "title": "לוּ נִתַּן לִי...",
+   "parts": 1,
+   "rows": 9,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42807",
+   "title": "חָלַמְתִּי",
+   "parts": 1,
+   "rows": 84,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42808",
+   "title": "הָלַכְתִּי רָחוֹק...",
+   "parts": 1,
+   "rows": 63,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42823",
+   "title": "שִׁיר רוֹעִים",
+   "parts": 1,
+   "rows": 76,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42824",
+   "title": "אָחוֹת קְטַנָּה",
+   "parts": 1,
+   "rows": 193,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42825",
+   "title": "[אַלְפֵי פְּרָחִים]",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42826",
+   "title": "[הַכֹּל מַזְכִּיר]",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42827",
+   "title": "עַל מוֹת הַתִּינוֹק",
+   "parts": 1,
+   "rows": 117,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42829",
+   "title": "שִׁמְרִינִי",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42832",
+   "title": "אֲחוֹתִי",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42833",
+   "title": "[אֶת הָאוֹר הַבּוֹדֵד]",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42834",
+   "title": "הַשֵּׁם",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42842",
+   "title": "עִם פּרְחֵי הַשָּׂדֶה",
+   "parts": 1,
+   "rows": 151,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42843",
+   "title": "מוֹדָה אֲנִי",
+   "parts": 1,
+   "rows": 48,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42844",
+   "title": "אותוֹת",
+   "parts": 1,
+   "rows": 64,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42845",
+   "title": "חֲלוֹמִי",
+   "parts": 1,
+   "rows": 12,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "42846",
+   "title": "הִכַּרְתִּיךְ",
+   "parts": 1,
+   "rows": 31,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43005",
+   "title": "דרכי התלמוד וכללי ההוראה בתשובות הגאונים",
+   "parts": 1,
+   "rows": 536,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43006",
+   "title": "ארץ ישראל בתשובות גאוני בבל",
+   "parts": 1,
+   "rows": 190,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43493",
+   "title": "סיפורי־עם, רומאנסות ואורחות־חיים של יהודי ספרד ביבליוגרפיה",
+   "parts": 1,
+   "rows": 266,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43775",
+   "title": "תקופת הגאונים וספרותה: קיצורים וראשי תיבות",
+   "parts": 1,
+   "rows": 47,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43776",
+   "title": "פירוש ששה סדרי משנה לרבינו נתן אב הישיבה",
+   "parts": 1,
+   "rows": 318,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43777",
+   "title": "\"תשובות גאונים\" מתוך גנזיו של ר' משה בוטריל",
+   "parts": 1,
+   "rows": 254,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "43980",
+   "title": "מעוֹמק החיים",
+   "parts": 1,
+   "rows": 24,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44157",
+   "title": "האם כתבו הגאונים את תשובותיהם רק בכלה דאדר?",
+   "parts": 1,
+   "rows": 87,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44158",
+   "title": "מכתבים מגאוני בבל",
+   "parts": 1,
+   "rows": 236,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44257",
+   "title": "שרידי משפטים ושמות יווניים בספר \"היכלות רבתי\"",
+   "parts": 1,
+   "rows": 72,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44418",
+   "title": "צרור מכתבים",
+   "parts": 1,
+   "rows": 178,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44419",
+   "title": "מכתבים מאת גדולי שאלוניקי",
+   "parts": 1,
+   "rows": 26,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44420",
+   "title": "מגנזי בית־הספרים בירושלם",
+   "parts": 1,
+   "rows": 122,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44421",
+   "title": "מכתבים באידיש מירושלים עיר הקודש",
+   "parts": 1,
+   "rows": 120,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44629",
+   "title": "הערות לשבעים הסיפורים - דב נוי",
+   "parts": 1,
+   "rows": 217,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "44630",
+   "title": "עשרה סיפורי-ג'וחא (\"ג'וחאדוס\")",
+   "parts": 1,
+   "rows": 36,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47169",
+   "title": "ארץ־ישראל: אנציקלופדיה טופוגרפית־היסטורית - כרך ב",
+   "parts": 8,
+   "rows": 5289,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 8
+  },
+  {
+   "work_id": "47264",
+   "title": "מכתב מרב יוסף אבן אביתור",
+   "parts": 1,
+   "rows": 54,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47265",
+   "title": "חליפת שאלות ותשובות בין ספרד ובין צרפת ואשכנז",
+   "parts": 1,
+   "rows": 124,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47266",
+   "title": "תעודות לתולדות היהודים בארצות הים התיכון",
+   "parts": 1,
+   "rows": 245,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47267",
+   "title": "תעודות חדשות על גרים ועל תנועה משיחית",
+   "parts": 1,
+   "rows": 279,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47379",
+   "title": "לתולדות הישׁוב היהודי בארץ ישראל",
+   "parts": 1,
+   "rows": 489,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47380",
+   "title": "דלאתה, קדש ובניאס",
+   "parts": 1,
+   "rows": 31,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "47381",
+   "title": "מפנקסה העתיק של דמשק",
+   "parts": 1,
+   "rows": 76,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "49025",
+   "title": "[דרכו הספרותית של אליעזר ירושלמי]",
+   "parts": 1,
+   "rows": 109,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "50615",
+   "title": "ירושלים החדשה",
+   "parts": 2,
+   "rows": 2836,
+   "scope": "selected",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 2
+  },
+  {
+   "work_id": "52311",
+   "title": "מֵעֵבֶר לַחַלּוֹן",
+   "parts": 1,
+   "rows": 13,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52312",
+   "title": "לֹא אֲנָשִׁים",
+   "parts": 1,
+   "rows": 15,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52313",
+   "title": "עָטוּ עֵצִים",
+   "parts": 1,
+   "rows": 11,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52314",
+   "title": "מִבֵּין עֳפָאִים",
+   "parts": 1,
+   "rows": 18,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52315",
+   "title": "דִּפְדֵּף לוֹ הַשִּׂיחַ",
+   "parts": 1,
+   "rows": 10,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52316",
+   "title": "הַיָּם",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52317",
+   "title": "יָם נוֹשֵׁף",
+   "parts": 1,
+   "rows": 14,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52318",
+   "title": "שְׁקִיעָה",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52319",
+   "title": "בֵּין שְׁנֵי עֵצִים",
+   "parts": 1,
+   "rows": 33,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52320",
+   "title": "הִתְפַּלְּצִי",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52321",
+   "title": "קוּם וּרְדֹף",
+   "parts": 1,
+   "rows": 11,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52322",
+   "title": "דּוּשִׁי",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52325",
+   "title": "אֵפֶר יְצָרִים",
+   "parts": 1,
+   "rows": 20,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52326",
+   "title": "מֵלַנְכוֹלִיָּה",
+   "parts": 1,
+   "rows": 22,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52327",
+   "title": "צִפִּיָּה (1)",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52328",
+   "title": "צִפִּיָּה (2)",
+   "parts": 1,
+   "rows": 22,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52329",
+   "title": "חֳלִי",
+   "parts": 1,
+   "rows": 25,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52330",
+   "title": "כִּתְבִי!",
+   "parts": 1,
+   "rows": 47,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52331",
+   "title": "בִּנְיָמִין",
+   "parts": 1,
+   "rows": 16,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52332",
+   "title": "שָׂא אֶת נְעָלַי",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52333",
+   "title": "בִּנְפֹל טַל",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52334",
+   "title": "הָיוּ הָרְגָעִים",
+   "parts": 1,
+   "rows": 17,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52335",
+   "title": "זָהוּב",
+   "parts": 1,
+   "rows": 32,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52351",
+   "title": "שִׁירִי",
+   "parts": 1,
+   "rows": 18,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52352",
+   "title": "טֶרְצִינוֹת (א – ט)",
+   "parts": 1,
+   "rows": 117,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52353",
+   "title": "טֶרְצִינוֹת לָטְרוּן (א – ד)",
+   "parts": 1,
+   "rows": 52,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "52354",
+   "title": "הוּא הָיָה טַנְקִיסְט",
+   "parts": 1,
+   "rows": 50,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54276",
+   "title": "זָהֹב וְכָחֹל הָעוֹלָם",
+   "parts": 1,
+   "rows": 22,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54282",
+   "title": "אֶחָד אֶחָד",
+   "parts": 1,
+   "rows": 13,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54283",
+   "title": "תִּמְהוֹנוֹ שֶׁל מַבָּט",
+   "parts": 1,
+   "rows": 13,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54284",
+   "title": "עָבָר נִתַּק",
+   "parts": 1,
+   "rows": 13,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54294",
+   "title": "עַל חוֹף־הַיָּם",
+   "parts": 1,
+   "rows": 8,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54298",
+   "title": "צִוְחַת־הַשְּׁחוֹר",
+   "parts": 1,
+   "rows": 33,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54299",
+   "title": "לַיִל",
+   "parts": 1,
+   "rows": 12,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54343",
+   "title": "פַטְמָה",
+   "parts": 1,
+   "rows": 50,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54351",
+   "title": "רְשִׁימוֹת קְצָרוֹת",
+   "parts": 1,
+   "rows": 35,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54354",
+   "title": "בֵּינִי לְבֵין סִיגָרִיָּה",
+   "parts": 1,
+   "rows": 66,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54356",
+   "title": "בַּצִּינוֹק",
+   "parts": 1,
+   "rows": 60,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54403",
+   "title": "לָךְ",
+   "parts": 1,
+   "rows": 9,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54491",
+   "title": "מִזְמוֹר־הַנָּקָם",
+   "parts": 1,
+   "rows": 208,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54492",
+   "title": "קוֹל קוֹרֵא בַּמִּדְבָּר...",
+   "parts": 1,
+   "rows": 146,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54498",
+   "title": "קוּאַנְגְּ־יֶן וְהַדַּיָּג",
+   "parts": 1,
+   "rows": 184,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54500",
+   "title": "בְּנַפְתוּלֵי הָאַהֲבָה",
+   "parts": 1,
+   "rows": 223,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54503",
+   "title": "כַּךְ הֲוָּא",
+   "parts": 1,
+   "rows": 48,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54527",
+   "title": "עַל אַדְמַת־נֵכָר (קטע)",
+   "parts": 1,
+   "rows": 46,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54560",
+   "title": "אֶהְיֶה כְּאִישׁ",
+   "parts": 1,
+   "rows": 16,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54596",
+   "title": "תַּחַת הָרֹתֶם",
+   "parts": 1,
+   "rows": 34,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54624",
+   "title": "עַל הַחֲוָיָה",
+   "parts": 1,
+   "rows": 4,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54629",
+   "title": "הִמְנוֹן – לָעָם כֻּלּוֹ",
+   "parts": 1,
+   "rows": 90,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54641",
+   "title": "עֵצָה",
+   "parts": 1,
+   "rows": 2,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54642",
+   "title": "שִׁיר־הַשִּׁירִים",
+   "parts": 1,
+   "rows": 592,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54645",
+   "title": "בקרב פליטים ומעפילים",
+   "parts": 1,
+   "rows": 13,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54817",
+   "title": "רְשִׁימַת־צְמָחִים",
+   "parts": 1,
+   "rows": 77,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54818",
+   "title": "עַל סֵפֶר אֶחָד בִּפְרָט וְעַל הַסִּפְרוּת בִּכְלָל",
+   "parts": 1,
+   "rows": 7,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54819",
+   "title": "מַשֶּׁהוּ עַל סֶרֶט אֶחָד",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54839",
+   "title": "לְבָטַי",
+   "parts": 1,
+   "rows": 4,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54841",
+   "title": "הַהֶבְדֵּלִים בִּתְכוּנוֹת פְּרִי־הַתַּפּוּחַ הַגָּדֵל בְּאֵזוֹר הָהָר וְהַשְּׁפֵלָה שֶׁל אֶרֶץ יִשְׂרָאֵל",
+   "parts": 1,
+   "rows": 92,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54843",
+   "title": "עַל הַחֲלוּצִיּוּת",
+   "parts": 1,
+   "rows": 6,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54845",
+   "title": "מִפִּנְקַס־הַחַגִּים",
+   "parts": 3,
+   "rows": 23,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54855",
+   "title": "הִרְהוּרִים עַל הָאֳמָנוּת",
+   "parts": 1,
+   "rows": 24,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54886",
+   "title": "קטעי־יומן (שמעון אושדי)",
+   "parts": 1,
+   "rows": 11,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54887",
+   "title": "קטעי־יומן (יעקב יוסט)",
+   "parts": 1,
+   "rows": 126,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54888",
+   "title": "קטעי־יומן (רות רבינוב)",
+   "parts": 1,
+   "rows": 89,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54889",
+   "title": "קטעי־יומן (זיוה נתן)",
+   "parts": 1,
+   "rows": 5,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54890",
+   "title": "קטעי־יומן (רפאל אורן [אורנשטיין])",
+   "parts": 1,
+   "rows": 671,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54927",
+   "title": "הַנֶּגְבָּה",
+   "parts": 1,
+   "rows": 63,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54928",
+   "title": "קטעי־יומן (ישראל מרזל [אלוני])",
+   "parts": 1,
+   "rows": 40,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54930",
+   "title": "יוֹמָן קְרָבִי",
+   "parts": 1,
+   "rows": 442,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54931",
+   "title": "קטעי־יומן (לאה רקוב)",
+   "parts": 1,
+   "rows": 131,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54935",
+   "title": "פרקי־יומן (דוד ט\"ש)",
+   "parts": 1,
+   "rows": 177,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54936",
+   "title": "קטעי־יומן (אלדד פן)",
+   "parts": 1,
+   "rows": 97,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54937",
+   "title": "קטעי־יומן (יהודה סולומון)",
+   "parts": 1,
+   "rows": 45,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54938",
+   "title": "קטעי־יומן (אפרים גובר)",
+   "parts": 1,
+   "rows": 38,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54940",
+   "title": "קטעי־יומן (נחום שושני)",
+   "parts": 1,
+   "rows": 220,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "54943",
+   "title": "הַדָּבָר הִתְחִיל בְּעֶרֶב שַׁבָּת...",
+   "parts": 1,
+   "rows": 723,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55013",
+   "title": "קטעי־יומן (משה סלומון)",
+   "parts": 1,
+   "rows": 169,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55014",
+   "title": "קטעי־יומן (יעקב כהן)",
+   "parts": 1,
+   "rows": 71,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55015",
+   "title": "קטעי־יומן (צבי לבנברג)",
+   "parts": 1,
+   "rows": 5,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55016",
+   "title": "קטעי־יומן (מאיר פרנקל)",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55017",
+   "title": "קטעי־יומן (יוסף עמית (ולקנוץ))",
+   "parts": 1,
+   "rows": 13,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55035",
+   "title": "קטעי־יומן (מרדכי אלון (קליבנסקי))",
+   "parts": 1,
+   "rows": 42,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55036",
+   "title": "מִתּוֹךְ הַמַפֹּלֶת: פרקים",
+   "parts": 1,
+   "rows": 73,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55038",
+   "title": "בְּחַצְרוֹת הַמָּוֶת",
+   "parts": 1,
+   "rows": 43,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55428",
+   "title": "טומאת נכרים",
+   "parts": 1,
+   "rows": 474,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "55896",
+   "title": "תחומן של הלכות טהרה",
+   "parts": 1,
+   "rows": 524,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "56289",
+   "title": "תולדות היהודים בארץ־ישראל בתקופת המשנה והתלמוד – כרך א",
+   "parts": 160,
+   "rows": 7980,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57306",
+   "title": "רָחֵלִי",
+   "parts": 1,
+   "rows": 152,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57313",
+   "title": "שילר: \"וילהלם טל\"",
+   "parts": 1,
+   "rows": 914,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57419",
+   "title": "בראשית",
+   "parts": 1,
+   "rows": 183,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57420",
+   "title": "בצל השקמים אשר בשפלה",
+   "parts": 1,
+   "rows": 187,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57479",
+   "title": "גי דה מוֹפאַסאַן: “באֶל אַמי”",
+   "parts": 1,
+   "rows": 712,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57490",
+   "title": "פלובאֶר: \"מאדאם בובארי\"",
+   "parts": 1,
+   "rows": 737,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57576",
+   "title": "שלושה פסלים ברומאן הישראלי",
+   "parts": 1,
+   "rows": 34,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57781",
+   "title": "\"כפתורים רכוסים היטב\" – מירה מגן",
+   "parts": 1,
+   "rows": 33,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57862",
+   "title": "לעת בחירה ולעת פרידה",
+   "parts": 1,
+   "rows": 63,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57863",
+   "title": "בימי מועד וחג",
+   "parts": 1,
+   "rows": 73,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "57888",
+   "title": "דגון והשקמה",
+   "parts": 1,
+   "rows": 79,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "58052",
+   "title": "פועל בארץ: רומן מימי העליה השניה",
+   "parts": 39,
+   "rows": 7928,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "58495",
+   "title": "בְּנֵי הַיוֹרֶה",
+   "parts": 1,
+   "rows": 114,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "58974",
+   "title": "פרקים ביצירתו של ש\"י עגנון",
+   "parts": 1,
+   "rows": 244,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "59780",
+   "title": "עמדת הפרושים כלפי שלטון רומי ובית הורדוס",
+   "parts": 1,
+   "rows": 209,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "60061",
+   "title": "מוצאם של השומרונים במסורת ההלכה",
+   "parts": 1,
+   "rows": 116,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62670",
+   "title": "דרך חיים",
+   "parts": 1,
+   "rows": 55,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62671",
+   "title": "דפים מיומן שלא נכתב",
+   "parts": 1,
+   "rows": 93,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62673",
+   "title": "מעשה בעתון בבית־הכלא",
+   "parts": 1,
+   "rows": 66,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62675",
+   "title": "\"חילך לאורייתא\"",
+   "parts": 1,
+   "rows": 8,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62677",
+   "title": "פגישותינו הראשונות",
+   "parts": 1,
+   "rows": 138,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62678",
+   "title": "במחוז הקארפאטים",
+   "parts": 1,
+   "rows": 155,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62880",
+   "title": "הומרוס: 'איליס'",
+   "parts": 1,
+   "rows": 917,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "62885",
+   "title": "מחקרים טופוגרפיים",
+   "parts": 1,
+   "rows": 145,
+   "scope": "selected",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "63260",
+   "title": "אלה תולדות בית הספר להאציל לבית למל",
+   "parts": 1,
+   "rows": 377,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "64365",
+   "title": "גאוגרפיה של ארץ־ישראל",
+   "parts": 5,
+   "rows": 1566,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 5
+  },
+  {
+   "work_id": "64596",
+   "title": "ראשית",
+   "parts": 47,
+   "rows": 10119,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "66120",
+   "title": "מדבריו",
+   "parts": 1,
+   "rows": 34,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67600",
+   "title": "\"הרואיקה\"",
+   "parts": 1,
+   "rows": 337,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67601",
+   "title": "ינקיל פודולייר",
+   "parts": 1,
+   "rows": 383,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67661",
+   "title": "בגשמים",
+   "parts": 1,
+   "rows": 564,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67670",
+   "title": "שלהי זמנים",
+   "parts": 1,
+   "rows": 505,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67710",
+   "title": "שׂמאל, ימין, שׂמאל",
+   "parts": 1,
+   "rows": 146,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67713",
+   "title": "בן ארצי מתנדב לצבא",
+   "parts": 1,
+   "rows": 191,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "67714",
+   "title": "מותו של החלוץ שמואל ווֹלף",
+   "parts": 1,
+   "rows": 216,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "70902",
+   "title": "ההלכה שבתורת י\"ב השליחים – (דידאכי)",
+   "parts": 1,
+   "rows": 246,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "70904",
+   "title": "שריפת המקדש",
+   "parts": 1,
+   "rows": 114,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "70905",
+   "title": "הליכתו של רבן יוחנן בן זכאי ליבנה",
+   "parts": 1,
+   "rows": 327,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "70959",
+   "title": "נשיאותו של רבן יוחנן בן זכאי",
+   "parts": 1,
+   "rows": 213,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "70971",
+   "title": "גאון, גאים: מן ההיסטוריה החברתית של ארץ־ישראל בתקופת התנאים",
+   "parts": 1,
+   "rows": 108,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "70972",
+   "title": "צוואתו של רבי מאיר",
+   "parts": 1,
+   "rows": 118,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71011",
+   "title": "ההלכה באיגרת בר נבא",
+   "parts": 1,
+   "rows": 208,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71036",
+   "title": "אילין דמתמנין בכסף: לתולדות רשויות־הדינים בארץ־ישראל בתקופה התלמודית",
+   "parts": 1,
+   "rows": 542,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71037",
+   "title": "עיונים לתולדות ארץ־ישראל בתקופת התלמוד",
+   "parts": 1,
+   "rows": 76,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71038",
+   "title": "לישובם היהודי של כמה ישובים בתקופה התלמודית",
+   "parts": 1,
+   "rows": 76,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71039",
+   "title": "למקורו של מנהג־קבורה קדום בישראל",
+   "parts": 1,
+   "rows": 92,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71040",
+   "title": "השכּבה",
+   "parts": 1,
+   "rows": 78,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71041",
+   "title": "שבות, רשות, מצוה",
+   "parts": 1,
+   "rows": 88,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71064",
+   "title": "לישובה של ברייתא אחת",
+   "parts": 1,
+   "rows": 92,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71065",
+   "title": "מעון הברכות",
+   "parts": 1,
+   "rows": 80,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71066",
+   "title": "הספרים החיצונים",
+   "parts": 1,
+   "rows": 568,
+   "scope": "complete",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71107",
+   "title": "עזרא הרביעי",
+   "parts": 1,
+   "rows": 243,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71108",
+   "title": "השיטה הסוציולוגית בחקר ההלכה",
+   "parts": 1,
+   "rows": 458,
+   "scope": "selected",
+   "about": [
+    "byline"
+   ],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71138",
+   "title": "תולדות ההלכה",
+   "parts": 1,
+   "rows": 359,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71139",
+   "title": "היוָנית בארץ־ישראל היהודית",
+   "parts": 1,
+   "rows": 665,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71142",
+   "title": "הגרוּת בחמש המאות הראשונות לספירה",
+   "parts": 1,
+   "rows": 130,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71143",
+   "title": "תולדות המשפט העברי בתקופת התלמוד",
+   "parts": 1,
+   "rows": 198,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71144",
+   "title": "ישיבת פומבדיתא בימי האמוראים",
+   "parts": 1,
+   "rows": 84,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71147",
+   "title": "העריכה של התלמוד הבבלי",
+   "parts": 1,
+   "rows": 177,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71148",
+   "title": "לבירור בעיית הכרת היהדות של יולינוס קיסר",
+   "parts": 1,
+   "rows": 28,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71149",
+   "title": "לבעיית מינוי ראשי־קהילות בתפוצות בידי הנשיא",
+   "parts": 1,
+   "rows": 44,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71150",
+   "title": "רשימת כתבי־העת והמאספים שבהם נדפסו המחקרים לראשונה",
+   "parts": 1,
+   "rows": 49,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71151",
+   "title": "טבלאות כרונולוגיות",
+   "parts": 1,
+   "rows": 126,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71197",
+   "title": "חג הסוכות בירושלים בימי בית שני",
+   "parts": 1,
+   "rows": 125,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71198",
+   "title": "לחקר ההלכה של פילון",
+   "parts": 1,
+   "rows": 293,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71199",
+   "title": "בניהם של חכמים",
+   "parts": 1,
+   "rows": 200,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71200",
+   "title": "האסטרטגים בערי ארץ־ישראל בתקופה הרומית",
+   "parts": 1,
+   "rows": 191,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71642",
+   "title": "מעשי נסים",
+   "parts": 1,
+   "rows": 33,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71643",
+   "title": "בית לאנוֹש",
+   "parts": 1,
+   "rows": 43,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71644",
+   "title": "נסיעה",
+   "parts": 1,
+   "rows": 67,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71645",
+   "title": "טיול",
+   "parts": 1,
+   "rows": 78,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71646",
+   "title": "נחום",
+   "parts": 1,
+   "rows": 227,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71647",
+   "title": "קטעי מכתבים לאחי",
+   "parts": 1,
+   "rows": 43,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71648",
+   "title": "האספה דממה",
+   "parts": 1,
+   "rows": 167,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71649",
+   "title": "ט\"ו בשבט",
+   "parts": 1,
+   "rows": 19,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71650",
+   "title": "ימים קשים",
+   "parts": 1,
+   "rows": 26,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71651",
+   "title": "כדורים",
+   "parts": 1,
+   "rows": 18,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71652",
+   "title": "רשימות קטנות",
+   "parts": 1,
+   "rows": 50,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71653",
+   "title": "הטלפון",
+   "parts": 1,
+   "rows": 18,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71654",
+   "title": "חופרים",
+   "parts": 1,
+   "rows": 14,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71655",
+   "title": "רות",
+   "parts": 1,
+   "rows": 14,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71656",
+   "title": "במזל הָאֲפֵלָה",
+   "parts": 1,
+   "rows": 66,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71657",
+   "title": "יומן מלחמה",
+   "parts": 1,
+   "rows": 26,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71658",
+   "title": "שיעור",
+   "parts": 1,
+   "rows": 23,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71659",
+   "title": "כלה בציר",
+   "parts": 1,
+   "rows": 28,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "71660",
+   "title": "גן השזיפים",
+   "parts": 1,
+   "rows": 20,
+   "scope": "complete",
+   "about": [],
+   "fragmented": 0
+  },
+  {
+   "work_id": "72203",
+   "title": "פראירתין: לתולדות הכהונה הגדולה בסוף ימי בית שני",
+   "parts": 1,
+   "rows": 434,
+   "scope": "selected",
+   "about": [],
+   "fragmented": 0
+  }
+ ]
+}

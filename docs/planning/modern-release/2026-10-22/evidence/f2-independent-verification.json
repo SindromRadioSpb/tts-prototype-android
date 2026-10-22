@@ -1,0 +1,17 @@
+{
+ "ok": true,
+ "works": 363,
+ "bodies": 719,
+ "source_rows": 114083,
+ "public_rows": 114083,
+ "moved_rows": 12,
+ "row_mismatches": [],
+ "source_glosses_rows": 46739,
+ "glosses_preserved": 46739,
+ "glosses_lost": [],
+ "glosses_changed": [],
+ "client_key_rejected": 0,
+ "forbidden": [],
+ "secrets": [],
+ "text_changes_other_than_entities": 0
+}
