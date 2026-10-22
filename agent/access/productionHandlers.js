@@ -249,7 +249,7 @@ function createProductionHandlers(options = {}) {
       .map((r) => ({ order_index: Number(r.order_index), he: byteSlice(r.he, 400), ru: r.ru != null && r.ru !== "" ? byteSlice(r.ru, 400) : null }))
       .filter((r) => r.he && Number.isInteger(r.order_index));
     const eraRaw = String((win.work && win.work.era) || text.era || "").toUpperCase();
-    const ERA_OK = new Set(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]);
+    const ERA_OK = new Set(["ANCIENT", "MEDIEVAL", "ENLIGHTENMENT", "REVIVAL", "MODERN", "NONE"]);
     return Object.freeze({
       schema_version: "aa.reading_content.1.0.0",
       work: Object.freeze({

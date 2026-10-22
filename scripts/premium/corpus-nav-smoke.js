@@ -3,8 +3,8 @@
 
 // corpus-nav-smoke.js — BRR-P1-015 A3 gate (Период→Автор→Работа drill, v3). Drives the REAL
 // library.html against the SHIPPED v3 catalog and proves the benyehuda-parity navigation:
-//   • L1: opening the Корпус track renders the chronological PERIOD GRID (≥7 cards), each
-//     with a floruit range + gloss + counts; eras with baked works carry a «✓ готовы N» chip,
+//   • L1: opening the Корпус track renders the official Ben-Yehuda PERIOD GRID (6 cards), each
+//     with the source's Hebrew name + gloss + counts; eras with baked works carry a «✓ готовы N» chip,
 //     0-ready eras carry «перевод позже» (graduated default, honest)
 //   • L2: drilling a populous era (Тхия) renders the LEAN AUTHOR LIST in graduated order
 //     (the first author has ready works), with RTL Hebrew names
@@ -71,14 +71,16 @@ async function main() {
       const anyLaterChip = cards.some((c) => c.querySelector(".period-chip.later"));
       return {
         count: cards.length,
-        tehiyaHasRange: tehiya ? /~18/.test(tehiya.querySelector(".period-card-range")?.textContent || "") : false,
+        tehiyaHasSource: tehiya ? (tehiya.querySelector(".period-card-source")?.textContent || "").trim() === "התחייה" : false,
         tehiyaHasGloss: tehiya ? !!(tehiya.querySelector(".period-card-gloss")?.textContent || "").trim() : false,
         tehiyaReady: tehiya ? !!tehiya.querySelector(".period-chip.ready") : false,
         anyReadyChip, anyLaterChip,
       };
     });
-    test("L1 period grid renders ≥7 period cards", L1.count >= 7, "cards=" + L1.count);
-    test("period card carries a floruit range", L1.tehiyaHasRange);
+    // Since catalog v9 the sections ARE the official Ben-Yehuda periods (5 + «no period»), with the
+    // source's own Hebrew name instead of an app-derived floruit range.
+    test("L1 period grid renders the 6 official sections", L1.count === 6, "cards=" + L1.count);
+    test("period card carries the source's Hebrew period name", L1.tehiyaHasSource);
     test("period card carries a one-line gloss", L1.tehiyaHasGloss);
     test("a baked era shows «✓ готовы N» (graduated)", L1.tehiyaReady && L1.anyReadyChip);
     test("a 0-ready era shows «перевод позже» (honest)", L1.anyLaterChip);

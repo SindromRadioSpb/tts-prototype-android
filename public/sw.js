@@ -347,7 +347,7 @@ const PRECACHE_URLS = [
   // Versioned filename (corpus-catalog-v<N>) → each re-publish (new baked batch) bumps
   // the catalog version so the immutable-cached lazy files (?v=N) cache-bust; the SW
   // CACHE_VERSION bump refreshes this precached root + library-ui.js in lockstep.
-  "/data/benyehuda/corpus-catalog-v8.json",
+  "/data/benyehuda/corpus-catalog-v9.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js?v=805",

@@ -37,13 +37,13 @@ function expectCode(promise, code) {
 function writeJson(file, value) { fs.writeFileSync(file, JSON.stringify(value)); }
 function sidecars(dir, mutate = {}, version = 7) {
   const rows = [
-    { id: "1", t: "Biblical", a: "Author A", e: "biblical", g: "prose", l: "he", r: 1, q: "" },
+    { id: "1", t: "Biblical", a: "Author A", e: "ancient", g: "prose", l: "he", r: 1, q: "" },
     { id: "2", t: "Medieval", a: "Author B", e: "medieval", g: "poetry", l: "he", r: 1, q: "" },
-    { id: "3", t: "Haskalah", a: "Author C", e: "haskalah", g: "article", l: "he", r: 0, q: "" },
-    { id: "4", t: "Tehiya", a: "Author D", e: "tehiya", g: "drama", l: "he", r: 0, q: "" },
-    { id: "5", t: "Mandate", a: "Author E", e: "mandate", g: "reference", l: "he", r: 0, q: "" },
+    { id: "3", t: "Haskalah", a: "Author C", e: "enlightenment", g: "article", l: "he", r: 0, q: "" },
+    { id: "4", t: "Tehiya", a: "Author D", e: "revival", g: "drama", l: "he", r: 0, q: "" },
+    { id: "5", t: "Mandate", a: "Author E", e: "revival", g: "reference", l: "he", r: 0, q: "" },
     { id: "6", t: "Modern", a: "Author F", e: "modern", g: "lexicon", l: "he", r: 0, q: "" },
-    { id: "7", t: "Unknown", a: "Author G", e: "unknown", g: "fables", l: "he", r: 0, q: "" },
+    { id: "7", t: "Unknown", a: "Author G", e: "none", g: "fables", l: "he", r: 0, q: "" },
     { id: "8", t: "Memoir", a: "Author H", e: "modern", g: "memoir", l: "he", r: 0, q: "" },
     { id: "9", t: "Letters", a: "Author I", e: "modern", g: "letters", l: "he", r: 0, q: "" },
     { id: "10", t: "Unknown genre", a: "Author J", e: "modern", g: "new-public-kind", l: "he", r: 0, q: "" },
@@ -52,7 +52,7 @@ function sidecars(dir, mutate = {}, version = 7) {
     { id: "13", t: "x".repeat(300), a: "Long Author", e: "modern", g: "prose", l: "he", r: 0, q: "" },
   ];
   const ready = [
-    { id: "1", title: "Biblical", author: "Author A", era: "biblical", genre: "prose", segments: 32, audio_status: "tts" },
+    { id: "1", title: "Biblical", author: "Author A", era: "ancient", genre: "prose", segments: 32, audio_status: "tts" },
     { id: "2", title: "Medieval", author: "Author B", era: "medieval", genre: "poetry", segments: 12, audio_status: "none" },
   ];
   const root = { schema: 1, version, index_file: `corpus-index-v${version}.json`, search_file: `corpus-search-v${version}.json`, counts: { works: rows.length, baked: ready.length } };
@@ -369,7 +369,7 @@ function exactOwnerParser() {
     const marked = await service.execute(principal({ request_id: "search-marked" }), "search_public_reading_catalog", { ...searchArgs, query: "שלום", limit: 5 });
     assert.ok(marked.ok && marked.result.results.length === 1 && marked.result.results[0].work_id === "12"); checks++;
     const allMapped = catalog.search({ ...searchArgs, limit: 20 }).results;
-    assert.deepStrictEqual([...new Set(allMapped.map((row) => row.era))].sort(), ["BIBLICAL", "CONTEMPORARY", "MEDIEVAL", "MODERN", "REVIVAL", "UNKNOWN"]);
+    assert.deepStrictEqual([...new Set(allMapped.map((row) => row.era))].sort(), ["ANCIENT", "ENLIGHTENMENT", "MEDIEVAL", "MODERN", "NONE", "REVIVAL"]);
     assert.deepStrictEqual([...new Set(allMapped.map((row) => row.genre))].sort(), ["DRAMA", "ESSAY", "OTHER", "POETRY", "PROSE", "REFERENCE", "UNKNOWN"]);
     assert.ok(allMapped.find((row) => row.work_id === "1").audio_available && !allMapped.find((row) => row.work_id === "2").audio_available);
     assert.ok(Buffer.byteLength(allMapped.find((row) => row.work_id === "13").title, "utf8") <= 240); checks++;
@@ -385,12 +385,12 @@ function exactOwnerParser() {
 
     const shippedCatalog = createPublicReadingCatalog({
       baseDir: path.resolve(__dirname, "../..", "public", "data", "benyehuda"),
-      catalogVersion: () => 7,
+      catalogVersion: () => 9,
       cursorKey: Buffer.alloc(32, 8),
     });
     const shippedArgs = { query: "", era: null, genre: null, language: "he", audio: "ANY", ready: "ANY", sort: "TITLE", limit: 20, cursor: null };
     assert.ok(shippedCatalog.isReadable());
-    for (const era of ["BIBLICAL", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"])
+    for (const era of ["ANCIENT", "MEDIEVAL", "ENLIGHTENMENT", "REVIVAL", "MODERN", "NONE"])
       assert.ok(shippedCatalog.search({ ...shippedArgs, era, limit: 1 }).results.length === 1, `missing shipped era ${era}`);
     for (const genre of ["PROSE", "POETRY", "ESSAY", "DRAMA", "REFERENCE", "OTHER"])
       assert.ok(shippedCatalog.search({ ...shippedArgs, genre, limit: 1 }).results.length === 1, `missing shipped genre ${genre}`);
@@ -517,7 +517,7 @@ function exactOwnerParser() {
     const corruptVersion = createPublicReadingCatalog({ baseDir: corruptDir, catalogVersion: () => 7, cursorKey: "k" });
     assert.throws(() => corruptVersion.isReadable(), /AA_PUBLIC_CATALOG_VERSION_MISMATCH/);
     const joinDir = fs.mkdtempSync(path.join(ctx.dir, "catalog-join-"));
-    sidecars(joinDir, { ready: [{ id: "1", title: "Mismatch", author: "Author A", era: "biblical", genre: "prose", segments: 1, audio_status: "none" }] , root: { counts: { works: 13, baked: 1 } } });
+    sidecars(joinDir, { ready: [{ id: "1", title: "Mismatch", author: "Author A", era: "ancient", genre: "prose", segments: 1, audio_status: "none" }] , root: { counts: { works: 13, baked: 1 } } });
     const corruptJoin = createPublicReadingCatalog({ baseDir: joinDir, catalogVersion: () => 7, cursorKey: "k" });
     assert.throws(() => corruptJoin.isReadable(), /AA_PUBLIC_CATALOG_READY_JOIN_MISMATCH/); checks++;
 

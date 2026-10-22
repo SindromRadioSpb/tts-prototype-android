@@ -12,23 +12,30 @@ function check({ checkDiff = false } = {}) {
     if (bytes.length !== entry.bytes || hash(bytes) !== entry.sha256) throw new Error('Published corpus changed: ' + entry.path);
   }
   const allowed = new Set([...baseline.files.map(entry => entry.path), 'public/data/benyehuda/author-aliases-v1.json']);
-  const data = 'public/data/benyehuda/', publicationPath = data + 'learning-release-v8.json';
+  const data = 'public/data/benyehuda/';
+  // Every sealed learning publication (v8 onward) is checked on its own: the catalog root names the release
+  // manifest by hash, and every asset the manifest lists must match byte for byte. Catalog v9 re-sections the
+  // same works by the official Ben-Yehuda periods; v7/v8 stay byte-identical (baseline above + v8 seal).
   let publication = null;
-  if (fs.existsSync(path.join(root, publicationPath))) {
-    const catalogPath = data + 'corpus-catalog-v8.json', catalog = JSON.parse(fs.readFileSync(path.join(root, catalogPath)));
+  const versions = fs.readdirSync(path.join(root, data)).map(f => (f.match(/^learning-release-v(\d+)\.json$/) || [])[1]).filter(Boolean).map(Number).sort((a, b) => a - b);
+  for (const v of versions) {
+    const publicationPath = data + `learning-release-v${v}.json`, catalogPath = data + `corpus-catalog-v${v}.json`;
+    const catalog = JSON.parse(fs.readFileSync(path.join(root, catalogPath)));
     const bytes = fs.readFileSync(path.join(root, publicationPath));
-    if (hash(bytes) !== catalog.release_manifest_sha256) throw new Error('Unsealed learning publication');
-    publication = JSON.parse(bytes);
-    const ids = [...publication.works, ...publication.retained_works].map(work => String(work.work_id));
-    if (catalog.version !== 8 || publication.catalog_version !== 8 || ids.length !== catalog.counts.baked || new Set(ids).size !== ids.length) throw new Error('Publication identity/count mismatch');
+    if (hash(bytes) !== catalog.release_manifest_sha256) throw new Error('Unsealed learning publication v' + v);
+    const sealed = JSON.parse(bytes);
+    const ids = [...sealed.works, ...sealed.retained_works].map(work => String(work.work_id));
+    if (catalog.version !== v || sealed.catalog_version !== v || ids.length !== catalog.counts.baked || new Set(ids).size !== ids.length) throw new Error('Publication identity/count mismatch v' + v);
     allowed.add(publicationPath); allowed.add(catalogPath);
-    for (const [file, asset] of Object.entries(publication.assets)) {
+    const assetName = new RegExp(`^(?:catalog/era-[a-z0-9-]+-v${v}|corpus-(?:index|search|authors|fts|vocab)-v${v}|translit-ru-v${v})\\.json$`);
+    for (const [file, asset] of Object.entries(sealed.assets)) {
       if (file.startsWith('fts/')) continue; // checked on the volume by the release validator/upload preflight
-      if (!/^(?:catalog\/era-[a-z0-9-]+-v8|corpus-(?:index|search|authors|fts|vocab)-v8|translit-ru-v8)\.json$/.test(file)) throw new Error('Unsafe publication asset: ' + file);
+      if (!assetName.test(file)) throw new Error('Unsafe publication asset: ' + file);
       const assetBytes = fs.readFileSync(path.join(root, data + file));
       if (hash(assetBytes) !== asset.sha256 || assetBytes.length !== asset.bytes) throw new Error('Publication asset changed: ' + file);
       allowed.add(data + file);
     }
+    if (v === 8) publication = sealed;
   }
   const tracked = execFileSync('git', ['-c', 'safe.directory=' + root, 'ls-files', '--', data + 'works', data + 'fts'], { cwd: root, encoding: 'utf8' }).trim();
   if (tracked) throw new Error('Corpus volume payloads must not enter git');

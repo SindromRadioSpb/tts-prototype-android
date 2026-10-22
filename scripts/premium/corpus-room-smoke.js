@@ -107,7 +107,7 @@ async function main() {
     test("L1 offers the explicit browse-all mode", C.exploreButton);
     await pg.click('[data-corpus-mode="explore"]');
     await pg.waitForSelector('.corpus-period-grid .period-card');
-    test("Explore renders the period grid (browse-all axis)", await pg.locator('.corpus-period-grid .period-card').count() >= 7);
+    test("Explore renders the official period grid (browse-all axis)", await pg.locator('.corpus-period-grid .period-card').count() === 6);
     await pg.click('[data-corpus-mode="read"]');
     await pg.waitForSelector('.corpus-ready .corpus-work-open');
     test("ready rows expose real title links without nested controls", C.anchors === C.cards && C.nestedControls === 0, "cards=" + C.cards + " anchors=" + C.anchors + " nested=" + C.nestedControls);

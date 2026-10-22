@@ -64,7 +64,7 @@ let textByKey = new Map(); // text_key -> { id, title }
 // sidecar (author index + ready rail + facet histograms, fetched once on first Корпус open)
 // + per-era manifest BLOCK(s) on demand (only the block(s) an author lives in — D1/R4 keeps
 // the mobile budget to root + 1 active manifest, never the 26K/10MB at once).
-const CORPUS_CATALOG_VERSION = 8;
+const CORPUS_CATALOG_VERSION = 9;
 const CORPUS_ROOT_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
 let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts, index_file, pointers }
 let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
@@ -1556,6 +1556,9 @@ function renderCorpusCard(card) {
     if (RS_KNOWN[rs]) rsOpts.i18n = 'room.prov.rs.' + rs;
     meta.appendChild(el('span', rsOpts));
   }
+  // The source no longer offers this work as before: say so on the card, not only in «О материале».
+  if (card.source_removed) meta.appendChild(el('span', { class: 'prov-badge source-removed', text: window.CorpusDiscoveryBrowser.label('sourceRemoved') }));
+  else if (card.source_rights) meta.appendChild(el('span', { class: 'prov-badge source-rights', text: window.CorpusDiscoveryBrowser.label('sourceRights') }));
   const au = String(card.audio_status || 'none');
   if (au === 'tts' || au === 'human') {
     meta.appendChild(el('span', { class: 'prov-badge audio-' + au, i18n: 'room.prov.audio.' + au, text: tt('room.prov.audio.' + au) }));
@@ -8745,9 +8748,16 @@ function setReaderSubtitle(textRow) {
   const lbl = (key, fb) => { const v = tt(key); return (v && v !== key) ? v : fb; };
   // era — data-driven title from era_taxonomy; honest skip on unknown/absent OR an unresolved raw slug
   // (taxonomy fetch failed → corpusRoot null → corpusEraTitle returns the slug; never print the machine slug).
-  if (c.era && c.era !== 'unknown') {
-    const etitle = corpusEraTitle(c.era);
-    if (etitle && etitle !== c.era) { box.appendChild(el('span', { class: 'reader-sub-chip', text: etitle })); any = true; }
+  // A catalog on official Ben-Yehuda periods takes the period from its own card: the body's corpus.era
+  // is the old app section, and keys like «medieval»/«modern» exist in both with different meanings.
+  let era = c.era;
+  if (corpusRoot && corpusRoot.taxonomy_source === 'benyehuda-official') {
+    const card = c.byehuda_id != null && corpusIndex ? corpusReadyMap().get(String(c.byehuda_id)) : null;
+    era = card && card.source_period ? card.era : null;
+  }
+  if (era && era !== 'unknown' && era !== 'none') {
+    const etitle = corpusEraTitle(era);
+    if (etitle && etitle !== era) { box.appendChild(el('span', { class: 'reader-sub-chip', text: etitle })); any = true; }
   }
   // register — closed curatorial enum (mirror of corpusMeta.js REGISTER); skip when absent / out-of-enum.
   // corpusMeta stores register as a FREE string, so an out-of-enum value is structurally reachable — gate it
@@ -10408,7 +10418,7 @@ let corpusReleaseManifest = null;
 async function parseCorpusReleaseFile(response, file) {
   const asset = corpusReleaseManifest?.assets?.[file];
   if (asset) return window.BenYehudaLearningEdition.verifyBytes(await response.arrayBuffer(), asset.sha256);
-  if (corpusReleaseManifest && file.endsWith('-v8.json')) throw new Error('Unlisted publication asset');
+  if (corpusReleaseManifest && file.endsWith('-v' + CORPUS_CATALOG_VERSION + '.json')) throw new Error('Unlisted publication asset');
   return response.json();
 }
 async function loadCorpusCatalog() {
@@ -10517,7 +10527,7 @@ function buildAuthorHeader(node, author) {
   const name = el('h2', { class: 'corpus-author-h-name', text: node.display || '' });
   h.appendChild(name);
   const meta = el('div', { class: 'corpus-author-h-meta' });
-  if (node.era && node.era !== 'unknown') { const et = corpusEraTitle(node.era); if (et && et !== node.era) meta.appendChild(el('span', { class: 'corpus-author-h-chip', text: et })); }
+  if (node.era && node.era !== 'unknown' && node.era !== 'none') { const et = corpusEraTitle(node.era); if (et && et !== node.era) meta.appendChild(el('span', { class: 'corpus-author-h-chip', text: et })); }
   const years = corpusLifeYears(node);
   if (years) meta.appendChild(el('span', { class: 'corpus-author-h-years', text: years }));
   // Counts come from the CLICKED L2 row (= exactly what the works body below lists), NOT the QID
@@ -12279,6 +12289,14 @@ async function renderCorpus() {
     showState('room.state.loading', '⏳');
     try { await loadCorpusIndex(); } catch (e) { if (token === corpusRenderToken) showState('room.state.error', '⚠️'); return; }
     if (token !== corpusRenderToken) return;
+  }
+  // A saved link may name a section the catalog no longer has (2026-10-23: the app's own eras gave way
+  // to the official Ben-Yehuda periods). Open the catalog home and say why, never an empty screen.
+  if ((corpusNav.level === 'authors' || corpusNav.level === 'works') && corpusNav.era
+      && !((corpusRoot.era_taxonomy || []).some((x) => x.era === corpusNav.era))) {
+    corpusNav = { ...corpusNav, level: 'home', era: null, author: null };
+    try { roomToast(tt('room.corpus.sectionsUpdated', 'Разделы каталога обновлены по официальной классификации Бен-Иегуды')); } catch (_) {}
+    return renderCorpus();
   }
   if (corpusNav.level === 'authors') return renderCorpusAuthors(corpusNav.era, token);
   if (corpusNav.level === 'works') {
@@ -14655,10 +14673,13 @@ function renderPeriodCard(e) {
   const card = el('div', { class: 'period-card', attrs: { role: 'button', tabindex: '0' } });
   const titlerow = el('div', { class: 'period-card-titlerow' });
   titlerow.appendChild(el('span', { class: 'period-card-title', text: corpusEraTitle(e.era) }));
-  const range = tt('room.corpus.eras.' + e.era + '.range', e.range || '');
+  // An optional line stays empty when neither the locale nor the catalog has it — tt(key, '') would
+  // return the raw key (official periods carry no year range of their own).
+  const optional = (key, value) => { const v = window.t && window.t(key); return v && v !== key ? v : (value || ''); };
+  const range = optional('room.corpus.eras.' + e.era + '.range', e.range);
   if (range) titlerow.appendChild(el('span', { class: 'period-card-range', text: range }));
   card.appendChild(titlerow);
-  const gloss = tt('room.corpus.eras.' + e.era + '.gloss', e.gloss || '');
+  const gloss = optional('room.corpus.eras.' + e.era + '.gloss', e.gloss);
   if (gloss) card.appendChild(el('span', { class: 'period-card-gloss', text: gloss }));
   const meta = el('div', { class: 'period-card-meta' });
   if (e.ready_count > 0) meta.appendChild(el('span', { class: 'period-chip ready', text: '✓ ' + tt('room.corpus.readyN', 'готовы') + ' ' + e.ready_count }));
@@ -14666,7 +14687,12 @@ function renderPeriodCard(e) {
   meta.appendChild(el('span', { class: 'period-chip muted', text: tt('room.corpus.worksN', 'работ') + ' ' + (e.count || 0) }));
   const groups = collapseEraAuthors(e.era).length;
   if (groups) meta.appendChild(el('span', { class: 'period-chip muted', text: groups + ' ' + window.CorpusDiscoveryBrowser.label('groups') }));
-  card.appendChild(el('span', { class: 'corpus-grouping-note', text: window.CorpusDiscoveryBrowser.label('appEra') }));
+  // Official Ben-Yehuda period: its own Hebrew name under the title; otherwise the legacy app-section note.
+  if (e.classification === 'benyehuda-official') {
+    // In a Hebrew interface the localized title already IS the source name — no second identical line.
+    if (e.source_label && e.source_label !== corpusEraTitle(e.era)) card.appendChild(el('span', { class: 'period-card-source', text: e.source_label, attrs: { dir: 'rtl', lang: 'he' } }));
+    if (e.era !== 'none') card.appendChild(el('span', { class: 'corpus-grouping-note', text: window.CorpusDiscoveryBrowser.label('officialPeriod') }));
+  } else card.appendChild(el('span', { class: 'corpus-grouping-note', text: window.CorpusDiscoveryBrowser.label('appEra') }));
   card.appendChild(meta);
   const open = () => corpusNavTo('authors', e.era);
   card.addEventListener('click', open);
@@ -14717,7 +14743,9 @@ async function renderCorpusAuthors(era, token) {
   // graduated re-sorts by the COLLAPSED totals (the merge changed each entry's ready/works, so the
   // producer's pre-collapse order would be slightly off) — ready desc, then works desc, then name.
   const authors = alpha
-    ? base.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'he'))
+    // Groups with no Hebrew first letter (e.g. «(без автора)» — anonymous works now sit in their official
+    // period) go after the alphabet, so the א–ת jump-bar starts at א.
+    ? base.slice().sort((a, b) => (!hebFirstLetter(a.name) - !hebFirstLetter(b.name)) || String(a.name).localeCompare(String(b.name), 'he'))
     : base.slice().sort((a, b) => (b.ready - a.ready) || (b.works - a.works) || String(a.name).localeCompare(String(b.name), 'he'));
 
   const head = el('div', { class: 'corpus-list-head' });

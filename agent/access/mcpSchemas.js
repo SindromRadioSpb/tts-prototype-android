@@ -22,7 +22,7 @@ const INPUT_SCHEMAS = Object.freeze({
   get_review_summary: closedObject({}, []),
   search_public_reading_catalog: closedObject({
     query: string({ maxLength: 160 }),
-    era: string({ enum: Object.freeze(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]) }),
+    era: string({ enum: Object.freeze(["ANCIENT", "MEDIEVAL", "ENLIGHTENMENT", "REVIVAL", "MODERN", "NONE"]) }),
     genre: string({ enum: Object.freeze(["PROSE", "POETRY", "ESSAY", "DRAMA", "CHILDREN", "REFERENCE", "OTHER", "UNKNOWN"]) }),
     language: string({ enum: Object.freeze(["he"]) }),
     audio: string({ enum: Object.freeze(["ANY", "AVAILABLE", "UNAVAILABLE"]) }),
@@ -211,7 +211,7 @@ const OUTPUT_SCHEMAS = Object.freeze({
     schema_version: string({ const: "aa.public_reading_search.1.0.0" }), catalog_version: id,
     results: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
       work_id: id, title: string({ maxLength: 240 }), author: string({ maxLength: 200 }),
-      era: string({ enum: Object.freeze(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]) }),
+      era: string({ enum: Object.freeze(["ANCIENT", "MEDIEVAL", "ENLIGHTENMENT", "REVIVAL", "MODERN", "NONE"]) }),
       genre: string({ enum: Object.freeze(["PROSE", "POETRY", "ESSAY", "DRAMA", "CHILDREN", "REFERENCE", "OTHER", "UNKNOWN"]) }),
       language: string({ const: "he" }), sentence_count: integer(0, 1000000), audio_available: Object.freeze({ type: "boolean" }),
       ready_state: string({ enum: Object.freeze(["READY", "METADATA_ONLY"]) }), first_party_path: string({ const: "/library.html" }),
@@ -273,7 +273,7 @@ const OUTPUT_SCHEMAS = Object.freeze({
   }),
   get_reading_content: closedObject({
     schema_version: string({ const: "aa.reading_content.1.0.0" }),
-    work: closedObject({ title: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }), author: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }), era: Object.freeze({ anyOf: Object.freeze([string({ enum: Object.freeze(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]) }), Object.freeze({ type: "null" })]) }), license: string({ const: "public-domain" }) }),
+    work: closedObject({ title: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }), author: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }), era: Object.freeze({ anyOf: Object.freeze([string({ enum: Object.freeze(["ANCIENT", "MEDIEVAL", "ENLIGHTENMENT", "REVIVAL", "MODERN", "NONE"]) }), Object.freeze({ type: "null" })]) }), license: string({ const: "public-domain" }) }),
     anchor: closedObject({ work_id: string({ maxLength: 8 }), text_key: string({ maxLength: 64 }), start_order_index: integer(0, 1000000), row_count: integer(0, 20) }),
     rows: Object.freeze({ type: "array", maxItems: 20, items: closedObject({ order_index: integer(0, 1000000), he: string({ maxLength: 400 }), ru: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 400 }), Object.freeze({ type: "null" })]) }) }) }),
     available_text_keys: Object.freeze({ type: "array", maxItems: 20, items: string({ maxLength: 64 }) }),

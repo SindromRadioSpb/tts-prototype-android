@@ -4,14 +4,15 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+// Catalog sections are the official Ben-Yehuda periods (catalog v9+, owner decision 2026-10-23);
+// the agent uses the same vocabulary — no second classification.
 const ERA = Object.freeze({
-  biblical: "BIBLICAL",
+  ancient: "ANCIENT",
   medieval: "MEDIEVAL",
-  haskalah: "REVIVAL",
-  tehiya: "REVIVAL",
-  mandate: "MODERN",
-  modern: "CONTEMPORARY",
-  unknown: "UNKNOWN",
+  enlightenment: "ENLIGHTENMENT",
+  revival: "REVIVAL",
+  modern: "MODERN",
+  none: "NONE",
 });
 const GENRE = Object.freeze({
   prose: "PROSE",
@@ -43,7 +44,7 @@ function boundedText(value, maxBytes) {
   return out + suffix;
 }
 function mapEra(value) {
-  const key = value == null || value === "" ? "unknown" : String(value);
+  const key = value == null || value === "" ? "none" : String(value);
   if (!Object.prototype.hasOwnProperty.call(ERA, key)) fail("AA_PUBLIC_CATALOG_ERA_UNKNOWN");
   return ERA[key];
 }

@@ -1,0 +1,160 @@
+{
+ "moved": {
+  "biblical → enlightenment": 6,
+  "biblical → revival": 74,
+  "biblical → none": 2,
+  "biblical → modern": 1,
+  "biblical → medieval": 1,
+  "medieval → medieval": 5097,
+  "medieval → enlightenment": 156,
+  "medieval → none": 17,
+  "medieval → revival": 44,
+  "medieval → ancient": 60,
+  "medieval → modern": 2,
+  "haskalah → enlightenment": 1941,
+  "haskalah → revival": 928,
+  "haskalah → none": 17,
+  "haskalah → modern": 3,
+  "tehiya → revival": 9249,
+  "tehiya → enlightenment": 368,
+  "tehiya → modern": 96,
+  "tehiya → none": 294,
+  "mandate → revival": 4626,
+  "mandate → modern": 487,
+  "mandate → none": 106,
+  "mandate → enlightenment": 1,
+  "modern → enlightenment": 1,
+  "modern → revival": 11,
+  "modern → modern": 60,
+  "modern → none": 1,
+  "null → revival": 1049,
+  "null → modern": 394,
+  "null → medieval": 894,
+  "null → enlightenment": 311,
+  "null → none": 136,
+  "null → ancient": 22
+ },
+ "by_period": {
+  "ancient": 82,
+  "medieval": 5992,
+  "enlightenment": 2784,
+  "revival": 15981,
+  "modern": 1043,
+  "none": 573
+ },
+ "ready_by_period": {
+  "ancient": 0,
+  "medieval": 0,
+  "enlightenment": 57,
+  "revival": 680,
+  "modern": 683,
+  "none": 1
+ },
+ "removed": 51,
+ "unchecked": [],
+ "previous_evidence_disagrees": [],
+ "rights_changed": [
+  {
+   "id": "3826",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "4145",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "4469",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "4793",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "5169",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "5489",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "5811",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "6133",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "31914",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "31915",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "31916",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "31917",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "6525",
+   "status": "by-permission",
+   "label": "מוגש ברשות פרסום",
+   "ready": false
+  },
+  {
+   "id": "60225",
+   "status": "rights-other",
+   "label": "יצירות יתומות",
+   "ready": false
+  },
+  {
+   "id": "60226",
+   "status": "rights-other",
+   "label": "יצירות יתומות",
+   "ready": false
+  },
+  {
+   "id": "60227",
+   "status": "rights-other",
+   "label": "יצירות יתומות",
+   "ready": false
+  },
+  {
+   "id": "60228",
+   "status": "rights-other",
+   "label": "יצירות יתומות",
+   "ready": false
+  }
+ ]
+}

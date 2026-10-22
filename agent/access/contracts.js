@@ -16,7 +16,7 @@ const AUDIO = new Set(["ANY", "AVAILABLE", "UNAVAILABLE"]);
 const READY_FILTER = new Set(["ANY", "READY", "METADATA_ONLY"]);
 const READY_STATE = new Set(["READY", "METADATA_ONLY"]);
 const SORT = new Set(["RELEVANCE", "TITLE", "AUTHOR", "LENGTH_ASC", "LENGTH_DESC"]);
-const ERAS = new Set(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]);
+const ERAS = new Set(["ANCIENT", "MEDIEVAL", "ENLIGHTENMENT", "REVIVAL", "MODERN", "NONE"]);
 const GENRES = new Set(["PROSE", "POETRY", "ESSAY", "DRAMA", "CHILDREN", "REFERENCE", "OTHER", "UNKNOWN"]);
 const SCOPES = new Set([
   "learning.brief.read",
