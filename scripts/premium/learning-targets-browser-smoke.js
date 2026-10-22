@@ -117,7 +117,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    await clone.close();
    await page.goto(base+'/dictionary.html?word=pid%3A1612');
    await page.waitForSelector('[data-learning-target-key="ft1:1612:PERF-2ms:sh"]',{timeout:60000});
-   await page.evaluate(async()=>{window.__localDB=await import('/db/local-db.js?v=804');});
+   await page.evaluate(async()=>{window.__localDB=await import('/db/local-db.js?v=806');});
    assert.match(await page.locator('[data-learning-target-key="ft1:1612:PERF-2ms:sh"]').innerText(),/что ты боялся/);
    await page.getByRole('button',{name:'Тренировать формы',exact:true}).click();
    const drill=page.locator('.dict-drill-area');await drill.waitFor();

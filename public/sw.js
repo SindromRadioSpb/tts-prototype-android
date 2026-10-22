@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.805";
+const CACHE_VERSION = "v3.11.806";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -120,11 +120,11 @@ const PRECACHE_URLS = [
   "/js/catalog-discovery-core.js?v=780",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
-  "/js/corpus-materialize.js?v=802",
+  "/js/corpus-materialize.js?v=806",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
-  "/js/corpus-discovery-browser.js?v=731",
+  "/js/corpus-discovery-browser.js?v=806",
   "/css/room-discovery.css?v=730",
   "/data/benyehuda/author-aliases-v1.json?v=730",
   "/js/text-key-scan.js?v=777",
@@ -148,7 +148,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=804",
+  "/js/library-ui.js?v=806",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -350,9 +350,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v9.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=805",
-  "/i18n/locales/en.js?v=805",
-  "/i18n/locales/he.js?v=805",
+  "/i18n/locales/ru.js?v=806",
+  "/i18n/locales/en.js?v=806",
+  "/i18n/locales/he.js?v=806",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -365,7 +365,7 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=804",
+  "/db/local-db.js?v=806",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
