@@ -21,7 +21,7 @@ for (const opener of ['openCorpusWork', 'openPublicCorpusWork', 'openGroupCorpus
       // Д6.1 the Room resolves the device copy through CorpusMaterialize (db.dbQuery) — the same delay for 'A'
       localDb: { dbQuery: (_sql, [key]) => (key === 'A' ? a.promise : Promise.resolve(key)).then((id) => (id ? [{ id }] : [])), getTextById: async () => null, importBundle: async () => {} },
       fetch: async () => { throw new Error('no network in this test'); }, CORPUS_CATALOG_VERSION: 8,
-      readerStateBox() {}, roomToast() {}, tt: k => k, invalidatePersonalSets() {},
+      readerStateBox() {}, roomToast() {}, noticeWordGlossOutcome() {}, tt: k => k, invalidatePersonalSets() {},
       localStorage: { getItem: () => 'edition' },
       resolveLocalIdByKey: key => key === 'A' ? a.promise : Promise.resolve(key),
       openReader: async id => opened.push(id) };

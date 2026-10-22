@@ -22,7 +22,13 @@
 
   // A Ben-Yehuda work («ready» card of corpus-index): the device's copy if there is one; for a learning edition an
   // earlier edition carrying my marks wins unless openPublished; otherwise the verified publication is imported.
-  // → { localId, edition: 'published'|'previous', imported }
+  // The device's verdict on the AI word layer of an import: null when the work had none.
+  function glossOutcome(result) {
+    var g = result && result.wordGlossAi;
+    return g && g.texts ? { stored: g.stored, rejected: g.rejected } : null;
+  }
+
+  // → { localId, edition: 'published'|'previous', imported, wordGlossAi: { stored, rejected } | null }
   async function ensureBenYehudaWork(card, deps, opts) {
     deps = deps || {}; opts = opts || {};
     var db = deps.db, Edition = deps.Edition;
@@ -50,10 +56,10 @@
     var bundle = await Edition.verifyBundle(card, await res.arrayBuffer());
     if (!bundle || !bundle.library) throw new Error("malformed work payload");
     if (opts.isCurrent && !opts.isCurrent()) return null;
-    await db.importBundle(bundle, { mode: "skip" });
+    var imported = await db.importBundle(bundle, { mode: "skip" });
     localId = await localIdByKey(db, card.text_key);
     if (!localId) throw new Error("work not resolvable after import");
-    return { localId: localId, edition: choice.edition, imported: true };
+    return { localId: localId, edition: choice.edition, imported: true, wordGlossAi: glossOutcome(imported) };
   }
 
   // Под одним workId публикуются новые снимки (правка карточки, повторный импорт того же архива). Неизменяем только
@@ -88,12 +94,12 @@
     var payload = expectPublicSnapshot(await response.json(), card.snapshot_sha256);
     var bundle = Adapter.prepareImportBundle(payload);
     if (opts.isCurrent && !opts.isCurrent()) return null;
-    await db.importBundle(bundle, { mode: "skip" });
+    var importedPublic = await db.importBundle(bundle, { mode: "skip" });
     restored.add(textKey);
     var alreadyLocal = !!localId;
     localId = await localIdByKey(db, textKey);
     if (!localId) throw new Error("public work not resolvable after import");
-    return { localId: localId, imported: !alreadyLocal };
+    return { localId: localId, imported: !alreadyLocal, wordGlossAi: glossOutcome(importedPublic) };
   }
 
   // Many works, one at a time (no parallel load on the server), never stopping at a failure.

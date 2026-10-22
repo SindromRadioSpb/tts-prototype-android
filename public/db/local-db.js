@@ -6627,7 +6627,21 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
     if (aa && aa.asset_key) audioAssetsByKey.set(String(aa.asset_key), aa);
   }
 
-  const result = { imported: 0, skipped: 0, errors: [], importedIds: [], reconciled: null };
+  const result = { imported: 0, skipped: 0, errors: [], importedIds: [], reconciled: null,
+    // Optional AI word layer («в контексте (ИИ)»): what this device accepted, reported per text —
+    // a layer row the device rejects is never a silent loss. Never fails the source import.
+    wordGlossAi: { texts: 0, stored: 0, rejected: 0, failed: [] } };
+  const rememberGloss = async (layer, rows, title) => {
+    try {
+      const got = await globalThis.WordGlossAI.remember(layer, rows) || { stored: 0, rejected: 0 };
+      result.wordGlossAi.texts++; result.wordGlossAi.stored += got.stored || 0; result.wordGlossAi.rejected += got.rejected || 0;
+      if (got.rejected) result.wordGlossAi.failed.push({ title: String(title || ''), rejected: got.rejected, stored: got.stored || 0 });
+    } catch (e) {
+      const count = Array.isArray(layer && layer.rows) ? layer.rows.length : 0;
+      result.wordGlossAi.texts++; result.wordGlossAi.rejected += count;
+      result.wordGlossAi.failed.push({ title: String(title || ''), rejected: count, stored: 0, error: e && e.message ? e.message : String(e) });
+    }
+  };
 
   // BRR-P0-004 — batch the whole import in ONE transaction with per-text SAVEPOINTs:
   // collapses thousands of per-statement OPFS fsyncs (~100s for 54 texts / 4417 rows)
@@ -6913,7 +6927,7 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
           } catch (_) { /* absence of evidence is not an import error */ }
         }
         if (item?.word_gloss_ai_layer && globalThis.WordGlossAI) {
-          try { await globalThis.WordGlossAI.remember(item.word_gloss_ai_layer, await getSentences(existing[0].id)); } catch (_) {}
+          await rememberGloss(item.word_gloss_ai_layer, await getSentences(existing[0].id), textData.title);
         }
         continue;
       }
@@ -7077,7 +7091,7 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       result.importedIds.push(newTextId);
       await x('RELEASE sp_text;');
       if (item?.word_gloss_ai_layer && globalThis.WordGlossAI) {
-        try { await globalThis.WordGlossAI.remember(item.word_gloss_ai_layer, await getSentences(newTextId)); } catch (_) { /* optional layer never fails source restore */ }
+        await rememberGloss(item.word_gloss_ai_layer, await getSentences(newTextId), textData.title); // never throws: optional layer never fails source restore
       }
     } catch (e) {
       result.errors.push({ title: textData.title, error: e && e.message ? e.message : String(e) });

@@ -4931,6 +4931,15 @@ let _roomToastEl = null, _roomToastT = null;
 // «Отменить»-style action (reversible destructive ops). With an action the toast lingers longer
 // (5s) so the user can reach it; tapping runs actionFn then dismisses. The element is rebuilt only
 // when its shape changes (plain↔action) to avoid a stale button leaking across calls.
+// A public work's AI word layer that this device did not fully accept is said out loud: the text opens,
+// and the reader learns that some rows have no AI translation here (Modern release F3).
+function noticeWordGlossOutcome(outcome) {
+  if (!outcome || !outcome.rejected) return;
+  try { console.warn('[room] AI word layer partly rejected on this device', outcome); } catch (_) {}
+  roomToast(tt('room.publicCorpus.wordGlossAiRejected', 'ИИ-перевод слов принят не полностью: {rejected} строк не подошли к тексту на этом устройстве, {stored} — на месте')
+    .replace('{rejected}', String(outcome.rejected)).replace('{stored}', String(outcome.stored || 0)));
+}
+
 function roomToast(msg, actionLabel, actionFn, ttlMs) {
   try {
     if (!_roomToastEl) { _roomToastEl = el('div', { class: 'room-toast' }); document.body.appendChild(_roomToastEl); }
@@ -9263,6 +9272,7 @@ async function openCorpusWork(card, openOpts) {
       { db: localDb, fetch: (u, o) => fetch(u, o), Edition: window.BenYehudaLearningEdition, catalogVersion: CORPUS_CATALOG_VERSION },
       { openPublished: !!openOpts?._openPublishedEdition, isCurrent: () => openEpoch === readerOpenEpoch });
     if (!got) return;
+    noticeWordGlossOutcome(got.wordGlossAi);
     const localId = got.localId, choice = { id: got.localId, edition: got.edition };
     if (openEpoch !== readerOpenEpoch) return;
     const readerOpts = Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch, linkIdentity: { corpus_work: String(card.id) } });
@@ -10034,6 +10044,7 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
     const got = await window.CorpusMaterialize.ensurePublicWork(slug, card,
       { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { restoreEvidence: true, isCurrent: () => openEpoch === readerOpenEpoch });
     if (!got) return;
+    noticeWordGlossOutcome(got.wordGlossAi);
     const localId = got.localId;
     if (openEpoch !== readerOpenEpoch) return;
     await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { public_corpus: String(slug), public_work: String(card.public_work_id) } }));

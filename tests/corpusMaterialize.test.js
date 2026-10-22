@@ -34,6 +34,18 @@ test('Ben-Yehuda: a missing work is fetched with the catalog version, verified a
   assert.equal(db.imported.length, 1);
 });
 
+test('Ben-Yehuda: the device verdict on the AI word layer reaches the caller (never a silent loss)', async () => {
+  const db = fakeDb({}), calls = [];
+  const plainImport = db.importBundle;
+  db.importBundle = async (bundle) => { await plainImport(bundle); return { imported: 1, wordGlossAi: { texts: 1, stored: 40, rejected: 2, failed: [] } }; };
+  const bundle = { library: { texts: [{ text_key: 'k3', title: 'x', rows: [] }] } };
+  const r = await M.ensureBenYehudaWork({ id: '8', text_key: 'k3', file: 'works/8.json' }, { db, fetch: fetchOf({ '/data/benyehuda/works/8.json': bundle }, calls), Edition, catalogVersion: 8 });
+  assert.deepEqual(r.wordGlossAi, { stored: 40, rejected: 2 });
+  const db2 = fakeDb({});
+  const r2 = await M.ensureBenYehudaWork({ id: '8', text_key: 'k3', file: 'works/8.json' }, { db: db2, fetch: fetchOf({ '/data/benyehuda/works/8.json': bundle }, []), Edition, catalogVersion: 8 });
+  assert.equal(r2.wordGlossAi, null, 'a work without a layer reports nothing');
+});
+
 test('Ben-Yehuda learning edition: an earlier edition with my marks is kept; a foreign local key is refused', async () => {
   const card = { id: '9', text_key: 'kNew', file: 'works/9-' + 'a'.repeat(32) + '.json', learning_edition_id: 'le1', previous_text_keys: ['kOld'] };
   const db = fakeDb({ kOld: { id: 'old', source_meta_json: JSON.stringify({ corpus: { byehuda_id: 9 } }) } }), calls = [];
