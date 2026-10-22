@@ -52,6 +52,49 @@ class AnchorTest(unittest.TestCase):
         self.assertLess(spans[0][1], spans[1][1])
         self.assertEqual(self.SOURCE[offsets[spans[1][0]]], 'ו')
 
+    def test_short_row_cannot_pull_part_to_an_earlier_accidental_match(self):
+        source = 'יום א. ' + 'מילים רבות מאוד בפתיחה הארוכה של הספר הזה. ' + 'יום א. ' + 'וכאן מתחיל הקטע שלנו באמת עם משפט ארוך מספיק.'
+        stream, _ = R.letter_index(source)
+        spans = R.anchor_rows([row(0, 'יום א.'), row(1, 'וכאן מתחיל הקטע שלנו באמת עם משפט ארוך מספיק.')], stream)
+        self.assertEqual(spans[0][1], spans[1][0])  # the date sits right before its own entry, not at the book's opening
+
+    def test_spelling_edited_row_is_edited_not_absent(self):
+        source = 'רפאל שוכב על האדמה הקרה. עיני אפרים עפרוני מנצנצות בחשיכה כעני חתול פוספוריות. ושוב שקט בלילה הארוך מאוד.'
+        stream, _ = R.letter_index(source)
+        rows = [row(0, 'רפאל שוכב על האדמה הקרה.'), row(1, 'עיני אפרים עפרוני מנצנצות בחשיכה כעיני חתול פוספוריות.'),
+                row(2, 'ושוב שקט בלילה הארוך מאוד.'), row(3, 'הערת עורך חדשה לגמרי שאינה קיימת בכלל')]
+        spans = R.anchor_rows(rows, stream)
+        self.assertIsNone(spans[1])
+        edited = R.fuzzy_rows(rows, stream, spans)
+        self.assertIn(1, edited)
+        self.assertNotIn(3, edited)
+        self.assertIsNone(spans[3])
+
+    def test_footnote_rows_do_not_move_the_part_boundary(self):
+        body1 = 'זה הגוף של החלק הראשון והוא ארוך מספיק לעיגון. '
+        body2 = 'וזה הגוף של החלק השני והוא גם ארוך מספיק לעיגון. '
+        note = 'הערה בסוף הספר כולו עם מקור ביבליוגרפי ארוך. '
+        stream, _ = R.letter_index(body1 + body2 + note)
+        flags = []
+        spans = R.anchor_rows([row(0, body1), row(1, note + ' ↩︎')], stream, flags=flags)
+        self.assertEqual(flags, [None, 'note'])
+        self.assertIsNotNone(spans[1])  # the note exists in the source
+        part = {'part_uid': 'a', 'title': 'A', 'passport': R.passport({'text_id': 'a'}), '_rows': [row(0, body1), row(1, note + ' ↩︎')]}
+        R.anchor_work([part], {'text': body1 + body2 + note, 'sha256': 'x'})
+        self.assertEqual(part['anchor']['end'], len(R.letters(body1)))  # ends with its body, not at the book's notes
+
+    def test_coverage_counts_body_only(self):
+        body = 'זה הגוף המלא של היצירה כולה מראשיתה ועד סופה.'
+        text = 'כותרת היצירה\n\n' + body + '\n\nהערה בסוף ↩︎\n\nאת הטקסט לעיל הפיקו מתנדבי פרויקט בן־יהודה באינטרנט.'
+        part = {'part_uid': 'a', 'title': 'A', 'passport': R.passport({'text_id': 'a'}), '_rows': [row(0, body)]}
+        body_letters, covered = R.anchor_work([part], {'text': text, 'sha256': 'x'})
+        self.assertEqual(body_letters, len(R.letters(body)))
+        self.assertEqual(covered, body_letters)
+
+    def test_secret_scan_ignores_niqqud_token_field(self):
+        self.assertEqual(R.scan_secrets('{"point":"U+05C2","token":"י"}'), [])
+        self.assertTrue(R.scan_secrets('{"api_key":"x"}'))
+
     def test_unknown_row_does_not_derail_following_rows(self):
         stream, _ = R.letter_index(self.SOURCE)
         spans = R.anchor_rows([row(0, 'שלום עולם'), row(1, 'הערת עורך שאינה במקור'), row(2, 'ועוד משפט שלישי')], stream)

@@ -9,6 +9,7 @@ Plan: docs/planning/modern-release/2026-10-22/README.md
 """
 import argparse
 import csv
+import difflib
 import hashlib
 import json
 import re
@@ -29,7 +30,11 @@ TEXT_FIELDS = {'text_id', 'text_key', 'title', 'level', 'tags', 'source_label', 
                'corpus', 'table_model_meta', 'text_audio_asset_key', 'created_at', 'updated_at', 'is_archived',
                'rows', 'word_gloss_ai_layer'}
 SECRET_PATTERNS = [re.compile(p) for p in (r'[A-Za-z]:\\\\', r'[A-Za-z]:/(Users|projects)', r'/home/', r'AIza[0-9A-Za-z_-]{20,}',
-                                           r'\bsk-[A-Za-z0-9]{20,}', r'AQ\.[A-Za-z0-9_-]{20,}', r'"(api_key|apiKey|token|password)"\s*:')]
+                                           r'\bsk-[A-Za-z0-9]{20,}', r'AQ\.[A-Za-z0-9_-]{20,}', r'"(api_?key|apiKey|access_token|refresh_token|auth_token|password|secret)"\s*:')]
+HTML_ENTITY = re.compile(r'&(nbsp|amp|lt|gt|quot|#\d+);')
+# Rows that match no Ben-Yehuda text at all are content of unconfirmed origin: blocked from release.
+ABSENT_BLOCK_ROWS = 20
+COMPLETE_MIN = 0.97
 TRACK_RANK = {'text': 0, 'notes': 1, 'structure': 2, 'appendix': 3}
 
 
@@ -58,25 +63,102 @@ def letter_index(text):
     return ''.join(stream), offsets
 
 
-def anchor_rows(rows, stream, start=0, window=None):
-    """Find each row's consonants in order. Returns per-row (start, end) letter spans or None.
-    A row that is not found does not move the cursor, so one editorial row cannot derail the rest."""
-    spans, cursor = [], start
-    for row in rows:
-        key = letters(row.get('hebrew_plain') or row.get('hebrew_niqqud'))
-        if not key:
-            spans.append(None)
+RELIABLE_LETTERS = 25
+
+
+NOTE_MARK = '↩'  # «↩︎» back-link that ends a footnote row
+
+
+def is_note_row(row):
+    return NOTE_MARK in str(row.get('hebrew_plain') or '')
+
+
+def anchor_rows(rows, stream, start=0, flags=None):
+    """Find each row's consonants in the source. Returns per-row (start, end) letter spans or None.
+
+    Pass 1 anchors long rows only: 25+ consonants practically never occur twice by chance, so they
+    fix the part's true position. Pass 2 places each short row (dates, headings, one-word lines)
+    only between its anchored neighbours, so a short row can never pull the cursor to an earlier
+    accidental match. A row that is not found never moves the cursor.
+
+    Footnote rows (and long rows found only before the cursor) live elsewhere in the source —
+    footnotes are collected at the end of the book. Pass 3 just proves they exist; they never move
+    the cursor and are marked in `flags` so they do not define the part's boundaries."""
+    flags = flags if flags is not None else [None] * len(rows)
+    flags[:] = ['note' if is_note_row(r) else None for r in rows]
+    keys = ['' if flags[i] else letters(r.get('hebrew_plain') or r.get('hebrew_niqqud')) for i, r in enumerate(rows)]
+    spans = [None] * len(rows)
+    cursor = start
+    for i, key in enumerate(keys):
+        if len(key) < RELIABLE_LETTERS:
             continue
-        limit = len(stream) if window is None else min(len(stream), cursor + window + len(key))
-        pos = stream.find(key, cursor, limit)
-        if pos < 0 and window is not None:
-            pos = stream.find(key, cursor)
+        pos = stream.find(key, cursor)
         if pos < 0:
-            spans.append(None)
             continue
-        spans.append((pos, pos + len(key)))
+        spans[i] = (pos, pos + len(key))
         cursor = pos + len(key)
+    reliable = list(spans)
+    last = max((i for i, s in enumerate(reliable) if s), default=-1)
+    # Rows before an anchored row: the nearest occurrence just before it (right to left).
+    for i in range(last - 1, -1, -1):
+        key = keys[i]
+        if not key or spans[i]:
+            continue
+        lo = next((reliable[j][1] for j in range(i - 1, -1, -1) if reliable[j]), start)
+        hi = next(spans[j][0] for j in range(i + 1, len(keys)) if spans[j])
+        pos = stream.rfind(key, lo, max(lo, hi))
+        if pos >= 0:
+            spans[i] = (pos, pos + len(key))
+    # Rows after the last anchored row: forward from their predecessor.
+    for i in range(last + 1, len(keys)):
+        key = keys[i]
+        if not key:
+            continue
+        lo = next((spans[j][1] for j in range(i - 1, -1, -1) if spans[j]), start)
+        pos = stream.find(key, lo)
+        if pos >= 0:
+            spans[i] = (pos, pos + len(key))
+    for i, row in enumerate(rows):
+        if spans[i]:
+            continue
+        key = letters(row.get('hebrew_plain') or row.get('hebrew_niqqud'))
+        if flags[i] != 'note' and len(key) < RELIABLE_LETTERS:
+            continue
+        pos = stream.find(key) if key else -1
+        if pos >= 0:
+            spans[i] = (pos, pos + len(key))
+            flags[i] = flags[i] or 'out-of-order'
     return spans
+
+
+EDITED_MIN = 0.85
+
+
+def fuzzy_rows(rows, stream, spans):
+    """Second look at rows with no exact match: a row edited for learning (spelling normalized,
+    a typo fixed) still shares most consonants, in order, with the source between its neighbours.
+    Returns {row_index: similarity} for rows judged 'edited'; the rest stay 'absent'."""
+    keys = [letters(r.get('hebrew_plain') or r.get('hebrew_niqqud')) for r in rows]
+    edited = {}
+    for i, key in enumerate(keys):
+        if not key or spans[i]:
+            continue
+        lo = next((spans[j][1] for j in range(i - 1, -1, -1) if spans[j]), None)
+        hi = next((spans[j][0] for j in range(i + 1, len(keys)) if spans[j]), None)
+        if lo is None and hi is None:
+            continue
+        if lo is None:
+            lo = max(0, hi - 2 * len(key) - 50)
+        if hi is None or hi - lo > 4 * len(key) + 200:
+            hi = min(len(stream), lo + 2 * len(key) + 50)
+        window = stream[lo:hi]
+        sm = difflib.SequenceMatcher(None, key, window, autojunk=False)
+        blocks = [b for b in sm.get_matching_blocks() if b.size]
+        score = sum(b.size for b in blocks) / len(key)
+        if score >= EDITED_MIN and blocks:
+            spans[i] = (lo + blocks[0].b, lo + blocks[-1].b + blocks[-1].size)
+            edited[i] = round(score, 3)
+    return edited
 
 
 def track_of(kind):
@@ -156,23 +238,52 @@ def load_pseudocatalogue(path):
         return {row['ID']: row for row in csv.DictReader(f)}
 
 
-def source_text(work_id, catalog_row, cache_dir, fetch):
-    if not catalog_row or not catalog_row.get('path'):
+OFFICIAL_DOWNLOAD = 'https://benyehuda.org/download/{id}?format=txt'
+
+
+def _get(url):
+    req = urllib.request.Request(url, headers={'User-Agent': 'LinguistPro-modern-registry/1 (read-only verification)'})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.read()
+
+
+def source_text(work_id, catalog_row, cache_dir, fetch, official_dir=None, raw_shas=()):
+    """Source text of one work: the public-domain dump first; for works newer than the dump,
+    the official benyehuda.org text download the archives were built from (owner's
+    'official_full_download'), accepted only when its bytes match the part passports."""
+    if catalog_row and catalog_row.get('path'):
+        rel = catalog_row['path'].lstrip('/') + '.txt'
+        file = Path(cache_dir) / rel
+        if not file.exists() and fetch:
+            try:
+                data = _get(RAW_BASE + '/txt/' + rel)
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_bytes(data)
+            except Exception as e:  # noqa: BLE001 - reported per work, never aborts the run
+                return None, 'fetch-failed: ' + str(e)[:80]
+        if file.exists():
+            raw = file.read_bytes()
+            return {'text': raw.decode('utf-8'), 'sha256': sha(raw), 'path': 'dump:' + rel, 'origin': 'dump'}, 'ok'
+        return None, 'not-cached'
+    if not official_dir:
         return None, 'not-in-pseudocatalogue'
-    rel = catalog_row['path'].lstrip('/') + '.txt'
-    file = Path(cache_dir) / rel
+    file = Path(official_dir) / f'{work_id}.txt'
     if not file.exists():
         if not fetch:
-            return None, 'not-cached'
+            return None, 'official-not-cached'
         try:
-            with urllib.request.urlopen(RAW_BASE + '/txt/' + rel, timeout=60) as r:
-                data = r.read()
-        except Exception as e:  # noqa: BLE001 - reported per work, never aborts the run
-            return None, 'fetch-failed: ' + str(e)[:80]
+            data = _get(OFFICIAL_DOWNLOAD.format(id=work_id))
+        except Exception as e:  # noqa: BLE001
+            return None, 'official-fetch-failed: ' + str(e)[:80]
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_bytes(data)
     raw = file.read_bytes()
-    return {'text': raw.decode('utf-8'), 'sha256': sha(raw), 'path': rel}, 'ok'
+    digest = sha(raw)
+    expected = {h for h in raw_shas if h}
+    if expected and digest not in expected:
+        return None, 'official-sha-mismatch'
+    return {'text': raw.decode('utf-8'), 'sha256': digest, 'path': 'official:' + work_id, 'origin': 'official',
+            'raw_sha_verified': digest in expected}, 'ok'
 
 
 def scan_secrets(body_text):
@@ -238,9 +349,11 @@ def scan(root, catalog, pseudo, cache_dir, fetch):
                     'part_uid': rec['sha256'][:12] + ':' + str(pos), 'archive': rec['path'], 'archive_sha256': rec['sha256'], 'folder': hint['folder'],
                     'work_id': work_id, 'text_id': text.get('text_id'), 'text_key': text.get('text_key'), 'title': text.get('title'),
                     'rows': len(rows), 'rows_sha256': sha(canon(rows)), 'updated_at': text.get('updated_at'),
+                    'raw_source_sha256': learning.get('raw_source_sha256'), 'source_version': learning.get('source_version'),
                     'official_period': learning.get('official_period'), 'era': corpus.get('era') or learning.get('app_era'),
                     'author': corpus.get('author'), 'passport': passport(text), 'ai': ai_stats(text, rows),
                     'empty_required': required_fields(rows),
+                    'html_entity_rows': sum(1 for r in rows if HTML_ENTITY.search(str(r.get('hebrew_plain') or '') + str(r.get('russian') or ''))),
                     'max_row_words': max((len(str(r.get('hebrew_plain') or '').split()) for r in rows), default=0),
                     'unknown_text_fields': sorted(set(text) - TEXT_FIELDS),
                     'unknown_row_fields': sorted({k for r in rows for k in r} - ROW_FIELDS),
@@ -251,14 +364,48 @@ def scan(root, catalog, pseudo, cache_dir, fetch):
     return archives, parts
 
 
+FOOTER_MARK = 'הפיקו מתנדבי פרויקט בן־יהודה'
+
+
+def body_mask(text, offsets):
+    """1 for each source letter that belongs to the work's body. Excluded: the title line, the
+    project's volunteer footer and footnote paragraphs (they end with «↩︎»). Coverage is measured
+    on the body only, so a complete text is not reported as 'selected' because of boilerplate."""
+    text = unicodedata.normalize('NFC', text)
+    excluded = bytearray(len(text) + 1)
+    lines, pos = text.split('\n'), 0
+    title_done = False
+    for line in lines:
+        end = pos + len(line)
+        if not title_done and line.strip():
+            excluded[pos:end] = b'\1' * (end - pos)
+            title_done = True
+        elif NOTE_MARK in line:
+            excluded[pos:end] = b'\1' * (end - pos)
+        pos = end + 1
+    cut = text.find(FOOTER_MARK)
+    if cut >= 0:
+        start = text.rfind('\n', 0, cut) + 1
+        excluded[start:] = b'\1' * (len(text) + 1 - start)
+    return bytearray(0 if excluded[o] else 1 for o in offsets)
+
+
 def anchor_work(work_parts, src):
-    """Anchors every part of one work in its dump text; returns per-part spans in letters."""
+    """Anchors every part of one work in its source text. Returns (body_letters, covered_body_letters)
+    for the text track; per-part spans go to part['anchor']."""
     stream, offsets = letter_index(src['text'])
+    body = body_mask(src['text'], offsets)
+    covered = bytearray(len(stream))
     for p in work_parts:
-        spans = anchor_rows(p['_rows'], stream)
-        found = [s for s in spans if s]
+        flags = []
+        spans = anchor_rows(p['_rows'], stream, flags=flags)
+        exact = sum(1 for s in spans if s)
+        edited = fuzzy_rows(p['_rows'], stream, spans)
+        found = [s for i, s in enumerate(spans) if s and not flags[i]]  # body rows in source order
         he_rows = sum(1 for r in p['_rows'] if letters(r.get('hebrew_plain') or r.get('hebrew_niqqud')))
-        p['anchor'] = {'rows_found': len(found), 'rows_hebrew': he_rows,
+        p['anchor'] = {'rows_found': sum(1 for s in spans if s), 'rows_exact': exact,
+                       'rows_note': flags.count('note'), 'rows_out_of_order': flags.count('out-of-order'), 'rows_edited': len(edited),
+                       'edited_samples': dict(list(edited.items())[:10]), 'rows_hebrew': he_rows,
                        'start': found[0][0] if found else None, 'end': found[-1][1] if found else None,
                        'char_start': offsets[found[0][0]] if found else None,
                        'char_end': offsets[found[-1][1] - 1] + 1 if found else None,
@@ -270,7 +417,11 @@ def anchor_work(work_parts, src):
         ps = p['passport']
         if ps['char_start'] is not None and ps['char_end'] is not None and ps['source_sha256'] == src['sha256'] and ps['section_source_sha256']:
             p['passport_slice_ok'] = sha(src['text'][ps['char_start']:ps['char_end']].encode('utf-8')) == ps['section_source_sha256']
-    return len(stream)
+        if ps['track'] == 'text':
+            for sp in spans:
+                if sp:
+                    covered[sp[0]:sp[1]] = b'\1' * (sp[1] - sp[0])
+    return sum(body), sum(1 for i, c in enumerate(covered) if c and body[i])
 
 
 def boundaries(work_parts):
@@ -278,7 +429,8 @@ def boundaries(work_parts):
     out = []
     by_track = defaultdict(list)
     for p in work_parts:
-        if p.get('anchor', {}).get('start') is not None:
+        # Notes, structure and appendix tracks re-cover the text's source range by design.
+        if p['passport']['track'] == 'text' and p.get('anchor', {}).get('start') is not None:
             by_track[p['passport']['track']].append(p)
     for track, items in by_track.items():
         items.sort(key=lambda p: (p['anchor']['start'], p['anchor']['end']))
@@ -325,11 +477,10 @@ def build(args):
     work_records = []
     for wid, wparts in sorted(works.items(), key=lambda kv: int(kv[0]) if kv[0].isdigit() else 0):
         row = pseudo.get(wid)
-        src, status = source_text(wid, row, args.txt_cache, args.fetch)
-        source_letters = anchor_work(wparts, src) if src else None
+        src, status = source_text(wid, row, args.txt_cache, args.fetch, getattr(args, 'official_cache', None),
+                                  {p.get('raw_source_sha256') for p in wparts})
+        source_letters, covered = anchor_work(wparts, src) if src else (None, 0)
         edges = boundaries(wparts) if src else []
-        text_track = [p for p in wparts if p['passport']['track'] == 'text']
-        covered = sum(p.get('anchor', {}).get('letters', 0) for p in text_track)
         # Reading order = position in the Ben-Yehuda source (owner decision 2026-10-22 §8.3).
         wparts.sort(key=lambda p: (p.get('anchor', {}).get('start') if p.get('anchor', {}).get('start') is not None else 10 ** 12,
                                    TRACK_RANK[p['passport']['track']], p['passport']['order'] or 0, p['text_id'] or ''))
@@ -358,14 +509,23 @@ def build(args):
             'ai': {'parts_with_layer': sum(has_ai), 'he_rows': sum(p['ai']['he_rows'] for p in wparts),
                    'covered_rows': sum(p['ai']['covered'] for p in wparts)},
             'source': {'status': status, 'path': src['path'] if src else None, 'sha256': src['sha256'] if src else None,
-                       'letters': source_letters, 'text_track_letters_covered': covered,
+                       'origin': src['origin'] if src else None, 'raw_sha_verified': (src or {}).get('raw_sha_verified'),
+                       'body_letters': source_letters, 'body_letters_covered': covered,
                        'coverage': round(covered / source_letters, 4) if source_letters else None},
-            'scope': ('selected' if False in complete_flags else 'complete' if True in complete_flags else 'unstated'),
+            # A part's whole_book_complete=false only says the part is not the whole book. The work's
+            # scope is measured: how much of the source's consonants the text track covers.
+            'scope': ('complete' if covered and source_letters and covered / source_letters >= COMPLETE_MIN
+                      else 'selected' if source_letters else 'unmeasured'),
             'rows_unanchored': sum(p.get('anchor', {}).get('unmatched_count', 0) for p in wparts),
+            'rows_edited': sum(p.get('anchor', {}).get('rows_edited', 0) for p in wparts),
+            'html_entity_rows': sum(p['html_entity_rows'] for p in wparts),
             'edges': edges,
             'part_uids': [p['part_uid'] for p in wparts],
         })
 
+    for w in work_records:
+        if w['action'] != 'published' and w['rows_unanchored'] >= ABSENT_BLOCK_ROWS:
+            w['blocked'] = f"{w['rows_unanchored']} rows match no Ben-Yehuda source text"
     for p in dedup:
         p.pop('_rows', None)
         p.pop('_spans', None)
@@ -376,6 +536,8 @@ def build(args):
         'actions': dict(Counter(w['action'] for w in work_records)),
         'actions_parts': dict(Counter(a for w in work_records for a in [w['action']] * w['parts'])),
         'text_id_conflicts': len(conflicts),
+        'blocked_works': sorted(w['work_id'] for w in work_records if w.get('blocked')),
+        'html_entity_rows_unpublished': sum(w['html_entity_rows'] for w in work_records if w['action'] != 'published'),
     }
     return {'schema': 'modern-release-registry-v1', 'catalog_version': catalog_version, 'counts': counts,
             'works': work_records, 'parts': dedup, 'archives': archives, 'conflicts': conflicts}
@@ -396,22 +558,26 @@ def report(reg):
         a = agg[(w['action'], w['shelf'])]; a[0] += 1; a[1] += w['parts']; a[2] += w['rows']
     for (act, shelf), (n, p, r) in sorted(agg.items()):
         lines.append(f'| {act} | {shelf} | {n} | {p} | {r} |')
-    lines += ['', '## Многочастные произведения', '', '| ID | Название | Частей | Дорожки | Строк | Покрытие исходника | Объём | Не найдено строк | Стыки: пропуск/наложение/повтор |', '|---|---|---:|---|---:|---:|---|---:|---|']
+    lines += ['', '## Многочастные произведения', '', '| ID | Название | Частей | Дорожки | Строк | Покрытие исходника | Объём | Правлено строк | Нет в источнике | Стыки: пропуск/наложение/повтор |', '|---|---|---:|---|---:|---:|---|---:|---:|---|']
     for w in reg['works']:
         if w['parts'] < 2:
             continue
         e = w['edges']
         gaps = sum(1 for x in e if x['gap_letters'] > 0); ov = sum(1 for x in e if x['overlap_letters'] > 0); rep = sum(1 for x in e if x['repeated_edge_rows'])
         cov = w['source']['coverage']
-        lines.append(f"| {w['work_id']} | {w['title'][:40]} | {w['parts']} | {w['tracks']} | {w['rows']} | {'—' if cov is None else f'{cov:.1%}'} | {w['scope']} | {w['rows_unanchored']} | {gaps}/{ov}/{rep} |")
+        lines.append(f"| {w['work_id']} | {w['title'][:40]} | {w['parts']} | {w['tracks']} | {w['rows']} | {'—' if cov is None else f'{cov:.1%}'} | {w['scope']} | {w['rows_edited']} | {w['rows_unanchored']} | {gaps}/{ov}/{rep} |")
     problems = []
     for w in reg['works']:
         if w['action'] == 'published':
             continue
         if w['source']['status'] != 'ok':
             problems.append(f"- {w['work_id']}: исходник не получен ({w['source']['status']})")
+        if w.get('blocked'):
+            problems.append(f"- **БЛОК** {w['work_id']} {w['title'][:40]}: {w['blocked']}")
+        if w['html_entity_rows']:
+            problems.append(f"- {w['work_id']} {w['title'][:40]}: строк с HTML-сущностями (&nbsp; и т.п.): {w['html_entity_rows']}")
         if w['rows_unanchored']:
-            problems.append(f"- {w['work_id']} {w['title'][:40]}: строк, не найденных в исходнике: {w['rows_unanchored']}")
+            problems.append(f"- {w['work_id']} {w['title'][:40]}: строк нет в источнике: {w['rows_unanchored']} (правленых найдено: {w['rows_edited']})")
         for x in w['edges']:
             if x['overlap_letters'] or x['repeated_edge_rows']:
                 problems.append(f"- {w['work_id']} [{x['track']}] «{(x['from_title'] or '')[:30]}» → «{(x['to_title'] or '')[:30]}»: наложение {x['overlap_letters']} букв, повтор строк {x['repeated_edge_rows']}")
@@ -445,7 +611,8 @@ def main(argv=None):
     p.add_argument('--catalog-index', type=Path, required=True)
     p.add_argument('--pseudocatalogue', type=Path, required=True)
     p.add_argument('--txt-cache', type=Path, required=True, help='Ben-Yehuda dump txt cache (txt/pNN/mNNN.txt layout)')
-    p.add_argument('--fetch', action='store_true', help='download missing dump texts into the cache')
+    p.add_argument('--official-cache', type=Path, help='cache for official benyehuda.org text downloads (works newer than the dump)')
+    p.add_argument('--fetch', action='store_true', help='download missing source texts into the caches')
     p.add_argument('--out', type=Path, required=True)
     args = p.parse_args(argv)
     reg = build(args)
