@@ -47,7 +47,7 @@
     var budgetMs = opts.budgetMs == null ? RENDER_BUDGET_MS : opts.budgetMs;
     var sliceMs = opts.sliceMs == null ? SLICE_MS : opts.sliceMs;
     var defer = opts.defer || function (fn) { setTimeout(fn, 0); };
-    var cache = new Map(), pending = [], deadline = Infinity, filling = null, waiters = [];
+    var cache = new Map(), pending = new Map(), deadline = Infinity, filling = null, waiters = [];
     var usable = typeof transliterate === "function";
 
     function key(profile, niqqud) { return profile + "\u0001" + niqqud; }
@@ -71,40 +71,58 @@
       var k = key(chosen, niqqud);
       if (cache.has(k)) return cache.get(k) || stored;
       if (now() < deadline) return derive(chosen, niqqud) || stored;
-      pending.push([chosen, niqqud]);
+      pending.set(k, [chosen, niqqud]);
       return stored;
     }
 
     // Call before a render: opens the synchronous budget for this render.
-    function beginRender() { pending = []; deadline = now() + budgetMs; }
+    function beginRender() { pending.clear(); deadline = now() + budgetMs; }
+
+    // A material/profile switch supersedes its unfinished work, but useful derived values stay
+    // cached. Already scheduled slices become inert and cannot call a stale render callback.
+    function cancelPending() {
+      pending.clear();
+      deadline = Infinity;
+      filling = null;
+      waiters = [];
+    }
 
     // Call after a render. When rows were left on their stored text, fills them in the background
     // and calls onFilled() once, so the caller re-renders with every row derived.
     function endRender(onFilled) {
       deadline = Infinity;
-      var work = pending; pending = [];
-      if (!work.length) return false;
+      var work = pending; pending = new Map();
+      if (!work.size) return false;
       if (typeof onFilled === "function") waiters.push(onFilled);
-      if (!filling) filling = fillSlices(work);
-      else work.forEach(function (item) { filling.queue.push(item); });
+      if (!filling) fillSlices(work);
+      else work.forEach(function (item, k) {
+        if (!filling.keys.has(k) && !cache.has(k)) {
+          filling.keys.add(k);
+          filling.queue.push(item);
+        }
+      });
       return true;
     }
 
     function fillSlices(work) {
-      var state = { queue: work.slice() };
+      var state = { queue: Array.from(work.values()), keys: new Set(work.keys()), cursor: 0 };
+      filling = state;
       function step() {
+        if (filling !== state) return;
         var stop = now() + sliceMs;
-        while (state.queue.length && now() < stop) {
-          var item = state.queue.shift();
-          if (!cache.has(key(item[0], item[1]))) derive(item[0], item[1]);
+        while (state.cursor < state.queue.length && now() < stop) {
+          var item = state.queue[state.cursor];
+          state.queue[state.cursor++] = null;
+          var k = key(item[0], item[1]);
+          state.keys.delete(k);
+          if (!cache.has(k)) derive(item[0], item[1]);
         }
-        if (state.queue.length) { defer(step); return; }
+        if (state.cursor < state.queue.length) { defer(step); return; }
         filling = null;
         var callbacks = waiters; waiters = [];
         callbacks.forEach(function (fn) { try { fn(); } catch (_) {} });
       }
       defer(step);
-      return state;
     }
 
     // One-shot helper for callers that render without the budget (tests, small tables).
@@ -114,6 +132,7 @@
     }
 
     return { display: display, displayNow: displayNow, beginRender: beginRender, endRender: endRender,
+      cancelPending: cancelPending,
       isFilling: function () { return !!filling; }, usable: usable };
   }
 

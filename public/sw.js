@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.812";
+const CACHE_VERSION = "v3.11.813";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,9 +82,9 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=812",
+  "/js/dictionary-ui.js?v=813",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=812",
+  "/js/mediatheque-ui.js?v=813",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -110,7 +110,7 @@ const PRECACHE_URLS = [
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
   "/js/room-media-attach.js?v=796",
-  "/js/study-video-source-ui.js?v=812",
+  "/js/study-video-source-ui.js?v=813",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=797",
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=812",
+  "/js/library-ui.js?v=813",
   "/js/room-b6-core.js?v=811",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -158,7 +158,8 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=802",
+  "/js/reader-core.js?v=813",
+  "/js/reader-row-work.js?v=1",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=805",
   "/css/lexical-resolution.css?v=6",
@@ -209,9 +210,9 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=805",
+  "/js/reader-morph.js?v=813",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=802",
+  "/js/word-gloss.js?v=813",
   "/js/word-gloss-ai.js?v=802",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
@@ -246,7 +247,7 @@ const PRECACHE_URLS = [
   "/js/subtitle-material-import.js?v=584",
   "/js/subtitle-media-attach.js?v=796",
   "/js/local-translit-bundle.js?v=810",
-  "/js/translit-display.js?v=734",
+  "/js/translit-display.js?v=813",
   "/js/subtitle-material-vocalization.js?v=735",
   "/js/niqqud-plausibility.js?v=735",
   "/js/niqqud-suspect-marks.js?v=685",
@@ -367,13 +368,13 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=812",
+  "/db/local-db.js?v=813",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
   "/db/vfs-order.js",
   "/db/db-worker.js",
-  "/db/db-worker-runtime.js?v=727",
+  "/db/db-worker-runtime.js?v=813",
   "/db/sqlite-api.js?v=531",
   "/db/operation-lease.js?v=727",
   "/db/change-scope.js?v=727",

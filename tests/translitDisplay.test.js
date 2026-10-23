@@ -6,6 +6,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 const D = require("../public/js/translit-display.js");
 const { transliterateWithProfile: T } = require("../db/premium/translit.js");
 
@@ -70,6 +71,63 @@ test("a render past its budget shows stored text, fills in the background, then 
   assert.equal(store.display(rows[1], "sbl"), T("תּוֹדָה", "sbl"), "derived after the fill");
   assert.equal(store.endRender(() => { redraws++; }), false, "nothing left: no second redraw");
   assert.equal(calls.length, 2);
+});
+
+function slicedStore() {
+  // Independent virtual clock: each clock check costs one tick, so a three-tick slice can
+  // process exactly two entries. No wall-clock timing or busy waits in scheduling assertions.
+  let tick = 0;
+  const context = { module: { exports: {} }, performance: { now: () => ++tick } };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, "..", "public/js/translit-display.js"), "utf8"), context);
+  const tasks = [], calls = [];
+  const store = context.module.exports.createStore((text, profile) => {
+    calls.push([text, profile]);
+    return profile + ':' + text;
+  }, { budgetMs: 0, sliceMs: 3, defer: fn => tasks.push(fn) });
+  return { store, tasks, calls };
+}
+
+test("repeated rows and overlapping renders share one background job per source and profile", () => {
+  const { store, tasks, calls } = slicedStore();
+  let redraws = 0;
+  for (let render = 0; render < 3; render++) {
+    store.beginRender();
+    for (let i = 0; i < 10000; i++) store.display(row, 'sbl');
+    store.display(row, 'ru-phonetic');
+    assert.equal(store.endRender(() => redraws++), true);
+  }
+  assert.equal(tasks.length, 1, 'overlapping renders use one scheduled worker');
+  tasks.shift()();
+  assert.equal(tasks.length, 0, 'duplicate rows do not consume additional slices');
+  assert.equal(calls.length, 2, 'each profile is still derived separately');
+  assert.equal(redraws, 3, 'all callers are notified when their data is ready');
+  assert.equal(store.isFilling(), false);
+});
+
+test("switching material cancels queued slices and old callbacks while keeping completed values", () => {
+  const { store, tasks, calls } = slicedStore();
+  const rows = Array.from({ length: 6 }, (_, i) => ({ ...row, he_niqqud: row.he_niqqud + i }));
+  let oldRedraws = 0, newRedraws = 0;
+  store.beginRender();
+  rows.forEach(r => store.display(r, 'sbl'));
+  store.endRender(() => oldRedraws++);
+  tasks.shift()();
+  assert.equal(calls.length, 2, 'the first bounded slice completes two rows');
+  assert.equal(tasks.length, 1, 'the old material has unfinished scheduled work');
+  store.cancelPending();
+  assert.equal(store.isFilling(), false);
+  store.beginRender();
+  assert.equal(store.display(rows[0], 'sbl'), 'sbl:' + rows[0].he_niqqud, 'completed cache survives cancellation');
+  store.display(row, 'ru-phonetic');
+  store.endRender(() => newRedraws++);
+  tasks.shift()();
+  assert.equal(calls.length, 2, 'the stale scheduled slice does no work');
+  assert.equal(store.isFilling(), true, 'stale slice cannot clear the new fill');
+  tasks.shift()();
+  assert.equal(calls.length, 3);
+  assert.equal(oldRedraws, 0);
+  assert.equal(newRedraws, 1);
+  assert.equal(store.isFilling(), false);
 });
 
 test("studio and reader pick the profile and title the same way", () => {

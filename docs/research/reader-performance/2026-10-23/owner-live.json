@@ -1,0 +1,17 @@
+{
+  "scope": "Owner-authorized read-only presentation restore in the connected Chrome profile; single observations, no paid generation, no physical-device claim.",
+  "baselineVersion": "3.11.812",
+  "library": { "texts": 730, "sentences": 108947 },
+  "before": {
+    "longVideo2477": { "rows": 2477, "dataMs": 2338.43, "paintMs": 2446.08, "readyMs": 4768.42, "maxLongTaskMs": 2213 },
+    "hamam499": { "rows": 499, "words": 2193, "contextualGlosses": 2193, "dataMs": 2984.01, "paintMs": 3122.86, "readyMs": 3671.8, "maxLongTaskMs": 394, "glossPasses": [{"startMs":5975.52,"endMs":6594.15},{"startMs":6514.09,"endMs":7945.33},{"startMs":9182.15,"endMs":10426.58}] },
+    "benYehuda66120": { "rows": 34, "words": 3291, "maxWordsPerRow": 262, "contextualGlosses": 3291, "dataMs": 288.5, "paintMs": 414.11, "readyMs": 772.84, "maxLongTaskMs": 267, "glossPasses": [{"startMs":4967.91,"endMs":5493.23},{"startMs":5439.69,"endMs":7591.69}] }
+  },
+  "learnerStateBeforeRelease": {
+    "reviews": { "n": 11754, "sha256": "d9f1f17ea8980b6538d02803f838d0cdd48adb3b5f3e00fa39ba5346737c9238" },
+    "progress": { "n": 228, "sha256": "dd7843b8a910e4ac0429a2fa3a45a61ce85c0fd646348fa8a633b4f31ba810c8" },
+    "words": { "n": 5169, "sha256": "dcdcb29b9cac86388fdb2a532bca9744c6d3f523b6a7707ab12221acbac4ef02" }
+  },
+  "progressNote": "The owner opened additional materials during the session: progress count changed from 227 to 228 before release. Review and word-state hashes stayed identical. Later comparisons use the 228-row checkpoint.",
+  "after": null
+}

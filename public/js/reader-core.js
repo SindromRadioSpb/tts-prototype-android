@@ -511,7 +511,7 @@ export function buildBilingualTableHtml(rows, config) {
     const domRowIdx = rowIndexOffset + rowIdx;
     const he = row.he || "";
     const heNiqqud = row.he_niqqud || "";
-    const translit = translitDisplay
+    const translit = !cols.includes('translit') ? '' : translitDisplay
       ? translitDisplay(row, tProfile)
       : (tProfile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || ""));
     const ru = row.ru || "";
@@ -529,7 +529,7 @@ export function buildBilingualTableHtml(rows, config) {
         const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
         const tid = row && row._v3_textId ? String(row._v3_textId) : "";
         let noteBtnHtml = "";
-        if (sid && tid) {
+        if (sid && tid && !cfg.readOnly) {
           const hasNote = !!hasNoteFn(sid);
           noteBtnHtml =
             '<div class="col-action-row col-action-row-bot">' +
@@ -542,7 +542,7 @@ export function buildBilingualTableHtml(rows, config) {
         }
         const isFirst = rowIdx === 0;
         const isLast = rowIdx === rows.length - 1;
-        const hasLibData = !!(sid && tid);
+        const hasLibData = !!(sid && tid) && !cfg.readOnly;
         const editActionsHtml = hasLibData
           ? '<div class="row-edit-actions">' +
             '<button type="button" class="row-edit-btn btn-up" data-edit-action="up" data-row-idx="' + rowIdx + '" title="Выше" aria-label="Выше"' + (isFirst ? " disabled" : "") + ">↑</button>" +
@@ -697,9 +697,9 @@ export function rowAudioIndicatorPresentation(row, currentProfile) {
   return { state: sameProfile ? "ok" : "mismatch", assetKey, storedProfile, currentProfile: currentProfile || null };
 }
 
-export function paintRowAudioIndicator(mount, rowIdx, row, currentProfile, labels) {
+export function paintRowAudioIndicator(mount, rowIdx, row, currentProfile, labels, markerNode) {
   if (!mount) return null;
-  const marker = mount.querySelector('span.row-audio-ind[data-row-idx="' + String(rowIdx) + '"]');
+  const marker = markerNode || mount.querySelector('span.row-audio-ind[data-row-idx="' + String(rowIdx) + '"]');
   if (!marker) return null;
   const presentation = rowAudioIndicatorPresentation(row, currentProfile);
   const copy = labels || {};

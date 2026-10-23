@@ -59,8 +59,11 @@ async function queryRows(sql, params = []) {
   const results = [];
   for await (const stmt of sqlite3.statements(db, sql)) {
     if (params.length) sqlite3.bind_collection(stmt, params);
+    let names = null;
     while (await sqlite3.step(stmt) === 100 /* SQLITE_ROW */) {
-      const names = sqlite3.column_names(stmt);
+      // Result names are constant for this statement. Reading them per row
+      // repeats a WASM call and UTF-8 decode for every column of a long text.
+      names = names || sqlite3.column_names(stmt);
       const vals  = sqlite3.row(stmt);
       const obj   = {};
       names.forEach((n, i) => { obj[n] = vals[i]; });

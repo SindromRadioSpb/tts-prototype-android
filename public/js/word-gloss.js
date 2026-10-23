@@ -364,8 +364,12 @@
   // The gloss column: vocalized when the table shows it, else the consonantal one — never both
   // (the same word twice would double the noise).
   function glossSpans(mount) {
-    var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
-    return Array.prototype.slice.call(niq.length ? niq : mount.querySelectorAll('#proTable tbody td[data-col="he"] .rm-w'));
+    var spans = [];
+    Array.prototype.forEach.call(mount.querySelectorAll('#proTable tbody tr'), function (tr) {
+      // Some rows have no vocalized cell; use the same per-row choice as AI.paintRow.
+      rowSpans(tr).forEach(function (sp) { spans.push(sp); });
+    });
+    return spans;
   }
   function clearGloss(mount) {
     if (!mount) return;
@@ -383,15 +387,16 @@
   }
 
   var _pass = 0;
-  async function applyGloss(mount) {
-    if (!mount) return;
+  async function applyGloss(mount, opts) {
+    var isCurrent = opts && typeof opts.isCurrent === "function" ? opts.isCurrent : function () { return true; };
+    if (!mount || !isCurrent()) return;
     var my = ++_pass;
     mount.classList.add(GLOSS_ON);
     var spans = glossSpans(mount), i = 0;
     while (i < spans.length) {
       var end = Math.min(i + 60, spans.length);
       for (; i < end; i++) {
-        if (my !== _pass) return;   // a newer pass (re-render / toggle) owns the mount
+        if (my !== _pass || !isCurrent()) return;   // a newer pass (re-render / toggle) owns the mount
         var sp = spans[i];
         if (sp.hasAttribute("data-gloss")) continue;
         var tr = sp.closest("tr"), ai = window.WordGlossAI && window.WordGlossAI.wordAt(tr, Number(sp.getAttribute("data-w-offset")));
@@ -401,7 +406,7 @@
           sp.setAttribute("data-gloss-source", "missing"); sp.setAttribute("title", t("contextLayer.missing", "Контекстный перевод отсутствует"));
         } else {
           var dictionary = await glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || "");
-          if (my !== _pass) return;
+          if (my !== _pass || !isCurrent()) return;
           paint(sp, dictionary);
           sp.setAttribute("data-gloss", "◇ " + (sp.getAttribute("data-gloss") || ""));
           sp.setAttribute("data-gloss-source", "dictionary"); sp.setAttribute("title", t("contextLayer.dictionary", "Словарный перевод; применимость здесь не подтверждена"));
@@ -445,6 +450,7 @@
   }
 
   async function renderRibbon(st) {
+    if (st.isCurrent && !st.isCurrent()) return;
     var tr = currentRow(st.host);
     var idx = tr ? tr.getAttribute("data-row-idx") : null;
     if (idx === st.rowIdx) return;
@@ -470,14 +476,14 @@
     st.list.scrollLeft = 0; st.list.scrollTop = 0;
     var AI = _aiOn && window.WordGlossAI;
     for (var i = 0; i < chips.length; i++) {
-      if (st.rowIdx !== idx) return;   // playback moved on while resolving
+      if (st.rowIdx !== idx || (st.isCurrent && !st.isCurrent())) return;   // playback moved on while resolving
       var c = chips[i];
       // Ф3: the contextual (AI) gloss of this exact word in this row wins when present.
       var ai = AI ? AI.wordAt(tr, i) : null;
       var g = ai ? { text: ai.gloss + (ai.mwe ? " · " + ai.mwe : ""), label: ai.manual ? "user" : "ai" }
         : _strict ? null : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
       var has = !!(g && g.text);
-      if (st.epoch !== epoch || currentRow(st.host) !== tr) return;
+      if (st.epoch !== epoch || currentRow(st.host) !== tr || (st.isCurrent && !st.isCurrent())) return;
       c.gl.textContent = has ? ((!ai && !_strict ? "◇ " : "") + g.text) : (_strict ? "—" : "?");
       c.b.setAttribute("data-gloss-label", has ? g.label : "unknown");
       c.b.setAttribute("title", ai ? t("contextLayer.context", "Перевод в контексте") : t(_strict ? "contextLayer.missing" : "contextLayer.dictionary", _strict ? "Контекстный перевод отсутствует" : "Словарный перевод; применимость здесь не подтверждена"));
@@ -520,6 +526,7 @@
   function removeRibbon(mount) {
     var st = _ribbons.get(mount);
     if (!st) return;
+    st.epoch = (st.epoch || 0) + 1;
     try { st.obs.disconnect(); } catch (_) {}
     if (st.raf) { try { cancelAnimationFrame(st.raf); } catch (_) {} }
     if (st.el && st.el.parentNode) st.el.parentNode.removeChild(st.el);
@@ -527,7 +534,8 @@
   }
 
   // Entry point for both surfaces, called after every table render / toggle change.
-  // opts = { gloss: bool, ribbon: bool, ai: bool }. Ф3б (owner 2026-10-12): AI glosses already paid for
+  // opts = { gloss: bool, ribbon: bool, ai: bool, strict: bool, isCurrent?: function }.
+  // Ф3б (owner 2026-10-12): AI glosses already paid for
   // (this device, an imported/published material) are SHOWN whenever the gloss line or the ribbon is on;
   // `ai` only allows ordering NEW rows (lazy mode) — it is the spending switch, not the display switch.
   var _aiOn = false, _strict = false;
@@ -544,38 +552,39 @@
   }
   function refreshRibbon(mount) { var st = _ribbons.get(mount); if (st) { st.rowIdx = undefined; renderRibbon(st); } }
   async function apply(mount, opts) {
-    if (!mount) return;
+    opts = opts || {};
+    var ownerCurrent = typeof opts.isCurrent === "function" ? opts.isCurrent : function () { return true; };
+    if (!mount || !ownerCurrent()) return;
     var generation = (_applyGeneration.get(mount) || 0) + 1;
     _applyGeneration.set(mount, generation);
+    var isCurrent = function () { return _applyGeneration.get(mount) === generation && ownerCurrent(); };
     _pass++;
-    opts = opts || {};
     var AI = window.WordGlossAI;
     _strict = !!opts.strict;
     var aiWas = _aiOn;
     _aiOn = !!(AI && (opts.gloss || opts.ribbon));
     var aiFetch = !!(opts.ai && _aiOn);
-    if (AI && !aiFetch) AI.stopLazy(mount);
+    // A lazy observer belongs to this application generation, including its delayed callbacks.
+    if (AI) AI.stopLazy(mount);
     if (AI && !_aiOn && aiWas) {   // gloss and ribbon off: drop AI paint so a later offline pass starts clean
       Array.prototype.forEach.call(mount.querySelectorAll(".rm-w[data-gloss-ai]"), function (sp) {
         ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "title"].forEach(function (a) { sp.removeAttribute(a); });
       });
     }
-    if (opts.ribbon) { var st = ensureRibbon(mount); st.rowIdx = undefined; place(st); renderRibbon(st); }
+    if (opts.ribbon) { var st = ensureRibbon(mount); st.isCurrent = isCurrent; st.epoch = (st.epoch || 0) + 1; st.rowIdx = undefined; place(st); }
     else removeRibbon(mount);
     if (_aiOn) { try { await AI.hydrate(Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"))); } catch (_) {} }
-    if (_applyGeneration.get(mount) !== generation) return;
+    if (!isCurrent()) return;
     clearGloss(mount);
-    if (opts.gloss) await applyGloss(mount);
-    else { _pass++; clearGloss(mount); }
-    if (_applyGeneration.get(mount) !== generation) return;
+    if (opts.gloss) await applyGloss(mount, { isCurrent: isCurrent });
+    if (!isCurrent()) return;
+    if (opts.ribbon) refreshRibbon(mount);
     if (_aiOn) {
-      var trs = Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"));
-      try { await AI.hydrate(trs); } catch (_) {}
-      if (_applyGeneration.get(mount) !== generation) return;
-      if (opts.gloss) AI.paintMount(mount);
-      if (opts.ribbon) refreshRibbon(mount);
-      if (aiFetch) AI.startLazy(mount, function () { return _aiOn && opts.ai; });
+      // applyGloss already paints each hydrated contextual row once; do not hydrate/repaint
+      // the whole table again (paintMount also duplicates the coverage scan below).
+      if (aiFetch) AI.startLazy(mount, function () { return isCurrent() && _aiOn && opts.ai; });
     }
+    if (!isCurrent()) return;
     var coverage = _coverage.get(mount), host = hostOf(mount);
     if (_aiOn && !coverage) {
       coverage = document.createElement("div"); coverage.className = "rm-context-coverage"; coverage.setAttribute("role", "status");

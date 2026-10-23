@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=812';
+import * as localDbRaw from '/db/local-db.js?v=813';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -30,7 +30,8 @@ const localDb = new Proxy(localDbRaw, {
     };
   },
 });
-import * as readerCore from '/js/reader-core.js?v=802';
+import * as readerCore from '/js/reader-core.js?v=813';
+import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=811';
@@ -2080,9 +2081,18 @@ const ensureWordStates = () => morphHost.ensureWordStates();
 // BRR-P1-006/009 — apply BOTH word-status colouring and adaptive niqqud fade in ONE pass
 // (reader-morph resolves each word once). States are only fetched when a decoration needs them
 // (colour on, or niqqud 'adaptive'); otherwise a cheap clear restores plain/neutral.
+let readerDecorationRevision = 0;
 async function applyDecorations() {
   const mount = activeReaderMorphMount();
   if (!mount || !window.ReaderMorph) return;
+  const epoch = readerOpenEpoch, work = readerMorphWork;
+  const revision = ++readerDecorationRevision;
+  const isCurrent = () => revision === readerDecorationRevision && epoch === readerOpenEpoch && work === readerMorphWork;
+  if (work && !await work.complete) return;
+  if (!isCurrent()) return;
+  // Stored contextual translations do not depend on the full morphology/status
+  // pass. Let readers see them while colours continue resolving in the background.
+  applyWordLayer(mount);
   const color = wordStatusEnabled();
   const fadeMode = readerCfg.niqqudMode;            // 'full' | 'adaptive' | 'off'
   const need = color || fadeMode === 'adaptive';
@@ -2094,7 +2104,10 @@ async function applyDecorations() {
   if (color && typeof window.ReaderMorph.dueSetFromSchedule === 'function') {
     try { dueSet = window.ReaderMorph.dueSetFromSchedule((await localDb.getSrsSchedule()) || {}, states || {}, Date.now()); } catch (_) { dueSet = null; }
   }
-  try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode, dueSet }); } catch (_) {}
+  if (!isCurrent()) return;
+  try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode, dueSet,
+    isCurrent }); } catch (_) {}
+  if (!isCurrent()) return;
   // suppressed-marker tally → per-day MAX (repaints of the same text must not inflate it); the
   // P6 retention-report reads this as the «lost recall opportunities» floor (recon §6.1/§7).
   try {
@@ -2109,15 +2122,18 @@ async function applyDecorations() {
     }
   } catch (_) {}
   try { refreshCovChip(); } catch (_) {}   // W4 — keep the in-reader coverage chip in sync on open / status / config change
-  applyWordLayer(mount);
 }
 // Word layer Ф1 (docs/planning/word-layer/F1_SPEC_2026_10_11.md) — подстрочник + лента слов. Та же
 // офлайн-трактовка, что у раскраски и карточки по тапу; ничего не пишет. Опт-ин, Аа-панель.
 function applyWordLayer(mount) {
   mount = mount || activeReaderMorphMount();
   if (!mount || !window.WordGloss) return;
+  const epoch = readerOpenEpoch, rows = readerRows;
+  const table = mount.querySelector('#proTable');
   if (window.WordGlossAI) window.WordGlossAI.bindRows(mount, readerRows);
-  try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi'), strict: window.WordGloss.enabled('room', 'GlossStrict') }); } catch (_) {}
+  try { Promise.resolve(window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi'), strict: window.WordGloss.enabled('room', 'GlossStrict'),
+    isCurrent: () => epoch === readerOpenEpoch && rows === readerRows && mount.isConnected &&
+      (!table || (table.isConnected && mount.contains(table))) })).catch(() => {}); } catch (_) {}
 }
 
 // B7 — in-reader Learning Compass chip. The already-running local Worker supplies content-free
@@ -2918,6 +2934,9 @@ async function recollectStudy() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   let states = {}, words = [];
   try {
+    const work = readerMorphWork;
+    if (work && !await work.complete) return;
+    if (work !== readerMorphWork) return;
     states = (await ensureWordStates()) || {};
     const opts = {};
     if (_studyView.scope === 'ahead') { let top = 0; try { top = currentTopRowIdx() || 0; } catch (_) { top = 0; } opts.rowFrom = top; }
@@ -3088,6 +3107,9 @@ async function startTraining() {
   try {
     states = (await ensureWordStates()) || {};
     schedule = (await localDb.getSrsSchedule()) || {};   // C2 — per-lemma review schedule
+    const work = readerMorphWork;
+    if (work && !await work.complete) return;
+    if (work !== readerMorphWork) return;
     all = await window.ReaderMorph.collectReviewItems(mount, states, {});
   } catch (_) { all = []; }
   if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;
@@ -6062,6 +6084,9 @@ function roomRowTtsLabels() {
 
 function readerConfig() {
   return {
+    // Room owns bookmark/mentor actions; Studio-only editing controls are hidden
+    // here. Do not construct five invisible buttons for every row of a long text.
+    readOnly: true,
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
     visibleColumns: {
       // «Скрыта» убирает колонку из НАБОРА — это легальный вход parity-залоченного
@@ -6144,7 +6169,11 @@ function attachReaderAudio() {
     t: (k) => tt(k, k),
     rowTtsLabels: roomRowTtsLabels(),
   });
-  readerRows.forEach((_, idx) => paintAudioIndicator(idx));
+  // One traversal, not a selector search through the entire table for every row.
+  mount.querySelectorAll('span.row-audio-ind[data-row-idx]').forEach(marker => {
+    const idx = Number(marker.dataset.rowIdx);
+    readerCore.paintRowAudioIndicator(mount, idx, readerRows[idx], audioProfile, audioIndicatorLabels, marker);
+  });
   const morphOverrides = materialsInlineMorphOverrides();
   attachReaderMorph(activeReaderMorphMount(), morphOverrides);
   if (morphOverrides) applyDecorations();
@@ -6725,14 +6754,17 @@ function currentTopRowIdx() {
   const mount = $('roomReaderTable'); if (!mount || !window.ReaderProgress) return null;
   const trs = mount.querySelectorAll('tr[data-row-idx]');
   if (!trs.length) return null;
-  const rows = [];
-  for (const tr of trs) {
-    const rc = tr.getBoundingClientRect();
-    rows.push({ idx: Number(tr.getAttribute('data-row-idx')), top: rc.top, bottom: rc.bottom });
-  }
   let offset = readerBarOffset();
   try { if (mount.classList.contains('room-media-scroll')) offset = Math.max(offset, mount.getBoundingClientRect().top); } catch (_) {}
-  return window.ReaderProgress.topVisibleRowIdx(rows, offset);
+  // Row bottoms are monotone in the table. Resume near its end must not measure
+  // thousands of preceding rows on every scroll event.
+  let low = 0, high = trs.length - 1;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (trs[mid].getBoundingClientRect().bottom > offset) high = mid;
+    else low = mid + 1;
+  }
+  return Number(trs[low].dataset.rowIdx);
 }
 function wireProgressScroll() {
   if (_progressScrollWired) return; _progressScrollWired = true;
@@ -6772,6 +6804,7 @@ function wireProgressScroll() {
 function positionReaderRow(idx, behavior) {
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
+  if (tr && readerMorphWork) readerMorphWork.ensure(tr);
   if (!tr) return false;
   if (mount.classList.contains('room-media-scroll')) {
     const prev = idx > 0 ? mount.querySelector('tr[data-row-idx="' + String(idx - 1) + '"]') : null;
@@ -6914,11 +6947,9 @@ function readerAtEnd() {
   if (!window.ReaderProgress || !readerRows.length) return false;
   if (window.ReaderProgress.atTextEnd(_sessionFurthestRow, readerRows.length)) return true;
   const mount = $('roomReaderTable'); if (!mount) return false;
-  const trs = mount.querySelectorAll('tr[data-row-idx]');
-  if (!trs.length) return false;
-  const rows = [];
-  for (const tr of trs) { const rc = tr.getBoundingClientRect(); rows.push({ idx: Number(tr.getAttribute('data-row-idx')), top: rc.top, bottom: rc.bottom }); }
-  return window.ReaderProgress.lastRowVisible(rows, window.innerHeight || 0, 60);
+  const last = mount.querySelector('tr[data-row-idx="' + (readerRows.length - 1) + '"]');
+  if (!last) return false;
+  return window.ReaderProgress.lastRowVisible([{ bottom: last.getBoundingClientRect().bottom }], window.innerHeight || 0, 60);
 }
 function maybeShowEndOfText() {
   if (readerTextId == null || !readerRows.length) return;
@@ -8231,11 +8262,18 @@ const gradeReadingTap = (card, occ, correct, prev) => morphHost.gradeReadingTap(
 // into tappable spans (post-render, parity-safe — the reader-core builder is untouched)
 // → a tap shows a light root/binyan/POS/gloss card with honest provenance. The 3.3 MB
 // offline Pealim dataset loads lazily on the FIRST tap, never at text-open.
+let readerMorphWork = null;
+function cancelReaderRowWork() {
+  if (readerMorphWork) readerMorphWork.cancel();
+  readerMorphWork = null;
+}
 function attachReaderMorph(mount, overrides) {
   if (!mount || !window.ReaderMorph) return;
+  cancelReaderRowWork();
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   morphHost.clearCtxCache();   // fresh per (re)attach
   const opts = {
+    deferWrap: !overrides && (readerRows.length > 120 || readerRows.reduce((size, row) => size + String(row?.he || '').length + String(row?.he_niqqud || '').length, 0) > 12000),
     getRow: (i) => readerRows[i],
     getTextKey: () => readerTextKey,
     saveWord: roomSaveWord,
@@ -8299,6 +8337,13 @@ function attachReaderMorph(mount, overrides) {
   opts.explainWord = explainWordFromCard;
   Object.assign(opts, overrides || {});
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
+  if (opts.deferWrap && readerMorph) {
+    const handle = readerMorph, epoch = readerOpenEpoch;
+    readerMorphWork = scheduleRowWork(mount, row => handle.refresh(row), {
+      isCurrent: () => handle === readerMorph && epoch === readerOpenEpoch && mount.isConnected,
+    });
+    readerMorphWork.complete.then(ok => { if (ok && handle === readerMorph) applyFindMarks(); });
+  }
   if (!overrides) applyDecorations();   // default reader only: custom tables own their selector/focus
   return readerMorph;
 }
@@ -8397,12 +8442,19 @@ function roomPaintColWidths() {
   if (!tables.length) return;
   const visible = readerConfig().visibleColumns;
   const eff = readerCore.computeEffectiveWidths(visible, roomTableWidths);
+  const railNeeded = studyModeOn() && actionColMode() === 'rail' && visible.action;
+  const setWidth = (col, pct) => {
+    const rounded = Number(pct.toFixed(6)), width = col.style.width;
+    if (!width.endsWith('%') || Number.parseFloat(width) !== rounded) col.style.width = rounded + '%';
+  };
   tables.forEach((table) => {
     const cols = [...table.querySelectorAll('colgroup col[data-col]')];
     if (!cols.length) return;
-    const total = table.getBoundingClientRect().width;
-    const railOn = studyModeOn() && actionColMode() === 'rail' && visible.action && total > 0
-      && cols.some((c) => c.getAttribute('data-col') === 'action');
+    // Reading mode needs only percentages: measuring here forces a full layout
+    // of the long table immediately before its column widths change again.
+    const total = railNeeded && cols.some((c) => c.getAttribute('data-col') === 'action')
+      ? table.getBoundingClientRect().width : 0;
+    const railOn = total > 0;
     if (railOn) {
       const railPct = Math.min(40, (ROOM_RAIL_PX / total) * 100);
       const rest = 100 - railPct;
@@ -8412,13 +8464,13 @@ function roomPaintColWidths() {
       cols.forEach((c) => {
         const k = c.getAttribute('data-col');
         const pct = k === 'action' ? railPct : (Number(eff[k] || 0) / sum) * rest;
-        c.style.width = pct.toFixed(6) + '%';
+        setWidth(c, pct);
       });
       return;
     }
     cols.forEach((c) => {
       const k = c.getAttribute('data-col');
-      c.style.width = Number(eff[k] || 0).toFixed(6) + '%';
+      setWidth(c, Number(eff[k] || 0));
     });
   });
 }
@@ -8518,26 +8570,81 @@ function attachRoomColResize() {
   });
 }
 
-// A background re-render (transliteration filled in) changes row heights above the reader's place; the row at the
-// top of the screen stays where it was instead of the text jumping away.
-function rerenderReaderKeepingPlace() {
+function readerPlaceAnchor() {
   const mount = $('roomReaderTable');
-  let anchor = null;
-  if (mount && !($('roomReader') || {}).hidden) {
-    for (const tr of mount.querySelectorAll('tr[data-row-idx]')) { const r = tr.getBoundingClientRect(); if (r.bottom > 80) { anchor = { idx: tr.getAttribute('data-row-idx'), top: r.top }; break; } }
+  if (!mount || ($('roomReader') || {}).hidden) return null;
+  const idx = currentTopRowIdx();
+  const row = idx == null ? null : mount.querySelector('tr[data-row-idx="' + idx + '"]');
+  return row ? { idx, top: row.getBoundingClientRect().top } : null;
+}
+function restoreReaderPlaceAnchor(anchor) {
+  if (!anchor) return;
+  const mount = $('roomReaderTable');
+  const row = mount && mount.querySelector('tr[data-row-idx="' + anchor.idx + '"]');
+  if (!row) return;
+  const delta = row.getBoundingClientRect().top - anchor.top;
+  if (Math.abs(delta) <= 1) return;
+  if (mount.classList.contains('room-media-scroll')) mount.scrollTop += delta;
+  else window.scrollBy(0, delta);
+}
+
+let readerTranslitRevision = 0;
+function cancelReaderRenderWork() {
+  ++readerTranslitRevision;
+  roomTranslitStore?.cancelPending();
+  cancelReaderRowWork();
+}
+
+// Patch only the transliteration cells. Background derivation and profile changes
+// must preserve the audio player, word sheet, selection, and revealed translations.
+function refreshReaderTranslit(derive = false) {
+  const store = roomTranslit(), mount = $('roomReaderTable');
+  const table = mount && mount.querySelector('#proTable');
+  if (!store || !table) return;
+  const rows = readerRows, profile = readerCfg.translitProfile, epoch = readerOpenEpoch;
+  const revision = ++readerTranslitRevision;
+  const current = () => revision === readerTranslitRevision && epoch === readerOpenEpoch && rows === readerRows && table.isConnected;
+  const targets = [{ table, rows, offset: 0 }];
+  const solutionTable = materialsInlineState?.expanded && $('roomReader')?.querySelector('.materials-inline-table');
+  if (solutionTable) targets.push({ table: solutionTable, rows: materialsInlineState.rows, offset: rows.length });
+  const cells = targets.flatMap(target => Array.from(target.table.querySelectorAll('td[data-col="translit"]'), cell => ({
+    cell, row: target.rows[Number(cell.parentElement.dataset.rowIdx) - target.offset],
+  })));
+  if (!cells.length) return;
+  if (derive) { store.cancelPending(); store.beginRender(); }
+  for (const target of targets) {
+    const header = target.table.querySelector('th[data-col="translit"]');
+    if (header && header.firstChild?.nodeType === Node.TEXT_NODE) {
+      header.firstChild.textContent = tt(profile === 'ru-phonetic' ? 'table.colTranslitRu' : profile === 'sbl' ? 'table.colTranslitSbl' : 'table.colTranslitLearnerLatin');
+    }
   }
-  rerenderReader();
-  if (!anchor || !mount) return;
-  // Column widths and decorations settle over the next frames; hold the row in place until they do.
-  const hold = () => { const tr = mount.querySelector('tr[data-row-idx="' + anchor.idx + '"]'); if (!tr) return; const delta = tr.getBoundingClientRect().top - anchor.top; if (Math.abs(delta) > 1) window.scrollBy(0, delta); };
-  hold();
-  let frames = 0;
-  const loop = () => { hold(); if (++frames < 20) requestAnimationFrame(loop); };
-  requestAnimationFrame(loop);
+  let cursor = 0;
+  const step = () => {
+    if (!current()) return;
+    const anchor = readerPlaceAnchor(), deadline = performance.now() + 8;
+    let changed = false;
+    do {
+      const { cell, row } = cells[cursor++];
+      if (!cell.isConnected) continue;
+      const value = store.display(row, profile);
+      // MediaHost may append a replay button to this last visible column.
+      // Replace only our text, preserving the button, its NBSP and its listener.
+      let text = Array.from(cell.childNodes).find(node => node.nodeType === Node.TEXT_NODE &&
+        !(node.textContent === '\u00a0' && node.nextSibling?.classList?.contains('smk-row-replay')));
+      if (!text) { text = document.createTextNode(''); cell.insertBefore(text, cell.firstChild); }
+      if (text.textContent !== value) { text.textContent = value; changed = true; }
+    } while (cursor < cells.length && performance.now() < deadline);
+    if (changed) restoreReaderPlaceAnchor(anchor);
+    if (cursor < cells.length) setTimeout(step, 0);
+    else if (derive) store.endRender(() => { if (current()) refreshReaderTranslit(); });
+  };
+  step();
 }
 function rerenderReader() {
   const mount = $('roomReaderTable');
   if (!mount) return;
+  const anchor = readerPlaceAnchor();
+  cancelReaderRenderWork();
   const translitStore = roomTranslit();
   if (translitStore) translitStore.beginRender();
   mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
@@ -8546,13 +8653,14 @@ function rerenderReader() {
   if (translitStore) {
     const renderedRows = readerRows, renderedProfile = readerCfg.translitProfile;
     translitStore.endRender(() => {
-      if (readerRows === renderedRows && readerCfg.translitProfile === renderedProfile) rerenderReaderKeepingPlace();
+      if (readerRows === renderedRows && readerCfg.translitProfile === renderedProfile) refreshReaderTranslit();
     });
   }
   attachReaderAudio();
   try { refreshFindAfterRerender(); } catch (_) {}   // BRR-S15 — re-apply find marks after a table rebuild
   try { roomMediaRefresh(); } catch (_) {}   // media player: re-bind стейджа + re-инъекция ▶︎ после пересборки таблицы
   try { roomUpdateTheadTop(); } catch (_) {}   // sticky-шапка: высота бара могла измениться
+  restoreReaderPlaceAnchor(anchor);
 }
 
 function buildAidsPanel() {
@@ -8660,7 +8768,7 @@ function buildAidsPanel() {
     ['learner-latin', 'room.reader.profileLearner', 'Учебная'],
     ['sbl', 'room.reader.profileSbl', 'SBL'],
     ['ru-phonetic', 'room.reader.profileRu', 'Рус'],
-  ], readerCfg.translitProfile, (v) => { readerCfg.translitProfile = v; saveReaderCfg(); rerenderReader(); });
+  ], readerCfg.translitProfile, (v) => { readerCfg.translitProfile = v; saveReaderCfg(); refreshReaderTranslit(true); });
   const tLab = el('label');   // plain label (NOT .reader-aids-status — that marks the status/context toggles)
   const tCb = el('input', { attrs: { type: 'checkbox' } });
   tCb.checked = !!readerCfg.translitOn;
@@ -8870,6 +8978,7 @@ async function openReader(textId, title, opts) {
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
+  cancelReaderRenderWork();
   readerLearningNiqqud = null;
   $('readerLearningNiqqud')?.remove();
   const request = readerOpens.begin(textId);
@@ -8922,7 +9031,7 @@ async function openReader(textId, title, opts) {
     localDb, mount, config: readerConfig(), request,
     prepareMaterial: async (material, isCurrent) => {
       const out = await prepareReaderLearningNiqqud(material, isCurrent);
-      if (openTranslit) openTranslit.beginRender();   // the table is built right after this resolves
+      if (isCurrent() && openTranslit) openTranslit.beginRender();   // the table is built right after this resolves
       return out;
     },
     isCurrent: () => openEpoch === readerOpenEpoch,
@@ -8934,10 +9043,11 @@ async function openReader(textId, title, opts) {
       // 'ready' → table already painted by openText
     },
   });
+  if (openEpoch !== readerOpenEpoch) return;
   if (openTranslit) {
     const openedProfile = readerCfg.translitProfile;
     openTranslit.endRender(() => {
-      if (openEpoch === readerOpenEpoch && readerRows.length && readerCfg.translitProfile === openedProfile) rerenderReaderKeepingPlace();
+      if (openEpoch === readerOpenEpoch && readerRows.length && readerCfg.translitProfile === openedProfile) refreshReaderTranslit();
     });
   }
   if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
@@ -9121,6 +9231,7 @@ function jumpToFtsMatch(q, loadedProgress) {
 }
 
 async function closeReader(options) {
+  cancelReaderRenderWork();
   readerLearningNiqqud = null;
   $('readerLearningNiqqud')?.remove();
   // BRR-P2-002 — flush the last deliberate working position synchronously BEFORE hiding
@@ -9258,11 +9369,12 @@ function runFind(q) {
   applyFindMarks();
   if (_findCur >= 0) gotoFindMatch(); else updateFindCount();
 }
-function applyFindMarks() {
+function applyFindMarks(onlyRow) {
   const mount = $('roomReaderTable'); if (!mount) return;
   const qToks = ftsQueryTokens(_findQuery);
-  for (const idx of _findMatches) {
-    const tr = mount.querySelector('tr[data-row-idx="' + idx + '"]'); if (!tr) continue;
+  const matches = new Set(_findMatches);
+  for (const tr of onlyRow ? [onlyRow] : mount.querySelectorAll('tr[data-row-idx]')) {
+    if (!matches.has(Number(tr.dataset.rowIdx))) continue;
     tr.classList.add('rm-find-row');
     if (qToks.length) tr.querySelectorAll('.rm-w').forEach((w) => {
       let skel = ''; try { skel = window.CorpusFTS.normalizeToken(w.textContent); } catch (_) {}
@@ -9280,6 +9392,7 @@ function gotoFindMatch() {
   const mount = $('roomReaderTable'); if (!mount || _findCur < 0) return;
   mount.querySelectorAll('.rm-find-row-current').forEach((t) => t.classList.remove('rm-find-row-current'));
   const tr = mount.querySelector('tr[data-row-idx="' + _findMatches[_findCur] + '"]');
+  if (tr && readerMorphWork?.ensure(tr)) applyFindMarks(tr);
   if (tr) { tr.classList.add('rm-find-row-current'); if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} } }
   updateFindCount();
 }
@@ -9295,7 +9408,13 @@ function updateFindCount() {
 // Re-apply the find decoration after a reader re-render (aids/locale change rebuilt the table).
 function refreshFindAfterRerender() {
   if (!$('readerFind') || $('readerFind').hidden || !String(_findQuery).trim()) return;
-  runFind(_findQuery);
+  const row = _findMatches[_findCur];
+  _findMatches = window.CorpusFTS?.findRows(readerRows, _findQuery) || [];
+  _findCur = _findMatches.length ? Math.max(0, _findMatches.indexOf(row)) : -1;
+  applyFindMarks();
+  const tr = $('roomReaderTable')?.querySelector('tr[data-row-idx="' + _findMatches[_findCur] + '"]');
+  if (tr) tr.classList.add('rm-find-row-current');
+  updateFindCount();
 }
 
 // Resolve a stable text_key → the ephemeral local OPFS id (importBundle remaps ids on

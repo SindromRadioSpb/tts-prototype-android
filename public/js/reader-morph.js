@@ -601,7 +601,13 @@
   // opts.wait — ms the loader may wait for the work's stored parse to arrive (a tap, O-091); the paint never waits
   async function ensurePlaces(sids, opts) {
     if (!_placeLoader || !sids) return;
-    var need = []; (Array.isArray(sids) ? sids : Array.from(sids)).forEach(function (s) { s = String(s || ""); if (s && !_places.has(s) && need.indexOf(s) < 0) need.push(s); });
+    // A sentence occurs once per word span (and again in the second Hebrew column).
+    // Keep first-seen order without rescanning the growing list for every occurrence.
+    var need = [], seen = new Set();
+    (Array.isArray(sids) ? sids : Array.from(sids)).forEach(function (s) {
+      s = String(s || "");
+      if (s && !_places.has(s) && !seen.has(s)) { seen.add(s); need.push(s); }
+    });
     if (!need.length) return;
     // a bounded store (the iPhone memory lesson, 3.11.760): a whole-library pass must not keep every sentence resident
     if (_places.size + need.length > 6000) _places.clear();
@@ -1671,15 +1677,21 @@
       var vocalized = typeof opts.getVocalizedText === "function" ? opts.getVocalizedText(row) : row.he_niqqud;
       var value = col === (opts.plainColumn || "he") ? String(plain || "") : String(vocalized || "");
       if (typeof opts.shouldWrap === "function" && !opts.shouldWrap(row, td, col, value)) continue;
-      // Generated badges (speech language, doubtful niqqud) are not cell text; they survive the wrap.
-      var badges = Array.prototype.slice.call(td.querySelectorAll('.subtitle-speech-badge, .niqqud-suspect-badge'));
+      // Generated controls are not cell text. Media may add its replay button
+      // before a distant row is hydrated; keep its node/listener and joining NBSP.
+      var preserved = [];
+      td.querySelectorAll('.subtitle-speech-badge, .niqqud-suspect-badge, .smk-row-replay').forEach(function (node) {
+        var glue = node.previousSibling;
+        if (node.classList.contains('smk-row-replay') && glue && glue.nodeType === 3 && glue.textContent === '\u00a0') preserved.push(glue);
+        preserved.push(node);
+      });
       if (col === (opts.plainColumn || "he")) {
         var aligned = alignSurfaceNiqqud(String(plain || ""), String(vocalized || ""));
         td.innerHTML = wrapCellHtml(String(plain || ""), aligned, opts);
       } else { // niqqud cell — tokens are self-vocalized
         td.innerHTML = wrapCellHtml(String(vocalized || ""), null, opts);
       }
-      badges.forEach(function (badge) { td.appendChild(badge); });
+      preserved.forEach(function (node) { td.appendChild(node); });
       td.setAttribute(WRAP_FLAG, "1");
     }
   }
@@ -2959,15 +2971,21 @@
 
   // ── Public: attach the learner layer to a painted reader mount ──────────────
   //   attach(mount, { getRow })  — getRow(rowIdx) -> row model (he, he_niqqud).
-  // Returns { detach, refresh }. Idempotent per cell (WRAP_FLAG).
+  // Returns { detach, refresh(scope?) }. Idempotent per cell (WRAP_FLAG).
+  // deferWrap lets the host hydrate only visible row groups after attaching delegates.
   function attach(mount, opts) {
     opts = opts || {};
     if (!mount) return { detach: function () {}, refresh: function () {} };
     var getRow = typeof opts.getRow === "function" ? opts.getRow : function () { return null; };
     _attachOpts = opts;
 
-    var refresh = function () { try { wrapMount(mount, getRow, opts); } catch (_) {} };
-    refresh();
+    var detached = false;
+    var refresh = function (scope) {
+      scope = scope || mount;
+      if (detached || (scope !== mount && !mount.contains(scope))) return;
+      try { wrapMount(scope, getRow, opts); } catch (_) {}
+    };
+    if (!opts.deferWrap) refresh();
 
     var rowForSpan = function (span) {
       var tr = span && span.closest ? span.closest(opts.rowSelector || "tr[data-row-idx]") : null;
@@ -3163,6 +3181,8 @@
     return {
       refresh: refresh,
       detach: function () {
+        if (detached) return;
+        detached = true;
         mount.removeEventListener("click", onClick, true);
         mount.removeEventListener("keydown", onKey);
         mount.removeEventListener("pointerdown", onPointerDown);
@@ -3220,6 +3240,12 @@
   }
 
   function _colOf(span) { var td = span && span.closest ? span.closest("td[data-col]") : null; return td ? td.getAttribute("data-col") : null; }
+  function clearDueTooltip(span) {
+    if (!span.getAttribute("data-rm-due-tip")) return;
+    // Contextual glosses can finish before colours; only remove the title we own.
+    if (span.getAttribute("title") === tt("room.morph.due.tip", "К повторению — тапни и вспомни перевод")) span.removeAttribute("title");
+    span.removeAttribute("data-rm-due-tip");
+  }
 
   // Remove all decorations: colour classes + restore any de-vocalized niqqud spans. Cheap, no resolve.
   function clearDecorations(mount) {
@@ -3227,7 +3253,7 @@
     var painted = mount.querySelectorAll("." + _RM_W_CLASSES.join(", ."));
     for (var i = 0; i < painted.length; i++) {
       painted[i].classList.remove.apply(painted[i].classList, _RM_W_CLASSES);
-      if (painted[i].getAttribute("data-rm-due-tip")) { painted[i].removeAttribute("title"); painted[i].removeAttribute("data-rm-due-tip"); }
+      clearDueTooltip(painted[i]);
     }
     var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
     for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null && niq[j].textContent !== n) niq[j].textContent = n; }
@@ -3241,6 +3267,8 @@
   async function decorateWords(mount, statesMap, opts) {
     if (!mount) return;
     opts = opts || {};
+    var isCurrent = typeof opts.isCurrent === "function" ? opts.isCurrent : function () { return true; };
+    if (!isCurrent()) return;
     var color = !!opts.color, fadeMode = opts.fadeMode || "full";
     if (!color && fadeMode !== "adaptive") { clearDecorations(mount); return; }   // nothing to resolve
     var states = statesMap || {};
@@ -3248,26 +3276,35 @@
     var dueMarked = {}, dueSuppressed = {};   // unique keys per pass (a word repeats in-text)
     var NA = window.NotesAutoGen;
     var eng; try { eng = await ensureEngine(); } catch (_) { return; }
+    if (!isCurrent()) return;
     // The status key of a FUNCTION word depends on its PealimFunctionLinks id (_statusPid). The map
     // is lazy; if it isn't loaded yet the paint would key by surface#pos while the saved status is
     // pid:N → a brief miss until the next repaint. Await readiness so the very first paint already
     // keys function words by pid (consistent with resolveWordLight). Idempotent + offline-cheap.
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
+    if (!isCurrent()) return;
     var spans = Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
     // Д10: the words' places (the sentence's stored Dicta parse, the learner's decisions) before the paint
     var places = spans.map(placeOfSpan);
     try { await ensurePlaces(places.filter(Boolean).map(function (pl) { return pl.sid; })); } catch (_) {}
+    if (!isCurrent()) return;
     var i = 0;
     while (i < spans.length) {
+      if (!isCurrent()) return;
       var end = Math.min(i + 60, spans.length);
       for (; i < end; i++) {
         var span = spans[i];
-        span.classList.remove.apply(span.classList, _RM_W_CLASSES);
         var isNiqqud = _colOf(span) === "niqqud";
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
-        var card; try { card = await resolveCore(eng, surface, niqqud, places[i] ? { place: places[i] } : undefined); }
-        catch (_) { if (isNiqqud && niqqud != null && span.textContent !== niqqud) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
+        var card, failed = false;
+        try { card = await resolveCore(eng, surface, niqqud, places[i] ? { place: places[i] } : undefined); }
+        catch (_) { failed = true; }
+        // Resolving can yield while another material or colour pass takes over.
+        // Do not even clear the current decorations until this result is still owned.
+        if (!isCurrent()) return;
+        span.classList.remove.apply(span.classList, _RM_W_CLASSES);
+        if (failed) { if (isNiqqud && niqqud != null && span.textContent !== niqqud) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
         var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
         // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident)
         // via the shared keyer, byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status
@@ -3287,14 +3324,16 @@
         // Retention P5 — quiet due marker: a ring, never a background tint (the background IS the
         // manual-status axis). Key parity is free: lk is the SAME statusKeyForCard bytes the due
         // set was built from (save == paint == review). exact-only + unambiguous (R10 honesty).
-        if (span.getAttribute("data-rm-due-tip")) { span.removeAttribute("title"); span.removeAttribute("data-rm-due-tip"); }   // stale ring tooltip
+        clearDueTooltip(span);
         if (dueSet && lk && dueSet.has(lk)) {
           if (card && card.label === "exact" && !card.ambiguous) {
             span.classList.add("rm-w-due"); dueMarked[lk] = 1;
             // P5.6 R-1 — the ring must be self-explaining (discoverability): a desktop hover
             // says what it means; touch users learn it from the recall card + the 🎨 hint.
-            span.title = tt("room.morph.due.tip", "К повторению — тапни и вспомни перевод");
-            span.setAttribute("data-rm-due-tip", "1");
+            if (!span.getAttribute("title")) {
+              span.title = tt("room.morph.due.tip", "К повторению — тапни и вспомни перевод");
+              span.setAttribute("data-rm-due-tip", "1");
+            }
           }
           else dueSuppressed[lk] = 1;
         }
@@ -3304,7 +3343,7 @@
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
-    if (dueSet) _dueMarkStats = { marked: Object.keys(dueMarked).length, suppressed: Object.keys(dueSuppressed).length, at: Date.now() };
+    if (isCurrent() && dueSet) _dueMarkStats = { marked: Object.keys(dueMarked).length, suppressed: Object.keys(dueSuppressed).length, at: Date.now() };
   }
   // Retention P5 — last-pass marker tally: how many due words were visibly marked vs honestly
   // suppressed (non-exact) in the current text. Read by the Room (per-day MAX → localStorage)

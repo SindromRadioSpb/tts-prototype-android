@@ -1,0 +1,292 @@
+{
+  "date": "2026-10-23",
+  "sourceBaseRevision": "e72ba44836be1689a56c80a99bbbdc62ab886b49",
+  "production": "pending",
+  "fixture": {
+    "generated": true,
+    "rows": 2500,
+    "shortMaterialRows": 24,
+    "searchRowIndex": 2491,
+    "resumeRowIndex": 1725,
+    "desktopViewport": {
+      "width": 1280,
+      "height": 1000
+    },
+    "mobileViewport": {
+      "width": 380,
+      "height": 780
+    },
+    "paragraphs": {
+      "generated": true,
+      "rows": 34,
+      "hebrewWordsPerRow": 100,
+      "extraSearchWordInLastRow": true,
+      "canonicalWordSpans": 3401,
+      "storedManualGlosses": 34,
+      "storedAiGlosses": 3367,
+      "generationEnabled": false
+    }
+  },
+  "isolation": {
+    "disposableServer": true,
+    "disposableBrowserProfile": true,
+    "serviceWorkersBlocked": true,
+    "externalRequestsBlocked": true,
+    "apiMutationRequestsBlocked": true,
+    "ownerDataUsed": false,
+    "paidCalls": false,
+    "serversStopped": true
+  },
+  "baseline": {
+    "dataMs": 445.27,
+    "paintMs": 702.76,
+    "paintAfterDataMs": 257.49,
+    "firstVisibleWordMs": 4135.11,
+    "firstVisibleWordAfterDataMs": 3689.84,
+    "readyMs": 4457.77,
+    "maxLongTaskMs": 2742,
+    "longTasks": [
+      {
+        "durationMs": 2742
+      },
+      {
+        "durationMs": 1169
+      },
+      {
+        "durationMs": 571
+      }
+    ],
+    "initialWrappedWords": 50002
+  },
+  "testedAssets": {
+    "public/js/library-ui.js": "55449a5581d77c5214b6d53234ab7bf05bbbf621c035871353b97372b7136345",
+    "public/js/reader-core.js": "b97c8040b3d40f90f756761c622e7e86e37c73985b98085ef55be9f38ff5021a",
+    "public/js/reader-morph.js": "f87d5cb78c9881a9f0258ff974d1cf70b61c0acc5e50953f2fa2af16ca94d4d2",
+    "public/js/translit-display.js": "2f2a14adffe13a07465475d9099802af1e2bbf4a0df797f969fc8c42005c382c",
+    "public/js/reader-row-work.js": "e7bbd5f362d2760d20f8feaa226d43dced63023034697035365483de941915b1",
+    "public/js/word-gloss.js": "06b464b6fbeab1a9976135451a7604cabfc36f8fb0486928f16a4751c3f18eeb",
+    "public/db/local-db.js": "65966629b32b97f4f93bd81175c4a27d27b7a4fcc6163002289f7ef9e25bf144",
+    "public/db/db-worker-runtime.js": "31fad7ebef707c745cd4e4ef9fb0f81017d8cf0842ce219625d2ddaf39e237d2"
+  },
+  "limitations": [
+    "Single measurements on one Windows desktop, not p95 or physical phone evidence.",
+    "Earlier paired baseline/checkpoint retained as historical evidence; latest full candidate includes contextual layer and long-paragraph fixes.",
+    "Latest first interactive Hebrew word still exceeds one second after data; DOM paint is a different metric.",
+    "Paragraph glosses are synthetic imported local fixtures, not AI linguistic quality evidence.",
+    "Production verification remains pending."
+  ],
+  "earlierCheckpointDesktop": {
+    "dataMs": 559.87,
+    "paintMs": 769.02,
+    "paintAfterDataMs": 209.15,
+    "firstVisibleWordMs": 2364.38,
+    "firstVisibleWordAfterDataMs": 1804.51,
+    "readyMs": 2621.26,
+    "maxLongTaskMs": 1232,
+    "longTasks": [
+      {
+        "durationMs": 1232
+      },
+      {
+        "durationMs": 739
+      },
+      {
+        "durationMs": 440
+      }
+    ],
+    "initialWrappedWords": 2000
+  },
+  "earlierCheckpointFlows": {
+    "checks": {
+      "manualTranslit": true,
+      "stableNodesAfterProfileFill": {
+        "table": true,
+        "word": true,
+        "audio": true
+      },
+      "replayButtonRetained": true,
+      "searchNearEnd": true,
+      "resume": true,
+      "rapidSwitch": true,
+      "mobileVisibleWords": true,
+      "mobileRtl": true
+    },
+    "errors": [],
+    "resume": {
+      "dataMs": 351.39,
+      "paintMs": 546.41,
+      "paintAfterDataMs": 195.02,
+      "firstVisibleWordMs": 3256.63,
+      "firstVisibleWordAfterDataMs": 2905.24,
+      "readyMs": 2793.54,
+      "maxLongTaskMs": 1225,
+      "longTasks": [
+        {
+          "durationMs": 1225
+        },
+        {
+          "durationMs": 772
+        },
+        {
+          "durationMs": 348
+        },
+        {
+          "durationMs": 195
+        },
+        {
+          "durationMs": 91
+        },
+        {
+          "durationMs": 73
+        },
+        {
+          "durationMs": 93
+        },
+        {
+          "durationMs": 100
+        }
+      ],
+      "initialWrappedWords": 6140
+    },
+    "mobileResume": {
+      "dataMs": 282.62,
+      "paintMs": 459.25,
+      "paintAfterDataMs": 176.63,
+      "firstVisibleWordMs": 3299.13,
+      "firstVisibleWordAfterDataMs": 3016.51,
+      "readyMs": 2909.5,
+      "maxLongTaskMs": 1337,
+      "longTasks": [
+        {
+          "durationMs": 1337
+        },
+        {
+          "durationMs": 811
+        },
+        {
+          "durationMs": 239
+        },
+        {
+          "durationMs": 107
+        },
+        {
+          "durationMs": 76
+        },
+        {
+          "durationMs": 87
+        },
+        {
+          "durationMs": 76
+        },
+        {
+          "durationMs": 111
+        },
+        {
+          "durationMs": 76
+        }
+      ],
+      "initialWrappedWords": 5520
+    },
+    "profileSwitch": {
+      "elapsedMs": 771.79,
+      "maxLongTaskMs": 75
+    }
+  },
+  "earlierCheckpointTestedAssetsWorkingTree": {
+    "public/js/library-ui.js": "7c0cb7126592a00cdb8f832ef454de141b68b24ca3671efa06bedeea2163ca2e",
+    "public/js/reader-core.js": "b97c8040b3d40f90f756761c622e7e86e37c73985b98085ef55be9f38ff5021a",
+    "public/js/reader-morph.js": "4b7d937a1a306b9c562e64978bc323af272bc320a717b1f9d378052238e68bd2",
+    "public/js/translit-display.js": "2f2a14adffe13a07465475d9099802af1e2bbf4a0df797f969fc8c42005c382c",
+    "public/db/local-db.js": "65966629b32b97f4f93bd81175c4a27d27b7a4fcc6163002289f7ef9e25bf144",
+    "public/db/db-worker-runtime.js": "31fad7ebef707c745cd4e4ef9fb0f81017d8cf0842ce219625d2ddaf39e237d2"
+  },
+  "latestCandidate": {
+    "checks": {
+      "manualTranslit": true,
+      "stableNodesAfterProfileFill": {
+        "table": true,
+        "word": true,
+        "audio": true
+      },
+      "replayButtonRetained": true,
+      "searchNearEnd": true,
+      "resume": true,
+      "rapidSwitch": true,
+      "mobileVisibleWords": true,
+      "mobileRtl": true,
+      "paragraphStoredGlosses": true,
+      "paragraphWordCard": true,
+      "paragraphSearchAndManualContext": true,
+      "noContextGenerationRequests": true
+    },
+    "errors": [],
+    "desktop": {
+      "dataMs": 332.17,
+      "paintMs": 501.09,
+      "paintAfterDataMs": 168.92,
+      "firstVisibleWordMs": 1911.3,
+      "firstVisibleWordAfterDataMs": 1579.13,
+      "readyMs": 2173,
+      "maxLongTaskMs": 1016,
+      "initialWrappedWords": 2200
+    },
+    "resume": {
+      "dataMs": 286.1,
+      "paintMs": 468.03,
+      "paintAfterDataMs": 181.93,
+      "firstVisibleWordMs": 2897.5,
+      "firstVisibleWordAfterDataMs": 2611.4,
+      "readyMs": 2410.46,
+      "maxLongTaskMs": 1105,
+      "initialWrappedWords": 5440
+    },
+    "mobileResume": {
+      "dataMs": 290.8,
+      "paintMs": 464.82,
+      "paintAfterDataMs": 174.02,
+      "firstVisibleWordMs": 3206.76,
+      "firstVisibleWordAfterDataMs": 2915.96,
+      "readyMs": 2770.61,
+      "maxLongTaskMs": 1246,
+      "initialWrappedWords": 5380
+    },
+    "profileSwitch": {
+      "elapsedMs": 710.25,
+      "maxLongTaskMs": 77
+    },
+    "paragraphs": {
+      "rows": 34,
+      "words": 3401,
+      "readyMs": 304.45499992370605,
+      "allStoredGlossesMs": 1448.9700000286102,
+      "firstStoredGlossMs": 510.45499992370605,
+      "firstVisibleStoredGlossMs": 510.5499999523163,
+      "manualWords": 34,
+      "aiWords": 3367,
+      "firstManualText": "Моя правка 0",
+      "generationEnabled": false
+    }
+  },
+  "testedAssetsWorkingTree": {
+    "public/js/library-ui.js": "55449a5581d77c5214b6d53234ab7bf05bbbf621c035871353b97372b7136345",
+    "public/js/reader-core.js": "b97c8040b3d40f90f756761c622e7e86e37c73985b98085ef55be9f38ff5021a",
+    "public/js/reader-morph.js": "f87d5cb78c9881a9f0258ff974d1cf70b61c0acc5e50953f2fa2af16ca94d4d2",
+    "public/js/translit-display.js": "2f2a14adffe13a07465475d9099802af1e2bbf4a0df797f969fc8c42005c382c",
+    "public/js/reader-row-work.js": "e7bbd5f362d2760d20f8feaa226d43dced63023034697035365483de941915b1",
+    "public/js/word-gloss.js": "06b464b6fbeab1a9976135451a7604cabfc36f8fb0486928f16a4751c3f18eeb",
+    "public/db/local-db.js": "65966629b32b97f4f93bd81175c4a27d27b7a4fcc6163002289f7ef9e25bf144",
+    "public/db/db-worker-runtime.js": "31fad7ebef707c745cd4e4ef9fb0f81017d8cf0842ce219625d2ddaf39e237d2"
+  },
+  "hashNormalization": "testedAssets: SHA256 of UTF-8 content with CRLF converted to LF; testedAssetsWorkingTree: exact tested local bytes. Release git-blob/served hashes require separate verification.",
+  "assetHashScope": "Latest working-tree snapshot after the final same-material table-identity and due-tooltip ownership guards. Browser checkpoint preceded these two guards; follow-up focused unit verification covers them.",
+  "followupVerification": {
+    "fullUnitTestsPassed": 2838,
+    "finalFocusedTestsPassed": 37,
+    "browserCheckpointIncludesLastTwoGuards": false,
+    "guards": [
+      "Word layer continuation checks actual table identity after a same-material rerender.",
+      "Morphology removes only its own due tooltip and preserves contextual titles."
+    ],
+    "source": "Parent agent reported completed verification; no additional browser rerun after these two guards."
+  }
+}
