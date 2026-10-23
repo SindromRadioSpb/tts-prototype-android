@@ -71,8 +71,8 @@
       return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", surface: sp.getAttribute("data-surface") || "", hint: "" };
     }), ru, row);
     if (!p) return null;
-    tr.setAttribute("data-wg-ai-key", p.key);
-    tr.setAttribute("data-wg-occurrence-key", p.storageKey);
+    if (tr.getAttribute('data-wg-ai-key') !== p.key) tr.setAttribute('data-wg-ai-key', p.key);
+    if (tr.getAttribute('data-wg-occurrence-key') !== p.storageKey) tr.setAttribute('data-wg-occurrence-key', p.storageKey);
     p.spans = spans;
     return p;
   }
@@ -174,7 +174,7 @@
     await idbPut(migrate);
   }
   async function hydrate(trs) {
-    await hydratePayloads(trs.map(function (tr) { return rowPayload(tr); }));
+    await hydratePayloads(trs.map(function (tr) { return rowPayload(tr) || (tr.__lpLearningRow ? rowPayloadFromData(tr.__lpLearningRow) : null); }));
   }
 
   function lookup(tr) {
@@ -317,17 +317,29 @@
   }
 
   // ── presentation: repaint a row's spans with the AI gloss (provenance «ИИ») ──
+  function setPaintAttribute(sp, name, value) { if (sp.getAttribute(name) !== value) sp.setAttribute(name, value); }
+  function paintWord(sp, tr, k) {
+    var x = wordAt(tr, k); if (!x) return false;
+    var oldSource = sp.getAttribute('data-gloss-source'), oldMwe = sp.getAttribute('data-gloss-mwe');
+    setPaintAttribute(sp, 'data-gloss', x.gloss);
+    if (sp.hasAttribute('data-gloss-hint')) sp.removeAttribute('data-gloss-hint');
+    setPaintAttribute(sp, 'data-gloss-label', x.manual ? 'user' : 'ai');
+    setPaintAttribute(sp, 'data-gloss-ai', '1');
+    setPaintAttribute(sp, 'data-gloss-source', x.manual ? 'user' : 'ai');
+    if (x.mwe) {
+      var title = t('wordGlossAi.mwe', 'сочетание') + ': ' + x.mwe;
+      setPaintAttribute(sp, 'title', title); setPaintAttribute(sp, 'data-gloss-mwe', title);
+    } else {
+      if ((oldMwe && sp.getAttribute('title') === oldMwe) || oldSource === 'dictionary' || oldSource === 'missing') sp.removeAttribute('title');
+      if (oldMwe) sp.removeAttribute('data-gloss-mwe');
+    }
+    return true;
+  }
   function paintRow(tr) {
     var r = lookup(tr); if (!r) return false;
     var spans = rowSpans(tr);
     spans.forEach(function (sp, k) {
-      var x = wordAt(tr, k); if (!x) return;
-      sp.setAttribute("data-gloss", x.gloss);
-      sp.removeAttribute("data-gloss-hint");
-      sp.setAttribute("data-gloss-label", x.manual ? "user" : "ai");
-      sp.setAttribute("data-gloss-ai", "1");
-      sp.setAttribute("data-gloss-source", x.manual ? "user" : "ai");
-      if (x.mwe) sp.setAttribute("title", t("wordGlossAi.mwe", "сочетание") + ": " + x.mwe); else if (sp.getAttribute("title") && sp.getAttribute("data-gloss-ai")) sp.removeAttribute("title");
+      paintWord(sp, tr, k);
     });
     return true;
   }
@@ -495,7 +507,7 @@
     bindRows: bindRows,
     rowPayload: rowPayload, rowPayloadFromData: rowPayloadFromData, lookup: lookup, ensureDataRows: ensureDataRows, estimateDataRows: estimateDataRows, glossCard: glossCard,
     portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, wordAtData: wordAtData, setOccurrenceGloss: setOccurrenceGloss, hydrate: hydrate, ensureRows: ensureRows,
-    paintRow: paintRow, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,
+    paintRow: paintRow, paintWord: paintWord, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,
     estimate: estimate, runWholeText: runWholeText, USD_PER_1K_WORDS: USD_PER_1K_WORDS, _mem: mem,
   };
 })();

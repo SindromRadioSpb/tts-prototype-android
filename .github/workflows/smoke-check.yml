@@ -113,3 +113,8 @@ jobs:
           node scripts/premium/studio-translit-responsive-smoke.js --mobile
           node scripts/premium/studio-saved-context-smoke.js
           node scripts/premium/studio-saved-context-smoke.js --ide
+      - name: Visible word layers and retained reading position
+        timeout-minutes: 3
+        run: |
+          node scripts/premium/word-layer-priority-smoke.cjs --rows=250 --expect-priority
+          node scripts/premium/word-layer-priority-smoke.cjs --surface=room --shape=paragraphs --expect-priority

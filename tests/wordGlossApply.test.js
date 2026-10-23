@@ -19,6 +19,7 @@ function fixture() {
     getComputedStyle: () => ({ overflowY: 'auto' }),
     fetch: () => { throw new Error('No generation/network expected'); },
   });
+  vm.runInContext(source('reader-morph.js'), context);
   vm.runInContext(source('word-gloss-ai.js'), context);
   vm.runInContext(source('word-gloss.js'), context);
   const AI = window.WordGlossAI, gloss = window.WordGloss, mount = document.getElementById('mount');
@@ -38,7 +39,7 @@ function fixture() {
     if (cached) AI._mem.set(AI.rowPayload(tr).storageKey, { glosses: cached, mwe: [], model: 'paid-context' });
     return tr;
   }
-  const counts = { hydrate: 0, paintRow: 0, paintMount: 0, estimate: 0, startLazy: 0, stopLazy: 0 };
+  const counts = { hydrate: 0, paintRow: 0, paintWord: 0, paintMount: 0, estimate: 0, startLazy: 0, stopLazy: 0 };
   for (const name of Object.keys(counts)) {
     const original = AI[name];
     AI[name] = function (...args) { counts[name]++; return original.apply(this, args); };
@@ -46,7 +47,7 @@ function fixture() {
   return { window, document, mount, row, AI, gloss, counts };
 }
 
-for (const strict of [true, false]) test(`single hydration preserves cached AI/manual provenance, strict=${strict}, generation disabled`, async () => {
+for (const strict of [true, false]) test(`each row hydrates once and preserves cached AI/manual provenance, strict=${strict}, generation disabled`, async () => {
   const f = fixture();
   const cached = f.row(['שָׁלוֹם', 'עוֹלָם'], [{ gloss: 'мир' }, { gloss: 'вселенная', manual: true, ai_gloss: 'мир' }]);
   const missing = f.row(['בַּיִת']);
@@ -62,7 +63,7 @@ for (const strict of [true, false]) test(`single hydration preserves cached AI/m
   assert.equal(fallback.getAttribute('data-gloss'), strict ? '—' : '◇ словарь בַּיִת');
   assert.equal(fallback.getAttribute('data-gloss-source'), strict ? 'missing' : 'dictionary');
   assert.match(f.document.querySelector('.rm-context-coverage').textContent, /2 из 3/);
-  assert.deepEqual(f.counts, { hydrate: 1, paintRow: 1, paintMount: 0, estimate: 1, startLazy: 0, stopLazy: 1 });
+  assert.deepEqual(f.counts, { hydrate: 1, paintRow: 0, paintWord: 2, paintMount: 0, estimate: 1, startLazy: 0, stopLazy: 1 });
 });
 
 test('ribbon-only uses cached contextual/manual words without painting interlinear or generating', async () => {
@@ -73,7 +74,7 @@ test('ribbon-only uses cached contextual/manual words without painting interline
   assert.deepEqual(Array.from(f.document.querySelectorAll('.rm-ribbon-gloss'), sp => sp.textContent), ['первый', 'второй']);
   assert.deepEqual(Array.from(f.document.querySelectorAll('.rm-ribbon-chip'), sp => sp.getAttribute('data-gloss-label')), ['ai', 'user']);
   assert.equal(f.mount.querySelectorAll('.rm-w[data-gloss]').length, 0);
-  assert.deepEqual(f.counts, { hydrate: 1, paintRow: 0, paintMount: 0, estimate: 1, startLazy: 0, stopLazy: 1 });
+  assert.deepEqual(f.counts, { hydrate: 1, paintRow: 0, paintWord: 0, paintMount: 0, estimate: 1, startLazy: 0, stopLazy: 1 });
 });
 
 test('mixed vocalized/plain rows retain contextual glosses without a second full-table paint', async () => {
@@ -87,7 +88,8 @@ test('mixed vocalized/plain rows retain contextual glosses without a second full
   assert.equal(plain.querySelector('.rm-w').getAttribute('data-gloss-source'), 'user');
   assert.equal(vocalized.querySelector('td[data-col="niqqud"] .rm-w').getAttribute('data-gloss'), 'мир');
   assert.equal(duplicate.querySelector('.rm-w').hasAttribute('data-gloss'), false, 'do not show the same word in both columns');
-  assert.equal(f.counts.paintRow, 2);
+  assert.equal(f.counts.paintWord, 2);
+  assert.equal(f.counts.paintRow, 0);
   assert.equal(f.counts.paintMount, 0);
 });
 
@@ -158,4 +160,44 @@ test('lazy generation callback expires when application or owner changes', async
   current = false;
   assert.equal(callbacks[1](), false);
   assert.equal(f.counts.stopLazy, 2, 'replace observer so it receives the new generation guard');
+});
+
+test('a restored row hydrates and paints before a held distant row; every long-paragraph word eventually appears', async () => {
+  const f = fixture(), first = f.row(Array(145).fill('א')), restored = f.row(['ב'], [{ gloss: 'мой перевод', manual: true, ai_gloss: 'original' }]);
+  const originalQueue = f.window.ReaderMorph.createRowQueue;
+  f.window.ReaderMorph.createRowQueue = (...args) => { const queue = originalQueue(...args); queue.prioritize(restored); return queue; };
+  const originalHydrate = f.AI.hydrate, gate = deferred(), entered = deferred();
+  f.AI.hydrate = async rows => { if (rows.includes(first)) { entered.resolve(); await gate.promise; } return originalHydrate(rows); };
+  const pending = f.gloss.apply(f.mount, { gloss: true, strict: false });
+  await entered.promise;
+  assert.equal(restored.querySelector('.rm-w').getAttribute('data-gloss'), 'мой перевод');
+  assert.equal(first.querySelector('.rm-w').hasAttribute('data-gloss'), false);
+  gate.resolve(); await pending;
+  assert.equal(first.querySelectorAll('.rm-w[data-gloss-source="dictionary"]').length, 145);
+});
+
+test('unchanged contextual refresh preserves due tooltip, editor selection nodes and all gloss attributes', async () => {
+  const f = fixture(), row = f.row(['א', 'ב'], [{ gloss: 'один' }, { gloss: 'два', manual: true, ai_gloss: 'two' }]);
+  await f.gloss.apply(f.mount, { gloss: true });
+  const word = row.querySelector('.rm-w'); word.title = 'К повторению'; word.setAttribute('data-rm-due-tip', '1');
+  const text = word.firstChild, before = row.innerHTML;
+  await f.gloss.apply(f.mount, { gloss: true });
+  assert.equal(row.innerHTML, before); assert.equal(word.firstChild, text);
+  assert.equal(f.AI.wordAt(row, 1).aiGloss, 'two');
+  await f.AI.setOccurrenceGloss(row, 1, 'исправление');
+  await f.gloss.apply(f.mount, { gloss: true });
+  assert.equal(row.querySelectorAll('.rm-w')[1].getAttribute('data-gloss'), 'исправление');
+  assert.equal(f.AI.wordAt(row, 1).aiGloss, 'two');
+});
+
+test('applications on separate mounts do not cancel each other or share strictness', async () => {
+  const f = fixture(), a = f.row(['א']), b = f.row(['ב']);
+  const other = f.document.createElement('div'); other.innerHTML = '<table id="proTable"><tbody></tbody></table>';
+  f.document.body.appendChild(other); other.querySelector('tbody').appendChild(b);
+  const gate = deferred(), started = deferred(), hydrate = f.AI.hydrate;
+  f.AI.hydrate = async rows => { if (rows.includes(a)) { started.resolve(); await gate.promise; } return hydrate(rows); };
+  const pending = f.gloss.apply(f.mount, { gloss: true, strict: true });
+  await started.promise; await f.gloss.apply(other, { gloss: true, strict: false }); gate.resolve(); await pending;
+  assert.equal(a.querySelector('.rm-w').getAttribute('data-gloss-source'), 'missing');
+  assert.equal(b.querySelector('.rm-w').getAttribute('data-gloss-source'), 'dictionary');
 });

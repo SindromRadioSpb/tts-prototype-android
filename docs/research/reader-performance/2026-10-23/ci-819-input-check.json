@@ -1,0 +1,111 @@
+{
+  "initialCiRun": "https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/40031971599",
+  "failedJob": "studio-background",
+  "failedAssertion": "card content must finish before all background layers finish",
+  "diagnosis": "On the smaller 250-row fixture, background completion can precede cold dictionary/card content. Reproduced locally: input was accepted during work, then the correct manual context appeared after completion. The assertion measured an incidental completion race.",
+  "change": "Capture the actual native click event before background completion; still require the correct saved manual card and complete background rows. Application runtime and observation timeouts unchanged.",
+  "localReproduction": {
+    "result": "PASS",
+    "rows": 250,
+    "card": {
+      "method": "native mouse at visible word",
+      "clickMs": 818,
+      "contentAfterClickMs": 518,
+      "openMs": 1336,
+      "inputBeforeLayersComplete": true,
+      "openedBeforeLayersComplete": false
+    },
+    "gloss": {
+      "firstTargetMs": 24.87000000476837,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 98.98500001430511,
+      "completeMs": 99,
+      "rowsPainted": 250,
+      "mutations": 2000,
+      "rpcCount": 0,
+      "rpcTotalMs": 0,
+      "positionBefore": {
+        "wordTop": 466.390625,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 43348,
+            "height": 558,
+            "scrollHeight": 44306
+          },
+          {
+            "id": "",
+            "top": 1974,
+            "height": 900,
+            "scrollHeight": 2890
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 496.640625,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 43957,
+            "height": 558,
+            "scrollHeight": 45538
+          },
+          {
+            "id": "",
+            "top": 1974,
+            "height": 900,
+            "scrollHeight": 2919
+          }
+        ]
+      }
+    },
+    "status": {
+      "firstTargetMs": 985.0700000524521,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 992.5900000333786,
+      "completeMs": 1245.030000090599,
+      "rowsPainted": 250,
+      "mutations": 4000,
+      "rpcCount": 17,
+      "rpcTotalMs": 726.7799998521805,
+      "positionBefore": {
+        "wordTop": 459.640625,
+        "scrollY": 2004,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 43964,
+            "height": 558,
+            "scrollHeight": 45538
+          },
+          {
+            "id": "",
+            "top": 2004,
+            "height": 900,
+            "scrollHeight": 2919
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 459.640625,
+        "scrollY": 2004,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 43964,
+            "height": 558,
+            "scrollHeight": 45538
+          },
+          {
+            "id": "",
+            "top": 2004,
+            "height": 900,
+            "scrollHeight": 2919
+          }
+        ]
+      }
+    }
+  }
+}

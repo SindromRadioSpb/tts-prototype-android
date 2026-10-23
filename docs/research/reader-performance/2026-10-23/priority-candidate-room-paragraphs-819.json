@@ -1,0 +1,179 @@
+{
+  "surface": "room",
+  "shape": "paragraphs",
+  "mobile": false,
+  "ref": null,
+  "startedAtUtc": "2026-10-23T22:07:14.637Z",
+  "scope": "Disposable Chromium; prepared real table, saved manual context and restored row before each layer. Layer timings exclude DB/table opening. HTTP cache disabled by routing; SW blocked. No owner profile or paid generation.",
+  "errors": [],
+  "deniedWrites": [],
+  "browser": "148.0.7778.96",
+  "runtimeHashes": {
+    "js/word-gloss.js": "73a52a23089a0fe1d8b26d75e494c748275acd37bfb1ce8b3ef26f4c5fd3fe0b",
+    "js/word-gloss-ai.js": "5f43e5d3309f0e1f711dd2e86b98ff4626b8702fa662e1bd7305614807fe7a29",
+    "js/reader-morph.js": "7b858cde19bf8f4f43319d00729f2e890f4dc15dceace95a3771a7736b371946",
+    "js/library-ui.js": "762d0cc0c760d44bd39e047be386d361dca57432c2a76ff0c7bc209f0bff2c68",
+    "css/reader-morph.css": "86954db37f5a89790d62c9f22bd925aa5f5745bdfa9b3beb47e986e7414aae4f"
+  },
+  "fixture": {
+    "count": 34,
+    "wordsPerRow": 240,
+    "target": 30,
+    "textId": "aaaf70d8-c3fe-4081-b616-cc7f8e8c6921"
+  },
+  "cardAttempt": {
+    "box": {
+      "x": 602.34375,
+      "y": 466.5,
+      "width": 69.90625,
+      "height": 36.375
+    },
+    "hit": "<span class=\"rm-w\" role=\"button\" tabindex=\"0\" data-surface=\"שלום\" data-niqqud=\"שָׁלוֹם\" data-w-offset=\"0\" data-gloss=\"CONTEXT-30:0\" data-gloss-label=\"user\" data-gloss-ai=\"1\" data-gloss-source=\"user\">שָׁלוֹם</span>"
+  },
+  "card": {
+    "method": "native mouse at visible word",
+    "clickMs": 350,
+    "contentAfterClickMs": 1332,
+    "openMs": 1682,
+    "openedBeforeLayersComplete": true
+  },
+  "layers": {
+    "gloss": {
+      "firstTargetMs": 78.25999999046326,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 111.55499994754791,
+      "completeMs": 1792.954999923706,
+      "rowsPainted": 34,
+      "mutations": 8160,
+      "rpcCount": 18,
+      "rpcTotalMs": 831.3249999284744,
+      "positionBefore": {
+        "wordTop": 466.796875,
+        "scrollY": 70426,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 79451,
+            "scrollHeight": 79451
+          },
+          {
+            "id": "",
+            "top": 70426,
+            "height": 900,
+            "scrollHeight": 80348
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 466.5,
+        "scrollY": 90670,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 119854,
+            "scrollHeight": 119854
+          },
+          {
+            "id": "",
+            "top": 90670,
+            "height": 900,
+            "scrollHeight": 120781
+          }
+        ]
+      }
+    },
+    "status": {
+      "firstTargetMs": 20.65499997138977,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 76.12000000476837,
+      "completeMs": 820.5750000476837,
+      "rowsPainted": 34,
+      "mutations": 16320,
+      "rpcCount": 9,
+      "rpcTotalMs": 733.25,
+      "positionBefore": {
+        "wordTop": 459.5,
+        "scrollY": 90677,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 119854,
+            "scrollHeight": 119854
+          },
+          {
+            "id": "",
+            "top": 90677,
+            "height": 900,
+            "scrollHeight": 120781
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 459.5,
+        "scrollY": 90677,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 119854,
+            "scrollHeight": 119854
+          },
+          {
+            "id": "",
+            "top": 90677,
+            "height": 900,
+            "scrollHeight": 120781
+          }
+        ]
+      }
+    },
+    "unchangedRefreshGlossMutations": 0,
+    "tablePreserved": true,
+    "targetGloss": "CONTEXT-30:0",
+    "targetSource": "user",
+    "targetAiOriginal": "original-30",
+    "maxLongTaskMs": 71,
+    "longTasks": [
+      {
+        "at": 2933.625,
+        "duration": 71
+      },
+      {
+        "at": 3019.1999999284744,
+        "duration": 58
+      },
+      {
+        "at": 3297.389999985695,
+        "duration": 53
+      },
+      {
+        "at": 3451.569999933243,
+        "duration": 71
+      },
+      {
+        "at": 3623.4049999713898,
+        "duration": 54
+      },
+      {
+        "at": 3768.585000038147,
+        "duration": 52
+      }
+    ],
+    "target": 30
+  },
+  "scroll": {
+    "later": 17,
+    "shown": "block",
+    "gloss": "CONTEXT-17:0",
+    "originalStillRevealed": true
+  },
+  "print": {
+    "pending": true,
+    "display": "block"
+  },
+  "reviewLogCount": 0,
+  "result": "PASS"
+}

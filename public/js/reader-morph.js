@@ -3210,6 +3210,12 @@
   // wall clears) · ignore=plain (faint dotted). The class is applied; the colour lives in CSS.
   var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new", l1: "rm-w-l1", l2: "rm-w-l2", l3: "rm-w-l3", l4: "rm-w-l4", ignore: "rm-w-ignore" };
   var _RM_W_CLASSES = ["rm-w-known", "rm-w-learning", "rm-w-new", "rm-w-unassessed", "rm-w-l1", "rm-w-l2", "rm-w-l3", "rm-w-l4", "rm-w-ignore", "rm-w-due"];
+  function syncWordClasses(span, status, due) {
+    var remove = _RM_W_CLASSES.filter(function (c) { return c !== status && !(due && c === 'rm-w-due') && span.classList.contains(c); });
+    if (remove.length) span.classList.remove.apply(span.classList, remove);
+    if (status && !span.classList.contains(status)) span.classList.add(status);
+    if (due && !span.classList.contains('rm-w-due')) span.classList.add('rm-w-due');
+  }
   // "familiar" mirrors corpus-vocab CFG.KNOWN_STATES (saved=familiar; §7 — owner's saved vocab
   // sits in 'new'/Anki, so familiar = any engaged word, not just mastered). Manual levels + ignore
   // are engaged too → familiar (niqqud may fade on them).
@@ -3259,6 +3265,134 @@
     for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null && niq[j].textContent !== n) niq[j].textContent = n; }
   }
 
+  // Shared row order for gloss and morphology. Hit testing seeds the restored
+  // viewport without measuring every row; actual scrolls refresh that range.
+  // A partially processed long paragraph yields to newly visible/focused rows.
+  function createRowQueue(mount, rows, isCurrent, options) {
+    rows = Array.prototype.slice.call(rows);
+    var done = new Set(), priority = new Set(), started = new Set(), positions = new Map(), cursor = 0, current = null, closed = false, seedRow = null, viewportFrame = null, sizeObserver = null;
+    rows.forEach(function (row, i) { positions.set(row, i); });
+    function add(row) { if (!closed && positions.has(row) && !done.has(row)) priority.add(row); }
+    function fromNode(node) { return node && node.closest ? node.closest('tr') : null; }
+    function focus(event) { add(fromNode(event.target)); }
+    var doc = mount.ownerDocument;
+    function refreshViewport() {
+      if (closed || (isCurrent && !isCurrent())) return;
+      priority.clear();
+      add(fromNode(doc && doc.activeElement));
+      add(mount.querySelector('tr.row-playing, tr.smk-row-active, tr.rm-row-current'));
+      var visible = [], low = rows.length, high = -1;
+      try {
+      var rect = mount.getBoundingClientRect(), width = doc.documentElement.clientWidth || window.innerWidth, height = doc.documentElement.clientHeight || window.innerHeight;
+      var left = Math.max(0, rect.left), right = Math.min(width, rect.right), top = Math.max(0, rect.top), bottom = Math.min(height, rect.bottom);
+      if (right > left && bottom > top && doc.elementsFromPoint) {
+        [0.5, 0.02, 0.98].forEach(function (fraction) {
+          var hits = doc.elementsFromPoint((left + right) / 2, top + (bottom - top) * fraction);
+          for (var h = 0; h < hits.length; h++) {
+            var row = fromNode(hits[h]), at = positions.get(row);
+            if (at == null) continue;
+            if (!seedRow) seedRow = row;
+            add(row); low = Math.min(low, at); high = Math.max(high, at);
+            break;
+          }
+        });
+        for (var n = Math.max(0, low - 2); n <= Math.min(rows.length - 1, high + 2); n++) { add(rows[n]); visible.push(rows[n]); }
+      }
+      } catch (_) {}
+      if (options && options.onVisible) options.onVisible(visible);
+    }
+    refreshViewport();
+    function viewportScroll(event) {
+      var target = event.target;
+      if (target !== doc && target !== window && !(target && target.contains && target.contains(mount)) && !mount.contains(target)) return;
+      if (viewportFrame != null || closed) return;
+      if (typeof requestAnimationFrame === 'function') viewportFrame = requestAnimationFrame(function () { viewportFrame = null; refreshViewport(); });
+      else refreshViewport();
+    }
+    // Table-row height changes do not reliably participate in native scroll
+    // anchoring. Keep the visible word in place while distant glosses arrive.
+    // A real/programmatic scroll chooses a new anchor instead of fighting it.
+    var anchor = null, anchorTop = 0, scrollHost = null, scrollTarget = null, expectedScroll = 0;
+    function chooseAnchor(row) {
+      if (!row) return;
+      var words = row.querySelectorAll('td[data-col="niqqud"] .rm-w');
+      if (!words.length) words = row.querySelectorAll('.rm-w');
+      var lo = 0, hi = words.length;
+      while (lo < hi) { var mid = (lo + hi) >> 1; if (words[mid].getBoundingClientRect().bottom < Math.max(0, mount.getBoundingClientRect().top)) lo = mid + 1; else hi = mid; }
+      anchor = words[Math.min(lo, words.length - 1)] || row;
+      anchorTop = anchor.getBoundingClientRect().top;
+    }
+    function scrolled() { if (scrollHost.scrollTop !== expectedScroll) { anchor = null; expectedScroll = scrollHost.scrollTop; } }
+    function flushPosition() {
+      if (!scrollHost || closed || (isCurrent && !isCurrent())) return;
+      if (!anchor) { chooseCurrentAnchor(); return; }
+      if (!anchor.isConnected) return;
+      var delta = anchor.getBoundingClientRect().top - anchorTop;
+      if (Math.abs(delta) > 1) { scrollHost.scrollTop += delta; expectedScroll = scrollHost.scrollTop; }
+    }
+    function chooseCurrentAnchor() {
+        try {
+          var r = mount.getBoundingClientRect(), x = Math.max(0, Math.min(window.innerWidth - 1, (r.left + r.right) / 2));
+          var y = (Math.max(0, r.top) + Math.min(window.innerHeight, r.bottom)) / 2;
+          var hits = doc.elementsFromPoint(x, y);
+          for (var i = 0; i < hits.length; i++) { var row = fromNode(hits[i]); if (positions.has(row)) { chooseAnchor(row); break; } }
+        } catch (_) {}
+    }
+    if (options && options.preservePosition && seedRow) {
+      try {
+        chooseAnchor(seedRow); scrollHost = anchor.parentElement;
+        while (scrollHost && !(/auto|scroll/.test(getComputedStyle(scrollHost).overflowY) && scrollHost.scrollHeight > scrollHost.clientHeight)) scrollHost = scrollHost.parentElement;
+        scrollHost = scrollHost || doc.scrollingElement; scrollTarget = scrollHost === doc.scrollingElement ? window : scrollHost;
+        expectedScroll = scrollHost.scrollTop; scrollTarget.addEventListener('scroll', scrolled, { passive: true });
+      } catch (_) { anchor = null; scrollHost = null; }
+    }
+    mount.addEventListener('focusin', focus); mount.addEventListener('pointerdown', focus);
+    if (!(options && options.observe === false)) {
+      if (window.addEventListener) { window.addEventListener('scroll', viewportScroll, { capture: true, passive: true }); window.addEventListener('resize', viewportScroll, { passive: true }); }
+      if (typeof ResizeObserver !== 'undefined') { sizeObserver = new ResizeObserver(function () { viewportScroll({ target: window }); }); sizeObserver.observe(mount); }
+    }
+    return {
+      next: function () {
+        if (closed || (isCurrent && !isCurrent())) return null;
+        if (current && priority.has(current) && !done.has(current)) return current;
+        var visible = priority.values().next().value;
+        if (visible) { started.add(visible); return (current = visible); }
+        if (current && !done.has(current)) return current;
+        var unfinished = started.values().next().value;
+        if (unfinished) return (current = unfinished);
+        while (cursor < rows.length && done.has(rows[cursor])) cursor++;
+        current = rows[cursor++] || null; if (current) started.add(current); return current;
+      },
+      done: function (row) { done.add(row); started.delete(row); priority.delete(row); },
+      batch: function (row, limit, visibleOnly) {
+        var batch = [], seen = new Set();
+        function take(r) { if (r && !done.has(r) && !seen.has(r) && batch.length < limit) { seen.add(r); batch.push(r); } }
+        take(row); priority.forEach(take);
+        if (!visibleOnly) for (var at = cursor; at < rows.length && batch.length < limit; at++) take(rows[at]);
+        return batch;
+      },
+      prioritize: add,
+      refresh: refreshViewport,
+      isPriority: function (row) { return priority.has(row); },
+      flush: flushPosition,
+      close: function () {
+        flushPosition();
+        closed = true;
+        if (scrollTarget) scrollTarget.removeEventListener('scroll', scrolled);
+        if (viewportFrame != null) cancelAnimationFrame(viewportFrame);
+        if (sizeObserver) sizeObserver.disconnect();
+        if (window.removeEventListener) { window.removeEventListener('scroll', viewportScroll, true); window.removeEventListener('resize', viewportScroll); }
+        priority.clear(); started.clear();
+        mount.removeEventListener('focusin', focus); mount.removeEventListener('pointerdown', focus);
+      },
+    };
+  }
+  function wordWorkNow() { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }
+  function yieldWordWork() {
+    if (typeof window !== 'undefined' && window.scheduler && typeof window.scheduler.yield === 'function') return window.scheduler.yield();
+    return new Promise(function (resolve) { setTimeout(resolve, 0); });
+  }
+
   // opts = { color: bool, fadeMode: 'full'|'adaptive'|'off', dueSet: Set<lemmaKey>|null }.
   // statesMap = {lemmaKey: state}. dueSet (Retention P5, recon §6.1) = keys whose review time has
   // arrived (dueSetFromSchedule): an EXACT-confident due word gets the quiet .rm-w-due ring; a due
@@ -3283,51 +3417,63 @@
     // keys function words by pid (consistent with resolveWordLight). Idempotent + offline-cheap.
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
     if (!isCurrent()) return;
-    var spans = Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
-    // Д10: the words' places (the sentence's stored Dicta parse, the learner's decisions) before the paint
-    var places = spans.map(placeOfSpan);
-    try { await ensurePlaces(places.filter(Boolean).map(function (pl) { return pl.sid; })); } catch (_) {}
-    if (!isCurrent()) return;
-    var i = 0;
-    while (i < spans.length) {
+    var rows = mount.querySelectorAll('tbody tr'), queue = createRowQueue(mount, rows.length ? rows : [mount], isCurrent), work = new Map();
+    try {
+    var row, deadline = wordWorkNow() + 8, sliceWords = 0;
+    while ((row = queue.next())) {
       if (!isCurrent()) return;
-      var end = Math.min(i + 60, spans.length);
-      for (; i < end; i++) {
-        var span = spans[i];
+      var item = work.get(row);
+      if (!item) {
+        if (opts.prepareRow) opts.prepareRow(row);
+        var spans = Array.prototype.slice.call(row.querySelectorAll('.rm-w'));
+        var places = spans.map(placeOfSpan);
+        // Stored occurrence decisions are loaded before this row is painted;
+        // distant sentences no longer hold up the restored viewport.
+        if (_placeLoader && places.some(function (pl) { return pl && !_places.has(pl.sid); })) {
+          // Keep storage reads batched. A per-row load would reopen OPFS and
+          // repeat several queries thousands of times on a long material.
+          var sids = queue.batch(row, 400, queue.isPriority(row)).map(function (r) {
+            var holder = r.hasAttribute('data-sentence-id') ? r : r.querySelector('[data-sentence-id]');
+            return holder ? holder.getAttribute('data-sentence-id') : '';
+          });
+          places.forEach(function (pl) { if (pl) sids.push(pl.sid); });
+          try { await ensurePlaces(sids); } catch (_) {}
+        }
+        if (!isCurrent()) return;
+        item = { spans: spans, places: places, at: 0 }; work.set(row, item);
+      }
+      var end = Math.min(item.at + Math.max(1, 60 - sliceWords), item.spans.length);
+      for (; item.at < end; item.at++) {
+        var i = item.at, span = item.spans[i];
+        sliceWords++;
         var isNiqqud = _colOf(span) === "niqqud";
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
         var card, failed = false;
-        try { card = await resolveCore(eng, surface, niqqud, places[i] ? { place: places[i] } : undefined); }
+        try { card = await resolveCore(eng, surface, niqqud, item.places[i] ? { place: item.places[i] } : undefined); }
         catch (_) { failed = true; }
         // Resolving can yield while another material or colour pass takes over.
         // Do not even clear the current decorations until this result is still owned.
         if (!isCurrent()) return;
-        span.classList.remove.apply(span.classList, _RM_W_CLASSES);
-        if (failed) { if (isNiqqud && niqqud != null && span.textContent !== niqqud) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
+        if (failed) { syncWordClasses(span, '', false); if (isNiqqud && niqqud != null && span.textContent !== niqqud) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
         var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
         // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident)
         // via the shared keyer, byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status
         // on a function/unknown word (which the resolver can't confidently ID) still colours by surface.
         var lk = statusKeyForCard(NA, card, niqqud, surface);
         var raw = lk ? states[lk] : undefined;
-        if (color) {
-          // A confident word without learner state is only DERIVED `unassessed` (quiet dotted marker).
-          // Purple `new` is reserved for an explicit stored learner decision. UNCONFIDENT words are
-          // decorated ONLY when the user explicitly engaged them (manual status OR saved note → a states
-          // entry); they never receive a derived assessment. R11 precedence: a
-          // confident word uses its lemma-key, so a surface-status never leaks onto a confident homograph.
-          var st = raw || "";
-          var cls = st ? STATE_CLASS[st] : (confident ? "rm-w-unassessed" : "");
-          if (cls) span.classList.add(cls);
-        }
+        // Derived assessment only follows a confident reading. Explicit learner
+        // state still colours unconfident words through the canonical key.
+        var cls = color ? (raw ? STATE_CLASS[raw] : (confident ? 'rm-w-unassessed' : '')) : '';
+        var markedDue = !!(dueSet && lk && dueSet.has(lk) && card && card.label === 'exact' && !card.ambiguous);
+        syncWordClasses(span, cls, markedDue);
         // Retention P5 — quiet due marker: a ring, never a background tint (the background IS the
         // manual-status axis). Key parity is free: lk is the SAME statusKeyForCard bytes the due
         // set was built from (save == paint == review). exact-only + unambiguous (R10 honesty).
-        clearDueTooltip(span);
+        if (!markedDue) clearDueTooltip(span);
         if (dueSet && lk && dueSet.has(lk)) {
           if (card && card.label === "exact" && !card.ambiguous) {
-            span.classList.add("rm-w-due"); dueMarked[lk] = 1;
+            dueMarked[lk] = 1;
             // P5.6 R-1 — the ring must be self-explaining (discoverability): a desktop hover
             // says what it means; touch users learn it from the recall card + the 🎨 hint.
             if (!span.getAttribute("title")) {
@@ -3340,9 +3486,15 @@
         // Write only a real change: an unchanged write is still a childList mutation, and on a long table the
         // per-word mutations woke every table observer once per word (O-080: 3.7 min of a blocked page).
         if (isNiqqud) { var shown = (fadeDecision(confident ? raw : undefined, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud; if (span.textContent !== shown) span.textContent = shown; }
+        if (wordWorkNow() >= deadline) { item.at++; break; }
       }
-      if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
+      if (item.at >= item.spans.length) { queue.done(row); work.delete(row); }
+      if (sliceWords >= 60 || wordWorkNow() >= deadline) {
+        await yieldWordWork();
+        deadline = wordWorkNow() + 8; sliceWords = 0;
+      }
     }
+    } finally { queue.close(); }
     if (isCurrent() && dueSet) _dueMarkStats = { marked: Object.keys(dueMarked).length, suppressed: Object.keys(dueSuppressed).length, at: Date.now() };
   }
   // Retention P5 — last-pass marker tally: how many due words were visibly marked vs honestly
@@ -4356,6 +4508,7 @@
   var API = {
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords, setDictaLexicon: setDictaLexicon,
+    createRowQueue: createRowQueue, yieldWordWork: yieldWordWork,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore, relativeStrippedForm: relativeStrippedForm,
     applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,

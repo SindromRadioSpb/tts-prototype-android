@@ -266,3 +266,52 @@ node scripts/premium/reader-direct-public-smoke.js --out=.tmp/reader-performance
 node scripts/premium/reader-refresh-link-smoke.js
 python scripts/premium/verify-material-read-release.py --commit=0d8a8849 --version=3.11.818 --out=.tmp/reader-performance/production-818.json
 ```
+
+## Studio startup: O-132 checked before S4
+
+The owner prioritized the unexplained Studio readiness timeout before visible-row scheduling. [Twelve sequential production 818 starts](studio-startup-818.json) passed: six fresh disposable OPFS profiles and six same-profile document reloads. Cold-profile DB/module readiness was **2.77–3.32 s** (median 2.91 s); reload was **1.99–4.37 s** (median 3.13 s). The probe samples readiness every 50 ms and at capture. There were no pageerrors, denied application writes or paid requests. Routing disables HTTP cache, service workers are blocked, and the content-free DB phase journal is enabled. These are empty-profile startup observations, not owner-database timings, material-open timings, an optimization comparison or proof that an intermittent failure is fixed.
+
+The new `studio-startup-diagnostic.cjs` captures individual DB-module, DB-ready, StudioMorph and WordGlossAI transitions, worker lifetime, init errors, completed resource timings, failed HTTP/network requests and the bounded content-free DB phase journal **before retry**. Pending network requests are also captured by the completed probe. Three isolated local faults validate different diagnoses: [blocked WordGlossAI module](studio-startup-fault-module.json) leaves the DB ready and gloss absent; [blocked worker entry](studio-startup-fault-worker.json) records `DB_WORKER_CRASHED`; [held WASM module import](studio-startup-fault-wasm.json) leaves the DB unready with a pending import and `loading-wasm-sync-module` phase. Injected faults use a five-second observation window; the real startup timeout remains **60 seconds**. These are diagnostic checks, not reproductions of the original cause.
+
+The original saved-context runner now enables and retains the same DB journal/init-error evidence on failure as well as success. [Classic and IDE regression checks](studio-startup-context-checks.json) still pass: saved manual context, status independence, late-A suppression, hidden translation, mobile RTL cards and mode switching, with no paid calls or review rows. No application runtime, database schema, owner profile or production deployment changed. **O-132 remains open because the original cause did not recur.** Its bounded diagnostic investigation precedes S4; independent S4 work may now continue, with the original-failure evidence preserved for a recurrence.
+
+Reproduce without an owner profile:
+
+```powershell
+node scripts/premium/studio-startup-diagnostic.cjs --base=https://linguistpro.kolosei.com --version=3.11.818 --rounds=6
+node scripts/premium/studio-startup-diagnostic.cjs --fault=module --rounds=1
+node scripts/premium/studio-startup-diagnostic.cjs --fault=worker --rounds=1
+node scripts/premium/studio-startup-diagnostic.cjs --fault=wasm --rounds=1
+```
+
+## Visible word layers: candidate 3.11.819
+
+Long materials now prepare saved contextual glosses and morphology in visible/restored row order. Room no longer waits for every row to be wrapped: each foreground row prepares its own spans before the layer reads them. The shared row queue tracks interrupted paragraphs, scroll/focus changes, resize and material ownership. Occurrence decisions remain ahead of morphology paint; background reads retain the existing 400-sentence storage batches. Context prefetch is bounded by rows and source length, including bound rows that have not yet been wrapped. Generation, source metadata and canonical learner state are unchanged.
+
+The interlinear layer prepares all stored gloss attributes but activates distant row geometry only when those rows approach the viewport. Revealed rows stay expanded; printing shows the prepared glosses for all rows. A visible-word anchor prevents changing row heights from moving the reading position and follows real/programmatic scrolling. Unchanged glosses and word classes are not cleared/repainted. Native `scheduler.yield()` avoids penalizing the eight-millisecond work slices with repeated timer delays, with an asynchronous timer fallback where unavailable ([Chrome scheduling documentation](https://developer.chrome.com/blog/use-scheduler-yield?hl=en)). This release does not establish Safari/iPhone performance or remove the initial large-table DOM/layout cost in O-124.
+
+[Exact candidate checks and module hashes](candidate-819-checks.json): **2888 unit tests and 233 i18n checks pass**. The [baseline](priority-baseline-classic-819.json) substitutes five exact runtime/CSS blobs from `dc9c70e0`; the [candidate](priority-candidate-classic-rows-819.json) uses current local files. Runs are sequential in disposable Chromium 148 with HTTP cache disabled, SW blocked, the real Classic renderer, 2500 rows × 8 words and saved synthetic manual context. Each layer starts after table wrapping with the target restored near the end. These timings exclude DB initialization, material read and initial table layout; a single pair is not a statistical speed guarantee.
+
+| Classic, 2500 rows | Baseline | Candidate |
+| --- | ---: | ---: |
+| Target saved gloss | 16.82 s / 2496 earlier rows | 0.196 s / 0 earlier rows |
+| All gloss attributes prepared | 16.92 s | 1.41 s |
+| Target word status, including first engine readiness | 18.38 s | 1.56 s |
+| Full status pass | 18.42 s | 4.20 s |
+| Unchanged refresh gloss-attribute mutations | 160000 | 0 |
+| Maximum observed main-thread task | 687 ms | 286 ms |
+
+The [Room case](priority-candidate-room-paragraphs-819.json) covers 34 paragraphs × 240 words: target context 78 ms, row restored within one pixel, later-scroll reveal, retained manual/original AI evidence and print visibility. [IDE at 380×780 RTL](priority-candidate-ide-rows-819.json) covers 2500 rows: target context 198 ms, later-scroll reveal and unchanged refresh. Native mouse word cards open while background work is still running in all three cases; no paid requests or review rows occur. [Room](priority-candidate-room-paragraphs-819-visible.png) and [IDE](priority-candidate-ide-rows-819-visible.png) screenshots were inspected. O-133 separately records the narrow full-preset mobile columns; these checks are not a claim of a redesigned mobile table.
+
+Existing saved-context Classic/IDE checks and desktop/mobile transliteration-completion checks also pass: A→B suppression, hidden RU identity, manual context, mobile cards, mode switching, editor/caret/replay/model/position preservation. Initial-public-refresh publication/catalog/snapshot boundaries still retain the route. New unit cases cover interrupted long-row completion, held distant hydration, scroll reprioritization, native/fallback yielding, unchanged status refresh and independent mount generations.
+
+The owner's [read-only pre-release snapshot](owner-readonly-before-819.json) has 732 texts, 108996 sentences and 11754 review records; only aggregate counts and a local SHA-256 digest were returned through Kapture. No owner UI cold benchmark is claimed. The owner's standing safe-cleanup authorization is recorded in the operations guide. [Exact unused image 816 was removed](cleanup-pre-819.json), preserving current 818 and rollback 817, all 11 containers and four volumes; available capacity increased **5.564→6.925 GiB**, with no active deployment. CI and production 819 are pending.
+
+Reproduce the measured layers:
+
+```powershell
+node scripts/premium/word-layer-priority-smoke.cjs --ref=dc9c70e0 --out=.tmp/baseline.json
+node scripts/premium/word-layer-priority-smoke.cjs --expect-priority --out=.tmp/candidate.json
+node scripts/premium/word-layer-priority-smoke.cjs --surface=room --shape=paragraphs --expect-priority
+node scripts/premium/word-layer-priority-smoke.cjs --surface=ide --mobile --expect-priority
+```

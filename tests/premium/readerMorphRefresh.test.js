@@ -164,3 +164,21 @@ test("a cancelled word resolution cannot clear newer decorations or replace thei
     handle.detach();
   }
 });
+
+test('unchanged learner colours do not rewrite word classes, while a real status change still updates every word', async () => {
+  const f = fixture();
+  f.window.InflectionDict = { ensureReady: async () => ({ paradigms: [], index: {} }) };
+  f.window.NotesAutoGen = { buildResolverMaps: () => ({ cell: new Map() }), pickBaseParadigm: () => null,
+    resolveContentUnit: () => ({ channel: 'form-first', pealim_id: '1', meaning: 'fixture', status: 'ok', confidence: 1 }), lemmaKey: () => 'pid:1' };
+  const handle = f.R.attach(f.mount, f.opts), scope = f.document.getElementById('first');
+  await f.R.decorateWords(scope, { 'pid:1': 'known' }, { color: true });
+  let changes = 0;
+  const observer = new f.window.MutationObserver(entries => { changes += entries.filter(e => e.target.classList.contains('rm-w')).length; });
+  observer.observe(scope, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  await f.R.decorateWords(scope, { 'pid:1': 'known' }, { color: true });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(changes, 0); assert.equal(scope.querySelectorAll('.rm-w-known').length, 4);
+  await f.R.decorateWords(scope, { 'pid:1': 'l2' }, { color: true });
+  assert.equal(scope.querySelectorAll('.rm-w-known').length, 0); assert.equal(scope.querySelectorAll('.rm-w-l2').length, 4);
+  observer.disconnect(); handle.detach();
+});

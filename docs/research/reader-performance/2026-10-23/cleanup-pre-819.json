@@ -1,0 +1,107 @@
+{
+  "checkedAtUtc": "2026-10-23T21:58:27Z",
+  "removed": [
+    "sha256:3f6ed6b9e6db66f78646434bee98db51acfcfe6edc74d3ee93f47382b5eb663a"
+  ],
+  "retained": [
+    "sha256:9706aad20cbdf01e11cd5040eb329dce3bc8a568422481160eb549d0848a3d4e",
+    "sha256:c139122a8def6d4450f737e9b1030c07e688f0bcf94e6825aa611d2316b67f73"
+  ],
+  "deployments": {
+    "active": 0,
+    "latest": {
+      "id": 2932,
+      "status": "finished",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "updated_at": "2026-10-23T20:41:28.000000Z"
+    }
+  },
+  "version": "3.11.818",
+  "health": {
+    "ok": true,
+    "uptimeSec": 4652,
+    "now": "2026-10-23T21:58:27.847Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 85,
+    "disk_warn": true
+  },
+  "capacityGatePassed": true,
+  "before": {
+    "availableGiB": 5.564,
+    "imageCount": 13,
+    "containerCount": 11,
+    "volumeCount": 4,
+    "usage": [
+      {
+        "Active": "11",
+        "Reclaimable": "2.923GB (26%)",
+        "Size": "10.85GB",
+        "TotalCount": "13",
+        "Type": "Images"
+      },
+      {
+        "Active": "11",
+        "Reclaimable": "0B (0%)",
+        "Size": "1.292GB",
+        "TotalCount": "11",
+        "Type": "Containers"
+      },
+      {
+        "Active": "4",
+        "Reclaimable": "0B (0%)",
+        "Size": "5.542GB",
+        "TotalCount": "4",
+        "Type": "Local Volumes"
+      },
+      {
+        "Active": "0",
+        "Reclaimable": "0B",
+        "Size": "0B",
+        "TotalCount": "0",
+        "Type": "Build Cache"
+      }
+    ]
+  },
+  "after": {
+    "availableGiB": 6.925,
+    "imageCount": 12,
+    "containerCount": 11,
+    "volumeCount": 4,
+    "usage": [
+      {
+        "Active": "11",
+        "Reclaimable": "1.462GB (15%)",
+        "Size": "9.392GB",
+        "TotalCount": "12",
+        "Type": "Images"
+      },
+      {
+        "Active": "11",
+        "Reclaimable": "0B (0%)",
+        "Size": "1.292GB",
+        "TotalCount": "11",
+        "Type": "Containers"
+      },
+      {
+        "Active": "4",
+        "Reclaimable": "0B (0%)",
+        "Size": "5.542GB",
+        "TotalCount": "4",
+        "Type": "Local Volumes"
+      },
+      {
+        "Active": "0",
+        "Reclaimable": "0B",
+        "Size": "0B",
+        "TotalCount": "0",
+        "Type": "Build Cache"
+      }
+    ]
+  },
+  "containersAndVolumesPreserved": true
+}

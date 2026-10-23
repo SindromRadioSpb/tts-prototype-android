@@ -25,7 +25,7 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(arg('out')||path.joi
    const response=await route.fetch(),source=await response.text();
    await route.fulfill({response,body:source.replace('window.StudioMorph = {','window.StudioMorph = { probe: () => ({ mount: rmMount?.id, revision: _decorRevision, busy: _decorBusy, dirty: _decorDirty }),')});
   });
-  await context.addInitScript(()=>{localStorage.setItem('app.locale','ru');localStorage.setItem('phase6Decision_v1','declined');localStorage.setItem('onboardingSeen_v1','1');localStorage.setItem('studio.wordGlossAi','0');});
+  await context.addInitScript(()=>{localStorage.setItem('app.locale','ru');localStorage.setItem('phase6Decision_v1','declined');localStorage.setItem('onboardingSeen_v1','1');localStorage.setItem('studio.wordGlossAi','0');localStorage.setItem('localdb-diagnostic-until-v1',String(Date.now()+15*60*1000));});
   page=await context.newPage();page.setDefaultTimeout(60000);page.on('pageerror',e=>report.errors.push(e.message));
   page.on('requestfailed',req=>networkFailures.push({path:new URL(req.url()).pathname,error:req.failure()?.errorText}));
   page.on('response',res=>{if(res.status()>=400)httpErrors.push({path:new URL(res.url()).pathname,status:res.status()});});
@@ -98,5 +98,8 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(arg('out')||path.joi
   report.reviewLogCount=await page.evaluate(async()=>(await __localDB.dbQuery('SELECT COUNT(*) AS n FROM review_log'))[0].n);
   assert.equal(report.reviewLogCount,0);assert.equal(report.paidRequests,0);assert.deepEqual(report.errors,[]);report.result='PASS';console.log(JSON.stringify(report));
   }catch(error){report.result='FAIL';report.failure=error.stack;report.networkFailures=networkFailures;report.httpErrors=httpErrors;report.warnings=warnings;report.diagnostic=await page?.evaluate(()=>({url:location.href,readyState:document.readyState,dbPresent:!!window.__localDB,dbReady:window.__localDB?.isReady(),wordGlossReady:!!window.WordGlossAI,morphReady:!!window.StudioMorph,workers:performance.getEntriesByType('resource').filter(e=>/db-worker|word-gloss-ai|local-db/.test(e.name)).map(e=>({path:new URL(e.name).pathname,duration:e.duration})),mode:document.body.className,probe:window.StudioMorph?.probe?.(),gates:window.__savedContext?.gates.length,rows:document.querySelectorAll('#proTable tbody tr').length,wrapped:document.querySelectorAll('#proTable .rm-w').length,first:document.querySelector('#proTable .rm-w')?.outerHTML,classicRows:document.querySelectorAll('#tableContainer tbody tr').length,ideRows:document.querySelectorAll('#v3IdeCenterContent tbody tr').length,renderWrapped:!!window.v3IdeRenderTable?.__smWrapped})).catch(()=>null);throw error;}
-  finally{fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');await browser?.close();server?.kill();}
+  finally{
+   if(page)report.startup=await page.evaluate(()=>({initError:window.__localDBInitError?.message||null,dbError:window.__localDB?.getDbError?.()?.code||null,dbDiagnostics:window.__localDB?.getLastDbDiagnostics?.()||null,vfs:window.__localDB?.getVfsInfo?.()||null,journal:JSON.parse(localStorage.getItem('localdb-diagnostic-journal-v1')||'[]')})).catch(()=>null);
+   fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');await browser?.close();server?.kill();
+  }
 })().catch(e=>{console.error(e);process.exitCode=1;});

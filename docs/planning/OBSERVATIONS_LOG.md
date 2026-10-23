@@ -10,11 +10,19 @@
 
 ---
 
+## O-133 · Узкие колонки полного пресета на мобильном IDE
+- **Дата / где:** 2026-10-24 по местному времени; кандидат S4 / 3.11.819, disposable Chromium 380×780, RTL, полный пресет со всеми колонками.
+- **Факты:** исходная колонка иврита и транслитерация местами переносятся до отдельных букв; сохранённый подстрочник, карточка и прокрутка работают. [Снимок](../research/reader-performance/2026-10-23/priority-candidate-ide-rows-819-visible.png).
+- **Граница:** baseline-воспроизведение этого визуального случая не выполнено; причинность к S4 не приписывается. Это проверка viewport, не физического телефона.
+- **Следующий шаг:** проверить минимальную ширину колонок и горизонтальную прокрутку на полном пресете, сохранив выбор колонок, редактирование и RTL; сравнить с исходным кодом.
+- **Статус:** открыто. Не объявлять визуальное качество полного мобильного пресета исправленным по прохождению word-layer smoke.
+
 ## O-132 · Тайм-аут готовности Studio в одноразовом production-браузере
 - **Дата / где:** 2026-10-23, первый production `studio-saved-context-smoke.js`, runtime `a0621a71` / 3.11.817, disposable Chromium/OPFS; owner-профиль не использовался.
 - **Факты:** за 60 s не выполнилось общее условие готовности __localDB/StudioMorph/WordGlossAI; DOM без строк, pageerrors и paid requests = 0. Исходный диагностический снимок не различает, какая часть readiness отсутствовала. После расширения network/HTTP/module/DB диагностики Classic и IDE прошли на тех же runtime bytes и timeout; оба режима также прошли на production 818.
 - **Граница:** причина не установлена. Это не доказательство сбоя owner-базы; исправление Room DB-refresh cancellation в 818 не объявляется исправлением этого Studio-старта.
-- **Следующий шаг:** при повторе сохранять новые readiness/network/console данные до retry, затем разложить module/worker/DB startup; не увеличивать timeout как замену исправлению.
+- **Проверено перед S4:** 12 последовательных запусков production 818 (6 новых OPFS-профилей + 6 reload) прошли без pageerrors: наблюдаемая общая готовность 1.99–4.37 s. HTTP cache выключен routing, SW blocked, БД пустые; это не owner-бенчмарк. Отдельный диагностический runner различает недоступный WordGlossAI, worker crash и удерживаемый WASM import; сохранены flags, phases, network и исходный отказ до retry. Исходный saved-context smoke теперь также сохраняет content-free DB journal/init error. [Доказательства](../research/reader-performance/2026-10-23/REPORT.md#studio-startup-o-132-checked-before-s4).
+- **Следующий шаг:** при повторе сохранять новые readiness/network/console/DB phase данные до retry, затем исправлять подтверждённую причину; не увеличивать timeout как замену исправлению. До воспроизведения O-132 остаётся открытым; независимый S4 может продолжаться после выполненной диагностической проверки.
 - **Статус:** открыто. [Первый сбой](../research/reader-performance/2026-10-23/early-timeouts-817.json), [отчёт](../research/reader-performance/2026-10-23/REPORT.md).
 
 ## O-131 · DOM-сборщик повторений теряет выбранный разбор в read-only Зале
@@ -53,7 +61,7 @@
 - **Дата / где:** 2026-10-23, review `31cae35b`, `public/index.html:39536`, `public/js/studio-morph.js:360`.
 - **Факты:** Classic после завершения фоновой транслитерации вызывает полный `renderTable(currentTableData)`; StudioMorph сначала refresh/wrap и весь `decorateWords`, затем `applyWordLayer`. Эквивалентные задержки в Room сокращены в 813, но host-последовательность Studio осталась прежней.
 - **Предложение:** переносить проверенные принципы Room: patch только translit-ячеек, порционная подготовка с приоритетом видимых строк, сохранённый контекст независимо от полной раскраски, identity/revision guards. Отдельно проверять Classic и IDE, редактирование, undo, selection, notes, replay и resume. Точный выигрыш Studio ещё не измерен.
-- **Статус:** в работе; S3 выпущен `a0621a71` / 3.11.817 и проверен на опубликованном Classic/IDE desktop/mobile; приоритет видимых строк остаётся S4.
+- **Статус:** в работе; S3 выпущен `a0621a71` / 3.11.817. Кандидат S4 / 3.11.819 прошёл локальные checks: видимый контекст на 2500 строках 16.82→0.196 s, полная подготовка 16.92→1.41 s; неизменившийся gloss refresh 160000→0 attribute mutations. Это один последовательный synthetic baseline/candidate, не owner cold-open benchmark. CI/production ожидаются. [Доказательства](../research/reader-performance/2026-10-23/candidate-819-checks.json).
 
 ## O-126 · Прямая ссылка на публичный материал ждёт лишнюю стартовую работу
 - **Production S2:** `b6229421` / 3.11.816, deployment 2930 finished 17:55:07 UTC; 10/10 assets и production routing/refresh checks прошли. Ранние тайм-ауты отдельно O-130. Evidence restoration для локальной копии остаётся открытой частью этой записи.

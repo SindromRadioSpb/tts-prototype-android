@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.818";
+const CACHE_VERSION = "v3.11.819";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=818",
+  "/js/library-ui.js?v=819",
   "/js/room-b6-core.js?v=811",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -161,7 +161,7 @@ const PRECACHE_URLS = [
   "/js/reader-core.js?v=817",
   "/js/reader-row-work.js?v=1",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=805",
+  "/css/reader-morph.css?v=819",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -210,10 +210,10 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=813",
+  "/js/reader-morph.js?v=819",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=813",
-  "/js/word-gloss-ai.js?v=817",
+  "/js/word-gloss.js?v=819",
+  "/js/word-gloss-ai.js?v=819",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=805",

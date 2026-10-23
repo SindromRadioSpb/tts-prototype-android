@@ -1,0 +1,259 @@
+{
+  "scope": "Disposable Chromium profiles; empty local DB, cold document then warm reload. No owner data or paid calls.",
+  "cachePolicy": "fresh browser context then same-context reload; routing disables HTTP cache; service workers blocked; DB phase journal enabled",
+  "runs": [
+    {
+      "round": 1,
+      "phase": "cold",
+      "fault": "worker",
+      "errors": [],
+      "warnings": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "[OPFS] init failed: Worker crashed",
+        "Service Worker registration blocked by Playwright",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 410 (Gone)",
+        "[dicta-lexicon] DbUnavailableError: Worker crashed\n    at _wrapWorkerError (http://127.0.0.1:63037/db/local-db.js?v=815:127:17)\n    at _worker.onerror (http://127.0.0.1:63037/db/local-db.js?v=815:486:17)"
+      ],
+      "failedRequests": [
+        {
+          "path": "/vendor/hash-wasm/sha256.umd.min.js",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/db/db-worker-runtime.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "httpErrors": [
+        {
+          "path": "/vendor/hash-wasm/sha256.umd.min.js",
+          "status": 404
+        },
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "status": 404
+        },
+        {
+          "path": "/api/auth/me",
+          "status": 401
+        },
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "status": 404
+        },
+        {
+          "path": "/api/library/texts",
+          "status": 410
+        }
+      ],
+      "workers": [],
+      "result": "FAIL",
+      "failure": "page.waitForFunction: Timeout 5000ms exceeded.",
+      "diagnostic": {
+        "url": "/",
+        "readyState": "complete",
+        "transitions": [
+          {
+            "at": 85.5349999666214,
+            "dbModule": false,
+            "dbReady": false,
+            "morph": false,
+            "gloss": false,
+            "initPromise": false
+          },
+          {
+            "at": 757.4250000715256,
+            "dbModule": false,
+            "dbReady": false,
+            "morph": true,
+            "gloss": true,
+            "initPromise": false
+          },
+          {
+            "at": 964.039999961853,
+            "dbModule": true,
+            "dbReady": false,
+            "morph": true,
+            "gloss": true,
+            "initPromise": true
+          }
+        ],
+        "first": {
+          "morph": 757.3949999809265,
+          "gloss": 757.4099999666214,
+          "dbModule": 964.0249999761581,
+          "initPromise": 964.0299999713898
+        },
+        "longTasks": [
+          {
+            "at": 207.05000007152557,
+            "duration": 220
+          },
+          {
+            "at": 758.8799999952316,
+            "duration": 86
+          },
+          {
+            "at": 1055.4350000619888,
+            "duration": 74
+          }
+        ],
+        "flags": {
+          "dbModule": true,
+          "dbReady": false,
+          "morph": true,
+          "gloss": true,
+          "initPromise": true
+        },
+        "initError": "Worker crashed",
+        "dbError": "DB_WORKER_CRASHED",
+        "dbDiagnostics": null,
+        "vfs": {
+          "name": null,
+          "kind": null
+        },
+        "journal": [
+          {
+            "workerId": "f180c5bc-5995-4bcf-86e3-b4ec0b11c0a7",
+            "documentId": "cb18bed6-1322-45d9-8b2e-43d4c0ec5f8b",
+            "generation": 1,
+            "version": "3.11.545",
+            "surface": "studio",
+            "lifecycle": [
+              {
+                "phase": "browser-preflight",
+                "event": "page-db-start",
+                "at": 1792789223691
+              },
+              {
+                "phase": "worker-module-loading",
+                "event": "worker-created",
+                "at": 1792789223691
+              },
+              {
+                "event": "worker-error",
+                "pendingCount": 1,
+                "code": "DB_WORKER_CRASHED",
+                "at": 1792789223761
+              },
+              {
+                "event": "pageshow",
+                "persisted": false,
+                "at": 1792789223956
+              }
+            ],
+            "events": [
+              {
+                "operation": "init",
+                "event": "rpc-queued",
+                "requestId": 1,
+                "pendingCount": 1,
+                "at": 1792789223692
+              }
+            ]
+          }
+        ],
+        "resources": [
+          {
+            "path": "/db/sqlite-api.js",
+            "start": 67.89499998092651,
+            "duration": 43.730000019073486,
+            "bytes": 29243
+          },
+          {
+            "path": "/db/local-db.js",
+            "start": 68.13499999046326,
+            "duration": 91.88499999046326,
+            "bytes": 446583
+          },
+          {
+            "path": "/js/word-gloss-ai.js",
+            "start": 72.70000004768372,
+            "duration": 343.6050000190735,
+            "bytes": 32488
+          },
+          {
+            "path": "/js/studio-morph.js",
+            "start": 80.12999999523163,
+            "duration": 559.6150000095367,
+            "bytes": 30731
+          },
+          {
+            "path": "/db/anki-apkg-core.js",
+            "start": 81.42000007629395,
+            "duration": 577.625,
+            "bytes": 13301
+          },
+          {
+            "path": "/db/anki-identity.js",
+            "start": 81.5,
+            "duration": 578.914999961853,
+            "bytes": 3306
+          },
+          {
+            "path": "/db/anki-models.js",
+            "start": 81.57000005245209,
+            "duration": 580.789999961853,
+            "bytes": 8125
+          },
+          {
+            "path": "/db/anki-apkg.js",
+            "start": 81.64999997615814,
+            "duration": 582.1349999904633,
+            "bytes": 5950
+          },
+          {
+            "path": "/db/anki-srs-export.js",
+            "start": 81.72500002384186,
+            "duration": 582.875,
+            "bytes": 7557
+          },
+          {
+            "path": "/db/change-scope.js",
+            "start": 173.25499999523163,
+            "duration": 494.8200000524521,
+            "bytes": 7233
+          },
+          {
+            "path": "/db/material-read.js",
+            "start": 173.37000000476837,
+            "duration": 496.289999961853,
+            "bytes": 1893
+          },
+          {
+            "path": "/db/diagnostic-journal.js",
+            "start": 173.53999996185303,
+            "duration": 498.42000007629395,
+            "bytes": 3659
+          },
+          {
+            "path": "/db/migrations.js",
+            "start": 174.67000007629395,
+            "duration": 510.4299999475479,
+            "bytes": 66458
+          }
+        ],
+        "capturedAtMs": 5936.935000061989
+      },
+      "pendingRequests": [
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "elapsedMs": 5059
+        },
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "elapsedMs": 4781
+        },
+        {
+          "path": "/api/library/texts",
+          "elapsedMs": 4427
+        }
+      ]
+    }
+  ],
+  "deniedRequests": [],
+  "result": "EXPECTED_FAILURE_CAPTURED"
+}
