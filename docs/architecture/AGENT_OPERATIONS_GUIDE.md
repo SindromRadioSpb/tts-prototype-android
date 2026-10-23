@@ -25,6 +25,8 @@ npm run tts:models:check         # проверка TTS-моделей/чекс�
 
 ## Продакшн-деплой
 
+По указанию владельца (2026-10-23) перед каждым деплоем проверяй свободное место, текущие сборки и Docker inventory; выполняй безопасную очистку неиспользуемого build cache, когда нет активной сборки. Сохраняй runtime/rollback images, контейнеры, volumes, БД и backups; удаление образов или данных требует отдельной определённой области. После сборки повторно проверяй место и health. Нулевой build cache означает, что в этой области очищать нечего.
+
 **URL:** `https://linguistpro.kolosei.com`\
 **Инфраструктура:** Hetzner CX23 (4 vCPU / 8 GB RAM, Falkenstein DE), Coolify, Traefik + Let's Encrypt\
 **Деплой:** git push в `main` → GitHub webhook → Coolify автосборка Docker (Dockerfile в корне)\

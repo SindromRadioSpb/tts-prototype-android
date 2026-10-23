@@ -13,5 +13,5 @@
     "words": { "n": 5169, "sha256": "dcdcb29b9cac86388fdb2a532bca9744c6d3f523b6a7707ab12221acbac4ef02" }
   },
   "progressNote": "The owner opened additional materials during the session: progress count changed from 227 to 228 before release. Review and word-state hashes stayed identical. Later comparisons use the 228-row checkpoint.",
-  "after": null
+  "after": "owner-after.json"
 }

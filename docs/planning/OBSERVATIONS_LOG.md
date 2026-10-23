@@ -10,7 +10,16 @@
 
 ---
 
+## O-125 · Coolify: deployment завис на распаковке образа
+- **Дата / где:** 2026-10-23, deployment 2926, commit `e72ba44`.
+- **Факты:** started 07:31:13 UTC; последний этап лога — unpacking после успешного export image около 07:38:51. Владелец отменил задачу около 16:27:34, после чего 2927 / `e3fa8993` завершился в 16:33:22. Предыдущий runtime `0f233bd` отличается от `e72ba44` только test locale-version lock; baseline runtime замеров совпадал.
+- **Почему важно:** зависшая задача задержала следующую публикацию на много часов.
+- **Причина:** не установлена; данных недостаточно, чтобы приписать зависание нехватке диска.
+- **Предложение:** расследовать Docker/containerd unpack и контроль предельной длительности deployment; сохранить текущий runtime и rollback. Это отдельный случай от stale failure callback в O-120.
+- **Статус:** открыто.
+
 ## O-124 · Большая таблица Reader всё ещё даёт длинный первый layout
+- **Owner-live 3.11.813:** 2477 строк / 18833 слова: ready 4.27 s, longest task 1218 ms (baseline 4.77 s / 2213 ms). Полные contextual/status passes ещё не закончились на 45 s, первый завершился около 56.28 s; позднее начался дополнительный background pass. Ускорение открытия не закрывает стоимость обработки всех слов. [Замеры](../research/reader-performance/2026-10-23/owner-after.json).
 - **Дата / где:** 2026-10-23, кандидат 3.11.813, изолированный Chromium, синтетические 2500 строк, 1280×1000.
 - **Факты:** после оптимизаций первое интерактивное слово появилось через 1.91 с от открытия / 1.58 с после данных, максимальная задача — 1016 мс; исходный замер 3.11.812 — 4.14 с / 3.69 с и 2742 мс. Подготовка слов порционная, но полный текст остаётся в таблице; профиль показывает стоимость полного layout и холодной подготовки словаря. Это отдельные наблюдения, не p95 и не физический iPhone.
 - **Предложение:** следующий проход начинать с профиля первой раскладки и холодной загрузки морфологии; сохранять полноту поиска, позицию и доступность текста. Цель интерактивного кадра за ≤1 с после данных пока не подтверждена.
@@ -559,6 +568,8 @@
 - **Статус:** открыто; unsigned owner pilot разрешён владельцем, окно визуально подтверждено им.
 
 ## O-047 · Production: мало резерва для серии сборок без очистки
+- **Update 2026-10-23, после 814:** deployment finished 16:49:40 UTC; после инвентаризации повторно удалён только unused build cache (reported 2.916 GB), free 2.0 → 4.3 GiB / 89%. Все 14 images, 11 running containers, 4 active volumes, current `908f9973` и rollback `e3fa8993` сохранены. Предупреждение по диску остаётся; следующий cold build требует нового preflight.
+- **Update 2026-10-23, после 3.11.813 / перед 814:** по запросу владельца очищен только unused build cache: Docker reported 2.916 GB, фактический `df` 3.4 → 5.6 GiB free / 85% used. Все 13 images, 11 running containers, 4 active volumes и active/rollback сохранены. Перед 814 cache 0 B, free 5.6 GiB; `disk_warn=true` остаётся.
 - **Update 2026-10-23, preflight 3.11.813:** root 83% / 6.2 GiB available, health 84% / `disk_warn=true`; build cache 0 B, 12 images / 11 active, 12 running containers, 4 active volumes. Запас превышает ориентир 4 GiB на одну сборку. Очистка не выполнялась; во время rollout нужен повторный контроль свободного места. [Reader evidence](../research/reader-performance/2026-10-23/REPORT.md).
 - **Update 2026-10-20, 3.11.800:** после rollout 95% / 2.0 GiB. По отдельному разрешению владельца выполнен только `docker builder prune -af`; затем 86% / 5.3 GiB, build cache 0 B. Сохранены 14 images, 11 running containers, 4 volumes и active/rollback. DB/migrations ready; `disk_warn=true` остаётся, capacity-риск серии сборок открыт. [Приёмка](../research/hamam-context/2026-10-20/PRODUCTION_ACCEPTANCE.md).
 - **Update 2026-10-20, Ulpan 3.11.799 preflight:** SSH `df /`: 7.7 GiB available / 79%; health: DB/migrations ready, disk_pct_used=80, disk_warn=true (порог 80%). Запас превышает исторический ориентир 4 GiB на одну сборку; очистка не выполнялась. Риск серии сборок остаётся открытым. Итоговые замеры: `docs/research/linguistpro-worlds/2026-10-20-ulpan-release/RELEASE.md`.

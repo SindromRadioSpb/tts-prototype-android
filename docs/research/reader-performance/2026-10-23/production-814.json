@@ -1,0 +1,103 @@
+{
+  "checkedAtUtc": "2026-10-23T16:51:26Z",
+  "version": "3.11.814",
+  "health": {
+    "ok": true,
+    "uptimeSec": 125,
+    "now": "2026-10-23T16:51:12.891Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 95,
+    "disk_warn": true
+  },
+  "sourceCommit": "908f9973a852cd9977f9ec472ec54c5827341660",
+  "assets": [
+    {
+      "url": "/js/library-ui.js?v=814",
+      "expected": "f70c78ed41bb73533a9002ac54dfb4ff761d9ff8dd6d996841b791f9c5ab477c",
+      "served": "f70c78ed41bb73533a9002ac54dfb4ff761d9ff8dd6d996841b791f9c5ab477c",
+      "match": true
+    },
+    {
+      "url": "/js/reader-core.js?v=813",
+      "expected": "b97c8040b3d40f90f756761c622e7e86e37c73985b98085ef55be9f38ff5021a",
+      "served": "b97c8040b3d40f90f756761c622e7e86e37c73985b98085ef55be9f38ff5021a",
+      "match": true
+    },
+    {
+      "url": "/js/reader-morph.js?v=813",
+      "expected": "f87d5cb78c9881a9f0258ff974d1cf70b61c0acc5e50953f2fa2af16ca94d4d2",
+      "served": "f87d5cb78c9881a9f0258ff974d1cf70b61c0acc5e50953f2fa2af16ca94d4d2",
+      "match": true
+    },
+    {
+      "url": "/js/reader-row-work.js?v=1",
+      "expected": "e7bbd5f362d2760d20f8feaa226d43dced63023034697035365483de941915b1",
+      "served": "e7bbd5f362d2760d20f8feaa226d43dced63023034697035365483de941915b1",
+      "match": true
+    },
+    {
+      "url": "/js/translit-display.js?v=813",
+      "expected": "2f2a14adffe13a07465475d9099802af1e2bbf4a0df797f969fc8c42005c382c",
+      "served": "2f2a14adffe13a07465475d9099802af1e2bbf4a0df797f969fc8c42005c382c",
+      "match": true
+    },
+    {
+      "url": "/js/word-gloss.js?v=813",
+      "expected": "06b464b6fbeab1a9976135451a7604cabfc36f8fb0486928f16a4751c3f18eeb",
+      "served": "06b464b6fbeab1a9976135451a7604cabfc36f8fb0486928f16a4751c3f18eeb",
+      "match": true
+    },
+    {
+      "url": "/db/local-db.js?v=813",
+      "expected": "65966629b32b97f4f93bd81175c4a27d27b7a4fcc6163002289f7ef9e25bf144",
+      "served": "65966629b32b97f4f93bd81175c4a27d27b7a4fcc6163002289f7ef9e25bf144",
+      "match": true
+    },
+    {
+      "url": "/db/db-worker-runtime.js?v=813",
+      "expected": "31fad7ebef707c745cd4e4ef9fb0f81017d8cf0842ce219625d2ddaf39e237d2",
+      "served": "31fad7ebef707c745cd4e4ef9fb0f81017d8cf0842ce219625d2ddaf39e237d2",
+      "match": true
+    },
+    {
+      "url": "/js/dictionary-ui.js?v=813",
+      "expected": "070be7771808e48ce1c52c00ac7ef1a5ed3ae47efbad8b723495ec500f761e75",
+      "served": "070be7771808e48ce1c52c00ac7ef1a5ed3ae47efbad8b723495ec500f761e75",
+      "match": true
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=813",
+      "expected": "ad37d846cf9c0ff35dbbd2bde1df9919dc6d7998a23903e33efcefd6a9ad9e0f",
+      "served": "ad37d846cf9c0ff35dbbd2bde1df9919dc6d7998a23903e33efcefd6a9ad9e0f",
+      "match": true
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=813",
+      "expected": "fe13a48abe7931353c55b313e29a3a2325b61e8f0391ed5644e568e55c54c298",
+      "served": "fe13a48abe7931353c55b313e29a3a2325b61e8f0391ed5644e568e55c54c298",
+      "match": true
+    },
+    {
+      "url": "/js/agent-access.js?v=813",
+      "expected": "df6e0e15509b1e5efe94fbaec90586cdc3a36e1cbb6cb87a9bbebbfa31f407ac",
+      "served": "df6e0e15509b1e5efe94fbaec90586cdc3a36e1cbb6cb87a9bbebbfa31f407ac",
+      "match": true
+    },
+    {
+      "url": "/sw.js",
+      "expected": "665174f158d1efeec48e546300061684b791c3762702ecb3d45b6808bf1e723f",
+      "served": "665174f158d1efeec48e546300061684b791c3762702ecb3d45b6808bf1e723f",
+      "match": true
+    }
+  ],
+  "allAssetsMatch": true,
+  "shells": {
+    "/": true,
+    "/library.html": true
+  }
+}

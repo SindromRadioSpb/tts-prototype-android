@@ -1,0 +1,252 @@
+{
+  "version": "3.11.813",
+  "samples": {
+    "hamamAfter": {
+      "glosses": 2193,
+      "layers": [
+        {
+          "endMs": 11965.379999995232,
+          "kind": "apply",
+          "ms": 5646.1449999809265,
+          "startMs": 6319.235000014305
+        },
+        {
+          "endMs": 13621.985000014305,
+          "kind": "decorateWords",
+          "ms": 1425.2849999666214,
+          "startMs": 12196.700000047684
+        }
+      ],
+      "rows": 499,
+      "sources": {
+        "ai": 2193
+      },
+      "timings": [
+        {
+          "ms": 5530.19,
+          "phase": "data",
+          "surface": "room"
+        },
+        {
+          "ms": 5658.69,
+          "phase": "paint",
+          "surface": "room"
+        },
+        {
+          "ms": 9033.15,
+          "phase": "ready",
+          "surface": "room"
+        }
+      ],
+      "version": "https://linguistpro.kolosei.com/js/library-ui.js?v=813",
+      "viewport": [
+        1866,
+        992
+      ],
+      "visibility": "visible",
+      "words": 2193,
+      "maxLongTaskMs": 271,
+      "longTaskCount": 8
+    },
+    "corpusAfter": {
+      "glosses": 3291,
+      "layers": [
+        {
+          "endMs": 4210.365000009537,
+          "kind": "apply",
+          "ms": 1162.75,
+          "startMs": 3047.6150000095367
+        }
+      ],
+      "rows": 34,
+      "sources": {
+        "ai": 3291
+      },
+      "timings": [
+        {
+          "ms": 2619.61,
+          "phase": "data",
+          "surface": "room"
+        },
+        {
+          "ms": 2750.75,
+          "phase": "paint",
+          "surface": "room"
+        },
+        {
+          "ms": 4521.49,
+          "phase": "ready",
+          "surface": "room"
+        }
+      ],
+      "version": "https://linguistpro.kolosei.com/js/library-ui.js?v=813",
+      "viewport": [
+        1866,
+        992
+      ],
+      "visibility": "visible",
+      "words": 3291,
+      "maxLongTaskMs": 248,
+      "longTaskCount": 5
+    },
+    "hamamAfterWarm": {
+      "glosses": 2193,
+      "layers": [
+        {
+          "endMs": 3084.7000000476837,
+          "kind": "apply",
+          "ms": 1869.960000038147,
+          "startMs": 1214.7400000095367
+        },
+        {
+          "endMs": 3025.5,
+          "kind": "decorateWords",
+          "ms": 1677.4199999570847,
+          "startMs": 1348.0800000429153
+        }
+      ],
+      "rows": 499,
+      "sources": {
+        "ai": 2193
+      },
+      "timings": [
+        {
+          "ms": 310.62,
+          "phase": "data",
+          "surface": "room"
+        },
+        {
+          "ms": 325.72,
+          "phase": "paint",
+          "surface": "room"
+        },
+        {
+          "ms": 794.41,
+          "phase": "ready",
+          "surface": "room"
+        }
+      ],
+      "version": "https://linguistpro.kolosei.com/js/library-ui.js?v=813",
+      "viewport": [
+        1866,
+        992
+      ],
+      "visibility": "visible",
+      "words": 2193,
+      "maxLongTaskMs": 217,
+      "longTaskCount": 9
+    },
+    "corpusAfterWarm": {
+      "glosses": 3291,
+      "layers": [
+        {
+          "endMs": 4267.764999985695,
+          "kind": "apply",
+          "ms": 3449.2549999952316,
+          "startMs": 818.5099999904633
+        },
+        {
+          "endMs": 4237.490000009537,
+          "kind": "decorateWords",
+          "ms": 3322.8550000190735,
+          "startMs": 914.6349999904633
+        }
+      ],
+      "rows": 34,
+      "sources": {
+        "ai": 3291
+      },
+      "timings": [
+        {
+          "ms": 499.97,
+          "phase": "data",
+          "surface": "room"
+        },
+        {
+          "ms": 502.21,
+          "phase": "paint",
+          "surface": "room"
+        },
+        {
+          "ms": 728.12,
+          "phase": "ready",
+          "surface": "room"
+        }
+      ],
+      "version": "https://linguistpro.kolosei.com/js/library-ui.js?v=813",
+      "viewport": [
+        1866,
+        992
+      ],
+      "visibility": "visible",
+      "words": 3291,
+      "maxLongTaskMs": 88,
+      "longTaskCount": 23
+    },
+    "longOwnerAfter": {
+      "glosses": 15540,
+      "layers": [
+        {
+          "endMs": null,
+          "kind": "apply",
+          "startMs": 8903.319999933243
+        },
+        {
+          "endMs": null,
+          "kind": "decorateWords",
+          "startMs": 9487.079999923706
+        }
+      ],
+      "rows": 2477,
+      "sources": {
+        "ai": 10,
+        "missing": 15530
+      },
+      "timings": [
+        {
+          "ms": 1058.62,
+          "phase": "data",
+          "surface": "room"
+        },
+        {
+          "ms": 1227.91,
+          "phase": "paint",
+          "surface": "room"
+        },
+        {
+          "ms": 4271.36,
+          "phase": "ready",
+          "surface": "room"
+        }
+      ],
+      "version": "https://linguistpro.kolosei.com/js/library-ui.js?v=813",
+      "viewport": [
+        1866,
+        992
+      ],
+      "visibility": "visible",
+      "words": 18833,
+      "maxLongTaskMs": 1218,
+      "longTaskCount": 316
+    }
+  },
+  "finalLearnerState": {
+    "progress": {
+      "n": 228,
+      "sha256": "3d7d128388004a90cb27dc137beb37dd18b0f9ce65a621eb65ff4efd75ee19f3"
+    },
+    "reviews": {
+      "n": 11754,
+      "sha256": "d9f1f17ea8980b6538d02803f838d0cdd48adb3b5f3e00fa39ba5346737c9238"
+    },
+    "words": {
+      "n": 5169,
+      "sha256": "13bdfaadc597d1fcbd58ce88d3342237a9595b6109fa04471486b3a6389a3f25"
+    }
+  },
+  "notes": [
+    "Timings are single visible-tab observations, not percentiles. Cold and warm samples are both retained.",
+    "Final review_log hash equals the pre-release baseline. Progress and word-status counts are unchanged, but hashes differ while the owner is actively using other tabs; entire-session byte invariance of these two tables is not established.",
+    "The 2477-row sample reached the 45-second observation limit with contextual/status passes still pending. The first pass subsequently completed around 56.28 seconds, with a later background pass beginning. Do not interpret openReader ready as full background completion."
+  ]
+}

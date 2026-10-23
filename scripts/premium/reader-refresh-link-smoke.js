@@ -36,10 +36,11 @@ const target = base + '/library.html?public_corpus=media-8c30cc63a5e5e39a0acd&pu
     const page = await context.newPage();
     page.setDefaultTimeout(90000);
     const errors = [];
-    page.on('pageerror', e => errors.push(e.message));
+    page.on('pageerror', e => { errors.push(e.message); console.error('Browser page error:', e.message); });
     await page.goto(target, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.__refreshLinkWaiting);
     evidence.checkpoints.push({ stage: 'materialization paused', url: page.url() });
+    console.log('Materialization paused');
     if (expectBug) {
       assert.equal(new URL(page.url()).searchParams.has('public_work'), false);
     } else {
@@ -47,6 +48,7 @@ const target = base + '/library.html?public_corpus=media-8c30cc63a5e5e39a0acd&pu
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => window.__refreshLinkWaiting);
       evidence.checkpoints.push({ stage: 'refresh while materialization paused', url: page.url() });
+      console.log('Refresh preserved pending material');
       assert.equal(new URL(page.url()).searchParams.get('public_work'), work);
       await page.evaluate(() => window.__refreshLinkRelease());
       await page.waitForFunction(() => document.querySelectorAll('#roomReaderTable tbody tr').length === 499 && !document.getElementById('roomReader').hidden);
