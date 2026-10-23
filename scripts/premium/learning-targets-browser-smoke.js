@@ -1,21 +1,20 @@
 'use strict';
 // Disposable application storage and browser profiles; real resolver, OPFS and FSRS. No provider calls.
-const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{spawn}=require('node:child_process');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{fork}=require('node:child_process');
 const {chromium}=require('playwright');
-const root=path.resolve(__dirname,'../..'),port=3339,base='http://127.0.0.1:'+port,out=path.join(root,'.tmp/learning-targets');
+const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer}=require('../smoke-server-env');
+const root=path.resolve(__dirname,'../..'),out=path.join(root,'.tmp/learning-targets');
 fs.mkdirSync(out,{recursive:true});
 const rows=[['שפחדת.','שֶׁפָּחַדְתָּ.','что ты боялся'],['תפחד.','תִּפְחַד.','ты будешь бояться / она будет бояться'],['פחדת.','פָּחַדְתָּ.','ты боялся']].map((r,i)=>({order_index:i,hebrew_plain:r[0],hebrew_niqqud:r[1],russian:r[2]}));
 const snapshot={library:{texts:[{title:'Учебные цели: формы',text_key:'learning-targets-fixture',source_text:rows.map(r=>r.hebrew_plain).join('\n'),rows}]}};
 const item={public_work_id:'work-1',position_no:1,title:'Учебные цели: формы',snapshot_sha256:'c'.repeat(64),public_read_allowed:1,public_stream_allowed:0,package_download_allowed:0,asset_missing:0,package_complete:0,expected_audio_count:0,included_audio_count:0};
 const published={ok:true,corpus:{corpus_id:'pc_targets',slug:'test-targets',title:'Учебные цели'},edition:{edition_id:'ed_targets',edition_number:1,manifest_sha256:'b'.repeat(64),item_count:1,asset_count:0,asset_missing:0,package_complete:false},items:[item]};
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
- const server=spawn(process.execPath,['server.js'],{cwd:root,env:{...process.env,PORT:String(port),DATA_DIR:path.join(out,'server-data')},stdio:['ignore','pipe','pipe']});
+ const server=fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(),'lp-targets-')),0),silent:true,windowsHide:true});
  let logs='';server.stdout.on('data',x=>logs+=x);server.stderr.on('data',x=>logs+=x);
  let browser;
  try{
-  let ready=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/healthz')).ok){ready=true;break;}}catch(_){}await sleep(200);}
-  if(!ready)throw Error('Server not ready: '+logs.slice(-2000));
+  const base='http://127.0.0.1:'+await waitForSmokeServer(server,30000);
   browser=await chromium.launch();
   for(const surface of (process.env.LP_TARGET_SURFACES||'room,studio').split(',')){
    const context=await browser.newContext({viewport:{width:1280,height:900},serviceWorkers:'block'}),page=await context.newPage();
@@ -117,7 +116,15 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    await clone.close();
    await page.goto(base+'/dictionary.html?word=pid%3A1612');
    await page.waitForSelector('[data-learning-target-key="ft1:1612:PERF-2ms:sh"]',{timeout:60000});
-   await page.evaluate(async()=>{window.__localDB=await import('/db/local-db.js?v=812');});
+   await page.evaluate(async()=>{
+     // Reuse the dictionary's actual module instance. An old pinned URL creates
+     // an independent, uninitialized facade after a shared DB release.
+     const urls=[...new Set(performance.getEntriesByType('resource').map(e=>e.name).filter(url=>new URL(url).pathname==='/db/local-db.js'))];
+     if(urls.length!==1)throw Error('Expected one dictionary DB module, found '+urls.length);
+     const db=await import(urls[0]);
+     if(!db.isReady())throw Error('Dictionary DB module is not initialized');
+     window.__localDB=db;
+   });
    assert.match(await page.locator('[data-learning-target-key="ft1:1612:PERF-2ms:sh"]').innerText(),/что ты боялся/);
    await page.getByRole('button',{name:'Тренировать формы',exact:true}).click();
    const drill=page.locator('.dict-drill-area');await drill.waitFor();

@@ -1,0 +1,37 @@
+{
+  "scope": "Post-release unused build cache only; all images, containers and volumes retained.",
+  "checkedAt": "2026-10-23T17:57:09.154696+00:00",
+  "reclaimed": "Total:\t2.917GB",
+  "beforeAvailableGiB": 3.363,
+  "afterAvailableGiB": 5.576,
+  "imagesPreserved": true,
+  "imageCount": 13,
+  "containersPreserved": true,
+  "containerCount": 11,
+  "volumesPreserved": true,
+  "volumeCount": 4,
+  "deployments": {
+    "active": 0,
+    "latest": {
+      "id": 2930,
+      "status": "finished",
+      "commit": "b6229421b1a5c18ea49230d9c7c885b08da306ab",
+      "created_at": "2026-10-23T17:50:44.000000Z",
+      "updated_at": "2026-10-23T17:55:07.000000Z"
+    }
+  },
+  "version": "3.11.816",
+  "healthImmediatelyAfter": {
+    "ok": true,
+    "uptimeSec": 156,
+    "now": "2026-10-23T17:57:09.079Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 91,
+    "disk_warn": true
+  }
+}

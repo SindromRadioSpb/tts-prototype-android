@@ -1,0 +1,53 @@
+{
+  "scope": "Disposable local server and Chromium contexts; no owner profile or paid providers",
+  "checks": [
+    {
+      "surface": "room",
+      "enrollment": true,
+      "parentUnchanged": true,
+      "formScheduled": true,
+      "scopeSwitch": true,
+      "ambiguityChoice": true,
+      "failedWriteRollback": true,
+      "lateClose": true,
+      "keyboard": true,
+      "locales": [
+        "ru",
+        "en",
+        "he"
+      ],
+      "completeAnswerRequired": true,
+      "bundleRoundtrip": true,
+      "duplicateImport": true,
+      "dictionaryTargets": true,
+      "formDrillBridge": true,
+      "refreshKeepsDrill": true,
+      "paid": 0,
+      "errors": []
+    },
+    {
+      "surface": "studio",
+      "enrollment": true,
+      "parentUnchanged": true,
+      "formScheduled": true,
+      "scopeSwitch": true,
+      "ambiguityChoice": true,
+      "failedWriteRollback": true,
+      "lateClose": true,
+      "keyboard": true,
+      "locales": [
+        "ru",
+        "en",
+        "he"
+      ],
+      "completeAnswerRequired": true,
+      "bundleRoundtrip": true,
+      "duplicateImport": true,
+      "dictionaryTargets": true,
+      "formDrillBridge": true,
+      "refreshKeepsDrill": true,
+      "paid": 0,
+      "errors": []
+    }
+  ]
+}

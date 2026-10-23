@@ -1,0 +1,38 @@
+{
+  "scope": "Disposable browser/server fixtures; no owner profile or live provider calls",
+  "checks": [
+    {
+      "name": "private query: history, refresh, new tab, explicit share, Back",
+      "result": "pass"
+    },
+    {
+      "name": "search/filter/passport/preview/repeat preserve OPFS canon",
+      "result": "pass"
+    },
+    {
+      "name": "fetch error and cancellation preserve canon",
+      "result": "pass"
+    },
+    {
+      "name": "fresh 380×850 and 1280×850 first screen: useful card, search and modes in both themes/worlds",
+      "result": "pass"
+    },
+    {
+      "name": "localized HE/EN official periods, RTL and keyboard catalog navigation",
+      "result": "pass"
+    },
+    {
+      "name": "public slug, query and bounded page survive refresh and Back",
+      "result": "pass"
+    },
+    {
+      "name": "oversized pages clamp to actual results including empty Ben results",
+      "result": "pass"
+    },
+    {
+      "name": "requests, telemetry, referrer and server logs contain no private query",
+      "result": "pass"
+    }
+  ],
+  "testCommit": "013e46613190eadb8eeaf2b1fc5404b3c5036090"
+}

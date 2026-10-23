@@ -1,0 +1,30 @@
+{
+  "scope": "Anonymous production Chromium; early failures before successful reruns. No network/DOM failure snapshot existed at the time.",
+  "runtimeCommit": "b6229421b1a5c18ea49230d9c7c885b08da306ab",
+  "testedModuleSha256": "a627c8b12fa1bd459aa9a3b828bdb6dec556f826bd476e7d438291af7af6b28c",
+  "attempts": [
+    {
+      "runner": "reader-direct-public-smoke",
+      "outcome": "timeout",
+      "timeoutMs": 60000,
+      "stage": "waiting for 499 visible rows",
+      "pageErrors": []
+    },
+    {
+      "runner": "reader-refresh-link-smoke",
+      "outcome": "timeout",
+      "timeoutMs": 90000,
+      "stage": "before materialization checkpoint"
+    },
+    {
+      "runner": "reader-refresh-link-smoke",
+      "outcome": "timeout",
+      "timeoutMs": 90000,
+      "stage": "after refresh and release, before 499 visible rows"
+    }
+  ],
+  "cause": "undetermined",
+  "subsequentDirectAllFiveScenarios": "pass",
+  "subsequentRefresh": "pass",
+  "observation": "O-130"
+}

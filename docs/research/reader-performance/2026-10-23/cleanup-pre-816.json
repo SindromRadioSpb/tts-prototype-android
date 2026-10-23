@@ -1,0 +1,96 @@
+{
+  "scope": "Owner-approved exact three unreferenced images; no containers, volumes, backups or data removed. Cache was empty.",
+  "checkedAt": "2026-10-23T17:50:37.245700+00:00",
+  "removed": [
+    "sha256:cf642b806a9e24bbd47987ab1864982f30306c1d7dc2d17b0c3e382b2b663a3f",
+    "sha256:8e116332031994919439b5c4efce8cc5bb84ced6dbbb16724f2e6f8e4cca4465",
+    "sha256:ef80b72ad654e02aeaac319c50c2041ab2c666be98da3e38bf89974494046298"
+  ],
+  "retained": [
+    "sha256:198bf2834490494b405bec292b9c22aba39772c6a4fe372e5fa73ee2332e39c6",
+    "sha256:7c104997462186d334ed00a50a50cb2c2eecca2929b5bfe596265e9d388eef80"
+  ],
+  "beforeAvailableGiB": 2.855,
+  "afterAvailableGiB": 6.937,
+  "containersPreserved": true,
+  "containerCount": 11,
+  "volumesPreserved": true,
+  "volumeCount": 4,
+  "imagesBefore": 15,
+  "imagesAfter": 12,
+  "usageBefore": [
+    {
+      "Active": "11",
+      "Reclaimable": "5.845GB (42%)",
+      "Size": "13.77GB",
+      "TotalCount": "15",
+      "Type": "Images"
+    },
+    {
+      "Active": "11",
+      "Reclaimable": "0B (0%)",
+      "Size": "1.291GB",
+      "TotalCount": "11",
+      "Type": "Containers"
+    },
+    {
+      "Active": "4",
+      "Reclaimable": "0B (0%)",
+      "Size": "5.543GB",
+      "TotalCount": "4",
+      "Type": "Local Volumes"
+    },
+    {
+      "Active": "0",
+      "Reclaimable": "0B",
+      "Size": "0B",
+      "TotalCount": "0",
+      "Type": "Build Cache"
+    }
+  ],
+  "usageAfter": [
+    {
+      "Active": "11",
+      "Reclaimable": "1.461GB (15%)",
+      "Size": "9.391GB",
+      "TotalCount": "12",
+      "Type": "Images"
+    },
+    {
+      "Active": "11",
+      "Reclaimable": "0B (0%)",
+      "Size": "1.291GB",
+      "TotalCount": "11",
+      "Type": "Containers"
+    },
+    {
+      "Active": "4",
+      "Reclaimable": "0B (0%)",
+      "Size": "5.543GB",
+      "TotalCount": "4",
+      "Type": "Local Volumes"
+    },
+    {
+      "Active": "0",
+      "Reclaimable": "0B",
+      "Size": "0B",
+      "TotalCount": "0",
+      "Type": "Build Cache"
+    }
+  ],
+  "version": "3.11.815",
+  "healthImmediatelyAfter": {
+    "ok": true,
+    "uptimeSec": 1847,
+    "now": "2026-10-23T17:50:37.161Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 92,
+    "disk_warn": true
+  },
+  "capacityGatePassed": true
+}

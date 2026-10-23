@@ -22,7 +22,7 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
   try {
     async function scenario(kind) {
       const unrelated = deferred(), catalog = deferred(), material = deferred();
-      const requests = []; let heldUnrelated = 0, catalogAttempts = 0, enteredMaterial = false;
+      const requests = [], responses = [], warnings = []; let heldUnrelated = 0, catalogAttempts = 0, enteredMaterial = false;
       const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1280, height: 1000 } });
       await context.route('**/*', async route => {
         const request = route.request(), url = new URL(request.url());
@@ -55,6 +55,8 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
       });
       const page = await context.newPage(); page.setDefaultTimeout(60000);
       page.on('pageerror', error => report.errors.push(error.message));
+      page.on('response', response => { if (response.status() >= 400 || new URL(response.url()).pathname.startsWith('/api/public-corpora')) responses.push({ path: new URL(response.url()).pathname, status: response.status() }); });
+      page.on('console', message => { if (['warning', 'error'].includes(message.type()) && warnings.length < 20) warnings.push(message.text().slice(0, 400)); });
       const started = Date.now();
       try {
         await page.goto(target, { waitUntil: 'domcontentloaded' });
@@ -127,6 +129,10 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
           assert.equal(catalogAttempts, 1, 'Back reuses the validated catalog');
         }
         return { rows: table, firstVisibleWordMs, catalogAttempts, unrelatedHeld: heldUnrelated, backgroundPreservedReader: true };
+      } catch (error) {
+        report.diagnostic = { scenario: kind, catalogAttempts, heldUnrelated, requests, responses, warnings,
+          page: await page.evaluate(() => ({ url: location.href, dbReady: window.__localDB?.isReady(), rows: document.querySelectorAll('#roomReaderTable tbody tr').length, text: document.getElementById('roomContent')?.innerText?.slice(0, 1600) })).catch(() => null) };
+        throw error;
       } finally { unrelated.resolve(); catalog.resolve(); material.resolve(); await context.close(); }
     }
     for (const name of expectBlocked ? ['baseline'] : ['open', 'retry', 'catalog-race', 'material-race', 'material-switch']) {
