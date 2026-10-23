@@ -186,3 +186,39 @@ The [corrected discovery fixture](discovery-fixture-816.json) passed all eight g
 [CI 40001249190](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/40001249190), commit `d2b3f789`, passed unit/API/import/auth/FSRS, material identity/resume/tabs, memory canon, Room discovery and learning-target checks. It failed the next morphology gate in Room: the exact chosen `pid:5857` adverb was absent from `collectReviewItems`. Studio passed that scenario. The last SW preview step was consequently skipped; this is **not an all-green CI result**.
 
 [Local diagnostic reproduction](morph-review-gap-816.json) confirms that the chosen occurrence is persisted and resolved correctly when supplied its sentence ID, but all 12 DOM word spans have no sentence place. The shared renderer only stamps `data-sentence-id` on the note button, which read-only Room omits; the DOM-based review scanner consequently loses occurrence-specific identity. Both `reader-core.js` and `reader-morph.js` are unchanged from 815. An older-runtime browser reproduction was not performed. The assertion remains intact, with richer failure diagnostics; O-131 records the separate renderer identity fix and parity acceptance needed. No further runtime deployment or image deletion was attempted. Production 816's direct-opening/refresh acceptance remains as documented above, with O-130 and O-131 explicitly open.
+
+## Studio completion stability, S3 candidate 3.11.817
+
+Base `ce0836c2`, production runtime remains 816 at this checkpoint. [Candidate check manifest](candidate-817-checks.json) records normalized runtime hashes, **2874 passing unit tests**, **233 i18n checks**, and six renderer parity cases / 37 leaf checks. The golden changed only by adding escaped sentence identity on each stored row; all pre-existing text, audio and controls remain byte-equivalent after removing that one expected attribute.
+
+The candidate fixes O-131 by stamping sentence identity on the row in shared core and Classic, independent of edit controls. The original isolated Room morphology scenario now completes with chosen adverb `pid:5857`, review collection and portable reimport intact. Full CI/production confirmation is still required.
+
+Classic and IDE now patch only transliteration text nodes after background derivation. The job yields after an 8 ms processing slice, checks its table/material/profile/row ownership, skips active editors and selected text, retains replay nodes/listeners and never changes the models. An early candidate read browser selection after every cell mutation; isolated Chromium exposed forced layouts and unfinished long-table patches. Reading the selection once before each slice removed that implementation defect; the regression test locks the read count. No timeout increase was used to make the final check pass.
+
+The controlled comparison holds derivation until an editor and replay fixture are mounted, then lets the real local engine complete. The unrelated morphology status boundary is deliberately held, so these are completion-phase observations, **not a full-startup or normal-network benchmark**. One desktop observation per surface:
+
+| Surface | 816 completion / longest task | Candidate completion / longest task | Table renders |
+| --- | --- | --- | --- |
+| Classic, 2500 rows | 3261.86 / 1063 ms | 1497.25 / 53 ms | 2 → 1 |
+| IDE, 2500 rows | 3016.71 / 1094 ms | 1681.52 / 86 ms | 2 → 1 |
+
+[Baseline](studio-translit-baseline-816.json) loses the editor, focus and replay node on its second render. [Candidate desktop](studio-translit-candidate-817.json) retains all of them, caret selection 4–9, manual Latin text, source-model equality and the visible row (0 px shift), and suppresses a late fill after a new mount. [380px Hebrew/RTL viewport](studio-translit-mobile-817.json) passes the same invariants; these are viewport checks, not a physical-device measurement. No percentile or general percentage gain is claimed.
+
+Saved word layers now start before full status painting. The shared host binds to the active Classic/IDE container, detaches old listeners on mode changes, and gives status/gloss passes material/mount/revision guards. IDE now labels all cell columns for the shared resolver. If the Russian column is hidden, the contextual row key uses its bound canonical source translation rather than becoming empty; paid results and occurrence-specific manual corrections retain their identity, while changed source content still invalidates an old result.
+
+The [Classic context fixture](studio-context-classic-817.json) and [IDE context fixture](studio-context-ide-817.json) each use 34 paragraphs × 60 words. Both confirm B's saved manual glosses appear while A's status pass is still held, A's late completion cannot paint B, hiding RU preserves context, the mobile RTL card shows the saved manual meaning, and switching modes preserves the canonical word card. Paid requests and review-log rows are both zero. No owner profile was used, and no linguistic-accuracy claim is made from synthetic text.
+
+Reproduce from the worktree:
+
+```powershell
+node scripts/premium/studio-translit-responsive-smoke.js --baseline --ref=ce0836c2 --out=.tmp/reader-performance/studio-translit-baseline-816.json
+node scripts/premium/studio-translit-responsive-smoke.js --out=.tmp/reader-performance/studio-translit-final-817.json
+node scripts/premium/studio-translit-responsive-smoke.js --mobile --out=.tmp/reader-performance/studio-translit-mobile-final-817.json
+node scripts/premium/studio-saved-context-smoke.js
+node scripts/premium/studio-saved-context-smoke.js --ide
+node scripts/premium/reader-parity-smoke.js
+npm test
+node tests/i18n.smoke.js
+```
+
+Preflight is **5.576 GiB available / cache 0 B**, below the required 6 GiB for the next cold build. Unreferenced 814 image `7c1049974621` is a candidate only; it has not been deleted or approved for deletion. Current 816 `3f6ed6b9e6db` and rollback 815 `198bf2834490`, containers, volumes, data and backups must be retained. Runtime push waits for the complete candidate CI and the exact cleanup decision. O-130's earlier cold-open timeouts remain unresolved; this stage does not claim to have diagnosed them. S4/S5 remain subsequent stages.

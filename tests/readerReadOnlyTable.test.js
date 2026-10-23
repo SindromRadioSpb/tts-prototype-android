@@ -15,7 +15,23 @@ test('Room omits hidden Studio edit controls while preserving every text cell, r
   assert.equal(studio.querySelectorAll('.row-edit-btn').length, 4);
   assert.equal(room.querySelectorAll('.row-note-btn,.row-edit-actions').length, 0);
   assert.equal(room.querySelector('.row-tts-btn').dataset.rowIdx, '0');
+  assert.equal(room.querySelector('tbody tr').dataset.sentenceId, 's1');
   for (const name of ['he', 'niqqud', 'translit', 'ru']) assert.equal(room.querySelector('td[data-col="' + name + '"]').textContent, studio.querySelector('td[data-col="' + name + '"]').textContent);
+});
+
+test('sentence identity survives a hidden action column and is escaped independently of edit permission', async () => {
+  const { buildBilingualTableHtml } = await core();
+  const RM = require('../public/js/reader-morph.js');
+  const sid = 'sentence"<&';
+  for (const readOnly of [true, false]) {
+    const html = buildBilingualTableHtml([{ he: 'יופי', _v3_sentenceId: sid }], { readOnly, visibleColumns: { he: true } });
+    const { document } = parseHTML('<html><body>' + html + '</body></html>');
+    const tr = document.querySelector('tbody tr');
+    assert.equal(tr.dataset.sentenceId, sid);
+    assert.equal(document.querySelector('[data-col="action"]'), null);
+    tr.firstChild.innerHTML = '<span class="rm-w" data-w-offset="0">יופי</span>';
+    assert.deepEqual(RM.placeOfSpan(tr.querySelector('.rm-w')), { sid, off: 0 });
+  }
 });
 
 test('a hidden transliteration column does not enqueue expensive derivations', async () => {

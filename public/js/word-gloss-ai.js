@@ -63,9 +63,13 @@
   }
   function rowPayload(tr) {
     var spans = rowSpans(tr);
+    // A hidden translation column does not change the saved occurrence's key.
+    // Hosts bind the current canonical row before applying the word layer.
+    var row = tr.__lpLearningRow;
+    var ru = tr.querySelector('td[data-col="ru"]') ? cellValue(tr, 'ru') : normText(row && (row.ru != null ? row.ru : row.russian));
     var p = payloadOf(spans.map(function (sp) {
       return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", surface: sp.getAttribute("data-surface") || "", hint: "" };
-    }), cellValue(tr, "ru"), tr.__lpLearningRow);
+    }), ru, row);
     if (!p) return null;
     tr.setAttribute("data-wg-ai-key", p.key);
     tr.setAttribute("data-wg-occurrence-key", p.storageKey);

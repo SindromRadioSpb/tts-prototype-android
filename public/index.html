@@ -13802,7 +13802,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=813"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
-<script src="/js/word-gloss-ai.js?v=802"></script>
+<script src="/js/word-gloss-ai.js?v=817"></script>
 <!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
 <script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
@@ -13835,7 +13835,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/subtitle-material-import.js?v=584"></script>
 <script src="/js/subtitle-media-attach.js?v=796"></script>
 <script src="/js/local-translit-bundle.js?v=810"></script>
-<script src="/js/translit-display.js?v=813"></script>
+<script src="/js/translit-display.js?v=817"></script>
 <script src="/js/subtitle-material-vocalization.js?v=735"></script>
 <!-- O-033: implausible-pointing rules and their marks in the Studio table (post-render, like studio-agent). -->
 <script src="/js/niqqud-plausibility.js?v=735"></script>
@@ -13922,7 +13922,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
 <script src="/js/lexical-resolution-service.js?v=802"></script>
-<script src="/js/studio-morph.js?v=804"></script>
+<script src="/js/studio-morph.js?v=817"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -13983,7 +13983,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.816";
+    window.APP_VERSION = "3.11.817";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -15670,7 +15670,7 @@ function v3IdeRenderTable(rows, textId) {
     html += `
       <tr data-row-idx="${idx}" data-sentence-id="${sentenceId}" onclick="v3IdeOnRowClick(${idx})">
         ${showAction ? `
-        <td class="col-action-cell">
+        <td data-col="action" class="col-action-cell">
           <div class="col-action-row col-action-row-top">
             <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
             ${v3RowTtsButtonMarkup(idx)}
@@ -15679,10 +15679,10 @@ function v3IdeRenderTable(rows, textId) {
             <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
           </div>
         </td>` : ''}
-        ${showHe ? `<td class="rtl rtl-he">${he}${window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||''}</td>` : ''}
+        ${showHe ? `<td data-col="he" class="rtl rtl-he">${he}${window.SubtitleRowLanguage?.markup(row,document.documentElement.lang)||''}</td>` : ''}
         ${showNiq ? `<td data-col="niqqud" class="rtl rtl-he-niqqud"${niqqudAttrs}>${niqqud}${niqqudBadge}</td>` : ''}
         ${showTr ? `<td data-col="translit">${translit}</td>` : ''}
-        ${showRu ? `<td>${ru}</td>` : ''}
+        ${showRu ? `<td data-col="ru">${ru}</td>` : ''}
       </tr>
     `;
   });
@@ -15693,8 +15693,10 @@ function v3IdeRenderTable(rows, textId) {
   `;
 
   content.innerHTML = html;
+  const ideRenderedTable = content.querySelector('#proTable');
   if (ideTranslitStore) ideTranslitStore.endRender(() => {
-    if (rows === currentTableData && v3IdeState.activeTextId === textId && getSelectedTranslitProfile() === ideTranslitProfile) v3IdeRenderTable(rows, textId);
+    window.TranslitDisplay.patchTable(ideRenderedTable, rows, ideTranslitProfile, { store: ideTranslitStore,
+      isCurrent: () => rows === currentTableData && v3IdeState.activeTextId === textId && getSelectedTranslitProfile() === ideTranslitProfile });
   });
 
   // Bind column resize handlers and apply stored widths
@@ -39459,7 +39461,7 @@ try {
     const putBtnIn = null;
 
     const hasSid = !!(row && row._v3_sentenceId);
-    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : '') + '>';
+    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1"' + (hasSid ? ' data-sentence-id="' + escapeHtml(String(row._v3_sentenceId)) + '" draggable="false" data-draggable="1"' : '') + '>';
 
     cols.forEach(function (k) {
         const meta = colMeta[k] || {};
@@ -39529,11 +39531,13 @@ try {
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
-        // Rows past the render budget show their stored text; once they are derived in the
-        // background the same table is drawn again with the selected profile everywhere.
+        // Background derivation only patches this mounted table's translit cells.
+        // A later material, profile or mount owns its own completion.
+        const _renderedTranslitTable = document.getElementById('proTable');
         if (_translitStore) {
             _translitStore.endRender(function () {
-                if (rows === currentTableData && getSelectedTranslitProfile() === _selectedProfile) renderTable(currentTableData);
+                window.TranslitDisplay.patchTable(_renderedTranslitTable, rows, _tProfile, { store: _translitStore,
+                    isCurrent: function () { return rows === currentTableData && getSelectedTranslitProfile() === _selectedProfile; } });
             });
         }
         if (v3ScrollToTablePending && rows && rows.length) {

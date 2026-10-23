@@ -11,11 +11,12 @@
 ---
 
 ## O-131 · DOM-сборщик повторений теряет выбранный разбор в read-only Зале
+- **Кандидат 3.11.817:** escaped data-sentence-id добавлен на tr в Classic/shared core; readOnly и скрытая action-column больше не лишают DOM привязки. Исходный Room smoke теперь проходит `pid:5857`, review/export и перенос выбранного разбора. Шесть parity cases / 37 leaf checks проходят; golden меняется только добавлением row identity. Ожидает CI и production.
 - **Дата / где:** 2026-10-23, CI `40001249190`, затем локальное воспроизведение `morph-card-resolution-browser-smoke.js`, Room fixture на runtime 816.
 - **Факты:** разбор `יופי` как наречия `pid:5857` сохранён в lexical_resolution_events и возвращается карточкой по точному sentence ID. `collectReviewItems` возвращает другие ключи, но не `pid:5857`; у всех 12 словесных spans fixture `placeOfSpan` возвращает null. Studio-сценарий в CI прошёл.
 - **Подтверждённый механизм:** `reader-core.js` помещает `data-sentence-id` только в кнопку заметки, скрытую при readOnly. На `tr` идентификатора нет. `reader-morph.js:placeOfSpan` ищет его в строке/дочернем DOM и не может применить occurrence-specific correction при сканировании. Оба файла не менялись между 815 и 816; отдельный baseline-browser прогон не выполнялся.
 - **Предложение:** закрепить escaped sentence ID на строке независимо от видимости action-column/кнопок и прав редактирования; синхронно сохранить Studio/core renderer parity. Проверить readOnly/скрытую action-column, выбор омографа, список повторений и экспорт на Classic/IDE/Room. Не отключать текущую падающую проверку.
-- **Статус:** открыто, отдельная runtime-правка; [диагностика](../research/reader-performance/2026-10-23/morph-review-gap-816.json). Full CI 816 не зелёный, хотя целевые S2 production-проверки прошли.
+- **Статус:** в работе; проверенный локальный кандидат 817, production пока 816. [Диагностика](../research/reader-performance/2026-10-23/morph-review-gap-816.json).
 
 ## O-130 · Тайм-ауты одноразовых cold-open прогонов после выпуска 816
 - **Дата / где:** 2026-10-23, production 3.11.816, отдельные anonymous Chromium, SW blocked, без owner-профиля.
@@ -39,10 +40,11 @@
 - **Статус:** открыто.
 
 ## O-127 · Studio повторно строит таблицу и задерживает подстрочник за раскраской
+- **Кандидат 3.11.817:** фоновые callbacks Classic/IDE patch только translit text nodes; идентичность таблицы, активного редактора, replay, фокус/caret и положение проверены на 2500 строках, desktop/mobile RTL. Сохранённые gloss запускаются до полного status pass; для A→B переданы current guards. Host подключается к активному контейнеру обоих режимов, при переключении старое attachment отключается. Hidden RU сохраняет ключ из bound row, manual/AI evidence не переписываются. На 34 длинных абзацах оба режима и mode switch прошли, paid requests / review_log writes = 0 в fixtures. Ожидает CI/production.
 - **Дата / где:** 2026-10-23, review `31cae35b`, `public/index.html:39536`, `public/js/studio-morph.js:360`.
 - **Факты:** Classic после завершения фоновой транслитерации вызывает полный `renderTable(currentTableData)`; StudioMorph сначала refresh/wrap и весь `decorateWords`, затем `applyWordLayer`. Эквивалентные задержки в Room сокращены в 813, но host-последовательность Studio осталась прежней.
 - **Предложение:** переносить проверенные принципы Room: patch только translit-ячеек, порционная подготовка с приоритетом видимых строк, сохранённый контекст независимо от полной раскраски, identity/revision guards. Отдельно проверять Classic и IDE, редактирование, undo, selection, notes, replay и resume. Точный выигрыш Studio ещё не измерен.
-- **Статус:** открыто.
+- **Статус:** в работе; S3, кандидат 817.
 
 ## O-126 · Прямая ссылка на публичный материал ждёт лишнюю стартовую работу
 - **Production S2:** `b6229421` / 3.11.816, deployment 2930 finished 17:55:07 UTC; 10/10 assets и production routing/refresh checks прошли. Ранние тайм-ауты отдельно O-130. Evidence restoration для локальной копии остаётся открытой частью этой записи.

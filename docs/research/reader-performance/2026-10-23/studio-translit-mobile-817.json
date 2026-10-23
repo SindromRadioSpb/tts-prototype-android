@@ -1,0 +1,56 @@
+{
+  "baseline": false,
+  "ref": "ce0836c2",
+  "count": 2500,
+  "mobile": true,
+  "scope": "Disposable desktop/mobile viewport Chromium; held status/derivation queues; no owner data or paid calls.",
+  "checks": {
+    "classic": {
+      "renders": 1,
+      "completionMs": 1550.8149999380112,
+      "longestTaskMs": 145,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0.890625,
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true,
+      "lateFillSuppressed": true
+    },
+    "ide": {
+      "renders": 1,
+      "completionMs": 1579.3550000190735,
+      "longestTaskMs": 59,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0,
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true,
+      "lateFillSuppressed": true
+    }
+  },
+  "errors": [],
+  "result": "PASS",
+  "sourceBaseCommit": "ce0836c2"
+}

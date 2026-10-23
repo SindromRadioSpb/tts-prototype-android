@@ -516,7 +516,7 @@ export function buildBilingualTableHtml(rows, config) {
       : (tProfile === "ru-phonetic" ? (row.translit_ru || row.translit || "") : (row.translit || ""));
     const ru = row.ru || "";
     const hasSid = !!(row && row._v3_sentenceId);
-    html += '<tr data-row-idx="' + domRowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : "") + ">";
+    html += '<tr data-row-idx="' + domRowIdx + '" tabindex="-1"' + (hasSid ? ' data-sentence-id="' + escapeHtml(String(row._v3_sentenceId)) + '" draggable="false" data-draggable="1"' : "") + ">";
     cols.forEach((k) => {
       const meta = colMeta[k] || {};
       const studyNiqqud = k === "niqqud" && globalThis.BenYehudaLearningNiqqud?.isLearning(row);

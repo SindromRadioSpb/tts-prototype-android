@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.816";
+const CACHE_VERSION = "v3.11.817";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=816",
+  "/js/library-ui.js?v=817",
   "/js/room-b6-core.js?v=811",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -158,7 +158,7 @@ const PRECACHE_URLS = [
   "/js/corpus-item-presenter.js?v=419",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
-  "/js/reader-core.js?v=813",
+  "/js/reader-core.js?v=817",
   "/js/reader-row-work.js?v=1",
   "/css/reader-core.css?v=661",
   "/css/reader-morph.css?v=805",
@@ -213,11 +213,11 @@ const PRECACHE_URLS = [
   "/js/reader-morph.js?v=813",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=813",
-  "/js/word-gloss-ai.js?v=802",
+  "/js/word-gloss-ai.js?v=817",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=805",
-  "/js/studio-morph.js?v=804",
+  "/js/studio-morph.js?v=817",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
@@ -247,7 +247,7 @@ const PRECACHE_URLS = [
   "/js/subtitle-material-import.js?v=584",
   "/js/subtitle-media-attach.js?v=796",
   "/js/local-translit-bundle.js?v=810",
-  "/js/translit-display.js?v=813",
+  "/js/translit-display.js?v=817",
   "/js/subtitle-material-vocalization.js?v=735",
   "/js/niqqud-plausibility.js?v=735",
   "/js/niqqud-suspect-marks.js?v=685",

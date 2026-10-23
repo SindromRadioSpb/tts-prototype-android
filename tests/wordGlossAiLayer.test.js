@@ -68,6 +68,20 @@ async function reset() { (await deviceStore()).clear(); AI._mem.clear(); }
 const ROW = { order_index: 0, he_plain: 'למה צריכים מאות מקומות', he_niqqud: 'לָמָּה צְרִיכִים מֵאוֹת מְקוֹמוֹת', ru: 'Зачем нужны сотни мест?' };
 const GLOSSES = [{ gloss: 'зачем' }, { gloss: 'нужны' }, { gloss: 'сотни' }, { gloss: 'мест' }];
 
+test('hiding the translation column preserves the bound occurrence and its saved manual gloss', async () => {
+  await reset();
+  const row = { ...ROW, id: 'hidden-translation' }, tr = renderRow(row, false);
+  const key = AI.rowPayloadFromData(row).key;
+  await AI.remember({ schema: AI.LAYER_SCHEMA, rows: [{ order_index: 0, key,
+    glosses: GLOSSES.map((g, i) => i ? g : { gloss: 'моя правка', manual: true, ai_gloss: g.gloss }), mwe: [] }] }, [row]);
+  tr.querySelector('td[data-col="ru"]').remove();
+  AI.bindRows(document.getElementById('m'), [row]);
+  assert.equal(AI.rowPayload(tr).storageKey, AI.rowPayloadFromData(row).storageKey);
+  await AI.hydrate([tr]); assert.equal(AI.wordAt(tr, 0).gloss, 'моя правка');
+  AI.bindRows(document.getElementById('m'), [{ ...row, ru: 'изменённый перевод' }]);
+  await AI.hydrate([tr]); assert.equal(AI.wordAt(tr, 0), null, 'new source content cannot inherit the old correction');
+});
+
 test('duplicate occurrences retain distinct imported glosses through reload, reorder and portable rebind', async () => {
   await reset();
   const rows = [{ ...ROW, id: 'first', order_index: 0 }, { ...ROW, id: 'second', order_index: 1 }];

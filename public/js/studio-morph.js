@@ -15,6 +15,9 @@
   if (typeof window === "undefined" || typeof document === "undefined") return;
 
   var LS_KEY = "studio.wordStatus";
+  function studioMount() {
+    return document.getElementById(document.body.classList.contains('v3-ide-mode') ? 'v3IdeCenterContent' : 'tableContainer');
+  }
 
   function tt(key, fallback) {
     try { if (typeof window.t === "function") { var v = window.t(key); if (v && v !== key) return v; } } catch (_) {}
@@ -56,7 +59,7 @@
     var mark = reviewDialog.querySelector("#studioWordReviewMarkNew"); if (mark) mark.disabled = !reviewWords.some(function (w) { return w.assessment === "unassessed"; });
   }
   async function _loadReviewWords() {
-    var mount = document.getElementById("tableContainer"), h = ensureHost();
+    var mount = studioMount(), h = ensureHost();
     if (!mount || !h || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== "function") { reviewWords = []; _renderReviewWords(); return; }
     _reviewResult(tt("room.morph.study.loading", "Собираю слова…"));
     try { reviewWords = await window.ReaderMorph.collectNewWords(mount, (await h.ensureWordStates()) || {}); } catch (_) { reviewWords = []; }
@@ -282,21 +285,25 @@
     };
   }
 
-  var rmAttach = null;
+  var rmAttach = null, rmMount = null;
+  function suppressEditTap(e) {
+    if (!editModeOn()) return;
+    var s = e.target && e.target.closest ? e.target.closest('.rm-w') : null;
+    if (s) e.stopImmediatePropagation();
+  }
   function attachOnce() {
-    if (rmAttach) return;
-    var mount = document.getElementById("tableContainer");
+    var mount = studioMount();
+    if (rmAttach && rmMount === mount) return;
     if (!mount || !window.ReaderMorph || typeof window.ReaderMorph.attach !== "function") return;
     var h = ensureHost(); if (!h) return;
+    if (rmAttach) rmAttach.detach();
+    if (rmMount) rmMount.removeEventListener('click', suppressEditTap, true);
+    rmAttach = null; rmMount = mount;
 
     // Подавление тапа в режиме правки: наш capture-слушатель зарегистрирован РАНЬШЕ
     // reader-morph'овского на том же узле → выполняется первым; stopImmediatePropagation
     // не даёт карточке открыться, тап уходит редактору ячейки.
-    mount.addEventListener("click", function (e) {
-      if (!editModeOn()) return;
-      var s = e.target && e.target.closest ? e.target.closest(".rm-w") : null;
-      if (s) e.stopImmediatePropagation();
-    }, true);
+    mount.addEventListener('click', suppressEditTap, true);
 
     var opts = {
       getRow: function (i) {
@@ -356,19 +363,27 @@
     try { rmAttach = window.ReaderMorph.attach(mount, opts); } catch (_) { rmAttach = null; }
   }
 
-  var _decorBusy = false, _decorDirty = false;
-  async function refreshDecorations() {
-    var mount = document.getElementById("tableContainer");
+  var _decorBusy = false, _decorDirty = false, _decorRevision = 0;
+  async function refreshDecorations(statusOnly) {
+    var mount = studioMount();
     if (!mount || !window.ReaderMorph) return;
-    if (editModeOn()) { applyWordLayer(mount); return; }   // в режиме правки не враппим и не красим; подстрочник/лента снимаются
+    if (!statusOnly) ++_decorRevision;
+    var revision = _decorRevision, table = mount.querySelector('#proTable');
+    var isCurrent = function () { return revision === _decorRevision && studioMount() === mount && !!table && table.isConnected && mount.querySelector('#proTable') === table; };
+    if (editModeOn()) { applyWordLayer(mount, isCurrent); return; }   // в режиме правки не враппим и не красим; подстрочник/лента снимаются
+    if (!statusOnly) {
+      healStaleWrapFlags(mount);
+      if (rmAttach && typeof rmAttach.refresh === "function") rmAttach.refresh();
+      // Saved context of B can paint immediately even if A's status read is pending.
+      applyWordLayer(mount, isCurrent);
+    }
     if (_decorBusy) { _decorDirty = true; return; } // коалесценция чанк-прогрессии
     _decorBusy = true;
     try {
-      healStaleWrapFlags(mount);
-      if (rmAttach && typeof rmAttach.refresh === "function") rmAttach.refresh();  // wrapMount идемпотентен
       var color = wordStatusEnabled();
       var h = ensureHost();
       var states = color && h ? (await h.ensureWordStates()) || {} : {};
+      if (!isCurrent() || editModeOn()) return;
       var dueSet = null;
       if (color && typeof window.ReaderMorph.dueSetFromSchedule === "function") {
         try {
@@ -376,18 +391,18 @@
           dueSet = window.ReaderMorph.dueSetFromSchedule((await ldb.getSrsSchedule()) || {}, states || {}, Date.now());
         } catch (_) { dueSet = null; }
       }
-      try { await window.ReaderMorph.decorateWords(mount, states, { color: color, fadeMode: "full", dueSet: dueSet }); } catch (_) {}
-      applyWordLayer(mount);
+      try { await window.ReaderMorph.decorateWords(mount, states, { color: color, fadeMode: "full", dueSet: dueSet,
+        isCurrent: function () { return isCurrent() && !editModeOn(); } }); } catch (_) {}
     } finally {
       _decorBusy = false;
-      if (_decorDirty) { _decorDirty = false; try { refreshDecorations(); } catch (_) {} }
+      if (_decorDirty) { _decorDirty = false; try { refreshDecorations(true); } catch (_) {} }
     }
   }
 
   // Word layer Ф1 (docs/planning/word-layer/F1_SPEC_2026_10_11.md) — подстрочник + лента слов,
   // общий WordGloss (одна реализация с Залом). Ничего не пишет; в режиме правки не применяется.
-  function applyWordLayer(mount) {
-    mount = mount || document.getElementById("tableContainer");
+  function applyWordLayer(mount, isCurrent) {
+    mount = mount || studioMount();
     if (!mount || !window.WordGloss) return;
     if (window.WordGlossAI && window.StudioAgentHost) {
       var bound = [];
@@ -396,8 +411,9 @@
       });
       window.WordGlossAI.bindRows(mount, bound);
     }
-    if (editModeOn()) { try { window.WordGloss.apply(mount, { gloss: false, ribbon: false }); } catch (_) {} return; }
-    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi"), strict: window.WordGloss.enabled("studio", "GlossStrict") }); } catch (_) {}
+    if (editModeOn()) { try { window.WordGloss.apply(mount, { gloss: false, ribbon: false, isCurrent: isCurrent }); } catch (_) {} return; }
+    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi"), strict: window.WordGloss.enabled("studio", "GlossStrict"),
+      isCurrent: function () { return (!isCurrent || isCurrent()) && !editModeOn(); } }); } catch (_) {}
   }
 
   var _t = null;
@@ -408,17 +424,16 @@
 
   // Пост-рендер хук: обёртка renderTable (билдер заморожен — прецедент studio-agent.js:1226).
   function wrapRenderTable() {
-    var orig = window.renderTable;
-    if (typeof orig !== "function" || orig.__smWrapped) return false;
-    var wrapped = function () {
-      var out = orig.apply(this, arguments);
-      try { refresh(); } catch (_) {}
-      return out;
-    };
-    wrapped.__smWrapped = true;
-    window.renderTable = wrapped;
-    try { refresh(); } catch (_) {}
-    return true;
+    var complete = true, changed = false;
+    ['renderTable', 'v3IdeRenderTable'].forEach(function (name) {
+      var orig = window[name];
+      if (typeof orig !== 'function') { complete = false; return; }
+      if (orig.__smWrapped) return;
+      var wrapped = function () { var out = orig.apply(this, arguments); try { refresh(); } catch (_) {} return out; };
+      wrapped.__smWrapped = true; window[name] = wrapped; changed = true;
+    });
+    if (changed) { try { refresh(); } catch (_) {} }
+    return complete;
   }
   if (!wrapRenderTable()) document.addEventListener("DOMContentLoaded", wrapRenderTable);
 

@@ -9,7 +9,7 @@
 //
 // The engine costs a few milliseconds per row (≈3 s for a 778-row film), so a render derives
 // synchronously only within a small time budget; rows past it show the stored text and are filled
-// in the background, in slices that keep the page responsive, after which the caller re-renders.
+// in the background, in slices that keep the page responsive, then patches the column in place.
 (function (root, factory) {
   var api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
@@ -149,6 +149,49 @@
     return selected === "learner-latin" ? "learner-latin" : "sbl";
   }
 
+  var tablePatches = new WeakMap();
+  // Background completion must not recreate editors, selection, replay controls,
+  // word cards or the rest of the table. Each mounted table owns one patch job.
+  function patchTable(table, rows, profile, options) {
+    var opts = options || {}, store = opts.store;
+    if (!table || !store || !Array.isArray(rows)) return Promise.resolve({ patched: 0, cancelled: false });
+    var job = {}, patched = 0;
+    tablePatches.set(table, job);
+    var current = function () { return tablePatches.get(table) === job && table.isConnected && (!opts.isCurrent || opts.isCurrent()); };
+    var cells = Array.from(table.querySelectorAll('tbody td[data-col="translit"]'));
+    var cursor = 0, defer = opts.defer || function (fn) { setTimeout(fn, 0); };
+    return new Promise(function (resolve) {
+      function step() {
+        if (!current()) { resolve({ patched: patched, cancelled: true }); return; }
+        // getSelection can flush layout after text mutations. Read it once per
+        // slice; DOM Range intersection itself does not measure the table.
+        var selection = table.ownerDocument.defaultView?.getSelection?.(), ranges = [];
+        if (selection && !selection.isCollapsed) {
+          for (var r = 0; r < selection.rangeCount; r++) ranges.push(selection.getRangeAt(r).cloneRange());
+        }
+        var deadline = now() + 8;
+        while (cursor < cells.length) {
+          var cell = cells[cursor++], tr = cell.closest('tr[data-row-idx]');
+          var row = tr && rows[Number(tr.dataset.rowIdx)];
+          var selected = ranges.some(function (range) { return range.intersectsNode(cell); });
+          if (row && cell.isConnected && !selected && !cell.querySelector('.cell-editor-wrap,input,textarea,[contenteditable="true"]') &&
+              (!row._v3_sentenceId || tr.dataset.sentenceId === String(row._v3_sentenceId))) {
+            var value = store.display(row, profile);
+            var text = Array.from(cell.childNodes).find(function (node) {
+              return node.nodeType === 3 && !(node.textContent === '\u00a0' && node.nextSibling?.classList?.contains('smk-row-replay'));
+            });
+            if (!text) { text = cell.ownerDocument.createTextNode(''); cell.insertBefore(text, cell.firstChild); }
+            if (text.textContent !== value) { text.textContent = value; patched++; }
+          }
+          if (now() >= deadline) break;
+        }
+        if (cursor < cells.length) defer(step);
+        else resolve({ patched: patched, cancelled: false });
+      }
+      step();
+    });
+  }
+
   return { createStore: createStore, createDisplay: createDisplay, resolveProfile: resolveProfile,
-    normalizeProfile: normalizeProfile, PROFILES: PROFILES };
+    normalizeProfile: normalizeProfile, patchTable: patchTable, PROFILES: PROFILES };
 });

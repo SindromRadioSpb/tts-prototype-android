@@ -30,17 +30,19 @@
 
 const fs = require("fs");
 const path = require("path");
-const { spawn, spawnSync } = require("child_process");
+const { fork, spawnSync } = require("child_process");
+const os = require('node:os');
+const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require('../smoke-server-env');
 
 const REPO = path.resolve(__dirname, "..", "..");
-const PORT = 3282, BASE = "http://127.0.0.1:" + PORT;
+let BASE;
 const GOLDEN_PATH = path.join(__dirname, "fixtures", "reader-parity-golden.json");
 const UPDATE = process.argv.includes("--update");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── server lifecycle (same pattern as measure-reader-*.js) ───────────────────
 function startServer() {
-  const c = spawn(process.execPath, ["server.js"], { cwd: REPO, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] });
+  const c = fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: REPO, env: smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(), 'lp-reader-parity-')), 0), silent: true, windowsHide: true });
   const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));
   return { c, logs };
 }
@@ -87,12 +89,14 @@ const PRESET_COLS = {
 (async () => {
   let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright — `npm i -D playwright` first"); process.exit(1); }
   const srv = startServer();
-  if (!(await ready())) { console.error("server failed to start"); console.error(srv.logs.join("")); await stop(srv.c); process.exit(1); }
+  try { BASE = 'http://127.0.0.1:' + await waitForSmokeServer(srv.c, 30000); }
+  catch (_) { console.error('server failed to start'); await stop(srv.c); process.exit(1); }
   const b = await pw.chromium.launch();
   const failures = [];
   const fail = (msg) => failures.push(msg);
   try {
     const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+    await ctx.route(url => !url.href.startsWith(BASE), route => route.abort());
     // Pin locale BEFORE any page script runs so thead i18n titles are deterministic.
     await ctx.addInitScript(() => { try { localStorage.setItem("app.locale", "ru"); } catch (_) {} });
     const pg = await ctx.newPage();

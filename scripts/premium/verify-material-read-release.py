@@ -1,7 +1,6 @@
 """Read-only material-opening release verification against exact Git blobs.
 
-Defaults reproduce S1 (815); --version=3.11.816 verifies the S2 shell/Room bump
-while retaining the unchanged 815 shared data-module pins.
+Defaults reproduce S1 (815); later stages retain the unchanged 815 data pins.
 """
 import argparse
 import hashlib
@@ -26,11 +25,13 @@ config = json.loads(fetch('/api/client-config'))
 health = json.loads(fetch('/healthz'))
 report = {'checkedAtUtc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'version': config['version'], 'health': health,
           'sourceCommit': subprocess.check_output(['git', 'rev-parse', args.commit], text=True).strip(), 'assets': []}
-assert args.version in ['3.11.815', '3.11.816'], 'Unsupported release contract'
+assert args.version in ['3.11.815', '3.11.816', '3.11.817'], 'Unsupported release contract'
 assert config['version'] == args.version, report
 paths = ['/db/material-read.js?v=815', '/db/local-db.js?v=815', '/db/db-worker-runtime.js?v=815', '/js/material-open.js?v=815',
          '/js/library-ui.js?v=' + args.version.rsplit('.', 1)[1], '/js/dictionary-ui.js?v=815', '/js/mediatheque-ui.js?v=815', '/js/study-video-source-ui.js?v=815',
          '/js/agent-access.js?v=815', '/sw.js']
+if args.version == '3.11.817':
+    paths += ['/js/reader-core.js?v=817', '/js/translit-display.js?v=817', '/js/studio-morph.js?v=817', '/js/word-gloss-ai.js?v=817']
 for url in paths:
     blob = subprocess.check_output(['git', 'show', args.commit + ':public' + url.split('?')[0]])
     expected = hashlib.sha256(blob).hexdigest()
@@ -38,6 +39,9 @@ for url in paths:
     report['assets'].append({'url': url, 'expected': expected, 'served': served, 'match': expected == served})
 report['allAssetsMatch'] = all(item['match'] for item in report['assets'])
 report['shells'] = {url: args.version in fetch(url).decode('utf-8') for url in ['/', '/library.html']}
+if args.version == '3.11.817':
+    report['dictionaryContextPin'] = '/js/word-gloss-ai.js?v=817' in fetch('/dictionary.html').decode('utf-8')
+    assert report['dictionaryContextPin'], 'Dictionary must use the shared context module'
 out = pathlib.Path(args.out)
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
