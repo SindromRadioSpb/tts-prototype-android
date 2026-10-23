@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "waitMs": 1684,
+  "transactionMs": 1756.0199999809265,
+  "sqlMessages": 1621,
+  "texts": 79,
+  "rows": 6646,
+  "rowDigest": "24f98390a1d37b395444bebd6326c740077ba63c71e4383a3e7ec7f280b73308",
+  "pragmas": {
+    "temp": [
+      {
+        "temp_store": 2
+      }
+    ],
+    "journal": [
+      {
+        "journal_mode": "delete"
+      }
+    ],
+    "sync": [
+      {
+        "synchronous": 2
+      }
+    ]
+  },
+  "partialRollback": true,
+  "interruptedTransactionRecovery": true,
+  "browserRestart": true,
+  "sourceBaseCommit": "35de9fdc",
+  "candidateRuntime": "3.11.816"
+}

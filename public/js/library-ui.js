@@ -79,6 +79,7 @@ const readerOpens = globalThis.MaterialOpen.create({ surface: 'room' });
 window.__roomMaterialTimings = () => readerOpens.timings();
 let publicCorpora = [];         // anonymous published-corpus pointers; never membership-derived
 const publicCatalogs = new Map();// slug -> validated immutable-edition catalog
+const publicCatalogLoads = new Map(); // slug -> shared in-flight validation/fetch, cleared on failure
 const physicsPublicEnhancements = new Map(); // slug -> validated sections + immutable resource index
 const physicsLearningSupportCache = new Map(); // exact public_work_id -> reviewed immutable derivative; lazy per task
 const physicsLearningSupportLoading = new Map();
@@ -1597,14 +1598,14 @@ function renderTrack() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
-function setActiveTrack(track) {
+function setActiveTrack(track, options) {
   if (TRACKS.indexOf(track) === -1) return;
   activeTrack = track;
   TRACKS.forEach((t) => {
     const btn = $(TAB_ID[t]);
     if (btn) btn.setAttribute('aria-selected', String(t === track));
   });
-  return renderTrack();
+  if (!(options && options.deferRender)) return renderTrack();
 }
 
 // ── embedded reader (warm-worker open) ───────────────────────────────────────
@@ -9758,13 +9759,18 @@ async function loadPublicCorpora() {
 async function ensurePublicCatalog(slug) {
   const key = String(slug || '');
   if (publicCatalogs.has(key)) return publicCatalogs.get(key);
-  const response = await fetch('/api/public-corpora/' + encodeURIComponent(key), { cache: 'no-cache' });
-  if (!response.ok) throw new Error('public catalog ' + response.status);
-  const payload = await response.json();
-  if (!window.PublicCorpusAdapter) throw new Error('public corpus adapter unavailable');
-  const catalog = window.PublicCorpusAdapter.normalizeCorpus(payload);
-  publicCatalogs.set(key, catalog);
-  return catalog;
+  if (publicCatalogLoads.has(key)) return publicCatalogLoads.get(key);
+  const job = (async () => {
+    const response = await fetch('/api/public-corpora/' + encodeURIComponent(key), { cache: 'no-cache' });
+    if (!response.ok) throw new Error('public catalog ' + response.status);
+    const payload = await response.json();
+    if (!window.PublicCorpusAdapter) throw new Error('public corpus adapter unavailable');
+    const catalog = window.PublicCorpusAdapter.normalizeCorpus(payload);
+    publicCatalogs.set(key, catalog);
+    return catalog;
+  })();
+  publicCatalogLoads.set(key, job);
+  try { return await job; } finally { publicCatalogLoads.delete(key); }
 }
 
 async function ensurePhysicsPublicEnhancement(slug, catalog) {
@@ -10477,22 +10483,78 @@ async function renderReaderTaskLearningSupport(slug, workId, epoch) {
 
 async function openPublicCorpusWork(slug, card, openOpts = {}) {
   if (!card || !window.PublicCorpusAdapter) return;
-  const openEpoch = ++readerOpenEpoch;
+  const requestedEpoch = Number(openOpts._readerOpenEpoch);
+  const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
+  const isCurrent = () => openEpoch === readerOpenEpoch && (!openOpts.isCurrent || openOpts.isCurrent());
+  if (!isCurrent()) return;
   try {
-    await corpusOpenQueue.run(async () => {
+    return await corpusOpenQueue.run(async () => {
     const got = await window.CorpusMaterialize.ensurePublicWork(slug, card,
-      { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { restoreEvidence: true, isCurrent: () => openEpoch === readerOpenEpoch });
-    if (!got) return;
+      { db: localDb, fetch: (u, o) => fetch(u, o), Adapter: window.PublicCorpusAdapter }, { restoreEvidence: true, isCurrent });
+    if (!got || !isCurrent()) return;
     noticeWordGlossOutcome(got.wordGlossAi);
     const localId = got.localId;
-    if (openEpoch !== readerOpenEpoch) return;
+    if (!isCurrent()) return;
     await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch, linkIdentity: { public_corpus: String(slug), public_work: String(card.public_work_id) } }));
-    }, () => openEpoch === readerOpenEpoch);
+    return isCurrent() && readerTextId === localId && readerRows.length > 0;
+    }, isCurrent);
   } catch (error) {
-    if (openEpoch !== readerOpenEpoch) return;
+    if (!isCurrent()) return;
     try { console.warn('[room] open public corpus work failed:', error); } catch (_) {}
     roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
   } finally { invalidatePersonalSets(); }
+}
+
+// A direct public work needs its live publication pointer and verified edition,
+// not the Ben-Yehuda index, canon import, full local list or group memberships.
+// Claim the route before awaiting anything; a later navigation owns the screen.
+async function openInitialPublicMaterial(query, initialPresentation) {
+  const slug = query.get('public_corpus'), workId = query.get('public_work');
+  if (!slug || !workId || ['my_text', 'open', 'group_corpus', 'corpus_work', 'handoff'].some(key => query.has(key))) return false;
+  const epoch = ++readerOpenEpoch, token = ++corpusRenderToken;
+  const isCurrent = () => epoch === readerOpenEpoch && token === corpusRenderToken;
+  if (initialPresentation && initialPresentation.corpus === 'public:' + slug) roomApplyStateFields(initialPresentation);
+  corpusNav = { corpus: 'public:' + slug, level: 'home', era: null, author: null };
+  corpusReveal = 0;
+  setActiveTrack('corpus', { deferRender: true });
+  _roomPresentationReady = true;
+  const state = roomCurrentPresentationState({ surface: 'corpus', anchor: { itemId: '', rowIndex: 0 } });
+  try { history.replaceState(state, '', location.href); } catch (_) {}
+  roomStorePresentation(state); _roomInitialState = state;
+  showState('room.state.loading', '⏳');
+  try {
+    const loaded = await loadPublicCorpora();
+    if (!isCurrent()) return true;
+    if (!loaded.ok || !publicCorpora.some(item => String(item.slug) === String(slug))) throw new Error('PUBLIC_WORK_UNAVAILABLE');
+    const catalog = await ensurePublicCatalog(slug);
+    if (!isCurrent()) return true;
+    const card = catalog.items.find(item => String(item.public_work_id) === String(workId));
+    if (!card || (query.get('public_snapshot') && query.get('public_snapshot') !== card.snapshot_sha256)) throw new Error('PUBLIC_WORK_UNAVAILABLE');
+    const opened = await openPublicCorpusWork(slug, card, { resume: true, replaceInitialHistory: true,
+      returnToMediatheque: !!mediathequeReturnHref(), _readerOpenEpoch: epoch, isCurrent });
+    if (!isCurrent()) return true;
+    if (!opened) throw new Error('PUBLIC_WORK_OPEN_FAILED');
+    if (query.get('materials_reader') === '1' && slug === 'materials-science-year1-problem-book-2') {
+      const support = await ensureMaterialsLearningSupport(slug, card);
+      if (!isCurrent()) return true;
+      await renderReaderTaskLearningSupport(slug, workId, epoch);
+      if (!isCurrent()) return true;
+      const trigger = document.querySelector('.reader-task-learning-support .materials-learning-action.primary');
+      const wrap = trigger && trigger.closest('.materials-learning-actions');
+      if (trigger && wrap) renderMaterialsInlineSolution(support, trigger, wrap);
+    }
+  } catch (error) {
+    if (!isCurrent()) return true;
+    const retry = () => { if (isCurrent()) location.reload(); };
+    if ($('roomReader') && !$('roomReader').hidden) readerOpenFailedBox(error, retry);
+    else {
+      showState('room.publicCorpus.unavailable', '⚠️');
+      const button = el('button', { class: 'room-state-retry', attrs: { type: 'button' }, text: tt('room.state.retry', 'Повторить') });
+      button.addEventListener('click', retry);
+      $('roomContent')?.appendChild(button);
+    }
+  }
+  return true; // handled includes failure or supersession; boot must not retry/replace it
 }
 
 // Restricted group corpus uses the same OPFS reader model, but its transport is
@@ -15723,22 +15785,25 @@ async function boot() {
         if (atRow != null && initialQuery.get('play') === '1') roomCueRowReplay(atRow);
       }
     }
+    const publicLinkHandled = await openInitialPublicMaterial(initialQuery, initialPresentation);
     const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import
     // O-020: on a cold profile the default «Библиотека» home does not wait for the canon import.
     let canonInBackground = false;
-    if (canonImportLikelyNeeded() && !initialPresentation) {
-      await corpusCatalogLoad;
-      if (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0) {
+    if (publicLinkHandled || (canonImportLikelyNeeded() && !initialPresentation)) {
+      if (!publicLinkHandled) await corpusCatalogLoad;
+      if (publicLinkHandled || (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0)) {
         canonInBackground = true;
-        _canonPending = true;
-        _canonReadyPromise = (async () => {
+        // Share the material-import queue. Set the write gate only when our turn
+        // starts, so a newer work already queued by the user can finish first.
+        _canonReadyPromise = corpusOpenQueue.run(async () => {
+          _canonPending = true;
           try { await autoImportCanon({ quiet: true }); await loadData(); }
           catch (e) { try { console.warn('[room] background canon import failed:', e); } catch (_) {} }
           finally {
             _canonPending = false;
             if (activeTrack !== 'corpus' && !(readerTextId != null)) renderTrack();
           }
-        })();
+        });
       }
     }
     if (!canonInBackground) {
@@ -15746,8 +15811,8 @@ async function boot() {
       await loadData();
     }
     await corpusCatalogLoad;   // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
-    await Promise.all([loadPublicCorpora(), loadGroupCorpora()]); // independent public pointers and authenticated memberships
-    if (!localLinkOpened) {
+    await Promise.all([publicLinkHandled ? Promise.resolve() : loadPublicCorpora(), loadGroupCorpora()]);
+    if (!localLinkOpened && !publicLinkHandled) {
     // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
     // canon with morphology-on-tap now leads. Fall back to the on-ramp tracks only if the corpus
     // root didn't load or is empty (mirrors the tabCorpus un-hide condition in loadCorpusCatalog).
@@ -15794,7 +15859,7 @@ async function boot() {
       const qp = initialQuery;
       const publicSlug = qp.get('public_corpus');
       const publicWorkId = qp.get('public_work');
-      if (publicSlug) {
+      if (publicSlug && !publicLinkHandled) {
         const allowed = publicCorpora.some(item => String(item.slug) === String(publicSlug));
         if (!allowed) roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
         else {

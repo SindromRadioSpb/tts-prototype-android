@@ -139,3 +139,24 @@ On the actually served code, [Classic/IDE/Room lifecycle](production-lifecycle-8
 [Owner read-only parity](owner-read-815.json) used the published 815 DB module in the existing hidden diagnostic tab, without navigating the owner's working tabs. The current library had 732 texts / 108996 sentences. Batch and split reads of Hamam (499), Ben-Yehuda 66120 (34) and the largest material (2477) produced equal full read-model hashes, including metadata and study fields. The review log retained all 11754 rows and its original SHA-256. These were individual read checks during normal owner activity, not controlled cold UI measurements or proof that unrelated progress was unchanged.
 
 [Post-release cache-only cleanup](cleanup-815.json) reported 2.917 GB reclaimed; available space increased 0.64→2.85 GiB, with all 15 images, 11 running containers and four volumes retained, including current 815 and rollback 814. At one unpacking checkpoint available space was 0 while root free was 1.43 GiB. The historical 4 GiB preflight threshold did not preserve headroom; the next runtime push now requires a fresh capacity check with at least 6 GiB available for the current image, before starting another cold build. Disk warning remains at 92% used. Further image removal needs a separately agreed exact set; none was removed in this release. The evidence-only follow-up uses `[skip cd]`.
+
+## Direct public opening, S2 candidate 3.11.816
+
+Based on `35de9fdc` / production 815. An unambiguous public-work link now validates the current publication pointer and edition, then opens its canonical material before unrelated catalog/group/full-local-list startup. Concurrent callers share the entire catalog fetch/body/validation promise; failures clear that promise for a later retry. Navigation and material identities suppress stale opens and notices. Background canon joins the existing material-import queue, setting its write gate only when its turn starts. Source, learner state, publication rights and evidence-restoration policy are unchanged by the new routing code.
+
+The [815 baseline](direct-public-baseline-815.json) was blocked before even requesting the desired public catalog when an unrelated startup response was held. The [candidate](direct-public-candidate-816.json) opened all 499 Hamam rows with visible interactive word spans while unrelated responses remained held, made one catalog request, and preserved the reader after background startup. Closing returned to the public parent without a second request. HTTP 503 followed by the visible retry succeeded on the second request. Navigating away during either catalog or snapshot loading prevented a late open. A real A→B switch opened 679 rows, then completed the shipped canon import without replacing B or deadlocking.
+
+The [refresh check](direct-public-refresh-816.json) reloaded while materialization was deliberately paused, preserved the requested work URL, and opened 499 rows. These use disposable anonymous Chromium and production GETs with only the candidate Room module substituted; they are **not verification of a deployed 816** or an owner-profile benchmark. The delayed-dependency timings are incidental and do not establish a normal-network speedup percentage.
+
+The independent [cold canon regression](cold-canon-816.json) passed: 79 texts, 6646 rows with exact expected digest, competing-tab write ordering, partial rollback and interrupted-transaction recovery after browser restart. It runs a disposable local server/profile and stops the server on completion. All **2864 unit tests** and **233 i18n checks** passed; shell, Room module, SW and integrity versions target 816, shared data modules remain 815.
+
+```powershell
+node scripts/premium/reader-direct-public-smoke.js --expect-blocked --out=.tmp/reader-performance/direct-public-baseline.json # production 815 only
+node scripts/premium/reader-direct-public-smoke.js --candidate --out=.tmp/reader-performance/direct-public-candidate.json
+node scripts/premium/reader-refresh-link-smoke.js --candidate
+node scripts/multitab/cold-canon-smoke.js
+npm test
+node tests/i18n.smoke.js
+```
+
+Release is pending the capacity gate: last read-only inventory has 2.85 GiB available, no build cache, 15 images, 11 containers and four volumes. Proposed cleanup is limited to three unreferenced historical LinguistPro images `cf642b806a9e` (813), `8e1163320319` (812), and `ef80b72ad654` (`c3fa5172`); retain current 815 `198bf2834490` and rollback 814 `7c1049974621`, plus every container/volume/data/backup. No images have been deleted. Exact-set owner approval and a fresh reference/capacity check are required before main push. Group/baked routes, local-copy evidence restoration and first-screen layer/DOM costs remain outside S2.

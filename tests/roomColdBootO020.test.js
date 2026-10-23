@@ -20,8 +20,8 @@ const fnSource = (name) => {
 
 test("a cold profile with a corpus catalog does not wait for the canon import", () => {
   assert.match(fnSource("canonImportLikelyNeeded"), /localStorage\.getItem\(CANON_VERSION_KEY\)[\s\S]*< CANON_BUNDLE_VERSION/);
-  const boot = ui.slice(ui.indexOf("const corpusCatalogLoad = loadCorpusCatalog();"), ui.indexOf("await Promise.all([loadPublicCorpora(), loadGroupCorpora()]);"));
-  assert.match(boot, /if \(canonImportLikelyNeeded\(\) && !initialPresentation\)/);
+  const boot = ui.slice(ui.indexOf("const corpusCatalogLoad = loadCorpusCatalog();"), ui.indexOf("if (!localLinkOpened && !publicLinkHandled)"));
+  assert.match(boot, /if \(publicLinkHandled \|\| \(canonImportLikelyNeeded\(\) && !initialPresentation\)\)/);
   assert.match(boot, /_canonPending = true;/);
   assert.match(boot, /autoImportCanon\(\{ quiet: true \}\)[\s\S]{0,80}await loadData\(\)/);
   assert.match(boot, /finally \{[\s\S]{0,120}_canonPending = false;[\s\S]{0,120}activeTrack !== 'corpus'[\s\S]{0,40}renderTrack\(\)/);
@@ -49,5 +49,5 @@ test("Room DB writes wait for the background canon import", () => {
   const imp = ui.slice(ui.search(/async function autoImportCanon\(opts\)/), ui.search(/async function autoImportCanon\(opts\)/) + 4000);
   assert.match(imp, /localDbRaw\.importBundle\(/);
   assert.match(imp, /localDbRaw\.reconcileAudioLinks\(/);
-  assert.match(ui, /_canonReadyPromise = \(async \(\) => \{/);
+  assert.match(ui, /_canonReadyPromise = corpusOpenQueue\.run\(async \(\) => \{\s*_canonPending = true;/);
 });

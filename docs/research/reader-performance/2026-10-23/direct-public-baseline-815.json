@@ -1,0 +1,16 @@
+{
+  "candidate": false,
+  "expectBlocked": true,
+  "scope": "Disposable anonymous Chromium; public GETs only, no owner profile. Delayed dependencies test, not normal-network timing benchmark.",
+  "checks": {
+    "baseline": {
+      "blockedBeforeRequestedCatalog": true,
+      "unrelatedHeld": 1
+    }
+  },
+  "errors": [],
+  "testedModuleSha256": "08e3026224eb436afbbe890c8de554be49638455e3d0efbbd4d9f65b4198302f",
+  "result": "PASS",
+  "sourceBaseCommit": "35de9fdc",
+  "candidateRuntime": null
+}
