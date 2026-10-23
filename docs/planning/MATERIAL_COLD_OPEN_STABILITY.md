@@ -12,6 +12,7 @@
 | --- | --- | --- | --- |
 | S1 | Одно согласованное чтение карточки и строк в DB worker вместо нескольких передач OPFS-владения; одинаковый read model для трёх поверхностей | Один RPC, один read snapshot; корректные аудиоссылки, огласовка и identity; нет записи данных/commit чужой транзакции; холодное открытие в браузере | Выпущено и проверено на production 3.11.815, `0e059364` |
 | S2 | Один выполняющийся запрос public catalog; прямой маршрут к нужной работе без ожидания посторонних каталогов | Deep link, refresh во время загрузки, retry после ошибки, A→B; проверка актуальной публикации/прав сохраняется | Выпущено 3.11.816, `b6229421`; production-сценарии прошли, ранние тайм-ауты — O-130 |
+| S2b | DB projection refresh не отменяет действующий initial public route; dirty domains сохраняются | Publication/catalog/snapshot event injection, refresh, navigation и A→B | Выпущено 3.11.818, `0d8a8849`; CI и production acceptance прошли |
 | S3 | Studio: обновление ячеек транслитерации без полной замены таблицы; независимое появление сохранённого контекста | Classic + IDE: сохранность редактора, пользовательской транслитерации, replay, фокуса, позиции; поздний callback A не изменяет B | Выпущено 3.11.817, `a0621a71`; Studio/Room morphology acceptance пройдены. O-130 первого открытия остаётся |
 | S4 | Видимые и восстановленные строки получают gloss/morph первыми; остаток обрабатывается с бюджетом времени | Длинные абзацы и 2500 строк; сохранённые AI/manual gloss, отсутствие генерации; scoped refresh без повторного полного прохода | После профиля S1–S3 |
 | S5 | Уменьшение объёма первого metadata payload и, при необходимости, DOM | Отдельный контракт обязательных полей media/provenance/editorial; поиск по всему материалу, выделение и редактирование не теряются | Исследование, не условие S1 |
@@ -91,3 +92,12 @@ Public direct-open acceptance обнаружил механизм O-130: localdb
 Текущая initial public operation удерживает только внешний projection refresh каталога; dirty domains сохраняются. Действующие epoch/token по-прежнему разрешают уход и новое открытие, finally очищает только свою operation. 2879 unit и 233 i18n прошли. Изолированный baseline воспроизводит token 1→2 / 0 строк; кандидат на трёх границах publication/catalog/snapshot удерживает token и открывает fixture. На настоящих публичных GET с подставленным только candidate Reader module прошли все пять route-сценариев (499/679 строк, retry, navigation, canon) и refresh в materialization. Полный CI и production 818 ожидаются; необъяснённый Studio readiness timeout остаётся открытым.
 
 Следующая сборка требует точного согласования unused 815 `198bf2834490` либо иного решения по ёмкости: available около 5.574 GiB, cache 0 B. Current 817 и rollback 816 сохраняются; runtime 818 пока не опубликован. [Доказательства и команды](../research/reader-performance/2026-10-23/REPORT.md).
+
+
+## S2b: production 3.11.818
+
+`0d8a8849`, deployment 2932, 20:37:12–20:41:28 UTC (4m16s). Перед сборкой удалён только согласованный unused 815 image `198bf2834490`; current 817 и rollback 816, 11 containers и 4 volumes сохранены, available 5.573→6.935 GiB. После сборки очищен только build cache: reclaimed 2.917 GB, available 3.351→5.565 GiB, все 13 images/11 containers/4 volumes сохранены.
+
+Повторная сверка совпала по 14/14 assets, обоим shell и context pin словаря; DB/migrations ready. На опубликованном коде без подстановки локальной реализации прошли три synthetic first-open boundaries с реальным localdb:changed, пять public route-сценариев (499/679 строк, retry, navigation/A→B и настоящий background canon), refresh в materialization и saved context Classic/IDE. Это behavioral acceptance, не замер обычной latency и не owner benchmark. O-130 закрыт для подтверждённого Room cancellation; отдельный Studio readiness timeout — O-132.
+
+CI runtime `40018736303` и main `40020625999` прошли; test-only `58ae10b3` добавляет exact-version remote mode к regression runner и не создаёт новый deployment. Полный CI follow-up `40021305977` прошёл; source runtime остаётся `0d8a8849`. S4/S5 остаются следующими этапами. [Production evidence](../research/reader-performance/2026-10-23/REPORT.md).

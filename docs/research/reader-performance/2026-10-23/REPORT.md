@@ -244,3 +244,25 @@ The change records the current initial public-open operation while it awaits liv
 [Actual public data with only the candidate Reader module substituted](direct-public-candidate-818.json) passed Hamam's 499 rows before unrelated dependencies, HTTP 503 retry, catalog/snapshot navigation cancellation and A→B to 679 rows followed by the real background canon import. [Refresh during paused materialization](refresh-candidate-818.json) retains the URL and opens 499 rows. These are candidate-module checks, not production 818 acceptance or a full-startup timing benchmark. A [separate controlled public-data event injection](refresh-during-open-candidate-818.json) also opens 499 rows without changing token. The unexplained Studio bootstrap timeout remains open.
 
 Production remains 817. Full candidate CI is pending. Current preflight: about 5.574 GiB available, cache 0 B, no active deployments. Unreferenced 815 image `198bf2834490` (`0e059364`) is only a proposed cleanup candidate; its removal has not been approved. Keep current 817 `c139122a8def` and rollback 816 `3f6ed6b9e6db`, every container/volume and all data/backups. A fresh ≥6 GiB gate is required before another runtime push.
+
+
+## Production 3.11.818: initial material opening survives DB refresh
+
+After the owner's exact approval, [cleanup removed only unused 815 image `198bf2834490`](cleanup-pre-818.json). Current 817 and rollback 816, all 11 containers and four volumes remained; available space rose **5.573→6.935 GiB** and no other deployment was active. Runtime **`0d8a88497dd8ba145f7bb09ccf279e2acd164218`**, [deployment 2932](deployment-818.json), ran **20:37:12–20:41:28 UTC (4m16s)**. The lowest discrete release sample was 3.359 GiB (3.438 while status was in progress), not a continuously measured build minimum.
+
+[Repeated served-release verification](production-818.json) confirms **14/14 assets matching Git**, both shells at 3.11.818, the dictionary's shared context pin, and DB/migrations ready. [Runtime PR CI 40018736303](https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/40018736303), runtime main CI 40020625999 and [test follow-up CI 40021305977](ci-followup-818.json) all passed. Test-only `58ae10b3` adds an exact-version remote mode to the regression runner; it did not create another deployment. Production remains the runtime commit above.
+
+The [served-production boundary check](initial-refresh-production-818.json) uses synthetic publications at the production origin and actual served code, without a local runtime substitution. At publication, catalogue and snapshot boundaries, one real localdb:changed event retains dirty flags without changing the route token, and the requested Reader opens. [Actual public-work checks](direct-public-production-818.json) pass all five scenarios: Hamam's **499 rows** before held unrelated dependencies, HTTP 503 retry, catalog/snapshot navigation cancellation, and A→B to **679 rows** followed by the real background canon import. [Refresh during paused materialization](refresh-production-818.json) retains the selected work URL and opens 499 rows. The tested Reader hash equals the committed candidate manifest. These are behavior gates, not a claim that all cold starts are under one second or a full-startup speed percentage.
+
+Both [Classic](studio-context-classic-production-818.json) and [IDE](studio-context-ide-production-818.json) saved-context production checks also pass on 34 long paragraphs: context before status, late-A suppression, hidden RU, manual evidence, mobile RTL cards and mode switching. Paid requests and review-log rows are zero in these disposable fixtures; the owner profile was not opened or mutated. The earlier unexplained Studio readiness timeout remains **O-132**. O-130 is closed for the specifically reproduced Room cancellation; this does not retrospectively attribute every earlier undiagnosed timeout to that cause.
+
+[Post-release cache-only cleanup](cleanup-post-818.json) reclaimed **2.917 GB**, increasing available space **3.351→5.565 GiB** while retaining all **13 images, 11 containers and four volumes**, including both rollback images. The later health sample is 85% used / disk_warn=true; a future runtime build still requires a fresh ≥6 GiB capacity gate. No further image removal, data or backup cleanup was performed.
+
+Reproduce the served-code regression with disposable synthetic storage:
+
+```powershell
+node scripts/premium/reader-initial-refresh-smoke.js --base=https://linguistpro.kolosei.com --version=3.11.818 --out=.tmp/reader-performance/initial-refresh-production-818.json
+node scripts/premium/reader-direct-public-smoke.js --out=.tmp/reader-performance/direct-public-production-818.json
+node scripts/premium/reader-refresh-link-smoke.js
+python scripts/premium/verify-material-read-release.py --commit=0d8a8849 --version=3.11.818 --out=.tmp/reader-performance/production-818.json
+```

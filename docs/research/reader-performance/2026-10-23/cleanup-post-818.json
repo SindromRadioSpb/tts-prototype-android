@@ -1,0 +1,41 @@
+{
+  "scope": "Unused build cache only; all images, containers and volumes retained.",
+  "checkedAtUtc": "2026-10-23T20:45:46Z",
+  "reclaimed": "Total:\t2.917GB",
+  "beforeAvailableGiB": 3.351,
+  "afterAvailableGiB": 5.565,
+  "imagesPreserved": true,
+  "imageCount": 13,
+  "containersPreserved": true,
+  "containerCount": 11,
+  "volumesPreserved": true,
+  "volumeCount": 4,
+  "deployments": {
+    "active": 0,
+    "latest": {
+      "id": 2932,
+      "status": "finished",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "updated_at": "2026-10-23T20:41:28.000000Z"
+    }
+  },
+  "version": "3.11.818",
+  "healthImmediatelyAfter": {
+    "ok": true,
+    "uptimeSec": 291,
+    "now": "2026-10-23T20:45:46.886Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 91,
+    "disk_warn": true
+  },
+  "retainedRollbackImages": [
+    "sha256:c139122a8def6d4450f737e9b1030c07e688f0bcf94e6825aa611d2316b67f73",
+    "sha256:3f6ed6b9e6db66f78646434bee98db51acfcfe6edc74d3ee93f47382b5eb663a"
+  ],
+  "retainedImagesPresent": true
+}

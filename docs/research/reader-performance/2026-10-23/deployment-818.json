@@ -1,0 +1,54 @@
+{
+  "sourceCommit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+  "deployment": 2932,
+  "samples": [
+    {
+      "id": 2932,
+      "status": "in_progress",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "created_at": "2026-10-23T20:37:12Z",
+      "updated_at": "2026-10-23T20:37:12Z",
+      "availableGiB": 6.935,
+      "checkedAtUtc": "2026-10-23T20:37:27.7952671Z"
+    },
+    {
+      "id": 2932,
+      "status": "in_progress",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "created_at": "2026-10-23T20:37:12Z",
+      "updated_at": "2026-10-23T20:38:38Z",
+      "availableGiB": 5.037,
+      "checkedAtUtc": "2026-10-23T20:38:53.0135877Z"
+    },
+    {
+      "id": 2932,
+      "status": "in_progress",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "created_at": "2026-10-23T20:37:12Z",
+      "updated_at": "2026-10-23T20:39:18Z",
+      "availableGiB": 3.911,
+      "checkedAtUtc": "2026-10-23T20:39:33.0310265Z"
+    },
+    {
+      "id": 2932,
+      "status": "in_progress",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "created_at": "2026-10-23T20:37:12Z",
+      "updated_at": "2026-10-23T20:40:31Z",
+      "availableGiB": 3.438,
+      "checkedAtUtc": "2026-10-23T20:40:46.7435138Z"
+    },
+    {
+      "id": 2932,
+      "status": "finished",
+      "commit": "0d8a88497dd8ba145f7bb09ccf279e2acd164218",
+      "created_at": "2026-10-23T20:37:12Z",
+      "updated_at": "2026-10-23T20:41:28Z",
+      "availableGiB": 3.359,
+      "checkedAtUtc": "2026-10-23T20:42:09.1369665Z"
+    }
+  ],
+  "lowestSampledAvailableGiB": 3.359,
+  "lowestSampledWhileInProgressGiB": 3.438,
+  "scope": "Discrete release samples, not a continuously measured build minimum."
+}

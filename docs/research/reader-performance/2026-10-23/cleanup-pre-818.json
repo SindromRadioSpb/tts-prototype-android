@@ -1,0 +1,103 @@
+{
+  "scope": "Owner-approved exact unreferenced 815 image only; no containers, volumes, backups or data removed. Cache was empty.",
+  "checkedAtUtc": "2026-10-23T20:36:51Z",
+  "removed": [
+    "sha256:198bf2834490494b405bec292b9c22aba39772c6a4fe372e5fa73ee2332e39c6"
+  ],
+  "retained": [
+    "sha256:c139122a8def6d4450f737e9b1030c07e688f0bcf94e6825aa611d2316b67f73",
+    "sha256:3f6ed6b9e6db66f78646434bee98db51acfcfe6edc74d3ee93f47382b5eb663a"
+  ],
+  "beforeAvailableGiB": 5.573,
+  "afterAvailableGiB": 6.935,
+  "containersPreserved": true,
+  "containerCount": 11,
+  "volumesPreserved": true,
+  "volumeCount": 4,
+  "imagesBefore": 13,
+  "imagesAfter": 12,
+  "usageBefore": [
+    {
+      "Active": "11",
+      "Reclaimable": "2.924GB (26%)",
+      "Size": "10.85GB",
+      "TotalCount": "13",
+      "Type": "Images"
+    },
+    {
+      "Active": "11",
+      "Reclaimable": "0B (0%)",
+      "Size": "1.292GB",
+      "TotalCount": "11",
+      "Type": "Containers"
+    },
+    {
+      "Active": "4",
+      "Reclaimable": "0B (0%)",
+      "Size": "5.542GB",
+      "TotalCount": "4",
+      "Type": "Local Volumes"
+    },
+    {
+      "Active": "0",
+      "Reclaimable": "0B",
+      "Size": "0B",
+      "TotalCount": "0",
+      "Type": "Build Cache"
+    }
+  ],
+  "usageAfter": [
+    {
+      "Active": "11",
+      "Reclaimable": "1.462GB (15%)",
+      "Size": "9.392GB",
+      "TotalCount": "12",
+      "Type": "Images"
+    },
+    {
+      "Active": "11",
+      "Reclaimable": "0B (0%)",
+      "Size": "1.292GB",
+      "TotalCount": "11",
+      "Type": "Containers"
+    },
+    {
+      "Active": "4",
+      "Reclaimable": "0B (0%)",
+      "Size": "5.542GB",
+      "TotalCount": "4",
+      "Type": "Local Volumes"
+    },
+    {
+      "Active": "0",
+      "Reclaimable": "0B",
+      "Size": "0B",
+      "TotalCount": "0",
+      "Type": "Build Cache"
+    }
+  ],
+  "deployments": {
+    "active": 0,
+    "latest": {
+      "id": 2931,
+      "status": "finished",
+      "commit": "a0621a7161668325b088759fdecfad5ad6d38767",
+      "updated_at": "2026-10-23T20:02:24.000000Z"
+    }
+  },
+  "version": "3.11.817",
+  "health": {
+    "ok": true,
+    "uptimeSec": 2100,
+    "now": "2026-10-23T20:36:51.745Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 85,
+    "disk_warn": true
+  },
+  "capacityGatePassed": true
+}

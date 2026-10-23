@@ -1,0 +1,21 @@
+{
+  "candidate": false,
+  "expectBug": false,
+  "scope": "Disposable anonymous Chromium; public GETs only",
+  "checkpoints": [
+    {
+      "stage": "materialization paused",
+      "url": "https://linguistpro.kolosei.com/library.html?public_corpus=media-8c30cc63a5e5e39a0acd&public_work=work-830a3ab937fc3c3f70c60533"
+    },
+    {
+      "stage": "refresh while materialization paused",
+      "url": "https://linguistpro.kolosei.com/library.html?public_corpus=media-8c30cc63a5e5e39a0acd&public_work=work-830a3ab937fc3c3f70c60533"
+    },
+    {
+      "stage": "Reader opened",
+      "url": "https://linguistpro.kolosei.com/library.html?public_corpus=media-8c30cc63a5e5e39a0acd&public_work=work-830a3ab937fc3c3f70c60533#room=public%3Amedia-8c30cc63a5e5e39a0acd",
+      "rows": 499
+    }
+  ],
+  "pass": true
+}

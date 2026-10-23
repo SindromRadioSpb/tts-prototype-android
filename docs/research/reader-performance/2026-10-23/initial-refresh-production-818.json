@@ -1,0 +1,79 @@
+{
+  "baseline": false,
+  "ref": "a0621a71",
+  "remote": true,
+  "scope": "Disposable synthetic first-open pipeline; initial DB notifications held until the chosen boundary, then one actual localdb:changed event; GET-only same-origin network.",
+  "checks": {
+    "publication": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": true,
+          "hidden": true
+        }
+      },
+      "rows": 2,
+      "state": {
+        "epoch": 1,
+        "token": 1,
+        "dirty": true,
+        "hidden": false
+      }
+    },
+    "catalog": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": true,
+          "hidden": true
+        }
+      },
+      "rows": 2,
+      "state": {
+        "epoch": 1,
+        "token": 1,
+        "dirty": true,
+        "hidden": false
+      }
+    },
+    "snapshot": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": true,
+          "hidden": true
+        }
+      },
+      "rows": 2,
+      "state": {
+        "epoch": 1,
+        "token": 1,
+        "dirty": true,
+        "hidden": false
+      }
+    }
+  },
+  "errors": [],
+  "result": "PASS"
+}

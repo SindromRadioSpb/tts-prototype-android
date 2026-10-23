@@ -10,6 +10,13 @@
 
 ---
 
+## O-132 · Тайм-аут готовности Studio в одноразовом production-браузере
+- **Дата / где:** 2026-10-23, первый production `studio-saved-context-smoke.js`, runtime `a0621a71` / 3.11.817, disposable Chromium/OPFS; owner-профиль не использовался.
+- **Факты:** за 60 s не выполнилось общее условие готовности __localDB/StudioMorph/WordGlossAI; DOM без строк, pageerrors и paid requests = 0. Исходный диагностический снимок не различает, какая часть readiness отсутствовала. После расширения network/HTTP/module/DB диагностики Classic и IDE прошли на тех же runtime bytes и timeout; оба режима также прошли на production 818.
+- **Граница:** причина не установлена. Это не доказательство сбоя owner-базы; исправление Room DB-refresh cancellation в 818 не объявляется исправлением этого Studio-старта.
+- **Следующий шаг:** при повторе сохранять новые readiness/network/console данные до retry, затем разложить module/worker/DB startup; не увеличивать timeout как замену исправлению.
+- **Статус:** открыто. [Первый сбой](../research/reader-performance/2026-10-23/early-timeouts-817.json), [отчёт](../research/reader-performance/2026-10-23/REPORT.md).
+
 ## O-131 · DOM-сборщик повторений теряет выбранный разбор в read-only Зале
 - **Выпущено 3.11.817:** escaped data-sentence-id добавлен на tr в Classic/shared core; readOnly и скрытая action-column больше не лишают DOM привязки. Исходный Room smoke теперь проходит `pid:5857`, review/export и перенос выбранного разбора. Шесть parity cases / 37 leaf checks проходят; golden меняется только добавлением row identity. CI и production Room regression прошли.
 - **Дата / где:** 2026-10-23, CI `40001249190`, затем локальное воспроизведение `morph-card-resolution-browser-smoke.js`, Room fixture на runtime 816.
@@ -18,13 +25,14 @@
 - **Предложение:** закрепить escaped sentence ID на строке независимо от видимости action-column/кнопок и прав редактирования; синхронно сохранить Studio/core renderer parity. Проверить readOnly/скрытую action-column, выбор омографа, список повторений и экспорт на Classic/IDE/Room. Не отключать текущую падающую проверку.
 - **Статус:** закрыто (`a0621a71` / 3.11.817, deployment 2931); full CI и actual served Room synthetic regression подтвердили pid:5857/review/export, 14/14 assets совпадают. [Диагностика](../research/reader-performance/2026-10-23/morph-review-gap-816.json).
 
-## O-130 · Тайм-ауты одноразовых cold-open прогонов после выпуска 816
+## O-130 · DB refresh отменяет действующее первое открытие публичного материала
+- **Production 3.11.818:** `0d8a8849`, deployment 2932 finished 20:41:28 UTC; 14/14 assets, три served-code async boundaries и public 499/679 route/refresh прошли. Подтверждённый механизм cancellation устранён; это не ретроспективное доказательство причины каждого раннего timeout и не обещание latency. Отдельный Studio readiness случай выделен в O-132.
 - **Дополнение 3.11.817:** первый Studio saved-context smoke не дождался DB/module readiness за 60 s; затем оба режима прошли без runtime/timeout изменений. Причина этого старта неизвестна; runner теперь пишет readiness/network/warnings. Direct Hamam получил catalog/snapshot HTTP 200, DB ready, но остался в каталоге. Контролируемый baseline с localdb:changed во время snapshot показывает epoch 1→1, corpusRenderToken 1→2, rows=0: refreshExternalLibrary перерисовывает каталог и сам инвалидирует initial public open. Кандидат откладывает projection refresh пока initial material route current; тот же сценарий открывает 499 строк, token остаётся 1. Навигацию/A→B не ослаблять. [817 evidence](../research/reader-performance/2026-10-23/REPORT.md).
 - **Дата / где:** 2026-10-23, production 3.11.816, отдельные anonymous Chromium, SW blocked, без owner-профиля.
 - **Факты:** первый delayed-dependency smoke не дождался 499 видимых строк за 60 s; первый refresh smoke не дошёл до точки materialization за 90 s; второй refresh сохранил URL после reload, но не дождался строк за 90 s. В исходных runners не было сетевого диагностического снимка. Следующие direct (все пять сценариев) и refresh прогоны прошли на тех же опубликованных байтах без runtime-правки.
-- **Граница:** причина не установлена; нет доказательства, что это дефект owner-профиля, сеть, старт сервера либо OPFS. Повторный PASS не отменяет наблюдавшиеся тайм-ауты и не доказывает стабильность любого холодного открытия.
+- **Граница первоначальных прогонов 816:** их индивидуальная причина не установлена; нет доказательства, что это дефект owner-профиля, сеть, старт сервера либо OPFS. Повторный PASS не отменяет наблюдавшиеся тайм-ауты и не доказывает стабильность любого холодного открытия.
 - **Следующий шаг:** runners дополнены диагностикой HTTP-ответов, warnings, DB-ready и DOM при следующем сбое; сохранять phase/network/worker evidence до повторной попытки. Не увеличивать тайм-аут как исправление причины.
-- **Статус:** в работе; Room-причина воспроизведена; кандидат 3.11.818: 2879 unit/233 i18n, три controlled browser boundaries и public 499/679 route/refresh прошли. Полный CI/production ожидаются; Studio readiness остаётся необъяснённым. [Отчёт S2](../research/reader-performance/2026-10-23/REPORT.md).
+- **Статус:** закрыто для воспроизведённой Room cancellation (`0d8a8849` / 3.11.818); CI и production acceptance прошли. Studio readiness — O-132. Индивидуальные причины трёх исходных timeout без фазовой диагностики не приписываются этому механизму. [Отчёт S2](../research/reader-performance/2026-10-23/REPORT.md).
 
 ## O-129 · Открытие материала делает несколько отдельных обращений к OPFS
 - **Работа 2026-10-23 / S1:** реализован единый `readMaterial` RPC со снимком SQLite для карточки и строк; позиция остаётся на существующем пути. Холодные fixture-чтения OPFS/IDB: 3→1 RPC, точное совпадение read models. [Программа и границы](MATERIAL_COLD_OPEN_STABILITY.md). Выпущено `0e059364` / 3.11.815: deployment finished 17:20:24 UTC, 10/10 assets, Classic/IDE/Room browser checks и owner-readonly parity на 499/34/2477 строках; review_log hash неизменен.
