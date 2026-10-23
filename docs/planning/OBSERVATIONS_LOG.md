@@ -10,6 +10,19 @@
 
 ---
 
+## O-135 · Неизменившийся word layer ещё сверяется полным проходом
+- **Дата / где:** 2026-10-24 по местному времени, S4 / production 819, WordGloss.apply/applyGloss и ReaderMorph.decorateWords.
+- **Факты:** повторный gloss refresh на 2500 строках даёт 0 изменений атрибутов вместо 160000, а неизменившиеся классы статусов не переписываются. Однако callback всё ещё перечисляет строки/слова, сверяет контекст и разрешает статусы по всему материалу; отсутствие DOM writes не означает отсутствие полного CPU/read прохода.
+- **Следующий шаг:** S4b — status-only обновления без вызова word layer и инвалидация по row/context revision для occurrence edits; сохранить обновление при настоящей смене исходного текста, режима и сохранённого контекста. Проверять объём работы счётчиками, а не только DOM mutations.
+- **Статус:** открыто. [План](MATERIAL_COLD_OPEN_STABILITY.md), [проверки 819](../research/reader-performance/2026-10-23/candidate-819-checks.json).
+
+## O-134 · Холодная карточка ждёт большой офлайн-словарь
+- **Дата / где:** 2026-10-24 по местному времени, дополнительный production 819 synthetic Studio→Room probe; HTTP cache выключен routing, SW blocked, новый профиль.
+- **Факты:** подстрочник 34×240 слов подготовлен примерно за 0.6 s, карточка открылась с «Анализ…», но за 10 s не получила разбор. В снимке InflectionDict.loaded=false и незавершённые запросы `pealim-infl-v12.json.gz` (3463862 compressed bytes); ошибок JavaScript и paid calls нет. В отдельной подготовке словарь загрузился за 16.55 s; после неё Room word-layer/card/scroll/print acceptance прошёл. [Исходная диагностика](../research/reader-performance/2026-10-23/cold-dictionary-observation-819.json), [проверка после отдельно измеренной загрузки словаря](../research/reader-performance/2026-10-23/priority-production-room-819.json).
+- **Граница:** модель ожидания ensureEngine предшествует S4; причинность к 819 не приписывается. Это контроль без HTTP/SW cache, не воспроизведение в owner-профиле. Он не объясняет O-132: там отсутствовала общая module/DB readiness, здесь таблица и сохранённый контекст уже готовы. Тайм-ауты приложения не менялись; удалённый слой измеряется после отдельной загрузки словаря, её время сохранено.
+- **Следующий шаг:** замерить обычный cold-cache путь, дубли загрузок при Studio→Room и раннее отображение сохранённого контекста карточки до готовности словарного движка; сохранить identity/edits и честный loading state.
+- **Статус:** открыто.
+
 ## O-133 · Узкие колонки полного пресета на мобильном IDE
 - **Дата / где:** 2026-10-24 по местному времени; кандидат S4 / 3.11.819, disposable Chromium 380×780, RTL, полный пресет со всеми колонками.
 - **Факты:** исходная колонка иврита и транслитерация местами переносятся до отдельных букв; сохранённый подстрочник, карточка и прокрутка работают. [Снимок](../research/reader-performance/2026-10-23/priority-candidate-ide-rows-819-visible.png).
@@ -61,7 +74,7 @@
 - **Дата / где:** 2026-10-23, review `31cae35b`, `public/index.html:39536`, `public/js/studio-morph.js:360`.
 - **Факты:** Classic после завершения фоновой транслитерации вызывает полный `renderTable(currentTableData)`; StudioMorph сначала refresh/wrap и весь `decorateWords`, затем `applyWordLayer`. Эквивалентные задержки в Room сокращены в 813, но host-последовательность Studio осталась прежней.
 - **Предложение:** переносить проверенные принципы Room: patch только translit-ячеек, порционная подготовка с приоритетом видимых строк, сохранённый контекст независимо от полной раскраски, identity/revision guards. Отдельно проверять Classic и IDE, редактирование, undo, selection, notes, replay и resume. Точный выигрыш Studio ещё не измерен.
-- **Статус:** в работе; S3 выпущен `a0621a71` / 3.11.817. Кандидат S4 / 3.11.819 прошёл локальные checks: видимый контекст на 2500 строках 16.82→0.196 s, полная подготовка 16.92→1.41 s; неизменившийся gloss refresh 160000→0 attribute mutations. Это один последовательный synthetic baseline/candidate, не owner cold-open benchmark. CI/production ожидаются. [Доказательства](../research/reader-performance/2026-10-23/candidate-819-checks.json).
+- **Статус:** закрыто для подтверждённых rerender/order задержек: S3 `a0621a71` / 3.11.817, S4 `f8937847` / 3.11.819. На 2500 строках видимый контекст 16.82→0.196 s, полная подготовка 16.92→1.41 s; неизменившийся gloss refresh 160000→0 attribute mutations. Это один последовательный synthetic baseline/candidate, не owner cold-open benchmark. Оба CI и production Classic/IDE/Room/public acceptance прошли. Полное исключение повторной сверки — отдельный S4b/O-135. [Доказательства](../research/reader-performance/2026-10-23/candidate-819-checks.json).
 
 ## O-126 · Прямая ссылка на публичный материал ждёт лишнюю стартовую работу
 - **Production S2:** `b6229421` / 3.11.816, deployment 2930 finished 17:55:07 UTC; 10/10 assets и production routing/refresh checks прошли. Ранние тайм-ауты отдельно O-130. Evidence restoration для локальной копии остаётся открытой частью этой записи.

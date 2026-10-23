@@ -1,0 +1,132 @@
+{
+  "surface": "room",
+  "shape": "paragraphs",
+  "version": "3.11.819",
+  "startedAtUtc": "2026-10-23T22:38:27.078Z",
+  "stage": "word card content",
+  "failure": "page.waitForFunction: Timeout 10000ms exceeded.\n    at E:\\projects\\tts-prototype-android\\.worktrees\\reader-performance\\scripts\\premium\\word-layer-priority-smoke.cjs:155:14",
+  "pendingNetwork": [
+    {
+      "path": "/data/inflection/pealim-infl-v12.json.gz",
+      "elapsedMs": 10672
+    },
+    {
+      "path": "/data/inflection/pealim-infl-v12.json.gz",
+      "elapsedMs": 9839
+    },
+    {
+      "path": "/data/benyehuda/canon-v4.zip",
+      "elapsedMs": 7714
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "elapsedMs": 7496
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "elapsedMs": 1123
+    }
+  ],
+  "diagnostic": {
+    "openCard": true,
+    "target": "<span class=\"rm-w\" role=\"button\" tabindex=\"0\" data-surface=\"שלום\" data-niqqud=\"שָׁלוֹם\" data-w-offset=\"0\">שלום</span>",
+    "targetConnected": true,
+    "targetRect": {
+      "x": 212.5,
+      "y": -166,
+      "width": 855,
+      "height": 9074.171875,
+      "top": -166,
+      "right": 1067.5,
+      "bottom": 8908.171875,
+      "left": 212.5
+    },
+    "glossCount": 8160,
+    "wordCount": 16320,
+    "engine": {
+      "model": "pealim-infl-v12",
+      "loaded": false,
+      "imported": false,
+      "meta": {
+        "format_version": 1,
+        "model_version": "pealim-infl-v12",
+        "source": "pealim",
+        "entry_count": 9279,
+        "key_count": 13439,
+        "collision_count": 4049,
+        "raw_bytes": 28592308,
+        "gz_bytes": 3463862,
+        "build_timestamp": "2026-06-03T11:30:54Z",
+        "note": "Offline Pealim inflection paradigms. Multi-alias index (root+lemma per binyan)."
+      }
+    },
+    "ruFormsReady": true,
+    "cardText": "  ✕  Анализ…",
+    "textAtCenter": "<div class=\"rm-sheet-backdrop\" data-rm-close=\"1\"></div>"
+  },
+  "networkFailures": [
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/api/library/texts",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/worlds/memorial-three-scenes/scene-1-original.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/worlds/memorial-three-scenes/scene-2-original.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/worlds/memorial-three-scenes/scene-3-original.png",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "httpErrors": [
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/library/texts",
+      "status": 410
+    },
+    {
+      "path": "/data/benyehuda/proclitic/2.json",
+      "status": 404
+    },
+    {
+      "path": "/data/benyehuda/context/2.json",
+      "status": 404
+    },
+    {
+      "path": "/api/group-corpora",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    }
+  ],
+  "scope": "Disposable synthetic Studio-to-Room probe; HTTP cache disabled by routing, service workers blocked. The ten-second card-content observation expired while the large offline dataset was still pending. This is separate from O-132 module/DB startup."
+}

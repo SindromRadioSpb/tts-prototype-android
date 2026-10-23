@@ -1,0 +1,248 @@
+{
+  "surface": "room",
+  "shape": "paragraphs",
+  "mobile": false,
+  "ref": null,
+  "startedAtUtc": "2026-10-23T22:44:26.055Z",
+  "scope": "Disposable Chromium; prepared real table, saved manual context and restored row before each layer. Layer timings exclude DB/table opening. HTTP cache disabled by routing; SW blocked. No owner profile or paid generation. Remote-only offline dictionary setup is measured separately before layer timers.",
+  "errors": [],
+  "deniedWrites": [],
+  "version": "3.11.819",
+  "browser": "148.0.7778.96",
+  "networkFailures": [
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/api/library/texts",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/css/world-skin.css",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "httpErrors": [
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/library/texts",
+      "status": 410
+    },
+    {
+      "path": "/data/benyehuda/proclitic/9.json",
+      "status": 404
+    },
+    {
+      "path": "/data/benyehuda/context/9.json",
+      "status": 404
+    },
+    {
+      "path": "/api/group-corpora",
+      "status": 401
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    }
+  ],
+  "fixture": {
+    "count": 34,
+    "wordsPerRow": 240,
+    "target": 30,
+    "textId": "9e10bbc4-d94b-43ba-b936-70fec8f0fed2"
+  },
+  "dictionarySetup": {
+    "done": true,
+    "loaded": true,
+    "elapsedMs": 16551
+  },
+  "stage": "background completion",
+  "cardAttempt": {
+    "box": {
+      "x": 602.34375,
+      "y": 466.5,
+      "width": 69.90625,
+      "height": 36.375
+    },
+    "hit": "<span class=\"rm-w\" role=\"button\" tabindex=\"0\" data-surface=\"שלום\" data-niqqud=\"שָׁלוֹם\" data-w-offset=\"0\" data-gloss=\"CONTEXT-30:0\" data-gloss-label=\"user\" data-gloss-ai=\"1\" data-gloss-source=\"user\">שָׁלוֹם</span>"
+  },
+  "card": {
+    "method": "native mouse at visible word",
+    "clickMs": 674,
+    "contentAfterClickMs": 196,
+    "openMs": 870,
+    "inputBeforeLayersComplete": true,
+    "openedBeforeLayersComplete": true
+  },
+  "layers": {
+    "gloss": {
+      "firstTargetMs": 121.98000001907349,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 156.56499993801117,
+      "completeMs": 1027.25,
+      "rowsPainted": 34,
+      "mutations": 8160,
+      "rpcCount": 25,
+      "rpcTotalMs": 315.625,
+      "positionBefore": {
+        "wordTop": 466.796875,
+        "scrollY": 70426,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 79451,
+            "scrollHeight": 79451
+          },
+          {
+            "id": "",
+            "top": 70426,
+            "height": 900,
+            "scrollHeight": 80348
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 466.5,
+        "scrollY": 90670,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 119854,
+            "scrollHeight": 119854
+          },
+          {
+            "id": "",
+            "top": 90670,
+            "height": 900,
+            "scrollHeight": 120781
+          }
+        ]
+      }
+    },
+    "status": {
+      "firstTargetMs": 20.78000009059906,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 81.25999999046326,
+      "completeMs": 689.0099999904633,
+      "rowsPainted": 34,
+      "mutations": 16320,
+      "rpcCount": 10,
+      "rpcTotalMs": 625.0749999284744,
+      "positionBefore": {
+        "wordTop": 459.5,
+        "scrollY": 90677,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 119854,
+            "scrollHeight": 119854
+          },
+          {
+            "id": "",
+            "top": 90677,
+            "height": 900,
+            "scrollHeight": 120781
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 459.5,
+        "scrollY": 90677,
+        "ancestors": [
+          {
+            "id": "roomReaderTable",
+            "top": 0,
+            "height": 119854,
+            "scrollHeight": 119854
+          },
+          {
+            "id": "",
+            "top": 90677,
+            "height": 900,
+            "scrollHeight": 120781
+          }
+        ]
+      }
+    },
+    "unchangedRefreshGlossMutations": 0,
+    "tablePreserved": true,
+    "targetGloss": "CONTEXT-30:0",
+    "targetSource": "user",
+    "targetAiOriginal": "original-30",
+    "maxLongTaskMs": 92,
+    "longTasks": [
+      {
+        "at": 25388.649999976158,
+        "duration": 80
+      },
+      {
+        "at": 26167.4699999094,
+        "duration": 55
+      },
+      {
+        "at": 26399.924999952316,
+        "duration": 71
+      },
+      {
+        "at": 26490.739999890327,
+        "duration": 54
+      },
+      {
+        "at": 26752.519999980927,
+        "duration": 59
+      },
+      {
+        "at": 26912.40499997139,
+        "duration": 61
+      },
+      {
+        "at": 27058.43499994278,
+        "duration": 92
+      }
+    ],
+    "target": 30
+  },
+  "scroll": {
+    "later": 17,
+    "shown": "block",
+    "gloss": "CONTEXT-17:0",
+    "originalStillRevealed": true
+  },
+  "print": {
+    "pending": true,
+    "display": "block"
+  },
+  "reviewLogCount": 0,
+  "result": "PASS"
+}

@@ -1,0 +1,347 @@
+{
+  "surface": "classic",
+  "scope": "Disposable Studio Chromium, synthetic saved context, blocked status boundary; no owner profile or paid generation.",
+  "errors": [],
+  "paidRequests": 0,
+  "checks": {
+    "paragraphs": 34,
+    "wordsPerParagraph": 60,
+    "savedManualRows": 34,
+    "BGlossBeforeAStatus": true,
+    "lateAStatusSuppressed": true,
+    "hiddenTranslationKeepsContext": true,
+    "mobileRtlWordCard": true,
+    "modeSwitchKeepsWordCard": true
+  },
+  "reviewLogCount": 0,
+  "result": "PASS",
+  "startup": {
+    "initError": null,
+    "dbError": null,
+    "dbDiagnostics": null,
+    "vfs": {
+      "name": "AccessHandlePool",
+      "kind": "sync"
+    },
+    "journal": [
+      {
+        "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+        "documentId": "c1402c9d-c92a-4c4c-adef-f960a95b341e",
+        "generation": 1,
+        "version": "3.11.545",
+        "surface": "studio",
+        "lifecycle": [
+          {
+            "phase": "browser-preflight",
+            "event": "page-db-start",
+            "at": 1792795638806
+          },
+          {
+            "phase": "worker-module-loading",
+            "event": "worker-created",
+            "at": 1792795638807
+          },
+          {
+            "event": "pageshow",
+            "persisted": false,
+            "at": 1792795641681
+          }
+        ],
+        "events": [
+          {
+            "phase": "saving-storage-identity",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 164,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646045
+          },
+          {
+            "phase": "executing-sql",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 164,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646045
+          },
+          {
+            "phase": "closing-sqlite",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 164,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646055
+          },
+          {
+            "phase": "closing-vfs",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 164,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646055
+          },
+          {
+            "phase": "idle",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 164,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646055
+          },
+          {
+            "phase": "ready",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 164,
+            "holdsLease": false,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646055
+          },
+          {
+            "event": "rpc-completed",
+            "requestId": 164,
+            "pendingCount": 0,
+            "at": 1792795646055
+          },
+          {
+            "operation": "query",
+            "event": "rpc-queued",
+            "requestId": 165,
+            "pendingCount": 1,
+            "at": 1792795646059
+          },
+          {
+            "phase": "waiting-lock",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": false,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "storage-identity",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "opening-vfs",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "closing-sqlite",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "closing-vfs",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "idle",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "opening-vfs",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646060
+          },
+          {
+            "phase": "opfs-reacquiring-handles",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646061
+          },
+          {
+            "phase": "sqlite-opening",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646069
+          },
+          {
+            "phase": "saving-storage-identity",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646069
+          },
+          {
+            "phase": "executing-sql",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646069
+          },
+          {
+            "phase": "closing-sqlite",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646070
+          },
+          {
+            "phase": "closing-vfs",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646070
+          },
+          {
+            "phase": "idle",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": true,
+            "transactionIdle": true,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646071
+          },
+          {
+            "phase": "ready",
+            "operation": "query",
+            "coordination": "opfs-owner",
+            "runtime": 545,
+            "elapsedMs": 0,
+            "requestId": 165,
+            "holdsLease": false,
+            "transactionIdle": false,
+            "vfs": "AccessHandlePool",
+            "workerId": "27f7856c-9436-418f-b19d-7909517a499b",
+            "at": 1792795646071
+          },
+          {
+            "event": "rpc-completed",
+            "requestId": 165,
+            "pendingCount": 0,
+            "at": 1792795646071
+          }
+        ]
+      }
+    ]
+  }
+}

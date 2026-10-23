@@ -1,0 +1,144 @@
+{
+  "checkedAtUtc": "2026-10-23T22:49:32Z",
+  "removed": [
+    "sha256:c139122a8def6d4450f737e9b1030c07e688f0bcf94e6825aa611d2316b67f73"
+  ],
+  "retained": [
+    "sha256:64814a96386e7b0c1478f7f8fa92433d2c45679a0fd18c310b42203cd721e40d",
+    "sha256:9706aad20cbdf01e11cd5040eb329dce3bc8a568422481160eb549d0848a3d4e"
+  ],
+  "cacheResult": "Build cache already empty; separately pruned and verified in cleanup-cache-819.json",
+  "deployments": {
+    "active": 0,
+    "latest": {
+      "id": 2933,
+      "status": "finished",
+      "commit": "f8937847735b899d1768a36b4da07d2945339c0d",
+      "updated_at": "2026-10-23T22:29:37.000000Z"
+    }
+  },
+  "version": "3.11.819",
+  "health": {
+    "ok": true,
+    "uptimeSec": 1227,
+    "now": "2026-10-23T22:49:32.229Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 85,
+    "disk_warn": true
+  },
+  "capacityGatePassed": true,
+  "before": {
+    "availableGiB": 5.561,
+    "imageCount": 13,
+    "containerCount": 11,
+    "volumeCount": 4,
+    "usage": [
+      {
+        "Active": "11",
+        "Reclaimable": "2.924GB (26%)",
+        "Size": "10.86GB",
+        "TotalCount": "13",
+        "Type": "Images"
+      },
+      {
+        "Active": "11",
+        "Reclaimable": "0B (0%)",
+        "Size": "1.292GB",
+        "TotalCount": "11",
+        "Type": "Containers"
+      },
+      {
+        "Active": "4",
+        "Reclaimable": "0B (0%)",
+        "Size": "5.542GB",
+        "TotalCount": "4",
+        "Type": "Local Volumes"
+      },
+      {
+        "Active": "0",
+        "Reclaimable": "0B",
+        "Size": "0B",
+        "TotalCount": "0",
+        "Type": "Build Cache"
+      }
+    ]
+  },
+  "afterCache": {
+    "availableGiB": 5.561,
+    "imageCount": 13,
+    "containerCount": 11,
+    "volumeCount": 4,
+    "usage": [
+      {
+        "Active": "11",
+        "Reclaimable": "2.924GB (26%)",
+        "Size": "10.86GB",
+        "TotalCount": "13",
+        "Type": "Images"
+      },
+      {
+        "Active": "11",
+        "Reclaimable": "0B (0%)",
+        "Size": "1.292GB",
+        "TotalCount": "11",
+        "Type": "Containers"
+      },
+      {
+        "Active": "4",
+        "Reclaimable": "0B (0%)",
+        "Size": "5.542GB",
+        "TotalCount": "4",
+        "Type": "Local Volumes"
+      },
+      {
+        "Active": "0",
+        "Reclaimable": "0B",
+        "Size": "0B",
+        "TotalCount": "0",
+        "Type": "Build Cache"
+      }
+    ]
+  },
+  "after": {
+    "availableGiB": 6.923,
+    "imageCount": 12,
+    "containerCount": 11,
+    "volumeCount": 4,
+    "usage": [
+      {
+        "Active": "11",
+        "Reclaimable": "1.462GB (15%)",
+        "Size": "9.394GB",
+        "TotalCount": "12",
+        "Type": "Images"
+      },
+      {
+        "Active": "11",
+        "Reclaimable": "0B (0%)",
+        "Size": "1.292GB",
+        "TotalCount": "11",
+        "Type": "Containers"
+      },
+      {
+        "Active": "4",
+        "Reclaimable": "0B (0%)",
+        "Size": "5.542GB",
+        "TotalCount": "4",
+        "Type": "Local Volumes"
+      },
+      {
+        "Active": "0",
+        "Reclaimable": "0B",
+        "Size": "0B",
+        "TotalCount": "0",
+        "Type": "Build Cache"
+      }
+    ]
+  },
+  "containersAndVolumesPreserved": true
+}

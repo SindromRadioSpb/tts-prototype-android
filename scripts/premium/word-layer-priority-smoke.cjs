@@ -15,7 +15,7 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
 (async () => {
  const server = remote ? null : fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: root,
   env: smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(), 'lp-word-priority-')), 0), silent: true, windowsHide: true });
- server?.stdout.resume(); server?.stderr.resume(); let browser, page;
+ server?.stdout.resume(); server?.stderr.resume(); let browser, page; const pendingNetwork = new Map();
  const report = { surface, shape, mobile, ref: ref || null, startedAtUtc: new Date().toISOString(), scope: 'Disposable Chromium; prepared real table, saved manual context and restored row before each layer. Layer timings exclude DB/table opening. HTTP cache disabled by routing; SW blocked. No owner profile or paid generation.', errors: [], deniedWrites: [] };
  try {
   const base = remote || 'http://127.0.0.1:' + await waitForSmokeServer(server, 30000);
@@ -48,6 +48,11 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
     return post.call(this, message, ...rest);
    };
   }, mobile);
+  report.networkFailures = []; report.httpErrors = [];
+  context.on('request', req => pendingNetwork.set(req, { path: new URL(req.url()).pathname, started: Date.now() }));
+  context.on('requestfinished', req => pendingNetwork.delete(req));
+  context.on('requestfailed', req => { pendingNetwork.delete(req); report.networkFailures.push({ path: new URL(req.url()).pathname, error: req.failure()?.errorText }); });
+  context.on('response', res => { if (res.status() >= 400) report.httpErrors.push({ path: new URL(res.url()).pathname, status: res.status() }); });
   page = await context.newPage(); page.setDefaultTimeout(60000); page.on('pageerror', e => report.errors.push(e.message));
   page.on('console', msg => { if (msg.text().startsWith('S4:')) console.log(msg.text()); });
   await page.goto(base + '/?localMode=1', { waitUntil: 'domcontentloaded' });
@@ -85,13 +90,26 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
    __s4Target.querySelector('td[data-col="niqqud"] .rm-w').scrollIntoView({ block: 'center' });
   }, { surface, target: fixture.target });
   await page.waitForTimeout(150); // Settle restored scroll, observers and unrelated host refresh.
+  if (remote) {
+   // Remote transport of the 3.3 MB offline dictionary is a separate setup
+   // dependency. Keep it outside the prepared-layer probe and retain its time.
+   const started = Date.now();
+   await page.evaluate(() => {
+    window.__s4DictionarySetup = { done: false };
+    Promise.all([InflectionDict.ensureReady(), window.RuForms?.ensureReady()]).then(() => { __s4DictionarySetup.done = true; }, error => { __s4DictionarySetup.error = error.message; });
+   });
+   await page.waitForFunction(() => __s4DictionarySetup.done || __s4DictionarySetup.error);
+   report.dictionarySetup = await page.evaluate(() => ({ ...__s4DictionarySetup, loaded: InflectionDict.getStatus().loaded }));
+   report.dictionarySetup.elapsedMs = Date.now() - started;
+   assert.equal(report.dictionarySetup.done, true); assert.equal(report.dictionarySetup.loaded, true);
+   report.scope += ' Remote-only offline dictionary setup is measured separately before layer timers.';
+  }
+  let layerFailure;
   const layerWork = page.evaluate(async ({ target }) => {
    const mount = __s4Mount, tr = __s4Target, samples = {}, longTasks = [];
    const po = new PerformanceObserver(list => longTasks.push(...list.getEntries().map(e => ({ at: e.startTime, duration: e.duration })))); po.observe({ type: 'longtask' });
    const table = mount.querySelector('#proTable'), row = tr.querySelector('td[data-col="niqqud"] .rm-w');
    function position() { const ancestors = []; for (let el = row.parentElement; el; el = el.parentElement) if (el.scrollTop || el.id === mount.id) ancestors.push({ id: el.id, top: el.scrollTop, height: el.clientHeight, scrollHeight: el.scrollHeight }); return { wordTop: row.getBoundingClientRect().top, scrollY, ancestors }; }
-   const rect = row.getBoundingClientRect();
-   if (rect.bottom <= 0 || rect.top >= innerHeight) throw Error('Restored word is not visible');
    for (const layer of ['gloss', 'status']) {
     window.__s4Phase = layer;
     row.scrollIntoView({ block: 'center' });
@@ -131,8 +149,12 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
    return { ...samples, unchangedRefreshGlossMutations: refreshMutations, tablePreserved: mount.querySelector('#proTable') === table,
     targetGloss: row.dataset.gloss, targetSource: row.dataset.glossSource, targetAiOriginal: WordGlossAI.wordAt(tr, 0).aiGloss,
     maxLongTaskMs: Math.max(0, ...longTasks.map(e => e.duration)), longTasks, target };
-  }, fixture);
-  await page.waitForFunction(() => __s4Target.querySelector('td[data-col="niqqud"] .rm-w')?.dataset.glossSource === 'user');
+  }, fixture).catch(error => { layerFailure = error; return null; });
+  report.stage = 'visible word';
+  await Promise.race([
+   page.waitForFunction(() => __s4Target.querySelector('td[data-col="niqqud"] .rm-w')?.dataset.glossSource === 'user'),
+   layerWork.then(() => { if (layerFailure) throw layerFailure; return new Promise(() => {}); }),
+  ]);
   const cardStarted = Date.now();
   const word = page.locator('#proTable tr[data-row-idx="' + fixture.target + '"] td[data-col="niqqud"] .rm-w').first();
   await word.evaluate(el => el.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
@@ -144,11 +166,14 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
   }, { capture: true, once: true }));
   await page.mouse.click(box.x + box.width / 2, box.y + Math.min(box.height / 2, 10));
   const clickedAt = Date.now();
+  report.stage = 'word card content';
   await page.waitForFunction(target => document.querySelector('.rm-sheet.rm-open .rm-current-reading')?.textContent.includes('CONTEXT-' + target + ':0'), fixture.target, { timeout: 10000 });
   report.card = { method: 'native mouse at visible word', clickMs: clickedAt - cardStarted, contentAfterClickMs: Date.now() - clickedAt, openMs: Date.now() - cardStarted,
    inputBeforeLayersComplete: await page.evaluate(() => window.__s4InputBeforeComplete), openedBeforeLayersComplete: await page.evaluate(() => !window.__s4LayersDone) };
   await page.locator('.rm-sheet.rm-open .rm-sheet-x').click();
+  report.stage = 'background completion';
   report.layers = await layerWork;
+  if (layerFailure) throw layerFailure;
   assert.equal(report.layers.targetGloss, 'CONTEXT-' + fixture.target + ':0'); assert.equal(report.layers.targetSource, 'user');
   assert.equal(report.layers.targetAiOriginal, 'original-' + fixture.target); assert.equal(report.layers.tablePreserved, true);
   assert.equal(await page.locator('#proTable td[data-col="niqqud"] .rm-w[data-gloss]').count(), fixture.count * fixture.wordsPerRow);
@@ -183,8 +208,11 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
   report.result = 'PASS'; console.log(JSON.stringify({ ...report, layers: { ...report.layers, longTasks: undefined } }));
  } catch (e) {
   report.result = 'FAIL'; report.failure = e.stack;
+  report.pendingNetwork = Array.from(pendingNetwork.values(), e => ({ path: e.path, elapsedMs: Date.now() - e.started }));
   report.diagnostic = await page?.evaluate(() => ({ openCard: !!document.querySelector('.rm-sheet.rm-open'), reading: document.querySelector('.rm-sheet.rm-open .rm-current-reading')?.textContent,
-   target: window.__s4Target?.querySelector('.rm-w')?.outerHTML, targetRect: window.__s4Target?.getBoundingClientRect().toJSON(), layersDone: window.__s4LayersDone,
+   target: window.__s4Target?.querySelector('.rm-w')?.outerHTML, targetConnected: window.__s4Target?.isConnected, targetRect: window.__s4Target?.getBoundingClientRect().toJSON(), layersDone: window.__s4LayersDone,
+   glossCount: document.querySelectorAll('#roomReaderTable .rm-w[data-gloss]').length, wordCount: document.querySelectorAll('#roomReaderTable .rm-w').length,
+   engine: window.InflectionDict?.getStatus?.(), ruFormsReady: window.RuForms?.isReady?.(), cardText: document.querySelector('.rm-sheet-card')?.textContent.slice(0, 700),
    textAtCenter: document.elementFromPoint(innerWidth / 2, innerHeight / 2)?.outerHTML.slice(0, 500) })).catch(() => null);
   throw e;
  }

@@ -1,0 +1,247 @@
+{
+  "surface": "ide",
+  "shape": "rows",
+  "mobile": true,
+  "ref": null,
+  "startedAtUtc": "2026-10-23T22:46:38.545Z",
+  "scope": "Disposable Chromium; prepared real table, saved manual context and restored row before each layer. Layer timings exclude DB/table opening. HTTP cache disabled by routing; SW blocked. No owner profile or paid generation. Remote-only offline dictionary setup is measured separately before layer timers.",
+  "errors": [],
+  "deniedWrites": [],
+  "version": "3.11.819",
+  "browser": "148.0.7778.96",
+  "networkFailures": [],
+  "httpErrors": [
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/auth/me",
+      "status": 401
+    },
+    {
+      "path": "/api/agent-access/proposals/summary",
+      "status": 401
+    },
+    {
+      "path": "/api/library/texts",
+      "status": 410
+    }
+  ],
+  "fixture": {
+    "count": 2500,
+    "wordsPerRow": 8,
+    "target": 2496,
+    "textId": "b51172b4-47ca-4e50-9040-04fd77405b15"
+  },
+  "dictionarySetup": {
+    "done": true,
+    "loaded": true,
+    "elapsedMs": 7497
+  },
+  "stage": "background completion",
+  "cardAttempt": {
+    "box": {
+      "x": 156.15625,
+      "y": 373.578125,
+      "width": 81.515625,
+      "height": 33.78125
+    },
+    "hit": "<span class=\"rm-w\" role=\"button\" tabindex=\"0\" data-surface=\"שלום\" data-niqqud=\"שָׁלוֹם\" data-w-offset=\"0\" data-gloss=\"CONTEXT-2496:0\" data-gloss-label=\"user\" data-gloss-ai=\"1\" data-gloss-source=\"user\">שָׁלוֹם</span>"
+  },
+  "card": {
+    "method": "native mouse at visible word",
+    "clickMs": 488,
+    "contentAfterClickMs": 1270,
+    "openMs": 1758,
+    "inputBeforeLayersComplete": true,
+    "openedBeforeLayersComplete": true
+  },
+  "layers": {
+    "gloss": {
+      "firstTargetMs": 332.5749999284744,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 332.9299999475479,
+      "completeMs": 1470.4649999141693,
+      "rowsPainted": 2500,
+      "mutations": 20000,
+      "rpcCount": 0,
+      "rpcTotalMs": 0,
+      "positionBefore": {
+        "wordTop": 373.5625,
+        "scrollY": 0,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "top": 1156093,
+            "height": 680,
+            "scrollHeight": 1158186
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 403.578125,
+        "scrollY": 0,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "top": 1156086,
+            "height": 650,
+            "scrollHeight": 1158186
+          }
+        ]
+      }
+    },
+    "status": {
+      "firstTargetMs": 723.5099999904633,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 732.6000000238419,
+      "completeMs": 3502.014999985695,
+      "rowsPainted": 2500,
+      "mutations": 40001,
+      "rpcCount": 38,
+      "rpcTotalMs": 2921.019999265671,
+      "positionBefore": {
+        "wordTop": 373.578125,
+        "scrollY": 8,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "top": 1156108,
+            "height": 650,
+            "scrollHeight": 1158186
+          },
+          {
+            "id": "",
+            "top": 8,
+            "height": 780,
+            "scrollHeight": 917
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 373.578125,
+        "scrollY": 8,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "top": 1156108,
+            "height": 650,
+            "scrollHeight": 1158186
+          },
+          {
+            "id": "",
+            "top": 8,
+            "height": 780,
+            "scrollHeight": 917
+          }
+        ]
+      }
+    },
+    "unchangedRefreshGlossMutations": 0,
+    "tablePreserved": true,
+    "targetGloss": "CONTEXT-2496:0",
+    "targetSource": "user",
+    "targetAiOriginal": "original-2496",
+    "maxLongTaskMs": 387,
+    "longTasks": [
+      {
+        "at": 17331.110000014305,
+        "duration": 343
+      },
+      {
+        "at": 17973.945000052452,
+        "duration": 170
+      },
+      {
+        "at": 18244.59000003338,
+        "duration": 387
+      },
+      {
+        "at": 18664.085000038147,
+        "duration": 147
+      },
+      {
+        "at": 18812.02999997139,
+        "duration": 115
+      },
+      {
+        "at": 18935.799999952316,
+        "duration": 93
+      },
+      {
+        "at": 19124.28499996662,
+        "duration": 79
+      },
+      {
+        "at": 19420.625,
+        "duration": 102
+      },
+      {
+        "at": 19751.06000006199,
+        "duration": 94
+      },
+      {
+        "at": 19924.740000009537,
+        "duration": 87
+      },
+      {
+        "at": 20133.014999985695,
+        "duration": 94
+      },
+      {
+        "at": 20293.044999957085,
+        "duration": 81
+      },
+      {
+        "at": 20500.18500006199,
+        "duration": 103
+      },
+      {
+        "at": 20668.835000038147,
+        "duration": 137
+      },
+      {
+        "at": 20948.914999961853,
+        "duration": 85
+      },
+      {
+        "at": 21122.269999980927,
+        "duration": 93
+      },
+      {
+        "at": 21332.730000019073,
+        "duration": 99
+      },
+      {
+        "at": 21601.399999976158,
+        "duration": 97
+      },
+      {
+        "at": 21842.705000042915,
+        "duration": 184
+      },
+      {
+        "at": 22094.830000042915,
+        "duration": 120
+      },
+      {
+        "at": 22270.919999957085,
+        "duration": 251
+      },
+      {
+        "at": 22622.575000047684,
+        "duration": 78
+      }
+    ],
+    "target": 2496
+  },
+  "scroll": {
+    "later": 1250,
+    "shown": "block",
+    "gloss": "CONTEXT-1250:0",
+    "originalStillRevealed": true
+  },
+  "reviewLogCount": 0,
+  "result": "PASS"
+}

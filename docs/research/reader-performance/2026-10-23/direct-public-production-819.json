@@ -1,0 +1,38 @@
+{
+  "candidate": false,
+  "expectBlocked": false,
+  "scope": "Disposable anonymous Chromium; public GETs only, no owner profile. Delayed dependencies test, not normal-network timing benchmark.",
+  "checks": {
+    "open": {
+      "rows": 499,
+      "firstVisibleWordMs": 5277,
+      "catalogAttempts": 1,
+      "unrelatedHeld": 2,
+      "backgroundPreservedReader": true
+    },
+    "retry": {
+      "rows": 499,
+      "firstVisibleWordMs": 11557,
+      "catalogAttempts": 2,
+      "unrelatedHeld": 4,
+      "backgroundPreservedReader": true
+    },
+    "catalog-race": {
+      "lateOpenSuppressed": true,
+      "catalogAttempts": 1
+    },
+    "material-race": {
+      "lateOpenSuppressed": true,
+      "catalogAttempts": 1
+    },
+    "material-switch": {
+      "newerMaterialPreserved": true,
+      "backgroundCanonImported": true,
+      "catalogAttempts": 1,
+      "rows": 679
+    }
+  },
+  "errors": [],
+  "testedModuleSha256": "762d0cc0c760d44bd39e047be386d361dca57432c2a76ff0c7bc209f0bff2c68",
+  "result": "PASS"
+}

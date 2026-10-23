@@ -1,0 +1,11 @@
+{
+  "checkedAtUtc": "2026-10-23T22:54:00.995Z",
+  "pageRuntimeVersion": "3.11.818",
+  "productionRelease": "3.11.819",
+  "reviewRows": 11754,
+  "reviewSha256": "d9f1f17ea8980b6538d02803f838d0cdd48adb3b5f3e00fa39ba5346737c9238",
+  "scope": "Final readonly owner database comparison after deployment and bounded cleanup. Existing owner tab not reloaded; this is not owner UI acceptance of 819.",
+  "sentences": 108996,
+  "texts": 732,
+  "matchesBefore": true
+}

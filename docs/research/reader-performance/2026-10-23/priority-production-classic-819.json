@@ -1,0 +1,250 @@
+{
+  "surface": "classic",
+  "shape": "rows",
+  "mobile": false,
+  "ref": null,
+  "startedAtUtc": "2026-10-23T22:32:27.578Z",
+  "scope": "Disposable Chromium; prepared real table, saved manual context and restored row before each layer. Layer timings exclude DB/table opening. HTTP cache disabled by routing; SW blocked. No owner profile or paid generation.",
+  "errors": [],
+  "deniedWrites": [],
+  "version": "3.11.819",
+  "browser": "148.0.7778.96",
+  "fixture": {
+    "count": 2500,
+    "wordsPerRow": 8,
+    "target": 2496,
+    "textId": "3aa68759-45e8-4e6d-8e2a-7329f7187263"
+  },
+  "cardAttempt": {
+    "box": {
+      "x": 905.8125,
+      "y": 460.265625,
+      "width": 81.515625,
+      "height": 36.375
+    },
+    "hit": "<span class=\"rm-w\" role=\"button\" tabindex=\"0\" data-surface=\"שלום\" data-niqqud=\"שָׁלוֹם\" data-w-offset=\"0\" data-gloss=\"CONTEXT-2496:0\" data-gloss-label=\"user\" data-gloss-ai=\"1\" data-gloss-source=\"user\">שָׁלוֹם</span>"
+  },
+  "card": {
+    "method": "native mouse at visible word",
+    "clickMs": 585,
+    "contentAfterClickMs": 7571,
+    "openMs": 8156,
+    "inputBeforeLayersComplete": true,
+    "openedBeforeLayersComplete": true
+  },
+  "layers": {
+    "gloss": {
+      "firstTargetMs": 212.07500004768372,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 212.42000007629395,
+      "completeMs": 1355.8799999952316,
+      "rowsPainted": 2500,
+      "mutations": 20000,
+      "rpcCount": 0,
+      "rpcTotalMs": 0,
+      "positionBefore": {
+        "wordTop": 466.03125,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 441739,
+            "height": 558,
+            "scrollHeight": 442697
+          },
+          {
+            "id": "",
+            "top": 1974,
+            "height": 900,
+            "scrollHeight": 2889
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 496.265625,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 442348,
+            "height": 558,
+            "scrollHeight": 443929
+          },
+          {
+            "id": "",
+            "top": 1974,
+            "height": 900,
+            "scrollHeight": 2919
+          }
+        ]
+      }
+    },
+    "status": {
+      "firstTargetMs": 7610.450000047684,
+      "rowsBeforeTarget": 0,
+      "firstTargetFrameMs": 7623.870000004768,
+      "completeMs": 10381.670000076294,
+      "rowsPainted": 2500,
+      "mutations": 40001,
+      "rpcCount": 39,
+      "rpcTotalMs": 1998.8300004005432,
+      "positionBefore": {
+        "wordTop": 460.265625,
+        "scrollY": 2003,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 442355,
+            "height": 558,
+            "scrollHeight": 443929
+          },
+          {
+            "id": "",
+            "top": 2003,
+            "height": 900,
+            "scrollHeight": 2919
+          }
+        ]
+      },
+      "positionAfter": {
+        "wordTop": 460.265625,
+        "scrollY": 2003,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "top": 442355,
+            "height": 558,
+            "scrollHeight": 443929
+          },
+          {
+            "id": "",
+            "top": 2003,
+            "height": 900,
+            "scrollHeight": 2919
+          }
+        ]
+      }
+    },
+    "unchangedRefreshGlossMutations": 0,
+    "tablePreserved": true,
+    "targetGloss": "CONTEXT-2496:0",
+    "targetSource": "user",
+    "targetAiOriginal": "original-2496",
+    "maxLongTaskMs": 264,
+    "longTasks": [
+      {
+        "at": 10564.800000071526,
+        "duration": 220
+      },
+      {
+        "at": 10785.230000019073,
+        "duration": 50
+      },
+      {
+        "at": 10957.855000019073,
+        "duration": 55
+      },
+      {
+        "at": 11113.024999976158,
+        "duration": 249
+      },
+      {
+        "at": 11462.600000023842,
+        "duration": 259
+      },
+      {
+        "at": 11751.560000061989,
+        "duration": 82
+      },
+      {
+        "at": 11833.84500002861,
+        "duration": 52
+      },
+      {
+        "at": 11928.790000081062,
+        "duration": 100
+      },
+      {
+        "at": 12040.795000076294,
+        "duration": 78
+      },
+      {
+        "at": 12489.254999995232,
+        "duration": 147
+      },
+      {
+        "at": 19483.56500005722,
+        "duration": 97
+      },
+      {
+        "at": 19617.480000019073,
+        "duration": 86
+      },
+      {
+        "at": 19903.875,
+        "duration": 86
+      },
+      {
+        "at": 20063.31000006199,
+        "duration": 142
+      },
+      {
+        "at": 20377.580000042915,
+        "duration": 88
+      },
+      {
+        "at": 20528.125,
+        "duration": 75
+      },
+      {
+        "at": 20717.87000000477,
+        "duration": 84
+      },
+      {
+        "at": 20965.03499996662,
+        "duration": 88
+      },
+      {
+        "at": 21177.180000066757,
+        "duration": 105
+      },
+      {
+        "at": 21351.425000071526,
+        "duration": 93
+      },
+      {
+        "at": 21551.65499997139,
+        "duration": 116
+      },
+      {
+        "at": 21742.274999976158,
+        "duration": 93
+      },
+      {
+        "at": 21952.25,
+        "duration": 106
+      },
+      {
+        "at": 22118.09000003338,
+        "duration": 98
+      },
+      {
+        "at": 22277.09500002861,
+        "duration": 264
+      },
+      {
+        "at": 22641.97000002861,
+        "duration": 114
+      }
+    ],
+    "target": 2496
+  },
+  "scroll": {
+    "later": 1250,
+    "shown": "block",
+    "gloss": "CONTEXT-1250:0",
+    "originalStillRevealed": true
+  },
+  "reviewLogCount": 0,
+  "result": "PASS"
+}

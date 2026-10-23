@@ -1,0 +1,56 @@
+{
+  "checkedAtUtc": "2026-10-23T22:21:46.358Z",
+  "version": "3.11.818",
+  "candidate": true,
+  "scope": "Actual public GETs and saved evidence in disposable Chromium. Empty-profile import, no owner data, no paid generation. Not an owner cache/startup comparison.",
+  "cases": [
+    {
+      "name": "Hamam",
+      "errors": [],
+      "deniedWrites": [],
+      "glossReadyFromNavigationMs": 12187,
+      "layers": {
+        "title": "החמאם 1 — Хаммам, серия 1 — LinguistPro",
+        "url": "/library.html?public_corpus=media-8c30cc63a5e5e39a0acd&public_work=work-830a3ab937fc3c3f70c60533",
+        "rows": 499,
+        "wordsWithGloss": 2193,
+        "bySource": {
+          "ai": 2193
+        },
+        "pendingRows": 490,
+        "coverage": "Контекстный перевод: 2193 из 2193 слов"
+      },
+      "wordCard": true,
+      "reviewRows": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "Ben-Yehuda 66120",
+      "errors": [],
+      "deniedWrites": [],
+      "glossReadyFromNavigationMs": 11790,
+      "layers": {
+        "title": "מדבריו — LinguistPro",
+        "url": "/library.html?corpus_work=66120",
+        "rows": 34,
+        "wordsWithGloss": 3291,
+        "bySource": {
+          "ai": 3291
+        },
+        "pendingRows": 31,
+        "coverage": "Контекстный перевод: 3291 из 3291 слов"
+      },
+      "wordCard": true,
+      "reviewRows": 0,
+      "result": "PASS"
+    }
+  ],
+  "candidateHashes": {
+    "js/library-ui.js": "762d0cc0c760d44bd39e047be386d361dca57432c2a76ff0c7bc209f0bff2c68",
+    "js/reader-morph.js": "7b858cde19bf8f4f43319d00729f2e890f4dc15dceace95a3771a7736b371946",
+    "js/word-gloss.js": "73a52a23089a0fe1d8b26d75e494c748275acd37bfb1ce8b3ef26f4c5fd3fe0b",
+    "js/word-gloss-ai.js": "5f43e5d3309f0e1f711dd2e86b98ff4626b8702fa662e1bd7305614807fe7a29",
+    "css/reader-morph.css": "86954db37f5a89790d62c9f22bd925aa5f5745bdfa9b3beb47e986e7414aae4f"
+  },
+  "result": "PASS"
+}
