@@ -266,3 +266,20 @@ node scripts/premium/reader-direct-public-smoke.js --out=.tmp/reader-performance
 node scripts/premium/reader-refresh-link-smoke.js
 python scripts/premium/verify-material-read-release.py --commit=0d8a8849 --version=3.11.818 --out=.tmp/reader-performance/production-818.json
 ```
+
+## Studio startup: O-132 checked before S4
+
+The owner prioritized the unexplained Studio readiness timeout before visible-row scheduling. [Twelve sequential production 818 starts](studio-startup-818.json) passed: six fresh disposable OPFS profiles and six same-profile document reloads. Cold-profile DB/module readiness was **2.77–3.32 s** (median 2.91 s); reload was **1.99–4.37 s** (median 3.13 s). The probe samples readiness every 50 ms and at capture. There were no pageerrors, denied application writes or paid requests. Routing disables HTTP cache, service workers are blocked, and the content-free DB phase journal is enabled. These are empty-profile startup observations, not owner-database timings, material-open timings, an optimization comparison or proof that an intermittent failure is fixed.
+
+The new `studio-startup-diagnostic.cjs` captures individual DB-module, DB-ready, StudioMorph and WordGlossAI transitions, worker lifetime, init errors, completed resource timings, failed HTTP/network requests and the bounded content-free DB phase journal **before retry**. Pending network requests are also captured by the completed probe. Three isolated local faults validate different diagnoses: [blocked WordGlossAI module](studio-startup-fault-module.json) leaves the DB ready and gloss absent; [blocked worker entry](studio-startup-fault-worker.json) records `DB_WORKER_CRASHED`; [held WASM module import](studio-startup-fault-wasm.json) leaves the DB unready with a pending import and `loading-wasm-sync-module` phase. Injected faults use a five-second observation window; the real startup timeout remains **60 seconds**. These are diagnostic checks, not reproductions of the original cause.
+
+The original saved-context runner now enables and retains the same DB journal/init-error evidence on failure as well as success. [Classic and IDE regression checks](studio-startup-context-checks.json) still pass: saved manual context, status independence, late-A suppression, hidden translation, mobile RTL cards and mode switching, with no paid calls or review rows. No application runtime, database schema, owner profile or production deployment changed. **O-132 remains open because the original cause did not recur.** Its bounded diagnostic investigation precedes S4; independent S4 work may now continue, with the original-failure evidence preserved for a recurrence.
+
+Reproduce without an owner profile:
+
+```powershell
+node scripts/premium/studio-startup-diagnostic.cjs --base=https://linguistpro.kolosei.com --version=3.11.818 --rounds=6
+node scripts/premium/studio-startup-diagnostic.cjs --fault=module --rounds=1
+node scripts/premium/studio-startup-diagnostic.cjs --fault=worker --rounds=1
+node scripts/premium/studio-startup-diagnostic.cjs --fault=wasm --rounds=1
+```

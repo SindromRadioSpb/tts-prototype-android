@@ -1,0 +1,412 @@
+{
+  "scope": "Disposable Chromium profiles; empty local DB, cold document then warm reload. No owner data or paid calls.",
+  "cachePolicy": "fresh browser context then same-context reload; routing disables HTTP cache; service workers blocked; DB phase journal enabled",
+  "runs": [
+    {
+      "round": 1,
+      "phase": "cold",
+      "fault": "wasm",
+      "errors": [],
+      "warnings": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Service Worker registration blocked by Playwright",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 410 (Gone)"
+      ],
+      "failedRequests": [
+        {
+          "path": "/vendor/hash-wasm/sha256.umd.min.js",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "httpErrors": [
+        {
+          "path": "/vendor/hash-wasm/sha256.umd.min.js",
+          "status": 404
+        },
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "status": 404
+        },
+        {
+          "path": "/api/auth/me",
+          "status": 401
+        },
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "status": 404
+        },
+        {
+          "path": "/api/library/texts",
+          "status": 410
+        }
+      ],
+      "workers": [
+        {
+          "path": "/db/db-worker-runtime.js",
+          "closed": true
+        }
+      ],
+      "result": "FAIL",
+      "failure": "page.waitForFunction: Timeout 5000ms exceeded.",
+      "diagnostic": {
+        "url": "/",
+        "readyState": "complete",
+        "transitions": [
+          {
+            "at": 71.09500002861023,
+            "dbModule": false,
+            "dbReady": false,
+            "morph": false,
+            "gloss": false,
+            "initPromise": false
+          },
+          {
+            "at": 523.8650000095367,
+            "dbModule": false,
+            "dbReady": false,
+            "morph": true,
+            "gloss": true,
+            "initPromise": false
+          },
+          {
+            "at": 581.4499999284744,
+            "dbModule": true,
+            "dbReady": false,
+            "morph": true,
+            "gloss": true,
+            "initPromise": true
+          }
+        ],
+        "first": {
+          "morph": 523.8500000238419,
+          "gloss": 523.8600000143051,
+          "dbModule": 581.4199999570847,
+          "initPromise": 581.4299999475479
+        },
+        "longTasks": [
+          {
+            "at": 179.86500000953674,
+            "duration": 133
+          },
+          {
+            "at": 420.4800000190735,
+            "duration": 75
+          },
+          {
+            "at": 641.1449999809265,
+            "duration": 59
+          }
+        ],
+        "flags": {
+          "dbModule": true,
+          "dbReady": false,
+          "morph": true,
+          "gloss": true,
+          "initPromise": true
+        },
+        "initError": null,
+        "dbError": null,
+        "dbDiagnostics": null,
+        "vfs": {
+          "name": null,
+          "kind": null
+        },
+        "journal": [
+          {
+            "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+            "documentId": "a56c34e4-70a6-4523-9c69-e0fb0cf107ff",
+            "generation": 1,
+            "version": "3.11.545",
+            "surface": "studio",
+            "lifecycle": [
+              {
+                "phase": "browser-preflight",
+                "event": "page-db-start",
+                "at": 1792789196570
+              },
+              {
+                "phase": "worker-module-loading",
+                "event": "worker-created",
+                "at": 1792789196571
+              },
+              {
+                "event": "pageshow",
+                "persisted": false,
+                "at": 1792789196623
+              }
+            ],
+            "events": [
+              {
+                "operation": "init",
+                "event": "rpc-queued",
+                "requestId": 1,
+                "pendingCount": 1,
+                "at": 1792789196571
+              },
+              {
+                "phase": "waiting-lock",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": false,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196644
+              },
+              {
+                "phase": "storage-identity",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196644
+              },
+              {
+                "phase": "opening-vfs",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196644
+              },
+              {
+                "phase": "closing-sqlite",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196645
+              },
+              {
+                "phase": "closing-vfs",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196645
+              },
+              {
+                "phase": "idle",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196645
+              },
+              {
+                "phase": "opening-vfs",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196645
+              },
+              {
+                "phase": "loading-wasm-sync-module",
+                "operation": "init",
+                "coordination": "opfs-owner",
+                "runtime": 545,
+                "elapsedMs": 0,
+                "requestId": 1,
+                "holdsLease": true,
+                "transactionIdle": false,
+                "workerId": "e647717d-15c5-4b8c-a171-886ba5c527f3",
+                "at": 1792789196645
+              }
+            ]
+          }
+        ],
+        "resources": [
+          {
+            "path": "/db/sqlite-api.js",
+            "start": 57.74000000953674,
+            "duration": 41.74500000476837,
+            "bytes": 29243
+          },
+          {
+            "path": "/db/local-db.js",
+            "start": 57.85000002384186,
+            "duration": 86.46499991416931,
+            "bytes": 446583
+          },
+          {
+            "path": "/js/word-gloss-ai.js",
+            "start": 60.80499994754791,
+            "duration": 161.68500006198883,
+            "bytes": 32488
+          },
+          {
+            "path": "/js/studio-morph.js",
+            "start": 66.64499998092651,
+            "duration": 248.4800000190735,
+            "bytes": 30731
+          },
+          {
+            "path": "/db/anki-apkg-core.js",
+            "start": 67.58500003814697,
+            "duration": 271.63499999046326,
+            "bytes": 13301
+          },
+          {
+            "path": "/db/anki-identity.js",
+            "start": 67.62999999523163,
+            "duration": 273.2849999666214,
+            "bytes": 3306
+          },
+          {
+            "path": "/db/anki-models.js",
+            "start": 67.6949999332428,
+            "duration": 274.3600000143051,
+            "bytes": 8125
+          },
+          {
+            "path": "/db/anki-apkg.js",
+            "start": 67.85000002384186,
+            "duration": 275.72499990463257,
+            "bytes": 5950
+          },
+          {
+            "path": "/db/anki-srs-export.js",
+            "start": 67.95500004291534,
+            "duration": 276.40499997138977,
+            "bytes": 7557
+          },
+          {
+            "path": "/db/change-scope.js",
+            "start": 151.84500002861023,
+            "duration": 198.11000001430511,
+            "bytes": 7233
+          },
+          {
+            "path": "/db/material-read.js",
+            "start": 151.92499995231628,
+            "duration": 199.09500002861023,
+            "bytes": 1893
+          },
+          {
+            "path": "/db/diagnostic-journal.js",
+            "start": 152.0699999332428,
+            "duration": 200.65500009059906,
+            "bytes": 3659
+          },
+          {
+            "path": "/db/migrations.js",
+            "start": 152.6449999809265,
+            "duration": 211.25499999523163,
+            "bytes": 66458
+          },
+          {
+            "path": "/db/db-worker-runtime.js",
+            "start": 571.0449999570847,
+            "duration": -32.42999994754791,
+            "bytes": 17029
+          },
+          {
+            "path": "/db/sqlite-api.js",
+            "start": 572.664999961853,
+            "duration": 9.420000076293945,
+            "bytes": 29243
+          },
+          {
+            "path": "/db/migrations.js",
+            "start": 573.0299999713898,
+            "duration": 14.175000071525574,
+            "bytes": 66458
+          },
+          {
+            "path": "/db/vfs-order.js",
+            "start": 573.2549999952316,
+            "duration": 13.139999985694885,
+            "bytes": 2281
+          },
+          {
+            "path": "/db/operation-lease.js",
+            "start": 573.3849999904633,
+            "duration": 14.769999980926514,
+            "bytes": 6094
+          },
+          {
+            "path": "/db/material-read.js",
+            "start": 573.4750000238419,
+            "duration": 15.139999985694885,
+            "bytes": 1893
+          },
+          {
+            "path": "/db/storage-identity.js",
+            "start": 573.5749999284744,
+            "duration": 15.510000109672546,
+            "bytes": 1977
+          },
+          {
+            "path": "/db/runtime-diagnostics.js",
+            "start": 573.6699999570847,
+            "duration": 16.274999976158142,
+            "bytes": 7037
+          },
+          {
+            "path": "/db/sqlite-constants.js",
+            "start": 584.335000038147,
+            "duration": 6.4049999713897705,
+            "bytes": 11408
+          },
+          {
+            "path": "/db/change-scope.js",
+            "start": 590.164999961853,
+            "duration": 6.524999976158142,
+            "bytes": 7233
+          }
+        ],
+        "capturedAtMs": 5559.6849999427795
+      },
+      "pendingRequests": [
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "elapsedMs": 5039
+        },
+        {
+          "path": "/api/agent-access/proposals/summary",
+          "elapsedMs": 4977
+        },
+        {
+          "path": "/db/wa-sqlite.mjs",
+          "elapsedMs": 4959
+        },
+        {
+          "path": "/api/library/texts",
+          "elapsedMs": 4417
+        }
+      ]
+    }
+  ],
+  "deniedRequests": [],
+  "result": "EXPECTED_FAILURE_CAPTURED"
+}

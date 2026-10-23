@@ -1,0 +1,46 @@
+{
+  "scope": "Local disposable Classic/IDE saved-context regression after enabling content-free DB startup journal. No runtime source changes.",
+  "checkedAtUtc": "2026-10-23T21:02:21.053Z",
+  "runs": [
+    {
+      "surface": "classic",
+      "result": "PASS",
+      "checks": {
+        "paragraphs": 34,
+        "wordsPerParagraph": 60,
+        "savedManualRows": 34,
+        "BGlossBeforeAStatus": true,
+        "lateAStatusSuppressed": true,
+        "hiddenTranslationKeepsContext": true,
+        "mobileRtlWordCard": true,
+        "modeSwitchKeepsWordCard": true
+      },
+      "paidRequests": 0,
+      "reviewLogCount": 0,
+      "errors": [],
+      "initError": null,
+      "dbError": null,
+      "journalCaptured": true
+    },
+    {
+      "surface": "ide",
+      "result": "PASS",
+      "checks": {
+        "paragraphs": 34,
+        "wordsPerParagraph": 60,
+        "savedManualRows": 34,
+        "BGlossBeforeAStatus": true,
+        "lateAStatusSuppressed": true,
+        "hiddenTranslationKeepsContext": true,
+        "mobileRtlWordCard": true,
+        "modeSwitchKeepsWordCard": true
+      },
+      "paidRequests": 0,
+      "reviewLogCount": 0,
+      "errors": [],
+      "initError": null,
+      "dbError": null,
+      "journalCaptured": true
+    }
+  ]
+}
