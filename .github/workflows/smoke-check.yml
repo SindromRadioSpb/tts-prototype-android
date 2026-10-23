@@ -17,6 +17,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,7 +52,13 @@ jobs:
         run: npm run smoke:fsrs
 
       - name: Install fixture browser
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 4
+        run: |
+          # Azure's Ubuntu mirror stalled package downloads in run 40011970101.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g;s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          fi
+          npx playwright install --with-deps chromium
 
       - name: Material identity, resume and independent tabs
         # Uses disposable OPFS and server fixtures; blocks provider requests.
@@ -87,7 +94,13 @@ jobs:
           node-version: "22"
           cache: "npm"
       - run: npm ci --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
+      - name: Install fixture browser
+        timeout-minutes: 4
+        run: |
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g;s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          fi
+          npx playwright install --with-deps chromium
       - name: Studio background completion and saved context
         timeout-minutes: 5
         # Disposable origin/OPFS; holds status/derivation boundaries, blocks paid APIs.
