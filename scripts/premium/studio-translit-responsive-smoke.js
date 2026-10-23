@@ -90,6 +90,10 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
         __studioProbe.rows = rows; __studioProbe.profile = getSelectedTranslitProfile();
       }, { surface, count });
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      // The replay fixture above may change wrapping in a narrow table. Position
+      // the editor after that layout, rather than measuring a clipped editor.
+      await page.evaluate(() => __studioProbe.editor.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' }));
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await page.evaluate(() => {
         const p = __studioProbe;
         p.geometry = () => {
@@ -97,7 +101,13 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
           const ancestors = []; for (let el = p.editor.parentElement; el; el = el.parentElement) {
             if (el.scrollHeight > el.clientHeight) ancestors.push({ id: el.id, tag: el.tagName, top: el.scrollTop, height: el.clientHeight });
           }
-          return { editorTop: editor.top, editorHeight: editor.height, rowTop: row.top, rowHeight: row.height,
+          let visible = editor.top >= 0 && editor.bottom <= innerHeight;
+          for (let el = p.editor.parentElement; el; el = el.parentElement) {
+            if (/auto|scroll|hidden|clip/.test(getComputedStyle(el).overflowY)) {
+              const clip = el.getBoundingClientRect(); visible = visible && editor.top >= clip.top && editor.bottom <= clip.bottom;
+            }
+          }
+          return { editorTop: editor.top, editorHeight: editor.height, editorFullyVisible: visible, rowTop: row.top, rowHeight: row.height,
             tableWidth: p.table.getBoundingClientRect().width, scrollY, ancestors };
         };
         p.before.top = p.editor.getBoundingClientRect().top; p.before.geometry = p.geometry();
@@ -105,6 +115,7 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
       const before = await page.evaluate(() => ({ pending: v3TranslitStore().isFilling(), renders: __studioProbe.renders }));
       console.log(surface + ': table mounted, derivation held');
       assert.ok(before.pending && before.renders === 1);
+      assert.ok(await page.evaluate(() => __studioProbe.before.geometry.editorFullyVisible), 'fixture editor is visible before completion');
       await page.evaluate(() => {
         __studioProbe.longTasks.length = 0; __studioProbe.started = performance.now(); __studioProbe.released = true;
         __studioProbe.tasks.splice(0).forEach(fn => setTimeout(fn, 0));
@@ -132,6 +143,7 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
         assert.equal(result.renders, 1); assert.ok(result.sameTable && result.editorPreserved && result.focusPreserved && result.replayPreserved && result.sourceUnchanged);
         assert.equal(result.remainingStored, 0);
         assert.deepEqual(result.caret, [4, 9]); assert.equal(result.manualTranslit, 'MY OWN LATIN');
+        assert.ok(result.geometryAfter.editorFullyVisible, 'editor remains visible after completion');
         assert.ok(Math.abs(result.scrollDelta) <= 2, 'saved visible row stays anchored');
         if (mobile) assert.equal(await page.getAttribute('html', 'dir'), 'rtl');
         fs.mkdirSync(path.dirname(out), { recursive: true });

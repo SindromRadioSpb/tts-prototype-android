@@ -10,6 +10,7 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(arg('out')||path.joi
  const server=remote?null:fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(),'lp-studio-context-')),0),silent:true,windowsHide:true});
  server?.stdout.resume();server?.stderr.resume();let browser,page;
  const report={surface:ide?'ide':'classic',scope:'Disposable Studio Chromium, synthetic saved context, blocked status boundary; no owner profile or paid generation.',errors:[],paidRequests:0};
+ const networkFailures=[],httpErrors=[],warnings=[];
  try{
   const base=remote||'http://127.0.0.1:'+await waitForSmokeServer(server,30000);
   if(remote){assert.ok(arg('version'));assert.equal((await(await fetch(base+'/api/client-config?verify='+Date.now())).json()).version,arg('version'));}
@@ -26,6 +27,9 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(arg('out')||path.joi
   });
   await context.addInitScript(()=>{localStorage.setItem('app.locale','ru');localStorage.setItem('phase6Decision_v1','declined');localStorage.setItem('onboardingSeen_v1','1');localStorage.setItem('studio.wordGlossAi','0');});
   page=await context.newPage();page.setDefaultTimeout(60000);page.on('pageerror',e=>report.errors.push(e.message));
+  page.on('requestfailed',req=>networkFailures.push({path:new URL(req.url()).pathname,error:req.failure()?.errorText}));
+  page.on('response',res=>{if(res.status()>=400)httpErrors.push({path:new URL(res.url()).pathname,status:res.status()});});
+  page.on('console',msg=>{if(['warning','error'].includes(msg.type())&&warnings.length<20)warnings.push(msg.text().slice(0,400));});
   await page.goto(base+'/?localMode=1',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.__localDB?.isReady()&&window.StudioMorph&&window.WordGlossAI);
   await page.evaluate(async ide=>{
@@ -93,6 +97,6 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(arg('out')||path.joi
   report.checks={paragraphs:34,wordsPerParagraph:60,savedManualRows:before.manual,BGlossBeforeAStatus:true,lateAStatusSuppressed:true,hiddenTranslationKeepsContext:true,mobileRtlWordCard:true,modeSwitchKeepsWordCard:true};
   report.reviewLogCount=await page.evaluate(async()=>(await __localDB.dbQuery('SELECT COUNT(*) AS n FROM review_log'))[0].n);
   assert.equal(report.reviewLogCount,0);assert.equal(report.paidRequests,0);assert.deepEqual(report.errors,[]);report.result='PASS';console.log(JSON.stringify(report));
-  }catch(error){report.result='FAIL';report.failure=error.stack;report.diagnostic=await page?.evaluate(()=>({mode:document.body.className,probe:StudioMorph.probe?.(),gates:window.__savedContext?.gates.length,rows:document.querySelectorAll('#proTable tbody tr').length,wrapped:document.querySelectorAll('#proTable .rm-w').length,first:document.querySelector('#proTable .rm-w')?.outerHTML,classicRows:document.querySelectorAll('#tableContainer tbody tr').length,ideRows:document.querySelectorAll('#v3IdeCenterContent tbody tr').length,renderWrapped:!!window.v3IdeRenderTable.__smWrapped})).catch(()=>null);throw error;}
+  }catch(error){report.result='FAIL';report.failure=error.stack;report.networkFailures=networkFailures;report.httpErrors=httpErrors;report.warnings=warnings;report.diagnostic=await page?.evaluate(()=>({url:location.href,readyState:document.readyState,dbPresent:!!window.__localDB,dbReady:window.__localDB?.isReady(),wordGlossReady:!!window.WordGlossAI,morphReady:!!window.StudioMorph,workers:performance.getEntriesByType('resource').filter(e=>/db-worker|word-gloss-ai|local-db/.test(e.name)).map(e=>({path:new URL(e.name).pathname,duration:e.duration})),mode:document.body.className,probe:window.StudioMorph?.probe?.(),gates:window.__savedContext?.gates.length,rows:document.querySelectorAll('#proTable tbody tr').length,wrapped:document.querySelectorAll('#proTable .rm-w').length,first:document.querySelector('#proTable .rm-w')?.outerHTML,classicRows:document.querySelectorAll('#tableContainer tbody tr').length,ideRows:document.querySelectorAll('#v3IdeCenterContent tbody tr').length,renderWrapped:!!window.v3IdeRenderTable?.__smWrapped})).catch(()=>null);throw error;}
   finally{fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');await browser?.close();server?.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
