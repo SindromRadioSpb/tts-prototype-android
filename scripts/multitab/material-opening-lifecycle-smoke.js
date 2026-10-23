@@ -87,7 +87,7 @@ async function main() {
         const rowsGate = new Promise(resolve => { releaseRows = resolve; });
         const sourceGate = new Promise(resolve => { releaseSource = resolve; });
         ensureLocalDB = async () => new Proxy(await original(), { get(db, key) {
-          if (key === 'getSentences') return async id => { if (id === 'opening-A') await rowsGate; return db.getSentences(id); };
+          if (key === 'getSentences' || key === 'getMaterialForOpen') return async id => { if (id === 'opening-A') await rowsGate; return db[key](id); };
           if (key === 'getTextSourceText') return async id => { if (id === 'opening-B') await sourceGate; return db.getTextSourceText(id); };
           return db[key];
         } });

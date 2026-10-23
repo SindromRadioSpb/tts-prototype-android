@@ -1,0 +1,878 @@
+{
+  "result": "PASS",
+  "scope": "Isolated Chromium, cold document/worker and ready fixture DB; SW blocked, routing disables HTTP cache. Data-read timing only, not interactive UI or owner/device evidence.",
+  "remoteReadOnly": false,
+  "samples": [
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "split",
+      "ms": 47.4,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "941b932ed3df6ddefe4a5147200014d2ccfb4d0d3e0007876da7be8a87a83863",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 22.1,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "941b932ed3df6ddefe4a5147200014d2ccfb4d0d3e0007876da7be8a87a83863",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 22.9,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "941b932ed3df6ddefe4a5147200014d2ccfb4d0d3e0007876da7be8a87a83863",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 1,
+      "mode": "split",
+      "ms": 59.7,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "941b932ed3df6ddefe4a5147200014d2ccfb4d0d3e0007876da7be8a87a83863",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 2,
+      "mode": "split",
+      "ms": 48.7,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "941b932ed3df6ddefe4a5147200014d2ccfb4d0d3e0007876da7be8a87a83863",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 23.7,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "941b932ed3df6ddefe4a5147200014d2ccfb4d0d3e0007876da7be8a87a83863",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "split",
+      "ms": 81.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "68a1ee8eb4471a55bbe144a21e278a2f689fb5d60b6d24c41d57a2f8dd35df47",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 59.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "68a1ee8eb4471a55bbe144a21e278a2f689fb5d60b6d24c41d57a2f8dd35df47",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 56,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "68a1ee8eb4471a55bbe144a21e278a2f689fb5d60b6d24c41d57a2f8dd35df47",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 1,
+      "mode": "split",
+      "ms": 77.6,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "68a1ee8eb4471a55bbe144a21e278a2f689fb5d60b6d24c41d57a2f8dd35df47",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 2,
+      "mode": "split",
+      "ms": 83.7,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "68a1ee8eb4471a55bbe144a21e278a2f689fb5d60b6d24c41d57a2f8dd35df47",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 57.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "68a1ee8eb4471a55bbe144a21e278a2f689fb5d60b6d24c41d57a2f8dd35df47",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "split",
+      "ms": 58.8,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "a70cf103861f088cb6a0c67f96eb39bb466fdd36893dc05190b7c50801230af9",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 30.5,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "a70cf103861f088cb6a0c67f96eb39bb466fdd36893dc05190b7c50801230af9",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 37.7,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "a70cf103861f088cb6a0c67f96eb39bb466fdd36893dc05190b7c50801230af9",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 1,
+      "mode": "split",
+      "ms": 56.2,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "a70cf103861f088cb6a0c67f96eb39bb466fdd36893dc05190b7c50801230af9",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 2,
+      "mode": "split",
+      "ms": 58.3,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "a70cf103861f088cb6a0c67f96eb39bb466fdd36893dc05190b7c50801230af9",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 35,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "a70cf103861f088cb6a0c67f96eb39bb466fdd36893dc05190b7c50801230af9",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "split",
+      "ms": 204.8,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "98532d78df01f9c543264bb0df17d7e3f5ae14052e8d309c81611e2761d165bc",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 184.8,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "98532d78df01f9c543264bb0df17d7e3f5ae14052e8d309c81611e2761d165bc",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 194.9,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "98532d78df01f9c543264bb0df17d7e3f5ae14052e8d309c81611e2761d165bc",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 1,
+      "mode": "split",
+      "ms": 209.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "98532d78df01f9c543264bb0df17d7e3f5ae14052e8d309c81611e2761d165bc",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 2,
+      "mode": "split",
+      "ms": 223.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "98532d78df01f9c543264bb0df17d7e3f5ae14052e8d309c81611e2761d165bc",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 189.6,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "98532d78df01f9c543264bb0df17d7e3f5ae14052e8d309c81611e2761d165bc",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "split",
+      "ms": 16.4,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "ae307a1e4c545271c7a1e7d8538bd7c1a28da85fc416d86acfa310fbd3547b25",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 11.9,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "ae307a1e4c545271c7a1e7d8538bd7c1a28da85fc416d86acfa310fbd3547b25",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 11.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "ae307a1e4c545271c7a1e7d8538bd7c1a28da85fc416d86acfa310fbd3547b25",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 1,
+      "mode": "split",
+      "ms": 18.6,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "ae307a1e4c545271c7a1e7d8538bd7c1a28da85fc416d86acfa310fbd3547b25",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 2,
+      "mode": "split",
+      "ms": 15.4,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "ae307a1e4c545271c7a1e7d8538bd7c1a28da85fc416d86acfa310fbd3547b25",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 15.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "ae307a1e4c545271c7a1e7d8538bd7c1a28da85fc416d86acfa310fbd3547b25",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "split",
+      "ms": 43.8,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "fb4b5f811edf46fbc1a1ebbf3cd708df92b035b4b4e21fc92c475f78467b7c33",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 41.4,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "fb4b5f811edf46fbc1a1ebbf3cd708df92b035b4b4e21fc92c475f78467b7c33",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 42.6,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "fb4b5f811edf46fbc1a1ebbf3cd708df92b035b4b4e21fc92c475f78467b7c33",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 1,
+      "mode": "split",
+      "ms": 43.5,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "fb4b5f811edf46fbc1a1ebbf3cd708df92b035b4b4e21fc92c475f78467b7c33",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 2,
+      "mode": "split",
+      "ms": 45.2,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "fb4b5f811edf46fbc1a1ebbf3cd708df92b035b4b4e21fc92c475f78467b7c33",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 41.8,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "fb4b5f811edf46fbc1a1ebbf3cd708df92b035b4b4e21fc92c475f78467b7c33",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "split",
+      "ms": 23.9,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "199ab58bcacbfe4bb2c38061072d2764780e16c1838cfd62aa24094fb8bcbdf2",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 18.8,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "199ab58bcacbfe4bb2c38061072d2764780e16c1838cfd62aa24094fb8bcbdf2",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 17.9,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "199ab58bcacbfe4bb2c38061072d2764780e16c1838cfd62aa24094fb8bcbdf2",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 1,
+      "mode": "split",
+      "ms": 19.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "199ab58bcacbfe4bb2c38061072d2764780e16c1838cfd62aa24094fb8bcbdf2",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 2,
+      "mode": "split",
+      "ms": 20.5,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "199ab58bcacbfe4bb2c38061072d2764780e16c1838cfd62aa24094fb8bcbdf2",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 18.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "199ab58bcacbfe4bb2c38061072d2764780e16c1838cfd62aa24094fb8bcbdf2",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "split",
+      "ms": 162.6,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "4d1225ce7dc500aba41bd58ba61a25bea5b85477f836b5b1da50c1b5222cb6e4",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 181.7,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "4d1225ce7dc500aba41bd58ba61a25bea5b85477f836b5b1da50c1b5222cb6e4",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 161.5,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "4d1225ce7dc500aba41bd58ba61a25bea5b85477f836b5b1da50c1b5222cb6e4",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 1,
+      "mode": "split",
+      "ms": 177.9,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "4d1225ce7dc500aba41bd58ba61a25bea5b85477f836b5b1da50c1b5222cb6e4",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 2,
+      "mode": "split",
+      "ms": 162.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "4d1225ce7dc500aba41bd58ba61a25bea5b85477f836b5b1da50c1b5222cb6e4",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 186.1,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "4d1225ce7dc500aba41bd58ba61a25bea5b85477f836b5b1da50c1b5222cb6e4",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    }
+  ],
+  "checks": {
+    "identicalReadModels": true,
+    "noReviewOrProgressWrites": true,
+    "oneRpc": true,
+    "coldWorkers": true
+  },
+  "errors": []
+}

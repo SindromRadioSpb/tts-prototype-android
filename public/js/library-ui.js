@@ -1,4 +1,4 @@
-import '/js/material-open.js?v=734';
+import '/js/material-open.js?v=815';
 // library-ui.js — BRR-P0-002 Reading Room surface (Layout A: track tabs +
 // vertical shelf stack with horizontal work-card carousels).
 //
@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=813';
+import * as localDbRaw from '/db/local-db.js?v=815';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go

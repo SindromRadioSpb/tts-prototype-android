@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.814";
+const CACHE_VERSION = "v3.11.815";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -82,9 +82,9 @@ const PRECACHE_URLS = [
   "/js/dictionary-progress-core.js?v=774",
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
-  "/js/dictionary-ui.js?v=813",
+  "/js/dictionary-ui.js?v=815",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=813",
+  "/js/mediatheque-ui.js?v=815",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -110,7 +110,7 @@ const PRECACHE_URLS = [
   "/js/subtitle-row-language.js?v=582",
   "/js/subtitle-timing-status.js?v=587",
   "/js/room-media-attach.js?v=796",
-  "/js/study-video-source-ui.js?v=813",
+  "/js/study-video-source-ui.js?v=815",
   "/js/youtube-asr.js?v=593",
   "/js/table-source-recovery.js?v=551",
   "/js/learning-material-task.js?v=797",
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=814",
+  "/js/library-ui.js?v=815",
   "/js/room-b6-core.js?v=811",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -280,7 +280,7 @@ const PRECACHE_URLS = [
   "/js/import-center-core.js?v=527",
   "/js/portable-learning-package-repository.js?v=802",
   "/js/studio-media-package.js?v=796",
-  "/js/material-open.js?v=734",
+  "/js/material-open.js?v=815",
   "/js/material-save.js?v=734",
   "/js/studio-session.js?v=723",
   "/js/studio-media-editor.js?v=628",
@@ -368,13 +368,14 @@ const PRECACHE_URLS = [
   "/db/AccessHandlePoolVFS.js",
   "/db/VFS.js",
   "/db/WebLocks.js",
-  "/db/local-db.js?v=813",
+  "/db/local-db.js?v=815",
   "/js/nakdan-derived-core.js",
   "/db/migrations.js",
   "/db/tag.js",
   "/db/vfs-order.js",
   "/db/db-worker.js",
-  "/db/db-worker-runtime.js?v=813",
+  "/db/db-worker-runtime.js?v=815",
+  "/db/material-read.js?v=815",
   "/db/sqlite-api.js?v=531",
   "/db/operation-lease.js?v=727",
   "/db/change-scope.js?v=727",

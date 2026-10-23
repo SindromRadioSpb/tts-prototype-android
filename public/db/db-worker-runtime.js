@@ -18,14 +18,15 @@
 // Falling back after a transient lock would expose an unrelated library.
 //
 // Protocol:
-//   Request:  { id, type: 'init'|'query'|'run'|'exec', sql?, params? }
-//   Response: { id, ok: true,  rows?, changes?, vfs? }
+//   Request:  { id, type: 'init'|'query'|'run'|'exec'|'readMaterial', sql?, params?, textId? }
+//   Response: { id, ok: true, rows?, changes?, vfs?, material? }
 //           | { id, ok: false, error: string }
 
 import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js?v=531';
 import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
 import { OperationLease } from './operation-lease.js?v=727';
+import { readMaterial } from './material-read.js?v=815';
 import { storageIdentity } from './storage-identity.js';
 import { createRuntimeDiagnostics, identityLockName, holdIdentityLock, holderSummary } from './runtime-diagnostics.js?v=544';
 
@@ -324,7 +325,7 @@ self.onmessage = ({ data }) => {
     }
   }
   lease.run(async () => {
-    requestId = id; operation = ['init', 'query', 'run', 'exec', 'close'].includes(type) ? type : 'unknown';
+    requestId = id; operation = ['init', 'query', 'run', 'exec', 'close', 'readMaterial'].includes(type) ? type : 'unknown';
     setPhase(lease.opened ? 'transaction' : 'waiting-lock');
     if (type === 'init') {
       if (preferVfs && selectedVfs && preferVfs !== selectedVfs) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: storage identity mismatch');
@@ -338,6 +339,9 @@ self.onmessage = ({ data }) => {
     if (type === 'close') { await lease.close(); return {}; }
     await lease.ensureOpen();
     setPhase('executing-sql');
+    if (type === 'readMaterial') return { material: await readMaterial(data.textId, {
+      query: queryRows, exec: execMulti, inTransaction: () => lease.inTransaction(),
+    }) };
     if (type === 'query') return { rows: await queryRows(sql, params || []) };
     if (type === 'run') return { changes: await runSingle(sql, params || []) };
     if (type === 'exec') { await execMulti(sql); return {}; }

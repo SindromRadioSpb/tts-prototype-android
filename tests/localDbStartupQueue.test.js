@@ -20,10 +20,10 @@ function fixture() {
   return { context, sent, call: type => context._call(type, 'fixture') };
 }
 
-test('startup SQL waits for successful initialization before posting to worker', async () => {
+for (const type of ['query', 'readMaterial']) test(type + ' waits for successful initialization before posting to worker', async () => {
   const h = fixture(); let ready;
   h.context._initInFlight = new Promise(resolve => { ready = resolve; });
-  const work = h.call('query');
+  const work = h.call(type);
   assert.equal(h.sent.length, 0);
   h.context._initialized = true; ready();
   await Promise.resolve();
@@ -35,7 +35,7 @@ test('startup SQL waits for successful initialization before posting to worker',
 test('failed init rejects all startup SQL without posting it, but permits close', async () => {
   const h = fixture(); let fail;
   h.context._initInFlight = new Promise((_resolve, reject) => { fail = reject; });
-  const work = Promise.allSettled(['query', 'run', 'exec'].map(h.call));
+  const work = Promise.allSettled(['query', 'run', 'exec', 'readMaterial'].map(h.call));
   const failure = new Error('fixture initialization failed');
   fail(failure);
   for (const result of await work) assert.equal(result.reason, failure);
@@ -70,6 +70,7 @@ test('a transaction rolled back by page caching cannot continue as autocommit wr
   await reopen;
   h.sent.length = 0;
   await assert.rejects(h.context._call('run', 'INSERT INTO t VALUES (1)'), { code: 'DB_TRANSACTION_ABORTED' });
+  await assert.rejects(h.context._call('readMaterial', undefined, undefined, { textId: 'A' }), { code: 'DB_TRANSACTION_ABORTED' });
   await assert.rejects(h.context._call('exec', 'ROLLBACK TO sp;'), { code: 'DB_TRANSACTION_ABORTED' });
   assert.equal(JSON.stringify(await h.context._call('exec', 'ROLLBACK;')), '{}');
   assert.equal(h.sent.length, 0, 'no statement of the aborted transaction reaches the worker');

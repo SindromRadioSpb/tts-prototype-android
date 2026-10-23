@@ -36,7 +36,11 @@
     try {
       let text, sentences;
       if (db) {
-        [text, sentences] = await Promise.all([db.getTextByIdLite(id), db.getSentences(id)]);
+        if (typeof db.getMaterialForOpen === 'function') {
+          ({ text, sentences } = await db.getMaterialForOpen(id));
+        } else {
+          [text, sentences] = await Promise.all([db.getTextByIdLite(id), db.getSentences(id)]);
+        }
       } else {
         const base = '/api/library/texts/' + encodeURIComponent(id);
         const [meta, rows] = await Promise.all([options.getJson(base), options.getJson(base + '/sentences')]);

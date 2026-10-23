@@ -97,3 +97,35 @@ Validation: 27 route/resilience tests and 233 i18n checks passed. `reader-refres
 Production 814 finished at **16:49:40 UTC**. After rolling deployment completed, all 13 asset hashes matched, both shells served 814, and DB/migrations were ready ([production-814.json](production-814.json)). The actual production browser run, without local module substitution, passed refresh during paused materialization and opened all 499 rows with the work URL intact and no page errors ([refresh-checks.json](refresh-checks.json)). An earlier probe started during rollout timed out before the tested stage; it is not counted as a pass. All disposable browsers were closed.
 
 Post-release inventory and cache-only cleanup retained all 14 images, 11 running containers and four volumes, including 814 runtime and 813 rollback. Available space increased 2.0 → 4.3 GiB (89% used); the capacity warning remains. See [cleanup-814.json](cleanup-814.json). The pre-deploy inventory/cleanup requirement is now recorded in the operations guide. Runtime changes and evidence are published to `main`; the evidence-only follow-up uses Coolify's supported `[skip cd]` commit marker to avoid another build.
+
+## Cold-opening stabilization, S1 candidate 3.11.815
+
+The owner authorized the [staged implementation](../../../planning/MATERIAL_COLD_OPEN_STABILITY.md). S1 adds one read-only worker operation returning metadata and ordered sentences from one SQLite snapshot. It preserves all source/provider/media metadata except the already deferred `source_text`, applies the existing niqqud projection, and respects caller-owned transactions, page-cache aborts and stale material identity. The new path serves Room, Studio Classic and IDE. Progress remains on its existing path. Catalog routing, Studio redraw and visible-row-first gloss work are subsequent stages, not changes in this release.
+
+The isolated cold-read harness opens a new document/worker for every sample, initializes the existing fixture database, then times `MaterialOpen.load(sourceOnly:true)`. Routing disables HTTP cache and blocks external requests and non-GET requests; service workers are blocked. The comparison uses the same shipped facade, with the batch method hidden for the split baseline. Both paths return byte-identical JSON read models, verified by SHA-256. Every split sample issues three worker RPCs; every batch sample issues one. No review/progress rows are created. This measures the data phase after initialization, not full page startup or visible interaction.
+
+OPFS medians (three alternating-order pairs per fixture), in milliseconds:
+
+| Fixture | Split | Batch |
+| --- | ---: | ---: |
+| 40 rows | 48.7 | 22.9 |
+| 499 rows, ~259 KB metadata | 81.1 | 57.2 |
+| 34 long paragraphs | 58.3 | 35.0 |
+| 2477 rows, ~1.67 MB metadata | 209.1 | 189.6 |
+
+IDB small/medium fixtures also improved in the initial sample, but its large fixture varied: initial three-pair median 162.6→181.7 ms, follow-up seven-pair median 183.5→166.1 ms. These observations do not establish a stable percentage improvement on IDB. All 62 reads passed model equality and one-RPC checks. Full observations: [48 initial samples](cold-read-815.json), [14 IDB follow-up samples](cold-read-idb-large-815.json).
+
+The [Classic/IDE/Room lifecycle smoke](cold-lifecycle-815.json) passed material identity, late open/close, resume and media lifecycle checks. Its delayed-DB injection now gates `getMaterialForOpen` as well as the legacy path. The [full 2500-row Reader smoke](cold-reader-815.json) passed manual transliteration, node/replay preservation, distant search, resume, rapid switching, mobile viewport/RTL and long-paragraph saved AI/manual context without generation. One desktop observation: data 180.09 ms, first visible interactive word 1367.19 ms, longest task 805 ms. The remaining ~1.19 s after data is still above the 1 s target; it is not claimed solved by S1. These are isolated desktop Chromium checks, not owner-profile or physical-device measurements.
+
+Reproduce:
+
+```powershell
+node scripts/premium/material-read-cold-smoke.js
+node scripts/premium/material-read-cold-smoke.js --backend=tts-opfs-idb --fixture=large --pairs=7
+node scripts/multitab/material-opening-lifecycle-smoke.js --checks-only
+node scripts/premium/reader-responsive-smoke.js
+```
+
+All 2848 unit tests and 233 i18n checks passed, including new SQLite snapshot/transaction ownership, worker startup/page-cache, shared read-model and shell/module identity coverage.
+
+Pre-deploy inventory: 4.21 GiB available, no active build, 14 images/11 running containers/4 active volumes. Authorized build-cache cleanup reported 0 B; runtime 814 and rollback 813 remain. The existing disk warning is unresolved. Production verification is pending for this candidate.

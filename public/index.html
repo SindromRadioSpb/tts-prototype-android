@@ -30,7 +30,7 @@
          cold start before the browser discovers the <script type="module">
          tags below. (Direction 7 Phase D.) -->
     <link rel="modulepreload" href="/db/sqlite-api.js">
-    <link rel="modulepreload" href="/db/local-db.js?v=813">
+    <link rel="modulepreload" href="/db/local-db.js?v=815">
     <link rel="modulepreload" href="/i18n/index.js">
 
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
@@ -11103,7 +11103,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
      See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
-  import * as _ldb from '/db/local-db.js?v=813';
+  import * as _ldb from '/db/local-db.js?v=815';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
   // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
@@ -13868,7 +13868,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/subtitle-row-language.js?v=582"></script>
 <script src="/js/subtitle-timing-status.js?v=587"></script>
 <script src="/js/room-media-attach.js?v=796"></script>
-<script src="/js/study-video-source-ui.js?v=813"></script>
+<script src="/js/study-video-source-ui.js?v=815"></script>
 <script src="/js/youtube-asr.js?v=593"></script>
 <script src="/js/table-source-recovery.js?v=551"></script>
 <script src="/js/learning-material-task.js?v=797"></script>
@@ -13881,7 +13881,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-text-familiarity.js?v=774"></script>
 <script src="/js/studio-library-discovery.js?v=780"></script>
 <script src="/js/portable-learning-package-repository.js?v=802"></script>
-<script src="/js/material-open.js?v=734"></script>
+<script src="/js/material-open.js?v=815"></script>
 <script src="/js/benyehuda-learning-niqqud.js?v=734"></script>
 <script src="/js/benyehuda-learning-niqqud-manifest.js?v=734"></script>
 <script src="/js/material-save.js?v=734"></script>
@@ -13983,7 +13983,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.814";
+    window.APP_VERSION = "3.11.815";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

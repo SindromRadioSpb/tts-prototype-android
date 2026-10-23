@@ -1,0 +1,354 @@
+{
+  "baseline": false,
+  "baseRevision": "9a41a298b0f4d685e16b9fca0bcf84c430767e92",
+  "rows": 2500,
+  "checks": {
+    "manualTranslit": true,
+    "stableNodesAfterProfileFill": {
+      "table": true,
+      "word": true,
+      "audio": true
+    },
+    "replayButtonRetained": true,
+    "searchNearEnd": true,
+    "resume": true,
+    "rapidSwitch": true,
+    "mobileVisibleWords": true,
+    "mobileRtl": true,
+    "paragraphStoredGlosses": true,
+    "paragraphWordCard": true,
+    "paragraphSearchAndManualContext": true,
+    "noContextGenerationRequests": true
+  },
+  "measurements": {
+    "desktopOpen": {
+      "readyMs": 1551.6100000143051,
+      "firstVisibleWordMs": 1367.1900000572205,
+      "timings": [
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 180.09
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 352.91
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 1550.16
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 8400.384999990463,
+          "duration": 805
+        },
+        {
+          "start": 9206.039999961853,
+          "duration": 491
+        },
+        {
+          "start": 9777.850000023842,
+          "duration": 288
+        }
+      ],
+      "domRows": 2500,
+      "wordCount": 2820,
+      "rowRect": {
+        "x": 212.5,
+        "y": 856.171875,
+        "width": 855,
+        "height": 163,
+        "top": 856.171875,
+        "right": 1067.5,
+        "bottom": 1019.171875,
+        "left": 212.5
+      },
+      "mountRect": {
+        "x": 200,
+        "y": 804.375,
+        "width": 880,
+        "height": 407611.15625,
+        "top": 804.375,
+        "right": 1080,
+        "bottom": 408415.53125,
+        "left": 200
+      },
+      "scrollY": 0,
+      "bodyClasses": "lp-has-app-nav room-reading"
+    },
+    "profileSwitch": {
+      "elapsedMs": 783.5400000810623,
+      "longTasks": [
+        {
+          "start": 13289.144999980927,
+          "duration": 53
+        },
+        {
+          "start": 13431.664999961853,
+          "duration": 61
+        },
+        {
+          "start": 13552.554999947548,
+          "duration": 61
+        },
+        {
+          "start": 13662.804999947548,
+          "duration": 50
+        },
+        {
+          "start": 13776.615000009537,
+          "duration": 57
+        },
+        {
+          "start": 13871.340000033379,
+          "duration": 56
+        }
+      ]
+    },
+    "resumeOpen": {
+      "readyMs": 1922.5249999761581,
+      "firstVisibleWordMs": 2323.25,
+      "timings": [
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 180.09
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 352.91
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 1550.16
+        },
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 192.19
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 355.25
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 1921.72
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 28987.700000047684,
+          "duration": 966
+        },
+        {
+          "start": 29954.49500000477,
+          "duration": 424
+        },
+        {
+          "start": 30460.695000052452,
+          "duration": 260
+        },
+        {
+          "start": 30721.605000019073,
+          "duration": 127
+        },
+        {
+          "start": 30943.87999999523,
+          "duration": 58
+        },
+        {
+          "start": 31058.539999961853,
+          "duration": 74
+        },
+        {
+          "start": 31182.264999985695,
+          "duration": 83
+        },
+        {
+          "start": 31322.84000003338,
+          "duration": 70
+        }
+      ],
+      "domRows": 2500,
+      "wordCount": 7140,
+      "rowRect": {
+        "x": 212.5,
+        "y": -280728.8125,
+        "width": 855,
+        "height": 163,
+        "top": -280728.8125,
+        "right": 1067.5,
+        "bottom": -280565.8125,
+        "left": 212.5
+      },
+      "mountRect": {
+        "x": 200,
+        "y": -280780.625,
+        "width": 880,
+        "height": 407611.15625,
+        "top": -280780.625,
+        "right": 1080,
+        "bottom": 126830.53125,
+        "left": 200
+      },
+      "scrollY": 281585,
+      "bodyClasses": "lp-has-app-nav room-reading"
+    },
+    "mobileOpen": {
+      "readyMs": 2246.729999899864,
+      "firstVisibleWordMs": 2501.3650000095367,
+      "timings": [
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 180.09
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 352.91
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 1550.16
+        },
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 192.19
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 355.25
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 1921.72
+        },
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 55.2
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 56.15
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 111.32
+        },
+        {
+          "surface": "room",
+          "phase": "data",
+          "ms": 189.42
+        },
+        {
+          "surface": "room",
+          "phase": "paint",
+          "ms": 244.19
+        },
+        {
+          "surface": "room",
+          "phase": "ready",
+          "ms": 2245.97
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 32778.16499996185,
+          "duration": 994
+        },
+        {
+          "start": 33772.68999993801,
+          "duration": 594
+        },
+        {
+          "start": 34398.200000047684,
+          "duration": 269
+        },
+        {
+          "start": 34668.18499994278,
+          "duration": 118
+        },
+        {
+          "start": 34851.205000042915,
+          "duration": 69
+        },
+        {
+          "start": 34939.92999994755,
+          "duration": 83
+        },
+        {
+          "start": 35042.514999985695,
+          "duration": 57
+        },
+        {
+          "start": 35109.08500003815,
+          "duration": 55
+        },
+        {
+          "start": 35177.65499997139,
+          "duration": 60
+        },
+        {
+          "start": 35255.89499998093,
+          "duration": 56
+        }
+      ],
+      "domRows": 2500,
+      "wordCount": 11420,
+      "rowRect": {
+        "x": 12.5,
+        "y": -703883.6875,
+        "width": 355,
+        "height": 408.1875,
+        "top": -703883.6875,
+        "right": 367.5,
+        "bottom": -703475.5,
+        "left": 12.5
+      },
+      "mountRect": {
+        "x": 0,
+        "y": -703935.5,
+        "width": 380,
+        "height": 1020564.75,
+        "top": -703935.5,
+        "right": 380,
+        "bottom": 316629.25,
+        "left": 0
+      },
+      "scrollY": 704057,
+      "bodyClasses": "lp-has-app-nav room-reading"
+    },
+    "paragraphs": {
+      "rows": 34,
+      "words": 3401,
+      "readyMs": 190.01499998569489,
+      "allStoredGlossesMs": 1099.7699999809265,
+      "firstStoredGlossMs": 327.4099999666214,
+      "firstVisibleStoredGlossMs": 327.4649999141693,
+      "manualWords": 34,
+      "aiWords": 3367,
+      "firstManualText": "Моя правка 0",
+      "generationEnabled": false
+    }
+  },
+  "errors": [],
+  "scope": "Isolated Chromium synthetic Hebrew fixture; not production, owner data, physical device or linguistic accuracy evidence.",
+  "result": "PASS"
+}

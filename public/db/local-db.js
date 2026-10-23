@@ -1,4 +1,5 @@
 import { normalizeChanges, createChangeBatcher } from './change-scope.js?v=727';
+import { MATERIAL_SENTENCES_SQL } from './material-read.js?v=815';
 export { changesAffect, mergeChanges, normalizeChanges } from './change-scope.js?v=727';
 // local-db.js — API shim поверх db-worker.js.
 // Интерфейс максимально близок к серверным REST endpoints,
@@ -233,7 +234,7 @@ function _call(type, sql, params, opts) {
   // The reopen after pageshow is an init: it must not clear the abort mark.
   if (type === 'close') _cacheAbortedTransaction = false;
   else if (type !== 'init' && _cacheAbortedTransaction) return _rejectAbortedTransaction(type, sql);
-  if (['query', 'run', 'exec'].includes(type) && !_initialized) {
+  if (['query', 'run', 'exec', 'readMaterial'].includes(type) && !_initialized) {
     // Startup callers share init, not a growing worker queue behind it. A
     // failed initialization remains failed until an explicit init/recovery.
     if (_initInFlight) return _initInFlight.then(() => _call(type, sql, params, opts));
@@ -452,7 +453,7 @@ async function _initializeLocalDB() {
 
 function _spawnWorker() {
   if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-  _worker = new Worker('/db/db-worker-runtime.js?v=813', { type: 'module' });
+  _worker = new Worker('/db/db-worker-runtime.js?v=815', { type: 'module' });
   _worker.onmessage = ({ data }) => {
     if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
     if (data.kind === 'committed') {
@@ -1267,17 +1268,7 @@ async function _rawSentences(textId) {
   // Join the default audio asset (if any) so callers see audio_asset_key /
   // audio_tts_profile_json side-by-side with sentence text — matches the
   // shape that the server-side /api/library/texts/:id/sentences returns.
-  return q(
-    `SELECT s.*,
-            aa.asset_key  AS audio_asset_key,
-            aa.tts_profile_json AS audio_tts_profile_json
-       FROM sentences s
-  LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
-  LEFT JOIN audio_assets   aa ON aa.id = sa.audio_id
-      WHERE s.text_id = ?
-   ORDER BY s.order_index`,
-    [textId]
-  );
+  return q(MATERIAL_SENTENCES_SQL, [textId]);
 }
 
 async function _sha256Hex(value) {
@@ -1301,6 +1292,14 @@ export async function getSentences(textId) {
   const rows = await _rawSentences(textId);
   const state = await _niqqudBodyState(rows);
   return _nakdanDerived.applyProjection(rows, state.source_hash);
+}
+
+// Same projection as getSentences, with metadata/rows read under one worker
+// lease and SQLite snapshot. No source, learner-state or progress mutation.
+export async function getMaterialForOpen(textId) {
+  const { material } = await _call('readMaterial', undefined, undefined, { textId });
+  const state = await _niqqudBodyState(material.sentences);
+  return { text: material.text, sentences: _nakdanDerived.applyProjection(material.sentences, state.source_hash) };
 }
 
 // Presentation/export only. Storage, backup rows and editing compare against getSentences().

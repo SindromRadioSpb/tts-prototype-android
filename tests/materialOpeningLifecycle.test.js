@@ -8,6 +8,22 @@ const { load, sentenceIndex } = require('../public/js/material-open');
 const { createLifecycle } = require('../public/js/media-host');
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
 
+test('shared loader uses one material read and rejects late or foreign data before preparation', async () => {
+  let reads = 0, prepared = 0, current = true;
+  const gate = deferred();
+  const db = { getMaterialForOpen(id) { reads++; assert.equal(id, 'A'); return gate.promise; },
+    getTextByIdLite() { assert.fail('split metadata read'); }, getSentences() { assert.fail('split sentence read'); } };
+  const pending = load('A', { localDb: db, isCurrent: () => current, prepareMaterial: () => { prepared++; } });
+  current = false; gate.resolve({ text: { id: 'A' }, sentences: [] });
+  assert.deepEqual(await pending, { ok: false, reason: 'superseded' });
+  assert.equal(reads, 1); assert.equal(prepared, 0);
+  current = true;
+  db.getMaterialForOpen = async () => ({ text: { id: 'A' }, sentences: [{ text_id: 'B' }] });
+  assert.equal((await load('A', { localDb: db })).reason, 'identity');
+  db.getMaterialForOpen = async () => ({ text: { id: 'A' }, sentences: [{ id: 'second', text_id: 'A', order_index: 9 }, { id: 'first', text_id: 'A', order_index: 2 }] });
+  assert.deepEqual((await load('A', { localDb: db })).sentences.map(row => row.id), ['first', 'second']);
+});
+
 test('local and remote opens produce the same ordered read model without mutation', async () => {
   const text = { id: 'B', title: 'Independent fixture' };
   const rows = [{ id: 'last', text_id: 'B', orderIndex: 8 }, { id: 'first', text_id: 'B', order_index: 2 }];

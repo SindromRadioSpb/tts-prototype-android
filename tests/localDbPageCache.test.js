@@ -43,6 +43,7 @@ function harness({ initialized = true, txOpen = false, worker = true } = {}) {
 test('entering the cache terminates the worker and fails in-flight SQL without replaying it', async () => {
   const h = harness();
   const read = h.pending('query', 'SELECT 1');
+  const material = h.pending('readMaterial');
   const write = h.pending('run', 'INSERT INTO t VALUES (1)');
   h.context._suspendForPageCache();
   assert.equal(h.workers[0].terminated, true, 'the browser releases a terminated worker\'s locks and handles');
@@ -50,6 +51,7 @@ test('entering the cache terminates the worker and fails in-flight SQL without r
   assert.equal(h.context._initialized, false);
   assert.equal(h.context._pageCached, true);
   await assert.rejects(read, { code: 'DB_PAGE_SUSPENDED' });
+  await assert.rejects(material, { code: 'DB_PAGE_SUSPENDED' });
   await assert.rejects(write, { code: 'DB_PAGE_SUSPENDED' });
   assert.equal(h.context._cacheAbortedTransaction, false, 'work outside a transaction does not block later SQL');
   h.context._resumeFromPageCache();

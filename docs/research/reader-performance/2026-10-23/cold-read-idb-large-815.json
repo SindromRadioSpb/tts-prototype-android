@@ -1,0 +1,266 @@
+{
+  "result": "PASS",
+  "scope": "Isolated Chromium, cold document/worker and ready fixture DB; SW blocked, routing disables HTTP cache. Data-read timing only, not interactive UI or owner/device evidence.",
+  "remoteReadOnly": false,
+  "samples": [
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "split",
+      "ms": 202.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 168.1,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 1,
+      "mode": "batch",
+      "ms": 166.1,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 1,
+      "mode": "split",
+      "ms": 166.4,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 2,
+      "mode": "split",
+      "ms": 166.6,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 2,
+      "mode": "batch",
+      "ms": 184.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 3,
+      "mode": "batch",
+      "ms": 176.8,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 3,
+      "mode": "split",
+      "ms": 183.5,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 4,
+      "mode": "split",
+      "ms": 168.2,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 4,
+      "mode": "batch",
+      "ms": 164.9,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 5,
+      "mode": "batch",
+      "ms": 163.1,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 5,
+      "mode": "split",
+      "ms": 197.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 6,
+      "mode": "split",
+      "ms": 188.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 6,
+      "mode": "batch",
+      "ms": 165.7,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c3e091e7c98b14af8fb4b3d1a3b04e23d940af6b7e1b3ff4af5d54beb90470e",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    }
+  ],
+  "checks": {
+    "identicalReadModels": true,
+    "noReviewOrProgressWrites": true,
+    "oneRpc": true,
+    "coldWorkers": true
+  },
+  "errors": []
+}
