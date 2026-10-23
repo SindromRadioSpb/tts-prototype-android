@@ -29,11 +29,12 @@ const PUBLIC_SEARCH_SCOPES = new Set(['texts', 'corpus', 'fulltext', 'all', 'tit
 const READING_STATUSES = new Set(['all', 'new', 'reading', 'finished']);
 const AUDIO_FILTERS = new Set(['all', 'full', 'partial', 'none', 'complete', 'missing']);
 const MODES = new Set(['read', 'explore']);
-const ERAS = new Set(['biblical', 'medieval', 'haskalah', 'tehiya', 'mandate', 'modern', 'unknown']);
+// Official Ben-Yehuda periods (catalog v9+) plus the earlier app sections, so old links still parse.
+const ERAS = new Set(['ancient', 'medieval', 'enlightenment', 'revival', 'modern', 'none', 'biblical', 'haskalah', 'tehiya', 'mandate', 'unknown']);
 const GENRES = new Set(['article', 'poetry', 'prose', 'memoir', 'fables', 'letters', 'reference', 'drama', 'lexicon']);
 const LENGTHS = new Set(['short', 'medium', 'long', 'unknown']);
 const DRILL_LEVELS = new Set(['home', 'era', 'authors', 'works']);
-const PUBLIC_FLAGS = ['readyOnly', 'hasAudio', 'reviewed', 'exactForm'];
+const PUBLIC_FLAGS = ['readyOnly', 'hasAudio', 'reviewed', 'aiContext', 'exactForm'];
 const TAG_MODES = new Set(['all', 'any']);
 const SURFACES = new Set(['hub', 'corpus', 'mytexts', 'group', 'reader']);
 const DIAGNOSTIC_KINDS = new Set([

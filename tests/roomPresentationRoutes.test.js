@@ -386,3 +386,14 @@ test("codec remains pure and existing diagnostics reject query-shaped fields", a
     assert.throws(() => core.appendLocalDiagnostic([], { kind: "room.search", [key]: "private value" }, 1000), /DIAGNOSTIC_FIELD_FORBIDDEN/);
   }
 });
+
+test("official Ben-Yehuda periods and the AI context filter survive a Room link", async () => {
+  const core = await load();
+  for (const era of ["ancient", "medieval", "enlightenment", "revival", "modern", "none"]) {
+    const state = core.presentationStateFromHash("#room=benyehuda&view=authors&era=" + era + "&aiContext=1&rv=2");
+    assert.equal(state.drill.eraId || state.filters.scopeEra, era, era);
+    assert.equal(state.filters.aiContext, true, "aiContext " + era);
+    assert.match(core.presentationHash(state), new RegExp("era=" + era));
+    assert.match(core.presentationHash(state), /aiContext=1/);
+  }
+});

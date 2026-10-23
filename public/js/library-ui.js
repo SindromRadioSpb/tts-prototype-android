@@ -33,7 +33,7 @@ const localDb = new Proxy(localDbRaw, {
 import * as readerCore from '/js/reader-core.js?v=802';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js?v=730';
+import * as roomB6 from '/js/room-b6-core.js?v=811';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -894,7 +894,7 @@ const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index o
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusReadyByKey = null;     // Map(text_key -> full ready card) — W4: resolve the OPEN work's sidecar coverage
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '', smart: '' }; // active global filter (readableOnly = B7 valid exact profile count; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search; smart = uniform personal smart-chip)
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, aiContext: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '', smart: '' }; // active global filter (readableOnly = B7 valid exact profile count; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search; smart = uniform personal smart-chip)
 let corpusBrowseMode = 'read';
 let corpusAuthorAliases = null;
 async function loadCorpusAuthorAliases() {
@@ -970,14 +970,14 @@ function _setFiltersExpanded(v) { try { localStorage.setItem('corpus_filters_exp
 function getSavedSearches() { return _lsGet(SAVED_SEARCHES_KEY); }
 function saveCurrentSearch() {
   const f = corpusFilter; const name = corpusFilterSummary();
-  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, scopeAuthor: f.scopeAuthor, scopeAuthorQid: f.scopeAuthorQid, scopeEra: f.scopeEra, scope: f.scope, level: f.level, provider: f.provider, smart: f.smart, tags: f.tags, tagMode: f.tagMode, sort: corpusL1Sort } };
+  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, aiContext: f.aiContext, scopeAuthor: f.scopeAuthor, scopeAuthorQid: f.scopeAuthorQid, scopeEra: f.scopeEra, scope: f.scope, level: f.level, provider: f.provider, smart: f.smart, tags: f.tags, tagMode: f.tagMode, sort: corpusL1Sort } };
   const a = getSavedSearches().filter((x) => x.name !== name);   // dedup by human name
   a.unshift(entry); _lsSet(SAVED_SEARCHES_KEY, a.slice(0, 20));
 }
 function removeSavedSearch(name) { _lsSet(SAVED_SEARCHES_KEY, getSavedSearches().filter((x) => x.name !== name)); }
 function restoreSavedSearch(f) {
   if(f&&f.sort)corpusL1Sort=f.sort;
-  corpusFilter = Object.assign({ q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }, f || {});
+  corpusFilter = Object.assign({ q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, aiContext: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }, f || {});
   if (corpusFilter.readableOnly) { ensureReadableSet().then(() => corpusNavTo('home')).catch(() => corpusNavTo('home')); }
   else corpusNavTo('home');
 }
@@ -12412,7 +12412,7 @@ function corpusReadyKeyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) if (c.text_key != null) corpusReadyByKey.set(String(c.text_key), c);
   return corpusReadyByKey;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.length || f.readyOnly || f.readableOnly || f.exactForm || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra || f.smart || f.level || f.provider || f.tags?.length); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.length || f.readyOnly || f.readableOnly || f.exactForm || f.hasAudio || f.reviewed || f.aiContext || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra || f.smart || f.level || f.provider || f.tags?.length); }
 // BRR Epic-6 — scoped-search by author: match by QID when we have one (catches every name-variant /
 // co-authored work of that author, the L2-collapse payoff), else fall back to the exact author string.
 function corpusScopeAuthorPass(sr, f) {
@@ -12424,9 +12424,10 @@ function corpusScopeAuthorPass(sr, f) {
 // rows don't carry them), so they imply materialized works: a non-ready row has no card → excluded honestly.
 function corpusAdvOk(row, readyMap) {
   const f = corpusFilter;
-  if (!f.hasAudio && !f.reviewed) return true;
+  if (!f.hasAudio && !f.reviewed && !f.aiContext) return true;
   const card = readyMap.get(String(row.id));
   if (!card) return false;
+  if (f.aiContext && !(card.word_gloss_ai && Number(card.word_gloss_ai.rows) > 0)) return false;
   if (f.hasAudio && !(card.audio_status && card.audio_status !== 'none')) return false;
   if (f.reviewed && !(card.review_status === 'human_proofread' || card.review_status === 'machine_assisted')) return false;
   return true;
@@ -12452,7 +12453,7 @@ function corpusApplyFilter() {
     if (f.scopeEra && row.e !== f.scopeEra) return false;                                    // S11 — scoped to one period
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
-    if ((f.hasAudio || f.reviewed) && !corpusAdvOk(row, readyMap)) return false;             // S16 — provenance
+    if ((f.hasAudio || f.reviewed || f.aiContext) && !corpusAdvOk(row, readyMap)) return false;             // S16 — provenance
     return corpusDiscoveryMatch(row, readyMap);
   });
 }
@@ -12472,6 +12473,7 @@ function corpusFilterSummary() {
   if (f.readableOnly) parts.push(tt('room.corpus.facets.readable', 'С валидным профилем слов'));
   if (f.hasAudio) parts.push(tt('room.corpus.facets.hasAudio', 'С аудио'));
   if (f.reviewed) parts.push(tt('room.corpus.facets.reviewed', 'Проверено'));
+  if (f.aiContext) parts.push(tt('room.corpus.facets.aiContext', 'С контекстным переводом (ИИ)'));
   if (f.smart) { const c = CORPUS_SMART_CHIPS.find((x) => x[0] === f.smart); if (c) parts.push(tt(c[1], c[2])); }
   for (const tg of corpusPersonalQuery(f.q).tags) parts.push('#' + tg);
   return parts.join(' · ') || tt('room.corpus.search.results', 'Результаты');
@@ -14332,7 +14334,7 @@ async function renderResultsInto(body) {
   // FB-14 — «N из M» scale feedback when a non-query facet narrows the (un-scoped) corpus, so the user
   // can see how much was excluded. M = all searchable works. Scoped/query views keep their own labels.
   const facetNarrows = !hasQuery && !corpusFilter.scopeAuthor && !corpusFilter.scopeEra &&
-    !!(corpusFilter.genre || corpusFilter.lang || corpusFilter.readyOnly || corpusFilter.readableOnly || corpusFilter.hasAudio || corpusFilter.reviewed);
+    !!(corpusFilter.genre || corpusFilter.lang || corpusFilter.readyOnly || corpusFilter.readableOnly || corpusFilter.hasAudio || corpusFilter.reviewed || corpusFilter.aiContext);
   const totalM = (corpusSearch || []).length;
   const countText = hasQuery ? corpusCountLabel(hits.length, null, false)
     : (facetNarrows && totalM ? (hits.length + ' ' + tt('room.corpus.ofTotal', 'из') + ' ' + totalM) : String(hits.length));
@@ -14636,7 +14638,7 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
   const advReadyMap = corpusReadyMap();
-  const passFilter = (sr) => !!sr && !((corpusBrowseMode === 'read' || f.readyOnly) && !sr.r) && window.CorpusDiscoveryBrowser.lengthPass(advReadyMap.get(String(sr.id)), f.length) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && corpusScopeAuthorPass(sr, f) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && corpusDiscoveryMatch(sr, advReadyMap, true) && !titleIds.has(String(sr.id));
+  const passFilter = (sr) => !!sr && !((corpusBrowseMode === 'read' || f.readyOnly) && !sr.r) && window.CorpusDiscoveryBrowser.lengthPass(advReadyMap.get(String(sr.id)), f.length) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && corpusScopeAuthorPass(sr, f) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed || f.aiContext) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && corpusDiscoveryMatch(sr, advReadyMap, true) && !titleIds.has(String(sr.id));
   let ftsCount = 0;
   const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
 
@@ -14969,6 +14971,7 @@ function buildCorpusFilterBar() {
       { key: 'readableOnly', label: tt('room.corpus.facets.readableShort'), help: tt('room.corpus.facets.readableHint') },
       { key: 'exactForm', label: tt('room.corpus.search.exactForm'), help: tt('room.corpus.search.exactFormHint') },
       { key: 'hasAudio', label: tt('room.corpus.facets.hasAudio') }, { key: 'reviewed', label: tt('room.corpus.facets.reviewed') },
+      { key: 'aiContext', label: tt('room.corpus.facets.aiContext'), help: tt('room.corpus.facets.aiContextHint') },
     ],
     extra: [
       { key: 'length', id: 'roomCorpusLength', label: window.CorpusDiscoveryBrowser.label('length'), defaultValue: '', options: [['', window.CorpusDiscoveryBrowser.label('allLengths')], ...['short', 'medium', 'long', 'unknown'].map(value => [value, window.CorpusDiscoveryBrowser.label(value === 'unknown' ? 'unknownLength' : value)])] },
