@@ -129,7 +129,9 @@ function main() {
           fragment: p.fragment || null, rows: p.rows, file: p.file, bundle_sha256: p.body_sha256, text_key: p.text_key,
           learning_edition_id: p.edition_id, word_gloss_ai_rows: p.word_gloss_ai_rows, previous_text_keys: [] })) };
       const tBytes = Buffer.from(JSON.stringify(toc)), tSha = sha(tBytes);
-      const tocFile = `works/${w.work_id}-${tSha.slice(0, 16)}-toc.json`;
+      // A table of contents is catalog metadata (tiny, sealed by the card and the release manifest): it ships
+      // with the catalog files, not with the work bodies on the volume.
+      const tocFile = `toc/${w.work_id}-${tSha.slice(0, 16)}.json`;
       put(tocFile, null, tBytes); report.toc_files++;
       card.toc_file = tocFile; card.toc_sha256 = tSha;
       entry.toc = tocFile; entry.toc_sha256 = tSha;

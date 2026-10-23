@@ -27,7 +27,7 @@ function check({ checkDiff = false } = {}) {
     const ids = [...sealed.works, ...sealed.retained_works].map(work => String(work.work_id));
     if (catalog.version !== v || sealed.catalog_version !== v || ids.length !== catalog.counts.baked || new Set(ids).size !== ids.length) throw new Error('Publication identity/count mismatch v' + v);
     allowed.add(publicationPath); allowed.add(catalogPath);
-    const assetName = new RegExp(`^(?:catalog/era-[a-z0-9-]+-v${v}|corpus-(?:index|search|authors|fts|vocab)-v${v}|translit-ru-v${v})\\.json$`);
+    const assetName = new RegExp(`^(?:catalog/era-[a-z0-9-]+-v${v}|corpus-(?:index|search|authors|fts|vocab)-v${v}|translit-ru-v${v}|toc/\\d{1,8}-[a-f0-9]{16})\\.json$`);   // toc/: sealed tables of contents of works made of parts
     for (const [file, asset] of Object.entries(sealed.assets)) {
       if (file.startsWith('fts/')) continue; // checked on the volume by the release validator/upload preflight
       if (!assetName.test(file)) throw new Error('Unsafe publication asset: ' + file);

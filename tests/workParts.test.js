@@ -9,7 +9,7 @@ const part = (id, track, parent, rows, n) => ({ part_id: id, order: n, track, pa
 const TOC = { schema: 'benyehuda-work-toc-v1', work_id: '58052', parts: [
   part('s1-structure', 'structure', 's1', 7, 1), part('s1', 'text', null, 100, 2), part('s1-notes', 'notes', 's1', 10, 3),
   part('s2', 'text', null, 200, 4), part('s3', 'text', null, 300, 5), part('appendix', 'appendix', null, 20, 6)] };
-const CARD = { id: '58052', title: 'פועל בארץ', parts: 6, toc_file: 'works/58052-' + 'b'.repeat(16) + '-toc.json', toc_sha256: H('b') };
+const CARD = { id: '58052', title: 'פועל בארץ', parts: 6, toc_file: 'toc/58052-' + 'b'.repeat(16) + '.json', toc_sha256: H('b') };
 
 test('a multi-part card is recognised only with a sealed table of contents', () => {
   assert.equal(WP.isMultipart(CARD), true);

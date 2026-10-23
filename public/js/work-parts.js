@@ -7,7 +7,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const HASH = /^[a-f0-9]{64}$/;
-  const TOC = /^works\/\d{1,8}-[a-f0-9]{16}-toc\.json$/;
+  const TOC = /^toc\/\d{1,8}-[a-f0-9]{16}\.json$/;
   const READ_DONE = 0.95;   // same «прочитано» bar as the Room's continuePercent/finished badge
 
   function isMultipart(card) { return !!(card && Number(card.parts) > 1 && TOC.test(String(card.toc_file || '')) && HASH.test(String(card.toc_sha256 || ''))); }
