@@ -10,6 +10,13 @@
 
 ---
 
+## O-131 · DOM-сборщик повторений теряет выбранный разбор в read-only Зале
+- **Дата / где:** 2026-10-23, CI `40001249190`, затем локальное воспроизведение `morph-card-resolution-browser-smoke.js`, Room fixture на runtime 816.
+- **Факты:** разбор `יופי` как наречия `pid:5857` сохранён в lexical_resolution_events и возвращается карточкой по точному sentence ID. `collectReviewItems` возвращает другие ключи, но не `pid:5857`; у всех 12 словесных spans fixture `placeOfSpan` возвращает null. Studio-сценарий в CI прошёл.
+- **Подтверждённый механизм:** `reader-core.js` помещает `data-sentence-id` только в кнопку заметки, скрытую при readOnly. На `tr` идентификатора нет. `reader-morph.js:placeOfSpan` ищет его в строке/дочернем DOM и не может применить occurrence-specific correction при сканировании. Оба файла не менялись между 815 и 816; отдельный baseline-browser прогон не выполнялся.
+- **Предложение:** закрепить escaped sentence ID на строке независимо от видимости action-column/кнопок и прав редактирования; синхронно сохранить Studio/core renderer parity. Проверить readOnly/скрытую action-column, выбор омографа, список повторений и экспорт на Classic/IDE/Room. Не отключать текущую падающую проверку.
+- **Статус:** открыто, отдельная runtime-правка; [диагностика](../research/reader-performance/2026-10-23/morph-review-gap-816.json). Full CI 816 не зелёный, хотя целевые S2 production-проверки прошли.
+
 ## O-130 · Тайм-ауты одноразовых cold-open прогонов после выпуска 816
 - **Дата / где:** 2026-10-23, production 3.11.816, отдельные anonymous Chromium, SW blocked, без owner-профиля.
 - **Факты:** первый delayed-dependency smoke не дождался 499 видимых строк за 60 s; первый refresh smoke не дошёл до точки materialization за 90 s; второй refresh сохранил URL после reload, но не дождался строк за 90 s. В исходных runners не было сетевого диагностического снимка. Следующие direct (все пять сценариев) и refresh прогоны прошли на тех же опубликованных байтах без runtime-правки.

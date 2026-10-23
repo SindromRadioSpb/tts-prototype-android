@@ -147,6 +147,7 @@ const published={ok:true,corpus:{corpus_id:'pc_context',slug:'test-context',titl
     const items=await ReaderMorph.collectReviewItems(document.querySelector('#proTable'),{},{});
     return{reviewKeys:items.map(i=>i.lemmaKey),key:ReaderMorph.statusKeyForCard(NotesAutoGen,c,r.he_niqqud,r.he_plain),pos:c.pos,events:await __localDB.listLexicalResolutionEventsForText(text.id)};
    });
+   if(!exported.reviewKeys.includes('pid:5857'))console.log(JSON.stringify({reviewDiagnostic:exported,spans:await page.evaluate(()=>Array.from(document.querySelectorAll('#proTable .rm-w')).map(s=>({surface:s.dataset.surface,niqqud:s.dataset.niqqud,place:ReaderMorph.placeOfSpan(s),col:s.closest('[data-col]')?.dataset.col})))}));
    assert.equal(exported.key,'pid:5857');assert.equal(exported.pos,'adverb');assert.ok(exported.reviewKeys.includes('pid:5857'));
    for(const slim of [false,true]){
     const bundle=await page.evaluate(async slim=>{const text=(await __localDB.listTexts({query:'Контекст: проверка'}))[0];return __localDB.exportBundle({textIds:[text.id],slim});},slim);

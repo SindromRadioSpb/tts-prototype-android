@@ -1,0 +1,19 @@
+{
+  "scope": "Disposable local Room fixture; real OPFS and current shared Reader. No owner profile.",
+  "runtimeCommit": "b6229421b1a5c18ea49230d9c7c885b08da306ab",
+  "expectedReviewKey": "pid:5857",
+  "resolvedKey": "pid:5857",
+  "resolvedPos": "adverb",
+  "actualReviewKeys": [
+    "pid:6410",
+    "pid:1612",
+    "pid:867"
+  ],
+  "spanCount": 12,
+  "spansWithoutSentencePlace": 12,
+  "chosenOccurrencePersisted": true,
+  "readerCoreAndMorphUnchangedFrom815": true,
+  "cause": "Read-only Room table omits note/edit controls; sentence identity exists only on a note button, not on the row. DOM scan loses occurrence identity.",
+  "assertionPreserved": true,
+  "observation": "O-131"
+}
