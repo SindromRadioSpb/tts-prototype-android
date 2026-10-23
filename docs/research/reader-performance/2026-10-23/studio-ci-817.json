@@ -1,0 +1,311 @@
+{
+  "run": "40013512908",
+  "commit": "a0621a7161668325b088759fdecfad5ad6d38767",
+  "job": "studio-background",
+  "conclusion": "success",
+  "scope": "GitHub Ubuntu headless Chromium with isolated fixtures; first two observations desktop, last two 380px RTL; no production or owner profile.",
+  "transliteration": [
+    {
+      "surface": "classic",
+      "renders": 1,
+      "completionMs": 1844.0200000000186,
+      "longestTaskMs": 60,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 408.015625,
+        "editorHeight": 140,
+        "rowTop": 397.515625,
+        "rowHeight": 225.734375,
+        "tableWidth": 571.34375,
+        "scrollY": 1969,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 251841,
+            "height": 558
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1969,
+            "height": 900
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 408.015625,
+        "editorHeight": 140,
+        "rowTop": 397.515625,
+        "rowHeight": 225.734375,
+        "tableWidth": 571.34375,
+        "scrollY": 1969,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 251841,
+            "height": 558
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1969,
+            "height": 900
+          }
+        ]
+      },
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true
+    },
+    {
+      "surface": "ide",
+      "renders": 1,
+      "completionMs": 1817.9199999999837,
+      "longestTaskMs": 0,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 407.953125,
+        "editorHeight": 140,
+        "rowTop": 397.453125,
+        "rowHeight": 209.15625,
+        "tableWidth": 606,
+        "scrollY": 54,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 151309,
+            "height": 844
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 54,
+            "height": 900
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 407.953125,
+        "editorHeight": 140,
+        "rowTop": 397.453125,
+        "rowHeight": 209.15625,
+        "tableWidth": 606,
+        "scrollY": 54,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 151309,
+            "height": 844
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 54,
+            "height": 900
+          }
+        ]
+      },
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true
+    },
+    {
+      "surface": "classic",
+      "renders": 1,
+      "completionMs": 1820.7799999999988,
+      "longestTaskMs": 151,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": -0.484375,
+      "geometryBefore": {
+        "editorTop": 320.015625,
+        "editorHeight": 140,
+        "rowTop": 309.515625,
+        "rowHeight": 325.203125,
+        "tableWidth": 308,
+        "scrollY": 1966,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 343359,
+            "height": 483
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1966,
+            "height": 780
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 319.53125,
+        "editorHeight": 140,
+        "rowTop": 309.03125,
+        "rowHeight": 325.203125,
+        "tableWidth": 308,
+        "scrollY": 1966,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 343364,
+            "height": 483
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1966,
+            "height": 780
+          }
+        ]
+      },
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true
+    },
+    {
+      "surface": "ide",
+      "renders": 1,
+      "completionMs": 1702.9049999999988,
+      "longestTaskMs": 60,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 313.671875,
+        "editorHeight": 140,
+        "rowTop": 303.171875,
+        "rowHeight": 325.203125,
+        "tableWidth": 328,
+        "scrollY": 0,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 301163,
+            "height": 680
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 0,
+            "height": 780
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 313.671875,
+        "editorHeight": 140,
+        "rowTop": 303.171875,
+        "rowHeight": 325.203125,
+        "tableWidth": 328,
+        "scrollY": 0,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 301163,
+            "height": 680
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 0,
+            "height": 780
+          }
+        ]
+      },
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true
+    }
+  ],
+  "savedContext": [
+    {
+      "surface": "classic",
+      "scope": "Disposable Studio Chromium, synthetic saved context, blocked status boundary; no owner profile or paid generation.",
+      "errors": [],
+      "paidRequests": 0,
+      "checks": {
+        "paragraphs": 34,
+        "wordsPerParagraph": 60,
+        "savedManualRows": 34,
+        "BGlossBeforeAStatus": true,
+        "lateAStatusSuppressed": true,
+        "hiddenTranslationKeepsContext": true,
+        "mobileRtlWordCard": true,
+        "modeSwitchKeepsWordCard": true
+      },
+      "reviewLogCount": 0,
+      "result": "PASS"
+    },
+    {
+      "surface": "ide",
+      "scope": "Disposable Studio Chromium, synthetic saved context, blocked status boundary; no owner profile or paid generation.",
+      "errors": [],
+      "paidRequests": 0,
+      "checks": {
+        "paragraphs": 34,
+        "wordsPerParagraph": 60,
+        "savedManualRows": 34,
+        "BGlossBeforeAStatus": true,
+        "lateAStatusSuppressed": true,
+        "hiddenTranslationKeepsContext": true,
+        "mobileRtlWordCard": true,
+        "modeSwitchKeepsWordCard": true
+      },
+      "reviewLogCount": 0,
+      "result": "PASS"
+    }
+  ]
+}

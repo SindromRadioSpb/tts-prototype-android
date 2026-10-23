@@ -1,0 +1,18 @@
+{
+  "conclusion": "success",
+  "headSha": "4f1c45fa9311f783b5875bbd1a5f10f684fb0515",
+  "jobs": [
+    {
+      "conclusion": "success",
+      "name": "studio-background",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "name": "smoke",
+      "status": "completed"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/SindromRadioSpb/tts-prototype-android/actions/runs/40016702838"
+}

@@ -16,14 +16,15 @@
 - **Факты:** разбор `יופי` как наречия `pid:5857` сохранён в lexical_resolution_events и возвращается карточкой по точному sentence ID. `collectReviewItems` возвращает другие ключи, но не `pid:5857`; у всех 12 словесных spans fixture `placeOfSpan` возвращает null. Studio-сценарий в CI прошёл.
 - **Подтверждённый механизм:** `reader-core.js` помещает `data-sentence-id` только в кнопку заметки, скрытую при readOnly. На `tr` идентификатора нет. `reader-morph.js:placeOfSpan` ищет его в строке/дочернем DOM и не может применить occurrence-specific correction при сканировании. Оба файла не менялись между 815 и 816; отдельный baseline-browser прогон не выполнялся.
 - **Предложение:** закрепить escaped sentence ID на строке независимо от видимости action-column/кнопок и прав редактирования; синхронно сохранить Studio/core renderer parity. Проверить readOnly/скрытую action-column, выбор омографа, список повторений и экспорт на Classic/IDE/Room. Не отключать текущую падающую проверку.
-- **Статус:** в работе; проверенный локальный кандидат 817, production пока 816. [Диагностика](../research/reader-performance/2026-10-23/morph-review-gap-816.json).
+- **Статус:** закрыто (`a0621a71` / 3.11.817, deployment 2931); full CI и actual served Room synthetic regression подтвердили pid:5857/review/export, 14/14 assets совпадают. [Диагностика](../research/reader-performance/2026-10-23/morph-review-gap-816.json).
 
 ## O-130 · Тайм-ауты одноразовых cold-open прогонов после выпуска 816
+- **Дополнение 3.11.817:** первый Studio saved-context smoke не дождался DB/module readiness за 60 s; затем оба режима прошли без runtime/timeout изменений. Причина этого старта неизвестна; runner теперь пишет readiness/network/warnings. Direct Hamam получил catalog/snapshot HTTP 200, DB ready, но остался в каталоге. Контролируемый baseline с localdb:changed во время snapshot показывает epoch 1→1, corpusRenderToken 1→2, rows=0: refreshExternalLibrary перерисовывает каталог и сам инвалидирует initial public open. Кандидат откладывает projection refresh пока initial material route current; тот же сценарий открывает 499 строк, token остаётся 1. Навигацию/A→B не ослаблять. [817 evidence](../research/reader-performance/2026-10-23/REPORT.md).
 - **Дата / где:** 2026-10-23, production 3.11.816, отдельные anonymous Chromium, SW blocked, без owner-профиля.
 - **Факты:** первый delayed-dependency smoke не дождался 499 видимых строк за 60 s; первый refresh smoke не дошёл до точки materialization за 90 s; второй refresh сохранил URL после reload, но не дождался строк за 90 s. В исходных runners не было сетевого диагностического снимка. Следующие direct (все пять сценариев) и refresh прогоны прошли на тех же опубликованных байтах без runtime-правки.
 - **Граница:** причина не установлена; нет доказательства, что это дефект owner-профиля, сеть, старт сервера либо OPFS. Повторный PASS не отменяет наблюдавшиеся тайм-ауты и не доказывает стабильность любого холодного открытия.
 - **Следующий шаг:** runners дополнены диагностикой HTTP-ответов, warnings, DB-ready и DOM при следующем сбое; сохранять phase/network/worker evidence до повторной попытки. Не увеличивать тайм-аут как исправление причины.
-- **Статус:** открыто; [отчёт S2](../research/reader-performance/2026-10-23/REPORT.md).
+- **Статус:** в работе; Room-причина воспроизведена, кандидат фикса проверяется; Studio readiness остаётся необъяснённым. [Отчёт S2](../research/reader-performance/2026-10-23/REPORT.md).
 
 ## O-129 · Открытие материала делает несколько отдельных обращений к OPFS
 - **Работа 2026-10-23 / S1:** реализован единый `readMaterial` RPC со снимком SQLite для карточки и строк; позиция остаётся на существующем пути. Холодные fixture-чтения OPFS/IDB: 3→1 RPC, точное совпадение read models. [Программа и границы](MATERIAL_COLD_OPEN_STABILITY.md). Выпущено `0e059364` / 3.11.815: deployment finished 17:20:24 UTC, 10/10 assets, Classic/IDE/Room browser checks и owner-readonly parity на 499/34/2477 строках; review_log hash неизменен.
@@ -44,7 +45,7 @@
 - **Дата / где:** 2026-10-23, review `31cae35b`, `public/index.html:39536`, `public/js/studio-morph.js:360`.
 - **Факты:** Classic после завершения фоновой транслитерации вызывает полный `renderTable(currentTableData)`; StudioMorph сначала refresh/wrap и весь `decorateWords`, затем `applyWordLayer`. Эквивалентные задержки в Room сокращены в 813, но host-последовательность Studio осталась прежней.
 - **Предложение:** переносить проверенные принципы Room: patch только translit-ячеек, порционная подготовка с приоритетом видимых строк, сохранённый контекст независимо от полной раскраски, identity/revision guards. Отдельно проверять Classic и IDE, редактирование, undo, selection, notes, replay и resume. Точный выигрыш Studio ещё не измерен.
-- **Статус:** в работе; S3, кандидат 817.
+- **Статус:** в работе; S3 выпущен `a0621a71` / 3.11.817 и проверен на опубликованном Classic/IDE desktop/mobile; приоритет видимых строк остаётся S4.
 
 ## O-126 · Прямая ссылка на публичный материал ждёт лишнюю стартовую работу
 - **Production S2:** `b6229421` / 3.11.816, deployment 2930 finished 17:55:07 UTC; 10/10 assets и production routing/refresh checks прошли. Ранние тайм-ауты отдельно O-130. Evidence restoration для локальной копии остаётся открытой частью этой записи.

@@ -1,0 +1,22 @@
+{
+  "observedAtUtc": "2026-10-23T20:04:47.881494+00:00",
+  "scope": "First anonymous Studio saved-context production run; no owner profile or paid calls.",
+  "firstFailure": {
+    "surface": "classic",
+    "scope": "Disposable Studio Chromium, synthetic saved context, blocked status boundary; no owner profile or paid generation.",
+    "errors": [],
+    "paidRequests": 0,
+    "result": "FAIL",
+    "failure": "page.waitForFunction: Timeout 60000ms exceeded.\n    at <worktree>\\scripts\\premium\\studio-saved-context-smoke.js:30:14",
+    "diagnostic": {
+      "mode": "lp-has-app-nav theme-density-comfortable",
+      "rows": 0,
+      "wrapped": 0,
+      "classicRows": 0,
+      "ideRows": 0,
+      "renderWrapped": true
+    }
+  },
+  "subsequentResult": "Classic and IDE passed without runtime changes; failure cause unknown. Diagnostic coverage extended before retry; timeout unchanged.",
+  "observation": "O-130 remains open."
+}

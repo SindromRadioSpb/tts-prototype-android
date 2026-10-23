@@ -1,0 +1,110 @@
+{
+  "checkedAtUtc": "2026-10-23T20:14:42Z",
+  "version": "3.11.817",
+  "health": {
+    "ok": true,
+    "uptimeSec": 756,
+    "now": "2026-10-23T20:14:28.023Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 85,
+    "disk_warn": true
+  },
+  "sourceCommit": "a0621a7161668325b088759fdecfad5ad6d38767",
+  "assets": [
+    {
+      "url": "/db/material-read.js?v=815",
+      "expected": "ef4386d23f023f7afc239622af31be0694e3f76ca18410ced8aac6dec0ece202",
+      "served": "ef4386d23f023f7afc239622af31be0694e3f76ca18410ced8aac6dec0ece202",
+      "match": true
+    },
+    {
+      "url": "/db/local-db.js?v=815",
+      "expected": "893fee2e08310287e2a983fd7fba29dc53233b1db2f1902c5f168e48fb23c790",
+      "served": "893fee2e08310287e2a983fd7fba29dc53233b1db2f1902c5f168e48fb23c790",
+      "match": true
+    },
+    {
+      "url": "/db/db-worker-runtime.js?v=815",
+      "expected": "010efa31f04693e8072918316baa814fee3c75a6e2c2d0b4ab2b363a22382380",
+      "served": "010efa31f04693e8072918316baa814fee3c75a6e2c2d0b4ab2b363a22382380",
+      "match": true
+    },
+    {
+      "url": "/js/material-open.js?v=815",
+      "expected": "e0918f6ccebf2fdaf28d4f18251f1fe4eec5b19b3043f1e78c5b934c0f555c45",
+      "served": "e0918f6ccebf2fdaf28d4f18251f1fe4eec5b19b3043f1e78c5b934c0f555c45",
+      "match": true
+    },
+    {
+      "url": "/js/library-ui.js?v=817",
+      "expected": "8f6182c8fcd0caab7a1ad714a52fab28f4e10c264188fa3ce2f358d544c9fb11",
+      "served": "8f6182c8fcd0caab7a1ad714a52fab28f4e10c264188fa3ce2f358d544c9fb11",
+      "match": true
+    },
+    {
+      "url": "/js/dictionary-ui.js?v=815",
+      "expected": "c905e395912af7c3c3e3557fecac68e22d90fe865108f71289c1406645e43d0b",
+      "served": "c905e395912af7c3c3e3557fecac68e22d90fe865108f71289c1406645e43d0b",
+      "match": true
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=815",
+      "expected": "4556991cf835b1ce34cec08dcad9948b0067f3ff950d44210d66c8c94efc9463",
+      "served": "4556991cf835b1ce34cec08dcad9948b0067f3ff950d44210d66c8c94efc9463",
+      "match": true
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=815",
+      "expected": "1079e20ed87490e93783ec67ffffba512d592df5e783d11857ff62c446597a0a",
+      "served": "1079e20ed87490e93783ec67ffffba512d592df5e783d11857ff62c446597a0a",
+      "match": true
+    },
+    {
+      "url": "/js/agent-access.js?v=815",
+      "expected": "3f02d423f1be04e5f69bf4ef514545eb5b7f3e9a293e6109cf46badfc2942d28",
+      "served": "3f02d423f1be04e5f69bf4ef514545eb5b7f3e9a293e6109cf46badfc2942d28",
+      "match": true
+    },
+    {
+      "url": "/sw.js",
+      "expected": "1d73a3f88c8073e525d2b61d9ca784be595b05b52798b1bcf7a34d747eed14d1",
+      "served": "1d73a3f88c8073e525d2b61d9ca784be595b05b52798b1bcf7a34d747eed14d1",
+      "match": true
+    },
+    {
+      "url": "/js/reader-core.js?v=817",
+      "expected": "211d13af9b18a3363bc6ac408784675d67809aaeb488f31b44d8a6bb97a2ab8e",
+      "served": "211d13af9b18a3363bc6ac408784675d67809aaeb488f31b44d8a6bb97a2ab8e",
+      "match": true
+    },
+    {
+      "url": "/js/translit-display.js?v=817",
+      "expected": "b315b619d7c1df63bb3075d0f743d7d6069c3583fb5b2bbc85a750f08fc8daa8",
+      "served": "b315b619d7c1df63bb3075d0f743d7d6069c3583fb5b2bbc85a750f08fc8daa8",
+      "match": true
+    },
+    {
+      "url": "/js/studio-morph.js?v=817",
+      "expected": "ac53c35f2183df81932701bf551f341ccdb6fcdd12c82b3312841055f968949a",
+      "served": "ac53c35f2183df81932701bf551f341ccdb6fcdd12c82b3312841055f968949a",
+      "match": true
+    },
+    {
+      "url": "/js/word-gloss-ai.js?v=817",
+      "expected": "7509a7729467aa512e35997f23acf37e66a65962f2aa8ba86d5736b7ba51ac06",
+      "served": "7509a7729467aa512e35997f23acf37e66a65962f2aa8ba86d5736b7ba51ac06",
+      "match": true
+    }
+  ],
+  "allAssetsMatch": true,
+  "shells": {
+    "/": true,
+    "/library.html": true
+  },
+  "dictionaryContextPin": true
+}

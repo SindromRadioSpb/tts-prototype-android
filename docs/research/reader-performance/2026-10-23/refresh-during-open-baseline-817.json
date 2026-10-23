@@ -1,0 +1,33 @@
+{
+  "candidate": false,
+  "expectBlocked": false,
+  "scope": "Disposable anonymous Chromium; public GETs only, no owner profile. Delayed dependencies test, not normal-network timing benchmark.",
+  "checks": {
+    "refresh-during-open": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "hidden": true,
+          "pending": false
+        },
+        "after": {
+          "epoch": 1,
+          "token": 2,
+          "hidden": true,
+          "pending": false
+        }
+      },
+      "rows": 0,
+      "state": {
+        "epoch": 1,
+        "token": 2,
+        "hidden": true,
+        "pending": false
+      }
+    }
+  },
+  "errors": [],
+  "testedModuleSha256": "8f6182c8fcd0caab7a1ad714a52fab28f4e10c264188fa3ce2f358d544c9fb11",
+  "result": "PASS"
+}

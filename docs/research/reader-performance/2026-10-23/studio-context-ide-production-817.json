@@ -1,0 +1,18 @@
+{
+  "surface": "ide",
+  "scope": "Disposable Studio Chromium, synthetic saved context, blocked status boundary; no owner profile or paid generation.",
+  "errors": [],
+  "paidRequests": 0,
+  "checks": {
+    "paragraphs": 34,
+    "wordsPerParagraph": 60,
+    "savedManualRows": 34,
+    "BGlossBeforeAStatus": true,
+    "lateAStatusSuppressed": true,
+    "hiddenTranslationKeepsContext": true,
+    "mobileRtlWordCard": true,
+    "modeSwitchKeepsWordCard": true
+  },
+  "reviewLogCount": 0,
+  "result": "PASS"
+}

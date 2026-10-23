@@ -1,0 +1,147 @@
+{
+  "baseline": false,
+  "ref": "ce0836c2",
+  "count": 2500,
+  "mobile": false,
+  "scope": "Disposable desktop/mobile viewport Chromium; held status/derivation queues; no owner data or paid calls.",
+  "checks": {
+    "classic": {
+      "renders": 1,
+      "completionMs": 895.3100000619888,
+      "longestTaskMs": 0,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 408.015625,
+        "editorHeight": 140,
+        "editorFullyVisible": true,
+        "rowTop": 397.515625,
+        "rowHeight": 225.734375,
+        "tableWidth": 571.34375,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 253591,
+            "height": 558
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1974,
+            "height": 900
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 408.015625,
+        "editorHeight": 140,
+        "editorFullyVisible": true,
+        "rowTop": 397.515625,
+        "rowHeight": 225.734375,
+        "tableWidth": 571.34375,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 253591,
+            "height": 558
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1974,
+            "height": 900
+          }
+        ]
+      },
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true,
+      "lateFillSuppressed": true
+    },
+    "ide": {
+      "renders": 1,
+      "completionMs": 1002.2050000429153,
+      "longestTaskMs": 56,
+      "sameTable": true,
+      "editorPreserved": true,
+      "focusPreserved": true,
+      "caret": [
+        4,
+        9
+      ],
+      "replayPreserved": true,
+      "manualTranslit": "MY OWN LATIN",
+      "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 407.671875,
+        "editorHeight": 140,
+        "editorFullyVisible": true,
+        "rowTop": 397.171875,
+        "rowHeight": 209.15625,
+        "tableWidth": 606,
+        "scrollY": 54,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 150708,
+            "height": 844
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 54,
+            "height": 900
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 407.671875,
+        "editorHeight": 140,
+        "editorFullyVisible": true,
+        "rowTop": 397.171875,
+        "rowHeight": 209.15625,
+        "tableWidth": 606,
+        "scrollY": 54,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 150708,
+            "height": 844
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 54,
+            "height": 900
+          }
+        ]
+      },
+      "patchDone": {
+        "patched": 2498,
+        "cancelled": false
+      },
+      "remainingStored": 0,
+      "sourceUnchanged": true,
+      "lateFillSuppressed": true
+    }
+  },
+  "errors": [],
+  "result": "PASS"
+}

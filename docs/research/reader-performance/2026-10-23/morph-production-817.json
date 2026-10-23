@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "a0621a7161668325b088759fdecfad5ad6d38767",
+  "scope": "Served production Room renderer/morphology; synthetic publication in disposable Chromium/OPFS, global GET-only same-origin network guard; no owner profile or live mutations.",
+  "checks": {
+    "surface": "room",
+    "pass": true,
+    "coldMs": 125,
+    "choiceKey": "pid:5857",
+    "paidCalls": 0
+  }
+}
