@@ -25,7 +25,7 @@ function fixture() {
   const { document } = parseHTML('<html><body><div id="reader"><table id="proTable"><tbody><tr><td><span class="rm-w">שלום</span></td></tr></tbody></table></div></body></html>');
   const mount = document.getElementById('reader');
   const rowWork = deferred(), states = deferred(), decorationJobs = [];
-  const glossCalls = [], binds = [], events = [], writes = [];
+  const glossCalls = [], binds = [], events = [], writes = [], prepared = [];
   const storage = new Map([['room.dueMarker.day', JSON.stringify({ day: '2026-10-22', marked: 99, suppressed: 99 })]]);
   let statReads = 0, coverageRefreshes = 0;
   const window = {
@@ -47,7 +47,7 @@ function fixture() {
   };
   const rows = [{ he: 'שלום', he_niqqud: 'שָׁלוֹם' }];
   const context = vm.createContext({
-    window, readerRows: rows, readerOpenEpoch: 1, readerMorphWork: { complete: rowWork.promise },
+    window, readerRows: rows, readerOpenEpoch: 1, readerMorphWork: { complete: rowWork.promise, ensure: row => { prepared.push(row); return true; } },
     readerCfg: { niqqudMode: 'adaptive' }, activeReaderMorphMount: () => mount,
     wordStatusEnabled: () => true,
     ensureWordStates() { events.push('states'); return states.promise; },
@@ -56,31 +56,34 @@ function fixture() {
     _localDayStr: () => '2026-10-23', refreshCovChip() { coverageRefreshes++; },
   });
   vm.runInContext(source, context);
-  return { context, mount, rows, rowWork, states, decorationJobs, glossCalls, binds, events, writes,
+  return { context, mount, rows, rowWork, states, decorationJobs, glossCalls, binds, events, writes, prepared,
     counters: () => ({ statReads, coverageRefreshes }) };
 }
 
-test('stored word layer starts after row hydration but before pending statuses and morphology decoration', async () => {
+test('visible rows can wrap and show stored context while full row hydration and learner states are still pending', async () => {
   const f = fixture();
   const applying = f.context.applyDecorations();
   await flush();
-  assert.deepEqual(f.events, [], 'no word layer runs against incomplete word spans');
-  f.rowWork.resolve(true); await flush();
   assert.deepEqual(f.events, ['gloss', 'states']);
   assert.equal(f.glossCalls[0].node, f.mount);
   assert.equal(f.glossCalls[0].options.gloss, true);
   assert.equal(f.glossCalls[0].options.ai, false, 'stored translations remain eligible when generation is off');
   assert.equal(f.binds[0].rows, f.rows);
   assert.equal(f.glossCalls[0].options.isCurrent(), true);
+  const row = f.mount.querySelector('tr');
+  assert.equal(f.glossCalls[0].options.prepareRow(row), true);
+  assert.deepEqual(f.prepared, [row], 'foreground hydration is scoped to the selected row');
   assert.equal(f.decorationJobs.length, 0, 'unresolved statuses do not block stored contextual translations');
 
   f.states.resolve({}); await flush();
   assert.deepEqual(f.events, ['gloss', 'states', 'decorate']);
   assert.equal(f.decorationJobs.length, 1);
+  assert.equal(f.decorationJobs[0].options.prepareRow(row), true);
   assert.equal(f.writes.length, 0, 'due totals wait for completed decoration');
   f.decorationJobs[0].resolve(); await applying;
   assert.deepEqual(f.counters(), { statReads: 1, coverageRefreshes: 1 });
   assert.deepEqual(JSON.parse(f.writes[0][1]), { day: '2026-10-23', marked: 3, suppressed: 2 });
+  f.rowWork.resolve(true);
 });
 
 test('rebuilding the same material invalidates old word-layer work before the new rows finish', () => {
@@ -94,11 +97,12 @@ test('rebuilding the same material invalidates old word-layer work before the ne
   assert.equal(f.glossCalls[1].options.isCurrent(), true);
 });
 
-test('cancelled row hydration never starts word translations or the status pass', async () => {
+test('cancelling row work invalidates the foreground layer and prevents later status/decorations', async () => {
   const f = fixture();
   const applying = f.context.applyDecorations();
-  f.rowWork.resolve(false); await applying;
-  assert.deepEqual(f.events, []);
+  f.context.readerMorphWork = null; f.rowWork.resolve(false); f.states.resolve({}); await applying;
+  assert.equal(f.glossCalls[0].options.isCurrent(), false);
+  assert.deepEqual(f.events, ['gloss', 'states']);
   assert.deepEqual(f.counters(), { statReads: 0, coverageRefreshes: 0 });
 });
 

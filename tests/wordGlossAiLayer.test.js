@@ -82,6 +82,26 @@ test('hiding the translation column preserves the bound occurrence and its saved
   await AI.hydrate([tr]); assert.equal(AI.wordAt(tr, 0), null, 'new source content cannot inherit the old correction');
 });
 
+test('saved occurrence context can prefetch an unwrapped bound row without painting or changing its source', async () => {
+  await reset();
+  const row = { ...ROW, id: 'deferred-wrap' }, tr = renderRow(row, false);
+  const key = AI.rowPayloadFromData(row).key;
+  await AI.remember({ schema: AI.LAYER_SCHEMA, rows: [{ order_index: 0, key,
+    glosses: GLOSSES.map((g, i) => i ? g : { gloss: 'моя правка', manual: true, ai_gloss: g.gloss }), mwe: [] }] }, [row]);
+  AI._mem.clear();
+  const cell = tr.querySelector('td[data-col="niqqud"]');
+  cell.innerHTML = row.he_niqqud;
+  AI.bindRows(document.getElementById('m'), [row]);
+  const source = cell.innerHTML;
+  await AI.hydrate([tr]);
+  assert.equal(cell.innerHTML, source); assert.equal(cell.querySelector('.rm-w'), null);
+  assert.equal(AI._mem.get(AI.rowPayloadFromData(row).storageKey).glosses[0].gloss, 'моя правка');
+  const wrapped = renderRow(row, false); AI.bindRows(document.getElementById('m'), [row]);
+  await AI.hydrate([wrapped]);
+  assert.equal(AI.wordAt(wrapped, 0).gloss, 'моя правка');
+  assert.equal(AI.wordAt(wrapped, 0).aiGloss, GLOSSES[0].gloss);
+});
+
 test('duplicate occurrences retain distinct imported glosses through reload, reorder and portable rebind', async () => {
   await reset();
   const rows = [{ ...ROW, id: 'first', order_index: 0 }, { ...ROW, id: 'second', order_index: 1 }];

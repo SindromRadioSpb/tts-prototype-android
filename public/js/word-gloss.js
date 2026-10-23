@@ -376,7 +376,7 @@
     mount.classList.remove(GLOSS_ON);
     var done = mount.querySelectorAll(".rm-w[data-gloss], .rm-w[data-gloss-hint]");
     for (var i = 0; i < done.length; i++) {
-      ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "data-gloss-source", "title"].forEach(function (a) { done[i].removeAttribute(a); });
+      ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "data-gloss-source", "data-gloss-mwe", "title"].forEach(function (a) { if (done[i].hasAttribute(a)) done[i].removeAttribute(a); });
     }
   }
   function paint(span, g) {
@@ -386,34 +386,107 @@
     span.setAttribute("data-gloss-label", g.label);
   }
 
-  var _pass = 0;
+  var _glossGeneration = new WeakMap();
+  var _rowViews = new WeakMap();
+  function stopRowView(mount) {
+    var view = _rowViews.get(mount); if (!view) return;
+    view.queue.close();
+    view.rows.forEach(function (row) { if (row.classList.contains('rm-gloss-pending')) row.classList.remove('rm-gloss-pending'); });
+    _rowViews.delete(mount);
+  }
+  function rowView(mount, isCurrent) {
+    var table = mount.querySelector('#proTable'), view = _rowViews.get(mount);
+    if (view && view.table === table) { view.isCurrent = isCurrent; view.queue.refresh(); return view; }
+    if (view) stopRowView(mount);
+    var rows = Array.prototype.slice.call(mount.querySelectorAll('#proTable tbody tr'));
+    var RM = window.ReaderMorph;
+    if (!RM || !RM.createRowQueue || !mount.ownerDocument.elementsFromPoint || (rows.length <= 120 && mount.textContent.length <= 12000)) return null;
+    view = { table: table, rows: rows, isCurrent: isCurrent, queue: null,
+      reveal: function (row) { if (view.isCurrent() && row.classList.contains('rm-gloss-pending')) row.classList.remove('rm-gloss-pending'); } };
+    rows.forEach(function (row) { row.classList.add('rm-gloss-pending'); });
+    view.queue = RM.createRowQueue(mount, rows, function () { return view.isCurrent(); }, { onVisible: function (visible) {
+      if (!view.isCurrent()) return;
+      var reveal = visible.filter(function (row) { return row.classList.contains('rm-gloss-pending'); });
+      if (!reveal.length) return;
+      var anchor = RM.createRowQueue(mount, visible, view.isCurrent, { preservePosition: true, observe: false });
+      try { reveal.forEach(view.reveal); } finally { if (anchor) anchor.close(); }
+    } });
+    _rowViews.set(mount, view); return view;
+  }
+  function workNow() { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }
   async function applyGloss(mount, opts) {
-    var isCurrent = opts && typeof opts.isCurrent === "function" ? opts.isCurrent : function () { return true; };
+    opts = opts || {};
+    var ownerCurrent = typeof opts.isCurrent === 'function' ? opts.isCurrent : function () { return true; };
+    if (!mount || !ownerCurrent()) return;
+    var my = (_glossGeneration.get(mount) || 0) + 1;
+    var isCurrent = function () { return ownerCurrent() && _glossGeneration.get(mount) === my; };
+    _glossGeneration.set(mount, my);
     if (!mount || !isCurrent()) return;
-    var my = ++_pass;
-    mount.classList.add(GLOSS_ON);
-    var spans = glossSpans(mount), i = 0;
-    while (i < spans.length) {
-      var end = Math.min(i + 60, spans.length);
-      for (; i < end; i++) {
-        if (my !== _pass || !isCurrent()) return;   // a newer pass (re-render / toggle) owns the mount
-        var sp = spans[i];
-        if (sp.hasAttribute("data-gloss")) continue;
-        var tr = sp.closest("tr"), ai = window.WordGlossAI && window.WordGlossAI.wordAt(tr, Number(sp.getAttribute("data-w-offset")));
-        if (ai) { window.WordGlossAI.paintRow(tr); continue; }
-        if (_strict) {
+    var rows = Array.prototype.slice.call(mount.querySelectorAll('#proTable tbody tr'));
+    var RM = window.ReaderMorph, AI = window.WordGlossAI, cursor = 0, fallbackRow = null;
+    var queue = RM && RM.createRowQueue ? RM.createRowQueue(mount, rows, isCurrent, { preservePosition: opts.paint !== false }) : {
+      next: function () { return fallbackRow || (fallbackRow = rows[cursor++] || null); }, done: function () { fallbackRow = null; }, close: function () {}, flush: function () {},
+    };
+    var work = new Map(), hydrated = new Set(), tr, deadline = workNow() + 8, sliceWords = 0, positionDirty = false;
+    function flushPosition() { if (positionDirty) { queue.flush(); positionDirty = false; } }
+    try {
+    while ((tr = queue.next())) {
+      if (!isCurrent()) return;
+      var item = work.get(tr);
+      if (!item) {
+        if (opts.prepareRow) opts.prepareRow(tr);
+        if (AI && opts.hydrate !== false) {
+          if (!hydrated.has(tr)) {
+            var candidates = queue.batch ? queue.batch(tr, 32, queue.isPriority(tr)) : [tr], batch = [], chars = 0;
+            candidates.some(function (r) {
+              var data = r.__lpLearningRow, size = data ? String(data.he_niqqud || data.he || data.he_plain || '').length : r.textContent.length;
+              if (batch.length && chars + size > 4000) return true;
+              batch.push(r); chars += size; return false;
+            });
+            flushPosition();
+            try { await AI.hydrate(batch); } catch (_) {}
+            batch.forEach(function (r) { hydrated.add(r); });
+          } else AI.rowPayload(tr); // Bind keys after a prefetched row is wrapped.
+        }
+        if (!isCurrent()) return;
+        if (opts.onHydrated) opts.onHydrated(tr);
+        item = { spans: rowSpans(tr), at: 0 }; work.set(tr, item);
+      }
+      if (opts.paint !== false && !mount.classList.contains(GLOSS_ON)) mount.classList.add(GLOSS_ON);
+      if (opts.view && queue.isPriority && queue.isPriority(tr)) opts.view.reveal(tr);
+      if (!opts.view || !tr.classList.contains('rm-gloss-pending')) { queue.flush(); positionDirty = true; }
+      var end = Math.min(item.at + Math.max(1, 60 - sliceWords), item.spans.length);
+      for (; item.at < end; item.at++) {
+        if (!isCurrent()) return;
+        var sp = item.spans[item.at]; sliceWords++;
+        var ai = AI && AI.wordAt(tr, Number(sp.getAttribute('data-w-offset')));
+        if (opts.paint === false) continue;
+        if (ai) {
+          if (AI.paintWord) AI.paintWord(sp, tr, Number(sp.getAttribute('data-w-offset'))); else AI.paintRow(tr);
+        } else if (sp.hasAttribute('data-gloss') && sp.getAttribute('data-gloss-source') === (opts.strict ? 'missing' : 'dictionary')) {
+          // Unchanged fallback needs no new resolution or DOM writes.
+        } else if (opts.strict) {
+          ['data-gloss-hint', 'data-gloss-ai', 'data-gloss-mwe'].forEach(function (a) { if (sp.hasAttribute(a)) sp.removeAttribute(a); });
           sp.setAttribute("data-gloss", "—"); sp.setAttribute("data-gloss-label", "unknown");
           sp.setAttribute("data-gloss-source", "missing"); sp.setAttribute("title", t("contextLayer.missing", "Контекстный перевод отсутствует"));
         } else {
           var dictionary = await glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || "");
-          if (my !== _pass || !isCurrent()) return;
+          if (!isCurrent()) return;
+          ['data-gloss-hint', 'data-gloss-ai', 'data-gloss-mwe'].forEach(function (a) { if (sp.hasAttribute(a)) sp.removeAttribute(a); });
           paint(sp, dictionary);
           sp.setAttribute("data-gloss", "◇ " + (sp.getAttribute("data-gloss") || ""));
           sp.setAttribute("data-gloss-source", "dictionary"); sp.setAttribute("title", t("contextLayer.dictionary", "Словарный перевод; применимость здесь не подтверждена"));
         }
+        if (workNow() >= deadline) { item.at++; break; }
       }
-      await new Promise(function (r) { setTimeout(r, 0); });
+      if (item.at >= item.spans.length) { queue.done(tr); work.delete(tr); }
+      if (sliceWords >= 60 || workNow() >= deadline) {
+        flushPosition();
+        if (RM && RM.yieldWordWork) await RM.yieldWordWork(); else await new Promise(function (r) { setTimeout(r, 0); });
+        deadline = workNow() + 8; sliceWords = 0;
+      }
     }
+    } finally { queue.close(); }
   }
 
   // ── ribbon: words of the current row ─────────────────────────────────────────────────────────
@@ -474,19 +547,20 @@
     });
     st.list.innerHTML = ""; st.list.appendChild(frag);
     st.list.scrollLeft = 0; st.list.scrollTop = 0;
-    var AI = _aiOn && window.WordGlossAI;
+    var mode = _modes.get(st.mount) || {}, strict = !!mode.strict;
+    var AI = mode.aiOn && window.WordGlossAI;
     for (var i = 0; i < chips.length; i++) {
       if (st.rowIdx !== idx || (st.isCurrent && !st.isCurrent())) return;   // playback moved on while resolving
       var c = chips[i];
       // Ф3: the contextual (AI) gloss of this exact word in this row wins when present.
       var ai = AI ? AI.wordAt(tr, i) : null;
       var g = ai ? { text: ai.gloss + (ai.mwe ? " · " + ai.mwe : ""), label: ai.manual ? "user" : "ai" }
-        : _strict ? null : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
+        : strict ? null : await glossFor(c.sp.getAttribute("data-surface") || "", c.sp.getAttribute("data-niqqud") || "");
       var has = !!(g && g.text);
       if (st.epoch !== epoch || currentRow(st.host) !== tr || (st.isCurrent && !st.isCurrent())) return;
-      c.gl.textContent = has ? ((!ai && !_strict ? "◇ " : "") + g.text) : (_strict ? "—" : "?");
+      c.gl.textContent = has ? ((!ai && !strict ? "◇ " : "") + g.text) : (strict ? "—" : "?");
       c.b.setAttribute("data-gloss-label", has ? g.label : "unknown");
-      c.b.setAttribute("title", ai ? t("contextLayer.context", "Перевод в контексте") : t(_strict ? "contextLayer.missing" : "contextLayer.dictionary", _strict ? "Контекстный перевод отсутствует" : "Словарный перевод; применимость здесь не подтверждена"));
+      c.b.setAttribute("title", ai ? t("contextLayer.context", "Перевод в контексте") : t(strict ? "contextLayer.missing" : "contextLayer.dictionary", strict ? "Контекстный перевод отсутствует" : "Словарный перевод; применимость здесь не подтверждена"));
       c.b.setAttribute("aria-label", (c.sp.getAttribute("data-niqqud") || c.sp.textContent) + " — " + (has ? g.text : t("wordGloss.unknown", "нет данных")));
     }
   }
@@ -506,7 +580,7 @@
     el.setAttribute("aria-label", t("wordGloss.ribbon.aria", "Слова текущей строки"));
     var list = document.createElement("div"); list.className = "rm-ribbon-list"; list.dir = "rtl";
     el.appendChild(list);
-    st = { el: el, list: list, host: host, obs: null, rowIdx: undefined, raf: 0 };
+    st = { el: el, list: list, host: host, mount: mount, obs: null, rowIdx: undefined, raf: 0 };
     if (host.parentNode) host.parentNode.insertBefore(el, host);
     var schedule = function () {
       if (st.raf) return;
@@ -538,17 +612,18 @@
   // Ф3б (owner 2026-10-12): AI glosses already paid for
   // (this device, an imported/published material) are SHOWN whenever the gloss line or the ribbon is on;
   // `ai` only allows ordering NEW rows (lazy mode) — it is the spending switch, not the display switch.
-  var _aiOn = false, _strict = false;
+  var _modes = new WeakMap();
   var _coverage = new WeakMap();
   var _applyGeneration = new WeakMap();
   function updateCoverage(mount) {
     var e = _coverage.get(mount);
     if (!e || !e.isConnected || !window.WordGlossAI) return;
     var est = window.WordGlossAI.estimate(mount);
-    e.hidden = !_aiOn || est.words === 0;
+    var mode = _modes.get(mount) || {};
+    e.hidden = !mode.aiOn || est.words === 0;
     e.textContent = t("contextLayer.coverage", "Контекстный перевод: {covered} из {total} слов")
       .replace("{covered}", String(est.words - est.missingWords)).replace("{total}", String(est.words));
-    if (est.missingWords) e.textContent += " · " + t(_strict ? "contextLayer.strictHint" : "contextLayer.fallbackHint", _strict ? "Пропуски показаны знаком —" : "Для остальных — словарный перевод");
+    if (est.missingWords) e.textContent += " · " + t(mode.strict ? "contextLayer.strictHint" : "contextLayer.fallbackHint", mode.strict ? "Пропуски показаны знаком —" : "Для остальных — словарный перевод");
   }
   function refreshRibbon(mount) { var st = _ribbons.get(mount); if (st) { st.rowIdx = undefined; renderRibbon(st); } }
   async function apply(mount, opts) {
@@ -558,40 +633,35 @@
     var generation = (_applyGeneration.get(mount) || 0) + 1;
     _applyGeneration.set(mount, generation);
     var isCurrent = function () { return _applyGeneration.get(mount) === generation && ownerCurrent(); };
-    _pass++;
+    _glossGeneration.set(mount, (_glossGeneration.get(mount) || 0) + 1);
     var AI = window.WordGlossAI;
-    _strict = !!opts.strict;
-    var aiWas = _aiOn;
-    _aiOn = !!(AI && (opts.gloss || opts.ribbon));
-    var aiFetch = !!(opts.ai && _aiOn);
+    var mode = { strict: !!opts.strict, aiOn: !!(AI && (opts.gloss || opts.ribbon)) };
+    _modes.set(mount, mode);
+    var aiFetch = !!(opts.ai && mode.aiOn);
     // A lazy observer belongs to this application generation, including its delayed callbacks.
     if (AI) AI.stopLazy(mount);
-    if (AI && !_aiOn && aiWas) {   // gloss and ribbon off: drop AI paint so a later offline pass starts clean
-      Array.prototype.forEach.call(mount.querySelectorAll(".rm-w[data-gloss-ai]"), function (sp) {
-        ["data-gloss", "data-gloss-hint", "data-gloss-label", "data-gloss-ai", "title"].forEach(function (a) { sp.removeAttribute(a); });
-      });
-    }
     if (opts.ribbon) { var st = ensureRibbon(mount); st.isCurrent = isCurrent; st.epoch = (st.epoch || 0) + 1; st.rowIdx = undefined; place(st); }
     else removeRibbon(mount);
-    if (_aiOn) { try { await AI.hydrate(Array.prototype.slice.call(mount.querySelectorAll("#proTable tbody tr"))); } catch (_) {} }
-    if (!isCurrent()) return;
-    clearGloss(mount);
-    if (opts.gloss) await applyGloss(mount, { isCurrent: isCurrent });
+    var view = null;
+    if (!opts.gloss) { clearGloss(mount); stopRowView(mount); }
+    else view = rowView(mount, isCurrent);
+    if (mode.aiOn || opts.gloss) await applyGloss(mount, { isCurrent: isCurrent, strict: !!opts.strict, paint: !!opts.gloss, prepareRow: opts.prepareRow,
+      view: view, onHydrated: opts.ribbon ? function (tr) { if (tr === currentRow(hostOf(mount))) refreshRibbon(mount); } : null });
     if (!isCurrent()) return;
     if (opts.ribbon) refreshRibbon(mount);
-    if (_aiOn) {
+    if (mode.aiOn) {
       // applyGloss already paints each hydrated contextual row once; do not hydrate/repaint
       // the whole table again (paintMount also duplicates the coverage scan below).
-      if (aiFetch) AI.startLazy(mount, function () { return isCurrent() && _aiOn && opts.ai; });
+      if (aiFetch) AI.startLazy(mount, function () { return isCurrent() && mode.aiOn && opts.ai; });
     }
     if (!isCurrent()) return;
     var coverage = _coverage.get(mount), host = hostOf(mount);
-    if (_aiOn && !coverage) {
+    if (mode.aiOn && !coverage) {
       coverage = document.createElement("div"); coverage.className = "rm-context-coverage"; coverage.setAttribute("role", "status");
       if (host.parentNode) host.parentNode.insertBefore(coverage, host);
       _coverage.set(mount, coverage);
     }
-    if (coverage) coverage.hidden = !_aiOn;
+    if (coverage) coverage.hidden = !mode.aiOn;
     updateCoverage(mount);
   }
 

@@ -2089,9 +2089,10 @@ async function applyDecorations() {
   if (!mount || !window.ReaderMorph) return;
   const epoch = readerOpenEpoch, work = readerMorphWork;
   const revision = ++readerDecorationRevision;
-  const isCurrent = () => revision === readerDecorationRevision && epoch === readerOpenEpoch && work === readerMorphWork;
-  if (work && !await work.complete) return;
+  const isCurrent = () => revision === readerDecorationRevision && epoch === readerOpenEpoch && work === readerMorphWork && mount.isConnected;
   if (!isCurrent()) return;
+  // A visible/restored row can wrap itself. Do not hold its saved context or
+  // colours behind preparation of every distant row in the material.
   // Stored contextual translations do not depend on the full morphology/status
   // pass. Let readers see them while colours continue resolving in the background.
   applyWordLayer(mount);
@@ -2108,7 +2109,7 @@ async function applyDecorations() {
   }
   if (!isCurrent()) return;
   try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode, dueSet,
-    isCurrent }); } catch (_) {}
+    isCurrent, prepareRow: work ? row => work.ensure(row) : null }); } catch (_) {}
   if (!isCurrent()) return;
   // suppressed-marker tally → per-day MAX (repaints of the same text must not inflate it); the
   // P6 retention-report reads this as the «lost recall opportunities» floor (recon §6.1/§7).
@@ -2130,11 +2131,11 @@ async function applyDecorations() {
 function applyWordLayer(mount) {
   mount = mount || activeReaderMorphMount();
   if (!mount || !window.WordGloss) return;
-  const epoch = readerOpenEpoch, rows = readerRows;
+  const epoch = readerOpenEpoch, rows = readerRows, work = readerMorphWork;
   const table = mount.querySelector('#proTable');
   if (window.WordGlossAI) window.WordGlossAI.bindRows(mount, readerRows);
-  try { Promise.resolve(window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi'), strict: window.WordGloss.enabled('room', 'GlossStrict'),
-    isCurrent: () => epoch === readerOpenEpoch && rows === readerRows && mount.isConnected &&
+  try { Promise.resolve(window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled('room', 'Gloss'), ribbon: window.WordGloss.enabled('room', 'Ribbon'), ai: window.WordGloss.enabled('room', 'GlossAi'), strict: window.WordGloss.enabled('room', 'GlossStrict'), prepareRow: work ? row => work.ensure(row) : null,
+    isCurrent: () => epoch === readerOpenEpoch && rows === readerRows && work === readerMorphWork && mount.isConnected &&
       (!table || (table.isConnected && mount.contains(table))) })).catch(() => {}); } catch (_) {}
 }
 

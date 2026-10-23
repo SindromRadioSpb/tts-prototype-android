@@ -1,0 +1,9 @@
+{
+  "checkedAtUtc": "2026-10-23T21:35:03.322Z",
+  "version": "3.11.818",
+  "texts": 732,
+  "sentences": 108996,
+  "reviewRows": 11754,
+  "reviewSha256": "d9f1f17ea8980b6538d02803f838d0cdd48adb3b5f3e00fa39ba5346737c9238",
+  "scope": "Owner Studio profile via Kapture: readonly counts and local SHA-256 of review_log ordered by rowid. No row content returned. No source, learner state or provider-result writes. Not an owner UI cold-open benchmark."
+}

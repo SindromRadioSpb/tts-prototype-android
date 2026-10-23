@@ -557,6 +557,15 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 .rm-gloss-on .rm-w[data-gloss-label="unknown"]::before { opacity: 0; }
 .rm-gloss-on .rm-w.rm-w-due::after { position: absolute; top: 0; inset-inline-end: -6px; margin: 0; }
 .rm-gloss-on .rm-w.rm-w-active::before { color: inherit; opacity: .85; }
+/* Prepared offscreen glosses must not repeatedly grow the entire long table.
+   Reveal each row near the viewport; its source, controls and stored gloss stay
+   in the DOM throughout. Once revealed, a row never collapses on scroll-away. */
+.rm-gloss-on tr.rm-gloss-pending .rm-w[data-gloss] { display: inline; line-height: inherit; vertical-align: baseline; }
+.rm-gloss-on tr.rm-gloss-pending .rm-w[data-gloss]::before { display: none; }
+@media print {
+  .rm-gloss-on tr.rm-gloss-pending .rm-w[data-gloss] { display: inline-flex; line-height: 1.3; vertical-align: top; }
+  .rm-gloss-on tr.rm-gloss-pending .rm-w[data-gloss]::before { display: block; }
+}
 
 .rm-ribbon {
   box-sizing: border-box; width: 100%; padding: 6px 8px;

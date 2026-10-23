@@ -1,0 +1,489 @@
+{
+  "checkedAtUtc": "2026-10-23T22:09:24.299934+00:00",
+  "version": "3.11.819",
+  "unitTestsPassed": 2888,
+  "i18nChecksPassed": 233,
+  "runtimeHashes": {
+    "js/word-gloss.js": "73a52a23089a0fe1d8b26d75e494c748275acd37bfb1ce8b3ef26f4c5fd3fe0b",
+    "js/word-gloss-ai.js": "5f43e5d3309f0e1f711dd2e86b98ff4626b8702fa662e1bd7305614807fe7a29",
+    "js/reader-morph.js": "7b858cde19bf8f4f43319d00729f2e890f4dc15dceace95a3771a7736b371946",
+    "js/library-ui.js": "762d0cc0c760d44bd39e047be386d361dca57432c2a76ff0c7bc209f0bff2c68",
+    "css/reader-morph.css": "86954db37f5a89790d62c9f22bd925aa5f5745bdfa9b3beb47e986e7414aae4f"
+  },
+  "performanceScope": "Single serial baseline/candidate comparison in disposable Chromium; prepared table, restored row before each layer, saved synthetic manual context. Not owner UI cold-open timing or a statistical speed guarantee.",
+  "baselineFile": "priority-baseline-classic-819.json",
+  "cases": [
+    {
+      "file": "priority-candidate-classic-rows-819.json",
+      "surface": "classic",
+      "shape": "rows",
+      "mobile": false,
+      "firstGlossMs": 196.15000009536743,
+      "allGlossMs": 1411.9800000190735,
+      "firstStatusMs": 1555.2799999713898,
+      "allStatusMs": 4197.685000061989,
+      "refreshGlossMutations": 0,
+      "card": {
+        "method": "native mouse at visible word",
+        "clickMs": 1420,
+        "contentAfterClickMs": 1006,
+        "openMs": 2426,
+        "openedBeforeLayersComplete": true
+      },
+      "maxLongTaskMs": 286,
+      "scroll": {
+        "later": 1250,
+        "shown": "block",
+        "gloss": "CONTEXT-1250:0",
+        "originalStillRevealed": true
+      },
+      "print": null
+    },
+    {
+      "file": "priority-candidate-room-paragraphs-819.json",
+      "surface": "room",
+      "shape": "paragraphs",
+      "mobile": false,
+      "firstGlossMs": 78.25999999046326,
+      "allGlossMs": 1792.954999923706,
+      "firstStatusMs": 20.65499997138977,
+      "allStatusMs": 820.5750000476837,
+      "refreshGlossMutations": 0,
+      "card": {
+        "method": "native mouse at visible word",
+        "clickMs": 350,
+        "contentAfterClickMs": 1332,
+        "openMs": 1682,
+        "openedBeforeLayersComplete": true
+      },
+      "maxLongTaskMs": 71,
+      "scroll": {
+        "later": 17,
+        "shown": "block",
+        "gloss": "CONTEXT-17:0",
+        "originalStillRevealed": true
+      },
+      "print": {
+        "pending": true,
+        "display": "block"
+      }
+    },
+    {
+      "file": "priority-candidate-ide-rows-819.json",
+      "surface": "ide",
+      "shape": "rows",
+      "mobile": true,
+      "firstGlossMs": 197.73500001430511,
+      "allGlossMs": 1235,
+      "firstStatusMs": 1627.9700000286102,
+      "allStatusMs": 4589.539999961853,
+      "refreshGlossMutations": 0,
+      "card": {
+        "method": "native mouse at visible word",
+        "clickMs": 1400,
+        "contentAfterClickMs": 1001,
+        "openMs": 2401,
+        "openedBeforeLayersComplete": true
+      },
+      "maxLongTaskMs": 290,
+      "scroll": {
+        "later": 1250,
+        "shown": "block",
+        "gloss": "CONTEXT-1250:0",
+        "originalStillRevealed": true
+      },
+      "print": null
+    }
+  ],
+  "continuity": {
+    "context-classic": {
+      "result": "PASS",
+      "checks": {
+        "paragraphs": 34,
+        "wordsPerParagraph": 60,
+        "savedManualRows": 34,
+        "BGlossBeforeAStatus": true,
+        "lateAStatusSuppressed": true,
+        "hiddenTranslationKeepsContext": true,
+        "mobileRtlWordCard": true,
+        "modeSwitchKeepsWordCard": true
+      },
+      "errors": [],
+      "paidRequests": 0,
+      "reviewLogCount": 0
+    },
+    "context-ide": {
+      "result": "PASS",
+      "checks": {
+        "paragraphs": 34,
+        "wordsPerParagraph": 60,
+        "savedManualRows": 34,
+        "BGlossBeforeAStatus": true,
+        "lateAStatusSuppressed": true,
+        "hiddenTranslationKeepsContext": true,
+        "mobileRtlWordCard": true,
+        "modeSwitchKeepsWordCard": true
+      },
+      "errors": [],
+      "paidRequests": 0,
+      "reviewLogCount": 0
+    },
+    "translit": {
+      "result": "PASS",
+      "checks": {
+        "classic": {
+          "renders": 1,
+          "completionMs": 902.4349999427795,
+          "longestTaskMs": 0,
+          "sameTable": true,
+          "editorPreserved": true,
+          "focusPreserved": true,
+          "caret": [
+            4,
+            9
+          ],
+          "replayPreserved": true,
+          "manualTranslit": "MY OWN LATIN",
+          "scrollDelta": 0,
+          "geometryBefore": {
+            "editorTop": 408.015625,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 397.515625,
+            "rowHeight": 225.734375,
+            "tableWidth": 571.34375,
+            "scrollY": 1974,
+            "ancestors": [
+              {
+                "id": "tableContainer",
+                "tag": "DIV",
+                "top": 253591,
+                "height": 558
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 1974,
+                "height": 900
+              }
+            ]
+          },
+          "geometryAfter": {
+            "editorTop": 408.015625,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 397.515625,
+            "rowHeight": 225.734375,
+            "tableWidth": 571.34375,
+            "scrollY": 1974,
+            "ancestors": [
+              {
+                "id": "tableContainer",
+                "tag": "DIV",
+                "top": 253591,
+                "height": 558
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 1974,
+                "height": 900
+              }
+            ]
+          },
+          "patchDone": {
+            "patched": 2498,
+            "cancelled": false
+          },
+          "remainingStored": 0,
+          "sourceUnchanged": true,
+          "lateFillSuppressed": true
+        },
+        "ide": {
+          "renders": 1,
+          "completionMs": 982.0650000572205,
+          "longestTaskMs": 54,
+          "sameTable": true,
+          "editorPreserved": true,
+          "focusPreserved": true,
+          "caret": [
+            4,
+            9
+          ],
+          "replayPreserved": true,
+          "manualTranslit": "MY OWN LATIN",
+          "scrollDelta": 0,
+          "geometryBefore": {
+            "editorTop": 407.671875,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 397.171875,
+            "rowHeight": 209.15625,
+            "tableWidth": 606,
+            "scrollY": 54,
+            "ancestors": [
+              {
+                "id": "v3IdeCenterContent",
+                "tag": "DIV",
+                "top": 150708,
+                "height": 844
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 54,
+                "height": 900
+              }
+            ]
+          },
+          "geometryAfter": {
+            "editorTop": 407.671875,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 397.171875,
+            "rowHeight": 209.15625,
+            "tableWidth": 606,
+            "scrollY": 54,
+            "ancestors": [
+              {
+                "id": "v3IdeCenterContent",
+                "tag": "DIV",
+                "top": 150708,
+                "height": 844
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 54,
+                "height": 900
+              }
+            ]
+          },
+          "patchDone": {
+            "patched": 2498,
+            "cancelled": false
+          },
+          "remainingStored": 0,
+          "sourceUnchanged": true,
+          "lateFillSuppressed": true
+        }
+      },
+      "errors": []
+    },
+    "translit-mobile": {
+      "result": "PASS",
+      "checks": {
+        "classic": {
+          "renders": 1,
+          "completionMs": 1068.8100000619888,
+          "longestTaskMs": 126,
+          "sameTable": true,
+          "editorPreserved": true,
+          "focusPreserved": true,
+          "caret": [
+            4,
+            9
+          ],
+          "replayPreserved": true,
+          "manualTranslit": "MY OWN LATIN",
+          "scrollDelta": -0.109375,
+          "geometryBefore": {
+            "editorTop": 320.265625,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 309.765625,
+            "rowHeight": 325.203125,
+            "tableWidth": 308,
+            "scrollY": 1968,
+            "ancestors": [
+              {
+                "id": "tableContainer",
+                "tag": "DIV",
+                "top": 343457,
+                "height": 483
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 1968,
+                "height": 780
+              }
+            ]
+          },
+          "geometryAfter": {
+            "editorTop": 320.15625,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 309.65625,
+            "rowHeight": 325.203125,
+            "tableWidth": 308,
+            "scrollY": 1968,
+            "ancestors": [
+              {
+                "id": "tableContainer",
+                "tag": "DIV",
+                "top": 343458,
+                "height": 483
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 1968,
+                "height": 780
+              }
+            ]
+          },
+          "patchDone": {
+            "patched": 2498,
+            "cancelled": false
+          },
+          "remainingStored": 0,
+          "sourceUnchanged": true,
+          "lateFillSuppressed": true
+        },
+        "ide": {
+          "renders": 1,
+          "completionMs": 957.664999961853,
+          "longestTaskMs": 50,
+          "sameTable": true,
+          "editorPreserved": true,
+          "focusPreserved": true,
+          "caret": [
+            4,
+            9
+          ],
+          "replayPreserved": true,
+          "manualTranslit": "MY OWN LATIN",
+          "scrollDelta": 0,
+          "geometryBefore": {
+            "editorTop": 313.671875,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 303.171875,
+            "rowHeight": 325.203125,
+            "tableWidth": 328,
+            "scrollY": 0,
+            "ancestors": [
+              {
+                "id": "v3IdeCenterContent",
+                "tag": "DIV",
+                "top": 301163,
+                "height": 680
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 0,
+                "height": 780
+              }
+            ]
+          },
+          "geometryAfter": {
+            "editorTop": 313.671875,
+            "editorHeight": 140,
+            "editorFullyVisible": true,
+            "rowTop": 303.171875,
+            "rowHeight": 325.203125,
+            "tableWidth": 328,
+            "scrollY": 0,
+            "ancestors": [
+              {
+                "id": "v3IdeCenterContent",
+                "tag": "DIV",
+                "top": 301163,
+                "height": 680
+              },
+              {
+                "id": "",
+                "tag": "HTML",
+                "top": 0,
+                "height": 780
+              }
+            ]
+          },
+          "patchDone": {
+            "patched": 2498,
+            "cancelled": false
+          },
+          "remainingStored": 0,
+          "sourceUnchanged": true,
+          "lateFillSuppressed": true
+        }
+      },
+      "errors": []
+    }
+  },
+  "initialRefresh": {
+    "publication": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": true,
+          "hidden": true
+        }
+      },
+      "rows": 2,
+      "state": {
+        "epoch": 1,
+        "token": 1,
+        "dirty": true,
+        "hidden": false
+      }
+    },
+    "catalog": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": true,
+          "hidden": true
+        }
+      },
+      "rows": 2,
+      "state": {
+        "epoch": 1,
+        "token": 1,
+        "dirty": true,
+        "hidden": false
+      }
+    },
+    "snapshot": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": true,
+          "hidden": true
+        }
+      },
+      "rows": 2,
+      "state": {
+        "epoch": 1,
+        "token": 1,
+        "dirty": true,
+        "hidden": false
+      }
+    }
+  },
+  "ci": "pending",
+  "production": "pending"
+}
