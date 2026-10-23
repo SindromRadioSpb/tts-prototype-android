@@ -90,7 +90,18 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
         __studioProbe.rows = rows; __studioProbe.profile = getSelectedTranslitProfile();
       }, { surface, count });
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await page.evaluate(() => { __studioProbe.before.top = __studioProbe.editor.getBoundingClientRect().top; });
+      await page.evaluate(() => {
+        const p = __studioProbe;
+        p.geometry = () => {
+          const editor = p.editor.getBoundingClientRect(), row = p.editor.closest('tr').getBoundingClientRect();
+          const ancestors = []; for (let el = p.editor.parentElement; el; el = el.parentElement) {
+            if (el.scrollHeight > el.clientHeight) ancestors.push({ id: el.id, tag: el.tagName, top: el.scrollTop, height: el.clientHeight });
+          }
+          return { editorTop: editor.top, editorHeight: editor.height, rowTop: row.top, rowHeight: row.height,
+            tableWidth: p.table.getBoundingClientRect().width, scrollY, ancestors };
+        };
+        p.before.top = p.editor.getBoundingClientRect().top; p.before.geometry = p.geometry();
+      });
       const before = await page.evaluate(() => ({ pending: v3TranslitStore().isFilling(), renders: __studioProbe.renders }));
       console.log(surface + ': table mounted, derivation held');
       assert.ok(before.pending && before.renders === 1);
@@ -110,10 +121,12 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
           focusPreserved: document.activeElement === p.editor, caret: [p.editor.selectionStart, p.editor.selectionEnd],
           replayPreserved: p.replay.isConnected && !!p.replayed, manualTranslit: table.querySelector('tbody [data-col="translit"]').textContent,
           scrollDelta: p.editor.isConnected ? p.editor.getBoundingClientRect().top - p.before.top : null,
+          geometryBefore: p.before.geometry, geometryAfter: p.editor.isConnected ? p.geometry() : null,
           patchDone: p.patchDone, remainingStored: Array.from(table.querySelectorAll('td[data-col="translit"]')).filter(c => !c.querySelector('.cell-editor-wrap') && /^stored-/.test(c.firstChild?.textContent || '')).length,
           sourceUnchanged: JSON.stringify(currentTableData) === p.before.model };
       });
       report.checks[surface] = result;
+      console.log(surface, JSON.stringify(result));
       if (baseline) { assert.equal(result.sameTable, false); assert.ok(result.renders >= 2); }
       else {
         assert.equal(result.renders, 1); assert.ok(result.sameTable && result.editorPreserved && result.focusPreserved && result.replayPreserved && result.sourceUnchanged);
@@ -132,7 +145,6 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
         });
         assert.ok(cancelled); result.lateFillSuppressed = true;
       }
-      console.log(surface, JSON.stringify(result));
       await context.close();
     }
     assert.deepEqual(report.errors, []); report.result = 'PASS';

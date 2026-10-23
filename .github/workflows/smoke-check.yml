@@ -73,6 +73,21 @@ jobs:
         # Real OPFS/host, isolated profiles; name classification never inherits an AI gloss.
         run: node scripts/premium/morph-analysis-browser-gate.js
 
+      - name: Room preview transfer and cache boundary with active SW
+        # Actual SW source, native HTTP streams, no owner data or corpus writes.
+        run: node scripts/premium/room-discovery-sw-preview-smoke.js
+
+  studio-background:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
       - name: Studio background completion and saved context
         timeout-minutes: 5
         # Disposable origin/OPFS; holds status/derivation boundaries, blocks paid APIs.
@@ -81,7 +96,3 @@ jobs:
           node scripts/premium/studio-translit-responsive-smoke.js --mobile
           node scripts/premium/studio-saved-context-smoke.js
           node scripts/premium/studio-saved-context-smoke.js --ide
-
-      - name: Room preview transfer and cache boundary with active SW
-        # Actual SW source, native HTTP streams, no owner data or corpus writes.
-        run: node scripts/premium/room-discovery-sw-preview-smoke.js
