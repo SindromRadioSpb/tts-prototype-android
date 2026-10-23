@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.809";
+const CACHE_VERSION = "v3.11.810";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -122,6 +122,7 @@ const PRECACHE_URLS = [
   "/js/benyehuda-learning-edition.js?v=731",
   "/js/corpus-materialize.js?v=806",
   "/js/work-parts.js?v=808",
+  "/js/work-zip.js?v=810",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
@@ -149,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=809",
+  "/js/library-ui.js?v=810",
   "/js/room-b6-core.js?v=730",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -244,7 +245,7 @@ const PRECACHE_URLS = [
   "/js/subtitle-material-core.js?v=684",
   "/js/subtitle-material-import.js?v=584",
   "/js/subtitle-media-attach.js?v=796",
-  "/js/local-translit-bundle.js?v=735",
+  "/js/local-translit-bundle.js?v=810",
   "/js/translit-display.js?v=734",
   "/js/subtitle-material-vocalization.js?v=735",
   "/js/niqqud-plausibility.js?v=735",
@@ -351,9 +352,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v10.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=809",
-  "/i18n/locales/en.js?v=809",
-  "/i18n/locales/he.js?v=809",
+  "/i18n/locales/ru.js?v=810",
+  "/i18n/locales/en.js?v=810",
+  "/i18n/locales/he.js?v=810",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

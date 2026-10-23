@@ -1305,7 +1305,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/subtitle-material-import.js?v=584",
   "/js/subtitle-media-attach.js?v=796",
   "/js/media-readiness.js?v=671",
-  "/js/local-translit-bundle.js?v=735",
+  "/js/local-translit-bundle.js?v=810",
   "/js/translit-display.js?v=734",
   "/js/subtitle-material-vocalization.js?v=735",
   "/js/niqqud-plausibility.js?v=735",
@@ -1324,6 +1324,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/benyehuda-learning-edition.js?v=731",
   "/js/corpus-materialize.js?v=806",
   "/js/work-parts.js?v=808",
+  "/js/work-zip.js?v=810",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
   "/js/corpus-discovery-core.js?v=731",
@@ -1344,7 +1345,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=809",
+  "/js/library-ui.js?v=810",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1401,9 +1402,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=809",
-  "/i18n/locales/en.js?v=809",
-  "/i18n/locales/he.js?v=809",
+  "/i18n/locales/ru.js?v=810",
+  "/i18n/locales/en.js?v=810",
+  "/i18n/locales/he.js?v=810",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

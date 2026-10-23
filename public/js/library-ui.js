@@ -9382,6 +9382,38 @@ async function openWorkPage(card, opts) {
   renderWorkPage(card, toc, progress);
 }
 
+// Ф4б — one ZIP of the whole work, from the verified public bodies of its parts (work-zip.js). Nothing is written.
+function openWorkZip(card, toc, trigger) {
+  const total = toc.parts.length;
+  openMaterialShare({
+    item: { title: card.title },
+    hideAudioFacts: true,
+    description: fmt('room.work.zipDescription', 'В архиве все части произведения ({n}) — тексты с переводом и разбором, как они опубликованы, и оглавление. Личных заметок и прогресса в нём нет.', { n: total }),
+    buildArtifact: async ({ signal, setStatus }) => {
+      const res = await fetch('/data/benyehuda/' + card.toc_file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache', signal });
+      if (!res.ok) throw new Error('toc ' + res.status);
+      const tocBuffer = await res.arrayBuffer();
+      await window.BenYehudaLearningEdition.verifyBytes(tocBuffer.slice(0), card.toc_sha256);
+      return window.WorkZip.buildWorkZip({
+        card, toc, tocBytes: new Uint8Array(tocBuffer), WorkParts: window.WorkParts, Edition: window.BenYehudaLearningEdition, Share: window.ShareService, JSZip: window.JSZip,
+        catalogVersion: CORPUS_CATALOG_VERSION, slug: roomShareSlug(card.title), signal,
+        fetchBody: async (part, partCard) => {
+          const r = await fetch('/data/benyehuda/' + partCard.file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache', signal });
+          if (!r.ok) throw new Error('fetch ' + r.status);
+          return r.arrayBuffer();
+        },
+        onPart: (k, n) => setStatus(fmt('room.work.zipProgress', 'Собираем части: {k} из {n}…', { k, n })),
+      });
+    },
+    readyCopy: (artifact) => fmt('room.work.zipReady', 'Архив готов: {n} частей, {size} МБ.', { n: total, size: (Number(artifact.blob && artifact.blob.size || 0) / 1048576).toFixed(1) }),
+    failCopy: (error) => {
+      const offline = (typeof navigator !== 'undefined' && navigator.onLine === false) || (error && error.cause instanceof TypeError);
+      if (offline) return tt('room.work.zipOffline', 'Нужна сеть: не все части есть в памяти браузера. Архив не собран, данные не изменены.');
+      if (error && error.code === 'PART_FAILED') return fmt('room.work.zipPartFailed', 'Часть {n} не загрузилась или пришла повреждённой — архив не собран. Данные в приложении не изменены.', { n: error.order });
+      return tt('room.share.failed', 'Не удалось подготовить архив. Текст и данные в приложении не изменены.');
+    },
+  }, trigger);
+}
 function renderWorkPage(card, toc, progress) {
   const mount = $('roomReaderTable');
   if (!mount) return;
@@ -9396,6 +9428,11 @@ function renderWorkPage(card, toc, progress) {
   const about = el('button', { class: 'corpus-passport-button', text: window.CorpusDiscoveryBrowser.label('passport'), attrs: { type: 'button' } });
   about.addEventListener('click', () => window.CorpusDiscoveryBrowser.passport(card, true, { trigger: about, eraLabel: corpusEraTitle, read: () => {}, localText: null, addToList: () => openListPicker(card, about, true) }));
   head.appendChild(about);
+  if (window.WorkZip && window.JSZip) {
+    const zipBtn = el('button', { class: 'corpus-passport-button work-page-zip', text: '⬇ ' + tt('room.work.zip', 'Скачать произведение (ZIP)'), attrs: { type: 'button' } });
+    zipBtn.addEventListener('click', () => openWorkZip(card, toc, zipBtn));
+    head.appendChild(zipBtn);
+  }
   page.appendChild(head);
 
   const wp = window.WorkParts.workProgress(toc, progress);
@@ -11571,9 +11608,10 @@ function openMaterialShare(request, returnFocus) {
   titleWrap.appendChild(el('p', { class: 'room-share-material', text: String(displayItem.title || tt('room.work.untitled', 'Без названия')) }));
   const closeBtn = el('button', { class: 'room-share-close', attrs: { type: 'button', 'aria-label': tt('room.share.close', 'Закрыть') }, text: '×' });
   head.appendChild(titleWrap); head.appendChild(closeBtn); box.appendChild(head);
-  box.appendChild(el('p', { class: 'room-share-note', text: tt('room.share.description', 'Учебный ZIP содержит текст, паспорт материала и доступное аудио. Если часть аудио недоступна, это будет явно указано до отправки.') }));
+  box.appendChild(el('p', { class: 'room-share-note', text: request.description || tt('room.share.description', 'Учебный ZIP содержит текст, паспорт материала и доступное аудио. Если часть аудио недоступна, это будет явно указано до отправки.') }));
 
   const facts = el('div', { class: 'room-share-facts', attrs: { 'aria-label': tt('room.share.packageFacts', 'Состав архива') } });
+  if (request.hideAudioFacts) facts.hidden = true;
   const fact = (key, labelKey, fallback) => {
     const node = el('div', { class: 'room-share-fact' });
     const number = el('strong', { text: '—' }); number.setAttribute('data-share-fact', key);
@@ -11629,6 +11667,17 @@ function openMaterialShare(request, returnFocus) {
   const failCopy = () => tt('room.share.failed', 'Не удалось подготовить архив. Текст и данные в приложении не изменены.');
   (async () => {
     if (!service || typeof service.buildLearningPackage !== 'function') throw new Error('SHARE_SERVICE_UNAVAILABLE');
+    // A caller-built archive (a work made of parts, from its verified public bodies) uses the same dialog.
+    if (typeof request.buildArtifact === 'function') {
+      artifact = await request.buildArtifact({ signal: controller ? controller.signal : null, setStatus });
+      if (closed) return;
+      paintFacts(artifact.facts);
+      try { artifact.file = service.fileFromArtifact(artifact); } catch (_) { artifact.file = null; }
+      const canShareWork = !!(artifact.file && service.canShareFile(artifact.file, navigator));
+      shareBtn.hidden = !canShareWork; shareBtn.disabled = !canShareWork; saveBtn.disabled = false; saveBtn.classList.toggle('primary', !canShareWork);
+      setStatus(typeof request.readyCopy === 'function' ? request.readyCopy(artifact) : tt('room.share.ready', 'Архив готов: текст и всё доступное аудио включены.'), 'ready');
+      return;
+    }
     const item = typeof request.ensureItem === 'function' ? await request.ensureItem() : displayItem;
     if (!item || !item.id) throw new Error('MATERIAL_NOT_AVAILABLE_LOCALLY');
     const bundle = await localDb.exportBundle({ includeArchived: true, textIds: [String(item.id)] });
@@ -11689,7 +11738,7 @@ function openMaterialShare(request, returnFocus) {
   })().catch((error) => {
     if (closed || (error && error.name === 'AbortError')) return;
     artifact = null; shareBtn.disabled = true; saveBtn.disabled = true;
-    setStatus(failCopy(), 'error');
+    setStatus(typeof request.failCopy === 'function' ? request.failCopy(error) : failCopy(), 'error');
   });
 
   shareBtn.addEventListener('click', async () => {
