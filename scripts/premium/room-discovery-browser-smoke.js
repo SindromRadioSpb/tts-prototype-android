@@ -175,19 +175,33 @@ async function main() {
       await fresh.close(); debugPage = page;
     }
     record('fresh 380×850 and 1280×850 first screen: useful card, search and modes in both themes/worlds', firstScreen);
-    await page.setViewportSize({ width: 380, height: 850 });
-    await page.selectOption('#roomLang', 'he'); await page.locator('[data-corpus-mode="explore"]').click();
-    const heTitles = await page.locator('.period-card-title').allTextContents();
-    const heGlosses = await page.locator('.period-card-gloss').allTextContents();
-    assert.deepEqual(heTitles, ['תקופת המקרא', 'ימי הביניים', 'תקופת ההשכלה', 'תקופת התחייה', 'תקופת המנדט', 'ספרות מודרנית', 'תקופה לא ידועה']);
-    assert.equal(heGlosses.length, 7); assert.ok(heGlosses.every(text => /[א-ת]/.test(text) && !/[А-Яа-яЁё]/.test(text)));
-    assert.ok((await page.locator('.period-card-range').allTextContents()).every(text => !/[А-Яа-яЁё]/.test(text)));
-    await page.screenshot({ path: path.join(OUT, 'explore-380-he.png'), fullPage: true }); assert.equal(await page.getAttribute('html', 'dir'), 'rtl');
-    await page.selectOption('#roomLang', 'en');
-    assert.deepEqual(await page.locator('.period-card-title').allTextContents(), ['Biblical period', 'Middle Ages', 'Haskalah (Enlightenment)', 'Tehiya (Revival)', 'Mandate period', 'Modern literature', 'Period unknown']);
-    await page.selectOption('#roomLang', 'he');
-    await page.locator('.period-card').first().focus(); await page.keyboard.press('Enter'); await page.locator('.corpus-author-row').first().waitFor();
-    record('localized HE/EN era labels and glosses, RTL and keyboard catalog navigation', { heTitles, heGlosses });
+    // Privacy fixtures above deliberately retain v7. Locale acceptance must use
+    // the shipped catalog: since 811 its six official periods replace v7's seven
+    // app-defined sections, whose retired keys legitimately have no translations.
+    const localeContext = await browser.newContext({ viewport: { width: 380, height: 850 }, serviceWorkers: 'block' });
+    try {
+      await localeContext.route('**/*', route => route.request().url().startsWith(base) ? route.continue() : route.abort());
+      await localeContext.addInitScript(() => { localStorage.setItem('app.locale', 'ru'); localStorage.setItem('phase6Decision_v1', 'declined'); });
+      const localePage = await localeContext.newPage(); debugPage = localePage;
+      await localePage.goto(base + '/library.html?canon=skip#room=benyehuda&mode=explore');
+      await localePage.locator('.period-card-title').first().waitFor();
+      const selectLocale = async (locale, firstTitle) => {
+        await localePage.selectOption('#roomLang', locale);
+        await localePage.waitForFunction(title => document.querySelector('.period-card-title')?.textContent === title, firstTitle);
+      };
+      await selectLocale('he', 'עת עתיקה ופיוט');
+      const heTitles = await localePage.locator('.period-card-title').allTextContents();
+      const heGlosses = await localePage.locator('.period-card-gloss').allTextContents();
+      assert.deepEqual(heTitles, ['עת עתיקה ופיוט', 'ימי הביניים והרנסאנס', 'ההשכלה', 'התחייה', 'ספרות עברית חדשה', 'ללא תקופה בקטלוג פרויקט בן־יהודה']);
+      assert.equal(heGlosses.length, 6); assert.ok(heGlosses.every(text => /[א-ת]/.test(text) && !/[А-Яа-яЁё]/.test(text)));
+      assert.ok((await localePage.locator('.period-card-range').allTextContents()).every(text => !/[А-Яа-яЁё]/.test(text)));
+      await localePage.screenshot({ path: path.join(OUT, 'explore-380-he.png'), fullPage: true }); assert.equal(await localePage.getAttribute('html', 'dir'), 'rtl');
+      await selectLocale('en', 'Antiquity and Piyyut');
+      assert.deepEqual(await localePage.locator('.period-card-title').allTextContents(), ['Antiquity and Piyyut', 'Middle Ages and Renaissance', 'Haskalah (Enlightenment)', 'Tehiya (Revival)', 'New Hebrew Literature', 'No period in the Ben-Yehuda catalog']);
+      await selectLocale('he', 'עת עתיקה ופיוט');
+      await localePage.locator('.period-card').first().focus(); await localePage.keyboard.press('Enter'); await localePage.locator('.corpus-author-row').first().waitFor();
+      record('localized HE/EN official periods, RTL and keyboard catalog navigation', { heTitles, heGlosses });
+    } finally { await localeContext.close(); debugPage = page; }
     await page.goto(base + '/library.html?canon=skip#room=public%3Adiscovery-fixture');
     await page.locator('#roomPublicCorpusSearch').waitFor();
     await page.locator('#roomPublicCorpusSearch').fill('PUBLIC-FIXTURE');

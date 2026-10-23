@@ -160,3 +160,9 @@ node tests/i18n.smoke.js
 ```
 
 Release is pending the capacity gate: last read-only inventory has 2.85 GiB available, no build cache, 15 images, 11 containers and four volumes. Proposed cleanup is limited to three unreferenced historical LinguistPro images `cf642b806a9e` (813), `8e1163320319` (812), and `ef80b72ad654` (`c3fa5172`); retain current 815 `198bf2834490` and rollback 814 `7c1049974621`, plus every container/volume/data/backup. No images have been deleted. Exact-set owner approval and a fresh reference/capacity check are required before main push. Group/baked routes, local-copy evidence restoration and first-screen layer/DOM costs remain outside S2.
+
+### CI fixture correction during the approved release
+
+GitHub runs for both 815 runtime and its evidence-only follow-up failed the Room discovery locale check. The privacy harness explicitly substituted catalog v7, then expected its seven retired app-era titles from current locale dictionaries. Since 811 the shipped catalog and dictionaries use six official Ben-Yehuda periods. This failure is reproducible from the old fixture, not evidence of a newly introduced S2 translation regression.
+
+The locale/RTL/keyboard portion now uses a separate disposable context with the actual shipped catalog, waits for the translated first title, and independently asserts all six HE/EN titles and Hebrew-only glosses. The v7 privacy, preview and learner-state fixtures retain their original checks. All eight browser groups pass locally, including fresh mobile/desktop first-screen checks and no query leakage. This changes test code only and ships with `[skip cd]` to avoid another runtime build; CI completion is recorded separately below.
