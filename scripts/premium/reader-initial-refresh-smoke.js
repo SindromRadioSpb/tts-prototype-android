@@ -8,6 +8,7 @@ const { smokeServerEnv, SMOKE_SERVER_BOOTSTRAP, waitForSmokeServer } = require('
 const root = path.resolve(__dirname, '../..');
 const arg = name => process.argv.find(value => value.startsWith('--' + name + '='))?.slice(name.length + 3);
 const baseline = process.argv.includes('--baseline'), ref = arg('ref') || 'a0621a71';
+const remote = arg('base');
 const out = path.resolve(arg('out') || '.tmp/reader-performance/initial-refresh-818.json');
 const gate = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const slug = 'test-initial-refresh', work = 'work-1';
@@ -20,12 +21,16 @@ const published = { ok: true, corpus: { corpus_id: 'pc_refresh', slug, title: 'R
 const snapshot = { library: { texts: [{ title: item.title, text_key: 'initial-refresh', source_text: 'שלום עולם',
   rows: [0, 1].map(i => ({ order_index: i, hebrew_plain: 'שלום עולם', hebrew_niqqud: 'שָׁלוֹם עוֹלָם', russian: 'Тест ' + i, translit: 'shalom olam' })) }] } };
 (async () => {
-  const server = fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: root,
+  const server = remote ? null : fork('-e', [SMOKE_SERVER_BOOTSTRAP], { cwd: root,
     env: smokeServerEnv(fs.mkdtempSync(path.join(os.tmpdir(), 'lp-initial-refresh-')), 0), silent: true, windowsHide: true });
-  server.stdout.resume(); server.stderr.resume(); let browser, page;
-  const report = { baseline, ref, scope: 'Disposable synthetic first-open pipeline; initial DB notifications held until the chosen boundary, then one actual localdb:changed event; GET-only same-origin network.', checks: {}, errors: [] };
+  server?.stdout.resume(); server?.stderr.resume(); let browser, page;
+  const report = { baseline, ref, remote: !!remote, scope: 'Disposable synthetic first-open pipeline; initial DB notifications held until the chosen boundary, then one actual localdb:changed event; GET-only same-origin network.', checks: {}, errors: [] };
   try {
-    const base = 'http://127.0.0.1:' + await waitForSmokeServer(server, 30000);
+    const base = remote || 'http://127.0.0.1:' + await waitForSmokeServer(server, 30000);
+    if (remote) {
+      assert.ok(arg('version') && !baseline, 'Remote checks require an exact version and served code');
+      assert.equal((await (await fetch(base + '/api/client-config?verify=' + Date.now())).json()).version, arg('version'));
+    }
     browser = await chromium.launch({ headless: true });
     for (const boundary of baseline ? ['snapshot'] : ['publication', 'catalog', 'snapshot']) {
       const held = gate(), entered = gate();
@@ -86,5 +91,5 @@ const snapshot = { library: { texts: [{ title: item.title, text_key: 'initial-re
   } catch (error) {
     report.result = 'FAIL'; report.failure = error.stack;
     throw error;
-  } finally { fs.mkdirSync(path.dirname(out), { recursive: true }); fs.writeFileSync(out, JSON.stringify(report, null, 2) + '\n'); await browser?.close(); server.kill(); }
+  } finally { fs.mkdirSync(path.dirname(out), { recursive: true }); fs.writeFileSync(out, JSON.stringify(report, null, 2) + '\n'); await browser?.close(); server?.kill(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
