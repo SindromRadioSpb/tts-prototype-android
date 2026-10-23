@@ -82,5 +82,19 @@
     return out;
   }
 
-  return { isMultipart, parseToc, partCard, navigation, children, findPart, mainParts, partState, workProgress, groupContinue, TOC };
+  // A part's label inside its own work: the archive title without the work name. Some archives name parts in
+  // Russian only («Продолжение романа»); in a Hebrew/English interface such a label becomes «Part N» (or the
+  // track name for a chapter's notes/structure), keeping any date it carried. Nothing is translated or guessed.
+  const CYRILLIC = /[Ѐ-ӿ]/;
+  function partLabel(part, o) {
+    o = o || {};
+    const segs = String((part && part.title) || '').split(' · ');
+    const own = segs.length > 1 ? segs.slice(1) : segs;
+    if (o.lang === 'ru' || !own.some((s) => CYRILLIC.test(s))) return own.join(' · ');
+    if (part.parent && o.trackLabel) return o.trackLabel;
+    const dates = own.filter((s) => CYRILLIC.test(s)).join(' ').match(/\b\d{1,2}\.\d{1,2}\.\d{4}\b/g) || [];
+    return [o.partWord || o.trackLabel || ''].concat(dates).filter(Boolean).join(' · ');
+  }
+
+  return { isMultipart, parseToc, partCard, navigation, children, findPart, mainParts, partState, workProgress, groupContinue, partLabel, TOC };
 });

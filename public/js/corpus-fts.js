@@ -503,6 +503,29 @@
     return out;
   }
 
+  // partsWith(query, w) → { parts: [indices], work_id, toc_sha256 } — the parts of work w (a work made of parts)
+  // whose text holds EVERY query word (exact skeleton), ascending; null for a work without part postings.
+  // Part postings live in the exact shards under '#'+skeleton (delta encoding, part indices as positions).
+  function partsWith(query, w) {
+    var toks = _resolveQueryTokens(query);
+    toks = toks.filter(function (t, i) { return toks.indexOf(t) === i; });
+    return ensureManifest().then(function (m) {
+      var wp = m && m.work_parts && m.work_parts[w];
+      if (!wp || !toks.length) return null;
+      var keys = {}; toks.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
+      return Promise.all(Object.keys(keys).filter(Boolean).map(ensureShard)).then(function () {
+        var common = null;
+        for (var i = 0; i < toks.length; i++) {
+          var list = (_bucketCache.get(shardKeyFor(toks[i], m)) || {})['#' + toks[i]] || [], own = [];
+          for (var j = 0; j < list.length; j++) if (list[j].w === w) { own = list[j].pos; break; }
+          common = common === null ? own.slice() : common.filter(function (p) { return own.indexOf(p) !== -1; });
+          if (!common.length) break;
+        }
+        return { parts: common || [], work_id: wp.work_id, toc_sha256: wp.toc_sha256 };
+      });
+    });
+  }
+
   function _setLemmaMapForTest(m) { _lemmaMap = m || null; }
   function _setManifestForTest(m) { _manifest = m || null; }
   function _setBucketForTest(key, decoded) { _bucketCache.set(key, decoded || {}); }   // inject a decoded EXACT shard (phraseOnlySearch gate)
@@ -515,7 +538,7 @@
     scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow, findRows: findRows,
     markSegments: markSegments, pidForToken: pidForToken, FINALS: FINALS,
     configure: configure, search: search, phraseSearch: phraseSearch, phraseOnlySearch: phraseOnlySearch, concordance: concordance, ensureManifest: ensureManifest,
-    warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor,
+    warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor, partsWith: partsWith,
     _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest, _setBucketForTest: _setBucketForTest, _setLemmaForTest: _setLemmaForTest,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

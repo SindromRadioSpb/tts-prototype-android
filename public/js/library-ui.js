@@ -64,7 +64,7 @@ let textByKey = new Map(); // text_key -> { id, title }
 // sidecar (author index + ready rail + facet histograms, fetched once on first Корпус open)
 // + per-era manifest BLOCK(s) on demand (only the block(s) an author lives in — D1/R4 keeps
 // the mobile budget to root + 1 active manifest, never the 26K/10MB at once).
-const CORPUS_CATALOG_VERSION = 10;
+const CORPUS_CATALOG_VERSION = 11;
 const CORPUS_ROOT_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
 let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts, index_file, pointers }
 let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
@@ -9280,10 +9280,12 @@ async function loadWorkToc(card) {
   _workTocCache.set(key, toc);
   return toc;
 }
-function workPartTitle(card, part) {
-  // «Рабочий в Стране Израиля · 03 · Продолжение» → «03 · Продолжение» inside its own work.
-  const parts = String(part.title || '').split(' · ');
-  return parts.length > 1 ? parts.slice(1).join(' · ') : String(part.title || '');
+function workTrackLabel(track) { return tt('room.work.track.' + track, track === 'notes' ? 'Примечания к главе' : track === 'structure' ? 'Структура главы' : 'Приложение'); }
+function workPartTitle(card, part, number) {
+  // «Рабочий в Стране Израиля · 03 · Продолжение» → «03 · Продолжение» inside its own work; a Russian-only
+  // archive title reads «Part N» in a Hebrew/English interface (WorkParts.partLabel).
+  const lang = String(document.documentElement.lang || 'ru').split('-')[0];
+  return window.WorkParts.partLabel(part, { lang, partWord: number != null ? fmt('room.work.partN', 'Часть {n}', { n: number }) : '', trackLabel: part.track !== 'text' ? workTrackLabel(part.track) : '' });
 }
 async function workProgressByKey(toc) {
   const keys = toc.parts.map((p) => p.text_key);
@@ -9377,7 +9379,7 @@ function renderWorkPage(card, toc, progress) {
     const st = window.WorkParts.partState(p, progress.get(p.text_key));
     const row = el('button', { class: 'work-toc-part' + (st.state === 'done' ? ' is-done' : '') + (current && (current.part_id === p.part_id || current.parent === p.part_id) ? ' is-current' : ''), attrs: { type: 'button', 'data-part': p.part_id } });
     if (number != null) row.appendChild(el('span', { class: 'work-toc-num', text: String(number) }));
-    const title = el('span', { class: 'work-toc-title', text: workPartTitle(card, p) });
+    const title = el('span', { class: 'work-toc-title', text: workPartTitle(card, p, number) });
     if (HEBREW_RE.test(title.textContent)) title.setAttribute('dir', 'rtl');
     row.appendChild(title);
     const meta = st.state === 'done' ? tt('room.work.partDone', '✓ прочитано') : st.state === 'reading' ? st.percent + '%' : progress.has(p.text_key) ? tt('room.work.onDevice', 'на устройстве') : fmt('room.work.rowsCount', '{n} строк', { n: p.rows });
@@ -9392,7 +9394,7 @@ function renderWorkPage(card, toc, progress) {
     const kids = window.WorkParts.children(toc, p.part_id);
     if (kids.length) {
       const d = el('details', { class: 'work-toc-children' });
-      const label = kids.map((k) => k.track).filter((v, i, a) => a.indexOf(v) === i).map((t) => tt('room.work.track.' + t, t === 'notes' ? 'Примечания к главе' : t === 'structure' ? 'Структура главы' : 'Приложение')).join(' · ');
+      const label = kids.map((k) => k.track).filter((v, i, a) => a.indexOf(v) === i).map((t) => workTrackLabel(t)).join(' · ');
       d.appendChild(el('summary', { text: label + ' (' + kids.length + ')' }));
       for (const k of kids) d.appendChild(item(k, null));
       li.appendChild(d);
@@ -9442,7 +9444,7 @@ function renderPartBar() {
   if (ctx.nav.prev) prev.addEventListener('click', go(ctx.nav.prev)); else prev.disabled = true;
   const toc = el('button', { class: 'room-part-toc', attrs: { type: 'button' } });
   toc.textContent = ctx.nav.parent
-    ? fmt('room.work.partOfNote', 'Часть {n} из {total} · {track}', { n: ctx.nav.number, total: ctx.nav.total, track: tt('room.work.track.' + ctx.part.track, ctx.part.track === 'notes' ? 'Примечания к главе' : ctx.part.track === 'structure' ? 'Структура главы' : 'Приложение') })
+    ? fmt('room.work.partOfNote', 'Часть {n} из {total} · {track}', { n: ctx.nav.number, total: ctx.nav.total, track: workTrackLabel(ctx.part.track) })
     : fmt('room.work.partOf', 'Часть {n} из {total}', { n: ctx.nav.number, total: ctx.nav.total });
   toc.title = tt('room.work.toc', 'Оглавление');
   toc.addEventListener('click', () => openWorkPage(ctx.card, { fromPart: true }));
@@ -9458,7 +9460,7 @@ function appendNextPartToEndCard(card) {
   const box = el('div', { class: 'reader-end-next-part' });
   if (ctx.nav.next) {
     const b = el('button', { class: 'reader-end-next-part-btn', attrs: { type: 'button' } });
-    b.textContent = fmt('room.work.nextPart', 'Следующая часть: {title}', { title: workPartTitle(ctx.card, ctx.nav.next) }) + ' (' + fmt('room.work.rowsCount', '{n} строк', { n: ctx.nav.next.rows }) + ')';
+    b.textContent = fmt('room.work.nextPart', 'Следующая часть: {title}', { title: workPartTitle(ctx.card, ctx.nav.next, ctx.nav.number + 1) }) + ' (' + fmt('room.work.rowsCount', '{n} строк', { n: ctx.nav.next.rows }) + ')';
     b.addEventListener('click', () => openCorpusWork(ctx.card, { partId: ctx.nav.next.part_id, resume: true }));
     box.appendChild(b);
   } else if (!ctx.nav.parent) {
@@ -9482,6 +9484,8 @@ async function openCorpusWork(card, openOpts) {
     if (readerTextId) { try { await flushReaderProgress(); } catch (_) {} }   // leaving one part for another keeps its place
     $('roomReader')?.classList.remove('is-work-page');
     card = window.WorkParts.partCard(card, part);
+    const nav = window.WorkParts.navigation(toc, part.part_id);
+    card.display_title = card.work_title + ' · ' + workPartTitle(card, part, nav ? nav.number : null);
   }
   const openEpoch = ++readerOpenEpoch;
   captureReaderReturnContext();
@@ -9490,8 +9494,8 @@ async function openCorpusWork(card, openOpts) {
   if (reader) reader.hidden = false;
   const titleEl = $('readerTitle');
   if (titleEl) {
-    titleEl.textContent = card.title || '';
-    if (HEBREW_RE.test(card.title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
+    titleEl.textContent = card.display_title || card.title || '';
+    if (HEBREW_RE.test(titleEl.textContent)) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
   }
   try { window.scrollTo(0, 0); } catch (_) {}
   readerStateBox('room.state.loading', '⏳');
@@ -9509,7 +9513,7 @@ async function openCorpusWork(card, openOpts) {
     // A cold public URL selecting either learning edition offers its saved resume.
     // Automatic arrival must not replay a row write that clears its saved step.
     if (readerOpts.replaceInitialHistory) readerOpts.resume = false;
-    await openReader(localId, card.title, readerOpts);
+    await openReader(localId, card.display_title || card.title, readerOpts);
     if (card.learning_edition_id && openEpoch === readerOpenEpoch && readerTextId === String(localId)) {
       const label = window.CorpusDiscoveryBrowser.label;
       const banner = el('div', { class: 'room-copyright-notice', attrs: { id: 'roomDeviceEdition', role: 'status' } });
@@ -14368,13 +14372,33 @@ function appendMarkedHebrew(parent, text, qToks) {
 const _workBodyCache = new Map();   // card.id → Promise<rows[]> (single-flight; bodies immutable + force-cached)
 let _snipFetchBudget = 3;
 function loadWorkBodyRows(card) {
-  const key = String(card.id);
+  const key = String(card.file || card.id);   // a part of a work has its own body
   if (_workBodyCache.has(key)) return _workBodyCache.get(key);
   const p = window.CorpusDiscoveryBrowser.loadRows(card);
   if (_workBodyCache.size >= 8) _workBodyCache.delete(_workBodyCache.keys().next().value);
   _workBodyCache.set(key, p);
   p.catch(() => { _workBodyCache.delete(key); });   // a failed fetch may retry on a later observe
   return p;
+}
+let _searchOrdCache = { arr: null, map: null };
+function corpusSearchOrdinal(id) {
+  if (!corpusSearch) return -1;
+  if (_searchOrdCache.arr !== corpusSearch) _searchOrdCache = { arr: corpusSearch, map: new Map(corpusSearch.map((r, i) => [String(r.id), i])) };
+  const o = _searchOrdCache.map.get(String(id));
+  return o == null ? -1 : o;
+}
+// A full-text hit in a work made of parts: the parts whose text holds every query word, in reading order
+// (part postings in the index, bound to the sealed table of contents). null → the work page opens; no part is guessed.
+async function ftsPartsFor(card, q) {
+  if (!card || !q || !window.CorpusFTS || !window.WorkParts || !window.WorkParts.isMultipart(card)) return null;
+  const w = corpusSearchOrdinal(card.id);
+  if (w < 0) return null;
+  ensureFtsConfigured();
+  const hit = await window.CorpusFTS.partsWith(q, w);
+  if (!hit || !hit.parts.length || hit.toc_sha256 !== card.toc_sha256 || String(hit.work_id) !== String(card.id)) return null;
+  const toc = await loadWorkToc(card);
+  const parts = hit.parts.map((i) => toc.parts[i]).filter(Boolean);
+  return parts.length ? { parts, toc } : null;
 }
 let _snipObserver = null;
 function getSnipObserver() {
@@ -14398,12 +14422,29 @@ function observeRowSnippet(rowNode, card, ftsQuery) {
 async function fillRowSnippet(rowNode) {
   const card = rowNode && rowNode.__snipCard, q = rowNode && rowNode.__snipQuery;
   if (!card || !q || !rowNode.isConnected || rowNode.querySelector('.corpus-work-snippet')) return;
-  if (!_workBodyCache.has(String(card.id))) { if (_snipFetchBudget <= 0) return; _snipFetchBudget--; }
-  let rows = null;
+  let rows = null, idx = -1;
+  const C = window.CorpusFTS;
+  if (window.WorkParts && window.WorkParts.isMultipart(card)) {
+    // Snippets come from a small preview file; a part in the middle of a work has none, and a whole part body
+    // (up to 4 MB) is not fetched for one line. The row names the part that holds the words; opening goes there.
+    let hit = null;
+    try { hit = await ftsPartsFor(card, q); } catch (_) { hit = null; }
+    if (!hit || !rowNode.isConnected || rowNode.querySelector('.corpus-work-snippet')) return;
+    const part = hit.parts[0], nav = window.WorkParts.navigation(hit.toc, part.part_id);
+    rowNode.__ftsPartId = part.part_id;
+    const title = workPartTitle(card, part, nav ? nav.number : null);
+    const snip = el('div', { class: 'corpus-work-snippet' });
+    const pl = el('div', { class: 'corpus-snippet-part', text: fmt('room.work.foundInPart', 'Найдено: {title}', { title }) + (hit.parts.length > 1 ? ' · ' + fmt('room.work.foundInParts', 'частей со словами: {n}', { n: hit.parts.length }) : '') });
+    if (HEBREW_RE.test(title)) pl.setAttribute('dir', 'auto');
+    snip.appendChild(pl);
+    const col = rowNode.querySelector('.corpus-work-col');
+    if (col) col.appendChild(snip);
+    return;
+  }
+  if (!_workBodyCache.has(String(card.file || card.id))) { if (_snipFetchBudget <= 0) return; _snipFetchBudget--; }
   try { rows = await loadWorkBodyRows(card); } catch (_) { return; }
+  try { if (C) { idx = C.firstPhraseRow(rows, q); if (idx < 0) idx = C.firstMatchRow(rows, q); } } catch (_) { idx = -1; }
   if (!rows || !rows.length || !rowNode.isConnected) return;
-  let idx = -1;
-  try { const C = window.CorpusFTS; if (C) { idx = C.firstPhraseRow(rows, q); if (idx < 0) idx = C.firstMatchRow(rows, q); } } catch (_) { idx = -1; }
   if (idx < 0) return;
   const row = rows[idx];
   const he = row.hebrew_niqqud || row.hebrew_plain || '', ru = row.russian || '';
@@ -15259,7 +15300,15 @@ function renderCorpusWorkRow(card, openable, opts) {
     : el('span', { class: 'corpus-work-cta', text: '⏳', attrs: { 'aria-hidden': 'true' } });
   row.appendChild(cta);
   if (openable) {
-    const open = () => openCorpusWork(card, (opts && opts.openOpts) || (row.getAttribute('data-state') === 'reading' ? { resume: true } : undefined));   // BRR-P2-005 — FTS: open at matched row
+    const open = async () => {   // BRR-P2-005 — FTS: open at matched row; in a work made of parts, in the part that holds it
+      const o = (opts && opts.openOpts) || (row.getAttribute('data-state') === 'reading' ? { resume: true } : undefined);
+      if (o && o.ftsQuery && window.WorkParts && window.WorkParts.isMultipart(card)) {
+        let partId = row.__ftsPartId || null;
+        if (!partId) { try { const hit = await ftsPartsFor(card, o.ftsQuery); partId = hit ? hit.parts[0].part_id : null; } catch (_) { partId = null; } }
+        if (partId) return openCorpusWork(card, { ...o, partId });
+      }
+      return openCorpusWork(card, o);
+    };
     openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
   }
   // BRR-S1 — lazy bilingual snippet of the matched line (ready hits in a search context only).

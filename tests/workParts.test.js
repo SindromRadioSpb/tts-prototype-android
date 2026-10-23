@@ -48,6 +48,15 @@ test('a part opens through the same verified card shape as any learning edition'
   assert.deepEqual([c.id, c.text_key, c.segments, c.file], ['58052', TOC.parts[3].text_key, 200, TOC.parts[3].file]);
 });
 
+test('a Russian-only part title becomes «Part N» outside the Russian interface, keeping its date', () => {
+  const L = (title, parent, o) => WP.partLabel({ title, parent }, o);
+  assert.equal(L('Рабочий · 02 · Продолжение романа', null, { lang: 'ru', partWord: 'Часть 2' }), '02 · Продолжение романа');
+  assert.equal(L('Рабочий · 02 · Продолжение романа', null, { lang: 'he', partWord: 'חלק 2' }), 'חלק 2');
+  assert.equal(L('בארץ · Фрагмент дневниковой записи: 17.2.1940', null, { lang: 'he', partWord: 'חלק 4' }), 'חלק 4 · 17.2.1940');
+  assert.equal(L('בארץ · יומן · 2.11.1939', null, { lang: 'he', partWord: 'חלק 1' }), 'יומן · 2.11.1939', 'a Hebrew title is kept as is');
+  assert.equal(L('Алон · Том I · 01 · Исходные заголовки', 's1', { lang: 'en', partWord: 'Part 1', trackLabel: 'Chapter structure' }), 'Chapter structure');
+});
+
 test('«Продолжить» shows one card per work, the newest part first; ordinary texts are untouched', () => {
   const items = [{ id: 1, part_work_id: '58052' }, { id: 2 }, { id: 3, part_work_id: '58052' }, { id: 4, part_work_id: '64596' }];
   assert.deepEqual(WP.groupContinue(items).map((x) => x.id), [1, 2, 4]);
