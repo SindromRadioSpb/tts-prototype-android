@@ -84,3 +84,10 @@ Preflight: 5.576 GiB available, cache 0 B. Для следующей сборк�
 Удалён только отдельно согласованный unused 814 image; 816/815 и все containers/volumes сохранены, available 5.575→6.936 GiB. После cache-only cleanup available 5.574 GiB, cache reclaimed 2.917 GB, все 13 images/11 containers/4 volumes сохранены. Следующий runtime push снова требует ≥6 GiB.
 
 Public direct-open acceptance обнаружил механизм O-130: localdb:changed при импорте вызывает refreshExternalLibrary/renderCorpus до открытия Reader, меняет corpusRenderToken и сам отменяет действующий initial public route. Контролируемый baseline сохраняет epoch 1, меняет token 1→2 и оставляет 0 строк; кандидат отложенного projection refresh открывает 499 строк. Готовится отдельный узкий фикс; навигация и A→B обязаны по-прежнему отменять старую загрузку. Первый Studio readiness timeout остаётся отдельным необъяснённым наблюдением. [Production evidence](../research/reader-performance/2026-10-23/REPORT.md).
+
+
+## S2b: кандидат 3.11.818 — DB refresh не отменяет первое открытие
+
+Текущая initial public operation удерживает только внешний projection refresh каталога; dirty domains сохраняются. Действующие epoch/token по-прежнему разрешают уход и новое открытие, finally очищает только свою operation. 2879 unit и 233 i18n прошли. Изолированный baseline воспроизводит token 1→2 / 0 строк; кандидат на трёх границах publication/catalog/snapshot удерживает token и открывает fixture. На настоящих публичных GET с подставленным только candidate Reader module прошли все пять route-сценариев (499/679 строк, retry, navigation, canon) и refresh в materialization. Полный CI и production 818 ожидаются; необъяснённый Studio readiness timeout остаётся открытым.
+
+Следующая сборка требует точного согласования unused 815 `198bf2834490` либо иного решения по ёмкости: available около 5.574 GiB, cache 0 B. Current 817 и rollback 816 сохраняются; runtime 818 пока не опубликован. [Доказательства и команды](../research/reader-performance/2026-10-23/REPORT.md).

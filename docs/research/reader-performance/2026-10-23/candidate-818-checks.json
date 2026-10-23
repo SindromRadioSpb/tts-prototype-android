@@ -1,0 +1,20 @@
+{
+  "sourceBaseCommit": "2f3a17b8",
+  "candidate": "3.11.818",
+  "unit": {
+    "passed": 2879,
+    "failed": 0
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "runtimeHashes": {
+    "public/index.html": "cc5cc91887bf3ee5c66fb38a65d9abcb3170dfbba7df77b9e2eccc00b941f955",
+    "public/library.html": "2ab4c387ba87ce920374153edcc395a75a9689dbe61551f96682f368ac595683",
+    "public/js/library-ui.js": "f22c7ab683ad6705e68b40390b256d59f32e7e57c593df3b88edd3c6bbf465c9",
+    "public/sw.js": "69f1ad42068a319ecadbd709560f64603a76e058532e0a732beaee30f5e8598b",
+    "server.js": "124d6ef1396b1f5d3f3083160ac53de49ead70881a6a26585f860fb1fab000de"
+  },
+  "scope": "Candidate, not production. Isolated unit/browser fixtures and candidate-module public GET checks; no owner profile or paid API."
+}

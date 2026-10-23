@@ -36,7 +36,7 @@ for (const failure of ['http', 'body', 'adapter']) test('public catalog failure 
 
 function fixture(overrides = {}) {
   const events = [], content = { appendChild: button => events.push(['retry', button]) }, reader = { hidden: true };
-  const ctx = vm.createContext({ URLSearchParams, readerOpenEpoch: 0, corpusRenderToken: 0, corpusNav: {}, corpusReveal: 0,
+  const ctx = vm.createContext({ URLSearchParams, readerOpenEpoch: 0, corpusRenderToken: 0, initialPublicMaterialOpen: null, corpusNav: {}, corpusReveal: 0,
     _roomPresentationReady: false, _roomInitialState: null, publicCorpora: [{ slug: 'fixture' }],
     roomApplyStateFields: state => events.push(['state', state]), setActiveTrack: (track, options) => events.push(['track', track, options]),
     roomCurrentPresentationState: state => state, roomStorePresentation: state => events.push(['store', state]),
@@ -59,6 +59,39 @@ test('direct public link establishes its parent and retains its URL without rend
   assert.equal(f.ctx.corpusNav.corpus, 'public:fixture');
   assert.equal(f.events.find(e => e[0] === 'open')[3]._readerOpenEpoch, f.ctx.readerOpenEpoch);
   assert.equal(f.events.some(e => e[0] === 'retry'), false);
+  assert.equal(f.ctx.initialPublicMaterialOpen, null);
+});
+
+test('DB projection changes wait for the initial route, retain dirty flags and refresh afterwards', async () => {
+  const publication = gate(), f = fixture({ loadPublicCorpora: () => publication.promise });
+  Object.assign(f.ctx, { externalLibraryRefresh: null, externalLibraryDirty: false, externalCatalogDataDirty: false, externalLibraryRevision: 0,
+    document: { visibilityState: 'visible' }, localDb: { changesAffect: () => true }, activeTrack: 'corpus',
+    invalidatePersonalSets() {}, invalidateReadableSet() {}, invalidateFinishedSet() {}, invalidateCorpusPresentationProgress() {},
+    morphHost: { invalidateWordStates() {} }, _asdCache: null,
+    loadData: async () => f.events.push(['load']), renderTrack: () => { f.ctx.corpusRenderToken++; f.events.push(['render']); } });
+  vm.runInContext(section('function refreshExternalLibrary(', "window.addEventListener('localdb:changed'"), f.ctx);
+  const opening = f.ctx.openInitialPublicMaterial(f.query, null), token = f.ctx.corpusRenderToken;
+  f.ctx.refreshExternalLibrary({ type: 'localdb:changed' });
+  assert.equal(f.ctx.corpusRenderToken, token);
+  assert.equal(f.ctx.externalLibraryDirty, true);
+  assert.equal(f.ctx.externalCatalogDataDirty, true);
+  assert.equal(f.ctx.externalLibraryRefresh, null);
+  publication.resolve({ ok: true }); await opening;
+  f.ctx.refreshExternalLibrary({ type: 'visibilitychange' }); await f.ctx.externalLibraryRefresh;
+  assert.equal(f.events.filter(e => e[0] === 'load').length, 1);
+  assert.equal(f.events.filter(e => e[0] === 'render').length, 1);
+});
+
+test('completion of A cannot clear the pending route owned by B', async () => {
+  const a = gate(), b = gate(); let requests = 0;
+  const f = fixture({ loadPublicCorpora: () => ++requests === 1 ? a.promise : b.promise });
+  const first = f.ctx.openInitialPublicMaterial(f.query, null);
+  const second = f.ctx.openInitialPublicMaterial(f.query, null), owner = f.ctx.initialPublicMaterialOpen;
+  a.resolve({ ok: true }); await first;
+  assert.equal(f.ctx.initialPublicMaterialOpen, owner); assert.ok(owner.isCurrent());
+  b.resolve({ ok: true }); await second;
+  assert.equal(f.ctx.initialPublicMaterialOpen, null);
+  assert.equal(f.events.filter(e => e[0] === 'open').length, 1);
 });
 
 for (const failure of ['unpublished', 'network', 'missing', 'snapshot']) test('invalid public link never opens a local copy and offers a retry: ' + failure, async () => {

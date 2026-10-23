@@ -1864,6 +1864,7 @@ let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 let readerReturnRoute = null;       // LB1: exact anchor drill-down must return to the active lesson, not strand on shelves
 let readerReturnContext = null;     // B5: ephemeral catalog place (nav + scroll + focus), never learner truth
 let readerOpenEpoch = 0;            // B5: invalidates late import/open completions after Back
+let initialPublicMaterialOpen = null; // defers DB projection refresh while the requested route opens
 
 function continuityKey(scope, id) {
   return String(scope || 'room') + ':' + String(id == null ? '' : id);
@@ -10522,6 +10523,8 @@ async function openInitialPublicMaterial(query, initialPresentation) {
   try { history.replaceState(state, '', location.href); } catch (_) {}
   roomStorePresentation(state); _roomInitialState = state;
   showState('room.state.loading', '⏳');
+  const pendingOpen = { isCurrent };
+  initialPublicMaterialOpen = pendingOpen;
   try {
     const loaded = await loadPublicCorpora();
     if (!isCurrent()) return true;
@@ -10553,6 +10556,9 @@ async function openInitialPublicMaterial(query, initialPresentation) {
       button.addEventListener('click', retry);
       $('roomContent')?.appendChild(button);
     }
+  }
+  finally {
+    if (initialPublicMaterialOpen === pendingOpen) initialPublicMaterialOpen = null;
   }
   return true; // handled includes failure or supersession; boot must not retry/replace it
 }
@@ -16074,6 +16080,11 @@ function refreshExternalLibrary(event) {
     externalCatalogDataDirty ||= affects('catalogData');
   }
   if (document.visibilityState !== 'visible' || externalLibraryRefresh || !$('roomReader')?.hidden) return;
+  // importBundle emits catalog changes before openReader mounts. Repainting the
+  // parent now would change corpusRenderToken and cancel this same valid route.
+  // Dirty flags above remain available after opening; explicit navigation still
+  // invalidates the pending route through its normal epoch/render-token guards.
+  if (initialPublicMaterialOpen && initialPublicMaterialOpen.isCurrent()) return;
   // Keep mounted Home/Reader and user focus; relevant changes are applied on explicit Home refresh.
   if (!_roomPresentationReady) return;
   if (activeTrack === 'corpus' && corpusNav.corpus === 'hub') { showExternalLibraryChanges(); return; }

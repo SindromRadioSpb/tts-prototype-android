@@ -1,0 +1,32 @@
+{
+  "baseline": true,
+  "ref": "a0621a71",
+  "scope": "Disposable synthetic first-open pipeline; initial DB notifications held until the chosen boundary, then one actual localdb:changed event; GET-only same-origin network.",
+  "checks": {
+    "snapshot": {
+      "trace": {
+        "before": {
+          "epoch": 1,
+          "token": 1,
+          "dirty": false,
+          "hidden": true
+        },
+        "after": {
+          "epoch": 1,
+          "token": 2,
+          "dirty": false,
+          "hidden": true
+        }
+      },
+      "rows": 0,
+      "state": {
+        "epoch": 1,
+        "token": 2,
+        "dirty": false,
+        "hidden": true
+      }
+    }
+  },
+  "errors": [],
+  "result": "PASS"
+}
