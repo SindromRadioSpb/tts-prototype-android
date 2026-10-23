@@ -139,10 +139,14 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
   await page.waitForFunction(() => { const r = __s4Target.querySelector('td[data-col="niqqud"] .rm-w').getBoundingClientRect(); return r.top >= 0 && r.bottom < innerHeight; });
   const box = await word.boundingBox(); assert.ok(box);
   report.cardAttempt = { box, hit: await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.outerHTML.slice(0, 500), { x: box.x + box.width / 2, y: box.y + Math.min(box.height / 2, 10) }) };
+  await page.evaluate(() => __s4Mount.addEventListener('click', event => {
+   if (event.target.closest('.rm-w')) window.__s4InputBeforeComplete = !window.__s4LayersDone;
+  }, { capture: true, once: true }));
   await page.mouse.click(box.x + box.width / 2, box.y + Math.min(box.height / 2, 10));
   const clickedAt = Date.now();
   await page.waitForFunction(target => document.querySelector('.rm-sheet.rm-open .rm-current-reading')?.textContent.includes('CONTEXT-' + target + ':0'), fixture.target, { timeout: 10000 });
-  report.card = { method: 'native mouse at visible word', clickMs: clickedAt - cardStarted, contentAfterClickMs: Date.now() - clickedAt, openMs: Date.now() - cardStarted, openedBeforeLayersComplete: await page.evaluate(() => !window.__s4LayersDone) };
+  report.card = { method: 'native mouse at visible word', clickMs: clickedAt - cardStarted, contentAfterClickMs: Date.now() - clickedAt, openMs: Date.now() - cardStarted,
+   inputBeforeLayersComplete: await page.evaluate(() => window.__s4InputBeforeComplete), openedBeforeLayersComplete: await page.evaluate(() => !window.__s4LayersDone) };
   await page.locator('.rm-sheet.rm-open .rm-sheet-x').click();
   report.layers = await layerWork;
   assert.equal(report.layers.targetGloss, 'CONTEXT-' + fixture.target + ':0'); assert.equal(report.layers.targetSource, 'user');
@@ -154,7 +158,7 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
     assert.ok(report.layers[layer].rowsBeforeTarget < 12, layer + ' prioritizes the restored viewport');
     assert.ok(Math.abs(report.layers[layer].positionAfter.wordTop - report.layers[layer].positionBefore.wordTop) < 60, layer + ' retains the visible reading position');
    }
-   assert.equal(report.layers.unchangedRefreshGlossMutations, 0); assert.equal(report.card.openedBeforeLayersComplete, true);
+   assert.equal(report.layers.unchangedRefreshGlossMutations, 0); assert.equal(report.card.inputBeforeLayersComplete, true, 'native input is handled while background work is pending');
   }
   const later = Math.floor(fixture.count / 2);
   const pendingBefore = await page.evaluate(later => __s4Mount.querySelector('tr[data-row-idx="' + later + '"]').classList.contains('rm-gloss-pending'), later);
