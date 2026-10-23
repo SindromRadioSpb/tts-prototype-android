@@ -10,6 +10,22 @@ const corePath = path.resolve(__dirname, "../public/js/room-b6-core.js");
 const load = () => import(pathToFileURL(corePath).href);
 
 const hostPath = path.resolve(__dirname, "../public/js/library-ui.js");
+test("initial public/group material resolution keeps its request URL until Reader opens", () => {
+  const source = fs.readFileSync(hostPath, "utf8");
+  const entries = [];
+  const context = vm.createContext({ corpusNav: {}, corpusReveal: 9,
+    roomPushPresentationState: () => entries.push("parent"), renderCorpus: () => {}, window: { scrollTo() {} } });
+  vm.runInContext(hostFunction("corpusNavToCorpus", "function corpusCrumb"), context);
+  for (const corpus of ["public:songs", "group:class"]) {
+    context.corpusNavToCorpus(corpus, { preserveMaterialLink: true });
+    assert.equal(context.corpusNav.corpus, corpus);
+    assert.equal(entries.length, 0, "loading the parent must not erase the pending work URL");
+  }
+  context.corpusNavToCorpus("public:songs");
+  assert.equal(entries.length, 1, "explicit corpus navigation still records its parent route");
+  assert.match(source, /corpusNavToCorpus\('public:' \+ publicSlug, \{ preserveMaterialLink: !!publicWorkId \}\)/);
+  assert.match(source, /corpusNavToCorpus\('group:' \+ groupCorpusId, \{ preserveMaterialLink: true \}\)/);
+});
 function hostFunction(name, nextMarker) {
   const source = fs.readFileSync(hostPath, "utf8");
   const start = source.indexOf("function " + name + "(");

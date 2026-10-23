@@ -12683,10 +12683,13 @@ function corpusNavTo(level, era, author) {
   renderCorpus();
 }
 // Multi-corpus (B+C «витрина + линза», BRR_MULTI_CORPUS_DESIGN_2026_07_02.md): lateral switch.
-function corpusNavToCorpus(id) {
+function corpusNavToCorpus(id, options = {}) {
   corpusNav = { corpus: id, level: 'home', era: null, author: null };
   corpusReveal = 0;
-  roomPushPresentationState();
+  // Boot is resolving a material link, not navigating to its parent. Keep the
+  // request identity while catalog/materialization awaits so another refresh
+  // retries the same work instead of making the corpus list permanent.
+  if (!options.preserveMaterialLink) roomPushPresentationState();
   renderCorpus();
   // A corpus entry is often activated after the Learning Home has scrolled it into view.
   // The new surface is a new place, not a continuation of that old scroll coordinate.
@@ -15795,7 +15798,7 @@ async function boot() {
         const allowed = publicCorpora.some(item => String(item.slug) === String(publicSlug));
         if (!allowed) roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
         else {
-          activeTrack = 'corpus'; await setActiveTrack(activeTrack); corpusNavToCorpus('public:' + publicSlug);
+          activeTrack = 'corpus'; await setActiveTrack(activeTrack); corpusNavToCorpus('public:' + publicSlug, { preserveMaterialLink: !!publicWorkId });
           if (publicWorkId) {
             const publicCatalog = await ensurePublicCatalog(publicSlug);
             const publicWork = publicCatalog.items.find(item => String(item.public_work_id) === String(publicWorkId));
@@ -15826,7 +15829,7 @@ async function boot() {
         if (!allowed) roomToast(tt('room.groupCorpus.linkUnavailable', 'Ссылка недоступна: войдите как участник учебной группы'));
         else {
           activeTrack = 'corpus'; setActiveTrack(activeTrack);
-          corpusNavToCorpus('group:' + groupCorpusId);
+          corpusNavToCorpus('group:' + groupCorpusId, { preserveMaterialLink: true });
           const groupCatalog = await ensureGroupCatalog(groupCorpusId);
           const groupWork = groupCatalog.works.find((w) => String(w.work_id) === String(groupWorkId));
           if (groupWork) await openGroupCorpusWork(groupCorpusId, groupWork, { resume:true, replaceInitialHistory: true });
