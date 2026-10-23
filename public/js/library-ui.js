@@ -9,7 +9,7 @@ import '/js/material-open.js?v=734';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=807';
+import * as localDbRaw from '/db/local-db.js?v=812';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -922,7 +922,10 @@ async function ensurePersonalSets() {
         out.idByKey.set(String(r.text_key), String(r.id));
         out.metadataByKey.set(String(r.text_key), r);
         if (r.last_opened_at) out.lastOpenedByKey.set(String(r.text_key), r.last_opened_at);
-        try { const t = r.tags_json ? JSON.parse(r.tags_json) : []; if (Array.isArray(t) && t.length) out.tagsByKey.set(String(r.text_key), t.map(String)); } catch (_) {}
+        // A Ben-Yehuda text's own tags are the archive's era/genre labels (tehiya, haskalah, prose…), a second
+        // classification beside the official periods and the genre filter (owner 2026-10-23); its learner tags live in
+        // the personal overlay below.
+        if (r.byehuda_id == null) { try { const t = r.tags_json ? JSON.parse(r.tags_json) : []; if (Array.isArray(t) && t.length) out.tagsByKey.set(String(r.text_key), t.map(String)); } catch (_) {} }
       }
     } catch (_) {}
     // personal OVERLAY tags/meta (corpus texts; mig 061) override/extend the row tags

@@ -768,7 +768,9 @@ function _noteForTextExistsSql(predicate = '1=1') {
 }
 
 export async function getCatalogPersonalMetadata() {
+  // byehuda_id marks a Ben-Yehuda publication: its own tags are the archive's era/genre classification, not the learner's.
   return q(`SELECT t.id,t.text_key,t.tags_json,t.level,t.topic,t.created_at,t.updated_at,t.last_opened_at,
+    json_extract(t.source_meta_json,'$.corpus.byehuda_id') AS byehuda_id,
     ${_catalogProvidersSql()} AS translation_providers FROM texts t WHERE t.is_archived=0`);
 }
 
