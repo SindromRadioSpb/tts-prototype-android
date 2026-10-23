@@ -27,6 +27,8 @@ npm run tts:models:check         # проверка TTS-моделей/чекс�
 
 По указанию владельца (2026-10-23) перед каждым деплоем проверяй свободное место, текущие сборки и Docker inventory; выполняй безопасную очистку неиспользуемого build cache, когда нет активной сборки. Сохраняй runtime/rollback images, контейнеры, volumes, БД и backups; удаление образов или данных требует отдельной определённой области. После сборки повторно проверяй место и health. Нулевой build cache означает, что в этой области очищать нечего.
 
+Cold build 3.11.815 показал, что прежних ≥4 GiB available недостаточно: при старте с 4.21 GiB распаковка временно довела available до нуля. Для текущего размера образа следующий runtime push требует ≥6 GiB available как исходного capacity gate (свежие inventory, оценка пика и отсутствие другой сборки обязательны). Если cache пуст и места меньше, сначала согласованный точный набор старых images либо расширение диска; не использовать системный резерв root как плановый запас. См. O-055 и [результаты первого этапа](../planning/MATERIAL_COLD_OPEN_STABILITY.md). Документационный `[skip cd]` push не требует сборки.
+
 **URL:** `https://linguistpro.kolosei.com`\
 **Инфраструктура:** Hetzner CX23 (4 vCPU / 8 GB RAM, Falkenstein DE), Coolify, Traefik + Let's Encrypt\
 **Деплой:** git push в `main` → GitHub webhook → Coolify автосборка Docker (Dockerfile в корне)\

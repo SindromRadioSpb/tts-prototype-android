@@ -1,0 +1,29 @@
+{
+  "checkedAtUtc": "2026-10-23T17:23:42Z",
+  "scope": "Unused build cache only; images, containers, volumes and backups retained",
+  "reportedReclaimedGB": 2.917,
+  "diskBeforeAvailableGiB": 0.64,
+  "diskAfterAvailableGiB": 2.85,
+  "peakAvailableGiB": 0,
+  "peakRootFreeGiB": 1.43,
+  "diskAfterUsedPercent": 92,
+  "imagesRetained": 15,
+  "runningContainersRetained": 11,
+  "activeVolumesRetained": 4,
+  "buildCacheBytes": 0,
+  "runtimeCommit": "0e05936418f94a3e3706a8a0f0a132c4beb936a9",
+  "rollbackCommit": "908f9973a852cd9977f9ec472ec54c5827341660",
+  "healthAfterCleanup": {
+    "ok": true,
+    "uptimeSec": 218,
+    "now": "2026-10-23T17:23:28.515Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 92,
+    "disk_warn": true
+  }
+}

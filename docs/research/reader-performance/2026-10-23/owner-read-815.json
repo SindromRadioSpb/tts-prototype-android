@@ -1,0 +1,44 @@
+{
+  "after": {
+    "reviewCount": 11754,
+    "reviewHash": "d9f1f17ea8980b6538d02803f838d0cdd48adb3b5f3e00fa39ba5346737c9238"
+  },
+  "before": {
+    "progress": 228,
+    "reviewCount": 11754,
+    "reviewHash": "d9f1f17ea8980b6538d02803f838d0cdd48adb3b5f3e00fa39ba5346737c9238",
+    "sentences": 108996,
+    "texts": 732
+  },
+  "results": [
+    {
+      "batchMs": 96.6800000667572,
+      "equal": true,
+      "hash": "73a3fe0ffbee541a978613f8ef06e8070640b238d4d3351f844e6919875e6468",
+      "name": "Hamam",
+      "rows": 499,
+      "splitMs": 112.05499994754791
+    },
+    {
+      "batchMs": 49.89999997615814,
+      "equal": true,
+      "hash": "2ed28bac350734079142b509086715094ebd362e937a64fd232fca03fe5246de",
+      "name": "BenYehuda66120",
+      "rows": 34,
+      "splitMs": 74.74500000476837
+    },
+    {
+      "batchMs": 136.5700000524521,
+      "equal": true,
+      "hash": "d47c20fb43c683526207080876485418bf902f24fb90af4d94e93afabcbba481",
+      "name": "Largest",
+      "rows": 2477,
+      "splitMs": 139.37000000476837
+    }
+  ],
+  "scope": "Owner-profile read-only parity, fresh imported 815 DB module in existing hidden diagnostic page; not cold UI benchmark.",
+  "vfs": {
+    "kind": "sync",
+    "name": "AccessHandlePool"
+  }
+}

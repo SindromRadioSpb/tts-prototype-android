@@ -128,4 +128,14 @@ node scripts/premium/reader-responsive-smoke.js
 
 All 2848 unit tests and 233 i18n checks passed, including new SQLite snapshot/transaction ownership, worker startup/page-cache, shared read-model and shell/module identity coverage.
 
-Pre-deploy inventory: 4.21 GiB available, no active build, 14 images/11 running containers/4 active volumes. Authorized build-cache cleanup reported 0 B; runtime 814 and rollback 813 remain. The existing disk warning is unresolved. Production verification is pending for this candidate.
+Pre-deploy inventory: 4.21 GiB available, no active build, 14 images/11 running containers/4 active volumes. Authorized build-cache cleanup reported 0 B. The existing disk warning was unresolved.
+
+### S1 production verification
+
+Runtime commit `0e05936418f94a3e3706a8a0f0a132c4beb936a9`, deployment **2929**, started 17:15:52 UTC and finished **17:20:24 UTC** (4m32s). [Verification after cleanup](production-815.json): version 3.11.815, 10/10 changed assets equal their committed Git blobs, both shells correct, health/DB/migrations ready. Reproduce with `python scripts/premium/verify-material-read-release.py --commit=0e059364 --out=.tmp/reader-performance/production-815.json`.
+
+On the actually served code, [Classic/IDE/Room lifecycle](production-lifecycle-815.json) and [16 fresh-worker fixture reads on OPFS/IDB](production-read-815.json) passed in disposable browsers, with only GET requests to production. The anonymous [Hamam refresh regression](production-refresh-815.json) also passed: refresh during paused materialization preserved the work URL and opened all 499 rows without page errors. These runs never accessed the owner's browser profile or wrote server learner data. All disposable browsers were closed.
+
+[Owner read-only parity](owner-read-815.json) used the published 815 DB module in the existing hidden diagnostic tab, without navigating the owner's working tabs. The current library had 732 texts / 108996 sentences. Batch and split reads of Hamam (499), Ben-Yehuda 66120 (34) and the largest material (2477) produced equal full read-model hashes, including metadata and study fields. The review log retained all 11754 rows and its original SHA-256. These were individual read checks during normal owner activity, not controlled cold UI measurements or proof that unrelated progress was unchanged.
+
+[Post-release cache-only cleanup](cleanup-815.json) reported 2.917 GB reclaimed; available space increased 0.64→2.85 GiB, with all 15 images, 11 running containers and four volumes retained, including current 815 and rollback 814. At one unpacking checkpoint available space was 0 while root free was 1.43 GiB. The historical 4 GiB preflight threshold did not preserve headroom; the next runtime push now requires a fresh capacity check with at least 6 GiB available for the current image, before starting another cold build. Disk warning remains at 92% used. Further image removal needs a separately agreed exact set; none was removed in this release. The evidence-only follow-up uses `[skip cd]`.

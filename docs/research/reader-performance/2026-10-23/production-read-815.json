@@ -1,0 +1,302 @@
+{
+  "result": "PASS",
+  "scope": "Isolated Chromium, cold document/worker and ready fixture DB; SW blocked, routing disables HTTP cache. Data-read timing only, not interactive UI or owner/device evidence.",
+  "remoteReadOnly": true,
+  "samples": [
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "split",
+      "ms": 53.7,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "6ef96ba6b02e6e7a0dbc8c2d003a9549f341e6d9752e8783385e407f9d3c35e4",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 24.5,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "6ef96ba6b02e6e7a0dbc8c2d003a9549f341e6d9752e8783385e407f9d3c35e4",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "split",
+      "ms": 77.2,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "a2ffb7d78fc1048a9ed9e00fb6cd37ff8f58afdf28056df7eb3816b366b3fc26",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 56.8,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "a2ffb7d78fc1048a9ed9e00fb6cd37ff8f58afdf28056df7eb3816b366b3fc26",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "split",
+      "ms": 57.1,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5c7b58006f2b8de0ab8bd1e38bfc7873f3d214f2003940308cda6f72ef53eb37",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 37,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5c7b58006f2b8de0ab8bd1e38bfc7873f3d214f2003940308cda6f72ef53eb37",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "split",
+      "ms": 298.3,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "5bd9e468c1e96293021ba00013f31893a797075ecfa23cc43324e2b6d5634c75",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "AccessHandlePool",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 187.2,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "5bd9e468c1e96293021ba00013f31893a797075ecfa23cc43324e2b6d5634c75",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "split",
+      "ms": 26.5,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "d5af08013eae13bf589356a66be9fce2e5435e1b3aaa136921c91a81a5a02507",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "short",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 15.7,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "d5af08013eae13bf589356a66be9fce2e5435e1b3aaa136921c91a81a5a02507",
+      "rows": 40,
+      "payloadBytes": 24324,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "split",
+      "ms": 62.2,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "0de1f5622e2ab1ea55d4f5dbb28cf819bf6563c1a4f0dd82f0a16a671ac37191",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "media",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 46.9,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "0de1f5622e2ab1ea55d4f5dbb28cf819bf6563c1a4f0dd82f0a16a671ac37191",
+      "rows": 499,
+      "payloadBytes": 556460,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "split",
+      "ms": 28.5,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "9f733b563a7a111d08825b350385ff2d4d0aa8427f06c9aa8a78007d899eb451",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "paragraphs",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 20.3,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "9f733b563a7a111d08825b350385ff2d4d0aa8427f06c9aa8a78007d899eb451",
+      "rows": 34,
+      "payloadBytes": 131906,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "split",
+      "ms": 316.4,
+      "rpc": [
+        "query",
+        "query",
+        "query"
+      ],
+      "hash": "0c926bfcdd6870dbefc40869c18727953d9519e38c3573ca9857749f8fd8d6c8",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    },
+    {
+      "backend": "tts-opfs-idb",
+      "fixture": "large",
+      "pair": 0,
+      "mode": "batch",
+      "ms": 211.4,
+      "rpc": [
+        "readMaterial"
+      ],
+      "hash": "0c926bfcdd6870dbefc40869c18727953d9519e38c3573ca9857749f8fd8d6c8",
+      "rows": 2477,
+      "payloadBytes": 3150321,
+      "state": {
+        "reviews": 0,
+        "progress": 0
+      }
+    }
+  ],
+  "checks": {
+    "identicalReadModels": true,
+    "noReviewOrProgressWrites": true,
+    "oneRpc": true,
+    "coldWorkers": true
+  },
+  "errors": []
+}

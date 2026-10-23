@@ -1,0 +1,15 @@
+{
+  "result": "PASS",
+  "base": "https://linguistpro.kolosei.com",
+  "remoteReadOnly": true,
+  "disposableBrowserProfile": true,
+  "benchmarkOnly": false,
+  "checksOnly": true,
+  "samplesPerSurface": 0,
+  "rows": 40,
+  "sourceChars": 100010,
+  "summary": {},
+  "noReload": true,
+  "errors": [],
+  "scope": "isolated Chromium desktop; warm fixed fixtures, not production p95 or device evidence"
+}
