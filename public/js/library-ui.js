@@ -7125,6 +7125,9 @@ async function attachBookmarks(mount) {
   mount.querySelectorAll('tr[data-row-idx]').forEach((tr) => {
     const idx = Number(tr.getAttribute('data-row-idx'));
     const row = readerRows[idx];
+    // A very long row (some editions keep a 791-word paragraph whole) is read from its top: centred cells put the
+    // translation and the row buttons thousands of pixels below the first words.
+    if (row && String(row.he_niqqud || row.hebrew_niqqud || row.he_plain || row.hebrew_plain || '').length > 600) tr.classList.add('reader-row-long');
     if (!row || !row._v3_sentenceId) return;
     const cell = tr.querySelector('.col-action-cell');
     if (!cell || cell.querySelector('.row-bookmark-btn')) return;
@@ -8338,6 +8341,18 @@ function materialsInlineMorphOverrides() {
   };
 }
 
+// A failed open says what happened and offers a retry; nothing was written (import is verified first).
+function readerOpenFailedBox(e, retry) {
+  const msg = String((e && e.message) || '');
+  const offline = (typeof navigator !== 'undefined' && navigator.onLine === false) || (e instanceof TypeError && /fetch|network|load/i.test(msg));
+  const broken = /hash mismatch|identity mismatch|Malformed publication|JSON|Unexpected end/i.test(msg) || e instanceof SyntaxError;
+  readerStateBox(offline ? 'room.state.openOffline' : broken ? 'room.state.openBroken' : 'room.state.openFailed', '⚠️');
+  const box = $('roomReaderTable')?.querySelector('.room-state');
+  if (!box || typeof retry !== 'function') return;
+  const b = el('button', { class: 'room-state-retry', attrs: { type: 'button' }, text: tt('room.state.retry', 'Повторить') });
+  b.addEventListener('click', () => retry());
+  box.appendChild(b);
+}
 function readerStateBox(i18nKey, icon) {
   const mount = $('roomReaderTable');
   if (!mount) return;
@@ -8500,6 +8515,23 @@ function attachRoomColResize() {
   });
 }
 
+// A background re-render (transliteration filled in) changes row heights above the reader's place; the row at the
+// top of the screen stays where it was instead of the text jumping away.
+function rerenderReaderKeepingPlace() {
+  const mount = $('roomReaderTable');
+  let anchor = null;
+  if (mount && !($('roomReader') || {}).hidden) {
+    for (const tr of mount.querySelectorAll('tr[data-row-idx]')) { const r = tr.getBoundingClientRect(); if (r.bottom > 80) { anchor = { idx: tr.getAttribute('data-row-idx'), top: r.top }; break; } }
+  }
+  rerenderReader();
+  if (!anchor || !mount) return;
+  // Column widths and decorations settle over the next frames; hold the row in place until they do.
+  const hold = () => { const tr = mount.querySelector('tr[data-row-idx="' + anchor.idx + '"]'); if (!tr) return; const delta = tr.getBoundingClientRect().top - anchor.top; if (Math.abs(delta) > 1) window.scrollBy(0, delta); };
+  hold();
+  let frames = 0;
+  const loop = () => { hold(); if (++frames < 20) requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
 function rerenderReader() {
   const mount = $('roomReaderTable');
   if (!mount) return;
@@ -8511,7 +8543,7 @@ function rerenderReader() {
   if (translitStore) {
     const renderedRows = readerRows, renderedProfile = readerCfg.translitProfile;
     translitStore.endRender(() => {
-      if (readerRows === renderedRows && readerCfg.translitProfile === renderedProfile) rerenderReader();
+      if (readerRows === renderedRows && readerCfg.translitProfile === renderedProfile) rerenderReaderKeepingPlace();
     });
   }
   attachReaderAudio();
@@ -8880,9 +8912,16 @@ async function openReader(textId, title, opts) {
   roomRenderReaderCopyright(null);
   try { window.scrollTo(0, 0); } catch (_) {}
   const mount = $('roomReaderTable');
+  // The first paint keeps the same transliteration budget as every later render: rows past it show their
+  // stored text and are derived in the background (a 2 440-row text spent 5.5 s deriving before any row showed).
+  const openTranslit = roomTranslit();
   const res = await readerCore.openText(textId, {
     localDb, mount, config: readerConfig(), request,
-    prepareMaterial: prepareReaderLearningNiqqud,
+    prepareMaterial: async (material, isCurrent) => {
+      const out = await prepareReaderLearningNiqqud(material, isCurrent);
+      if (openTranslit) openTranslit.beginRender();   // the table is built right after this resolves
+      return out;
+    },
     isCurrent: () => openEpoch === readerOpenEpoch,
     onState: (s) => {
       if (s.kind === 'loading') readerSkeleton();
@@ -8892,6 +8931,12 @@ async function openReader(textId, title, opts) {
       // 'ready' → table already painted by openText
     },
   });
+  if (openTranslit) {
+    const openedProfile = readerCfg.translitProfile;
+    openTranslit.endRender(() => {
+      if (openEpoch === readerOpenEpoch && readerRows.length && readerCfg.translitProfile === openedProfile) rerenderReaderKeepingPlace();
+    });
+  }
   if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
   readerRows = res && res.ok ? res.rows : [];
   if (res?.learningNiqqud) {
@@ -9474,6 +9519,7 @@ function appendNextPartToEndCard(card) {
 
 async function openCorpusWork(card, openOpts) {
   if (!card) return;
+  const retryCard = card;   // the work card as asked (a part is resolved again on retry)
   // A multi-part work opens its page (table of contents); a part opens as its own verified learning edition.
   if (window.WorkParts && window.WorkParts.isMultipart(card)) {
     if (!(openOpts && openOpts.partId)) return openWorkPage(card, openOpts);
@@ -9530,7 +9576,7 @@ async function openCorpusWork(card, openOpts) {
   } catch (e) {
     if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open corpus work failed:', e); } catch (_) {}
-    readerStateBox('room.state.error', '⚠️');
+    readerOpenFailedBox(e, () => openCorpusWork(retryCard, openOpts));
   } finally {
     invalidatePersonalSets();   // a work may have just materialized → personal chips see it fresh
   }

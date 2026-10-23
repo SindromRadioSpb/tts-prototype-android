@@ -3528,6 +3528,10 @@ window.I18N_LOCALES.en = {
       publishing: "Preparing the library — fetching the canon…",
       dbBusy: "The local library is temporarily busy. Press Retry; if an update was just installed, reload the page once.",
       error: "Could not load the library.",
+      openOffline: "This text is not on the device yet and the network is unavailable. Connect and try again.",
+      openBroken: "The text arrived incomplete and was not saved. Your data is unchanged — try the download again.",
+      openFailed: "The text could not be opened. Your data is unchanged.",
+      retry: "Try again",
     },
     prov: {
       rs: {
