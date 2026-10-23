@@ -150,6 +150,34 @@
   }
 
   var tablePatches = new WeakMap();
+  // Native scroll anchoring can leave a few pixels of accumulated row-layout
+  // drift on long tables. Keep a visible editor steady, unless the person acts
+  // while completion runs. Geometry is read only before/after the whole patch.
+  function editorAnchor(table) {
+    var doc = table.ownerDocument, view = doc.defaultView, editor = doc.activeElement;
+    if (!editor || !table.contains(editor) || !editor.matches('textarea,input,[contenteditable="true"]') ||
+        !editor.getBoundingClientRect || !view?.getComputedStyle) return null;
+    var scroller = editor.parentElement;
+    while (scroller && scroller !== doc.scrollingElement) {
+      if (scroller.scrollHeight > scroller.clientHeight && /auto|scroll|overlay/.test(view.getComputedStyle(scroller).overflowY)) break;
+      scroller = scroller.parentElement;
+    }
+    scroller = scroller || doc.scrollingElement;
+    if (!scroller) return null;
+    var top = editor.getBoundingClientRect().top;
+    var bounds = scroller === doc.scrollingElement ? { top: 0, bottom: view.innerHeight } : scroller.getBoundingClientRect();
+    if (top < bounds.top || top >= bounds.bottom) return null;
+    var interrupted = false, events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+    function interrupt() { interrupted = true; }
+    events.forEach(function (type) { doc.addEventListener(type, interrupt, { capture: true, passive: true }); });
+    return function (restore) {
+      events.forEach(function (type) { doc.removeEventListener(type, interrupt, true); });
+      if (restore && !interrupted && editor.isConnected && doc.activeElement === editor) {
+        var delta = editor.getBoundingClientRect().top - top;
+        if (Math.abs(delta) > 0.5) scroller.scrollTop += delta;
+      }
+    };
+  }
   // Background completion must not recreate editors, selection, replay controls,
   // word cards or the rest of the table. Each mounted table owns one patch job.
   function patchTable(table, rows, profile, options) {
@@ -160,9 +188,10 @@
     var current = function () { return tablePatches.get(table) === job && table.isConnected && (!opts.isCurrent || opts.isCurrent()); };
     var cells = Array.from(table.querySelectorAll('tbody td[data-col="translit"]'));
     var cursor = 0, defer = opts.defer || function (fn) { setTimeout(fn, 0); };
+    var anchor = editorAnchor(table);
     return new Promise(function (resolve) {
       function step() {
-        if (!current()) { resolve({ patched: patched, cancelled: true }); return; }
+        if (!current()) { if (anchor) anchor(false); resolve({ patched: patched, cancelled: true }); return; }
         // getSelection can flush layout after text mutations. Read it once per
         // slice; DOM Range intersection itself does not measure the table.
         var selection = table.ownerDocument.defaultView?.getSelection?.(), ranges = [];
@@ -186,7 +215,10 @@
           if (now() >= deadline) break;
         }
         if (cursor < cells.length) defer(step);
-        else resolve({ patched: patched, cancelled: false });
+        else {
+          if (anchor) anchor(current());
+          resolve({ patched: patched, cancelled: false });
+        }
       }
       step();
     });

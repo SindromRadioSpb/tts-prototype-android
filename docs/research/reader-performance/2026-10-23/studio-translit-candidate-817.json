@@ -7,8 +7,8 @@
   "checks": {
     "classic": {
       "renders": 1,
-      "completionMs": 1497.2450000047684,
-      "longestTaskMs": 53,
+      "completionMs": 2731.7050000429153,
+      "longestTaskMs": 71,
       "sameTable": true,
       "editorPreserved": true,
       "focusPreserved": true,
@@ -19,6 +19,50 @@
       "replayPreserved": true,
       "manualTranslit": "MY OWN LATIN",
       "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 408.015625,
+        "editorHeight": 140,
+        "rowTop": 397.515625,
+        "rowHeight": 225.734375,
+        "tableWidth": 571.34375,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 253591,
+            "height": 558
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1974,
+            "height": 900
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 408.015625,
+        "editorHeight": 140,
+        "rowTop": 397.515625,
+        "rowHeight": 225.734375,
+        "tableWidth": 571.34375,
+        "scrollY": 1974,
+        "ancestors": [
+          {
+            "id": "tableContainer",
+            "tag": "DIV",
+            "top": 253591,
+            "height": 558
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 1974,
+            "height": 900
+          }
+        ]
+      },
       "patchDone": {
         "patched": 2498,
         "cancelled": false
@@ -29,8 +73,8 @@
     },
     "ide": {
       "renders": 1,
-      "completionMs": 1681.5249999761581,
-      "longestTaskMs": 86,
+      "completionMs": 2172.014999985695,
+      "longestTaskMs": 61,
       "sameTable": true,
       "editorPreserved": true,
       "focusPreserved": true,
@@ -41,6 +85,50 @@
       "replayPreserved": true,
       "manualTranslit": "MY OWN LATIN",
       "scrollDelta": 0,
+      "geometryBefore": {
+        "editorTop": 526.671875,
+        "editorHeight": 140,
+        "rowTop": 516.171875,
+        "rowHeight": 209.15625,
+        "tableWidth": 606,
+        "scrollY": 54,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 150589,
+            "height": 844
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 54,
+            "height": 900
+          }
+        ]
+      },
+      "geometryAfter": {
+        "editorTop": 526.671875,
+        "editorHeight": 140,
+        "rowTop": 516.171875,
+        "rowHeight": 209.15625,
+        "tableWidth": 606,
+        "scrollY": 54,
+        "ancestors": [
+          {
+            "id": "v3IdeCenterContent",
+            "tag": "DIV",
+            "top": 150589,
+            "height": 844
+          },
+          {
+            "id": "",
+            "tag": "HTML",
+            "top": 54,
+            "height": 900
+          }
+        ]
+      },
       "patchDone": {
         "patched": 2498,
         "cancelled": false
@@ -51,6 +139,5 @@
     }
   },
   "errors": [],
-  "result": "PASS",
-  "sourceBaseCommit": "ce0836c2"
+  "result": "PASS"
 }

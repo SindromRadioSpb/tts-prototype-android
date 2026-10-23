@@ -52,6 +52,25 @@ test('selection is read once per slice rather than once per mutated cell', async
   await f.patch(); assert.equal(reads, 1);
 });
 
+for (const action of ['none', 'wheel', 'supersede']) test('visible editor anchoring respects ' + action, async () => {
+  const f = fixture(true), mount = f.document.getElementById('mount');
+  const cell = f.table.querySelector('[data-col="translit"]');
+  cell.innerHTML = '<textarea>unfinished</textarea>';
+  const editor = cell.firstChild; let top = 100, reads = 0;
+  editor.getBoundingClientRect = () => { reads++; return { top }; };
+  Object.defineProperty(f.document, 'activeElement', { value: editor, configurable: true });
+  f.document.defaultView.getComputedStyle = () => ({ overflowY: 'auto' });
+  Object.defineProperties(mount, { scrollHeight: { value: 1000 }, clientHeight: { value: 300 } });
+  mount.getBoundingClientRect = () => ({ top: 0, bottom: 300 }); mount.scrollTop = 50;
+  const patch = f.patch(); top = 106;
+  if (action === 'wheel') f.document.dispatchEvent(new f.document.defaultView.Event('wheel'));
+  if (action === 'supersede') f.supersede();
+  f.drain(); await patch;
+  assert.equal(mount.scrollTop, action === 'none' ? 56 : 50);
+  assert.equal(editor.textContent, 'unfinished');
+  assert.equal(reads, action === 'none' ? 2 : 1, 'no layout reads between patch slices');
+});
+
 for (const boundary of ['material/profile', 'mount', 'row identity']) test('queued patch stops at a changed ' + boundary, async () => {
   const f = fixture(true), running = f.patch();
   assert.equal(f.timers.length, 1);

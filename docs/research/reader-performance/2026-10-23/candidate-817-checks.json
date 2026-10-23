@@ -2,7 +2,7 @@
   "sourceBaseCommit": "ce0836c2",
   "candidate": "3.11.817",
   "unit": {
-    "passed": 2874,
+    "passed": 2877,
     "failed": 0
   },
   "i18n": {
@@ -19,7 +19,7 @@
     "public/index.html": "2687a96de2686b7a40c85390fedfd907a6e416518777de9bdf77c396310da7ac",
     "public/js/reader-core.js": "211d13af9b18a3363bc6ac408784675d67809aaeb488f31b44d8a6bb97a2ab8e",
     "public/js/studio-morph.js": "ac53c35f2183df81932701bf551f341ccdb6fcdd12c82b3312841055f968949a",
-    "public/js/translit-display.js": "4ad8937d12c4f7baa0666c8f3061de1f23dd5f8e24afe70c3fae33347461b1f8",
+    "public/js/translit-display.js": "b315b619d7c1df63bb3075d0f743d7d6069c3583fb5b2bbc85a750f08fc8daa8",
     "public/js/word-gloss-ai.js": "7509a7729467aa512e35997f23acf37e66a65962f2aa8ba86d5736b7ba51ac06",
     "public/js/library-ui.js": "8f6182c8fcd0caab7a1ad714a52fab28f4e10c264188fa3ce2f358d544c9fb11",
     "public/library.html": "202182081e1451e92998e662ba54634f05e72db95663f16578dd87cf9e606cb3",

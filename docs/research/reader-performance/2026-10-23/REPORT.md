@@ -189,18 +189,18 @@ The [corrected discovery fixture](discovery-fixture-816.json) passed all eight g
 
 ## Studio completion stability, S3 candidate 3.11.817
 
-Base `ce0836c2`, production runtime remains 816 at this checkpoint. [Candidate check manifest](candidate-817-checks.json) records normalized runtime hashes, **2874 passing unit tests**, **233 i18n checks**, and six renderer parity cases / 37 leaf checks. The golden changed only by adding escaped sentence identity on each stored row; all pre-existing text, audio and controls remain byte-equivalent after removing that one expected attribute.
+Base `ce0836c2`, production runtime remains 816 at this checkpoint. [Candidate check manifest](candidate-817-checks.json) records normalized runtime hashes, **2877 passing unit tests**, **233 i18n checks**, and six renderer parity cases / 37 leaf checks. The golden changed only by adding escaped sentence identity on each stored row; all pre-existing text, audio and controls remain byte-equivalent after removing that one expected attribute.
 
 The candidate fixes O-131 by stamping sentence identity on the row in shared core and Classic, independent of edit controls. The original isolated Room morphology scenario now completes with chosen adverb `pid:5857`, review collection and portable reimport intact. Full CI/production confirmation is still required.
 
-Classic and IDE now patch only transliteration text nodes after background derivation. The job yields after an 8 ms processing slice, checks its table/material/profile/row ownership, skips active editors and selected text, retains replay nodes/listeners and never changes the models. An early candidate read browser selection after every cell mutation; isolated Chromium exposed forced layouts and unfinished long-table patches. Reading the selection once before each slice removed that implementation defect; the regression test locks the read count. No timeout increase was used to make the final check pass.
+Classic and IDE now patch only transliteration text nodes after background derivation. The job yields after an 8 ms processing slice, checks its table/material/profile/row ownership, skips active editors and selected text, retains replay nodes/listeners and never changes the models. An early candidate read browser selection after every cell mutation; isolated Chromium exposed forced layouts and unfinished long-table patches. Reading the selection once before each slice removed that implementation defect; the regression test locks the read count. No timeout increase was used to make the final check pass. Linux CI then exposed 4.515625 px of accumulated row-layout drift in the 380px Classic case, despite unchanged scroll position and editor/row height. The final candidate reads a visible editor anchor before and after the entire patch and corrects residual drift in its scroll container; wheel, touch, pointer, key input or a superseded material cancels this correction. It does not read geometry between slices. Three additional unit cases cover correction, user scrolling and cancellation. Updated desktop/mobile observations below use this final code; the Linux rerun is pending.
 
 The controlled comparison holds derivation until an editor and replay fixture are mounted, then lets the real local engine complete. The unrelated morphology status boundary is deliberately held, so these are completion-phase observations, **not a full-startup or normal-network benchmark**. One desktop observation per surface:
 
 | Surface | 816 completion / longest task | Candidate completion / longest task | Table renders |
 | --- | --- | --- | --- |
-| Classic, 2500 rows | 3261.86 / 1063 ms | 1497.25 / 53 ms | 2 → 1 |
-| IDE, 2500 rows | 3016.71 / 1094 ms | 1681.52 / 86 ms | 2 → 1 |
+| Classic, 2500 rows | 3261.86 / 1063 ms | 2731.71 / 71 ms | 2 → 1 |
+| IDE, 2500 rows | 3016.71 / 1094 ms | 2172.01 / 61 ms | 2 → 1 |
 
 [Baseline](studio-translit-baseline-816.json) loses the editor, focus and replay node on its second render. [Candidate desktop](studio-translit-candidate-817.json) retains all of them, caret selection 4–9, manual Latin text, source-model equality and the visible row (0 px shift), and suppresses a late fill after a new mount. [380px Hebrew/RTL viewport](studio-translit-mobile-817.json) passes the same invariants; these are viewport checks, not a physical-device measurement. No percentile or general percentage gain is claimed.
 
