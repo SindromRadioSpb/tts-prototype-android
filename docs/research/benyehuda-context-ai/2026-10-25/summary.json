@@ -1,0 +1,364 @@
+{
+  "schema": "benyehuda-context-enrichment-v1",
+  "source_layer_rows": 105955,
+  "mapped": 105946,
+  "rekeyed": 948,
+  "already_present": 8,
+  "preserved_published": [
+    {
+      "work_id": "42829",
+      "order_index": 0
+    },
+    {
+      "work_id": "42829",
+      "order_index": 1
+    },
+    {
+      "work_id": "42829",
+      "order_index": 2
+    },
+    {
+      "work_id": "42829",
+      "order_index": 3
+    },
+    {
+      "work_id": "42829",
+      "order_index": 4
+    },
+    {
+      "work_id": "42829",
+      "order_index": 5
+    },
+    {
+      "work_id": "42829",
+      "order_index": 6
+    },
+    {
+      "work_id": "42829",
+      "order_index": 7
+    }
+  ],
+  "unmatched": [
+    {
+      "work_id": "25450",
+      "order_index": 0,
+      "row_id": "25450-u002-s01"
+    },
+    {
+      "work_id": "50615",
+      "order_index": 0,
+      "row_id": "50615-u002-s01"
+    },
+    {
+      "work_id": "54930",
+      "order_index": 0,
+      "row_id": "54930-u002-s01"
+    },
+    {
+      "work_id": "71066",
+      "order_index": 1,
+      "row_id": "71066-l002"
+    },
+    {
+      "work_id": "71108",
+      "order_index": 0,
+      "row_id": "71108-u002-s01"
+    },
+    {
+      "work_id": "63260",
+      "order_index": 0,
+      "row_id": "63260-u002-s01"
+    },
+    {
+      "work_id": "62885",
+      "order_index": 0,
+      "row_id": "62885-u002-s01"
+    },
+    {
+      "work_id": "54943",
+      "order_index": 0,
+      "row_id": "54943-u002-s01"
+    },
+    {
+      "work_id": "30664",
+      "order_index": 0,
+      "row_id": "30664-u002-s01"
+    }
+  ],
+  "source_archives": [
+    {
+      "name": "LinguistPro-All-93-Texts.context-ai.learning.zip",
+      "sha256": "3163b1d195a9bf4e7a6a98902f2f37e88a087424e4fbee9803bc92c2245c457a"
+    },
+    {
+      "name": "LinguistPro-Next-20B-Poems.context-ai.learning.zip",
+      "sha256": "3d27914c4a0277b92d343a5f60c0774acab4b3b3d83256418ad08ae2ed64b28e"
+    },
+    {
+      "name": "LinguistPro-Next-20C-Texts.context-ai.learning.zip",
+      "sha256": "6517e84c1a09edb11faf3a8bb71af276ea131297fee2f63071c7defcce35dd7c"
+    },
+    {
+      "name": "LinguistPro-Next-20D-Texts.context-ai.learning.zip",
+      "sha256": "c12c071b28c770823b07ea1c548f3a5d8028d1ff074bd0551f9ef8f816728da8"
+    },
+    {
+      "name": "LinguistPro-Next-20E-Texts.context-ai.learning.zip",
+      "sha256": "ea7c38241f054c5b9d8bd57f805fd1bc47307a2de5457f5d836a386c3a973ed1"
+    },
+    {
+      "name": "LinguistPro-Next-20F-Texts.context-ai.learning.zip",
+      "sha256": "4a4883bce46580b562af2f2c7b3ffff47c5fb60c0f43283badd5fade4ee48c01"
+    },
+    {
+      "name": "LinguistPro-Next-20G-Texts.context-ai.learning.zip",
+      "sha256": "329dc70887b6c17c84c50fc0a806c212aaf3db389e3324e27d50371529fa78b1"
+    },
+    {
+      "name": "LinguistPro-Next-20H-Texts.context-ai.learning.zip",
+      "sha256": "2b913511eb210ee988e89c46ee4581f992a7075b4961f35c25b83d58dc973fb2"
+    },
+    {
+      "name": "LinguistPro-Next-20I-Texts.context-ai.learning.zip",
+      "sha256": "50878c76e2f00726fe9966bec16135f8ad41194fb89b5cae9a8318c2a5bd78b3"
+    },
+    {
+      "name": "LinguistPro-Next-20J-Texts.context-ai.learning.zip",
+      "sha256": "9620cde5025cdd543c3ba12aa5d46c39f483d44f70a23efc3d6b80da74ff8ef7"
+    },
+    {
+      "name": "LinguistPro-Next-20K-Texts.context-ai.learning.zip",
+      "sha256": "8f267af24896215b3dddfafaa73d325afa7394786cd142e1812339ff3ca5287f"
+    },
+    {
+      "name": "LinguistPro-Next-20L-Texts.context-ai.learning.zip",
+      "sha256": "fc7dc13e4cc34d8d2c2f0197819150488ae4d5019882e4e1bc384a8e5d3fa728"
+    },
+    {
+      "name": "LinguistPro-Next-20M-Texts.context-ai.learning.zip",
+      "sha256": "c74c5025e9f8fe043789c749b3512793ac9c42fd36dbfb1b316694d3ccfe352d"
+    },
+    {
+      "name": "LinguistPro-Next-20N-Texts.context-ai.learning.zip",
+      "sha256": "d16ff81fce1787293a2b63ea1b3c401beb5368fcd855b979609a0fd7aa13291e"
+    },
+    {
+      "name": "LinguistPro-Next-20O-Texts.context-ai.learning.zip",
+      "sha256": "7971d279298e4819e2176eb340be09acae03bcf2dd589912ee89b980f5fdc253"
+    },
+    {
+      "name": "LinguistPro-Next-20P-Texts.context-ai.learning.zip",
+      "sha256": "ee89abbbf260495cda22c22d3ad040131e00c0858e0f07e77adb2ef8b751559a"
+    },
+    {
+      "name": "LinguistPro-Next-20Q-Texts.context-ai.learning.zip",
+      "sha256": "2ea3b466689ddd922590dd86b579220843a436dc7f371a77e1787b156228a570"
+    },
+    {
+      "name": "LinguistPro-Next-20R-Texts.context-ai.learning.zip",
+      "sha256": "00a0b844b992fab0fd1141a021ee071bb71357da9a922059732fdef06c2673dc"
+    },
+    {
+      "name": "LinguistPro-Next-20S-Texts.context-ai.learning.zip",
+      "sha256": "1966bc5d084ba1d6ebedb7b2ebb44fe45d72472c547eeda26c840129f29dac6a"
+    },
+    {
+      "name": "LinguistPro-Next-20T-Texts.context-ai.learning.zip",
+      "sha256": "ff5cc77ac80c29d39058f5259d5a8889809b44ac8c16ecca01a6c4c259ed2c02"
+    },
+    {
+      "name": "LinguistPro-Next-20U-Texts.context-ai.learning.zip",
+      "sha256": "f5c8bf30c5e1d073fc7df16978e725cba0e5e0a70bc048af3d92355a5ccb0ecd"
+    },
+    {
+      "name": "LinguistPro-Next-20V-Texts.context-ai.corrected-v2.learning.zip",
+      "sha256": "425fcd98282f826946cdf4724c7bddd4f4f585e69eae636c6a519b7b416be92b"
+    },
+    {
+      "name": "LinguistPro-Next-20W-Texts.context-ai.learning.zip",
+      "sha256": "8525fa76239092e05ce2ced8abdde0a10a2aa38ca207e4e0268029f960ca4b17"
+    },
+    {
+      "name": "LinguistPro-Next-20X-Texts.context-ai.learning.zip",
+      "sha256": "20d2b69ff9e3d2c3b5781b81a6ba9d50db1664b82acfaa7523c815c50c56d52f"
+    },
+    {
+      "name": "LinguistPro-Next-20Y-Texts.context-ai.corrected-v2.learning.zip",
+      "sha256": "bb9dba3582548b5e5a559c6140fbf568d879cdb651a260f77d257cd850e659a4"
+    },
+    {
+      "name": "LinguistPro-Next-20Z-Texts.context-ai.corrected-v1.learning.zip",
+      "sha256": "e83e24c4c3a37a7c5004e033a56437001be79a115afb7b02526c446a3942e6d2"
+    },
+    {
+      "name": "LinguistPro-Next-20AA-Texts.context-ai.learning.zip",
+      "sha256": "6cee4ede665328d3449c56570e607d9eb80f5979590c75c1ced6a27ab287c017"
+    },
+    {
+      "name": "LinguistPro-Next-20AB-Texts.context-ai.learning.zip",
+      "sha256": "75bafbdaa76b19bbc36f829533543849ed135e9b1f6dec99bfdad88df66965ad"
+    },
+    {
+      "name": "LinguistPro-Next-20AC-Texts.context-ai.learning.zip",
+      "sha256": "855476839bb0370788d4553b02bd39d1c94532827664bccc2d4daee979d06b4d"
+    },
+    {
+      "name": "LinguistPro-Next-20AD-Texts.context-ai.learning.zip",
+      "sha256": "6ca60e0b9621a3d5acd4e32e7e3b779d58ec1f6eb9e30aa4b3edfd5f091600de"
+    },
+    {
+      "name": "LinguistPro-Next-20AE-Texts.context-ai.learning.zip",
+      "sha256": "da12432be1c109336ee46e14e907035ffbb21ce3369e4ba320b1b45fdc6d5577"
+    },
+    {
+      "name": "LinguistPro-Next-20AF-Texts.context-ai.learning.zip",
+      "sha256": "96bd7483b9bda44b13e291870b90508651445f33e874ee6d782a090d7dc39354"
+    },
+    {
+      "name": "LinguistPro-Next-20AG-Texts.context-ai.learning.zip",
+      "sha256": "ce7927204649581567e78b1802347bfea25ae6346ffd7d0a0a5e338c7a69f8a4"
+    },
+    {
+      "name": "LinguistPro-Next-20AH-Texts.context-ai.learning.zip",
+      "sha256": "43f9bdf6f7afed60c6632850a7d447f1ab7010ce907494f7d0421387399d2cac"
+    },
+    {
+      "name": "LinguistPro-Next-20AI-Texts.context-ai.learning.zip",
+      "sha256": "6e104df8eccb614c6e66dc5ae32d456d0b09954de5adca109cc2419b53a30c66"
+    },
+    {
+      "name": "LinguistPro-Next-20AJ-Texts.context-ai.learning.zip",
+      "sha256": "f87a688abcdcbb87bc0423f9c096382f30fecee5a71950609145cb4b47766d61"
+    },
+    {
+      "name": "LinguistPro-Next-20AK-Texts.context-ai.learning.zip",
+      "sha256": "6fc7606c633681ad88e95060a214db90e4a1648d94f24f6bf7800326eaa5cc84"
+    },
+    {
+      "name": "LinguistPro-Next-20AL-Texts.context-ai.learning.zip",
+      "sha256": "60ca1074ebd10ab0d81503fd564db8c4fc8080c8c1888364fc738b1ae44d6fd4"
+    },
+    {
+      "name": "LinguistPro-Next-20AM-Texts.context-ai.learning.zip",
+      "sha256": "df8717f9327dc7316f722a1c7d6cc9986b1e7a07fee43c8ff594b4e262b6bd52"
+    },
+    {
+      "name": "LinguistPro-Next-20AN-Texts.context-ai.learning.zip",
+      "sha256": "c1d95c331ed94d874b9ab588033d38d441780fdfec0e71ddff7d1e943fd50f1c"
+    },
+    {
+      "name": "LinguistPro-Next-20AO-Texts.context-ai.learning.zip",
+      "sha256": "d7ece4b7a44a3e2662d4b33af0945a20dd8893fa2d25c3aebcb7ffbd67fb27f4"
+    },
+    {
+      "name": "LinguistPro-Next-20AP-Texts.context-ai.learning.zip",
+      "sha256": "f4e81bd4259dc35c76b1e119fb0cb378e31892f20f7f6b035d15d939ce916360"
+    },
+    {
+      "name": "LinguistPro-Next-20AQ-Texts.context-ai.learning.zip",
+      "sha256": "eb1d7e8bdeb14ed27ad21ec1150ff3c9b4ccf91e730b415548e1d15e272a0337"
+    },
+    {
+      "name": "LinguistPro-Next-20AR-Texts.context-ai.learning.zip",
+      "sha256": "a58b6a59317e57a5b9f22230c551da2ad83d82e618cfdc15d0d41dff6a645f75"
+    },
+    {
+      "name": "LinguistPro-Next-20AS-Texts.context-ai.learning.zip",
+      "sha256": "2747b29fe5cbfd19189ed6ec254c7b45f6ea065f51592778d4e9bee680dada20"
+    },
+    {
+      "name": "LinguistPro-Next-20AT-Texts.context-ai.learning.zip",
+      "sha256": "1a26277010489f52a38a04e35905a394c3cab2d8e670d5376069f16ddbb06430"
+    },
+    {
+      "name": "LinguistPro-Next-20AU-Texts.context-ai.learning.zip",
+      "sha256": "cd412b1d05b8817a15883e331f5b328ff409de2bf4c3103b0d38c8cef57cff60"
+    },
+    {
+      "name": "LinguistPro-Next-20AV-Texts.context-ai.learning.zip",
+      "sha256": "9dedc009c149d2a869673cf10469ba7665d4a0fd1fe1cfe8156d34ebe4b64fe4"
+    },
+    {
+      "name": "LinguistPro-Next-20AW-Texts.context-ai.learning.zip",
+      "sha256": "d3948cd4df60dfbf70643de52343e4a6dfa74beafb7dced9ae6f847597982a5d"
+    },
+    {
+      "name": "LinguistPro-Next-20AX-Texts.context-ai.learning.zip",
+      "sha256": "36ebf03de0274a0726c67d6ff8ec3bcb05a80d3739d8e89ff6f22eea635cbbbe"
+    },
+    {
+      "name": "LinguistPro-Next-20AY-Texts.context-ai.learning.zip",
+      "sha256": "7968e258cbaf1836992dd391c75cf1d82c8b74a160364242ec2aa55b49d9601f"
+    },
+    {
+      "name": "LinguistPro-Next-20AZ-Texts.context-ai.learning.zip",
+      "sha256": "54632bd035cb28736c7fbf0c1f40fd4bf8ca9247814066fab043cd8ea9bf72e2"
+    },
+    {
+      "name": "LinguistPro-BF-10291.context-ai.learning.zip",
+      "sha256": "4771b7c835b9ae136209542b3fb33298bda4e841f0d8ce4da601c619d2ba2f8a"
+    },
+    {
+      "name": "LinguistPro-BF-10749.context-ai.learning.zip",
+      "sha256": "446f416b421e651fd679a4171d78cff0bed57b798d604f34b6db48ed01350f90"
+    },
+    {
+      "name": "LinguistPro-BF-26501.context-ai.learning.zip",
+      "sha256": "70aba8c1f3ea121fe7d232118d7079b2f9f8d8cc3a2fdd90aa95b55c4c4e8e1c"
+    },
+    {
+      "name": "LinguistPro-BJ-25450.context-ai.learning.zip",
+      "sha256": "089181972de99f1fb4b22a57f6664dc43396782704a19cf34b1c4b8056ea4b75"
+    },
+    {
+      "name": "LinguistPro-Next-10BC-Texts.context-ai.learning.zip",
+      "sha256": "1cd737361bb163e15057d0710517f2b199f044fc0d381c0b2f2e9bee592000b6"
+    },
+    {
+      "name": "LinguistPro-Next-10BD-Texts.context-ai.learning.zip",
+      "sha256": "47aa1089cf0c2fa3a6ccf92c572371ecc1ce234589f21f301da233a7af930783"
+    },
+    {
+      "name": "LinguistPro-Next-10BH-Texts.context-ai.learning.zip",
+      "sha256": "1efe3fd6455eb470bb1a965dc760d97b064abe37a3e288b75066bda27ab17391"
+    },
+    {
+      "name": "LinguistPro-Next-1BK-Texts.context-ai.learning.zip",
+      "sha256": "782ba9064682aad44e18ba4d855e56f91293a09ccdac7b3277f16970cec21adb"
+    },
+    {
+      "name": "LinguistPro-Next-1BL-Texts.context-ai.learning.zip",
+      "sha256": "2895677ca40e21014a06b7ad4d0089be546750b91166296d6860f1d1321fb3ca"
+    },
+    {
+      "name": "LinguistPro-Next-1BM-Texts.context-ai.learning.zip",
+      "sha256": "bc3e6203dbe381782503660c435b00eb3315e5716b0dc49db94fbbd4db5327b3"
+    },
+    {
+      "name": "LinguistPro-Next-20BA-Texts.context-ai.learning.zip",
+      "sha256": "965dec0a879964ca85f1cb590638dc119694e3c6e5269fd108d6cd8e3668bfb9"
+    },
+    {
+      "name": "LinguistPro-Next-20BB-Texts.context-ai.learning.zip",
+      "sha256": "1e340e71f896033d591321e43db33859a56f19725adf0e0eaedcf3096b118d8e"
+    },
+    {
+      "name": "LinguistPro-Next-20BE-Texts.context-ai.learning.zip",
+      "sha256": "45d433914229756e78339a7fa5f9e5a7965642a308bb892236012e7188ba72f9"
+    },
+    {
+      "name": "LinguistPro-Next-20BG-Texts.context-ai.learning.zip",
+      "sha256": "87999eee1dcfaa27d1fc0dcedfa44dc02c48690f299e2bdcb8fcd09b8f6688d7"
+    },
+    {
+      "name": "LinguistPro-Next-3BI-Texts.context-ai.learning.zip",
+      "sha256": "34af402f66a16fb37e06a0ff2c72da36bfe209155157019f63db1dd7b980bb81"
+    }
+  ],
+  "works": 965,
+  "body_files": 973,
+  "new_body_files": 972,
+  "catalog_version": 12,
+  "baseline_catalog_version": 11,
+  "app_version": "3.11.820"
+}

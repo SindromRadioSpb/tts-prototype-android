@@ -1,0 +1,10 @@
+{
+  "result": "PASS",
+  "works": 965,
+  "bodies": 973,
+  "client_stored": 105946,
+  "client_rejected": 0,
+  "unchanged_source_rows": true,
+  "unchanged_edition_keys": true,
+  "unchanged_search_ordinals": true
+}

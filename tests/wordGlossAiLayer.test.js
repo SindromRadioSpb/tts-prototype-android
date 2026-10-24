@@ -207,6 +207,22 @@ test('row key: a machine-vocalized row keeps its key when he_niqqud travels in m
   assert.equal(AI.rowPayloadFromData(derived).key, AI.rowPayloadFromData(ROW).key);
 });
 
+test('a source-only rendering uses the imported bound context, with spelling, translation and reading guards', async () => {
+  await reset();
+  const row={...ROW,id:'derived-source-view',he_niqqud:'',meta_json:JSON.stringify({niqqud_derived:{value:ROW.he_niqqud}})};
+  const tr=renderRow({...ROW,he_niqqud:ROW.he_plain},false);
+  AI.bindRows(document.getElementById('m'),[row]);
+  const key=AI.rowPayloadFromData(row).key;
+  await AI.remember({schema:AI.LAYER_SCHEMA,rows:[{order_index:0,key,glosses:GLOSSES,mwe:[]}]},[row]);
+  assert.equal(AI.rowPayload(tr).key,key);await AI.hydrate([tr]);assert.equal(AI.wordAt(tr,0).gloss,'зачем');
+  const first=tr.querySelector('.rm-w');first.setAttribute('data-niqqud','לָמָה');
+  assert.notEqual(AI.rowPayload(tr).key,key,'an explicit different reading cannot use a hidden reading');
+  first.removeAttribute('data-niqqud');first.textContent='אחר';
+  assert.notEqual(AI.rowPayload(tr).key,key,'different spelling cannot inherit context');
+  first.textContent='למה';tr.querySelector('td[data-col="ru"]').textContent='Изменённый перевод';
+  assert.notEqual(AI.rowPayload(tr).key,key,'different translation cannot inherit context');
+});
+
 test('a v1 entry paid on this device (keyed with the ▶︎ glyph) is found and moved to v2', async () => {
   const p = AI.rowPayloadFromData({ ...ROW, ru: 'Строка из прошлой версии' });
   const v1WithGlyph = p.legacy[1];

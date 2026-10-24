@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.819";
+const CACHE_VERSION = "v3.11.820";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -120,8 +120,8 @@ const PRECACHE_URLS = [
   "/js/catalog-discovery-core.js?v=780",
   "/js/catalog-discovery-ui.js?v=485",
   "/js/benyehuda-learning-edition.js?v=731",
-  "/js/corpus-materialize.js?v=806",
-  "/js/work-parts.js?v=808",
+  "/js/corpus-materialize.js?v=820",
+  "/js/work-parts.js?v=820",
   "/js/work-zip.js?v=810",
   "/js/benyehuda-learning-niqqud.js?v=734",
   "/js/benyehuda-learning-niqqud-manifest.js?v=734",
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=819",
+  "/js/library-ui.js?v=820",
   "/js/room-b6-core.js?v=811",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -213,7 +213,7 @@ const PRECACHE_URLS = [
   "/js/reader-morph.js?v=819",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=819",
-  "/js/word-gloss-ai.js?v=819",
+  "/js/word-gloss-ai.js?v=820",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=805",
@@ -350,7 +350,7 @@ const PRECACHE_URLS = [
   // Versioned filename (corpus-catalog-v<N>) → each re-publish (new baked batch) bumps
   // the catalog version so the immutable-cached lazy files (?v=N) cache-bust; the SW
   // CACHE_VERSION bump refreshes this precached root + library-ui.js in lockstep.
-  "/data/benyehuda/corpus-catalog-v10.json",
+  "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js?v=812",

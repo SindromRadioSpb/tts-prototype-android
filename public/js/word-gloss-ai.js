@@ -67,9 +67,20 @@
     // Hosts bind the current canonical row before applying the word layer.
     var row = tr.__lpLearningRow;
     var ru = tr.querySelector('td[data-col="ru"]') ? cellValue(tr, 'ru') : normText(row && (row.ru != null ? row.ru : row.russian));
-    var p = payloadOf(spans.map(function (sp) {
+    var paintedWords = spans.map(function (sp) {
       return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", surface: sp.getAttribute("data-surface") || "", hint: "" };
-    }), ru, row);
+    });
+    var p = payloadOf(paintedWords, ru, row);
+    // A source-only view can paint unpointed spans while the bound row carries
+    // the publication's derived pointing. Use that same canonical key as import
+    // only when every rendered token is unpointed and matches the row's tokens.
+    // A changed translation, spelling or explicitly painted reading stays distinct.
+    var unpointed = paintedWords.length && paintedWords.every(function (word) { return !/[\u0591-\u05c7]/.test(word.w); });
+    var canonical = unpointed && row && rowPayloadFromData(row), RM = window.ReaderMorph;
+    if (canonical && RM && ru === canonical.ru && canonical.words.length === paintedWords.length
+      && paintedWords.every(function (word, i) {
+        return RM.stripNiqqud(word.w) === RM.stripNiqqud(canonical.words[i].w);
+      })) p = canonical;
     if (!p) return null;
     if (tr.getAttribute('data-wg-ai-key') !== p.key) tr.setAttribute('data-wg-ai-key', p.key);
     if (tr.getAttribute('data-wg-occurrence-key') !== p.storageKey) tr.setAttribute('data-wg-occurrence-key', p.storageKey);

@@ -28,7 +28,8 @@
   function partCard(card, part) {
     return { id: card.id, title: part.title, author: card.author, era: card.era, text_key: part.text_key, file: part.file,
       bundle_sha256: part.bundle_sha256, learning_edition_id: part.learning_edition_id, segments: part.rows,
-      previous_text_keys: part.previous_text_keys || [], parts: 1, work_title: card.title, part_id: part.part_id };
+      previous_text_keys: part.previous_text_keys || [], parts: 1, work_title: card.title, part_id: part.part_id,
+      ...(part.word_gloss_ai ? { word_gloss_ai: part.word_gloss_ai } : {}) };
   }
 
   const mainParts = (toc) => toc.parts.filter((p) => p.track === 'text' || !p.parent);

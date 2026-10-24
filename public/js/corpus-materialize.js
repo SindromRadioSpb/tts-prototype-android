@@ -28,6 +28,33 @@
     return g && g.texts ? { stored: g.stored, rejected: g.rejected } : null;
   }
 
+  // A layer-only refresh keeps the existing edition and learner rows. The signed
+  // sidecar is bound to the publisher key; remember rechecks every local row and
+  // preserves occurrence-level manual corrections. An unavailable layer must not
+  // prevent an offline copy from opening. Only successful refreshes are memoized.
+  var benYehudaLayers = new WeakMap();
+  async function restoreBenYehudaLayer(card, localId, deps, opts) {
+    var layer = card.word_gloss_ai, AI = deps.WordGlossAI || globalThis.WordGlossAI;
+    if (!layer || !/^works\/\d{1,8}-[a-f0-9]{32}\.json$/.test(layer.file || '')
+      || !/^[a-f0-9]{64}$/.test(layer.sha256 || '') || !AI || !deps.db.getSentences) return null;
+    var restored = benYehudaLayers.get(deps.db);
+    if (!restored) { restored = new Set(); benYehudaLayers.set(deps.db, restored); }
+    var identity = localId + ':' + layer.sha256;
+    if (restored.has(identity)) return null;
+    try {
+      var response = await deps.fetch('/data/benyehuda/' + layer.file + '?__context_layer=1', { cache: 'force-cache' });
+      if (!response.ok) return null;
+      var bundle = await deps.Edition.verifyBytes(await response.arrayBuffer(), layer.sha256);
+      var text = bundle && bundle.library && bundle.library.texts && bundle.library.texts[0];
+      if (!text || text.text_key !== card.text_key || String(text.corpus && text.corpus.byehuda_id) !== String(card.id)) return null;
+      var rows = await deps.db.getSentences(localId);
+      if (opts.isCurrent && !opts.isCurrent()) return null;
+      var result = await AI.remember(text.word_gloss_ai_layer, rows);
+      if (!result.rejected) restored.add(identity);
+      return result;
+    } catch (_) { return null; }
+  }
+
   // → { localId, edition: 'published'|'previous', imported, wordGlossAi: { stored, rejected } | null }
   async function ensureBenYehudaWork(card, deps, opts) {
     deps = deps || {}; opts = opts || {};
@@ -49,7 +76,10 @@
       }
     }
     var choice = Edition.deviceChoice(card, localId, previousIds, !!opts.openPublished);
-    if (choice.id) return { localId: choice.id, edition: choice.edition, imported: false };
+    if (choice.id) {
+      var refreshed = choice.edition === 'published' ? await restoreBenYehudaLayer(card, choice.id, deps, opts) : null;
+      return { localId: choice.id, edition: choice.edition, imported: false, ...(refreshed ? { wordGlossAi: refreshed } : {}) };
+    }
     if (!card.file) throw new Error("BY_CARD_INCOMPLETE");   // a copy on the device opens without it; a download needs it
     var res = await deps.fetch("/data/benyehuda/" + card.file + "?v=" + deps.catalogVersion, { cache: "force-cache" });
     if (!res.ok) throw new Error("fetch " + res.status);

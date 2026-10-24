@@ -1,0 +1,40 @@
+{
+  "scope": "isolated loopback browser",
+  "cases": [
+    {
+      "work": "3557",
+      "rows": 5,
+      "ai": 13,
+      "coverage": "Контекстный перевод: 13 из 13 слов"
+    },
+    {
+      "work": "42674",
+      "rows": 207,
+      "ai": 3788,
+      "coverage": "Контекстный перевод: 3788 из 3788 слов"
+    },
+    {
+      "work": "10291",
+      "rows": 2150,
+      "ai": 31229,
+      "coverage": "Контекстный перевод: 31229 из 31229 слов"
+    }
+  ],
+  "errors": [],
+  "denied": [],
+  "preservation": {
+    "same": true,
+    "manual": "Моя правка слова",
+    "refresh": {
+      "localId": "d2ac41bb-de68-4146-907e-71b65d6b80e8",
+      "edition": "published",
+      "imported": false,
+      "wordGlossAi": {
+        "stored": 4,
+        "rejected": 1
+      }
+    },
+    "reviewCount": 1
+  },
+  "result": "PASS"
+}

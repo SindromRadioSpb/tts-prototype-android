@@ -25,6 +25,32 @@ test('Ben-Yehuda: a work already on the device is reused without a download', as
   assert.equal(calls.length, 0);
 });
 
+test('Ben-Yehuda enriches the same saved edition without importing or rewriting learner rows', async () => {
+  const { createHash } = require('node:crypto');
+  const rows = [{ id: 'saved-row', he_niqqud: 'שָׁלוֹם', ru: 'Мир', order_index: 0 }];
+  const layer = { schema: 'word-gloss-ai-layer-v1', rows: [{ order_index: 0, key: 'context', glosses: [{ gloss: 'мир' }] }] };
+  const bundle = { library: { texts: [{ text_key: 'same-key', corpus: { byehuda_id: '101' }, word_gloss_ai_layer: layer }] } };
+  const hash = createHash('sha256').update(JSON.stringify(bundle)).digest('hex');
+  const card = { id: '101', text_key: 'same-key', learning_edition_id: 'edition', word_gloss_ai: { file: 'works/101-' + hash.slice(0,32) + '.json', sha256: hash } };
+  const db = fakeDb({ 'same-key': { id: 'saved', source_meta_json: JSON.stringify({ corpus: { byehuda_id: '101' } }) } });
+  db.getSentences = async id => { assert.equal(id, 'saved'); return rows; };
+  const calls = [], before = structuredClone(rows); let remembered = 0;
+  const deps = { db, Edition, fetch: fetchOf({ ['/data/benyehuda/' + card.word_gloss_ai.file]: bundle }, calls), WordGlossAI: {
+    remember: async (received, local) => { assert.deepEqual(received, layer); assert.equal(local, rows); remembered++; return { stored: 1, rejected: 0 }; }
+  } };
+  const result = await M.ensureBenYehudaWork(card, deps);
+  assert.equal(result.localId, 'saved'); assert.equal(result.imported, false); assert.equal(result.wordGlossAi.stored, 1);
+  await M.ensureBenYehudaWork(card, deps);
+  assert.equal(calls.length, 1); assert.equal(remembered, 1); assert.deepEqual(rows, before); assert.equal(db.imported.length, 0);
+  const changedDb = { ...db };
+  const stale = await M.ensureBenYehudaWork(card, { ...deps, db: changedDb }, { isCurrent: () => false });
+  assert.equal(stale.localId, 'saved'); assert.equal(remembered, 1, 'late response cannot commit after switching');
+  await M.ensureBenYehudaWork(card, { ...deps, db: { ...db }, fetch: fetchOf({ ['/data/benyehuda/' + card.word_gloss_ai.file]: { library: { texts: [] } } }, []) });
+  assert.equal(remembered, 1, 'hash mismatch cannot install a forged layer');
+  const offline = await M.ensureBenYehudaWork(card, { ...deps, db: { ...db }, fetch: async () => { throw Error('offline'); } });
+  assert.equal(offline.localId, 'saved'); assert.equal(offline.imported, false);
+});
+
 test('Ben-Yehuda: a missing work is fetched with the catalog version, verified and imported', async () => {
   const db = fakeDb({}), calls = [];
   const bundle = { library: { texts: [{ text_key: 'k2', title: 'x', rows: [] }] } };

@@ -68,7 +68,7 @@ async function main() {
     const workFetches = [], workProbes = [];
     pg.on("request", (r) => {
       if (!/\/data\/benyehuda\/works\//.test(r.url())) return;
-      if (r.method() === "GET") workFetches.push(r.url());
+      if (r.method() === "GET" && !r.url().includes('__context_layer=1')) workFetches.push(r.url());
       if (r.method() === "HEAD") workProbes.push(r.url());
     });
 
