@@ -1,0 +1,18 @@
+{
+  "result": "PASS",
+  "approved_scope": "only unused Docker build cache",
+  "command": "sudo -n docker builder prune -af",
+  "available_bytes_before": 2781147136,
+  "available_bytes_after": 5235388416,
+  "reclaimed_df_bytes": 2454241280,
+  "images_preserved": 13,
+  "containers_preserved": 11,
+  "volumes_preserved": 4,
+  "active_image": [
+    "sha256:af258b40bc35c75f2822c5f431b697f14013b716c97a533f05f423584755e356"
+  ],
+  "rollback_image": [
+    "sha256:64814a96386e7b0c1478f7f8fa92433d2c45679a0fd18c310b42203cd721e40d"
+  ],
+  "remaining_build_cache_bytes": 0
+}
