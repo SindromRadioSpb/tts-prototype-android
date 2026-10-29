@@ -697,8 +697,50 @@ app.use('/data/benyehuda/learning-niqqud', express.static(path.join(DATA_DIR, 'b
 
 app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
-// A public work has one request URL, readable metadata and a short source excerpt
-// in the initial HTML. Personal and group material never enters this projection.
+// AI assistants that fetch a shared link without running scripts get the same
+// text as a lean page instead of 280 KB of app styles in front of it.
+const AI_READER_AGENT = /ChatGPT-User|OAI-SearchBot|GPTBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Google-Extended|Gemini|MistralAI-User|DuckAssistBot|cohere-ai|meta-externalagent|YouBot/i;
+// The reviewed answer/solution and public files of a task, behind the same rights
+// gates as their own API routes. A missing layer only shortens the page.
+async function publicWorkReadableExtras(slug, work) {
+  const extras = { support: '', attachments: [] };
+  const resolver = publicLearningSupportResolver(slug);
+  if (resolver) {
+    try {
+      const support = resolver({
+        slug, editionId: work.edition.edition_id, editionNumber: work.edition.edition_number,
+        editionManifestSha256: work.edition.manifest_sha256, editionItemId: work.item.edition_item_id,
+        publicWorkId: work.item.public_work_id, snapshotSha256: work.item.snapshot_sha256, snapshot: work.item.snapshot,
+      });
+      extras.support = (slug === 'physics-year1-problems' ? physicsLearningSupportMarkdown : materialsPb2LearningSupportMarkdown)(support);
+      const seen = new Set();
+      (function collect(value) {
+        if (Array.isArray(value)) return value.forEach(collect);
+        if (!value || typeof value !== 'object') return;
+        if (typeof value.public_url === 'string' && value.public_url.startsWith('/api/public-corpora/') && !seen.has(value.public_url)) {
+          seen.add(value.public_url);
+          const page = value.source_page ? ', стр. ' + value.source_page : '';
+          extras.attachments.push({ title: (value.role === 'condition' ? 'Скан условия' : 'Рисунок') + page, href: value.public_url });
+        }
+        Object.values(value).forEach(collect);
+      })(support);
+    } catch (error) {
+      console.warn('[public-work-seo] learning support omitted:', error && (error.code || error.message));
+    }
+  }
+  if (slug === 'physics-year1-problems' && physicsTaskResourcesEnabled()) {
+    try {
+      const kinds = { CONDITION_AND_SOLUTION: 'PDF: условие и решение', CONDITION_ONLY: 'PDF: оригинал условия' };
+      const files = await getPhysicsTaskResourceRepo().listPublicResources(slug, work.item.public_work_id);
+      extras.attachments = files.map((item) => ({ title: item.title, href: item.file_url, note: kinds[item.content_kind] || 'PDF' })).concat(extras.attachments);
+    } catch (error) {
+      console.warn('[public-work-seo] task files omitted:', error && (error.code || error.message));
+    }
+  }
+  return extras;
+}
+// A public work has one request URL with its full readable text in the initial
+// HTML. Personal and group material never enters this projection.
 app.get('/library.html', async (req, res, next) => {
   const id = req.query.corpus_work;
   const slug = req.query.public_corpus;
@@ -710,10 +752,18 @@ app.get('/library.html', async (req, res, next) => {
   try {
     let data;
     if (id && !slug && !workId) data = publicWorkSeo.benyehuda(id, DATA_DIR);
-    else if (slug && workId && !id) data = publicWorkSeo.published(await getPublicationRepo().getPublicWork(slug, workId));
+    else if (slug && workId && !id) {
+      const work = await getPublicationRepo().getPublicWork(slug, workId);
+      data = publicWorkSeo.published(work, await publicWorkReadableExtras(String(slug), work));
+    }
     if (!data) return res.status(404).send('Material not found');
     const url = publicWorkSeo.canonical(id ? { corpus_work: String(id) } : { public_corpus: String(slug), public_work: String(workId) });
     res.set('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.set('Vary', 'User-Agent, Accept');
+    if (req.query.format === 'md' || /^text\/markdown/i.test(String(req.headers.accept || '')))
+      return res.type('text/markdown; charset=utf-8').send(publicWorkSeo.readableMarkdown(data, url));
+    const agent = String(req.headers['user-agent'] || '');
+    if (AI_READER_AGENT.test(agent) || !/Mozilla\//.test(agent)) return res.type('html').send(publicWorkSeo.lean(data, url));
     return res.type('html').send(publicWorkSeo.render(data, url));
   } catch (error) {
     if (error && (error.code === 'CORPUS_NOT_FOUND' || error.code === 'PUBLICATION_INPUT_INVALID')) return res.status(404).send('Material not found');
@@ -4291,12 +4341,13 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
 // ============================================================================
 const { getPublicationRepo } = require("./db/publicationRepo");
 const { getPhysicsTaskResourceRepo } = require("./db/physicsTaskResourceRepo");
-const { resolveLearningSupport: resolvePhysicsLearningSupport } = require("./physics/physicsYear1LearningSupport");
+const { resolveLearningSupport: resolvePhysicsLearningSupport, toAgentMarkdown: physicsLearningSupportMarkdown } = require("./physics/physicsYear1LearningSupport");
 const {
   loadManifest: loadMaterialsPb2LearningSupportManifest,
   resolveLearningSupport: resolveMaterialsPb2LearningSupport,
   resolveAsset: resolveMaterialsPb2LearningAsset,
   resolveWordAudioIndex: resolveMaterialsPb2WordAudioIndex,
+  toAgentMarkdown: materialsPb2LearningSupportMarkdown,
 } = require("./materials/materialsPb2LearningSupport");
 const rlPublicationRead = makeRateLimiter({ windowMs: 60_000, max: 180, name: "publication-read" });
 const rlPublicationWrite = makeRateLimiter({ windowMs: 60_000, max: 90, name: "publication-write" });
