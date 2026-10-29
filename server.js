@@ -775,8 +775,19 @@ app.get('/robots.txt', (_req, res) => res.type('text').send('User-agent: *\nAllo
 app.get('/sitemap.xml', async (_req, res) => {
   let items = [];
   try {
-    const media = await getPublicationRepo().getPublicMediatheque();
+    const repo = getPublicationRepo();
+    const media = await repo.getPublicMediatheque();
     items = media.items;
+    // Every publicly readable work of every published corpus (Physics, Materials
+    // science, songs…), not only Mediatheque cards: crawlers find tasks by these URLs.
+    for (const corpus of await repo.listPublicCorpora()) {
+      try {
+        const published = await repo.getPublicCorpus(corpus.slug);
+        for (const item of published.items || []) items.push({ ref: { kind: 'public', slug: corpus.slug, workId: item.public_work_id } });
+      } catch (error) {
+        console.warn('[public-work-seo] corpus omitted from sitemap:', corpus.slug, error && (error.code || error.message));
+      }
+    }
   } catch (error) {
     console.warn('[public-work-seo] public media omitted from sitemap:', error && error.message);
   }
