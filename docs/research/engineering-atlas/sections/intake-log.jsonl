@@ -1,1 +1,4 @@
 {"event": "stopped", "reason": "time_limit", "at": "2026-10-30T05:47:22+00:00"}
+{"event": "accepted", "section": "s26-form-tolerance", "file": "a97002-content-s26-form-tolerance-v1.jsonl", "warnings": 6, "findings": {"F_CORE_VERIFIED": 0, "F_CORE_MISMATCH": 0, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T05:53:34+00:00"}
+{"event": "accepted", "section": "s27-position-tolerance", "file": "a97002-content-s27-position-tolerance-v1.jsonl", "warnings": 7, "findings": {"F_CORE_VERIFIED": 0, "F_CORE_MISMATCH": 0, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T05:56:40+00:00"}
+{"event": "accepted", "section": "s28-special", "file": "a97002-content-s28-special-v1.jsonl", "warnings": 1, "findings": {"F_CORE_VERIFIED": 1, "F_CORE_MISMATCH": 0, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T06:01:16+00:00"}
