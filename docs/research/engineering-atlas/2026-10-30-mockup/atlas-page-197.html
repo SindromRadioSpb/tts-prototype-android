@@ -1,0 +1,128 @@
+<style>
+.lp *{box-sizing:border-box}
+.lp{font-family:system-ui,Arial,sans-serif;color:#172033}
+.lp .he{font-family:"Noto Sans Hebrew",Arial,sans-serif;direction:rtl;text-align:right;font-size:15px}
+.lp .nq{font-family:"Noto Sans Hebrew",Arial,sans-serif;direction:rtl;text-align:right;color:#0F6F74;font-size:14px}
+.lp .tr{font-style:italic;color:#5b6577;font-size:12px}
+.lp .ru{font-size:13.5px}
+.lp .math{font-family:"Cambria Math","STIX Two Math",serif;font-size:19px}
+.lp .sym{border-bottom:2px dotted #0F6F74;cursor:pointer;padding:0 2px}
+.lp .sym.on{background:#d8efef;border-radius:3px}
+.screen{display:grid;grid-template-columns:230px 1fr;gap:14px;background:#FBFCFD;border:1px solid #d6dee2;border-radius:10px;padding:12px}
+.srcpane{border-right:1px solid #e3e9ec;padding-right:12px}
+.srcpane img{width:100%;border:1px solid #cfd8dc;box-shadow:0 1px 4px #0002}
+.pg{font-weight:700;font-size:13px;color:#0F6F74;margin-bottom:6px}
+.chip{display:inline-block;font-size:11px;padding:2px 7px;border-radius:10px;background:#E7EEF0;margin:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:7px 0;border-bottom:1px solid #eef2f4}
+.fcard{border:1px solid #cfe3e3;background:#f4fafa;border-radius:8px;padding:10px;margin:10px 0}
+.fcard table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.fcard td,.fcard th{border-top:1px solid #dbe8e8;padding:4px 6px;text-align:left}
+.warn{background:#fff6e8;border-left:3px solid #C07C21;padding:6px 9px;font-size:12.5px;margin-top:8px}
+.fig{position:relative;display:inline-block;margin:6px 0}
+.fig img{width:330px;display:block}
+.lab{position:absolute;background:#ffffffe8;border:1px solid #0F6F74;color:#0F6F74;font-size:11px;padding:1px 5px;border-radius:4px}
+.tabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.tab{font-size:12px;padding:4px 10px;border-radius:14px;border:1px solid #cfd8dc;background:#fff}
+.tab.act{background:#0F6F74;color:#fff;border-color:#0F6F74}
+.a4{background:#fff;border:1px solid #ccc;box-shadow:0 2px 8px #0002;padding:14px 16px;font-size:12px;min-height:420px;color:#111}
+.a4 .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:4px;margin-bottom:8px}
+.a4 .big{font-size:26px;font-weight:800}
+.a4 table{width:100%;border-collapse:collapse}
+.a4 td{border-bottom:1px solid #ddd;padding:4px 4px;vertical-align:top}
+.a4 .he{font-size:13px}.a4 .nq{font-size:12px}.a4 .ru{font-size:12px}
+.gl{columns:2;font-size:11px;border-top:1px solid #999;margin-top:8px;padding-top:5px}
+.mini{width:100%;border:1px solid #ddd}
+</style>
+
+<div class="lp">
+<h2>Атлас נוסחאון 97002 — макет на реальной странице 197 («Ременная передача»)</h2>
+<p class="subtitle">Сверху — экранная версия (Зал). Ниже — три варианта печатной страницы для экзаменационной папки. Кликните вариант печати, который ближе; комментарии — в терминал.</p>
+
+<h3>1. Экран: оригинал всегда рядом, перевод — построчно</h3>
+<div class="screen">
+  <div class="srcpane">
+    <div class="pg">Оригинал · стр. 197</div>
+    <img src="/files/197_page.png" alt="стр. 197">
+    <div style="margin-top:8px">
+      <span class="chip">Раздел: מערכות הנעה</span><span class="chip">תמסורת רצועה · 195–234</span>
+    </div>
+  </div>
+  <div>
+    <div class="tabs"><span class="tab act">Текст + перевод</span><span class="tab">Только иврит</span><span class="tab">Словарь раздела (24)</span><span class="tab">▶ Слушать страницу</span><span class="tab">Тренировать термины</span><span class="tab">Расчёт (позже)</span></div>
+
+    <div class="row">
+      <div><div class="he"><b>יחס תמסורת</b></div><div class="nq">יַחַס תִּמְסֹרֶת</div><div class="tr">yákhas timsóret</div></div>
+      <div class="ru"><b>Передаточное отношение</b></div>
+    </div>
+    <div class="row">
+      <div><div class="he">ניתן לשנות את מרכיבי ההספק (מומנט הסיבוב – M<sub>t</sub>, מהירות הסיבוב – n<sub>rot</sub>) על ידי שינוי קטרי גלגלי הממסרת.</div></div>
+      <div class="ru">Составляющие мощности (крутящий момент M<sub>t</sub>, частоту вращения n<sub>rot</sub>) можно изменять, меняя диаметры колёс передачи.</div>
+    </div>
+    <div class="row">
+      <div><div class="he">• <b>תמסורת מפחיתה</b> (reducer) – שימוש בגלגל מניע <u>קטן</u> וגלגל מונע <u>גדול</u> מפחית את מהירות הסיבוב ומגדיל את מומנט הסיבוב הנמסר לצרכן.</div></div>
+      <div class="ru">• <b>Понижающая передача</b> — малый ведущий и большой ведомый шкив: частота вращения снижается, момент на потребителе растёт.</div>
+    </div>
+
+    <div class="fig">
+      <img src="/files/197_f79.png" alt="איור 79">
+      <span class="lab" style="left:8px;top:60%">ведомый шкив D · גלגל מונע</span>
+      <span class="lab" style="right:6px;top:8%">ведущий шкив d · גלגל מניע</span>
+    </div>
+    <div class="tr" style="margin-top:-2px">איור 79 — תמסורת רצועה · Рис. 79 — ременная передача (подписи переведены поверх оригинала)</div>
+
+    <div class="fcard">
+      <div class="math">i = <span class="sym">n<sub>out</sub></span> / <span class="sym">n<sub>in</sub></span> &nbsp;&nbsp;&nbsp; i = <span class="sym on">d</span>·(1 − <span class="sym">ξ</span>) / <span class="sym">D</span></div>
+      <table>
+        <tr><th>Символ</th><th>עברית</th><th>Русский</th><th>Ед.</th></tr>
+        <tr style="background:#d8efef"><td class="math" style="font-size:14px">d</td><td class="he" style="font-size:13px">קוטר גלגל מניע</td><td>диаметр ведущего шкива ← подсвечен на рис. 79</td><td>mm</td></tr>
+        <tr><td class="math" style="font-size:14px">D</td><td class="he" style="font-size:13px">קוטר גלגל מונע</td><td>диаметр ведомого шкива</td><td>mm</td></tr>
+        <tr><td class="math" style="font-size:14px">ξ</td><td class="he" style="font-size:13px">מקדם החלקה</td><td>коэффициент проскальзывания</td><td>—</td></tr>
+      </table>
+      <div class="warn">⚠ В этом пособии <b>i = n<sub>out</sub>/n<sub>in</sub></b> (выход/вход) — в русских учебниках обычно наоборот.</div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top:22px">2. Печать для экзаменационной папки — какой вариант?</h3>
+<div class="cards">
+  <div class="card" data-choice="print-lines" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="a4">
+      <div class="head"><span class="big">стр. 197</span><span>תמסורת רצועה · Ременная передача</span></div>
+      <table>
+        <tr><td><div class="he"><b>יחס תמסורת</b></div><div class="nq">יַחַס תִּמְסֹרֶת · <i>yákhas timsóret</i></div><div class="ru">Передаточное отношение</div></td></tr>
+        <tr><td><div class="he">ניתן לשנות את מרכיבי ההספק … על ידי שינוי קטרי גלגלי הממסרת.</div><div class="ru">Составляющие мощности можно менять, меняя диаметры колёс.</div></td></tr>
+        <tr><td><div class="math" style="font-size:15px">i = d·(1 − ξ)/D</div><div style="font-size:11px">d — קוטר גלגל מניע — диаметр ведущего, mm · ξ — מקדם החלקה — проскальзывание</div></td></tr>
+      </table>
+      <div class="gl">רצועה — ремень · גלגל מניע — ведущий шкив · גלגל מונע — ведомый · מומנט סיבוב — крутящий момент · מהירות סיבוב — частота вращения · נצילות η — КПД</div>
+    </div></div>
+    <div class="card-body"><h3>А. Построчно</h3><p>Каждая строка иврита — сразу под ней огласовки, транслит и перевод. Полно, но длиннее оригинала (~1,5–2 листа на страницу).</p></div>
+  </div>
+
+  <div class="card" data-choice="print-columns" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="a4">
+      <div class="head"><span class="big">стр. 197</span><span>Ременная передача</span></div>
+      <table>
+        <tr><td class="ru" style="width:50%">Передаточное отношение</td><td class="he"><b>יחס תמסורת</b></td></tr>
+        <tr><td class="ru">Составляющие мощности можно менять, меняя диаметры колёс.</td><td class="he">ניתן לשנות את מרכיבי ההספק … קטרי גלגלי הממסרת.</td></tr>
+        <tr><td class="ru">Понижающая: малый ведущий + большой ведомый → n↓, M↑</td><td class="he">תמסורת מפחיתה – גלגל מניע קטן וגלגל מונע גדול…</td></tr>
+        <tr><td colspan="2" class="math" style="font-size:15px;text-align:center">i = d·(1 − ξ)/D &nbsp; | d — диаметр ведущего · D — ведомого · ξ — проскальзывание</td></tr>
+      </table>
+      <div class="gl">רצועה — ремень · גלגל מניע — ведущий · גלגל מונע — ведомый · נצילות — КПД</div>
+    </div></div>
+    <div class="card-body"><h3>Б. Две колонки</h3><p>Иврит справа, русский слева, строки выровнены. Компактно (~1 лист на страницу); огласовки и транслит — только в глоссарии.</p></div>
+  </div>
+
+  <div class="card" data-choice="print-annotated" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="a4">
+      <div class="head"><span class="big">стр. 197</span><span>Оригинал + русские пометки</span></div>
+      <div style="display:grid;grid-template-columns:58% 1fr;gap:8px">
+        <img class="mini" src="/files/197_page.png" alt="">
+        <div style="font-size:11px">
+          <b>①</b> Передаточное отношение<br><b>②</b> Понижающая передача: малый ведущий + большой ведомый → n↓, M↑<br><b>③</b> Повышающая: наоборот<br><b>④</b> Рис. 79: <i>גלגל מונע</i> — ведомый D, <i>גלגל מניע</i> — ведущий d<br><b>⑤</b> i = n<sub>out</sub>/n<sub>in</sub> (вых./вх.!)<br><b>⑥</b> Длина ремня, A — межосевое
+        </div>
+      </div>
+    </div></div>
+    <div class="card-body"><h3>В. Оригинал с пометками</h3><p>Уменьшенная настоящая страница + пронумерованные русские пометки на полях. Глаз привыкает к виду книги на экзамене; перевод короче.</p></div>
+  </div>
+</div>
+</div>
