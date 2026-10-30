@@ -54,8 +54,8 @@ def _status(supplied, recognition, math_review):
             'math_review': math_review, 'owner_status': 'none'}
 
 
-def build_graph(source, content_path):
-    report = V.validate(source, content_path)
+def build_graph(source, content_path, terms_path=None):
+    report = V.validate(source, content_path, terms_path=terms_path)
     if not report['ok']:
         raise ImportRejected(report)
     rows, _ = S.read_jsonl(content_path)
@@ -68,6 +68,12 @@ def build_graph(source, content_path):
         step_review[(oid, int(step))] = {'F_CORE_VERIFIED': 'core_verified', 'F_CORE_MISMATCH': 'core_mismatch'}.get(finding['code'], 'unchecked')
 
     objects, terms = {}, {}
+    if terms_path:
+        # terms of the book-wide core referenced by this pack become part of its graph
+        core_rows, _ = S.read_jsonl(terms_path)
+        refs = {r.split('#')[0] for _, o in rows[1:] for r in o.get('terms', []) + ([o['term']] if o.get('term') else [])
+                + [x for x in o.get('links', []) if '#' in x]}
+        terms.update({o['id']: o for _, o in core_rows if o.get('type') == 'term' and o['id'] in refs})
     for sid in source.order:
         objects[sid] = dict(source.objects[sid])
     for obj in content:

@@ -37,6 +37,13 @@ class GlobalTermsTest(unittest.TestCase):
         report = V.validate(pack.source, pack.write(objs), terms_path=path)
         self.assertNotIn('W_TERM_UNUSED', codes(report, 'warnings'))
 
+    def test_import_uses_the_term_core(self):
+        import atlas_import as I
+        pack = Pack(self)
+        objs = [o for o in clean_content() if o['type'] != 'term']
+        graph, _ = I.build_graph(pack.source, pack.write(objs), terms_path=self.write_terms(pack))
+        self.assertIn('a97002:term:galgal-mania', graph['terms'])
+
     def test_redefining_a_core_term_is_flagged(self):
         pack = Pack(self)
         report = V.validate(pack.source, pack.write(clean_content()), terms_path=self.write_terms(pack))

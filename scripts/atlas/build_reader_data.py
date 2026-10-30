@@ -67,9 +67,9 @@ def _asset(source_dir, rel, out_root):
     return URL + 'assets/' + name
 
 
-def build_section(section, source_dir, content_path, out_root):
+def build_section(section, source_dir, content_path, out_root, terms_path=None):
     source = V.load_source_pack(source_dir)
-    graph = I.build_graph(source, content_path)[0] if content_path else _source_graph(source)
+    graph = I.build_graph(source, content_path, terms_path=terms_path)[0] if content_path else _source_graph(source)
     latex, pages_out, term_refs = {}, [], set()
     for n in range(section['first'], section['last'] + 1):
         if str(n) not in graph['pages']:
@@ -163,6 +163,7 @@ def main(argv=None):
     parser.add_argument('--sections-root', required=True, help='исходные пакеты разделов (atlas_book.py extract)')
     parser.add_argument('--contents', help='папка с пакетами dots a97002-content-<раздел>-v*.jsonl')
     parser.add_argument('--out', required=True)
+    parser.add_argument('--terms-core', help='общий словарь книги (a97002-terms-v*.jsonl)')
     parser.add_argument('--only', default='')
     args = parser.parse_args(argv)
     data = K.load_sections()
@@ -171,7 +172,7 @@ def main(argv=None):
     for s in data['sections']:
         if only and s['id'] not in only:
             continue
-        built[s['id']] = build_section(s, os.path.join(args.sections_root, s['id']), _latest_content(args.contents, s['id']), args.out)
+        built[s['id']] = build_section(s, os.path.join(args.sections_root, s['id']), _latest_content(args.contents, s['id']), args.out, args.terms_core)
         sys.stdout.write(f'{s["id"]}: {"перевод" if built[s["id"]]["translated"] else "без перевода"}\n')
     index_path = os.path.join(args.out, 'index.json')
     previous = {}
