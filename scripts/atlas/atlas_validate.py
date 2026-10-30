@@ -100,7 +100,7 @@ def _page_bbox(source):
     return [0, 0, w, h]
 
 
-def validate(source, content_path):
+def validate(source, content_path, terms_path=None):
     rep = _Report()
     rows, parse_errors = S.read_jsonl(content_path)
     for message in parse_errors:
@@ -146,6 +146,13 @@ def validate(source, content_path):
     stats['objects'] = len(content)
 
     terms = {oid: o for oid, o in content.items() if o['type'] == 'term'}
+    if terms_path:
+        # section packs refer to the book-wide term core; a pack may still add terms of its own
+        core_rows, _ = S.read_jsonl(terms_path)
+        core = {o['id']: o for _, o in core_rows if o.get('type') == 'term'}
+        for tid in sorted(set(terms) & set(core)):
+            rep.warn('W_TERM_REDEFINED', tid, lines.get(tid), 'термин уже есть в общем словаре — ссылайтесь на него, не определяйте заново')
+        terms = {**core, **terms}
     _check_ids(source, content, lines, rep)
     _check_status(source, content, lines, rep)
     _check_text(source, content, lines, header, rep)
@@ -249,6 +256,8 @@ def _check_text(source, content, lines, header, rep):
 
 def _check_terms(content, lines, terms, rep):
     for tid, term in terms.items():
+        if tid not in content:
+            continue
         senses = [s['sense'] for s in term['senses']]
         if len(senses) != len(set(senses)):
             rep.error('E_TERM', tid, lines[tid], 'смысл (sense) повторяется внутри термина')
@@ -257,6 +266,8 @@ def _check_terms(content, lines, terms, rep):
         for ref in obj.get('terms', []) + ([obj['term']] if obj.get('term') else []) + obj.get('links', []):
             used.add(ref)
     for tid, term in terms.items():
+        if tid not in content:
+            continue  # terms of the book-wide core need not all appear in one section
         for sense in term['senses']:
             if f'{tid}#{sense["sense"]}' not in used:
                 rep.warn('W_TERM_UNUSED', tid, lines[tid], f'на смысл {sense["sense"]} никто не ссылается')
@@ -491,6 +502,7 @@ def main(argv=None):
     parser.add_argument('--source', help='папка исходного пакета (manifest.json, pages.jsonl)')
     parser.add_argument('--content', help='пакет содержимого JSONL')
     parser.add_argument('--terms', help='словарь терминов JSONL (вместо --source/--content)')
+    parser.add_argument('--terms-core', help='общий словарь книги: ссылки terms раздела проверяются по нему')
     parser.add_argument('--book-text', help='текст книги по страницам (для --terms)')
     parser.add_argument('--candidates', help='список кандидатов в термины (для --terms)')
     parser.add_argument('--json', action='store_true', help='вывести отчёт в JSON')
@@ -502,7 +514,7 @@ def main(argv=None):
     else:
         if not (args.source and args.content):
             parser.error('нужны --source и --content (или --terms)')
-        report = validate(load_source_pack(args.source), args.content)
+        report = validate(load_source_pack(args.source), args.content, terms_path=args.terms_core)
     if args.json:
         sys.stdout.write(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     else:

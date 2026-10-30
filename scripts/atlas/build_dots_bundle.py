@@ -99,6 +99,40 @@ def build_terms_bundle(out_zip, book_text_path, candidates_path):
     return _write_zip(out_zip, entries)
 
 
+def build_section_bundle(out_zip, section, source_dir, terms_path):
+    """Archive for translating one section: its source pack, the term core, tools, schemas, reference."""
+    sha = _pages_sha(source_dir)
+    pages = ','.join(str(p) for p in range(section['first'], section['last'] + 1))
+    with open(os.path.join(HERE, 'TASK.section.ru.md'), encoding='utf-8') as fh:
+        task = fh.read()
+    for key, value in (('{SECTION_ID}', section['id']), ('{TITLE_RU}', section['ru']), ('{TITLE_HE}', section['he']),
+                       ('{FIRST}', str(section['first'])), ('{LAST}', str(section['last'])),
+                       ('{SOURCE_PACK_SHA256}', sha), ('{PAGES}', pages)):
+        task = task.replace(key, value)
+    entries = {
+        'README.ru.md': _text(os.path.join(HERE, 'README.dots.ru.md')),
+        'TASK.ru.md': task.replace('\r\n', '\n').encode('utf-8'),
+        'terms/a97002-terms-v1.jsonl': _text(terms_path),
+        'tools/atlas_compute.py': _text(os.path.join(HERE, 'atlas_compute.py')),
+        'tools/atlas_schema.py': _text(os.path.join(HERE, 'atlas_schema.py')),
+        'tools/atlas_validate.py': _text(os.path.join(HERE, 'atlas_validate.py')),
+        'schemas/source-pack.schema.json': _text(os.path.join(HERE, 'schemas', 'source-pack.schema.json')),
+        'schemas/content-pack.schema.json': _text(os.path.join(HERE, 'schemas', 'content-pack.schema.json')),
+        'reference/reference-content.jsonl': _text(os.path.join(PILOT, 'reference', 'reference-content.jsonl')),
+        'reference/README.md': _text(os.path.join(PILOT, 'reference', 'README.md')),
+    }
+    for root, _, files in os.walk(source_dir):
+        for name in sorted(files):
+            if name.lower() in ('thumbs.db', 'desktop.ini'):
+                continue
+            path = os.path.join(root, name)
+            rel = 'source-pack/' + os.path.relpath(path, source_dir).replace(os.sep, '/')
+            with open(path, 'rb') as fh:
+                data = fh.read()
+            entries[rel] = data if name.endswith('.png') else data.replace(b'\r\n', b'\n')
+    return _write_zip(out_zip, entries)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Собрать архив для поставщика содержимого.')
     parser.add_argument('--out', required=True)
