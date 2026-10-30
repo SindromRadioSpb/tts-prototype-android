@@ -5,3 +5,5 @@
 {"event": "accepted", "section": "s29-fits", "file": "a97002-content-s29-fits-v1.jsonl", "warnings": 2, "findings": {"F_CORE_VERIFIED": 0, "F_CORE_MISMATCH": 0, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T06:54:07+00:00"}
 {"event": "accepted", "section": "s30-production-dims", "file": "a97002-content-s30-production-dims-v1.jsonl", "warnings": 0, "findings": {"F_CORE_VERIFIED": 64, "F_CORE_MISMATCH": 1, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T06:54:13+00:00"}
 {"event": "stopped", "reason": "time_limit", "at": "2026-10-30T06:54:14+00:00"}
+{"event": "accepted", "section": "s03-bolts", "file": "a97002-content-s03-bolts-v1.jsonl", "warnings": 24, "findings": {"F_CORE_VERIFIED": 29, "F_CORE_MISMATCH": 13, "F_CORE_UNANCHORED": 1}, "at": "2026-10-30T07:07:42+00:00"}
+{"event": "accepted", "section": "s04-welding", "file": "a97002-content-s04-welding-v1.jsonl", "warnings": 59, "findings": {"F_CORE_VERIFIED": 53, "F_CORE_MISMATCH": 9, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T07:22:49+00:00"}
