@@ -5684,3 +5684,9 @@ window.I18N_LOCALES.ru.learningTarget = {
   selectedForms: 'Выбранные формы', formScope: 'Статус и повторение относятся к этой форме.',
   unavailable: 'Для этой формы нет проверенного упражнения на этом устройстве.'
 };
+
+// Engineering atlas (public/js/atlas-reader.js)
+window.I18N_LOCALES.ru.atlas = {"contents": "Оглавление атласа", "jump": "Страница книги", "open": "Открыть", "progress": "Переведено разделов", "pendingAll": "перевод подготовлен поставщиком и ждёт вычитки владельца", "translated": "переведено", "noTranslation": "нет перевода — исходный текст", "noTranslationShort": "без перевода", "page": "стр.", "pages": "страницы", "original": "как в книге", "openOriginal": "Открыть страницу оригинала", "close": "Закрыть", "terms": "Словарь раздела", "hebrewOnly": "только иврит", "search": "Поиск в разделе: иврит или русский", "print": "Печать раздела", "loading": "Загрузка…", "loadError": "Атлас сейчас недоступен", "example": "Пример", "erratum": {"printed": "в книге:", "proposed": "предлагаемое исправление:", "core": "Пересчёт ядра:", "pending": "ждёт подтверждения владельца"}, "core": {"verified": "арифметика сошлась", "mismatch": "арифметика не сошлась", "unchecked": "не пересчитано"}, "status": {"ownerConfirmed": "подтверждено владельцем", "ownerReviewed": "вычитано владельцем", "producerChecked": "ждёт вычитки", "pendingHint": "Подготовлено и проверено поставщиком; вычитка владельцем впереди"}};
+window.I18N_LOCALES.ru.room = window.I18N_LOCALES.ru.room || {};
+window.I18N_LOCALES.ru.room.hub = window.I18N_LOCALES.ru.room.hub || {};
+window.I18N_LOCALES.ru.room.hub.atlas = {"title": "Инженерный атлас 97002", "desc": "נוסחאון МАХАТ: детали машин и обработка резанием — двуязычно, по страницам книги"};

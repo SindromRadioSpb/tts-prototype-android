@@ -5678,3 +5678,9 @@ window.I18N_LOCALES.he.learningTarget = {
   selectedForms: 'צורות שנבחרו', formScope: 'המצב והחזרה מתייחסים לצורה הזאת.',
   unavailable: 'אין במכשיר הזה תרגיל מאומת לצורה הזאת.'
 };
+
+// Engineering atlas (public/js/atlas-reader.js)
+window.I18N_LOCALES.he.atlas = {"contents": "תוכן האטלס", "jump": "עמוד בספר", "open": "פתיחה", "progress": "פרקים מתורגמים", "pendingAll": "התרגום הוכן על ידי הספק וממתין לבדיקת הבעלים", "translated": "מתורגם", "noTranslation": "אין תרגום — טקסט המקור", "noTranslationShort": "ללא תרגום", "page": "עמ׳", "pages": "עמודים", "original": "כמו בספר", "openOriginal": "פתיחת עמוד המקור", "close": "סגירה", "terms": "מילון הפרק", "hebrewOnly": "עברית בלבד", "search": "חיפוש בפרק: עברית או רוסית", "print": "הדפסת הפרק", "loading": "טוען…", "loadError": "האטלס אינו זמין כרגע", "example": "דוגמה", "erratum": {"printed": "בספר:", "proposed": "תיקון מוצע:", "core": "חישוב חוזר:", "pending": "ממתין לאישור הבעלים"}, "core": {"verified": "החשבון תקין", "mismatch": "החשבון אינו תקין", "unchecked": "לא נבדק"}, "status": {"ownerConfirmed": "אושר על ידי הבעלים", "ownerReviewed": "נבדק על ידי הבעלים", "producerChecked": "ממתין לבדיקה", "pendingHint": "הוכן ונבדק על ידי הספק; בדיקת הבעלים טרם בוצעה"}};
+window.I18N_LOCALES.he.room = window.I18N_LOCALES.he.room || {};
+window.I18N_LOCALES.he.room.hub = window.I18N_LOCALES.he.room.hub || {};
+window.I18N_LOCALES.he.room.hub.atlas = {"title": "אטלס הנדסי 97002", "desc": "נוסחאון מה\"ט: חלקי מכונות ועיבוד שבבי — דו-לשוני, לפי עמודי הספר"};

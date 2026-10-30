@@ -5669,3 +5669,9 @@ window.I18N_LOCALES.en.learningTarget = {
   selectedForms: 'Selected forms', formScope: 'The status and review belong to this form.',
   unavailable: 'No verified exercise for this form is available on this device.'
 };
+
+// Engineering atlas (public/js/atlas-reader.js)
+window.I18N_LOCALES.en.atlas = {"contents": "Atlas contents", "jump": "Book page", "open": "Open", "progress": "Sections translated", "pendingAll": "translation prepared by the supplier, awaiting the owner’s review", "translated": "translated", "noTranslation": "not translated — original text", "noTranslationShort": "not translated", "page": "p.", "pages": "pages", "original": "as printed", "openOriginal": "Open the original page", "close": "Close", "terms": "Section glossary", "hebrewOnly": "Hebrew only", "search": "Search this section: Hebrew or Russian", "print": "Print section", "loading": "Loading…", "loadError": "The atlas is unavailable right now", "example": "Example", "erratum": {"printed": "in the book:", "proposed": "proposed correction:", "core": "Core recalculation:", "pending": "awaiting the owner’s confirmation"}, "core": {"verified": "arithmetic checks out", "mismatch": "arithmetic does not check out", "unchecked": "not recalculated"}, "status": {"ownerConfirmed": "confirmed by the owner", "ownerReviewed": "reviewed by the owner", "producerChecked": "awaiting review", "pendingHint": "Prepared and checked by the supplier; the owner’s review is pending"}};
+window.I18N_LOCALES.en.room = window.I18N_LOCALES.en.room || {};
+window.I18N_LOCALES.en.room.hub = window.I18N_LOCALES.en.room.hub || {};
+window.I18N_LOCALES.en.room.hub.atlas = {"title": "Engineering atlas 97002", "desc": "MAHAT formulary: machine parts and machining — bilingual, page by page"};

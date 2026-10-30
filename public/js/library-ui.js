@@ -12800,6 +12800,7 @@ async function renderCorpus() {
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
   if (String(corpusNav.corpus || '').startsWith('public:')) return renderPublicCorpus(String(corpusNav.corpus).slice(7), token);
   if (String(corpusNav.corpus || '').startsWith('group:')) return renderGroupCorpus(String(corpusNav.corpus).slice(6), token);
+  if (String(corpusNav.corpus || '').startsWith('atlas:')) return renderAtlasCorpus(String(corpusNav.corpus).slice(6), token);
   if (!corpusRoot) { showState('room.shelf.emptyTrack', '📚'); return; }
   if (!corpusIndex) {
     showState('room.state.loading', '⏳');
@@ -13135,6 +13136,18 @@ async function renderPublicCorpus(slug, token) {
   filterChrome.refresh(); paint();
   ensurePublicLearningIndex(slug, catalog).then(() => { if (token === corpusRenderToken) paint(); }).catch(() => {});
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// Engineering atlas (public/js/atlas-reader.js): its own page-anchored reader inside the corpus shell.
+function renderAtlasCorpus(atlasId, token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-view atlas-corpus' });
+  wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
+  main.appendChild(wrap);
+  if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
+  window.AtlasReader.mount(wrap, { atlasId, t: tt }).home();
 }
 
 async function renderGroupCorpus(corpusId, token) {

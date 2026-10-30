@@ -45,6 +45,16 @@ export const CORPORA = [
     capabilities: ['morph', 'ownTranslations', 'ownAudio', 'ctxLive'],
     cta: 'add',   // the import funnel: «+ Добавить текст» → Studio (later: PDF import)
   },
+  {
+    // Engineering atlas: a page-anchored bilingual reference book (new material type), not a work catalog.
+    // Spec: docs/planning/ENGINEERING_FORMULARY_ATLAS_DESIGN_2026_10_30.md. Rendered by public/js/atlas-reader.js.
+    id: 'atlas:a97002',
+    icon: '📐',
+    kind: 'atlas',
+    title: { key: 'room.hub.atlas.title', fb: 'Инженерный атлас 97002' },
+    desc: { key: 'room.hub.atlas.desc', fb: 'נוסחאון МАХАТ: детали машин и обработка резанием — двуязычно, по страницам книги' },
+    capabilities: [],
+  },
 ];
 
 // Badge dictionary: capability → { icon, i18n key, ru fallback }. Kept SMALL and truthful —
