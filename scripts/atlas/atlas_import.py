@@ -14,6 +14,7 @@ import sys
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import atlas_compute as C  # noqa: E402
 import atlas_schema as S  # noqa: E402
 import atlas_validate as V  # noqa: E402
 
@@ -54,6 +55,31 @@ def _status(supplied, recognition, math_review):
             'math_review': math_review, 'owner_status': 'none'}
 
 
+def _step_value(step):
+    try:
+        return C.evaluate(step['compute'], step['bindings'], step.get('angle_unit'))
+    except C.ComputeError:
+        return None
+
+
+def _num(value):
+    return f'{value:.10g}' if abs(value) >= 1e-4 or value == 0 else f'{value:.4g}'
+
+
+def core_explanation(step):
+    """Reader text for a recount that does not give the printed number: the computed value and the size of the gap."""
+    bindings = ', '.join(f'{k} = {v:g}' for k, v in step['bindings'].items())
+    value = _step_value(step)
+    head = f'Пересчёт: {step["compute"]} при {bindings}'
+    if value is None:
+        return f'{head} не выполнен.'
+    printed = float(str(step['printed']).replace(',', '.').replace('−', '-'))
+    diff = value - printed
+    rel = f' ({abs(diff) / abs(printed) * 100:.2g} %)' if printed else ''
+    return (f'{head} = {_num(round(value, 6))}; напечатано {step["printed"]}, разница {_num(round(diff, 6))}{rel}. '
+            'Числа не совпадают при напечатанной точности; это кандидат в опечатку, а не доказанная ошибка книги — решение за владельцем.')
+
+
 def build_graph(source, content_path, terms_path=None):
     report = V.validate(source, content_path, terms_path=terms_path)
     if not report['ok']:
@@ -91,6 +117,8 @@ def build_graph(source, content_path, terms_path=None):
         if obj['type'] == 'example':
             for index, step in enumerate(merged['steps'], 1):
                 step['math_review'] = step_review.get((temp, index), 'unchecked')
+                if step['math_review'] == 'core_mismatch' and C.matches_rounded(_step_value(step), step['printed']):
+                    step['math_review'] = 'core_rounded'
         objects[pid] = merged
 
     pages_with_text = {o['page'] for o in source.objects.values() if o['type'] == 'page' and o['has_text_layer']}
@@ -100,7 +128,7 @@ def build_graph(source, content_path, terms_path=None):
             math = 'unchecked' if obj.get('compute') else 'not_applicable'
         elif obj['type'] == 'example':
             reviews = [s.get('math_review', 'unchecked') for s in obj.get('steps', [])]
-            math = 'core_mismatch' if 'core_mismatch' in reviews else ('core_verified' if reviews and all(r == 'core_verified' for r in reviews) else 'unchecked')
+            math = 'core_mismatch' if 'core_mismatch' in reviews else ('core_verified' if reviews and all(r in ('core_verified', 'core_rounded') for r in reviews) else 'unchecked')
         else:
             math = 'not_applicable'
         # only objects from the PDF text layer are "extracted"; supplier-made objects default to ocr_low
@@ -121,7 +149,7 @@ def build_graph(source, content_path, terms_path=None):
             eid = f'a97002:p{page}:e-core-{oid.rsplit(":", 1)[1]}-step{index}'
             objects[eid] = {'type': 'erratum', 'id': eid, 'page': page, 'target': target, 'origin': 'core',
                             'as_printed': step['printed'], 'proposed': '',
-                            'explanation_ru': f'Ядро: {step["compute"]} при {", ".join(f"{k} = {v:g}" for k, v in step["bindings"].items())} не даёт напечатанное {step["printed"]}.',
+                            'explanation_ru': core_explanation(step),
                             'status': _status({}, 'extracted', 'core_mismatch')}
 
     pages = {}

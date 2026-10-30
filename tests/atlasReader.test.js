@@ -59,12 +59,112 @@ test('translated section: rows, MathML formula with variables, figure regions, p
 
 test('region labels in the right half of a figure open to the left (no page overflow)', () => {
   const { R, T } = env();
-  const section = R.renderSection(T, fixture('s09-belt.json'), {});
-  const fig = fixture('s09-belt.json').pages[0].figures[0];
+  const data = fixture('s09-belt.json');
+  const fig = data.pages[0].figures[0];
+  fig.regions = fig.regions.slice(0, 2);   // a sparse figure keeps text labels
+  const section = R.renderSection(T, data, {});
   const label = (r) => section.querySelector('.atlas-rg[data-region="' + r.id + '"] i');
   // region 0 sits at the right edge of the figure, region 1 at its left edge
   assert.ok(label(fig.regions[0]).classList.contains('flip'));
   assert.ok(!label(fig.regions[1]).classList.contains('flip'));
+});
+
+// ---- acceptance report 2026-10-30 (docs/research/engineering-atlas/acceptance/) ----
+test('R01: a crowded figure shows numbers on the picture and the labels in the legend', () => {
+  const { R, T } = env();
+  const section = R.renderSection(T, fixture('s09-belt.json'), {});
+  const marks = section.querySelectorAll('.atlas-rg i');
+  assert.ok(marks.length >= 4);
+  marks.forEach((m) => assert.ok(m.classList.contains('n'), 'numbered marker'));
+  assert.equal(section.querySelectorAll('.atlas-regions li').length, marks.length);
+});
+
+function page(extra) {
+  return Object.assign({ page: 5, image: '', items: [], figures: [], tables: [], examples: [], errata: [], editor: [] }, extra);
+}
+function section(pages) { return { id: 's01', title_he: 'מבוא', title_ru: 'Введение', first: 5, last: 5, translated: true, pages, terms: {} }; }
+
+test('R07: a page with a translated table is not marked "without translation"; empty and partial pages say so', () => {
+  const { R, T } = env();
+  const table = { title_ru: 'Основные размеры', cells: [{ row: 0, col: 0, rowspan: 1, colspan: 1, he: 'מידות', ru: 'Основные размеры' }] };
+  const html = (p) => R.renderPage(T, page(p)).querySelector('.atlas-page-head').textContent;
+  assert.doesNotMatch(html({ state: 'translated', translated: true, tables: [table] }), /без перевода/);
+  assert.match(html({ state: 'empty', translated: true }), /нет текста/);
+  assert.match(html({ state: 'partial', translated: true }), /частично/);
+  assert.match(html({ state: 'none', translated: false }), /без перевода/);
+});
+
+test('R03/R06: editor notes sit in a closed panel apart from the reading text', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ state: 'translated', editor: [{ about: 'formula', ref: 'a97002:p5:f01', text: 'source_text извлёк только знаменатель' }] }));
+  const panel = el.querySelector('details.atlas-editor');
+  assert.ok(panel && !panel.hasAttribute('open'));
+  assert.match(panel.textContent, /Заметки редактора \(1\)/);
+  assert.match(panel.textContent, /к формуле: source_text/);
+});
+
+test('R02: a formula whose left side was restored says so under the book crop', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ items: [{ id: 'a97002:p5:f01', type: 'formula', latex: '\\sin\\alpha=\\frac{a}{c}', crop: '/x.png', lhs_restored: true, vars: [] }] }));
+  assert.match(el.querySelector('.atlas-orig').textContent, /только правую часть/);
+});
+
+test('R08: a recount shows the computed value, the gap, and rounding apart from a mismatch', () => {
+  const { R, T } = env();
+  const steps = [
+    { compute: 'H1*9550000/n1', bindings: { H1: 10, n1: 600 }, printed: '159170', value: 159166.666666667, math_review: 'core_rounded' },
+    { compute: 'x*Fr+y*Fa', bindings: { x: 0.56, Fr: 2000, y: 2, Fa: 600 }, printed: '2200', value: 2320, math_review: 'core_mismatch' }];
+  const items = R.renderPage(T, page({ examples: [{ id: 'x', title_ru: 'Пример 4', steps }] })).querySelectorAll('.atlas-steps li');
+  assert.match(items[0].textContent, /сошлось с округлением/);
+  assert.match(items[0].textContent, /пересчёт даёт 159166\.667/);
+  assert.match(items[0].textContent, /разница с напечатанным -3\.33333333 \(0\.0021 %\)/);
+  assert.match(items[1].textContent, /арифметика не сошлась/);
+  assert.match(items[1].textContent, /разница с напечатанным 120 \(5\.5 %\)/);
+  assert.match(items[1].textContent, /не доказанная ошибка/);
+});
+
+test('UI03: Russian layers of tables, legends, captions and notes are marked for the Hebrew-only mode', () => {
+  const { R, T } = env();
+  const el = R.renderSection(T, fixture('s09-belt.json'), {});
+  const td = R.renderTable({ title_ru: 'Размеры', title_he: 'מידות', cells: [{ row: 0, col: 0, rowspan: 1, colspan: 1, he: 'קוטר', ru: 'Диаметр' }] });
+  assert.equal(td.querySelector('td .atlas-l-ru').textContent, 'Диаметр');
+  assert.equal(td.querySelector('td .atlas-l-he').textContent, 'קוטר');
+  assert.equal(td.querySelector('caption .atlas-l-ru').textContent, 'Размеры');
+  el.querySelectorAll('.atlas-regions li').forEach((li) => assert.ok(li.querySelector('.atlas-l-ru'), 'legend Russian part marked'));
+  assert.ok(el.querySelector('figcaption .atlas-l-ru'));
+  const css = read('public/css/atlas-reader.css');
+  assert.match(css, /\.atlas-hebrew-only \.atlas-l-ru/);
+  assert.match(css, /\.atlas-hebrew-only \.atlas-l-he/);
+});
+
+test('UI01: the reader reports the open section and page so the Room can keep them in the address', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const calls = [];
+  const data = fixture('s09-belt.json');
+  const reader = api.mount(document.getElementById('m'), {
+    fetchJson: (url) => Promise.resolve(url.endsWith('index.json') ? fixture('index.json') : data),
+    onState: (sec, pg, mode) => calls.push([sec, pg, mode]) });
+  await reader.openSection('s09-belt', 197);
+  assert.deepEqual(calls.pop(), ['s09-belt', 197, 'push']);
+  await reader.openSection('s09-belt', 197, { restore: true });
+  assert.equal(calls.length, 0, 'restoring from the address does not add a history entry');
+  await reader.home();
+  assert.deepEqual(calls.pop(), ['', 0, 'push']);
+});
+
+test('search reports the number of matches and says when there are none', async () => {
+  const { document, window } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const reader = api.mount(document.getElementById('m'), { fetchJson: () => Promise.resolve(fixture('s09-belt.json')) });
+  await reader.openSection('s09-belt');
+  const input = document.querySelector('.atlas-search');
+  input.value = 'זזזזזז';
+  input.dispatchEvent(new window.Event('input'));
+  assert.equal(document.querySelector('.atlas-search-count').textContent, 'ничего не найдено');
+  input.value = 'ременн';
+  input.dispatchEvent(new window.Event('input'));
+  assert.match(document.querySelector('.atlas-search-count').textContent, /^1 \/ \d+$/);
 });
 
 test('untranslated section shows raw Hebrew and says so', () => {
@@ -92,4 +192,19 @@ test('table grid keeps sparse columns and repeats header rows', () => {
   const last = wrap.querySelector('tbody tr');
   assert.equal(last.querySelectorAll('td').length, 2);
   assert.equal(last.querySelectorAll('td')[1].textContent, '0.050');
+});
+
+test('the section bar jumps to any page of the book without the contents', async () => {
+  const { document, window } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const loaded = [];
+  const reader = api.mount(document.getElementById('m'), {
+    fetchJson: (url) => { loaded.push(url); return Promise.resolve(url.endsWith('index.json') ? fixture('index.json') : fixture('s09-belt.json')); } });
+  await reader.openSection('s09-belt');
+  const form = document.querySelector('.atlas-pagejump');
+  form.querySelector('input').value = '485';
+  form.dispatchEvent(new window.Event('submit'));
+  await new Promise((r) => setTimeout(r, 20));
+  assert.ok(loaded.some((u) => u.endsWith('index.json')));
+  assert.ok(loaded.some((u) => /sections\/s25-size-tolerance\.json$/.test(u)), 'opens the section that holds page 485');
 });

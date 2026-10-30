@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.821";
+const CACHE_VERSION = "v3.11.822";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,8 +150,8 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=820",
-  "/js/room-b6-core.js?v=811",
+  "/js/library-ui.js?v=822",
+  "/js/room-b6-core.js?v=822",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
   "/js/learning-compass-worker.js",
@@ -181,8 +181,8 @@ const PRECACHE_URLS = [
   "/js/pealim-identity-overrides.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
-  "/js/atlas-reader.js?v=3",
-  "/css/atlas-reader.css?v=5",
+  "/js/atlas-reader.js?v=4",
+  "/css/atlas-reader.css?v=6",
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
@@ -355,9 +355,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=821",
-  "/i18n/locales/en.js?v=821",
-  "/i18n/locales/he.js?v=821",
+  "/i18n/locales/ru.js?v=822",
+  "/i18n/locales/en.js?v=822",
+  "/i18n/locales/he.js?v=822",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

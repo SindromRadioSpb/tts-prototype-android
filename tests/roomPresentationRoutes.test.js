@@ -413,3 +413,20 @@ test("official Ben-Yehuda periods and the AI context filter survive a Room link"
     assert.match(core.presentationHash(state), /aiContext=1/);
   }
 });
+
+test("engineering atlas: section and page survive a reload and a shared link (acceptance UI01)", async () => {
+  const core = await load();
+  const state = core.sanitizePresentationState({ surface: "corpus", corpus: "atlas:a97002", anchor: { itemId: "s08-transmissions", rowIndex: 191 } });
+  assert.equal(state.corpus, "atlas:a97002", "the atlas is not rewritten to Ben-Yehuda");
+  const hash = core.presentationHash(state);
+  assert.equal(hash, "#room=atlas%3Aa97002&sec=s08-transmissions&pg=191");
+  const back = core.presentationStateFromHash(hash);
+  assert.equal(back.corpus, "atlas:a97002");
+  assert.deepEqual(back.anchor, { itemId: "s08-transmissions", rowIndex: 191 });
+  // a new tab with only the link restores the same place
+  const restored = core.restorePresentationState({ hash, historyState: null, sessionMirror: null });
+  assert.deepEqual([restored.corpus, restored.anchor.itemId, restored.anchor.rowIndex], ["atlas:a97002", "s08-transmissions", 191]);
+  // atlas contents (no section) and junk input
+  assert.equal(core.presentationHash({ surface: "corpus", corpus: "atlas:a97002" }), "#room=atlas%3Aa97002");
+  assert.equal(core.presentationStateFromHash("#room=atlas%3Aa97002&sec=..%2Fx&pg=99999").anchor.itemId, "");
+});

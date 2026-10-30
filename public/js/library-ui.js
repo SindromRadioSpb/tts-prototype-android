@@ -34,7 +34,7 @@ import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js?v=811';
+import * as roomB6 from '/js/room-b6-core.js?v=822';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -781,7 +781,7 @@ function roomCurrentPresentationState(overrides = {}) {
     v: 1, surface, corpus, mode: corpusBrowseMode,
     drill: { level: corpusNav.level || 'home', eraId: corpusNav.era || '', authorId: roomAuthorId(corpusNav.author), workId: '' },
     filters: sourceFilters, visible: ROOM_BROWSE_PAGE, page: Math.floor(Number(sourceFilters.start || 0) / ROOM_BROWSE_PAGE) + 1,
-    anchor: overrides.anchor || { itemId: readerOpen ? String(readerTextId) : '', rowIndex: 0 },
+    anchor: overrides.anchor || (String(corpus).startsWith('atlas:') && roomAtlasPosition) || { itemId: readerOpen ? String(readerTextId) : '', rowIndex: 0 },
     ...overrides,
   });
 }
@@ -841,6 +841,11 @@ function roomApplyStateFields(state) {
   } else if (String(safe.corpus).startsWith('public:')) {
     publicCorpusBrowseStates.set(String(safe.corpus).slice(7), filters);
     corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
+  } else if (String(safe.corpus).startsWith('atlas:') && safe.surface !== 'hub') {
+    // the atlas section and page come back from the address (acceptance UI01)
+    corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
+    roomAtlasAnchor = { section: safe.anchor.itemId || '', page: safe.anchor.rowIndex || 0 };
+    roomAtlasPosition = { itemId: roomAtlasAnchor.section, rowIndex: roomAtlasAnchor.section ? roomAtlasAnchor.page : 0 };
   } else if (safe.surface === 'hub') {
     corpusNav = { corpus: 'hub', level: 'home', era: null, author: null };
   } else {
@@ -12754,6 +12759,7 @@ function corpusNavTo(level, era, author) {
 // Multi-corpus (B+C «витрина + линза», BRR_MULTI_CORPUS_DESIGN_2026_07_02.md): lateral switch.
 function corpusNavToCorpus(id, options = {}) {
   corpusNav = { corpus: id, level: 'home', era: null, author: null };
+  roomAtlasPosition = null;  // entering any corpus starts at its contents
   corpusReveal = 0;
   // Boot is resolving a material link, not navigating to its parent. Keep the
   // request identity while catalog/materialization awaits so another refresh
@@ -13139,6 +13145,10 @@ async function renderPublicCorpus(slug, token) {
 }
 
 // Engineering atlas (public/js/atlas-reader.js): its own page-anchored reader inside the corpus shell.
+// The open section and page live in the address (#room=atlas:…&sec=…&pg=…): opening a section is a
+// history step, reading on replaces the page number, Back returns to the atlas contents.
+let roomAtlasAnchor = null;
+let roomAtlasPosition = null;  // last section/page the atlas reported; kept by any later commit of the Room state
 function renderAtlasCorpus(atlasId, token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
@@ -13147,7 +13157,14 @@ function renderAtlasCorpus(atlasId, token) {
   wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
   main.appendChild(wrap);
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
-  window.AtlasReader.mount(wrap, { atlasId, t: tt }).home();
+  const anchor = roomAtlasAnchor; roomAtlasAnchor = null;
+  const reader = window.AtlasReader.mount(wrap, { atlasId, t: tt,
+    onState: (section, page, mode) => {
+      roomAtlasPosition = { itemId: section || '', rowIndex: section ? page || 0 : 0 };
+      roomCommitPresentation(mode, { anchor: roomAtlasPosition });
+    } });
+  if (anchor && anchor.section) reader.openSection(anchor.section, anchor.page || 0, { restore: true });
+  else reader.home({ restore: true });
 }
 
 async function renderGroupCorpus(corpusId, token) {

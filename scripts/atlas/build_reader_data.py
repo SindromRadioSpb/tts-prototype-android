@@ -11,6 +11,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -21,6 +22,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import atlas_book as K  # noqa: E402
 import atlas_import as I  # noqa: E402
 import atlas_validate as V  # noqa: E402
+import atlas_compute as C  # noqa: E402
+import atlas_schema as S  # noqa: E402
+import reader_text as X  # noqa: E402
 import render_preview as P  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -67,35 +71,107 @@ def _asset(source_dir, rel, out_root):
     return URL + 'assets/' + name
 
 
+def _report_notes(content_path):
+    """The supplier's per-page report ('discrepancies'): editor notes keyed by page number."""
+    notes = {}
+    if not content_path:
+        return notes
+    rows, _ = S.read_jsonl(content_path)
+    for _, obj in rows[1:]:
+        if obj.get('type') != 'report':
+            continue
+        for d in obj.get('discrepancies', []):
+            m = re.search(r':p(\d+)', d.get('ref', ''))
+            if m and d.get('note'):
+                notes.setdefault(int(m.group(1)), []).append({'about': 'page', 'ref': d['ref'], 'text': d['note']})
+    return notes
+
+
+def _page_state(page):
+    """translated | partial | none | empty: tables and figure labels count as translated content (acceptance R07)."""
+    parts = [bool(b.get('ru')) for b in page.blocks]
+    parts += [any(c.get('ru') for c in t.get('cells', [])) for t in page.tables]
+    for f in page.figures:
+        labels = [r for r in page.regions if r.get('parent') == f['id']]
+        if labels:
+            parts.append(any(r.get('label_ru') for r in labels))
+    if not parts:
+        return 'empty' if not page.formulas else 'translated'
+    if all(parts):
+        return 'translated'
+    return 'partial' if any(parts) else 'none'
+
+
+def _with_value(step):
+    out = dict(step)
+    try:
+        out['value'] = round(C.evaluate(step['compute'], step['bindings'], step.get('angle_unit')), 9)
+    except (C.ComputeError, KeyError, TypeError):
+        pass
+    return out
+
+
+
+
 def build_section(section, source_dir, content_path, out_root, terms_path=None):
     source = V.load_source_pack(source_dir)
     graph = I.build_graph(source, content_path, terms_path=terms_path)[0] if content_path else _source_graph(source)
+    report = _report_notes(content_path)
     latex, pages_out, term_refs = {}, [], set()
     for n in range(section['first'], section['last'] + 1):
         if str(n) not in graph['pages']:
             continue
         page = P.Page(graph, n)
-        items = []
-        for o in sorted(page.blocks + page.formulas, key=lambda o: (o.get('bbox') or [0, 0])[1]):
-            base = {'id': o['id'], 'type': o['type'], 'y': round((o.get('bbox') or [0, 0])[1], 1), 'status': o.get('status')}
+        items, editor = [], []
+        ordered = sorted(page.blocks + page.formulas, key=lambda o: (o.get('bbox') or [0, 0])[1])
+        positions = {o['id'].rsplit(':', 1)[1]: (o.get('bbox') or [0, 0])[1] for o in ordered}
+
+        def reader(text, y, about, ref):
+            """Reader part of a supplier note with ids replaced; the pipeline part goes to the editor panel."""
+            mine, theirs = X.split_note(text)
+            if theirs:
+                editor.append({'about': about, 'ref': ref, 'text': theirs})
+            return X.rewrite_refs(mine, n, y, positions) or None
+
+        for o in ordered:
+            y = (o.get('bbox') or [0, 0])[1]
+            base = {'id': o['id'], 'type': o['type'], 'y': round(y, 1), 'status': o.get('status')}
             if o['type'] == 'block':
                 if o.get('ru'):
                     base.update({k: o[k] for k in BLOCK_FIELDS if o.get(k)})
+                    base['ru'] = X.rewrite_refs(o['ru'], n, y, positions)
+                    if o.get('ambiguity_note'):
+                        note = reader(o['ambiguity_note'], y, 'block', o['id'])
+                        if note:
+                            base['ambiguity_note'] = note
+                        else:
+                            del base['ambiguity_note']
                     term_refs.update(o.get('terms', []))
                 else:
                     base.update({'kind': o.get('kind_guess'), 'he_raw': o.get('he_raw', '')})
             else:
-                tex = o.get('display_latex')
-                if tex:
-                    latex[o['id']] = tex
-                vars_ = []
+                vars_, result_tex = [], None
                 for k, v in enumerate(page.formula_vars(o)):
                     key = f'inline:{o["id"]}:{k}'
-                    latex[key] = v['latex']
-                    vars_.append({'key': key, 'latex': v['latex'], 'he': v['he'], 'ru': v['ru'], 'unit': v['unit'], 'ref': v['ref']})
+                    pretty = X.pretty_symbol(v['latex'])
+                    tex_v = pretty or v['latex']
+                    latex[key] = tex_v
+                    if o.get('result_var') and v['ref'].endswith('#' + o['result_var']) and pretty:
+                        result_tex = tex_v
+                    vars_.append({'key': key, 'latex': tex_v, 'he': v['he'], 'ru': X.rewrite_refs(v['ru'], n, y, positions),
+                                  'unit': v['unit'], 'ref': v['ref']})
+                tex = o.get('display_latex')
+                full = X.formula_with_result(tex, result_tex)
+                if full:
+                    tex = full
+                if tex:
+                    latex[o['id']] = tex
                 base.update({'latex': tex, 'source_text': o.get('source_text'), 'vars': vars_, 'compute': o.get('compute'),
-                             'angle_unit': o.get('angle_unit'), 'result_var': o.get('result_var'), 'note': o.get('ambiguity_note'),
+                             'angle_unit': o.get('angle_unit'), 'result_var': o.get('result_var'),
+                             'note': reader(o.get('ambiguity_note'), y, 'formula', o['id']),
                              'crop': _asset(source_dir, o.get('crop'), out_root)})
+                if full:
+                    base['lhs_restored'] = True
             items.append(base)
         figures = []
         for f in page.figures:
@@ -109,16 +185,23 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
         for s in page.symbols:
             if s.get('term'):
                 term_refs.add(s['term'])
+        state = _page_state(page)
+        errata = []
+        for x in page.errata:
+            e = {k: x.get(k) for k in ('id', 'target', 'as_printed', 'proposed', 'explanation_ru', 'core_note', 'origin')}
+            if x.get('origin') != 'core' and e['explanation_ru']:
+                e['explanation_ru'] = reader(e['explanation_ru'], None, 'erratum', x['id'])
+            errata.append(e)
         pages_out.append({
             'page': n, 'image': _asset(source_dir, page.page and page.page.get('image'), out_root),
-            'has_text_layer': bool(page.page and page.page.get('has_text_layer')), 'translated': page.translated,
+            'has_text_layer': bool(page.page and page.page.get('has_text_layer')), 'state': state,
+            'translated': state in ('translated', 'partial', 'empty'), 'editor': editor + report.get(n, []),
             'items': items, 'figures': figures,
             'tables': [{'id': t['id'], 'parent': t.get('parent'), 'title_he': t.get('title_he', ''), 'title_ru': t.get('title_ru', ''),
                         'cells': t['cells']} for t in page.tables],
-            'examples': [{'id': x['id'], 'title_ru': x.get('title_ru', ''), 'steps': x.get('steps', []),
+            'examples': [{'id': x['id'], 'title_ru': x.get('title_ru', ''), 'steps': [_with_value(s) for s in x.get('steps', [])],
                           'math_review': (x.get('status') or {}).get('math_review')} for x in page.examples],
-            'errata': [{k: x.get(k) for k in ('id', 'target', 'as_printed', 'proposed', 'explanation_ru', 'core_note', 'origin')}
-                       for x in page.errata],
+            'errata': errata,
         })
     math = _render_math(latex)
     for page in pages_out:

@@ -231,3 +231,19 @@ def matches_printed(value, printed):
     decimals = len(m.group(2) or '')
     tolerance = 0.5 * 10 ** (-decimals) + 1e-9 * abs(value)
     return abs(value - target) <= tolerance
+
+
+def matches_rounded(value, printed, max_relative=0.005):
+    """True when a whole printed number ending in zeros is the value rounded to significant digits
+    (159166.67 printed as 159170). Kept apart from matches_printed: the reader sees it as rounding,
+    not as an exact match. Differences above max_relative stay mismatches."""
+    text = str(printed).strip().replace('−', '-').replace(' ', '').replace(' ', '')
+    m = PRINTED.match(text)
+    if not m or m.group(2) or not value:
+        return False
+    zeros = len(m.group(1)) - len(m.group(1).rstrip('0'))
+    if zeros < 1 or zeros >= len(m.group(1)):
+        return False
+    target = float(text)
+    diff = abs(value - target)
+    return diff <= 0.5 * 10 ** zeros + 1e-9 * abs(value) and diff <= max_relative * abs(value)

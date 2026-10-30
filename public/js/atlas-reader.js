@@ -82,20 +82,23 @@
           table.appendChild(h('tr', { 'data-ref': v.ref }, [
             h('td', { cls: 'atlas-var', html: v.mathml || null, text: v.mathml ? null : v.latex }),
             h('td', {}, [heText(v.he || '', 'atlas-he atlas-inline')]),
-            h('td', { text: v.ru || '' }), h('td', { cls: 'atlas-unit', text: v.unit || '' })]));
+            h('td', { cls: 'atlas-l-ru', text: v.ru || '' }), h('td', { cls: 'atlas-unit', text: v.unit || '' })]));
         });
         card.appendChild(table);
       }
       if (item.note) card.appendChild(h('div', { cls: 'atlas-note', text: item.note }));
       if (item.crop) {
         var orig = h('details', { cls: 'atlas-orig' }, [h('summary', { text: T('atlas.original', 'как в книге') }),
-          h('img', { src: item.crop, alt: T('atlas.original', 'как в книге'), loading: 'lazy' })]);
+          h('img', { src: item.crop, alt: T('atlas.original', 'как в книге'), loading: 'lazy' }),
+          item.lhs_restored ? h('div', { cls: 'atlas-muted atlas-l-ru', text: T('atlas.lhsRestored', 'Вырезка из книги показывает только правую часть; обозначение слева взято из текста страницы.') }) : null]);
         card.appendChild(orig);
       }
       return card;
     }
 
     function renderFigure(T, fig, numbered) {
+      // text labels of more than a few regions collide with each other (acceptance R01): numbers + legend instead
+      if (fig.regions.length > 3) numbered = true;
       var box = h('div', { cls: 'atlas-figbox' }, [h('img', { src: fig.crop, alt: fig.caption_ru || fig.id, loading: 'lazy' })]);
       var list = h('ol', { cls: 'atlas-regions' });
       var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
@@ -107,12 +110,13 @@
         // a label beside a region in the right half would run past the page edge: open it to the left instead
         var flip = (r.bbox[0] + r.bbox[2]) / 2 > (fig.bbox[0] + fig.bbox[2]) / 2 ? ' flip' : '';
         box.appendChild(h('button', { cls: 'atlas-rg', type: 'button', style: style, 'data-region': r.id, 'data-links': links,
-          'aria-label': r.label_ru || r.label_he }, [h('i', { cls: (numbered ? 'n' : 't') + flip, text: numbered ? mark : (r.label_ru || r.label_he) })]));
+          'aria-label': r.label_ru || r.label_he }, [numbered ? h('i', { cls: 'n', text: mark })
+          : h('i', { cls: 't' + flip }, [h('span', { cls: 'atlas-l-ru', text: r.label_ru || r.label_he }), h('span', { cls: 'atlas-l-he', lang: 'he', text: r.label_he || r.label_ru })])]));
         list.appendChild(h('li', { 'data-region': r.id, 'data-links': links }, [h('b', { text: mark + ' ' }),
-          h('bdi', { lang: 'he', dir: dirOf(r.label_he), text: r.label_he || '' }), ' — ' + (r.label_ru || '')]));
+          h('bdi', { lang: 'he', dir: dirOf(r.label_he), text: r.label_he || '' }), h('span', { cls: 'atlas-l-ru', text: ' — ' + (r.label_ru || '') })]));
       });
       var cap = h('figcaption', {}, [h('bdi', { lang: 'he', dir: 'rtl', text: fig.caption_he || '' }),
-        (fig.caption_he && fig.caption_ru ? ' — ' : ''), fig.caption_ru || '']);
+        h('span', { cls: 'atlas-l-ru', text: (fig.caption_he && fig.caption_ru ? ' — ' : '') + (fig.caption_ru || '') })]);
       return h('figure', { cls: 'atlas-fig' + (fig.is_table ? ' atlas-tablefig' : '') }, [box, cap, fig.regions.length ? list : null]);
     }
 
@@ -133,15 +137,17 @@
             var text = c.ru || '';
             if (/^[\d.,\s▪•+\-−]+$/.test(text) && /\d/.test(text)) numeric = true;
             var unit = c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit ? c.unit : '';
+            var he = c.he && c.he !== text ? c.he : '';
             tr.appendChild(h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text) },
-              [text, unit ? h('small', { text: ' ' + unit }) : null]));
+              he ? [h('span', { cls: 'atlas-l-ru' }, [text, unit ? h('small', { text: ' ' + unit }) : null]), h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he), text: he })]
+                : [text, unit ? h('small', { text: ' ' + unit }) : null]));
           } else if (!covered[r + ':' + k]) tr.appendChild(h('td'));
         }
         if (numeric) inHead = false;
         (inHead ? head : body).appendChild(tr);
       });
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
-        h('caption', {}, [table.title_ru || '', table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
+        h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: table.title_ru || '' }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);
       return h('div', { cls: 'atlas-tablewrap' }, [t]);
     }
@@ -156,24 +162,55 @@
       return el;
     }
 
+    function num(v) { return String(Number(Number(v).toPrecision(9))); }
+
     function renderExample(T, ex) {
       var list = h('ol', { cls: 'atlas-steps' });
       (ex.steps || []).forEach(function (s) {
         var verdict = s.math_review === 'core_verified' ? T('atlas.core.verified', 'арифметика сошлась')
+          : s.math_review === 'core_rounded' ? T('atlas.core.rounded', 'сошлось с округлением')
           : s.math_review === 'core_mismatch' ? T('atlas.core.mismatch', 'арифметика не сошлась') : T('atlas.core.unchecked', 'не пересчитано');
         var bind = Object.keys(s.bindings || {}).map(function (k) { return k + ' = ' + s.bindings[k]; }).join(', ');
+        var detail = null;
+        if ((s.math_review === 'core_mismatch' || s.math_review === 'core_rounded') && typeof s.value === 'number') {
+          var printed = Number(String(s.printed).replace(',', '.').replace('\u2212', '-'));
+          var gap = s.value - printed;
+          var rel = printed ? ' (' + num((Math.abs(gap) / Math.abs(printed) * 100).toPrecision(2)) + ' %)' : '';
+          detail = h('div', { cls: 'atlas-why' }, [T('atlas.core.value', 'пересчёт даёт') + ' ' + num(s.value) + ' · ' +
+            T('atlas.core.gap', 'разница с напечатанным') + ' ' + num(gap) + rel + ' — ' +
+            (s.math_review === 'core_rounded' ? T('atlas.core.roundedHint', 'книга округлила результат до значащих цифр')
+              : T('atlas.core.mismatchHint', 'кандидат в опечатку, не доказанная ошибка книги; решение за владельцем'))]);
+        }
         list.appendChild(h('li', {}, [h('code', { text: s.compute }), ' · ' + bind + ' → ', h('b', { text: s.printed }), ' ',
-          h('span', { cls: 'atlas-badge ' + (s.math_review || ''), text: verdict })]));
+          h('span', { cls: 'atlas-badge ' + (s.math_review || ''), text: verdict }), detail]));
       });
-      return h('div', { cls: 'atlas-example' }, [h('h4', { text: ex.title_ru || T('atlas.example', 'Пример') }), list]);
+      return h('div', { cls: 'atlas-example' }, [h('h4', { cls: 'atlas-l-ru', text: ex.title_ru || T('atlas.example', 'Пример') }), list]);
+    }
+
+    var EDITOR_ABOUT = { page: ['atlas.editor.page', 'к странице'], formula: ['atlas.editor.formula', 'к формуле'],
+      block: ['atlas.editor.block', 'к тексту'], erratum: ['atlas.editor.erratum', 'к исправлению'] };
+
+    // Supplier notes about the pipeline (fields, extraction, validation) stay out of the reading text (acceptance R03/R06)
+    function renderEditor(T, notes) {
+      if (!notes || !notes.length) return null;
+      var list = h('ul', {});
+      notes.forEach(function (n) {
+        var about = EDITOR_ABOUT[n.about] || EDITOR_ABOUT.page;
+        list.appendChild(h('li', { 'data-target': n.ref || '' }, [h('b', { text: T(about[0], about[1]) + ': ' }), n.text]));
+      });
+      return h('details', { cls: 'atlas-editor atlas-l-ru' }, [h('summary', { text: T('atlas.editor.title', 'Заметки редактора') + ' (' + notes.length + ')' }),
+        h('p', { cls: 'atlas-muted', text: T('atlas.editor.hint', 'Технические сведения о подготовке страницы: как извлечены формулы и что сверено. Для чтения не нужны.') }), list]);
     }
 
     function renderPage(T, page, opts) {
       var sec = h('section', { cls: 'atlas-page', id: 'atlas-p' + page.page, 'data-page': page.page });
       var thumb = page.image ? h('button', { cls: 'atlas-thumb', type: 'button', 'aria-label': T('atlas.openOriginal', 'Открыть страницу оригинала'),
         'data-image': page.image }, [h('img', { src: page.image, alt: T('atlas.page', 'стр.') + ' ' + page.page, loading: 'lazy' })]) : null;
+      var state = page.state || (page.translated ? 'translated' : 'none');
+      var stateText = state === 'none' ? T('atlas.noTranslationShort', 'без перевода') : state === 'partial' ? T('atlas.partial', 'переведено частично')
+        : state === 'empty' ? T('atlas.emptyPage', 'на странице нет текста') : null;
       sec.appendChild(h('header', { cls: 'atlas-page-head' }, [h('span', { cls: 'atlas-pageno', text: T('atlas.page', 'стр.') + ' ' + page.page }),
-        page.translated ? null : h('span', { cls: 'atlas-badge', text: T('atlas.noTranslationShort', 'без перевода') })]));
+        stateText ? h('span', { cls: 'atlas-badge', 'data-state': state, text: stateText }) : null]));
       var body = h('div', { cls: 'atlas-page-body' });
       var aside = h('aside', { cls: 'atlas-aside' }, [thumb]);
       var main = h('div', { cls: 'atlas-main' });
@@ -191,6 +228,8 @@
         (errataByTarget[ex.id] || []).forEach(function (x) { shown[x.id] = true; main.appendChild(renderErratum(T, x)); });
       });
       (page.errata || []).forEach(function (x) { if (!shown[x.id]) main.appendChild(renderErratum(T, x)); });
+      var editor = renderEditor(T, page.editor);
+      if (editor) main.appendChild(editor);
       body.appendChild(aside); body.appendChild(main);
       sec.appendChild(body);
       return sec;
@@ -203,7 +242,7 @@
       ids.forEach(function (id) {
         var term = terms[id];
         list.appendChild(h('dt', {}, [h('bdi', { lang: 'he', dir: 'rtl', text: term.niqqud || term.lemma_he }), ' · ', h('i', { text: term.translit || '' })]));
-        list.appendChild(h('dd', { text: (term.senses || []).map(function (s) { return s.ru; }).join('; ') }));
+        list.appendChild(h('dd', { cls: 'atlas-l-ru', text: (term.senses || []).map(function (s) { return s.ru; }).join('; ') }));
       });
       return h('details', { cls: 'atlas-terms-wrap' }, [h('summary', { text: T('atlas.terms', 'Словарь раздела') + ' (' + ids.length + ')' }), list]);
     }
@@ -329,39 +368,113 @@
       root.print();
     }
 
-    function openSection(id, page) {
+    var onState = typeof opts.onState === 'function' ? opts.onState : function () {};
+
+    // the page in view is remembered in the address so a reload or a shared link returns to it (acceptance UI01):
+    // the page that crosses a line just under the sticky bars is the one being read
+    function trackPages(id, section) {
+      stopTracking();
+      var win = doc.defaultView, timer = null, last = 0;
+      if (!win || !win.addEventListener) return;
+      function current() {
+        var line = 140, pages = section.querySelectorAll('.atlas-page'), hit = 0;
+        for (var i = 0; i < pages.length; i++) {
+          var r = pages[i].getBoundingClientRect();
+          if (r.top <= line) hit = Number(pages[i].getAttribute('data-page')); else break;
+        }
+        return hit;
+      }
+      function onScroll() {
+        if (!section.isConnected) { stopTracking(); return; }  // the Room replaced this view (Back, another corpus)
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          if (!section.isConnected) return;
+          var n = current(); if (n && n !== last) { last = n; onState(id, n, 'replace'); }
+        }, 400);
+      }
+      win.addEventListener('scroll', onScroll, { passive: true });
+      stopTracking = function () { clearTimeout(timer); win.removeEventListener('scroll', onScroll); stopTracking = function () {}; };
+    }
+    var stopTracking = function () {};
+
+    function openSection(id, page, how) {
+      how = how || {};
       state(T('atlas.loading', 'Загрузка…'));
       return fetchJson(base + 'sections/' + id + '.json').then(function (data) {
         var bar = R.h('div', { cls: 'atlas-toolbar' }, [
-          R.h('button', { type: 'button', cls: 'atlas-back', text: '← ' + T('atlas.contents', 'Оглавление атласа'), on: { click: showHome } }),
+          R.h('button', { type: 'button', cls: 'atlas-back', text: '← ' + T('atlas.contents', 'Оглавление атласа'), on: { click: function () { showHome(); } } }),
+          R.h('form', { cls: 'atlas-pagejump' }, [R.h('input', { type: 'number', min: 1, max: 564, inputmode: 'numeric', placeholder: T('atlas.page', 'стр.'),
+            'aria-label': T('atlas.jump', 'Страница книги') }), R.h('button', { type: 'submit', text: '→', 'aria-label': T('atlas.open', 'Открыть') })]),
           R.h('label', { cls: 'atlas-toggle' }, [R.h('input', { type: 'checkbox', 'data-toggle': 'hebrew-only' }), ' ' + T('atlas.hebrewOnly', 'только иврит')]),
           R.h('input', { type: 'search', cls: 'atlas-search', placeholder: T('atlas.search', 'Поиск в разделе: иврит или русский'), 'aria-label': T('atlas.search', 'Поиск в разделе: иврит или русский') }),
+          R.h('span', { cls: 'atlas-search-count', 'aria-live': 'polite' }),
           R.h('button', { type: 'button', cls: 'atlas-print-btn', text: T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } })]);
         var section = R.renderSection(T, data, {});
         view.replaceChildren(bar, section);
         wireInteractions(section);
         bar.querySelector('[data-toggle="hebrew-only"]').addEventListener('change', function (ev) { section.classList.toggle('atlas-hebrew-only', ev.target.checked); });
-        bar.querySelector('.atlas-search').addEventListener('input', function (ev) {
-          var q = String(ev.target.value || '').trim().toLowerCase();
-          var first = null;
-          section.querySelectorAll('.atlas-row').forEach(function (row) {
-            var hit = q && row.textContent.toLowerCase().indexOf(q) >= 0;
-            row.classList.toggle('atlas-hit', !!hit);
-            if (hit && !first) first = row;
+        // any page of the book without going back to the contents
+        bar.querySelector('.atlas-pagejump').addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          var n = Number(bar.querySelector('.atlas-pagejump input').value);
+          if (!n) return;
+          if (data.first <= n && n <= data.last) {
+            var el = doc.getElementById('atlas-p' + n);
+            if (el && el.scrollIntoView) el.scrollIntoView();
+            onState(id, n, 'replace');
+            return;
+          }
+          loadIndex().then(function (ix) {
+            var s = ix && ix.sections.filter(function (x) { return x.first <= n && n <= x.last; })[0];
+            if (s) openSection(s.id, n);
           });
-          if (first && first.scrollIntoView) first.scrollIntoView({ block: 'center' });
+        });
+        var search = bar.querySelector('.atlas-search'), count = bar.querySelector('.atlas-search-count');
+        var hits = [], at = 0;
+        function showHit() {
+          count.textContent = hits.length ? (at + 1) + ' / ' + hits.length : '';
+          if (hits[at] && hits[at].scrollIntoView) hits[at].scrollIntoView({ block: 'center' });
+        }
+        search.addEventListener('input', function (ev) {
+          var q = String(ev.target.value || '').trim().toLowerCase();
+          hits = []; at = 0;
+          section.querySelectorAll('.atlas-row, .atlas-table td, .atlas-formula, .atlas-regions li').forEach(function (row) {
+            var hit = !!q && row.textContent.toLowerCase().indexOf(q) >= 0;
+            row.classList.toggle('atlas-hit', hit);
+            if (hit) hits.push(row);
+          });
+          showHit();
+          if (q && !hits.length) count.textContent = T('atlas.searchNone', 'ничего не найдено');
+        });
+        // Enter moves to the next match, Shift+Enter to the previous one
+        search.addEventListener('keydown', function (ev) {
+          if (ev.key !== 'Enter' || !hits.length) return;
+          ev.preventDefault();
+          at = (at + (ev.shiftKey ? hits.length - 1 : 1)) % hits.length;
+          showHit();
         });
         if (page) { var target = doc.getElementById('atlas-p' + page); if (target && target.scrollIntoView) target.scrollIntoView(); }
+        if (!how.restore) onState(id, page || data.first, 'push');
+        trackPages(id, section);
         return data;
       }).catch(function () { state(T('atlas.loadError', 'Раздел атласа сейчас недоступен')); });
     }
 
-    function showHome() {
-      if (index) { view.replaceChildren(R.renderHome(T, index, openSection)); return Promise.resolve(index); }
+    function loadIndex() {
+      if (index) return Promise.resolve(index);
+      return fetchJson(base + 'index.json').then(function (data) { index = data; return index; });
+    }
+
+    function showHome(how) {
+      how = how || {};
+      stopTracking();
+      if (!how.restore) onState('', 0, 'push');
+      var open = function (id, page) { return openSection(id, page); };
+      if (index) { view.replaceChildren(R.renderHome(T, index, open)); return Promise.resolve(index); }
       state(T('atlas.loading', 'Загрузка…'));
       return fetchJson(base + 'index.json').then(function (data) {
         index = data;
-        view.replaceChildren(R.renderHome(T, index, openSection));
+        view.replaceChildren(R.renderHome(T, index, open));
         return index;
       }).catch(function () { state(T('atlas.loadError', 'Атлас сейчас недоступен')); });
     }

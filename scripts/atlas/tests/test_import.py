@@ -67,6 +67,23 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(core[0]['status']['owner_status'], 'none')
         self.assertEqual(graph['objects']['a97002:p197:x-demo']['status']['math_review'], 'core_mismatch')
 
+    def test_core_mismatch_explains_value_and_gap(self):
+        step = {'compute': 'x*Fr+y*Fa', 'bindings': {'x': 0.56, 'Fr': 2000, 'y': 2, 'Fa': 600}, 'printed': '2200'}
+        graph, _ = self.build(edit(clean_content(), 'new:a97002:p197:demo', steps=[step]))
+        core = next(o for o in graph['objects'].values() if o['type'] == 'erratum' and o.get('origin') == 'core')
+        self.assertIn('= 2320', core['explanation_ru'])
+        self.assertIn('разница 120', core['explanation_ru'])
+        self.assertIn('5.5 %', core['explanation_ru'])
+
+    def test_rounded_printed_number_is_not_an_erratum(self):
+        # acceptance R08: 159166.67 printed as 159170 is rounding, not a typo candidate
+        step = {'compute': 'Fr+x', 'bindings': {'x': 0.56, 'Fr': 2000}, 'printed': '2000'}
+        graph, _ = self.build(edit(clean_content(), 'new:a97002:p197:demo', steps=[step]))
+        example = graph['objects']['a97002:p197:x-demo']
+        self.assertEqual(example['steps'][0]['math_review'], 'core_rounded')
+        self.assertEqual(example['status']['math_review'], 'core_verified')
+        self.assertFalse([o for o in graph['objects'].values() if o['type'] == 'erratum' and o.get('origin') == 'core'])
+
     def test_source_example_without_supplier_steps(self):
         # the extractor found a worked example the supplier did not fill (s09, p220:ex1): import keeps it, no crash
         pack = Pack(self)

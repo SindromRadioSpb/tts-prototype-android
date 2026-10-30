@@ -86,6 +86,14 @@ class PrintedTest(unittest.TestCase):
         self.assertTrue(C.matches_printed(0.03158, '0.0316'))
         self.assertTrue(C.matches_printed(-0.15, '−0.15'))
 
+    def test_rounded_to_significant_digits(self):
+        # p191 example 4: 10 * 9550000 / 600 = 159166.67, printed 159170 (acceptance R08)
+        self.assertFalse(C.matches_printed(159166.6667, '159170'))
+        self.assertTrue(C.matches_rounded(159166.6667, '159170'))
+        self.assertFalse(C.matches_rounded(2240.0, '2200'))      # 1.8 % off: a mismatch, not rounding
+        self.assertFalse(C.matches_rounded(159166.6667, '159166'))  # no trailing zeros
+        self.assertFalse(C.matches_rounded(0.15, '0.1'))          # decimals are matches_printed's job
+
     def test_p289_source_inconsistency(self):
         value = C.evaluate('x*Fr+y*Fa', {'x': .56, 'Fr': 2000, 'y': 2, 'Fa': 600})
         self.assertFalse(C.matches_printed(value, '2200'))
