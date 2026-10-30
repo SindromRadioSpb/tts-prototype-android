@@ -321,10 +321,8 @@
     }
 
     function printSection(data) {
-      var printRoot = R.renderPrint(T, data);
-      doc.body.appendChild(printRoot);
-      doc.body.classList.add('atlas-printing');
-      var done = function () { doc.body.classList.remove('atlas-printing'); printRoot.remove(); root.removeEventListener('afterprint', done); };
+      var cleanup = preparePrint(doc, data, T);
+      var done = function () { cleanup(); root.removeEventListener('afterprint', done); };
       root.addEventListener('afterprint', done);
       root.print();
     }
@@ -369,7 +367,23 @@
     return { home: showHome, openSection: openSection };
   }
 
-  var api = { mount: mount, factory: factory, dirOf: dirOf };
+  // Print preparation: the print view, plus a page style appended last in the document so the atlas footer wins over
+  // the Room's default @page (Physics). Returns a cleanup function.
+  function preparePrint(doc, data, t) {
+    var T = makeT(t);
+    var printRoot = factory(doc).renderPrint(T, data);
+    var style = doc.createElement('style');
+    style.setAttribute('data-atlas-print', '');
+    style.textContent = '@page { size: A4 portrait; margin: 11mm 11mm 14mm; ' +
+      '@bottom-left { content: "LinguistPro · ' + T('atlas.printFooter', 'Инженерный атлас 97002 · ждёт вычитки владельца') + '"; color: #64748b; font: 8pt/1.2 system-ui, sans-serif; } ' +
+      '@bottom-right { content: counter(page) " / " counter(pages); color: #64748b; font: 8pt/1.2 system-ui, sans-serif; } }';
+    doc.body.appendChild(printRoot);
+    doc.body.appendChild(style);
+    doc.body.classList.add('atlas-printing');
+    return function () { doc.body.classList.remove('atlas-printing'); printRoot.remove(); style.remove(); };
+  }
+
+  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint };
   root.AtlasReader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
