@@ -11,7 +11,10 @@ import re
 
 __all__ = ['load_schema', 'check', 'read_jsonl']
 
-SCHEMA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'schemas')
+_HERE = os.path.dirname(os.path.abspath(__file__))
+# repository: scripts/atlas/schemas; supplier archive: tools/../schemas
+SCHEMA_DIR = next((d for d in (os.path.join(_HERE, 'schemas'), os.path.join(_HERE, '..', 'schemas'))
+                   if os.path.isdir(d)), os.path.join(_HERE, 'schemas'))
 _cache = {}
 
 

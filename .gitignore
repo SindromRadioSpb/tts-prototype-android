@@ -178,3 +178,6 @@ art/worlds/_gen-scratch/
 # Рабочие копии git worktree — только здесь (docs/AGENT_WORKFLOW.md, 2026-10-14)
 /.worktrees/
 docs/research/my-dictionary-identity-audit/*/private/
+
+# Engineering atlas: supplier archive is rebuilt by scripts/atlas/build_dots_bundle.py
+docs/research/engineering-atlas/*/a97002-pilot-for-dots.zip
