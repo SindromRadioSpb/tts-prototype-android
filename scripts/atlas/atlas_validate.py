@@ -265,7 +265,7 @@ def _check_terms(content, lines, terms, rep):
 def _ru_has_stem(text, phrase):
     text = text.lower()
     for word in re.findall(r'\w+', phrase.lower()):
-        stem = word[:max(4, len(word) - 2)]
+        stem = word[:max(3, len(word) - 3)]  # Russian declension: ремень / ремня
         if stem not in text:
             return False
     return True
@@ -323,6 +323,14 @@ def _check_formulas(source, content, lines, rep):
             continue
         symbol_ids = _formula_symbols(oid, source, content)
         known_vars = {content[s]['var']: s for s in symbol_ids if s in content}
+        local = [v['var'] for v in obj.get('local_vars', [])]
+        clash = sorted({v for v in local if local.count(v) > 1 or v in known_vars})
+        if clash:
+            rep.error('E_COMPUTE', oid, line, f'переменные объявлены дважды: {", ".join(clash)}')
+        all_vars = set(known_vars) | set(local)
+        result = obj.get('result_var')
+        if result and result not in all_vars:
+            rep.error('E_COMPUTE', oid, line, f'result_var {result} не объявлен ни символом, ни в local_vars')
         try:
             used = C.variables(expr)
             if C.uses_trig(expr) and obj.get('angle_unit') not in ('deg', 'rad'):
@@ -330,11 +338,11 @@ def _check_formulas(source, content, lines, rep):
         except C.ComputeError as exc:
             rep.error('E_COMPUTE', oid, line, f'compute не разбирается: {exc}')
             continue
-        unknown = sorted(used - set(known_vars))
+        unknown = sorted(used - all_vars)
         if unknown:
-            rep.error('E_COMPUTE', oid, line, f'переменные не из символов формулы: {", ".join(unknown)}')
+            rep.error('E_COMPUTE', oid, line, f'переменные не из символов формулы и не из local_vars: {", ".join(unknown)}')
         for var, sid in known_vars.items():
-            if var not in used:
+            if var not in used and var != result:
                 rep.warn('W_SYMBOL_UNUSED', sid, lines.get(sid), f'символ {var} формулы {oid} не встречается в compute')
 
 

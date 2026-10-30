@@ -311,6 +311,40 @@ class SymbolFormulaTest(unittest.TestCase):
         self.assertIn('W_SYMBOL_UNUSED', codes(report, 'warnings'))
 
 
+class LocalVarsTest(unittest.TestCase):
+    LOCAL = [{'var': 'n_out', 'symbol_latex': 'n_{out}', 'description_ru': 'частота вращения ведомого', 'unit': 'rpm'},
+             {'var': 'n_in', 'symbol_latex': 'n_{in}', 'description_ru': 'частота вращения ведущего', 'unit': 'rpm'},
+             {'var': 'i', 'symbol_latex': 'i', 'description_ru': 'передаточное отношение', 'unit': ''}]
+
+    def formula(self, **changes):
+        objs = edit(clean_content(), 'a97002:p197:f01', compute='n_out/n_in', symbols=None, local_vars=self.LOCAL, result_var='i')
+        return edit(objs, 'a97002:p197:f01', **changes) if changes else objs
+
+    def test_local_vars_allow_compute_without_a_symbol_table(self):
+        # page 197 has no symbol table: the formula declares its own variables
+        objs = [o for o in self.formula() if o['type'] != 'symbol' or o['id'] != 'a97002:p197:st1:s03']
+        report = Pack(self).run(objs)
+        self.assertTrue(report['ok'], report['errors'])
+
+    def test_result_var_is_not_reported_unused(self):
+        report = Pack(self).run(self.formula())
+        unused = [f['message'] for f in report['warnings'] if f['code'] == 'W_SYMBOL_UNUSED']
+        self.assertFalse(any(' i ' in m for m in unused), unused)
+
+    def test_result_var_must_be_known(self):
+        self.assertIn('E_COMPUTE', codes(Pack(self).run(self.formula(result_var='q'))))
+
+    def test_duplicate_local_var(self):
+        twice = self.LOCAL + [dict(self.LOCAL[0])]
+        self.assertIn('E_COMPUTE', codes(Pack(self).run(self.formula(local_vars=twice))))
+
+    def test_term_stem_tolerates_declension(self):
+        # term sense 'ремень' must be recognised in 'Длина ремня'
+        self.assertTrue(V._ru_has_stem('Длина ремня', 'ремень'))
+        self.assertTrue(V._ru_has_stem('большой ведущий шкив', 'ведущий шкив'))
+        self.assertFalse(V._ru_has_stem('колеса передачи', 'ведущий шкив'))
+
+
 class CoreTest(unittest.TestCase):
     def test_core_mismatch_is_finding_not_error(self):
         step = {'compute': 'x*Fr+y*Fa', 'bindings': {'x': 0.56, 'Fr': 2000, 'y': 2, 'Fa': 600}, 'printed': '2200'}
