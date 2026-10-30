@@ -134,18 +134,27 @@ def read_jsonl(path):
     Returns ([(line_number, object), ...], ['line N: message', ...]).
     """
     rows, errors = [], []
-    with open(path, encoding='utf-8-sig') as fh:
-        for number, line in enumerate(fh, 1):
-            text = line.strip()
-            if not text:
-                continue
-            try:
-                obj = json.loads(text)
-            except json.JSONDecodeError as exc:
-                errors.append(f'line {number}: invalid JSON ({exc.msg} at column {exc.colno})')
-                continue
-            if not isinstance(obj, dict):
-                errors.append(f'line {number}: each line must be a JSON object')
-                continue
-            rows.append((number, obj))
+    with open(path, 'rb') as fh:
+        data = fh.read()
+    if data[:2] in (b'\xff\xfe', b'\xfe\xff'):
+        return [], ['line 1: файл в кодировке UTF-16 — сохраните его как UTF-8']
+    if data[:3] == b'\xef\xbb\xbf':
+        data = data[3:]
+    for number, raw in enumerate(data.split(b'\n'), 1):
+        try:
+            text = raw.decode('utf-8').strip()
+        except UnicodeDecodeError:
+            errors.append(f'line {number}: строка не в кодировке UTF-8')
+            continue
+        if not text:
+            continue
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError as exc:
+            errors.append(f'line {number}: invalid JSON ({exc.msg} at column {exc.colno})')
+            continue
+        if not isinstance(obj, dict):
+            errors.append(f'line {number}: each line must be a JSON object')
+            continue
+        rows.append((number, obj))
     return rows, errors

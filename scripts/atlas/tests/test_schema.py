@@ -129,7 +129,7 @@ class PackSchemasTest(unittest.TestCase):
                     'extractor': {'version': '1.0.0'}, 'pages': [7, 197], 'logo_xref_digests': [], 'warnings': []}
         schema = S.load_schema('source-pack')
         self.assertEqual(S.check(schema['$defs']['manifest'], manifest, root=schema), [])
-        bad = dict(manifest, source=dict(manifest['source'], filename='G:/Andasa/x.pdf'))
+        bad = dict(manifest, source=dict(manifest['source'], filename='G:/Owner/x.pdf'))
         self.assertTrue(S.check(schema['$defs']['manifest'], bad, root=schema))
 
     def test_content_rejects_bad_label_and_status_value(self):

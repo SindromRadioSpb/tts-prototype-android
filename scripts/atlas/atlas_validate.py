@@ -109,6 +109,8 @@ def validate(source, content_path):
     schema = S.load_schema('content-pack')
     stats = {'lines': len(rows) + len(parse_errors)}
 
+    if not rows and parse_errors:
+        return rep.result(stats)  # nothing readable: the parse errors say why
     if not rows or rows[0][1].get('type') != 'header':
         rep.error('E_HEADER', None, rows[0][0] if rows else None, 'первая строка должна быть объектом header')
         return rep.result(stats)
@@ -150,7 +152,7 @@ def validate(source, content_path):
     _check_terms(content, lines, terms, rep)
     _check_refs(source, content, lines, terms, rep)
     _check_formulas(source, content, lines, rep)
-    _check_examples(content, lines, rep)
+    _check_examples(source, content, lines, rep)
     _check_figures(source, content, header, rep)
     return rep.result(stats)
 
@@ -208,12 +210,17 @@ def _check_text(source, content, lines, header, rep):
     missing_translit_ru = 0
     for sid in source.order:
         src = source.objects[sid]
-        if src['type'] != 'block' or src['page'] not in pages or not _letters(src['he_raw']):
+        if src['type'] != 'block' or not _letters(src['he_raw']):
             continue
         obj = content.get(sid)
-        empty = [k for k in ('he', 'he_niqqud', 'translit', 'ru') if obj is not None and not obj.get(k, '').strip()]
-        if obj is None or empty:
-            rep.error('E_COVERAGE', sid, lines.get(sid), 'блок не покрыт' if obj is None else f'пустые поля: {", ".join(empty)}')
+        if obj is None:
+            # coverage is required only for the pages the header promises; text checks run on every delivered block
+            if src['page'] in pages:
+                rep.error('E_COVERAGE', sid, None, 'блок не покрыт')
+            continue
+        empty = [k for k in ('he', 'he_niqqud', 'translit', 'ru') if not obj.get(k, '').strip()]
+        if empty:
+            rep.error('E_COVERAGE', sid, lines.get(sid), f'пустые поля: {", ".join(empty)}')
             continue
         line = lines[sid]
         raw, he = _letters(src['he_raw']), _letters(obj['he'])
@@ -306,6 +313,10 @@ def _formula_symbols(fid, source, content):
 
 def _check_formulas(source, content, lines, rep):
     for oid, obj in content.items():
+        reserved = [v for v in ([obj.get('var')] if obj['type'] == 'symbol' else [x['var'] for x in obj.get('local_vars', [])])
+                    if v in C.CONSTANTS]
+        if reserved:
+            rep.error('E_COMPUTE', oid, lines[oid], f'{", ".join(reserved)} — константы грамматики, переименуйте переменную (например e_lim)')
         if obj['type'] == 'symbol':
             src = source.objects.get(oid, {})
             if obj.get('formula_id'):
@@ -346,10 +357,28 @@ def _check_formulas(source, content, lines, rep):
                 rep.warn('W_SYMBOL_UNUSED', sid, lines.get(sid), f'символ {var} формулы {oid} не встречается в compute')
 
 
-def _check_examples(content, lines, rep):
+def _source_numbers(source, pages, extra_ids=()):
+    """Numbers printed on the given pages of the source pack (all raw text fields)."""
+    out = set()
+    for obj in source.objects.values():
+        if obj.get('page') in pages or obj['id'] in extra_ids:
+            for key in ('he_raw', 'source_text', 'symbol_raw', 'description_he_raw', 'unit_raw'):
+                text = unicodedata.normalize('NFKC', obj.get(key) or '')
+                out.update(float(n.replace(',', '.')) for n in NUMBER.findall(text))
+    return out
+
+
+def _anchored(value, numbers):
+    return any(abs(value - n) <= 1e-9 * max(1.0, abs(value)) for n in numbers)
+
+
+def _check_examples(source, content, lines, rep):
     for oid, obj in content.items():
         if obj['type'] != 'example':
             continue
+        first = int(oid.split(':')[2][1:]) if oid.startswith('new:') else int(oid.split(':')[1][1:])
+        printed_numbers = _source_numbers(source, set(range(first, first + 4)),
+                                          [s['block'] for s in obj['steps'] if s.get('block')])
         for index, step in enumerate(obj['steps'], 1):
             ref = f'{oid}#step{index}'
             try:
@@ -357,6 +386,14 @@ def _check_examples(content, lines, rep):
                 ok = C.matches_printed(value, step['printed'])
             except C.ComputeError as exc:
                 rep.error('E_COMPUTE', ref, lines[oid], f'шаг {index}: {exc}')
+                continue
+            loose = [str(v) for v in list(step['bindings'].values()) + [float(step['printed'].replace(',', '.').replace('\u2212', '-'))]
+                     if not _anchored(abs(float(v)), printed_numbers)]
+            if loose:
+                rep.warn('W_PRINTED_UNANCHORED', ref, lines[oid],
+                         f'шаг {index}: числа {", ".join(loose)} не найдены в тексте страниц {first}–{first + 3} исходного пакета')
+                rep.add('findings', 'F_CORE_UNANCHORED', ref, lines[oid],
+                        f'шаг {index}: пересчёт не засчитан — подстановки или напечатанный результат не подтверждены текстом книги')
                 continue
             code = 'F_CORE_VERIFIED' if ok else 'F_CORE_MISMATCH'
             text = (f'шаг {index}: {step["compute"]} = {value:.6g}, напечатано {step["printed"]}'

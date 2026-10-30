@@ -42,7 +42,7 @@ class BundleTest(unittest.TestCase):
             for name in zf.namelist():
                 if name.endswith(('.md', '.json', '.jsonl', '.py')):
                     text = zf.read(name).decode('utf-8')
-                    for needle in ('G:\\', 'E:\\', 'Andasa', 'lletp'):
+                    for needle in ('G:\\', 'E:\\', ':/Users/', '\\Users\\'):
                         self.assertNotIn(needle, text, name)
 
     def test_bundle_is_reproducible(self):

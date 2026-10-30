@@ -196,7 +196,7 @@ class PilotPdfTest(unittest.TestCase):
     def test_no_owner_paths(self):
         text = self.raw + json.dumps(self.manifest, ensure_ascii=False)
         self.assertNotIn('G:\\', text)
-        self.assertNotIn('Andasa', text)
+        self.assertNotIn('\\Users\\', text)
 
     def test_assets_exist(self):
         for obj in self.objs:

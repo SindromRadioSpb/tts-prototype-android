@@ -209,6 +209,9 @@ def _eval(node, env, unit):
 
 
 def evaluate(expr, bindings, angle_unit=None):
+    reserved = sorted(set(bindings or {}) & set(CONSTANTS))
+    if reserved:
+        raise ComputeError('RESERVED_NAME', f'{", ".join(reserved)} — константы грамматики, их нельзя использовать как переменные')
     tree = parse(expr)
     if uses_trig(expr) and angle_unit not in ('deg', 'rad'):
         raise ComputeError('ANGLE_UNIT_REQUIRED', 'trigonometry needs angle_unit "deg" or "rad"')

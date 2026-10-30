@@ -65,7 +65,7 @@ def build_graph(source, content_path):
     step_review = {}
     for finding in report['findings']:
         oid, _, step = finding['ref'].rpartition('#step')
-        step_review[(oid, int(step))] = 'core_verified' if finding['code'] == 'F_CORE_VERIFIED' else 'core_mismatch'
+        step_review[(oid, int(step))] = {'F_CORE_VERIFIED': 'core_verified', 'F_CORE_MISMATCH': 'core_mismatch'}.get(finding['code'], 'unchecked')
 
     objects, terms = {}, {}
     for sid in source.order:
@@ -97,7 +97,8 @@ def build_graph(source, content_path):
             math = 'core_mismatch' if 'core_mismatch' in reviews else ('core_verified' if reviews and all(r == 'core_verified' for r in reviews) else 'unchecked')
         else:
             math = 'not_applicable'
-        recognition = 'extracted' if (oid in source.objects or obj['page'] in pages_with_text) else 'ocr_low'
+        # only objects from the PDF text layer are "extracted"; supplier-made objects default to ocr_low
+        recognition = 'extracted' if oid in source.objects else 'ocr_low'
         if obj['type'] == 'page':
             continue
         obj['status'] = _status(supplied, recognition, math)

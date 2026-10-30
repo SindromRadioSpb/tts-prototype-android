@@ -21,6 +21,9 @@ SOURCE = [
      'he_raw': ')ניתן לשנות את (2 מרכיבי ההספק 0,05 גלגלי הממסרת.', 'kind_guess': 'prose', 'order': 2},
     {'type': 'formula', 'id': 'a97002:p197:f01', 'page': 197, 'bbox': [333, 438, 411, 471], 'source_text': '𝑖= 𝑑∙(1 −𝜉) 𝐷',
      'crop': 'assets/' + 'b' * 64 + '.png'},
+    # the printed arithmetic of the synthetic worked example: core checks are anchored to these numbers
+    {'type': 'formula', 'id': 'a97002:p197:f02', 'page': 197, 'bbox': [43, 690, 230, 720],
+     'source_text': '2 ∙ 3 = 6 ; P = 0.56 ∙2000 + 1.8 ∙600 = 2200 N ; y = 2', 'crop': 'assets/' + 'd' * 64 + '.png'},
     {'type': 'symbol', 'id': 'a97002:p197:st1:s01', 'formula_id': 'a97002:p197:f01', 'page': 197, 'bbox': [300, 480, 553, 495],
      'symbol_raw': 'd', 'description_he_raw': 'קוטר גלגל מניע', 'unit_raw': 'mm'},
     {'type': 'symbol', 'id': 'a97002:p197:st1:s02', 'formula_id': 'a97002:p197:f01', 'page': 197, 'bbox': [300, 496, 553, 511],
