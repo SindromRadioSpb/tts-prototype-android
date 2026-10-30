@@ -1,0 +1,35 @@
+{
+ "ok": true,
+ "errors": [],
+ "warnings": [],
+ "findings": [
+  {
+   "code": "F_CORE_VERIFIED",
+   "ref": "new:a97002:p287:example-2#step1",
+   "line": 133,
+   "message": "шаг 1: Fa/C0 = 0.0315789, напечатано 0.0316"
+  },
+  {
+   "code": "F_CORE_VERIFIED",
+   "ref": "new:a97002:p287:example-2#step2",
+   "line": 133,
+   "message": "шаг 2: Fa/Fr = 0.3, напечатано 0.3"
+  },
+  {
+   "code": "F_CORE_VERIFIED",
+   "ref": "new:a97002:p287:example-2#step3",
+   "line": 133,
+   "message": "шаг 3: x*Fr+y*Fa = 2200, напечатано 2200"
+  },
+  {
+   "code": "F_CORE_MISMATCH",
+   "ref": "new:a97002:p485:tolerance-arithmetic#step1",
+   "line": 134,
+   "message": "шаг 1: u-d = -0.05, напечатано 0.15 — арифметика не сходится, кандидат в опечатку"
+  }
+ ],
+ "stats": {
+  "lines": 137,
+  "objects": 135
+ }
+}

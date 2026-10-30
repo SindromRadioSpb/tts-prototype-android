@@ -403,7 +403,8 @@ def _check_examples(source, content, lines, rep):
 
 def _check_figures(source, content, header, rep):
     pages = set(header.get('pages', []))
-    with_regions = {o['parent'] for o in content.values() if o['type'] == 'region'}
+    # a raster figure that is really a table is described by a table object, not by label regions
+    with_regions = {o['parent'] for o in content.values() if o['type'] in ('region', 'table')}
     for sid, src in source.objects.items():
         if src['type'] == 'figure' and src['page'] in pages and sid not in with_regions:
             rep.warn('W_FIGURE_NO_REGIONS', sid, None, 'у рисунка нет размеченных областей (подписей)')

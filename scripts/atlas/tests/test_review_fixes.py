@@ -99,6 +99,15 @@ class EncodingTest(unittest.TestCase):
         self.assertIn('UTF-16', errors[0])
 
 
+class TableFigureTest(unittest.TestCase):
+    def test_figure_holding_a_table_needs_no_regions(self):
+        objs = [o for o in clean_content() if o['type'] != 'region']
+        objs.append({'type': 'table', 'id': 'new:a97002:p197:fig79:values', 'parent': 'a97002:p197:fig79',
+                     'bbox': [190, 270, 400, 380], 'cells': [{'row': 0, 'col': 0, 'rowspan': 1, 'colspan': 1, 'he': '1', 'ru': '1'}],
+                     'status': {'recognition': 'ocr_high'}})
+        self.assertNotIn('W_FIGURE_NO_REGIONS', codes(Pack(self).run(objs), 'warnings'))
+
+
 class SupplierDocsTest(unittest.TestCase):
     def test_readme_and_task_name_the_same_file(self):
         here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

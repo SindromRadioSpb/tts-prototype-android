@@ -1,0 +1,8331 @@
+{
+ "schema": "linguistpro.atlas-graph.1.0.0",
+ "atlas_id": "a97002",
+ "source_pack_sha256": "f3905a6e1498a0c790d39e175b37386797d60ce1a2027594afb670cd4411c0f1",
+ "content_pack_sha256": "bacbcfabf108b8e7666a2993993b22ff30140daba2ce1b77217ffb2c5536f576",
+ "built_at": "2026-10-30T01:15:19+00:00",
+ "objects": {
+  "a97002:p197": {
+   "type": "page",
+   "id": "a97002:p197",
+   "page": 197,
+   "image": "assets/e9336aad35221429c6517dc46a0177f00316e1035a735ec05e317e73865c5497.png",
+   "has_text_layer": true
+  },
+  "a97002:p197:b001": {
+   "type": "block",
+   "id": "a97002:p197:b001",
+   "page": 197,
+   "bbox": [
+    467.38,
+    93.23,
+    552.84,
+    111.33
+   ],
+   "he_raw": "יחס תמסורת",
+   "kind_guess": "heading",
+   "order": 1,
+   "kind": "heading",
+   "he": "יחס תמסורת",
+   "he_niqqud": "יַחַס תִּמְסֹרֶת",
+   "translit": "yakhas timsoret",
+   "translit_ru": "яхас тимсорет",
+   "ru": "Передаточное отношение",
+   "terms": [
+    "a97002:term:yakhas-timsoret#gear-ratio"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:b002": {
+   "type": "block",
+   "id": "a97002:p197:b002",
+   "page": 197,
+   "bbox": [
+    87.98,
+    121.27,
+    552.99,
+    156.62
+   ],
+   "he_raw": "ניתן לשנות את מרכיבי ההספק (מומנט הסיבוב– Mt , מהירות הסיבוב– nrot ) על ידי שינוי קטרי גלגלי הממסרת.",
+   "kind_guess": "prose",
+   "order": 2,
+   "kind": "prose",
+   "he": "ניתן לשנות את מרכיבי ההספק (מומנט הסיבוב – Mt, מהירות הסיבוב – n_rot) על ידי שינוי קטרי גלגלי הממסרת.",
+   "he_niqqud": "נִתָּן לְשַׁנּוֹת אֶת מַרְכִּיבֵי הַהֶסְפֵּק (מוֹמֶנְט הַסִּבּוּב – Mt, מְהִירוּת הַסִּבּוּב – n_rot) עַל יְדֵי שִׁנּוּי קָטְרֵי גַּלְגַּלֵּי הַמִּמְסֶרֶת.",
+   "translit": "nitan leshanot et markivei hahespek (moment hasibuv – Mt, mehirut hasibuv – n_rot) al yedei shinui kotrei galgalei hamimseret.",
+   "translit_ru": "нитан лешанот эт маркивей хахеспек (момент хасибув – Mt, мехирут хасибув – n_rot) аль йедей шинуй котрей гальгалей хамимсерет.",
+   "ru": "Составляющие мощности (крутящий момент Mt, частоту вращения n_rot) можно изменять, меняя диаметры колёс (шкивов) передачи.",
+   "terms": [
+    "a97002:term:moment-sivuv#torque",
+    "a97002:term:mehirut-sivuv#rotational-speed"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "По изображению восстановлены интервалы и скобки; n_rot — текстовая запись напечатанного n с подстрочным rot, Mt — M с подстрочным t."
+  },
+  "a97002:p197:b003": {
+   "type": "block",
+   "id": "a97002:p197:b003",
+   "page": 197,
+   "bbox": [
+    55.8,
+    171.87,
+    552.94,
+    209.54
+   ],
+   "he_raw": "• תמסורת מפחיתה (reducer) – שימוש בגלגל מניעקטן וגלגל מונעגדול מפחית את מהירות הסיבוב ומגדיל את מומנט הסיבוב הנמסר לצרכן.",
+   "kind_guess": "list_item",
+   "order": 3,
+   "kind": "list_item",
+   "he": "• תמסורת מפחיתה (reducer) – שימוש בגלגל מניע קטן וגלגל מונע גדול מפחית את מהירות הסיבוב ומגדיל את מומנט הסיבוב הנמסר לצרכן.",
+   "he_niqqud": "• תִּמְסֹרֶת מַפְחִיתָה (reducer) – שִׁמּוּשׁ בְּגַלְגַּל מֵנִיעַ קָטָן וְגַלְגַּל מוּנָע גָּדוֹל מַפְחִית אֶת מְהִירוּת הַסִּבּוּב וּמַגְדִּיל אֶת מוֹמֶנְט הַסִּבּוּב הַנִּמְסָר לַצַּרְכָן.",
+   "translit": "• timsoret mafkhita (reducer) – shimush begalgal meni'a katan vegalgal muna gadol mafkhit et mehirut hasibuv umagdil et moment hasibuv hanimsar latsarkhan.",
+   "translit_ru": "• тимсорет мафхита (reducer) – шимуш бе-гальгаль мениа катан ве-гальгаль муна гадоль мафхит эт мехирут хасибув у-магдиль эт момент хасибув ханимсар ла-цархан.",
+   "ru": "• Понижающая передача (reducer): малый ведущий шкив и большой ведомый шкив уменьшают частоту вращения и увеличивают крутящий момент, передаваемый потребителю.",
+   "terms": [
+    "a97002:term:galgal-mania#driving-pulley",
+    "a97002:term:galgal-muna#driven-pulley",
+    "a97002:term:mehirut-sivuv#rotational-speed",
+    "a97002:term:moment-sivuv#torque"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "По изображению восстановлены пробелы между מניע и קטן/גדול, а также между מונע и גדול/קטן; слова не изменены."
+  },
+  "a97002:p197:b004": {
+   "type": "block",
+   "id": "a97002:p197:b004",
+   "page": 197,
+   "bbox": [
+    56.16,
+    216.75,
+    552.94,
+    254.3
+   ],
+   "he_raw": "• תמסורת מגבירה (multiplier) – שימוש בגלגל מניעגדול וגלגל מונעקטן מגדיל את מהירות הסיבוב ומקטין את מומנט הסיבוב המועבר לצרכן.",
+   "kind_guess": "list_item",
+   "order": 4,
+   "kind": "list_item",
+   "he": "• תמסורת מגבירה (multiplier) – שימוש בגלגל מניע גדול וגלגל מונע קטן מגדיל את מהירות הסיבוב ומקטין את מומנט הסיבוב המועבר לצרכן.",
+   "he_niqqud": "• תִּמְסֹרֶת מַגְבִּירָה (multiplier) – שִׁמּוּשׁ בְּגַלְגַּל מֵנִיעַ גָּדוֹל וְגַלְגַּל מוּנָע קָטָן מַגְדִּיל אֶת מְהִירוּת הַסִּבּוּב וּמַקְטִין אֶת מוֹמֶנְט הַסִּבּוּב הַמּוּעֲבָר לַצַּרְכָן.",
+   "translit": "• timsoret magbira (multiplier) – shimush begalgal meni'a gadol vegalgal muna katan magdil et mehirut hasibuv umaktin et moment hasibuv hamu'avar latsarkhan.",
+   "translit_ru": "• тимсорет магбира (multiplier) – шимуш бе-гальгаль мениа гадоль ве-гальгаль муна катан магдиль эт мехирут хасибув у-мактин эт момент хасибув хамуавар ла-цархан.",
+   "ru": "• Повышающая передача (multiplier): большой ведущий шкив и малый ведомый шкив увеличивают частоту вращения и уменьшают крутящий момент, передаваемый потребителю.",
+   "terms": [
+    "a97002:term:galgal-mania#driving-pulley",
+    "a97002:term:galgal-muna#driven-pulley",
+    "a97002:term:mehirut-sivuv#rotational-speed",
+    "a97002:term:moment-sivuv#torque"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "По изображению восстановлены пробелы между מניע и קטן/גדול, а также между מונע и גדול/קטן; слова не изменены."
+  },
+  "a97002:p197:b005": {
+   "type": "block",
+   "id": "a97002:p197:b005",
+   "page": 197,
+   "bbox": [
+    229.01,
+    397.66,
+    359.9,
+    412.01
+   ],
+   "he_raw": "איור 79 - תמסורת רצועה",
+   "kind_guess": "caption",
+   "order": 5,
+   "kind": "caption",
+   "he": "איור 79 - תמסורת רצועה",
+   "he_niqqud": "אִיּוּר 79 - תִּמְסֹרֶת רְצוּעָה",
+   "translit": "iyur 79 - timsoret retsu'a",
+   "translit_ru": "июр 79 - тимсорет рецуа",
+   "ru": "Рис. 79 — Ременная передача",
+   "terms": [
+    "a97002:term:retsua#belt"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:b006": {
+   "type": "block",
+   "id": "a97002:p197:b006",
+   "page": 197,
+   "bbox": [
+    475.42,
+    490.0,
+    552.8,
+    508.1
+   ],
+   "he_raw": "אורך רצועה",
+   "kind_guess": "heading",
+   "order": 6,
+   "kind": "heading",
+   "he": "אורך רצועה",
+   "he_niqqud": "אֹרֶךְ רְצוּעָה",
+   "translit": "orekh retsu'a",
+   "translit_ru": "орех рецуа",
+   "ru": "Длина ремня",
+   "terms": [
+    "a97002:term:retsua#belt"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:b007": {
+   "type": "block",
+   "id": "a97002:p197:b007",
+   "page": 197,
+   "bbox": [
+    236.09,
+    658.35,
+    349.46,
+    672.7
+   ],
+   "he_raw": "איור 80 - מידות יסוד",
+   "kind_guess": "caption",
+   "order": 7,
+   "kind": "caption",
+   "he": "איור 80 - מידות יסוד",
+   "he_niqqud": "אִיּוּר 80 - מִדּוֹת יְסוֹד",
+   "translit": "iyur 80 - midot yesod",
+   "translit_ru": "июр 80 - мидот йесод",
+   "ru": "Рис. 80 — Основные размеры",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:f01": {
+   "type": "formula",
+   "id": "a97002:p197:f01",
+   "page": 197,
+   "bbox": [
+    332.83,
+    438.08,
+    410.77,
+    467.73
+   ],
+   "source_text": "𝑖= 𝑑∙(1 −𝜉) 𝐷",
+   "crop": "assets/e5c2971328a00ea7df3807815a92e7634f9e02969bbe2ca62d0c8e9461140cbe.png",
+   "display_latex": "i = \\frac{d\\cdot(1-\\xi)}{D}",
+   "compute": "d*(1-xi)/D",
+   "local_vars": [
+    {
+     "var": "d",
+     "symbol_latex": "d",
+     "description_ru": "диаметр ведущего шкива",
+     "unit": "mm",
+     "description_he": "קוטר גלגל מניע"
+    },
+    {
+     "var": "D",
+     "symbol_latex": "D",
+     "description_ru": "диаметр ведомого шкива",
+     "unit": "mm",
+     "description_he": "קוטר גלגל מונע"
+    },
+    {
+     "var": "xi",
+     "symbol_latex": "\\xi",
+     "description_ru": "коэффициент упругого скольжения ремня",
+     "unit": ""
+    },
+    {
+     "var": "i",
+     "symbol_latex": "i",
+     "description_ru": "передаточное отношение",
+     "unit": ""
+    }
+   ],
+   "result_var": "i",
+   "speech_ru": "i равно d, умноженное на единицу минус кси, делённое на D",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "Соглашение пособия: i = n_out/n_in, выход/вход; у понижающей передачи i < 1. Размерные единицы local_vars заданы как согласованная рабочая система, а не как отдельная напечатанная расшифровка на этой странице."
+  },
+  "a97002:p197:f02": {
+   "type": "formula",
+   "id": "a97002:p197:f02",
+   "page": 197,
+   "bbox": [
+    248.33,
+    437.6,
+    314.19,
+    471.16
+   ],
+   "source_text": "Mtin 𝑖= ∙𝜂 Mtout",
+   "crop": "assets/c9ac204b2ebab3e876af2499fc82d955be91b1853572b7575bfc03092d0f0a53.png",
+   "display_latex": "i = \\frac{M_{t\\,in}}{M_{t\\,out}}\\cdot\\eta",
+   "compute": "Mt_in/Mt_out*eta",
+   "local_vars": [
+    {
+     "var": "Mt_in",
+     "symbol_latex": "M_{t\\,in}",
+     "description_ru": "крутящий момент на ведущем шкиве",
+     "unit": "N·mm"
+    },
+    {
+     "var": "Mt_out",
+     "symbol_latex": "M_{t\\,out}",
+     "description_ru": "крутящий момент на ведомом шкиве",
+     "unit": "N·mm"
+    },
+    {
+     "var": "eta",
+     "symbol_latex": "\\eta",
+     "description_ru": "КПД передачи",
+     "unit": ""
+    },
+    {
+     "var": "i",
+     "symbol_latex": "i",
+     "description_ru": "передаточное отношение",
+     "unit": ""
+    }
+   ],
+   "result_var": "i",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "Соглашение пособия: i = n_out/n_in, выход/вход; у понижающей передачи i < 1. Размерные единицы local_vars заданы как согласованная рабочая система, а не как отдельная напечатанная расшифровка на этой странице."
+  },
+  "a97002:p197:f03": {
+   "type": "formula",
+   "id": "a97002:p197:f03",
+   "page": 197,
+   "bbox": [
+    184.7,
+    435.32,
+    225.67,
+    466.12
+   ],
+   "source_text": "𝑖= 𝑛𝑜𝑢𝑡 𝑛𝑖𝑛",
+   "crop": "assets/243014706cde1c390ba775066025cf1c73eb65396ea7ee7f92b6c059c22176f3.png",
+   "display_latex": "i = \\frac{n_{out}}{n_{in}}",
+   "compute": "n_out/n_in",
+   "local_vars": [
+    {
+     "var": "n_out",
+     "symbol_latex": "n_{out}",
+     "description_ru": "частота вращения ведомого шкива",
+     "unit": "rpm"
+    },
+    {
+     "var": "n_in",
+     "symbol_latex": "n_{in}",
+     "description_ru": "частота вращения ведущего шкива",
+     "unit": "rpm"
+    },
+    {
+     "var": "i",
+     "symbol_latex": "i",
+     "description_ru": "передаточное отношение",
+     "unit": ""
+    }
+   ],
+   "result_var": "i",
+   "ambiguity_note": "В этом пособии i = n_out / n_in (выход / вход): у понижающей передачи i < 1. Во многих русских учебниках принято обратное, i = n_вх / n_вых.",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:f04": {
+   "type": "formula",
+   "id": "a97002:p197:f04",
+   "page": 197,
+   "bbox": [
+    42.6,
+    687.42,
+    230.58,
+    719.64
+   ],
+   "source_text": "2 L = 𝜋 2 ∙(D + d) + 2 ∙√A2 + (D −d ) 2",
+   "crop": "assets/bf3ccc0b2cb549c13478e8e2b0bdeb6a0a2cf01d97e5dfdc9d4a6e24de71b272.png",
+   "display_latex": "L = \\frac{\\pi}{2}\\cdot(D+d) + 2\\cdot\\sqrt{A^{2} + \\left(\\frac{D-d}{2}\\right)^{2}}",
+   "compute": "pi/2*(D+d)+2*sqrt(A^2+((D-d)/2)^2)",
+   "local_vars": [
+    {
+     "var": "d",
+     "symbol_latex": "d",
+     "description_ru": "диаметр ведущего шкива",
+     "unit": "mm",
+     "description_he": "קוטר גלגל מניע"
+    },
+    {
+     "var": "D",
+     "symbol_latex": "D",
+     "description_ru": "диаметр ведомого шкива",
+     "unit": "mm",
+     "description_he": "קוטר גלגל מונע"
+    },
+    {
+     "var": "A",
+     "symbol_latex": "A",
+     "description_ru": "межосевое расстояние",
+     "unit": "mm"
+    },
+    {
+     "var": "L",
+     "symbol_latex": "L",
+     "description_ru": "длина ремня",
+     "unit": "mm"
+    }
+   ],
+   "result_var": "L",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "Выражение сохранено точно по печати. Для открытой ременной передачи с различными диаметрами это не точная геометрическая длина; область допустимости приближения в данном фрагменте не указана. d, D, A, L должны быть в одной единице длины (здесь mm — рабочее соглашение)."
+  },
+  "a97002:p197:fig79": {
+   "type": "figure",
+   "id": "a97002:p197:fig79",
+   "page": 197,
+   "bbox": [
+    188.9,
+    269.21,
+    406.4,
+    383.21
+   ],
+   "crop": "assets/b7a80ea2d53c0238dd33645d4a0f492d37a3cfccc1f842d1829076dfe070c76c.png",
+   "number": 79,
+   "caption_block_id": "a97002:p197:b005",
+   "caption_he": "איור 79 - תמסורת רצועה",
+   "caption_ru": "Рис. 79 — Ременная передача",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:fig79:r-input-speed-torque": {
+   "type": "region",
+   "id": "a97002:p197:fig79:r-input-speed-torque",
+   "parent": "a97002:p197:fig79",
+   "bbox": [
+    377.9,
+    341.2,
+    404.9,
+    368.2
+   ],
+   "label_he": "n_in, M_tin",
+   "label_ru": "частота вращения и момент на входе",
+   "links": [
+    "a97002:p197:f03"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig79:r-output-speed-torque": {
+   "type": "region",
+   "id": "a97002:p197:fig79:r-output-speed-torque",
+   "parent": "a97002:p197:fig79",
+   "bbox": [
+    190.7,
+    299.8,
+    217.7,
+    326.8
+   ],
+   "label_he": "n_out, M_tout",
+   "label_ru": "частота вращения и момент на выходе",
+   "links": [
+    "a97002:p197:f03"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig79:r-shkiv-large": {
+   "type": "region",
+   "id": "a97002:p197:fig79:r-shkiv-large",
+   "parent": "a97002:p197:fig79",
+   "bbox": [
+    237.5,
+    368.2,
+    293.3,
+    380.8
+   ],
+   "label_he": "גלגל מונע D",
+   "label_ru": "ведомый шкив D",
+   "links": [
+    "a97002:term:galgal-muna#driven-pulley"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig79:r-shkiv-small": {
+   "type": "region",
+   "id": "a97002:p197:fig79:r-shkiv-small",
+   "parent": "a97002:p197:fig79",
+   "bbox": [
+    338.3,
+    299.8,
+    385.1,
+    323.2
+   ],
+   "label_he": "גלגל מניע d",
+   "label_ru": "ведущий шкив d",
+   "links": [
+    "a97002:term:galgal-mania#driving-pulley"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig80": {
+   "type": "figure",
+   "id": "a97002:p197:fig80",
+   "page": 197,
+   "bbox": [
+    187.9,
+    517.91,
+    407.4,
+    643.91
+   ],
+   "crop": "assets/0ea32221369b191371ee263151b272af4e578cb2bc59afd83f2f75c2cbbe0898.png",
+   "number": 80,
+   "caption_block_id": "a97002:p197:b007",
+   "caption_he": "איור 80 - מידות יסוד",
+   "caption_ru": "Рис. 80 — Основные размеры",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p197:fig80:r-angle-alpha-in": {
+   "type": "region",
+   "id": "a97002:p197:fig80:r-angle-alpha-in",
+   "parent": "a97002:p197:fig80",
+   "bbox": [
+    256.3,
+    575.5,
+    274.3,
+    593.5
+   ],
+   "label_he": "α_in",
+   "label_ru": "угол обхвата ведущего шкива α_in",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig80:r-angle-beta": {
+   "type": "region",
+   "id": "a97002:p197:fig80:r-angle-beta",
+   "parent": "a97002:p197:fig80",
+   "bbox": [
+    283.3,
+    557.5,
+    294.1,
+    571.9
+   ],
+   "label_he": "β",
+   "label_ru": "угол β",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig80:r-center-distance": {
+   "type": "region",
+   "id": "a97002:p197:fig80:r-center-distance",
+   "parent": "a97002:p197:fig80",
+   "bbox": [
+    285.1,
+    624.1,
+    295.9,
+    634.9
+   ],
+   "label_he": "A",
+   "label_ru": "межосевое расстояние A",
+   "links": [
+    "a97002:p197:f04"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig80:r-shkiv-large": {
+   "type": "region",
+   "id": "a97002:p197:fig80:r-shkiv-large",
+   "parent": "a97002:p197:fig80",
+   "bbox": [
+    351.7,
+    523.3,
+    403.9,
+    534.1
+   ],
+   "label_he": "גלגל מונע – D",
+   "label_ru": "ведомый шкив — D",
+   "links": [
+    "a97002:term:galgal-muna#driven-pulley"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig80:r-shkiv-large-inner": {
+   "type": "region",
+   "id": "a97002:p197:fig80:r-shkiv-large-inner",
+   "parent": "a97002:p197:fig80",
+   "bbox": [
+    329.02,
+    553.19,
+    383.38,
+    564.71
+   ],
+   "label_he": "גלגל מונע – D",
+   "label_ru": "ведомый шкив — D",
+   "links": [
+    "a97002:term:galgal-muna#driven-pulley"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p197:fig80:r-shkiv-small": {
+   "type": "region",
+   "id": "a97002:p197:fig80:r-shkiv-small",
+   "parent": "a97002:p197:fig80",
+   "bbox": [
+    191.5,
+    535.9,
+    241.9,
+    546.7
+   ],
+   "label_he": "גלגל מניע – d",
+   "label_ru": "ведущий шкив — d",
+   "links": [
+    "a97002:term:galgal-mania#driving-pulley"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 197
+  },
+  "a97002:p282": {
+   "type": "page",
+   "id": "a97002:p282",
+   "page": 282,
+   "image": "assets/3018e9f7f16213123a5591da2f347326e89fb7b6a9ef8459f7d88fc891427369.png",
+   "has_text_layer": false
+  },
+  "a97002:p282:b001": {
+   "type": "block",
+   "id": "a97002:p282:b001",
+   "page": 282,
+   "bbox": [
+    336.07,
+    103.6,
+    552.7,
+    126.8
+   ],
+   "he_raw": "נתוני מסבי גלילה )(חלקיים",
+   "kind_guess": "prose",
+   "order": 1,
+   "kind": "heading",
+   "he": "נתוני מסבי גלילה (חלקיים)",
+   "he_niqqud": "נְתוּנֵי מְסַבֵּי גְּלִילָה (חֶלְקִיִּים)",
+   "translit": "netunei mesabei glila (khelkiyim)",
+   "translit_ru": "нетуней месабей глила (хелькиим)",
+   "ru": "Данные подшипников качения (неполные)",
+   "terms": [
+    "a97002:term:masav-glila#rolling-bearing"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p282:img01": {
+   "type": "figure",
+   "id": "a97002:p282:img01",
+   "page": 282,
+   "bbox": [
+    88.5,
+    127.5,
+    277.15,
+    246.0
+   ],
+   "crop": "assets/22471361d90207226f34c93c09c4d23075461334d6d99ff63ee052855d707199.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p282:img01:r-diameter-d-inner": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-diameter-d-inner",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    147.54,
+    187.98,
+    156.18,
+    196.62
+   ],
+   "label_he": "d",
+   "label_ru": "Диаметр отверстия d",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-diameter-d-outer": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-diameter-d-outer",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    91.74,
+    187.98,
+    100.74,
+    197.34
+   ],
+   "label_he": "D",
+   "label_ru": "Наружный диаметр D",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-diameter-d1-inner": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-diameter-d1-inner",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    159.06,
+    187.98,
+    170.22,
+    197.34
+   ],
+   "label_he": "d₁",
+   "label_ru": "Диаметр d₁",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-diameter-d1-outer": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-diameter-d1-outer",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    101.82,
+    187.98,
+    112.98,
+    197.34
+   ],
+   "label_he": "D₁",
+   "label_ru": "Диаметр D₁",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-diameter-d2-outer": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-diameter-d2-outer",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    232.86,
+    187.98,
+    245.1,
+    198.42
+   ],
+   "label_he": "D₂",
+   "label_ru": "Диаметр D₂",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-radius-r1-inner": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-radius-r1-inner",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    111.54,
+    159.54,
+    119.1,
+    168.18
+   ],
+   "label_he": "r₁",
+   "label_ru": "Радиус r₁",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-radius-r1-upper": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-radius-r1-upper",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    140.7,
+    140.82,
+    147.9,
+    149.46
+   ],
+   "label_he": "r₁",
+   "label_ru": "Радиус r₁",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-radius-r2-inner": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-radius-r2-inner",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    118.74,
+    167.46,
+    126.66,
+    175.38
+   ],
+   "label_he": "r₂",
+   "label_ru": "Радиус r₂",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-radius-r2-upper": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-radius-r2-upper",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    132.78,
+    136.14,
+    140.7,
+    143.34
+   ],
+   "label_he": "r₂",
+   "label_ru": "Радиус r₂",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img01:r-width-b": {
+   "type": "region",
+   "id": "a97002:p282:img01:r-width-b",
+   "parent": "a97002:p282:img01",
+   "bbox": [
+    125.58,
+    128.22,
+    133.5,
+    136.5
+   ],
+   "label_he": "B",
+   "label_ru": "Ширина B",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img02": {
+   "type": "figure",
+   "id": "a97002:p282:img02",
+   "page": 282,
+   "bbox": [
+    349.13,
+    139.51,
+    489.62,
+    229.11
+   ],
+   "crop": "assets/4118829f3835f76e679e754ee5e3792830471f5155849c6952ad329d767ff4e8.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p282:img02:t-radial-factors": {
+   "type": "table",
+   "id": "a97002:p282:img02:t-radial-factors",
+   "parent": "a97002:p282:img02",
+   "bbox": [
+    349.13,
+    139.51,
+    489.62,
+    229.11
+   ],
+   "title_ru": "Коэффициенты радиальной и осевой нагрузки (редакционное название; таблица целиком)",
+   "cells": [
+    {
+     "row": 0,
+     "col": 0,
+     "rowspan": 2,
+     "colspan": 1,
+     "he": "Fₐ/C₀",
+     "ru": "Fₐ/C₀"
+    },
+    {
+     "row": 0,
+     "col": 1,
+     "rowspan": 2,
+     "colspan": 1,
+     "he": "e",
+     "ru": "e"
+    },
+    {
+     "row": 0,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Fₐ/Fᵣ ≤ e",
+     "ru": "при Fₐ/Fᵣ ≤ e"
+    },
+    {
+     "row": 0,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Fₐ/Fᵣ > e",
+     "ru": "при Fₐ/Fᵣ > e"
+    },
+    {
+     "row": 1,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "x",
+     "ru": "x"
+    },
+    {
+     "row": 1,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "y",
+     "ru": "y"
+    },
+    {
+     "row": 1,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "x",
+     "ru": "x"
+    },
+    {
+     "row": 1,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "y",
+     "ru": "y"
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "–",
+     "ru": "–",
+     "note": "Отдельный короткий штрих в оригинале под заголовком первого столбца; не числовое значение."
+    },
+    {
+     "row": 3,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.025",
+     "ru": "0.025"
+    },
+    {
+     "row": 3,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.22",
+     "ru": "0.22"
+    },
+    {
+     "row": 3,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 3,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 3,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.58",
+     "ru": "0.58"
+    },
+    {
+     "row": 3,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "2",
+     "ru": "2"
+    },
+    {
+     "row": 4,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.04",
+     "ru": "0.04"
+    },
+    {
+     "row": 4,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.24",
+     "ru": "0.24"
+    },
+    {
+     "row": 4,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 4,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 4,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 4,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.8",
+     "ru": "1.8"
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.07",
+     "ru": "0.07"
+    },
+    {
+     "row": 5,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.27",
+     "ru": "0.27"
+    },
+    {
+     "row": 5,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 5,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 5,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 5,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.6",
+     "ru": "1.6"
+    },
+    {
+     "row": 6,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.13",
+     "ru": "0.13"
+    },
+    {
+     "row": 6,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.31",
+     "ru": "0.31"
+    },
+    {
+     "row": 6,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 6,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 6,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 6,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.4",
+     "ru": "1.4"
+    },
+    {
+     "row": 7,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.25",
+     "ru": "0.25"
+    },
+    {
+     "row": 7,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.37",
+     "ru": "0.37"
+    },
+    {
+     "row": 7,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 7,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 7,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 7,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.2",
+     "ru": "1.2"
+    },
+    {
+     "row": 8,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.5",
+     "ru": "0.5"
+    },
+    {
+     "row": 8,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.44",
+     "ru": "0.44"
+    },
+    {
+     "row": 8,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 8,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 8,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 8,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    }
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p282:img03": {
+   "type": "figure",
+   "id": "a97002:p282:img03",
+   "page": 282,
+   "bbox": [
+    86.15,
+    246.0,
+    509.1,
+    680.47
+   ],
+   "crop": "assets/7fafcd96f5bb0cfbf715897e3e2e49d8d5c410ecd045fe3ea1d82587dd6483a7.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p282:img03:t-catalogue-d20-d40": {
+   "type": "table",
+   "id": "a97002:p282:img03:t-catalogue-d20-d40",
+   "parent": "a97002:p282:img03",
+   "bbox": [
+    86.15,
+    246.0,
+    509.1,
+    680.47
+   ],
+   "title_ru": "Каталожные данные: заголовки и группы d = 20 мм, d = 40 мм (редакционное название)",
+   "cells": [
+    {
+     "row": 0,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "Principal dimensions",
+     "ru": "Основные размеры"
+    },
+    {
+     "row": 0,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Basic load ratings",
+     "ru": "Базовая грузоподъёмность"
+    },
+    {
+     "row": 0,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Fatigue load limit",
+     "ru": "Предел усталостной нагрузки"
+    },
+    {
+     "row": 0,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Speed ratings / Lubrication",
+     "ru": "Предельная частота вращения / Смазка"
+    },
+    {
+     "row": 0,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Mass",
+     "ru": "Масса"
+    },
+    {
+     "row": 0,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Designation",
+     "ru": "Обозначение"
+    },
+    {
+     "row": 1,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "d",
+     "ru": "d"
+    },
+    {
+     "row": 1,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "D",
+     "ru": "D"
+    },
+    {
+     "row": 1,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "B",
+     "ru": "B"
+    },
+    {
+     "row": 1,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "dynamic C",
+     "ru": "динамическая C"
+    },
+    {
+     "row": 1,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "static C₀",
+     "ru": "статическая C₀"
+    },
+    {
+     "row": 1,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Pᵤ",
+     "ru": "Pᵤ"
+    },
+    {
+     "row": 1,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "grease",
+     "ru": "пластичная смазка"
+    },
+    {
+     "row": 1,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "oil",
+     "ru": "масло"
+    },
+    {
+     "row": 1,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": ""
+    },
+    {
+     "row": 1,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": ""
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "mm",
+     "ru": "мм"
+    },
+    {
+     "row": 2,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "N",
+     "ru": "N"
+    },
+    {
+     "row": 2,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "N",
+     "ru": "N"
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "r/min",
+     "ru": "об/мин"
+    },
+    {
+     "row": 2,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "kg",
+     "ru": "кг"
+    },
+    {
+     "row": 2,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "–",
+     "ru": "–"
+    },
+    {
+     "row": 3,
+     "col": 0,
+     "rowspan": 7,
+     "colspan": 1,
+     "he": "20",
+     "ru": "20",
+     "unit": "mm",
+     "note": "Общее значение d для группы из семи строк; промежуточные группы d=25,30,35 не входят в запрошенный фрагмент."
+    },
+    {
+     "row": 3,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "32",
+     "ru": "32",
+     "unit": "mm"
+    },
+    {
+     "row": 3,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7",
+     "ru": "7",
+     "unit": "mm"
+    },
+    {
+     "row": 3,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "2 700",
+     "ru": "2 700",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1 500",
+     "ru": "1 500",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "63",
+     "ru": "63",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19 000",
+     "ru": "19 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 3,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "24 000",
+     "ru": "24 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 3,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,018",
+     "ru": "0,018",
+     "unit": "kg"
+    },
+    {
+     "row": 3,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61804",
+     "ru": "61804",
+     "unit": ""
+    },
+    {
+     "row": 4,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "37",
+     "ru": "37",
+     "unit": "mm"
+    },
+    {
+     "row": 4,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9",
+     "ru": "9",
+     "unit": "mm"
+    },
+    {
+     "row": 4,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 370",
+     "ru": "6 370",
+     "unit": "N"
+    },
+    {
+     "row": 4,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "3 650",
+     "ru": "3 650",
+     "unit": "N"
+    },
+    {
+     "row": 4,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "156",
+     "ru": "156",
+     "unit": "N"
+    },
+    {
+     "row": 4,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 4,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "22 000",
+     "ru": "22 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 4,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,038",
+     "ru": "0,038",
+     "unit": "kg"
+    },
+    {
+     "row": 4,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61904",
+     "ru": "61904",
+     "unit": ""
+    },
+    {
+     "row": 5,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "42",
+     "ru": "42",
+     "unit": "mm"
+    },
+    {
+     "row": 5,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8",
+     "ru": "8",
+     "unit": "mm"
+    },
+    {
+     "row": 5,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 890",
+     "ru": "6 890",
+     "unit": "N"
+    },
+    {
+     "row": 5,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "4 050",
+     "ru": "4 050",
+     "unit": "N"
+    },
+    {
+     "row": 5,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "173",
+     "ru": "173",
+     "unit": "N"
+    },
+    {
+     "row": 5,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "17 000",
+     "ru": "17 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 5,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "20 000",
+     "ru": "20 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 5,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,050",
+     "ru": "0,050",
+     "unit": "kg"
+    },
+    {
+     "row": 5,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16004",
+     "ru": "16004",
+     "unit": ""
+    },
+    {
+     "row": 6,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "42",
+     "ru": "42",
+     "unit": "mm"
+    },
+    {
+     "row": 6,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12",
+     "ru": "12",
+     "unit": "mm"
+    },
+    {
+     "row": 6,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 360",
+     "ru": "9 360",
+     "unit": "N"
+    },
+    {
+     "row": 6,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "5 000",
+     "ru": "5 000",
+     "unit": "N"
+    },
+    {
+     "row": 6,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "212",
+     "ru": "212",
+     "unit": "N"
+    },
+    {
+     "row": 6,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "17 000",
+     "ru": "17 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 6,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "20 000",
+     "ru": "20 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 6,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,069",
+     "ru": "0,069",
+     "unit": "kg"
+    },
+    {
+     "row": 6,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6004",
+     "ru": "6004",
+     "unit": ""
+    },
+    {
+     "row": 7,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "47",
+     "ru": "47",
+     "unit": "mm"
+    },
+    {
+     "row": 7,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14",
+     "ru": "14",
+     "unit": "mm"
+    },
+    {
+     "row": 7,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12 700",
+     "ru": "12 700",
+     "unit": "N"
+    },
+    {
+     "row": 7,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 550",
+     "ru": "6 550",
+     "unit": "N"
+    },
+    {
+     "row": 7,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "280",
+     "ru": "280",
+     "unit": "N"
+    },
+    {
+     "row": 7,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 000",
+     "ru": "15 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 7,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 7,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,11",
+     "ru": "0,11",
+     "unit": "kg"
+    },
+    {
+     "row": 7,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6204",
+     "ru": "6204",
+     "unit": ""
+    },
+    {
+     "row": 8,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "52",
+     "ru": "52",
+     "unit": "mm"
+    },
+    {
+     "row": 8,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15",
+     "ru": "15",
+     "unit": "mm"
+    },
+    {
+     "row": 8,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 900",
+     "ru": "15 900",
+     "unit": "N"
+    },
+    {
+     "row": 8,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 800",
+     "ru": "7 800",
+     "unit": "N"
+    },
+    {
+     "row": 8,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "335",
+     "ru": "335",
+     "unit": "N"
+    },
+    {
+     "row": 8,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 000",
+     "ru": "13 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 8,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16 000",
+     "ru": "16 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 8,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,14",
+     "ru": "0,14",
+     "unit": "kg"
+    },
+    {
+     "row": 8,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6304",
+     "ru": "6304",
+     "unit": ""
+    },
+    {
+     "row": 9,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "72",
+     "ru": "72",
+     "unit": "mm"
+    },
+    {
+     "row": 9,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19",
+     "ru": "19",
+     "unit": "mm"
+    },
+    {
+     "row": 9,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "30 700",
+     "ru": "30 700",
+     "unit": "N"
+    },
+    {
+     "row": 9,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 000",
+     "ru": "15 000",
+     "unit": "N"
+    },
+    {
+     "row": 9,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "640",
+     "ru": "640",
+     "unit": "N"
+    },
+    {
+     "row": 9,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 9,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 000",
+     "ru": "13 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 9,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,40",
+     "ru": "0,40",
+     "unit": "kg"
+    },
+    {
+     "row": 9,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6404",
+     "ru": "6404",
+     "unit": ""
+    },
+    {
+     "row": 10,
+     "col": 0,
+     "rowspan": 7,
+     "colspan": 1,
+     "he": "40",
+     "ru": "40",
+     "unit": "mm",
+     "note": "Общее значение d для группы из семи строк; промежуточные группы d=25,30,35 не входят в запрошенный фрагмент."
+    },
+    {
+     "row": 10,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "52",
+     "ru": "52",
+     "unit": "mm"
+    },
+    {
+     "row": 10,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7",
+     "ru": "7",
+     "unit": "mm"
+    },
+    {
+     "row": 10,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "4 940",
+     "ru": "4 940",
+     "unit": "N"
+    },
+    {
+     "row": 10,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "3 450",
+     "ru": "3 450",
+     "unit": "N"
+    },
+    {
+     "row": 10,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "186",
+     "ru": "186",
+     "unit": "N"
+    },
+    {
+     "row": 10,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "11 000",
+     "ru": "11 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 10,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14 000",
+     "ru": "14 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 10,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,034",
+     "ru": "0,034",
+     "unit": "kg"
+    },
+    {
+     "row": 10,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61808",
+     "ru": "61808",
+     "unit": ""
+    },
+    {
+     "row": 11,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "62",
+     "ru": "62",
+     "unit": "mm"
+    },
+    {
+     "row": 11,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12",
+     "ru": "12",
+     "unit": "mm"
+    },
+    {
+     "row": 11,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 800",
+     "ru": "13 800",
+     "unit": "N"
+    },
+    {
+     "row": 11,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 300",
+     "ru": "9 300",
+     "unit": "N"
+    },
+    {
+     "row": 11,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "425",
+     "ru": "425",
+     "unit": "N"
+    },
+    {
+     "row": 11,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 11,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 000",
+     "ru": "13 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 11,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,12",
+     "ru": "0,12",
+     "unit": "kg"
+    },
+    {
+     "row": 11,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61908",
+     "ru": "61908",
+     "unit": ""
+    },
+    {
+     "row": 12,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "68",
+     "ru": "68",
+     "unit": "mm"
+    },
+    {
+     "row": 12,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9",
+     "ru": "9",
+     "unit": "mm"
+    },
+    {
+     "row": 12,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 300",
+     "ru": "13 300",
+     "unit": "N"
+    },
+    {
+     "row": 12,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 150",
+     "ru": "9 150",
+     "unit": "N"
+    },
+    {
+     "row": 12,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "440",
+     "ru": "440",
+     "unit": "N"
+    },
+    {
+     "row": 12,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 500",
+     "ru": "9 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 12,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12 000",
+     "ru": "12 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 12,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,13",
+     "ru": "0,13",
+     "unit": "kg"
+    },
+    {
+     "row": 12,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16008",
+     "ru": "16008",
+     "unit": ""
+    },
+    {
+     "row": 13,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "68",
+     "ru": "68",
+     "unit": "mm"
+    },
+    {
+     "row": 13,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15",
+     "ru": "15",
+     "unit": "mm"
+    },
+    {
+     "row": 13,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16 800",
+     "ru": "16 800",
+     "unit": "N"
+    },
+    {
+     "row": 13,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "11 600",
+     "ru": "11 600",
+     "unit": "N"
+    },
+    {
+     "row": 13,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "490",
+     "ru": "490",
+     "unit": "N"
+    },
+    {
+     "row": 13,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 500",
+     "ru": "9 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 13,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12 000",
+     "ru": "12 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 13,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,19",
+     "ru": "0,19",
+     "unit": "kg"
+    },
+    {
+     "row": 13,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6008",
+     "ru": "6008",
+     "unit": ""
+    },
+    {
+     "row": 14,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "80",
+     "ru": "80",
+     "unit": "mm"
+    },
+    {
+     "row": 14,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18",
+     "ru": "18",
+     "unit": "mm"
+    },
+    {
+     "row": 14,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "30 700",
+     "ru": "30 700",
+     "unit": "N"
+    },
+    {
+     "row": 14,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19 000",
+     "ru": "19 000",
+     "unit": "N"
+    },
+    {
+     "row": 14,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "800",
+     "ru": "800",
+     "unit": "N"
+    },
+    {
+     "row": 14,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8 500",
+     "ru": "8 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 14,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 14,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,37",
+     "ru": "0,37",
+     "unit": "kg"
+    },
+    {
+     "row": 14,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6208",
+     "ru": "6208",
+     "unit": ""
+    },
+    {
+     "row": 15,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "90",
+     "ru": "90",
+     "unit": "mm"
+    },
+    {
+     "row": 15,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "23",
+     "ru": "23",
+     "unit": "mm"
+    },
+    {
+     "row": 15,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "41 000",
+     "ru": "41 000",
+     "unit": "N"
+    },
+    {
+     "row": 15,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "24 000",
+     "ru": "24 000",
+     "unit": "N"
+    },
+    {
+     "row": 15,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1 020",
+     "ru": "1 020",
+     "unit": "N"
+    },
+    {
+     "row": 15,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 500",
+     "ru": "7 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 15,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 000",
+     "ru": "9 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 15,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,63",
+     "ru": "0,63",
+     "unit": "kg"
+    },
+    {
+     "row": 15,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6308",
+     "ru": "6308",
+     "unit": ""
+    },
+    {
+     "row": 16,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "110",
+     "ru": "110",
+     "unit": "mm"
+    },
+    {
+     "row": 16,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "27",
+     "ru": "27",
+     "unit": "mm"
+    },
+    {
+     "row": 16,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "63 700",
+     "ru": "63 700",
+     "unit": "N"
+    },
+    {
+     "row": 16,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "36 500",
+     "ru": "36 500",
+     "unit": "N"
+    },
+    {
+     "row": 16,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1 530",
+     "ru": "1 530",
+     "unit": "N"
+    },
+    {
+     "row": 16,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 700",
+     "ru": "6 700",
+     "unit": "r/min"
+    },
+    {
+     "row": 16,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8 000",
+     "ru": "8 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 16,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1,25",
+     "ru": "1,25",
+     "unit": "kg"
+    },
+    {
+     "row": 16,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6408",
+     "ru": "6408",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 282
+  },
+  "a97002:p284": {
+   "type": "page",
+   "id": "a97002:p284",
+   "page": 284,
+   "image": "assets/6d59553e8674bcac7a35a27b1b910271613bc103272151836347dafca9f0175a.png",
+   "has_text_layer": false
+  },
+  "a97002:p284:b001": {
+   "type": "block",
+   "id": "a97002:p284:b001",
+   "page": 284,
+   "bbox": [
+    271.13,
+    86.84,
+    317.53,
+    100.22
+   ],
+   "he_raw": "'נספח א",
+   "kind_guess": "prose",
+   "order": 1,
+   "kind": "heading",
+   "he": "נספח א'",
+   "he_niqqud": "נִסְפָּח א'",
+   "translit": "nispakh alef",
+   "translit_ru": "ниспах алеф",
+   "ru": "Приложение А",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p284:img01": {
+   "type": "figure",
+   "id": "a97002:p284:img01",
+   "page": 284,
+   "bbox": [
+    68.15,
+    115.1,
+    527.15,
+    249.6
+   ],
+   "crop": "assets/58758e06df3794570e770a114adca4e3cb9eecd6493a26ef48983d51aa76cd04.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p284:img01:t-radial-factors": {
+   "type": "table",
+   "id": "a97002:p284:img01:t-radial-factors",
+   "parent": "a97002:p284:img01",
+   "bbox": [
+    68.15,
+    115.1,
+    527.15,
+    249.6
+   ],
+   "title_ru": "Коэффициенты радиальной и осевой нагрузки (редакционное название; таблица целиком)",
+   "cells": [
+    {
+     "row": 0,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 6,
+     "he": "Single row radial ball bearings",
+     "ru": "Однорядные радиальные шариковые подшипники"
+    },
+    {
+     "row": 1,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 6,
+     "he": "מסבי כדורים, רדיאליים",
+     "ru": "Радиальные шариковые подшипники"
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "rowspan": 2,
+     "colspan": 1,
+     "he": "Fₐ/C₀",
+     "ru": "Fₐ/C₀"
+    },
+    {
+     "row": 2,
+     "col": 1,
+     "rowspan": 2,
+     "colspan": 1,
+     "he": "e",
+     "ru": "e"
+    },
+    {
+     "row": 2,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Fₐ/Fᵣ ≤ e",
+     "ru": "при Fₐ/Fᵣ ≤ e"
+    },
+    {
+     "row": 2,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Fₐ/Fᵣ > e",
+     "ru": "при Fₐ/Fᵣ > e"
+    },
+    {
+     "row": 3,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "x",
+     "ru": "x"
+    },
+    {
+     "row": 3,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "y",
+     "ru": "y"
+    },
+    {
+     "row": 3,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "x",
+     "ru": "x"
+    },
+    {
+     "row": 3,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "y",
+     "ru": "y"
+    },
+    {
+     "row": 4,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "–",
+     "ru": "–",
+     "note": "Отдельный короткий штрих в оригинале под заголовком первого столбца; не числовое значение."
+    },
+    {
+     "row": 5,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.025",
+     "ru": "0.025"
+    },
+    {
+     "row": 5,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.22",
+     "ru": "0.22"
+    },
+    {
+     "row": 5,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 5,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 5,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.58",
+     "ru": "0.58"
+    },
+    {
+     "row": 5,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "2",
+     "ru": "2"
+    },
+    {
+     "row": 6,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.04",
+     "ru": "0.04"
+    },
+    {
+     "row": 6,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.24",
+     "ru": "0.24"
+    },
+    {
+     "row": 6,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 6,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 6,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 6,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.8",
+     "ru": "1.8"
+    },
+    {
+     "row": 7,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.07",
+     "ru": "0.07"
+    },
+    {
+     "row": 7,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.27",
+     "ru": "0.27"
+    },
+    {
+     "row": 7,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 7,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 7,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 7,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.6",
+     "ru": "1.6"
+    },
+    {
+     "row": 8,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.13",
+     "ru": "0.13"
+    },
+    {
+     "row": 8,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.31",
+     "ru": "0.31"
+    },
+    {
+     "row": 8,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 8,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 8,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 8,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.4",
+     "ru": "1.4"
+    },
+    {
+     "row": 9,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.25",
+     "ru": "0.25"
+    },
+    {
+     "row": 9,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.37",
+     "ru": "0.37"
+    },
+    {
+     "row": 9,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 9,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 9,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 9,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.2",
+     "ru": "1.2"
+    },
+    {
+     "row": 10,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.5",
+     "ru": "0.5"
+    },
+    {
+     "row": 10,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.44",
+     "ru": "0.44"
+    },
+    {
+     "row": 10,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    },
+    {
+     "row": 10,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0",
+     "ru": "0"
+    },
+    {
+     "row": 10,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.56",
+     "ru": "0.56"
+    },
+    {
+     "row": 10,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1",
+     "ru": "1"
+    }
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 284
+  },
+  "a97002:p284:img02": {
+   "type": "figure",
+   "id": "a97002:p284:img02",
+   "page": 284,
+   "bbox": [
+    82.15,
+    265.31,
+    513.15,
+    612.31
+   ],
+   "crop": "assets/80ac0761af6d9fb7668c86f5de55d15704016624f810b7507ada33ecd4121bfe.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p284:img02:t-catalogue-d20": {
+   "type": "table",
+   "id": "a97002:p284:img02:t-catalogue-d20",
+   "parent": "a97002:p284:img02",
+   "bbox": [
+    82.15,
+    265.31,
+    513.15,
+    612.31
+   ],
+   "title_ru": "Каталожные данные: заголовки и группа d = 20 мм; d = 40 мм в источнике отсутствует (редакционное название)",
+   "cells": [
+    {
+     "row": 0,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "primary dimensions",
+     "ru": "Основные размеры"
+    },
+    {
+     "row": 0,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Basic bearing",
+     "ru": "Базовое обозначение подшипника"
+    },
+    {
+     "row": 0,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 6,
+     "he": "Variants",
+     "ru": "Исполнения"
+    },
+    {
+     "row": 0,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Basic load ratings",
+     "ru": "Базовая грузоподъёмность"
+    },
+    {
+     "row": 0,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "Limiting speeds",
+     "ru": "Предельная частота вращения"
+    },
+    {
+     "row": 0,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Mass",
+     "ru": "Масса"
+    },
+    {
+     "row": 1,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "d",
+     "ru": "d"
+    },
+    {
+     "row": 1,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "D",
+     "ru": "D"
+    },
+    {
+     "row": 1,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "B",
+     "ru": "B"
+    },
+    {
+     "row": 1,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": ""
+    },
+    {
+     "row": 1,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "z",
+     "ru": "z"
+    },
+    {
+     "row": 1,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "–2z",
+     "ru": "–2z"
+    },
+    {
+     "row": 1,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "RS",
+     "ru": "RS"
+    },
+    {
+     "row": 1,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "–2RS",
+     "ru": "–2RS"
+    },
+    {
+     "row": 1,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "N",
+     "ru": "N"
+    },
+    {
+     "row": 1,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "NR",
+     "ru": "NR"
+    },
+    {
+     "row": 1,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "dynamic C",
+     "ru": "динамическая C"
+    },
+    {
+     "row": 1,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "static C₀",
+     "ru": "статическая C₀"
+    },
+    {
+     "row": 1,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "grease",
+     "ru": "пластичная смазка"
+    },
+    {
+     "row": 1,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "oil",
+     "ru": "масло"
+    },
+    {
+     "row": 1,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "RS/-2RS",
+     "ru": "RS/-2RS"
+    },
+    {
+     "row": 1,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": ""
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "mm",
+     "ru": "мм"
+    },
+    {
+     "row": 2,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "N",
+     "ru": "N"
+    },
+    {
+     "row": 2,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "rev/min",
+     "ru": "об/мин"
+    },
+    {
+     "row": 2,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "kg",
+     "ru": "кг"
+    },
+    {
+     "row": 3,
+     "col": 0,
+     "rowspan": 7,
+     "colspan": 1,
+     "he": "20",
+     "ru": "20",
+     "unit": "mm"
+    },
+    {
+     "row": 3,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "42",
+     "ru": "42"
+    },
+    {
+     "row": 3,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8",
+     "ru": "8"
+    },
+    {
+     "row": 3,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16004",
+     "ru": "16004"
+    },
+    {
+     "row": 3,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 200",
+     "ru": "7 200"
+    },
+    {
+     "row": 3,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "3 370",
+     "ru": "3 370"
+    },
+    {
+     "row": 3,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000"
+    },
+    {
+     "row": 3,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "22 000",
+     "ru": "22 000"
+    },
+    {
+     "row": 3,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 3,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.050",
+     "ru": "0.050"
+    },
+    {
+     "row": 4,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "42",
+     "ru": "42"
+    },
+    {
+     "row": 4,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12",
+     "ru": "12"
+    },
+    {
+     "row": 4,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6004",
+     "ru": "6004"
+    },
+    {
+     "row": 4,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 4,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 4,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 4,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 4,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 4,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 4,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 750",
+     "ru": "9 750"
+    },
+    {
+     "row": 4,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "4 450",
+     "ru": "4 450"
+    },
+    {
+     "row": 4,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16 500",
+     "ru": "16 500"
+    },
+    {
+     "row": 4,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "22 500",
+     "ru": "22 500"
+    },
+    {
+     "row": 4,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "11 600",
+     "ru": "11 600"
+    },
+    {
+     "row": 4,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.069",
+     "ru": "0.069"
+    },
+    {
+     "row": 5,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "47",
+     "ru": "47"
+    },
+    {
+     "row": 5,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14",
+     "ru": "14"
+    },
+    {
+     "row": 5,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6204",
+     "ru": "6204"
+    },
+    {
+     "row": 5,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 5,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 5,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 5,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 5,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 5,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 5,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 300",
+     "ru": "13 300"
+    },
+    {
+     "row": 5,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 200",
+     "ru": "6 200"
+    },
+    {
+     "row": 5,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 500",
+     "ru": "15 500"
+    },
+    {
+     "row": 5,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "21 000",
+     "ru": "21 000"
+    },
+    {
+     "row": 5,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 800",
+     "ru": "10 800"
+    },
+    {
+     "row": 5,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.099",
+     "ru": "0.099"
+    },
+    {
+     "row": 6,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "47",
+     "ru": "47"
+    },
+    {
+     "row": 6,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14",
+     "ru": "14"
+    },
+    {
+     "row": 6,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "M 204",
+     "ru": "M 204"
+    },
+    {
+     "row": 6,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000"
+    },
+    {
+     "row": 6,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 350",
+     "ru": "9 350"
+    },
+    {
+     "row": 6,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 000",
+     "ru": "15 000"
+    },
+    {
+     "row": 6,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000"
+    },
+    {
+     "row": 6,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 6,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.116",
+     "ru": "0.116"
+    },
+    {
+     "row": 7,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "52",
+     "ru": "52"
+    },
+    {
+     "row": 7,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15",
+     "ru": "15"
+    },
+    {
+     "row": 7,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6304",
+     "ru": "6304"
+    },
+    {
+     "row": 7,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 7,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 7,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 7,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 7,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 7,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "▪",
+     "ru": "▪",
+     "note": "Печатная отметка наличия исполнения."
+    },
+    {
+     "row": 7,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16 500",
+     "ru": "16 500"
+    },
+    {
+     "row": 7,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 800",
+     "ru": "7 800"
+    },
+    {
+     "row": 7,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14 700",
+     "ru": "14 700"
+    },
+    {
+     "row": 7,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "20 000",
+     "ru": "20 000"
+    },
+    {
+     "row": 7,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 300",
+     "ru": "10 300"
+    },
+    {
+     "row": 7,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.144",
+     "ru": "0.144"
+    },
+    {
+     "row": 8,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "52",
+     "ru": "52"
+    },
+    {
+     "row": 8,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15",
+     "ru": "15"
+    },
+    {
+     "row": 8,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "M 304",
+     "ru": "M 304"
+    },
+    {
+     "row": 8,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19 600",
+     "ru": "19 600"
+    },
+    {
+     "row": 8,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000"
+    },
+    {
+     "row": 8,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 400",
+     "ru": "7 400"
+    },
+    {
+     "row": 8,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14 700",
+     "ru": "14 700"
+    },
+    {
+     "row": 8,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 8,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.174",
+     "ru": "0.174"
+    },
+    {
+     "row": 9,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "72",
+     "ru": "72"
+    },
+    {
+     "row": 9,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19",
+     "ru": "19"
+    },
+    {
+     "row": 9,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6404",
+     "ru": "6404"
+    },
+    {
+     "row": 9,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 10,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "30 700",
+     "ru": "30 700"
+    },
+    {
+     "row": 9,
+     "col": 11,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 600",
+     "ru": "15 600"
+    },
+    {
+     "row": 9,
+     "col": 12,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 600",
+     "ru": "10 600"
+    },
+    {
+     "row": 9,
+     "col": 13,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14 300",
+     "ru": "14 300"
+    },
+    {
+     "row": 9,
+     "col": 14,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": "",
+     "note": "Пустая ячейка в источнике, не ноль."
+    },
+    {
+     "row": 9,
+     "col": 15,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0.390",
+     "ru": "0.390"
+    }
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 284
+  },
+  "a97002:p287": {
+   "type": "page",
+   "id": "a97002:p287",
+   "page": 287,
+   "image": "assets/ce710f1445f2b80a70065d90706426cf01648745d0a6d8102d1f5f46ba965cd9.png",
+   "has_text_layer": true
+  },
+  "a97002:p287:b001": {
+   "type": "block",
+   "id": "a97002:p287:b001",
+   "page": 287,
+   "bbox": [
+    545.14,
+    103.55,
+    552.93,
+    121.65
+   ],
+   "he_raw": "2",
+   "kind_guess": "heading",
+   "order": 1,
+   "kind": "example_heading",
+   "he": "2",
+   "he_niqqud": "2",
+   "translit": "2",
+   "translit_ru": "2",
+   "ru": "2",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p287:b002": {
+   "type": "block",
+   "id": "a97002:p287:b002",
+   "page": 287,
+   "bbox": [
+    41.76,
+    131.59,
+    552.93,
+    196.7
+   ],
+   "he_raw": "בממסרת גלגלי שיניים ישרות בעלת יחס תמסורת𝑖= 1: 3 מסתובב המנוע במהירות,1500 rpm גל.AB נתמך על- ידי מסבים בנקודותA ו-B., כמתואר באיור לשאלה נתונים:",
+   "kind_guess": "prose",
+   "order": 2,
+   "kind": "example_text",
+   "he": "בממסרת גלגלי שיניים ישרות בעלת יחס תמסורת i = 1:3, מסתובב המנוע במהירות 1500 rpm. גל AB נתמך על-ידי מסבים בנקודות A ו-B, כמתואר באיור לשאלה. נתונים:",
+   "he_niqqud": "בְּמִמְסֶרֶת גַּלְגַּלֵּי שִׁנַּיִם יְשָׁרוֹת בַּעֲלַת יַחַס תִּמְסֹרֶת i = 1:3, מִסְתּוֹבֵב הַמָּנוֹעַ בִּמְהִירוּת 1500 rpm. גַּל AB נִתְמָךְ עַל-יְדֵי מְסַבִּים בִּנְקֻדּוֹת A וּ-B, כַּמְתֹאָר בָּאִיּוּר לַשְּׁאֵלָה. נְתוּנִים:",
+   "translit": "bemimseret galgalei shinayim yesharot baalat yakhas timsoret i = 1:3, mistovev hamanoa bimehirut 1500 rpm. gal AB nitmakh al-yedei mesabim binkudot A ve-B, kamtoar baiyur lasheela. netunim:",
+   "translit_ru": "бемимсерет гальгалей шинаим йешарот баалат яхас тимсорет i = 1:3, мистовев хаманоа бимехирут 1500 rpm. галь AB нитмах аль-йедей месабим бинкудот A ве-B, камтоар баиюр лашеэла. нетуним:",
+   "ru": "В прямозубой зубчатой передаче с передаточным отношением i = 1:3 двигатель вращается с частотой 1500 об/мин. Вал AB опирается на подшипники в точках A и B, как показано на рисунке к задаче. Дано:",
+   "terms": [
+    "a97002:term:yakhas-timsoret#gear-ratio"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "По изображению восстановлены пробелы, порядок латинских обозначений и пунктуация RTL."
+  },
+  "a97002:p287:b003": {
+   "type": "block",
+   "id": "a97002:p287:b003",
+   "page": 287,
+   "bbox": [
+    347.47,
+    211.27,
+    547.55,
+    276.41
+   ],
+   "he_raw": "מקדם תנאי עבודה במסבים1.5 מסב כוח רדיאלי כוח צירי",
+   "kind_guess": "prose",
+   "order": 3,
+   "kind": "table_note",
+   "he": "מקדם תנאי עבודה במסבים 1.5 מסב כוח רדיאלי כוח צירי",
+   "he_niqqud": "מְקַדֵּם תְּנָאֵי עֲבוֹדָה בִּמְסַבִּים 1.5 מֵסַב כֹּחַ רַדְיָאלִי כֹּחַ צִירִי",
+   "translit": "mekadem tnaei avoda bimesabim 1.5 mesav koakh radyali koakh tsiri",
+   "translit_ru": "мекадем тнаэй авода бимесабим 1.5 месав коах радиали коах цири",
+   "ru": "Коэффициент условий работы подшипников 1.5; подшипник; радиальная сила; осевая сила",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "Извлечённый блок содержит подписи строк и значение 1.5; остальные значения выделены экстрактором в f01. Полная структура сохранена в таблице данных."
+  },
+  "a97002:p287:b004": {
+   "type": "block",
+   "id": "a97002:p287:b004",
+   "page": 287,
+   "bbox": [
+    339.91,
+    492.49,
+    552.93,
+    505.87
+   ],
+   "he_raw": "דרוש אורך חיים של המסבים בשעות עבודה.:",
+   "kind_guess": "prose",
+   "order": 4,
+   "kind": "example_text",
+   "he": "דרוש: אורך חיים של המסבים בשעות עבודה.",
+   "he_niqqud": "דָּרוּשׁ: אֹרֶךְ חַיִּים שֶׁל הַמְּסַבִּים בִּשְׁעוֹת עֲבוֹדָה.",
+   "translit": "darush: orekh khayim shel hamesabim bishot avoda.",
+   "translit_ru": "даруш: орех хаим шель хамесабим бишъот авода.",
+   "ru": "Требуется: срок службы подшипников в часах работы.",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "Двоеточие возвращено после דרוש по изображению."
+  },
+  "a97002:p287:f01": {
+   "type": "formula",
+   "id": "a97002:p287:f01",
+   "page": 287,
+   "bbox": [
+    347.47,
+    228.67,
+    414.77,
+    278.42
+   ],
+   "source_text": "6208 Fr = 2000 N F𝑎= 600 N",
+   "crop": "assets/00a7fb1ca641ab038a6ed6b06c8c0672a23f266061af8f2147b06c60f181dd25.png",
+   "display_latex": "\\text{6208}\\qquad F_r=2000\\,\\mathrm{N}\\qquad F_a=600\\,\\mathrm{N}",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "Fr",
+     "symbol_latex": "F_r",
+     "description_ru": "радиальная нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "Fa",
+     "symbol_latex": "F_a",
+     "description_ru": "осевая нагрузка",
+     "unit": "N"
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "compute_absent_reason": "Совмещённый объект исходных данных: обозначение подшипника и две заданные нагрузки, а не одно вычисляемое выражение."
+  },
+  "a97002:p287:img01": {
+   "type": "figure",
+   "id": "a97002:p287:img01",
+   "page": 287,
+   "bbox": [
+    166.4,
+    298.57,
+    428.47,
+    476.62
+   ],
+   "crop": "assets/6bf2a07d5d95f267136f41204cc29b1d58d7fcb48f2aa6cb85c052191bdf325c.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p287:img01:r-bearing-a": {
+   "type": "region",
+   "id": "a97002:p287:img01:r-bearing-a",
+   "parent": "a97002:p287:img01",
+   "bbox": [
+    272.6,
+    346.09,
+    283.76,
+    359.41
+   ],
+   "label_he": "A",
+   "label_ru": "A — опора вала",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 287
+  },
+  "a97002:p287:img01:r-bearing-b": {
+   "type": "region",
+   "id": "a97002:p287:img01:r-bearing-b",
+   "parent": "a97002:p287:img01",
+   "bbox": [
+    348.92,
+    346.09,
+    359.36,
+    359.41
+   ],
+   "label_he": "B",
+   "label_ru": "B — опора вала",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 287
+  },
+  "a97002:p287:img01:r-consumer": {
+   "type": "region",
+   "id": "a97002:p287:img01:r-consumer",
+   "parent": "a97002:p287:img01",
+   "bbox": [
+    395.36,
+    355.45,
+    420.92,
+    368.05
+   ],
+   "label_he": "לצרכן",
+   "label_ru": "к потребителю",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 287
+  },
+  "a97002:p287:img01:r-gear-one": {
+   "type": "region",
+   "id": "a97002:p287:img01:r-gear-one",
+   "parent": "a97002:p287:img01",
+   "bbox": [
+    349.64,
+    452.65,
+    361.52,
+    464.53
+   ],
+   "label_he": "1",
+   "label_ru": "1 — ведущее зубчатое колесо",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 287
+  },
+  "a97002:p287:img01:r-gear-two": {
+   "type": "region",
+   "id": "a97002:p287:img01:r-gear-two",
+   "parent": "a97002:p287:img01",
+   "bbox": [
+    345.32,
+    308.29,
+    356.12,
+    319.81
+   ],
+   "label_he": "2",
+   "label_ru": "2 — ведомое зубчатое колесо",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 287
+  },
+  "a97002:p287:t-given-data": {
+   "type": "table",
+   "id": "a97002:p287:t-given-data",
+   "parent": "a97002:p287",
+   "bbox": [
+    347.47,
+    211.27,
+    547.55,
+    278.42
+   ],
+   "title_he": "נתונים",
+   "title_ru": "Дано",
+   "cells": [
+    {
+     "row": 0,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "מקדם תנאי עבודה במסבים",
+     "ru": "Коэффициент условий работы подшипников"
+    },
+    {
+     "row": 0,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1.5",
+     "ru": "1.5",
+     "unit": ""
+    },
+    {
+     "row": 1,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "מסב",
+     "ru": "Подшипник"
+    },
+    {
+     "row": 1,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6208",
+     "ru": "6208",
+     "unit": ""
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "כוח רדיאלי",
+     "ru": "Радиальная сила"
+    },
+    {
+     "row": 2,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Fr = 2000 N",
+     "ru": "Fr = 2000 N",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "כוח צירי",
+     "ru": "Осевая сила"
+    },
+    {
+     "row": 3,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Fa = 600 N",
+     "ru": "Fa = 600 N",
+     "unit": "N"
+    }
+   ],
+   "status": {
+    "recognition": "ocr_low",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 287
+  },
+  "a97002:p287:x-example-2": {
+   "type": "example",
+   "id": "a97002:p287:x-example-2",
+   "title_ru": "Пример 2: подшипники вала прямозубой зубчатой передачи; арифметические строки решения на стр.289",
+   "steps": [
+    {
+     "block": "a97002:p289:b004",
+     "compute": "Fa/C0",
+     "bindings": {
+      "Fa": 600,
+      "C0": 19000
+     },
+     "printed": "0.0316",
+     "note": "Полностью напечатанное действие: Fa/Co = 600/19000 = 0.0316 (округление).",
+     "math_review": "core_verified"
+    },
+    {
+     "block": "a97002:p289:b006",
+     "compute": "Fa/Fr",
+     "bindings": {
+      "Fa": 600,
+      "Fr": 2000
+     },
+     "printed": "0.3",
+     "note": "Полностью напечатанное действие: Fa/Fr = 600/2000 = 0.3; далее напечатано >e → x=0.56; y=2. Неравенство и выбор не являются арифметическими шагами грамматики.",
+     "math_review": "core_verified"
+    },
+    {
+     "block": "a97002:p289:b008",
+     "compute": "x*Fr+y*Fa",
+     "bindings": {
+      "x": 0.56,
+      "Fr": 2000,
+      "y": 1.8,
+      "Fa": 600
+     },
+     "printed": "2200",
+     "note": "Полная печатная цепочка: P=x·Fr+y·Fa=0.56·2000+1.8·600=2200 N. Отдельные произведения 1120 и 1080 в книге не напечатаны, поэтому не выданы за printed. Оба умножения и сложение представлены этим выражением.",
+     "math_review": "core_verified"
+    }
+   ],
+   "page": 287,
+   "status": {
+    "recognition": "ocr_low",
+    "language_review": "unreviewed",
+    "math_review": "core_verified",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p288": {
+   "type": "page",
+   "id": "a97002:p288",
+   "page": 288,
+   "image": "assets/87dab905345b35b3ed99bc939b45b6f46348f84fb24a1b55064fe48440e2ee64.png",
+   "has_text_layer": false
+  },
+  "a97002:p288:img01": {
+   "type": "figure",
+   "id": "a97002:p288:img01",
+   "page": 288,
+   "bbox": [
+    76.4,
+    121.95,
+    518.35,
+    575.94
+   ],
+   "crop": "assets/34fd613f86addce6d95bfe6aaae47f4123a9d46ecd2eef200fc60fe619a129f3.png",
+   "number": null,
+   "caption_block_id": null,
+   "caption_he": "",
+   "caption_ru": "",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p288:img01:t-catalogue-d20-d40": {
+   "type": "table",
+   "id": "a97002:p288:img01:t-catalogue-d20-d40",
+   "parent": "a97002:p288:img01",
+   "bbox": [
+    76.4,
+    121.95,
+    518.35,
+    575.94
+   ],
+   "title_ru": "Каталожные данные: заголовки и группы d = 20 мм, d = 40 мм (редакционное название)",
+   "cells": [
+    {
+     "row": 0,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "Principal dimensions",
+     "ru": "Основные размеры"
+    },
+    {
+     "row": 0,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Basic load ratings",
+     "ru": "Базовая грузоподъёмность"
+    },
+    {
+     "row": 0,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Fatigue load limit",
+     "ru": "Предел усталостной нагрузки"
+    },
+    {
+     "row": 0,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "Speed ratings / Lubrication",
+     "ru": "Предельная частота вращения / Смазка"
+    },
+    {
+     "row": 0,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Mass",
+     "ru": "Масса"
+    },
+    {
+     "row": 0,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Designation",
+     "ru": "Обозначение"
+    },
+    {
+     "row": 1,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "d",
+     "ru": "d"
+    },
+    {
+     "row": 1,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "D",
+     "ru": "D"
+    },
+    {
+     "row": 1,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "B",
+     "ru": "B"
+    },
+    {
+     "row": 1,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "dynamic C",
+     "ru": "динамическая C"
+    },
+    {
+     "row": 1,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "static C₀",
+     "ru": "статическая C₀"
+    },
+    {
+     "row": 1,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "Pᵤ",
+     "ru": "Pᵤ"
+    },
+    {
+     "row": 1,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "grease",
+     "ru": "пластичная смазка"
+    },
+    {
+     "row": 1,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "oil",
+     "ru": "масло"
+    },
+    {
+     "row": 1,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": ""
+    },
+    {
+     "row": 1,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "",
+     "ru": ""
+    },
+    {
+     "row": 2,
+     "col": 0,
+     "rowspan": 1,
+     "colspan": 3,
+     "he": "mm",
+     "ru": "мм"
+    },
+    {
+     "row": 2,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "N",
+     "ru": "N"
+    },
+    {
+     "row": 2,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "N",
+     "ru": "N"
+    },
+    {
+     "row": 2,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 2,
+     "he": "r/min",
+     "ru": "об/мин"
+    },
+    {
+     "row": 2,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "kg",
+     "ru": "кг"
+    },
+    {
+     "row": 2,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "–",
+     "ru": "–"
+    },
+    {
+     "row": 3,
+     "col": 0,
+     "rowspan": 7,
+     "colspan": 1,
+     "he": "20",
+     "ru": "20",
+     "unit": "mm",
+     "note": "Общее значение d для группы из семи строк; промежуточные группы d=25,30,35 не входят в запрошенный фрагмент."
+    },
+    {
+     "row": 3,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "32",
+     "ru": "32",
+     "unit": "mm"
+    },
+    {
+     "row": 3,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7",
+     "ru": "7",
+     "unit": "mm"
+    },
+    {
+     "row": 3,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "2 700",
+     "ru": "2 700",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1 500",
+     "ru": "1 500",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "63",
+     "ru": "63",
+     "unit": "N"
+    },
+    {
+     "row": 3,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19 000",
+     "ru": "19 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 3,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "24 000",
+     "ru": "24 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 3,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,018",
+     "ru": "0,018",
+     "unit": "kg"
+    },
+    {
+     "row": 3,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61804",
+     "ru": "61804",
+     "unit": ""
+    },
+    {
+     "row": 4,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "37",
+     "ru": "37",
+     "unit": "mm"
+    },
+    {
+     "row": 4,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9",
+     "ru": "9",
+     "unit": "mm"
+    },
+    {
+     "row": 4,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 370",
+     "ru": "6 370",
+     "unit": "N"
+    },
+    {
+     "row": 4,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "3 650",
+     "ru": "3 650",
+     "unit": "N"
+    },
+    {
+     "row": 4,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "156",
+     "ru": "156",
+     "unit": "N"
+    },
+    {
+     "row": 4,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 4,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "22 000",
+     "ru": "22 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 4,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,038",
+     "ru": "0,038",
+     "unit": "kg"
+    },
+    {
+     "row": 4,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61904",
+     "ru": "61904",
+     "unit": ""
+    },
+    {
+     "row": 5,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "42",
+     "ru": "42",
+     "unit": "mm"
+    },
+    {
+     "row": 5,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8",
+     "ru": "8",
+     "unit": "mm"
+    },
+    {
+     "row": 5,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 890",
+     "ru": "6 890",
+     "unit": "N"
+    },
+    {
+     "row": 5,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "4 050",
+     "ru": "4 050",
+     "unit": "N"
+    },
+    {
+     "row": 5,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "173",
+     "ru": "173",
+     "unit": "N"
+    },
+    {
+     "row": 5,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "17 000",
+     "ru": "17 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 5,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "20 000",
+     "ru": "20 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 5,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,050",
+     "ru": "0,050",
+     "unit": "kg"
+    },
+    {
+     "row": 5,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16004",
+     "ru": "16004",
+     "unit": ""
+    },
+    {
+     "row": 6,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "42",
+     "ru": "42",
+     "unit": "mm"
+    },
+    {
+     "row": 6,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12",
+     "ru": "12",
+     "unit": "mm"
+    },
+    {
+     "row": 6,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 360",
+     "ru": "9 360",
+     "unit": "N"
+    },
+    {
+     "row": 6,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "5 000",
+     "ru": "5 000",
+     "unit": "N"
+    },
+    {
+     "row": 6,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "212",
+     "ru": "212",
+     "unit": "N"
+    },
+    {
+     "row": 6,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "17 000",
+     "ru": "17 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 6,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "20 000",
+     "ru": "20 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 6,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,069",
+     "ru": "0,069",
+     "unit": "kg"
+    },
+    {
+     "row": 6,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6004",
+     "ru": "6004",
+     "unit": ""
+    },
+    {
+     "row": 7,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "47",
+     "ru": "47",
+     "unit": "mm"
+    },
+    {
+     "row": 7,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14",
+     "ru": "14",
+     "unit": "mm"
+    },
+    {
+     "row": 7,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12 700",
+     "ru": "12 700",
+     "unit": "N"
+    },
+    {
+     "row": 7,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 550",
+     "ru": "6 550",
+     "unit": "N"
+    },
+    {
+     "row": 7,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "280",
+     "ru": "280",
+     "unit": "N"
+    },
+    {
+     "row": 7,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 000",
+     "ru": "15 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 7,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18 000",
+     "ru": "18 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 7,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,11",
+     "ru": "0,11",
+     "unit": "kg"
+    },
+    {
+     "row": 7,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6204",
+     "ru": "6204",
+     "unit": ""
+    },
+    {
+     "row": 8,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "52",
+     "ru": "52",
+     "unit": "mm"
+    },
+    {
+     "row": 8,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15",
+     "ru": "15",
+     "unit": "mm"
+    },
+    {
+     "row": 8,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 900",
+     "ru": "15 900",
+     "unit": "N"
+    },
+    {
+     "row": 8,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 800",
+     "ru": "7 800",
+     "unit": "N"
+    },
+    {
+     "row": 8,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "335",
+     "ru": "335",
+     "unit": "N"
+    },
+    {
+     "row": 8,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 000",
+     "ru": "13 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 8,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16 000",
+     "ru": "16 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 8,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,14",
+     "ru": "0,14",
+     "unit": "kg"
+    },
+    {
+     "row": 8,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6304",
+     "ru": "6304",
+     "unit": ""
+    },
+    {
+     "row": 9,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "72",
+     "ru": "72",
+     "unit": "mm"
+    },
+    {
+     "row": 9,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19",
+     "ru": "19",
+     "unit": "mm"
+    },
+    {
+     "row": 9,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "30 700",
+     "ru": "30 700",
+     "unit": "N"
+    },
+    {
+     "row": 9,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15 000",
+     "ru": "15 000",
+     "unit": "N"
+    },
+    {
+     "row": 9,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "640",
+     "ru": "640",
+     "unit": "N"
+    },
+    {
+     "row": 9,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 9,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 000",
+     "ru": "13 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 9,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,40",
+     "ru": "0,40",
+     "unit": "kg"
+    },
+    {
+     "row": 9,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6404",
+     "ru": "6404",
+     "unit": ""
+    },
+    {
+     "row": 10,
+     "col": 0,
+     "rowspan": 7,
+     "colspan": 1,
+     "he": "40",
+     "ru": "40",
+     "unit": "mm",
+     "note": "Общее значение d для группы из семи строк; промежуточные группы d=25,30,35 не входят в запрошенный фрагмент."
+    },
+    {
+     "row": 10,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "52",
+     "ru": "52",
+     "unit": "mm"
+    },
+    {
+     "row": 10,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7",
+     "ru": "7",
+     "unit": "mm"
+    },
+    {
+     "row": 10,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "4 940",
+     "ru": "4 940",
+     "unit": "N"
+    },
+    {
+     "row": 10,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "3 450",
+     "ru": "3 450",
+     "unit": "N"
+    },
+    {
+     "row": 10,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "186",
+     "ru": "186",
+     "unit": "N"
+    },
+    {
+     "row": 10,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "11 000",
+     "ru": "11 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 10,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "14 000",
+     "ru": "14 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 10,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,034",
+     "ru": "0,034",
+     "unit": "kg"
+    },
+    {
+     "row": 10,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61808",
+     "ru": "61808",
+     "unit": ""
+    },
+    {
+     "row": 11,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "62",
+     "ru": "62",
+     "unit": "mm"
+    },
+    {
+     "row": 11,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12",
+     "ru": "12",
+     "unit": "mm"
+    },
+    {
+     "row": 11,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 800",
+     "ru": "13 800",
+     "unit": "N"
+    },
+    {
+     "row": 11,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 300",
+     "ru": "9 300",
+     "unit": "N"
+    },
+    {
+     "row": 11,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "425",
+     "ru": "425",
+     "unit": "N"
+    },
+    {
+     "row": 11,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 11,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 000",
+     "ru": "13 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 11,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,12",
+     "ru": "0,12",
+     "unit": "kg"
+    },
+    {
+     "row": 11,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "61908",
+     "ru": "61908",
+     "unit": ""
+    },
+    {
+     "row": 12,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "68",
+     "ru": "68",
+     "unit": "mm"
+    },
+    {
+     "row": 12,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9",
+     "ru": "9",
+     "unit": "mm"
+    },
+    {
+     "row": 12,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "13 300",
+     "ru": "13 300",
+     "unit": "N"
+    },
+    {
+     "row": 12,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 150",
+     "ru": "9 150",
+     "unit": "N"
+    },
+    {
+     "row": 12,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "440",
+     "ru": "440",
+     "unit": "N"
+    },
+    {
+     "row": 12,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 500",
+     "ru": "9 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 12,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12 000",
+     "ru": "12 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 12,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,13",
+     "ru": "0,13",
+     "unit": "kg"
+    },
+    {
+     "row": 12,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16008",
+     "ru": "16008",
+     "unit": ""
+    },
+    {
+     "row": 13,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "68",
+     "ru": "68",
+     "unit": "mm"
+    },
+    {
+     "row": 13,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "15",
+     "ru": "15",
+     "unit": "mm"
+    },
+    {
+     "row": 13,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "16 800",
+     "ru": "16 800",
+     "unit": "N"
+    },
+    {
+     "row": 13,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "11 600",
+     "ru": "11 600",
+     "unit": "N"
+    },
+    {
+     "row": 13,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "490",
+     "ru": "490",
+     "unit": "N"
+    },
+    {
+     "row": 13,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 500",
+     "ru": "9 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 13,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "12 000",
+     "ru": "12 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 13,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,19",
+     "ru": "0,19",
+     "unit": "kg"
+    },
+    {
+     "row": 13,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6008",
+     "ru": "6008",
+     "unit": ""
+    },
+    {
+     "row": 14,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "80",
+     "ru": "80",
+     "unit": "mm"
+    },
+    {
+     "row": 14,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "18",
+     "ru": "18",
+     "unit": "mm"
+    },
+    {
+     "row": 14,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "30 700",
+     "ru": "30 700",
+     "unit": "N"
+    },
+    {
+     "row": 14,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "19 000",
+     "ru": "19 000",
+     "unit": "N"
+    },
+    {
+     "row": 14,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "800",
+     "ru": "800",
+     "unit": "N"
+    },
+    {
+     "row": 14,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8 500",
+     "ru": "8 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 14,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "10 000",
+     "ru": "10 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 14,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,37",
+     "ru": "0,37",
+     "unit": "kg"
+    },
+    {
+     "row": 14,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6208",
+     "ru": "6208",
+     "unit": ""
+    },
+    {
+     "row": 15,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "90",
+     "ru": "90",
+     "unit": "mm"
+    },
+    {
+     "row": 15,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "23",
+     "ru": "23",
+     "unit": "mm"
+    },
+    {
+     "row": 15,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "41 000",
+     "ru": "41 000",
+     "unit": "N"
+    },
+    {
+     "row": 15,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "24 000",
+     "ru": "24 000",
+     "unit": "N"
+    },
+    {
+     "row": 15,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1 020",
+     "ru": "1 020",
+     "unit": "N"
+    },
+    {
+     "row": 15,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "7 500",
+     "ru": "7 500",
+     "unit": "r/min"
+    },
+    {
+     "row": 15,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "9 000",
+     "ru": "9 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 15,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "0,63",
+     "ru": "0,63",
+     "unit": "kg"
+    },
+    {
+     "row": 15,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6308",
+     "ru": "6308",
+     "unit": ""
+    },
+    {
+     "row": 16,
+     "col": 1,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "110",
+     "ru": "110",
+     "unit": "mm"
+    },
+    {
+     "row": 16,
+     "col": 2,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "27",
+     "ru": "27",
+     "unit": "mm"
+    },
+    {
+     "row": 16,
+     "col": 3,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "63 700",
+     "ru": "63 700",
+     "unit": "N"
+    },
+    {
+     "row": 16,
+     "col": 4,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "36 500",
+     "ru": "36 500",
+     "unit": "N"
+    },
+    {
+     "row": 16,
+     "col": 5,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1 530",
+     "ru": "1 530",
+     "unit": "N"
+    },
+    {
+     "row": 16,
+     "col": 6,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6 700",
+     "ru": "6 700",
+     "unit": "r/min"
+    },
+    {
+     "row": 16,
+     "col": 7,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "8 000",
+     "ru": "8 000",
+     "unit": "r/min"
+    },
+    {
+     "row": 16,
+     "col": 8,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "1,25",
+     "ru": "1,25",
+     "unit": "kg"
+    },
+    {
+     "row": 16,
+     "col": 9,
+     "rowspan": 1,
+     "colspan": 1,
+     "he": "6408",
+     "ru": "6408",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 288
+  },
+  "a97002:p289": {
+   "type": "page",
+   "id": "a97002:p289",
+   "page": 289,
+   "image": "assets/3111e5d0a98b230cb068e16d9b1aa80d61eed5ad3e20fab0e078114b770ab539.png",
+   "has_text_layer": true
+  },
+  "a97002:p289:b001": {
+   "type": "block",
+   "id": "a97002:p289:b001",
+   "page": 289,
+   "bbox": [
+    515.02,
+    104.0,
+    552.9,
+    117.38
+   ],
+   "he_raw": "פתרון2",
+   "kind_guess": "prose",
+   "order": 1,
+   "kind": "example_heading",
+   "he": "פתרון 2",
+   "he_niqqud": "פִּתְרוֹן 2",
+   "translit": "pitron 2",
+   "translit_ru": "питрон 2",
+   "ru": "Решение 2",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b002": {
+   "type": "block",
+   "id": "a97002:p289:b002",
+   "page": 289,
+   "bbox": [
+    456.82,
+    124.39,
+    552.89,
+    138.74
+   ],
+   "he_raw": "1) קביעת מקדמים",
+   "kind_guess": "list_item",
+   "order": 2,
+   "kind": "list_item",
+   "he": "1) קביעת מקדמים",
+   "he_niqqud": "1) קְבִיעַת מְקַדְּמִים",
+   "translit": "1) kviat mekadmim",
+   "translit_ru": "1) квиат мекадмим",
+   "ru": "1) Определение коэффициентов",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b003": {
+   "type": "block",
+   "id": "a97002:p289:b003",
+   "page": 289,
+   "bbox": [
+    178.34,
+    154.88,
+    534.94,
+    172.03
+   ],
+   "he_raw": "• מטבלת יצרן המסב מצאו לפי קוטר גל ומק\"ט מסב דרגת כושר סטטי– C0.",
+   "kind_guess": "list_item",
+   "order": 3,
+   "kind": "list_item",
+   "he": "• מטבלת יצרן המסב מצאו לפי קוטר גל ומק\"ט מסב דרגת כושר סטטי – C0.",
+   "he_niqqud": "• מִטַּבְלַת יַצְרַן הַמֵּסַב מִצְאוּ לְפִי קֹטֶר גַּל וּמַקָּ\"ט מֵסַב דַּרְגַת כֹּשֶׁר סְטָטִי – C0.",
+   "translit": "• mitavlat yatsran hamesav mitsu lefi koter gal umakat mesav dargat kosher stati – C0.",
+   "translit_ru": "• митавлат яцран хамесав мицъу лефи котер галь у-макат месав даргат кошер стати – C0.",
+   "ru": "• По таблице изготовителя подшипника найдите статическую грузоподъёмность C0 по диаметру вала и каталожному номеру подшипника.",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b004": {
+   "type": "block",
+   "id": "a97002:p289:b004",
+   "page": 289,
+   "bbox": [
+    460.78,
+    215.36,
+    534.94,
+    230.01
+   ],
+   "he_raw": "• חשבו יחס",
+   "kind_guess": "list_item",
+   "order": 4,
+   "kind": "list_item",
+   "he": "• חשבו יחס",
+   "he_niqqud": "• חַשְּׁבוּ יַחַס",
+   "translit": "• khashvu yakhas",
+   "translit_ru": "• хашву яхас",
+   "ru": "• Вычислите отношение",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b005": {
+   "type": "block",
+   "id": "a97002:p289:b005",
+   "page": 289,
+   "bbox": [
+    171.62,
+    289.33,
+    534.94,
+    305.91
+   ],
+   "he_raw": "• בהתאם ליחס שחושב בחרו בערך גבולי– e שווה או גדול מהיחס שחושב.",
+   "kind_guess": "list_item",
+   "order": 5,
+   "kind": "list_item",
+   "he": "• בהתאם ליחס שחושב בחרו בערך גבולי – e שווה או גדול מהיחס שחושב.",
+   "he_niqqud": "• בְּהֶתְאֵם לַיַּחַס שֶׁחֻשַּׁב בַּחֲרוּ בְּעֵרֶךְ גְּבוּלִי – e שָׁוֶה אוֹ גָּדוֹל מֵהַיַּחַס שֶׁחֻשַּׁב.",
+   "translit": "• behetem layakhas shekhushav bakharu beerekh gvuli – e shave o gadol mehayakhas shekhushav.",
+   "translit_ru": "• бехетэм лаяхас шехушав бахару беэрех гвули – e шаве о гадоль мехаяхас шехушав.",
+   "ru": "• В соответствии с вычисленным отношением выберите предельное значение e, равное вычисленному отношению или больше него.",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "Буквально сохранено указание сравнивать e с рассчитанным Fa/C0. Таблица выбирается по строке Fa/C0; неточная формулировка оригинала отмечена в report."
+  },
+  "a97002:p289:b006": {
+   "type": "block",
+   "id": "a97002:p289:b006",
+   "page": 289,
+   "bbox": [
+    464.14,
+    351.83,
+    534.94,
+    366.48
+   ],
+   "he_raw": "• חשבו יחס",
+   "kind_guess": "list_item",
+   "order": 6,
+   "kind": "list_item",
+   "he": "• חשבו יחס",
+   "he_niqqud": "• חַשְּׁבוּ יַחַס",
+   "translit": "• khashvu yakhas",
+   "translit_ru": "• хашву яхас",
+   "ru": "• Вычислите отношение",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b007": {
+   "type": "block",
+   "id": "a97002:p289:b007",
+   "page": 289,
+   "bbox": [
+    435.43,
+    425.75,
+    534.94,
+    440.4
+   ],
+   "he_raw": "• קביעת מקדמים",
+   "kind_guess": "list_item",
+   "order": 7,
+   "kind": "list_item",
+   "he": "• קביעת מקדמים",
+   "he_niqqud": "• קְבִיעַת מְקַדְּמִים",
+   "translit": "• kviat mekadmim",
+   "translit_ru": "• квиат мекадмим",
+   "ru": "• Определение коэффициентов",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b008": {
+   "type": "block",
+   "id": "a97002:p289:b008",
+   "page": 289,
+   "bbox": [
+    406.63,
+    540.36,
+    552.89,
+    554.71
+   ],
+   "he_raw": "2) כוח שקול הפועל על המסב",
+   "kind_guess": "list_item",
+   "order": 8,
+   "kind": "list_item",
+   "he": "2) כוח שקול הפועל על המסב",
+   "he_niqqud": "2) כֹּחַ שָׁקוּל הַפּוֹעֵל עַל הַמֵּסַב",
+   "translit": "2) koakh shakul hapoel al hamesav",
+   "translit_ru": "2) коах шакуль хапоэль аль хамесав",
+   "ru": "2) Эквивалентная нагрузка, действующая на подшипник",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:b009": {
+   "type": "block",
+   "id": "a97002:p289:b009",
+   "page": 289,
+   "bbox": [
+    366.79,
+    599.65,
+    552.89,
+    614.8
+   ],
+   "he_raw": "3) מקדם תנאי עבודה– עומס ,דינמי𝐟𝐖",
+   "kind_guess": "list_item",
+   "order": 9,
+   "kind": "list_item",
+   "he": "3) מקדם תנאי עבודה – עומס דינמי, fW",
+   "he_niqqud": "3) מְקַדֵּם תְּנָאֵי עֲבוֹדָה – עֹמֶס דִּינָמִי, fW",
+   "translit": "3) mekadem tnaei avoda – omes dinami, fW",
+   "translit_ru": "3) мекадем тнаэй авода – омес динами, fW",
+   "ru": "3) Коэффициент условий работы — динамическая нагрузка, fW",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "Положение запятой и обозначения fW восстановлено по изображению."
+  },
+  "a97002:p289:b010": {
+   "type": "block",
+   "id": "a97002:p289:b010",
+   "page": 289,
+   "bbox": [
+    399.07,
+    658.36,
+    552.89,
+    673.51
+   ],
+   "he_raw": "4) קביעת מקדם טמפרטורה– 𝐟𝐭",
+   "kind_guess": "list_item",
+   "order": 10,
+   "kind": "list_item",
+   "he": "4) קביעת מקדם טמפרטורה – ft",
+   "he_niqqud": "4) קְבִיעַת מְקַדֵּם טֶמְפֶּרָטוּרָה – ft",
+   "translit": "4) kviat mekadem temperatura – ft",
+   "translit_ru": "4) квиат мекадем температура – ft",
+   "ru": "4) Определение температурного коэффициента ft",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:e-y-coefficient": {
+   "type": "erratum",
+   "id": "a97002:p289:e-y-coefficient",
+   "page": 289,
+   "target": "a97002:p289:f04",
+   "as_printed": "𝑥= 0.56 ; 𝑦= 2",
+   "proposed": "𝑥= 0.56 ; 𝑦= 1.8",
+   "explanation_ru": "Выбрано e = 0.24 — это строка Fa/C0 = 0.04 таблицы коэффициентов (стр. 282), где при Fa/Fr > e: x = 0.56, y = 1.8. В подстановке ниже на этой же странице используется 1.8 и получается 2200 N; с y = 2 было бы 2320 N.",
+   "status": {
+    "recognition": "ocr_low",
+    "language_review": "unreviewed",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p289:f01": {
+   "type": "formula",
+   "id": "a97002:p289:f01",
+   "page": 289,
+   "bbox": [
+    60.62,
+    185.95,
+    136.08,
+    202.07
+   ],
+   "source_text": "C𝑜= 19000 N",
+   "crop": "assets/5e6e4b8c5613471f06c68f341978480f8c3367ff075b91ec0087f97dfbeb8a43.png",
+   "display_latex": "C_o=19000\\,\\mathrm{N}",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "C0",
+     "symbol_latex": "C_0",
+     "description_ru": "статическая грузоподъёмность",
+     "unit": "N"
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "result_var": "C0",
+   "compute_absent_reason": "Значение статической грузоподъёмности выбрано из каталога для подшипника 6208; это табличный выбор.",
+   "ambiguity_note": "В печати индекс o; для расчётного идентификатора использовано C0. Это тот же параметр статической грузоподъёмности."
+  },
+  "a97002:p289:f02": {
+   "type": "formula",
+   "id": "a97002:p289:f02",
+   "page": 289,
+   "bbox": [
+    42.6,
+    245.31,
+    158.52,
+    276.14
+   ],
+   "source_text": "Fa 600 = 19000 = 0.0316 Co",
+   "crop": "assets/adb61394a5684b3e84390a6eb9955d9fcd9be2e2ce042a58d23753d0d6725032.png",
+   "display_latex": "\\frac{F_a}{C_o}=\\frac{600}{19000}=0.0316",
+   "compute": "Fa/C0",
+   "local_vars": [
+    {
+     "var": "Fa",
+     "symbol_latex": "F_a",
+     "description_ru": "осевая нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "C0",
+     "symbol_latex": "C_0",
+     "description_ru": "статическая грузоподъёмность",
+     "unit": "N"
+    },
+    {
+     "var": "ratio_static",
+     "symbol_latex": "F_a/C_o",
+     "description_ru": "отношение осевой нагрузки к статической грузоподъёмности",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "result_var": "ratio_static",
+   "ambiguity_note": "0.0316 — округление 600/19000; индекс o источника нормализован в имени переменной C0."
+  },
+  "a97002:p289:f03": {
+   "type": "formula",
+   "id": "a97002:p289:f03",
+   "page": 289,
+   "bbox": [
+    42.6,
+    322.3,
+    90.24,
+    336.79
+   ],
+   "source_text": "𝑒= 0.24",
+   "crop": "assets/1c38b6891297c5495f6001d8ef596c4ee490724fa238b0d85fe2803a3c7ff799.png",
+   "display_latex": "e=0.24",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "e_limit",
+     "symbol_latex": "e",
+     "description_ru": "предельное отношение осевой и радиальной нагрузок",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "result_var": "e_limit",
+   "compute_absent_reason": "Табличный выбор предельного отношения, не арифметическое выражение.",
+   "ambiguity_note": "Переменная e_limit отличается от печатного e, поскольку e в грамматике ядра — константа Эйлера."
+  },
+  "a97002:p289:f04": {
+   "type": "formula",
+   "id": "a97002:p289:f04",
+   "page": 289,
+   "bbox": [
+    42.6,
+    381.66,
+    251.55,
+    412.46
+   ],
+   "source_text": "Fa = 600 2000 = 0.3 > 𝑒→𝑥= 0.56 ; 𝑦= 2 Fr",
+   "crop": "assets/e87a080adf3d9d1d1aa9abb0cbb91d1ec50028f99fa51ae9ac56afcf67f30f3b.png",
+   "display_latex": "\\frac{F_a}{F_r}=\\frac{600}{2000}=0.3>e\\;\\to\\;x=0.56;\\ y=2",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "Fa",
+     "symbol_latex": "F_a",
+     "description_ru": "осевая нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "Fr",
+     "symbol_latex": "F_r",
+     "description_ru": "радиальная нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "e_limit",
+     "symbol_latex": "e",
+     "description_ru": "предельное отношение осевой и радиальной нагрузок",
+     "unit": ""
+    },
+    {
+     "var": "x",
+     "symbol_latex": "x",
+     "description_ru": "коэффициент радиальной нагрузки",
+     "unit": ""
+    },
+    {
+     "var": "y",
+     "symbol_latex": "y",
+     "description_ru": "коэффициент осевой нагрузки",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "compute_absent_reason": "Объект объединяет отношение, неравенство и табличный выбор двух коэффициентов; грамматика ядра не выражает всё это одним числом.",
+   "ambiguity_note": "y=2 сохранено как напечатано; в f09 подставлено 1.8, см. предложение опечатки."
+  },
+  "a97002:p289:f05": {
+   "type": "formula",
+   "id": "a97002:p289:f05",
+   "page": 289,
+   "bbox": [
+    92.3,
+    462.61,
+    129.0,
+    477.76
+   ],
+   "source_text": "P = Fr",
+   "crop": "assets/a4207c39ccec4afcd1344109739bd02fa46b0778ea5429ded08ebc9fade9260c.png",
+   "display_latex": "P=F_r",
+   "compute": "Fr",
+   "local_vars": [
+    {
+     "var": "Fr",
+     "symbol_latex": "F_r",
+     "description_ru": "радиальная нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "P",
+     "symbol_latex": "P",
+     "description_ru": "эквивалентная нагрузка на подшипник",
+     "unit": "N"
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "result_var": "P",
+   "ambiguity_note": "Только ветвь Fa/Fr ≤ e; условие вынесено экстрактором в f06. Вычисление не следует применять вне этой ветви."
+  },
+  "a97002:p289:f06": {
+   "type": "formula",
+   "id": "a97002:p289:f06",
+   "page": 289,
+   "bbox": [
+    48.0,
+    455.72,
+    84.84,
+    486.52
+   ],
+   "source_text": "Fa ≤𝑒 Fr",
+   "crop": "assets/692b6d6284f9dfe241c2e806ffdde59b716b7e342902dfa2933f0db872be50a2.png",
+   "display_latex": "\\frac{F_a}{F_r}\\le e",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "Fa",
+     "symbol_latex": "F_a",
+     "description_ru": "осевая нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "Fr",
+     "symbol_latex": "F_r",
+     "description_ru": "радиальная нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "e_limit",
+     "symbol_latex": "e",
+     "description_ru": "предельное отношение осевой и радиальной нагрузок",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "compute_absent_reason": "Неравенство — условие ветви, не поддерживаемое вычислительной грамматикой."
+  },
+  "a97002:p289:f07": {
+   "type": "formula",
+   "id": "a97002:p289:f07",
+   "page": 289,
+   "bbox": [
+    48.0,
+    498.2,
+    84.84,
+    529.0
+   ],
+   "source_text": "Fa > 𝑒 Fr",
+   "crop": "assets/3205852c0c9f5bdc09b337dda1268733ecea4d07c6567917456bafcbafe3b6fe.png",
+   "display_latex": "\\frac{F_a}{F_r}>e",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "Fa",
+     "symbol_latex": "F_a",
+     "description_ru": "осевая нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "Fr",
+     "symbol_latex": "F_r",
+     "description_ru": "радиальная нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "e_limit",
+     "symbol_latex": "e",
+     "description_ru": "предельное отношение осевой и радиальной нагрузок",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "compute_absent_reason": "Неравенство — условие выбора коэффициентов, не поддерживаемое вычислительной грамматикой."
+  },
+  "a97002:p289:f08": {
+   "type": "formula",
+   "id": "a97002:p289:f08",
+   "page": 289,
+   "bbox": [
+    96.98,
+    505.09,
+    124.44,
+    518.61
+   ],
+   "source_text": "𝑥 ; 𝑦",
+   "crop": "assets/1ae981e07046676fcc990f105f23e0d663d14819931f993f4d7653f50fb75d83.png",
+   "display_latex": "x;\\ y",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "x",
+     "symbol_latex": "x",
+     "description_ru": "коэффициент радиальной нагрузки",
+     "unit": ""
+    },
+    {
+     "var": "y",
+     "symbol_latex": "y",
+     "description_ru": "коэффициент осевой нагрузки",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "compute_absent_reason": "Перечень двух коэффициентов для табличного выбора, не вычисляемое выражение."
+  },
+  "a97002:p289:f09": {
+   "type": "formula",
+   "id": "a97002:p289:f09",
+   "page": 289,
+   "bbox": [
+    42.6,
+    570.22,
+    321.41,
+    586.17
+   ],
+   "source_text": "P = x ∙Fr + 𝑦∙Fa = 0.56 ∙2000 + 1.8 ∙600 = 2200 N",
+   "crop": "assets/257d6d21e874fec7789ca8dadbdfb9df74913d6045232e09bf47e9f5acc2257a.png",
+   "display_latex": "P=x\\cdot F_r+y\\cdot F_a=0.56\\cdot2000+1.8\\cdot600=2200\\,\\mathrm{N}",
+   "compute": "x*Fr+y*Fa",
+   "local_vars": [
+    {
+     "var": "x",
+     "symbol_latex": "x",
+     "description_ru": "коэффициент радиальной нагрузки",
+     "unit": ""
+    },
+    {
+     "var": "Fr",
+     "symbol_latex": "F_r",
+     "description_ru": "радиальная нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "y",
+     "symbol_latex": "y",
+     "description_ru": "коэффициент осевой нагрузки",
+     "unit": ""
+    },
+    {
+     "var": "Fa",
+     "symbol_latex": "F_a",
+     "description_ru": "осевая нагрузка",
+     "unit": "N"
+    },
+    {
+     "var": "P",
+     "symbol_latex": "P",
+     "description_ru": "эквивалентная нагрузка на подшипник",
+     "unit": "N"
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "result_var": "P",
+   "ambiguity_note": "Печатная подстановка y=1.8 даёт ровно 2200 N. Ранее на странице напечатано y=2; это отдельное противоречие, не ошибка арифметики этой строки."
+  },
+  "a97002:p289:f10": {
+   "type": "formula",
+   "id": "a97002:p289:f10",
+   "page": 289,
+   "bbox": [
+    42.6,
+    627.99,
+    94.06,
+    644.88
+   ],
+   "source_text": "fW = 1.5",
+   "crop": "assets/6d92e4f4ce5ef347dcd8700c72dc7d4d0395dd61ef1d0f7d91af610f5ab0ff27.png",
+   "display_latex": "f_W=1.5",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "fw",
+     "symbol_latex": "f_W",
+     "description_ru": "коэффициент условий работы",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "result_var": "fw",
+   "compute_absent_reason": "Коэффициент задан в условии, арифметического действия нет."
+  },
+  "a97002:p289:f11": {
+   "type": "formula",
+   "id": "a97002:p289:f11",
+   "page": 289,
+   "bbox": [
+    42.6,
+    686.55,
+    79.66,
+    703.44
+   ],
+   "source_text": "ft = 1",
+   "crop": "assets/beac207631e65e8d0ac5f43e0fb4212c57e7c7dd6a92f7085c228a80137f9f8e.png",
+   "display_latex": "f_t=1",
+   "compute": null,
+   "local_vars": [
+    {
+     "var": "ft",
+     "symbol_latex": "f_t",
+     "description_ru": "температурный коэффициент",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "result_var": "ft",
+   "compute_absent_reason": "В решении назначен коэффициент 1; исходная температура и процедура выбора на этих страницах не приведены."
+  },
+  "a97002:p485": {
+   "type": "page",
+   "id": "a97002:p485",
+   "page": 485,
+   "image": "assets/46b4d417fa5ba4fa9d236d7f1faedaed76e135751dbb7ddedf9e4f2bbef2f298.png",
+   "has_text_layer": true
+  },
+  "a97002:p485:b001": {
+   "type": "block",
+   "id": "a97002:p485:b001",
+   "page": 485,
+   "bbox": [
+    436.75,
+    103.56,
+    552.83,
+    129.39
+   ],
+   "he_raw": "סבולת מידה",
+   "kind_guess": "heading",
+   "order": 1,
+   "kind": "heading",
+   "he": "סבולת מידה",
+   "he_niqqud": "סִבֹּלֶת מִדָּה",
+   "translit": "sibolet mida",
+   "translit_ru": "сиболет мида",
+   "ru": "Допуск размера",
+   "terms": [
+    "a97002:term:sibolet#dimensional-tolerance"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p485:b002": {
+   "type": "block",
+   "id": "a97002:p485:b002",
+   "page": 485,
+   "bbox": [
+    49.92,
+    143.96,
+    552.95,
+    198.74
+   ],
+   "he_raw": "רכיבי מכונות חייבים להיות ברי הרכבה והחלפה ללא עיבוד חוזר ותלות יצרן ,לקבלת חליפיות מלאה יש צורך. לייצר מוצרים זהים במידותיהם . אין אפשרות לייצר חלקים בדיוק״מוחלט״ ובדרך כלל גם אין צורך לעשות זאת., כדי לאפשר חליפיות חלקים זה בזה בלי עיבוד נוסף, קובעים את מידות הדיוק בעזרת סבולות.",
+   "kind_guess": "prose",
+   "order": 2,
+   "kind": "prose",
+   "he": "רכיבי מכונות חייבים להיות ברי הרכבה והחלפה ללא עיבוד חוזר ותלות יצרן. לקבלת חליפיות מלאה, יש צורך לייצר מוצרים זהים במידותיהם. אין אפשרות לייצר חלקים בדיוק ״מוחלט״, ובדרך כלל גם אין צורך לעשות זאת. כדי לאפשר חליפיות חלקים זה בזה בלי עיבוד נוסף, קובעים את מידות הדיוק בעזרת סבולות.",
+   "he_niqqud": "רְכִיבֵי מְכוֹנוֹת חַיָּבִים לִהְיוֹת בְּרֵי הַרְכָּבָה וְהַחְלָפָה לְלֹא עִבּוּד חוֹזֵר וּתְלוּת יַצְרָן. לְקַבָּלַת חֲלִיפִיּוּת מְלֵאָה, יֵשׁ צֹרֶךְ לְיַצֵּר מוּצָרִים זֵהִים בְּמִדּוֹתֵיהֶם. אֵין אֶפְשָׁרוּת לְיַצֵּר חֲלָקִים בְּדִיּוּק ״מֻחְלָט״, וּבְדֶרֶךְ כְּלָל גַּם אֵין צֹרֶךְ לַעֲשׂוֹת זֹאת. כְּדֵי לְאַפְשֵׁר חֲלִיפִיּוּת חֲלָקִים זֶה בָּזֶה בְּלִי עִבּוּד נוֹסָף, קוֹבְעִים אֶת מִדּוֹת הַדִּיּוּק בְּעֶזְרַת סְבֹלוֹת.",
+   "translit": "rekhivei mekhonot khayavim lihyot brei harkava vehakhlafa lelo ibud khozer utlut yatsran. lekabalat khalifiyut melea, yesh tsorekh leyatser mutsarim zehim bemidotehem. ein efsharut leyatser khalakim bediyuk “mukhlat”, uvderekh klal gam ein tsorekh laasot zot. kedei leafsher khalifiyut khalakim ze baze bli ibud nosaf, kov'im et midot hadiyuk beezrat svalot.",
+   "translit_ru": "рехивей мехонот хаявим лихйот брей харкава вехахлафа лело ибуд хозер утлут яцран. лекабалат халифийут мелеа, йеш цорех леяцер муцарим зехим бемидотехем. эйн эфшарут леяцер халаким бедиюк «мухлат», увдерех клаль гам эйн цорех лаасот зот. кедей леафшер халифийут халаким зе базе бли ибуд носаф, ковъим эт мидот хадиюк беэзрат свалот.",
+   "ru": "Детали машин должны допускать сборку и замену без повторной обработки и зависимости от изготовителя. Для полной взаимозаменяемости необходимо выпускать изделия с одинаковыми размерами. Изготовление деталей с «абсолютной» точностью невозможно и обычно не требуется. Чтобы обеспечить взаимозаменяемость деталей без дополнительной обработки, точность размеров задают допусками.",
+   "terms": [
+    "a97002:term:sibolet#dimensional-tolerance"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "Пунктуация и границы предложений восстановлены по изображению; слова оригинала сохранены."
+  },
+  "a97002:p485:b003": {
+   "type": "block",
+   "id": "a97002:p485:b003",
+   "page": 485,
+   "bbox": [
+    218.57,
+    430.81,
+    377.18,
+    444.19
+   ],
+   "he_raw": "איור 260 - הגדרות יסוד ת\"י622",
+   "kind_guess": "caption",
+   "order": 3,
+   "kind": "caption",
+   "he": "איור 260 - הגדרות יסוד ת\"י 622",
+   "he_niqqud": "אִיּוּר 260 - הַגְדָּרוֹת יְסוֹד ת\"י 622",
+   "translit": "iyur 260 - hagdarot yesod tav yud 622",
+   "translit_ru": "июр 260 - хагдарот йесод тав йуд 622",
+   "ru": "Рис. 260 — Основные определения, израильский стандарт 622",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p485:b004": {
+   "type": "block",
+   "id": "a97002:p485:b004",
+   "page": 485,
+   "bbox": [
+    89.54,
+    469.81,
+    552.86,
+    483.19
+   ],
+   "he_raw": ")מידה נומינלית (מידה בסיסית או מוצא– מידה נקובההרשומה בסרטוט ואליה מתייחסת הסיבולת.",
+   "kind_guess": "prose",
+   "order": 4,
+   "kind": "prose",
+   "he": "מידה נומינלית (מידה בסיסית או מוצא) – מידה נקובה הרשומה בסרטוט ואליה מתייחסת הסיבולת.",
+   "he_niqqud": "מִדָּה נוֹמִינָלִית (מִדָּה בְּסִיסִית אוֹ מוֹצָא) – מִדָּה נְקוּבָה הָרְשׁוּמָה בַּסִּרְטוּט וְאֵלֶיהָ מִתְיַחֶסֶת הַסִּיבֹּלֶת.",
+   "translit": "mida nominalit (mida bsisit o motsa) – mida nekuva harshuma basirtut veeleha mityakheset hasibolet.",
+   "translit_ru": "мида номиналит (мида бсисит о моца) – мида некува харшума басиртут веэлеха митьяхесет хасиболет.",
+   "ru": "Номинальный размер (базовый или исходный размер) — размер, указанный на чертеже, к которому относится допуск.",
+   "terms": [
+    "a97002:term:sibolet#dimensional-tolerance"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "Скобки и пробел между נקובה הרשומה восстановлены по изображению."
+  },
+  "a97002:p485:b005": {
+   "type": "block",
+   "id": "a97002:p485:b005",
+   "page": 485,
+   "bbox": [
+    265.37,
+    498.44,
+    552.88,
+    514.1
+   ],
+   "he_raw": "גבול עליון – המידה הגדולה ביותר המותרת למידה הנקובה.",
+   "kind_guess": "heading",
+   "order": 5,
+   "kind": "prose",
+   "he": "גבול עליון – המידה הגדולה ביותר המותרת למידה הנקובה.",
+   "he_niqqud": "גְּבוּל עֶלְיוֹן – הַמִּדָּה הַגְּדוֹלָה בְּיוֹתֵר הַמֻּתֶּרֶת לַמִּדָּה הַנְּקוּבָה.",
+   "translit": "gvul elyon – hamida hagdola beyoter hamuteret lamida hanekuva.",
+   "translit_ru": "гвуль эльйон – хамида хагдола бейотер хамутерет ламида ханекува.",
+   "ru": "Верхний предел — наибольший допускаемый размер для указанного номинального размера.",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p485:b006": {
+   "type": "block",
+   "id": "a97002:p485:b006",
+   "page": 485,
+   "bbox": [
+    123.62,
+    530.65,
+    552.93,
+    572.83
+   ],
+   "he_raw": "גבולתחתון – המידה הקטנה ביותר המותרת למידה הנקובה. )סבולת (סטייה – ההפרש בין המידה המותרת הגדולה ביותר למידה המותרת הקטנה ביותר.",
+   "kind_guess": "prose",
+   "order": 6,
+   "kind": "prose",
+   "he": "גבול תחתון – המידה הקטנה ביותר המותרת למידה הנקובה. סבולת (סטייה) – ההפרש בין המידה המותרת הגדולה ביותר למידה המותרת הקטנה ביותר.",
+   "he_niqqud": "גְּבוּל תַּחְתּוֹן – הַמִּדָּה הַקְּטַנָּה בְּיוֹתֵר הַמֻּתֶּרֶת לַמִּדָּה הַנְּקוּבָה. סִבֹּלֶת (סְטִיָּה) – הַהֶפְרֵשׁ בֵּין הַמִּדָּה הַמֻּתֶּרֶת הַגְּדוֹלָה בְּיוֹתֵר לַמִּדָּה הַמֻּתֶּרֶת הַקְּטַנָּה בְּיוֹתֵר.",
+   "translit": "gvul takhton – hamida haktana beyoter hamuteret lamida hanekuva. sibolet (stiya) – hahefresh bein hamida hamuteret hagdola beyoter lamida hamuteret haktana beyoter.",
+   "translit_ru": "гвуль тахтон – хамида хактана бейотер хамутерет ламида ханекува. сиболет (стия) – хахефреш бейн хамида хамутерет хагдола бейотер ламида хамутерет хактана бейотер.",
+   "ru": "Нижний предел — наименьший допускаемый размер для указанного номинального размера. Допуск (отклонение) — разность между наибольшим и наименьшим допускаемыми размерами.",
+   "terms": [
+    "a97002:term:sibolet#dimensional-tolerance"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "Разделены слова גבול תחתון; скобки восстановлены по изображению.",
+   "ambiguity_note": "Источник отождествляет допуск и отклонение в скобках; технически это разные понятия. Перевод сохраняет оригинал, см. report."
+  },
+  "a97002:p485:e-core-x-tolerance-arithmetic-step1": {
+   "type": "erratum",
+   "id": "a97002:p485:e-core-x-tolerance-arithmetic-step1",
+   "page": 485,
+   "target": "a97002:p485:x-tolerance-arithmetic",
+   "origin": "core",
+   "as_printed": "0.15",
+   "proposed": "",
+   "explanation_ru": "Ядро: u-d с подстановками {'u': 0.05, 'd': 0.1} не даёт напечатанное 0.15.",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "unreviewed",
+    "math_review": "core_mismatch",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p485:e-lower-deviation-sign": {
+   "type": "erratum",
+   "id": "a97002:p485:e-lower-deviation-sign",
+   "page": 485,
+   "target": "a97002:p485:f01",
+   "as_printed": "ΔA = u − d = 0.05 − (0.1) = 0.15",
+   "proposed": "ΔA = u − d = 0.05 − (−0.1) = 0.15",
+   "explanation_ru": "0.05−0.1 равно−0.05. На рис.260 размер 28 имеет отклонения+0.05 и−0.10, предельные размеры 28.05 и 27.9; их разность 0.15. Вероятно, пропущен минус перед нижним отклонением. Это предложение, не исправление исходника.",
+   "status": {
+    "recognition": "ocr_low",
+    "language_review": "unreviewed",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p485:f01": {
+   "type": "formula",
+   "id": "a97002:p485:f01",
+   "page": 485,
+   "bbox": [
+    42.6,
+    588.37,
+    219.87,
+    601.89
+   ],
+   "source_text": "∆A = u −d = 0.05 −(0.1) = 0.15",
+   "crop": "assets/eeda3e8d534dce150bfee2ea90d7c79cb54f58c456cb94a5a01fdbc5a48e1ab0.png",
+   "display_latex": "\\Delta A=u-d=0.05-(0.1)=0.15",
+   "compute": "u-d",
+   "local_vars": [
+    {
+     "var": "u",
+     "symbol_latex": "u",
+     "description_ru": "верхнее отклонение",
+     "unit": ""
+    },
+    {
+     "var": "d",
+     "symbol_latex": "d",
+     "description_ru": "нижнее отклонение",
+     "unit": ""
+    },
+    {
+     "var": "deltaA",
+     "symbol_latex": "\\Delta A",
+     "description_ru": "допуск размера; единица на рисунке не указана",
+     "unit": ""
+    }
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   },
+   "result_var": "deltaA",
+   "ambiguity_note": "Численная строка сохранена дословно. 0.05−(0.1)=−0.05, не 0.15. Рис.260 показывает нижнее отклонение−0.10; предложено восстановить пропущенный минус, не менять исходную формулу."
+  },
+  "a97002:p485:fig260": {
+   "type": "figure",
+   "id": "a97002:p485:fig260",
+   "page": 485,
+   "bbox": [
+    77.48,
+    213.65,
+    517.81,
+    415.1
+   ],
+   "crop": "assets/95ec0827303c8cbd43e445bf88286161131720bc0f39b2ce62e2d7eef503f528.png",
+   "number": 260,
+   "caption_block_id": "a97002:p485:b003",
+   "caption_he": "איור 260 - הגדרות יסוד ת\"י 622",
+   "caption_ru": "Рис. 260 — Основные определения, израильский стандарт 622",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p485:fig260:r-deviation-limits": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-deviation-limits",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    203.48,
+    373.49,
+    256.76,
+    386.09
+   ],
+   "label_he": "גבולות סטייה",
+   "label_ru": "пределы отклонения",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-dimension-20": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-dimension-20",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    130.4,
+    364.85,
+    183.68,
+    397.97
+   ],
+   "label_he": "20 +0.2 −0.1",
+   "label_ru": "номинальный размер 20; верхнее отклонение+0.2, нижнее−0.1",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-dimension-28": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-dimension-28",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    361.88,
+    255.77,
+    404.0,
+    271.25
+   ],
+   "label_he": "28 +0.05 −0.10",
+   "label_ru": "номинальный размер 28; верхнее отклонение+0.05, нижнее−0.10",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-lower-deviation": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-lower-deviation",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    385.64,
+    343.25,
+    430.64,
+    358.73
+   ],
+   "label_he": "סטייה התחתונה 0.1",
+   "label_ru": "нижнее отклонение 0.1",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-lower-limit": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-lower-limit",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    340.28,
+    363.41,
+    404.36,
+    374.57
+   ],
+   "label_he": "גבול תחתון 27.9",
+   "label_ru": "наименьший предельный размер 27.9",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-lower-size-deviation": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-lower-size-deviation",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    203.12,
+    404.09,
+    279.8,
+    414.53
+   ],
+   "label_he": "סטיית מידה תחתונה",
+   "label_ru": "нижнее отклонение размера",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-nominal-dimension": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-nominal-dimension",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    326.24,
+    381.77,
+    396.44,
+    391.49
+   ],
+   "label_he": "מידה נומינלית – 28",
+   "label_ru": "номинальный размер —28",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-nominal-size": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-nominal-size",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    77.84,
+    404.81,
+    129.68,
+    414.17
+   ],
+   "label_he": "מידה נומינלית",
+   "label_ru": "номинальный размер",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-product": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-product",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    364.76,
+    230.21,
+    390.68,
+    242.09
+   ],
+   "label_he": "מוצר",
+   "label_ru": "изделие",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-tolerance-zone": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-tolerance-zone",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    331.28,
+    282.77,
+    399.32,
+    292.85
+   ],
+   "label_he": "תחום הסבולת 0.15",
+   "label_ru": "поле допуска 0.15",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-upper-deviation": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-upper-deviation",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    463.4,
+    343.25,
+    513.08,
+    358.73
+   ],
+   "label_he": "סטייה עליונה 0.05",
+   "label_ru": "верхнее отклонение 0.05",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-upper-limit": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-upper-limit",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    342.8,
+    395.81,
+    408.32,
+    406.25
+   ],
+   "label_he": "גבול עליון 28.05",
+   "label_ru": "наибольший предельный размер 28.05",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-upper-size-deviation": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-upper-size-deviation",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    203.48,
+    346.49,
+    275.48,
+    358.01
+   ],
+   "label_he": "סטיית מידה עליונה",
+   "label_ru": "верхнее отклонение размера",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:fig260:r-zero-line": {
+   "type": "region",
+   "id": "a97002:p485:fig260:r-zero-line",
+   "parent": "a97002:p485:fig260",
+   "bbox": [
+    456.56,
+    272.69,
+    488.96,
+    283.85
+   ],
+   "label_he": "קו מוצא",
+   "label_ru": "нулевая линия",
+   "links": [],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 485
+  },
+  "a97002:p485:x-tolerance-arithmetic": {
+   "type": "example",
+   "id": "a97002:p485:x-tolerance-arithmetic",
+   "title_ru": "Проверка напечатанной арифметики допуска",
+   "steps": [
+    {
+     "compute": "u-d",
+     "bindings": {
+      "u": 0.05,
+      "d": 0.1
+     },
+     "printed": "0.15",
+     "note": "Напечатано ΔA=u−d=0.05−(0.1)=0.15. Сохранены именно напечатанные знаки; ожидается находка ядра, исправление только в erratum.",
+     "math_review": "core_mismatch"
+    }
+   ],
+   "page": 485,
+   "status": {
+    "recognition": "ocr_low",
+    "language_review": "unreviewed",
+    "math_review": "core_mismatch",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7": {
+   "type": "page",
+   "id": "a97002:p7",
+   "page": 7,
+   "image": "assets/8a14f3f4be4685539498d08811954d1b1d600f17f35c2de7fce5fd2a29813c3e.png",
+   "has_text_layer": true
+  },
+  "a97002:p7:b001": {
+   "type": "block",
+   "id": "a97002:p7:b001",
+   "page": 7,
+   "bbox": [
+    429.31,
+    103.55,
+    552.71,
+    121.65
+   ],
+   "he_raw": "פירוק כוח לרכיבים",
+   "kind_guess": "heading",
+   "order": 1,
+   "kind": "heading",
+   "he": "פירוק כוח לרכיבים",
+   "he_niqqud": "פֵּרוּק כֹּחַ לִרְכִיבִים",
+   "translit": "peruk koakh lirkhivim",
+   "translit_ru": "перук коах лирхивим",
+   "ru": "Разложение силы на составляющие",
+   "terms": [
+    "a97002:term:rekhiv#force-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:b002": {
+   "type": "block",
+   "id": "a97002:p7:b002",
+   "page": 7,
+   "bbox": [
+    50.4,
+    131.96,
+    552.94,
+    166.1
+   ],
+   "he_raw": "כדי לבחון את השפעתו של כוח נטוי על גוף, נפרקו לשני רכיבים ישרי זווית. כך נמנע מהשפעה הדדית של ציר אחד על משנהו !!!",
+   "kind_guess": "prose",
+   "order": 2,
+   "kind": "prose",
+   "he": "כדי לבחון את השפעתו של כוח נטוי על גוף, נפרקו לשני רכיבים ישרי זווית. כך נמנע מהשפעה הדדית של ציר אחד על משנהו!!!",
+   "he_niqqud": "כְּדֵי לִבְחֹן אֶת הַשְׁפָּעָתוֹ שֶׁל כֹּחַ נָטוּי עַל גּוּף, נְפָרְקוֹ לִשְׁנֵי רְכִיבִים יְשָׁרֵי זָוִית. כָּךְ נִמָּנַע מֵהַשְׁפָּעָה הֲדָדִית שֶׁל צִיר אֶחָד עַל מִשְׁנֵהוּ!!!",
+   "translit": "kedei livkhon et hashpa'ato shel koakh natui al guf, nefarko lishnei rekhivim yeshrei zavit. kakh nimana mehashpa'a hadadit shel tsir ekhad al mishnehu!!!",
+   "translit_ru": "кедей ливхон эт хашпаато шель коах натуй аль гуф, нефарко лишней рехивим йешрей завит. ках нимана мехашпаа хададит шель цир эхад аль мишнеху!!!",
+   "ru": "Чтобы исследовать действие наклонной силы на тело, её раскладывают на две взаимно перпендикулярные составляющие. Так исключается взаимное влияние одной оси на другую!!!",
+   "terms": [
+    "a97002:term:rekhiv#force-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:b003": {
+   "type": "block",
+   "id": "a97002:p7:b003",
+   "page": 7,
+   "bbox": [
+    190.97,
+    284.75,
+    397.94,
+    298.13
+   ],
+   "he_raw": "איור 4 - פירוק כוח לשני רכיבים ישרי זווית",
+   "kind_guess": "caption",
+   "order": 3,
+   "kind": "caption",
+   "he": "איור 4 - פירוק כוח לשני רכיבים ישרי זווית",
+   "he_niqqud": "אִיּוּר 4 - פֵּרוּק כֹּחַ לִשְׁנֵי רְכִיבִים יְשָׁרֵי זָוִית",
+   "translit": "iyur 4 - peruk koakh lishnei rekhivim yeshrei zavit",
+   "translit_ru": "июр 4 - перук коах лишней рехивим йешрей завит",
+   "ru": "Рис. 4 — Разложение силы на две взаимно перпендикулярные составляющие",
+   "terms": [
+    "a97002:term:rekhiv#force-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:b004": {
+   "type": "block",
+   "id": "a97002:p7:b004",
+   "page": 7,
+   "bbox": [
+    42.6,
+    393.97,
+    193.31,
+    413.81
+   ],
+   "he_raw": "Fx = F ∙cos α° (רכיב אופקי)",
+   "kind_guess": "heading",
+   "order": 4,
+   "kind": "formula_label",
+   "he": "Fx = F ∙ cos α° (רכיב אופקי)",
+   "he_niqqud": "Fx = F ∙ cos α° (רְכִיב אֻפְקִי)",
+   "translit": "Fx = F ∙ cos α° (rekhiv ufki)",
+   "translit_ru": "Fx = F ∙ cos α° (рехив уфки)",
+   "ru": "Fx = F ∙ cos α° (горизонтальная составляющая)",
+   "terms": [
+    "a97002:term:rekhiv#force-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:b005": {
+   "type": "block",
+   "id": "a97002:p7:b005",
+   "page": 7,
+   "bbox": [
+    42.6,
+    427.76,
+    186.64,
+    446.47
+   ],
+   "he_raw": "Fy = F ∙cos α° (רכיב אנכי)",
+   "kind_guess": "heading",
+   "order": 5,
+   "kind": "formula_label",
+   "he": "Fy = F ∙ cos α° (רכיב אנכי)",
+   "he_niqqud": "Fy = F ∙ cos α° (רְכִיב אֲנָכִי)",
+   "translit": "Fy = F ∙ cos α° (rekhiv anakhi)",
+   "translit_ru": "Fy = F ∙ cos α° (рехив анахи)",
+   "ru": "Fy = F ∙ cos α° (вертикальная составляющая)",
+   "terms": [
+    "a97002:term:rekhiv-anakhi#vertical-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "Так напечатано в книге; вертикальная составляющая выражается через sin α — см. опечатку new:a97002:p7:fy-cos."
+  },
+  "a97002:p7:b006": {
+   "type": "block",
+   "id": "a97002:p7:b006",
+   "page": 7,
+   "bbox": [
+    487.66,
+    575.77,
+    552.92,
+    589.15
+   ],
+   "he_raw": "כלל הסימנים:",
+   "kind_guess": "prose",
+   "order": 6,
+   "kind": "heading",
+   "he": "כלל הסימנים:",
+   "he_niqqud": "כְּלַל הַסִּימָנִים:",
+   "translit": "klal hasimanim:",
+   "translit_ru": "клаль хасиманим:",
+   "ru": "Правило знаков:",
+   "terms": [],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:b007": {
+   "type": "block",
+   "id": "a97002:p7:b007",
+   "page": 7,
+   "bbox": [
+    240.17,
+    604.69,
+    516.93,
+    618.21
+   ],
+   "he_raw": "רכיב כוח יוגדר\" + \" (חיובי ) כאשר הכוח מכווןעם כיוון הציר.",
+   "kind_guess": "prose",
+   "order": 7,
+   "kind": "list_item",
+   "he": "רכיב כוח יוגדר \"+\" (חיובי) כאשר הכוח מכוון עם כיוון הציר.",
+   "he_niqqud": "רְכִיב כֹּחַ יֻגְדַּר \"+\" (חִיּוּבִי) כַּאֲשֶׁר הַכֹּחַ מְכֻוָּן עִם כִּוּוּן הַצִּיר.",
+   "translit": "rekhiv koakh yugdar \"+\" (khiyuvi) ka'asher hakoakh mekhuvan im kivun hatsir.",
+   "translit_ru": "рехив коах югдар \"+\" (хиюви) каашер хакоах мехуван им кивун хацир.",
+   "ru": "Составляющая силы считается «+» (положительной), когда сила направлена по направлению оси.",
+   "terms": [
+    "a97002:term:rekhiv#force-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "По изображению разделены слитые в текстовом слое слова и нормализованы пробелы у кавычек и скобок; буквы и порядок слов сохранены."
+  },
+  "a97002:p7:b008": {
+   "type": "block",
+   "id": "a97002:p7:b008",
+   "page": 7,
+   "bbox": [
+    227.81,
+    632.91,
+    516.87,
+    647.4
+   ],
+   "he_raw": "רכיב כוח יוגדר\" −\" (שלילי ) כאשר הכוח מכווןנגד כיוון הציר.",
+   "kind_guess": "prose",
+   "order": 8,
+   "kind": "list_item",
+   "he": "רכיב כוח יוגדר \"−\" (שלילי) כאשר הכוח מכוון נגד כיוון הציר.",
+   "he_niqqud": "רְכִיב כֹּחַ יֻגְדַּר \"−\" (שְׁלִילִי) כַּאֲשֶׁר הַכֹּחַ מְכֻוָּן נֶגֶד כִּוּוּן הַצִּיר.",
+   "translit": "rekhiv koakh yugdar \"−\" (shlili) ka'asher hakoakh mekhuvan neged kivun hatsir.",
+   "translit_ru": "рехив коах югдар \"−\" (шлили) каашер хакоах мехуван негед кивун хацир.",
+   "ru": "Составляющая силы считается «−» (отрицательной), когда сила направлена против направления оси.",
+   "terms": [
+    "a97002:term:rekhiv#force-component"
+   ],
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "he_fix_note": "По изображению разделены слитые в текстовом слое слова и нормализованы пробелы у кавычек и скобок; буквы и порядок слов сохранены."
+  },
+  "a97002:p7:e-fy-cos": {
+   "type": "erratum",
+   "id": "a97002:p7:e-fy-cos",
+   "page": 7,
+   "target": "a97002:p7:b005",
+   "as_printed": "Fy = F ∙cos α° (רכיב אנכי)",
+   "proposed": "Fy = F ∙ sin α° (רכיב אנכי)",
+   "explanation_ru": "Вертикальная составляющая — катет, противолежащий углу α, поэтому Fy = F·sin α. Так она и записана выше на этой же странице (формула a97002:p7:f02), так же следует из рис. 4.",
+   "status": {
+    "recognition": "ocr_low",
+    "language_review": "unreviewed",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:f01": {
+   "type": "formula",
+   "id": "a97002:p7:f01",
+   "page": 7,
+   "bbox": [
+    42.6,
+    304.78,
+    120.12,
+    321.67
+   ],
+   "source_text": "Fx = F ∙cos α °",
+   "crop": "assets/277bf69b67c7a429a2488dd820da2e5dd68612eaf2668cc19710ac604444057f.png",
+   "display_latex": "F_x = F \\cdot \\cos\\alpha^{\\circ}",
+   "compute": "F*cos(alpha)",
+   "angle_unit": "deg",
+   "symbols": [
+    "a97002:p7:st1:s01",
+    "a97002:p7:st1:s03",
+    "a97002:p7:st1:s04"
+   ],
+   "result_var": "Fx",
+   "speech_ru": "F икс равно F, умноженное на косинус альфа",
+   "speech_he": "אֶף אִיקְס שָׁוֶה אֶף כָּפוּל קוֹסִינוּס אַלְפָא",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:f02": {
+   "type": "formula",
+   "id": "a97002:p7:f02",
+   "page": 7,
+   "bbox": [
+    42.6,
+    333.7,
+    117.0,
+    350.59
+   ],
+   "source_text": "Fy = F ∙sin 𝛼°",
+   "crop": "assets/1012ea8cde379d149a049a3e6110c7898da20008040daf5370e5b059737445b4.png",
+   "display_latex": "F_y = F \\cdot \\sin\\alpha^{\\circ}",
+   "compute": "F*sin(alpha)",
+   "angle_unit": "deg",
+   "symbols": [
+    "a97002:p7:st1:s02",
+    "a97002:p7:st1:s03",
+    "a97002:p7:st1:s04"
+   ],
+   "result_var": "Fy",
+   "speech_ru": "F игрек равно F, умноженное на синус альфа",
+   "speech_he": "אֶף וַאי שָׁוֶה אֶף כָּפוּל סִינוּס אַלְפָא",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "unchecked",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:fig4": {
+   "type": "figure",
+   "id": "a97002:p7:fig4",
+   "page": 7,
+   "bbox": [
+    223.4,
+    180.93,
+    371.87,
+    268.73
+   ],
+   "crop": "assets/b188c582787675beeffc7f3b439d7ce870736479bf51caa7a2fa2c741127bdf5.png",
+   "number": 4,
+   "caption_block_id": "a97002:p7:b003",
+   "caption_he": "איור 4 - פירוק כוח לשני רכיבים ישרי זווית",
+   "caption_ru": "Рис. 4 — Разложение силы на две взаимно перпендикулярные составляющие",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:fig4:r-angle-alpha": {
+   "type": "region",
+   "id": "a97002:p7:fig4:r-angle-alpha",
+   "parent": "a97002:p7:fig4",
+   "bbox": [
+    268.4,
+    227.7,
+    279.2,
+    240.3
+   ],
+   "label_he": "α",
+   "label_ru": "угол α",
+   "links": [
+    "a97002:p7:st1:s04"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 7
+  },
+  "a97002:p7:fig4:r-force-f": {
+   "type": "region",
+   "id": "a97002:p7:fig4:r-force-f",
+   "parent": "a97002:p7:fig4",
+   "bbox": [
+    281.0,
+    189.9,
+    291.8,
+    202.5
+   ],
+   "label_he": "F",
+   "label_ru": "наклонная сила F",
+   "links": [
+    "a97002:p7:st1:s03"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 7
+  },
+  "a97002:p7:fig4:r-force-fx": {
+   "type": "region",
+   "id": "a97002:p7:fig4:r-force-fx",
+   "parent": "a97002:p7:fig4",
+   "bbox": [
+    281.0,
+    249.3,
+    300.8,
+    263.7
+   ],
+   "label_he": "Fx",
+   "label_ru": "горизонтальная составляющая Fx",
+   "links": [
+    "a97002:p7:st1:s01"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 7
+  },
+  "a97002:p7:fig4:r-force-fy": {
+   "type": "region",
+   "id": "a97002:p7:fig4:r-force-fy",
+   "parent": "a97002:p7:fig4",
+   "bbox": [
+    351.2,
+    204.3,
+    369.2,
+    220.5
+   ],
+   "label_he": "Fy",
+   "label_ru": "вертикальная составляющая Fy",
+   "links": [
+    "a97002:p7:st1:s02"
+   ],
+   "status": {
+    "recognition": "ocr_high",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "page": 7
+  },
+  "a97002:p7:st1:s01": {
+   "type": "symbol",
+   "id": "a97002:p7:st1:s01",
+   "formula_id": null,
+   "page": 7,
+   "bbox": [
+    321.31,
+    478.68,
+    543.32,
+    494.44
+   ],
+   "symbol_raw": "Fx",
+   "description_he_raw": "רכיב כוח על ציר ה-x )(רכיב אופקיN",
+   "unit_raw": "",
+   "symbol_latex": "F_x",
+   "var": "Fx",
+   "description_he": "רכיב כוח על ציר ה-x (רכיב אופקי)",
+   "description_ru": "составляющая силы по оси x (горизонтальная)",
+   "unit": "N",
+   "term": "a97002:term:rekhiv#force-component",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   },
+   "ambiguity_note": "В сыром извлечении N ошибочно присоединено к description_he_raw; по изображению это отдельная ячейка единицы измерения."
+  },
+  "a97002:p7:st1:s02": {
+   "type": "symbol",
+   "id": "a97002:p7:st1:s02",
+   "formula_id": null,
+   "page": 7,
+   "bbox": [
+    321.31,
+    495.72,
+    544.16,
+    511.36
+   ],
+   "symbol_raw": "F𝑦",
+   "description_he_raw": "רכיב כוח על ציר ה-y )(רכיב אנכי",
+   "unit_raw": "N",
+   "symbol_latex": "F_y",
+   "var": "Fy",
+   "description_he": "רכיב כוח על ציר ה-y (רכיב אנכי)",
+   "description_ru": "составляющая силы по оси y (вертикальная)",
+   "unit": "N",
+   "term": "a97002:term:rekhiv-anakhi#vertical-component",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:st1:s03": {
+   "type": "symbol",
+   "id": "a97002:p7:st1:s03",
+   "formula_id": null,
+   "page": 7,
+   "bbox": [
+    321.31,
+    512.76,
+    539.72,
+    526.93
+   ],
+   "symbol_raw": "F",
+   "description_he_raw": "כוח נטוי",
+   "unit_raw": "N",
+   "symbol_latex": "F",
+   "var": "F",
+   "description_he": "כוח נטוי",
+   "description_ru": "наклонная сила",
+   "unit": "N",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  },
+  "a97002:p7:st1:s04": {
+   "type": "symbol",
+   "id": "a97002:p7:st1:s04",
+   "formula_id": null,
+   "page": 7,
+   "bbox": [
+    321.31,
+    529.68,
+    538.52,
+    544.03
+   ],
+   "symbol_raw": "α",
+   "description_he_raw": "זווית בין הכוחF לציר ה-x",
+   "unit_raw": "°",
+   "symbol_latex": "\\alpha",
+   "var": "alpha",
+   "description_he": "זווית בין הכוח F לציר ה-x",
+   "description_ru": "угол между силой F и осью x",
+   "unit": "°",
+   "status": {
+    "recognition": "extracted",
+    "language_review": "producer_checked",
+    "math_review": "not_applicable",
+    "owner_status": "none"
+   }
+  }
+ },
+ "pages": {
+  "7": [
+   "a97002:p7",
+   "a97002:p7:b001",
+   "a97002:p7:b002",
+   "a97002:p7:b003",
+   "a97002:p7:b004",
+   "a97002:p7:b005",
+   "a97002:p7:b006",
+   "a97002:p7:b007",
+   "a97002:p7:b008",
+   "a97002:p7:f01",
+   "a97002:p7:f02",
+   "a97002:p7:st1:s01",
+   "a97002:p7:st1:s02",
+   "a97002:p7:st1:s03",
+   "a97002:p7:st1:s04",
+   "a97002:p7:fig4",
+   "a97002:p7:e-fy-cos",
+   "a97002:p7:fig4:r-angle-alpha",
+   "a97002:p7:fig4:r-force-f",
+   "a97002:p7:fig4:r-force-fx",
+   "a97002:p7:fig4:r-force-fy"
+  ],
+  "197": [
+   "a97002:p197",
+   "a97002:p197:b001",
+   "a97002:p197:b002",
+   "a97002:p197:b003",
+   "a97002:p197:b004",
+   "a97002:p197:b005",
+   "a97002:p197:b006",
+   "a97002:p197:b007",
+   "a97002:p197:f01",
+   "a97002:p197:f02",
+   "a97002:p197:f03",
+   "a97002:p197:f04",
+   "a97002:p197:fig79",
+   "a97002:p197:fig80",
+   "a97002:p197:fig79:r-input-speed-torque",
+   "a97002:p197:fig79:r-output-speed-torque",
+   "a97002:p197:fig79:r-shkiv-large",
+   "a97002:p197:fig79:r-shkiv-small",
+   "a97002:p197:fig80:r-angle-alpha-in",
+   "a97002:p197:fig80:r-angle-beta",
+   "a97002:p197:fig80:r-center-distance",
+   "a97002:p197:fig80:r-shkiv-large",
+   "a97002:p197:fig80:r-shkiv-large-inner",
+   "a97002:p197:fig80:r-shkiv-small"
+  ],
+  "282": [
+   "a97002:p282",
+   "a97002:p282:b001",
+   "a97002:p282:img01",
+   "a97002:p282:img02",
+   "a97002:p282:img03",
+   "a97002:p282:img01:r-diameter-d-inner",
+   "a97002:p282:img01:r-diameter-d-outer",
+   "a97002:p282:img01:r-diameter-d1-inner",
+   "a97002:p282:img01:r-diameter-d1-outer",
+   "a97002:p282:img01:r-diameter-d2-outer",
+   "a97002:p282:img01:r-radius-r1-inner",
+   "a97002:p282:img01:r-radius-r1-upper",
+   "a97002:p282:img01:r-radius-r2-inner",
+   "a97002:p282:img01:r-radius-r2-upper",
+   "a97002:p282:img01:r-width-b",
+   "a97002:p282:img02:t-radial-factors",
+   "a97002:p282:img03:t-catalogue-d20-d40"
+  ],
+  "284": [
+   "a97002:p284",
+   "a97002:p284:b001",
+   "a97002:p284:img01",
+   "a97002:p284:img02",
+   "a97002:p284:img01:t-radial-factors",
+   "a97002:p284:img02:t-catalogue-d20"
+  ],
+  "287": [
+   "a97002:p287",
+   "a97002:p287:b001",
+   "a97002:p287:b002",
+   "a97002:p287:b003",
+   "a97002:p287:b004",
+   "a97002:p287:f01",
+   "a97002:p287:img01",
+   "a97002:p287:img01:r-bearing-a",
+   "a97002:p287:img01:r-bearing-b",
+   "a97002:p287:img01:r-consumer",
+   "a97002:p287:img01:r-gear-one",
+   "a97002:p287:img01:r-gear-two",
+   "a97002:p287:t-given-data",
+   "a97002:p287:x-example-2"
+  ],
+  "288": [
+   "a97002:p288",
+   "a97002:p288:img01",
+   "a97002:p288:img01:t-catalogue-d20-d40"
+  ],
+  "289": [
+   "a97002:p289",
+   "a97002:p289:b001",
+   "a97002:p289:b002",
+   "a97002:p289:b003",
+   "a97002:p289:b004",
+   "a97002:p289:b005",
+   "a97002:p289:b006",
+   "a97002:p289:b007",
+   "a97002:p289:b008",
+   "a97002:p289:b009",
+   "a97002:p289:b010",
+   "a97002:p289:f01",
+   "a97002:p289:f02",
+   "a97002:p289:f03",
+   "a97002:p289:f04",
+   "a97002:p289:f05",
+   "a97002:p289:f06",
+   "a97002:p289:f07",
+   "a97002:p289:f08",
+   "a97002:p289:f09",
+   "a97002:p289:f10",
+   "a97002:p289:f11",
+   "a97002:p289:e-y-coefficient"
+  ],
+  "485": [
+   "a97002:p485",
+   "a97002:p485:b001",
+   "a97002:p485:b002",
+   "a97002:p485:b003",
+   "a97002:p485:b004",
+   "a97002:p485:b005",
+   "a97002:p485:b006",
+   "a97002:p485:f01",
+   "a97002:p485:fig260",
+   "a97002:p485:e-core-x-tolerance-arithmetic-step1",
+   "a97002:p485:e-lower-deviation-sign",
+   "a97002:p485:fig260:r-deviation-limits",
+   "a97002:p485:fig260:r-dimension-20",
+   "a97002:p485:fig260:r-dimension-28",
+   "a97002:p485:fig260:r-lower-deviation",
+   "a97002:p485:fig260:r-lower-limit",
+   "a97002:p485:fig260:r-lower-size-deviation",
+   "a97002:p485:fig260:r-nominal-dimension",
+   "a97002:p485:fig260:r-nominal-size",
+   "a97002:p485:fig260:r-product",
+   "a97002:p485:fig260:r-tolerance-zone",
+   "a97002:p485:fig260:r-upper-deviation",
+   "a97002:p485:fig260:r-upper-limit",
+   "a97002:p485:fig260:r-upper-size-deviation",
+   "a97002:p485:fig260:r-zero-line",
+   "a97002:p485:x-tolerance-arithmetic"
+  ]
+ },
+ "terms": {
+  "a97002:term:galgal-mania": {
+   "type": "term",
+   "id": "a97002:term:galgal-mania",
+   "lemma_he": "גלגל מניע",
+   "niqqud": "גַּלְגַּל מֵנִיעַ",
+   "translit": "galgal meni'a",
+   "translit_ru": "гальгаль мениа",
+   "senses": [
+    {
+     "sense": "driving-pulley",
+     "ru": "ведущий шкив",
+     "context": "ременная передача (в зубчатой — ведущее колесо)"
+    }
+   ]
+  },
+  "a97002:term:galgal-muna": {
+   "type": "term",
+   "id": "a97002:term:galgal-muna",
+   "lemma_he": "גלגל מונע",
+   "niqqud": "גַּלְגַּל מוּנָע",
+   "translit": "galgal muna",
+   "translit_ru": "гальгаль муна",
+   "senses": [
+    {
+     "sense": "driven-pulley",
+     "ru": "ведомый шкив",
+     "context": "ременная передача (в зубчатой — ведомое колесо)"
+    }
+   ]
+  },
+  "a97002:term:masav-glila": {
+   "type": "term",
+   "id": "a97002:term:masav-glila",
+   "lemma_he": "מסב גלילה",
+   "niqqud": "מֵסַב גְּלִילָה",
+   "translit": "mesav glila",
+   "translit_ru": "месав глила",
+   "senses": [
+    {
+     "sense": "rolling-bearing",
+     "ru": "подшипник качения",
+     "context": "Каталожные данные подшипников; заголовок стр. 282"
+    }
+   ]
+  },
+  "a97002:term:mehirut-sivuv": {
+   "type": "term",
+   "id": "a97002:term:mehirut-sivuv",
+   "lemma_he": "מהירות סיבוב",
+   "niqqud": "מְהִירוּת סִבּוּב",
+   "translit": "mehirut sibuv",
+   "translit_ru": "мехирут сибув",
+   "senses": [
+    {
+     "sense": "rotational-speed",
+     "ru": "частота вращения",
+     "context": "n, об/мин (rpm)"
+    }
+   ]
+  },
+  "a97002:term:moment-sivuv": {
+   "type": "term",
+   "id": "a97002:term:moment-sivuv",
+   "lemma_he": "מומנט סיבוב",
+   "niqqud": "מוֹמֶנְט סִבּוּב",
+   "translit": "moment sibuv",
+   "translit_ru": "момент сибув",
+   "senses": [
+    {
+     "sense": "torque",
+     "ru": "крутящий момент",
+     "context": "Mt"
+    }
+   ]
+  },
+  "a97002:term:rekhiv": {
+   "type": "term",
+   "id": "a97002:term:rekhiv",
+   "lemma_he": "רכיב",
+   "niqqud": "רְכִיב",
+   "translit": "rekhiv",
+   "translit_ru": "рехив",
+   "senses": [
+    {
+     "sense": "force-component",
+     "ru": "составляющая",
+     "context": "составляющая силы по оси"
+    }
+   ]
+  },
+  "a97002:term:rekhiv-anakhi": {
+   "type": "term",
+   "id": "a97002:term:rekhiv-anakhi",
+   "lemma_he": "רכיב אנכי",
+   "niqqud": "רְכִיב אֲנָכִי",
+   "translit": "rekhiv anakhi",
+   "translit_ru": "рехив анахи",
+   "senses": [
+    {
+     "sense": "vertical-component",
+     "ru": "вертикальная составляющая",
+     "context": "Fy"
+    }
+   ]
+  },
+  "a97002:term:retsua": {
+   "type": "term",
+   "id": "a97002:term:retsua",
+   "lemma_he": "רצועה",
+   "niqqud": "רְצוּעָה",
+   "translit": "retsu'a",
+   "translit_ru": "рецуа",
+   "senses": [
+    {
+     "sense": "belt",
+     "ru": "ремень",
+     "context": "ременная передача"
+    }
+   ]
+  },
+  "a97002:term:sibolet": {
+   "type": "term",
+   "id": "a97002:term:sibolet",
+   "lemma_he": "סבולת",
+   "niqqud": "סִבֹּלֶת",
+   "translit": "sibolet",
+   "translit_ru": "сиболет",
+   "senses": [
+    {
+     "sense": "dimensional-tolerance",
+     "ru": "допуск",
+     "context": "Разность наибольшего и наименьшего предельных размеров, стр.485"
+    }
+   ]
+  },
+  "a97002:term:yakhas-timsoret": {
+   "type": "term",
+   "id": "a97002:term:yakhas-timsoret",
+   "lemma_he": "יחס תמסורת",
+   "niqqud": "יַחַס תִּמְסֹרֶת",
+   "translit": "yakhas timsoret",
+   "translit_ru": "яхас тимсорет",
+   "senses": [
+    {
+     "sense": "gear-ratio",
+     "ru": "передаточное отношение",
+     "context": "передачи: i = n_out / n_in"
+    }
+   ]
+  }
+ },
+ "findings": [
+  {
+   "code": "F_CORE_VERIFIED",
+   "ref": "a97002:p287:x-example-2#step1",
+   "line": 133,
+   "message": "шаг 1: Fa/C0 = 0.0315789, напечатано 0.0316"
+  },
+  {
+   "code": "F_CORE_VERIFIED",
+   "ref": "a97002:p287:x-example-2#step2",
+   "line": 133,
+   "message": "шаг 2: Fa/Fr = 0.3, напечатано 0.3"
+  },
+  {
+   "code": "F_CORE_VERIFIED",
+   "ref": "a97002:p287:x-example-2#step3",
+   "line": 133,
+   "message": "шаг 3: x*Fr+y*Fa = 2200, напечатано 2200"
+  },
+  {
+   "code": "F_CORE_MISMATCH",
+   "ref": "a97002:p485:x-tolerance-arithmetic#step1",
+   "line": 134,
+   "message": "шаг 1: u-d = -0.05, напечатано 0.15 — арифметика не сходится, кандидат в опечатку"
+  }
+ ],
+ "warnings": []
+}
