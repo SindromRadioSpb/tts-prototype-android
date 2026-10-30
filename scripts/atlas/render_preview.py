@@ -10,6 +10,7 @@ import argparse
 import html
 import os
 import pathlib
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -28,12 +29,14 @@ def e(text):
 
 
 def _dir(text):
-    for ch in str(text or ''):
+    text = str(text or '')
+    for ch in text:
         if '\u05d0' <= ch <= '\u05ea':
             return 'rtl'
         if ch.isalpha():
             return 'ltr'
-    return 'rtl'
+    # numbers and signs only ('+0.2 20-0.1'): left to right, or RTL would reorder them
+    return 'ltr' if any(ch.isdigit() for ch in text) else 'rtl'
 
 
 def he(text, tag='div', cls='he'):
@@ -54,7 +57,7 @@ class Page:
         by = lambda t: [o for o in self.all if o['type'] == t]
         self.blocks = sorted(by('block'), key=lambda o: o.get('order', 0))
         self.formulas, self.figures, self.examples = by('formula'), by('figure'), by('example')
-        self.regions, self.tables, self.errata = by('region'), by('table'), by('erratum')
+        self.regions, self.tables, self.errata = by('region'), by('table'), merge_core_errata(by('erratum'))
         self.symbols = by('symbol')
         self.objects = objs
         self.translated = any(b.get('ru') for b in self.blocks)
@@ -103,7 +106,7 @@ def _badge(value):
     return f'<span class="badge b-{e(value)}" title="{e(value)}">{e(STATUS_RU.get(value, value))}</span>'
 
 
-def _figure_html(page, fig, source_dir, out_dir, numbered=False):
+def _figure_html(page, fig, source_dir, out_dir, numbered=False, tablefig=False):
     x0, y0, x1, y1 = fig['bbox']
     w, h = x1 - x0, y1 - y0
     regions = [r for r in page.regions if r.get('parent') == fig['id']]
@@ -117,26 +120,70 @@ def _figure_html(page, fig, source_dir, out_dir, numbered=False):
         labels.append(f'<span class="rg" style="{style}" data-region="{e(r["id"])}" data-links="{e(links)}">{text}</span>')
         items.append(f'<li data-region="{e(r["id"])}" data-links="{e(links)}"><b>{mark}</b> {he(r.get("label_he", ""), "span", "he inl")} — {e(r.get("label_ru", ""))}</li>')
     cap = f'<figcaption>{he(fig.get("caption_he", ""), "span", "he inl")} — {e(fig.get("caption_ru", ""))} <small>{e(fig["id"])}</small></figcaption>'
-    return (f'<figure class="fig"><div class="figbox"><img src="{e(_asset(source_dir, out_dir, fig["crop"]))}" alt="{e(fig["id"])}">'
+    return (f'<figure class="fig{" tablefig" if tablefig else ""}"><div class="figbox"><img src="{e(_asset(source_dir, out_dir, fig["crop"]))}" alt="{e(fig["id"])}">'
             f'{"".join(labels)}</div>{cap}<ol class="regions">{"".join(items)}</ol></figure>')
 
 
+def _cell_html(c):
+    unit = c.get('unit') or ''
+    text = c['ru']
+    show_unit = unit and unit not in ('—', '-') and not text.rstrip().endswith(unit)
+    return (f'<td colspan="{c["colspan"]}" rowspan="{c["rowspan"]}" dir="{_dir(text)}">{e(text)}'
+            f'{"<small> " + e(unit) + "</small>" if show_unit else ""}</td>')
+
+
+def _is_header_row(cells):
+    return not any(re.fullmatch(r'[\d.,\s▪•+\-−]+', c['ru'] or '') and re.search(r'\d', c['ru'] or '') for c in cells)
+
+
 def _table_html(table):
-    rows = {}
-    for c in table['cells']:
-        rows.setdefault(c['row'], []).append(c)
-    body = ''.join('<tr>' + ''.join(
-        f'<td colspan="{c["colspan"]}" rowspan="{c["rowspan"]}">{e(c["ru"])}{"<small> " + e(c["unit"]) + "</small>" if c.get("unit") else ""}</td>'
-        for c in sorted(cells, key=lambda c: c['col'])) + '</tr>' for _, cells in sorted(rows.items()))
+    """Cells are placed on a grid by row/col/colspan/rowspan, so sparse rows keep their columns."""
+    cells = table['cells']
+    width = max(c['col'] + c['colspan'] for c in cells)
+    covered = set()
+    for c in cells:
+        for r in range(c['row'], c['row'] + c['rowspan']):
+            for k in range(c['col'], c['col'] + c['colspan']):
+                if (r, k) != (c['row'], c['col']):
+                    covered.add((r, k))
+    by_pos = {(c['row'], c['col']): c for c in cells}
+    rows_html, header_rows = [], 0
+    for r in sorted({c['row'] for c in cells}):
+        tds = []
+        for k in range(width):
+            if (r, k) in by_pos:
+                tds.append(_cell_html(by_pos[(r, k)]))
+            elif (r, k) not in covered:
+                tds.append('<td></td>')
+        rows_html.append('<tr>' + ''.join(tds) + '</tr>')
+        if len(rows_html) == header_rows + 1 and _is_header_row([c for c in cells if c['row'] == r]):
+            header_rows += 1
     title = f'<caption>{e(table.get("title_ru", ""))} {he(table.get("title_he", ""), "span", "he inl")}</caption>'
-    return f'<div class="tw"><table class="data">{title}{body}</table></div>'
+    head = f'<thead>{"".join(rows_html[:header_rows])}</thead>' if header_rows else ''
+    wide = ' wide' if width > 8 else ''
+    return f'<div class="tw"><table class="data{wide}">{title}{head}<tbody>{"".join(rows_html[header_rows:])}</tbody></table></div>'
+
+
+def merge_core_errata(errata):
+    """A core arithmetic finding on the same page as a supplier erratum that quotes the same printed value
+    becomes part of that erratum instead of a second card."""
+    supplier = [x for x in errata if x.get('origin') != 'core']
+    out = [dict(x) for x in supplier]
+    for core in (x for x in errata if x.get('origin') == 'core'):
+        host = next((s for s in out if s.get('page') == core.get('page') and core['as_printed'] and core['as_printed'] in s['as_printed']), None)
+        if host is not None:
+            host['core_note'] = core.get('explanation_ru', '')
+        else:
+            out.append(dict(core))
+    return out
 
 
 def _erratum_html(x):
     origin = ' (найдено ядром)' if x.get('origin') == 'core' else ''
-    proposed = f' → <b>верно:</b> <code>{e(x["proposed"])}</code>' if x.get('proposed') else ''
+    proposed = f' → <b>предлагаемое исправление:</b> <code>{e(x["proposed"])}</code>' if x.get('proposed') else ''
+    core = f'<div class="why">Пересчёт ядра: {e(x["core_note"])}</div>' if x.get('core_note') else ''
     return (f'<div class="erratum">⚠ <b>в книге:</b> <code>{e(x["as_printed"])}</code>{proposed}{origin}'
-            f'<div class="why">{e(x.get("explanation_ru", ""))} <small>ждёт подтверждения владельца</small></div></div>')
+            f'<div class="why">{e(x.get("explanation_ru", ""))} <small>ждёт подтверждения владельца</small></div>{core}</div>')
 
 
 HEAD = """<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -190,7 +237,12 @@ table.pb{width:100%;border-collapse:collapse;table-layout:fixed}table.pb td{bord
 td.pr{width:50%}td.ph{font-size:12.5px}.fx{text-align:center;break-inside:avoid;margin:4px 0}.fx .katex-display{margin:2px 0}
 .fxv{font-size:10.5px;text-align:center;color:#333}.fig{break-inside:avoid}.figbox img{max-height:52mm}
 .terms{border-top:1px solid #999;margin-top:6px;padding-top:3px;font-size:10.5px;columns:2}.terms div{break-inside:avoid}
-.foot{font-size:9px;color:#888;margin-top:4px}.rg i.n{display:inline}"""
+.rg i.n{display:inline;left:auto;right:100%;top:-2px;margin:0 2px 0 0}
+table.sheetwrap{width:100%;border-collapse:collapse}table.sheetwrap>thead>tr>td,table.sheetwrap>tbody>tr>td{padding:0;border:0}
+table.data thead td{font-weight:600;background:#f2f4f5}table.data tr{break-inside:avoid}
+table.data.wide{font-size:8.5px;width:100%}table.data.wide td{padding:1px 2px}
+.fig.tablefig .figbox img{max-height:none;width:100%}
+.running{position:fixed;bottom:0;left:0;right:0;font-size:9px;color:#888;text-align:center}"""
 
 
 def _screen_page(page, terms, source_dir, out_dir, findings):
@@ -264,8 +316,9 @@ def _print_page(page, terms, source_dir, out_dir):
         vs = ' · '.join(f'{tex_inline(v["latex"])} — {e(v["ru"])}{", " + e(v["unit"]) if v["unit"] else ""}' for v in p.formula_vars(f))
         body += f'<div class="fx"><div data-tex="{e(f["display_latex"])}"></div><div class="fxv">{vs}</div></div>'
         body += ''.join(_erratum_html(x) for x in p.errata_for(f['id']))
+    table_parents = {t.get('parent') for t in p.tables}
     for fig in p.figures:
-        body += _figure_html(p, fig, source_dir, out_dir, numbered=True)
+        body += _figure_html(p, fig, source_dir, out_dir, numbered=True, tablefig=fig['id'] in table_parents)
     for t in p.tables:
         body += _table_html(t)
     for ex in p.examples:
@@ -276,8 +329,10 @@ def _print_page(page, terms, source_dir, out_dir):
     if tl:
         body += '<div class="terms">' + ''.join(
             f'<div>{he(t["lemma_he"], "span", "he inl")} · {he(t["niqqud"], "span", "he inl")} · <i>{e(t["translit"])}</i> — {e(s["ru"])}</div>' for t, s in tl) + '</div>'
-    return (f'<section class="sheet"><div class="shead"><span class="no">стр. {p.n}</span><span class="ttl">{title}</span></div>{body}'
-            f'<div class="foot">LinguistPro · атлас נוסחאון 97002 · предпросмотр пилота, не вычитан владельцем</div></section>')
+    # the header sits in a table head, so the browser repeats 'стр. N' on every sheet this page spills onto
+    head = f'<div class="shead"><span class="no">стр. {p.n}</span><span class="ttl">{title}</span></div>'
+    return (f'<section class="sheet"><table class="sheetwrap"><thead><tr><td>{head}</td></tr></thead>'
+            f'<tbody><tr><td>{body}</td></tr></tbody></table></section>')
 
 
 def build_preview(graph, source_dir, out_dir, title='Атлас 97002 — предпросмотр пилота', pages=None):
@@ -298,7 +353,9 @@ def build_preview(graph, source_dir, out_dir, title='Атлас 97002 — пре
               + f'<header class="top"><h1>{e(title)}</h1>{summary}</header>'
               + ''.join(_screen_page(p, graph['terms'], source_dir, out_dir, findings) for p in page_objs) + TAIL.format(katex=KATEX))
     printed = (HEAD.format(title=e(title) + ' — печать', katex=KATEX, css=PRINT_CSS)
-               + ''.join(_print_page(p, graph['terms'], source_dir, out_dir) for p in page_objs) + TAIL.format(katex=KATEX))
+               + ''.join(_print_page(p, graph['terms'], source_dir, out_dir) for p in page_objs)
+               + '<div class="running">LinguistPro · атлас נוסחאון 97002 · предпросмотр пилота, не вычитан владельцем</div>'
+               + TAIL.format(katex=KATEX))
     for name, text in (('screen.html', screen), ('print.html', printed)):
         with open(os.path.join(out_dir, name), 'w', encoding='utf-8', newline='\n') as fh:
             fh.write(text)
