@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Выпустить для ИИ-наставника dots рабочий контракт поставки — JSON Schema, валидатор, вычислительное ядро, эталон, инструкцию — и исходный пакет пилотных страниц 7, 197, 282, 284, 288, 289, 485, а также импорт, который превращает ответ dots в граф атласа.
+**Goal:** Выпустить для ИИ-наставника dots рабочий контракт поставки — JSON Schema, валидатор, вычислительное ядро, эталон, инструкцию — и исходный пакет пилотных страниц 7, 197, 282, 284, 287, 288, 289, 485, а также импорт, который превращает ответ dots в граф атласа.
 
 **Architecture:** Весь инструментарий P1 — Python (stdlib) в `scripts/atlas/`, потому что dots запускает проверку у себя в Python-песочнице, а импорт — сборочный шаг, не сервер. Экстрактор (PyMuPDF) выдаёт исходный пакет с нашими ID, bbox, сырым текстом и вырезками. Валидатор проверяет пакет содержимого dots против исходного пакета: структуру по JSON Schema (своя минимальная проверка подмножества схемы — один источник истины), ссылки, сохранность букв иврита, чисел, геометрию, оси статусов и расчёты ядра. Импорт присваивает постоянные ID новым объектам и собирает граф `linguistpro.atlas-graph.1.0.0` — вход для ридера (P2).
 
@@ -14,7 +14,7 @@
 
 - Валидатор, ядро, проверка схемы и импорт — только stdlib Python ≥3.10: они уходят dots в архиве и должны запускаться без установки пакетов.
 - Схемы: исходный пакет `linguistpro.atlas-source-pack.1.0.0`, пакет содержимого `linguistpro.atlas-content-pack.1.0.0`, граф `linguistpro.atlas-graph.1.0.0`.
-- `atlas_id` = `a97002`. ID: страница `a97002:p197`, блок `a97002:p197:b004`, формула `a97002:p197:f01`, символ `a97002:p197:f01:s03`, рисунок `a97002:p197:fig79` (по номеру «איור N», иначе `…:img02`), пример `a97002:p288:ex1`, термин `a97002:term:<slug>`, ссылка на смысл `a97002:term:<slug>#<sense>`. Номер страницы в ID — без ведущих нулей (`p7`, `p197`); номера объектов — с ведущими нулями: `b001`, `f01`, `s01`, `img01`.
+- `atlas_id` = `a97002`. ID: страница `a97002:p197`, блок `a97002:p197:b004`, формула `a97002:p197:f01`, символ `a97002:p7:st1:s03` (по таблице обозначений `st<k>`, не по формуле — привязка к формуле отдельное поле и может меняться), рисунок `a97002:p197:fig79` (по номеру «איור N», иначе `…:img02`), пример `a97002:p288:ex1`, термин `a97002:term:<slug>`, ссылка на смысл `a97002:term:<slug>#<sense>`. Номер страницы в ID — без ведущих нулей (`p7`, `p197`); номера объектов — с ведущими нулями: `b001`, `f01`, `s01`, `img01`.
 - Временный ID нового объекта от dots: `new:<ID родителя>:<метка>`, метка `^[a-z0-9]+(-[a-z0-9]+)*$`, уникальна в пределах родителя. Постоянный ID при импорте: `<ID родителя>:r-<метка>` (область), `:t-<метка>` (таблица), `:e-<метка>` (опечатка), `:x-<метка>` (пример на растровой странице). Решение плана: ID по метке, а не «следующий номер», — стабилен между ревизиями поставки (§13 спеки обновляется в Task 6).
 - Координаты: страница = индекс PDF с 1 (совпадает с печатным); bbox `[x0,y0,x1,y1]` в пунктах PDF, начало — левый верхний угол, y вниз; страница 595×842 pt.
 - Оси статусов: `recognition` (`extracted | ocr_high | ocr_low`), `language_review` (`unreviewed | producer_checked | owner_reviewed`), `math_review` (`unchecked | core_verified | core_mismatch | not_applicable`), `owner_status` (`none | owner_confirmed | owner_rejected`). Поставщик может ставить только `recognition ∈ {ocr_high, ocr_low}` (и только у объектов без текстового слоя) и `language_review ∈ {unreviewed, producer_checked}`.
@@ -144,14 +144,14 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 - Produces:
   - Чистые функции (тестируются без PDF): `normalize_rtl_line(text: str) -> str` (перенос ведущей `.,:;` в конец у строки с ивритом; удаление управляющих символов bidi U+200E/200F/202A–202E); `classify_block(text: str) -> str` (`kind_guess`); `is_formula_text(text: str) -> bool` (символы U+1D400–U+1D7FF или `=`/`√` при доле ивритских букв < 30 %); `parse_symbol_rows(lines: list[str]) -> list[dict]` (строки таблицы после заголовка `סמל … תיאור … יחידות` → `{symbol_raw, description_he_raw, unit_raw}`); `figure_number(caption: str) -> int | None` (`איור 79 - …` → 79); `logo_xrefs(doc_image_counts: dict[int,int], page_count: int) -> set[int]` (xref, встречающиеся на > 50 % страниц).
   - `extract(pdf_path: str, pages: list[int], out_dir: str) -> dict` — пишет пакет, возвращает manifest.
-  - CLI: `python scripts/atlas/atlas_extract.py --pdf <файл> --pages 7,197,282,284,288,289,485 --out atlas/a97002/pilot/source-pack`.
+  - CLI: `python scripts/atlas/atlas_extract.py --pdf <файл> --pages 7,197,282,284,287,288,289,485 --out atlas/a97002/pilot/source-pack`.
 
 Правила, которые тест не определяет однозначно:
 - Блоки = блоки `page.get_text('dict')`, кроме колонтитула (номер страницы в нижних 8 %); порядок `order` — сверху вниз, справа налево внутри строки блоков.
 - Формула: блок, для которого `is_formula_text`; `source_text` — склейка спанов в порядке x, без нормализации; рядом стоящие по вертикали (≤ 6 pt) формульные блоки — одна формула.
 - Таблица обозначений: блоки после заголовка `סמל`/`תיאור`/`יחידות` до следующего нетабличного блока → `symbol`, `formula_id` = последняя формула выше **на этой же странице**; иначе `null` и предупреждение `symbol_unbound:<id>` в `manifest.warnings` (соседство через страницы — не доказательство связи, в пилоте между страницами большие пропуски). Привязку несвязанного символа может предложить поставщик полем `symbol.formula_id` (→ `W_SYMBOL_BOUND_BY_PRODUCER`, на просмотр владельцу); менять привязку, выданную экстрактором, — `E_SYMBOL_BINDING`.
 - Рисунок: изображение не из `logo_xrefs`; `number` и `caption_block_id` — от ближайшей ниже подписи «איור N» в пределах 40 pt; подпись без изображения рядом → предупреждение `caption_without_image:<page>:<N>`.
-- Страница с < 50 символами текста → `has_text_layer: false`; на ней все изображения — рисунки; если есть подпись/заголовок «דוגמה» или страница стоит перед страницей, начинающейся с «פתרון», — объект `example` с `image_only: true` (стр. 288).
+- Страница с < 50 символами текста → `has_text_layer: false`; на ней все изображения — рисунки. (Правило «растровая страница перед «פתרון» = условие примера» отменено при реализации: стр. 284 — приложение А к примеру 1, стр. 288 — рисунок к примеру 2, условие которого — текст на стр. 287. `image_only` всегда `false` от экстрактора; примеры без заголовка «דוגמה» создаёт поставщик через `new:`.)
 - Пример: блок, начинающийся с `דוגמה`, → `example` с `heading_block_id`.
 - `manifest.source.filename` — только имя файла.
 
@@ -161,7 +161,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 - [ ] **Step 4:** тесты → PASS.
 - [ ] **Step 5: Интеграционный тест по живому PDF** — `test_pilot_pdf` пропускается (`skipUnless`), если не задана переменная окружения `ATLAS_SOURCE_PDF`. Проверки: 7 страниц; на стр. 197 есть `figure` с `number` 79 и 80 и формула, `source_text` которой содержит `𝜉`; на стр. 7 есть символы `Fx`, `Fy`, `F`, `α`, привязанные к формуле; стр. 282, 284, 288 — `has_text_layer: false` (288) или рисунки-таблицы (282, 284); стр. 288 → `example` с `image_only: true`; каждый объект проходит `check(source-pack)`; ни одна строка не содержит `G:\`.
 - [ ] **Step 6:** выполнить CLI на пилоте и сделать `contact-sheet.png` (миниатюры страниц с рамками bbox: блоки — серые, формулы — бирюзовые, рисунки — оранжевые, символы — фиолетовые). **Осмотреть глазами** все 7 страниц; расхождения разметки — исправить правила и повторить. Записать в `manifest.warnings` то, что осталось неразмеченным.
-- [ ] **Step 7: Commit** `feat(atlas): source-pack extractor and pilot pages 7,197,282,284,288,289,485`
+- [ ] **Step 7: Commit** `feat(atlas): source-pack extractor and pilot pages 7,197,282,284,287,288,289,485`
 
 ---
 
@@ -215,7 +215,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 Эталон — образец качества для dots, не весь пилот. Содержит:
 - стр. 7 — **все** блоки (he, he_niqqud, translit, translit_ru, ru), формулы `Fx = F·cos α`, `Fy = F·sin α` (display_latex, compute, `angle_unit: "deg"`), символы `Fx, Fy, F, α` с переводом и единицами, рисунок 4 с подписью и ≥ 2 областями (`new:a97002:p7:fig4:…`), опечатка `new:a97002:p7:e-fy-cos` (`as_printed: "Fy = F ∙cos α° (רכיב אנכי)"`, `proposed: "Fy = F ∙ sin α°"`, объяснение);
 - стр. 197 — все блоки, обе формулы `i` (`n_out/n_in` и `d·(1−ξ)/D`) с предупреждающим `ambiguity_note` о соглашении `i = n_out/n_in`, формула длины ремня `L` с compute, рисунки 79 и 80 с областями `shkiv-small`, `shkiv-large`, `center-distance`, `angle-beta`;
-- стр. 289 — пример 2: шаг `x*Fr+y*Fa` с `bindings {x: 0.56, Fr: 2000, y: 2, Fa: 600}`, `printed: "2200"` (должен дать `F_CORE_MISMATCH`) и шаг `Fa/C0 → 0.0316` (должен дать `F_CORE_VERIFIED`);
+- стр. 287–289 — пример 2 (`new:a97002:p287:example-2`; условие — стр. 287, рисунок — стр. 288, решение — стр. 289): шаг `x*Fr+y*Fa` с `bindings {x: 0.56, Fr: 2000, y: 2, Fa: 600}`, `printed: "2200"` (должен дать `F_CORE_MISMATCH`) и шаг `Fa/C0 → 0.0316` (должен дать `F_CORE_VERIFIED`);
 - стр. 282 — одна растровая таблица `new:a97002:p282:t-…` с 2 строками ячеек как образец структуры;
 - ≥ 6 терминов со смыслами (`retsua#belt`, `galgal-mania#driving-pulley`, `galgal-muna#driven-pulley`, `moment-sivuv#torque`, `mehirut-sivuv#rotational-speed`, `kiv-anchi#vertical-component`);
 - `header.pages = [7, 197]` (покрытие требуется только для них), `report` с одним расхождением.
@@ -265,7 +265,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 - Consumes: всё выше.
 - Produces: `build_bundle(out_zip: str) -> list[str]` — список путей в архиве; CLI `python scripts/atlas/build_dots_bundle.py --out docs/research/engineering-atlas/2026-10-30-pilot-pack/a97002-pilot-for-dots.zip`.
 
-Архив (пути внутри): `README.ru.md` (= `README.dots.ru.md`), `schemas/*.json`, `tools/{atlas_compute.py, atlas_schema.py, atlas_validate.py}`, `source-pack/**`, `reference/reference-content.jsonl`, `TASK.ru.md` (что сдать: `content-pilot.jsonl` по страницам 7, 197, 282, 284, 288, 289, 485).
+Архив (пути внутри): `README.ru.md` (= `README.dots.ru.md`), `schemas/*.json`, `tools/{atlas_compute.py, atlas_schema.py, atlas_validate.py}`, `source-pack/**`, `reference/reference-content.jsonl`, `TASK.ru.md` (что сдать: `content-pilot.jsonl` по страницам 7, 197, 282, 284, 287, 288, 289, 485).
 
 `README.dots.ru.md` — разделы: роли и что нельзя (`owner_*`, `math_review`, собственные ID); формат JSONL и порядок строк; координаты (с примером пересчёта пикселей вырезки 200 dpi в пункты: `pt = px · 72 / 200 + bbox родителя x0/y0`); временные ID и метки; формулы (три поля, грамматика, `angle_unit`, `compute_absent_reason` — не подгонять формулу); язык (`he` — исправленный по изображению текст, `he_fix_note` при расхождении с `he_raw`, транслит в конвенции эталона, «одно значение — один перевод», `ambiguity_note`); таблицы; примеры (шаги с `bindings` и `printed`); опечатки (только предложение, подтверждает владелец); запуск проверки `python tools/atlas_validate.py --source source-pack --content content-pilot.jsonl`; что значит каждый код ошибки; «валидатор не заменяет смысловую вычитку».
 

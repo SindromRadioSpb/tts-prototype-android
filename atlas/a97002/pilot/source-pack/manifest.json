@@ -1,0 +1,37 @@
+{
+  "schema": "linguistpro.atlas-source-pack.1.0.0",
+  "atlas_id": "a97002",
+  "source": {
+    "filename": "נוסחאון 97002 06 ינואר 2026.pdf",
+    "sha256": "e5f20b1a41257ee84978c45568576205f04dc1f69fdb4be9adf541b5ca7b73e3",
+    "page_count": 564,
+    "page_size_pt": [
+      595,
+      842
+    ]
+  },
+  "extractor": {
+    "version": "1.0.0",
+    "commit": "8b002079"
+  },
+  "pages": [
+    7,
+    197,
+    282,
+    284,
+    287,
+    288,
+    289,
+    485
+  ],
+  "logo_xref_digests": [
+    "1ac854340462b7af22f9605bb49b2522ffc93ec2125b46425a293e39f7023f42",
+    "fd1e30b5b94f82f361e0d0a73b9f8484bd389fd29154141f09587708c8611650"
+  ],
+  "warnings": [
+    "symbol_unbound:a97002:p7:st1:s01",
+    "symbol_unbound:a97002:p7:st1:s02",
+    "symbol_unbound:a97002:p7:st1:s03",
+    "symbol_unbound:a97002:p7:st1:s04"
+  ]
+}
