@@ -7,7 +7,6 @@
   'use strict';
 
   var HEB = /[א-ת]/;
-  var CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 
   function makeT(t) {
     return function (key, fb) {
@@ -103,7 +102,7 @@
       var list = h('ol', { cls: 'atlas-regions' });
       var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
       fig.regions.forEach(function (r, k) {
-        var mark = CIRCLED[k] || String(k + 1);
+        var mark = String(k + 1);
         var style = 'left:' + ((r.bbox[0] - fig.bbox[0]) / w * 100).toFixed(2) + '%;top:' + ((r.bbox[1] - fig.bbox[1]) / ht * 100).toFixed(2) +
           '%;width:' + ((r.bbox[2] - r.bbox[0]) / w * 100).toFixed(2) + '%;height:' + ((r.bbox[3] - r.bbox[1]) / ht * 100).toFixed(2) + '%';
         var links = (r.links || []).join(' ');
@@ -112,7 +111,7 @@
         box.appendChild(h('button', { cls: 'atlas-rg', type: 'button', style: style, 'data-region': r.id, 'data-links': links,
           'aria-label': r.label_ru || r.label_he }, [numbered ? h('i', { cls: 'n', text: mark })
           : h('i', { cls: 't' + flip }, [h('span', { cls: 'atlas-l-ru', text: r.label_ru || r.label_he }), h('span', { cls: 'atlas-l-he', lang: 'he', text: r.label_he || r.label_ru })])]));
-        list.appendChild(h('li', { 'data-region': r.id, 'data-links': links }, [h('b', { text: mark + ' ' }),
+        list.appendChild(h('li', { 'data-region': r.id, 'data-links': links }, [h('b', { cls: 'atlas-mark', text: mark }), ' ',
           h('bdi', { lang: 'he', dir: dirOf(r.label_he), text: r.label_he || '' }), h('span', { cls: 'atlas-l-ru', text: ' — ' + (r.label_ru || '') })]));
       });
       var cap = h('figcaption', {}, [h('bdi', { lang: 'he', dir: 'rtl', text: fig.caption_he || '' }),
@@ -370,26 +369,52 @@
 
     var onState = typeof opts.onState === 'function' ? opts.onState : function () {};
 
-    // the page in view is remembered in the address so a reload or a shared link returns to it (acceptance UI01):
-    // the page that crosses a line just under the sticky bars is the one being read
+    // The page in view is kept in the address so a reload or a shared link returns to it (acceptance UI01).
+    // A jump puts the page right under the sticky bars and that page is what the address keeps; scrolling
+    // after it reports the page under the bars (dots retest P2-02: the address drifted one page back).
+    var track = { last: 0, quietUntil: 0, input: null };
+    function barBottom() {
+      var bar = view.querySelector('.atlas-toolbar'), win = doc.defaultView;
+      if (!bar || !win || !win.getComputedStyle) return 0;
+      return (parseFloat(win.getComputedStyle(bar).top) || 0) + bar.offsetHeight;
+    }
+    function goToPage(n) {
+      var el = doc.getElementById('atlas-p' + n), win = doc.defaultView;
+      if (!el) return false;
+      track.last = n; track.quietUntil = Date.now() + 1500;
+      if (track.input) track.input.value = String(n);
+      function place() {
+        if (win && win.scrollTo && el.getBoundingClientRect) win.scrollTo(0, Math.max(0, win.pageYOffset + el.getBoundingClientRect().top - barBottom() - 6));
+        else if (el.scrollIntoView) el.scrollIntoView();
+      }
+      place();
+      // formulas and fonts settle after the first paint: place the page again unless the reader has moved on
+      setTimeout(function () { if (Date.now() < track.quietUntil && track.last === n) place(); }, 500);
+      return true;
+    }
     function trackPages(id, section) {
       stopTracking();
-      var win = doc.defaultView, timer = null, last = 0;
+      var win = doc.defaultView, timer = null;
       if (!win || !win.addEventListener) return;
       function current() {
-        var line = 140, pages = section.querySelectorAll('.atlas-page'), hit = 0;
+        var line = barBottom() + 24, pages = section.querySelectorAll('.atlas-page'), hit = 0;
         for (var i = 0; i < pages.length; i++) {
-          var r = pages[i].getBoundingClientRect();
-          if (r.top <= line) hit = Number(pages[i].getAttribute('data-page')); else break;
+          if (pages[i].getBoundingClientRect().top <= line) hit = Number(pages[i].getAttribute('data-page')); else break;
         }
         return hit;
       }
       function onScroll() {
         if (!section.isConnected) { stopTracking(); return; }  // the Room replaced this view (Back, another corpus)
+        if (Date.now() < track.quietUntil) return;             // our own jump is still settling
         clearTimeout(timer);
         timer = setTimeout(function () {
-          if (!section.isConnected) return;
-          var n = current(); if (n && n !== last) { last = n; onState(id, n, 'replace'); }
+          if (!section.isConnected || Date.now() < track.quietUntil) return;
+          var n = current();
+          if (n && n !== track.last) {
+            track.last = n;
+            if (track.input) track.input.value = String(n);
+            onState(id, n, 'replace');
+          }
         }, 400);
       }
       win.addEventListener('scroll', onScroll, { passive: true });
@@ -408,10 +433,12 @@
           R.h('label', { cls: 'atlas-toggle' }, [R.h('input', { type: 'checkbox', 'data-toggle': 'hebrew-only' }), ' ' + T('atlas.hebrewOnly', 'только иврит')]),
           R.h('input', { type: 'search', cls: 'atlas-search', placeholder: T('atlas.search', 'Поиск в разделе: иврит или русский'), 'aria-label': T('atlas.search', 'Поиск в разделе: иврит или русский') }),
           R.h('span', { cls: 'atlas-search-count', 'aria-live': 'polite' }),
-          R.h('button', { type: 'button', cls: 'atlas-print-btn', text: T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } })]);
+          R.h('button', { type: 'button', cls: 'atlas-print-btn', title: T('atlas.print', 'Печать раздела'), 'aria-label': T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } },
+            [R.h('span', { cls: 'atlas-print-label', text: T('atlas.print', 'Печать раздела') }), R.h('span', { cls: 'atlas-print-short', 'aria-hidden': 'true', text: T('atlas.printShort', 'Печать') })])]);
         var section = R.renderSection(T, data, {});
         view.replaceChildren(bar, section);
         wireInteractions(section);
+        track.input = bar.querySelector('.atlas-pagejump input');
         bar.querySelector('[data-toggle="hebrew-only"]').addEventListener('change', function (ev) { section.classList.toggle('atlas-hebrew-only', ev.target.checked); });
         // any page of the book without going back to the contents
         bar.querySelector('.atlas-pagejump').addEventListener('submit', function (ev) {
@@ -419,9 +446,7 @@
           var n = Number(bar.querySelector('.atlas-pagejump input').value);
           if (!n) return;
           if (data.first <= n && n <= data.last) {
-            var el = doc.getElementById('atlas-p' + n);
-            if (el && el.scrollIntoView) el.scrollIntoView();
-            onState(id, n, 'replace');
+            if (goToPage(n)) onState(id, n, 'replace');
             return;
           }
           loadIndex().then(function (ix) {
@@ -438,7 +463,7 @@
         search.addEventListener('input', function (ev) {
           var q = String(ev.target.value || '').trim().toLowerCase();
           hits = []; at = 0;
-          section.querySelectorAll('.atlas-row, .atlas-table td, .atlas-formula, .atlas-regions li').forEach(function (row) {
+          section.querySelectorAll('.atlas-row, .atlas-table td, .atlas-formula, .atlas-regions li, .atlas-steps li, .atlas-erratum').forEach(function (row) {
             var hit = !!q && row.textContent.toLowerCase().indexOf(q) >= 0;
             row.classList.toggle('atlas-hit', hit);
             if (hit) hits.push(row);
@@ -453,7 +478,9 @@
           at = (at + (ev.shiftKey ? hits.length - 1 : 1)) % hits.length;
           showHit();
         });
-        if (page) { var target = doc.getElementById('atlas-p' + page); if (target && target.scrollIntoView) target.scrollIntoView(); }
+        track.last = page || data.first;
+        if (track.input) track.input.value = String(track.last);
+        if (page) goToPage(page);
         if (!how.restore) onState(id, page || data.first, 'push');
         trackPages(id, section);
         return data;

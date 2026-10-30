@@ -13621,7 +13621,8 @@ function corpusFilterChrome(id, searchField, filterPanel, sortField, stateReader
 // half of the hybrid). ← and «Библиотека» both go to the hub (the B half).
 function corpusSwitcherBar(currentId) {
   const bar = el('div', { class: 'corpus-crumb corpus-switchbar' });
-  const back = el('button', { class: 'corpus-back room-vf1-focus', attrs: { type: 'button', 'aria-label': tt('room.corpus.back', 'Назад') } });
+  // ← leads to the Library (hub), not one step back: say so (atlas retest P3-01)
+  const back = el('button', { class: 'corpus-back room-vf1-focus', attrs: { type: 'button', 'aria-label': tt('room.hub.crumb', 'Библиотека'), title: tt('room.hub.crumb', 'Библиотека') } });
   setRoomIcon(back, 'lp-icon-chevron-left', '←', 'room-icon-directional');
   back.addEventListener('click', () => corpusNavToCorpus('hub'));
   bar.appendChild(back);

@@ -208,3 +208,27 @@ test('the section bar jumps to any page of the book without the contents', async
   assert.ok(loaded.some((u) => u.endsWith('index.json')));
   assert.ok(loaded.some((u) => /sections\/s25-size-tolerance\.json$/.test(u)), 'opens the section that holds page 485');
 });
+
+// ---- dots retest 2026-10-30 (docs/research/engineering-atlas/acceptance/2026-10-30-dots-retest/) ----
+test('P2-01: figure markers and legend use plain digits, not circled glyphs a font may lack', () => {
+  const { R, T } = env();
+  const el = R.renderSection(T, fixture('s09-belt.json'), {});
+  const marks = [...el.querySelectorAll('.atlas-rg i.n')].map((i) => i.textContent);
+  assert.deepEqual(marks.slice(0, 3), ['1', '2', '3']);
+  assert.equal(el.querySelector('.atlas-regions li .atlas-mark').textContent, '1');
+  assert.doesNotMatch(el.textContent, /[①-⑳]/);
+});
+
+test('P2-02: a page jump keeps the requested page in the address and in the jump field', async () => {
+  const { document, window } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const calls = [];
+  const data = fixture('s09-belt.json');
+  const reader = api.mount(document.getElementById('m'), { fetchJson: () => Promise.resolve(data), onState: (s, p, m) => calls.push([s, p, m]) });
+  await reader.openSection('s09-belt', 197);
+  const input = document.querySelector('.atlas-pagejump input');
+  assert.equal(input.value, '197');
+  input.value = '197';
+  document.querySelector('.atlas-pagejump').dispatchEvent(new window.Event('submit'));
+  assert.deepEqual(calls.pop(), ['s09-belt', 197, 'replace']);
+});

@@ -12,7 +12,7 @@ import re
 TECH = re.compile(
     r'(?<![A-Za-z])(?:source_text|result_var|display_latex|display|compute|printed|bbox|raw|local_vars|bindings|float|'
     r'angle_unit|he_raw|formula-ID|ID|Source|crop|core|kind_guess|parent|target|page-parent|step\d*)(?![A-Za-z])'
-    r'|ядр[оаеу]\b|экстрактор|валидатор|вырезк|редакционн\w* имя|вычислительн\w* интерфейс|контракт|пилот|'
+    r'|ядр[оаеу]\b|экстрактор|валидатор|вырезк|редакционн\w* имя|вычислительн\w* интерфейс|контракт|пилот|кандидат\w*\s*\d+|'
     r'(?<![A-Za-z])[a-z]{2,}_[a-z]{2,}(?![A-Za-z])', re.I)
 
 SPLIT = re.compile(r'(?<=[.!?;])\s+')
@@ -40,7 +40,15 @@ WORDS = {
 }
 ID = r'[bf]\d{2,3}'
 REF = re.compile(r'(?:(?:[сС]|стр)\.\s?(\d{1,3})[:\s]*)?(?<![A-Za-z0-9_])(' + ID + r'(?:\s*[/,–-]\s*' + ID + r')*)(?![A-Za-z0-9_])')
-WORD = re.compile(r'(?<![A-Za-z_])(report|erratum|region)(?![A-Za-z_])', re.I)
+WORD = re.compile(r'(?<![A-Za-z_])(report|erratum|errata|region)(?:\s*/\s*(report|erratum|errata|region))?(?![A-Za-z_])', re.I)
+GLUE = [(re.compile(r'(?<=[а-яё])(?=[0-9A-Z\[])'), ' '), (re.compile(r'(?<=[а-яё]:)(?=\S)'), ' ')]
+
+
+def unglue(text):
+    """Supplier notes often lose the space between a word and a number or symbol: «гарантии30», «допускаA»."""
+    for pattern, space in GLUE:
+        text = pattern.sub(space, text or '')
+    return text
 
 
 def _case(before):
@@ -81,7 +89,10 @@ def rewrite_refs(text, page, here_y=None, positions=None):
 
     def word(m):
         before = m.string[:m.start()]
-        return _glue(before, m.group(1)) + WORDS[m.group(1).lower()][_case(before)]
+        case = _case(before)
+        name = lambda w: WORDS['erratum' if w.lower() == 'errata' else w.lower()][case]
+        out = name(m.group(1)) + (' и ' + name(m.group(2)) if m.group(2) else '')
+        return _glue(before, m.group(1)) + out
 
     return WORD.sub(word, REF.sub(ref, text))
 
@@ -92,7 +103,7 @@ def split_note(text):
         return '', ''
     reader, editor = [], []
     dropped = True  # a clause that follows a removed one starts a sentence of its own
-    for part in _parts(text.strip()):
+    for part in _parts(unglue(text.strip())):
         if TECH.search(part):
             editor.append(part)
             dropped = True

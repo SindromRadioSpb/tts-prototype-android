@@ -52,7 +52,6 @@
 .atlas-root .atlas-row > * { min-width: 0; overflow-wrap: anywhere; }
 .atlas-root .atlas-hit { background: #fff3c4; }
 /* the site strip is sticky on wide screens: the atlas bar sits under it, and a page jump lands below both */
-.atlas-root .atlas-page { scroll-margin-top: 64px; }
 @media (min-width: 600px) { body.lp-has-app-nav .atlas-root .atlas-toolbar { top: 45px; } }
 .atlas-root .atlas-pagejump { display: inline-flex; gap: 4px; align-items: center; }
 .atlas-root .atlas-pagejump input { width: 5.5em; min-height: 40px; padding: 0 8px; border-radius: 8px; border: 1px solid #cfd8dc; }
@@ -70,7 +69,9 @@
 .atlas-root .atlas-rg i { position: absolute; inset-inline-start: 100%; top: -2px; margin-inline-start: 3px; font-style: normal; font-size: 11px; white-space: nowrap;
   background: #fffffff0; color: var(--atlas-teal); border: 1px solid var(--atlas-teal); border-radius: 3px; padding: 0 4px; pointer-events: none; }
 .atlas-root .atlas-rg i.t { white-space: normal; width: max-content; max-width: 16em; line-height: 1.25; }
-.atlas-root .atlas-rg i.n { inset-inline-start: -7px; top: -9px; margin: 0; padding: 0 3px; min-width: 15px; text-align: center; line-height: 15px; font-size: 10px; border-radius: 8px; }
+.atlas-root .atlas-rg i.n { inset-inline-start: -7px; top: -9px; margin: 0; padding: 0 3px; min-width: 16px; text-align: center; line-height: 16px; font: 700 10px/16px system-ui, sans-serif; border-radius: 8px; }
+.atlas-root .atlas-mark { display: inline-block; min-width: 18px; padding: 0 3px; text-align: center; font: 700 11px/18px system-ui, sans-serif; color: var(--atlas-teal); border: 1px solid var(--atlas-teal); border-radius: 9px; }
+.atlas-root .atlas-regions li { margin: 2px 0; }
 .atlas-root .atlas-rg i.flip { inset-inline-start: auto; inset-inline-end: 100%; margin-inline-start: 0; margin-inline-end: 3px; }
 .atlas-root figcaption { font-size: .85rem; color: #6b7686; }
 .atlas-root .atlas-regions { font-size: .9rem; margin: 4px 0 0; padding-inline-start: 4px; list-style: none; }
@@ -93,6 +94,7 @@
 .atlas-root .atlas-editor summary { cursor: pointer; color: #64748b; }
 .atlas-root .atlas-editor ul { margin: 4px 0; padding-inline-start: 18px; overflow-wrap: anywhere; }
 .atlas-root .atlas-editor p { margin: 4px 0; }
+.atlas-root .atlas-print-short { display: none; }
 .atlas-root .atlas-search-count { font-size: .85rem; color: #64748b; white-space: nowrap; }
 .atlas-root .atlas-badge[data-state="empty"] { background: #eef2f4; color: #64748b; }
 .atlas-root .atlas-badge.core_rounded { background: #e6f2ea; color: #2f6b45; }
@@ -142,4 +144,13 @@
 /* The Room's corpus bar is sticky for every corpus; in the atlas it covered the atlas bar (search, page jump,
    Hebrew-only) on phones. The atlas bar has its own way back to the contents, so the Room bar scrolls away. */
 .corpus-view.atlas-corpus > .corpus-crumb { position: static; }
-@media (max-width: 599px) { .atlas-root .atlas-page { scroll-margin-top: 160px; } }
+/* phones: the atlas bar in two compact rows (dots retest: it took ~150 of 606 px) */
+@media (max-width: 599px) {
+  .atlas-root .atlas-toolbar { gap: 6px; padding: 6px 0; }
+  .atlas-root .atlas-toolbar button, .atlas-root .atlas-pagejump input { min-height: 36px; padding: 0 10px; }
+  .atlas-root .atlas-pagejump input { width: 4.5em; }
+  .atlas-root .atlas-print-label { display: none; }
+  .atlas-root .atlas-print-short { display: inline; }
+  .atlas-root .atlas-search { flex: 1 1 100%; order: 9; min-height: 36px; }
+  .atlas-root .atlas-search-count { order: 10; }
+}

@@ -55,6 +55,19 @@ class RewriteRefsTest(unittest.TestCase):
         self.assertEqual(X.rewrite_refs('Сила F = 10 N, b = 3 mm', 7), 'Сила F = 10 N, b = 3 mm')
 
 
+class RetestTest(unittest.TestCase):
+    """dots retest 2026-10-30, P3-02 (pages 523-524)."""
+
+    def test_candidate_number_is_editor_talk_and_words_are_unglued(self):
+        reader, editor = X.split_note('Подтверждён кандидат215. Для гарантии30∈[29.8,30.3] ширина допускаA равна0.5. Постановка здесь:30 — требование.')
+        self.assertEqual(editor, 'Подтверждён кандидат 215.')
+        self.assertEqual(reader, 'Для гарантии 30∈[29.8,30.3] ширина допуска A равна 0.5. Постановка здесь: 30 — требование.')
+
+    def test_slash_pair_of_pipeline_words(self):
+        self.assertEqual(X.rewrite_refs('обсуждается отдельно в erratum/report.', 523),
+                         'обсуждается отдельно в предлагаемом исправлении и заметках редактора к странице.')
+
+
 class SymbolTest(unittest.TestCase):
     def test_pretty_symbol(self):
         self.assertEqual(X.pretty_symbol('sin_alpha'), '\\sin\\alpha')
