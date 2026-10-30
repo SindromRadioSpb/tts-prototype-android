@@ -1,6 +1,8 @@
 """Content-pack validator: every error code, the Review Focus cases, and a clean pack."""
+import contextlib
 import copy
 import hashlib
+import io
 import json
 import os
 import shutil
@@ -336,9 +338,12 @@ class CliTest(unittest.TestCase):
         pack = Pack(self)
         good = pack.write(clean_content())
         src = os.path.join(pack.dir, 'source')
-        self.assertEqual(V.main(['--source', src, '--content', good, '--json']), 0)
-        bad = pack.write(edit(clean_content(), 'a97002:p197:b001', ru=''))
-        self.assertEqual(V.main(['--source', src, '--content', bad]), 1)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(V.main(['--source', src, '--content', good, '--json']), 0)
+            bad = pack.write(edit(clean_content(), 'a97002:p197:b001', ru=''))
+            self.assertEqual(V.main(['--source', src, '--content', bad]), 1)
+        self.assertIn('E_COVERAGE', out.getvalue())
 
 
 if __name__ == '__main__':
