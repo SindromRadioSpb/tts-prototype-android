@@ -26,7 +26,7 @@
 
 ## Review Focus
 
-1. **dots потерял, добавил или переставил слово иврита** (типично для RTL со скобками) → валидатор отклоняет блок: мультимножество букв `he` ≠ `he_raw`; разрешено только с `he_fix_note`, тогда — предупреждение. Тест — Task 4.
+1. **dots потерял, добавил или переставил слово иврита** (типично для RTL со скобками) → валидатор отклоняет блок: потеря/добавление — мультимножество букв `he` ≠ `he_raw` (`E_HEBREW_LETTERS`); перестановка — последовательность нормализованных слов `he` ≠ `he_raw` (`E_HEBREW_ORDER`); с `he_fix_note` обе становятся предупреждениями. Тесты — Task 4.
 2. **Числа в переводе записаны с десятичной запятой (`0,15`) или пропали** → сравнение после нормализации запятой; отсутствующее число — ошибка. Тест — Task 4.
 3. **bbox области дан в пикселях вырезки 200 dpi, а не в пунктах страницы** → выходит за bbox рисунка → ошибка с подсказкой про единицы. Тест — Task 4.
 4. **Пакет содержимого сделан по другому или устаревшему исходному пакету** → `source_pack_sha256` в заголовке ≠ хэш `pages.jsonl` → ошибка до остальных проверок. Тест — Task 4.
@@ -77,7 +77,7 @@ def test_belt_ratio(self):
     self.assertAlmostEqual(C.evaluate('d*(1-xi)/D', {'d': 100, 'xi': 0.02, 'D': 250}), 0.392)
 def test_power_and_sqrt(self):
     L = C.evaluate('pi/2*(D+d)+2*sqrt(A^2+((D-d)/2)^2)', {'D': 250, 'd': 100, 'A': 500})
-    self.assertAlmostEqual(L, 1561.6, places=1)
+    self.assertAlmostEqual(L, 1560.966, places=3)  # π/2·350 + 2·√255625 = 549.779 + 1011.187
 def test_trig_requires_angle_unit(self):
     with self.assertRaises(C.ComputeError) as e: C.evaluate('F*sin(alpha)', {'F': 10, 'alpha': 30})
     self.assertEqual(e.exception.code, 'ANGLE_UNIT_REQUIRED')
@@ -120,7 +120,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 
 Содержание схем (поля — из §6 спеки):
 - source-pack, объекты `pages.jsonl`: `page {id, page, image, has_text_layer}`, `block {id, page, bbox, he_raw, kind_guess, order}`, `formula {id, page, bbox, source_text, crop}`, `symbol {id, formula_id, page, bbox, symbol_raw, description_he_raw, unit_raw}`, `figure {id, page, bbox, crop, number|null, caption_block_id|null}`, `example {id, page, heading_block_id|null, image_only}`; `manifest.json {schema, atlas_id, source{filename, sha256, page_count, page_size_pt}, extractor{version}, pages[], logo_xref_digests[], warnings[]}`.
-- content-pack: `header {schema, atlas_id, source_pack_sha256, producer, produced_at, pages[]}`; `block {id, kind, he, he_niqqud, translit, translit_ru?, ru, terms[], he_fix_note?, ambiguity_note?, status}`; `formula {id, display_latex, compute|null, compute_absent_reason?, angle_unit?, speech_ru?, speech_he?, status}`; `symbol {id, symbol_latex, var, description_he, description_ru, unit, term?}`; `figure {id, caption_he, caption_ru}`; `region {id, parent, bbox, label_he, label_ru, links[], status}`; `table {id, parent, bbox, title_he?, title_ru?, cells[{row, col, rowspan, colspan, bbox?, he, ru, unit?, note?}], status}`; `term {id, lemma_he, niqqud, translit, translit_ru?, senses[{sense, ru, context}]}`; `example {id, steps[{block?, compute, angle_unit?, bindings{}, printed}]}`; `erratum {id, page, target, as_printed, proposed, explanation_ru}`; `report {discrepancies[{ref, note}]}`.
+- content-pack: `header {schema, atlas_id, source_pack_sha256, producer, produced_at, pages[]}`; `block {id, kind, he, he_niqqud, translit, translit_ru?, ru, terms[], he_fix_note?, ambiguity_note?, status}`; `formula {id, display_latex, compute|null, compute_absent_reason?, angle_unit?, speech_ru?, speech_he?, ambiguity_note?, status}`; `symbol {id, formula_id?, symbol_latex, var, description_he, description_ru, unit, term?, ambiguity_note?}`; `figure {id, caption_he, caption_ru}`; `region {id, parent, bbox, label_he, label_ru, links[], status}`; `table {id, parent, bbox, title_he?, title_ru?, cells[{row, col, rowspan, colspan, bbox?, he, ru, unit?, note?}], status}`; `term {id, lemma_he, niqqud, translit, translit_ru?, senses[{sense, ru, context}]}`; `example {id, steps[{block?, compute, angle_unit?, bindings{}, printed}]}`; `erratum {id, page, target, as_printed, proposed, explanation_ru}`; `report {discrepancies[{ref, note}]}`.
 - `kind` блока: `heading | prose | list_item | caption | formula_label | symbol_row | example_heading | example_text | table_note | other`.
 - `status`: объект с полями четырёх осей; enum — из Global Constraints (схема разрешает все значения; ограничения поставщика проверяет валидатор, Task 4).
 
@@ -149,7 +149,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 Правила, которые тест не определяет однозначно:
 - Блоки = блоки `page.get_text('dict')`, кроме колонтитула (номер страницы в нижних 8 %); порядок `order` — сверху вниз, справа налево внутри строки блоков.
 - Формула: блок, для которого `is_formula_text`; `source_text` — склейка спанов в порядке x, без нормализации; рядом стоящие по вертикали (≤ 6 pt) формульные блоки — одна формула.
-- Таблица обозначений: блоки после заголовка `סמל`/`תיאור`/`יחידות` до следующего нетабличного блока → `symbol`, `formula_id` = последняя формула выше на этой странице (иначе последняя на предыдущей странице пакета; иначе `null` и предупреждение в `manifest.warnings`).
+- Таблица обозначений: блоки после заголовка `סמל`/`תיאור`/`יחידות` до следующего нетабличного блока → `symbol`, `formula_id` = последняя формула выше **на этой же странице**; иначе `null` и предупреждение `symbol_unbound:<id>` в `manifest.warnings` (соседство через страницы — не доказательство связи, в пилоте между страницами большие пропуски). Привязку несвязанного символа может предложить поставщик полем `symbol.formula_id` (→ `W_SYMBOL_BOUND_BY_PRODUCER`, на просмотр владельцу); менять привязку, выданную экстрактором, — `E_SYMBOL_BINDING`.
 - Рисунок: изображение не из `logo_xrefs`; `number` и `caption_block_id` — от ближайшей ниже подписи «איור N» в пределах 40 pt; подпись без изображения рядом → предупреждение `caption_without_image:<page>:<N>`.
 - Страница с < 50 символами текста → `has_text_layer: false`; на ней все изображения — рисунки; если есть подпись/заголовок «דוגמה» или страница стоит перед страницей, начинающейся с «פתרון», — объект `example` с `image_only: true` (стр. 288).
 - Пример: блок, начинающийся с `דוגמה`, → `example` с `heading_block_id`.
@@ -181,19 +181,21 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 Коды (каждый — отдельный тест; E — ошибка, W — предупреждение, F — находка ядра):
 - `E_PARSE` — строка JSONL не разобрана (номер строки). `E_SCHEMA` — нарушение схемы.
 - `E_HEADER` — первой строкой не `header`; `E_SOURCE_MISMATCH` — `source_pack_sha256` ≠ хэш `pages.jsonl` (остальные проверки не выполняются); `atlas_id` ≠ `a97002`.
-- `E_UNKNOWN_ID` — неновый ID отсутствует в исходном пакете; `E_TYPE_MISMATCH` — тип не совпадает; `E_DUPLICATE_ID`.
+- `E_UNKNOWN_ID` — неновый ID объекта страницы (`block, formula, symbol, figure, example`) отсутствует в исходном пакете; `E_TYPE_MISMATCH` — тип не совпадает; `E_DUPLICATE_ID`.
+- **Термины создаёт поставщик** (это не геометрия страницы, в исходном пакете их нет): ID `a97002:term:<slug>`, slug и `sense` — шаблон меток; `E_TERM` — дубликат термина, дубликат `sense` внутри термина, пустой `ru` смысла; `W_TERM_UNUSED` — на термин/смысл не ссылается ни один блок, символ или область. Термины пилота — пилотные; общий реестр терминов всего атласа — P3.
 - `E_NEW_ID` — временный ID не по шаблону, родитель отсутствует или метка повторяется у родителя; `E_BBOX_OUTSIDE` — bbox нового объекта выходит за bbox родителя (допуск 2 pt) или за страницу; сообщение подсказывает «bbox — в пунктах страницы, не в пикселях вырезки».
 - `E_STATUS_OWNER` — поставщик выставил `math_review`, `owner_status` ≠ `none` или `language_review = owner_reviewed`; `E_STATUS_RECOGNITION` — `ocr_*` у объекта с текстовым слоем или `extracted` от поставщика.
 - `E_COVERAGE` — блок исходного пакета с ивритом на странице из `header.pages` не покрыт или пустое `he`/`he_niqqud`/`translit`/`ru`.
 - `E_HEBREW_LETTERS` — мультимножество букв U+05D0–U+05EA в `he` ≠ в `he_raw` (сравнение без учёта конечных форм: ך→כ, ם→מ, ן→נ, ף→פ, ץ→צ); при наличии `he_fix_note` — `W_HEBREW_FIXED`. `E_NIQQUD_BASE` — `he_niqqud` без огласовок (удалить Mn) ≠ `he` по буквам.
+- `E_HEBREW_ORDER` — последовательность слов иврита в `he` ≠ в `he_raw`. Слово = максимальная последовательность букв U+05D0–U+05EA (после снятия огласовок, с заменой конечных форм; гереш/гершаим/кавычки внутри слова удаляются, макаф и дефис — разделители); пунктуация, скобки, цифры, латиница и математика не участвуют, поэтому перенос точки или зеркальные скобки RTL не дают ложной ошибки. С `he_fix_note` — `W_HEBREW_ORDER_FIXED`.
 - `E_NUMBERS` — число из `he_raw` (после замены `,`→`.` между цифрами) отсутствует в `ru`.
 - `E_REF` — ссылка на несуществующий термин/смысл, символ, рисунок или цель опечатки.
 - `E_COMPUTE` — `compute` не разбирается; переменная не из `var` символов формулы; тригонометрия без `angle_unit`; нет ни `compute`, ни `compute_absent_reason`.
-- `F_CORE_MISMATCH` / `F_CORE_VERIFIED` — шаг примера: `evaluate(compute, bindings, angle_unit)` против `printed`; несовпадение — находка (кандидат в опечатку), не ошибка.
+- `F_CORE_MISMATCH` / `F_CORE_VERIFIED` — **только арифметика**: `core_verified` значит «вычисление по выражению с данными подстановками совпало с напечатанным числом», а не «инженерная модель верна». Размерности и единицы в P1 не проверяются (P5: единицы в ядре). Шаг примера: `evaluate(compute, bindings, angle_unit)` против `printed`; несовпадение — находка (кандидат в опечатку), не ошибка.
 - `W_TERM_RU` — у блока, ссылающегося на `term#sense`, в `ru` нет основы перевода смысла (первые `max(4, len-2)` букв каждого слова перевода, без учёта регистра).
 - `W_TRANSLIT_RU_MISSING`, `W_SYMBOL_UNUSED` (символ формулы не встречается в `compute`), `W_FIGURE_NO_REGIONS`.
 
-- [ ] **Step 1: Тесты** — по тесту на каждый код выше; плюс Review Focus: `test_dropped_word_rejected`, `test_decimal_comma_accepted`, `test_missing_number_rejected`, `test_pixel_bbox_rejected_with_hint` (область рисунка `[189,269,406,383]`, bbox ×2.78), `test_stale_source_pack_stops_early`, `test_bom_crlf_blank_lines_ok`; и `test_clean_pack_ok` (полностью корректный синтетический пакет → `ok`, 0 ошибок).
+- [ ] **Step 1: Тесты** — по тесту на каждый код выше; плюс Review Focus: `test_dropped_word_rejected`, `test_swapped_words_rejected` (два слова переставлены, буквы те же → `E_HEBREW_ORDER`), `test_moved_period_and_mirrored_parens_ok`, `test_decimal_comma_accepted`, `test_missing_number_rejected`, `test_pixel_bbox_rejected_with_hint` (область рисунка `[189,269,406,383]`, bbox ×2.78), `test_stale_source_pack_stops_early`, `test_bom_crlf_blank_lines_ok`; и `test_clean_pack_ok` (полностью корректный синтетический пакет → `ok`, 0 ошибок).
 - [ ] **Step 2:** запуск → FAIL.
 - [ ] **Step 3:** реализация.
 - [ ] **Step 4:** запуск → PASS.
@@ -212,7 +214,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 
 Эталон — образец качества для dots, не весь пилот. Содержит:
 - стр. 7 — **все** блоки (he, he_niqqud, translit, translit_ru, ru), формулы `Fx = F·cos α`, `Fy = F·sin α` (display_latex, compute, `angle_unit: "deg"`), символы `Fx, Fy, F, α` с переводом и единицами, рисунок 4 с подписью и ≥ 2 областями (`new:a97002:p7:fig4:…`), опечатка `new:a97002:p7:e-fy-cos` (`as_printed: "Fy = F ∙cos α° (רכיב אנכי)"`, `proposed: "Fy = F ∙ sin α°"`, объяснение);
-- стр. 197 — все блоки, обе формулы `i` (`n_out/n_in` и `d·(1−ξ)/D`) с предупреждающим `ambiguity_note` о соглашении `i = n_out/n_in`, формула длины ремня `L` с compute, рисунки 79 и 80 с областями `shkiv-d`, `shkiv-D`, `A`, `beta`;
+- стр. 197 — все блоки, обе формулы `i` (`n_out/n_in` и `d·(1−ξ)/D`) с предупреждающим `ambiguity_note` о соглашении `i = n_out/n_in`, формула длины ремня `L` с compute, рисунки 79 и 80 с областями `shkiv-small`, `shkiv-large`, `center-distance`, `angle-beta`;
 - стр. 289 — пример 2: шаг `x*Fr+y*Fa` с `bindings {x: 0.56, Fr: 2000, y: 2, Fa: 600}`, `printed: "2200"` (должен дать `F_CORE_MISMATCH`) и шаг `Fa/C0 → 0.0316` (должен дать `F_CORE_VERIFIED`);
 - стр. 282 — одна растровая таблица `new:a97002:p282:t-…` с 2 строками ячеек как образец структуры;
 - ≥ 6 терминов со смыслами (`retsua#belt`, `galgal-mania#driving-pulley`, `galgal-muna#driven-pulley`, `moment-sivuv#torque`, `mehirut-sivuv#rotational-speed`, `kiv-anchi#vertical-component`);
@@ -223,7 +225,8 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 - [ ] **Step 2:** запуск → FAIL (файла нет).
 - [ ] **Step 3:** заполнить эталон и README (что это, как сделан, коммит источника, статус `reference · producer_checked`).
 - [ ] **Step 4:** запуск → PASS; дополнительно `python scripts/atlas/atlas_validate.py --source atlas/a97002/pilot/source-pack --content atlas/a97002/pilot/reference/reference-content.jsonl` → выход 0, человекочитаемый отчёт показывает находку стр. 289.
-- [ ] **Step 5: Commit** `feat(atlas): hand-made reference content for pilot pages 7, 197, 289, 282`
+- [ ] **Step 5: Контрольная точка «контракт»** — сверить вручную, поле за полем: схемы (Task 2) ↔ коды валидатора (Task 4) ↔ эталон (Task 5) ↔ раздел контракта в спеке §6; каждое поле эталона есть в схеме, каждое правило README будет иметь код. Расхождения исправить до коммита.
+- [ ] **Step 6: Commit** `feat(atlas): hand-made reference content for pilot pages 7, 197, 289, 282`
 
 ---
 
@@ -281,7 +284,7 @@ def test_p289_source_inconsistency(self):  # 0.56*2000 + y*600 with y=2 vs print
 - Modify: `docs/architecture/AGENT_DOMAIN_GUIDE.md` (короткий абзац «Инженерный атлас»: где инструменты, схемы, пилот, спека)
 
 - [ ] **Step 1:** обновить документы.
-- [ ] **Step 2:** финальная проверка: `npm run test:atlas` PASS; валидатор на эталоне — выход 0; архив открывается.
+- [ ] **Step 2: Контрольная точка «перед передачей»** — распаковать архив во временную папку вне репозитория и выполнить по `README.ru.md` как сторонний пользователь (`python -I tools/atlas_validate.py …` → выход 0 на эталоне); ещё раз осмотреть `contact-sheet.png` всех 7 страниц; `npm run test:atlas` PASS. Затем — одна независимая проверка всей ветки свежим ревьюером (контракт, экстрактор, валидатор).
 - [ ] **Step 3: Commit** `docs(atlas): P1 handoff status and domain guide entry`
 - [ ] **Step 4:** сообщить владельцу путь к архиву и что передать dots.
 
