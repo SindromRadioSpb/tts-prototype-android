@@ -121,3 +121,10 @@ class SupplierDocsTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SuperscriptNumbersTest(unittest.TestCase):
+    def test_raw_superscript_glued_into_number_matches_power_in_translation(self):
+        # the PDF text layer turns 10² into '102'; the translation correctly keeps 10²
+        self.assertTrue(V._numbers_present(['102', '20'], 'площадь 10² мм и 20 Н'))
+        self.assertFalse(V._numbers_present(['102'], 'площадь 10 мм'))

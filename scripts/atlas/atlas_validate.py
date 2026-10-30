@@ -72,6 +72,13 @@ def _numbers(text):
     return sorted(n.replace(',', '.') for n in NUMBER.findall(text or ''))
 
 
+def _numbers_present(numbers, text):
+    """All numbers occur in text. The PDF text layer glues a superscript to its base (10² -> '102'), so the
+    translation's numbers are also read with superscripts folded into plain digits."""
+    found = set(_numbers(text)) | set(_numbers(unicodedata.normalize('NFKC', text or '')))
+    return all(n in found for n in numbers)
+
+
 def _inside(inner, outer, tol=BBOX_TOLERANCE):
     return (inner[0] >= outer[0] - tol and inner[1] >= outer[1] - tol and inner[2] <= outer[2] + tol
             and inner[3] <= outer[3] + tol and inner[0] < inner[2] and inner[1] < inner[3])
@@ -244,8 +251,7 @@ def _check_text(source, content, lines, header, rep):
                 rep.error('E_HEBREW_ORDER', sid, line, 'буквы те же, но порядок другой: слова переставлены')
         if _skeleton(obj['he_niqqud']) != _skeleton(obj['he']):
             rep.error('E_NIQQUD_BASE', sid, line, 'he_niqqud без огласовок (и без букв ו/י) не совпадает с he')
-        ru_numbers = set(_numbers(obj['ru']))
-        lost = [n for n in _numbers(src['he_raw']) if n not in ru_numbers]
+        lost = [n for n in _numbers(src['he_raw']) if not _numbers_present([n], obj['ru'])]
         if lost:
             rep.error('E_NUMBERS', sid, line, f'в переводе нет чисел: {", ".join(lost)}')
         if not obj.get('translit_ru'):
