@@ -43,6 +43,8 @@
 .atlas-root .atlas-row[data-kind="heading"] .atlas-he, .atlas-root .atlas-row[data-kind="heading"] .atlas-ru { font-weight: 700; }
 .atlas-root .atlas-hebrew-only .atlas-tr, .atlas-root .atlas-hebrew-only .atlas-niqqud, .atlas-root .atlas-hebrew-only .atlas-translit { display: none; }
 .atlas-root .atlas-hebrew-only .atlas-row { grid-template-columns: 1fr; }
+/* a grid item grows to its longest unbreakable string (dot leaders, formulas typed without spaces) unless allowed to shrink */
+.atlas-root .atlas-row > * { min-width: 0; overflow-wrap: anywhere; }
 .atlas-root .atlas-hit { background: #fff3c4; }
 .atlas-root .atlas-hl { background: #d8efef !important; outline: 2px solid var(--atlas-teal); }
 .atlas-root .atlas-formula { border: 1px solid #cfe3e3; background: #f4fafa; border-radius: 10px; padding: 10px 12px; margin: 10px 0; overflow-x: auto; }
@@ -57,6 +59,8 @@
 .atlas-root .atlas-rg { position: absolute; border: 1.5px solid var(--atlas-teal); border-radius: 3px; background: transparent; padding: 0; cursor: pointer; }
 .atlas-root .atlas-rg i { position: absolute; inset-inline-start: 100%; top: -2px; margin-inline-start: 3px; font-style: normal; font-size: 11px; white-space: nowrap;
   background: #fffffff0; color: var(--atlas-teal); border: 1px solid var(--atlas-teal); border-radius: 3px; padding: 0 4px; pointer-events: none; }
+.atlas-root .atlas-rg i.t { white-space: normal; width: max-content; max-width: 16em; line-height: 1.25; }
+.atlas-root .atlas-rg i.flip { inset-inline-start: auto; inset-inline-end: 100%; margin-inline-start: 0; margin-inline-end: 3px; }
 .atlas-root figcaption { font-size: .85rem; color: #6b7686; }
 .atlas-root .atlas-regions { font-size: .9rem; margin: 4px 0 0; padding-inline-start: 18px; }
 .atlas-root .atlas-regions li { cursor: pointer; }
@@ -67,7 +71,7 @@
 .atlas-root .atlas-table caption { text-align: start; font-size: .9rem; }
 .atlas-root .atlas-erratum { border-inline-start: 3px solid var(--atlas-amber); background: #fff6e8; padding: 6px 10px; margin: 6px 0; font-size: .9rem; color: #3b2f17; }
 .atlas-root .atlas-erratum code { overflow-wrap: anywhere; }
-.atlas-root .atlas-why { color: #5b6577; margin-top: 3px; }
+.atlas-root .atlas-why { color: #5b6577; margin-top: 3px; overflow-wrap: anywhere; }
 .atlas-root .atlas-example h4 { margin: 12px 0 4px; color: var(--atlas-teal); }
 .atlas-root .atlas-steps { font-size: .9rem; }
 .atlas-root .atlas-steps code { overflow-wrap: anywhere; }

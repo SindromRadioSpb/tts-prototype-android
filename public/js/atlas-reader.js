@@ -104,8 +104,10 @@
         var style = 'left:' + ((r.bbox[0] - fig.bbox[0]) / w * 100).toFixed(2) + '%;top:' + ((r.bbox[1] - fig.bbox[1]) / ht * 100).toFixed(2) +
           '%;width:' + ((r.bbox[2] - r.bbox[0]) / w * 100).toFixed(2) + '%;height:' + ((r.bbox[3] - r.bbox[1]) / ht * 100).toFixed(2) + '%';
         var links = (r.links || []).join(' ');
+        // a label beside a region in the right half would run past the page edge: open it to the left instead
+        var flip = (r.bbox[0] + r.bbox[2]) / 2 > (fig.bbox[0] + fig.bbox[2]) / 2 ? ' flip' : '';
         box.appendChild(h('button', { cls: 'atlas-rg', type: 'button', style: style, 'data-region': r.id, 'data-links': links,
-          'aria-label': r.label_ru || r.label_he }, [h('i', { cls: numbered ? 'n' : 't', text: numbered ? mark : (r.label_ru || r.label_he) })]));
+          'aria-label': r.label_ru || r.label_he }, [h('i', { cls: (numbered ? 'n' : 't') + flip, text: numbered ? mark : (r.label_ru || r.label_he) })]));
         list.appendChild(h('li', { 'data-region': r.id, 'data-links': links }, [h('b', { text: mark + ' ' }),
           h('bdi', { lang: 'he', dir: dirOf(r.label_he), text: r.label_he || '' }), ' — ' + (r.label_ru || '')]));
       });

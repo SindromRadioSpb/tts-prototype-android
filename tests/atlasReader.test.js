@@ -57,6 +57,16 @@ test('translated section: rows, MathML formula with variables, figure regions, p
   assert.match(section.textContent, /Словарь раздела/);
 });
 
+test('region labels in the right half of a figure open to the left (no page overflow)', () => {
+  const { R, T } = env();
+  const section = R.renderSection(T, fixture('s09-belt.json'), {});
+  const fig = fixture('s09-belt.json').pages[0].figures[0];
+  const label = (r) => section.querySelector('.atlas-rg[data-region="' + r.id + '"] i');
+  // region 0 sits at the right edge of the figure, region 1 at its left edge
+  assert.ok(label(fig.regions[0]).classList.contains('flip'));
+  assert.ok(!label(fig.regions[1]).classList.contains('flip'));
+});
+
 test('untranslated section shows raw Hebrew and says so', () => {
   const { R, T } = env();
   const section = R.renderSection(T, fixture('s25-size-tolerance.json'), {});
