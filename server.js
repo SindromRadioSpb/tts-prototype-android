@@ -695,6 +695,16 @@ app.use('/data/benyehuda/learning-niqqud', express.static(path.join(DATA_DIR, 'b
   },
 }));
 
+// Engineering atlas (נוסחאון 97002): reader JSON and sha-named page/figure images live on the data
+// volume (DATA_DIR/atlas/a97002/…), not in git — the same volume-first rule as the corpus works above.
+app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
+  fallthrough: true, index: false,
+  setHeaders(res, file) {
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Cache-Control', /\.png$/i.test(file) ? 'public, max-age=31536000, immutable' : 'public, max-age=300, must-revalidate');
+  },
+}));
+
 app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
 // AI assistants that fetch a shared link without running scripts get the same
