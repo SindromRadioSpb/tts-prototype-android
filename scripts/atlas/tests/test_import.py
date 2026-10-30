@@ -67,6 +67,14 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(core[0]['status']['owner_status'], 'none')
         self.assertEqual(graph['objects']['a97002:p197:x-demo']['status']['math_review'], 'core_mismatch')
 
+    def test_source_example_without_supplier_steps(self):
+        # the extractor found a worked example the supplier did not fill (s09, p220:ex1): import keeps it, no crash
+        pack = Pack(self)
+        pack.source.objects['a97002:p197:ex1'] = {'type': 'example', 'id': 'a97002:p197:ex1', 'page': 197}
+        pack.source.order.append('a97002:p197:ex1')
+        graph, _ = I.build_graph(pack.source, pack.write(clean_content()))
+        self.assertIn('a97002:p197:ex1', graph['objects'])
+
     def test_rejects_invalid_pack(self):
         with self.assertRaises(I.ImportRejected) as ctx:
             self.build(edit(clean_content(), 'a97002:p197:b001', ru=''))

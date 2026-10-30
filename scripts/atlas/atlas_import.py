@@ -113,7 +113,7 @@ def build_graph(source, content_path, terms_path=None):
     for oid, obj in list(objects.items()):
         if obj['type'] != 'example':
             continue
-        for index, step in enumerate(obj['steps'], 1):
+        for index, step in enumerate(obj.get('steps', []), 1):  # an extracted example the supplier left unfilled has none
             target = step.get('block') or oid
             if step['math_review'] != 'core_mismatch' or target in supplier_targets:
                 continue

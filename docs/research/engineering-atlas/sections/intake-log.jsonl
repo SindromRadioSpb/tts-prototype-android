@@ -7,3 +7,9 @@
 {"event": "stopped", "reason": "time_limit", "at": "2026-10-30T06:54:14+00:00"}
 {"event": "accepted", "section": "s03-bolts", "file": "a97002-content-s03-bolts-v1.jsonl", "warnings": 24, "findings": {"F_CORE_VERIFIED": 29, "F_CORE_MISMATCH": 13, "F_CORE_UNANCHORED": 1}, "at": "2026-10-30T07:07:42+00:00"}
 {"event": "accepted", "section": "s04-welding", "file": "a97002-content-s04-welding-v1.jsonl", "warnings": 59, "findings": {"F_CORE_VERIFIED": 53, "F_CORE_MISMATCH": 9, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T07:22:49+00:00"}
+{"event": "accepted", "section": "s02-rivets", "file": "a97002-content-s02-rivets-v1.jsonl", "warnings": 24, "findings": {"F_CORE_VERIFIED": 24, "F_CORE_MISMATCH": 7, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T09:02:28+00:00"}
+{"event": "accepted", "section": "s05-springs", "file": "a97002-content-s05-springs-v1.jsonl", "warnings": 30, "findings": {"F_CORE_VERIFIED": 15, "F_CORE_MISMATCH": 6, "F_CORE_UNANCHORED": 5}, "at": "2026-10-30T09:05:34+00:00"}
+{"event": "accepted", "section": "s06-power", "file": "a97002-content-s06-power-v1.jsonl", "warnings": 1, "findings": {"F_CORE_VERIFIED": 1, "F_CORE_MISMATCH": 0, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T09:05:40+00:00"}
+{"event": "accepted", "section": "s07-keys", "file": "a97002-content-s07-keys-v1.jsonl", "warnings": 14, "findings": {"F_CORE_VERIFIED": 6, "F_CORE_MISMATCH": 1, "F_CORE_UNANCHORED": 0}, "at": "2026-10-30T09:05:46+00:00"}
+{"event": "accepted", "section": "s08-transmissions", "file": "a97002-content-s08-transmissions-v1.jsonl", "warnings": 18, "findings": {"F_CORE_VERIFIED": 10, "F_CORE_MISMATCH": 3, "F_CORE_UNANCHORED": 4}, "at": "2026-10-30T09:05:52+00:00"}
+{"event": "accepted", "section": "s09-belt", "file": "a97002-content-s09-belt-v1.jsonl", "warnings": 16, "findings": {"F_CORE_VERIFIED": 13, "F_CORE_MISMATCH": 13, "F_CORE_UNANCHORED": 0}, "note": "built after import fix", "at": "2026-10-30T09:07:29+00:00"}
