@@ -235,35 +235,41 @@ def _symbol_tables(frags):
     """Find symbol tables. Returns (tables, used_fragment_ids); table = {header_bbox, rows:[{text, bbox}]}."""
     used = set()
     tables = []
-    headers = [f for f in frags if 'סמל' in f['text'] and 'תיאור' in f['text']]
-    for header in headers:
-        hyc = _yc(header['bbox'])
-        same_line = [f for f in frags if abs(_yc(f['bbox']) - hyc) <= 4]
+    # the header row 'סמל | תיאור | יחידות' is usually separate fragments of one visual line, and even the
+    # word 'סמל' can be split (p54), so 'תיאור' together with 'סמל' or 'יחידות' marks a header
+    header_lines = [b['frags'] for b in _bands(frags)
+                    if 'תיאור' in b['text'] and len(b['text']) < 40
+                    and (re.search(r'(^|\s)סמל(\s|$)', b['text']) or 'יחידות' in b['text'])]
+    for same_line in header_lines:
+        if any(id(f) in used for f in same_line):
+            continue
         unit_head = [f for f in same_line if 'יחידות' in f['text']]
         unit_edge = (unit_head[0]['bbox'][2] + 15) if unit_head else None
         header_bbox = _union([f['bbox'] for f in same_line])
         used.update(id(f) for f in same_line)
-        below = [f for f in frags if f['bbox'][1] > header_bbox[3] - 1 and id(f) not in used]
-        rows, last_bottom = [], header_bbox[3]
-        for band in _bands(below):
-            if band['bbox'][1] - last_bottom > 12:
+        # the table body: fragments below the header until a vertical gap
+        body, bottom = [], header_bbox[3]
+        for f in sorted((f for f in frags if f['bbox'][1] > header_bbox[3] - 1 and id(f) not in used), key=lambda f: f['bbox'][1]):
+            if f['bbox'][1] - bottom > 14:
                 break
-            ordered = sorted(band['frags'], key=lambda f: -f['bbox'][2])
-            unit_frags = [f for f in ordered if unit_edge is not None and f['bbox'][2] <= unit_edge]
-            main_frags = [f for f in ordered if f not in unit_frags]
+            body.append(f)
+            bottom = max(bottom, f['bbox'][3])
+        # rows start at fragments in the symbol column (right edge of the table) that begin with a symbol
+        right = max(header_bbox[2], max((f['bbox'][2] for f in body), default=0))
+        starts = sorted((f for f in body if f['bbox'][2] >= right - 30
+                         and (lambda t: bool(t) and not HEB.match(t[0]) and t[0] not in '()•-–')(normalize_rtl_line(f['text']))),
+                        key=lambda f: _yc(f['bbox']))
+        rows = []
+        for k, start in enumerate(starts):
+            lo = header_bbox[3] if k == 0 else (_yc(starts[k - 1]['bbox']) + _yc(start['bbox'])) / 2
+            hi = (_yc(start['bbox']) + _yc(starts[k + 1]['bbox'])) / 2 if k + 1 < len(starts) else bottom + 1
+            members = [f for f in body if lo <= _yc(f['bbox']) < hi]
+            unit_frags = [f for f in members if unit_edge is not None and f['bbox'][2] <= unit_edge]
+            main_frags = [f for f in members if f not in unit_frags]
             main = join_fragments(_tuples(main_frags))
-            unit = join_fragments(_tuples(unit_frags))
-            starts_symbol = bool(main) and not HEB.match(main[0]) and main[0] not in '()•'
-            if starts_symbol:
-                rows.append({'main': main, 'unit': unit, 'bbox': band['bbox']})
-            elif rows:
-                rows[-1]['main'] += ' ' + main
-                rows[-1]['unit'] = (rows[-1]['unit'] + ' ' + unit).strip()
-                rows[-1]['bbox'] = _union([rows[-1]['bbox'], band['bbox']])
-            else:
-                break
-            used.update(id(f) for f in band['frags'])
-            last_bottom = band['bbox'][3]
+            unit = ' '.join(normalize_rtl_line(f['text']) for f in sorted(unit_frags, key=lambda f: (f['bbox'][1], f['bbox'][0])))
+            rows.append({'main': main, 'unit': unit.strip(), 'bbox': _union([f['bbox'] for f in members])})
+            used.update(id(f) for f in members)
         tables.append({'header_bbox': header_bbox, 'rows': rows})
     return tables, used
 
@@ -407,9 +413,20 @@ def extract(pdf_path, pages, out_dir):
         groups = {}  # caption block id (or a unique key) -> image boxes; images sharing a caption are one figure
         for k, image in enumerate(sorted(images, key=lambda i: (i['bbox'][1], -i['bbox'][2]))):
             box = list(image['bbox'])
-            below = [(bid, b) for bid, b in caption_blocks if 0 <= b['bbox'][1] - box[3] <= 40]
+            below = [(bid, b) for bid, b in caption_blocks if 0 <= b['bbox'][1] - box[3] <= 70]  # formulas may sit between a figure and its caption (p203)
             key = min(below, key=lambda x: x[1]['bbox'][1] - box[3])[0] if below else f'#{k}'
             groups.setdefault(key, []).append(box)
+        # fallback: a caption still without images takes the free images between the previous caption and itself
+        # (text or formulas between a figure and its caption, p29 / p364)
+        for bid, cap in sorted(caption_blocks, key=lambda x: x[1]['bbox'][1]):
+            if bid in groups:
+                continue
+            above = [b['bbox'][3] for other, b in caption_blocks if b['bbox'][3] <= cap['bbox'][1] and other != bid]
+            floor = max(above, default=0)
+            free = [k for k, boxes in groups.items() if k.startswith('#')
+                    and floor <= _union(boxes)[1] and _union(boxes)[3] <= cap['bbox'][1] and cap['bbox'][1] - _union(boxes)[3] <= 250]
+            if free:
+                groups[bid] = [b for k in free for b in groups.pop(k)]
         caption_text = dict((bid, b['text']) for bid, b in caption_blocks)
         for key, boxes in sorted(groups.items(), key=lambda kv: (_union(kv[1])[1], -_union(kv[1])[2])):
             box = _union(boxes)

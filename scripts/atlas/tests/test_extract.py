@@ -124,6 +124,39 @@ class SymbolRowsTest(unittest.TestCase):
         self.assertEqual(rows[2]['unit_raw'], '')
 
 
+def frag(x0, x1, y0, text):
+    return {'bbox': [x0, y0, x1, y0 + 14], 'text': text, 'size': 11.0, 'spans': [text]}
+
+
+class SymbolTableDetectionTest(unittest.TestCase):
+    def test_header_split_into_separate_fragments(self):
+        # p17 and ~40 other pages: 'סמל', 'תיאור', 'יחידות' are separate fragments of one line
+        frags = [frag(483, 553, 124, ' טבלת סמלים '),
+                 frag(522, 546, 143, 'סמל '), frag(364, 399, 144, ' תיאור '), frag(215, 251, 143, ' יחידות '),
+                 frag(530, 540, 162, 'F'), frag(370, 395, 162, ' כוח '), frag(225, 235, 162, 'N'),
+                 frag(530, 536, 180, 'd'), frag(350, 410, 180, ' קוטר המסמרת '), frag(225, 240, 180, 'mm')]
+        tables, used = X._symbol_tables(frags)
+        self.assertEqual(len(tables), 1)
+        rows = X.parse_symbol_rows([r['main'] + '	' + r['unit'] for r in tables[0]['rows']])
+        self.assertEqual([(r['symbol_raw'], r['description_he_raw'], r['unit_raw']) for r in rows],
+                         [('F', 'כוח', 'N'), ('d', 'קוטר המסמרת', 'mm')])
+        self.assertNotIn(id(frags[0]), used)  # the table title stays a text block
+
+    def test_stacked_unit_and_header_without_samal(self):
+        # p365: unit m/min is a two-line fraction; p54: the word 'סמל' itself is split, 'תיאור' + 'יחידות' remain
+        frags = [frag(485, 548, 452, ' סמל תיאור '), frag(399, 428, 453, ' יחידות'),
+                 frag(404, 414, 468, 'm'), frag(446, 518, 471, ' מהירות חיתוך '), frag(399, 422, 483, 'min '),
+                 frag(528, 542, 476, 'vc '),
+                 frag(528, 538, 503, 'd '), frag(446, 518, 503, ' קוטר עובד '), frag(404, 420, 503, 'mm'),
+                 frag(300, 540, 560, ' טקסט רגיל אחרי הטבלה ')]
+        tables, _ = X._symbol_tables(frags)
+        rows = X.parse_symbol_rows([r['main'] + '	' + r['unit'] for r in tables[0]['rows']])
+        self.assertEqual([(r['symbol_raw'], r['unit_raw']) for r in rows], [('vc', 'm min'), ('d', 'mm')])
+        no_samal = [frag(358, 393, 160, ' תיאור '), frag(196, 231, 159, ' יחידות '),
+                    frag(530, 540, 178, 'P'), frag(350, 410, 178, ' הספק '), frag(205, 215, 178, 'W')]
+        self.assertEqual(len(X._symbol_tables(no_samal)[0]), 1)
+
+
 class FigureAndLogoTest(unittest.TestCase):
     def test_figure_number(self):
         self.assertEqual(X.figure_number('איור  80   -   מידות יסוד'), 80)
@@ -192,6 +225,24 @@ class PilotPdfTest(unittest.TestCase):
         texts = [b['he_raw'] for b in self.of('block', 7)]
         self.assertIn('Fy = F ∙cos α° (רכיב אנכי)', texts)
         self.assertTrue(any(t.startswith('כדי לבחון') and 'ישרי זווית. כך נמנע' in t for t in texts))
+
+    def test_caption_below_formulas_still_finds_its_figure(self):
+        # p203: three images, then formulas, then 'איור 84' about 50 pt below the images
+        out = tempfile.mkdtemp(prefix='atlas-p203-')
+        X.extract(os.environ['ATLAS_SOURCE_PDF'], [203], out)
+        with open(os.path.join(out, 'pages.jsonl'), encoding='utf-8') as fh:
+            objs = [json.loads(line) for line in fh if line.strip()]
+        self.assertIn(84, [o['number'] for o in objs if o['type'] == 'figure'])
+
+    def test_caption_far_below_takes_free_images(self):
+        # p29 (figure 20) and p364 (figure 142): text sits between the images and the caption
+        out = tempfile.mkdtemp(prefix='atlas-p29-')
+        manifest = X.extract(os.environ['ATLAS_SOURCE_PDF'], [29, 364], out)
+        with open(os.path.join(out, 'pages.jsonl'), encoding='utf-8') as fh:
+            numbers = {(o['page'], o['number']) for o in (json.loads(l) for l in fh if l.strip()) if o['type'] == 'figure'}
+        self.assertIn((29, 20), numbers)
+        self.assertIn((364, 142), numbers)
+        self.assertFalse([w for w in manifest['warnings'] if w.startswith('caption_without_image')])
 
     def test_no_owner_paths(self):
         text = self.raw + json.dumps(self.manifest, ensure_ascii=False)
