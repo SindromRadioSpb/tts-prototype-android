@@ -34,3 +34,8 @@ docs/research/materials-science-problem-corpus/2026-08-30/shadow/shadow-verifica
 scripts/premium/iphone-downloader/__main__.py text eol=lf
 scripts/premium/iphone-downloader/http_ui.py text eol=lf
 scripts/premium/iphone-downloader/runner.py text eol=lf
+
+# Engineering atlas packs: hashes are taken over exact LF bytes (source_pack_sha256).
+*.jsonl text eol=lf
+scripts/atlas/**/*.py text eol=lf
+scripts/atlas/**/*.md text eol=lf
