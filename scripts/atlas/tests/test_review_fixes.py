@@ -128,3 +128,11 @@ class SuperscriptNumbersTest(unittest.TestCase):
         # the PDF text layer turns 10² into '102'; the translation correctly keeps 10²
         self.assertTrue(V._numbers_present(['102', '20'], 'площадь 10² мм и 20 Н'))
         self.assertFalse(V._numbers_present(['102'], 'площадь 10 мм'))
+
+    def test_raw_math_bold_digits_and_split_decimal(self):
+        # p286:b002 'fW= 𝟏. 𝟓' is 1.5 in math-bold digits that the text layer split at the point
+        raw = 'הנח: 𝐟𝐖= 𝟏. 𝟓 ; < 𝟏𝟓𝟎 ; 1.2 ÷ 1.5'
+        self.assertEqual(V._raw_numbers(raw), ['1.2', '1.5', '1.5', '150'])
+        self.assertTrue(all(V._numbers_present([n], 'принять fW = 1,5; < 150; 1,2 ÷ 1,5') for n in V._raw_numbers(raw)))
+        # an ordinary sentence end before a number stays two numbers
+        self.assertEqual(V._raw_numbers('ראה 3. 5 פרטים'), ['3', '5'])

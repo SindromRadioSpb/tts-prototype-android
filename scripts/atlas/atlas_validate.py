@@ -72,6 +72,16 @@ def _numbers(text):
     return sorted(n.replace(',', '.') for n in NUMBER.findall(text or ''))
 
 
+MATH_DIGIT = '[\U0001D7CE-\U0001D7FF]'
+SPLIT_MATH_DECIMAL = re.compile(MATH_DIGIT + r'\. ' + MATH_DIGIT)
+
+
+def _raw_numbers(text):
+    """Numbers of a source block. Formula values come as math-bold digits (U+1D7CE..) and the text layer splits
+    their decimal point from the fraction ('𝟏. 𝟓' is 1.5); both are folded to plain numbers."""
+    return _numbers(unicodedata.normalize('NFKC', SPLIT_MATH_DECIMAL.sub(lambda m: m.group(0).replace(' ', ''), text or '')))
+
+
 def _numbers_present(numbers, text):
     """All numbers occur in text. The PDF text layer glues a superscript to its base (10² -> '102'), so the
     translation's numbers are also read with superscripts folded into plain digits."""
@@ -251,7 +261,7 @@ def _check_text(source, content, lines, header, rep):
                 rep.error('E_HEBREW_ORDER', sid, line, 'буквы те же, но порядок другой: слова переставлены')
         if _skeleton(obj['he_niqqud']) != _skeleton(obj['he']):
             rep.error('E_NIQQUD_BASE', sid, line, 'he_niqqud без огласовок (и без букв ו/י) не совпадает с he')
-        lost = [n for n in _numbers(src['he_raw']) if not _numbers_present([n], obj['ru'])]
+        lost = [n for n in _raw_numbers(src['he_raw']) if not _numbers_present([n], obj['ru'])]
         if lost:
             rep.error('E_NUMBERS', sid, line, f'в переводе нет чисел: {", ".join(lost)}')
         if not obj.get('translit_ru'):
