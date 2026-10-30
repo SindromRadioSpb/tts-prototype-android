@@ -342,7 +342,8 @@
     "smoke:youtube-material": "node scripts/premium/youtube-material-browser-smoke.cjs",
     "smoke:youtube-material:e2e": "node scripts/premium/youtube-material-e2e-smoke.cjs",
     "smoke:youtube-asr:live": "node scripts/premium/youtube-asr-live-smoke.cjs",
-    "smoke:sw-update": "node scripts/premium/sw-update-browser-smoke.js"
+    "smoke:sw-update": "node scripts/premium/sw-update-browser-smoke.js",
+    "test:atlas": "python -m unittest discover -s scripts/atlas/tests -t scripts/atlas -v"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
