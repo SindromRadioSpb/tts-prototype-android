@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "linguistpro.atlas-content-pack.1.0.0",
+  "title": "LinguistPro engineering atlas — content pack object (one line of the producer's JSONL)",
+  "description": "Produced by the content supplier (dots). The first line is the header. Existing objects are addressed by the IDs of the source pack; new regions, tables, errata and image-only examples use a temporary ID new:<parent ID>:<label>; terms use a97002:term:<slug>. Cross-object rules (IDs exist, letters, numbers, geometry, status ownership, compute) are enforced by atlas_validate.py, not by this schema alone.",
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "bbox": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "number" } },
+    "label": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "parentId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}(:(fig[0-9]+|img[0-9]{2}))?$" },
+    "tempId": { "type": "string", "pattern": "^new:a97002:p[1-9][0-9]{0,2}(:(fig[0-9]+|img[0-9]{2}))?:[a-z0-9]+(-[a-z0-9]+)*$" },
+    "termId": { "type": "string", "pattern": "^a97002:term:[a-z0-9]+(-[a-z0-9]+)*$" },
+    "termRef": { "type": "string", "pattern": "^a97002:term:[a-z0-9]+(-[a-z0-9]+)*#[a-z0-9]+(-[a-z0-9]+)*$" },
+    "anyId": { "type": "string", "pattern": "^(new:)?a97002:[a-z0-9:#-]+$" },
+    "identifier": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$" },
+    "text": { "type": "string", "minLength": 1 },
+    "angleUnit": { "enum": ["deg", "rad"] },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recognition": { "enum": ["extracted", "ocr_high", "ocr_low"] },
+        "language_review": { "enum": ["unreviewed", "producer_checked", "owner_reviewed"] },
+        "math_review": { "enum": ["unchecked", "core_verified", "core_mismatch", "not_applicable"] },
+        "owner_status": { "enum": ["none", "owner_confirmed", "owner_rejected"] }
+      }
+    },
+    "header": {
+      "type": "object",
+      "required": ["type", "schema", "atlas_id", "source_pack_sha256", "producer", "produced_at", "pages"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "header" },
+        "schema": { "const": "linguistpro.atlas-content-pack.1.0.0" },
+        "atlas_id": { "const": "a97002" },
+        "source_pack_sha256": { "$ref": "#/$defs/sha256" },
+        "producer": { "$ref": "#/$defs/text" },
+        "produced_at": { "$ref": "#/$defs/text" },
+        "pages": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1, "maximum": 564 } },
+        "note": { "type": "string" }
+      }
+    },
+    "block": {
+      "type": "object",
+      "required": ["type", "id", "kind", "he", "he_niqqud", "translit", "ru", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "block" },
+        "id": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:b[0-9]{3}$" },
+        "kind": { "enum": ["heading", "prose", "list_item", "caption", "formula_label", "symbol_row", "example_heading", "example_text", "table_note", "other"] },
+        "he": { "type": "string" },
+        "he_niqqud": { "type": "string" },
+        "translit": { "type": "string" },
+        "translit_ru": { "type": "string" },
+        "ru": { "type": "string" },
+        "terms": { "type": "array", "items": { "$ref": "#/$defs/termRef" } },
+        "he_fix_note": { "$ref": "#/$defs/text" },
+        "ambiguity_note": { "$ref": "#/$defs/text" },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "formula": {
+      "type": "object",
+      "required": ["type", "id", "display_latex", "compute", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "formula" },
+        "id": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:f[0-9]{2}$" },
+        "display_latex": { "$ref": "#/$defs/text" },
+        "compute": { "type": ["string", "null"] },
+        "compute_absent_reason": { "$ref": "#/$defs/text" },
+        "angle_unit": { "$ref": "#/$defs/angleUnit" },
+        "speech_ru": { "type": "string" },
+        "speech_he": { "type": "string" },
+        "ambiguity_note": { "$ref": "#/$defs/text" },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "required": ["type", "id", "symbol_latex", "var", "description_he", "description_ru", "unit"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "symbol" },
+        "id": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:f[0-9]{2}:s[0-9]{2}$" },
+        "formula_id": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:f[0-9]{2}$" },
+        "symbol_latex": { "$ref": "#/$defs/text" },
+        "var": { "$ref": "#/$defs/identifier" },
+        "description_he": { "type": "string" },
+        "description_ru": { "$ref": "#/$defs/text" },
+        "unit": { "type": "string" },
+        "term": { "$ref": "#/$defs/termRef" },
+        "ambiguity_note": { "$ref": "#/$defs/text" },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "figure": {
+      "type": "object",
+      "required": ["type", "id", "caption_he", "caption_ru"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "figure" },
+        "id": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:(fig[0-9]+|img[0-9]{2})$" },
+        "caption_he": { "type": "string" },
+        "caption_ru": { "type": "string" },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "region": {
+      "type": "object",
+      "required": ["type", "id", "parent", "bbox", "label_he", "label_ru", "links", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "region" },
+        "id": { "$ref": "#/$defs/tempId" },
+        "parent": { "$ref": "#/$defs/parentId" },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "label_he": { "type": "string" },
+        "label_ru": { "type": "string" },
+        "links": { "type": "array", "items": { "$ref": "#/$defs/anyId" } },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "cell": {
+      "type": "object",
+      "required": ["row", "col", "rowspan", "colspan", "he", "ru"],
+      "additionalProperties": false,
+      "properties": {
+        "row": { "type": "integer", "minimum": 0 },
+        "col": { "type": "integer", "minimum": 0 },
+        "rowspan": { "type": "integer", "minimum": 1 },
+        "colspan": { "type": "integer", "minimum": 1 },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "he": { "type": "string" },
+        "ru": { "type": "string" },
+        "unit": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "table": {
+      "type": "object",
+      "required": ["type", "id", "parent", "bbox", "cells", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "table" },
+        "id": { "$ref": "#/$defs/tempId" },
+        "parent": { "$ref": "#/$defs/parentId" },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "title_he": { "type": "string" },
+        "title_ru": { "type": "string" },
+        "cells": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/cell" } },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "sense": {
+      "type": "object",
+      "required": ["sense", "ru", "context"],
+      "additionalProperties": false,
+      "properties": {
+        "sense": { "$ref": "#/$defs/label" },
+        "ru": { "$ref": "#/$defs/text" },
+        "context": { "type": "string" }
+      }
+    },
+    "term": {
+      "type": "object",
+      "required": ["type", "id", "lemma_he", "niqqud", "translit", "senses"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "term" },
+        "id": { "$ref": "#/$defs/termId" },
+        "lemma_he": { "$ref": "#/$defs/text" },
+        "niqqud": { "$ref": "#/$defs/text" },
+        "translit": { "$ref": "#/$defs/text" },
+        "translit_ru": { "type": "string" },
+        "senses": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sense" } }
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": ["compute", "bindings", "printed"],
+      "additionalProperties": false,
+      "properties": {
+        "block": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:b[0-9]{3}$" },
+        "compute": { "$ref": "#/$defs/text" },
+        "angle_unit": { "$ref": "#/$defs/angleUnit" },
+        "bindings": { "type": "object", "additionalProperties": { "type": "number" } },
+        "printed": { "type": "string", "pattern": "^[+\\-−]?[0-9]+([.,][0-9]+)?$" },
+        "note": { "type": "string" }
+      }
+    },
+    "example": {
+      "type": "object",
+      "required": ["type", "id", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "example" },
+        "id": { "type": "string", "pattern": "^(a97002:p[1-9][0-9]{0,2}:ex[0-9]+|new:a97002:p[1-9][0-9]{0,2}:[a-z0-9]+(-[a-z0-9]+)*)$" },
+        "title_ru": { "type": "string" },
+        "steps": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/step" } }
+      }
+    },
+    "erratum": {
+      "type": "object",
+      "required": ["type", "id", "page", "target", "as_printed", "proposed", "explanation_ru"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "erratum" },
+        "id": { "type": "string", "pattern": "^new:a97002:p[1-9][0-9]{0,2}:[a-z0-9]+(-[a-z0-9]+)*$" },
+        "page": { "type": "integer", "minimum": 1, "maximum": 564 },
+        "target": { "$ref": "#/$defs/anyId" },
+        "as_printed": { "$ref": "#/$defs/text" },
+        "proposed": { "$ref": "#/$defs/text" },
+        "explanation_ru": { "$ref": "#/$defs/text" },
+        "status": { "$ref": "#/$defs/status" }
+      }
+    },
+    "report": {
+      "type": "object",
+      "required": ["type", "discrepancies"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "report" },
+        "discrepancies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["ref", "note"],
+            "additionalProperties": false,
+            "properties": { "ref": { "type": "string" }, "note": { "$ref": "#/$defs/text" } }
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/header" },
+    { "$ref": "#/$defs/block" },
+    { "$ref": "#/$defs/formula" },
+    { "$ref": "#/$defs/symbol" },
+    { "$ref": "#/$defs/figure" },
+    { "$ref": "#/$defs/region" },
+    { "$ref": "#/$defs/table" },
+    { "$ref": "#/$defs/term" },
+    { "$ref": "#/$defs/example" },
+    { "$ref": "#/$defs/erratum" },
+    { "$ref": "#/$defs/report" }
+  ]
+}

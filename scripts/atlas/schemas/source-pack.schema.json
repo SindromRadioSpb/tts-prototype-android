@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "linguistpro.atlas-source-pack.1.0.0",
+  "title": "LinguistPro engineering atlas — source pack object (one line of pages.jsonl)",
+  "description": "Produced only by the LinguistPro extractor. IDs, page numbers, bbox and raw text here are the reference the content pack is checked against. bbox = [x0, y0, x1, y1] in PDF points, origin top-left, y down; page = 1-based PDF page index (equals the printed number in this book).",
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "asset": { "type": "string", "pattern": "^assets/[0-9a-f]{64}\\.png$" },
+    "bbox": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "number" } },
+    "pageNo": { "type": "integer", "minimum": 1, "maximum": 564 },
+    "pageId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}$" },
+    "blockId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:b[0-9]{3}$" },
+    "formulaId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:f[0-9]{2}$" },
+    "symbolId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:f[0-9]{2}:s[0-9]{2}$" },
+    "figureId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:(fig[0-9]+|img[0-9]{2})$" },
+    "exampleId": { "type": "string", "pattern": "^a97002:p[1-9][0-9]{0,2}:ex[0-9]+$" },
+    "kindGuess": { "enum": ["heading", "prose", "list_item", "caption", "formula_label", "symbol_row", "example_heading", "example_text", "table_note", "other"] },
+    "manifest": {
+      "type": "object",
+      "required": ["schema", "atlas_id", "source", "extractor", "pages", "logo_xref_digests", "warnings"],
+      "additionalProperties": false,
+      "properties": {
+        "schema": { "const": "linguistpro.atlas-source-pack.1.0.0" },
+        "atlas_id": { "const": "a97002" },
+        "source": {
+          "type": "object",
+          "required": ["filename", "sha256", "page_count", "page_size_pt"],
+          "additionalProperties": false,
+          "properties": {
+            "filename": { "type": "string", "minLength": 1, "pattern": "^[^\\\\/:]+$" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "page_count": { "type": "integer", "minimum": 1 },
+            "page_size_pt": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } }
+          }
+        },
+        "extractor": {
+          "type": "object",
+          "required": ["version"],
+          "properties": { "version": { "type": "string" }, "commit": { "type": "string" } }
+        },
+        "pages": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/pageNo" } },
+        "logo_xref_digests": { "type": "array", "items": { "$ref": "#/$defs/sha256" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "page": {
+      "type": "object",
+      "required": ["type", "id", "page", "image", "has_text_layer"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "page" },
+        "id": { "$ref": "#/$defs/pageId" },
+        "page": { "$ref": "#/$defs/pageNo" },
+        "image": { "$ref": "#/$defs/asset" },
+        "has_text_layer": { "type": "boolean" }
+      }
+    },
+    "block": {
+      "type": "object",
+      "required": ["type", "id", "page", "bbox", "he_raw", "kind_guess", "order"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "block" },
+        "id": { "$ref": "#/$defs/blockId" },
+        "page": { "$ref": "#/$defs/pageNo" },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "he_raw": { "type": "string" },
+        "kind_guess": { "$ref": "#/$defs/kindGuess" },
+        "order": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "formula": {
+      "type": "object",
+      "required": ["type", "id", "page", "bbox", "source_text", "crop"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "formula" },
+        "id": { "$ref": "#/$defs/formulaId" },
+        "page": { "$ref": "#/$defs/pageNo" },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "source_text": { "type": "string", "minLength": 1 },
+        "crop": { "$ref": "#/$defs/asset" }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "required": ["type", "id", "formula_id", "page", "bbox", "symbol_raw", "description_he_raw", "unit_raw"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "symbol" },
+        "id": { "$ref": "#/$defs/symbolId" },
+        "formula_id": { "type": ["string", "null"], "pattern": "^a97002:p[1-9][0-9]{0,2}:f[0-9]{2}$" },
+        "page": { "$ref": "#/$defs/pageNo" },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "symbol_raw": { "type": "string", "minLength": 1 },
+        "description_he_raw": { "type": "string" },
+        "unit_raw": { "type": "string" }
+      }
+    },
+    "figure": {
+      "type": "object",
+      "required": ["type", "id", "page", "bbox", "crop", "number", "caption_block_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "figure" },
+        "id": { "$ref": "#/$defs/figureId" },
+        "page": { "$ref": "#/$defs/pageNo" },
+        "bbox": { "$ref": "#/$defs/bbox" },
+        "crop": { "$ref": "#/$defs/asset" },
+        "number": { "type": ["integer", "null"], "minimum": 1 },
+        "caption_block_id": { "type": ["string", "null"], "pattern": "^a97002:p[1-9][0-9]{0,2}:b[0-9]{3}$" }
+      }
+    },
+    "example": {
+      "type": "object",
+      "required": ["type", "id", "page", "heading_block_id", "image_only"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "example" },
+        "id": { "$ref": "#/$defs/exampleId" },
+        "page": { "$ref": "#/$defs/pageNo" },
+        "heading_block_id": { "type": ["string", "null"], "pattern": "^a97002:p[1-9][0-9]{0,2}:b[0-9]{3}$" },
+        "image_only": { "type": "boolean" }
+      }
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/page" },
+    { "$ref": "#/$defs/block" },
+    { "$ref": "#/$defs/formula" },
+    { "$ref": "#/$defs/symbol" },
+    { "$ref": "#/$defs/figure" },
+    { "$ref": "#/$defs/example" }
+  ]
+}
