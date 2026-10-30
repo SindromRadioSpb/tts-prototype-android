@@ -66,11 +66,47 @@ def build_bundle(out_zip):
     return sorted(entries)
 
 
+def _write_zip(out_zip, entries):
+    os.makedirs(os.path.dirname(os.path.abspath(out_zip)), exist_ok=True)
+    with zipfile.ZipFile(out_zip, 'w') as zf:
+        for name in sorted(entries):
+            info = zipfile.ZipInfo(name, date_time=FIXED_TIME)
+            info.compress_type = zipfile.ZIP_STORED if name.endswith('.png') else zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            zf.writestr(info, entries[name])
+    return sorted(entries)
+
+
+def build_terms_bundle(out_zip, book_text_path, candidates_path):
+    """Archive for the term-core task: candidates, book text, section map, tools, schemas, instructions."""
+    candidates = _text(candidates_path)
+    count = sum(1 for line in candidates.split(b'\n') if line.strip())
+    sha = hashlib.sha256(candidates).hexdigest()
+    with open(os.path.join(HERE, 'TASK.terms.ru.md'), encoding='utf-8') as fh:
+        task = fh.read().replace('{CANDIDATES_SHA256}', sha).replace('{CANDIDATE_COUNT}', str(count))
+    entries = {
+        'README.ru.md': _text(os.path.join(HERE, 'README.dots.ru.md')),
+        'TASK.ru.md': task.replace('\r\n', '\n').encode('utf-8'),
+        'term-candidates.jsonl': candidates,
+        'book-text.jsonl': _text(book_text_path),
+        'sections.json': _text(os.path.join(REPO, 'atlas', 'a97002', 'sections.json')),
+        'tools/atlas_compute.py': _text(os.path.join(HERE, 'atlas_compute.py')),
+        'tools/atlas_schema.py': _text(os.path.join(HERE, 'atlas_schema.py')),
+        'tools/atlas_validate.py': _text(os.path.join(HERE, 'atlas_validate.py')),
+        'schemas/source-pack.schema.json': _text(os.path.join(HERE, 'schemas', 'source-pack.schema.json')),
+        'schemas/content-pack.schema.json': _text(os.path.join(HERE, 'schemas', 'content-pack.schema.json')),
+    }
+    return _write_zip(out_zip, entries)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Собрать архив для поставщика содержимого.')
     parser.add_argument('--out', required=True)
+    parser.add_argument('--terms', action='store_true', help='архив задания на ядро терминов')
+    parser.add_argument('--book-text')
+    parser.add_argument('--candidates')
     args = parser.parse_args(argv)
-    names = build_bundle(args.out)
+    names = build_terms_bundle(args.out, args.book_text, args.candidates) if args.terms else build_bundle(args.out)
     with open(args.out, 'rb') as fh:
         digest = hashlib.sha256(fh.read()).hexdigest()
     sys.stdout.write(f'{args.out}\nфайлов: {len(names)}, байт: {os.path.getsize(args.out)}, sha256: {digest}\n')

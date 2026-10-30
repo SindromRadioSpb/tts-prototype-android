@@ -77,6 +77,18 @@ def extract_book(pdf, out_root, only=None, sections_path=SECTIONS):
     return rows
 
 
+def book_text(root, section_ids):
+    """Raw Hebrew text of the book by page (blocks, then symbol rows): the reference for term occurrences."""
+    pages = {}
+    for sid in section_ids:
+        for o in _read(os.path.join(root, sid)):
+            if o['type'] == 'block':
+                pages.setdefault(o['page'], (sid, []))[1].append(o['he_raw'])
+            elif o['type'] == 'symbol':
+                pages.setdefault(o['page'], (sid, []))[1].append(f'{o["symbol_raw"]} — {o["description_he_raw"]} {o["unit_raw"]}'.strip())
+    return [{'page': p, 'section': sid, 'text': '\n'.join(parts)} for p, (sid, parts) in sorted(pages.items())]
+
+
 def _norm(word, vocab):
     for _ in range(2):
         if len(word) > 3 and word[0] in PREFIXES and word[1:] in vocab:
@@ -158,11 +170,22 @@ def main(argv=None):
     ex.add_argument('--pdf', required=True)
     ex.add_argument('--out', required=True)
     ex.add_argument('--only', default='')
+    bt = sub.add_parser('booktext')
+    bt.add_argument('--root', required=True)
+    bt.add_argument('--out', required=True)
     ca = sub.add_parser('candidates')
     ca.add_argument('--root', required=True)
     ca.add_argument('--out', required=True)
     ca.add_argument('--min-count', type=int, default=4)
     args = parser.parse_args(argv)
+    if args.cmd == 'booktext':
+        ids = [s['id'] for s in load_sections()['sections'] if os.path.isdir(os.path.join(args.root, s['id']))]
+        rows = book_text(args.root, ids)
+        with open(args.out, 'w', encoding='utf-8', newline='\n') as fh:
+            for r in rows:
+                fh.write(json.dumps(r, ensure_ascii=False) + '\n')
+        sys.stdout.write(f'страниц с текстом: {len(rows)}\n')
+        return 0
     if args.cmd == 'extract':
         only = {s for s in args.only.split(',') if s}
         rows = extract_book(args.pdf, args.out, only or None)

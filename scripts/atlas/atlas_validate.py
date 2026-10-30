@@ -410,6 +410,70 @@ def _check_figures(source, content, header, rep):
             rep.warn('W_FIGURE_NO_REGIONS', sid, None, 'у рисунка нет размеченных областей (подписей)')
 
 
+def _lf_sha(path):
+    with open(path, 'rb') as fh:
+        return hashlib.sha256(fh.read().replace(b'\r\n', b'\n')).hexdigest()
+
+
+def validate_terms(book_text_path, candidates_path, terms_path):
+    """Check a terms pack: header, term schema, occurrences quoted from the book, niqqud skeleton, candidate refs."""
+    rep = _Report()
+    rows, parse_errors = S.read_jsonl(terms_path)
+    for message in parse_errors:
+        rep.error('E_PARSE', None, int(message.split(':', 1)[0].split()[1]), message)
+    stats = {'terms': 0, 'senses': 0}
+    if not rows and parse_errors:
+        return rep.result(stats)
+    line, header = rows[0] if rows else (None, {})
+    want = {'type': 'header', 'schema': 'linguistpro.atlas-terms-pack.1.0.0', 'atlas_id': ATLAS_ID}
+    if any(header.get(k) != v for k, v in want.items()):
+        rep.error('E_HEADER', None, line, 'первая строка: header со schema linguistpro.atlas-terms-pack.1.0.0 и atlas_id a97002')
+        return rep.result(stats)
+    if header.get('candidates_sha256') != _lf_sha(candidates_path):
+        rep.error('E_SOURCE_MISMATCH', None, line, f'словарь сделан не по этому списку кандидатов: ожидается candidates_sha256 {_lf_sha(candidates_path)}')
+        return rep.result(stats)
+    book, _ = S.read_jsonl(book_text_path)
+    # quotes are compared as consonant skeletons: a vocalised quote may drop the vowel letters ו/י
+    page_letters = {r['page']: _skeleton(r['text']) for _, r in book}
+    cand_rows, _ = S.read_jsonl(candidates_path)
+    candidate_ids = {r['id'] for _, r in cand_rows}
+    schema = S.load_schema('content-pack')
+    seen = {}
+    for line, obj in rows[1:]:
+        if obj.get('type') == 'report':
+            continue
+        if obj.get('type') != 'term':
+            rep.error('E_SCHEMA', obj.get('id'), line, 'в словаре допускаются только объекты term и report')
+            continue
+        problems = S.check(schema['$defs']['term'], obj, root=schema)
+        if not obj.get('occurrences'):
+            problems.append('$.occurrences: нужна хотя бы одна цитата из книги')
+        for message in problems:
+            rep.error('E_SCHEMA', obj.get('id'), line, message)
+        if problems:
+            continue
+        tid = obj['id']
+        if tid in seen:
+            rep.error('E_TERM', tid, line, f'термин уже определён в строке {seen[tid]}')
+            continue
+        seen[tid] = line
+        senses = [s['sense'] for s in obj['senses']]
+        if len(senses) != len(set(senses)):
+            rep.error('E_TERM', tid, line, 'смысл (sense) повторяется внутри термина')
+        if _skeleton(obj['niqqud']) != _skeleton(obj['lemma_he']):
+            rep.error('E_NIQQUD_BASE', tid, line, 'niqqud без огласовок (и без ו/י) не совпадает с lemma_he')
+        for occ in obj['occurrences']:
+            quote = _skeleton(occ['he'])
+            if not quote or quote not in page_letters.get(occ['page'], ''):
+                rep.error('E_OCCURRENCE', tid, line, f'цитата «{occ["he"]}» не найдена на стр. {occ["page"]}')
+        for ref in obj.get('candidates', []):
+            if ref not in candidate_ids:
+                rep.error('E_REF', tid, line, f'нет кандидата {ref}')
+        stats['terms'] += 1
+        stats['senses'] += len(senses)
+    return rep.result(stats)
+
+
 def _print_human(report, out):
     out.write(('ПРОВЕРКА ПРОЙДЕНА' if report['ok'] else 'ЕСТЬ ОШИБКИ') +
               f": ошибок {len(report['errors'])}, предупреждений {len(report['warnings'])}, находок ядра {len(report['findings'])}\n")
@@ -424,11 +488,21 @@ def _print_human(report, out):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Проверка пакета содержимого атласа.')
-    parser.add_argument('--source', required=True, help='папка исходного пакета (manifest.json, pages.jsonl)')
-    parser.add_argument('--content', required=True, help='пакет содержимого JSONL')
+    parser.add_argument('--source', help='папка исходного пакета (manifest.json, pages.jsonl)')
+    parser.add_argument('--content', help='пакет содержимого JSONL')
+    parser.add_argument('--terms', help='словарь терминов JSONL (вместо --source/--content)')
+    parser.add_argument('--book-text', help='текст книги по страницам (для --terms)')
+    parser.add_argument('--candidates', help='список кандидатов в термины (для --terms)')
     parser.add_argument('--json', action='store_true', help='вывести отчёт в JSON')
     args = parser.parse_args(argv)
-    report = validate(load_source_pack(args.source), args.content)
+    if args.terms:
+        if not (args.book_text and args.candidates):
+            parser.error('--terms требует --book-text и --candidates')
+        report = validate_terms(args.book_text, args.candidates, args.terms)
+    else:
+        if not (args.source and args.content):
+            parser.error('нужны --source и --content (или --terms)')
+        report = validate(load_source_pack(args.source), args.content)
     if args.json:
         sys.stdout.write(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     else:

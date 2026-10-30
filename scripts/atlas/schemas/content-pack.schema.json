@@ -168,6 +168,15 @@
         "status": { "$ref": "#/$defs/status" }
       }
     },
+    "occurrence": {
+      "type": "object",
+      "required": ["page", "he"],
+      "additionalProperties": false,
+      "properties": {
+        "page": { "type": "integer", "minimum": 1, "maximum": 564 },
+        "he": { "$ref": "#/$defs/text" }
+      }
+    },
     "sense": {
       "type": "object",
       "required": ["sense", "ru", "context"],
@@ -189,7 +198,9 @@
         "niqqud": { "$ref": "#/$defs/text" },
         "translit": { "$ref": "#/$defs/text" },
         "translit_ru": { "type": "string" },
-        "senses": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sense" } }
+        "senses": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/sense" } },
+        "occurrences": { "type": "array", "items": { "$ref": "#/$defs/occurrence" } },
+        "candidates": { "type": "array", "items": { "type": "string", "pattern": "^c[0-9]{4}$" } }
       }
     },
     "step": {
