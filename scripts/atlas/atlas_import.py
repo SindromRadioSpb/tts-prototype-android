@@ -115,7 +115,7 @@ def build_graph(source, content_path):
             eid = f'a97002:p{page}:e-core-{oid.rsplit(":", 1)[1]}-step{index}'
             objects[eid] = {'type': 'erratum', 'id': eid, 'page': page, 'target': target, 'origin': 'core',
                             'as_printed': step['printed'], 'proposed': '',
-                            'explanation_ru': f'Ядро: {step["compute"]} с подстановками {step["bindings"]} не даёт напечатанное {step["printed"]}.',
+                            'explanation_ru': f'Ядро: {step["compute"]} при {", ".join(f"{k} = {v:g}" for k, v in step["bindings"].items())} не даёт напечатанное {step["printed"]}.',
                             'status': _status({}, 'extracted', 'core_mismatch')}
 
     pages = {}

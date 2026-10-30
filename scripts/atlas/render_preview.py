@@ -236,7 +236,7 @@ PRINT_CSS = BASE_CSS + """
 table.pb{width:100%;border-collapse:collapse;table-layout:fixed}table.pb td{border-bottom:1px solid #ddd;padding:3px 4px;vertical-align:top}
 td.pr{width:50%}td.ph{font-size:12.5px}.fx{text-align:center;break-inside:avoid;margin:4px 0}.fx .katex-display{margin:2px 0}
 .fxv{font-size:10.5px;text-align:center;color:#333}.fig{break-inside:avoid}.figbox img{max-height:52mm}
-.terms{border-top:1px solid #999;margin-top:6px;padding-top:3px;font-size:10.5px;columns:2}.terms div{break-inside:avoid}
+.terms{border-top:1px solid #999;margin-top:6px;padding-top:3px;font-size:12px;columns:2}.fxn{font-size:10px;color:#7a4f12;text-align:center}.terms div{break-inside:avoid}
 .rg i.n{display:inline;left:auto;right:100%;top:-2px;margin:0 2px 0 0}
 table.sheetwrap{width:100%;border-collapse:collapse}table.sheetwrap>thead>tr>td,table.sheetwrap>tbody>tr>td{padding:0;border:0}
 table.data thead td{font-weight:600;background:#f2f4f5}table.data tr{break-inside:avoid}
@@ -303,19 +303,20 @@ def _print_page(page, terms, source_dir, out_dir):
     heading = next((b for b in p.blocks if b.get('kind') == 'heading' and b.get('ru')), None)
     title = f'{he(heading["he"], "span", "he inl")} · {e(heading["ru"])}' if heading else ''
     rows = []
-    for b in p.blocks:
-        ru = e(b['ru']) if b.get('ru') else '<span class="muted">нет перевода</span>'
-        hb = b.get('he') or b.get('he_raw', '')
-        rows.append(f'<tr class="pb-row"><td class="pr">{ru}</td><td class="ph" lang="he" dir="{_dir(hb)}">{e(hb)}</td></tr>')
-        for x in p.errata_for(b['id']):
+    # text and formulas in the order of the original page, so an instruction stays next to its expression (p289)
+    items = sorted(p.blocks + [f for f in p.formulas if f.get('display_latex')], key=lambda o: (o.get('bbox') or [0, 0])[1])
+    for o in items:
+        if o['type'] == 'formula':
+            vs = ' · '.join(f'{tex_inline(v["latex"])} — {e(v["ru"])}{", " + e(v["unit"]) if v["unit"] else ""}' for v in p.formula_vars(o))
+            note = f'<div class="fxn">{e(o["ambiguity_note"])}</div>' if o.get('ambiguity_note') else ''
+            rows.append(f'<tr><td colspan="2"><div class="fx"><div data-tex="{e(o["display_latex"])}"></div><div class="fxv">{vs}</div>{note}</div></td></tr>')
+        else:
+            ru = e(o['ru']) if o.get('ru') else '<span class="muted">нет перевода</span>'
+            hb = o.get('he') or o.get('he_raw', '')
+            rows.append(f'<tr class="pb-row"><td class="pr">{ru}</td><td class="ph" lang="he" dir="{_dir(hb)}">{e(hb)}</td></tr>')
+        for x in p.errata_for(o['id']):
             rows.append(f'<tr><td colspan="2">{_erratum_html(x)}</td></tr>')
     body = f'<table class="pb">{"".join(rows)}</table>'
-    for f in p.formulas:
-        if not f.get('display_latex'):
-            continue
-        vs = ' · '.join(f'{tex_inline(v["latex"])} — {e(v["ru"])}{", " + e(v["unit"]) if v["unit"] else ""}' for v in p.formula_vars(f))
-        body += f'<div class="fx"><div data-tex="{e(f["display_latex"])}"></div><div class="fxv">{vs}</div></div>'
-        body += ''.join(_erratum_html(x) for x in p.errata_for(f['id']))
     table_parents = {t.get('parent') for t in p.tables}
     for fig in p.figures:
         body += _figure_html(p, fig, source_dir, out_dir, numbered=True, tablefig=fig['id'] in table_parents)
