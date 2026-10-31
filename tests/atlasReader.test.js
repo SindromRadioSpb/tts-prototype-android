@@ -57,16 +57,17 @@ test('translated section: rows, MathML formula with variables, figure regions, p
   assert.match(section.textContent, /Словарь раздела/);
 });
 
-test('region labels in the right half of a figure open to the left (no page overflow)', () => {
+test('every figure region is a numbered pin; the labels live in the legend (no text over the scan)', () => {
   const { R, T } = env();
   const data = fixture('s09-belt.json');
-  const fig = data.pages[0].figures[0];
-  fig.regions = fig.regions.slice(0, 2);   // a sparse figure keeps text labels
+  data.pages[0].figures[0].regions = data.pages[0].figures[0].regions.slice(0, 2);   // even a sparse figure
   const section = R.renderSection(T, data, {});
-  const label = (r) => section.querySelector('.atlas-rg[data-region="' + r.id + '"] i');
-  // region 0 sits at the right edge of the figure, region 1 at its left edge
-  assert.ok(label(fig.regions[0]).classList.contains('flip'));
-  assert.ok(!label(fig.regions[1]).classList.contains('flip'));
+  const fig = section.querySelector('figure[data-ref="' + data.pages[0].figures[0].id + '"]');
+  const pins = fig.querySelectorAll('.atlas-rg i');
+  assert.equal(pins.length, 2);
+  pins.forEach((p) => assert.ok(p.classList.contains('n')));
+  assert.equal(fig.querySelectorAll('.atlas-regions li').length, 2);
+  assert.equal(section.querySelectorAll('.atlas-rg i:not(.n)').length, 0);
 });
 
 // ---- acceptance report 2026-10-30 (docs/research/engineering-atlas/acceptance/) ----
@@ -131,7 +132,8 @@ test('UI03: Russian layers of tables, legends, captions and notes are marked for
   assert.equal(td.querySelector('td .atlas-l-he').textContent, 'קוטר');
   assert.equal(td.querySelector('caption .atlas-l-ru').textContent, 'Размеры');
   el.querySelectorAll('.atlas-regions li').forEach((li) => assert.ok(li.querySelector('.atlas-l-ru'), 'legend Russian part marked'));
-  assert.ok(el.querySelector('figcaption .atlas-l-ru'));
+  // a caption is either the page's own caption line (its translation is the row's) or a marked short caption
+  el.querySelectorAll('figcaption').forEach((c) => assert.ok(c.querySelector('.atlas-l-ru, .atlas-row > .atlas-ru')));
   const css = read('public/css/atlas-reader.css');
   assert.match(css, /\.atlas-hebrew-only \.atlas-l-ru/);
   assert.match(css, /\.atlas-hebrew-only \.atlas-l-he/);
@@ -310,5 +312,139 @@ test('columns: the panel labels are translated in every interface language', () 
     const atlas = JSON.parse(line.slice(line.indexOf('= ') + 2).replace(/;\s*$/, ''));
     assert.ok(atlas.columns, lang + ' atlas.columns');
     ['he', 'niqqud', 'translit', 'ru', 'custom', 'script', 'lat', 'cyr'].forEach((k) => assert.ok(atlas.col && atlas.col[k], lang + ' atlas.col.' + k));
+  });
+});
+
+// ---- owner review 2026-10-31: row layout, margin marks, figure placement, page proofreading ----
+function bookPage14() {
+  // the shape of a97002 p14: 👍 above five advantages, 👎 above the drawbacks (tiny unnumbered margin figures)
+  const li = (n, y) => ({ id: 'a97002:p14:b' + n, type: 'block', kind: 'list_item', y, he: '• ' + n, he_niqqud: '• ' + n, translit: 't' + n, ru: '• ru' + n,
+    status: { language_review: 'producer_checked', owner_status: 'none' } });
+  const icon = (id, y, he, ru) => ({ id, number: null, bbox: [522, y, 552, y + 29], caption_he: '', caption_ru: '',
+    regions: [{ id: id + ':r', bbox: [522, y, 552, y + 29], label_he: he, label_ru: ru, links: [] }] });
+  return page({ page: 14, state: 'translated', translated: true,
+    items: [li(1, 147), li(2, 176), li(3, 206), li(4, 234), li(5, 262), li(6, 355), li(7, 383), li(8, 412),
+      { id: 'a97002:p14:b9', type: 'block', kind: 'prose', y: 525, he: 'המלצות:', ru: 'Рекомендации:' }],
+    figures: [icon('a97002:p14:img01', 104, '👍', 'Преимущества (графический значок)'), icon('a97002:p14:img02', 310, '👎', 'Недостатки (графический значок)')] });
+}
+
+test('margin marks wrap their own text: 👍 over the advantages, 👎 over the drawbacks, no stray pictures', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, bookPage14());
+  const groups = el.querySelectorAll('.atlas-mark-group');
+  assert.equal(groups.length, 2);
+  assert.equal(groups[0].getAttribute('data-mark'), 'pro');
+  assert.match(groups[0].querySelector('.atlas-mark-head').textContent, /👍.*Преимущества.*יתרונות/);
+  assert.equal(groups[0].querySelectorAll('.atlas-row').length, 5);
+  assert.equal(groups[1].getAttribute('data-mark'), 'con');
+  assert.equal(groups[1].querySelectorAll('.atlas-row').length, 3);
+  assert.ok(!groups[1].textContent.includes('Рекомендации'), 'the group ends with the list');
+  assert.equal(el.querySelectorAll('figure').length, 0, 'the marks are not drawn as figures');
+});
+
+test('a ❗ mark highlights the paragraph right below it, and print keeps the mark as a heading', () => {
+  const { R, T } = env();
+  const p = page({ page: 13, state: 'translated', translated: true,
+    items: [{ id: 'a', type: 'block', kind: 'prose', y: 340, he: 'א', ru: 'A' }, { id: 'b', type: 'block', kind: 'prose', y: 603, he: 'ב', ru: 'B' }],
+    figures: [{ id: 'i', number: null, bbox: [542, 583, 553, 614], regions: [{ id: 'r', bbox: [542, 583, 553, 614], label_he: '!', label_ru: 'Внимание', links: [] }] }] });
+  const g = R.renderPage(T, p).querySelector('.atlas-mark-group[data-mark="attn"]');
+  assert.equal(g.querySelector('.atlas-row').getAttribute('data-ref'), 'b');
+  const print = R.renderPrint(T, section([p]));
+  assert.ok(print.querySelector('tr.atlas-pmark[data-mark="attn"]'));
+  assert.equal(print.querySelectorAll('figure').length, 0);
+});
+
+test('a numbered figure stands above its own caption line, which keeps its study layers', () => {
+  const { R, T } = env();
+  const p = page({ page: 13, state: 'translated', translated: true,
+    items: [{ id: 'a', type: 'block', kind: 'prose', y: 340, he: 'א', ru: 'A' },
+      { id: 'cap', type: 'block', kind: 'caption', y: 562, he: 'איור 10', he_niqqud: 'אִיּוּר 10', translit: 'iyur 10', ru: 'Рисунок 10' },
+      { id: 'b', type: 'block', kind: 'prose', y: 603, he: 'ב', ru: 'B' }],
+    figures: [{ id: 'f10', number: 10, bbox: [101, 410, 494, 547], crop: '/x.png', caption_he: 'איור 10', caption_ru: 'Рисунок 10',
+      regions: [{ id: 'r1', bbox: [110, 420, 200, 500], label_he: 'מסמרה', label_ru: 'Заклёпка', links: [] }] }] });
+  const main = R.renderPage(T, p).querySelector('.atlas-main');
+  const order = [...main.children].map((n) => n.getAttribute('data-ref'));
+  assert.deepEqual(order, ['a', 'f10', 'b'], 'figure between the paragraphs, as in the book');
+  const fig = main.querySelector('figure');
+  assert.equal(fig.querySelector('figcaption .atlas-row').getAttribute('data-ref'), 'cap');
+  assert.ok(fig.querySelector('figcaption .atlas-niqqud'), 'caption keeps the pointed line');
+  assert.equal(main.querySelectorAll('[data-ref="cap"]').length, 1, 'the caption is not repeated');
+});
+
+test('a row is Hebrew | transliteration, then pointed Hebrew | translation, without per-row status', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, bookPage14());
+  const cells = [...el.querySelector('.atlas-row').children].map((c) => c.className);
+  assert.deepEqual(cells, ['atlas-he', 'atlas-translit', 'atlas-he atlas-niqqud', 'atlas-ru']);
+  assert.equal(el.querySelectorAll('.atlas-row .atlas-badge').length, 0);
+  const css = read('public/css/atlas-reader.css');
+  assert.match(css, /\.atlas-row \{[^}]*grid-auto-flow: row dense/);
+  assert.match(css, /\.atlas-row > \.atlas-he \{ grid-column: 1; \}/);
+});
+
+test('proofreading is one mark per page; only the owner gets the checkbox and it saves', async () => {
+  const { R, T } = env();
+  const head = R.renderPage(T, bookPage14()).querySelector('.atlas-page-head');
+  assert.equal(head.querySelectorAll('.atlas-review').length, 1);
+  assert.match(head.textContent, /ждёт вычитки/);
+  const el = R.renderPage(T, bookPage14()).querySelector('.atlas-review');
+  R.paintReview(T, el, false, true);
+  assert.ok(el.querySelector('input[type="checkbox"]:not([checked])'));
+  R.paintReview(T, el, true, false);
+  assert.match(el.textContent, /✓ вычитано/);
+  assert.ok(!el.querySelector('input'));
+
+  const { document, window } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const data = section([bookPage14()]); data.first = 14; data.last = 14;
+  const saved = [];
+  const reader = api.mount(document.getElementById('m'), { t: (k, fb) => fb, fetchJson: async () => data,
+    review: { load: async () => ({ pages: {} }), canEdit: async () => true,
+      save: async (n, on) => { saved.push([n, on]); return { pages: on ? { [n]: {} } : {} }; } } });
+  await reader.openSection('s01', 0, { restore: true });
+  await new Promise((r) => setTimeout(r, 0));
+  const box = document.querySelector('.atlas-review input');
+  assert.ok(box, 'owner sees the checkbox');
+  box.checked = true;
+  box.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(saved, [[14, true]]);
+  assert.equal(document.querySelector('.atlas-review').getAttribute('data-done'), '1');
+  assert.match(document.querySelector('.atlas-review-count').textContent, /1 \/ 1/);
+});
+
+test('proofreading marks: the server keeps them on the data volume and only the owner writes', async () => {
+  const os = require('node:os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'atlas-review-'));
+  const routes = {};
+  const app = { get: (p, h) => { routes['GET ' + p] = h; }, post: (p, ...hs) => { routes['POST ' + p] = hs[hs.length - 1]; } };
+  let user = { id: 'u1', role: 'member' };
+  require('../lib/atlasReview').installRoutes(app, { dir, requireUser: async () => ({ user, session: {} }), requireCsrf: () => true });
+  const call = async (key, params, body) => {
+    const out = {}; const res = { set() { return res; }, status(c) { out.status = c; return res; }, json(j) { out.json = j; return res; } };
+    await routes[key]({ params, body }, res); return out;
+  };
+  let r = await call('POST /api/atlas/:id/review', { id: 'a97002' }, { page: 14, reviewed: true });
+  assert.equal(r.status, 403);
+  user = { id: 'u1', role: 'owner' };
+  r = await call('POST /api/atlas/:id/review', { id: 'a97002' }, { page: 14, reviewed: true });
+  assert.ok(r.json.ok && r.json.pages['14']);
+  assert.equal(r.json.pages['14'].by, undefined, 'who reviewed is not published');
+  r = await call('GET /api/atlas/:id/review', { id: 'a97002' });
+  assert.ok(r.json.pages['14']);
+  r = await call('POST /api/atlas/:id/review', { id: '../x' }, { page: 1, reviewed: true });
+  assert.equal(r.status, 404);
+  r = await call('POST /api/atlas/:id/review', { id: 'a97002' }, { page: 14, reviewed: false });
+  assert.deepEqual(r.json.pages, {});
+  assert.match(read('server.js'), /require\("\.\/lib\/atlasReview"\)\.installRoutes\(app, \{ dir: path\.join\(DATA_DIR, "atlas-review"\)/);
+});
+
+test('margin marks and proofreading are labelled in every interface language', () => {
+  ['ru', 'en', 'he'].forEach((lang) => {
+    const src = read('public/i18n/locales/' + lang + '.js');
+    const line = src.split('\n').find((l) => l.startsWith('window.I18N_LOCALES.' + lang + '.atlas = '));
+    const atlas = JSON.parse(line.slice(line.indexOf('= ') + 2).replace(/;\s*$/, ''));
+    ['pro', 'con', 'attn'].forEach((k) => assert.ok(atlas.mark && atlas.mark[k], lang + ' atlas.mark.' + k));
+    ['pending', 'done', 'count', 'ownerHint', 'doneHint', 'pendingHint', 'saveError'].forEach((k) => assert.ok(atlas.review && atlas.review[k], lang + ' atlas.review.' + k));
   });
 });

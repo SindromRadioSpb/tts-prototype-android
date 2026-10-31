@@ -77,6 +77,14 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-badge.ok, .atlas-root .atlas-badge.core_verified { background: var(--atlas-teal-soft); color: var(--atlas-teal-ink); }
 .atlas-root .atlas-badge.core_mismatch { background: var(--atlas-oxide-soft); color: var(--atlas-oxide); }
 .atlas-root .atlas-badge.core_rounded { background: var(--atlas-ok-soft); color: var(--atlas-ok); }
+/* proofreading: one mark per book page, a checkbox for the owner */
+.atlas-root .atlas-review { display: inline-flex; align-items: center; margin-inline-start: auto; font-size: .78rem; line-height: 1.5;
+  padding: 2px 10px; border-radius: 999px; background: var(--atlas-sunken); color: var(--atlas-muted); white-space: nowrap; }
+.atlas-root .atlas-review[data-done="1"] { background: var(--atlas-ok-soft); color: var(--atlas-ok); font-weight: 600; }
+.atlas-root .atlas-review-edit { padding: 0 10px 0 6px; border: 1px solid var(--atlas-line-strong); }
+.atlas-root .atlas-review-edit label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; cursor: pointer; }
+.atlas-root .atlas-review-error { border-color: var(--atlas-oxide); color: var(--atlas-oxide); }
+.atlas-root .atlas-review-count { white-space: nowrap; }
 .atlas-root .atlas-badge[data-state="empty"] { background: var(--atlas-sunken); color: var(--atlas-faint); }
 .atlas-root .atlas-note { background: var(--atlas-note-bg); color: var(--atlas-note-ink); border-inline-start: 3px solid var(--atlas-amber);
   padding: 4px 8px; font-size: .85rem; margin-top: 4px; border-radius: 0 6px 6px 0; }
@@ -129,23 +137,43 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-thumb { padding: 0; border: 1px solid var(--atlas-line); border-radius: 6px; overflow: hidden; background: #fff; cursor: zoom-in; position: sticky; top: 64px; width: 100%; min-height: 0; }
 .atlas-root .atlas-thumb img { display: block; width: 100%; }
 .atlas-root .atlas-main { min-width: 0; }
-.atlas-root .atlas-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px 8px; margin: 0 -8px; border-bottom: 1px solid var(--atlas-line); border-radius: 8px; }
+/* a row is a 2×2 grid: Hebrew | transliteration, pointed Hebrew | translation (owner's layout 2026-10-31).
+   Each cell has a fixed column; dense packing lifts a cell into the gap a hidden column leaves. */
+.atlas-root .atlas-row { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: row dense; gap: 4px 20px; align-items: baseline;
+  padding: 10px 8px; margin: 0 -8px; border-bottom: 1px solid var(--atlas-line); border-radius: 8px; }
 .atlas-root .atlas-row > * { min-width: 0; overflow-wrap: anywhere; }
+.atlas-root .atlas-row > .atlas-he { grid-column: 1; }
+.atlas-root .atlas-row > .atlas-translit, .atlas-root .atlas-row > .atlas-ru, .atlas-root .atlas-row > .atlas-tr { grid-column: 2; }
+.atlas-root .atlas-row > .atlas-note { grid-column: 1 / -1; }
+/* only transliteration left as the source: it takes the Hebrew side */
+.atlas-root .atlas-hide-he.atlas-hide-niqqud .atlas-row > .atlas-translit { grid-column: 1; }
 .atlas-root .atlas-row[data-kind="heading"] .atlas-he, .atlas-root .atlas-row[data-kind="heading"] .atlas-ru { font-weight: 700; }
-.atlas-root .atlas-src > * + * { margin-top: 2px; }
+.atlas-root .atlas-row[data-kind="heading"] .atlas-ru { font-size: 1.05rem; }
 
 /* columns (the Room's presets): each hidden layer is one class on the section */
-.atlas-root .atlas-hide-he .atlas-src > .atlas-he:not(.atlas-niqqud):not(.atlas-raw):not(.atlas-he-sole) { display: none; }
+.atlas-root .atlas-hide-he .atlas-row > .atlas-he:not(.atlas-niqqud):not(.atlas-raw):not(.atlas-he-sole) { display: none; }
 .atlas-root .atlas-hide-niqqud .atlas-niqqud { display: none; }
 .atlas-root .atlas-hide-translit .atlas-translit { display: none; }
 .atlas-root .atlas-tl-lat .atlas-translit-ru, .atlas-root .atlas-tl-cyr .atlas-translit:not(.atlas-translit-ru) { display: none; }
 /* translation off hides every Russian layer, not just the main text (acceptance UI03) */
-.atlas-root .atlas-hebrew-only .atlas-tr { display: none; }
-.atlas-root .atlas-hebrew-only .atlas-row { grid-template-columns: 1fr; }
+.atlas-root .atlas-hebrew-only .atlas-row > .atlas-ru, .atlas-root .atlas-hebrew-only .atlas-row > .atlas-tr { display: none; }
 .atlas-root .atlas-l-he { display: none; }
 .atlas-root .atlas-hebrew-only .atlas-l-ru, .atlas-root .atlas-hebrew-only .atlas-note, .atlas-root .atlas-hebrew-only .atlas-why,
 .atlas-root .atlas-hebrew-only .atlas-erratum > b, .atlas-root .atlas-hebrew-only .atlas-erratum > small { display: none; }
 .atlas-root .atlas-hebrew-only .atlas-l-he { display: inline; }
+
+/* margin marks of the book (👍 / 👎 / ❗) wrap the text they belong to */
+.atlas-root .atlas-mark-group { margin: 12px 0 8px; padding: 2px 0 2px 12px; border-inline-start: 4px solid var(--mark-c, var(--atlas-amber));
+  background: linear-gradient(to right, var(--mark-bg, var(--atlas-note-bg)), transparent 70%); border-radius: 0 10px 10px 0; }
+[dir="rtl"] .atlas-root .atlas-mark-group, .atlas-root[dir="rtl"] .atlas-mark-group { background: linear-gradient(to left, var(--mark-bg, var(--atlas-note-bg)), transparent 70%); }
+.atlas-root .atlas-mark-group[data-mark="pro"] { --mark-c: var(--atlas-ok); --mark-bg: var(--atlas-ok-soft); }
+.atlas-root .atlas-mark-group[data-mark="con"] { --mark-c: var(--atlas-oxide); --mark-bg: var(--atlas-oxide-soft); }
+.atlas-root .atlas-mark-group[data-mark="attn"] { --mark-c: var(--atlas-amber); --mark-bg: var(--atlas-note-bg); }
+.atlas-root .atlas-mark-group > .atlas-row { margin-inline: 0; }
+.atlas-root .atlas-mark-group > .atlas-row:last-child { border-bottom: 0; }
+.atlas-root .atlas-mark-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 6px 0 2px; font-weight: 700; color: var(--mark-c, var(--atlas-ink)); }
+.atlas-root .atlas-mark-emoji { font-size: 1.25rem; line-height: 1; align-self: center; }
+.atlas-root .atlas-mark-head bdi { font-weight: 600; opacity: .9; }
 
 /* search hit and the item a figure region points to: tinted, text keeps its own colour */
 .atlas-root .atlas-hit { background: var(--atlas-hit); }
@@ -175,10 +203,11 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-rg i { position: absolute; inset-inline-start: 100%; top: -2px; margin-inline-start: 3px; font-style: normal; font-size: 11px; white-space: nowrap;
   background: var(--atlas-scan-label); color: var(--atlas-scan-mark); border: 1px solid var(--atlas-scan-mark); border-radius: 3px; padding: 0 4px; pointer-events: none; }
 .atlas-root .atlas-rg.atlas-hl i { background: var(--atlas-scan-mark); color: var(--atlas-scan-label); }
-.atlas-root .atlas-rg i.t { white-space: normal; width: max-content; max-width: 16em; line-height: 1.25; }
 .atlas-root .atlas-rg i.n { inset-inline-start: -7px; top: -9px; margin: 0; padding: 0 3px; min-width: 16px; text-align: center; line-height: 16px; font: 700 10px/16px system-ui, sans-serif; border-radius: 8px; }
-.atlas-root .atlas-rg i.flip { inset-inline-start: auto; inset-inline-end: 100%; margin-inline-start: 0; margin-inline-end: 3px; }
 .atlas-root figcaption { font-size: .85rem; color: var(--atlas-muted); margin-top: 6px; }
+/* the page's own caption line under its figure keeps the study layers */
+.atlas-root figcaption.atlas-figcap-row { font-size: inherit; color: inherit; margin-top: 4px; }
+.atlas-root figcaption.atlas-figcap-row > .atlas-row { border-bottom: 0; }
 .atlas-root .atlas-regions { font-size: .95rem; margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; }
 .atlas-root .atlas-regions li { cursor: pointer; padding: 4px 8px; border-radius: 8px; color: var(--atlas-ink); }
 .atlas-root .atlas-regions li:hover { background: var(--atlas-sunken); }
@@ -226,8 +255,8 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 @media (max-width: 760px) {
   .atlas-root .atlas-page-body { grid-template-columns: 1fr; }
   .atlas-root .atlas-thumb { position: static; max-width: 220px; }
-  .atlas-root .atlas-row { grid-template-columns: 1fr; gap: 6px; }
-  .atlas-root .atlas-rg i.t { display: none; }
+  .atlas-root .atlas-row { grid-template-columns: 1fr; gap: 4px; }
+  .atlas-root .atlas-row > * { grid-column: 1 !important; }
   .atlas-root .atlas-terms { grid-template-columns: 1fr; }
   .atlas-root .atlas-terms dd { margin-bottom: 6px; }
 }

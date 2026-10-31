@@ -13189,7 +13189,19 @@ function renderAtlasCorpus(atlasId, token) {
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
   const anchor = roomAtlasAnchor; roomAtlasAnchor = null;
   // The atlas shows the same columns as every other Room text, and a choice made in it is the Room's choice.
-  const reader = window.AtlasReader.mount(wrap, { atlasId, t: tt,
+  // Proofreading marks: everyone sees them, the owner sets them (lib/atlasReview.js).
+  const reviewUrl = '/api/atlas/' + encodeURIComponent(atlasId) + '/review';
+  const review = {
+    load: () => fetch(reviewUrl, { credentials: 'same-origin', cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+    canEdit: async () => {
+      const s = window.CloudSync && await window.CloudSync.me();
+      return String((s && s.user && s.user.role) || '').toLowerCase() === 'owner';
+    },
+    save: (page, reviewed) => fetch(reviewUrl, { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ page, reviewed }) }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }),
+  };
+  const reader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review,
     layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
     onLayers: (l) => {
