@@ -302,3 +302,13 @@ test('columns: the Room hands its saved columns to the atlas and stores the atla
   assert.match(call, /onLayers:/);
   assert.match(call, /saveReaderCfg\(\)/);
 });
+
+test('columns: the panel labels are translated in every interface language', () => {
+  ['ru', 'en', 'he'].forEach((lang) => {
+    const src = read('public/i18n/locales/' + lang + '.js');
+    const line = src.split('\n').find((l) => l.startsWith('window.I18N_LOCALES.' + lang + '.atlas = '));
+    const atlas = JSON.parse(line.slice(line.indexOf('= ') + 2).replace(/;\s*$/, ''));
+    assert.ok(atlas.columns, lang + ' atlas.columns');
+    ['he', 'niqqud', 'translit', 'ru', 'custom', 'script', 'lat', 'cyr'].forEach((k) => assert.ok(atlas.col && atlas.col[k], lang + ' atlas.col.' + k));
+  });
+});
