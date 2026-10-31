@@ -59,7 +59,8 @@
         row.appendChild(h('div', { cls: 'atlas-tr' }, [h('span', { cls: 'atlas-muted', text: T('atlas.noTranslation', 'нет перевода — исходный текст') })]));
         return row;
       }
-      var src = h('div', { cls: 'atlas-src' }, [heText(item.he)]);
+      // a row without a pointed line keeps its plain Hebrew even when the plain column is off
+      var src = h('div', { cls: 'atlas-src' }, [heText(item.he, item.he_niqqud ? 'atlas-he' : 'atlas-he atlas-he-sole')]);
       if (item.he_niqqud) src.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud'));
       if (item.translit) src.appendChild(h('div', { cls: 'atlas-translit', text: item.translit }));
       if (item.translit_ru) src.appendChild(h('div', { cls: 'atlas-translit atlas-translit-ru', text: item.translit_ru }));
@@ -145,8 +146,9 @@
         if (numeric) inHead = false;
         (inHead ? head : body).appendChild(tr);
       });
+      // an untitled table gets no caption: an empty one painted a blank band above the grid
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
-        h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: table.title_ru || '' }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
+        !(table.title_ru || table.title_he) ? null : h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: table.title_ru || '' }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);
       return h('div', { cls: 'atlas-tablewrap' }, [t]);
     }
@@ -321,6 +323,48 @@
     return { h: h, renderHome: renderHome, renderSection: renderSection, renderPage: renderPage, renderTable: renderTable, renderPrint: renderPrint, dirOf: dirOf };
   }
 
+  // Column sets are the Room's (public/js/table-presets.js): the same six presets and four columns as every
+  // other corpus, so a reader's habit carries over. Translation off hides every Russian layer (former Hebrew-only).
+  var LAYER_KEYS = ['he', 'niqqud', 'translit', 'ru'];
+  var FALLBACK_PRESETS = {
+    niqqud: { he: false, niqqud: true, translit: false, ru: true }, translit: { he: false, niqqud: false, translit: true, ru: true },
+    plain: { he: true, niqqud: false, translit: false, ru: true }, three: { he: false, niqqud: true, translit: true, ru: true },
+    hebrew: { he: false, niqqud: true, translit: false, ru: false }, all: { he: true, niqqud: true, translit: true, ru: true } };
+  var PRESET_LABELS = { niqqud: 'Огласовка и перевод', translit: 'Транслит и перевод', plain: 'Иврит и перевод',
+    three: 'Огласовка, транслит, перевод', hebrew: 'Одна колонка', all: 'Все колонки' };
+  function presets() {
+    var tp = root.TablePresets;
+    if (!tp && typeof require === 'function') { try { tp = require('./table-presets.js'); } catch (_) { tp = null; } }
+    if (tp && tp.PRESETS) return { ids: tp.PRESETS, cols: tp.toColumns, of: tp.fromColumns, screen: tp.screenDefault };
+    var ids = Object.keys(FALLBACK_PRESETS);
+    return { ids: ids, cols: function (id) { return FALLBACK_PRESETS[id] || FALLBACK_PRESETS.all; },
+      of: function (c) {
+        for (var i = 0; i < ids.length; i++) {
+          var m = FALLBACK_PRESETS[ids[i]];
+          if (LAYER_KEYS.every(function (k) { return !!c[k] === m[k]; })) return ids[i];
+        }
+        return 'custom';
+      }, screen: null };
+  }
+  function normLayers(l, win) {
+    if (!l) {
+      var P = presets(), d = P.cols(P.screen && win ? P.screen(win) : 'all');
+      l = { he: d.he, niqqud: d.niqqud, translit: d.translit, ru: d.ru };
+    }
+    var out = { he: !!l.he, niqqud: !!l.niqqud, translit: !!l.translit, ru: !!l.ru, script: l.script === 'cyr' ? 'cyr' : 'lat' };
+    if (!out.he && !out.niqqud && !out.translit) out.niqqud = true;   // a row always keeps its source
+    return out;
+  }
+  function applyLayers(el, l) {
+    if (!el || !el.classList) return;
+    el.classList.toggle('atlas-hide-he', !l.he);
+    el.classList.toggle('atlas-hide-niqqud', !l.niqqud);
+    el.classList.toggle('atlas-hide-translit', !l.translit);
+    el.classList.toggle('atlas-hebrew-only', !l.ru);
+    el.classList.toggle('atlas-tl-lat', l.script !== 'cyr');
+    el.classList.toggle('atlas-tl-cyr', l.script === 'cyr');
+  }
+
   function mount(container, opts) {
     opts = opts || {};
     var doc = container.ownerDocument;
@@ -332,6 +376,8 @@
     view.className = 'atlas-root';
     container.appendChild(view);
     var index = null;
+    var layers = normLayers(opts.layers, doc.defaultView);
+    var onLayers = typeof opts.onLayers === 'function' ? opts.onLayers : function () {};
 
     function state(text) { view.replaceChildren(R.h('p', { cls: 'atlas-state', text: text })); }
 
@@ -422,6 +468,76 @@
     }
     var stopTracking = function () {};
 
+    // «Колонки»: the Room's presets first, then the four columns, then the transliteration script.
+    function viewPanel(section) {
+      var P = presets();
+      var btn = R.h('button', { type: 'button', cls: 'atlas-view-btn', 'aria-expanded': 'false',
+        text: T('atlas.columns', 'Колонки') });
+      var panel = R.h('div', { cls: 'atlas-view-panel', hidden: true, role: 'group', 'aria-label': T('room.aids.presetsTitle', 'Колонки таблицы') });
+      var group = R.h('div', { cls: 'atlas-preset-group', role: 'radiogroup', 'aria-label': T('room.aids.presetsTitle', 'Колонки таблицы') });
+      P.ids.forEach(function (pid) {
+        var b = R.h('button', { type: 'button', role: 'radio', cls: 'atlas-chip', 'data-preset': pid,
+          text: T('room.aids.preset_' + pid, PRESET_LABELS[pid] || pid) });
+        b.addEventListener('click', function () {
+          var c = P.cols(pid);
+          set({ he: c.he, niqqud: c.niqqud, translit: c.translit, ru: c.ru, script: layers.script });
+        });
+        group.appendChild(b);
+      });
+      var COL_LABELS = { he: T('atlas.col.he', 'Иврит'), niqqud: T('atlas.col.niqqud', 'Огласовка'),
+        translit: T('atlas.col.translit', 'Транслитерация'), ru: T('atlas.col.ru', 'Перевод') };
+      var cols = R.h('div', { cls: 'atlas-col-group' });
+      LAYER_KEYS.forEach(function (k) {
+        var cb = R.h('input', { type: 'checkbox', 'data-col': k });
+        cb.addEventListener('change', function () { var next = Object.assign({}, layers); next[k] = cb.checked; set(next); });
+        cols.appendChild(R.h('label', { cls: 'atlas-col' }, [cb, R.h('span', { text: COL_LABELS[k] })]));
+      });
+      var script = R.h('div', { cls: 'atlas-seg', role: 'radiogroup', 'aria-label': T('atlas.col.script', 'Транслитерация') }, [
+        R.h('button', { type: 'button', role: 'radio', cls: 'atlas-chip', 'data-script': 'lat', text: T('atlas.col.lat', 'Латиница') }),
+        R.h('button', { type: 'button', role: 'radio', cls: 'atlas-chip', 'data-script': 'cyr', text: T('atlas.col.cyr', 'Кириллица') })]);
+      script.querySelectorAll('[data-script]').forEach(function (b) {
+        b.addEventListener('click', function () { set(Object.assign({}, layers, { script: b.getAttribute('data-script') })); });
+      });
+      panel.appendChild(R.h('div', { cls: 'atlas-view-head', text: T('room.aids.presetsTitle', 'Колонки таблицы') }));
+      panel.appendChild(group);
+      panel.appendChild(R.h('div', { cls: 'atlas-view-head', text: T('atlas.col.custom', 'Свой набор') }));
+      panel.appendChild(cols);
+      panel.appendChild(R.h('div', { cls: 'atlas-view-head', text: T('atlas.col.script', 'Транслитерация') }));
+      panel.appendChild(script);
+      function paint() {
+        var current = P.of(layers);
+        group.querySelectorAll('[data-preset]').forEach(function (b) { b.setAttribute('aria-checked', String(b.getAttribute('data-preset') === current)); });
+        var sources = ['he', 'niqqud', 'translit'].filter(function (k) { return layers[k]; }).length;
+        cols.querySelectorAll('input[data-col]').forEach(function (cb) {
+          var k = cb.getAttribute('data-col');
+          cb.checked = !!layers[k];
+          cb.disabled = k !== 'ru' && !!layers[k] && sources === 1;
+        });
+        script.querySelectorAll('[data-script]').forEach(function (b) { b.setAttribute('aria-checked', String(b.getAttribute('data-script') === layers.script)); });
+        script.classList.toggle('atlas-off', !layers.translit);
+      }
+      function set(next) {
+        layers = normLayers(next);
+        applyLayers(section, layers);
+        paint();
+        onLayers(Object.assign({}, layers));
+      }
+      function open(on) {
+        if (on) panel.removeAttribute('hidden'); else panel.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', String(on));
+      }
+      btn.addEventListener('click', function () { open(panel.hasAttribute('hidden')); });
+      panel.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { open(false); if (btn.focus) btn.focus(); } });
+      doc.addEventListener('click', function onOutside(ev) {
+        if (!panel.isConnected) { doc.removeEventListener('click', onOutside); return; }
+        if (panel.hasAttribute('hidden') || !ev.target || !ev.target.closest) return;
+        if (!ev.target.closest('.atlas-view-panel') && !ev.target.closest('.atlas-view-btn')) open(false);
+      });
+      applyLayers(section, layers);
+      paint();
+      return { btn: btn, panel: panel };
+    }
+
     function openSection(id, page, how) {
       how = how || {};
       state(T('atlas.loading', 'Загрузка…'));
@@ -430,16 +546,17 @@
           R.h('button', { type: 'button', cls: 'atlas-back', text: '← ' + T('atlas.contents', 'Оглавление атласа'), on: { click: function () { showHome(); } } }),
           R.h('form', { cls: 'atlas-pagejump' }, [R.h('input', { type: 'number', min: 1, max: 564, inputmode: 'numeric', placeholder: T('atlas.page', 'стр.'),
             'aria-label': T('atlas.jump', 'Страница книги') }), R.h('button', { type: 'submit', text: '→', 'aria-label': T('atlas.open', 'Открыть') })]),
-          R.h('label', { cls: 'atlas-toggle' }, [R.h('input', { type: 'checkbox', 'data-toggle': 'hebrew-only' }), ' ' + T('atlas.hebrewOnly', 'только иврит')]),
           R.h('input', { type: 'search', cls: 'atlas-search', placeholder: T('atlas.search', 'Поиск в разделе: иврит или русский'), 'aria-label': T('atlas.search', 'Поиск в разделе: иврит или русский') }),
           R.h('span', { cls: 'atlas-search-count', 'aria-live': 'polite' }),
           R.h('button', { type: 'button', cls: 'atlas-print-btn', title: T('atlas.print', 'Печать раздела'), 'aria-label': T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } },
             [R.h('span', { cls: 'atlas-print-label', text: T('atlas.print', 'Печать раздела') }), R.h('span', { cls: 'atlas-print-short', 'aria-hidden': 'true', text: T('atlas.printShort', 'Печать') })])]);
         var section = R.renderSection(T, data, {});
+        var columns = viewPanel(section);
+        bar.insertBefore(columns.btn, bar.querySelector('.atlas-print-btn'));
+        bar.appendChild(columns.panel);
         view.replaceChildren(bar, section);
         wireInteractions(section);
         track.input = bar.querySelector('.atlas-pagejump input');
-        bar.querySelector('[data-toggle="hebrew-only"]').addEventListener('change', function (ev) { section.classList.toggle('atlas-hebrew-only', ev.target.checked); });
         // any page of the book without going back to the contents
         bar.querySelector('.atlas-pagejump').addEventListener('submit', function (ev) {
           ev.preventDefault();
@@ -525,7 +642,7 @@
     return function () { doc.body.classList.remove('atlas-printing'); printRoot.remove(); style.remove(); };
   }
 
-  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint };
+  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers };
   root.AtlasReader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

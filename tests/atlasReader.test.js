@@ -232,3 +232,73 @@ test('P2-02: a page jump keeps the requested page in the address and in the jump
   document.querySelector('.atlas-pagejump').dispatchEvent(new window.Event('submit'));
   assert.deepEqual(calls.pop(), ['s09-belt', 197, 'replace']);
 });
+
+// ---- polish 2026-10-31: the Room's theme and the Room's column presets ----
+test('theme: the atlas follows the Room theme classes and never paints a light surface under theme text', () => {
+  const css = read('public/css/atlas-reader.css');
+  assert.doesNotMatch(css, /:root\[data-theme/, 'the Room switches themes on body, not on :root');
+  assert.match(css, /body\.theme-dark \.atlas-root/);
+  assert.match(css, /body:not\(\.theme-light\) \.atlas-root/);
+  const screen = css.slice(0, css.indexOf('@media print'));
+  // white stays only behind book scans (page thumbnails, figure crops, the original-image overlay)
+  screen.split('\n').filter((line) => /#fff\b|#ffffff\b|#f2f4f5|#d8efef/i.test(line) && !/--atlas-/.test(line)).forEach((line) => {
+    assert.match(line, /atlas-thumb|atlas-figbox|atlas-orig img|atlas-overlay|atlas-scan/, 'hard light colour outside a scan: ' + line.trim());
+  });
+});
+
+function mountWith(layers) {
+  const { document, window } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const reported = [];
+  const reader = api.mount(document.getElementById('m'), { layers, onLayers: (l) => reported.push(l),
+    fetchJson: () => Promise.resolve(fixture('s09-belt.json')) });
+  return { document, window, reader, reported };
+}
+
+test('columns: the bar offers the Room presets and four columns, applies them and reports the choice', async () => {
+  const { document, window, reader, reported } = mountWith({ he: true, niqqud: true, translit: true, ru: true, script: 'lat' });
+  await reader.openSection('s09-belt');
+  assert.equal(document.querySelector('[data-toggle="hebrew-only"]'), null, 'the old Hebrew-only box is replaced by the column panel');
+  const btn = document.querySelector('.atlas-view-btn');
+  const panel = document.querySelector('.atlas-view-panel');
+  assert.ok(panel.hasAttribute('hidden'));
+  btn.dispatchEvent(new window.Event('click'));
+  assert.ok(!panel.hasAttribute('hidden'));
+  assert.equal(btn.getAttribute('aria-expanded'), 'true');
+  const presets = panel.querySelectorAll('[data-preset]');
+  assert.equal(presets.length, 6);
+  assert.equal(panel.querySelector('[data-preset="all"]').getAttribute('aria-checked'), 'true');
+  const section = document.querySelector('.atlas-section');
+  panel.querySelector('[data-preset="niqqud"]').dispatchEvent(new window.Event('click'));
+  assert.ok(section.classList.contains('atlas-hide-he'));
+  assert.ok(section.classList.contains('atlas-hide-translit'));
+  assert.ok(!section.classList.contains('atlas-hide-niqqud'));
+  assert.ok(!section.classList.contains('atlas-hebrew-only'));
+  assert.deepEqual(reported.pop(), { he: false, niqqud: true, translit: false, ru: true, script: 'lat' });
+  const ru = panel.querySelector('input[data-col="ru"]');
+  ru.checked = false; ru.dispatchEvent(new window.Event('change'));
+  assert.ok(section.classList.contains('atlas-hebrew-only'), 'no translation = every Russian layer hidden');
+  assert.equal(panel.querySelector('[data-preset="hebrew"]').getAttribute('aria-checked'), 'true');
+  // the last Hebrew-side column cannot be switched off: a row always has its source
+  assert.ok(panel.querySelector('input[data-col="niqqud"]').disabled);
+  panel.querySelector('[data-script="cyr"]').dispatchEvent(new window.Event('click'));
+  assert.ok(section.classList.contains('atlas-tl-cyr'));
+  assert.equal(reported.pop().script, 'cyr');
+});
+
+test('columns: a row without a pointed line keeps its Hebrew when the plain column is off', () => {
+  const { R, T } = env();
+  const row = R.renderPage(T, { page: 1, items: [{ id: 'b1', he: 'מבוא', ru: 'Введение' }] }, {});
+  assert.ok(row.querySelector('.atlas-he.atlas-he-sole'));
+  const css = read('public/css/atlas-reader.css');
+  assert.match(css, /\.atlas-hide-he [^{]*:not\(\.atlas-he-sole\)/);
+});
+
+test('columns: the Room hands its saved columns to the atlas and stores the atlas choice', () => {
+  const ui = read('public/js/library-ui.js');
+  const at = ui.indexOf('window.AtlasReader.mount(');
+  const call = ui.slice(at, at + 1200);
+  assert.match(call, /layers:/);
+  assert.match(call, /onLayers:/);
+  assert.match(call, /saveReaderCfg\(\)/);
+});

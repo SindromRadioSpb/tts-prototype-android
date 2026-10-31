@@ -13188,7 +13188,16 @@ function renderAtlasCorpus(atlasId, token) {
   main.appendChild(wrap);
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
   const anchor = roomAtlasAnchor; roomAtlasAnchor = null;
+  // The atlas shows the same columns as every other Room text, and a choice made in it is the Room's choice.
   const reader = window.AtlasReader.mount(wrap, { atlasId, t: tt,
+    layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
+      ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
+    onLayers: (l) => {
+      applyRoomPresetCols(l);
+      if (l.script === 'cyr') readerCfg.translitProfile = 'ru-phonetic';
+      else if (readerCfg.translitProfile === 'ru-phonetic') readerCfg.translitProfile = 'learner-latin';
+      saveReaderCfg();
+    },
     onState: (section, page, mode) => {
       roomAtlasPosition = { itemId: section || '', rowIndex: section ? page || 0 : 0 };
       roomCommitPresentation(mode, { anchor: roomAtlasPosition });
