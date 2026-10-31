@@ -445,6 +445,76 @@ test('margin marks and proofreading are labelled in every interface language', (
     const line = src.split('\n').find((l) => l.startsWith('window.I18N_LOCALES.' + lang + '.atlas = '));
     const atlas = JSON.parse(line.slice(line.indexOf('= ') + 2).replace(/;\s*$/, ''));
     ['pro', 'con', 'attn'].forEach((k) => assert.ok(atlas.mark && atlas.mark[k], lang + ' atlas.mark.' + k));
-    ['pending', 'done', 'count', 'ownerHint', 'doneHint', 'pendingHint', 'saveError'].forEach((k) => assert.ok(atlas.review && atlas.review[k], lang + ' atlas.review.' + k));
+    ['pending', 'done', 'count', 'short', 'ownerHint', 'doneHint', 'pendingHint', 'saveError'].forEach((k) => assert.ok(atlas.review && atlas.review[k], lang + ' atlas.review.' + k));
   });
+});
+
+// ---- owner wave 2 (2026-10-31): tables in the text, contents progress, phone rows ----
+const cell = (row, col, he, ru) => ({ row, col, rowspan: 1, colspan: 1, he, ru: ru == null ? he : ru });
+
+test('a table takes the place of its own flattened copy in the text', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ items: [
+    { id: 'a', type: 'block', kind: 'heading', y: 100, he: 'עמידה', ru: 'Прочность' },
+    { id: 'flat', type: 'block', kind: 'other', y: 150, he: 'סוג המאמץ תנאי חוזק גזירה מעיכה', ru: 'Вид; условие; срез; смятие' },
+    { id: 'b', type: 'block', kind: 'prose', y: 300, he: 'טקסט', ru: 'Текст' }],
+  tables: [{ id: 't1', cells: [cell(0, 0, 'סוג המאמץ', 'Вид'), cell(0, 1, 'תנאי חוזק', 'Условие'), cell(1, 0, 'גזירה', 'Срез'), cell(2, 0, 'מעיכה', 'Смятие')] }] }));
+  const order = [...el.querySelector('.atlas-main').children].map((n) => n.getAttribute('data-ref'));
+  assert.deepEqual(order, ['a', 'flat', 'b'], 'the table stands where the flattened line was');
+  assert.ok(el.querySelector('.atlas-tablewrap[data-ref="flat"] table'));
+  assert.ok(!el.querySelector('.atlas-row[data-ref="flat"]'), 'the flattened line itself is gone');
+});
+
+test('a symbol table follows «טבלת סמלים»; an unplaceable table stays at the end of the page', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ items: [
+    { id: 'h', type: 'block', kind: 'prose', y: 100, he: 'טבלת סמלים', ru: 'Таблица обозначений' },
+    { id: 'b', type: 'block', kind: 'prose', y: 300, he: 'טקסט אחר', ru: 'Другой текст' }],
+  tables: [{ id: 'sym', cells: [cell(0, 0, 'יחידות', 'Единицы'), cell(0, 1, 'תיאור', 'Описание'), cell(0, 2, 'סמל', 'Обозначение')] },
+    { id: 'lost', cells: [cell(0, 0, 'אלפא', 'Альфа'), cell(1, 0, 'בטא', 'Бета')] }] }));
+  const order = [...el.querySelector('.atlas-main').children].map((n) => n.getAttribute('data-ref'));
+  assert.deepEqual(order, ['h', 'sym', 'b', 'lost']);
+});
+
+test('a table drawn from a scanned figure follows that figure', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ items: [{ id: 'a', type: 'block', kind: 'prose', y: 100, he: 'א', ru: 'A' }, { id: 'b', type: 'block', kind: 'prose', y: 500, he: 'ב', ru: 'B' }],
+    figures: [{ id: 'fig', number: null, bbox: [50, 200, 500, 400], crop: '/x.png', regions: [] }],
+    tables: [{ id: 'ft', parent: 'fig', cells: [cell(0, 0, 'x', 'x')] }] }));
+  const order = [...el.querySelector('.atlas-main').children].map((n) => n.getAttribute('data-ref'));
+  assert.deepEqual(order, ['a', 'fig', 'ft', 'b']);
+});
+
+test('table cells: raw LaTeX becomes symbols with sub/superscripts; only a label row is the header', () => {
+  const { R } = env();
+  const t = R.renderTable({ cells: [cell(0, 0, 'סמל', 'Обозначение'), cell(0, 1, 'תיאור', 'Описание'),
+    cell(1, 0, '\\tau_S'), cell(1, 1, 'גזירה', 'Срез'), cell(2, 0, '[\\sigma_{Lc}]'), cell(2, 1, 'מעיכה', 'Смятие')] });
+  const tds = [...t.querySelectorAll('tbody td')].map((td) => td.innerHTML);
+  assert.ok(tds.some((x) => x.includes('τ<sub>S</sub>')), tds.join(' | '));
+  assert.ok(tds.some((x) => x.includes('[σ<sub>Lc</sub>]')));
+  assert.equal(t.querySelectorAll('thead tr').length, 1);
+  assert.equal(t.querySelectorAll('tbody tr').length, 2, 'label-less rows are body rows, not bold headers');
+  const two = R.renderTable({ cells: [cell(0, 0, 'd ≤ 8'), cell(0, 1, 'בקור', 'холодная'), cell(1, 0, 'd > 8'), cell(1, 1, 'בחום', 'горячая')] });
+  assert.equal(two.querySelectorAll('thead tr').length, 0);
+  assert.ok(!t.textContent.includes('\\'), 'no backslash left');
+});
+
+test('contents: each translated section shows its proofreading progress, and the book total', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const reader = api.mount(document.getElementById('m'), { t: (k, fb) => fb, fetchJson: async () => fixture('index.json'),
+    review: { load: async () => ({ pages: { 197: {}, 198: {} } }), canEdit: async () => false, save: async () => ({}) } });
+  await reader.home({ restore: true });
+  await new Promise((r) => setTimeout(r, 0));
+  const rev = [...document.querySelectorAll('.atlas-sec-review')];
+  assert.equal(rev.length, fixture('index.json').sections.filter((s) => s.translated).length);
+  assert.ok(rev.some((e) => /вычитано 2 \//.test(e.textContent)), rev.map((e) => e.textContent).join(' | '));
+  assert.match(document.querySelector('.atlas-home-review').textContent, /вычитано страниц: 2 \//);
+});
+
+test('phones keep the 2×2 row (owner, 2026-10-31): no single-column override for rows', () => {
+  const css = read('public/css/atlas-reader.css');
+  const phone = css.slice(css.indexOf('@media (max-width: 760px)'), css.indexOf('/* ---- print'));
+  assert.doesNotMatch(phone, /\.atlas-row \{ grid-template-columns: 1fr/);
+  assert.doesNotMatch(phone, /grid-column: 1 !important/);
 });

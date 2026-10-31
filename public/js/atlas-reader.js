@@ -114,7 +114,45 @@
         if (at < 0) for (var j = 0; j < items.length; j++) { var y = itemY(items[j]); if (y != null && y > f.bbox[1]) { at = j; break; } }
         (before[at < 0 ? items.length : at] = before[at < 0 ? items.length : at] || []).push(f);
       });
-      return { items: items, groups: starts, figuresBefore: before, captionOf: captionOf };
+      var tl = placeTables(page, items);
+      return { items: items, groups: starts, figuresBefore: before, captionOf: captionOf,
+        tablesAfter: tl.after, tableFor: tl.replace, tablesAfterFigure: tl.figure, tablesEnd: tl.end };
+    }
+
+    // Tables carry no position on the page. Their place is read from the text around them (checked on all
+    // 371 tables of the book, 2026-10-31): a table whose cells the supplier also flattened into one text line
+    // («M2 M2.5 M3…») takes that line's place; a table under its own title, or a symbol table under «טבלת
+    // סמלים», follows that line; a table drawn from a scanned figure follows the figure; a table most of whose
+    // words one paragraph names follows that paragraph. The rest stays at the end of the page, as before.
+    function plain(s) { return String(s || '').replace(/[֑-ׇ]/g, '').replace(/\s+/g, ' ').trim(); }
+    function placeTables(page, items) {
+      var out = { after: {}, replace: {}, figure: {}, end: [] };
+      var figIds = {};
+      (page.figures || []).forEach(function (f) { if (!markKind(f)) figIds[f.id] = true; });
+      var texts = items.map(function (it) { return it.type === 'formula' ? '' : plain(it.he || it.he_raw); });
+      (page.tables || []).forEach(function (t) {
+        if (t.parent && figIds[t.parent]) { (out.figure[t.parent] = out.figure[t.parent] || []).push(t); return; }
+        var cells = [], seen = {};
+        (t.cells || []).forEach(function (c) {
+          var x = plain(c.he);
+          if (x.length > 1 && !/^[\d.,\s]+$/.test(x) && !seen[x]) { seen[x] = true; cells.push(x); }
+        });
+        var best = -1, bestHit = 0, second = 0;
+        texts.forEach(function (txt, i) {
+          if (!txt) return;
+          var hit = cells.filter(function (c) { return txt.indexOf(c) >= 0; }).length;
+          if (hit > bestHit) { second = bestHit; bestHit = hit; best = i; } else if (hit > second) second = hit;
+        });
+        var share = cells.length ? bestHit / cells.length : 0;
+        if (best >= 0 && share >= 0.8 && /^(other|table_note|symbol_row)$/.test(items[best].kind || '') && !out.replace[best]) { out.replace[best] = t; return; }
+        var title = plain(t.title_he), at = -1;
+        if (!title && seen['סמל'] && seen['תיאור']) title = 'טבלת סמלים';
+        if (title) at = texts.findIndex(function (x) { return x && (x === title || x.indexOf(title) >= 0 || (x.length > 4 && title.indexOf(x) >= 0)); });
+        if (at < 0 && best >= 0 && (share >= 0.3 || bestHit >= 3 || (share >= 0.15 && bestHit > second))) at = best;
+        if (at < 0) { out.end.push(t); return; }
+        (out.after[at] = out.after[at] || []).push(t);
+      });
+      return out;
     }
 
     function markHead(T, kind) {
@@ -172,7 +210,53 @@
       return h('figure', { cls: 'atlas-fig' + (fig.is_table ? ' atlas-tablefig' : ''), 'data-ref': fig.id }, [box, cap, fig.regions.length ? list : null]);
     }
 
-    function renderTable(table) {
+    // Table cells sometimes carry raw LaTeX (\tau_S, \sigma_{Lc}): shown as plain symbols with real
+    // sub/superscripts, built as DOM nodes (no HTML from data).
+    var TEX = { alpha: 'α', beta: 'β', gamma: 'γ', Gamma: 'Γ', delta: 'δ', Delta: 'Δ', epsilon: 'ε', varepsilon: 'ε', zeta: 'ζ', eta: 'η',
+      theta: 'θ', vartheta: 'ϑ', kappa: 'κ', lambda: 'λ', mu: 'μ', nu: 'ν', xi: 'ξ', pi: 'π', rho: 'ρ', sigma: 'σ', Sigma: 'Σ', tau: 'τ',
+      phi: 'φ', varphi: 'φ', Phi: 'Φ', chi: 'χ', psi: 'ψ', omega: 'ω', Omega: 'Ω', cdot: '·', times: '×', le: '≤', leq: '≤', ge: '≥',
+      geq: '≥', pm: '±', infty: '∞', approx: '≈', neq: '≠', circ: '°', prime: '′', degree: '°', ell: 'ℓ', partial: '∂' };
+    function looksTex(s) { return /\\[A-Za-z]+|[_^]\{/.test(s); }
+    function texNodes(src) {
+      src = String(src == null ? '' : src);
+      if (!looksTex(src)) return [src];
+      var i = 0, out = [], buf = '';
+      function flat(text) { return texNodes(text).map(function (n) { return typeof n === 'string' ? n : n.textContent; }).join(''); }
+      function group() {                       // {…} or one token, as plain text
+        while (src[i] === ' ') i++;
+        if (src[i] === '\\') return command();
+        if (src[i] !== '{') return src[i++] || '';
+        var depth = 0, start = ++i;
+        for (; i < src.length; i++) { if (src[i] === '{') depth++; else if (src[i] === '}') { if (!depth) break; depth--; } }
+        var inner = src.slice(start, i); i++;
+        return flat(inner);
+      }
+      function command() {
+        i++;
+        var m = /^[A-Za-z]+/.exec(src.slice(i));
+        if (!m) { var c = src[i++] || ''; return c === ',' || c === ';' || c === ' ' ? ' ' : c; }
+        i += m[0].length;
+        var name = m[0];
+        if (TEX[name]) return TEX[name];
+        if (name === 'frac') { var a = group(), b = group(); return (a.length > 1 ? '(' + a + ')' : a) + '/' + (b.length > 1 ? '(' + b + ')' : b); }
+        if (name === 'sqrt') return '√' + group();
+        if (/^(text|mathrm|mathit|mathbf|operatorname|textrm)$/.test(name)) return group();
+        if (name === 'left' || name === 'right') return '';
+        return name;
+      }
+      function flush() { if (buf) { out.push(buf); buf = ''; } }
+      while (i < src.length) {
+        var ch = src[i];
+        if (ch === '\\') buf += command();
+        else if (ch === '_' || ch === '^') { flush(); i++; out.push(h(ch === '_' ? 'sub' : 'sup', { text: group() })); }
+        else if (ch === '{' || ch === '}') i++;
+        else { buf += ch; i++; }
+      }
+      flush();
+      return out;
+    }
+
+    function renderTable(table, ref) {
       var cells = table.cells || [];
       var width = 0, covered = {}, pos = {}, rows = {};
       cells.forEach(function (c) {
@@ -180,29 +264,35 @@
         pos[c.row + ':' + c.col] = c; rows[c.row] = true;
         for (var r = c.row; r < c.row + c.rowspan; r++) for (var k = c.col; k < c.col + c.colspan; k++) if (r !== c.row || k !== c.col) covered[r + ':' + k] = true;
       });
-      var body = h('tbody'), head = h('thead'), inHead = true;
+      var body = h('tbody'), head = h('thead'), built = [];
       Object.keys(rows).map(Number).sort(function (a, b) { return a - b; }).forEach(function (r) {
-        var tr = h('tr'), numeric = false;
+        var tr = h('tr'), numeric = false, digits = false;
         for (var k = 0; k < width; k++) {
           var c = pos[r + ':' + k];
           if (c) {
             var text = c.ru || '';
             if (/^[\d.,\s▪•+\-−]+$/.test(text) && /\d/.test(text)) numeric = true;
+            if (/\d/.test(text)) digits = true;
             var unit = c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit ? c.unit : '';
             var he = c.he && c.he !== text ? c.he : '';
             tr.appendChild(h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text) },
-              he ? [h('span', { cls: 'atlas-l-ru' }, [text, unit ? h('small', { text: ' ' + unit }) : null]), h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he), text: he })]
-                : [text, unit ? h('small', { text: ' ' + unit }) : null]));
+              he ? [h('span', { cls: 'atlas-l-ru' }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])), h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he) }, texNodes(he))]
+                : texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])));
           } else if (!covered[r + ':' + k]) tr.appendChild(h('td'));
         }
-        if (numeric) inHead = false;
-        (inHead ? head : body).appendChild(tr);
+        built.push({ tr: tr, numeric: numeric, digits: digits });
       });
+      // Header rows: those above the first row of numbers. A table without number rows has a header only when
+      // its first row is a row of labels (no digits) over at least two more rows (it used to make every row bold).
+      var firstNum = -1;
+      for (var q = 0; q < built.length; q++) if (built[q].numeric) { firstNum = q; break; }
+      var heads = firstNum >= 0 ? firstNum : (built.length >= 3 && !built[0].digits ? 1 : 0);
+      built.forEach(function (b, n) { (n < heads ? head : body).appendChild(b.tr); });
       // an untitled table gets no caption: an empty one painted a blank band above the grid
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
         !(table.title_ru || table.title_he) ? null : h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: table.title_ru || '' }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);
-      return h('div', { cls: 'atlas-tablewrap' }, [t]);
+      return h('div', { cls: 'atlas-tablewrap', 'data-ref': ref || table.id || null }, [t]);
     }
 
     function renderErratum(T, x) {
@@ -290,7 +380,8 @@
         : state === 'empty' ? T('atlas.emptyPage', 'на странице нет текста') : null;
       var head = h('header', { cls: 'atlas-page-head' }, [h('span', { cls: 'atlas-pageno', text: T('atlas.page', 'стр.') + ' ' + page.page }),
         stateText ? h('span', { cls: 'atlas-badge', 'data-state': state, text: stateText }) : null]);
-      if (state !== 'none' && state !== 'empty') head.appendChild(paintReview(T, h('span', { cls: 'atlas-review', 'data-page': page.page }), pageReviewedInData(page), false));
+      // every page of a translated section is proofread, text-less ones too (figure labels), so the contents can reach «✓»
+      if (state !== 'none') head.appendChild(paintReview(T, h('span', { cls: 'atlas-review', 'data-page': page.page }), pageReviewedInData(page), false));
       sec.appendChild(head);
       var body = h('div', { cls: 'atlas-page-body' });
       var aside = h('aside', { cls: 'atlas-aside' }, [thumb]);
@@ -304,6 +395,7 @@
         (lay.figuresBefore[i] || []).forEach(function (f) {
           var own = lay.captionOf[i] === f;
           main.appendChild(renderFigure(T, f, own ? itemNode(item) : null));
+          (lay.tablesAfterFigure[f.id] || []).forEach(function (t) { main.appendChild(renderTable(t)); });
         });
         var g = lay.groups[i];
         if (g) {
@@ -311,12 +403,18 @@
           main.appendChild(into); groupEnd = g.end;
         }
         var own = lay.captionOf[i] && (lay.figuresBefore[i] || []).indexOf(lay.captionOf[i]) >= 0;
-        if (!own) into.appendChild(itemNode(item));
+        // a text line that only repeats a table flattened into one string gives its place to the table
+        if (lay.tableFor[i]) into.appendChild(renderTable(lay.tableFor[i], item.id));
+        else if (!own) into.appendChild(itemNode(item));
+        (lay.tablesAfter[i] || []).forEach(function (t) { into.appendChild(renderTable(t)); });
         (errataByTarget[item.id] || []).forEach(function (x) { shown[x.id] = true; into.appendChild(renderErratum(T, x)); });
         if (i >= groupEnd) { into = main; groupEnd = -1; }
       });
-      (lay.figuresBefore[lay.items.length] || []).forEach(function (f) { main.appendChild(renderFigure(T, f, null)); });
-      (page.tables || []).forEach(function (t) { main.appendChild(renderTable(t)); });
+      (lay.figuresBefore[lay.items.length] || []).forEach(function (f) {
+        main.appendChild(renderFigure(T, f, null));
+        (lay.tablesAfterFigure[f.id] || []).forEach(function (t) { main.appendChild(renderTable(t)); });
+      });
+      lay.tablesEnd.forEach(function (t) { main.appendChild(renderTable(t)); });
       (page.examples || []).forEach(function (ex) {
         main.appendChild(renderExample(T, ex));
         (errataByTarget[ex.id] || []).forEach(function (x) { shown[x.id] = true; main.appendChild(renderErratum(T, x)); });
@@ -357,8 +455,8 @@
       var wrap = h('div', { cls: 'atlas-home' });
       wrap.appendChild(h('h2', { cls: 'atlas-title' }, [h('bdi', { lang: 'he', dir: 'rtl', text: index.title_he }), h('br'), index.title_ru]));
       var done = index.sections.filter(function (s) { return s.translated; }).length;
-      wrap.appendChild(h('p', { cls: 'atlas-sub', text: T('atlas.progress', 'Переведено разделов') + ': ' + done + ' / ' + index.sections.length +
-        ' · ' + T('atlas.pendingAll', 'перевод подготовлен поставщиком и ждёт вычитки владельца') }));
+      wrap.appendChild(h('p', { cls: 'atlas-sub' }, [T('atlas.progress', 'Переведено разделов') + ': ' + done + ' / ' + index.sections.length,
+        h('span', { cls: 'atlas-home-review' })]));
       var jump = h('form', { cls: 'atlas-jump' }, [
         h('label', { for: 'atlasJumpPage', text: T('atlas.jump', 'Страница книги') }),
         h('input', { id: 'atlasJumpPage', type: 'number', min: 1, max: 564, inputmode: 'numeric' }),
@@ -378,7 +476,8 @@
           list.appendChild(h('li', {}, [h('button', { cls: 'atlas-section-btn', type: 'button', 'data-section': s.id, on: { click: function () { onOpen(s.id); } } }, [
             h('span', { cls: 'atlas-sec-ru', text: s.ru }), h('bdi', { cls: 'atlas-sec-he', lang: 'he', dir: 'rtl', text: s.he }),
             h('span', { cls: 'atlas-sec-pages', text: s.first === s.last ? String(s.first) : s.first + '–' + s.last }),
-            h('span', { cls: 'atlas-badge' + (s.translated ? ' ok' : ''), text: s.translated ? T('atlas.translated', 'переведено') : T('atlas.noTranslationShort', 'без перевода') })])]));
+            h('span', { cls: 'atlas-badge' + (s.translated ? ' ok' : ''), text: s.translated ? T('atlas.translated', 'переведено') : T('atlas.noTranslationShort', 'без перевода') }),
+            s.translated ? h('span', { cls: 'atlas-sec-review', 'data-first': s.first, 'data-last': s.last }) : null])]));
         });
         wrap.appendChild(h('section', { cls: 'atlas-part' }, [h('h3', {}, [part.ru + ' · ', h('bdi', { lang: 'he', dir: 'rtl', text: part.he })]), list]));
       });
@@ -749,16 +848,39 @@
       return fetchJson(base + 'index.json').then(function (data) { index = data; return index; });
     }
 
+    // Contents: «вычитано N / M стр.» per translated section, a thin bar, and the book total.
+    function paintHomeReview(home) {
+      var marks = reviewMarks || {}, total = 0, done = 0;
+      home.querySelectorAll('.atlas-sec-review').forEach(function (el) {
+        var a = Number(el.getAttribute('data-first')), b = Number(el.getAttribute('data-last')), n = b - a + 1, k = 0;
+        for (var p = a; p <= b; p++) if (marks[String(p)]) k++;
+        total += n; done += k;
+        el.setAttribute('data-done', k === n ? 'all' : k ? 'some' : 'none');
+        el.style.setProperty('--atlas-review-share', (k / n * 100).toFixed(1) + '%');
+        el.textContent = (k === n ? '✓ ' : '') + T('atlas.review.short', 'вычитано') + ' ' + k + ' / ' + n;
+      });
+      var line = home.querySelector('.atlas-home-review');
+      if (line) line.textContent = total ? ' · ' + T('atlas.review.count', 'вычитано страниц') + ': ' + done + ' / ' + total : '';
+    }
+    function homeView() {
+      var open = function (id, page) { return openSection(id, page); };
+      var home = R.renderHome(T, index, open);
+      paintHomeReview(home);
+      if (review && !reviewMarks) Promise.resolve().then(review.load).then(function (r) {
+        if (r && r.pages) { reviewMarks = r.pages; paintHomeReview(home); }
+      }).catch(function () {});
+      return home;
+    }
+
     function showHome(how) {
       how = how || {};
       stopTracking();
       if (!how.restore) onState('', 0, 'push');
-      var open = function (id, page) { return openSection(id, page); };
-      if (index) { view.replaceChildren(R.renderHome(T, index, open)); return Promise.resolve(index); }
+      if (index) { view.replaceChildren(homeView()); return Promise.resolve(index); }
       state(T('atlas.loading', 'Загрузка…'));
       return fetchJson(base + 'index.json').then(function (data) {
         index = data;
-        view.replaceChildren(R.renderHome(T, index, open));
+        view.replaceChildren(homeView());
         return index;
       }).catch(function () { state(T('atlas.loadError', 'Атлас сейчас недоступен')); });
     }

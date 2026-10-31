@@ -95,7 +95,7 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-jump input { width: 7em; }
 .atlas-root .atlas-part h3 { font-size: 1rem; margin: 22px 0 8px; color: var(--atlas-teal-ink); }
 .atlas-root .atlas-sections { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.atlas-root .atlas-section-btn { width: 100%; display: grid; grid-template-columns: 1fr auto auto; grid-template-areas: "ru pages badge" "he he he";
+.atlas-root .atlas-section-btn { width: 100%; display: grid; grid-template-columns: 1fr auto auto; grid-template-areas: "ru pages badge" "he he he" "rev rev rev";
   gap: 2px 10px; text-align: start; padding: 12px 14px; border: 1px solid var(--atlas-line); border-radius: 12px; background: var(--atlas-surface);
   color: var(--atlas-ink); cursor: pointer; min-height: 44px; align-items: baseline; }
 .atlas-root .atlas-section-btn:hover { border-color: var(--atlas-teal); }
@@ -104,6 +104,12 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-sec-he { grid-area: he; color: var(--atlas-muted); text-align: end; }
 .atlas-root .atlas-sec-pages { grid-area: pages; color: var(--atlas-faint); font-size: .85rem; font-variant-numeric: tabular-nums; }
 .atlas-root .atlas-section-btn .atlas-badge { grid-area: badge; }
+/* proofreading progress of a section: count and a thin bar under the titles */
+.atlas-root .atlas-sec-review { grid-area: rev; margin-top: 6px; padding-top: 6px; font-size: .78rem; color: var(--atlas-muted);
+  font-variant-numeric: tabular-nums; background: linear-gradient(var(--atlas-ok), var(--atlas-ok)) top left / var(--atlas-review-share, 0%) 3px no-repeat,
+  linear-gradient(var(--atlas-sunken), var(--atlas-sunken)) top left / 100% 3px no-repeat; }
+.atlas-root .atlas-sec-review[data-done="all"] { color: var(--atlas-ok); font-weight: 600; }
+.atlas-root .atlas-sec-review:empty { display: none; }
 
 /* ---- section bar ---- */
 .atlas-root .atlas-toolbar { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 0;
@@ -255,8 +261,13 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 @media (max-width: 760px) {
   .atlas-root .atlas-page-body { grid-template-columns: 1fr; }
   .atlas-root .atlas-thumb { position: static; max-width: 220px; }
-  .atlas-root .atlas-row { grid-template-columns: 1fr; gap: 4px; }
-  .atlas-root .atlas-row > * { grid-column: 1 !important; }
+  /* phones keep the 2×2 row of the desktop (owner, 2026-10-31): two narrow columns read as pairs */
+  .atlas-root .atlas-row { gap: 3px 12px; padding: 8px 4px; margin: 0 -4px; }
+  .atlas-root .atlas-row .atlas-he { font-size: 1rem; }
+  .atlas-root .atlas-row .atlas-niqqud { font-size: 1.05rem; line-height: 1.6; }
+  .atlas-root .atlas-row .atlas-ru { font-size: .92rem; line-height: 1.45; }
+  .atlas-root .atlas-row .atlas-translit { font-size: .8rem; }
+  .atlas-root .atlas-mark-group { padding-inline-start: 8px; }
   .atlas-root .atlas-terms { grid-template-columns: 1fr; }
   .atlas-root .atlas-terms dd { margin-bottom: 6px; }
 }
@@ -303,7 +314,7 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
   .atlas-root .atlas-pagejump input { width: 4.5em; }
   .atlas-root .atlas-print-label { display: none; }
   .atlas-root .atlas-print-short { display: inline; }
-  .atlas-root .atlas-search { flex: 1 1 100%; order: 9; }
+  .atlas-root .atlas-search { flex: 1 1 120px; order: 9; }   /* beside «Колонки» and «Печать»: the bar takes two rows, not three */
   .atlas-root .atlas-search-count { order: 10; }
   .atlas-root .atlas-chip { min-height: 40px; }
 }
