@@ -77,6 +77,10 @@ test('the Room home paints before the recommendation and due count settle', () =
   assert.match(hub, /const picksLoad = buildNextTextPicks\(\)/);
   assert.match(hub, /const dueLoad = refreshDueBadge\(\)/);
   assert.doesNotMatch(hub, /await picksLoad/, 'boot must not wait for the recommendation either');
+  assert.ok(hub.indexOf('const picksLoad') > hub.indexOf('main.appendChild(wrap)'),
+    'the FIFO DB worker serves the fast home reads first: slow reads start after the first paint');
+  assert.match(firstAwait, /loadCorpusIndex\(\)/,
+    'the ready shelf must not depend on the recommendation having loaded the catalog index');
   const feature = fnSource('learningHomeFeature');
   assert.match(feature, /nextPicks === LEARNING_HOME_PICKS_PENDING[\s\S]*'pending'[\s\S]*aria-busy/,
     'a pending recommendation is a busy slot, not the «оценка не рассчитана» browse claim');

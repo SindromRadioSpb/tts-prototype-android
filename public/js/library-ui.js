@@ -14076,14 +14076,17 @@ async function renderCorpusHub(token) {
   // Perf 2026-10-31: the recommendation (buildNextTextPicks, 2–4 s on a large profile) and the
   // due count (refreshDueBadge, ~2 s) no longer gate the whole home. The fast local projections
   // paint it; the feature, the ready shelf order and «Сегодня» are filled in when they settle.
-  const picksLoad = buildNextTextPicks().catch(() => ({ error: 'data' }));
-  const dueLoad = refreshDueBadge().catch(() => null);
+  // The single DB worker is FIFO: the slow reads start only after the first paint, otherwise the
+  // fast home queries queue behind them (measured 3.5 s instead of ~2 s on 3.11.825).
   const [continueRow, ownCount, journeySummary] = await Promise.all([
     getLearningHomeContinue(),
     getLearningHomeOwnCount(),
     typeof localDb.getReadingJourneySummary === 'function'
       ? localDb.getReadingJourneySummary(readingJourneyAuthorizedGroupIds()).catch(() => ({ bookmarks: 0, finished: 0, notes: 0 }))
       : Promise.resolve({ bookmarks: 0, finished: 0, notes: 0 }),
+    // The ready shelf, «Сегодня» and the corpus counts read the catalog index (a static sidecar,
+    // not a DB read); it used to arrive as a side effect of the recommendation started first.
+    corpusRoot && corpusRoot.index_file ? loadCorpusIndex().catch(() => null) : null,
   ]);
   if (token !== corpusRenderToken) return;
   const ready = ((corpusIndex && corpusIndex.ready) || []).slice();
@@ -14159,6 +14162,8 @@ async function renderCorpusHub(token) {
   _paintDueCTA();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   const stillHome = () => token === corpusRenderToken && wrap.isConnected;
+  const picksLoad = buildNextTextPicks().catch(() => ({ error: 'data' }));
+  const dueLoad = refreshDueBadge().catch(() => null);
   dueLoad.then(() => {
     if (!stillHome()) return;
     const today = wrap.querySelector('.learning-home-today');
