@@ -551,7 +551,8 @@ test('4.3: supplier remarks leave the reading text; the learner part of a note s
   const { R, T } = env();
   assert.equal(R.cleanMeta('Условный знак жёсткой заделки; редакционное описание'), 'Условный знак жёсткой заделки');
   assert.equal(R.cleanMeta('Шарнир на катке (графический знак, редакционное описание)'), 'Шарнир на катке');
-  assert.equal(R.cleanMeta('Редакционное описание: знак «большой палец вверх».'), '');
+  assert.equal(R.cleanMeta('Редакционное описание: знак «большой палец вверх».'), 'знак «большой палец вверх».');
+  assert.equal(R.cleanMeta('Прямой угол — редакционное описание квадратного знака'), 'Прямой угол');
   const parts = R.noteParts('Shift tan означает арктангенс; градусы. Печатное фиксированное 30° сохранено, не заменено произвольным α.');
   assert.equal(parts.reader, 'Shift tan означает арктангенс; градусы.');
   assert.match(parts.editor, /сохранено/);

@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 out, lo, hi = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 kind = sys.argv[4] if len(sys.argv) > 4 else 'pc'
-W, H, PER = 440, 1500, 6
+W, H, PER = 400, 1500, 7
 cols = []
 for n in range(lo, hi + 1):
     f = os.path.join(out, 'shots', '%s-%03d.png' % (kind, n))

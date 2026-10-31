@@ -89,8 +89,8 @@
       if (f.number != null || f.caption_he || f.caption_ru || !f.regions || f.regions.length !== 1) return null;
       if (w > 48 || ht > 48) return null;
       var he = String(f.regions[0].label_he || '').trim(), ru = String(f.regions[0].label_ru || '');
-      if (he === '👍' || /преимущ/i.test(ru)) return { kind: 'pro' };
-      if (he === '👎' || /недостат/i.test(ru)) return { kind: 'con' };
+      if (he === '👍' || /преимущ|палец вверх/i.test(ru)) return { kind: 'pro' };
+      if (he === '👎' || /недостат|палец вниз/i.test(ru)) return { kind: 'con' };
       if (he === '!' || he === '❗' || /вниман|восклиц/i.test(ru)) return { kind: 'attn' };
       if (he === '🎯' || /мишен/i.test(ru)) return { kind: 'goal' };
       if (GDT.test(he)) return { kind: 'sym', emoji: he === '—' ? '⏤' : he, ru: ru.replace(/[:;(].*$/, '').trim(), he: '' };
@@ -117,8 +117,16 @@
         cellTexts.forEach(function (c) { if (c.length >= 1) rest = rest.split(c).join(' '); });
         if (!/[^\s;:,.—–\-]/.test(rest)) return true;
       }
+      // «;»-separated parts that are mostly the table's own cells (p251: the whole fatigue table in one line)
+      var parts = line.split(/;\s*/).map(function (x) { return x.trim(); }).filter(Boolean);
+      if (parts.length >= 6) {
+        var cellSet = {};
+        cellTexts.forEach(function (c) { cellSet[c] = true; });
+        var inCells = parts.filter(function (x) { return cellSet[x] || cellTexts.some(function (c) { return c.length > 3 && (c.indexOf(x) >= 0 || x.indexOf(c) >= 0); }); }).length;
+        if (inCells / parts.length >= 0.6) return true;
+      }
       var words = line.split(' ').filter(Boolean);
-      if (words.length < 12) return false;
+      if (words.length < (item.kind === 'table_note' ? 5 : 12)) return false;
       var num = words.filter(function (w) { return /^[MМ]?\d+([.,]\d+)?[;,]?$|^[×x]\d/.test(w); }).length;
       return num / words.length >= 0.7;
     }
@@ -152,7 +160,16 @@
       // a short formula that is the content of a table cell on the page (weld forms, p105: x_c = 0, bh, 2(b+h))
       var key = squash(core.replace(/\\[a-zA-Z]+/g, ''));
       if (key && key.length <= 8 && t.indexOf(String.fromCharCode(92)) < 0 && tableKeys(page).some(function (k) { return k === key || (key.length >= 3 && k.indexOf(key) >= 0); })) return true;
-      return !op && /\\begin\{[a-z*]+\}|\[\s*\\?(mathrm\{)?(mm|MPa|N|kN|kW)/.test(t);
+      if (!op && /\\begin\{[a-z*]+\}|\[\s*\\?(mathrm\{)?(mm|MPa|N|kN|kW)/.test(t)) return true;
+      // a column of the table's numbers set as an array (p252: «HB [daN/mm²] 701 671 …»)
+      if (/\\begin\{(array|matrix|gathered)\}/.test(t)) {
+        var nums = (t.match(/(^|\\\\)\s*(\d+(?:\.\d+)?)\s*(?=\\\\|\\end)/g) || []).map(function (x) { return x.replace(/\\\\|\s/g, ''); });
+        if (nums.length >= 4) {
+          var keys = tableKeys(page);
+          if (nums.filter(function (n) { return keys.indexOf(squash(n)) >= 0; }).length / nums.length >= 0.8) return true;
+        }
+      }
+      return false;
     }
 
     // Page order as in the book: marks wrap their text, figures stand where they are printed (just above their
@@ -196,6 +213,8 @@
       items.forEach(function (it, i) {
         if (it.type === 'formula' && tableFragment(it, page)) { dup[i] = true; return; }
         if (it.type !== 'formula' && flattenedTable(it, page)) { dup[i] = true; return; }
+        // a bullet or punctuation mark alone on a line («•», p179)
+        if (it.type !== 'formula' && !/[0-9A-Za-zא-תА-Яа-яα-ω]/.test((it.he || it.he_raw || '') + (it.ru || ''))) { dup[i] = true; return; }
         // a stray letter left by the extraction («t», p28): one or two Latin/Greek letters, translation the same
         if (it.type !== 'formula' && /^[A-Za-zα-ωΑ-Ω]{1,2}$/.test(plain(it.he || it.he_raw)) && plain(it.ru) === plain(it.he || it.he_raw)) { dup[i] = true; return; }
         // a lone symbol as a «formula» («r_i», «F_i», «\mu»): no operator, no value — nothing to learn from it
@@ -309,17 +328,27 @@
     // Supplier remarks about how a label was made («редакционное описание», «печатной подписи нет») are
     // for the editor, not the reader (audit 2026-10-31: 75 places in labels and table cells).
     function cleanMeta(text) {
-      var t = String(text == null ? '' : text).replace(/\u20D7/g, '');   // combining vector arrow: no font draws it (p8 «F□»)
-      if (!/редакц|редактор|печатной текстовой подписи нет|отдельно от|пиктограмм|графический знач/i.test(t)) return t;
-      t = t.replace(/\s*[(\[][^()\[\]]*(?:редакц|редактор|подписи нет|пиктограмм|графический знач)[^()\[\]]*[)\]]/gi, '')
-        .replace(/[;,.]?\s*(?:редакционн|редакторск)[^;.()]*(?:[;.]|$)/gi, '')
-        .replace(/[;,.]?\s*печатной текстовой подписи нет\.?/gi, '');
-      t = t.replace(/[\s—–;,:]+$/, '').replace(/^\s*[—–;,:]+\s*/, '').trim();
-      return /^редакц/i.test(t) ? '' : t;                              // the whole label was a remark
+      var t = String(text == null ? '' : text).replace(/⃗/g, '');   // combining vector arrow: no font draws it (p8 «F□»)
+      if (!/редакц|редактор|напечат|печатн|подпис|метк|пиктограмм|графический знач|отдельно от/i.test(t)) return t;
+      // «Редакционное описание: два косозубых колеса; текстовых меток нет.» — the description stays, the prefix goes
+      t = t.replace(/^\s*(?:редакционн|редакторск)\S*\s+\S+\s*:\s*/i, '');
+      // bracketed remarks: «(редакционное описание)», «(так напечатано)», «[печатная подпись среднего рисунка]»
+      t = t.replace(/\s*[(\[][^()\[\]]*(?:редакц|редактор|подпис|напечат|печатн|пиктограмм|графический знач)[^()\[\]]*[)\]]/gi, '');
+      // a trailing remark after a comma or dash: «Прямой угол — редакционное описание…», «D — ведомый шкив, верхняя подпись»
+      t = t.replace(/\s*[,—–]\s*(?:редакц|редактор|повторн\S* внутренн|верхн\S* подпис|текстов\S* мет|несмотря на печатн|печатн)[^;.]*/gi, '');
+      // remark clauses and sentences
+      // (separators are kept, so sentence splitting of notes downstream still works)
+      var REMARK = /редакционн|редакторск|текстов\S* мет\S*|подпис\S* внутри схемы|печатн\S* (?:текстов\S* )?подпис|ошибочно называ|подпись ошибочна|не печатн|печатный индекс|не заменён|как напечатано|так напечатано|подписи нет|единица отклонений не напечатана|повторная внутренняя подпись|верхняя подпись/i;
+      var pieces = t.split(/((?<=[.;])\s+|;\s*)/);
+      var kept = [];
+      for (var q = 0; q < pieces.length; q += 2) if (!REMARK.test(pieces[q])) kept.push(pieces[q], pieces[q + 1] || '');
+      t = kept.join('');
+      t = t.replace(/;\s*;/g, ';').replace(/[\s—–;,:]+$/, '').replace(/^\s*[—–;,:]+\s*/, '').trim();
+      return /^редакц/i.test(t) ? '' : t;
     }
     // A translator's note written in the supplier's pipeline words (extraction, bbox, numerator…) belongs to the
     // editor notes panel, not to the reading text (audit 2026-10-31, pages 60 and 348).
-    var PIPE_NOTE = /extraction|bbox|\bPNG\b|numerator|formula-ID|\bcompute\b|localresult|page-parent|\bJSON\b/i;
+    var PIPE_NOTE = /extraction|example.steps|sourceID|bbox|\bPNG\b|numerator|formula-ID|\bcompute\b|localresult|page-parent|\bJSON\b/i;
     // Supplier notes mix help for the learner («Shift tan — обратный тангенс», units) with a report on the
     // supplier's own work («восстановлено по изображению», «напечатанное сохранено», «предлагаемое исправление»).
     // Sentence by sentence: the help stays under the formula, the report goes to «Заметки редактора»
