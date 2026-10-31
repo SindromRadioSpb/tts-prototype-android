@@ -59,8 +59,9 @@
       if (item.translit) row.appendChild(h('div', { cls: 'atlas-translit', lang: 'he-Latn', text: item.translit }));
       if (item.translit_ru) row.appendChild(h('div', { cls: 'atlas-translit atlas-translit-ru', lang: 'he-Cyrl', text: item.translit_ru }));
       if (item.he_niqqud) row.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud'));
-      row.appendChild(h('div', { cls: 'atlas-ru', lang: 'ru', text: item.ru }));
-      if (item.ambiguity_note) row.appendChild(h('div', { cls: 'atlas-note', text: item.ambiguity_note }));
+      row.appendChild(h('div', { cls: 'atlas-ru', lang: 'ru', text: cleanMeta(item.ru) }));
+      var note = readerNote(item.ambiguity_note);
+      if (note) row.appendChild(h('div', { cls: 'atlas-note', text: note }));
       if (item.kind) row.setAttribute('data-kind', item.kind);
       return row;
     }
@@ -72,24 +73,81 @@
     var MARKS = {
       pro: { emoji: '👍', key: 'atlas.mark.pro', ru: 'Преимущества', he: 'יתרונות' },
       con: { emoji: '👎', key: 'atlas.mark.con', ru: 'Недостатки', he: 'חסרונות' },
-      attn: { emoji: '❗', key: 'atlas.mark.attn', ru: 'Обратите внимание', he: 'שימו לב' } };
-    function markKind(f) {
-      if (!f || f.number != null || f.caption_he || f.caption_ru || !f.bbox || !f.regions || f.regions.length !== 1) return null;
-      if (f.bbox[2] - f.bbox[0] > 48 || f.bbox[3] - f.bbox[1] > 48) return null;
+      attn: { emoji: '❗', key: 'atlas.mark.attn', ru: 'Обратите внимание', he: 'שימו לב' },
+      goal: { emoji: '🎯', key: 'atlas.mark.goal', ru: 'Цель расчёта', he: 'מטרה' } };
+    // Pictograms the supplier left without any label, identified by eye against the scan (audit 2026-10-31,
+    // contact sheet of all 154 small pictures of the book): a target with an arrow, a thumb up.
+    var MARK_BY_FIGURE = { 'a97002:p348:img01': 'goal', 'a97002:p349:img01': 'goal', 'a97002:p350:img01': 'goal',
+      'a97002:p351:img01': 'goal', 'a97002:p450:img01': 'pro' };
+    // Geometric-tolerance signs (ISO 1101) printed in the margin beside their subsection: shown as the sign itself.
+    var GDT = /^[—⏤▱○⌭⌒⌓∥⊥∠↗◎⌖⌯⌰ⓂⓁ]$/;
+    function markOf(f) {
+      if (!f || !f.bbox) return null;
+      var w = f.bbox[2] - f.bbox[0], ht = f.bbox[3] - f.bbox[1];
+      if (w < 5 || ht < 5) return { kind: 'junk' };                 // 1×1 leftovers of the extraction
+      if (MARK_BY_FIGURE[f.id]) return { kind: MARK_BY_FIGURE[f.id] };
+      if (f.number != null || f.caption_he || f.caption_ru || !f.regions || f.regions.length !== 1) return null;
+      if (w > 48 || ht > 48) return null;
       var he = String(f.regions[0].label_he || '').trim(), ru = String(f.regions[0].label_ru || '');
-      if (he === '👍' || /преимущ/i.test(ru)) return 'pro';
-      if (he === '👎' || /недостат/i.test(ru)) return 'con';
-      if (he === '!' || he === '❗' || /вниман|восклиц/i.test(ru)) return 'attn';
+      if (he === '👍' || /преимущ/i.test(ru)) return { kind: 'pro' };
+      if (he === '👎' || /недостат/i.test(ru)) return { kind: 'con' };
+      if (he === '!' || he === '❗' || /вниман|восклиц/i.test(ru)) return { kind: 'attn' };
+      if (he === '🎯' || /мишен/i.test(ru)) return { kind: 'goal' };
+      if (GDT.test(he)) return { kind: 'sym', emoji: he === '—' ? '⏤' : he, ru: ru.replace(/[:;(].*$/, '').trim(), he: '' };
       return null;
     }
+    function markKind(f) { var m = markOf(f); return m ? m.kind : null; }
+    function markDesc(m) { return m.kind === 'sym' ? m : MARKS[m.kind]; }
     function itemY(item) { return typeof item.y === 'number' ? item.y : null; }
+
+    // The supplier sometimes extracted a printed table a second time as «formulas»: a column of «=» signs, a
+    // column of symbols (d, p, d₁, d₂), a column of numbers, a column header «A_t [mm²]». The table itself is
+    // on the page, so these pieces only repeat it (audit 2026-10-31: 13 pages of «= = = =», p53 columns).
+    // «M2 M2.5 M3 … 1.509 1.948 …»: a printed table read out as one line (p53). With the table on the page the
+    // line only repeats it; a reader cannot use 200 numbers in a row.
+    function flattenedTable(item, page) {
+      if (!(page.tables || []).length) return false;
+      var words = plain(item.he || item.he_raw).split(' ').filter(Boolean);
+      if (words.length < 12) return false;
+      var num = words.filter(function (w) { return /^[MМ]?\d+([.,]\d+)?[;,]?$|^[×x]\d/.test(w); }).length;
+      return num / words.length >= 0.7;
+    }
+
+    function squash(x) { return String(x || '').toLowerCase().replace(/[^a-z0-9α-ω²³]/g, '').replace(/²/g, '2').replace(/³/g, '3'); }
+    function tableKeys(page) {
+      if (page._tk) return page._tk;
+      var keys = [];
+      (page.tables || []).forEach(function (t) { (t.cells || []).forEach(function (c) { var k = squash(c.he || c.ru); if (k) keys.push(k); }); });
+      Object.defineProperty(page, '_tk', { value: keys, enumerable: false });
+      return keys;
+    }
+
+    function tableFragment(item, page) {
+      var t = String(item.latex || item.source_text || '');
+      var core = t.replace(/\\begin\{[a-z*]+\}(\{[^}]*\})?|\\end\{[a-z*]+\}|\\\\|&|\s|\\[,;!]|\\quad/g, '');
+      if (/^=+$/.test(core)) return true;
+      var op = /[=<>+\-*/·×−≅≈]|\\(frac|sqrt|le|ge|leq|geq|cdot|times|pm|sum|int|lt|gt|neq|approx|cong)(?![a-z])/.test(core);
+      // a piece cut out of another formula on the page (p348: the numerator «[σe]πd₁²» of Q_max)
+      if (!op && core.length >= 4 && (page.items || []).some(function (o) {
+        return o !== item && o.type === 'formula' && String(o.latex || '').replace(/\s/g, '').indexOf(t.replace(/\s/g, '')) >= 0;
+      })) return true;
+      if (!(page.tables || []).length) return false;
+      // a short formula that is the content of a table cell on the page (weld forms, p105: x_c = 0, bh, 2(b+h))
+      var key = squash(core.replace(/\\[a-zA-Z]+/g, ''));
+      if (key && key.length <= 8 && t.indexOf(String.fromCharCode(92)) < 0 && tableKeys(page).some(function (k) { return k === key || (key.length >= 3 && k.indexOf(key) >= 0); })) return true;
+      return !op && /\\begin\{[a-z*]+\}|\[\s*\\?(mathrm\{)?(mm|MPa|N|kN|kW)/.test(t);
+    }
 
     // Page order as in the book: marks wrap their text, figures stand where they are printed (just above their
     // own caption line when there is one), tables follow the text (they carry no position).
     function layoutPage(page) {
       var items = page.items || [];
       var marks = [], figures = [];
-      (page.figures || []).forEach(function (f) { var k = markKind(f); if (k) marks.push({ kind: k, y: f.bbox[1] }); else figures.push(f); });
+      (page.figures || []).forEach(function (f) {
+        var m = markOf(f);
+        if (!m) figures.push(f);
+        else if (m.kind !== 'junk') marks.push({ kind: m.kind, mark: m, y: f.bbox[1] });
+      });
       var starts = {};
       marks.sort(function (a, b) { return a.y - b.y; }).forEach(function (m) {
         var at = -1;
@@ -97,8 +155,8 @@
         if (at < 0) at = items.length - 1;
         if (at < 0) return;
         // two marks over one block (the supplier merged pros and cons into one line): keep both labels
-        if (!starts[at]) starts[at] = { kind: m.kind, kinds: [m.kind], end: at };
-        else if (starts[at].kinds.indexOf(m.kind) < 0) { starts[at].kinds.push(m.kind); starts[at].kind = 'mixed'; }
+        if (!starts[at]) starts[at] = { kind: m.kind, kinds: [m.kind], marks: [m.mark], end: at };
+        else if (starts[at].kinds.indexOf(m.kind) < 0) { starts[at].kinds.push(m.kind); starts[at].marks.push(m.mark); starts[at].kind = 'mixed'; }
       });
       Object.keys(starts).forEach(function (k) {
         var g = starts[k], i = Number(k);
@@ -117,9 +175,17 @@
         if (at < 0) for (var j = 0; j < items.length; j++) { var y = itemY(items[j]); if (y != null && y > f.bbox[1]) { at = j; break; } }
         (before[at < 0 ? items.length : at] = before[at < 0 ? items.length : at] || []).push(f);
       });
+      var dup = {};
+      items.forEach(function (it, i) {
+        if (it.type === 'formula' && tableFragment(it, page)) { dup[i] = true; return; }
+        if (it.type !== 'formula' && flattenedTable(it, page)) { dup[i] = true; return; }
+        if (it.type !== 'formula' && /^[\d⁰¹²³⁴⁵⁶⁷⁸⁹\s*]{1,4}$/.test(plain(it.he || it.he_raw)) && /^\[?\d{1,3}\]?$/.test(String(it.ru || '').trim())) { dup[i] = true; return; }
+        var prev = items[i - 1];
+        if (prev && it.type !== 'formula' && it.ru && it.ru === prev.ru && (it.he || '') === (prev.he || '') && (it.he || '').length > 3) dup[i] = true;
+      });
       var tl = placeTables(page, items);
-      return { items: items, groups: starts, figuresBefore: before, captionOf: captionOf,
-        tablesAfter: tl.after, tableFor: tl.replace, tablesAfterFigure: tl.figure, tablesEnd: tl.end };
+      return { items: items, groups: starts, figuresBefore: before, captionOf: captionOf, duplicate: dup,
+        tablesAfter: tl.after, tableFor: tl.replace, tablesAfterFigure: tl.figure, tablesEnd: tl.end, mirror: tl.mirror };
     }
 
     // Tables carry no position on the page. Their place is read from the text around them (checked on all
@@ -127,9 +193,23 @@
     // («M2 M2.5 M3…») takes that line's place; a table under its own title, or a symbol table under «טבלת
     // סמלים», follows that line; a table drawn from a scanned figure follows the figure; a table most of whose
     // words one paragraph names follows that paragraph. The rest stays at the end of the page, as before.
-    function plain(s) { return String(s || '').replace(/[֑-ׇ]/g, '').replace(/\s+/g, ' ').trim(); }
+    function plain(s) { return String(s || '').replace(/[\u0591-\u05C7]/g, '').replace(/\s+/g, ' ').trim(); }
+    // Column order. The supplier numbers columns sometimes in reading order (right to left, p21) and sometimes
+    // left to right as on paper (p17, p30). A reader of the translation needs the reading order. A symbol table
+    // starts with «סמל»; otherwise the table's own text flattened into one line is in reading order and tells.
+    function mirrorTable(t, flat) {
+      var head = (t.cells || []).filter(function (c) { return c.row === 0; }).sort(function (a, b) { return a.col - b.col; });
+      if (head.length < 2) return false;
+      var first = plain(head[0].he), last = plain(head[head.length - 1].he);
+      if (last === 'סמל' && first !== 'סמל') return true;
+      if (first === 'סמל') return false;
+      if (!flat || !first || !last || first === last) return false;
+      var a = flat.indexOf(first), b = flat.indexOf(last);
+      return a >= 0 && b >= 0 && b < a;
+    }
+
     function placeTables(page, items) {
-      var out = { after: {}, replace: {}, figure: {}, end: [] };
+      var out = { after: {}, replace: {}, figure: {}, end: [], mirror: {} };
       var figIds = {};
       (page.figures || []).forEach(function (f) { if (!markKind(f)) figIds[f.id] = true; });
       var texts = items.map(function (it) { return it.type === 'formula' ? '' : plain(it.he || it.he_raw); });
@@ -147,6 +227,7 @@
           if (hit > bestHit) { second = bestHit; bestHit = hit; best = i; } else if (hit > second) second = hit;
         });
         var share = cells.length ? bestHit / cells.length : 0;
+        if (mirrorTable(t, best >= 0 ? texts[best] : '')) out.mirror[t.id] = true;
         if (best >= 0 && share >= 0.8 && /^(other|table_note|symbol_row)$/.test(items[best].kind || '') && !out.replace[best]) { out.replace[best] = t; return; }
         var title = plain(t.title_he), at = -1;
         if (!title && seen['סמל'] && seen['תיאור']) title = 'טבלת סמלים';
@@ -158,12 +239,14 @@
       return out;
     }
 
-    function markHead(T, kinds) {
+    function markHead(T, marks) {
       var head = h('div', { cls: 'atlas-mark-head' });
-      [].concat(kinds).forEach(function (kind) {
-        var m = MARKS[kind];
-        head.appendChild(h('span', { cls: 'atlas-mark-one', 'data-mark': kind }, [h('span', { cls: 'atlas-mark-emoji', 'aria-hidden': 'true', text: m.emoji }),
-          h('span', { cls: 'atlas-l-ru', text: T(m.key, m.ru) }), h('bdi', { lang: 'he', dir: 'rtl', text: m.he })]));
+      [].concat(marks).forEach(function (mk) {
+        if (typeof mk === 'string') mk = { kind: mk };
+        var m = markDesc(mk);
+        head.appendChild(h('span', { cls: 'atlas-mark-one', 'data-mark': mk.kind }, [
+          h('span', { cls: 'atlas-mark-emoji', 'aria-hidden': mk.kind === 'sym' ? null : 'true', text: m.emoji }),
+          h('span', { cls: 'atlas-l-ru', text: m.key ? T(m.key, m.ru) : m.ru }), m.he ? ' ' : null, m.he ? h('bdi', { lang: 'he', dir: 'rtl', text: m.he }) : null]));
       });
       return head;
     }
@@ -179,11 +262,12 @@
           table.appendChild(h('tr', { 'data-ref': v.ref }, [
             h('td', { cls: 'atlas-var', html: v.mathml || null, text: v.mathml ? null : v.latex }),
             h('td', {}, [heText(v.he || '', 'atlas-he atlas-inline')]),
-            h('td', { cls: 'atlas-l-ru', text: v.ru || '' }), h('td', { cls: 'atlas-unit', text: v.unit || '' })]));
+            h('td', { cls: 'atlas-l-ru', text: cleanMeta(v.ru) }), h('td', { cls: 'atlas-unit', text: v.unit || '' })]));
         });
         card.appendChild(table);
       }
-      if (item.note) card.appendChild(h('div', { cls: 'atlas-note', text: item.note }));
+      var fnote = readerNote(item.note);
+      if (fnote) card.appendChild(h('div', { cls: 'atlas-note', text: fnote }));
       if (item.crop) {
         var orig = h('details', { cls: 'atlas-orig' }, [h('summary', { text: T('atlas.original', 'как в книге') }),
           h('img', { src: item.crop, alt: T('atlas.original', 'как в книге'), loading: 'lazy' }),
@@ -196,25 +280,120 @@
     // Regions are numbered pins with the labels in the legend below: text labels drawn over the scan covered the
     // book's own Hebrew labels and each other (acceptance R01; owner screenshot 2026-10-31, figure 10).
     // captionRow: the page's own caption line (with its study layers) replaces the short figcaption.
-    function renderFigure(T, fig, captionRow) {
-      var box = h('div', { cls: 'atlas-figbox' }, [h('img', { src: fig.crop, alt: fig.caption_ru || fig.id, loading: 'lazy' })]);
+    // Supplier remarks about how a label was made («редакционное описание», «печатной подписи нет») are
+    // for the editor, not the reader (audit 2026-10-31: 75 places in labels and table cells).
+    function cleanMeta(text) {
+      var t = String(text == null ? '' : text).replace(/\u20D7/g, '');   // combining vector arrow: no font draws it (p8 «F□»)
+      if (!/редакц|редактор|печатной текстовой подписи нет|отдельно от|пиктограмм|графический знач/i.test(t)) return t;
+      t = t.replace(/\s*[(\[][^()\[\]]*(?:редакц|редактор|подписи нет|пиктограмм|графический знач)[^()\[\]]*[)\]]/gi, '')
+        .replace(/[;,.]?\s*(?:редакционн|редакторск)[^;.()]*(?:[;.]|$)/gi, '')
+        .replace(/[;,.]?\s*печатной текстовой подписи нет\.?/gi, '');
+      t = t.replace(/[\s—–;,:]+$/, '').replace(/^\s*[—–;,:]+\s*/, '').trim();
+      return /^редакц/i.test(t) ? '' : t;                              // the whole label was a remark
+    }
+    // A translator's note written in the supplier's pipeline words (extraction, bbox, numerator…) belongs to the
+    // editor notes panel, not to the reading text (audit 2026-10-31, pages 60 and 348).
+    var PIPE_NOTE = /extraction|bbox|\bPNG\b|numerator|formula-ID|\bcompute\b|localresult|page-parent|\bJSON\b/i;
+    // Supplier notes mix help for the learner («Shift tan — обратный тангенс», units) with a report on the
+    // supplier's own work («восстановлено по изображению», «напечатанное сохранено», «предлагаемое исправление»).
+    // Sentence by sentence: the help stays under the formula, the report goes to «Заметки редактора»
+    // (audit 2026-10-31: 689 formula notes).
+    var PROC = /сохран|восстановл|по изображени|извлеч|extraction|sourceID|bbox|PNG|исправлени|кандидат|заметк|вход вычислени|не подмен|буквальн|подстановк|пересчит|пересчёт|ядр|compute|редакц|фрагмент|обрез|(?:формул[аеы]|текст[аеу]?|строк[аеи]) выше|\b\d{3}f\d{2}\b|numerator|отождеств|не тождеств|тождествен|исходн|ячейк|\b[Bb]\d{3}\b|convention|столбец обозначений/i;
+    function noteParts(text) {
+      var t = cleanMeta(text);
+      if (!t) return { reader: '', editor: '' };
+      if (PIPE_NOTE.test(t)) return { reader: '', editor: t };
+      var keep = [], move = [];
+      t.split(/(?<=[.!?…])\s+(?=[A-ZА-ЯЁ0-9«(])/).forEach(function (sent) { (PROC.test(sent) ? move : keep).push(sent); });
+      // spaces the supplier lost between Cyrillic and Latin («вkW», «вrpm», «анапечатано 12» stays as printed)
+      var reader = keep.join(' ').trim().replace(/([а-яё])([A-Za-zα-ω])/g, '$1 $2').replace(/([A-Za-z]{2,})([а-яё])/g, '$1 $2');
+      return { reader: reader, editor: move.join(' ').trim() };
+    }
+    function readerNote(text) { return noteParts(text).reader; }
+
+    // A tiny picture with at most one label (bolt-head marking 8.8, a tolerance ±0.05, a support sign) is shown
+    // small beside its label: a numbered pin would cover the picture itself (audit 2026-10-31).
+    function isChipFigure(fig) {
+      if (fig.number != null || fig.caption_he || fig.caption_ru || (fig.regions || []).length > 1) return false;
+      var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
+      if (w <= 60 && ht <= 60) return true;
+      var r = (fig.regions || [])[0];
+      if (!r || w > 140 || ht > 140) return false;
+      return (r.bbox[2] - r.bbox[0]) * (r.bbox[3] - r.bbox[1]) >= 0.5 * w * ht;
+    }
+    function renderChip(fig) {
+      var r = (fig.regions || [])[0] || {};
+      var he = r.label_he || '', ru = cleanMeta(r.label_ru);
+      return h('figure', { cls: 'atlas-fig atlas-chipfig', 'data-ref': fig.id }, [
+        h('img', { src: fig.crop, alt: ru || he || '', loading: 'lazy' }),
+        h('figcaption', {}, [he ? h('bdi', { lang: 'he', dir: dirOf(he), text: he }) : null,
+          ru && ru !== he ? h('span', { cls: 'atlas-l-ru', text: (he ? ' — ' : '') + ru }) : null])]);
+    }
+
+    // Regions are numbered pins with the labels in the legend below: text labels drawn over the scan covered the
+    // book's own Hebrew labels and each other (acceptance R01; owner screenshot 2026-10-31, figure 10).
+    // Regions with the same label share one number and one legend line («1 F — Сила F», not F, F, F… — audit 6.2).
+    // captionRow: the page's own caption line (with its study layers) replaces the short figcaption.
+    // A diagram whose labels the page also gives as a table (the SI prefix scale, p4): pins and a legend would
+    // repeat the table a third time and pile up on a phone. The clean scan stays; the table carries the words.
+    function labelsInTables(fig, page) {
+      var regions = (fig.regions || []).filter(function (r) { return (r.label_he || '').trim(); });
+      if (regions.length < 4 || !page || !(page.tables || []).length) return false;
+      var cells = {};
+      page.tables.forEach(function (t) { (t.cells || []).forEach(function (c) { [c.he, c.ru].forEach(function (x) { x = plain(x).replace(/\s+/g, ''); if (x) cells[x] = true; }); }); });
+      var keys = Object.keys(cells);
+      var hit = regions.filter(function (r) {
+        var x = plain(r.label_he).replace(/\s+/g, '');
+        return cells[x] || keys.some(function (k) { return k.length > 1 && (x.indexOf(k) >= 0 || k.indexOf(x) >= 0); });
+      }).length;
+      return hit / regions.length >= 0.6;
+    }
+
+    // Labels that are only the drawing's own letters (C, a, α, F) with no translation: pins and a legend
+    // «1 C, 2 a…» repeat what the drawing already shows (p6). A legend earns its place by translating.
+    function translatesAnything(fig) {
+      return (fig.regions || []).some(function (r) { return /[А-Яа-яЁё]/.test(cleanMeta(r.label_ru)) || /[א-ת]/.test(r.label_he || ''); });
+    }
+
+    function renderFigure(T, fig, captionRow, page, forPrint) {
+      if (isChipFigure(fig)) return renderChip(fig);
+      if (labelsInTables(fig, page) || !translatesAnything(fig)) fig = Object.assign({}, fig, { regions: [] });
+      var box = h('div', { cls: 'atlas-figbox' }, [h('img', { src: fig.crop, alt: cleanMeta(fig.caption_ru) || fig.id, loading: 'lazy' })]);
       var list = h('ol', { cls: 'atlas-regions' });
       var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
-      fig.regions.forEach(function (r, k) {
-        var mark = String(k + 1);
-        var style = 'left:' + ((r.bbox[0] - fig.bbox[0]) / w * 100).toFixed(2) + '%;top:' + ((r.bbox[1] - fig.bbox[1]) / ht * 100).toFixed(2) +
-          '%;width:' + ((r.bbox[2] - r.bbox[0]) / w * 100).toFixed(2) + '%;height:' + ((r.bbox[3] - r.bbox[1]) / ht * 100).toFixed(2) + '%';
-        var links = (r.links || []).join(' ');
-        box.appendChild(h('button', { cls: 'atlas-rg', type: 'button', style: style, 'data-region': r.id, 'data-links': links,
-          'aria-label': mark + ': ' + (r.label_ru || r.label_he) }, [h('i', { cls: 'n', text: mark })]));
-        var ru = r.label_ru && r.label_ru !== r.label_he ? r.label_ru : '';
-        list.appendChild(h('li', { 'data-region': r.id, 'data-links': links }, [h('b', { cls: 'atlas-mark', text: mark }), ' ',
-          h('bdi', { lang: 'he', dir: dirOf(r.label_he), text: r.label_he || '' }), ru ? h('span', { cls: 'atlas-l-ru', text: ' — ' + ru }) : null]));
+      var groups = [], byKey = {};
+      fig.regions.forEach(function (r) {
+        var ru = cleanMeta(r.label_ru);
+        if (!ru && !(r.label_he || '').trim()) return;                 // an unlabelled area: no pin, no empty legend line
+        // a bare symbol («4», «V₁», «III») with no Hebrew and no translation repeats the drawing (p375)
+        if (!/[א-ת]/.test(r.label_he || '') && (!ru || ru === String(r.label_he || '').trim())) return;
+        var key = (r.label_he || '') + '\u0001' + ru;
+        var g = byKey[key];
+        if (!g) { g = byKey[key] = { id: r.id, he: String(r.label_he || '').replace(/\u20D7/g, ''), ru: ru, links: [], regions: [] }; groups.push(g); }
+        g.regions.push(r);
+        (r.links || []).forEach(function (l) { if (g.links.indexOf(l) < 0) g.links.push(l); });
       });
+      groups.forEach(function (g, k) {
+        var mark = String(k + 1), links = g.links.join(' ');
+        g.regions.forEach(function (r) {
+          var style = 'left:' + ((r.bbox[0] - fig.bbox[0]) / w * 100).toFixed(2) + '%;top:' + ((r.bbox[1] - fig.bbox[1]) / ht * 100).toFixed(2) +
+            '%;width:' + ((r.bbox[2] - r.bbox[0]) / w * 100).toFixed(2) + '%;height:' + ((r.bbox[3] - r.bbox[1]) / ht * 100).toFixed(2) + '%';
+          box.appendChild(h('button', { cls: 'atlas-rg', type: 'button', style: style, 'data-region': g.id, 'data-links': links,
+            'aria-label': mark + ': ' + (g.ru || g.he) }, [h('i', { cls: 'n', text: mark })]));
+        });
+        var ru = g.ru && g.ru !== g.he ? g.ru : '';
+        list.appendChild(h('li', { 'data-region': g.id, 'data-links': links }, [h('b', { cls: 'atlas-mark', text: mark }), ' ',
+          h('bdi', { lang: 'he', dir: dirOf(g.he), text: g.he }), ru ? h('span', { cls: 'atlas-l-ru', text: (g.he ? ' — ' : '') + ru }) : null]));
+      });
+      var capRu = cleanMeta(fig.caption_ru);
       var cap = captionRow ? h('figcaption', { cls: 'atlas-figcap-row' }, [captionRow])
-        : (fig.caption_he || fig.caption_ru) ? h('figcaption', {}, [h('bdi', { lang: 'he', dir: 'rtl', text: fig.caption_he || '' }),
-          h('span', { cls: 'atlas-l-ru', text: (fig.caption_he && fig.caption_ru ? ' — ' : '') + (fig.caption_ru || '') })]) : null;
-      return h('figure', { cls: 'atlas-fig' + (fig.is_table ? ' atlas-tablefig' : ''), 'data-ref': fig.id }, [box, cap, fig.regions.length ? list : null]);
+        : (fig.caption_he || capRu) ? h('figcaption', {}, [h('bdi', { lang: 'he', dir: 'rtl', text: fig.caption_he || '' }),
+          h('span', { cls: 'atlas-l-ru', text: (fig.caption_he && capRu ? ' — ' : '') + capRu })]) : null;
+      if (fig.is_table && !captionRow && !forPrint) {
+        return h('details', { cls: 'atlas-fig atlas-tablefig atlas-orig', 'data-ref': fig.id }, [
+          h('summary', { text: T('atlas.tableScan', 'как в книге (скан таблицы)') }), box, cap, groups.length ? list : null]);
+      }
+      return h('figure', { cls: 'atlas-fig' + (fig.is_table ? ' atlas-tablefig' : ''), 'data-ref': fig.id }, [box, cap, groups.length ? list : null]);
     }
 
     // Table cells sometimes carry raw LaTeX (\tau_S, \sigma_{Lc}): shown as plain symbols with real
@@ -223,7 +402,7 @@
       theta: 'θ', vartheta: 'ϑ', kappa: 'κ', lambda: 'λ', mu: 'μ', nu: 'ν', xi: 'ξ', pi: 'π', rho: 'ρ', sigma: 'σ', Sigma: 'Σ', tau: 'τ',
       phi: 'φ', varphi: 'φ', Phi: 'Φ', chi: 'χ', psi: 'ψ', omega: 'ω', Omega: 'Ω', cdot: '·', times: '×', le: '≤', leq: '≤', ge: '≥',
       geq: '≥', pm: '±', infty: '∞', approx: '≈', neq: '≠', circ: '°', prime: '′', degree: '°', ell: 'ℓ', partial: '∂' };
-    function looksTex(s) { return /\\[A-Za-z]+|[_^]\{/.test(s); }
+    function looksTex(s) { return /\\[A-Za-z]+|[_^]\{|[A-Za-zα-ωΑ-Ω\]][_^][A-Za-z0-9]/.test(s); }
     function texNodes(src) {
       src = String(src == null ? '' : src);
       if (!looksTex(src)) return [src];
@@ -263,8 +442,25 @@
       return out;
     }
 
-    function renderTable(table, ref) {
+    // Titles the supplier gave untitled tables are about the extraction, not the book («Печатные данные таблицы
+    // под заголовком k2», «Печатные альтернативные выражения; не утверждение их корректности», p296/p312).
+    function tableTitle(table) {
+      var t = cleanMeta(table.title_ru);
+      if (/^печатные данные таблицы|не утверждени|^печатная таблица обозначений$/i.test(t)) return '';
+      t = t.replace(/\s*[—–-]\s*печатная компоновка\s*$/i, '').replace(/\s*\(как напечатано\)\s*$/i, '')
+        .replace(/:\s*все\s+\d+\s+строк\w*\s*$/i, '').replace(/\s*[—–-]\s*трёхколоночная композиция\s*$/i, '')
+        .replace(/^печатн(?:ые|ая|ое|ый)\s+/i, '').replace(/^компоновка\s+формул\s+/i, 'Формулы ').replace(/^компоновка\s+/i, '')
+        .replace(/\s(?:напечатанн|печатн)\S*/gi, '').trim();
+      return t ? t.charAt(0).toUpperCase() + t.slice(1) : '';
+    }
+
+    function renderTable(table, ref, mirror) {
       var cells = table.cells || [];
+      if (mirror) {
+        var wd = 0;
+        cells.forEach(function (c) { wd = Math.max(wd, c.col + c.colspan); });
+        cells = cells.map(function (c) { return Object.assign({}, c, { col: wd - c.col - c.colspan }); });
+      }
       var width = 0, covered = {}, pos = {}, rows = {};
       cells.forEach(function (c) {
         width = Math.max(width, c.col + c.colspan);
@@ -272,18 +468,31 @@
         for (var r = c.row; r < c.row + c.rowspan; r++) for (var k = c.col; k < c.col + c.colspan; k++) if (r !== c.row || k !== c.col) covered[r + ':' + k] = true;
       });
       var body = h('tbody'), head = h('thead'), built = [];
+      // a unit the table already names in a label cell («d [mm]») is not repeated after every number (p22)
+      var labelled = {};
+      cells.forEach(function (c) {
+        [c.he, c.ru].forEach(function (x) {
+          x = String(x || '').trim();
+          var m = /\[\s*([^\]\s]+)\s*\]/.exec(x);
+          if (m) labelled[m[1].toLowerCase()] = true;
+          if (/^(mm|мм|mm²|мм²|mm2|MPa|МПа|N|Н|kN|кН|kW|кВт|rpm|°)$/i.test(x)) labelled[x.toLowerCase()] = true;   // a row of units under the header (p53)
+          if (c.unit && x.toLowerCase() === String(c.unit).toLowerCase()) labelled[x.toLowerCase()] = true;
+          x.split(/\s+/).forEach(function (w) { if (/^[^\d\s]{1,7}$/.test(w)) labelled['?' + w.toLowerCase()] = true; });
+        });
+      });
+      if (labelled['мм']) labelled.mm = true;
       Object.keys(rows).map(Number).sort(function (a, b) { return a - b; }).forEach(function (r) {
         var tr = h('tr'), numeric = false, digits = false;
         for (var k = 0; k < width; k++) {
           var c = pos[r + ':' + k];
           if (c) {
-            var text = c.ru || '';
+            var text = cleanMeta(c.ru);
             if (/^[\d.,\s▪•+\-−]+$/.test(text) && /\d/.test(text)) numeric = true;
             if (/\d/.test(text)) digits = true;
-            var unit = c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit ? c.unit : '';
+            var unit = text.trim() && c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit && !labelled[String(c.unit).toLowerCase()] && !labelled['?' + String(c.unit).toLowerCase()] ? c.unit : '';
             var he = c.he && c.he !== text ? c.he : '';
             tr.appendChild(h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text) },
-              he ? [h('span', { cls: 'atlas-l-ru' }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])), h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he) }, texNodes(he))]
+              he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he) }, texNodes(he)), h('span', { cls: 'atlas-l-ru' }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null]))]
                 : texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])));
           } else if (!covered[r + ':' + k]) tr.appendChild(h('td'));
         }
@@ -297,19 +506,22 @@
       built.forEach(function (b, n) { (n < heads ? head : body).appendChild(b.tr); });
       // an untitled table gets no caption: an empty one painted a blank band above the grid
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
-        !(table.title_ru || table.title_he) ? null : h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: table.title_ru || '' }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
+        !(tableTitle(table) || table.title_he) ? null : h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: tableTitle(table) }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);
       return h('div', { cls: 'atlas-tablewrap', 'data-ref': ref || table.id || null }, [t]);
     }
 
-    function renderErratum(T, x) {
-      var el = h('div', { cls: 'atlas-erratum', 'data-target': x.target }, [
-        h('b', { text: '⚠ ' + T('atlas.erratum.printed', 'в книге:') + ' ' }), h('code', { text: x.as_printed || '' })]);
-      if (x.proposed) { el.appendChild(h('b', { text: ' → ' + T('atlas.erratum.proposed', 'предлагаемое исправление:') + ' ' })); el.appendChild(h('code', { text: x.proposed })); }
-      el.appendChild(h('div', { cls: 'atlas-why', text: x.explanation_ru || '' }));
-      if (x.core_note) el.appendChild(h('div', { cls: 'atlas-why', text: T('atlas.erratum.core', 'Пересчёт ядра:') + ' ' + x.core_note }));
-      el.appendChild(h('small', { cls: 'atlas-muted', text: T('atlas.erratum.pending', 'ждёт подтверждения владельца') }));
-      return el;
+    // A possible misprint is one short line; the reasoning opens on demand (audit 2026-10-31, p223: ten long
+    // recount paragraphs buried a worked example). Print shows it in full.
+    function short(t, n) { t = String(t || ''); return t.length > n ? t.slice(0, n - 1) + '…' : t; }
+    function renderErratum(T, x, full) {
+      var head = [h('b', { text: '⚠ ' + T('atlas.erratum.printed', 'в книге:') + ' ' }), h('code', { text: full ? (x.as_printed || '') : short(x.as_printed, 48) })];
+      if (x.proposed) head.push(h('b', { text: ' → ' + T('atlas.erratum.proposed', 'предлагаемое исправление:') + ' ' }), h('code', { text: full ? x.proposed : short(x.proposed, 48) }));
+      var body = [h('div', { cls: 'atlas-why', text: x.explanation_ru || '' }),
+        x.core_note ? h('div', { cls: 'atlas-why', text: T('atlas.erratum.core', 'Пересчёт ядра:') + ' ' + x.core_note }) : null,
+        h('small', { cls: 'atlas-muted', text: T('atlas.erratum.pending', 'ждёт подтверждения владельца') })];
+      if (full) return h('div', { cls: 'atlas-erratum', 'data-target': x.target }, head.concat(body));
+      return h('details', { cls: 'atlas-erratum', 'data-target': x.target }, [h('summary', {}, head)].concat(body));
     }
 
     function num(v) { return String(Number(Number(v).toPrecision(9))); }
@@ -326,7 +538,7 @@
           var printed = Number(String(s.printed).replace(',', '.').replace('\u2212', '-'));
           var gap = s.value - printed;
           var rel = printed ? ' (' + num((Math.abs(gap) / Math.abs(printed) * 100).toPrecision(2)) + ' %)' : '';
-          detail = h('div', { cls: 'atlas-why' }, [T('atlas.core.value', 'пересчёт даёт') + ' ' + num(s.value) + ' · ' +
+          detail = h('details', { cls: 'atlas-why atlas-step-why' }, [h('summary', { text: T('atlas.core.more', 'подробнее') }), T('atlas.core.value', 'пересчёт даёт') + ' ' + num(s.value) + ' · ' +
             T('atlas.core.gap', 'разница с напечатанным') + ' ' + num(gap) + rel + ' — ' +
             (s.math_review === 'core_rounded' ? T('atlas.core.roundedHint', 'книга округлила результат до значащих цифр')
               : T('atlas.core.mismatchHint', 'кандидат в опечатку, не доказанная ошибка книги; решение за владельцем'))]);
@@ -334,7 +546,7 @@
         list.appendChild(h('li', {}, [h('code', { text: s.compute }), ' · ' + bind + ' → ', h('b', { text: s.printed }), ' ',
           h('span', { cls: 'atlas-badge ' + (s.math_review || ''), text: verdict }), detail]));
       });
-      return h('div', { cls: 'atlas-example' }, [h('h4', { cls: 'atlas-l-ru', text: ex.title_ru || T('atlas.example', 'Пример') }), list]);
+      return h('div', { cls: 'atlas-example' }, [h('h4', { cls: 'atlas-l-ru', text: cleanMeta(ex.title_ru) || T('atlas.example', 'Пример') }), list]);
     }
 
     var EDITOR_ABOUT = { page: ['atlas.editor.page', 'к странице'], formula: ['atlas.editor.formula', 'к формуле'],
@@ -401,33 +613,55 @@
       lay.items.forEach(function (item, i) {
         (lay.figuresBefore[i] || []).forEach(function (f) {
           var own = lay.captionOf[i] === f;
-          main.appendChild(renderFigure(T, f, own ? itemNode(item) : null));
-          (lay.tablesAfterFigure[f.id] || []).forEach(function (t) { main.appendChild(renderTable(t)); });
+          main.appendChild(renderFigure(T, f, own ? itemNode(item) : null, page));
+          (lay.tablesAfterFigure[f.id] || []).forEach(function (t) { main.appendChild(renderTable(t, null, lay.mirror[t.id])); });
         });
         var g = lay.groups[i];
         if (g) {
-          into = h('div', { cls: 'atlas-mark-group', 'data-mark': g.kind }, [markHead(T, g.kinds)]);
+          into = h('div', { cls: 'atlas-mark-group', 'data-mark': g.kind }, [markHead(T, g.marks)]);
           main.appendChild(into); groupEnd = g.end;
         }
         var own = lay.captionOf[i] && (lay.figuresBefore[i] || []).indexOf(lay.captionOf[i]) >= 0;
         // a text line that only repeats a table flattened into one string gives its place to the table
-        if (lay.tableFor[i]) into.appendChild(renderTable(lay.tableFor[i], item.id));
-        else if (!own) into.appendChild(itemNode(item));
-        (lay.tablesAfter[i] || []).forEach(function (t) { into.appendChild(renderTable(t)); });
+        if (lay.tableFor[i]) into.appendChild(renderTable(lay.tableFor[i], item.id, lay.mirror[lay.tableFor[i].id]));
+        else if (!own && !lay.duplicate[i]) into.appendChild(itemNode(item));
+        (lay.tablesAfter[i] || []).forEach(function (t) { into.appendChild(renderTable(t, null, lay.mirror[t.id])); });
         (errataByTarget[item.id] || []).forEach(function (x) { shown[x.id] = true; into.appendChild(renderErratum(T, x)); });
         if (i >= groupEnd) { into = main; groupEnd = -1; }
       });
       (lay.figuresBefore[lay.items.length] || []).forEach(function (f) {
-        main.appendChild(renderFigure(T, f, null));
-        (lay.tablesAfterFigure[f.id] || []).forEach(function (t) { main.appendChild(renderTable(t)); });
+        main.appendChild(renderFigure(T, f, null, page));
+        (lay.tablesAfterFigure[f.id] || []).forEach(function (t) { main.appendChild(renderTable(t, null, lay.mirror[t.id])); });
       });
-      lay.tablesEnd.forEach(function (t) { main.appendChild(renderTable(t)); });
+      lay.tablesEnd.forEach(function (t) { main.appendChild(renderTable(t, null, lay.mirror[t.id])); });
       (page.examples || []).forEach(function (ex) {
         main.appendChild(renderExample(T, ex));
         (errataByTarget[ex.id] || []).forEach(function (x) { shown[x.id] = true; main.appendChild(renderErratum(T, x)); });
       });
       (page.errata || []).forEach(function (x) { if (!shown[x.id]) main.appendChild(renderErratum(T, x)); });
-      var editor = renderEditor(T, page.editor);
+      // narrow tables printed side by side in the book (p137: six «e | k» pairs) stand side by side here too
+      var kids = Array.prototype.slice.call(main.children), run = [];
+      function narrow(n) {
+        if (!n.classList || !n.classList.contains('atlas-tablewrap')) return false;
+        var row = n.querySelector('tr');
+        return !!row && row.children.length <= 3;
+      }
+      function flush() {
+        if (run.length >= 2) {
+          var box = h('div', { cls: 'atlas-tablerun' });
+          run[0].parentNode.insertBefore(box, run[0]);
+          run.forEach(function (n) { box.appendChild(n); });
+        }
+        run = [];
+      }
+      kids.forEach(function (n) { if (narrow(n)) run.push(n); else flush(); });
+      flush();
+      var moved = [];
+      (page.items || []).forEach(function (it) {
+        var part = noteParts(it.type === 'formula' ? it.note : it.ambiguity_note).editor;
+        if (part) moved.push({ about: it.type === 'formula' ? 'formula' : 'block', ref: it.id, text: part });
+      });
+      var editor = renderEditor(T, (page.editor || []).concat(moved));
       if (editor) main.appendChild(editor);
       body.appendChild(aside); body.appendChild(main);
       sec.appendChild(body);
@@ -498,21 +732,21 @@
         var lay = layoutPage(page);
         page.items.forEach(function (item, i) {
           var g = lay.groups[i];
-          if (g) rows.appendChild(h('tr', { cls: 'atlas-pmark', 'data-mark': g.kind }, [h('td', { colspan: 2 }, [markHead(T, g.kinds)])]));
+          if (g) rows.appendChild(h('tr', { cls: 'atlas-pmark', 'data-mark': g.kind }, [h('td', { colspan: 2 }, [markHead(T, g.marks)])]));
           if (item.type === 'formula') {
-            var vs = (item.vars || []).map(function (v) { return (v.latex || '') + ' — ' + (v.ru || '') + (v.unit ? ', ' + v.unit : ''); }).join(' · ');
+            var vs = (item.vars || []).map(function (v) { return (v.latex || '') + ' — ' + cleanMeta(v.ru) + (v.unit ? ', ' + v.unit : ''); }).join(' · ');
             rows.appendChild(h('tr', {}, [h('td', { colspan: 2 }, [h('div', { cls: 'atlas-pmath', html: item.mathml || null, text: item.mathml ? null : (item.latex || item.source_text || '') }),
               h('div', { cls: 'atlas-pvars', text: vs }), item.note ? h('div', { cls: 'atlas-note', text: item.note }) : null])]));
           } else {
-            rows.appendChild(h('tr', {}, [h('td', { cls: 'atlas-pru', text: item.ru || T('atlas.noTranslationShort', 'без перевода') }),
+            rows.appendChild(h('tr', {}, [h('td', { cls: 'atlas-pru', text: cleanMeta(item.ru) || T('atlas.noTranslationShort', 'без перевода') }),
               h('td', { cls: 'atlas-phe', lang: 'he', dir: dirOf(item.he || item.he_raw), text: item.he || item.he_raw || '' })]));
           }
           (page.errata || []).filter(function (x) { return x.target === item.id; }).forEach(function (x) {
-            rows.appendChild(h('tr', {}, [h('td', { colspan: 2 }, [renderErratum(T, x)])]));
+            rows.appendChild(h('tr', {}, [h('td', { colspan: 2 }, [renderErratum(T, x, true)])]));
           });
         });
         var extra = h('div');
-        (page.figures || []).forEach(function (f) { if (!markKind(f)) extra.appendChild(renderFigure(T, f, null)); });
+        (page.figures || []).forEach(function (f) { if (!markKind(f)) extra.appendChild(renderFigure(T, f, null, page, true)); });
         (page.tables || []).forEach(function (t) { extra.appendChild(renderTable(t)); });
         var sheet = h('table', { cls: 'atlas-sheet' }, [
           h('thead', {}, [h('tr', {}, [h('td', { colspan: 2 }, [h('div', { cls: 'atlas-shead' }, [h('b', { text: T('atlas.page', 'стр.') + ' ' + page.page }),
@@ -524,7 +758,8 @@
     }
 
     return { h: h, renderHome: renderHome, renderSection: renderSection, renderPage: renderPage, renderTable: renderTable, renderPrint: renderPrint, dirOf: dirOf,
-      layoutPage: layoutPage, paintReview: paintReview, pageReviewedInData: pageReviewedInData };
+      layoutPage: layoutPage, paintReview: paintReview, pageReviewedInData: pageReviewedInData, markKindOf: markKind,
+      cleanMeta: cleanMeta, isChipFigure: isChipFigure, noteParts: noteParts };
   }
 
   // Column sets are the Room's (public/js/table-presets.js): the same six presets and four columns as every

@@ -244,7 +244,7 @@ test('theme: the atlas follows the Room theme classes and never paints a light s
   const screen = css.slice(0, css.indexOf('@media print'));
   // white stays only behind book scans (page thumbnails, figure crops, the original-image overlay)
   screen.split('\n').filter((line) => /#fff\b|#ffffff\b|#f2f4f5|#d8efef/i.test(line) && !/--atlas-/.test(line)).forEach((line) => {
-    assert.match(line, /atlas-thumb|atlas-figbox|atlas-orig img|atlas-overlay|atlas-scan/, 'hard light colour outside a scan: ' + line.trim());
+    assert.match(line, /atlas-thumb|atlas-figbox|atlas-orig img|atlas-overlay|atlas-scan|atlas-chipfig img/, 'hard light colour outside a scan: ' + line.trim());
   });
 });
 
@@ -527,4 +527,96 @@ test('two marks over one merged block keep both labels (supplier merged pros and
   const g = el.querySelector('.atlas-mark-group');
   assert.equal(g.getAttribute('data-mark'), 'mixed');
   assert.match(g.querySelector('.atlas-mark-head').textContent, /Преимущества.*Недостатки/);
+});
+
+// ---- whole-book quality audit 2026-10-31 (docs/planning/ENGINEERING_ATLAS_QUALITY_STANDARD.md) ----
+const smallFig = (id, y, he, ru, w = 30) => ({ id, number: null, bbox: [520, y, 520 + w, y + 30], crop: '/c.png',
+  regions: [{ id: id + ':r', bbox: [520, y, 520 + w, y + 30], label_he: he, label_ru: ru, links: [] }] });
+
+test('3.1/3.2: a target becomes «🎯 Цель расчёта», tolerance signs show as signs, unlabelled book icons are known, 1×1 junk is dropped', () => {
+  const { R, T } = env();
+  const items = [{ id: 'a', type: 'block', kind: 'prose', y: 150, he: 'בדיקת תנאי התכנון', ru: 'Проверка условий' }];
+  let el = R.renderPage(T, page({ items, figures: [smallFig('x', 130, '', 'Редакционное описание: мишень со стрелой, печатной текстовой подписи нет.')] }));
+  assert.match(el.querySelector('.atlas-mark-group[data-mark="goal"] .atlas-mark-head').textContent, /🎯.*Цель расчёта.*מטרה/);
+  assert.doesNotMatch(el.textContent, /Редакционное/);
+  el = R.renderPage(T, page({ page: 505, items, figures: [smallFig('y', 130, '⌖', 'Знак позиционного допуска')] }));
+  assert.match(el.querySelector('.atlas-mark-group[data-mark="sym"]').textContent, /⌖.*Знак позиционного допуска/);
+  el = R.renderPage(T, page({ page: 348, items, figures: [Object.assign(smallFig('a97002:p348:img01', 130, '', ''), { regions: [] })] }));
+  assert.ok(el.querySelector('.atlas-mark-group[data-mark="goal"]'), 'the unlabelled target of p348');
+  el = R.renderPage(T, page({ items, figures: [{ id: 'j', number: null, bbox: [516, 596, 517, 597], crop: '/j.png', regions: [] }] }));
+  assert.equal(el.querySelectorAll('figure').length, 0);
+});
+
+test('4.3: supplier remarks leave the reading text; the learner part of a note stays, the report goes to the editor notes', () => {
+  const { R, T } = env();
+  assert.equal(R.cleanMeta('Условный знак жёсткой заделки; редакционное описание'), 'Условный знак жёсткой заделки');
+  assert.equal(R.cleanMeta('Шарнир на катке (графический знак, редакционное описание)'), 'Шарнир на катке');
+  assert.equal(R.cleanMeta('Редакционное описание: знак «большой палец вверх».'), '');
+  const parts = R.noteParts('Shift tan означает арктангенс; градусы. Печатное фиксированное 30° сохранено, не заменено произвольным α.');
+  assert.equal(parts.reader, 'Shift tan означает арктангенс; градусы.');
+  assert.match(parts.editor, /сохранено/);
+  assert.equal(R.noteParts('Полная дробь собрана по PNG. Sourcebbox сохранён исходным.').reader, '');
+  const el = R.renderPage(T, page({ items: [{ id: 'f', type: 'formula', y: 100, latex: 'a=b', note: 'Радикал восстановлен по странице. Единицы: mm.', vars: [] }] }));
+  assert.equal(el.querySelector('.atlas-formula .atlas-note').textContent, 'Единицы: mm.');
+  assert.match(el.querySelector('details.atlas-editor').textContent, /восстановлен/);
+});
+
+test('1.1/2.3: copies of a table — «= = = =», a column of symbols, a flattened number line, a cut-out numerator — are not shown twice', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ items: [
+    { id: 'h', type: 'block', kind: 'prose', y: 90, he: '1) מידות תבריג', ru: '1) Размеры резьбы' },
+    { id: 'eq', type: 'formula', y: 100, latex: '\\begin{matrix}=\\\\=\\\\=\\end{matrix}', vars: [] },
+    { id: 'sym', type: 'formula', y: 110, latex: '\\begin{gathered}d\\\\p\\\\d_1\\end{gathered}', vars: [] },
+    { id: 'num', type: 'formula', y: 120, latex: '[\\sigma_e]\\pi d_1^2', vars: [] },
+    { id: 'q', type: 'formula', y: 130, latex: 'Q=\\frac{[\\sigma_e]\\pi d_1^2}{4}', vars: [] },
+    { id: 'flat', type: 'block', kind: 'other', y: 140, he: 'M2 M2.5 M3 M3.5 M4 M5 1.5 2 2.5 3 3.5 4 1.1 1.2', ru: 'M2 M2.5 M3 M3.5 M4 M5 1.5 2 2.5 3 3.5 4 1.1 1.2' }],
+  tables: [{ id: 't', cells: [cell(0, 0, 'd'), cell(0, 1, '='), cell(0, 2, 'mm'), cell(1, 0, 'p'), cell(1, 1, '='), cell(1, 2, 'mm')] }] }));
+  ['eq', 'sym', 'num', 'flat'].forEach((id) => assert.ok(!el.querySelector('.atlas-main > [data-ref="' + id + '"]'), id + ' hidden'));
+  assert.ok(el.querySelector('[data-ref="q"]'), 'the full formula stays');
+});
+
+test('5: table columns in reading order (symbol first), units named once, supplier table titles cleaned', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({ items: [{ id: 'h', type: 'block', kind: 'prose', y: 90, he: 'טבלת סמלים', ru: 'Таблица обозначений' }],
+    tables: [{ id: 't', title_ru: 'Печатная компоновка формул наружного диаметра', cells: [cell(0, 0, 'יחידות', 'Единицы'), cell(0, 1, 'תיאור', 'Описание'), cell(0, 2, 'סמל', 'Символ'),
+      cell(1, 0, 'mm', 'mm'), cell(1, 1, 'קוטר', 'Диаметр'), cell(1, 2, 'd', 'd'),
+      Object.assign(cell(2, 0, '12', '12'), { unit: 'mm' }), cell(2, 1, 'אורך', 'Длина'), cell(2, 2, 'L', 'L')] }] }));
+  const head = [...el.querySelector('.atlas-table tr').children].map((td) => td.querySelector('.atlas-l-ru').textContent);
+  assert.deepEqual(head, ['Символ', 'Описание', 'Единицы']);
+  assert.equal(el.querySelector('.atlas-table caption').textContent.trim(), 'Формулы наружного диаметра');
+  assert.ok(!el.querySelector('.atlas-table td small'), 'mm is a column label, not repeated after 12');
+  assert.ok(el.querySelector('.atlas-table td .atlas-l-he'), 'the book Hebrew is in the cell');
+});
+
+test('6: a legend groups equal labels; letters-only figures and figures whose labels a table repeats show clean; a one-label picture is a chip', () => {
+  const { R, T } = env();
+  const reg = (id, x, he, ru) => ({ id, bbox: [x, 10, x + 10, 20], label_he: he, label_ru: ru, links: [] });
+  let el = R.renderPage(T, page({ items: [], figures: [{ id: 'f', number: null, bbox: [0, 0, 300, 200], crop: '/f.png',
+    regions: [reg('a', 10, 'F', 'Сила F'), reg('b', 100, 'F', 'Сила F'), reg('c', 200, 't', 'Толщина t')] }] }));
+  assert.equal(el.querySelectorAll('.atlas-regions li').length, 2);
+  assert.equal(el.querySelectorAll('.atlas-rg').length, 3);
+  el = R.renderPage(T, page({ items: [], figures: [{ id: 'g', number: null, bbox: [0, 0, 300, 200], crop: '/g.png',
+    regions: [reg('a', 10, 'C', 'C'), reg('b', 100, 'a', 'a')] }] }));
+  assert.equal(el.querySelectorAll('.atlas-rg').length, 0);
+  el = R.renderPage(T, page({ items: [], figures: [smallFig('m', 100, '8.8', '8.8 — маркировка головки', 30)] }));
+  assert.ok(el.querySelector('figure.atlas-chipfig'));
+  assert.equal(el.querySelectorAll('.atlas-rg').length, 0);
+});
+
+test('2.6: a possible misprint is one line that opens; print shows it in full', () => {
+  const { R, T } = env();
+  const x = { id: 'e', target: 'a', as_printed: '660', proposed: '640', explanation_ru: 'Пояснение', origin: 'core' };
+  const el = R.renderPage(T, page({ items: [{ id: 'a', type: 'block', kind: 'prose', y: 10, he: 'א', ru: 'A' }], errata: [x] }));
+  const d = el.querySelector('details.atlas-erratum');
+  assert.ok(d && !d.hasAttribute('open'));
+  assert.match(d.querySelector('summary').textContent, /660.*640/);
+  const print = R.renderPrint(T, section([page({ items: [{ id: 'a', type: 'block', kind: 'prose', y: 10, he: 'א', ru: 'A' }], errata: [x] })]));
+  assert.ok(print.querySelector('div.atlas-erratum'));
+});
+
+test('the audit script checks every page of the book against the quality standard', () => {
+  const src = read('scripts/atlas/audit-reader.cjs');
+  assert.match(src, /ENGINEERING_ATLAS_QUALITY_STANDARD\.md/);
+  ['1.7', '4.3', '4.4', '4.5', '6.2', '3.2'].forEach((rule) => assert.ok(src.includes("'" + rule + "'"), 'rule ' + rule));
+  assert.ok(fs.existsSync(path.join(root, 'docs/planning/ENGINEERING_ATLAS_QUALITY_STANDARD.md')));
 });

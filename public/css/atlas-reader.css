@@ -165,8 +165,14 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-hebrew-only .atlas-row > .atlas-ru, .atlas-root .atlas-hebrew-only .atlas-row > .atlas-tr { display: none; }
 .atlas-root .atlas-l-he { display: none; }
 .atlas-root .atlas-hebrew-only .atlas-l-ru, .atlas-root .atlas-hebrew-only .atlas-note, .atlas-root .atlas-hebrew-only .atlas-why,
-.atlas-root .atlas-hebrew-only .atlas-erratum > b, .atlas-root .atlas-hebrew-only .atlas-erratum > small { display: none; }
+.atlas-root .atlas-hebrew-only .atlas-erratum > b, .atlas-root .atlas-hebrew-only .atlas-erratum summary > b, .atlas-root .atlas-hebrew-only .atlas-erratum > small { display: none; }
 .atlas-root .atlas-hebrew-only .atlas-l-he { display: inline; }
+/* a bilingual book: a table cell shows the book's Hebrew above its translation (audit 2026-10-31, p17) —
+   unless the reader turned both Hebrew columns off */
+.atlas-root .atlas-table td .atlas-l-he { display: block; font-size: .92em; color: var(--atlas-muted); line-height: 1.35; }
+.atlas-root .atlas-table td .atlas-l-he + .atlas-l-ru, .atlas-root .atlas-table td .atlas-l-ru + .atlas-l-he { margin-top: 2px; }
+.atlas-root .atlas-hide-he.atlas-hide-niqqud .atlas-table td .atlas-l-he { display: none; }
+.atlas-root .atlas-hebrew-only .atlas-table td .atlas-l-he { color: var(--atlas-ink); font-size: 1em; }
 
 /* margin marks of the book (👍 / 👎 / ❗) wrap the text they belong to */
 .atlas-root .atlas-mark-group { margin: 12px 0 8px; padding: 2px 0 2px 12px; border-inline-start: 4px solid var(--mark-c, var(--atlas-amber));
@@ -174,14 +180,18 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 [dir="rtl"] .atlas-root .atlas-mark-group, .atlas-root[dir="rtl"] .atlas-mark-group { background: linear-gradient(to left, var(--mark-bg, var(--atlas-note-bg)), transparent 70%); }
 .atlas-root .atlas-mark-group[data-mark="pro"] { --mark-c: var(--atlas-ok); --mark-bg: var(--atlas-ok-soft); }
 .atlas-root .atlas-mark-group[data-mark="con"] { --mark-c: var(--atlas-oxide); --mark-bg: var(--atlas-oxide-soft); }
-.atlas-root .atlas-mark-group[data-mark="attn"] { --mark-c: var(--atlas-amber); --mark-bg: var(--atlas-note-bg); }
+.atlas-root .atlas-mark-group[data-mark="attn"] { --mark-c: var(--atlas-amber); --mark-bg: var(--atlas-note-bg); --mark-ink: var(--atlas-note-ink); }
+/* 🎯 the goal of a calculation and a tolerance sign (⌖ ∥ ⊥ …) */
+.atlas-root .atlas-mark-group[data-mark="goal"], .atlas-root .atlas-mark-group[data-mark="sym"] { --mark-c: var(--atlas-teal); --mark-bg: var(--atlas-teal-soft); --mark-ink: var(--atlas-teal-ink); }
+.atlas-root .atlas-mark-one[data-mark="sym"] .atlas-mark-emoji { font-size: 1.35rem; min-width: 1.6em; text-align: center; padding: 2px 4px;
+  border: 1.5px solid currentColor; border-radius: 4px; font-family: "Segoe UI Symbol", "Cambria Math", "Noto Sans Symbols 2", "DejaVu Sans", sans-serif; }
 .atlas-root .atlas-mark-group > .atlas-row { margin-inline: 0; }
 .atlas-root .atlas-mark-group > .atlas-row:last-child { border-bottom: 0; }
-.atlas-root .atlas-mark-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 6px 0 2px; font-weight: 700; color: var(--mark-c, var(--atlas-ink)); }
+.atlas-root .atlas-mark-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 6px 0 2px; font-weight: 700; color: var(--mark-ink, var(--mark-c, var(--atlas-ink))); }
 .atlas-root .atlas-mark-emoji { font-size: 1.25rem; line-height: 1; align-self: center; }
 .atlas-root .atlas-mark-head bdi { font-weight: 600; opacity: .9; }
 .atlas-root .atlas-mark-one { display: inline-flex; align-items: baseline; gap: 4px 10px; }
-.atlas-root .atlas-mark-group[data-mark="mixed"] { --mark-c: var(--atlas-amber); --mark-bg: var(--atlas-note-bg); }
+.atlas-root .atlas-mark-group[data-mark="mixed"] { --mark-c: var(--atlas-amber); --mark-bg: var(--atlas-note-bg); --mark-ink: var(--atlas-note-ink); }
 .atlas-root .atlas-mark-group[data-mark="mixed"] .atlas-mark-one[data-mark="pro"] { color: var(--atlas-ok); }
 .atlas-root .atlas-mark-group[data-mark="mixed"] .atlas-mark-one[data-mark="con"] { color: var(--atlas-oxide); }
 
@@ -204,6 +214,11 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 
 /* ---- figures: the crop is a white scan; region marks keep scan colours in every theme ---- */
 .atlas-root .atlas-fig { margin: 14px 0; }
+/* a tiny picture (marking 8.8, tolerance ±0.05, support sign) sits small beside its label, no pin over it */
+.atlas-root .atlas-chipfig { display: inline-flex; align-items: center; gap: 8px; margin: 6px 12px 6px 0; padding: 4px 10px 4px 4px;
+  border: 1px solid var(--atlas-line); border-radius: 10px; background: var(--atlas-surface); vertical-align: middle; }
+.atlas-root .atlas-chipfig img { width: 40px; height: 40px; object-fit: contain; background: #fff; border-radius: 6px; }
+.atlas-root .atlas-chipfig figcaption { margin: 0; font-size: .9rem; color: var(--atlas-ink); }
 .atlas-root .atlas-figbox { position: relative; display: inline-block; max-width: 100%; background: #fff; border-radius: 6px; box-shadow: 0 0 0 1px var(--atlas-line); }
 .atlas-root .atlas-figbox img { display: block; max-width: 100%; border-radius: 6px; }
 .atlas-root .atlas-rg { position: absolute; border: 1.5px solid var(--atlas-scan-mark); border-radius: 3px; background: transparent; padding: 0; cursor: pointer; min-height: 0; color: var(--atlas-scan-mark); }
@@ -226,6 +241,9 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-regions li.atlas-hl .atlas-mark { background: var(--atlas-teal); color: var(--atlas-on-teal); }
 
 /* ---- tables ---- */
+.atlas-root .atlas-tablerun { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.atlas-root .atlas-tablerun > .atlas-tablewrap { flex: 0 1 auto; margin: 0; }
+.atlas-root .atlas-tablerun .atlas-table { min-width: 0; }
 .atlas-root .atlas-tablewrap { max-width: 100%; overflow-x: auto; margin: 10px 0; border-radius: 10px; border: 1px solid var(--atlas-line); }
 .atlas-root .atlas-table { border-collapse: collapse; font-size: .88rem; color: var(--atlas-ink); background: var(--atlas-surface); min-width: 100%; }
 .atlas-root .atlas-table td { border: 1px solid var(--atlas-line); padding: 6px 8px; text-align: center; color: var(--atlas-ink); }
@@ -239,6 +257,9 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-erratum { border-inline-start: 3px solid var(--atlas-amber); background: var(--atlas-note-bg); color: var(--atlas-note-ink);
   padding: 8px 12px; margin: 8px 0; font-size: .9rem; border-radius: 0 8px 8px 0; }
 .atlas-root .atlas-erratum code { overflow-wrap: anywhere; color: inherit; }
+.atlas-root details.atlas-erratum > summary { cursor: pointer; list-style-position: outside; margin-inline-start: 14px; }
+.atlas-root details.atlas-erratum[open] > summary { margin-bottom: 4px; }
+.atlas-root .atlas-step-why > summary { cursor: pointer; color: var(--atlas-muted); font-size: .85rem; }
 .atlas-root .atlas-erratum .atlas-muted { color: inherit; opacity: .8; }
 .atlas-root .atlas-why { color: inherit; opacity: .9; margin-top: 3px; overflow-wrap: anywhere; }
 .atlas-root .atlas-example h4 { margin: 14px 0 4px; color: var(--atlas-teal-ink); }
