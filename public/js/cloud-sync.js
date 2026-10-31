@@ -29,6 +29,7 @@
   // batch committed after the read — found live on the owner's iPhone). The old "down_cursor"
   // key is simply abandoned: an empty rid cursor restarts from 0, INSERT OR IGNORE dedupes.
   var UP_CURSOR = "up_cursor", DOWN_CURSOR = "down_cursor_rid", CUTOVER_OK = "cutover_ok", LAST_SYNC = "last_sync_at", ALIAS_REPULL = "alias_repull_v1";
+  var DOWN_RECONCILED = "artifact_down_reconciled_v1";   // key → server updated_at already folded into a local corpus copy
   var BATCH_UP = 400, BATCH_DOWN = 500;
   // Negative batch results used to be cached under the same deterministic key.
   // Version the envelope so a repaired server contract can revalidate the same
@@ -475,10 +476,24 @@
     }
     if (slim && !migrated && !out.failed.length) { try { await ldb.setSyncState("slim_migrated", "1"); } catch (_) {} }
     // DOWN: missing or server-newer texts
+    // Perf 2026-10-31: a server artifact whose key exists locally only as a CORPUS copy (excluded
+    // from `local` above) imported as mode:'skip' on every sync — 35 GET + import per open on the
+    // owner profile. The server version already reconciled into that local copy is remembered and
+    // not refetched while the copy exists; a new server version or a vanished copy fetches again.
+    var reconciled = {}, reconciledDirty = false, presentKeys = null;
+    try { reconciled = JSON.parse((await ldb.getSyncState(DOWN_RECONCILED)) || "{}") || {}; } catch (_) { reconciled = {}; }
+    try {
+      if (typeof ldb.dbQuery === "function") {
+        presentKeys = new Set(((await ldb.dbQuery("SELECT text_key FROM texts WHERE text_key IS NOT NULL", [])) || [])
+          .map(function (r) { return String(r.text_key); }));
+      }
+    } catch (_) { presentKeys = null; }
     for (const entry of server) {
       var key = entry[0], srvUpdated = entry[1];
       var loc = localByKey.get(key);
       if (loc && Date.parse(loc.updated_at) >= Date.parse(srvUpdated)) continue;
+      var presentAsCorpus = !loc && !!presentKeys && presentKeys.has(key);
+      if (presentAsCorpus && reconciled[key] === srvUpdated) continue;
       var got = await jfetch("GET", "/api/learner/artifacts/get?key=" + encodeURIComponent(key));
       if (got.status !== 200 || !got.json || !got.json.ok) continue;   // per-text best-effort down
       try {
@@ -488,9 +503,17 @@
         // occurrences; закладки/occurrences восстанавливаются из самого slim-бандла.
         var imp = await ldb.importBundle(got.json.payload, { mode: loc ? "replace" : "skip" });
         if (imp && imp.imported >= 1) { if (loc) out.updated++; else out.downloaded++; }
+        else if (presentAsCorpus && imp && imp.skipped >= 1) { reconciled[key] = srvUpdated; reconciledDirty = true; }
       } catch (e3) {
         try { console.warn("[cloud-sync] artifact DOWN import failed:", key, e3 && e3.message); } catch (_) {}
       }
+    }
+    if (reconciledDirty) {
+      try {
+        var keep = {};
+        server.forEach(function (_v, k) { if (reconciled[k]) keep[k] = reconciled[k]; });
+        await ldb.setSyncState(DOWN_RECONCILED, JSON.stringify(keep));
+      } catch (_) {}
     }
     // state_bundle — ПОСЛЕ текстов (§1.3: якоря state-occurrences резолвятся по text_key
     // уже-импортированных текстов). forceDown после LWW-replace: replace снёс occurrences
@@ -657,7 +680,7 @@
     var artifacts = null;
     try { artifacts = await syncArtifacts(ldb, session, { auto: !!(opts && opts.auto) }); } catch (e) { artifacts = { ok: false, error: String(e && e.message || e) }; }
     try { await ldb.setSyncState(LAST_SYNC, new Date().toISOString()); } catch (_) {}
-    return { ok: true, up: up.totals, down: { pulled: down.pulled }, healed: healed,
+    return { ok: true, up: up.totals, down: { pulled: down.pulled, lwwApplied: down.lwwApplied || 0 }, healed: healed,
              artifacts: artifacts, counts: { local: localN, cloud: serverN }, user: session.user };
   }
   // Permanent reconciliation (§4.3): after a full two-way sync the local log and the server log

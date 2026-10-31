@@ -2497,7 +2497,21 @@ async function _allSurfaceStudyDays() {
   _asdCache = { at: Date.now(), rows };
   return rows;
 }
-async function refreshDueBadge() {
+// Boot fires refreshDueBadge from several places at once (hub, cloud sync, sync completion); each run
+// is a word-state + schedule + study-day read on the single DB worker. Concurrent callers share the
+// in-flight run; a call arriving mid-run gets exactly one follow-up run, so it still sees fresh truth.
+let _dueRefreshInFlight = null, _dueRefreshQueued = null;
+function refreshDueBadge() {
+  if (!_dueRefreshInFlight) {
+    _dueRefreshInFlight = _refreshDueBadgeNow().finally(() => { _dueRefreshInFlight = null; });
+    return _dueRefreshInFlight;
+  }
+  if (!_dueRefreshQueued) {
+    _dueRefreshQueued = _dueRefreshInFlight.catch(() => {}).then(() => { _dueRefreshQueued = null; return refreshDueBadge(); });
+  }
+  return _dueRefreshQueued;
+}
+async function _refreshDueBadgeNow() {
   if (!window.ReaderMorph || typeof window.ReaderMorph.dueCounts !== 'function') return;
   // A controlled PWA can briefly pair a new Room module with the previous
   // MorphHost while the replacement service worker activates. Treat the
@@ -5398,6 +5412,17 @@ async function _cloudRender() {
   } catch (_) {}
   if (els.info) els.info.innerHTML = lines.join('<br>');
 }
+// True when a sync result may have changed local learner truth: new or LWW-applied log rows, a
+// reconcile heal, texts pulled/replaced/deleted, or a downloaded/merged state bundle. Unknown
+// shapes count as changed (an older cloud-sync.js must keep the conservative full refresh).
+function cloudSyncChangedLocalTruth(res) {
+  if (!res || !res.ok) return true;
+  const down = res.down || {}, a = res.artifacts || {}, state = a.state || {};
+  if (!('lwwApplied' in down)) return true;
+  if (res.healed || Number(down.pulled) > 0 || Number(down.lwwApplied) > 0) return true;
+  if (Number(a.downloaded) > 0 || Number(a.updated) > 0 || Number(a.tombstoned) > 0) return true;
+  return state.action === 'downloaded' || state.action === 'merged';
+}
 async function _cloudRunSync(auto) {
   const CS = window.CloudSync; if (!CS) return;
   const els = _cloudEls();
@@ -5435,7 +5460,10 @@ async function _cloudRunSync(auto) {
       }
     }
     _cloudStatus(line, artErr ? 'err' : 'ok');
-    // fresh foreign rows may recolour words / move the due ring — repaint like §4.3 demands
+    // fresh foreign rows may recolour words / move the due ring — repaint like §4.3 demands.
+    // Perf 2026-10-31: an auto run that brought nothing down leaves local learner truth as it
+    // was, so the full familiarity rebuild (seconds on a large profile) is skipped for it.
+    if (auto && !cloudSyncChangedLocalTruth(res)) { try { await _cloudRender(); } catch (_) {} return res; }
     morphHost.invalidateWordStates();
     _compassPage.clear(); _groupLearningIndexes.clear(); _benFamiliarityScores = null; _benFamiliarityLoading = null;
     try { await ensureLearningCompassProjection(true); } catch (_) {}
@@ -5759,7 +5787,9 @@ try {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') roomCloudMaybeResync(true);
   });
-  window.addEventListener('pageshow', () => roomCloudMaybeResync(true));
+  // Only a back/forward-cache restore: the initial pageshow coincides with the boot sync and
+  // forced a second full sync right behind it on every open.
+  window.addEventListener('pageshow', (event) => { if (event.persisted) roomCloudMaybeResync(true); });
   window.addEventListener('online', () => roomCloudMaybeResync(true));
   window.addEventListener('focus', () => roomCloudMaybeResync());
 } catch (_) {}
@@ -13741,6 +13771,13 @@ function learningHomeFeature(continueRow, nextPicks) {
     return feature;
   }
 
+  if (nextPicks === LEARNING_HOME_PICKS_PENDING) {
+    feature.setAttribute('data-feature-kind', 'pending');
+    feature.setAttribute('aria-busy', 'true');
+    feature.appendChild(el('div', { class: 'room-skeleton-block room-skeleton-feature', attrs: { 'aria-hidden': 'true' } }));
+    return feature;
+  }
+
   const pick = nextPicks && Array.isArray(nextPicks.picks) ? nextPicks.picks[0] : null;
   if (pick && pick.card) {
     feature.setAttribute('data-feature-kind', nextPicks.kind === 'coldstart' ? 'start' : 'recommended');
@@ -14036,29 +14073,22 @@ async function renderCorpusHub(token) {
   const loading = roomSkeletonNode('room.home.loading');
   loading.classList.add('learning-home-loading');
   main.appendChild(loading);
-  const [continueRow, nextPicks, ownCount, journeySummary] = await Promise.all([
+  // Perf 2026-10-31: the recommendation (buildNextTextPicks, 2–4 s on a large profile) and the
+  // due count (refreshDueBadge, ~2 s) no longer gate the whole home. The fast local projections
+  // paint it; the feature, the ready shelf order and «Сегодня» are filled in when they settle.
+  const picksLoad = buildNextTextPicks().catch(() => ({ error: 'data' }));
+  const dueLoad = refreshDueBadge().catch(() => null);
+  const [continueRow, ownCount, journeySummary] = await Promise.all([
     getLearningHomeContinue(),
-    buildNextTextPicks(),
     getLearningHomeOwnCount(),
     typeof localDb.getReadingJourneySummary === 'function'
       ? localDb.getReadingJourneySummary(readingJourneyAuthorizedGroupIds()).catch(() => ({ bookmarks: 0, finished: 0, notes: 0 }))
       : Promise.resolve({ bookmarks: 0, finished: 0, notes: 0 }),
-    refreshDueBadge().catch(() => null),
   ]);
   if (token !== corpusRenderToken) return;
   const ready = ((corpusIndex && corpusIndex.ready) || []).slice();
-  const featuredId = nextPicks && nextPicks.picks && nextPicks.picks[0] && nextPicks.picks[0].card
-    ? String(nextPicks.picks[0].card.id) : '';
-  const ordered = [], seen = new Set();
-  for (const pick of ((nextPicks && nextPicks.picks) || [])) {
-    if (!pick || !pick.card || String(pick.card.id) === featuredId) continue;
-    const id = String(pick.card.id); if (!seen.has(id)) { seen.add(id); ordered.push(pick.card); }
-  }
-  for (const card of ready) {
-    const id = String(card.id); if (id === featuredId || seen.has(id)) continue;
-    seen.add(id); ordered.push(card);
-  }
-  const readyCards = ordered.slice(0, 4);
+  const nextPicks = LEARNING_HOME_PICKS_PENDING;
+  const readyCards = learningHomeReadyCards(ready, null, learningHomeCachedPickOrder());
   const wrap = el('div', { class: 'corpus-nav learning-home' });
   const intro = el('header', { class: 'learning-home-intro' });
   // R8 (audit P2-12): «Ваше чтение / Продолжим с нужного места» only when there is a place to continue.
@@ -14077,18 +14107,8 @@ async function renderCorpusHub(token) {
   lead.appendChild(learningHomeToday(ready));
   wrap.appendChild(lead);
 
-  if (readyCards.length) {
-    const shelf = el('section', { class: 'learning-home-ready', attrs: { 'aria-labelledby': 'learningHomeReadyTitle' } });
-    const head = el('div', { class: 'learning-home-section-head' });
-    const title = el('h2', { class: 'learning-home-section-title', text: tt('room.home.readyTitle', 'Готово к чтению') });
-    title.id = 'learningHomeReadyTitle'; head.appendChild(title);
-    const all = el('button', { class: 'learning-home-all', attrs: { type: 'button' }, text: tt('room.home.allReady', 'Все готовые') + ' ' + learningHomeForwardArrow() });
-    all.addEventListener('click', () => { corpusFilter.readyOnly = true; corpusL1Sort = 'ready'; corpusNavToCorpus('benyehuda'); });
-    head.appendChild(all); shelf.appendChild(head);
-    const list = el('div', { class: 'learning-home-ready-list' });
-    for (const card of readyCards) list.appendChild(renderCorpusWorkRow(card, true, { compact: true, showAuthor: true, materialKind: 'ready' }));
-    shelf.appendChild(list); wrap.appendChild(shelf);
-  }
+  const readyShelf = learningHomeReadyShelf(readyCards);
+  if (readyShelf) wrap.appendChild(readyShelf);
 
   // Keep the first study-ready shelf in the first mobile viewport. Reading
   // history and named lists remain one section away, but must not displace the
@@ -14138,6 +14158,99 @@ async function renderCorpusHub(token) {
   if (externalLibraryDirty) showExternalLibraryChanges();
   _paintDueCTA();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  const stillHome = () => token === corpusRenderToken && wrap.isConnected;
+  dueLoad.then(() => {
+    if (!stillHome()) return;
+    const today = wrap.querySelector('.learning-home-today');
+    if (today) learningHomeSwap(today, learningHomeToday(ready));
+    _paintDueCTA();
+  });
+  // Not awaited: boot (history commit, deep links, cloud sync) continues after the first paint.
+  picksLoad.then((picks) => paintLearningHomePicks(wrap, stillHome, picks, continueRow, ready, readyCards));
+}
+
+function paintLearningHomePicks(wrap, stillHome, picks, continueRow, ready, readyCards) {
+  if (!stillHome()) return;
+  learningHomeRememberPickOrder(picks);
+  if (!continueRow) {
+    const feature = wrap.querySelector('.learning-home-feature');
+    if (feature) learningHomeSwap(feature, learningHomeFeature(null, picks));
+  }
+  const freshCards = learningHomeReadyCards(ready, picks, null);
+  const sameOrder = freshCards.length === readyCards.length && freshCards.every((card, i) => String(card.id) === String(readyCards[i].id));
+  if (!sameOrder) {
+    const fresh = learningHomeReadyShelf(freshCards);
+    const current = wrap.querySelector('.learning-home-ready');
+    if (current && fresh) learningHomeSwap(current, fresh);
+    else if (current) current.remove();
+    else if (fresh) wrap.querySelector('.learning-home-lead')?.after(fresh);
+  }
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// Placeholder for a recommendation that is still being computed: a reserved, busy feature slot
+// (never the «персональная оценка не рассчитана» browse claim, which would be false while pending).
+const LEARNING_HOME_PICKS_PENDING = Object.freeze({ pending: true });
+const LEARNING_HOME_PICK_ORDER_KEY = 'room.home.pickOrder.v1';
+
+// Ready-shelf order only (catalog ids, no familiarity numbers): lets a reload paint the shelf in the
+// last computed order so the fresh result usually lands without a visible reshuffle.
+function learningHomeCachedPickOrder() {
+  try {
+    const value = JSON.parse(localStorage.getItem(LEARNING_HOME_PICK_ORDER_KEY) || 'null');
+    return value && Array.isArray(value.ids) ? value.ids.map(String) : null;
+  } catch (_) { return null; }
+}
+function learningHomeRememberPickOrder(picks) {
+  try {
+    const ids = ((picks && picks.picks) || []).map((pick) => pick && pick.card && String(pick.card.id)).filter(Boolean);
+    if (ids.length) localStorage.setItem(LEARNING_HOME_PICK_ORDER_KEY, JSON.stringify({ ids }));
+    else localStorage.removeItem(LEARNING_HOME_PICK_ORDER_KEY);
+  } catch (_) {}
+}
+
+// The first pick is the feature; the shelf shows the remaining picks, then the catalog order.
+// With picks still pending, the cached order stands in (its first id stays the feature's).
+function learningHomeReadyCards(ready, nextPicks, cachedOrder) {
+  const byId = new Map((ready || []).map((card) => [String(card.id), card]));
+  const pickCards = nextPicks && Array.isArray(nextPicks.picks)
+    ? nextPicks.picks.map((pick) => pick && pick.card).filter(Boolean)
+    : (cachedOrder || []).map((id) => byId.get(String(id))).filter(Boolean);
+  const featuredId = pickCards.length ? String(pickCards[0].id) : '';
+  const ordered = [], seen = new Set([featuredId]);
+  for (const card of pickCards.concat(ready || [])) {
+    const id = String(card.id); if (seen.has(id)) continue;
+    seen.add(id); ordered.push(card);
+  }
+  return ordered.slice(0, 4);
+}
+
+function learningHomeReadyShelf(readyCards) {
+  if (!readyCards.length) return null;
+  const shelf = el('section', { class: 'learning-home-ready', attrs: { 'aria-labelledby': 'learningHomeReadyTitle' } });
+  const head = el('div', { class: 'learning-home-section-head' });
+  const title = el('h2', { class: 'learning-home-section-title', text: tt('room.home.readyTitle', 'Готово к чтению') });
+  title.id = 'learningHomeReadyTitle'; head.appendChild(title);
+  const all = el('button', { class: 'learning-home-all', attrs: { type: 'button' }, text: tt('room.home.allReady', 'Все готовые') + ' ' + learningHomeForwardArrow() });
+  all.addEventListener('click', () => { corpusFilter.readyOnly = true; corpusL1Sort = 'ready'; corpusNavToCorpus('benyehuda'); });
+  head.appendChild(all); shelf.appendChild(head);
+  const list = el('div', { class: 'learning-home-ready-list' });
+  for (const card of readyCards) list.appendChild(renderCorpusWorkRow(card, true, { compact: true, showAuthor: true, materialKind: 'ready' }));
+  shelf.appendChild(list);
+  return shelf;
+}
+
+// Late fill-in must not steal or drop keyboard focus: a focused control keeps focus on its
+// counterpart (same data-focus-key) in the replacement, else on the replacement itself.
+function learningHomeSwap(current, next) {
+  if (!current || !next || !current.isConnected) return;
+  const active = document.activeElement;
+  const hadFocus = !!(active && current.contains(active));
+  const focusKey = hadFocus && active.getAttribute ? active.getAttribute('data-focus-key') : '';
+  current.replaceWith(next);
+  if (!hadFocus) return;
+  const target = (focusKey && next.querySelector(`[data-focus-key="${focusKey}"]`)) || next.querySelector('a, button');
+  try { target && target.focus({ preventScroll: true }); } catch (_) {}
 }
 // «Мои тексты» as a FULL corpus (LocalDb-backed): identity header + native facets (level / tags /
 // sort) + client search + vertical grid. One listTexts query; facets computed in memory.
