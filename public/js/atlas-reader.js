@@ -141,7 +141,8 @@
     }
 
     function loneSymbol(item) {
-      var t = String(item.latex || item.source_text || '').replace(/\s|\\[,;!]|\\quad/g, '');
+      var t = String(item.latex || item.source_text || '').replace(/\s|\\[,;!]|\\quad/g, '')
+        .replace(/^\\mathrm\{([^{}]*)\}$/, '$1').replace(/^\\mathrm([A-Za-z])$/, '$1');   // «\mathrm N», p386
       if (!t || t.length > 14) return false;
       if (/[=<>+\-*/·×−≅≈≤≥]|\\(frac|sqrt|le|ge|leq|geq|cdot|times|pm|cong|approx|lt|gt)(?![a-z])|\d/.test(t)) return false;
       return /^\\?[A-Za-z]+(_\{?[A-Za-z0-9,]+\}?)?(\^\{?[A-Za-z0-9]+\}?)?$/.test(t);
@@ -175,7 +176,7 @@
     // Page order as in the book: marks wrap their text, figures stand where they are printed (just above their
     // own caption line when there is one), tables follow the text (they carry no position).
     function layoutPage(page) {
-      var items = page.items || [];
+      var items = (page.items || []).slice();   // a copy: layout may join split lines without touching the data
       var marks = [], figures = [];
       (page.figures || []).forEach(function (f) {
         var m = markOf(f);
@@ -214,9 +215,19 @@
         if (it.type === 'formula' && tableFragment(it, page)) { dup[i] = true; return; }
         if (it.type !== 'formula' && flattenedTable(it, page)) { dup[i] = true; return; }
         // a bullet or punctuation mark alone on a line («•», p179)
-        if (it.type !== 'formula' && !/[0-9A-Za-zא-תА-Яа-яα-ω]/.test((it.he || it.he_raw || '') + (it.ru || ''))) { dup[i] = true; return; }
+        if (it.type !== 'formula' && !/[0-9A-Za-zא-תА-Яа-яα-ω]/.test((it.he || it.he_raw || '') + (it.ru || ''))) {
+          dup[i] = true;
+          // a closing «)» split off its heading («Плоскостность (Flatness» + «)», p493–497) goes back to it
+          var pv = items[i - 1];
+          if (/^\s*\)\s*$/.test(it.he || '') && pv && pv.type !== 'formula' && /\([^)]*$/.test(pv.ru || '')) {
+            items[i - 1] = Object.assign({}, pv, { he: (pv.he || '') + ')', ru: pv.ru + ')',
+              he_niqqud: pv.he_niqqud ? pv.he_niqqud + ')' : pv.he_niqqud, translit: pv.translit ? pv.translit + ')' : pv.translit,
+              translit_ru: pv.translit_ru ? pv.translit_ru + ')' : pv.translit_ru });
+          }
+          return;
+        }
         // a stray letter left by the extraction («t», p28): one or two Latin/Greek letters, translation the same
-        if (it.type !== 'formula' && /^[A-Za-zα-ωΑ-Ω]{1,2}$/.test(plain(it.he || it.he_raw)) && plain(it.ru) === plain(it.he || it.he_raw)) { dup[i] = true; return; }
+        if (it.type !== 'formula' && /^[(\[]?[A-Za-zα-ωΑ-Ω]{1,2}[)\]]?$/.test(plain(it.he || it.he_raw)) && plain(it.ru) === plain(it.he || it.he_raw)) { dup[i] = true; return; }   // also «(G», p450
         // a lone symbol as a «formula» («r_i», «F_i», «\mu»): no operator, no value — nothing to learn from it
         if (it.type === 'formula' && loneSymbol(it)) { dup[i] = true; return; }
         // a lone footnote mark «²⁶» (superscript digits only: a plain «1» is an example number)
@@ -299,7 +310,15 @@
       var cont = /^\s*(=|\\approx|\\cong)/.test(String(item.latex || item.source_text || ''));
       var card = h('div', { cls: 'atlas-formula' + (cont ? ' atlas-cont' : ''), 'data-ref': item.id });
       if (item.mathml) card.appendChild(h('div', { cls: 'atlas-math', html: item.mathml }));
-      else if (item.latex) card.appendChild(h('code', { cls: 'atlas-latex', text: item.latex }));
+      // no MathML (the build could not typeset it, p332/p357): readable symbols line by line, never raw LaTeX
+      else if (item.latex) {
+        var box = h('div', { cls: 'atlas-math atlas-math-plain' });
+        String(item.latex).replace(/\\(begin|end)\{[a-z*]+\}(\{[^}]*\})?/g, '').split(/\\\\/).forEach(function (line) {
+          line = line.replace(/&/g, ' ').trim();
+          if (line) box.appendChild(h('div', {}, texNodes(line)));
+        });
+        card.appendChild(box);
+      }
       else if (item.source_text) card.appendChild(h('code', { cls: 'atlas-latex', text: item.source_text }));
       if (item.vars && item.vars.length) {
         var table = h('table', { cls: 'atlas-vars' });
@@ -335,7 +354,9 @@
       // bracketed remarks: «(редакционное описание)», «(так напечатано)», «[печатная подпись среднего рисунка]»
       t = t.replace(/\s*[(\[][^()\[\]]*(?:редакц|редактор|подпис|напечат|печатн|пиктограмм|графический знач)[^()\[\]]*[)\]]/gi, '');
       // a trailing remark after a comma or dash: «Прямой угол — редакционное описание…», «D — ведомый шкив, верхняя подпись»
-      t = t.replace(/\s*[,—–]\s*(?:редакц|редактор|повторн\S* внутренн|верхн\S* подпис|текстов\S* мет|несмотря на печатн|печатн)[^;.]*/gi, '');
+      // a label about a scan artefact (p425–426: «обрезанный штрих… уверенно читаемого текста нет»)
+      if (/читаемого текста нет|обрезанн\S* (?:\S+ )?(?:штрих|след|фрагмент)/i.test(t)) return '';
+      t = t.replace(/\s*[,—–]\s*(?:нечётк|неясн|редакц|редактор|повторн\S* внутренн|верхн\S* подпис|текстов\S* мет|несмотря на печатн|печатн)[^;.]*/gi, '');
       // remark clauses and sentences
       // (separators are kept, so sentence splitting of notes downstream still works)
       var REMARK = /редакционн|редакторск|текстов\S* мет\S*|подпис\S* внутри схемы|печатн\S* (?:текстов\S* )?подпис|ошибочно называ|подпись ошибочна|не печатн|печатный индекс|не заменён|как напечатано|так напечатано|подписи нет|единица отклонений не напечатана|повторная внутренняя подпись|верхняя подпись/i;
@@ -353,7 +374,7 @@
     // supplier's own work («восстановлено по изображению», «напечатанное сохранено», «предлагаемое исправление»).
     // Sentence by sentence: the help stays under the formula, the report goes to «Заметки редактора»
     // (audit 2026-10-31: 689 formula notes).
-    var PROC = /сохран|восстановл|по изображени|извлеч|extraction|sourceID|bbox|PNG|исправлени|кандидат|заметк|вход вычислени|не подмен|буквальн|подстановк|пересчит|пересчёт|ядр|compute|редакц|фрагмент|обрез|(?:формул[аеы]|текст[аеу]?|строк[аеи]) выше|\b\d{3}f\d{2}\b|numerator|единицы по легенде|печатная зависимость|отождеств|не тождеств|тождествен|исходн|ячейк|\b[Bb]\d{3}\b|convention|столбец обозначений/i;
+    var PROC = /сохран|восстановл|по изображени|извлеч|extraction|sourceID|bbox|PNG|исправлени|кандидат|заметк|вход вычислени|не подмен|буквальн|подстановк|пересчит|пересчёт|ядр|compute|редакц|фрагмент|обрез|(?:формул[аеы]|текст[аеу]?|строк[аеи]) выше|\b\d{3}f\d{2}\b|numerator|числового примера здесь нет|печатн\S* равенств|печатн\S* строк|печатн\S* итог|отдельно напечатанн|арифметически верн|равенство номиналов|ambiguity_note|не обоснован|не является исправленным|единицы по легенде|печатная зависимость|отождеств|не тождеств|тождествен|исходн|ячейк|\b[Bb]\d{3}\b|convention|столбец обозначений/i;
     function noteParts(text) {
       var t = cleanMeta(text);
       if (!t) return { reader: '', editor: '' };
@@ -696,6 +717,12 @@
         (errataByTarget[ex.id] || []).forEach(function (x) { shown[x.id] = true; main.appendChild(renderErratum(T, x)); });
       });
       (page.errata || []).forEach(function (x) { if (!shown[x.id]) main.appendChild(renderErratum(T, x)); });
+      // the same note under every formula of a page («H:kW, моменты: N·mm…», p305–307) is shown once
+      var seenNote = {};
+      main.querySelectorAll('.atlas-formula > .atlas-note').forEach(function (n) {
+        var k = n.textContent.trim();
+        if (seenNote[k]) n.remove(); else seenNote[k] = true;
+      });
       // narrow tables printed side by side in the book (p137: six «e | k» pairs) stand side by side here too
       var kids = Array.prototype.slice.call(main.children), run = [];
       function narrow(n) {

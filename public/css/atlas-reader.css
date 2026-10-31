@@ -208,6 +208,7 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-formula + .atlas-formula.atlas-cont { margin-top: -13px; border-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; padding-top: 2px; }
 .atlas-root .atlas-formula:has(+ .atlas-formula.atlas-cont) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .atlas-root .atlas-math math { font-size: 1.15rem; color: inherit; }
+.atlas-root .atlas-math-plain { text-align: center; font: 1.1rem "Cambria Math", "STIX Two Math", serif; line-height: 1.7; }
 .atlas-root .atlas-latex { color: var(--atlas-ink); }
 .atlas-root .atlas-vars { width: 100%; border-collapse: collapse; font-size: .9rem; margin-top: 8px; }
 .atlas-root .atlas-vars td { border-top: 1px solid var(--atlas-teal-tint); padding: 4px 6px; vertical-align: top; color: var(--atlas-ink); }

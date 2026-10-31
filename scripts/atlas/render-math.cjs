@@ -9,7 +9,8 @@ const formulas = JSON.parse(fs.readFileSync(input, 'utf8'));
 const out = {};
 for (const [key, latex] of Object.entries(formulas)) {
   try {
-    const html = katex.renderToString(String(latex), { output: 'mathml', displayMode: !key.startsWith('inline:'), throwOnError: true, strict: 'ignore' });
+    // «\\[\tau]» reads as a row break with a length «\\[2pt]»: a space after the break keeps the bracket a bracket
+    const html = katex.renderToString(String(latex).replace(/\\\\\[/g, '\\\\ ['), { output: 'mathml', displayMode: !key.startsWith('inline:'), throwOnError: true, strict: 'ignore' });
     // KaTeX wraps MathML in <span class="katex">; the reader needs only the <math> element.
     const math = html.slice(html.indexOf('<math'), html.lastIndexOf('</math>') + '</math>'.length);
     out[key] = { mathml: math, error: null };
