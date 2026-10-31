@@ -107,7 +107,17 @@
     // line only repeats it; a reader cannot use 200 numbers in a row.
     function flattenedTable(item, page) {
       if (!(page.tables || []).length) return false;
-      var words = plain(item.he || item.he_raw).split(' ').filter(Boolean);
+      // a line made only of the table's own cells, «;»-separated (p11: «סמך נייח; 2», «ΣMO = 0 — אין תנועה…»)
+      var cellTexts = [];
+      page.tables.forEach(function (t) { (t.cells || []).forEach(function (c) { var x = plain(c.he); if (x) cellTexts.push(x); }); });
+      cellTexts.sort(function (a, b) { return b.length - a.length; });
+      var line = plain(item.he || item.he_raw);
+      if (line && line.indexOf(';') > 0) {
+        var rest = line;
+        cellTexts.forEach(function (c) { if (c.length >= 1) rest = rest.split(c).join(' '); });
+        if (!/[^\s;:,.—–\-]/.test(rest)) return true;
+      }
+      var words = line.split(' ').filter(Boolean);
       if (words.length < 12) return false;
       var num = words.filter(function (w) { return /^[MМ]?\d+([.,]\d+)?[;,]?$|^[×x]\d/.test(w); }).length;
       return num / words.length >= 0.7;
@@ -120,6 +130,13 @@
       (page.tables || []).forEach(function (t) { (t.cells || []).forEach(function (c) { var k = squash(c.he || c.ru); if (k) keys.push(k); }); });
       Object.defineProperty(page, '_tk', { value: keys, enumerable: false });
       return keys;
+    }
+
+    function loneSymbol(item) {
+      var t = String(item.latex || item.source_text || '').replace(/\s|\\[,;!]|\\quad/g, '');
+      if (!t || t.length > 14) return false;
+      if (/[=<>+\-*/·×−≅≈≤≥]|\\(frac|sqrt|le|ge|leq|geq|cdot|times|pm|cong|approx|lt|gt)(?![a-z])|\d/.test(t)) return false;
+      return /^\\?[A-Za-z]+(_\{?[A-Za-z0-9,]+\}?)?(\^\{?[A-Za-z0-9]+\}?)?$/.test(t);
     }
 
     function tableFragment(item, page) {
@@ -179,10 +196,17 @@
       items.forEach(function (it, i) {
         if (it.type === 'formula' && tableFragment(it, page)) { dup[i] = true; return; }
         if (it.type !== 'formula' && flattenedTable(it, page)) { dup[i] = true; return; }
-        if (it.type !== 'formula' && /^[\d⁰¹²³⁴⁵⁶⁷⁸⁹\s*]{1,4}$/.test(plain(it.he || it.he_raw)) && /^\[?\d{1,3}\]?$/.test(String(it.ru || '').trim())) { dup[i] = true; return; }
+        // a stray letter left by the extraction («t», p28): one or two Latin/Greek letters, translation the same
+        if (it.type !== 'formula' && /^[A-Za-zα-ωΑ-Ω]{1,2}$/.test(plain(it.he || it.he_raw)) && plain(it.ru) === plain(it.he || it.he_raw)) { dup[i] = true; return; }
+        // a lone symbol as a «formula» («r_i», «F_i», «\mu»): no operator, no value — nothing to learn from it
+        if (it.type === 'formula' && loneSymbol(it)) { dup[i] = true; return; }
+        // a lone footnote mark «²⁶» (superscript digits only: a plain «1» is an example number)
+        if (it.type !== 'formula' && /^[⁰¹²³⁴⁵⁶⁷⁸⁹\s]{1,4}$/.test(plain(it.he || it.he_raw)) && /^\[?\d{1,3}\]?$/.test(String(it.ru || '').trim())) { dup[i] = true; return; }
         var prev = items[i - 1];
         if (prev && it.type !== 'formula' && it.ru && it.ru === prev.ru && (it.he || '') === (prev.he || '') && (it.he || '').length > 3) dup[i] = true;
       });
+      // text a margin mark (👍 👎 ❗ 🎯) belongs to always stays, even when a table repeats it
+      Object.keys(starts).forEach(function (k) { for (var j = Number(k); j <= starts[k].end; j++) delete dup[j]; });
       var tl = placeTables(page, items);
       return { items: items, groups: starts, figuresBefore: before, captionOf: captionOf, duplicate: dup,
         tablesAfter: tl.after, tableFor: tl.replace, tablesAfterFigure: tl.figure, tablesEnd: tl.end, mirror: tl.mirror };
@@ -252,7 +276,9 @@
     }
 
     function renderFormula(T, item) {
-      var card = h('div', { cls: 'atlas-formula', 'data-ref': item.id });
+      // a calculation the extraction cut after «=»: the piece that starts with «=» continues the card above it
+      var cont = /^\s*(=|\\approx|\\cong)/.test(String(item.latex || item.source_text || ''));
+      var card = h('div', { cls: 'atlas-formula' + (cont ? ' atlas-cont' : ''), 'data-ref': item.id });
       if (item.mathml) card.appendChild(h('div', { cls: 'atlas-math', html: item.mathml }));
       else if (item.latex) card.appendChild(h('code', { cls: 'atlas-latex', text: item.latex }));
       else if (item.source_text) card.appendChild(h('code', { cls: 'atlas-latex', text: item.source_text }));
@@ -298,7 +324,7 @@
     // supplier's own work («восстановлено по изображению», «напечатанное сохранено», «предлагаемое исправление»).
     // Sentence by sentence: the help stays under the formula, the report goes to «Заметки редактора»
     // (audit 2026-10-31: 689 formula notes).
-    var PROC = /сохран|восстановл|по изображени|извлеч|extraction|sourceID|bbox|PNG|исправлени|кандидат|заметк|вход вычислени|не подмен|буквальн|подстановк|пересчит|пересчёт|ядр|compute|редакц|фрагмент|обрез|(?:формул[аеы]|текст[аеу]?|строк[аеи]) выше|\b\d{3}f\d{2}\b|numerator|отождеств|не тождеств|тождествен|исходн|ячейк|\b[Bb]\d{3}\b|convention|столбец обозначений/i;
+    var PROC = /сохран|восстановл|по изображени|извлеч|extraction|sourceID|bbox|PNG|исправлени|кандидат|заметк|вход вычислени|не подмен|буквальн|подстановк|пересчит|пересчёт|ядр|compute|редакц|фрагмент|обрез|(?:формул[аеы]|текст[аеу]?|строк[аеи]) выше|\b\d{3}f\d{2}\b|numerator|единицы по легенде|печатная зависимость|отождеств|не тождеств|тождествен|исходн|ячейк|\b[Bb]\d{3}\b|convention|столбец обозначений/i;
     function noteParts(text) {
       var t = cleanMeta(text);
       if (!t) return { reader: '', editor: '' };
@@ -517,6 +543,8 @@
     function renderErratum(T, x, full) {
       var head = [h('b', { text: '⚠ ' + T('atlas.erratum.printed', 'в книге:') + ' ' }), h('code', { text: full ? (x.as_printed || '') : short(x.as_printed, 48) })];
       if (x.proposed) head.push(h('b', { text: ' → ' + T('atlas.erratum.proposed', 'предлагаемое исправление:') + ' ' }), h('code', { text: full ? x.proposed : short(x.proposed, 48) }));
+      // a recount that did not match and has no proposed fix yet: say so, a bare number told the reader nothing (p77, p88)
+      else head.push(h('span', { cls: 'atlas-muted', text: ' — ' + T('atlas.erratum.recheck', 'пересчёт не сошёлся, нужна проверка') }));
       var body = [h('div', { cls: 'atlas-why', text: x.explanation_ru || '' }),
         x.core_note ? h('div', { cls: 'atlas-why', text: T('atlas.erratum.core', 'Пересчёт ядра:') + ' ' + x.core_note }) : null,
         h('small', { cls: 'atlas-muted', text: T('atlas.erratum.pending', 'ждёт подтверждения владельца') })];
