@@ -518,3 +518,13 @@ test('phones keep the 2×2 row (owner, 2026-10-31): no single-column override fo
   assert.doesNotMatch(phone, /\.atlas-row \{ grid-template-columns: 1fr/);
   assert.doesNotMatch(phone, /grid-column: 1 !important/);
 });
+
+test('two marks over one merged block keep both labels (supplier merged pros and cons, a97002 p198/p210/p235)', () => {
+  const { R, T } = env();
+  const icon = (id, y, ru) => ({ id, number: null, bbox: [522, y, 552, y + 29], regions: [{ id: id + ':r', bbox: [522, y, 552, y + 29], label_he: '', label_ru: ru, links: [] }] });
+  const el = R.renderPage(T, page({ items: [{ id: 'm', type: 'block', kind: 'prose', y: 338, he: 'כוח חיכוך גבוה; יקרה יותר', ru: 'Высокое трение; дороже' }],
+    figures: [icon('p', 250, 'Пиктограмма преимуществ'), icon('c', 303, 'Пиктограмма недостатков')] }));
+  const g = el.querySelector('.atlas-mark-group');
+  assert.equal(g.getAttribute('data-mark'), 'mixed');
+  assert.match(g.querySelector('.atlas-mark-head').textContent, /Преимущества.*Недостатки/);
+});

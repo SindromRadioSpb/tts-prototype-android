@@ -180,6 +180,10 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-mark-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 6px 0 2px; font-weight: 700; color: var(--mark-c, var(--atlas-ink)); }
 .atlas-root .atlas-mark-emoji { font-size: 1.25rem; line-height: 1; align-self: center; }
 .atlas-root .atlas-mark-head bdi { font-weight: 600; opacity: .9; }
+.atlas-root .atlas-mark-one { display: inline-flex; align-items: baseline; gap: 4px 10px; }
+.atlas-root .atlas-mark-group[data-mark="mixed"] { --mark-c: var(--atlas-amber); --mark-bg: var(--atlas-note-bg); }
+.atlas-root .atlas-mark-group[data-mark="mixed"] .atlas-mark-one[data-mark="pro"] { color: var(--atlas-ok); }
+.atlas-root .atlas-mark-group[data-mark="mixed"] .atlas-mark-one[data-mark="con"] { color: var(--atlas-oxide); }
 
 /* search hit and the item a figure region points to: tinted, text keeps its own colour */
 .atlas-root .atlas-hit { background: var(--atlas-hit); }

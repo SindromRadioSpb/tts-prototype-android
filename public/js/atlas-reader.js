@@ -95,7 +95,10 @@
         var at = -1;
         for (var i = 0; i < items.length; i++) { var y = itemY(items[i]); if (y != null && y >= m.y - 6) { at = i; break; } }
         if (at < 0) at = items.length - 1;
-        if (at >= 0 && !starts[at]) starts[at] = { kind: m.kind, end: at };
+        if (at < 0) return;
+        // two marks over one block (the supplier merged pros and cons into one line): keep both labels
+        if (!starts[at]) starts[at] = { kind: m.kind, kinds: [m.kind], end: at };
+        else if (starts[at].kinds.indexOf(m.kind) < 0) { starts[at].kinds.push(m.kind); starts[at].kind = 'mixed'; }
       });
       Object.keys(starts).forEach(function (k) {
         var g = starts[k], i = Number(k);
@@ -155,10 +158,14 @@
       return out;
     }
 
-    function markHead(T, kind) {
-      var m = MARKS[kind];
-      return h('div', { cls: 'atlas-mark-head' }, [h('span', { cls: 'atlas-mark-emoji', 'aria-hidden': 'true', text: m.emoji }),
-        h('span', { cls: 'atlas-l-ru', text: T(m.key, m.ru) }), h('bdi', { lang: 'he', dir: 'rtl', text: m.he })]);
+    function markHead(T, kinds) {
+      var head = h('div', { cls: 'atlas-mark-head' });
+      [].concat(kinds).forEach(function (kind) {
+        var m = MARKS[kind];
+        head.appendChild(h('span', { cls: 'atlas-mark-one', 'data-mark': kind }, [h('span', { cls: 'atlas-mark-emoji', 'aria-hidden': 'true', text: m.emoji }),
+          h('span', { cls: 'atlas-l-ru', text: T(m.key, m.ru) }), h('bdi', { lang: 'he', dir: 'rtl', text: m.he })]));
+      });
+      return head;
     }
 
     function renderFormula(T, item) {
@@ -399,7 +406,7 @@
         });
         var g = lay.groups[i];
         if (g) {
-          into = h('div', { cls: 'atlas-mark-group', 'data-mark': g.kind }, [markHead(T, g.kind)]);
+          into = h('div', { cls: 'atlas-mark-group', 'data-mark': g.kind }, [markHead(T, g.kinds)]);
           main.appendChild(into); groupEnd = g.end;
         }
         var own = lay.captionOf[i] && (lay.figuresBefore[i] || []).indexOf(lay.captionOf[i]) >= 0;
@@ -491,7 +498,7 @@
         var lay = layoutPage(page);
         page.items.forEach(function (item, i) {
           var g = lay.groups[i];
-          if (g) rows.appendChild(h('tr', { cls: 'atlas-pmark', 'data-mark': g.kind }, [h('td', { colspan: 2 }, [markHead(T, g.kind)])]));
+          if (g) rows.appendChild(h('tr', { cls: 'atlas-pmark', 'data-mark': g.kind }, [h('td', { colspan: 2 }, [markHead(T, g.kinds)])]));
           if (item.type === 'formula') {
             var vs = (item.vars || []).map(function (v) { return (v.latex || '') + ' — ' + (v.ru || '') + (v.unit ? ', ' + v.unit : ''); }).join(' · ');
             rows.appendChild(h('tr', {}, [h('td', { colspan: 2 }, [h('div', { cls: 'atlas-pmath', html: item.mathml || null, text: item.mathml ? null : (item.latex || item.source_text || '') }),
