@@ -351,6 +351,10 @@
       if (/читаемого текста нет|обрезанн\S* (?:\S+ )?(?:штрих|след|фрагмент)/i.test(t)) return '';   // a scan artefact (p425–426)
       // «…; смысл и единицы источника обсуждаются в ambiguity_note» (p461–470): a pointer to the supplier's field
       t = t.replace(/[;,]?\s*[^;,]*\b(?:ambiguity_note|example\.steps|he_fix_note)\b[^;,]*/gi, '').trim();
+      // variable labels of the dimension chains (p517–530): what the variable is, not how the supplier solved it
+      t = t.replace(/,\s*относительно которого разрешено печатное уравнение\.?/gi, '')
+        .replace(/^Результат данной печатной строки/i, 'Результат строки')
+        .replace(/[;,]\s*числовые единицы явно не указаны\.?/gi, '');
       if (!/редакц|редактор|напечат|печатн|подпис|метк|пиктограмм|графический знач|отдельно от|display|неясн|буквально/i.test(t)) return t;
       // «Редакционное описание: два косозубых колеса; текстовых меток нет.» — the description stays, the prefix goes
       t = t.replace(/^\s*(?:редакционн|редакторск)\S*\s+\S+\s*:\s*/i, '');
