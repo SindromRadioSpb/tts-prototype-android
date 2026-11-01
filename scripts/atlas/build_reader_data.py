@@ -25,6 +25,7 @@ import atlas_validate as V  # noqa: E402
 import atlas_compute as C  # noqa: E402
 import atlas_schema as S  # noqa: E402
 import reader_text as X  # noqa: E402
+import reader_corrections as RC  # noqa: E402
 import render_preview as P  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -220,6 +221,8 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
             'first': section['first'], 'last': section['last'], 'translated': bool(content_path),
             'source_pack_sha256': graph['source_pack_sha256'], 'content_pack_sha256': graph.get('content_pack_sha256'),
             'pages': pages_out, 'terms': terms}
+    # the editor's corrections of the supplier data (scripts/atlas/corrections/): every build keeps them
+    data, _ = RC.apply_section(data)
     os.makedirs(os.path.join(out_root, 'sections'), exist_ok=True)
     with open(os.path.join(out_root, 'sections', section['id'] + '.json'), 'w', encoding='utf-8', newline='\n') as fh:
         json.dump(data, fh, ensure_ascii=False, separators=(',', ':'))
