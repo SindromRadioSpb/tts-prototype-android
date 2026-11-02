@@ -81,16 +81,22 @@ const fs = require("fs"), path = require("path"), assert = require("assert/stric
         await listen.click();
         await page.waitForSelector(".atlas-player");
         await page.waitForTimeout(800);
-        const reading = () => page.evaluate(() => { const r = document.querySelector(".atlas-reading"); return r ? r.getAttribute("data-ref") : null; });
+        const reading = () => page.evaluate(() => { const r = document.querySelector(".atlas-speaking"); return r ? r.getAttribute("data-ref") : null; });
+        // paused, the player stays open: before E3 a tap on a paragraph read from it here
+        await page.locator('.atlas-player [data-act="toggle"]').click();
+        await page.waitForTimeout(300);
         const at = await reading();
         const far = page.locator(".atlas-row .rm-w:visible").nth(200);
         await far.scrollIntoViewIfNeeded();
+        const tapped = await far.evaluate((w) => w.closest(".atlas-row").getAttribute("data-ref"));
         await far.click();
         await page.waitForSelector(".rm-sheet.rm-open", { timeout: 15000 });
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(800);
         const now = await reading();
-        report.push({ e3: { readingBefore: at, readingAfter: now, cardOpen: true } });
-        assert.equal(now, at, "a word tap does not move the reading (E3)");
+        report.push({ e3: { readingBefore: at, tappedRow: tapped, readingAfter: now, cardOpen: true } });
+        assert.ok(at, "the player was reading a line");
+        assert.notEqual(tapped, at, "the tapped word is in another paragraph");
+        assert.equal(now, at, "a word tap opens the card and does not move the reading (E3)");
       } else report.push({ e3: "no recordings on this server — skipped" });
       await context.close();
     }
