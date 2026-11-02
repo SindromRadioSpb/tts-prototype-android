@@ -1,0 +1,12 @@
+{
+  "cpuThrottle": 4,
+  "isolation": "Index only; no world renderer or app startup",
+  "indexBytes": 1281296,
+  "parseAndUnpackMs": [
+    99.41499996185303,
+    92.26499998569489,
+    82.07000005245209,
+    82.37999999523163,
+    73.17499995231628
+  ]
+}

@@ -1152,7 +1152,7 @@
       form.addEventListener('submit', function (ev) { ev.preventDefault(); if (select.value !== 'section') showSearch(input.value, { sid: sid, scope: select.value }); });
       select.addEventListener('change',function(){input.dispatchEvent(new doc.defaultView.Event('input'));});
       input.addEventListener('focus', function () { loadSearch().catch(function () {}); });
-      input.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { input.value = ''; if (input.dispatchEvent) input.dispatchEvent(new doc.defaultView.Event('input')); } });
+      input.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { input.value = ''; if (input.dispatchEvent) input.dispatchEvent(new doc.defaultView.Event('input')); if(view.querySelector('.atlas-search-results'))showHome(); } });
       return form;
     }
     function highlightText(text, q) {
@@ -1172,7 +1172,7 @@
       var form = searchForm(sid, query, scope), results = R.h('div', { cls: 'atlas-search-results', 'aria-busy': 'true' });
       view.replaceChildren(form, results);
       results.appendChild(R.h('p', { cls: 'atlas-state', text: T('atlas.loading', 'Загрузка…') }));
-      lastSearch = { query: query, scope: scope, sid: sid, scroll: how.scroll || 0 };
+      lastSearch = { query: query, scope: scope, sid: sid, scroll: how.scroll || 0, limit: Math.max(50,Math.min(10000,how.limit||50)) };
       if (!how.restore) onState('', 0, how.mode || 'push', lastSearch);
       return loadSearch().then(function (ix) {
         if (/^".*"$/.test(query) && !ix.full) return checkedShard(ix, 'search-phrases.json').then(function (full) { ix.full = Engine.unpackPhrases(full); return ix; });
@@ -1188,7 +1188,7 @@
         if (isFragment) results.appendChild(R.h('p', { cls: 'atlas-muted atlas-search-fragment', text: T('atlas.bookSearch.fragment', 'Страницы по терминам фрагмента') }));
         if (!hits.length) results.appendChild(R.h('p', { cls: 'atlas-state', text: T('atlas.bookSearch.empty', 'Ничего не найдено. Попробуйте термин без огласовок или обозначение σ_Lc.') }));
         var groups = { term: 'Термины', symbol: 'Обозначения', formula: 'Формулы', block: 'Текст', table: 'Таблицы', figure: 'Рисунки', example: 'Примеры', erratum: 'Опечатки' };
-        var limit = 50, more = null;
+        var limit = lastSearch.limit, more = null;
         function openResult(r, place) {
           lastSearch.scroll = doc.defaultView && doc.defaultView.scrollY || 0;
           onState('', 0, 'replace', lastSearch);
@@ -1221,7 +1221,7 @@
               group.appendChild(row);
             }); results.appendChild(group);
           });
-          if (hits.length > limit) { more = R.h('button', { type: 'button', cls: 'atlas-search-more', text: T('atlas.bookSearch.more', 'Показать ещё'), on: { click: function () { limit += 50; paint(); } } }); results.appendChild(more); }
+          if (hits.length > limit) { more = R.h('button', { type: 'button', cls: 'atlas-search-more', text: T('atlas.bookSearch.more', 'Показать ещё'), on: { click: function () { limit += 50; lastSearch.limit=limit; paint(); } } }); results.appendChild(more); }
         }
         paint();
         results.addEventListener('keydown', function (ev) { if (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') return; var buttons = Array.from(results.querySelectorAll('button')), at = buttons.indexOf(ev.target), next = buttons[(at + (ev.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]; if (next) { ev.preventDefault(); next.focus(); } });

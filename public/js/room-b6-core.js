@@ -197,6 +197,7 @@ export function sanitizePresentationState(input = {}) {
     state.anchor.query = boundedString(anchorIn.query, 2000);
     state.anchor.scope = anchorIn.scope === 'section' ? 'section' : 'book';
     state.anchor.sid = cleanFacetId(anchorIn.sid);
+    state.anchor.limit = Math.max(50,Math.min(10000,Number(anchorIn.limit)||50));
     state.anchor.scroll = Math.max(0, Math.min(10000000, Number(anchorIn.scroll) || 0));
   }
   if (byteLength(JSON.stringify(state)) > ROOM_B6_LIMITS.presentationBytes) {
@@ -262,7 +263,7 @@ export function presentationStateFromHash(hash) {
   else if (isAtlas(route)) {
     const section = cleanFacetId(params.get('sec'));
     const page = /^[1-9]\d{0,3}$/.test(params.get('pg') || '') ? Number(params.get('pg')) : 0;
-    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { itemId: section, rowIndex: section ? page : 0, query: params.get('aq') || '', scope: params.get('ascope'), sid: params.get('asid'), scroll: params.get('ascroll') } });
+    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { itemId: section, rowIndex: section ? page : 0, query: params.get('aq') || '', scope: params.get('ascope'), sid: params.get('asid'), scroll: params.get('ascroll'), limit: params.get('alim') } });
   }
   else return null;
   if (!isPublicCorpus(input.corpus) || input.surface === 'hub') return sanitizePresentationState(input);
@@ -332,6 +333,7 @@ function publicPresentationHash(state, sharedQuery) {
     const search = new URLSearchParams(params);
     search.set('aq',state.anchor.query);search.set('ascope',state.anchor.scope);
     if(state.anchor.sid)search.set('asid',state.anchor.sid);
+    if(state.anchor.limit>50)search.set('alim',String(state.anchor.limit));
     if(state.anchor.scroll)search.set('ascroll',String(state.anchor.scroll));
     if(byteLength('#'+search.toString()) <= ROOM_B6_LIMITS.presentationUrlBytes) { for(const [k,v] of search)params.set(k,v); }
   }

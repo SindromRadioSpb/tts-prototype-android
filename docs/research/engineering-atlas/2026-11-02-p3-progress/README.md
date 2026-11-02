@@ -1,4 +1,6 @@
-# P3 progress — not release acceptance
+# P3 progress — historical checkpoint
+
+Superseded by [the completed local search A report](../2026-11-02-search-eval/README.md). The draft limitations below were recorded before implementation and are not current search status.
 
 Branch: feat/atlas-search-voice, base origin/main 99930cdc. Plan imported from 01bec5dd.
 

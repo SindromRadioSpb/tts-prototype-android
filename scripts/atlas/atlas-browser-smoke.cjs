@@ -116,6 +116,8 @@ const fs = require("fs"),
             document.documentElement.clientWidth,
         );
         assert.ok(overflow <= 1, "overflow " + width + ":" + overflow);
+        let shown=50;
+        if(width===390&&lang==='ru'){await page.locator('.atlas-search-more').click();shown=100;assert.equal(await page.locator('[data-search-result]').count(),shown);}
         const address = page.url();
         await page.locator("[data-search-result]").first().click();
         await page.waitForSelector(".atlas-section .atlas-hit");
@@ -127,6 +129,7 @@ const fs = require("fs"),
         );
         await page.reload();
         await page.waitForSelector("[data-search-result]");
+        if(shown===100)assert.equal(await page.locator("[data-search-result]").count(),100);
         assert.equal(
           await page.locator(".atlas-search").inputValue(),
           "пружинами",
@@ -191,6 +194,7 @@ const fs = require("fs"),
           await page.locator(".atlas-book-search").press("Enter");
           await page.waitForSelector("[data-search-result]");
         }
+        if(width===390&&lang==='ru'){await page.locator('.atlas-search').press('Escape');await page.waitForSelector('.atlas-home');}
         report.push({
           lang,
           width,

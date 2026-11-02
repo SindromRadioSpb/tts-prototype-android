@@ -1,0 +1,51 @@
+npm test
+  ...
+1..2959
+# tests 2959
+# suites 0
+# pass 2959
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59457.4139
+
+node --test tests/atlasReader.test.js tests/atlasSearch.test.js
+  ...
+1..59
+# tests 59
+# suites 0
+# pass 59
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1519.7731
+
+NODE_PATH=.tmp/atlas-tools/node_modules npm run test:atlas
+
+----------------------------------------------------------------------
+Ran 197 tests in 1.226s
+
+OK (skipped=12)
+
+node tests/i18n.smoke.js
+  ✓ window.APP_VERSION in index.html matches CACHE_VERSION in sw.js
+
+Results: 233 passed, 0 failed
+
+npm run smoke:reader-parity
+
+reader-core leaf parity: 37 checks vs index.html live fns + golden
+reader-core builder parity: 6 cases (buildBilingualTableHtml === renderTable golden, whitespace-normalized)
+reader-parity: 6 cases (2×3), 4 fixture rows
+PASS — reader-parity golden + R1 fidelity assertions green
+
+node scripts/atlas/audit-reader.cjs data/atlas/a97002
+sections 42 findings 0
+
+node scripts/atlas/atlas-browser-smoke.cjs http://localhost:3399 .tmp/atlas-search-browser-complete
+6/6 RU/HE viewport combinations; no pageerror/overflow; Back/reload, phrases, keyboard, condition p38, missing index/retry, more-results restoration, Escape and dark contrast assertions passed.
+
+node scripts/atlas/atlas-browser-smoke.cjs http://localhost:3399 .tmp/atlas-index-performance --measure-index
+See index-performance.json (isolated Chromium CPU x4; not a physical-device result).
