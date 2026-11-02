@@ -4,7 +4,7 @@ export function publisherStep(t,esc,current) {
 }
 export function openPublisher(ctx) {
   const {api,t,esc,showDialog,formActions,C}=ctx;
-  let work=null, copied=null, rights=null, receipt=null, detail=null, corpus=null, destination=null;
+  let work=null, copied=null, rights=null, receipt=null, detail=null, corpus=null, destination=null, destinationCommands=[];
   const steps=new Map(), keys=new Map();
   async function once(name,path,body){
     if(steps.has(name))return steps.get(name);
@@ -56,13 +56,14 @@ export function openPublisher(ctx) {
       ${formActions(t('preparePublication'))}`,async data=>{
         if(!destination){
           let next=ctx.structure(),category=data.get('category'),collection=data.get('collection');
-          if(data.get('newCategory').trim()){category='m_'+crypto.randomUUID().replaceAll('-','');next=C.command(next,{type:'category.create',id:category,title:data.get('newCategory').trim()});}
+          const commands=[];
+          if(data.get('newCategory').trim()){category='m_'+crypto.randomUUID().replaceAll('-','');const cmd={type:'category.create',id:category,title:data.get('newCategory').trim()};next=C.command(next,cmd);commands.push(cmd);}
           if(!category)throw new Error('DESTINATION_REQUIRED');
-          if(data.get('newCollection').trim()){collection='m_'+crypto.randomUUID().replaceAll('-','');next=C.command(next,{type:'collection.create',id:collection,title:data.get('newCollection').trim(),categoryId:category});}
+          if(data.get('newCollection').trim()){collection='m_'+crypto.randomUUID().replaceAll('-','');const cmd={type:'collection.create',id:collection,title:data.get('newCollection').trim(),categoryId:category};next=C.command(next,cmd);commands.push(cmd);}
           const series=next.collections.find(c=>c.id===collection);
           if(series?.categoryId&&series.categoryId!==category)throw new Error('MATERIAL_TOPIC_MISMATCH');
-          if(series&&!series.categoryId)next=C.command(next,{type:'collection.update',...series,categoryId:category});
-          await ctx.save(next);
+          if(series&&!series.categoryId){const cmd={type:'collection.update',...series,categoryId:category};next=C.command(next,cmd);commands.push(cmd);}
+          destinationCommands=commands;
           destination={category,collection,title:data.get('title').trim(),description:data.get('description').trim(),download:data.has('download'),creator:next.categories.find(c=>c.id===category).title};
         }
         // Retried canonical writes must use the same reviewed input and rights.
@@ -99,7 +100,13 @@ export function openPublisher(ctx) {
           const workId='work-'+Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('').slice(0,24);
           const item=items.find(i=>i.ref.workId===workId);if(!item)throw new Error('SOURCE_SNAPSHOT_INVALID');
           await ctx.reloadDraft();
-          let next=C.command(ctx.structure(),{type:'items.add',target:'category',id:destination.category,references:[item.ref]},{publicOnly:true});
+          let next=ctx.structure();
+          for(const cmd of destinationCommands){
+            if(cmd.type==='category.create'&&next.categories.some(c=>c.id===cmd.id))continue;
+            if(cmd.type==='collection.create'&&next.collections.some(c=>c.id===cmd.id))continue;
+            next=C.command(next,cmd,{publicOnly:true});
+          }
+          next=C.command(next,{type:'items.add',target:'category',id:destination.category,references:[item.ref]},{publicOnly:true});
           if(destination.collection)next=C.command(next,{type:'items.add',target:'collection',id:destination.collection,references:[item.ref]},{publicOnly:true});
           await ctx.save(next);
           ctx.finish(); // Structure has its own existing preview/publish, never publishes unrelated draft edits.

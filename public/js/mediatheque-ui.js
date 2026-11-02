@@ -862,6 +862,16 @@ function pendingShowcaseChanges() {
 }
 function publishDialog(intro = '') {
   const d = state.draft.structure, expectedVersion = state.draft.revision, expectedEdition = state.draft.edition_id;
+  const unavailable = state.draft.unavailable || [];
+  if (unavailable.length) {
+    const locations = unavailable.flatMap(link => link.locations || []).map(name => name === 'home' ? t('home') : name);
+    showDialog(t('publishTitle'), `<p>${esc(t('referenceUnavailable'))}</p><p>${esc(t('unavailableLinksCount', { count: unavailable.length }))}</p><ul>${[...new Set(locations)].map(name => `<li dir="auto">${esc(name)}</li>`).join('')}</ul>${formActions(t('removeUnavailableLinks'))}`, async () => {
+      await api('/api/publication/mediatheque/repair', { expectedVersion, expectedEdition });
+      state.draft = await api('/api/publication/mediatheque');
+      publishDialog(intro);
+    });
+    return;
+  }
   showDialog(t('publishTitle'), `${intro}<p>${esc(t('publishHelp'))}</p>${changePreviewHtml(state.published.structure,d)}${formActions(t('publish'))}`, async () => {
     await api('/api/publication/mediatheque/publish', { expectedVersion, expectedEdition }); await loadPublic(); state.preview = false; state.editing = false; state.draft = null; closeDialog(); render(); announce(t('published'));
   });

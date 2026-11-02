@@ -1287,7 +1287,7 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/tutor-connect.html",
-  "/js/cloud-sync.js?v=836",
+  "/js/cloud-sync.js?v=837",
   "/css/tutor-connect.css?v=1",
   "/js/tutor-connect.js?v=1",
   "/js/tutor-client.js?v=2",
@@ -1320,7 +1320,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=815",
+  "/js/mediatheque-ui.js?v=837",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1418,7 +1418,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=836",
+  "/js/library-ui.js?v=837",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1476,9 +1476,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=836",
-  "/i18n/locales/en.js?v=836",
-  "/i18n/locales/he.js?v=836",
+  "/i18n/locales/ru.js?v=837",
+  "/i18n/locales/en.js?v=837",
+  "/i18n/locales/he.js?v=837",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4442,7 +4442,7 @@ app.post('/api/publication/corpora/:corpusId/draft/material-archive',rlPublicati
   (req,res)=>publicationWrite(req,res,'archive_copied',(repo,actor,opts)=>repo.copyMediathequeArchive(actor,req.params.corpusId,req.body||{},opts)));
 app.post('/api/publication/corpora/:corpusId/draft/material-rights',rlPublicationWrite,requireStrictSameOriginJson,
   (req,res)=>publicationWrite(req,res,'material_rights',(repo,actor,opts)=>repo.recordMaterialRights(actor,req.params.corpusId,req.body||{},opts)));
-for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', 'undoMediathequeDraft'], ['publish', 'publishMediatheque'], ['rollback', 'rollbackMediatheque']]) {
+for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', 'undoMediathequeDraft'], ['repair', 'repairMediathequeDraft'], ['publish', 'publishMediatheque'], ['rollback', 'rollbackMediatheque']]) {
   app.post('/api/publication/mediatheque/' + operation, rlPublicationWrite, requireStrictSameOriginJson,
     (req, res) => publicationWrite(req, res, 'mediatheque_' + operation, (repo, actor, opts) => repo[method](actor, req.body || {}, opts)));
 }

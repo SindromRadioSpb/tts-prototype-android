@@ -5405,6 +5405,8 @@ window.I18N_LOCALES.en.mediatheque = {
   "storageChanged": "The browser opened a different storage backend. Open Studio diagnostics before editing My materials.",
   "conflict": "The structure changed in another tab. Refresh it and try again.",
   "referenceUnavailable": "A material is unavailable. Check the collection before publishing.",
+  "unavailableLinksCount": "Unavailable links: {count}. These topics and collections will remain; only the links will be removed:",
+  "removeUnavailableLinks": "Remove unavailable links",
   "invalidTree": "This move would create a cycle or an overly deep branch. Choose another topic.",
   "signInOwner": "Sign in as the site owner in Studio, then refresh this page.",
   "failed": "Could not save the change. Check the fields and retry.",

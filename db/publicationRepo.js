@@ -908,11 +908,39 @@ function createPublicationRepo(options = {}) {
     const pointer = await dbGet(database, 'SELECT edition_id FROM publication_mediatheque_pointer WHERE singleton=1');
     const editions = await dbAll(database, 'SELECT edition_id,revision,published_at FROM publication_mediatheque_editions ORDER BY rowid DESC LIMIT 20');
     // Правка карточки меняет snapshotHash; ссылка следует за текущей версией того же материала.
-    const structure = row ? Mediatheque.followCurrent(parseJson(row.structure_json), (await mediathequeCatalog()).map(item => item.ref), { publicOnly: true }) : Mediatheque.empty();
+    const items = await mediathequeCatalog();
+    const structure = row ? Mediatheque.followCurrent(parseJson(row.structure_json), items.map(item => item.ref), { publicOnly: true }) : Mediatheque.empty();
     return { revision: row ? Number(row.revision) : 0, structure,
+      unavailable: unavailableMediathequeLinks(structure, items),
       canUndo: !!(row && row.undo_json), edition_id: pointer && pointer.edition_id || null, editions };
   }
   const mediathequeCatalog = createMediathequeCatalogReader({ all: (sql, params) => dbAll(database, sql, params) });
+  function unavailableMediathequeLinks(structure, items) {
+    const available = new Set(items.map(item => Mediatheque.refKey(item.ref)));
+    const places = new Map();
+    for (const group of [...structure.categories, ...structure.collections]) {
+      for (const key of group.items) {
+        if (!available.has(key)) places.set(key, [...(places.get(key) || []), group.title]);
+      }
+    }
+    if (structure.home.featured && !available.has(structure.home.featured))
+      places.set(structure.home.featured, [...(places.get(structure.home.featured) || []), 'home']);
+    for (const annotation of structure.annotations) if (!available.has(annotation.key) && !places.has(annotation.key)) places.set(annotation.key, []);
+    return [...places].map(([key, locations]) => ({ key, locations }));
+  }
+  async function repairMediathequeDraft(actor, input, opts) {
+    mediathequeOwner(actor);
+    return withIdempotency(actor, 'MEDIATHEQUE_REPAIR', opts, input, async () => {
+      const draft = await getMediathequeDraft(actor);
+      if (draft.revision !== input.expectedVersion || draft.edition_id !== (input.expectedEdition || null)) fail('MEDIATHEQUE_CONFLICT', 409);
+      if (!draft.unavailable.length) return { revision: draft.revision, removed: [] };
+      const keys = draft.unavailable.map(link => link.key);
+      const structure = Mediatheque.command(draft.structure, { type: 'reference.forget', keys }, { publicOnly: true });
+      await dbRun(database, `UPDATE publication_mediatheque_draft SET revision=revision+1,structure_json=?,undo_json=NULL,updated_by=?,updated_at=? WHERE singleton=1`,
+        [canonicalJson(structure), actorId(actor), now()]);
+      return { revision: draft.revision + 1, removed: draft.unavailable };
+    });
+  }
   async function getPublicMediatheque() {
     const row = await dbGet(database, `SELECT e.* FROM publication_mediatheque_pointer p
       JOIN publication_mediatheque_editions e ON e.edition_id=p.edition_id WHERE p.singleton=1`);
@@ -935,7 +963,7 @@ function createPublicationRepo(options = {}) {
         VALUES(1,?,?,?,?,?) ON CONFLICT(singleton) DO UPDATE SET revision=excluded.revision,structure_json=excluded.structure_json,
         undo_json=excluded.undo_json,updated_by=excluded.updated_by,updated_at=excluded.updated_at`,
       [revision, canonicalJson(structure), canonicalJson(current.structure), actorId(actor), now()]);
-      return { revision, structure, canUndo: true };
+      return { revision, structure, unavailable: unavailableMediathequeLinks(structure, await mediathequeCatalog()), canUndo: true };
     });
   }
   async function undoMediathequeDraft(actor, input, opts) {
@@ -945,7 +973,7 @@ function createPublicationRepo(options = {}) {
       if (!row || Number(row.revision) !== input.expectedVersion || !row.undo_json) fail('MEDIATHEQUE_CONFLICT', 409);
       const structure = Mediatheque.validate(parseJson(row.undo_json), { publicOnly: true });
       await dbRun(database, 'UPDATE publication_mediatheque_draft SET revision=revision+1,structure_json=undo_json,undo_json=NULL,updated_by=?,updated_at=? WHERE singleton=1', [actorId(actor), now()]);
-      return { revision: row.revision + 1, structure, canUndo: false };
+      return { revision: row.revision + 1, structure, unavailable: unavailableMediathequeLinks(structure, await mediathequeCatalog()), canUndo: false };
     });
   }
   async function publishMediatheque(actor, input, opts) {
@@ -953,13 +981,12 @@ function createPublicationRepo(options = {}) {
     return withIdempotency(actor, 'MEDIATHEQUE_PUBLISH', opts, input, async () => {
       const draft = await getMediathequeDraft(actor);
       if (draft.revision !== input.expectedVersion || !draft.revision || draft.edition_id !== (input.expectedEdition || null)) fail('MEDIATHEQUE_CONFLICT', 409);
-      const available = new Set((await mediathequeCatalog()).map(item => Mediatheque.refKey(item.ref)));
       // Only references actively used in organization need to be live; unused retained
       // references are discarded from the public edition, without altering the draft.
+      if (draft.unavailable.length) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
       const used = new Set([...draft.structure.categories, ...draft.structure.collections].flatMap(c => c.items));
       if (draft.structure.home.featured) used.add(draft.structure.home.featured);
       draft.structure.annotations.forEach(a => used.add(a.key));
-      if (Array.from(used).some(k => !available.has(k))) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
       const structure = Mediatheque.command(draft.structure, { type: 'reference.forget', keys: draft.structure.references.map(Mediatheque.refKey).filter(k => !used.has(k)) }, { publicOnly: true });
       const json = canonicalJson(structure), editionId = id('me_');
       await dbRun(database, `INSERT INTO publication_mediatheque_editions(edition_id,revision,structure_json,sha256,published_by,published_at)
@@ -1248,7 +1275,7 @@ function createPublicationRepo(options = {}) {
     validateDraft, publish, createRevisionDraft, getPublisherCorpus, listPublisherCorpora,
     listPublicCorpora, getPublicCorpus, getPublicLearningIndex, prewarmPublicLearningIndexes, getPublicWork, getPublicAsset, getPublicPackage,
     withdraw, restore, rollback,
-    getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, publishMediatheque, rollbackMediatheque,
+    getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, repairMediathequeDraft, publishMediatheque, rollbackMediatheque,
     prepareMediathequeArchive, attachMediathequeMedia, copyMediathequeArchive,
     recordMaterialRights: (actor,corpusId,input,opts)=>applyRightsPreset(actor,corpusId,input,opts,true),
     deleteMediathequeMaterials, discardMediathequePendingImport, updateMediathequeMaterial, mediathequeMaterialArchive,

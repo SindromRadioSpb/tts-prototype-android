@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.836";
+const CACHE_VERSION = "v3.11.837";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -84,7 +84,7 @@ const PRECACHE_URLS = [
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
   "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=815",
+  "/js/mediatheque-ui.js?v=837",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=836",
+  "/js/library-ui.js?v=837",
   "/js/room-b6-core.js?v=822",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -199,7 +199,7 @@ const PRECACHE_URLS = [
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
-  "/js/cloud-sync.js?v=836",
+  "/js/cloud-sync.js?v=837",
   "/js/publication-center.js?v=520",
   "/js/public-corpus-adapter.js?v=802",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
@@ -355,9 +355,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=836",
-  "/i18n/locales/en.js?v=836",
-  "/i18n/locales/he.js?v=836",
+  "/i18n/locales/ru.js?v=837",
+  "/i18n/locales/en.js?v=837",
+  "/i18n/locales/he.js?v=837",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

@@ -93,6 +93,30 @@ test('deleting one of two materials publishes an edition without it, purges hist
   const again=await h.repo.deleteMediathequeMaterials(h.owner,{items:[b.item.ref]},{idempotencyKey:'d2'});
   assert.deepEqual(again.failed,[]);
 });
+test('unavailable material links can be inspected and removed without losing valid showcase edits',async t=>{
+  const h=await setup(t);
+  const a=await publishArchive(h,'Keep','repair-a'),b=await publishArchive(h,'Drop','repair-b');
+  await placeOnShowcase(h,[a.item.ref,b.item.ref]);
+  const deleted=await h.repo.deleteMediathequeMaterials(h.owner,{items:[{slug:b.item.ref.slug,workId:b.item.ref.workId}]},{idempotencyKey:'repair-delete'});
+  assert.deepEqual(deleted.failed,[]);
+  const current=await h.repo.getMediathequeDraft(h.owner);
+  let structure=C.command(current.structure,{type:'collection.create',id:'series',title:'Interviews',categoryId:'topic'},{publicOnly:true});
+  structure=C.command(structure,{type:'items.add',target:'collection',id:'series',references:[b.item.ref]},{publicOnly:true});
+  structure=C.command(structure,{type:'items.add',target:'category',id:'topic',references:[b.item.ref]},{publicOnly:true});
+  const saved=await h.repo.saveMediathequeDraft(h.owner,{structure,expectedVersion:current.revision},{idempotencyKey:'repair-save'});
+  assert.equal(saved.unavailable.length,1);
+  const blocked=await h.repo.getMediathequeDraft(h.owner);
+  assert.equal(blocked.unavailable.length,1);
+  assert.deepEqual(blocked.unavailable[0].locations,['Topic','Interviews']);
+  await assert.rejects(h.repo.publishMediatheque(h.owner,{expectedVersion:saved.revision,expectedEdition:blocked.edition_id},{idempotencyKey:'repair-blocked'}),e=>e.code==='MEDIATHEQUE_REFERENCE_UNAVAILABLE');
+  const repaired=await h.repo.repairMediathequeDraft(h.owner,{expectedVersion:saved.revision,expectedEdition:blocked.edition_id},{idempotencyKey:'repair-links'});
+  assert.equal(repaired.removed.length,1);
+  const after=await h.repo.getMediathequeDraft(h.owner);
+  assert.deepEqual(after.unavailable,[]);
+  assert.ok(after.structure.categories.find(x=>x.id==='topic').items.includes(C.refKey(a.item.ref)));
+  assert.deepEqual(after.structure.collections.find(x=>x.id==='series').items,[]);
+  await h.repo.publishMediatheque(h.owner,{expectedVersion:after.revision,expectedEdition:after.edition_id},{idempotencyKey:'repair-publish'});
+});
 test('deleting the last material withdraws its corpus and refuses restore',async t=>{
   const h=await setup(t);const a=await publishArchive(h,'Only','only');
   const out=await h.repo.deleteMediathequeMaterials(h.owner,{items:[a.item.ref]},{idempotencyKey:'d1'});
