@@ -997,9 +997,10 @@
       if (!bar || !win || !win.getComputedStyle) return 0;
       return (parseFloat(win.getComputedStyle(bar).top) || 0) + bar.offsetHeight;
     }
-    function goToPage(n) {
+    function goToPage(n, objectRef, cellRef) {
       var el = doc.getElementById('atlas-p' + n), win = doc.defaultView;
       if (!el) return false;
+      if(objectRef){var object=Array.from(el.querySelectorAll('[data-ref]')).find(function(node){return node.getAttribute('data-ref')===objectRef;});if(object){el=object;if(cellRef){var cell=object.querySelector('[data-cell="'+cellRef.row+':'+cellRef.col+'"]');if(cell)el=cell;}}}
       track.last = n; track.quietUntil = Date.now() + 1500;
       if (track.input) track.input.value = String(n);
       function place() {
@@ -1008,7 +1009,7 @@
       }
       place();
       // formulas and fonts settle after the first paint: place the page again unless the reader has moved on
-      setTimeout(function () { if (Date.now() < track.quietUntil && track.last === n) place(); }, 500);
+      setTimeout(function () { if (el.isConnected && Date.now() < track.quietUntil && track.last === n) place(); }, 500);
       return true;
     }
     function trackPages(id, section) {
@@ -1301,7 +1302,7 @@
         });
         track.last = page || data.first;
         if (track.input) track.input.value = String(track.last);
-        if (page) goToPage(page);
+        if (page) goToPage(page, how.ref, how.cell);
         if(how.ref){var target=Array.from(section.querySelectorAll('[data-ref]')).find(function(n){return n.getAttribute('data-ref')===how.ref;});if(target){if(how.cell){var cell=target.querySelector('[data-cell="'+how.cell.row+':'+how.cell.col+'"]');if(cell)target=cell;}target.classList.add('atlas-hit');if(target.scrollIntoView)target.scrollIntoView({block:'center'});}else if(how.query){section.querySelectorAll('.atlas-row').forEach(function(n){if(n.textContent.toLowerCase().includes(how.query.toLowerCase()))n.classList.add('atlas-hit');});}}
         if (!how.restore) onState(id, page || data.first, 'push');
         trackPages(id, section);

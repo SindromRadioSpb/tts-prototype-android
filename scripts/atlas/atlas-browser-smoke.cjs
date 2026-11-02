@@ -194,6 +194,11 @@ const fs = require("fs"),
           await page.locator(".atlas-book-search").press("Enter");
           await page.waitForSelector("[data-search-result]");
         }
+        if(width===390){
+          await page.locator('.atlas-search').fill('σ_Lc');await page.locator('.atlas-book-search').press('Enter');await page.waitForSelector('[data-search-result]');await page.locator('[data-search-result]').first().click();await page.waitForSelector('.atlas-hit');await page.waitForTimeout(1200);
+          const rect=await page.locator('.atlas-hit').first().evaluate(n=>({top:n.getBoundingClientRect().top,height:innerHeight}));assert.ok(rect.top>=0&&rect.top<rect.height-80,'search target scrolled offscreen after page settling: '+JSON.stringify(rect));
+          await page.screenshot({path:path.join(out,lang+'-390-found-formula.png')});await page.goBack();await page.waitForSelector('[data-search-result]');
+        }
         if(width===390&&lang==='ru'){await page.locator('.atlas-search').press('Escape');await page.waitForSelector('.atlas-home');}
         report.push({
           lang,
