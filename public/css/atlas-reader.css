@@ -385,6 +385,12 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-formula > .atlas-say { float: inline-end; margin: 0 0 4px 8px; min-height: 36px; padding: 0 10px; border-radius: 999px;
   font-size: .85rem; color: var(--atlas-teal-ink); background: var(--atlas-teal-soft); border: 1px solid var(--atlas-teal-tint); }
 .atlas-root .atlas-formula > .atlas-say[aria-pressed="true"] { background: var(--atlas-teal); color: var(--atlas-on-teal); }
+/* ▶ of a line: the reading starts there (whole section or the line alone, as the player says) */
+.atlas-root .atlas-row.atlas-has-say { position: relative; padding-inline-end: 46px; }
+.atlas-root .atlas-say-line { position: absolute; inset-inline-end: 4px; top: 6px; width: 36px; height: 36px; min-height: 36px; padding: 0; border-radius: 999px;
+  font-size: .8rem; line-height: 1; color: var(--atlas-teal-ink); background: transparent; border: 1px solid var(--atlas-teal-tint); opacity: .75; }
+.atlas-root .atlas-say-line:hover, .atlas-root .atlas-say-line:focus-visible, .atlas-root .atlas-speaking > .atlas-say-line { opacity: 1; background: var(--atlas-teal-soft); }
+.atlas-root .atlas-say-line[aria-pressed="true"] { opacity: 1; background: var(--atlas-teal); color: var(--atlas-on-teal); border-color: var(--atlas-teal); }
 .atlas-root .atlas-speaking { outline: 2px solid var(--atlas-teal); outline-offset: 3px; border-radius: 6px; background: var(--atlas-teal-tint); }
 .atlas-root.atlas-listening { padding-bottom: 140px; }
 .atlas-root .atlas-player { position: fixed; z-index: 950; inset-inline: 0; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); margin-inline: auto;
@@ -408,6 +414,8 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
   .atlas-root .atlas-player { width: calc(100% - 12px); padding: 8px; }
   .atlas-root .atlas-player-row { gap: 4px; }
   .atlas-root .atlas-player-lang { display: none; }
+  .atlas-root .atlas-row.atlas-has-say { padding-inline-end: 42px; }
+  .atlas-root .atlas-say-line { inset-inline-end: 2px; }
   .atlas-root.atlas-listening { padding-bottom: 170px; }
 }
 @media print { .atlas-root .atlas-player, .atlas-root .atlas-say, .atlas-root .atlas-listen-btn { display: none !important; } }

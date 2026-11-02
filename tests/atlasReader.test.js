@@ -753,23 +753,103 @@ test('listening: the status counts verified recordings honestly, and the formula
   reader.stopAudio();
 });
 
-test('listening: a formula card reads its formula alone; leaving the section stops the sound', async () => {
+function listenStore() {
+  const m = new Map();
+  return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
+}
+function voicedLines(document, manifest) {
+  return Array.from(document.querySelectorAll('.atlas-row[data-ref], .atlas-formula[data-ref]')).filter((n) => manifest.items[n.getAttribute('data-ref')]);
+}
+function sayOf(n) { return Array.from(n.children).find((c) => c.classList.contains('atlas-say')); }
+function tap(document, el) { el.dispatchEvent(new document.defaultView.Event('click', { bubbles: true })); }
+function choose(document, sel, v) { for (const o of sel.querySelectorAll('option')) { if (o.value === v) o.setAttribute('selected', ''); else o.removeAttribute('selected'); } sel.dispatchEvent(new document.defaultView.Event('change')); }
+function lineEnds(audio) { audio.fire('pause'); audio.fire('ended'); }
+
+test('listening: each voiced line has its own ▶; from the middle it reads straight on without the bar button first', async () => {
   const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  document.defaultView.localStorage = listenStore();
   const audio = fakeAudio();
   const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
   await reader.openSection('s09-belt', 197); await settle();
-  const say = document.querySelector('.atlas-say');
+  const lines = voicedLines(document, manifest), key = (n) => '/api/audio/' + manifest.items[n.getAttribute('data-ref')].key;
+  assert.ok(lines.length >= 3, 'fixture has several voiced lines');
+  for (const n of lines) assert.ok(sayOf(n), 'every voiced line has ▶: ' + n.getAttribute('data-ref'));
+  const mid = lines[Math.floor(lines.length / 2)];
+  tap(document, sayOf(mid));
+  assert.ok(document.querySelector('.atlas-player'), 'one tap opens the player');
+  assert.equal(audio.src, key(mid), 'starts at the tapped line');
+  assert.equal(sayOf(mid).getAttribute('aria-pressed'), 'true');
+  assert.equal(document.querySelector('[data-act="mode"]').value, 'queue');
+  lineEnds(audio);
+  assert.equal(audio.src, key(lines[lines.indexOf(mid) + 1]), 'straight on to the next line');
+  tap(document, sayOf(mid));
+  assert.equal(audio.src, key(mid), 'another ▶ jumps there');
+  tap(document, sayOf(mid));
+  assert.ok(audio.paused, 'the ▶ of the line being heard pauses');
+  reader.stopAudio();
+});
+
+test('listening: line by line reads one line and stops; ▶ repeats it, ⏭ reads the next alone, the choice is remembered', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const store = listenStore();
+  document.defaultView.localStorage = store;
+  const audio = fakeAudio();
+  const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
+  await reader.openSection('s09-belt', 197); await settle();
+  const lines = voicedLines(document, manifest), key = (n) => '/api/audio/' + manifest.items[n.getAttribute('data-ref')].key;
+  const a = lines[1], b = lines[2], c = lines[0];
+  tap(document, sayOf(a));
+  const mode = document.querySelector('[data-act="mode"]');
+  choose(document, mode, 'line');
+  assert.equal(JSON.parse(store.getItem('room.atlas.listen')).mode, 'line');
+  let heard = audio.played.length;
+  lineEnds(audio);
+  assert.equal(audio.played.length, heard, 'after the line nothing else plays');
+  assert.ok(document.querySelector('.atlas-player'), 'the player stays');
+  assert.ok(a.classList.contains('atlas-speaking'), 'the line stays marked');
+  tap(document, document.querySelector('[data-act="toggle"]'));
+  assert.equal(audio.src, key(a), '▶ repeats the line');
+  lineEnds(audio);
+  tap(document, document.querySelector('[data-act="next"]'));
+  assert.equal(audio.src, key(b), '⏭ reads the next line');
+  heard = audio.played.length;
+  lineEnds(audio);
+  assert.equal(audio.played.length, heard, 'and stops after it too');
+  tap(document, sayOf(c));
+  assert.equal(audio.src, key(c), 'another line ▶ reads that line');
+  heard = audio.played.length;
+  lineEnds(audio);
+  assert.equal(audio.played.length, heard, 'one line only');
+  // switching back to straight on: ▶ continues from the next line
+  choose(document, mode, 'queue');
+  tap(document, document.querySelector('[data-act="toggle"]'));
+  assert.equal(audio.src, key(lines[1]), 'straight on from the line after');
+  // the bar button is the whole section: it sets the player back to straight on
+  choose(document, mode, 'line');
+  reader.stopAudio();
+  tap(document, document.querySelector('.atlas-listen-btn'));
+  assert.equal(document.querySelector('[data-act="mode"]').value, 'queue');
+  assert.equal(JSON.parse(store.getItem('room.atlas.listen')).mode, 'queue');
+  reader.stopAudio();
+});
+
+test('listening: a formula ▶ plays its formula even with formulas off; leaving the section stops the sound', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  document.defaultView.localStorage = listenStore();
+  document.defaultView.localStorage.setItem('room.atlas.listen', JSON.stringify({ rate: 1, formulas: false }));
+  const audio = fakeAudio();
+  const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
+  await reader.openSection('s09-belt', 197); await settle();
+  const say = document.querySelector('.atlas-formula > .atlas-say');
   assert.ok(say, 'the fixture page has a formula with a recording');
   const card = say.closest('.atlas-formula');
-  say.dispatchEvent(new document.defaultView.Event('click', { bubbles: true }));
+  tap(document, say);
   assert.equal(audio.src, '/api/audio/' + manifest.items[card.getAttribute('data-ref')].key);
   assert.equal(say.getAttribute('aria-pressed'), 'true');
-  assert.equal(document.querySelector('.atlas-player'), null, 'one formula does not open the player');
-  audio.fire('ended');
-  assert.equal(say.getAttribute('aria-pressed'), 'false');
-  say.dispatchEvent(new document.defaultView.Event('click', { bubbles: true }));
+  assert.equal(document.querySelector('[data-act="formulas"]').checked, true);
   await reader.home(); await settle();
-  assert.ok(audio.paused, 'the home view stops the formula');
+  assert.ok(audio.paused, 'the home view stops the sound');
+  assert.equal(document.querySelector('.atlas-player'), null);
 });
 
 test('listening: the Room loads the speech module, stops other audio and stops the atlas when leaving it', () => {
@@ -781,7 +861,7 @@ test('listening: the Room loads the speech module, stops other audio and stops t
   assert.match(ui, /roomAtlasReader\.stopAudio\(\)/);
   for (const lang of ['ru', 'en', 'he']) {
     const loc = read('public/i18n/locales/' + lang + '.js');
-    for (const k of ['button', 'start', 'formula', 'pause', 'prev', 'next', 'speed', 'formulas', 'close', 'follow', 'player', 'coverage', 'of', 'done', 'nextSection', 'unavailable'])
+    for (const k of ['line', 'mode', 'modeQueue', 'modeLine', 'button', 'start', 'formula', 'pause', 'prev', 'next', 'speed', 'formulas', 'close', 'follow', 'player', 'coverage', 'of', 'done', 'nextSection', 'unavailable'])
       assert.match(loc, new RegExp('atlas\\.listen = \\{[^}]*"' + k + '":'), lang + ' ' + k);
   }
 });

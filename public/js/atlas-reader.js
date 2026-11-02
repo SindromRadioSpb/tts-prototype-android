@@ -1270,8 +1270,8 @@
     var LISTEN_KEY = 'room.atlas.listen';
     var listen = null;
     function listenPrefs() {
-      var p = { rate: 1, formulas: true };
-      try { var s = JSON.parse(root.localStorage.getItem(LISTEN_KEY) || 'null'); if (s) { if ([0.75, 1, 1.25, 1.5].indexOf(Number(s.rate)) >= 0) p.rate = Number(s.rate); p.formulas = s.formulas !== false; } } catch (_) {}
+      var p = { rate: 1, formulas: true, mode: 'queue' };
+      try { var s = JSON.parse(root.localStorage.getItem(LISTEN_KEY) || 'null'); if (s) { if ([0.75, 1, 1.25, 1.5].indexOf(Number(s.rate)) >= 0) p.rate = Number(s.rate); p.formulas = s.formulas !== false; if (s.mode === 'line') p.mode = 'line'; } } catch (_) {}
       return p;
     }
     function saveListenPrefs(p) { try { root.localStorage.setItem(LISTEN_KEY, JSON.stringify(p)); } catch (_) {} }
@@ -1338,6 +1338,14 @@
           'aria-label': T('atlas.listen.formula', 'Прочитать формулу на иврите'), title: T('atlas.listen.formula', 'Прочитать формулу на иврите') }, [
           R.h('span', { 'aria-hidden': 'true', text: '▶ ' }), 'עב']), card.firstChild);
       });
+      // ▶ on each voiced line: the reading starts right there — the rest of the section or this line alone,
+      // as the player's «Подряд / По строке» says (owner, 2026-11-02)
+      section.querySelectorAll('.atlas-row[data-ref]').forEach(function (row) {
+        if (!rec[row.getAttribute('data-ref')]) return;
+        row.classList.add('atlas-has-say');
+        row.appendChild(R.h('button', { type: 'button', cls: 'atlas-say atlas-say-line', 'aria-pressed': 'false',
+          'aria-label': T('atlas.listen.line', 'Слушать эту строку'), title: T('atlas.listen.line', 'Слушать эту строку'), text: '▶' }));
+      });
       var prefs = listenPrefs();
       function queue() {
         return Array.from(section.querySelectorAll('.atlas-row[data-ref], .atlas-formula[data-ref]')).filter(function (n) {
@@ -1386,6 +1394,14 @@
         var t = listen.player.querySelector('[data-act="toggle"]');
         t.textContent = listen.playing ? '⏸' : '▶';
         t.setAttribute('aria-label', listen.playing ? T('atlas.listen.pause', 'Пауза') : T('atlas.listen.play', 'Слушать'));
+        paintSay();
+      }
+      function sayOf(el) { return el && Array.from(el.children || []).find(function (n) { return n.classList.contains('atlas-say'); }); }
+      // the ▶ of the line being heard is pressed; a second tap on it pauses
+      function paintSay() {
+        section.querySelectorAll('.atlas-say[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        var b = listen && listen.playing && sayOf(listen.items[listen.at]);
+        if (b) b.setAttribute('aria-pressed', 'true');
       }
       function mark(el) {
         section.querySelectorAll('.atlas-speaking').forEach(function (n) { n.classList.remove('atlas-speaking'); n.removeAttribute('aria-current'); });
@@ -1426,10 +1442,12 @@
         var l = listen;
         if (!l || l.closed) return;
         if (!section.isConnected) { stopListening(); return; }
-        l.mode = 'queue';
+        l.mode = prefs.mode === 'line' ? 'single' : 'queue';
+        l.done = false;
         l.items = queue();
         if (i >= l.items.length) { finishSection(); return; }
         l.at = Math.max(0, i);
+        l.lineDone = false;
         var el = l.items[l.at];
         play(l, el);
         follow(el);
@@ -1441,7 +1459,7 @@
       }
       function finishSection() {
         var l = listen;
-        l.playing = false; paintToggle(); mark(null);
+        l.playing = false; l.done = true; paintToggle(); mark(null);
         setStatus(T('atlas.listen.done', 'Раздел прослушан'));
         var end = l.player.querySelector('.atlas-player-end'), nx = nextSection();
         end.replaceChildren();
@@ -1450,17 +1468,19 @@
         } } }));
         end.removeAttribute('hidden');
       }
+      // one line read: the player stays and the line stays marked; ▶ repeats it, ⏭ reads the next one alone
       function finishSingle() {
         var l = listen;
         if (!l) return;
-        mark(null);
-        section.querySelectorAll('.atlas-say[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
-        if (!l.player) stopListening(); else { l.playing = false; paintToggle(); }
+        if (!l.player) { stopListening(); return; }
+        l.playing = false; l.lineDone = true; paintToggle();
       }
       function pause() { if (listen) { try { listen.audio.pause(); } catch (_) {} listen.playing = false; paintToggle(); } }
       function resume() {
         if (!listen) return;
-        if (listen.at < 0 || listen.mode === 'single') { playAt(firstVisible()); return; }
+        if (listen.at < 0 || listen.done) { playAt(firstVisible()); return; }
+        // after a line read alone: «По строке» repeats it, «Подряд» goes on from the next one
+        if (listen.lineDone) { playAt(prefs.mode === 'line' ? listen.at : listen.at + 1); return; }
         var p = listen.audio.play(); if (p && p.catch) p.catch(function () {});
       }
       function firstVisible() {
@@ -1477,6 +1497,12 @@
           if (x === prefs.rate) o.setAttribute('selected', '');
           rate.appendChild(o);
         });
+        var mode = R.h('select', { 'data-act': 'mode', 'aria-label': T('atlas.listen.mode', 'Как читать') });
+        [['queue', T('atlas.listen.modeQueue', 'Подряд')], ['line', T('atlas.listen.modeLine', 'По строке')]].forEach(function (x) {
+          var o = R.h('option', { value: x[0], text: x[1] });
+          if (x[0] === prefs.mode) o.setAttribute('selected', '');
+          mode.appendChild(o);
+        });
         var formulas = R.h('input', { type: 'checkbox', 'data-act': 'formulas' });
         formulas.checked = prefs.formulas;
         var player = R.h('div', { cls: 'atlas-player', role: 'region', 'aria-label': T('atlas.listen.player', 'Озвучка раздела') }, [
@@ -1484,6 +1510,7 @@
             R.h('button', { type: 'button', 'data-act': 'prev', 'aria-label': T('atlas.listen.prev', 'Предыдущий фрагмент'), text: '⏮' }),
             R.h('button', { type: 'button', 'data-act': 'toggle', cls: 'atlas-player-main', 'aria-label': T('atlas.listen.pause', 'Пауза'), text: '⏸' }),
             R.h('button', { type: 'button', 'data-act': 'next', 'aria-label': T('atlas.listen.next', 'Следующий фрагмент'), text: '⏭' }),
+            mode,
             rate,
             R.h('label', { cls: 'atlas-player-check' }, [formulas, R.h('span', { text: T('atlas.listen.formulas', 'Формулы') })]),
             R.h('span', { cls: 'atlas-player-lang', lang: 'he', text: T('atlas.listen.hebrew', 'иврит') }),
@@ -1505,6 +1532,11 @@
           else if (act === 'next') playAt(l.at + 1);
           else if (act === 'close') stopListening();
         });
+        // the line being heard finishes, then the new way applies
+        mode.addEventListener('change', function () {
+          prefs.mode = mode.value === 'line' ? 'line' : 'queue'; saveListenPrefs(prefs);
+          l.mode = prefs.mode === 'line' ? 'single' : 'queue';
+        });
         rate.addEventListener('change', function () { prefs.rate = Number(rate.value) || 1; l.audio.playbackRate = prefs.rate; saveListenPrefs(prefs); });
         formulas.addEventListener('change', function () {
           var cur = l.items[l.at];
@@ -1519,22 +1551,32 @@
         view.classList.add('atlas-listening');
         return l;
       }
+      // «Слушать» on the bar means the whole section: it sets a «По строке» player back to «Подряд»
+      function queueMode() {
+        if (prefs.mode !== 'line') return;
+        prefs.mode = 'queue'; saveListenPrefs(prefs);
+        if (listen) listen.mode = 'queue';
+        var m = listen && listen.player && listen.player.querySelector('[data-act="mode"]');
+        if (m) Array.from(m.options || m.querySelectorAll('option')).forEach(function (o) { o.selected = o.value === 'queue'; if (o.selected) o.setAttribute('selected', ''); else o.removeAttribute('selected'); });
+      }
       btn.addEventListener('click', function () {
-        if (listen && listen.player && listen.section === section) { if (listen.playing) pause(); else resume(); return; }
-        openPlayer(); playAt(firstVisible());
+        if (listen && listen.player && listen.section === section) { if (listen.playing) pause(); else { queueMode(); resume(); } return; }
+        queueMode(); openPlayer(); playAt(firstVisible());
       });
       // ▶ עב on a formula card: that formula alone; with the player open, the reading goes on from there
       section.addEventListener('click', function (ev) {
         var say = ev.target.closest && ev.target.closest('.atlas-say');
         if (say) {
-          var card = say.closest('.atlas-formula');
-          if (listen && listen.player && listen.section === section) { playAt(queue().indexOf(card) >= 0 ? queue().indexOf(card) : listen.at); return; }
-          if (listen && listen.mode === 'single' && say.getAttribute('aria-pressed') === 'true') { stopListening(); return; }
-          var l = start();
-          l.mode = 'single';
-          section.querySelectorAll('.atlas-say[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
-          say.setAttribute('aria-pressed', 'true');
-          play(l, card);
+          if (say.getAttribute('aria-pressed') === 'true' && listen && listen.section === section) { pause(); return; }
+          var line = say.parentNode;
+          var l = openPlayer();
+          // a formula asked for by its own ▶ is read even when the player leaves formulas out
+          if (queue().indexOf(line) < 0 && !prefs.formulas) {
+            prefs.formulas = true; saveListenPrefs(prefs);
+            var cb = l.player.querySelector('[data-act="formulas"]'); if (cb) cb.checked = true;
+          }
+          var at = queue().indexOf(line);
+          if (at >= 0) playAt(at);
           return;
         }
         // with the player open, a tap on a paragraph reads from it
