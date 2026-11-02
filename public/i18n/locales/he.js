@@ -5686,3 +5686,7 @@ window.I18N_LOCALES.he.atlas = {"contents": "תוכן האטלס", "jump": "עמ
 window.I18N_LOCALES.he.room = window.I18N_LOCALES.he.room || {};
 window.I18N_LOCALES.he.room.hub = window.I18N_LOCALES.he.room.hub || {};
 window.I18N_LOCALES.he.room.hub.atlas = {"title": "אטלס הנדסי 97002", "desc": "נוסחאון מה\"ט: חלקי מכונות ועיבוד שבבי — דו-לשוני, לפי עמודי הספר"};
+
+window.I18N_LOCALES.he.atlas.bookSearch = {"label":"חיפוש בספר","placeholder":"מונח, סימון או קטע משאלה","scope":"תחום החיפוש","book":"בכל הספר","section":"בפרק הזה","submit":"חיפוש","found":"תוצאות","fragment":"עמודים לפי המונחים שבקטע","empty":"לא נמצאו תוצאות. נסו מונח ללא ניקוד או סימון כגון σ_Lc.","unavailable":"החיפוש בספר אינו זמין כרגע. אפשר לחפש בתוך פרק פתוח.","back":"חזרה לתוצאות","more":"הצגת תוצאות נוספות","form":"צורת מילה","partial":"התאמה חלקית","case":"הבדל באותיות גדולות וקטנות","term":"מונחים","symbol":"סימונים","formula":"נוסחאות","block":"טקסט","table":"טבלאות","figure":"איורים","example":"דוגמאות","erratum":"טעויות דפוס"};
+
+Object.assign(window.I18N_LOCALES.he.atlas.bookSearch,{"cell":"תא","related":"יחידה קשורה"});

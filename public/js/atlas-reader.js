@@ -576,7 +576,7 @@
             if (/\d/.test(text)) digits = true;
             var unit = text.trim() && c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit && !labelled[String(c.unit).toLowerCase()] && !labelled['?' + String(c.unit).toLowerCase()] ? c.unit : '';
             var he = c.he && c.he !== text ? c.he : '';
-            tr.appendChild(h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text) },
+            tr.appendChild(h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text), 'data-cell': c.row+':'+c.col },
               he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he) }, texNodes(he)), h('span', { cls: 'atlas-l-ru' }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null]))]
                 : texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])));
           } else if (!covered[r + ':' + k]) tr.appendChild(h('td'));
@@ -1111,15 +1111,140 @@
       return { btn: btn, panel: panel };
     }
 
+    // Search owns a navigation epoch, so a slow index/section cannot replace a newer view.
+    var navigationEpoch = 0, searchBundle = null, lastSearch = null;
+    var Engine = opts.searchEngine || root.AtlasSearch;
+    function digest(value) {
+      var cryptoApi = root.crypto;
+      if (!cryptoApi || !cryptoApi.subtle) return Promise.reject(new Error('SHA256_UNAVAILABLE'));
+      return cryptoApi.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(value))).then(function (bytes) {
+        return Array.from(new Uint8Array(bytes)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+      });
+    }
+    function checkedShard(ix, name) {
+      return fetchJson(base + name).then(function (data) {
+        if (!ix.shards || !ix.shards[name]) return data; // in-memory fixtures have no published manifest
+        return digest(data).then(function (hash) { if (hash !== ix.shards[name]) throw new Error('SEARCH_SHARD_MISMATCH'); return data; });
+      });
+    }
+    function loadSearch() {
+      if (!Engine) return Promise.reject(new Error('SEARCH_ENGINE_UNAVAILABLE'));
+      if (searchBundle) return searchBundle;
+      searchBundle = Promise.all([loadIndex(), fetchJson(base + 'search.json')]).then(function (values) {
+        var ix = values[1], book = values[0];
+        if (!ix || ix.schema !== 'linguistpro.atlas-search.1') throw new Error('SEARCH_SCHEMA');
+        if (book.sections_sha256 && JSON.stringify(book.sections_sha256) !== JSON.stringify(ix.sections_sha256)) throw new Error('SEARCH_SECTIONS_MISMATCH');
+        return (book.search_sha256 ? digest(ix).then(function (hash) { if (hash !== book.search_sha256) throw new Error('SEARCH_INDEX_MISMATCH'); }) : Promise.resolve()).then(function () {
+          return ix.details ? ix : checkedShard(ix, 'search-details.json').then(function (details) { ix.details = details; return ix; });
+        }).then(function (ix) { return Engine.unpack(ix); });
+      }).catch(function (error) { searchBundle = null; throw error; });
+      return searchBundle;
+    }
+    function searchForm(sid, query, scope) {
+      var input = R.h('input', { type: 'search', cls: 'atlas-search', dir: 'auto', value: query || '', maxlength: 2000,
+        placeholder: T('atlas.bookSearch.placeholder', 'Термин, обозначение или фрагмент условия'), 'aria-label': T('atlas.bookSearch.label', 'Поиск по книге') });
+      var select = R.h('select', { cls: 'atlas-search-scope', 'aria-label': T('atlas.bookSearch.scope', 'Область поиска') }, [
+        R.h('option', { value: 'book', text: T('atlas.bookSearch.book', 'Во всей книге') })]);
+      if (sid) select.appendChild(R.h('option', { value: 'section', text: T('atlas.bookSearch.section', 'В этом разделе') }));
+      select.querySelectorAll('option').forEach(function(option){if(option.getAttribute('value')===(scope||'book'))option.setAttribute('selected','');});
+      var form = R.h('form', { cls: 'atlas-book-search', role: 'search' }, [input, select,
+        R.h('button', { type: 'submit', text: T('atlas.bookSearch.submit', 'Найти') })]);
+      form.addEventListener('submit', function (ev) { ev.preventDefault(); if (select.value !== 'section') showSearch(input.value, { sid: sid, scope: select.value }); });
+      select.addEventListener('change',function(){input.dispatchEvent(new doc.defaultView.Event('input'));});
+      input.addEventListener('focus', function () { loadSearch().catch(function () {}); });
+      input.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { input.value = ''; if (input.dispatchEvent) input.dispatchEvent(new doc.defaultView.Event('input')); } });
+      return form;
+    }
+    function highlightText(text, q) {
+      var span = R.h('span', { dir: 'auto' }), words = Engine ? Engine.tokens(q) : [];
+      String(text || '').split(/(\s+)/).forEach(function (word) {
+        var normalized = Engine ? Engine.tokens(word) : [];
+        var hit = normalized.some(function (x) { return words.some(function (w) { return x === w || (/[а-я]/.test(x) && Engine.stemRu(x) === Engine.stemRu(w)); }); });
+        span.appendChild(hit ? R.h('mark', { text: word }) : doc.createTextNode(word));
+      });
+      return span;
+    }
+    function showSearch(query, how) {
+      how = how || {}; query = String(query || '').trim().slice(0, 2000);
+      if (!query) return showHome(how);
+      stopTracking(); var epoch = ++navigationEpoch;
+      var scope = how.scope || 'book', sid = how.sid || '';
+      var form = searchForm(sid, query, scope), results = R.h('div', { cls: 'atlas-search-results', 'aria-busy': 'true' });
+      view.replaceChildren(form, results);
+      results.appendChild(R.h('p', { cls: 'atlas-state', text: T('atlas.loading', 'Загрузка…') }));
+      lastSearch = { query: query, scope: scope, sid: sid, scroll: how.scroll || 0 };
+      if (!how.restore) onState('', 0, how.mode || 'push', lastSearch);
+      return loadSearch().then(function (ix) {
+        if (/^".*"$/.test(query) && !ix.full) return checkedShard(ix, 'search-phrases.json').then(function (full) { ix.full = Engine.unpackPhrases(full); return ix; });
+        return ix;
+      }).then(function (ix) {
+        if (epoch !== navigationEpoch || !view.isConnected) return;
+        var isFragment = false && !/^"/.test(query) && (query.match(/[א-ת]+/g) || []).length >= 6;
+        var hits = isFragment ? Engine.fragment(ix, query) : Engine.query(ix, query, { scope: scope, sid: sid });
+        if (scope === 'section') hits = hits.filter(function (r) { return r.sid === sid; });
+        results.replaceChildren(); results.setAttribute('aria-busy', 'false');
+        var status = R.h('p', { cls: 'atlas-search-status', role: 'status', 'aria-live': 'polite', text: T('atlas.bookSearch.found', 'Найдено') + ': ' + hits.length });
+        results.appendChild(status);
+        if (isFragment) results.appendChild(R.h('p', { cls: 'atlas-muted', text: T('atlas.bookSearch.fragment', 'Страницы по терминам фрагмента') }));
+        if (!hits.length) results.appendChild(R.h('p', { cls: 'atlas-state', text: T('atlas.bookSearch.empty', 'Ничего не найдено. Попробуйте термин без огласовок или обозначение σ_Lc.') }));
+        var groups = { term: 'Термины', symbol: 'Обозначения', formula: 'Формулы', block: 'Текст', table: 'Таблицы', figure: 'Рисунки', example: 'Примеры', erratum: 'Опечатки' };
+        var limit = 50, more = null;
+        function openResult(r, place) {
+          lastSearch.scroll = doc.defaultView && doc.defaultView.scrollY || 0;
+          onState('', 0, 'replace', lastSearch);
+          var target = place ? { sid: place[0], page: place[1], ref: place[2] } : r;
+          return openSection(target.sid, target.page, { ref: target.ref, cell:r.cell, query: query, fromSearch: true });
+        }
+        function paint() {
+          if (more) more.remove();
+          results.querySelectorAll('.atlas-result-group').forEach(function (n) { n.remove(); });
+          Object.keys(groups).forEach(function (kind) {
+            var all = hits.filter(function (r) { return r.kind === kind; }), shown = hits.slice(0, limit).filter(function (r) { return r.kind === kind; });
+            if (!shown.length) return;
+            var group = R.h('section', { cls: 'atlas-result-group' }, [R.h('h3', { text: T('atlas.bookSearch.' + kind, groups[kind]) + ' (' + all.length + ')' })]);
+            shown.forEach(function (r) {
+              var bookSection = index && index.sections.find(function (s) { return s.id === r.sid; });
+              var button = R.h('button', { type: 'button', cls: 'atlas-search-result', 'data-search-result': r.ref, on: { click: function () { openResult(r); } } }, [
+                R.h('span', { cls: 'atlas-result-page', text: T('atlas.page', 'стр.') + ' ' + r.page + ' · ' + (bookSection ? bookSection.ru + ' / ' + bookSection.he : r.sid) }),
+                highlightText(r.detail && r.detail.niqqud || r.he, query), highlightText(r.detail && r.detail.translation || r.ru, query)]);
+              if (r.detail && (r.detail.symbol || r.detail.symbols)) button.appendChild(R.h('bdi',{dir:'ltr',text:Engine.symbolKey(r.detail.symbol||r.detail.symbols)}));
+              if (r.detail && r.detail.translit) button.appendChild(R.h('span', { cls: 'atlas-translit', text: r.detail.translit }));
+              if (r.match && r.match !== 'exact') button.appendChild(R.h('small', { cls: 'atlas-muted', text: T('atlas.bookSearch.' + r.match, r.match === 'related' ? 'Связанная единица' : r.match === 'case' ? 'Другой регистр' : r.match === 'partial' ? 'Частичное совпадение' : 'По форме слова') }));
+              if(r.cell)button.appendChild(R.h('small',{cls:'atlas-muted',text:T('atlas.bookSearch.cell','Ячейка')+' '+(r.cell.row+1)+':'+(r.cell.col+1)}));
+              var row = R.h('div', { cls: 'atlas-result-row' }, [button]);
+              if (r.places) {
+                var pages = R.h('div', { cls: 'atlas-result-pages' }), seen = {};
+                r.places.forEach(function (p) { if (seen[p[1]]) return; seen[p[1]] = true; pages.appendChild(R.h('button', { type: 'button', text: T('atlas.page', 'стр.') + ' ' + p[1], on: { click: function () { openResult(r, p); } } })); });
+                row.appendChild(pages);
+              }
+              if(r.formulas&&r.formulas.length){var formulas=R.h('div',{cls:'atlas-result-pages'});r.formulas.forEach(function(f){formulas.appendChild(R.h('button',{type:'button',text:T('atlas.bookSearch.formula','Формулы')+' '+(f.symbols||''),on:{click:function(){openResult(f);}}}));});row.appendChild(formulas);}
+              group.appendChild(row);
+            }); results.appendChild(group);
+          });
+          if (hits.length > limit) { more = R.h('button', { type: 'button', cls: 'atlas-search-more', text: T('atlas.bookSearch.more', 'Показать ещё'), on: { click: function () { limit += 50; paint(); } } }); results.appendChild(more); }
+        }
+        paint();
+        results.addEventListener('keydown', function (ev) { if (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') return; var buttons = Array.from(results.querySelectorAll('button')), at = buttons.indexOf(ev.target), next = buttons[(at + (ev.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]; if (next) { ev.preventDefault(); next.focus(); } });
+        if (how.scroll && doc.defaultView && doc.defaultView.scrollTo) doc.defaultView.scrollTo(0, how.scroll);
+      }).catch(function () {
+        if (epoch !== navigationEpoch || !view.isConnected) return;
+        results.replaceChildren(R.h('p', { cls: 'atlas-state', 'data-search-unavailable': '', role: 'status', text: T('atlas.bookSearch.unavailable', 'Поиск по книге сейчас недоступен. Доступен поиск в открытом разделе.') }));
+        results.setAttribute('aria-busy', 'false');
+        results.appendChild(R.h('button', { type: 'button', text: T('atlas.contents', 'Оглавление атласа'), on: { click: function () { showHome(); } } }));
+      });
+    }
+
     function openSection(id, page, how) {
       how = how || {};
+      stopTracking(); var sectionEpoch = ++navigationEpoch;
       state(T('atlas.loading', 'Загрузка…'));
       return fetchJson(base + 'sections/' + id + '.json').then(function (data) {
+        if (sectionEpoch !== navigationEpoch || !view.isConnected) return;
         var bar = R.h('div', { cls: 'atlas-toolbar' }, [
           R.h('button', { type: 'button', cls: 'atlas-back', text: '← ' + T('atlas.contents', 'Оглавление атласа'), on: { click: function () { showHome(); } } }),
           R.h('form', { cls: 'atlas-pagejump' }, [R.h('input', { type: 'number', min: 1, max: 564, inputmode: 'numeric', placeholder: T('atlas.page', 'стр.'),
             'aria-label': T('atlas.jump', 'Страница книги') }), R.h('button', { type: 'submit', text: '→', 'aria-label': T('atlas.open', 'Открыть') })]),
-          R.h('input', { type: 'search', cls: 'atlas-search', placeholder: T('atlas.search', 'Поиск в разделе: иврит или русский'), 'aria-label': T('atlas.search', 'Поиск в разделе: иврит или русский') }),
+          searchForm(id, '', 'book'),
           R.h('span', { cls: 'atlas-search-count', 'aria-live': 'polite' }),
           R.h('button', { type: 'button', cls: 'atlas-print-btn', title: T('atlas.print', 'Печать раздела'), 'aria-label': T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } },
             [R.h('span', { cls: 'atlas-print-label', text: T('atlas.print', 'Печать раздела') }), R.h('span', { cls: 'atlas-print-short', 'aria-hidden': 'true', text: T('atlas.printShort', 'Печать') })])]);
@@ -1128,6 +1253,10 @@
         bar.insertBefore(columns.btn, bar.querySelector('.atlas-print-btn'));
         bar.appendChild(columns.panel);
         view.replaceChildren(bar, section);
+        if (how.fromSearch && lastSearch) {
+          var backResults=R.h('button',{type:'button',cls:'atlas-return-results',text:'← '+T('atlas.bookSearch.back','К результатам'),on:{click:function(){showSearch(lastSearch.query,lastSearch);}}});
+          bar.insertBefore(backResults,bar.firstChild);
+        }
         wireInteractions(section);
         wireReview(section);
         track.input = bar.querySelector('.atlas-pagejump input');
@@ -1152,6 +1281,7 @@
           if (hits[at] && hits[at].scrollIntoView) hits[at].scrollIntoView({ block: 'center' });
         }
         search.addEventListener('input', function (ev) {
+          if (bar.querySelector('.atlas-search-scope').value !== 'section') {section.querySelectorAll('.atlas-hit').forEach(function(n){n.classList.remove('atlas-hit');});hits=[];count.textContent='';return;}
           var q = String(ev.target.value || '').trim().toLowerCase();
           hits = []; at = 0;
           section.querySelectorAll('.atlas-row, .atlas-table td, .atlas-formula, .atlas-regions li, .atlas-steps li, .atlas-erratum').forEach(function (row) {
@@ -1172,10 +1302,11 @@
         track.last = page || data.first;
         if (track.input) track.input.value = String(track.last);
         if (page) goToPage(page);
+        if(how.ref){var target=Array.from(section.querySelectorAll('[data-ref]')).find(function(n){return n.getAttribute('data-ref')===how.ref;});if(target){if(how.cell){var cell=target.querySelector('[data-cell="'+how.cell.row+':'+how.cell.col+'"]');if(cell)target=cell;}target.classList.add('atlas-hit');if(target.scrollIntoView)target.scrollIntoView({block:'center'});}else if(how.query){section.querySelectorAll('.atlas-row').forEach(function(n){if(n.textContent.toLowerCase().includes(how.query.toLowerCase()))n.classList.add('atlas-hit');});}}
         if (!how.restore) onState(id, page || data.first, 'push');
         trackPages(id, section);
         return data;
-      }).catch(function () { state(T('atlas.loadError', 'Раздел атласа сейчас недоступен')); });
+      }).catch(function () { if(sectionEpoch===navigationEpoch)state(T('atlas.loadError', 'Раздел атласа сейчас недоступен')); });
     }
 
     function loadIndex() {
@@ -1200,6 +1331,8 @@
     function homeView() {
       var open = function (id, page) { return openSection(id, page); };
       var home = R.renderHome(T, index, open);
+      home.insertBefore(searchForm('', '', 'book'),home.querySelector('.atlas-jump'));
+      var win=doc.defaultView;if(win&&win.requestIdleCallback)win.requestIdleCallback(function(){if(home.isConnected)loadSearch().catch(function(){});},{timeout:1500});
       paintHomeReview(home);
       if (review && !reviewMarks) Promise.resolve().then(review.load).then(function (r) {
         if (r && r.pages) { reviewMarks = r.pages; paintHomeReview(home); }
@@ -1209,18 +1342,19 @@
 
     function showHome(how) {
       how = how || {};
-      stopTracking();
+      stopTracking(); var homeEpoch=++navigationEpoch; lastSearch=null;
       if (!how.restore) onState('', 0, 'push');
       if (index) { view.replaceChildren(homeView()); return Promise.resolve(index); }
       state(T('atlas.loading', 'Загрузка…'));
       return fetchJson(base + 'index.json').then(function (data) {
+        if(homeEpoch!==navigationEpoch || !view.isConnected)return;
         index = data;
         view.replaceChildren(homeView());
         return index;
       }).catch(function () { state(T('atlas.loadError', 'Атлас сейчас недоступен')); });
     }
 
-    return { home: showHome, openSection: openSection };
+    return { home: showHome, openSection: openSection, search: showSearch };
   }
 
   // Print preparation: the print view, plus a page style appended last in the document so the atlas footer wins over

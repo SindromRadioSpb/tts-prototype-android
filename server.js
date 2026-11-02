@@ -1438,7 +1438,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=805",
-  "/js/room-b6-core.js?v=822",
+  "/js/room-b6-core.js?v=823",
   "/db/local-db.js?v=815",
   "/db/migrations.js",
   "/db/db-worker.js",

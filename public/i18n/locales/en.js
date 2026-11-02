@@ -5677,3 +5677,7 @@ window.I18N_LOCALES.en.atlas = {"contents": "Atlas contents", "jump": "Book page
 window.I18N_LOCALES.en.room = window.I18N_LOCALES.en.room || {};
 window.I18N_LOCALES.en.room.hub = window.I18N_LOCALES.en.room.hub || {};
 window.I18N_LOCALES.en.room.hub.atlas = {"title": "Engineering atlas 97002", "desc": "MAHAT formulary: machine parts and machining — bilingual, page by page"};
+
+window.I18N_LOCALES.en.atlas.bookSearch = {"label":"Search the book","placeholder":"Term, symbol or problem fragment","scope":"Search scope","book":"Whole book","section":"This section","submit":"Search","found":"Results","fragment":"Pages covering terms in your fragment","empty":"No results. Try a term without vowel marks or a symbol such as σ_Lc.","unavailable":"Book search is unavailable. You can search within an open section.","back":"Back to results","more":"Show more","form":"Word form","partial":"Partial match","case":"Different case","term":"Terms","symbol":"Symbols","formula":"Formulas","block":"Text","table":"Tables","figure":"Figures","example":"Examples","erratum":"Errata"};
+
+Object.assign(window.I18N_LOCALES.en.atlas.bookSearch,{"cell":"Cell","related":"Related unit"});

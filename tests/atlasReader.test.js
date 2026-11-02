@@ -160,6 +160,8 @@ test('search reports the number of matches and says when there are none', async 
   const api = require('../public/js/atlas-reader.js');
   const reader = api.mount(document.getElementById('m'), { fetchJson: () => Promise.resolve(fixture('s09-belt.json')) });
   await reader.openSection('s09-belt');
+  document.querySelectorAll('.atlas-search-scope option').forEach(o=>o.removeAttribute('selected'));
+  document.querySelector('.atlas-search-scope option[value="section"]').setAttribute('selected','');
   const input = document.querySelector('.atlas-search');
   input.value = 'זזזזזז';
   input.dispatchEvent(new window.Event('input'));
@@ -620,4 +622,22 @@ test('the audit script checks every page of the book against the quality standar
   assert.match(src, /ENGINEERING_ATLAS_QUALITY_STANDARD\.md/);
   ['1.7', '4.3', '4.4', '4.5', '6.2', '3.2'].forEach((rule) => assert.ok(src.includes("'" + rule + "'"), 'rule ' + rule));
   assert.ok(fs.existsSync(path.join(root, 'docs/planning/ENGINEERING_ATLAS_QUALITY_STANDARD.md')));
+});
+
+// Search is a mounted surface: a missing index is never reported as zero hits.
+test('book search on home distinguishes unavailable index',async()=>{
+ const {document,T}=env();const reader=require('../public/js/atlas-reader').mount(document.getElementById('m'),{t:T,fetchJson:async url=>{if(url.endsWith('index.json'))return fixture('index.json');throw Error('offline');}});
+ await reader.home();assert.ok(document.querySelector('form[role="search"]'));await reader.search('пружина');assert.ok(document.querySelector('[data-search-unavailable]'));assert.equal(document.querySelectorAll('[data-search-result]').length,0);
+});
+test('book search result opens exact target and returns to retained query',async()=>{
+ const {document,window,T}=env(),S=require('../public/js/atlas-search');const section=fixture('s09-belt.json');const ix=S.buildIndex([section]);const states=[];
+ const reader=require('../public/js/atlas-reader').mount(document.getElementById('m'),{t:T,searchEngine:S,fetchJson:async url=>url.endsWith('index.json')?fixture('index.json'):url.endsWith('search.json')?ix:url.endsWith('search-details.json')?ix.details:section,onState:(...args)=>states.push(args)});
+ await reader.home();await reader.search('ремень');const button=document.querySelector('[data-search-result]');assert.ok(button);button.dispatchEvent(new window.Event('click'));await new Promise(r=>setTimeout(r,30));assert.ok(document.querySelector('.atlas-section'));assert.ok(document.querySelector('.atlas-hit'));document.querySelector('.atlas-return-results').dispatchEvent(new window.Event('click'));await new Promise(r=>setTimeout(r,30));assert.equal(document.querySelector('.atlas-search').value,'ремень');assert.ok(states.some(x=>x[3]&&x[3].query==='ремень'));
+});
+
+test('atlas query and scope survive the Room sanitizer and URL round trip',async()=>{
+ const core=await import(require('node:url').pathToFileURL(path.join(root,'public/js/room-b6-core.js')).href);
+ const state=core.sanitizePresentationState({surface:'corpus',corpus:'atlas:a97002',anchor:{itemId:'',rowIndex:0,query:'והקפיץ',scope:'section',sid:'s05-springs',scroll:250}});
+ const restored=core.presentationStateFromHash(core.presentationHash(state));assert.deepEqual(restored.anchor,state.anchor);
+ const unrelated=core.sanitizePresentationState({...state,corpus:'benyehuda'});assert.equal(unrelated.anchor.query,undefined);
 });

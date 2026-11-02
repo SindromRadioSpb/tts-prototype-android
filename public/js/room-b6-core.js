@@ -193,6 +193,12 @@ export function sanitizePresentationState(input = {}) {
       rowIndex: Number.isInteger(Number(anchorIn.rowIndex)) ? Math.max(0, Math.min(10000000, Number(anchorIn.rowIndex))) : 0,
     },
   };
+  if (isAtlas(corpus) && typeof anchorIn.query === 'string' && anchorIn.query.trim()) {
+    state.anchor.query = boundedString(anchorIn.query, 2000);
+    state.anchor.scope = anchorIn.scope === 'section' ? 'section' : 'book';
+    state.anchor.sid = cleanFacetId(anchorIn.sid);
+    state.anchor.scroll = Math.max(0, Math.min(10000000, Number(anchorIn.scroll) || 0));
+  }
   if (byteLength(JSON.stringify(state)) > ROOM_B6_LIMITS.presentationBytes) {
     state.filters.q = '';
     state.filters.tags = [];
@@ -256,7 +262,7 @@ export function presentationStateFromHash(hash) {
   else if (isAtlas(route)) {
     const section = cleanFacetId(params.get('sec'));
     const page = /^[1-9]\d{0,3}$/.test(params.get('pg') || '') ? Number(params.get('pg')) : 0;
-    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { itemId: section, rowIndex: section ? page : 0 } });
+    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { itemId: section, rowIndex: section ? page : 0, query: params.get('aq') || '', scope: params.get('ascope'), sid: params.get('asid'), scroll: params.get('ascroll') } });
   }
   else return null;
   if (!isPublicCorpus(input.corpus) || input.surface === 'hub') return sanitizePresentationState(input);
@@ -322,6 +328,13 @@ function publicPresentationHash(state, sharedQuery) {
     params.set('sec', state.anchor.itemId);
     if (state.anchor.rowIndex > 0) params.set('pg', String(state.anchor.rowIndex));
   }
+  if (isAtlas(route) && state.anchor.query) {
+    const search = new URLSearchParams(params);
+    search.set('aq',state.anchor.query);search.set('ascope',state.anchor.scope);
+    if(state.anchor.sid)search.set('asid',state.anchor.sid);
+    if(state.anchor.scroll)search.set('ascroll',String(state.anchor.scroll));
+    if(byteLength('#'+search.toString()) <= ROOM_B6_LIMITS.presentationUrlBytes) { for(const [k,v] of search)params.set(k,v); }
+  }
   if (isPublicCorpus(route)) {
     const filters = state.filters;
     if (state.mode !== 'read') params.set('mode', state.mode);
@@ -346,7 +359,8 @@ function publicPresentationHash(state, sharedQuery) {
 }
 
 // Only an explicit Share action calls this helper. Normal history commits must
-// use presentationHash, which never serializes query text. No personal or group
+// use presentationHash. Atlas public-book search has its own explicit URL contract.
+// Other normal routes never serialize query text. No personal or group
 // scope can be shared, even if another corpus field claims to be public.
 export function sharedSearchHash(input = {}) {
   input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};

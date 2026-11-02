@@ -34,7 +34,7 @@ import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js?v=822';
+import * as roomB6 from '/js/room-b6-core.js?v=823';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -844,8 +844,8 @@ function roomApplyStateFields(state) {
   } else if (String(safe.corpus).startsWith('atlas:') && safe.surface !== 'hub') {
     // the atlas section and page come back from the address (acceptance UI01)
     corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
-    roomAtlasAnchor = { section: safe.anchor.itemId || '', page: safe.anchor.rowIndex || 0 };
-    roomAtlasPosition = { itemId: roomAtlasAnchor.section, rowIndex: roomAtlasAnchor.section ? roomAtlasAnchor.page : 0 };
+    roomAtlasAnchor = { ...safe.anchor, section: safe.anchor.itemId || '', page: safe.anchor.rowIndex || 0 };
+    roomAtlasPosition = { ...safe.anchor, itemId: roomAtlasAnchor.section, rowIndex: roomAtlasAnchor.section ? roomAtlasAnchor.page : 0 };
   } else if (safe.surface === 'hub') {
     corpusNav = { corpus: 'hub', level: 'home', era: null, author: null };
   } else {
@@ -13210,11 +13210,12 @@ function renderAtlasCorpus(atlasId, token) {
       else if (readerCfg.translitProfile === 'ru-phonetic') readerCfg.translitProfile = 'learner-latin';
       saveReaderCfg();
     },
-    onState: (section, page, mode) => {
-      roomAtlasPosition = { itemId: section || '', rowIndex: section ? page || 0 : 0 };
+    onState: (section, page, mode, search) => {
+      roomAtlasPosition = { itemId: section || '', rowIndex: section ? page || 0 : 0, ...(search || {}) };
       roomCommitPresentation(mode, { anchor: roomAtlasPosition });
     } });
-  if (anchor && anchor.section) reader.openSection(anchor.section, anchor.page || 0, { restore: true });
+  if (anchor && anchor.query) reader.search(anchor.query, { ...anchor, restore: true });
+  else if (anchor && anchor.section) reader.openSection(anchor.section, anchor.page || 0, { restore: true });
   else reader.home({ restore: true });
 }
 

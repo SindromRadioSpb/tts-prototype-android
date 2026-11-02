@@ -5692,3 +5692,7 @@ window.I18N_LOCALES.ru.atlas = {"contents": "Оглавление атласа",
 window.I18N_LOCALES.ru.room = window.I18N_LOCALES.ru.room || {};
 window.I18N_LOCALES.ru.room.hub = window.I18N_LOCALES.ru.room.hub || {};
 window.I18N_LOCALES.ru.room.hub.atlas = {"title": "Инженерный атлас 97002", "desc": "נוסחאון МАХАТ: детали машин и обработка резанием — двуязычно, по страницам книги"};
+
+window.I18N_LOCALES.ru.atlas.bookSearch = {"label":"Поиск по книге","placeholder":"Термин, обозначение или фрагмент условия","scope":"Область поиска","book":"Во всей книге","section":"В этом разделе","submit":"Найти","found":"Найдено","fragment":"Страницы по терминам фрагмента","empty":"Ничего не найдено. Попробуйте термин без огласовок или обозначение σ_Lc.","unavailable":"Поиск по книге сейчас недоступен. Доступен поиск в открытом разделе.","back":"К результатам","more":"Показать ещё","form":"По форме слова","partial":"Частичное совпадение","case":"Другой регистр","term":"Термины","symbol":"Обозначения","formula":"Формулы","block":"Текст","table":"Таблицы","figure":"Рисунки","example":"Примеры","erratum":"Опечатки"};
+
+Object.assign(window.I18N_LOCALES.ru.atlas.bookSearch,{"cell":"Ячейка","related":"Связанная единица"});

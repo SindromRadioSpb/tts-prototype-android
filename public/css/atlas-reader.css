@@ -347,3 +347,29 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
   .atlas-root .atlas-search-count { order: 10; }
   .atlas-root .atlas-chip { min-height: 40px; }
 }
+/* Book index: a page-oriented subject index, sharing the reader's theme and fonts. */
+.atlas-root .atlas-book-search { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:16px 0; width:100%; }
+.atlas-root .atlas-book-search .atlas-search { flex:1 1 260px; min-width:0; width:auto; order:0; }
+.atlas-root .atlas-search-scope { font:inherit; color:var(--atlas-ink); background:var(--atlas-surface); border:1px solid var(--atlas-line-strong); min-height:40px; border-radius:10px; padding:0 10px; max-width:100%; }
+.atlas-root .atlas-book-search button { background:var(--atlas-teal); color:var(--atlas-on-teal); border-color:var(--atlas-teal); width:auto; }
+.atlas-root .atlas-search-results { max-width:900px; margin-inline:auto; }
+.atlas-root .atlas-search-status { font-weight:600; margin-block:20px; }
+.atlas-root .atlas-result-group { margin-block:28px; }
+.atlas-root .atlas-result-group h3 { font-size:1rem; color:var(--atlas-teal-ink); border-block-end:2px solid var(--atlas-teal); padding-block-end:8px; }
+.atlas-root .atlas-result-row { padding-block:8px 12px; border-block-end:1px solid var(--atlas-line); min-width:0; }
+.atlas-root .atlas-search-result { display:grid; gap:6px; text-align:start; width:100%; padding:12px; border-color:transparent; background:transparent; white-space:normal; overflow-wrap:anywhere; }
+.atlas-root .atlas-search-result > span { display:block; }
+.atlas-root .atlas-search-result > span[dir="auto"] { font-size:1.05rem; }
+.atlas-root .atlas-result-page { font-size:.85rem; color:var(--atlas-muted); }
+.atlas-root .atlas-result-pages { display:flex; flex-wrap:wrap; gap:6px; padding-inline:12px; margin-block-start:6px; }
+.atlas-root .atlas-result-pages button { font-size:.85rem; min-height:36px; width:auto; padding-inline:10px; }
+.atlas-root .atlas-search-more { margin:20px auto; display:block; }
+.atlas-root .atlas-search-results mark { background:var(--atlas-hit); color:var(--atlas-ink); }
+.atlas-root .atlas-toolbar .atlas-book-search { flex:1 1 300px; margin:0; }
+.atlas-root .atlas-toolbar .atlas-book-search .atlas-search { flex-basis:160px; }
+@media(max-width:600px){
+ .atlas-root .atlas-book-search .atlas-search { flex-basis:100%; }
+ .atlas-root .atlas-book-search .atlas-search-scope { flex:1; min-width:0; }
+ .atlas-root .atlas-search-result { padding-inline:4px; }
+ .atlas-root .atlas-result-pages { padding-inline:4px; }
+}
