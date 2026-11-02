@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const S=require('../../public/js/atlas-search.js');
+const dir=path.resolve(process.argv[2]||'data/atlas/a97002');
+const names=fs.readdirSync(path.join(dir,'sections')).filter(x=>x.endsWith('.json')).sort();
+const hashes={};const sections=names.map(n=>{const b=fs.readFileSync(path.join(dir,'sections',n));const s=JSON.parse(b);hashes[s.id]=crypto.createHash('sha256').update(b).digest('hex');return s;});
+const ix=S.buildIndex(sections);ix.sections_sha256=hashes;
+S.pack(ix);const data=JSON.stringify(ix),bytes=Buffer.byteLength(data);if(bytes>1500000)throw Error('Index budget exceeded: '+bytes);
+fs.writeFileSync(path.join(dir,'search.json'),data);
+const index=JSON.parse(fs.readFileSync(path.join(dir,'index.json')));index.sections_sha256=hashes;fs.writeFileSync(path.join(dir,'index.json'),JSON.stringify(index));
+S.unpack(ix);const times=[];for(let n=0;n<100;n++){const a=performance.now();S.query(ix,['пружинами','בקפיץ','rpm','σ_Lc'][n%4]);times.push(performance.now()-a);}times.sort((a,b)=>a-b);
+console.log(JSON.stringify({bytes,objects:ix.docs.length,tokens:Object.keys(ix.post).length,p95_ms:times[94],missingRefs:ix.docs.filter(d=>!d[3]).length}));
