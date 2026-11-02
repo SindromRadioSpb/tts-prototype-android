@@ -620,7 +620,7 @@
   }
   function pack(ix) {
     var ids = [];
-    ix.docs = ix.docs.map(function (d, index) {
+    ix.docs = ix.docs.map(function (d) {
       var n = ids.indexOf(d[1]);
       if (n < 0) {
         n = ids.length;
@@ -633,8 +633,8 @@
         d[3].startsWith("a97002:p" + d[2] + ":")
           ? d[3].slice(("a97002:p" + d[2] + ":").length)
           : "=" + d[3],
-        ix.previews ? ix.previews[index][0] : d[4],
-        ix.previews ? ix.previews[index][1] : d[5],
+        d[4],
+        d[5],
       ];
       if (d[6])
         row.push(
@@ -741,14 +741,14 @@
   }
   function unpack(ix) {
     if (!ix.packed) return ix;
-    ix.docs = ix.docs.map(function (d) {
+    ix.docs = ix.docs.map(function (d,index) {
       return [
         groups[d[0]],
         ix.sids[d[1]],
         d[2],
         d[3][0] === "=" ? d[3].slice(1) : "a97002:p" + d[2] + ":" + d[3],
-        d[4],
-        d[5],
+        ix.previews ? ix.previews[index][0] : d[4],
+        ix.previews ? ix.previews[index][1] : d[5],
         d[6]
           ? d[6].split(";").map(function (p) {
               var a = p.split(","),

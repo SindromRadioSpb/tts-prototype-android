@@ -29,6 +29,7 @@ for (const section of sections)
       for (const command of (item.latex || "").match(/\\[A-Za-z]+/g) || [])
         commands[command.slice(1)] = (commands[command.slice(1)] || 0) + 1;
 const unknownCommands = Object.keys(commands).filter((c) => !known.has(c));
+const expectedDocs=ix.docs.map(d=>d.concat(d.length===6?[null]:[]));
 const previews = ix.docs.map((d) => [d[4], d[5]]);
 ix.docs.forEach((d) => {
   d[4] = "";
@@ -55,7 +56,8 @@ for (const [name, data] of Object.entries(payloads))
     );
 // Validate round trip before replacing the local bundle. Section files are read-only.
 const t = performance.now();
-S.unpack(JSON.parse(payloads["search.json"]));
+const restored=S.unpack(Object.assign(JSON.parse(payloads['search.json']),{previews}));
+if(JSON.stringify(restored.docs)!==JSON.stringify(expectedDocs))throw Error('Document/preview roundtrip failed');
 const parseMs = performance.now() - t;
 if (
   JSON.stringify(

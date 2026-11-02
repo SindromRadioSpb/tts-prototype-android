@@ -187,7 +187,10 @@ test(
         sections,
         require("../atlas/a97002/notation-lexicon.json"),
       ),
-      b = S.unpack(JSON.parse(fs.readFileSync(path.join(dir, "search.json"))));
+      raw=JSON.parse(fs.readFileSync(path.join(dir,'search.json'))),
+      metadata=JSON.parse(fs.readFileSync(path.join(dir,'search-details.json'))),
+      b = S.unpack(Object.assign(raw,{previews:metadata.previews}));
+    assert.equal(b.docs.length,a.docs.length);a.docs.forEach((doc,n)=>assert.equal(JSON.stringify(b.docs[n]),JSON.stringify(doc.concat(doc.length===6?[null]:[])),'preview/target '+n));
     assert.deepEqual(
       JSON.parse(JSON.stringify(a.post)),
       JSON.parse(JSON.stringify(b.post)),
@@ -221,4 +224,10 @@ test("allowable stress brackets and case fallback outrank unrelated subscript to
     S.query(ix, "σ_Lc").filter((r) => r.kind === "symbol")[0].ref,
     "v1",
   );
+});
+
+test('separate preview metadata restores labels in a compact shipped index',()=>{
+ const source=S.buildIndex(sections),previews=source.docs.map(d=>[d[4],d[5]]);source.docs.forEach(d=>{d[4]='';d[5]='';});
+ const shipped=JSON.parse(JSON.stringify(S.pack(source)));shipped.previews=previews;const restored=S.unpack(shipped);
+ assert.equal(restored.docs[0][4],'קפיץ');assert.equal(restored.docs[0][5],'Пружина стальная');assert.equal(S.query(restored,'пружина').find(r=>r.kind==='block').ru,'Пружина стальная');
 });

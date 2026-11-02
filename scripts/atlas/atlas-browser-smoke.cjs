@@ -27,7 +27,7 @@ const fs = require("fs"),
         const page = await context.newPage();
         const errors = [];
         page.on("pageerror", (e) => errors.push(e.message));
-        await page.route("**/data/atlas/a97002/assets/**", async (route) => {
+        if(new URL(base).hostname!=="linguistpro.kolosei.com") await page.route("**/data/atlas/a97002/assets/**", async (route) => {
           const url = new URL(route.request().url());
           try {
             const r = await route.fetch({
@@ -195,7 +195,7 @@ const fs = require("fs"),
           await page.waitForSelector("[data-search-result]");
         }
         if(width===390){
-          await page.locator('.atlas-search').fill('σ_Lc');await page.locator('.atlas-book-search').press('Enter');await page.waitForSelector('[data-search-result]');await page.locator('[data-search-result]').first().click();await page.waitForSelector('.atlas-hit');await page.waitForTimeout(1200);
+          await page.locator('.atlas-search').fill('σ_Lc');await page.locator('.atlas-book-search').press('Enter');await page.waitForSelector('[data-search-result]');const labels=await page.locator('[data-search-result]').first().locator('span[dir=auto]').allTextContents();assert.ok(labels.some(t=>t.trim().length>0),'result lost its book labels');await page.locator('[data-search-result]').first().click();await page.waitForSelector('.atlas-hit');await page.waitForTimeout(1200);
           const rect=await page.locator('.atlas-hit').first().evaluate(n=>({top:n.getBoundingClientRect().top,height:innerHeight}));assert.ok(rect.top>=0&&rect.top<rect.height-80,'search target scrolled offscreen after page settling: '+JSON.stringify(rect));
           await page.screenshot({path:path.join(out,lang+'-390-found-formula.png')});await page.goBack();await page.waitForSelector('[data-search-result]');
         }
