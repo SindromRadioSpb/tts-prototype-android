@@ -2092,6 +2092,7 @@ const ensureWordStates = () => morphHost.ensureWordStates();
 // (colour on, or niqqud 'adaptive'); otherwise a cheap clear restores plain/neutral.
 let readerDecorationRevision = 0;
 async function applyDecorations() {
+  try { paintAtlasWords(); } catch (_) {}   // atlas P4 W3: an open atlas section repaints with the Room's statuses
   const mount = activeReaderMorphMount();
   if (!mount || !window.ReaderMorph) return;
   const epoch = readerOpenEpoch, work = readerMorphWork;
@@ -13231,6 +13232,53 @@ function renderAtlasCorpus(atlasId, token) {
 // is written into the device's database on open); a word of a reviewed term shows that term above the card; a tap
 // always opens the card (E3); status colours stay off in the atlas (E4 — applyDecorations paints the Room table only).
 var atlasWordsCtx = null;   // var: verifyOccurrence above may run before this line
+// W3 — colours by the word's status (E4: off by default). The atlas keeps its own switch, so turning the Room's
+// «Статус слов» on for ordinary texts does not colour the atlas. Painting only READS word_status.
+var atlasWordsSection = null, atlasPaintPass = 0;
+function atlasColoursOn() { try { return localStorage.getItem('room.atlasWordStatus') === '1'; } catch (_) { return false; } }
+function paintAtlasWords() {
+  const section = atlasWordsSection, RM = window.ReaderMorph;
+  if (!section || !section.isConnected || !RM || typeof RM.decorateWords !== 'function') return;
+  const ctx = atlasWordsCtx, pass = ++atlasPaintPass;
+  const isCurrent = () => pass === atlasPaintPass && section === atlasWordsSection && ctx === atlasWordsCtx && section.isConnected;
+  if (!atlasColoursOn()) { RM.decorateWords(section, {}, { color: false, fadeMode: 'full', isCurrent }); return; }
+  // row by row: decorateWords queues table rows (tbody tr); an atlas section is a list of .atlas-row blocks
+  (async () => {
+    const states = (await ensureWordStates()) || {};
+    for (const row of section.querySelectorAll('.atlas-row[data-ref]')) {
+      if (!isCurrent()) return;
+      if (row.querySelector('.rm-w')) await RM.decorateWords(row, states, { color: true, fadeMode: 'full', isCurrent });
+    }
+  })().catch(() => {});
+}
+function atlasColoursControl(panel) {
+  if (!panel || panel.querySelector('.atlas-word-colours')) return;
+  const box = el('div', { class: 'atlas-word-colours' });
+  box.appendChild(el('div', { class: 'atlas-view-head', text: tt('atlas.word.colorsHead', 'Слова') }));
+  const lab = el('label', { class: 'atlas-col' });
+  const cb = el('input', { attrs: { type: 'checkbox', 'data-atlas-colours': '' } });
+  cb.checked = atlasColoursOn();
+  lab.appendChild(cb);
+  lab.appendChild(el('span', { text: tt('atlas.word.colors', 'Цвет по статусу слов') }));
+  box.appendChild(lab);
+  const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('atlas.word.colors', 'Цвет по статусу слов') } });
+  [['unassessed', tt('room.morph.status.unassessed', 'не оценено')], ['new', tt('room.morph.status.new', 'новое')], ['l1', tt('room.morph.status.l1', 'незнакомо')], ['l2', tt('room.morph.status.l2', 'узнаю')],
+    ['l3', tt('room.morph.status.l3', 'вспоминаю')], ['l4', tt('room.morph.status.l4', 'почти знаю')],
+    ['known', tt('room.morph.status.known', 'знаю')], ['ignore', tt('room.morph.status.ignore', 'не учить')]].forEach(([c, l]) => {
+    const sw = el('span', { class: 'reader-status-sw' });
+    sw.appendChild(el('span', { class: 'reader-status-dot sw-' + c }));
+    sw.appendChild(el('span', { text: l }));
+    legend.appendChild(sw);
+  });
+  legend.hidden = !cb.checked;
+  box.appendChild(legend);
+  cb.addEventListener('change', () => {
+    try { localStorage.setItem('room.atlasWordStatus', cb.checked ? '1' : '0'); } catch (_) {}
+    legend.hidden = !cb.checked;
+    paintAtlasWords();
+  });
+  panel.appendChild(box);
+}
 function attachAtlasWords(atlasId, section, data, how) {
   const AW = window.AtlasWords;
   if (!AW || !window.ReaderMorph || !section) return null;
@@ -13256,6 +13304,9 @@ function attachAtlasWords(atlasId, section, data, how) {
   });
   const labels = { terms: tt('atlas.word.terms', 'Термины абзаца') };
   section.querySelectorAll('.atlas-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });
+  atlasWordsSection = section;
+  if (how && how.panel) atlasColoursControl(how.panel);
+  paintAtlasWords();
   // «В контексте (ИИ)» (E5): a section's layer, prepared off-site and put next to the section on the volume
   // (word-gloss-ai-layer-v1). Every row is re-proved by its key; no layer — the card shows what it showed before.
   const AI = window.WordGlossAI;

@@ -5,6 +5,8 @@
 // RU and HE without horizontal scroll, print hides the word layer, wrap time of the longest section on a 4× CPU.
 //   node scripts/atlas/atlas-words-smoke.cjs <base> [outDir]
 const { chromium } = require("playwright");
+// the Room's status paint classes (reader-morph _RM_W_CLASSES), the active-word highlight excluded
+const STATUS = ".atlas-row .rm-w:is(.rm-w-new,.rm-w-unassessed,.rm-w-l1,.rm-w-l2,.rm-w-l3,.rm-w-l4,.rm-w-known,.rm-w-ignore)";
 const fs = require("fs"), path = require("path"), assert = require("assert/strict");
 
 (async () => {
@@ -24,13 +26,13 @@ const fs = require("fs"), path = require("path"), assert = require("assert/stric
       await page.locator("select").filter({ has: page.locator('option[value="he"]') }).first().selectOption(lang);
       await page.locator('[data-section="s02-rivets"]').click();
       await page.waitForSelector(".atlas-row .rm-w", { state: "attached", timeout: 15000 });
-      const counts = await page.evaluate(() => ({
+      const counts = await page.evaluate((STATUS) => ({
         words: document.querySelectorAll(".atlas-row .rm-w").length,
         terms: document.querySelectorAll(".atlas-row .rm-w.atlas-term").length,
         loose: document.querySelectorAll(".atlas-row > .atlas-row-terms").length,
-        coloured: document.querySelectorAll(".atlas-row .rm-w[class*='rm-st-'], .atlas-row .rm-w[data-status]").length,
+        coloured: document.querySelectorAll(STATUS).length,
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      }));
+      }), STATUS);
       assert.ok(counts.words > 500, "words wrapped: " + counts.words);
       assert.ok(counts.terms > 50, "term words: " + counts.terms);
       assert.ok(counts.loose > 0, "loose term lines: " + counts.loose);
@@ -98,6 +100,65 @@ const fs = require("fs"), path = require("path"), assert = require("assert/stric
         assert.notEqual(tapped, at, "the tapped word is in another paragraph");
         assert.equal(now, at, "a word tap opens the card and does not move the reading (E3)");
       } else report.push({ e3: "no recordings on this server — skipped" });
+      await context.close();
+    }
+
+    if (!process.argv.includes("--no-w3")) // W3: colours by status — off by default even when the Room's own «Статус слов» is on; the switch in «Колонки»
+    // paints and unpaints; opening and painting write nothing into word_status / review_log
+    {
+      const context = await browser.newContext({ viewport: { width: 390, height: 860 }, serviceWorkers: "block" });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await page.addInitScript(() => { try { localStorage.setItem("room.wordStatus", "1"); localStorage.removeItem("room.atlasWordStatus"); } catch (_) {} });
+      await page.goto(base + "/library.html#room=atlas%3Aa97002");
+      await page.waitForSelector(".atlas-home");
+      const rowsOf = () => page.evaluate(async () => {
+        try {
+          const db = await import("/db/local-db.js?v=815");
+          const one = async (sql) => { const r = await db.dbQuery(sql); return r && r[0] ? Number(r[0].n) : null; };
+          return { word_status: await one("SELECT COUNT(*) AS n FROM word_status"), review_log: await one("SELECT COUNT(*) AS n FROM review_log") };
+        } catch (e) { return { error: String(e && e.message || e) }; }
+      });
+      const before = await rowsOf();
+      await page.locator('[data-section="s02-rivets"]').click();
+      await page.waitForSelector(".atlas-row .rm-w", { state: "attached", timeout: 15000 });
+      await page.waitForTimeout(1500);
+      const offByDefault = await page.locator(STATUS).count();
+      await page.locator(".atlas-view-btn").click();
+      const legendHidden = await page.locator(".atlas-word-colours .reader-status-legend").isHidden();
+      await page.locator("[data-atlas-colours]").check();
+      await page.waitForFunction((sel) => document.querySelectorAll(sel).length > 100, STATUS, { timeout: 30000 });
+      const on = await page.locator(STATUS).count();
+      const legendShown = await page.locator(".atlas-word-colours .reader-status-legend").isVisible();
+      const termsKept = await page.locator(".atlas-row .rm-w.atlas-term").count();
+      await page.screenshot({ path: path.join(out, "colours-on-390.png") });
+      const after = await rowsOf();
+      // an explicit mark in the card (the learner's own action, the one write) repaints the word at once
+      await page.locator(".atlas-view-btn").click();
+      const target = page.locator(".atlas-row .rm-w.rm-w-unassessed:visible").first();
+      await target.scrollIntoViewIfNeeded();
+      const surface = await target.getAttribute("data-surface");
+      await target.click();
+      await page.waitForSelector('.rm-sheet.rm-open [data-rm-status="known"]', { timeout: 15000 });
+      await page.locator('.rm-sheet.rm-open [data-rm-status="known"]').click();
+      await page.waitForTimeout(1200);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction((s) => Array.from(document.querySelectorAll(".atlas-row .rm-w.rm-w-known")).some((w) => w.getAttribute("data-surface") === s), surface, { timeout: 15000 });
+      const marked = await rowsOf();
+      await page.locator(".atlas-view-btn").click();
+      await page.locator("[data-atlas-colours]").uncheck();
+      await page.waitForTimeout(800);
+      const offAgain = await page.locator(STATUS).count();
+      report.push({ w3: { offByDefault, legendHidden, on, legendShown, termsKept, offAgain, before, after, markedWord: surface, marked, errors: errors.length } });
+      assert.equal(marked.word_status, (before.word_status || 0) + 1, "the explicit mark is the one write");
+      assert.equal(offByDefault, 0, "the atlas is not coloured by default, even with the Room's «Статус слов» on (E4)");
+      assert.ok(legendHidden && legendShown, "the legend follows the switch");
+      assert.ok(on > 100, "the switch colours the words: " + on);
+      assert.ok(termsKept > 50, "term underlines survive the paint");
+      assert.equal(offAgain, 0, "switching off removes the colours");
+      assert.deepEqual(after, before, "opening and painting write nothing into word_status / review_log");
+      assert.deepEqual(errors, [], "no page errors");
       await context.close();
     }
 

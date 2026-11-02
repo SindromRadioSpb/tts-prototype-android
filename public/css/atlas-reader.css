@@ -446,3 +446,6 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .rm-sheet .rm-surface-line + .rm-surface-line { font-size: 13px; font-weight: 400; color: var(--text-secondary, #475569); }
 @media (prefers-color-scheme: dark) { body:not(.theme-light) .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; } }
 body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
+/* W3: colours by word status — the switch and the Room's legend inside «Колонки» (author display beats [hidden]) */
+.atlas-root .atlas-word-colours .reader-status-legend[hidden] { display: none; }
+.atlas-root .atlas-word-colours .reader-status-legend { margin: 6px 0 2px; }

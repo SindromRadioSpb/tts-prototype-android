@@ -5698,4 +5698,4 @@ window.I18N_LOCALES.ru.atlas.bookSearch = {"label":"Поиск по книге",
 Object.assign(window.I18N_LOCALES.ru.atlas.bookSearch,{"cell":"Ячейка","related":"Связанная единица"});
 
 window.I18N_LOCALES.ru.atlas.listen = {"line":"Слушать эту строку","mode":"Как читать","modeQueue":"Подряд","modeLine":"По строке","button":"Слушать","start":"Слушать раздел на иврите","formula":"Прочитать формулу на иврите","play":"Слушать","pause":"Пауза","prev":"Предыдущий фрагмент","next":"Следующий фрагмент","speed":"Скорость","formulas":"Формулы","hebrew":"иврит","close":"Закрыть озвучку","follow":"К читаемому месту","player":"Озвучка раздела","coverage":"озвучено","of":"из","done":"Раздел прослушан","nextSection":"Следующий раздел","unavailable":"Запись сейчас недоступна","album":"Инженерный атлас 97002"};
-window.I18N_LOCALES.ru.atlas.word = {"term": "Термин атласа", "terms": "Термины абзаца", "otherSenses": "Другие значения"};
+window.I18N_LOCALES.ru.atlas.word = {"term": "Термин атласа", "terms": "Термины абзаца", "otherSenses": "Другие значения", "colorsHead": "Слова", "colors": "Цвет по статусу слов"};

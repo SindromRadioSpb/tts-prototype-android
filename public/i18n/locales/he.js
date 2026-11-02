@@ -5692,4 +5692,4 @@ window.I18N_LOCALES.he.atlas.bookSearch = {"label":"חיפוש בספר","placeh
 Object.assign(window.I18N_LOCALES.he.atlas.bookSearch,{"cell":"תא","related":"יחידה קשורה"});
 
 window.I18N_LOCALES.he.atlas.listen = {"line":"האזנה לשורה זו","mode":"אופן ההקראה","modeQueue":"ברצף","modeLine":"שורה אחר שורה","button":"האזנה","start":"האזנה לפרק בעברית","formula":"הקראת הנוסחה בעברית","play":"האזנה","pause":"השהיה","prev":"הקטע הקודם","next":"הקטע הבא","speed":"מהירות","formulas":"נוסחאות","hebrew":"עברית","close":"סגירת ההאזנה","follow":"חזרה למקום ההקראה","player":"הקראת הפרק","coverage":"מוקלט","of":"מתוך","done":"הפרק הושמע עד הסוף","nextSection":"הפרק הבא","unavailable":"ההקלטה אינה זמינה כרגע","album":"אטלס הנדסי 97002"};
-window.I18N_LOCALES.he.atlas.word = {"term": "מונח באטלס", "terms": "מונחי הפסקה", "otherSenses": "משמעויות נוספות"};
+window.I18N_LOCALES.he.atlas.word = {"term": "מונח באטלס", "terms": "מונחי הפסקה", "otherSenses": "משמעויות נוספות", "colorsHead": "מילים", "colors": "צבע לפי מצב המילה"};

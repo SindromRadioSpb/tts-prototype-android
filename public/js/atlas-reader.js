@@ -1618,7 +1618,7 @@
         wireReview(section);
         // P4 word layer: the host wraps the Hebrew words for the Room's word card (plan P4, owner decision E2)
         if (opts.words && typeof opts.words.attach === 'function') {
-          try { opts.words.attach(section, data, { layers: function () { return layers; } }); } catch (_) {}
+          try { opts.words.attach(section, data, { layers: function () { return layers; }, panel: columns.panel }); } catch (_) {}
         }
         track.input = bar.querySelector('.atlas-pagejump input');
         // any page of the book without going back to the contents
