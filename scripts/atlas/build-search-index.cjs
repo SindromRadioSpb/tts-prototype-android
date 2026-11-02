@@ -42,7 +42,13 @@ delete ix.details;
 // Full phrase fields cannot be truncated. A separately loaded dictionary shard keeps normal searches small.
 const payloads = {
   "search-phrases.json": JSON.stringify(S.packPhrases(full)),
-  "search-details.json": JSON.stringify({ details, previews }),
+  // Tabs still on 3.11.840 read card texts from here: they keep their old 26-character labels until reload.
+  "search-details.json": JSON.stringify({
+    details,
+    previews: previews.map((p) => p.map((x) => (x ? x.slice(0, 26) : x))),
+  }),
+  // Card texts (whole words, up to 110 characters) are their own shard: each file stays inside the budget.
+  "search-previews.json": JSON.stringify({ previews }),
 };
 ix.shards = {};
 for (const [name, data] of Object.entries(payloads))

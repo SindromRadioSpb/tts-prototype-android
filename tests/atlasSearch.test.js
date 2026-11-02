@@ -176,8 +176,10 @@ test(
       "search.json",
       "search-details.json",
       "search-phrases.json",
+      "search-previews.json",
     ])
-      assert.ok(fs.statSync(path.join(dir, file)).size <= 1500000, file);
+      if (fs.existsSync(path.join(dir, file)))
+        assert.ok(fs.statSync(path.join(dir, file)).size <= 1500000, file);
     const sections = fs
       .readdirSync(path.join(dir, "sections"))
       .filter((n) => n.endsWith(".json"))
@@ -189,7 +191,8 @@ test(
       ),
       raw=JSON.parse(fs.readFileSync(path.join(dir,'search.json'))),
       metadata=JSON.parse(fs.readFileSync(path.join(dir,'search-details.json'))),
-      b = S.unpack(Object.assign(raw,{previews:metadata.previews}));
+      previewFile=path.join(dir,'search-previews.json'),
+      b = S.unpack(Object.assign(raw,{previews:fs.existsSync(previewFile)?JSON.parse(fs.readFileSync(previewFile)).previews:metadata.previews}));
     assert.equal(b.docs.length,a.docs.length);a.docs.forEach((doc,n)=>assert.equal(JSON.stringify(b.docs[n]),JSON.stringify(doc.concat(doc.length===6?[null]:[])),'preview/target '+n));
     assert.deepEqual(
       JSON.parse(JSON.stringify(a.post)),
@@ -230,4 +233,82 @@ test('separate preview metadata restores labels in a compact shipped index',()=>
  const source=S.buildIndex(sections),previews=source.docs.map(d=>[d[4],d[5]]);source.docs.forEach(d=>{d[4]='';d[5]='';});
  const shipped=JSON.parse(JSON.stringify(S.pack(source)));shipped.previews=previews;const restored=S.unpack(shipped);
  assert.equal(restored.docs[0][4],'קפיץ');assert.equal(restored.docs[0][5],'Пружина стальная');assert.equal(S.query(restored,'пружина').find(r=>r.kind==='block').ru,'Пружина стальная');
+});
+
+// Acceptance 2026-11-02: what the first screen shows, not only the top five.
+const acceptanceBook = [
+  {
+    id: "s",
+    pages: [
+      {
+        page: 1,
+        items: [
+          { id: "a97002:p1:b1", type: "block", he: "", ru: "Сила трения в соединении" },
+          { id: "a97002:p1:b2", type: "block", he: "", ru: "Сила действует на болт" },
+          { id: "a97002:p1:b3", type: "block", he: "", ru: "Составляющая Fy = F · sin α" },
+          {
+            id: "a97002:p1:f1",
+            type: "formula",
+            latex: "F_{lc}=d_{lc}\\cdot[\\sigma_{lc}]\\cdot d_1",
+            vars: [
+              { latex: "[\\sigma_{lc}]", ru: "Допускаемое напряжение смятия", unit: "MPa", ref: "a97002:p1:f1#s" },
+              { latex: "d_{lc}", ru: "Диаметр по смятию", unit: "mm", ref: "a97002:p1:f1#d" },
+              { latex: "F_{lc}", ru: "Сила по смятию", unit: "N", ref: "a97002:p1:f1#F" },
+              { latex: "d_1", ru: "Внутренний диаметр", unit: "mm", ref: "a97002:p1:f1#d1" },
+            ],
+          },
+          {
+            id: "a97002:p1:f2",
+            type: "formula",
+            latex: "F_y=F\\cdot\\sin\\alpha",
+            vars: [
+              { latex: "F_y", ru: "Составляющая по оси y", unit: "N", ref: "a97002:p1:f2#Fy" },
+              { latex: "M_t", ru: "Крутящий момент", unit: "N·mm", ref: "a97002:p1:f2#M" },
+              { latex: "q", ru: "Погонная нагрузка", unit: "N/mm", ref: "a97002:p1:f2#q" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+test("all words first: a two-word query does not bury its matches under one-word hits", () => {
+  const ix = S.buildIndex(acceptanceBook);
+  const hits = S.query(ix, "сила трения");
+  assert.deepEqual(hits.map((r) => r.ref), ["a97002:p1:b1"]);
+  // nothing holds both words → one-word hits are still offered, marked partial
+  const loose = S.query(ix, "сила болта трения");
+  assert.ok(loose.length && loose.every((r) => r.match === "partial"));
+});
+test("a symbol is one notation: its letters and subscript are not exact words", () => {
+  const ix = S.buildIndex(acceptanceBook);
+  const sigma = S.query(ix, "σ_Lc");
+  assert.ok(sigma.length);
+  assert.ok(sigma.every((r) => r.ref === "a97002:p1:f1#s" || r.ref === "a97002:p1:f1"), sigma.map((r) => r.ref).join());
+  assert.ok(!S.query(ix, "d₁").some((r) => /#d$|#F$/.test(r.ref)));
+  // a symbol written in one piece in prose is still found for «F_y»
+  const fy = S.query(ix, "F_y").map((r) => r.ref);
+  assert.ok(fy.includes("a97002:p1:f2#Fy") && fy.includes("a97002:p1:b3"));
+});
+test("a unit query is answered by units, not by its letters", () => {
+  const ix = S.buildIndex(acceptanceBook);
+  assert.deepEqual(
+    S.query(ix, "N/mm").filter((r) => r.kind === "symbol").map((r) => r.ref),
+    ["a97002:p1:f2#q"],
+  );
+  assert.ok(!S.query(ix, "N/mm²").some((r) => r.match === "exact"));
+});
+test("the condition navigator still sees partial overlaps", () => {
+  const ix = S.buildIndex(acceptanceBook);
+  assert.ok(S.query(ix, "сила болта трения", { partial: true }).some((r) => r.ref === "a97002:p1:b2"));
+});
+test("a symbol-table row shared by several formulas is listed once", () => {
+  const row = { latex: "\\eta", ru: "КПД передачи", ref: "a97002:p1:st1:s01" };
+  const ix = S.buildIndex([{ id: "s", pages: [{ page: 1, items: [
+    { id: "a97002:p1:f1", type: "formula", latex: "\\eta=a", vars: [row] },
+    { id: "a97002:p1:f2", type: "formula", latex: "\\eta=b", vars: [row] },
+  ] }] }]);
+  const symbols = S.query(ix, "η").filter((r) => r.kind === "symbol");
+  assert.equal(symbols.length, 1);
+  assert.equal(S.query(ix, "η").filter((r) => r.kind === "formula").length, 2);
 });

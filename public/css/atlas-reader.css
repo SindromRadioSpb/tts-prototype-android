@@ -363,8 +363,15 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-result-page { font-size:.85rem; color:var(--atlas-muted); }
 .atlas-root .atlas-result-pages { display:flex; flex-wrap:wrap; gap:6px; padding-inline:12px; margin-block-start:6px; }
 .atlas-root .atlas-result-pages button { font-size:.85rem; min-height:36px; width:auto; padding-inline:10px; }
+.atlas-root .atlas-result-pages button[hidden] { display:none; }
+.atlas-root .atlas-result-pages .atlas-result-pages-more { font-weight:600; color:var(--atlas-teal-ink); }
 .atlas-root .atlas-search-more { margin:20px auto; display:block; }
 .atlas-root .atlas-search-results mark { background:var(--atlas-hit); color:var(--atlas-ink); }
+/* a symbol card: the notation as written (σ with subscript lc) and its unit */
+.atlas-root .atlas-search-result > .atlas-result-symbol { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; justify-content:flex-start; }
+.atlas-root .atlas-result-symbol bdi { font:italic 1.15rem/1.2 "Cambria Math", "STIX Two Math", Cambria, "Times New Roman", serif; color:var(--atlas-ink); }
+.atlas-root .atlas-result-symbol sub, .atlas-root .atlas-result-symbol sup { font-size:.72em; font-style:normal; }
+.atlas-root .atlas-result-unit { font-size:.85rem; color:var(--atlas-muted); border:1px solid var(--atlas-line); border-radius:6px; padding:1px 6px; }
 .atlas-root .atlas-toolbar .atlas-book-search { flex:1 1 300px; margin:0; }
 .atlas-root .atlas-toolbar .atlas-book-search .atlas-search { flex-basis:160px; }
 @media(max-width:600px){

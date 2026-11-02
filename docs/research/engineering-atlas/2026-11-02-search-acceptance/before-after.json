@@ -1,0 +1,344 @@
+[
+  {
+    "q": "сила трения",
+    "before": {
+      "total": 972,
+      "first50_exact_text": 0,
+      "first50_partial": 49,
+      "exact_labels_total": 45,
+      "duplicate_rows": 10,
+      "cut_mid_word": 16
+    },
+    "after": {
+      "total": 54,
+      "first50_exact_text": 12,
+      "first50_partial": 0,
+      "exact_labels_total": 45,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "коэффициент трения",
+    "before": {
+      "total": 506,
+      "first50_exact_text": 0,
+      "first50_partial": 7,
+      "exact_labels_total": 134,
+      "duplicate_rows": 0,
+      "cut_mid_word": 37
+    },
+    "after": {
+      "total": 159,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 134,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "ременная передача",
+    "before": {
+      "total": 248,
+      "first50_exact_text": 6,
+      "first50_partial": 31,
+      "exact_labels_total": 13,
+      "duplicate_rows": 2,
+      "cut_mid_word": 35
+    },
+    "after": {
+      "total": 30,
+      "first50_exact_text": 6,
+      "first50_partial": 0,
+      "exact_labels_total": 13,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "גלגל שיניים",
+    "before": {
+      "total": 148,
+      "first50_exact_text": 12,
+      "first50_partial": 37,
+      "exact_labels_total": 21,
+      "duplicate_rows": 3,
+      "cut_mid_word": 46
+    },
+    "after": {
+      "total": 21,
+      "first50_exact_text": 12,
+      "first50_partial": 0,
+      "exact_labels_total": 21,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "предел текучести",
+    "before": {
+      "total": 148,
+      "first50_exact_text": 0,
+      "first50_partial": 39,
+      "exact_labels_total": 52,
+      "duplicate_rows": 0,
+      "cut_mid_word": 17
+    },
+    "after": {
+      "total": 77,
+      "first50_exact_text": 27,
+      "first50_partial": 0,
+      "exact_labels_total": 52,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "σ_Lc",
+    "before": {
+      "total": 85,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 40,
+      "duplicate_rows": 0,
+      "cut_mid_word": 28
+    },
+    "after": {
+      "total": 45,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 0,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "τ_S",
+    "before": {
+      "total": 521,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 521,
+      "duplicate_rows": 6,
+      "cut_mid_word": 42
+    },
+    "after": {
+      "total": 46,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 46,
+      "duplicate_rows": 0,
+      "cut_mid_word": 3
+    }
+  },
+  {
+    "q": "d₁",
+    "before": {
+      "total": 910,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 910,
+      "duplicate_rows": 30,
+      "cut_mid_word": 18
+    },
+    "after": {
+      "total": 79,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 79,
+      "duplicate_rows": 0,
+      "cut_mid_word": 3
+    }
+  },
+  {
+    "q": "F_y",
+    "before": {
+      "total": 1077,
+      "first50_exact_text": 0,
+      "first50_partial": 48,
+      "exact_labels_total": 28,
+      "duplicate_rows": 8,
+      "cut_mid_word": 36
+    },
+    "after": {
+      "total": 12,
+      "first50_exact_text": 2,
+      "first50_partial": 0,
+      "exact_labels_total": 12,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "D",
+    "before": {
+      "total": 910,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 689,
+      "duplicate_rows": 30,
+      "cut_mid_word": 13
+    },
+    "after": {
+      "total": 374,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 160,
+      "duplicate_rows": 0,
+      "cut_mid_word": 2
+    }
+  },
+  {
+    "q": "N/mm",
+    "before": {
+      "total": 1990,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 415,
+      "duplicate_rows": 89,
+      "cut_mid_word": 48
+    },
+    "after": {
+      "total": 116,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 116,
+      "duplicate_rows": 0,
+      "cut_mid_word": 2
+    }
+  },
+  {
+    "q": "N/mm²",
+    "before": {
+      "total": 2074,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 376,
+      "duplicate_rows": 97,
+      "cut_mid_word": 40
+    },
+    "after": {
+      "total": 124,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 0,
+      "duplicate_rows": 0,
+      "cut_mid_word": 7
+    }
+  },
+  {
+    "q": "η",
+    "before": {
+      "total": 36,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 36,
+      "duplicate_rows": 3,
+      "cut_mid_word": 25
+    },
+    "after": {
+      "total": 33,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 33,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "קפיץ",
+    "before": {
+      "total": 53,
+      "first50_exact_text": 36,
+      "first50_partial": 0,
+      "exact_labels_total": 53,
+      "duplicate_rows": 0,
+      "cut_mid_word": 41
+    },
+    "after": {
+      "total": 53,
+      "first50_exact_text": 36,
+      "first50_partial": 0,
+      "exact_labels_total": 53,
+      "duplicate_rows": 0,
+      "cut_mid_word": 3
+    }
+  },
+  {
+    "q": "והקפיצים",
+    "before": {
+      "total": 16,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 0,
+      "duplicate_rows": 0,
+      "cut_mid_word": 13
+    },
+    "after": {
+      "total": 16,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 0,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "пружинами",
+    "before": {
+      "total": 146,
+      "first50_exact_text": 2,
+      "first50_partial": 0,
+      "exact_labels_total": 2,
+      "duplicate_rows": 3,
+      "cut_mid_word": 32
+    },
+    "after": {
+      "total": 143,
+      "first50_exact_text": 2,
+      "first50_partial": 0,
+      "exact_labels_total": 2,
+      "duplicate_rows": 0,
+      "cut_mid_word": 0
+    }
+  },
+  {
+    "q": "kfits",
+    "before": {
+      "total": 40,
+      "first50_exact_text": 36,
+      "first50_partial": 0,
+      "exact_labels_total": 40,
+      "duplicate_rows": 0,
+      "cut_mid_word": 31
+    },
+    "after": {
+      "total": 40,
+      "first50_exact_text": 36,
+      "first50_partial": 0,
+      "exact_labels_total": 40,
+      "duplicate_rows": 0,
+      "cut_mid_word": 3
+    }
+  },
+  {
+    "q": "МПа",
+    "before": {
+      "total": 168,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 168,
+      "duplicate_rows": 8,
+      "cut_mid_word": 26
+    },
+    "after": {
+      "total": 160,
+      "first50_exact_text": 0,
+      "first50_partial": 0,
+      "exact_labels_total": 160,
+      "duplicate_rows": 0,
+      "cut_mid_word": 7
+    }
+  }
+]

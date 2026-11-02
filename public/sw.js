@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.840";
+const CACHE_VERSION = "v3.11.841";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -181,9 +181,9 @@ const PRECACHE_URLS = [
   "/js/pealim-identity-overrides.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
-  "/js/atlas-reader.js?v=16",
-  "/js/atlas-search.js?v=2",
-  "/css/atlas-reader.css?v=17",
+  "/js/atlas-reader.js?v=17",
+  "/js/atlas-search.js?v=3",
+  "/css/atlas-reader.css?v=18",
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",

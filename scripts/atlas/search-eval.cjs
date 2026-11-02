@@ -5,7 +5,10 @@ const S = require("../../public/js/atlas-search");
 const dir = process.argv[2] || "data/atlas/a97002";
 const raw = JSON.parse(fs.readFileSync(path.join(dir, "search.json"))),
   details = JSON.parse(fs.readFileSync(path.join(dir, "search-details.json")));
-raw.previews = details.previews;
+const previewFile = path.join(dir, "search-previews.json");
+raw.previews = fs.existsSync(previewFile)
+  ? JSON.parse(fs.readFileSync(previewFile)).previews
+  : details.previews;
 const ix = S.unpack(raw);
 ix.details = details.details || details;
 ix.full = S.unpackPhrases(

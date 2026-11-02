@@ -150,6 +150,17 @@
       if (g.includes(s)) return g[0];
     return s;
   }
+  // A result card shows the start of the object: whole words, «…» when cut. A 26-character cut left most
+  // cards on half a word («допускаемое напряжение смя»).
+  var PREVIEW = 110;
+  function preview(s) {
+    s = String(s || "").replace(/\s+/g, " ").trim();
+    if (s.length <= PREVIEW) return s;
+    var cut = s.slice(0, PREVIEW),
+      space = cut.lastIndexOf(" ");
+    if (space > PREVIEW * 0.6) cut = cut.slice(0, space);
+    return cut.replace(/[\s,;:·–—-]+$/, "") + "…";
+  }
   function buildIndex(sections, lexicon) {
     var full = [],
       weights = [],
@@ -173,7 +184,7 @@
         tokens(extra || "").join(" "),
       ]);
       weights.push(1);
-      docs.push([kind, sid, page, ref, he.slice(0, 26), ru.slice(0, 26)]);
+      docs.push([kind, sid, page, ref, preview(he), ru && preview(ru)]);
       var keys = new Set();
       tokens([he, ru, extra || ""].join(" ")).forEach(function (t) {
         keys.add(t);
@@ -453,11 +464,34 @@
         score.set(n, a);
       });
     }
-    ts.forEach((t) => collect(candidates(ix, t)));
-    collect(special, true);
     var phrase = /^".*"$/.test(q);
+    // A notation query (one word that names a symbol or a unit: «D», «τ_S», «d₁», «N/mm²») is answered by
+    // the notation channel. Its single letters are not words: «d» of «d₁» must not match every «d» and «D»
+    // of the book as an exact hit. Units with «/ · ^ ²» are matched as units only; letters of a symbol
+    // still find prose that writes it in one piece («Fy = F · cos α» for «F_y»).
+    var notation =
+      !phrase &&
+      !/\s/.test(q) &&
+      (/[\/·*^²³⁻]/.test(q) ||
+        special.some(function (k) {
+          return ix.post[k[0]] && ix.post[k[0]].length;
+        }));
+    var words = ts;
+    if (notation) {
+      // «σ_Lc» is one symbol: its subscript «lc» alone would match d_lc, F_lc, L_lc as «exact».
+      words = /[\/·*^²³⁻_\\{}₀-₉α-ωΑ-Ωϕ′']/.test(q)
+        ? []
+        : ts.filter(function (t) {
+            return t.length > 1;
+          });
+      var compact = sym.toLowerCase();
+      if (!words.length && /^[a-z0-9]{2,}$/.test(compact) && ix.post[compact])
+        words = [compact];
+    }
+    words.forEach((t) => collect(candidates(ix, t)));
+    collect(special, true);
     if (phrase && !ix.full) throw Error("PHRASE_INDEX_UNAVAILABLE");
-    return Array.from(score)
+    var hits = Array.from(score)
       .filter(function (e) {
         var d = ix.docs[e[0]];
         return (
@@ -479,7 +513,7 @@
               ? 3.5
               : v.special === 0.5
                 ? 2.5
-                : v.matched === ts.length
+                : words.length && v.matched === words.length
                   ? v.quality
                   : 0;
         return {
@@ -530,6 +564,20 @@
           a.order - b.order
         );
       });
+    // All words of the query first: «сила трения» must not bury its 12 paragraphs under every «сила».
+    // Objects with only some of the words are shown only when nothing holds them all. The condition
+    // navigator asks for them explicitly: a long condition rarely sits in one object.
+    if (!opts.partial && hits.some((r) => r.quality > 0))
+      hits = hits.filter((r) => r.quality > 0);
+    // One row of a symbol table serves several formulas («p248:st1:s01» five times): every copy opens the
+    // same row, so the list shows it once (the best-ranked copy).
+    var seenRef = new Set();
+    return hits.filter(function (r) {
+      var key = r.kind + "\u0000" + r.ref;
+      if (seenRef.has(key)) return false;
+      seenRef.add(key);
+      return true;
+    });
   }
   function fragment(ix, text) {
     var ts = tokens(text),
@@ -571,7 +619,7 @@
     });
     // Conditions also contain inflected terms absent from the lemma registry. Shared
     // text postings supply page coverage, while term evidence remains visible.
-    query(ix, text, { skipCells: true }).forEach(function (hit) {
+    query(ix, text, { skipCells: true, partial: true }).forEach(function (hit) {
       if (hit.kind !== "block" && hit.kind !== "formula") return;
       var k = hit.sid + ":" + hit.page;
       var r = scores.get(k) || {
@@ -795,6 +843,7 @@
     symbolKey: symbolKey,
     symbols: symbols,
     unitKey: unitKey,
+    greek: greek,
     buildIndex: buildIndex,
     query: query,
     fragment: fragment,

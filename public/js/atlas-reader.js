@@ -1136,7 +1136,7 @@
         if (!ix || ix.schema !== 'linguistpro.atlas-search.1') throw new Error('SEARCH_SCHEMA');
         if (book.sections_sha256 && JSON.stringify(book.sections_sha256) !== JSON.stringify(ix.sections_sha256)) throw new Error('SEARCH_SECTIONS_MISMATCH');
         return (book.search_sha256 ? digest(ix).then(function (hash) { if (hash !== book.search_sha256) throw new Error('SEARCH_INDEX_MISMATCH'); }) : Promise.resolve()).then(function () {
-          return ix.details ? ix : checkedShard(ix, 'search-details.json').then(function (details) { ix.details = details.details||details; ix.previews=details.previews; return ix; });
+          return ix.details ? ix : Promise.all([checkedShard(ix, 'search-details.json'), ix.shards && ix.shards['search-previews.json'] ? checkedShard(ix, 'search-previews.json') : null]).then(function (parts) { var details = parts[0]; ix.details = details.details||details; ix.previews = (parts[1] && parts[1].previews) || details.previews; return ix; });
         }).then(function (ix) { return Engine.unpack(ix); });
       }).catch(function (error) { searchBundle = null; throw error; });
       return searchBundle;
@@ -1165,8 +1165,23 @@
       });
       return span;
     }
+    // «[\sigma_{lc}]» → σ with a real subscript «lc» (the search key «σlc» is not for reading).
+    function symbolNode(latex) {
+      var greek = (Engine && Engine.greek) || {};
+      var s = String(latex || '').replace(/\\(?:left|right)/g, '').replace(/\\(?:text|mathrm|operatorname)\{([^}]*)\}/g, '$1')
+        .replace(/\\prime/g, '′').replace(/\\([A-Za-z]+)/g, function (a, name) { return greek[name] || name; });
+      var node = R.h('bdi', { dir: 'ltr' }), re = /([_^])(?:\{([^}]*)\}|(.))/g, last = 0, m;
+      while ((m = re.exec(s))) {
+        node.appendChild(doc.createTextNode(s.slice(last, m.index).replace(/[{}]/g, '')));
+        node.appendChild(R.h(m[1] === '_' ? 'sub' : 'sup', { text: (m[2] != null ? m[2] : m[3]).replace(/[{}]/g, '') }));
+        last = re.lastIndex;
+      }
+      node.appendChild(doc.createTextNode(s.slice(last).replace(/[{}]/g, '')));
+      return node;
+    }
     function showSearch(query, how) {
       how = how || {}; query = String(query || '').trim().slice(0, 2000);
+      var heUi = /^he/i.test(doc.documentElement.getAttribute('lang') || '') || doc.documentElement.getAttribute('dir') === 'rtl';
       if (!query) return showHome(how);
       stopTracking(); var epoch = ++navigationEpoch;
       var scope = how.scope || 'book', sid = how.sid || '';
@@ -1206,9 +1221,10 @@
             shown.forEach(function (r) {
               var bookSection = index && index.sections.find(function (s) { return s.id === r.sid; });
               var button = R.h('button', { type: 'button', cls: 'atlas-search-result', 'data-search-result': r.ref, on: { click: function () { openResult(r); } } }, [
-                R.h('span', { cls: 'atlas-result-page', text: T('atlas.page', 'стр.') + ' ' + r.page + ' · ' + (bookSection ? bookSection.ru + ' / ' + bookSection.he : r.sid) }),
+                R.h('span', { cls: 'atlas-result-page', text: T('atlas.page', 'стр.') + ' ' + r.page + ' · ' + (bookSection ? (heUi ? bookSection.he + ' / ' + bookSection.ru : bookSection.ru + ' / ' + bookSection.he) : r.sid) }),
                 highlightText(r.detail && r.detail.niqqud || r.he, query), highlightText(r.detail && r.detail.translation || r.ru, query)]);
-              if (r.detail && (r.detail.symbol || r.detail.symbols)) button.appendChild(R.h('bdi',{dir:'ltr',text:Engine.symbolKey(r.detail.symbol||r.detail.symbols)}));
+              if (r.detail && r.detail.symbol) { var sym = R.h('span', { cls: 'atlas-result-symbol' }, [symbolNode(r.detail.symbol)]); if (r.detail.unit) sym.appendChild(R.h('span', { cls: 'atlas-result-unit', dir: 'ltr', text: r.detail.unit })); button.appendChild(sym); }
+              else if (r.detail && r.detail.symbols) button.appendChild(R.h('bdi',{dir:'ltr',cls:'atlas-result-symbol',text:r.detail.symbols}));
               if (r.detail && r.detail.translit) button.appendChild(R.h('span', { cls: 'atlas-translit', text: r.detail.translit }));
               if (r.match && r.match !== 'exact') button.appendChild(R.h('small', { cls: 'atlas-muted', text: T('atlas.bookSearch.' + r.match, r.match === 'related' ? 'Связанная единица' : r.match === 'case' ? 'Другой регистр' : r.match === 'partial' ? 'Частичное совпадение' : 'По форме слова') }));
               if(r.cell)button.appendChild(R.h('small',{cls:'atlas-muted',text:T('atlas.bookSearch.cell','Ячейка')+' '+(r.cell.row+1)+':'+(r.cell.col+1)}));
@@ -1216,6 +1232,13 @@
               if (r.places) {
                 var pages = R.h('div', { cls: 'atlas-result-pages' }), seen = {};
                 r.places.forEach(function (p) { if (seen[p[1]]) return; seen[p[1]] = true; pages.appendChild(R.h('button', { type: 'button', text: T('atlas.page', 'стр.') + ' ' + p[1], on: { click: function () { openResult(r, p); } } })); });
+                // A frequent term lives on 30+ pages: twelve chips, the rest one tap away (a phone screen is not a page index).
+                var chips = Array.from(pages.children);
+                if (chips.length > 14) {
+                  chips.slice(12).forEach(function (b) { b.setAttribute('hidden', ''); });
+                  pages.appendChild(R.h('button', { type: 'button', cls: 'atlas-result-pages-more', text: '+' + (chips.length - 12), 'aria-label': T('atlas.bookSearch.more', 'Показать ещё') + ' (' + (chips.length - 12) + ')', 'aria-expanded': 'false',
+                    on: { click: function (ev) { chips.forEach(function (b) { b.removeAttribute('hidden'); }); ev.currentTarget.remove(); if (chips[12] && chips[12].focus) chips[12].focus(); } } }));
+                }
                 row.appendChild(pages);
               }
               if(r.formulas&&r.formulas.length){var formulas=R.h('div',{cls:'atlas-result-pages'});r.formulas.forEach(function(f){formulas.appendChild(R.h('button',{type:'button',text:T('atlas.bookSearch.formula','Формулы')+' '+(f.symbols||''),on:{click:function(){openResult(f);}}}));});row.appendChild(formulas);}
@@ -1227,6 +1250,8 @@
         paint();
         results.addEventListener('keydown', function (ev) { if (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') return; var buttons = Array.from(results.querySelectorAll('button')), at = buttons.indexOf(ev.target), next = buttons[(at + (ev.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]; if (next) { ev.preventDefault(); next.focus(); } });
         if (how.scroll && doc.defaultView && doc.defaultView.scrollTo) doc.defaultView.scrollTo(0, how.scroll);
+        // The Room header fills a phone screen: a new search brings its own results into view.
+        else if (form.getBoundingClientRect && form.scrollIntoView && doc.defaultView && form.getBoundingClientRect().top > doc.defaultView.innerHeight * 0.35) form.scrollIntoView({ block: 'start' });
       }).catch(function () {
         if (epoch !== navigationEpoch || !view.isConnected) return;
         results.replaceChildren(R.h('p', { cls: 'atlas-state', 'data-search-unavailable': '', role: 'status', text: T('atlas.bookSearch.unavailable', 'Поиск по книге сейчас недоступен. Доступен поиск в открытом разделе.') }));

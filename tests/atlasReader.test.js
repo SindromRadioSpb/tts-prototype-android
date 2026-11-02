@@ -647,3 +647,21 @@ test('six-word Hebrew condition opens page coverage with formula links',async()=
  const reader=require('../public/js/atlas-reader').mount(document.getElementById('m'),{t:T,searchEngine:S,fetchJson:async url=>url.endsWith('index.json')?fixture('index.json'):url.endsWith('search.json')?ix:section});
  await reader.search('גלגל מניע גלגל מונע תמסורת רצועה');assert.ok(document.querySelector('.atlas-search-fragment'));assert.ok(document.querySelectorAll('[data-search-result]').length);assert.match(document.querySelector('.atlas-search-results').textContent,/Формулы/);
 });
+// ---- search acceptance 2026-11-02 (docs/research/engineering-atlas/2026-11-02-search-acceptance/) ----
+test('symbol card shows the notation with its subscript and unit, a long page list folds', async () => {
+  const {document,window,T}=env(),S=require('../public/js/atlas-search');
+  const pages=[];for(let p=1;p<=20;p++)pages.push({page:p,items:[{id:'a97002:p'+p+':b1',type:'block',he:'קפיץ',ru:'Пружина',terms:['a97002:term:t#t']}]});
+  pages[0].items.push({id:'a97002:p1:f1',type:'formula',latex:'[\\sigma_{lc}]=F',vars:[{latex:'[\\sigma_{lc}]',ru:'Допускаемое напряжение смятия',unit:'MPa',ref:'a97002:p1:f1#s'}]});
+  const book={id:'s1',first:1,last:20,pages,terms:{'a97002:term:t':{lemma_he:'קפיץ',senses:[{ru:'пружина'}]}}};
+  const ix=S.buildIndex([book]);
+  const reader=require('../public/js/atlas-reader').mount(document.getElementById('m'),{t:T,searchEngine:S,fetchJson:async url=>url.endsWith('index.json')?{sections:[{id:'s1',first:1,last:20,he:'קפיצים',ru:'Пружины',translated:true}]}:url.endsWith('search.json')?ix:url.endsWith('search-details.json')?ix.details:book});
+  await reader.search('σ_lc');
+  const sym=document.querySelector('.atlas-result-symbol');
+  assert.ok(sym,'symbol card');assert.equal(sym.querySelector('sub').textContent,'lc');assert.match(sym.textContent,/σ/);assert.equal(sym.querySelector('.atlas-result-unit').textContent,'MPa');
+  await reader.search('קפיץ');
+  const chips=Array.from(document.querySelectorAll('.atlas-result-pages button'));
+  assert.equal(chips.filter(b=>!b.hasAttribute('hidden')&&!b.classList.contains('atlas-result-pages-more')).length,12);
+  const more=document.querySelector('.atlas-result-pages-more');assert.equal(more.textContent,'+8');
+  more.dispatchEvent(new window.Event('click'));
+  assert.equal(document.querySelectorAll('.atlas-result-pages button[hidden]').length,0);
+});
