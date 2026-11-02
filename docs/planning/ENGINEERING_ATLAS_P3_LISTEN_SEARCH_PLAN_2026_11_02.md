@@ -1,6 +1,6 @@
 # Инженерный атлас P3 — «Поиск по книге» и «Озвучка»: план реализации
 
-Дата: 2026-11-02 · Статус: `SEARCH_A_PROD_VERIFIED; VOICE_V1_V3_DONE_PILOT_BAKED_NOT_PUBLISHED` · исходный `main`: `99930cdc` (живой выпуск атласа 3.11.836).
+Дата: 2026-11-02 · Статус: `SEARCH_A_PROD_VERIFIED; VOICE_PILOT_S09_PROD_VERIFIED_3.11.842` · исходный `main`: `99930cdc` (живой выпуск атласа 3.11.836).
 Спека: `ENGINEERING_FORMULARY_ATLAS_DESIGN_2026_10_30.md` (§7 Ф4, §8.1, §11, §12 п.2). Предшественники:
 `ENGINEERING_ATLAS_P2_READER_PLAN_2026_10_31.md` (читалка), `ENGINEERING_ATLAS_QUALITY_STANDARD.md` (чек-лист приёмки),
 `MATERIALS_PB2_PUBLIC_TTS_PLAN_2026_09_01.md` (проверенный контракт публичной озвучки),
@@ -439,3 +439,5 @@ Google Standard ≈ 4 $ за 1 млн символов (≈ 3–4 $; в пред
 SSH заблокирован проверкой режима, ждёт команды владельца. Пакет D4 и отчёт:
 [2026-11-02-speech](../research/engineering-atlas/2026-11-02-speech/README.md). V5 — после прослушивания пилота;
 V6 — вместе с G8.
+
+Production 2026-11-02: пилот s09-belt и выпуск 3.11.842 (`4f71940f`) на проде, проверены анонимно в браузере; ждёт прослушивания владельцем и D4.
