@@ -641,3 +641,9 @@ test('atlas query and scope survive the Room sanitizer and URL round trip',async
  const restored=core.presentationStateFromHash(core.presentationHash(state));assert.deepEqual(restored.anchor,state.anchor);
  const unrelated=core.sanitizePresentationState({...state,corpus:'benyehuda'});assert.equal(unrelated.anchor.query,undefined);
 });
+
+test('six-word Hebrew condition opens page coverage with formula links',async()=>{
+ const {document,T}=env(),S=require('../public/js/atlas-search'),section=fixture('s09-belt.json'),ix=S.buildIndex([section]);
+ const reader=require('../public/js/atlas-reader').mount(document.getElementById('m'),{t:T,searchEngine:S,fetchJson:async url=>url.endsWith('index.json')?fixture('index.json'):url.endsWith('search.json')?ix:section});
+ await reader.search('גלגל מניע גלגל מונע תמסורת רצועה');assert.ok(document.querySelector('.atlas-search-fragment'));assert.ok(document.querySelectorAll('[data-search-result]').length);assert.match(document.querySelector('.atlas-search-results').textContent,/Формулы/);
+});

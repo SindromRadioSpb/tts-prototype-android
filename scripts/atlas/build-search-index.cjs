@@ -29,6 +29,11 @@ for (const section of sections)
       for (const command of (item.latex || "").match(/\\[A-Za-z]+/g) || [])
         commands[command.slice(1)] = (commands[command.slice(1)] || 0) + 1;
 const unknownCommands = Object.keys(commands).filter((c) => !known.has(c));
+const previews = ix.docs.map((d) => [d[4], d[5]]);
+ix.docs.forEach((d) => {
+  d[4] = "";
+  d[5] = "";
+});
 const full = ix.full,
   details = ix.details;
 delete ix.full;
@@ -36,7 +41,7 @@ delete ix.details;
 // Full phrase fields cannot be truncated. A separately loaded dictionary shard keeps normal searches small.
 const payloads = {
   "search-phrases.json": JSON.stringify(S.packPhrases(full)),
-  "search-details.json": JSON.stringify(details),
+  "search-details.json": JSON.stringify({ details, previews }),
 };
 ix.shards = {};
 for (const [name, data] of Object.entries(payloads))
@@ -67,6 +72,7 @@ index.sections_sha256 = hashes;
 index.search_sha256 = sha(payloads["search.json"]);
 fs.writeFileSync(path.join(dir, "index.json.tmp"), JSON.stringify(index));
 fs.renameSync(path.join(dir, "index.json.tmp"), path.join(dir, "index.json"));
+ix.previews = previews;
 S.unpack(ix);
 ix.full = full;
 ix.details = details;
@@ -77,7 +83,16 @@ for (let n = 0; n < 200; n++) {
   times.push(performance.now() - a);
 }
 times.sort((a, b) => a - b);
-const gold=JSON.parse(fs.readFileSync(path.join(__dirname,'search-gold.a97002.json')));const fragmentTimes=gold.queries.filter(q=>q.kind==='fragment').map(q=>{const t=performance.now();S.fragment(ix,q.q);return performance.now()-t;});
+const gold = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "search-gold.a97002.json")),
+);
+const fragmentTimes = gold.queries
+  .filter((q) => q.kind === "fragment")
+  .map((q) => {
+    const t = performance.now();
+    S.fragment(ix, q.q);
+    return performance.now() - t;
+  });
 console.log(
   JSON.stringify(
     {
@@ -87,7 +102,8 @@ console.log(
       objects: ix.docs.length,
       tokens: Object.keys(ix.post).length,
       parse_ms: parseMs,
-      p95_ms: times[189],fragment_max_ms:Math.max(...fragmentTimes),
+      p95_ms: times[189],
+      fragment_max_ms: Math.max(...fragmentTimes),
       missingRefs: ix.docs.filter((d) => !d[3]).length,
       unknownCommands,
       commandCounts: commands,

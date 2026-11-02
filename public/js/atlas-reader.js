@@ -1135,7 +1135,7 @@
         if (!ix || ix.schema !== 'linguistpro.atlas-search.1') throw new Error('SEARCH_SCHEMA');
         if (book.sections_sha256 && JSON.stringify(book.sections_sha256) !== JSON.stringify(ix.sections_sha256)) throw new Error('SEARCH_SECTIONS_MISMATCH');
         return (book.search_sha256 ? digest(ix).then(function (hash) { if (hash !== book.search_sha256) throw new Error('SEARCH_INDEX_MISMATCH'); }) : Promise.resolve()).then(function () {
-          return ix.details ? ix : checkedShard(ix, 'search-details.json').then(function (details) { ix.details = details; return ix; });
+          return ix.details ? ix : checkedShard(ix, 'search-details.json').then(function (details) { ix.details = details.details||details; ix.previews=details.previews; return ix; });
         }).then(function (ix) { return Engine.unpack(ix); });
       }).catch(function (error) { searchBundle = null; throw error; });
       return searchBundle;
@@ -1179,13 +1179,13 @@
         return ix;
       }).then(function (ix) {
         if (epoch !== navigationEpoch || !view.isConnected) return;
-        var isFragment = false && !/^"/.test(query) && (query.match(/[א-ת]+/g) || []).length >= 6;
+        var isFragment = !/^"/.test(query) && (query.match(/[א-ת]+/g) || []).length >= 6;
         var hits = isFragment ? Engine.fragment(ix, query) : Engine.query(ix, query, { scope: scope, sid: sid });
         if (scope === 'section') hits = hits.filter(function (r) { return r.sid === sid; });
         results.replaceChildren(); results.setAttribute('aria-busy', 'false');
         var status = R.h('p', { cls: 'atlas-search-status', role: 'status', 'aria-live': 'polite', text: T('atlas.bookSearch.found', 'Найдено') + ': ' + hits.length });
         results.appendChild(status);
-        if (isFragment) results.appendChild(R.h('p', { cls: 'atlas-muted', text: T('atlas.bookSearch.fragment', 'Страницы по терминам фрагмента') }));
+        if (isFragment) results.appendChild(R.h('p', { cls: 'atlas-muted atlas-search-fragment', text: T('atlas.bookSearch.fragment', 'Страницы по терминам фрагмента') }));
         if (!hits.length) results.appendChild(R.h('p', { cls: 'atlas-state', text: T('atlas.bookSearch.empty', 'Ничего не найдено. Попробуйте термин без огласовок или обозначение σ_Lc.') }));
         var groups = { term: 'Термины', symbol: 'Обозначения', formula: 'Формулы', block: 'Текст', table: 'Таблицы', figure: 'Рисунки', example: 'Примеры', erratum: 'Опечатки' };
         var limit = 50, more = null;

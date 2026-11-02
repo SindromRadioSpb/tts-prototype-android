@@ -379,6 +379,31 @@
     "example",
     "erratum",
   ];
+  function bestCell(detail, ts) {
+    if (!detail.cells) return null;
+    if (!detail._words)
+      Object.defineProperty(detail, "_words", {
+        value: detail.cells.map(function (c) {
+          var set = new Set();
+          c[2].split(" ").forEach(function (w) {
+            set.add(w);
+            if (/[а-я]/.test(w)) set.add("~" + stemRu(w));
+          });
+          return set;
+        }),
+      });
+    var best = null;
+    detail.cells.forEach(function (c, i) {
+      var words = detail._words[i],
+        score = 0;
+      ts.forEach(function (t) {
+        if (words.has(t) || words.has("~" + stemRu(t))) score++;
+      });
+      if (score && (!best || score > best.score))
+        best = { row: c[0], col: c[1], score: score };
+    });
+    return best;
+  }
   function query(ix, q, opts) {
     opts = opts || {};
     q = String(q || "").trim();
@@ -466,27 +491,7 @@
           ru: d[5],
           places: d[6] || null,
           detail: detail,
-          cell:
-            (detail.cells &&
-              detail.cells
-                .map((c) => ({
-                  row: c[0],
-                  col: c[1],
-                  score: ts.filter((t) =>
-                    c[2]
-                      .split(" ")
-                      .some(
-                        (x) =>
-                          x === t ||
-                          (/[а-я]/.test(x) && stemRu(x) === stemRu(t)),
-                      ),
-                  ).length,
-                }))
-                .filter((c) => c.score > 0)
-                .sort(
-                  (a, b) => b.score - a.score || a.row - b.row || a.col - b.col,
-                )[0]) ||
-            null,
+          cell: opts.skipCells ? null : bestCell(detail, ts),
           score: v.tfidf,
           matched: v.matched,
           quality: quality,
@@ -531,7 +536,7 @@
       scores = new Map();
     ix.docs.forEach(function (d) {
       if (d[0] !== "term") return;
-      var name=((ix.details || {})[ix.docs.indexOf(d)] || {}).lemma || d[4];
+      var name = ((ix.details || {})[ix.docs.indexOf(d)] || {}).lemma || d[4];
       var tt = tokens(name);
       if (
         !tt.length ||
@@ -566,7 +571,7 @@
     });
     // Conditions also contain inflected terms absent from the lemma registry. Shared
     // text postings supply page coverage, while term evidence remains visible.
-    query(ix, text).forEach(function (hit) {
+    query(ix, text, { skipCells: true }).forEach(function (hit) {
       if (hit.kind !== "block" && hit.kind !== "formula") return;
       var k = hit.sid + ":" + hit.page;
       var r = scores.get(k) || {
@@ -615,7 +620,7 @@
   }
   function pack(ix) {
     var ids = [];
-    ix.docs = ix.docs.map(function (d) {
+    ix.docs = ix.docs.map(function (d, index) {
       var n = ids.indexOf(d[1]);
       if (n < 0) {
         n = ids.length;
@@ -628,8 +633,8 @@
         d[3].startsWith("a97002:p" + d[2] + ":")
           ? d[3].slice(("a97002:p" + d[2] + ":").length)
           : "=" + d[3],
-        d[4],
-        d[5],
+        ix.previews ? ix.previews[index][0] : d[4],
+        ix.previews ? ix.previews[index][1] : d[5],
       ];
       if (d[6])
         row.push(
@@ -659,21 +664,14 @@
       seen = new Map(),
       keys = Object.keys(ix.post).sort(),
       prev = "";
-    ix.entries = keys.map(function (k) {
+    ix.postIds = Object.create(null);
+    keys.forEach(function (k) {
       var last = 0,
         v = ix.post[k]
           .map(function (n) {
             var delta = n - last;
             last = n;
-            var out = "";
-            do {
-              var v = delta % 44;
-              delta = Math.floor(delta / 44);
-              var c = 35 + v + (delta ? 44 : 0);
-              if (c >= 92) c++;
-              out += String.fromCharCode(c);
-            } while (delta);
-            return out;
+            return numberChar(delta);
           })
           .join(""),
         id = seen.get(v);
@@ -682,33 +680,22 @@
         pool.push(v);
         seen.set(v, id);
       }
-      var n = 0;
-      while (n < k.length && k[n] === prev[n]) n++;
-      var row = n.toString(36) + "," + k.slice(n) + "," + id.toString(36);
-      prev = k;
-      return row;
+      ix.postIds[k] = id;
     });
     ix.pool = pool;
     delete ix.post;
-    delete ix.caseKeys;
+
     ix.packed = true;
     return ix;
   }
-  // Unsigned base-44 varints use JSON-safe printable ASCII, without HTTP compression.
+  // One UTF-16 code unit per bounded integer: no per-digit branches on mobile.
+  function numberChar(value) {
+    if (!Number.isInteger(value) || value < 0 || value > 0xd7cf)
+      throw Error("SEARCH_INTEGER_RANGE");
+    return String.fromCharCode(48 + value);
+  }
   function numbers(values) {
-    return values
-      .map(function (value) {
-        var out = "";
-        do {
-          var digit = value % 44;
-          value = Math.floor(value / 44);
-          var c = 35 + digit + (value ? 44 : 0);
-          if (c >= 92) c++;
-          out += String.fromCharCode(c);
-        } while (value);
-        return out;
-      })
-      .join("");
+    return values.map(numberChar).join("");
   }
   function packPhrases(full) {
     var words = [],
@@ -743,21 +730,12 @@
     );
   }
   function decode(s, cumulative) {
-    var out = [],
-      n = 0,
-      v = 0,
-      m = 1;
-    for (var c of s) {
-      var k = c.charCodeAt(0);
-      if (k > 92) k--;
-      k -= 35;
-      v += (k % 44) * m;
-      if (k < 44) {
-        n += v;
-        out.push(cumulative === false ? v : n);
-        v = 0;
-        m = 1;
-      } else m *= 44;
+    var out = new Array(s.length),
+      n = 0;
+    for (var i = 0; i < s.length; i++) {
+      var value = s.charCodeAt(i) - 48;
+      n += value;
+      out[i] = cumulative === false ? value : n;
     }
     return out;
   }
@@ -786,27 +764,23 @@
           : null,
       ];
     });
-    ix.post = Object.create(null);
-    var prev = "";
-    ix.entries.forEach(function (e) {
-      var a = e.indexOf(","),
-        b = e.lastIndexOf(","),
-        k = prev.slice(0, parseInt(e.slice(0, a), 36)) + e.slice(a + 1, b),
-        n = 0;
-      ix.post[k] = decode(ix.pool[parseInt(e.slice(b + 1), 36)]);
-      prev = k;
+    // Decode only posting lists touched by a query. Loading the book never walks
+    // all 33K dictionary entries on the UI thread.
+    var ids = ix.postIds,
+      pool = ix.pool,
+      decoded = [];
+    Object.setPrototypeOf(ids, null);
+    ix.post = new Proxy(ids, {
+      get: function (target, key) {
+        var id = target[key];
+        if (typeof id !== "number") return undefined;
+        if (!decoded[id]) decoded[id] = decode(pool[id]);
+        return decoded[id];
+      },
     });
-    delete ix.entries;
+    delete ix.postIds;
+    delete ix.previews;
     delete ix.pool;
-    ix.caseKeys = {};
-    Object.keys(ix.post)
-      .filter((k) => k[0] === "@")
-      .forEach((k) => {
-        var v = k.slice(1);
-        (
-          ix.caseKeys[v.toLowerCase()] || (ix.caseKeys[v.toLowerCase()] = [])
-        ).push(v);
-      });
     ix.packed = false;
     return ix;
   }

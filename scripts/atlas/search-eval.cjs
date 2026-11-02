@@ -3,8 +3,11 @@ const fs = require("fs"),
   path = require("path");
 const S = require("../../public/js/atlas-search");
 const dir = process.argv[2] || "data/atlas/a97002";
-const ix = S.unpack(JSON.parse(fs.readFileSync(path.join(dir, "search.json"))));
-ix.details = JSON.parse(fs.readFileSync(path.join(dir, "search-details.json")));
+const raw = JSON.parse(fs.readFileSync(path.join(dir, "search.json"))),
+  details = JSON.parse(fs.readFileSync(path.join(dir, "search-details.json")));
+raw.previews = details.previews;
+const ix = S.unpack(raw);
+ix.details = details.details || details;
 ix.full = S.unpackPhrases(
   JSON.parse(fs.readFileSync(path.join(dir, "search-phrases.json"))),
 );
@@ -22,7 +25,10 @@ const rows = gold.queries.map((g) => {
         (e) =>
           r.ref === e.ref ||
           (r.places &&
-            r.places.some((p) => p[0] === e.sid && p[1] === e.page)) ||
+            r.places.some(
+              (p) =>
+                p[0] === e.sid && p[1] === e.page && (!e.ref || p[2] === e.ref),
+            )) ||
           (!e.ref && e.sid === r.sid && e.page === r.page),
       ),
     ) + 1;
