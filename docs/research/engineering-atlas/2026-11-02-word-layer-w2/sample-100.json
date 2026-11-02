@@ -14,7 +14,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "מחדש = заново, не «новый»"
+  "note": "מחדש = заново, не «новый»",
+  "ai": {
+   "gloss": "повторно",
+   "wrong_hint": false,
+   "mwe": "и повторную сборку"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -31,7 +37,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "(вин. падеж)",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -48,7 +60,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "замену",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -65,7 +83,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "или",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -85,7 +109,13 @@
    "meaning": "треугольная резьба"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "треугольную",
+   "wrong_hint": false,
+   "mwe": "треугольная резьба"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -102,7 +132,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "двух",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -119,7 +155,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "угла",
+   "wrong_hint": false,
+   "mwe": "угла подъёма"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -136,7 +178,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "действие",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -153,7 +201,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "вместе",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -170,7 +224,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "здесь «прочность», карточка «сила, мощь (редко)»"
+  "note": "здесь «прочность», карточка «сила, мощь (редко)»",
+  "ai": {
+   "gloss": "прочности",
+   "wrong_hint": false,
+   "mwe": "класс прочности"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -187,7 +247,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "центральное",
+   "wrong_hint": false,
+   "mwe": "центральное нагружение"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -204,7 +270,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "сложите",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -221,7 +293,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "на расстоянии",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -238,7 +316,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "מתיחה = растяжение, карточка «гибкий»"
+  "note": "מתיחה = растяжение, карточка «гибкий»",
+  "ai": {
+   "gloss": "растяжением",
+   "wrong_hint": true,
+   "mwe": "предварительным растяжением"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -255,7 +339,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "сила",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -272,7 +362,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "между",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -292,7 +388,13 @@
    "meaning": "условие прочности"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "условие",
+   "wrong_hint": false,
+   "mwe": "условие прочности"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -309,7 +411,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "выполняется",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -326,7 +434,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "תבריג = резьба (сущ.), карточка «завинчивать»"
+  "note": "תבריג = резьба (сущ.), карточка «завинчивать»",
+  "ai": {
+   "gloss": "резьбы",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s03-bolts",
@@ -343,7 +457,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "максимальную",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -360,7 +480,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "ведущего",
+   "wrong_hint": false,
+   "mwe": "от ведущего узла"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -377,7 +503,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "склонна",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -394,7 +526,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "увлекает",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -411,7 +549,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "силой",
+   "wrong_hint": false,
+   "mwe": "предварительной силой натяжения"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -431,7 +575,13 @@
    "meaning": "ремень"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "ремнём",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -448,7 +598,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "באמצעות = посредством, карточка «расположение в середине»"
+  "note": "באמצעות = посредством, карточка «расположение в середине»",
+  "ai": {
+   "gloss": "посредством",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -465,7 +621,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "в ходе",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -482,7 +644,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "будет работать",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -499,7 +667,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "שים לב = обратите внимание, карточка «сердце»"
+  "note": "שים לב = обратите внимание, карточка «сердце»",
+  "ai": {
+   "gloss": "внимание",
+   "wrong_hint": true,
+   "mwe": "обратите внимание"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -516,7 +690,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "действующие",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -533,7 +713,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "(род. падеж)",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -550,7 +736,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "использовать",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -567,7 +759,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "на калькуляторе",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -587,7 +785,13 @@
    "meaning": "клиновой ремень"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "ремня",
+   "wrong_hint": false,
+   "mwe": "клиновых ремня"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -604,7 +808,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "понижения",
+   "wrong_hint": false,
+   "mwe": "передаточное отношение понижающей ступени"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -621,7 +831,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "угол",
+   "wrong_hint": false,
+   "mwe": "угол клина"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -638,7 +854,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "заменяют",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -655,7 +877,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "что в передаче",
+   "wrong_hint": false,
+   "mwe": "что в клиноременной передаче"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -675,7 +903,13 @@
    "meaning": "натяжение ремня"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "ремня",
+   "wrong_hint": false,
+   "mwe": "натяжение ремня"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s09-belt",
@@ -692,7 +926,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "без",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -709,7 +949,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "резания",
+   "wrong_hint": true,
+   "mwe": "операции резания"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -726,7 +972,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "материала",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -743,7 +995,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "точного",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -760,7 +1018,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "стружку",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -777,7 +1041,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "выполняться",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -794,7 +1064,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "чем твёрдость",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -811,7 +1087,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "הליך = процесс, карточка «процесс (в суде)»"
+  "note": "הליך = процесс, карточка «процесс (в суде)»",
+  "ai": {
+   "gloss": "процесс",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -828,7 +1110,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "в материал",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -845,7 +1133,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "вперёд",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -862,7 +1156,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "в нём",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -879,7 +1179,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "кромка",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -896,7 +1202,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "одного",
+   "wrong_hint": false,
+   "mwe": "друг от друга"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -913,7 +1225,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "отрыв",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -930,7 +1248,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "отливки",
+   "wrong_hint": false,
+   "mwe": "чугунные отливки"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -947,7 +1271,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "чугунные",
+   "wrong_hint": true,
+   "mwe": "чугунные отливки"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -964,7 +1294,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "и бронза",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -981,7 +1317,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "стружек",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -998,7 +1340,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "материалов",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -1015,7 +1363,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "в части",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s19-cutting-theory",
@@ -1032,7 +1386,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "с ним",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1049,7 +1409,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "тела",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1066,7 +1432,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "к линии",
+   "wrong_hint": false,
+   "mwe": "к идеальной прямой"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1083,7 +1455,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "этот",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1100,7 +1478,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "прямыми",
+   "wrong_hint": false,
+   "mwe": "параллельными прямыми"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1117,7 +1501,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "между",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1134,7 +1524,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "поверхность",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1151,7 +1547,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "проверка",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1168,7 +1570,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "точек",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1185,7 +1593,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "тела",
+   "wrong_hint": false,
+   "mwe": "тела вращения"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1202,7 +1616,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "значение",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1219,7 +1639,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "цилиндра",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1236,7 +1662,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "вращения",
+   "wrong_hint": false,
+   "mwe": "общую ось вращения"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1253,7 +1685,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "проверка",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1270,7 +1708,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "характеризует",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1287,7 +1731,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "величине",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1307,7 +1757,13 @@
    "meaning": "шаблон"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "шаблон",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1324,7 +1780,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "поверхности",
+   "wrong_hint": false,
+   "mwe": "профиль поверхности"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1341,7 +1803,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "действительно",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1358,7 +1826,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "криволинейная",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s26-form-tolerance",
@@ -1375,7 +1849,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "между",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1395,7 +1875,13 @@
    "meaning": "экономика производства"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "экономика",
+   "wrong_hint": false,
+   "mwe": "экономика производства"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1412,7 +1898,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "группа",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1429,7 +1921,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "планирование",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1446,7 +1944,13 @@
   },
   "term": null,
   "verdict": "none",
-  "note": "карточка: не определено офлайн"
+  "note": "карточка: не определено офлайн",
+  "ai": {
+   "gloss": "наладка (по смыслу; опечатка)",
+   "wrong_hint": true,
+   "mwe": "наладка станков"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1463,7 +1967,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "они",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1480,7 +1990,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "рассчитываются",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1497,7 +2013,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "обрабатываемых",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1514,7 +2036,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "партии",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1534,7 +2062,13 @@
    "meaning": "технологическая себестоимость"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "технологическая",
+   "wrong_hint": false,
+   "mwe": "технологическая себестоимость"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1554,7 +2088,13 @@
    "meaning": "точка равной себестоимости"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "и точка",
+   "wrong_hint": false,
+   "mwe": "и точка равной себестоимости"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1574,7 +2114,13 @@
    "meaning": "точка равной себестоимости"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "равенства затрат",
+   "wrong_hint": false,
+   "mwe": "и точка равной себестоимости"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1594,7 +2140,13 @@
    "meaning": "себестоимость единицы продукции"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "единицы",
+   "wrong_hint": true,
+   "mwe": "себестоимость единицы"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1611,7 +2163,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "включая",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1628,7 +2186,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "затраты",
+   "wrong_hint": false,
+   "mwe": "предпроизводственные затраты"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1645,7 +2209,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "יחידה = единица, карточка «единственный»"
+  "note": "יחידה = единица, карточка «единственный»",
+  "ai": {
+   "gloss": "единица продукции",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1662,7 +2232,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "изготовления",
+   "wrong_hint": false,
+   "mwe": "время изготовления"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1679,7 +2255,13 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "час",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1699,7 +2281,13 @@
    "meaning": "себестоимость единицы продукции"
   },
   "verdict": "ok-term",
-  "note": "термин атласа сверху карточки"
+  "note": "термин атласа сверху карточки",
+  "ai": {
+   "gloss": "единицы",
+   "wrong_hint": true,
+   "mwe": "себестоимость единицы продукции"
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1716,7 +2304,13 @@
   },
   "term": null,
   "verdict": "wrong",
-  "note": "יחידה = единица, карточка «единственный»"
+  "note": "יחידה = единица, карточка «единственный»",
+  "ai": {
+   "gloss": "единица продукции",
+   "wrong_hint": true,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  },
  {
   "section": "s40-break-even",
@@ -1733,6 +2327,12 @@
   },
   "term": null,
   "verdict": "ok",
-  "note": ""
+  "note": "",
+  "ai": {
+   "gloss": "не",
+   "wrong_hint": false,
+   "mwe": ""
+  },
+  "ai_verdict": "ok"
  }
 ]
