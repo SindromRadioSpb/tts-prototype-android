@@ -51,7 +51,13 @@
   }
   function rowSpans(tr) {
     var niq = tr.querySelectorAll('td[data-col="niqqud"] .rm-w');
-    return Array.prototype.slice.call(niq.length ? niq : tr.querySelectorAll('td[data-col="he"] .rm-w'));
+    var spans = niq.length ? niq : tr.querySelectorAll('td[data-col="he"] .rm-w');
+    // a row that is not a table row (the engineering atlas: <div data-wg-row> with [data-col] cells)
+    if (!spans.length && tr.hasAttribute && tr.hasAttribute("data-wg-row")) {
+      niq = tr.querySelectorAll('[data-col="niqqud"] .rm-w');
+      spans = niq.length ? niq : tr.querySelectorAll('[data-col="he"] .rm-w');
+    }
+    return Array.prototype.slice.call(spans);
   }
   // the cell's value text: controls (replay \u25B6\uFE0E, TTS) and badges are not part of the translation
   function cellValue(tr, col) {

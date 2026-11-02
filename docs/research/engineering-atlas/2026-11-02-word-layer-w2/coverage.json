@@ -1,0 +1,2122 @@
+{
+ "pairs": 5698,
+ "tokens": 27147,
+ "labels": {
+  "unknown": 1155,
+  "likely": 1663,
+  "exact": 2289,
+  "guessed": 339,
+  "function": 252
+ },
+ "byLabelTokens": {
+  "unknown": 3783,
+  "likely": 7107,
+  "exact": 11168,
+  "guessed": 1620,
+  "function": 3469
+ },
+ "unknownTop": [
+  {
+   "surface": "מומנט",
+   "niqqud": "מוֹמֶנְט",
+   "n": 144,
+   "term": true,
+   "sections": 17
+  },
+  {
+   "surface": "סיבוב",
+   "niqqud": "סִיבוּב",
+   "n": 93,
+   "term": true,
+   "sections": 20
+  },
+  {
+   "surface": "המחבר",
+   "niqqud": "הַמַּחְבָּר",
+   "n": 70,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "הסיבוב",
+   "niqqud": "הַסִּיבוּב",
+   "n": 67,
+   "term": true,
+   "sections": 15
+  },
+  {
+   "surface": "א",
+   "niqqud": "א",
+   "n": 66,
+   "term": false,
+   "sections": 11
+  },
+  {
+   "surface": "מרבי",
+   "niqqud": "מְרַבִּי",
+   "n": 49,
+   "term": false,
+   "sections": 6
+  },
+  {
+   "surface": "תמסורת",
+   "niqqud": "תִּמְסֹרֶת",
+   "n": 46,
+   "term": true,
+   "sections": 6
+  },
+  {
+   "surface": "פני",
+   "niqqud": "פְּנֵי",
+   "n": 40,
+   "term": true,
+   "sections": 12
+  },
+  {
+   "surface": "ג",
+   "niqqud": "ג",
+   "n": 40,
+   "term": false,
+   "sections": 10
+  },
+  {
+   "surface": "החיתוך",
+   "niqqud": "הַחִיתּוּךְ",
+   "n": 40,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "לגזירה",
+   "niqqud": "לִגְזִירָה",
+   "n": 39,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "צירי",
+   "niqqud": "צִירִי",
+   "n": 33,
+   "term": true,
+   "sections": 6
+  },
+  {
+   "surface": "למעיכה",
+   "niqqud": "לִמְעִיכָה",
+   "n": 31,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "נצילות",
+   "niqqud": "נְצִילוּת",
+   "n": 29,
+   "term": false,
+   "sections": 8
+  },
+  {
+   "surface": "חיתוך",
+   "niqqud": "חִיתּוּךְ",
+   "n": 29,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "סיבובית",
+   "niqqud": "סִיבוּבִית",
+   "n": 28,
+   "term": true,
+   "sections": 15
+  },
+  {
+   "surface": "מודול",
+   "niqqud": "מוֹדוּל",
+   "n": 28,
+   "term": true,
+   "sections": 5
+  },
+  {
+   "surface": "הממסרת",
+   "niqqud": "הַמִּמְסֶרֶת",
+   "n": 27,
+   "term": false,
+   "sections": 7
+  },
+  {
+   "surface": "חביקה",
+   "niqqud": "חֲבִיקָה",
+   "n": 27,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "ממסרת",
+   "niqqud": "מִמְסֶרֶת",
+   "n": 26,
+   "term": false,
+   "sections": 7
+  },
+  {
+   "surface": "המשטח",
+   "niqqud": "הַמִּשְׁטָח",
+   "n": 25,
+   "term": false,
+   "sections": 6
+  },
+  {
+   "surface": "שגם",
+   "niqqud": "שֶׁגֶם",
+   "n": 24,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "קידמה",
+   "niqqud": "קִידְמָה",
+   "n": 24,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "שיבוב",
+   "niqqud": "שִׁיבּוּב",
+   "n": 22,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "תיל",
+   "niqqud": "תֵּיל",
+   "n": 21,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "מכני",
+   "niqqud": "מֵכָנִי",
+   "n": 20,
+   "term": false,
+   "sections": 14
+  },
+  {
+   "surface": "המרבי",
+   "niqqud": "הַמְּרַבִּי",
+   "n": 20,
+   "term": false,
+   "sections": 9
+  },
+  {
+   "surface": "המומנט",
+   "niqqud": "הַמּוֹמֶנְט",
+   "n": 20,
+   "term": false,
+   "sections": 8
+  },
+  {
+   "surface": "הידוק",
+   "niqqud": "הִידּוּק",
+   "n": 19,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "בלאי",
+   "niqqud": "בְּלַאי",
+   "n": 19,
+   "term": true,
+   "sections": 7
+  },
+  {
+   "surface": "ש״ח",
+   "niqqud": "ש״ח",
+   "n": 19,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "מ",
+   "niqqud": "מ",
+   "n": 18,
+   "term": false,
+   "sections": 11
+  },
+  {
+   "surface": "חריטה",
+   "niqqud": "חֲרִיטָה",
+   "n": 18,
+   "term": true,
+   "sections": 4
+  },
+  {
+   "surface": "בחריטה",
+   "niqqud": "בַּחֲרִיטָה",
+   "n": 17,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "נומינלית",
+   "niqqud": "נוֹמִינָלִית",
+   "n": 17,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "מחבר",
+   "niqqud": "מַחְבַּר",
+   "n": 16,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "תמסורת",
+   "niqqud": "תִּמְסוֹרֶת",
+   "n": 16,
+   "term": true,
+   "sections": 4
+  },
+  {
+   "surface": "סיבובים",
+   "niqqud": "סִיבוּבִים",
+   "n": 16,
+   "term": false,
+   "sections": 6
+  },
+  {
+   "surface": "קשיות",
+   "niqqud": "קְשִׁיּוּת",
+   "n": 16,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "השיבוב",
+   "niqqud": "הַשִּׁבּוּב",
+   "n": 15,
+   "term": true,
+   "sections": 5
+  },
+  {
+   "surface": "הצירי",
+   "niqqud": "הַצִּירִי",
+   "n": 15,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "סימון",
+   "niqqud": "סִימּוּן",
+   "n": 15,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "הגדרה",
+   "niqqud": "הַגְדָּרָה",
+   "n": 15,
+   "term": false,
+   "sections": 9
+  },
+  {
+   "surface": "קוני",
+   "niqqud": "קוֹנִי",
+   "n": 15,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "חריטת",
+   "niqqud": "חֲרִיטַת",
+   "n": 15,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "מחבר",
+   "niqqud": "מַחְבָּר",
+   "n": 14,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "שלם",
+   "niqqud": "שָׁלֵם",
+   "n": 14,
+   "term": false,
+   "sections": 6
+  },
+  {
+   "surface": "רדיאלי",
+   "niqqud": "רַדְיָאלִי",
+   "n": 14,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "בשני",
+   "niqqud": "בִּשְׁנֵי",
+   "n": 13,
+   "term": false,
+   "sections": 7
+  },
+  {
+   "surface": "מסמרה",
+   "niqqud": "מַסְמֵרָה",
+   "n": 13,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "מהו",
+   "niqqud": "מַהוּ",
+   "n": 13,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "הטריז",
+   "niqqud": "הַטְּרִיז",
+   "n": 13,
+   "term": true,
+   "sections": 4
+  },
+  {
+   "surface": "דינמי",
+   "niqqud": "דִּינָמִי",
+   "n": 13,
+   "term": true,
+   "sections": 4
+  },
+  {
+   "surface": "מועבר",
+   "niqqud": "מוּעֲבָר",
+   "n": 12,
+   "term": false,
+   "sections": 7
+  },
+  {
+   "surface": "ד",
+   "niqqud": "ד",
+   "n": 12,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "פרופיל",
+   "niqqud": "פְּרוֹפִיל",
+   "n": 12,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "להחלקה",
+   "niqqud": "לְהַחְלָקָה",
+   "n": 12,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "המועבר",
+   "niqqud": "הַמּוּעֲבָר",
+   "n": 12,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "צנטריפוגלי",
+   "niqqud": "צֶנְטְרִיפוּגָלִי",
+   "n": 12,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "מרבית",
+   "niqqud": "מְרַבִּית",
+   "n": 12,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "קדחים",
+   "niqqud": "קְדָחִים",
+   "n": 11,
+   "term": false,
+   "sections": 7
+  },
+  {
+   "surface": "משטח",
+   "niqqud": "מִשְׁטָח",
+   "n": 11,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "קונוס",
+   "niqqud": "קוֹנוּס",
+   "n": 11,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "היגש",
+   "niqqud": "הֶיגֵּשׁ",
+   "n": 11,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "מזערית",
+   "niqqud": "מִזְעָרִית",
+   "n": 11,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "דפינה",
+   "niqqud": "דְּפִינָה",
+   "n": 11,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "ליצירת",
+   "niqqud": "לִיצִירַת",
+   "n": 10,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "המסמרה",
+   "niqqud": "הַמַּסְמֵרָה",
+   "n": 10,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "הסיבוב",
+   "niqqud": "הַסִּבּוּב",
+   "n": 10,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "א׳",
+   "niqqud": "א׳",
+   "n": 10,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "מסבי",
+   "niqqud": "מְסַבֵּי",
+   "n": 10,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "טריז",
+   "niqqud": "טְרִיז",
+   "n": 10,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "סטטי",
+   "niqqud": "סְטָטִי",
+   "n": 10,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "מעיכה",
+   "niqqud": "מְעִיכָה",
+   "n": 9,
+   "term": true,
+   "sections": 4
+  },
+  {
+   "surface": "רדיוס",
+   "niqqud": "רַדְיוּס",
+   "n": 9,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "ומומנט",
+   "niqqud": "וּמוֹמֶנְט",
+   "n": 9,
+   "term": false,
+   "sections": 7
+  },
+  {
+   "surface": "ב׳",
+   "niqqud": "ב׳",
+   "n": 9,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "ח",
+   "niqqud": "ח",
+   "n": 9,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "הבלאי",
+   "niqqud": "הַבְּלַאי",
+   "n": 9,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "חבטות",
+   "niqqud": "חֲבָטוֹת",
+   "n": 9,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "שווה",
+   "niqqud": "שָׁווֶה",
+   "n": 9,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "שיבוב",
+   "niqqud": "שִׁבּוּב",
+   "n": 9,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "קידוח",
+   "niqqud": "קִידּוּחַ",
+   "n": 9,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "מ״מ",
+   "niqqud": "מ״מ",
+   "n": 9,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "סבולות",
+   "niqqud": "סְבֹלוֹת",
+   "n": 8,
+   "term": true,
+   "sections": 5
+  },
+  {
+   "surface": "לשני",
+   "niqqud": "לִשְׁנֵי",
+   "n": 8,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "מינימלי",
+   "niqqud": "מִינִימָלִי",
+   "n": 8,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "למומנט",
+   "niqqud": "לְמוֹמֶנְט",
+   "n": 8,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "להנעת",
+   "niqqud": "לַהֲנָעַת",
+   "n": 8,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "אפקט",
+   "niqqud": "אֶפֶקְט",
+   "n": 8,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "הנקוב",
+   "niqqud": "הַנָּקוּב",
+   "n": 8,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "גלילית",
+   "niqqud": "גְּלִילִית",
+   "n": 8,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "בסרטוט",
+   "niqqud": "בַּסִּרְטוּט",
+   "n": 8,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "קשיי",
+   "niqqud": "קְשֵׁי",
+   "n": 8,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "י",
+   "niqqud": "י",
+   "n": 7,
+   "term": true,
+   "sections": 6
+  },
+  {
+   "surface": "לסיבוב",
+   "niqqud": "לְסִיבוּב",
+   "n": 7,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "טריזית",
+   "niqqud": "טְרִיזִית",
+   "n": 7,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "תרמי",
+   "niqqud": "תֶּרְמִי",
+   "n": 7,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "מרכוז",
+   "niqqud": "מִרְכּוּז",
+   "n": 7,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "מההספק",
+   "niqqud": "מֵהַהֶסְפֵּק",
+   "n": 7,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "קרביד",
+   "niqqud": "קַרְבִּיד",
+   "n": 7,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "הגרגיר",
+   "niqqud": "הַגַּרְגִּיר",
+   "n": 7,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "הסבולת",
+   "niqqud": "הַסְּבוֹלֶת",
+   "n": 7,
+   "term": true,
+   "sections": 5
+  },
+  {
+   "surface": "סטיית",
+   "niqqud": "סְטִיַּית",
+   "n": 7,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "ת",
+   "niqqud": "ת",
+   "n": 6,
+   "term": true,
+   "sections": 5
+  },
+  {
+   "surface": "גבי",
+   "niqqud": "גַּבֵּי",
+   "n": 6,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "זוויות",
+   "niqqud": "זָוִויּוֹת",
+   "n": 6,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "משטחי",
+   "niqqud": "מִשְׁטְחֵי",
+   "n": 6,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "מלאה",
+   "niqqud": "מְלֵאָה",
+   "n": 6,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "המרת",
+   "niqqud": "הֲמָרַת",
+   "n": 6,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "ביציאת",
+   "niqqud": "בִּיצִיאַת",
+   "n": 6,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "מתיחת",
+   "niqqud": "מְתִיחַת",
+   "n": 6,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "הסיבוב",
+   "niqqud": "הַסִּבוּב",
+   "n": 6,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הטריזיות",
+   "niqqud": "הַטְּרִיזִיּוֹת",
+   "n": 6,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "צמנוט",
+   "niqqud": "צִמְנוּט",
+   "n": 6,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "טמפרטורה",
+   "niqqud": "טֶמְפֶּרָטוּרָה",
+   "n": 6,
+   "term": true,
+   "sections": 4
+  },
+  {
+   "surface": "בסיבוב",
+   "niqqud": "בְּסִיבוּב",
+   "n": 6,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "השיבוב",
+   "niqqud": "הַשִּׁיבּוּב",
+   "n": 6,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הקידוח",
+   "niqqud": "הַקִּידּוּחַ",
+   "n": 6,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הדפינה",
+   "niqqud": "הַדְּפִינָה",
+   "n": 6,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "הסבולות",
+   "niqqud": "הַסְּבֹלוֹת",
+   "n": 6,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "חוגן",
+   "niqqud": "חוֹגָן",
+   "n": 6,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "במערכות",
+   "niqqud": "בְּמַעַרְכוֹת",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "אופקי",
+   "niqqud": "אוֹפְקִי",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "כיוון",
+   "niqqud": "כִּיווּן",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "סיבובי",
+   "niqqud": "סִיבוּבִי",
+   "n": 5,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "בציר",
+   "niqqud": "בְּצִיר",
+   "n": 5,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "פלסטי",
+   "niqqud": "פְּלַסְטִי",
+   "n": 5,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "קידוח",
+   "niqqud": "קִדּוּחַ",
+   "n": 5,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "ולמעיכה",
+   "niqqud": "וְלִמְעִיכָה",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "תבריגים",
+   "niqqud": "תַּבְרִיגִים",
+   "n": 5,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "הגיאומטרי",
+   "niqqud": "הַגֵּאוֹמֶטְרִי",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "אינדקס",
+   "niqqud": "אִינְדֶּקְס",
+   "n": 5,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "השסתום",
+   "niqqud": "הַשַּׁסְתּוֹם",
+   "n": 5,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "ה",
+   "niqqud": "ה",
+   "n": 5,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "התמסורת",
+   "niqqud": "הַתִּמְסוֹרֶת",
+   "n": 5,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "צירי",
+   "niqqud": "צִירֵי",
+   "n": 5,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "אלסטיות",
+   "niqqud": "אֵלַסְטִיּוּת",
+   "n": 5,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "התעייפות",
+   "niqqud": "הִתְעַיְּפוּת",
+   "n": 5,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "סימטרי",
+   "niqqud": "סִימֶטְרִי",
+   "n": 5,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "אקסיאלי",
+   "niqqud": "אַקְסִיאָלִי",
+   "n": 5,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הסיבובים",
+   "niqqud": "הַסִּיבוּבִים",
+   "n": 5,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "ט",
+   "niqqud": "ט",
+   "n": 5,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "במצמד",
+   "niqqud": "בְּמַצְמֵד",
+   "n": 5,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "שהמצמד",
+   "niqqud": "שֶׁהַמַּצְמֵד",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "טרפזי",
+   "niqqud": "טְרַפֵּזִי",
+   "n": 5,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "והמכונה",
+   "niqqud": "וְהַמְּכוֹנָה",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "הקידמה",
+   "niqqud": "הַקִּידְמָה",
+   "n": 5,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "רדיאלית",
+   "niqqud": "רַדְיָאלִית",
+   "n": 5,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "חספוס",
+   "niqqud": "חִסְפּוּס",
+   "n": 5,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "אלומיניום",
+   "niqqud": "אֲלוּמִינְיוּם",
+   "n": 5,
+   "term": false,
+   "sections": 5
+  },
+  {
+   "surface": "מישורית",
+   "niqqud": "מִישׁוֹרִית",
+   "n": 5,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "הנקובה",
+   "niqqud": "הַנְּקוּבָה",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "המקסימלית",
+   "niqqud": "הַמַּקְסִימָלִית",
+   "n": 5,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "חריגות",
+   "niqqud": "חֲרִיגוּת",
+   "n": 5,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "הפין",
+   "niqqud": "הַפִּין",
+   "n": 5,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "חישול",
+   "niqqud": "חִישּׁוּל",
+   "n": 5,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "בחישול",
+   "niqqud": "בְּחִישּׁוּל",
+   "n": 5,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "מחברים",
+   "niqqud": "מַחְבָּרִים",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "אפיצות",
+   "niqqud": "אֲפִיצוּת",
+   "n": 4,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "ישרי",
+   "niqqud": "יִשְׁרֵי",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "מומנטים",
+   "niqqud": "מוֹמֶנְטִים",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "חפייה",
+   "niqqud": "חֲפִיָּה",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "תחתון",
+   "niqqud": "תַּחְתּוֹן",
+   "n": 4,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "דסקה",
+   "niqqud": "דִּסְקָה",
+   "n": 4,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "מכנית",
+   "niqqud": "מֵכָנִית",
+   "n": 4,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "גיאומטרי",
+   "niqqud": "גֵּאוֹמֶטְרִי",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "והתחתון",
+   "niqqud": "וְהַתַּחְתּוֹן",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "טמפרטורת",
+   "niqqud": "טֶמְפֶּרָטוּרַת",
+   "n": 4,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "חדירה",
+   "niqqud": "חֲדִירָה",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "יחידת",
+   "niqqud": "יְחִידַת",
+   "n": 4,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "בממסרת",
+   "niqqud": "בְּמִמְסֶרֶת",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "פיזיקלי",
+   "niqqud": "פִיזִיקָלִי",
+   "n": 4,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "שההספק",
+   "niqqud": "שֶׁהַהֶסְפֵּק",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "לממסרה",
+   "niqqud": "לַמִּמְסָרָה",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "בתמסורת",
+   "niqqud": "בְּתִמְסֹרֶת",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "לבלאי",
+   "niqqud": "לִבְלַאי",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "קטרי",
+   "niqqud": "קוֹטְרֵי",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "הספקי",
+   "niqqud": "הֶסְפֵּקֵי",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "המומנטים",
+   "niqqud": "הַמּוֹמֶנְטִים",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "להתעייפות",
+   "niqqud": "לְהִתְעַיְּפוּת",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "הסמכים",
+   "niqqud": "הַסְּמָכִים",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "סימטרית",
+   "niqqud": "סִימֶטְרִית",
+   "n": 4,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "והרפיה",
+   "niqqud": "וַהֲרְפָּיָה",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "חנקון",
+   "niqqud": "חִנְקוּן",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "בעלות",
+   "niqqud": "בַּעֲלוֹת",
+   "n": 4,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "נורמלי",
+   "niqqud": "נוֹרְמָלִי",
+   "n": 4,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "רדיאליים",
+   "niqqud": "רַדְיָאלִיִּים",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "אלמנט",
+   "niqqud": "אֵלֵמֶנְט",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "הנומינלי",
+   "niqqud": "הַנּוֹמִינָלִי",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "בטמפרטורות",
+   "niqqud": "בְּטֶמְפֶּרָטוּרוֹת",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "בדסקות",
+   "niqqud": "בְּדִסְקוֹת",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "קווית",
+   "niqqud": "קַווִית",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "וזוויות",
+   "niqqud": "וְזָווִיּוֹת",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "שחיקה",
+   "niqqud": "שְׁחִיקָה",
+   "n": 4,
+   "term": false,
+   "sections": 4
+  },
+  {
+   "surface": "חליפיות",
+   "niqqud": "חֲלִיפִיּוּת",
+   "n": 4,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "דוקומנטציה",
+   "niqqud": "דּוֹקוּמֶנְטַצְיָה",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "בטריז",
+   "niqqud": "בִּטְרִיז",
+   "n": 4,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "והכלי",
+   "niqqud": "וְהַכְּלִי",
+   "n": 4,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "קידוד",
+   "niqqud": "קִידּוּד",
+   "n": 4,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "בחריטת",
+   "niqqud": "בַּחֲרִיטַת",
+   "n": 4,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "עוקצים",
+   "niqqud": "עֻקָּצִים",
+   "n": 4,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "מירוק",
+   "niqqud": "מֵרוּק",
+   "n": 4,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "יציקת",
+   "niqqud": "יְצִיקַת",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הגיאומטרית",
+   "niqqud": "הַגֵּיאוֹמֶטְרִית",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "עיגוליות",
+   "niqqud": "עִיגּוּלִיּוּת",
+   "n": 4,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "העקום",
+   "niqqud": "הֶעָקוֹם",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הייחוס",
+   "niqqud": "הַיִּיחוּס",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "לאלמנט",
+   "niqqud": "לָאֵלֶמֶנְט",
+   "n": 4,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "המתייחסת",
+   "niqqud": "הַמִּתְיַיחֶסֶת",
+   "n": 4,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "אלקטרודות",
+   "niqqud": "אֶלֶקְטְרוֹדוֹת",
+   "n": 4,
+   "term": true,
+   "sections": 3
+  },
+  {
+   "surface": "מתכתיים",
+   "niqqud": "מַתַּכְתִּיִּים",
+   "n": 4,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "משופעות",
+   "niqqud": "מְשׁוּפָּעוֹת",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "לייזר",
+   "niqqud": "לֵייזֶר",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "אלקטרונים",
+   "niqqud": "אֶלֶקְטְרוֹנִים",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "פיתגורס",
+   "niqqud": "פִּיתָגוֹרָס",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "להצמדת",
+   "niqqud": "לְהַצְמָדַת",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "הסמרור",
+   "niqqud": "הַסִּמְרוּר",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "חלקית",
+   "niqqud": "חֶלְקִית",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "ויעילה",
+   "niqqud": "וִיעִילָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "במחבר",
+   "niqqud": "בְּמַחְבַּר",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "ה",
+   "niqqud": "",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "אפקטיבי",
+   "niqqud": "אֶפֶקְטִיבִי",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "להידוק",
+   "niqqud": "לְהִידּוּק",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "להתכה",
+   "niqqud": "לְהַתָּכָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "סטטיות",
+   "niqqud": "סְטָטִיּוֹת",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "בתיל",
+   "niqqud": "בְּתֵיל",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "ביחידת",
+   "niqqud": "בִּיחִידַת",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "בשנייה",
+   "niqqud": "בַּשְּׁנִיָּה",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "בקדח",
+   "niqqud": "בַּקֶּדַח",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "מאמצים",
+   "niqqud": "מַאֲמָצִים",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "לדחיפת",
+   "niqqud": "לִדְחִיפַת",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "בטבור",
+   "niqqud": "בְּטַבּוּר",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "סיבובי",
+   "niqqud": "סִיבוּבֵי",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "גליליים",
+   "niqqud": "גְּלִילִיִּים",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "הרדיאלי",
+   "niqqud": "הָרַדְיָאלִי",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "טריזיות",
+   "niqqud": "טְרִיזִיּוֹת",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "לואיס",
+   "niqqud": "לוּאִיס",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "יציקה",
+   "niqqud": "יְצִיקָה",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "סגסוג",
+   "niqqud": "סִגְסוּג",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "במסב",
+   "niqqud": "בְּמֵסַב",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "מהדרגה",
+   "niqqud": "מֵהַדַּרְגָּה",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "קטלוגי",
+   "niqqud": "קָטָלוֹגִי",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "מנספח",
+   "niqqud": "מִנִּסְפַּח",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "מהמסבים",
+   "niqqud": "מֵהַמְּסַבִּים",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "בטבלה",
+   "niqqud": "בַּטַּבְלָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "למצמד",
+   "niqqud": "לַמַּצְמֵד",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "מהטבלאות",
+   "niqqud": "מֵהַטַּבְלָאוֹת",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "דסקות",
+   "niqqud": "דִּסְקוֹת",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "המועבר",
+   "niqqud": "הַמוּעֲבָר",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הקונוס",
+   "niqqud": "הַקּוֹנוּס",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "המיועד",
+   "niqqud": "הַמְיוּעָד",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "שקוטרו",
+   "niqqud": "שֶׁקּוֹטְרוֹ",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "ליחידה",
+   "niqqud": "לִיחִידָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "קריעה",
+   "niqqud": "קְרִיעָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "יציקות",
+   "niqqud": "יְצִיקוֹת",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "טונגסטן",
+   "niqqud": "טוּנְגְּסְטֶן",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "פריכים",
+   "niqqud": "פְּרִיכִים",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "בקידוח",
+   "niqqud": "בְּקִידּוּחַ",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "מתק״ש",
+   "niqqud": "מַתְקַ״שׁ",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "שיקוע",
+   "niqqud": "שִׁיקּוּעַ",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "ספירלי",
+   "niqqud": "סְפִירָלִי",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "לקידוח",
+   "niqqud": "לְקִידּוּחַ",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הלוליין",
+   "niqqud": "הַלּוּלְיָן",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "במקדחים",
+   "niqqud": "בְּמַקְדֵּחִים",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "הורדת",
+   "niqqud": "הוֹרָדַת",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "שהמקדד",
+   "niqqud": "שֶׁהַמַּקְדֵּד",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "גידוע",
+   "niqqud": "גִּדּוּעַ",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "אורכית",
+   "niqqud": "אָרְכִּית",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "בשיטה",
+   "niqqud": "בַּשִּׁיטָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "החספוס",
+   "niqqud": "הַחִסְפּוּס",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "כרסומת",
+   "niqqud": "כַּרְסוֹמֶת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "אופקית",
+   "niqqud": "אוֹפְקִית",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "ופריכים",
+   "niqqud": "וּפְרִיכִים",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "במשחז",
+   "niqqud": "בְּמַשְׁחֵז",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "אנגליות",
+   "niqqud": "אַנְגְּלִיּוֹת",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "מגנטי",
+   "niqqud": "מַגְנֵטִי",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "ערגול",
+   "niqqud": "עִרְגּוּל",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "המזערית",
+   "niqqud": "הַמִּזְעָרִית",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "מהמצוין",
+   "niqqud": "מֵהַמְּצֻיָּן",
+   "n": 3,
+   "term": false,
+   "sections": 1
+  },
+  {
+   "surface": "סבולת",
+   "niqqud": "סְבוֹלֶת",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "הנדון",
+   "niqqud": "הַנָּדוֹן",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "מישוריות",
+   "niqqud": "מִישׁוֹרִיּוּת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "גליליות",
+   "niqqud": "גְּלִילִיּוּת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "קוויות",
+   "niqqud": "קַווִּיּוּת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "מקבילות",
+   "niqqud": "מַקְבִּילִיּוּת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "ניצבות",
+   "niqqud": "נִצָּבוּת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "סימטריות",
+   "niqqud": "סִימֶטְרִיּוּת",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "לצורה",
+   "niqqud": "לַצּוּרָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "במקסימום",
+   "niqqud": "בְּמַקְסִימוּם",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "למקסימום",
+   "niqqud": "לְמַקְסִימוּם",
+   "n": 3,
+   "term": true,
+   "sections": 1
+  },
+  {
+   "surface": "טבולים",
+   "niqqud": "טְבוּלִים",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "קתודה",
+   "niqqud": "קָתוֹדָה",
+   "n": 3,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "וולפרם",
+   "niqqud": "ווֹלְפְרָם",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "אלקטרודה",
+   "niqqud": "אֶלֶקְטְרוֹדָה",
+   "n": 3,
+   "term": true,
+   "sections": 2
+  },
+  {
+   "surface": "קרטון",
+   "niqqud": "קַרְטוֹן",
+   "n": 3,
+   "term": false,
+   "sections": 3
+  },
+  {
+   "surface": "וסיבובי",
+   "niqqud": "וְסִיבוּבִי",
+   "n": 2,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "לתמסורות",
+   "niqqud": "לְתִמְסוֹרוֹת",
+   "n": 2,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "חדישות",
+   "niqqud": "חֲדִישׁוֹת",
+   "n": 2,
+   "term": false,
+   "sections": 2
+  },
+  {
+   "surface": "גיצי",
+   "niqqud": "גִּצִּי",
+   "n": 2,
+   "term": true,
+   "sections": 2
+  }
+ ],
+ "unknownCount": 1155,
+ "unknownTerm": 173
+}

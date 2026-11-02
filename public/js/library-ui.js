@@ -13255,7 +13255,16 @@ function attachAtlasWords(atlasId, section, data, how) {
     confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
   });
   const labels = { terms: tt('atlas.word.terms', 'Термины абзаца') };
-  section.querySelectorAll('.atlas-row[data-ref]').forEach(row => AW.decorateRow(row, ctx, labels));
+  section.querySelectorAll('.atlas-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });
+  // «В контексте (ИИ)» (E5): a section's layer, prepared off-site and put next to the section on the volume
+  // (word-gloss-ai-layer-v1). Every row is re-proved by its key; no layer — the card shows what it showed before.
+  const AI = window.WordGlossAI;
+  if (AI && typeof AI.remember === 'function') {
+    fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/context-ai/' + encodeURIComponent(String(data && data.id || '')) + '.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((layer) => (layer && ctx === atlasWordsCtx ? AI.remember(layer, AW.glossRows(ctx)) : null))
+      .catch(() => {});
+  }
   return handle;
 }
 

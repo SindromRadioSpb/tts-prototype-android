@@ -196,7 +196,27 @@
     row.appendChild(line);
   }
 
-  var api = { locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
+  // ---- «В контексте (ИИ)» (owner decision E5): the existing word-gloss-ai-layer-v1, one row per Hebrew block ----
+  // The export writes these rows and the reader binds the same rows, so the key an agent echoes back is the key the
+  // reader computes (WordGlossAI.rowPayloadFromData: pointed words + translation). Identity = the block id.
+  function glossRows(ctx) {
+    var out = [];
+    if (!ctx) return out;
+    ctx.items.forEach(function (it, id) {
+      out.push({ id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id) });
+    });
+    return out;
+  }
+  function bindGlossRow(row, ctx) {
+    if (!row || !ctx) return;
+    var id = row.getAttribute("data-ref"), it = id && ctx.items.get(id);
+    if (!it) return;
+    row.__lpLearningRow = { id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id) };
+    row.setAttribute("data-wg-row", "1");
+    row.removeAttribute("data-wg-ai-key"); row.removeAttribute("data-wg-occurrence-key");
+  }
+
+  var api = { glossRows: glossRows, bindGlossRow: bindGlossRow, locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
     sectionContext: sectionContext, occurrence: occurrence, verifyOccurrence: verifyOccurrence, cardTop: cardTop, decorateRow: decorateRow };
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;
