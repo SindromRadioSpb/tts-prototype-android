@@ -413,6 +413,1133 @@
     "a97002:p106:f20"
    ],
    "why": "таблица форм сварных швов (строки 7–12) была повторена в тексте; таблица на странице полная"
+  },
+  {
+   "section": "s00-front",
+   "op": "section",
+   "fields": {
+    "translated": true
+   },
+   "why": "титул и оглавление переведены и огласованы редактором (2026-11-02): строки оглавления — огласовка, транслит и перевод поставщика из заголовков своих разделов"
+  },
+  {
+   "section": "s00-front",
+   "page": 1,
+   "op": "page",
+   "fields": {
+    "state": "translated",
+    "translated": true
+   },
+   "why": "страница переведена"
+  },
+  {
+   "section": "s00-front",
+   "page": 2,
+   "op": "page",
+   "fields": {
+    "state": "translated",
+    "translated": true
+   },
+   "why": "страница переведена"
+  },
+  {
+   "section": "s00-front",
+   "page": 3,
+   "op": "page",
+   "fields": {
+    "state": "translated",
+    "translated": true
+   },
+   "why": "страница переведена"
+  },
+  {
+   "section": "s00-front",
+   "page": 1,
+   "op": "set",
+   "id": "a97002:p1:b001",
+   "why": "титул: перевод, огласовка и транслит редактора по скану",
+   "fields": {
+    "kind": "prose",
+    "he": "הנדסאים – הנדסת מכונות – תיב\"ם",
+    "he_niqqud": "הַנְדְּסָאִים – הַנְדָּסַת מְכוֹנוֹת – תִּיבַּ\"ם",
+    "translit": "handasaim – handasat mekhonot – tibam",
+    "translit_ru": "хандасаим – хандасат мехонот – тибам",
+    "ru": "Практические инженеры (хандасаим) — машиностроение — проектирование и производство с помощью компьютера (ТИБАМ, CAD/CAM)",
+    "status": {
+     "recognition": "extracted",
+     "language_review": "editor_translated",
+     "math_review": "not_applicable",
+     "owner_status": "none"
+    }
+   }
+  },
+  {
+   "section": "s00-front",
+   "page": 1,
+   "op": "set",
+   "id": "a97002:p1:b002",
+   "why": "титул: перевод, огласовка и транслит редактора по скану",
+   "fields": {
+    "kind": "heading",
+    "he": "חלקי מכונות ועיבוד שבבי",
+    "he_niqqud": "חֶלְקֵי מְכוֹנוֹת וְעִבּוּד שְׁבָבִי",
+    "translit": "khelkei mekhonot ve'ibud shvavi",
+    "translit_ru": "хелькей мехонот ве-ибуд швави",
+    "ru": "Детали машин и обработка резанием",
+    "status": {
+     "recognition": "extracted",
+     "language_review": "editor_translated",
+     "math_review": "not_applicable",
+     "owner_status": "none"
+    }
+   }
+  },
+  {
+   "section": "s00-front",
+   "page": 1,
+   "op": "set",
+   "id": "a97002:p1:b003",
+   "why": "титул: перевод, огласовка и транслит редактора по скану",
+   "fields": {
+    "kind": "heading",
+    "he": "נוסחאון",
+    "he_niqqud": "נֻסְחָאוֹן",
+    "translit": "nuskhaon",
+    "translit_ru": "нусхаон",
+    "ru": "Формуляр (сборник формул)",
+    "status": {
+     "recognition": "extracted",
+     "language_review": "editor_translated",
+     "math_review": "not_applicable",
+     "owner_status": "none"
+    }
+   }
+  },
+  {
+   "section": "s00-front",
+   "page": 1,
+   "op": "set",
+   "id": "a97002:p1:b004",
+   "why": "титул: перевод, огласовка и транслит редактора по скану",
+   "fields": {
+    "kind": "heading",
+    "he": "סמל בחינה 97002",
+    "he_niqqud": "סֵמֶל בְּחִינָה 97002",
+    "translit": "semel bkhina 97002",
+    "translit_ru": "семель бхина 97002",
+    "ru": "Код экзамена 97002",
+    "status": {
+     "recognition": "extracted",
+     "language_review": "editor_translated",
+     "math_review": "not_applicable",
+     "owner_status": "none"
+    }
+   }
+  },
+  {
+   "section": "s00-front",
+   "page": 1,
+   "op": "set",
+   "id": "a97002:p1:b005",
+   "why": "титул: перевод, огласовка и транслит редактора по скану",
+   "fields": {
+    "kind": "prose",
+    "he": "תשפ\"ו – 2026",
+    "he_niqqud": "תַּשְׁפַּ\"ו – 2026",
+    "translit": "tashpav – 2026",
+    "translit_ru": "ташпав – 2026",
+    "ru": "5786 по еврейскому календарю (תשפ״ו) — 2026",
+    "status": {
+     "recognition": "extracted",
+     "language_review": "editor_translated",
+     "math_review": "not_applicable",
+     "owner_status": "none"
+    }
+   }
+  },
+  {
+   "section": "s00-front",
+   "page": 2,
+   "op": "replace",
+   "id": "a97002:p2:b001",
+   "why": "оглавление стр. 2 восстановлено по скану: у поставщика номер страницы прилип к следующему пункту",
+   "with": [
+    {
+     "id": "a97002:p2:b001",
+     "kind": "heading",
+     "y": 101.9,
+     "he": "תוכן עניינים",
+     "he_niqqud": "תּוֹכֶן עִנְיָנִים",
+     "translit": "tokhen inyanim",
+     "translit_ru": "тохен иньяним",
+     "ru": "Оглавление",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "editor_translated",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     }
+    },
+    {
+     "id": "a97002:p2:toc01",
+     "kind": "heading",
+     "toc_level": 1,
+     "toc_page": 4,
+     "he": "מבוא – 4",
+     "he_niqqud": "מָבוֹא – 4",
+     "translit": "mavo – 4",
+     "translit_ru": "маво – 4",
+     "ru": "Введение — 4",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 112
+    },
+    {
+     "id": "a97002:p2:toc02",
+     "kind": "heading",
+     "toc_level": 1,
+     "toc_page": 13,
+     "he": "חלקי מכונות – 13",
+     "he_niqqud": "חֶלְקֵי מְכוֹנוֹת – 13",
+     "translit": "khelkei mekhonot – 13",
+     "translit_ru": "хелькей мехонот – 13",
+     "ru": "Детали машин — 13",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 136
+    },
+    {
+     "id": "a97002:p2:toc03",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 13,
+     "he": "מחברים – 13",
+     "he_niqqud": "מַחְבָּרִים – 13",
+     "translit": "makhbarim – 13",
+     "translit_ru": "махбарим – 13",
+     "ru": "Соединения — 13",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 160
+    },
+    {
+     "id": "a97002:p2:toc04",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 13,
+     "he": "מחבר מסמרות (Riveted Joints) – 13",
+     "he_niqqud": "מַחְבַּר מַסְמְרוֹת (Riveted Joints) – 13",
+     "translit": "makhbar masmerot (Riveted Joints) – 13",
+     "translit_ru": "махбар масмерот (Riveted Joints) – 13",
+     "ru": "Заклёпочное соединение (Riveted Joints) — 13",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 184
+    },
+    {
+     "id": "a97002:p2:toc05",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 49,
+     "he": "בִרְגִי הִדּוּק – 49",
+     "he_niqqud": "בִּרְגֵי הִדּוּק – 49",
+     "translit": "birgei hiduk – 49",
+     "translit_ru": "биргей хидук – 49",
+     "ru": "Крепёжные болты — 49",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 208
+    },
+    {
+     "id": "a97002:p2:toc06",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 91,
+     "he": "ריתוך (Welding Joints) – 91",
+     "he_niqqud": "רִתּוּךְ (Welding Joints) – 91",
+     "translit": "ritukh (Welding Joints) – 91",
+     "translit_ru": "ритух (Welding Joints) – 91",
+     "ru": "Сварка (Welding Joints — сварные соединения) — 91",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 232
+    },
+    {
+     "id": "a97002:p2:toc07",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 131,
+     "he": "קְפִיצִים (Springs) – 131",
+     "he_niqqud": "קְפִיצִים (Springs) – 131",
+     "translit": "kfitsim (Springs) – 131",
+     "translit_ru": "кфицим (Springs) – 131",
+     "ru": "Пружины (Springs) — 131",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 256
+    },
+    {
+     "id": "a97002:p2:toc08",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 155,
+     "he": "מערכות הנעה – 155",
+     "he_niqqud": "מַעֲרָכוֹת הֲנָעָה – 155",
+     "translit": "maarakhot hanaa – 155",
+     "translit_ru": "маарахот ханаа – 155",
+     "ru": "Приводные системы — 155",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 280
+    },
+    {
+     "id": "a97002:p2:toc09",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 155,
+     "he": "הספק קווי וסיבובי – 155",
+     "he_niqqud": "הֶסְפֵּק קַוִּי וְסִיבוּבִי – 155",
+     "translit": "hespek kavi vesivuvi – 155",
+     "translit_ru": "хеспек кави весивуви – 155",
+     "ru": "Мощность при поступательном и вращательном движении — 155",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 304
+    },
+    {
+     "id": "a97002:p2:toc10",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 159,
+     "he": "שֶׁגֶם (Key) – 159",
+     "he_niqqud": "שֶׁגֶם (Key) – 159",
+     "translit": "shegem (Key) – 159",
+     "translit_ru": "шегем (Key) – 159",
+     "ru": "Шпонка (Key) — 159",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 328
+    },
+    {
+     "id": "a97002:p2:toc11",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 175,
+     "he": "מבוא לתמסורות – 175",
+     "he_niqqud": "מָבוֹא לְתִמְסוֹרוֹת – 175",
+     "translit": "mavo letimsorot – 175",
+     "translit_ru": "маво летимсорот – 175",
+     "ru": "Введение в механические передачи — 175",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 352
+    },
+    {
+     "id": "a97002:p2:toc12",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 195,
+     "he": "תמסורת רצועה – 195",
+     "he_niqqud": "תִּמְסוֹרֶת רְצוּעָה – 195",
+     "translit": "timsoret retsua – 195",
+     "translit_ru": "тимсорет рецуа – 195",
+     "ru": "Ременная передача — 195",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 376
+    },
+    {
+     "id": "a97002:p2:toc13",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 235,
+     "he": "תמסורת גלגלי שיניים ישרות – 235",
+     "he_niqqud": "תִּמְסֹרֶת גַּלְגַּלֵּי שִׁנַּיִם יְשָׁרוֹת – 235",
+     "translit": "timsoret galgalei shinayim yesharot – 235",
+     "translit_ru": "тимсорет гальгалей шинаим йешарот – 235",
+     "ru": "Прямозубая цилиндрическая передача — 235",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 400
+    },
+    {
+     "id": "a97002:p2:toc14",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 253,
+     "he": "תמסורת גלגלי שיניים משופעות – 253",
+     "he_niqqud": "תִּמְסֹרֶת גַּלְגַּלֵּי שִׁנַּיִם מְשׁוּפָּעוֹת – 253",
+     "translit": "timsoret galgalei shinayim meshupaot – 253",
+     "translit_ru": "тимсорет гальгалей шинаим мешупаот – 253",
+     "ru": "Косозубая цилиндрическая передача — 253",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 424
+    },
+    {
+     "id": "a97002:p2:toc15",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 271,
+     "he": "מסבים (Bearing) – 271",
+     "he_niqqud": "מְסַבִּים (Bearing) – 271",
+     "translit": "mesabim (Bearing) – 271",
+     "translit_ru": "месабим (Bearing) – 271",
+     "ru": "Подшипники (Bearing) — 271",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 448
+    },
+    {
+     "id": "a97002:p2:toc16",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 291,
+     "he": "מצמדים במערכות הנעה – 291",
+     "he_niqqud": "מַצְמֵדִים בְּמַעַרְכוֹת הֲנָעָה – 291",
+     "translit": "matsmedim bemaarakhot hanaa – 291",
+     "translit_ru": "мацмедим бемаарахот ханаа – 291",
+     "ru": "Муфты в приводных системах — 291",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 472
+    },
+    {
+     "id": "a97002:p2:toc17",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 291,
+     "he": "מצמדים במערכות הנעה – 291",
+     "he_niqqud": "מַצְמֵדִים בְּמַעַרְכוֹת הֲנָעָה – 291",
+     "translit": "matsmedim bemaarakhot hanaa – 291",
+     "translit_ru": "мацмедим бемаарахот ханаа – 291",
+     "ru": "Муфты в приводных системах — 291",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 496
+    },
+    {
+     "id": "a97002:p2:toc18",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 295,
+     "he": "מצמד נייח (קבוע) – חיבור בלתי נפרד – 295",
+     "he_niqqud": "מַצְמֵד נַיָּח (קָבוּעַ) – חִבּוּר בִּלְתִּי נִפְרָד – 295",
+     "translit": "matsmed nayakh (kavua) – khibur bilti nifrad – 295",
+     "translit_ru": "мацмед наях (кавуа) — хибур бильти нифрад – 295",
+     "ru": "Неподвижная (постоянная) муфта — неразъёмное соединение — 295",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 520
+    },
+    {
+     "id": "a97002:p2:toc19",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 301,
+     "he": "מצמד זמני – גמישות וחיבור לפי דרישה – 301",
+     "he_niqqud": "מַצְמֵד זְמַנִּי – גְּמִישׁוּת וְחִבּוּר לְפִי דְּרִישָׁה – 301",
+     "translit": "matsmed zmani – gmishut vekhibur lefi drisha – 301",
+     "translit_ru": "мацмед змани — гмишут вехибур лефи дриша – 301",
+     "ru": "Сцепная муфта — гибкость управления и соединение по требованию — 301",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 544
+    },
+    {
+     "id": "a97002:p2:toc20",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 329,
+     "he": "גלים – 329",
+     "he_niqqud": "גַּלִּים – 329",
+     "translit": "galim – 329",
+     "translit_ru": "галим – 329",
+     "ru": "Валы — 329",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 568
+    },
+    {
+     "id": "a97002:p2:toc21",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 335,
+     "he": "ברגי הנעה – 335",
+     "he_niqqud": "בִּרְגֵי הֲנָעָה – 335",
+     "translit": "birgei hanaa – 335",
+     "translit_ru": "биргей ханаа – 335",
+     "ru": "Ходовые винты — 335",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 592
+    },
+    {
+     "id": "a97002:p2:toc22",
+     "kind": "heading",
+     "toc_level": 1,
+     "toc_page": 359,
+     "he": "עיבוד שבבי – 359",
+     "he_niqqud": "עִבּוּד שְׁבָבִי – 359",
+     "translit": "ibud shvavi – 359",
+     "translit_ru": "ибуд швави – 359",
+     "ru": "Обработка резанием — 359",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 616
+    },
+    {
+     "id": "a97002:p2:toc23",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 359,
+     "he": "סוגי ייצור – 359",
+     "he_niqqud": "סוּגֵי יִצּוּר – 359",
+     "translit": "sugei yitsur – 359",
+     "translit_ru": "сугей йицур – 359",
+     "ru": "Типы производства — 359",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 640
+    },
+    {
+     "id": "a97002:p2:toc24",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 363,
+     "he": "עקרונות תורת השיבוב – 363",
+     "he_niqqud": "עֶקְרוֹנוֹת תּוֹרַת הַשִּׁבּוּב – 363",
+     "translit": "ekronot torat hashibuv – 363",
+     "translit_ru": "экронот торат хашибув – 363",
+     "ru": "Основы теории резания — 363",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 664
+    },
+    {
+     "id": "a97002:p2:toc25",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 365,
+     "he": "תנאי שיבוב – 365",
+     "he_niqqud": "תְּנָאֵי שִׁיבּוּב – 365",
+     "translit": "tnaei shivuv – 365",
+     "translit_ru": " – 365",
+     "ru": "Режимы резания — 365",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 688
+    },
+    {
+     "id": "a97002:p2:toc26",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 373,
+     "he": "כלי חיתוך – 373",
+     "he_niqqud": "כְּלֵי חִתּוּךְ – 373",
+     "translit": "klei khitukh – 373",
+     "translit_ru": "клей хитух – 373",
+     "ru": "Режущие инструменты — 373",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 712
+    },
+    {
+     "id": "a97002:p2:toc27",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 380,
+     "he": "מכונות שיבוב – 380",
+     "he_niqqud": "מְכוֹנוֹת שִׁיבּוּב – 380",
+     "translit": "mekhonot shibuv – 380",
+     "translit_ru": "мехонот шибув – 380",
+     "ru": "Металлорежущие станки — 380",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 736
+    },
+    {
+     "id": "a97002:p2:toc28",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 475,
+     "he": "עיבודי גמר – 475",
+     "he_niqqud": "עִבּוּדֵי גְּמָר – 475",
+     "translit": "ibudei gmar – 475",
+     "translit_ru": " – 475",
+     "ru": "Отделочная обработка — 475",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 760
+    },
+    {
+     "id": "a97002:p2:toc29",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 481,
+     "he": "דיוק העיבוד – 481",
+     "he_niqqud": "דִּיּוּק הָעִבּוּד – 481",
+     "translit": "diyuk haibud – 481",
+     "translit_ru": "диюк хаибуд – 481",
+     "ru": "Точность обработки — 481",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 784
+    },
+    {
+     "id": "a97002:p2:toc30",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 481,
+     "he": "טיב פני השטח (מרקם השטח) – 481",
+     "he_niqqud": "טִיב פְּנֵי הַשֶּׁטַח (מִרְקַם הַשֶּׁטַח) – 481",
+     "translit": "tiv pnei hashetakh (mirkam hashetakh) – 481",
+     "translit_ru": "тив пней хашетах (миркам хашетах) – 481",
+     "ru": "Качество поверхности (текстура поверхности) — 481",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 808
+    }
+   ]
+  },
+  {
+   "section": "s00-front",
+   "page": 2,
+   "op": "drop",
+   "ids": [
+    "a97002:p2:b002",
+    "a97002:p2:b003",
+    "a97002:p2:b004",
+    "a97002:p2:b005",
+    "a97002:p2:b006",
+    "a97002:p2:b007",
+    "a97002:p2:b008",
+    "a97002:p2:b009",
+    "a97002:p2:b010",
+    "a97002:p2:b011",
+    "a97002:p2:b012",
+    "a97002:p2:b013",
+    "a97002:p2:b014",
+    "a97002:p2:b015",
+    "a97002:p2:b016",
+    "a97002:p2:b017",
+    "a97002:p2:b018",
+    "a97002:p2:b019",
+    "a97002:p2:b020",
+    "a97002:p2:b021",
+    "a97002:p2:b022",
+    "a97002:p2:b023",
+    "a97002:p2:b024",
+    "a97002:p2:b025",
+    "a97002:p2:b026",
+    "a97002:p2:b027",
+    "a97002:p2:b028",
+    "a97002:p2:b029",
+    "a97002:p2:b030",
+    "a97002:p2:b031",
+    "a97002:p2:b032",
+    "a97002:p2:b033",
+    "a97002:p2:b034"
+   ],
+   "why": "строки оглавления со сдвинутыми номерами страниц заменены восстановленными"
+  },
+  {
+   "section": "s00-front",
+   "page": 3,
+   "op": "replace",
+   "id": "a97002:p3:b001",
+   "why": "оглавление стр. 3 восстановлено по скану",
+   "with": [
+    {
+     "id": "a97002:p3:toc31",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 485,
+     "he": "סבולת מידה – 485",
+     "he_niqqud": "סְבֹלֶת מִדָּה – 485",
+     "translit": "svolet mida – 485",
+     "translit_ru": "сволет мида – 485",
+     "ru": "Допуск размера — 485",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 77
+    },
+    {
+     "id": "a97002:p3:toc32",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 491,
+     "he": "סבולות צורה (Geometric Tolerance) – ת\"י 1010 – 491",
+     "he_niqqud": "סְבֹלוֹת צוּרָה (Geometric Tolerance) – ת\"י 1010 – 491",
+     "translit": "svolot tsura (Geometric Tolerance) – tav yod 1010 – 491",
+     "translit_ru": "сволот цура (Geometric Tolerance) — тав йод 1010 – 491",
+     "ru": "Допуски формы (Geometric Tolerance) — израильский стандарт 1010 — 491",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 101
+    },
+    {
+     "id": "a97002:p3:toc33",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 499,
+     "he": "סבולות תנוחה (צורה ומצב הדדי) – ת\"י 1010 – 499",
+     "he_niqqud": "סְבֹלוֹת תְּנוּחָה (צוּרָה וּמַצָּב הֲדָדִי) – ת\"י 1010 – 499",
+     "translit": "svolot tnukha (tsura umatsav hadadi) – tav yod 1010 – 499",
+     "translit_ru": "сволот тнуха (цура умацав хадади) — тав йод 1010 – 499",
+     "ru": "Допуски расположения (формы и взаимного положения) — израильский стандарт 1010 — 499",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 125
+    },
+    {
+     "id": "a97002:p3:toc34",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 508,
+     "he": "דרישות מיוחדות – 508",
+     "he_niqqud": "דְּרִישׁוֹת מְיֻחָדוֹת – 508",
+     "translit": "drishot meyukhadot – 508",
+     "translit_ru": "дришот меюхадот – 508",
+     "ru": "Особые требования — 508",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 149
+    },
+    {
+     "id": "a97002:p3:toc35",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 511,
+     "he": "אפיצות (Rated Tolerance) – 511",
+     "he_niqqud": "אֲפִיצוּת (Rated Tolerance) – 511",
+     "translit": "afitsut (Rated Tolerance) – 511",
+     "translit_ru": "афицут (Rated Tolerance) – 511",
+     "ru": "Посадки (Rated Tolerance) — 511",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 173
+    },
+    {
+     "id": "a97002:p3:toc36",
+     "kind": "list_item",
+     "toc_level": 3,
+     "toc_page": 517,
+     "he": "חישובי מידות ייצור – 517",
+     "he_niqqud": "חִשּׁוּבֵי מִדּוֹת יִצּוּר – 517",
+     "translit": "khishuvei midot yitsur – 517",
+     "translit_ru": "хишувей мидот йицур – 517",
+     "ru": "Расчёт технологических размеров — 517",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 197
+    },
+    {
+     "id": "a97002:p3:toc37",
+     "kind": "heading",
+     "toc_level": 1,
+     "toc_page": 537,
+     "he": "שיטות עיבוד חדישות – 537",
+     "he_niqqud": "שִׁיטוֹת עִבּוּד חֲדִישׁוֹת – 537",
+     "translit": "shitot ibud khadishot – 537",
+     "translit_ru": " – 537",
+     "ru": "Современные методы обработки — 537",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 221
+    },
+    {
+     "id": "a97002:p3:toc38",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 537,
+     "he": "עיבוד גיצי (EDM) – 537",
+     "he_niqqud": "עִבּוּד גִּצִּי (EDM) – 537",
+     "translit": "ibud gitsi (EDM) – 537",
+     "translit_ru": " – 537",
+     "ru": "Электроэрозионная обработка (EDM) — 537",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 245
+    },
+    {
+     "id": "a97002:p3:toc39",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 539,
+     "he": "שיקוע – 539",
+     "he_niqqud": "שִׁקּוּעַ – 539",
+     "translit": "shikua – 539",
+     "translit_ru": " – 539",
+     "ru": "Электроэрозионное прошивание — 539",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 269
+    },
+    {
+     "id": "a97002:p3:toc40",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 540,
+     "he": "חיתוך בחוט – 540",
+     "he_niqqud": "חִתּוּךְ בְּחוּט – 540",
+     "translit": "khitukh bekhut – 540",
+     "translit_ru": " – 540",
+     "ru": "Проволочная электроэрозионная резка — 540",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 293
+    },
+    {
+     "id": "a97002:p3:toc41",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 541,
+     "he": "עיבוד כימי-חשמלי (ECM) – 541",
+     "he_niqqud": "עִבּוּד כִּימִי-חַשְׁמַלִּי (ECM) – 541",
+     "translit": "ibud khimi-khashmali (ECM) – 541",
+     "translit_ru": " – 541",
+     "ru": "Электрохимическая обработка (ECM) — 541",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 317
+    },
+    {
+     "id": "a97002:p3:toc42",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 543,
+     "he": "עיבוד בקרני לייזר (LBM) – 543",
+     "he_niqqud": "עִבּוּד בְּקַרְנֵי לֵייזֶר (LBM) – 543",
+     "translit": "ibud bekarnei leyzer (LBM) – 543",
+     "translit_ru": "ибуд бекарней лейзер (LBM) – 543",
+     "ru": "Лазерная обработка (LBM) — 543",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 341
+    },
+    {
+     "id": "a97002:p3:toc43",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 545,
+     "he": "עיבוד בפלזמה (PAM) – 545",
+     "he_niqqud": "עִבּוּד בְּפְלַזְמָה (PAM) – 545",
+     "translit": "ibud beplazma (PAM) – 545",
+     "translit_ru": "ибуд беплазма (PAM) – 545",
+     "ru": "Плазменная обработка (PAM) — 545",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 365
+    },
+    {
+     "id": "a97002:p3:toc44",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 549,
+     "he": "חיתוך במים (WJC) – 549",
+     "he_niqqud": "חִתּוּךְ בְּמַיִם (WJC) – 549",
+     "translit": "khitukh bemayim (WJC) – 549",
+     "translit_ru": "хитух бемайим (WJC) – 549",
+     "ru": "Водоструйная резка (WJC) — 549",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 389
+    },
+    {
+     "id": "a97002:p3:toc45",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 551,
+     "he": "עיבוד על קולי / אולטרסוני (U.S.M.) – 551",
+     "he_niqqud": "עִבּוּד עַל קוֹלִי / אוּלְטְרָסוֹנִי (U.S.M.) – 551",
+     "translit": "ibud al koli / ultrasoni (U.S.M.) – 551",
+     "translit_ru": "ибуд аль коли / ультрасони (U.S.M.) – 551",
+     "ru": "Ультразвуковая обработка (U.S.M.) — 551",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 413
+    },
+    {
+     "id": "a97002:p3:toc46",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 553,
+     "he": "עיבוד בקרן אלקטרונים (E.B.M.) – 553",
+     "he_niqqud": "עִבּוּד בְּקֶרֶן אֶלֶקְטְרוֹנִים (E.B.M.) – 553",
+     "translit": "ibud bekeren elektronim (E.B.M.) – 553",
+     "translit_ru": " – 553",
+     "ru": "Электронно-лучевая обработка (E.B.M.) — 553",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 437
+    },
+    {
+     "id": "a97002:p3:toc47",
+     "kind": "heading",
+     "toc_level": 1,
+     "toc_page": 555,
+     "he": "כלכלת הייצור – 555",
+     "he_niqqud": "כַּלְכָּלַת הַיִּצּוּר – 555",
+     "translit": "kalkalat hayitsur – 555",
+     "translit_ru": "калькалат хайицур – 555",
+     "ru": "Экономика производства — 555",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 461
+    },
+    {
+     "id": "a97002:p3:toc48",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 555,
+     "he": "עלות טכנולוגית ונקודת איזון – 555",
+     "he_niqqud": "עֲלוּת טֶכְנוֹלוֹגִית וּנְקֻדַּת אִזּוּן – 555",
+     "translit": "alut tekhnologit unekudat izun – 555",
+     "translit_ru": "алут технологит унекудат изун – 555",
+     "ru": "Технологическая себестоимость и точка равной себестоимости — 555",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 485
+    },
+    {
+     "id": "a97002:p3:toc49",
+     "kind": "heading",
+     "toc_level": 2,
+     "toc_page": 557,
+     "he": "חישובי זמן – 557",
+     "he_niqqud": "חִישּׁוּבֵי זְמַן – 557",
+     "translit": "khishuvei zman – 557",
+     "translit_ru": "хишувей зман – 557",
+     "ru": "Расчёты времени — 557",
+     "status": {
+      "recognition": "extracted",
+      "language_review": "producer_checked",
+      "math_review": "not_applicable",
+      "owner_status": "none"
+     },
+     "y": 509
+    }
+   ]
+  },
+  {
+   "section": "s00-front",
+   "page": 3,
+   "op": "drop",
+   "ids": [
+    "a97002:p3:b002",
+    "a97002:p3:b003",
+    "a97002:p3:b004",
+    "a97002:p3:b005",
+    "a97002:p3:b006",
+    "a97002:p3:b007",
+    "a97002:p3:b008",
+    "a97002:p3:b009",
+    "a97002:p3:b010",
+    "a97002:p3:b011",
+    "a97002:p3:b012",
+    "a97002:p3:b013",
+    "a97002:p3:b014",
+    "a97002:p3:b015",
+    "a97002:p3:b016",
+    "a97002:p3:b017",
+    "a97002:p3:b018",
+    "a97002:p3:b019",
+    "a97002:p3:b020"
+   ],
+   "why": "строки оглавления со сдвинутыми номерами страниц заменены восстановленными"
   }
  ]
 }

@@ -41,6 +41,24 @@ class ReaderCorrectionsTest(unittest.TestCase):
         self.assertEqual(log2, [])
         self.assertEqual(data['pages'][0]['items'][0]['ru'], 'd [мм] 1 Примечание: x', 'the input is not changed')
 
+    def test_page_and_section_fields_are_set_once(self):
+        data = section([{'id': 'a97002:p1:b001', 'type': 'block', 'y': 10, 'kind': 'heading', 'he_raw': 'נוסחאון'}], page=1, sid='s00-front')
+        data['translated'] = False
+        data['pages'][0].update({'state': 'none', 'translated': False})
+        ops = {'glued': {}, 'structure': [
+            {'section': 's00-front', 'op': 'section', 'fields': {'translated': True}, 'why': 'титул переведён редактором'},
+            {'section': 's00-front', 'page': 1, 'op': 'page', 'fields': {'state': 'translated', 'translated': True}, 'why': 't'},
+            {'section': 's00-front', 'page': 1, 'op': 'set', 'id': 'a97002:p1:b001', 'why': 't',
+             'fields': {'he': 'נוסחאון', 'he_niqqud': 'נֻסְחָאוֹן', 'ru': 'Формуляр'}}]}
+        once, log = RC.apply_section(data, ops)
+        self.assertTrue(once['translated'])
+        self.assertEqual((once['pages'][0]['state'], once['pages'][0]['translated']), ('translated', True))
+        self.assertEqual(once['pages'][0]['items'][0]['he_niqqud'], 'נֻסְחָאוֹן')
+        self.assertEqual(len(log), 3)
+        twice, log2 = RC.apply_section(once, ops)
+        self.assertEqual((twice, log2), (once, []))
+        self.assertFalse(data['translated'], 'the input is not changed')
+
     def test_book_corrections_file_is_valid(self):
         c = RC.load_corrections('a97002')
         self.assertGreater(len(c['glued']), 100)
@@ -50,7 +68,7 @@ class ReaderCorrectionsTest(unittest.TestCase):
             if k not in letter_fixes:
                 self.assertEqual(k.replace(' ', ''), v.replace(' ', ''), 'a glued entry only adds spaces: ' + k)
         for op in c['structure']:
-            self.assertIn(op['op'], ('replace', 'drop', 'set'))
+            self.assertIn(op['op'], ('replace', 'drop', 'set', 'page', 'section'))
             self.assertTrue(op.get('why'))
 
     def test_build_applies_the_corrections(self):

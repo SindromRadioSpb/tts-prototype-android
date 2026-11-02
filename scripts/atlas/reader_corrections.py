@@ -91,7 +91,18 @@ def _apply_structure(data, ops, log):
     for op in ops:
         if op['section'] != data.get('id'):
             continue
+        # section-level fields: a section the editor translated (the title pages, 2026-11-02)
+        if op['op'] == 'section':
+            if any(data.get(k) != v for k, v in op['fields'].items()):
+                data.update(op['fields'])
+                log.append(f"раздел: {', '.join(op['fields'])} — {op['why']}")
+            continue
         page = by_page.get(op['page'])
+        if page and op['op'] == 'page':
+            if any(page.get(k) != v for k, v in op['fields'].items()):
+                page.update(op['fields'])
+                log.append(f"p{op['page']}: {', '.join(op['fields'])} — {op['why']}")
+            continue
         if not page:
             continue
         items = page['items']

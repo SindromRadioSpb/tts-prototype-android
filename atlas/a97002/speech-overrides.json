@@ -2,5 +2,10 @@
   "schema": "linguistpro.atlas-speech-overrides.1",
   "atlas_id": "a97002",
   "note": "Owner decisions on single items after the D4 review: { \"<item id>\": { \"exclude\": true, \"reason\": \"…\" } } or { \"<item id>\": { \"text\": \"exact Hebrew text to read\", \"reason\": \"…\" } }.",
-  "items": {}
+  "items": {
+    "a97002:p1:b004": {
+      "text": "סֵמֶל בְּחִינָה: 9, 7, 0, 0, 2",
+      "reason": "код экзамена читается по цифрам (2026-11-02)"
+    }
+  }
 }
