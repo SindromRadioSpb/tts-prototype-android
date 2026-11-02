@@ -1,0 +1,85 @@
+[
+ {
+  "lang": "ru",
+  "width": 390,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "Термин атласа מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "lang": "ru",
+  "width": 1440,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "Термин атласа מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 390,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "מונח באטלס מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 1440,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "מונח באטלס מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "e3": {
+   "readingBefore": "a97002:p13:b001",
+   "tappedRow": "a97002:p13:b009",
+   "readingAfter": "a97002:p13:b001",
+   "cardOpen": true
+  }
+ },
+ {
+  "w3": {
+   "offByDefault": 0,
+   "legendHidden": true,
+   "on": 2954,
+   "legendShown": true,
+   "termsKept": 546,
+   "offAgain": 0,
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "markedWord": "חלקי",
+   "marked": {
+    "word_status": 1,
+    "review_log": 1
+   },
+   "errors": 0
+  }
+ },
+ {
+  "longestSectionCpu4x": {
+   "wrapMs": 247,
+   "decorateMs": 70,
+   "words": 6868
+  }
+ }
+]
