@@ -1,0 +1,9 @@
+{
+  "setup": "Locally replayed committed 839 assets/cache in isolated context; final phase uses unmodified live production 840",
+  "errors": [],
+  "before": "3.11.839",
+  "swRoutes": 1,
+  "after": "3.11.840",
+  "searchResults": 50,
+  "controlled": true
+}

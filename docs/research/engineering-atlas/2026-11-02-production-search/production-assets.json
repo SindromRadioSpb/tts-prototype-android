@@ -1,0 +1,73 @@
+{
+  "version": "3.11.840",
+  "health": {
+    "ok": true,
+    "uptimeSec": 567,
+    "now": "2026-11-02T12:26:06.438Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 82,
+    "disk_warn": true
+  },
+  "files": [
+    {
+      "url": "/sw.js",
+      "bytes": 42861,
+      "sha256": "e82c32ea2d7e535ed139372a30fe423b3682c8accfca9c56bc0676668b88bd6b"
+    },
+    {
+      "url": "/library.html",
+      "bytes": 334379,
+      "sha256": "89036d785b5a9f071ca6d7a28d4443ed5a94f3d767f46101bbd04af6fffd2f8f"
+    },
+    {
+      "url": "/index.html",
+      "bytes": 2445499,
+      "sha256": "aa7f3c28ac053e8b87e3f5221a6e63c17be72371f3fd0f89716bc9ff9af6539a"
+    },
+    {
+      "url": "/js/atlas-reader.js?v=16",
+      "bytes": 98579,
+      "sha256": "9145a85dae7c261f251c943a8da0d08e9419e104682f47a80b28a72502a36c83"
+    },
+    {
+      "url": "/js/atlas-search.js?v=2",
+      "bytes": 23816,
+      "sha256": "82b1490a134f65945ef34af8ae67c4e6997f9133380b0a5fec46966f5d158321"
+    },
+    {
+      "url": "/css/atlas-reader.css?v=17",
+      "bytes": 32397,
+      "sha256": "c1d520b3f4a7efc10c0d4f546974f00d239848299aeb2d6899bbe4442e2d2429"
+    },
+    {
+      "url": "/js/library-ui.js?v=838",
+      "bytes": 1105233,
+      "sha256": "48c636a65b963ab6b7f9dc6461a6c05d001acb062d4f0c59864b3e6d3491fb31"
+    },
+    {
+      "url": "/js/room-b6-core.js?v=823",
+      "bytes": 25955,
+      "sha256": "67c7aea9145bf34cd29786f268a9143d53ab60cb21ba4dc67fb6bc87fef161f1"
+    },
+    {
+      "url": "/i18n/locales/ru.js",
+      "bytes": 555171,
+      "sha256": "c0de87258a6975a89c5cadd3102b136ea0b781584fbd86c2434ddaf0c2b227da"
+    },
+    {
+      "url": "/i18n/locales/en.js",
+      "bytes": 371504,
+      "sha256": "ef27dcfbe76d63b7045cf2b2954191a6aa99f4a9c016cca5a0ccd0de9c032af9"
+    },
+    {
+      "url": "/i18n/locales/he.js",
+      "bytes": 457941,
+      "sha256": "53fcfb9b89afc645a76760efd88a061e48c739e856372680d1ca144f0da06f95"
+    }
+  ]
+}

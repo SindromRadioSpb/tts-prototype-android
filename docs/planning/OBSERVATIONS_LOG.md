@@ -10,6 +10,18 @@
 
 ---
 
+## O-138 · Coolify: уведомление об успешном деплое завершилось FAIL
+- **Дата / где:** 2026-11-02, журналы Coolify при выпусках 838–840.
+- **Факт:** ApplicationDeploymentJob завершился DONE; отдельный App\Notifications\Application\DeploymentSuccess — FAIL. Причина не установлена. Приложение принято по независимым HTTP/hash/browser проверкам.
+- **Следующий шаг:** отдельно проверить конфигурацию канала и ошибку доставки; настройки и отправка внешних уведомлений в этой работе не менялись.
+- **Статус:** открыто.
+
+## O-139 · Атлас: поиск — видимость цели и подписи карточек
+- **Дата / где:** 2026-11-02, production-приёмка P3.
+- **Факт:** 838 выравнивал к началу страницы после подсветки цели; исправлено `64e5c0e7`. В компактном shipped index терялись preview-подписи карточек; исправлено `9b127ed1`.
+- **Проверка:** actual visibility после таймера, полный roundtrip 7614 объектов, CI fixture preview metadata, RU/HE production browser.
+- **Статус:** закрыто (3.11.840). [Отчёт](../research/engineering-atlas/2026-11-02-production-search/README.md).
+
 ## P3 draft search gate · 2026-11-02
 - Где: неопубликованный `feat/atlas-search-voice`, `atlas-search.js`.
 - Факт: фраза в кавычках проверяется по короткому preview; совпадение дальше в объекте может потеряться.
@@ -605,6 +617,7 @@
 - **Статус:** закрыто — выпущено в 3.11.718 (+ большие библиотеки, архив без медиа, прогресс сохранения); 2026-10-17 production roundtrip на 3.11.782 PASS в чистых профилях (офлайн-воспроизведение, ru/en/he, 0 платных вызовов) — [evidence](../research/full-library-transfer/2026-10-02/save-progress/production/browser-evidence.json). Старый ZIP по-прежнему неполон; полный резерв — новый экспорт.
 
 ## O-055 — Production build consumes preflight headroom
+- **Update 2026-11-02 / 3.11.840:** три выпуска P3 выполнены с preflight >6 GiB available, ограниченной очисткой cache/exact unused app images и сохранением runtime/rollback/volumes/backups. Итог 6.73 GiB available / 82%, disk_warn=true. Capacity-риск остаётся открытым; следующая сборка требует нового замера.
 - **Update 2026-10-23 / 3.11.816:** по точному подтверждению владельца удалены три unreferenced старых image IDs, available 2.855→6.937 GiB. Deployment 2930 завершился за 4m23s; наименьшее наблюдённое available 2.554 GiB (дискретные замеры, не доказанный абсолютный минимум). После cache-only cleanup available 5.576 GiB, 85% used. Порог ≥6 GiB для следующего runtime push сохраняется; текущего места меньше порога. Все 13 images/11 containers/4 volumes после сборки сохранены.
 - **Update 2026-10-23 / 3.11.815:** cold build `0e059364` стартовал при 4.21 GiB available и нулевом cache. Во время распаковки available временно 0, root free 1.43 GiB; сборка завершилась за 4m32s. Значит прежний ориентир ≥4 GiB не обеспечивает запас. Следующий runtime push — только после capacity preflight с ориентиром ≥6 GiB available для текущего образа, учитывая пик и запас; точное удаление старых images требует отдельного согласования. После разрешённого cache-only cleanup available 2.85 GiB / 92%, `disk_warn=true`; текущего запаса для следующей cold build недостаточно.
 - **Перед кандидатом 3.11.804 (2026-10-21):** свежая read-only инвентаризация — 1.7G / 96%; build cache 2.69GB (reclaimable 1.288GB), 15 images / 11 active, все 11 containers running, четыре volumes. Current `2e7b10aede96` (2952e5da), rollback `c0fdf3940c48` (90013ec9); `/healthz` DB/migrations ready, `disk_warn=true`. Unreferenced старые версии: `fd1d77c6a2e6` (a5955da4), `2adb97690b5a` (32204e7c), `e6f072e13bd9` (030f2437). Только инвентаризация; удаления/сборка не выполнялись. Новое согласование точного набора очистки — до публикации, старое разрешение на два иных образа уже исполнено.

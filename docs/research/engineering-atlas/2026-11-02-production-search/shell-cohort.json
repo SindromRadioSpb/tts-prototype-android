@@ -1,0 +1,1153 @@
+{
+  "version": "3.11.840",
+  "total": 191,
+  "bad": [],
+  "results": [
+    {
+      "url": "/tutor-connect.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 2065
+    },
+    {
+      "url": "/css/tutor-connect.css?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 2844
+    },
+    {
+      "url": "/js/tutor-client.js?v=2",
+      "status": 200,
+      "ok": true,
+      "bytes": 4130
+    },
+    {
+      "url": "/js/tutor-notebook.js?v=718",
+      "status": 200,
+      "ok": true,
+      "bytes": 14984
+    },
+    {
+      "url": "/js/tutor-connect.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 14015
+    },
+    {
+      "url": "/js/cloud-sync.js?v=837",
+      "status": 200,
+      "ok": true,
+      "bytes": 45579
+    },
+    {
+      "url": "/db/material-read.js?v=815",
+      "status": 200,
+      "ok": true,
+      "bytes": 1593
+    },
+    {
+      "url": "/db/operation-lease.js?v=727",
+      "status": 200,
+      "ok": true,
+      "bytes": 5794
+    },
+    {
+      "url": "/js/tutor-practice.js?v=2",
+      "status": 200,
+      "ok": true,
+      "bytes": 9847
+    },
+    {
+      "url": "/db/db-worker-runtime.js?v=815",
+      "status": 200,
+      "ok": true,
+      "bytes": 16729
+    },
+    {
+      "url": "/db/sqlite-api.js?v=531",
+      "status": 200,
+      "ok": true,
+      "bytes": 28943
+    },
+    {
+      "url": "/js/tutor-panel.js?v=9",
+      "status": 200,
+      "ok": true,
+      "bytes": 35987
+    },
+    {
+      "url": "/db/IDBContext.js?v=543",
+      "status": 200,
+      "ok": true,
+      "bytes": 8245
+    },
+    {
+      "url": "/db/runtime-diagnostics.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 6737
+    },
+    {
+      "url": "/db/change-scope.js?v=727",
+      "status": 200,
+      "ok": true,
+      "bytes": 6933
+    },
+    {
+      "url": "/db/runtime-diagnostics.js?v=544",
+      "status": 200,
+      "ok": true,
+      "bytes": 6737
+    },
+    {
+      "url": "/db/operation-lease.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 5794
+    },
+    {
+      "url": "/db/IDBBatchAtomicVFS.js?v=543",
+      "status": 200,
+      "ok": true,
+      "bytes": 26671
+    },
+    {
+      "url": "/db/diagnostic-journal.js?v=545",
+      "status": 200,
+      "ok": true,
+      "bytes": 3359
+    },
+    {
+      "url": "/db-diagnostics.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 3189
+    },
+    {
+      "url": "/db/storage-identity.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 1677
+    },
+    {
+      "url": "/db/diagnostic-page.js?v=547",
+      "status": 200,
+      "ok": true,
+      "bytes": 5939
+    },
+    {
+      "url": "/db/AccessHandlePoolVFS.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 14245
+    },
+    {
+      "url": "/db/IDBBatchAtomicVFS.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 26671
+    },
+    {
+      "url": "/css/dictionary.css?v=770",
+      "status": 200,
+      "ok": true,
+      "bytes": 29492
+    },
+    {
+      "url": "/js/form-drill-core.js?v=753",
+      "status": 200,
+      "ok": true,
+      "bytes": 13760
+    },
+    {
+      "url": "/js/dictionary-progress-core.js?v=774",
+      "status": 200,
+      "ok": true,
+      "bytes": 13501
+    },
+    {
+      "url": "/mediatheque.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 2978
+    },
+    {
+      "url": "/dictionary.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 7881
+    },
+    {
+      "url": "/js/dictionary-core.js?v=804",
+      "status": 200,
+      "ok": true,
+      "bytes": 16087
+    },
+    {
+      "url": "/js/xlsx-core.js?v=753",
+      "status": 200,
+      "ok": true,
+      "bytes": 18905
+    },
+    {
+      "url": "/css/mediatheque.css?v=695",
+      "status": 200,
+      "ok": true,
+      "bytes": 37847
+    },
+    {
+      "url": "/js/mediatheque-core.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 25248
+    },
+    {
+      "url": "/js/dictionary-workbook.js?v=763",
+      "status": 200,
+      "ok": true,
+      "bytes": 33999
+    },
+    {
+      "url": "/js/mediatheque-ui.js?v=837",
+      "status": 200,
+      "ok": true,
+      "bytes": 111649
+    },
+    {
+      "url": "/js/dictionary-ui.js?v=815",
+      "status": 200,
+      "ok": true,
+      "bytes": 196365
+    },
+    {
+      "url": "/js/mediatheque-local-repository.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 2509
+    },
+    {
+      "url": "/js/mediatheque-editorial-core.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 1785
+    },
+    {
+      "url": "/js/mediatheque-api.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 529
+    },
+    {
+      "url": "/data/mediatheque/editorial-seed-v1.json",
+      "status": 200,
+      "ok": true,
+      "bytes": 17773
+    },
+    {
+      "url": "/js/mediatheque-publisher.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 12678
+    },
+    {
+      "url": "/data/mediatheque/research-reserve-v1.json",
+      "status": 200,
+      "ok": true,
+      "bytes": 151432
+    },
+    {
+      "url": "/js/mediatheque-metadata.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 3162
+    },
+    {
+      "url": "/db/wa-sqlite.mjs",
+      "status": 200,
+      "ok": true,
+      "bytes": 42355
+    },
+    {
+      "url": "/db/wa-sqlite-async.mjs",
+      "status": 200,
+      "ok": true,
+      "bytes": 43847
+    },
+    {
+      "url": "/db/wa-sqlite.wasm",
+      "status": 200,
+      "ok": true,
+      "bytes": 558343
+    },
+    {
+      "url": "/db/wa-sqlite-async.wasm",
+      "status": 200,
+      "ok": true,
+      "bytes": 1139398
+    },
+    {
+      "url": "/study-studio.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 2445499
+    },
+    {
+      "url": "/css/study-video.css",
+      "status": 200,
+      "ok": true,
+      "bytes": 2438
+    },
+    {
+      "url": "/study-video.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 1417
+    },
+    {
+      "url": "/js/playback-source.js?v=624",
+      "status": 200,
+      "ok": true,
+      "bytes": 15187
+    },
+    {
+      "url": "/css/study-video-source.css?v=788",
+      "status": 200,
+      "ok": true,
+      "bytes": 7899
+    },
+    {
+      "url": "/js/youtube-timing.js?v=593",
+      "status": 200,
+      "ok": true,
+      "bytes": 17142
+    },
+    {
+      "url": "/study-library.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 334379
+    },
+    {
+      "url": "/js/youtube-full-timing.js?v=557",
+      "status": 200,
+      "ok": true,
+      "bytes": 9638
+    },
+    {
+      "url": "/js/captions-parse.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 18002
+    },
+    {
+      "url": "/js/subtitle-text-decode.js?v=794",
+      "status": 200,
+      "ok": true,
+      "bytes": 5898
+    },
+    {
+      "url": "/js/media-package-core.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 22605
+    },
+    {
+      "url": "/js/studio-media-package.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 55917
+    },
+    {
+      "url": "/js/study-timing-repair.js?v=794",
+      "status": 200,
+      "ok": true,
+      "bytes": 53670
+    },
+    {
+      "url": "/js/material-open.js?v=815",
+      "status": 200,
+      "ok": true,
+      "bytes": 4677
+    },
+    {
+      "url": "/js/media-bundle-core.js?v=575",
+      "status": 200,
+      "ok": true,
+      "bytes": 14004
+    },
+    {
+      "url": "/js/media-stream-store.js?v=584",
+      "status": 200,
+      "ok": true,
+      "bytes": 10145
+    },
+    {
+      "url": "/js/studio-session.js?v=723",
+      "status": 200,
+      "ok": true,
+      "bytes": 2192
+    },
+    {
+      "url": "/js/media-package-repository.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 44691
+    },
+    {
+      "url": "/js/material-save.js?v=734",
+      "status": 200,
+      "ok": true,
+      "bytes": 15490
+    },
+    {
+      "url": "/js/material-revision-repository.js?v=783",
+      "status": 200,
+      "ok": true,
+      "bytes": 18390
+    },
+    {
+      "url": "/js/study-video-transfer.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 3835
+    },
+    {
+      "url": "/js/subtitle-timing-status.js?v=587",
+      "status": 200,
+      "ok": true,
+      "bytes": 3962
+    },
+    {
+      "url": "/js/subtitle-row-language.js?v=582",
+      "status": 200,
+      "ok": true,
+      "bytes": 950
+    },
+    {
+      "url": "/js/room-media-attach.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 10366
+    },
+    {
+      "url": "/js/study-video.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 8931
+    },
+    {
+      "url": "/js/study-video-source-ui.js?v=815",
+      "status": 200,
+      "ok": true,
+      "bytes": 23213
+    },
+    {
+      "url": "/js/table-source-recovery.js?v=551",
+      "status": 200,
+      "ok": true,
+      "bytes": 1920
+    },
+    {
+      "url": "/js/studio-yt-player.js?v=736",
+      "status": 200,
+      "ok": true,
+      "bytes": 15478
+    },
+    {
+      "url": "/js/learning-material-task-ui.js?v=797",
+      "status": 200,
+      "ok": true,
+      "bytes": 107482
+    },
+    {
+      "url": "/js/learning-material-task.js?v=797",
+      "status": 200,
+      "ok": true,
+      "bytes": 28049
+    },
+    {
+      "url": "/js/youtube-asr.js?v=593",
+      "status": 200,
+      "ok": true,
+      "bytes": 41483
+    },
+    {
+      "url": "/js/text-card-format.js?v=742",
+      "status": 200,
+      "ok": true,
+      "bytes": 18729
+    },
+    {
+      "url": "/js/portable-learning-package-core.js?v=742",
+      "status": 200,
+      "ok": true,
+      "bytes": 48222
+    },
+    {
+      "url": "/js/studio-import-resume.js?v=789",
+      "status": 200,
+      "ok": true,
+      "bytes": 6197
+    },
+    {
+      "url": "/js/portable-learning-package-repository.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 92730
+    },
+    {
+      "url": "/js/import-center-core.js?v=527",
+      "status": 200,
+      "ok": true,
+      "bytes": 12963
+    },
+    {
+      "url": "/js/studio-media-karaoke.js?v=729",
+      "status": 200,
+      "ok": true,
+      "bytes": 16462
+    },
+    {
+      "url": "/js/subtitle-media-attach.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 13326
+    },
+    {
+      "url": "/js/subtitle-material-import.js?v=584",
+      "status": 200,
+      "ok": true,
+      "bytes": 12566
+    },
+    {
+      "url": "/js/local-asr-client.js?v=796",
+      "status": 200,
+      "ok": true,
+      "bytes": 24761
+    },
+    {
+      "url": "/js/media-readiness.js?v=671",
+      "status": 200,
+      "ok": true,
+      "bytes": 18234
+    },
+    {
+      "url": "/js/subtitle-material-core.js?v=684",
+      "status": 200,
+      "ok": true,
+      "bytes": 29925
+    },
+    {
+      "url": "/js/studio-import.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 297522
+    },
+    {
+      "url": "/js/niqqud-plausibility.js?v=735",
+      "status": 200,
+      "ok": true,
+      "bytes": 4069
+    },
+    {
+      "url": "/js/translit-display.js?v=817",
+      "status": 200,
+      "ok": true,
+      "bytes": 11436
+    },
+    {
+      "url": "/js/studio-morph.js?v=817",
+      "status": 200,
+      "ok": true,
+      "bytes": 30431
+    },
+    {
+      "url": "/js/subtitle-material-vocalization.js?v=735",
+      "status": 200,
+      "ok": true,
+      "bytes": 14326
+    },
+    {
+      "url": "/js/niqqud-suspect-marks.js?v=685",
+      "status": 200,
+      "ok": true,
+      "bytes": 5154
+    },
+    {
+      "url": "/js/local-translit-bundle.js?v=810",
+      "status": 200,
+      "ok": true,
+      "bytes": 844388
+    },
+    {
+      "url": "/css/iphone-downloader.css?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 6415
+    },
+    {
+      "url": "/js/material-progress-ladder.js?v=685",
+      "status": 200,
+      "ok": true,
+      "bytes": 14521
+    },
+    {
+      "url": "/js/iphone-downloader-entry.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 1060
+    },
+    {
+      "url": "/download-media.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 5006
+    },
+    {
+      "url": "/js/iphone-downloader.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 7720
+    },
+    {
+      "url": "/js/iphone-downloader-core.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 5075
+    },
+    {
+      "url": "/js/benyehuda-learning-edition.js?v=731",
+      "status": 200,
+      "ok": true,
+      "bytes": 2680
+    },
+    {
+      "url": "/js/catalog-discovery-core.js?v=780",
+      "status": 200,
+      "ok": true,
+      "bytes": 7885
+    },
+    {
+      "url": "/js/iphone-downloader-release.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 3162
+    },
+    {
+      "url": "/js/corpus-materialize.js?v=820",
+      "status": 200,
+      "ok": true,
+      "bytes": 10638
+    },
+    {
+      "url": "/css/catalog-discovery.css?v=643",
+      "status": 200,
+      "ok": true,
+      "bytes": 4585
+    },
+    {
+      "url": "/js/catalog-discovery-ui.js?v=485",
+      "status": 200,
+      "ok": true,
+      "bytes": 12901
+    },
+    {
+      "url": "/js/benyehuda-learning-niqqud.js?v=734",
+      "status": 200,
+      "ok": true,
+      "bytes": 12604
+    },
+    {
+      "url": "/js/work-parts.js?v=820",
+      "status": 200,
+      "ok": true,
+      "bytes": 6193
+    },
+    {
+      "url": "/js/work-zip.js?v=810",
+      "status": 200,
+      "ok": true,
+      "bytes": 4059
+    },
+    {
+      "url": "/js/corpus-discovery-core.js?v=731",
+      "status": 200,
+      "ok": true,
+      "bytes": 18010
+    },
+    {
+      "url": "/js/corpus-discovery-browser.js?v=811",
+      "status": 200,
+      "ok": true,
+      "bytes": 24261
+    },
+    {
+      "url": "/js/benyehuda-learning-niqqud-manifest.js?v=734",
+      "status": 200,
+      "ok": true,
+      "bytes": 219787
+    },
+    {
+      "url": "/js/studio-library-discovery.js?v=780",
+      "status": 200,
+      "ok": true,
+      "bytes": 6636
+    },
+    {
+      "url": "/js/text-key-scan.js?v=777",
+      "status": 200,
+      "ok": true,
+      "bytes": 10635
+    },
+    {
+      "url": "/css/room-discovery.css?v=730",
+      "status": 200,
+      "ok": true,
+      "bytes": 5076
+    },
+    {
+      "url": "/data/benyehuda/author-aliases-v1.json?v=730",
+      "status": 200,
+      "ok": true,
+      "bytes": 2024
+    },
+    {
+      "url": "/js/local-text-familiarity.js?v=774",
+      "status": 200,
+      "ok": true,
+      "bytes": 9167
+    },
+    {
+      "url": "/index.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 2445499
+    },
+    {
+      "url": "/js/library-transfer-io.js?v=721",
+      "status": 200,
+      "ok": true,
+      "bytes": 11364
+    },
+    {
+      "url": "/js/studio-portable-learning-package.js?v=756",
+      "status": 200,
+      "ok": true,
+      "bytes": 112956
+    },
+    {
+      "url": "/js/library-transfer-core.js?v=720",
+      "status": 200,
+      "ok": true,
+      "bytes": 8638
+    },
+    {
+      "url": "/js/media-rebind-core.js?v=677",
+      "status": 200,
+      "ok": true,
+      "bytes": 6883
+    },
+    {
+      "url": "/js/library-transfer-ui.js?v=722",
+      "status": 200,
+      "ok": true,
+      "bytes": 31594
+    },
+    {
+      "url": "/js/library-transfer.js?v=721",
+      "status": 200,
+      "ok": true,
+      "bytes": 27917
+    },
+    {
+      "url": "/js/media-rebind-ui.js?v=723",
+      "status": 200,
+      "ok": true,
+      "bytes": 15284
+    },
+    {
+      "url": "/js/learning-compass-core.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 18308
+    },
+    {
+      "url": "/js/train-queue.js?v=461",
+      "status": 200,
+      "ok": true,
+      "bytes": 13070
+    },
+    {
+      "url": "/js/studio-media-editor.js?v=628",
+      "status": 200,
+      "ok": true,
+      "bytes": 25586
+    },
+    {
+      "url": "/js/library-ui.js?v=838",
+      "status": 200,
+      "ok": true,
+      "bytes": 1105233
+    },
+    {
+      "url": "/library.html",
+      "status": 200,
+      "ok": true,
+      "bytes": 334379
+    },
+    {
+      "url": "/js/corpus-item-presenter.js?v=419",
+      "status": 200,
+      "ok": true,
+      "bytes": 16392
+    },
+    {
+      "url": "/js/retention-report.js?v=461",
+      "status": 200,
+      "ok": true,
+      "bytes": 10316
+    },
+    {
+      "url": "/css/publication-center.css?v=643",
+      "status": 200,
+      "ok": true,
+      "bytes": 8644
+    },
+    {
+      "url": "/js/public-corpus-adapter.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 22304
+    },
+    {
+      "url": "/js/dicta-lexicon.js?v=769",
+      "status": 200,
+      "ok": true,
+      "bytes": 6674
+    },
+    {
+      "url": "/js/publication-center.js?v=520",
+      "status": 200,
+      "ok": true,
+      "bytes": 21361
+    },
+    {
+      "url": "/js/key-alias-core.js?v=804",
+      "status": 200,
+      "ok": true,
+      "bytes": 5966
+    },
+    {
+      "url": "/js/learning-field-provenance.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 3946
+    },
+    {
+      "url": "/js/dicta-enrich.js?v=781",
+      "status": 200,
+      "ok": true,
+      "bytes": 8350
+    },
+    {
+      "url": "/js/dicta-autoparse-offer.js?v=781",
+      "status": 200,
+      "ok": true,
+      "bytes": 4620
+    },
+    {
+      "url": "/js/pealim-function-links.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 2500
+    },
+    {
+      "url": "/js/reader-morph.js?v=819",
+      "status": 200,
+      "ok": true,
+      "bytes": 331245
+    },
+    {
+      "url": "/js/corpus-place-parse.js?v=785",
+      "status": 200,
+      "ok": true,
+      "bytes": 6576
+    },
+    {
+      "url": "/js/ru-forms.js?v=739",
+      "status": 200,
+      "ok": true,
+      "bytes": 7724
+    },
+    {
+      "url": "/js/morph-host.js?v=805",
+      "status": 200,
+      "ok": true,
+      "bytes": 57156
+    },
+    {
+      "url": "/js/word-gloss-ai.js?v=820",
+      "status": 200,
+      "ok": true,
+      "bytes": 33789
+    },
+    {
+      "url": "/js/public-word-audio.js?v=453",
+      "status": 200,
+      "ok": true,
+      "bytes": 2813
+    },
+    {
+      "url": "/js/word-gloss.js?v=819",
+      "status": 200,
+      "ok": true,
+      "bytes": 42297
+    },
+    {
+      "url": "/js/room-b6-core.js?v=823",
+      "status": 200,
+      "ok": true,
+      "bytes": 25955
+    },
+    {
+      "url": "/db/vfs-order.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 1981
+    },
+    {
+      "url": "/db/db-worker.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 10065
+    },
+    {
+      "url": "/js/mentor-connection-core.js?v=414",
+      "status": 200,
+      "ok": true,
+      "bytes": 2446
+    },
+    {
+      "url": "/db/migrations.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 66158
+    },
+    {
+      "url": "/db/local-db.js?v=815",
+      "status": 200,
+      "ok": true,
+      "bytes": 446283
+    },
+    {
+      "url": "/js/reader-row-work.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 2254
+    },
+    {
+      "url": "/css/lexical-resolution.css?v=6",
+      "status": 200,
+      "ok": true,
+      "bytes": 15076
+    },
+    {
+      "url": "/css/reader-core.css?v=661",
+      "status": 200,
+      "ok": true,
+      "bytes": 33320
+    },
+    {
+      "url": "/css/reader-morph.css?v=819",
+      "status": 200,
+      "ok": true,
+      "bytes": 53898
+    },
+    {
+      "url": "/js/reader-core.js?v=817",
+      "status": 200,
+      "ok": true,
+      "bytes": 55286
+    },
+    {
+      "url": "/js/mentor-home.js?v=414",
+      "status": 200,
+      "ok": true,
+      "bytes": 134210
+    },
+    {
+      "url": "/js/inflection-render.js?v=763",
+      "status": 200,
+      "ok": true,
+      "bytes": 26080
+    },
+    {
+      "url": "/js/lexical-resolution-core.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 7610
+    },
+    {
+      "url": "/js/lexical-resolution-repository.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 4106
+    },
+    {
+      "url": "/js/pealim-identity-overrides.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 978
+    },
+    {
+      "url": "/js/learning-targets.js?v=804",
+      "status": 200,
+      "ok": true,
+      "bytes": 6769
+    },
+    {
+      "url": "/js/obsidian-lexical-preview.js?v=10",
+      "status": 200,
+      "ok": true,
+      "bytes": 138625
+    },
+    {
+      "url": "/js/learning-target-repository.js?v=804",
+      "status": 200,
+      "ok": true,
+      "bytes": 4241
+    },
+    {
+      "url": "/js/lexical-resolution-ui.js?v=12",
+      "status": 200,
+      "ok": true,
+      "bytes": 44091
+    },
+    {
+      "url": "/js/table-presets.js?v=782",
+      "status": 200,
+      "ok": true,
+      "bytes": 2586
+    },
+    {
+      "url": "/js/material-actions.js?v=1",
+      "status": 200,
+      "ok": true,
+      "bytes": 2984
+    },
+    {
+      "url": "/js/lexical-resolution-service.js?v=802",
+      "status": 200,
+      "ok": true,
+      "bytes": 10684
+    },
+    {
+      "url": "/js/world-activity.js?v=799",
+      "status": 200,
+      "ok": true,
+      "bytes": 2402
+    },
+    {
+      "url": "/js/ulpan-world.js?v=799",
+      "status": 200,
+      "ok": true,
+      "bytes": 14108
+    },
+    {
+      "url": "/js/world-boot.js?v=799",
+      "status": 200,
+      "ok": true,
+      "bytes": 1666
+    },
+    {
+      "url": "/js/memorial-adapter.js?v=736",
+      "status": 200,
+      "ok": true,
+      "bytes": 14555
+    },
+    {
+      "url": "/css/world-skin.css?v=799",
+      "status": 200,
+      "ok": true,
+      "bytes": 24559
+    },
+    {
+      "url": "/js/world-render.js?v=715",
+      "status": 200,
+      "ok": true,
+      "bytes": 26884
+    },
+    {
+      "url": "/js/world-engine.js?v=799",
+      "status": 200,
+      "ok": true,
+      "bytes": 85646
+    },
+    {
+      "url": "/js/app-nav.js?v=747",
+      "status": 200,
+      "ok": true,
+      "bytes": 3214
+    },
+    {
+      "url": "/js/original-title.js?v=657",
+      "status": 200,
+      "ok": true,
+      "bytes": 2624
+    },
+    {
+      "url": "/js/app-footer.js?v=669",
+      "status": 200,
+      "ok": true,
+      "bytes": 9747
+    },
+    {
+      "url": "/js/media-host.js?v=783",
+      "status": 200,
+      "ok": true,
+      "bytes": 64730
+    },
+    {
+      "url": "/js/lesson-artifact.js",
+      "status": 200,
+      "ok": true,
+      "bytes": 7651
+    },
+    {
+      "url": "/css/app-nav.css?v=653",
+      "status": 200,
+      "ok": true,
+      "bytes": 8139
+    },
+    {
+      "url": "/js/table-niqqud-normalizer.js?v=735",
+      "status": 200,
+      "ok": true,
+      "bytes": 3396
+    },
+    {
+      "url": "/js/product-telemetry.js?v=669",
+      "status": 200,
+      "ok": true,
+      "bytes": 9988
+    },
+    {
+      "url": "/i18n/locales/he.js?v=837",
+      "status": 200,
+      "ok": true,
+      "bytes": 457941
+    },
+    {
+      "url": "/i18n/locales/en.js?v=837",
+      "status": 200,
+      "ok": true,
+      "bytes": 371504
+    },
+    {
+      "url": "/i18n/locales/ru.js?v=837",
+      "status": 200,
+      "ok": true,
+      "bytes": 555171
+    }
+  ]
+}

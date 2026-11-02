@@ -1,0 +1,13 @@
+{
+  "console": [],
+  "state": {
+    "footer": "3.11.840",
+    "controlled": true,
+    "active": "activated",
+    "counts": {
+      "linguistpro-precache-v3.11.840": 289,
+      "linguistpro-public-corpus-v3.11.840": 1,
+      "linguistpro-runtime-v3.11.840": 3
+    }
+  }
+}

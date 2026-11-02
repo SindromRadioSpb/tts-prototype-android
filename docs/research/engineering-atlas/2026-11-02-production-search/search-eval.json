@@ -1,0 +1,2917 @@
+{
+  "summary": {
+    "exact": {
+      "count": 80,
+      "recall_at_5": 1,
+      "MRR": 0.9816666666666667
+    },
+    "fragment": {
+      "count": 10,
+      "recall_at_5": 1,
+      "MRR": 1
+    }
+  },
+  "misses": [],
+  "rows": [
+    {
+      "id": "spring-he",
+      "q": "קפיץ",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 142,
+          "ref": "a97002:p142:b001"
+        },
+        {
+          "kind": "symbol",
+          "page": 142,
+          "ref": "a97002:p142:st1:s01"
+        }
+      ]
+    },
+    {
+      "id": "spring-ru",
+      "q": "пружина",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        }
+      ]
+    },
+    {
+      "id": "spring-translit",
+      "q": "kfits",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 142,
+          "ref": "a97002:p142:b001"
+        },
+        {
+          "kind": "block",
+          "page": 132,
+          "ref": "a97002:p132:b001"
+        }
+      ]
+    },
+    {
+      "id": "compression-spring-he",
+      "q": "קפיץ לחיצה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 142,
+          "ref": "a97002:p142:b001"
+        },
+        {
+          "kind": "symbol",
+          "page": 142,
+          "ref": "a97002:p142:st1:s01"
+        }
+      ]
+    },
+    {
+      "id": "compression-spring-ru",
+      "q": "пружина сжатия",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        }
+      ]
+    },
+    {
+      "id": "compression-spring-translit",
+      "q": "kfits lekhitsa",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 142,
+          "ref": "a97002:p142:b001"
+        },
+        {
+          "kind": "block",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        }
+      ]
+    },
+    {
+      "id": "spring-rate-he",
+      "q": "קבוע הקפיץ",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 295,
+          "ref": "a97002:p295:b001"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        }
+      ]
+    },
+    {
+      "id": "spring-rate-ru",
+      "q": "жёсткость пружины",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        }
+      ]
+    },
+    {
+      "id": "spring-rate-translit",
+      "q": "kvua hakfits",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b007"
+        },
+        {
+          "kind": "block",
+          "page": 134,
+          "ref": "a97002:p134:b003"
+        },
+        {
+          "kind": "block",
+          "page": 134,
+          "ref": "a97002:p134:b004"
+        }
+      ]
+    },
+    {
+      "id": "spring-wire-diameter-he",
+      "q": "קוטר תיל הקפיץ",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b007"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        }
+      ]
+    },
+    {
+      "id": "spring-wire-diameter-ru",
+      "q": "диаметр проволоки пружины",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b007"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        }
+      ]
+    },
+    {
+      "id": "spring-wire-diameter-translit",
+      "q": "koter teil hakfits",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b007"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        },
+        {
+          "kind": "block",
+          "page": 145,
+          "ref": "a97002:p145:b007"
+        },
+        {
+          "kind": "block",
+          "page": 146,
+          "ref": "a97002:p146:b001"
+        }
+      ]
+    },
+    {
+      "id": "shear-modulus-he",
+      "q": "מודול גזירה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b004"
+        },
+        {
+          "kind": "term",
+          "page": 179,
+          "ref": "a97002:p179:b006"
+        },
+        {
+          "kind": "term",
+          "page": 257,
+          "ref": "a97002:p257:b003"
+        },
+        {
+          "kind": "term",
+          "page": 257,
+          "ref": "a97002:p257:b003"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        }
+      ]
+    },
+    {
+      "id": "shear-modulus-ru",
+      "q": "модуль сдвига",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b004"
+        },
+        {
+          "kind": "term",
+          "page": 179,
+          "ref": "a97002:p179:b006"
+        },
+        {
+          "kind": "term",
+          "page": 257,
+          "ref": "a97002:p257:b003"
+        },
+        {
+          "kind": "term",
+          "page": 257,
+          "ref": "a97002:p257:b003"
+        },
+        {
+          "kind": "term",
+          "page": 249,
+          "ref": "a97002:p249:b004"
+        }
+      ]
+    },
+    {
+      "id": "shear-modulus-translit",
+      "q": "modul gzira",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b004"
+        },
+        {
+          "kind": "term",
+          "page": 179,
+          "ref": "a97002:p179:b006"
+        },
+        {
+          "kind": "term",
+          "page": 257,
+          "ref": "a97002:p257:b003"
+        },
+        {
+          "kind": "term",
+          "page": 257,
+          "ref": "a97002:p257:b003"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        }
+      ]
+    },
+    {
+      "id": "riveted-joint-he",
+      "q": "מחבר מסמרות",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        },
+        {
+          "kind": "block",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        }
+      ]
+    },
+    {
+      "id": "riveted-joint-ru",
+      "q": "заклёпочное соединение",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        }
+      ]
+    },
+    {
+      "id": "riveted-joint-translit",
+      "q": "makhbar masmerot",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        },
+        {
+          "kind": "block",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        }
+      ]
+    },
+    {
+      "id": "rivet-he",
+      "q": "מסמרה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "block",
+          "page": 22,
+          "ref": "a97002:p22:b001"
+        },
+        {
+          "kind": "block",
+          "page": 31,
+          "ref": "a97002:p31:b001"
+        },
+        {
+          "kind": "block",
+          "page": 34,
+          "ref": "a97002:p34:b001"
+        },
+        {
+          "kind": "block",
+          "page": 36,
+          "ref": "a97002:p36:b001"
+        }
+      ]
+    },
+    {
+      "id": "rivet-ru",
+      "q": "заклёпка",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "symbol",
+          "page": 30,
+          "ref": "a97002:p30:f01#n_shear"
+        },
+        {
+          "kind": "symbol",
+          "page": 31,
+          "ref": "a97002:p31:f01#n_shear"
+        },
+        {
+          "kind": "symbol",
+          "page": 32,
+          "ref": "a97002:p32:f01#n_shear"
+        },
+        {
+          "kind": "symbol",
+          "page": 35,
+          "ref": "a97002:p35:f01#Ft"
+        }
+      ]
+    },
+    {
+      "id": "rivet-translit",
+      "q": "masmera",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "block",
+          "page": 22,
+          "ref": "a97002:p22:b001"
+        },
+        {
+          "kind": "block",
+          "page": 31,
+          "ref": "a97002:p31:b001"
+        },
+        {
+          "kind": "block",
+          "page": 34,
+          "ref": "a97002:p34:b001"
+        },
+        {
+          "kind": "block",
+          "page": 36,
+          "ref": "a97002:p36:b001"
+        }
+      ]
+    },
+    {
+      "id": "lap-joint-he",
+      "q": "חיבור חפיפה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "term",
+          "page": 143,
+          "ref": "a97002:p143:b003"
+        },
+        {
+          "kind": "term",
+          "page": 144,
+          "ref": "a97002:p144:b001"
+        },
+        {
+          "kind": "block",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "block",
+          "page": 16,
+          "ref": "a97002:p16:b003"
+        }
+      ]
+    },
+    {
+      "id": "lap-joint-ru",
+      "q": "нахлёсточное соединение",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        }
+      ]
+    },
+    {
+      "id": "lap-joint-translit",
+      "q": "khibur khafifa",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "term",
+          "page": 143,
+          "ref": "a97002:p143:b003"
+        },
+        {
+          "kind": "term",
+          "page": 144,
+          "ref": "a97002:p144:b001"
+        },
+        {
+          "kind": "block",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "block",
+          "page": 16,
+          "ref": "a97002:p16:b003"
+        }
+      ]
+    },
+    {
+      "id": "butt-joint-he",
+      "q": "מחבר השקה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        },
+        {
+          "kind": "block",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        }
+      ]
+    },
+    {
+      "id": "butt-joint-ru",
+      "q": "стыковое соединение",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 15,
+          "ref": "a97002:p15:b003"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        }
+      ]
+    },
+    {
+      "id": "butt-joint-translit",
+      "q": "makhbar hashaka",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        },
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b003"
+        },
+        {
+          "kind": "term",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        },
+        {
+          "kind": "block",
+          "page": 16,
+          "ref": "a97002:p16:b001"
+        }
+      ]
+    },
+    {
+      "id": "tensile-stress-he",
+      "q": "מאמץ מתיחה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 25,
+          "ref": "a97002:p25:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b003"
+        },
+        {
+          "kind": "term",
+          "page": 37,
+          "ref": "a97002:p37:b004"
+        }
+      ]
+    },
+    {
+      "id": "tensile-stress-ru",
+      "q": "напряжение растяжения",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 25,
+          "ref": "a97002:p25:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 37,
+          "ref": "a97002:p37:b004"
+        },
+        {
+          "kind": "term",
+          "page": 58,
+          "ref": "a97002:p58:b006"
+        }
+      ]
+    },
+    {
+      "id": "tensile-stress-translit",
+      "q": "maamats metikha",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 25,
+          "ref": "a97002:p25:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b003"
+        },
+        {
+          "kind": "term",
+          "page": 37,
+          "ref": "a97002:p37:b004"
+        }
+      ]
+    },
+    {
+      "id": "timsoret-retsua-he",
+      "q": "תמסורת רצועה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 176,
+          "ref": "a97002:p176:b001"
+        },
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        }
+      ]
+    },
+    {
+      "id": "timsoret-retsua-ru",
+      "q": "ременная передача",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 176,
+          "ref": "a97002:p176:b001"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        }
+      ]
+    },
+    {
+      "id": "timsoret-retsua-translit",
+      "q": "timsoret retsua",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 176,
+          "ref": "a97002:p176:b001"
+        },
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        }
+      ]
+    },
+    {
+      "id": "retsua-trizit-he",
+      "q": "רצועה טריזית",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        }
+      ]
+    },
+    {
+      "id": "retsua-trizit-ru",
+      "q": "клиновой ремень",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "symbol",
+          "page": 210,
+          "ref": "a97002:p210:f01#mu_effective"
+        }
+      ]
+    },
+    {
+      "id": "retsua-trizit-translit",
+      "q": "retsua trizit",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "block",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        }
+      ]
+    },
+    {
+      "id": "retsua-shtukha-he",
+      "q": "רצועה שטוחה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b009"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        }
+      ]
+    },
+    {
+      "id": "retsua-shtukha-ru",
+      "q": "плоский ремень",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b009"
+        }
+      ]
+    },
+    {
+      "id": "retsua-shtukha-translit",
+      "q": "retsua shtukha",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 49,
+          "ref": "a97002:p49:b009"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        }
+      ]
+    },
+    {
+      "id": "zavit-khavika-he",
+      "q": "זווית חביקה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 203,
+          "ref": "a97002:p203:b002"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b003"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b005"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b004"
+        },
+        {
+          "kind": "term",
+          "page": 390,
+          "ref": "a97002:p390:b009"
+        }
+      ]
+    },
+    {
+      "id": "zavit-khavika-ru",
+      "q": "угол обхвата",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 203,
+          "ref": "a97002:p203:b002"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b003"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b005"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b004"
+        },
+        {
+          "kind": "term",
+          "page": 390,
+          "ref": "a97002:p390:b009"
+        }
+      ]
+    },
+    {
+      "id": "zavit-khavika-translit",
+      "q": "zavit khavika",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 203,
+          "ref": "a97002:p203:b002"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b003"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b005"
+        },
+        {
+          "kind": "term",
+          "page": 378,
+          "ref": "a97002:p378:b004"
+        },
+        {
+          "kind": "term",
+          "page": 390,
+          "ref": "a97002:p390:b009"
+        }
+      ]
+    },
+    {
+      "id": "orekh-retsua-he",
+      "q": "אורך רצועה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 181,
+          "ref": "a97002:p181:b001"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        }
+      ]
+    },
+    {
+      "id": "orekh-retsua-ru",
+      "q": "длина ремня",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 221,
+          "ref": "a97002:p221:b005"
+        },
+        {
+          "kind": "term",
+          "page": 231,
+          "ref": "a97002:p231:b003"
+        },
+        {
+          "kind": "term",
+          "page": 231,
+          "ref": "a97002:p231:b001"
+        },
+        {
+          "kind": "term",
+          "page": 171,
+          "ref": "a97002:p171:b006"
+        }
+      ]
+    },
+    {
+      "id": "orekh-retsua-translit",
+      "q": "orekh retsua",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 197,
+          "ref": "a97002:p197:b006"
+        },
+        {
+          "kind": "term",
+          "page": 180,
+          "ref": "a97002:p180:b001"
+        },
+        {
+          "kind": "term",
+          "page": 198,
+          "ref": "a97002:p198:b001"
+        },
+        {
+          "kind": "term",
+          "page": 210,
+          "ref": "a97002:p210:b001"
+        },
+        {
+          "kind": "term",
+          "page": 273,
+          "ref": "a97002:p273:b006"
+        }
+      ]
+    },
+    {
+      "id": "mesav-kaduri-he",
+      "q": "מסב כדורי",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b003"
+        },
+        {
+          "kind": "term",
+          "page": 271,
+          "ref": "a97002:p271:b001"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b002"
+        },
+        {
+          "kind": "term",
+          "page": 273,
+          "ref": "a97002:p273:b006"
+        },
+        {
+          "kind": "block",
+          "page": 278,
+          "ref": "a97002:p278:b003"
+        }
+      ]
+    },
+    {
+      "id": "mesav-kaduri-ru",
+      "q": "шариковый подшипник",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b003"
+        },
+        {
+          "kind": "term",
+          "page": 271,
+          "ref": "a97002:p271:b001"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b002"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b004"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b006"
+        }
+      ]
+    },
+    {
+      "id": "mesav-kaduri-translit",
+      "q": "mesav kaduri",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b003"
+        },
+        {
+          "kind": "term",
+          "page": 271,
+          "ref": "a97002:p271:b001"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b002"
+        },
+        {
+          "kind": "term",
+          "page": 273,
+          "ref": "a97002:p273:b006"
+        },
+        {
+          "kind": "block",
+          "page": 278,
+          "ref": "a97002:p278:b003"
+        }
+      ]
+    },
+    {
+      "id": "mesabei-hakhlaka-he",
+      "q": "מסבי החלקה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b006"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b008"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b004"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b005"
+        },
+        {
+          "kind": "block",
+          "page": 272,
+          "ref": "a97002:p272:b006"
+        }
+      ]
+    },
+    {
+      "id": "mesabei-hakhlaka-ru",
+      "q": "подшипники скольжения",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b006"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b008"
+        },
+        {
+          "kind": "term",
+          "page": 271,
+          "ref": "a97002:p271:b001"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b004"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b007"
+        }
+      ]
+    },
+    {
+      "id": "mesabei-hakhlaka-translit",
+      "q": "mesabei hakhlaka",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b006"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b008"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b004"
+        },
+        {
+          "kind": "term",
+          "page": 272,
+          "ref": "a97002:p272:b005"
+        },
+        {
+          "kind": "block",
+          "page": 272,
+          "ref": "a97002:p272:b006"
+        }
+      ]
+    },
+    {
+      "id": "dargat-omes-dinami-he",
+      "q": "דרגת עומס דינמי",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 286,
+          "ref": "a97002:p286:b004"
+        },
+        {
+          "kind": "term",
+          "page": 487,
+          "ref": "a97002:p487:b002"
+        },
+        {
+          "kind": "term",
+          "page": 285,
+          "ref": "a97002:p285:b003"
+        },
+        {
+          "kind": "term",
+          "page": 74,
+          "ref": "a97002:p74:b005"
+        },
+        {
+          "kind": "term",
+          "page": 484,
+          "ref": "a97002:p484:b001"
+        }
+      ]
+    },
+    {
+      "id": "dargat-omes-dinami-ru",
+      "q": "динамическая грузоподъёмность",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 286,
+          "ref": "a97002:p286:b004"
+        },
+        {
+          "kind": "term",
+          "page": 285,
+          "ref": "a97002:p285:b003"
+        },
+        {
+          "kind": "term",
+          "page": 296,
+          "ref": "a97002:p296:b005"
+        },
+        {
+          "kind": "symbol",
+          "page": 285,
+          "ref": "a97002:p285:f02#r_static"
+        },
+        {
+          "kind": "symbol",
+          "page": 289,
+          "ref": "a97002:p289:f02#r_static"
+        }
+      ]
+    },
+    {
+      "id": "dargat-omes-dinami-translit",
+      "q": "dargat omes dinami",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 286,
+          "ref": "a97002:p286:b004"
+        },
+        {
+          "kind": "term",
+          "page": 487,
+          "ref": "a97002:p487:b002"
+        },
+        {
+          "kind": "term",
+          "page": 285,
+          "ref": "a97002:p285:b003"
+        },
+        {
+          "kind": "term",
+          "page": 74,
+          "ref": "a97002:p74:b005"
+        },
+        {
+          "kind": "term",
+          "page": 484,
+          "ref": "a97002:p484:b001"
+        }
+      ]
+    },
+    {
+      "id": "sibolet-mida-he",
+      "q": "סבולת מידה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b001"
+        },
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b002"
+        },
+        {
+          "kind": "term",
+          "page": 486,
+          "ref": "a97002:p486:b001"
+        },
+        {
+          "kind": "term",
+          "page": 491,
+          "ref": "a97002:p491:b001"
+        },
+        {
+          "kind": "term",
+          "page": 499,
+          "ref": "a97002:p499:b001"
+        }
+      ]
+    },
+    {
+      "id": "sibolet-mida-ru",
+      "q": "допуск размера",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b001"
+        },
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b002"
+        },
+        {
+          "kind": "term",
+          "page": 486,
+          "ref": "a97002:p486:b001"
+        },
+        {
+          "kind": "term",
+          "page": 491,
+          "ref": "a97002:p491:b001"
+        },
+        {
+          "kind": "term",
+          "page": 499,
+          "ref": "a97002:p499:b001"
+        }
+      ]
+    },
+    {
+      "id": "sibolet-mida-translit",
+      "q": "svolet mida",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b001"
+        },
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b002"
+        },
+        {
+          "kind": "term",
+          "page": 486,
+          "ref": "a97002:p486:b001"
+        },
+        {
+          "kind": "term",
+          "page": 491,
+          "ref": "a97002:p491:b001"
+        },
+        {
+          "kind": "term",
+          "page": 499,
+          "ref": "a97002:p499:b001"
+        }
+      ]
+    },
+    {
+      "id": "khalifiyut-he",
+      "q": "חליפיות",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 359,
+          "ref": "a97002:p359:b008"
+        },
+        {
+          "kind": "block",
+          "page": 359,
+          "ref": "a97002:p359:b008"
+        },
+        {
+          "kind": "block",
+          "page": 360,
+          "ref": "a97002:p360:b012"
+        },
+        {
+          "kind": "block",
+          "page": 485,
+          "ref": "a97002:p485:b002"
+        }
+      ]
+    },
+    {
+      "id": "khalifiyut-ru",
+      "q": "взаимозаменяемость",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 359,
+          "ref": "a97002:p359:b008"
+        },
+        {
+          "kind": "block",
+          "page": 359,
+          "ref": "a97002:p359:b008"
+        },
+        {
+          "kind": "block",
+          "page": 360,
+          "ref": "a97002:p360:b012"
+        },
+        {
+          "kind": "block",
+          "page": 485,
+          "ref": "a97002:p485:b002"
+        }
+      ]
+    },
+    {
+      "id": "khalifiyut-translit",
+      "q": "khalifiyut",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 359,
+          "ref": "a97002:p359:b008"
+        },
+        {
+          "kind": "block",
+          "page": 359,
+          "ref": "a97002:p359:b008"
+        },
+        {
+          "kind": "block",
+          "page": 360,
+          "ref": "a97002:p360:b012"
+        },
+        {
+          "kind": "block",
+          "page": 485,
+          "ref": "a97002:p485:b002"
+        }
+      ]
+    },
+    {
+      "id": "spring-והקפיץ",
+      "q": "והקפיץ",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        }
+      ]
+    },
+    {
+      "id": "spring-בקפיץ",
+      "q": "בקפיץ",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 142,
+          "ref": "a97002:p142:b001"
+        },
+        {
+          "kind": "symbol",
+          "page": 142,
+          "ref": "a97002:p142:st1:s01"
+        }
+      ]
+    },
+    {
+      "id": "spring-пружинами",
+      "q": "пружинами",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b005"
+        },
+        {
+          "kind": "term",
+          "page": 131,
+          "ref": "a97002:p131:b002"
+        },
+        {
+          "kind": "term",
+          "page": 134,
+          "ref": "a97002:p134:b001"
+        },
+        {
+          "kind": "term",
+          "page": 138,
+          "ref": "a97002:p138:b005"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b009"
+        }
+      ]
+    },
+    {
+      "id": "rivets-заклёпочного",
+      "q": "заклёпочного",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "block",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "block",
+          "page": 18,
+          "ref": "a97002:p18:b001"
+        },
+        {
+          "kind": "block",
+          "page": 19,
+          "ref": "a97002:p19:b005"
+        },
+        {
+          "kind": "figure",
+          "page": 18,
+          "ref": "a97002:p18:fig14"
+        }
+      ]
+    },
+    {
+      "id": "rivets-заклепочного",
+      "q": "заклепочного",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "block",
+          "page": 13,
+          "ref": "a97002:p13:b003"
+        },
+        {
+          "kind": "block",
+          "page": 18,
+          "ref": "a97002:p18:b001"
+        },
+        {
+          "kind": "block",
+          "page": 19,
+          "ref": "a97002:p19:b005"
+        },
+        {
+          "kind": "figure",
+          "page": 18,
+          "ref": "a97002:p18:fig14"
+        }
+      ]
+    },
+    {
+      "id": "notation-d₁",
+      "q": "d₁",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 75,
+          "ref": "a97002:p75:f05#d1"
+        },
+        {
+          "kind": "symbol",
+          "page": 75,
+          "ref": "a97002:p75:f06#d1"
+        },
+        {
+          "kind": "symbol",
+          "page": 78,
+          "ref": "a97002:p78:f05#d1"
+        },
+        {
+          "kind": "symbol",
+          "page": 78,
+          "ref": "a97002:p78:f06#d1"
+        },
+        {
+          "kind": "symbol",
+          "page": 82,
+          "ref": "a97002:p82:f05#d1"
+        }
+      ]
+    },
+    {
+      "id": "notation-N·mm",
+      "q": "N·mm",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 69,
+          "ref": "a97002:p69:f01#Mt"
+        },
+        {
+          "kind": "symbol",
+          "page": 69,
+          "ref": "a97002:p69:f02#Mt"
+        },
+        {
+          "kind": "symbol",
+          "page": 79,
+          "ref": "a97002:p79:f05#Mtot"
+        },
+        {
+          "kind": "symbol",
+          "page": 83,
+          "ref": "a97002:p83:f05#Mtot"
+        },
+        {
+          "kind": "symbol",
+          "page": 117,
+          "ref": "a97002:p117:f04#Mb"
+        }
+      ]
+    },
+    {
+      "id": "notation-Н·мм",
+      "q": "Н·мм",
+      "kind": "exact",
+      "rank": 5,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 8,
+          "ref": "a97002:p8:st1:s01"
+        },
+        {
+          "kind": "symbol",
+          "page": 9,
+          "ref": "a97002:p9:st1:s01"
+        },
+        {
+          "kind": "symbol",
+          "page": 9,
+          "ref": "a97002:p9:st1:s01"
+        },
+        {
+          "kind": "symbol",
+          "page": 10,
+          "ref": "a97002:p10:st1:s01"
+        },
+        {
+          "kind": "symbol",
+          "page": 69,
+          "ref": "a97002:p69:f01#Mt"
+        }
+      ]
+    },
+    {
+      "id": "notation-rpm",
+      "q": "rpm",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 10,
+          "ref": "a97002:p10:st1:s03"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f04#nB"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f04#nC"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f05#nB"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f05#nC"
+        }
+      ]
+    },
+    {
+      "id": "notation-об/мин",
+      "q": "об/мин",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 10,
+          "ref": "a97002:p10:st1:s03"
+        },
+        {
+          "kind": "symbol",
+          "page": 100,
+          "ref": "a97002:p100:f02#nrot"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f04#nB"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f04#nC"
+        },
+        {
+          "kind": "symbol",
+          "page": 190,
+          "ref": "a97002:p190:f05#nB"
+        }
+      ]
+    },
+    {
+      "id": "notation-МПа",
+      "q": "МПа",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 37,
+          "ref": "a97002:p37:f05#tau"
+        },
+        {
+          "kind": "symbol",
+          "page": 37,
+          "ref": "a97002:p37:f06#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 38,
+          "ref": "a97002:p38:f01#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 38,
+          "ref": "a97002:p38:f02#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 39,
+          "ref": "a97002:p39:f02#sigmat"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p37",
+      "q": "קוטר מסמרה מאמץ מותר לגזירה [𝜏𝑆] = 120 MPa מאמץ מותר למעיכה [𝜎𝑙𝑐] = 320 MPa על המחבר פועל כוח F = 75 kN",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 37,
+          "ref": "a97002:p37:b004"
+        },
+        {
+          "kind": "block",
+          "page": 127,
+          "ref": "a97002:p127:b002"
+        },
+        {
+          "kind": "block",
+          "page": 41,
+          "ref": "a97002:p41:b004"
+        },
+        {
+          "kind": "block",
+          "page": 126,
+          "ref": "a97002:p126:b002"
+        },
+        {
+          "kind": "block",
+          "page": 111,
+          "ref": "a97002:p111:b005"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p38",
+      "q": "שני פחי פלדה מחוברים ביניהם במחבר השקה כפול. בכל צד של המחבר ארבע מסמרות שקוטרן 20 mm, המסודרות בשורה אחת.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 38,
+          "ref": "a97002:p38:b002"
+        },
+        {
+          "kind": "block",
+          "page": 39,
+          "ref": "a97002:p39:b002"
+        },
+        {
+          "kind": "block",
+          "page": 41,
+          "ref": "a97002:p41:b002"
+        },
+        {
+          "kind": "block",
+          "page": 16,
+          "ref": "a97002:p16:b003"
+        },
+        {
+          "kind": "block",
+          "page": 91,
+          "ref": "a97002:p91:b003"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p39",
+      "q": "באיור לשאלה מתוארים שני מבטי מחבר המורכב משלושה פחים (a, b, c). פח c מחבר אליו מצדו האחד את פח a, ומצדו השני את פח b באמצעות שש מסמרות זהות – שלוש מסמרות מכל צד. הפחים a ו-b נמתחים כל אחד בכוח F.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 39,
+          "ref": "a97002:p39:b002"
+        },
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97002:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 80,
+          "ref": "a97002:p80:b002"
+        },
+        {
+          "kind": "block",
+          "page": 187,
+          "ref": "a97002:p187:b002"
+        },
+        {
+          "kind": "block",
+          "page": 189,
+          "ref": "a97002:p189:b002"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p41",
+      "q": "שלוש לוחות פלדה מחוברים ביניהם באמצעות 8 מסמרות, כמתואר באיור. על המחבר פועל כוח חיצוני F = 120 kN.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 41,
+          "ref": "a97002:p41:b002"
+        },
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97002:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 127,
+          "ref": "a97002:p127:b002"
+        },
+        {
+          "kind": "block",
+          "page": 80,
+          "ref": "a97002:p80:b002"
+        },
+        {
+          "kind": "block",
+          "page": 88,
+          "ref": "a97002:p88:b002"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p44",
+      "q": "המחבר המתואר באיור מעביר הספק H = 5 kW תוך שהוא מסתובב במהירות 300 rpm.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 44,
+          "ref": "a97002:p44:b002"
+        },
+        {
+          "kind": "block",
+          "page": 220,
+          "ref": "a97002:p220:b003"
+        },
+        {
+          "kind": "block",
+          "page": 170,
+          "ref": "a97002:p170:b003"
+        },
+        {
+          "kind": "block",
+          "page": 10,
+          "ref": "a97002:p10:f01"
+        },
+        {
+          "kind": "block",
+          "page": 223,
+          "ref": "a97002:p223:b002"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p46",
+      "q": "על המחבר המתואר פועל עומס לא מרכזי F = 8 kN במרחק Ltr = 120 mm.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 46,
+          "ref": "a97002:p46:b002"
+        },
+        {
+          "kind": "block",
+          "page": 41,
+          "ref": "a97002:p41:b002"
+        },
+        {
+          "kind": "block",
+          "page": 127,
+          "ref": "a97002:p127:b002"
+        },
+        {
+          "kind": "block",
+          "page": 37,
+          "ref": "a97002:p37:b004"
+        },
+        {
+          "kind": "block",
+          "page": 72,
+          "ref": "a97002:p72:b006"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p74",
+      "q": "חלקים ① ו-② שבאיור לשאלה מחוברים באמצעות שני ברגי הידוק מסוג M16.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 74,
+          "ref": "a97002:p74:b003"
+        },
+        {
+          "kind": "block",
+          "page": 80,
+          "ref": "a97002:p80:b002"
+        },
+        {
+          "kind": "block",
+          "page": 88,
+          "ref": "a97002:p88:b002"
+        },
+        {
+          "kind": "block",
+          "page": 77,
+          "ref": "a97002:p77:b002"
+        },
+        {
+          "kind": "block",
+          "page": 84,
+          "ref": "a97002:p84:b002"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p77",
+      "q": "באיור לשאלה מתואר מחבר שבו מחוברים ביניהם החלקים ① ו-② באמצעות ארבעה ברגים תקניים M20.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 77,
+          "ref": "a97002:p77:b002"
+        },
+        {
+          "kind": "block",
+          "page": 84,
+          "ref": "a97002:p84:b002"
+        },
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97002:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 80,
+          "ref": "a97002:p80:b002"
+        },
+        {
+          "kind": "block",
+          "page": 74,
+          "ref": "a97002:p74:b003"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p80",
+      "q": "באיור לשאלה מתואר מבנה המורכב מחלקים a ו-b המחוברים ביניהם באמצעות ארבע ברגי הידוק זהים. על המבנה פועל כוח F.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 80,
+          "ref": "a97002:p80:b002"
+        },
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97002:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 127,
+          "ref": "a97002:p127:b002"
+        },
+        {
+          "kind": "block",
+          "page": 88,
+          "ref": "a97002:p88:b002"
+        },
+        {
+          "kind": "block",
+          "page": 126,
+          "ref": "a97002:p126:b002"
+        }
+      ]
+    },
+    {
+      "id": "fragment-p84",
+      "q": "באיור לשאלה מתואר מחבר שבו מהודקים החלקים ① ו-② באמצעות ארבעה ברגים תקניים, M16. בעת ההידוק המוקדם של האומים פועל בכל בורג כוח צירי, Q.",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 84,
+          "ref": "a97002:p84:b002"
+        },
+        {
+          "kind": "block",
+          "page": 77,
+          "ref": "a97002:p77:b002"
+        },
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97002:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 80,
+          "ref": "a97002:p80:b002"
+        },
+        {
+          "kind": "block",
+          "page": 145,
+          "ref": "a97002:p145:b003"
+        }
+      ]
+    },
+    {
+      "id": "abbreviation-ת\"י",
+      "q": "ת\"י",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b003"
+        },
+        {
+          "kind": "block",
+          "page": 53,
+          "ref": "a97002:p53:b001"
+        },
+        {
+          "kind": "block",
+          "page": 491,
+          "ref": "a97002:p491:b001"
+        },
+        {
+          "kind": "block",
+          "page": 499,
+          "ref": "a97002:p499:b001"
+        },
+        {
+          "kind": "block",
+          "page": 485,
+          "ref": "a97002:p485:b003"
+        }
+      ]
+    },
+    {
+      "id": "abbreviation-ת״י",
+      "q": "ת״י",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 485,
+          "ref": "a97002:p485:b003"
+        },
+        {
+          "kind": "block",
+          "page": 53,
+          "ref": "a97002:p53:b001"
+        },
+        {
+          "kind": "block",
+          "page": 491,
+          "ref": "a97002:p491:b001"
+        },
+        {
+          "kind": "block",
+          "page": 499,
+          "ref": "a97002:p499:b001"
+        },
+        {
+          "kind": "block",
+          "page": 485,
+          "ref": "a97002:p485:b003"
+        }
+      ]
+    },
+    {
+      "id": "notation-n_гзира",
+      "q": "n_гзира",
+      "kind": "exact",
+      "rank": 3,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 21,
+          "ref": "a97002:p21:b002"
+        },
+        {
+          "kind": "term",
+          "page": 145,
+          "ref": "a97002:p145:b004"
+        },
+        {
+          "kind": "symbol",
+          "page": 30,
+          "ref": "a97002:p30:f01#n_shear"
+        },
+        {
+          "kind": "symbol",
+          "page": 31,
+          "ref": "a97002:p31:f01#n_shear"
+        },
+        {
+          "kind": "symbol",
+          "page": 32,
+          "ref": "a97002:p32:f01#n_shear"
+        }
+      ]
+    },
+    {
+      "id": "notation-τ_S",
+      "q": "τ_S",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 37,
+          "ref": "a97002:p37:f05#tau"
+        },
+        {
+          "kind": "symbol",
+          "page": 40,
+          "ref": "a97002:p40:f04#tau"
+        },
+        {
+          "kind": "symbol",
+          "page": 42,
+          "ref": "a97002:p42:f04#tau"
+        },
+        {
+          "kind": "symbol",
+          "page": 42,
+          "ref": "a97002:p42:f12#tau"
+        },
+        {
+          "kind": "symbol",
+          "page": 43,
+          "ref": "a97002:p43:f04#tau"
+        }
+      ]
+    },
+    {
+      "id": "erratum-p7",
+      "q": "\"Fy = F · cos α° (רכיב אנכי)\"",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 7,
+          "ref": "a97002:p7:b005"
+        },
+        {
+          "kind": "erratum",
+          "page": 7,
+          "ref": "a97002:p7:b005"
+        }
+      ]
+    },
+    {
+      "id": "erratum-p289",
+      "q": "\"x = 0.56; y = 2\"",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "erratum",
+          "page": 289,
+          "ref": "a97002:p289:f04"
+        }
+      ]
+    },
+    {
+      "id": "erratum-p485",
+      "q": "\"ΔA = u − d = 0.05 − (0.1) = 0.15\"",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "erratum",
+          "page": 485,
+          "ref": "a97002:p485:f01"
+        }
+      ]
+    },
+    {
+      "id": "notation-σ_Lc",
+      "q": "σ_Lc",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 37,
+          "ref": "a97002:p37:f06#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 38,
+          "ref": "a97002:p38:f01#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 38,
+          "ref": "a97002:p38:f02#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 40,
+          "ref": "a97002:p40:f05#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 42,
+          "ref": "a97002:p42:f05#sigma"
+        }
+      ]
+    },
+    {
+      "id": "notation-sigma_Lc",
+      "q": "sigma_Lc",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "symbol",
+          "page": 37,
+          "ref": "a97002:p37:f06#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 38,
+          "ref": "a97002:p38:f01#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 38,
+          "ref": "a97002:p38:f02#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 40,
+          "ref": "a97002:p40:f05#sigma"
+        },
+        {
+          "kind": "symbol",
+          "page": 42,
+          "ref": "a97002:p42:f05#sigma"
+        }
+      ]
+    }
+  ]
+}
