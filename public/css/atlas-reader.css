@@ -380,3 +380,34 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
  .atlas-root .atlas-search-result { padding-inline:4px; }
  .atlas-root .atlas-result-pages { padding-inline:4px; }
 }
+/* ---- Listening (P3 V3): ▶ on the bar and on formula cards, the passage being read, the mini-player ---- */
+.atlas-root .atlas-listen-btn { background: var(--atlas-teal); color: var(--atlas-on-teal); border-color: var(--atlas-teal); font-weight: 600; }
+.atlas-root .atlas-formula > .atlas-say { float: inline-end; margin: 0 0 4px 8px; min-height: 36px; padding: 0 10px; border-radius: 999px;
+  font-size: .85rem; color: var(--atlas-teal-ink); background: var(--atlas-teal-soft); border: 1px solid var(--atlas-teal-tint); }
+.atlas-root .atlas-formula > .atlas-say[aria-pressed="true"] { background: var(--atlas-teal); color: var(--atlas-on-teal); }
+.atlas-root .atlas-speaking { outline: 2px solid var(--atlas-teal); outline-offset: 3px; border-radius: 6px; background: var(--atlas-teal-tint); }
+.atlas-root.atlas-listening { padding-bottom: 140px; }
+.atlas-root .atlas-player { position: fixed; z-index: 950; inset-inline: 0; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); margin-inline: auto;
+  width: min(760px, calc(100% - 20px)); box-sizing: border-box; display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px;
+  background: var(--atlas-surface); color: var(--atlas-ink); border: 1px solid var(--atlas-line-strong); box-shadow: var(--atlas-shadow); }
+.atlas-root .atlas-player-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.atlas-root .atlas-player-row > button { min-width: 40px; min-height: 40px; padding: 0 8px; font-size: 1.05rem; }
+.atlas-root .atlas-player-row > .atlas-player-main { background: var(--atlas-teal); color: var(--atlas-on-teal); border-color: var(--atlas-teal); min-width: 48px; }
+.atlas-root .atlas-player-row > .atlas-player-close { margin-inline-start: auto; }
+.atlas-root .atlas-player select { font: inherit; min-height: 40px; color: var(--atlas-ink); background: var(--atlas-surface); border: 1px solid var(--atlas-line-strong); border-radius: 10px; padding: 0 6px; }
+.atlas-root .atlas-player-check { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: .9rem; }
+.atlas-root .atlas-player-check input { width: 18px; height: 18px; }
+.atlas-root .atlas-player-lang { font-size: .8rem; color: var(--atlas-muted); border: 1px solid var(--atlas-line); border-radius: 6px; padding: 1px 6px; }
+.atlas-root .atlas-player-status { font-size: .85rem; color: var(--atlas-muted); overflow-wrap: anywhere; }
+.atlas-root .atlas-player-follow { justify-self: start; min-height: 36px; font-size: .85rem; }
+.atlas-root .atlas-player-follow[hidden], .atlas-root .atlas-player-end[hidden] { display: none; }
+.atlas-root .atlas-player-end { display: flex; flex-wrap: wrap; gap: 8px; }
+.atlas-root .atlas-player-end button { background: var(--atlas-teal); color: var(--atlas-on-teal); border-color: var(--atlas-teal); min-height: 40px; }
+@media (max-width: 599px) {
+  body.lp-has-app-nav:not(.room-reading) .atlas-root .atlas-player { bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+  .atlas-root .atlas-player { width: calc(100% - 12px); padding: 8px; }
+  .atlas-root .atlas-player-row { gap: 4px; }
+  .atlas-root .atlas-player-lang { display: none; }
+  .atlas-root.atlas-listening { padding-bottom: 170px; }
+}
+@media print { .atlas-root .atlas-player, .atlas-root .atlas-say, .atlas-root .atlas-listen-btn { display: none !important; } }

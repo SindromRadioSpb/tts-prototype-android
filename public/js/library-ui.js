@@ -12832,6 +12832,7 @@ async function renderCorpus() {
   if (!main) return;
   document.body.classList.toggle('room-discovery-home', corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home');
   const token = ++corpusRenderToken;
+  if (roomAtlasReader) { try { roomAtlasReader.stopAudio(); } catch (_) {} roomAtlasReader = null; }
   if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
   if (String(corpusNav.corpus || '').startsWith('public:')) return renderPublicCorpus(String(corpusNav.corpus).slice(7), token);
@@ -13178,6 +13179,7 @@ async function renderPublicCorpus(slug, token) {
 // The open section and page live in the address (#room=atlas:…&sec=…&pg=…): opening a section is a
 // history step, reading on replaces the page number, Back returns to the atlas contents.
 let roomAtlasAnchor = null;
+var roomAtlasReader = null;   // the mounted atlas, so leaving it stops its listening (var: renderCorpus may run before this line)
 let roomAtlasPosition = null;  // last section/page the atlas reported; kept by any later commit of the Room state
 function renderAtlasCorpus(atlasId, token) {
   const main = $('roomContent');
@@ -13201,7 +13203,9 @@ function renderAtlasCorpus(atlasId, token) {
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
       body: JSON.stringify({ page, reviewed }) }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }),
   };
-  const reader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review,
+  // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
+  const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
+  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio,
     layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
     onLayers: (l) => {

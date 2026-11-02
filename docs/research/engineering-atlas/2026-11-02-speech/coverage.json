@@ -1,0 +1,288 @@
+{
+  "schema": "linguistpro.atlas-tts-inventory.1",
+  "atlas_id": "a97002",
+  "profile_id": "atlas-he-standard-a-0.8-pitch-2.5-v1",
+  "profile": {
+    "language": "he-IL",
+    "voiceName": "he-IL-Standard-A",
+    "speakingRate": 0.8,
+    "pitch": 2.5
+  },
+  "speech_contract": "atlas-speech/1",
+  "lexicon_sha256": "41650e52d8971ee36db995e0ee09ba292670bc41ddb56d61f5a7970de598b260",
+  "lexicon_review": "needs_review",
+  "blocks": {
+    "voiced": 2763,
+    "total": 2773
+  },
+  "formulas": {
+    "voiced": 1234,
+    "total": 1234
+  },
+  "not_shown_or_nothing_to_read": 210,
+  "not_voiced_reasons": {
+    "NO_NIQQUD": 10
+  },
+  "unique_recordings": 3207,
+  "billed_characters": 361314,
+  "character_ceiling": 600000,
+  "estimated_usd_standard": 1.45,
+  "estimated_megabytes": 254,
+  "longest_input_bytes": 1869,
+  "max_input_bytes": 4800,
+  "gate_cost": "PASS",
+  "sections": [
+    {
+      "section": "s00-front",
+      "items": 10,
+      "voiced": 0,
+      "billed_characters": 0
+    },
+    {
+      "section": "s01-intro",
+      "items": 45,
+      "voiced": 45,
+      "billed_characters": 3706
+    },
+    {
+      "section": "s02-rivets",
+      "items": 319,
+      "voiced": 319,
+      "billed_characters": 32385
+    },
+    {
+      "section": "s03-bolts",
+      "items": 369,
+      "voiced": 369,
+      "billed_characters": 33454
+    },
+    {
+      "section": "s04-welding",
+      "items": 301,
+      "voiced": 301,
+      "billed_characters": 20006
+    },
+    {
+      "section": "s05-springs",
+      "items": 189,
+      "voiced": 189,
+      "billed_characters": 15603
+    },
+    {
+      "section": "s06-power",
+      "items": 33,
+      "voiced": 33,
+      "billed_characters": 2778
+    },
+    {
+      "section": "s07-keys",
+      "items": 127,
+      "voiced": 127,
+      "billed_characters": 10268
+    },
+    {
+      "section": "s08-transmissions",
+      "items": 136,
+      "voiced": 136,
+      "billed_characters": 11370
+    },
+    {
+      "section": "s09-belt",
+      "items": 382,
+      "voiced": 382,
+      "billed_characters": 28179
+    },
+    {
+      "section": "s10-spur-gears",
+      "items": 115,
+      "voiced": 115,
+      "billed_characters": 11476
+    },
+    {
+      "section": "s11-helical-gears",
+      "items": 106,
+      "voiced": 106,
+      "billed_characters": 8936
+    },
+    {
+      "section": "s12-bearings",
+      "items": 151,
+      "voiced": 151,
+      "billed_characters": 10616
+    },
+    {
+      "section": "s13-couplings",
+      "items": 28,
+      "voiced": 28,
+      "billed_characters": 3097
+    },
+    {
+      "section": "s14-fixed-couplings",
+      "items": 33,
+      "voiced": 33,
+      "billed_characters": 2473
+    },
+    {
+      "section": "s15-clutches",
+      "items": 218,
+      "voiced": 218,
+      "billed_characters": 27802
+    },
+    {
+      "section": "s16-shafts",
+      "items": 65,
+      "voiced": 65,
+      "billed_characters": 6240
+    },
+    {
+      "section": "s17-power-screws",
+      "items": 193,
+      "voiced": 193,
+      "billed_characters": 15991
+    },
+    {
+      "section": "s18-production-types",
+      "items": 29,
+      "voiced": 29,
+      "billed_characters": 2149
+    },
+    {
+      "section": "s19-cutting-theory",
+      "items": 20,
+      "voiced": 20,
+      "billed_characters": 1927
+    },
+    {
+      "section": "s20-cutting-conditions",
+      "items": 43,
+      "voiced": 43,
+      "billed_characters": 5438
+    },
+    {
+      "section": "s21-cutting-tools",
+      "items": 35,
+      "voiced": 35,
+      "billed_characters": 5681
+    },
+    {
+      "section": "s22-machine-tools",
+      "items": 441,
+      "voiced": 441,
+      "billed_characters": 48234
+    },
+    {
+      "section": "s23-finishing",
+      "items": 32,
+      "voiced": 32,
+      "billed_characters": 3104
+    },
+    {
+      "section": "s24-surface",
+      "items": 31,
+      "voiced": 31,
+      "billed_characters": 2154
+    },
+    {
+      "section": "s25-size-tolerance",
+      "items": 21,
+      "voiced": 21,
+      "billed_characters": 2884
+    },
+    {
+      "section": "s26-form-tolerance",
+      "items": 43,
+      "voiced": 43,
+      "billed_characters": 2925
+    },
+    {
+      "section": "s27-position-tolerance",
+      "items": 50,
+      "voiced": 50,
+      "billed_characters": 4709
+    },
+    {
+      "section": "s28-special",
+      "items": 13,
+      "voiced": 13,
+      "billed_characters": 1966
+    },
+    {
+      "section": "s29-fits",
+      "items": 16,
+      "voiced": 16,
+      "billed_characters": 2755
+    },
+    {
+      "section": "s30-production-dims",
+      "items": 248,
+      "voiced": 248,
+      "billed_characters": 13447
+    },
+    {
+      "section": "s31-edm",
+      "items": 19,
+      "voiced": 19,
+      "billed_characters": 2085
+    },
+    {
+      "section": "s32-sinking",
+      "items": 5,
+      "voiced": 5,
+      "billed_characters": 910
+    },
+    {
+      "section": "s33-wire",
+      "items": 5,
+      "voiced": 5,
+      "billed_characters": 608
+    },
+    {
+      "section": "s34-ecm",
+      "items": 13,
+      "voiced": 13,
+      "billed_characters": 1318
+    },
+    {
+      "section": "s35-laser",
+      "items": 15,
+      "voiced": 15,
+      "billed_characters": 947
+    },
+    {
+      "section": "s36-plasma",
+      "items": 14,
+      "voiced": 14,
+      "billed_characters": 1421
+    },
+    {
+      "section": "s37-waterjet",
+      "items": 17,
+      "voiced": 17,
+      "billed_characters": 1592
+    },
+    {
+      "section": "s38-ultrasonic",
+      "items": 15,
+      "voiced": 15,
+      "billed_characters": 1421
+    },
+    {
+      "section": "s39-electron-beam",
+      "items": 17,
+      "voiced": 17,
+      "billed_characters": 2522
+    },
+    {
+      "section": "s40-break-even",
+      "items": 5,
+      "voiced": 5,
+      "billed_characters": 589
+    },
+    {
+      "section": "s41-time",
+      "items": 40,
+      "voiced": 40,
+      "billed_characters": 6148
+    }
+  ]
+}

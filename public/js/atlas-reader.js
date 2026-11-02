@@ -1183,6 +1183,7 @@
       how = how || {}; query = String(query || '').trim().slice(0, 2000);
       var heUi = /^he/i.test(doc.documentElement.getAttribute('lang') || '') || doc.documentElement.getAttribute('dir') === 'rtl';
       if (!query) return showHome(how);
+      stopListening();
       stopTracking(); var epoch = ++navigationEpoch;
       var scope = how.scope || 'book', sid = how.sid || '';
       var form = searchForm(sid, query, scope), results = R.h('div', { cls: 'atlas-search-results', 'aria-busy': 'true' });
@@ -1260,8 +1261,297 @@
       });
     }
 
+    // ---- Listening (plan P3 §4.4–4.5): Hebrew recordings made in advance. Nothing is synthesised while reading, no
+    // key, no browser voice. A recording plays only when the fingerprint of the text on screen (AtlasSpeech.sourceOf)
+    // matches the section manifest, so a text corrected after the bake stays silent instead of reading old words.
+    // A section without recordings has no buttons and makes no request (index.json lists the sections that have them).
+    var Speech = opts.speech || root.AtlasSpeech;
+    var audioOpts = opts.audio || {};
+    var LISTEN_KEY = 'room.atlas.listen';
+    var listen = null;
+    function listenPrefs() {
+      var p = { rate: 1, formulas: true };
+      try { var s = JSON.parse(root.localStorage.getItem(LISTEN_KEY) || 'null'); if (s) { if ([0.75, 1, 1.25, 1.5].indexOf(Number(s.rate)) >= 0) p.rate = Number(s.rate); p.formulas = s.formulas !== false; } } catch (_) {}
+      return p;
+    }
+    function saveListenPrefs(p) { try { root.localStorage.setItem(LISTEN_KEY, JSON.stringify(p)); } catch (_) {} }
+    function sha256Text(text) {
+      var c = root.crypto;
+      if (!c || !c.subtle || typeof TextEncoder === 'undefined') return Promise.reject(new Error('SHA256_UNAVAILABLE'));
+      return c.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (bytes) {
+        return Array.from(new Uint8Array(bytes)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+      });
+    }
+    // id → { key, kind } for every item whose recording matches the text on screen
+    function verifiedRecordings(data, manifest) {
+      var items = [];
+      data.pages.forEach(function (p) { (p.items || []).forEach(function (it) { if (manifest.items[it.id]) items.push(it); }); });
+      return Promise.all(items.map(function (it) {
+        return sha256Text(Speech.sourceOf(it)).then(function (hash) {
+          var entry = manifest.items[it.id];
+          return hash === entry.src && /^[a-f0-9]{64}$/.test(entry.key) ? [it.id, { key: entry.key, kind: it.type === 'formula' ? 'formula' : 'block' }] : null;
+        });
+      })).then(function (pairs) {
+        var out = {};
+        pairs.forEach(function (x) { if (x) out[x[0]] = x[1]; });
+        return out;
+      });
+    }
+    function stopListening() {
+      if (!listen) return;
+      var l = listen; listen = null;
+      l.closed = true;
+      try { l.audio.pause(); } catch (_) {}
+      try { l.audio.removeAttribute('src'); } catch (_) {}
+      l.cleanup.forEach(function (fn) { try { fn(); } catch (_) {} });
+      view.classList.remove('atlas-listening');
+      view.querySelectorAll('.atlas-speaking').forEach(function (n) { n.classList.remove('atlas-speaking'); n.removeAttribute('aria-current'); });
+      view.querySelectorAll('.atlas-say[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      if (l.player) l.player.remove();
+      var ms = root.navigator && root.navigator.mediaSession;
+      if (ms) { try { ms.metadata = null; ['play', 'pause', 'previoustrack', 'nexttrack'].forEach(function (a) { ms.setActionHandler(a, null); }); } catch (_) {} }
+    }
+    function setupListening(id, data, bar, section, how) {
+      if (!Speech || !Speech.sourceOf) return Promise.resolve(null);
+      return loadIndex().then(function (ix) {
+        if (!ix || !ix.audio || !ix.audio[id]) return null;
+        return fetchJson(base + 'audio/' + id + '.json').then(function (manifest) {
+          if (!manifest || manifest.schema !== 'linguistpro.atlas-audio.1' || !manifest.items) return null;
+          return verifiedRecordings(data, manifest).then(function (rec) {
+            if (!section.isConnected || !Object.keys(rec).length) return null;
+            return wireListening(id, data, bar, section, manifest, rec, ix, how);
+          });
+        });
+      }).catch(function () { return null; });   // listening is an extra: the section reads the same without it
+    }
+    function wireListening(id, data, bar, section, manifest, rec, ix, how) {
+      var cov = manifest.coverage || {}, total = ((cov.blocks || [])[1] || 0) + ((cov.formulas || [])[1] || 0);
+      var voiced = Object.keys(rec).length;
+      var title = R.h('span', {}, [T('atlas.listen.button', 'Слушать')]);
+      var btn = R.h('button', { type: 'button', cls: 'atlas-listen-btn', 'aria-label': T('atlas.listen.start', 'Слушать раздел на иврите') }, [
+        R.h('span', { 'aria-hidden': 'true', text: '▶ ' }), title]);
+      bar.insertBefore(btn, bar.querySelector('.atlas-view-btn') || bar.querySelector('.atlas-print-btn'));
+      section.querySelectorAll('.atlas-formula[data-ref]').forEach(function (card) {
+        var r = rec[card.getAttribute('data-ref')];
+        if (!r) return;
+        card.insertBefore(R.h('button', { type: 'button', cls: 'atlas-say', 'aria-pressed': 'false', lang: 'he',
+          'aria-label': T('atlas.listen.formula', 'Прочитать формулу на иврите'), title: T('atlas.listen.formula', 'Прочитать формулу на иврите') }, [
+          R.h('span', { 'aria-hidden': 'true', text: '▶ ' }), 'עב']), card.firstChild);
+      });
+      var prefs = listenPrefs();
+      function queue() {
+        return Array.from(section.querySelectorAll('.atlas-row[data-ref], .atlas-formula[data-ref]')).filter(function (n) {
+          var r = rec[n.getAttribute('data-ref')];
+          return r && (prefs.formulas || r.kind !== 'formula');
+        });
+      }
+      function nextSection() {
+        var list = (ix.sections || []).filter(function (s) { return s.translated; });
+        for (var i = 0; i < list.length - 1; i++) if (list[i].id === id) {
+          for (var j = i + 1; j < list.length; j++) if (ix.audio && ix.audio[list[j].id]) return list[j];
+          return null;
+        }
+        return null;
+      }
+      var api = {};
+      function ensure() {
+        if (listen && listen.section === section) return listen;
+        stopListening();
+        var audio = audioOpts.createElement ? audioOpts.createElement() : doc.createElement('audio');
+        audio.preload = 'auto';
+        var l = { section: section, audio: audio, at: -1, items: [], mode: 'queue', playing: false, errors: 0, followPause: 0, cleanup: [], player: null, closed: false };
+        listen = l;
+        audio.addEventListener('ended', function () { if (listen === l) { l.errors = 0; if (l.mode === 'single') finishSingle(); else playAt(l.at + 1); } });
+        audio.addEventListener('error', function () {
+          if (listen !== l) return;
+          l.errors++;
+          if (l.errors >= 3) { setStatus(T('atlas.listen.unavailable', 'Запись сейчас недоступна')); pause(); return; }
+          if (l.mode === 'single') finishSingle(); else playAt(l.at + 1);
+        });
+        audio.addEventListener('pause', function () { if (listen === l) { l.playing = false; paintToggle(); } });
+        audio.addEventListener('play', function () { if (listen === l) { l.playing = true; paintToggle(); } });
+        // the reader scrolled on purpose: stop following for five seconds and offer the way back
+        var win = doc.defaultView;
+        function manual() { if (listen !== l || !l.player) return; l.followPause = Date.now() + 5000; var f = l.player.querySelector('.atlas-player-follow'); if (f) f.removeAttribute('hidden'); }
+        function onKey(ev) { if (/^(PageUp|PageDown|ArrowUp|ArrowDown|Home|End| )$/.test(ev.key) && !(ev.target && ev.target.closest && ev.target.closest('input,select,textarea,button'))) manual(); }
+        if (win && win.addEventListener) {
+          win.addEventListener('wheel', manual, { passive: true }); win.addEventListener('touchmove', manual, { passive: true }); win.addEventListener('keydown', onKey);
+          l.cleanup.push(function () { win.removeEventListener('wheel', manual); win.removeEventListener('touchmove', manual); win.removeEventListener('keydown', onKey); });
+        }
+        return l;
+      }
+      function setStatus(text) { if (listen && listen.player) listen.player.querySelector('.atlas-player-status').textContent = text; }
+      function paintToggle() {
+        if (!listen || !listen.player) return;
+        var t = listen.player.querySelector('[data-act="toggle"]');
+        t.textContent = listen.playing ? '⏸' : '▶';
+        t.setAttribute('aria-label', listen.playing ? T('atlas.listen.pause', 'Пауза') : T('atlas.listen.play', 'Слушать'));
+      }
+      function mark(el) {
+        section.querySelectorAll('.atlas-speaking').forEach(function (n) { n.classList.remove('atlas-speaking'); n.removeAttribute('aria-current'); });
+        if (!el) return;
+        el.classList.add('atlas-speaking'); el.setAttribute('aria-current', 'true');
+      }
+      function pageOf(el) { var p = el && el.closest && el.closest('.atlas-page'); return p ? Number(p.getAttribute('data-page')) : 0; }
+      function follow(el) {
+        if (!listen || Date.now() < listen.followPause || !el.scrollIntoView) return;
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+      function media(el) {
+        var ms = root.navigator && root.navigator.mediaSession;
+        if (!ms) return;
+        try {
+          if (root.MediaMetadata) ms.metadata = new root.MediaMetadata({ title: T('atlas.page', 'стр.') + ' ' + pageOf(el) + ' · ' + (data.title_he || ''),
+            artist: 'LinguistPro', album: T('atlas.listen.album', 'Инженерный атлас 97002') });
+          ms.setActionHandler('play', function () { resume(); });
+          ms.setActionHandler('pause', function () { pause(); });
+          ms.setActionHandler('previoustrack', function () { if (listen) playAt(Math.max(0, listen.at - 1)); });
+          ms.setActionHandler('nexttrack', function () { if (listen) playAt(listen.at + 1); });
+        } catch (_) {}
+      }
+      function start(el) {
+        var l = ensure();
+        if (typeof audioOpts.onStart === 'function') { try { audioOpts.onStart(); } catch (_) {} }
+        return l;
+      }
+      function play(l, el) {
+        var r = rec[el.getAttribute('data-ref')];
+        l.audio.src = '/api/audio/' + r.key;
+        l.audio.playbackRate = prefs.rate;
+        mark(el);
+        var p = l.audio.play();
+        if (p && p.catch) p.catch(function () { if (listen === l) { l.playing = false; paintToggle(); } });
+      }
+      function playAt(i) {
+        var l = listen;
+        if (!l || l.closed) return;
+        if (!section.isConnected) { stopListening(); return; }
+        l.mode = 'queue';
+        l.items = queue();
+        if (i >= l.items.length) { finishSection(); return; }
+        l.at = Math.max(0, i);
+        var el = l.items[l.at];
+        play(l, el);
+        follow(el);
+        media(el);
+        setStatus(T('atlas.page', 'стр.') + ' ' + pageOf(el) + ' · ' + (l.at + 1) + ' / ' + l.items.length + ' · ' +
+          T('atlas.listen.coverage', 'озвучено') + ' ' + voiced + ' ' + T('atlas.listen.of', 'из') + ' ' + total);
+        var end = l.player && l.player.querySelector('.atlas-player-end');
+        if (end) end.setAttribute('hidden', '');
+      }
+      function finishSection() {
+        var l = listen;
+        l.playing = false; paintToggle(); mark(null);
+        setStatus(T('atlas.listen.done', 'Раздел прослушан'));
+        var end = l.player.querySelector('.atlas-player-end'), nx = nextSection();
+        end.replaceChildren();
+        if (nx) end.appendChild(R.h('button', { type: 'button', text: T('atlas.listen.nextSection', 'Следующий раздел') + ' →', on: { click: function () {
+          stopListening(); openSection(nx.id, nx.first, { listen: true });
+        } } }));
+        end.removeAttribute('hidden');
+      }
+      function finishSingle() {
+        var l = listen;
+        if (!l) return;
+        mark(null);
+        section.querySelectorAll('.atlas-say[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        if (!l.player) stopListening(); else { l.playing = false; paintToggle(); }
+      }
+      function pause() { if (listen) { try { listen.audio.pause(); } catch (_) {} listen.playing = false; paintToggle(); } }
+      function resume() {
+        if (!listen) return;
+        if (listen.at < 0 || listen.mode === 'single') { playAt(firstVisible()); return; }
+        var p = listen.audio.play(); if (p && p.catch) p.catch(function () {});
+      }
+      function firstVisible() {
+        var items = queue(), line = barBottom();
+        for (var i = 0; i < items.length; i++) if (!items[i].getBoundingClientRect || items[i].getBoundingClientRect().bottom > line) return i;
+        return 0;
+      }
+      function openPlayer() {
+        var l = start();
+        if (l.player) return l;
+        var rate = R.h('select', { 'data-act': 'rate', 'aria-label': T('atlas.listen.speed', 'Скорость') });
+        [0.75, 1, 1.25, 1.5].forEach(function (x) {
+          var o = R.h('option', { value: String(x), text: String(x).replace('.', ',') + '×' });
+          if (x === prefs.rate) o.setAttribute('selected', '');
+          rate.appendChild(o);
+        });
+        var formulas = R.h('input', { type: 'checkbox', 'data-act': 'formulas' });
+        formulas.checked = prefs.formulas;
+        var player = R.h('div', { cls: 'atlas-player', role: 'region', 'aria-label': T('atlas.listen.player', 'Озвучка раздела') }, [
+          R.h('div', { cls: 'atlas-player-row' }, [
+            R.h('button', { type: 'button', 'data-act': 'prev', 'aria-label': T('atlas.listen.prev', 'Предыдущий фрагмент'), text: '⏮' }),
+            R.h('button', { type: 'button', 'data-act': 'toggle', cls: 'atlas-player-main', 'aria-label': T('atlas.listen.pause', 'Пауза'), text: '⏸' }),
+            R.h('button', { type: 'button', 'data-act': 'next', 'aria-label': T('atlas.listen.next', 'Следующий фрагмент'), text: '⏭' }),
+            rate,
+            R.h('label', { cls: 'atlas-player-check' }, [formulas, R.h('span', { text: T('atlas.listen.formulas', 'Формулы') })]),
+            R.h('span', { cls: 'atlas-player-lang', lang: 'he', text: T('atlas.listen.hebrew', 'иврит') }),
+            R.h('button', { type: 'button', 'data-act': 'close', cls: 'atlas-player-close', 'aria-label': T('atlas.listen.close', 'Закрыть озвучку'), text: '✕' })]),
+          R.h('div', { cls: 'atlas-player-status', role: 'status', 'aria-live': 'polite' }),
+          R.h('button', { type: 'button', cls: 'atlas-player-follow', hidden: true, text: T('atlas.listen.follow', 'К читаемому месту') }),
+          R.h('div', { cls: 'atlas-player-end', hidden: true })]);
+        player.addEventListener('click', function (ev) {
+          var b = ev.target.closest && ev.target.closest('[data-act], .atlas-player-follow');
+          if (!b) return;
+          if (b.classList.contains('atlas-player-follow')) {
+            l.followPause = 0; b.setAttribute('hidden', '');
+            var cur = l.items[l.at]; if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            return;
+          }
+          var act = b.getAttribute('data-act');
+          if (act === 'toggle') { if (l.playing) pause(); else resume(); }
+          else if (act === 'prev') playAt(Math.max(0, l.at - 1));
+          else if (act === 'next') playAt(l.at + 1);
+          else if (act === 'close') stopListening();
+        });
+        rate.addEventListener('change', function () { prefs.rate = Number(rate.value) || 1; l.audio.playbackRate = prefs.rate; saveListenPrefs(prefs); });
+        formulas.addEventListener('change', function () {
+          var cur = l.items[l.at];
+          prefs.formulas = !!formulas.checked; saveListenPrefs(prefs);
+          l.items = queue();
+          var at = cur ? l.items.indexOf(cur) : -1;
+          if (at >= 0) l.at = at;
+          else if (cur) { var all = queue(); l.at = Math.max(-1, all.findIndex(function (n) { return cur.compareDocumentPosition && (cur.compareDocumentPosition(n) & 4); }) - 1); }
+        });
+        l.player = player;
+        view.appendChild(player);
+        view.classList.add('atlas-listening');
+        return l;
+      }
+      btn.addEventListener('click', function () {
+        if (listen && listen.player && listen.section === section) { if (listen.playing) pause(); else resume(); return; }
+        openPlayer(); playAt(firstVisible());
+      });
+      // ▶ עב on a formula card: that formula alone; with the player open, the reading goes on from there
+      section.addEventListener('click', function (ev) {
+        var say = ev.target.closest && ev.target.closest('.atlas-say');
+        if (say) {
+          var card = say.closest('.atlas-formula');
+          if (listen && listen.player && listen.section === section) { playAt(queue().indexOf(card) >= 0 ? queue().indexOf(card) : listen.at); return; }
+          if (listen && listen.mode === 'single' && say.getAttribute('aria-pressed') === 'true') { stopListening(); return; }
+          var l = start();
+          l.mode = 'single';
+          section.querySelectorAll('.atlas-say[aria-pressed="true"]').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+          say.setAttribute('aria-pressed', 'true');
+          play(l, card);
+          return;
+        }
+        // with the player open, a tap on a paragraph reads from it
+        if (!listen || !listen.player || listen.section !== section) return;
+        if (ev.target.closest && ev.target.closest('button, a, summary, input, select, label, [data-region], .atlas-thumb, details')) return;
+        var row = ev.target.closest && ev.target.closest('.atlas-row[data-ref], .atlas-formula[data-ref]');
+        var at = row ? queue().indexOf(row) : -1;
+        if (at >= 0) playAt(at);
+      });
+      api.start = function () { openPlayer(); playAt(firstVisible()); };
+      if (how && how.listen) api.start();
+      return api;
+    }
+
     function openSection(id, page, how) {
       how = how || {};
+      stopListening();
       stopTracking(); var sectionEpoch = ++navigationEpoch;
       state(T('atlas.loading', 'Загрузка…'));
       return fetchJson(base + 'sections/' + id + '.json').then(function (data) {
@@ -1331,6 +1621,7 @@
         if(how.ref){var target=Array.from(section.querySelectorAll('[data-ref]')).find(function(n){return n.getAttribute('data-ref')===how.ref;});if(target){if(how.cell){var cell=target.querySelector('[data-cell="'+how.cell.row+':'+how.cell.col+'"]');if(cell)target=cell;}target.classList.add('atlas-hit');if(target.scrollIntoView)target.scrollIntoView({block:'center'});}else if(how.query){section.querySelectorAll('.atlas-row').forEach(function(n){if(n.textContent.toLowerCase().includes(how.query.toLowerCase()))n.classList.add('atlas-hit');});}}
         if (!how.restore) onState(id, page || data.first, 'push');
         trackPages(id, section);
+        setupListening(id, data, bar, section, how);
         return data;
       }).catch(function () { if(sectionEpoch===navigationEpoch)state(T('atlas.loadError', 'Раздел атласа сейчас недоступен')); });
     }
@@ -1368,6 +1659,7 @@
 
     function showHome(how) {
       how = how || {};
+      stopListening();
       stopTracking(); var homeEpoch=++navigationEpoch; lastSearch=null;
       if (!how.restore) onState('', 0, 'push');
       if (index) { view.replaceChildren(homeView()); return Promise.resolve(index); }
@@ -1380,7 +1672,7 @@
       }).catch(function () { state(T('atlas.loadError', 'Атлас сейчас недоступен')); });
     }
 
-    return { home: showHome, openSection: openSection, search: showSearch };
+    return { home: showHome, openSection: openSection, search: showSearch, stopAudio: stopListening };
   }
 
   // Print preparation: the print view, plus a page style appended last in the document so the atlas footer wins over

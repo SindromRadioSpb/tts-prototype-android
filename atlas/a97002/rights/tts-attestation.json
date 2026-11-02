@@ -1,0 +1,16 @@
+{
+  "schema": "linguistpro.atlas-tts-rights.1",
+  "atlas_id": "a97002",
+  "owner_attested": true,
+  "public_audio": true,
+  "download_audio": true,
+  "languages": ["he"],
+  "asserted_at": "2026-11-02",
+  "asserted_by": "owner",
+  "owner_words": "D1. Права: разрешаете ли открыто публиковать озвучку атласа в Зале? - разрешаю.",
+  "scope": "Recorded Hebrew narration of the atlas text and formulas, published openly in the Reading Room. Download for offline use (D2) was allowed in the owner's clarification of 2026-11-02 recorded in the P3 plan.",
+  "related_decisions": {
+    "D3_voice": "he-IL-Standard-A, speaking rate 0.8, pitch +2.5 — the Materials Science voice (owner: «согласовано»)",
+    "D5_ceiling": "about 0.4–0.5 million characters, about 2 USD, about 0.3 GB on the production disk (owner: «согласовано»)"
+  }
+}

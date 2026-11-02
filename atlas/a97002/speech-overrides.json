@@ -1,0 +1,6 @@
+{
+  "schema": "linguistpro.atlas-speech-overrides.1",
+  "atlas_id": "a97002",
+  "note": "Owner decisions on single items after the D4 review: { \"<item id>\": { \"exclude\": true, \"reason\": \"…\" } } or { \"<item id>\": { \"text\": \"exact Hebrew text to read\", \"reason\": \"…\" } }.",
+  "items": {}
+}

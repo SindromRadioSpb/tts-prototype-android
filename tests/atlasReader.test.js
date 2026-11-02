@@ -665,3 +665,123 @@ test('symbol card shows the notation with its subscript and unit, a long page li
   more.dispatchEvent(new window.Event('click'));
   assert.equal(document.querySelectorAll('.atlas-result-pages button[hidden]').length,0);
 });
+
+// ---- Listening (P3 V3): recordings checked against the text on screen; no manifest — no buttons ----
+function listenFixture() {
+  const Speech = require('../public/js/atlas-speech.js');
+  const crypto = require('node:crypto');
+  const data = fixture('s09-belt.json');
+  const items = {};
+  const readable = data.pages[0].items.filter((it) => Speech.readable(it));
+  readable.forEach((it, n) => {
+    items[it.id] = { key: String(n).padStart(2, '0').repeat(32), src: crypto.createHash('sha256').update(Speech.sourceOf(it)).digest('hex') };
+  });
+  const blocks = readable.filter((x) => x.type !== 'formula').length, formulas = readable.length - blocks;
+  const manifest = { schema: 'linguistpro.atlas-audio.1', atlas_id: 'a97002', section: 's09-belt', items,
+    coverage: { blocks: [blocks, blocks + 1], formulas: [formulas, formulas] } };
+  return { data, manifest, readable };
+}
+function fakeAudio() {
+  const handlers = {};
+  return { src: '', playbackRate: 1, played: [], paused: true,
+    addEventListener(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); },
+    fire(ev) { (handlers[ev] || []).forEach((fn) => fn()); },
+    play() { this.paused = false; this.played.push(this.src); this.fire('play'); return Promise.resolve(); },
+    pause() { this.paused = true; this.fire('pause'); },
+    removeAttribute() { this.src = ''; } };
+}
+async function settle() { for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r)); }
+function listenMount(document, extra) {
+  const api = require('../public/js/atlas-reader.js');
+  const { data, manifest, readable } = listenFixture();
+  if (extra && extra.mutate) extra.mutate(manifest, readable);
+  const index = { ...fixture('index.json'), audio: { 's09-belt': 'x' } };
+  const reader = api.mount(document.getElementById('m'), {
+    fetchJson: (url) => Promise.resolve(url.endsWith('index.json') ? index : /\/audio\//.test(url) ? manifest : data),
+    audio: extra && extra.audio });
+  return { reader, data, manifest, readable };
+}
+
+test('listening: a section without recordings has no buttons and asks for no manifest', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const urls = [];
+  const reader = api.mount(document.getElementById('m'), { fetchJson: (url) => { urls.push(url); return Promise.resolve(url.endsWith('index.json') ? fixture('index.json') : fixture('s09-belt.json')); } });
+  await reader.openSection('s09-belt', 197); await settle();
+  assert.equal(document.querySelector('.atlas-listen-btn'), null);
+  assert.equal(document.querySelector('.atlas-say'), null);
+  assert.ok(!urls.some((u) => /\/audio\//.test(u)), urls.join(' '));
+});
+
+test('listening: recordings whose text matches play in book order; a changed text stays silent', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const audio = fakeAudio(), started = [];
+  let changed = null;
+  const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio, onStart: () => started.push(1) },
+    mutate: (m, readable) => { changed = readable.find((x) => x.type !== 'formula'); m.items[changed.id].src = '0'.repeat(64); } });
+  await reader.openSection('s09-belt', 197); await settle();
+  const btn = document.querySelector('.atlas-listen-btn');
+  assert.ok(btn, 'the bar offers listening');
+  btn.dispatchEvent(new document.defaultView.Event('click'));
+  assert.equal(started.length, 1, 'the Room stops its other audio first');
+  assert.match(audio.src, /^\/api\/audio\/[0-9a-f]{64}$/);
+  assert.ok(document.querySelector('.atlas-player'), 'mini-player is open');
+  assert.equal(document.querySelectorAll('.atlas-speaking').length, 1);
+  assert.equal(document.querySelector('.atlas-speaking').getAttribute('aria-current'), 'true');
+  const heard = [audio.src];
+  for (let i = 0; i < 60 && document.querySelector('.atlas-player-end').hasAttribute('hidden'); i++) {
+    audio.fire('ended');
+    if (audio.src && audio.src !== heard[heard.length - 1]) heard.push(audio.src);
+  }
+  assert.ok(!heard.includes('/api/audio/' + manifest.items[changed.id].key), 'a recording of the old text never plays');
+  const shown = Array.from(document.querySelectorAll('.atlas-row[data-ref], .atlas-formula[data-ref]')).filter((n) => manifest.items[n.getAttribute('data-ref')] && n.getAttribute('data-ref') !== changed.id);
+  assert.deepEqual(heard, shown.map((n) => '/api/audio/' + manifest.items[n.getAttribute('data-ref')].key), 'book order, every verified passage once');
+  assert.match(document.querySelector('.atlas-player-status').textContent, /Раздел прослушан/);
+  reader.stopAudio();
+  assert.equal(document.querySelector('.atlas-player'), null);
+  assert.equal(document.querySelectorAll('.atlas-speaking').length, 0);
+});
+
+test('listening: the status counts verified recordings honestly, and the formulas switch leaves them out', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const audio = fakeAudio();
+  const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
+  await reader.openSection('s09-belt', 197); await settle();
+  document.querySelector('.atlas-listen-btn').dispatchEvent(new document.defaultView.Event('click'));
+  const total = manifest.coverage.blocks[1] + manifest.coverage.formulas[1];
+  assert.match(document.querySelector('.atlas-player-status').textContent, new RegExp('озвучено ' + Object.keys(manifest.items).length + ' из ' + total));
+  reader.stopAudio();
+});
+
+test('listening: a formula card reads its formula alone; leaving the section stops the sound', async () => {
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const audio = fakeAudio();
+  const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
+  await reader.openSection('s09-belt', 197); await settle();
+  const say = document.querySelector('.atlas-say');
+  assert.ok(say, 'the fixture page has a formula with a recording');
+  const card = say.closest('.atlas-formula');
+  say.dispatchEvent(new document.defaultView.Event('click', { bubbles: true }));
+  assert.equal(audio.src, '/api/audio/' + manifest.items[card.getAttribute('data-ref')].key);
+  assert.equal(say.getAttribute('aria-pressed'), 'true');
+  assert.equal(document.querySelector('.atlas-player'), null, 'one formula does not open the player');
+  audio.fire('ended');
+  assert.equal(say.getAttribute('aria-pressed'), 'false');
+  say.dispatchEvent(new document.defaultView.Event('click', { bubbles: true }));
+  await reader.home(); await settle();
+  assert.ok(audio.paused, 'the home view stops the formula');
+});
+
+test('listening: the Room loads the speech module, stops other audio and stops the atlas when leaving it', () => {
+  const html = read('public/library.html'), ui = read('public/js/library-ui.js'), sw = read('public/sw.js');
+  const speechAt = html.indexOf('/js/atlas-speech.js?v='), readerAt = html.indexOf('/js/atlas-reader.js?v=');
+  assert.ok(speechAt > 0 && speechAt < readerAt, 'atlas-speech.js loads before the reader');
+  assert.match(sw, /"\/js\/atlas-speech\.js\?v=\d+"/);
+  assert.match(ui, /audio = \{ onStart: \(\) => \{ try \{ morphHost\.stopAudio\(\);/);
+  assert.match(ui, /roomAtlasReader\.stopAudio\(\)/);
+  for (const lang of ['ru', 'en', 'he']) {
+    const loc = read('public/i18n/locales/' + lang + '.js');
+    for (const k of ['button', 'start', 'formula', 'pause', 'prev', 'next', 'speed', 'formulas', 'close', 'follow', 'player', 'coverage', 'of', 'done', 'nextSection', 'unavailable'])
+      assert.match(loc, new RegExp('atlas\\.listen = \\{[^}]*"' + k + '":'), lang + ' ' + k);
+  }
+});
