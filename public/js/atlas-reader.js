@@ -41,8 +41,11 @@
       (kids || []).forEach(function (kid) { if (kid != null) node.appendChild(typeof kid === 'string' ? doc.createTextNode(kid) : kid); });
       return node;
     }
-    function heText(text, cls) {
-      return h('div', { cls: cls || 'atlas-he', lang: 'he', dir: dirOf(text), text: text });
+    // col: the word card's column of this cell («he» plain line, «niqqud» pointed line); none — not wrapped
+    function heText(text, cls, col) {
+      var attrs = { cls: cls || 'atlas-he', lang: 'he', dir: dirOf(text), text: text };
+      if (col) attrs['data-col'] = col;
+      return h('div', attrs);
     }
     // A row is a 2×2 grid (owner's layout, 2026-10-31): Hebrew | transliteration, then pointed Hebrew | translation.
     // The cells are direct children with a fixed column each; the grid packs the visible ones (atlas-reader.css),
@@ -55,10 +58,10 @@
         return row;
       }
       // a row without a pointed line keeps its plain Hebrew even when the plain column is off
-      row.appendChild(heText(item.he, item.he_niqqud ? 'atlas-he' : 'atlas-he atlas-he-sole'));
+      row.appendChild(heText(item.he, item.he_niqqud ? 'atlas-he' : 'atlas-he atlas-he-sole', 'he'));
       if (item.translit) row.appendChild(h('div', { cls: 'atlas-translit', lang: 'he-Latn', text: item.translit }));
       if (item.translit_ru) row.appendChild(h('div', { cls: 'atlas-translit atlas-translit-ru', lang: 'he-Cyrl', text: item.translit_ru }));
-      if (item.he_niqqud) row.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud'));
+      if (item.he_niqqud) row.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud', 'niqqud'));
       row.appendChild(h('div', { cls: 'atlas-ru', lang: 'ru', text: cleanMeta(item.ru) }));
       var note = readerNote(item.ambiguity_note);
       if (note) row.appendChild(h('div', { cls: 'atlas-note', text: note }));
@@ -1579,12 +1582,8 @@
           if (at >= 0) playAt(at);
           return;
         }
-        // with the player open, a tap on a paragraph reads from it
-        if (!listen || !listen.player || listen.section !== section) return;
-        if (ev.target.closest && ev.target.closest('button, a, summary, input, select, label, [data-region], .atlas-thumb, details')) return;
-        var row = ev.target.closest && ev.target.closest('.atlas-row[data-ref], .atlas-formula[data-ref]');
-        var at = row ? queue().indexOf(row) : -1;
-        if (at >= 0) playAt(at);
+        // A tap on a paragraph no longer reads from it (owner decision E3, 2026-11-02): a word opens its card,
+        // «read from here» is the ▶ of the line.
       });
       api.start = function () { openPlayer(); playAt(firstVisible()); };
       if (how && how.listen) api.start();
@@ -1617,6 +1616,10 @@
         }
         wireInteractions(section);
         wireReview(section);
+        // P4 word layer: the host wraps the Hebrew words for the Room's word card (plan P4, owner decision E2)
+        if (opts.words && typeof opts.words.attach === 'function') {
+          try { opts.words.attach(section, data, { layers: function () { return layers; } }); } catch (_) {}
+        }
         track.input = bar.querySelector('.atlas-pagejump input');
         // any page of the book without going back to the contents
         bar.querySelector('.atlas-pagejump').addEventListener('submit', function (ev) {

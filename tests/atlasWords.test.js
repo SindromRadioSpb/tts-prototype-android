@@ -83,3 +83,70 @@ test("termAt returns the span covering a word offset", () => {
   assert.equal(W.termAt(r.spans, 0), null);
   assert.equal(W.termAt(r.spans, 2).id, "a97002:term:rivet-joint");
 });
+
+// ---- the verified external place of a word (owner decision E2: «внешнее место», like Physics solutions) ----
+const section = {
+  id: "s02-rivets", content_pack_sha256: "c".repeat(64), terms,
+  pages: [{ page: 16, items: [
+    { id: "a97002:p16:b001", he: "מחבר השקה (Butt Joint)", he_niqqud: "מַחְבַּר הַשָּׁקָה (Butt Joint)", ru: "Стыковое соединение", terms: ["a97002:term:butt-joint#butt-joint"] },
+    { id: "a97002:p16:b002", kind: "figure_caption" },
+    { id: "a97002:p16:b003", he: "חיבור חפיפה", he_niqqud: "חִבּוּר חֲפִיפָה", ru: "Соединение внахлёст" },
+  ] }],
+};
+
+test("an atlas place carries its edition, block and word; it verifies only against the same edition", () => {
+  const ctx = W.sectionContext("a97002", section, RM);
+  assert.equal(ctx.textKey, "atlas-block-v1:a97002:s02-rivets:" + "c".repeat(64));
+  assert.deepEqual(ctx.order.get("a97002:p16:b003"), 1);   // blocks with Hebrew only
+  const occ = W.occurrence(ctx, "a97002:p16:b003", 0, "חבור", "niqqud");
+  assert.equal(occ.source_kind, "atlas_block");
+  assert.equal(occ.text_id, ctx.textKey);
+  assert.equal(occ.sentence_id, "a97002:p16:b003");
+  assert.equal(occ.sentence_ru, "Соединение внахлёст");
+  assert.deepEqual(W.verifyOccurrence(occ, ctx), { textKey: ctx.textKey, sentenceId: "a97002:p16:b003", orderIndex: 1, surface: "חבור" });
+  // the plain word at the same offset is the same place
+  assert.ok(W.verifyOccurrence(W.occurrence(ctx, "a97002:p16:b003", 0, "חיבור", "he"), ctx));
+  // another edition, another block or another word: no source is recorded
+  const other = W.sectionContext("a97002", Object.assign({}, section, { content_pack_sha256: "d".repeat(64) }), RM);
+  assert.equal(W.verifyOccurrence(occ, other), null);
+  assert.equal(W.verifyOccurrence(Object.assign({}, occ, { word_offset: 1 }), ctx), null);
+  assert.equal(W.verifyOccurrence(Object.assign({}, occ, { sentence_id: "a97002:p16:b001" }), ctx), null);
+  assert.equal(W.verifyOccurrence(Object.assign({}, occ, { source_kind: "reviewed_solution" }), ctx), null);
+  assert.equal(W.occurrence(ctx, "a97002:p16:b002", 0, "x", "he"), null);
+});
+
+test("a word of a term tells the card the reviewed term; other words tell nothing", () => {
+  const ctx = W.sectionContext("a97002", section, RM);
+  const occ = W.occurrence(ctx, "a97002:p16:b001", 1, "השקה", "he");
+  assert.deepEqual(occ.atlas_term, { id: "a97002:term:butt-joint", sense: "butt-joint" });
+  const top = W.cardTop(occ, ctx, { kicker: "Термин атласа", other: "Другие значения", script: "lat" });
+  assert.equal(top.kicker, "Термин атласа");
+  assert.equal(top.title, "מחבר השקה");
+  assert.deepEqual(top.lines, ["стыковое соединение"]);
+  assert.equal(W.cardTop(W.occurrence(ctx, "a97002:p16:b003", 0, "חיבור", "he"), ctx, {}), null);
+});
+
+test("a row is marked: term words get the term class, loose links a line of their own", () => {
+  const { parseHTML } = require("linkedom");
+  const { document } = parseHTML("<div id=s></div>");
+  const t2 = Object.assign({}, terms, { "a97002:term:lap-joint": { lemma_he: "חיבור חפיפה", niqqud: "חִבּוּר חֲפִיפָה", senses: [{ sense: "lap-joint", ru: "соединение внахлёст" }] } });
+  const sec = Object.assign({}, section, { terms: t2 });
+  sec.pages = [{ page: 16, items: [{ id: "b1", he: "קוטר מסמרה לגזירה", he_niqqud: "קֹטֶר מַסְמְרָה לִגְזִירָה", ru: "Диаметр заклёпки на срез",
+    terms: ["a97002:term:rivet#rivet", "a97002:term:shear-stress#shear-stress"] }] }];
+  const ctx = W.sectionContext("a97002", sec, RM);
+  const row = document.createElement("div");
+  row.className = "atlas-row"; row.setAttribute("data-ref", "b1");
+  row.innerHTML = '<div class="atlas-he" data-col="he">' + RM.wrapCellHtml(sec.pages[0].items[0].he, null, {}) + "</div>" +
+    '<div class="atlas-ru">Диаметр</div>';
+  W.decorateRow(row, ctx, { terms: "Термины абзаца" });
+  const marked = Array.from(row.querySelectorAll(".rm-w.atlas-term")).map((s) => s.getAttribute("data-w-offset"));
+  assert.deepEqual(marked, ["1"]);
+  const loose = row.querySelector(".atlas-row-terms");
+  assert.ok(loose);
+  assert.match(loose.textContent, /Термины абзаца/);
+  assert.match(loose.textContent, /מאמץ גזירה/);
+  assert.match(loose.textContent, /касательное напряжение/);
+  // decorating twice changes nothing
+  W.decorateRow(row, ctx, { terms: "Термины абзаца" });
+  assert.equal(row.querySelectorAll(".atlas-row-terms").length, 1);
+});

@@ -1990,6 +1990,8 @@ const morphHost = window.MorphHost.createHost({
   ldb: async () => localDb,
   getTextKey: async () => readerTextKey || null,
   verifyOccurrence: async (occ) => {
+    // atlas P4: a word of the engineering atlas — verified against the section edition open now
+    if (occ && occ.source_kind === 'atlas_block') return window.AtlasWords && atlasWordsCtx ? window.AtlasWords.verifyOccurrence(occ, atlasWordsCtx) : null;
     if (!occ || occ.source_kind !== 'reviewed_solution' || !window.PublicCorpusAdapter) return null;
     for (const support of physicsLearningSupportCache.values()) {
       const verified = window.PublicCorpusAdapter.verifyMaterialsSolutionOccurrence(occ, support);
@@ -13205,7 +13207,8 @@ function renderAtlasCorpus(atlasId, token) {
   };
   // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
   const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
-  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio,
+  const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how) };
+  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio, words,
     layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
     onLayers: (l) => {
@@ -13221,6 +13224,39 @@ function renderAtlasCorpus(atlasId, token) {
   if (anchor && anchor.query) reader.search(anchor.query, { ...anchor, restore: true });
   else if (anchor && anchor.section) reader.openSection(anchor.section, anchor.page || 0, { restore: true });
   else reader.home({ restore: true });
+}
+
+// Atlas P4 (plan ENGINEERING_ATLAS_P4_WORD_LAYER_PLAN_2026_11_02.md): the Hebrew words of an open atlas section open
+// the Room's word card. The place is verified against the section edition (E2: like the Physics solutions, nothing
+// is written into the device's database on open); a word of a reviewed term shows that term above the card; a tap
+// always opens the card (E3); status colours stay off in the atlas (E4 — applyDecorations paints the Room table only).
+var atlasWordsCtx = null;   // var: verifyOccurrence above may run before this line
+function attachAtlasWords(atlasId, section, data, how) {
+  const AW = window.AtlasWords;
+  if (!AW || !window.ReaderMorph || !section) return null;
+  const ctx = atlasWordsCtx = AW.sectionContext(atlasId, data, window.ReaderMorph);
+  const layers = () => (how && typeof how.layers === 'function' && how.layers()) || {};
+  const handle = attachReaderMorph(section, {
+    cellSelector: '.atlas-row[data-ref] > [data-col]',
+    rowSelector: '.atlas-row[data-ref]', rowIndexAttribute: 'data-ref', rovingFocus: true,
+    getRowForCell: (_cell, row) => (row && ctx.items.get(row.getAttribute('data-ref'))) || null,
+    getPlainText: item => item && item.he,
+    getVocalizedText: item => item && item.he_niqqud,
+    getSentence: item => item && (item.he_niqqud || item.he),
+    shouldWrap: (_item, _cell, _col, value) => /[א-ת]/.test(String(value || '')),
+    buildOccurrence: span => {
+      const row = span.closest('.atlas-row[data-ref]'), cell = span.closest('[data-col]');
+      return row ? AW.occurrence(ctx, row.getAttribute('data-ref'), Number(span.getAttribute('data-w-offset')),
+        span.getAttribute('data-surface'), cell && cell.getAttribute('data-col')) : null;
+    },
+    cardTop: occ => AW.cardTop(occ, ctx, { kicker: tt('atlas.word.term', 'Термин атласа'),
+      other: tt('atlas.word.otherSenses', 'Другие значения'), script: layers().script }),
+    // the per-place review and the mentor need a stored sentence: not for atlas places (W0 report §2)
+    confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
+  });
+  const labels = { terms: tt('atlas.word.terms', 'Термины абзаца') };
+  section.querySelectorAll('.atlas-row[data-ref]').forEach(row => AW.decorateRow(row, ctx, labels));
+  return handle;
 }
 
 async function renderGroupCorpus(corpusId, token) {

@@ -95,7 +95,109 @@
     return null;
   }
 
-  var api = { locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton };
+  // ---- the verified external place of a word (owner decision E2, 2026-11-02) ----
+  // Like the Physics solutions (`reviewed_solution`): the Room's word card keeps a mark's source without writing the
+  // atlas into the device's database. The place is the edition of the section + the block + the word; it verifies
+  // only against the same loaded edition, so a source never points at a text that has changed.
+  var SOURCE_KIND = "atlas_block";
+  function sectionContext(atlasId, section, RM) {
+    var items = new Map(), order = new Map(), located = new Map(), n = 0;
+    ((section && section.pages) || []).forEach(function (p) {
+      (p.items || []).forEach(function (it) {
+        if (!it || !it.id || !String(it.he || "").trim()) return;
+        items.set(String(it.id), it); order.set(String(it.id), n++);
+      });
+    });
+    return {
+      atlasId: String(atlasId || ""), sectionId: String(section && section.id || ""), RM: RM,
+      textKey: "atlas-block-v1:" + atlasId + ":" + (section && section.id) + ":" + String(section && section.content_pack_sha256 || ""),
+      terms: (section && section.terms) || {}, items: items, order: order,
+      located: function (id) {
+        id = String(id);
+        if (!located.has(id)) located.set(id, items.has(id) ? locateBlock(items.get(id), this.terms, RM) : null);
+        return located.get(id);
+      },
+    };
+  }
+  function bareWord(w) { return String(w || "").replace(NIQQUD, "").trim(); }
+  function plainWordsOf(text, RM) {
+    if (!text || !RM) return [];
+    return RM.tokenize(String(text)).filter(function (t) { return t.isWord; }).map(function (t) { return bareWord(t.text); });
+  }
+  // col: "he" (the plain line) or "niqqud" (the pointed line) — the cell the tapped word belongs to
+  function occurrence(ctx, blockId, wordOffset, surface, col) {
+    if (!ctx || !ctx.items.has(String(blockId))) return null;
+    var it = ctx.items.get(String(blockId)), off = Number(wordOffset), loc = ctx.located(blockId);
+    var term = loc && Number.isInteger(off) ? termAt(col === "niqqud" ? loc.niqqud.spans : loc.he.spans, off) : null;
+    return Object.freeze({
+      source_kind: SOURCE_KIND, atlas_id: ctx.atlasId, section_id: ctx.sectionId,
+      text_key: ctx.textKey, text_id: ctx.textKey, sentence_id: String(it.id), order_index: ctx.order.get(String(it.id)),
+      word_offset: Number.isInteger(off) ? off : null, col: col === "niqqud" ? "niqqud" : "he", surface: bareWord(surface),
+      sentence_he: String(it.he || ""), sentence_he_niqqud: String(it.he_niqqud || ""), sentence_ru: String(it.ru || ""),
+      atlas_term: term ? { id: term.id, sense: term.sense } : null,
+    });
+  }
+  // → { textKey, sentenceId, orderIndex, surface } (the source a mark keeps) or null
+  function verifyOccurrence(occ, ctx) {
+    if (!occ || occ.source_kind !== SOURCE_KIND || !ctx) return null;
+    if (occ.text_key !== ctx.textKey || occ.text_id !== ctx.textKey) return null;
+    var it = ctx.items.get(String(occ.sentence_id));
+    if (!it || ctx.order.get(String(it.id)) !== Number(occ.order_index)) return null;
+    var off = Number(occ.word_offset), surface = bareWord(occ.surface);
+    if (!Number.isInteger(off) || off < 0 || !surface) return null;
+    var plain = plainWordsOf(it.he, ctx.RM)[off], pointed = plainWordsOf(it.he_niqqud, ctx.RM)[off];
+    if (surface !== plain && surface !== pointed) return null;
+    return { textKey: ctx.textKey, sentenceId: String(it.id), orderIndex: Number(occ.order_index), surface: surface };
+  }
+  // The reviewed term above the card's dictionary reading → { kicker, title, subtitle, lines } or null (plain text)
+  function cardTop(occ, ctx, labels) {
+    labels = labels || {};
+    var ref = occ && occ.atlas_term, term = ref && ctx && ctx.terms[ref.id];
+    if (!term) return null;
+    var senses = Array.isArray(term.senses) ? term.senses : [];
+    var sense = senses.filter(function (s) { return s && s.sense === ref.sense; })[0] || senses[0] || {};
+    var others = senses.filter(function (s) { return s && s !== sense && s.ru; }).map(function (s) { return s.ru; });
+    var lines = [sense.ru || ""];
+    if (others.length) lines.push((labels.other || "") + (labels.other ? ": " : "") + others.join("; "));
+    return { kicker: labels.kicker || "", title: term.niqqud || term.lemma_he || "",
+      subtitle: (labels.script === "cyr" ? term.translit_ru : term.translit) || "", lines: lines.filter(Boolean) };
+  }
+  // After the card wrapped a row: words of a whole term get .atlas-term; the block's links without a place get one
+  // line «Термины абзаца: …» under the translation. Repeating it changes nothing.
+  function decorateRow(row, ctx, labels) {
+    if (!row || !ctx) return;
+    var id = row.getAttribute("data-ref"), loc = id ? ctx.located(id) : null;
+    if (!loc) return;
+    row.querySelectorAll("[data-col]").forEach(function (cell) {
+      var spans = cell.getAttribute("data-col") === "niqqud" ? loc.niqqud.spans : loc.he.spans;
+      if (!spans.length) return;
+      cell.querySelectorAll(".rm-w[data-w-offset]").forEach(function (w) {
+        var t = termAt(spans, Number(w.getAttribute("data-w-offset")));
+        if (t) { w.classList.add("atlas-term"); w.setAttribute("data-term", t.id); }
+      });
+    });
+    if (!loc.loose.length || row.querySelector(".atlas-row-terms")) return;
+    var doc = row.ownerDocument, line = doc.createElement("div");
+    line.className = "atlas-row-terms";
+    var label = doc.createElement("span");
+    label.className = "atlas-row-terms-label";
+    label.textContent = ((labels && labels.terms) || "") + ": ";
+    line.appendChild(label);
+    loc.loose.forEach(function (ref, i) {
+      var term = ctx.terms[ref.id] || {}, senses = term.senses || [];
+      var sense = senses.filter(function (s) { return s && s.sense === ref.sense; })[0] || senses[0] || {};
+      if (i) line.appendChild(doc.createTextNode(" · "));
+      var he = doc.createElement("bdi");
+      he.setAttribute("lang", "he"); he.setAttribute("dir", "rtl");
+      he.textContent = term.niqqud || term.lemma_he || "";
+      line.appendChild(he);
+      if (sense.ru) line.appendChild(doc.createTextNode(" — " + sense.ru));
+    });
+    row.appendChild(line);
+  }
+
+  var api = { locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
+    sectionContext: sectionContext, occurrence: occurrence, verifyOccurrence: verifyOccurrence, cardTop: cardTop, decorateRow: decorateRow };
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

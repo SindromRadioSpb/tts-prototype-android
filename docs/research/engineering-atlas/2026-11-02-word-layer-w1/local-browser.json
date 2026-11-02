@@ -1,0 +1,56 @@
+[
+ {
+  "lang": "ru",
+  "width": 390,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "Термин атласа מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "lang": "ru",
+  "width": 1440,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "Термин атласа מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 390,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "מונח באטלס מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 1440,
+  "words": 4308,
+  "terms": 546,
+  "loose": 24,
+  "coloured": 0,
+  "overflow": 0,
+  "top": "מונח באטלס מַחְבַּר מַסְמְרוֹת makhbar masmerot заклёпочное соединение",
+  "errors": 0
+ },
+ {
+  "e3": "no recordings on this server — skipped"
+ },
+ {
+  "longestSectionCpu4x": {
+   "wrapMs": 199,
+   "decorateMs": 115,
+   "words": 6868
+  }
+ }
+]

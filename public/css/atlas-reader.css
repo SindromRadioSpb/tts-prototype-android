@@ -419,3 +419,30 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
   .atlas-root.atlas-listening { padding-bottom: 170px; }
 }
 @media print { .atlas-root .atlas-player, .atlas-root .atlas-say, .atlas-root .atlas-listen-btn { display: none !important; } }
+
+/* P4 word layer (plan ENGINEERING_ATLAS_P4_WORD_LAYER_PLAN_2026_11_02.md): every Hebrew word opens the Room's word
+   card; a word of a reviewed term is underlined with dots (a line, not a colour — colours belong to the word status, E4) */
+.atlas-root .atlas-row .rm-w { cursor: pointer; border-radius: 3px; }
+.atlas-root .atlas-row .rm-w:hover { background: var(--atlas-teal-tint); }
+.atlas-root .atlas-row .rm-w:focus-visible { outline: 2px solid var(--atlas-amber); outline-offset: 1px; }
+.atlas-root .atlas-row .rm-w.atlas-term { text-decoration: underline dotted; text-decoration-thickness: 2px; text-underline-offset: .28em;
+  text-decoration-color: var(--atlas-amber); }
+.atlas-root .atlas-row > .atlas-row-terms { grid-column: 1 / -1; color: var(--atlas-muted); font-size: .85rem; line-height: 1.45; }
+.atlas-root .atlas-row-terms-label { font-weight: 600; }
+.atlas-root .atlas-hebrew-only .atlas-row-terms { display: none; }
+@media print {
+  .atlas-root .atlas-row .rm-w.atlas-term { text-decoration: none; }
+  .atlas-root .atlas-row-terms { display: none !important; }
+}
+/* the reviewed term above the word card (ReaderMorph opts.cardTop; the card lives outside .atlas-root) */
+.rm-sheet .rm-surface-top { --rm-surface-rule: #B4711A; margin: 4px 0 12px; padding: 8px 12px; border-inline-start: 3px solid var(--rm-surface-rule);
+  border-radius: 8px; background: var(--bg-soft, rgba(180, 113, 26, .07)); }
+.rm-sheet .rm-surface-top p { margin: 0; line-height: 1.45; }
+.rm-sheet .rm-surface-kicker { font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); }
+.rm-sheet .rm-surface-title { margin-block: 2px !important; }
+.rm-sheet .rm-surface-title bdi { font-size: 1.15rem; font-weight: 600; }
+.rm-sheet .rm-surface-sub { font-size: 13px; color: var(--text-secondary, #475569); font-style: italic; }
+.rm-sheet .rm-surface-line { font-size: 15px; font-weight: 600; }
+.rm-sheet .rm-surface-line + .rm-surface-line { font-size: 13px; font-weight: 400; color: var(--text-secondary, #475569); }
+@media (prefers-color-scheme: dark) { body:not(.theme-light) .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; } }
+body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }

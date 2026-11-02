@@ -5683,3 +5683,4 @@ window.I18N_LOCALES.en.atlas.bookSearch = {"label":"Search the book","placeholde
 Object.assign(window.I18N_LOCALES.en.atlas.bookSearch,{"cell":"Cell","related":"Related unit"});
 
 window.I18N_LOCALES.en.atlas.listen = {"line":"Listen to this line","mode":"How to read","modeQueue":"Straight on","modeLine":"Line by line","button":"Listen","start":"Listen to the section in Hebrew","formula":"Read the formula in Hebrew","play":"Listen","pause":"Pause","prev":"Previous passage","next":"Next passage","speed":"Speed","formulas":"Formulas","hebrew":"Hebrew","close":"Close listening","follow":"Back to the passage being read","player":"Section audio","coverage":"recorded","of":"of","done":"Section finished","nextSection":"Next section","unavailable":"The recording is unavailable right now","album":"Engineering atlas 97002"};
+window.I18N_LOCALES.en.atlas.word = {"term": "Atlas term", "terms": "Terms of this paragraph", "otherSenses": "Other meanings"};

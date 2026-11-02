@@ -2685,18 +2685,33 @@
         (card.meaning ? ': ' + escapeHtml(card.meaning + ' · ' + posText(card.pos)) : '') +
         (card.pos === 'propernoun' && card.resolutionEventId && card.meaningSource === 'owner' ? ' <button type="button" data-rm-analysis-undo>' + escapeHtml(tt('analysis.undo', 'Отменить')) + '</button>' : '') + '</p>' : '';
       var currentReading = '<section class="rm-current-reading" dir="' + uiDir() + '"><h3>' + escapeHtml(tt('analysis.current', 'Разбор в этой строке')) + '</h3>' + reviewedLine + savedGloss + scopedProvenance + lemmaMeaning + formLine + '</section>';
-      return backRow + head + niqMark + contextPendingHtml(card) + currentReading + nameAction + analysisChoicesHtml(card) +
+      return backRow + head + surfaceTopHtml() + niqMark + contextPendingHtml(card) + currentReading + nameAction + analysisChoicesHtml(card) +
       ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + '</div>' + procliticHtml(card) + fam + conj + recallHtml + statusSelectorHtml(card) +
       ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
       '<div class="rm-actions">' + saveBtn + link + '</div>' + noteEditor + explainWordHtml() + refineHtml;
     }
     var conflict = contextual && occurrence.x.wrongHint ? '<p class="rm-ai-warn">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение, вероятно, не подходит")) + '</p>' : "";
-    if (!contextual) return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
-    return backRow + head + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
+    if (!contextual) return backRow + head + surfaceTopHtml() + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + surfaceTopHtml() + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
       (contextual ? '<p class="rm-dictionary-scope">' + escapeHtml(tt("contextLayer.statusScope", "Статус ниже относится к словарному чтению")) + '</p>' : "") +
       statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
       (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : "") + noteEditor + explainWordHtml() + refineHtml;
 
+  }
+
+  // A surface's own words about the tapped place, above the dictionary reading (atlas P4: the reviewed term of the
+  // engineering atlas). opts.cardTop(occ, row) → { kicker, title, subtitle, lines[] } — plain text only; the card escapes it.
+  function surfaceTopHtml() {
+    if (!_activeOcc || typeof _attachOpts.cardTop !== "function") return "";
+    var top = null;
+    try { top = _attachOpts.cardTop(_activeOcc, _activeWordCtx ? _activeWordCtx.row : null); } catch (_) { top = null; }
+    if (!top || !top.title) return "";
+    var lines = Array.isArray(top.lines) ? top.lines.filter(Boolean) : [];
+    return '<section class="rm-surface-top" dir="' + uiDir() + '">' +
+      (top.kicker ? '<p class="rm-surface-kicker">' + escapeHtml(top.kicker) + "</p>" : "") +
+      '<p class="rm-surface-title"><bdi dir="rtl" lang="he">' + escapeHtml(top.title) + "</bdi>" +
+      (top.subtitle ? ' <span class="rm-surface-sub">' + escapeHtml(top.subtitle) + "</span>" : "") + "</p>" +
+      lines.map(function (l) { return '<p class="rm-surface-line">' + escapeHtml(l) + "</p>"; }).join("") + "</section>";
   }
 
   function contextPendingHtml(card) {
