@@ -391,6 +391,8 @@ items: [{ id, sid, page, block, he, formulas: [formulaId…], terms: [termRef…
 Проверки: `tests/atlasTrain.test.js` 55/55, `tests/atlasTermServer.test.js` 1/1; npm test 3054/3056; reader-parity PASS;
 smoke:memory-canon PASS; `atlas-train-smoke.cjs` G1–G5 (с проверками лимита дня и отказа загрузки), `atlas-words-smoke`,
 `atlas-browser-smoke` — без ошибок.
+Прод 2026-11-03 (173eb5d6): 3.11.852 живой; `atlas-train-smoke` G1–G5 на живом сайте — все проверки без ошибок (G3: лимит дня
+Зала 0/0, термины не в словах, оракул совпал) ([отчёт](../research/engineering-atlas/2026-11-03-trainer-final/production-browser.json)).
 
 ## 5. Решения владельца
 
