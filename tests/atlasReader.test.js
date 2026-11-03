@@ -865,3 +865,29 @@ test('listening: the Room loads the speech module, stops other audio and stops t
       assert.match(loc, new RegExp('atlas\\.listen = \\{[^}]*"' + k + '":'), lang + ' ' + k);
   }
 });
+
+test('P5 G1: a translation stage decides the columns shown, the saved columns stay and are locked meanwhile', async () => {
+  const { parseHTML } = require('linkedom');
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const Train = require('../public/js/atlas-train.js');
+  let stage = 3; const reported = []; let attached = null;
+  const saved = { he: false, niqqud: true, translit: true, ru: true, script: 'lat' };
+  const reader = api.mount(document.getElementById('m'), { layers: saved, onLayers: (l) => reported.push(l),
+    stage: { of: (sid) => (sid === 's09-belt' ? stage : 0), layersFor: Train.layersFor },
+    words: { attach: (_s, _d, how) => { attached = how; } },
+    fetchJson: () => Promise.resolve(fixture('s09-belt.json')) });
+  await reader.openSection('s09-belt');
+  const section = document.querySelector('.atlas-section'), panel = document.querySelector('.atlas-view-panel');
+  assert.ok(!section.classList.contains('atlas-hide-he'), 'stage 3 shows the plain Hebrew of the book');
+  assert.ok(section.classList.contains('atlas-hide-niqqud'));
+  assert.ok(section.classList.contains('atlas-hebrew-only'));
+  assert.ok(panel.querySelector('input[data-col="ru"]').disabled, 'columns are locked while a stage is on');
+  assert.ok(!panel.querySelector('.atlas-stage-note').hidden);
+  assert.deepEqual(reported, [], 'a stage does not report or save columns');
+  assert.equal(typeof attached.refreshLayers, 'function');
+  stage = 0; attached.refreshLayers();
+  assert.ok(section.classList.contains('atlas-hide-he'), 'back at stage 0 the saved columns return');
+  assert.ok(!section.classList.contains('atlas-hebrew-only'));
+  assert.ok(!panel.querySelector('input[data-col="ru"]').disabled);
+});

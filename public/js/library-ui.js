@@ -13209,7 +13209,9 @@ function renderAtlasCorpus(atlasId, token) {
   // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
   const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
   const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how) };
-  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio, words,
+  // P5 G1 — the translation stage of a section decides the columns shown (the saved columns stay the Room's)
+  const stage = window.AtlasTrain ? { of: (sid) => atlasStageOf(sid), layersFor: window.AtlasTrain.layersFor } : null;
+  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio, words, stage,
     layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
     onLayers: (l) => {
@@ -13236,12 +13238,23 @@ var atlasWordsCtx = null;   // var: verifyOccurrence above may run before this l
 // «Статус слов» on for ordinary texts does not colour the atlas. Painting only READS word_status.
 var atlasWordsSection = null, atlasPaintPass = 0;
 function atlasColoursOn() { try { return localStorage.getItem('room.atlasWordStatus') === '1'; } catch (_) { return false; } }
+// P5 G1 — translation stages per section: a view preference of this device (never memory)
+const ATLAS_STAGE_KEY = 'room.atlas.stage.v1';
+function atlasStages() { try { return JSON.parse(localStorage.getItem(ATLAS_STAGE_KEY) || '{}') || {}; } catch (_) { return {}; } }
+function atlasStageOf(sid) { return window.AtlasTrain ? window.AtlasTrain.stageOf(atlasStages(), String(sid || '')) : 0; }
+function atlasStageSet(sid, n) {
+  if (!window.AtlasTrain) return;
+  try { localStorage.setItem(ATLAS_STAGE_KEY, JSON.stringify(window.AtlasTrain.setStage(atlasStages(), String(sid || ''), n))); } catch (_) {}
+}
 function paintAtlasWords() {
   const section = atlasWordsSection, RM = window.ReaderMorph;
   if (!section || !section.isConnected || !RM || typeof RM.decorateWords !== 'function') return;
   const ctx = atlasWordsCtx, pass = ++atlasPaintPass;
   const isCurrent = () => pass === atlasPaintPass && section === atlasWordsSection && ctx === atlasWordsCtx && section.isConnected;
-  if (!atlasColoursOn()) { RM.decorateWords(section, {}, { color: false, fadeMode: 'full', isCurrent }); return; }
+  // stage 1 hides the gloss of a known word: it needs the statuses even when the colours are off (then hidden by CSS)
+  const colours = atlasColoursOn(), statuses = colours || atlasStageOf(ctx && ctx.sectionId) === 1;
+  section.classList.toggle('atlas-colours-off', !colours);
+  if (!statuses) { RM.decorateWords(section, {}, { color: false, fadeMode: 'full', isCurrent }); return; }
   // row by row: decorateWords queues table rows (tbody tr); an atlas section is a list of .atlas-row blocks
   (async () => {
     const states = (await ensureWordStates()) || {};
@@ -13306,6 +13319,7 @@ function attachAtlasWords(atlasId, section, data, how) {
   section.querySelectorAll('.atlas-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });
   atlasWordsSection = section;
   if (how && how.panel) atlasColoursControl(how.panel);
+  const train = attachAtlasTrain(section, data, how, ctx);
   paintAtlasWords();
   // «В контексте (ИИ)» (E5): a section's layer, prepared off-site and put next to the section on the volume
   // (word-gloss-ai-layer-v1). Every row is re-proved by its key; no layer — the card shows what it showed before.
@@ -13314,9 +13328,32 @@ function attachAtlasWords(atlasId, section, data, how) {
     fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/context-ai/' + encodeURIComponent(String(data && data.id || '')) + '.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
       .then((layer) => (layer && ctx === atlasWordsCtx ? AI.remember(layer, AW.glossRows(ctx)) : null))
-      .catch(() => {});
-  }
+      .catch(() => {})
+      .then(() => { if (train) train.glossLoaded(); });
+  } else if (train) train.glossLoaded();
   return handle;
+}
+// P5 G1 — «Тренировать» in the section bar: the translation stage (plan ENGINEERING_ATLAS_P5_TRAINER_PLAN_2026_11_03.md).
+// Choosing a stage stores a view preference and repaints; nothing is written to word_status/review_log.
+function attachAtlasTrain(section, data, how, ctx) {
+  const AT = window.AtlasTrain, UI = window.AtlasTrainUI, AI = window.WordGlossAI;
+  if (!AT || !UI || !how || !how.bar) return null;
+  const sid = String((data && data.id) || '');
+  let glossDone = false;
+  const ui = UI.panel(document, { T: tt, stage: atlasStageOf(sid), onStage: (n) => {
+    atlasStageSet(sid, n);
+    try { if (typeof how.refreshLayers === 'function') how.refreshLayers(); } catch (_) {}
+    repaint(); paintAtlasWords();
+  } });
+  function repaint() {
+    if (!section.isConnected || ctx !== atlasWordsCtx) return;
+    const r = AT.paintStage(section, atlasStageOf(sid), ctx, (row, k) => (AI && typeof AI.wordAt === 'function' ? AI.wordAt(row, k) : null));
+    ui.note(r.missing && glossDone ? tt('atlas.train.noGloss', 'Для этого раздела подстрочника пока нет — значения слов видны в карточке по нажатию.') : null);
+  }
+  how.bar.insertBefore(ui.btn, how.bar.querySelector('.atlas-view-btn') || how.bar.querySelector('.atlas-print-btn'));
+  how.bar.appendChild(ui.panel);
+  repaint();
+  return { ui, repaint, glossLoaded: () => { glossDone = true; repaint(); } };
 }
 
 async function renderGroupCorpus(corpusId, token) {

@@ -449,3 +449,32 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 /* W3: colours by word status — the switch and the Room's legend inside «Колонки» (author display beats [hidden]) */
 .atlas-root .atlas-word-colours .reader-status-legend[hidden] { display: none; }
 .atlas-root .atlas-word-colours .reader-status-legend { margin: 6px 0 2px; }
+
+/* P5 G1 — translation stages (plan ENGINEERING_ATLAS_P5_TRAINER_PLAN_2026_11_03.md). The gloss of a stage sits under
+   its word (data-atlas-gloss, ::before lowered by order like the Room's word layer); a stage never touches print. */
+.atlas-root [class*="atlas-stage-"] .rm-w[data-atlas-gloss] { display: inline-flex; flex-direction: column; align-items: center;
+  vertical-align: top; line-height: 1.3; }
+.atlas-root [class*="atlas-stage-"] .rm-w[data-atlas-gloss]::before { content: attr(data-atlas-gloss); order: 2; display: block;
+  max-width: 10em; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 500 .62rem/1.25 var(--lp-font-ui, system-ui, sans-serif); color: var(--atlas-muted); direction: ltr; unicode-bidi: isolate;
+  text-align: center; }
+.atlas-root .atlas-stage-1 .rm-w.rm-w-known[data-atlas-gloss]::before, .atlas-root .atlas-stage-1 .rm-w.rm-w-l4[data-atlas-gloss]::before,
+.atlas-root .atlas-stage-1 .rm-w.rm-w-ignore[data-atlas-gloss]::before { content: none; }
+/* colours stay the reader's choice: a stage resolves statuses for its glosses, the backgrounds show only when switched on */
+.atlas-root .atlas-colours-off .rm-w[class*="rm-w-"] { background: none; }
+.atlas-root .atlas-colours-off .rm-w.rm-w-due::after { content: none; }
+.atlas-root .atlas-stage-3 .atlas-row-terms { display: none; }
+.atlas-root .atlas-stage-note { margin: 0; font-size: .85rem; color: var(--atlas-muted); }
+.atlas-root .atlas-col-group input:disabled + span { opacity: .55; }
+@media print { .atlas-root .rm-w[data-atlas-gloss]::before { content: none; } }
+/* P5 — «Тренировать»: the same button and panel as «Колонки» */
+.atlas-root .atlas-train-btn[aria-expanded="true"] { color: var(--atlas-teal-ink); border-color: var(--atlas-teal); }
+.atlas-root .atlas-train-btn::after { content: ' ▾'; font-size: .8em; }
+.atlas-root .atlas-train-panel { flex: 1 1 100%; order: 8; display: grid; gap: 8px; padding: 12px; background: var(--atlas-surface);
+  border: 1px solid var(--atlas-line); border-radius: 14px; box-shadow: var(--atlas-shadow); max-height: 70vh; overflow-y: auto; }
+.atlas-root .atlas-train-panel[hidden], .atlas-root .atlas-train-panel [hidden] { display: none; }
+.atlas-root .atlas-train-stage { display: grid; gap: 8px; }
+.atlas-root .atlas-stage-desc, .atlas-root .atlas-train-note { margin: 0; font-size: .9rem; color: var(--atlas-muted); }
+.atlas-root .atlas-stage-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px;
+  background: var(--atlas-teal-soft); color: var(--atlas-ink); font-size: .9rem; }
+.atlas-root .atlas-chip:disabled { opacity: .55; cursor: default; }

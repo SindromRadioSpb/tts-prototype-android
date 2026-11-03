@@ -913,6 +913,8 @@
     var index = null;
     var layers = normLayers(opts.layers, doc.defaultView);
     var onLayers = typeof opts.onLayers === 'function' ? opts.onLayers : function () {};
+    // P5 G1: a translation stage of the section decides the columns shown; the saved columns stay as they are
+    var stage = opts.stage && typeof opts.stage.of === 'function' && typeof opts.stage.layersFor === 'function' ? opts.stage : null;
 
     function state(text) { view.replaceChildren(R.h('p', { cls: 'atlas-state', text: text })); }
 
@@ -1046,7 +1048,9 @@
     var stopTracking = function () {};
 
     // «Колонки»: the Room's presets first, then the four columns, then the transliteration script.
-    function viewPanel(section) {
+    function viewPanel(section, sid) {
+      function stageNow() { try { return stage ? Number(stage.of(sid)) || 0 : 0; } catch (_) { return 0; } }
+      function shown() { var n = stageNow(); return n ? normLayers(stage.layersFor(n, layers)) : layers; }
       var P = presets();
       var btn = R.h('button', { type: 'button', cls: 'atlas-view-btn', 'aria-expanded': 'false',
         text: T('atlas.columns', 'Колонки') });
@@ -1081,21 +1085,28 @@
       panel.appendChild(cols);
       panel.appendChild(R.h('div', { cls: 'atlas-view-head', text: T('atlas.col.script', 'Транслитерация') }));
       panel.appendChild(script);
+      var stageNote = R.h('p', { cls: 'atlas-stage-note', hidden: true });
+      panel.insertBefore(stageNote, panel.firstChild);
       function paint() {
+        var locked = stageNow() > 0;
+        stageNote.hidden = !locked;
+        if (locked) stageNote.textContent = T('atlas.train.stageLocks', 'Колонки сейчас задаёт ступень перевода — она меняется в «Тренировать».');
+        group.querySelectorAll('[data-preset]').forEach(function (b) { b.disabled = locked; });
+        script.querySelectorAll('[data-script]').forEach(function (b) { b.disabled = locked; });
         var current = P.of(layers);
         group.querySelectorAll('[data-preset]').forEach(function (b) { b.setAttribute('aria-checked', String(b.getAttribute('data-preset') === current)); });
         var sources = ['he', 'niqqud', 'translit'].filter(function (k) { return layers[k]; }).length;
         cols.querySelectorAll('input[data-col]').forEach(function (cb) {
           var k = cb.getAttribute('data-col');
           cb.checked = !!layers[k];
-          cb.disabled = k !== 'ru' && !!layers[k] && sources === 1;
+          cb.disabled = locked || (k !== 'ru' && !!layers[k] && sources === 1);
         });
         script.querySelectorAll('[data-script]').forEach(function (b) { b.setAttribute('aria-checked', String(b.getAttribute('data-script') === layers.script)); });
         script.classList.toggle('atlas-off', !layers.translit);
       }
       function set(next) {
         layers = normLayers(next);
-        applyLayers(section, layers);
+        applyLayers(section, shown());
         paint();
         onLayers(Object.assign({}, layers));
       }
@@ -1110,9 +1121,9 @@
         if (panel.hasAttribute('hidden') || !ev.target || !ev.target.closest) return;
         if (!ev.target.closest('.atlas-view-panel') && !ev.target.closest('.atlas-view-btn')) open(false);
       });
-      applyLayers(section, layers);
+      applyLayers(section, shown());
       paint();
-      return { btn: btn, panel: panel };
+      return { btn: btn, panel: panel, refresh: function () { applyLayers(section, shown()); paint(); } };
     }
 
     // Search owns a navigation epoch, so a slow index/section cannot replace a newer view.
@@ -1606,7 +1617,7 @@
           R.h('button', { type: 'button', cls: 'atlas-print-btn', title: T('atlas.print', 'Печать раздела'), 'aria-label': T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } },
             [R.h('span', { cls: 'atlas-print-label', text: T('atlas.print', 'Печать раздела') }), R.h('span', { cls: 'atlas-print-short', 'aria-hidden': 'true', text: T('atlas.printShort', 'Печать') })])]);
         var section = R.renderSection(T, data, {});
-        var columns = viewPanel(section);
+        var columns = viewPanel(section, id);
         bar.insertBefore(columns.btn, bar.querySelector('.atlas-print-btn'));
         bar.appendChild(columns.panel);
         view.replaceChildren(bar, section);
@@ -1618,7 +1629,7 @@
         wireReview(section);
         // P4 word layer: the host wraps the Hebrew words for the Room's word card (plan P4, owner decision E2)
         if (opts.words && typeof opts.words.attach === 'function') {
-          try { opts.words.attach(section, data, { layers: function () { return layers; }, panel: columns.panel }); } catch (_) {}
+          try { opts.words.attach(section, data, { layers: function () { return layers; }, panel: columns.panel, bar: bar, refreshLayers: columns.refresh }); } catch (_) {}
         }
         track.input = bar.querySelector('.atlas-pagejump input');
         // any page of the book without going back to the contents
