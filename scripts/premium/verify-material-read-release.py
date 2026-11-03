@@ -27,7 +27,7 @@ report = {'checkedAtUtc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'v
           'sourceCommit': subprocess.check_output(['git', 'rev-parse', args.commit], text=True).strip(), 'assets': []}
 assert args.version in ['3.11.815', '3.11.816', '3.11.817', '3.11.818', '3.11.819'], 'Unsupported release contract'
 assert config['version'] == args.version, report
-paths = ['/db/material-read.js?v=815', '/db/local-db.js?v=852', '/db/db-worker-runtime.js?v=815', '/js/material-open.js?v=815',
+paths = ['/db/material-read.js?v=815', '/db/local-db.js?v=853', '/db/db-worker-runtime.js?v=815', '/js/material-open.js?v=815',
          '/js/library-ui.js?v=' + args.version.rsplit('.', 1)[1], '/js/dictionary-ui.js?v=815', '/js/mediatheque-ui.js?v=815', '/js/study-video-source-ui.js?v=815',
          '/js/agent-access.js?v=815', '/sw.js']
 if args.version in ['3.11.817', '3.11.818', '3.11.819']:

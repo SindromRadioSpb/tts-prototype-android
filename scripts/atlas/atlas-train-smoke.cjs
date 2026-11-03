@@ -29,7 +29,7 @@ async function chooseStage(page, n) {
 }
 const rowsOf = (page) => page.evaluate(async () => {
   try {
-    const db = await import("/db/local-db.js?v=852");
+    const db = await import("/db/local-db.js?v=853");
     const one = async (sql) => { const r = await db.dbQuery(sql); return r && r[0] ? Number(r[0].n) : null; };
     return { word_status: await one("SELECT COUNT(*) AS n FROM word_status"), review_log: await one("SELECT COUNT(*) AS n FROM review_log") };
   } catch (e) { return { error: String(e && e.message || e) }; }
@@ -212,7 +212,7 @@ const rowsOf = (page) => page.evaluate(async () => {
       await page.waitForSelector(".atlas-term-dialog", { state: "detached" });
       const after = await rowsOf(page);
       const db = await page.evaluate(async () => {
-        const db = await import("/db/local-db.js?v=852");
+        const db = await import("/db/local-db.js?v=853");
         const terms = await db.getAtlasTermStates("a97002"), keys = Object.keys(terms);
         const sched = await db.getSrsSchedule(), due = await db.getDueWithSource(Date.now() + 400 * 86400e3), words = await db.getAllWordStatuses();
         const log = await db.dbQuery("SELECT item_key, kind, channel, grade, meta_json FROM review_log WHERE item_key LIKE 'at1:%' ORDER BY reviewed_at");
@@ -237,6 +237,27 @@ const rowsOf = (page) => page.evaluate(async () => {
       await page.waitForSelector(".atlas-ts-term");
       const single = await page.locator(".atlas-view-head").filter({ hasText: "/ 1" }).count();
       await page.locator('[data-ts-close]').last().click();
+      // the atlas-wide queue on the home: the forgotten term is due; a session from the home writes one review
+      await page.waitForTimeout(400);
+      await page.locator(".atlas-back").first().click();
+      await page.waitForFunction(() => { const b = document.querySelector("[data-queue-start]"); return b && !b.disabled; }, null, { timeout: 20000 });
+      const queueLine0 = await page.locator(".atlas-home-queue .atlas-stage-desc").innerText();
+      const logBefore = (await rowsOf(page)).review_log;
+      await page.locator("[data-queue-start]").click();
+      await page.waitForSelector(".atlas-ts-term");
+      const queueSentence = await page.locator(".atlas-ts-sentence mark").count();
+      await page.screenshot({ path: path.join(out, `queue-session-${lang}-${width}.png`) });
+      await page.locator("[data-ts-reveal]").click();
+      await page.locator('[data-ts-grade="1"]').click();
+      await page.waitForSelector(".atlas-ts-done", { timeout: 10000 });
+      await page.locator("[data-ts-close]").last().click();
+      await page.waitForFunction((t) => document.querySelector(".atlas-home-queue .atlas-stage-desc").innerText !== t, queueLine0, { timeout: 10000 });
+      const queueLine1 = await page.locator(".atlas-home-queue .atlas-stage-desc").innerText();
+      const logAfter = (await rowsOf(page)).review_log;
+      report.push({ queue: { lang, width, queueLine0, queueLine1, queueSentence, wrote: logAfter - logBefore } });
+      assert.ok(/1/.test(queueLine0), "the forgotten term is due on the home: " + queueLine0);
+      assert.equal(queueSentence, 1, "the term is marked in its sentence");
+      assert.equal(logAfter - logBefore, 1, "one review for one answer");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       report.push({ g3: { lang, width, line0, term, marked, meaning, line1, before, after, db, single, overflow, errors: errors.length } });
       assert.ok(/\d/.test(line0), "the section terms are counted: " + line0);

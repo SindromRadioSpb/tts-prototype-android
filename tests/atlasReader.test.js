@@ -891,3 +891,15 @@ test('P5 G1: a translation stage decides the columns shown, the saved columns st
   assert.ok(!section.classList.contains('atlas-hebrew-only'));
   assert.ok(!panel.querySelector('input[data-col="ru"]').disabled);
 });
+
+test('P5 follow-up: the host can add its block to the atlas home', async () => {
+  const { parseHTML } = require('linkedom');
+  const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
+  const api = require('../public/js/atlas-reader.js');
+  const calls = [];
+  const reader = api.mount(document.getElementById('m'), { homeExtra: (home, index) => { calls.push(index && index.atlas_id); home.appendChild(document.createElement('aside')).className = 'host-block'; },
+    fetchJson: () => Promise.resolve(fixture('index.json')) });
+  await reader.home();
+  assert.equal(calls.length, 1);
+  assert.ok(document.querySelector('.atlas-home .host-block'));
+});

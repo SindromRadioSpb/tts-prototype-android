@@ -1707,6 +1707,8 @@
       home.insertBefore(searchForm('', '', 'book'),home.querySelector('.atlas-jump'));
       var win=doc.defaultView;if(win&&win.requestIdleCallback)win.requestIdleCallback(function(){if(home.isConnected)loadSearch().catch(function(){});},{timeout:1500});
       paintHomeReview(home);
+      // P5 follow-up: the host's own block on the home (the atlas-wide term queue)
+      if (typeof opts.homeExtra === 'function') { try { opts.homeExtra(home, index); } catch (_) {} }
       if (review && !reviewMarks) Promise.resolve().then(review.load).then(function (r) {
         if (r && r.pages) { reviewMarks = r.pages; paintHomeReview(home); }
       }).catch(function () {});

@@ -226,6 +226,29 @@
     if (!st || !st.termsTotal) return "none";
     return st.fresh === st.termsTotal ? "start" : "counts";
   }
+  // The atlas-wide queue (owner 2026-11-03): due terms of every section. states: key → { due, textKey, sentenceId } (the
+  // device's projection; textKey/sentenceId = where the term was last graded); index = train/terms.json; personal = my
+  // terms. → { items: [{ key, termId, sense, title, plain, translit, translit_ru, ru, personal, sid, block, page }], missing }
+  function globalDueItems(states, index, personal, nowMs, n) {
+    var out = [], missing = 0, mine = {};
+    (personal || []).forEach(function (t) { if (t && t.id) mine[t.id] = t; });
+    Object.keys(states || {}).forEach(function (key) {
+      var st = states[key] || {}, k = parseTermKey(key);
+      if (!k || !st.due || Number(st.due) > nowMs) return;
+      var t = mine[k.termId] || (index && index.terms && index.terms[k.termId]);
+      var sn = t && (t.senses || []).filter(function (s) { return s && s.sense === k.sense; })[0];
+      if (!t || !sn || !sn.ru) { missing++; return; }
+      var m = /^atlas-block-v1:[a-z0-9]+:([a-z0-9-]+):/.exec(String(st.textKey || ""));
+      var place = m && st.sentenceId ? { sid: m[1], block: String(st.sentenceId) }
+        : t.personal ? { sid: t.sid, block: t.block } : ((t.places || {})[k.sense] || {});
+      var pm = /:p(\d+):/.exec(String(place.block || ""));
+      out.push({ key: key, due: Number(st.due), termId: k.termId, sense: k.sense, title: t.niqqud || t.lemma_he || "", plain: t.lemma_he || "",
+        translit: t.translit || "", translit_ru: t.translit_ru || "", ru: sn.ru, personal: !!t.personal,
+        sid: place.sid || "", block: place.block || "", page: pm ? Number(pm[1]) : (place.page || null) });
+    });
+    out.sort(function (a, b) { return a.due - b.due; });
+    return { items: out.slice(0, Math.max(0, Number(n) || 0)), missing: missing, due: out.length };
+  }
   // a session: due terms (oldest due first), then never reviewed ones in book order; limit n
   function sessionOrder(items, states, nowMs, n, opts) {
     var due = [], fresh = [];
@@ -323,7 +346,7 @@
 
   return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
-    termStats: termStats, termsLineState: termsLineState, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
+    termStats: termStats, termsLineState: termsLineState, globalDueItems: globalDueItems, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,
     HINT_SHARE: HINT_SHARE, HINT_MIN_TERMS: HINT_MIN_TERMS,
     skeletonOf: skeletonOf, personalTermId: personalTermId, findTermDuplicate: findTermDuplicate, makePersonalTerm: makePersonalTerm,

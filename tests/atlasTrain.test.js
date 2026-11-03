@@ -781,3 +781,45 @@ test("a fragment is retired only when its own page opened without it; a navigati
   assert.equal(T.findStillThere(it, { sid: "s10-spur-gears", blockHe: null }), "unknown", "the learner went elsewhere before the page opened");
   assert.equal(T.findStillThere(it, null), "unknown");
 });
+
+// ---- P5 follow-up: the atlas-wide term queue (owner 2026-11-03) ----
+test("the terms index: every term of the atlas, its senses and the first place of each sense", () => {
+  const sections = [
+    { id: "s08-transmissions", pages: [{ page: 180, items: [{ id: "a97002:p180:b001", type: "block", he: "הרצועה מעבירה", terms: ["a97002:term:belt#belt"] }] }],
+      terms: { "a97002:term:belt": { lemma_he: "רצועה", niqqud: "רְצוּעָה", translit: "retsua", translit_ru: "рецуа", senses: [{ sense: "belt", ru: "ремень", context: "s08" }] } } },
+    { id: "s09-belt", pages: [{ page: 197, items: [{ id: "a97002:p197:b002", type: "block", he: "רצועה ורצועה", terms: ["a97002:term:belt#belt", "a97002:term:belt#strap"] }] }],
+      terms: { "a97002:term:belt": { lemma_he: "רצועה", niqqud: "רְצוּעָה", senses: [{ sense: "belt", ru: "ремень" }, { sense: "strap", ru: "лента" }] } } },
+  ];
+  const ix = BANK.buildTermsIndex(sections, "a97002");
+  assert.equal(ix.schema, "linguistpro.atlas-train-terms.1.0.0");
+  const belt = ix.terms["a97002:term:belt"];
+  assert.deepEqual(belt.sections, ["s08-transmissions", "s09-belt"]);
+  assert.deepEqual(belt.senses.map((s) => [s.sense, s.ru]), [["belt", "ремень"], ["strap", "лента"]], "senses of every section, once");
+  assert.deepEqual(belt.places, { belt: { sid: "s08-transmissions", page: 180, block: "a97002:p180:b001" }, strap: { sid: "s09-belt", page: 197, block: "a97002:p197:b002" } });
+});
+
+test("the atlas-wide queue: due terms of every section, oldest due first, mine included, a vanished term skipped", () => {
+  const now = 10000;
+  const index = { terms: { "a97002:term:belt": { lemma_he: "רצועה", niqqud: "רְצוּעָה", translit: "retsua", senses: [{ sense: "belt", ru: "ремень" }],
+    places: { belt: { sid: "s09-belt", page: 197, block: "a97002:p197:b002" } } } } };
+  const mine = [T.makePersonalTerm({ atlasId: "a97002", lemmaHe: "כוח היקפי", ru: "окружная сила", scope: "section", sid: "s10-spur-gears", block: "a97002:p240:b001" })];
+  const states = { "at1:a97002:belt#belt": { due: 500, textKey: "atlas-block-v1:a97002:s09-belt:abc", sentenceId: "a97002:p197:b009" },
+    [T.termKey("a97002", mine[0].id, "main")]: { due: 100 }, "at1:a97002:gone#x": { due: 50 }, "at1:a97002:later#x": { due: now + 1 } };
+  const q = T.globalDueItems(states, index, mine, now, 20);
+  assert.deepEqual(q.items.map((x) => x.key), [T.termKey("a97002", mine[0].id, "main"), "at1:a97002:belt#belt"]);
+  assert.equal(q.missing, 1, "a term no longer in the atlas is counted, not shown");
+  const belt = q.items[1];
+  assert.deepEqual([belt.sid, belt.block, belt.ru, belt.title], ["s09-belt", "a97002:p197:b009", "ремень", "רְצוּעָה"], "the place where it was learned wins over the first place");
+  assert.deepEqual([q.items[0].sid, q.items[0].block, q.items[0].personal], ["s10-spur-gears", "a97002:p240:b001", true]);
+  assert.equal(T.globalDueItems(states, index, mine, now, 1).items.length, 1);
+  assert.equal(T.globalDueItems({}, index, mine, now, 20).items.length, 0);
+});
+
+test("a term session can carry its own title (the atlas-wide queue is not «Термины раздела»)", () => {
+  const { document } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const s = UI.termSession(document, { T: (k, fb) => fb, title: "Термины к повторению", onGrade: () => Promise.resolve(true),
+    items: [{ key: "at1:a97002:belt#belt", title: "רְצוּעָה", plain: "רצועה", ru: "ремень", sentence: "", from: null, to: null }] });
+  assert.match(s.el.querySelector(".atlas-view-head").textContent, /^Термины к повторению · 1 \/ 1$/);
+  assert.equal(s.el.getAttribute("aria-label"), "Термины к повторению");
+});

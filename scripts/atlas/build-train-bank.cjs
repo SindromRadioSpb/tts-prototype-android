@@ -46,6 +46,27 @@ function buildFindBank(sections, shas, atlasId) {
   return { schema: SCHEMA, atlas_id: String(atlasId || ""), built_from: { sections: built }, items: items };
 }
 
+// The terms of the whole atlas in one small file (train/terms.json): the atlas-wide review queue shows a due term of
+// any section without loading every section. places[sense] = the first place of the sense in book order.
+const TERMS_SCHEMA = "linguistpro.atlas-train-terms.1.0.0";
+function buildTermsIndex(sections, atlasId) {
+  const terms = {};
+  sections.forEach((s) => {
+    Object.keys(s.terms || {}).forEach((id) => {
+      const t = s.terms[id];
+      const out = terms[id] || (terms[id] = { lemma_he: t.lemma_he || "", niqqud: t.niqqud || "", translit: t.translit || "", translit_ru: t.translit_ru || "",
+        senses: [], sections: [], places: {} });
+      if (!out.sections.includes(s.id)) out.sections.push(s.id);
+      (t.senses || []).forEach((sn) => { if (sn && sn.sense && !out.senses.some((x) => x.sense === sn.sense)) out.senses.push({ sense: sn.sense, ru: sn.ru || "" }); });
+    });
+    (s.pages || []).forEach((p) => (p.items || []).forEach((it) => (it && Array.isArray(it.terms) ? it.terms : []).forEach((ref) => {
+      const i = String(ref).lastIndexOf("#"), id = String(ref).slice(0, i), sense = String(ref).slice(i + 1);
+      if (terms[id] && !terms[id].places[sense]) terms[id].places[sense] = { sid: s.id, page: p.page, block: it.id };
+    })));
+  });
+  return { schema: TERMS_SCHEMA, atlas_id: String(atlasId || ""), terms };
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const opt = (f, d) => { const a = argv.find((x) => x.startsWith("--" + f + "=")); return a ? a.slice(f.length + 3) : d; };
@@ -62,10 +83,14 @@ function main() {
   const bank = buildFindBank(sections, shas, sections[0] && sections[0].atlas_id);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, JSON.stringify(bank));
+  const termsOut = path.join(path.dirname(out), "terms.json");
+  const ix = buildTermsIndex(sections, sections[0] && sections[0].atlas_id);
+  fs.writeFileSync(termsOut, JSON.stringify(ix));
   const per = {};
   bank.items.forEach((x) => { per[x.sid] = (per[x.sid] || 0) + 1; });
-  console.log(JSON.stringify({ out, items: bank.items.length, per_section: per, bytes: fs.statSync(out).size }, null, 1));
+  console.log(JSON.stringify({ out, items: bank.items.length, per_section: per, bytes: fs.statSync(out).size,
+    terms: { out: termsOut, terms: Object.keys(ix.terms).length, bytes: fs.statSync(termsOut).size } }, null, 1));
 }
 
 if (require.main === module) main();
-module.exports = { buildFindBank, SCHEMA };
+module.exports = { buildFindBank, buildTermsIndex, SCHEMA, TERMS_SCHEMA };

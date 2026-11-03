@@ -528,3 +528,7 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 .atlas-root .atlas-formula.atlas-row-flash { outline: 2px solid var(--atlas-teal); outline-offset: 4px; border-radius: 6px; }
 /* final review: a row without its gloss at stage 1 says so instead of a bare Hebrew line */
 .atlas-root .atlas-stage-1 .atlas-row[data-atlas-nogloss]::after { content: attr(data-atlas-nogloss); grid-column: 1 / -1; font-size: .78rem; color: var(--atlas-muted); }
+/* P5 follow-up — «Термины к повторению» on the atlas home */
+.atlas-root .atlas-home-queue { display: grid; gap: 6px; justify-items: start; margin: 10px 0 14px; padding: 12px; border: 1px solid var(--atlas-line);
+  border-radius: 14px; background: var(--atlas-surface); }
+.atlas-root .atlas-home-queue .atlas-chip:not(:disabled) { background: var(--atlas-teal); border-color: var(--atlas-teal); color: var(--atlas-on-teal); font-weight: 600; }

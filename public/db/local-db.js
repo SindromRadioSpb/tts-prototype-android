@@ -3400,13 +3400,15 @@ function _badTargetKey(k) {
 export async function getAtlasTermStates(atlasId) {
   const out = {};
   try {
-    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme
+    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme,
+                                  srs_text_key, srs_sentence_id
                             FROM word_status WHERE lemma_key LIKE ?`, ['at1:' + String(atlasId || '') + ':%']);
     for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = {
       status: String(w.status || ''), due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0,
       reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0,
       stability: w.srs_stability != null ? Number(w.srs_stability) : null, difficulty: w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
       reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null, scheme: w.srs_scheme || null,
+      textKey: w.srs_text_key || null, sentenceId: w.srs_sentence_id || null,
     };
   } catch (_) {}
   return out;

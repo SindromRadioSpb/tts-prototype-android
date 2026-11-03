@@ -65,7 +65,7 @@ const materials = [
     assert.equal(result.wordCardGlossMatches, true, 'Card retains this exact occurrence context');
     await page.locator('.rm-sheet.rm-open .rm-sheet-x').click();
     result.reviewRows = await page.evaluate(async () => {
-     const db = await import('/db/local-db.js?v=852'); return (await db.dbQuery('SELECT COUNT(*) n FROM review_log'))[0].n;
+     const db = await import('/db/local-db.js?v=853'); return (await db.dbQuery('SELECT COUNT(*) n FROM review_log'))[0].n;
     });
     assert.equal(result.reviewRows, 0); assert.deepEqual(result.deniedWrites, []); assert.deepEqual(result.errors, []);
     result.result = 'PASS'; console.log(JSON.stringify(result));

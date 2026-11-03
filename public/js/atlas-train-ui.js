@@ -162,8 +162,9 @@
     opts = opts || {};
     var T = typeof opts.T === "function" ? opts.T : function (k, fb) { return fb; };
     var queue = (opts.items || []).slice(), total = queue.length, firstOk = 0, missed = {}, cur = null, busy = false;
+    var title = opts.title || T("atlas.train.termsHead", "Термины раздела");
     var card = h(doc, "div", { cls: "atlas-term-card atlas-ts" });
-    var el = h(doc, "div", { cls: "atlas-root atlas-term-dialog", role: "dialog", "aria-modal": "true", "aria-label": T("atlas.train.termsHead", "Термины раздела") }, [card]);
+    var el = h(doc, "div", { cls: "atlas-root atlas-term-dialog", role: "dialog", "aria-modal": "true", "aria-label": title }, [card]);
     function close() { if (typeof opts.onClose === "function") opts.onClose(); }
     el.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
     function sentenceHtml(it) {
@@ -178,7 +179,7 @@
     function show() {
       card.replaceChildren();
       if (!queue.length) {
-        card.appendChild(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.train.termsHead", "Термины раздела") }));
+        card.appendChild(h(doc, "p", { cls: "atlas-view-head", text: title }));
         card.appendChild(h(doc, "p", { cls: "atlas-ts-done", text: T("atlas.train.sessionDone", "Помню с первого раза: {ok} из {n}.").replace("{ok}", String(firstOk)).replace("{n}", String(total)) }));
         var done = button("data-ts-close", "1", T("atlas.train.close", "Закрыть"), "atlas-term-save");
         done.addEventListener("click", close);
@@ -186,7 +187,7 @@
         return;
       }
       cur = queue[0];
-      card.appendChild(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.train.termsHead", "Термины раздела") + " · " + Math.max(1, Math.min(total, total - queue.length + 1)) + " / " + total }));
+      card.appendChild(h(doc, "p", { cls: "atlas-view-head", text: title + " · " + Math.max(1, Math.min(total, total - queue.length + 1)) + " / " + total }));
       card.appendChild(h(doc, "p", { cls: "atlas-ts-term", dir: "rtl", lang: "he", text: opts.plainHebrew ? (cur.plain || cur.title) : (cur.title || cur.plain) }));
       if (cur.sentence) { var sn = h(doc, "p", { cls: "atlas-ts-sentence", dir: "rtl", lang: "he" }); sn.innerHTML = sentenceHtml(cur); card.appendChild(sn); }
       var answer = h(doc, "div", { cls: "atlas-ts-answer", hidden: true }, [

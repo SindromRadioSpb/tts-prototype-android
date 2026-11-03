@@ -9,7 +9,7 @@ import '/js/material-open.js?v=815';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=852';
+import * as localDbRaw from '/db/local-db.js?v=853';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -13209,9 +13209,11 @@ function renderAtlasCorpus(atlasId, token) {
   // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
   const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
   const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how) };
+  // P5 follow-up: «Термины к повторению» of the whole atlas on its home
+  const homeExtra = (home) => atlasHomeQueue(atlasId, home);
   // P5 G1 — the translation stage of a section decides the columns shown (the saved columns stay the Room's)
   const stage = window.AtlasTrain ? { of: (sid) => atlasStageOf(sid), layersFor: window.AtlasTrain.layersFor } : null;
-  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio, words, stage,
+  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio, words, stage, homeExtra,
     layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
     onLayers: (l) => {
@@ -13398,6 +13400,86 @@ function attachAtlasTrain(section, data, how, ctx, onTermsChanged) {
   repaint();
   return { ui, repaint, glossLoaded: () => { glossDone = true; repaint(); },
     myTermsChanged: () => { mine.paint(); terms.paint(); }, learnOne: (id, sense) => terms.learnOne(id, sense) };
+}
+// P5 follow-up (owner 2026-11-03) — the atlas-wide term queue on the atlas home: «Термины к повторению: K» over every
+// section, one session for them all. Term data comes from train/terms.json (one small file next to the sections); the
+// sentence from the section where the term was last graded (or its first place), loaded only for the due terms.
+let atlasTermsIndex = null;
+const atlasSectionCache = new Map();
+function atlasLoadSection(atlasId, sid) {
+  if (!atlasSectionCache.has(sid)) {
+    atlasSectionCache.set(sid, fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/sections/' + encodeURIComponent(sid) + '.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null)
+      .then((d) => { if (!d) atlasSectionCache.delete(sid); return d; }));
+    if (atlasSectionCache.size > 12) atlasSectionCache.delete(atlasSectionCache.keys().next().value);
+  }
+  return atlasSectionCache.get(sid);
+}
+function atlasHomeQueue(atlasId, home) {
+  const AT = window.AtlasTrain, UI = window.AtlasTrainUI, AW = window.AtlasWords, RM = window.ReaderMorph;
+  if (!AT || !UI || !home) return;
+  const box = el('div', { class: 'atlas-home-queue' });
+  const line = el('p', { class: 'atlas-stage-desc', text: tt('atlas.queue.loading', 'Термины к повторению: считаю…') });
+  const go = el('button', { class: 'atlas-chip atlas-term-save', attrs: { type: 'button', 'data-queue-start': '' }, text: tt('atlas.train.review', 'Повторить') });
+  go.disabled = true;
+  box.append(el('div', { class: 'atlas-view-head', text: tt('atlas.queue.head', 'Термины к повторению') }), line, go);
+  const anchor = home.querySelector('.atlas-sub');
+  if (anchor && anchor.nextSibling) home.insertBefore(box, anchor.nextSibling); else home.appendChild(box);
+  let queue = null;
+  async function load() {
+    if (!atlasTermsIndex) atlasTermsIndex = fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/train/terms.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null).then((x) => { if (!x) atlasTermsIndex = null; return x; });
+    const [index, states] = await Promise.all([atlasTermsIndex, localDb.getAtlasTermStates(atlasId).catch(() => ({}))]);
+    queue = AT.globalDueItems(states || {}, index || { terms: {} }, atlasMyTerms(), Date.now(), ATLAS_SESSION_N);
+    const learned = Object.keys(states || {}).length;
+    line.textContent = !learned ? tt('atlas.queue.empty', 'Пока нет выученных терминов — начните в разделе: «Тренировать» → «Термины раздела».')
+      : queue.due ? tt('atlas.queue.due', 'Сегодня к повторению: {k} из {n} выученных, по всем разделам.').replace('{k}', String(queue.due)).replace('{n}', String(learned))
+      : tt('atlas.queue.none', 'Сегодня повторять нечего · выученных терминов: {n}.').replace('{n}', String(learned));
+    go.textContent = tt('atlas.train.review', 'Повторить') + ' (' + Math.min(queue.due, ATLAS_SESSION_N) + ')';
+    go.disabled = !queue.items.length;
+    if (!index && learned) line.textContent += ' ' + tt('atlas.queue.noIndex', '(Словарь терминов не загрузился — свои термины показываются, остальные нет.)');
+  }
+  // the sentence of each due term, from its section (the place where it was learned); without it the term is asked alone
+  async function withSentences(items) {
+    const out = [];
+    for (const it of items) {
+      const sec = it.sid ? await atlasLoadSection(atlasId, it.sid) : null;
+      let sentence = '', from = null, to = null;
+      if (sec && AW && RM) {
+        const ctx = AW.sectionContext(atlasId, sec, RM);
+        if (typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(sec.terms, atlasMyTerms(), it.sid));
+        const block = ctx.items.get(it.block);
+        if (block) {
+          sentence = RM.words(String(block.he || '')).join(' ');
+          const sp = ((ctx.located(it.block) || {}).he || { spans: [] }).spans.find((x) => x.id === it.termId && x.sense === it.sense);
+          if (sp) { from = sp.from; to = sp.to; }
+        }
+      }
+      out.push(Object.assign({}, it, { sentence, from, to }));
+    }
+    return out;
+  }
+  go.addEventListener('click', async () => {
+    if (!queue || !queue.items.length) return;
+    go.disabled = true;
+    const items = await withSentences(queue.items);
+    let s = null;
+    const close = () => { if (s && s.el.isConnected) s.el.remove(); load().catch(() => {}); };
+    s = UI.termSession(document, { T: tt, items, plainHebrew: false, title: tt('atlas.queue.head', 'Термины к повторению'),
+      onGrade: async (key, ok) => { try { await morphHost.gradeAtlasTerm(key, ok, null, null); return true; } catch (_) { return false; } },
+      onOpenPage: (it) => {
+        close();
+        const reader = roomAtlasReader;
+        if (!reader || !it.sid) return;
+        Promise.resolve(reader.openSection(it.sid, it.page || 0)).then(() => {
+          const row = Array.from(document.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
+          if (row) { row.scrollIntoView({ block: 'center' }); row.classList.add('atlas-row-flash'); setTimeout(() => row.classList.remove('atlas-row-flash'), 2400); }
+        }).catch(() => {});
+      },
+      onClose: close });
+    document.body.appendChild(s.el);
+  });
+  load().catch(() => { line.textContent = tt('atlas.queue.error', 'Не удалось прочитать память терминов на этом устройстве.'); });
 }
 // P5 G4 — «Найди в книге»: a fragment of the book → the section and the page. The bank is data next to the sections
 // (train/find.json, built by scripts/atlas/build-train-bank.cjs); answers are the device's own history (owner Г4), never
