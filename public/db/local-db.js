@@ -3411,6 +3411,21 @@ export async function getAtlasTermStates(atlasId) {
   } catch (_) {}
   return out;
 }
+// the state of ONE atlas term, read at grading time (a panel's copy may be stale or not loaded yet)
+export async function getAtlasTermState(key) {
+  const k = String(key || "");
+  if (!_AT1_RE.test(k)) return null;
+  try {
+    const rows = await q(`SELECT status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme
+                            FROM word_status WHERE lemma_key = ? LIMIT 1`, [k]);
+    const w = rows && rows[0];
+    if (!w || !w.srs_due) return null;
+    return { status: String(w.status || ''), due: Date.parse(w.srs_due), interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0,
+      lapses: Number(w.srs_lapses) || 0, stability: w.srs_stability != null ? Number(w.srs_stability) : null,
+      difficulty: w.srs_difficulty != null ? Number(w.srs_difficulty) : null, reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null,
+      scheme: w.srs_scheme || null };
+  } catch (_) { return null; }
+}
 export async function getSrsSchedule() {
   try {
     // P2 — also carry the FSRS derived state (stability/difficulty/reviewedAt/scheme, migration 042)
@@ -3530,7 +3545,7 @@ export async function getDayGradeCounts(sinceIso) {
   try {
     const today = await q(
       `SELECT r.item_key FROM review_log r
-        WHERE r.kind IN ('review','skip') AND r.reviewed_at >= ? AND ${_NOT_ANNULLED}`, [since]);
+        WHERE r.kind IN ('review','skip') AND r.reviewed_at >= ? AND r.item_key NOT LIKE 'at1:%' AND ${_NOT_ANNULLED}`, [since]);   // atlas terms: their own budget (P5)
     const reviews = (today || []).length;
     if (!reviews) return { reviews: 0, newWords: 0 };
     const firsts = await q(

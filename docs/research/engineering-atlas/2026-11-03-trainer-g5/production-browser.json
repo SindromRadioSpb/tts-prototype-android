@@ -1,0 +1,194 @@
+[
+ {
+  "lang": "ru",
+  "width": 390,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "ru",
+  "width": 1440,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 390,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 1440,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "g5": {
+   "lang": "ru",
+   "width": 390,
+   "stage": 0,
+   "intro": "Формула без таблицы обозначений — назовите смысл и единицу каждого символа. Формул в разделе: 5.",
+   "firstOptions": [
+    "результирующая сила натяжения на шкиве по формуле книги",
+    "Крутящий момент ведущего шкива (подводимый к передаче)",
+    "Передаточное отношение по соглашению источника: i=d/D при отсутствии скольжения",
+    "Угол γ по обозначению таблицы; на этой странице геометрически не определён"
+   ],
+   "symbols": 2,
+   "rows": 2,
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "overflow": 0,
+   "errors": 0
+  }
+ },
+ {
+  "g5": {
+   "lang": "he",
+   "width": 1440,
+   "stage": 3,
+   "intro": "נוסחה ללא טבלת סמלים – ציינו את המשמעות ואת היחידה של כל סמל. נוסחאות בפרק: 5.",
+   "firstOptions": [
+    "הספק מושקע להנעת התמסורת",
+    "הספק מכני",
+    "הספק מופק נמסר להנעת הצרכן",
+    "מומנט סיבוב גלגל מניע (נמסר להנעת הממסרת)"
+   ],
+   "symbols": 3,
+   "rows": 3,
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "overflow": 0,
+   "errors": 0
+  }
+ }
+]

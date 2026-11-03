@@ -526,3 +526,5 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 .atlas-term-dialog .atlas-sym-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .atlas-term-dialog .atlas-sym-table td { padding: 4px 6px; border-bottom: 1px solid var(--atlas-line); vertical-align: top; }
 .atlas-root .atlas-formula.atlas-row-flash { outline: 2px solid var(--atlas-teal); outline-offset: 4px; border-radius: 6px; }
+/* final review: a row without its gloss at stage 1 says so instead of a bare Hebrew line */
+.atlas-root .atlas-stage-1 .atlas-row[data-atlas-nogloss]::after { content: attr(data-atlas-nogloss); grid-column: 1 / -1; font-size: .78rem; color: var(--atlas-muted); }

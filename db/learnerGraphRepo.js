@@ -77,6 +77,10 @@ async function manualStatusMap(userId) {
 // same ignore-excluded predicate as getDue for every count. Malformed mark JSON
 // is authority corruption here and therefore fails closed instead of becoming
 // an invented empty/manual state.
+// Atlas P5 G3: at1:<atlas>:<term>#<sense> is the atlas's own target (reviewed in the atlas), not a word — it is
+// not served by the due list, the mini app or the mentor, and not counted as a known word.
+const isAtlasTermKey = (k) => String(k || "").startsWith('at1:');
+const NOT_ATLAS_TERM = "item_key NOT LIKE 'at1:%'";
 async function getAgentAccessReviewAggregates(userId, { nowMs } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const now = Number(nowMs);
@@ -90,7 +94,7 @@ async function getAgentAccessReviewAggregates(userId, { nowMs } = {}) {
   const manual = await foldManualMarks(userId, marks, "AA_REVIEW_AGGREGATE_MARK_JSON_INVALID");
 
   const rows = await dbAll(db,
-    `SELECT item_key, due FROM srs_projections WHERE user_id = ? AND due IS NOT NULL`, [userId]);
+    `SELECT item_key, due FROM srs_projections WHERE user_id = ? AND due IS NOT NULL AND ${NOT_ATLAS_TERM}`, [userId]);
   let scheduled = 0, due = 0, urgent = 0;
   const urgentBoundary = now - 24 * 60 * 60 * 1000;
   for (const row of rows || []) {
@@ -110,9 +114,6 @@ async function getAgentAccessReviewAggregates(userId, { nowMs } = {}) {
 
 // Due-now items: schedule from projections, 'ignore' excluded by the manual axis — the same
 // rule the Room's cross-text due queue applies (getDueWithSource: srs_due<=now AND status!='ignore').
-// Atlas P5 G3: at1:<atlas>:<term>#<sense> is the atlas's own target (reviewed in the atlas), not a word — it is
-// not served by the due list, the mini app or the mentor, and not counted as a known word.
-const isAtlasTermKey = (k) => String(k || "").startsWith('at1:');
 async function getDue(userId, { nowMs, limit, withChannelStats } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const now = Number(nowMs) || Date.now();
@@ -208,7 +209,7 @@ async function getWeakWords(userId, { limit } = {}) {
   const manual = await manualStatusMap(userId);
   const rows = await dbAll(db,
     `SELECT item_key, due, interval_days, reps, lapses, stability, channel_stats_json FROM srs_projections
-      WHERE user_id = ? ORDER BY lapses DESC, stability ASC LIMIT ?`, [userId, lim * 2]);
+      WHERE user_id = ? AND ${NOT_ATLAS_TERM} ORDER BY lapses DESC, stability ASC LIMIT ?`, [userId, lim * 2]);
   return (rows || []).filter((r) => (manual[r.item_key] || "") !== "ignore").slice(0, lim)
     .map((r) => {
       // D1 — диагностика «судьбы слова» для агента: рецептивные vs production счётчики
@@ -237,7 +238,7 @@ async function getRecentStruggles(userId, { sinceMs, minFails, limit } = {}) {
   const annulled = await annulledIdSet(db, userId);
   const failRows = await dbAll(db,
     `SELECT id, item_key, channel, reviewed_at FROM review_log
-      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ?`,
+      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ? AND ${NOT_ATLAS_TERM}`,
     [userId, since]);
   const agg = new Map();
   for (const r of failRows || []) {
@@ -269,7 +270,7 @@ async function recentStruggleKeySet(userId, { sinceMs, minFails } = {}) {
   const annulled = await annulledIdSet(db, userId);   // annul_of в meta_json → агрегируем в JS (как getRecentStruggles)
   const failRows = await dbAll(db,
     `SELECT id, item_key FROM review_log
-      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ?`,
+      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ? AND ${NOT_ATLAS_TERM}`,
     [userId, since]);
   const counts = new Map();
   for (const r of failRows || []) {
@@ -291,7 +292,7 @@ async function getUpcoming(userId, { nowMs, limit } = {}) {
   const manual = await manualStatusMap(userId);
   const rows = await dbAll(db,
     `SELECT item_key, due, interval_days, reps, lapses, stability, difficulty, reviewed_at
-       FROM srs_projections WHERE user_id = ? AND due IS NOT NULL AND due > ?
+       FROM srs_projections WHERE user_id = ? AND due IS NOT NULL AND due > ? AND ${NOT_ATLAS_TERM}
       ORDER BY due ASC, item_key ASC`, [userId, new Date(now).toISOString()]);
   const out = [];
   for (const r of (rows || [])) {
@@ -398,7 +399,7 @@ async function getAgentContext(userId, { nowMs } = {}) {
   const counts = await dbGet(db,
     `SELECT (SELECT COUNT(*) FROM review_log WHERE user_id = ?) AS log_rows,
             (SELECT COUNT(DISTINCT item_key) FROM review_log WHERE user_id = ?) AS items,
-            (SELECT COUNT(*) FROM srs_projections WHERE user_id = ?) AS scheduled`,
+            (SELECT COUNT(*) FROM srs_projections WHERE user_id = ? AND ${NOT_ATLAS_TERM}) AS scheduled`,
     [userId, userId, userId]);
   // P7.0a: last_review_at не считает аннулированные события — «занимался сегодня»
   // по отменённому мис-тапу было бы ложью контекста агента (критика wf_1bf34023).

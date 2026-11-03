@@ -11,13 +11,13 @@ const SECTION = "s09-belt";
 const visible = (sel) => `Array.from(document.querySelectorAll(${JSON.stringify(sel)})).filter((e) => e.offsetParent !== null).length`;
 
 async function openSection(page, base, lang) {
-  await page.goto(base + "/library.html#room=atlas%3Aa97002");
+  await page.goto(base + "/library.html#room=atlas%3Aa97002", { waitUntil: "domcontentloaded", timeout: 90000 });
   if (!lang) {   // a reload: the Room restores the open section by itself
-    await page.reload();
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 90000 });
     await page.waitForSelector(".atlas-row .rm-w", { state: "attached", timeout: 30000 });
     return;
   }
-  await page.waitForSelector(".atlas-home");
+  await page.waitForSelector(".atlas-home", { timeout: 90000 });   // a cold production load can take long
   if (lang) await page.locator("select").filter({ has: page.locator('option[value="he"]') }).first().selectOption(lang);
   await page.locator(`[data-section="${SECTION}"]`).click();
   await page.waitForSelector(".atlas-row .rm-w", { state: "attached", timeout: 15000 });
@@ -29,7 +29,7 @@ async function chooseStage(page, n) {
 }
 const rowsOf = (page) => page.evaluate(async () => {
   try {
-    const db = await import("/db/local-db.js?v=849");
+    const db = await import("/db/local-db.js?v=852");
     const one = async (sql) => { const r = await db.dbQuery(sql); return r && r[0] ? Number(r[0].n) : null; };
     return { word_status: await one("SELECT COUNT(*) AS n FROM word_status"), review_log: await one("SELECT COUNT(*) AS n FROM review_log") };
   } catch (e) { return { error: String(e && e.message || e) }; }
@@ -161,6 +161,14 @@ const rowsOf = (page) => page.evaluate(async () => {
       const file = await dl.path();
       const exported = fs.readFileSync(file, "utf8").trim().split("\n").map((l) => JSON.parse(l));
       assert.equal(exported[0].id, stored[0].id, "the export holds the term");
+      // an import whose save fails must not report success (final review 2026-11-03)
+      await page.evaluate(() => { const orig = Storage.prototype.setItem; window.__lpOrigSetItem = orig;
+        Storage.prototype.setItem = function (k, v) { if (k === "room.atlas.myTerms.v1") throw new Error("QuotaExceededError"); return orig.call(this, k, v); }; });
+      await page.locator('.atlas-my-terms input[type="file"]').setInputFiles(file);
+      await page.waitForFunction(() => { const st = document.querySelector(".atlas-my-terms .atlas-train-note"); return st && !st.hidden && st.textContent.length > 0; }, null, { timeout: 10000 });
+      const importStatus = await page.locator(".atlas-my-terms .atlas-train-note").innerText();
+      await page.evaluate(() => { Storage.prototype.setItem = window.__lpOrigSetItem; });
+      assert.ok(!/Загружено|Terms imported|נטענו/.test(importStatus), "a failed save is not reported as imported: " + importStatus);
       await page.locator(".atlas-train-btn").click();
       // delete it from its card
       await page.locator(sel).click();
@@ -204,7 +212,7 @@ const rowsOf = (page) => page.evaluate(async () => {
       await page.waitForSelector(".atlas-term-dialog", { state: "detached" });
       const after = await rowsOf(page);
       const db = await page.evaluate(async () => {
-        const db = await import("/db/local-db.js?v=849");
+        const db = await import("/db/local-db.js?v=852");
         const terms = await db.getAtlasTermStates("a97002"), keys = Object.keys(terms);
         const sched = await db.getSrsSchedule(), due = await db.getDueWithSource(Date.now() + 400 * 86400e3), words = await db.getAllWordStatuses();
         const log = await db.dbQuery("SELECT item_key, kind, channel, grade, meta_json FROM review_log WHERE item_key LIKE 'at1:%' ORDER BY reviewed_at");
@@ -213,7 +221,9 @@ const rowsOf = (page) => page.evaluate(async () => {
         const same = !!(o && Math.abs(o.stability - st.stability) < 1e-7 && Math.abs(o.difficulty - st.difficulty) < 1e-7 &&
           o.reps === st.reps && o.lapses === st.lapses && o.lastReviewedAt === st.reviewedAt);
         const stored = JSON.stringify(st), replayed = JSON.stringify(o);
-        return { keys, log, inSchedule: Object.keys(sched).filter((x) => x.startsWith("at1:")).length,
+        const day = new Date(); day.setHours(0, 0, 0, 0);
+        const budget = await db.getDayGradeCounts(day.toISOString());
+        return { budget, keys, log, inSchedule: Object.keys(sched).filter((x) => x.startsWith("at1:")).length,
           inDue: due.filter((x) => String(x.lemmaKey).startsWith("at1:")).length, inWords: Object.keys(words).filter((x) => x.startsWith("at1:")).length,
           replaySame: same, stored, replayed };
       });
@@ -235,6 +245,7 @@ const rowsOf = (page) => page.evaluate(async () => {
       assert.equal(db.log.filter((r) => r.kind === "review").length, 2, "one review per answer (remember, then forgot; the session closed before the miss came back)");
       assert.ok(db.log.every((r) => r.kind !== "review" || r.channel === "atlas:term"));
       assert.equal(db.inSchedule + db.inDue + db.inWords, 0, "an atlas term is not a word: not in the Room's schedule, due queue or word list");
+      assert.deepEqual(db.budget, { reviews: 0, newWords: 0 }, "atlas term reviews do not use the Room's daily budget");
       assert.ok(db.replaySame, "replay(log) == stored: " + db.stored + " vs " + db.replayed);
       assert.ok(line1 !== line0, "the counts follow the session");
       assert.equal(single, 1, "«Учить этот термин» asks one term");

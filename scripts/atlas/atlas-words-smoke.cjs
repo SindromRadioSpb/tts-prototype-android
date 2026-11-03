@@ -117,7 +117,7 @@ const fs = require("fs"), path = require("path"), assert = require("assert/stric
       await page.waitForSelector(".atlas-home");
       const rowsOf = () => page.evaluate(async () => {
         try {
-          const db = await import("/db/local-db.js?v=849");
+          const db = await import("/db/local-db.js?v=852");
           const one = async (sql) => { const r = await db.dbQuery(sql); return r && r[0] ? Number(r[0].n) : null; };
           return { word_status: await one("SELECT COUNT(*) AS n FROM word_status"), review_log: await one("SELECT COUNT(*) AS n FROM review_log") };
         } catch (e) { return { error: String(e && e.message || e) }; }

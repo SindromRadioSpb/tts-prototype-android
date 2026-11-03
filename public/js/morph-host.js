@@ -803,6 +803,9 @@
     async function gradeAtlasTerm(key, correct, prev, source) {
       var ldb = await ldbOf(), LC = window.LemmaCanon, FC = window.FsrsCore, R = window.ReaderMorph;
       if (!/^at1:[a-z0-9]+:[a-z0-9-]+#[A-Za-z0-9_-]+$/.test(String(key || "")) || !LC || !FC || !R || !R.fsrsStep || !ldb.commitReviewAttempt) throw new Error("ATLAS_TERM_UNAVAILABLE");
+      // the device's own state at this moment wins over the caller's copy (final review 2026-11-03: a panel may grade
+      // before its states loaded, or after a sync changed them)
+      if (typeof ldb.getAtlasTermState === "function") prev = await ldb.getAtlasTermState(key);
       var now = Date.now(), fs = R.fsrsStep(FC, prev && prev.due ? prev : null, !!correct, now, { itemKey: key });
       if (!fs) throw new Error("ATLAS_TERM_SCHEDULER_UNAVAILABLE");
       var row = { item_key: key, kind: "review", reviewed_at: new Date(now).toISOString(), grade: correct ? 3 : 1,

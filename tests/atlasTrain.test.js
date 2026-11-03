@@ -726,3 +726,58 @@ test("the symbol session can say why its options are not in the stage's language
   const t = UI.symbolSession(document, { T: (k, fb) => fb, questions: qs, check: T.checkSymbol });
   assert.equal(t.el.querySelector(".atlas-train-note"), null);
 });
+
+test("grading an atlas term reads the term's current state from the device, not the caller's possibly stale copy", async () => {
+  const prevWindow = global.window;
+  const RM = require("../public/js/reader-morph.js"), FC = require("../public/js/fsrs-core.js"), LC = require("../public/js/lemma-canon.js");
+  global.window = Object.assign({}, prevWindow || {}, { ReaderMorph: RM, FsrsCore: FC, LemmaCanon: LC });
+  try {
+    const MorphHost = require("../public/js/morph-host.js");
+    const key = "at1:a97002:belt#belt", t0 = Date.now() - 10 * 86400e3;
+    const stored = { status: "", due: t0 + 9 * 86400e3, interval: 9, reps: 3, lapses: 0, stability: 9, difficulty: 5, reviewedAt: t0, scheme: "fsrs" };
+    let committed = null;
+    const db = { getAtlasTermState: async (k) => (k === key ? stored : null), hasSeedRow: async () => true,
+      commitReviewAttempt: async (x) => { committed = x; return { committed: true }; }, recordRecall: async () => {} };
+    const host = MorphHost.createHost({ ldb: async () => db });
+    const sched = await host.gradeAtlasTerm(key, true, null, null);   // the panel had not loaded its states yet
+    assert.equal(sched.reps, 4, "the fourth review, not a first one");
+    assert.equal(committed.sched.reps, 4);
+    assert.equal(committed.row.item_key, key);
+  } finally { global.window = prevWindow; }
+});
+
+test("stage 1, row by row: a row without its gloss says so; a section where every word is known is not «without glosses»", () => {
+  const sec = sectionDom();
+  const only = (row, k) => (row.getAttribute("data-ref") === "b1" ? wordAt(row, k) : null);   // b2 was rejected at import
+  const r = T.paintStage(sec, 1, ctx, only, { noGloss: "нет подстрочника" });
+  assert.equal(r.missing, false);
+  assert.equal(sec.querySelector('[data-ref="b2"]').getAttribute("data-atlas-nogloss"), "нет подстрочника");
+  assert.equal(sec.querySelector('[data-ref="b1"]').hasAttribute("data-atlas-nogloss"), false);
+  // every word known: nothing painted, but the layer is there — no false «нет подстрочника» for the section
+  const known = sectionDom();
+  known.querySelectorAll(".rm-w").forEach((w) => w.classList.add("rm-w-known"));
+  const k = T.paintStage(known, 1, ctx, wordAt, { noGloss: "нет подстрочника" });
+  assert.equal(k.painted, 0);
+  assert.equal(k.missing, false);
+  assert.equal(known.querySelectorAll("[data-atlas-nogloss]").length, 0);
+  T.paintStage(sec, 0, ctx, only, { noGloss: "нет подстрочника" });
+  assert.equal(sec.querySelectorAll("[data-atlas-nogloss]").length, 0, "other stages clear the note");
+  const css = fs.readFileSync(path.join(__dirname, "../public/css/atlas-reader.css"), "utf8");
+  assert.match(css, /atlas-stage-1 \.atlas-row\[data-atlas-nogloss\]::after/);
+});
+
+test("the section terms line: no terms, nothing learned yet (where to start), or the counts", () => {
+  assert.equal(T.termsLineState({ termsTotal: 0, termsStrong: 0, due: 0, fresh: 0 }), "none");
+  assert.equal(T.termsLineState({ termsTotal: 15, termsStrong: 0, due: 0, fresh: 15 }), "start", "an empty memory explains where to start, not zeros");
+  assert.equal(T.termsLineState({ termsTotal: 15, termsStrong: 0, due: 1, fresh: 14 }), "counts");
+  assert.equal(T.termsLineState({ termsTotal: 15, termsStrong: 2, due: 0, fresh: 13 }), "counts");
+});
+
+test("a fragment is retired only when its own page opened without it; a navigation that went elsewhere decides nothing", () => {
+  const it = { id: "find:x", sid: "s09-belt", block: "a97002:p197:b004", he: "תמסורת רצועה בין שני גלגלים" };
+  assert.equal(T.findStillThere(it, { sid: "s09-belt", blockHe: "תמסורת רצועה, בין שני גלגלים." }), "ok", "punctuation does not matter");
+  assert.equal(T.findStillThere(it, { sid: "s09-belt", blockHe: "טקסט אחר לגמרי" }), "stale");
+  assert.equal(T.findStillThere(it, { sid: "s09-belt", blockHe: null }), "stale", "the block is gone from its section");
+  assert.equal(T.findStillThere(it, { sid: "s10-spur-gears", blockHe: null }), "unknown", "the learner went elsewhere before the page opened");
+  assert.equal(T.findStillThere(it, null), "unknown");
+});

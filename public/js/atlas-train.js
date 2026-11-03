@@ -50,21 +50,24 @@
   }
   // Puts the stage's gloss on the wrapped words of a section: data-atlas-gloss (CSS shows it under the word).
   // wordAt(row, k) → { gloss } from «В контексте (ИИ)»; ctx — AtlasWords.sectionContext (term places and senses).
-  // → { painted, missing }: missing = stage 1 asked for glosses and the section has none.
-  function paintStage(section, stage, ctx, wordAt) {
-    var out = { painted: 0, missing: false };
+  // → { painted, missing }: missing = stage 1 and no row of the section has its gloss layer (known words do not count:
+  // a section where every word is known is not «without glosses»). opts.noGloss — the note a row without its glosses
+  // carries at stage 1 (data-atlas-nogloss, shown by CSS), instead of a bare Hebrew line.
+  function paintStage(section, stage, ctx, wordAt, opts) {
+    var out = { painted: 0, missing: false }, rowsWithLayer = 0, noGloss = (opts && opts.noGloss) || "";
     if (!section) return out;
     STAGE_CLASSES.forEach(function (c) { section.classList.remove(c); });
     if (stage) section.classList.add("atlas-stage-" + stage);
     var policy = glossPolicy(stage);
     section.querySelectorAll(".atlas-row[data-ref]").forEach(function (row) {
-      var id = row.getAttribute("data-ref");
+      var id = row.getAttribute("data-ref"), words = 0, layer = 0;
       var loc = policy === "terms" && ctx && typeof ctx.located === "function" ? ctx.located(id) : null;
       row.querySelectorAll("[data-col] .rm-w[data-w-offset]").forEach(function (w) {
         var k = Number(w.getAttribute("data-w-offset")), val = null;
-        if (policy === "unknown" && !knownSpan(w)) {
+        if (policy === "unknown") {
           var g = typeof wordAt === "function" ? wordAt(row, k) : null;
-          if (g && g.gloss) val = String(g.gloss);
+          words++; if (g && g.gloss) layer++;
+          if (g && g.gloss && !knownSpan(w)) val = String(g.gloss);
         } else if (loc) {
           var cell = w.closest("[data-col]"), spans = (cell && cell.getAttribute("data-col") === "niqqud" ? loc.niqqud : loc.he).spans || [];
           for (var i = 0; i < spans.length; i++) {
@@ -82,8 +85,12 @@
         if (w.getAttribute("data-atlas-gloss") !== val) w.setAttribute("data-atlas-gloss", val);
         if (val) out.painted++;
       });
+      if (layer) rowsWithLayer++;
+      var note = policy === "unknown" && words && !layer && noGloss ? noGloss : null;
+      if (note) { if (row.getAttribute("data-atlas-nogloss") !== note) row.setAttribute("data-atlas-nogloss", note); }
+      else if (row.hasAttribute("data-atlas-nogloss")) row.removeAttribute("data-atlas-nogloss");
     });
-    out.missing = policy === "unknown" && out.painted === 0;
+    out.missing = policy === "unknown" && rowsWithLayer === 0;
     return out;
   }
 
@@ -213,6 +220,12 @@
     });
     return out;
   }
+  // which line the section terms block shows: 'none' (no terms), 'start' (none answered yet — say where to start),
+  // 'counts' (due / strong)
+  function termsLineState(st) {
+    if (!st || !st.termsTotal) return "none";
+    return st.fresh === st.termsTotal ? "start" : "counts";
+  }
   // a session: due terms (oldest due first), then never reviewed ones in book order; limit n
   function sessionOrder(items, states, nowMs, n, opts) {
     var due = [], fresh = [];
@@ -244,6 +257,14 @@
     var fresh = pool.filter(function (x) { return !seen.has(x.id); });
     var from = fresh.length ? fresh : pool;
     return from[Math.min(from.length - 1, Math.floor(rnd() * from.length))];
+  }
+  // after «Открыть стр.»: opened = { sid of the section now open, blockHe = the text of the fragment's block there or
+  // null } → 'ok' | 'stale' (its own section opened without it) | 'unknown' (another section is open: decide nothing)
+  function findStillThere(item, opened) {
+    if (!item || !opened || opened.sid !== item.sid) return "unknown";
+    if (opened.blockHe == null) return "stale";
+    var plain = function (x) { return String(x || "").replace(NIQQUD, "").replace(/[^\u05D0-\u05EA0-9a-zA-Z]+/g, " ").trim(); };
+    return plain(opened.blockHe) === plain(item.he) ? "ok" : "stale";
   }
   function findStats(history) {
     var h = Array.isArray(history) ? history : [], n = h.length;
@@ -300,9 +321,9 @@
       unit: sym && sym.options && sym.options.unit ? picks.unit === sym.answer.unit : null };
   }
 
-  return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats,
+  return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
-    termStats: termStats, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
+    termStats: termStats, termsLineState: termsLineState, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,
     HINT_SHARE: HINT_SHARE, HINT_MIN_TERMS: HINT_MIN_TERMS,
     skeletonOf: skeletonOf, personalTermId: personalTermId, findTermDuplicate: findTermDuplicate, makePersonalTerm: makePersonalTerm,
