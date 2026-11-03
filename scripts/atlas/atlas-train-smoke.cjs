@@ -114,6 +114,69 @@ const rowsOf = (page) => page.evaluate(async () => {
       assert.deepEqual(errors, [], "no page errors");
       await context.close();
     }
+    // G2: a word → «Добавить в термины» → my term underlined, «Мой термин» in its card, export file, delete;
+    // no writes into word_status / review_log
+    if (!process.argv.includes("--no-g2")) for (const [lang, width] of [["ru", 390], ["he", 1440]]) {
+      const context = await browser.newContext({ viewport: { width, height: 860 }, serviceWorkers: "block", acceptDownloads: true });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await page.addInitScript(() => { try { if (!sessionStorage.getItem("smoke.init")) { localStorage.removeItem("room.atlas.stage.v1"); localStorage.removeItem("room.atlas.myTerms.v1"); sessionStorage.setItem("smoke.init", "1"); } } catch (_) {} });
+      await openSection(page, base, lang);
+      const before = await rowsOf(page);
+      let added = null;
+      for (let n = 4; n < 40 && !added; n += 3) {
+        const w = page.locator(".atlas-row .rm-w:not(.atlas-term):visible").nth(n);
+        await w.scrollIntoViewIfNeeded();
+        const ref = await w.evaluate((x) => ({ row: x.closest(".atlas-row").getAttribute("data-ref"), off: x.getAttribute("data-w-offset"), col: x.closest("[data-col]").getAttribute("data-col") }));
+        await w.click();
+        await page.waitForSelector('.rm-sheet.rm-open [data-rm-surface-action="add-term"]', { timeout: 15000 });
+        await page.locator('.rm-sheet.rm-open [data-rm-surface-action="add-term"]').click();
+        await page.waitForSelector(".atlas-term-dialog");
+        const ok = await page.evaluate(() => {
+          const d = document.querySelector(".atlas-term-dialog"), ru = d.querySelector('input[name="ru"]');
+          if (!ru.value.trim()) { ru.value = "проверка"; ru.dispatchEvent(new Event("input")); }
+          return !d.querySelector("[data-term-save]").disabled;
+        });
+        if (!ok) { await page.locator(".atlas-term-dialog [data-term-cancel]").click(); continue; }
+        await page.screenshot({ path: path.join(out, `add-term-${lang}-${width}.png`) });
+        await page.locator(".atlas-term-dialog [data-term-save]").click();
+        await page.waitForSelector(".atlas-term-dialog", { state: "detached" });
+        added = ref;
+      }
+      assert.ok(added, "a word could be added as a term");
+      const sel = `.atlas-row[data-ref="${added.row}"] [data-col="${added.col}"] .rm-w[data-w-offset="${added.off}"]`;
+      await page.waitForFunction((q) => document.querySelector(q) && document.querySelector(q).classList.contains("atlas-term"), sel, { timeout: 10000 });
+      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("room.atlas.myTerms.v1") || "[]"));
+      assert.equal(stored.length, 1, "one personal term stored");
+      await page.locator(sel).click();
+      await page.waitForSelector('.rm-sheet.rm-open [data-rm-surface-action="edit-term"]', { timeout: 15000 });
+      const kicker = await page.locator(".rm-sheet.rm-open .rm-surface-kicker").innerText();
+      await page.screenshot({ path: path.join(out, `my-term-card-${lang}-${width}.png`) });
+      // export from «Тренировать»
+      await page.keyboard.press("Escape"); await page.waitForTimeout(300);
+      await page.locator(".atlas-train-btn").click();
+      const head = await page.locator(".atlas-my-terms .atlas-view-head").innerText();
+      const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("[data-my-terms-export]").click()]);
+      const file = await dl.path();
+      const exported = fs.readFileSync(file, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+      assert.equal(exported[0].id, stored[0].id, "the export holds the term");
+      await page.locator(".atlas-train-btn").click();
+      // delete it from its card
+      await page.locator(sel).click();
+      await page.locator('.rm-sheet.rm-open [data-rm-surface-action="edit-term"]').click();
+      await page.locator(".atlas-term-dialog [data-term-delete]").click();
+      await page.waitForFunction((q) => !document.querySelector(q).classList.contains("atlas-term"), sel, { timeout: 10000 });
+      const after = await rowsOf(page);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      report.push({ g2: { lang, width, added, kicker, head, exported: exported.length, before, after, overflow, errors: errors.length } });
+      assert.ok(/Мой термин|המונח שלי|My term/.test(kicker), "the card says it is my term: " + kicker);
+      assert.match(head, /\(1\)/);
+      assert.deepEqual(after, before, "adding and deleting a term write nothing into word_status / review_log");
+      assert.ok(overflow <= 1, "no horizontal scroll");
+      assert.deepEqual(errors, [], "no page errors");
+      await context.close();
+    }
   } finally {
     await browser.close();
     fs.writeFileSync(path.join(out, "report.json"), JSON.stringify(report, null, 1) + "\n");

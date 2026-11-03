@@ -1871,6 +1871,12 @@
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
       if (t && t.closest && t.closest("[data-rm-back]")) { onCardBack(); return; }
+      var surfaceBtn = t && t.closest ? t.closest("[data-rm-surface-action]") : null;
+      if (surfaceBtn) {
+        var act = surfaceBtn.getAttribute("data-rm-surface-action"), occ = _activeOcc, row = _activeWordCtx ? _activeWordCtx.row : null;
+        if (typeof _attachOpts.onSurfaceAction === "function") { try { _attachOpts.onSurfaceAction(act, occ, row); } catch (_) {} }
+        return;
+      }
       if (t && t.closest && t.closest("[data-rm-recall-reveal]")) { onRecallReveal(); return; }
       var gbtn = t && t.closest ? t.closest("[data-rm-recall-grade]") : null;
       if (gbtn) { onRecallGrade(gbtn.getAttribute("data-rm-recall-grade")); return; }
@@ -2685,14 +2691,14 @@
         (card.meaning ? ': ' + escapeHtml(card.meaning + ' · ' + posText(card.pos)) : '') +
         (card.pos === 'propernoun' && card.resolutionEventId && card.meaningSource === 'owner' ? ' <button type="button" data-rm-analysis-undo>' + escapeHtml(tt('analysis.undo', 'Отменить')) + '</button>' : '') + '</p>' : '';
       var currentReading = '<section class="rm-current-reading" dir="' + uiDir() + '"><h3>' + escapeHtml(tt('analysis.current', 'Разбор в этой строке')) + '</h3>' + reviewedLine + savedGloss + scopedProvenance + lemmaMeaning + formLine + '</section>';
-      return backRow + head + surfaceTopHtml() + niqMark + contextPendingHtml(card) + currentReading + nameAction + analysisChoicesHtml(card) +
+      return backRow + head + activeSurfaceTopHtml() + niqMark + contextPendingHtml(card) + currentReading + nameAction + analysisChoicesHtml(card) +
       ctxPosLine + usageHtml(card) + '<div class="rm-rows">' + rows + '</div>' + procliticHtml(card) + fam + conj + recallHtml + statusSelectorHtml(card) +
       ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
       '<div class="rm-actions">' + saveBtn + link + '</div>' + noteEditor + explainWordHtml() + refineHtml;
     }
     var conflict = contextual && occurrence.x.wrongHint ? '<p class="rm-ai-warn">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение, вероятно, не подходит")) + '</p>' : "";
-    if (!contextual) return backRow + head + surfaceTopHtml() + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
-    return backRow + head + surfaceTopHtml() + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
+    if (!contextual) return backRow + head + activeSurfaceTopHtml() + legendHtml() + niqMark + contextPendingHtml(card) + meaning + formLine + aiLine + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + activeSurfaceTopHtml() + legendHtml() + niqMark + contextPendingHtml(card) + (contextual ? aiLine + conflict + nameAction : "") + dictionaryDetails + (!contextual ? aiLine : "") + recallHtml +
       (contextual ? '<p class="rm-dictionary-scope">' + escapeHtml(tt("contextLayer.statusScope", "Статус ниже относится к словарному чтению")) + '</p>' : "") +
       statusSelectorHtml(card) + ((_markConfirm && learningView(card).lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) +
       (!contextual ? '<div class="rm-actions">' + saveBtn + link + '</div>' : "") + noteEditor + explainWordHtml() + refineHtml;
@@ -2701,17 +2707,26 @@
 
   // A surface's own words about the tapped place, above the dictionary reading (atlas P4: the reviewed term of the
   // engineering atlas). opts.cardTop(occ, row) → { kicker, title, subtitle, lines[] } — plain text only; the card escapes it.
-  function surfaceTopHtml() {
+  function activeSurfaceTopHtml() {
     if (!_activeOcc || typeof _attachOpts.cardTop !== "function") return "";
     var top = null;
     try { top = _attachOpts.cardTop(_activeOcc, _activeWordCtx ? _activeWordCtx.row : null); } catch (_) { top = null; }
-    if (!top || !top.title) return "";
+    return surfaceTopHtml(top, uiDir());
+  }
+  // top = { kicker, title, subtitle, lines[], actions[{ id, label }] }; actions alone (no title) still show — atlas P5:
+  // «Добавить в термины» on any word. A click goes to opts.onSurfaceAction(id, occ, row).
+  function surfaceTopHtml(top, dir) {
+    var actions = top && Array.isArray(top.actions) ? top.actions.filter(function (a) { return a && a.id && a.label; }) : [];
+    if (!top || (!top.title && !actions.length)) return "";
     var lines = Array.isArray(top.lines) ? top.lines.filter(Boolean) : [];
-    return '<section class="rm-surface-top" dir="' + uiDir() + '">' +
-      (top.kicker ? '<p class="rm-surface-kicker">' + escapeHtml(top.kicker) + "</p>" : "") +
-      '<p class="rm-surface-title"><bdi dir="rtl" lang="he">' + escapeHtml(top.title) + "</bdi>" +
-      (top.subtitle ? ' <span class="rm-surface-sub">' + escapeHtml(top.subtitle) + "</span>" : "") + "</p>" +
-      lines.map(function (l) { return '<p class="rm-surface-line">' + escapeHtml(l) + "</p>"; }).join("") + "</section>";
+    return '<section class="rm-surface-top' + (top.title ? "" : " rm-surface-actions-only") + '" dir="' + escapeHtml(dir || "ltr") + '">' +
+      (top.title ? (top.kicker ? '<p class="rm-surface-kicker">' + escapeHtml(top.kicker) + "</p>" : "") +
+        '<p class="rm-surface-title"><bdi dir="rtl" lang="he">' + escapeHtml(top.title) + "</bdi>" +
+        (top.subtitle ? ' <span class="rm-surface-sub">' + escapeHtml(top.subtitle) + "</span>" : "") + "</p>" +
+        lines.map(function (l) { return '<p class="rm-surface-line">' + escapeHtml(l) + "</p>"; }).join("") : "") +
+      (actions.length ? '<p class="rm-surface-actions">' + actions.map(function (a) {
+        return '<button type="button" class="rm-surface-action" data-rm-surface-action="' + escapeHtml(a.id) + '">' + escapeHtml(a.label) + "</button>";
+      }).join(" ") + "</p>" : "") + "</section>";
   }
 
   function contextPendingHtml(card) {
@@ -4521,6 +4536,7 @@
   async function paintLearningStatus(mount, statesMap) { return decorateWords(mount, statesMap, { color: true, fadeMode: "full" }); }
 
   var API = {
+    surfaceTopHtml: surfaceTopHtml,
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords, setDictaLexicon: setDictaLexicon,
     createRowQueue: createRowQueue, yieldWordWork: yieldWordWork,

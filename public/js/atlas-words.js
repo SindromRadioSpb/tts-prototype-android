@@ -90,6 +90,23 @@
     }
     return { he: { spans: he.spans }, niqqud: niqqud, loose: he.loose };
   }
+  // personal places that do not overlap the atlas's own (an atlas term keeps its words)
+  function addPersonal(loc, item, terms, refs, RM) {
+    function merge(spans, text) {
+      if (!text) return spans;
+      var taken = [];
+      spans.forEach(function (sp) { for (var k = sp.from; k <= sp.to; k++) taken[k] = true; });
+      var extra = locateTerms(text, refs, terms, RM).spans.filter(function (sp) {
+        for (var k = sp.from; k <= sp.to; k++) if (taken[k]) return false;
+        return true;
+      });
+      return extra.length ? spans.concat(extra).sort(function (a, b) { return a.from - b.from; }) : spans;
+    }
+    var heSpans = merge(loc.he.spans, item.he);
+    var same = item.he_niqqud && wordsOf(item.he_niqqud, RM).length === wordsOf(item.he, RM).length;
+    loc.he = { spans: heSpans };
+    loc.niqqud = { spans: same || !item.he_niqqud ? heSpans : merge(loc.niqqud.spans, item.he_niqqud) };
+  }
   function termAt(spans, offset) {
     for (var i = 0; i < (spans || []).length; i++) if (offset >= spans[i].from && offset <= spans[i].to) return spans[i];
     return null;
@@ -101,7 +118,7 @@
   // only against the same loaded edition, so a source never points at a text that has changed.
   var SOURCE_KIND = "atlas_block";
   function sectionContext(atlasId, section, RM) {
-    var items = new Map(), order = new Map(), located = new Map(), n = 0;
+    var items = new Map(), order = new Map(), located = new Map(), n = 0, personalRefs = [];
     ((section && section.pages) || []).forEach(function (p) {
       (p.items || []).forEach(function (it) {
         if (!it || !it.id || !String(it.he || "").trim()) return;
@@ -114,8 +131,26 @@
       terms: (section && section.terms) || {}, items: items, order: order,
       located: function (id) {
         id = String(id);
-        if (!located.has(id)) located.set(id, items.has(id) ? locateBlock(items.get(id), this.terms, RM) : null);
+        if (!located.has(id)) {
+          var loc = items.has(id) ? locateBlock(items.get(id), this.terms, RM) : null;
+          if (loc && personalRefs.length) addPersonal(loc, items.get(id), this.terms, personalRefs, RM);
+          located.set(id, loc);
+        }
         return located.get(id);
+      },
+      // P5 G2 — the learner's own terms (AtlasTrain.mergeTerms): their places are found in every block, they never
+      // become a loose «terms of this paragraph» line; a change of the list re-finds the places.
+      setPersonal: function (merged) {
+        var base = (section && section.terms) || {}, all = Object.assign({}, base);
+        personalRefs = [];
+        Object.keys(merged || {}).forEach(function (tid) {
+          var t = merged[tid];
+          if (!t || base[tid]) return;
+          all[tid] = t;
+          (t.senses || []).forEach(function (sn) { if (sn && sn.sense) personalRefs.push(tid + "#" + sn.sense); });
+        });
+        this.terms = all;
+        located.clear();
       },
     };
   }
@@ -159,7 +194,7 @@
     var others = senses.filter(function (s) { return s && s !== sense && s.ru; }).map(function (s) { return s.ru; });
     var lines = [sense.ru || ""];
     if (others.length) lines.push((labels.other || "") + (labels.other ? ": " : "") + others.join("; "));
-    return { kicker: labels.kicker || "", title: term.niqqud || term.lemma_he || "",
+    return { kicker: (term.personal ? labels.mine : labels.kicker) || labels.kicker || "", personal: !!term.personal, title: term.niqqud || term.lemma_he || "",
       subtitle: (labels.script === "cyr" ? term.translit_ru : term.translit) || "", lines: lines.filter(Boolean) };
   }
   // After the card wrapped a row: words of a whole term get .atlas-term; the block's links without a place get one

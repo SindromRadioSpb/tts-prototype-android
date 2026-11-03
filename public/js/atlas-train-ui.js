@@ -84,5 +84,76 @@
     };
   }
 
-  return { panel: panel };
+  // P5 G2 — «Добавить в термины»: a word of a row grows into a phrase of its neighbours, the meaning comes from the
+  // in-context gloss until the learner writes their own, the scope is this section or the whole atlas.
+  // opts: { T, words: [{ he, niqqud }], at, glossOf(from, to), duplicateOf(lemmaHe) → text | null, initial?: { ru, scope },
+  //         onSave({ from, to, lemmaHe, niqqud, ru, scope }), onDelete?(), onCancel?() } → { el }
+  function termForm(doc, opts) {
+    opts = opts || {};
+    var T = typeof opts.T === "function" ? opts.T : function (k, fb) { return fb; };
+    var words = Array.isArray(opts.words) ? opts.words : [];
+    var from = Math.max(0, Math.min(Number(opts.at) || 0, words.length - 1)), to = from, own = !!(opts.initial && opts.initial.ru);
+    if (opts.initial && Number.isInteger(opts.initial.from) && Number.isInteger(opts.initial.to)) { from = opts.initial.from; to = opts.initial.to; }
+    var phrase = h(doc, "p", { cls: "atlas-term-phrase", dir: "rtl", lang: "he" });
+    function btn(attr, val, text) { var b = h(doc, "button", { type: "button", cls: "atlas-chip" }); b.setAttribute(attr, val); b.textContent = text; return b; }
+    var grow = h(doc, "div", { cls: "atlas-seg atlas-term-grow" }, [
+      btn("data-extend", "prev", T("atlas.terms.addPrev", "+ слово перед")), btn("data-shrink", "prev", T("atlas.terms.dropPrev", "− первое")),
+      btn("data-shrink", "next", T("atlas.terms.dropNext", "− последнее")), btn("data-extend", "next", T("atlas.terms.addNext", "+ слово после"))]);
+    var ru = h(doc, "input", { type: "text", name: "ru", maxlength: "120", "aria-label": T("atlas.terms.meaning", "Значение") });
+    var ruLabel = h(doc, "label", { cls: "atlas-term-field" }, [h(doc, "span", { text: T("atlas.terms.meaning", "Значение") }), ru]);
+    var scope = (opts.initial && opts.initial.scope) === "atlas" ? "atlas" : "section";
+    function radio(val, text) {
+      var r = h(doc, "input", { type: "radio", name: "scope", value: val });
+      r.checked = scope === val;
+      r.addEventListener("change", function () { if (r.checked) scope = val; });
+      return h(doc, "label", { cls: "atlas-col" }, [r, h(doc, "span", { text: text })]);
+    }
+    var scopes = h(doc, "div", { cls: "atlas-term-scope", role: "radiogroup", "aria-label": T("atlas.terms.scope", "Где это термин") },
+      [radio("section", T("atlas.terms.scopeSection", "В этом разделе")), radio("atlas", T("atlas.terms.scopeAtlas", "Во всём атласе"))]);
+    var dup = h(doc, "p", { cls: "atlas-term-dup", hidden: true, role: "status" });
+    var save = h(doc, "button", { type: "button", cls: "atlas-chip atlas-term-save", "data-term-save": true, text: T("atlas.terms.save", "Сохранить термин") });
+    var cancel = h(doc, "button", { type: "button", cls: "atlas-chip", "data-term-cancel": true, text: T("atlas.terms.cancel", "Отмена") });
+    var foot = h(doc, "div", { cls: "atlas-seg atlas-term-foot" }, [save, cancel]);
+    if (typeof opts.onDelete === "function") {
+      var del = h(doc, "button", { type: "button", cls: "atlas-chip", "data-term-delete": true, text: T("atlas.terms.delete", "Удалить мой термин") });
+      del.addEventListener("click", function () { opts.onDelete(); });
+      foot.appendChild(del);
+    }
+    var el = h(doc, "div", { cls: "atlas-root atlas-term-dialog", role: "dialog", "aria-modal": "true", "aria-label": T("atlas.terms.addTitle", "Добавить в термины") }, [
+      h(doc, "div", { cls: "atlas-term-card" }, [h(doc, "p", { cls: "atlas-view-head", text: T("atlas.terms.addTitle", "Добавить в термины") }),
+        phrase, grow, ruLabel, scopes, dup, foot])]);
+    function lemma() { return words.slice(from, to + 1).map(function (w) { return w.he; }).join(" "); }
+    function pointed() { return words.slice(from, to + 1).map(function (w) { return w.niqqud || w.he; }).join(" "); }
+    function paint() {
+      phrase.textContent = pointed();
+      if (!own) ru.value = typeof opts.glossOf === "function" ? String(opts.glossOf(from, to) || "") : "";
+      grow.querySelector('[data-extend="prev"]').disabled = from <= 0;
+      grow.querySelector('[data-extend="next"]').disabled = to >= words.length - 1;
+      grow.querySelector('[data-shrink="prev"]').disabled = grow.querySelector('[data-shrink="next"]').disabled = from === to;
+      var d = typeof opts.duplicateOf === "function" ? opts.duplicateOf(lemma()) : null;
+      dup.hidden = !d;
+      dup.textContent = d ? T("atlas.terms.duplicate", "Такой термин уже есть в атласе:") + " " + d : "";
+      save.disabled = !!d || !ru.value.trim();
+    }
+    grow.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.disabled) return;
+        if (b.getAttribute("data-extend") === "prev") from--; else if (b.getAttribute("data-extend") === "next") to++;
+        else if (b.getAttribute("data-shrink") === "prev") from++; else if (b.getAttribute("data-shrink") === "next") to--;
+        paint();
+      });
+    });
+    ru.addEventListener("input", function () { own = !!ru.value.trim(); save.disabled = !dup.hidden || !ru.value.trim(); });
+    save.addEventListener("click", function () {
+      if (save.disabled || typeof opts.onSave !== "function") return;
+      opts.onSave({ from: from, to: to, lemmaHe: lemma(), niqqud: pointed(), ru: ru.value.replace(/\s+/g, " ").trim(), scope: scope });
+    });
+    cancel.addEventListener("click", function () { if (typeof opts.onCancel === "function") opts.onCancel(); });
+    el.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && typeof opts.onCancel === "function") opts.onCancel(); });
+    if (opts.initial && opts.initial.ru) ru.value = opts.initial.ru;
+    paint();
+    return { el: el, focus: function () { try { ru.focus(); } catch (_) {} } };
+  }
+
+  return { panel: panel, termForm: termForm };
 });

@@ -87,7 +87,87 @@
     return out;
   }
 
+  // ---- G2: personal terms and the atlas additions file (owner 2026-11-03) ----
+  var NIQQUD = /[֑-ׇ]/g;
+  function skeletonOf(s) {
+    return String(s == null ? "" : s).replace(NIQQUD, "").replace(/[^א-ת]+/g, " ").trim();
+  }
+  // the identity of a term across spellings: pointed text drops the matres (כֹּחַ for כוח), so ו and י inside a word
+  // do not count
+  function looseOf(s) {
+    return skeletonOf(s).split(" ").map(function (w) { return w.charAt(0) + w.slice(1).replace(/[וי]/g, ""); }).join(" ");
+  }
+  function fnv32(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return ("0000000" + h.toString(16)).slice(-8);
+  }
+  // 'a97002:term:u-<8 hex>' from the spelling without pointing: adding the same term again finds the same id
+  function personalTermId(atlasId, lemmaHe) {
+    var sk = looseOf(lemmaHe);
+    return sk && atlasId ? String(atlasId) + ":term:u-" + fnv32(sk) : null;
+  }
+  function findTermDuplicate(terms, lemmaHe) {
+    var sk = looseOf(lemmaHe);
+    if (!sk) return null;
+    var ids = Object.keys(terms || {});
+    for (var i = 0; i < ids.length; i++) if (looseOf(terms[ids[i]] && terms[ids[i]].lemma_he) === sk) return ids[i];
+    return null;
+  }
+  // { atlasId, lemmaHe, niqqud?, ru, scope: 'section' | 'atlas', sid, block? } → a term of the atlas shape, or null
+  function makePersonalTerm(o) {
+    o = o || {};
+    var id = personalTermId(o.atlasId, o.lemmaHe), ru = String(o.ru || "").replace(/\s+/g, " ").trim();
+    if (!id || !ru) return null;
+    var pointed = String(o.niqqud || (NIQQUD.test(String(o.lemmaHe)) ? o.lemmaHe : "")).trim();
+    NIQQUD.lastIndex = 0;
+    return { id: id, lemma_he: skeletonOf(o.lemmaHe), niqqud: pointed, translit: "", translit_ru: "",
+      senses: [{ sense: "main", ru: ru, context: String(o.sid || "") }], personal: true,
+      scope: o.scope === "section" && o.sid ? "section" : "atlas", sid: String(o.sid || ""), block: String(o.block || ""),
+      at: Number(o.at) || 0 };
+  }
+  // The terms of a section: the atlas's own, plus personal ones of this section or of the whole atlas; an atlas
+  // term with the same id wins (after the owner moved a personal term into the additions file).
+  function mergeTerms(sectionTerms, personal, sid) {
+    var out = Object.assign({}, sectionTerms || {});
+    (personal || []).forEach(function (t) {
+      if (!t || !t.id || out[t.id]) return;
+      if (t.scope === "section" && t.sid !== sid) return;
+      out[t.id] = t;
+    });
+    return out;
+  }
+  // personal terms → lines of scripts/atlas/terms/<atlas>-additions.jsonl (sections: [] = every section where it occurs)
+  function exportAdditions(personal) {
+    return (personal || []).filter(Boolean).map(function (t) {
+      return JSON.stringify({ id: t.id, lemma_he: t.lemma_he, niqqud: t.niqqud || "", translit: t.translit || "",
+        translit_ru: t.translit_ru || "", senses: (t.senses || []).map(function (s) { return { sense: s.sense, ru: s.ru, context: s.context || "" }; }),
+        sections: t.scope === "section" && t.sid ? [t.sid] : [] });
+    }).join("\n") + "\n";
+  }
+  // a file back into personal terms; a line that does not hold is rejected with its reason, never taken half-way
+  function parseAdditions(text) {
+    var out = { terms: [], rejected: [] };
+    String(text || "").split(/\r?\n/).forEach(function (line, i) {
+      if (!line.trim()) return;
+      var x;
+      try { x = JSON.parse(line); } catch (_) { out.rejected.push({ line: i + 1, reason: "json" }); return; }
+      var m = /^([a-z0-9]+):term:u-[0-9a-f]{8}$/.exec(String(x && x.id || ""));
+      if (!m || personalTermId(m[1], x.lemma_he) !== x.id) { out.rejected.push({ line: i + 1, reason: "id" }); return; }
+      if (x.niqqud && looseOf(x.niqqud) !== looseOf(x.lemma_he)) { out.rejected.push({ line: i + 1, reason: "niqqud" }); return; }
+      var sense = Array.isArray(x.senses) && x.senses[0];
+      if (!sense || !String(sense.ru || "").trim()) { out.rejected.push({ line: i + 1, reason: "ru" }); return; }
+      var sid = Array.isArray(x.sections) && x.sections.length === 1 ? String(x.sections[0]) : "";
+      var t = makePersonalTerm({ atlasId: m[1], lemmaHe: x.lemma_he, niqqud: x.niqqud, ru: sense.ru, scope: sid ? "section" : "atlas", sid: sid });
+      t.senses[0].context = String(sense.context || sid);
+      out.terms.push(t);
+    });
+    return out;
+  }
+
   return { STAGES: STAGES, stageOf: stageOf, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,
-    HINT_SHARE: HINT_SHARE, HINT_MIN_TERMS: HINT_MIN_TERMS };
+    HINT_SHARE: HINT_SHARE, HINT_MIN_TERMS: HINT_MIN_TERMS,
+    skeletonOf: skeletonOf, personalTermId: personalTermId, findTermDuplicate: findTermDuplicate, makePersonalTerm: makePersonalTerm,
+    mergeTerms: mergeTerms, exportAdditions: exportAdditions, parseAdditions: parseAdditions };
 });

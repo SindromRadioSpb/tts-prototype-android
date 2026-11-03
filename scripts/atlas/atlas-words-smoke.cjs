@@ -53,7 +53,9 @@ const fs = require("fs"), path = require("path"), assert = require("assert/stric
       await plain.scrollIntoViewIfNeeded();
       await plain.click();
       await page.waitForSelector(".rm-sheet.rm-open .rm-sheet-body:not(:has(.rm-loading))", { timeout: 15000 });
-      assert.equal(await page.locator(".rm-sheet.rm-open .rm-surface-top").count(), 0, "no term block for a plain word");
+      assert.equal(await page.locator(".rm-sheet.rm-open .rm-surface-title").count(), 0, "no term block for a plain word");
+      // P5 G2: a plain word offers only «Добавить в термины»
+      assert.equal(await page.locator('.rm-sheet.rm-open [data-rm-surface-action="add-term"]').count(), 1, "a plain word can be added to the terms");
       await page.keyboard.press("Escape");
       await page.waitForTimeout(300);
       // print: the word layer is not printed
