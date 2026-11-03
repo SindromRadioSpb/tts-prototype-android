@@ -410,6 +410,9 @@ smoke:memory-canon PASS; `atlas-train-smoke.cjs` G1–G5 (с проверкам�
   reader-parity, memory-canon — PASS; `atlas-train-smoke.cjs` G1–G5 + очередь локально: после «Не помню» в разделе главная
   показывает «к повторению 1 из 2», сессия с главной пишет одну оценку, строка обновляется; `atlas-words-smoke`,
   `atlas-browser-smoke` — без ошибок ([отчёт](../research/engineering-atlas/2026-11-03-trainer-queue/local-browser.json)).
+- Прод 2026-11-03 (d4bb8f79): 3.11.853 живой; `atlas-train-smoke` G1, G3 и очередь на живом сайте — без ошибок (RU 390 / HE 1440: «к
+  повторению 1 из 2», одна оценка с главной, строка обновилась) ([отчёт](../research/engineering-atlas/2026-11-03-trainer-queue/production-browser.json)).
+  Проверка теперь ждёт, пока локальная база страницы поднимется, прежде чем считать записи.
 
 ## 5. Решения владельца
 

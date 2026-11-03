@@ -1,0 +1,270 @@
+[
+ {
+  "lang": "ru",
+  "width": 390,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "ru",
+  "width": 1440,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 390,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 1440,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "queue": {
+   "lang": "ru",
+   "width": 390,
+   "queueLine0": "Сегодня к повторению: 1 из 2 выученных, по всем разделам.",
+   "queueLine1": "Сегодня повторять нечего · выученных терминов: 2.",
+   "queueSentence": 1,
+   "wrote": 1
+  }
+ },
+ {
+  "g3": {
+   "lang": "ru",
+   "width": 390,
+   "line0": "Терминов: 15. Начните с «Учить»: память о термине появится с первого ответа.",
+   "term": "תִּמְסֹרֶת רְצוּעָה",
+   "marked": 2,
+   "meaning": "ременная передача",
+   "line1": "Терминов: 15 · к повторению: 1 · помню уверенно: 0",
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 2,
+    "review_log": 2
+   },
+   "db": {
+    "budget": {
+     "reviews": 0,
+     "newWords": 0
+    },
+    "keys": [
+     "at1:a97002:timsoret-retsua#belt-drive",
+     "at1:a97002:retsua#belt"
+    ],
+    "log": [
+     {
+      "item_key": "at1:a97002:timsoret-retsua#belt-drive",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 3,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9}}"
+     },
+     {
+      "item_key": "at1:a97002:retsua#belt",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 1,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9},\"fuzz_days\":0}"
+     }
+    ],
+    "inSchedule": 0,
+    "inDue": 0,
+    "inWords": 0,
+    "replaySame": true,
+    "stored": "{\"status\":\"\",\"due\":1794000292368,\"interval\":3,\"reps\":1,\"lapses\":0,\"stability\":2.3065,\"difficulty\":2.11810397,\"reviewedAt\":1793741092368,\"scheme\":\"fsrs\",\"textKey\":\"atlas-block-v1:a97002:s09-belt:b57ed32979e1aa8ce56b6cdc1f3d8209cdbf9a7d173dd7c3d5c9afdc10ce55f6\",\"sentenceId\":\"a97002:p195:b001\"}",
+    "replayed": "{\"stability\":2.3065,\"difficulty\":2.11810397,\"reps\":1,\"lapses\":0,\"lastReviewedAt\":1793741092368,\"intervalDays\":3,\"refIntervalDays\":3,\"dueMs\":1794000292368}"
+   },
+   "single": 1,
+   "overflow": 0,
+   "errors": 0
+  }
+ },
+ {
+  "queue": {
+   "lang": "he",
+   "width": 1440,
+   "queueLine0": "לחזרה היום: 1 מתוך 2 שנלמדו, בכל הפרקים.",
+   "queueLine1": "אין מה לחזור היום · מונחים שנלמדו: 2.",
+   "queueSentence": 1,
+   "wrote": 1
+  }
+ },
+ {
+  "g3": {
+   "lang": "he",
+   "width": 1440,
+   "line0": "מונחים: 15. התחילו ב«ללמוד»: הזיכרון של מונח מתחיל בתשובה הראשונה.",
+   "term": "תִּמְסֹרֶת רְצוּעָה",
+   "marked": 2,
+   "meaning": "ременная передача",
+   "line1": "מונחים: 15 · לחזרה: 1 · זוכר היטב: 0",
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 2,
+    "review_log": 2
+   },
+   "db": {
+    "budget": {
+     "reviews": 0,
+     "newWords": 0
+    },
+    "keys": [
+     "at1:a97002:timsoret-retsua#belt-drive",
+     "at1:a97002:retsua#belt"
+    ],
+    "log": [
+     {
+      "item_key": "at1:a97002:timsoret-retsua#belt-drive",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 3,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9}}"
+     },
+     {
+      "item_key": "at1:a97002:retsua#belt",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 1,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9},\"fuzz_days\":0}"
+     }
+    ],
+    "inSchedule": 0,
+    "inDue": 0,
+    "inWords": 0,
+    "replaySame": true,
+    "stored": "{\"status\":\"\",\"due\":1794000306976,\"interval\":3,\"reps\":1,\"lapses\":0,\"stability\":2.3065,\"difficulty\":2.11810397,\"reviewedAt\":1793741106976,\"scheme\":\"fsrs\",\"textKey\":\"atlas-block-v1:a97002:s09-belt:b57ed32979e1aa8ce56b6cdc1f3d8209cdbf9a7d173dd7c3d5c9afdc10ce55f6\",\"sentenceId\":\"a97002:p195:b001\"}",
+    "replayed": "{\"stability\":2.3065,\"difficulty\":2.11810397,\"reps\":1,\"lapses\":0,\"lastReviewedAt\":1793741106976,\"intervalDays\":3,\"refIntervalDays\":3,\"dueMs\":1794000306976}"
+   },
+   "single": 1,
+   "overflow": 0,
+   "errors": 0
+  }
+ }
+]

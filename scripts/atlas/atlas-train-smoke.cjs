@@ -27,7 +27,12 @@ async function chooseStage(page, n) {
   await page.locator(`.atlas-train-panel [data-stage="${n}"]`).click();
   await page.waitForTimeout(400);
 }
-const rowsOf = (page) => page.evaluate(async () => {
+// the page's local database may still be starting (a slow production load): wait until it answers
+const rowsOf = async (page) => {
+  for (let i = 0; i < 40; i++) { const r = await rowsOnce(page); if (!r.error) return r; await page.waitForTimeout(500); }
+  return rowsOnce(page);
+};
+const rowsOnce = (page) => page.evaluate(async () => {
   try {
     const db = await import("/db/local-db.js?v=853");
     const one = async (sql) => { const r = await db.dbQuery(sql); return r && r[0] ? Number(r[0].n) : null; };
