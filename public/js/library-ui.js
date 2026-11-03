@@ -13391,6 +13391,7 @@ function attachAtlasTrain(section, data, how, ctx, onTermsChanged) {
   const terms = atlasSectionTermsBlock(section, data, ctx, ui);
   ui.panel.appendChild(terms.el);
   ui.panel.appendChild(atlasFindBlock(ctx.atlasId, sid).el);
+  ui.panel.appendChild(atlasSymbolBlock(section, data).el);
   const mine = atlasMyTermsBlock(sid, onTermsChanged);
   ui.panel.appendChild(mine.el);
   repaint();
@@ -13454,6 +13455,39 @@ function atlasFindBlock(atlasId, sid) {
   here.addEventListener('click', () => run(sid));
   paint();
   return { el: box, paint };
+}
+// P5 G5 — «Что это за символ?»: the section's formulas without their tables; options in the stage's language (Г5:
+// Russian on stages 0–1, Hebrew on 2–3). A session takes up to 8 formulas at random; nothing is stored.
+const ATLAS_SYMBOL_FORMULAS = 8;
+function atlasSymbolBlock(section, data) {
+  const AT = window.AtlasTrain, UI = window.AtlasTrainUI, sid = String((data && data.id) || '');
+  const box = el('div', { class: 'atlas-sym-block' });
+  const head = el('div', { class: 'atlas-view-head', text: tt('atlas.sym.title', 'Что это за символ?') });
+  const line = el('p', { class: 'atlas-stage-desc' });
+  const start = el('button', { class: 'atlas-chip atlas-term-save', attrs: { type: 'button', 'data-sym-start': '' }, text: tt('atlas.sym.start', 'Начать') });
+  box.append(head, line, start);
+  const count = AT.symbolQuestions(data, { lang: 'ru' }).length;
+  line.textContent = count
+    ? tt('atlas.sym.intro', 'Формула без таблицы обозначений — назовите смысл и единицу каждого символа. Формул в разделе: {n}.').replace('{n}', String(count))
+    : tt('atlas.sym.none', 'В этом разделе нет формул с таблицей обозначений.');
+  start.disabled = !count;
+  start.addEventListener('click', () => {
+    // Г5: Hebrew options on stages 2–3; a section whose symbols are not described in Hebrew says so and asks in Russian
+    let lang = atlasStageOf(sid) >= 2 ? 'he' : 'ru', all = AT.symbolQuestions(data, { lang }), note = '';
+    if (!all.length && lang === 'he') { lang = 'ru'; all = AT.symbolQuestions(data, { lang }); note = tt('atlas.sym.noHebrew', 'Описаний символов на иврите в этом разделе нет — варианты на русском.'); }
+    for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+    let s = null;
+    const close = () => { if (s && s.el.isConnected) s.el.remove(); };
+    s = UI.symbolSession(document, { T: tt, note, questions: all.slice(0, ATLAS_SYMBOL_FORMULAS), check: (sym, picks) => AT.checkSymbol(sym, picks),
+      onOpen: (q) => {
+        close();
+        const card = Array.from(section.querySelectorAll('.atlas-formula[data-ref]')).find((f) => f.getAttribute('data-ref') === q.formulaId);
+        if (card) { card.scrollIntoView({ block: 'center' }); card.classList.add('atlas-row-flash'); setTimeout(() => card.classList.remove('atlas-row-flash'), 2400); }
+      },
+      onClose: close });
+    document.body.appendChild(s.el);
+  });
+  return { el: box };
 }
 // the answer's page in the reader; the fragment must still stand there, else the question is retired (stale)
 function atlasFindOpen(it) {

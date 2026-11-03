@@ -596,3 +596,133 @@ test("the find session: a fragment, a section and a page, the answer with the ti
   fire(q("[data-find-close]"), "click");
   assert.equal(closed, 1);
 });
+
+// ---- G5: «Что это за символ?» ----
+function symSection() {
+  const v = (latex, ru, he, unit) => ({ latex, ru, he, unit, mathml: "<math><mi>" + latex + "</mi></math>" });
+  return { id: "s09-belt", pages: [
+    { page: 196, items: [{ id: "f1", type: "formula", latex: "H=M n", mathml: "<math>H</math>",
+      vars: [v("H", "Мощность", "הספק", "kW"), v("M_t", "Крутящий момент", "מומנט", "N·mm"), v("n", "Частота вращения", "מהירות סיבוב", "rpm")] },
+      { id: "f2", type: "formula", latex: "i=n_2/n_1", mathml: "<math>i</math>",
+        vars: [v("i", "Передаточное отношение", "יחס תמסורת", ""), v("n_1", "Частота вращения", "מהירות סיבוב", "rpm"), v("n_2", "Частота вращения", "מהירות סיבוב", "rpm")] }] },
+    { page: 197, items: [{ id: "f3", type: "formula", latex: "d", mathml: "<math>d</math>", vars: [v("d", "Диаметр", "קוטר", "mm")] },
+      { id: "f4", type: "formula", latex: "v=πdn", mathml: "<math>v</math>",
+        vars: [v("v", "Скорость ремня", "מהירות רצועה", "m/s"), v("d", "Диаметр", "קוטר", "mm"), { latex: "x", he: "", ru: "", unit: "" }] }] }] };
+}
+const seq = (vals) => { let i = 0; return () => vals[i++ % vals.length]; };
+
+test("symbol questions: formulas with at least two symbols that have a meaning; one question per such symbol", () => {
+  const qs = T.symbolQuestions(symSection(), { rnd: seq([0.1, 0.5, 0.9]), lang: "ru" });
+  assert.deepEqual(qs.map((q) => q.formulaId), ["f1", "f2", "f4"], "f3 has one symbol; f4 keeps its two symbols with a meaning");
+  assert.deepEqual(qs[0].symbols.map((s) => s.latex), ["H", "M_t", "n"]);
+  assert.equal(qs[2].symbols.length, 2);
+  assert.equal(qs[0].page, 196);
+});
+
+test("the four meanings: the right one and three others of the same section, never two equal ones", () => {
+  const qs = T.symbolQuestions(symSection(), { rnd: seq([0.3, 0.7, 0.1, 0.9]), lang: "ru" });
+  for (const q of qs) for (const s of q.symbols) {
+    const m = s.options.meaning;
+    assert.equal(m.length, 4, s.latex);
+    assert.ok(m.includes(s.answer.text), s.latex + ": the right meaning is offered");
+    assert.equal(new Set(m).size, 4, s.latex + ": no two equal options");
+  }
+});
+
+test("units: asked when the symbol has one and the section has three other units; otherwise only the meaning", () => {
+  const qs = T.symbolQuestions(symSection(), { rnd: seq([0.2, 0.6]), lang: "ru" });
+  const h = qs[0].symbols[0];
+  assert.equal(h.options.unit.length, 4);
+  assert.ok(h.options.unit.includes("kW"));
+  assert.equal(new Set(h.options.unit).size, 4);
+  const i = qs[1].symbols[0];
+  assert.equal(i.options.unit, null, "a symbol without a unit is asked its meaning only");
+});
+
+test("the options speak the stage's language: Hebrew on stages 2–3 (owner Г5)", () => {
+  const he = T.symbolQuestions(symSection(), { rnd: seq([0.5]), lang: "he" });
+  const s = he[0].symbols[0];
+  assert.equal(s.answer.text, "הספק");
+  assert.ok(s.options.meaning.every((x) => /[א-ת]/.test(x)));
+});
+
+test("checking: two symbols with the same meaning in one formula — that meaning is right for both", () => {
+  const q = T.symbolQuestions(symSection(), { rnd: seq([0.4]), lang: "ru" })[1];
+  const [i, n1, n2] = q.symbols;
+  assert.deepEqual(T.checkSymbol(n1, { meaning: "Частота вращения", unit: "rpm" }), { meaning: true, unit: true });
+  assert.deepEqual(T.checkSymbol(n2, { meaning: "Частота вращения", unit: "kW" }), { meaning: true, unit: false });
+  assert.deepEqual(T.checkSymbol(i, { meaning: "Частота вращения" }), { meaning: false, unit: null });
+});
+
+test("a section without suitable formulas gives no questions", () => {
+  assert.deepEqual(T.symbolQuestions({ id: "s", pages: [{ page: 1, items: [{ id: "b", type: "block", he: "x" }] }] }, { lang: "ru" }), []);
+});
+
+test("the symbol session: a formula, one symbol at a time, the meaning and the unit, then the whole table and the page", () => {
+  const { document, window } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const qs = T.symbolQuestions(symSection(), { rnd: seq([0.5]), lang: "ru" }).slice(0, 1);
+  const answers = [], opened = [];
+  let closed = 0;
+  const s = UI.symbolSession(document, { T: (k, fb) => fb, questions: qs, check: T.checkSymbol,
+    onAnswer: (q, sym, r) => answers.push([sym.latex, r.meaning, r.unit]), onOpen: (q) => opened.push(q.page), onClose: () => closed++ });
+  document.body.appendChild(s.el);
+  const q = (sel) => s.el.querySelector(sel);
+  const fire = (el) => el.dispatchEvent(new window.Event("click"));
+  assert.match(q(".atlas-sym-formula").innerHTML, /<math>/);
+  assert.match(q(".atlas-sym-symbol").innerHTML, /<mi>H<\/mi>/);
+  assert.equal(q("[data-sym-check]").disabled, true);
+  const pickMeaning = (text) => fire(Array.from(s.el.querySelectorAll("[data-sym-meaning]")).find((b) => b.getAttribute("data-sym-meaning") === text));
+  const pickUnit = (u) => fire(Array.from(s.el.querySelectorAll("[data-sym-unit]")).find((b) => b.getAttribute("data-sym-unit") === u));
+  pickMeaning("Мощность");
+  assert.equal(q("[data-sym-check]").disabled, true, "the unit is asked too");
+  pickUnit("rpm");
+  fire(q("[data-sym-check]"));
+  assert.deepEqual(answers[0], ["H", true, false]);
+  assert.match(q(".atlas-sym-feedback").textContent, /kW/, "a wrong unit shows the right one");
+  fire(q("[data-sym-next]"));
+  assert.match(q(".atlas-sym-symbol").innerHTML, /M_t/);
+  pickMeaning("Крутящий момент"); pickUnit("N·mm"); fire(q("[data-sym-check]"));
+  fire(q("[data-sym-next]"));
+  pickMeaning("Частота вращения"); pickUnit("rpm"); fire(q("[data-sym-check]"));
+  fire(q("[data-sym-next]"));
+  assert.equal(s.el.querySelectorAll(".atlas-sym-table tr").length, 3, "after the last symbol: the whole table");
+  fire(q("[data-sym-open]"));
+  assert.deepEqual(opened, [196]);
+  fire(q("[data-sym-next]"));
+  assert.match(q(".atlas-ts-done").textContent, /2\D+3/, "the summary: 2 of 3 fully right");
+  fire(q("[data-sym-close]"));
+  assert.equal(closed, 1);
+});
+
+test("Hebrew options never mix in Russian: a symbol without a Hebrew description is not asked in Hebrew", () => {
+  const sec = symSection();
+  sec.pages[0].items[0].vars[0].he = "";                     // H has no Hebrew description
+  const qs = T.symbolQuestions(sec, { rnd: seq([0.5]), lang: "he" });
+  const all = qs.flatMap((q) => q.symbols);
+  assert.ok(!all.some((s) => s.latex === "H"), "H is not asked in Hebrew");
+  assert.ok(all.every((s) => s.options.meaning.every((x) => /[א-ת]/.test(x))), "every option is Hebrew");
+  const ru = T.symbolQuestions(sec, { rnd: seq([0.5]), lang: "ru" });
+  assert.ok(ru.flatMap((q) => q.symbols).some((s) => s.latex === "H"), "it is still asked in Russian");
+});
+
+test("the same symbol described otherwise elsewhere in the section is never a wrong option", () => {
+  const v = (latex, ru, unit) => ({ latex, ru, he: "", unit });
+  // H has exactly three other meanings in the section, one of them is H itself described as «Выходная мощность»:
+  // without the rule it is always offered; with it H has too few honest options and is not asked
+  const sec = { id: "s", pages: [{ page: 1, items: [
+    { id: "f1", type: "formula", latex: "H=Mn", vars: [v("H", "Мощность", "kW"), v("M_t", "Крутящий момент", "N·mm"), v("n", "Частота вращения", "rpm")] },
+    { id: "f5", type: "formula", latex: "H=Fv", vars: [v("H", "Выходная мощность", "kW"), v("M_t", "Крутящий момент", "N·mm")] }] }] };
+  const all = T.symbolQuestions(sec, { rnd: seq([0.5]), lang: "ru" }).flatMap((q) => q.symbols);
+  for (const s of all.filter((x) => x.latex === "H")) assert.ok(!s.options.meaning.some((m) => /мощность/i.test(m)), s.answer.text + ": " + s.options.meaning);
+});
+
+test("the symbol session can say why its options are not in the stage's language", () => {
+  const { document } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const qs = T.symbolQuestions(symSection(), { rnd: seq([0.5]), lang: "ru" }).slice(0, 1);
+  const s = UI.symbolSession(document, { T: (k, fb) => fb, questions: qs, check: T.checkSymbol, note: "Описаний на иврите нет — варианты на русском." });
+  assert.equal(s.el.querySelector(".atlas-train-note").textContent, "Описаний на иврите нет — варианты на русском.");
+  const t = UI.symbolSession(document, { T: (k, fb) => fb, questions: qs, check: T.checkSymbol });
+  assert.equal(t.el.querySelector(".atlas-train-note"), null);
+});

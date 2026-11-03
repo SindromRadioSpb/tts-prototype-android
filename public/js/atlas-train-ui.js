@@ -308,5 +308,92 @@
     return { el: el, stop: function () { if (timer) clearInterval(timer); } };
   }
 
-  return { panel: panel, termForm: termForm, termSession: termSession, findSession: findSession };
+  // P5 G5 — «Что это за символ?»: the formula without its table; one symbol at a time — its meaning (and unit) among
+  // four of the same section; after the last symbol the whole table and the way to the page. Nothing is stored as memory.
+  // opts: { T, questions (AtlasTrain.symbolQuestions), check(sym, picks), onAnswer(q, sym, result), onOpen(q), onClose }
+  function symbolSession(doc, opts) {
+    opts = opts || {};
+    var T = typeof opts.T === "function" ? opts.T : function (k, fb) { return fb; };
+    var qs = opts.questions || [], qi = 0, si = 0, total = 0, fully = 0;
+    var card = h(doc, "div", { cls: "atlas-term-card atlas-sym" });
+    var el = h(doc, "div", { cls: "atlas-root atlas-term-dialog", role: "dialog", "aria-modal": "true", "aria-label": T("atlas.sym.title", "Что это за символ?") }, [card]);
+    function close() { if (typeof opts.onClose === "function") opts.onClose(); }
+    el.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    function button(attr, val, text, cls) { var b = h(doc, "button", { type: "button", cls: "atlas-chip" + (cls ? " " + cls : "") }); b.setAttribute(attr, val); b.textContent = text; return b; }
+    function closeBtn() { var c = button("data-sym-close", "", T("atlas.train.stop", "Закончить")); c.addEventListener("click", close); return c; }
+    function math(cls, html, fallback) { var d = h(doc, "div", { cls: cls, dir: "ltr" }); if (html) d.innerHTML = html; else d.textContent = fallback || ""; return d; }
+    function head(q) {
+      card.replaceChildren(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.sym.title", "Что это за символ?") + " · " + (qi + 1) + " / " + qs.length }));
+      if (opts.note) card.appendChild(h(doc, "p", { cls: "atlas-train-note", text: opts.note }));
+      card.appendChild(math("atlas-sym-formula", q.mathml, q.latex));
+    }
+    function show() {
+      if (qi >= qs.length) {
+        card.replaceChildren(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.sym.title", "Что это за символ?") }),
+          h(doc, "p", { cls: "atlas-ts-done", text: T("atlas.sym.done", "Полностью верно: {ok} из {n} символов.").replace("{ok}", String(fully)).replace("{n}", String(total)) }), closeBtn());
+        return;
+      }
+      var q = qs[qi];
+      if (si >= q.symbols.length) return table(q);
+      var sym = q.symbols[si], picks = { meaning: null, unit: null };
+      head(q);
+      card.appendChild(h(doc, "p", { cls: "atlas-sym-ask", text: T("atlas.sym.ask", "Что обозначает символ") }));
+      card.appendChild(math("atlas-sym-symbol", sym.mathml, sym.latex));
+      var check = button("data-sym-check", "", T("atlas.find.check", "Проверить"), "atlas-term-save");
+      function ready() { check.disabled = !picks.meaning || (!!sym.options.unit && !picks.unit); }
+      function group(kind, list) {
+        var g = h(doc, "div", { cls: "atlas-sym-options", role: "radiogroup" });
+        list.forEach(function (x) {
+          var b = button("data-sym-" + kind, x, x);
+          b.setAttribute("role", "radio"); b.setAttribute("aria-checked", "false");
+          if (kind === "meaning" && /[א-ת]/.test(x)) { b.setAttribute("dir", "rtl"); b.setAttribute("lang", "he"); }
+          b.addEventListener("click", function () {
+            picks[kind] = x;
+            g.querySelectorAll("button").forEach(function (o) { o.setAttribute("aria-checked", String(o === b)); });
+            ready();
+          });
+          g.appendChild(b);
+        });
+        return g;
+      }
+      card.appendChild(group("meaning", sym.options.meaning));
+      if (sym.options.unit) { card.appendChild(h(doc, "p", { cls: "atlas-sym-ask", text: T("atlas.sym.unit", "Единица") })); card.appendChild(group("unit", sym.options.unit)); }
+      check.addEventListener("click", function () {
+        if (check.disabled) return;
+        var r = typeof opts.check === "function" ? opts.check(sym, picks) : { meaning: false, unit: null };
+        total++; if (r.meaning && r.unit !== false) fully++;
+        if (typeof opts.onAnswer === "function") opts.onAnswer(q, sym, r);
+        card.querySelectorAll(".atlas-sym-options button").forEach(function (b) { b.disabled = true; });
+        var good = r.meaning && r.unit !== false;
+        var fb = h(doc, "div", { cls: "atlas-sym-feedback atlas-ts-answer", role: "status" }, [
+          h(doc, "p", { cls: "atlas-ts-ru", text: good ? T("atlas.sym.right", "Верно.") : T("atlas.sym.wrong", "Правильно так:") }),
+          h(doc, "p", { text: sym.answer.ru + (sym.answer.he ? " · " + sym.answer.he : "") + (sym.answer.unit ? " · " + sym.answer.unit : "") })]);
+        var next = button("data-sym-next", "", T("atlas.find.next", "Дальше"), "atlas-term-save");
+        next.addEventListener("click", function () { si++; show(); });
+        check.replaceWith(fb);
+        card.querySelector(".atlas-sym-actions").prepend(next);
+        try { next.focus(); } catch (_) {}
+      });
+      card.appendChild(h(doc, "div", { cls: "atlas-seg atlas-ts-actions atlas-sym-actions" }, [check, closeBtn()]));
+      ready();
+    }
+    function table(q) {
+      head(q);
+      var t = h(doc, "table", { cls: "atlas-sym-table" });
+      q.symbols.forEach(function (sym) {
+        var c = h(doc, "td", { dir: "ltr" }); if (sym.mathml) c.innerHTML = sym.mathml; else c.textContent = sym.latex;
+        t.appendChild(h(doc, "tr", {}, [c, h(doc, "td", { text: sym.answer.ru }), h(doc, "td", { dir: "rtl", lang: "he", text: sym.answer.he }), h(doc, "td", { text: sym.answer.unit })]));
+      });
+      card.appendChild(t);
+      var open = button("data-sym-open", "", T("atlas.find.open", "Открыть стр. {p}").replace("{p}", String(q.page)));
+      open.addEventListener("click", function () { if (typeof opts.onOpen === "function") opts.onOpen(q); });
+      var next = button("data-sym-next", "", T("atlas.sym.nextFormula", "Следующая формула"), "atlas-term-save");
+      next.addEventListener("click", function () { qi++; si = 0; show(); });
+      card.appendChild(h(doc, "div", { cls: "atlas-seg atlas-ts-actions" }, [next, open, closeBtn()]));
+    }
+    show();
+    return { el: el };
+  }
+
+  return { panel: panel, termForm: termForm, termSession: termSession, findSession: findSession, symbolSession: symbolSession };
 });

@@ -282,6 +282,49 @@ const rowsOf = (page) => page.evaluate(async () => {
       assert.deepEqual(errors, [], "no page errors");
       await context.close();
     }
+    // G5: «Что это за символ?» — the formula and the symbol in MathML, four options, feedback, the whole table after the
+    // last symbol, «Открыть» marks the formula; Hebrew options at stage 3 (Г5); nothing written
+    if (!process.argv.includes("--no-g5")) for (const [lang, width, stage] of [["ru", 390, 0], ["he", 1440, 3]]) {
+      const context = await browser.newContext({ viewport: { width, height: 860 }, serviceWorkers: "block" });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await page.addInitScript((st) => { try { if (!sessionStorage.getItem("smoke.init")) { localStorage.setItem("room.atlas.stage.v1", JSON.stringify(st ? { "s09-belt": st } : {})); sessionStorage.setItem("smoke.init", "1"); } } catch (_) {} }, stage);
+      await openSection(page, base, lang);
+      const before = await rowsOf(page);
+      await page.locator(".atlas-train-btn").click();
+      const intro = await page.locator(".atlas-sym-block .atlas-stage-desc").innerText();
+      await page.locator("[data-sym-start]").click();
+      await page.waitForSelector(".atlas-sym-formula math", { state: "attached" });
+      const firstOptions = await page.locator("[data-sym-meaning]").allInnerTexts();
+      await page.screenshot({ path: path.join(out, `symbol-ask-${lang}-${width}.png`) });
+      let symbols = 0;
+      while (await page.locator("[data-sym-meaning]").count()) {
+        await page.locator("[data-sym-meaning]").first().click();
+        if (await page.locator("[data-sym-unit]").count()) await page.locator("[data-sym-unit]").first().click();
+        await page.locator("[data-sym-check]").click();
+        await page.waitForSelector(".atlas-sym-feedback");
+        symbols++;
+        await page.locator("[data-sym-next]").first().click();
+        if (await page.locator(".atlas-sym-table").count()) break;
+      }
+      const rows = await page.locator(".atlas-sym-table tr").count();
+      await page.screenshot({ path: path.join(out, `symbol-table-${lang}-${width}.png`) });
+      await page.locator("[data-sym-open]").click();
+      await page.waitForSelector(".atlas-formula.atlas-row-flash", { timeout: 10000 });
+      const after = await rowsOf(page);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      report.push({ g5: { lang, width, stage, intro, firstOptions, symbols, rows, before, after, overflow, errors: errors.length } });
+      assert.ok(/\d/.test(intro), "the section's formulas are counted: " + intro);
+      assert.equal(firstOptions.length, 4);
+      if (stage >= 2) assert.ok(firstOptions.every((x) => /[א-ת]/.test(x)), "Hebrew options at stage 3: " + firstOptions);
+      else assert.ok(firstOptions.every((x) => /[а-яА-Я]/.test(x)), "Russian options at stage 0: " + firstOptions);
+      assert.ok(symbols >= 2 && rows === symbols, "one question per symbol, then the whole table");
+      assert.deepEqual(after, before, "the exercise writes nothing into word_status / review_log");
+      assert.ok(overflow <= 1, "no horizontal scroll");
+      assert.deepEqual(errors, [], "no page errors");
+      await context.close();
+    }
   } finally {
     await browser.close();
     fs.writeFileSync(path.join(out, "report.json"), JSON.stringify(report, null, 1) + "\n");

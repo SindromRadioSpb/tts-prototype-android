@@ -255,7 +255,52 @@
       nearRate: count(function (x) { return x.page === "near"; }), medianMs: med };
   }
 
-  return { STAGES: STAGES, stageOf: stageOf, checkFind: checkFind, pickFind: pickFind, findStats: findStats,
+  // ---- G5: «Что это за символ?» — a formula without its table: the meaning (and unit) of each symbol ----
+  // Questions come from the section's own symbol tables; the other options are meanings/units of the same section.
+  // opts: { rnd, lang: 'ru' | 'he' } (Hebrew options on stages 2–3, owner Г5) → [{ formulaId, page, latex, mathml,
+  //   symbols: [{ latex, mathml, answer: { text, ru, he, unit }, options: { meaning: [4 texts], unit: [4] | null } }] }]
+  function symbolQuestions(section, opts) {
+    opts = opts || {};
+    var rnd = typeof opts.rnd === "function" ? opts.rnd : Math.random, he = opts.lang === "he";
+    var textOf = function (v) { return String((he && v.he) || v.ru || "").trim(); };
+    var formulas = [], meanings = [], units = [];
+    ((section && section.pages) || []).forEach(function (p) {
+      (p.items || []).forEach(function (it) {
+        if (!it || it.type !== "formula") return;
+        // in Hebrew only symbols described in Hebrew: the options never mix languages
+        var vars = (it.vars || []).filter(function (v) { return v && String(v.ru || "").trim() && (!he || /[א-ת]/.test(String(v.he || ""))); });
+        vars.forEach(function (v) {
+          var known = meanings.filter(function (m) { return m.text === textOf(v); })[0];
+          if (known) { if (known.syms.indexOf(v.latex) < 0) known.syms.push(v.latex); }
+          else meanings.push({ text: textOf(v), ru: String(v.ru).trim(), syms: [v.latex] });
+          if (v.unit && units.indexOf(v.unit) < 0) units.push(v.unit);
+        });
+        if (vars.length >= 2) formulas.push({ it: it, page: p.page, vars: vars });
+      });
+    });
+    function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    function pick3(pool) { return shuffle(pool).slice(0, 3); }
+    return formulas.map(function (f) {
+      return { formulaId: f.it.id, page: f.page, latex: f.it.latex || "", mathml: f.it.mathml || "",
+        symbols: f.vars.map(function (v) {
+          var answer = { text: textOf(v), ru: String(v.ru).trim(), he: String(v.he || ""), unit: String(v.unit || "") };
+          // the same symbol described otherwise elsewhere may be the same quantity: never a wrong option
+          var others = meanings.filter(function (m) { return m.ru !== answer.ru && m.text !== answer.text && m.syms.indexOf(v.latex) < 0; }).map(function (m) { return m.text; });
+          var otherUnits = units.filter(function (u) { return u !== answer.unit; });
+          return { latex: v.latex, mathml: v.mathml || "", answer: answer,
+            options: { meaning: others.length >= 3 ? shuffle(pick3(others).concat([answer.text])) : null,
+              unit: answer.unit && otherUnits.length >= 3 ? shuffle(pick3(otherUnits).concat([answer.unit])) : null } };
+        }).filter(function (s) { return s.options.meaning; }) };
+    }).filter(function (q) { return q.symbols.length; });
+  }
+  // picks { meaning: text, unit } → { meaning: bool, unit: bool | null }
+  function checkSymbol(sym, picks) {
+    picks = picks || {};
+    return { meaning: !!sym && picks.meaning === sym.answer.text,
+      unit: sym && sym.options && sym.options.unit ? picks.unit === sym.answer.unit : null };
+  }
+
+  return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
     termStats: termStats, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,
