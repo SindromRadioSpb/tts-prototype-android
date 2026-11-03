@@ -155,5 +155,83 @@
     return { el: el, focus: function () { try { ru.focus(); } catch (_) {} } };
   }
 
-  return { panel: panel, termForm: termForm };
+  // P5 G3 — a term session: the Hebrew term and its sentence from the book first, the meaning on request, then
+  // «Не помню» / «Помню» (the one write: onGrade(key, ok) → Promise<boolean saved>). A miss comes back once at the end.
+  // item: { key, title (pointed), plain, translit, ru, sentence (words joined by spaces), from, to, page }
+  function termSession(doc, opts) {
+    opts = opts || {};
+    var T = typeof opts.T === "function" ? opts.T : function (k, fb) { return fb; };
+    var queue = (opts.items || []).slice(), total = queue.length, firstOk = 0, missed = {}, cur = null, busy = false;
+    var card = h(doc, "div", { cls: "atlas-term-card atlas-ts" });
+    var el = h(doc, "div", { cls: "atlas-root atlas-term-dialog", role: "dialog", "aria-modal": "true", "aria-label": T("atlas.train.termsHead", "Термины раздела") }, [card]);
+    function close() { if (typeof opts.onClose === "function") opts.onClose(); }
+    el.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    function sentenceHtml(it) {
+      var words = String(it.sentence || "").split(/\s+/).filter(Boolean);
+      return words.map(function (w, i) {
+        var t = esc(w);
+        return it.from != null && i >= it.from && i <= it.to ? "<mark>" + t + "</mark>" : t;
+      }).join(" ");
+    }
+    function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function button(attr, val, text, cls) { var b = h(doc, "button", { type: "button", cls: "atlas-chip" + (cls ? " " + cls : "") }); b.setAttribute(attr, val); b.textContent = text; return b; }
+    function show() {
+      card.replaceChildren();
+      if (!queue.length) {
+        card.appendChild(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.train.termsHead", "Термины раздела") }));
+        card.appendChild(h(doc, "p", { cls: "atlas-ts-done", text: T("atlas.train.sessionDone", "Помню с первого раза: {ok} из {n}.").replace("{ok}", String(firstOk)).replace("{n}", String(total)) }));
+        var done = button("data-ts-close", "1", T("atlas.train.close", "Закрыть"), "atlas-term-save");
+        done.addEventListener("click", close);
+        card.appendChild(done);
+        return;
+      }
+      cur = queue[0];
+      card.appendChild(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.train.termsHead", "Термины раздела") + " · " + Math.max(1, Math.min(total, total - queue.length + 1)) + " / " + total }));
+      card.appendChild(h(doc, "p", { cls: "atlas-ts-term", dir: "rtl", lang: "he", text: opts.plainHebrew ? (cur.plain || cur.title) : (cur.title || cur.plain) }));
+      if (cur.sentence) { var sn = h(doc, "p", { cls: "atlas-ts-sentence", dir: "rtl", lang: "he" }); sn.innerHTML = sentenceHtml(cur); card.appendChild(sn); }
+      var answer = h(doc, "div", { cls: "atlas-ts-answer", hidden: true }, [
+        h(doc, "p", { cls: "atlas-ts-ru", text: cur.ru }),
+        cur.translit ? h(doc, "p", { cls: "atlas-ts-translit", dir: "ltr", text: (opts.plainHebrew ? cur.title + " · " : "") + cur.translit }) : null]);
+      card.appendChild(answer);
+      var err = h(doc, "p", { cls: "atlas-train-note atlas-ts-error", role: "alert", hidden: true, text: T("atlas.train.saveError", "Ответ не сохранился — попробуйте ещё раз.") });
+      card.appendChild(err);
+      var row = h(doc, "div", { cls: "atlas-seg atlas-ts-actions" });
+      var reveal = button("data-ts-reveal", "1", T("atlas.train.reveal", "Показать значение"), "atlas-term-save");
+      reveal.addEventListener("click", function () {
+        answer.hidden = false; reveal.remove();
+        var no = button("data-ts-grade", "0", T("atlas.train.forgot", "Не помню")), yes = button("data-ts-grade", "1", T("atlas.train.remember", "Помню"), "atlas-term-save");
+        [no, yes].forEach(function (b) { b.addEventListener("click", function () { grade(b.getAttribute("data-ts-grade") === "1", err); }); });
+        row.prepend(yes); row.prepend(no);
+        try { yes.focus(); } catch (_) {}
+      });
+      row.appendChild(reveal);
+      if (cur.page && typeof opts.onOpenPage === "function") {
+        var open = button("data-ts-open", "1", T("atlas.train.openPage", "Стр. {p} в книге").replace("{p}", String(cur.page)));
+        var it = cur;
+        open.addEventListener("click", function () { opts.onOpenPage(it); });
+        row.appendChild(open);
+      }
+      var stop = button("data-ts-close", "1", T("atlas.train.stop", "Закончить"));
+      stop.addEventListener("click", close);
+      row.appendChild(stop);
+      card.appendChild(row);
+      try { reveal.focus(); } catch (_) {}
+    }
+    function grade(ok, err) {
+      if (busy || !cur) return;
+      busy = true;
+      var it = cur;
+      Promise.resolve(typeof opts.onGrade === "function" ? opts.onGrade(it.key, ok) : true).then(function (saved) {
+        busy = false;
+        if (!saved) { err.hidden = false; return; }
+        queue.shift();
+        if (!missed[it.key]) { if (ok) firstOk++; else { missed[it.key] = true; queue.push(it); } }
+        show();
+      }, function () { busy = false; err.hidden = false; });
+    }
+    show();
+    return { el: el };
+  }
+
+  return { panel: panel, termForm: termForm, termSession: termSession };
 });

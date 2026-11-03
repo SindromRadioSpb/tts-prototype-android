@@ -165,7 +165,69 @@
     return out;
   }
 
-  return { STAGES: STAGES, stageOf: stageOf, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
+  // ---- G3: section terms in SRS — the atlas's own target kind (3 of 4 terms are phrases: no lemma key exists) ----
+  var TERM_KEY = /^at1:([a-z0-9]+):([a-z0-9-]+)#([A-Za-z0-9_-]+)$/;
+  var STRONG_DAYS = 7;
+  function termKey(atlasId, termId, sense) {
+    var m = /^([a-z0-9]+):term:([a-z0-9-]+)$/.exec(String(termId || ""));
+    if (!m || m[1] !== String(atlasId) || !/^[A-Za-z0-9_-]+$/.test(String(sense || ""))) return null;
+    return "at1:" + m[1] + ":" + m[2] + "#" + sense;
+  }
+  function parseTermKey(key) {
+    var m = TERM_KEY.exec(String(key || ""));
+    return m ? { atlasId: m[1], termId: m[1] + ":term:" + m[2], sense: m[3] } : null;
+  }
+  function isTermKey(key) { return !!parseTermKey(key); }
+  // The terms of an open section (ctx = AtlasWords.sectionContext with setPersonal), one item per sense, in the order
+  // of their first place: { key, termId, sense, title, plain, translit, translit_ru, ru, personal, block, from, to }.
+  // A link the text does not show keeps its paragraph without a word position (from/to null).
+  function sectionTermItems(ctx) {
+    var out = [], seen = {};
+    if (!ctx || !ctx.items) return out;
+    function add(id, sense, block, from, to) {
+      var k = termKey(ctx.atlasId, id, sense), term = ctx.terms && ctx.terms[id];
+      if (!k || seen[k] || !term) return;
+      var sn = (term.senses || []).filter(function (s) { return s && s.sense === sense; })[0];
+      if (!sn || !sn.ru) return;
+      seen[k] = true;
+      out.push({ key: k, termId: id, sense: sense, title: term.niqqud || term.lemma_he || "", plain: term.lemma_he || "",
+        translit: term.translit || "", translit_ru: term.translit_ru || "", ru: sn.ru, personal: !!term.personal,
+        block: block, from: from, to: to });
+    }
+    ctx.items.forEach(function (it, id) {
+      var loc = ctx.located(id);
+      if (!loc) return;
+      (loc.he.spans || []).forEach(function (sp) { add(sp.id, sp.sense, id, sp.from, sp.to); });
+      (loc.loose || []).forEach(function (r) { add(r.id, r.sense, id, null, null); });
+    });
+    return out;
+  }
+  // states: key → { status, due, stability } (the device's projection); → { termsTotal, termsStrong, due, fresh }
+  function termStats(keys, states, nowMs) {
+    var out = { termsTotal: 0, termsStrong: 0, due: 0, fresh: 0 };
+    (keys || []).forEach(function (k) {
+      var s = (states && states[k]) || {};
+      out.termsTotal++;
+      if (Number(s.stability) >= STRONG_DAYS || s.status === "l4" || s.status === "known" || s.status === "know") out.termsStrong++;
+      if (s.due) { if (Number(s.due) <= nowMs) out.due++; } else out.fresh++;
+    });
+    return out;
+  }
+  // a session: due terms (oldest due first), then never reviewed ones in book order; limit n
+  function sessionOrder(items, states, nowMs, n, opts) {
+    var due = [], fresh = [];
+    (items || []).forEach(function (it) {
+      var s = (states && states[it.key]) || {};
+      if (s.due) { if (Number(s.due) <= nowMs) due.push(it); } else fresh.push(it);
+    });
+    due.sort(function (a, b) { return Number(states[a.key].due) - Number(states[b.key].due); });
+    var list = opts && opts.dueOnly ? due : due.concat(fresh);
+    return list.slice(0, Math.max(0, Number(n) || 0));
+  }
+
+  return { STAGES: STAGES, stageOf: stageOf,
+    termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
+    termStats: termStats, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,
     HINT_SHARE: HINT_SHARE, HINT_MIN_TERMS: HINT_MIN_TERMS,
     skeletonOf: skeletonOf, personalTermId: personalTermId, findTermDuplicate: findTermDuplicate, makePersonalTerm: makePersonalTerm,

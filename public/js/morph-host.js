@@ -797,6 +797,31 @@
       invalidateWordStates(); onProfileChanged(); return fs.sched;
     }
 
+    // Atlas P5 G3 — an atlas term (at1:<atlas>:<term>#<sense>, its own target kind: 3 of 4 terms are phrases) graded in
+    // the atlas term session: the same FSRS and review_log as a word, one atomic commit (commitReviewAttempt), channel
+    // atlas:term, evidence = recognition (Hebrew term to meaning). prev = the projection of the term or null.
+    async function gradeAtlasTerm(key, correct, prev, source) {
+      var ldb = await ldbOf(), LC = window.LemmaCanon, FC = window.FsrsCore, R = window.ReaderMorph;
+      if (!/^at1:[a-z0-9]+:[a-z0-9-]+#[A-Za-z0-9_-]+$/.test(String(key || "")) || !LC || !FC || !R || !R.fsrsStep || !ldb.commitReviewAttempt) throw new Error("ATLAS_TERM_UNAVAILABLE");
+      var now = Date.now(), fs = R.fsrsStep(FC, prev && prev.due ? prev : null, !!correct, now, { itemKey: key });
+      if (!fs) throw new Error("ATLAS_TERM_SCHEDULER_UNAVAILABLE");
+      var row = { item_key: key, kind: "review", reviewed_at: new Date(now).toISOString(), grade: correct ? 3 : 1,
+        source: "atlas-term", channel: "atlas:term", meta: { keyer_version: LC.KEYER_VERSION, evidence_scope: "recognition",
+          scheduler: { scheme: "fsrs", engine_version: FC.ENGINE_VERSION, request_retention: FC.REQUEST_RETENTION } } };
+      if (fs.state && fs.state.intervalDays !== fs.state.refIntervalDays) row.meta.fuzz_days = fs.state.intervalDays;
+      row.id = LC.reviewId(row);
+      var seedRow = null;
+      if (fs.seeded && !(await ldb.hasSeedRow(key))) {
+        var meta = Object.assign({}, fs.seedMeta, { keyer_version: LC.KEYER_VERSION });
+        seedRow = { id: LC.seedId(key, meta), item_key: key, kind: "seed", reviewed_at: new Date(now - 1).toISOString(), source: "seed-sm2", meta: meta };
+      }
+      var res = await ldb.commitReviewAttempt({ row: row, seedRow: seedRow, sched: fs.sched, source: source || null });
+      if (!res || !res.committed) throw new Error("ATLAS_TERM_REVIEW_FAILED");
+      bumpTapStat("graded");
+      try { await ldb.recordRecall(env.dayStr ? env.dayStr() : "", 0); } catch (_) {}
+      return fs.sched;
+    }
+
     // Ф4 · Д7.2 once per device: marks on spelling keys move to the lemma (ReaderMorph.migrateSpellingMarks), in the
     // background after the page settles; one tab at a time (Web Lock). A moved mark repaints the word states.
     // the lexicon first (a paint before it keys an unread word by its spelling; the repaint after it agrees with the list)
@@ -896,6 +921,7 @@
       bumpTapStat: bumpTapStat,
       gradeReadingTap: gradeReadingTap,
       enrollLearningTarget: enrollLearningTarget, gradeLearningTarget: gradeLearningTarget,
+      gradeAtlasTerm: gradeAtlasTerm,
     };
   }
 

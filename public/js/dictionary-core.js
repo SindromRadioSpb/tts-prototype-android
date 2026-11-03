@@ -48,7 +48,7 @@
     var map = new Map();
     function entry(key) {
       key = str(key).trim();
-      if (!key || /^ft1:/.test(key)) return null;
+      if (!key || /^(ft1|at1):/.test(key)) return null;   // forms hang under their word; atlas terms live in the atlas (P5 G3)
       var e = map.get(key);
       if (!e) {
         e = { key: key, status: "", srs: null, note: null, log: null, ctx: null, surfaces: [], added: 0, lastSeen: 0, sources: [] };

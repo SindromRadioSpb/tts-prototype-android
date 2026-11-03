@@ -3387,11 +3387,35 @@ export async function lastMarkStatus(itemKey) {
 }
 // C2 — per-lemma recall SCHEDULE (only rows that have been recall-tested carry srs_due). Returns
 // { lemmaKey: { due(ms), interval, reps, lapses } }. Read-only; graceful {} if the column/table absent.
+// Atlas P5 G3 — at1:<atlas>:<term>#<sense> is the atlas's own target kind (plan ENGINEERING_ATLAS_P5_TRAINER_PLAN).
+// It lives in review_log/word_status like a word but is not a word: the word-facing reads below skip it (Room due
+// queue, schedule, word counts, colours) and the atlas reads it with getAtlasTermStates.
+const _AT1_RE = /^at1:[a-z0-9]+:[a-z0-9-]+#[A-Za-z0-9_-]+$/;
+function _badTargetKey(k) {
+  k = String(k || "");
+  if (k.startsWith('ft1:')) return !(globalThis.LearningTargets && globalThis.LearningTargets.parse(k));
+  if (k.startsWith('at1:')) return !_AT1_RE.test(k);
+  return false;
+}
+export async function getAtlasTermStates(atlasId) {
+  const out = {};
+  try {
+    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme
+                            FROM word_status WHERE lemma_key LIKE ?`, ['at1:' + String(atlasId || '') + ':%']);
+    for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = {
+      status: String(w.status || ''), due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0,
+      reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0,
+      stability: w.srs_stability != null ? Number(w.srs_stability) : null, difficulty: w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
+      reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null, scheme: w.srs_scheme || null,
+    };
+  } catch (_) {}
+  return out;
+}
 export async function getSrsSchedule() {
   try {
     // P2 — also carry the FSRS derived state (stability/difficulty/reviewedAt/scheme, migration 042)
     // so fsrsStep can resume an FSRS-owned word without re-seeding. Legacy rows have them NULL.
-    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme FROM word_status WHERE srs_due IS NOT NULL`, []);
+    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme FROM word_status WHERE srs_due IS NOT NULL AND lemma_key NOT LIKE 'at1:%'`, []);
     const out = {};
     for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = {
       due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0,
@@ -3454,7 +3478,7 @@ export async function getDueWithSource(nowMs) {
                                  t.title AS srs_text_title
                             FROM word_status w
                        LEFT JOIN texts t ON t.text_key = w.srs_text_key
-                           WHERE w.srs_due IS NOT NULL AND w.srs_due <= ? AND w.status != 'ignore'
+                           WHERE w.srs_due IS NOT NULL AND w.srs_due <= ? AND w.status != 'ignore' AND w.lemma_key NOT LIKE 'at1:%'
                            ORDER BY w.srs_due ASC, w.lemma_key ASC`, [new Date(now).toISOString()]);
     const out = [];
     for (const w of (rows || [])) {
@@ -3751,7 +3775,7 @@ export async function listLearningTargets(parentKey) {
 }
 export async function getAllWordStatuses() {
   try {
-    const rows = await q(`SELECT lemma_key, status FROM word_status`, []);
+    const rows = await q(`SELECT lemma_key, status FROM word_status WHERE lemma_key NOT LIKE 'at1:%'`, []);
     const out = {};
     for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = String(w.status || "");
     return out;
@@ -3873,7 +3897,7 @@ export async function appendReviewLog(rows) {
     const source = row && row.source != null ? String(row.source).trim() : "";
     const kind = row && row.kind != null ? String(row.kind) : "review";
     if (!id || !itemKey || !at || !source || !_RL_KINDS[kind] ||
-        (String(itemKey).startsWith('ft1:') && !(globalThis.LearningTargets && globalThis.LearningTargets.parse(itemKey)))) { refused++; continue; }
+        _badTargetKey(itemKey)) { refused++; continue; }
     const grade = row.grade == null ? null : (Number(row.grade) || 0);
     if (kind !== "seed" && kind !== "annul" && kind !== "mark" && kind !== "alias" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
     if (kind === "alias") { const KA = _KA(); if (!KA || !KA.validate(row).ok) { refused++; continue; } }
@@ -3915,7 +3939,7 @@ export async function commitReviewAttempt(input) {
   const eventSource = row && row.source != null ? String(row.source).trim() : "";
   const grade = row && row.grade != null ? Number(row.grade) : 0;
   if (!id || !itemKey || !reviewedAt || !eventSource || (kind !== "review" && kind !== "skip") || !(grade >= 1 && grade <= 4) || !sched || typeof sched !== "object" ||
-      (itemKey.startsWith('ft1:') && !(globalThis.LearningTargets && globalThis.LearningTargets.parse(itemKey)))) {
+      _badTargetKey(itemKey)) {
     return { committed: false, duplicate: false, error: "REVIEW_COMMIT_INVALID" };
   }
   const due = sched.due != null ? new Date(sched.due).toISOString() : null;
@@ -7739,7 +7763,7 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
   for (const w of (Array.isArray(payload.word_status) ? payload.word_status : [])) {
     const lk = w && w.lemma_key != null ? String(w.lemma_key).trim() : '';
     const st = w && w.status != null ? String(w.status).trim() : '';
-    if (!lk || !st || !_WS_VALUES[st] || (lk.startsWith('ft1:') && !globalThis.LearningTargets.parse(lk))) { out.word_status.dropped++; continue; }
+    if (!lk || !st || !_WS_VALUES[st] || _badTargetKey(lk)) { out.word_status.dropped++; continue; }
     try {
       await r(
         `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)

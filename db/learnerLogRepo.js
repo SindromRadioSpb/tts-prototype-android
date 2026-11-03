@@ -142,6 +142,7 @@ function validateReviewRow(raw, nowMs) {
   if (!id || id.length > 200) return { ok: false, reason: "bad_id" };
   if (!itemKey || itemKey.length > 300) return { ok: false, reason: "bad_item_key" };
   if (LT.isFormKey(itemKey) && !LT.parse(itemKey)) return {ok:false,reason:'bad_learning_target_key'};
+  if (itemKey.startsWith('at1:') && !/^at1:[a-z0-9]+:[a-z0-9-]+#[A-Za-z0-9_-]+$/.test(itemKey)) return { ok: false, reason: 'bad_atlas_term_key' };
   if (!RL_KINDS[kind]) return { ok: false, reason: "bad_kind" };
   if (!source || source.length > 60) return { ok: false, reason: "bad_source" };
   const t = validateTime(raw.reviewed_at, nowMs);

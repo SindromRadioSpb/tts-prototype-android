@@ -496,3 +496,15 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 .atlas-term-dialog .atlas-term-dup[hidden] { display: none; }
 .atlas-term-dialog .atlas-term-save:not(:disabled) { background: var(--atlas-teal); border-color: var(--atlas-teal); color: var(--atlas-on-teal); font-weight: 600; }
 .atlas-root .atlas-my-terms { display: grid; gap: 6px; border-top: 1px solid var(--atlas-line); padding-top: 8px; }
+/* P5 G3 — «Термины раздела»: the term session (Hebrew first, the meaning on request) */
+.atlas-root .atlas-section-terms { display: grid; gap: 6px; border-top: 1px solid var(--atlas-line); padding-top: 8px; }
+.atlas-term-dialog .atlas-ts-term { margin: 4px 0 0; font-size: 2rem; line-height: 1.4; text-align: center; font-weight: 600; }
+.atlas-term-dialog .atlas-ts-sentence { margin: 0; font-size: 1.1rem; line-height: 1.7; color: var(--atlas-muted); text-align: center; }
+.atlas-term-dialog .atlas-ts-sentence mark { background: var(--atlas-teal-soft); color: var(--atlas-ink); border-radius: 4px; padding: 0 2px; }
+.atlas-term-dialog .atlas-ts-answer { display: grid; gap: 2px; text-align: center; padding: 8px; border-radius: 10px; background: var(--atlas-teal-soft); }
+.atlas-term-dialog .atlas-ts-answer[hidden], .atlas-term-dialog .atlas-ts-error[hidden] { display: none; }
+.atlas-term-dialog .atlas-ts-ru { margin: 0; font-size: 1.2rem; font-weight: 600; }
+.atlas-term-dialog .atlas-ts-translit { margin: 0; color: var(--atlas-muted); }
+.atlas-term-dialog .atlas-ts-done { margin: 8px 0; font-size: 1.1rem; text-align: center; }
+.atlas-term-dialog .atlas-ts-actions { justify-content: center; }
+.atlas-root .atlas-row.atlas-row-flash { outline: 2px solid var(--atlas-teal); outline-offset: 4px; border-radius: 6px; }

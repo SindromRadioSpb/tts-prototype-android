@@ -309,6 +309,7 @@ async function glossForItemKey(itemKey) {
   // These server exercise channels cannot reconstruct a selected source reading yet.
   // In particular a form key must never resolve as its parent word or the whole paradigm.
   if (k.startsWith('ft1:')) return null;
+  if (k.startsWith('at1:')) return null;   // atlas terms (P5 G3) are reviewed in the atlas, not by server exercises
   // Ф4 · Д8-К: dl:<лемма Dicta>#<pos> — слово, которого нет в Pealim (или Pealim его не подтвердил). Глосса Pealim у
   // него НЕТ по построению: чужой перевод омографа хуже честного «нет перевода» (R11, O-084).
   if (k.startsWith("dl:")) return null;
@@ -363,6 +364,10 @@ async function glossForItemKey(itemKey) {
 // фолбэк — сырой ключ, форму НИКОГДА не выдумываем (R1).
 async function displayForItemKey(itemKey) {
   const k = String(itemKey || "");
+  if (k.startsWith('at1:')) {   // atlas term (P5 G3): at1:<atlas>:<slug>#<sense> — no lemma to show, say what it is
+    const m = /^at1:([a-z0-9]+):([a-z0-9-]+)#/.exec(k);
+    return m ? 'термин атласа ' + m[1] + ': ' + m[2] : k;
+  }
   if (k.startsWith('ft1:')) {
     const target = require('../public/js/learning-targets').parse(k);
     if (!target) return k;

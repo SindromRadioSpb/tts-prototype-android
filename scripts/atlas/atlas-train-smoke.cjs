@@ -29,7 +29,7 @@ async function chooseStage(page, n) {
 }
 const rowsOf = (page) => page.evaluate(async () => {
   try {
-    const db = await import("/db/local-db.js?v=815");
+    const db = await import("/db/local-db.js?v=849");
     const one = async (sql) => { const r = await db.dbQuery(sql); return r && r[0] ? Number(r[0].n) : null; };
     return { word_status: await one("SELECT COUNT(*) AS n FROM word_status"), review_log: await one("SELECT COUNT(*) AS n FROM review_log") };
   } catch (e) { return { error: String(e && e.message || e) }; }
@@ -173,6 +173,71 @@ const rowsOf = (page) => page.evaluate(async () => {
       assert.ok(/Мой термин|המונח שלי|My term/.test(kicker), "the card says it is my term: " + kicker);
       assert.match(head, /\(1\)/);
       assert.deepEqual(after, before, "adding and deleting a term write nothing into word_status / review_log");
+      assert.ok(overflow <= 1, "no horizontal scroll");
+      assert.deepEqual(errors, [], "no page errors");
+      await context.close();
+    }
+    // G3: «Термины раздела» → a session; one review per explicit answer, the term is the atlas's own target (not in the
+    // Room's due queue or word counts), replay of the log gives the same schedule; «Учить этот термин» from the card
+    if (!process.argv.includes("--no-g3")) for (const [lang, width] of [["ru", 390], ["he", 1440]]) {
+      const context = await browser.newContext({ viewport: { width, height: 860 }, serviceWorkers: "block" });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await openSection(page, base, lang);
+      const before = await rowsOf(page);
+      await page.locator(".atlas-train-btn").click();
+      const line0 = await page.locator(".atlas-section-terms .atlas-stage-desc").innerText();
+      await page.locator("[data-terms-learn]").click();
+      await page.waitForSelector(".atlas-ts-term");
+      const term = await page.locator(".atlas-ts-term").innerText();
+      const marked = await page.locator(".atlas-ts-sentence mark").count();
+      await page.locator("[data-ts-reveal]").click();
+      const meaning = await page.locator(".atlas-ts-ru").innerText();
+      await page.screenshot({ path: path.join(out, `term-session-${lang}-${width}.png`) });
+      await page.locator('[data-ts-grade="1"]').click();
+      await page.waitForFunction(() => !document.querySelector("[data-ts-grade]"), null, { timeout: 10000 });
+      await page.locator("[data-ts-reveal]").click();
+      await page.locator('[data-ts-grade="0"]').click();
+      await page.waitForTimeout(500);
+      await page.locator('[data-ts-close]').last().click();
+      await page.waitForSelector(".atlas-term-dialog", { state: "detached" });
+      const after = await rowsOf(page);
+      const db = await page.evaluate(async () => {
+        const db = await import("/db/local-db.js?v=849");
+        const terms = await db.getAtlasTermStates("a97002"), keys = Object.keys(terms);
+        const sched = await db.getSrsSchedule(), due = await db.getDueWithSource(Date.now() + 400 * 86400e3), words = await db.getAllWordStatuses();
+        const log = await db.dbQuery("SELECT item_key, kind, channel, grade, meta_json FROM review_log WHERE item_key LIKE 'at1:%' ORDER BY reviewed_at");
+        // the canon's independent oracle (memory-canon B4): replay the raw log, compare the DSR state
+        const k = keys[0], st = terms[k], o = window.FsrsCore.replay(await db.getReviewLog(k));
+        const same = !!(o && Math.abs(o.stability - st.stability) < 1e-7 && Math.abs(o.difficulty - st.difficulty) < 1e-7 &&
+          o.reps === st.reps && o.lapses === st.lapses && o.lastReviewedAt === st.reviewedAt);
+        const stored = JSON.stringify(st), replayed = JSON.stringify(o);
+        return { keys, log, inSchedule: Object.keys(sched).filter((x) => x.startsWith("at1:")).length,
+          inDue: due.filter((x) => String(x.lemmaKey).startsWith("at1:")).length, inWords: Object.keys(words).filter((x) => x.startsWith("at1:")).length,
+          replaySame: same, stored, replayed };
+      });
+      const line1 = await page.locator(".atlas-section-terms .atlas-stage-desc").innerText();
+      // «Учить этот термин» from a term word's card: a session of one
+      if (await page.locator(".atlas-train-panel").isVisible()) await page.locator(".atlas-train-btn").click();
+      const tw = page.locator(".atlas-row .rm-w.atlas-term:visible").nth(2);
+      await tw.scrollIntoViewIfNeeded(); await tw.click();
+      await page.waitForSelector('.rm-sheet.rm-open [data-rm-surface-action="learn-term"]', { timeout: 15000 });
+      await page.locator('.rm-sheet.rm-open [data-rm-surface-action="learn-term"]').click();
+      await page.waitForSelector(".atlas-ts-term");
+      const single = await page.locator(".atlas-view-head").filter({ hasText: "/ 1" }).count();
+      await page.locator('[data-ts-close]').last().click();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      report.push({ g3: { lang, width, line0, term, marked, meaning, line1, before, after, db, single, overflow, errors: errors.length } });
+      assert.ok(/\d/.test(line0), "the section terms are counted: " + line0);
+      assert.ok(/[א-ת]/.test(term) && meaning.length > 1, "the term is asked in Hebrew and answered with its meaning");
+      assert.equal(after.review_log - before.review_log, db.log.filter((r) => r.kind === "review").length + db.log.filter((r) => r.kind === "seed").length);
+      assert.equal(db.log.filter((r) => r.kind === "review").length, 2, "one review per answer (remember, then forgot; the session closed before the miss came back)");
+      assert.ok(db.log.every((r) => r.kind !== "review" || r.channel === "atlas:term"));
+      assert.equal(db.inSchedule + db.inDue + db.inWords, 0, "an atlas term is not a word: not in the Room's schedule, due queue or word list");
+      assert.ok(db.replaySame, "replay(log) == stored: " + db.stored + " vs " + db.replayed);
+      assert.ok(line1 !== line0, "the counts follow the session");
+      assert.equal(single, 1, "«Учить этот термин» asks one term");
       assert.ok(overflow <= 1, "no horizontal scroll");
       assert.deepEqual(errors, [], "no page errors");
       await context.close();

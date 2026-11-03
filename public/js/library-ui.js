@@ -9,7 +9,7 @@ import '/js/material-open.js?v=815';
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-import * as localDbRaw from '/db/local-db.js?v=815';
+import * as localDbRaw from '/db/local-db.js?v=849';
 // O-020: while the canon imports in the background, its long transaction owns the DB worker, and
 // any other BEGIN fails («cannot start a transaction within a transaction» — measured: opening a
 // text then failed for good). Room writes wait for the import; reads and the import itself go
@@ -13314,8 +13314,11 @@ function attachAtlasWords(atlasId, section, data, how) {
     const top = AW.cardTop(occ, ctx, { kicker: tt('atlas.word.term', 'Термин атласа'), mine: tt('atlas.terms.mine', 'Мой термин'),
       other: tt('atlas.word.otherSenses', 'Другие значения'), script: layers().script }) || { title: '' };
     if (AT) {
-      if (top.personal) top.actions = [{ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') }];
-      else if (!top.title) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
+      if (!top.title) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
+      else {
+        top.actions = [{ id: 'learn-term', label: tt('atlas.train.learnOne', 'Учить этот термин') }];
+        if (top.personal) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
+      }
     }
     return top;
   };
@@ -13333,7 +13336,10 @@ function attachAtlasWords(atlasId, section, data, how) {
         span.getAttribute('data-surface'), cell && cell.getAttribute('data-col')) : null;
     },
     cardTop: occ => cardTopOf(occ),
-    onSurfaceAction: (act, occ) => { if (act === 'add-term' || act === 'edit-term') atlasTermDialog(atlasId, section, data, ctx, occ, act === 'edit-term', () => redecorate()); },
+    onSurfaceAction: (act, occ) => {
+      if (act === 'add-term' || act === 'edit-term') atlasTermDialog(atlasId, section, data, ctx, occ, act === 'edit-term', () => redecorate());
+      else if (act === 'learn-term' && train && occ && occ.atlas_term) { try { window.ReaderMorph.closeSheet(); } catch (_) {} train.learnOne(occ.atlas_term.id, occ.atlas_term.sense); }
+    },
     // the per-place review and the mentor need a stored sentence: not for atlas places (W0 report §2)
     confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
   });
@@ -13382,10 +13388,80 @@ function attachAtlasTrain(section, data, how, ctx, onTermsChanged) {
   }
   how.bar.insertBefore(ui.btn, how.bar.querySelector('.atlas-view-btn') || how.bar.querySelector('.atlas-print-btn'));
   how.bar.appendChild(ui.panel);
+  const terms = atlasSectionTermsBlock(section, data, ctx, ui);
+  ui.panel.appendChild(terms.el);
   const mine = atlasMyTermsBlock(sid, onTermsChanged);
   ui.panel.appendChild(mine.el);
   repaint();
-  return { ui, repaint, glossLoaded: () => { glossDone = true; repaint(); }, myTermsChanged: () => mine.paint() };
+  return { ui, repaint, glossLoaded: () => { glossDone = true; repaint(); },
+    myTermsChanged: () => { mine.paint(); terms.paint(); }, learnOne: (id, sense) => terms.learnOne(id, sense) };
+}
+// P5 G3 — «Термины раздела»: the section's terms (atlas + mine) as the atlas's own SRS targets (at1:). The counts read
+// the device's projection; a session writes one review per explicit «Помню / Не помню» (morphHost.gradeAtlasTerm).
+const ATLAS_SESSION_N = 20;
+function atlasSectionTermsBlock(section, data, ctx, ui) {
+  const AT = window.AtlasTrain, AW = window.AtlasWords, RM = window.ReaderMorph, UI = window.AtlasTrainUI;
+  const atlasId = ctx.atlasId, sid = String((data && data.id) || '');
+  const box = el('div', { class: 'atlas-section-terms' });
+  const head = el('div', { class: 'atlas-view-head', text: tt('atlas.train.termsHead', 'Термины раздела') });
+  const line = el('p', { class: 'atlas-stage-desc' });
+  const learn = el('button', { class: 'atlas-chip atlas-term-save', attrs: { type: 'button', 'data-terms-learn': '' } });
+  const review = el('button', { class: 'atlas-chip', attrs: { type: 'button', 'data-terms-review': '' } });
+  const actions = el('div', { class: 'atlas-seg' }); actions.append(learn, review);
+  box.append(head, line, actions);
+  let states = {}, items = [];
+  async function load() { try { states = (await localDb.getAtlasTermStates(atlasId)) || {}; } catch (_) { states = {}; } }
+  function paint() {
+    items = AT.sectionTermItems(ctx);
+    const st = AT.termStats(items.map((x) => x.key), states, Date.now());
+    line.textContent = st.termsTotal
+      ? tt('atlas.train.termsLine', 'Терминов: {n} · к повторению: {due} · помню уверенно: {strong}').replace('{n}', String(st.termsTotal)).replace('{due}', String(st.due)).replace('{strong}', String(st.termsStrong))
+      : tt('atlas.train.termsNone', 'В этом разделе терминов нет — добавьте свои: нажмите на слово → «Добавить в термины».');
+    learn.textContent = tt('atlas.train.learn', 'Учить') + ' (' + Math.min(ATLAS_SESSION_N, st.due + st.fresh) + ')';
+    review.textContent = tt('atlas.train.review', 'Повторить') + ' (' + st.due + ')';
+    learn.disabled = !(st.due + st.fresh); review.disabled = !st.due;
+    ui.hint(AT.nextStageHint(atlasStageOf(sid), st));
+    return st;
+  }
+  function sessionItem(it) {
+    const block = ctx.items.get(it.block) || {};
+    const plainWords = RM.words(String(block.he || '')), pointed = block.he_niqqud ? RM.words(String(block.he_niqqud)) : [];
+    const stage3 = atlasStageOf(sid) === 3, usePointed = !stage3 && pointed.length === plainWords.length && pointed.length;
+    const m = /:p(\d+):/.exec(String(it.block));
+    return Object.assign({}, it, { sentence: (usePointed ? pointed : plainWords).join(' '), page: m ? Number(m[1]) : null });
+  }
+  function sourceOf(it) {
+    if (it.from == null) return null;
+    const plainWords = RM.words(String((ctx.items.get(it.block) || {}).he || ''));
+    try { return AW.verifyOccurrence(AW.occurrence(ctx, it.block, it.from, plainWords[it.from] || '', 'he'), ctx); } catch (_) { return null; }
+  }
+  function run(list) {
+    if (!list.length) return;
+    const byKey = new Map(list.map((x) => [x.key, x]));
+    let s = null;
+    const close = () => { if (s && s.el.isConnected) s.el.remove(); paint(); };
+    s = UI.termSession(document, { T: tt, items: list.map(sessionItem), plainHebrew: atlasStageOf(sid) === 3,
+      onGrade: async (key, ok) => {
+        try {
+          const sched = await morphHost.gradeAtlasTerm(key, ok, states[key] || null, sourceOf(byKey.get(key)));
+          states[key] = Object.assign({}, states[key] || {}, sched);
+          return true;
+        } catch (_) { return false; }
+      },
+      onOpenPage: (it) => {
+        close();
+        const row = Array.from(section.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
+        if (row) { row.scrollIntoView({ block: 'center' }); row.classList.add('atlas-row-flash'); setTimeout(() => row.classList.remove('atlas-row-flash'), 1600); }
+      },
+      onClose: close });
+    document.body.appendChild(s.el);
+  }
+  learn.addEventListener('click', () => run(AT.sessionOrder(items, states, Date.now(), ATLAS_SESSION_N)));
+  review.addEventListener('click', () => run(AT.sessionOrder(items, states, Date.now(), ATLAS_SESSION_N, { dueOnly: true })));
+  paint();
+  load().then(paint);
+  return { el: box, paint,
+    learnOne: async (id, sense) => { await load(); paint(); const it = items.find((x) => x.termId === id && x.sense === sense); if (it) run([it]); } };
 }
 // «Мои термины (N) · Выгрузить · Загрузить» — a file in the format of the atlas additions file (plan §G2)
 function atlasMyTermsBlock(sid, onChanged) {

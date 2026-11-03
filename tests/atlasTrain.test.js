@@ -380,3 +380,122 @@ test("a new sense of an atlas term: add_senses", () => {
   const clash = ADD.applyAdditions(addSections(), [JSON.stringify({ id: "a97002:term:belt", add_senses: [{ sense: "belt", ru: "пояс" }], sections: [] })]);
   assert.deepEqual(clash.rejected.map((x) => x.reason), ["sense-taken"], "one meaning — one translation");
 });
+
+// ---- G3: section terms in SRS ----
+test("a term key: at1:<atlas>:<slug>#<sense>; words and forms are not terms", () => {
+  assert.equal(T.termKey("a97002", "a97002:term:force", "force"), "at1:a97002:force#force");
+  assert.equal(T.termKey("a97002", "a97002:term:u-1a2b3c4d", "main"), "at1:a97002:u-1a2b3c4d#main");
+  assert.deepEqual(T.parseTermKey("at1:a97002:force#force"), { atlasId: "a97002", termId: "a97002:term:force", sense: "force" });
+  for (const bad of ["", "at1:a97002:force", "at1:a97002:force#", "at1:a97002:Fo rce#x", "at1:a97002:force#a b", "pid:1612", "ft1:1612:PERF-2ms:sh", "at2:a97002:force#force"])
+    assert.equal(T.parseTermKey(bad), null, bad);
+  assert.equal(T.isTermKey("at1:a97002:force#force"), true);
+  assert.equal(T.isTermKey("pid:1612"), false);
+  assert.equal(T.termKey("a97002", "other:term:force", "force"), null, "a term of another atlas");
+});
+
+test("the keys of a section: every sense with a place or a block link, plus my terms here; in order of first place", () => {
+  const RM = require("../public/js/reader-morph.js");
+  const W = require("../public/js/atlas-words.js");
+  const section = { id: "s09-belt", content_pack_sha256: "a".repeat(64), pages: [{ page: 197, items: [
+    { id: "b1", type: "block", he: "הכוח ההיקפי פועל על הרצועה", ru: "x", terms: ["a97002:term:belt#belt", "a97002:term:pulley#pulley"] },
+    { id: "b2", type: "block", he: "גלגל מניע", ru: "y" }] }],
+    terms: { "a97002:term:belt": { lemma_he: "רצועה", senses: [{ sense: "belt", ru: "ремень" }] },
+      "a97002:term:pulley": { lemma_he: "גלגל", senses: [{ sense: "pulley", ru: "шкив" }] },
+      "a97002:term:unused": { lemma_he: "בורג", senses: [{ sense: "bolt", ru: "болт" }] } } };
+  const ctx = W.sectionContext("a97002", section, RM);
+  const mine = T.makePersonalTerm({ atlasId: "a97002", lemmaHe: "כוח היקפי", ru: "окружная сила", scope: "section", sid: "s09-belt" });
+  ctx.setPersonal(T.mergeTerms(section.terms, [mine], "s09-belt"));
+  const items = T.sectionTermItems(ctx);
+  assert.deepEqual(items.map((x) => x.key), [T.termKey("a97002", mine.id, "main"), "at1:a97002:belt#belt", "at1:a97002:pulley#pulley"]);
+  const first = items[0];
+  assert.equal(first.ru, "окружная сила");
+  assert.equal(first.block, "b1");
+  assert.deepEqual([first.from, first.to], [0, 1]);
+  assert.equal(first.personal, true);
+  assert.equal(items[2].block, "b1", "a loose link keeps the paragraph it links, without a word position");
+  assert.equal(items[2].from, null);
+});
+
+test("term stats: strong = stability ≥ 7 days or marked almost known/known; due counted at now", () => {
+  const now = Date.parse("2026-11-03T12:00:00Z");
+  const keys = ["at1:a:a#x", "at1:a:b#x", "at1:a:c#x", "at1:a:d#x", "at1:a:e#x"];
+  const states = { "at1:a:a#x": { stability: 9, due: now + 86400e3 }, "at1:a:b#x": { stability: 2, due: now - 1 },
+    "at1:a:c#x": { status: "l4" }, "at1:a:d#x": { stability: 7, due: now } };
+  assert.deepEqual(T.termStats(keys, states, now), { termsTotal: 5, termsStrong: 3, due: 2, fresh: 2 });
+  assert.deepEqual(T.termStats([], {}, now), { termsTotal: 0, termsStrong: 0, due: 0, fresh: 0 });
+});
+
+test("a study session: due terms first (oldest first), then never-seen ones, then nothing else", () => {
+  const now = 1000;
+  const items = ["a", "b", "c", "d", "e"].map((k) => ({ key: "at1:a:" + k + "#x" }));
+  const states = { "at1:a:a#x": { due: now + 5 }, "at1:a:b#x": { due: 10 }, "at1:a:c#x": { due: 5 } };
+  assert.deepEqual(T.sessionOrder(items, states, now, 10).map((x) => x.key.slice(6, 7)), ["c", "b", "d", "e"]);
+  assert.deepEqual(T.sessionOrder(items, states, now, 3).map((x) => x.key.slice(6, 7)), ["c", "b", "d"]);
+  assert.deepEqual(T.sessionOrder(items, states, now, 10, { dueOnly: true }).map((x) => x.key.slice(6, 7)), ["c", "b"]);
+});
+
+test("«Мой словарь» does not list atlas terms: they are the atlas's own targets, not words", () => {
+  const D = require("../public/js/dictionary-core.js");
+  const map = D.mergeSources({ statuses: { "pid:1612": "l4", "at1:a97002:belt#belt": "l1" },
+    logAgg: [{ key: "at1:a97002:belt#belt", n: 3, first: 1, last: 2, fails: 1, surface: "" }] });
+  const keys = Array.from(map.keys ? map.keys() : Object.keys(map));
+  assert.ok(keys.includes("pid:1612"));
+  assert.ok(!keys.some((k) => String(k).startsWith("at1:")));
+});
+
+test("a term session: the term and its sentence first, the meaning on request; a miss comes back once at the end", async () => {
+  const { document, window } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const items = [
+    { key: "at1:a97002:belt#belt", title: "רְצוּעָה", plain: "רצועה", translit: "retsua", ru: "ремень", sentence: "הכוח פועל על הרצועה", from: 3, to: 3, page: 197 },
+    { key: "at1:a97002:pulley#pulley", title: "גַּלְגַּל", plain: "גלגל", translit: "galgal", ru: "шкив", sentence: "", from: null, to: null, page: 198 },
+  ];
+  const graded = [], opened = [];
+  let closed = 0;
+  const s = UI.termSession(document, { T: (k, fb) => fb, items, plainHebrew: false,
+    onGrade: (key, ok) => { graded.push([key, ok]); return Promise.resolve(true); },
+    onOpenPage: (it) => opened.push(it.page), onClose: () => closed++ });
+  document.body.appendChild(s.el);
+  const q = (sel) => s.el.querySelector(sel);
+  const click = async (sel) => { q(sel).dispatchEvent(new window.Event("click")); await new Promise((r) => setTimeout(r, 0)); };
+  assert.equal(q(".atlas-ts-term").textContent, "רְצוּעָה");
+  assert.match(q(".atlas-ts-sentence").innerHTML, /<mark>הרצועה<\/mark>/, "the term is marked in the book's sentence");
+  assert.equal(q(".atlas-ts-answer").hidden, true, "the meaning waits for the learner");
+  assert.equal(q("[data-ts-grade]"), null, "no grading before the meaning is shown");
+  await click("[data-ts-reveal]");
+  assert.equal(q(".atlas-ts-answer").hidden, false);
+  assert.match(q(".atlas-ts-answer").textContent, /ремень/);
+  await click('[data-ts-grade="0"]');                 // «Не помню»
+  assert.equal(q(".atlas-ts-term").textContent, "גַּלְגַּל");
+  await click("[data-ts-open]");
+  assert.deepEqual(opened, [198]);
+  await click("[data-ts-reveal]");
+  await click('[data-ts-grade="1"]');                 // «Помню»
+  assert.equal(q(".atlas-ts-term").textContent, "רְצוּעָה", "the missed term comes back once");
+  await click("[data-ts-reveal]");
+  await click('[data-ts-grade="1"]');
+  assert.deepEqual(graded, [["at1:a97002:belt#belt", false], ["at1:a97002:pulley#pulley", true], ["at1:a97002:belt#belt", true]]);
+  assert.match(q(".atlas-ts-done").textContent, /1\D+2/, "the summary: remembered 1 of 2 on the first try");
+  await click("[data-ts-close]");
+  assert.equal(closed, 1);
+});
+
+test("a term session in the book's form: plain Hebrew without pointing at stage 3", () => {
+  const { document } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const s = UI.termSession(document, { T: (k, fb) => fb, plainHebrew: true, onGrade: () => Promise.resolve(true),
+    items: [{ key: "at1:a97002:belt#belt", title: "רְצוּעָה", plain: "רצועה", ru: "ремень", sentence: "", from: null, to: null }] });
+  assert.equal(s.el.querySelector(".atlas-ts-term").textContent, "רצועה");
+});
+
+test("a grade that could not be saved is said, and the term is not counted", async () => {
+  const { document, window } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const s = UI.termSession(document, { T: (k, fb) => fb, onGrade: () => Promise.resolve(false),
+    items: [{ key: "at1:a97002:belt#belt", title: "רְצוּעָה", plain: "רצועה", ru: "ремень", sentence: "", from: null, to: null }] });
+  s.el.querySelector("[data-ts-reveal]").dispatchEvent(new window.Event("click"));
+  s.el.querySelector('[data-ts-grade="1"]').dispatchEvent(new window.Event("click"));
+  await new Promise((r) => setTimeout(r, 0));
+  assert.ok(!s.el.querySelector(".atlas-ts-error").hidden);
+  assert.ok(s.el.querySelector('[data-ts-grade="1"]'), "the same term stays to grade again");
+});

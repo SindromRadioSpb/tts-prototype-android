@@ -110,6 +110,9 @@ async function getAgentAccessReviewAggregates(userId, { nowMs } = {}) {
 
 // Due-now items: schedule from projections, 'ignore' excluded by the manual axis — the same
 // rule the Room's cross-text due queue applies (getDueWithSource: srs_due<=now AND status!='ignore').
+// Atlas P5 G3: at1:<atlas>:<term>#<sense> is the atlas's own target (reviewed in the atlas), not a word — it is
+// not served by the due list, the mini app or the mentor, and not counted as a known word.
+const isAtlasTermKey = (k) => String(k || "").startsWith('at1:');
 async function getDue(userId, { nowMs, limit, withChannelStats } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const now = Number(nowMs) || Date.now();
@@ -127,7 +130,7 @@ async function getDue(userId, { nowMs, limit, withChannelStats } = {}) {
   const out = [];
   for (const r of (rows || [])) {
     const st = manual[r.item_key] || "";
-    if (st === "ignore") continue;
+    if (st === "ignore" || isAtlasTermKey(r.item_key)) continue;
     const item = { item_key: r.item_key, status: st, due: r.due, interval_days: r.interval_days,
       reps: r.reps, lapses: r.lapses, stability: r.stability, difficulty: r.difficulty, reviewed_at: r.reviewed_at };
     if (withChannelStats) {
@@ -150,12 +153,12 @@ async function getKnownWords(userId) {
   const scheduled = new Map((proj || []).map((r) => [String(r.item_key), r]));
   const words = {};
   for (const [k, st] of Object.entries(manual)) {
-    if (k.startsWith('ft1:')) continue;
+    if (k.startsWith('ft1:') || isAtlasTermKey(k)) continue;
     const p = scheduled.get(k);
     words[k] = { status: st, scheduled: !!p, due: p ? p.due : null, stability: p ? p.stability : null };
   }
   for (const [k, p] of scheduled) {
-    if (k.startsWith('ft1:')) continue;
+    if (k.startsWith('ft1:') || isAtlasTermKey(k)) continue;
     if (!words[k]) words[k] = { status: "", scheduled: true, due: p.due, stability: p.stability };
   }
   return words;
@@ -185,9 +188,9 @@ async function getCoverageProjection(userId, { nowMs } = {}) {
     if (row.engine && String(row.engine) !== String(FC.ENGINE_VERSION)) continue;
     const dueMs = row.due == null ? null : Date.parse(String(row.due));
     if (row.due != null && !Number.isFinite(dueMs)) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
-    if (!String(row.item_key).startsWith('ft1:')) scheduled.push(Object.freeze({ item_key: String(row.item_key), due_ms: dueMs }));
+    if (!String(row.item_key).startsWith('ft1:') && !isAtlasTermKey(row.item_key)) scheduled.push(Object.freeze({ item_key: String(row.item_key), due_ms: dueMs }));
   }
-  for (const key of Object.keys(manual)) if (key.startsWith('ft1:')) delete manual[key];
+  for (const key of Object.keys(manual)) if (key.startsWith('ft1:') || isAtlasTermKey(key)) delete manual[key];
   return Object.freeze({
     version: COVERAGE_PROJECTION_VERSION,
     generated_at_ms: now,
@@ -413,6 +416,7 @@ async function getAgentContext(userId, { nowMs } = {}) {
   const manualCounts = {};
   const formCounts = {};
   for (const [key, st] of Object.entries(manual)) {
+    if (isAtlasTermKey(key)) continue;
     const target = key.startsWith('ft1:') ? formCounts : manualCounts;
     target[st] = (target[st] || 0) + 1;
   }
@@ -421,7 +425,7 @@ async function getAgentContext(userId, { nowMs } = {}) {
   const dueKeys = await dbAll(db,
     `SELECT item_key FROM srs_projections WHERE user_id = ? AND due IS NOT NULL AND due <= ?`,
     [userId, new Date(now).toISOString()]);
-  const dueNow = (dueKeys || []).filter((r) => (manual[r.item_key] || "") !== "ignore").length;
+  const dueNow = (dueKeys || []).filter((r) => (manual[r.item_key] || "") !== "ignore" && !isAtlasTermKey(r.item_key)).length;
   const due = await getDue(userId, { nowMs: now, limit: 10 });
   const weak = await getWeakWords(userId, { limit: 5 });
   return {

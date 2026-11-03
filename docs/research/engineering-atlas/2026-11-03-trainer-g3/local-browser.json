@@ -1,0 +1,290 @@
+[
+ {
+  "lang": "ru",
+  "width": 390,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "ru",
+  "width": 1440,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 390,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "lang": "he",
+  "width": 1440,
+  "ru0": 243,
+  "s1": {
+   "glossed": 3900,
+   "ru": 0,
+   "translit": 0,
+   "glossShown": "\"передача\"",
+   "overflow": 0
+  },
+  "s2": {
+   "glossed": 428,
+   "nonTerm": 0,
+   "overflow": 0
+  },
+  "s3": {
+   "glossed": 0,
+   "niqqud": 0,
+   "plain": 243,
+   "locked": true
+  },
+  "printed": {
+   "gloss": "none"
+  },
+  "before": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "after": {
+   "word_status": 0,
+   "review_log": 0
+  },
+  "errors": 0
+ },
+ {
+  "g2": {
+   "lang": "ru",
+   "width": 390,
+   "added": {
+    "row": "a97002:p195:b003",
+    "off": "3",
+    "col": "niqqud"
+   },
+   "kicker": "Мой термин",
+   "head": "МОИ ТЕРМИНЫ (1)",
+   "exported": 1,
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "overflow": 0,
+   "errors": 0
+  }
+ },
+ {
+  "g2": {
+   "lang": "he",
+   "width": 1440,
+   "added": {
+    "row": "a97002:p195:b003",
+    "off": "2",
+    "col": "he"
+   },
+   "kicker": "המונח שלי",
+   "head": "המונחים שלי (1)",
+   "exported": 1,
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "overflow": 0,
+   "errors": 0
+  }
+ },
+ {
+  "g3": {
+   "lang": "ru",
+   "width": 390,
+   "line0": "Терминов: 15 · к повторению: 0 · помню уверенно: 0",
+   "term": "תִּמְסֹרֶת רְצוּעָה",
+   "marked": 2,
+   "meaning": "ременная передача",
+   "line1": "Терминов: 15 · к повторению: 1 · помню уверенно: 0",
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 2,
+    "review_log": 2
+   },
+   "db": {
+    "keys": [
+     "at1:a97002:timsoret-retsua#belt-drive",
+     "at1:a97002:retsua#belt"
+    ],
+    "log": [
+     {
+      "item_key": "at1:a97002:timsoret-retsua#belt-drive",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 3,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9}}"
+     },
+     {
+      "item_key": "at1:a97002:retsua#belt",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 1,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9},\"fuzz_days\":0}"
+     }
+    ],
+    "inSchedule": 0,
+    "inDue": 0,
+    "inWords": 0,
+    "replaySame": true,
+    "stored": "{\"status\":\"\",\"due\":1793983553538,\"interval\":3,\"reps\":1,\"lapses\":0,\"stability\":2.3065,\"difficulty\":2.11810397,\"reviewedAt\":1793724353538,\"scheme\":\"fsrs\"}",
+    "replayed": "{\"stability\":2.3065,\"difficulty\":2.11810397,\"reps\":1,\"lapses\":0,\"lastReviewedAt\":1793724353538,\"intervalDays\":3,\"refIntervalDays\":3,\"dueMs\":1793983553538}"
+   },
+   "single": 1,
+   "overflow": 0,
+   "errors": 0
+  }
+ },
+ {
+  "g3": {
+   "lang": "he",
+   "width": 1440,
+   "line0": "מונחים: 15 · לחזרה: 0 · זוכר היטב: 0",
+   "term": "תִּמְסֹרֶת רְצוּעָה",
+   "marked": 2,
+   "meaning": "ременная передача",
+   "line1": "מונחים: 15 · לחזרה: 1 · זוכר היטב: 0",
+   "before": {
+    "word_status": 0,
+    "review_log": 0
+   },
+   "after": {
+    "word_status": 2,
+    "review_log": 2
+   },
+   "db": {
+    "keys": [
+     "at1:a97002:timsoret-retsua#belt-drive",
+     "at1:a97002:retsua#belt"
+    ],
+    "log": [
+     {
+      "item_key": "at1:a97002:timsoret-retsua#belt-drive",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 3,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9}}"
+     },
+     {
+      "item_key": "at1:a97002:retsua#belt",
+      "kind": "review",
+      "channel": "atlas:term",
+      "grade": 1,
+      "meta_json": "{\"keyer_version\":1,\"evidence_scope\":\"recognition\",\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9},\"fuzz_days\":0}"
+     }
+    ],
+    "inSchedule": 0,
+    "inDue": 0,
+    "inWords": 0,
+    "replaySame": true,
+    "stored": "{\"status\":\"\",\"due\":1793983564804,\"interval\":3,\"reps\":1,\"lapses\":0,\"stability\":2.3065,\"difficulty\":2.11810397,\"reviewedAt\":1793724364804,\"scheme\":\"fsrs\"}",
+    "replayed": "{\"stability\":2.3065,\"difficulty\":2.11810397,\"reps\":1,\"lapses\":0,\"lastReviewedAt\":1793724364804,\"intervalDays\":3,\"refIntervalDays\":3,\"dueMs\":1793983564804}"
+   },
+   "single": 1,
+   "overflow": 0,
+   "errors": 0
+  }
+ }
+]
