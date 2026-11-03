@@ -35,7 +35,7 @@
 | Подстрочник | слой «В контексте (ИИ)»: `/data/atlas/a97002/context-ai/<sid>.json`, 2 905 строк, 27 144 слова, принят 100/100; `WordGlossAI.wordAt(tr, k)` → `{ gloss, mwe, … }` для слова *k* строки |
 | Статус слов | `word_status` по `lemma_key`; раскраска W3 — только чтение; запись — только явным действием (`markWordStatus`, `gradeReadingTap`) |
 | Отдельные цели | `learning-targets.js`: пространство ключей `ft1:` рядом со словами, `markLearningTarget`/`gradeLearningTarget` в `morph-host.js` пишут `review_log` атомарно (`commitLearningTargetMark`, `commitReviewAttempt`); тренировка Зала знает `isFormKey` (`library-ui.js` ~3763, 3902, 4327, 4376) |
-| Охват тренировки | `room.trainScope.v1`: `all` / `text` / `class` / `corpus`; слово входит в охват только при проверенном предложении в нём (`getScopedLemmaKeys`) |
+| Охват тренировки (не используется, G0) | `room.trainScope.v1`: `all` / `text` / `class` / `corpus`; слово входит в охват только при проверенном предложении в нём (`getScopedLemmaKeys`) |
 | Экзаменационные задачи | у владельца, будут позже (§12 п. 3); до них «Найди в книге» — на фрагментах пособия |
 
 ## 2. Требования и анти-цели
@@ -78,7 +78,12 @@
 `npm run smoke:reader-parity`; `scripts/atlas/atlas-train-smoke.cjs` (новый, RU/HE × 390/1440, CPU ×4) и прежние
 `atlas-browser-smoke.cjs`, `atlas-words-smoke.cjs` — без ошибок; счётчик записей `word_status`/`review_log` до/после.
 
-### G0. Замер и решения (без выпуска)
+### G0. Замер и решения (без выпуска) — выполнен 2026-11-03
+
+Отчёт: [2026-11-03-trainer-spike](../research/engineering-atlas/2026-11-03-trainer-spike/README.md) — 312/326 значений
+с местом; банк «Найди в книге» 1 223 фрагмента (условие смягчено); «символ» — 341 формула; подстрочник у 27 144/27 144
+слов; тренировка терминов — через `startSetTraining`, обход потребителей `ft1:` → `at1:`; мои термины — на устройстве + файл.
+
 
 - Ключи терминов: для каждого из 326 `term#sense` — есть ли место в тексте (W1), огласовка, транслит; сколько значений
   одного ивритского термина различаются по разделам (риск путаницы в тренировке).
@@ -139,7 +144,7 @@
 
 | Уровень | Кто и как | Где хранится | Когда виден |
 |---|---|---|---|
-| **Мой термин** | в карточке слова — «Добавить в термины»: слово или словосочетание соседних слов строки (кнопки «+ слово справа/слева»), значение (подставлено из «В контексте (ИИ)»: сначала `mwe`, иначе `gloss`; правится), область — «этот раздел» или «весь атлас» | на устройстве, заметка с ключом-дедупликатором = ключ термина (`notes_v2`, как «моё значение» слова; синхронизация — по итогам G0) | сразу, только у этого человека |
+| **Мой термин** | в карточке слова — «Добавить в термины»: слово или словосочетание соседних слов строки (кнопки «+ слово справа/слева»), значение (подставлено из «В контексте (ИИ)»: сначала `mwe`, иначе `gloss`; правится), область — «этот раздел» или «весь атлас» | на устройстве, заметка с ключом-дедупликатором = ключ термина (`notes_v2`, как «моё значение» слова; облачная синхронизация их не переносит (G0) — на другое устройство файлом «Выгрузить / Загрузить мои термины») | сразу, только у этого человека |
 | **Термин атласа** | строка в файле дополнений `scripts/atlas/terms/a97002-additions.jsonl` (формат строк словаря dots + `id`, `sections`; либо `{ id: <существующий>, add_senses: [...] }` — новое значение старого термина) → пересборка разделов → том | данные раздела (`terms`, `items[].terms`) | всем после выкладки |
 | **Мост** | «Выгрузить мои термины» в панели «Тренировать» → файл ровно в формате дополнений; владелец переносит нужные строки в файл дополнений | — | — |
 
@@ -173,8 +178,9 @@
 ### G3. Термины раздела в SRS
 
 **Файлы:** `public/js/learning-targets.js` или новый `public/js/atlas-term-targets.js` (по итогам G0), `public/js/morph-host.js`
-(ветка `at1:` в отметке и оценке — без изменения семантики слов), `public/js/library-ui.js` (охват `atlas`, вопрос
-по термину), `public/db/local-db.js` (охват `atlas` в `getScopedLemmaKeys`/`getScopeCounts`), ядро и UI тренажёра,
+(ветка `at1:` в отметке и оценке — без изменения семантики слов), `public/js/library-ui.js` (ветка `at1:` в
+`_buildDueSourcedItems`, вход — существующий `startSetTraining(keys)`), обход потребителей ключа по списку отчёта G0
+(`local-db.js`, `key-alias-core.js`, `db/learnerGraphRepo.js`, `db/keyingService.js`), ядро и UI тренажёра,
 локали, тесты `tests/atlasTrain.test.js` + тест тренировки Зала для `at1:`.
 
 **Интерфейс:**
@@ -191,7 +197,8 @@
   префиксы, пустой смысл, пробелы → `null`; ключ слова (`pid:1612`) и формы (`ft1:…`) — не термин.
 - [ ] Тест включения: «Учить термины раздела» для s01 создаёт по одной отметке `new` на значение (атомарно, повтор — 0
   новых строк); статусы слов не меняются; пропущенные значения (нет места) перечислены в ответе, а не отброшены молча.
-- [ ] Тест тренировки: охват `{ kind: 'atlas', value: 'a97002:s01-intro' }` отдаёт только `at1:`-ключи этого раздела;
+- [ ] Тест тренировки: `startSetTraining(sectionTermKeys(s01))` собирает вопросы только по `at1:`-ключам раздела
+  (ruling G0: вместо нового охвата `atlas`); ключ без раздела на устройстве — честное «откройте раздел», не сбой;
   вопрос — огласованный термин и предложение книги, ответ — `sense.ru`; оценка пишет одну строку `review_log`
   (`channel: 'atlas:term'`), `replay(log) == stored` (гейт `smoke:memory-canon`).
 - [ ] Реализация по образцу `ft1:`; все места из списка G0 научены ключу `at1:`; экспорт и синхронизация переносят ключи,
@@ -270,9 +277,8 @@ items: [{ id, sid, page, block, he, formulas: [formulaId…], terms: [termRef…
 ## 7. Разрешённые файлы
 
 `public/js/atlas-train.js`, `public/js/atlas-train-ui.js` (новые); `public/js/atlas-reader.js` — только точка подключения
-тренажёра и класс ступени; `public/js/library-ui.js` — `renderAtlasCorpus`/`attachAtlasWords`, охват `atlas` и вопрос
-по термину в тренировке; `public/js/learning-targets.js` или новый `atlas-term-targets.js`; `public/js/morph-host.js` —
-ветка `at1:`; `public/db/local-db.js` — охват `atlas`; `public/css/atlas-reader.css`; локали; `public/library.html`, `sw.js`;
+тренажёра и класс ступени; `public/js/library-ui.js` — `renderAtlasCorpus`/`attachAtlasWords`, ветка `at1:` в сборке вопроса; `public/js/learning-targets.js` или новый `atlas-term-targets.js`; `public/js/morph-host.js` —
+ветка `at1:`; `public/db/local-db.js`, `public/js/key-alias-core.js`, `db/learnerGraphRepo.js`, `db/keyingService.js` — обход `at1:` как `ft1:`; `public/css/atlas-reader.css`; локали; `public/library.html`, `sw.js`;
 `scripts/atlas/build-train-bank.cjs`, `scripts/atlas/atlas-train-smoke.cjs`; G2: `scripts/atlas/terms/a97002-additions.jsonl`,
 `scripts/atlas/build_reader_data.py` и `atlas_validate.py` — только приём дополнений, `public/js/atlas-words.js` — места и
 `cardTop` моих терминов; тесты `tests/atlasTrain.test.js`,

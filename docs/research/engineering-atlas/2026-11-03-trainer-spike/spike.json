@@ -1,0 +1,99 @@
+{
+  "data": "data/atlas/a97002 (3.11.846)",
+  "terms": {
+    "unique_terms": 321,
+    "senses": 326,
+    "multiword": 256,
+    "senses_with_block_ref": 317,
+    "senses_with_place": 312,
+    "senses_without_niqqud": 0,
+    "senses_in_many_sections": 70,
+    "lemma_with_several_meanings": 5,
+    "lemma_conflict_sample": [
+      {
+        "lemma": "גלגל מניע",
+        "ru": [
+          "ведущий шкив",
+          "ведущее зубчатое колесо"
+        ]
+      },
+      {
+        "lemma": "גלגל מונע",
+        "ru": [
+          "ведомый шкив",
+          "ведомое зубчатое колесо"
+        ]
+      },
+      {
+        "lemma": "חספוס",
+        "ru": [
+          "накатывание рифлений",
+          "шероховатость"
+        ]
+      },
+      {
+        "lemma": "שיקוע",
+        "ru": [
+          "зенкование",
+          "электроэрозионное прошивание"
+        ]
+      },
+      {
+        "lemma": "מידה בסיסית",
+        "ru": [
+          "базовый размер",
+          "теоретически точный размер"
+        ]
+      }
+    ]
+  },
+  "find": {
+    "candidates": 697,
+    "duplicates_excluded": 163,
+    "bank": 534,
+    "on_page_with_formula": 286,
+    "sections_under_10": [
+      "s00-front:0",
+      "s01-intro:2",
+      "s10-spur-gears:6",
+      "s11-helical-gears:8",
+      "s13-couplings:9",
+      "s14-fixed-couplings:3",
+      "s18-production-types:8",
+      "s21-cutting-tools:3",
+      "s23-finishing:2",
+      "s24-surface:7",
+      "s25-size-tolerance:8",
+      "s26-form-tolerance:7",
+      "s28-special:4",
+      "s29-fits:4",
+      "s30-production-dims:6",
+      "s31-edm:0",
+      "s32-sinking:1",
+      "s33-wire:1",
+      "s34-ecm:1",
+      "s35-laser:1",
+      "s36-plasma:0",
+      "s37-waterjet:1",
+      "s38-ultrasonic:1",
+      "s39-electron-beam:0",
+      "s40-break-even:0",
+      "s41-time:1"
+    ]
+  },
+  "symbols": {
+    "formulas_with_vars": 591,
+    "eligible": 341,
+    "needs_review_excluded": 0,
+    "with_3_distractors_each": 336,
+    "symbols": 1260,
+    "symbols_with_unit": 974
+  },
+  "stage1": {
+    "sections_with_layer": 42,
+    "rows": 2905,
+    "words": 27144,
+    "glossed": 27144,
+    "mwe_words": 8717
+  }
+}
