@@ -233,5 +233,80 @@
     return { el: el };
   }
 
-  return { panel: panel, termForm: termForm, termSession: termSession };
+  // P5 G4 — «Найди в книге»: a fragment of the book as printed, the learner names the section and the page; the answer
+  // (from the data) with the time, and the way to that page. opts: { T, sections: [{ id, he, ru, first, last }],
+  // next() → item | null, check(item, { sid, page }) → { section, page }, onAnswer(item, result, ms), onOpen(item), onClose, now }
+  function findSession(doc, opts) {
+    opts = opts || {};
+    var T = typeof opts.T === "function" ? opts.T : function (k, fb) { return fb; };
+    var now = typeof opts.now === "function" ? opts.now : function () { return Date.now(); };
+    var sections = opts.sections || [];
+    var card = h(doc, "div", { cls: "atlas-term-card atlas-find" });
+    var el = h(doc, "div", { cls: "atlas-root atlas-term-dialog", role: "dialog", "aria-modal": "true", "aria-label": T("atlas.find.title", "Найди в книге") }, [card]);
+    var item = null, started = 0, timer = null;
+    function close() { if (timer) clearInterval(timer); if (typeof opts.onClose === "function") opts.onClose(); }
+    el.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    function clock(ms) { var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+    function button(attr, text, cls) { var b = h(doc, "button", { type: "button", cls: "atlas-chip" + (cls ? " " + cls : "") }); b.setAttribute(attr, ""); b.textContent = text; return b; }
+    function closeBtn() { var c = button("data-find-close", T("atlas.train.stop", "Закончить")); c.addEventListener("click", close); return c; }
+    function ask() {
+      if (timer) { clearInterval(timer); timer = null; }
+      card.replaceChildren(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.find.title", "Найди в книге") }));
+      item = typeof opts.next === "function" ? opts.next() : null;
+      if (!item) {
+        card.appendChild(h(doc, "p", { cls: "atlas-find-empty", text: T("atlas.find.empty", "Вопросов больше нет.") }));
+        card.appendChild(closeBtn());
+        return;
+      }
+      started = now();
+      var clockEl = h(doc, "p", { cls: "atlas-find-timer", "aria-live": "off", text: "0:00" });
+      timer = setInterval(function () { clockEl.textContent = clock(now() - started); }, 1000);
+      card.appendChild(h(doc, "p", { cls: "atlas-find-text", dir: "rtl", lang: "he", text: item.he }));
+      card.appendChild(clockEl);
+      var sel = h(doc, "select", { name: "sid", "aria-label": T("atlas.find.section", "Раздел") }, [h(doc, "option", { value: "", text: T("atlas.find.section", "Раздел") + "…" })]);
+      sections.forEach(function (s) { sel.appendChild(h(doc, "option", { value: s.id, text: (s.ru || "") + " · " + (s.he || "") + " (" + s.first + "–" + s.last + ")" })); });
+      var page = h(doc, "input", { type: "number", name: "page", inputmode: "numeric", placeholder: T("atlas.page", "стр."), "aria-label": T("atlas.jump", "Страница книги") });
+      var check = button("data-find-check", T("atlas.find.check", "Проверить"), "atlas-term-save");
+      var skip = button("data-find-skip", T("atlas.find.skip", "Пропустить"));
+      function ready() { check.disabled = !sel.value; }
+      sel.addEventListener("change", function () {
+        var s = sections.filter(function (x) { return x.id === sel.value; })[0];
+        if (s) { page.setAttribute("min", String(s.first)); page.setAttribute("max", String(s.last)); } else { page.removeAttribute("min"); page.removeAttribute("max"); }
+        ready();
+      });
+      page.addEventListener("input", ready);
+      check.addEventListener("click", function () { if (!check.disabled) answer({ sid: sel.value, page: page.value === "" ? null : Number(page.value) }); });
+      skip.addEventListener("click", ask);
+      card.appendChild(h(doc, "div", { cls: "atlas-find-form" }, [sel, page]));
+      card.appendChild(h(doc, "div", { cls: "atlas-seg atlas-ts-actions" }, [check, skip, closeBtn()]));
+      ready();
+      try { sel.focus(); } catch (_) {}
+    }
+    function answer(a) {
+      if (timer) { clearInterval(timer); timer = null; }
+      var ms = now() - started, r = typeof opts.check === "function" ? opts.check(item, a) : { section: false, page: "wrong" };
+      if (typeof opts.onAnswer === "function") opts.onAnswer(item, r, ms);
+      var s = sections.filter(function (x) { return x.id === item.sid; })[0] || {};
+      var verdict = !r.section ? T("atlas.find.wrongSection", "Другой раздел.")
+        : r.page === "exact" ? T("atlas.find.exact", "Верно: раздел и страница.")
+        : r.page === "near" ? T("atlas.find.near", "Раздел верный, страница соседняя.") : T("atlas.find.rightSection", "Раздел верный, страница другая.");
+      var it = item;
+      card.replaceChildren(h(doc, "p", { cls: "atlas-view-head", text: T("atlas.find.title", "Найди в книге") }),
+        h(doc, "p", { cls: "atlas-find-text", dir: "rtl", lang: "he", text: item.he }),
+        h(doc, "div", { cls: "atlas-find-result atlas-ts-answer", role: "status" }, [
+          h(doc, "p", { cls: "atlas-ts-ru", text: verdict }),
+          h(doc, "p", { text: T("atlas.find.where", "В книге: {s}, стр. {p}").replace("{s}", (s.ru || item.sid) + " · " + (s.he || "")).replace("{p}", String(item.page)) }),
+          h(doc, "p", { cls: "atlas-ts-translit", text: T("atlas.find.time", "Время: {t}").replace("{t}", clock(ms)) })]));
+      var open = button("data-find-open", T("atlas.find.open", "Открыть стр. {p}").replace("{p}", String(item.page)));
+      open.addEventListener("click", function () { if (typeof opts.onOpen === "function") opts.onOpen(it); });
+      var next = button("data-find-next", T("atlas.find.next", "Дальше"), "atlas-term-save");
+      next.addEventListener("click", ask);
+      card.appendChild(h(doc, "div", { cls: "atlas-seg atlas-ts-actions" }, [next, open, closeBtn()]));
+      try { next.focus(); } catch (_) {}
+    }
+    ask();
+    return { el: el, stop: function () { if (timer) clearInterval(timer); } };
+  }
+
+  return { panel: panel, termForm: termForm, termSession: termSession, findSession: findSession };
 });

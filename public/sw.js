@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.849";
+const CACHE_VERSION = "v3.11.850";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=849",
+  "/js/library-ui.js?v=850",
   "/js/room-b6-core.js?v=823",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -185,9 +185,9 @@ const PRECACHE_URLS = [
   "/js/atlas-reader.js?v=22",
   "/js/atlas-search.js?v=3",
   "/js/atlas-words.js?v=3",
-  "/js/atlas-train.js?v=3",
-  "/js/atlas-train-ui.js?v=3",
-  "/css/atlas-reader.css?v=25",
+  "/js/atlas-train.js?v=4",
+  "/js/atlas-train-ui.js?v=4",
+  "/css/atlas-reader.css?v=26",
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
@@ -360,9 +360,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=849",
-  "/i18n/locales/en.js?v=849",
-  "/i18n/locales/he.js?v=849",
+  "/i18n/locales/ru.js?v=850",
+  "/i18n/locales/en.js?v=850",
+  "/i18n/locales/he.js?v=850",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

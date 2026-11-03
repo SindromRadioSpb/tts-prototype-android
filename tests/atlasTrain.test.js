@@ -499,3 +499,100 @@ test("a grade that could not be saved is said, and the term is not counted", asy
   assert.ok(!s.el.querySelector(".atlas-ts-error").hidden);
   assert.ok(s.el.querySelector('[data-ts-grade="1"]'), "the same term stays to grade again");
 });
+
+// ---- G4: «Найди в книге» ----
+const BANK = require("../scripts/atlas/build-train-bank.cjs");
+function bankSections() {
+  const w = (n, x) => Array.from({ length: n }, (_, i) => x + i).join(" ");
+  return [
+    { id: "s00-front", content_pack_sha256: "0", pages: [{ page: 1, items: [{ id: "a97002:p1:b001", type: "block", kind: "prose", he: "מילה " + w(8, "א") }] }] },
+    { id: "s09-belt", content_pack_sha256: "9", pages: [
+      { page: 197, items: [
+        { id: "a97002:p197:b001", type: "block", kind: "prose", he: "הממסרת מעבירה תנועה סיבובית בין שני גלגלים בעזרת רצועה", he_niqqud: "x", terms: ["a97002:term:belt#belt"] },
+        { id: "a97002:p197:b002", type: "block", kind: "heading", he: "תמסורת רצועה ומה שקורה בה כאשר היא עובדת" },
+        { id: "a97002:p197:b003", type: "block", kind: "list_item", he: "• קצר מדי" },
+        { id: "a97002:p197:f01", type: "formula", latex: "i=n_2/n_1" },
+        { id: "a97002:p197:b004", type: "block", kind: "caption", he: "איור 77 - תמסורת רצועה בין שני גלגלים עם מתיחות קבועה" }] },
+      { page: 198, items: [
+        { id: "a97002:p198:b001", type: "block", kind: "prose", he: "יתרונות: פשטות הבנייה ועלות נמוכה של הרכיבים במערכת" },
+        { id: "a97002:p198:b002", type: "block", kind: "prose", he: "הממסרת מעבירה תנועה סיבובית בין שני גלגלים בעזרת רצועה" }] }] },
+  ];
+}
+
+test("the find bank: book fragments of 5–35 words from prose, lists and captions, never a verbatim repeat, never the title pages", () => {
+  const b = BANK.buildFindBank(bankSections(), { "s00-front": "f0", "s09-belt": "f9" }, "a97002");
+  assert.equal(b.schema, "linguistpro.atlas-train-find.1.0.0");
+  assert.deepEqual(b.built_from.sections, { "s00-front": "f0", "s09-belt": "f9" });
+  assert.deepEqual(b.items.map((x) => x.block), ["a97002:p197:b004", "a97002:p198:b001"],
+    "the repeated sentence (p197 b001 = p198 b002), the heading, the short list item and the title pages are out");
+  const cap = b.items[0];
+  assert.deepEqual([cap.sid, cap.page, cap.kind], ["s09-belt", 197, "book"]);
+  assert.deepEqual(cap.formulas, ["a97002:p197:f01"]);
+  assert.equal(cap.id, "find:a97002:p197:b004");
+  assert.equal(JSON.stringify(BANK.buildFindBank(bankSections(), { "s00-front": "f0", "s09-belt": "f9" }, "a97002")), JSON.stringify(b), "the same data — the same bank");
+});
+
+test("checking an answer: the section first, then the page (exact, ±1 near, else wrong)", () => {
+  const it = { id: "find:x", sid: "s09-belt", page: 197 };
+  assert.deepEqual(T.checkFind(it, { sid: "s09-belt", page: 197 }), { section: true, page: "exact" });
+  assert.deepEqual(T.checkFind(it, { sid: "s09-belt", page: 198 }), { section: true, page: "near" });
+  assert.deepEqual(T.checkFind(it, { sid: "s09-belt", page: 201 }), { section: true, page: "wrong" });
+  assert.deepEqual(T.checkFind(it, { sid: "s10-spur-gears", page: 197 }), { section: false, page: "wrong" }, "the right page of a wrong section is not a hit");
+  assert.deepEqual(T.checkFind(it, { sid: "s09-belt", page: null }), { section: true, page: "wrong" });
+});
+
+test("picking a fragment: this section only when asked, unseen first, stale ones never", () => {
+  const bank = { items: [{ id: "a", sid: "s1" }, { id: "b", sid: "s1" }, { id: "c", sid: "s2" }] };
+  const seq = (vals) => { let i = 0; return () => vals[i++ % vals.length]; };
+  assert.equal(T.pickFind(bank, { sid: "s2", rnd: seq([0.9]) }).id, "c");
+  assert.equal(T.pickFind(bank, { seen: new Set(["a"]), stale: new Set(["c"]), rnd: seq([0.99]) }).id, "b");
+  assert.equal(T.pickFind(bank, { sid: "s1", seen: new Set(["a", "b"]), rnd: seq([0]) }).id, "a", "all seen: start again");
+  assert.equal(T.pickFind(bank, { sid: "s3" }), null);
+});
+
+test("find stats over the device's history", () => {
+  const h = [{ section: true, page: "exact", ms: 20000 }, { section: true, page: "near", ms: 40000 }, { section: false, page: "wrong", ms: 90000 }];
+  assert.deepEqual(T.findStats(h), { attempts: 3, sectionRate: 2 / 3, pageRate: 1 / 3, nearRate: 1 / 3, medianMs: 40000 });
+  assert.deepEqual(T.findStats([]), { attempts: 0, sectionRate: 0, pageRate: 0, nearRate: 0, medianMs: 0 });
+});
+
+test("the find session: a fragment, a section and a page, the answer with the time and the way to the page", async () => {
+  const { document, window } = parseHTML("<!doctype html><html><body></body></html>");
+  const UI = require("../public/js/atlas-train-ui.js");
+  const items = [{ id: "find:a", sid: "s09-belt", page: 197, he: "תמסורת רצועה בין שני גלגלים" }, { id: "find:b", sid: "s10-spur-gears", page: 240, he: "גלגלי שיניים ישרים" }];
+  let i = 0, t = 1000;
+  const answered = [], opened = [];
+  let closed = 0;
+  const s = UI.findSession(document, { T: (k, fb) => fb, now: () => t,
+    sections: [{ id: "s09-belt", he: "תמסורת רצועה", ru: "Ременная передача", first: 195, last: 234 }, { id: "s10-spur-gears", he: "גלגלי שיניים", ru: "Прямозубые колёса", first: 235, last: 270 }],
+    next: () => items[i++] || null, check: (it, a) => T.checkFind(it, a),
+    onAnswer: (it, r, ms) => answered.push([it.id, r.section, r.page, ms]), onOpen: (it) => opened.push(it.page), onClose: () => closed++ });
+  document.body.appendChild(s.el);
+  const q = (sel) => s.el.querySelector(sel);
+  const fire = (el, type) => el.dispatchEvent(new window.Event(type));
+  assert.equal(q(".atlas-find-text").textContent, "תמסורת רצועה בין שני גלגלים");
+  assert.equal(q(".atlas-find-text").getAttribute("dir"), "rtl");
+  assert.equal(q("[data-find-check]").disabled, true, "a section is needed first");
+  const sel = q('select[name="sid"]');
+  assert.equal(sel.querySelectorAll("option[value]:not([value=''])").length, 2);
+  sel.querySelector('option[value="s09-belt"]').setAttribute("selected", ""); fire(sel, "change");   // linkedom: no value setter
+  assert.equal(sel.value, "s09-belt");
+  assert.equal(q('input[name="page"]').getAttribute("min"), "195");
+  assert.equal(q('input[name="page"]').getAttribute("max"), "234");
+  q('input[name="page"]').value = "198"; fire(q('input[name="page"]'), "input");
+  t = 26000;
+  fire(q("[data-find-check]"), "click");
+  assert.deepEqual(answered, [["find:a", true, "near", 25000]]);
+  assert.match(q(".atlas-find-result").textContent, /197/);
+  assert.match(q(".atlas-find-result").textContent, /0:25/);
+  fire(q("[data-find-open]"), "click");
+  assert.deepEqual(opened, [197]);
+  fire(q("[data-find-next]"), "click");
+  assert.equal(q(".atlas-find-text").textContent, "גלגלי שיניים ישרים");
+  assert.equal(q('select[name="sid"]').value || "", "", "a new question starts empty");
+  fire(q("[data-find-next]") || q("[data-find-skip]"), "click");      // skip: no answer is recorded
+  assert.equal(answered.length, 1);
+  assert.ok(q(".atlas-find-empty"), "the bank is over: said so");
+  fire(q("[data-find-close]"), "click");
+  assert.equal(closed, 1);
+});

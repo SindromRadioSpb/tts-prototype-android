@@ -225,7 +225,37 @@
     return list.slice(0, Math.max(0, Number(n) || 0));
   }
 
-  return { STAGES: STAGES, stageOf: stageOf,
+  // ---- G4: «Найди в книге» — the answer is where the fragment stands (section, page): data, never a model ----
+  // answer { sid, page } → { section: bool, page: 'exact' | 'near' | 'wrong' } (near = ±1 page of the right section, Г3)
+  function checkFind(item, answer) {
+    var section = !!(item && answer && answer.sid === item.sid);
+    var p = answer && answer.page != null && answer.page !== "" ? Number(answer.page) : NaN;
+    var page = "wrong";
+    if (section && isFinite(p)) page = p === Number(item.page) ? "exact" : Math.abs(p - Number(item.page)) === 1 ? "near" : "wrong";
+    return { section: section, page: page };
+  }
+  // a fragment: of this section when opts.sid, never a stale one, unseen first (all seen → start again)
+  function pickFind(bank, opts) {
+    opts = opts || {};
+    var rnd = typeof opts.rnd === "function" ? opts.rnd : Math.random;
+    var seen = opts.seen || new Set(), stale = opts.stale || new Set();
+    var pool = ((bank && bank.items) || []).filter(function (x) { return x && (!opts.sid || x.sid === opts.sid) && !stale.has(x.id); });
+    if (!pool.length) return null;
+    var fresh = pool.filter(function (x) { return !seen.has(x.id); });
+    var from = fresh.length ? fresh : pool;
+    return from[Math.min(from.length - 1, Math.floor(rnd() * from.length))];
+  }
+  function findStats(history) {
+    var h = Array.isArray(history) ? history : [], n = h.length;
+    if (!n) return { attempts: 0, sectionRate: 0, pageRate: 0, nearRate: 0, medianMs: 0 };
+    var ms = h.map(function (x) { return Number(x.ms) || 0; }).sort(function (a, b) { return a - b; });
+    var med = n % 2 ? ms[(n - 1) / 2] : (ms[n / 2 - 1] + ms[n / 2]) / 2;
+    var count = function (f) { return h.filter(f).length / n; };
+    return { attempts: n, sectionRate: count(function (x) { return x.section; }), pageRate: count(function (x) { return x.page === "exact"; }),
+      nearRate: count(function (x) { return x.page === "near"; }), medianMs: med };
+  }
+
+  return { STAGES: STAGES, stageOf: stageOf, checkFind: checkFind, pickFind: pickFind, findStats: findStats,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
     termStats: termStats, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,

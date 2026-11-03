@@ -13390,11 +13390,88 @@ function attachAtlasTrain(section, data, how, ctx, onTermsChanged) {
   how.bar.appendChild(ui.panel);
   const terms = atlasSectionTermsBlock(section, data, ctx, ui);
   ui.panel.appendChild(terms.el);
+  ui.panel.appendChild(atlasFindBlock(ctx.atlasId, sid).el);
   const mine = atlasMyTermsBlock(sid, onTermsChanged);
   ui.panel.appendChild(mine.el);
   repaint();
   return { ui, repaint, glossLoaded: () => { glossDone = true; repaint(); },
     myTermsChanged: () => { mine.paint(); terms.paint(); }, learnOne: (id, sense) => terms.learnOne(id, sense) };
+}
+// P5 G4 — «Найди в книге»: a fragment of the book → the section and the page. The bank is data next to the sections
+// (train/find.json, built by scripts/atlas/build-train-bank.cjs); answers are the device's own history (owner Г4), never
+// memory: nothing is written into word_status/review_log. Opening the answer checks the fragment is still on its page.
+const ATLAS_FIND_KEY = 'room.atlas.find.v1', ATLAS_FIND_STALE_KEY = 'room.atlas.find.stale.v1';
+let atlasFindBank = null, atlasFindIndex = null;
+function atlasFindHistory() { try { const a = JSON.parse(localStorage.getItem(ATLAS_FIND_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } }
+function atlasFindStale() { try { return new Set(JSON.parse(localStorage.getItem(ATLAS_FIND_STALE_KEY) || '[]')); } catch (_) { return new Set(); } }
+function atlasFindLoad(atlasId) {
+  const get = (u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null));
+  const base = '/data/atlas/' + encodeURIComponent(atlasId) + '/';
+  if (!atlasFindBank) atlasFindBank = get(base + 'train/find.json').then((b) => (b && Array.isArray(b.items) ? b : null)).catch(() => null);
+  if (!atlasFindIndex) atlasFindIndex = get(base + 'index.json').catch(() => null);
+  return Promise.all([atlasFindBank, atlasFindIndex]).then(([bank, index]) => {
+    if (!bank) atlasFindBank = null;   // not on the volume yet: ask again next time
+    return { bank, sections: ((index && index.sections) || []).filter((x) => x.translated !== false && x.id !== 's00-front') };
+  });
+}
+function atlasFindBlock(atlasId, sid) {
+  const AT = window.AtlasTrain, UI = window.AtlasTrainUI;
+  const box = el('div', { class: 'atlas-find-block' });
+  const head = el('div', { class: 'atlas-view-head', text: tt('atlas.find.title', 'Найди в книге') });
+  const line = el('p', { class: 'atlas-stage-desc', text: tt('atlas.find.intro', 'Фрагмент книги на иврите — назовите раздел и страницу, как на экзамене.') });
+  const stats = el('p', { class: 'atlas-stage-desc' });
+  const all = el('button', { class: 'atlas-chip atlas-term-save', attrs: { type: 'button', 'data-find-all': '' }, text: tt('atlas.find.all', 'Весь атлас') });
+  const here = el('button', { class: 'atlas-chip', attrs: { type: 'button', 'data-find-here': '' }, text: tt('atlas.find.here', 'Этот раздел') });
+  const actions = el('div', { class: 'atlas-seg' }); actions.append(all, here);
+  box.append(head, line, stats, actions);
+  function paint() {
+    const st = AT.findStats(atlasFindHistory());
+    stats.textContent = st.attempts
+      ? tt('atlas.find.stats', 'Попыток: {n} · раздел верно: {s} % · страница точно: {p} % · медиана {t}')
+        .replace('{n}', String(st.attempts)).replace('{s}', String(Math.round(st.sectionRate * 100))).replace('{p}', String(Math.round(st.pageRate * 100)))
+        .replace('{t}', Math.floor(st.medianMs / 60000) + ':' + ('0' + Math.round((st.medianMs % 60000) / 1000)).slice(-2))
+      : '';
+  }
+  function run(onlySid) {
+    atlasFindLoad(atlasId).then(({ bank, sections }) => {
+      if (!bank) { stats.textContent = tt('atlas.find.noBank', 'Вопросы для этого упражнения ещё не выложены.'); return; }
+      const seen = new Set(atlasFindHistory().map((x) => x.id)), stale = atlasFindStale();
+      let f = null;
+      const close = () => { if (f) { f.stop(); if (f.el.isConnected) f.el.remove(); } paint(); };
+      f = UI.findSession(document, { T: tt, sections,
+        next: () => { const it = AT.pickFind(bank, { sid: onlySid || null, seen, stale }); if (it) seen.add(it.id); return it; },
+        check: (it, a) => AT.checkFind(it, a),
+        onAnswer: (it, r, ms) => {
+          const h = atlasFindHistory(); h.push({ id: it.id, sid: it.sid, section: r.section, page: r.page, ms, at: Date.now() });
+          try { localStorage.setItem(ATLAS_FIND_KEY, JSON.stringify(h.slice(-500))); } catch (_) {}
+        },
+        onOpen: (it) => { close(); atlasFindOpen(it); },
+        onClose: close });
+      document.body.appendChild(f.el);
+    });
+  }
+  all.addEventListener('click', () => run(null));
+  here.addEventListener('click', () => run(sid));
+  paint();
+  return { el: box, paint };
+}
+// the answer's page in the reader; the fragment must still stand there, else the question is retired (stale)
+function atlasFindOpen(it) {
+  const reader = roomAtlasReader;
+  if (!reader || typeof reader.openSection !== 'function') return;
+  Promise.resolve(reader.openSection(it.sid, it.page)).then(() => {
+    const strip = (x) => String(x || '').replace(/[\u0591-\u05C7]/g, '').replace(/[^\u05D0-\u05EA0-9a-zA-Z]+/g, ' ').trim();
+    const ctx = atlasWordsCtx, block = ctx && ctx.sectionId === it.sid ? ctx.items.get(it.block) : null;
+    const row = Array.from(document.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
+    if (!row || (block && strip(block.he) !== strip(it.he))) {
+      const st = atlasFindStale(); st.add(it.id);
+      try { localStorage.setItem(ATLAS_FIND_STALE_KEY, JSON.stringify(Array.from(st).slice(-2000))); } catch (_) {}
+      roomToast(tt('atlas.find.stale', 'Этот фрагмент в книге изменился — вопрос больше не задаётся.'));
+      return;
+    }
+    row.scrollIntoView({ block: 'center' });
+    row.classList.add('atlas-row-flash'); setTimeout(() => row.classList.remove('atlas-row-flash'), 2400);
+  }).catch(() => {});
 }
 // P5 G3 — «Термины раздела»: the section's terms (atlas + mine) as the atlas's own SRS targets (at1:). The counts read
 // the device's projection; a session writes one review per explicit «Помню / Не помню» (morphHost.gradeAtlasTerm).
@@ -13445,6 +13522,7 @@ function atlasSectionTermsBlock(section, data, ctx, ui) {
         try {
           const sched = await morphHost.gradeAtlasTerm(key, ok, states[key] || null, sourceOf(byKey.get(key)));
           states[key] = Object.assign({}, states[key] || {}, sched);
+          paint();   // the counts follow every saved answer (closing early must not leave them stale)
           return true;
         } catch (_) { return false; }
       },

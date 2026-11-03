@@ -242,6 +242,46 @@ const rowsOf = (page) => page.evaluate(async () => {
       assert.deepEqual(errors, [], "no page errors");
       await context.close();
     }
+    // G4: «Найди в книге» — a right answer is «exact», a wrong section is said, the answer's page opens with the paragraph
+    // marked, the history is on the device, nothing is written into word_status / review_log
+    if (!process.argv.includes("--no-g4")) for (const [lang, width] of [["ru", 390], ["he", 1440]]) {
+      const context = await browser.newContext({ viewport: { width, height: 860 }, serviceWorkers: "block" });
+      const page = await context.newPage();
+      const errors = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      await openSection(page, base, lang);
+      const before = await rowsOf(page);
+      await page.locator(".atlas-train-btn").click();
+      await page.locator("[data-find-here]").click();
+      await page.waitForSelector(".atlas-find-text");
+      const bank = await page.evaluate(() => fetch("/data/atlas/a97002/train/find.json").then((r) => r.json()));
+      const answerOf = async () => { const t = await page.locator(".atlas-find-text").innerText(); return bank.items.find((x) => x.he === t.trim()); };
+      const first = await answerOf();
+      assert.ok(first && first.sid === "s09-belt", "«Этот раздел» asks this section: " + (first && first.sid));
+      await page.locator('select[name="sid"]').selectOption(first.sid);
+      await page.locator('input[name="page"]').fill(String(first.page));
+      await page.screenshot({ path: path.join(out, `find-ask-${lang}-${width}.png`) });
+      await page.locator("[data-find-check]").click();
+      const verdict1 = await page.locator(".atlas-find-result .atlas-ts-ru").innerText();
+      await page.locator("[data-find-next]").click();
+      const second = await answerOf();
+      await page.locator('select[name="sid"]').selectOption("s10-spur-gears");
+      await page.locator("[data-find-check]").click();
+      const verdict2 = await page.locator(".atlas-find-result .atlas-ts-ru").innerText();
+      await page.screenshot({ path: path.join(out, `find-answer-${lang}-${width}.png`) });
+      await page.locator("[data-find-open]").click();
+      await page.waitForFunction((b) => { const r = document.querySelector('.atlas-row.atlas-row-flash'); return r && r.getAttribute("data-ref") === b; }, second.block, { timeout: 15000 });
+      const history = await page.evaluate(() => JSON.parse(localStorage.getItem("room.atlas.find.v1") || "[]"));
+      const after = await rowsOf(page);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      report.push({ g4: { lang, width, bank: bank.items.length, first: first.id, verdict1, second: second.id, verdict2, history: history.map((x) => [x.section, x.page]), before, after, overflow, errors: errors.length } });
+      assert.deepEqual(history.map((x) => [x.section, x.page]), [[true, "exact"], [false, "wrong"]]);
+      assert.notEqual(verdict1, verdict2);
+      assert.deepEqual(after, before, "the exercise writes nothing into word_status / review_log");
+      assert.ok(overflow <= 1, "no horizontal scroll");
+      assert.deepEqual(errors, [], "no page errors");
+      await context.close();
+    }
   } finally {
     await browser.close();
     fs.writeFileSync(path.join(out, "report.json"), JSON.stringify(report, null, 1) + "\n");
