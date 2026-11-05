@@ -1,0 +1,564 @@
+[
+ {
+  "word": "בֹּקֶר",
+  "plain": "בוקר",
+  "where": [
+   "scene.t-hello",
+   "text.p1",
+   "text.p2"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "טוֹב",
+  "plain": "טוב",
+  "where": [
+   "scene.t-hello",
+   "scene.t-bye",
+   "text.p1",
+   "text.p2"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "כֵּן",
+  "plain": "כן",
+  "where": [
+   "scene.t-hello",
+   "scene.t-milk-answer",
+   "scene.t-milk-answer.with",
+   "scene.t-fix-take.agree",
+   "scene.t-fix-sit.agree",
+   "text.p2",
+   "task.r-confirm-ok.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "בְּבַקָּשָׁה",
+  "plain": "בבקשה",
+  "where": [
+   "scene.t-hello",
+   "scene.t-order",
+   "scene.t-size-answer",
+   "scene.t-size-answer.big",
+   "scene.t-service-answer",
+   "scene.t-service-answer.take",
+   "scene.t-oops-sit",
+   "scene.t-oops-take",
+   "text.p2",
+   "text.p6",
+   "task.b-tea-sugar.model",
+   "task.b-tea-sugar.tiles3",
+   "task.w-tea-milk.model",
+   "grammar.g-efshar"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "אֶפְשָׁר",
+  "plain": "אפשר",
+  "where": [
+   "scene.t-order",
+   "text.p4",
+   "task.b-big-coffee.model",
+   "task.b-big-coffee.tiles0",
+   "task.w-tea-milk.model",
+   "task.o-card.model",
+   "task.r-instead.model",
+   "task.x-kiosk.model",
+   "task.x-kiosk.variant.airport",
+   "task.x-kiosk.variant.friend",
+   "task.x-kiosk.variant.evening",
+   "grammar.g-efshar",
+   "grammar.g-adj"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "קָפֶה",
+  "plain": "קפה",
+  "where": [
+   "scene.t-order",
+   "scene.t-size-again",
+   "scene.t-confirm-sit",
+   "scene.t-confirm-take",
+   "text.p1",
+   "task.m-words.pair.coffee",
+   "task.b-big-coffee.model",
+   "task.b-big-coffee.tiles1",
+   "task.r-instead.model",
+   "task.r-instead.cue",
+   "task.r-confirm.cue",
+   "task.r-confirm-ok.cue",
+   "task.x-kiosk.variant.friend",
+   "grammar.g-efshar",
+   "grammar.g-adj",
+   "grammar.g-ein"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "גָּדוֹל",
+  "plain": "גדול",
+  "where": [
+   "scene.t-size",
+   "scene.t-size-answer",
+   "scene.t-size-answer.big",
+   "scene.t-size-again",
+   "scene.t-size-again-answer",
+   "scene.t-confirm-sit",
+   "scene.t-confirm-take",
+   "text.p2",
+   "text.p3",
+   "text.p7",
+   "task.b-big-coffee.model",
+   "task.b-big-coffee.tiles2",
+   "task.o-card.model",
+   "task.r-repeat.cue",
+   "task.r-confirm.cue",
+   "task.r-confirm-ok.cue",
+   "task.x-kiosk.model",
+   "task.x-kiosk.variant.friend",
+   "grammar.g-adj"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "אוֹ",
+  "plain": "או",
+  "where": [
+   "scene.t-size",
+   "scene.t-size-again",
+   "scene.t-service",
+   "text.p5",
+   "text.p7",
+   "task.r-repeat.cue"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "קָטָן",
+  "plain": "קטן",
+  "where": [
+   "scene.t-size",
+   "scene.t-size-again",
+   "task.b-big-coffee.distractors0",
+   "task.r-repeat.cue",
+   "task.n-small-f.option.m",
+   "task.x-kiosk.variant.airport"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "סְלִיחָה",
+  "plain": "סליחה",
+  "where": [
+   "scene.t-size-answer.again",
+   "scene.t-oops-sit-fix",
+   "scene.t-oops-take-fix",
+   "task.r-repeat.model",
+   "task.r-instead.cue",
+   "grammar.g-ein"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "עוֹד",
+  "plain": "עוד",
+  "where": [
+   "scene.t-size-answer.again",
+   "task.r-repeat.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "פַּעַם",
+  "plain": "פעם",
+  "where": [
+   "scene.t-size-answer.again",
+   "task.r-repeat.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "עִם",
+  "plain": "עם",
+  "where": [
+   "scene.t-milk",
+   "scene.t-milk-answer",
+   "scene.t-milk-answer.with",
+   "text.p3",
+   "task.b-tea-sugar.distractors0",
+   "task.w-tea-milk.model",
+   "task.r-confirm.cue",
+   "task.r-confirm-ok.cue",
+   "task.x-kiosk.variant.airport",
+   "task.x-kiosk.variant.evening"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "חָלָב",
+  "plain": "חלב",
+  "where": [
+   "scene.t-milk",
+   "scene.t-milk-answer",
+   "scene.t-milk-answer.with",
+   "scene.t-milk-answer.without",
+   "task.m-words.pair.milk",
+   "task.w-tea-milk.model",
+   "task.r-confirm.model",
+   "task.r-confirm.cue",
+   "task.r-confirm-ok.cue",
+   "task.x-kiosk.variant.airport"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "לֹא",
+  "plain": "לא",
+  "where": [
+   "scene.t-milk-answer.without",
+   "scene.t-fix-take",
+   "scene.t-fix-take.fix",
+   "scene.t-fix-sit",
+   "scene.t-fix-sit.fix",
+   "text.p4",
+   "task.r-confirm.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "בְּלִי",
+  "plain": "בלי",
+  "where": [
+   "scene.t-milk-answer.without",
+   "text.p4",
+   "text.p7",
+   "task.c-take.option.bli",
+   "task.b-tea-sugar.model",
+   "task.b-tea-sugar.tiles1",
+   "task.o-card.model",
+   "task.r-confirm.model",
+   "task.x-kiosk.model",
+   "task.x-kiosk.variant.friend"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "לָשֶׁבֶת",
+  "plain": "לשבת",
+  "where": [
+   "scene.t-service",
+   "scene.t-service-answer.sit",
+   "scene.t-confirm-sit",
+   "scene.t-oops-sit",
+   "scene.t-fix-sit",
+   "scene.t-fix-sit.fix",
+   "scene.t-oops-take-fix",
+   "text.p7",
+   "text.p8",
+   "task.c-take.option.sit",
+   "task.x-kiosk.variant.friend",
+   "task.x-kiosk.variant.evening"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "לָקַחַת",
+  "plain": "לקחת",
+  "where": [
+   "scene.t-service",
+   "scene.t-service-answer",
+   "scene.t-service-answer.take",
+   "scene.t-fix-take",
+   "scene.t-fix-take.fix",
+   "scene.t-oops-sit-fix",
+   "scene.t-confirm-take",
+   "scene.t-oops-take",
+   "text.p7",
+   "task.c-take.option.take",
+   "task.o-card.model",
+   "task.x-kiosk.variant.airport"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "תּוֹדָה",
+  "plain": "תודה",
+  "where": [
+   "scene.t-fix-take.agree",
+   "scene.t-fix-sit.agree",
+   "scene.t-thanks",
+   "text.p8",
+   "task.r-confirm-ok.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "כָּאן",
+  "plain": "כאן",
+  "where": [
+   "scene.t-oops-sit"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "אֵין",
+  "plain": "אין",
+  "where": [
+   "scene.t-no-problem",
+   "task.r-instead.cue",
+   "grammar.g-ein"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "בְּעָיָה",
+  "plain": "בעיה",
+  "where": [
+   "scene.t-no-problem"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "עֶשְׂרִים",
+  "plain": "עשרים",
+  "where": [
+   "scene.t-price"
+  ],
+  "pealim": "absent",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "שֶׁקֶל",
+  "plain": "שקל",
+  "where": [
+   "scene.t-price"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "יוֹם",
+  "plain": "יום",
+  "where": [
+   "scene.t-bye"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "תָּמָר",
+  "plain": "תמר",
+  "where": [
+   "text.p1"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "אוֹרִי",
+  "plain": "אורי",
+  "where": [
+   "text.p2",
+   "text.p8"
+  ],
+  "pealim": "match",
+  "dicta": "אוּרִי",
+  "note": ""
+ },
+ {
+  "word": "הָפוּךְ",
+  "plain": "הפוך",
+  "where": [
+   "text.p2",
+   "text.p3",
+   "text.p7"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "סֻכָּר",
+  "plain": "סוכר",
+  "where": [
+   "text.p3",
+   "text.p4",
+   "text.p7",
+   "task.b-tea-sugar.model",
+   "task.b-tea-sugar.tiles2",
+   "task.o-card.model",
+   "task.x-kiosk.variant.friend"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "עוּגָה",
+  "plain": "עוגה",
+  "where": [
+   "text.p4",
+   "text.p5",
+   "text.p7",
+   "grammar.g-gender"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "קְטַנָּה",
+  "plain": "קטנה",
+  "where": [
+   "text.p5",
+   "task.n-small-f.option.f"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "גְּדוֹלָה",
+  "plain": "גדולה",
+  "where": [
+   "text.p5",
+   "text.p6",
+   "text.p7",
+   "task.n-small-f.option.big-f",
+   "grammar.g-gender"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "בְּסֵדֶר",
+  "plain": "בסדר",
+  "where": [
+   "text.p7"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "תֵּה",
+  "plain": "תה",
+  "where": [
+   "task.m-words.pair.tea",
+   "task.b-tea-sugar.model",
+   "task.b-tea-sugar.tiles0",
+   "task.w-tea-milk.model",
+   "task.o-card.model",
+   "task.r-instead.model",
+   "task.x-kiosk.variant.airport"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "מַיִם",
+  "plain": "מים",
+  "where": [
+   "task.m-words.pair.water",
+   "task.x-kiosk.variant.evening"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "בִּמְקוֹם",
+  "plain": "במקום",
+  "where": [
+   "task.r-instead.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "מִיץ",
+  "plain": "מיץ",
+  "where": [
+   "task.x-kiosk.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "תַּפּוּזִים",
+  "plain": "תפוזים",
+  "where": [
+   "task.x-kiosk.model"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ },
+ {
+  "word": "קֶרַח",
+  "plain": "קרח",
+  "where": [
+   "task.x-kiosk.model",
+   "task.x-kiosk.variant.evening"
+  ],
+  "pealim": "match",
+  "dicta": "match",
+  "note": ""
+ }
+]

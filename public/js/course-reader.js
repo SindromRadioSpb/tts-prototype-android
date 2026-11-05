@@ -585,6 +585,11 @@
           });
           body.append(toggle,transcript);
         }
+        else if(task.channel?.includes('listen')&&task.audioTurnId){
+          // No recording: read the line honestly; the attempt keeps its non-listening channel.
+          const turn=current.scene.turns.find(t=>t.id===task.audioTurnId);
+          if(turn){body.append(el('p',{class:'course-scene-note',role:'status'},T('scene.noAudio','Запись недоступна — читаем.')),hebrewElement('p',{'data-course-transcript':'',dir:'rtl',lang:'he'},turn.he));aid(task,'transcript');}
+        }
         const updateFeedback=(result,attempt)=>{
           feedback.replaceChildren();
           feedback.textContent=result.kind==='accepted'?T('accepted','Смысл передан.'):result.kind==='unknown'?T('unknown','Проверка недоступна для этого варианта.'):result.message?.ru||T('tryAgain','Попробуйте ещё.');

@@ -1,0 +1,440 @@
+[
+ {
+  "taskId": "w-tea-milk",
+  "input": "אֶפְשָׁר תֵּה עִם חָלָב, בְּבַקָּשָׁה?",
+  "expect": "accepted",
+  "why": "образец с огласовками (H1)"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר תה עם חלב בבקשה",
+  "expect": "accepted",
+  "why": "без огласовок и без знаков"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "תה עם חלב",
+  "expect": "accepted",
+  "why": "без вежливой рамки — смысл передан (с советом про אפשר)"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אני רוצה תה עם חלב",
+  "expect": "accepted",
+  "why": "естественный вариант «я хочу», мужской род"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אני רוצה תה עם חלב, בבקשה",
+  "expect": "accepted",
+  "why": "то же для женщины: רוצה пишется одинаково, проверка не зависит от рода"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר קפה עם חלב",
+  "expect": "mismatch",
+  "why": "не тот напиток"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר תה בלי חלב",
+  "expect": "mismatch",
+  "why": "отрицание ожидаемого условия"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר תה",
+  "expect": "partial",
+  "why": "не хватает молока"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "עם חלב",
+  "expect": "partial",
+  "why": "не назван напиток"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "תֵּה עִם חָלָב",
+  "expect": "accepted",
+  "why": "огласованный короткий ответ"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר תה עם חלב?",
+  "expect": "accepted",
+  "why": "с вопросительным знаком"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר תה עם חלב, תודה",
+  "expect": "accepted",
+  "why": "вежливое слово в конце"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "שלום, אפשר תה עם חלב?",
+  "expect": "accepted",
+  "why": "приветствие перед заказом"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "אפשר תה עם קולה",
+  "expect": "unknown",
+  "why": "слово вне словаря урока → честное «не могу проверить»"
+ },
+ {
+  "taskId": "w-tea-milk",
+  "input": "",
+  "expect": "empty",
+  "why": "пустой ответ"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אֶפְשָׁר תֵּה גָּדוֹל בְּלִי סֻכָּר, לָקַחַת?",
+  "expect": "accepted",
+  "why": "образец"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר תה גדול בלי סוכר לקחת",
+  "expect": "accepted",
+  "why": "без огласовок"
+ },
+ {
+  "taskId": "o-card",
+  "input": "תה גדול בלי סוכר, לקחת, בבקשה",
+  "expect": "accepted",
+  "why": "без אפשר"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר תה קטן בלי סוכר לקחת",
+  "expect": "mismatch",
+  "why": "не тот размер"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר תה גדול עם סוכר לקחת",
+  "expect": "mismatch",
+  "why": "с сахаром вместо без"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר תה גדול בלי סוכר לשבת",
+  "expect": "mismatch",
+  "why": "здесь вместо с собой"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר תה גדול בלי סוכר",
+  "expect": "partial",
+  "why": "забыто «с собой»"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר גדול תה בלי סוכר לקחת",
+  "expect": "form",
+  "why": "русский порядок: размер перед напитком"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר תה גדולה בלי סוכר לקחת",
+  "expect": "form",
+  "why": "женская форма при мужском תה"
+ },
+ {
+  "taskId": "o-card",
+  "input": "אפשר קפה גדול בלי סוכר לקחת",
+  "expect": "mismatch",
+  "why": "кофе вместо чая"
+ },
+ {
+  "taskId": "o-card",
+  "input": "לקחת: תה גדול בלי סוכר",
+  "expect": "accepted",
+  "why": "другой порядок частей фразы"
+ },
+ {
+  "taskId": "b-big-coffee",
+  "input": "אפשר קפה גדול",
+  "expect": "accepted",
+  "why": "плитки в верном порядке"
+ },
+ {
+  "taskId": "b-big-coffee",
+  "input": "אפשר גדול קפה",
+  "expect": "form",
+  "why": "размер перед напитком"
+ },
+ {
+  "taskId": "b-big-coffee",
+  "input": "אפשר קפה קטן",
+  "expect": "mismatch",
+  "why": "лишняя плитка вместо нужной"
+ },
+ {
+  "taskId": "b-big-coffee",
+  "input": "קפה גדול",
+  "expect": "accepted",
+  "why": "без рамки"
+ },
+ {
+  "taskId": "b-tea-sugar",
+  "input": "תה בלי סוכר בבקשה",
+  "expect": "accepted",
+  "why": "плитки по порядку"
+ },
+ {
+  "taskId": "b-tea-sugar",
+  "input": "תה עם סוכר בבקשה",
+  "expect": "mismatch",
+  "why": "лишняя плитка עם"
+ },
+ {
+  "taskId": "b-tea-sugar",
+  "input": "בלי סוכר תה בבקשה",
+  "expect": "accepted",
+  "why": "условие перед напитком допустимо"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "סְלִיחָה, עוֹד פַּעַם?",
+  "expect": "accepted",
+  "why": "образец"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "עוד פעם?",
+  "expect": "accepted",
+  "why": "короткая живая форма"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "מה?",
+  "expect": "accepted",
+  "why": "разговорное «что?»"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "סליחה, מה?",
+  "expect": "accepted",
+  "why": "вежливое «простите, что?»"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "לא הבנתי",
+  "expect": "accepted",
+  "why": "«я не понял(а)»"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "סליחה, לא הבנתי",
+  "expect": "accepted",
+  "why": "с вежливым словом"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "אפשר לחזור?",
+  "expect": "accepted",
+  "why": "учебная форма «можно повторить?»"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "שוב?",
+  "expect": "accepted",
+  "why": "«снова?»"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "סליחה, שוב",
+  "expect": "accepted",
+  "why": "с вежливым словом"
+ },
+ {
+  "taskId": "r-repeat",
+  "input": "גדול",
+  "expect": "unknown",
+  "why": "ответ на вопрос вместо просьбы повторить — честно не засчитывается"
+ },
+ {
+  "taskId": "r-instead",
+  "input": "אֶפְשָׁר תֵּה בִּמְקוֹם קָפֶה?",
+  "expect": "accepted",
+  "why": "образец"
+ },
+ {
+  "taskId": "r-instead",
+  "input": "תה במקום קפה",
+  "expect": "accepted",
+  "why": "без рамки"
+ },
+ {
+  "taskId": "r-instead",
+  "input": "אפשר תה במקום קפה, בבקשה",
+  "expect": "accepted",
+  "why": "с вежливым словом"
+ },
+ {
+  "taskId": "r-instead",
+  "input": "קפה במקום תה",
+  "expect": "mismatch",
+  "why": "перепутан порядок: сначала то, что хотите"
+ },
+ {
+  "taskId": "r-instead",
+  "input": "אפשר תה",
+  "expect": "mismatch",
+  "why": "нет «вместо»"
+ },
+ {
+  "taskId": "r-instead",
+  "input": "אפשר מים במקום קפה",
+  "expect": "mismatch",
+  "why": "вода вместо чая — не то, что просит задание"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "לֹא, בְּלִי חָלָב.",
+  "expect": "accepted",
+  "why": "образец исправления"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "לא, בלי חלב",
+  "expect": "accepted",
+  "why": "без огласовок"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "בלי חלב",
+  "expect": "accepted",
+  "why": "исправление без «нет»"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "כן",
+  "expect": "mismatch",
+  "why": "согласие с неверным подтверждением — смысловая ошибка (H3)"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "כן, תודה",
+  "expect": "mismatch",
+  "why": "вежливое согласие не прикрывает ошибку"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "בסדר",
+  "expect": "mismatch",
+  "why": "«ладно» — тоже согласие"
+ },
+ {
+  "taskId": "r-confirm",
+  "input": "לא, עם חלב",
+  "expect": "mismatch",
+  "why": "повтор неверного условия"
+ },
+ {
+  "taskId": "r-confirm-ok",
+  "input": "כֵּן, תּוֹדָה.",
+  "expect": "accepted",
+  "why": "образец"
+ },
+ {
+  "taskId": "r-confirm-ok",
+  "input": "כן",
+  "expect": "accepted",
+  "why": "короткое согласие"
+ },
+ {
+  "taskId": "r-confirm-ok",
+  "input": "בסדר",
+  "expect": "accepted",
+  "why": "согласие «ладно»"
+ },
+ {
+  "taskId": "r-confirm-ok",
+  "input": "לא, בלי חלב",
+  "expect": "mismatch",
+  "why": "исправление верного подтверждения"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אֶפְשָׁר מִיץ תַּפּוּזִים גָּדוֹל בְּלִי קֶרַח?",
+  "expect": "accepted",
+  "why": "образец переноса"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "מיץ תפוזים גדול בלי קרח",
+  "expect": "accepted",
+  "why": "без рамки"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר מיץ גדול בלי קרח",
+  "expect": "accepted",
+  "why": "«сок» без уточнения"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר מיץ תפוזים קטן בלי קרח",
+  "expect": "mismatch",
+  "why": "не тот размер"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר מיץ תפוזים גדול עם קרח",
+  "expect": "mismatch",
+  "why": "со льдом вместо без"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר מיץ תפוזים גדול",
+  "expect": "partial",
+  "why": "забыт лёд"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר תה קטן עם חלב, לקחת?",
+  "expect": "accepted",
+  "why": "вариант «аэропорт»: образец",
+  "variant": "airport"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר תה קטן עם חלב, לשבת?",
+  "expect": "mismatch",
+  "why": "вариант «аэропорт»: здесь вместо с собой",
+  "variant": "airport"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר קפה גדול בלי סוכר, לשבת?",
+  "expect": "accepted",
+  "why": "вариант «для подруги»: образец",
+  "variant": "friend"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר קפה גדול בלי סוכר, כאן",
+  "expect": "accepted",
+  "why": "вариант «для подруги»: כאן вместо לשבת",
+  "variant": "friend"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר מים עם קרח, לשבת?",
+  "expect": "accepted",
+  "why": "вариант «вечер»: образец",
+  "variant": "evening"
+ },
+ {
+  "taskId": "x-kiosk",
+  "input": "אפשר מים בלי קרח, לשבת?",
+  "expect": "mismatch",
+  "why": "вариант «вечер»: без льда вместо со льдом",
+  "variant": "evening"
+ }
+]

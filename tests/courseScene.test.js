@@ -84,3 +84,14 @@ test('read mode shows choices in Hebrew',async()=>{
  assert.equal(b.length,2);assert.match(b[1].textContent,/סליחה|סְלִיחָה/);
  r.destroy();
 });
+test('a listening task without a recording shows the line as text with a note and is not counted as listening',async()=>{
+ const e=env(d=>{const t=d['lessons/L001-cafe.json'].tasks[0];t.channel=['listen','write_he'];t.audioTurnId='t1';});
+ const r=e.mount();await r.openLesson('L001-cafe',2);
+ const step=e.document.querySelector('[data-course-task]');
+ assert.match(step.textContent,/Запись недоступна/);
+ assert.ok(step.querySelector('[data-course-transcript]'),'line shown as text');
+ const field=e.document.querySelector('[data-course-input]');field.value='תה בלי סוכר';field.dispatchEvent(new e.window.Event('input'));
+ e.document.querySelector('[data-course-check]').click();
+ assert.notEqual(e.store.load('mini').progress.attempts.at(-1).channel,'listen');
+ r.destroy();
+});

@@ -1,14 +1,13 @@
 {
   "format": "course-v1",
   "id": "ulpan",
-  "version": 1,
+  "version": 2,
   "title": {
-    "ru": "Мини-курс"
+    "ru": "Иврит с нуля"
   },
   "lexicon": "lexicon.json",
   "lessons": [
-    "L001-cafe",
-    "L002-cafe-again"
+    "L001-cafe"
   ],
   "preknown": []
 }
