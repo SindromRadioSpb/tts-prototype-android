@@ -116,10 +116,39 @@ async function bakeItems(items, { client, outDir = DEFAULT_OUT, ceiling = MAX_CH
   return result;
 }
 
+function buildListeningSheet(lessonId, items, asr = []) {
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rows = items.map(item => {
+    const check = asr.find(entry => entry.key === item.assetKey && entry.ref === item.ref);
+    return `<article data-ref="${esc(item.ref)}" data-key="${esc(item.assetKey)}">
+<h2>${esc(item.ref)}</h2><p lang="he" dir="rtl">${esc(item.text)}</p>
+<audio controls preload="none" src="${esc(item.assetKey)}.mp3"></audio>
+<p>ASR: ${check ? esc(check.asr) : 'Не проверено'}</p>
+<label>Оценка <select><option value="UNREVIEWED" selected>Ещё не прослушано</option><option value="ok">Годится</option><option value="bad">Проблема</option></select></label>
+<label>Заметка <textarea></textarea></label></article>`;
+  }).join('\n');
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Прослушивание: ${esc(lessonId)}</title>
+<style>body{font:18px system-ui;max-width:850px;margin:2rem auto;padding:0 1rem}article{border-top:1px solid #aaa;padding:1rem 0}p[lang=he]{font-size:1.7rem}label{display:block;margin:.7rem 0}textarea{display:block;width:95%}audio{width:100%}</style></head>
+<body data-lesson-id="${esc(lessonId)}"><h1>Прослушивание: ${esc(lessonId)}</h1><p>Прослушайте каждую запись и выберите «Годится» или «Проблема». Непрослушанные записи не попадут в отметки. ASR служит только для диагностики.</p>${rows}
+<button onclick="downloadMarks()">Скачать отметки</button><script>
+function downloadMarks() {
+  const items = Object.create(null);
+  document.querySelectorAll('[data-ref]').forEach(row => {
+    const status = row.querySelector('select').value;
+    if (status === 'ok' || status === 'bad') items[row.dataset.ref] = { key: row.dataset.key, status, note: row.querySelector('textarea').value };
+  });
+  const lessonId = document.body.dataset.lessonId;
+  const blob = new Blob([JSON.stringify({ lessonId, reviewedAt: new Date().toISOString(), items }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = 'listen-' + lessonId + '-marks.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+</script></body></html>`;
+}
+
 async function main(args) {
   const [command, srcDir, ...rest] = args;
-  if (!['inventory', 'bake'].includes(command) || !srcDir || srcDir.startsWith('--')) throw new Error('Usage: course-tts.cjs inventory|bake <courseSrcDir> [options]');
-  const allowed = command === 'inventory' ? ['--lesson', '--out', '--audio-dir'] : ['--lesson', '--out', '--concurrency', '--ceiling'];
+  if (!['inventory', 'bake', 'sheet'].includes(command) || !srcDir || srcDir.startsWith('--')) throw new Error('Usage: course-tts.cjs inventory|bake|sheet <courseSrcDir> [options]');
+  const allowed = command === 'inventory' ? ['--lesson', '--out', '--audio-dir'] : command === 'sheet' ? ['--lesson', '--out'] : ['--lesson', '--out', '--concurrency', '--ceiling'];
   const options = {};
   for (let i = 0; i < rest.length; i += 2) {
     const name = rest[i], value = rest[i + 1];
@@ -127,7 +156,16 @@ async function main(args) {
     options[name] = value;
   }
   const outDir = (command === 'inventory' ? options['--audio-dir'] : options['--out']) || DEFAULT_OUT;
+  if (command === 'sheet' && !options['--lesson']) throw new Error('sheet requires --lesson');
   const report = inventory(srcDir, { lesson: options['--lesson'], outDir });
+  if (command === 'sheet') {
+    const asrFile = path.join(outDir, 'asr-check.json');
+    const asr = fs.existsSync(asrFile) ? readJson(asrFile) : [];
+    if (!Array.isArray(asr)) throw new Error('Invalid asr-check.json: expected an array');
+    fs.mkdirSync(outDir, { recursive: true });
+    atomicWrite(path.join(outDir, 'listen-' + options['--lesson'] + '.html'), buildListeningSheet(options['--lesson'], report.items, asr));
+    return;
+  }
   if (command === 'inventory') {
     const json = JSON.stringify(report, null, 2) + '\n';
     if (options['--out']) atomicWrite(options['--out'], json);
@@ -144,7 +182,7 @@ async function main(args) {
   if (result.failed) process.exitCode = 1;
 }
 
-module.exports = { PROFILE_ID, inventory, bakeItems };
+module.exports = { PROFILE_ID, inventory, bakeItems, buildListeningSheet };
 if (require.main === module) main(process.argv.slice(2)).catch(error => {
   console.error(error.message);
   process.exitCode = 1;
