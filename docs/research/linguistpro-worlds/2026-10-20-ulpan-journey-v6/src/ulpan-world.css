@@ -1,0 +1,17 @@
+/* Ulpan journey native stage */
+html[data-world][data-world="ulpan-journey"] .classic-shell-copy,
+html[data-world][data-world="ulpan-journey"] .room-header-row,
+html[data-world][data-world="ulpan-journey"] .ml-heading {
+ padding-bottom:calc(var(--lp-ulpan-art-height,136px) + 64px)!important;
+}
+html[data-world][data-world="ulpan-journey"] .lp-world-stage{overflow:visible}
+html[data-world][data-world="ulpan-journey"] .lp-world-pause{bottom:58px}
+html[data-world][data-world="ulpan-journey"] .lp-world-route{top:auto;bottom:0;max-width:calc(100vw - 16px);overflow-x:auto}
+html[data-world][data-world="ulpan-journey"] .lp-world-stop-icon{font-size:22px;line-height:30px;text-align:center}
+html[data-world][data-world="ulpan-journey"] .lp-world-bubble{font-size:16px;line-height:1.4;white-space:normal}
+html[data-world][data-world="ulpan-journey"] .lp-world-actor{
+ position:absolute;z-index:2;min-width:44px;min-height:44px;margin:0;padding:0;
+ border:0;background:transparent;box-shadow:none;border-radius:4px;cursor:pointer;
+}
+html[data-world][data-world="ulpan-journey"] .lp-world-actor[hidden]{display:none}
+html[data-world][data-world="ulpan-journey"] .lp-world-actor:focus-visible{outline:3px solid #f3d79b;outline-offset:1px;background:#dfba7618}

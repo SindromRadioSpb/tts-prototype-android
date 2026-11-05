@@ -1,0 +1,113 @@
+{
+  "evidence": "Local Chrome, real app shells served statically; isolated profiles; backend and production not exercised.",
+  "checks": [
+    {
+      "name": "native / 1280px ru: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native / 1280px he: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native / 1280px en: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native / 380px ru: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native / 380px he: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native / 380px en: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "NPC dialogue /"
+    },
+    {
+      "name": "OS reduced motion /"
+    },
+    {
+      "name": "motion, pause and speech while paused /"
+    },
+    {
+      "name": "switch back to elections and cleanup /"
+    },
+    {
+      "name": "native /library.html 1280px ru: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /library.html 1280px he: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /library.html 1280px en: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /library.html 380px ru: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /library.html 380px he: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /library.html 380px en: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "NPC dialogue /library.html"
+    },
+    {
+      "name": "OS reduced motion /library.html"
+    },
+    {
+      "name": "motion, pause and speech while paused /library.html"
+    },
+    {
+      "name": "switch back to elections and cleanup /library.html"
+    },
+    {
+      "name": "native /mediatheque.html 1280px ru: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /mediatheque.html 1280px he: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /mediatheque.html 1280px en: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /mediatheque.html 380px ru: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /mediatheque.html 380px he: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "native /mediatheque.html 380px en: seven locations, actor taps and keyboard, geometry"
+    },
+    {
+      "name": "NPC dialogue /mediatheque.html"
+    },
+    {
+      "name": "OS reduced motion /mediatheque.html"
+    },
+    {
+      "name": "motion, pause and speech while paused /mediatheque.html"
+    },
+    {
+      "name": "switch back to elections and cleanup /mediatheque.html"
+    },
+    {
+      "name": "Memorial still mounts after Ulpan"
+    },
+    {
+      "name": "existing audio activity bridge holds and resumes train"
+    },
+    {
+      "name": "Classic removes Ulpan canvas and controls"
+    },
+    {
+      "name": "standard world picker selects Ulpan from Classic"
+    },
+    {
+      "name": "rapid world switching keeps the last selection"
+    }
+  ],
+  "errors": [],
+  "browser": "155.0.8059.80",
+  "result": "passed"
+}

@@ -1,0 +1,74 @@
+{
+  "started": "2026-10-20T12:40:26.554Z",
+  "browser": "155.0.8059.80",
+  "evidence": "Local headless Chrome via Playwright; offline file URL; no production or physical-device acceptance.",
+  "checks": [
+    {
+      "name": "seven scenes and 29 dialogue beats load offline",
+      "duration": 184.60000000000002
+    },
+    {
+      "name": "all supplied PNGs preserved byte for byte",
+      "files": 12
+    },
+    {
+      "name": "seven desktop scene screenshots"
+    },
+    {
+      "name": "scene and line navigation, replay and timeline controls"
+    },
+    {
+      "name": "read-at-own-pace holds each line; continue advances; pause freezes pixels"
+    },
+    {
+      "name": "reduced motion freezes every scene including train and ambient sprites"
+    },
+    {
+      "name": "extended train window masks preserve carriage outside animated actors",
+      "windowChanges": 77979,
+      "forbiddenChanges": 0
+    },
+    {
+      "name": "arrival phrase appears only at the arrival beat"
+    },
+    {
+      "name": "380px: all dialogue fits without horizontal overflow, >=18px type, RTL Hebrew",
+      "checked": 29
+    },
+    {
+      "name": "quiet lesson, keyboard answer, reset on reopening"
+    },
+    {
+      "name": "DOM transcript and keyboard navigation"
+    },
+    {
+      "name": "system reduced-motion setting and live change"
+    },
+    {
+      "name": "uninterrupted natural playback through all seven scenes to completion",
+      "elapsedMs": 186095,
+      "scenes": [
+        "promenade",
+        "market",
+        "workshop",
+        "jaffa",
+        "travel",
+        "reading",
+        "cinema"
+      ]
+    },
+    {
+      "name": "play after completion restarts story"
+    },
+    {
+      "name": "no browser exceptions and no HTTP network requests"
+    },
+    {
+      "name": "destroy stops playback"
+    }
+  ],
+  "errors": [],
+  "network": [],
+  "result": "passed",
+  "finished": "2026-10-20T12:43:37.100Z"
+}

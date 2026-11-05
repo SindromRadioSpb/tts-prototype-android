@@ -1,0 +1,2293 @@
+--- a/server.js
++++ b/server.js
+@@ -1380,12 +1380,13 @@
+   "/js/lexical-resolution-ui.js?v=12",
+   "/js/material-actions.js?v=1",
+   "/js/table-presets.js?v=782",
+-  "/js/world-activity.js?v=749",
++  "/js/world-activity.js?v=ulpan1",
+   "/js/memorial-adapter.js?v=736",
+   "/js/world-boot.js?v=736",
+-  "/js/world-engine.js?v=736",
++  "/js/ulpan-world.js?v=ulpan1",
++  "/js/world-engine.js?v=ulpan1",
+   "/js/world-render.js?v=715",
+-  "/css/world-skin.css?v=715",
++  "/css/world-skin.css?v=ulpan1",
+   "/js/app-nav.js?v=747",
+   "/js/app-footer.js?v=669",
+   "/js/original-title.js?v=657",
+--- a/public/js/world-engine.js
++++ b/public/js/world-engine.js
+@@ -27,6 +27,11 @@
+   // Kill switch: an id missing here, or retired, never loads — the next successful app update
+   // withdraws a world everywhere (offline clients keep the old shell until they update).
+   var REGISTRY = {
++    "ulpan-journey": { base: "/worlds/ulpan-journey/", pack: "1.0.0", retired: false, category: "israel",
++      names: { ru: "Человек-Паук: в поисках первого Ульпана", en: "Spider-Man: finding the first ulpan", he: "ספיידרמן: בדרך לאולפן הראשון" },
++      note: { ru: "Нажмите на героев, чтобы поговорить. Семь локаций от Тель-Авива до Хайфы.", en: "Tap the characters to talk. Seven stops from Tel Aviv to Haifa.", he: "לחצו על הדמויות כדי לדבר. שבע תחנות מתל אביב לחיפה." },
++      routeLabel: { ru: "В поисках первого ульпана", en: "Finding the first ulpan", he: "בדרך לאולפן הראשון" },
++      greeting: "שלום", previewLocation: "promenade" },
+     "memorial-three-scenes": {"base": "/worlds/memorial-three-scenes/", "pack": "1.0.0", "retired": false, "names": {"ru": "Помним · три сцены", "en": "We remember · three scenes", "he": "זוכרים · שלוש סצנות"}, "note": {"ru": "Три предоставленные автором сцены памяти. Тихий свет и долгие паузы.", "en": "Three user-provided remembrance scenes. Quiet light and long pauses.", "he": "שלוש סצנות זיכרון שסופקו על ידי המשתמש. אור שקט והפסקות ארוכות."}, "badge": {"ru": "Память", "en": "Remembrance", "he": "זיכרון"}, "routeLabel": {"ru": "Помним · три сцены", "en": "We remember · three scenes", "he": "זוכרים · שלוש סצנות"}, "greeting": "", "previewLocation": "scene-1", "category": "events"},
+     "israel-elections-2026": { base: "/worlds/israel-elections-2026/", pack: "0.11.0", retired: false, category: "current-events",
+       names: { ru: "Мир выборов в Израиле", en: "Israel Elections 2026", he: "עולם הבחירות 2026" },
+@@ -62,7 +67,7 @@
+   var BUDGET = { maxAutoPerSession: 3, cooldownMs: 120000, maxDurationMs: 3000, maxManualDurationMs: 8000, ambientEveryMs: 22000 };
+   var DEFAULT_SCALE = 2;
+   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
+-  var CSS_URL = "/css/world-skin.css?v=715";    // lockstep with the sw.js precache keys
++  var CSS_URL = "/css/world-skin.css?v=ulpan1";    // lockstep with the sw.js precache keys
+   var RENDER_URL = "/js/world-render.js?v=715";
+ 
+   // ── pure core ──────────────────────────────────────────────────────────────
+@@ -191,6 +196,7 @@
+       var L = locs[id];
+       if (!isName(id) || !L || (L.phase != null && PHASES.indexOf(L.phase) < 0) || !isNum(L.x, -100000, 100000)) { err("location " + id); return; }
+       if (!localized(L.names)) err("location " + id + " names");
++      if (L.symbol && (!isPlainText(L.symbol) || L.symbol.length > 8)) err("location " + id + " symbol");
+       if (L.lighting && LIGHTINGS.indexOf(L.lighting) < 0) err("location " + id + " lighting");
+       if (L.sign) {
+         var sg = L.sign;
+@@ -618,7 +624,7 @@
+       if (wt >= w.ms) { state.walk = null; onArrive(w.to); }
+     }
+     if (state.scene && t - state.scene.start >= state.scene.def.durationMs) endScene();
+-    if (state.react && t - state.react.start > 3200) { state.react = null; hideBubble(); }
++    if (state.react && t - state.react.start > (state.react.durationMs || 3200)) { state.react = null; hideBubble(); }
+     if (st && state.visible) {
+       st.renderer.setPose(composePose(t));
+       st.renderer.render("stage", t, dt);
+@@ -788,10 +794,21 @@
+     state.lineIndex = ((state.lineIndex == null ? -1 : state.lineIndex) + 1) % list.length;
+     return list[state.lineIndex];
+   }
++  function activateActor(id) {
++    var st = state.stage;
++    if (!st || !st.renderer.dialogue) return;
++    var reply = st.renderer.dialogue(id, locale());
++    if (!reply) return;
++    endScene();
++    state.react = { start: now(), durationMs: Math.max(6000, Math.min(14000, reply.length * 65)) };
++    showBubble(reply);
++    if (!animating()) drawOnce(); else kick();
++  }
+   function onStageTap(e) {
+     var st = state.stage;
+     if (!st || state.walk) return;
+     var r = st.canvas.getBoundingClientRect();
++    if (st.renderer.hitTest) { var actor = st.renderer.hitTest(e.clientX-r.left, e.clientY-r.top); if (actor) activateActor(actor); return; }
+     var lx = (e.clientX - r.left) / st.scale, ly = (r.bottom - e.clientY) / st.scale;
+     var tx = locX() - st.renderer.camera();
+     var ground = state.pack.scenery.groundY;
+@@ -806,12 +823,13 @@
+     hideBubble();
+     var b = document.createElement("div");
+     b.className = "lp-world-bubble";
+-    b.setAttribute("aria-hidden", "true");
++    if (state.stage.renderer.dialogue) { b.setAttribute("role", "status"); b.setAttribute("aria-live", "polite"); }
++    else b.setAttribute("aria-hidden", "true");
+     b.lang = locale();
+     b.dir = "auto";
+     state.stage.el.appendChild(b);
+     state.bubble = b;
+-    if (reducedMotion()) b.textContent = text;
++    if (reducedMotion() || state.stage.renderer.dialogue) b.textContent = text;
+     else {
+       // typewriter: the full text reserves its width first, then characters appear
+       b.textContent = text;
+@@ -834,6 +852,15 @@
+   function positionBubble() {
+     var b = state.bubble, st = state.stage;
+     if (!b || !st) return;
++    if (st.renderer.bubbleAnchor) {
++      var a = st.renderer.bubbleAnchor();
++      b.style.whiteSpace = "normal"; b.style.maxWidth = Math.min(360, st.el.clientWidth - 16) + "px";
++      var bx = Math.max(8, Math.min(st.el.clientWidth - b.offsetWidth - 8, a.x - b.offsetWidth / 2));
++      b.style.left = bx + "px"; b.style.transform = "none";
++      b.style.bottom = Math.min(st.el.clientHeight - b.offsetHeight - 8, a.bottom + 8) + "px";
++      b.style.setProperty("--lpw-tail", Math.max(8, Math.min(b.offsetWidth - 20, a.x - bx)) + "px");
++      return;
++    }
+     var sc = st.scale, cam = st.renderer.camera();
+     var head = (locX() - cam) * sc;
+     var L = state.pack.locations[state.location];
+@@ -1105,6 +1132,7 @@
+       b.className = "lp-world-stop";
+       b.dataset.loc = id;
+       var L0 = state.pack.locations[id];
++      if (L0.symbol) { var symbol = document.createElement("span"); symbol.className = "lp-world-stop-icon"; symbol.textContent = L0.symbol; symbol.setAttribute("aria-hidden", "true"); b.appendChild(symbol); }
+       if (L0.icon && state.atlas.atlases[L0.icon]) {
+         var ic = document.createElement("span");
+         ic.className = "lp-world-stop-icon";
+@@ -1127,7 +1155,7 @@
+     posters.className = "lp-world-posters";
+     posters.setAttribute("data-world-ui", "");
+     el.appendChild(posters);
+-    var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26 });
++    var renderer = window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 26, onActor: activateActor });
+     state.stage = { el: el, canvas: canvas, pause: pause, sign: sign, signHe: signHe, signTr: signTr, route: route, posters: posters, renderer: renderer, scale: DEFAULT_SCALE, originPx: 0 };
+     canvas.addEventListener("pointerdown", onStageTap);
+     syncPauseButton();
+@@ -1171,6 +1199,7 @@
+   function unmount() {
+     [state.stage, state.backdrop].forEach(function (m) {
+       if (!m) return;
++      if (m.renderer && m.renderer.destroy) m.renderer.destroy();
+       while (m.el.firstChild) m.el.removeChild(m.el.firstChild);
+       m.el.hidden = true;
+       m.el.removeAttribute("style");
+@@ -1187,7 +1216,7 @@
+     on(document, "visibilitychange", function () { if (document.hidden) endScene(); else { state.lastFrame = 0; kick(); } });
+     on(window, "resize", function () { layoutStage(); });
+     on(window, "scroll", function () { if (!animating()) drawOnce(); }, { passive: true });
+-    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); syncRoute(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; });
++    on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); syncRoute(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; drawOnce(); });
+     if (typeof MutationObserver !== "undefined" && document.body) {
+       var themeMo = new MutationObserver(function () {
+         var l = currentLighting();
+@@ -1207,8 +1236,19 @@
+     state.listeners = [];
+   }
+ 
++  var ulpanLoading = null;
++  function ensureUlpanRenderer() {
++    if (window.LPUlpanWorld) return Promise.resolve();
++    if (!ulpanLoading) ulpanLoading = new Promise(function(resolve, reject) {
++      var s = document.createElement("script"); s.src = "/js/ulpan-world.js?v=ulpan1";
++      s.onload = function() { if (window.LPUlpanWorld) resolve(); else { ulpanLoading=null; reject(new Error("ulpan renderer missing")); } };
++      s.onerror = function() { ulpanLoading=null; reject(new Error("ulpan renderer failed")); }; document.head.appendChild(s);
++    });
++    return ulpanLoading;
++  }
+   var memorialLoading = null;
+   function ensureMemorialAdapter(id) {
++    if (id === "ulpan-journey") return ensureUlpanRenderer();
+     if (id !== "memorial-three-scenes" || window.LPMemorialAdapter) return Promise.resolve();
+     if (!memorialLoading) memorialLoading = new Promise(function (resolve, reject) {
+       var script = document.createElement("script");
+--- a/public/css/world-skin.css
++++ b/public/css/world-skin.css
+@@ -381,3 +381,21 @@
+ .lp-world-picker .lp-world-btn:focus-visible, .lp-world-option:has(input:focus-visible) { outline: 3px solid var(--theme-accent, #1b4fb8); outline-offset: 2px; }
+ body.theme-dark .lp-world-picker { border-color: #8ea6d9; }
+ body.theme-dark .lp-world-picker .lp-world-btn { border-color: #8ea6d9; }
++
++/* Ulpan journey native stage */
++html[data-world][data-world="ulpan-journey"] .classic-shell-copy,
++html[data-world][data-world="ulpan-journey"] .room-header-row,
++html[data-world][data-world="ulpan-journey"] .ml-heading {
++ padding-bottom:calc(var(--lp-ulpan-art-height,136px) + 64px)!important;
++}
++html[data-world][data-world="ulpan-journey"] .lp-world-stage{overflow:visible}
++html[data-world][data-world="ulpan-journey"] .lp-world-pause{bottom:58px}
++html[data-world][data-world="ulpan-journey"] .lp-world-route{top:auto;bottom:0;max-width:calc(100vw - 16px);overflow-x:auto}
++html[data-world][data-world="ulpan-journey"] .lp-world-stop-icon{font-size:22px;line-height:30px;text-align:center}
++html[data-world][data-world="ulpan-journey"] .lp-world-bubble{font-size:16px;line-height:1.4;white-space:normal}
++html[data-world][data-world="ulpan-journey"] .lp-world-actor{
++ position:absolute;z-index:2;min-width:44px;min-height:44px;margin:0;padding:0;
++ border:0;background:transparent;box-shadow:none;border-radius:4px;cursor:pointer;
++}
++html[data-world][data-world="ulpan-journey"] .lp-world-actor[hidden]{display:none}
++html[data-world][data-world="ulpan-journey"] .lp-world-actor:focus-visible{outline:3px solid #f3d79b;outline-offset:1px;background:#dfba7618}
+--- a/public/js/world-activity.js
++++ b/public/js/world-activity.js
+@@ -10,6 +10,7 @@
+     // Speech playback uses the same existing row state as the custom player UI.
+     const speechOrRow = !!document.querySelector('.row-tts-playing, .row-playing');
+     window.LPMemorialAdapter?.setActivity({ reading, audio: sources.size > 0 || speechOrRow });
++    window.LPUlpanWorld?.setActivity({ reading, audio: sources.size > 0 || speechOrRow });
+   }
+   function setAudio(source, playing) { if (playing) sources.add(source); else sources.delete(source); sync(); }
+   function trackMedia(player) {
+--- a/public/js/world-boot.js
++++ b/public/js/world-boot.js
+@@ -1,7 +1,7 @@
+ /* Worlds boot: one-time Memorial trial defaults, then preserve the learner choice. */
+ (function () {
+   "use strict";
+-  var ENGINE_URL = "/js/world-engine.js?v=736"; // lockstep with the sw.js precache key
++  var ENGINE_URL = "/js/world-engine.js?v=ulpan1"; // lockstep with the sw.js precache key
+   var loading = null;
+   function load() {
+     if (loading) return loading;
+--- a/public/sw.js
++++ b/public/sw.js
+@@ -301,12 +301,13 @@
+   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
+   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
+   "/js/table-presets.js?v=782",
+-  "/js/world-activity.js?v=749",
++  "/js/world-activity.js?v=ulpan1",
+   "/js/memorial-adapter.js?v=736",
+   "/js/world-boot.js?v=736",
+-  "/js/world-engine.js?v=736",
++  "/js/ulpan-world.js?v=ulpan1",
++  "/js/world-engine.js?v=ulpan1",
+   "/js/world-render.js?v=715",
+-  "/css/world-skin.css?v=715",
++  "/css/world-skin.css?v=ulpan1",
+   "/js/app-nav.js?v=747",
+   "/js/app-footer.js?v=669",
+   "/js/original-title.js?v=657",
+--- a/public/index.html
++++ b/public/index.html
+@@ -13907,7 +13907,7 @@
+ <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
+      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
+ <script src="/js/table-presets.js?v=782"></script>
+-<script src="/js/world-activity.js?v=749"></script>
++<script src="/js/world-activity.js?v=ulpan1"></script>
+ <script src="/js/world-boot.js?v=736"></script>
+ <script src="/js/media-host.js?v=783"></script>
+ <!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
+--- a/public/library.html
++++ b/public/library.html
+@@ -3668,7 +3668,7 @@
+ <script src="/js/tutor-practice.js?v=2"></script>
+ <script src="/js/tutor-notebook.js?v=718"></script>
+ <script src="/js/tutor-panel.js?v=9"></script>
+-<script src="/js/world-activity.js?v=749"></script>
++<script src="/js/world-activity.js?v=ulpan1"></script>
+ <script src="/js/world-boot.js?v=736"></script>
+ </body>
+ </html>
+--- a/public/mediatheque.html
++++ b/public/mediatheque.html
+@@ -42,7 +42,7 @@
+   <script src="/i18n/index.js"></script>
+   <script src="/js/product-telemetry.js?v=669"></script>
+   <script type="module" src="/js/mediatheque-ui.js?v=781"></script>
+-<script src="/js/world-activity.js?v=749"></script>
++<script src="/js/world-activity.js?v=ulpan1"></script>
+ <script src="/js/world-boot.js?v=736"></script>
+ </body>
+ </html>
+--- /dev/null
++++ b/public/js/ulpan-world.js
+@@ -0,0 +1,221 @@
++/* App-owned painter for ulpan-journey. Data/assets stay in the declarative pack.
++ * Uses the native world's route, picker, pause, bubbles and host activity bridge.
++ * No independent timer, network, learner data, audio or automatic dialogue.
++ */
++(function(root) {
++ 'use strict';
++ if (root.LPUlpanWorld) return;
++ const original = root.LPWorldRender.createRenderer;
++ const activity = { reading:false, audio:false };
++ const mq = root.matchMedia('(prefers-reduced-motion: reduce)');
++ const LABELS = {ru:{hero:'Человек-паук',timsah:'Тимсах',seller:'Продавец',master:'Мастер',teacher:'Учитель'},en:{hero:'Spider-Man',timsah:'Timsah',seller:'Seller',master:'Craftsman',teacher:'Teacher'},he:{hero:'ספיידרמן',timsah:'תמסח',seller:'מוכר',master:'בעל המלאכה',teacher:'מורה'}};
++ root.LPUlpanWorld = { setActivity(value) { Object.assign(activity,value); } };
++ root.LPWorldRender.createRenderer = function(canvas, opts) {
++  if (opts.pack.id !== 'ulpan-journey') return original(canvas,opts);
++  const ctx = canvas.getContext('2d'), parent=canvas.parentElement;
++  const isStage=parent.hasAttribute('data-world-slot');
++  const assets={atlas:{clips:opts.pack.ulpan.heroClips}}, story=opts.pack.ulpan.story;
++  const map={hero:'hero.png',timsah:'timsah.png',timsahAct:'timsah-act.png',cat:'cat.png',people:'people.png',trainInterior:'train-interior.png',coast:'coastal-panorama.png',heroSeated:'hero-seated.png',timsahLeisure:'timsah-leisure.png'};
++  for(const scene of story)if(scene.id!=='travel')map[scene.id]='scene-'+scene.id+'.png';
++  const images={}; for(const [key,file]of Object.entries(map))images[key]=opts.images[file];
++  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
++  const ease=v=>{v=clamp(v,0,1);return v*v*(3-2*v)};
++  let index=0,elapsed=3,cam=0,cssW=380,engineScale=2,light='day',reduced=mq.matches,disposed=false,dirty=true;
++  let speech=null,anchorActor='timsah',lastLocale='';const cursors={},buttons=new Map();
++  function getState(){
++   const scene=story[index],local=elapsed,walking=!reduced&&scene.arrival&&local<2.4;
++   const heroX=walking?218+52*ease(local/2.4):270,timsahX=walking?heroX+70:340;
++   const pose=speech?speech.beat.pose:'idle',lineTime=speech?Math.max(0,local-speech.started):local;
++   let clip='idle';if(walking)clip='walk';else if(!reduced&&['map','note'].includes(pose))clip='map';else if(!reduced&&speech&&speech.beat.who==='hero'&&pose==='greet'&&lineTime<3)clip='greet';
++   return {id:scene.id,local,lineTime,walking,heroX,timsahX,pose,clip,speaker:speech?speech.beat.who:''};
++  }
++  function shadow(x, y, width) {
++    ctx.fillStyle = '#091b2a55'; ctx.beginPath(); ctx.ellipse(x, y, width, 2, 0, 0, Math.PI * 2); ctx.fill();
++  }
++  function frame(image, sx, sy, sw, sh, x, feet, width, height, flip = false, tilt = 0) {
++    ctx.save(); ctx.translate(Math.round(x), feet); if (flip) ctx.scale(-1, 1); ctx.rotate(tilt);
++    ctx.drawImage(image, sx, sy, sw, sh, -width / 2, -height, width, height); ctx.restore();
++  }
++  function hero(s) {
++    const frames = assets.atlas.clips[s.clip];
++    const phase = s.clip === 'walk' ? (s.local * .85) % 1 : s.clip === 'greet' ? clamp(s.lineTime / 2.4, 0, .999) : (s.local * .18) % 1;
++    const f = frames[reduced ? 0 : Math.min(frames.length - 1, Math.floor(phase * frames.length))];
++    shadow(s.heroX, 221, 11);
++    // Gentle weight shift anchored at the feet; no vertical bounce or invented rig.
++    const tilt = reduced || s.walking ? 0 : Math.sin(s.local * .85) * .008;
++    frame(images.hero, f.x, f.y, 96, 96, s.heroX, 227, 96, 96, false, tilt);
++  }
++  function timsah(s) {
++    shadow(s.timsahX, 221, 12);
++    if (!reduced && !s.walking && ['map', 'note'].includes(s.pose)) {
++      const page = s.lineTime % 4 > 3.1 ? 1 : 0;
++      frame(images.timsahAct, page * 31, 0, 30, 41, s.timsahX, 223, 43, 59, true);
++    } else if (!reduced && !s.walking && s.pose === 'laugh' && s.lineTime < 2.5) {
++      frame(images.timsahLeisure, 87, 0, 28, 36, s.timsahX, 223, 43, 55, true);
++    } else {
++      const n = s.walking ? (Math.floor(s.local * 4) % 2 ? 3 : 2) : !reduced && s.local % 5.3 > 5.1 ? 1 : 0;
++      const nod = reduced || s.walking ? 0 : Math.sin(s.lineTime * 2) * .012 * Math.max(0, 1 - s.lineTime / 2);
++      frame(images.timsah, n * 32, 0, 31, 42, s.timsahX, 223, 43, 59, !s.walking, nod);
++    }
++  }
++  function person(x, feet, scale, variant, walking, local, flip = false, talking = false) {
++    const n = walking && !reduced ? Math.floor(local * 3.5) % 2 : 0;
++    shadow(x, feet, 8 * scale);
++    const tilt = talking && !reduced ? Math.sin(local * 1.8) * .018 : 0;
++    frame(images.people, variant * 50 + n * 25, 0, 24, 44, x, feet, 24 * scale, 44 * scale, flip, tilt);
++  }
++  function cat(s, side, feet = 213) {
++    const start = side === 'left' ? 42 : 594, end = side === 'left' ? 138 : 507;
++    const travel = reduced ? 1 : (1 - Math.cos(s.local * Math.PI / 18)) / 2;
++    const x = start + (end - start) * travel;
++    const walking = !reduced && Math.abs(Math.sin(s.local * Math.PI / 18)) > .12;
++    const n = walking ? Math.floor(s.local * 5) % 2 : 2;
++    shadow(x, feet, 8);
++    frame(images.cat, n * 18, 0, 17, 18, x, feet + 2, 23, 25, side === 'right' !== (!reduced && Math.sin(s.local * Math.PI / 18) < 0));
++  }
++  function ambient(s) {
++    const p = reduced ? .65 : (1 - Math.cos(s.local * Math.PI / 22)) / 2;
++    switch (s.id) {
++      case 'promenade':
++        person(443 + 140 * p, 191, .82, 0, !reduced && p < 1, s.local);
++        cat(s, 'left', 211); break;
++      case 'market':
++        person(124, 164, .9, 1, false, s.local, false, s.speaker === 'seller');
++        person(581 - 123 * p, 190, .85, 0, !reduced && p < 1, s.local, true);
++        cat(s, 'left', 215); break;
++      case 'workshop':
++        person(150, 187, 1.1, 1, false, s.local, false, s.speaker === 'master');
++        // A moving sheet, drawn as a prop over the unchanged bench background.
++        ctx.fillStyle = '#e8d8ab'; ctx.save(); ctx.translate(150, 161);
++        ctx.rotate(reduced ? 0 : Math.sin(s.local * .6) * .08); ctx.fillRect(-6, -3, 12, 8); ctx.restore(); break;
++      case 'jaffa':
++        person(483 + 93 * p, 186, .74, 1, !reduced && p < 1, s.local);
++        cat(s, 'left', 205); break;
++      case 'reading':
++        person(452, 186, .95, 0, false, s.local, true, s.speaker === 'teacher');
++        // Reader at the left; a small page turn rather than street traffic indoors.
++        person(120, 194, .88, 1, false, s.local);
++        ctx.fillStyle = '#f3dfaf'; ctx.fillRect(109, 169, 22, 9);
++        ctx.fillStyle = '#8c7252'; ctx.fillRect(120 + (!reduced && s.local % 7 > 6 ? 4 : 0), 169, 1, 9); break;
++      case 'cinema':
++        person(487 + 48 * p, 181, .82, 0, !reduced && p < 1, s.local);
++        cat(s, 'right', 207); break;
++    }
++  }
++  function panorama(image, t, speed, source, dest) {
++    const offset = (t * speed) % 1280;
++    // Alternating mirrored tiles meet at identical edge pixels, even on long scenes.
++    // The train moves continuously forward; no resetting the eight-second v5 strip.
++    for (let k = -2; k < 5; k++) {
++      const x = k * 640 + 150 - offset;
++      ctx.save(); ctx.translate(x + (Math.abs(k) % 2 ? 640 : 0), 0);
++      if (Math.abs(k) % 2) ctx.scale(-1, 1);
++      ctx.drawImage(image, ...source, 0, dest[0], 640, dest[1]); ctx.restore();
++    }
++  }
++  function travel(s) {
++    ctx.drawImage(images.trainInterior, 0, 0, 640, 228);
++    ctx.save(); ctx.beginPath();
++    for (const w of [[183, 29, 122, 80], [335, 29, 122, 80]]) ctx.roundRect(...w, 4);
++    ctx.clip();
++    const movement = reduced ? 3 : s.local % 120;
++    panorama(images.coast, movement, 21, [0, 0, images.coast.width, images.coast.height], [-18, 213]);
++    ctx.save(); ctx.beginPath(); ctx.rect(180, 96, 280, 15); ctx.clip();
++    panorama(images.coast, movement, 39, [0, 285, 1280, 141], [93, 42]); ctx.restore();
++    ctx.fillStyle = '#ffdf9910'; ctx.fillRect(180, 29, 280, 80); ctx.restore();
++    // Existing seated pose with a subtle anchored lean, not a new skeletal cycle.
++    ctx.save(); ctx.translate(141, 214); ctx.rotate(reduced ? 0 : Math.sin(s.local * .7) * .004);
++    ctx.drawImage(images.heroSeated, -96, -186, 192, 192); ctx.restore();
++    const n = reduced ? 0 : s.pose === 'laugh' && s.lineTime < 2.5 ? 3 : s.local % 7 > 6 ? 1 : 0;
++    frame(images.timsahLeisure, n * 29, 0, 28, 36, 502, 178, 84, 108, true);
++  }
++  function sceneSign(label) {
++    ctx.save(); ctx.font = 'bold 18px Arial';
++    const width = Math.ceil(ctx.measureText(label).width) + 20;
++    const height = 36, x = Math.round(501 - width / 2), y = 63;
++    ctx.fillStyle = '#173b47'; ctx.fillRect(x, y, width, height);
++    ctx.strokeStyle = '#dfba76'; ctx.lineWidth = 1;
++    ctx.strokeRect(x + .5, y + .5, width - 1, height - 1);
++    ctx.strokeStyle = '#a6824d'; ctx.strokeRect(x + 3.5, y + 3.5, width - 7, height - 7);
++    // Small stepped corners and diamond inlays: geometric Eastern ornament.
++    ctx.strokeStyle = '#f3d79b';
++    for (const [cx, cy, sx, sy] of [[x,y,1,1],[x+width,y,-1,1],[x,y+height,1,-1],[x+width,y+height,-1,-1]]) {
++      ctx.beginPath(); ctx.moveTo(cx + sx * 2, cy + sy * 8);
++      ctx.lineTo(cx + sx * 6, cy + sy * 8); ctx.lineTo(cx + sx * 6, cy + sy * 6);
++      ctx.lineTo(cx + sx * 8, cy + sy * 6); ctx.lineTo(cx + sx * 8, cy + sy * 2); ctx.stroke();
++    }
++    for (const cy of [y + 3, y + height - 3]) {
++      ctx.fillStyle = '#dfba76'; ctx.beginPath(); ctx.moveTo(501, cy - 2);
++      ctx.lineTo(503, cy); ctx.lineTo(501, cy + 2); ctx.lineTo(499, cy); ctx.closePath(); ctx.fill();
++    }
++    ctx.fillStyle = '#f7d389'; ctx.textAlign = 'center'; ctx.direction = 'rtl';
++    ctx.fillText(label, 501, y + 24); ctx.restore();
++  }
++  function lang(){const l=document.documentElement.lang.slice(0,2);return LABELS[l]?l:'ru'}
++  function peopleTargets(){
++   const s=getState();
++   if(s.id==='travel')return [{id:'hero',x:141,top:55,feet:220},{id:'timsah',x:502,top:73,feet:180}];
++   const list=[{id:'hero',x:s.heroX,top:137,feet:222},{id:'timsah',x:s.timsahX,top:165,feet:223}];
++   if(s.id==='market')list.push({id:'seller',x:124,top:124,feet:164});
++   if(s.id==='workshop')list.push({id:'master',x:150,top:139,feet:187});
++   if(s.id==='reading')list.push({id:'teacher',x:452,top:144,feet:186});
++   return list;
++  }
++  function targetRect(target){
++   const k=cssW/640,z=story[index].id==='travel'?1:1.12;
++   const x=(target.x*z+320*(1-z))*k,top=(target.top*z+228*(1-z))*k;
++   const feet=(target.feet*z+228*(1-z))*k;
++   const width=Math.max(44,28*z*k),height=Math.max(44,feet-top);
++   return {x,y:top,width,height,left:x-width/2,top,head:top};
++  }
++  function controls(){
++   if(!isStage||!opts.onActor)return;
++   const visible=new Set(),l=lang();
++   for(const target of peopleTargets()){
++    visible.add(target.id);let button=buttons.get(target.id);
++    if(!button){button=document.createElement('button');button.type='button';button.className='lp-world-actor';button.dataset.worldUi='';button.dataset.actor=target.id;button.addEventListener('click',()=>opts.onActor(target.id));parent.appendChild(button);buttons.set(target.id,button)}
++    const r=targetRect(target);button.hidden=false;
++    button.setAttribute('aria-label',LABELS[l][target.id]);button.title=LABELS[l][target.id];
++    Object.assign(button.style,{left:r.left+'px',top:'auto',bottom:(52+cssW*228/640-r.top-r.height)+'px',width:r.width+'px',height:r.height+'px'});
++   }
++   for(const [id,button]of buttons)if(!visible.has(id))button.hidden=true;
++  }
++  function draw(){
++   if(disposed)return;
++   const s=getState();ctx.setTransform(2,0,0,2,0,0);ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,640,228);
++   if(s.id==='travel')travel(s);
++   else{ctx.save();const z=1.12;ctx.translate(320*(1-z),228*(1-z));ctx.scale(z,z);ctx.drawImage(images[s.id],0,0,640,228);ambient(s);hero(s);timsah(s);if(s.id==='reading'||s.id==='cinema')sceneSign(s.id==='reading'?'אולפן':'סרט');ctx.restore()}
++   controls();dirty=false;
++  }
++  function resize(w,h,scale){
++   cssW=w;engineScale=scale;canvas.width=1280;canvas.height=456;
++   Object.assign(canvas.style,{width:w+'px',height:(w*228/640)+'px',top:'auto',left:'0px',bottom:isStage?'52px':'0px'});
++   if(isStage)document.documentElement.style.setProperty('--lp-ulpan-art-height',(w*228/640)+'px');
++   else{canvas.style.position='relative';canvas.style.bottom='auto';canvas.style.margin='6px 0 0';}
++   dirty=true;
++  }
++  return {
++   resize, camera:()=>cam, size:()=>({w:cssW/engineScale,h:228}),lighting:()=>light,
++   setLighting(l){light=l;dirty=true},setScroll(){},setPose(){},
++   panTo(x){cam=x;const next=clamp(Math.round((x+cssW*.5/engineScale)/1000),0,story.length-1);if(index!==next){index=next;elapsed=0;speech=null;anchorActor='timsah';dirty=true}},
++   render(kind,t,dt){
++    if(disposed)return;const wasReduced=reduced;reduced=mq.matches;
++    const choice=root.LPWorld.current(),el=document.activeElement;
++    const editing=el&&!el.closest('[data-world-ui]')&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
++    const blocked=document.hidden||reduced||activity.reading||activity.audio||editing||(choice&&(choice.paused||choice.mode==='calm'));
++    if(!blocked&&dt>0){elapsed+=Math.min(100,dt)/1000;dirty=true;}
++    if(wasReduced!==reduced||lastLocale!==lang())dirty=true;lastLocale=lang();if(dirty)draw();
++   },
++   dialogue(id,l){
++    const beats=story[index].beats.filter(b=>b.who===id);if(!beats.length)return null;
++    const key=index+':'+id+':'+l,n=cursors[key]||0,beat=beats[n%beats.length];cursors[key]=n+1;
++    speech={beat,started:elapsed};anchorActor=id;dirty=true;
++    const locale=LABELS[l]?l:'ru';return LABELS[locale][id]+': '+beat.text[locale];
++   },
++   hitTest(x,y){for(const target of peopleTargets()){const r=targetRect(target);if(Math.abs(x-r.x)<=r.width/2&&y>=r.top&&y<=r.top+r.height)return target.id}return null},
++   bubbleAnchor(){const target=peopleTargets().find(t=>t.id===anchorActor)||peopleTargets()[1],r=targetRect(target);return{x:r.x,bottom:52+cssW*228/640-r.head}},
++   destroy(){disposed=true;for(const button of buttons.values())button.remove();buttons.clear();}
++  };
++ };
++ root.LPWorldActivity?.sync();
++})(window);
+--- /dev/null
++++ b/tests/ulpanWorld.test.cjs
+@@ -0,0 +1,34 @@
++'use strict';
++const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
++const ROOT=path.resolve(__dirname,'..'),PACK=path.join(ROOT,'public/worlds/ulpan-journey');
++const read=file=>JSON.parse(fs.readFileSync(path.join(PACK,file),'utf8'));
++const {core}=require(path.join(ROOT,'public/js/world-engine.js'));
++test('native Ulpan pack validates and all seven stops exist on each surface',()=>{
++ const pack=read('manifest.json'),atlas=read('atlas.json');assert.deepEqual(core.validatePack(pack,atlas,pack.id),{ok:true,errors:[]});
++ const route=pack.ulpan.story.map(s=>s.id);assert.equal(route.length,7);
++ for(const surface of Object.values(pack.surfaces))assert.deepEqual(surface.route,route);
++ assert.equal(core.readChoice(null).id,'memorial-three-scenes');
++ const bad=structuredClone(pack);bad.locations.reading.symbol='<script>';assert.equal(core.validatePack(bad,atlas,bad.id).ok,false);
++});
++test('runtime pack is data and PNG only; decoded atlas bounds and exact hashes match',()=>{
++ const atlas=read('atlas.json');
++ for(const file of fs.readdirSync(PACK))assert.match(file,/^(manifest\.json|atlas\.json|[a-z0-9-]+\.png)$/);
++ for(const sheet of Object.values(atlas.atlases)){
++  const data=fs.readFileSync(path.join(PACK,sheet.file));assert.equal(data.length,sheet.bytes);assert.equal(crypto.createHash('sha256').update(data).digest('hex'),sheet.sha256);
++  assert.equal(data.readUInt32BE(16),sheet.width);assert.equal(data.readUInt32BE(20),sheet.height);
++  for(const frame of Object.values(sheet.frames)){assert.ok(frame.x>=0&&frame.y>=0);assert.ok(frame.x+frame.w<=sheet.width);assert.ok(frame.y+frame.h<=sheet.height)}
++ }
++});
++test('all 29 lines have complete RU/EN/HE text and belong to characters present in the scene',()=>{
++ const pack=read('manifest.json');let count=0;
++ for(const scene of pack.ulpan.story){
++  const allowed=new Set(['hero','timsah']);if(scene.id==='market')allowed.add('seller');if(scene.id==='workshop')allowed.add('master');if(scene.id==='reading')allowed.add('teacher');
++  for(const beat of scene.beats){count++;assert.ok(allowed.has(beat.who));for(const locale of ['ru','he','en']){assert.ok(beat.text[locale].length>5);assert.doesNotMatch(beat.text[locale],/[<>]/)}}
++ }
++ assert.equal(count,29);
++});
++test('app-owned Ulpan renderer has no network, learner storage, new audio or independent timer',()=>{
++ const source=fs.readFileSync(path.join(ROOT,'public/js/ulpan-world.js'),'utf8');
++ assert.doesNotMatch(source,/\bfetch\s*\(|XMLHttpRequest|localStorage|indexedDB|review_log|word_study|new Audio|AudioContext|setInterval|setTimeout|requestAnimationFrame/);
++ assert.match(source,/opts\.onActor/);assert.match(source,/destroy\(\)/);
++});
+--- /dev/null
++++ b/public/worlds/ulpan-journey/atlas.json
+@@ -0,0 +1,896 @@
++{
++  "schema": "lp-world-atlas/1",
++  "world": "ulpan-journey",
++  "atlases": {
++    "cat": {
++      "file": "cat.png",
++      "width": 53,
++      "height": 18,
++      "bytes": 521,
++      "sha256": "7be44674bce7ae6792a86fe2932388fa43510b4577dfba54883ef79f08499c0f",
++      "colors": 16,
++      "frames": {
++        "a": {
++          "x": 0,
++          "y": 0,
++          "w": 17,
++          "h": 18,
++          "anchor": [
++            8,
++            16
++          ]
++        },
++        "b": {
++          "x": 18,
++          "y": 0,
++          "w": 17,
++          "h": 18,
++          "anchor": [
++            8,
++            16
++          ]
++        },
++        "sit": {
++          "x": 36,
++          "y": 0,
++          "w": 17,
++          "h": 18,
++          "anchor": [
++            8,
++            16
++          ]
++        }
++      }
++    },
++    "coastal-panorama": {
++      "file": "coastal-panorama.png",
++      "width": 1280,
++      "height": 426,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 1280,
++          "h": 426,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 1103629,
++      "sha256": "89c3377769aff47deaa40e3ebcbf5c4d7a87564adda81cb9688a4bc73a9c5bf2"
++    },
++    "hero-seated": {
++      "file": "hero-seated.png",
++      "width": 128,
++      "height": 128,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 128,
++          "h": 128,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 9860,
++      "sha256": "f3d72a76f04201de71e03968a90abf240beef46b6a30a657d2793a24bc6066bc"
++    },
++    "hero": {
++      "file": "hero.png",
++      "width": 1152,
++      "height": 288,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 1152,
++          "h": 288,
++          "anchor": [
++            0,
++            0
++          ]
++        },
++        "idle-0": {
++          "x": 0,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "idle-1": {
++          "x": 96,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "idle-2": {
++          "x": 192,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "idle-3": {
++          "x": 288,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "idle-4": {
++          "x": 384,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "idle-5": {
++          "x": 480,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-0": {
++          "x": 576,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-1": {
++          "x": 672,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-2": {
++          "x": 768,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-3": {
++          "x": 864,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-4": {
++          "x": 960,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-5": {
++          "x": 1056,
++          "y": 0,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-6": {
++          "x": 0,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-7": {
++          "x": 96,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-8": {
++          "x": 192,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-9": {
++          "x": 288,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-10": {
++          "x": 384,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "walk-11": {
++          "x": 480,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-0": {
++          "x": 576,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-1": {
++          "x": 672,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-2": {
++          "x": 768,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-3": {
++          "x": 864,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-4": {
++          "x": 960,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-5": {
++          "x": 1056,
++          "y": 96,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-6": {
++          "x": 0,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-7": {
++          "x": 96,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-8": {
++          "x": 192,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "greet-9": {
++          "x": 288,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-0": {
++          "x": 384,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-1": {
++          "x": 480,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-2": {
++          "x": 576,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-3": {
++          "x": 672,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-4": {
++          "x": 768,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-5": {
++          "x": 864,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-6": {
++          "x": 960,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        },
++        "map-7": {
++          "x": 1056,
++          "y": 192,
++          "w": 96,
++          "h": 96,
++          "anchor": [
++            48,
++            90
++          ]
++        }
++      },
++      "bytes": 122725,
++      "sha256": "a99d7258e0b86dfbad70cb065f874b1521e4ce1c6ff99c0d693a895ecf9aaf59"
++    },
++    "people": {
++      "file": "people.png",
++      "width": 99,
++      "height": 44,
++      "bytes": 1264,
++      "sha256": "0b1e8edef9e0aa1d85b63f66cacef27c42e82182b26aba67b0b57f4849157c10",
++      "colors": 18,
++      "frames": {
++        "w-a": {
++          "x": 0,
++          "y": 0,
++          "w": 24,
++          "h": 44,
++          "anchor": [
++            12,
++            42
++          ]
++        },
++        "w-b": {
++          "x": 25,
++          "y": 0,
++          "w": 24,
++          "h": 44,
++          "anchor": [
++            12,
++            42
++          ]
++        },
++        "m-a": {
++          "x": 50,
++          "y": 0,
++          "w": 24,
++          "h": 44,
++          "anchor": [
++            12,
++            42
++          ]
++        },
++        "m-b": {
++          "x": 75,
++          "y": 0,
++          "w": 24,
++          "h": 44,
++          "anchor": [
++            12,
++            42
++          ]
++        }
++      }
++    },
++    "scene-cinema": {
++      "file": "scene-cinema.png",
++      "width": 480,
++      "height": 160,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 480,
++          "h": 160,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 170415,
++      "sha256": "0f7b415c76d1c308683f3b28192859b46e1db98ab2ae51884f9cabf3d3c808d0"
++    },
++    "scene-jaffa": {
++      "file": "scene-jaffa.png",
++      "width": 480,
++      "height": 160,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 480,
++          "h": 160,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 152368,
++      "sha256": "17542b05e0cd6c2435b3e0e929549c5b141fa859cf6d9d72268f84e087b703a0"
++    },
++    "scene-market": {
++      "file": "scene-market.png",
++      "width": 480,
++      "height": 160,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 480,
++          "h": 160,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 172103,
++      "sha256": "57684fb7d2152e01fddb1c3bbdb2a36abf1b428f84cb5ebe1a3c0c6c4749dee7"
++    },
++    "scene-promenade": {
++      "file": "scene-promenade.png",
++      "width": 480,
++      "height": 160,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 480,
++          "h": 160,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 171882,
++      "sha256": "7047da117cda9f0184f8d6e89e63263b3178469bf3002de88341c7aef6c1d50f"
++    },
++    "scene-reading": {
++      "file": "scene-reading.png",
++      "width": 480,
++      "height": 160,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 480,
++          "h": 160,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 142437,
++      "sha256": "e1d0ee153649520f4225ae1ad364ae02e90cb6974953da9665e04af7a8b21d24"
++    },
++    "scene-workshop": {
++      "file": "scene-workshop.png",
++      "width": 480,
++      "height": 160,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 480,
++          "h": 160,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 145856,
++      "sha256": "9d4616b8987c4cdf97a2304c54be4028aeba3ca251a7769111d2db6111c84429"
++    },
++    "timsah-act": {
++      "file": "timsah-act.png",
++      "width": 185,
++      "height": 41,
++      "bytes": 2080,
++      "sha256": "19ddfc6c191caa32785da140f3d4e191d0f5ff9ca632bb107c02050e11846b0c",
++      "colors": 16,
++      "frames": {
++        "flyer": {
++          "x": 0,
++          "y": 0,
++          "w": 30,
++          "h": 41,
++          "anchor": [
++            15,
++            39
++          ]
++        },
++        "flyer-up": {
++          "x": 31,
++          "y": 0,
++          "w": 30,
++          "h": 41,
++          "anchor": [
++            15,
++            39
++          ]
++        },
++        "stamp-up": {
++          "x": 62,
++          "y": 0,
++          "w": 30,
++          "h": 41,
++          "anchor": [
++            15,
++            39
++          ]
++        },
++        "stamp-down": {
++          "x": 93,
++          "y": 0,
++          "w": 30,
++          "h": 41,
++          "anchor": [
++            15,
++            39
++          ]
++        },
++        "clip": {
++          "x": 124,
++          "y": 0,
++          "w": 30,
++          "h": 41,
++          "anchor": [
++            15,
++            39
++          ]
++        },
++        "clip-wow": {
++          "x": 155,
++          "y": 0,
++          "w": 30,
++          "h": 41,
++          "anchor": [
++            15,
++            39
++          ]
++        }
++      }
++    },
++    "timsah-leisure": {
++      "file": "timsah-leisure.png",
++      "width": 115,
++      "height": 36,
++      "bytes": 1325,
++      "sha256": "1a53cb5471b9d3f7da95e57f32c64493ff867d506dbbfc02644a05354dfba0f0",
++      "colors": 16,
++      "frames": {
++        "read": {
++          "x": 0,
++          "y": 0,
++          "w": 28,
++          "h": 36,
++          "anchor": [
++            14,
++            34
++          ]
++        },
++        "read-turn": {
++          "x": 29,
++          "y": 0,
++          "w": 28,
++          "h": 36,
++          "anchor": [
++            14,
++            34
++          ]
++        },
++        "watch": {
++          "x": 58,
++          "y": 0,
++          "w": 28,
++          "h": 36,
++          "anchor": [
++            14,
++            34
++          ]
++        },
++        "laugh": {
++          "x": 87,
++          "y": 0,
++          "w": 28,
++          "h": 36,
++          "anchor": [
++            14,
++            34
++          ]
++        }
++      }
++    },
++    "timsah": {
++      "file": "timsah.png",
++      "width": 191,
++      "height": 42,
++      "bytes": 2202,
++      "sha256": "dc699c347ed79c4a7b17491f3a0c72587d4c3d49982e1dc834034da24f655f49",
++      "colors": 14,
++      "frames": {
++        "idle": {
++          "x": 0,
++          "y": 0,
++          "w": 31,
++          "h": 42,
++          "anchor": [
++            15,
++            40
++          ]
++        },
++        "blink": {
++          "x": 32,
++          "y": 0,
++          "w": 31,
++          "h": 42,
++          "anchor": [
++            15,
++            40
++          ]
++        },
++        "walk-a": {
++          "x": 64,
++          "y": 0,
++          "w": 31,
++          "h": 42,
++          "anchor": [
++            15,
++            40
++          ]
++        },
++        "walk-b": {
++          "x": 96,
++          "y": 0,
++          "w": 31,
++          "h": 42,
++          "anchor": [
++            15,
++            40
++          ]
++        },
++        "hold": {
++          "x": 128,
++          "y": 0,
++          "w": 31,
++          "h": 42,
++          "anchor": [
++            15,
++            40
++          ]
++        },
++        "jump": {
++          "x": 160,
++          "y": 0,
++          "w": 31,
++          "h": 42,
++          "anchor": [
++            15,
++            40
++          ]
++        }
++      }
++    },
++    "train-interior": {
++      "file": "train-interior.png",
++      "width": 640,
++      "height": 228,
++      "frames": {
++        "still": {
++          "x": 0,
++          "y": 0,
++          "w": 640,
++          "h": 228,
++          "anchor": [
++            0,
++            0
++          ]
++        }
++      },
++      "bytes": 234182,
++      "sha256": "1d9802e3ecaf1e868bac2d75eb208a3eac9b1bd103aa206bd08bcd71147689b1"
++    },
++    "ui-bubble": {
++      "file": "ui-bubble.png",
++      "width": 12,
++      "height": 12,
++      "bytes": 115,
++      "sha256": "f1dc5dd38bfcf377051acc538e07b95b55f7fa15ee81025a7cf0181a53d6f1a4",
++      "colors": 11,
++      "frames": {
++        "bubble": {
++          "x": 0,
++          "y": 0,
++          "w": 12,
++          "h": 12,
++          "anchor": [
++            0,
++            11
++          ]
++        }
++      }
++    },
++    "ui-tail": {
++      "file": "ui-tail.png",
++      "width": 8,
++      "height": 6,
++      "bytes": 96,
++      "sha256": "bec115e19a42f25b10094614e67d4e9d8d69bec04c48e319aa50340e556214d1",
++      "colors": 11,
++      "frames": {
++        "tail": {
++          "x": 0,
++          "y": 0,
++          "w": 8,
++          "h": 6,
++          "anchor": [
++            0,
++            5
++          ]
++        }
++      }
++    },
++    "ui-here": {
++      "file": "ui-here.png",
++      "width": 10,
++      "height": 6,
++      "bytes": 116,
++      "sha256": "8ef43bef6afb587289d793289f9fe2de26ac57f5f7ce7592d0a07a7debaddc8e",
++      "colors": 11,
++      "frames": {
++        "here": {
++          "x": 0,
++          "y": 0,
++          "w": 10,
++          "h": 6,
++          "anchor": [
++            0,
++            5
++          ]
++        }
++      }
++    }
++  }
++}
+--- /dev/null
++++ b/public/worlds/ulpan-journey/manifest.json
+@@ -0,0 +1,866 @@
++{
++  "schema": "lp-world/2",
++  "engine": {
++    "min": 2,
++    "max": 2
++  },
++  "skin": {
++    "light": {
++      "page": "#1d1b3a",
++      "surface": "#fffdf6",
++      "surfaceSoft": "#f6f0e2",
++      "ink": "#1b1f2e",
++      "line": "#1b1f2e",
++      "shadow": "#0f0d24",
++      "accent": "#1b4fb8",
++      "accentInk": "#ffffff",
++      "plate": "#1b1f2e",
++      "plateInk": "#fff6e0"
++    },
++    "dark": {
++      "page": "#070a1a",
++      "surface": "#19213d",
++      "surfaceSoft": "#202a4a",
++      "ink": "#e8ecf8",
++      "line": "#05070f",
++      "shadow": "#02030a",
++      "accent": "#2a5bc4",
++      "accentInk": "#ffffff",
++      "plate": "#05070f",
++      "plateInk": "#fff6e0"
++    }
++  },
++  "id": "ulpan-journey",
++  "version": "1.0.0",
++  "kind": "story",
++  "names": {
++    "ru": "Человек-Паук: в поисках первого Ульпана",
++    "en": "Spider-Man: finding the first ulpan",
++    "he": "ספיידרמן: בדרך לאולפן הראשון"
++  },
++  "blurb": {
++    "ru": "Тимсах и Человек-паук ищут ульпан. Нажмите на персонажей, чтобы поговорить.",
++    "en": "Timsah and Spider-Man look for an ulpan. Tap the characters to talk.",
++    "he": "תמסח וספיידרמן מחפשים אולפן. לחצו על הדמויות כדי לדבר."
++  },
++  "scenery": {
++    "sceneHeight": 228,
++    "groundY": 0,
++    "lighting": {
++      "day": {
++        "sky": [
++          "#173b47",
++          "#173b47"
++        ],
++        "actorTint": "#ffffff"
++      },
++      "dusk": {
++        "sky": [
++          "#173b47",
++          "#173b47"
++        ],
++        "actorTint": "#ffffff"
++      },
++      "night": {
++        "sky": [
++          "#173b47",
++          "#173b47"
++        ],
++        "actorTint": "#ffffff"
++      }
++    },
++    "layers": []
++  },
++  "actors": {
++    "cat": {
++      "sheet": "cat",
++      "fictional": true
++    },
++    "coastal-panorama": {
++      "sheet": "coastal-panorama",
++      "fictional": true
++    },
++    "hero-seated": {
++      "sheet": "hero-seated",
++      "fictional": true
++    },
++    "hero": {
++      "sheet": "hero",
++      "fictional": true
++    },
++    "people": {
++      "sheet": "people",
++      "fictional": true
++    },
++    "scene-cinema": {
++      "sheet": "scene-cinema",
++      "fictional": true
++    },
++    "scene-jaffa": {
++      "sheet": "scene-jaffa",
++      "fictional": true
++    },
++    "scene-market": {
++      "sheet": "scene-market",
++      "fictional": true
++    },
++    "scene-promenade": {
++      "sheet": "scene-promenade",
++      "fictional": true
++    },
++    "scene-reading": {
++      "sheet": "scene-reading",
++      "fictional": true
++    },
++    "scene-workshop": {
++      "sheet": "scene-workshop",
++      "fictional": true
++    },
++    "timsah-act": {
++      "sheet": "timsah-act",
++      "fictional": true
++    },
++    "timsah-leisure": {
++      "sheet": "timsah-leisure",
++      "fictional": true
++    },
++    "timsah": {
++      "sheet": "timsah",
++      "fictional": true
++    },
++    "train-interior": {
++      "sheet": "train-interior",
++      "fictional": true
++    },
++    "ui-bubble": {
++      "sheet": "ui-bubble",
++      "fictional": true
++    },
++    "ui-tail": {
++      "sheet": "ui-tail",
++      "fictional": true
++    },
++    "ui-here": {
++      "sheet": "ui-here",
++      "fictional": true
++    }
++  },
++  "ui": {
++    "bubbleFrame": "ui-bubble",
++    "bubbleTail": "ui-tail"
++  },
++  "here": "ui-here",
++  "slots": {
++    "studio-stage": {
++      "origin": 0.5,
++      "rest": []
++    },
++    "room-stage": {
++      "origin": 0.5,
++      "rest": []
++    },
++    "media-stage": {
++      "origin": 0.5,
++      "rest": []
++    }
++  },
++  "surfaces": {
++    "studio": {
++      "slot": "studio-stage",
++      "location": "promenade",
++      "route": [
++        "promenade",
++        "market",
++        "workshop",
++        "jaffa",
++        "travel",
++        "reading",
++        "cinema"
++      ]
++    },
++    "room": {
++      "slot": "room-stage",
++      "location": "promenade",
++      "route": [
++        "promenade",
++        "market",
++        "workshop",
++        "jaffa",
++        "travel",
++        "reading",
++        "cinema"
++      ]
++    },
++    "mediatheque": {
++      "slot": "media-stage",
++      "location": "promenade",
++      "route": [
++        "promenade",
++        "market",
++        "workshop",
++        "jaffa",
++        "travel",
++        "reading",
++        "cinema"
++      ]
++    }
++  },
++  "locations": {
++    "promenade": {
++      "x": 0,
++      "symbol": "🌊",
++      "names": {
++        "ru": "Тель-Авив · набережная",
++        "en": "Tel Aviv promenade",
++        "he": "טיילת תל אביב"
++      }
++    },
++    "market": {
++      "x": 1000,
++      "symbol": "🍅",
++      "names": {
++        "ru": "Тель-Авив · рынок",
++        "en": "Tel Aviv market",
++        "he": "שוק בתל אביב"
++      }
++    },
++    "workshop": {
++      "x": 2000,
++      "symbol": "🔧",
++      "names": {
++        "ru": "Тель-Авив · мастерская",
++        "en": "Workshop",
++        "he": "בית המלאכה"
++      }
++    },
++    "jaffa": {
++      "x": 3000,
++      "symbol": "🗺",
++      "names": {
++        "ru": "Тель-Авив—Яффо",
++        "en": "Jaffa viewpoint",
++        "he": "תצפית ביפו"
++      }
++    },
++    "travel": {
++      "x": 4000,
++      "symbol": "🚆",
++      "names": {
++        "ru": "В пути · Тель-Авив → Хайфа",
++        "en": "Train to Haifa",
++        "he": "רכבת לחיפה"
++      }
++    },
++    "reading": {
++      "x": 5000,
++      "symbol": "📖",
++      "names": {
++        "ru": "Хайфа · вымышленный ульпан",
++        "en": "First ulpan",
++        "he": "האולפן הראשון"
++      }
++    },
++    "cinema": {
++      "x": 6000,
++      "symbol": "🎬",
++      "names": {
++        "ru": "Хайфа · кинодвор после урока",
++        "en": "Cinema courtyard",
++        "he": "חצר הקולנוע"
++      }
++    }
++  },
++  "scenes": [],
++  "ulpan": {
++    "story": [
++      {
++        "id": "promenade",
++        "city": "Тель-Авив · набережная",
++        "title": "Суперсила: начать разговор",
++        "arrival": true,
++        "he": "אני מחפש אולפן.",
++        "translation": "Я ищу ульпан.",
++        "beats": [
++          {
++            "who": "hero",
++            "text": {
++              "ru": "По стенам я уже хожу. А вот разговор с соседями пока не получается.",
++              "en": "I can already climb walls. Talking to my neighbours is still a challenge.",
++              "he": "על קירות אני כבר יודע לטפס. לדבר עם השכנים עדיין קצת קשה לי."
++            },
++            "seconds": 7,
++            "pose": "greet"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Начнём с малого. Что ты ищешь?",
++              "en": "Let's start small. What are you looking for?",
++              "he": "נתחיל בקטן. מה אתה מחפש?"
++            },
++            "seconds": 5,
++            "pose": "listen"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Ани мехапэс ульпан. Я ищу ульпан.",
++              "en": "אני מחפש אולפן. I'm looking for an ulpan.",
++              "he": "אני מחפש אולפן."
++            },
++            "seconds": 5,
++            "pose": "greet"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Отлично. Первый шаг сделан. Причём по земле.",
++              "en": "Great. You've taken the first step. On the ground, too.",
++              "he": "מצוין. עשית את הצעד הראשון. ואפילו על הקרקע."
++            },
++            "seconds": 6,
++            "pose": "laugh"
++          }
++        ]
++      },
++      {
++        "id": "market",
++        "city": "Тель-Авив · рынок",
++        "title": "Сначала — «извините»",
++        "arrival": true,
++        "he": "סליחה, איפה האולפן?",
++        "translation": "Извините, где ульпан?",
++        "beats": [
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Начни со «слиха». Паутину доставать не обязательно.",
++              "en": "Start with 'slicha'. No need to get the web out.",
++              "he": "תתחיל ב׳סליחה׳. לא צריך להוציא את הקורים."
++            },
++            "seconds": 6,
++            "pose": "listen"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Слиха, эйфо hа-ульпан? Извините, где ульпан?",
++              "en": "סליחה, איפה האולפן? Excuse me, where is the ulpan?",
++              "he": "סליחה, איפה האולפן?"
++            },
++            "seconds": 6,
++            "pose": "greet"
++          },
++          {
++            "who": "seller",
++            "text": {
++              "ru": "Про ульпан спроси у мастера за углом. А помидоры — здесь.",
++              "en": "Ask the craftsman around the corner about the ulpan. The tomatoes are here.",
++              "he": "על האולפן תשאל את בעל המלאכה מעבר לפינה. העגבניות כאן."
++            },
++            "seconds": 7,
++            "pose": "listen"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Уже понимаю, почему нельзя учить язык голодным.",
++              "en": "I'm beginning to see why you shouldn't study on an empty stomach.",
++              "he": "אני מתחיל להבין למה לא כדאי ללמוד על בטן ריקה."
++            },
++            "seconds": 6,
++            "pose": "greet"
++          }
++        ]
++      },
++      {
++        "id": "workshop",
++        "city": "Тель-Авив · мастерская",
++        "title": "В Хайфе нас уже ждут",
++        "arrival": false,
++        "he": "האולפן בחיפה.",
++        "translation": "Ульпан в Хайфе.",
++        "beats": [
++          {
++            "who": "master",
++            "text": {
++              "ru": "Моя знакомая преподаёт в Хайфе. Я ей позвоню — сегодня как раз занятие для начинающих.",
++              "en": "A friend of mine teaches in Haifa. I'll call her: there's a beginners' class today.",
++              "he": "חברה שלי מלמדת בחיפה. אתקשר אליה: יש היום שיעור למתחילים."
++            },
++            "seconds": 9,
++            "pose": "listen"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "А совсем для начинающих?",
++              "en": "For complete beginners?",
++              "he": "גם למתחילים ממש?"
++            },
++            "seconds": 4,
++            "pose": "greet"
++          },
++          {
++            "who": "master",
++            "text": {
++              "ru": "Конечно. Все когда-нибудь впервые говорят «шалом». Она вас ждёт!",
++              "en": "Of course. Everyone says 'shalom' for the first time once. She's expecting you!",
++              "he": "בטח. כולם אומרים פעם ראשונה ׳שלום׳. היא מחכה לכם!"
++            },
++            "seconds": 7,
++            "pose": "listen"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Записываю адрес. Сегодня чиним пробелы в иврите.",
++              "en": "I'm writing down the address. Today we're fixing gaps in our Hebrew.",
++              "he": "אני רושם את הכתובת. היום מתקנים חורים בעברית."
++            },
++            "seconds": 6,
++            "pose": "note"
++          }
++        ]
++      },
++      {
++        "id": "jaffa",
++        "city": "Тель-Авив—Яффо",
++        "title": "Маршрут с удобными креслами",
++        "arrival": false,
++        "he": "נוסעים לחיפה ברכבת.",
++        "translation": "Едем в Хайфу на поезде.",
++        "beats": [
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Сначала на станцию. Потом поезд до Хайфы. От станции дойдём по адресу.",
++              "en": "First, the station. Then a train to Haifa. We'll walk to the address from there.",
++              "he": "קודם לתחנה, ואז רכבת לחיפה. מהתחנה נלך ברגל לכתובת."
++            },
++            "seconds": 8,
++            "pose": "map"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "По крышам нельзя?",
++              "en": "Can't we take the rooftops?",
++              "he": "אי אפשר דרך הגגות?"
++            },
++            "seconds": 4,
++            "pose": "greet"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Можно. Но в поезде есть кресла.",
++              "en": "We can. But the train has seats.",
++              "he": "אפשר. אבל ברכבת יש מושבים."
++            },
++            "seconds": 5,
++            "pose": "laugh"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Убедительно. Носъим ле-Хейфа ба-ракэвет — едем в Хайфу на поезде.",
++              "en": "Convincing. נוסעים לחיפה ברכבת. We're going to Haifa by train.",
++              "he": "משכנע. נוסעים לחיפה ברכבת."
++            },
++            "seconds": 8,
++            "pose": "map"
++          }
++        ]
++      },
++      {
++        "id": "travel",
++        "city": "В пути · Тель-Авив → Хайфа",
++        "title": "Пока едем — попробуем ещё раз",
++        "arrival": false,
++        "he": "תודה!",
++        "translation": "Спасибо!",
++        "arrivalHe": "הגענו לחיפה!",
++        "arrivalTranslation": "Мы приехали в Хайфу!",
++        "beats": [
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Проверим: «эйфо» — где, «тода» — спасибо?",
++              "en": "Let's check: 'eifo' means where, and 'toda' means thank you?",
++              "he": "נבדוק: ׳איפה׳ זאת שאלת מקום, ו׳תודה׳ אומרים כשמקבלים עזרה?"
++            },
++            "seconds": 6,
++            "pose": "listen"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Верно. Составишь предложение?",
++              "en": "Correct. Can you make a sentence?",
++              "he": "נכון. תוכל להרכיב משפט?"
++            },
++            "seconds": 5,
++            "pose": "read"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Где мой ульпан? Спасибо, что едешь со мной.",
++              "en": "Where is my ulpan? Thank you for coming with me.",
++              "he": "איפה האולפן שלי? תודה שבאת איתי."
++            },
++            "seconds": 6,
++            "pose": "greet"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Вот и разговор получился.",
++              "en": "There you go: a conversation.",
++              "he": "הנה, כבר יש לנו שיחה."
++            },
++            "seconds": 5,
++            "pose": "laugh"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Хига́ну ле-Хейфа! Мы приехали в Хайфу. Теперь идём по адресу.",
++              "en": "הגענו לחיפה! We've arrived in Haifa. Now let's find the address.",
++              "he": "הגענו לחיפה! עכשיו נלך לכתובת."
++            },
++            "seconds": 7,
++            "pose": "arrival"
++          }
++        ]
++      },
++      {
++        "id": "reading",
++        "city": "Хайфа · вымышленный ульпан",
++        "title": "Здесь можно спрашивать ещё раз",
++        "arrival": true,
++        "he": "שלום! אני לומד עברית.",
++        "translation": "Привет! Я учу иврит.",
++        "beats": [
++          {
++            "who": "teacher",
++            "text": {
++              "ru": "Добро пожаловать! Что ты уже умеешь говорить?",
++              "en": "Welcome! What can you already say?",
++              "he": "ברוך הבא! מה אתה כבר יודע להגיד?"
++            },
++            "seconds": 6,
++            "pose": "listen"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Шалом! Ани ломэд иврит. Привет! Я учу иврит.",
++              "en": "שלום! אני לומד עברית. Hello! I'm learning Hebrew.",
++              "he": "שלום! אני לומד עברית."
++            },
++            "seconds": 6,
++            "pose": "greet"
++          },
++          {
++            "who": "teacher",
++            "text": {
++              "ru": "А если что-нибудь непонятно?",
++              "en": "And if you don't understand something?",
++              "he": "ואם משהו לא ברור?"
++            },
++            "seconds": 5,
++            "pose": "listen"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Тогда спрашиваем ещё раз. Здесь это тоже суперспособность.",
++              "en": "Then we ask again. That's a superpower here, too.",
++              "he": "אז שואלים שוב. גם זאת כאן יכולת־על."
++            },
++            "seconds": 7,
++            "pose": "note"
++          }
++        ]
++      },
++      {
++        "id": "cinema",
++        "city": "Хайфа · кинодвор после урока",
++        "title": "Первое слово вне класса",
++        "arrival": true,
++        "he": "סרט",
++        "translation": "Фильм. Знакомое слово на новой афише!",
++        "beats": [
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Сэрэт… סרט! Это слово я уже знаю. Фильм!",
++              "en": "סרט! Seret! I know that word already. A film!",
++              "he": "סרט! את המילה הזאת אני כבר מכיר!"
++            },
++            "seconds": 6,
++            "pose": "greet"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Выбираем сеанс?",
++              "en": "Shall we choose a screening?",
++              "he": "נבחר הקרנה?"
++            },
++            "seconds": 4,
++            "pose": "listen"
++          },
++          {
++            "who": "hero",
++            "text": {
++              "ru": "Только без супергероев. У меня сегодня выходной.",
++              "en": "Just no superheroes. It's my day off.",
++              "he": "רק בלי גיבורי־על. היום אני בחופש."
++            },
++            "seconds": 6,
++            "pose": "greet"
++          },
++          {
++            "who": "timsah",
++            "text": {
++              "ru": "Тогда два билета. Следующая языковая миссия — касса.",
++              "en": "Two tickets, then. Our next language mission: the box office.",
++              "he": "אז שני כרטיסים. המשימה הבאה בעברית: הקופה."
++            },
++            "seconds": 7,
++            "pose": "laugh"
++          }
++        ]
++      }
++    ],
++    "heroClips": {
++      "idle": [
++        {
++          "x": 0,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 96,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 192,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 288,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 384,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 480,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        }
++      ],
++      "walk": [
++        {
++          "x": 576,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 672,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 768,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 864,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 960,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 1056,
++          "y": 0,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 0,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 96,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 192,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 288,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 384,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 480,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        }
++      ],
++      "greet": [
++        {
++          "x": 576,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 672,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 768,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 864,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 960,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 1056,
++          "y": 96,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 0,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 96,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 192,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 288,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        }
++      ],
++      "map": [
++        {
++          "x": 384,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 480,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 576,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 672,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 768,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 864,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 960,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        },
++        {
++          "x": 1056,
++          "y": 192,
++          "w": 96,
++          "h": 96
++        }
++      ]
++    }
++  }
++}

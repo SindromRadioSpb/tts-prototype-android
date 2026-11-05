@@ -1,0 +1,24 @@
+{
+  "version": "6.0.0-dialogue-staging",
+  "sourceCommit": "6376493a",
+  "productionIntegration": false,
+  "duration": 184.6,
+  "browserAcceptance": "see reports/browser-qa.json",
+  "assets": {
+    "hero.png": "a99d7258e0b86dfbad70cb065f874b1521e4ce1c6ff99c0d693a895ecf9aaf59",
+    "timsah.png": "dc699c347ed79c4a7b17491f3a0c72587d4c3d49982e1dc834034da24f655f49",
+    "timsah-act.png": "19ddfc6c191caa32785da140f3d4e191d0f5ff9ca632bb107c02050e11846b0c",
+    "cat.png": "7be44674bce7ae6792a86fe2932388fa43510b4577dfba54883ef79f08499c0f",
+    "people.png": "0b1e8edef9e0aa1d85b63f66cacef27c42e82182b26aba67b0b57f4849157c10",
+    "train-interior.png": "1d9802e3ecaf1e868bac2d75eb208a3eac9b1bd103aa206bd08bcd71147689b1",
+    "coastal-panorama.png": "89c3377769aff47deaa40e3ebcbf5c4d7a87564adda81cb9688a4bc73a9c5bf2",
+    "hero-seated.png": "f3d72a76f04201de71e03968a90abf240beef46b6a30a657d2793a24bc6066bc",
+    "timsah-leisure.png": "1a53cb5471b9d3f7da95e57f32c64493ff867d506dbbfc02644a05354dfba0f0",
+    "scene-promenade.png": "7047da117cda9f0184f8d6e89e63263b3178469bf3002de88341c7aef6c1d50f",
+    "scene-market.png": "57684fb7d2152e01fddb1c3bbdb2a36abf1b428f84cb5ebe1a3c0c6c4749dee7",
+    "scene-workshop.png": "9d4616b8987c4cdf97a2304c54be4028aeba3ca251a7769111d2db6111c84429",
+    "scene-jaffa.png": "17542b05e0cd6c2435b3e0e929549c5b141fa859cf6d9d72268f84e087b703a0",
+    "scene-reading.png": "e1d0ee153649520f4225ae1ad364ae02e90cb6974953da9665e04af7a8b21d24",
+    "scene-cinema.png": "0f7b415c76d1c308683f3b28192859b46e1db98ab2ae51884f9cabf3d3c808d0"
+  }
+}
