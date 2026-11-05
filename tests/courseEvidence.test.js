@@ -138,3 +138,45 @@ test('recorded task snapshots and AI provenance survive reload without aliasing'
  const delayed=answer(marked,transferLesson(),{at:20*hour,variant:{new:1}});
  assert.equal(E.itemStatus(delayed,'lx.tea',[transferLesson()]).appliedAfterBreak,true);
 });
+
+test('migration changes model without erasing historical item evidence',()=>{
+ const l=transferLesson(); let p=answer(E.emptyProgress('ulpan'),l);
+ p=E.openAid(p,l.id+'/'+l.tasks[0].id,'model',1500);
+ const before=structuredClone(p); const revised=structuredClone(l); revised.version++;
+ revised.tasks[0].model={niqqud:'קָפֶה',plain:'קפה'};
+ const r=E.migrate(p,revised);
+ assert.deepEqual(r.changes,[{taskId:l.tasks[0].id,change:'spec_changed'}]);
+ assert.deepEqual(p,before); assert.deepEqual(r.progress.attempts,p.attempts);
+ assert.equal(Object.hasOwn(r.progress.aids,l.id+'/'+l.tasks[0].id),false);
+ assert.equal(E.itemStatus(r.progress,'lx.tea',[revised]).produced,true);
+ assert.equal(E.lessonSkill(r.progress,revised),'not_started');
+ const next=answer(r.progress,revised,{at:3000});
+ assert.equal(next.attempts.at(-1).first,true);
+ assert.equal(E.attemptLevel(next.attempts.at(-1)),'independent');
+ assert.equal(r.progress.lessonVersions[l.id],revised.version);
+});
+test('migration retains removed attempts and drops aids only for affected lesson',()=>{
+ const l=transferLesson(); let p=answer(E.emptyProgress('ulpan'),l);
+ p=E.openAid(p,l.id+'/'+l.tasks[0].id,'hint',1500);
+ p=E.openAid(p,'other/6','model',1500);
+ const r=E.migrate(p,{...l,version:2,tasks:[]});
+ assert.deepEqual(r.changes,[{taskId:l.tasks[0].id,change:'removed'}]);
+ assert.deepEqual(r.progress.attempts,p.attempts);
+ assert.equal(Object.hasOwn(r.progress.aids,l.id+'/'+l.tasks[0].id),false);
+ assert.equal(r.progress.aids['other/6'].model,true);
+});
+test('same lesson version migration is a value no-op',()=>{
+ const l=transferLesson(); const p=E.migrate(answer(E.emptyProgress('ulpan'),l),l).progress;
+ const r=E.migrate(p,l); assert.deepEqual(r.progress,p); assert.deepEqual(r.changes,[]);
+ r.progress.attempts[0].input='changed'; assert.notEqual(p.attempts[0].input,'changed');
+});
+test('variant is unchanged on version bump; revert never fabricates unseen evidence',()=>{
+ const l=transferLesson(); const p=answer(E.emptyProgress('ulpan'),l,{variant:{situation:2}});
+ const r=E.migrate(p,{...l,version:2});
+ assert.deepEqual(r.changes,[{taskId:l.tasks[0].id,change:'unchanged'}]);
+ let original=answer(E.emptyProgress('ulpan'),l);
+ const changed=structuredClone(l); changed.version=2; changed.tasks[0].model={plain:'קפה',niqqud:'קָפֶה'};
+ original=answer(E.migrate(original,changed).progress,changed,{at:3000});
+ const reverted={...l,version:3}; const back=E.migrate(original,reverted);
+ assert.equal(answer(back.progress,reverted,{at:5000}).attempts.at(-1).first,false);
+});

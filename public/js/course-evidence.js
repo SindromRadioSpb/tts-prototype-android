@@ -132,7 +132,29 @@
     return counts;
   }
 
-  const api = { emptyProgress, fingerprint, openAid, record, BREAK_MS, markMet, attemptLevel, itemStatus, lessonSkill, courseCounts };
+  function migrate(progress, lesson) {
+    const next = structuredClone(progress);
+    const changes = [];
+    if (has(next.lessonVersions, lesson.id) && next.lessonVersions[lesson.id] === lesson.version) {
+      return { progress: next, changes };
+    }
+    const latest = new Map();
+    for (const attempt of next.attempts) if (attempt.lessonId === lesson.id) latest.set(attempt.taskId, attempt);
+    const tasks = new Map(lesson.tasks.map(task => [task.id, task]));
+    for (const [taskId, attempt] of latest) {
+      const task = tasks.get(taskId);
+      // Variants are novel situations, not edits to the base task definition.
+      const previous = attempt.baseFp || attempt.fp;
+      const change = !task ? 'removed' : fingerprint(lesson.id, task) !== previous ? 'spec_changed' : 'unchanged';
+      changes.push({ taskId, change });
+      if (change !== 'unchanged') delete next.aids[lesson.id + '/' + taskId];
+    }
+    // Keep seen fingerprints: restoring an older task must not manufacture novelty.
+    set(next.lessonVersions, lesson.id, lesson.version);
+    return { progress: next, changes };
+  }
+
+  const api = { emptyProgress, fingerprint, openAid, record, BREAK_MS, markMet, attemptLevel, itemStatus, lessonSkill, courseCounts, migrate };
   root.CourseEvidence = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
