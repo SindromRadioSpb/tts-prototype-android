@@ -188,7 +188,7 @@
    controls();dirty=false;
   }
   function resize(w,h,scale){
-   cssW=w;engineScale=scale;canvas.width=1280;canvas.height=456;
+   cssW=w;engineScale=scale;if(canvas.width!==1280||canvas.height!==456){canvas.width=0;canvas.height=0;canvas.width=1280;canvas.height=456;}
    Object.assign(canvas.style,{width:w+'px',height:(w*228/640)+'px',top:'auto',left:'0px',bottom:isStage?'52px':'0px'});
    if(isStage)document.documentElement.style.setProperty('--lp-ulpan-art-height',(w*228/640)+'px');
    else{canvas.style.position='relative';canvas.style.bottom='auto';canvas.style.margin='6px 0 0';}
@@ -214,7 +214,7 @@
    },
    hitTest(x,y){for(const target of peopleTargets()){const r=targetRect(target);if(Math.abs(x-r.x)<=r.width/2&&y>=r.top&&y<=r.top+r.height)return target.id}return null},
    bubbleAnchor(){const target=peopleTargets().find(t=>t.id===anchorActor)||peopleTargets()[1],r=targetRect(target);return{x:r.x,bottom:52+cssW*228/640-r.head}},
-   destroy(){disposed=true;for(const button of buttons.values())button.remove();buttons.clear();}
+   destroy(){disposed=true;canvas.width=0;canvas.height=0;for(const button of buttons.values())button.remove();buttons.clear();}
   };
  };
  root.LPWorldActivity?.sync();

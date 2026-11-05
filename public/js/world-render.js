@@ -111,13 +111,23 @@
       pose: null, bubble: null, scrollY: 0
     };
 
+    function release(c) { if (c) { c.width = 0; c.height = 0; } }
     function resize(cssW, cssH, scale) {
-      state.scale = scale;
-      state.w = Math.max(1, Math.ceil(cssW / scale));
-      state.h = Math.max(1, Math.ceil(cssH / scale));
-      canvas.width = state.w; canvas.height = state.h;
-      canvas.style.width = (state.w * scale) + "px";
-      canvas.style.height = (state.h * scale) + "px";
+      // Pixel-art scale is CSS pixels per logical pixel, not devicePixelRatio.
+      // Preserve its native resolution; never upscale just because DPR is 3.
+      scale = Math.max(0.5, Number(scale) || 1); // density <= 2
+      var w = Math.max(1, Math.ceil(cssW / scale)), h = Math.max(1, Math.ceil(cssH / scale));
+      if (w * h > 4000000) {
+        scale *= Math.sqrt(w * h / 4000000);
+        w = Math.max(1, Math.floor(cssW / scale)); h = Math.max(1, Math.floor(cssH / scale));
+      }
+      if (state.w === w && state.h === h && state.scale === scale) return;
+      state.scale = scale; state.w = w; state.h = h;
+      // WebKit may retain a detached backing store until GC; release before replacing.
+      release(canvas); release(state.sky); state.sky = null;
+      canvas.width = w; canvas.height = h;
+      canvas.style.width = (w * scale) + "px";
+      canvas.style.height = (h * scale) + "px";
       ctx.imageSmoothingEnabled = false;
       state.skyKey = "";
       seedAmbient();
@@ -188,7 +198,7 @@
 
     function drawSky() {
       var key = state.lighting + ":" + state.w + "x" + state.h;
-      if (state.skyKey !== key) { state.sky = skyCanvas(scenery.lighting[state.lighting].sky, state.w, state.h); state.skyKey = key; }
+      if (state.skyKey !== key) { release(state.sky); state.sky = skyCanvas(scenery.lighting[state.lighting].sky, state.w, state.h); state.skyKey = key; }
       ctx.drawImage(state.sky, 0, 0);
     }
 
@@ -519,6 +529,7 @@
 
     return {
       resize: resize,
+      destroy: function () { release(canvas); release(state.sky); state.sky = null; state.skyKey = ""; Object.keys(tintCache).forEach(function (key) { release(tintCache[key]); }); tintCache = {}; },
       render: render,
       setLighting: function (l) { state.lighting = l; },
       lighting: function () { return state.lighting; },

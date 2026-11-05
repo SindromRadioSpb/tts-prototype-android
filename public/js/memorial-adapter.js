@@ -35,7 +35,7 @@
  @media(max-width:400px){.lp-memorial-caption{font-size:14px}.lp-memorial-controls{gap:4px}.lp-memorial-controls button{width:auto!important;flex:none;padding:5px 8px;min-width:44px}}
  `;doc.head.appendChild(style);
  function save(){const json=JSON.stringify(model.value());if(json===lastSaved)return;lastSaved=json;try{root.localStorage.setItem(KEY,json)}catch(_){}}
- function clearFade(){if(fadeTimer)root.clearTimeout(fadeTimer);fadeTimer=0;if(fadeNode&&fadeNode.parentElement)fadeNode.parentElement.removeChild(fadeNode);fadeNode=null;}
+ function clearFade(){if(fadeTimer)root.clearTimeout(fadeTimer);fadeTimer=0;if(fadeNode){fadeNode.width=0;fadeNode.height=0;}if(fadeNode&&fadeNode.parentElement)fadeNode.parentElement.removeChild(fadeNode);fadeNode=null;}
  function fit(meta){const isStage=meta.isStage,w=isStage?Math.min(meta.cssW||380,1152):Math.min(meta.cssW||380,(meta.cssH||144)*2048/683),h=Math.round(w*683/2048);meta.artHeight=h;meta.photo.style.height=(isStage?h:meta.cssH||144)+'px';meta.photo.style.bottom=isStage?'104px':'0px';meta.canvas.style.width=w+'px';meta.canvas.style.height=h+'px';meta.canvas.style.left=Math.round(((meta.cssW||380)-w)/2)+'px';meta.canvas.style.top=(isStage?0:Math.round(((meta.cssH||144)-h)/2))+'px';if(isStage)doc.documentElement.style.setProperty('--lp-memorial-art-height',h+'px');if(isStage&&context===meta&&fadeNode){fadeNode.style.width=meta.canvas.style.width;fadeNode.style.height=meta.canvas.style.height;fadeNode.style.left=meta.canvas.style.left;fadeNode.style.top='0px';}}
  // Only this world's renderer is adapted. Other worlds retain the original implementation.
  render.createRenderer=function(canvas,opts){

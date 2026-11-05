@@ -1,0 +1,2601 @@
+{
+  "phase": "before",
+  "engine": "Playwright WebKit",
+  "device": "iPhone 15",
+  "runs": [
+    {
+      "world": "memorial-three-scenes",
+      "samples": [
+        {
+          "label": "start",
+          "documentHeight": 2304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-1",
+          "documentHeight": 1431,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-2",
+          "documentHeight": 2304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-3",
+          "documentHeight": 1431,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-4",
+          "documentHeight": 2304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-5",
+          "documentHeight": 1431,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-6",
+          "documentHeight": 2304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-7",
+          "documentHeight": 1431,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-8",
+          "documentHeight": 2304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-9",
+          "documentHeight": 1431,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "transition-10",
+          "documentHeight": 2304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        }
+      ],
+      "errors": [],
+      "stress": [
+        {
+          "label": "long-document",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 10,
+          "worldAssignments": 10,
+          "allAssignments": 18,
+          "allAllocatedPixels": 18628608,
+          "worldAllocatedPixels": 11804672
+        },
+        {
+          "label": "resize-event-1",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 12,
+          "worldAssignments": 12,
+          "allAssignments": 22,
+          "allAllocatedPixels": 23132160,
+          "worldAllocatedPixels": 14602240
+        },
+        {
+          "label": "resize-event-2",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 14,
+          "worldAssignments": 14,
+          "allAssignments": 26,
+          "allAllocatedPixels": 27635712,
+          "worldAllocatedPixels": 17399808
+        },
+        {
+          "label": "resize-event-3",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 16,
+          "worldAssignments": 16,
+          "allAssignments": 30,
+          "allAllocatedPixels": 32139264,
+          "worldAllocatedPixels": 20197376
+        },
+        {
+          "label": "resize-event-4",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 18,
+          "worldAssignments": 18,
+          "allAssignments": 34,
+          "allAllocatedPixels": 36642816,
+          "worldAllocatedPixels": 22994944
+        },
+        {
+          "label": "resize-event-5",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 20,
+          "worldAssignments": 20,
+          "allAssignments": 38,
+          "allAllocatedPixels": 41146368,
+          "worldAllocatedPixels": 25792512
+        },
+        {
+          "label": "resize-event-6",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 22,
+          "worldAssignments": 22,
+          "allAssignments": 42,
+          "allAllocatedPixels": 45649920,
+          "worldAllocatedPixels": 28590080
+        },
+        {
+          "label": "resize-event-7",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 24,
+          "worldAssignments": 24,
+          "allAssignments": 46,
+          "allAllocatedPixels": 50153472,
+          "worldAllocatedPixels": 31387648
+        },
+        {
+          "label": "resize-event-8",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 26,
+          "worldAssignments": 26,
+          "allAssignments": 50,
+          "allAllocatedPixels": 54657024,
+          "worldAllocatedPixels": 34185216
+        },
+        {
+          "label": "resize-event-9",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 28,
+          "worldAssignments": 28,
+          "allAssignments": 54,
+          "allAllocatedPixels": 59160576,
+          "worldAllocatedPixels": 36982784
+        },
+        {
+          "label": "resize-event-10",
+          "documentHeight": 12304,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 1,
+          "canvases": [
+            {
+              "width": 2048,
+              "height": 683,
+              "area": 1398784,
+              "css": [
+                393,
+                131
+              ]
+            }
+          ],
+          "resizeCalls": 30,
+          "worldAssignments": 30,
+          "allAssignments": 58,
+          "allAllocatedPixels": 63664128,
+          "worldAllocatedPixels": 39780352
+        }
+      ],
+      "audit": {
+        "resizes": [
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              616.875,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 4,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          }
+        ],
+        "allocations": [
+          {
+            "id": 1,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 2,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 2,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 1,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 3,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 3,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 5,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 5,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 6,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 6,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 7,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 7,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 8,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 8,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 9,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 9,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 10,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 10,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 11,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 11,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 12,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 12,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 13,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 13,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 14,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 14,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 15,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 15,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 4,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 4,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 16,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 16,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          }
+        ]
+      }
+    },
+    {
+      "world": "classic",
+      "samples": [
+        {
+          "label": "start",
+          "documentHeight": 2048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-1",
+          "documentHeight": 1175,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-2",
+          "documentHeight": 2048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-3",
+          "documentHeight": 1175,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-4",
+          "documentHeight": 2048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-5",
+          "documentHeight": 1175,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-6",
+          "documentHeight": 2048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-7",
+          "documentHeight": 1175,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-8",
+          "documentHeight": 2048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-9",
+          "documentHeight": 1175,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "transition-10",
+          "documentHeight": 2048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        }
+      ],
+      "errors": [],
+      "stress": [
+        {
+          "label": "long-document",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-1",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-2",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-3",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-4",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-5",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-6",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-7",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-8",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-9",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        },
+        {
+          "label": "resize-event-10",
+          "documentHeight": 12048,
+          "dpr": 3,
+          "viewport": [
+            393,
+            659
+          ],
+          "canvasCount": 0,
+          "canvases": [],
+          "resizeCalls": 6,
+          "worldAssignments": 6,
+          "allAssignments": 10,
+          "allAllocatedPixels": 10713088,
+          "worldAllocatedPixels": 7301120
+        }
+      ],
+      "audit": {
+        "resizes": [
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              616.875,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              393,
+              363.75,
+              2
+            ]
+          },
+          {
+            "id": 1,
+            "pack": "memorial-three-scenes",
+            "args": [
+              2048,
+              683,
+              1
+            ]
+          }
+        ],
+        "allocations": [
+          {
+            "id": 1,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 2,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 2,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 1,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 1,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              683
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": true,
+            "world": true
+          },
+          {
+            "id": 3,
+            "prop": "width",
+            "value": 2048,
+            "before": [
+              300,
+              150
+            ],
+            "after": [
+              2048,
+              150
+            ],
+            "connected": false,
+            "world": false
+          },
+          {
+            "id": 3,
+            "prop": "height",
+            "value": 683,
+            "before": [
+              2048,
+              150
+            ],
+            "after": [
+              2048,
+              683
+            ],
+            "connected": false,
+            "world": false
+          }
+        ]
+      }
+    }
+  ],
+  "visuals": [
+    {
+      "world": "israel-elections-2026",
+      "width": 390,
+      "geometry": {
+        "scrollY": 0,
+        "viewport": [
+          390,
+          900
+        ],
+        "canvas": [
+          {
+            "width": 195,
+            "height": 137,
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 274,
+              "top": 0,
+              "right": 390,
+              "bottom": 274,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "state": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": true,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "library",
+        "lighting": "day",
+        "busy": null,
+        "animating": false,
+        "camera": 1670,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "world": "israel-elections-2026",
+      "width": 1440,
+      "geometry": {
+        "scrollY": 0,
+        "viewport": [
+          1440,
+          900
+        ],
+        "canvas": [
+          {
+            "width": 480,
+            "height": 111,
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1440,
+              "height": 333,
+              "top": 0,
+              "right": 1440,
+              "bottom": 333,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "state": {
+        "choice": {
+          "id": "israel-elections-2026",
+          "mode": "live",
+          "paused": true,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "library",
+        "lighting": "day",
+        "busy": null,
+        "animating": false,
+        "camera": 1539,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "world": "sukkot",
+      "width": 390,
+      "geometry": {
+        "scrollY": 0,
+        "viewport": [
+          390,
+          900
+        ],
+        "canvas": [
+          {
+            "width": 195,
+            "height": 137,
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 274,
+              "top": 0,
+              "right": 390,
+              "bottom": 274,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "state": {
+        "choice": {
+          "id": "sukkot",
+          "mode": "live",
+          "paused": true,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "reading",
+        "lighting": "day",
+        "busy": null,
+        "animating": false,
+        "camera": 1670,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "world": "sukkot",
+      "width": 1440,
+      "geometry": {
+        "scrollY": 0,
+        "viewport": [
+          1440,
+          900
+        ],
+        "canvas": [
+          {
+            "width": 480,
+            "height": 111,
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1440,
+              "height": 333,
+              "top": 0,
+              "right": 1440,
+              "bottom": 333,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "state": {
+        "choice": {
+          "id": "sukkot",
+          "mode": "live",
+          "paused": true,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "reading",
+        "lighting": "day",
+        "busy": null,
+        "animating": false,
+        "camera": 1539,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "world": "ulpan-journey",
+      "width": 390,
+      "geometry": {
+        "scrollY": 0,
+        "viewport": [
+          390,
+          900
+        ],
+        "canvas": [
+          {
+            "width": 1280,
+            "height": 456,
+            "rect": {
+              "x": 0,
+              "y": 140.75,
+              "width": 390,
+              "height": 138.9375,
+              "top": 140.75,
+              "right": 390,
+              "bottom": 279.6875,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "state": {
+        "choice": {
+          "id": "ulpan-journey",
+          "mode": "live",
+          "paused": true,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "promenade",
+        "lighting": "day",
+        "busy": null,
+        "animating": false,
+        "camera": -98,
+        "stage": true,
+        "backdrop": false
+      }
+    },
+    {
+      "world": "ulpan-journey",
+      "width": 1440,
+      "geometry": {
+        "scrollY": 0,
+        "viewport": [
+          1440,
+          900
+        ],
+        "canvas": [
+          {
+            "width": 1280,
+            "height": 456,
+            "rect": {
+              "x": 0,
+              "y": 127.875,
+              "width": 1440,
+              "height": 513,
+              "top": 127.875,
+              "right": 1440,
+              "bottom": 640.875,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "state": {
+        "choice": {
+          "id": "ulpan-journey",
+          "mode": "live",
+          "paused": true,
+          "active": true
+        },
+        "governor": {
+          "autoCount": 0,
+          "playing": false,
+          "lastEndAt": null
+        },
+        "scene": null,
+        "walking": false,
+        "location": "promenade",
+        "lighting": "day",
+        "busy": null,
+        "animating": false,
+        "camera": -240,
+        "stage": true,
+        "backdrop": false
+      }
+    }
+  ],
+  "ok": true,
+  "baselineCommit": "93c9b96d"
+}

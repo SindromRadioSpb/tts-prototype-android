@@ -348,7 +348,30 @@
     };
   }
 
+  // A world is a header band, never a document-sized bitmap.
+  function stageGeometry(rect, scrollY, width, viewportHeight) {
+    return { left: -rect.left, top: -(rect.top + scrollY), width: width,
+      height: Math.max(1, Math.min(rect.bottom + scrollY, viewportHeight)) };
+  }
+  function resizeSurface(surface, width, height, scale) {
+    var key = width + ":" + height + ":" + scale;
+    if (surface.resizeKey === key) return false;
+    surface.renderer.resize(width, height, scale);
+    surface.resizeKey = key;
+    return true;
+  }
+  function createResizeScheduler(request, cancel, run) {
+    var pending = null;
+    function schedule() {
+      if (pending !== null) return;
+      pending = request(function () { pending = null; run(); });
+    }
+    schedule.cancel = function () { if (pending !== null) cancel(pending); pending = null; };
+    return schedule;
+  }
+
   var core = {
+    stageGeometry: stageGeometry, resizeSurface: resizeSurface, createResizeScheduler: createResizeScheduler,
     ENGINE_VERSION: ENGINE_VERSION, STORAGE_KEY: STORAGE_KEY, REGISTRY: REGISTRY, BUDGET: BUDGET, DEFAULT_WORLD: DEFAULT_WORLD, CLASSIC: CLASSIC,
     COLOR_TOKENS: COLOR_TOKENS, SLOTS: SLOTS, TRIGGER_RE: TRIGGER_RE, PHASES: PHASES,
     readChoice: readChoice, validatePack: validatePack, sampleScene: sampleScene, sampleTrack: sampleTrack,
@@ -498,20 +521,23 @@
       if (until) bottom = until.getBoundingClientRect().bottom;
     }
     var docW = document.documentElement.clientWidth;
-    var top = hr.top + window.scrollY;                     // head top in page coordinates
-    var height = bottom - hr.top + top;
+    var geometry = stageGeometry({ left: hr.left, top: hr.top, bottom: bottom }, window.scrollY, docW, window.innerHeight);
+    var top = -geometry.top, height = geometry.height;
     st.el.style.left = (-hr.left) + "px";
     st.el.style.top = (-top) + "px";
     st.el.style.width = docW + "px";
     st.el.style.height = height + "px";
     var scale = stageScale(st.el);
     st.scale = scale;
-    st.renderer.resize(docW, height, scale);
+    resizeSurface(st, docW, height, scale);
     st.originPx = Math.round(docW * state.pack.slots[state.slotName].origin);
-    if (state.backdrop) state.backdrop.renderer.resize(docW, window.innerHeight, scale);
+    if (state.backdrop) resizeSurface(state.backdrop, docW, window.innerHeight, scale);
     if (state.location && !state.walk) st.renderer.panTo(cameraFor(locX()), 0, now());
     drawOnce();
   }
+  var scheduleLayout = createResizeScheduler(function (fn) { return requestAnimationFrame(fn); },
+    function (id) { cancelAnimationFrame(id); }, layoutStage);
+
   function stageScale(el) {
     var v = parseInt(getComputedStyle(el).getPropertyValue("--lpw-scale"), 10);
     return v >= 1 && v <= 6 ? v : DEFAULT_SCALE;
@@ -1171,7 +1197,7 @@
       var ro = new ResizeObserver(function () {
         // Stage sizing writes DOM geometry too; keep those writes out of the
         // observer delivery cycle (WebKit reports undelivered notifications).
-        requestAnimationFrame(function () { if (state.stage === stage) layoutStage(); });
+        if (state.stage === stage) scheduleLayout();
       });
       ro.observe(el.parentElement);
       state.observers.push(ro);
@@ -1197,6 +1223,7 @@
     state.backdrop = { el: el, canvas: canvas, renderer: window.LPWorldRender.createRenderer(canvas, { pack: state.pack, atlas: state.atlas, images: state.images, seed: 7 }) };
   }
   function unmount() {
+    scheduleLayout.cancel();
     [state.stage, state.backdrop].forEach(function (m) {
       if (!m) return;
       if (m.renderer && m.renderer.destroy) m.renderer.destroy();
@@ -1214,7 +1241,7 @@
     // Studio's own table-job telemetry snapshot: only `state` is read — no text, no rows.
     on(window, "table-job-progress", function (e) { if (e && e.detail && e.detail.state === "done") signal("studio.table-ready"); });
     on(document, "visibilitychange", function () { if (document.hidden) endScene(); else { state.lastFrame = 0; kick(); } });
-    on(window, "resize", function () { layoutStage(); });
+    on(window, "resize", scheduleLayout);
     on(window, "scroll", function () { if (!animating()) drawOnce(); }, { passive: true });
     on(document, "i18n:changed", function () { syncPauseButton(); hideBubble(); syncRoute(); if (state.stage && state.stage.sign) state.stage.sign.dataset.loc = ""; drawOnce(); });
     if (typeof MutationObserver !== "undefined" && document.body) {

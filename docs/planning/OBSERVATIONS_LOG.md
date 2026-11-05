@@ -10,6 +10,13 @@
 
 ---
 
+## O-143 · iPhone: падение вкладки в курсе с миром; повторные canvas allocations
+- **Дата / где:** 2026-11-05, владелец дважды воспроизвёл падение Chrome iOS/WebKit на production 3.11.855 при «Кафе» → Дальше/Назад; Classic стабилен, ответы сохраняются.
+- **Замер:** локальный Playwright WebKit, iPhone 15 / DPR 3, 10 переходов: падения нет; Memorial canvas стабилен 2048×683 (1 398 784 px), документ 2304↔1431 px; новых resize/allocations при переходах нет. Гипотеза document-height × DPR не подтверждена: renderer использует логический pixel-art размер, Memorial — фиксированный буфер.
+- **Подтверждённый дефект:** 10 искусственных одинаковых resize-events вызывают 40 лишних присваиваний canvas dimensions (с off-DOM sky), суммарно 45 035 520 пикселей backing-store writes; это объём операций, не измерение resident memory или доказательство jetsam. Старые sky/tint/fade/canvas не освобождались явно.
+- **Исправление в ветке `fix/world-canvas-ios`:** viewport-bound stage, coalescing/size gate, cap 4M, явное освобождение заменяемых/закрываемых буферов. После исправления те же 10 resize-events дают 0 новых allocations/resize; мировые тесты проходят.
+- **Статус:** в работе. Подтверждённый allocation churn исправлен локально; причина физического падения пока не доказана. Выпуска не было; требуется новое «да» владельца, затем проверка им на физическом iPhone. [Замеры и границы](../research/hebrew-course/2026-11-05-p3-ios-crash-report.md).
+
 ## O-142 · Курс: клик урока перекрывается шапкой/навигацией в mobile с миром
 - **Дата / где:** 2026-11-05, production 3.11.855, Chromium 390×900, свежий owner-профиль, прямой вход course:ulpan.
 - **Факт:** Playwright видел кнопку L001-cafe, но обычный click завершился timeout: pointer перехватывали room-header/roomMentor и lp-app-nav. После явного переключения существующего мира в Classic обычный click прошёл, урок открыт. Локальный smoke ранее проходил в Classic.

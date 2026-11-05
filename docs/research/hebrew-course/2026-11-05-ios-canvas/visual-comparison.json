@@ -1,0 +1,69 @@
+[
+  {
+    "world": "israel-elections-2026",
+    "width": 390,
+    "changedPixels": 612,
+    "totalPixels": 3159000,
+    "bbox": [
+      105,
+      1690,
+      111,
+      2194
+    ]
+  },
+  {
+    "world": "israel-elections-2026",
+    "width": 1440,
+    "changedPixels": 3,
+    "totalPixels": 1296000,
+    "bbox": [
+      211,
+      646,
+      213,
+      814
+    ]
+  },
+  {
+    "world": "sukkot",
+    "width": 390,
+    "changedPixels": 12,
+    "totalPixels": 3159000,
+    "bbox": [
+      105,
+      1690,
+      111,
+      2194
+    ]
+  },
+  {
+    "world": "sukkot",
+    "width": 1440,
+    "changedPixels": 211,
+    "totalPixels": 1296000,
+    "bbox": [
+      211,
+      646,
+      213,
+      813
+    ]
+  },
+  {
+    "world": "ulpan-journey",
+    "width": 390,
+    "changedPixels": 520,
+    "totalPixels": 3159000,
+    "bbox": [
+      105,
+      1867,
+      111,
+      2371
+    ]
+  },
+  {
+    "world": "ulpan-journey",
+    "width": 1440,
+    "changedPixels": 0,
+    "totalPixels": 1296000,
+    "bbox": null
+  }
+]
