@@ -1,0 +1,34 @@
+{
+  "atlas_id": "a97001",
+  "editorial_pages": [
+    6,
+    7,
+    8,
+    9
+  ],
+  "draft_blocks_with_all_layers": 29,
+  "source_blocks": 989,
+  "remaining_source_blocks": 960,
+  "editor_notes": [
+    "a97001:p6:b004",
+    "a97001:p6:b005",
+    "a97001:p6:b006",
+    "a97001:p7:b005",
+    "a97001:p7:b007",
+    "a97001:p7:b010",
+    "a97001:p8:b003",
+    "a97001:p8:b005",
+    "a97001:p8:b007",
+    "a97001:p9:b002"
+  ],
+  "section_count": 21,
+  "publishable": false,
+  "pending": [
+    "remaining translation",
+    "tables and figure legends",
+    "canonical import",
+    "independent language and math review",
+    "whole-book visual reader acceptance",
+    "production publication"
+  ]
+}

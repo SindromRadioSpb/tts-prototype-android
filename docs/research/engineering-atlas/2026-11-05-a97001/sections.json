@@ -1,0 +1,35 @@
+{
+ "atlas_id":"a97001","page_count":203,
+ "title_he":"יסודות המכניקה","title_ru":"Инженерный атлас 97001 — Основы механики",
+ "parts":[
+  {"id":"front","he":"שער ותוכן עניינים","ru":"Титул и оглавление"},
+  {"id":"intro","he":"מבוא","ru":"Введение"},
+  {"id":"statics","he":"סטטיקה","ru":"Статика"},
+  {"id":"dynamics","he":"דינמיקה","ru":"Динамика"},
+  {"id":"graphics","he":"גרפיקה הנדסית","ru":"Инженерная графика"},
+  {"id":"materials","he":"תורת החומרים","ru":"Материаловедение"}
+ ],
+ "sections":[
+  {"id":"s00-front","part":"front","first":1,"last":3,"he":"שער ותוכן עניינים","ru":"Титул и оглавление"},
+  {"id":"s01-units","part":"intro","first":4,"last":5,"he":"סמלים ויחידות","ru":"Обозначения и единицы"},
+  {"id":"s02-statics-basics","part":"statics","first":6,"last":14,"he":"מושגי יסוד, חוקים ואקסיומות סטטיקה","ru":"Основные понятия, законы и аксиомы статики"},
+  {"id":"s03-concurrent-forces","part":"statics","first":15,"last":23,"he":"מערכת כוחות משותפי נקודה","ru":"Система сходящихся сил"},
+  {"id":"s04-parallel-forces","part":"statics","first":24,"last":33,"he":"מערכת כוחות מקבילים","ru":"Система параллельных сил"},
+  {"id":"s05-planar-forces","part":"statics","first":34,"last":39,"he":"מערכת כוחות מישוריים – מקרה כללי","ru":"Плоская система сил: общий случай"},
+  {"id":"s06-trusses","part":"statics","first":40,"last":49,"he":"מסבכים מישוריים","ru":"Плоские фермы"},
+  {"id":"s07-centroid","part":"statics","first":50,"last":56,"he":"מרכז כובד","ru":"Центр тяжести"},
+  {"id":"s08-friction","part":"statics","first":57,"last":66,"he":"חיכוך","ru":"Трение"},
+  {"id":"s09-linear-motion","part":"dynamics","first":67,"last":81,"he":"תנועה של נקודה חומרית בקו ישר","ru":"Прямолинейное движение материальной точки"},
+  {"id":"s10-projectile-motion","part":"dynamics","first":82,"last":89,"he":"תנועה של נקודה חומרית באוויר במסלול עקום","ru":"Криволинейное движение материальной точки в воздухе"},
+  {"id":"s11-circular-motion","part":"dynamics","first":90,"last":93,"he":"תנועה סיבובית של נקודה חומרית","ru":"Движение материальной точки по окружности"},
+  {"id":"s12-sections","part":"graphics","first":94,"last":99,"he":"חתכים","ru":"Разрезы"},
+  {"id":"s13-dimensions","part":"graphics","first":100,"last":108,"he":"מידות","ru":"Нанесение размеров"},
+  {"id":"s14-industrial-symbols","part":"graphics","first":109,"last":114,"he":"סמלים לתעשייה","ru":"Условные обозначения: шероховатость и допуски"},
+  {"id":"s15-materials-basics","part":"materials","first":115,"last":123,"he":"מבוא ומושגי יסוד","ru":"Материаловедение: введение и основные понятия"},
+  {"id":"s16-mechanical-properties","part":"materials","first":124,"last":153,"he":"תכונות מכניות של חומרים","ru":"Механические свойства материалов"},
+  {"id":"s17-steels","part":"materials","first":154,"last":191,"he":"פלדות","ru":"Стали, чугуны и термическая обработка"},
+  {"id":"s18-powder-metallurgy","part":"materials","first":192,"last":193,"he":"מטלורגית אבקות","ru":"Порошковая металлургия"},
+  {"id":"s19-aluminium","part":"materials","first":194,"last":202,"he":"אלומיניום (חמרן)","ru":"Алюминий и его термическая обработка"},
+  {"id":"s20-composites","part":"materials","first":203,"last":203,"he":"חומרים מרוכבים","ru":"Композиционные материалы"}
+ ]
+}
