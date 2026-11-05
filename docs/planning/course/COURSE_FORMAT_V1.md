@@ -62,7 +62,7 @@ preferFrame `["lx.efshar"]`. Задание 19d: card `{milk:"without"}`, claim 
 `validateLexicon(lexicon)` и `validateLesson(lesson, lexiconIndex)` возвращают
 `{level:"error"|"warning",code,path,message}[]`. Индекс — Map всех записей и форм.
 Ошибки: FORMAT, ID_BAD, ID_DUP, HE_PAIR_MISSING, HE_PLAIN_HAS_MARKS,
-HE_SKELETON_MISMATCH, REF_UNKNOWN, TASK_TYPE_UNKNOWN. HE_NIQQUD_BARE — предупреждение.
+HE_SKELETON_MISMATCH, REF_UNKNOWN, TASK_TYPE_UNKNOWN, VOICE_NOT_ALLOWED. HE_NIQQUD_BARE — предупреждение.
 Некорректная структура данных возвращает FORMAT, а не исключение.
 
 Манифест и межурочные связи проверяются CLI/графом. Порог новых слов в тексте
@@ -72,6 +72,28 @@ HE_SKELETON_MISMATCH, REF_UNKNOWN, TASK_TYPE_UNKNOWN. HE_NIQQUD_BARE — пре�
 `docs/research/hebrew-course/2026-11-05-cafe-audio/bake-cafe-audio.js` без его запуска.
 Полное письмо и переводы заданы явно. L002 повторяет lx.bli/lx.chalav, вводит lx.ein.
 Независимая языковая приёмка содержания и голоса находятся за пределами P1.
+
+## Подготовка озвучки (P4)
+
+`scene.roles[].voice` — обязательное имя голоса, допустимы только
+`he-IL-Wavenet-A`, `he-IL-Wavenet-B`, `he-IL-Wavenet-C`, `he-IL-Wavenet-D`.
+Другие строки, включая Chirp, возвращают `VOICE_NOT_ALLOWED` в `validateLesson`.
+
+UMD-модуль `CourseSpeech` используется после проверки формата урока.
+`speechItems(lesson)` возвращает сначала реплики сцены, затем абзацы текста,
+в авторском порядке: `{ref:"lessonId/itemId",id,kind:"turn"|"para",role,
+text,voiceName,bytes}`. Для абзаца `role:null`. Текст берётся точно из
+`he.niqqud`, без нормализации и подстановки `plain` или перевода; `bytes` —
+длина UTF-8. Для реплик голос берётся из роли; запасное значение при отсутствии
+голоса — C для `staff`, D для других ролей. Формат урока при этом по-прежнему
+требует явно заданный голос. Все абзацы используют C.
+
+`profileFor(voiceName)` возвращает `{language:"he-IL",voiceName,speakingRate:1,pitch:0}`.
+`checkItems(items)` возвращает `{level:"error",code,ref,message}[]`:
+`VOICE_NOT_ALLOWED` для голоса вне A–D и `TEXT_TOO_LONG` при длине текста
+более 4800 байт UTF-8. Длина пересчитывается из текста, а не доверяется `bytes`.
+Модуль не вызывает синтез. Изменение текста или профиля меняет ключ
+`db/premium/ttsAssetKey.computeAssetKey`, даже если ID реплики сохранился.
 
 ## Проверяющий модуль (P1)
 

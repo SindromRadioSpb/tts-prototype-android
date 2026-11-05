@@ -112,6 +112,7 @@
         v.id(r.id,p+'.id',roleIds);
         roles.set(r.id,true);
         v.shape(typeof r.voice==='string',p+'.voice','Нужен голос.');
+        if(typeof r.voice==='string'&&!/^he-IL-Wavenet-[A-D]$/.test(r.voice))v.add('VOICE_NOT_ALLOWED',p+'.voice','Допустимы только голоса he-IL-Wavenet-A–D.');
       });
       const ids=sceneTurnIds,turns=v.arr(l.scene.turns,'scene.turns');
       turns.forEach((t,i)=>{
