@@ -27,6 +27,7 @@ function slotFiles(media) {
 function exportPack(courseSrc, lessonId, outDir, { now = Date.now } = {}) {
   const lesson = JSON.parse(fs.readFileSync(path.join(courseSrc, 'lessons', lessonId + '.json'), 'utf8'));
   const course = JSON.parse(fs.readFileSync(path.join(courseSrc, 'course.json'), 'utf8'));
+  if (typeof outDir !== 'string' || !outDir.trim()) throw new Error('Не указана папка выгрузки');
   if (fs.existsSync(outDir) && fs.readdirSync(outDir).length) throw new Error('Папка выгрузки не пуста: ' + outDir);
   for (const dir of ['review', 'media/examples', 'results']) fs.mkdirSync(path.join(outDir, dir), { recursive: true });
   fs.copyFileSync(path.join(TEMPLATES, 'README.dots.ru.md'), path.join(outDir, 'README.dots.ru.md'));
@@ -35,6 +36,8 @@ function exportPack(courseSrc, lessonId, outDir, { now = Date.now } = {}) {
   fs.copyFileSync(fs.existsSync(courseStyle) ? courseStyle : path.join(TEMPLATES, 'style.ru.md'), path.join(outDir, 'media/style.ru.md'));
   fs.writeFileSync(path.join(outDir, 'lesson.ru-he.md'), lessonToMarkdown(lesson) + '\n');
   fs.writeFileSync(path.join(outDir, 'lesson.json'), JSON.stringify(lesson, null, 2) + '\n');
+  // Archivers drop empty folders; a note keeps results/ in the ZIP.
+  fs.writeFileSync(path.join(outDir, 'results', 'README.txt'), 'Положите сюда результаты: <id>.webp и <id>.json для каждого места (см. README.dots.ru.md).\n');
   const characters = path.join(courseSrc, 'media', 'characters.png');
   if (fs.existsSync(characters)) fs.copyFileSync(characters, path.join(outDir, 'media/characters.png'));
   const slots = [];

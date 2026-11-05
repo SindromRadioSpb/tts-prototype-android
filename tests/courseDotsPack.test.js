@@ -99,3 +99,9 @@ test('a pack exported for an older lesson version imports only slots that still 
   const res=I().importPack(out,c.src,{dryRun:true});
   assert.deepEqual(res.accepted,['cafe']);assert.deepEqual(res.skipped,['cups']);
 });
+test('export refuses an empty output path and keeps results/ in the archive with a note',t=>{
+  const c=course(t);
+  assert.throws(()=>X().exportPack(c.src,'L001-cafe',''),/папк/i);
+  const out=pack(t,c);
+  assert.ok(fs.existsSync(path.join(out,'results','README.txt')));
+});
