@@ -2,6 +2,7 @@
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.he = {
   course: {
+    keyboardLetters: {"alef":"אלף","bet":"בית","gimel":"גימל","dalet":"דלת","he":"הא","vav":"ויו","zayin":"זין","het":"חית","tet":"טית","yod":"יוד","kaf":"כף","lamed":"למד","mem":"מם","nun":"נון","samekh":"סמך","ayin":"עין","pe":"פא","tsadi":"צדי","qof":"קוף","resh":"ריש","shin":"שין","tav":"תו","finalKaf":"כף סופית","finalMem":"מם סופית","finalNun":"נון סופית","finalPe":"פא סופית","finalTsadi":"צדי סופית"},
     keyboard: "מקלדת עברית",
     keyboardShow: "הצגת מקלדת",
     keyboardHide: "הסתרת מקלדת",

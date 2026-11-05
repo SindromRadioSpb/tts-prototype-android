@@ -2,6 +2,7 @@
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.en = {
   course: {
+    keyboardLetters: {"alef":"alef","bet":"bet","gimel":"gimel","dalet":"dalet","he":"he","vav":"vav","zayin":"zayin","het":"het","tet":"tet","yod":"yod","kaf":"kaf","lamed":"lamed","mem":"mem","nun":"nun","samekh":"samekh","ayin":"ayin","pe":"pe","tsadi":"tsadi","qof":"qof","resh":"resh","shin":"shin","tav":"tav","finalKaf":"final kaf","finalMem":"final mem","finalNun":"final nun","finalPe":"final pe","finalTsadi":"final tsadi"},
     keyboard: "Hebrew keyboard",
     keyboardShow: "Show keyboard",
     keyboardHide: "Hide keyboard",

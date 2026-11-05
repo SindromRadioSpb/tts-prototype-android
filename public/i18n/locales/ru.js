@@ -2,6 +2,7 @@
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.ru = {
   course: {
+    keyboardLetters: {"alef":"алеф","bet":"бет","gimel":"гимель","dalet":"далет","he":"хе","vav":"вав","zayin":"заин","het":"хет","tet":"тет","yod":"йод","kaf":"каф","lamed":"ламед","mem":"мем","nun":"нун","samekh":"самех","ayin":"айн","pe":"пе","tsadi":"цади","qof":"куф","resh":"реш","shin":"шин","tav":"тав","finalKaf":"каф софит","finalMem":"мем софит","finalNun":"нун софит","finalPe":"пе софит","finalTsadi":"цади софит"},
     keyboard: "Клавиатура иврита",
     keyboardShow: "Показать клавиатуру",
     keyboardHide: "Скрыть клавиатуру",
