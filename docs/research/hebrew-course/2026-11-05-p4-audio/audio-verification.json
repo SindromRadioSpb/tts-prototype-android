@@ -1,0 +1,130 @@
+[
+  {
+    "ref": "L001-cafe/a1-01",
+    "key": "b1cd9cc166335b8c250ef50bd46429d6db7471831cb7fed074c76ff8534f4223",
+    "bytes": 6720,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "0.840000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-03",
+    "key": "4426fe8b70c2f28f923071cd4658cbb5e360517c01947bd3daff5f01e4eb5f5c",
+    "bytes": 9408,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "1.176000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-02",
+    "key": "86158f3da64f13925275bff31974dc9413a2653f22c6e319ac645369b56ce0b1",
+    "bytes": 26496,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "3.312000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-04",
+    "key": "897c66977ecc8dcf267bdcc3e3a2f3a14ce2044ac8af95c02c93ba65ded28de9",
+    "bytes": 12288,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "1.536000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-05",
+    "key": "3ad27a1a76b30db5ab1361e2f8d625a340f2ec2070533be5963dbf8a8be419c4",
+    "bytes": 11712,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "1.464000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-06",
+    "key": "781430db3765a78fe0659ee3563a4663e8ac2a7b63ec2b5828dcbfba513b7981",
+    "bytes": 12864,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "1.608000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-08",
+    "key": "a8d7a71022b85176239da1643687b4f33e5cf1c3893f03b7b7f40fe470a7fc1d",
+    "bytes": 8832,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "1.104000"
+    }
+  },
+  {
+    "ref": "L001-cafe/a1-07",
+    "key": "388a7be2d57ad6161ca4dd1330f3369e3bec0aeccfe6813b8d7ae34f4efa1c1d",
+    "bytes": 19776,
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "24000"
+      }
+    ],
+    "format": {
+      "duration": "2.472000"
+    }
+  }
+]
