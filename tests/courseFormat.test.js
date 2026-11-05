@@ -6,6 +6,15 @@ const F = require('../public/js/course-format.js');
 const load = n => JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/course/mini', n), 'utf8'));
 const lex = load('lexicon.json');
 const idx = new Map(lex.entries.flatMap(e => [[e.id,e], ...(e.forms || []).map(f => [f.id,f])]));
+test('transfer variants require unique IDs and valid authored replacement',()=>{
+ const l=load('lessons/L001-cafe.json'),t=l.tasks.find(x=>x.transfer);
+ t.variants=[{id:'new',prompt:{ru:'Иная ситуация'},spec:structuredClone(t.spec),model:structuredClone(t.model)}];
+ assert.deepEqual(F.validateLesson(l,idx).filter(i=>i.level==='error'),[]);
+ t.variants.push({...t.variants[0]});
+ assert.ok(F.validateLesson(l,idx).some(i=>i.code==='ID_DUP'&&i.path.includes('variants')));
+ t.variants.pop();t.variants[0].prompt={};
+ assert.ok(F.validateLesson(l,idx).some(i=>i.path.endsWith('variants[0].prompt')));
+});
 test('fixture lexicon and lessons are valid', () => {
  assert.deepEqual(F.validateLexicon(lex).filter(i=>i.level==='error'), []);
  for(const id of ['L001-cafe','L002-cafe-again']) assert.deepEqual(F.validateLesson(load('lessons/'+id+'.json'),idx).filter(i=>i.level==='error'),[]);

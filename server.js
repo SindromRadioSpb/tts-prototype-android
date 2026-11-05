@@ -1427,16 +1427,17 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=855",
+  "/js/library-ui.js?v=857",
   "/js/corpus-registry.js?v=854",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=854",
-  "/js/course-format.js?v=855",
-  "/js/course-evidence.js?v=854",
-  "/js/course-store.js?v=854",
+  "/js/course-format.js?v=857",
+  "/js/course-evidence.js?v=857",
+  "/js/course-store.js?v=857",
+  "/js/course-sync.js?v=857",
   "/js/course-keyboard.js?v=854",
   "/js/course-audio.js?v=854",
-  "/js/course-reader.js?v=855",
+  "/js/course-reader.js?v=857",
   "/css/course-reader.css?v=855",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
@@ -1495,9 +1496,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=855",
-  "/i18n/locales/en.js?v=855",
-  "/i18n/locales/he.js?v=855",
+  "/i18n/locales/ru.js?v=857",
+  "/i18n/locales/en.js?v=857",
+  "/i18n/locales/he.js?v=857",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4296,6 +4297,29 @@ async function requireArtifactConsentAnyVersion(req, res, auth) {
   if (!ok) { res.status(403).json({ ok: false, error: "CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY }); return false; }
   return true;
 }
+
+app.get('/api/learner/course-progress/:courseId', rlLearnerArtifacts, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!(await requireArtifactConsent(req, res, auth))) return;
+  try {
+    if (!/^[a-z0-9-]{1,40}$/.test(req.params.courseId)) return res.status(400).json({ error: 'BAD_KEY' });
+    const row = await learnerArtifactsRepo.getCourseProgress(auth.user.id, req.params.courseId);
+    if (!row) return res.status(404).json({ error: 'NOT_FOUND' });
+    res.json(row);
+  } catch (_) { res.status(500).json({ error: 'COURSE_PROGRESS_GET_FAILED' }); }
+});
+app.put('/api/learner/course-progress/:courseId', rlLearnerArtifacts, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  if (!(await requireArtifactConsent(req, res, auth))) return;
+  try {
+    const out = await learnerArtifactsRepo.putCourseProgress(auth.user.id, auth.session.deviceId,
+      req.params.courseId, req.body?.payload, req.body?.baseDigest);
+    if (out.conflict) return res.status(409).json(out);
+    if (!out.ok) return res.status(out.error === 'PAYLOAD_TOO_BIG' ? 413 : 400).json(out);
+    res.json(out);
+  } catch (_) { res.status(500).json({ error: 'COURSE_PROGRESS_PUT_FAILED' }); }
+});
 
 app.get("/api/learner/artifacts", rlLearnerArtifacts, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;

@@ -13211,14 +13211,22 @@ async function renderCourseCorpus(courseId, token) {
     const note = el('p'); note.textContent = tt('course.ownerOnly', 'Пилот курса доступен владельцу.');
     main.appendChild(note); return;
   }
-  if (!window.CourseReader || !window.CourseStore) { showState('room.state.error', '⚠️'); return; }
+  if (!window.CourseReader || !window.CourseStore || !window.CourseSync) { showState('room.state.error', '⚠️'); return; }
   const wrap = el('div', { class: 'corpus-view course-corpus' });
   wrap.appendChild(corpusSwitcherBar('course:' + courseId));
   const content = el('div'); wrap.appendChild(content); main.appendChild(wrap);
   const anchor = roomCourseAnchor; roomCourseAnchor = null;
   let initialized = false;
-  const reader = roomCourseReader = window.CourseReader.mount(content, {
-    courseId, T: tt, store: window.CourseStore.localStore(undefined, { userKey: String(session.user.id) }),
+  const store = window.CourseStore.localStore(undefined, { userKey: String(session.user.id) });
+  let reader = null;
+  const sync = window.CourseSync.create({ store, courseId, userKey: String(session.user.id),
+    me: () => window.CloudSync?.me(),
+    consent: current => { const grant = current?.consents?.cloud_texts;
+      return grant?.granted === true && String(grant.version || '') === window.CloudSync.CLOUD_TEXTS_CONSENT_VERSION; },
+    fetch: window.fetch.bind(window), onStatus: status => reader?.setSyncStatus(status),
+    onProgress: progress => reader?.applyProgress(progress) });
+  reader = roomCourseReader = window.CourseReader.mount(content, {
+    courseId, T: tt, store, sync,
     layers: { niqqudMode: readerCfg.niqqudMode, ruMode: readerCfg.ruMode,
       translitOn: !!readerCfg.translitOn, translitProfile: readerCfg.translitProfile },
     onWords: (root, lesson) => attachCourseWords(root, lesson),
@@ -13233,6 +13241,7 @@ async function renderCourseCorpus(courseId, token) {
   });
   if (anchor?.lessonId) await reader.openLesson(anchor.lessonId, anchor.step);
   else await reader.home();
+  if (token === corpusRenderToken) void sync.syncNow();
 }
 function attachCourseWords(root, lesson) {
   if (!root || !window.ReaderMorph) return null;

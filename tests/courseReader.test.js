@@ -7,6 +7,43 @@ function env(edit){const {document,window}=parseHTML('<html><body><main></main><
 const tick=()=>new Promise(r=>setImmediate(r));
 function click(e,s){e.document.querySelector(s).click();}
 function input(e,value){const n=e.document.querySelector('[data-course-input]');n.value=value;n.dispatchEvent(new e.window.Event('input'));}
+test('sync status remains visible in list and lesson and an attempt schedules upload',async()=>{
+ const e=env();let scheduled=0;e.opts.sync={status:'local_only',schedule(){scheduled++;}};
+ const r=e.mount();await r.home();assert.match(e.document.querySelector('[data-course-sync-status]').textContent,/Данные на этом устройстве/);
+ await r.openLesson('L001-cafe',1);input(e,'תה בלי סוכר');click(e,'[data-course-check]');
+ assert.equal(scheduled,1);assert.match(e.document.querySelector('[data-course-sync-status]').textContent,/Данные на этом устройстве/);
+ r.setSyncStatus('synced');assert.match(e.document.querySelector('[data-course-sync-status]').textContent,/Сохранено в облаке/);
+ r.destroy();
+});
+test('due return opens transfer on a new variant and fallback repeats without a promise',async()=>{
+ const e=env(data=>{const t=data['lessons/L001-cafe.json'].tasks.find(x=>x.transfer);t.variants=[{id:'counter',prompt:{ru:'Закажите у стойки'},spec:structuredClone(t.spec),model:structuredClone(t.model)}];});
+ const l=e.data['lessons/L001-cafe.json'],t=l.tasks.find(x=>x.transfer);
+ const first=E.record(E.emptyProgress('mini'),{lessonId:l.id,lessonVersion:l.version,task:t,channel:'write_he',input:'תה',result:{kind:'accepted'},at:0}).progress;
+ e.store.save(first);e.opts.now=()=>25*60*60*1000;
+ const r=e.mount();await r.home();assert.match(e.document.querySelector('[data-course-return]').textContent,/Новый вариант ситуации/);
+ click(e,'[data-course-return]');await tick();assert.match(e.document.querySelector('[data-course-task] h3').textContent,/Закажите у стойки/);
+ input(e,'תה בלי סוכר');click(e,'[data-course-check]');
+ const attempts=e.store.load('mini').progress.attempts;
+ assert.notEqual(attempts.at(-1).fp,attempts[0].fp);
+ assert.equal(attempts.at(-1).baseFp,attempts[0].baseFp);
+ r.destroy();
+ const f=env(),fl=f.data['lessons/L001-cafe.json'],ft=fl.tasks.find(x=>x.transfer);
+ f.store.save(E.record(E.emptyProgress('mini'),{lessonId:fl.id,lessonVersion:fl.version,task:ft,channel:'write_he',input:'תה',result:{kind:'accepted'},at:0}).progress);
+ f.opts.now=()=>25*60*60*1000;const rr=f.mount();await rr.home();
+ assert.match(f.document.querySelector('[data-course-return]').textContent,/Повторить урок/);rr.destroy();
+});
+test('failed return keeps the same variant available for review',async()=>{
+ const e=env(data=>{const t=data['lessons/L001-cafe.json'].tasks.find(x=>x.transfer);t.variants=[
+  {id:'first',prompt:{ru:'Первый вариант'},spec:structuredClone(t.spec),model:structuredClone(t.model)},
+  {id:'second',prompt:{ru:'Второй вариант'},spec:structuredClone(t.spec),model:structuredClone(t.model)}];});
+ const l=e.data['lessons/L001-cafe.json'],t=l.tasks.find(x=>x.transfer);
+ let p=E.record(E.emptyProgress('mini'),{lessonId:l.id,lessonVersion:l.version,task:t,channel:'write_he',input:'תה',result:{kind:'accepted'},at:0}).progress;
+ const chosen={...t,prompt:t.variants[0].prompt,spec:t.variants[0].spec,model:t.variants[0].model};
+ p=E.record(p,{lessonId:l.id,lessonVersion:l.version,task:chosen,baseTask:t,variant:{id:'first'},channel:'write_he',input:'wrong',result:{kind:'mismatch'},at:25*60*60*1000}).progress;
+ e.store.save(p);e.opts.now=()=>25*60*60*1000+1000;
+ const r=e.mount();await r.home();click(e,'[data-course-return]');await tick();
+ assert.match(e.document.querySelector('[data-course-task] h3').textContent,/Первый вариант/);r.destroy();
+});
 test('home counts and introduction scene use paired Hebrew and stable rows',async()=>{const e=env(),r=e.mount();await r.home();assert.equal(e.document.querySelectorAll('[data-course-lesson]').length,2);assert.match(e.document.body.textContent,/Введено 0/);assert.match(e.document.body.textContent,/Не начат/);await r.openLesson('L001-cafe',0);assert.equal(e.document.querySelectorAll('.course-line').length,8);assert.equal(e.document.querySelector('[data-col=he]').getAttribute('dir'),'rtl');r.destroy();});
 
 test('answer records once; drafts and assistance survive reload',async()=>{const e=env(),r=e.mount();await r.openLesson('L001-cafe',1);input(e,'תֵּה בְּלִי סֻכָּר');click(e,'[data-course-check]');assert.match(e.document.body.textContent,/Смысл передан/);let p=e.store.load('mini').progress;assert.equal(p.attempts.length,1);assert.equal(p.attempts[0].channel,'write_he');assert.equal(p.attempts[0].first,true);click(e,'[data-course-model]');input(e,'אפשר תה בלי סוכר');r.destroy();const r2=e.mount();await r2.openLesson('L001-cafe');assert.equal(e.document.querySelector('[data-course-input]').value,'אפשר תה בלי סוכר');assert.equal(e.document.querySelector('[data-course-model]').getAttribute('aria-expanded'),'true');e.opts.now=()=>12000;click(e,'[data-course-check]');assert.match(e.document.querySelector('details').textContent,/с опорой/);});

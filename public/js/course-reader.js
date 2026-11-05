@@ -21,8 +21,8 @@
       const T=(k,fb)=>opts.T?opts.T('course.'+k,fb):fb, now=()=>opts.now?opts.now():Date.now();
       const courseId=opts.courseId||'ulpan', store=opts.store||S.memoryStore(), fetcher=opts.fetch||root.fetch.bind(root);
       const loaded=store.load(courseId);
-      let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,keyboardHandle=null,listeners=[],saveError=false;
-      let audioHost=null, audioRate=1;
+      let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,keyboardHandle=null,listeners=[],saveError=false,returnChoice=null;
+      let audioHost=null, audioRate=1, syncStatus=opts.sync?.status||'local_only';
       const overrideKey='course.'+courseId+'.niqqudOverride';
       let preferenceStorage,niqqudOverride='lesson';
       try{preferenceStorage=opts.storage||root.localStorage;const saved=preferenceStorage?.getItem(overrideKey);if(['lesson','always','never'].includes(saved))niqqudOverride=saved;}catch(_){}
@@ -35,7 +35,7 @@
         return progress.reader;
       }
       function uiFor(task){
-        const key=current.id+'/'+task.id;
+        const key=taskKey(task);
         const state=readerState();
         if(!state.tasks||typeof state.tasks!=='object'||Array.isArray(state.tasks))state.tasks={};
         if(!own(state.tasks,key)||!state.tasks[key]||typeof state.tasks[key]!=='object')Object.defineProperty(state.tasks,key,{
@@ -45,6 +45,7 @@
         });
         return state.tasks[key];
       }
+      function taskKey(task){return current.id+'/'+task.id+(returnChoice?.taskId===task.id&&returnChoice.variantId?'@'+returnChoice.variantId:'');}
       function persist(){
         const r=store.save(progress);
         saveError=!r.ok;
@@ -79,6 +80,7 @@
       function shell(title,attrs={}){
         clear();
         container.append(el('h2',attrs,title));
+        container.append(el('p',{'data-course-sync-status':'',role:'status'},T('sync.'+syncStatus, syncText(syncStatus))));
         const error=el('p',{
           'data-course-save-error':'',role:'alert'
         },T('saveError','Не удалось сохранить прогресс на этом устройстве.'));
@@ -87,6 +89,18 @@
         if(loaded.notice)container.append(el('p',{
           role:'status'
         },T('resetNotice','Сохранённые данные не удалось прочитать. Начат новый прогресс.')));
+      }
+      function syncText(status){return ({synced:'Сохранено в облаке',local_only:'Данные на этом устройстве',pending:'Ждёт синхронизации',error:'Не удалось синхронизировать — повторим позже'})[status]||'';}
+      function setSyncStatus(status){
+        syncStatus=status;
+        const n=container.querySelector('[data-course-sync-status]');
+        if(n)n.textContent=T('sync.'+status,syncText(status));
+      }
+      function applyProgress(incoming){
+        const reader=progress.reader;
+        progress=E.mergeProgress(progress,incoming);
+        if(reader)progress.reader=reader;
+        if(!current)void home();
       }
       const text=x=>typeof x==='string'?x:(x?.[opts.lang||doc.documentElement.lang]||x?.ru||'');
       const authoredAttrs=x=>{const requested=opts.lang||doc.documentElement.lang;const lang=x&&typeof x==='object'&&x[requested]?requested:'ru';return {lang,dir:lang==='he'?'rtl':'ltr'};};
@@ -234,10 +248,28 @@
             list.append(btn);
           }
           container.append(list);
+          const due=E.dueReturns(progress,b.lessons,now());
+          if(due.length){
+            const returns=el('section',{'data-course-returns':''});
+            returns.append(el('h3',{},T('return.title','Вернуться')));
+            for(const item of due){
+              const lesson=b.lessons.find(l=>l.id===item.lessonId);
+              const task=lesson.tasks.find(t=>t.transfer===true);
+              const index=lesson.tasks.indexOf(task),variants=task?.variants||[];
+              const done=progress.attempts.filter(a=>a.lessonId===lesson.id&&a.taskId===task.id&&a.fp!==a.baseFp&&a.kind==='accepted').length;
+              const variant=variants.length?variants[done%variants.length]:null;
+              const label=variant?T('return.newVariant','Новый вариант ситуации'):T('return.repeat','Повторить урок');
+              const row=el('div');row.append(el('span',authoredAttrs(lesson.title),text(lesson.title)));
+              row.append(button(label,{'data-course-return':lesson.id},()=>openLesson(lesson.id,1+(lesson.text?1:0)+index,
+                variant?{taskId:task.id,variantId:variant.id}:null)));
+              returns.append(row);
+            }
+            container.append(returns);
+          }
           notify();
         });
       }
-      function openLesson(id,wantedStep){
+      function openLesson(id,wantedStep,returnVariant=null){
         audioHost?.stop(); audioHost=null;
         return run(async (b,ticket)=>{
           const l=b.lessons.find(l=>l.id===id);
@@ -257,6 +289,7 @@
           await host.load();
           if(!alive||ticket!==epoch||audioHost!==host){host.stop();return;}
           current=l;
+          returnChoice=returnVariant;
           const migration=E.migrate(progress,l);
           progress=migration.progress;
           // Drafts exist before any attempt, so evidence migration alone cannot invalidate them.
@@ -284,7 +317,7 @@
         return current.tasks[step-1-(current.text?1:0)]||null;
       }
       function aid(task,name){
-        progress=E.openAid(progress,current.id+'/'+task.id,name,now());
+        progress=E.openAid(progress,taskKey(task),name,now());
         persist();
       }
       function playButton(turnId){
@@ -359,7 +392,9 @@
         };
         on(body,'click',revealBeforeMorph,true);on(body,'keydown',revealBeforeMorph,true);
         container.append(body);
-        const task=activeTask();
+        const baseTask=activeTask();
+        const variant=baseTask&&returnChoice?.taskId===baseTask.id?baseTask.variants?.find(v=>v.id===returnChoice.variantId):null;
+        const task=variant?{...baseTask,prompt:variant.prompt,spec:variant.spec,...(variant.model?{model:variant.model}:{})}:baseTask;
         if(step===0){
           body.append(el('p',{
             class:'course-goal',...authoredAttrs(current.goal)
@@ -411,18 +446,22 @@
         notify();
       }
       function latest(task){
-        const fp=E.fingerprint(current.id,task);
-        return progress.attempts.findLast(a=>a.lessonId===current.id&&a.taskId===task.id&&(a.baseFp||a.fp)===fp);
+        const variant=returnChoice?.taskId===task.id&&returnChoice.variantId?{id:returnChoice.variantId}:undefined;
+        const fp=E.fingerprint(current.id,task,variant);
+        return progress.attempts.findLast(a=>a.lessonId===current.id&&a.taskId===task.id&&
+          (variant?a.fp===fp:(a.baseFp||a.fp)===fp));
       }
       function canContinue(task){
         return latest(task)?.kind==='accepted';
       }
       function record(task,input,result,channel){
+        const variant=returnChoice?.taskId===task.id&&returnChoice.variantId?{id:returnChoice.variantId}:undefined;
         const r=E.record(progress,{
-          lessonId:current.id,lessonVersion:current.version,lesson:current,task,channel,input,result,at:now()
+          lessonId:current.id,lessonVersion:current.version,lesson:current,task,
+          baseTask:current.tasks.find(t=>t.id===task.id),variant,channel,input,result,at:now()
         });
         progress=r.progress;
-        persist();
+        if(persist()&&!r.duplicate)opts.sync?.schedule();
         return r.attempt;
       }
       function renderTask(body,task){
@@ -576,13 +615,13 @@
         const help=el('div',{
           class:'course-help'
         });
-        const hints=progress.aids[current.id+'/'+task.id]?.hint||0;
+        const hints=progress.aids[taskKey(task)]?.hint||0;
         const hint=button(T('hint','Подсказка'),{
           'data-course-hint':''
         },()=>{
-          if((progress.aids[current.id+'/'+task.id]?.hint||0)>=2)return;
+          if((progress.aids[taskKey(task)]?.hint||0)>=2)return;
           aid(task,'hint');
-          const n=progress.aids[current.id+'/'+task.id].hint;
+          const n=progress.aids[taskKey(task)].hint;
           hintNote.textContent=text(task.hints?.[n-1])||T('hintText','Сверьте условие задания и нужные слова.');
           hint.disabled=n>=2;
           paintEvidence(latest(task));
@@ -655,11 +694,12 @@
         controller?.abort();
         audioHost?.stop(); audioHost=null;
         opts.stopAudio?.();
+        opts.sync?.dispose?.();
         clear();
         container.classList.remove('course-reader');
       }
       return {
-        home,openLesson,destroy
+        home,openLesson,destroy,setSyncStatus,applyProgress
       };
     }
     return {

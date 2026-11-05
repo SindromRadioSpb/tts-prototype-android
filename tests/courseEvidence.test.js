@@ -5,6 +5,36 @@ const E = require('../public/js/course-evidence.js');
 const task = { id: '6', spec: { kind: 'order', expect: { drink: 'tea', sugar: 'without' } }, model: { niqqud: 'תֵּה', plain: 'תה' } };
 const base = { lessonId: 'L001', lessonVersion: 1, task, channel: 'write_he', input: 'תה בלי סוכר', result: { kind: 'accepted' } };
 
+test('progress merge preserves unique attempts and converges in any order', () => {
+  const make = (ids) => ({ ...E.emptyProgress('ulpan'), attempts: ids.map(([id, at]) => ({ id, at })),
+    aids: { 'L001/6': { hint: ids.length, model: ids.length > 1, transcript: false, translation: false } },
+    seen: { abc: ids.length * 10 }, firstMet: { tea: ids.length * 10 }, lessonVersions: { L001: ids.length } });
+  const a = make([['a', 1], ['b', 2], ['c', 3]]);
+  const b = make([['c', 3], ['d', 4], ['e', 5]]);
+  const c = make([['f', 6]]);
+  assert.deepEqual(E.mergeProgress(a, b), E.mergeProgress(b, a));
+  assert.deepEqual(E.mergeProgress(a, a), a);
+  assert.deepEqual(E.mergeProgress(E.mergeProgress(a, b), c), E.mergeProgress(a, E.mergeProgress(b, c)));
+  assert.deepEqual(E.mergeProgress(a, b).attempts.map(x => x.id), ['a', 'b', 'c', 'd', 'e']);
+  assert.deepEqual(E.mergeProgress(a, b).aids['L001/6'], { hint: 3, model: true, transcript: false, translation: false });
+  assert.equal(E.mergeProgress(a, b).seen.abc, 30);
+  assert.equal(E.mergeProgress(a, b).lessonVersions.L001, 3);
+  assert.equal(E.progressDigest(a), E.progressDigest(structuredClone(a)));
+  const draft={...a,reader:{position:{lessonId:'L001',step:2}}};
+  assert.deepEqual(E.mergeProgress(draft,draft),draft);
+  assert.deepEqual(E.mergeProgress(draft,b),E.mergeProgress(b,draft));
+  assert.throws(() => E.mergeProgress(a, E.emptyProgress('other')), /COURSE_MISMATCH/);
+});
+
+test('attempt IDs are unique across devices and recorded input is bounded', () => {
+  const event = { ...base, at: 1000, input: 'x'.repeat(1000) };
+  const a = E.record(E.emptyProgress('ulpan'), event).attempt;
+  const b = E.record(E.emptyProgress('ulpan'), event).attempt;
+  assert.notEqual(a.id, b.id);
+  assert.match(a.id, /^[0-9a-f]{8}-[a-z0-9]{6}$/);
+  assert.equal(a.input.length, 300);
+});
+
 test('fingerprint sorts nested keys and changes with content or variant', () => {
   const a = E.fingerprint('L001', task);
   const reordered = { model: { plain: 'תה', niqqud: 'תֵּה' }, spec: { expect: { sugar: 'without', drink: 'tea' }, kind: 'order' }, id: '6' };
@@ -66,6 +96,17 @@ const mini = require('./fixtures/course/mini/lessons/L001-cafe.json');
 const lexicon = require('./fixtures/course/mini/lexicon.json');
 const hour = 60*60*1000;
 const transferLesson = () => ({...structuredClone(mini), tasks:[{...structuredClone(mini.tasks.find(t=>t.id==='6')),transfer:true}]});
+test('completed transfer returns after one day; new situation defers three days; review is immediate', () => {
+ const l=transferLesson(), t=24*hour;
+ let p=answer(E.emptyProgress('ulpan'),l,{at:0});
+ assert.deepEqual(E.dueReturns(p,[l],23*hour),[]);
+ assert.deepEqual(E.dueReturns(p,[l],25*hour),[{lessonId:l.id,dueAt:t,reason:'scheduled'}]);
+ p=answer(p,l,{at:25*hour,variant:{id:'new'}});
+ assert.deepEqual(E.dueReturns(p,[l],25*hour+2*24*hour),[]);
+ assert.deepEqual(E.dueReturns(p,[l],25*hour+3*24*hour+1),[{lessonId:l.id,dueAt:25*hour+3*24*hour,reason:'scheduled'}]);
+ p=answer(p,l,{at:25*hour+1000,variant:{id:'again'},result:{kind:'mismatch'}});
+ assert.deepEqual(E.dueReturns(p,[l],25*hour+1000),[{lessonId:l.id,dueAt:25*hour+1000,reason:'needs_review'}]);
+});
 function answer(p,l,options={}) { return E.record(p,{lessonId:l.id,lessonVersion:l.version,task:l.tasks[0],channel:'write_he',input:'תה בלי סוכר',result:{kind:'accepted'},at:1000,...options}).progress; }
 test('cards and repeated fingerprint cannot count as produced; fresh writing can',()=>{
  const l=transferLesson(); let p=answer(E.emptyProgress('ulpan'),l,{channel:'cards'});

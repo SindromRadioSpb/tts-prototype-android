@@ -106,7 +106,7 @@
       }
     };
   }
-  const api = { memoryStore, localStore };
+  const api = { memoryStore, localStore, validProgress };
   root.CourseStore = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

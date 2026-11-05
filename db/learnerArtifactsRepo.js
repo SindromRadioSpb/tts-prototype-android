@@ -29,19 +29,21 @@ const MAX_STATE_INFLATED_BYTES = 160 * 1024 * 1024;
 
 const KIND = "text_bundle";
 const STATE_KIND = "state_bundle";
-const KINDS = new Set([KIND, STATE_KIND]);
+const COURSE_KIND = "course_progress";
+const KINDS = new Set([KIND, STATE_KIND, COURSE_KIND]);
 const CONSENT_KEY = "cloud_texts";
 // 8MB per-text: после P0 slim-бандл ~десятки КБ; кап оставлен прежним (откат slim = fat-бандлы
 // должны продолжать влезать). Негабарит падает в failed[] per-text best-effort, не абортя остальные.
 const MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 // 24MB state: ~5 МБ сегодня (10,3K заметок §3.4) — годы запаса; warn с 18 МБ.
 const MAX_STATE_PAYLOAD_BYTES = 24 * 1024 * 1024;
+const MAX_COURSE_PAYLOAD_BYTES = 2 * 1024 * 1024;
 const MAX_ARTIFACTS_PER_USER = 2000;
 // Skew-guard (§6 F-риски): client-claimed updated_at из будущего дальше часа — отказ typed
 // (видимый в failed[]), не тихая LWW-блокада чужих честных правок.
 const MAX_FUTURE_SKEW_MS = 3600 * 1000;
 
-const capFor = (kind) => (kind === STATE_KIND ? MAX_STATE_PAYLOAD_BYTES : MAX_PAYLOAD_BYTES);
+const capFor = (kind) => (kind === STATE_KIND ? MAX_STATE_PAYLOAD_BYTES : kind === COURSE_KIND ? MAX_COURSE_PAYLOAD_BYTES : MAX_PAYLOAD_BYTES);
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
@@ -107,9 +109,10 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const k = String(kind || KIND);
   if (!KINDS.has(k)) return { ok: false, error: "BAD_KIND" };
+  if (k === COURSE_KIND) return { ok: false, error: "USE_COURSE_CAS" };
   const key = String(artifact_key || "").trim();
   const at = String(updated_at || "").trim();
-  if (!key || key.length > 200) return { ok: false, error: "BAD_KEY" };
+  if (!key || key.length > 200 || (k === COURSE_KIND && !/^[a-z0-9-]{1,40}$/.test(key))) return { ok: false, error: "BAD_KEY" };
   if (!at || !Number.isFinite(Date.parse(at))) return { ok: false, error: "BAD_UPDATED_AT" };
   if (Date.parse(at) > Date.now() + MAX_FUTURE_SKEW_MS) return { ok: false, error: "FUTURE_UPDATED_AT" };
   let payloadStr = typeof payload === "string" ? payload : JSON.stringify(payload || null);
@@ -372,4 +375,42 @@ async function reconcileRevokedPurges() {
   return { users, artifacts };
 }
 
-module.exports = { inflateEnvelope, payloadJsonFor, STATE_ENVELOPE_FORMAT, hasConsent, hasConsentVersioned, list, listWithMeta, findTextKeyByNormalizedBody, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
+// Optimistic compare-and-swap for course evidence. A conditional SQL write closes the
+// read/write race between browser tabs while retaining the consented artifact store.
+const CourseEvidence = require('../public/js/course-evidence.js');
+function courseRow(row) {
+  if (!row) return null;
+  const payload = JSON.parse(row.payload_json);
+  return { payload, digest: CourseEvidence.progressDigest(payload), updatedAt: row.updated_at };
+}
+async function getCourseProgress(userId, courseId) {
+  if (!/^[a-z0-9-]{1,40}$/.test(String(courseId))) return null;
+  return courseRow(await get(userId, courseId, COURSE_KIND));
+}
+async function putCourseProgress(userId, deviceId, courseId, payload, baseDigest) {
+  const key = String(courseId);
+  if (!/^[a-z0-9-]{1,40}$/.test(key)) return { ok: false, error: 'BAD_KEY' };
+  const raw = JSON.stringify(payload);
+  if (!raw) return { ok: false, error: 'BAD_PAYLOAD' };
+  if (Buffer.byteLength(raw, 'utf8') > MAX_COURSE_PAYLOAD_BYTES) return { ok: false, error: 'PAYLOAD_TOO_BIG' };
+  if (!require('../public/js/course-store.js').validProgress(payload, key) || Object.hasOwn(payload, 'reader')) return { ok: false, error: 'BAD_PAYLOAD' };
+  const db = getDb(); if (!db) throw new Error('DB_NOT_AVAILABLE');
+  const current = await get(userId, key, COURSE_KIND);
+  const existing = courseRow(current);
+  if ((existing?.digest || null) !== (baseDigest || null)) return { ok: false, conflict: true, ...existing };
+  const updatedAt = new Date().toISOString();
+  let written;
+  if (current) {
+    written = await dbRun(db, `UPDATE learner_artifacts SET payload_json=?, updated_at=?, device_id=?,
+      ingested_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE user_id=? AND kind=? AND artifact_key=? AND payload_json=?`,
+      [raw, updatedAt, deviceId || null, userId, COURSE_KIND, key, current.payload_json]);
+  } else {
+    written = await dbRun(db, `INSERT OR IGNORE INTO learner_artifacts
+      (user_id, kind, artifact_key, updated_at, payload_json, device_id) VALUES (?,?,?,?,?,?)`,
+      [userId, COURSE_KIND, key, updatedAt, raw, deviceId || null]);
+  }
+  if (!written?.changes) return { ok: false, conflict: true, ...await getCourseProgress(userId, key) };
+  return { ok: true, digest: CourseEvidence.progressDigest(payload), updatedAt };
+}
+
+module.exports = { inflateEnvelope, payloadJsonFor, STATE_ENVELOPE_FORMAT, hasConsent, hasConsentVersioned, list, listWithMeta, findTextKeyByNormalizedBody, get, getMeta, put, getCourseProgress, putCourseProgress, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, COURSE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES, MAX_COURSE_PAYLOAD_BYTES };

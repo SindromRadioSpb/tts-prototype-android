@@ -5714,3 +5714,4 @@ Object.assign(window.I18N_LOCALES.he.course,{"saveError": "לא ניתן לשמ�
 Object.assign(window.I18N_LOCALES.he.course,{"audioPlay": "האזנה למשפט", "audioRate": "מהירות", "audioError": "לא ניתן להשמיע את ההקלטה. נסו שוב.", "audioTranscript": "תמליל המשפט"});
 
 Object.assign(window.I18N_LOCALES.he.course, {"niqqudLabel": "ניקוד", "niqqudLesson": "לפי השיעור", "niqqudAlways": "תמיד", "niqqudNever": "אף פעם", "niqqudTap": "הצגת ניקוד"});
+Object.assign(window.I18N_LOCALES.he.course,{sync:{synced:'נשמר בענן',local_only:'נתונים במכשיר הזה',pending:'ממתין לסנכרון',error:'הסנכרון נכשל — ננסה שוב בהמשך'},return:{title:'לחזור לשיעור',newVariant:'מצב חדש',repeat:'לחזור על השיעור'}});

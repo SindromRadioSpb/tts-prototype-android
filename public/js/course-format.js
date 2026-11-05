@@ -168,23 +168,34 @@
       if(t.model!==undefined)v.he(t.model,p+'.model');
       if(t.answers!==undefined)v.arr(t.answers,p+'.answers').forEach((h,j)=>v.he(h,p+'.answers['+j+']'));
       if(t.transfer!==undefined)v.shape(typeof t.transfer==='boolean',p+'.transfer','Нужно boolean.');
-      if(t.spec!==undefined){
-        const s=t.spec;
-        if(!v.shape(object(s),p+'.spec','Ожидается спецификация.'))return;
-        v.shape(['order','short','confirm','repeat','replacement'].includes(s.kind),p+'.spec.kind','Неизвестный вид проверки.');
+      const validateSpec=(s,path)=>{
+        if(!v.shape(object(s),path,'Ожидается спецификация.'))return;
+        v.shape(['order','short','confirm','repeat','replacement'].includes(s.kind),path+'.kind','Неизвестный вид проверки.');
         const requiredByKind = {
           order: ['expect', 'require'], short: ['expect', 'require'],
           confirm: ['card', 'claim'], replacement: ['next', 'prev', 'via'], repeat: []
         };
         for (const field of Object.hasOwn(requiredByKind, s.kind) ? requiredByKind[s.kind] : []) {
-          v.shape(s[field] !== undefined, p + '.spec.' + field, 'Обязательное поле спецификации.');
+          v.shape(s[field] !== undefined, path + '.' + field, 'Обязательное поле спецификации.');
         }
-        for(const name of ['expect','card','claim','next','prev'])if(s[name]!==undefined&&v.shape(object(s[name]),p+'.spec.'+name,'Ожидаются значения слотов.'))for(const [k,val] of Object.entries(s[name])){
-          ref(k,p+'.spec.'+name+'.'+k,slots);
-          if(slots.has(k)&&!slots.get(k).has(val))v.add('REF_UNKNOWN',p+'.spec.'+name+'.'+k,'Неизвестное значение слота.');
-        }if(s.require!==undefined)v.arr(s.require,p+'.spec.require').forEach((x,j)=>ref(x,p+'.spec.require['+j+']',slots));
-        if(s.preferFrame!==undefined)refs(s.preferFrame,p+'.spec.preferFrame');
-        if(s.via!==undefined)ref(s.via,p+'.spec.via');
+        for(const name of ['expect','card','claim','next','prev'])if(s[name]!==undefined&&v.shape(object(s[name]),path+'.'+name,'Ожидаются значения слотов.'))for(const [k,val] of Object.entries(s[name])){
+          ref(k,path+'.'+name+'.'+k,slots);
+          if(slots.has(k)&&!slots.get(k).has(val))v.add('REF_UNKNOWN',path+'.'+name+'.'+k,'Неизвестное значение слота.');
+        }if(s.require!==undefined)v.arr(s.require,path+'.require').forEach((x,j)=>ref(x,path+'.require['+j+']',slots));
+        if(s.preferFrame!==undefined)refs(s.preferFrame,path+'.preferFrame');
+        if(s.via!==undefined)ref(s.via,path+'.via');
+      };
+      if(t.spec!==undefined)validateSpec(t.spec,p+'.spec');
+      if(t.variants!==undefined){
+        const ids=new Set();
+        v.arr(t.variants,p+'.variants').forEach((variant,j)=>{
+          const q=p+'.variants['+j+']';
+          if(!v.shape(object(variant),q,'Ожидается вариант.'))return;
+          v.id(variant.id,q+'.id',ids);
+          v.ru(variant.prompt,q+'.prompt');
+          validateSpec(variant.spec,q+'.spec');
+          if(variant.model!==undefined)v.he(variant.model,q+'.model');
+        });
       }
     });
     if(l.media!==undefined){
