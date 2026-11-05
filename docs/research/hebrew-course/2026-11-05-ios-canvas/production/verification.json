@@ -1,0 +1,107 @@
+{
+  "version": "3.11.856",
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 61,
+      "now": "2026-11-05T06:30:34.712Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 94,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 62,
+      "now": "2026-11-05T06:30:35.810Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 94,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 63,
+      "now": "2026-11-05T06:30:36.904Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 94,
+      "disk_warn": true
+    }
+  ],
+  "assets": [
+    "sw.js",
+    "index.html",
+    "library.html",
+    "mediatheque.html",
+    "js/world-engine.js",
+    "js/world-render.js",
+    "js/world-boot.js",
+    "js/ulpan-world.js",
+    "js/memorial-adapter.js"
+  ],
+  "worlds": [
+    {
+      "world": "memorial-three-scenes",
+      "before": 6,
+      "writes": 6,
+      "canvas": [
+        {
+          "width": 2048,
+          "height": 683
+        }
+      ],
+      "footer": "3.11.856"
+    },
+    {
+      "world": "sukkot",
+      "before": 16,
+      "writes": 16,
+      "canvas": [
+        {
+          "width": 197,
+          "height": 137
+        }
+      ],
+      "footer": "3.11.856"
+    },
+    {
+      "world": "ulpan-journey",
+      "before": 24,
+      "writes": 24,
+      "canvas": [
+        {
+          "width": 1280,
+          "height": 456
+        }
+      ],
+      "footer": "3.11.856"
+    },
+    {
+      "world": "israel-elections-2026",
+      "before": 32,
+      "writes": 32,
+      "canvas": [
+        {
+          "width": 197,
+          "height": 137
+        }
+      ],
+      "footer": "3.11.856"
+    }
+  ],
+  "pageerrors": [],
+  "ok": true
+}
