@@ -71,9 +71,9 @@
         }
         container.replaceChildren();
       }
-      function shell(title){
+      function shell(title,attrs={}){
         clear();
-        container.append(el('h2',{},title));
+        container.append(el('h2',attrs,title));
         const error=el('p',{
           'data-course-save-error':'',role:'alert'
         },T('saveError','Не удалось сохранить прогресс на этом устройстве.'));
@@ -84,6 +84,7 @@
         },T('resetNotice','Сохранённые данные не удалось прочитать. Начат новый прогресс.')));
       }
       const text=x=>typeof x==='string'?x:(x?.[opts.lang||doc.documentElement.lang]||x?.ru||'');
+      const authoredAttrs=x=>{const requested=opts.lang||doc.documentElement.lang;const lang=x&&typeof x==='object'&&x[requested]?requested:'ru';return {lang,dir:lang==='he'?'rtl':'ltr'};};
       const hebrew=pair=>opts.layers?.niqqudMode==='off'?pair?.plain:pair?.niqqud;
       async function data(){
         if(bundle)return bundle;
@@ -151,7 +152,7 @@
         audioHost?.stop(); audioHost=null;
         return run(b=>{
           current=null;
-          shell(text(b.course.title));
+          shell(text(b.course.title),authoredAttrs(b.course.title));
           const counts=E.courseCounts(progress,b.lexicon,b.lessons);
           container.append(el('p',{
             'data-course-counts':''
@@ -166,7 +167,7 @@
             const btn=button('',{
               'data-course-lesson':l.id
             },()=>openLesson(l.id));
-            btn.append(el('strong',{},text(l.title)),el('span',{},names[E.lessonSkill(progress,l)]));
+            btn.append(el('strong',authoredAttrs(l.title),text(l.title)),el('span',{},names[E.lessonSkill(progress,l)]));
             list.append(btn);
           }
           container.append(list);
@@ -223,7 +224,7 @@
           }
         });
       }
-      function line(item){
+      function line(item,scene=false){
         const row=el('div',{
           class:'course-line','data-ref':current.id+'/'+item.id
         });
@@ -242,9 +243,9 @@
           },value));
         }
         const ru=el('div',{
-          'data-col':'ru',lang:'ru'
+          'data-col':'ru',lang:'ru',dir:'ltr'
         },text(item.ru));
-        ru.hidden=opts.layers?.ruMode!=='show';
+        ru.hidden=scene||opts.layers?.ruMode!=='show';
         if(!ru.hidden)for(const task of current.tasks)aid(task,'translation');
         row.append(ru);
         const reveal=button(T('translation','Перевод'),{
@@ -259,7 +260,7 @@
       }
       function renderLesson(){
         if(!alive||!current)return;
-        shell(text(current.title));
+        shell(text(current.title),authoredAttrs(current.title));
         readerState().position={
           lessonId:current.id,step
         };
@@ -281,13 +282,13 @@
         const task=activeTask();
         if(step===0){
           body.append(el('p',{
-            class:'course-goal'
+            class:'course-goal',...authoredAttrs(current.goal)
           },text(current.goal)));
           const scene=el('div',{
             class:'course-scene'
           });
           current.scene.turns.forEach((turn,i)=>{
-            const row=line(turn);
+            const row=line(turn,true);
             row.classList.add(turn.role===current.scene.roles[0]?.id?'course-line-speaker':'course-line-response');
             row.setAttribute('data-role',turn.role);
             row.prepend(el('span',{
@@ -347,7 +348,7 @@
       function renderTask(body,task){
         const ui=uiFor(task);
         body.setAttribute('data-course-task',task.id);
-        body.append(el('h3',{},text(task.prompt)));
+        body.append(el('h3',authoredAttrs(task.prompt),text(task.prompt)));
         const feedback=el('div',{
           'data-course-feedback':'',role:'status'
         });
@@ -374,6 +375,7 @@
             },()=>{
               aid(task,'model');
               uiFor(task).model=true;
+              uiFor(task).feedback={kind:'accepted'};
               record(task,String(uiFor(task).input||''),{
                 kind:'accepted'
               },'self');
@@ -435,7 +437,7 @@
             const b=left.lastChild;b.disabled=chosen.has(pair.id);b.setAttribute('aria-pressed',String(selected===pair.id));
           }
           for(const pair of [...pairs].reverse())right.append(button(text(pair.label),{
-            'data-match-right':pair.id
+            'data-match-right':pair.id,...authoredAttrs(pair.label)
           },()=>{
             if(!selected)return;
             chosen.set(selected,pair.id);
@@ -532,7 +534,7 @@
           const g=current.grammar[task.grammarRef],dialog=el('section',{
             class:'course-grammar',role:'dialog','aria-modal':'true','aria-label':text(g.title)
           });
-          dialog.append(el('h3',{},text(g.title)),el('p',{},text(g.body)));
+          dialog.append(el('h3',authoredAttrs(g.title),text(g.title)),el('p',authoredAttrs(g.body),text(g.body)));
           for(const h of g.pattern||[])dialog.append(el('p',{
             dir:'rtl',lang:'he'
           },hebrew(h)));
