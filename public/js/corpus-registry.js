@@ -55,6 +55,12 @@ export const CORPORA = [
     desc: { key: 'room.hub.atlas.desc', fb: 'נוסחאון МАХАТ: детали машин и обработка резанием — двуязычно, по страницам книги' },
     capabilities: [],
   },
+  {
+    id: 'course:ulpan', icon: '🎓', kind: 'course', ownerOnly: true,
+    title: { key: 'course.corpus.title', fb: 'Курс иврита' },
+    desc: { key: 'course.corpus.desc', fb: 'Уроки ульпана: ситуации, тексты, задания' },
+    capabilities: [],
+  },
 ];
 
 // Badge dictionary: capability → { icon, i18n key, ru fallback }. Kept SMALL and truthful —

@@ -86,6 +86,7 @@ const physicsLearningSupportLoading = new Map();
 let materialsInlineState = null; // one open Room task: exact derivative + projected rows + controls
 let materialsInlineAudio = null; // cached-only solution playback; condition playback stays readerAudio
 const publicCorpusBrowseStates = new Map(); // per-public-corpus discovery state; never learner truth
+let roomSessionRole = '', roomSessionUserId = '', roomSessionRoleSequence = 0;
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
 const groupCorpusStates = new Map(); // per-corpus view state; never learner truth
@@ -5330,10 +5331,9 @@ function _cloudStatus(text, cls) {
   e.textContent = text || ''; e.className = 'room-cloud-status' + (cls ? ' ' + cls : '');
 }
 async function _cloudRender() {
+  const session = await roomRefreshSessionRole();
   const els = _cloudEls(); if (!els.modal) return;
   const CS = window.CloudSync; if (!CS) return;
-  let session = null;
-  try { session = await CS.me(); } catch (_) {}
   if (!session) {
     els.loginBox.hidden = false; els.panel.hidden = true;
     if (els.accountData) els.accountData.dataset.owner = '';
@@ -5602,6 +5602,7 @@ function roomCloudInit() {
       deleted = true;
       let localRemoved = true;
       try { await window.LPTutorNotebook.local().removeAll(owner); } catch (_) { localRemoved = false; }
+      roomClearSessionRole();
       try { await window.CloudSync.logout(); } catch (_) {}
       try { await _cloudRender(); } catch (_) {}
       _cloudStatus(tt('room.cloud.accountData.' + (localRemoved ? 'deleted' : 'deletedLocalFailed'), localRemoved
@@ -5633,6 +5634,7 @@ function roomCloudInit() {
   if (els.logoutBtn) els.logoutBtn.addEventListener('click', async () => {
     const CS = window.CloudSync; if (!CS) return;
     const protectedIds = groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean);
+    roomClearSessionRole();
     try { await CS.logout(); } catch (_) {}
     groupCorpora = []; groupCatalogs.clear();
     for (const id of protectedIds) { try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {} }
@@ -10606,6 +10608,7 @@ async function openInitialPublicMaterial(query, initialPresentation) {
 // authenticated and never static. The source marker prevents cloud artifact
 // sync and switches row audio to the protected endpoint.
 async function loadGroupCorpora(options = {}) {
+  await roomRefreshSessionRole();
   const previousIds = new Set(groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean));
   groupCorpora = [];
   try {
@@ -13972,8 +13975,28 @@ async function renderGroupCorpus(corpusId, token) {
 
 // ── Multi-corpus surface (owner-approved B+C: hub-витрина + switcher-линза) ─────────────────
 function corpusTitleOf(c) { return tt(c.title.key, c.title.fb); }
+function roomClearSessionRole() {
+  roomSessionRoleSequence++;
+  roomSetSessionRole(null);
+}
+function roomSetSessionRole(session) {
+  const role = session && session.user && session.user.role || '';
+  const userId = session && session.user && session.user.id != null ? String(session.user.id) : '';
+  const changed = roomSessionRole !== role || roomSessionUserId !== userId;
+  roomSessionRole = role;
+  roomSessionUserId = userId;
+  if (changed && activeTrack === 'corpus' && corpusNav.corpus === 'hub') renderCorpus();
+}
+async function roomRefreshSessionRole() {
+  const sequence = ++roomSessionRoleSequence;
+  let session = null;
+  try { session = window.CloudSync ? await window.CloudSync.me() : null; } catch (_) {}
+  if (sequence !== roomSessionRoleSequence) return null;
+  roomSetSessionRole(session);
+  return session;
+}
 function authorizedCorpusOptions() {
-  const options = CORPORA.slice();
+  const options = CORPORA.filter(corpus => !corpus.ownerOnly || roomSessionRole === 'owner');
   for (const published of publicCorpora) {
     if (!published || !published.slug) continue;
     options.push({
@@ -14688,7 +14711,7 @@ async function renderCorpusHub(token) {
   const corporaTitle = el('h2', { class: 'learning-home-section-title', text: tt('room.home.corporaTitle', 'Все библиотеки') });
   corporaTitle.id = 'learningHomeCorporaTitle'; corporaHead.appendChild(corporaTitle); corpora.appendChild(corporaHead);
   const list = el('div', { class: 'learning-corpus-list' });
-  for (const corpus of CORPORA) {
+  for (const corpus of CORPORA.filter(corpus => !corpus.ownerOnly || roomSessionRole === 'owner')) {
     let count = '';
     if (corpus.id === 'benyehuda') {
       const total = Number(corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;

@@ -137,13 +137,17 @@ function cleanCorpus(value) {
   if (corpus === 'benyehuda' || corpus === 'mytexts') return corpus;
   if (/^public:[a-z0-9][a-z0-9-]{0,119}$/.test(corpus)) return corpus;
   if (/^group:[A-Za-z0-9._:-]{1,240}$/.test(corpus)) return corpus;
-  if (isAtlas(corpus)) return corpus;
+  if (isAtlas(corpus) || isCourse(corpus)) return corpus;
   return '';
 }
 
 // Engineering atlas: its section and page travel in the address (?#room=atlas:a97002&sec=…&pg=…) so a
 // reload or a shared link reopens the same page. They ride on anchor {itemId: section, rowIndex: page}.
 function isAtlas(value) { return /^atlas:[a-z0-9]{1,40}$/.test(String(value || '')); }
+
+function isCourse(value) { return /^course:[a-z0-9-]{1,40}$/.test(String(value || '')); }
+function cleanLessonId(value) { return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(value) ? value : ''; }
+function cleanCourseStep(value) { return /^(?:0|[1-9]\d*)$/.test(String(value)) && Number.isSafeInteger(Number(value)) ? Number(value) : 0; }
 
 function cleanOpaqueId(value, max = 256) {
   const id = boundedString(value, max);
@@ -193,6 +197,10 @@ export function sanitizePresentationState(input = {}) {
       rowIndex: Number.isInteger(Number(anchorIn.rowIndex)) ? Math.max(0, Math.min(10000000, Number(anchorIn.rowIndex))) : 0,
     },
   };
+  if (isCourse(corpus)) {
+    state.anchor.lessonId = cleanLessonId(anchorIn.lessonId);
+    state.anchor.step = state.anchor.lessonId ? cleanCourseStep(anchorIn.step) : 0;
+  }
   if (isAtlas(corpus) && typeof anchorIn.query === 'string' && anchorIn.query.trim()) {
     state.anchor.query = boundedString(anchorIn.query, 2000);
     state.anchor.scope = anchorIn.scope === 'section' ? 'section' : 'book';
@@ -260,6 +268,9 @@ export function presentationStateFromHash(hash) {
   else if (route === 'group') input = { surface: 'group', corpus: '' };
   else if (route === 'benyehuda' || isPublicCorpus(route)) input = { surface: 'corpus', corpus: route };
   else if (cleanCorpus(route).startsWith('group:')) input = { surface: 'group', corpus: route }; // v1 decode only
+  else if (isCourse(route)) {
+    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { lessonId: params.get('les'), step: params.get('st') } });
+  }
   else if (isAtlas(route)) {
     const section = cleanFacetId(params.get('sec'));
     const page = /^[1-9]\d{0,3}$/.test(params.get('pg') || '') ? Number(params.get('pg')) : 0;
@@ -325,6 +336,10 @@ function publicPresentationHash(state, sharedQuery) {
     : state.surface === 'group' || state.corpus.startsWith('group:') ? 'group' : state.corpus;
   const params = new URLSearchParams();
   params.set('room', route || 'hub');
+  if (isCourse(route) && state.anchor.lessonId) {
+    params.set('les', state.anchor.lessonId);
+    params.set('st', String(state.anchor.step));
+  }
   if (isAtlas(route) && state.anchor.itemId && cleanFacetId(state.anchor.itemId)) {
     params.set('sec', state.anchor.itemId);
     if (state.anchor.rowIndex > 0) params.set('pg', String(state.anchor.rowIndex));

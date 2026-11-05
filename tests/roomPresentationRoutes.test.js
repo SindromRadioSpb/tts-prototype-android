@@ -430,3 +430,67 @@ test("engineering atlas: section and page survive a reload and a shared link (ac
   assert.equal(core.presentationHash({ surface: "corpus", corpus: "atlas:a97002" }), "#room=atlas%3Aa97002");
   assert.equal(core.presentationStateFromHash("#room=atlas%3Aa97002&sec=..%2Fx&pg=99999").anchor.itemId, "");
 });
+
+test("course lesson route roundtrips and rejects malformed identities", async () => {
+  const core = await load();
+  const input = { surface: "corpus", corpus: "course:ulpan", anchor: { lessonId: "A1.lesson-2_intro", step: 3 } };
+  const hash = core.presentationHash(input);
+  assert.equal(hash, "#room=course%3Aulpan&les=A1.lesson-2_intro&st=3");
+  const back = core.presentationStateFromHash(hash);
+  assert.equal(back.corpus, input.corpus);
+  assert.equal(back.anchor.lessonId, input.anchor.lessonId);
+  assert.equal(back.anchor.step, 3);
+  assert.equal(core.decodeSessionMirror(core.encodeSessionMirror(input, 1000), 1001).anchor.lessonId, input.anchor.lessonId);
+  assert.equal(core.presentationHash({ surface: "corpus", corpus: "course:ulpan" }), "#room=course%3Aulpan");
+  for (const id of ["../secret", "a/b", "<script>", "שלום", "_first"]) {
+    const bad = core.presentationStateFromHash("#room=course:ulpan&les=" + encodeURIComponent(id) + "&st=3");
+    assert.equal(bad.anchor.lessonId, "");
+    assert.equal(bad.anchor.step, 0);
+  }
+  for (const step of ["-1", "1.5", "NaN", "Infinity", "9007199254740992"]) {
+    assert.equal(core.presentationStateFromHash("#room=course:ulpan&les=one&st=" + step).anchor.step, 0);
+  }
+  for (const id of ["", "UPPER", "a/b", "a".repeat(41)]) assert.equal(core.presentationStateFromHash("#room=course:" + id), null);
+});
+
+test("owner-only course uses resolved session role and clears on logout or failed refresh", async () => {
+  const { CORPORA } = await import(pathToFileURL(path.resolve(__dirname, "../public/js/corpus-registry.js")).href);
+  const course = CORPORA.find(c => c.id === "course:ulpan");
+  assert.equal(course.ownerOnly, true);
+  assert.equal(course.kind, "course");
+  const context = vm.createContext({ CORPORA, publicCorpora: [], groupCorpora: [], roomSessionRole: "", roomSessionUserId: "", roomSessionRoleSequence: 0,
+    window: { CloudSync: { me: async () => ({ user: { id: 42, role: "owner" } }) } }, corpusNav: { corpus: "hub" }, activeTrack: "corpus", renderCorpus() {} });
+  vm.runInContext(hostFunction("roomClearSessionRole", "function authorizedCorpusById"), context);
+  const visible = () => context.authorizedCorpusOptions().some(c => c.id === "course:ulpan");
+  assert.equal(visible(), false);
+  await context.roomRefreshSessionRole();
+  assert.equal(visible(), true);
+  assert.equal(context.roomSessionUserId, "42");
+  for (const value of [null, { role: "owner" }, { user: { role: "member" } }, { user: { role: "OWNER" } }]) {
+    context.window.CloudSync.me = async () => value;
+    await context.roomRefreshSessionRole();
+    assert.equal(visible(), false);
+  }
+  let resolve;
+  context.window.CloudSync.me = () => new Promise(r => { resolve = r; });
+  const pending = context.roomRefreshSessionRole();
+  context.roomClearSessionRole();
+  assert.equal(context.roomSessionUserId, "");
+  resolve({ user: { role: "owner" } });
+  await pending;
+  assert.equal(visible(), false, "late pre-logout request must not restore owner role");
+  context.window.CloudSync.me = async () => { throw new Error("offline"); };
+  await context.roomRefreshSessionRole();
+  assert.equal(visible(), false);
+});
+
+
+test("course corpus title and description exist in all UI locales", () => {
+  for (const lang of ["ru", "en", "he"]) {
+    const context = vm.createContext({ window: {} });
+    vm.runInContext(fs.readFileSync(path.resolve(__dirname, "../public/i18n/locales/" + lang + ".js"), "utf8"), context);
+    const corpus = context.window.I18N_LOCALES[lang].course.corpus;
+    assert.deepEqual(Object.keys(corpus).sort(), ["desc", "title"]);
+    assert.ok(corpus.title && corpus.desc);
+  }
+});

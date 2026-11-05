@@ -1,6 +1,7 @@
 // Locale: Hebrew (RTL)
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.he = {
+  course: { corpus: { title: 'קורס עברית', desc: 'שיעורי אולפן: מצבים, טקסטים ותרגילים' } },
   fieldProvenance: {"niqqud": "ניקוד", "unknown": "המקור אינו ידוע", "declared": "מיוחס בחומר", "archive": "מיוחס בארכיון", "manual": "תיקון ידני", "stale": "דורש בדיקה"},
   contextLayer: {"shared": "תרגום משותף לשורות זהות; המופע הזה לא נבדק בנפרד", "strict": "תרגומים בהקשר בלבד", "missing": "חסר תרגום בהקשר", "dictionary": "ניתוח מילוני; ההתאמה להקשר לא אושרה", "context": "תרגום בהקשר", "coverage": "תרגום בהקשר: {covered} מתוך {total} מילים", "strictHint": "תרגומים חסרים מסומנים ב־—", "fallbackHint": "◇ — תרגום מילוני", "statusScope": "המצב למטה מתייחס לקריאה המילונית", "nameHere": "זה שם כאן", "confirmName": "לאשר שם רק במופע הזה? מצב הלמידה והחזרות לא ישתנו.", "confirm": "אישור", "sourceChanged": "השמירה נכשלה. פתחו שוב את המילה."},
   phoneDownload: {

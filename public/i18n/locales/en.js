@@ -1,6 +1,7 @@
 // Locale: English
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.en = {
+  course: { corpus: { title: 'Hebrew course', desc: 'Ulpan lessons: situations, texts, activities' } },
   fieldProvenance: {"niqqud": "Vocalization", "unknown": "source unknown", "declared": "attributed in the material", "archive": "attributed in the archive", "manual": "manual edit", "stale": "needs review"},
   contextLayer: {"shared": "Translation shared by identical rows; this occurrence was not checked separately", "strict": "Context translations only", "missing": "Context translation missing", "dictionary": "Dictionary reading; use in this context is unconfirmed", "context": "Translation in context", "coverage": "Context translation: {covered} of {total} words", "strictHint": "Missing translations are shown as —", "fallbackHint": "◇ — dictionary translation", "statusScope": "The status below applies to the dictionary reading", "nameHere": "This is a name here", "confirmName": "Confirm a name only at this occurrence? Knowledge status and reviews will not change.", "confirm": "Confirm", "sourceChanged": "Could not save. Open the word again."},
   phoneDownload: {
