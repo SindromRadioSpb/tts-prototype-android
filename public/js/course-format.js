@@ -233,6 +233,8 @@
           v.ru(variant.prompt,q+'.prompt');
           validateSpec(variant.spec,q+'.spec');
           if(variant.model!==undefined)v.he(variant.model,q+'.model');
+          if(variant.card!==undefined&&v.shape(object(variant.card),q+'.card','Нужна карточка заказа.'))for(const [k,val] of Object.entries(variant.card)){ref(k,q+'.card.'+k,slots);if(slots.has(k)&&!slots.get(k).has(val))v.add('REF_UNKNOWN',q+'.card.'+k,'Неизвестное значение слота.');}
+          if(variant.cardMedia!==undefined)ref(variant.cardMedia,q+'.cardMedia',mediaIds);
         });
       }
     });

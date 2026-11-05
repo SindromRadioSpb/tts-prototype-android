@@ -438,7 +438,7 @@
         container.append(body);
         const baseTask=activeTask();
         const variant=baseTask&&returnChoice?.taskId===baseTask.id?baseTask.variants?.find(v=>v.id===returnChoice.variantId):null;
-        const task=variant?{...baseTask,prompt:variant.prompt,spec:variant.spec,...(variant.model?{model:variant.model}:{})}:baseTask;
+        const task=variant?{...baseTask,prompt:variant.prompt,spec:variant.spec,...(variant.model?{model:variant.model}:{}),...(variant.card?{card:variant.card}:{}),...(variant.cardMedia?{cardMedia:variant.cardMedia}:{})}:baseTask;
         if(here?.kind==='summary')renderSummary(body);
         else if(here?.kind==='grammar')renderGrammarStep(body,here.ref);
         else if(here?.kind==='scene'){
@@ -492,7 +492,7 @@
       // Media used inside a task (order card, match picture) are not repeated as decoration.
       function taskMediaIds(){
         const ids=new Set();
-        for(const t of current.tasks){if(t.cardMedia)ids.add(t.cardMedia);for(const p of t.pairs||[])if(p.media)ids.add(p.media);}
+        for(const t of current.tasks){if(t.cardMedia)ids.add(t.cardMedia);for(const v of t.variants||[])if(v.cardMedia)ids.add(v.cardMedia);for(const p of t.pairs||[])if(p.media)ids.add(p.media);}
         if(current.scene?.image)ids.add(current.scene.image);
         return ids;
       }

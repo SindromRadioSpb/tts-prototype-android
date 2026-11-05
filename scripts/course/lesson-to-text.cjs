@@ -30,7 +30,7 @@ function taskLines(task) {
   if (task.model) out.push('Образец: ' + he(task.model));
   for (const a of task.answers || []) out.push('Принимается также: ' + he(a));
   for (const [i, h] of (task.hints || []).entries()) out.push('Подсказка ' + (i + 1) + ': ' + ru(h));
-  for (const v of task.variants || []) out.push('Вариант возвращения ' + v.id + ': ' + ru(v.prompt) + (v.model ? ' — образец ' + he(v.model) : ''));
+  for (const v of task.variants || []) out.push('Вариант возвращения ' + v.id + ': ' + ru(v.prompt) + (v.model ? ' — образец ' + he(v.model) : '') + (v.card ? ' — карточка ' + Object.entries(v.card).map(([k, x]) => k + '=' + x).join(', ') : ''));
   return out.concat('');
 }
 function lessonToMarkdown(lesson) {

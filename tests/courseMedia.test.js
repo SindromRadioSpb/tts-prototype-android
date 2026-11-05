@@ -88,3 +88,19 @@ test('course media files are served immutable',()=>{
  const route=server.match(/app\.use\(['"]\/data\/course['"][\s\S]*?\}\)\);/)[0];
  assert.match(route,/media[\s\S]*immutable/);
 });
+
+test('a return variant of an order task brings its own card',async()=>{
+ const E=require('../public/js/course-evidence');
+ const e=env(d=>{const l=d['lessons/L001-cafe.json'];
+  l.tasks=[{id:'tr',type:'order',transfer:true,channel:['write_he'],prompt:{ru:'Закажите'},card:{drink:'tea',sugar:'without'},
+   model:he('אֶפְשָׁר תֵּה בְּלִי סֻכָּר','אפשר תה בלי סוכר'),spec:{kind:'order',expect:{drink:'tea',sugar:'without'},require:['drink','sugar']},
+   variants:[{id:'v1',prompt:{ru:'Теперь кофе с сахаром'},card:{drink:'coffee',sugar:'with'},spec:{kind:'order',expect:{drink:'coffee',sugar:'with'},require:['drink','sugar']}}]}];});
+ const l=e.data['lessons/L001-cafe.json'];
+ assert.deepEqual(require('../public/js/course-format').validateLesson(l,new Map(load('lexicon.json').entries.flatMap(x=>[[x.id,x],...(x.forms||[]).map(f=>[f.id,f])]))).filter(i=>i.level==='error'),[]);
+ e.store.save(E.record(E.emptyProgress('mini'),{lessonId:l.id,lessonVersion:l.version,task:l.tasks[0],channel:'write_he',input:'x',result:{kind:'accepted'},at:0}).progress);
+ e.opts.now=()=>25*60*60*1000;
+ const r=e.mount();await r.home();e.document.querySelector('[data-course-return]').click();await new Promise(x=>setImmediate(x));
+ const label=(s,k)=>l.slots.find(x=>x.id===s).values.find(v=>v.key===k).label.ru;
+ assert.ok(e.document.querySelector('[data-course-order-card]').textContent.includes(label('drink','coffee')));
+ r.destroy();
+});
