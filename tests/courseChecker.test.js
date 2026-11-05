@@ -49,3 +49,11 @@ test('course preknown can be supplied on index without changing lesson data', ()
  const idx=C.buildIndex(lexicon.entries); idx.preknown=['lx.ein'];
  assert.deepEqual(C.assess('אין',task('6'),lesson,idx).parsed.unknownTokens,[]);
 });
+test('prototype-name slot IDs do not read inherited values', () => {
+ const l=structuredClone(lesson);
+ l.slots=[{id:'constructor',label:{ru:'напиток'},values:[{key:'tea',label:{ru:'чай'},seq:['lx.tea']}]}];
+ l.orderRules=[];
+ const t={spec:{kind:'short',expect:{constructor:'tea'},require:['constructor']}};
+ assert.equal(C.assess('בבקשה',t,l,index).kind,'partial');
+ assert.equal(C.assess('תה',t,l,index).kind,'accepted');
+});

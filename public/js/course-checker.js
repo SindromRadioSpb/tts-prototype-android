@@ -69,7 +69,7 @@
       if (Object.hasOwn(dest, occurrence.slotId) && dest[occurrence.slotId] !== occurrence.key) conflict = true;
       Object.defineProperty(dest, occurrence.slotId, { value: occurrence.key, enumerable: true, configurable: true, writable: true });
     }
-    for (const id of Object.keys(slots)) if (slots[id] === negated[id]) conflict = true;
+    for (const id of Object.keys(slots)) if (Object.hasOwn(negated, id) && slots[id] === negated[id]) conflict = true;
     return { words, at, match, occurrences, conflict,
       parsed: { slots, negated, unknownTokens: words.filter((_, i) => !known[i]) } };
   }
@@ -86,9 +86,9 @@
     const slotById = id => lesson.slots.find(s => s.id === id);
     const label = (id, key) => slotById(id)?.values.find(v => v.key === key)?.label.ru || key;
     for (const [id, expected] of Object.entries(spec.expect)) {
-      const got = parsed.slots[id];
+      const got = Object.hasOwn(parsed.slots, id) ? parsed.slots[id] : undefined;
       if (got !== undefined && got !== expected) return result('mismatch', `В задании нужно ${label(id, expected)}, а в ответе — ${label(id, got)}.`);
-      if (parsed.negated[id] === expected) return result('mismatch', `В задании нужно ${label(id, expected)}, а в ответе это отрицается.`);
+      if (Object.hasOwn(parsed.negated, id) && parsed.negated[id] === expected) return result('mismatch', `В задании нужно ${label(id, expected)}, а в ответе это отрицается.`);
     }
     const missing = spec.require.filter(id => !Object.hasOwn(parsed.slots, id));
     if (missing.length) return result('partial', `Добавьте: ${missing.map(id => slotById(id)?.label.ru || id).join(', ')}.`);
@@ -116,3 +116,4 @@
   root.CourseChecker = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+
