@@ -251,7 +251,7 @@
           });
           current.scene.turns.forEach((turn,i)=>{
             const row=line(turn);
-            row.classList.add(i%2?'course-line-response':'course-line-speaker');
+            row.classList.add(turn.role===current.scene.roles[0]?.id?'course-line-speaker':'course-line-response');
             row.setAttribute('data-role',turn.role);
             row.prepend(el('span',{
               class:'course-role'
@@ -368,8 +368,10 @@
           }
         }
         else if(task.type==='match'){
-          let selected=null;
-          const chosen=new Map();
+          const pairIds=new Set((task.pairs||[]).map(p=>p.id));
+          let selected=pairIds.has(ui.matchSelected)?ui.matchSelected:null;
+          const chosen=new Map((Array.isArray(ui.matchPairs)?ui.matchPairs:[]).filter(p=>Array.isArray(p)&&p[0]===p[1]&&pairIds.has(p[0])));
+          function saveMatches(){uiFor(task).matchSelected=selected;uiFor(task).matchPairs=[...chosen];persist();}
           const pairs=task.pairs||[],grid=el('div',{
             class:'course-match'
           }),left=el('div'),right=el('div');
@@ -377,9 +379,10 @@
             left.append(button(hebrew(pair.he),{
               'data-match-left':pair.id,dir:'rtl'
             },e=>{
-              selected=pair.id;
+              selected=pair.id;saveMatches();
               for(const b of left.children)b.setAttribute('aria-pressed',String(b.getAttribute('data-match-left')===selected));
             }));
+            const b=left.lastChild;b.disabled=chosen.has(pair.id);b.setAttribute('aria-pressed',String(selected===pair.id));
           }
           for(const pair of [...pairs].reverse())right.append(button(text(pair.label),{
             'data-match-right':pair.id
@@ -404,7 +407,10 @@
                 kind:'accepted'
               });
             }
+            saveMatches();
+            for(const b of left.children)b.setAttribute('aria-pressed','false');
           }));
+          for(const b of right.children)b.disabled=chosen.has(b.getAttribute('data-match-right'));
           grid.append(left,right);
           body.append(grid);
         }
@@ -476,7 +482,8 @@
           });
           dialog.append(close);
           on(dialog,'keydown',e=>{
-            if(e.key==='Escape')close.click();
+            if(e.key==='Escape'){e.preventDefault();close.click();}
+            if(e.key==='Tab'){e.preventDefault();close.focus();}
           });
           body.append(dialog);
           close.focus();
