@@ -32,9 +32,9 @@ const localDb = new Proxy(localDbRaw, {
 });
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
-import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=854';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js?v=823';
+import * as roomB6 from '/js/room-b6-core.js?v=854';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
