@@ -35,3 +35,40 @@ test('match restores selected, paired and completed cards across remount',async(
 test('consecutive utterances of the same role stay on the same side',async()=>{const e=env(d=>{d['lessons/L001-cafe.json'].scene.turns[1].role=d['lessons/L001-cafe.json'].scene.turns[0].role;});const r=e.mount();await r.openLesson('L001-cafe',0);const rows=[...e.document.querySelectorAll('.course-line')];assert.equal(rows[0].className,rows[1].className);});
 test('UI semantics affect fingerprint but legacy tasks retain exact fingerprint',()=>{assert.equal(E.fingerprint('L001',{id:'legacy',spec:{kind:'repeat'}}),'220ac3e4');for(const [key,a,b]of [['correctOption','a','b'],['options',[{id:'a'}],[{id:'b'}]],['pairs',[{id:'a'}],[{id:'b'}]],['cue',{plain:'תה',niqqud:'תֵּה'},{plain:'קפה',niqqud:'קָפֶה'}]])assert.notEqual(E.fingerprint('L001',{id:'t',[key]:a}),E.fingerprint('L001',{id:'t',[key]:b}),key);});
 test('keyboard starts collapsed, edits persist and old keys detach on rerender/destroy',async()=>{const e=env(),r=e.mount();await r.openLesson('L001-cafe',1);assert.equal(e.document.querySelector('[data-course-keyboard]').hidden,true);click(e,'[data-course-keyboard-toggle]');assert.equal(e.document.querySelector('[data-course-keyboard]').hidden,false);const old=e.document.querySelector('[data-course-key="ש"]');old.click();assert.equal(e.store.load('mini').progress.reader.tasks['L001-cafe/'+e.data['lessons/L001-cafe.json'].tasks[0].id].input,'ש');await r.openLesson('L001-cafe',2);assert.equal(e.document.querySelector('[data-course-keyboard]').hidden,true);old.click();assert.equal(e.document.querySelector('[data-course-input]').value,'');const key=e.document.querySelector('[data-course-key="ת"]');r.destroy();key.click();assert.equal(e.document.querySelectorAll('.course-keyboard').length,0);});
+
+test('audio controls require clips, rate survives replay, and home stops audio',async()=>{
+ const e=env(),audios=[];class Audio{constructor(src){this.src=src;this.paused=false;this.events={};audios.push(this);}addEventListener(k,f){this.events[k]=f;}removeEventListener(k){delete this.events[k];}play(){return Promise.resolve();}pause(){this.paused=true;}removeAttribute(){this.src='';}}
+ const normal=e.opts.fetch;e.opts.AudioCtor=Audio;e.opts.fetch=async url=>url.includes('/audio/')?{ok:true,json:async()=>({'a1-01':'a'.repeat(64)})}:normal(url);
+ const r=e.mount();await r.openLesson('L001-cafe',0);assert.equal(e.document.querySelectorAll('[data-course-play]').length,1);
+ const rate=e.document.querySelector('[data-course-rate]');rate.querySelector('option[value="0.75"]').selected=true;rate.dispatchEvent(new e.window.Event('change'));
+ click(e,'[data-course-play]');await tick();click(e,'[data-course-play]');await tick();assert.ok(audios.every(a=>a.playbackRate===.75));await r.home();assert.equal(audios.at(-1).paused,true);assert.equal(audios.at(-1).src,'');
+ const missing=env(),r2=missing.mount();await r2.openLesson('L001-cafe',0);assert.equal(missing.document.querySelectorAll('[data-course-play]').length,0);
+});
+test('listen requires completed clip; revealing transcript is captured as aid',async()=>{
+ const e=env(data=>{const t=data['lessons/L001-cafe.json'].tasks[0];t.channel=['listen'];t.audioTurnId='a1-01';});const audios=[];
+ class Audio{constructor(){this.events={};audios.push(this);}addEventListener(k,f){this.events[k]=f;}removeEventListener(k){delete this.events[k];}play(){return Promise.resolve();}pause(){}removeAttribute(){}}
+ const normal=e.opts.fetch;e.opts.AudioCtor=Audio;e.opts.fetch=async url=>url.includes('/audio/')?{ok:true,json:async()=>({'a1-01':'a'.repeat(64)})}:normal(url);
+ let time=10000;e.opts.now=()=>time;const r=e.mount();await r.openLesson('L001-cafe',1);
+ assert.equal(e.document.querySelector('[data-course-transcript]').hidden,true);
+ click(e,'[data-course-play]');await tick();input(e,'תה בלי סוכר');click(e,'[data-course-check]');assert.equal(e.store.load('mini').progress.attempts.at(-1).channel,'write_he');
+ audios.at(-1).events.ended();time+=2000;click(e,'[data-course-check]');assert.equal(e.store.load('mini').progress.attempts.at(-1).channel,'listen');
+ click(e,'[data-course-transcript-toggle]');time+=2000;click(e,'[data-course-check]');assert.equal(e.store.load('mini').progress.attempts.at(-1).aids.transcript,true);
+ r.destroy();
+});
+
+test('audio stimulus participates in fingerprint and requires a real scene turn',()=>{
+ const F=require('../public/js/course-format'),l=load('lessons/L001-cafe.json'),lex=load('lexicon.json');
+ const index=new Map(lex.entries.flatMap(e=>[[e.id,e],...(e.forms||[]).map(f=>[f.id,f])]));
+ const original=E.fingerprint(l.id,l.tasks[0]);l.tasks[0].audioTurnId='a1-01';assert.notEqual(E.fingerprint(l.id,l.tasks[0]),original);
+ assert.equal(F.validateLesson(l,index).filter(i=>i.level==='error').length,0);
+ l.tasks[0].audioTurnId='absent';assert.ok(F.validateLesson(l,index).some(i=>i.code==='REF_UNKNOWN'&&i.path.endsWith('.audioTurnId')));
+});
+test('completed hidden clip supports independent listening; visible introduction is assistance',async()=>{
+ for(const intro of [false,true]){
+ const e=env(data=>{const t=data['lessons/L001-cafe.json'].tasks[0];t.channel=['listen'];t.audioTurnId='a1-01';}),audios=[];
+ class Audio{constructor(){this.events={};audios.push(this);}addEventListener(k,f){this.events[k]=f;}removeEventListener(k){delete this.events[k];}play(){return Promise.resolve();}pause(){}removeAttribute(){}}
+ const normal=e.opts.fetch;e.opts.AudioCtor=Audio;e.opts.fetch=async url=>url.includes('/audio/')?{ok:true,json:async()=>({'a1-01':'a'.repeat(64)})}:normal(url);
+ const r=e.mount();if(intro)await r.openLesson('L001-cafe',0);await r.openLesson('L001-cafe',1);click(e,'[data-course-play]');await tick();audios.at(-1).events.ended();input(e,'תה בלי סוכר');click(e,'[data-course-check]');
+ const attempt=e.store.load('mini').progress.attempts.at(-1);assert.equal(attempt.channel,'listen');assert.equal(E.attemptLevel(attempt),intro?'supported':'independent');r.destroy();
+ }
+});

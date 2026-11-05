@@ -24,7 +24,7 @@
   function fingerprint(lessonId, task, variant) {
     const semantic = { lessonId, taskId: task.id, spec: task.spec, model: task.model, variant };
     // Preserve legacy hashes when these optional UI definitions are absent.
-    for (const key of ['options', 'correctOption', 'pairs', 'cue']) if (has(task, key)) semantic[key] = task[key];
+    for (const key of ['options', 'correctOption', 'pairs', 'cue', 'audioTurnId']) if (has(task, key)) semantic[key] = task[key];
     const json = JSON.stringify(canonical(semantic));
     // FNV-1a over UTF-8 bytes, identically in Node and the browser.
     let hash = 0x811c9dc5;

@@ -6,6 +6,7 @@
   const S=node?require('./course-store.js'):root.CourseStore;
   const F=node?require('./course-format.js'):root.CourseFormat;
   const K=node?require('./course-keyboard.js'):null;
+  const A=node?require('./course-audio.js'):null;
   const own=(o,k)=>Object.hasOwn(o,k);
   const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s);
   function factory(doc){
@@ -20,6 +21,7 @@
       const courseId=opts.courseId||'ulpan', store=opts.store||S.memoryStore(), fetcher=opts.fetch||root.fetch.bind(root);
       const loaded=store.load(courseId);
       let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,keyboardHandle=null,listeners=[],saveError=false;
+      let audioHost=null, audioRate=1;
       const translit=root.TranslitDisplay?.createDisplay(root.LocalTranslit?.transliterateWithProfile);
       const base=(opts.base||'/data/course').replace(/\/$/,'')+'/'+encodeURIComponent(courseId)+'/';
       container.classList.add('course-reader');
@@ -56,6 +58,7 @@
         },text),'click',fn);
       }
       function clear(){
+        audioHost?.stop();
         keyboardHandle?.detach();
         keyboardHandle=null;
         for(const off of listeners.splice(0))off();
@@ -127,7 +130,7 @@
         const ticket=++epoch;
         try{
           const b=await data();
-          if(alive&&ticket===epoch)fn(b);
+          if(alive&&ticket===epoch)await fn(b,ticket);
         }
         catch(_){
           if(alive&&ticket===epoch){
@@ -145,6 +148,7 @@
         });
       }
       function home(){
+        audioHost?.stop(); audioHost=null;
         return run(b=>{
           current=null;
           shell(text(b.course.title));
@@ -170,12 +174,24 @@
         });
       }
       function openLesson(id,wantedStep){
-        return run(b=>{
+        audioHost?.stop(); audioHost=null;
+        return run(async (b,ticket)=>{
           const l=b.lessons.find(l=>l.id===id);
           if(!l){
             shell(T('error','Урок не удалось загрузить. Попробуйте ещё раз.'));
             return;
           }
+          const audioApi=A||root.CourseAudio;
+          const host=audioApi.create({base:opts.base||'/data/course',courseId,lessonId:id,fetch:fetcher,AudioCtor:opts.AudioCtor,
+            onEnded:turnId=>{
+              const task=current?.id===id&&activeTask();
+              if(alive&&audioHost===host&&task?.channel?.includes('listen')&&task.audioTurnId===turnId){
+                uiFor(task).heard=true; persist();
+              }
+            }});
+          audioHost=host;host.setRate(audioRate);
+          await host.load();
+          if(!alive||ticket!==epoch||audioHost!==host){host.stop();return;}
           current=l;
           const migration=E.migrate(progress,l);
           progress=migration.progress;
@@ -198,6 +214,15 @@
         progress=E.openAid(progress,current.id+'/'+task.id,name,now());
         persist();
       }
+      function playButton(turnId){
+        return button('▶',{'data-course-play':turnId,'aria-label':T('audioPlay','Слушать реплику')},async()=>{
+          const host=audioHost;
+          const ok=await host.play(turnId);
+          if(!ok&&alive&&host===audioHost){
+            const note=container.querySelector('[data-course-audio-error]');if(note)note.hidden=false;
+          }
+        });
+      }
       function line(item){
         const row=el('div',{
           class:'course-line','data-ref':current.id+'/'+item.id
@@ -206,6 +231,8 @@
           'data-col':'he',dir:'rtl',lang:'he'
         },hebrew(item.he));
         row.append(he);
+        if(audioHost?.has(item.id))row.append(playButton(item.id));
+        for(const task of current.tasks)if(task.channel?.includes('listen')&&task.audioTurnId===item.id)aid(task,'transcript');
         if(opts.layers?.translitOn&&translit){
           const value=translit({
             he:item.he.plain,he_niqqud:item.he.niqqud
@@ -240,6 +267,13 @@
         container.append(button(T('lessons','К урокам'),{
           'data-course-home':''
         },()=>home()));
+        if(audioHost&&current.scene.turns.some(t=>audioHost.has(t.id))){
+          const label=el('label',{},T('audioRate','Скорость'));
+          const select=el('select',{'data-course-rate':'','aria-label':T('audioRate','Скорость')});
+          for(const value of [1,.85,.75]){const option=el('option',{value},String(value));option.selected=value===audioRate;select.append(option);}
+          on(select,'change',()=>{audioRate=Number(select.value);audioHost?.setRate(audioRate);});label.append(select);container.append(label);
+          const error=el('p',{'data-course-audio-error':'',role:'status'},T('audioError','Запись не удалось воспроизвести. Попробуйте ещё раз.'));error.hidden=true;container.append(error);
+        }
         const body=el('section',{
           class:'course-step','data-course-step':step
         });
@@ -318,6 +352,19 @@
           'data-course-feedback':'',role:'status'
         });
         let field;
+        const listening=task.channel?.includes('listen')&&audioHost?.has(task.audioTurnId);
+        if(listening){
+          const turn=current.scene.turns.find(t=>t.id===task.audioTurnId);
+          body.append(playButton(task.audioTurnId));
+          const transcript=el('p',{'data-course-transcript':'',dir:'rtl',lang:'he'},hebrew(turn.he));
+          transcript.hidden=!ui.transcript;
+          const toggle=button(T('audioTranscript','Текст реплики'),{'data-course-transcript-toggle':'','aria-expanded':String(!transcript.hidden)},()=>{
+            transcript.hidden=!transcript.hidden;uiFor(task).transcript=!transcript.hidden;
+            toggle.setAttribute('aria-expanded',String(!transcript.hidden));
+            if(!transcript.hidden)aid(task,'transcript');else persist();
+          });
+          body.append(toggle,transcript);
+        }
         const updateFeedback=(result,attempt)=>{
           feedback.replaceChildren();
           feedback.textContent=result.kind==='accepted'?T('accepted','Смысл передан.'):result.kind==='unknown'?T('unknown','Проверка недоступна для этого варианта.'):result.message?.ru||T('tryAgain','Попробуйте ещё.');
@@ -351,7 +398,7 @@
         const submit=(value,channel='write_he',custom)=>{
           uiFor(task).input=String(value);
           const result=custom||C.assess(value,task,current,bundle.index);
-          const attempt=record(task,String(value),result,channel);
+          const attempt=record(task,String(value),result,listening&&uiFor(task).heard?'listen':channel);
           uiFor(task).feedback=result;
           persist();
           updateFeedback(result,attempt);
@@ -418,7 +465,7 @@
           body.append(grid);
         }
         else{
-          if(task.type==='scene'&&task.cue)body.append(el('p',{
+          if(task.type==='scene'&&task.cue&&!listening)body.append(el('p',{
             dir:'rtl',lang:'he'
           },hebrew(task.cue)));
           field=el('textarea',{
@@ -523,6 +570,7 @@
         alive=false;
         epoch++;
         controller?.abort();
+        audioHost?.stop(); audioHost=null;
         opts.stopAudio?.();
         clear();
         container.classList.remove('course-reader');
