@@ -161,7 +161,7 @@
           const dg = dep.candidates.find(c => c.gender)?.gender;
           return !hg || !dg || hg === dg;
         });
-        if (heads.length && !agreed) return result('form', `Для ${slotById(rule.head).label.ru} ${slotById(rule.dependent).label.ru} стоит сразу после названия и согласуется с его родом.`);
+        if (heads.length && !agreed) return result('form', rule.message?.ru || `Для ${slotById(rule.head).label.ru} ${slotById(rule.dependent).label.ru} стоит сразу после названия и согласуется с его родом.`);
       }
     }
     const preferred = spec.preferFrame || [];

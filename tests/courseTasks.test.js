@@ -46,7 +46,7 @@ test('tiles: wrong order is a form error with the order rule, and tapping an ans
  tile(e,'גדול').click();tile(e,'קפה').click();
  e.document.querySelector('[data-course-check]').click();
  assert.equal(e.store.load('mini').progress.attempts.at(-1).kind,'form');
- assert.match(e.document.querySelector('[data-course-feedback]').textContent,/после названия/);
+ assert.match(e.document.querySelector('[data-course-feedback]').textContent,/после напитка/);
  e.document.querySelector('[data-tiles-answer] [data-tile]').click();
  assert.equal(e.document.querySelectorAll('[data-tiles-answer] [data-tile]').length,1);
  r.destroy();

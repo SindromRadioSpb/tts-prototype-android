@@ -108,3 +108,14 @@ test('P1-F2: negated alternative asks for a direct condition', () => {
  assert.equal(result.kind,'unknown');
  assert.match(result.message.ru,/Скажите условие прямо:.*без сахара/);
 });
+
+test('P8a: a word-order error shows the authored order-rule message', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  const C = require('../public/js/course-checker.js');
+  const lex = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/course/mini/lexicon.json'), 'utf8'));
+  const l = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/course/mini/lessons/L001-cafe.json'), 'utf8'));
+  const t = { ...l.tasks[0], spec: { kind: 'order', expect: { drink: 'coffee', size: 'big' }, require: ['drink', 'size'] } };
+  const r = C.assess('גדול קפה', t, l, C.buildIndex(lex.entries));
+  assert.equal(r.kind, 'form');
+  assert.equal(r.message.ru, l.orderRules[0].message.ru);
+});
