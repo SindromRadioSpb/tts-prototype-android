@@ -33,7 +33,10 @@
       mapValid(p.aids, aidsValid) && mapValid(p.seen, finite) && mapValid(p.firstMet, finite) &&
       mapValid(p.lessonVersions, v => Number.isInteger(v) && v >= 1);
   }
-  const keyFor = id => `lp.course.${id}.v1`;
+  // encodeURIComponent leaves dots intact; escape the key delimiter as well.
+  const keyPart = value => encodeURIComponent(String(value)).replace(/\./g, '%2E');
+  const keyFor = (userKey, id) => `lp.course.${keyPart(userKey)}.${keyPart(id)}.v1`;
+  const legacyKeyFor = id => `lp.course.${id}.v1`;
   const reset = id => ({ progress: E.emptyProgress(id), notice: 'reset_corrupt' });
   const unavailable = () => ({ ok: false, reason: 'unavailable' });
   function encode(progress) {
@@ -53,7 +56,8 @@
       }
     };
   }
-  function localStore(storage) {
+  function localStore(storage, { userKey = 'anon' } = {}) {
+    userKey = String(userKey);
     let failed = false;
     // Access the browser getter inside the guard, not in a default parameter.
     try { if (storage === undefined) storage = globalThis.localStorage; if (!storage) failed = true; }
@@ -61,13 +65,28 @@
     return {
       load(courseId) {
         if (failed) return reset(courseId);
-        let raw, key;
-        try { key = keyFor(courseId); raw = storage.getItem(key); }
+        let raw, key, targetKey;
+        try {
+          key = targetKey = keyFor(userKey, courseId);
+          raw = storage.getItem(key);
+          if (raw == null && userKey === 'anon') {
+            key = legacyKeyFor(courseId);
+            raw = storage.getItem(key);
+          }
+        }
         catch (_) { failed = true; return reset(courseId); }
         if (raw === null || raw === undefined) return { progress: E.emptyProgress(courseId) };
         try {
           const progress = JSON.parse(raw);
-          if (validProgress(progress, courseId)) return { progress };
+          if (validProgress(progress, courseId)) {
+            if (key !== targetKey) {
+              // A failed write must leave the only recoverable copy intact.
+              // Migration is best effort: usable progress still loads on quota failure.
+              try { storage.setItem(targetKey, raw); storage.removeItem(key); }
+              catch (_) { /* Keep legacy data for a later retry. */ }
+            }
+            return { progress };
+          }
         } catch (_) { /* Preserve the exact unreadable bytes below. */ }
         try {
           let backup = `${key}:corrupt:${Date.now()}`, suffix = 0;
@@ -79,7 +98,7 @@
       },
       save(progress) {
         if (failed) return unavailable();
-        try { storage.setItem(keyFor(progress?.courseId), encode(progress)); return { ok: true }; }
+        try { storage.setItem(keyFor(userKey, progress?.courseId), encode(progress)); return { ok: true }; }
         catch (error) {
           if (error?.name === 'QuotaExceededError' || error?.name === 'NS_ERROR_DOM_QUOTA_REACHED') return { ok: false, reason: 'quota' };
           return unavailable();

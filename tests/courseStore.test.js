@@ -2,7 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const E = require('../public/js/course-evidence.js');
 const S = require('../public/js/course-store.js');
-const key = 'lp.course.ulpan.v1';
+const key = 'lp.course.anon.ulpan.v1';
+const legacyKey = 'lp.course.ulpan.v1';
 function fake() {
  const data = new Map();
  return { data, throwOnAny:false, throwOnSet:null,
@@ -15,6 +16,53 @@ function progress() {
  let p=E.openAid(E.emptyProgress('ulpan'),'L001/6','model',0);
  return E.record(p,{lessonId:'L001',lessonVersion:1,task:{id:'6'},channel:'write_he',input:'תה',result:{kind:'accepted'},at:0}).progress;
 }
+test('P3: user stores isolate progress and never claim anonymous or legacy progress',()=>{
+ const storage=fake(), p=progress(); storage.data.set(legacyKey,JSON.stringify(p));
+ const u1=S.localStore(storage,{userKey:'u1'}), u2=S.localStore(storage,{userKey:'u2'});
+ assert.deepEqual(u1.load('ulpan').progress,E.emptyProgress('ulpan'));
+ assert.deepEqual(u1.save(p),{ok:true});
+ assert.deepEqual(u2.load('ulpan').progress,E.emptyProgress('ulpan'));
+ assert.deepEqual(u2.save(E.emptyProgress('ulpan')),{ok:true});
+ assert.deepEqual(u1.load('ulpan').progress,p);
+ assert.equal(storage.data.get('lp.course.u1.ulpan.v1'),JSON.stringify(p));
+ assert.equal(storage.data.get(legacyKey),JSON.stringify(p));
+});
+test('P3: anonymous legacy migration copies before deleting and new data takes precedence',()=>{
+ const storage=fake(), p=progress(), raw=JSON.stringify(p); storage.data.set(legacyKey,raw);
+ storage.removeItem=function(k) { assert.equal(this.data.get(key),raw); this.data.delete(k); };
+ assert.deepEqual(S.localStore(storage).load('ulpan').progress,p);
+ assert.equal(storage.data.get(key),raw); assert.equal(storage.data.has(legacyKey),false);
+ storage.data.set(legacyKey,JSON.stringify(E.emptyProgress('ulpan')));
+ assert.deepEqual(S.localStore(storage,{userKey:'anon'}).load('ulpan').progress,p);
+ assert.equal(storage.data.has(legacyKey),true);
+});
+test('P3: migration quota preserves legacy bytes and loaded progress, then retries',()=>{
+ const storage=fake(), p=progress(), raw=JSON.stringify(p); storage.data.set(legacyKey,raw);
+ storage.throwOnSet='QuotaExceededError'; const store=S.localStore(storage);
+ assert.deepEqual(store.load('ulpan').progress,p);
+ assert.equal(storage.data.get(legacyKey),raw); assert.equal(storage.data.has(key),false);
+ assert.deepEqual(store.save(p),{ok:false,reason:'quota'});
+ storage.throwOnSet=null;
+ assert.deepEqual(store.load('ulpan').progress,p); assert.equal(storage.data.has(legacyKey),false);
+});
+test('P3: key components escape dots and percent signs without collisions',()=>{
+ const storage=fake();
+ const cases=[['a.b','c'],['a','b.c'],['a%2Eb','c'],[42,'c']];
+ for(const [userKey,courseId] of cases) assert.deepEqual(S.localStore(storage,{userKey}).save(E.emptyProgress(courseId)),{ok:true});
+ assert.equal(storage.data.size,cases.length);
+ assert.ok(storage.data.has('lp.course.a%2Eb.c.v1'));
+ assert.ok(storage.data.has('lp.course.42.c.v1'));
+ for(const [userKey,courseId] of cases) assert.deepEqual(S.localStore(storage,{userKey}).load(courseId).progress,E.emptyProgress(courseId));
+});
+test('P3: corrupt legacy bytes retain backup protection',()=>{
+ const storage=fake(); storage.data.set(legacyKey,'broken');
+ assert.equal(S.localStore(storage).load('ulpan').notice,'reset_corrupt');
+ assert.equal(storage.data.get(legacyKey),'broken');
+ assert.ok([...storage.data].some(([k,v])=>k.startsWith(legacyKey+':corrupt:')&&v==='broken'));
+ storage.throwOnSet='QuotaExceededError'; const store=S.localStore(storage);
+ assert.equal(store.load('ulpan').notice,'reset_corrupt'); storage.throwOnSet=null;
+ assert.deepEqual(store.save(progress()),{ok:false,reason:'unavailable'});
+});
 test('local round trip retains aids and supported attempt after reload',()=>{
  const storage=fake(), store=S.localStore(storage), p=progress();
  assert.deepEqual(store.save(p),{ok:true});
