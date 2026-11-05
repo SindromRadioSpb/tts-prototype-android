@@ -10,12 +10,7 @@
   // Words-only card shown when a picture carries task meaning but is missing.
   function fallbackCard(doc,media){
     const card=el(doc,'div',{class:'course-media-fallback','data-media-fallback':''});
-    const icons=Array.isArray(media.fallback?.icons)?media.fallback.icons:[];
-    if(icons.length){
-      const row=el(doc,'div',{class:'course-media-icons','aria-hidden':'true'});
-      for(const name of icons)row.append(el(doc,'span',{class:'course-media-icon','data-icon':name}));
-      card.append(row);
-    }
+    // Icon names stay in the data for a future icon set; empty placeholder boxes would read as broken.
     card.append(el(doc,'p',{},media.fallback?.ru?.ru||media.alt?.ru||''));
     return card;
   }
