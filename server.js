@@ -705,6 +705,15 @@ app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
   },
 }));
 
+// Validated course bundles live on the data volume, ahead of public fallbacks.
+app.use('/data/course', express.static(path.join(DATA_DIR, 'course'), {
+  fallthrough: true, index: false,
+  setHeaders(res) {
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+  },
+}));
+
 app.get('/study-studio.html',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.get('/study-library.html',(req,res)=>res.sendFile(path.join(__dirname,'public','library.html')));
 // AI assistants that fetch a shared link without running scripts get the same
