@@ -1,0 +1,642 @@
+[
+ {
+  "id": "a1-01",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "שלום.",
+  "asr": "שלום.",
+  "dur": 0.82,
+  "lead": 0.08,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-02",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "plain",
+  "text": "שלום. אפשר קפה בלי חלב, בבקשה?",
+  "asr": "שלום.  אפשר קפה בלי חלבה בבקשה?",
+  "dur": 3.34,
+  "lead": 0.09,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-03",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "קטן או גדול?",
+  "asr": "קטן או גדול?",
+  "dur": 1.3,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-04",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "plain",
+  "text": "גדול, בבקשה.",
+  "asr": "גדול ובבקשה.",
+  "dur": 1.25,
+  "lead": 0.09,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-05",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "לשבת או לקחת?",
+  "asr": "לשבת או לקחת.",
+  "dur": 2.38,
+  "lead": 0.67,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-06",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "plain",
+  "text": "לשבת, בבקשה.",
+  "asr": "לשבת בבקשה.",
+  "dur": 1.9,
+  "lead": 0.43,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-07",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "קפה גדול בלי חלב, לשבת?",
+  "asr": "קפה גדול בלי חלבל שבט?",
+  "dur": 2.02,
+  "lead": 0.09,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-08",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "plain",
+  "text": "כן, תודה.",
+  "asr": "כן תודה.",
+  "dur": 1.3,
+  "lead": 0.42,
+  "trail": 0.0
+ },
+ {
+  "id": "a2a",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "קטן או גדול?",
+  "asr": "קטן או גדול?",
+  "dur": 1.3,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a2b",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "לשבת או לקחת?",
+  "asr": "לשבת או לקחת?",
+  "dur": 1.85,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a2c",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "עם סוכר או בלי סוכר?",
+  "asr": "עם סוכר או בלי סוכר.",
+  "dur": 2.3,
+  "lead": 0.54,
+  "trail": 0.0
+ },
+ {
+  "id": "a3a",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "תה עם סוכר, לשבת?",
+  "asr": "טיים סוקרל שבט",
+  "dur": 2.21,
+  "lead": 0.79,
+  "trail": 0.0
+ },
+ {
+  "id": "a3b",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "תה בלי סוכר, לשבת?",
+  "asr": "תאי בלי סוכר על שבט",
+  "dur": 1.66,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a4",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "אין קפה. יש תה.",
+  "asr": "אין קפה.  יש תא.",
+  "dur": 2.21,
+  "lead": 0.18,
+  "trail": 0.0
+ },
+ {
+  "id": "a3-extra",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "קפה קטן עם חלב, לקחת?",
+  "asr": "קפה קטן עם חלב לקחת?",
+  "dur": 2.66,
+  "lead": 0.79,
+  "trail": 0.0
+ },
+ {
+  "id": "a4-extra",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "plain",
+  "text": "אין תה. יש מים.",
+  "asr": "אין תא.  יש מים.",
+  "dur": 1.97,
+  "lead": 0.13,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-01",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "שָׁלוֹם.",
+  "asr": "שיסלום",
+  "dur": 1.13,
+  "lead": 0.31,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-02",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "niqqud",
+  "text": "שָׁלוֹם. אֶפְשָׁר קָפֶה בְּלִי חָלָב, בְּבַקָּשָׁה?",
+  "asr": "שוסלום, אפשור קפה בלי חלב ובבקושסה?",
+  "dur": 3.58,
+  "lead": 0.12,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-03",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "קָטָן אוֹ גָּדוֹל?",
+  "asr": "קטן או גדול",
+  "dur": 1.54,
+  "lead": 0.22,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-04",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "niqqud",
+  "text": "גָּדוֹל, בְּבַקָּשָׁה.",
+  "asr": "גודל בקש עשה.",
+  "dur": 1.54,
+  "lead": 0.28,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-05",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "לָשֶׁבֶת אוֹ לָקַחַת?",
+  "asr": "לשיפט או לקחת",
+  "dur": 1.97,
+  "lead": 0.25,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-06",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "niqqud",
+  "text": "לָשֶׁבֶת, בְּבַקָּשָׁה.",
+  "asr": "לשיס ודבבקשה.",
+  "dur": 1.7,
+  "lead": 0.24,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-07",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "קָפֶה גָּדוֹל בְּלִי חָלָב, לָשֶׁבֶת?",
+  "asr": "כפה גדול בלי חלב לשעבט?",
+  "dur": 2.38,
+  "lead": 0.3,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-08",
+  "voice": "he-IL-Chirp3-HD-Charon",
+  "variant": "niqqud",
+  "text": "כֵּן, תּוֹדָה.",
+  "asr": "כן תודה.",
+  "dur": 1.22,
+  "lead": 0.42,
+  "trail": 0.0
+ },
+ {
+  "id": "a2a",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "קָטָן אוֹ גָּדוֹל?",
+  "asr": "קטן או גדול.",
+  "dur": 1.58,
+  "lead": 0.3,
+  "trail": 0.0
+ },
+ {
+  "id": "a2b",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "לָשֶׁבֶת אוֹ לָקַחַת?",
+  "asr": "לשבת או לקחת.",
+  "dur": 1.7,
+  "lead": 0.24,
+  "trail": 0.0
+ },
+ {
+  "id": "a2c",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "עִם סֻכָּר אוֹ בְּלִי סֻכָּר?",
+  "asr": "עם סקור או בלי סקור.",
+  "dur": 2.14,
+  "lead": 0.28,
+  "trail": 0.0
+ },
+ {
+  "id": "a3a",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "תֵּה עִם סֻכָּר, לָשֶׁבֶת?",
+  "asr": "תה עם סיכור לשבט?",
+  "dur": 1.66,
+  "lead": 0.18,
+  "trail": 0.0
+ },
+ {
+  "id": "a3b",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "תֵּה בְּלִי סֻכָּר, לָשֶׁבֶת?",
+  "asr": "תה בלי סיכוי לשבט?",
+  "dur": 1.73,
+  "lead": 0.23,
+  "trail": 0.0
+ },
+ {
+  "id": "a4",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "אֵין קָפֶה. יֵשׁ תֵּה.",
+  "asr": "אין כפה, ישבתי.",
+  "dur": 1.97,
+  "lead": 0.28,
+  "trail": 0.0
+ },
+ {
+  "id": "a3-extra",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "קָפֶה קָטָן עִם חָלָב, לָקַחַת?",
+  "asr": "קפק תן עם חלב לקחת?",
+  "dur": 2.26,
+  "lead": 0.27,
+  "trail": 0.0
+ },
+ {
+  "id": "a4-extra",
+  "voice": "he-IL-Chirp3-HD-Kore",
+  "variant": "niqqud",
+  "text": "אֵין תֵּה. יֵשׁ מַיִם.",
+  "asr": "אין תה, יש שף מים.",
+  "dur": 1.9,
+  "lead": 0.27,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-01",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "שלום.",
+  "asr": "שלום.",
+  "dur": 0.84,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-02",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "plain",
+  "text": "שלום. אפשר קפה בלי חלב, בבקשה?",
+  "asr": "שלום, אפשר קפה בלי חלב? בבקשה.",
+  "dur": 3.31,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-03",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "קטן או גדול?",
+  "asr": "קטן או גדול.",
+  "dur": 1.18,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-04",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "plain",
+  "text": "גדול, בבקשה.",
+  "asr": "גדול, בבקשה.",
+  "dur": 1.54,
+  "lead": 0.08,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-05",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "לשבת או לקחת?",
+  "asr": "לשבת או לקחת.",
+  "dur": 1.46,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-06",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "plain",
+  "text": "לשבת, בבקשה.",
+  "asr": "לשבת, בבקשה.",
+  "dur": 1.61,
+  "lead": 0.09,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-07",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "קפה גדול בלי חלב, לשבת?",
+  "asr": "קפה גדול בלי חלב, לשבת.",
+  "dur": 2.47,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-08",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "plain",
+  "text": "כן, תודה.",
+  "asr": "כן, תודה.",
+  "dur": 1.1,
+  "lead": 0.12,
+  "trail": 0.0
+ },
+ {
+  "id": "a2a",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "קטן או גדול?",
+  "asr": "קטן או גדול.",
+  "dur": 1.18,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a2b",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "לשבת או לקחת?",
+  "asr": "לשבת או לקחת.",
+  "dur": 1.46,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a2c",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "עם סוכר או בלי סוכר?",
+  "asr": "עם סוכר או בלי סוכר.",
+  "dur": 1.82,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a3a",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "תה עם סוכר, לשבת?",
+  "asr": "תה עם סוכר, לשבת.",
+  "dur": 1.99,
+  "lead": 0.13,
+  "trail": 0.0
+ },
+ {
+  "id": "a3b",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "תה בלי סוכר, לשבת?",
+  "asr": "תה בלי סוכר, לשבת.",
+  "dur": 2.06,
+  "lead": 0.13,
+  "trail": 0.0
+ },
+ {
+  "id": "a4",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "אין קפה. יש תה.",
+  "asr": "אין קפה, יש תהי.",
+  "dur": 1.73,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a3-extra",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "קפה קטן עם חלב, לקחת?",
+  "asr": "קפה קטן עם חלב, לקחת.",
+  "dur": 2.42,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a4-extra",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "plain",
+  "text": "אין תה. יש מים.",
+  "asr": "אין תה, יש מים.",
+  "dur": 1.8,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-01",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "שָׁלוֹם.",
+  "asr": "שלום.",
+  "dur": 0.84,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-02",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "niqqud",
+  "text": "שָׁלוֹם. אֶפְשָׁר קָפֶה בְּלִי חָלָב, בְּבַקָּשָׁה?",
+  "asr": "שלום, אפשר קפה בלי חלב? בבקשה.",
+  "dur": 3.31,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-03",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "קָטָן אוֹ גָּדוֹל?",
+  "asr": "קטן או גדול.",
+  "dur": 1.18,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-04",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "niqqud",
+  "text": "גָּדוֹל, בְּבַקָּשָׁה.",
+  "asr": "גדול, בבקשה.",
+  "dur": 1.54,
+  "lead": 0.08,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-05",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "לָשֶׁבֶת אוֹ לָקַחַת?",
+  "asr": "לשבת או לקחת.",
+  "dur": 1.46,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-06",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "niqqud",
+  "text": "לָשֶׁבֶת, בְּבַקָּשָׁה.",
+  "asr": "לשבת, בבקשה.",
+  "dur": 1.61,
+  "lead": 0.09,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-07",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "קָפֶה גָּדוֹל בְּלִי חָלָב, לָשֶׁבֶת?",
+  "asr": "קפה גדול בלי חלב, לשבת.",
+  "dur": 2.47,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a1-08",
+  "voice": "he-IL-Wavenet-D",
+  "variant": "niqqud",
+  "text": "כֵּן, תּוֹדָה.",
+  "asr": "כן, תודה.",
+  "dur": 1.1,
+  "lead": 0.12,
+  "trail": 0.0
+ },
+ {
+  "id": "a2a",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "קָטָן אוֹ גָּדוֹל?",
+  "asr": "קטן או גדול.",
+  "dur": 1.18,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a2b",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "לָשֶׁבֶת אוֹ לָקַחַת?",
+  "asr": "לשבת או לקחת.",
+  "dur": 1.46,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a2c",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "עִם סֻכָּר אוֹ בְּלִי סֻכָּר?",
+  "asr": "עם סוכר או בלי סוכר.",
+  "dur": 1.82,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a3a",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "תֵּה עִם סֻכָּר, לָשֶׁבֶת?",
+  "asr": "תה עם סוכר, לשבת.",
+  "dur": 1.97,
+  "lead": 0.13,
+  "trail": 0.0
+ },
+ {
+  "id": "a3b",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "תֵּה בְּלִי סֻכָּר, לָשֶׁבֶת?",
+  "asr": "תה בלי סוכר, לשבת.",
+  "dur": 2.06,
+  "lead": 0.13,
+  "trail": 0.0
+ },
+ {
+  "id": "a4",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "אֵין קָפֶה. יֵשׁ תֵּה.",
+  "asr": "אין קפה, יש תה.",
+  "dur": 1.75,
+  "lead": 0.1,
+  "trail": 0.0
+ },
+ {
+  "id": "a3-extra",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "קָפֶה קָטָן עִם חָלָב, לָקַחַת?",
+  "asr": "קפה קטן עם חלב, לקחת.",
+  "dur": 2.42,
+  "lead": 0.11,
+  "trail": 0.0
+ },
+ {
+  "id": "a4-extra",
+  "voice": "he-IL-Wavenet-C",
+  "variant": "niqqud",
+  "text": "אֵין תֵּה. יֵשׁ מַיִם.",
+  "asr": "אין תה, יש מים.",
+  "dur": 1.8,
+  "lead": 0.1,
+  "trail": 0.0
+ }
+]
