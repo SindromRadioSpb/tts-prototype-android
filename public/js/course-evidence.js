@@ -52,7 +52,8 @@
     const first = !has(next.seen, fp);
     const attempt = {
       id: `${taskKey}/${at}/${next.attempts.length}`, lessonId, lessonVersion, taskId: task.id,
-      fp, channel, input, kind: result.kind,
+      fp, baseFp: fingerprint(lessonId, task), taskSnapshot: structuredClone(task),
+      ...(event.via === 'ai' ? { via: 'ai' } : {}), channel, input, kind: result.kind,
       aids: structuredClone(has(next.aids, taskKey) ? next.aids[taskKey] : emptyAids()), first, at
     };
     if (first) set(next.seen, fp, at);
@@ -60,7 +61,78 @@
     return { progress: next, attempt: structuredClone(attempt), duplicate: false };
   }
 
-  const api = { emptyProgress, fingerprint, openAid, record };
+  const BREAK_MS = 20 * 60 * 60 * 1000;
+
+  function markMet(progress, lexIds, at) {
+    const next = structuredClone(progress);
+    for (const id of lexIds) if (!has(next.firstMet, id)) set(next.firstMet, id, at);
+    return next;
+  }
+
+  function attemptLevel(attempt) {
+    if (attempt.kind !== 'accepted') return 'none';
+    const a = attempt.aids;
+    const unassisted = a && a.hint === 0 && a.model === false && a.transcript === false && a.translation === false;
+    const eligible = ['read', 'listen', 'write_he', 'speech'].includes(attempt.channel) ||
+      (attempt.channel === 'ai' && attempt.via === 'ai');
+    return attempt.first === true && unassisted && eligible ? 'independent' : 'supported';
+  }
+
+  function affectedIds(task, lesson) {
+    const ids = new Set([...(lesson.introduces?.active || []), ...(lesson.introduces?.receptive || [])]);
+    const spec = task.spec || {};
+    // Only the required values are evidence, not all alternatives in a slot.
+    const requirements = spec.kind === 'confirm' ? [spec.card || {}]
+      : spec.kind === 'replacement' ? [spec.next || {}, spec.prev || {}]
+      : [Object.fromEntries((spec.require || []).filter(id => has(spec.expect || {}, id)).map(id => [id, spec.expect[id]]))];
+    for (const expected of requirements) for (const [slotId, key] of Object.entries(expected)) {
+      const slot = (lesson.slots || []).find(s => s.id === slotId);
+      for (const value of slot?.values || []) if (value.key === key) for (const id of value.seq) ids.add(id);
+    }
+    return ids;
+  }
+
+  function itemStatus(progress, lexId, lessons) {
+    const status = { introduced: has(progress.firstMet, lexId), readOk: false, listenOk: false, produced: false, appliedAfterBreak: false };
+    for (const attempt of progress.attempts) {
+      const lesson = lessons.find(l => l.id === attempt.lessonId);
+      if (!lesson) continue;
+      const task = attempt.taskSnapshot || lesson.tasks.find(t => t.id === attempt.taskId);
+      if (!task || !affectedIds(task, lesson).has(lexId) || attemptLevel(attempt) !== 'independent') continue;
+      if (attempt.channel === 'read') status.readOk = true;
+      if (attempt.channel === 'listen') status.listenOk = true;
+      if (['write_he', 'speech'].includes(attempt.channel) || (attempt.channel === 'ai' && attempt.via === 'ai')) status.produced = true;
+      if (task.transfer === true && status.introduced && Number.isFinite(attempt.at) &&
+          Number.isFinite(progress.firstMet[lexId]) && attempt.at - progress.firstMet[lexId] >= BREAK_MS) status.appliedAfterBreak = true;
+    }
+    return status;
+  }
+
+  function lessonSkill(progress, lesson) {
+    const tasks = lesson.tasks.filter(t => t.transfer === true);
+    if (!tasks.length) return 'not_started';
+    const latest = tasks.map(task => progress.attempts.findLast(a => a.lessonId === lesson.id && a.taskId === task.id &&
+      (a.baseFp || a.fp) === fingerprint(lesson.id, task)));
+    if (latest.every(a => !a)) return 'not_started';
+    if (latest.some(a => a && a.kind !== 'accepted')) return 'needs_review';
+    if (latest.some(a => !a)) return 'not_started';
+    return latest.every(a => attemptLevel(a) === 'independent') ? 'independent' : 'supported';
+  }
+
+  function courseCounts(progress, lexicon, lessons) {
+    const counts = { introduced: 0, recognized: 0, produced: 0, appliedAfterBreak: 0 };
+    // Forms are variants of an entry; do not inflate the language-unit count.
+    for (const entry of lexicon.entries) {
+      const states = [entry.id, ...(entry.forms || []).map(f => f.id)].map(id => itemStatus(progress, id, lessons));
+      if (states.some(s => s.introduced)) counts.introduced++;
+      if (states.some(s => s.readOk || s.listenOk)) counts.recognized++;
+      if (states.some(s => s.produced)) counts.produced++;
+      if (states.some(s => s.appliedAfterBreak)) counts.appliedAfterBreak++;
+    }
+    return counts;
+  }
+
+  const api = { emptyProgress, fingerprint, openAid, record, BREAK_MS, markMet, attemptLevel, itemStatus, lessonSkill, courseCounts };
   root.CourseEvidence = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
