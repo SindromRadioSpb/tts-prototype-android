@@ -1,0 +1,58 @@
+[
+  {
+    "ref": "L001-cafe/a1-01",
+    "key": "b1cd9cc166335b8c250ef50bd46429d6db7471831cb7fed074c76ff8534f4223",
+    "voice": "he-IL-Wavenet-C",
+    "bytes": 6720,
+    "sha256": "1527cdb659d1dbd58fb76b2ee5be4ba890c8cb1cb7bf6d201794214ed7829559"
+  },
+  {
+    "ref": "L001-cafe/a1-03",
+    "key": "4426fe8b70c2f28f923071cd4658cbb5e360517c01947bd3daff5f01e4eb5f5c",
+    "voice": "he-IL-Wavenet-C",
+    "bytes": 9408,
+    "sha256": "228d89e3d496f3a8c4516e6763f4c96c8cb87abb7568188369d79486f367f771"
+  },
+  {
+    "ref": "L001-cafe/a1-02",
+    "key": "86158f3da64f13925275bff31974dc9413a2653f22c6e319ac645369b56ce0b1",
+    "voice": "he-IL-Wavenet-D",
+    "bytes": 26496,
+    "sha256": "4297cb6e1562101ba3b58ca695e9f51ef2514e28132d2dd37f1b8f318403242d"
+  },
+  {
+    "ref": "L001-cafe/a1-04",
+    "key": "897c66977ecc8dcf267bdcc3e3a2f3a14ce2044ac8af95c02c93ba65ded28de9",
+    "voice": "he-IL-Wavenet-D",
+    "bytes": 12288,
+    "sha256": "37b054269d1b828eb5e7c5830362a16150b89e7e8485c6fffad407d73561fc04"
+  },
+  {
+    "ref": "L001-cafe/a1-05",
+    "key": "3ad27a1a76b30db5ab1361e2f8d625a340f2ec2070533be5963dbf8a8be419c4",
+    "voice": "he-IL-Wavenet-C",
+    "bytes": 11712,
+    "sha256": "140fe71bbd83a240c686a4fe06af142450fd4e66efb1909f8a3cc923958b8d05"
+  },
+  {
+    "ref": "L001-cafe/a1-06",
+    "key": "781430db3765a78fe0659ee3563a4663e8ac2a7b63ec2b5828dcbfba513b7981",
+    "voice": "he-IL-Wavenet-D",
+    "bytes": 12864,
+    "sha256": "09c2b2313d3b9a4be9bcbab2c9b6a1580ca01d29105fe276ef617a2067ab578d"
+  },
+  {
+    "ref": "L001-cafe/a1-08",
+    "key": "a8d7a71022b85176239da1643687b4f33e5cf1c3893f03b7b7f40fe470a7fc1d",
+    "voice": "he-IL-Wavenet-D",
+    "bytes": 8832,
+    "sha256": "9e10d2bebf846dcdc6c10058d443b3f98ca0e6305c33aae552b273a0e017f89a"
+  },
+  {
+    "ref": "L001-cafe/a1-07",
+    "key": "388a7be2d57ad6161ca4dd1330f3369e3bec0aeccfe6813b8d7ae34f4efa1c1d",
+    "voice": "he-IL-Wavenet-C",
+    "bytes": 19776,
+    "sha256": "02e8c16864cabc79f166a7ff6b3c4780887b1856328c301bf855b40d6952ad51"
+  }
+]
