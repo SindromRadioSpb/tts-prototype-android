@@ -782,7 +782,7 @@ function roomCurrentPresentationState(overrides = {}) {
     v: 1, surface, corpus, mode: corpusBrowseMode,
     drill: { level: corpusNav.level || 'home', eraId: corpusNav.era || '', authorId: roomAuthorId(corpusNav.author), workId: '' },
     filters: sourceFilters, visible: ROOM_BROWSE_PAGE, page: Math.floor(Number(sourceFilters.start || 0) / ROOM_BROWSE_PAGE) + 1,
-    anchor: overrides.anchor || (String(corpus).startsWith('atlas:') && roomAtlasPosition) || { itemId: readerOpen ? String(readerTextId) : '', rowIndex: 0 },
+    anchor: overrides.anchor || (String(corpus).startsWith('course:') && roomCoursePosition) || (String(corpus).startsWith('atlas:') && roomAtlasPosition) || { itemId: readerOpen ? String(readerTextId) : '', rowIndex: 0 },
     ...overrides,
   });
 }
@@ -842,6 +842,10 @@ function roomApplyStateFields(state) {
   } else if (String(safe.corpus).startsWith('public:')) {
     publicCorpusBrowseStates.set(String(safe.corpus).slice(7), filters);
     corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
+  } else if (String(safe.corpus).startsWith('course:') && safe.surface !== 'hub') {
+    corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
+    roomCourseAnchor = { lessonId: safe.anchor.lessonId || '', step: safe.anchor.step || 0 };
+    roomCoursePosition = { ...roomCourseAnchor };
   } else if (String(safe.corpus).startsWith('atlas:') && safe.surface !== 'hub') {
     // the atlas section and page come back from the address (acceptance UI01)
     corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
@@ -5489,6 +5493,7 @@ function _roomStudioNavInit() {
   const leaveRoom = (ev, url) => {
     if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
     ev.preventDefault();
+    destroyCourseReader();
     // Write a debounced working row before leaving: the cached Room stops its DB worker.
     (async () => { try { if (_progressTimer) await flushReaderProgress(); } catch (_) {} try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();
   };
@@ -12795,6 +12800,7 @@ function corpusNavTo(level, era, author) {
 // Multi-corpus (B+C «витрина + линза», BRR_MULTI_CORPUS_DESIGN_2026_07_02.md): lateral switch.
 function corpusNavToCorpus(id, options = {}) {
   corpusNav = { corpus: id, level: 'home', era: null, author: null };
+  roomCoursePosition = null; roomCourseAnchor = null;
   roomAtlasPosition = null;  // entering any corpus starts at its contents
   corpusReveal = 0;
   // Boot is resolving a material link, not navigating to its parent. Keep the
@@ -12838,11 +12844,13 @@ async function renderCorpus() {
   if (!main) return;
   document.body.classList.toggle('room-discovery-home', corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home');
   const token = ++corpusRenderToken;
+  destroyCourseReader();
   if (roomAtlasReader) { try { roomAtlasReader.stopAudio(); } catch (_) {} roomAtlasReader = null; }
   if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
   if (String(corpusNav.corpus || '').startsWith('public:')) return renderPublicCorpus(String(corpusNav.corpus).slice(7), token);
   if (String(corpusNav.corpus || '').startsWith('group:')) return renderGroupCorpus(String(corpusNav.corpus).slice(6), token);
+  if (String(corpusNav.corpus || '').startsWith('course:')) return renderCourseCorpus(String(corpusNav.corpus).slice(7), token);
   if (String(corpusNav.corpus || '').startsWith('atlas:')) return renderAtlasCorpus(String(corpusNav.corpus).slice(6), token);
   if (!corpusRoot) { showState('room.shelf.emptyTrack', '📚'); return; }
   if (!corpusIndex) {
@@ -13182,6 +13190,81 @@ async function renderPublicCorpus(slug, token) {
 }
 
 // Engineering atlas (public/js/atlas-reader.js): its own page-anchored reader inside the corpus shell.
+// Course reader lifecycle is owned by the Room, just like the atlas surface.
+var roomCourseReader = null, roomCourseAnchor = null, roomCoursePosition = null;
+function destroyCourseReader() {
+  if (!roomCourseReader) return;
+  const reader = roomCourseReader; roomCourseReader = null;
+  try { reader.destroy(); } catch (_) {}
+  try { window.ReaderMorph?.closeSheet(); } catch (_) {}
+}
+async function renderCourseCorpus(courseId, token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  // Fail closed for direct URLs as well as the owner-only corpus menu.
+  const session = await roomRefreshSessionRole();
+  if (token !== corpusRenderToken) return;
+  main.replaceChildren();
+  if (!session || session.user?.role !== 'owner' || !session.user.id ||
+      roomSessionRole !== 'owner' || roomSessionUserId !== String(session.user.id)) {
+    const note = el('p'); note.textContent = tt('course.ownerOnly', 'Пилот курса доступен владельцу.');
+    main.appendChild(note); return;
+  }
+  if (!window.CourseReader || !window.CourseStore) { showState('room.state.error', '⚠️'); return; }
+  const wrap = el('div', { class: 'corpus-view course-corpus' });
+  wrap.appendChild(corpusSwitcherBar('course:' + courseId));
+  const content = el('div'); wrap.appendChild(content); main.appendChild(wrap);
+  const anchor = roomCourseAnchor; roomCourseAnchor = null;
+  let initialized = false;
+  const reader = roomCourseReader = window.CourseReader.mount(content, {
+    courseId, T: tt, store: window.CourseStore.localStore(undefined, { userKey: String(session.user.id) }),
+    layers: { niqqudMode: readerCfg.niqqudMode, ruMode: readerCfg.ruMode,
+      translitOn: !!readerCfg.translitOn, translitProfile: readerCfg.translitProfile },
+    onWords: (root, lesson) => attachCourseWords(root, lesson),
+    onState: next => {
+      if (token !== corpusRenderToken) return;
+      const previous = roomCoursePosition;
+      roomCoursePosition = { lessonId: next.lessonId || '', step: Number(next.step) || 0 };
+      const mode = initialized && (previous?.lessonId || '') !== roomCoursePosition.lessonId ? 'push' : 'replace';
+      initialized = true;
+      roomCommitPresentation(mode, { anchor: roomCoursePosition });
+    }
+  });
+  if (anchor?.lessonId) await reader.openLesson(anchor.lessonId, anchor.step);
+  else await reader.home();
+}
+function attachCourseWords(root, lesson) {
+  if (!root || !window.ReaderMorph) return null;
+  const rows = new Map();
+  for (const item of [...(lesson.scene?.turns || []), ...(lesson.text?.paras || [])]) {
+    rows.set(lesson.id + '/' + item.id, { he: item.he.plain, he_niqqud: item.he.niqqud,
+      ru: item.ru?.ru || '', ref: lesson.id + '/' + item.id });
+  }
+  return attachReaderMorph(root, {
+    cellSelector: '.course-line[data-ref] > [data-col="he"]',
+    rowSelector: '.course-line[data-ref]', rowIndexAttribute: 'data-ref', rovingFocus: true,
+    getRowForCell: (_cell, row) => rows.get(row?.getAttribute('data-ref')) || null,
+    getPlainText: row => row?.he, getVocalizedText: row => row?.he_niqqud,
+    getSentence: row => row && (row.he_niqqud || row.he), getTextKey: () => null,
+    shouldWrap: (_row, _cell, _col, value) => /[א-ת]/.test(String(value || '')),
+    buildOccurrence: span => {
+      const ref = span.closest('.course-line[data-ref]')?.getAttribute('data-ref');
+      const row = rows.get(ref); if (!row) return null;
+      return { source_kind: 'course_line', lesson_id: lesson.id, ref,
+        text_id: null, sentence_id: null, order_index: null,
+        word_offset: Number(span.getAttribute('data-w-offset')), surface: span.getAttribute('data-surface') || '',
+        sentence_he: row.he, sentence_he_niqqud: row.he_niqqud, sentence_ru: row.ru };
+    },
+    // A course line is not a material occurrence. Dictionary notes remain an explicit action,
+    // but no source/recall/lexical-decision writer is supplied for this pilot surface.
+    saveWord: card => roomSaveWord(card, null), saveWordPersonal: null, saveUserMeaning: null,
+    contextProvider: null, refineContext: null, canRefine: null, grantContextConsent: null,
+    confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
+    getDueSchedule: null, noteRecallShown: null, gradeReadingTap: null,
+    setWordStatus: null, enrollLearningTarget: null, practiceLearningTarget: null
+  });
+}
+
 // The open section and page live in the address (#room=atlas:…&sec=…&pg=…): opening a section is a
 // history step, reading on replaces the page number, Back returns to the atlas contents.
 let roomAtlasAnchor = null;
@@ -13986,6 +14069,11 @@ function roomSetSessionRole(session) {
   roomSessionRole = role;
   roomSessionUserId = userId;
   if (changed) {
+    if (typeof roomCourseReader !== 'undefined' && roomCourseReader) {
+      destroyCourseReader();
+      roomCourseAnchor = null; roomCoursePosition = null;
+      if (String(corpusNav.corpus || '').startsWith('course:')) corpusNavToCorpus('hub');
+    }
     roomRefreshCorpusSwitchers();
     if (activeTrack === 'corpus' && corpusNav.corpus === 'hub') renderCorpus();
   }
