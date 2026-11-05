@@ -68,7 +68,7 @@
   var DEFAULT_SCALE = 2;
   var FRAME_MS = 33; // ~30 fps: pixel art does not need more, batteries prefer less
   var CSS_URL = "/css/world-skin.css?v=799";    // lockstep with the sw.js precache keys
-  var RENDER_URL = "/js/world-render.js?v=715";
+  var RENDER_URL = "/js/world-render.js?v=856";
 
   // ── pure core ──────────────────────────────────────────────────────────────
 
@@ -1267,7 +1267,7 @@
   function ensureUlpanRenderer() {
     if (window.LPUlpanWorld) return Promise.resolve();
     if (!ulpanLoading) ulpanLoading = new Promise(function(resolve, reject) {
-      var s = document.createElement("script"); s.src = "/js/ulpan-world.js?v=799";
+      var s = document.createElement("script"); s.src = "/js/ulpan-world.js?v=856";
       s.onload = function() { if (window.LPUlpanWorld) resolve(); else { ulpanLoading=null; reject(new Error("ulpan renderer missing")); } };
       s.onerror = function() { ulpanLoading=null; reject(new Error("ulpan renderer failed")); }; document.head.appendChild(s);
     });
@@ -1279,7 +1279,7 @@
     if (id !== "memorial-three-scenes" || window.LPMemorialAdapter) return Promise.resolve();
     if (!memorialLoading) memorialLoading = new Promise(function (resolve, reject) {
       var script = document.createElement("script");
-      script.src = "/js/memorial-adapter.js?v=736";
+      script.src = "/js/memorial-adapter.js?v=856";
       script.onload = function () { window.LPMemorialAdapter ? resolve() : reject(new Error("memorial adapter missing")); };
       script.onerror = function () { memorialLoading = null; reject(new Error("memorial adapter load failed")); };
       document.head.appendChild(script);
