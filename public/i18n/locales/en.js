@@ -5708,3 +5708,4 @@ Object.assign(window.I18N_LOCALES.en.course, {"niqqudLabel": "Vowel marks", "niq
 Object.assign(window.I18N_LOCALES.en.course,{sync:{synced:'Saved in cloud',local_only:'Data on this device',pending:'Waiting to sync',error:'Could not sync — will retry later'},return:{title:'Return',newVariant:'New situation',repeat:'Repeat lesson'}});
 
 Object.assign(window.I18N_LOCALES.en.course,{unsupported:'This task type is not supported in this version.'});
+Object.assign(window.I18N_LOCALES.en.course,{"part":"Part {n} of {total}","summary":{"title":"What you can do now","independent":"on your own","supported":"with support","notYet":"not tried yet","how":"On your own means first try, without hints, the model answer, translation or the line text. With support means accepted, but with help or not on the first try."}});

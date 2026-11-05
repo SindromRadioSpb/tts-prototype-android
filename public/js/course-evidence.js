@@ -167,6 +167,23 @@
     return latest.every(a => attemptLevel(a) === 'independent') ? 'independent' : 'supported';
   }
 
+  // Learner-facing skill result: the weakest level over each skill's tasks (current definitions only).
+  function skillSummary(progress, lesson) {
+    const tasks = new Map(lesson.tasks.map(t => [t.id, t]));
+    return (lesson.skills || []).map(skill => {
+      const levels = skill.tasks.map(id => {
+        const task = tasks.get(id);
+        if (!task) return 'none';
+        const fp = fingerprint(lesson.id, task);
+        const accepted = progress.attempts.filter(a => a.lessonId === lesson.id && a.taskId === id && (a.baseFp || a.fp) === fp && a.kind === 'accepted');
+        if (!accepted.length) return 'none';
+        return accepted.some(a => attemptLevel(a) === 'independent') ? 'independent' : 'supported';
+      });
+      const level = levels.includes('none') ? 'not_yet' : levels.includes('supported') ? 'supported' : 'independent';
+      return { id: skill.id, label: skill.label, level };
+    });
+  }
+
   function dueReturns(progress, lessons, now) {
     const day = 24 * 60 * 60 * 1000;
     const due = [];
@@ -220,7 +237,7 @@
     return { progress: next, changes };
   }
 
-  const api = { emptyProgress, fingerprint, progressDigest, mergeProgress, openAid, record, BREAK_MS, markMet, attemptLevel, touchedLexIds, itemStatus, lessonSkill, dueReturns, courseCounts, migrate };
+  const api = { emptyProgress, fingerprint, progressDigest, mergeProgress, openAid, record, BREAK_MS, markMet, attemptLevel, touchedLexIds, itemStatus, lessonSkill, dueReturns, skillSummary, courseCounts, migrate };
   root.CourseEvidence = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

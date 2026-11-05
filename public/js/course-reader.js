@@ -273,7 +273,7 @@
               const variant=variants.length?variants[done%variants.length]:null;
               const label=variant?T('return.newVariant','Новый вариант ситуации'):T('return.repeat','Повторить урок');
               const row=el('div');row.append(el('span',authoredAttrs(lesson.title),text(lesson.title)));
-              row.append(button(label,{'data-course-return':lesson.id},()=>openLesson(lesson.id,1+(lesson.text?1:0)+index,
+              row.append(button(label,{'data-course-return':lesson.id},()=>openLesson(lesson.id,stepOfTask(lesson,task.id),
                 variant?{taskId:task.id,variantId:variant.id}:null)));
               returns.append(row);
             }
@@ -323,11 +323,34 @@
           renderLesson();
         });
       }
+      // Flow lessons walk authored parts; legacy lessons keep scene → text → tasks.
+      function flatSteps(lesson=current){
+        if(!Array.isArray(lesson.flow))return null;
+        const out=[];
+        lesson.flow.forEach((part,i)=>part.steps.forEach(st=>out.push({...st,part:i})));
+        return out;
+      }
+      function stepOfTask(lesson,taskId){
+        const flat=flatSteps(lesson);
+        if(!flat)return 1+(lesson.text?1:0)+lesson.tasks.findIndex(t=>t.id===taskId);
+        const i=flat.findIndex(st=>st.kind==='task'&&st.ref===taskId);
+        return i<0?0:i;
+      }
+      function currentStep(){
+        const flat=flatSteps();
+        if(flat)return flat[step]||null;
+        if(step===0)return {kind:'scene'};
+        if(current.text&&step===1)return {kind:'text'};
+        const task=current.tasks[step-1-(current.text?1:0)];
+        return task?{kind:'task',ref:task.id}:null;
+      }
       function totalSteps(){
-        return 1+(current.text?1:0)+current.tasks.length;
+        const flat=flatSteps();
+        return flat?flat.length:1+(current.text?1:0)+current.tasks.length;
       }
       function activeTask(){
-        return current.tasks[step-1-(current.text?1:0)]||null;
+        const st=currentStep();
+        return st?.kind==='task'?current.tasks.find(t=>t.id===st.ref)||null:null;
       }
       function aid(task,name){
         progress=E.openAid(progress,taskKey(task),name,now());
@@ -380,8 +403,14 @@
         if(!alive||!current)return;
         shell(text(current.title),authoredAttrs(current.title));
         niqqudControl();
+        const here=currentStep();
+        if(Array.isArray(current.flow)&&here){
+          const part=current.flow[here.part];
+          container.append(el('p',{'data-course-part':'',class:'course-part'},
+            T('part','Часть {n} из {total}').replace('{n}',here.part+1).replace('{total}',current.flow.length)+' · '+text(part.title)));
+        }
         readerState().position={
-          lessonId:current.id,step
+          lessonId:current.id,step,...(here&&Number.isInteger(here.part)?{part:here.part}:{})
         };
         persist();
         container.append(button(T('lessons','К урокам'),{
@@ -408,7 +437,9 @@
         const baseTask=activeTask();
         const variant=baseTask&&returnChoice?.taskId===baseTask.id?baseTask.variants?.find(v=>v.id===returnChoice.variantId):null;
         const task=variant?{...baseTask,prompt:variant.prompt,spec:variant.spec,...(variant.model?{model:variant.model}:{})}:baseTask;
-        if(step===0){
+        if(here?.kind==='summary')renderSummary(body);
+        else if(here?.kind==='grammar')renderGrammarStep(body,here.ref);
+        else if(here?.kind==='scene'){
           body.append(el('p',{
             class:'course-goal',...authoredAttrs(current.goal)
           },text(current.goal)));
@@ -426,11 +457,11 @@
           });
           body.append(scene);
         }
-        else if(!task){
+        else if(here?.kind==='text'){
           body.append(el('h3',{},T('studyText','Учебный текст')));
           for(const para of current.text.paras)body.append(line(para));
         }
-        else renderTask(body,task);
+        else if(task)renderTask(body,task);
         const nav=el('nav',{
           class:'course-nav','aria-label':T('navigation','Шаги урока')
         });
@@ -457,6 +488,25 @@
         container.append(nav);
         if(opts.onWords)wordHandle=opts.onWords(body,current)||null;
         notify();
+      }
+      function renderSummary(body){
+        const box=el('section',{'data-course-summary':''});
+        box.append(el('h3',{},T('summary.title','Что вы теперь умеете')));
+        const list=el('ul',{class:'course-skills'});
+        const words={independent:T('summary.independent','сами'),supported:T('summary.supported','с опорой'),not_yet:T('summary.notYet','ещё не пробовали')};
+        for(const s of E.skillSummary(progress,current)){
+          list.append(el('li',{'data-skill':s.id,'data-level':s.level},text(s.label)+' — '+words[s.level]));
+        }
+        box.append(list);
+        const detail=el('details');
+        detail.append(el('summary',{},T('evidence','Как это засчитано')),el('p',{},T('summary.how','«Сами» — с первой попытки, без подсказок, образца, перевода и текста реплики. «С опорой» — ответ принят, но с помощью или не с первой попытки.')));
+        box.append(detail);
+        body.append(box);
+      }
+      function renderGrammarStep(body,ref){
+        const g=current.grammar?.[ref];
+        if(!g)return;
+        body.append(el('h3',authoredAttrs(g.title),text(g.title)),el('p',authoredAttrs(g.body),text(g.body)));
       }
       function latest(task){
         const variant=returnChoice?.taskId===task.id&&returnChoice.variantId?{id:returnChoice.variantId}:undefined;

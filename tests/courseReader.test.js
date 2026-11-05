@@ -166,3 +166,42 @@ test('P3-F1 tap first reveals choices without selecting and keyboard reveals row
  const e=env(d=>{const l=d['lessons/L001-cafe.json'];l.niqqud='tap';l.tasks=[{id:'c',type:'choice',channel:['cards'],prompt:{ru:'Выберите'},options:[{id:'s',he:{plain:'סוכר',niqqud:'סֻכָּר'}}],correctOption:'s'}];});let attached=0;e.opts.onWords=()=>{attached++;return {detach(){}}};const r=e.mount();await r.openLesson('L001-cafe',0);const row=e.document.querySelector('[data-col=he]'),event=new e.window.Event('keydown');event.key='Enter';row.dispatchEvent(event);assert.equal(row.textContent,'שָׁלוֹם.');assert.equal(attached,2);
  await r.openLesson('L001-cafe',1);click(e,'[data-option]');assert.equal(e.document.querySelector('[data-option]').textContent,'סֻכָּר');assert.equal(e.store.load('mini').progress.attempts.length,0);click(e,'[data-option]');assert.equal(e.store.load('mini').progress.attempts.length,1);
 });
+
+// --- P8a: parts, resume, summary ---
+function flowEnv(){return env(d=>{const l=d['lessons/L001-cafe.json'];const t=l.tasks;
+ l.skills=[{id:'order',label:{ru:'Заказываете напиток'},tasks:[t[0].id]}];
+ l.flow=[{id:'p1',title:{ru:'Сцена'},steps:[{kind:'scene',mode:'read'},{kind:'task',ref:t[0].id}]},
+         {id:'p2',title:{ru:'Практика'},steps:[{kind:'task',ref:t[1].id},{kind:'summary'}]}];});}
+test('P8a: flow parts drive navigation and the header names the part',async()=>{
+ const e=flowEnv(),r=e.mount();await r.openLesson('L001-cafe',0);
+ assert.match(e.document.querySelector('[data-course-part]').textContent,/Часть 1 из 2/);
+ assert.match(e.document.querySelector('[data-course-part]').textContent,/Сцена/);
+ click(e,'[data-course-next]');assert.equal(e.document.querySelector('[data-course-task]').getAttribute('data-course-task'),e.data['lessons/L001-cafe.json'].tasks[0].id);
+ input(e,'תה בלי סוכר');click(e,'[data-course-check]');click(e,'[data-course-next]');
+ assert.match(e.document.querySelector('[data-course-part]').textContent,/Часть 2 из 2/);
+ r.destroy();
+ const r2=e.mount();await r2.openLesson('L001-cafe');
+ assert.match(e.document.querySelector('[data-course-part]').textContent,/Часть 2 из 2/);
+ assert.equal(e.document.querySelector('[data-course-task]').getAttribute('data-course-task'),e.data['lessons/L001-cafe.json'].tasks[1].id);
+ r2.destroy();
+});
+test('P8a: summary step lists skills in plain words and keeps details folded',async()=>{
+ const e=flowEnv(),r=e.mount();await r.openLesson('L001-cafe',1);
+ input(e,'תה בלי סוכר');click(e,'[data-course-check]');
+ await r.openLesson('L001-cafe',3);
+ const sum=e.document.querySelector('[data-course-summary]');
+ assert.match(sum.textContent,/Заказываете напиток — сами/);
+ assert.ok(sum.querySelector('details'));
+ r.destroy();
+});
+test('P8a: old v1 attempts survive opening a new lesson version; changed tasks are not counted as passed',async()=>{
+ const e=env(d=>{const l=d['lessons/L001-cafe.json'];l.version=2;l.tasks[0].model={niqqud:'תֵּה בְּלִי סֻכָּר, בְּבַקָּשָׁה',plain:'תה בלי סוכר, בבקשה'};});
+ const v1=load('lessons/L001-cafe.json');let p=E.emptyProgress('mini');
+ for(const [i,t] of v1.tasks.slice(0,3).entries())p=E.record(p,{lessonId:v1.id,lessonVersion:1,task:t,channel:'write_he',input:'x'+i,result:{kind:'accepted'},at:i+1}).progress;
+ e.store.save(p);
+ const r=e.mount();await r.openLesson('L001-cafe',1);
+ assert.ok(e.document.querySelector('[data-course-task]'));
+ assert.equal(e.store.load('mini').progress.attempts.length,3);
+ assert.equal(e.document.querySelector('[data-course-next]').disabled,true);
+ r.destroy();
+});
