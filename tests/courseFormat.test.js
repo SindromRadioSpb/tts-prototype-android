@@ -41,3 +41,12 @@ test('prototype names are invalid spec kinds without throwing', () => {
   assert.ok(F.validateLesson(l,idx).some(i=>i.code==='FORMAT' && i.path==='tasks[0].spec.kind'));
  }
 });
+
+test('audio references in malformed scenes report issues without throwing', () => {
+ for (const turns of [{}, [null], [42], [null,{id:'a1-01'}]]) {
+  const l=load('lessons/L001-cafe.json');l.scene.turns=turns;l.tasks[0].audioTurnId='missing';
+  let issues;assert.doesNotThrow(()=>{issues=F.validateLesson(l,idx);});
+  assert.ok(issues.some(i=>i.code==='FORMAT'&&i.path.startsWith('scene.turns')));
+  assert.ok(issues.some(i=>i.code==='REF_UNKNOWN'&&i.path==='tasks[0].audioTurnId'));
+ }
+});

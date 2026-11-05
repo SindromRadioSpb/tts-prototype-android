@@ -100,7 +100,7 @@
       v.ru(r.message,p+'.message');
     });
     v.arr(l.repeatForms,'repeatForms').forEach((a,i)=>refs(a,'repeatForms['+i+']'));
-    const targets=new Map();
+    const targets=new Map(),sceneTurnIds=new Set();
     if(v.shape(object(l.scene),'scene','Нужна сцена.')){
       v.id(l.scene.id,'scene.id');
       targets.set(l.scene.id,true);
@@ -112,7 +112,7 @@
         roles.set(r.id,true);
         v.shape(typeof r.voice==='string',p+'.voice','Нужен голос.');
       });
-      const ids=new Set(),turns=v.arr(l.scene.turns,'scene.turns');
+      const ids=sceneTurnIds,turns=v.arr(l.scene.turns,'scene.turns');
       turns.forEach((t,i)=>{
         const p='scene.turns['+i+']';
         if(!v.shape(object(t),p,'Ожидается реплика.'))return;
@@ -161,7 +161,7 @@
       if(t.options!==undefined){const ids=new Set();v.arr(t.options,p+'.options').forEach((o,j)=>{const q=p+'.options['+j+']';if(!v.shape(object(o),q,'Ожидается вариант.'))return;v.id(o.id,q+'.id',ids);if(o.he!==undefined)v.he(o.he,q+'.he');else v.ru(o.label,q+'.label');});ref(t.correctOption,p+'.correctOption',new Map([...ids].map(id=>[id,true])));}
       if(t.pairs!==undefined){const ids=new Set();v.arr(t.pairs,p+'.pairs').forEach((o,j)=>{const q=p+'.pairs['+j+']';if(!v.shape(object(o),q,'Ожидается пара.'))return;v.id(o.id,q+'.id',ids);v.he(o.he,q+'.he');v.ru(o.label,q+'.label');});}
 
-      if(t.audioTurnId!==undefined)ref(t.audioTurnId,p+'.audioTurnId',new Map((l.scene?.turns||[]).map(turn=>[turn.id,true])));
+      if(t.audioTurnId!==undefined)ref(t.audioTurnId,p+'.audioTurnId',sceneTurnIds);
       if(t.model!==undefined)v.he(t.model,p+'.model');
       if(t.answers!==undefined)v.arr(t.answers,p+'.answers').forEach((h,j)=>v.he(h,p+'.answers['+j+']'));
       if(t.transfer!==undefined)v.shape(typeof t.transfer==='boolean',p+'.transfer','Нужно boolean.');
