@@ -22,3 +22,43 @@ test('a lesson with an unknown task type is refused at load with an honest messa
  assert.match(e.document.body.textContent,/не удалось загрузить|Урок не удалось/i);
  r.destroy();
 });
+
+// --- P8a: tiles ---
+const he=(n,p)=>({niqqud:n,plain:p});
+function tilesEnv(){return env(d=>{const l=d['lessons/L001-cafe.json'];
+ l.tasks.unshift({id:'tl',type:'tiles',channel:['cards'],prompt:{ru:'Соберите: большой кофе'},
+  tiles:[he('קָפֶה','קפה'),he('גָּדוֹל','גדול')],distractors:[he('תֵּה','תה')],model:he('קָפֶה גָּדוֹל','קפה גדול'),
+  spec:{kind:'order',expect:{drink:'coffee',size:'big'},require:['drink','size']}});});}
+const tile=(e,word)=>[...e.document.querySelectorAll('[data-tile]')].find(b=>b.textContent.replace(/[֑-ׇ]/g,'')===word);
+test('tiles: tapping builds an RTL answer line and the right order is accepted',async()=>{
+ const e=tilesEnv(),r=e.mount();await r.openLesson('L001-cafe',1);
+ assert.equal(e.document.querySelector('[data-tiles-answer]').getAttribute('dir'),'rtl');
+ assert.equal(e.document.querySelectorAll('[data-tiles-bank] [data-tile]').length,3);
+ tile(e,'קפה').click();tile(e,'גדול').click();
+ assert.equal(e.document.querySelectorAll('[data-tiles-answer] [data-tile]').length,2);
+ e.document.querySelector('[data-course-check]').click();
+ const a=e.store.load('mini').progress.attempts.at(-1);
+ assert.equal(a.kind,'accepted');assert.equal(a.channel,'cards');
+ r.destroy();
+});
+test('tiles: wrong order is a form error with the order rule, and tapping an answer tile returns it',async()=>{
+ const e=tilesEnv(),r=e.mount();await r.openLesson('L001-cafe',1);
+ tile(e,'גדול').click();tile(e,'קפה').click();
+ e.document.querySelector('[data-course-check]').click();
+ assert.equal(e.store.load('mini').progress.attempts.at(-1).kind,'form');
+ assert.match(e.document.querySelector('[data-course-feedback]').textContent,/после названия/);
+ e.document.querySelector('[data-tiles-answer] [data-tile]').click();
+ assert.equal(e.document.querySelectorAll('[data-tiles-answer] [data-tile]').length,1);
+ r.destroy();
+});
+test('tiles: the built line survives remount and the bank order is stable',async()=>{
+ const e=tilesEnv();let r=e.mount();await r.openLesson('L001-cafe',1);
+ const order=[...e.document.querySelectorAll('[data-tiles-bank] [data-tile]')].map(b=>b.textContent);
+ tile(e,'קפה').click();r.destroy();
+ r=e.mount();await r.openLesson('L001-cafe',1);
+ assert.equal(e.document.querySelectorAll('[data-tiles-answer] [data-tile]').length,1);
+ r.destroy();r=e.mount();await r.openLesson('L001-cafe',1);
+ e.document.querySelector('[data-tiles-answer] [data-tile]').click();
+ assert.deepEqual([...e.document.querySelectorAll('[data-tiles-bank] [data-tile]')].map(b=>b.textContent),order);
+ r.destroy();
+});

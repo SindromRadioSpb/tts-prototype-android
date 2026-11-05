@@ -15,3 +15,8 @@
 .course-scene-choices button[dir=rtl]{font-size:1.2rem}
 .course-skills{display:grid;gap:8px;padding-inline-start:20px;line-height:1.5}
 .course-skills li[data-level=independent]::marker{color:#168b88}
+.course-tiles-answer,.course-tiles-bank{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:60px;padding:10px;border-radius:14px}
+.course-tiles-answer{border:2px dashed var(--border,#a8b5c4);margin:14px 0 10px}
+.course-tiles-bank{background:var(--panel,#eef8f5)}
+.course-reader .course-tile{font-size:1.3rem;min-height:48px;padding:6px 14px}
+.course-tiles-empty{font-size:.95rem;opacity:.6}

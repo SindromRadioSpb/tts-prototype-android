@@ -89,6 +89,33 @@
     if(ctx.task.cue&&!ctx.listening)ctx.body.append(ctx.hebrewElement('p',{dir:'rtl',lang:'he'},ctx.task.cue));
   }})});
 
+  // Stable per-task shuffle, so the bank does not jump between visits.
+  function seededOrder(n,seed){
+    let h=2166136261;
+    for(const ch of String(seed)){h^=ch.codePointAt(0);h=Math.imul(h,16777619)>>>0;}
+    const order=[...Array(n).keys()];
+    for(let i=n-1;i>0;i--){h=Math.imul(h^(h>>>15),2246822507)>>>0;const j=h%(i+1);[order[i],order[j]]=[order[j],order[i]];}
+    return order;
+  }
+  register('tiles',{render(ctx){
+    const {task,body,T,el}=ctx;
+    const all=[...(task.tiles||[]),...(task.distractors||[])];
+    const bankOrder=seededOrder(all.length,task.id);
+    const valid=x=>Number.isInteger(x)&&x>=0&&x<all.length;
+    let picked=Array.isArray(ctx.ui.tiles)?ctx.ui.tiles.filter(valid).filter((x,i,a)=>a.indexOf(x)===i):[];
+    const answer=el('div',{class:'course-tiles-answer','data-tiles-answer':'',dir:'rtl',lang:'he','aria-label':T('tiles.answer','Ваша фраза')});
+    const bank=el('div',{class:'course-tiles-bank','data-tiles-bank':'',dir:'rtl',lang:'he','aria-label':T('tiles.bank','Слова')});
+    function save(){ctx.ui.tiles=picked;ctx.ui.input=picked.map(i=>all[i].plain).join(' ');ctx.persist();}
+    function paint(){
+      answer.replaceChildren();bank.replaceChildren();
+      for(const i of picked)answer.append(ctx.hebrewButton(all[i],{'data-tile':i,class:'course-tile'},()=>{picked=picked.filter(x=>x!==i);save();paint();}));
+      if(!picked.length)answer.append(el('span',{class:'course-tiles-empty'},T('tiles.empty','Касайтесь слов ниже')));
+      for(const i of bankOrder)if(!picked.includes(i))bank.append(ctx.hebrewButton(all[i],{'data-tile':i,class:'course-tile'},()=>{picked=[...picked,i];save();paint();}));
+    }
+    paint();
+    body.append(answer,bank,ctx.button(T('check','Проверить'),{'data-course-check':''},()=>ctx.submit(picked.map(i=>all[i].plain).join(' '),'cards')));
+  }});
+
   const api={register,get,freeAnswer};
   root.CourseTasks=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
