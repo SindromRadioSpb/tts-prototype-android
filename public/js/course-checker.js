@@ -9,6 +9,7 @@
     index.byId = new Map();
     // Callers supply course.preknown here; the persisted lesson stays unchanged.
     index.preknown = [];
+    index.maxSeqWords = 0;
     for (const entry of entries) {
       for (const form of [entry, ...(entry.forms || [])]) {
         const tags = form.tags || [];
@@ -17,6 +18,7 @@
         index.byId.set(form.id, form);
         for (const key of H.formKeys(form.he)) {
           if (!key) continue;
+          index.maxSeqWords = Math.max(index.maxSeqWords, key.split(' ').length);
           const map = key.includes(' ') ? index.multiword : index;
           if (!map.has(key)) map.set(key, []);
           map.get(key).push(candidate);
@@ -33,7 +35,7 @@
     const at = words.map(() => []);
     const known = words.map(() => false);
     for (let start = 0; start < words.length; start++) {
-      for (let end = start + 1; end <= words.length; end++) {
+      for (let end = start + 1; end <= Math.min(words.length, start + index.maxSeqWords); end++) {
         const key = words.slice(start, end).join(' ');
         const candidates = (end === start + 1 ? index : index.multiword).get(key) || [];
         for (const candidate of candidates.filter(c => allowed.has(c.lexId))) {
@@ -78,6 +80,9 @@
     const spec = task.spec;
     // Initial 'no' in a confirmation is a discourse correction, not slot negation.
     const words = H.tokens(input);
+    if (words.length > 60) return { kind: 'unknown',
+      message: { ru: 'Ответ слишком длинный для автоматической проверки. Сравните с образцом.' },
+      parsed: { slots: {}, negated: {}, unknownTokens: [] } };
     const state = parse(spec?.kind === 'confirm' && words[0] === 'לא' && words.length > 1
       ? words.slice(1).join(' ') : input, lesson, index);
     const { parsed, occurrences } = state;
@@ -142,6 +147,9 @@
       if (Object.hasOwn(parsed.negated, id) && parsed.negated[id] === expected) return result('mismatch', `В задании нужно ${label(id, expected)}, а в ответе это отрицается.`);
     }
     const missing = spec.require.filter(id => !Object.hasOwn(parsed.slots, id));
+    const indirect = missing.find(id => Object.hasOwn(parsed.negated, id) &&
+      Object.hasOwn(spec.expect, id) && parsed.negated[id] !== spec.expect[id]);
+    if (indirect !== undefined) return result('unknown', `Скажите условие прямо: ${label(indirect, spec.expect[indirect])}.`);
     if (missing.length) return result('partial', `Добавьте: ${missing.map(id => slotById(id)?.label.ru || id).join(', ')}.`);
     for (const rule of lesson.orderRules || []) {
       const heads = occurrences.filter(o => o.slotId === rule.head && !o.negated);

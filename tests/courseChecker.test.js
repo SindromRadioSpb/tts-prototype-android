@@ -79,3 +79,32 @@ test('prototype-name slot IDs do not read inherited values', () => {
  assert.equal(C.assess('בבקשה',t,l,index).kind,'partial');
  assert.equal(C.assess('תה',t,l,index).kind,'accepted');
 });
+
+test('P1-F1: oversized answers are rejected before parsing within 200 ms', () => {
+ const { spawnSync } = require('node:child_process');
+ const script = `const C=require('./public/js/course-checker.js');
+ const l=require('./tests/fixtures/course/mini/lessons/L001-cafe.json');
+ const lex=require('./tests/fixtures/course/mini/lexicon.json');
+ const idx=C.buildIndex(lex.entries); const start=performance.now();
+ const result=C.assess('תה '.repeat(3000),l.tasks.find(t=>t.id==='6'),l,idx);
+ console.log(JSON.stringify({result,elapsed:performance.now()-start}));`;
+ const run=spawnSync(process.execPath,['-e',script],{cwd:require('node:path').resolve(__dirname,'..'),encoding:'utf8',timeout:2000});
+ assert.equal(run.status,0,run.error?.message || run.stderr);
+ const {result,elapsed}=JSON.parse(run.stdout);
+ assert.equal(result.kind,'unknown');
+ assert.equal(result.message.ru,'Ответ слишком длинный для автоматической проверки. Сравните с образцом.');
+ assert.deepEqual(result.parsed,{slots:{},negated:{},unknownTokens:[]});
+ assert.ok(elapsed<200,`elapsed ${elapsed} ms`);
+});
+test('P1-F1: 60 words remain eligible and finish within 50 ms', () => {
+ const start=performance.now();
+ const result=C.assess('תה '.repeat(60),task('6'),lesson,index);
+ assert.ok(performance.now()-start<50);
+ assert.equal(result.kind,'partial');
+ assert.equal(index.maxSeqWords,Math.max(...[...index.keys(),...index.multiword.keys()].map(k=>k.split(' ').length)));
+});
+test('P1-F2: negated alternative asks for a direct condition', () => {
+ const result=C.assess('אפשר תה לא עם סוכר',task('6'),lesson,index);
+ assert.equal(result.kind,'unknown');
+ assert.match(result.message.ru,/Скажите условие прямо:.*без сахара/);
+});
