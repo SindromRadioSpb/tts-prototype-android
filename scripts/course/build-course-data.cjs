@@ -4,6 +4,16 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { validateCourseDir } = require('./validate-course.cjs');
 
+function assertPlainDirectories(target) {
+  const absolute = path.resolve(target);
+  const parent = path.dirname(absolute);
+  if (parent !== absolute) assertPlainDirectories(parent);
+  const stat = fs.lstatSync(absolute, { throwIfNoEntry: false });
+  if (stat && (stat.isSymbolicLink() || !stat.isDirectory())) {
+    throw new Error('Output path must contain only real directories (no links or junctions): ' + absolute);
+  }
+}
+
 function buildCourseData(srcDir, outRoot) {
   const issues = validateCourseDir(srcDir);
   if (issues.some(issue => issue.level === 'error')) {
@@ -22,11 +32,21 @@ function buildCourseData(srcDir, outRoot) {
   const manifest = { courseId: course.id, version: course.version, builtAt: new Date().toISOString(), files: {} };
   for (const [file, bytes] of files) manifest.files[file] = crypto.createHash('sha256').update(bytes).digest('hex');
   files.set('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
-  const destination = path.join(outRoot, course.id);
+  const destination = path.resolve(outRoot, course.id);
+  // Never replace an existing bundle: it may contain junctions or linked files.
+  // Use a fresh output root for each build, then publish the reviewed bundle.
+  assertPlainDirectories(outRoot);
+  if (fs.lstatSync(destination, { throwIfNoEntry: false })) {
+    throw new Error('Course output already exists; choose a fresh outRoot. Nothing was changed: ' + destination);
+  }
+  fs.mkdirSync(path.resolve(outRoot), { recursive: true });
+  assertPlainDirectories(outRoot);
+  fs.mkdirSync(destination);
+  fs.mkdirSync(path.join(destination, 'lessons'));
   for (const [file, bytes] of files) {
     const target = path.join(destination, file);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, bytes);
+    assertPlainDirectories(path.dirname(target));
+    fs.writeFileSync(target, bytes, { flag: 'wx' });
   }
   return manifest;
 }

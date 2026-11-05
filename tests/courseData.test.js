@@ -55,6 +55,31 @@ test('validator exports a reusable function with isolated results', () => {
   assert.deepEqual(validateCourseDir(fixture), valid);
 });
 
+for (const kind of ['course junction', 'nested junction', 'linked file', 'root junction']) {
+  test('refuses ' + kind + ' without changing external files', t => {
+    const dir = temporary(t), out = path.join(dir, 'output'), external = path.join(dir, 'external');
+    fs.mkdirSync(external);
+    const sentinel = path.join(external, kind === 'nested junction' ? 'L001-cafe.json' : 'course.json');
+    fs.writeFileSync(sentinel, 'external sentinel');
+    if (kind === 'root junction') fs.symlinkSync(external, out, 'junction');
+    else {
+      fs.mkdirSync(out);
+      const destination = path.join(out, 'mini');
+      if (kind === 'course junction') fs.symlinkSync(external, destination, 'junction');
+      else {
+        fs.mkdirSync(destination);
+        if (kind === 'nested junction') fs.symlinkSync(external, path.join(destination, 'lessons'), 'junction');
+        else fs.linkSync(sentinel, path.join(destination, 'course.json'));
+      }
+    }
+    const before = fs.readdirSync(external);
+    const result = build(fixture, out);
+    assert.equal(result.status, 1);
+    assert.equal(fs.readFileSync(sentinel, 'utf8'), 'external sentinel');
+    assert.deepEqual(fs.readdirSync(external), before);
+  });
+}
+
 test('course volume route precedes public static and sets public cache and same-origin headers', () => {
   const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
   const route = server.match(/app\.use\(['"]\/data\/course['"],\s*express\.static\(path\.join\(DATA_DIR,\s*['"]course['"]\),\s*\{[\s\S]*?\}\)\);/);
