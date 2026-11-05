@@ -4,7 +4,7 @@ import numpy as np
 def pcm(path):
     raw=subprocess.run(["ffmpeg","-v","error","-i",path,"-f","f32le","-ac","1","-ar","16000","-"],capture_output=True).stdout
     return np.frombuffer(raw,dtype=np.float32)
-OUT = r"E:\projects\corpus_ulpan_linguistpro\audio-google-tts-2026-11-05"
+OUT = r"E:/projects/tts-prototype-android/data/course/ulpan\audio-google-tts-2026-11-05"
 MODEL = os.path.expandvars(r"%LOCALAPPDATA%\LinguistPro\LocalASR\models\asr\ivrit-ai--whisper-large-v3-turbo-ct2\72ad623a37947395efcc3933132353790e5a12f5")
 log = json.load(open(OUT + r"\bake-log.json", encoding="utf-8"))
 m = WhisperModel(MODEL, device="cpu", compute_type="int8")

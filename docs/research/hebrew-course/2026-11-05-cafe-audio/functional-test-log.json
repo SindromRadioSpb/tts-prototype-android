@@ -1,0 +1,128 @@
+[
+ {
+  "i": 0,
+  "v": "plain",
+  "text": "יש פה שולחן.",
+  "plain": "יש פה שולחן.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f0-plain.mp3"
+ },
+ {
+  "i": 0,
+  "v": "full",
+  "text": "יֵשׁ פֹּה שֻׁלְחָן.",
+  "plain": "יש פה שולחן.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f0-full.mp3"
+ },
+ {
+  "i": 0,
+  "v": "functional",
+  "text": "יֵש פֹּה שוּלחָן.",
+  "plain": "יש פה שולחן.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f0-functional.mp3"
+ },
+ {
+  "i": 1,
+  "v": "plain",
+  "text": "אני רוצה לכתוב.",
+  "plain": "אני רוצה לכתוב.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f1-plain.mp3"
+ },
+ {
+  "i": 1,
+  "v": "full",
+  "text": "אֲנִי רוֹצֶה לִכְתֹּב.",
+  "plain": "אני רוצה לכתוב.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f1-full.mp3"
+ },
+ {
+  "i": 1,
+  "v": "functional",
+  "text": "אֲנִי רוֹצֶה לִכתוֹב.",
+  "plain": "אני רוצה לכתוב.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f1-functional.mp3"
+ },
+ {
+  "i": 2,
+  "v": "plain",
+  "text": "אפשר תה בלי סוכר?",
+  "plain": "אפשר תה בלי סוכר?",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f2-plain.mp3"
+ },
+ {
+  "i": 2,
+  "v": "full",
+  "text": "אֶפְשָׁר תֵּה בְּלִי סֻכָּר?",
+  "plain": "אפשר תה בלי סוכר?",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f2-full.mp3"
+ },
+ {
+  "i": 2,
+  "v": "functional",
+  "text": "אֶפשָר תֵה בלִי סוּכָּר?",
+  "plain": "אפשר תה בלי סוכר?",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f2-functional.mp3"
+ },
+ {
+  "i": 3,
+  "v": "plain",
+  "text": "התלמיד רוצה להיכנס.",
+  "plain": "התלמיד רוצה להיכנס.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f3-plain.mp3"
+ },
+ {
+  "i": 3,
+  "v": "full",
+  "text": "הַתַּלְמִיד רוֹצֶה לְהִכָּנֵס.",
+  "plain": "התלמיד רוצה להיכנס.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f3-full.mp3"
+ },
+ {
+  "i": 3,
+  "v": "functional",
+  "text": "הַתַלמִיד רוֹצֶה לְהִיכָּנֵס.",
+  "plain": "התלמיד רוצה להיכנס.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f3-functional.mp3"
+ },
+ {
+  "i": 4,
+  "v": "plain",
+  "text": "בוקר טוב.",
+  "plain": "בוקר טוב.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f4-plain.mp3"
+ },
+ {
+  "i": 4,
+  "v": "full",
+  "text": "בֹּקֶר טוֹב.",
+  "plain": "בוקר טוב.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f4-full.mp3"
+ },
+ {
+  "i": 4,
+  "v": "functional",
+  "text": "בּוֹקֶר טוֹב.",
+  "plain": "בוקר טוב.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f4-functional.mp3"
+ },
+ {
+  "i": 5,
+  "v": "plain",
+  "text": "זה דיבור מעניין.",
+  "plain": "זה דיבור מעניין.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f5-plain.mp3"
+ },
+ {
+  "i": 5,
+  "v": "full",
+  "text": "זֶה דִּבּוּר מְעַנְיֵן.",
+  "plain": "זה דיבור מעניין.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f5-full.mp3"
+ },
+ {
+  "i": 5,
+  "v": "functional",
+  "text": "זֶה דִיבּוּר מְעַניֵין.",
+  "plain": "זה דיבור מעניין.",
+  "file": "E:/projects/corpus_ulpan_linguistpro/audio-google-tts-2026-11-05/functional-test/f5-functional.mp3"
+ }
+]
