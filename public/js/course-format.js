@@ -139,6 +139,13 @@
         v.ru(p.ru,q+'.ru');
       });
     }
+    const grammar=new Map();
+    if(l.grammar!==undefined&&v.shape(object(l.grammar),'grammar','Ожидается справочник.'))for(const [key,g]of Object.entries(l.grammar)){
+      const p='grammar.'+key;v.id(key,p);grammar.set(key,true);
+      if(!v.shape(object(g),p,'Ожидается правило.'))continue;
+      v.ru(g.title,p+'.title');v.ru(g.body,p+'.body');
+      if(g.pattern!==undefined)v.arr(g.pattern,p+'.pattern').forEach((h,i)=>v.he(h,p+'.pattern['+i+']'));
+    }
     const taskIds=new Set();
     v.arr(l.tasks,'tasks').forEach((t,i)=>{
       const p='tasks['+i+']';
@@ -148,6 +155,12 @@
       if(!['choice','text','match','cloze','scene'].includes(t.type))v.add('TASK_TYPE_UNKNOWN',p+'.type','Неизвестный тип задания.');
       v.arr(t.channel,p+'.channel').forEach((c,j)=>v.shape(typeof c==='string',p+'.channel['+j+']','Ожидается строка.'));
       v.ru(t.prompt,p+'.prompt');
+      if(t.grammarRef!==undefined)ref(t.grammarRef,p+'.grammarRef',grammar);
+      if(t.cue!==undefined)v.he(t.cue,p+'.cue');
+      if(t.hints!==undefined)v.arr(t.hints,p+'.hints').forEach((h,j)=>v.ru(h,p+'.hints['+j+']'));
+      if(t.options!==undefined){const ids=new Set();v.arr(t.options,p+'.options').forEach((o,j)=>{const q=p+'.options['+j+']';if(!v.shape(object(o),q,'Ожидается вариант.'))return;v.id(o.id,q+'.id',ids);if(o.he!==undefined)v.he(o.he,q+'.he');else v.ru(o.label,q+'.label');});ref(t.correctOption,p+'.correctOption',new Map([...ids].map(id=>[id,true])));}
+      if(t.pairs!==undefined){const ids=new Set();v.arr(t.pairs,p+'.pairs').forEach((o,j)=>{const q=p+'.pairs['+j+']';if(!v.shape(object(o),q,'Ожидается пара.'))return;v.id(o.id,q+'.id',ids);v.he(o.he,q+'.he');v.ru(o.label,q+'.label');});}
+
       if(t.model!==undefined)v.he(t.model,p+'.model');
       if(t.answers!==undefined)v.arr(t.answers,p+'.answers').forEach((h,j)=>v.he(h,p+'.answers['+j+']'));
       if(t.transfer!==undefined)v.shape(typeof t.transfer==='boolean',p+'.transfer','Нужно boolean.');
