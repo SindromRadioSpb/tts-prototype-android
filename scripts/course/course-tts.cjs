@@ -1,6 +1,7 @@
 'use strict';
 // Offline: inventory <courseSrcDir> [--lesson id] [--out report.json]
 //          [--audio-dir .tmp/course-tts] (the directory checked for MP3s).
+// Approval: manifest <courseSrcDir> --lesson id --review marks.json
 // Paid:    bake <courseSrcDir> [--lesson id] [--out .tmp/course-tts]
 //          [--concurrency 2] [--ceiling 50000]. Credentials: operator env only.
 const fs = require('node:fs');
@@ -9,6 +10,8 @@ const crypto = require('node:crypto');
 const Speech = require('../../public/js/course-speech.js');
 const { computeAssetKey } = require('../../db/premium/ttsAssetKey.js');
 const { validateCourseDir } = require('./validate-course.cjs');
+const { assertPlainDirectories } = require('./course-files.cjs');
+const { readReview, approvedAudio } = require('./course-audio-manifest.cjs');
 const PROFILE_ID = 'course-he-wavenet-v1';
 const MAX_CHARS = 50000;
 const DEFAULT_OUT = '.tmp/course-tts';
@@ -147,8 +150,8 @@ function downloadMarks() {
 
 async function main(args) {
   const [command, srcDir, ...rest] = args;
-  if (!['inventory', 'bake', 'sheet'].includes(command) || !srcDir || srcDir.startsWith('--')) throw new Error('Usage: course-tts.cjs inventory|bake|sheet <courseSrcDir> [options]');
-  const allowed = command === 'inventory' ? ['--lesson', '--out', '--audio-dir'] : command === 'sheet' ? ['--lesson', '--out'] : ['--lesson', '--out', '--concurrency', '--ceiling'];
+  if (!['inventory', 'bake', 'sheet', 'manifest'].includes(command) || !srcDir || srcDir.startsWith('--')) throw new Error('Usage: course-tts.cjs inventory|bake|sheet|manifest <courseSrcDir> [options]');
+  const allowed = command === 'manifest' ? ['--lesson', '--review'] : command === 'inventory' ? ['--lesson', '--out', '--audio-dir'] : command === 'sheet' ? ['--lesson', '--out'] : ['--lesson', '--out', '--concurrency', '--ceiling'];
   const options = {};
   for (let i = 0; i < rest.length; i += 2) {
     const name = rest[i], value = rest[i + 1];
@@ -156,8 +159,30 @@ async function main(args) {
     options[name] = value;
   }
   const outDir = (command === 'inventory' ? options['--audio-dir'] : options['--out']) || DEFAULT_OUT;
+  if (command === 'manifest' && (!options['--lesson'] || !options['--review'])) throw new Error('manifest requires --lesson and --review');
   if (command === 'sheet' && !options['--lesson']) throw new Error('sheet requires --lesson');
   const report = inventory(srcDir, { lesson: options['--lesson'], outDir });
+  if (command === 'manifest') {
+    const lessonId = options['--lesson'];
+    const { review, bytes } = readReview(options['--review'], lessonId);
+    const { audio, stale } = approvedAudio(lessonId, report.items, review);
+    const audioDir = path.join(srcDir, 'audio'), reviewDir = path.join(srcDir, 'audio-review');
+    // Preflight both destinations before changing either one.
+    for (const dir of [audioDir, reviewDir]) assertPlainDirectories(dir);
+    for (const dir of [audioDir, reviewDir]) {
+      const target = path.join(dir, lessonId + '.json');
+      const stat = fs.lstatSync(target, { throwIfNoEntry: false });
+      if (stat && (!stat.isFile() || stat.isSymbolicLink())) throw new Error('Output must be a regular file (no links): ' + target);
+    }
+    if (bytes !== null) {
+      fs.mkdirSync(reviewDir, { recursive: true });
+      atomicWrite(path.join(reviewDir, lessonId + '.json'), bytes);
+    }
+    fs.mkdirSync(audioDir, { recursive: true });
+    atomicWrite(path.join(audioDir, lessonId + '.json'), JSON.stringify(audio, null, 2) + '\n');
+    console.log(JSON.stringify({ lessonId, approved: Object.keys(audio).length, missingReview: review === null, stale }));
+    return;
+  }
   if (command === 'sheet') {
     const asrFile = path.join(outDir, 'asr-check.json');
     const asr = fs.existsSync(asrFile) ? readJson(asrFile) : [];
