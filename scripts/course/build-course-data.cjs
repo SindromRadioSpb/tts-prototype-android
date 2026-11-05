@@ -34,6 +34,16 @@ function buildCourseData(srcDir, outRoot) {
     const filtered = Object.fromEntries(Object.entries(audio).filter(([ref, key]) => existing?.[ref] === key));
     files.set(file, JSON.stringify(filtered, null, 2) + '\n');
   }
+  // Media are published as-is; only plain regular files with safe names are copied.
+  const mediaDir = path.join(srcDir, 'media');
+  if (fs.existsSync(mediaDir)) {
+    assertPlainDirectories(mediaDir);
+    for (const name of fs.readdirSync(mediaDir).sort()) {
+      const full = path.join(mediaDir, name);
+      if (!/^[A-Za-z0-9][A-Za-z0-9._-]*\.(png|webp|jpe?g)$/i.test(name) || !fs.lstatSync(full).isFile()) continue;
+      files.set('media/' + name, fs.readFileSync(full));
+    }
+  }
   const manifest = { courseId: course.id, version: course.version, builtAt: new Date().toISOString(), files: {} };
   for (const [file, bytes] of files) manifest.files[file] = crypto.createHash('sha256').update(bytes).digest('hex');
   files.set('manifest.json', JSON.stringify(manifest, null, 2) + '\n');

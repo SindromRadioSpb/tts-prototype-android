@@ -1,0 +1,398 @@
+{
+  "entries": [
+    {
+      "id": "lx.shalom",
+      "pos": "expression",
+      "he": {
+        "niqqud": "שָׁלוֹם",
+        "plain": "שלום"
+      },
+      "translit_ru": "шалом",
+      "gloss": {
+        "ru": "привет"
+      }
+    },
+    {
+      "id": "lx.efshar",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אֶפְשָׁר",
+        "plain": "אפשר"
+      },
+      "translit_ru": "эфшар",
+      "gloss": {
+        "ru": "можно"
+      }
+    },
+    {
+      "id": "lx.coffee",
+      "pos": "noun",
+      "gender": "m",
+      "he": {
+        "niqqud": "קָפֶה",
+        "plain": "קפה"
+      },
+      "translit_ru": "кафэ",
+      "gloss": {
+        "ru": "кофе"
+      }
+    },
+    {
+      "id": "lx.tea",
+      "pos": "noun",
+      "gender": "m",
+      "he": {
+        "niqqud": "תֵּה",
+        "plain": "תה"
+      },
+      "translit_ru": "тэ",
+      "gloss": {
+        "ru": "чай"
+      }
+    },
+    {
+      "id": "lx.water",
+      "pos": "noun",
+      "gender": "m",
+      "he": {
+        "niqqud": "מַיִם",
+        "plain": "מים"
+      },
+      "translit_ru": "маим",
+      "gloss": {
+        "ru": "вода"
+      }
+    },
+    {
+      "id": "lx.bli",
+      "pos": "expression",
+      "he": {
+        "niqqud": "בְּלִי",
+        "plain": "בלי"
+      },
+      "translit_ru": "бли",
+      "gloss": {
+        "ru": "без"
+      }
+    },
+    {
+      "id": "lx.chalav",
+      "pos": "noun",
+      "gender": "m",
+      "he": {
+        "niqqud": "חָלָב",
+        "plain": "חלב"
+      },
+      "translit_ru": "халав",
+      "gloss": {
+        "ru": "молоко"
+      }
+    },
+    {
+      "id": "lx.bevakasha",
+      "pos": "expression",
+      "he": {
+        "niqqud": "בְּבַקָּשָׁה",
+        "plain": "בבקשה"
+      },
+      "translit_ru": "бэвакаша",
+      "gloss": {
+        "ru": "пожалуйста"
+      }
+    },
+    {
+      "id": "lx.small",
+      "pos": "adjective",
+      "gender": "m",
+      "he": {
+        "niqqud": "קָטָן",
+        "plain": "קטן"
+      },
+      "translit_ru": "катан",
+      "gloss": {
+        "ru": "маленький"
+      },
+      "forms": [
+        {
+          "id": "lx.small-f",
+          "he": {
+            "niqqud": "קְטַנָּה",
+            "plain": "קטנה"
+          },
+          "tags": [
+            "f",
+            "sg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lx.big",
+      "pos": "adjective",
+      "gender": "m",
+      "he": {
+        "niqqud": "גָּדוֹל",
+        "plain": "גדול"
+      },
+      "translit_ru": "гадоль",
+      "gloss": {
+        "ru": "большой"
+      },
+      "forms": [
+        {
+          "id": "lx.big-f",
+          "he": {
+            "niqqud": "גְּדוֹלָה",
+            "plain": "גדולה"
+          },
+          "tags": [
+            "f",
+            "sg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lx.or",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אוֹ",
+        "plain": "או"
+      },
+      "translit_ru": "о",
+      "gloss": {
+        "ru": "или"
+      }
+    },
+    {
+      "id": "lx.lashevet",
+      "pos": "expression",
+      "he": {
+        "niqqud": "לָשֶׁבֶת",
+        "plain": "לשבת"
+      },
+      "translit_ru": "лашэвэт",
+      "gloss": {
+        "ru": "сидеть"
+      }
+    },
+    {
+      "id": "lx.lakachat",
+      "pos": "expression",
+      "he": {
+        "niqqud": "לָקַחַת",
+        "plain": "לקחת"
+      },
+      "translit_ru": "лакахат",
+      "gloss": {
+        "ru": "взять"
+      }
+    },
+    {
+      "id": "lx.po-here",
+      "pos": "expression",
+      "he": {
+        "niqqud": "פֹּה",
+        "plain": "פה"
+      },
+      "translit_ru": "по",
+      "gloss": {
+        "ru": "здесь"
+      }
+    },
+    {
+      "id": "lx.pe-mouth",
+      "pos": "noun",
+      "gender": "m",
+      "he": {
+        "niqqud": "פֶּה",
+        "plain": "פה"
+      },
+      "translit_ru": "пэ",
+      "gloss": {
+        "ru": "рот"
+      }
+    },
+    {
+      "id": "lx.ken",
+      "pos": "expression",
+      "he": {
+        "niqqud": "כֵּן",
+        "plain": "כן"
+      },
+      "translit_ru": "кэн",
+      "gloss": {
+        "ru": "да"
+      }
+    },
+    {
+      "id": "lx.toda",
+      "pos": "expression",
+      "he": {
+        "niqqud": "תּוֹדָה",
+        "plain": "תודה"
+      },
+      "translit_ru": "тода",
+      "gloss": {
+        "ru": "спасибо"
+      }
+    },
+    {
+      "id": "lx.im",
+      "pos": "expression",
+      "he": {
+        "niqqud": "עִם",
+        "plain": "עם"
+      },
+      "translit_ru": "им",
+      "gloss": {
+        "ru": "с"
+      }
+    },
+    {
+      "id": "lx.sugar",
+      "pos": "noun",
+      "gender": "m",
+      "he": {
+        "niqqud": "סֻכָּר",
+        "plain": "סוכר"
+      },
+      "translit_ru": "сукар",
+      "gloss": {
+        "ru": "сахар"
+      }
+    },
+    {
+      "id": "lx.slicha",
+      "pos": "expression",
+      "he": {
+        "niqqud": "סְלִיחָה",
+        "plain": "סליחה"
+      },
+      "translit_ru": "слиха",
+      "gloss": {
+        "ru": "извините"
+      }
+    },
+    {
+      "id": "lx.shuv",
+      "pos": "expression",
+      "he": {
+        "niqqud": "שׁוּב",
+        "plain": "שוב"
+      },
+      "translit_ru": "шув",
+      "gloss": {
+        "ru": "снова"
+      }
+    },
+    {
+      "id": "lx.od",
+      "pos": "expression",
+      "he": {
+        "niqqud": "עוֹד",
+        "plain": "עוד"
+      },
+      "translit_ru": "од",
+      "gloss": {
+        "ru": "ещё"
+      }
+    },
+    {
+      "id": "lx.paam",
+      "pos": "expression",
+      "he": {
+        "niqqud": "פַּעַם",
+        "plain": "פעם"
+      },
+      "translit_ru": "паам",
+      "gloss": {
+        "ru": "раз"
+      }
+    },
+    {
+      "id": "lx.ma",
+      "pos": "expression",
+      "he": {
+        "niqqud": "מָה",
+        "plain": "מה"
+      },
+      "translit_ru": "ма",
+      "gloss": {
+        "ru": "что"
+      }
+    },
+    {
+      "id": "lx.lo",
+      "pos": "expression",
+      "he": {
+        "niqqud": "לֹא",
+        "plain": "לא"
+      },
+      "translit_ru": "ло",
+      "gloss": {
+        "ru": "нет"
+      }
+    },
+    {
+      "id": "lx.hevanti",
+      "pos": "expression",
+      "he": {
+        "niqqud": "הֵבַנְתִּי",
+        "plain": "הבנתי"
+      },
+      "translit_ru": "hэванти",
+      "gloss": {
+        "ru": "я понял"
+      }
+    },
+    {
+      "id": "lx.lachzor",
+      "pos": "expression",
+      "he": {
+        "niqqud": "לַחֲזֹר",
+        "plain": "לחזור"
+      },
+      "translit_ru": "лахазор",
+      "gloss": {
+        "ru": "повторить"
+      }
+    },
+    {
+      "id": "lx.bimkom",
+      "pos": "expression",
+      "he": {
+        "niqqud": "בִּמְקוֹם",
+        "plain": "במקום"
+      },
+      "translit_ru": "бимком",
+      "gloss": {
+        "ru": "вместо"
+      }
+    },
+    {
+      "id": "lx.beseder",
+      "pos": "expression",
+      "he": {
+        "niqqud": "בְּסֵדֶר",
+        "plain": "בסדר"
+      },
+      "translit_ru": "бэсэдэр",
+      "gloss": {
+        "ru": "хорошо"
+      }
+    },
+    {
+      "id": "lx.ein",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אֵין",
+        "plain": "אין"
+      },
+      "translit_ru": "эйн",
+      "gloss": {
+        "ru": "нет в наличии"
+      }
+    }
+  ]
+}

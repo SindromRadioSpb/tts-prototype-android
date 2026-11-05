@@ -66,6 +66,8 @@
     v.ru(l.title,'title');
     v.ru(l.goal,'goal');
     v.shape(l.niqqud===undefined||['full','new','tap'].includes(l.niqqud),'niqqud','Режим огласовок: full, new или tap.');
+    const mediaIds=new Map();
+    if(Array.isArray(l.media))for(const m of l.media)if(object(m)&&typeof m.id==='string')mediaIds.set(m.id,true);
     const ref=(x,p,map=index)=>{
       v.id(x,p);
       if(!map||!map.has(x))v.add('REF_UNKNOWN',p,'Неизвестная ссылка: '+x);
@@ -124,9 +126,32 @@
         v.he(t.he,p+'.he');
         v.ru(t.ru,p+'.ru');
       });
+      const turnMap=new Map([...ids].map(x=>[x,true]));
       turns.forEach((t,i)=>{
-        if(object(t)&&t.next!==undefined)ref(t.next,'scene.turns['+i+'].next',new Map([...ids].map(x=>[x,true])));
+        if(object(t)&&t.next!==undefined)ref(t.next,'scene.turns['+i+'].next',turnMap);
+        if(object(t)&&t.choices!==undefined){
+          const cids=new Set();
+          v.arr(t.choices,'scene.turns['+i+'].choices').forEach((c,j)=>{
+            const q='scene.turns['+i+'].choices['+j+']';
+            if(!v.shape(object(c),q,'Ожидается вариант ответа.'))return;
+            v.id(c.id,q+'.id',cids);v.he(c.he,q+'.he');v.ru(c.ru,q+'.ru');
+            v.shape(['ok','repair'].includes(c.verdict),q+'.verdict','verdict: ok или repair.');
+            if(!turnMap.has(c.next))v.add('SCENE_NEXT_UNKNOWN',q+'.next','Неизвестная следующая реплика: '+c.next);
+          });
+        }
       });
+      // Graph checks apply once a scene declares any edge; legacy scenes stay linear lists.
+      const valid=turns.filter(t=>object(t)&&typeof t.id==='string');
+      if(valid.length&&valid.some(t=>t.next!==undefined||t.choices!==undefined)){
+        const edges=t=>[t.next,...(Array.isArray(t.choices)?t.choices.map(c=>c?.next):[])].filter(x=>turnMap.has(x));
+        const byId=new Map(valid.map(t=>[t.id,t]));
+        const state=new Map();let cycle=false;
+        const visit=id=>{state.set(id,1);for(const n of edges(byId.get(id))){if(state.get(n)===1)cycle=true;else if(!state.has(n))visit(n);}state.set(id,2);};
+        visit(valid[0].id);
+        if(cycle)v.add('SCENE_CYCLE','scene.turns','В сцене есть цикл.');
+        valid.forEach(t=>{if(!state.has(t.id))v.add('SCENE_UNREACHABLE','scene.turns.'+t.id,'Реплика недостижима: '+t.id);});
+      }
+      if(l.scene.image!==undefined)ref(l.scene.image,'scene.image',mediaIds);
     }
     if(l.text!==undefined&&v.shape(object(l.text),'text','Ожидается текст.')){
       v.id(l.text.id,'text.id');
@@ -148,6 +173,16 @@
       if(!v.shape(object(g),p,'Ожидается правило.'))continue;
       v.ru(g.title,p+'.title');v.ru(g.body,p+'.body');
       if(g.pattern!==undefined)v.arr(g.pattern,p+'.pattern').forEach((h,i)=>v.he(h,p+'.pattern['+i+']'));
+      if(g.line!==undefined&&v.shape(object(g.line),p+'.line','Ожидается строка-микрокарта.')){
+        v.he(g.line.he,p+'.line.he');
+        const n=typeof g.line.he?.plain==='string'?g.line.he.plain.trim().split(/\s+/).length:0;
+        v.arr(g.line.slots,p+'.line.slots').forEach((sl,i)=>{
+          const q=p+'.line.slots['+i+']';
+          if(!v.shape(object(sl),q,'Ожидается слот.'))return;
+          v.ru(sl.label,q+'.label');
+          if(!Number.isInteger(sl.from)||!Number.isInteger(sl.to)||sl.from<0||sl.to<sl.from||sl.to>=n)v.add('GRAMMAR_SLOT_RANGE',q,'Слот вне строки.');
+        });
+      }
     }
     const taskIds=new Set();
     v.arr(l.tasks,'tasks').forEach((t,i)=>{
@@ -155,14 +190,17 @@
       if(!v.shape(object(t),p,'Ожидается задание.'))return;
       v.id(t.id,p+'.id',taskIds);
       targets.set(t.id,true);
-      if(!['choice','text','match','cloze','scene'].includes(t.type))v.add('TASK_TYPE_UNKNOWN',p+'.type','Неизвестный тип задания.');
+      if(!['choice','text','match','cloze','scene','tiles','order'].includes(t.type))v.add('TASK_TYPE_UNKNOWN',p+'.type','Неизвестный тип задания.');
       v.arr(t.channel,p+'.channel').forEach((c,j)=>v.shape(typeof c==='string',p+'.channel['+j+']','Ожидается строка.'));
       v.ru(t.prompt,p+'.prompt');
       if(t.grammarRef!==undefined)ref(t.grammarRef,p+'.grammarRef',grammar);
       if(t.cue!==undefined)v.he(t.cue,p+'.cue');
       if(t.hints!==undefined)v.arr(t.hints,p+'.hints').forEach((h,j)=>v.ru(h,p+'.hints['+j+']'));
       if(t.options!==undefined){const ids=new Set();v.arr(t.options,p+'.options').forEach((o,j)=>{const q=p+'.options['+j+']';if(!v.shape(object(o),q,'Ожидается вариант.'))return;v.id(o.id,q+'.id',ids);if(o.he!==undefined)v.he(o.he,q+'.he');else v.ru(o.label,q+'.label');});ref(t.correctOption,p+'.correctOption',new Map([...ids].map(id=>[id,true])));}
-      if(t.pairs!==undefined){const ids=new Set();v.arr(t.pairs,p+'.pairs').forEach((o,j)=>{const q=p+'.pairs['+j+']';if(!v.shape(object(o),q,'Ожидается пара.'))return;v.id(o.id,q+'.id',ids);v.he(o.he,q+'.he');v.ru(o.label,q+'.label');});}
+      if(t.pairs!==undefined){const ids=new Set();v.arr(t.pairs,p+'.pairs').forEach((o,j)=>{const q=p+'.pairs['+j+']';if(!v.shape(object(o),q,'Ожидается пара.'))return;v.id(o.id,q+'.id',ids);v.he(o.he,q+'.he');if(o.media!==undefined)ref(o.media,q+'.media',mediaIds);else v.ru(o.label,q+'.label');});}
+      if(t.type==='tiles'){const tiles=v.arr(t.tiles,p+'.tiles');v.shape(tiles.length>0,p+'.tiles','Нужны плитки.');tiles.forEach((h,j)=>v.he(h,p+'.tiles['+j+']'));if(t.distractors!==undefined)v.arr(t.distractors,p+'.distractors').forEach((h,j)=>v.he(h,p+'.distractors['+j+']'));}
+      if(t.type==='order'&&v.shape(object(t.card),p+'.card','Нужна карточка заказа.'))for(const [k,val] of Object.entries(t.card)){ref(k,p+'.card.'+k,slots);if(slots.has(k)&&!slots.get(k).has(val))v.add('REF_UNKNOWN',p+'.card.'+k,'Неизвестное значение слота.');}
+      if(t.cardMedia!==undefined)ref(t.cardMedia,p+'.cardMedia',mediaIds);
 
       if(t.audioTurnId!==undefined)ref(t.audioTurnId,p+'.audioTurnId',sceneTurnIds);
       if(t.model!==undefined)v.he(t.model,p+'.model');
@@ -207,8 +245,42 @@
         ref(m.target,p+'.target',targets);
         v.ru(m.brief,p+'.brief');
         v.ru(m.alt,p+'.alt');
+        if(m.kind!==undefined){
+          v.shape(['image','sequence'].includes(m.kind),p+'.kind','kind: image или sequence.');
+          if(!object(m.fallback)||!object(m.fallback.ru)||typeof m.fallback.ru.ru!=='string'||!m.fallback.ru.ru.trim())v.add('MEDIA_FALLBACK_MISSING',p+'.fallback','Нужна запасная карточка без медиа.');
+          if(m.purpose!==undefined)v.ru(m.purpose,p+'.purpose');
+          if(m.aspect!==undefined)v.shape(['16:9','4:3','1:1','3:4'].includes(m.aspect),p+'.aspect','Пропорции 16:9, 4:3, 1:1 или 3:4.');
+          if(m.kind==='sequence'&&m.frames!==undefined)v.shape(Array.isArray(m.frames)&&m.frames.length>=2&&m.frames.length<=4&&m.frames.every(f=>typeof f==='string'),p+'.frames','Последовательность — 2–4 кадра.');
+          if(m.src!==undefined)v.shape(typeof m.src==='string',p+'.src','Ожидается имя файла.');
+        }
       });
-    }return v.issues;
+    }
+    if(l.skills!==undefined){
+      const ids=new Set();
+      v.arr(l.skills,'skills').forEach((sk,i)=>{
+        const p='skills['+i+']';
+        if(!v.shape(object(sk),p,'Ожидается умение.'))return;
+        v.id(sk.id,p+'.id',ids);v.ru(sk.label,p+'.label');
+        v.arr(sk.tasks,p+'.tasks').forEach((x,j)=>{if(!taskIds.has(x))v.add('SKILL_TASK_UNKNOWN',p+'.tasks['+j+']','Неизвестное задание: '+x);});
+      });
+    }
+    if(l.flow!==undefined){
+      const parts=new Set();
+      v.arr(l.flow,'flow').forEach((part,i)=>{
+        const p='flow['+i+']';
+        if(!v.shape(object(part),p,'Ожидается часть.'))return;
+        v.id(part.id,p+'.id',parts);v.ru(part.title,p+'.title');
+        v.arr(part.steps,p+'.steps').forEach((st,j)=>{
+          const q=p+'.steps['+j+']';
+          if(!v.shape(object(st)&&['scene','text','task','grammar','summary'].includes(st.kind),q,'Неизвестный шаг.'))return;
+          if(st.kind==='scene')v.shape(st.mode===undefined||['listen','read'].includes(st.mode),q+'.mode','mode: listen или read.');
+          if(st.kind==='text')v.shape(object(l.text),q,'В уроке нет учебного текста.');
+          if(st.kind==='task'&&!taskIds.has(st.ref))v.add('FLOW_REF_UNKNOWN',q+'.ref','Неизвестное задание: '+st.ref);
+          if(st.kind==='grammar'&&!grammar.has(st.ref))v.add('FLOW_REF_UNKNOWN',q+'.ref','Неизвестное правило: '+st.ref);
+        });
+      });
+    }
+    return v.issues;
   }
   const api={
     HE_FIELDS,validateLexicon,validateLesson

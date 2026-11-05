@@ -90,3 +90,16 @@ test('course volume route precedes public static and sets public cache and same-
   assert.match(route[0], /setHeader\(['"]Cache-Control['"],\s*['"]public, max-age=300, must-revalidate['"]\)/);
   assert.match(route[0], /setHeader\(['"]Cross-Origin-Resource-Policy['"],\s*['"]same-origin['"]\)/);
 });
+
+test('P8a: build copies media files and hashes them into the manifest', t => {
+  const dir = temporary(t), src = path.join(dir, 'src'), out = path.join(dir, 'out');
+  fs.cpSync(fixture, src, { recursive: true });
+  fs.mkdirSync(path.join(src, 'media'));
+  const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex');
+  fs.writeFileSync(path.join(src, 'media', 'a.png'), png);
+  const result = build(src, out);
+  assert.equal(result.status, 0, result.stderr);
+  const manifest = JSON.parse(fs.readFileSync(path.join(out, 'mini', 'manifest.json'), 'utf8'));
+  assert.deepEqual(fs.readFileSync(path.join(out, 'mini', 'media', 'a.png')), png);
+  assert.equal(manifest.files['media/a.png'], crypto.createHash('sha256').update(png).digest('hex'));
+});

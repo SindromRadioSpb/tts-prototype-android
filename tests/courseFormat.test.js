@@ -72,3 +72,88 @@ test('turn and paragraph IDs share the spoken namespace while task IDs remain se
  l.tasks[0].audioTurnId = 'paragraph-1';
  assert.ok(F.validateLesson(l, idx).some(i => i.code === 'REF_UNKNOWN' && i.path === 'tasks[0].audioTurnId'));
 });
+
+// --- P8a extensions ---
+const E8 = require('../public/js/course-evidence.js');
+const codes8 = l => F.validateLesson(l, idx).map(i => i.code);
+const learnerScene = () => {
+ const l = load('lessons/L001-cafe.json');
+ l.scene.roles.push({ id: 'learner', voice: 'he-IL-Wavenet-C' });
+ const t = l.scene.turns;
+ for (let i = 0; i < t.length - 1; i++) t[i].next = t[i + 1].id;
+ return l;
+};
+test('P8a: flow steps must reference existing tasks and grammar', () => {
+ const l = load('lessons/L001-cafe.json');
+ l.flow = [{ id: 'p1', title: { ru: 'Часть 1' }, steps: [{ kind: 'scene', mode: 'listen' }, { kind: 'task', ref: l.tasks[0].id }, { kind: 'summary' }] }];
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ l.flow[0].steps.push({ kind: 'task', ref: 'nope' });
+ assert.ok(codes8(l).includes('FLOW_REF_UNKNOWN'));
+ l.flow[0].steps[3] = { kind: 'grammar', ref: 'nope' };
+ assert.ok(codes8(l).includes('FLOW_REF_UNKNOWN'));
+ l.flow[0].steps[3] = { kind: 'bogus' };
+ assert.ok(codes8(l).includes('FORMAT'));
+});
+test('P8a: scene choices are checked for next, reachability and cycles', () => {
+ const l = learnerScene(), t = l.scene.turns;
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ const last = t[t.length - 1];
+ const extra = { id: 'x-repair', role: t[0].role, he: t[0].he, ru: { ru: 'Ещё раз?' } };
+ t.push(extra);
+ assert.ok(codes8(l).includes('SCENE_UNREACHABLE'));
+ t[1].role = 'learner'; delete t[1].next;
+ t[1].choices = [{ id: 'ok', he: t[1].he, ru: { ru: 'да' }, next: t[2].id, verdict: 'ok' }, { id: 'rp', he: t[1].he, ru: { ru: 'что?' }, next: 'x-repair', verdict: 'repair' }];
+ extra.next = t[2].id;
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ t[1].choices[1].next = 'missing';
+ assert.ok(codes8(l).includes('SCENE_NEXT_UNKNOWN'));
+ t[1].choices[1].next = 'x-repair';
+ last.next = t[0].id;
+ assert.ok(codes8(l).includes('SCENE_CYCLE'));
+});
+test('P8a: media need a fallback; grammar slots stay inside the line; skills reference tasks', () => {
+ const l = load('lessons/L001-cafe.json');
+ l.media = [{ id: 'm1', kind: 'image', target: l.tasks[0].id, purpose: { ru: 'заказ' }, brief: { ru: 'бриф' }, alt: { ru: 'алт' }, aspect: '4:3' }];
+ assert.ok(codes8(l).includes('MEDIA_FALLBACK_MISSING'));
+ l.media[0].fallback = { ru: { ru: 'Большой чай' }, icons: ['cup-large'] };
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ l.media[0].kind = 'sequence';
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), [], 'empty slot is valid until filled');
+ l.media[0].frames = ['a.png'];
+ assert.ok(codes8(l).includes('FORMAT'), 'a filled sequence needs at least 2 frames');
+ l.media[0].kind = 'image'; delete l.media[0].frames;
+ l.grammar = { g1: { title: { ru: 'Т' }, body: { ru: 'Б' }, line: { he: { niqqud: 'קָפֶה גָּדוֹל', plain: 'קפה גדול' }, slots: [{ from: 0, to: 0, label: { ru: 'что' } }, { from: 1, to: 1, label: { ru: 'какой' } }] } } };
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ l.grammar.g1.line.slots[1].to = 2;
+ assert.ok(codes8(l).includes('GRAMMAR_SLOT_RANGE'));
+ l.grammar.g1.line.slots[1].to = 1;
+ l.skills = [{ id: 'order', label: { ru: 'Заказать' }, tasks: ['nope'] }];
+ assert.ok(codes8(l).includes('SKILL_TASK_UNKNOWN'));
+});
+test('P8a: tiles and order task types are known and validated', () => {
+ const l = load('lessons/L001-cafe.json');
+ const base = l.tasks[0];
+ l.tasks.push({ ...structuredClone(base), id: 'tl', type: 'tiles', tiles: [base.model], distractors: [] });
+ l.tasks.push({ ...structuredClone(base), id: 'or', type: 'order', card: structuredClone(base.spec.expect) });
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ l.tasks[l.tasks.length - 2].tiles = [];
+ assert.ok(codes8(l).includes('FORMAT'));
+ l.tasks[l.tasks.length - 2].tiles = [base.model];
+ l.tasks[l.tasks.length - 1].cardMedia = 'nope';
+ assert.ok(codes8(l).includes('REF_UNKNOWN'));
+});
+test('P8a: match pairs may use media instead of a label', () => {
+ const l = load('lessons/L001-cafe.json');
+ l.media = [{ id: 'tea', kind: 'image', target: l.scene.id, purpose: { ru: 'п' }, brief: { ru: 'б' }, alt: { ru: 'чай' }, aspect: '1:1', fallback: { ru: { ru: 'чай' } } }];
+ l.tasks[0].pairs = [{ id: 'p1', he: l.tasks[0].model, media: 'tea' }];
+ assert.ok(!codes8(l).some(c => c === 'FORMAT'));
+ l.tasks[0].pairs[0].media = 'missing';
+ assert.ok(codes8(l).includes('REF_UNKNOWN'));
+});
+test('P8a: fingerprints of tasks without new fields are unchanged', () => {
+ const l = load('lessons/L001-cafe.json');
+ const pinned = { '6': '187185cf', '9': '3fee8117', '10a': 'bfef9dc0', '13': 'e70c3301', '18b': '3c17690e', '19d': '2618960a', '19d-ok': 'a17d5663' };
+ for (const t of l.tasks) assert.equal(E8.fingerprint(l.id, t), pinned[t.id], t.id);
+ const t = structuredClone(l.tasks[0]); t.tiles = [t.model];
+ assert.notEqual(E8.fingerprint(l.id, t), pinned[t.id]);
+});

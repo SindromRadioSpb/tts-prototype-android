@@ -142,3 +142,16 @@ P3 semantic fingerprints additionally include authored `options`, `correctOption
 Задание переноса может содержать `variants: [{ id, prompt: { ru }, spec, model? }]`. Каждый ID уникален внутри задания. Вариант заменяет `prompt`, `spec` и `model` при возвращении к transfer-заданию; попытка сохраняет `variant: { id }` в отпечатке, а базовый отпечаток остаётся связан с тем же заданием. Через 24 часа после первого переноса предлагается новый вариант; после его выполнения следующий срок — через 3 дня. Без вариантов кнопка предлагает повтор урока без обещания новой ситуации.
 
 Прогресс P7 синхронизируется только после согласия `cloud_texts` текущей версии. Неотправленные данные и черновики остаются на устройстве; переносится учебное доказательство (попытки, помощь, встреченные элементы и версии уроков).
+### Расширения P8а (образцовый урок)
+
+Все поля необязательны; урок без них рисуется как раньше, отпечатки его заданий не меняются.
+
+- `flow: [{id, title:{ru}, steps:[Step]}]` — части урока. `Step`: `{kind:"scene", mode?:"listen"|"read"}`, `{kind:"text"}`, `{kind:"task", ref}`, `{kind:"grammar", ref}`, `{kind:"summary"}`. Ссылка на неизвестное задание или правило — `FLOW_REF_UNKNOWN`.
+- Сцена-граф: `scene.turns[].choices: [{id, he, ru:{ru}, next, verdict:"ok"|"repair"}]` у реплики ученика (роль `learner`); `scene.image?: mediaId`. Как только у сцены есть хотя бы одно ребро (`next` или `choices`), проверяются `SCENE_NEXT_UNKNOWN`, `SCENE_UNREACHABLE` (от первой реплики), `SCENE_CYCLE`. Сцена без рёбер остаётся линейным списком.
+- Медиа: `media[]` с `kind: "image"|"sequence"` дополнительно требует `fallback: {ru:{ru}, icons?:[string]}` (иначе `MEDIA_FALLBACK_MISSING`); `purpose:{ru}` — зачем медиа в задании; `aspect`: `16:9|4:3|1:1|3:4`; `src` (картинка) или `frames` (2–4 неподвижных кадра, браузер сменяет их сам). Пустое место (без файлов) допустимо — его заполняет dots или Claude.
+- Микрокарта: `grammar[id].line: {he, slots:[{from, to, label:{ru}}]}`; `from/to` — индексы токенов `he.plain` по пробелам (`GRAMMAR_SLOT_RANGE`).
+- `skills: [{id, label:{ru}, tasks:[taskId]}]` — итог по умениям (`SKILL_TASK_UNKNOWN`).
+- Типы заданий: `tiles` (`tiles:[he]` непусто, `distractors?:[he]`; ответ — плитки через пробел, проверка `spec`) и `order` (`card:{slotId:key}` — что заказать, `cardMedia?: mediaId` — картинка заказа). У `match` пара может нести `media` вместо `label`.
+- Отпечаток задания дополнительно включает `tiles`, `distractors`, `card`, `cardMedia`, если они есть.
+- Сборка (`build-course-data.cjs`) копирует `media/*.png|webp|jpg` в выдачу и хеширует их в `manifest.json`.
+- Исходник учебного курса — `content/course/ulpan/`; `tests/fixtures/course/mini/` остаётся технической фикстурой.
