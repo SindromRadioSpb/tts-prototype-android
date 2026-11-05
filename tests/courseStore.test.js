@@ -65,3 +65,12 @@ test('unserializable or malformed saves return unavailable without throwing',()=
  assert.deepEqual(store.save(null),{ok:false,reason:'unavailable'});
  }
 });
+
+test('malformed nested task snapshot resets before evidence functions can consume it',()=>{
+ for (const bad of [{spec:{kind:'order',require:42}}, {spec:{kind:'order',require:['drink'],expect:[]}}, {transfer:'yes'}, {spec:{kind:'confirm',card:{milk:3}}}]) {
+ const storage=fake(), p=progress(); Object.assign(p.attempts[0].taskSnapshot,bad);
+ const raw=JSON.stringify(p); storage.data.set(key,raw);
+ const loaded=S.localStore(storage).load('ulpan'); assert.equal(loaded.notice,'reset_corrupt');
+ assert.ok([...storage.data].some(([k,v])=>k.startsWith(key+':corrupt:')&&v===raw));
+ }
+});

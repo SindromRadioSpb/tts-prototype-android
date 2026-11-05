@@ -9,15 +9,25 @@
   const mapValid = (map, valid) => object(map) && Object.values(map).every(valid);
   const channels = ['read', 'listen', 'write_he', 'cards', 'translit', 'speech', 'self', 'ai'];
   const kinds = ['empty', 'accepted', 'form', 'partial', 'mismatch', 'unknown'];
+  const fingerprintValid = value => text(value) && /^[0-9a-f]{8}$/.test(value);
+  function snapshotValid(task) {
+    if (!object(task) || !text(task.id) || (task.transfer !== undefined && typeof task.transfer !== 'boolean')) return false;
+    if (task.spec === undefined) return true;
+    const spec = task.spec;
+    return object(spec) && text(spec.kind) &&
+      ['require', 'preferFrame'].every(k => spec[k] === undefined || (Array.isArray(spec[k]) && spec[k].every(text))) &&
+      ['expect', 'card', 'claim', 'next', 'prev'].every(k => spec[k] === undefined || mapValid(spec[k], text)) &&
+      (spec.via === undefined || text(spec.via));
+  }
   function validProgress(p, courseId) {
     return object(p) && p.schema === 1 && text(p.courseId) && p.courseId === courseId &&
       Array.isArray(p.attempts) && p.attempts.every(a => object(a) &&
-        ['id', 'lessonId', 'taskId', 'fp', 'input'].every(k => text(a[k])) &&
+        ['id', 'lessonId', 'taskId', 'input'].every(k => text(a[k])) && fingerprintValid(a.fp) &&
         Number.isInteger(a.lessonVersion) && a.lessonVersion >= 1 &&
         channels.includes(a.channel) && kinds.includes(a.kind) && aidsValid(a.aids) &&
         typeof a.first === 'boolean' && finite(a.at) &&
-        (a.baseFp === undefined || text(a.baseFp)) &&
-        (a.taskSnapshot === undefined || (object(a.taskSnapshot) && text(a.taskSnapshot.id))) &&
+        (a.baseFp === undefined || fingerprintValid(a.baseFp)) &&
+        (a.taskSnapshot === undefined || (snapshotValid(a.taskSnapshot) && a.taskSnapshot.id === a.taskId)) &&
         (a.via === undefined || a.via === 'ai')) &&
       mapValid(p.aids, aidsValid) && mapValid(p.seen, finite) && mapValid(p.firstMet, finite) &&
       mapValid(p.lessonVersions, v => Number.isInteger(v) && v >= 1);
