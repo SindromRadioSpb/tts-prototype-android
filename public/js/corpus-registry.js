@@ -61,6 +61,12 @@ export const CORPORA = [
     desc: { key: 'course.corpus.desc', fb: 'Уроки ульпана: ситуации, тексты, задания' },
     capabilities: [],
   },
+  {
+    id: 'course:ulpan-cafe-b-pilot', icon: '☕', kind: 'course',
+    title: { key: 'course.pilotCorpus.title', fb: 'Кафе B · текстовый пилот' },
+    desc: { key: 'course.pilotCorpus.desc', fb: 'Отдельный экспериментальный курс: подготовка, кафе и повторы. Без аудио; прежний курс и прогресс сохранены.' },
+    capabilities: [],
+  },
 ];
 
 // Badge dictionary: capability → { icon, i18n key, ru fallback }. Kept SMALL and truthful —

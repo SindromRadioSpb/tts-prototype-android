@@ -79,3 +79,6 @@ repo_tree.txt
 # Publication staging and generated FTS payloads are private/volume-only.
 .tmp/
 public/data/benyehuda/fts/
+
+# Course fallback is built from validated source inside the image.
+public/data/course/

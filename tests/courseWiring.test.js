@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {lockstepVersion, requestedUrl, assertPrecachedExactly} = require('./helpers/releaseLock');
 const read = p => fs.readFileSync(path.join(__dirname, '..', p), 'utf8');
-const modules = ['course-hebrew','course-checker','course-format','course-evidence','course-store','course-keyboard','course-audio','course-reader'];
+const modules = ['course-hebrew','course-checker','course-format','course-review','course-evidence','course-store','course-sync','course-keyboard','course-audio','course-tasks','course-scene','course-media','course-review-reader','course-reader'];
 test('course modules follow atlas in dependency order, with exact offline and integrity keys', () => {
   const room=read('public/library.html'), sw=read('public/sw.js'), server=read('server.js');
   let previous=room.indexOf('/js/atlas-train-ui.js?v=');

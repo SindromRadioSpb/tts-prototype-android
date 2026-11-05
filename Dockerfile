@@ -33,6 +33,10 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy application source (everything not in .dockerignore)
 COPY . .
 
+# Build only the separate text pilot into the image fallback. Never write or
+# rebuild the legacy ulpan bundle on the persistent data volume.
+RUN node scripts/course/build-course-data.cjs content/course/ulpan-cafe-b-pilot public/data/course
+
 # Persistent data directory — mount a named volume here
 # storage.js auto-creates sub-dirs (audio-cache, gemini-cache, backups, research)
 VOLUME ["/app/data"]

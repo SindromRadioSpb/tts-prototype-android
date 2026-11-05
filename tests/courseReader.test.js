@@ -211,3 +211,32 @@ test('P8a: a study-text paragraph with a role shows the speaker label',async()=>
  assert.ok(e.document.querySelector('[data-ref="L001-cafe/p1"] .course-role'));
  r.destroy();
 });
+
+test('step exposure marks only displayed steps, survives resume and preserves legacy opening',async()=>{
+ const e=env(d=>{const l=d['lessons/L001-cafe.json'];l.flow=[{id:'one',title:{ru:'Часть'},steps:[
+  {kind:'scene',metLexIds:[]},{kind:'task',ref:l.tasks[0].id,metLexIds:['lx.tea']},
+  {kind:'summary',metLexIds:['lx.bli']},{kind:'summary'}]}];});
+ const r=e.mount();await r.openLesson('L001-cafe',0);
+ assert.deepEqual(e.store.load('mini').progress.firstMet,{});
+ await r.openLesson('L001-cafe',1);
+ assert.deepEqual(Object.keys(e.store.load('mini').progress.firstMet),['lx.tea']);
+ await r.openLesson('L001-cafe',3);
+ assert.deepEqual(Object.keys(e.store.load('mini').progress.firstMet),['lx.tea']);
+ r.destroy();const r2=e.mount();await r2.openLesson('L001-cafe');
+ assert.deepEqual(Object.keys(e.store.load('mini').progress.firstMet),['lx.tea']);
+ await r2.openLesson('L001-cafe',2);
+ assert.deepEqual(Object.keys(e.store.load('mini').progress.firstMet),['lx.tea','lx.bli']);r2.destroy();
+ const old=env(),legacy=old.mount();await legacy.openLesson('L001-cafe',1);
+ const l=old.data['lessons/L001-cafe.json'];
+ assert.deepEqual(Object.keys(old.store.load('mini').progress.firstMet),[...l.introduces.active,...l.introduces.receptive]);legacy.destroy();
+});
+
+test('return variant empty evidence scope overrides base task scope',async()=>{
+ const e=env(d=>{const t=d['lessons/L001-cafe.json'].tasks.find(t=>t.transfer);t.evidenceLexIds=['lx.tea'];t.variants=[{id:'none',prompt:t.prompt,spec:t.spec,evidenceLexIds:[]}];});
+ const l=e.data['lessons/L001-cafe.json'],t=l.tasks.find(t=>t.transfer);
+ e.store.save(E.record(E.emptyProgress('mini'),{lessonId:l.id,lessonVersion:l.version,task:t,channel:'write_he',input:'תה',result:{kind:'accepted'},at:0}).progress);
+ e.opts.now=()=>25*60*60*1000;const r=e.mount();await r.home();click(e,'[data-course-return]');await tick();
+ input(e,'תה בלי סוכר');click(e,'[data-course-check]');
+ const a=e.store.load('mini').progress.attempts.at(-1);
+ assert.deepEqual(a.lexIds,[]);assert.deepEqual(a.taskSnapshot.evidenceLexIds,[]);r.destroy();
+});

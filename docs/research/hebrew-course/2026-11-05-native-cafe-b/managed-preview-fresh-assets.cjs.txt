@@ -1,0 +1,34 @@
+'use strict';
+// Test-only, path-isolated asset view. This does not edit production files,
+// browser security/settings, existing caches, or pre-existing learner data.
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'../..');
+const files=['public/library.html','public/js/course-reader.js','public/js/course-review.js','public/js/course-review-reader.js','public/js/library-ui.js','public/js/room-b6-core.js'];
+const tag='resume-20261106-02';
+const prefix='/__cafe_b_qa_'+tag;
+const original=http.Server.prototype.emit;
+http.Server.prototype.emit=function(event,...args){
+ if(event==='request'){
+  const [req,res]=args,url=new URL(req.url,'http://localhost');
+  if(url.pathname.startsWith(prefix+'/')){
+   if(url.pathname===prefix+'/manifest.json'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({tag,sourceHashes:Object.fromEntries(files.map(f=>[f,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,f))).digest('hex')]))}));return true;}
+   let pathname;try{pathname=decodeURIComponent(url.pathname.slice(prefix.length));}catch(_){res.writeHead(400);res.end();return true;}
+   const base=pathname.startsWith('/data/course/')?path.join(process.env.DATA_DIR,'course'):path.join(root,'public');
+   const relative=pathname.startsWith('/data/course/')?pathname.slice('/data/course/'.length):pathname.slice(1);
+   const file=path.resolve(base,relative);
+   if(!file.startsWith(base+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end();return true;}
+   let body=fs.readFileSync(file);const ext=path.extname(file),type={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.css':'text/css; charset=utf-8'}[ext];
+   if(ext==='.html')body=Buffer.from(body.toString('utf8').replace(/(src|href)=(['"])(\/[^'"]+)\2/g,(_m,a,q,p)=>a+'='+q+prefix+p+q));
+   if(ext==='.js'){
+    let text=body.toString('utf8');
+    // Isolate imported local modules too; leave APIs and application navigation untouched.
+    text=text.replace(/((?:from\s*|import\s*)['"])(\/(?:js|db)\/[^'"]+)(['"])/g,(_m,a,p,b)=>a+prefix+p+b);
+    if(pathname==='/js/course-reader.js')text=text.replace("opts.base||'/data/course'","opts.base||'"+prefix+"/data/course'");
+    body=Buffer.from(text);
+   }
+   res.writeHead(200,{'Content-Type':type||'application/octet-stream','Cache-Control':'no-store','X-Cafe-B-QA':tag});res.end(body);return true;
+  }
+ }
+ return original.call(this,event,...args);
+};
+console.log('CAFE_B_QA_PATH='+prefix+'/library.html#room=course%3Aulpan-cafe-b-pilot');

@@ -1,0 +1,28 @@
+'use strict';
+// Test-only builder. No server, deployment, owner data, or application edits.
+const fs = require('node:fs');
+const path = require('node:path');
+const [rootArg, outputArg, tag] = process.argv.slice(2);
+if (!rootArg || !outputArg || !/^[A-Za-z0-9_-]+$/.test(tag || '')) {
+  throw new Error('Usage: node builder.cjs <repository-root> <fresh-output> <unique-tag>');
+}
+const root = path.resolve(rootArg), out = path.resolve(outputArg);
+if (fs.existsSync(out)) throw new Error('Choose a fresh output directory');
+const templates = path.join(root, 'docs/research/hebrew-course/2026-11-05-native-cafe-b/delayed-browser/harness');
+const dist = path.join(out, 'dist', tag);
+fs.mkdirSync(path.join(dist, 'js'), { recursive: true });
+fs.mkdirSync(path.join(dist, 'css'));
+fs.mkdirSync(path.join(out, '.openai'));
+fs.writeFileSync(path.join(out, 'package.json'), JSON.stringify({ name: 'isolated-cafe-review-qa', private: true }));
+fs.writeFileSync(path.join(out, '.openai/hosting.json'), JSON.stringify({ static: { directory: 'dist' } }));
+for (const file of ['index.html', 'qa.js']) {
+  let body = fs.readFileSync(path.join(templates, file + '.txt'), 'utf8');
+  if (file === 'qa.js') body = body.replace('qa-cafe-delayed-20261106-independent-04', 'qa-cafe-delayed-' + tag);
+  fs.writeFileSync(path.join(dist, file), body);
+}
+for (const name of ['course-hebrew', 'course-checker', 'course-format', 'course-review', 'course-evidence', 'course-store', 'course-keyboard', 'course-audio', 'course-tasks', 'course-scene', 'course-media', 'course-review-reader', 'course-reader']) {
+  fs.copyFileSync(path.join(root, 'public/js', name + '.js'), path.join(dist, 'js', name + '.js'));
+}
+fs.copyFileSync(path.join(root, 'public/css/course-reader.css'), path.join(dist, 'css/course-reader.css'));
+require(path.join(root, 'scripts/course/build-course-data.cjs')).buildCourseData(path.join(root, 'content/course/ulpan-cafe-b-pilot'), path.join(dist, 'data/course'));
+console.log('Test path: /' + tag + '/index.html');

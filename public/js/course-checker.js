@@ -91,6 +91,17 @@
     if (!state.words.length) return result('empty', 'Введите ответ.');
     if (parsed.unknownTokens.length || (state.conflict && spec?.kind !== 'replacement')) return result('unknown', UNKNOWN);
     if (!spec) return result('unknown', UNKNOWN);
+    if (spec.requestOnly === true) {
+      // A bag of order slots does not establish an affirmative request. In this
+      // opt-in bounded mode, abstain on availability, questions about meaning,
+      // negated wishes, and other words not consumed by a slot or request frame.
+      // This is deliberately not a general Hebrew grammar or intent classifier.
+      const frame = new Set(['אפשר', 'בבקשה', 'אני', 'רוצה', 'כן', 'לא', 'שלום', 'תודה']);
+      const covered = new Set(occurrences.flatMap(o => Array.from({ length: o.end - o.start }, (_, i) => o.start + i)));
+      if (state.words.some((word, i) => !covered.has(i) && !frame.has(word)) ||
+          state.words.some((word, i) => word === 'לא' && (i === state.words.length - 1 || frame.has(state.words[i + 1]))))
+        return result('unknown', UNKNOWN);
+    }
     const slotById = id => lesson.slots.find(s => s.id === id);
     const label = (id, key) => slotById(id)?.values.find(v => v.key === key)?.label.ru || key;
     if (spec.kind === 'confirm') {

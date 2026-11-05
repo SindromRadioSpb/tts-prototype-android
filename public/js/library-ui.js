@@ -32,9 +32,9 @@ const localDb = new Proxy(localDbRaw, {
 });
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
-import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=860';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=861';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
-import * as roomB6 from '/js/room-b6-core.js?v=854';
+import * as roomB6 from '/js/room-b6-core.js?v=861';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -844,7 +844,8 @@ function roomApplyStateFields(state) {
     corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
   } else if (String(safe.corpus).startsWith('course:') && safe.surface !== 'hub') {
     corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
-    roomCourseAnchor = { lessonId: safe.anchor.lessonId || '', step: safe.anchor.step || 0 };
+    roomCourseAnchor = { lessonId: safe.anchor.lessonId || '', step: safe.anchor.step || 0,
+      ...(safe.anchor.reviewSessionId ? { reviewSessionId: safe.anchor.reviewSessionId, reviewRunId: safe.anchor.reviewRunId } : {}) };
     roomCoursePosition = { ...roomCourseAnchor };
   } else if (String(safe.corpus).startsWith('atlas:') && safe.surface !== 'hub') {
     // the atlas section and page come back from the address (acceptance UI01)
@@ -13211,7 +13212,12 @@ async function renderCourseCorpus(courseId, token) {
   const wrap = el('div', { class: 'corpus-view course-corpus' });
   wrap.appendChild(corpusSwitcherBar('course:' + courseId));
   const content = el('div'); wrap.appendChild(content); main.appendChild(wrap);
-  const anchor = roomCourseAnchor; roomCourseAnchor = null;
+  // A locale/other presentation repaint remounts the reader, but is not a
+  // navigation to its contents. History anchors (including an explicit list)
+  // take precedence; normal corpus navigation clears both fields. Never resume
+  // from persisted learner progress here: the visible list must stay a list.
+  const anchor = roomCourseAnchor || roomCoursePosition;
+  roomCourseAnchor = null;
   let initialized = false;
   const store = window.CourseStore.localStore(undefined, { userKey });
   let reader = null;
@@ -13229,13 +13235,17 @@ async function renderCourseCorpus(courseId, token) {
     onState: next => {
       if (token !== corpusRenderToken) return;
       const previous = roomCoursePosition;
-      roomCoursePosition = { lessonId: next.lessonId || '', step: Number(next.step) || 0 };
-      const mode = initialized && (previous?.lessonId || '') !== roomCoursePosition.lessonId ? 'push' : 'replace';
+      roomCoursePosition = { lessonId: next.lessonId || '', step: Number(next.step) || 0,
+        ...(next.reviewSessionId ? { reviewSessionId: next.reviewSessionId, reviewRunId: next.reviewRunId } : {}) };
+      const changed = (previous?.lessonId || '') !== roomCoursePosition.lessonId ||
+        (previous?.reviewSessionId || '') !== (roomCoursePosition.reviewSessionId || '');
+      const mode = initialized && changed ? 'push' : 'replace';
       initialized = true;
       roomCommitPresentation(mode, { anchor: roomCoursePosition });
     }
   });
   if (anchor?.lessonId) await reader.openLesson(anchor.lessonId, anchor.step);
+  else if (anchor?.reviewSessionId) await reader.openReview(anchor.reviewSessionId, anchor.reviewRunId);
   else await reader.home();
   if (token === corpusRenderToken) void sync.syncNow();
 }

@@ -5728,3 +5728,5 @@ Object.assign(window.I18N_LOCALES.ru.course,{scene:{"noAudio":"Запись не
 Object.assign(window.I18N_LOCALES.ru.course.role,{"learner":"Вы","barista":"Бариста","friend":"Подруга"});
 Object.assign(window.I18N_LOCALES.ru.course,{tiles:{"answer":"Ваша фраза","bank":"Слова","empty":"Касайтесь слов ниже"}});
 Object.assign(window.I18N_LOCALES.ru.course,{order:{card:"Заказ"}});
+
+window.I18N_LOCALES.ru.course.pilotCorpus = {"title": "Кафе B · текстовый пилот", "desc": "Отдельный экспериментальный курс: подготовка, кафе и повторы. Без аудио; прежний курс и прогресс сохранены."};
