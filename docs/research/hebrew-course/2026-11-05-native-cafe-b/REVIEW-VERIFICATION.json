@@ -1,0 +1,51 @@
+{
+  "status": "Local validation passed; browser scope tracked separately; not released",
+  "baseCommit": "d3ad49e427482a9f87bc51d6b0b12684ce8d452c",
+  "branch": "pilot/cafe-b",
+  "courseSuite": {
+    "command": "node scripts/course/course-cafe-b-gates.cjs",
+    "tests": 321,
+    "passed": 321,
+    "failed": 0,
+    "skipped": 0
+  },
+  "roomRouteSuite": {
+    "command": "node --test tests/roomB6ScaleResilience.test.js",
+    "tests": 11,
+    "passed": 11,
+    "failed": 0
+  },
+  "validator": {
+    "errors": 0,
+    "warnings": 23,
+    "warningCode": "REAPPEAR_PENDING"
+  },
+  "legacyCourseFilesByteIdentical": 24,
+  "fullReviewDOMPass": {
+    "sessions": 8,
+    "initialResponses": 123,
+    "repairResponses": 18,
+    "newLessonAttempts": 0
+  },
+  "scope": {
+    "browser": "Bounded actual Chromium smoke passed: O-145/O-146, R00, deferred keys/repair/resume; D07/D30 not executed. See resume-browser/RESULTS.md",
+    "physicalDevices": "not tested",
+    "audio": "not produced or checked",
+    "languageAcceptance": "not performed",
+    "cloudOwnerData": "not accessed",
+    "publication": false
+  },
+  "sourceSha256": {
+    "public/js/course-checker.js": "2d3fdd8d485bc8c0b0f639014b68cd7bd5f619a6aaedf50ac9dbe3ab210e3d08",
+    "public/js/course-evidence.js": "77b53f1f958b344970cd3074c7459a5fb8b8f61ce94b7513a8628c5c17613b2a",
+    "public/js/course-format.js": "ca258b30cdbad96d99b916208fb9b477e56ef584e6f7a9f5d0fd8eb1c3c2c576",
+    "public/js/course-reader.js": "63e63c4b63c0c3f34d86202d3312a8b01c85e8e0a01eb47e63cf40e4e3822c0a",
+    "public/js/course-store.js": "1580dfea94c0e5e3e115976341877e9f50f370698c39019667da76ccdcef402a",
+    "public/js/course-review.js": "d8552b8c45c9e72f605216aeb6516d7192e293f92955e547101d9c6716442653",
+    "public/js/course-review-reader.js": "86dba21afdb551ae4c1b0c599352a2c26f4537ec9c7645220063591f51982b4d",
+    "public/js/library-ui.js": "3fadb913bcf85036d5d122361629c70f6f3a46ddabbcad77c50f8417f3f49303",
+    "public/js/room-b6-core.js": "30b365e5c54e8b5116a8726872aee5598039e71ded6cced67b5c6c7bbb83de5b",
+    "public/library.html": "97256ec81ba262b8f33641eebbb377155f92f6c52c000867f8c18850c544632c",
+    "content/course/ulpan-cafe-b-pilot/course.json": "1d95218d0c7d80b3c9dd1595045d6e194ef71353ee0f6f30baa85ed4d50a542b"
+  }
+}

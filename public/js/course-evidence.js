@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
 
+  const R = typeof module !== 'undefined' && module.exports ? require('./course-review.js') : root.CourseReview;
   const has = (object, key) => Object.hasOwn(object, key);
   const set = (object, key, value) => Object.defineProperty(object, key, {
     value, enumerable: true, writable: true, configurable: true
@@ -55,7 +56,8 @@
       seen: mergeMap(a.seen, b.seen, Math.min),
       firstMet: mergeMap(a.firstMet, b.firstMet, Math.min),
       lessonVersions: mergeMap(a.lessonVersions, b.lessonVersions, Math.max),
-      ...(reader ? { reader: structuredClone(reader) } : {})
+      ...(reader ? { reader: structuredClone(reader) } : {}),
+      ...((has(a, 'reviewEvents') || has(b, 'reviewEvents')) ? { reviewEvents: R.mergeEvents(a.reviewEvents, b.reviewEvents) } : {})
     };
   }
 
@@ -70,6 +72,8 @@
     const semantic = { lessonId, taskId: task.id, spec: task.spec, model: task.model, variant };
     // Preserve legacy hashes when these optional UI definitions are absent.
     for (const key of ['options', 'correctOption', 'pairs', 'cue', 'audioTurnId', 'tiles', 'distractors', 'card', 'cardMedia']) if (has(task, key)) semantic[key] = task[key];
+    if (variant && has(variant, 'evidenceLexIds')) semantic.evidenceLexIds = variant.evidenceLexIds;
+    else if (has(task, 'evidenceLexIds')) semantic.evidenceLexIds = task.evidenceLexIds;
     const json = JSON.stringify(canonical(semantic));
     // FNV-1a over UTF-8 bytes, identically in Node and the browser.
     return fnv1a(json);
@@ -99,7 +103,7 @@
     const attempt = {
       id: newAttemptId(taskKey, channel, at, input), lessonId, lessonVersion, taskId: task.id,
       fp, baseFp: fingerprint(lessonId, baseTask || task), taskSnapshot: structuredClone(task),
-      ...(event.lesson ? { lexIds: touchedLexIds(event.lesson, task) } : {}),
+      ...(event.lesson ? { lexIds: touchedLexIds(event.lesson, task, variant) } : {}),
       ...(event.via === 'ai' ? { via: 'ai' } : {}), channel, input: String(input).slice(0, 300), kind: result.kind,
       aids: structuredClone(has(next.aids, taskKey) ? next.aids[taskKey] : emptyAids()), first, at
     };
@@ -125,7 +129,9 @@
     return attempt.first === true && unassisted && eligible ? 'independent' : 'supported';
   }
 
-  function touchedLexIds(lesson, task) {
+  function touchedLexIds(lesson, task, variant) {
+    if (variant && has(variant, 'evidenceLexIds')) return [...variant.evidenceLexIds];
+    if (has(task, 'evidenceLexIds')) return [...task.evidenceLexIds];
     const ids = new Set([...(lesson.introduces?.active || []), ...(lesson.introduces?.receptive || [])]);
     const spec = task.spec || {};
     // Only the required values are evidence, not all alternatives in a slot.

@@ -1,0 +1,18 @@
+'use strict';
+const path = require('node:path'), fs = require('node:fs');
+const root = path.resolve(__dirname, '../..');
+const { smokeServerEnv } = require(path.join(root, 'scripts/smoke-server-env'));
+const { buildCourseData } = require(path.join(root, 'scripts/course/build-course-data.cjs'));
+const args = process.argv.slice(2);
+const portIndex = args.indexOf('--port');
+const port = portIndex >= 0 ? args[portIndex + 1] : (process.env.PORT || '3000');
+const hostIndex = args.indexOf('--host');
+const host = hostIndex >= 0 && args[hostIndex + 1] && !args[hostIndex + 1].startsWith('--') ? args[hostIndex + 1] : '0.0.0.0';
+const data = fs.mkdtempSync(path.join(__dirname, 'data-'));
+for (const name of ['ulpan-cafe-b-pilot', 'ulpan']) buildCourseData(path.join(root, 'content/course', name), path.join(data, 'course'));
+const clean = { ...smokeServerEnv(data, port), BIND_HOST: host, TTS_ENABLED: 'false' };
+for (const name of Object.keys(process.env)) delete process.env[name];
+Object.assign(process.env, clean);
+require(path.join(root, 'node_modules/dotenv')).config = () => ({ parsed: {} });
+process.chdir(root);
+require(path.join(root, 'server.js'));

@@ -164,3 +164,19 @@ test('P8a: a text paragraph role must be a scene role', () => {
  l.text.paras[0].role = 'nobody';
  assert.ok(F.validateLesson(l, idx).some(i => i.code === 'REF_UNKNOWN' && i.path === 'text.paras[0].role'));
 });
+
+test('task, variant and step lexical scopes validate shape, duplicates and references',()=>{
+ for(const location of ['task','variant','step']){
+  const l=load('lessons/L001-cafe.json'),t=l.tasks[0];
+  t.variants=[{id:'v',prompt:t.prompt,spec:t.spec}];
+  l.flow=[{id:'part',title:{ru:'Часть'},steps:[{kind:'task',ref:t.id}]}];
+  const obj=location==='task'?t:location==='variant'?t.variants[0]:l.flow[0].steps[0];
+  const field=location==='step'?'metLexIds':'evidenceLexIds';
+  for(const valid of [[],[...idx.keys()].slice(0,2)]){
+   obj[field]=valid;assert.deepEqual(F.validateLesson(l,idx).filter(i=>i.level==='error'),[]);
+  }
+  for(const [value,code] of [[null,'FORMAT'],['tea','FORMAT'],[[12],'ID_BAD'],[['missing'],'REF_UNKNOWN'],[[...idx.keys()].slice(0,1).flatMap(x=>[x,x]),'ID_DUP']]){
+   obj[field]=value;assert.ok(F.validateLesson(l,idx).some(i=>i.code===code&&i.path.includes(field)),location+': '+code);
+  }
+ }
+});

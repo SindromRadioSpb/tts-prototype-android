@@ -11,6 +11,8 @@
   const TK=node?require('./course-tasks.js'):root.CourseTasks;
   const SC=node?require('./course-scene.js'):root.CourseScene;
   const MD=node?require('./course-media.js'):root.CourseMedia;
+  const RV=node?require('./course-review.js'):root.CourseReview;
+  const RR=node?require('./course-review-reader.js'):root.CourseReviewReader;
   const own=(o,k)=>Object.hasOwn(o,k);
   const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s);
   function factory(doc){
@@ -25,7 +27,7 @@
       const courseId=opts.courseId||'ulpan', store=opts.store||S.memoryStore(), fetcher=opts.fetch||root.fetch.bind(root);
       const loaded=store.load(courseId);
       let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,keyboardHandle=null,listeners=[],saveError=false,returnChoice=null;
-      let audioHost=null, audioRate=1, syncStatus=opts.sync?.status||'local_only';
+      let audioHost=null, audioRate=1, syncStatus=opts.sync?.status||'local_only', reviewHandle=null, reviewPosition=null;
       const overrideKey='course.'+courseId+'.niqqudOverride';
       let preferenceStorage,niqqudOverride='lesson';
       try{preferenceStorage=opts.storage||root.localStorage;const saved=preferenceStorage?.getItem(overrideKey);if(['lesson','always','never'].includes(saved))niqqudOverride=saved;}catch(_){}
@@ -79,6 +81,7 @@
         },text),'click',fn);
       }
       function clear(){
+        reviewHandle?.destroy();reviewHandle=null;reviewPosition=null;
         audioHost?.stop();
         keyboardHandle?.detach();
         keyboardHandle=null;
@@ -115,7 +118,8 @@
         const reader=progress.reader;
         progress=E.mergeProgress(progress,incoming);
         if(reader)progress.reader=reader;
-        if(!current)void home();
+        if(reviewHandle)reviewHandle.refresh();
+        else if(!current)void home();
       }
       const text=x=>typeof x==='string'?x:(x?.[opts.lang||doc.documentElement.lang]||x?.ru||'');
       const authoredAttrs=x=>{const requested=opts.lang||doc.documentElement.lang;const lang=x&&typeof x==='object'&&x[requested]?requested:'ru';return {lang,dir:lang==='he'?'rtl':'ltr'};};
@@ -194,6 +198,7 @@
         bundlePromise=(async()=>{
           const course=await json('course.json');
           if(!course||course.format!=='course-v1'||course.id!==courseId||!Array.isArray(course.lessons)||!course.lessons.every(idOk)||!idOk(course.lexicon)||!course.lexicon.endsWith('.json'))throw Error('invalid course');
+          if(course.reviewPlan!==undefined&&RV.validatePlan(course.reviewPlan,course).some(i=>i.level==='error'))throw Error('invalid review plan');
           const lexicon=await json(encodeURIComponent(course.lexicon));
           if(F.validateLexicon(lexicon).some(i=>i.level==='error'))throw Error('invalid lexicon');
           const lexIndex=new Map(lexicon.entries.flatMap(e=>[[e.id,e],...(e.forms||[]).map(f=>[f.id,f])]));
@@ -237,7 +242,7 @@
           lessonId:current.id,step
         }
         :{
-          lessonId:'',step:0
+          lessonId:'',step:0,...(reviewPosition||{})
         });
       }
       function home(){
@@ -263,7 +268,12 @@
             list.append(btn);
           }
           container.append(list);
-          const due=E.dueReturns(progress,b.lessons,now());
+          if(b.course.reviewPlan){
+            const anchored=RV.ensureAnchor(progress,b.course.reviewPlan);
+            if(anchored!==progress){progress=anchored;if(persist())opts.sync?.schedule();}
+            mountReview(b.course.reviewPlan);
+          }
+          const due=b.course.reviewPlan?[]:E.dueReturns(progress,b.lessons,now());
           if(due.length){
             const returns=el('section',{'data-course-returns':''});
             returns.append(el('h3',{},T('return.title','Вернуться')));
@@ -282,6 +292,32 @@
             container.append(returns);
           }
           notify();
+        });
+      }
+      function mountReview(plan,sessionId,runId){
+        const slot=el('section',{'data-course-review':''});container.append(slot);
+        reviewHandle=RR.mount(slot,{
+          plan,sessionId,runId,now,T:opts.T,lang:opts.lang,getProgress:()=>progress,persist,
+          onHome:()=>home(),
+          onState:state=>{reviewPosition=state;notify();},
+          transact(fn){
+            // Merge before validation: a late action must see a completed run or anchor conflict.
+            const localReader=progress.reader;
+            progress=E.mergeProgress(progress,store.load(courseId).progress);
+            if(localReader)progress.reader=localReader;
+            const before=structuredClone(progress);
+            try{progress=fn(progress);}catch(error){progress=before;throw error;}
+            if(!persist()){progress=before;return false;}
+            opts.sync?.schedule();return true;
+          }
+        });
+      }
+      function openReview(sessionId,runId){
+        audioHost?.stop();audioHost=null;
+        return run(b=>{
+          if(!b.course.reviewPlan)return;
+          current=null;shell(text(b.course.title),authoredAttrs(b.course.title));
+          mountReview(b.course.reviewPlan,sessionId,runId);notify();
         });
       }
       function openLesson(id,wantedStep,returnVariant=null){
@@ -317,7 +353,8 @@
             }
           }
           for(const change of migration.changes)if(change.change!=='unchanged'&&progress.reader?.tasks)delete progress.reader.tasks[l.id+'/'+change.taskId];
-          progress=E.markMet(progress,[...l.introduces.active,...l.introduces.receptive],now());
+          if(!flatSteps(l)?.some(st=>own(st,'metLexIds')))
+            progress=E.markMet(progress,[...l.introduces.active,...l.introduces.receptive],now());
           const state=readerState();
           const saved=state.position;
           step=Number.isInteger(wantedStep)?wantedStep:(saved?.lessonId===id?Number(saved.step)||0:0);
@@ -438,7 +475,7 @@
         container.append(body);
         const baseTask=activeTask();
         const variant=baseTask&&returnChoice?.taskId===baseTask.id?baseTask.variants?.find(v=>v.id===returnChoice.variantId):null;
-        const task=variant?{...baseTask,prompt:variant.prompt,spec:variant.spec,...(variant.model?{model:variant.model}:{}),...(variant.card?{card:variant.card}:{}),...(variant.cardMedia?{cardMedia:variant.cardMedia}:{})}:baseTask;
+        const task=variant?{...baseTask,prompt:variant.prompt,spec:variant.spec,...(variant.model?{model:variant.model}:{}),...(variant.card?{card:variant.card}:{}),...(variant.cardMedia?{cardMedia:variant.cardMedia}:{}),...(own(variant,'evidenceLexIds')?{evidenceLexIds:variant.evidenceLexIds}:{})}:baseTask;
         if(here?.kind==='summary')renderSummary(body);
         else if(here?.kind==='grammar')renderGrammarStep(body,here.ref);
         else if(here?.kind==='scene'){
@@ -486,6 +523,10 @@
         if(task)next.disabled=!canContinue(task);
         nav.append(back,el('span',{},T('step','Шаг {n} из {total}').replace('{n}',step+1).replace('{total}',totalSteps())),next);
         container.append(nav);
+        if(here&&own(here,'metLexIds')){
+          progress=E.markMet(progress,here.metLexIds,now());
+          persist();
+        }
         if(opts.onWords)wordHandle=opts.onWords(body,current)||null;
         notify();
       }
@@ -560,6 +601,7 @@
           baseTask:current.tasks.find(t=>t.id===task.id),variant,channel,input,result,at:now()
         });
         progress=r.progress;
+        if(bundle?.course.reviewPlan)progress=RV.ensureAnchor(progress,bundle.course.reviewPlan);
         if(persist()&&!r.duplicate)opts.sync?.schedule();
         return r.attempt;
       }
@@ -728,7 +770,7 @@
         container.classList.remove('course-reader');
       }
       return {
-        home,openLesson,destroy,setSyncStatus,applyProgress
+        home,openLesson,openReview,destroy,setSyncStatus,applyProgress
       };
     }
     return {

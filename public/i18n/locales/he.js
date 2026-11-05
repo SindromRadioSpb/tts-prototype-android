@@ -5722,3 +5722,5 @@ Object.assign(window.I18N_LOCALES.he.course,{scene:{"noAudio":"ההקלטה לא
 Object.assign(window.I18N_LOCALES.he.course.role,{"learner":"את/ה","barista":"בריסטה","friend":"חברה"});
 Object.assign(window.I18N_LOCALES.he.course,{tiles:{"answer":"המשפט שלכם","bank":"מילים","empty":"הקישו על המילים למטה"}});
 Object.assign(window.I18N_LOCALES.he.course,{order:{card:"הזמנה"}});
+
+window.I18N_LOCALES.he.course.pilotCorpus = {"title": "בית קפה B · פיילוט טקסטואלי", "desc": "קורס ניסיוני נפרד: הכנה, בית קפה וחזרות. ללא שמע; הקורס הקיים וההתקדמות נשמרים."};

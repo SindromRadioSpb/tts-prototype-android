@@ -200,6 +200,12 @@ export function sanitizePresentationState(input = {}) {
   if (isCourse(corpus)) {
     state.anchor.lessonId = cleanLessonId(anchorIn.lessonId);
     state.anchor.step = state.anchor.lessonId ? cleanCourseStep(anchorIn.step) : 0;
+    const reviewSessionId = !state.anchor.lessonId && cleanLessonId(anchorIn.reviewSessionId);
+    if (reviewSessionId) {
+      state.anchor.reviewSessionId = reviewSessionId;
+      const runId = cleanLessonId(anchorIn.reviewRunId);
+      if (runId) state.anchor.reviewRunId = runId;
+    }
   }
   if (isAtlas(corpus) && typeof anchorIn.query === 'string' && anchorIn.query.trim()) {
     state.anchor.query = boundedString(anchorIn.query, 2000);
@@ -269,7 +275,7 @@ export function presentationStateFromHash(hash) {
   else if (route === 'benyehuda' || isPublicCorpus(route)) input = { surface: 'corpus', corpus: route };
   else if (cleanCorpus(route).startsWith('group:')) input = { surface: 'group', corpus: route }; // v1 decode only
   else if (isCourse(route)) {
-    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { lessonId: params.get('les'), step: params.get('st') } });
+    return sanitizePresentationState({ surface: 'corpus', corpus: route, anchor: { lessonId: params.get('les'), step: params.get('st'), reviewSessionId: params.get('rev'), reviewRunId: params.get('run') } });
   }
   else if (isAtlas(route)) {
     const section = cleanFacetId(params.get('sec'));
@@ -339,6 +345,10 @@ function publicPresentationHash(state, sharedQuery) {
   if (isCourse(route) && state.anchor.lessonId) {
     params.set('les', state.anchor.lessonId);
     params.set('st', String(state.anchor.step));
+  }
+  if (isCourse(route) && state.anchor.reviewSessionId) {
+    params.set('rev', state.anchor.reviewSessionId);
+    if (state.anchor.reviewRunId) params.set('run', state.anchor.reviewRunId);
   }
   if (isAtlas(route) && state.anchor.itemId && cleanFacetId(state.anchor.itemId)) {
     params.set('sec', state.anchor.itemId);

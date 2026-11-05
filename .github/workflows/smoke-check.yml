@@ -118,3 +118,36 @@ jobs:
         run: |
           node scripts/premium/word-layer-priority-smoke.cjs --rows=250 --expect-priority
           node scripts/premium/word-layer-priority-smoke.cjs --surface=room --shape=paragraphs --expect-priority
+
+  cafe-b-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci --no-audit --no-fund
+      - name: Native course, review and legacy isolation contracts
+        run: node scripts/course/course-cafe-b-gates.cjs
+      - name: Install fixture browser
+        timeout-minutes: 4
+        run: |
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g;s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+          fi
+          npx playwright install --with-deps chromium
+      - name: Separate text pilot at narrow and desktop widths
+        # Disposable anonymous profile/server; external requests are blocked.
+        run: node scripts/course/course-cafe-b-smoke.cjs
+      - name: Retain isolated course browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cafe-b-browser-evidence
+          path: |
+            .tmp/cafe-b-browser/report.json
+            .tmp/cafe-b-browser/*.png
+          if-no-files-found: ignore
+          retention-days: 7

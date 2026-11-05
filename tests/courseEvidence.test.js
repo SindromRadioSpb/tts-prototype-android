@@ -265,3 +265,25 @@ test('P8a: skillSummary reports the weakest accepted level per skill and not_yet
   assert.equal(s[0].label.ru, 'Сами');
   assert.deepEqual(E.skillSummary(p, { ...l, skills: undefined }), []);
 });
+
+test('explicit lexical evidence replaces introductions and slot inference, including empty variant override', () => {
+  const lesson={introduces:{active:['tea','coffee'],receptive:['milk']},slots:[]};
+  const scoped={...task,evidenceLexIds:['tea']};
+  assert.deepEqual(E.touchedLexIds(lesson,scoped),['tea']);
+  assert.deepEqual(E.touchedLexIds(lesson,scoped,{evidenceLexIds:[]}),[]);
+  assert.deepEqual(E.touchedLexIds(lesson,{...scoped,evidenceLexIds:[]}),[]);
+  const p=E.record(E.emptyProgress('mini'),{...base,task:scoped,lesson,at:1}).progress;
+  assert.equal(E.itemStatus(p,'tea',[]).produced,true);
+  assert.equal(E.itemStatus(p,'coffee',[]).produced,false);
+  assert.notEqual(E.fingerprint('L001',task),E.fingerprint('L001',scoped));
+  assert.notEqual(E.fingerprint('L001',scoped),E.fingerprint('L001',{...scoped,evidenceLexIds:[]}));
+});
+
+test('optional evidence extension leaves legacy fixture fingerprints byte-identical',()=>{
+  const fs=require('node:fs'),path=require('node:path');
+  const expected={'L001-cafe':['187185cf','3fee8117','bfef9dc0','e70c3301','3c17690e','2618960a','a17d5663'],'L002-cafe-again':['769d7a80']};
+  for(const [id,hashes] of Object.entries(expected)){
+    const l=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/course/mini/lessons',id+'.json')));
+    assert.deepEqual(l.tasks.map(t=>E.fingerprint(id,t)),hashes);
+  }
+});

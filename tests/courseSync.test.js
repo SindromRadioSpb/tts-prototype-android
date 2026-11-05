@@ -94,3 +94,15 @@ test('server account mismatch between identity and GET cannot merge foreign prog
  assert.equal(header,'u1');
  assert.deepEqual(store.load('ulpan').progress.attempts.map(a=>a.id),['a']);
 });
+
+test('review event logs converge across offline devices without choosing an anchor silently', async()=>{
+  const R=require('../public/js/course-review');
+  const plan={id:'B-plan',version:1,anchorLessonId:'L001',sessions:[]};
+  const server=fakeServer(),a=S.memoryStore(),b=S.memoryStore();
+  a.save(R.ensureAnchor(progress([['a',1000]]),plan));b.save(R.ensureAnchor(progress([['b',2000]]),plan));
+  const options={courseId:'ulpan',me:{user:{id:'u1'},csrf:'token'},consent:true,fetch:server.fetch};
+  for(const store of [a,b,a]){const sync=Sync.create({...options,store});assert.equal(await sync.syncNow(),'synced');sync.dispose();}
+  assert.deepEqual(a.load('ulpan').progress,b.load('ulpan').progress);
+  assert.equal(R.summary(a.load('ulpan').progress,plan).conflict,true);
+  assert.equal(server.remote.reviewEvents.length,2);
+});

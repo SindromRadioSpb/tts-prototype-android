@@ -5713,3 +5713,5 @@ Object.assign(window.I18N_LOCALES.en.course,{scene:{"noAudio":"Recording unavail
 Object.assign(window.I18N_LOCALES.en.course.role,{"learner":"You","barista":"Barista","friend":"Friend"});
 Object.assign(window.I18N_LOCALES.en.course,{tiles:{"answer":"Your phrase","bank":"Words","empty":"Tap the words below"}});
 Object.assign(window.I18N_LOCALES.en.course,{order:{card:"Order"}});
+
+window.I18N_LOCALES.en.course.pilotCorpus = {"title": "Café B · text pilot", "desc": "Separate experimental course: foundations, café and reviews. No audio; the existing course and progress stay unchanged."};
