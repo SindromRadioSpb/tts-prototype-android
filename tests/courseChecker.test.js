@@ -21,6 +21,12 @@ test('confirm mismatch names slot and rejects other contradictory details', () =
  const t=structuredClone(task('19d')); t.spec.card.size='big'; t.spec.claim.size='big';
  assert.equal(C.assess('בלי חלב קטן',t,lesson,index).kind,'mismatch');
 });
+test('confirm cannot verify claims whose slot domain differs from the card', () => {
+ const t=structuredClone(task('19d-ok')); t.spec.claim.drink='coffee';
+ assert.equal(C.assess('כן',t,lesson,index).kind,'unknown');
+ delete t.spec.claim.drink; t.spec.card.drink='coffee';
+ assert.equal(C.assess('כן',t,lesson,index).kind,'unknown');
+});
 const cases = [
 ['6','אפשר תה בלי סוכר, בבקשה?','accepted'],
 ['6','תֵּה בְּלִי סֻכָּר, בְּבַקָּשָׁה','accepted'],

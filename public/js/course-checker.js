@@ -89,6 +89,9 @@
     const slotById = id => lesson.slots.find(s => s.id === id);
     const label = (id, key) => slotById(id)?.values.find(v => v.key === key)?.label.ru || key;
     if (spec.kind === 'confirm') {
+      // A missing card value gives no evidence to verify that part of a claim.
+      const cardIds = Object.keys(spec.card), claimIds = Object.keys(spec.claim);
+      if (cardIds.length !== claimIds.length || cardIds.some(id => !Object.hasOwn(spec.claim, id))) return result('unknown', UNKNOWN);
       const different = Object.keys(spec.card).filter(id => spec.card[id] !== spec.claim[id]);
       const agrees = words[0] !== 'לא' && ['כן', 'בסדר', 'תודה', 'כן תודה'].includes(state.words.join(' '));
       if (agrees) {
