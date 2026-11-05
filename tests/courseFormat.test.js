@@ -34,3 +34,10 @@ test('spec kinds require their structural fields', () => {
  const l=load('lessons/L001-cafe.json');l.tasks[0].spec={kind:'repeat'};
  assert.deepEqual(F.validateLesson(l,idx).filter(i=>i.level==='error'),[]);
 });
+
+test('prototype names are invalid spec kinds without throwing', () => {
+ for(const kind of ['constructor','toString','__proto__']) {
+  const l=load('lessons/L001-cafe.json');l.tasks[0].spec={kind};
+  assert.ok(F.validateLesson(l,idx).some(i=>i.code==='FORMAT' && i.path==='tasks[0].spec.kind'));
+ }
+});

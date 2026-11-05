@@ -159,7 +159,7 @@
           order: ['expect', 'require'], short: ['expect', 'require'],
           confirm: ['card', 'claim'], replacement: ['next', 'prev', 'via'], repeat: []
         };
-        for (const field of requiredByKind[s.kind] || []) {
+        for (const field of Object.hasOwn(requiredByKind, s.kind) ? requiredByKind[s.kind] : []) {
           v.shape(s[field] !== undefined, p + '.spec.' + field, 'Обязательное поле спецификации.');
         }
         for(const name of ['expect','card','claim','next','prev'])if(s[name]!==undefined&&v.shape(object(s[name]),p+'.spec.'+name,'Ожидаются значения слотов.'))for(const [k,val] of Object.entries(s[name])){
