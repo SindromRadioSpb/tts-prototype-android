@@ -26,6 +26,7 @@
         Number.isInteger(a.lessonVersion) && a.lessonVersion >= 1 &&
         channels.includes(a.channel) && kinds.includes(a.kind) && aidsValid(a.aids) &&
         typeof a.first === 'boolean' && finite(a.at) &&
+        (!Object.hasOwn(a, 'lexIds') || (Array.isArray(a.lexIds) && a.lexIds.every(text))) &&
         (a.baseFp === undefined || fingerprintValid(a.baseFp)) &&
         (a.taskSnapshot === undefined || (snapshotValid(a.taskSnapshot) && a.taskSnapshot.id === a.taskId)) &&
         (a.via === undefined || a.via === 'ai')) &&

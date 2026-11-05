@@ -103,9 +103,9 @@ test('lesson skill uses latest result, aid snapshots, all transfer tasks and cur
  p=answer(p,l,{at:3000,result:{kind:'mismatch'}}); assert.equal(E.lessonSkill(p,l),'needs_review');
  const independent=answer(E.emptyProgress('ulpan'),l); assert.equal(E.lessonSkill(independent,l),'independent');
  const revised=structuredClone(l); revised.tasks[0].model.plain='קפה';
- assert.equal(E.lessonSkill(independent,revised),'not_started');
+ assert.equal(E.lessonSkill(independent,revised),'in_progress');
  assert.equal(E.itemStatus(independent,'lx.tea',[revised]).produced,true);
- assert.equal(E.lessonSkill(independent,{...l,tasks:[]}),'not_started');
+ assert.equal(E.lessonSkill(independent,{...l,tasks:[]}),'in_progress');
 });
 test('counts separate introduced, recognized, production and applied with literal expectations',()=>{
  const l={id:'counts',version:1,introduces:{active:['lx.tea'],receptive:[]},slots:[],tasks:[{id:'one',transfer:true}]};
@@ -125,7 +125,7 @@ test('required slot mappings count only expected values, not every value in slot
 
 test('lesson skill waits for all transfers and ignores non-transfer attempts',()=>{
  const l=transferLesson(); l.tasks.push({...structuredClone(l.tasks[0]),id:'second'});
- let p=answer(E.emptyProgress('ulpan'),l); assert.equal(E.lessonSkill(p,l),'not_started');
+ let p=answer(E.emptyProgress('ulpan'),l); assert.equal(E.lessonSkill(p,l),'in_progress');
  p=answer(p,l,{task:l.tasks[1],at:3000}); assert.equal(E.lessonSkill(p,l),'independent');
  p=answer(p,l,{task:{id:'practice'},result:{kind:'mismatch'},at:4000}); assert.equal(E.lessonSkill(p,l),'independent');
 });
@@ -149,7 +149,7 @@ test('migration changes model without erasing historical item evidence',()=>{
  assert.deepEqual(p,before); assert.deepEqual(r.progress.attempts,p.attempts);
  assert.equal(Object.hasOwn(r.progress.aids,l.id+'/'+l.tasks[0].id),false);
  assert.equal(E.itemStatus(r.progress,'lx.tea',[revised]).produced,true);
- assert.equal(E.lessonSkill(r.progress,revised),'not_started');
+ assert.equal(E.lessonSkill(r.progress,revised),'in_progress');
  const next=answer(r.progress,revised,{at:3000});
  assert.equal(next.attempts.at(-1).first,true);
  assert.equal(E.attemptLevel(next.attempts.at(-1)),'independent');
@@ -179,4 +179,33 @@ test('variant is unchanged on version bump; revert never fabricates unseen evide
  original=answer(E.migrate(original,changed).progress,changed,{at:3000});
  const reverted={...l,version:3}; const back=E.migrate(original,reverted);
  assert.equal(answer(back.progress,reverted,{at:5000}).attempts.at(-1).first,false);
+});
+
+test('P2-F1: ordinary and partial transfer work is in progress', () => {
+ const l={id:'L001',tasks:[{id:'practice'}, {id:'a',transfer:true}, {id:'b',transfer:true}]};
+ assert.equal(E.lessonSkill(E.emptyProgress('ulpan'),l),'not_started');
+ const ordinary=E.record(E.emptyProgress('ulpan'),{...base,task:l.tasks[0],at:0}).progress;
+ assert.equal(E.lessonSkill(ordinary,l),'in_progress');
+ const partial=E.record(E.emptyProgress('ulpan'),{...base,task:l.tasks[1],at:0}).progress;
+ assert.equal(E.lessonSkill(partial,l),'in_progress');
+});
+test('P2-F2: recorded lexical attribution survives lesson edits and omission', () => {
+ const t={id:'6',transfer:true,spec:{kind:'order',require:['drink'],expect:{drink:'tea'}}};
+ const l={id:'L001',tasks:[t],introduces:{active:[],receptive:[]},slots:[{id:'drink',values:[{key:'tea',seq:['lx.tea']}]}]};
+ const r=E.record(E.markMet(E.emptyProgress('ulpan'),['lx.tea'],0),{...base,task:t,lesson:l,at:E.BREAK_MS});
+ assert.deepEqual(E.touchedLexIds(l,t),['lx.tea']);
+ assert.deepEqual(r.attempt.lexIds,['lx.tea']);
+ const revised=structuredClone(l); revised.slots[0].values[0].seq=['lx.coffee'];
+ for(const lessons of [[revised],[]]) {
+  assert.equal(E.itemStatus(r.progress,'lx.tea',lessons).produced,true);
+  assert.equal(E.itemStatus(r.progress,'lx.tea',lessons).appliedAfterBreak,true);
+  assert.equal(E.itemStatus(r.progress,'lx.coffee',lessons).produced,false);
+  assert.equal(E.courseCounts(r.progress,{entries:[{id:'lx.tea'}]},lessons).produced,1);
+ }
+ r.attempt.lexIds.push('lx.other'); l.slots[0].values[0].seq.push('lx.other');
+ assert.deepEqual(r.progress.attempts[0].lexIds,['lx.tea']);
+ const empty=structuredClone(r.progress); empty.attempts[0].lexIds=[];
+ assert.equal(E.itemStatus(empty,'lx.tea',[l]).produced,false);
+ const legacy=structuredClone(r.progress); delete legacy.attempts[0].lexIds;
+ assert.equal(E.itemStatus(legacy,'lx.coffee',[revised]).produced,true);
 });

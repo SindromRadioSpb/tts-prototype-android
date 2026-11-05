@@ -53,6 +53,7 @@
     const attempt = {
       id: `${taskKey}/${at}/${next.attempts.length}`, lessonId, lessonVersion, taskId: task.id,
       fp, baseFp: fingerprint(lessonId, task), taskSnapshot: structuredClone(task),
+      ...(event.lesson ? { lexIds: touchedLexIds(event.lesson, task) } : {}),
       ...(event.via === 'ai' ? { via: 'ai' } : {}), channel, input, kind: result.kind,
       aids: structuredClone(has(next.aids, taskKey) ? next.aids[taskKey] : emptyAids()), first, at
     };
@@ -78,7 +79,7 @@
     return attempt.first === true && unassisted && eligible ? 'independent' : 'supported';
   }
 
-  function affectedIds(task, lesson) {
+  function touchedLexIds(lesson, task) {
     const ids = new Set([...(lesson.introduces?.active || []), ...(lesson.introduces?.receptive || [])]);
     const spec = task.spec || {};
     // Only the required values are evidence, not all alternatives in a slot.
@@ -89,20 +90,20 @@
       const slot = (lesson.slots || []).find(s => s.id === slotId);
       for (const value of slot?.values || []) if (value.key === key) for (const id of value.seq) ids.add(id);
     }
-    return ids;
+    return [...ids];
   }
 
   function itemStatus(progress, lexId, lessons) {
     const status = { introduced: has(progress.firstMet, lexId), readOk: false, listenOk: false, produced: false, appliedAfterBreak: false };
     for (const attempt of progress.attempts) {
       const lesson = lessons.find(l => l.id === attempt.lessonId);
-      if (!lesson) continue;
-      const task = attempt.taskSnapshot || lesson.tasks.find(t => t.id === attempt.taskId);
-      if (!task || !affectedIds(task, lesson).has(lexId) || attemptLevel(attempt) !== 'independent') continue;
+      const task = attempt.taskSnapshot || lesson?.tasks.find(t => t.id === attempt.taskId);
+      const ids = has(attempt, 'lexIds') ? attempt.lexIds : (task && lesson ? touchedLexIds(lesson, task) : []);
+      if (!ids.includes(lexId) || attemptLevel(attempt) !== 'independent') continue;
       if (attempt.channel === 'read') status.readOk = true;
       if (attempt.channel === 'listen') status.listenOk = true;
       if (['write_he', 'speech'].includes(attempt.channel) || (attempt.channel === 'ai' && attempt.via === 'ai')) status.produced = true;
-      if (task.transfer === true && status.introduced && Number.isFinite(attempt.at) &&
+      if (task?.transfer === true && status.introduced && Number.isFinite(attempt.at) &&
           Number.isFinite(progress.firstMet[lexId]) && attempt.at - progress.firstMet[lexId] >= BREAK_MS) status.appliedAfterBreak = true;
     }
     return status;
@@ -110,12 +111,13 @@
 
   function lessonSkill(progress, lesson) {
     const tasks = lesson.tasks.filter(t => t.transfer === true);
-    if (!tasks.length) return 'not_started';
+    const started = progress.attempts.some(a => a.lessonId === lesson.id);
+    if (!started) return 'not_started';
+    if (!tasks.length) return 'in_progress';
     const latest = tasks.map(task => progress.attempts.findLast(a => a.lessonId === lesson.id && a.taskId === task.id &&
       (a.baseFp || a.fp) === fingerprint(lesson.id, task)));
-    if (latest.every(a => !a)) return 'not_started';
     if (latest.some(a => a && a.kind !== 'accepted')) return 'needs_review';
-    if (latest.some(a => !a)) return 'not_started';
+    if (latest.some(a => !a)) return 'in_progress';
     return latest.every(a => attemptLevel(a) === 'independent') ? 'independent' : 'supported';
   }
 
@@ -154,7 +156,7 @@
     return { progress: next, changes };
   }
 
-  const api = { emptyProgress, fingerprint, openAid, record, BREAK_MS, markMet, attemptLevel, itemStatus, lessonSkill, courseCounts, migrate };
+  const api = { emptyProgress, fingerprint, openAid, record, BREAK_MS, markMet, attemptLevel, touchedLexIds, itemStatus, lessonSkill, courseCounts, migrate };
   root.CourseEvidence = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

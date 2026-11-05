@@ -74,3 +74,15 @@ test('malformed nested task snapshot resets before evidence functions can consum
  assert.ok([...storage.data].some(([k,v])=>k.startsWith(key+':corrupt:')&&v===raw));
  }
 });
+
+test('P2-F2: lexical snapshot round trips and malformed snapshots reset',()=>{
+ const p=progress(); p.attempts[0].lexIds=['lx.tea'];
+ const storage=fake(), store=S.localStore(storage);
+ assert.deepEqual(store.save(p),{ok:true});
+ assert.deepEqual(store.load('ulpan').progress.attempts[0].lexIds,['lx.tea']);
+ for(const invalid of [null,'lx.tea',[42]]) {
+  const bad=structuredClone(p); bad.attempts[0].lexIds=invalid;
+  storage.data.set(key,JSON.stringify(bad));
+  assert.equal(store.load('ulpan').notice,'reset_corrupt');
+ }
+});
