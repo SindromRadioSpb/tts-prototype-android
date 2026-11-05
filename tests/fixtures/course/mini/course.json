@@ -1,0 +1,14 @@
+{
+  "format": "course-v1",
+  "id": "mini",
+  "version": 1,
+  "title": {
+    "ru": "Мини-курс"
+  },
+  "lexicon": "lexicon.json",
+  "lessons": [
+    "L001-cafe",
+    "L002-cafe-again"
+  ],
+  "preknown": []
+}

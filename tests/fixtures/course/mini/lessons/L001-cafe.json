@@ -1,0 +1,529 @@
+{
+  "format": "course-lesson-v1",
+  "id": "L001-cafe",
+  "version": 1,
+  "title": {
+    "ru": "Кафе"
+  },
+  "goal": {
+    "ru": "Заказать напиток и уточнить детали."
+  },
+  "introduces": {
+    "active": [
+      "lx.coffee",
+      "lx.tea",
+      "lx.bli",
+      "lx.chalav",
+      "lx.sugar"
+    ],
+    "receptive": [
+      "lx.shalom",
+      "lx.efshar",
+      "lx.water",
+      "lx.bevakasha",
+      "lx.small",
+      "lx.small-f",
+      "lx.big",
+      "lx.big-f",
+      "lx.or",
+      "lx.lashevet",
+      "lx.lakachat",
+      "lx.po-here",
+      "lx.pe-mouth",
+      "lx.ken",
+      "lx.toda",
+      "lx.im",
+      "lx.slicha",
+      "lx.shuv",
+      "lx.od",
+      "lx.paam",
+      "lx.ma",
+      "lx.lo",
+      "lx.hevanti",
+      "lx.lachzor",
+      "lx.bimkom",
+      "lx.beseder"
+    ]
+  },
+  "reviews": [],
+  "frame": [
+    "lx.efshar",
+    "lx.bevakasha",
+    "lx.slicha",
+    "lx.ken",
+    "lx.toda",
+    "lx.beseder",
+    "lx.lo"
+  ],
+  "slots": [
+    {
+      "id": "drink",
+      "label": {
+        "ru": "напиток"
+      },
+      "head": true,
+      "values": [
+        {
+          "key": "coffee",
+          "label": {
+            "ru": "кофе"
+          },
+          "seq": [
+            "lx.coffee"
+          ]
+        },
+        {
+          "key": "tea",
+          "label": {
+            "ru": "чай"
+          },
+          "seq": [
+            "lx.tea"
+          ]
+        },
+        {
+          "key": "water",
+          "label": {
+            "ru": "вода"
+          },
+          "seq": [
+            "lx.water"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "size",
+      "label": {
+        "ru": "размер"
+      },
+      "values": [
+        {
+          "key": "big",
+          "label": {
+            "ru": "большой"
+          },
+          "seq": [
+            "lx.big"
+          ]
+        },
+        {
+          "key": "big",
+          "label": {
+            "ru": "большой"
+          },
+          "seq": [
+            "lx.big-f"
+          ]
+        },
+        {
+          "key": "small",
+          "label": {
+            "ru": "маленький"
+          },
+          "seq": [
+            "lx.small"
+          ]
+        },
+        {
+          "key": "small",
+          "label": {
+            "ru": "маленький"
+          },
+          "seq": [
+            "lx.small-f"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "milk",
+      "label": {
+        "ru": "молоко"
+      },
+      "values": [
+        {
+          "key": "with",
+          "label": {
+            "ru": "с молоком"
+          },
+          "seq": [
+            "lx.im",
+            "lx.chalav"
+          ]
+        },
+        {
+          "key": "without",
+          "label": {
+            "ru": "без молока"
+          },
+          "seq": [
+            "lx.bli",
+            "lx.chalav"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sugar",
+      "label": {
+        "ru": "сахар"
+      },
+      "values": [
+        {
+          "key": "with",
+          "label": {
+            "ru": "с сахаром"
+          },
+          "seq": [
+            "lx.im",
+            "lx.sugar"
+          ]
+        },
+        {
+          "key": "without",
+          "label": {
+            "ru": "без сахара"
+          },
+          "seq": [
+            "lx.bli",
+            "lx.sugar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "label": {
+        "ru": "здесь или с собой"
+      },
+      "values": [
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.lashevet"
+          ]
+        },
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.po-here"
+          ]
+        },
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.lashevet",
+            "lx.po-here"
+          ]
+        },
+        {
+          "key": "takeaway",
+          "label": {
+            "ru": "с собой"
+          },
+          "seq": [
+            "lx.lakachat"
+          ]
+        }
+      ]
+    }
+  ],
+  "orderRules": [
+    {
+      "head": "drink",
+      "dependent": "size",
+      "message": {
+        "ru": "Размер следует сразу после напитка и согласуется с ним."
+      }
+    }
+  ],
+  "repeatForms": [
+    [
+      "lx.slicha",
+      "lx.efshar",
+      "lx.shuv"
+    ],
+    [
+      "lx.shuv"
+    ],
+    [
+      "lx.od",
+      "lx.paam"
+    ],
+    [
+      "lx.ma"
+    ],
+    [
+      "lx.lo",
+      "lx.hevanti"
+    ],
+    [
+      "lx.efshar",
+      "lx.lachzor"
+    ]
+  ],
+  "scene": {
+    "id": "cafe-scene",
+    "roles": [
+      {
+        "id": "staff",
+        "voice": "he-IL-Wavenet-C"
+      },
+      {
+        "id": "customer",
+        "voice": "he-IL-Wavenet-D"
+      }
+    ],
+    "turns": [
+      {
+        "id": "a1-01",
+        "role": "staff",
+        "he": {
+          "niqqud": "שָׁלוֹם.",
+          "plain": "שלום."
+        },
+        "ru": {
+          "ru": "Здравствуйте."
+        },
+        "next": "a1-02"
+      },
+      {
+        "id": "a1-02",
+        "role": "customer",
+        "he": {
+          "niqqud": "שָׁלוֹם. אֶפְשָׁר קָפֶה בְּלִי חָלָב, בְּבַקָּשָׁה?",
+          "plain": "שלום. אפשר קפה בלי חלב, בבקשה?"
+        },
+        "ru": {
+          "ru": "Здравствуйте. Можно кофе без молока, пожалуйста?"
+        },
+        "next": "a1-03"
+      },
+      {
+        "id": "a1-03",
+        "role": "staff",
+        "he": {
+          "niqqud": "קָטָן אוֹ גָּדוֹל?",
+          "plain": "קטן או גדול?"
+        },
+        "ru": {
+          "ru": "Маленький или большой?"
+        },
+        "next": "a1-04"
+      },
+      {
+        "id": "a1-04",
+        "role": "customer",
+        "he": {
+          "niqqud": "גָּדוֹל, בְּבַקָּשָׁה.",
+          "plain": "גדול, בבקשה."
+        },
+        "ru": {
+          "ru": "Большой, пожалуйста."
+        },
+        "next": "a1-05"
+      },
+      {
+        "id": "a1-05",
+        "role": "staff",
+        "he": {
+          "niqqud": "לָשֶׁבֶת אוֹ לָקַחַת?",
+          "plain": "לשבת או לקחת?"
+        },
+        "ru": {
+          "ru": "Здесь или с собой?"
+        },
+        "next": "a1-06"
+      },
+      {
+        "id": "a1-06",
+        "role": "customer",
+        "he": {
+          "niqqud": "לָשֶׁבֶת, בְּבַקָּשָׁה.",
+          "plain": "לשבת, בבקשה."
+        },
+        "ru": {
+          "ru": "Здесь, пожалуйста."
+        },
+        "next": "a1-07"
+      },
+      {
+        "id": "a1-07",
+        "role": "staff",
+        "he": {
+          "niqqud": "קָפֶה גָּדוֹל בְּלִי חָלָב, לָשֶׁבֶת?",
+          "plain": "קפה גדול בלי חלב, לשבת?"
+        },
+        "ru": {
+          "ru": "Большой кофе без молока, здесь?"
+        },
+        "next": "a1-08"
+      },
+      {
+        "id": "a1-08",
+        "role": "customer",
+        "he": {
+          "niqqud": "כֵּן, תּוֹדָה.",
+          "plain": "כן, תודה."
+        },
+        "ru": {
+          "ru": "Да, спасибо."
+        }
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "id": "6",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Закажите чай без сахара."
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "tea",
+          "sugar": "without"
+        },
+        "require": [
+          "drink",
+          "sugar"
+        ],
+        "preferFrame": [
+          "lx.efshar"
+        ]
+      },
+      "model": {
+        "niqqud": "אֶפְשָׁר תֵּה בְּלִי סֻכָּר?",
+        "plain": "אפשר תה בלי סוכר?"
+      }
+    },
+    {
+      "id": "9",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Закажите большой кофе с молоком."
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "coffee",
+          "size": "big",
+          "milk": "with"
+        },
+        "require": [
+          "drink",
+          "size",
+          "milk"
+        ]
+      }
+    },
+    {
+      "id": "10a",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Скажите, что останетесь здесь."
+      },
+      "spec": {
+        "kind": "short",
+        "expect": {
+          "service": "here"
+        },
+        "require": [
+          "service"
+        ]
+      }
+    },
+    {
+      "id": "13",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Попросите повторить."
+      },
+      "spec": {
+        "kind": "repeat"
+      }
+    },
+    {
+      "id": "18b",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Попросите кофе вместо чая."
+      },
+      "spec": {
+        "kind": "replacement",
+        "next": {
+          "drink": "coffee"
+        },
+        "prev": {
+          "drink": "tea"
+        },
+        "via": "lx.bimkom"
+      }
+    },
+    {
+      "id": "19d",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Исправьте подтверждение: нужен кофе без молока."
+      },
+      "spec": {
+        "kind": "confirm",
+        "card": {
+          "milk": "without"
+        },
+        "claim": {
+          "milk": "with"
+        }
+      },
+      "transfer": true
+    },
+    {
+      "id": "19d-ok",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Подтвердите кофе без молока."
+      },
+      "spec": {
+        "kind": "confirm",
+        "card": {
+          "milk": "without"
+        },
+        "claim": {
+          "milk": "without"
+        }
+      }
+    }
+  ]
+}
