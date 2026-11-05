@@ -3,7 +3,7 @@
 Дата: 2026-11-05. Статус: **утверждён владельцем 2026-11-05**.
 Основа: брейншторм с владельцем 2026-11-05. Анализ и данные —
 `docs/planning/HEBREW_COURSE_CONCEPT_AND_COVERAGE_2026_11_05.md`; проверка прототипа —
-`docs/research/hebrew-course/2026-11-05-cafe-review/REVIEW.md`; исходники — `data/course/ulpan/`
+`docs/research/hebrew-course/2026-11-05-cafe-review/REVIEW.md`; исходники — `Архив/course-ulpan/`
 (перечень в `docs/research/hebrew-course/SOURCES.md`).
 
 Пометки: **[владелец]** — решение владельца; **[Claude]** — решение исполнителя, его можно оспорить;

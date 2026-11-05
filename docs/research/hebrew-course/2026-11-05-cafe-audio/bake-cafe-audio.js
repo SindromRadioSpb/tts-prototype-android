@@ -2,8 +2,8 @@
 // referenced in the repo .env (path only; credentials never printed).
 const fs=require('fs'), crypto=require('crypto');
 const repo='E:/projects/tts-prototype-android';
-const ref='E:/projects/tts-prototype-android/data/course/ulpan/claude-code-hebrew-reference-2026-11-05/claude-code-hebrew-reference-2026-11-05/lesson-reference';
-const out='E:/projects/tts-prototype-android/data/course/ulpan/audio-google-tts-2026-11-05';
+const ref='E:/projects/tts-prototype-android/Архив/course-ulpan/claude-code-hebrew-reference-2026-11-05/claude-code-hebrew-reference-2026-11-05/lesson-reference';
+const out='E:/projects/tts-prototype-android/Архив/course-ulpan/audio-google-tts-2026-11-05';
 const env=fs.readFileSync(repo+'/.env','utf8');
 process.env.GOOGLE_APPLICATION_CREDENTIALS=(env.match(/^GOOGLE_APPLICATION_CREDENTIALS=(.*)$/m)||[])[1].trim();
 const tts=require(repo+'/node_modules/@google-cloud/text-to-speech');
