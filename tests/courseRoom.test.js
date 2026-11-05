@@ -62,3 +62,13 @@ test('leaving Room invalidates a pending course authorization before DB close re
  assert.equal(e.mounted.length,0);assert.equal(e.ctx.location.href,'/library.html');
  finishClose();await new Promise(resolve=>setImmediate(resolve));assert.equal(e.ctx.location.href,'/');
 });
+
+test('P3-F1 course morphology preserves already selected display instead of rebuilding plain',()=>{
+ const {document}=parseHTML('<section><div class="course-line" data-ref="L/t"><div data-col="he">תֵּה</div></div></section>');let opts;
+ const ctx=vm.createContext({window:{ReaderMorph:{}},attachReaderMorph:(_root,o)=>{opts=o;return {detach(){}};},roomSaveWord(){}});
+ vm.runInContext(block('attachCourseWords','// The open section'),ctx);ctx.attachCourseWords(document.querySelector('section'),{id:'L',scene:{turns:[{id:'t',he:{plain:'תה',niqqud:'תֵּה'},ru:{ru:'чай'}}]}});
+ const row=opts.getRowForCell(null,document.querySelector('.course-line'));
+ assert.notEqual(opts.plainColumn||'he','he');assert.equal(opts.getVocalizedText(row),'תֵּה');
+ document.querySelector('[data-col=he]').textContent='תה';ctx.attachCourseWords(document.querySelector('section'),{id:'L',scene:{turns:[{id:'t',he:{plain:'תה',niqqud:'תֵּה'},ru:{ru:'чай'}}]}});
+ assert.equal(opts.getVocalizedText(opts.getRowForCell(null,document.querySelector('.course-line'))),'תה');
+});

@@ -65,6 +65,7 @@
     v.shape(Number.isInteger(l.version)&&l.version>0,'version','Нужна положительная целая версия.');
     v.ru(l.title,'title');
     v.ru(l.goal,'goal');
+    v.shape(l.niqqud===undefined||['full','new','tap'].includes(l.niqqud),'niqqud','Режим огласовок: full, new или tap.');
     const ref=(x,p,map=index)=>{
       v.id(x,p);
       if(!map||!map.has(x))v.add('REF_UNKNOWN',p,'Неизвестная ссылка: '+x);

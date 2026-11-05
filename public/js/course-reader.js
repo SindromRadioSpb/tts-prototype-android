@@ -5,6 +5,7 @@
   const C=node?require('./course-checker.js'):root.CourseChecker;
   const S=node?require('./course-store.js'):root.CourseStore;
   const F=node?require('./course-format.js'):root.CourseFormat;
+  const H=node?require('./course-hebrew.js'):root.CourseHebrew;
   const K=node?require('./course-keyboard.js'):null;
   const A=node?require('./course-audio.js'):null;
   const own=(o,k)=>Object.hasOwn(o,k);
@@ -22,6 +23,10 @@
       const loaded=store.load(courseId);
       let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,keyboardHandle=null,listeners=[],saveError=false;
       let audioHost=null, audioRate=1;
+      const overrideKey='course.'+courseId+'.niqqudOverride';
+      let preferenceStorage,niqqudOverride='lesson';
+      try{preferenceStorage=opts.storage||root.localStorage;const saved=preferenceStorage?.getItem(overrideKey);if(['lesson','always','never'].includes(saved))niqqudOverride=saved;}catch(_){}
+      const revealed=new Set(),tapReveals=new WeakMap();
       const translit=root.TranslitDisplay?.createDisplay(root.LocalTranslit?.transliterateWithProfile);
       const base=(opts.base||'/data/course').replace(/\/$/,'')+'/'+encodeURIComponent(courseId)+'/';
       container.classList.add('course-reader');
@@ -47,9 +52,9 @@
         if(n)n.hidden=!saveError;
         return r.ok;
       }
-      function on(n,type,fn){
-        n.addEventListener(type,fn);
-        listeners.push(()=>n.removeEventListener(type,fn));
+      function on(n,type,fn,capture=false){
+        n.addEventListener(type,fn,capture);
+        listeners.push(()=>n.removeEventListener(type,fn,capture));
         return n;
       }
       function button(text,attr,fn){
@@ -85,7 +90,65 @@
       }
       const text=x=>typeof x==='string'?x:(x?.[opts.lang||doc.documentElement.lang]||x?.ru||'');
       const authoredAttrs=x=>{const requested=opts.lang||doc.documentElement.lang;const lang=x&&typeof x==='object'&&x[requested]?requested:'ru';return {lang,dir:lang==='he'?'rtl':'ltr'};};
-      const hebrew=pair=>opts.layers?.niqqudMode==='off'?pair?.plain:pair?.niqqud;
+      const mode=()=>niqqudOverride==='always'?'full':niqqudOverride==='never'?'plain':current?.niqqud||'full';
+      const parts=value=>[...String(value||'').matchAll(/[\u05D0-\u05EA][\u0591-\u05BD\u05BF-\u05C2\u05C4-\u05C5\u05C7\u05D0-\u05EA]*/g)];
+      function hebrew(pair){
+        if(!pair)return '';
+        if(mode()==='full')return pair.niqqud;
+        if(mode()!=='new')return pair.plain;
+        const plain=parts(pair.plain),vocal=parts(pair.niqqud);
+        // Only aligned authored tokens may replace plain tokens; never synthesize plain spelling.
+        if(plain.length!==vocal.length)return pair.plain;
+        const fresh=new Set([...(current.introduces?.active||[]),...(current.introduces?.receptive||[])]),keys=[];
+        for(const entry of bundle.lexicon.entries)for(const form of [entry,...(entry.forms||[])]){
+          if(fresh.has(entry.id)||fresh.has(form.id))keys.push(...H.formKeys(form.he).map(k=>k.split(' ')));
+        }
+        const selected=new Set(),forms=[plain.map(p=>H.stripMarks(p[0])),vocal.map(p=>H.stripMarks(p[0]))];
+        for(const words of forms)for(let start=0;start<words.length;start++)for(const key of keys){
+          if(key.every((word,i)=>words[start+i]===word))for(let i=0;i<key.length;i++)selected.add(start+i);
+        }
+        let out='',end=0;
+        plain.forEach((p,i)=>{out+=pair.plain.slice(end,p.index)+(selected.has(i)?vocal[i][0]:p[0]);end=p.index+p[0].length;});
+        return out+pair.plain.slice(end);
+      }
+      function paintHebrew(node,pair){
+        if(!pair)return node;
+        const key=current.id+'/'+JSON.stringify(pair),tap=mode()==='tap';
+        node.textContent=tap&&revealed.has(key)?pair.niqqud:hebrew(pair);
+        node.setAttribute('lang','he');node.setAttribute('dir','rtl');
+        if(tap){
+          node.setAttribute('data-course-niqqud-tap','');
+          node.setAttribute('aria-label',T('niqqudTap','Показать огласовки')+': '+node.textContent);
+          if(node.tagName!=='BUTTON'){node.setAttribute('tabindex','0');node.setAttribute('role','button');}
+          const reveal=e=>{
+            if(revealed.has(key))return;
+            e.preventDefault();e.stopImmediatePropagation();revealed.add(key);node.textContent=pair.niqqud;
+            node.removeAttribute('data-rm-wrapped');
+            node.setAttribute('aria-label',pair.niqqud);
+            // A previous morphology wrapper refers to old text; rebuild the current surface.
+            const body=container.querySelector('.course-step');
+            if(opts.onWords&&body){wordHandle?.detach?.();wordHandle=opts.onWords(body,current)||null;}
+          };
+          tapReveals.set(node,reveal);
+          on(node,'click',reveal);
+          if(node.tagName!=='BUTTON')on(node,'keydown',e=>{if(e.key==='Enter'||e.key===' '){reveal(e);}});
+        }
+        return node;
+      }
+      function hebrewElement(tag,attrs,pair){return paintHebrew(el(tag,attrs),pair);}
+      function hebrewButton(pair,attrs,action){
+        const node=paintHebrew(el('button',{type:'button',...attrs}),pair);
+        on(node,'click',action);return node;
+      }
+      function niqqudControl(){
+        const label=el('label',{class:'course-niqqud-control'},T('niqqudLabel','Огласовки'));
+        const select=el('select',{'data-course-niqqud-override':'','aria-label':T('niqqudLabel','Огласовки')});
+        for(const [value,title] of [['lesson',T('niqqudLesson','Как в уроке')],['always',T('niqqudAlways','Всегда')],['never',T('niqqudNever','Никогда')]]){
+          const option=el('option',{value},title);option.selected=value===niqqudOverride;select.append(option);
+        }
+        on(select,'change',()=>{niqqudOverride=select.value;try{preferenceStorage?.setItem(overrideKey,niqqudOverride);}catch(_){}renderLesson();});
+        label.append(select);container.append(label);
+      }
       async function data(){
         if(bundle)return bundle;
         if(bundlePromise)return bundlePromise;
@@ -237,9 +300,9 @@
         const row=el('div',{
           class:'course-line','data-ref':current.id+'/'+item.id
         });
-        const he=el('div',{
+        const he=hebrewElement('div',{
           'data-col':'he',dir:'rtl',lang:'he'
-        },hebrew(item.he));
+        },item.he);
         row.append(he);
         if(audioHost?.has(item.id))row.append(playButton(item.id));
         for(const task of current.tasks)if(task.channel?.includes('listen')&&task.audioTurnId===item.id)aid(task,'transcript');
@@ -270,6 +333,7 @@
       function renderLesson(){
         if(!alive||!current)return;
         shell(text(current.title),authoredAttrs(current.title));
+        niqqudControl();
         readerState().position={
           lessonId:current.id,step
         };
@@ -287,6 +351,13 @@
         const body=el('section',{
           class:'course-step','data-course-step':step
         });
+        // Register before ReaderMorph's capture delegate so first activation reveals, not opens a card.
+        const revealBeforeMorph=e=>{
+          if(e.type==='keydown'&&e.key!=='Enter'&&e.key!==' ')return;
+          const target=e.target.closest?.('[data-course-niqqud-tap]');
+          if(target&&body.contains(target))tapReveals.get(target)?.(e);
+        };
+        on(body,'click',revealBeforeMorph,true);on(body,'keydown',revealBeforeMorph,true);
         container.append(body);
         const task=activeTask();
         if(step===0){
@@ -366,7 +437,7 @@
         if(listening){
           const turn=current.scene.turns.find(t=>t.id===task.audioTurnId);
           body.append(playButton(task.audioTurnId));
-          const transcript=el('p',{'data-course-transcript':'',dir:'rtl',lang:'he'},hebrew(turn.he));
+          const transcript=hebrewElement('p',{'data-course-transcript':'',dir:'rtl',lang:'he'},turn.he);
           transcript.hidden=!ui.transcript;
           const toggle=button(T('audioTranscript','Текст реплики'),{'data-course-transcript-toggle':'','aria-expanded':String(!transcript.hidden)},()=>{
             transcript.hidden=!transcript.hidden;uiFor(task).transcript=!transcript.hidden;
@@ -416,7 +487,7 @@
         };
         if(task.type==='choice'){
           for(const option of task.options||[]){
-            body.append(button(hebrew(option.he)||text(option.label),{
+            body.append((option.he?hebrewButton:((pair,attrs,fn)=>button(text(option.label),attrs,fn)))(option.he,{
               'data-option':option.id,dir:option.he?'rtl':'auto'
             },()=>{
               const correct=option.id===task.correctOption;
@@ -437,7 +508,7 @@
             class:'course-match'
           }),left=el('div'),right=el('div');
           for(const pair of pairs){
-            left.append(button(hebrew(pair.he),{
+            left.append(hebrewButton(pair.he,{
               'data-match-left':pair.id,dir:'rtl'
             },e=>{
               selected=pair.id;saveMatches();
@@ -476,9 +547,9 @@
           body.append(grid);
         }
         else{
-          if(task.type==='scene'&&task.cue&&!listening)body.append(el('p',{
+          if(task.type==='scene'&&task.cue&&!listening)body.append(hebrewElement('p',{
             dir:'rtl',lang:'he'
-          },hebrew(task.cue)));
+          },task.cue));
           field=el('textarea',{
             'data-course-input':'',dir:'rtl',lang:'he','aria-label':T('answer','Ваш ответ'),rows:'2'
           });
@@ -522,9 +593,10 @@
         });
         if(hints)hintNote.textContent=text(task.hints?.[Math.min(hints,2)-1])||T('hintText','Сверьте условие задания и нужные слова.');
         help.append(hint,hintNote);
-        const model=el('p',{
+        const model=hebrewElement('p',{
           'data-course-model-text':'',dir:'rtl',lang:'he'
-        },hebrew(task.model)||T('noModel','Образец для этого задания пока не добавлен.'));
+        },task.model);
+        if(!task.model)model.textContent=T('noModel','Образец для этого задания пока не добавлен.');
         model.hidden=!ui.model;
         const modelBtn=button(ui.model?T('hideModel','Скрыть образец'):T('showModel','Показать образец'),{
           'data-course-model':'','aria-expanded':String(!!ui.model)
@@ -544,9 +616,9 @@
             class:'course-grammar',role:'dialog','aria-modal':'true','aria-label':text(g.title)
           });
           dialog.append(el('h3',authoredAttrs(g.title),text(g.title)),el('p',authoredAttrs(g.body),text(g.body)));
-          for(const h of g.pattern||[])dialog.append(el('p',{
+          for(const h of g.pattern||[])dialog.append(hebrewElement('p',{
             dir:'rtl',lang:'he'
-          },hebrew(h)));
+          },h));
           const close=button(T('close','Закрыть'),{},()=>{
             dialog.remove();
             body.querySelector('[data-course-rule]').focus();

@@ -13237,15 +13237,18 @@ async function renderCourseCorpus(courseId, token) {
 function attachCourseWords(root, lesson) {
   if (!root || !window.ReaderMorph) return null;
   const rows = new Map();
+  const displays = new Map([...root.querySelectorAll('.course-line[data-ref]')].map(row => [row.getAttribute('data-ref'), row.querySelector('[data-col="he"]')?.textContent || '']));
   for (const item of [...(lesson.scene?.turns || []), ...(lesson.text?.paras || [])]) {
     rows.set(lesson.id + '/' + item.id, { he: item.he.plain, he_niqqud: item.he.niqqud,
-      ru: item.ru?.ru || '', ref: lesson.id + '/' + item.id });
+      ru: item.ru?.ru || '', display: displays.get(lesson.id + '/' + item.id), ref: lesson.id + '/' + item.id });
   }
   return attachReaderMorph(root, {
     cellSelector: '.course-line[data-ref] > [data-col="he"]',
     rowSelector: '.course-line[data-ref]', rowIndexAttribute: 'data-ref', rovingFocus: true,
     getRowForCell: (_cell, row) => rows.get(row?.getAttribute('data-ref')) || null,
-    getPlainText: row => row?.he, getVocalizedText: row => row?.he_niqqud,
+    // CourseReader owns presentation; preserve its full/new/tap/override result when wrapping.
+    plainColumn: '__course_plain__',
+    getPlainText: row => row?.he, getVocalizedText: row => row?.display,
     getSentence: row => row && (row.he_niqqud || row.he), getTextKey: () => null,
     shouldWrap: (_row, _cell, _col, value) => /[א-ת]/.test(String(value || '')),
     buildOccurrence: span => {

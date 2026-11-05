@@ -1,5 +1,5 @@
 {
-  "data": "E:\\projects\\tts-prototype-android\\.worktrees\\course-room\\.tmp\\course-smoke-data\\run-BshtPp",
+  "data": "E:\\projects\\tts-prototype-android\\.worktrees\\course-room\\.tmp\\course-smoke-data\\run-l9GAOn",
   "results": [
     {
       "lang": "ru",
@@ -10,6 +10,9 @@
       "unknownSelf": true,
       "wordCard": true,
       "caret": true,
+      "lessonNiqqud": true,
+      "overridePersistence": true,
+      "tapMorphology": true,
       "overflow": 0,
       "before": {
         "texts": 79,
@@ -30,6 +33,9 @@
       "unknownSelf": true,
       "wordCard": true,
       "caret": true,
+      "lessonNiqqud": true,
+      "overridePersistence": true,
+      "tapMorphology": true,
       "overflow": 0,
       "before": {
         "texts": 79,
@@ -50,6 +56,9 @@
       "unknownSelf": true,
       "wordCard": true,
       "caret": true,
+      "lessonNiqqud": true,
+      "overridePersistence": true,
+      "tapMorphology": true,
       "overflow": 0,
       "before": {
         "texts": 79,
@@ -70,6 +79,9 @@
       "unknownSelf": true,
       "wordCard": true,
       "caret": true,
+      "lessonNiqqud": true,
+      "overridePersistence": true,
+      "tapMorphology": true,
       "overflow": 0,
       "before": {
         "texts": 79,
@@ -83,7 +95,7 @@
     }
   ],
   "scope": "isolated actual server and browser; no production or paid requests",
-  "base": "http://127.0.0.1:57741",
+  "base": "http://127.0.0.1:53436",
   "nonOwner": {
     "anonymous": true,
     "hidden": true,

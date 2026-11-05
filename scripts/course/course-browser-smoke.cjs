@@ -30,7 +30,7 @@ async function main(){
   browser=await chromium.launch({headless:true});
   for(const [lang,width] of [['ru',390],['ru',1440],['he',380],['en',1440]]){
    const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
-   await context.addInitScript(()=>localStorage.setItem('lp_world_v1',JSON.stringify({id:'classic'})));
+   await context.addInitScript(()=>{localStorage.setItem('lp_world_v1',JSON.stringify({id:'classic'}));localStorage.setItem('room.niqqudMode','off');});
    await context.route('**/*',route=>{const u=new URL(route.request().url());return u.origin===base?route.continue():route.abort();});
    const login=await context.request.post(base+'/api/auth/bootstrap-login',{data:{secret}});assert.equal(login.status(),200);const who=await login.json();
    const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -49,10 +49,25 @@ async function main(){
     await page.waitForSelector('.course-line .rm-w');
     assert.equal(await page.locator('.course-line').count(),8);
     assert.equal(await page.locator('.course-line [data-col=ru]:visible').count(),0);
+    assert.match(await page.locator('.course-line [data-col=he]').first().textContent(),/[\u0591-\u05BD\u05BF-\u05C7]/,'lesson default must ignore Room off');
+    await page.locator('[data-course-niqqud-override]').selectOption('never');
+    assert.doesNotMatch(await page.locator('.course-line [data-col=he]').first().textContent(),/[\u0591-\u05BD\u05BF-\u05C7]/);
+    await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('.course-line .rm-w');
+    assert.equal(await page.locator('[data-course-niqqud-override]').inputValue(),'never');
+    await page.locator('[data-course-niqqud-override]').selectOption('lesson');
+    await page.waitForSelector('.course-line .rm-w');
     await page.screenshot({path:path.join(out,`${lang}-${width}-scene.png`),fullPage:true});
+    await page.route('**/lessons/L001-cafe.json',async route=>{const response=await route.fetch();const lesson=await response.json();lesson.niqqud='tap';await route.fulfill({response,json:lesson});});
+    await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('.course-line .rm-w');
+    assert.doesNotMatch(await page.locator('.course-line [data-col=he]').first().textContent(),/[\u0591-\u05BD\u05BF-\u05C7]/);
+    await page.locator('.course-line .rm-w').first().click();
+    assert.match(await page.locator('.course-line [data-col=he]').first().textContent(),/[\u0591-\u05BD\u05BF-\u05C7]/);
+    assert.equal(await page.locator('.rm-sheet').count(),0);
     await page.locator('.course-line .rm-w').first().click();
     await page.waitForSelector('.rm-sheet');
     await page.locator('.rm-sheet-x').click();
+    await page.unroute('**/lessons/L001-cafe.json');
+    await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('.course-line .rm-w');
     await page.locator('[data-course-next]').click();
     await page.waitForSelector('[data-course-task="6"]');
     const direct=page.url();assert.match(direct,/les=L001-cafe/);assert.match(direct,/st=1/);
@@ -79,7 +94,7 @@ async function main(){
     await page.locator('[data-course-next]').click();await page.waitForSelector('[data-course-task="9"]');
     await page.goBack();await page.waitForSelector('[data-course-lesson]',{timeout:15000});
     assert.deepEqual(errors,[]);
-    report.results.push({lang,width,owner:who.user.role,history:true,reload:true,unknownSelf:true,wordCard:true,caret:true,overflow,before,after,pageerrors:errors});
+    report.results.push({lang,width,owner:who.user.role,history:true,reload:true,unknownSelf:true,wordCard:true,caret:true,lessonNiqqud:true,overridePersistence:true,tapMorphology:true,overflow,before,after,pageerrors:errors});
    }catch(e){await page.screenshot({path:path.join(out,`${lang}-${width}-failure.png`),fullPage:true}).catch(()=>{});throw e;}
    finally{await context.close();}
   }
