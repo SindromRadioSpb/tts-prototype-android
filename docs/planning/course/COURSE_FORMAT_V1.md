@@ -72,3 +72,15 @@ HE_SKELETON_MISMATCH, REF_UNKNOWN, TASK_TYPE_UNKNOWN. HE_NIQQUD_BARE — пре�
 `docs/research/hebrew-course/2026-11-05-cafe-audio/bake-cafe-audio.js` без его запуска.
 Полное письмо и переводы заданы явно. L002 повторяет lx.bli/lx.chalav, вводит lx.ein.
 Независимая языковая приёмка содержания и голоса находятся за пределами P1.
+
+## Проверяющий модуль (P1)
+
+`CourseChecker.buildIndex(entries)` возвращает Map однословных ключей со всеми кандидатами;
+`index.multiword` — Map многословных ключей, `index.byId` — формы по ID.
+Перед `assess(input, task, lesson, index)` вызывающая сторона может задать
+`index.preknown = course.preknown` (массив ID). Контракт `assess` не получает `course`,
+поэтому это явный контекст индекса, а не добавленное поле урока. Доступный словарь:
+`introduces.active/receptive`, `reviews`, `frame`, `index.preknown`. Формы доступны по
+собственным ID: знакомство с леммой не объявляет все формы изученными.
+Одинаковые омографические ключи сохраняют всех кандидатов; неизвестный или
+противоречивый разбор даёт `unknown`. Отрицание ожидаемого значения — `mismatch`.
