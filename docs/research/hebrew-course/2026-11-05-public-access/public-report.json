@@ -1,0 +1,72 @@
+{
+  "version": "3.11.860",
+  "anonymous": true,
+  "assets": {
+    "/js/library-ui.js?v=860": "f529a93363ba178b7c5556cfe837c3271751f35b5256c1d40e1eaf6c430cf810",
+    "/js/corpus-registry.js?v=860": "c420e5db2af44941f9b933e63c59c6a4af4f246743a68d4882115f6b4546fd8c"
+  },
+  "lessons": [
+    {
+      "id": "L001-cafe",
+      "steps": 24,
+      "media": 13
+    }
+  ],
+  "results": [
+    {
+      "width": 390,
+      "hub": true,
+      "lessons": true,
+      "deepLinkReload": true,
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "hub": true,
+      "lessons": true,
+      "deepLinkReload": true,
+      "pageErrors": []
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 124,
+      "now": "2026-11-05T13:19:45.192Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 86,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 125,
+      "now": "2026-11-05T13:19:45.423Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 86,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 125,
+      "now": "2026-11-05T13:19:45.502Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 86,
+      "disk_warn": true
+    }
+  ]
+}
