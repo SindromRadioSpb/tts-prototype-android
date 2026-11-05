@@ -5,6 +5,7 @@
   const C=node?require('./course-checker.js'):root.CourseChecker;
   const S=node?require('./course-store.js'):root.CourseStore;
   const F=node?require('./course-format.js'):root.CourseFormat;
+  const K=node?require('./course-keyboard.js'):null;
   const own=(o,k)=>Object.hasOwn(o,k);
   const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s);
   function factory(doc){
@@ -18,7 +19,7 @@
       const T=(k,fb)=>opts.T?opts.T('course.'+k,fb):fb, now=()=>opts.now?opts.now():Date.now();
       const courseId=opts.courseId||'ulpan', store=opts.store||S.memoryStore(), fetcher=opts.fetch||root.fetch.bind(root);
       const loaded=store.load(courseId);
-      let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,listeners=[],saveError=false;
+      let progress=loaded.progress,alive=true,epoch=0,controller=null,bundle=null,bundlePromise=null,current=null,step=0,wordHandle=null,keyboardHandle=null,listeners=[],saveError=false;
       const translit=root.TranslitDisplay?.createDisplay(root.LocalTranslit?.transliterateWithProfile);
       const base=(opts.base||'/data/course').replace(/\/$/,'')+'/'+encodeURIComponent(courseId)+'/';
       container.classList.add('course-reader');
@@ -55,6 +56,8 @@
         },text),'click',fn);
       }
       function clear(){
+        keyboardHandle?.detach();
+        keyboardHandle=null;
         for(const off of listeners.splice(0))off();
         if(wordHandle){
           try{
@@ -426,7 +429,17 @@
             uiFor(task).input=field.value;
             persist();
           });
-          body.append(field,button(T('check','Проверить'),{
+          const keyboard=K||root.CourseKeyboard;
+          const keyboardBox=el('div',{'data-course-keyboard':''});
+          keyboardBox.hidden=true;
+          const keyboardText=key=>T(key,keyboard.label(key,opts.lang||doc.documentElement.lang));
+          const toggle=button(keyboardText('keyboardShow'),{'data-course-keyboard-toggle':'','aria-expanded':'false'},()=>{
+            keyboardBox.hidden=!keyboardBox.hidden;
+            toggle.setAttribute('aria-expanded',String(!keyboardBox.hidden));
+            toggle.textContent=keyboardText(keyboardBox.hidden?'keyboardShow':'keyboardHide');
+          });
+          keyboardHandle=keyboard.attach(field,keyboardBox,{lang:opts.lang,T:opts.T});
+          body.append(field,toggle,keyboardBox,button(T('check','Проверить'),{
             'data-course-check':''
           },()=>submit(field.value)));
         }
