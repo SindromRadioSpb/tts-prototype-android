@@ -1,0 +1,23 @@
+{
+  "atlas_id": "a97001",
+  "source": {
+    "filename": "993062288-Mahat-Exams-Formula-97001.pdf",
+    "sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+    "page_count": 203,
+    "page_size_pt": [
+      595,
+      842
+    ]
+  },
+  "source_pack_sha256": "3b1ee0b5f8a5b539f198f3775f00af78dc1ba0599b63cdddca228b3c47356993",
+  "counts": {
+    "page": 203,
+    "block": 989,
+    "formula": 405,
+    "figure": 322,
+    "example": 48
+  },
+  "duplicate_ids": [],
+  "warnings": [],
+  "status": "source extraction only; translation and visual acceptance pending"
+}
