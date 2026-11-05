@@ -1,0 +1,95 @@
+{
+  "format": "course-lesson-v1",
+  "id": "L002-cafe-again",
+  "version": 1,
+  "title": {
+    "ru": "Снова в кафе"
+  },
+  "goal": {
+    "ru": "Уточнить наличие молока."
+  },
+  "introduces": {
+    "active": [],
+    "receptive": [
+      "lx.ein"
+    ]
+  },
+  "reviews": [
+    "lx.bli",
+    "lx.chalav"
+  ],
+  "frame": [
+    "lx.bevakasha"
+  ],
+  "slots": [],
+  "orderRules": [],
+  "repeatForms": [],
+  "scene": {
+    "id": "again-scene",
+    "roles": [
+      {
+        "id": "staff",
+        "voice": "he-IL-Wavenet-C"
+      },
+      {
+        "id": "customer",
+        "voice": "he-IL-Wavenet-D"
+      }
+    ],
+    "turns": [
+      {
+        "id": "b1-01",
+        "role": "staff",
+        "he": {
+          "niqqud": "אֵין חָלָב.",
+          "plain": "אין חלב."
+        },
+        "ru": {
+          "ru": "Молока нет."
+        }
+      }
+    ]
+  },
+  "text": {
+    "id": "again-text",
+    "paras": [
+      {
+        "id": "p1",
+        "he": {
+          "niqqud": "אֵין חָלָב.",
+          "plain": "אין חלב."
+        },
+        "ru": {
+          "ru": "Молока нет."
+        }
+      },
+      {
+        "id": "p2",
+        "he": {
+          "niqqud": "קָפֶה בְּלִי חָלָב, בְּבַקָּשָׁה.",
+          "plain": "קפה בלי חלב, בבקשה."
+        },
+        "ru": {
+          "ru": "Кофе без молока, пожалуйста."
+        }
+      }
+    ]
+  },
+  "tasks": [
+    {
+      "id": "transfer",
+      "type": "text",
+      "channel": [
+        "writing"
+      ],
+      "prompt": {
+        "ru": "Сообщите, что молока нет."
+      },
+      "model": {
+        "niqqud": "אֵין חָלָב.",
+        "plain": "אין חלב."
+      },
+      "transfer": true
+    }
+  ]
+}
