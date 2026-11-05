@@ -5493,6 +5493,7 @@ function _roomStudioNavInit() {
   const leaveRoom = (ev, url) => {
     if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
     ev.preventDefault();
+    ++corpusRenderToken; // Pending authorization must not remount while the DB closes.
     destroyCourseReader();
     // Write a debounced working row before leaving: the cached Room stops its DB worker.
     (async () => { try { if (_progressTimer) await flushReaderProgress(); } catch (_) {} try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();

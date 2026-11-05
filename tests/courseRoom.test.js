@@ -49,3 +49,16 @@ test('changing course identity destroys old reader before returning to hub',()=>
  assert.deepEqual(actions,['destroy','close','hub']);assert.equal(ctx.roomCourseReader,null);assert.equal(ctx.roomCourseAnchor,null);assert.equal(ctx.roomCoursePosition,null);
 });
 
+
+test('leaving Room invalidates a pending course authorization before DB close resolves',async()=>{
+ const e=env();let finishClose;
+ e.ctx._progressTimer=null;e.ctx.localDb={closeLocalDB:()=>new Promise(resolve=>{finishClose=resolve;})};e.ctx.location={href:'/library.html'};
+ vm.runInContext(block('destroyCourseReader','async function renderCourseCorpus'),e.ctx);
+ const start=source.indexOf('const leaveRoom =');const stop=source.indexOf('  const wire =',start);
+ vm.runInContext(source.slice(start,stop)+'globalThis.leaveRoom=leaveRoom;',e.ctx);
+ const pending=e.ctx.renderCourseCorpus('ulpan',1);
+ e.ctx.leaveRoom({button:0,preventDefault(){}},'/');
+ e.requests[0]({user:{id:'u1',role:'owner'}});await pending;
+ assert.equal(e.mounted.length,0);assert.equal(e.ctx.location.href,'/library.html');
+ finishClose();await new Promise(resolve=>setImmediate(resolve));assert.equal(e.ctx.location.href,'/');
+});
