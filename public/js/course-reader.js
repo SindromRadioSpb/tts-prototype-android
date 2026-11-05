@@ -35,7 +35,7 @@
         if(!state.tasks||typeof state.tasks!=='object'||Array.isArray(state.tasks))state.tasks={};
         if(!own(state.tasks,key)||!state.tasks[key]||typeof state.tasks[key]!=='object')Object.defineProperty(state.tasks,key,{
           value:{
-            input:'',model:false
+            input:'',model:false,baseFp:E.fingerprint(current.id,task)
           },writable:true,enumerable:true,configurable:true
         });
         return state.tasks[key];
@@ -196,6 +196,15 @@
           current=l;
           const migration=E.migrate(progress,l);
           progress=migration.progress;
+          // Drafts exist before any attempt, so evidence migration alone cannot invalidate them.
+          const drafts=progress.reader?.tasks;
+          if(drafts&&typeof drafts==='object')for(const [key,draft] of Object.entries(drafts)){
+            if(!key.startsWith(l.id+'/'))continue;
+            const task=l.tasks.find(t=>key===l.id+'/'+t.id);
+            if(!task||draft?.baseFp!==E.fingerprint(l.id,task)){
+              delete drafts[key];delete progress.aids[key];
+            }
+          }
           for(const change of migration.changes)if(change.change!=='unchanged'&&progress.reader?.tasks)delete progress.reader.tasks[l.id+'/'+change.taskId];
           progress=E.markMet(progress,[...l.introduces.active,...l.introduces.receptive],now());
           const state=readerState();
