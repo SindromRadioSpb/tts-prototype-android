@@ -88,6 +88,15 @@ jobs:
         # Actual SW source, native HTTP streams, no owner data or corpus writes.
         run: node scripts/premium/room-discovery-sw-preview-smoke.js
 
+      - name: Retain isolated discovery browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: room-discovery-browser-evidence
+          path: .tmp/room-discovery-browser/
+          if-no-files-found: ignore
+          retention-days: 7
+
   studio-background:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
