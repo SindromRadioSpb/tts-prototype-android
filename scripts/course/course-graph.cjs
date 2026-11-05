@@ -37,7 +37,12 @@ function checkGraph({ course, lexicon, lessons }) {
     });
     const text = (lesson.text?.paras || []).flatMap((p, i) => scan(p.he, index).map(t => ({ ...t, path: 'text.paras[' + i + '].he' })));
     for (const token of text) if (!token.ids.size) add(lesson, 'TEXT_UNKNOWN_TOKEN', token.path, 'Слово отсутствует в лексиконе: ' + token.word);
-    const fresh = text.filter(t => [...t.ids].some(id => introduced.has(id))).length;
+    // Words the learner already met in this lesson's scene or tasks are not new by the time the text comes.
+    const metPairs = [...lesson.scene.turns.flatMap(t => [t.he, ...(t.choices || []).map(c => c.he)]),
+      ...lesson.tasks.flatMap(t => [t.model, t.cue, ...(t.tiles || []), ...(t.options || []).map(o => o.he), ...(t.pairs || []).map(p => p.he)].filter(Boolean))];
+    const met = new Set(metPairs.flatMap(he => scan(he, index).flatMap(t => [...t.ids])));
+    for (const e of lexicon.entries) if (e.pos === 'name') met.add(e.id);
+    const fresh = text.filter(t => [...t.ids].some(id => introduced.has(id)) && ![...t.ids].some(id => met.has(id))).length;
     if (text.length && fresh / text.length > 0.08) add(lesson, 'TEXT_DENSITY', 'text', 'Доля новых слов: ' + (fresh / text.length).toFixed(3) + ' (порог 0.08).', 'warning');
     for (const id of lesson.introduces.active) {
       const later = seen.slice(lessonIndex + 1);

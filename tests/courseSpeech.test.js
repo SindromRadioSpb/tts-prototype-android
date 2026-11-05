@@ -70,3 +70,12 @@ test('UMD browser entry exposes the same speech contract without Node globals', 
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../public/js/course-speech.js'),'utf8'),context);
   assert.equal(context.CourseSpeech.speechItems(load('L001-cafe'))[0].bytes, Buffer.byteLength('שָׁלוֹם.'));
 });
+
+test('P8a: a text paragraph with a role is voiced by that role; without a role it stays on C', () => {
+  const S = require('../public/js/course-speech.js');
+  const l = { id: 'L', scene: { roles: [{ id: 'barista', voice: 'he-IL-Wavenet-D' }, { id: 'friend', voice: 'he-IL-Wavenet-C' }], turns: [] },
+    text: { id: 'tx', paras: [{ id: 'p1', role: 'barista', he: { niqqud: 'א', plain: 'א' } }, { id: 'p2', he: { niqqud: 'ב', plain: 'ב' } }] } };
+  const items = S.speechItems(l);
+  assert.equal(items[0].voiceName, 'he-IL-Wavenet-D'); assert.equal(items[0].role, 'barista');
+  assert.equal(items[1].voiceName, 'he-IL-Wavenet-C'); assert.equal(items[1].role, null);
+});

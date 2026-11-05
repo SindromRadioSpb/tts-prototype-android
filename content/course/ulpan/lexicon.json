@@ -1,0 +1,676 @@
+{
+  "entries": [
+    {
+      "id": "lx.shalom",
+      "pos": "expression",
+      "he": {
+        "niqqud": "שָׁלוֹם",
+        "plain": "שלום"
+      },
+      "translit_ru": "шалом",
+      "gloss": {
+        "ru": "здравствуйте; привет"
+      }
+    },
+    {
+      "id": "lx.toda",
+      "pos": "expression",
+      "he": {
+        "niqqud": "תּוֹדָה",
+        "plain": "תודה"
+      },
+      "translit_ru": "тода",
+      "gloss": {
+        "ru": "спасибо"
+      }
+    },
+    {
+      "id": "lx.bevakasha",
+      "pos": "expression",
+      "he": {
+        "niqqud": "בְּבַקָּשָׁה",
+        "plain": "בבקשה"
+      },
+      "translit_ru": "бэвакаша",
+      "gloss": {
+        "ru": "пожалуйста"
+      }
+    },
+    {
+      "id": "lx.slicha",
+      "pos": "expression",
+      "he": {
+        "niqqud": "סְלִיחָה",
+        "plain": "סליחה"
+      },
+      "translit_ru": "слиха",
+      "gloss": {
+        "ru": "простите, извините"
+      }
+    },
+    {
+      "id": "lx.ken",
+      "pos": "expression",
+      "he": {
+        "niqqud": "כֵּן",
+        "plain": "כן"
+      },
+      "translit_ru": "кэн",
+      "gloss": {
+        "ru": "да"
+      }
+    },
+    {
+      "id": "lx.lo",
+      "pos": "expression",
+      "he": {
+        "niqqud": "לֹא",
+        "plain": "לא"
+      },
+      "translit_ru": "ло",
+      "gloss": {
+        "ru": "нет; не"
+      }
+    },
+    {
+      "id": "lx.efshar",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אֶפְשָׁר",
+        "plain": "אפשר"
+      },
+      "translit_ru": "эфшар",
+      "gloss": {
+        "ru": "можно"
+      }
+    },
+    {
+      "id": "lx.coffee",
+      "pos": "noun",
+      "he": {
+        "niqqud": "קָפֶה",
+        "plain": "קפה"
+      },
+      "translit_ru": "кафэ",
+      "gloss": {
+        "ru": "кофе; кафе"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.tea",
+      "pos": "noun",
+      "he": {
+        "niqqud": "תֵּה",
+        "plain": "תה"
+      },
+      "translit_ru": "тэ",
+      "gloss": {
+        "ru": "чай"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.water",
+      "pos": "noun",
+      "he": {
+        "niqqud": "מַיִם",
+        "plain": "מים"
+      },
+      "translit_ru": "маим",
+      "gloss": {
+        "ru": "вода"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.chalav",
+      "pos": "noun",
+      "he": {
+        "niqqud": "חָלָב",
+        "plain": "חלב"
+      },
+      "translit_ru": "халав",
+      "gloss": {
+        "ru": "молоко"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.sugar",
+      "pos": "noun",
+      "he": {
+        "niqqud": "סֻכָּר",
+        "plain": "סוכר"
+      },
+      "translit_ru": "сукар",
+      "gloss": {
+        "ru": "сахар"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.big",
+      "pos": "adjective",
+      "he": {
+        "niqqud": "גָּדוֹל",
+        "plain": "גדול"
+      },
+      "translit_ru": "гадоль",
+      "gloss": {
+        "ru": "большой"
+      },
+      "gender": "m",
+      "forms": [
+        {
+          "id": "lx.big-f",
+          "he": {
+            "niqqud": "גְּדוֹלָה",
+            "plain": "גדולה"
+          },
+          "tags": [
+            "f",
+            "sg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lx.small",
+      "pos": "adjective",
+      "he": {
+        "niqqud": "קָטָן",
+        "plain": "קטן"
+      },
+      "translit_ru": "катан",
+      "gloss": {
+        "ru": "маленький"
+      },
+      "gender": "m",
+      "forms": [
+        {
+          "id": "lx.small-f",
+          "he": {
+            "niqqud": "קְטַנָּה",
+            "plain": "קטנה"
+          },
+          "tags": [
+            "f",
+            "sg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lx.im",
+      "pos": "preposition",
+      "he": {
+        "niqqud": "עִם",
+        "plain": "עם"
+      },
+      "translit_ru": "им",
+      "gloss": {
+        "ru": "с"
+      }
+    },
+    {
+      "id": "lx.bli",
+      "pos": "preposition",
+      "he": {
+        "niqqud": "בְּלִי",
+        "plain": "בלי"
+      },
+      "translit_ru": "бли",
+      "gloss": {
+        "ru": "без"
+      }
+    },
+    {
+      "id": "lx.lashevet",
+      "pos": "verb",
+      "he": {
+        "niqqud": "לָשֶׁבֶת",
+        "plain": "לשבת"
+      },
+      "translit_ru": "лашэвэт",
+      "gloss": {
+        "ru": "посидеть (здесь, на месте)"
+      }
+    },
+    {
+      "id": "lx.lakachat",
+      "pos": "verb",
+      "he": {
+        "niqqud": "לָקַחַת",
+        "plain": "לקחת"
+      },
+      "translit_ru": "лакахат",
+      "gloss": {
+        "ru": "взять (с собой)"
+      }
+    },
+    {
+      "id": "lx.ein",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אֵין",
+        "plain": "אין"
+      },
+      "translit_ru": "эйн",
+      "gloss": {
+        "ru": "нет (в наличии)"
+      }
+    },
+    {
+      "id": "lx.od",
+      "pos": "expression",
+      "he": {
+        "niqqud": "עוֹד",
+        "plain": "עוד"
+      },
+      "translit_ru": "од",
+      "gloss": {
+        "ru": "ещё"
+      }
+    },
+    {
+      "id": "lx.paam",
+      "pos": "noun",
+      "he": {
+        "niqqud": "פַּעַם",
+        "plain": "פעם"
+      },
+      "translit_ru": "паам",
+      "gloss": {
+        "ru": "раз"
+      },
+      "gender": "f"
+    },
+    {
+      "id": "lx.o",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אוֹ",
+        "plain": "או"
+      },
+      "translit_ru": "о",
+      "gloss": {
+        "ru": "или"
+      }
+    },
+    {
+      "id": "lx.boker",
+      "pos": "noun",
+      "he": {
+        "niqqud": "בֹּקֶר",
+        "plain": "בוקר"
+      },
+      "translit_ru": "бокэр",
+      "gloss": {
+        "ru": "утро"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.tov",
+      "pos": "adjective",
+      "he": {
+        "niqqud": "טוֹב",
+        "plain": "טוב"
+      },
+      "translit_ru": "тов",
+      "gloss": {
+        "ru": "хороший"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.yom",
+      "pos": "noun",
+      "he": {
+        "niqqud": "יוֹם",
+        "plain": "יום"
+      },
+      "translit_ru": "йом",
+      "gloss": {
+        "ru": "день"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.beseder",
+      "pos": "expression",
+      "he": {
+        "niqqud": "בְּסֵדֶר",
+        "plain": "בסדר"
+      },
+      "translit_ru": "бэсэдэр",
+      "gloss": {
+        "ru": "хорошо, ладно"
+      }
+    },
+    {
+      "id": "lx.ein-baaya",
+      "pos": "expression",
+      "he": {
+        "niqqud": "אֵין בְּעָיָה",
+        "plain": "אין בעיה"
+      },
+      "translit_ru": "эйн бэая",
+      "gloss": {
+        "ru": "без проблем"
+      }
+    },
+    {
+      "id": "lx.bimkom",
+      "pos": "preposition",
+      "he": {
+        "niqqud": "בִּמְקוֹם",
+        "plain": "במקום"
+      },
+      "translit_ru": "бимком",
+      "gloss": {
+        "ru": "вместо"
+      }
+    },
+    {
+      "id": "lx.yesh",
+      "pos": "expression",
+      "he": {
+        "niqqud": "יֵשׁ",
+        "plain": "יש"
+      },
+      "translit_ru": "еш",
+      "gloss": {
+        "ru": "есть (имеется)"
+      }
+    },
+    {
+      "id": "lx.gam",
+      "pos": "expression",
+      "he": {
+        "niqqud": "גַּם",
+        "plain": "גם"
+      },
+      "translit_ru": "гам",
+      "gloss": {
+        "ru": "тоже, также"
+      }
+    },
+    {
+      "id": "lx.vegam",
+      "pos": "expression",
+      "he": {
+        "niqqud": "וְגַם",
+        "plain": "וגם"
+      },
+      "translit_ru": "вэгам",
+      "gloss": {
+        "ru": "а ещё, и также"
+      }
+    },
+    {
+      "id": "lx.hafuch",
+      "pos": "noun",
+      "he": {
+        "niqqud": "הָפוּךְ",
+        "plain": "הפוך"
+      },
+      "translit_ru": "афух",
+      "gloss": {
+        "ru": "кофе с молоком (израильский «перевёрнутый»)"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.kos",
+      "pos": "noun",
+      "he": {
+        "niqqud": "כּוֹס",
+        "plain": "כוס"
+      },
+      "translit_ru": "кос",
+      "gloss": {
+        "ru": "стакан, чашка"
+      },
+      "gender": "f"
+    },
+    {
+      "id": "lx.kar",
+      "pos": "adjective",
+      "he": {
+        "niqqud": "קַר",
+        "plain": "קר"
+      },
+      "translit_ru": "кар",
+      "gloss": {
+        "ru": "холодный"
+      },
+      "gender": "m",
+      "forms": [
+        {
+          "id": "lx.kar-mp",
+          "he": {
+            "niqqud": "קָרִים",
+            "plain": "קרים"
+          },
+          "tags": [
+            "m",
+            "pl"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lx.uga",
+      "pos": "noun",
+      "he": {
+        "niqqud": "עוּגָה",
+        "plain": "עוגה"
+      },
+      "translit_ru": "уга",
+      "gloss": {
+        "ru": "пирог, торт"
+      },
+      "gender": "f"
+    },
+    {
+      "id": "lx.esrim",
+      "pos": "numeral",
+      "he": {
+        "niqqud": "עֶשְׂרִים",
+        "plain": "עשרים"
+      },
+      "translit_ru": "эсрим",
+      "gloss": {
+        "ru": "двадцать"
+      }
+    },
+    {
+      "id": "lx.shekel",
+      "pos": "noun",
+      "he": {
+        "niqqud": "שֶׁקֶל",
+        "plain": "שקל"
+      },
+      "translit_ru": "шэкэль",
+      "gloss": {
+        "ru": "шекель"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.ma",
+      "pos": "expression",
+      "he": {
+        "niqqud": "מָה",
+        "plain": "מה"
+      },
+      "translit_ru": "ма",
+      "gloss": {
+        "ru": "что"
+      }
+    },
+    {
+      "id": "lx.hevanti",
+      "pos": "verb",
+      "he": {
+        "niqqud": "הֵבַנְתִּי",
+        "plain": "הבנתי"
+      },
+      "translit_ru": "hэванти",
+      "gloss": {
+        "ru": "я понял(а)"
+      }
+    },
+    {
+      "id": "lx.shuv",
+      "pos": "expression",
+      "he": {
+        "niqqud": "שׁוּב",
+        "plain": "שוב"
+      },
+      "translit_ru": "шув",
+      "gloss": {
+        "ru": "снова"
+      }
+    },
+    {
+      "id": "lx.lachzor",
+      "pos": "verb",
+      "he": {
+        "niqqud": "לַחֲזוֹר",
+        "plain": "לחזור"
+      },
+      "translit_ru": "лахазор",
+      "gloss": {
+        "ru": "повторить, вернуться"
+      }
+    },
+    {
+      "id": "lx.ani",
+      "pos": "pronoun",
+      "he": {
+        "niqqud": "אֲנִי",
+        "plain": "אני"
+      },
+      "translit_ru": "ани",
+      "gloss": {
+        "ru": "я"
+      }
+    },
+    {
+      "id": "lx.rotze",
+      "pos": "verb",
+      "he": {
+        "niqqud": "רוֹצֶה",
+        "plain": "רוצה"
+      },
+      "translit_ru": "роцэ",
+      "gloss": {
+        "ru": "хочу (говорит мужчина)"
+      },
+      "gender": "m",
+      "forms": [
+        {
+          "id": "lx.rotza",
+          "he": {
+            "niqqud": "רוֹצָה",
+            "plain": "רוצה"
+          },
+          "tags": [
+            "f",
+            "sg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lx.kan",
+      "pos": "expression",
+      "he": {
+        "niqqud": "כָּאן",
+        "plain": "כאן"
+      },
+      "translit_ru": "кан",
+      "gloss": {
+        "ru": "здесь"
+      }
+    },
+    {
+      "id": "lx.po",
+      "pos": "expression",
+      "he": {
+        "niqqud": "פֹּה",
+        "plain": "פה"
+      },
+      "translit_ru": "по",
+      "gloss": {
+        "ru": "здесь"
+      }
+    },
+    {
+      "id": "lx.mitz",
+      "pos": "noun",
+      "he": {
+        "niqqud": "מִיץ",
+        "plain": "מיץ"
+      },
+      "translit_ru": "миц",
+      "gloss": {
+        "ru": "сок"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.tapuzim",
+      "pos": "noun",
+      "he": {
+        "niqqud": "תַּפּוּזִים",
+        "plain": "תפוזים"
+      },
+      "translit_ru": "тапузим",
+      "gloss": {
+        "ru": "апельсины"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.kerach",
+      "pos": "noun",
+      "he": {
+        "niqqud": "קֶרַח",
+        "plain": "קרח"
+      },
+      "translit_ru": "кэрах",
+      "gloss": {
+        "ru": "лёд"
+      },
+      "gender": "m"
+    },
+    {
+      "id": "lx.ori",
+      "pos": "name",
+      "he": {
+        "niqqud": "אוֹרִי",
+        "plain": "אורי"
+      },
+      "translit_ru": "Ори",
+      "gloss": {
+        "ru": "Ори (бариста)"
+      }
+    },
+    {
+      "id": "lx.tamar",
+      "pos": "name",
+      "he": {
+        "niqqud": "תָּמָר",
+        "plain": "תמר"
+      },
+      "translit_ru": "Тамар",
+      "gloss": {
+        "ru": "Тамар (подруга по ульпану)"
+      }
+    }
+  ]
+}

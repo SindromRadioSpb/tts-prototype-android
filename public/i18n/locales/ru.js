@@ -5721,3 +5721,10 @@ Object.assign(window.I18N_LOCALES.ru.course,{"audioPlay": "Слушать реп
 Object.assign(window.I18N_LOCALES.ru.course,{sync:{synced:'Сохранено в облаке',local_only:'Данные на этом устройстве',pending:'Ждёт синхронизации',error:'Не удалось синхронизировать — повторим позже'},return:{title:'Вернуться',newVariant:'Новый вариант ситуации',repeat:'Повторить урок'}});
 
 Object.assign(window.I18N_LOCALES.ru.course, {"niqqudLabel": "Огласовки", "niqqudLesson": "Как в уроке", "niqqudAlways": "Всегда", "niqqudNever": "Никогда", "niqqudTap": "Показать огласовки"});
+
+Object.assign(window.I18N_LOCALES.ru.course,{unsupported:'Задание этого типа не поддерживается в этой версии.'});
+Object.assign(window.I18N_LOCALES.ru.course,{"part":"Часть {n} из {total}","summary":{"title":"Что вы теперь умеете","independent":"сами","supported":"с опорой","notYet":"ещё не пробовали","how":"«Сами» — с первой попытки, без подсказок, образца, перевода и текста реплики. «С опорой» — ответ принят, но с помощью или не с первой попытки."}});
+Object.assign(window.I18N_LOCALES.ru.course,{scene:{"noAudio":"Запись недоступна — читаем.","choose":"Что ответить?","play":"Слушать сцену","reveal":"Показать текст"}});
+Object.assign(window.I18N_LOCALES.ru.course.role,{"learner":"Вы","barista":"Бариста","friend":"Подруга"});
+Object.assign(window.I18N_LOCALES.ru.course,{tiles:{"answer":"Ваша фраза","bank":"Слова","empty":"Касайтесь слов ниже"}});
+Object.assign(window.I18N_LOCALES.ru.course,{order:{card:"Заказ"}});

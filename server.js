@@ -708,9 +708,11 @@ app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
 // Validated course bundles live on the data volume, ahead of public fallbacks.
 app.use('/data/course', express.static(path.join(DATA_DIR, 'course'), {
   fallthrough: true, index: false,
-  setHeaders(res) {
+  setHeaders(res, filePath) {
     res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+    // Lesson media are content-hashed; everything else is revalidated.
+    if (/[\\/]media[\\/][^\\/]+$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    else res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
   },
 }));
 
@@ -1430,15 +1432,18 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/library-ui.js?v=858",
   "/js/corpus-registry.js?v=854",
   "/js/course-hebrew.js?v=854",
-  "/js/course-checker.js?v=854",
-  "/js/course-format.js?v=858",
-  "/js/course-evidence.js?v=858",
+  "/js/course-checker.js?v=859",
+  "/js/course-format.js?v=859",
+  "/js/course-evidence.js?v=859",
   "/js/course-store.js?v=858",
   "/js/course-sync.js?v=858",
   "/js/course-keyboard.js?v=854",
-  "/js/course-audio.js?v=854",
-  "/js/course-reader.js?v=858",
-  "/css/course-reader.css?v=855",
+  "/js/course-audio.js?v=859",
+  "/js/course-tasks.js?v=859",
+  "/js/course-scene.js?v=859",
+  "/js/course-media.js?v=859",
+  "/js/course-reader.js?v=859",
+  "/css/course-reader.css?v=859",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
   "/js/corpus-item-presenter.js?v=419",
@@ -1496,9 +1501,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=858",
-  "/i18n/locales/en.js?v=858",
-  "/i18n/locales/he.js?v=858",
+  "/i18n/locales/ru.js?v=859",
+  "/i18n/locales/en.js?v=859",
+  "/i18n/locales/he.js?v=859",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

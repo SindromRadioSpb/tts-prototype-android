@@ -1,0 +1,2286 @@
+{
+  "format": "course-lesson-v1",
+  "id": "L001-cafe",
+  "version": 3,
+  "title": {
+    "ru": "Кафе: заказать напиток"
+  },
+  "goal": {
+    "ru": "Вы сами закажете напиток в кафе: что, какого размера, с чем или без, здесь или с собой — и поправите бариста, если он ошибся."
+  },
+  "niqqud": "full",
+  "introduces": {
+    "active": [
+      "lx.efshar",
+      "lx.coffee",
+      "lx.tea",
+      "lx.water",
+      "lx.chalav",
+      "lx.sugar",
+      "lx.big",
+      "lx.small",
+      "lx.im",
+      "lx.bli",
+      "lx.lashevet",
+      "lx.lakachat",
+      "lx.ein",
+      "lx.od",
+      "lx.paam"
+    ],
+    "receptive": [
+      "lx.shalom",
+      "lx.toda",
+      "lx.bevakasha",
+      "lx.slicha",
+      "lx.ken",
+      "lx.lo",
+      "lx.big-f",
+      "lx.small-f",
+      "lx.o",
+      "lx.boker",
+      "lx.tov",
+      "lx.yom",
+      "lx.beseder",
+      "lx.ein-baaya",
+      "lx.bimkom",
+      "lx.yesh",
+      "lx.hafuch",
+      "lx.uga",
+      "lx.esrim",
+      "lx.shekel",
+      "lx.ma",
+      "lx.hevanti",
+      "lx.shuv",
+      "lx.lachzor",
+      "lx.ani",
+      "lx.rotze",
+      "lx.rotza",
+      "lx.kan",
+      "lx.po",
+      "lx.mitz",
+      "lx.tapuzim",
+      "lx.kerach",
+      "lx.ori",
+      "lx.tamar"
+    ]
+  },
+  "reviews": [],
+  "frame": [
+    "lx.shalom",
+    "lx.toda",
+    "lx.bevakasha",
+    "lx.slicha",
+    "lx.ken",
+    "lx.lo",
+    "lx.efshar",
+    "lx.beseder"
+  ],
+  "slots": [
+    {
+      "id": "drink",
+      "label": {
+        "ru": "напиток"
+      },
+      "head": true,
+      "values": [
+        {
+          "key": "coffee",
+          "label": {
+            "ru": "кофе"
+          },
+          "seq": [
+            "lx.coffee"
+          ]
+        },
+        {
+          "key": "tea",
+          "label": {
+            "ru": "чай"
+          },
+          "seq": [
+            "lx.tea"
+          ]
+        },
+        {
+          "key": "water",
+          "label": {
+            "ru": "вода"
+          },
+          "seq": [
+            "lx.water"
+          ]
+        },
+        {
+          "key": "latte",
+          "label": {
+            "ru": "афух"
+          },
+          "seq": [
+            "lx.hafuch"
+          ]
+        },
+        {
+          "key": "juice",
+          "label": {
+            "ru": "апельсиновый сок"
+          },
+          "seq": [
+            "lx.mitz",
+            "lx.tapuzim"
+          ]
+        },
+        {
+          "key": "juice",
+          "label": {
+            "ru": "апельсиновый сок"
+          },
+          "seq": [
+            "lx.mitz"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "size",
+      "label": {
+        "ru": "размер"
+      },
+      "values": [
+        {
+          "key": "big",
+          "label": {
+            "ru": "большой"
+          },
+          "seq": [
+            "lx.big"
+          ]
+        },
+        {
+          "key": "big",
+          "label": {
+            "ru": "большой"
+          },
+          "seq": [
+            "lx.big-f"
+          ]
+        },
+        {
+          "key": "small",
+          "label": {
+            "ru": "маленький"
+          },
+          "seq": [
+            "lx.small"
+          ]
+        },
+        {
+          "key": "small",
+          "label": {
+            "ru": "маленький"
+          },
+          "seq": [
+            "lx.small-f"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "milk",
+      "label": {
+        "ru": "молоко"
+      },
+      "values": [
+        {
+          "key": "with",
+          "label": {
+            "ru": "с молоком"
+          },
+          "seq": [
+            "lx.im",
+            "lx.chalav"
+          ]
+        },
+        {
+          "key": "without",
+          "label": {
+            "ru": "без молока"
+          },
+          "seq": [
+            "lx.bli",
+            "lx.chalav"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sugar",
+      "label": {
+        "ru": "сахар"
+      },
+      "values": [
+        {
+          "key": "with",
+          "label": {
+            "ru": "с сахаром"
+          },
+          "seq": [
+            "lx.im",
+            "lx.sugar"
+          ]
+        },
+        {
+          "key": "without",
+          "label": {
+            "ru": "без сахара"
+          },
+          "seq": [
+            "lx.bli",
+            "lx.sugar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ice",
+      "label": {
+        "ru": "лёд"
+      },
+      "values": [
+        {
+          "key": "with",
+          "label": {
+            "ru": "со льдом"
+          },
+          "seq": [
+            "lx.im",
+            "lx.kerach"
+          ]
+        },
+        {
+          "key": "without",
+          "label": {
+            "ru": "без льда"
+          },
+          "seq": [
+            "lx.bli",
+            "lx.kerach"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "label": {
+        "ru": "здесь или с собой"
+      },
+      "values": [
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.lashevet"
+          ]
+        },
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.kan"
+          ]
+        },
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.po"
+          ]
+        },
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.lashevet",
+            "lx.kan"
+          ]
+        },
+        {
+          "key": "here",
+          "label": {
+            "ru": "здесь"
+          },
+          "seq": [
+            "lx.lashevet",
+            "lx.po"
+          ]
+        },
+        {
+          "key": "takeaway",
+          "label": {
+            "ru": "с собой"
+          },
+          "seq": [
+            "lx.lakachat"
+          ]
+        }
+      ]
+    }
+  ],
+  "orderRules": [
+    {
+      "head": "drink",
+      "dependent": "size",
+      "message": {
+        "ru": "Размер говорят после напитка: קָפֶה גָּדוֹל — дословно «кофе большой»."
+      }
+    }
+  ],
+  "repeatForms": [
+    [
+      "lx.od",
+      "lx.paam"
+    ],
+    [
+      "lx.slicha",
+      "lx.od",
+      "lx.paam"
+    ],
+    [
+      "lx.shuv"
+    ],
+    [
+      "lx.ma"
+    ],
+    [
+      "lx.lo",
+      "lx.hevanti"
+    ],
+    [
+      "lx.efshar",
+      "lx.lachzor"
+    ]
+  ],
+  "scene": {
+    "id": "sc-cafe",
+    "image": "m-cafe",
+    "roles": [
+      {
+        "id": "barista",
+        "voice": "he-IL-Wavenet-D"
+      },
+      {
+        "id": "learner",
+        "voice": "he-IL-Wavenet-C"
+      },
+      {
+        "id": "friend",
+        "voice": "he-IL-Wavenet-C"
+      }
+    ],
+    "turns": [
+      {
+        "id": "t-hello",
+        "role": "barista",
+        "he": {
+          "niqqud": "בֹּקֶר טוֹב! כֵּן, בְּבַקָּשָׁה?",
+          "plain": "בוקר טוב! כן, בבקשה?"
+        },
+        "ru": {
+          "ru": "Доброе утро! Да, пожалуйста? (Что вам?)"
+        },
+        "next": "t-order"
+      },
+      {
+        "id": "t-order",
+        "role": "learner",
+        "he": {
+          "niqqud": "אֶפְשָׁר קָפֶה, בְּבַקָּשָׁה?",
+          "plain": "אפשר קפה, בבקשה?"
+        },
+        "ru": {
+          "ru": "Можно кофе, пожалуйста?"
+        },
+        "next": "t-size"
+      },
+      {
+        "id": "t-size",
+        "role": "barista",
+        "he": {
+          "niqqud": "גָּדוֹל אוֹ קָטָן?",
+          "plain": "גדול או קטן?"
+        },
+        "ru": {
+          "ru": "Большой или маленький?"
+        },
+        "next": "t-size-answer"
+      },
+      {
+        "id": "t-size-answer",
+        "role": "learner",
+        "he": {
+          "niqqud": "גָּדוֹל, בְּבַקָּשָׁה.",
+          "plain": "גדול, בבקשה."
+        },
+        "ru": {
+          "ru": "Большой, пожалуйста."
+        },
+        "choices": [
+          {
+            "id": "big",
+            "he": {
+              "niqqud": "גָּדוֹל, בְּבַקָּשָׁה.",
+              "plain": "גדול, בבקשה."
+            },
+            "ru": {
+              "ru": "Большой, пожалуйста."
+            },
+            "next": "t-milk",
+            "verdict": "ok"
+          },
+          {
+            "id": "again",
+            "he": {
+              "niqqud": "סְלִיחָה, עוֹד פַּעַם?",
+              "plain": "סליחה, עוד פעם?"
+            },
+            "ru": {
+              "ru": "Простите, ещё раз?"
+            },
+            "next": "t-size-again",
+            "verdict": "repair"
+          }
+        ]
+      },
+      {
+        "id": "t-size-again",
+        "role": "barista",
+        "he": {
+          "niqqud": "קָפֶה גָּדוֹל אוֹ קָטָן?",
+          "plain": "קפה גדול או קטן?"
+        },
+        "ru": {
+          "ru": "Кофе большой или маленький?"
+        },
+        "next": "t-size-again-answer"
+      },
+      {
+        "id": "t-size-again-answer",
+        "role": "learner",
+        "he": {
+          "niqqud": "גָּדוֹל.",
+          "plain": "גדול."
+        },
+        "ru": {
+          "ru": "Большой."
+        },
+        "next": "t-milk"
+      },
+      {
+        "id": "t-milk",
+        "role": "barista",
+        "he": {
+          "niqqud": "עִם חָלָב?",
+          "plain": "עם חלב?"
+        },
+        "ru": {
+          "ru": "С молоком?"
+        },
+        "next": "t-milk-answer"
+      },
+      {
+        "id": "t-milk-answer",
+        "role": "learner",
+        "he": {
+          "niqqud": "כֵּן, עִם חָלָב.",
+          "plain": "כן, עם חלב."
+        },
+        "ru": {
+          "ru": "Да, с молоком."
+        },
+        "choices": [
+          {
+            "id": "with",
+            "he": {
+              "niqqud": "כֵּן, עִם חָלָב.",
+              "plain": "כן, עם חלב."
+            },
+            "ru": {
+              "ru": "Да, с молоком."
+            },
+            "next": "t-service",
+            "verdict": "ok"
+          },
+          {
+            "id": "without",
+            "he": {
+              "niqqud": "לֹא, בְּלִי חָלָב.",
+              "plain": "לא, בלי חלב."
+            },
+            "ru": {
+              "ru": "Нет, без молока."
+            },
+            "next": "t-service",
+            "verdict": "ok"
+          }
+        ]
+      },
+      {
+        "id": "t-service",
+        "role": "barista",
+        "he": {
+          "niqqud": "לָשֶׁבֶת אוֹ לָקַחַת?",
+          "plain": "לשבת או לקחת?"
+        },
+        "ru": {
+          "ru": "Здесь или с собой?"
+        },
+        "next": "t-service-answer"
+      },
+      {
+        "id": "t-service-answer",
+        "role": "learner",
+        "he": {
+          "niqqud": "לָקַחַת, בְּבַקָּשָׁה.",
+          "plain": "לקחת, בבקשה."
+        },
+        "ru": {
+          "ru": "С собой, пожалуйста."
+        },
+        "choices": [
+          {
+            "id": "take",
+            "he": {
+              "niqqud": "לָקַחַת, בְּבַקָּשָׁה.",
+              "plain": "לקחת, בבקשה."
+            },
+            "ru": {
+              "ru": "С собой, пожалуйста."
+            },
+            "next": "t-confirm-sit",
+            "verdict": "ok"
+          },
+          {
+            "id": "sit",
+            "he": {
+              "niqqud": "לָשֶׁבֶת.",
+              "plain": "לשבת."
+            },
+            "ru": {
+              "ru": "Посижу здесь."
+            },
+            "next": "t-confirm-take",
+            "verdict": "ok"
+          }
+        ]
+      },
+      {
+        "id": "t-confirm-sit",
+        "role": "barista",
+        "he": {
+          "niqqud": "קָפֶה גָּדוֹל, לָשֶׁבֶת?",
+          "plain": "קפה גדול, לשבת?"
+        },
+        "ru": {
+          "ru": "Большой кофе, здесь?"
+        },
+        "next": "t-fix-take"
+      },
+      {
+        "id": "t-fix-take",
+        "role": "learner",
+        "he": {
+          "niqqud": "לֹא, לָקַחַת.",
+          "plain": "לא, לקחת."
+        },
+        "ru": {
+          "ru": "Нет, с собой."
+        },
+        "choices": [
+          {
+            "id": "fix",
+            "he": {
+              "niqqud": "לֹא, לָקַחַת.",
+              "plain": "לא, לקחת."
+            },
+            "ru": {
+              "ru": "Нет, с собой."
+            },
+            "next": "t-price",
+            "verdict": "ok"
+          },
+          {
+            "id": "agree",
+            "he": {
+              "niqqud": "כֵּן, תּוֹדָה.",
+              "plain": "כן, תודה."
+            },
+            "ru": {
+              "ru": "Да, спасибо."
+            },
+            "next": "t-oops-sit",
+            "verdict": "repair"
+          }
+        ]
+      },
+      {
+        "id": "t-oops-sit",
+        "role": "barista",
+        "he": {
+          "niqqud": "בְּבַקָּשָׁה, לָשֶׁבֶת כָּאן.",
+          "plain": "בבקשה, לשבת כאן."
+        },
+        "ru": {
+          "ru": "Пожалуйста, садитесь здесь. (Ори несёт чашку к столику — а вы хотели с собой.)"
+        },
+        "next": "t-oops-sit-fix"
+      },
+      {
+        "id": "t-oops-sit-fix",
+        "role": "learner",
+        "he": {
+          "niqqud": "סְלִיחָה, לָקַחַת!",
+          "plain": "סליחה, לקחת!"
+        },
+        "ru": {
+          "ru": "Простите, с собой!"
+        },
+        "next": "t-no-problem"
+      },
+      {
+        "id": "t-confirm-take",
+        "role": "barista",
+        "he": {
+          "niqqud": "קָפֶה גָּדוֹל, לָקַחַת?",
+          "plain": "קפה גדול, לקחת?"
+        },
+        "ru": {
+          "ru": "Большой кофе, с собой?"
+        },
+        "next": "t-fix-sit"
+      },
+      {
+        "id": "t-fix-sit",
+        "role": "learner",
+        "he": {
+          "niqqud": "לֹא, לָשֶׁבֶת.",
+          "plain": "לא, לשבת."
+        },
+        "ru": {
+          "ru": "Нет, здесь."
+        },
+        "choices": [
+          {
+            "id": "fix",
+            "he": {
+              "niqqud": "לֹא, לָשֶׁבֶת.",
+              "plain": "לא, לשבת."
+            },
+            "ru": {
+              "ru": "Нет, здесь."
+            },
+            "next": "t-price",
+            "verdict": "ok"
+          },
+          {
+            "id": "agree",
+            "he": {
+              "niqqud": "כֵּן, תּוֹדָה.",
+              "plain": "כן, תודה."
+            },
+            "ru": {
+              "ru": "Да, спасибо."
+            },
+            "next": "t-oops-take",
+            "verdict": "repair"
+          }
+        ]
+      },
+      {
+        "id": "t-oops-take",
+        "role": "barista",
+        "he": {
+          "niqqud": "בְּבַקָּשָׁה, לָקַחַת.",
+          "plain": "בבקשה, לקחת."
+        },
+        "ru": {
+          "ru": "Пожалуйста, с собой. (Ори протягивает бумажный стакан — а вы хотели посидеть.)"
+        },
+        "next": "t-oops-take-fix"
+      },
+      {
+        "id": "t-oops-take-fix",
+        "role": "learner",
+        "he": {
+          "niqqud": "סְלִיחָה, לָשֶׁבֶת!",
+          "plain": "סליחה, לשבת!"
+        },
+        "ru": {
+          "ru": "Простите, я посижу здесь!"
+        },
+        "next": "t-no-problem"
+      },
+      {
+        "id": "t-no-problem",
+        "role": "barista",
+        "he": {
+          "niqqud": "אֵין בְּעָיָה.",
+          "plain": "אין בעיה."
+        },
+        "ru": {
+          "ru": "Без проблем."
+        },
+        "next": "t-price"
+      },
+      {
+        "id": "t-price",
+        "role": "barista",
+        "he": {
+          "niqqud": "עֶשְׂרִים שֶׁקֶל.",
+          "plain": "עשרים שקל."
+        },
+        "ru": {
+          "ru": "Двадцать шекелей."
+        },
+        "next": "t-thanks"
+      },
+      {
+        "id": "t-thanks",
+        "role": "learner",
+        "he": {
+          "niqqud": "תּוֹדָה!",
+          "plain": "תודה!"
+        },
+        "ru": {
+          "ru": "Спасибо!"
+        },
+        "next": "t-bye"
+      },
+      {
+        "id": "t-bye",
+        "role": "barista",
+        "he": {
+          "niqqud": "יוֹם טוֹב!",
+          "plain": "יום טוב!"
+        },
+        "ru": {
+          "ru": "Хорошего дня!"
+        }
+      }
+    ]
+  },
+  "text": {
+    "id": "tx-tamar",
+    "paras": [
+      {
+        "id": "p1",
+        "role": "barista",
+        "he": {
+          "niqqud": "בֹּקֶר טוֹב, תָּמָר! קָפֶה?",
+          "plain": "בוקר טוב, תמר! קפה?"
+        },
+        "ru": {
+          "ru": "Доброе утро, Тамар! Кофе?"
+        }
+      },
+      {
+        "id": "p2",
+        "role": "friend",
+        "he": {
+          "niqqud": "בֹּקֶר טוֹב, אוֹרִי! כֵּן, הָפוּךְ גָּדוֹל, בְּבַקָּשָׁה.",
+          "plain": "בוקר טוב, אורי! כן, הפוך גדול, בבקשה."
+        },
+        "ru": {
+          "ru": "Доброе утро, Ори! Да, большой афух, пожалуйста."
+        }
+      },
+      {
+        "id": "p3",
+        "role": "barista",
+        "he": {
+          "niqqud": "הָפוּךְ גָּדוֹל. עִם סֻכָּר?",
+          "plain": "הפוך גדול. עם סוכר?"
+        },
+        "ru": {
+          "ru": "Большой афух. С сахаром?"
+        }
+      },
+      {
+        "id": "p4",
+        "role": "friend",
+        "he": {
+          "niqqud": "לֹא, בְּלִי סֻכָּר. אֶפְשָׁר עוּגָה?",
+          "plain": "לא, בלי סוכר. אפשר עוגה?"
+        },
+        "ru": {
+          "ru": "Нет, без сахара. Можно пирог?"
+        }
+      },
+      {
+        "id": "p5",
+        "role": "barista",
+        "he": {
+          "niqqud": "עוּגָה קְטַנָּה אוֹ גְּדוֹלָה?",
+          "plain": "עוגה קטנה או גדולה?"
+        },
+        "ru": {
+          "ru": "Маленький кусок или большой?"
+        }
+      },
+      {
+        "id": "p6",
+        "role": "friend",
+        "he": {
+          "niqqud": "גְּדוֹלָה, בְּבַקָּשָׁה!",
+          "plain": "גדולה, בבקשה!"
+        },
+        "ru": {
+          "ru": "Большой, пожалуйста!"
+        }
+      },
+      {
+        "id": "p7",
+        "role": "barista",
+        "he": {
+          "niqqud": "בְּסֵדֶר. הָפוּךְ גָּדוֹל בְּלִי סֻכָּר, עוּגָה גְּדוֹלָה. לָשֶׁבֶת אוֹ לָקַחַת?",
+          "plain": "בסדר. הפוך גדול בלי סוכר, עוגה גדולה. לשבת או לקחת?"
+        },
+        "ru": {
+          "ru": "Хорошо. Большой афух без сахара, большой пирог. Здесь или с собой?"
+        }
+      },
+      {
+        "id": "p8",
+        "role": "friend",
+        "he": {
+          "niqqud": "לָשֶׁבֶת. תּוֹדָה, אוֹרִי!",
+          "plain": "לשבת. תודה, אורי!"
+        },
+        "ru": {
+          "ru": "Здесь. Спасибо, Ори!"
+        }
+      }
+    ]
+  },
+  "grammar": {
+    "g-efshar": {
+      "title": {
+        "ru": "אֶפְשָׁר — «можно…?»"
+      },
+      "body": {
+        "ru": "Самая простая вежливая просьба: אֶפְשָׁר + что вы хотите. Глагол не нужен, и форма одна для мужчин и женщин. Интонация вопроса и בְּבַקָּשָׁה делают просьбу мягкой."
+      },
+      "line": {
+        "he": {
+          "niqqud": "אֶפְשָׁר קָפֶה, בְּבַקָּשָׁה?",
+          "plain": "אפשר קפה, בבקשה?"
+        },
+        "slots": [
+          {
+            "from": 0,
+            "to": 0,
+            "label": {
+              "ru": "можно"
+            }
+          },
+          {
+            "from": 1,
+            "to": 1,
+            "label": {
+              "ru": "что"
+            }
+          },
+          {
+            "from": 2,
+            "to": 2,
+            "label": {
+              "ru": "пожалуйста"
+            }
+          }
+        ]
+      }
+    },
+    "g-adj": {
+      "title": {
+        "ru": "Сначала что, потом какой"
+      },
+      "body": {
+        "ru": "В иврите прилагательное стоит после существительного: קָפֶה גָּדוֹל — дословно «кофе большой». Порядок как в русском («большой кофе») — ошибка."
+      },
+      "line": {
+        "he": {
+          "niqqud": "אֶפְשָׁר קָפֶה גָּדוֹל?",
+          "plain": "אפשר קפה גדול?"
+        },
+        "slots": [
+          {
+            "from": 1,
+            "to": 1,
+            "label": {
+              "ru": "что"
+            }
+          },
+          {
+            "from": 2,
+            "to": 2,
+            "label": {
+              "ru": "какой"
+            }
+          }
+        ]
+      }
+    },
+    "g-ein": {
+      "title": {
+        "ru": "יֵשׁ и אֵין — «есть» и «нет»"
+      },
+      "body": {
+        "ru": "יֵשׁ — что-то есть, אֵין — этого нет. Глагол «быть» не нужен: אֵין קָפֶה — «кофе нет»."
+      },
+      "line": {
+        "he": {
+          "niqqud": "סְלִיחָה, אֵין קָפֶה.",
+          "plain": "סליחה, אין קפה."
+        },
+        "slots": [
+          {
+            "from": 1,
+            "to": 1,
+            "label": {
+              "ru": "нет"
+            }
+          },
+          {
+            "from": 2,
+            "to": 2,
+            "label": {
+              "ru": "чего"
+            }
+          }
+        ]
+      }
+    },
+    "g-gender": {
+      "title": {
+        "ru": "Прилагательное подстраивается под род"
+      },
+      "body": {
+        "ru": "У каждого существительного есть род. קָפֶה — мужского рода, עוּגָה и כּוֹס — женского. Прилагательное женского рода обычно получает окончание ־ָה: גָּדוֹל → גְּדוֹלָה, קָטָן → קְטַנָּה. Пока просто замечайте это; подробно — в следующих уроках."
+      },
+      "line": {
+        "he": {
+          "niqqud": "עוּגָה גְּדוֹלָה",
+          "plain": "עוגה גדולה"
+        },
+        "slots": [
+          {
+            "from": 0,
+            "to": 0,
+            "label": {
+              "ru": "что (ж. р.)"
+            }
+          },
+          {
+            "from": 1,
+            "to": 1,
+            "label": {
+              "ru": "какая (ж. р.)"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "tasks": [
+    {
+      "id": "l-size",
+      "type": "choice",
+      "channel": [
+        "listen",
+        "cards"
+      ],
+      "audioTurnId": "t-size",
+      "prompt": {
+        "ru": "Послушайте реплику Ори. Что он спросил?"
+      },
+      "options": [
+        {
+          "id": "size",
+          "label": {
+            "ru": "Большой или маленький?"
+          }
+        },
+        {
+          "id": "service",
+          "label": {
+            "ru": "Здесь или с собой?"
+          }
+        },
+        {
+          "id": "milk",
+          "label": {
+            "ru": "С молоком?"
+          }
+        }
+      ],
+      "correctOption": "size",
+      "hints": [
+        {
+          "ru": "Ори показывает на два стакана."
+        },
+        {
+          "ru": "גָּדוֹל — большой, קָטָן — маленький."
+        }
+      ]
+    },
+    {
+      "id": "l-milk",
+      "type": "choice",
+      "channel": [
+        "listen",
+        "cards"
+      ],
+      "audioTurnId": "t-milk",
+      "prompt": {
+        "ru": "Послушайте. О чём спрашивает Ори теперь?"
+      },
+      "options": [
+        {
+          "id": "sugar",
+          "label": {
+            "ru": "Про сахар"
+          }
+        },
+        {
+          "id": "milk",
+          "label": {
+            "ru": "Про молоко"
+          }
+        },
+        {
+          "id": "price",
+          "label": {
+            "ru": "Про цену"
+          }
+        }
+      ],
+      "correctOption": "milk",
+      "hints": [
+        {
+          "ru": "Слово в конце — חָלָב."
+        },
+        {
+          "ru": "עִם — «с». Что можно добавить в кофе?"
+        }
+      ]
+    },
+    {
+      "id": "l-confirm",
+      "type": "choice",
+      "channel": [
+        "listen",
+        "cards"
+      ],
+      "audioTurnId": "t-confirm-sit",
+      "prompt": {
+        "ru": "Вы попросили кофе с собой. Послушайте, как Ори повторил заказ. Что не так?"
+      },
+      "options": [
+        {
+          "id": "service",
+          "label": {
+            "ru": "Он сказал «здесь», а не «с собой»"
+          }
+        },
+        {
+          "id": "size",
+          "label": {
+            "ru": "Он перепутал размер"
+          }
+        },
+        {
+          "id": "ok",
+          "label": {
+            "ru": "Всё верно"
+          }
+        }
+      ],
+      "correctOption": "service",
+      "hints": [
+        {
+          "ru": "Слушайте последнее слово."
+        },
+        {
+          "ru": "לָשֶׁבֶת — посидеть здесь, לָקַחַת — взять с собой."
+        }
+      ]
+    },
+    {
+      "id": "m-words",
+      "type": "match",
+      "channel": [
+        "cards"
+      ],
+      "prompt": {
+        "ru": "Сопоставьте слова и картинки."
+      },
+      "pairs": [
+        {
+          "id": "coffee",
+          "he": {
+            "niqqud": "קָפֶה",
+            "plain": "קפה"
+          },
+          "media": "m-coffee"
+        },
+        {
+          "id": "tea",
+          "he": {
+            "niqqud": "תֵּה",
+            "plain": "תה"
+          },
+          "media": "m-tea"
+        },
+        {
+          "id": "water",
+          "he": {
+            "niqqud": "מַיִם",
+            "plain": "מים"
+          },
+          "media": "m-water"
+        },
+        {
+          "id": "milk",
+          "he": {
+            "niqqud": "חָלָב",
+            "plain": "חלב"
+          },
+          "media": "m-milk"
+        }
+      ],
+      "hints": [
+        {
+          "ru": "Начните с самого короткого слова — תֵּה."
+        }
+      ]
+    },
+    {
+      "id": "c-take",
+      "type": "choice",
+      "channel": [
+        "cards"
+      ],
+      "prompt": {
+        "ru": "Как ответить Ори «с собой»?"
+      },
+      "options": [
+        {
+          "id": "take",
+          "he": {
+            "niqqud": "לָקַחַת",
+            "plain": "לקחת"
+          }
+        },
+        {
+          "id": "sit",
+          "he": {
+            "niqqud": "לָשֶׁבֶת",
+            "plain": "לשבת"
+          }
+        },
+        {
+          "id": "bli",
+          "he": {
+            "niqqud": "בְּלִי",
+            "plain": "בלי"
+          }
+        }
+      ],
+      "correctOption": "take",
+      "hints": [
+        {
+          "ru": "Посмотрите в сцене, что Ори спросил после молока."
+        }
+      ]
+    },
+    {
+      "id": "b-big-coffee",
+      "type": "tiles",
+      "channel": [
+        "cards"
+      ],
+      "prompt": {
+        "ru": "Соберите просьбу: «Можно большой кофе?»"
+      },
+      "grammarRef": "g-adj",
+      "tiles": [
+        {
+          "niqqud": "אֶפְשָׁר",
+          "plain": "אפשר"
+        },
+        {
+          "niqqud": "קָפֶה",
+          "plain": "קפה"
+        },
+        {
+          "niqqud": "גָּדוֹל",
+          "plain": "גדול"
+        }
+      ],
+      "distractors": [
+        {
+          "niqqud": "קָטָן",
+          "plain": "קטן"
+        }
+      ],
+      "model": {
+        "niqqud": "אֶפְשָׁר קָפֶה גָּדוֹל?",
+        "plain": "אפשר קפה גדול?"
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "coffee",
+          "size": "big"
+        },
+        "require": [
+          "drink",
+          "size"
+        ],
+        "preferFrame": [
+          "lx.efshar"
+        ]
+      },
+      "hints": [
+        {
+          "ru": "Сначала «можно», потом что, потом какой."
+        },
+        {
+          "ru": "Размер идёт после напитка: קָפֶה גָּדוֹל."
+        }
+      ]
+    },
+    {
+      "id": "b-tea-sugar",
+      "type": "tiles",
+      "channel": [
+        "cards"
+      ],
+      "prompt": {
+        "ru": "Соберите: «Чай без сахара, пожалуйста»"
+      },
+      "tiles": [
+        {
+          "niqqud": "תֵּה",
+          "plain": "תה"
+        },
+        {
+          "niqqud": "בְּלִי",
+          "plain": "בלי"
+        },
+        {
+          "niqqud": "סֻכָּר",
+          "plain": "סוכר"
+        },
+        {
+          "niqqud": "בְּבַקָּשָׁה",
+          "plain": "בבקשה"
+        }
+      ],
+      "distractors": [
+        {
+          "niqqud": "עִם",
+          "plain": "עם"
+        }
+      ],
+      "model": {
+        "niqqud": "תֵּה בְּלִי סֻכָּר, בְּבַקָּשָׁה",
+        "plain": "תה בלי סוכר, בבקשה"
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "tea",
+          "sugar": "without"
+        },
+        "require": [
+          "drink",
+          "sugar"
+        ]
+      },
+      "hints": [
+        {
+          "ru": "בְּלִי — без, עִם — с."
+        }
+      ]
+    },
+    {
+      "id": "w-tea-milk",
+      "type": "text",
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Напишите сами: попросите чай с молоком."
+      },
+      "grammarRef": "g-efshar",
+      "model": {
+        "niqqud": "אֶפְשָׁר תֵּה עִם חָלָב, בְּבַקָּשָׁה?",
+        "plain": "אפשר תה עם חלב, בבקשה?"
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "tea",
+          "milk": "with"
+        },
+        "require": [
+          "drink",
+          "milk"
+        ],
+        "preferFrame": [
+          "lx.efshar"
+        ]
+      },
+      "hints": [
+        {
+          "ru": "Начните с אֶפְשָׁר."
+        },
+        {
+          "ru": "«С молоком» — עִם חָלָב."
+        }
+      ]
+    },
+    {
+      "id": "o-card",
+      "type": "order",
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Закажите то, что на карточке."
+      },
+      "card": {
+        "drink": "tea",
+        "size": "big",
+        "sugar": "without",
+        "service": "takeaway"
+      },
+      "cardMedia": "m-card-tea",
+      "model": {
+        "niqqud": "אֶפְשָׁר תֵּה גָּדוֹל בְּלִי סֻכָּר, לָקַחַת?",
+        "plain": "אפשר תה גדול בלי סוכר, לקחת?"
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "tea",
+          "size": "big",
+          "sugar": "without",
+          "service": "takeaway"
+        },
+        "require": [
+          "drink",
+          "size",
+          "sugar",
+          "service"
+        ],
+        "preferFrame": [
+          "lx.efshar"
+        ]
+      },
+      "hints": [
+        {
+          "ru": "На карточке четыре вещи: напиток, размер, сахар и где пить."
+        },
+        {
+          "ru": "Бумажный стакан с крышкой — לָקַחַת."
+        }
+      ]
+    },
+    {
+      "id": "r-repeat",
+      "type": "scene",
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Ори сказал что-то быстро, вы не расслышали. Попросите повторить."
+      },
+      "cue": {
+        "niqqud": "גָּדוֹל אוֹ קָטָן?",
+        "plain": "גדול או קטן?"
+      },
+      "model": {
+        "niqqud": "סְלִיחָה, עוֹד פַּעַם?",
+        "plain": "סליחה, עוד פעם?"
+      },
+      "spec": {
+        "kind": "repeat"
+      },
+      "hints": [
+        {
+          "ru": "Начните с вежливого слова."
+        },
+        {
+          "ru": "«Ещё раз» — עוֹד פַּעַם."
+        }
+      ]
+    },
+    {
+      "id": "r-instead",
+      "type": "scene",
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Кофемашина сломалась. Ори говорит, что кофе нет. Попросите чай вместо кофе."
+      },
+      "grammarRef": "g-ein",
+      "cue": {
+        "niqqud": "סְלִיחָה, אֵין קָפֶה.",
+        "plain": "סליחה, אין קפה."
+      },
+      "model": {
+        "niqqud": "אֶפְשָׁר תֵּה בִּמְקוֹם קָפֶה?",
+        "plain": "אפשר תה במקום קפה?"
+      },
+      "spec": {
+        "kind": "replacement",
+        "next": {
+          "drink": "tea"
+        },
+        "prev": {
+          "drink": "coffee"
+        },
+        "via": "lx.bimkom"
+      },
+      "hints": [
+        {
+          "ru": "Сначала то, что хотите теперь."
+        },
+        {
+          "ru": "«Вместо» — בִּמְקוֹם."
+        }
+      ]
+    },
+    {
+      "id": "r-confirm",
+      "type": "scene",
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Вы заказали большой кофе без молока. Ори переспрашивает. Ответьте."
+      },
+      "cue": {
+        "niqqud": "קָפֶה גָּדוֹל עִם חָלָב?",
+        "plain": "קפה גדול עם חלב?"
+      },
+      "model": {
+        "niqqud": "לֹא, בְּלִי חָלָב.",
+        "plain": "לא, בלי חלב."
+      },
+      "spec": {
+        "kind": "confirm",
+        "card": {
+          "milk": "without"
+        },
+        "claim": {
+          "milk": "with"
+        }
+      },
+      "hints": [
+        {
+          "ru": "Ори сказал עִם — «с». А вы просили?"
+        }
+      ]
+    },
+    {
+      "id": "r-confirm-ok",
+      "type": "scene",
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Вы заказали большой кофе с молоком. Ори переспрашивает. Ответьте."
+      },
+      "cue": {
+        "niqqud": "קָפֶה גָּדוֹל עִם חָלָב?",
+        "plain": "קפה גדול עם חלב?"
+      },
+      "model": {
+        "niqqud": "כֵּן, תּוֹדָה.",
+        "plain": "כן, תודה."
+      },
+      "spec": {
+        "kind": "confirm",
+        "card": {
+          "milk": "with"
+        },
+        "claim": {
+          "milk": "with"
+        }
+      },
+      "hints": [
+        {
+          "ru": "Всё совпадает — достаточно согласиться."
+        }
+      ]
+    },
+    {
+      "id": "n-small-f",
+      "type": "choice",
+      "channel": [
+        "cards"
+      ],
+      "prompt": {
+        "ru": "Найдите в тексте: как Ори говорит «маленький» про пирог?"
+      },
+      "options": [
+        {
+          "id": "m",
+          "he": {
+            "niqqud": "קָטָן",
+            "plain": "קטן"
+          }
+        },
+        {
+          "id": "f",
+          "he": {
+            "niqqud": "קְטַנָּה",
+            "plain": "קטנה"
+          }
+        },
+        {
+          "id": "big-f",
+          "he": {
+            "niqqud": "גְּדוֹלָה",
+            "plain": "גדולה"
+          }
+        }
+      ],
+      "correctOption": "f",
+      "hints": [
+        {
+          "ru": "Посмотрите на пятую реплику текста."
+        }
+      ]
+    },
+    {
+      "id": "n-why",
+      "type": "choice",
+      "channel": [
+        "cards"
+      ],
+      "prompt": {
+        "ru": "Почему עוּגָה קְטַנָּה, а не עוּגָה קָטָן?"
+      },
+      "grammarRef": "g-gender",
+      "options": [
+        {
+          "id": "gender",
+          "label": {
+            "ru": "עוּגָה — слово женского рода, прилагательное подстраивается"
+          }
+        },
+        {
+          "id": "polite",
+          "label": {
+            "ru": "Так вежливее"
+          }
+        },
+        {
+          "id": "plural",
+          "label": {
+            "ru": "Это множественное число"
+          }
+        }
+      ],
+      "correctOption": "gender",
+      "hints": [
+        {
+          "ru": "Сравните: קָפֶה גָּדוֹל, но עוּגָה גְּדוֹלָה."
+        }
+      ]
+    },
+    {
+      "id": "x-kiosk",
+      "type": "order",
+      "transfer": true,
+      "channel": [
+        "write_he"
+      ],
+      "prompt": {
+        "ru": "Новое место: киоск соков на набережной. Закажите то, что на карточке. Образца не будет."
+      },
+      "card": {
+        "drink": "juice",
+        "size": "big",
+        "ice": "without"
+      },
+      "cardMedia": "m-card-juice",
+      "model": {
+        "niqqud": "אֶפְשָׁר מִיץ תַּפּוּזִים גָּדוֹל בְּלִי קֶרַח?",
+        "plain": "אפשר מיץ תפוזים גדול בלי קרח?"
+      },
+      "spec": {
+        "kind": "order",
+        "expect": {
+          "drink": "juice",
+          "size": "big",
+          "ice": "without"
+        },
+        "require": [
+          "drink",
+          "size",
+          "ice"
+        ],
+        "preferFrame": [
+          "lx.efshar"
+        ]
+      },
+      "hints": [
+        {
+          "ru": "На карточке: מִיץ תַּפּוּזִים — апельсиновый сок, קֶרַח — лёд."
+        },
+        {
+          "ru": "Тот же порядок, что в кафе: можно — что — какой — без чего."
+        }
+      ],
+      "variants": [
+        {
+          "id": "airport",
+          "prompt": {
+            "ru": "Кафе в аэропорту, вы торопитесь на самолёт. Закажите то, что на карточке."
+          },
+          "card": {
+            "drink": "tea",
+            "size": "small",
+            "milk": "with",
+            "service": "takeaway"
+          },
+          "cardMedia": "m-card-airport",
+          "model": {
+            "niqqud": "אֶפְשָׁר תֵּה קָטָן עִם חָלָב, לָקַחַת?",
+            "plain": "אפשר תה קטן עם חלב, לקחת?"
+          },
+          "spec": {
+            "kind": "order",
+            "expect": {
+              "drink": "tea",
+              "size": "small",
+              "milk": "with",
+              "service": "takeaway"
+            },
+            "require": [
+              "drink",
+              "size",
+              "milk",
+              "service"
+            ],
+            "preferFrame": [
+              "lx.efshar"
+            ]
+          }
+        },
+        {
+          "id": "friend",
+          "prompt": {
+            "ru": "Тамар заняла столик и попросила взять ей кофе. Закажите для неё то, что на карточке."
+          },
+          "card": {
+            "drink": "coffee",
+            "size": "big",
+            "sugar": "without",
+            "service": "here"
+          },
+          "cardMedia": "m-card-friend",
+          "model": {
+            "niqqud": "אֶפְשָׁר קָפֶה גָּדוֹל בְּלִי סֻכָּר, לָשֶׁבֶת?",
+            "plain": "אפשר קפה גדול בלי סוכר, לשבת?"
+          },
+          "spec": {
+            "kind": "order",
+            "expect": {
+              "drink": "coffee",
+              "size": "big",
+              "sugar": "without",
+              "service": "here"
+            },
+            "require": [
+              "drink",
+              "size",
+              "sugar",
+              "service"
+            ],
+            "preferFrame": [
+              "lx.efshar"
+            ]
+          }
+        },
+        {
+          "id": "evening",
+          "prompt": {
+            "ru": "Вечер, жарко. Вы в кафе у моря. Закажите то, что на карточке."
+          },
+          "card": {
+            "drink": "water",
+            "size": "big",
+            "ice": "with",
+            "service": "here"
+          },
+          "cardMedia": "m-card-evening",
+          "model": {
+            "niqqud": "אֶפְשָׁר מַיִם עִם קֶרַח, לָשֶׁבֶת?",
+            "plain": "אפשר מים עם קרח, לשבת?"
+          },
+          "spec": {
+            "kind": "order",
+            "expect": {
+              "drink": "water",
+              "ice": "with",
+              "service": "here"
+            },
+            "require": [
+              "drink",
+              "ice",
+              "service"
+            ],
+            "preferFrame": [
+              "lx.efshar"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "media": [
+    {
+      "id": "m-cafe",
+      "kind": "image",
+      "target": "sc-cafe",
+      "aspect": "16:9",
+      "purpose": {
+        "ru": "Вход в урок: где мы и кто бариста. Ученик узнаёт Ори в следующих картинках."
+      },
+      "brief": {
+        "ru": "Небольшое светлое кафе в Тель-Авиве утром, вид от стойки. За стойкой бариста Ори — молодой мужчина в фартуке, приветливо смотрит на зрителя. На стойке кофемашина и два бумажных стакана, большой и маленький. Доска меню — пустые полоски, без букв."
+      },
+      "alt": {
+        "ru": "Утро в кафе: бариста Ори за стойкой"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Кафе, утро. За стойкой бариста Ори."
+        }
+      },
+      "src": "e89dcd0d544d92b0.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-cups",
+      "kind": "image",
+      "target": "t-size",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Показывает смысл вопроса «גָּדוֹל אוֹ קָטָן?» без перевода."
+      },
+      "brief": {
+        "ru": "Два одинаковых бумажных стакана с крышками: маленький слева, большой справа. Разница в размере очевидна сразу."
+      },
+      "alt": {
+        "ru": "Два стакана: маленький и большой"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Два стакана: маленький и большой."
+        },
+        "icons": [
+          "cup-small",
+          "cup-large"
+        ]
+      },
+      "src": "20c6a66f82e3a395.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-coffee",
+      "kind": "image",
+      "target": "m-words",
+      "aspect": "1:1",
+      "purpose": {
+        "ru": "Картинка для сопоставления со словом קָפֶה."
+      },
+      "brief": {
+        "ru": "Керамическая чашка чёрного кофе на блюдце, вид чуть сверху."
+      },
+      "alt": {
+        "ru": "Чашка кофе"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "кофе"
+        }
+      },
+      "src": "224607a4cd429dc7.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-tea",
+      "kind": "image",
+      "target": "m-words",
+      "aspect": "1:1",
+      "purpose": {
+        "ru": "Картинка для сопоставления со словом תֵּה."
+      },
+      "brief": {
+        "ru": "Прозрачная чашка янтарного чая с ярлычком чайного пакетика на нитке."
+      },
+      "alt": {
+        "ru": "Чашка чая"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "чай"
+        }
+      },
+      "src": "7624052b4b65610a.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-water",
+      "kind": "image",
+      "target": "m-words",
+      "aspect": "1:1",
+      "purpose": {
+        "ru": "Картинка для сопоставления со словом מַיִם."
+      },
+      "brief": {
+        "ru": "Прозрачный стакан воды."
+      },
+      "alt": {
+        "ru": "Стакан воды"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "вода"
+        }
+      },
+      "src": "dd3d0b31521130e6.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-milk",
+      "kind": "image",
+      "target": "m-words",
+      "aspect": "1:1",
+      "purpose": {
+        "ru": "Картинка для сопоставления со словом חָלָב."
+      },
+      "brief": {
+        "ru": "Маленький молочник с белым молоком."
+      },
+      "alt": {
+        "ru": "Молочник с молоком"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "молоко"
+        }
+      },
+      "src": "e3c8bbe4a14dfc89.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-card-tea",
+      "kind": "image",
+      "target": "o-card",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Карточка заказа: картинка заменяет перевод, по ней проверяется понимание."
+      },
+      "brief": {
+        "ru": "Большой бумажный стакан с крышкой (с собой), из-под крышки свисает ярлычок чайного пакетика; рядом перечёркнутые кусочки сахара; маленький стакан-призрак для сравнения размера."
+      },
+      "alt": {
+        "ru": "Заказ: большой чай с собой, без сахара"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Большой чай · без сахара · с собой"
+        },
+        "icons": [
+          "cup-large",
+          "tea",
+          "no-sugar",
+          "takeaway"
+        ]
+      },
+      "src": "70fbe1032f6f9824.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-swap",
+      "kind": "sequence",
+      "target": "r-instead",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Показывает смысл בִּמְקוֹם — «вместо»: одно заменяется другим."
+      },
+      "brief": {
+        "ru": "Три кадра: 1) чашка кофе в центре; 2) чашка кофе отодвигается и бледнеет, появляется чашка чая; 3) в центре чашка чая."
+      },
+      "alt": {
+        "ru": "Чашка кофе сменяется чашкой чая"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Чай вместо кофе."
+        }
+      },
+      "frames": [
+        "7a447523713d6570.webp",
+        "0b7e049cb9587d5e.webp",
+        "8c9de1809bdbfefc.webp"
+      ],
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-tamar",
+      "kind": "image",
+      "target": "tx-tamar",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Герой учебного текста: Тамар за столиком, видно её заказ."
+      },
+      "brief": {
+        "ru": "Тамар — молодая женщина, тёмные кудрявые волосы, сидит за столиком у окна кафе; перед ней большой кофе с молоком, стакан воды и большой кусок пирога. Без надписей."
+      },
+      "alt": {
+        "ru": "Тамар за столиком с кофе, водой и пирогом"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Тамар за столиком: кофе, вода, пирог."
+        }
+      },
+      "src": "16e219a55c21dceb.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-card-juice",
+      "kind": "image",
+      "target": "x-kiosk",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Карточка переноса: новое место и новый напиток, понятные без перевода."
+      },
+      "brief": {
+        "ru": "Киоск соков на набережной, на первом плане большой стакан апельсинового сока, рядом половинка апельсина и перечёркнутые кубики льда."
+      },
+      "alt": {
+        "ru": "Заказ: большой апельсиновый сок без льда"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Большой апельсиновый сок · без льда"
+        },
+        "icons": [
+          "cup-large",
+          "juice",
+          "no-ice"
+        ]
+      },
+      "src": "0cc9af067b35040c.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-card-airport",
+      "kind": "image",
+      "target": "x-kiosk",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Карточка варианта возвращения «аэропорт»."
+      },
+      "brief": {
+        "ru": "Маленький бумажный стакан чая с крышкой и молочником рядом; на фоне — чемодан на колёсиках."
+      },
+      "alt": {
+        "ru": "Заказ: маленький чай с молоком, с собой"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Маленький чай · с молоком · с собой"
+        },
+        "icons": [
+          "cup-small",
+          "tea",
+          "milk",
+          "takeaway"
+        ]
+      },
+      "src": "0128e94cee3adb6c.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-card-friend",
+      "kind": "image",
+      "target": "x-kiosk",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Карточка варианта возвращения «для подруги»."
+      },
+      "brief": {
+        "ru": "Большая керамическая чашка кофе на столике (здесь), перечёркнутые кусочки сахара; у столика пустой стул с сумкой Тамар."
+      },
+      "alt": {
+        "ru": "Заказ: большой кофе без сахара, здесь"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Большой кофе · без сахара · здесь"
+        },
+        "icons": [
+          "cup-large",
+          "coffee",
+          "no-sugar",
+          "here"
+        ]
+      },
+      "src": "6db873ab973b4c42.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    },
+    {
+      "id": "m-card-evening",
+      "kind": "image",
+      "target": "x-kiosk",
+      "aspect": "4:3",
+      "purpose": {
+        "ru": "Карточка варианта возвращения «вечер у моря»."
+      },
+      "brief": {
+        "ru": "Большой стакан воды со льдом на столике кафе у моря, вечернее небо."
+      },
+      "alt": {
+        "ru": "Заказ: вода со льдом, здесь"
+      },
+      "fallback": {
+        "ru": {
+          "ru": "Вода · со льдом · здесь"
+        },
+        "icons": [
+          "water",
+          "ice",
+          "here"
+        ]
+      },
+      "src": "7b89e2fe67d66498.webp",
+      "credits": {
+        "ru": "Claude, код-рисунок в стиле A"
+      }
+    }
+  ],
+  "skills": [
+    {
+      "id": "order",
+      "label": {
+        "ru": "Заказываете напиток"
+      },
+      "tasks": [
+        "o-card",
+        "x-kiosk"
+      ]
+    },
+    {
+      "id": "listen",
+      "label": {
+        "ru": "Понимаете вопросы бариста на слух"
+      },
+      "tasks": [
+        "l-size",
+        "l-milk",
+        "l-confirm"
+      ]
+    },
+    {
+      "id": "repair",
+      "label": {
+        "ru": "Переспрашиваете и исправляете"
+      },
+      "tasks": [
+        "r-repeat",
+        "r-instead",
+        "r-confirm"
+      ]
+    },
+    {
+      "id": "read",
+      "label": {
+        "ru": "Замечаете род в тексте"
+      },
+      "tasks": [
+        "n-small-f",
+        "n-why"
+      ]
+    }
+  ],
+  "flow": [
+    {
+      "id": "p1",
+      "title": {
+        "ru": "Сцена на слух"
+      },
+      "steps": [
+        {
+          "kind": "scene",
+          "mode": "listen"
+        },
+        {
+          "kind": "task",
+          "ref": "l-size"
+        },
+        {
+          "kind": "task",
+          "ref": "l-milk"
+        },
+        {
+          "kind": "task",
+          "ref": "l-confirm"
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "title": {
+        "ru": "Читаем и разбираем"
+      },
+      "steps": [
+        {
+          "kind": "scene",
+          "mode": "read"
+        },
+        {
+          "kind": "grammar",
+          "ref": "g-efshar"
+        },
+        {
+          "kind": "grammar",
+          "ref": "g-adj"
+        },
+        {
+          "kind": "task",
+          "ref": "m-words"
+        },
+        {
+          "kind": "task",
+          "ref": "c-take"
+        }
+      ]
+    },
+    {
+      "id": "p3",
+      "title": {
+        "ru": "Практика"
+      },
+      "steps": [
+        {
+          "kind": "task",
+          "ref": "b-big-coffee"
+        },
+        {
+          "kind": "task",
+          "ref": "b-tea-sugar"
+        },
+        {
+          "kind": "task",
+          "ref": "w-tea-milk"
+        },
+        {
+          "kind": "task",
+          "ref": "o-card"
+        },
+        {
+          "kind": "task",
+          "ref": "r-repeat"
+        },
+        {
+          "kind": "grammar",
+          "ref": "g-ein"
+        },
+        {
+          "kind": "task",
+          "ref": "r-instead"
+        },
+        {
+          "kind": "task",
+          "ref": "r-confirm"
+        },
+        {
+          "kind": "task",
+          "ref": "r-confirm-ok"
+        }
+      ]
+    },
+    {
+      "id": "p4",
+      "title": {
+        "ru": "Текст и новая ситуация"
+      },
+      "steps": [
+        {
+          "kind": "text"
+        },
+        {
+          "kind": "task",
+          "ref": "n-small-f"
+        },
+        {
+          "kind": "task",
+          "ref": "n-why"
+        },
+        {
+          "kind": "grammar",
+          "ref": "g-gender"
+        },
+        {
+          "kind": "task",
+          "ref": "x-kiosk"
+        },
+        {
+          "kind": "summary"
+        }
+      ]
+    }
+  ]
+}

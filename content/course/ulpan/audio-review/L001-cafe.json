@@ -1,0 +1,156 @@
+{
+ "lessonId": "L001-cafe",
+ "reviewedAt": "2026-11-05",
+ "items": {
+  "L001-cafe/t-hello": {
+   "status": "ok",
+   "key": "ff703789206087798c502d8f75612d7ed5e2802742612b49730829025584615a",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-order": {
+   "status": "ok",
+   "key": "8321be4fbaf117c15a8d67f435f41e6dc9f81ea1d585a6eb2465c98a738ffa48",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-size": {
+   "status": "ok",
+   "key": "1e101eabdf0121734b9badfd23c94293276fa742a0af9bbf6591829142ae0649",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-size-answer": {
+   "status": "ok",
+   "key": "09b98cd5e9dc11c577457c29df0d5eb480f68a24118c98592d1882d11b2bfef2",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-size-again": {
+   "status": "ok",
+   "key": "8b0d775ad1be5f3173a9edcd24b86a89d86ad2fc11fe18c2d4e064a6bfd6e6f1",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-size-again-answer": {
+   "status": "ok",
+   "key": "7b806bfffdf2580f895df3a3bf39ea0f3c20fef2816ae0084c04347bacf6f35e",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-milk": {
+   "status": "ok",
+   "key": "b99405af25347b49a70f5243b3f8b21066e4eef3a2a0769a6263b1f9ef483a1c",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-milk-answer": {
+   "status": "ok",
+   "key": "defca87cec125e1fd793b7c12f0c3d0ddbe96f40a5e25ff40a3aa5ec6ea35d04",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-service": {
+   "status": "ok",
+   "key": "dd3032139b35695476d0c014c2ea81f92b73048ccaecb9130d69e92e1f555774",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-service-answer": {
+   "status": "ok",
+   "key": "3def4573aefdd92d54ff2d4a4dbd509c4a29958bbc1957f3d3e1e7292a7f08e3",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-confirm-sit": {
+   "status": "ok",
+   "key": "38524fc55367ad879efd01a1670e0801ed6a9b0406609ea45fa40d1d5212d037",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-fix-take": {
+   "status": "ok",
+   "key": "331872218a040c525ff04402dff6c4afbe9d6f4fd2195aa3af81974bef45a5de",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-oops-sit": {
+   "status": "ok",
+   "key": "c4600f03f45063fa71ab1ecf5a58a0852f00538c8296483940ad23b2db92c475",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-oops-sit-fix": {
+   "status": "ok",
+   "key": "f25f63f1878eb12761464b8e74d53aaa63bbdb2f14e486de02318c06c7f0a36f",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-confirm-take": {
+   "status": "ok",
+   "key": "5d58d05f952bac06d275e1b17a527a8009c9213afe1852b73b85ac79197b9c97",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-fix-sit": {
+   "status": "ok",
+   "key": "cba51277bae663fcd5a78fd432bb143fa1bde151861602011699a61c9524360f",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-oops-take": {
+   "status": "ok",
+   "key": "2b1b8230dad4605964cd7a5077bbed40a71f239800a1fdc1206df5a4e6aa074a",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-oops-take-fix": {
+   "status": "ok",
+   "key": "776470edc6ad1c403d8d474bd944a41caba94f1674407f133f07e06fff786947",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-no-problem": {
+   "status": "ok",
+   "key": "1f379f546fce462fb5e0723cedc0aa8f4a284ef3c4bf9ffd7457b093b9b84904",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-price": {
+   "status": "ok",
+   "key": "67a176f0bd12eac356fc9a336d8b7205d0100f5a4a66c33b3910edabe55f301d",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-thanks": {
+   "status": "ok",
+   "key": "ded6794d8186dd181fcb018e2462e5e98a2046b9f07475cdeb16d4f00dc8517d",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/t-bye": {
+   "status": "ok",
+   "key": "178bf92b50e541706429230602babcb333409969dc59110b4aec8379a42c0ad2",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p1": {
+   "status": "ok",
+   "key": "b66e641215103e6fd8910d5fc595628145e2f99980a6b5bc65aaabf4c73549ab",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p2": {
+   "status": "ok",
+   "key": "26d0a63b9c6610345799a7627e3e97b0b4571b5f17f8ef050c494884827c0682",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p3": {
+   "status": "ok",
+   "key": "551f712ff563d9d568cacc8c92cc441470f065f9518f2999f96f4c091a045f19",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p4": {
+   "status": "ok",
+   "key": "226f4b3c190762d5f2da0cb967fca96707f89c9367c02f170ee27511b8e3cbab",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p5": {
+   "status": "ok",
+   "key": "e8e66b9c4860444803b9df5aeb0134d675345f817f104196ae7ae5b12e513c2a",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p6": {
+   "status": "ok",
+   "key": "d4ff216ed40b7ba5114ac1290e9a480f20d1af18d97a019e2438820ee4c6f2b5",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p7": {
+   "status": "ok",
+   "key": "d0e18473559fdd01343bb3859af522bf864a4f5d0d224ef9fa1d080d45946e12",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  },
+  "L001-cafe/p8": {
+   "status": "ok",
+   "key": "3942ddd57ae6cbf47aff84928db3cd4abaebf1f4753fff523951fad94671c0f5",
+   "note": "Владелец 2026-11-05: качество Google TTS WaveNet проверено ранее, поштучное прослушивание не требуется"
+  }
+ }
+}

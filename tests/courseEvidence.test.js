@@ -250,3 +250,18 @@ test('P2-F2: recorded lexical attribution survives lesson edits and omission', (
  const legacy=structuredClone(r.progress); delete legacy.attempts[0].lexIds;
  assert.equal(E.itemStatus(legacy,'lx.coffee',[revised]).produced,true);
 });
+
+test('P8a: skillSummary reports the weakest accepted level per skill and not_yet without evidence', () => {
+  const E = require('../public/js/course-evidence.js');
+  const l = JSON.parse(require('node:fs').readFileSync(require('node:path').join(__dirname, 'fixtures/course/mini/lessons/L001-cafe.json'), 'utf8'));
+  const [a, b, c] = l.tasks;
+  l.skills = [{ id: 's1', label: { ru: 'Сами' }, tasks: [a.id] }, { id: 's2', label: { ru: 'С опорой' }, tasks: [a.id, b.id] }, { id: 's3', label: { ru: 'Нет' }, tasks: [c.id] }];
+  let p = E.emptyProgress('mini');
+  p = E.record(p, { lessonId: l.id, lessonVersion: l.version, task: a, channel: 'write_he', input: 'x', result: { kind: 'accepted' }, at: 1 }).progress;
+  p = E.openAid(p, l.id + '/' + b.id, 'hint', 2);
+  p = E.record(p, { lessonId: l.id, lessonVersion: l.version, task: b, channel: 'write_he', input: 'y', result: { kind: 'accepted' }, at: 3 }).progress;
+  const s = E.skillSummary(p, l);
+  assert.deepEqual(s.map(x => [x.id, x.level]), [['s1', 'independent'], ['s2', 'supported'], ['s3', 'not_yet']]);
+  assert.equal(s[0].label.ru, 'Сами');
+  assert.deepEqual(E.skillSummary(p, { ...l, skills: undefined }), []);
+});
