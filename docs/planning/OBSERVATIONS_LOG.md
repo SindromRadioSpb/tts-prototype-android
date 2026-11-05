@@ -10,7 +10,7 @@
 
 ---
 
-## O-143 · iPhone: падение вкладки в курсе с миром; повторные canvas allocations
+## O-143 · ЗАКРЫТО 2026-11-05 (владелец, iPhone, 3.11.856: падений нет) · · iPhone: падение вкладки в курсе с миром; повторные canvas allocations
 - **Дата / где:** 2026-11-05, владелец дважды воспроизвёл падение Chrome iOS/WebKit на production 3.11.855 при «Кафе» → Дальше/Назад; Classic стабилен, ответы сохраняются.
 - **Замер:** локальный Playwright WebKit, iPhone 15 / DPR 3, 10 переходов: падения нет; Memorial canvas стабилен 2048×683 (1 398 784 px), документ 2304↔1431 px; новых resize/allocations при переходах нет. Гипотеза document-height × DPR не подтверждена: renderer использует логический pixel-art размер, Memorial — фиксированный буфер.
 - **Подтверждённый дефект:** 10 искусственных одинаковых resize-events вызывают 40 лишних присваиваний canvas dimensions (с off-DOM sky), суммарно 45 035 520 пикселей backing-store writes; это объём операций, не измерение resident memory или доказательство jetsam. Старые sky/tint/fade/canvas не освобождались явно.
