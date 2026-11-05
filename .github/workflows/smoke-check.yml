@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -89,7 +89,7 @@ jobs:
         run: node scripts/premium/room-discovery-sw-preview-smoke.js
 
   studio-background:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -120,7 +120,7 @@ jobs:
           node scripts/premium/word-layer-priority-smoke.cjs --surface=room --shape=paragraphs --expect-priority
 
   cafe-b-pilot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
