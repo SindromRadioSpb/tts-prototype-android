@@ -5,6 +5,22 @@ const lesson = require('./fixtures/course/mini/lessons/L001-cafe.json');
 const lexicon = require('./fixtures/course/mini/lexicon.json');
 const index = C.buildIndex(lexicon.entries);
 const task = id => lesson.tasks.find(t => t.id === id);
+const more = [
+ ['19d','כן','mismatch'], ['19d','כן, תודה','mismatch'],
+ ['19d','בלי חלב','accepted'], ['19d','לא, בלי חלב, בבקשה','accepted'],
+ ['19d','קטן','mismatch'], ['19d-ok','כן, תודה','accepted'], ['19d-ok','לא','mismatch'],
+ ['13','סליחה, עוד פעם?','accepted'], ['13','מה?','accepted'], ['13','לא הבנתי','accepted'],
+ ['13','אפשר לחזור?','accepted'], ['13','סליחה, אפשר שוב?','accepted'], ['13','שלום','unknown'],
+ ['18b','אפשר קפה במקום תה','accepted'], ['18b','אפשר תה במקום קפה','mismatch'],
+ ['18b','קפה תה במקום תה','unknown'], ['18b','קפה במקום תה במקום קפה','unknown'],
+ ['13','מה קפה','unknown']
+];
+for (const [id,input,kind] of more) test(`repair ${id}: ${input}`, () => assert.equal(C.assess(input,task(id),lesson,index).kind,kind));
+test('confirm mismatch names slot and rejects other contradictory details', () => {
+ assert.match(C.assess('כן',task('19d'),lesson,index).message.ru,/молок/);
+ const t=structuredClone(task('19d')); t.spec.card.size='big'; t.spec.claim.size='big';
+ assert.equal(C.assess('בלי חלב קטן',t,lesson,index).kind,'mismatch');
+});
 const cases = [
 ['6','אפשר תה בלי סוכר, בבקשה?','accepted'],
 ['6','תֵּה בְּלִי סֻכָּר, בְּבַקָּשָׁה','accepted'],

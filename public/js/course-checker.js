@@ -75,16 +75,64 @@
   }
 
   function assess(input, task, lesson, index) {
-    const state = parse(input, lesson, index);
+    const spec = task.spec;
+    // Initial 'no' in a confirmation is a discourse correction, not slot negation.
+    const words = H.tokens(input);
+    const state = parse(spec?.kind === 'confirm' && words[0] === 'לא' && words.length > 1
+      ? words.slice(1).join(' ') : input, lesson, index);
     const { parsed, occurrences } = state;
     const result = (kind, message, detail) => ({ kind, message: { ru: message },
       ...(detail ? { detail: { ru: detail } } : {}), parsed });
     if (!state.words.length) return result('empty', 'Введите ответ.');
-    if (state.conflict || parsed.unknownTokens.length) return result('unknown', UNKNOWN);
-    const spec = task.spec;
-    if (!spec || !['order', 'short'].includes(spec.kind)) return result('unknown', UNKNOWN);
+    if (parsed.unknownTokens.length || (state.conflict && spec?.kind !== 'replacement')) return result('unknown', UNKNOWN);
+    if (!spec) return result('unknown', UNKNOWN);
     const slotById = id => lesson.slots.find(s => s.id === id);
     const label = (id, key) => slotById(id)?.values.find(v => v.key === key)?.label.ru || key;
+    if (spec.kind === 'confirm') {
+      const different = Object.keys(spec.card).filter(id => spec.card[id] !== spec.claim[id]);
+      const agrees = words[0] !== 'לא' && ['כן', 'בסדר', 'תודה', 'כן תודה'].includes(state.words.join(' '));
+      if (agrees) {
+        if (!different.length) return result('accepted', 'Смысл передан.');
+        return result('mismatch', different.map(id => `Вы согласились: ${label(id, spec.claim[id])}. По карточке нужно: ${label(id, spec.card[id])}.`).join(' '));
+      }
+      for (const [id, expected] of Object.entries(spec.card)) {
+        if ((Object.hasOwn(parsed.slots, id) && parsed.slots[id] !== expected) ||
+            (Object.hasOwn(parsed.negated, id) && parsed.negated[id] === expected)) {
+          return result('mismatch', `По карточке нужно: ${label(id, expected)}.`);
+        }
+      }
+      if (different.length && different.every(id => Object.hasOwn(parsed.slots, id) && parsed.slots[id] === spec.card[id])) return result('accepted', 'Смысл передан.');
+      return result('mismatch', different.length ? 'Исправьте подтверждение по карточке.' : 'Подтверждение было верным.');
+    }
+    if (spec.kind === 'repeat') {
+      const frame = new Set(lesson.frame || []);
+      const isFrame = (start, end) => {
+        const reachable = new Set([start]);
+        for (let n = start; n < end; n++) if (reachable.has(n)) {
+          for (const c of state.at[n]) if (frame.has(c.lexId) && c.end <= end) reachable.add(c.end);
+        }
+        return reachable.has(end);
+      };
+      for (const seq of lesson.repeatForms || []) for (let start = 0; start < state.words.length; start++) {
+        if (state.match(seq, start).some(m => isFrame(0, start) && isFrame(m.end, state.words.length))) return result('accepted', 'Смысл передан.');
+      }
+      return result('unknown', UNKNOWN);
+    }
+    if (spec.kind === 'replacement') {
+      const markers = state.at.flat().filter(c => c.lexId === spec.via);
+      if (markers.length !== 1) return result(markers.length ? 'unknown' : 'mismatch', markers.length ? UNKNOWN : 'Сначала назовите то, что хотите получить теперь.');
+      const marker = markers[0];
+      const before = parse(state.words.slice(0, marker.start).join(' '), lesson, index);
+      const after = parse(state.words.slice(marker.end).join(' '), lesson, index);
+      if (before.conflict || after.conflict) return result('unknown', UNKNOWN);
+      const matches = (part, expected) => Object.entries(expected).every(([id, key]) =>
+        Object.hasOwn(part.parsed.slots, id) && part.parsed.slots[id] === key &&
+        !(Object.hasOwn(part.parsed.negated, id) && part.parsed.negated[id] === key));
+      return matches(before, spec.next) && matches(after, spec.prev)
+        ? result('accepted', 'Смысл передан.')
+        : result('mismatch', 'Сначала назовите то, что хотите получить теперь.');
+    }
+    if (!['order', 'short'].includes(spec.kind)) return result('unknown', UNKNOWN);
     for (const [id, expected] of Object.entries(spec.expect)) {
       const got = Object.hasOwn(parsed.slots, id) ? parsed.slots[id] : undefined;
       if (got !== undefined && got !== expected) return result('mismatch', `В задании нужно ${label(id, expected)}, а в ответе — ${label(id, got)}.`);
@@ -116,4 +164,3 @@
   root.CourseChecker = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
-
