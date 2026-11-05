@@ -4298,8 +4298,17 @@ async function requireArtifactConsentAnyVersion(req, res, auth) {
   return true;
 }
 
+function requireCourseIdentity(req, res, auth) {
+  if (req.get('X-LP-User') !== String(auth.user.id)) {
+    res.status(409).json({ error: 'ACCOUNT_CHANGED' });
+    return false;
+  }
+  return true;
+}
+
 app.get('/api/learner/course-progress/:courseId', rlLearnerArtifacts, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCourseIdentity(req, res, auth)) return;
   if (!(await requireArtifactConsent(req, res, auth))) return;
   try {
     if (!/^[a-z0-9-]{1,40}$/.test(req.params.courseId)) return res.status(400).json({ error: 'BAD_KEY' });
@@ -4310,6 +4319,7 @@ app.get('/api/learner/course-progress/:courseId', rlLearnerArtifacts, async (req
 });
 app.put('/api/learner/course-progress/:courseId', rlLearnerArtifacts, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCourseIdentity(req, res, auth)) return;
   if (!requireCsrf(req, res, auth)) return;
   if (!(await requireArtifactConsent(req, res, auth))) return;
   try {

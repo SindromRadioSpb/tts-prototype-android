@@ -26,9 +26,9 @@ test('course progress API gates consent and CSRF, reports conflicts and size', a
     const cookie = login.headers.get('set-cookie').split(';')[0];
     const session = await login.json();
     const url = base + '/api/learner/course-progress/ulpan';
-    const get = () => fetch(url, { headers: { cookie } });
-    const put = (payload, baseDigest, csrf = session.csrf) => fetch(url, { method: 'PUT',
-      headers: { cookie, 'Content-Type': 'application/json', ...(csrf ? { 'X-LP-CSRF': csrf } : {}) },
+    const get = (userId = session.user.id) => fetch(url, { headers: { cookie, 'X-LP-User': userId } });
+    const put = (payload, baseDigest, csrf = session.csrf, userId = session.user.id) => fetch(url, { method: 'PUT',
+      headers: { cookie, 'X-LP-User': userId, 'Content-Type': 'application/json', ...(csrf ? { 'X-LP-CSRF': csrf } : {}) },
       body: JSON.stringify({ payload, baseDigest }) });
     const p = E.emptyProgress('ulpan');
     assert.equal((await get()).status, 403);
@@ -38,6 +38,8 @@ test('course progress API gates consent and CSRF, reports conflicts and size', a
       body: JSON.stringify({ key: 'cloud_texts', granted: true, version: CLOUD_TEXTS_CONSENT_VERSION }) });
     assert.equal(grant.status, 200);
     assert.equal((await get()).status, 404);
+    assert.equal((await get('wrong-user')).status, 409);
+    assert.equal((await put(p, null, session.csrf, 'wrong-user')).status, 409);
     assert.equal((await put(p, null, null)).status, 403);
     const stored = await put(p, null); assert.equal(stored.status, 200);
     const digest = (await stored.json()).digest;

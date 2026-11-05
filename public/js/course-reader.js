@@ -47,6 +47,18 @@
       }
       function taskKey(task){return current.id+'/'+task.id+(returnChoice?.taskId===task.id&&returnChoice.variantId?'@'+returnChoice.variantId:'');}
       function persist(){
+        // Another open tab may have committed evidence since this reader loaded.
+        // Reconcile before every write, including drafts, so neither tab erases attempts.
+        const localReader=progress.reader;
+        const stored=store.load(courseId).progress;
+        const incoming=current?E.migrate(stored,current).progress:stored;
+        if(current)for(const [key,draft]of Object.entries(incoming.reader?.tasks||{})){
+          if(!key.startsWith(current.id+'/'))continue;
+          const task=current.tasks.find(t=>key===current.id+'/'+t.id);
+          if(!task||draft?.baseFp!==E.fingerprint(current.id,task))delete incoming.aids[key];
+        }
+        progress=E.mergeProgress(progress,incoming);
+        if(localReader)progress.reader=localReader;
         const r=store.save(progress);
         saveError=!r.ok;
         const n=container.querySelector('[data-course-save-error]');

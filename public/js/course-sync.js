@@ -21,10 +21,10 @@
       if (!session?.user?.id || (originalUser && String(session.user.id) !== String(originalUser)) || !await allowed(session)) {
         return setStatus('local_only');
       }
-      const headers = { 'Content-Type': 'application/json', 'X-LP-CSRF': session.csrf || '' };
+      const headers = { 'Content-Type': 'application/json', 'X-LP-CSRF': session.csrf || '', 'X-LP-User': String(session.user.id) };
       try {
-        const get = await fetcher(url, { method: 'GET', credentials: 'same-origin' });
-        if (get.status === 401 || get.status === 403) return setStatus('local_only');
+        const get = await fetcher(url, { method: 'GET', credentials: 'same-origin', headers: { 'X-LP-User': String(session.user.id) } });
+        if (get.status === 401 || get.status === 403 || get.status === 409) return setStatus('local_only');
         if (get.status !== 200 && get.status !== 404) return setStatus('error');
         const remote = get.status === 200 ? await get.json() : { payload: E.emptyProgress(courseId), digest: null };
         if (disposed) return status;
@@ -50,8 +50,10 @@
             }
             return setStatus('synced');
           }
-          if (put.status !== 409 || retry === 1) return setStatus('error');
+          if (put.status !== 409) return setStatus('error');
           const conflict = await put.json();
+          if (conflict?.error === 'ACCOUNT_CHANGED') return setStatus('local_only');
+          if (retry === 1) return setStatus('error');
           local = store.load(courseId).progress;
           merged = E.mergeProgress(cloudCopy(local), conflict.payload);
           if (!saveMerged()) return setStatus('error');

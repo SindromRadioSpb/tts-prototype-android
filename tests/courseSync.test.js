@@ -85,3 +85,12 @@ test('an attempt recorded during PUT remains pending for another sync', async ()
   assert.deepEqual(store.load('ulpan').progress.attempts.map(a => a.id), ['a', 'b']);
   sync.dispose();
 });
+test('server account mismatch between identity and GET cannot merge foreign progress',async()=>{
+ const store=S.memoryStore();store.save(progress([['a',1]]));
+ let header;
+ const sync=Sync.create({store,courseId:'ulpan',userKey:'u1',me:{user:{id:'u1'},csrf:'token'},consent:true,
+   fetch:async (_url,opts)=>{header=opts.headers?.['X-LP-User'];return response(409,{error:'ACCOUNT_CHANGED',payload:progress([['private-b',2]])});}});
+ assert.equal(await sync.syncNow(),'local_only');
+ assert.equal(header,'u1');
+ assert.deepEqual(store.load('ulpan').progress.attempts.map(a=>a.id),['a']);
+});

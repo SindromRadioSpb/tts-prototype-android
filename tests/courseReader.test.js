@@ -15,6 +15,17 @@ test('sync status remains visible in list and lesson and an attempt schedules up
  r.setSyncStatus('synced');assert.match(e.document.querySelector('[data-course-sync-status]').textContent,/Сохранено в облаке/);
  r.destroy();
 });
+test('two open readers retain both attempts in their shared local store',async()=>{
+ const e=env(),other=e.document.createElement('main');e.document.body.append(other);
+ const a=e.mount(),b=C.factory(e.document).mount(other,e.opts);
+ await a.openLesson('L001-cafe',1);await b.openLesson('L001-cafe',1);
+ const first=e.document.querySelector('main [data-course-input]');first.value='תה בלי סוכר';first.dispatchEvent(new e.window.Event('input'));
+ e.document.querySelector('main [data-course-check]').click();
+ const second=other.querySelector('[data-course-input]');second.value='אפשר תה בלי סוכר';second.dispatchEvent(new e.window.Event('input'));
+ other.querySelector('[data-course-check]').click();
+ assert.equal(e.store.load('mini').progress.attempts.length,2);
+ a.destroy();b.destroy();
+});
 test('due return opens transfer on a new variant and fallback repeats without a promise',async()=>{
  const e=env(data=>{const t=data['lessons/L001-cafe.json'].tasks.find(x=>x.transfer);t.variants=[{id:'counter',prompt:{ru:'Закажите у стойки'},spec:structuredClone(t.spec),model:structuredClone(t.model)}];});
  const l=e.data['lessons/L001-cafe.json'],t=l.tasks.find(x=>x.transfer);
