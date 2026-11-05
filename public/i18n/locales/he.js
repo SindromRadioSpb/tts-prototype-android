@@ -5721,3 +5721,4 @@ Object.assign(window.I18N_LOCALES.he.course,{"part":"חלק {n} מתוך {total}
 Object.assign(window.I18N_LOCALES.he.course,{scene:{"noAudio":"ההקלטה לא זמינה — קוראים.","choose":"מה לענות?","play":"להאזין לסצנה","reveal":"להציג טקסט"}});
 Object.assign(window.I18N_LOCALES.he.course.role,{"learner":"את/ה","barista":"בריסטה","friend":"חברה"});
 Object.assign(window.I18N_LOCALES.he.course,{tiles:{"answer":"המשפט שלכם","bank":"מילים","empty":"הקישו על המילים למטה"}});
+Object.assign(window.I18N_LOCALES.he.course,{order:{card:"הזמנה"}});

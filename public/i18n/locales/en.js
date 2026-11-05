@@ -5712,3 +5712,4 @@ Object.assign(window.I18N_LOCALES.en.course,{"part":"Part {n} of {total}","summa
 Object.assign(window.I18N_LOCALES.en.course,{scene:{"noAudio":"Recording unavailable — reading instead.","choose":"What do you answer?","play":"Listen to the scene","reveal":"Show text"}});
 Object.assign(window.I18N_LOCALES.en.course.role,{"learner":"You","barista":"Barista","friend":"Friend"});
 Object.assign(window.I18N_LOCALES.en.course,{tiles:{"answer":"Your phrase","bank":"Words","empty":"Tap the words below"}});
+Object.assign(window.I18N_LOCALES.en.course,{order:{card:"Order"}});

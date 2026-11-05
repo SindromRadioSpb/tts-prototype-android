@@ -116,6 +116,21 @@
     body.append(answer,bank,ctx.button(T('check','Проверить'),{'data-course-check':''},()=>ctx.submit(picked.map(i=>all[i].plain).join(' '),'cards')));
   }});
 
+  // Order card: the picture (or its words-only fallback) says what to order; the learner says it in Hebrew.
+  register('order',{render(ctx){
+    const {task,body,T,el}=ctx;
+    const card=el('div',{class:'course-order-card','data-course-order-card':'','aria-label':T('order.card','Заказ')});
+    const fig=task.cardMedia?ctx.mediaFigure(task.cardMedia):null;
+    if(fig)card.append(fig);
+    else{
+      const list=el('ul',{class:'course-order-items'});
+      for(const [slot,key] of Object.entries(task.card||{}))list.append(el('li',{'data-order-slot':slot},ctx.slotLabel(slot,key)));
+      card.append(list);
+    }
+    body.append(card);
+    freeAnswer(ctx);
+  }});
+
   const api={register,get,freeAnswer};
   root.CourseTasks=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;

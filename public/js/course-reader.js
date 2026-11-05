@@ -10,6 +10,7 @@
   const A=node?require('./course-audio.js'):null;
   const TK=node?require('./course-tasks.js'):root.CourseTasks;
   const SC=node?require('./course-scene.js'):root.CourseScene;
+  const MD=node?require('./course-media.js'):root.CourseMedia;
   const own=(o,k)=>Object.hasOwn(o,k);
   const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s);
   function factory(doc){
@@ -444,6 +445,7 @@
           body.append(el('p',{
             class:'course-goal',...authoredAttrs(current.goal)
           },text(current.goal)));
+          for(const f of [current.scene.image&&mediaFigure(current.scene.image),...mediaFor(current.scene.id)].filter(Boolean))body.append(f);
           const state=readerState();
           if(!state.scenes||typeof state.scenes!=='object'||Array.isArray(state.scenes))state.scenes={};
           if(!own(state.scenes,current.id)||typeof state.scenes[current.id]!=='object')state.scenes[current.id]={choices:{}};
@@ -456,7 +458,8 @@
         }
         else if(here?.kind==='text'){
           body.append(el('h3',{},T('studyText','Учебный текст')));
-          for(const para of current.text.paras)body.append(line(para));
+          for(const f of mediaFor(current.text.id))body.append(f);
+          for(const para of current.text.paras){for(const f of mediaFor(para.id))body.append(f);body.append(line(para));}
         }
         else if(task)renderTask(body,task);
         const nav=el('nav',{
@@ -486,6 +489,40 @@
         if(opts.onWords)wordHandle=opts.onWords(body,current)||null;
         notify();
       }
+      // Media used inside a task (order card, match picture) are not repeated as decoration.
+      function taskMediaIds(){
+        const ids=new Set();
+        for(const t of current.tasks){if(t.cardMedia)ids.add(t.cardMedia);for(const p of t.pairs||[])if(p.media)ids.add(p.media);}
+        if(current.scene?.image)ids.add(current.scene.image);
+        return ids;
+      }
+      function mediaFigure(id,{essential=false}={}){
+        const m=(current.media||[]).find(x=>x.id===id);
+        if(!m)return null;
+        return MD.figure(m,{base,doc,essential,reducedMotion:opts.reducedMotion??MD.prefersReducedMotion(root)});
+      }
+      function mediaFor(targetId){
+        const used=taskMediaIds();
+        return (current.media||[]).filter(m=>m.target===targetId&&!used.has(m.id)).map(m=>mediaFigure(m.id)).filter(Boolean);
+      }
+      function microCard(g){
+        const box=el('div',{class:'course-microcard','data-course-microcard':''});
+        const tokens=hebrew(g.line.he).split(/\s+/);
+        const line=el('div',{class:'course-microcard-line','data-microcard-line':'',dir:'rtl',lang:'he'});
+        const covered=new Set();
+        g.line.slots.forEach((s,i)=>{for(let k=s.from;k<=s.to;k++)covered.add(k);});
+        let k=0;
+        while(k<tokens.length){
+          const slot=g.line.slots.find(s=>s.from===k);
+          if(slot){
+            const group=el('span',{class:'course-microcard-slot','data-slot':String(g.line.slots.indexOf(slot))});
+            group.append(el('span',{class:'course-microcard-words'},tokens.slice(slot.from,slot.to+1).join(' ')),el('span',{class:'course-microcard-label',dir:'ltr',lang:'ru'},text(slot.label)));
+            line.append(group);k=slot.to+1;
+          }else{line.append(el('span',{class:'course-microcard-plain'},tokens[k]));k++;}
+        }
+        box.append(line);
+        return box;
+      }
       function renderSummary(body){
         const box=el('section',{'data-course-summary':''});
         box.append(el('h3',{},T('summary.title','Что вы теперь умеете')));
@@ -503,7 +540,9 @@
       function renderGrammarStep(body,ref){
         const g=current.grammar?.[ref];
         if(!g)return;
-        body.append(el('h3',authoredAttrs(g.title),text(g.title)),el('p',authoredAttrs(g.body),text(g.body)));
+        body.append(el('h3',authoredAttrs(g.title),text(g.title)));
+        if(g.line)body.append(microCard(g));
+        body.append(el('p',authoredAttrs(g.body),text(g.body)));
       }
       function latest(task){
         const variant=returnChoice?.taskId===task.id&&returnChoice.variantId?{id:returnChoice.variantId}:undefined;
@@ -527,6 +566,7 @@
       function renderTask(body,task){
         const ui=uiFor(task);
         body.setAttribute('data-course-task',task.id);
+        for(const f of mediaFor(task.id))body.append(f);
         body.append(el('h3',authoredAttrs(task.prompt),text(task.prompt)));
         const feedback=el('div',{
           'data-course-feedback':'',role:'status'
@@ -590,7 +630,8 @@
           get ui(){return uiFor(task);},task,body,T,el,button,hebrewElement,hebrewButton,text,authoredAttrs,on,submit,persist,listening,doc,
           lang:opts.lang||doc.documentElement.lang,rawT:opts.T,keyboard:K||root.CourseKeyboard,
           setKeyboard:h=>{keyboardHandle=h;},
-          mediaFigure:opts.mediaFigure||null
+          mediaFigure:id=>mediaFigure(id,{essential:true}),
+          slotLabel:(slotId,key)=>{const v=current.slots.find(s=>s.id===slotId)?.values.find(x=>x.key===key);return v?text(v.label):key;}
         });
         body.append(feedback);
         const help=el('div',{
@@ -635,7 +676,9 @@
           const g=current.grammar[task.grammarRef],dialog=el('section',{
             class:'course-grammar',role:'dialog','aria-modal':'true','aria-label':text(g.title)
           });
-          dialog.append(el('h3',authoredAttrs(g.title),text(g.title)),el('p',authoredAttrs(g.body),text(g.body)));
+          dialog.append(el('h3',authoredAttrs(g.title),text(g.title)));
+          if(g.line)dialog.append(microCard(g));
+          dialog.append(el('p',authoredAttrs(g.body),text(g.body)));
           for(const h of g.pattern||[])dialog.append(hebrewElement('p',{
             dir:'rtl',lang:'he'
           },h));

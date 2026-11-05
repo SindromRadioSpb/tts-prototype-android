@@ -5727,3 +5727,4 @@ Object.assign(window.I18N_LOCALES.ru.course,{"part":"Часть {n} из {total}
 Object.assign(window.I18N_LOCALES.ru.course,{scene:{"noAudio":"Запись недоступна — читаем.","choose":"Что ответить?","play":"Слушать сцену","reveal":"Показать текст"}});
 Object.assign(window.I18N_LOCALES.ru.course.role,{"learner":"Вы","barista":"Бариста","friend":"Подруга"});
 Object.assign(window.I18N_LOCALES.ru.course,{tiles:{"answer":"Ваша фраза","bank":"Слова","empty":"Касайтесь слов ниже"}});
+Object.assign(window.I18N_LOCALES.ru.course,{order:{card:"Заказ"}});

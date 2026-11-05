@@ -708,9 +708,11 @@ app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
 // Validated course bundles live on the data volume, ahead of public fallbacks.
 app.use('/data/course', express.static(path.join(DATA_DIR, 'course'), {
   fallthrough: true, index: false,
-  setHeaders(res) {
+  setHeaders(res, filePath) {
     res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-    res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+    // Lesson media are content-hashed; everything else is revalidated.
+    if (/[\\/]media[\\/][^\\/]+$/.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    else res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
   },
 }));
 
@@ -1439,6 +1441,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/course-audio.js?v=854",
   "/js/course-tasks.js?v=858",
   "/js/course-scene.js?v=858",
+  "/js/course-media.js?v=858",
   "/js/course-reader.js?v=858",
   "/css/course-reader.css?v=855",
   "/js/train-queue.js?v=461",

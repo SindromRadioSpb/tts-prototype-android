@@ -20,3 +20,16 @@
 .course-tiles-bank{background:var(--panel,#eef8f5)}
 .course-reader .course-tile{font-size:1.3rem;min-height:48px;padding:6px 14px}
 .course-tiles-empty{font-size:.95rem;opacity:.6}
+.course-media{margin:0 0 16px;max-width:100%;border-radius:16px;overflow:hidden;background:#f6f2ea}
+.course-media img{display:block;width:100%;height:100%;object-fit:contain}
+.course-media-fallback{padding:16px 18px;border:1px dashed var(--border,#a8b5c4);border-radius:16px;background:var(--panel,#eef8f5)}
+.course-media-fallback p{margin:0;font-size:1.05rem;line-height:1.5}
+.course-media-icons{display:flex;gap:8px;margin-bottom:8px}
+.course-media-icon{width:28px;height:28px;border-radius:8px;background:var(--border,#c3cbd3)}
+.course-order-card{margin:12px 0;max-width:420px}
+.course-order-items{margin:0;padding:14px 18px 14px 34px;border-radius:16px;background:var(--panel,#eef8f5);font-size:1.1rem;line-height:1.7}
+.course-match-media{padding:4px}.course-match-media .course-media{margin:0;width:96px}
+.course-microcard{margin:14px 0;padding:16px;border-radius:16px;background:var(--panel,#eef8f5)}
+.course-microcard-line{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;font-size:1.5rem}
+.course-microcard-slot{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:6px 10px;border-radius:12px;border:2px solid #168b88}
+.course-microcard-label{font-size:.8rem;font-weight:600;opacity:.8}
