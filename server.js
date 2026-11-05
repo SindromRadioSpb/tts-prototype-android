@@ -1437,6 +1437,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/course-sync.js?v=858",
   "/js/course-keyboard.js?v=854",
   "/js/course-audio.js?v=854",
+  "/js/course-tasks.js?v=858",
   "/js/course-reader.js?v=858",
   "/css/course-reader.css?v=855",
   "/js/train-queue.js?v=461",

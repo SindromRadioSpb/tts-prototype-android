@@ -8,6 +8,7 @@
   const H=node?require('./course-hebrew.js'):root.CourseHebrew;
   const K=node?require('./course-keyboard.js'):null;
   const A=node?require('./course-audio.js'):null;
+  const TK=node?require('./course-tasks.js'):root.CourseTasks;
   const own=(o,k)=>Object.hasOwn(o,k);
   const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s);
   function factory(doc){
@@ -536,93 +537,14 @@
           persist();
           updateFeedback(result,attempt);
         };
-        if(task.type==='choice'){
-          for(const option of task.options||[]){
-            body.append((option.he?hebrewButton:((pair,attrs,fn)=>button(text(option.label),attrs,fn)))(option.he,{
-              'data-option':option.id,dir:option.he?'rtl':'auto'
-            },()=>{
-              const correct=option.id===task.correctOption;
-              submit(option.id,'cards',{
-                kind:correct?'accepted':'mismatch',message:{
-                  ru:T('tryAgain','Попробуйте ещё.')
-                }
-              });
-            }));
-          }
-        }
-        else if(task.type==='match'){
-          const pairIds=new Set((task.pairs||[]).map(p=>p.id));
-          let selected=pairIds.has(ui.matchSelected)?ui.matchSelected:null;
-          const chosen=new Map((Array.isArray(ui.matchPairs)?ui.matchPairs:[]).filter(p=>Array.isArray(p)&&p[0]===p[1]&&pairIds.has(p[0])));
-          function saveMatches(){uiFor(task).matchSelected=selected;uiFor(task).matchPairs=[...chosen];persist();}
-          const pairs=task.pairs||[],grid=el('div',{
-            class:'course-match'
-          }),left=el('div'),right=el('div');
-          for(const pair of pairs){
-            left.append(hebrewButton(pair.he,{
-              'data-match-left':pair.id,dir:'rtl'
-            },e=>{
-              selected=pair.id;saveMatches();
-              for(const b of left.children)b.setAttribute('aria-pressed',String(b.getAttribute('data-match-left')===selected));
-            }));
-            const b=left.lastChild;b.disabled=chosen.has(pair.id);b.setAttribute('aria-pressed',String(selected===pair.id));
-          }
-          for(const pair of [...pairs].reverse())right.append(button(text(pair.label),{
-            'data-match-right':pair.id,...authoredAttrs(pair.label)
-          },()=>{
-            if(!selected)return;
-            chosen.set(selected,pair.id);
-            const leftId=selected;
-            selected=null;
-            const good=leftId===pair.id;
-            if(!good){
-              submit(JSON.stringify([...chosen]),'cards',{
-                kind:'mismatch',message:{
-                  ru:T('tryAgain','Попробуйте ещё.')
-                }
-              });
-              chosen.delete(leftId);
-            }
-            else{
-              left.querySelector('[data-match-left="'+leftId+'"]').disabled=true;
-              right.querySelector('[data-match-right="'+pair.id+'"]').disabled=true;
-              if(chosen.size===pairs.length)submit(JSON.stringify([...chosen]),'cards',{
-                kind:'accepted'
-              });
-            }
-            saveMatches();
-            for(const b of left.children)b.setAttribute('aria-pressed','false');
-          }));
-          for(const b of right.children)b.disabled=chosen.has(b.getAttribute('data-match-right'));
-          grid.append(left,right);
-          body.append(grid);
-        }
-        else{
-          if(task.type==='scene'&&task.cue&&!listening)body.append(hebrewElement('p',{
-            dir:'rtl',lang:'he'
-          },task.cue));
-          field=el('textarea',{
-            'data-course-input':'',dir:'rtl',lang:'he','aria-label':T('answer','Ваш ответ'),rows:'2'
-          });
-          field.value=typeof ui.input==='string'?ui.input:'';
-          on(field,'input',()=>{
-            uiFor(task).input=field.value;
-            persist();
-          });
-          const keyboard=K||root.CourseKeyboard;
-          const keyboardBox=el('div',{'data-course-keyboard':''});
-          keyboardBox.hidden=true;
-          const keyboardText=key=>T(key,keyboard.label(key,opts.lang||doc.documentElement.lang));
-          const toggle=button(keyboardText('keyboardShow'),{'data-course-keyboard-toggle':'','aria-expanded':'false'},()=>{
-            keyboardBox.hidden=!keyboardBox.hidden;
-            toggle.setAttribute('aria-expanded',String(!keyboardBox.hidden));
-            toggle.textContent=keyboardText(keyboardBox.hidden?'keyboardShow':'keyboardHide');
-          });
-          keyboardHandle=keyboard.attach(field,keyboardBox,{lang:opts.lang,T:opts.T});
-          body.append(field,toggle,keyboardBox,button(T('check','Проверить'),{
-            'data-course-check':''
-          },()=>submit(field.value)));
-        }
+        const kind=Object.hasOwn(Object(task),'type')?TK.get(task.type):null;
+        if(!kind)body.append(el('p',{'data-course-unsupported':'',role:'status'},T('unsupported','Задание этого типа не поддерживается в этой версии.')));
+        else kind.render({
+          get ui(){return uiFor(task);},task,body,T,el,button,hebrewElement,hebrewButton,text,authoredAttrs,on,submit,persist,listening,doc,
+          lang:opts.lang||doc.documentElement.lang,rawT:opts.T,keyboard:K||root.CourseKeyboard,
+          setKeyboard:h=>{keyboardHandle=h;},
+          mediaFigure:opts.mediaFigure||null
+        });
         body.append(feedback);
         const help=el('div',{
           class:'course-help'

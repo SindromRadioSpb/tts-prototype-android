@@ -5706,3 +5706,5 @@ Object.assign(window.I18N_LOCALES.en.course,{"audioPlay": "Listen to the line", 
 
 Object.assign(window.I18N_LOCALES.en.course, {"niqqudLabel": "Vowel marks", "niqqudLesson": "As in lesson", "niqqudAlways": "Always", "niqqudNever": "Never", "niqqudTap": "Show vowel marks"});
 Object.assign(window.I18N_LOCALES.en.course,{sync:{synced:'Saved in cloud',local_only:'Data on this device',pending:'Waiting to sync',error:'Could not sync — will retry later'},return:{title:'Return',newVariant:'New situation',repeat:'Repeat lesson'}});
+
+Object.assign(window.I18N_LOCALES.en.course,{unsupported:'This task type is not supported in this version.'});

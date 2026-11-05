@@ -160,6 +160,7 @@ const PRECACHE_URLS = [
   "/js/course-sync.js?v=858",
   "/js/course-keyboard.js?v=854",
   "/js/course-audio.js?v=854",
+  "/js/course-tasks.js?v=858",
   "/js/course-reader.js?v=858",
   "/css/course-reader.css?v=855",
   "/js/room-b6-core.js?v=854",

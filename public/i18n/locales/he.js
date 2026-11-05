@@ -5715,3 +5715,5 @@ Object.assign(window.I18N_LOCALES.he.course,{"audioPlay": "האזנה למשפט
 
 Object.assign(window.I18N_LOCALES.he.course, {"niqqudLabel": "ניקוד", "niqqudLesson": "לפי השיעור", "niqqudAlways": "תמיד", "niqqudNever": "אף פעם", "niqqudTap": "הצגת ניקוד"});
 Object.assign(window.I18N_LOCALES.he.course,{sync:{synced:'נשמר בענן',local_only:'נתונים במכשיר הזה',pending:'ממתין לסנכרון',error:'הסנכרון נכשל — ננסה שוב בהמשך'},return:{title:'לחזור לשיעור',newVariant:'מצב חדש',repeat:'לחזור על השיעור'}});
+
+Object.assign(window.I18N_LOCALES.he.course,{unsupported:'סוג משימה זה אינו נתמך בגרסה זו.'});

@@ -5721,3 +5721,5 @@ Object.assign(window.I18N_LOCALES.ru.course,{"audioPlay": "Слушать реп
 Object.assign(window.I18N_LOCALES.ru.course,{sync:{synced:'Сохранено в облаке',local_only:'Данные на этом устройстве',pending:'Ждёт синхронизации',error:'Не удалось синхронизировать — повторим позже'},return:{title:'Вернуться',newVariant:'Новый вариант ситуации',repeat:'Повторить урок'}});
 
 Object.assign(window.I18N_LOCALES.ru.course, {"niqqudLabel": "Огласовки", "niqqudLesson": "Как в уроке", "niqqudAlways": "Всегда", "niqqudNever": "Никогда", "niqqudTap": "Показать огласовки"});
+
+Object.assign(window.I18N_LOCALES.ru.course,{unsupported:'Задание этого типа не поддерживается в этой версии.'});
