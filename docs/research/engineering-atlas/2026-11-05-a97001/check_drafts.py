@@ -13,6 +13,8 @@ seen = set()
 pages = set()
 notes = []
 for path in sorted(HERE.glob('statics-p*.json')):
+    if path.name.endswith('.author.json'):
+        continue
     draft = json.loads(path.read_text(encoding='utf-8'))
     assert draft['atlas_id'] == 'a97001'
     assert draft['status'] == 'editorial_draft_source_visually_checked_not_owner_reviewed'
@@ -25,7 +27,8 @@ for path in sorted(HERE.glob('statics-p*.json')):
         assert by_id[b['id']]['page'] in page_set
         assert all(isinstance(b.get(k), str) and b[k].strip()
                    for k in ('he', 'he_niqqud', 'ru', 'translit', 'translit_ru')), b['id']
-        assert re.search('[\u05b0-\u05bc]', b['he_niqqud']), b['id']
+        if re.search('[א-ת]', b['he']):
+            assert re.search('[\u05b0-\u05bc]', b['he_niqqud']), b['id']
         if b.get('continues_in'):
             assert b['continues_in'] in blocks
         if b.get('editor_note_ru'):
