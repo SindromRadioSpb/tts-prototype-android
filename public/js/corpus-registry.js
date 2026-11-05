@@ -56,7 +56,7 @@ export const CORPORA = [
     capabilities: [],
   },
   {
-    id: 'course:ulpan', icon: '🎓', kind: 'course', ownerOnly: true,
+    id: 'course:ulpan', icon: '🎓', kind: 'course',
     title: { key: 'course.corpus.title', fb: 'Курс иврита' },
     desc: { key: 'course.corpus.desc', fb: 'Уроки ульпана: ситуации, тексты, задания' },
     capabilities: [],

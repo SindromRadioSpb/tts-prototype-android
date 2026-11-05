@@ -23,13 +23,21 @@ test('late auth response cannot mount over newer corpus render',async()=>{
  e.requests[0]({user:{id:'u1',role:'owner'}});await first;
  assert.equal(e.mounted.length,1);assert.equal(e.document.querySelector('#roomContent').textContent,'home');
 });
-test('direct course route denies non-owner and binds owner progress/restoration',async()=>{
- const e=env();let p=e.ctx.renderCourseCorpus('ulpan',1);e.ctx.roomSessionRole='member';e.requests[0]({user:{id:'u2',role:'member'}});await p;assert.equal(e.mounted.length,0);
+test('public course route isolates member and owner progress/restoration',async()=>{
+ const e=env();let p=e.ctx.renderCourseCorpus('ulpan',1);e.ctx.roomSessionRole='member';e.requests[0]({user:{id:'u2',role:'member'}});await p;assert.equal(e.mounted.length,1);assert.equal(e.mounted[0].opts.store.userKey,'u2');
  e.ctx.roomSessionRole='owner';e.ctx.roomCourseAnchor={lessonId:'L001-cafe',step:3};p=e.ctx.renderCourseCorpus('ulpan',1);e.requests[1]({user:{id:'u1',role:'owner'}});await p;
- assert.equal(e.mounted[0].opts.store.userKey,'u1');assert.match(e.document.querySelector('#roomContent').textContent,/L001-cafe:3/);
+ assert.equal(e.mounted[1].opts.store.userKey,'u1');assert.match(e.document.querySelector('#roomContent').textContent,/L001-cafe:3/);
  e.mounted[0].opts.onState({lessonId:'L001-cafe',step:3});assert.equal(e.states.at(-1)[0],'replace');
  e.mounted[0].opts.onState({lessonId:'',step:0});assert.equal(e.states.at(-1)[0],'push');
 });
+test('anonymous direct course route mounts lessons with isolated local progress',async()=>{
+ const e=env();e.ctx.roomSessionRole='';e.ctx.roomSessionUserId='';
+ const pending=e.ctx.renderCourseCorpus('ulpan',1);e.requests[0](null);await pending;
+ assert.equal(e.mounted.length,1);assert.equal(e.mounted[0].opts.store.userKey,'anon');
+ assert.equal(e.mounted[0].opts.sync.opts.userKey,'anon');
+ assert.equal(e.document.querySelector('#roomContent').textContent,'home');
+});
+
 test('course word adapter disables occurrence writes and recall, keeps dictionary save',()=>{
  const {document}=parseHTML('<section><div class="course-line" data-ref="L/t"><div data-col="he"><span data-w-offset="0" data-surface="תה"></span></div></div></section>');let opts,saved;
  const ctx=vm.createContext({window:{ReaderMorph:{}},attachReaderMorph:(root,o)=>{opts=o;return {detach(){}};},roomSaveWord:(card,occ)=>{saved=occ;}});

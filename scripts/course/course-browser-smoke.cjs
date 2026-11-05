@@ -99,8 +99,8 @@ async function main(){
    finally{await context.close();}
   }
   const anon=await browser.newContext({viewport:{width:390,height:900},serviceWorkers:'block'});await anon.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());const p=await anon.newPage();
-  await p.goto(base+'/library.html#room=course%3Aulpan',{waitUntil:'domcontentloaded'});await p.waitForSelector('#roomContent');await pause(2000);
-  assert.equal(await p.locator('[data-course-lesson]').count(),0);assert.equal(await p.locator('[data-corpus="course:ulpan"]').count(),0);report.nonOwner={anonymous:true,hidden:true,directRouteDenied:true};await anon.close();
+  await p.goto(base+'/library.html#room=course%3Aulpan',{waitUntil:'domcontentloaded'});await p.waitForSelector('[data-course-lesson]');
+  assert.equal(await p.locator('[data-course-lesson]').count(),2);await p.locator('.corpus-switch-pill').click();assert.equal(await p.locator('[data-corpus="course:ulpan"]').count(),1);await p.locator('.corpus-switch-pill').click();await p.locator('[data-course-lesson="L001-cafe"]').click();await p.waitForSelector('.course-line .rm-w');await p.reload();await p.waitForSelector('.course-line .rm-w');report.nonOwner={anonymous:true,visible:true,directRoute:true,lessonReload:true};await anon.close();
   report.ok=true;
  }catch(e){report.ok=false;report.error=e.stack;throw e;}
  finally{if(browser)await browser.close();child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),pause(5000)]);fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));fs.writeFileSync(path.join(data,'server.log'),logs);}

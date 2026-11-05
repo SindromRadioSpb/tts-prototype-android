@@ -32,7 +32,7 @@ const localDb = new Proxy(localDbRaw, {
 });
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
-import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=854';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=860';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=854';
 
@@ -13202,24 +13202,20 @@ function destroyCourseReader() {
 async function renderCourseCorpus(courseId, token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
-  // Fail closed for direct URLs as well as the owner-only corpus menu.
+  // Course content is public; resolve identity only to isolate personal progress.
   const session = await roomRefreshSessionRole();
   if (token !== corpusRenderToken) return;
   main.replaceChildren();
-  if (!session || session.user?.role !== 'owner' || !session.user.id ||
-      roomSessionRole !== 'owner' || roomSessionUserId !== String(session.user.id)) {
-    const note = el('p'); note.textContent = tt('course.ownerOnly', 'Пилот курса доступен владельцу.');
-    main.appendChild(note); return;
-  }
+  const userKey = session?.user?.id ? String(session.user.id) : 'anon';
   if (!window.CourseReader || !window.CourseStore || !window.CourseSync) { showState('room.state.error', '⚠️'); return; }
   const wrap = el('div', { class: 'corpus-view course-corpus' });
   wrap.appendChild(corpusSwitcherBar('course:' + courseId));
   const content = el('div'); wrap.appendChild(content); main.appendChild(wrap);
   const anchor = roomCourseAnchor; roomCourseAnchor = null;
   let initialized = false;
-  const store = window.CourseStore.localStore(undefined, { userKey: String(session.user.id) });
+  const store = window.CourseStore.localStore(undefined, { userKey });
   let reader = null;
-  const sync = window.CourseSync.create({ store, courseId, userKey: String(session.user.id),
+  const sync = window.CourseSync.create({ store, courseId, userKey,
     me: () => window.CloudSync?.me(),
     consent: current => { const grant = current?.consents?.cloud_texts;
       return grant?.granted === true && String(grant.version || '') === window.CloudSync.CLOUD_TEXTS_CONSENT_VERSION; },
