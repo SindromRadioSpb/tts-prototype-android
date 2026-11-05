@@ -5,8 +5,14 @@
     const fetcher = opts.fetch || root.fetch.bind(root);
     const AudioCtor = opts.AudioCtor || root.Audio;
     const base = (opts.base || '/data/course').replace(/\/$/, '');
-    let manifest = {}, rate = 1, audio = null, cleanup = null, controller = null, generation = 0;
+    let manifest = {}, rate = 1, audio = null, cleanup = null, controller = null, generation = 0, sequence = 0;
+    let pending = null;
     function stop() {
+      sequence++;
+      halt();
+      const resolve = pending; pending = null; resolve?.(false);
+    }
+    function halt() {
       generation++;
       controller?.abort();
       controller = null;
@@ -37,14 +43,19 @@
       if (audio) audio.playbackRate = rate;
     }
     async function play(id) {
+      sequence++;
+      const resolve = pending; pending = null; resolve?.(false);
+      return start(id);
+    }
+    async function start(id, onDone) {
       if (!has(id) || typeof AudioCtor !== 'function') return false;
-      stop();
+      halt();
       const ticket = generation;
       try {
         const next = new AudioCtor('/api/audio/' + manifest[id]);
         audio = next;
         next.playbackRate = rate;
-        const ended = () => { if (audio === next && ticket === generation) opts.onEnded?.(id); };
+        const ended = () => { if (audio === next && ticket === generation) { opts.onEnded?.(id); onDone?.(); } };
         next.addEventListener('ended', ended);
         cleanup = () => next.removeEventListener('ended', ended);
         await next.play();
@@ -54,7 +65,23 @@
         return false;
       }
     }
-    return { load, has, play, setRate, stop };
+    // Plays clips one after another; turns without a clip are announced and skipped.
+    async function playSequence(ids, { onTurn } = {}) {
+      const token = ++sequence;
+      for (const id of ids) {
+        if (token !== sequence) return false;
+        onTurn?.(id);
+        if (!has(id)) continue;
+        const finished = await new Promise(resolve => {
+          pending = resolve;
+          start(id, () => resolve(true)).then(ok => { if (!ok) resolve(false); });
+        });
+        pending = null;
+        if (!finished || token !== sequence) return false;
+      }
+      return token === sequence;
+    }
+    return { load, has, play, playSequence, setRate, stop };
   }
   const api = { create };
   root.CourseAudio = api;

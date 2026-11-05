@@ -9,6 +9,7 @@
   const K=node?require('./course-keyboard.js'):null;
   const A=node?require('./course-audio.js'):null;
   const TK=node?require('./course-tasks.js'):root.CourseTasks;
+  const SC=node?require('./course-scene.js'):root.CourseScene;
   const own=(o,k)=>Object.hasOwn(o,k);
   const idOk=s=>typeof s==='string'&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(s);
   function factory(doc){
@@ -443,19 +444,15 @@
           body.append(el('p',{
             class:'course-goal',...authoredAttrs(current.goal)
           },text(current.goal)));
-          const scene=el('div',{
-            class:'course-scene'
-          });
-          current.scene.turns.forEach((turn,i)=>{
-            const row=line(turn,true);
-            row.classList.add(turn.role===current.scene.roles[0]?.id?'course-line-speaker':'course-line-response');
-            row.setAttribute('data-role',turn.role);
-            row.prepend(el('span',{
-              class:'course-role'
-            },T('role.'+turn.role,turn.role)));
-            scene.append(row);
-          });
-          body.append(scene);
+          const state=readerState();
+          if(!state.scenes||typeof state.scenes!=='object'||Array.isArray(state.scenes))state.scenes={};
+          if(!own(state.scenes,current.id)||typeof state.scenes[current.id]!=='object')state.scenes[current.id]={choices:{}};
+          body.append(SC.render({
+            scene:current.scene,el,button,hebrewButton,text,T,state:state.scenes[current.id],persist,
+            line,roleLabel:role=>T('role.'+role,role),learnerRole:'learner',audio:audioHost,
+            rerender:()=>renderLesson(),
+            onReveal:ids=>{for(const task of current.tasks)if(task.channel?.includes('listen')&&ids.includes(task.audioTurnId))aid(task,'transcript');}
+          },{mode:here.mode||'read'}));
         }
         else if(here?.kind==='text'){
           body.append(el('h3',{},T('studyText','Учебный текст')));

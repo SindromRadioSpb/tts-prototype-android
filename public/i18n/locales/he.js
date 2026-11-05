@@ -5718,3 +5718,5 @@ Object.assign(window.I18N_LOCALES.he.course,{sync:{synced:'נשמר בענן',lo
 
 Object.assign(window.I18N_LOCALES.he.course,{unsupported:'סוג משימה זה אינו נתמך בגרסה זו.'});
 Object.assign(window.I18N_LOCALES.he.course,{"part":"חלק {n} מתוך {total}","summary":{"title":"מה אתם יודעים עכשיו","independent":"לבד","supported":"עם עזרה","notYet":"עוד לא ניסיתם","how":"„לבד” — בניסיון הראשון, בלי רמזים, דוגמה, תרגום או טקסט השורה. „עם עזרה” — התשובה התקבלה, אבל בעזרה או לא בניסיון הראשון."}});
+Object.assign(window.I18N_LOCALES.he.course,{scene:{"noAudio":"ההקלטה לא זמינה — קוראים.","choose":"מה לענות?","play":"להאזין לסצנה","reveal":"להציג טקסט"}});
+Object.assign(window.I18N_LOCALES.he.course.role,{"learner":"את/ה","barista":"בריסטה","friend":"חברה"});

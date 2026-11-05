@@ -4,3 +4,14 @@
 @media(max-width:600px){.course-keyboard-row{flex-wrap:nowrap}.course-reader .course-keyboard button,.course-keyboard button{flex:1 1 0;min-width:0;max-width:44px;padding:4px}.course-keyboard button[data-course-key=space]{flex:2 1 0;max-width:220px}}
 
 .course-niqqud-control{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-block:12px}.course-niqqud-control select{max-width:100%;min-height:44px;color:inherit;background:var(--card,#fff);border:1px solid var(--border,#a8b5c4);border-radius:10px;padding:8px}.course-reader [data-course-niqqud-tap]{cursor:pointer}.course-reader [data-course-niqqud-tap]:focus-visible,.course-niqqud-control select:focus-visible{outline:3px solid #168b88;outline-offset:2px}
+/* P8a: parts, scene player, summary */
+.course-part{margin:4px 0 12px;font-size:.9rem;font-weight:600;letter-spacing:.02em;opacity:.8}
+.course-scene-controls{display:flex;flex-wrap:wrap;gap:10px}
+.course-scene-note{margin:0;font-size:.95rem;opacity:.8}
+.course-scene-hidden{display:block;font-size:1.4rem;letter-spacing:.3em;opacity:.45}
+.course-line.is-speaking{border-color:#168b88;box-shadow:0 0 0 3px #168b8833}
+@media (prefers-reduced-motion:no-preference){.course-line{transition:box-shadow .2s,border-color .2s}}
+.course-scene-choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.course-scene-choices button[dir=rtl]{font-size:1.2rem}
+.course-skills{display:grid;gap:8px;padding-inline-start:20px;line-height:1.5}
+.course-skills li[data-level=independent]::marker{color:#168b88}
