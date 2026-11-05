@@ -24,3 +24,13 @@ test('role, next, slot and spec references are checked', () => {
  const issues=F.validateLesson(l,idx);
  for(const suffix of ['.role','.next','.seq[0]','.expect.missing']) assert.ok(issues.some(i=>i.code==='REF_UNKNOWN' && i.path.endsWith(suffix)),suffix);
 });
+
+test('spec kinds require their structural fields', () => {
+ for (const [kind,fields] of Object.entries({order:['expect','require'],short:['expect','require'],confirm:['card','claim'],replacement:['next','prev','via']})) {
+  const l=load('lessons/L001-cafe.json'); l.tasks[0].spec={kind};
+  const issues=F.validateLesson(l,idx);
+  for(const field of fields) assert.ok(issues.some(i=>i.code==='FORMAT' && i.path==='tasks[0].spec.'+field),kind+': '+field);
+ }
+ const l=load('lessons/L001-cafe.json');l.tasks[0].spec={kind:'repeat'};
+ assert.deepEqual(F.validateLesson(l,idx).filter(i=>i.level==='error'),[]);
+});

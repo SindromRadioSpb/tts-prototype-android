@@ -155,6 +155,13 @@
         const s=t.spec;
         if(!v.shape(object(s),p+'.spec','Ожидается спецификация.'))return;
         v.shape(['order','short','confirm','repeat','replacement'].includes(s.kind),p+'.spec.kind','Неизвестный вид проверки.');
+        const requiredByKind = {
+          order: ['expect', 'require'], short: ['expect', 'require'],
+          confirm: ['card', 'claim'], replacement: ['next', 'prev', 'via'], repeat: []
+        };
+        for (const field of requiredByKind[s.kind] || []) {
+          v.shape(s[field] !== undefined, p + '.spec.' + field, 'Обязательное поле спецификации.');
+        }
         for(const name of ['expect','card','claim','next','prev'])if(s[name]!==undefined&&v.shape(object(s[name]),p+'.spec.'+name,'Ожидаются значения слотов.'))for(const [k,val] of Object.entries(s[name])){
           ref(k,p+'.spec.'+name+'.'+k,slots);
           if(slots.has(k)&&!slots.get(k).has(val))v.add('REF_UNKNOWN',p+'.spec.'+name+'.'+k,'Неизвестное значение слота.');
