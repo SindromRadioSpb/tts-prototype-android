@@ -1,0 +1,132 @@
+{
+  "method": "geometry-derived residuals",
+  "checks": [
+    {
+      "page": 20,
+      "values": {
+        "W_N": 7500,
+        "B_N": 6595.389311788626,
+        "C_N": 4895.277334996045
+      },
+      "residuals": [
+        0.0,
+        0.0
+      ],
+      "source": "p17 diagram and mass; g=10 on p6. Printed solution uses W=750 N."
+    },
+    {
+      "page": 23,
+      "values": {
+        "B_N": 96.41814145298092,
+        "E_N": 114.90666646784673,
+        "extension_mm": 0.11343310759174226
+      },
+      "residuals": [
+        0.0,
+        2.842170943040401e-14
+      ],
+      "source": "p21 dimensions and k=850 N/mm; p22 FBD."
+    },
+    {
+      "page": 30,
+      "values": {
+        "B_N": 80.0,
+        "Cx_N": 80.0,
+        "Cy_N": 40.0,
+        "C_N": 89.44271909999159,
+        "angle_deg": 26.56505117707799
+      },
+      "residuals": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "source": "p29 diagram: moment of 120N is clockwise. Printed plus sign is wrong."
+    },
+    {
+      "page": 32,
+      "values": {
+        "B_N": 1091.2271652168783,
+        "Ax_N": 945.0304463774955,
+        "Ay_N": 504.38641739156094,
+        "A_N": 1071.2087577263092,
+        "angle_deg": 28.089957342733637
+      },
+      "residuals": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "source": "p31 dimensions; printed p32 substitutes cosine and sine on wrong lever arms."
+    },
+    {
+      "page": 35,
+      "values": {
+        "B_N": 109333.33333333333,
+        "Ax_N": -109333.33333333333,
+        "Ay_N": 34000,
+        "A_N": 114497.93787565686,
+        "angle_from_positive_x_deg": 162.72558042472667
+      },
+      "residuals": [
+        0.0,
+        0.0,
+        0
+      ],
+      "source": "p34 dimensions and masses. Printed B=29334N does not satisfy moment equation."
+    },
+    {
+      "page": 39,
+      "values": {
+        "B_N": 2000.0,
+        "Cx_N": 1600.0,
+        "Cy_N": 1680.0,
+        "C_N": 2320.0,
+        "angle_deg": 46.39718102729638
+      },
+      "residuals": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "source": "p37 dimensions; p39 vertical reaction printed incorrectly."
+    },
+    {
+      "page": 48,
+      "values": {
+        "G_kN": 40.0,
+        "Ax_kN": -15,
+        "Ay_kN": -35.0,
+        "SEF_kN": -25.0,
+        "SBE_kN": 21.213203435596423,
+        "SBC_kN": 5.0,
+        "SBF_kN": 0
+      },
+      "residuals": [
+        0.0,
+        0,
+        0.0,
+        0.0,
+        1.7763568394002505e-15,
+        0.0,
+        0.0
+      ],
+      "source": "p46 full truss; upper cut on p48; unloaded joint F on p49."
+    },
+    {
+      "page": 56,
+      "values": {
+        "area_mm2": 28417.699835307558,
+        "first_moment_y_mm3": 3478300.9785899827,
+        "first_moment_x_mm3": 2335061.9901184533,
+        "xc_mm": 122.39910333166266,
+        "yc_mm": 82.16928194931725
+      },
+      "residuals": [
+        -1.4551915228366852e-10,
+        2.6193447411060333e-10
+      ],
+      "source": "p53 geometry; square cutout is x0..60,y120..180. Its y moment is -540000mm3."
+    }
+  ]
+}

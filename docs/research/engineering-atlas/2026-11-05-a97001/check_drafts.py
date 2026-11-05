@@ -12,7 +12,7 @@ blocks = {o['id'] for o in objects if o['type'] == 'block'}
 seen = set()
 pages = set()
 notes = []
-for path in sorted(HERE.glob('statics-p*.json')):
+for path in sorted(HERE.glob('*-p*.json')):
     if path.name.endswith('.author.json'):
         continue
     draft = json.loads(path.read_text(encoding='utf-8'))

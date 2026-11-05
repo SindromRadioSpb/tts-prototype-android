@@ -9,16 +9,28 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(root, 'public/js/local-translit-bundle.js'), 'utf8'), context);
 const engine = context.LocalTranslit;
 const authoredRows = new Map();
-for (const name of fs.readdirSync(__dirname).filter(n => n.endsWith('.author.json')).sort()) {
+const files = fs.readdirSync(__dirname).filter(n => n.endsWith('.author.json')).sort();
+for (const name of files) {
+  for (const row of JSON.parse(fs.readFileSync(path.join(__dirname, name), 'utf8')).rows) {
+    if (authoredRows.has(row[0])) throw new Error(`Duplicate authored row: ${row[0]}`);
+    authoredRows.set(row[0], row);
+  }
+}
+function resolve(id, visited = new Set()) {
+  if (visited.has(id)) throw new Error(`Cyclic reuse: ${id}`);
+  visited.add(id);
+  const row = authoredRows.get(id);
+  if (!row) throw new Error(`Missing authored reuse: ${id}`);
+  return row.length === 2 && row[1].reuse ? resolve(row[1].reuse, visited) : row;
+}
+for (const name of files) {
   const authored = JSON.parse(fs.readFileSync(path.join(__dirname, name), 'utf8'));
   const blocks = authored.rows.map(row => {
     let [suffix, he_niqqud, ru] = row;
     if (row.length === 2 && he_niqqud.reuse) {
-      const previous = authoredRows.get(he_niqqud.reuse);
-      if (!previous) throw new Error(`Missing authored reuse: ${he_niqqud.reuse}`);
+      const previous = resolve(he_niqqud.reuse);
       [, he_niqqud, ru] = previous;
     }
-    authoredRows.set(suffix, [suffix, he_niqqud, ru]);
     const item = {
       id: `a97001:${suffix}`,
       he: he_niqqud.replace(/[\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]/g, ''),
