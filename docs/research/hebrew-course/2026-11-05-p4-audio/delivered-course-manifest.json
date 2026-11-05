@@ -1,0 +1,12 @@
+{
+  "courseId": "ulpan",
+  "version": 1,
+  "builtAt": "2026-11-05T07:08:38.953Z",
+  "files": {
+    "course.json": "a01681040a26736f3401a5c4b11334eb7923a6bdf09e6c6750f3316fbf6ce785",
+    "lexicon.json": "14fc3471d8e9cfe016a9e53d73c9eb231f7362508d38adfab79fbdd64152f98c",
+    "lessons/L001-cafe.json": "582ab87dd42bd9dfff07a487b2697226bd21e2caecffc3aeb33b123d50dd14d3",
+    "lessons/L002-cafe-again.json": "7749947528130024ded3d25c83fc72be8e2b8764297d86c8b636fa60bc4dd2d2",
+    "audio/L001-cafe.json": "17c31f2f095455638fa78e77934c00d8a59c36d71d904603d717bfde422d9a27"
+  }
+}

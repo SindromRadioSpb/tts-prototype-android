@@ -1,0 +1,112 @@
+{
+  "version": "3.11.856",
+  "audio": [
+    {
+      "id": "a1-01",
+      "key": "b1cd9cc166335b8c250ef50bd46429d6db7471831cb7fed074c76ff8534f4223",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 6720
+    },
+    {
+      "id": "a1-02",
+      "key": "86158f3da64f13925275bff31974dc9413a2653f22c6e319ac645369b56ce0b1",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 26496
+    },
+    {
+      "id": "a1-03",
+      "key": "4426fe8b70c2f28f923071cd4658cbb5e360517c01947bd3daff5f01e4eb5f5c",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 9408
+    },
+    {
+      "id": "a1-04",
+      "key": "897c66977ecc8dcf267bdcc3e3a2f3a14ce2044ac8af95c02c93ba65ded28de9",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 12288
+    },
+    {
+      "id": "a1-05",
+      "key": "3ad27a1a76b30db5ab1361e2f8d625a340f2ec2070533be5963dbf8a8be419c4",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 11712
+    },
+    {
+      "id": "a1-06",
+      "key": "781430db3765a78fe0659ee3563a4663e8ac2a7b63ec2b5828dcbfba513b7981",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 12864
+    },
+    {
+      "id": "a1-07",
+      "key": "388a7be2d57ad6161ca4dd1330f3369e3bec0aeccfe6813b8d7ae34f4efa1c1d",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 19776
+    },
+    {
+      "id": "a1-08",
+      "key": "a8d7a71022b85176239da1643687b4f33e5cf1c3893f03b7b7f40fe470a7fc1d",
+      "status": 200,
+      "type": "audio/mpeg",
+      "bytes": 8832
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 2473,
+      "now": "2026-11-05T07:10:46.414Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 85,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 2474,
+      "now": "2026-11-05T07:10:47.000Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 85,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 2474,
+      "now": "2026-11-05T07:10:47.586Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 85,
+      "disk_warn": true
+    }
+  ],
+  "buttons": 8,
+  "firstRate": 0.75,
+  "repeat": {
+    "rate": 0.75,
+    "oldStopped": true
+  },
+  "exitStopped": true,
+  "pageErrors": [],
+  "playbackMuted": true,
+  "ok": true
+}

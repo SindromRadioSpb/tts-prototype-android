@@ -62,3 +62,17 @@ Inventory «Кафе»: 8 реплик, 194 символа, WaveNet C/D. Пут�
 4. После получения marks агент формирует manifest/build на отдельной копии исходного курса (для production id=ulpan), готовит точный набор файлов к доставке. Доставка только после отдельного «да» владельца. Проверки production (audio200, ▶, 0.75×, stop on exit) пока **не выполнялись**.
 
 Task1–4 завершены. Task5 Step1–2 завершены, Step3 ожидает владельца, Step4–5 не разрешены/не выполнены. Отчёт пока в feature-ветке; итог Task5 в main с `[skip cd]` будет опубликован после владельческой приёмки/разрешённой доставки. Main и production в этой работе не менялись.
+
+## Приёмка владельца и доставка на production
+
+Владелец передал `listen-L001-cafe-marks.json` со словами «всё годится», затем явно подтвердил: **«подтверждаю доставку на прод»**. Дата 2026-11-05, reviewedAt из файла `2026-11-05T07:07:25.607Z`.
+
+- [Исходные отметки](2026-11-05-p4-audio/owner-marks.json): **8 ok / 0 bad**, все8 ключей совпадают с текущими исходниками и готовыми MP3. Manifest: approved8, stale[]. Task5 Step3 завершён владельцем.
+- На отдельной локальной копии fixture установлен course.id=ulpan; создан [принятый audio manifest](2026-11-05-p4-audio/accepted-audio-manifest.json) и [bundle manifest](2026-11-05-p4-audio/delivered-course-manifest.json). Четыре исходных JSON совпали побайтно с опубликованными файлами; повторно проверены на сервере перед записью.
+- Доставлены восемь MP3 в persistent `audio-cache`, добавлен `course/ulpan/audio/L001-cafe.json`, атомарно обновлён manifest курса (5 hashed files). Старый manifest сохранён в отдельном staging каталоге сервера для отката. Существующие course.json, lexicon и lessons не перезаписывались. Учётные данные/ключи в публикацию не включались.
+- Это **доставка данных без runtime deploy**: production остался **3.11.856**, runtime `6e4e336a`, последняя сборка3007 finished. Никакие страницы/версии не менялись. Перед доставкой свободно5.43GiB, cache0, активных сборок нет; около108KB MP3 не требуют Docker build. Очистка не выполнялась. После доставки свободно5.43GiB, все4 volumes сохранены; disk_warn=true остаётся, следующий runtime build потребует свежего capacity gate ≥6GiB.
+- HTTP проверка: **8/8 GET /api/audio/<key> →200 audio/mpeg**, все SHA-256 совпали с локальными принятыми MP3. Все5 файлов данных совпали с manifest по HTTP и на томе. Три свежих health-запроса: ok, DB и migrations ready.
+- Production Chromium, отдельный owner-профиль390×900, Classic, serviceWorkers:block: «Кафе», **8 кнопок ▶**, настоящее HTMLAudio проигрывание с muted output; скорость **0.75** после повтора; прежний экземпляр остановлен и src удалён; «К урокам» останавливает звук. pageErrors=[]. Ответы/словари/повторения не изменялись. Серверный review_log **12063→12063**.
+- [Production verification](2026-11-05-p4-audio/production-verification.json), [production screenshot](2026-11-05-p4-audio/production-cafe-390.png), снимок просмотрен. Не заявляются проверенными физический iPhone, активный SW/offline и весь курс. Слуховая приёмка выполнена владельцем отдельно от muted browser smoke.
+
+**Итог:** Task1–4 и Task5 Step1–5 завершены в пределах пилота «Кафе». Отчёт с доказательствами публикуется в feature-ветке и отдельно в main с `[skip cd]`; инструменты P4 остаются в `feat/course-audio` для приёмки Claude, runtime-деплой этим отчётом не запускается.
