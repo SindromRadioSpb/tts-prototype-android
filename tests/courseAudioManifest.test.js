@@ -95,3 +95,21 @@ test('builder rejects review belonging to another lesson', t => {
   fs.writeFileSync(path.join(f.src, 'audio-review', lessonId + '.json'), JSON.stringify(f.review));
   assert.throws(() => buildCourseData(f.src, path.join(f.root, 'out')), /lesson/i);
 });
+
+test('duplicate spoken IDs fail inventory, bake and manifest before any audio or approval writes', t => {
+  const f = setup(t); f.save();
+  const file = path.join(f.src, 'lessons', lessonId + '.json'), lesson = read(file);
+  const turn = lesson.scene.turns[0];
+  lesson.text = { id: 'reading', paras: [{ id: turn.id, he: lesson.scene.turns[1].he, ru: turn.ru }] };
+  fs.writeFileSync(file, JSON.stringify(lesson));
+  assert.throws(() => inventory(f.src, { lesson: lessonId, outDir: f.root }), /ID_DUP/);
+  for (const command of ['inventory', 'bake', 'manifest']) {
+    const args = [script, command, f.src, '--lesson', lessonId];
+    if (command === 'manifest') args.push('--review', f.reviewFile);
+    const env = { ...process.env }; delete env.GOOGLE_APPLICATION_CREDENTIALS;
+    const r = spawnSync(process.execPath, args, { encoding: 'utf8', env });
+    assert.equal(r.status, 1, command); assert.match(r.stderr, /ID_DUP/, command);
+  }
+  assert.equal(fs.existsSync(f.audio), false);
+  assert.equal(fs.existsSync(path.join(f.src, 'audio-review')), false);
+});

@@ -131,7 +131,8 @@
     if(l.text!==undefined&&v.shape(object(l.text),'text','Ожидается текст.')){
       v.id(l.text.id,'text.id');
       targets.set(l.text.id,true);
-      const ids=new Set();
+      // Spoken rows share lesson/id audio refs; keep sceneTurnIds turn-only.
+      const ids=new Set(sceneTurnIds);
       v.arr(l.text.paras,'text.paras').forEach((p,i)=>{
         const q='text.paras['+i+']';
         if(!v.shape(object(p),q,'Ожидается абзац.'))return;

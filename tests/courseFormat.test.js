@@ -50,3 +50,16 @@ test('audio references in malformed scenes report issues without throwing', () =
   assert.ok(issues.some(i=>i.code==='REF_UNKNOWN'&&i.path==='tasks[0].audioTurnId'));
  }
 });
+
+test('turn and paragraph IDs share the spoken namespace while task IDs remain separate', () => {
+ const l = load('lessons/L001-cafe.json');
+ const turn = l.scene.turns[0];
+ l.text = { id: 'reading', paras: [{ id: turn.id, he: turn.he, ru: turn.ru }] };
+ const issues = F.validateLesson(l, idx).filter(i => i.level === 'error');
+ assert.deepEqual(issues.map(i => [i.code, i.path]), [['ID_DUP', 'text.paras[0].id']]);
+ l.text.paras[0].id = 'paragraph-1';
+ l.tasks[0].id = turn.id;
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ l.tasks[0].audioTurnId = 'paragraph-1';
+ assert.ok(F.validateLesson(l, idx).some(i => i.code === 'REF_UNKNOWN' && i.path === 'tasks[0].audioTurnId'));
+});
