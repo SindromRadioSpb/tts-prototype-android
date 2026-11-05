@@ -112,6 +112,7 @@
         v.id(r.id,p+'.id',roleIds);
         roles.set(r.id,true);
         v.shape(typeof r.voice==='string',p+'.voice','Нужен голос.');
+        if(typeof r.voice==='string'&&!/^he-IL-Wavenet-[A-D]$/.test(r.voice))v.add('VOICE_NOT_ALLOWED',p+'.voice','Допустимы только голоса he-IL-Wavenet-A–D.');
       });
       const ids=sceneTurnIds,turns=v.arr(l.scene.turns,'scene.turns');
       turns.forEach((t,i)=>{
@@ -130,7 +131,8 @@
     if(l.text!==undefined&&v.shape(object(l.text),'text','Ожидается текст.')){
       v.id(l.text.id,'text.id');
       targets.set(l.text.id,true);
-      const ids=new Set();
+      // Spoken rows share lesson/id audio refs; keep sceneTurnIds turn-only.
+      const ids=new Set(sceneTurnIds);
       v.arr(l.text.paras,'text.paras').forEach((p,i)=>{
         const q='text.paras['+i+']';
         if(!v.shape(object(p),q,'Ожидается абзац.'))return;

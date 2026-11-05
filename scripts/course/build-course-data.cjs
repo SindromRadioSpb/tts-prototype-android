@@ -4,15 +4,9 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { validateCourseDir } = require('./validate-course.cjs');
 
-function assertPlainDirectories(target) {
-  const absolute = path.resolve(target);
-  const parent = path.dirname(absolute);
-  if (parent !== absolute) assertPlainDirectories(parent);
-  const stat = fs.lstatSync(absolute, { throwIfNoEntry: false });
-  if (stat && (stat.isSymbolicLink() || !stat.isDirectory())) {
-    throw new Error('Output path must contain only real directories (no links or junctions): ' + absolute);
-  }
-}
+const { assertPlainDirectories } = require('./course-files.cjs');
+const { inventory } = require('./course-tts.cjs');
+const { readReview, approvedAudio } = require('./course-audio-manifest.cjs');
 
 function buildCourseData(srcDir, outRoot) {
   const issues = validateCourseDir(srcDir);
@@ -29,6 +23,17 @@ function buildCourseData(srcDir, outRoot) {
     ['lexicon.json', lexicon],
     ...course.lessons.map(id => ['lessons/' + id + '.json', read('lessons/' + id + '.json')]),
   ].map(([file, data]) => [file, JSON.stringify(data, null, 2) + '\n']));
+  for (const id of course.lessons) {
+    const file = 'audio/' + id + '.json';
+    if (!fs.existsSync(path.join(srcDir, file))) continue;
+    const existing = read(file);
+    const review = readReview(path.join(srcDir, 'audio-review', id + '.json'), id).review;
+    const items = inventory(srcDir, { lesson: id }).items;
+    const { audio } = approvedAudio(id, items, review);
+    // A source manifest is only a candidate: recheck both approval and current key.
+    const filtered = Object.fromEntries(Object.entries(audio).filter(([ref, key]) => existing?.[ref] === key));
+    files.set(file, JSON.stringify(filtered, null, 2) + '\n');
+  }
   const manifest = { courseId: course.id, version: course.version, builtAt: new Date().toISOString(), files: {} };
   for (const [file, bytes] of files) manifest.files[file] = crypto.createHash('sha256').update(bytes).digest('hex');
   files.set('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
@@ -45,6 +50,8 @@ function buildCourseData(srcDir, outRoot) {
   fs.mkdirSync(path.join(destination, 'lessons'));
   for (const [file, bytes] of files) {
     const target = path.join(destination, file);
+    assertPlainDirectories(path.dirname(target));
+    fs.mkdirSync(path.dirname(target), { recursive: true });
     assertPlainDirectories(path.dirname(target));
     fs.writeFileSync(target, bytes, { flag: 'wx' });
   }
