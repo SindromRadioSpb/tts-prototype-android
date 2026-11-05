@@ -494,3 +494,42 @@ test("course corpus title and description exist in all UI locales", () => {
     assert.ok(corpus.title && corpus.desc);
   }
 });
+
+test("existing corpus switcher updates after owner login and logout without replacing content", async () => {
+  const { CORPORA } = await import(pathToFileURL(path.resolve(__dirname, "../public/js/corpus-registry.js")).href);
+  class Node {
+    constructor(options = {}) { this.children = []; this.attrs = options.attrs || {}; this.handlers = {}; this.className = options.class || ""; }
+    appendChild(child) { this.children.push(child); return child; }
+    replaceChildren() { this.children = []; }
+    addEventListener(type, callback) { this.handlers[type] = callback; }
+    setAttribute(key, value) { this.attrs[key] = value; }
+    getAttribute(key) { return this.attrs[key] || null; }
+    contains(node) { return node === this || this.children.some(child => child.contains(node)); }
+    focus() { document.activeElement = this; }
+  }
+  const bars = [];
+  const document = { activeElement: null, querySelectorAll: () => bars, addEventListener() {}, removeEventListener() {} };
+  const context = vm.createContext({ document, CORPORA, publicCorpora: [], groupCorpora: [], roomSessionRole: "", roomSessionUserId: "", roomSessionRoleSequence: 0,
+    activeTrack: "corpus", corpusNav: { corpus: "atlas:a97002" }, renderCorpus: () => assert.fail("must preserve corpus content"),
+    el: (_, options) => new Node(options), tt: (_, fallback) => fallback, setRoomIcon() {}, roomIcon: () => new Node(),
+    roomCorpusIconSpec: c => ({ fallback: c.icon }), markRoomTextLanguage: node => node, corpusTitleOf: c => c.title.fb });
+  vm.runInContext(hostFunction("roomClearSessionRole", "function roomCopyrightNotice"), context);
+  vm.runInContext(hostFunction("corpusSwitcherBar", "// B2 — Learning Home"), context);
+  const bar = context.corpusSwitcherBar("atlas:a97002"); bars.push(bar);
+  const wrap = bar.children[1].children[2], pill = wrap.children[0], menu = wrap.children[1];
+  const course = () => menu.children.find(item => item.attrs["data-corpus"] === "course:ulpan");
+  assert.equal(course(), undefined);
+  context.roomSetSessionRole({ user: { id: 1, role: "owner" } });
+  assert.ok(course());
+  pill.handlers.click();
+  course().focus();
+  context.roomClearSessionRole();
+  assert.equal(course(), undefined);
+  assert.equal(document.activeElement, pill, "removed focused choice returns focus to existing pill");
+  assert.equal(menu.hidden, false, "open menu stays open");
+  assert.equal(wrap.children[0], pill);
+  menu.children[0].focus();
+  const focusId = document.activeElement.attrs["data-corpus"];
+  context.roomSetSessionRole({ user: { id: 1, role: "owner" } });
+  assert.equal(document.activeElement.attrs["data-corpus"], focusId);
+});

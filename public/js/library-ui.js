@@ -13985,7 +13985,10 @@ function roomSetSessionRole(session) {
   const changed = roomSessionRole !== role || roomSessionUserId !== userId;
   roomSessionRole = role;
   roomSessionUserId = userId;
-  if (changed && activeTrack === 'corpus' && corpusNav.corpus === 'hub') renderCorpus();
+  if (changed) {
+    roomRefreshCorpusSwitchers();
+    if (activeTrack === 'corpus' && corpusNav.corpus === 'hub') renderCorpus();
+  }
 }
 async function roomRefreshSessionRole() {
   const sequence = ++roomSessionRoleSequence;
@@ -13994,6 +13997,10 @@ async function roomRefreshSessionRole() {
   if (sequence !== roomSessionRoleSequence) return null;
   roomSetSessionRole(session);
   return session;
+}
+function roomRefreshCorpusSwitchers() {
+  if (typeof document === 'undefined') return;
+  for (const bar of document.querySelectorAll('.corpus-switchbar')) bar.refreshCorpusOptions?.();
 }
 function authorizedCorpusOptions() {
   const options = CORPORA.filter(corpus => !corpus.ownerOnly || roomSessionRole === 'owner');
@@ -14258,15 +14265,26 @@ function corpusSwitcherBar(currentId) {
   pill.appendChild(roomIcon('lp-icon-chevron-down', '▾', 'corpus-switch-chevron'));
   const menu = el('div', { class: 'corpus-switch-menu', attrs: { role: 'menu' } });
   menu.hidden = true;
-  for (const c of authorizedCorpusOptions()) {
-    const item = el('button', { class: 'corpus-switch-item room-vf1-focus' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem', 'data-corpus': c.id } });
-    const itemIcon = roomCorpusIconSpec(c);
-    item.appendChild(roomIcon(itemIcon.symbol, itemIcon.fallback));
-    item.appendChild(markRoomTextLanguage(el('bdi', { class: 'corpus-switch-label', text: corpusTitleOf(c) }), corpusTitleOf(c)));
-    if (c.id === currentId) item.appendChild(roomIcon('lp-icon-success', '✓', 'corpus-switch-current'));
-    item.addEventListener('click', () => { if (c.id !== currentId) corpusNavToCorpus(c.id); });
-    menu.appendChild(item);
-  }
+  const refreshOptions = () => {
+    const focused = menu.contains(document.activeElement) ? document.activeElement : null;
+    const focusedId = focused && focused.getAttribute('data-corpus');
+    menu.replaceChildren();
+    for (const c of authorizedCorpusOptions()) {
+      const item = el('button', { class: 'corpus-switch-item room-vf1-focus' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem', 'data-corpus': c.id } });
+      const itemIcon = roomCorpusIconSpec(c);
+      item.appendChild(roomIcon(itemIcon.symbol, itemIcon.fallback));
+      item.appendChild(markRoomTextLanguage(el('bdi', { class: 'corpus-switch-label', text: corpusTitleOf(c) }), corpusTitleOf(c)));
+      if (c.id === currentId) item.appendChild(roomIcon('lp-icon-success', '✓', 'corpus-switch-current'));
+      item.addEventListener('click', () => { if (c.id !== currentId) corpusNavToCorpus(c.id); });
+      menu.appendChild(item);
+    }
+    if (focused) {
+      const replacement = Array.from(menu.children).find(item => item.getAttribute('data-corpus') === focusedId);
+      (replacement || pill).focus();
+    }
+  };
+  bar.refreshCorpusOptions = refreshOptions;
+  refreshOptions();
   const close = () => { menu.hidden = true; pill.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', away, true); };
   const away = (e) => { if (!wrap.contains(e.target)) close(); };
   pill.addEventListener('click', () => {
