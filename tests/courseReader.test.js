@@ -205,3 +205,9 @@ test('P8a: old v1 attempts survive opening a new lesson version; changed tasks a
  assert.equal(e.document.querySelector('[data-course-next]').disabled,true);
  r.destroy();
 });
+test('P8a: a study-text paragraph with a role shows the speaker label',async()=>{
+ const e=env(d=>{const l=d['lessons/L001-cafe.json'];l.text={id:'tx',paras:[{id:'p1',role:l.scene.roles[0].id,he:l.scene.turns[0].he,ru:{ru:'x'}}]};});
+ const r=e.mount();await r.openLesson('L001-cafe',1);
+ assert.ok(e.document.querySelector('[data-ref="L001-cafe/p1"] .course-role'));
+ r.destroy();
+});

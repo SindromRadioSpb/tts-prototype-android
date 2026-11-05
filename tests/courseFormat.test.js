@@ -157,3 +157,10 @@ test('P8a: fingerprints of tasks without new fields are unchanged', () => {
  const t = structuredClone(l.tasks[0]); t.tiles = [t.model];
  assert.notEqual(E8.fingerprint(l.id, t), pinned[t.id]);
 });
+test('P8a: a text paragraph role must be a scene role', () => {
+ const l = load('lessons/L001-cafe.json');
+ l.text = { id: 'tx', paras: [{ id: 'p1', role: l.scene.roles[0].id, he: l.scene.turns[0].he, ru: { ru: 'x' } }] };
+ assert.deepEqual(F.validateLesson(l, idx).filter(i => i.level === 'error'), []);
+ l.text.paras[0].role = 'nobody';
+ assert.ok(F.validateLesson(l, idx).some(i => i.code === 'REF_UNKNOWN' && i.path === 'text.paras[0].role'));
+});

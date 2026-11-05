@@ -103,7 +103,7 @@
       v.ru(r.message,p+'.message');
     });
     v.arr(l.repeatForms,'repeatForms').forEach((a,i)=>refs(a,'repeatForms['+i+']'));
-    const targets=new Map(),sceneTurnIds=new Set();
+    const targets=new Map(),sceneTurnIds=new Set(),sceneRoles=new Map();
     if(v.shape(object(l.scene),'scene','Нужна сцена.')){
       v.id(l.scene.id,'scene.id');
       targets.set(l.scene.id,true);
@@ -112,7 +112,7 @@
         const p='scene.roles['+i+']';
         if(!v.shape(object(r),p,'Ожидается роль.'))return;
         v.id(r.id,p+'.id',roleIds);
-        roles.set(r.id,true);
+        roles.set(r.id,true);sceneRoles.set(r.id,true);
         v.shape(typeof r.voice==='string',p+'.voice','Нужен голос.');
         if(typeof r.voice==='string'&&!/^he-IL-Wavenet-[A-D]$/.test(r.voice))v.add('VOICE_NOT_ALLOWED',p+'.voice','Допустимы только голоса he-IL-Wavenet-A–D.');
       });
@@ -165,6 +165,7 @@
         targets.set(p.id,true);
         v.he(p.he,q+'.he');
         v.ru(p.ru,q+'.ru');
+        if(p.role!==undefined)ref(p.role,q+'.role',sceneRoles);
       });
     }
     const grammar=new Map();

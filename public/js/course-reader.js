@@ -459,7 +459,7 @@
         else if(here?.kind==='text'){
           body.append(el('h3',{},T('studyText','Учебный текст')));
           for(const f of mediaFor(current.text.id))body.append(f);
-          for(const para of current.text.paras){for(const f of mediaFor(para.id))body.append(f);body.append(line(para));}
+          for(const para of current.text.paras){for(const f of mediaFor(para.id))body.append(f);const row=line(para);if(para.role){row.prepend(el('span',{class:'course-role'},T('role.'+para.role,para.role)));row.setAttribute('data-role',para.role);}body.append(row);}
         }
         else if(task)renderTask(body,task);
         const nav=el('nav',{

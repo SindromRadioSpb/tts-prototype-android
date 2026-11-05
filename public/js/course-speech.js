@@ -18,7 +18,7 @@
     return [
       ...(lesson.scene?.turns || []).map(t => item(t,'turn',t.role,
         voices.get(t.role) ?? (t.role === 'staff' ? 'he-IL-Wavenet-C' : 'he-IL-Wavenet-D'))),
-      ...(lesson.text?.paras || []).map(p => item(p,'para',null,'he-IL-Wavenet-C'))
+      ...(lesson.text?.paras || []).map(p => item(p,'para',p.role ?? null,(p.role && voices.get(p.role)) || 'he-IL-Wavenet-C'))
     ];
   }
 
