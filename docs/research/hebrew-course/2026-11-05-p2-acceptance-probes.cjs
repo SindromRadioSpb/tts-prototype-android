@@ -1,0 +1,21 @@
+const path = require('path'); const root = process.argv[2];
+const E = require(path.join(root, 'public/js/course-evidence.js'));
+const S = require(path.join(root, 'public/js/course-store.js'));
+const task = { id: '6', spec: { kind: 'order', expect: { drink: 'tea' }, require: ['drink'] }, model: { niqqud: 'תֵּה', plain: 'תה' }, transfer: true };
+const base = { lessonId: 'L001', lessonVersion: 1, task, input: 'תה', result: { kind: 'accepted' } };
+const out = [];
+const check = (name, cond) => out.push((cond ? 'ok  ' : 'BAD ') + name);
+let p = E.emptyProgress('ulpan');
+p = E.record(p, { ...base, channel: 'write_he', at: 1000 }).progress;
+const r2 = E.record(p, { ...base, channel: 'cards', at: 1500 });
+check('same input, other channel within 1s is not a duplicate', r2.duplicate === false);
+const a1 = p.attempts[0];
+const p2 = E.openAid(p, 'L001/6', 'model', 2000);
+check('aid opened later does not change an earlier attempt', p2.attempts[0].aids.model === false && E.attemptLevel(p2.attempts[0]) === E.attemptLevel(a1));
+check('progress argument is not mutated by openAid', p.aids['L001/6'] === undefined || p.aids['L001/6'].model !== true);
+const st = S.localStore({ _m: { 'lp.course.ulpan.v1': JSON.stringify(E.emptyProgress('other')) }, getItem(k) { return this._m[k] ?? null; }, setItem(k, v) { this._m[k] = v; }, removeItem(k) { delete this._m[k]; } });
+const l = st.load('ulpan');
+check('stored progress of another course resets with notice', l.notice === 'reset_corrupt' && l.progress.courseId === 'ulpan');
+let threw = false; try { E.record(E.emptyProgress('ulpan'), { ...base, channel: 'nonsense', at: 1 }); } catch (e) { threw = true; }
+check('unknown channel is rejected or recorded as non-evidence (no silent independent)', threw || E.attemptLevel(E.record(E.emptyProgress('ulpan'), { ...base, channel: 'nonsense', at: 1 }).attempt) !== 'independent');
+console.log(out.join('\n'));
