@@ -1,0 +1,93 @@
+{
+  "data": "E:\\projects\\tts-prototype-android\\.worktrees\\course-room\\.tmp\\course-smoke-data\\run-BshtPp",
+  "results": [
+    {
+      "lang": "ru",
+      "width": 390,
+      "owner": "owner",
+      "history": true,
+      "reload": true,
+      "unknownSelf": true,
+      "wordCard": true,
+      "caret": true,
+      "overflow": 0,
+      "before": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "after": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "pageerrors": []
+    },
+    {
+      "lang": "ru",
+      "width": 1440,
+      "owner": "owner",
+      "history": true,
+      "reload": true,
+      "unknownSelf": true,
+      "wordCard": true,
+      "caret": true,
+      "overflow": 0,
+      "before": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "after": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "pageerrors": []
+    },
+    {
+      "lang": "he",
+      "width": 380,
+      "owner": "owner",
+      "history": true,
+      "reload": true,
+      "unknownSelf": true,
+      "wordCard": true,
+      "caret": true,
+      "overflow": 0,
+      "before": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "after": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "pageerrors": []
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "owner": "owner",
+      "history": true,
+      "reload": true,
+      "unknownSelf": true,
+      "wordCard": true,
+      "caret": true,
+      "overflow": 0,
+      "before": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "after": {
+        "texts": 79,
+        "review_log": 0
+      },
+      "pageerrors": []
+    }
+  ],
+  "scope": "isolated actual server and browser; no production or paid requests",
+  "base": "http://127.0.0.1:57741",
+  "nonOwner": {
+    "anonymous": true,
+    "hidden": true,
+    "directRouteDenied": true
+  },
+  "ok": true
+}
