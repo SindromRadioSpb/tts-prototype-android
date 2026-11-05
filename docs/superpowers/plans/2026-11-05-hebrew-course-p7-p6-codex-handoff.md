@@ -8,6 +8,9 @@
 - Отчёт: `docs/research/hebrew-course/2026-11-05-p7-codex-report.md`.
 
 ## P6
+
+> **Отменено для Codex 2026-11-05.** Задачи 1–3 P6 (формат мест под медиа, приёмщик, показ) делает Claude в составе P8а — `docs/superpowers/specs/2026-11-05-hebrew-course-p8a-cafe-exemplar-design.md`. Ветку `feat/course-media` не начинать.
+
 После P7 (выпущенного или хотя бы влитого в свою ветку) выполнить `docs/superpowers/plans/2026-11-05-hebrew-course-p6-media.md` (Task 1–4).
 - Старт: ветка `feat/course-media` от `origin/main`; если P7 ещё не в main — `git merge origin/feat/course-sync`.
 - Task 4 Step 2 делают владелец и dots. Отчёт: `docs/research/hebrew-course/2026-11-05-p6-codex-report.md`.
