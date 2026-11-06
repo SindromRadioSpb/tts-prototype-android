@@ -73,6 +73,14 @@
       if(!map||!map.has(x))v.add('REF_UNKNOWN',p,'Неизвестная ссылка: '+x);
     };
     const refs=(a,p)=>v.arr(a,p).forEach((x,i)=>ref(x,p+'['+i+']'));
+    const uniqueRefs=(a,p)=>{
+      const seen=new Set();
+      v.arr(a,p).forEach((x,i)=>{
+        const q=p+'['+i+']';ref(x,q);
+        if(seen.has(x))v.add('ID_DUP',q,'Повторный ID: '+x);
+        seen.add(x);
+      });
+    };
     refs(l.introduces?.active,'introduces.active');
     refs(l.introduces?.receptive,'introduces.receptive');
     refs(l.reviews,'reviews');
@@ -190,6 +198,7 @@
       const p='tasks['+i+']';
       if(!v.shape(object(t),p,'Ожидается задание.'))return;
       v.id(t.id,p+'.id',taskIds);
+      if(Object.hasOwn(t,'evidenceLexIds'))uniqueRefs(t.evidenceLexIds,p+'.evidenceLexIds');
       targets.set(t.id,true);
       if(!['choice','text','match','cloze','scene','tiles','order'].includes(t.type))v.add('TASK_TYPE_UNKNOWN',p+'.type','Неизвестный тип задания.');
       v.arr(t.channel,p+'.channel').forEach((c,j)=>v.shape(typeof c==='string',p+'.channel['+j+']','Ожидается строка.'));
@@ -210,6 +219,7 @@
       const validateSpec=(s,path)=>{
         if(!v.shape(object(s),path,'Ожидается спецификация.'))return;
         v.shape(['order','short','confirm','repeat','replacement'].includes(s.kind),path+'.kind','Неизвестный вид проверки.');
+        if(s.requestOnly!==undefined)v.shape(typeof s.requestOnly==='boolean'&&['order','short','confirm'].includes(s.kind),path+'.requestOnly','requestOnly: boolean только для order/short/confirm.');
         const requiredByKind = {
           order: ['expect', 'require'], short: ['expect', 'require'],
           confirm: ['card', 'claim'], replacement: ['next', 'prev', 'via'], repeat: []
@@ -231,6 +241,7 @@
           const q=p+'.variants['+j+']';
           if(!v.shape(object(variant),q,'Ожидается вариант.'))return;
           v.id(variant.id,q+'.id',ids);
+          if(Object.hasOwn(variant,'evidenceLexIds'))uniqueRefs(variant.evidenceLexIds,q+'.evidenceLexIds');
           v.ru(variant.prompt,q+'.prompt');
           validateSpec(variant.spec,q+'.spec');
           if(variant.model!==undefined)v.he(variant.model,q+'.model');
@@ -276,6 +287,7 @@
         v.arr(part.steps,p+'.steps').forEach((st,j)=>{
           const q=p+'.steps['+j+']';
           if(!v.shape(object(st)&&['scene','text','task','grammar','summary'].includes(st.kind),q,'Неизвестный шаг.'))return;
+          if(Object.hasOwn(st,'metLexIds'))uniqueRefs(st.metLexIds,q+'.metLexIds');
           if(st.kind==='scene')v.shape(st.mode===undefined||['listen','read'].includes(st.mode),q+'.mode','mode: listen или read.');
           if(st.kind==='text')v.shape(object(l.text),q,'В уроке нет учебного текста.');
           if(st.kind==='task'&&!taskIds.has(st.ref))v.add('FLOW_REF_UNKNOWN',q+'.ref','Неизвестное задание: '+st.ref);

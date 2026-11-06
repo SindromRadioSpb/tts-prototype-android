@@ -1,5 +1,6 @@
 (function (root) {
   'use strict';
+  const R = typeof module !== 'undefined' && module.exports ? require('./course-review.js') : root.CourseReview;
   const E = typeof module !== 'undefined' && module.exports ? require('./course-evidence.js') : root.CourseEvidence;
   const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const finite = value => typeof value === 'number' && Number.isFinite(value);
@@ -20,7 +21,7 @@
       (spec.via === undefined || text(spec.via));
   }
   function validProgress(p, courseId) {
-    return object(p) && p.schema === 1 && text(p.courseId) && p.courseId === courseId &&
+    return object(p) && (!Object.hasOwn(p, 'reviewEvents') || !!R?.validEvents(p.reviewEvents)) && p.schema === 1 && text(p.courseId) && p.courseId === courseId &&
       Array.isArray(p.attempts) && p.attempts.every(a => object(a) &&
         ['id', 'lessonId', 'taskId', 'input'].every(k => text(a[k])) && fingerprintValid(a.fp) &&
         Number.isInteger(a.lessonVersion) && a.lessonVersion >= 1 &&

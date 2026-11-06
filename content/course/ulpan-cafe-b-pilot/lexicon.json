@@ -1,0 +1,288 @@
+{
+  "entries": [
+    {
+      "id": "B-P01",
+      "he": {
+        "plain": "שלום",
+        "niqqud": "שָׁלוֹם"
+      },
+      "translit_ru": "шало́м",
+      "gloss": {
+        "ru": "здравствуйте; привет"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P02",
+      "he": {
+        "plain": "תודה",
+        "niqqud": "תּוֹדָה"
+      },
+      "translit_ru": "тода́",
+      "gloss": {
+        "ru": "спасибо"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P03",
+      "he": {
+        "plain": "בבקשה",
+        "niqqud": "בְּבַקָּשָׁה"
+      },
+      "translit_ru": "бэвакаша́",
+      "gloss": {
+        "ru": "пожалуйста"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P04",
+      "he": {
+        "plain": "אפשר",
+        "niqqud": "אֶפְשָׁר"
+      },
+      "translit_ru": "эфша́р",
+      "gloss": {
+        "ru": "можно; возможно"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P05",
+      "he": {
+        "plain": "מים",
+        "niqqud": "מַיִם"
+      },
+      "translit_ru": "ма́им",
+      "gloss": {
+        "ru": "вода"
+      },
+      "pos": "noun"
+    },
+    {
+      "id": "B-P06",
+      "he": {
+        "plain": "אני",
+        "niqqud": "אֲנִי"
+      },
+      "translit_ru": "ани́",
+      "gloss": {
+        "ru": "я"
+      },
+      "pos": "pronoun"
+    },
+    {
+      "id": "B-P07",
+      "he": {
+        "plain": "רוצה",
+        "niqqud": "רוֹצֶה"
+      },
+      "translit_ru": "роцэ́",
+      "gloss": {
+        "ru": "хочу: о себе говорит мужчина; женское чтение — роца́"
+      },
+      "pos": "verb",
+      "gender": "m",
+      "forms": [
+        {
+          "id": "B-P07-f",
+          "he": {
+            "plain": "רוצה",
+            "niqqud": "רוֹצָה"
+          },
+          "tags": [
+            "f",
+            "sg"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B-P08",
+      "he": {
+        "plain": "כן",
+        "niqqud": "כֵּן"
+      },
+      "translit_ru": "кэн",
+      "gloss": {
+        "ru": "да"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P09",
+      "he": {
+        "plain": "לא",
+        "niqqud": "לֹא"
+      },
+      "translit_ru": "ло",
+      "gloss": {
+        "ru": "нет; не"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P10",
+      "he": {
+        "plain": "יש",
+        "niqqud": "יֵשׁ"
+      },
+      "translit_ru": "еш",
+      "gloss": {
+        "ru": "есть; имеется"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P11",
+      "he": {
+        "plain": "אין",
+        "niqqud": "אֵין"
+      },
+      "translit_ru": "эйн",
+      "gloss": {
+        "ru": "нет в наличии"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P12",
+      "he": {
+        "plain": "זה",
+        "niqqud": "זֶה"
+      },
+      "translit_ru": "зэ",
+      "gloss": {
+        "ru": "это"
+      },
+      "pos": "pronoun"
+    },
+    {
+      "id": "B-P13",
+      "he": {
+        "plain": "מה",
+        "niqqud": "מָה"
+      },
+      "translit_ru": "ма",
+      "gloss": {
+        "ru": "что"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-P14",
+      "he": {
+        "plain": "או",
+        "niqqud": "אוֹ"
+      },
+      "translit_ru": "о",
+      "gloss": {
+        "ru": "или"
+      },
+      "pos": "expression"
+    },
+    {
+      "id": "B-W01",
+      "he": {
+        "plain": "קפה",
+        "niqqud": "קָפֶה"
+      },
+      "translit_ru": "кафэ́",
+      "gloss": {
+        "ru": "кофе как напиток"
+      },
+      "pos": "noun",
+      "gender": "m"
+    },
+    {
+      "id": "B-W02",
+      "he": {
+        "plain": "תה",
+        "niqqud": "תֵּה"
+      },
+      "translit_ru": "тэ",
+      "gloss": {
+        "ru": "чай как напиток"
+      },
+      "pos": "noun",
+      "gender": "m"
+    },
+    {
+      "id": "B-W03",
+      "he": {
+        "plain": "חלב",
+        "niqqud": "חָלָב"
+      },
+      "translit_ru": "хала́в",
+      "gloss": {
+        "ru": "молоко"
+      },
+      "pos": "noun",
+      "gender": "m"
+    },
+    {
+      "id": "B-W04",
+      "he": {
+        "plain": "סוכר",
+        "niqqud": "סֻכָּר"
+      },
+      "translit_ru": "сука́р",
+      "gloss": {
+        "ru": "сахар"
+      },
+      "pos": "noun",
+      "gender": "m"
+    },
+    {
+      "id": "B-W05",
+      "he": {
+        "plain": "עם",
+        "niqqud": "עִם"
+      },
+      "translit_ru": "им",
+      "gloss": {
+        "ru": "с добавкой"
+      },
+      "pos": "preposition"
+    },
+    {
+      "id": "B-W06",
+      "he": {
+        "plain": "בלי",
+        "niqqud": "בְּלִי"
+      },
+      "translit_ru": "бли",
+      "gloss": {
+        "ru": "без добавки"
+      },
+      "pos": "preposition"
+    },
+    {
+      "id": "B-W07",
+      "he": {
+        "plain": "קטן",
+        "niqqud": "קָטָן"
+      },
+      "translit_ru": "ката́н",
+      "gloss": {
+        "ru": "маленький объём порции"
+      },
+      "pos": "adjective",
+      "gender": "m"
+    },
+    {
+      "id": "B-W08",
+      "he": {
+        "plain": "גדול",
+        "niqqud": "גָּדוֹל"
+      },
+      "translit_ru": "гадо́ль",
+      "gloss": {
+        "ru": "большой объём порции"
+      },
+      "pos": "adjective",
+      "gender": "m"
+    }
+  ]
+}

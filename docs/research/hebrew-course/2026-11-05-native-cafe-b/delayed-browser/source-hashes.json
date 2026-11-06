@@ -1,0 +1,62 @@
+{
+  "public/js/course-audio.js": {
+    "sha256": "5b7d0d8db3fd3b804c3cdc4a84a9f2a39dd873bdccec8b7d2de325e9ff205963",
+    "sha256TrimEnd": "b5fa8e92e75131d70fec9403f687525c5189deef7b8c4ee768f062ea5a629cbc"
+  },
+  "public/js/course-checker.js": {
+    "sha256": "2d3fdd8d485bc8c0b0f639014b68cd7bd5f619a6aaedf50ac9dbe3ab210e3d08",
+    "sha256TrimEnd": "373dc31fca0abbe2bfe6060d8c4020f57d0964b421fb9713d2b98ca76f3c76ad"
+  },
+  "public/js/course-evidence.js": {
+    "sha256": "77b53f1f958b344970cd3074c7459a5fb8b8f61ce94b7513a8628c5c17613b2a",
+    "sha256TrimEnd": "856816aa1e8a39102ba028115a5c4ed9ef314a0b14051f132b52df278a38fd27"
+  },
+  "public/js/course-format.js": {
+    "sha256": "ca258b30cdbad96d99b916208fb9b477e56ef584e6f7a9f5d0fd8eb1c3c2c576",
+    "sha256TrimEnd": "f1bbee6a32bc0f1a6ee3b2297d596645081a7118a48cc7a330d3c412072ac683"
+  },
+  "public/js/course-hebrew.js": {
+    "sha256": "2b245406c135685f9654aa8cbf9e14b15865028621db993de97a3951e2399853",
+    "sha256TrimEnd": "8c4bb574db6ee9fb60a50a9ebd09d70be74fac4e167638a2ec624c99139496be"
+  },
+  "public/js/course-keyboard.js": {
+    "sha256": "63ca4bb87f388a77045d3a6a0c3571b6ed0debeb524aeea67385128eb21ead1c",
+    "sha256TrimEnd": "db10e473f659940d928a35d7954e980dd4d5f42721641d0b001882f07ae005c5"
+  },
+  "public/js/course-media.js": {
+    "sha256": "7835627260abb7f314fcc65488dd47bfcfc75403e2a0bc196ec4b975a4aedde5",
+    "sha256TrimEnd": "999b70f498be511672b6eaf0ed44be357002f2cebc72c0bb9aa12a85872a3926"
+  },
+  "public/js/course-reader.js": {
+    "sha256": "63e63c4b63c0c3f34d86202d3312a8b01c85e8e0a01eb47e63cf40e4e3822c0a",
+    "sha256TrimEnd": "3ea6c310d19b1f0cb933d790fe4313a2142973e412dbaa73ce8180159e8231d3"
+  },
+  "public/js/course-review-reader.js": {
+    "sha256": "6e6f207a87bf60f8a46c39387f74015ed7517044ae21f690c9cf8da0c8efe0c5",
+    "sha256TrimEnd": "d3fcf23544e39459a6fc403e7ff9cef4436a161170957aaef79fbd88fa3b5c75"
+  },
+  "public/js/course-review.js": {
+    "sha256": "d8552b8c45c9e72f605216aeb6516d7192e293f92955e547101d9c6716442653",
+    "sha256TrimEnd": "6bb89d3cff8166c3383807b8e8936d9040a2ee9eee4dd48a087352c25483345f"
+  },
+  "public/js/course-scene.js": {
+    "sha256": "5206fd44429f6f459979c3f5d45f664db685f8b39ba660ac4475d53a97c86b83",
+    "sha256TrimEnd": "020aec033dea7d3e28b5c067441e482bf4efcd5e4cb10948a99e03bb573ffb18"
+  },
+  "public/js/course-store.js": {
+    "sha256": "1580dfea94c0e5e3e115976341877e9f50f370698c39019667da76ccdcef402a",
+    "sha256TrimEnd": "6030d0cadfd9ccebc6f9bbf88e5cf6a9eb8a109ba494b2f840c63bc75c891b4a"
+  },
+  "public/js/course-tasks.js": {
+    "sha256": "9ad9241b840c637372147f118ef4b4eaf7f983875b162968044b818def204d51",
+    "sha256TrimEnd": "af29542cc400c1f93c4f6324d65367264535d2d8f48596a3da06e35ba779ae9b"
+  },
+  "public/css/course-reader.css": {
+    "sha256": "6904e1e89e1373c423b1c25d7d49412d30bbe3f9fa788fc7844c8388195508a6",
+    "sha256TrimEnd": "7e205fd23bbac460721c3659ce4f2b88d63ae8cb5311eff32757253c76b9373f"
+  },
+  "content/course/ulpan-cafe-b-pilot/course.json": {
+    "sha256": "0da36071b3975de44b70f2b8f5f92d8ea1f4bc8623470f6b3349b49bb8817ae1",
+    "sha256TrimEnd": "2babbde3ffac8856ffd5c27be4041095a1d769e544274dfbe4e424544cbf0fb6"
+  }
+}

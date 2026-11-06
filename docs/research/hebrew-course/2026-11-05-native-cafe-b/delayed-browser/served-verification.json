@@ -1,0 +1,67 @@
+[
+  {
+    "file": "public/js/course-hebrew.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-checker.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-format.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-review.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-evidence.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-store.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-keyboard.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-audio.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-tasks.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-scene.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-media.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-review-reader.js",
+    "match": true,
+    "unchanged": true
+  },
+  {
+    "file": "public/js/course-reader.js",
+    "match": true,
+    "unchanged": true
+  }
+]

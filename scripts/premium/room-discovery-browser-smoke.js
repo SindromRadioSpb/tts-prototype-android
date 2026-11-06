@@ -120,7 +120,13 @@ async function main() {
     const source = page.locator('.corpus-material-dialog a').first(); assert.equal(await source.getAttribute('rel'), 'noopener noreferrer');
     await page.keyboard.press('Escape');
     await page.locator('#roomCorpusSearch').fill(''); await page.locator('[data-corpus-mode="read"]').click();
-    const readyRow = page.locator('.corpus-work-row').first(); await readyRow.waitFor();
+    // Wait for the ready shelf, not a row left from the asynchronous search render
+    // or another recommendation rail. Fault scenarios need distinct uncached works.
+    const readyRows = page.locator('.corpus-ready .corpus-work-row');
+    const readyRow = readyRows.first(); await readyRow.waitFor();
+    const previewIds = await readyRows.evaluateAll(rows => rows.slice(0, 3).map(row => row.dataset.workId));
+    assert.equal(new Set(previewIds).size, 3, 'preview scenarios use three distinct ready works');
+    const readyWork = id => page.locator('.corpus-ready .corpus-work-row[data-work-id="' + id + '"]');
     await readyRow.locator('.corpus-passport-button').click();
     await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click();
     await page.locator('.corpus-preview-line').first().waitFor(); assert.equal(await page.locator('.corpus-preview-line').count(), 4);
@@ -132,9 +138,24 @@ async function main() {
     assert.deepEqual(await snapshot(page), baseline);
     record('search/filter/passport/preview/repeat preserve OPFS canon', { tables: Object.keys(baseline), bodies, rowsShown: 4 });
     // Different ready cards avoid the successful preview cache.
-    bodyMode = 'error'; await page.locator('.corpus-work-row').nth(1).locator('.corpus-passport-button').click(); await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click(); await page.getByText('Предпросмотр недоступен.', { exact: false }).waitFor(); await page.keyboard.press('Escape');
-    bodyMode = 'slow'; await page.locator('.corpus-work-row').nth(2).locator('.corpus-passport-button').click(); await page.getByRole('button', { name: 'Предпросмотр', exact: true }).click(); await page.keyboard.press('Escape'); await page.waitForTimeout(1700);
-    assert.deepEqual(await snapshot(page), baseline); record('fetch error and cancellation preserve canon', {});
+    bodyMode = 'error';
+    await readyWork(previewIds[1]).locator('.corpus-passport-button').click();
+    const [unavailable] = await Promise.all([
+      page.waitForResponse(response => new URL(response.url()).pathname === '/data/benyehuda/works/' + previewIds[1] + '.json'),
+      page.getByRole('button', { name: 'Предпросмотр', exact: true }).click(),
+    ]);
+    assert.equal(unavailable.status(), 503, 'the error scenario reaches its fault-injected work');
+    await page.getByText('Предпросмотр недоступен.', { exact: false }).waitFor();
+    await page.keyboard.press('Escape');
+    await page.locator('.corpus-material-dialog').waitFor({ state: 'detached' });
+    bodyMode = 'slow';
+    await readyWork(previewIds[2]).locator('.corpus-passport-button').click();
+    await Promise.all([
+      page.waitForRequest(request => new URL(request.url()).pathname === '/data/benyehuda/works/' + previewIds[2] + '.json'),
+      page.getByRole('button', { name: 'Предпросмотр', exact: true }).click(),
+    ]);
+    await page.keyboard.press('Escape'); await page.waitForTimeout(1700);
+    assert.deepEqual(await snapshot(page), baseline); record('fetch error and cancellation preserve canon', { previewIds, errorStatus: unavailable.status() });
     bodyMode = 'ok';
     assert.ok(await page.evaluate(() => !!(document.querySelector('.corpus-ready').compareDocumentPosition(document.querySelector('.corpus-saved')) & Node.DOCUMENT_POSITION_FOLLOWING)), 'An explicitly saved search must follow the useful ready materials');
     const firstScreen = [];

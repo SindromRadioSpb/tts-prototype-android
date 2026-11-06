@@ -1,0 +1,72 @@
+[
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-hebrew.js",
+    "chars": 993,
+    "sha256TrimEnd": "8c4bb574db6ee9fb60a50a9ebd09d70be74fac4e167638a2ec624c99139496be"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-checker.js",
+    "chars": 11343,
+    "sha256TrimEnd": "373dc31fca0abbe2bfe6060d8c4020f57d0964b421fb9713d2b98ca76f3c76ad"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-format.js",
+    "chars": 17588,
+    "sha256TrimEnd": "f1bbee6a32bc0f1a6ee3b2297d596645081a7118a48cc7a330d3c412072ac683"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-review.js",
+    "chars": 18953,
+    "sha256TrimEnd": "6bb89d3cff8166c3383807b8e8936d9040a2ee9eee4dd48a087352c25483345f"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-evidence.js",
+    "chars": 13381,
+    "sha256TrimEnd": "856816aa1e8a39102ba028115a5c4ed9ef314a0b14051f132b52df278a38fd27"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-store.js",
+    "chars": 6253,
+    "sha256TrimEnd": "6030d0cadfd9ccebc6f9bbf88e5cf6a9eb8a109ba494b2f840c63bc75c891b4a"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-keyboard.js",
+    "chars": 4828,
+    "sha256TrimEnd": "db10e473f659940d928a35d7954e980dd4d5f42721641d0b001882f07ae005c5"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-audio.js",
+    "chars": 3532,
+    "sha256TrimEnd": "b5fa8e92e75131d70fec9403f687525c5189deef7b8c4ee768f062ea5a629cbc"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-tasks.js",
+    "chars": 7332,
+    "sha256TrimEnd": "af29542cc400c1f93c4f6324d65367264535d2d8f48596a3da06e35ba779ae9b"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-scene.js",
+    "chars": 4029,
+    "sha256TrimEnd": "020aec033dea7d3e28b5c067441e482bf4efcd5e4cb10948a99e03bb573ffb18"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-media.js",
+    "chars": 2436,
+    "sha256TrimEnd": "999b70f498be511672b6eaf0ed44be357002f2cebc72c0bb9aa12a85872a3926"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-review-reader.js",
+    "chars": 21516,
+    "sha256TrimEnd": "d3fcf23544e39459a6fc403e7ff9cef4436a161170957aaef79fbd88fa3b5c75"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/js/course-reader.js",
+    "chars": 40546,
+    "sha256TrimEnd": "3ea6c310d19b1f0cb933d790fe4313a2142973e412dbaa73ce8180159e8231d3"
+  },
+  {
+    "url": "http://127.0.0.1:4173/__qa-dreview-20261106-05/qa.js",
+    "chars": 3209,
+    "sha256TrimEnd": "232c70a89c3e3664ea023468ad32d6ae5b426601d1e68c71ef380d9ccc3ad32e"
+  }
+]

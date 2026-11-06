@@ -1,5 +1,6 @@
 'use strict';
 const fs = require('node:fs'), path = require('node:path');
+const R = require('../../public/js/course-review.js');
 const F = require('../../public/js/course-format.js');
 const { checkGraph } = require('./course-graph.cjs');
 function validateCourseDir(dir) {
@@ -24,6 +25,7 @@ function validateCourseDir(dir) {
       for (const id of course[field]) { if (!validId(id)) error('ID_BAD', 'course.' + field, 'Некорректный ID.'); else if (seen.has(id)) error('ID_DUP', 'course.' + field, 'Повторный ID: ' + id); seen.add(id); }
     }
     if (typeof course.lexicon !== 'string' || !course.lexicon || path.isAbsolute(course.lexicon) || course.lexicon.split(/[\\/]/).includes('..')) error('FORMAT', 'course.lexicon', 'Нужен относительный путь внутри курса.');
+    if (course.reviewPlan !== undefined) issues.push(...R.validatePlan(course.reviewPlan, course));
     if (issues.length) return;
     const lexicon = read(course.lexicon);
     issues.push(...F.validateLexicon(lexicon));

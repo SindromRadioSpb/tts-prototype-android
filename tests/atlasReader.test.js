@@ -708,6 +708,15 @@ function fakeAudio() {
     removeAttribute() { this.src = ''; } };
 }
 async function settle() { for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r)); }
+async function waitForListening(document) {
+  // openSection renders before asynchronous WebCrypto verification finishes.
+  // Event-loop turns alone do not guarantee that the crypto worker has completed.
+  const deadline = performance.now() + 5000;
+  while (!document.querySelector('.atlas-listen-btn')) {
+    assert.ok(performance.now() < deadline, 'verified listening controls appear within 5 seconds');
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
 function listenMount(document, extra) {
   const api = require('../public/js/atlas-reader.js');
   const { data, manifest, readable } = listenFixture();
@@ -736,7 +745,7 @@ test('listening: recordings whose text matches play in book order; a changed tex
   let changed = null;
   const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio, onStart: () => started.push(1) },
     mutate: (m, readable) => { changed = readable.find((x) => x.type !== 'formula'); m.items[changed.id].src = '0'.repeat(64); } });
-  await reader.openSection('s09-belt', 197); await settle();
+  await reader.openSection('s09-belt', 197); await waitForListening(document);
   const btn = document.querySelector('.atlas-listen-btn');
   assert.ok(btn, 'the bar offers listening');
   btn.dispatchEvent(new document.defaultView.Event('click'));
@@ -763,7 +772,7 @@ test('listening: the status counts verified recordings honestly, and the formula
   const { document } = parseHTML('<!doctype html><html><body><main id="m"></main></body></html>');
   const audio = fakeAudio();
   const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
-  await reader.openSection('s09-belt', 197); await settle();
+  await reader.openSection('s09-belt', 197); await waitForListening(document);
   document.querySelector('.atlas-listen-btn').dispatchEvent(new document.defaultView.Event('click'));
   const total = manifest.coverage.blocks[1] + manifest.coverage.formulas[1];
   assert.match(document.querySelector('.atlas-player-status').textContent, new RegExp('озвучено ' + Object.keys(manifest.items).length + ' из ' + total));
@@ -787,7 +796,7 @@ test('listening: each voiced line has its own ▶; from the middle it reads stra
   document.defaultView.localStorage = listenStore();
   const audio = fakeAudio();
   const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
-  await reader.openSection('s09-belt', 197); await settle();
+  await reader.openSection('s09-belt', 197); await waitForListening(document);
   const lines = voicedLines(document, manifest), key = (n) => '/api/audio/' + manifest.items[n.getAttribute('data-ref')].key;
   assert.ok(lines.length >= 3, 'fixture has several voiced lines');
   for (const n of lines) assert.ok(sayOf(n), 'every voiced line has ▶: ' + n.getAttribute('data-ref'));
@@ -812,7 +821,7 @@ test('listening: line by line reads one line and stops; ▶ repeats it, ⏭ read
   document.defaultView.localStorage = store;
   const audio = fakeAudio();
   const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
-  await reader.openSection('s09-belt', 197); await settle();
+  await reader.openSection('s09-belt', 197); await waitForListening(document);
   const lines = voicedLines(document, manifest), key = (n) => '/api/audio/' + manifest.items[n.getAttribute('data-ref')].key;
   const a = lines[1], b = lines[2], c = lines[0];
   tap(document, sayOf(a));
@@ -856,7 +865,7 @@ test('listening: a formula ▶ plays its formula even with formulas off; leaving
   document.defaultView.localStorage.setItem('room.atlas.listen', JSON.stringify({ rate: 1, formulas: false }));
   const audio = fakeAudio();
   const { reader, manifest } = listenMount(document, { audio: { createElement: () => audio } });
-  await reader.openSection('s09-belt', 197); await settle();
+  await reader.openSection('s09-belt', 197); await waitForListening(document);
   const say = document.querySelector('.atlas-formula > .atlas-say');
   assert.ok(say, 'the fixture page has a formula with a recording');
   const card = say.closest('.atlas-formula');

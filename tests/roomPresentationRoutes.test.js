@@ -453,17 +453,18 @@ test("course lesson route roundtrips and rejects malformed identities", async ()
   for (const id of ["", "UPPER", "a/b", "a".repeat(41)]) assert.equal(core.presentationStateFromHash("#room=course:" + id), null);
 });
 
-test("owner-only fixture uses resolved session role while the public course remains available", async () => {
+test("owner-only fixtures follow resolved role while public courses survive logout or failed refresh", async () => {
   const { CORPORA } = await import(pathToFileURL(path.resolve(__dirname, "../public/js/corpus-registry.js")).href);
   const course = CORPORA.find(c => c.id === "course:ulpan");
-  assert.notEqual(course.ownerOnly, true);
+  assert.equal(course.ownerOnly, undefined);
   assert.equal(course.kind, "course");
-  const restricted = { ...course, id: "course:restricted", ownerOnly: true };
-  const context = vm.createContext({ CORPORA: [...CORPORA, restricted], publicCorpora: [], groupCorpora: [], roomSessionRole: "", roomSessionUserId: "", roomSessionRoleSequence: 0,
+  const registry = [...CORPORA, { ...course, id: "course:owner-fixture", ownerOnly: true }];
+  const context = vm.createContext({ CORPORA: registry, publicCorpora: [], groupCorpora: [], roomSessionRole: "", roomSessionUserId: "", roomSessionRoleSequence: 0,
     window: { CloudSync: { me: async () => ({ user: { id: 42, role: "owner" } }) } }, corpusNav: { corpus: "hub" }, activeTrack: "corpus", renderCorpus() {} });
   vm.runInContext(hostFunction("roomClearSessionRole", "function authorizedCorpusById"), context);
-  const visible = () => context.authorizedCorpusOptions().some(c => c.id === "course:restricted");
-  assert.ok(context.authorizedCorpusOptions().some(c => c.id === "course:ulpan"));
+  const visible = () => context.authorizedCorpusOptions().some(c => c.id === "course:owner-fixture");
+  const publicVisible = () => ["course:ulpan", "course:ulpan-cafe-b-pilot"].every(id => context.authorizedCorpusOptions().some(c => c.id === id));
+  assert.equal(publicVisible(), true);
   assert.equal(visible(), false);
   await context.roomRefreshSessionRole();
   assert.equal(visible(), true);
@@ -472,6 +473,7 @@ test("owner-only fixture uses resolved session role while the public course rema
     context.window.CloudSync.me = async () => value;
     await context.roomRefreshSessionRole();
     assert.equal(visible(), false);
+    assert.equal(publicVisible(), true);
   }
   let resolve;
   context.window.CloudSync.me = () => new Promise(r => { resolve = r; });
@@ -484,6 +486,7 @@ test("owner-only fixture uses resolved session role while the public course rema
   context.window.CloudSync.me = async () => { throw new Error("offline"); };
   await context.roomRefreshSessionRole();
   assert.equal(visible(), false);
+  assert.equal(publicVisible(), true);
 });
 
 
@@ -497,8 +500,9 @@ test("course corpus title and description exist in all UI locales", () => {
   }
 });
 
-test("existing corpus switcher updates after owner login and logout without replacing content", async () => {
+test("switcher retains public courses and removes owner-only fixture on logout without replacing content", async () => {
   const { CORPORA } = await import(pathToFileURL(path.resolve(__dirname, "../public/js/corpus-registry.js")).href);
+  const registry = [...CORPORA, { ...CORPORA.find(c => c.id === "course:ulpan"), id: "course:owner-fixture", ownerOnly: true }];
   class Node {
     constructor(options = {}) { this.children = []; this.attrs = options.attrs || {}; this.handlers = {}; this.className = options.class || ""; }
     appendChild(child) { this.children.push(child); return child; }
@@ -511,7 +515,7 @@ test("existing corpus switcher updates after owner login and logout without repl
   }
   const bars = [];
   const document = { activeElement: null, querySelectorAll: () => bars, addEventListener() {}, removeEventListener() {} };
-  const context = vm.createContext({ document, CORPORA: [...CORPORA, { ...CORPORA.find(c => c.id === "course:ulpan"), id: "course:restricted", ownerOnly: true }], publicCorpora: [], groupCorpora: [], roomSessionRole: "", roomSessionUserId: "", roomSessionRoleSequence: 0,
+  const context = vm.createContext({ document, CORPORA: registry, publicCorpora: [], groupCorpora: [], roomSessionRole: "", roomSessionUserId: "", roomSessionRoleSequence: 0,
     activeTrack: "corpus", corpusNav: { corpus: "atlas:a97002" }, renderCorpus: () => assert.fail("must preserve corpus content"),
     el: (_, options) => new Node(options), tt: (_, fallback) => fallback, setRoomIcon() {}, roomIcon: () => new Node(),
     roomCorpusIconSpec: c => ({ fallback: c.icon }), markRoomTextLanguage: node => node, corpusTitleOf: c => c.title.fb });
@@ -519,14 +523,16 @@ test("existing corpus switcher updates after owner login and logout without repl
   vm.runInContext(hostFunction("corpusSwitcherBar", "// B2 — Learning Home"), context);
   const bar = context.corpusSwitcherBar("atlas:a97002"); bars.push(bar);
   const wrap = bar.children[1].children[2], pill = wrap.children[0], menu = wrap.children[1];
-  const course = () => menu.children.find(item => item.attrs["data-corpus"] === "course:restricted");
+  const course = () => menu.children.find(item => item.attrs["data-corpus"] === "course:owner-fixture");
   assert.equal(course(), undefined);
+  for (const id of ["course:ulpan", "course:ulpan-cafe-b-pilot"]) assert.ok(menu.children.find(item => item.attrs["data-corpus"] === id));
   context.roomSetSessionRole({ user: { id: 1, role: "owner" } });
   assert.ok(course());
   pill.handlers.click();
   course().focus();
   context.roomClearSessionRole();
   assert.equal(course(), undefined);
+  for (const id of ["course:ulpan", "course:ulpan-cafe-b-pilot"]) assert.ok(menu.children.find(item => item.attrs["data-corpus"] === id));
   assert.equal(document.activeElement, pill, "removed focused choice returns focus to existing pill");
   assert.equal(menu.hidden, false, "open menu stays open");
   assert.equal(wrap.children[0], pill);

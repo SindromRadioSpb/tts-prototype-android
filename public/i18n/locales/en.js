@@ -5714,3 +5714,5 @@ Object.assign(window.I18N_LOCALES.en.course.role,{"learner":"You","barista":"Bar
 Object.assign(window.I18N_LOCALES.en.course,{tiles:{"answer":"Your phrase","bank":"Words","empty":"Tap the words below"}});
 Object.assign(window.I18N_LOCALES.en.course,{order:{card:"Order"}});
 window.I18N_LOCALES.en.room.hub.atlas97001 = {title:"Engineering atlas 97001",desc:"Mechanics fundamentals: statics, motion, engineering drawing and materials — Hebrew and Russian, page by page"}; window.I18N_LOCALES.en.atlas.bookName = "Engineering atlas";
+
+window.I18N_LOCALES.en.course.pilotCorpus = {"title": "Café B · text pilot", "desc": "Separate experimental course: foundations, café and reviews. No audio; the existing course and progress stay unchanged."};
