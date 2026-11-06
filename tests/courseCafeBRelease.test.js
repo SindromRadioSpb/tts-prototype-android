@@ -11,7 +11,7 @@ test('pilot is a separate discoverable text-only corpus while legacy entry stays
 });
 
 test('production image builds only the separate pilot fallback, without touching persistent legacy data',()=>{
- const docker=read('Dockerfile'),commands=docker.split('\n').filter(line=>line.startsWith('RUN ')&&line.includes('build-course-data.cjs'));
+ const docker=read('Dockerfile').replace(/\r\n/g,'\n'),commands=docker.split('\n').filter(line=>line.startsWith('RUN ')&&line.includes('build-course-data.cjs'));
  assert.deepEqual(commands,['RUN node scripts/course/build-course-data.cjs content/course/ulpan-cafe-b-pilot public/data/course']);
  assert.ok(docker.indexOf(commands[0])<docker.indexOf('VOLUME ["/app/data"]'));
  assert.match(read('.dockerignore'),/^public\/data\/course\/$/m);

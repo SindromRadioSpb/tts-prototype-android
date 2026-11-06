@@ -19,8 +19,10 @@ try {
   if (errors.length) throw new Error(JSON.stringify(errors));
   const tracked = cp.execFileSync('git', ['ls-files', 'content/course/ulpan/'], { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
   for (const file of tracked) {
-    const before = cp.execFileSync('git', ['show', 'HEAD:' + file], { cwd: root });
-    if (!before.equals(fs.readFileSync(path.join(root, file)))) throw new Error('Legacy content changed: ' + file);
+    // Compare Git-normalized content: an autocrlf checkout is not a material edit.
+    const before = cp.execFileSync('git', ['rev-parse', 'HEAD:' + file], { cwd: root, encoding: 'utf8' }).trim();
+    const after = cp.execFileSync('git', ['hash-object', '--path=' + file, file], { cwd: root, encoding: 'utf8' }).trim();
+    if (before !== after) throw new Error('Legacy content changed: ' + file);
   }
   const whitespace = cp.spawnSync('git', ['diff', '--check'], { cwd: root, stdio: 'inherit' });
   if (whitespace.status !== 0) throw new Error('Whitespace check failed');

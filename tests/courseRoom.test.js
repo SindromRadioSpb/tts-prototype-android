@@ -109,6 +109,7 @@ async function localeEnv(edit) {
    e.states.push([mode,state]);
  };
  vm.runInContext(block('destroyCourseReader','async function renderCourseCorpus'),ctx);
+ vm.runInContext(block('destroyAtlasReader','function detachAtlasWords'),ctx);
  vm.runInContext(block('renderCorpus','// The open section'),ctx);
  ctx.activeTrack='corpus';
  const listenerStart=source.indexOf("  document.addEventListener('i18n:changed',");
