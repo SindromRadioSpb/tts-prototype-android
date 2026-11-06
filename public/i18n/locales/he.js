@@ -5727,3 +5727,5 @@ window.I18N_LOCALES.he.room.hub.atlas97001 = {title:"אטלס הנדסי 97001",
 window.I18N_LOCALES.he.course.pilotCorpus = {"title": "בית קפה B · פיילוט טקסטואלי", "desc": "קורס ניסיוני נפרד: הכנה, בית קפה וחזרות. ללא שמע; הקורס הקיים וההתקדמות נשמרים."};
 
 window.I18N_LOCALES.he.atlas.figureZoom = "פתיחת האיור בגודל מלא";
+
+Object.assign(window.I18N_LOCALES.he.atlas.word, {"sourceNote": "מקור ומגבלות", "prepared": "הוכן בבינה מלאכותית"});

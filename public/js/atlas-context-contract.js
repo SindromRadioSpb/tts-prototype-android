@@ -1,0 +1,57 @@
+/* Prepared atlas context is a versioned answer, never an implicit completeness certificate. */
+(function(root){
+  'use strict';
+  const CONTRACT='atlas-context-v2',MAX=120;
+  function describe(rows,AI){
+    return (rows||[]).flatMap(row=>{const p=AI.rowPayloadFromData(row);return p?[{
+      id:String(row.id),order_index:row.order_index,key:p.key,words:p.words.map(w=>w.w),
+      he:row.he||'',he_niqqud:row.he_niqqud||'',ru:row.ru||'',row_type:row.row_type||'block',source_context:row.source_context||null
+    }]:[];});
+  }
+  async function revision(rows){
+    const canonical=JSON.stringify((rows||[]).map(r=>[r.id,r.order_index,r.key,r.he,r.he_niqqud,r.ru,r.source_context]));
+    const digest=await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical));
+    return Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  function validate(layer,expected,options){
+    const opt=options||{},errors=[],accepted=[],seenOrder=new Set(),seenIdentity=new Set();
+    const byOrder=new Map((expected||[]).map(r=>[r.order_index,r]));
+    const fail=(code,row)=>errors.push({code,order_index:row&&row.order_index,row_id:row&&(row.row_id||row.block_id)});
+    if(!layer||layer.schema!=='word-gloss-ai-layer-v1'||layer.contract!==CONTRACT)fail('schema_contract');
+    if(!layer||layer.atlas!==opt.atlas||layer.section!==opt.section)fail('source_identity');
+    if(!layer||!opt.revision||layer.source_revision!==opt.revision)fail('source_revision');
+    const prov=layer&&layer.provenance;
+    if(!prov||prov.kind!=='prepared_ai'||!String(prov.producer||'').trim()||!String(prov.review_scope||'').trim())fail('provenance');
+    const partial=!!(layer&&layer.coverage_mode==='partial');
+    if(!layer||!['complete','partial'].includes(layer.coverage_mode))fail('coverage_mode');
+    if(partial&&!opt.allowPartial)fail('partial_not_authorized');
+    const rows=layer&&Array.isArray(layer.rows)?layer.rows:[];
+    if(!layer||!Array.isArray(layer.rows))fail('rows');
+    function russian(gloss,row,entry){
+      if(typeof gloss!=='string'||!gloss.trim()||gloss.length>MAX||/[\u05d0-\u05ea]/.test(gloss))return false;
+      if(gloss.trim()==='?'&&!(entry&&entry.uncertain===true&&String(entry.reason||'').trim()))return false;
+      return true;
+    }
+    for(const row of rows){
+      const ref=row&&byOrder.get(row.order_index),id=row&&(row.row_id||row.block_id);
+      let valid=true;const reject=code=>{fail(code,row);valid=false;};
+      if(!row||!Number.isInteger(row.order_index)||!ref){reject('unknown_order');continue;}
+      if(seenOrder.has(row.order_index))reject('duplicate_order');seenOrder.add(row.order_index);
+      const identity=String(id)+'\u0001'+String(row.key);
+      if(seenIdentity.has(identity))reject('duplicate_row_key');seenIdentity.add(identity);
+      if(id!==ref.id||row.key!==ref.key)reject('row_identity_key');
+      if(!String(row.model||'').trim())reject('model');
+      if(!Array.isArray(row.glosses)||row.glosses.length!==ref.words.length)reject('gloss_count');
+      else row.glosses.forEach(g=>{if(!g||!russian(g.gloss,row,g)||g.manual===true||(g.wrong_hint!==undefined&&typeof g.wrong_hint!=='boolean')||(g.uncertain!==undefined&&typeof g.uncertain!=='boolean')||(g.uncertain&&!String(g.reason||'').trim()))reject('russian_gloss');});
+      if(!Array.isArray(row.mwe))reject('mwe_array');
+      else row.mwe.forEach(m=>{if(!m||!Number.isInteger(m.from)||!Number.isInteger(m.to)||m.from<0||m.to<m.from||m.to>=ref.words.length||!russian(m.gloss,row,m))reject('mwe');});
+      if(valid)accepted.push(row);
+    }
+    const covered=new Set(accepted.map(r=>r.order_index)),missing=(expected||[]).filter(r=>!covered.has(r.order_index)).map(r=>({row_id:r.id,order_index:r.order_index}));
+    if(!partial&&missing.length)fail('incomplete');
+    return {ok:errors.length===0,complete:errors.length===0&&!partial&&!missing.length,
+      coverage_mode:partial?'partial':'complete',expected:(expected||[]).length,accepted:accepted.length,missing,errors,rows:accepted};
+  }
+  const api={CONTRACT,describe,revision,validate};root.AtlasContextContract=api;
+  if(typeof module==='object'&&module.exports)module.exports=api;
+})(typeof globalThis!=='undefined'?globalThis:this);

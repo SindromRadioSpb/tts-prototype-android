@@ -205,6 +205,9 @@
     if (!r || !r.glosses || !r.glosses[k]) return null;
     var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
     var g = r.glosses[k];
+    // A versioned atlas layer must pass its current source contract before a
+    // cached AI answer is shown. User corrections remain available independently.
+    if (!g.manual && tr && typeof tr.__lpAllowPreparedGloss === 'function' && !tr.__lpAllowPreparedGloss()) return null;
     return { gloss: g.gloss, wrongHint: !!g.wrong_hint && !g.manual, mwe: m ? m.gloss : "", manual: !!g.manual, aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss, model: r.model || "", shared: !!r.shared, imported: !!r.imported };
   }
   // Ф4 «Словарь» — the same occurrence gloss read from a stored row (no table on screen).

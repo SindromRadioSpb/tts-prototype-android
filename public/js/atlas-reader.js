@@ -424,10 +424,11 @@
     function renderChip(fig) {
       var r = (fig.regions || [])[0] || {};
       var he = fig.caption_he || r.label_he || '', ru = cleanMeta(fig.caption_ru || r.label_ru);
+      var learning = /^a97001:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(he);
       return h('figure', { cls: 'atlas-fig atlas-chipfig', 'data-ref': fig.id }, [
         h('img', { src: fig.crop, alt: ru || he || '', loading: 'lazy' }),
-        h('figcaption', {}, [he ? h('bdi', { lang: 'he', dir: dirOf(he), text: he }) : null,
-          ru && ru !== he ? h('span', { cls: 'atlas-l-ru', text: (he ? ' — ' : '') + ru }) : null])]);
+        h('figcaption', { cls: learning ? 'atlas-learning-row' : null, 'data-ref': learning ? fig.id + ':caption' : null }, [he ? h('bdi', { lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null, text: he }) : null,
+          ru && ru !== he ? h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null, text: (he ? ' - ' : '') + ru }) : null])]);
     }
 
     // Regions are numbered pins with the labels in the legend below: text labels drawn over the scan covered the
@@ -492,9 +493,10 @@
           h('bdi', { lang: 'he', dir: dirOf(g.he), text: g.he }), ru ? h('span', { cls: 'atlas-l-ru', text: (g.he ? ' — ' : '') + ru }) : null]));
       });
       var capRu = cleanMeta(fig.caption_ru);
+      var learning = /^a97001:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(fig.caption_he || '');
       var cap = captionRow ? h('figcaption', { cls: 'atlas-figcap-row' }, [captionRow])
-        : (fig.caption_he || capRu) ? h('figcaption', {}, [h('bdi', { lang: 'he', dir: 'rtl', text: fig.caption_he || '' }),
-          h('span', { cls: 'atlas-l-ru', text: (fig.caption_he && capRu ? ' — ' : '') + capRu })]) : null;
+        : (fig.caption_he || capRu) ? h('figcaption', { cls: learning ? 'atlas-learning-row' : null, 'data-ref': learning ? fig.id + ':caption' : null }, [h('bdi', { lang: 'he', dir: 'rtl', 'data-col': learning ? 'he' : null, text: fig.caption_he || '' }),
+          h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null, text: (fig.caption_he && capRu ? ' - ' : '') + capRu })]) : null;
       if (fig.is_table && !captionRow && !forPrint) {
         return h('details', { cls: 'atlas-fig atlas-tablefig atlas-orig', 'data-ref': fig.id }, [
           h('summary', { text: T('atlas.tableScan', 'как в книге (скан таблицы)') }), box, cap, groups.length ? list : null]);
@@ -597,9 +599,11 @@
             if (/\d/.test(text)) digits = true;
             var unit = text.trim() && c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit && !labelled[String(c.unit).toLowerCase()] && !labelled['?' + String(c.unit).toLowerCase()] ? c.unit : '';
             var he = c.he && c.he !== text ? c.he : '';
-            tr.appendChild(h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text), 'data-cell': c.row+':'+c.col },
-              he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he) }, texNodes(he)), h('span', { cls: 'atlas-l-ru' }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null]))]
-                : texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])));
+            var learning = /^a97001:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(c.he || '');
+            tr.appendChild(h('td', { cls: learning ? 'atlas-learning-row' : null, colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text), 'data-cell': c.row+':'+c.col,
+              'data-ref': learning ? table.id + ':cell:' + c.row + ':' + c.col : null },
+              he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null }, texNodes(he)), h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null]))]
+                : learning ? [h('span', { lang: 'he', dir: 'rtl', 'data-col': 'he' }, texNodes(text))] : texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])));
           } else if (!covered[r + ':' + k]) tr.appendChild(h('td'));
         }
         built.push({ tr: tr, numeric: numeric, digits: digits });
@@ -611,8 +615,9 @@
       var heads = firstNum >= 0 ? firstNum : (built.length >= 3 && !built[0].digits ? 1 : 0);
       built.forEach(function (b, n) { (n < heads ? head : body).appendChild(b.tr); });
       // an untitled table gets no caption: an empty one painted a blank band above the grid
+      var titleLearning = /^a97001:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(table.title_he || '');
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
-        !(tableTitle(table) || table.title_he) ? null : h('caption', {}, [h('span', { cls: 'atlas-l-ru', text: tableTitle(table) }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', text: ' ' + table.title_he }) : null]),
+        !(tableTitle(table) || table.title_he) ? null : h('caption', { cls: titleLearning ? 'atlas-learning-row' : null, 'data-ref': titleLearning ? table.id + ':title' : null }, [h('span', { cls: 'atlas-l-ru', 'data-col': titleLearning ? 'ru' : null, text: tableTitle(table) }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', 'data-col': titleLearning ? 'he' : null, text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);
       return h('div', { cls: 'atlas-tablewrap', 'data-ref': ref || table.id || null }, [t]);
     }
@@ -713,6 +718,12 @@
       var body = h('div', { cls: 'atlas-page-body' });
       var aside = h('aside', { cls: 'atlas-aside' }, [thumb]);
       var main = h('div', { cls: 'atlas-main' });
+      if (page.coverage_notice) {
+        main.appendChild(h('aside', { cls: 'atlas-source-notice', role: 'note' }, [
+          h('strong', { text: T('atlas.partial', 'Переведено частично') }),
+          h('p', { lang: 'he', dir: 'rtl', text: page.coverage_notice.he || '' }),
+          h('p', { lang: 'ru', dir: 'ltr', text: page.coverage_notice.ru || '' })]));
+      }
       var errataByTarget = {};
       (page.errata || []).forEach(function (x) { (errataByTarget[x.target] = errataByTarget[x.target] || []).push(x); });
       var shown = {};
@@ -845,6 +856,11 @@
       var rootEl = h('div', { cls: 'atlas-print-root' });
       data.pages.forEach(function (page) {
         var rows = h('tbody');
+        if (page.coverage_notice) rows.appendChild(h('tr', {}, [h('td', { colspan: 2 }, [
+          h('aside', { cls: 'atlas-source-notice' }, [
+            h('strong', { text: T('atlas.partial', 'Переведено частично') }),
+            h('p', { lang: 'he', dir: 'rtl', text: page.coverage_notice.he || '' }),
+            h('p', { lang: 'ru', text: page.coverage_notice.ru || '' })])])]));
         var lay = layoutPage(page);
         page.items.forEach(function (item, i) {
           var g = lay.groups[i];

@@ -234,6 +234,9 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-rg.atlas-hl i { background: var(--atlas-scan-mark); color: var(--atlas-scan-label); }
 .atlas-root .atlas-rg i.n { inset-inline-start: -7px; top: -9px; margin: 0; padding: 0 3px; min-width: 16px; text-align: center; line-height: 16px; font: 700 10px/16px system-ui, sans-serif; border-radius: 8px; }
 .atlas-root figcaption { font-size: .85rem; color: var(--atlas-muted); margin-top: 6px; overflow-wrap: anywhere; }
+.atlas-source-notice { border: 2px solid var(--atlas-teal); border-radius: 10px; padding: 12px; margin: 8px 0 16px; overflow-wrap: anywhere; }
+.atlas-source-notice p { margin: 6px 0 0; }
+.atlas-root .atlas-stage-1 .atlas-learning-row[data-atlas-nogloss]::after { content: attr(data-atlas-nogloss); display: block; font-size: .78rem; color: var(--atlas-muted); }
 /* the page's own caption line under its figure keeps the study layers */
 .atlas-root figcaption.atlas-figcap-row { font-size: inherit; color: inherit; margin-top: 4px; }
 .atlas-root figcaption.atlas-figcap-row > .atlas-row { border-bottom: 0; }

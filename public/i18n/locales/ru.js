@@ -5733,3 +5733,5 @@ window.I18N_LOCALES.ru.room.hub.atlas97001 = {title:"Инженерный атл
 window.I18N_LOCALES.ru.course.pilotCorpus = {"title": "Кафе B · текстовый пилот", "desc": "Отдельный экспериментальный курс: подготовка, кафе и повторы. Без аудио; прежний курс и прогресс сохранены."};
 
 window.I18N_LOCALES.ru.atlas.figureZoom = "Открыть рисунок в полном размере";
+
+Object.assign(window.I18N_LOCALES.ru.atlas.word, {"sourceNote": "Источник и ограничения", "prepared": "Подготовлено ИИ"});

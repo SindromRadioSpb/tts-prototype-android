@@ -1,0 +1,34 @@
+{
+  "baseline_commit": "753f5bef652a52057df43cccc919904fe0acee25",
+  "unchanged_items_except_term_refs": 1286,
+  "unchanged_formulas": 325,
+  "preserved_editor_notes": 23,
+  "changed_source_text_fields": [
+    {
+      "ref": "a97001:p200:img01:t-applications",
+      "cell_index": 5,
+      "field": "he"
+    },
+    {
+      "ref": "a97001:p200:img01:t-applications",
+      "cell_index": 5,
+      "field": "ru"
+    },
+    {
+      "ref": "a97001:p200:img01:t-applications",
+      "cell_index": 11,
+      "field": "ru"
+    },
+    {
+      "ref": "a97001:p200:img02:t-applications",
+      "cell_index": 3,
+      "field": "he"
+    },
+    {
+      "ref": "a97001:p200:img02:t-applications",
+      "cell_index": 3,
+      "field": "ru"
+    }
+  ],
+  "preserved_scan_paths": 203
+}

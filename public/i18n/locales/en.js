@@ -5718,3 +5718,5 @@ window.I18N_LOCALES.en.room.hub.atlas97001 = {title:"Engineering atlas 97001",de
 window.I18N_LOCALES.en.course.pilotCorpus = {"title": "Café B · text pilot", "desc": "Separate experimental course: foundations, café and reviews. No audio; the existing course and progress stay unchanged."};
 
 window.I18N_LOCALES.en.atlas.figureZoom = "Open full-size figure";
+
+Object.assign(window.I18N_LOCALES.en.atlas.word, {"sourceNote": "Source and limitations", "prepared": "Prepared with AI"});

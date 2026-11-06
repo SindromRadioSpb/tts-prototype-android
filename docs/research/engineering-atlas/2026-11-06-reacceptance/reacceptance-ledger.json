@@ -1,0 +1,220 @@
+{
+  "base_commit": "753f5bef652a52057df43cccc919904fe0acee25",
+  "release_version": "3.11.865",
+  "findings": [
+    {
+      "id": "R01",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 0,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R02",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 31,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R03",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 7,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R04",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 0,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R05",
+      "verdict": "confirmed",
+      "status": "deferred_by_later_user_instruction",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 0,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R06",
+      "verdict": "confirmed_scope_with_one_inaccurate_historical_example",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 0,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R07",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 0,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R08",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 23,
+      "source_limits_are_not_closed": true
+    },
+    {
+      "id": "R09",
+      "verdict": "confirmed",
+      "status": "fixed_candidate_pending_release_proof",
+      "evidence": "REPORT.md; candidate-verification.json; term-review-evidence.json; supplied independent acceptance ZIP",
+      "automated_target_assertions": 0,
+      "source_limits_are_not_closed": true
+    }
+  ],
+  "source_limits": [
+    {
+      "page": 116,
+      "id": "M101-030",
+      "status": "unresolved_source_reading",
+      "scope": "В таблицах нет 118 атомных масс. Реальный встроенный растр 505×326 не позволяет удостоверить большинство масс. Читаемая врезка C=12.0107 отдельно перенесена; остальные массы остаются открытыми.",
+      "source": "original97001.pdf#page=116"
+    },
+    {
+      "page": 157,
+      "id": "R157-F02",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=157"
+    },
+    {
+      "page": 157,
+      "id": "R157-F03",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=157"
+    },
+    {
+      "page": 157,
+      "id": "R157-F04",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=157"
+    },
+    {
+      "page": 159,
+      "id": "P159-01",
+      "status": "unresolved_source_reading",
+      "scope": "В исходнике 32 строки марок, 22 позиции на строку; в структурированном слое отсутствуют. Значительную часть мелких цифр нельзя надёжно прочитать. Нужен более чёткий оригинал, не стандартные справочные замены.",
+      "source": "original97001.pdf#page=159"
+    },
+    {
+      "page": 159,
+      "id": "P159-05",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=159"
+    },
+    {
+      "page": 159,
+      "id": "P159-07",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=159"
+    },
+    {
+      "page": 160,
+      "id": "R160-F01",
+      "status": "unresolved_source_reading",
+      "scope": "Добавлены все 32 соответствия форм и групп; мелкое точное название группы SAE1113/1137 не удостоверено.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F04",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F05",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F06",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F07",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F11",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F12",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F15",
+      "status": "unresolved_source_reading",
+      "scope": "Внесена воспроизводимая коррекция; нечитаемые фрагменты остаются открыты.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 160,
+      "id": "R160-F18",
+      "status": "unresolved_source_reading",
+      "scope": "Шестигранник и оба упоминания 6 мм добавлены. Названия/направление порогов B/C, значение толстого кольца E и мелкая сноска остаются не удостоверенными.",
+      "source": "original97001.pdf#page=160"
+    },
+    {
+      "page": 170,
+      "id": "p170-F1",
+      "status": "unresolved_source_reading",
+      "scope": "Добавлены читаемые фазы, 11 букв точек, подписи и четыре шкалы; не удостоверенные мелкие числа исключены явно.",
+      "source": "original97001.pdf#page=170"
+    },
+    {
+      "page": 170,
+      "id": "p170-F2",
+      "status": "unresolved_source_reading",
+      "scope": "1140°C читается; уверенное 729°C отозвано, последняя цифра 728/729 остаётся открытой.",
+      "source": "original97001.pdf#page=170"
+    },
+    {
+      "page": 170,
+      "id": "p170-F3",
+      "status": "unresolved_source_reading",
+      "scope": "Увеличенный и повёрнутый оригинал: 149?°C, A₂ 759/769°C, цифры J/P/Q и верхнее °F не удостоверены. Числа из других диаграмм не подставлены.",
+      "source": "original97001.pdf#page=170"
+    },
+    {
+      "page": 198,
+      "id": "MATH-LATE-002",
+      "status": "unresolved_source_reading",
+      "scope": "Названия свойств и σ восстановлены; точная мелкая буква подстрочного индекса σ в столбце выносливости не удостоверена.",
+      "source": "original97001.pdf#page=198"
+    }
+  ]
+}

@@ -59,7 +59,7 @@
     STAGE_CLASSES.forEach(function (c) { section.classList.remove(c); });
     if (stage) section.classList.add("atlas-stage-" + stage);
     var policy = glossPolicy(stage);
-    section.querySelectorAll(".atlas-row[data-ref]").forEach(function (row) {
+    section.querySelectorAll(".atlas-row[data-ref], .atlas-learning-row[data-ref]").forEach(function (row) {
       var id = row.getAttribute("data-ref"), words = 0, layer = 0;
       var loc = policy === "terms" && ctx && typeof ctx.located === "function" ? ctx.located(id) : null;
       row.querySelectorAll("[data-col] .rm-w[data-w-offset]").forEach(function (w) {
@@ -239,7 +239,9 @@
       var sn = t && (t.senses || []).filter(function (s) { return s && s.sense === k.sense; })[0];
       if (!t || !sn || !sn.ru) { missing++; return; }
       var m = /^atlas-block-v1:[a-z0-9]+:([a-z0-9-]+):/.exec(String(st.textKey || ""));
-      var place = m && st.sentenceId ? { sid: m[1], block: String(st.sentenceId) }
+      // Retain the learner's SRS state while replacing a retired/wrong source example.
+      var validSaved = !t.occurrences || ((t.occurrences[k.sense] || []).some(function (p) { return m && p.sid === m[1] && p.block === String(st.sentenceId || ''); }));
+      var place = m && st.sentenceId && validSaved ? { sid: m[1], block: String(st.sentenceId) }
         : t.personal ? { sid: t.sid, block: t.block } : ((t.places || {})[k.sense] || {});
       var pm = /:p(\d+):/.exec(String(place.block || ""));
       out.push({ key: key, due: Number(st.due), termId: k.termId, sense: k.sense, title: t.niqqud || t.lemma_he || "", plain: t.lemma_he || "",

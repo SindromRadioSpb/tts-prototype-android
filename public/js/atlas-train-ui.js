@@ -231,6 +231,12 @@
       }, function () { busy = false; err.hidden = false; });
     }
     show();
+    // The caller mounts the returned dialog synchronously. Focusing a detached
+    // button fails, leaving Escape on the background training panel.
+    Promise.resolve().then(function () {
+      var first = el.querySelector('[data-ts-reveal], [data-ts-close]');
+      if (el.isConnected && first && first.focus) first.focus();
+    });
     return { el: el };
   }
 

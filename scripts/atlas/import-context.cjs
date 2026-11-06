@@ -12,6 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 const { parseHTML } = require("linkedom");
+const Contract = require('../../public/js/atlas-context-contract.js');
 
 const REPO = path.resolve(__dirname, "..", "..");
 const argv = process.argv.slice(2);
@@ -27,18 +28,46 @@ function reader() {
   return { RM: window.ReaderMorph, AI: window.WordGlossAI, AW: require(path.join(REPO, "public/js/atlas-words.js")) };
 }
 
-async function answers(src) {
+async function answers(src,strict) {
   const out = new Map();
   if (/\.zip$/i.test(src)) {
     const zip = await require("jszip").loadAsync(fs.readFileSync(src));
     for (const name of Object.keys(zip.files)) {
       const m = /(?:^|\/)([a-z0-9-]+)\.json$/i.exec(name);
-      if (m && !zip.files[name].dir) out.set(m[1], JSON.parse(await zip.files[name].async("string")));
+      if (m && !zip.files[name].dir) { if(strict&&out.has(m[1]))throw Error('Duplicate section answer: '+m[1]); out.set(m[1], JSON.parse(await zip.files[name].async("string"))); }
     }
   } else {
     for (const f of fs.readdirSync(src)) { const m = /^([a-z0-9-]+)\.json$/i.exec(f); if (m) out.set(m[1], JSON.parse(fs.readFileSync(path.join(src, f), "utf8"))); }
   }
   return out;
+}
+
+async function reviewedImport(index,got,only,RM,AI,AW) {
+  const selected=index.sections.filter(s=>!only.length||only.includes(s.id)),known=new Set(index.sections.map(s=>s.id)),report=[],pending=[];
+  for(const id of got.keys())if(id!=='manifest'&&!known.has(id))throw Error('Unexpected answer section: '+id);
+  for(const sid of only)if(!known.has(sid))throw Error('Unknown requested section: '+sid);
+  for(const s of selected){
+    const data=JSON.parse(fs.readFileSync(path.join(DATA,'sections',s.id+'.json'),'utf8'));
+    const rows=AW.glossRows(AW.sectionContext(index.atlas_id,data,RM)),expected=Contract.describe(rows,AI),revision=await Contract.revision(expected),layer=got.get(s.id);
+    if(!layer&&has('allow-partial')){report.push({section:s.id,status:'missing_section_explicit_partial',complete:false});continue;}
+    const checked=Contract.validate(layer,expected,{atlas:index.atlas_id,section:s.id,revision,allowPartial:has('allow-partial')});
+    report.push({section:s.id,ok:checked.ok,complete:checked.complete,expected:checked.expected,stored:checked.accepted,missing:checked.missing,errors:checked.errors,source_revision:revision});
+    if(!checked.ok)continue;
+    AI._mem.clear();const technical=await AI.remember(layer,rows);
+    if(technical.rejected||technical.stored!==checked.accepted)throw Error('Runtime rejected validated layer '+s.id);
+    const dest=path.join(DATA,'context-ai',s.id+'.json');
+    if(!has('dry-run')&&fs.existsSync(dest)&&!has('replace'))throw Error('Existing layer requires explicit --replace: '+s.id);
+    const accepted=checked.rows.map(r=>({row_id:r.row_id||r.block_id,order_index:r.order_index,key:r.key,model:r.model,
+      glosses:r.glosses.map(g=>({gloss:g.gloss,...(g.wrong_hint?{wrong_hint:true}:{}),...(g.uncertain?{uncertain:true,reason:g.reason}:{})})),
+      mwe:r.mwe.map(m=>({from:m.from,to:m.to,gloss:m.gloss,...(m.uncertain?{uncertain:true,reason:m.reason}:{})}))}));
+    pending.push({dest,value:{schema:AI.LAYER_SCHEMA,contract:Contract.CONTRACT,atlas:index.atlas_id,section:s.id,source_revision:revision,
+      coverage_mode:checked.coverage_mode,provenance:layer.provenance,content_pack_sha256:data.content_pack_sha256||'',rows:accepted}});
+  }
+  const ok=!report.some(r=>r.ok===false);
+  console.log(JSON.stringify({scope:only.length?'selected_sections':'whole_book',ok,scientific_acceptance:false,
+    complete:ok&&!has('allow-partial')&&selected.length===index.sections.length&&report.every(r=>r.complete),sections:report},null,2));
+  if(!ok){process.exitCode=1;return;}
+  if(!has('dry-run'))for(const item of pending){fs.mkdirSync(path.dirname(item.dest),{recursive:true});const tmp=item.dest+'.tmp-'+process.pid;fs.writeFileSync(tmp,JSON.stringify(item.value));fs.renameSync(tmp,item.dest);}
 }
 
 async function main() {
@@ -47,7 +76,8 @@ async function main() {
   const { RM, AI, AW } = reader();
   const index = JSON.parse(fs.readFileSync(path.join(DATA, "index.json"), "utf8"));
   const only = (opt("sections", "") || "").split(",").filter(Boolean);
-  const got = await answers(path.resolve(src));
+  const got = await answers(path.resolve(src),index.atlas_id==='a97001');
+  if(index.atlas_id==='a97001')return reviewedImport(index,got,only,RM,AI,AW);
   const report = [];
   for (const s of index.sections) {
     if (only.length && !only.includes(s.id)) continue;

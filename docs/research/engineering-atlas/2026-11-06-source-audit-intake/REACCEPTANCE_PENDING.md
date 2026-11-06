@@ -1,5 +1,7 @@
 # Independent reacceptance — local preparation, publication held
 
+**Historical preparation note, superseded:** the complete R01–R09 report has since arrived and the parent lifted the publication hold. The later user instruction defers final R05 AI content to a separate post-proofreading step. Current fixes, checks and release boundaries are in [the combined reacceptance report](../2026-11-06-reacceptance/REPORT.md). The statements below describe the earlier held preparation stage, not current release status.
+
 Base: production 3.11.864, `753f5bef652a52057df43cccc919904fe0acee25`.
 Parent instructed: do not publish/push another release until the combined independent report and further release instruction arrive. No server cleanup, deletion or production changes in this follow-up.
 

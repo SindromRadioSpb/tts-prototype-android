@@ -1,0 +1,2275 @@
+{
+  "source_places": [
+    {
+      "term": "a97001:term:length",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-derived-units",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "source_he": "אורך",
+      "source": "original97001.pdf#page=4",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:volume",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-derived-units",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "source_he": "נפח",
+      "source": "original97001.pdf#page=4",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:density",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "source_he": "צפיפות",
+      "source": "original97001.pdf#page=5",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:pressure",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "source_he": "לחץ",
+      "source": "original97001.pdf#page=5",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:energy",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 5,
+        "col": 0
+      },
+      "source_he": "אנרגיה",
+      "source": "original97001.pdf#page=5",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:power",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 6,
+        "col": 0
+      },
+      "source_he": "הספק",
+      "source": "original97001.pdf#page=5",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:work",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 7,
+        "col": 0
+      },
+      "source_he": "עבודה",
+      "source": "original97001.pdf#page=5",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:section-modulus",
+      "sense": "technical",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 8,
+        "col": 0
+      },
+      "source_he": "מומנט התנגדות",
+      "source": "original97001.pdf#page=5",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:force",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-derived-units",
+      "cell": {
+        "row": 6,
+        "col": 0
+      },
+      "source_he": "כוח",
+      "source": "original97001.pdf#page=4",
+      "decision": "reused existing concept"
+    },
+    {
+      "term": "a97001:term:rigid-body",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 6,
+      "ref": "a97001:p6:b003",
+      "cell": null,
+      "source_he": "כוח – פעולת דחיפה או משיכה המתרחשת על גוף, הגורמת לשינוי בתנועתו או בצורתו של גוף. יחידת מידה: 1 N = 1 kg·m/sec². הנחת יסוד: גוף קשיח אינו משנה מידותיו וצורתו עקב פעולת כוח. מאפייני כוח:",
+      "source": "original97001.pdf#page=6",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:line-of-action",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 6,
+      "ref": "a97001:p6:b004",
+      "cell": null,
+      "source_he": "נקודת אחיזה – קו פעולת הכוח. גודל – אורך החץ, המראה את מקום פעולת הכוח ואת כיוונו (קו פעולה). כיוון – זווית ביחס לציר האופקי.",
+      "source": "original97001.pdf#page=6",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:point-of-application",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 6,
+      "ref": "a97001:p6:b004",
+      "cell": null,
+      "source_he": "נקודת אחיזה – קו פעולת הכוח. גודל – אורך החץ, המראה את מקום פעולת הכוח ואת כיוונו (קו פעולה). כיוון – זווית ביחס לציר האופקי.",
+      "source": "original97001.pdf#page=6",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:inertia-law",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 7,
+      "ref": "a97001:p7:b004",
+      "cell": null,
+      "source_he": "״חוק ההתמדה״ (חוק ראשון של ניוטון)",
+      "source": "original97001.pdf#page=7",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:force-component",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 9,
+      "ref": "a97001:p9:b003",
+      "cell": null,
+      "source_he": "Fx – רכיב כוח על ציר ה־x (רכיב אופקי), N; Fy – רכיב כוח על ציר ה־y (רכיב אנכי), N; α – זווית בין הכוח לציר ה־x, °. כלל הסימנים:",
+      "source": "original97001.pdf#page=9",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:free-body-diagram",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 12,
+      "ref": "a97001:p12:b001",
+      "cell": null,
+      "source_he": "דג״ח – דיאגרמת גוף חפשי",
+      "source": "original97001.pdf#page=12"
+    },
+    {
+      "term": "a97001:term:free-body-diagram",
+      "sense": "technical",
+      "section": "s02-statics-basics",
+      "page": 12,
+      "ref": "a97001:p12:b003",
+      "cell": null,
+      "source_he": "שחרור הגוף מסמכים נקרא ״דיאגרמת גוף חפשי״ (דג״ח).",
+      "source": "original97001.pdf#page=12"
+    },
+    {
+      "term": "a97001:term:free-body-diagram",
+      "sense": "technical",
+      "section": "s05-planar-forces",
+      "page": 34,
+      "ref": "a97001:p34:b006",
+      "cell": null,
+      "source_he": "א. בנו דיאגרמת גוף חפשי של המנוף. ב. כתבו משואת שווי משקל למנוף. ג. חשבו את כוחות התגובה בפין A, גדל וכוון, ואת כוח התגובה בסמך B, גדל וכוון.",
+      "source": "original97001.pdf#page=34"
+    },
+    {
+      "term": "a97001:term:free-body-diagram",
+      "sense": "technical",
+      "section": "s05-planar-forces",
+      "page": 37,
+      "ref": "a97001:p37:b004",
+      "cell": null,
+      "source_he": "א. בנו דיאגרמת גוף חפשי של הקורה המכפפת BCD.",
+      "source": "original97001.pdf#page=37",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:concurrent-forces",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 15,
+      "ref": "a97001:p15:b001",
+      "cell": null,
+      "source_he": "3. מערכת כוחות משתפי נקדה",
+      "source": "original97001.pdf#page=15"
+    },
+    {
+      "term": "a97001:term:concurrent-forces",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 15,
+      "ref": "a97001:p15:b002",
+      "cell": null,
+      "source_he": "הגדרה: מערכת כוחות שקוי פעלתם נחתכים בנקדה אחת משתפת.",
+      "source": "original97001.pdf#page=15",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:pulley",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 17,
+      "ref": "a97001:p17:b001",
+      "cell": null,
+      "source_he": "גלגלות",
+      "source": "original97001.pdf#page=17",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:fixed-pulley",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 17,
+      "ref": "a97001:p17:b002",
+      "cell": null,
+      "source_he": "גלגלת ניחת (Fixed Pulley). גלגלת נידת (Movable Pulley).",
+      "source": "original97001.pdf#page=17",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:movable-pulley",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 17,
+      "ref": "a97001:p17:b004",
+      "cell": null,
+      "source_he": "הגלגלת עצמה סובבת סביב ציר קבוע ורק החבל נע. החבל אחוז בצד אחד, סובב סביב הגלגלת ונמשך מהצד השני. העמס המורם מחבר למרכז הגלגלת.",
+      "source": "original97001.pdf#page=17",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:spring",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 21,
+      "ref": "a97001:p21:b001",
+      "cell": null,
+      "source_he": "קפיץ",
+      "source": "original97001.pdf#page=21",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:spring-rate",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 21,
+      "ref": "a97001:p21:b003",
+      "cell": null,
+      "source_he": "Fk – הכוח הפועל על הקפיץ, N. k – קבוע הקפיץ: הכוח שיש להפעיל על הקפיץ לשנוי ארכו ביחידת ארך, N/mm [1]. x – מדת התארכות או התכוצות הקפיץ, mm [2].",
+      "source": "original97001.pdf#page=21",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:hookes-law",
+      "sense": "technical",
+      "section": "s03-concurrent-forces",
+      "page": 21,
+      "ref": "a97001:p21:b002",
+      "cell": null,
+      "source_he": "עצם גמיש המשמש לאגירת אנרגיה מכנית באמצעות אנרגיה פוטנציאלית אלסטית. חק הוק:",
+      "source": "original97001.pdf#page=21",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:force-couple",
+      "sense": "technical",
+      "section": "s04-parallel-forces",
+      "page": 26,
+      "ref": "a97001:p26:b003",
+      "cell": null,
+      "source_he": "צמד כוחות (מומנט טהור)",
+      "source": "original97001.pdf#page=26",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:roller-support",
+      "sense": "technical",
+      "section": "s04-parallel-forces",
+      "page": 27,
+      "ref": "a97001:p27:b002",
+      "cell": null,
+      "source_he": "שם הסמך; סמל; כוח תגובה; מספר נעלמים. סמך ניד: 1.",
+      "source": "original97001.pdf#page=27",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:pin-support",
+      "sense": "technical",
+      "section": "s04-parallel-forces",
+      "page": 27,
+      "ref": "a97001:p27:b003",
+      "cell": null,
+      "source_he": "סמך ניח: 2.",
+      "source": "original97001.pdf#page=27",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:fixed-support",
+      "sense": "technical",
+      "section": "s04-parallel-forces",
+      "page": 27,
+      "ref": "a97001:p27:b004",
+      "cell": null,
+      "source_he": "רתום: 3.",
+      "source": "original97001.pdf#page=27",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:cable",
+      "sense": "technical",
+      "section": "s05-planar-forces",
+      "page": 37,
+      "ref": "a97001:p37:b002",
+      "cell": null,
+      "source_he": "הקורה המכפפת BCD יכולה להסתובב סביב סמך C ומקבעת במקומה באמצעות כבל AB. חשב את כוח המתיחה בכבל B ואת כוחות התגובה בסמך C.",
+      "source": "original97001.pdf#page=37",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:pin",
+      "sense": "technical",
+      "section": "s05-planar-forces",
+      "page": 34,
+      "ref": "a97001:p34:b006",
+      "cell": null,
+      "source_he": "א. בנו דיאגרמת גוף חפשי של המנוף. ב. כתבו משואת שווי משקל למנוף. ג. חשבו את כוחות התגובה בפין A, גדל וכוון, ואת כוח התגובה בסמך B, גדל וכוון.",
+      "source": "original97001.pdf#page=34",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:centroid",
+      "sense": "mechanics",
+      "section": "s05-planar-forces",
+      "page": 34,
+      "ref": "a97001:p34:b003",
+      "cell": null,
+      "source_he": "המנוף המתאר באיור לשאלה מחבר לקיר באמצעות פין A וסמך ניד B. המנוף מיעד להרמת עמס שמסתו 2400 kg. מסה עצמית של המנוף, ללא עמס, 1000 kg. מרכז הכבד של המנוף מצין באיור באות G.",
+      "source": "original97001.pdf#page=34",
+      "decision": "reused existing concept"
+    },
+    {
+      "term": "a97001:term:truss-joint",
+      "sense": "technical",
+      "section": "s06-trusses",
+      "page": 40,
+      "ref": "a97001:p40:b002",
+      "cell": null,
+      "source_he": "מבנה המרכב ממוטות המחברים ביניהם באמצעות פרקים ונשענים על גבי סמכים. נקדות החבור בין המוטות מכנות צמתים. על המבנה פועלים כוחות ונדרש לחשב את הכוחות הפנימיים הפועלים במוטות.",
+      "source": "original97001.pdf#page=40",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:joint",
+      "sense": "mechanics",
+      "section": "s06-trusses",
+      "page": 40,
+      "ref": "a97001:p40:b002",
+      "cell": null,
+      "source_he": "מבנה המרכב ממוטות המחברים ביניהם באמצעות פרקים ונשענים על גבי סמכים. נקדות החבור בין המוטות מכנות צמתים. על המבנה פועלים כוחות ונדרש לחשב את הכוחות הפנימיים הפועלים במוטות.",
+      "source": "original97001.pdf#page=40"
+    },
+    {
+      "term": "a97001:term:joint",
+      "sense": "mechanics",
+      "section": "s06-trusses",
+      "page": 40,
+      "ref": "a97001:p40:b003",
+      "cell": null,
+      "source_he": "בחשוב מסבכים אנו מניחים: 1. כל הכוחות פועלים בצמתים בלבד. 2. כל הפרקים הם אידאליים, אין בהם חכוך. 3. כל המוטות חסרי משקל. קיום שלשת התנאים האלה מבטיח כי כל הכוחות הפנימיים פועלים לארך צירי המוטות בלבד ולכן הם כוחות מתיחה או לחיצה.",
+      "source": "original97001.pdf#page=40",
+      "decision": "reused existing concept"
+    },
+    {
+      "term": "a97001:term:internal-force",
+      "sense": "technical",
+      "section": "s06-trusses",
+      "page": 40,
+      "ref": "a97001:p40:b002",
+      "cell": null,
+      "source_he": "מבנה המרכב ממוטות המחברים ביניהם באמצעות פרקים ונשענים על גבי סמכים. נקדות החבור בין המוטות מכנות צמתים. על המבנה פועלים כוחות ונדרש לחשב את הכוחות הפנימיים הפועלים במוטות.",
+      "source": "original97001.pdf#page=40",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:ritter-method",
+      "sense": "technical",
+      "section": "s06-trusses",
+      "page": 41,
+      "ref": "a97001:p41:b001",
+      "cell": null,
+      "source_he": "שיטת ריטר",
+      "source": "original97001.pdf#page=41",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:joints-method",
+      "sense": "technical",
+      "section": "s06-trusses",
+      "page": 44,
+      "ref": "a97001:p44:b001",
+      "cell": null,
+      "source_he": "שיטת הצמת",
+      "source": "original97001.pdf#page=44",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:zero-force-member",
+      "sense": "technical",
+      "section": "s06-trusses",
+      "page": 49,
+      "ref": "a97001:p49:b002",
+      "cell": null,
+      "source_he": "ג. באיזה מוט של המסבך לא נוצרים כוחות פנימיים? הסבר את תשובתך.",
+      "source": "original97001.pdf#page=49"
+    },
+    {
+      "term": "a97001:term:zero-force-member",
+      "sense": "technical",
+      "section": "s06-trusses",
+      "page": 49,
+      "ref": "a97001:p49:b003",
+      "cell": null,
+      "source_he": "במוט BF לא נוצרים כוחות פנימיים, מאחר ולא נוצרים כוחות בציר x.",
+      "source": "original97001.pdf#page=49",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:centroid-coordinates",
+      "sense": "technical",
+      "section": "s07-centroid",
+      "page": 50,
+      "ref": "a97001:p50:b005",
+      "cell": null,
+      "source_he": "3. חלק את הגוף לתת־גופים שאנו יודעים לחשב את מרכז הכבד שלהם, ראה טבלה בעמוד הבא, ותן לכל תת־גוף שם. 4. הכן טבלה: מספר, שם תת־גוף, שטח A, קואורדינטות xc ו־yc ומכפלותיהן בשטח.",
+      "source": "original97001.pdf#page=50"
+    },
+    {
+      "term": "a97001:term:centroid-coordinates",
+      "sense": "technical",
+      "section": "s07-centroid",
+      "page": 53,
+      "ref": "a97001:p53:b002",
+      "cell": null,
+      "source_he": "באיור לשאלה מתאר לוח במערכת צירים x-y, ללא קנה מדה. הלוח עשוי פח בעל עבי אחיד. מדות הלוח נתונות באיור במילימטרים. חשב את קואורדינטות מרכז הכבד של הלוח ביחס למערכת הצירים.",
+      "source": "original97001.pdf#page=53",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:rectangle",
+      "sense": "technical",
+      "section": "s07-centroid",
+      "page": 54,
+      "ref": "a97001:p54:b002",
+      "cell": null,
+      "source_he": "חלק ① – מלבן 210 × 180.",
+      "source": "original97001.pdf#page=54",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:right-triangle",
+      "sense": "technical",
+      "section": "s07-centroid",
+      "page": 54,
+      "ref": "a97001:p54:b003",
+      "cell": null,
+      "source_he": "חלק ② – משלש ישר זוית.",
+      "source": "original97001.pdf#page=54",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:semicircle",
+      "sense": "technical",
+      "section": "s07-centroid",
+      "page": 55,
+      "ref": "a97001:p55:b002",
+      "cell": null,
+      "source_he": "חלק ③ – חצי מעגל.",
+      "source": "original97001.pdf#page=55",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:quarter-circle",
+      "sense": "technical",
+      "section": "s07-centroid",
+      "page": 55,
+      "ref": "a97001:p55:b004",
+      "cell": null,
+      "source_he": "חלק ⑤ – רבע מעגל.",
+      "source": "original97001.pdf#page=55",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:static-friction",
+      "sense": "technical",
+      "section": "s08-friction",
+      "page": 57,
+      "ref": "a97001:p57:b004",
+      "cell": null,
+      "source_he": "כוח חכוך סטטי. הנוסחה מתאימה רק למקרה שבו הגוף נמצא על סף החלקה.",
+      "source": "original97001.pdf#page=57",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:sliding-friction",
+      "sense": "technical",
+      "section": "s08-friction",
+      "page": 58,
+      "ref": "a97001:p58:b001",
+      "cell": null,
+      "source_he": "מקדם חכוך אינו מתיחס לגוף בודד. זהו ערך שקים בין שני גופים הבאים במגע זה עם זה. מבחינים בשני סוגים של מקדם חכוך: μs – מקדם חכוך סטטי, פועל בין הגופים כל עוד אין תנועה ביניהם. μk – מקדם חכוך קינטי, מתחיל לפעל בין הגופים ברגע בו הם נעים זה ביחס לזה. מקדם החכוך הדינמי נמוך יותר ממקדם החכוך הסטטי ולכן הכוח הדרוש להזזת גוף המצוי במנוחה יהיה גדול יותר מהכוח שיש להשקיע כדי לקים את תנועתו של הגוף.",
+      "source": "original97001.pdf#page=58",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:inclined-plane",
+      "sense": "technical",
+      "section": "s08-friction",
+      "page": 59,
+      "ref": "a97001:p59:b001",
+      "cell": null,
+      "source_he": "מישור משפע",
+      "source": "original97001.pdf#page=59",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:self-locking",
+      "sense": "technical",
+      "section": "s08-friction",
+      "page": 60,
+      "ref": "a97001:p60:b001",
+      "cell": null,
+      "source_he": "תנאי לעצירה עצמית, סף החלקה. הגוף יחליק מטה כאשר רכיב הכוח המושך אותו כלפי מטה לארך השפוע משתוה, ומעט גדול יותר, מרכיב כוח החכוך המתנגד לתנועתו. במצב זה לא מפעל כוח F על הגוף.",
+      "source": "original97001.pdf#page=60",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:particle",
+      "sense": "technical",
+      "section": "s09-linear-motion",
+      "page": 67,
+      "ref": "a97001:p67:b002",
+      "cell": null,
+      "source_he": "9. תנועה של נקדה חמרית בקו ישר",
+      "source": "original97001.pdf#page=67",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:uniform-motion",
+      "sense": "technical",
+      "section": "s09-linear-motion",
+      "page": 67,
+      "ref": "a97001:p67:b004",
+      "cell": null,
+      "source_he": "תנועה במהירות קבועה (תנועה קצובה)",
+      "source": "original97001.pdf#page=67",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:instantaneous-velocity",
+      "sense": "technical",
+      "section": "s09-linear-motion",
+      "page": 68,
+      "ref": "a97001:p68:b003",
+      "cell": null,
+      "source_he": "מהירות רגעית – Vt",
+      "source": "original97001.pdf#page=68"
+    },
+    {
+      "term": "a97001:term:instantaneous-velocity",
+      "sense": "technical",
+      "section": "s09-linear-motion",
+      "page": 68,
+      "ref": "a97001:p68:b004",
+      "cell": null,
+      "source_he": "כאשר גוף נע במהירות לא קבועה, המהירות הרגעית היא מהירות הגוף ברגע המדידה. זהו השנוי שחל במרחק בפרק זמן קצר מאד, השואף לאפס.",
+      "source": "original97001.pdf#page=68",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:uniform-acceleration",
+      "sense": "technical",
+      "section": "s09-linear-motion",
+      "page": 70,
+      "ref": "a97001:p70:b001",
+      "cell": null,
+      "source_he": "תנועה שות תאוצה",
+      "source": "original97001.pdf#page=70",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:horizontal-launch",
+      "sense": "technical",
+      "section": "s10-projectile-motion",
+      "page": 82,
+      "ref": "a97001:p82:b003",
+      "cell": null,
+      "source_he": "זריקה אפקית",
+      "source": "original97001.pdf#page=82",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:oblique-launch",
+      "sense": "technical",
+      "section": "s10-projectile-motion",
+      "page": 86,
+      "ref": "a97001:p86:b001",
+      "cell": null,
+      "source_he": "זריקה משפעת",
+      "source": "original97001.pdf#page=86",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:trajectory",
+      "sense": "technical",
+      "section": "s10-projectile-motion",
+      "page": 87,
+      "ref": "a97001:p87:b003",
+      "cell": null,
+      "source_he": "מרחק לאחר זמן t. מרחק אנכי כתלות במרחק אפקי. גבה שיא המסלול. טוח מקסימלי, חזרה לגבה ירי. מהירות כללית.",
+      "source": "original97001.pdf#page=87",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:maximum-height",
+      "sense": "technical",
+      "section": "s10-projectile-motion",
+      "page": 87,
+      "ref": "a97001:p87:b003",
+      "cell": null,
+      "source_he": "מרחק לאחר זמן t. מרחק אנכי כתלות במרחק אפקי. גבה שיא המסלול. טוח מקסימלי, חזרה לגבה ירי. מהירות כללית.",
+      "source": "original97001.pdf#page=87",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:tangential-velocity",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 91,
+      "ref": "a97001:p91:b001",
+      "cell": null,
+      "source_he": "מהירות משיקית, מהירות זויתית",
+      "source": "original97001.pdf#page=91"
+    },
+    {
+      "term": "a97001:term:tangential-velocity",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 91,
+      "ref": "a97001:p91:b003",
+      "cell": null,
+      "source_he": "V – מהירות משיקית, מהירות המשיקה למעגל בכל רגע, תמיד ב־90° לרדיוס הסיבוב עם כוון הסיבוב, m/sec. ω – מהירות זויתית, מהירות המודדת את הזוית שעובר הגוף בשניה, rad/sec. מיצגת את כוון הסיבוב, עם כוון השעון או נגד כוון השעון. R – המרחק בין הגוף לציר הסיבוב סביבו הוא נע, m. θ – זוית מרכזית הנשענת על הקשת, rad. t – זמן, sec. n – מספר סיבובים, rpm. f – תדירות סיבוב, Hertz, rps.",
+      "source": "original97001.pdf#page=91",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:rotation-frequency",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 91,
+      "ref": "a97001:p91:b003",
+      "cell": null,
+      "source_he": "V – מהירות משיקית, מהירות המשיקה למעגל בכל רגע, תמיד ב־90° לרדיוס הסיבוב עם כוון הסיבוב, m/sec. ω – מהירות זויתית, מהירות המודדת את הזוית שעובר הגוף בשניה, rad/sec. מיצגת את כוון הסיבוב, עם כוון השעון או נגד כוון השעון. R – המרחק בין הגוף לציר הסיבוב סביבו הוא נע, m. θ – זוית מרכזית הנשענת על הקשת, rad. t – זמן, sec. n – מספר סיבובים, rpm. f – תדירות סיבוב, Hertz, rps.",
+      "source": "original97001.pdf#page=91"
+    },
+    {
+      "term": "a97001:term:rotation-frequency",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 92,
+      "ref": "a97001:p92:b001",
+      "cell": null,
+      "source_he": "תדר סיבוב לשניה",
+      "source": "original97001.pdf#page=92",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:period",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 92,
+      "ref": "a97001:p92:b002",
+      "cell": null,
+      "source_he": "זמן מחזור של סיבוב שלם",
+      "source": "original97001.pdf#page=92",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:angular-acceleration",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 93,
+      "ref": "a97001:p93:b002",
+      "cell": null,
+      "source_he": "קימים 4 סוגי תאוצה: α [rad/sec²] – תאוצה זויתית, תאוצה עם כוון הסיבוב. at [rad/sec²] – תאוצה משיקית, תמיד ב־90° לרדיוס הסיבוב. ar [rad/sec²] – תאוצה רדיאלית, תמיד מהגוף למרכז הסיבוב. atotal [rad/sec²] – תאוצה כללית, תאוצה שקולה של תאוצה משיקית ותאוצה זויתית.",
+      "source": "original97001.pdf#page=93",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:tangential-acceleration",
+      "sense": "technical",
+      "section": "s11-circular-motion",
+      "page": 93,
+      "ref": "a97001:p93:b002",
+      "cell": null,
+      "source_he": "קימים 4 סוגי תאוצה: α [rad/sec²] – תאוצה זויתית, תאוצה עם כוון הסיבוב. at [rad/sec²] – תאוצה משיקית, תמיד ב־90° לרדיוס הסיבוב. ar [rad/sec²] – תאוצה רדיאלית, תמיד מהגוף למרכז הסיבוב. atotal [rad/sec²] – תאוצה כללית, תאוצה שקולה של תאוצה משיקית ותאוצה זויתית.",
+      "source": "original97001.pdf#page=93",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:projection",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 94,
+      "ref": "a97001:p94:b004",
+      "cell": null,
+      "source_he": "חתך בהטל על",
+      "source": "original97001.pdf#page=94"
+    },
+    {
+      "term": "a97001:term:projection",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 95,
+      "ref": "a97001:p95:b001",
+      "cell": null,
+      "source_he": "חתך בהטל צד",
+      "source": "original97001.pdf#page=95",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:hatching",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 94,
+      "ref": "a97001:p94:b003",
+      "cell": null,
+      "source_he": "פעלה דמיונית שמטרתה הבנת הפרטים הנסתרים בגוף. בחתך לא מופיעים קוים מרסקים. השטח המקוקו מראה שקים חמר בשטח החתך. השטח המקוקו (הלבן) מראה שקים שקע או נקב במקום שהחלק נחתך. חתך מישורי. חתך בהטל פנים.",
+      "source": "original97001.pdf#page=94",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:stepped-section",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 96,
+      "ref": "a97001:p96:b001",
+      "cell": null,
+      "source_he": "חתך מדרג",
+      "source": "original97001.pdf#page=96",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:revolved-section",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 97,
+      "ref": "a97001:p97:b001",
+      "cell": null,
+      "source_he": "חתך מקומי מסובב",
+      "source": "original97001.pdf#page=97",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:local-section",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 98,
+      "ref": "a97001:p98:b001",
+      "cell": null,
+      "source_he": "חתך חלקי (גלוף, שבר)",
+      "source": "original97001.pdf#page=98",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:stiffening-rib",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 99,
+      "ref": "a97001:p99:b001",
+      "cell": null,
+      "source_he": "תמיכות במישור חתך",
+      "source": "original97001.pdf#page=99",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:aligned-section",
+      "sense": "technical",
+      "section": "s12-sections",
+      "page": 99,
+      "ref": "a97001:p99:b003",
+      "cell": null,
+      "source_he": "חתך מישר",
+      "source": "original97001.pdf#page=99",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:dimension-line",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 103,
+      "ref": "a97001:p103:b005",
+      "cell": null,
+      "source_he": "17. מקום ספרות המדה הנו תמיד מעל לקו המדה, כאשר מסתכלים מלמטה או מצד ימין. נכון. לא נכון.",
+      "source": "original97001.pdf#page=103"
+    },
+    {
+      "term": "a97001:term:dimension-line",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 105,
+      "ref": "a97001:p105:b001",
+      "cell": null,
+      "source_he": "18. אסור להצליב קוי מדה ביניהם.",
+      "source": "original97001.pdf#page=105",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:extension-line",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 102,
+      "ref": "a97001:p102:b001",
+      "cell": null,
+      "source_he": "12. מתר להשתמש בהמשך אותו קו עזר כדי לרשם שתי מדות.",
+      "source": "original97001.pdf#page=102",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:dimension-chain",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 100,
+      "ref": "a97001:p100:b005",
+      "cell": null,
+      "source_he": "11. מדות חלקיות מתר לסדר בקו אחד בצורת שרשרת.",
+      "source": "original97001.pdf#page=100"
+    },
+    {
+      "term": "a97001:term:dimension-chain",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 102,
+      "ref": "a97001:p102:b002",
+      "cell": null,
+      "source_he": "13. אין לרשם מדות שרשרת (מדות הרשומות זו לאחר זו).",
+      "source": "original97001.pdf#page=102",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:scale",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 100,
+      "ref": "a97001:p100:b002",
+      "cell": null,
+      "source_he": "רשום המדות הוא בטוי גרפי־סמלי מסכם וחד־משמעי המגדיר את ממדיו וצורתו המשלמת של המוצר, על כל פרטיו. 1. המדות יופיעו תמיד ביחידות מילימטר בלבד ואין צרך לרשם כל סימן על כך ליד המדה. 2. המדות בשרטוט מצינות את הארך האמתי ללא תלות בקנה המדה שבו החלק משרטט. 3. כל מדה תופיע פעם אחת בלבד, במקום המובן ביותר. 4. אין לרשם מדות לקוים נסתרים. 5. יש לרשם תמיד מדות מרביות (מדות קפסה): ארך, רחב, גבה.",
+      "source": "original97001.pdf#page=100",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:chamfer",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 107,
+      "ref": "a97001:p107:b002",
+      "cell": null,
+      "source_he": "24. מדות של מדרים (פאזות), תעלות שחרור ועוד יש לרשם בלי להכליל אותן בשרשרת המדות. אפשר לראות דגמאות לרשום מדות לקדוחי מרכוז וקטועים.",
+      "source": "original97001.pdf#page=107",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:tool-relief",
+      "sense": "technical",
+      "section": "s13-dimensions",
+      "page": 107,
+      "ref": "a97001:p107:b002",
+      "cell": null,
+      "source_he": "24. מדות של מדרים (פאזות), תעלות שחרור ועוד יש לרשם בלי להכליל אותן בשרשרת המדות. אפשר לראות דגמאות לרשום מדות לקדוחי מרכוז וקטועים.",
+      "source": "original97001.pdf#page=107",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:radius",
+      "sense": "mechanics",
+      "section": "s13-dimensions",
+      "page": 106,
+      "ref": "a97001:p106:b001",
+      "cell": null,
+      "source_he": "19. קו מדה לקשת מעגלית יש להעביר בין הקשת או המשכה לבין מרכז הקשת.",
+      "source": "original97001.pdf#page=106"
+    },
+    {
+      "term": "a97001:term:radius",
+      "sense": "mechanics",
+      "section": "s13-dimensions",
+      "page": 106,
+      "ref": "a97001:p106:b002",
+      "cell": null,
+      "source_he": "לקו מדה זה יש חץ אחד המכון כלפי הקשת. לקשתות רושמים מדה רק בהטל שבו נראה העקום של הקשת.",
+      "source": "original97001.pdf#page=106"
+    },
+    {
+      "term": "a97001:term:radius",
+      "sense": "mechanics",
+      "section": "s13-dimensions",
+      "page": 106,
+      "ref": "a97001:p106:b003",
+      "cell": null,
+      "source_he": "לפני ערך הקשת רושמים את האות R.",
+      "source": "original97001.pdf#page=106",
+      "decision": "reused existing concept"
+    },
+    {
+      "term": "a97001:term:datum-surface",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 114,
+      "ref": "a97001:p114:b001",
+      "cell": null,
+      "source_he": "משטח יחוס (Datum)",
+      "source": "original97001.pdf#page=114",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:geometric-tolerance",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:b001",
+      "cell": null,
+      "source_he": "סבולות גאומטריות (Geometric Tolerance) (סבלת צורה ותנוחה)",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:form-tolerance",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:b002",
+      "cell": null,
+      "source_he": "סבלות צורה — ת״י 1010",
+      "source": "original97001.pdf#page=113"
+    },
+    {
+      "term": "a97001:term:form-tolerance",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:b003",
+      "cell": null,
+      "source_he": "בשם סבלת צורה מכנים את הסטיה המתרת מהצורה הגאומטרית התאורטית של החלק. ההתיחסות היא לצורה הגאומטרית של המשטח ללא יחוס למשטח אחר.",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:position-tolerance",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:b004",
+      "cell": null,
+      "source_he": "סבלות תנוחה (צורה ומצב הדדי) — ת״י 1010",
+      "source": "original97001.pdf#page=113"
+    },
+    {
+      "term": "a97001:term:position-tolerance",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:b005",
+      "cell": null,
+      "source_he": "בשם סבלת תנוחה מכנים את הסטיה המתרת בין שתי גאומטריות או יותר. בסבלת תנוחה ההתיחסות היא למצב ההדדי בין המשטח למשטח יחוס.",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:flatness",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:t-geometric-symbols",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "source_he": "מישוריות",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:roundness",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:t-geometric-symbols",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "source_he": "עיגוליות",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:cylindricity",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:t-geometric-symbols",
+      "cell": {
+        "row": 4,
+        "col": 1
+      },
+      "source_he": "גליליות",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:parallelism",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:t-geometric-symbols",
+      "cell": {
+        "row": 5,
+        "col": 1
+      },
+      "source_he": "מקבילות",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:perpendicularity",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:t-geometric-symbols",
+      "cell": {
+        "row": 6,
+        "col": 1
+      },
+      "source_he": "ניצבות",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:coaxiality",
+      "sense": "technical",
+      "section": "s14-industrial-symbols",
+      "page": 113,
+      "ref": "a97001:p113:t-geometric-symbols",
+      "cell": {
+        "row": 8,
+        "col": 1
+      },
+      "source_he": "מרכזיות",
+      "source": "original97001.pdf#page=113",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:electron",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 115,
+      "ref": "a97001:p115:b005",
+      "cell": null,
+      "source_he": "אלקטרונים — חלקיקים עם מטען חשמלי שלילי.",
+      "source": "original97001.pdf#page=115",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:proton",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 115,
+      "ref": "a97001:p115:b006",
+      "cell": null,
+      "source_he": "פרוטונים — חלקיקים עם מטען חשמלי חיובי.",
+      "source": "original97001.pdf#page=115",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:neutron",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 115,
+      "ref": "a97001:p115:b007",
+      "cell": null,
+      "source_he": "ניטרונים — חלקיקים ללא מטען חשמלי.",
+      "source": "original97001.pdf#page=115",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:solid-solution",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 117,
+      "ref": "a97001:p117:b006",
+      "cell": null,
+      "source_he": "תמסה מוצקה — תערבת הומוגנית בין מומס וממס הנמצאת בפאזה מוצקה. התערבת נחשבת תמסה ולא תרכבת כאשר המבנה הגבישי של הממס אינו משתנה ויש פאזה הומוגנית משתפת לתערבת.",
+      "source": "original97001.pdf#page=117",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:bcc",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 120,
+      "ref": "a97001:p120:b003",
+      "cell": null,
+      "source_he": "קביה מרכזת גוף (BCC — Body Centred Cubic)",
+      "source": "original97001.pdf#page=120",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:fcc",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 120,
+      "ref": "a97001:p120:b008",
+      "cell": null,
+      "source_he": "קביה ממרכזת פאה (FCC — Face Centred Cubic)",
+      "source": "original97001.pdf#page=120",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:hcp",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 120,
+      "ref": "a97001:p120:b011",
+      "cell": null,
+      "source_he": "מששה צפוף אריזה (HCP — Hexagonal Close Packed)",
+      "source": "original97001.pdf#page=120",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:thermal-conductivity",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 122,
+      "ref": "a97001:p122:b002",
+      "cell": null,
+      "source_he": "עמידות החמר במצבים ובתנאים שונים, כגון הולכת חם, הולכת חשמל, מגנטיות, שקיפות, עמידות בפני כחות חיצוניים, אגירת אנרגיה ושיטות שונות לעצוב החמר. אנו נחלק את התכונות למספר משפחות הנתנות למדידה בעזרת מכשירי מדידה.",
+      "source": "original97001.pdf#page=122",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:electrical-conductivity",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 122,
+      "ref": "a97001:p122:b002",
+      "cell": null,
+      "source_he": "עמידות החמר במצבים ובתנאים שונים, כגון הולכת חם, הולכת חשמל, מגנטיות, שקיפות, עמידות בפני כחות חיצוניים, אגירת אנרגיה ושיטות שונות לעצוב החמר. אנו נחלק את התכונות למספר משפחות הנתנות למדידה בעזרת מכשירי מדידה.",
+      "source": "original97001.pdf#page=122",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:dislocation",
+      "sense": "technical",
+      "section": "s15-materials-basics",
+      "page": 123,
+      "ref": "a97001:p123:b015",
+      "cell": null,
+      "source_he": "7. פגם במבנה הגבישי של החמר. תנועת נקעים מצינת תופעה שבה הנקע מתקדם לארך החמר בעקבות הפעלת כח חיצוני על החמר.",
+      "source": "original97001.pdf#page=123",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:young-modulus",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 126,
+      "ref": "a97001:p126:b007",
+      "cell": null,
+      "source_he": "התארכות — יכלת החמר לשנות את ארכו בהשפעת כח. מודול יאנג — התנגדות החמר לשנוי קטן בצורתו עקב כח המפעל עליו בתחום האלסטי.",
+      "source": "original97001.pdf#page=126",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:ultimate-tensile-strength",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 126,
+      "ref": "a97001:p126:b005",
+      "cell": null,
+      "source_he": "מאמץ מרבי — σuts",
+      "source": "original97001.pdf#page=126"
+    },
+    {
+      "term": "a97001:term:ultimate-tensile-strength",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 126,
+      "ref": "a97001:p126:b006",
+      "cell": null,
+      "source_he": "זהו המאמץ המקסימלי המתפתח בדגם לפני שבירתו. לאחריו מופיע צואר המקטין את שטח החתך המתנגד לכח המתיחה עד שהדגם נקרע. העבור שנשאר בדגם לאחר קריעתו מכנה עבור השבר.",
+      "source": "original97001.pdf#page=126",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:yield-point",
+      "sense": "mechanics",
+      "section": "s16-mechanical-properties",
+      "page": 126,
+      "ref": "a97001:p126:b002",
+      "cell": null,
+      "source_he": "מאמץ כניעה — σy",
+      "source": "original97001.pdf#page=126"
+    },
+    {
+      "term": "a97001:term:yield-point",
+      "sense": "mechanics",
+      "section": "s16-mechanical-properties",
+      "page": 126,
+      "ref": "a97001:p126:b003",
+      "cell": null,
+      "source_he": "עד לנקדה זו הדגם מתארך ביחס ישר בין מאמץ המתיחה σt והמעות ε (חק הוק). בתחום זה הגדיר המדען תומס יאנג מודול אלסטיות E: התנגדות החמר לשנוי קטן בצורתו עקב כח המפעל עליו בתחום האלסטי.",
+      "source": "original97001.pdf#page=126",
+      "decision": "reused existing concept"
+    },
+    {
+      "term": "a97001:term:allowable-stress",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 128,
+      "ref": "a97001:p128:b001",
+      "cell": null,
+      "source_he": "תחום מאמץ הנמוך ממאמץ הכניעה של החמר מבטיח עבודה בטוח הרחוק ממאמץ הכניעה. היחס בין מאמץ הכניעה למאמץ המתר נקרא מקדם בטיחות (Safety Factor).",
+      "source": "original97001.pdf#page=128"
+    },
+    {
+      "term": "a97001:term:allowable-stress",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 128,
+      "ref": "a97001:p128:b002",
+      "cell": null,
+      "source_he": "σy — מאמץ כניעה במתיחה; [σ] — מאמץ מתר לחמר המתקן; S — מקדם בטחון (Safety factor). שטח חתך המתנגד למתיחה. כותרת הטבלה: שטח.",
+      "source": "original97001.pdf#page=128",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:safety-factor",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 128,
+      "ref": "a97001:p128:b001",
+      "cell": null,
+      "source_he": "תחום מאמץ הנמוך ממאמץ הכניעה של החמר מבטיח עבודה בטוח הרחוק ממאמץ הכניעה. היחס בין מאמץ הכניעה למאמץ המתר נקרא מקדם בטיחות (Safety Factor).",
+      "source": "original97001.pdf#page=128"
+    },
+    {
+      "term": "a97001:term:safety-factor",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 128,
+      "ref": "a97001:p128:b002",
+      "cell": null,
+      "source_he": "σy — מאמץ כניעה במתיחה; [σ] — מאמץ מתר לחמר המתקן; S — מקדם בטחון (Safety factor). שטח חתך המתנגד למתיחה. כותרת הטבלה: שטח.",
+      "source": "original97001.pdf#page=128",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:brinell-test",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 131,
+      "ref": "a97001:p131:b001",
+      "cell": null,
+      "source_he": "בדיקה בחדירה — שיטת ברינל (Brinell)",
+      "source": "original97001.pdf#page=131",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:vickers-test",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 135,
+      "ref": "a97001:p135:b001",
+      "cell": null,
+      "source_he": "בדיקה בחדירה — שיטת ויקרס (Vickers)",
+      "source": "original97001.pdf#page=135",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:rockwell-test",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 137,
+      "ref": "a97001:p137:b001",
+      "cell": null,
+      "source_he": "בדיקה בחדירה — שיטת רוקוול (Rockwell)",
+      "source": "original97001.pdf#page=137",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:charpy-test",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 142,
+      "ref": "a97001:p142:b001",
+      "cell": null,
+      "source_he": "מבחן הנגיפה של צ׳רפי (Charpy Impact Test)",
+      "source": "original97001.pdf#page=142",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:izod-test",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 143,
+      "ref": "a97001:p143:b001",
+      "cell": null,
+      "source_he": "מבחן הנגיפה של איזוד (Izod Impact)",
+      "source": "original97001.pdf#page=143",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:impact-test",
+      "sense": "technical",
+      "section": "s16-mechanical-properties",
+      "page": 141,
+      "ref": "a97001:p141:b001",
+      "cell": null,
+      "source_he": "מבחן נגיפה (Impact Test)",
+      "source": "original97001.pdf#page=141",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:martensite",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 168,
+      "ref": "a97001:p168:b006",
+      "cell": null,
+      "source_he": "מרטנסיט",
+      "source": "original97001.pdf#page=168"
+    },
+    {
+      "term": "a97001:term:martensite",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 168,
+      "ref": "a97001:p168:b007",
+      "cell": null,
+      "source_he": "מבנה המתקבל עקב קרור מהיר. זהו מצב לא יציב — תמסה מוצקה גדושה בפחמן. היא קשה וחזקה, אך גם פריכה ושבירה ופחות יציבה, ודורשת הרפיה.",
+      "source": "original97001.pdf#page=168",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:martensitic-transformation",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 176,
+      "ref": "a97001:p176:b004",
+      "cell": null,
+      "source_he": "פלדות פחמניות ברכוז פחמן בינוני מ־0.5% עד 0.9%. מחממים לאוסטניטיזציה ומקררים לאט יותר בשמן עד לקבלת פריט ופרליט. הקרור האטי מתאר כמעין הרפיה המשחררת מאמצים פנימיים שנוצרו בשנוי הנפח בתגובה המרטנסיטית. לפיכך הפלדות שצננו בשמן מתארות כצפידות יותר ורגישות פחות לרכוזי מאמצים.",
+      "source": "original97001.pdf#page=176"
+    },
+    {
+      "term": "a97001:term:martensitic-transformation",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 184,
+      "ref": "a97001:p184:b004",
+      "cell": null,
+      "source_he": "חסום חיצוני בטפול תרמי בלבד דומה לחסום רגיל, אבל מגבל לשכבות החיצוניות. מחממים את המשטח בלהבה למבנה אוסטניטי. בקרור מתרחשת תגובה מרטנסיטית והשטח מתקשה. הקרור נעשה בהתזת מים רציפה. עמק החסום כ־3 מילימטרים; מתאים לפלדות פחמניות פשוטות בתכולה של 0.4–0.7% פחמן.",
+      "source": "original97001.pdf#page=184",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:chemical-reaction",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 189,
+      "ref": "a97001:p189:b004",
+      "cell": null,
+      "source_he": "קורוזיה אלקטרוליטית מתרחשת בנוכחות נוזל מוליך חשמל הנקרא אלקטרוליט. למתכות שונות נטיה שונה לתהליך. אחד המדדים הוא הנטיה למסר אלקטרונים או לקבל אותם בתגובה עם האלקטרוליט.",
+      "source": "original97001.pdf#page=189",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:cast-iron",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 164,
+      "ref": "a97001:p164:b001",
+      "cell": null,
+      "source_he": "יציקת ברזל",
+      "source": "original97001.pdf#page=164",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:stainless-steel",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 165,
+      "ref": "a97001:p165:b001",
+      "cell": null,
+      "source_he": "פלדות בלתי מחלידות (פלב״מ)",
+      "source": "original97001.pdf#page=165",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:liquidus",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b001",
+      "cell": null,
+      "source_he": "קו ליקוידוס — מעל הקו הסגסגת במצב נוזלי. קו סולידוס — מתחת לקו הסגסגת במצב מוצק. אוטקטואיד — תערבת עדינה מוצקה הנוצרת בקרור מתמסה מוצקה. אוטקטיקה — תערבת עדינה מוצקה הנוצרת בקרור מתמסה נוזלית. פלדה אוטקטואידית מכילה 0.8% פחמן; תת־אוטקטואידית — פחות מכך; על־אוטקטואידית — מעל לכך. סגסגת אוטקטיד — תערבת שנוצרת מתמסה מוצקה, בעלת הטמפרטורה הנמוכה ביותר בדיאגרמה (נקדת אוטקטיקה). לסגסגת אוטקטית חסרה פאזה נוזל פלוס גביש. הקו האוטקטואידי מתאים לטמפרטורה של 723°C, מגבול המסיסות של 0.02% C.",
+      "source": "original97001.pdf#page=171",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:solidus",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b001",
+      "cell": null,
+      "source_he": "קו ליקוידוס — מעל הקו הסגסגת במצב נוזלי. קו סולידוס — מתחת לקו הסגסגת במצב מוצק. אוטקטואיד — תערבת עדינה מוצקה הנוצרת בקרור מתמסה מוצקה. אוטקטיקה — תערבת עדינה מוצקה הנוצרת בקרור מתמסה נוזלית. פלדה אוטקטואידית מכילה 0.8% פחמן; תת־אוטקטואידית — פחות מכך; על־אוטקטואידית — מעל לכך. סגסגת אוטקטיד — תערבת שנוצרת מתמסה מוצקה, בעלת הטמפרטורה הנמוכה ביותר בדיאגרמה (נקדת אוטקטיקה). לסגסגת אוטקטית חסרה פאזה נוזל פלוס גביש. הקו האוטקטואידי מתאים לטמפרטורה של 723°C, מגבול המסיסות של 0.02% C.",
+      "source": "original97001.pdf#page=171",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:eutectic",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b001",
+      "cell": null,
+      "source_he": "קו ליקוידוס — מעל הקו הסגסגת במצב נוזלי. קו סולידוס — מתחת לקו הסגסגת במצב מוצק. אוטקטואיד — תערבת עדינה מוצקה הנוצרת בקרור מתמסה מוצקה. אוטקטיקה — תערבת עדינה מוצקה הנוצרת בקרור מתמסה נוזלית. פלדה אוטקטואידית מכילה 0.8% פחמן; תת־אוטקטואידית — פחות מכך; על־אוטקטואידית — מעל לכך. סגסגת אוטקטיד — תערבת שנוצרת מתמסה מוצקה, בעלת הטמפרטורה הנמוכה ביותר בדיאגרמה (נקדת אוטקטיקה). לסגסגת אוטקטית חסרה פאזה נוזל פלוס גביש. הקו האוטקטואידי מתאים לטמפרטורה של 723°C, מגבול המסיסות של 0.02% C.",
+      "source": "original97001.pdf#page=171"
+    },
+    {
+      "term": "a97001:term:eutectic",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b002",
+      "cell": null,
+      "source_he": "ראקציה אוטקטית — מעבר מפאזה יחידה נוזלית (היתך) לשתי פאזות מוצקות, אוסטניט וצמנטיט. מתרחשת בטמפרטורה של 1130°C ברכוז של 4.30% C.",
+      "source": "original97001.pdf#page=171",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:eutectoid",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b001",
+      "cell": null,
+      "source_he": "קו ליקוידוס — מעל הקו הסגסגת במצב נוזלי. קו סולידוס — מתחת לקו הסגסגת במצב מוצק. אוטקטואיד — תערבת עדינה מוצקה הנוצרת בקרור מתמסה מוצקה. אוטקטיקה — תערבת עדינה מוצקה הנוצרת בקרור מתמסה נוזלית. פלדה אוטקטואידית מכילה 0.8% פחמן; תת־אוטקטואידית — פחות מכך; על־אוטקטואידית — מעל לכך. סגסגת אוטקטיד — תערבת שנוצרת מתמסה מוצקה, בעלת הטמפרטורה הנמוכה ביותר בדיאגרמה (נקדת אוטקטיקה). לסגסגת אוטקטית חסרה פאזה נוזל פלוס גביש. הקו האוטקטואידי מתאים לטמפרטורה של 723°C, מגבול המסיסות של 0.02% C.",
+      "source": "original97001.pdf#page=171"
+    },
+    {
+      "term": "a97001:term:eutectoid",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b005",
+      "cell": null,
+      "source_he": "המרכיבים של הסגסגת מתמצקים בו־זמנית. ראקציה אוטקטואידית — מעבר מפאזה יחידה מוצקה, אוסטניט, לשתי פאזות מוצקות, צמנטיט ופריט. מתרחשת ב־723°C וברכוז של 0.83% C.",
+      "source": "original97001.pdf#page=171",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:hardenability",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 177,
+      "ref": "a97001:p177:b001",
+      "cell": null,
+      "source_he": "כשר חסום של פלדה",
+      "source": "original97001.pdf#page=177"
+    },
+    {
+      "term": "a97001:term:hardenability",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 177,
+      "ref": "a97001:p177:b002",
+      "cell": null,
+      "source_he": "מדד לעמק שבו עדין אפשר ליצר מבנה מרטנסיטי בגוף הפלדה. מהירות הקרור שונה בעמקים שונים, ולכן לא תושג חדירה מלאה של חסום: מרטנסיט בשטח ומבנים אחרים בפנים: ביניט, טרוסטיט, סורביט ופרליט. קטר קריטי לחסום מגדר במקור כקטר המקסימלי שבו נתן לקבל מרטנסיט מלא. ככל שהקטר גדול יותר, כשר החסום גבוה יותר.",
+      "source": "original97001.pdf#page=177",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:carburizing",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 186,
+      "ref": "a97001:p186:b001",
+      "cell": null,
+      "source_he": "צמנוט (Carburizing)",
+      "source": "original97001.pdf#page=186",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:nitriding",
+      "sense": "technical",
+      "section": "s17-steels",
+      "page": 187,
+      "ref": "a97001:p187:b001",
+      "cell": null,
+      "source_he": "חנקון — ניטרציה (Nitriding)",
+      "source": "original97001.pdf#page=187",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:powder-metallurgy",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 192,
+      "ref": "a97001:p192:b001",
+      "cell": null,
+      "source_he": "18. מטלורגית אבקות",
+      "source": "original97001.pdf#page=192"
+    },
+    {
+      "term": "a97001:term:powder-metallurgy",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 192,
+      "ref": "a97001:p192:b002",
+      "cell": null,
+      "source_he": "תהליך יצור מוצרים ממתכות נקיות, מסגסוגות או מחמרים קרמיים ללא צרך בהתכה.",
+      "source": "original97001.pdf#page=192",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:atomization",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 192,
+      "ref": "a97001:p192:b005",
+      "cell": null,
+      "source_he": "שיטות להכנת אבקות: מכנית — גריסה וטחינה; כימית — חזור ואלקטרוליזה; אטומיזציה — התכה, יצירת סילון חמר מתך וקרור מהיר במים או באויר. השיטה נקבעת לפי חמר הגלם וגדל וצורת החלקיקים הדרושים.",
+      "source": "original97001.pdf#page=192",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:powder-mixing",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 192,
+      "ref": "a97001:p192:b006",
+      "cell": null,
+      "source_he": "2. ערבוב האבקות — תהליך חיוני הנמשך מספר שעות.",
+      "source": "original97001.pdf#page=192",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:pressing",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 193,
+      "ref": "a97001:p193:b001",
+      "cell": null,
+      "source_he": "3. כבישה — הפעלת לחץ על אבקה בתבנית. הלחץ תלוי בגדל המוצר ובסוג האבקה. מתקבלת כבישה הגדולה במקצת מהמוצר הסופי, בעלת חזק נמוך אך מספיק לשנוע. את המוצר הירק אפשר לשבר ביד.",
+      "source": "original97001.pdf#page=193",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:sintering",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 193,
+      "ref": "a97001:p193:b002",
+      "cell": null,
+      "source_he": "4. סנטור — האבקה במוצר הירק הופכת לחמר צפוף או כמעט צפוף. התהליך העקרי הוא דיפוזיה, פעפוע. הטמפרטורה קובעת את קצב הדיפוזיה: ככל שהיא גבוהה יותר, הקצב גדול יותר. גדל החלקיקים משפיע גם הוא; חלקיקים קטנים מקלים על הסנטור. ככל שהגרגרים קטנים יותר, כך קצב הדיפוזיה מהיר יותר.",
+      "source": "original97001.pdf#page=193",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:diffusion",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 193,
+      "ref": "a97001:p193:b002",
+      "cell": null,
+      "source_he": "4. סנטור — האבקה במוצר הירק הופכת לחמר צפוף או כמעט צפוף. התהליך העקרי הוא דיפוזיה, פעפוע. הטמפרטורה קובעת את קצב הדיפוזיה: ככל שהיא גבוהה יותר, הקצב גדול יותר. גדל החלקיקים משפיע גם הוא; חלקיקים קטנים מקלים על הסנטור. ככל שהגרגרים קטנים יותר, כך קצב הדיפוזיה מהיר יותר.",
+      "source": "original97001.pdf#page=193"
+    },
+    {
+      "term": "a97001:term:diffusion",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 202,
+      "ref": "a97001:p202:b001",
+      "cell": null,
+      "source_he": "זקון: מחממים את הפאזה רווית היתר לטמפרטורה מתחת לסולבוס כדי לזרז דיפוזיה אטומית ולהביא להופעת מתבדלים זעירים והומוגניים במטריצה. (Aging).",
+      "source": "original97001.pdf#page=202",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:green-compact",
+      "sense": "technical",
+      "section": "s18-powder-metallurgy",
+      "page": 193,
+      "ref": "a97001:p193:b001",
+      "cell": null,
+      "source_he": "3. כבישה — הפעלת לחץ על אבקה בתבנית. הלחץ תלוי בגדל המוצר ובסוג האבקה. מתקבלת כבישה הגדולה במקצת מהמוצר הסופי, בעלת חזק נמוך אך מספיק לשנוע. את המוצר הירק אפשר לשבר ביד.",
+      "source": "original97001.pdf#page=193",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:duralumin",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 194,
+      "ref": "a97001:p194:b002",
+      "cell": null,
+      "source_he": "יסוד המופק מבוקסיט; מתכת קלה בעלת משקל סגלי של 27000 N/m³. המקור מיחס לה חסינות משתוך ותכונות מכניות חלשות. נתן להוסיף יסודות לשפור התכונות. תוספת נחשת יוצרת את הנתך דוראל: חזק יותר מאלומיניום נקי אך פחות עמיד לשתוך. אלקלד הוא דוראל מצפה בשכבות דקות של אלומיניום נקי; יש להזהר משריטות המסירות את הצפוי. את מצב הנתך מסמנים באות ליד מספרו.",
+      "source": "original97001.pdf#page=194",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:alclad",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 194,
+      "ref": "a97001:p194:b002",
+      "cell": null,
+      "source_he": "יסוד המופק מבוקסיט; מתכת קלה בעלת משקל סגלי של 27000 N/m³. המקור מיחס לה חסינות משתוך ותכונות מכניות חלשות. נתן להוסיף יסודות לשפור התכונות. תוספת נחשת יוצרת את הנתך דוראל: חזק יותר מאלומיניום נקי אך פחות עמיד לשתוך. אלקלד הוא דוראל מצפה בשכבות דקות של אלומיניום נקי; יש להזהר משריטות המסירות את הצפוי. את מצב הנתך מסמנים באות ליד מספרו.",
+      "source": "original97001.pdf#page=194",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:cold-hardening",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 194,
+      "ref": "a97001:p194:b003",
+      "cell": null,
+      "source_he": "O — נתך במצב רך לאחר רפוי. F — במקור מתאר כנתך שהקשה בעבוד קר או בטפול תרמי. H — הקשיה בעבוד קר בלבד. W — מצב בינים לפני הזדקנות. S — נתך שעבר חשול, לפי המקור. T — נתך שעבר טפול תרמי.",
+      "source": "original97001.pdf#page=194",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:natural-aging",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 201,
+      "ref": "a97001:p201:b002",
+      "cell": null,
+      "source_he": "הקשיה בזקון או במשקעים מתרחשת בסגסוגות אלומיניום ובסגסוגות נוספות, כולל פלדות. התהליך גורם להתקשות בטמפרטורת הסביבה במשך זמן ממשך או בעזרת חמום. זקון טבעי — הקשיה בטמפרטורת החדר; זקון מלאכותי — חמום חוזר להקשיה. המקור מקשר זקון לאחוז גבוה של יסודות סגוג, ומציע להקשות נתכים דלי סגוג בערגול, הגורמת לדחיסת הגבישים. ההקשיה המכנית מעלה חזק וקשיות ומקטינה פלסטיות. (Precipitation hardening / age hardening).",
+      "source": "original97001.pdf#page=201",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:artificial-aging",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 201,
+      "ref": "a97001:p201:b002",
+      "cell": null,
+      "source_he": "הקשיה בזקון או במשקעים מתרחשת בסגסוגות אלומיניום ובסגסוגות נוספות, כולל פלדות. התהליך גורם להתקשות בטמפרטורת הסביבה במשך זמן ממשך או בעזרת חמום. זקון טבעי — הקשיה בטמפרטורת החדר; זקון מלאכותי — חמום חוזר להקשיה. המקור מקשר זקון לאחוז גבוה של יסודות סגוג, ומציע להקשות נתכים דלי סגוג בערגול, הגורמת לדחיסת הגבישים. ההקשיה המכנית מעלה חזק וקשיות ומקטינה פלסטיות. (Precipitation hardening / age hardening).",
+      "source": "original97001.pdf#page=201",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:solution-treatment",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 201,
+      "ref": "a97001:p201:b003",
+      "cell": null,
+      "source_he": "במקור מפרטים שלבי הטפול: 1. טפול המסה — חמום הנתך מעל לקו הסולבוס והחזקה עד להאחדת ההרכב מחלטת. 2. הנתך נשאר מוצק, בלי התכה; המטרה היא פזור הומוגני של היסודות. 3. קרור מהיר לטמפרטורת החדר במים בבת אחת, בדומה לחסום פלדות, להקפאת המצב וליצירת פאזה שאינה בשווי משקל. (Solution Treatment).",
+      "source": "original97001.pdf#page=201",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:solvus",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 201,
+      "ref": "a97001:p201:b003",
+      "cell": null,
+      "source_he": "במקור מפרטים שלבי הטפול: 1. טפול המסה — חמום הנתך מעל לקו הסולבוס והחזקה עד להאחדת ההרכב מחלטת. 2. הנתך נשאר מוצק, בלי התכה; המטרה היא פזור הומוגני של היסודות. 3. קרור מהיר לטמפרטורת החדר במים בבת אחת, בדומה לחסום פלדות, להקפאת המצב וליצירת פאזה שאינה בשווי משקל. (Solution Treatment).",
+      "source": "original97001.pdf#page=201",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:precipitate",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 202,
+      "ref": "a97001:p202:b001",
+      "cell": null,
+      "source_he": "זקון: מחממים את הפאזה רווית היתר לטמפרטורה מתחת לסולבוס כדי לזרז דיפוזיה אטומית ולהביא להופעת מתבדלים זעירים והומוגניים במטריצה. (Aging).",
+      "source": "original97001.pdf#page=202",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:overaging",
+      "sense": "technical",
+      "section": "s19-aluminium",
+      "page": 202,
+      "ref": "a97001:p202:b002",
+      "cell": null,
+      "source_he": "זקון יתר — ירידה בחזק או בקשיות עקב חשיפה לטמפרטורה גבוהה מדי או לזמן ארך מדי, וכתוצאה מגדול או מהתמוססות המתבדלים. (Overaging).",
+      "source": "original97001.pdf#page=202",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:fiber",
+      "sense": "technical",
+      "section": "s20-composites",
+      "page": 203,
+      "ref": "a97001:p203:b003",
+      "cell": null,
+      "source_he": "שריון בסיבים:",
+      "source": "original97001.pdf#page=203"
+    },
+    {
+      "term": "a97001:term:fiber",
+      "sense": "technical",
+      "section": "s20-composites",
+      "page": 203,
+      "ref": "a97001:p203:b004",
+      "cell": null,
+      "source_he": "חמרים מרכבים מחזקים בסיבים נפוצים מאוד. המקור מתאר אותם כקלים להכנה ולעבוד, בעלי משקל סגלי נמוך וחזק רב. במטריצה פלסטית אפשר לשלב סיבי זכוכית, פחמן או מתכות שונות; המקור מיחס להם העדר בעיות שתוך.",
+      "source": "original97001.pdf#page=203",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:fiber-reinforcement",
+      "sense": "technical",
+      "section": "s20-composites",
+      "page": 203,
+      "ref": "a97001:p203:b003",
+      "cell": null,
+      "source_he": "שריון בסיבים:",
+      "source": "original97001.pdf#page=203"
+    },
+    {
+      "term": "a97001:term:fiber-reinforcement",
+      "sense": "technical",
+      "section": "s20-composites",
+      "page": 203,
+      "ref": "a97001:p203:b004",
+      "cell": null,
+      "source_he": "חמרים מרכבים מחזקים בסיבים נפוצים מאוד. המקור מתאר אותם כקלים להכנה ולעבוד, בעלי משקל סגלי נמוך וחזק רב. במטריצה פלסטית אפשר לשלב סיבי זכוכית, פחמן או מתכות שונות; המקור מיחס להם העדר בעיות שתוך.",
+      "source": "original97001.pdf#page=203",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:epoxy",
+      "sense": "technical",
+      "section": "s20-composites",
+      "page": 203,
+      "ref": "a97001:p203:b005",
+      "cell": null,
+      "source_he": "עקומות מאמץ–מעות של אפוקסי: א — אפוקסי נקי; ב — אפוקסי משרין בסיבי קורץ; ג — אפוקסי משרין בסיבי אלומינה קצרים.",
+      "source": "original97001.pdf#page=203",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:specific-strength",
+      "sense": "technical",
+      "section": "s20-composites",
+      "page": 203,
+      "ref": "a97001:p203:b002",
+      "cell": null,
+      "source_he": "חמר מרכב מכיל שני חמרים שונים: חמר בסיס וחמר משרין המחזק אותו. המקור מתאר את הבסיס כתופס את מרבית הנפח. לחמרים אלה יחס חזק למשקל גבוה, והם משמשים במקום אלומיניום וחמרים אחרים. קימות מספר קבוצות; כאן נדונים בעקר חמרים מחזקים בסיבים. כאן נטפל בעקרונות של חומרים מורכבים.",
+      "source": "original97001.pdf#page=203",
+      "decision": "added explicit source concept"
+    },
+    {
+      "term": "a97001:term:mass",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-base-units",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "source_he": "מסה",
+      "source": "original97001.pdf#page=4"
+    },
+    {
+      "term": "a97001:term:time",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-base-units",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "source_he": "זמן",
+      "source": "original97001.pdf#page=4"
+    },
+    {
+      "term": "a97001:term:temperature",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-base-units",
+      "cell": {
+        "row": 5,
+        "col": 0
+      },
+      "source_he": "טמפרטורה",
+      "source": "original97001.pdf#page=4"
+    },
+    {
+      "term": "a97001:term:area",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-derived-units",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "source_he": "שטח",
+      "source": "original97001.pdf#page=4"
+    },
+    {
+      "term": "a97001:term:angle",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 4,
+      "ref": "a97001:p4:t-derived-units",
+      "cell": {
+        "row": 4,
+        "col": 0
+      },
+      "source_he": "זווית",
+      "source": "original97001.pdf#page=4"
+    },
+    {
+      "term": "a97001:term:moment",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "source_he": "מומנט",
+      "source": "original97001.pdf#page=5"
+    },
+    {
+      "term": "a97001:term:stress",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 4,
+        "col": 0
+      },
+      "source_he": "מאמץ מכני",
+      "source": "original97001.pdf#page=5"
+    },
+    {
+      "term": "a97001:term:velocity",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 11,
+        "col": 0
+      },
+      "source_he": "מהירות",
+      "source": "original97001.pdf#page=5"
+    },
+    {
+      "term": "a97001:term:angular-velocity",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 12,
+        "col": 0
+      },
+      "source_he": "מהירות זוויתית",
+      "source": "original97001.pdf#page=5"
+    },
+    {
+      "term": "a97001:term:acceleration",
+      "sense": "mechanics",
+      "section": "s01-units",
+      "page": 5,
+      "ref": "a97001:p5:t-derived-units",
+      "cell": {
+        "row": 13,
+        "col": 0
+      },
+      "source_he": "תאוצה",
+      "source": "original97001.pdf#page=5"
+    },
+    {
+      "term": "a97001:term:metal",
+      "sense": "mechanics",
+      "section": "s14-industrial-symbols",
+      "page": 111,
+      "ref": "a97001:p111:t-stock-roughness",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "source_he": "יציקת דפוס מתכת",
+      "source": "original97001.pdf#page=111"
+    },
+    {
+      "term": "a97001:term:forging",
+      "sense": "mechanics",
+      "section": "s14-industrial-symbols",
+      "page": 111,
+      "ref": "a97001:p111:t-stock-roughness",
+      "cell": {
+        "row": 5,
+        "col": 0
+      },
+      "source_he": "חישול חופשי בחום",
+      "source": "original97001.pdf#page=111"
+    },
+    {
+      "term": "a97001:term:rolling",
+      "sense": "mechanics",
+      "section": "s14-industrial-symbols",
+      "page": 111,
+      "ref": "a97001:p111:t-stock-roughness",
+      "cell": {
+        "row": 7,
+        "col": 0
+      },
+      "source_he": "כבישה במבלט בחום",
+      "source": "original97001.pdf#page=111"
+    },
+    {
+      "term": "a97001:term:welding",
+      "sense": "mechanics",
+      "section": "s14-industrial-symbols",
+      "page": 111,
+      "ref": "a97001:p111:t-stock-roughness",
+      "cell": {
+        "row": 9,
+        "col": 0
+      },
+      "source_he": "תפרי ריתוך",
+      "source": "original97001.pdf#page=111"
+    },
+    {
+      "term": "a97001:term:aging",
+      "sense": "mechanics",
+      "section": "s17-steels",
+      "page": 163,
+      "ref": "a97001:p163:t-steel-suffixes",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "source_he": "ניתן לחיסום זיקון",
+      "source": "original97001.pdf#page=163"
+    },
+    {
+      "term": "a97001:term:reinforcement",
+      "sense": "mechanics",
+      "section": "s17-steels",
+      "page": 162,
+      "ref": "a97001:p162:t-steel-symbols",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "source_he": "פלדות לחיזוק בטון",
+      "source": "original97001.pdf#page=162"
+    },
+    {
+      "term": "a97001:term:crystal",
+      "sense": "mechanics",
+      "section": "s17-steels",
+      "page": 171,
+      "ref": "a97001:p171:b001",
+      "cell": null,
+      "source_he": "קו ליקוידוס — מעל הקו הסגסגת במצב נוזלי. קו סולידוס — מתחת לקו הסגסגת במצב מוצק. אוטקטואיד — תערבת עדינה מוצקה הנוצרת בקרור מתמסה מוצקה. אוטקטיקה — תערבת עדינה מוצקה הנוצרת בקרור מתמסה נוזלית. פלדה אוטקטואידית מכילה 0.8% פחמן; תת־אוטקטואידית — פחות מכך; על־אוטקטואידית — מעל לכך. סגסגת אוטקטיד — תערבת שנוצרת מתמסה מוצקה, בעלת הטמפרטורה הנמוכה ביותר בדיאגרמה (נקדת אוטקטיקה). לסגסגת אוטקטית חסרה פאזה נוזל פלוס גביש. הקו האוטקטואידי מתאים לטמפרטורה של 723°C, מגבול המסיסות של 0.02% C.",
+      "source": "original97001.pdf#page=171"
+    },
+    {
+      "term": "a97001:term:weight",
+      "sense": "mechanics",
+      "section": "s05-planar-forces",
+      "page": 35,
+      "ref": "a97001:p35:img01",
+      "cell": null,
+      "source_he": "כוחות על מנוף — 1.5 m",
+      "source": "original97001.pdf#page=35"
+    },
+    {
+      "term": "a97001:term:reaction",
+      "sense": "interaction",
+      "section": "s02-statics-basics",
+      "page": 7,
+      "ref": "a97001:p7:b009",
+      "cell": null,
+      "source_he": "״חוק הפעולה והתגובה״ (חוק שלישי של ניוטון)",
+      "source": "original97001.pdf#page=7"
+    },
+    {
+      "term": "a97001:term:reaction",
+      "sense": "interaction",
+      "section": "s02-statics-basics",
+      "page": 7,
+      "ref": "a97001:p7:b010",
+      "cell": null,
+      "source_he": "לכל פעולה קיימת תגובה נגדית לה בכיוונה ושווה לה בעוצמתה. כאשר גוף מפעיל כוח כלשהו על גוף אחר, הגוף האחר יפעיל כוח השווה בעוצמתו אך מנוגד לו בכיוון על הגוף הראשון.",
+      "source": "original97001.pdf#page=7"
+    },
+    {
+      "term": "a97001:term:moment",
+      "sense": "area-static",
+      "section": "s07-centroid",
+      "page": 50,
+      "ref": "a97001:p50:b006",
+      "cell": null,
+      "source_he": "סך הכל: ΣA. 5. סכם בתחתית הטבלה: סך כל שטח הגוף ΣA, סך כל מומנט סטטי ביחס לציר ה־y, Σ(xc·A), וסך כל מומנט סטטי ביחס לציר ה־x, Σ(yc·A).",
+      "source": "original97001.pdf#page=50"
+    },
+    {
+      "term": "a97001:term:equilibrium",
+      "sense": "thermodynamics",
+      "section": "s15-materials-basics",
+      "page": 120,
+      "ref": "a97001:p120:b002",
+      "cell": null,
+      "source_he": "אטומים של חמרים מוצקים הנמצאים בשווי משקל יוצרים גביש במבנה מרחבי מסדר.",
+      "source": "original97001.pdf#page=120"
+    },
+    {
+      "term": "a97001:term:equilibrium",
+      "sense": "thermodynamics",
+      "section": "s17-steels",
+      "page": 166,
+      "ref": "a97001:p166:b004",
+      "cell": null,
+      "source_he": "פאזה — רכיב הומוגני המתאפין בתכונות כימיות ופיזיקליות. לחמר במצב מוצק יכולות להיות מספר פאזות שונות בהתאם לטמפרטורה, ללחץ ולהרכב הכימי. דיאגרמת פאזות מתארת את מבנה החמר כתלות ברכוז היסודות, בטמפרטורה ובלחץ בתנאי שווי משקל תרמודינמי. מבחינה טכנית הדבר אפשרי בתהליכים אטיים מאד. לכן דיאגרמת פאזות שווי־משקלית מתארת תהליכים הפיכים. תמסה מוצקה היא תערבת הומוגנית בין מומס וממס בפאזה מוצקה. דיאגרמת פאזות זו מתארת את מצבה המיקרוסקופי של מערכת מבחינת המבנה.",
+      "source": "original97001.pdf#page=166"
+    },
+    {
+      "term": "a97001:term:equilibrium",
+      "sense": "thermodynamics",
+      "section": "s19-aluminium",
+      "page": 201,
+      "ref": "a97001:p201:b003",
+      "cell": null,
+      "source_he": "במקור מפרטים שלבי הטפול: 1. טפול המסה — חמום הנתך מעל לקו הסולבוס והחזקה עד להאחדת ההרכב מחלטת. 2. הנתך נשאר מוצק, בלי התכה; המטרה היא פזור הומוגני של היסודות. 3. קרור מהיר לטמפרטורת החדר במים בבת אחת, בדומה לחסום פלדות, להקפאת המצב וליצירת פאזה שאינה בשווי משקל. (Solution Treatment).",
+      "source": "original97001.pdf#page=201"
+    }
+  ],
+  "exclusions": [
+    {
+      "section": "s16-mechanical-properties",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "term": "a97001:term:range",
+      "lemma": "טווח",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s11-circular-motion",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s19-aluminium",
+      "term": "a97001:term:mass",
+      "lemma": "מסה",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s02-statics-basics",
+      "term": "a97001:term:element",
+      "lemma": "יסוד",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s07-centroid",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s08-friction",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s08-friction",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s06-trusses",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "term": "a97001:term:element",
+      "lemma": "יסוד",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s09-linear-motion",
+      "term": "a97001:term:dimension",
+      "lemma": "מידה",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s09-linear-motion",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s10-projectile-motion",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s15-materials-basics",
+      "term": "a97001:term:dimension",
+      "lemma": "מידה",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s15-materials-basics",
+      "term": "a97001:term:weight",
+      "lemma": "משקל",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s15-materials-basics",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:reaction",
+      "lemma": "תגובה",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:dimension",
+      "lemma": "מידה",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:joint",
+      "lemma": "פרק",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:range",
+      "lemma": "טווח",
+      "reason": "Retired section association after source review: only wrong homograph/idiom contexts were linked here; the global concept and learner SRS keys remain available in valid sections."
+    },
+    {
+      "section": "s00-front",
+      "term": "a97001:term:element",
+      "lemma": "יסוד",
+      "reason": "No verified source place remains after semantic link review; not offered as a section term. Global concept and SRS keys remain available elsewhere."
+    },
+    {
+      "section": "s02-statics-basics",
+      "term": "a97001:term:dimension",
+      "lemma": "מידה",
+      "reason": "No verified source place remains after semantic link review; not offered as a section term. Global concept and SRS keys remain available elsewhere."
+    },
+    {
+      "section": "s04-parallel-forces",
+      "term": "a97001:term:dimension",
+      "lemma": "מידה",
+      "reason": "No verified source place remains after semantic link review; not offered as a section term. Global concept and SRS keys remain available elsewhere."
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "No verified source place remains after semantic link review; not offered as a section term. Global concept and SRS keys remain available elsewhere."
+    },
+    {
+      "section": "s15-materials-basics",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "No verified source place remains after semantic link review; not offered as a section term. Global concept and SRS keys remain available elsewhere."
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:distance",
+      "lemma": "דרך",
+      "reason": "No verified source place remains after semantic link review; not offered as a section term. Global concept and SRS keys remain available elsewhere."
+    }
+  ]
+}

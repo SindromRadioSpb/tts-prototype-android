@@ -10,6 +10,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const AW = require('../../public/js/atlas-words.js');
 
 const REPO = path.resolve(__dirname, "..", "..");
 const SCHEMA = "linguistpro.atlas-train-find.1.0.0";
@@ -59,10 +60,21 @@ function buildTermsIndex(sections, atlasId) {
       if (!out.sections.includes(s.id)) out.sections.push(s.id);
       (t.senses || []).forEach((sn) => { if (sn && sn.sense && !out.senses.some((x) => x.sense === sn.sense)) out.senses.push({ sense: sn.sense, ru: sn.ru || "" }); });
     });
-    (s.pages || []).forEach((p) => (p.items || []).forEach((it) => (it && Array.isArray(it.terms) ? it.terms : []).forEach((ref) => {
+    // Contents are navigation, not the first educational example of a concept.
+    if (atlasId === 'a97001' && s.id === 's00-front') return;
+    const learningItems = atlasId === 'a97001' ? AW.sectionItems(s)
+      : (s.pages || []).flatMap(p => (p.items || []).map(it => Object.assign({page:p.page},it)));
+    learningItems.forEach((it) => (it && Array.isArray(it.terms) ? it.terms : []).forEach((ref) => {
       const i = String(ref).lastIndexOf("#"), id = String(ref).slice(0, i), sense = String(ref).slice(i + 1);
-      if (terms[id] && !terms[id].places[sense]) terms[id].places[sense] = { sid: s.id, page: p.page, block: it.id };
-    })));
+      if (terms[id]) {
+        const place = { sid: s.id, page: it.page, block: it.id };
+        if (!terms[id].places[sense]) terms[id].places[sense] = place;
+        if (atlasId === 'a97001') {
+          const occurrences = terms[id].occurrences || (terms[id].occurrences = {});
+          (occurrences[sense] || (occurrences[sense] = [])).push(place);
+        }
+      }
+    }));
   });
   return { schema: TERMS_SCHEMA, atlas_id: String(atlasId || ""), terms };
 }

@@ -2394,7 +2394,7 @@
   function aiOccurrence() {
     var AI = window.WordGlossAI;
     if (!AI || !_activeSpan || _cardStack.length || !_activeSpan.closest) return null;
-    var tr = _activeSpan.closest("tr") || _activeSpan.closest("[data-wg-row]");   // a table row, or a bound non-table row (atlas)
+    var tr = _activeSpan.closest("[data-wg-row]") || _activeSpan.closest("tr");   // prefer a bound atlas cell over its unbound outer table row
     var k = Number(_activeSpan.getAttribute("data-w-offset"));
     if (!tr || !Number.isFinite(k)) return null;
     var x = null; try { x = AI.wordAt(tr, k); } catch (_) { x = null; }

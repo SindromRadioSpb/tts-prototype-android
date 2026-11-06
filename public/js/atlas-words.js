@@ -56,8 +56,12 @@
       var r = parseRef(ref), t = terms[r.id];
       if (!t || seen[r.id + "#" + r.sense]) return;
       seen[r.id + "#" + r.sense] = true;
-      var lemma = wordsOf(t.lemma_he || t.niqqud, RM);
-      if (lemma.length) list.push({ id: r.id, sense: r.sense, lemma: lemma });
+      // Only editor-reviewed aliases, and only on an explicitly referenced block.
+      // This handles source spellings and named synonyms without substring guessing.
+      [t.lemma_he || t.niqqud].concat(t.aliases_he || []).forEach(function (form) {
+        var lemma = wordsOf(form, RM);
+        if (lemma.length) list.push({ id: r.id, sense: r.sense, lemma: lemma });
+      });
     });
     // a longer term first: «מחבר מסמרות» keeps its words from the shorter «מחבר»
     list.sort(function (a, b) { return b.lemma.length - a.lemma.length; });
@@ -73,6 +77,10 @@
         i += n - 1;
       }
       if (!found) out.loose.push({ id: t.id, sense: t.sense });
+    });
+    out.loose = out.loose.filter(function (r, i, all) {
+      return !out.spans.some(function (sp) { return sp.id === r.id && sp.sense === r.sense; }) &&
+        all.findIndex(function (x) { return x.id === r.id && x.sense === r.sense; }) === i;
     });
     out.spans.sort(function (a, b) { return a.from - b.from; });
     return out;
@@ -117,13 +125,51 @@
   // atlas into the device's database. The place is the edition of the section + the block + the word; it verifies
   // only against the same loaded edition, so a source never points at a text that has changed.
   var SOURCE_KIND = "atlas_block";
+  function sourceContext(section, page, item, field, refs) {
+    return { atlas_id: section.atlas_id, section_id: section.id, page: page.page,
+      object_id: item.id, field: field, scan: page.image || '',
+      limits: page.source_limits || [], coverage_notice: page.coverage_notice || null,
+      reviewed_terms: (refs || item.terms || []).map(function (ref) {
+        var r = parseRef(ref), t = (section.terms || {})[r.id], sense = t && (t.senses || []).find(function (s) { return s.sense === r.sense; });
+        return sense ? { id:r.id, sense:r.sense, he:t.lemma_he, ru:sense.ru, context:sense.context || '' } : null;
+      }).filter(Boolean),
+      scientific_notes: [item.ambiguity_note, item.note].concat((page.editor || []).filter(function (n) { return n.about === 'page' || n.ref === item.id; }).map(function (n) { return n.text; })).filter(Boolean) };
+  }
+  // Reviewed table/figure references are real learning places, not fabricated prose.
+  // Explicit cell refs keep the original source coordinates and do not scan unrelated words.
+  function sectionItems(section) {
+    var out = [];
+    ((section && section.pages) || []).forEach(function (page) {
+      (page.items || []).forEach(function (it) { if (it && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
+    });
+    // Append new kinds after the complete legacy sequence. Existing block order_index
+    // values, gloss keys and occurrence corrections therefore keep their identities.
+    ((section && section.pages) || []).forEach(function (page) {
+      // Preserve other published books' row ordering and existing context-layer keys.
+      if (!section || section.atlas_id !== 'a97001') return;
+      (page.tables || []).forEach(function (table) {
+        (table.cells || []).forEach(function (cell) {
+          if (!/[\u05d0-\u05ea]/.test(String(cell.he || ''))) return;
+          out.push({ id: table.id + ':cell:' + cell.row + ':' + cell.col, page: page.page,
+            source_ref: table.id, source_cell: { row: cell.row, col: cell.col }, type: 'table_cell',
+            he: cell.he, he_niqqud: cell.he_niqqud || cell.he, ru: cell.ru || '', terms: cell.terms || [], source_context: sourceContext(section, page, table, 'cells[' + cell.row + ',' + cell.col + '].he', cell.terms || []) });
+        });
+        if (/[\u05d0-\u05ea]/.test(String(table.title_he || ''))) out.push({ id: table.id + ':title', page: page.page,
+          source_ref: table.id, type: 'table_title', he: table.title_he, he_niqqud: table.title_he, ru: table.title_ru || '', terms: table.title_terms || [], source_context: sourceContext(section, page, table, 'title_he', table.title_terms || []) });
+      });
+      (page.figures || []).forEach(function (figure) {
+        if ((section.context_exclusions || []).some(function (x) { return x.ref === figure.id && x.field === 'caption_he'; })) return;
+        if (/[\u05d0-\u05ea]/.test(String(figure.caption_he || ''))) out.push({ id: figure.id + ':caption', source_ref: figure.id, page: page.page,
+          type: 'figure_caption', he: figure.caption_he, he_niqqud: figure.caption_he, ru: figure.caption_ru || '', terms: figure.terms || [], source_context: sourceContext(section, page, figure, 'caption_he') });
+      });
+    });
+    return out;
+  }
   function sectionContext(atlasId, section, RM) {
     var items = new Map(), order = new Map(), located = new Map(), n = 0, personalRefs = [];
-    ((section && section.pages) || []).forEach(function (p) {
-      (p.items || []).forEach(function (it) {
+    sectionItems(section).forEach(function (it) {
         if (!it || !it.id || !String(it.he || "").trim()) return;
         items.set(String(it.id), it); order.set(String(it.id), n++);
-      });
     });
     return {
       atlasId: String(atlasId || ""), sectionId: String(section && section.id || ""), RM: RM,
@@ -170,6 +216,7 @@
       word_offset: Number.isInteger(off) ? off : null, col: col === "niqqud" ? "niqqud" : "he", surface: bareWord(surface),
       sentence_he: String(it.he || ""), sentence_he_niqqud: String(it.he_niqqud || ""), sentence_ru: String(it.ru || ""),
       atlas_term: term ? { id: term.id, sense: term.sense } : null,
+      source_context: it.source_context || null,
     });
   }
   // → { textKey, sentenceId, orderIndex, surface } (the source a mark keeps) or null
@@ -238,7 +285,7 @@
     var out = [];
     if (!ctx) return out;
     ctx.items.forEach(function (it, id) {
-      out.push({ id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id) });
+      out.push({ id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id), row_type: it.type || 'block', source_context: it.source_context || null });
     });
     return out;
   }
@@ -246,13 +293,16 @@
     if (!row || !ctx) return;
     var id = row.getAttribute("data-ref"), it = id && ctx.items.get(id);
     if (!it) return;
-    row.__lpLearningRow = { id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id) };
+    row.__lpLearningRow = { id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id), source_context: it.source_context || null };
+    if (ctx.atlasId === 'a97001') row.__lpAllowPreparedGloss = function () {
+      return !!(ctx.contextLayerStatus && ctx.contextLayerStatus.covered.has(id));
+    };
     row.setAttribute("data-wg-row", "1");
     row.removeAttribute("data-wg-ai-key"); row.removeAttribute("data-wg-occurrence-key");
   }
 
   var api = { glossRows: glossRows, bindGlossRow: bindGlossRow, locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
-    sectionContext: sectionContext, occurrence: occurrence, verifyOccurrence: verifyOccurrence, cardTop: cardTop, decorateRow: decorateRow };
+    sectionContext: sectionContext, sectionItems: sectionItems, occurrence: occurrence, verifyOccurrence: verifyOccurrence, cardTop: cardTop, decorateRow: decorateRow };
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

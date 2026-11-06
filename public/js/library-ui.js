@@ -13404,7 +13404,7 @@ function paintAtlasWords() {
   // row by row: decorateWords queues table rows (tbody tr); an atlas section is a list of .atlas-row blocks
   (async () => {
     const states = (await ensureWordStates()) || {};
-    for (const row of section.querySelectorAll('.atlas-row[data-ref]')) {
+    for (const row of section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]')) {
       if (!isCurrent()) return;
       if (row.querySelector('.rm-w')) await RM.decorateWords(row, states, { color: true, fadeMode: 'full', isCurrent });
     }
@@ -13456,18 +13456,35 @@ function attachAtlasWords(atlasId, section, data, how) {
         if (top.personal) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
       }
     }
+    if (atlasId === 'a97001' && occ && occ.source_context) {
+      const source = occ.source_context;
+      top.lines = (top.lines || []).concat('Atlas 97001 · ' + tt('atlas.page', 'стр.') + ' ' + source.page);
+      const notes = (source.scientific_notes || []).concat((source.limits || []).map(x => x.scope)).filter(Boolean);
+      if (source.coverage_notice) notes.unshift(source.coverage_notice.ru, source.coverage_notice.he);
+      if (ctx.contextLayerStatus && ctx.contextLayerStatus.covered.has(occ.sentence_id)) {
+        top.lines.push(tt('atlas.word.prepared', 'Подготовлено ИИ') + ': ' + ctx.contextLayerStatus.producer +
+          (ctx.contextLayerStatus.coverage_mode === 'partial' ? ' · ' + tt('atlas.partial', 'Переведено частично') : ''));
+        if (!top.title) { top.title = occ.surface; top.kicker = tt('atlas.word.prepared', 'Подготовлено ИИ'); }
+        const uncertain = ctx.contextLayerStatus.uncertain.get(occ.sentence_id + ':' + occ.word_offset);
+        if (uncertain) notes.push(uncertain);
+      }
+      if (notes.length) {
+        top.lines.push(...Array.from(new Set(notes)));
+        if (!top.title) { top.title = occ.surface; top.kicker = tt('atlas.word.sourceNote', 'Источник и ограничения'); }
+      }
+    }
     return top;
   };
   const handle = attachReaderMorph(section, {
-    cellSelector: '.atlas-row[data-ref] > [data-col]',
-    rowSelector: '.atlas-row[data-ref]', rowIndexAttribute: 'data-ref', rovingFocus: true,
+    cellSelector: '.atlas-row[data-ref] > [data-col], .atlas-learning-row[data-ref] > [data-col]',
+    rowSelector: '.atlas-row[data-ref], .atlas-learning-row[data-ref]', rowIndexAttribute: 'data-ref', rovingFocus: true,
     getRowForCell: (_cell, row) => (row && ctx.items.get(row.getAttribute('data-ref'))) || null,
     getPlainText: item => item && item.he,
     getVocalizedText: item => item && item.he_niqqud,
     getSentence: item => item && (item.he_niqqud || item.he),
     shouldWrap: (_item, _cell, _col, value) => /[א-ת]/.test(String(value || '')),
     buildOccurrence: span => {
-      const row = span.closest('.atlas-row[data-ref]'), cell = span.closest('[data-col]');
+      const row = span.closest('.atlas-row[data-ref], .atlas-learning-row[data-ref]'), cell = span.closest('[data-col]');
       return row ? AW.occurrence(ctx, row.getAttribute('data-ref'), Number(span.getAttribute('data-w-offset')),
         span.getAttribute('data-surface'), cell && cell.getAttribute('data-col')) : null;
     },
@@ -13480,13 +13497,13 @@ function attachAtlasWords(atlasId, section, data, how) {
     confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
   });
   const labels = { terms: tt('atlas.word.terms', 'Термины абзаца') };
-  section.querySelectorAll('.atlas-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });
+  section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });
   // a term added, changed or removed: the places are found again (the loose line belongs to the atlas terms only)
   function redecorate() {
     if (!section.isConnected || ctx !== atlasWordsCtx) return;
     if (AT) ctx.setPersonal(AT.mergeTerms(data.terms, atlasMyTerms(atlasId), sid));
     section.querySelectorAll('.rm-w.atlas-term').forEach((w) => { w.classList.remove('atlas-term'); w.removeAttribute('data-term'); });
-    section.querySelectorAll('.atlas-row[data-ref]').forEach(row => AW.decorateRow(row, ctx, labels));
+    section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]').forEach(row => AW.decorateRow(row, ctx, labels));
     if (train) { train.repaint(); train.myTermsChanged(); }
   }
   atlasWordsSection = section;
@@ -13499,7 +13516,25 @@ function attachAtlasWords(atlasId, section, data, how) {
   if (AI && typeof AI.remember === 'function') {
     fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/context-ai/' + encodeURIComponent(String(data && data.id || '')) + '.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
-      .then((layer) => (layer && ctx === atlasWordsCtx ? AI.remember(layer, AW.glossRows(ctx)) : null))
+      .then(async (layer) => {
+        if (!layer || ctx !== atlasWordsCtx) return null;
+        const rows = AW.glossRows(ctx);
+        if (atlasId === 'a97001') {
+          const contract = window.AtlasContextContract;
+          if (!contract) return null;
+          const expected = contract.describe(rows, AI), revision = await contract.revision(expected);
+          const checked = contract.validate(layer, expected, { atlas: atlasId, section: data.id, revision, allowPartial: layer.coverage_mode === 'partial' });
+          if (!checked.ok || ctx !== atlasWordsCtx) return null;
+          const uncertain = new Map();
+          checked.rows.forEach(row => row.glosses.forEach((g, i) => { if (g.uncertain) uncertain.set((row.row_id || row.block_id) + ':' + i, g.reason); }));
+          const remembered = await AI.remember(layer, rows);
+          if (ctx !== atlasWordsCtx || remembered.rejected || remembered.stored !== checked.accepted) return null;
+          ctx.contextLayerStatus = { producer: layer.provenance.producer, coverage_mode: checked.coverage_mode, source_revision: revision,
+            covered: new Set(checked.rows.map(row => row.row_id || row.block_id)), uncertain };
+          return remembered;
+        }
+        return AI.remember(layer, rows);
+      })
       .catch(() => {})
       .then(() => { if (train) train.glossLoaded(); });
   } else if (train) train.glossLoaded();
@@ -13608,7 +13643,7 @@ function atlasHomeQueue(atlasId, home) {
         const reader = roomAtlasReader;
         if (!reader || !it.sid) return;
         Promise.resolve(reader.openSection(it.sid, it.page || 0)).then(() => {
-          const row = Array.from(document.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
+          const row = Array.from(document.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
           if (row) { row.scrollIntoView({ block: 'center' }); row.classList.add('atlas-row-flash'); setTimeout(() => row.classList.remove('atlas-row-flash'), 2400); }
         }).catch(() => {});
       },
@@ -13719,7 +13754,7 @@ function atlasFindOpen(it) {
     const block = open === it.sid ? ctx.items.get(it.block) : null;
     const verdict = window.AtlasTrain.findStillThere(it, open ? { sid: open, blockHe: block ? block.he : null } : null);
     if (verdict === 'unknown') return;
-    const row = Array.from(document.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
+    const row = Array.from(document.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
     if (verdict === 'stale' || !row) {
       const st = atlasFindStale(); st.add(it.id);
       try { localStorage.setItem(ATLAS_FIND_STALE_KEY, JSON.stringify(Array.from(st).slice(-2000))); } catch (_) {}
@@ -13786,7 +13821,7 @@ function atlasSectionTermsBlock(section, data, ctx, ui) {
       },
       onOpenPage: (it) => {
         close();
-        const row = Array.from(section.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
+        const row = Array.from(section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
         if (row) { row.scrollIntoView({ block: 'center' }); row.classList.add('atlas-row-flash'); setTimeout(() => row.classList.remove('atlas-row-flash'), 1600); }
       },
       onClose: close });
@@ -13856,7 +13891,7 @@ function atlasTermDialog(atlasId, section, data, ctx, occ, editing, onDone) {
   const AT = window.AtlasTrain, UI = window.AtlasTrainUI, RM = window.ReaderMorph, AI = window.WordGlossAI;
   if (!AT || !UI || !RM || !occ) return;
   const item = ctx.items.get(String(occ.sentence_id));
-  const rowEl = Array.from(section.querySelectorAll('.atlas-row[data-ref]')).find((r) => r.getAttribute('data-ref') === String(occ.sentence_id)) || null;
+  const rowEl = Array.from(section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]')).find((r) => r.getAttribute('data-ref') === String(occ.sentence_id)) || null;
   if (!item) return;
   const plain = RM.words(String(item.he || '')), pointed = item.he_niqqud ? RM.words(String(item.he_niqqud)) : [];
   const words = plain.map((w, i) => ({ he: w, niqqud: pointed.length === plain.length ? pointed[i] : '' }));

@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const JSZip = require("jszip");
+const Contract = require('../../public/js/atlas-context-contract.js');
 const { parseHTML } = require("linkedom");
 
 const REPO = path.resolve(__dirname, "..", "..");
@@ -61,37 +62,61 @@ const FORMAT = `# Атлас 97002 — слой «В контексте (ИИ)»
 async function main() {
   const { RM, AI, AW } = reader();
   const index = JSON.parse(fs.readFileSync(path.join(DATA, "index.json"), "utf8"));
-  const zip = new JSZip(), manifest = { schema: "atlas-context-export-v1", atlas: index.atlas_id || "a97002",
+  const zip = new JSZip(), manifest = { schema: index.atlas_id==='a97001' ? 'atlas-context-export-v2' : "atlas-context-export-v1", atlas: index.atlas_id || "a97002",
     built_at: new Date().toISOString(), layer_schema: AI.LAYER_SCHEMA, sections: [] };
   let rowsAll = 0, wordsAll = 0;
   for (const s of index.sections) {
-    const data = JSON.parse(fs.readFileSync(path.join(DATA, "sections", s.id + ".json"), "utf8"));
+    const sectionBytes = fs.readFileSync(path.join(DATA, "sections", s.id + ".json"));
+    const data = JSON.parse(sectionBytes);
     const ctx = AW.sectionContext(manifest.atlas, data, RM);
     const pageOf = new Map();
     (data.pages || []).forEach((p) => (p.items || []).forEach((it) => pageOf.set(String(it.id), p.page)));
     const lines = [];
     let words = 0;
-    for (const row of AW.glossRows(ctx)) {
+    const sourceRows = AW.glossRows(ctx), expected = Contract.describe(sourceRows, AI);
+    for (const row of sourceRows) {
       const p = AI.rowPayloadFromData(row);
       if (!p) continue;
-      lines.push(JSON.stringify({ order_index: row.order_index, block_id: row.id, page: pageOf.get(row.id), he: row.he, he_niqqud: row.he_niqqud,
-        ru: row.ru, words: p.words.map((w) => w.w), key: p.key }));
+      lines.push(JSON.stringify({ order_index: row.order_index, block_id: row.id, page: row.source_context?.page || pageOf.get(row.id), he: row.he, he_niqqud: row.he_niqqud,
+        ru: row.ru, words: p.words.map((w) => w.w), key: p.key,
+        ...(manifest.atlas==='a97001'?{row_id:row.id,row_type:row.row_type,source_context:row.source_context}: {}) }));
       words += p.words.length;
     }
     const body = lines.join("\n") + "\n";
     zip.file("rows/" + s.id + ".jsonl", body);
-    manifest.sections.push({ id: s.id, content_pack_sha256: data.content_pack_sha256 || "", rows: lines.length, words,
+    let contractFields = {};
+    if (manifest.atlas==='a97001') {
+      // The export must not certify fields the reader cannot expose in a word card.
+      const R = require('../../public/js/atlas-reader.js').factory(document);
+      const view = R.renderSection((_k, fallback)=>fallback, data, {});
+      const visible = new Set(Array.from(view.querySelectorAll('.atlas-row[data-ref],.atlas-learning-row[data-ref]')).map(el=>el.getAttribute('data-ref')));
+      const hidden = expected.filter(row=>!visible.has(row.id)).map(row=>row.id);
+      if(hidden.length)throw Error('Export rows have no reader card: '+hidden.join(', '));
+      const unsupported = data.pages.flatMap(p=>(p.figures||[]).flatMap(f=>(f.regions||[]).filter(r=>/[\u05d0-\u05ea]/.test(r.label_he||'')).map(r=>r.id)));
+      if(unsupported.length)throw Error('Region Hebrew needs an explicit context adapter: '+unsupported.join(', '));
+      contractFields={ contract:Contract.CONTRACT, source_revision:await Contract.revision(expected),
+        section_sha256:crypto.createHash('sha256').update(sectionBytes).digest('hex'),
+        coverage:Object.fromEntries([...new Set(expected.map(r=>r.row_type))].map(kind=>[kind,{rows:expected.filter(r=>r.row_type===kind).length,words:expected.filter(r=>r.row_type===kind).reduce((n,r)=>n+r.words.length,0)}])),
+        exclusions:(data.context_exclusions||[]).concat([{ref:data.id,field:'title_he',reason:'Editorial navigation heading; source headings remain in their page blocks. Not a separate source sentence.'}]),
+        non_token_rows:sourceRows.filter(row=>!AI.rowPayloadFromData(row)).map(row=>({id:row.id,reason:'No Hebrew word tokens; notation/punctuation is not a vocabulary sentence.'})) };
+    }
+    manifest.sections.push({ id: s.id, content_pack_sha256: data.content_pack_sha256 || "", rows: lines.length, words,...contractFields,
       rows_sha256: crypto.createHash("sha256").update(body).digest("hex") });
     rowsAll += lines.length; wordsAll += words;
   }
   manifest.rows = rowsAll; manifest.words = wordsAll;
   zip.file("manifest.json", JSON.stringify(manifest, null, 1) + "\n");
-  zip.file("FORMAT.ru.md", FORMAT);
+  zip.file("FORMAT.ru.md", manifest.atlas==='a97001' ? fs.readFileSync(path.join(__dirname,'CONTEXT_CONTRACT_97001.md'),'utf8') : FORMAT);
+  if(manifest.atlas==='a97001') {
+    manifest.producer_commit=require('child_process').execFileSync('git',['rev-parse','HEAD'],{cwd:REPO,encoding:'utf8'}).trim();
+    manifest.producer_worktree_clean=!require('child_process').execFileSync('git',['diff','--name-only'],{cwd:REPO,encoding:'utf8'}).trim();
+    zip.file('manifest.json',JSON.stringify(manifest,null,1)+'\n');
+  }
   fs.mkdirSync(OUT, { recursive: true });
   const file = path.join(OUT, "atlas-" + manifest.atlas + "-context-export.zip");
   fs.writeFileSync(file, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } }));
   const drive = opt("drive", "");
-  if (drive) { fs.mkdirSync(drive, { recursive: true }); fs.copyFileSync(file, path.join(drive, path.basename(file))); fs.writeFileSync(path.join(drive, "FORMAT.ru.md"), FORMAT); }
+  if (drive) { fs.mkdirSync(drive, { recursive: true }); fs.copyFileSync(file, path.join(drive, path.basename(file))); fs.writeFileSync(path.join(drive, "FORMAT.ru.md"), manifest.atlas==='a97001' ? fs.readFileSync(path.join(__dirname,'CONTEXT_CONTRACT_97001.md'),'utf8') : FORMAT); }
   console.log(JSON.stringify({ file: path.relative(REPO, file), bytes: fs.statSync(file).size, sections: manifest.sections.length, rows: rowsAll, words: wordsAll, drive: drive || null }));
 }
 main().catch((e) => { console.error(e); process.exit(1); });
