@@ -5725,3 +5725,5 @@ Object.assign(window.I18N_LOCALES.he.course,{order:{card:"הזמנה"}});
 window.I18N_LOCALES.he.room.hub.atlas97001 = {title:"אטלס הנדסי 97001",desc:"יסודות המכניקה: סטטיקה, תנועה, שרטוט וחומרים — עברית ורוסית, לפי עמודי הספר"}; window.I18N_LOCALES.he.atlas.bookName = "אטלס הנדסי";
 
 window.I18N_LOCALES.he.course.pilotCorpus = {"title": "בית קפה B · פיילוט טקסטואלי", "desc": "קורס ניסיוני נפרד: הכנה, בית קפה וחזרות. ללא שמע; הקורס הקיים וההתקדמות נשמרים."};
+
+window.I18N_LOCALES.he.atlas.figureZoom = "פתיחת האיור בגודל מלא";

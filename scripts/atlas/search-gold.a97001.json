@@ -1,0 +1,171 @@
+{
+  "schema": "linguistpro.atlas-search-gold.1",
+  "provenance": "Queries selected from source topics on pages 21, 57, 124, 130, 174, 203 before evaluating search results.",
+  "queries": [
+    {
+      "id": "spring-he",
+      "q": "קפיץ",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s03-concurrent-forces",
+          "page": 21
+        }
+      ]
+    },
+    {
+      "id": "spring-ru",
+      "q": "пружина",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s03-concurrent-forces",
+          "page": 21
+        }
+      ]
+    },
+    {
+      "id": "friction-he",
+      "q": "חיכוך",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s08-friction",
+          "page": 57
+        }
+      ]
+    },
+    {
+      "id": "friction-ru",
+      "q": "трение",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s08-friction",
+          "page": 57
+        }
+      ]
+    },
+    {
+      "id": "tension-he",
+      "q": "מבחן מתיחה",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s16-mechanical-properties",
+          "page": 124
+        }
+      ]
+    },
+    {
+      "id": "tension-ru",
+      "q": "испытание на растяжение",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s16-mechanical-properties",
+          "page": 124
+        }
+      ]
+    },
+    {
+      "id": "hardness-he",
+      "q": "מבחן קשיות",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s16-mechanical-properties",
+          "page": 130
+        }
+      ]
+    },
+    {
+      "id": "hardness-ru",
+      "q": "испытание твёрдости",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s16-mechanical-properties",
+          "page": 130
+        }
+      ]
+    },
+    {
+      "id": "heat-he",
+      "q": "טפול תרמי",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s17-steels",
+          "page": 174
+        }
+      ]
+    },
+    {
+      "id": "heat-ru",
+      "q": "термическая обработка",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s17-steels",
+          "page": 174
+        }
+      ]
+    },
+    {
+      "id": "composite-he",
+      "q": "חמרים מרכבים",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s20-composites",
+          "page": 203
+        }
+      ]
+    },
+    {
+      "id": "composite-ru",
+      "q": "композиционные материалы",
+      "kind": "exact",
+      "expected": [
+        {
+          "sid": "s20-composites",
+          "page": 203
+        }
+      ]
+    },
+    {
+      "id": "spring-fragment",
+      "q": "פוטנציאלית אלסטית",
+      "kind": "fragment",
+      "expected": [
+        {
+          "sid": "s03-concurrent-forces",
+          "page": 21
+        }
+      ]
+    },
+    {
+      "id": "heat-fragment",
+      "q": "структура стали",
+      "kind": "fragment",
+      "expected": [
+        {
+          "sid": "s17-steels",
+          "page": 174
+        }
+      ]
+    },
+    {
+      "id": "composite-fragment",
+      "q": "волокнистым армированием",
+      "kind": "fragment",
+      "expected": [
+        {
+          "sid": "s20-composites",
+          "page": 203
+        }
+      ]
+    }
+  ]
+}

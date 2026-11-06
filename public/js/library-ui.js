@@ -32,7 +32,7 @@ const localDb = new Proxy(localDbRaw, {
 });
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
-import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=861';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=862';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=861';
 

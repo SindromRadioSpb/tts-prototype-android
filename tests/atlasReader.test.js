@@ -929,3 +929,14 @@ test('P5 follow-up: the host can add its block to the atlas home', async () => {
   assert.equal(calls.length, 1);
   assert.ok(document.querySelector('.atlas-home .host-block'));
 });
+
+
+test('numerical source errata remain beside formulas rather than hidden as process notes', () => {
+  const { R, T } = env();
+  const note = 'Ошибка исходника. После исправления момента квадратного отверстия y_c ≈ 82,17 мм; см. редакторскую проверку примера.';
+  const el = R.renderPage(T, page({ items: [{ id: 'f', type: 'formula', y: 100, latex: 'y_c=44.2', note, vars: [] }] }));
+  assert.match(el.querySelector('.atlas-formula .atlas-note').textContent, /82,17/);
+  assert.doesNotMatch(el.querySelector('.atlas-formula .atlas-note').textContent, /редакторск/);
+  assert.match(R.noteParts('Ошибка исходника: B = 109333,333 Н.').reader, /109333/);
+  assert.equal(R.noteParts('Ошибка extraction: bbox 120 восстановлен.').reader, '');
+});

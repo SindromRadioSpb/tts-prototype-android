@@ -11,6 +11,6 @@
   "missing_mathml": [],
   "missing_text_layers": [],
   "figures_pending_caption_review": [],
-  "visual_acceptance_complete": false,
-  "publishable": false
+  "visual_acceptance_complete": true,
+  "publishable": true
 }

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.861";
+const CACHE_VERSION = "v3.11.862";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,8 +150,8 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=861",
-  "/js/corpus-registry.js?v=861",
+  "/js/library-ui.js?v=862",
+  "/js/corpus-registry.js?v=862",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
   "/js/course-format.js?v=861",
@@ -198,12 +198,12 @@ const PRECACHE_URLS = [
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
   "/js/atlas-speech.js?v=1",
-  "/js/atlas-reader.js?v=23",
-  "/js/atlas-search.js?v=3",
+  "/js/atlas-reader.js?v=24",
+  "/js/atlas-search.js?v=4",
   "/js/atlas-words.js?v=3",
   "/js/atlas-train.js?v=7",
   "/js/atlas-train-ui.js?v=6",
-  "/css/atlas-reader.css?v=29",
+  "/css/atlas-reader.css?v=30",
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
   "/js/lexical-resolution-repository.js",
@@ -376,9 +376,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=861",
-  "/i18n/locales/en.js?v=861",
-  "/i18n/locales/he.js?v=861",
+  "/i18n/locales/ru.js?v=862",
+  "/i18n/locales/en.js?v=862",
+  "/i18n/locales/he.js?v=862",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

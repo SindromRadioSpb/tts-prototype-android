@@ -5731,3 +5731,5 @@ Object.assign(window.I18N_LOCALES.ru.course,{order:{card:"Заказ"}});
 window.I18N_LOCALES.ru.room.hub.atlas97001 = {title:"Инженерный атлас 97001",desc:"Основы механики: статика, движение, черчение и материаловедение — иврит и русский, по страницам книги"}; window.I18N_LOCALES.ru.atlas.bookName = "Инженерный атлас";
 
 window.I18N_LOCALES.ru.course.pilotCorpus = {"title": "Кафе B · текстовый пилот", "desc": "Отдельный экспериментальный курс: подготовка, кафе и повторы. Без аудио; прежний курс и прогресс сохранены."};
+
+window.I18N_LOCALES.ru.atlas.figureZoom = "Открыть рисунок в полном размере";

@@ -28,9 +28,13 @@ def main():
     reports = []
     term_path = HERE / 'terms-compiled.json'
     terms = json.loads(term_path.read_text(encoding='utf-8')) if term_path.exists() else []
-    # Pointed Hebrew uses defective spelling (כֹּחַ); compare consonants without
-    # vowel letters while retaining phrase boundaries and at most two prefixes.
-    term_patterns = [(t, re.compile(r'(^|[^א-ת])[בכלמהש]{0,2}' + re.escape(t['lemma_he'].replace('ו','').replace('י','')) + r'(?=$|[^א-ת])')) for t in terms]
+    # Match full and explicitly pointed spellings; stripping all vowel letters
+    # conflates unrelated words (e.g. vector/diameter and normal/normalization).
+    term_patterns = []
+    for t in terms:
+        forms = {t['lemma_he'], re.sub(r'[\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7]', '', t['niqqud'])}
+        alternatives = '|'.join(re.escape(x) for x in sorted(forms, key=len, reverse=True))
+        term_patterns.append((t, re.compile(r'(^|[^א-ת])(?:וה|וב|ול|בה|לה|ו|ב|ל|ה)?(?:' + alternatives + r')(?=$|[^א-ת])')))
     for section in book['sections']:
         rows = [{
             'type': 'header', 'schema': 'linguistpro.atlas-content-pack.1.0.0',
@@ -54,7 +58,7 @@ def main():
                 obj['ambiguity_note'] = b['editor_note_ru']
             if sid in number_refs:
                 obj['number_refs'] = number_refs[sid]
-            obj['terms'] = [t['id']+'#mechanics' for t, rx in term_patterns if rx.search(b['he'].replace('ו','').replace('י',''))]
+            obj['terms'] = [t['id']+'#mechanics' for t, rx in term_patterns if rx.search(b['he'])]
             rows.append(obj)
         used_terms = {tid.split('#')[0] for row in rows for tid in row.get('terms', [])}
         rows.extend(t for t in terms if t['id'] in used_terms)

@@ -392,6 +392,13 @@
     // (audit 2026-10-31: 689 formula notes).
     var PROC = /арифметическ\S* (?:шаг|действи|получени)|example|display|steps|Та же операция|не дублиру|напечатанн\S* (?:уравнени|равенств)|использовано напечатанн|Иллюстративн|сохран|восстановл|по изображени|извлеч|extraction|sourceID|bbox|PNG|исправлени|кандидат|заметк|вход вычислени|не подмен|буквальн|подстановк|пересчит|пересчёт|ядр|compute|редакц|фрагмент|обрез|(?:формул[аеы]|текст[аеу]?|строк[аеи]) выше|\b\d{3}f\d{2}\b|numerator|числового примера здесь нет|печатн\S* равенств|печатн\S* строк|печатн\S* итог|отдельно напечатанн|арифметически верн|равенство номиналов|ambiguity_note|не обоснован|не является исправленным|единицы по легенде|печатная зависимость|отождеств|не тождеств|тождествен|исходн|ячейк|\b[Bb]\d{3}\b|convention|столбец обозначений/i;
     function noteParts(text) {
+      var raw = String(text == null ? '' : text);
+      // Numerical source errata are learning content, even when their wording
+      // mentions the source or a correction. Never bury the corrected result.
+      if (!PIPE_NOTE.test(raw) && /ошиб|неверн|опечат|правильно|исправлен/i.test(raw) && /[0-9]/.test(raw)) {
+        var erratum = raw.replace(/[;,.]?\s*см\.\s*редакторск[^.]*\.?/gi, '').trim();
+        return { reader: erratum, editor: '' };
+      }
       var t = cleanMeta(text);
       if (!t) return { reader: '', editor: '' };
       if (PIPE_NOTE.test(t)) return { reader: '', editor: t };
@@ -451,7 +458,8 @@
     function renderFigure(T, fig, captionRow, page, forPrint) {
       if (isChipFigure(fig)) return renderChip(fig);
       if (labelsInTables(fig, page) || !translatesAnything(fig)) fig = Object.assign({}, fig, { regions: [] });
-      var box = h('div', { cls: 'atlas-figbox' }, [h('img', { src: fig.crop, alt: cleanMeta(fig.caption_ru) || fig.id, loading: 'lazy' })]);
+      var figureImage = h('img', { src: fig.crop, alt: cleanMeta(fig.caption_ru) || fig.id, loading: 'lazy' });
+      var box = h('div', { cls: 'atlas-figbox' }, [forPrint ? figureImage : h('a', { cls: 'atlas-figure-open', href: fig.crop, target: '_blank', rel: 'noopener', 'aria-label': T('atlas.figureZoom', 'Открыть рисунок в полном размере') }, [figureImage])]);
       var list = h('ol', { cls: 'atlas-regions' });
       var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
       var groups = [], byKey = {};

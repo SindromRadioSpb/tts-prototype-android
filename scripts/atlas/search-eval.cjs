@@ -14,8 +14,9 @@ ix.details = details.details || details;
 ix.full = S.unpackPhrases(
   JSON.parse(fs.readFileSync(path.join(dir, "search-phrases.json"))),
 );
+if (!/^a[0-9]{5}$/.test(ix.atlas_id)) throw Error("Invalid atlas ID");
 const gold = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "search-gold.a97002.json")),
+  fs.readFileSync(path.join(__dirname, "search-gold." + ix.atlas_id + ".json")),
 );
 if (gold.queries.some((g) => !g.expected.length))
   throw Error("Gold query has no expected source");

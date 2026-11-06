@@ -532,3 +532,6 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 .atlas-root .atlas-home-queue { display: grid; gap: 6px; justify-items: start; margin: 10px 0 14px; padding: 12px; border: 1px solid var(--atlas-line);
   border-radius: 14px; background: var(--atlas-surface); }
 .atlas-root .atlas-home-queue .atlas-chip:not(:disabled) { background: var(--atlas-teal); border-color: var(--atlas-teal); color: var(--atlas-on-teal); font-weight: 600; }
+
+.atlas-root .atlas-figure-open { display: block; cursor: zoom-in; }
+.atlas-root .atlas-figure-open:focus-visible { outline: 3px solid var(--atlas-scan-mark); outline-offset: 3px; }

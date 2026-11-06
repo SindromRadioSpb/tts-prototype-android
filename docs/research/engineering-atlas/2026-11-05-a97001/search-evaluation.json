@@ -1,0 +1,442 @@
+{
+  "summary": {
+    "exact": {
+      "count": 12,
+      "recall_at_5": 1,
+      "MRR": 0.9583333333333334
+    },
+    "fragment": {
+      "count": 3,
+      "recall_at_5": 1,
+      "MRR": 1
+    }
+  },
+  "misses": [],
+  "rows": [
+    {
+      "id": "spring-he",
+      "q": "קפיץ",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b001"
+        },
+        {
+          "kind": "block",
+          "page": 2,
+          "ref": "a97001:p2:b010"
+        },
+        {
+          "kind": "block",
+          "page": 12,
+          "ref": "a97001:p12:b010"
+        },
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b005"
+        },
+        {
+          "kind": "block",
+          "page": 28,
+          "ref": "a97001:p28:b005"
+        }
+      ]
+    },
+    {
+      "id": "spring-ru",
+      "q": "пружина",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b001"
+        },
+        {
+          "kind": "block",
+          "page": 2,
+          "ref": "a97001:p2:b010"
+        },
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b006"
+        },
+        {
+          "kind": "block",
+          "page": 12,
+          "ref": "a97001:p12:b010"
+        },
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b003"
+        }
+      ]
+    },
+    {
+      "id": "friction-he",
+      "q": "חיכוך",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 2,
+          "ref": "a97001:p2:b014"
+        },
+        {
+          "kind": "term",
+          "page": 57,
+          "ref": "a97001:p57:b005"
+        },
+        {
+          "kind": "figure",
+          "page": 57,
+          "ref": "a97001:p57:img01"
+        },
+        {
+          "kind": "figure",
+          "page": 59,
+          "ref": "a97001:p59:img01"
+        }
+      ]
+    },
+    {
+      "id": "friction-ru",
+      "q": "трение",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "term",
+          "page": 2,
+          "ref": "a97001:p2:b014"
+        },
+        {
+          "kind": "term",
+          "page": 57,
+          "ref": "a97001:p57:b005"
+        },
+        {
+          "kind": "block",
+          "page": 57,
+          "ref": "a97001:p57:b001"
+        },
+        {
+          "kind": "block",
+          "page": 2,
+          "ref": "a97001:p2:b014"
+        },
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b006"
+        }
+      ]
+    },
+    {
+      "id": "tension-he",
+      "q": "מבחן מתיחה",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97001:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b011"
+        }
+      ]
+    },
+    {
+      "id": "tension-ru",
+      "q": "испытание на растяжение",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97001:p124:b002"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b011"
+        },
+        {
+          "kind": "block",
+          "page": 126,
+          "ref": "a97001:p126:b009"
+        }
+      ]
+    },
+    {
+      "id": "hardness-he",
+      "q": "מבחן קשיות",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 130,
+          "ref": "a97001:p130:b001"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b012"
+        }
+      ]
+    },
+    {
+      "id": "hardness-ru",
+      "q": "испытание твёрдости",
+      "kind": "exact",
+      "rank": 2,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b012"
+        },
+        {
+          "kind": "block",
+          "page": 130,
+          "ref": "a97001:p130:b001"
+        },
+        {
+          "kind": "block",
+          "page": 179,
+          "ref": "a97001:p179:b002"
+        },
+        {
+          "kind": "block",
+          "page": 130,
+          "ref": "a97001:p130:b006"
+        },
+        {
+          "kind": "table",
+          "page": 199,
+          "ref": "a97001:p199:img02:t-properties-key"
+        }
+      ]
+    },
+    {
+      "id": "heat-he",
+      "q": "טפול תרמי",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 174,
+          "ref": "a97001:p174:b001"
+        },
+        {
+          "kind": "block",
+          "page": 201,
+          "ref": "a97001:p201:b001"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b021"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b023"
+        },
+        {
+          "kind": "block",
+          "page": 184,
+          "ref": "a97001:p184:b002"
+        }
+      ]
+    },
+    {
+      "id": "heat-ru",
+      "q": "термическая обработка",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 174,
+          "ref": "a97001:p174:b001"
+        },
+        {
+          "kind": "block",
+          "page": 201,
+          "ref": "a97001:p201:b001"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b021"
+        },
+        {
+          "kind": "block",
+          "page": 174,
+          "ref": "a97001:p174:b002"
+        },
+        {
+          "kind": "block",
+          "page": 184,
+          "ref": "a97001:p184:b002"
+        }
+      ]
+    },
+    {
+      "id": "composite-he",
+      "q": "חמרים מרכבים",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 203,
+          "ref": "a97001:p203:b001"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b024"
+        },
+        {
+          "kind": "block",
+          "page": 117,
+          "ref": "a97001:p117:b010"
+        },
+        {
+          "kind": "block",
+          "page": 203,
+          "ref": "a97001:p203:b004"
+        }
+      ]
+    },
+    {
+      "id": "composite-ru",
+      "q": "композиционные материалы",
+      "kind": "exact",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 203,
+          "ref": "a97001:p203:b001"
+        },
+        {
+          "kind": "block",
+          "page": 3,
+          "ref": "a97001:p3:b024"
+        },
+        {
+          "kind": "block",
+          "page": 117,
+          "ref": "a97001:p117:b007"
+        },
+        {
+          "kind": "block",
+          "page": 117,
+          "ref": "a97001:p117:b010"
+        }
+      ]
+    },
+    {
+      "id": "spring-fragment",
+      "q": "פוטנציאלית אלסטית",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 21,
+          "ref": "a97001:p21:b002"
+        },
+        {
+          "kind": "block",
+          "page": 142,
+          "ref": "a97001:p142:b004"
+        },
+        {
+          "kind": "block",
+          "page": 143,
+          "ref": "a97001:p143:b004"
+        },
+        {
+          "kind": "block",
+          "page": 124,
+          "ref": "a97001:p124:b008"
+        },
+        {
+          "kind": "block",
+          "page": 164,
+          "ref": "a97001:p164:b002"
+        }
+      ]
+    },
+    {
+      "id": "heat-fragment",
+      "q": "структура стали",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 174,
+          "ref": "a97001:p174:b002"
+        },
+        {
+          "kind": "block",
+          "page": 176,
+          "ref": "a97001:p176:b006"
+        },
+        {
+          "kind": "block",
+          "page": 177,
+          "ref": "a97001:p177:b002"
+        },
+        {
+          "kind": "block",
+          "page": 183,
+          "ref": "a97001:p183:b002"
+        },
+        {
+          "kind": "block",
+          "page": 178,
+          "ref": "a97001:p178:b003"
+        }
+      ]
+    },
+    {
+      "id": "composite-fragment",
+      "q": "волокнистым армированием",
+      "kind": "fragment",
+      "rank": 1,
+      "top5": [
+        {
+          "kind": "block",
+          "page": 203,
+          "ref": "a97001:p203:b002"
+        },
+        {
+          "kind": "block",
+          "page": 148,
+          "ref": "a97001:p148:b003"
+        }
+      ]
+    }
+  ]
+}
