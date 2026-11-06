@@ -207,8 +207,8 @@
     var g = r.glosses[k];
     // A versioned atlas layer must pass its current source contract before a
     // cached AI answer is shown. User corrections remain available independently.
-    if (!g.manual && tr && typeof tr.__lpAllowPreparedGloss === 'function' && !tr.__lpAllowPreparedGloss()) return null;
-    return { gloss: g.gloss, wrongHint: !!g.wrong_hint && !g.manual, mwe: m ? m.gloss : "", manual: !!g.manual, aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss, model: r.model || "", shared: !!r.shared, imported: !!r.imported };
+    if (g.manual !== true && tr && typeof tr.__lpAllowPreparedGloss === 'function' && !tr.__lpAllowPreparedGloss()) return null;
+    return { gloss: g.gloss, wrongHint: !!g.wrong_hint && g.manual !== true, mwe: m ? m.gloss : "", manual: g.manual === true, aiGloss: g.manual === true ? String(g.ai_gloss || "") : g.gloss, model: r.model || "", shared: !!r.shared, imported: !!r.imported };
   }
   // Ф4 «Словарь» — the same occurrence gloss read from a stored row (no table on screen).
   async function wordAtData(row, k) {
@@ -219,7 +219,7 @@
     if (!r || !r.glosses || !r.glosses[k]) return null;
     var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
     var g = r.glosses[k];
-    return { gloss: g.gloss, manual: !!g.manual, mwe: m ? m.gloss : "", aiGloss: g.manual ? String(g.ai_gloss || "") : g.gloss };
+    return { gloss: g.gloss, manual: g.manual === true, mwe: m ? m.gloss : "", aiGloss: g.manual === true ? String(g.ai_gloss || "") : g.gloss };
   }
   // Ф3в — a learner/owner correction of ONE occurrence (row + word). It is locked: no later request,
   // import or publication overwrites it; the original AI gloss is kept so the correction can be undone.
@@ -232,8 +232,8 @@
     if (!v || !v.glosses || !v.glosses[k]) return false;
     var g = v.glosses[k], val = String(text == null ? "" : text).replace(/\s+/g, " ").trim().slice(0, MAX_GLOSS);
     var next = Object.assign({}, v, { glosses: v.glosses.slice() });
-    if (val) next.glosses[k] = { gloss: val, wrong_hint: false, manual: true, ai_gloss: g.manual ? String(g.ai_gloss || "") : g.gloss, ai_wrong_hint: g.manual ? !!g.ai_wrong_hint : !!g.wrong_hint, at: Date.now() };
-    else if (g.manual) next.glosses[k] = { gloss: String(g.ai_gloss || ""), wrong_hint: !!g.ai_wrong_hint };
+    if (val) next.glosses[k] = { gloss: val, wrong_hint: false, manual: true, ai_gloss: g.manual === true ? String(g.ai_gloss || "") : g.gloss, ai_wrong_hint: g.manual === true ? !!g.ai_wrong_hint : !!g.wrong_hint, at: Date.now() };
+    else if (g.manual === true) next.glosses[k] = { gloss: String(g.ai_gloss || ""), wrong_hint: !!g.ai_wrong_hint };
     else return true;
     mem.set(p.storageKey, next);
     await idbPut([[p.storageKey, next]]);
@@ -482,7 +482,7 @@
   }
   function portableGloss(g) {
     var out = { gloss: g.gloss, wrong_hint: !!g.wrong_hint };
-    if (g.manual) { out.manual = true; out.ai_gloss = String(g.ai_gloss || "").slice(0, MAX_GLOSS); out.ai_wrong_hint = !!g.ai_wrong_hint; }
+    if (g.manual === true) { out.manual = true; out.ai_gloss = String(g.ai_gloss || "").slice(0, MAX_GLOSS); out.ai_wrong_hint = !!g.ai_wrong_hint; }
     return out;
   }
   async function portable(rows) {
@@ -516,7 +516,7 @@
     await hydratePayloads(todo.map(function (x) { return x.p; }));
     todo.forEach(function (x) {
       var mine = mem.get(x.p.storageKey);
-      if (mine && mine.glosses) mine.glosses.forEach(function (g, i) { if (g && g.manual && x.val.glosses[i]) x.val.glosses[i] = g; });
+      if (mine && mine.glosses) mine.glosses.forEach(function (g, i) { if (g && g.manual === true && x.val.glosses[i]) x.val.glosses[i] = g; });
       mem.set(x.p.storageKey, x.val); put.push([x.p.storageKey, x.val]);
     });
     await idbPut(put);

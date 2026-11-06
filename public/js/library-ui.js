@@ -13275,6 +13275,7 @@ function attachCourseWords(root, lesson) {
     getRowForCell: (_cell, row) => rows.get(row?.getAttribute('data-ref')) || null,
     // CourseReader owns presentation; preserve its full/new/tap/override result when wrapping.
     plainColumn: '__course_plain__',
+    vocalizedColumn: 'he',
     getPlainText: row => row?.he, getVocalizedText: row => row?.display,
     getSentence: row => row && (row.he_niqqud || row.he), getTextKey: () => null,
     shouldWrap: (_row, _cell, _col, value) => /[א-ת]/.test(String(value || '')),
@@ -13476,13 +13477,13 @@ function attachAtlasWords(atlasId, section, data, how) {
     return top;
   };
   const handle = attachReaderMorph(section, {
-    cellSelector: '.atlas-row[data-ref] > [data-col], .atlas-learning-row[data-ref] > [data-col]',
+    cellSelector: '.atlas-row[data-ref] > [data-col="he"], .atlas-row[data-ref] > [data-col="niqqud"], .atlas-learning-row[data-ref] > [data-col="he"], .atlas-learning-row[data-ref] > [data-col="niqqud"]',
     rowSelector: '.atlas-row[data-ref], .atlas-learning-row[data-ref]', rowIndexAttribute: 'data-ref', rovingFocus: true,
     getRowForCell: (_cell, row) => (row && ctx.items.get(row.getAttribute('data-ref'))) || null,
     getPlainText: item => item && item.he,
     getVocalizedText: item => item && item.he_niqqud,
     getSentence: item => item && (item.he_niqqud || item.he),
-    shouldWrap: (_item, _cell, _col, value) => /[א-ת]/.test(String(value || '')),
+    shouldWrap: (_item, _cell, col, value) => (col === 'he' || col === 'niqqud') && /[א-ת]/.test(String(value || '')),
     buildOccurrence: span => {
       const row = span.closest('.atlas-row[data-ref], .atlas-learning-row[data-ref]'), cell = span.closest('[data-col]');
       return row ? AW.occurrence(ctx, row.getAttribute('data-ref'), Number(span.getAttribute('data-w-offset')),
@@ -13525,8 +13526,7 @@ function attachAtlasWords(atlasId, section, data, how) {
           const expected = contract.describe(rows, AI), revision = await contract.revision(expected);
           const checked = contract.validate(layer, expected, { atlas: atlasId, section: data.id, revision, allowPartial: layer.coverage_mode === 'partial' });
           if (!checked.ok || ctx !== atlasWordsCtx) return null;
-          const uncertain = new Map();
-          checked.rows.forEach(row => row.glosses.forEach((g, i) => { if (g.uncertain) uncertain.set((row.row_id || row.block_id) + ':' + i, g.reason); }));
+          const uncertain = contract.uncertaintyMap(checked.rows);
           const remembered = await AI.remember(layer, rows);
           if (ctx !== atlasWordsCtx || remembered.rejected || remembered.stored !== checked.accepted) return null;
           ctx.contextLayerStatus = { producer: layer.provenance.producer, coverage_mode: checked.coverage_mode, source_revision: revision,
@@ -13615,18 +13615,22 @@ function atlasHomeQueue(atlasId, home) {
     const out = [];
     for (const it of items) {
       const sec = it.sid ? await atlasLoadSection(atlasId, it.sid) : null;
-      let sentence = '', from = null, to = null;
+      let sentence = '', sentenceParts = null, from = null, to = null;
       if (sec && AW && RM) {
         const ctx = AW.sectionContext(atlasId, sec, RM);
         if (typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(sec.terms, atlasMyTerms(atlasId), it.sid));
         const block = ctx.items.get(it.block);
         if (block) {
           sentence = RM.words(String(block.he || '')).join(' ');
+          if (atlasId === 'a97001') {
+            sentence = String(block.he || '');
+            sentenceParts = RM.tokenize(sentence).map(part => ({ text: part.text, word: part.isWord }));
+          }
           const sp = ((ctx.located(it.block) || {}).he || { spans: [] }).spans.find((x) => x.id === it.termId && x.sense === it.sense);
           if (sp) { from = sp.from; to = sp.to; }
         }
       }
-      out.push(Object.assign({}, it, { sentence, from, to }));
+      out.push(Object.assign({}, it, { sentence, from, to }, sentenceParts ? { sentenceParts } : {}));
     }
     return out;
   }
@@ -13798,7 +13802,9 @@ function atlasSectionTermsBlock(section, data, ctx, ui) {
     const plainWords = RM.words(String(block.he || '')), pointed = block.he_niqqud ? RM.words(String(block.he_niqqud)) : [];
     const stage3 = atlasStageOf(sid, atlasId) === 3, usePointed = !stage3 && pointed.length === plainWords.length && pointed.length;
     const m = /:p(\d+):/.exec(String(it.block));
-    return Object.assign({}, it, { sentence: (usePointed ? pointed : plainWords).join(' '), page: m ? Number(m[1]) : null });
+    const sentence = atlasId === 'a97001' ? String(usePointed ? block.he_niqqud : block.he || '') : (usePointed ? pointed : plainWords).join(' ');
+    return Object.assign({}, it, { sentence, page: m ? Number(m[1]) : null }, atlasId === 'a97001'
+      ? { sentenceParts: RM.tokenize(sentence).map(part => ({ text: part.text, word: part.isWord })) } : {});
   }
   function sourceOf(it) {
     if (it.from == null) return null;

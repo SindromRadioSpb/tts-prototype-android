@@ -28,6 +28,52 @@ test('partial is explicit and cannot claim completeness; uncertain gloss require
  const partial=await check(layer,{allowPartial:true});assert.equal(partial.ok,true);assert.equal(partial.complete,false);assert.equal(partial.missing.length,1);
  layer.rows[0].glosses[0]={gloss:'?',uncertain:true,reason:'Плохо читается источник'};assert.equal((await check(layer,{allowPartial:true})).ok,true);
 });
+
+test('prepared input cannot promote a malformed manual flag, including on MWEs',async()=>{
+ for(const value of [true,'true','false',1,{},null]){
+  let layer=await answer();layer.rows[0].glosses[0].manual=value;assert.equal((await check(layer)).ok,false);
+  layer=await answer();layer.rows[0].mwe=[{from:0,to:1,gloss:'сочетание',manual:value}];assert.equal((await check(layer)).ok,false);
+ }
+});
+test('uncertain MWE requires a typed reason and reaches every covered word without hiding word uncertainty',async()=>{
+ const layer=await answer();layer.rows[0].mwe=[{from:0,to:1,gloss:'сочетание',uncertain:true}];
+ assert.equal((await check(layer)).ok,false);
+ layer.rows[0].mwe[0].reason='причина для выражения';layer.rows[0].glosses[0]={gloss:'слово',uncertain:true,reason:'причина для слова'};
+ assert.equal((await check(layer)).ok,true);
+ const notes=C.uncertaintyMap(layer.rows),id=layer.rows[0].row_id;
+ assert(notes.get(id+':0').includes('причина для слова'));assert(notes.get(id+':0').includes('причина для выражения'));
+ assert.equal(notes.get(id+':1'),'причина для выражения');
+ for(const bad of ['true',1]){layer.rows[0].mwe[0].uncertain=bad;assert.equal((await check(layer)).ok,false);}
+});
+test('source/niqqud drift cannot be described as complete; reviewed orthography keeps its word order',()=>{
+ const changed=copy(section);changed.pages[0].items[0].he_niqqud='כוח';
+ assert.throws(()=>C.describe(AW.glossRows(AW.sectionContext('a97001',changed,window.ReaderMorph)),AI),/alignment mismatch/);
+ changed.pages[0].items[0].he_niqqud='מסה מסה';
+ assert.throws(()=>C.describe(AW.glossRows(AW.sectionContext('a97001',changed,window.ReaderMorph)),AI),/alignment mismatch/);
+ changed.pages[0].items[0].he='חוקים';changed.pages[0].items[0].he_niqqud='חֻקִּים';
+ assert.equal(C.describe(AW.glossRows(AW.sectionContext('a97001',changed,window.ReaderMorph)),AI)[0].words.length,1);
+});
+
+test('a string manual flag in imported or cached data cannot bypass the prepared-layer gate',async()=>{
+ AI._mem.clear();const {ctx,rows}=setup(),el=document.createElement('div');el.setAttribute('data-ref',rows[0].id);el.innerHTML='<span data-col="he">'+window.ReaderMorph.wrapCellHtml(rows[0].he,null,{})+'</span>';AW.bindGlossRow(el,ctx);
+ const layer=await answer();layer.rows[0].glosses[0].manual='true';await AI.remember(layer,rows);ctx.contextLayerStatus=null;
+ assert.equal(AI.wordAt(el,0),null);
+ const cached=AI._mem.get(AI.rowPayload(el).storageKey);cached.glosses[0].manual='true';assert.equal(AI.wordAt(el,0),null);
+ await AI.setOccurrenceGloss(el,0,'настоящая ручная правка');assert.equal(AI.wordAt(el,0).manual,true);assert.equal(AI.wordAt(el,0).gloss,'настоящая ручная правка');AI._mem.clear();
+});
+
+test('actual atlas card top displays MWE uncertainty at each covered word',async()=>{
+ AI._mem.clear();const fs=require('node:fs'),vm=require('node:vm'),src=fs.readFileSync(require.resolve('../public/js/library-ui.js'),'utf8'),a=src.indexOf('function attachAtlasWords('),code=src.slice(a,src.indexOf('// P5 G1',a));
+ const layer=await answer();layer.rows[0].mwe=[{from:0,to:1,gloss:'сочетание',uncertain:true,reason:'причина неопределённости выражения'}];
+ const dom=R.renderSection((_k,f)=>f,section,{});document.body.append(dom);let options;
+ const env={window,document,Map,Set,console,encodeURIComponent,atlasWordsCtx:null,atlasWordsSection:null,tt:(_k,f)=>f,attachReaderMorph:(_dom,opts)=>{options=opts;return{};},attachAtlasTrain:()=>({glossLoaded(){}}),paintAtlasWords(){},fetch:async()=>({ok:true,json:async()=>layer})};
+ window.AtlasWords=AW;window.AtlasContextContract=C;
+ vm.createContext(env);vm.runInContext(code+';globalThis.testAttach=attachAtlasWords;',env);env.testAttach('a97001',dom,section,{});
+ for(let n=0;n<20&&!env.atlasWordsCtx.contextLayerStatus;n++)await new Promise(r=>setTimeout(r,5));
+ assert(env.atlasWordsCtx.contextLayerStatus);
+ for(const i of [0,1]){const top=options.cardTop(AW.occurrence(env.atlasWordsCtx,layer.rows[0].row_id,i,'כוח','he'));assert(top.lines.includes('причина неопределённости выражения'));}
+ dom.remove();AI._mem.clear();
+});
 test('source limits and editor evidence participate in revision; old text keys stay stable',async()=>{
  const {rows,expected}=setup(),altered=copy(section);altered.pages[0].source_limits[0].scope='Другое ограничение';
  const next=C.describe(AW.glossRows(AW.sectionContext('a97001',altered,window.ReaderMorph)),AI);
@@ -42,7 +88,7 @@ test('CLI rejects corrupt layer without writing and accepts an explicit valid su
   fs.writeFileSync(path.join(dir,'sections',section.id+'.json'),JSON.stringify(section));
   const dest=path.join(dir,'context-ai',section.id+'.json'),input=path.join(dir,'answers',section.id+'.json');
   function run(extra=[]){return spawnSync(process.execPath,['scripts/atlas/import-context.cjs','--data='+dir,'--answers='+path.join(dir,'answers'),...extra],{encoding:'utf8'});}
-  for(const mutate of [l=>l.rows.push(copy(l.rows[0])),l=>l.rows.pop(),l=>l.rows[0].glosses[0].gloss='כוח',l=>l.rows[0].mwe=[{from:0,to:1,gloss:''}]]){
+  for(const mutate of [l=>l.rows.push(copy(l.rows[0])),l=>l.rows.pop(),l=>l.rows[0].glosses[0].gloss='כוח',l=>l.rows[0].mwe=[{from:0,to:1,gloss:''}],l=>l.rows[0].glosses[0].manual='true',l=>l.rows[0].mwe=[{from:0,to:1,gloss:'сочетание',uncertain:true}]]){
    const layer=await answer();mutate(layer);fs.writeFileSync(input,JSON.stringify(layer));const result=run();assert.notEqual(result.status,0,result.stdout+result.stderr);assert.equal(fs.existsSync(dest),false);
   }
   const partial=await answer();partial.coverage_mode='partial';partial.rows.pop();fs.writeFileSync(input,JSON.stringify(partial));assert.notEqual(run().status,0);

@@ -75,11 +75,12 @@ link(35,next(f for f in pages[35][1]['figures'] if f['id']=='a97001:p35:img01'),
 for slug,sense,ru,definition,places in [
  ('reaction','interaction','сила реакции; противодействие','В третьем законе Ньютона силы взаимодействия равны по модулю, противоположны и приложены к разным телам; это не только реакция опоры.',[(7,'b009'),(7,'b010')]),
  ('moment','area-static','статический момент площади','Sx=ΣAi·yi, Sy=ΣAi·xi; размерность длины в кубе. Это не момент силы.',[(50,'b006')]),
- ('equilibrium','thermodynamics','термодинамическое равновесие','Равновесие фаз/структуры при заданных термодинамических условиях; не баланс сил и моментов.',[(120,'b002'),(166,'b004'),(201,'b003')])]:
+  ('equilibrium','thermodynamics','термодинамическое равновесие','Равновесие фаз/структуры при заданных термодинамических условиях; не баланс сил и моментов.',[(120,'b002'),(166,'b004'),(172,'b001'),(201,'b003')])]:
  tid='a97001:term:'+slug
  if not any(x['sense']==sense for x in terms[tid]['senses']):terms[tid]['senses'].append({'sense':sense,'ru':ru,'context':definition})
  for page,suf in places:
   obj=next(i for i in pages[page][1]['items'] if i['id']==f'a97001:p{page}:{suf}');obj['terms']=[r for r in obj.get('terms',[]) if r!=tid+'#mechanics'];link(page,obj,tid,sense)
+link(28,next(i for i in pages[28][1]['items'] if i['id']=='a97001:p28:b011'),'a97001:term:equilibrium','mechanics')
 
 # Weight is not independently present in the compound "equilibrium"; dissolution is not mass.
 aliases={
@@ -116,9 +117,12 @@ for s in sections.values():
  for p in s['pages']:
   for obj in p['items']:
    refs=list(obj.get('terms',[]));he=obj.get('he','')
-   without_equilibrium=re.sub(r'(?:שווי|שיווי)[־\s]+משקל','',he)
+   without_equilibrium=re.sub(r'(?:שווי|שיווי)[־\s]+ה?משקל','',strip(he))
    if 'a97001:term:weight#mechanics' in refs and not re.search('משקל',without_equilibrium):refs.remove('a97001:term:weight#mechanics')
-   if p['page']==201 and obj['id'].endswith(':b003'):refs=[r for r in refs if r!='a97001:term:mass#mechanics']
+   # Explicitly reviewed dissolution/solubility contexts, not physical mass.
+   if (p['page']==201 and obj['id'].endswith(':b003')) or obj['id'] in {
+    'a97001:p167:b003','a97001:p167:b005','a97001:p167:b008'}:
+    refs=[r for r in refs if r!='a97001:term:mass#mechanics']
    if refs!=obj.get('terms',[]):obj['terms']=refs;changed_objects[(s['id'],p['page'],'items',obj['id'])]=obj
 
 for (sid,page,collection,oid),obj in changed_objects.items():setfields(sid,page,collection,oid,{'cells':obj['cells']} if collection=='tables' else {'terms':obj.get('terms',[])})

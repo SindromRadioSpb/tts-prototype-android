@@ -1,0 +1,83 @@
+{
+  "base_commit": "82328f3327a0fd80be539b8efd03969170d96ad6",
+  "candidate_version": "3.11.866",
+  "production_published": false,
+  "release_blocker": "O-153: 2.49 GiB free < 6 GiB required; cleanup forbidden by latest user instruction",
+  "findings": [
+    {
+      "id": "N01",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "N02",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "N03",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "N05",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "A01",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "A02",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "A03",
+      "verdict": "confirmed",
+      "status": "fixed_local_pending_publication"
+    },
+    {
+      "id": "N04",
+      "status": "confirmed_fixes_applied_advisories_open",
+      "fixed": [
+        "L01",
+        "L02",
+        "L03",
+        "L05-energy"
+      ],
+      "open_specialist_review": [
+        "L04-chamfer",
+        "L05-electron",
+        "L05-alclad",
+        "L05-powder-metallurgy"
+      ],
+      "scientific_correctness_not_claimed_for_all_niqqud": true
+    }
+  ],
+  "original_criteria": "R01-R09 retained and rechecked by verify-candidate.cjs; R05 final content deferred",
+  "source_limits_open": [
+    "R157-F02",
+    "R157-F03",
+    "R157-F04",
+    "R160-F01",
+    "R160-F04",
+    "R160-F05",
+    "R160-F06",
+    "R160-F07",
+    "R160-F11",
+    "R160-F12",
+    "R160-F15",
+    "R160-F18",
+    "P159-01",
+    "P159-05",
+    "P159-07",
+    "p170-F1",
+    "p170-F2",
+    "p170-F3",
+    "M101-030",
+    "MATH-LATE-002"
+  ]
+}

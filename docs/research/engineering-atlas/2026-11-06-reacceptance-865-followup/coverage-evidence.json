@@ -1,0 +1,188 @@
+[
+  {
+    "section": "s01-units",
+    "page": 4,
+    "ref": "a97001:p4:t-base-units",
+    "cell": {
+      "row": 4,
+      "col": 0
+    },
+    "source_he": "זרם חשמלי",
+    "term": "a97001:term:electric-current#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 4,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s01-units",
+    "page": 4,
+    "ref": "a97001:p4:t-base-units",
+    "cell": {
+      "row": 6,
+      "col": 0
+    },
+    "source_he": "כמות חומר",
+    "term": "a97001:term:amount-of-substance#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 4,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s01-units",
+    "page": 4,
+    "ref": "a97001:p4:t-base-units",
+    "cell": {
+      "row": 7,
+      "col": 0
+    },
+    "source_he": "עוצמת הארה",
+    "term": "a97001:term:luminous-intensity#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 4,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s01-units",
+    "page": 5,
+    "ref": "a97001:p5:t-derived-units",
+    "cell": {
+      "row": 10,
+      "col": 0
+    },
+    "source_he": "מהירות סיבובית",
+    "term": "a97001:term:rotation-frequency#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 5,
+    "decision": "linked_existing"
+  },
+  {
+    "section": "s14-industrial-symbols",
+    "page": 113,
+    "ref": "a97001:p113:t-geometric-symbols",
+    "cell": {
+      "row": 1,
+      "col": 1
+    },
+    "source_he": "ישרות",
+    "term": "a97001:term:straightness#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 113,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s14-industrial-symbols",
+    "page": 113,
+    "ref": "a97001:p113:t-geometric-symbols",
+    "cell": {
+      "row": 7,
+      "col": 1
+    },
+    "source_he": "סימטריות",
+    "term": "a97001:term:geometric-symmetry#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 113,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s14-industrial-symbols",
+    "page": 113,
+    "ref": "a97001:p113:t-geometric-symbols",
+    "cell": {
+      "row": 9,
+      "col": 1
+    },
+    "source_he": "חריגות",
+    "term": "a97001:term:circular-runout#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 113,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s15-materials-basics",
+    "page": 122,
+    "ref": "a97001:p122:b004",
+    "cell": null,
+    "source_he": "מסה — גדל פיזיקלי המתאר את כמות החמר הנמצאת בגוף מסים. כמות זו נותרת קבועה כל עוד לא מוסיפים או גורעים חמר. צפיפות — היחס בין מסת החמר ליחידת הנפח שלו.",
+    "term": "a97001:term:density#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 122,
+    "decision": "linked_existing"
+  },
+  {
+    "section": "s16-mechanical-properties",
+    "page": 141,
+    "ref": "a97001:p141:b002",
+    "cell": null,
+    "source_he": "מבחן נגיפה (בדיקת פגיעה) הוא תהליך מבחן המשמש לקביעת התנהגותם של חמרים כאשר הם נתונים לכח או לפגיעה פתאומית. המבחן מאפשר להעריך את הקשיחות, החזק והעמידות של חמרים בתנאי עמס פתאומיים או דינמיים (צפידות). זה עוזר לבחירת חמרים שיפעלו בצורה מהימנה ובטוחה בסביבות ספציפיות או בתנאים תפעוליים מסימים.",
+    "term": "a97001:term:material-toughness#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 141,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s17-steels",
+    "page": 166,
+    "ref": "a97001:p166:b004",
+    "cell": null,
+    "source_he": "פאזה — רכיב הומוגני המתאפין בתכונות כימיות ופיזיקליות. לחמר במצב מוצק יכולות להיות מספר פאזות שונות בהתאם לטמפרטורה, ללחץ ולהרכב הכימי. דיאגרמת פאזות מתארת את מבנה החמר כתלות ברכוז היסודות, בטמפרטורה ובלחץ בתנאי שווי משקל תרמודינמי. מבחינה טכנית הדבר אפשרי בתהליכים אטיים מאד. לכן דיאגרמת פאזות שווי־משקלית מתארת תהליכים הפיכים. תמסה מוצקה היא תערבת הומוגנית בין מומס וממס בפאזה מוצקה. דיאגרמת פאזות זו מתארת את מצבה המיקרוסקופי של מערכת מבחינת המבנה.",
+    "term": "a97001:term:solid-solution#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 166,
+    "decision": "linked_existing"
+  },
+  {
+    "section": "s17-steels",
+    "page": 167,
+    "ref": "a97001:p167:b003",
+    "cell": null,
+    "source_he": "תמסה מוצקה של ברזל–פחמן בעלת גרעינים מעגלים בצבע אחיד, במבנה BCC, יציבה עד 910°C, בכשר המסה עד 0.022% פחמן.",
+    "term": "a97001:term:bcc#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 167,
+    "decision": "linked_existing"
+  },
+  {
+    "section": "s17-steels",
+    "page": 172,
+    "ref": "a97001:p172:b001",
+    "cell": null,
+    "source_he": "התגבשות ראשונית פרושה מעבר המתכת ממצב נוזלי למוצק. התגבשות משנית, אלוטרופיה (ביונית — אלוטרופ — ״בצורה שונה״): כתלות בטמפרטורה ובלחץ יכולות מתכות להתגבש בצורות שונות, יותר מצורה גבישית אחת. פלדה/ברזל משנה את מבנהו הגבישי עם הטמפרטורה, לדגמה ממבנה BCC ל־FCC. מאפיני קוים בדיאגרמת שווי המשקל ברזל–פחמן:",
+    "term": "a97001:term:fcc#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 172,
+    "decision": "linked_existing"
+  },
+  {
+    "section": "s17-steels",
+    "page": 168,
+    "ref": "a97001:p168:b004",
+    "cell": null,
+    "source_he": "פרליט. ביניט.",
+    "term": "a97001:term:bainite#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 168,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s17-steels",
+    "page": 168,
+    "ref": "a97001:p168:b005",
+    "cell": null,
+    "source_he": "לדבוריט — מבנה אוטקטי של אוסטניט וצמנטיט, המכיל 4.3% פחמן ונוצר בטמפרטורה של 1147°C.",
+    "term": "a97001:term:ledeburite#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 168,
+    "decision": "added_source_concept"
+  },
+  {
+    "section": "s17-steels",
+    "page": 174,
+    "ref": "a97001:p174:b008",
+    "cell": null,
+    "source_he": "מהירות קריטית — מהירות הקרור המינימלית הגורמת להוצרות מבנה מרטנסיט בלבד. המטרה היא להשיג מהירות קרור העולה על המהירות הקריטית ומבטיחה מבנה מרטנסיטי משלם.",
+    "term": "a97001:term:critical-cooling-rate#technical",
+    "verdict": "confirmed",
+    "source_pdf_page": 174,
+    "decision": "added_source_concept"
+  }
+]

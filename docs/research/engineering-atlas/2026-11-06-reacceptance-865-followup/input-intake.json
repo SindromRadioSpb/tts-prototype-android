@@ -1,0 +1,26 @@
+{
+  "source": "parent delegation, seven text parts received",
+  "audited_version": "3.11.865",
+  "audited_commit": "82328f3327a0fd80be539b8efd03969170d96ad6",
+  "reported_zip": {
+    "library_file_id": "libfile_ab9bb0ed198c8191aecbd29ada6dd92a",
+    "size": 278857,
+    "files": 30,
+    "sha256": "6271e2f899aad4a6f5bc80ae94b2db7c2e1428299609906b1d672e230cec0a9e",
+    "local_materialization": false,
+    "byte_checks_performed_here": false
+  },
+  "complete_working_criteria": [
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "A01",
+    "A02",
+    "A03"
+  ],
+  "final_ai_content_deferred": true,
+  "source_limits_open": 20,
+  "production_changed_by_followup": false
+}

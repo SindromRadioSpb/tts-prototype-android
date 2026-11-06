@@ -56,7 +56,7 @@ function buildTermsIndex(sections, atlasId) {
     Object.keys(s.terms || {}).forEach((id) => {
       const t = s.terms[id];
       const out = terms[id] || (terms[id] = { lemma_he: t.lemma_he || "", niqqud: t.niqqud || "", translit: t.translit || "", translit_ru: t.translit_ru || "",
-        senses: [], sections: [], places: {} });
+        senses: [], sections: [], places: {}, ...(t.study_note ? {study_note:t.study_note} : {}) });
       if (!out.sections.includes(s.id)) out.sections.push(s.id);
       (t.senses || []).forEach((sn) => { if (sn && sn.sense && !out.senses.some((x) => x.sense === sn.sense)) out.senses.push({ sense: sn.sense, ru: sn.ru || "" }); });
     });

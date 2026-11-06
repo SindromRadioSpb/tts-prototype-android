@@ -168,6 +168,14 @@
     function close() { if (typeof opts.onClose === "function") opts.onClose(); }
     el.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
     function sentenceHtml(it) {
+      if (Array.isArray(it.sentenceParts)) {
+        var offset = -1;
+        return it.sentenceParts.map(function (part) {
+          if (part.word) offset++;
+          var text = esc(part.text);
+          return part.word && it.from != null && offset >= it.from && offset <= it.to ? '<mark>' + text + '</mark>' : text;
+        }).join('');
+      }
       var words = String(it.sentence || "").split(/\s+/).filter(Boolean);
       return words.map(function (w, i) {
         var t = esc(w);
@@ -192,6 +200,7 @@
       if (cur.sentence) { var sn = h(doc, "p", { cls: "atlas-ts-sentence", dir: "rtl", lang: "he" }); sn.innerHTML = sentenceHtml(cur); card.appendChild(sn); }
       var answer = h(doc, "div", { cls: "atlas-ts-answer", hidden: true }, [
         h(doc, "p", { cls: "atlas-ts-ru", text: cur.ru }),
+        cur.studyNote ? h(doc, "p", { cls: "atlas-train-note", text: cur.studyNote }) : null,
         cur.translit ? h(doc, "p", { cls: "atlas-ts-translit", dir: "ltr", text: (opts.plainHebrew ? cur.title + " · " : "") + cur.translit }) : null]);
       card.appendChild(answer);
       var err = h(doc, "p", { cls: "atlas-train-note atlas-ts-error", role: "alert", hidden: true, text: T("atlas.train.saveError", "Ответ не сохранился — попробуйте ещё раз.") });

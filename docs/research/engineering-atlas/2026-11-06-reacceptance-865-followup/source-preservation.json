@@ -1,0 +1,139 @@
+{
+  "base_commit": "82328f3327a0fd80be539b8efd03969170d96ad6",
+  "baseline_archive_sha256": "713eda9aafec247319a5bd6c3f8793060e0f26701b6208628bf97262c9bb8f81",
+  "sections": [
+    {
+      "section": "s00-front",
+      "pages": 3,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "f922f23782aa41a2832e09572e535fc2e9a49569d9429c1938b2e2da04fb06a1"
+    },
+    {
+      "section": "s01-units",
+      "pages": 2,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "119eb85502cbc1f3ec4560d92da57551cd087197e7624bda2759707287f0c000"
+    },
+    {
+      "section": "s02-statics-basics",
+      "pages": 9,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "54b8c55bac804e1586a3f4c44e27f2cf6e400bd6d821cf396b015bb9335a92fe"
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "pages": 9,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "296bc1ae0fe8eaec44a0ec19c2f176d2ca4882171aaab25ba2dace0c6503d250"
+    },
+    {
+      "section": "s04-parallel-forces",
+      "pages": 10,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "3844ba179ccabbd81595bdece39dc2fdf694aa56ea7457adc61f17bd11a6f32a"
+    },
+    {
+      "section": "s05-planar-forces",
+      "pages": 6,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "4bf296c50f27968adba8a3535dfce7bcab701343792acf1789222d0df11d616d"
+    },
+    {
+      "section": "s06-trusses",
+      "pages": 10,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "20bc235d7cf89dbd08e869e606dd28a1a325704314e9587eb3b54b90e57aa73a"
+    },
+    {
+      "section": "s07-centroid",
+      "pages": 7,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "57625c72c75c91679b5c09726dadb96adea75c9a666eba5997b77a7f62f4a2cd"
+    },
+    {
+      "section": "s08-friction",
+      "pages": 10,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "6188617c4889a6972195f9e2b5f3bc94109dc20816843b05391bff63a3708d8d"
+    },
+    {
+      "section": "s09-linear-motion",
+      "pages": 15,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "4254ca8477c6fb59c78ca298ff1070785126de6b33264c4b8bca0b64d6e39391"
+    },
+    {
+      "section": "s10-projectile-motion",
+      "pages": 8,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "c7da2cc980debcb52fc92caef16d5c1b2a0954b8f8fc4d14288a954b2c7db880"
+    },
+    {
+      "section": "s11-circular-motion",
+      "pages": 4,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "4cf23d288916d68b17f5392ff11dc65fac63022301e55779ef7004bb5f1ab67f"
+    },
+    {
+      "section": "s12-sections",
+      "pages": 6,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "5ac76d379f415883524608a14a661d28d36191b9ba7e8d1b68c503a9d590825d"
+    },
+    {
+      "section": "s13-dimensions",
+      "pages": 9,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "2cd17a2f5d48bbc124e53dbed13078e7415b3e188ddc1677f535e162d322b6b3"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "pages": 6,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "e411abe07653e5b96f9a6954792e85d3dd64675cbe9bba8b0c15907747f24cfe"
+    },
+    {
+      "section": "s15-materials-basics",
+      "pages": 9,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "e84d3c88ac71089e07fc32e6a884da2682a8cdff9cedcecbc1c73fdaaa1831d0"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "pages": 30,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "e7d5a5438183a342c47ef410ec8b883661f52ec882ae2b5adbf4741b70dc8539"
+    },
+    {
+      "section": "s17-steels",
+      "pages": 38,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "96dfe3db7d84bee92e13a8c362cc32180f48f295a00f54331c2d147641b894d2"
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "pages": 2,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "4dc366fd5239cb527cae8a4e2a48ddb358eb4d9321784785582535d9c924b06d"
+    },
+    {
+      "section": "s19-aluminium",
+      "pages": 9,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "d3d1360d15d72f62b4ad685b0b793192e03e30cdff07b0a3c12cedeb1abcac3e"
+    },
+    {
+      "section": "s20-composites",
+      "pages": 1,
+      "all_page_fields_unchanged_except_term_refs": true,
+      "sha256": "c76f79d0634961da5f955603ffab7687d2c7694ce366dc082df4ee2297634fc0"
+    }
+  ],
+  "pages": 203,
+  "source_text_and_notes_preserved": true,
+  "source_limits_open": 20,
+  "old_global_cards_retained": 230,
+  "new_global_cards": 240,
+  "original_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+  "original_pdf_matches_initial_zip": true
+}

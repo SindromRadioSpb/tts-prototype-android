@@ -199,7 +199,7 @@
       seen[k] = true;
       out.push({ key: k, termId: id, sense: sense, title: term.niqqud || term.lemma_he || "", plain: term.lemma_he || "",
         translit: term.translit || "", translit_ru: term.translit_ru || "", ru: sn.ru, personal: !!term.personal,
-        block: block, from: from, to: to });
+        block: block, from: from, to: to, ...(term.study_note ? { studyNote: term.study_note } : {}) });
     }
     ctx.items.forEach(function (it, id) {
       var loc = ctx.located(id);
@@ -245,7 +245,7 @@
         : t.personal ? { sid: t.sid, block: t.block } : ((t.places || {})[k.sense] || {});
       var pm = /:p(\d+):/.exec(String(place.block || ""));
       out.push({ key: key, due: Number(st.due), termId: k.termId, sense: k.sense, title: t.niqqud || t.lemma_he || "", plain: t.lemma_he || "",
-        translit: t.translit || "", translit_ru: t.translit_ru || "", ru: sn.ru, personal: !!t.personal,
+        translit: t.translit || "", translit_ru: t.translit_ru || "", ru: sn.ru, personal: !!t.personal, ...(t.study_note ? { studyNote: t.study_note } : {}),
         sid: place.sid || "", block: place.block || "", page: pm ? Number(pm[1]) : (place.page || null) });
     });
     out.sort(function (a, b) { return a.due - b.due; });

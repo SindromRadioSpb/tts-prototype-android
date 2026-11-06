@@ -73,7 +73,7 @@ async function main() {
     (data.pages || []).forEach((p) => (p.items || []).forEach((it) => pageOf.set(String(it.id), p.page)));
     const lines = [];
     let words = 0;
-    const sourceRows = AW.glossRows(ctx), expected = Contract.describe(sourceRows, AI);
+    const sourceRows = AW.glossRows(ctx), expected = manifest.atlas==='a97001' ? Contract.describe(sourceRows, AI) : [];
     for (const row of sourceRows) {
       const p = AI.rowPayloadFromData(row);
       if (!p) continue;

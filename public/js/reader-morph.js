@@ -1666,13 +1666,16 @@
     var cells = mount.querySelectorAll(cellSelector);
     for (var i = 0; i < cells.length; i++) {
       var td = cells[i];
+      // Only the explicitly configured Hebrew columns may be rewritten. A
+      // broad host selector must never turn translations into vocalized Hebrew.
+      var col = td.getAttribute("data-col");
+      if (col !== (opts.plainColumn || "he") && col !== (opts.vocalizedColumn || "niqqud")) continue;
       if (td.getAttribute(WRAP_FLAG)) continue;
       var tr = td.closest(opts.rowSelector || "tr[data-row-idx]");
       var rowIdx = tr ? Number(tr.getAttribute(opts.rowIndexAttribute || "data-row-idx")) : NaN;
       var row = typeof opts.getRowForCell === "function" ? opts.getRowForCell(td, tr) :
         ((typeof getRow === "function" && Number.isFinite(rowIdx)) ? getRow(rowIdx) : null);
       if (!row) continue;
-      var col = td.getAttribute("data-col");
       var plain = typeof opts.getPlainText === "function" ? opts.getPlainText(row) : row.he;
       var vocalized = typeof opts.getVocalizedText === "function" ? opts.getVocalizedText(row) : row.he_niqqud;
       var value = col === (opts.plainColumn || "he") ? String(plain || "") : String(vocalized || "");

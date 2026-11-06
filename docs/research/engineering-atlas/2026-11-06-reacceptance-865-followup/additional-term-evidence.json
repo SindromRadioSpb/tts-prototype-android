@@ -1,0 +1,343 @@
+[
+  {
+    "id": "a97001:p137:b008",
+    "source_he": "בשל מהירות וקלות השמוש, השיטה הפכה לבחירה פופולרית עבור בקרת איכות בתהליכי יצור.",
+    "source_ru": "Быстрота и удобство сделали метод распространённым средством производственного контроля качества.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 137
+  },
+  {
+    "id": "a97001:p149:b004",
+    "source_he": "זחילה ראשונית: מעות פלסטי ראשוני הגדל במהירות ולבסוף מתיצב בקצב השנוי שלו. זחילה משנית: מעות פלסטי בקצב קבוע. זחילה שלישונית: קצב מעות גבוה, עליה חדה בדפורמציה הפלסטית ולבסוף שבירה.",
+    "source_ru": "Первичная стадия: скорость ползучести постепенно уменьшается. Вторичная: деформация накапливается с приблизительно постоянной скоростью. Третичная: скорость возрастает вследствие развития повреждений и локализации деформации, затем происходит разрушение.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 149
+  },
+  {
+    "id": "a97001:p174:b008",
+    "source_he": "מהירות קריטית — מהירות הקרור המינימלית הגורמת להוצרות מבנה מרטנסיט בלבד. המטרה היא להשיג מהירות קרור העולה על המהירות הקריטית ומבטיחה מבנה מרטנסיטי משלם.",
+    "source_ru": "Критическая скорость охлаждения здесь определяется как минимальная скорость, обеспечивающая мартенситную структуру. Цель закалки — охлаждение быстрее этой границы для подавления конкурирующих превращений.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 174
+  },
+  {
+    "id": "a97001:p174:b009",
+    "source_he": "מהירות הקרור תלויה בעצמת הצנון ובגדל החלק המטפל. עצמת הצנון היא תכונה של סביבת הקרור ותלויה בסוג הסביבה, בטמפרטורה שלה ובתנועתה.",
+    "source_ru": "Скорость охлаждения зависит от интенсивности теплоотвода и размера детали. Интенсивность охлаждения определяется видом среды, её температурой и движением.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 174
+  },
+  {
+    "id": "a97001:p176:b002",
+    "source_he": "פלדות פחמניות ברכוז פחמן בינוני מ־0.5% עד 0.9%. מחממים עד טמפרטורת אוסטניטיזציה ומקררים במהירות עד לקבלת מבנה מרטנסיטי.",
+    "source_ru": "В примере рассматриваются углеродистые стали с 0,5–0,9% C. Их нагревают до температуры аустенитизации и быстро охлаждают для получения мартенсита. Источник называет это средним содержанием углерода.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 176
+  },
+  {
+    "id": "a97001:p177:b002",
+    "source_he": "מדד לעמק שבו עדין אפשר ליצר מבנה מרטנסיטי בגוף הפלדה. מהירות הקרור שונה בעמקים שונים, ולכן לא תושג חדירה מלאה של חסום: מרטנסיט בשטח ומבנים אחרים בפנים: ביניט, טרוסטיט, סורביט ופרליט. קטר קריטי לחסום מגדר במקור כקטר המקסימלי שבו נתן לקבל מרטנסיט מלא. ככל שהקטר גדול יותר, כשר החסום גבוה יותר.",
+    "source_ru": "Прокаливаемость характеризует глубину образования мартенсита в стали. Из-за различия скоростей охлаждения у поверхности может образоваться мартенсит, а в сердцевине — бейнит, троостит, сорбит или перлит. Источник определяет критический диаметр как максимальный диаметр с полностью мартенситной структурой. Чем больше критический диаметр, тем выше прокаливаемость. Буквальное утверждение пособия: полная глубина закалки не будет достигнута; мартенсит будет у поверхности. Реальный результат зависит от прокаливаемости, размеров и режима охлаждения, поэтому категоричность этого тезиса ограничена.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 177
+  },
+  {
+    "id": "a97001:p180:b002",
+    "source_he": "שני גורמים עקריים משפיעים על דרגת ההקשיה: 1. חמרת החסום — קובעת כמה מהר החם מוסר מפני השטח במהלך החסום. 2. היחס בין שטח הפנים לנפח הדגם — משפיע על מהירות התקררות המרכז.",
+    "source_ru": "Два основных фактора результата закалки: 1. Интенсивность закалочной среды — скорость отвода тепла с поверхности. 2. Отношение площади поверхности образца к его объёму, влияющее на охлаждение сердцевины.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 180
+  },
+  {
+    "id": "a97001:p185:b004",
+    "source_he": "מהירות חמום גבוהה; חמום אחיד ומאמצים שיוריים קטנים מחמום בלהבה; שליטה בעמק החמום בשנוי עצמת הזרם והתדירות; המקור מצין העדר חמצון ואבוד פחמן; תפוקה גבוהה ביחס לתהליכים אחרים ואפשרות לחמום בסדרות. באיור: סליל. חסרונות:",
+    "source_ru": "Высокая скорость нагрева; равномерность и меньшие остаточные напряжения по сравнению с пламенным нагревом; регулирование глубины изменением тока и частоты; высокая производительность и возможность серийной обработки. Источник также заявляет отсутствие окисления и обезуглероживания. Подпись рисунка: катушка. Недостатки: Производительность названа высокой по сравнению с другими процессами.",
+    "removed": "a97001:term:velocity#mechanics",
+    "verdict": "confirmed",
+    "source_pdf_page": 185
+  },
+  {
+    "term": "a97001:term:particle",
+    "section": "s09-linear-motion",
+    "before": {
+      "lemma_he": "נקדה חמרית",
+      "niqqud": "נְקֻדָּה חָמְרִית",
+      "translit": "Nekuda khamrit",
+      "translit_ru": "нэкуда хамрит",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "материальная точка",
+          "context": "Модель тела, размеры которого несущественны для задачи движения."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+    },
+    "verdict": "confirmed",
+    "followup": "F05",
+    "after_authoring_before_compile": {
+      "lemma_he": "נקדה חמרית",
+      "niqqud": "נְקֻדָּה חׇמְרִית",
+      "translit": "Nekuda khamrit",
+      "translit_ru": "нэкуда хамрит",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "материальная точка",
+          "context": "Модель тела, размеры которого несущественны для задачи движения."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "pronunciation_basis": "Explicit qamats qatan Unicode mark for /o/ in material adjective; lexical niqqud חָמְרִי in Academy physics (1993), https://terms.hebrew-academy.org.il/munnah/29200_2/material"
+    },
+    "final_card": {
+      "lemma_he": "נקדה חמרית",
+      "niqqud": "נְקֻדָּה חׇמְרִית",
+      "translit": "Nekuda khomrit",
+      "translit_ru": "нэкуда хомрит",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "материальная точка",
+          "context": "Модель тела, размеры которого несущественны для задачи движения."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "pronunciation_basis": "Explicit qamats qatan Unicode mark for /o/ in material adjective; lexical niqqud חָמְרִי in Academy physics (1993), https://terms.hebrew-academy.org.il/munnah/29200_2/material"
+    }
+  },
+  {
+    "term": "a97001:term:neutron",
+    "section": "s15-materials-basics",
+    "before": {
+      "lemma_he": "ניטרון",
+      "niqqud": "נֵיטְרוֹן",
+      "translit": "Netron",
+      "translit_ru": "нетрон",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "нейтрон",
+          "context": "Электрически нейтральная частица атомного ядра."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "ניטרונים"
+      ]
+    },
+    "verdict": "confirmed",
+    "followup": "F05",
+    "after_authoring_before_compile": {
+      "lemma_he": "ניטרון",
+      "niqqud": "נֵיטְרוֹן",
+      "translit": "Netron",
+      "translit_ru": "нетрон",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "нейтрон",
+          "context": "Электрически нейтральная частица атомного ядра."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "ניטרונים"
+      ],
+      "pronunciation_override": {
+        "niqqud": "נֵיטְרוֹן",
+        "translit": "Neytron",
+        "translit_ru": "нейтрон",
+        "basis": "Reviewed lexical reading neytron; Academy physics/energy spelling נֵיטְרוֹן. Keep correct Hebrew niqqud; do not let generic mater handling drop /y/. https://terms.hebrew-academy.org.il/munnah/79349_2/prompt%20neutron"
+      }
+    },
+    "final_card": {
+      "lemma_he": "ניטרון",
+      "niqqud": "נֵיטְרוֹן",
+      "translit": "Neytron",
+      "translit_ru": "нейтрон",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "нейтрон",
+          "context": "Электрически нейтральная частица атомного ядра."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "ניטרונים"
+      ],
+      "pronunciation_override": {
+        "niqqud": "נֵיטְרוֹן",
+        "translit": "Neytron",
+        "translit_ru": "нейтрон",
+        "basis": "Reviewed lexical reading neytron; Academy physics/energy spelling נֵיטְרוֹן. Keep correct Hebrew niqqud; do not let generic mater handling drop /y/. https://terms.hebrew-academy.org.il/munnah/79349_2/prompt%20neutron"
+      }
+    }
+  },
+  {
+    "term": "a97001:term:bcc",
+    "section": "s15-materials-basics",
+    "before": {
+      "lemma_he": "סריג מרכז גוף",
+      "niqqud": "סָרִיג מֶרְכָּז גּוּף",
+      "translit": "Sarig merkaz guf",
+      "translit_ru": "сариг мэрказ гуф",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "объёмноцентрированная кубическая решётка (BCC)",
+          "context": "Кубическая решётка с атомом в центре элементарной ячейки."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "קביה מרכזת גוף"
+      ]
+    },
+    "verdict": "confirmed",
+    "followup": "F06",
+    "after_authoring_before_compile": {
+      "lemma_he": "סריג קובי ממורכז־גוף",
+      "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־גּוּף",
+      "translit": "Sarig merkaz guf",
+      "translit_ru": "сариг мэрказ гуф",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "объёмноцентрированная кубическая решётка (BCC)",
+          "context": "Кубическая решётка с атомом в центре элементарной ячейки. Редакторская точная формулировка термина по словарю Академии; написание в PDF: קביה מרכזת גוף. Текст исходной страницы сохранён."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "קביה מרכזת גוף"
+      ],
+      "editorial_source_spelling": {
+        "page": 120,
+        "ref": "a97001:p120:b003",
+        "he": "קביה מרכזת גוף",
+        "kind": "source_spelling_preserved"
+      },
+      "editorial_term_basis": "Academy modern physics (1993): body-centered cubic lattice; https://terms.hebrew-academy.org.il/Ktaim/ShowKtaim?kodErekhIvrit=3061"
+    },
+    "final_card": {
+      "lemma_he": "סריג קובי ממורכז־גוף",
+      "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־גּוּף",
+      "translit": "Sarig kubi memurkaz-guf",
+      "translit_ru": "сариг куби мэмурказ-гуф",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "объёмноцентрированная кубическая решётка (BCC)",
+          "context": "Кубическая решётка с атомом в центре элементарной ячейки. Редакторская точная формулировка термина по словарю Академии; подпись в транскрипции: קביה מרכזת גוף. Текст исходной страницы сохранён."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "קביה מרכזת גוף",
+        "BCC"
+      ],
+      "editorial_source_spelling": {
+        "page": 120,
+        "ref": "a97001:p120:b003",
+        "he": "קביה מרכזת גוף",
+        "kind": "reader_source_spelling_preserved",
+        "source_layer": "published_reader_transcription"
+      },
+      "editorial_term_basis": "Academy modern physics (1993): body-centered cubic lattice; https://terms.hebrew-academy.org.il/Ktaim/ShowKtaim?kodErekhIvrit=3061"
+    }
+  },
+  {
+    "term": "a97001:term:fcc",
+    "section": "s15-materials-basics",
+    "before": {
+      "lemma_he": "סריג מרכז פנים",
+      "niqqud": "סָרִיג מֶרְכָּז פָּנִים",
+      "translit": "Sarig merkaz panim",
+      "translit_ru": "сариг мэрказ паним",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "гранецентрированная кубическая решётка (FCC)",
+          "context": "Кубическая решётка с атомами в центрах граней ячейки."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "קביה ממרכזת פאה"
+      ]
+    },
+    "verdict": "confirmed",
+    "followup": "F06",
+    "after_authoring_before_compile": {
+      "lemma_he": "סריג קובי ממורכז־פאה",
+      "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־פֵּאָה",
+      "translit": "Sarig merkaz panim",
+      "translit_ru": "сариг мэрказ паним",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "гранецентрированная кубическая решётка (FCC)",
+          "context": "Кубическая решётка с атомами в центрах граней ячейки. Редакторская точная формулировка термина по словарю Академии; написание в PDF: קביה ממרכזת פאה. Текст исходной страницы сохранён."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "קביה ממרכזת פאה"
+      ],
+      "editorial_source_spelling": {
+        "page": 120,
+        "ref": "a97001:p120:b008",
+        "he": "קביה ממרכזת פאה",
+        "kind": "source_spelling_preserved"
+      },
+      "editorial_term_basis": "Academy modern physics (1993): face-centered cubic lattice; https://terms.hebrew-academy.org.il/munnah/84112_1/"
+    },
+    "final_card": {
+      "lemma_he": "סריג קובי ממורכז־פאה",
+      "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־פֵּאָה",
+      "translit": "Sarig kubi memurkaz-pe'a",
+      "translit_ru": "сариг куби мэмурказ-пеа",
+      "senses": [
+        {
+          "sense": "technical",
+          "ru": "гранецентрированная кубическая решётка (FCC)",
+          "context": "Кубическая решётка с атомами в центрах граней ячейки. Редакторская точная формулировка термина по словарю Академии; подпись в транскрипции: קביה ממרכזת פאה. Текст исходной страницы сохранён."
+        }
+      ],
+      "source": "reviewed-a97001-reacceptance",
+      "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+      "aliases_he": [
+        "קביה ממרכזת פאה",
+        "FCC"
+      ],
+      "editorial_source_spelling": {
+        "page": 120,
+        "ref": "a97001:p120:b008",
+        "he": "קביה ממרכזת פאה",
+        "kind": "reader_source_spelling_preserved",
+        "source_layer": "published_reader_transcription"
+      },
+      "editorial_term_basis": "Academy modern physics (1993): face-centered cubic lattice; https://terms.hebrew-academy.org.il/munnah/84112_1/"
+    }
+  }
+]

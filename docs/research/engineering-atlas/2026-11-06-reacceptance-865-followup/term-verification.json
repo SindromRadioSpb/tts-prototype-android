@@ -1,0 +1,231 @@
+{
+  "base_commit": "82328f3327a0fd80be539b8efd03969170d96ad6",
+  "status": "local_only_not_published",
+  "results": [
+    {
+      "id": "a97001:p28:b011",
+      "removed": "a97001:term:weight#mechanics",
+      "replacement": "equilibrium#mechanics",
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p172:b001",
+      "removed": "a97001:term:weight#mechanics",
+      "replacement": "equilibrium#thermodynamics",
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p167:b003",
+      "removed": "a97001:term:mass#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p167:b005",
+      "removed": "a97001:term:mass#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p167:b008",
+      "removed": "a97001:term:mass#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p137:b008",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p149:b004",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p174:b008",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p174:b009",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p176:b002",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p177:b002",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p180:b002",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "id": "a97001:p185:b004",
+      "removed": "a97001:term:velocity#mechanics",
+      "replacement": null,
+      "result": "pass"
+    },
+    {
+      "term": "weight",
+      "first_example": {
+        "sid": "s02-statics-basics",
+        "page": 6,
+        "block": "a97001:p6:b006"
+      },
+      "result": "pass"
+    },
+    {
+      "term": "mass",
+      "first_example": {
+        "sid": "s01-units",
+        "page": 4,
+        "block": "a97001:p4:t-base-units:cell:2:0"
+      },
+      "result": "pass"
+    },
+    {
+      "term": "velocity",
+      "first_example": {
+        "sid": "s01-units",
+        "page": 5,
+        "block": "a97001:p5:t-derived-units:cell:11:0"
+      },
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:electric-current#technical",
+      "source_ref": "a97001:p4:t-base-units:cell:4:0",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:amount-of-substance#technical",
+      "source_ref": "a97001:p4:t-base-units:cell:6:0",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:luminous-intensity#technical",
+      "source_ref": "a97001:p4:t-base-units:cell:7:0",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:rotation-frequency#technical",
+      "source_ref": "a97001:p5:t-derived-units:cell:10:0",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:straightness#technical",
+      "source_ref": "a97001:p113:t-geometric-symbols:cell:1:1",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:geometric-symmetry#technical",
+      "source_ref": "a97001:p113:t-geometric-symbols:cell:7:1",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:circular-runout#technical",
+      "source_ref": "a97001:p113:t-geometric-symbols:cell:9:1",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:density#technical",
+      "source_ref": "a97001:p122:b004",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:material-toughness#technical",
+      "source_ref": "a97001:p141:b002",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:solid-solution#technical",
+      "source_ref": "a97001:p166:b004",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:bcc#technical",
+      "source_ref": "a97001:p167:b003",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:fcc#technical",
+      "source_ref": "a97001:p172:b001",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:bainite#technical",
+      "source_ref": "a97001:p168:b004",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:ledeburite#technical",
+      "source_ref": "a97001:p168:b005",
+      "result": "pass"
+    },
+    {
+      "finding": "N05",
+      "term": "a97001:term:critical-cooling-rate#technical",
+      "source_ref": "a97001:p174:b008",
+      "result": "pass"
+    }
+  ],
+  "physical_mass_block_occurrences": [
+    "a97001:p6:b005",
+    "a97001:p6:b007",
+    "a97001:p7:b008",
+    "a97001:p34:b003",
+    "a97001:p122:b004"
+  ],
+  "physical_weight_block_occurrences": [
+    "a97001:p6:b006",
+    "a97001:p6:b007",
+    "a97001:p12:b008",
+    "a97001:p16:b007",
+    "a97001:p28:b003",
+    "a97001:p29:b005",
+    "a97001:p31:b002",
+    "a97001:p31:b005",
+    "a97001:p40:b003",
+    "a97001:p50:b002",
+    "a97001:p59:b003",
+    "a97001:p59:b004",
+    "a97001:p61:b004",
+    "a97001:p62:b001",
+    "a97001:p63:b002",
+    "a97001:p76:b002",
+    "a97001:p130:b009",
+    "a97001:p192:b003",
+    "a97001:p194:b002",
+    "a97001:p203:b002",
+    "a97001:p203:b004"
+  ]
+}

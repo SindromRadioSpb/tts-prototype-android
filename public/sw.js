@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.865";
+const CACHE_VERSION = "v3.11.866";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=865",
+  "/js/library-ui.js?v=866",
   "/js/corpus-registry.js?v=862",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -201,9 +201,9 @@ const PRECACHE_URLS = [
   "/js/atlas-reader.js?v=27",
   "/js/atlas-search.js?v=4",
   "/js/atlas-words.js?v=4",
-  "/js/atlas-context-contract.js?v=1",
-  "/js/atlas-train.js?v=8",
-  "/js/atlas-train-ui.js?v=7",
+  "/js/atlas-context-contract.js?v=2",
+  "/js/atlas-train.js?v=9",
+  "/js/atlas-train-ui.js?v=8",
   "/css/atlas-reader.css?v=32",
   "/js/obsidian-lexical-preview.js?v=10",
   "/js/lexical-resolution-core.js",
@@ -234,10 +234,10 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=847",
+  "/js/reader-morph.js?v=848",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=819",
-  "/js/word-gloss-ai.js?v=846",
+  "/js/word-gloss-ai.js?v=847",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",

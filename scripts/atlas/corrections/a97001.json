@@ -3557,7 +3557,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "זרם חשמלי",
-            "ru": "Сила электрического тока"
+            "ru": "Сила электрического тока",
+            "terms": [
+              "a97001:term:electric-current#technical"
+            ]
           },
           {
             "row": 4,
@@ -3608,7 +3611,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "כמות חומר",
-            "ru": "Количество вещества"
+            "ru": "Количество вещества",
+            "terms": [
+              "a97001:term:amount-of-substance#technical"
+            ]
           },
           {
             "row": 6,
@@ -3632,7 +3638,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "עוצמת הארה",
-            "ru": "Сила света (уточнение термина исходника)"
+            "ru": "Сила света (уточнение термина исходника)",
+            "terms": [
+              "a97001:term:luminous-intensity#technical"
+            ]
           },
           {
             "row": 7,
@@ -3657,10 +3666,13 @@
         "HE-004-02",
         "MATH-003"
       ],
-      "why": "Сверено с пикселями страницы PDF: HE-004-01, HE-004-02, MATH-003",
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
       "reacceptance_ids": [
         "R04",
         "R06"
+      ],
+      "followup_ids": [
+        "N05"
       ]
     },
     {
@@ -4349,7 +4361,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "מהירות סיבובית",
-            "ru": "Частота вращения"
+            "ru": "Частота вращения",
+            "terms": [
+              "a97001:term:rotation-frequency#technical"
+            ]
           },
           {
             "row": 10,
@@ -4517,10 +4532,13 @@
       "audit_ids": [
         "MATH-004"
       ],
-      "why": "Сверено с пикселями страницы PDF: MATH-004",
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
       "reacceptance_ids": [
         "R04",
         "R06"
+      ],
+      "followup_ids": [
+        "N05"
       ]
     },
     {
@@ -6682,13 +6700,21 @@
         "ru": "Ударное испытание показывает поведение материала при быстром нагружении. Оно помогает оценить способность поглощать энергию удара и выбрать материал для заданных условий эксплуатации. Термин источника в скобках — צפידות, вязкость при ударном воздействии.",
         "he": "מבחן נגיפה (בדיקת פגיעה) הוא תהליך מבחן המשמש לקביעת התנהגותם של חמרים כאשר הם נתונים לכח או לפגיעה פתאומית. המבחן מאפשר להעריך את הקשיחות, החזק והעמידות של חמרים בתנאי עמס פתאומיים או דינמיים (צפידות). זה עוזר לבחירת חמרים שיפעלו בצורה מהימנה ובטוחה בסביבות ספציפיות או בתנאים תפעוליים מסימים.",
         "translit": "Mivkhan negifa (bdikat pgi'a) hu tahalikh mivkhan hamshamesh likvi'at hitnahagutam shel khomarim ka'asher hem netunim lekhoakh o lifgi'a pit'omit. Hamivkhan me'afsher leha'arikh et hakshikhut, hakhozek veha'amidut shel khomarim bitna'e omes pit'omiyim o dinamiyim (tsfidut). Ze ozer livkhirat khomarim sheyif'alu btsura mehemana uvtukha bisvivot sfetsifiyot o bitna'im tif'uliyim mesuyamim.",
-        "translit_ru": "мивхан нэгифа (бдикат пгиа) ху тахалих мивхан хамшамеш ликвиат хитнахагутам шэл хомарим каашэр хем нэтуним лэхоах о лифгиа питомит. хамивхан мэафшер лэхаарих эт хакшихут, хахозэк вэхаамидут шэл хомарим битнае омэс питомийим о динамийим (цфидут). зэ озер ливхират хомарим шэйифалу бцура мэхемана увтуха бисвивот сфецифийот о битнаим тифулийим мэсуйамим."
+        "translit_ru": "мивхан нэгифа (бдикат пгиа) ху тахалих мивхан хамшамеш ликвиат хитнахагутам шэл хомарим каашэр хем нэтуним лэхоах о лифгиа питомит. хамивхан мэафшер лэхаарих эт хакшихут, хахозэк вэхаамидут шэл хомарим битнае омэс питомийим о динамийим (цфидут). зэ озер ливхират хомарим шэйифалу бцура мэхемана увтуха бисвивот сфецифийот о битнаим тифулийим мэсуйамим.",
+        "terms": [
+          "a97001:term:strength#mechanics",
+          "a97001:term:load#mechanics",
+          "a97001:term:material-toughness#technical"
+        ]
       },
       "audit_ids": [
         "HE-141-01",
         "HE-141-02"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены"
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
+      "followup_ids": [
+        "N05"
+      ]
     },
     {
       "page": 141,
@@ -6929,17 +6955,21 @@
         "terms": [
           "a97001:term:temperature#mechanics",
           "a97001:term:phase#mechanics",
-          "a97001:term:equilibrium#thermodynamics"
+          "a97001:term:equilibrium#thermodynamics",
+          "a97001:term:solid-solution#technical"
         ]
       },
       "audit_ids": [
         "HE-166-01",
         "HE-166-02"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены",
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
       "reacceptance_ids": [
         "R04",
         "R06"
+      ],
+      "followup_ids": [
+        "N05"
       ]
     },
     {
@@ -7037,13 +7067,24 @@
         "ru": "Первичная кристаллизация — образование твёрдой фазы из расплава. Аллотропия — существование элемента в разных структурных формах; например, железо при изменении температуры переходит между ОЦК- и ГЦК-структурами. Источник называет эти превращения вторичной кристаллизацией. Далее приведены характеристики линий диаграммы. Греческая этимология: «в другой форме». В исходной фразе названы сталь/железо.",
         "he": "התגבשות ראשונית פרושה מעבר המתכת ממצב נוזלי למוצק. התגבשות משנית, אלוטרופיה (ביונית — אלוטרופ — ״בצורה שונה״): כתלות בטמפרטורה ובלחץ יכולות מתכות להתגבש בצורות שונות, יותר מצורה גבישית אחת. פלדה/ברזל משנה את מבנהו הגבישי עם הטמפרטורה, לדגמה ממבנה BCC ל־FCC. מאפיני קוים בדיאגרמת שווי המשקל ברזל–פחמן:",
         "translit": "Hitgabshut rishonit perushah ma'avar hamatekhet mimatsav nozli lemutsak. Hitgabshut mishnit, alotropya (bivanit — alotrop — ״btsura shona): kitlut batemperatura uvalakhats yekholot matakhot lehitgabesh btsurot shonot, yoter mitsura gvishit akhat. Pladabarzel/ meshane et mivnehu hagvishi im hatemperatura, ledugma mimivne BCC l-FCC. Ma'afayne kavim bedi'agramat shivuy hamishkal barzelpakhman–:",
-        "translit_ru": "хитгабшут ришонит перушах маавар хаматэхэт мимацав нозли лэмуцак. хитгабшут мишнит, алотропйа (биванит — алотроп — ״бцура шона): китлут батэмпература увалахац йэхолот матахот лэхитгабеш бцурот шонот, йотер мицура гвишит ахат. пладабарзэл/ мэшанэ эт мивнеху хагвиши им хатэмпература, лэдугма мимивне BCC л-FCC. маафайне кавим бэдиаграмат шивуй хамишкал барзэлпахман–:"
+        "translit_ru": "хитгабшут ришонит перушах маавар хаматэхэт мимацав нозли лэмуцак. хитгабшут мишнит, алотропйа (биванит — алотроп — ״бцура шона): китлут батэмпература увалахац йэхолот матахот лэхитгабеш бцурот шонот, йотер мицура гвишит ахат. пладабарзэл/ мэшанэ эт мивнеху хагвиши им хатэмпература, лэдугма мимивне BCC л-FCC. маафайне кавим бэдиаграмат шивуй хамишкал барзэлпахман–:",
+        "terms": [
+          "a97001:term:metal#mechanics",
+          "a97001:term:temperature#mechanics",
+          "a97001:term:carbon#mechanics",
+          "a97001:term:equilibrium#thermodynamics",
+          "a97001:term:fcc#technical"
+        ]
       },
       "audit_ids": [
         "HE-172-01",
         "HE-172-02"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены"
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
+      "followup_ids": [
+        "F02",
+        "N05"
+      ]
     },
     {
       "page": 175,
@@ -7072,12 +7113,18 @@
         "ru": "В примере рассматриваются углеродистые стали с 0,5–0,9% C. Их нагревают до температуры аустенитизации и быстро охлаждают для получения мартенсита. Источник называет это средним содержанием углерода.",
         "he": "פלדות פחמניות ברכוז פחמן בינוני מ־0.5% עד 0.9%. מחממים עד טמפרטורת אוסטניטיזציה ומקררים במהירות עד לקבלת מבנה מרטנסיטי.",
         "translit": "Pladot pakhmaniyot berikuz pakhman benoni m-0.5% ad 0.9%. Mekhamemim ad temperaturat ostenitizatsya umekarerim bimhirut ad lekabalat mivne martensiti.",
-        "translit_ru": "пладот пахманийот бэрикуз пахман бенони м-0.5% ад 0.9%. мэхамэмим ад тэмпературат остенитизацйа умэкарэрим бимхирут ад лэкабалат мивнэ мартэнсити."
+        "translit_ru": "пладот пахманийот бэрикуз пахман бенони м-0.5% ад 0.9%. мэхамэмим ад тэмпературат остенитизацйа умэкарэрим бимхирут ад лэкабалат мивнэ мартэнсити.",
+        "terms": [
+          "a97001:term:carbon#mechanics"
+        ]
       },
       "audit_ids": [
         "HE-176-01"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены"
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "followup_ids": [
+        "F04"
+      ]
     },
     {
       "page": 176,
@@ -7121,7 +7168,6 @@
         "translit_ru": "мадад лаомэк шэбо адайин эфшар лицор мивнэ мартэнсити бэгуф хаплада. мэхирут хакерур шона баамаким шоним, вэлахен ло тусаг хадира мэлеа шэл хисум: мартэнсит башэтах умивним ахерим бифним: бенит, тростит, сорбит уфэрлит. котэр крити лэхисум мугдар бамакор какотэр хамаксимали шэбо нитан лэкабел мартэнсит мале. кэхал шэхакотэр гадол йотер, кошэр хахисум гавоха йотер.",
         "terms": [
           "a97001:term:area#mechanics",
-          "a97001:term:velocity#mechanics",
           "a97001:term:diameter#mechanics",
           "a97001:term:steel#mechanics",
           "a97001:term:pearlite#mechanics",
@@ -7132,10 +7178,13 @@
       "audit_ids": [
         "HE-177-01"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены",
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
       "reacceptance_ids": [
         "R04",
         "R06"
+      ],
+      "followup_ids": [
+        "F04"
       ]
     },
     {
@@ -7201,12 +7250,19 @@
         "ru": "Высокая скорость нагрева; равномерность и меньшие остаточные напряжения по сравнению с пламенным нагревом; регулирование глубины изменением тока и частоты; высокая производительность и возможность серийной обработки. Источник также заявляет отсутствие окисления и обезуглероживания. Подпись рисунка: катушка. Недостатки: Производительность названа высокой по сравнению с другими процессами.",
         "he": "מהירות חמום גבוהה; חמום אחיד ומאמצים שיוריים קטנים מחמום בלהבה; שליטה בעמק החמום בשנוי עצמת הזרם והתדירות; המקור מצין העדר חמצון ואבוד פחמן; תפוקה גבוהה ביחס לתהליכים אחרים ואפשרות לחמום בסדרות. באיור: סליל. חסרונות:",
         "translit": "Mehirut khimum gvoha; khimum akhid uma'amatsim shiyuriyim ktanim mekhimum belehava; shlita be'omek hakhimum beshinuy atsmat hazerem vehatedirut; hamakor metsayen he'der khimtsun ve'ibud pakhman; tfuka gvoha beyakhas letahalikhim akherim ve'efsharut lekhimum bisdarot. Ba'iyur: slil. Khesronot:",
-        "translit_ru": "мэхирут химум гвоха; химум ахид умаамацим шийурийим ктаним мехимум бэлэхава; шлита бэомэк хахимум бэшинуй ацмат хазэрэм вэхатэдирут; хамакор мэцайен хэдер химцун вэибуд пахман; тфука гвоха бэйахас лэтахалихим ахерим вээфшарут лэхимум бисдарот. баийур: слил. хэсронот:"
+        "translit_ru": "мэхирут химум гвоха; химум ахид умаамацим шийурийим ктаним мехимум бэлэхава; шлита бэомэк хахимум бэшинуй ацмат хазэрэм вэхатэдирут; хамакор мэцайен хэдер химцун вэибуд пахман; тфука гвоха бэйахас лэтахалихим ахерим вээфшарут лэхимум бисдарот. баийур: слил. хэсронот:",
+        "terms": [
+          "a97001:term:carbon#mechanics",
+          "a97001:term:oxidation#mechanics"
+        ]
       },
       "audit_ids": [
         "HE-185-02"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены"
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "followup_ids": [
+        "F04"
+      ]
     },
     {
       "page": 186,
@@ -19385,7 +19441,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "ישרות",
-            "ru": "Прямолинейность"
+            "ru": "Прямолинейность",
+            "terms": [
+              "a97001:term:straightness#technical"
+            ]
           },
           {
             "row": 1,
@@ -19544,7 +19603,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "סימטריות",
-            "ru": "Симметричность"
+            "ru": "Симметричность",
+            "terms": [
+              "a97001:term:geometric-symmetry#technical"
+            ]
           },
           {
             "row": 7,
@@ -19595,7 +19657,10 @@
             "rowspan": 1,
             "colspan": 1,
             "he": "חריגות",
-            "ru": "Круговое биение"
+            "ru": "Круговое биение",
+            "terms": [
+              "a97001:term:circular-runout#technical"
+            ]
           },
           {
             "row": 9,
@@ -19679,10 +19744,13 @@
           }
         ]
       },
-      "why": "R04/R06: reviewed source-specific learning reference",
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
       "reacceptance_ids": [
         "R04",
         "R06"
+      ],
+      "followup_ids": [
+        "N05"
       ]
     },
     {
@@ -21056,7 +21124,7 @@
               {
                 "sense": "technical",
                 "ru": "плотность",
-                "context": "Отношение массы к объёму; не путать с вязкостью צפידות."
+                "context": "Отношение массы к объёму; не путать с вязкостью материала (сопротивлением разрушению, צפידות) или вязкостью жидкости (צמיגות)."
               }
             ],
             "source": "reviewed-a97001-reacceptance",
@@ -21079,9 +21147,9 @@
           },
           "a97001:term:energy": {
             "lemma_he": "אנרגיה",
-            "niqqud": "אֵנֶרְגְּיָה",
-            "translit": "Energeya",
-            "translit_ru": "енэргэйа",
+            "niqqud": "אֵנֶרְגִּיָּה",
+            "translit": "Energiya",
+            "translit_ru": "енэргийа",
             "senses": [
               {
                 "sense": "technical",
@@ -21090,7 +21158,8 @@
               }
             ],
             "source": "reviewed-a97001-reacceptance",
-            "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "pronunciation_basis": "Academy energy/strength-of-materials noun אֵנֶרְגִּיָּה; https://terms.hebrew-academy.org.il/Millonim/ShowMillon?KodMillon=40&KodePiluahStr=747"
           },
           "a97001:term:power": {
             "lemma_he": "הספק",
@@ -21148,6 +21217,72 @@
                 "ru": "сила",
                 "context": "Векторная величина; единица СИ — ньютон."
               }
+            ]
+          },
+          "a97001:term:electric-current": {
+            "lemma_he": "זרם חשמלי",
+            "niqqud": "זֶרֶם חַשְׁמַלִּי",
+            "translit": "Zerem khashmali",
+            "translit_ru": "зэрэм хашмали",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "сила электрического тока",
+                "context": "Заряд, проходящий через поперечное сечение за единицу времени; единица СИ — ампер."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
+          },
+          "a97001:term:amount-of-substance": {
+            "lemma_he": "כמות חמר",
+            "niqqud": "כַּמּוּת חֹמֶר",
+            "translit": "Kamut khomer",
+            "translit_ru": "камут хомэр",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "количество вещества",
+                "context": "Величина, характеризующая число указанных структурных частиц; единица СИ — моль."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
+          },
+          "a97001:term:luminous-intensity": {
+            "lemma_he": "עצמת אור",
+            "niqqud": "עׇצְמַת אוֹר",
+            "translit": "Otsmat or",
+            "translit_ru": "оцмат ор",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "сила света",
+                "context": "Основная световая величина СИ в данном направлении; единица — кандела (cd). В этой строке PDF ошибочно написано עוצמת הארה (освещённость), но приведена кандела. Это редакторское уточнение величины, а не утверждение, что освещённость измеряется в канделах: для неё нужен люкс."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim",
+            "study_note": "В исходной строке ошибочно написано עוצמת הארה (освещённость), но единица cd — кандела — относится к силе света. Не учите эту строку как перевод «освещённость = сила света»: освещённость измеряется в люксах."
+          },
+          "a97001:term:rotation-frequency": {
+            "lemma_he": "תדר סיבוב",
+            "niqqud": "תֶּדֶר סִיבּוּב",
+            "translit": "Teder sibuv",
+            "translit_ru": "тэдэр сибув",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "частота вращения",
+                "context": "Число оборотов за единицу времени; различать Hz и rpm."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "aliases_he": [
+              "תדירות הסיבוב",
+              "תדירות סיבוב",
+              "מהירות סיבובית"
             ]
           }
         },
@@ -23190,9 +23325,9 @@
           },
           "a97001:term:particle": {
             "lemma_he": "נקדה חמרית",
-            "niqqud": "נְקֻדָּה חָמְרִית",
-            "translit": "Nekuda khamrit",
-            "translit_ru": "нэкуда хамрит",
+            "niqqud": "נְקֻדָּה חׇמְרִית",
+            "translit": "Nekuda khomrit",
+            "translit_ru": "нэкуда хомрит",
             "senses": [
               {
                 "sense": "technical",
@@ -23201,7 +23336,8 @@
               }
             ],
             "source": "reviewed-a97001-reacceptance",
-            "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "pronunciation_basis": "Explicit qamats qatan Unicode mark for /o/ in material adjective; lexical niqqud חָמְרִי in Academy physics (1993), https://terms.hebrew-academy.org.il/munnah/29200_2/material"
           },
           "a97001:term:uniform-motion": {
             "lemma_he": "תנועה קצובה",
@@ -23630,7 +23766,8 @@
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
             "aliases_he": [
               "תדירות הסיבוב",
-              "תדירות סיבוב"
+              "תדירות סיבוב",
+              "מהירות סיבובית"
             ]
           },
           "a97001:term:period": {
@@ -24417,7 +24554,7 @@
               {
                 "sense": "technical",
                 "ru": "соосность",
-                "context": "Ограничение несовпадения осей рассматриваемых элементов."
+                "context": "Соосность — совпадение осей элементов. Источник объединяет соосность и концентричность: последняя относится к центрам сечений; понятия не полностью взаимозаменяемы."
               }
             ],
             "source": "reviewed-a97001-reacceptance",
@@ -24425,6 +24562,51 @@
             "aliases_he": [
               "מרכזיות"
             ]
+          },
+          "a97001:term:straightness": {
+            "lemma_he": "ישרות",
+            "niqqud": "יַשְׁרוּת",
+            "translit": "Yashrut",
+            "translit_ru": "йашрут",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "прямолинейность",
+                "context": "Соответствие линии идеальной прямой; в таблице относится к допускам формы."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
+          },
+          "a97001:term:geometric-symmetry": {
+            "lemma_he": "סימטריות",
+            "niqqud": "סִימֶטְרִיּוּת",
+            "translit": "Simetriyut",
+            "translit_ru": "симэтрийут",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "симметричность",
+                "context": "В этой таблице — симметричное расположение элементов относительно заданной базы; это геометрический допуск, а не общее упоминание симметрии тела."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
+          },
+          "a97001:term:circular-runout": {
+            "lemma_he": "חריגות",
+            "niqqud": "חֲרִיגוֹת",
+            "translit": "Kharigot",
+            "translit_ru": "харигот",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "круговое биение",
+                "context": "В данной строке таблицы показан знак кругового биения: изменение показания при полном обороте относительно базовой оси в рассматриваемом сечении. חריגות — общее слово об отклонениях; здесь значение установлено по знаку в PDF. Круговое и полное биение различаются."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
           }
         },
         "context_exclusions": []
@@ -24874,8 +25056,8 @@
           "a97001:term:neutron": {
             "lemma_he": "ניטרון",
             "niqqud": "נֵיטְרוֹן",
-            "translit": "Netron",
-            "translit_ru": "нетрон",
+            "translit": "Neytron",
+            "translit_ru": "нейтрон",
             "senses": [
               {
                 "sense": "technical",
@@ -24887,7 +25069,13 @@
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
             "aliases_he": [
               "ניטרונים"
-            ]
+            ],
+            "pronunciation_override": {
+              "niqqud": "נֵיטְרוֹן",
+              "translit": "Neytron",
+              "translit_ru": "нейтрон",
+              "basis": "Reviewed lexical reading neytron; Academy physics/energy spelling נֵיטְרוֹן. Keep correct Hebrew niqqud; do not let generic mater handling drop /y/. https://terms.hebrew-academy.org.il/munnah/79349_2/prompt%20neutron"
+            }
           },
           "a97001:term:solid-solution": {
             "lemma_he": "תמסה מוצקה",
@@ -24905,40 +25093,58 @@
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
           },
           "a97001:term:bcc": {
-            "lemma_he": "סריג מרכז גוף",
-            "niqqud": "סָרִיג מֶרְכָּז גּוּף",
-            "translit": "Sarig merkaz guf",
-            "translit_ru": "сариг мэрказ гуф",
+            "lemma_he": "סריג קובי ממורכז־גוף",
+            "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־גּוּף",
+            "translit": "Sarig kubi memurkaz-guf",
+            "translit_ru": "сариг куби мэмурказ-гуф",
             "senses": [
               {
                 "sense": "technical",
                 "ru": "объёмноцентрированная кубическая решётка (BCC)",
-                "context": "Кубическая решётка с атомом в центре элементарной ячейки."
+                "context": "Кубическая решётка с атомом в центре элементарной ячейки. Редакторская точная формулировка термина по словарю Академии; подпись в транскрипции: קביה מרכזת גוף. Текст исходной страницы сохранён."
               }
             ],
             "source": "reviewed-a97001-reacceptance",
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
             "aliases_he": [
-              "קביה מרכזת גוף"
-            ]
+              "קביה מרכזת גוף",
+              "BCC"
+            ],
+            "editorial_source_spelling": {
+              "page": 120,
+              "ref": "a97001:p120:b003",
+              "he": "קביה מרכזת גוף",
+              "kind": "reader_source_spelling_preserved",
+              "source_layer": "published_reader_transcription"
+            },
+            "editorial_term_basis": "Academy modern physics (1993): body-centered cubic lattice; https://terms.hebrew-academy.org.il/Ktaim/ShowKtaim?kodErekhIvrit=3061"
           },
           "a97001:term:fcc": {
-            "lemma_he": "סריג מרכז פנים",
-            "niqqud": "סָרִיג מֶרְכָּז פָּנִים",
-            "translit": "Sarig merkaz panim",
-            "translit_ru": "сариг мэрказ паним",
+            "lemma_he": "סריג קובי ממורכז־פאה",
+            "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־פֵּאָה",
+            "translit": "Sarig kubi memurkaz-pe'a",
+            "translit_ru": "сариг куби мэмурказ-пеа",
             "senses": [
               {
                 "sense": "technical",
                 "ru": "гранецентрированная кубическая решётка (FCC)",
-                "context": "Кубическая решётка с атомами в центрах граней ячейки."
+                "context": "Кубическая решётка с атомами в центрах граней ячейки. Редакторская точная формулировка термина по словарю Академии; подпись в транскрипции: קביה ממרכזת פאה. Текст исходной страницы сохранён."
               }
             ],
             "source": "reviewed-a97001-reacceptance",
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
             "aliases_he": [
-              "קביה ממרכזת פאה"
-            ]
+              "קביה ממרכזת פאה",
+              "FCC"
+            ],
+            "editorial_source_spelling": {
+              "page": 120,
+              "ref": "a97001:p120:b008",
+              "he": "קביה ממרכזת פאה",
+              "kind": "reader_source_spelling_preserved",
+              "source_layer": "published_reader_transcription"
+            },
+            "editorial_term_basis": "Academy modern physics (1993): face-centered cubic lattice; https://terms.hebrew-academy.org.il/munnah/84112_1/"
           },
           "a97001:term:hcp": {
             "lemma_he": "סריג מששה צפוף",
@@ -25012,6 +25218,21 @@
               "נקע",
               "נקעים"
             ]
+          },
+          "a97001:term:density": {
+            "lemma_he": "צפיפות",
+            "niqqud": "צְפִיפוּת",
+            "translit": "Tsfifut",
+            "translit_ru": "цфифут",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "плотность",
+                "context": "Отношение массы к объёму; не путать с вязкостью материала (сопротивлением разрушению, צפידות) или вязкостью жидкости (צמיגות)."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
           }
         },
         "context_exclusions": []
@@ -25704,6 +25925,21 @@
             ],
             "source": "reviewed-a97001-reacceptance",
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+          },
+          "a97001:term:material-toughness": {
+            "lemma_he": "צפידות",
+            "niqqud": "צְפִידוּת",
+            "translit": "Tsfidut",
+            "translit_ru": "цфидут",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "вязкость материала; сопротивление ударному разрушению",
+                "context": "Способность материала поглощать энергию до разрушения; в этом разделе оценивается при ударном нагружении. Не путать с вязкостью жидкости (צמיגות), твёрдостью или самим методом испытания."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
           }
         },
         "context_exclusions": [
@@ -26155,19 +26391,6 @@
               }
             ]
           },
-          "a97001:term:mass": {
-            "lemma_he": "מסה",
-            "niqqud": "מַסָּה",
-            "translit": "Masa",
-            "translit_ru": "маса",
-            "senses": [
-              {
-                "sense": "mechanics",
-                "ru": "масса",
-                "context": "Единица СИ — килограмм."
-              }
-            ]
-          },
           "a97001:term:melting": {
             "lemma_he": "התכה",
             "niqqud": "הַתָּכָה",
@@ -26506,32 +26729,6 @@
               }
             ]
           },
-          "a97001:term:velocity": {
-            "lemma_he": "מהירות",
-            "niqqud": "מְהִירוּת",
-            "translit": "Mehirut",
-            "translit_ru": "мэхирут",
-            "senses": [
-              {
-                "sense": "mechanics",
-                "ru": "скорость",
-                "context": "Различайте вектор скорости, его проекцию и модуль."
-              }
-            ]
-          },
-          "a97001:term:weight": {
-            "lemma_he": "משקל",
-            "niqqud": "מִשְׁקָל",
-            "translit": "Mishkal",
-            "translit_ru": "мишкал",
-            "senses": [
-              {
-                "sense": "mechanics",
-                "ru": "вес",
-                "context": "В задачах атласа обычно сила тяжести mg."
-              }
-            ]
-          },
           "a97001:term:welding": {
             "lemma_he": "ריתוך",
             "niqqud": "רִתּוּךְ",
@@ -26762,6 +26959,129 @@
             ],
             "source": "reviewed-a97001-reacceptance",
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+          },
+          "a97001:term:solid-solution": {
+            "lemma_he": "תמסה מוצקה",
+            "niqqud": "תְּמִסָּה מוּצָקָה",
+            "translit": "Tmisa mutsaka",
+            "translit_ru": "тмиса муцака",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "твёрдый раствор",
+                "context": "Одна твёрдая фаза, содержащая несколько компонентов."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+          },
+          "a97001:term:bcc": {
+            "lemma_he": "סריג קובי ממורכז־גוף",
+            "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־גּוּף",
+            "translit": "Sarig kubi memurkaz-guf",
+            "translit_ru": "сариг куби мэмурказ-гуф",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "объёмноцентрированная кубическая решётка (BCC)",
+                "context": "Кубическая решётка с атомом в центре элементарной ячейки. Редакторская точная формулировка термина по словарю Академии; подпись в транскрипции: קביה מרכזת גוף. Текст исходной страницы сохранён."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "aliases_he": [
+              "קביה מרכזת גוף",
+              "BCC"
+            ],
+            "editorial_source_spelling": {
+              "page": 120,
+              "ref": "a97001:p120:b003",
+              "he": "קביה מרכזת גוף",
+              "kind": "reader_source_spelling_preserved",
+              "source_layer": "published_reader_transcription"
+            },
+            "editorial_term_basis": "Academy modern physics (1993): body-centered cubic lattice; https://terms.hebrew-academy.org.il/Ktaim/ShowKtaim?kodErekhIvrit=3061"
+          },
+          "a97001:term:fcc": {
+            "lemma_he": "סריג קובי ממורכז־פאה",
+            "niqqud": "סָרִיג קֻבִּי מְמֻרְכַּז־פֵּאָה",
+            "translit": "Sarig kubi memurkaz-pe'a",
+            "translit_ru": "сариг куби мэмурказ-пеа",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "гранецентрированная кубическая решётка (FCC)",
+                "context": "Кубическая решётка с атомами в центрах граней ячейки. Редакторская точная формулировка термина по словарю Академии; подпись в транскрипции: קביה ממרכזת פאה. Текст исходной страницы сохранён."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "aliases_he": [
+              "קביה ממרכזת פאה",
+              "FCC"
+            ],
+            "editorial_source_spelling": {
+              "page": 120,
+              "ref": "a97001:p120:b008",
+              "he": "קביה ממרכזת פאה",
+              "kind": "reader_source_spelling_preserved",
+              "source_layer": "published_reader_transcription"
+            },
+            "editorial_term_basis": "Academy modern physics (1993): face-centered cubic lattice; https://terms.hebrew-academy.org.il/munnah/84112_1/"
+          },
+          "a97001:term:bainite": {
+            "lemma_he": "ביניט",
+            "niqqud": "בֵּינִיט",
+            "translit": "Beynit",
+            "translit_ru": "бейнит",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "бейнит",
+                "context": "Структура продуктов превращения аустенита, включающая феррит и карбиды; отличается от перлита и мартенсита."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim",
+            "pronunciation_override": {
+              "niqqud": "בֵּינִיט",
+              "translit": "Beynit",
+              "translit_ru": "бейнит",
+              "basis": "Reviewed reading of the bainite eponym; the generic tsere-yod mater rule must not drop the diphthong, as in the separately corrected neutron card."
+            }
+          },
+          "a97001:term:ledeburite": {
+            "lemma_he": "לדבוריט",
+            "niqqud": "לֶדֶבּוּרִיט",
+            "translit": "Ledeburit",
+            "translit_ru": "лэдэбурит",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "ледебурит",
+                "context": "Эвтектическая структурная составляющая системы железо–цементит; при образовании состоит из аустенита и цементита. При дальнейшем охлаждении аустенит превращается."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
+          },
+          "a97001:term:critical-cooling-rate": {
+            "lemma_he": "מהירות קרור קריטית",
+            "niqqud": "מְהִירוּת קֵרוּר קְרִיטִית",
+            "translit": "Mehirut kerur kritit",
+            "translit_ru": "мэхирут керур критит",
+            "senses": [
+              {
+                "sense": "technical",
+                "ru": "критическая скорость охлаждения",
+                "context": "Минимальный темп охлаждения для получения мартенситной структуры в рассматриваемых условиях. Это изменение температуры за время, а не вектор перемещения; зависит от состава стали и условий обработки."
+              }
+            ],
+            "source": "reviewed-a97001-reacceptance",
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim",
+            "aliases_he": [
+              "מהירות קריטית"
+            ]
           }
         },
         "context_exclusions": []
@@ -27938,6 +28258,211 @@
         "R04",
         "R06"
       ]
+    },
+    {
+      "op": "set",
+      "section": "s04-parallel-forces",
+      "page": 28,
+      "collection": "items",
+      "id": "a97001:p28:b011",
+      "fields": {
+        "terms": [
+          "a97001:term:equilibrium#mechanics"
+        ]
+      },
+      "why": "Independent acceptance 3.11.865: equilibrium with article is not weight; dissolution is not mass",
+      "followup_ids": [
+        "F02"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 167,
+      "collection": "items",
+      "id": "a97001:p167:b003",
+      "fields": {
+        "terms": [
+          "a97001:term:carbon#mechanics",
+          "a97001:term:bcc#technical"
+        ]
+      },
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
+      "followup_ids": [
+        "F03",
+        "N05"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 167,
+      "collection": "items",
+      "id": "a97001:p167:b005",
+      "fields": {
+        "terms": [
+          "a97001:term:temperature#mechanics",
+          "a97001:term:carbon#mechanics"
+        ]
+      },
+      "why": "Independent acceptance 3.11.865: equilibrium with article is not weight; dissolution is not mass",
+      "followup_ids": [
+        "F03"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 167,
+      "collection": "items",
+      "id": "a97001:p167:b008",
+      "fields": {
+        "terms": [
+          "a97001:term:lattice#mechanics",
+          "a97001:term:hardness#mechanics",
+          "a97001:term:brittleness#mechanics",
+          "a97001:term:carbon#mechanics"
+        ]
+      },
+      "why": "Independent acceptance 3.11.865: equilibrium with article is not weight; dissolution is not mass",
+      "followup_ids": [
+        "F03"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 137,
+      "collection": "items",
+      "id": "a97001:p137:b008",
+      "fields": {
+        "terms": []
+      },
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "followup_ids": [
+        "F04"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 149,
+      "collection": "items",
+      "id": "a97001:p149:b004",
+      "fields": {
+        "terms": [
+          "a97001:term:strain#mechanics",
+          "a97001:term:creep#mechanics"
+        ]
+      },
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "followup_ids": [
+        "F04"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 174,
+      "collection": "items",
+      "id": "a97001:p174:b008",
+      "fields": {
+        "terms": [
+          "a97001:term:critical-cooling-rate#technical"
+        ]
+      },
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved",
+      "followup_ids": [
+        "F04",
+        "N05"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 174,
+      "collection": "items",
+      "id": "a97001:p174:b009",
+      "fields": {
+        "terms": [
+          "a97001:term:temperature#mechanics"
+        ]
+      },
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "followup_ids": [
+        "F04"
+      ]
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 180,
+      "collection": "items",
+      "id": "a97001:p180:b002",
+      "fields": {
+        "terms": [
+          "a97001:term:area#mechanics",
+          "a97001:term:quenching#mechanics"
+        ]
+      },
+      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "followup_ids": [
+        "F04"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "page": 122,
+      "op": "set",
+      "collection": "items",
+      "id": "a97001:p122:b004",
+      "fields": {
+        "terms": [
+          "a97001:term:mass#mechanics",
+          "a97001:term:density#technical"
+        ]
+      },
+      "followup_ids": [
+        "N05"
+      ],
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved"
+    },
+    {
+      "section": "s17-steels",
+      "page": 168,
+      "op": "set",
+      "collection": "items",
+      "id": "a97001:p168:b004",
+      "fields": {
+        "terms": [
+          "a97001:term:pearlite#mechanics",
+          "a97001:term:bainite#technical"
+        ]
+      },
+      "followup_ids": [
+        "N05"
+      ],
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved"
+    },
+    {
+      "section": "s17-steels",
+      "page": 168,
+      "op": "set",
+      "collection": "items",
+      "id": "a97001:p168:b005",
+      "fields": {
+        "terms": [
+          "a97001:term:temperature#mechanics",
+          "a97001:term:carbon#mechanics",
+          "a97001:term:austenite#mechanics",
+          "a97001:term:cementite#mechanics",
+          "a97001:term:ledeburite#technical"
+        ]
+      },
+      "followup_ids": [
+        "N05"
+      ],
+      "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved"
     }
   ],
   "reacceptance_review": {
