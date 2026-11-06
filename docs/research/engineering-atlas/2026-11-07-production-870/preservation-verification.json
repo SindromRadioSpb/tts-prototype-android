@@ -1,0 +1,10 @@
+{
+  "legacy_files_preserved": 945,
+  "backup_metadata_preserved": 80,
+  "volumes_preserved": 4,
+  "other_containers_preserved": 8,
+  "all_prior_images_preserved": true,
+  "app_mounts_unchanged": true,
+  "current_image": "sha256:e004ceb0cfb12ff3143228bdcf4355cb037b08f20ad00bdac63339331b0ed60f",
+  "free_bytes": 3203915776
+}

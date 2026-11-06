@@ -1,0 +1,131 @@
+{
+  "commit": "8b47ab75a54462753e93e4be021c95e5f0b7ef01",
+  "anonymous_disposable_profile": true,
+  "owner_profile_used": false,
+  "progress_export_downloaded": false,
+  "assets": [
+    {
+      "path": "/js/atlas-progress-export.js?v=869",
+      "sha256": "b442c859f48f89ba10f8a993039d7d894b05882a5c731be3918b28b903a8aa7c",
+      "bytes": 15254
+    },
+    {
+      "path": "/db/db-worker-runtime.js?v=869",
+      "sha256": "90eb5b0849de6c33a2b47d6587cd61848cafb410d462f546dea1828930b2e889",
+      "bytes": 17246
+    },
+    {
+      "path": "/db/operation-lease.js?v=869",
+      "sha256": "48e33dc64a419cc27dd35c33967c977d82b2cdea73cb72be846fe85c780205a9",
+      "bytes": 6029
+    },
+    {
+      "path": "/db/atlas-progress-snapshot.js?v=869",
+      "sha256": "a7cb599cc8165c79dd6bde91af3e5f97bb0c82780492b4f3673e3dc425e9c863",
+      "bytes": 1485
+    },
+    {
+      "path": "/db/local-db.js?v=853",
+      "sha256": "90010e052d037636b9be724dbb3b115f887b60b6d023e13592abfa18fc4250aa",
+      "bytes": 449217
+    },
+    {
+      "path": "/js/library-ui.js?v=870",
+      "sha256": "78a665f2a7e2bde2f34112ea73c5f8f1929ad97fd236eb32d1001c91f5a88c77",
+      "bytes": 1159991
+    },
+    {
+      "path": "/js/atlas-reader.js?v=870",
+      "sha256": "0fa184980413441ed7dbcae604e06be822d21fe3d124ff257bad525ffd9be83a",
+      "bytes": 143637
+    },
+    {
+      "path": "/js/atlas-words.js?v=870",
+      "sha256": "8446e31fe4cbbdb3f1700ccb4701c33f5e21e8fa10a56c6d5ab149b0be9b4b49",
+      "bytes": 24140
+    },
+    {
+      "path": "/js/atlas-train.js?v=870",
+      "sha256": "5b38e46ee826088db821f1e32622326fa93e20cd38b3cc4cb1b170b3b80243f0",
+      "bytes": 23777
+    },
+    {
+      "path": "/js/atlas-search.js?v=870",
+      "sha256": "e6991d679268f4aeb343f94c035331250cc8d89847cf2f44dd5395a6341ad09d",
+      "bytes": 27299
+    },
+    {
+      "path": "/js/atlas-edition.js?v=870",
+      "sha256": "afa87e9bf4098450f3342013f31735af713e8b8426953933539181111481771b",
+      "bytes": 3622
+    },
+    {
+      "path": "/sw.js",
+      "sha256": "f9b60394cd0860259f05bb45acd7d4bbe3cb8d3d17c0626344936a265e319cd7",
+      "bytes": 44377
+    }
+  ],
+  "version": "3.11.870",
+  "console": [
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()"
+  ],
+  "failed": [
+    {
+      "url": "https://linguistpro.kolosei.com/api/agent-access/proposals/summary",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/api/agent-access/proposals/summary",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/data/atlas-editions/a97001/50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc/assets/3c7fca3fce460bf832bb5d63f600de1af73746104f4054ef1d1419960a692eb8.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/data/atlas-editions/a97001/50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc/assets/d417e070fbdbea5e61f29e281ed0f6d3d9eff4178548af7c70363297468f53f3.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/data/atlas-editions/a97001/50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc/assets/3c7fca3fce460bf832bb5d63f600de1af73746104f4054ef1d1419960a692eb8.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/data/atlas-editions/a97001/50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc/assets/d417e070fbdbea5e61f29e281ed0f6d3d9eff4178548af7c70363297468f53f3.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/data/atlas-editions/a97001/50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc/assets/1e070b0b757cd2d03eedd09221e76f635c435a83370e4b029b0888ad318b2e07.png",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://linguistpro.kolosei.com/data/atlas-editions/a97001/50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc/assets/eb3bfc9d247fa709c053b338e58e7b1c58eb6da226107fa3b9c9e4cea8c7dd78.png",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "browser": {
+    "sw_version": "3.11.870",
+    "edition_client": "object",
+    "exporter": "object",
+    "worker_snapshot_api": "function",
+    "empty_snapshot_rows": 0,
+    "historical_parent_groups": 1,
+    "split_children": 2,
+    "button": "Сохранить копию прогресса атласа 97001"
+  },
+  "page178_split": true,
+  "workers": [
+    "https://linguistpro.kolosei.com/db/db-worker-runtime.js?v=869",
+    "https://linguistpro.kolosei.com/db/db-worker-runtime.js?v=869"
+  ],
+  "page_errors": [],
+  "blocked_requests": [],
+  "status": "passed"
+}
