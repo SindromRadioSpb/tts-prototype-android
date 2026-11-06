@@ -23,7 +23,7 @@ ATLAS_ID = 'a97002'
 HEB_LETTER = re.compile(r'[א-ת]')
 FINALS = str.maketrans({'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ'})
 NUMBER = re.compile(r'\d+(?:[.,]\d+)?')
-TEMP = re.compile(r'^new:(?P<parent>a97002:p[1-9][0-9]{0,2}(?::(?:fig[0-9]+|img[0-9]{2}))?):(?P<label>[a-z0-9]+(?:-[a-z0-9]+)*)$')
+TEMP = re.compile(r'^new:(?P<parent>a[0-9]{5}:p[1-9][0-9]{0,2}(?::(?:fig[0-9]+|img[0-9]{2}))?):(?P<label>[a-z0-9]+(?:-[a-z0-9]+)*)$')
 PRODUCER_RECOGNITION = {'ocr_high', 'ocr_low'}
 PRODUCER_LANGUAGE = {'unreviewed', 'producer_checked'}
 PAGE_OBJECT_TYPES = {'block', 'formula', 'symbol', 'figure', 'example'}
@@ -123,7 +123,8 @@ def validate(source, content_path, terms_path=None):
     for message in parse_errors:
         number = int(message.split(':', 1)[0].split()[1])
         rep.error('E_PARSE', None, number, message)
-    schema = S.load_schema('content-pack')
+    atlas_id = source.manifest.get('atlas_id', ATLAS_ID)
+    schema = S.load_schema('content-pack', atlas_id)
     stats = {'lines': len(rows) + len(parse_errors)}
 
     if not rows and parse_errors:
@@ -138,8 +139,8 @@ def validate(source, content_path, terms_path=None):
         rep.error('E_SOURCE_MISMATCH', None, header_line,
                   f'пакет содержимого сделан не по этому исходному пакету: ожидается source_pack_sha256 {source.pages_sha256}')
         return rep.result(stats)
-    if header.get('atlas_id') != ATLAS_ID:
-        rep.error('E_HEADER', None, header_line, f'atlas_id должен быть {ATLAS_ID}')
+    if header.get('atlas_id') != atlas_id:
+        rep.error('E_HEADER', None, header_line, f'atlas_id должен быть {atlas_id}')
 
     content, lines = {}, {}
     for line, obj in rows[1:]:
@@ -261,7 +262,18 @@ def _check_text(source, content, lines, header, rep):
                 rep.error('E_HEBREW_ORDER', sid, line, 'буквы те же, но порядок другой: слова переставлены')
         if _skeleton(obj['he_niqqud']) != _skeleton(obj['he']):
             rep.error('E_NIQQUD_BASE', sid, line, 'he_niqqud без огласовок (и без букв ו/י) не совпадает с he')
-        lost = [n for n in _raw_numbers(src['he_raw']) if not _numbers_present([n], obj['ru'])]
+        # A reflowed table/TOC may move a number into another translated object on the
+        # SAME page. Require explicit, validated references, never page-wide coverage.
+        number_text = obj['ru'] + ' ' + obj.get('ambiguity_note', '')
+        for ref in obj.get('number_refs', []):
+            target = content.get(ref)
+            match = re.match(r'^(?:new:)?a[0-9]{5}:p([0-9]+):', ref)
+            if not target or not match or int(match.group(1)) != src['page'] or target.get('type') not in ('block', 'table', 'formula'):
+                rep.error('E_REF', sid, line, f'number_refs: {ref} должен быть переведённым объектом той же страницы')
+                continue
+            number_text += ' ' + target.get('ru', '') + ' ' + target.get('display_latex', '')
+            number_text += ' ' + ' '.join(c.get('ru', '') for c in target.get('cells', []))
+        lost = [n for n in _raw_numbers(src['he_raw']) if not _numbers_present([n], number_text)]
         if lost:
             rep.error('E_NUMBERS', sid, line, f'в переводе нет чисел: {", ".join(lost)}')
         if not obj.get('translit_ru'):

@@ -47,6 +47,14 @@ bx=(240*.4+240*.8)/.18; tension=bx/.8; by=tension*.6; cx=bx; cy=by+480
 check(39,dict(B_N=tension,Cx_N=cx,Cy_N=cy,C_N=hypot(cx,cy),angle_deg=degrees(atan2(cy,cx))),
       [.18*bx-240*.4-240*.8,cx-bx,cy-by-480],
       'p37 dimensions; p39 vertical reaction printed incorrectly.')
+# p41-45: tension-positive joint forces, diagonals with run2/rise3.
+sn=3/(13**.5); cs=2/(13**.5)
+ac=-250/sn; ae=250*cs/sn; ce=250/sn; cd=-2*ce*cs
+de=-300; s6=cd; s7=50/sn; s8=300
+check(45,dict(AC_N=ac,AE_N=ae,CE_N=ce,CD_N=cd,DE_N=de,S6_N=s6,S7_N=s7,S8_N=s8),
+      [250+ac*sn,ae+ac*cs, -ac*sn-ce*sn,-ac*cs+ce*cs+cd,
+       -300-de,-cd+s6,ce*sn+de+s7*sn,-ae-ce*cs+s8+s7*cs],
+      'p41 geometry and p44-45 joints. Positive=tension. Printed CE and CD signs are reversed.')
 # p46-49: vertical truss width 4m; right loads 5kN at12m,10kN at8m; down5 at x4m.
 g=(5*12+10*8+5*4)/4; ax=-15; ay=5-g
 sef=-(5*8+10*4+5*4)/4; sbe=15/cos(radians(45)); sbc=5*4/4

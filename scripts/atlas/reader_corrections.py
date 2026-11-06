@@ -105,13 +105,22 @@ def _apply_structure(data, ops, log):
             continue
         if not page:
             continue
-        items = page['items']
+        collection = op.get('collection', 'items')
+        if collection not in ('items', 'figures', 'tables'):
+            raise ValueError('unsupported correction collection: ' + collection)
+        items = page.get(collection, [])
         ids = [i['id'] for i in items]
         kind = op['op']
         if kind == 'drop':
             drop = set(op['ids'])
             if drop & set(ids):
-                page['items'] = [i for i in items if i['id'] not in drop]
+                if op.get('preserve_notes'):
+                    editor = page.setdefault('editor', [])
+                    for item in items:
+                        note = item.get('ambiguity_note') or item.get('note')
+                        if item['id'] in drop and note and not any(e.get('text') == note for e in editor):
+                            editor.append({'about': item.get('type', 'block'), 'ref': item['id'], 'text': note})
+                page[collection] = [i for i in items if i['id'] not in drop]
                 log.append(f"p{op['page']}: убраны {len(drop & set(ids))} блок(а) — {op['why']}")
         elif kind == 'set':
             for i in items:
@@ -128,8 +137,8 @@ def _apply_structure(data, ops, log):
                     item = {k: v for k, v in base.items() if k in ('type', 'status', 'terms')}
                     item.update(spec)
                     new.append(item)
-                page['items'] = items[:at] + new + items[at + 1:]
-                page['items'].sort(key=lambda i: i.get('y') if isinstance(i.get('y'), (int, float)) else 0)
+                page[collection] = items[:at] + new + items[at + 1:]
+                page[collection].sort(key=lambda i: i.get('y') if isinstance(i.get('y'), (int, float)) else 0)
                 log.append(f"p{op['page']}: {op['id'].split(':')[-1]} разделён на {len(new)} — {op['why']}")
         else:
             raise ValueError('unknown op ' + kind)
@@ -201,12 +210,11 @@ def main(argv=None):
     ap.add_argument('--mathml', action='store_true', help='сверстать формулы без MathML (нужен katex)')
     args = ap.parse_args(argv)
     files = sorted(glob.glob(os.path.join(args.dir, 'sections', '*.json'))) or sorted(glob.glob(os.path.join(args.dir, 'sec-*.json')))
-    corrections = load_corrections()
     sections, total = [], 0
     for f in files:
         with open(f, encoding='utf-8') as fh:
             d = json.load(fh)
-        fixed, log = apply_section(d, corrections)
+        fixed, log = apply_section(d)
         sections.append((f, fixed, fixed != d))
         for line in log:
             print(f"{d.get('id')}: {line}")

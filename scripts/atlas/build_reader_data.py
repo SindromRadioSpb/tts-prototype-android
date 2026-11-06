@@ -49,19 +49,23 @@ def _source_graph(source):
 def _render_math(latex_by_key):
     if not latex_by_key:
         return {}
-    d = tempfile.mkdtemp(prefix='atlas-math-')
+    scratch = os.path.abspath(os.path.join(HERE, '..', '..', '.tmp', 'atlas-math'))
+    os.makedirs(scratch, exist_ok=True)
+    d = tempfile.mkdtemp(prefix='render-', dir=scratch)
     try:
         src, out = os.path.join(d, 'in.json'), os.path.join(d, 'out.json')
         with open(src, 'w', encoding='utf-8') as fh:
             json.dump(latex_by_key, fh, ensure_ascii=False)
-        subprocess.run(['node', os.path.join(HERE, 'render-math.cjs'), src, out], check=True, capture_output=True)
+        result = subprocess.run(['node', os.path.join(HERE, 'render-math.cjs'), src, out], capture_output=True, text=True, encoding='utf-8')
+        if result.returncode:
+            raise RuntimeError('Atlas MathML rendering failed: ' + result.stderr.strip())
         with open(out, encoding='utf-8') as fh:
             return json.load(fh)
     finally:
         shutil.rmtree(d, ignore_errors=True)
 
 
-def _asset(source_dir, rel, out_root):
+def _asset(source_dir, rel, out_root, atlas_id='a97002'):
     if not rel:
         return None
     name = os.path.basename(rel)
@@ -69,7 +73,7 @@ def _asset(source_dir, rel, out_root):
     if not os.path.exists(target):
         os.makedirs(os.path.dirname(target), exist_ok=True)
         shutil.copyfile(os.path.join(source_dir, rel), target)
-    return URL + 'assets/' + name
+    return '/data/atlas/' + atlas_id + '/assets/' + name
 
 
 def _report_notes(content_path):
@@ -116,6 +120,7 @@ def _with_value(step):
 
 def build_section(section, source_dir, content_path, out_root, terms_path=None):
     source = V.load_source_pack(source_dir)
+    atlas_id = source.manifest.get('atlas_id', 'a97002')
     graph = I.build_graph(source, content_path, terms_path=terms_path)[0] if content_path else _source_graph(source)
     report = _report_notes(content_path)
     latex, pages_out, term_refs = {}, [], set()
@@ -170,7 +175,7 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
                 base.update({'latex': tex, 'source_text': o.get('source_text'), 'vars': vars_, 'compute': o.get('compute'),
                              'angle_unit': o.get('angle_unit'), 'result_var': o.get('result_var'),
                              'note': reader(o.get('ambiguity_note'), y, 'formula', o['id']),
-                             'crop': _asset(source_dir, o.get('crop'), out_root)})
+                             'crop': _asset(source_dir, o.get('crop'), out_root, atlas_id)})
                 if full:
                     base['lhs_restored'] = True
             items.append(base)
@@ -180,7 +185,7 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
                         'links': r.get('links', [])} for r in page.regions if r.get('parent') == f['id']]
             for r in regions:
                 term_refs.update(x for x in r['links'] if '#' in x)
-            figures.append({'id': f['id'], 'number': f.get('number'), 'bbox': f['bbox'], 'crop': _asset(source_dir, f.get('crop'), out_root),
+            figures.append({'id': f['id'], 'number': f.get('number'), 'bbox': f['bbox'], 'crop': _asset(source_dir, f.get('crop'), out_root, atlas_id),
                             'caption_he': f.get('caption_he', ''), 'caption_ru': f.get('caption_ru', ''), 'regions': regions,
                             'is_table': any(t.get('parent') == f['id'] for t in page.tables)})
         for s in page.symbols:
@@ -194,11 +199,11 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
                 e['explanation_ru'] = reader(e['explanation_ru'], None, 'erratum', x['id'])
             errata.append(e)
         pages_out.append({
-            'page': n, 'image': _asset(source_dir, page.page and page.page.get('image'), out_root),
+            'page': n, 'image': _asset(source_dir, page.page and page.page.get('image'), out_root, atlas_id),
             'has_text_layer': bool(page.page and page.page.get('has_text_layer')), 'state': state,
             'translated': state in ('translated', 'partial', 'empty'), 'editor': editor + report.get(n, []),
             'items': items, 'figures': figures,
-            'tables': [{'id': t['id'], 'parent': t.get('parent'), 'title_he': t.get('title_he', ''), 'title_ru': t.get('title_ru', ''),
+            'tables': [{'id': t['id'], 'parent': t.get('parent'), 'bbox': t.get('bbox'), 'title_he': t.get('title_he', ''), 'title_ru': t.get('title_ru', ''),
                         'cells': t['cells']} for t in page.tables],
             'examples': [{'id': x['id'], 'title_ru': x.get('title_ru', ''), 'steps': [_with_value(s) for s in x.get('steps', [])],
                           'math_review': (x.get('status') or {}).get('math_review')} for x in page.examples],
@@ -216,7 +221,7 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
         tid = ref.split('#')[0]
         if tid in graph['terms']:
             terms[tid] = {k: graph['terms'][tid][k] for k in ('lemma_he', 'niqqud', 'translit', 'translit_ru', 'senses') if k in graph['terms'][tid]}
-    data = {'schema': 'linguistpro.atlas-reader-section.1.0.0', 'atlas_id': 'a97002', 'id': section['id'],
+    data = {'schema': 'linguistpro.atlas-reader-section.1.0.0', 'atlas_id': atlas_id, 'id': section['id'],
             'part': section.get('part'), 'title_he': section['he'], 'title_ru': section['ru'],
             'first': section['first'], 'last': section['last'], 'translated': bool(content_path),
             'source_pack_sha256': graph['source_pack_sha256'], 'content_pack_sha256': graph.get('content_pack_sha256'),
@@ -229,36 +234,45 @@ def build_section(section, source_dir, content_path, out_root, terms_path=None):
     return data
 
 
-def build_index(sections, built, parts):
-    return {'schema': 'linguistpro.atlas-reader-index.1.0.0', 'atlas_id': 'a97002',
-            'title_he': 'נוסחאון 97002 — חלקי מכונות ועיבוד שבבי', 'title_ru': 'Формуляр 97002 — детали машин и обработка резанием',
+def build_index(sections, built, parts, book=None):
+    book = book or {}
+    return {'schema': 'linguistpro.atlas-reader-index.1.0.0', 'atlas_id': book.get('atlas_id', 'a97002'),
+            'title_he': book.get('title_he', 'נוסחאון 97002 — חלקי מכונות ועיבוד שבבי'),
+            'title_ru': book.get('title_ru', 'Формуляр 97002 — детали машин и обработка резанием'),
             'built_at': datetime.now(timezone.utc).isoformat(timespec='seconds'), 'parts': parts,
             'sections': [{'id': s['id'], 'part': s.get('part'), 'he': s['he'], 'ru': s['ru'], 'first': s['first'], 'last': s['last'],
                           'translated': bool(built.get(s['id'], {}).get('translated'))} for s in sections]}
 
 
-def _latest_content(contents_dir, sid):
+def _latest_content(contents_dir, sid, atlas_id='a97002'):
     if not contents_dir:
         return None
-    found = sorted(glob.glob(os.path.join(contents_dir, f'a97002-content-{sid}-v*.jsonl')))
+    found = sorted(glob.glob(os.path.join(contents_dir, f'{atlas_id}-content-{sid}-v*.jsonl')))
     return found[-1] if found else None
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Данные ридера атласа.')
-    parser.add_argument('--sections-root', required=True, help='исходные пакеты разделов (atlas_book.py extract)')
+    sources = parser.add_mutually_exclusive_group(required=True)
+    sources.add_argument('--sections-root', help='исходные пакеты разделов (atlas_book.py extract)')
+    sources.add_argument('--source-pack', help='единый исходный пакет всей книги')
+    parser.add_argument('--sections-map', default=K.SECTIONS, help='карта разделов и идентификатор книги')
     parser.add_argument('--contents', help='папка с пакетами dots a97002-content-<раздел>-v*.jsonl')
     parser.add_argument('--out', required=True)
     parser.add_argument('--terms-core', help='общий словарь книги (a97002-terms-v*.jsonl)')
     parser.add_argument('--only', default='')
     args = parser.parse_args(argv)
-    data = K.load_sections()
+    data = K.load_sections(args.sections_map)
+    atlas_id = data.get('atlas_id', 'a97002')
     only = {s for s in args.only.split(',') if s}
     built = {}
     for s in data['sections']:
         if only and s['id'] not in only:
             continue
-        built[s['id']] = build_section(s, os.path.join(args.sections_root, s['id']), _latest_content(args.contents, s['id']), args.out, args.terms_core)
+        source_dir = args.source_pack or os.path.join(args.sections_root, s['id'])
+        if V.load_source_pack(source_dir).manifest.get('atlas_id', 'a97002') != atlas_id:
+            raise ValueError('section map and source pack belong to different atlases')
+        built[s['id']] = build_section(s, source_dir, _latest_content(args.contents, s['id'], atlas_id), args.out, args.terms_core)
         sys.stdout.write(f'{s["id"]}: {"перевод" if built[s["id"]]["translated"] else "без перевода"}\n')
     index_path = os.path.join(args.out, 'index.json')
     previous = {}
@@ -266,7 +280,7 @@ def main(argv=None):
         with open(index_path, encoding='utf-8') as fh:
             previous = {x['id']: {'translated': x['translated']} for x in json.load(fh)['sections']}
     with open(index_path, 'w', encoding='utf-8', newline='\n') as fh:
-        json.dump(build_index(data['sections'], {**previous, **built}, data['parts']), fh, ensure_ascii=False, indent=1)
+        json.dump(build_index(data['sections'], {**previous, **built}, data['parts'], data), fh, ensure_ascii=False, indent=1)
     return 0
 
 

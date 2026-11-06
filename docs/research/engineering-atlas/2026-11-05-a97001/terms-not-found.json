@@ -1,0 +1,70 @@
+[
+  {
+    "slug": "vector",
+    "lemma": "וקטור"
+  },
+  {
+    "slug": "scalar",
+    "lemma": "סקלר"
+  },
+  {
+    "slug": "displacement",
+    "lemma": "העתק"
+  },
+  {
+    "slug": "parallelism",
+    "lemma": "מקבילות"
+  },
+  {
+    "slug": "perpendicularity",
+    "lemma": "ניצבות"
+  },
+  {
+    "slug": "flatness",
+    "lemma": "מישוריות"
+  },
+  {
+    "slug": "proton",
+    "lemma": "פרוטון"
+  },
+  {
+    "slug": "neutron",
+    "lemma": "נייטרון"
+  },
+  {
+    "slug": "toughness",
+    "lemma": "נגיפות"
+  },
+  {
+    "slug": "indentation",
+    "lemma": "טביעה"
+  },
+  {
+    "slug": "cast-iron",
+    "lemma": "ברזל יציקה"
+  },
+  {
+    "slug": "carburizing",
+    "lemma": "צמנטציה"
+  },
+  {
+    "slug": "nitriding",
+    "lemma": "ניטרידציה"
+  },
+  {
+    "slug": "sintering",
+    "lemma": "סינטור"
+  },
+  {
+    "slug": "porosity",
+    "lemma": "נקבוביות"
+  },
+  {
+    "slug": "extrusion",
+    "lemma": "שיחול"
+  },
+  {
+    "slug": "fiber",
+    "lemma": "סיב"
+  }
+]

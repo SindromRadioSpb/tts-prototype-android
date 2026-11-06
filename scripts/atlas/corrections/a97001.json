@@ -1,0 +1,705 @@
+{
+  "atlas_id": "a97001",
+  "note": "Structural reflow of the editorial source pack, checked against the 203-page scan. Tables remain bilingual objects; original PDF is immutable.",
+  "glued": {},
+  "structure": [
+    {
+      "page": 2,
+      "op": "drop",
+      "ids": [
+        "a97001:p2:b002",
+        "a97001:p2:b015"
+      ],
+      "why": "Номера страниц включены в строки оглавления",
+      "section": "s00-front",
+      "preserve_notes": true
+    },
+    {
+      "page": 3,
+      "op": "drop",
+      "ids": [
+        "a97001:p3:b004"
+      ],
+      "why": "Номера включены в строки оглавления",
+      "section": "s00-front",
+      "preserve_notes": true
+    },
+    {
+      "page": 4,
+      "op": "drop",
+      "ids": [
+        "a97001:p4:b004",
+        "a97001:p4:b005",
+        "a97001:p4:b007",
+        "a97001:p4:b009",
+        "a97001:p4:f01",
+        "a97001:p4:f02",
+        "a97001:p4:f03",
+        "a97001:p4:f04"
+      ],
+      "why": "Разорванный заголовок и текстовые копии восстановленных таблиц",
+      "section": "s01-units",
+      "preserve_notes": true
+    },
+    {
+      "page": 5,
+      "op": "drop",
+      "ids": [
+        "a97001:p5:b001",
+        "a97001:p5:b002",
+        "a97001:p5:f01",
+        "a97001:p5:f02",
+        "a97001:p5:f03",
+        "a97001:p5:f04",
+        "a97001:p5:f05",
+        "a97001:p5:f06",
+        "a97001:p5:f07"
+      ],
+      "why": "Единицы и соотношения восстановлены в единой таблице",
+      "section": "s01-units",
+      "preserve_notes": true
+    },
+    {
+      "page": 74,
+      "op": "drop",
+      "ids": [
+        "a97001:p74:b004"
+      ],
+      "why": "Дублирующая текстовая копия таблицы участков",
+      "section": "s09-linear-motion",
+      "preserve_notes": true
+    },
+    {
+      "page": 106,
+      "op": "drop",
+      "ids": [
+        "a97001:p106:b005"
+      ],
+      "why": "Одинокий знак пунктуации из разбиения заголовка",
+      "section": "s13-dimensions",
+      "preserve_notes": true
+    },
+    {
+      "page": 109,
+      "op": "drop",
+      "ids": [
+        "a97001:p109:b005"
+      ],
+      "why": "Таблица классов шероховатости восстановлена по ячейкам",
+      "section": "s14-industrial-symbols",
+      "preserve_notes": true
+    },
+    {
+      "page": 111,
+      "op": "drop",
+      "ids": [
+        "a97001:p111:b001"
+      ],
+      "why": "Две таблицы способов обработки восстановлены отдельно",
+      "section": "s14-industrial-symbols",
+      "preserve_notes": true
+    },
+    {
+      "page": 114,
+      "op": "drop",
+      "ids": [
+        "a97001:p114:b002"
+      ],
+      "why": "Скобка включена в заголовок",
+      "section": "s14-industrial-symbols",
+      "preserve_notes": true
+    },
+    {
+      "page": 140,
+      "op": "drop",
+      "ids": [
+        "a97001:p140:b002"
+      ],
+      "why": "Полная таблица твёрдости восстановлена по ячейкам",
+      "section": "s16-mechanical-properties",
+      "preserve_notes": true
+    },
+    {
+      "page": 162,
+      "op": "drop",
+      "ids": [
+        "a97001:p162:b002",
+        "a97001:p162:b004"
+      ],
+      "why": "Артефакт заголовка и текстовая копия таблицы обозначений",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 163,
+      "op": "drop",
+      "ids": [
+        "a97001:p163:b001",
+        "a97001:p163:b003"
+      ],
+      "why": "Обозначения и пример восстановлены в таблицах",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 165,
+      "op": "drop",
+      "ids": [
+        "a97001:p165:b003"
+      ],
+      "why": "Полное описание четырёх классов представлено двуязычной таблицей",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 172,
+      "op": "drop",
+      "ids": [
+        "a97001:p172:b002"
+      ],
+      "why": "Линии диаграммы представлены полной таблицей",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 173,
+      "op": "drop",
+      "ids": [
+        "a97001:p173:b001",
+        "a97001:p173:b002"
+      ],
+      "why": "Характерные точки и равновесия представлены двумя полными таблицами",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 186,
+      "op": "drop",
+      "ids": [
+        "a97001:p186:b002"
+      ],
+      "why": "Скобка включена в заголовок",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 187,
+      "op": "drop",
+      "ids": [
+        "a97001:p187:b002"
+      ],
+      "why": "Скобка включена в заголовок",
+      "section": "s17-steels",
+      "preserve_notes": true
+    },
+    {
+      "page": 4,
+      "op": "drop",
+      "ids": [
+        "a97001:p4:f01",
+        "a97001:p4:f02",
+        "a97001:p4:f03",
+        "a97001:p4:f04",
+        "a97001:p4:f05",
+        "a97001:p4:f06",
+        "a97001:p4:f07"
+      ],
+      "why": "Все значения и единицы перенесены в двуязычные таблицы; разрозненные фрагменты извлечения дублируют ячейки.",
+      "section": "s01-units",
+      "preserve_notes": true
+    },
+    {
+      "page": 5,
+      "op": "drop",
+      "ids": [
+        "a97001:p5:f01",
+        "a97001:p5:f02",
+        "a97001:p5:f03",
+        "a97001:p5:f04",
+        "a97001:p5:f05",
+        "a97001:p5:f06",
+        "a97001:p5:f07",
+        "a97001:p5:f08",
+        "a97001:p5:f09",
+        "a97001:p5:f10",
+        "a97001:p5:f11",
+        "a97001:p5:f12",
+        "a97001:p5:f13",
+        "a97001:p5:f14",
+        "a97001:p5:f15",
+        "a97001:p5:f16",
+        "a97001:p5:f17",
+        "a97001:p5:f18",
+        "a97001:p5:f19",
+        "a97001:p5:f20",
+        "a97001:p5:f21",
+        "a97001:p5:f22",
+        "a97001:p5:f23"
+      ],
+      "why": "Все значения и единицы перенесены в двуязычные таблицы; разрозненные фрагменты извлечения дублируют ячейки.",
+      "section": "s01-units",
+      "preserve_notes": true
+    },
+    {
+      "page": 124,
+      "section": "s16-mechanical-properties",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p124:img02",
+        "a97001:p124:img03",
+        "a97001:p124:img04",
+        "a97001:p124:img05"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "page": 146,
+      "section": "s16-mechanical-properties",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p146:img03"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "page": 147,
+      "section": "s16-mechanical-properties",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p147:img02"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "page": 148,
+      "section": "s16-mechanical-properties",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p148:img04",
+        "a97001:p148:img05",
+        "a97001:p148:img06"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "page": 167,
+      "section": "s17-steels",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p167:img07"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "page": 168,
+      "section": "s17-steels",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p168:img06",
+        "a97001:p168:img07",
+        "a97001:p168:img10"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "page": 179,
+      "section": "s17-steels",
+      "op": "drop",
+      "collection": "figures",
+      "ids": [
+        "a97001:p179:img02",
+        "a97001:p179:img03",
+        "a97001:p179:img05",
+        "a97001:p179:img06",
+        "a97001:p179:img07",
+        "a97001:p179:img08"
+      ],
+      "why": "Отдельные фрагменты подписей или фона повторяют основную иллюстрацию; их смысл включён в её двуязычную подпись."
+    },
+    {
+      "op": "set",
+      "collection": "figures",
+      "section": "s17-steels",
+      "page": 157,
+      "id": "a97001:p157:img01",
+      "fields": {
+        "crop": "/data/atlas/a97001/assets/p157-table-upright.png"
+      },
+      "why": "Поворот таблицы для чтения; исходный скан сохранён"
+    },
+    {
+      "op": "set",
+      "collection": "figures",
+      "section": "s17-steels",
+      "page": 159,
+      "id": "a97001:p159:img01",
+      "fields": {
+        "crop": "/data/atlas/a97001/assets/p159-table-upright.png"
+      },
+      "why": "Поворот таблицы для чтения; исходный скан сохранён"
+    },
+    {
+      "op": "set",
+      "collection": "figures",
+      "section": "s17-steels",
+      "page": 160,
+      "id": "a97001:p160:img01",
+      "fields": {
+        "crop": "/data/atlas/a97001/assets/p160-table-upright.png"
+      },
+      "why": "Поворот таблицы для чтения; исходный скан сохранён"
+    },
+    {
+      "op": "set",
+      "section": "s02-statics-basics",
+      "page": 8,
+      "id": "a97001:p8:b002",
+      "fields": {
+        "he": "כוחות הפועלים לאורך קו פעולה זהה אופקי או אנכי, נוכל להחליפם בכוח יחיד שעוצמתו שווה לעוצמת כלל הכוחות הנקרא כוח שקול (סכום הכוחות) ומסומן ב־Fe או ΣF.",
+        "he_niqqud": "כּוֹחוֹת הַפּוֹעֲלִים לְאֹרֶךְ קַו פְּעֻלָּה זֵהֶה אָפְקִי אוֹ אֲנָכִי, נוּכַל לְהַחֲלִיפָם בְּכוֹחַ יָחִיד שֶׁעָצְמָתוֹ שָׁוָה לְעָצְמַת כְּלַל הַכּוֹחוֹת הַנִּקְרָא כּוֹחַ שָׁקוּל (סְכוּם הַכּוֹחוֹת) וּמְסֻמָּן בְּ־Fe אוֹ ΣF.",
+        "translit": "Kokhot hapo'alim le'orekh kav pe'ula zehe ofki o anakhi, nukhal lehakhalifam bekoakh yakhid she'otsmato shava le'otsmat klal Hakokhot hanikra koakh shakul (skhum hakokhot) umesuman be-Fe o ΣF.",
+        "translit_ru": "Кохот ха-поалим ле-орех кав пеула зехе офки о анахи, нухаль ле-хахалифам бе-коах яхид ше-оцмато шава ле-оцмат клаль Ха-кохот ха-никра коах шакуль (схум ха-кохот) у-месуман бе-Fe о ΣF.",
+        "ru": "Силы, действующие вдоль одной горизонтальной или вертикальной линии, можно заменить одной силой, соответствующей их общему действию. Она называется равнодействующей (суммой сил) и обозначается Fe или ΣF.",
+        "ambiguity_note": "Силы складываются с учётом направления."
+      },
+      "merge_pair": "b002",
+      "why": "Восстановлен единый абзац, разорванный извлечением"
+    },
+    {
+      "op": "drop",
+      "section": "s02-statics-basics",
+      "page": 8,
+      "ids": [
+        "a97001:p8:b003"
+      ],
+      "merge_pair": "b002",
+      "why": "Продолжение полностью включено в предыдущий абзац"
+    },
+    {
+      "op": "set",
+      "section": "s02-statics-basics",
+      "page": 8,
+      "id": "a97001:p8:b004",
+      "fields": {
+        "he": "כוחות הפועלים לאורך קווי פעולה אנכיים זה לזה, נוכל להחליפם בכוח יחיד שעוצמתו שווה לעוצמת כלל הכוחות הנקרא כוח שקול (סכום הכוחות) ומסומן ב־Fe או ΣF.",
+        "he_niqqud": "כּוֹחוֹת הַפּוֹעֲלִים לְאֹרֶךְ קַוֵּי פְּעֻלָּה אֲנָכִיִּים זֶה לָזֶה, נוּכַל לְהַחֲלִיפָם בְּכוֹחַ יָחִיד שֶׁעָצְמָתוֹ שָׁוָה לְעָצְמַת כְּלַל הַכּוֹחוֹת הַנִּקְרָא כּוֹחַ שָׁקוּל (סְכוּם הַכּוֹחוֹת) וּמְסֻמָּן בְּ־Fe אוֹ ΣF.",
+        "translit": "Kokhot hapo'alim le'orekh kavei pe'ula anakhiyim ze laze, nukhal lehakhalifam bekoakh yakhid she'otsmato shava le'otsmat klal hakokhot Hanikra koakh shakul (skhum hakokhot) umesuman be-Fe o ΣF.",
+        "translit_ru": "Кохот ха-поалим ле-орех кавей пеула анахийим зе ла-зе, нухаль ле-хахалифам бе-коах яхид ше-оцмато шава ле-оцмат клаль ха-кохот Ха-никра коах шакуль (схум ха-кохот) у-месуман бе-Fe о ΣF.",
+        "ru": "Силы, действующие вдоль взаимно перпендикулярных линий, можно заменить одной силой, соответствующей их общему действию. Она называется равнодействующей (суммой сил) и обозначается Fe или ΣF.",
+        "ambiguity_note": "Для двух перпендикулярных сил модуль равнодействующей равен √(F₁² + F₂²), а не сумме модулей."
+      },
+      "merge_pair": "b004",
+      "why": "Восстановлен единый абзац, разорванный извлечением"
+    },
+    {
+      "op": "drop",
+      "section": "s02-statics-basics",
+      "page": 8,
+      "ids": [
+        "a97001:p8:b005"
+      ],
+      "merge_pair": "b004",
+      "why": "Продолжение полностью включено в предыдущий абзац"
+    },
+    {
+      "op": "drop",
+      "section": "s07-centroid",
+      "page": 56,
+      "ids": [
+        "a97001:p56:b002",
+        "a97001:p56:f01",
+        "a97001:p56:f02",
+        "a97001:p56:f03",
+        "a97001:p56:f04",
+        "a97001:p56:f05",
+        "a97001:p56:f06"
+      ],
+      "preserve_notes": true,
+      "why": "Столбцы и подписи сведены в двуязычную таблицу; исходные значения и исправления показаны отдельно"
+    },
+    {
+      "op": "drop",
+      "section": "s03-concurrent-forces",
+      "page": 21,
+      "ids": [
+        "a97001:p21:f02",
+        "a97001:p21:f03"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s04-parallel-forces",
+      "page": 24,
+      "ids": [
+        "a97001:p24:f02"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s04-parallel-forces",
+      "page": 26,
+      "ids": [
+        "a97001:p26:f01"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s05-planar-forces",
+      "page": 34,
+      "ids": [
+        "a97001:p34:f01"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s07-centroid",
+      "page": 50,
+      "ids": [
+        "a97001:p50:f02"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 67,
+      "ids": [
+        "a97001:p67:f03"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 69,
+      "ids": [
+        "a97001:p69:f02",
+        "a97001:p69:f03"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 70,
+      "ids": [
+        "a97001:p70:f05",
+        "a97001:p70:f07"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 71,
+      "ids": [
+        "a97001:p71:f03"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 72,
+      "ids": [
+        "a97001:p72:f01",
+        "a97001:p72:f02",
+        "a97001:p72:f03",
+        "a97001:p72:f04",
+        "a97001:p72:f05",
+        "a97001:p72:f06"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 73,
+      "ids": [
+        "a97001:p73:f01",
+        "a97001:p73:f02"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 74,
+      "ids": [
+        "a97001:p74:f05"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 77,
+      "ids": [
+        "a97001:p77:f06",
+        "a97001:p77:f07"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 80,
+      "ids": [
+        "a97001:p80:f01"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s09-linear-motion",
+      "page": 81,
+      "ids": [
+        "a97001:p81:f03",
+        "a97001:p81:f08",
+        "a97001:p81:f10"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s10-projectile-motion",
+      "page": 83,
+      "ids": [
+        "a97001:p83:f07"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s10-projectile-motion",
+      "page": 85,
+      "ids": [
+        "a97001:p85:f08"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s10-projectile-motion",
+      "page": 87,
+      "ids": [
+        "a97001:p87:f15"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s11-circular-motion",
+      "page": 91,
+      "ids": [
+        "a97001:p91:f01",
+        "a97001:p91:f02"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s11-circular-motion",
+      "page": 93,
+      "ids": [
+        "a97001:p93:f01",
+        "a97001:p93:f02"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "ids": [
+        "a97001:p109:f01"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s16-mechanical-properties",
+      "page": 132,
+      "ids": [
+        "a97001:p132:f03"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "drop",
+      "section": "s16-mechanical-properties",
+      "page": 136,
+      "ids": [
+        "a97001:p136:f04"
+      ],
+      "preserve_notes": true,
+      "review_group": "formula-fragments",
+      "why": "Единицы включены в двуязычные определения рядом; повторные знаменатели включены в полные формулы"
+    },
+    {
+      "op": "set",
+      "collection": "figures",
+      "section": "s17-steels",
+      "page": 170,
+      "id": "a97001:p170:img01",
+      "fields": {
+        "crop": "/data/atlas/a97001/assets/p170-table-upright.png"
+      },
+      "why": "Поворот диаграммы для чтения; исходный скан сохранён"
+    }
+  ]
+}

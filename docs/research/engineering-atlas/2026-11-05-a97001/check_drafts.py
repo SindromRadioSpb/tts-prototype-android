@@ -13,7 +13,7 @@ seen = set()
 pages = set()
 notes = []
 for path in sorted(HERE.glob('*-p*.json')):
-    if path.name.endswith('.author.json'):
+    if path.name.endswith('.author.json') or path.name.startswith('formulas-'):
         continue
     draft = json.loads(path.read_text(encoding='utf-8'))
     assert draft['atlas_id'] == 'a97001'
@@ -47,8 +47,8 @@ report = {
     'remaining_source_blocks': len(blocks - seen), 'editor_notes': notes,
     'section_count': len(sections['sections']),
     'publishable': False,
-    'pending': ['remaining translation', 'tables and figure legends',
-                'canonical import', 'independent language and math review',
+    'pending': ['translation completeness review', 'tables and figure legends',
+                'formula transcription and verification', 'language and math review',
                 'whole-book visual reader acceptance', 'production publication']
 }
 (HERE / 'progress.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

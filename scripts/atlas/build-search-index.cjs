@@ -16,9 +16,13 @@ const sections = names.map((n) => {
   hashes[s.id] = sha(b);
   return s;
 });
+const atlasId = sections[0] && sections[0].atlas_id;
+if (!/^a[0-9]{5}$/.test(atlasId) || sections.some(s => s.atlas_id !== atlasId))
+  throw Error('Search sections must belong to one atlas');
+const bookLexicon = path.join(__dirname, '../../atlas', atlasId, 'notation-lexicon.json');
 const ix = S.buildIndex(
   sections,
-  require("../../atlas/a97002/notation-lexicon.json"),
+  JSON.parse(fs.readFileSync(fs.existsSync(bookLexicon) ? bookLexicon : path.join(__dirname, '../../atlas/a97002/notation-lexicon.json'), 'utf8')),
 );
 ix.sections_sha256 = hashes;
 const known = new Set(ix.lexicon.knownCommands);
@@ -91,9 +95,8 @@ for (let n = 0; n < 200; n++) {
   times.push(performance.now() - a);
 }
 times.sort((a, b) => a - b);
-const gold = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "search-gold.a97002.json")),
-);
+const goldPath = path.join(__dirname, 'search-gold.' + atlasId + '.json');
+const gold = fs.existsSync(goldPath) ? JSON.parse(fs.readFileSync(goldPath)) : {queries:[]};
 const fragmentTimes = gold.queries
   .filter((q) => q.kind === "fragment")
   .map((q) => {
@@ -111,7 +114,7 @@ console.log(
       tokens: Object.keys(ix.post).length,
       parse_ms: parseMs,
       p95_ms: times[189],
-      fragment_max_ms: Math.max(...fragmentTimes),
+      fragment_max_ms: Math.max(0, ...fragmentTimes),
       missingRefs: ix.docs.filter((d) => !d[3]).length,
       unknownCommands,
       commandCounts: commands,

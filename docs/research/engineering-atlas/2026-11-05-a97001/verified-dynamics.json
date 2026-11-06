@@ -1,0 +1,57 @@
+{
+  "method": "independent equations and residuals",
+  "checks": [
+    {
+      "page": 74,
+      "check": "Three consecutive stages",
+      "values": {
+        "distance_m": 4299
+      },
+      "residuals": [
+        0
+      ]
+    },
+    {
+      "page": 75,
+      "check": "Travel time from stage distances",
+      "values": {
+        "time_s": 314.14285714285717,
+        "runner_acceleration_m_s2": 0.616
+      },
+      "residuals": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "page": 81,
+      "check": "Vertical trajectory with g=10",
+      "values": {
+        "initial_speed_m_s": 4.166666666666667,
+        "time_to_top_s": 0.4166666666666667,
+        "rise_m": 0.8680555555555557,
+        "height_above_reference_m": 5.868055555555555,
+        "entry_velocity_m_s": -10.833333333333334,
+        "entry_time_s": 1.5,
+        "second_trajectory_time_s": 1.219803902718557
+      },
+      "residuals": [
+        0.0,
+        0.0,
+        -1.7763568394002505e-15,
+        0.0
+      ]
+    },
+    {
+      "page": 85,
+      "check": "Downward launch, drop 5 m",
+      "values": {
+        "flight_time_s": 0.4568590249909473,
+        "delay_from_1s_s": 0.5431409750090527
+      },
+      "residuals": [
+        -8.881784197001252e-16
+      ]
+    }
+  ]
+}

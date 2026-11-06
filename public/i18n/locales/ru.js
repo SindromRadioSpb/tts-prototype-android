@@ -5728,3 +5728,4 @@ Object.assign(window.I18N_LOCALES.ru.course,{scene:{"noAudio":"Запись не
 Object.assign(window.I18N_LOCALES.ru.course.role,{"learner":"Вы","barista":"Бариста","friend":"Подруга"});
 Object.assign(window.I18N_LOCALES.ru.course,{tiles:{"answer":"Ваша фраза","bank":"Слова","empty":"Касайтесь слов ниже"}});
 Object.assign(window.I18N_LOCALES.ru.course,{order:{card:"Заказ"}});
+window.I18N_LOCALES.ru.room.hub.atlas97001 = {title:"Инженерный атлас 97001",desc:"Основы механики: статика, движение, черчение и материаловедение — иврит и русский, по страницам книги"}; window.I18N_LOCALES.ru.atlas.bookName = "Инженерный атлас";

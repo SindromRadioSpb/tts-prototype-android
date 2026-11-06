@@ -85,6 +85,23 @@ function page(extra) {
 }
 function section(pages) { return { id: 's01', title_he: 'מבוא', title_ru: 'Введение', first: 5, last: 5, translated: true, pages, terms: {} }; }
 
+test('source example anchors do not create empty worked-example cards', () => {
+  const { R, T } = env();
+  const el = R.renderPage(T, page({examples:[{id:'a97001:p5:e01',title_ru:'',steps:[]},
+    {id:'a97001:p5:e02',title_ru:'Проверенный пример',steps:[]}]}));
+  assert.equal(el.querySelectorAll('.atlas-example').length, 1);
+  assert.match(el.querySelector('.atlas-example').textContent, /Проверенный пример/);
+});
+
+test('a second book recognizes captioned margin marks without a book-specific ID list', () => {
+  const { R, T } = env();
+  const p = page({items:[{id:'a97001:p5:b001',type:'block',kind:'list_item',y:140,he:'יתרון',ru:'Преимущество'}],
+    figures:[{id:'a97001:p5:img01',number:null,bbox:[520,100,540,120],caption_he:'יתרונות',caption_ru:'Преимущества',regions:[]}]});
+  const el = R.renderPage(T,p);
+  assert.equal(el.querySelectorAll('.atlas-mark-group[data-mark="pro"] .atlas-row').length,1);
+  assert.equal(el.querySelectorAll('figure').length,0);
+});
+
 test('R07: a page with a translated table is not marked "without translation"; empty and partial pages say so', () => {
   const { R, T } = env();
   const table = { title_ru: 'Основные размеры', cells: [{ row: 0, col: 0, rowspan: 1, colspan: 1, he: 'מידות', ru: 'Основные размеры' }] };

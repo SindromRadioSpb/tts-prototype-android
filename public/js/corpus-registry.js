@@ -56,6 +56,12 @@ export const CORPORA = [
     capabilities: [],
   },
   {
+    id: 'atlas:a97001', icon: '📐', kind: 'atlas',
+    title: { key: 'room.hub.atlas97001.title', fb: 'Инженерный атлас 97001' },
+    desc: { key: 'room.hub.atlas97001.desc', fb: 'Основы механики: статика, движение, черчение и материаловедение — иврит и русский, по страницам книги' },
+    capabilities: [],
+  },
+  {
     id: 'course:ulpan', icon: '🎓', kind: 'course',
     title: { key: 'course.corpus.title', fb: 'Курс иврита' },
     desc: { key: 'course.corpus.desc', fb: 'Уроки ульпана: ситуации, тексты, задания' },

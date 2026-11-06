@@ -68,6 +68,7 @@
         "ru": { "type": "string" },
         "terms": { "type": "array", "items": { "$ref": "#/$defs/termRef" } },
         "he_fix_note": { "$ref": "#/$defs/text" },
+        "number_refs": { "type": "array", "items": { "$ref": "#/$defs/anyId" } },
         "ambiguity_note": { "$ref": "#/$defs/text" },
         "status": { "$ref": "#/$defs/status" }
       }

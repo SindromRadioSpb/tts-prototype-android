@@ -18,13 +18,17 @@ SCHEMA_DIR = next((d for d in (os.path.join(_HERE, 'schemas'), os.path.join(_HER
 _cache = {}
 
 
-def load_schema(name):
+def load_schema(name, atlas_id='a97002'):
     if name not in ('source-pack', 'content-pack'):
         raise ValueError(f'unknown schema {name!r}')
-    if name not in _cache:
+    if not re.fullmatch(r'a[0-9]{5}', atlas_id):
+        raise ValueError(f'invalid atlas id {atlas_id!r}')
+    key = (name, atlas_id)
+    if key not in _cache:
         with open(os.path.join(SCHEMA_DIR, name + '.schema.json'), encoding='utf-8') as fh:
-            _cache[name] = json.load(fh)
-    return _cache[name]
+            # Bind the contract to one book, rather than accepting cross-book references.
+            _cache[key] = json.loads(fh.read().replace('a97002', atlas_id))
+    return _cache[key]
 
 
 def _type_ok(value, name):

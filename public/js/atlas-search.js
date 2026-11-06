@@ -360,6 +360,7 @@
       });
     return {
       schema: "linguistpro.atlas-search.1",
+      atlas_id: (sections[0] || {}).atlas_id || 'a97002',
       lexicon: lexicon || null,
       docs: docs,
       post: post,
@@ -668,6 +669,7 @@
   }
   function pack(ix) {
     var ids = [];
+    var atlasId = ix.atlas_id || 'a97002';
     ix.docs = ix.docs.map(function (d) {
       var n = ids.indexOf(d[1]);
       if (n < 0) {
@@ -678,8 +680,8 @@
         groups.indexOf(d[0]),
         n,
         d[2],
-        d[3].startsWith("a97002:p" + d[2] + ":")
-          ? d[3].slice(("a97002:p" + d[2] + ":").length)
+        d[3].startsWith(atlasId + ":p" + d[2] + ":")
+          ? d[3].slice((atlasId + ":p" + d[2] + ":").length)
           : "=" + d[3],
         d[4],
         d[5],
@@ -698,8 +700,8 @@
                 "," +
                 p[1].toString(36) +
                 "," +
-                (p[2].startsWith("a97002:p" + p[1] + ":")
-                  ? p[2].slice(("a97002:p" + p[1] + ":").length)
+                (p[2].startsWith(atlasId + ":p" + p[1] + ":")
+                  ? p[2].slice((atlasId + ":p" + p[1] + ":").length)
                   : "=" + p[2])
               );
             })
@@ -789,12 +791,13 @@
   }
   function unpack(ix) {
     if (!ix.packed) return ix;
+    var atlasId = ix.atlas_id || 'a97002';
     ix.docs = ix.docs.map(function (d,index) {
       return [
         groups[d[0]],
         ix.sids[d[1]],
         d[2],
-        d[3][0] === "=" ? d[3].slice(1) : "a97002:p" + d[2] + ":" + d[3],
+        d[3][0] === "=" ? d[3].slice(1) : atlasId + ":p" + d[2] + ":" + d[3],
         ix.previews ? ix.previews[index][0] : d[4],
         ix.previews ? ix.previews[index][1] : d[5],
         d[6]
@@ -806,7 +809,7 @@
                 page,
                 a[2][0] === "="
                   ? a[2].slice(1)
-                  : "a97002:p" + page + ":" + a[2],
+                  : atlasId + ":p" + page + ":" + a[2],
               ];
             })
           : null,

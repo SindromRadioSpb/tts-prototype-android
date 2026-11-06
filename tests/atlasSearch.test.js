@@ -2,6 +2,20 @@
 const test = require("node:test"),
   assert = require("node:assert/strict");
 const S = require("../public/js/atlas-search.js");
+
+test("compact indexes preserve second-book identities and legacy indexes", () => {
+  for (const atlasId of ['a97001', 'a97002']) {
+    const book = [{ atlas_id: atlasId, id: 'same-section', pages: [{ page: 1, items: [
+      { type: 'block', id: atlasId + ':p1:b001', he: 'כוח', ru: 'Сила' }
+    ] }] }];
+    const ix = S.buildIndex(book);
+    const packed = JSON.parse(JSON.stringify(S.pack(ix)));
+    assert.equal(packed.atlas_id, atlasId);
+    if (atlasId === 'a97002') delete packed.atlas_id; // Existing volume indexes have no book field.
+    const result = S.query(S.unpack(packed), 'сила');
+    assert.equal(result[0].ref, atlasId + ':p1:b001');
+  }
+});
 test("notation equivalence and significant case", () => {
   for (const x of ["σ_Lc", "σLc", "sigma_Lc", "сигма Lc"])
     assert.equal(S.symbolKey(x), S.symbolKey("\\sigma_{Lc}"));

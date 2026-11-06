@@ -92,6 +92,30 @@
       "source": "p37 dimensions; p39 vertical reaction printed incorrectly."
     },
     {
+      "page": 45,
+      "values": {
+        "AC_N": -300.46260628866577,
+        "AE_N": 166.66666666666666,
+        "CE_N": 300.46260628866577,
+        "CD_N": -333.3333333333333,
+        "DE_N": -300,
+        "S6_N": -333.3333333333333,
+        "S7_N": 60.092521257733154,
+        "S8_N": 300
+      },
+      "residuals": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0,
+        0.0,
+        0.0,
+        2.1316282072803006e-14
+      ],
+      "source": "p41 geometry and p44-45 joints. Positive=tension. Printed CE and CD signs are reversed."
+    },
+    {
       "page": 48,
       "values": {
         "G_kN": 40.0,

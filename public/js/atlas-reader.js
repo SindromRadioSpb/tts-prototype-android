@@ -89,6 +89,10 @@
       var w = f.bbox[2] - f.bbox[0], ht = f.bbox[3] - f.bbox[1];
       if (w < 5 || ht < 5) return { kind: 'junk' };                 // 1×1 leftovers of the extraction
       if (MARK_BY_FIGURE[f.id]) return { kind: MARK_BY_FIGURE[f.id] };
+      if (w <= 48 && ht <= 48 && f.number == null) {
+        if (f.caption_he === 'יתרונות' && f.caption_ru === 'Преимущества') return { kind: 'pro' };
+        if (f.caption_he === 'חסרונות' && f.caption_ru === 'Недостатки') return { kind: 'con' };
+      }
       if (f.number != null || f.caption_he || f.caption_ru || !f.regions || f.regions.length !== 1) return null;
       if (w > 48 || ht > 48) return null;
       var he = String(f.regions[0].label_he || '').trim(), ru = String(f.regions[0].label_ru || '');
@@ -402,16 +406,17 @@
     // A tiny picture with at most one label (bolt-head marking 8.8, a tolerance ±0.05, a support sign) is shown
     // small beside its label: a numbered pin would cover the picture itself (audit 2026-10-31).
     function isChipFigure(fig) {
-      if (fig.number != null || fig.caption_he || fig.caption_ru || (fig.regions || []).length > 1) return false;
+      if (fig.number != null || (fig.regions || []).length > 1) return false;
       var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
       if (w <= 60 && ht <= 60) return true;
+      if (fig.caption_he || fig.caption_ru) return false;
       var r = (fig.regions || [])[0];
       if (!r || w > 140 || ht > 140) return false;
       return (r.bbox[2] - r.bbox[0]) * (r.bbox[3] - r.bbox[1]) >= 0.5 * w * ht;
     }
     function renderChip(fig) {
       var r = (fig.regions || [])[0] || {};
-      var he = r.label_he || '', ru = cleanMeta(r.label_ru);
+      var he = fig.caption_he || r.label_he || '', ru = cleanMeta(fig.caption_ru || r.label_ru);
       return h('figure', { cls: 'atlas-fig atlas-chipfig', 'data-ref': fig.id }, [
         h('img', { src: fig.crop, alt: ru || he || '', loading: 'lazy' }),
         h('figcaption', {}, [he ? h('bdi', { lang: 'he', dir: dirOf(he), text: he }) : null,
@@ -725,7 +730,9 @@
       });
       lay.tablesEnd.forEach(function (t) { main.appendChild(renderTable(t, null, lay.mirror[t.id])); });
       (page.examples || []).forEach(function (ex) {
-        main.appendChild(renderExample(T, ex));
+        // An extraction anchor alone is not another worked example. Its actual
+        // statement and equations are already displayed in the page items.
+        if (ex.title_ru || (ex.steps && ex.steps.length)) main.appendChild(renderExample(T, ex));
         (errataByTarget[ex.id] || []).forEach(function (x) { shown[x.id] = true; main.appendChild(renderErratum(T, x)); });
       });
       (page.errata || []).forEach(function (x) { if (!shown[x.id]) main.appendChild(renderErratum(T, x)); });
@@ -1432,7 +1439,7 @@
         if (!ms) return;
         try {
           if (root.MediaMetadata) ms.metadata = new root.MediaMetadata({ title: T('atlas.page', 'стр.') + ' ' + pageOf(el) + ' · ' + (data.title_he || ''),
-            artist: 'LinguistPro', album: T('atlas.listen.album', 'Инженерный атлас 97002') });
+            artist: 'LinguistPro', album: T('atlas.bookName', 'Инженерный атлас') + ' ' + String(data.atlas_id || 'a97002').replace(/^a/, '') });
           ms.setActionHandler('play', function () { resume(); });
           ms.setActionHandler('pause', function () { pause(); });
           ms.setActionHandler('previoustrack', function () { if (listen) playAt(Math.max(0, listen.at - 1)); });
@@ -1741,7 +1748,7 @@
     var style = doc.createElement('style');
     style.setAttribute('data-atlas-print', '');
     style.textContent = '@page { size: A4 portrait; margin: 11mm 11mm 14mm; ' +
-      '@bottom-left { content: "LinguistPro · ' + T('atlas.printFooter', 'Инженерный атлас 97002 · ждёт вычитки владельца') + '"; color: #64748b; font: 8pt/1.2 system-ui, sans-serif; } ' +
+      '@bottom-left { content: "LinguistPro · ' + T('atlas.bookName', 'Инженерный атлас') + ' ' + String(data.atlas_id || 'a97002').replace(/^a/, '').replace(/[^0-9]/g, '') + '"; color: #64748b; font: 8pt/1.2 system-ui, sans-serif; } ' +
       '@bottom-right { content: counter(page) " / " counter(pages); color: #64748b; font: 8pt/1.2 system-ui, sans-serif; } }';
     doc.body.appendChild(printRoot);
     doc.body.appendChild(style);

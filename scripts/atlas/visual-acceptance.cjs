@@ -11,6 +11,8 @@ const { chromium } = require('playwright');
 const base = process.argv[2], out = process.argv[3];
 const arg = (k) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const assetsFrom = arg('--assets');
+const atlasId = arg('--atlas') || 'a97002';
+if (!/^a[0-9]{5}$/.test(atlasId)) throw new Error('Invalid atlas ID');
 const only = (arg('--only') || '').split(',').filter(Boolean);
 if (!base || !out) { console.error('usage: visual-acceptance.cjs <base> <out> [--assets url] [--only ids]'); process.exit(2); }
 fs.mkdirSync(path.join(out, 'shots'), { recursive: true });
@@ -22,11 +24,12 @@ const CSS = '.atlas-toolbar, .lp-app-nav, .app-nav, .room-tabbar, nav[class*="na
 
 async function routeAssets(ctx) {
   if (!assetsFrom) return;
-  await ctx.route('**/data/atlas/a97002/assets/**', async (route) => {
+  await ctx.route('**/data/atlas/' + atlasId + '/assets/**', async (route) => {
     const name = new URL(route.request().url()).pathname.split('/').pop();
     const file = path.join(cacheDir, name);
     if (!fs.existsSync(file)) {
-      const r = await fetch(assetsFrom + '/data/atlas/a97002/assets/' + name);
+      const r = await fetch(assetsFrom + '/data/atlas/' + atlasId + '/assets/' + name);
+      if (!r.ok) throw new Error('Asset HTTP ' + r.status + ': ' + name);
       fs.writeFileSync(file, Buffer.from(await r.arrayBuffer()));
     }
     await route.fulfill({ status: 200, contentType: 'image/png', body: fs.readFileSync(file) });
@@ -41,7 +44,7 @@ async function shootSection(browser, id, kind) {
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
-  await p.goto(base + '/library.html#room=atlas%3Aa97002&sec=' + id, { waitUntil: 'domcontentloaded' });
+  await p.goto(base + '/library.html#room=atlas%3A' + atlasId + '&sec=' + id, { waitUntil: 'domcontentloaded' });
   await p.waitForSelector('.atlas-section .atlas-page', { timeout: 60000 });
   await p.evaluate(() => {
     const btn = document.querySelector('.atlas-view-btn'); btn.click();
@@ -62,7 +65,7 @@ async function shootSection(browser, id, kind) {
 }
 
 (async () => {
-  const ix = await (await fetch(base + '/data/atlas/a97002/index.json')).json();
+  const ix = await (await fetch(base + '/data/atlas/' + atlasId + '/index.json')).json();
   const ids = ix.sections.filter((s) => s.translated && (!only.length || only.includes(s.id))).map((s) => s.id);
   const browser = await chromium.launch();
   const log = [];
