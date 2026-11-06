@@ -33,4 +33,4 @@ python docs/research/engineering-atlas/2026-11-05-a97001/package-runtime.py
 В `Архив/atlas/a97001/` рабочей копии сохранены оригинальный PDF, checksums.json, пакет поставщика `a97001-supplier-source-v1.zip` (76 918 149 байт), редакционный пакет `a97001-editorial-v1.tar.gz`, runtime-пакет `a97001-runtime-v1.tar.gz`, `runtime-sha256.json`.
 Пакет поставщика подготовлен, никому не отправлялся. Runtime содержит только публичные учебные данные: 945 файлов, 82 264 643 байт. Исходные и редакционные данные не теряются при пересборке.
 
-Подробная приёмка: [review-journal.md](review-journal.md). Результат production фиксируется отдельно после проверки фактически обслуживаемой версии.
+Опубликовано в общем доступе, версия 3.11.862: [открыть атлас](https://linguistpro.kolosei.com/library.html#room=atlas%3Aa97001). Подробная приёмка: [review-journal.md](review-journal.md); проверка фактически обслуживаемого production: [PRODUCTION.md](PRODUCTION.md).

@@ -1,0 +1,91 @@
+{
+  "version": "3.11.862",
+  "commit": "a082b78fe3ac9f5ae4a7e92635c87dea42e333ab",
+  "files": [
+    {
+      "name": "index.html",
+      "sha256": "f77fbb065c33433be34b2bd468cdc84de4f40eca6c4a1071a10cd69850c90f6e"
+    },
+    {
+      "name": "library.html",
+      "sha256": "9e00267ad6cdde32ceb3be5fb7354b40a66432efdd19bf99189fa7ac1b639fa8"
+    },
+    {
+      "name": "sw.js",
+      "sha256": "58d67ca80cb800d77eb91b3b9584a9966ba8f4e416f26114be82179b2855bde6"
+    },
+    {
+      "name": "js/atlas-reader.js",
+      "sha256": "5a20a14978d2d1279ad2f22391afe3a63c025a53162769f6fdec95874bddc580"
+    },
+    {
+      "name": "css/atlas-reader.css",
+      "sha256": "24ef1b4cfe52cee8e98a31d57b8029e181d71e49e704900b808794e3da8b4b1a"
+    },
+    {
+      "name": "js/atlas-search.js",
+      "sha256": "14972b07a346438fb15a00399fa86fdcc6194017e28570a72d8599d9277ed4bc"
+    },
+    {
+      "name": "js/library-ui.js",
+      "sha256": "6f857d04313d31c669d4aa0bc6740bc2a2c11b408cc8d3b2a78b2b381c5f50ad"
+    },
+    {
+      "name": "js/corpus-registry.js",
+      "sha256": "4948ef2eb1874e23f69bcfc9b2a62bd3011e69653f7f2b738c13d22212bd98fb"
+    },
+    {
+      "name": "i18n/locales/ru.js",
+      "sha256": "a5cc1e7f12a15bc541d5aab69d922e8d3438c701d5c3fde49b8a8a343662d458"
+    },
+    {
+      "name": "i18n/locales/he.js",
+      "sha256": "f1a1160b908b52bf67f0578d8796d64b16d376a744b4614c480e7e8673c43273"
+    },
+    {
+      "name": "i18n/locales/en.js",
+      "sha256": "48f15ca5bc9da77355f3af2b21a35f85d812c8f3f64fc8da9eeb87d6c60d78ea"
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 357,
+      "now": "2026-11-06T01:30:10.870Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 79,
+      "disk_warn": false
+    },
+    {
+      "ok": true,
+      "uptimeSec": 358,
+      "now": "2026-11-06T01:30:12.451Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 79,
+      "disk_warn": false
+    },
+    {
+      "ok": true,
+      "uptimeSec": 360,
+      "now": "2026-11-06T01:30:14.037Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 79,
+      "disk_warn": false
+    }
+  ]
+}
