@@ -147,7 +147,7 @@ test('background canon waits for prior imports before gating writes and releases
     loadData: async () => events.push('data'), activeTrack: 'corpus', readerTextId: 'new',
     renderTrack: () => events.push('paint'), console });
   const earlier = queue.run(async () => { await prior.promise; assert.equal(ctx._canonPending, false); events.push('prior'); });
-  const start = source.indexOf('_canonReadyPromise = corpusOpenQueue.run(');
+  const start = source.indexOf('_canonReadyPromise = corpusOpenQueue.run(', source.indexOf('async function boot()'));
   const end = source.indexOf('\n        });', start) + '\n        });'.length;
   vm.runInContext(source.slice(start, end), ctx);
   const later = queue.run(() => { assert.equal(ctx._canonPending, false); events.push('later'); });

@@ -1,0 +1,280 @@
+{
+  "baseline": true,
+  "live": false,
+  "engine": "chromium",
+  "homeMs": 31006,
+  "coldCanonImported": true,
+  "measurements": [
+    {
+      "page": 154,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 17399680,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 155,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 28355936,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 156,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 43590880,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 157,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 55097112,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 158,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 63796952,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 159,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 72496792,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 160,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 72496792,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 161,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 100048784,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 162,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 108834180,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 163,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 126533328,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 164,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 135574460,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 165,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 136277464,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 166,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 165219716,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 167,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 165219716,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 168,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 182949576,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 169,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 201031424,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 170,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 209731264,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 171,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 218761224,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 172,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 227461064,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 173,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 236757124,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 174,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 258381764,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 175,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 258381764,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 176,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 277759084,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 177,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 286458924,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 178,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 292010636,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 179,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 300710476,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 180,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 319979080,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 181,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 331296216,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 182,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 331296216,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 183,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 341826704,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 184,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 361336128,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 185,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 370035968,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 186,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 371837508,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 187,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 389237188,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 188,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 389237188,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 189,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 389237188,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 190,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 400497280,
+      "nodes": 10285,
+      "heap": 212000000
+    },
+    {
+      "page": 191,
+      "imagesWithSource": 90,
+      "decodedRGBABytes": 401835000,
+      "nodes": 10285,
+      "heap": 212000000
+    }
+  ],
+  "print": {
+    "sheets": 38,
+    "images": 50
+  },
+  "errors": []
+}

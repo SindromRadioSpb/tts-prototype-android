@@ -21,11 +21,11 @@ const fnSource = (name) => {
 test("a cold profile with a corpus catalog does not wait for the canon import", () => {
   assert.match(fnSource("canonImportLikelyNeeded"), /localStorage\.getItem\(CANON_VERSION_KEY\)[\s\S]*< CANON_BUNDLE_VERSION/);
   const boot = ui.slice(ui.indexOf("const corpusCatalogLoad = loadCorpusCatalog();"), ui.indexOf("if (!localLinkOpened && !publicLinkHandled)"));
-  assert.match(boot, /if \(publicLinkHandled \|\| \(canonImportLikelyNeeded\(\) && !initialPresentation\)\)/);
+  assert.match(boot, /if \(!_canonDeferred && \(publicLinkHandled \|\| \(canonImportLikelyNeeded\(\) && !initialPresentation\)\)\)/);
   assert.match(boot, /_canonPending = true;/);
   assert.match(boot, /autoImportCanon\(\{ quiet: true \}\)[\s\S]{0,80}await loadData\(\)/);
   assert.match(boot, /finally \{[\s\S]{0,120}_canonPending = false;[\s\S]{0,120}activeTrack !== 'corpus'[\s\S]{0,40}renderTrack\(\)/);
-  assert.match(boot, /if \(!canonInBackground\) \{\s*await autoImportCanon\(\);[^\n]*\n\s*await loadData\(\);\s*\}/);
+  assert.match(boot, /if \(!canonInBackground\) \{\s*if \(!_canonDeferred\) await autoImportCanon\(\);[^\n]*\n\s*await loadData\(\);\s*\}/);
 });
 
 test("the background import stays quiet over the home; shelf tabs wait on a skeleton", () => {

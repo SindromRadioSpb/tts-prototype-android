@@ -458,7 +458,12 @@
     function renderFigure(T, fig, captionRow, page, forPrint) {
       if (isChipFigure(fig)) return renderChip(fig);
       if (labelsInTables(fig, page) || !translatesAnything(fig)) fig = Object.assign({}, fig, { regions: [] });
-      var figureImage = h('img', { src: fig.crop, alt: cleanMeta(fig.caption_ru) || fig.id, loading: 'lazy' });
+      var figureImage = h('img', { src: fig.crop, alt: cleanMeta(fig.caption_ru) || fig.id, loading: forPrint ? 'eager' : 'lazy', decoding: 'async' });
+      if (!forPrint && fig.bbox) {
+        figureImage.setAttribute('width', Math.max(1, Math.round((fig.bbox[2] - fig.bbox[0]) * 2)));
+        figureImage.setAttribute('height', Math.max(1, Math.round((fig.bbox[3] - fig.bbox[1]) * 2)));
+        figureImage.style.height = 'auto';
+      }
       var box = h('div', { cls: 'atlas-figbox' }, [forPrint ? figureImage : h('a', { cls: 'atlas-figure-open', href: fig.crop, target: '_blank', rel: 'noopener', 'aria-label': T('atlas.figureZoom', 'Открыть рисунок в полном размере') }, [figureImage])]);
       var list = h('ol', { cls: 'atlas-regions' });
       var w = fig.bbox[2] - fig.bbox[0], ht = fig.bbox[3] - fig.bbox[1];
@@ -696,7 +701,7 @@
     function renderPage(T, page, opts) {
       var sec = h('section', { cls: 'atlas-page', id: 'atlas-p' + page.page, 'data-page': page.page });
       var thumb = page.image ? h('button', { cls: 'atlas-thumb', type: 'button', 'aria-label': T('atlas.openOriginal', 'Открыть страницу оригинала'),
-        'data-image': page.image }, [h('img', { src: page.image, alt: T('atlas.page', 'стр.') + ' ' + page.page, loading: 'lazy' })]) : null;
+        'data-image': page.image }, [h('img', { src: page.image, alt: T('atlas.page', 'стр.') + ' ' + page.page, loading: 'lazy', decoding: 'async', width: 1240, height: 1754, style: 'height:auto' })]) : null;
       var state = page.state || (page.translated ? 'translated' : 'none');
       var stateText = state === 'none' ? T('atlas.noTranslationShort', 'без перевода') : state === 'partial' ? T('atlas.partial', 'переведено частично')
         : state === 'empty' ? T('atlas.emptyPage', 'на странице нет текста') : null;
@@ -915,6 +920,50 @@
     el.classList.toggle('atlas-tl-cyr', l.script === 'cyr');
   }
 
+  // Native loading=lazy never releases a scan after the reader has passed it.
+  // Keep sources only near the viewport; HTTP cache retains the original bytes.
+  // Dimensions survive eviction, so page anchors and figure pins do not move.
+  function manageImages(section) {
+    var win = section.ownerDocument.defaultView;
+    if (!win || !win.IntersectionObserver) return function () {};
+    var images = Array.from(section.querySelectorAll('img'));
+    var sources = new Map();
+    images.forEach(function (img) {
+      sources.set(img, img.getAttribute('src'));
+      img.removeAttribute('src');
+      img.style.visibility = 'hidden';
+      img.loading = 'eager'; // the observer owns prefetch distance
+      img.addEventListener('load', sized);
+    });
+    function sized(ev) {
+      var img = ev.target;
+      if (img.naturalWidth && img.naturalHeight) {
+        img.setAttribute('width', img.naturalWidth);
+        img.setAttribute('height', img.naturalHeight);
+      }
+    }
+    var observer = new win.IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var img = entry.target;
+        if (entry.isIntersecting && section && section.isConnected) {
+          if (!img.hasAttribute('src')) img.setAttribute('src', sources.get(img));
+          img.style.visibility = '';
+        } else {
+          img.removeAttribute('src');
+          img.style.visibility = 'hidden';
+        }
+      });
+    }, { rootMargin: '900px 0px' });
+    images.forEach(function (img) { observer.observe(img); });
+    return function () {
+      if (!observer) return;
+      observer.disconnect();
+      images.forEach(function (img) { img.removeEventListener('load', sized); img.removeAttribute('src'); });
+      sources.clear();
+      images = []; observer = null; section = null;
+    };
+  }
+
   function mount(container, opts) {
     opts = opts || {};
     var doc = container.ownerDocument;
@@ -931,7 +980,12 @@
     // P5 G1: a translation stage of the section decides the columns shown; the saved columns stay as they are
     var stage = opts.stage && typeof opts.stage.of === 'function' && typeof opts.stage.layersFor === 'function' ? opts.stage : null;
 
-    function state(text) { view.replaceChildren(R.h('p', { cls: 'atlas-state', text: text })); }
+    var stopImages = function () {};
+    function releaseSection() {
+      stopImages(); stopImages = function () {};
+      if (opts.words && typeof opts.words.detach === 'function') opts.words.detach();
+    }
+    function state(text) { releaseSection(); view.replaceChildren(R.h('p', { cls: 'atlas-state', text: text })); }
 
     // Proofreading marks: opts.review = { load() → {pages:{n:{…}}}, canEdit() → bool, save(page, on) → {pages} }.
     // Without it (tests, offline) the page headers keep what the data says.
@@ -1213,7 +1267,7 @@
       var heUi = /^he/i.test(doc.documentElement.getAttribute('lang') || '') || doc.documentElement.getAttribute('dir') === 'rtl';
       if (!query) return showHome(how);
       stopListening();
-      stopTracking(); var epoch = ++navigationEpoch;
+      releaseSection(); stopTracking(); var epoch = ++navigationEpoch;
       var scope = how.scope || 'book', sid = how.sid || '';
       var form = searchForm(sid, query, scope), results = R.h('div', { cls: 'atlas-search-results', 'aria-busy': 'true' });
       view.replaceChildren(form, results);
@@ -1632,6 +1686,8 @@
           R.h('button', { type: 'button', cls: 'atlas-print-btn', title: T('atlas.print', 'Печать раздела'), 'aria-label': T('atlas.print', 'Печать раздела'), on: { click: function () { printSection(data); } } },
             [R.h('span', { cls: 'atlas-print-label', text: T('atlas.print', 'Печать раздела') }), R.h('span', { cls: 'atlas-print-short', 'aria-hidden': 'true', text: T('atlas.printShort', 'Печать') })])]);
         var section = R.renderSection(T, data, {});
+        stopImages();
+        stopImages = manageImages(section);
         var columns = viewPanel(section, id);
         bar.insertBefore(columns.btn, bar.querySelector('.atlas-print-btn'));
         bar.appendChild(columns.panel);
@@ -1733,7 +1789,7 @@
     function showHome(how) {
       how = how || {};
       stopListening();
-      stopTracking(); var homeEpoch=++navigationEpoch; lastSearch=null;
+      releaseSection(); stopTracking(); var homeEpoch=++navigationEpoch; lastSearch=null;
       if (!how.restore) onState('', 0, 'push');
       if (index) { view.replaceChildren(homeView()); return Promise.resolve(index); }
       state(T('atlas.loading', 'Загрузка…'));
@@ -1745,7 +1801,8 @@
       }).catch(function () { state(T('atlas.loadError', 'Атлас сейчас недоступен')); });
     }
 
-    return { home: showHome, openSection: openSection, search: showSearch, stopAudio: stopListening };
+    return { home: showHome, openSection: openSection, search: showSearch, stopAudio: stopListening,
+      destroy: function () { ++navigationEpoch; stopListening(); stopTracking(); releaseSection(); view.remove(); } };
   }
 
   // Print preparation: the print view, plus a page style appended last in the document so the atlas footer wins over
@@ -1764,7 +1821,7 @@
     return function () { doc.body.classList.remove('atlas-printing'); printRoot.remove(); style.remove(); };
   }
 
-  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers };
+  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers, manageImages: manageImages };
   root.AtlasReader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

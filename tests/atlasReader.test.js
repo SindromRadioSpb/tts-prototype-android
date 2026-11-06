@@ -29,6 +29,49 @@ function env() {
   return { document, window, R: api.factory(document), T: (k, fb) => fb };
 }
 
+test('image residency releases offscreen sources, restores them on return and disconnects on cleanup', () => {
+  const { document, window, R, T } = env();
+  let notify, disconnected = false;
+  window.IntersectionObserver = class {
+    constructor(fn) { notify = fn; }
+    observe() {}
+    disconnect() { disconnected = true; }
+  };
+  const section = R.renderSection(T, fixture('s09-belt.json'), {});
+  document.body.appendChild(section);
+  const img = section.querySelector('img'), src = img.getAttribute('src');
+  const stop = require('../public/js/atlas-reader.js').manageImages(section);
+  assert.equal(img.hasAttribute('src'), false, 'no eager fetch before intersection');
+  notify([{ target: img, isIntersecting: true }]);
+  assert.equal(img.getAttribute('src'), src);
+  notify([{ target: img, isIntersecting: false }]);
+  assert.equal(img.hasAttribute('src'), false);
+  assert(img.hasAttribute('width') && img.hasAttribute('height'), 'space is reserved after eviction');
+  notify([{ target: img, isIntersecting: true }]);
+  assert.equal(img.getAttribute('src'), src);
+  stop();
+  assert(disconnected);
+  assert.equal(img.hasAttribute('src'), false);
+  delete window.IntersectionObserver;
+});
+
+test('destroying an atlas rejects a late section response and releases the word host', async () => {
+  const { document } = env();
+  let resolve, attached = 0, detached = 0;
+  const pending = new Promise(r => { resolve = r; });
+  const reader = require('../public/js/atlas-reader.js').mount(document.querySelector('#m'), {
+    fetchJson: () => pending,
+    words: { attach: () => attached++, detach: () => detached++ },
+  });
+  const opening = reader.openSection('s09-belt', 197);
+  reader.destroy();
+  resolve(fixture('s09-belt.json'));
+  await opening;
+  assert.equal(document.querySelector('.atlas-root'), null);
+  assert.equal(attached, 0);
+  assert(detached > 0);
+});
+
 test('home lists sections by part with honest translation state and a page jump', () => {
   const { R, T } = env();
   let opened = null;
@@ -884,7 +927,7 @@ test('listening: the Room loads the speech module, stops other audio and stops t
   assert.ok(speechAt > 0 && speechAt < readerAt, 'atlas-speech.js loads before the reader');
   assert.match(sw, /"\/js\/atlas-speech\.js\?v=\d+"/);
   assert.match(ui, /audio = \{ onStart: \(\) => \{ try \{ morphHost\.stopAudio\(\);/);
-  assert.match(ui, /roomAtlasReader\.stopAudio\(\)/);
+  assert.match(ui, /roomAtlasReader\.destroy\(\)/);
   for (const lang of ['ru', 'en', 'he']) {
     const loc = read('public/i18n/locales/' + lang + '.js');
     for (const k of ['line', 'mode', 'modeQueue', 'modeLine', 'button', 'start', 'formula', 'pause', 'prev', 'next', 'speed', 'formulas', 'close', 'follow', 'player', 'coverage', 'of', 'done', 'nextSection', 'unavailable'])

@@ -16,6 +16,7 @@ import * as localDbRaw from '/db/local-db.js?v=853';
 // straight through. The same gated object is exposed to reader-core/morph via window.__localDB.
 let _canonPending = false;
 let _canonReadyPromise = null;
+let _canonDeferred = false;
 const ROOM_DB_WRITES = new Set(['importBundle', 'reconcileAudioLinks', 'setProgress', 'touchOpened', 'setTextFinished',
   'clearTextFinished', 'setWordStatus', 'saveDerivedNiqqud', 'insertWordContexts', 'createNote', 'upsertAudioAsset',
   'linkSentenceAudio', 'addBookmark', 'removeBookmark', 'recordRecall', 'updateSrsSource', 'commitReviewAttempt',
@@ -1598,6 +1599,17 @@ function renderTrack() {
   if (!main) return;
   // A3 — the Корпус track is a Период→Автор→Работа drill, not a shelf stack.
   if (activeTrack === 'corpus') return renderCorpus();
+  destroyAtlasReader();
+  if (_canonDeferred) {
+    _canonDeferred = false;
+    showState('room.state.publishing', '📥');
+    _canonReadyPromise = corpusOpenQueue.run(async () => {
+      _canonPending = true;
+      try { await autoImportCanon({ quiet: true }); await loadData(); }
+      finally { _canonPending = false; if (activeTrack !== 'corpus') renderTrack(); }
+    });
+    return _canonReadyPromise;
+  }
   document.body.classList.remove('room-discovery-home');
   if (_canonPending) { showState('room.state.publishing', '📥'); return; }
   const shelves = shelvesByTrack[activeTrack] || [];
@@ -12847,7 +12859,7 @@ async function renderCorpus() {
   document.body.classList.toggle('room-discovery-home', corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home');
   const token = ++corpusRenderToken;
   destroyCourseReader();
-  if (roomAtlasReader) { try { roomAtlasReader.stopAudio(); } catch (_) {} roomAtlasReader = null; }
+  destroyAtlasReader();
   if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
   if (String(corpusNav.corpus || '').startsWith('public:')) return renderPublicCorpus(String(corpusNav.corpus).slice(7), token);
@@ -13288,6 +13300,16 @@ function attachCourseWords(root, lesson) {
 // history step, reading on replaces the page number, Back returns to the atlas contents.
 let roomAtlasAnchor = null;
 var roomAtlasReader = null;   // the mounted atlas, so leaving it stops its listening (var: renderCorpus may run before this line)
+function destroyAtlasReader() {
+  if (!roomAtlasReader) return;
+  try { roomAtlasReader.destroy(); } catch (_) {}
+  roomAtlasReader = null;
+}
+function detachAtlasWords() {
+  const attached = atlasWordsSection;
+  atlasWordsCtx = null; atlasWordsSection = null; ++atlasPaintPass;
+  if (attached && readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
+}
 let roomAtlasPosition = null;  // last section/page the atlas reported; kept by any later commit of the Room state
 function renderAtlasCorpus(atlasId, token) {
   const main = $('roomContent');
@@ -13313,7 +13335,7 @@ function renderAtlasCorpus(atlasId, token) {
   };
   // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
   const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
-  const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how) };
+  const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how), detach: detachAtlasWords };
   // P5 follow-up: «Термины к повторению» of the whole atlas on its home
   const homeExtra = (home) => atlasHomeQueue(atlasId, home);
   // P5 G1 — the translation stage of a section decides the columns shown (the saved columns stay the Room's)
@@ -16666,8 +16688,11 @@ async function boot() {
     const publicLinkHandled = await openInitialPublicMaterial(initialQuery, initialPresentation);
     const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import
     // O-020: on a cold profile the default «Библиотека» home does not wait for the canon import.
+    // An atlas is served from its own JSON. Unpacking the unrelated canon ZIP
+    // on first visit adds a large transient allocation before the book opens.
+    _canonDeferred = !incomingMaterialLink && String(initialPresentation?.corpus || '').startsWith('atlas:');
     let canonInBackground = false;
-    if (publicLinkHandled || (canonImportLikelyNeeded() && !initialPresentation)) {
+    if (!_canonDeferred && (publicLinkHandled || (canonImportLikelyNeeded() && !initialPresentation))) {
       if (!publicLinkHandled) await corpusCatalogLoad;
       if (publicLinkHandled || (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0)) {
         canonInBackground = true;
@@ -16685,7 +16710,7 @@ async function boot() {
       }
     }
     if (!canonInBackground) {
-      await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
+      if (!_canonDeferred) await autoImportCanon();   // imported when the learner opens a canon shelf
       await loadData();
     }
     await corpusCatalogLoad;   // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
