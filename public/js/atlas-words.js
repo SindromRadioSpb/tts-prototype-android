@@ -378,6 +378,7 @@
   var api = { glossRows: glossRows, bindGlossRow: bindGlossRow, locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
     sectionContext: sectionContext, sectionItems: sectionItems, occurrence: occurrence, verifyOccurrence: verifyOccurrence, historicalOccurrence: historicalOccurrence,
     resolveReference: resolveReference, learningItem: learningItem, cardTop: cardTop, decorateRow: decorateRow };
+  api.editionContract = 'atlas-97001-structure-2';
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

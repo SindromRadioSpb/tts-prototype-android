@@ -697,6 +697,7 @@ app.use('/data/benyehuda/learning-niqqud', express.static(path.join(DATA_DIR, 'b
 
 // Engineering atlas (נוסחאון 97002): reader JSON and sha-named page/figure images live on the data
 // volume (DATA_DIR/atlas/a97002/…), not in git — the same volume-first rule as the corpus works above.
+require('./lib/atlasEdition').installRoutes(app, { dir: path.join(DATA_DIR, 'atlas-editions') });
 app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
   fallthrough: true, index: false,
   setHeaders(res, file) {
@@ -1429,7 +1430,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=868",
+  "/js/library-ui.js?v=870",
+  "/js/atlas-progress-export.js?v=869",
+  "/js/atlas-edition.js?v=870",
   "/js/corpus-registry.js?v=862",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -1463,7 +1466,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/word-gloss.js?v=819",
   "/js/word-gloss-ai.js?v=847",
   "/js/atlas-context-contract.js?v=2",
-  "/js/atlas-words.js?v=868",
+  "/js/atlas-words.js?v=870",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",
@@ -1505,9 +1508,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=868",
-  "/i18n/locales/en.js?v=868",
-  "/i18n/locales/he.js?v=868",
+  "/i18n/locales/ru.js?v=870",
+  "/i18n/locales/en.js?v=870",
+  "/i18n/locales/he.js?v=870",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

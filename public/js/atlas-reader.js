@@ -39,12 +39,14 @@
     return exact.concat(all.filter(function (node) { return members.has(node.getAttribute('data-ref')) && exact.indexOf(node) < 0; }));
   }
 
+  var Editions = typeof module === 'object' && module.exports ? require('./atlas-edition.js') : root.AtlasEdition;
   function factory(doc) {
     function h(tag, attrs, kids) {
       var node = doc.createElement(tag);
       attrs = attrs || {};
       Object.keys(attrs).forEach(function (k) {
         var v = attrs[k];
+        if (Editions && (k === 'src' || k === 'href' || k === 'data-image')) v = Editions.assetUrl(v);
         if (v == null || v === false) return;
         if (k === 'text') node.textContent = String(v);
         else if (k === 'html') node.innerHTML = v;   // only for build-time MathML
@@ -1114,8 +1116,11 @@
     var doc = container.ownerDocument;
     var T = makeT(opts.t);
     var R = factory(doc);
-    var base = opts.base || ('/data/atlas/' + (opts.atlasId || 'a97002') + '/');
-    var fetchJson = opts.fetchJson || function (url) { return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); };
+    var atlasId = opts.atlasId || 'a97002', edition = Editions && Editions.client(atlasId);
+    var base = opts.base || (edition ? edition.base : '/data/atlas/' + atlasId + '/');
+    var compatible = atlasId !== 'a97001' || !!opts.fetchJson || edition && opts.editionClient === edition && Editions.componentsReady(root);
+    var readJson = opts.fetchJson || (edition ? edition.url : function (url) { return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); });
+    var fetchJson = function (url) { return compatible ? readJson(url) : Promise.reject(new Error('ATLAS_EDITION_COMPONENT_MISMATCH')); };
     var view = doc.createElement('div');
     view.className = 'atlas-root';
     container.appendChild(view);
@@ -1975,6 +1980,7 @@
   }
 
   var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers, manageImages: manageImages, resolveRefNodes: resolveRefNodes };
+  api.editionContract = 'atlas-97001-structure-2';
   root.AtlasReader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

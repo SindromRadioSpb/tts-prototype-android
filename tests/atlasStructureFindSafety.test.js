@@ -73,6 +73,7 @@ test('actual find loader rejects stale cached banks before session, refetches in
       const value = kind === 'index' ? index : bank;
       return { ok: !!value, json: async () => JSON.parse(JSON.stringify(value)) };
     } };
+  context.atlasJson = async (atlasId, file) => { assert.equal(atlasId, 'a97001'); const r = await context.fetch(file); return r.ok ? r.json() : null; };
   vm.createContext(context); vm.runInContext(source.slice(start, end) + ';globalThis.loadFind=atlasFindLoad;', context);
   assert.equal((await context.loadFind('a97001')).status, 'ready');
   index.sections_sha256.s01 = next;

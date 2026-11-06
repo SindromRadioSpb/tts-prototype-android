@@ -362,7 +362,7 @@
       unit: sym && sym.options && sym.options.unit ? picks.unit === sym.answer.unit : null };
   }
 
-  return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere, findBankStatus: findBankStatus,
+  return { editionContract: 'atlas-97001-structure-2', STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere, findBankStatus: findBankStatus,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
     termStats: termStats, termsLineState: termsLineState, globalDueItems: globalDueItems, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,

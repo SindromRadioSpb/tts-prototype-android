@@ -866,6 +866,7 @@
     query: query,
     fragment: fragment,
   };
+  api.editionContract = 'atlas-97001-structure-2';
   root.AtlasSearch = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof window === "object" ? window : globalThis);

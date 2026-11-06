@@ -68,7 +68,7 @@ test('actual atlas card top displays MWE uncertainty at each covered word',async
  const dom=R.renderSection((_k,f)=>f,section,{});document.body.append(dom);let options;
  const env={window,document,Map,Set,console,encodeURIComponent,atlasWordsCtx:null,atlasWordsSection:null,tt:(_k,f)=>f,attachReaderMorph:(_dom,opts)=>{options=opts;return{};},attachAtlasTrain:()=>({glossLoaded(){}}),paintAtlasWords(){},fetch:async()=>({ok:true,json:async()=>layer})};
  window.AtlasWords=AW;window.AtlasContextContract=C;
- vm.createContext(env);vm.runInContext(code+';globalThis.testAttach=attachAtlasWords;',env);env.testAttach('a97001',dom,section,{});
+ env.atlasJson=async()=>layer;vm.createContext(env);vm.runInContext(code+';globalThis.testAttach=attachAtlasWords;',env);env.testAttach('a97001',dom,section,{});
  for(let n=0;n<20&&!env.atlasWordsCtx.contextLayerStatus;n++)await new Promise(r=>setTimeout(r,5));
  assert(env.atlasWordsCtx.contextLayerStatus);
  for(const i of [0,1]){const top=options.cardTop(AW.occurrence(env.atlasWordsCtx,layer.rows[0].row_id,i,'כוח','he'));assert(top.lines.includes('причина неопределённости выражения'));}

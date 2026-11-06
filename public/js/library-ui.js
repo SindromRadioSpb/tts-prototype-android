@@ -13312,14 +13312,26 @@ function detachAtlasWords() {
   if (attached && readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
 }
 let roomAtlasPosition = null;  // last section/page the atlas reported; kept by any later commit of the Room state
+function atlasClient(atlasId) {
+  if (!window.AtlasEdition && atlasId === 'a97001') throw new Error('ATLAS_EDITION_COMPONENT_MISSING');
+  return window.AtlasEdition ? window.AtlasEdition.client(atlasId) : {base:'/data/atlas/'+encodeURIComponent(atlasId)+'/', json:file=>fetch('/data/atlas/'+encodeURIComponent(atlasId)+'/'+file,{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('ATLAS_UNAVAILABLE');return r.json();})};
+}
+function atlasJson(atlasId, file) { return Promise.resolve().then(() => atlasClient(atlasId).json(file)); }
 function renderAtlasCorpus(atlasId, token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-view atlas-corpus' });
   wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
+  if (atlasId === 'a97001' && window.AtlasProgressExport) window.AtlasProgressExport.mount(wrap, {
+    db: localDb, storage: window.localStorage,
+    labels: Object.fromEntries(['help','save','working','done','error','notOpen'].map(key => [key, tt('atlas.progressExport.' + key)])),
+  });
   main.appendChild(wrap);
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
+  if (atlasId === 'a97001' && (!window.AtlasEdition || !window.AtlasEdition.componentsReady(window))) {
+    wrap.appendChild(el('p', {class:'atlas-state', text:tt('atlas.loadError')})); return;
+  }
   // A DB projection refresh can remount the atlas after its one-shot URL anchor
   // was consumed. Keep the current section/page instead of returning to contents.
   const anchor = roomAtlasAnchor || (roomAtlasPosition && {
@@ -13345,7 +13357,7 @@ function renderAtlasCorpus(atlasId, token) {
   const homeExtra = (home) => atlasHomeQueue(atlasId, home);
   // P5 G1 — the translation stage of a section decides the columns shown (the saved columns stay the Room's)
   const stage = window.AtlasTrain ? { of: (sid) => atlasStageOf(sid, atlasId), layersFor: window.AtlasTrain.layersFor } : null;
-  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { atlasId, t: tt, review, audio, words, stage, homeExtra,
+  const reader = roomAtlasReader = window.AtlasReader.mount(wrap, { editionClient: atlasClient(atlasId), atlasId, t: tt, review, audio, words, stage, homeExtra,
     layers: { he: !!readerCfg.heOn, niqqud: readerCfg.niqqudMode !== 'off', translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off', script: readerCfg.translitProfile === 'ru-phonetic' ? 'cyr' : 'lat' },
     onLayers: (l) => {
@@ -13515,8 +13527,7 @@ function attachAtlasWords(atlasId, section, data, how) {
   // (word-gloss-ai-layer-v1). Every row is re-proved by its key; no layer — the card shows what it showed before.
   const AI = window.WordGlossAI;
   if (AI && typeof AI.remember === 'function') {
-    fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/context-ai/' + encodeURIComponent(String(data && data.id || '')) + '.json', { cache: 'no-cache' })
-      .then((r) => (r.ok ? r.json() : null))
+    atlasJson(atlasId, 'context-ai/' + encodeURIComponent(String(data && data.id || '')) + '.json')
       .then(async (layer) => {
         if (!layer || ctx !== atlasWordsCtx) return null;
         const rows = AW.glossRows(ctx);
@@ -13579,8 +13590,7 @@ const atlasSectionCache = new Map();
 function atlasLoadSection(atlasId, sid) {
   const key = atlasId + ':' + sid;
   if (!atlasSectionCache.has(key)) {
-    atlasSectionCache.set(key, fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/sections/' + encodeURIComponent(sid) + '.json', { cache: 'no-cache' })
-      .then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    atlasSectionCache.set(key, atlasJson(atlasId, 'sections/' + encodeURIComponent(sid) + '.json').catch(() => null)
       .then((d) => { if (!d) atlasSectionCache.delete(key); return d; }));
     if (atlasSectionCache.size > 12) atlasSectionCache.delete(atlasSectionCache.keys().next().value);
   }
@@ -13598,8 +13608,7 @@ function atlasHomeQueue(atlasId, home) {
   if (anchor && anchor.nextSibling) home.insertBefore(box, anchor.nextSibling); else home.appendChild(box);
   let queue = null;
   async function load() {
-    if (!atlasTermsIndexes.has(atlasId)) atlasTermsIndexes.set(atlasId, fetch('/data/atlas/' + encodeURIComponent(atlasId) + '/train/terms.json', { cache: 'no-cache' })
-      .then((r) => (r.ok ? r.json() : null)).catch(() => null).then((x) => { if (!x) atlasTermsIndexes.delete(atlasId); return x; }));
+    if (!atlasTermsIndexes.has(atlasId)) atlasTermsIndexes.set(atlasId, atlasJson(atlasId, 'train/terms.json').catch(() => null).then((x) => { if (!x) atlasTermsIndexes.delete(atlasId); return x; }));
     const [index, states] = await Promise.all([atlasTermsIndexes.get(atlasId), localDb.getAtlasTermStates(atlasId).catch(() => ({}))]);
     queue = AT.globalDueItems(states || {}, index || { terms: {} }, atlasMyTerms(atlasId), Date.now(), ATLAS_SESSION_N);
     const learned = Object.keys(states || {}).length;
@@ -13664,12 +13673,12 @@ const atlasFindBanks = new Map(), atlasFindIndexes = new Map();
 function atlasFindHistory() { try { const a = JSON.parse(localStorage.getItem(ATLAS_FIND_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } }
 function atlasFindStale() { try { return new Set(JSON.parse(localStorage.getItem(ATLAS_FIND_STALE_KEY) || '[]')); } catch (_) { return new Set(); } }
 function atlasFindLoad(atlasId) {
-  const get = (u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null));
-  const base = '/data/atlas/' + encodeURIComponent(atlasId) + '/';
-  if (!atlasFindBanks.has(atlasId)) atlasFindBanks.set(atlasId, get(base + 'train/find.json').then((b) => (b && Array.isArray(b.items) ? b : null)).catch(() => null));
+  const get = (file) => atlasJson(atlasId, file);
+
+  if (!atlasFindBanks.has(atlasId)) atlasFindBanks.set(atlasId, get('train/find.json').then((b) => (b && Array.isArray(b.items) ? b : null)).catch(() => null));
   // Revalidate the edition for each session; a cached old index and old bank
   // must not validate one another after the reader data has changed.
-  atlasFindIndexes.set(atlasId, get(base + 'index.json').catch(() => null));
+  atlasFindIndexes.set(atlasId, get('index.json').catch(() => null));
   return Promise.all([atlasFindBanks.get(atlasId), atlasFindIndexes.get(atlasId)]).then(([bank, index]) => {
     if (!bank) atlasFindBanks.delete(atlasId);   // not on the volume yet: ask again next time
     if (!index) atlasFindIndexes.delete(atlasId);

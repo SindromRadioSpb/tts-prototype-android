@@ -10,6 +10,12 @@
 
 ---
 
+## O-160 — Atlas edition rollout: owner snapshot and virtual-offline verification remain gates
+- **Date / scope:** 2026-11-06, local preparation869 and structure870.
+- **Observed:** Production867 has no supported atlas-only history export. A local explicit exporter now exists, but the actual owner snapshot is still unavailable until the compatible preparatory release. Synthetic preservation tests do not close this gate.
+- **Observed separately:** Playwright WebKit setOffline + reload reports an internal error before document replacement. Layout/navigation checks in Chromium/WebKit pass. A separate transport disconnect loads the shell but fails to find the immutable manifest after a SW transition; Cache.put then resolves without a visible saved entry. Fresh-context Cache API works. Both transition/offline cases remain unpassed; cause is unresolved, without a speculative patch.
+- **Status:** Open before structural publication. No production changes, owner writes, additional cleanup or AI work. See [staged plan](../research/engineering-atlas/2026-11-06-structure-upgrade/PREPARATION-AND-EDITION.ru.md).
+
 ## O-159 — WebKit: история переходов через legacy alias оболочки требует отдельной проверки
 - **Дата / где:** 2026-11-06, локальный кандидат 97001, WebKit desktop.
 - **Факт:** повторный сценарий через `/library.html` встречает существующий `compatibleShellRedirect` (`location.replace` на `/study-library.html`); после Back ожидаемый Forward-адрес не восстанавливался. Через штатный `/study-library.html` сценарий прошёл в Chromium/WebKit на 1440/390.
