@@ -2,7 +2,7 @@
   "base_commit": "82328f3327a0fd80be539b8efd03969170d96ad6",
   "candidate_version": "3.11.866",
   "production_published": false,
-  "release_blocker": "O-153: 2.49 GiB free < 6 GiB required; cleanup forbidden by latest user instruction",
+  "release_blocker": null,
   "findings": [
     {
       "id": "N01",
@@ -79,5 +79,17 @@
     "p170-F3",
     "M101-030",
     "MATH-LATE-002"
-  ]
+  ],
+  "status_as_of": "candidate before deployment",
+  "capacity_resolution": {
+    "owner_separate_confirmation": true,
+    "seven_private_cache_records_removed": true,
+    "shared_records_preserved": 9,
+    "obsolete_image_863_removed": true,
+    "nov1_daily_backup_removed": true,
+    "backup_loss_irreversible": true,
+    "available_bytes_after": 7287693312,
+    "gate_bytes": 6442450944,
+    "current865_previous864_and_other_backups_verified": true
+  }
 }

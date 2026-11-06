@@ -1,0 +1,101 @@
+{
+  "checked_at": "2026-11-06T13:04:30.026325+00:00",
+  "product_code_commit": "0a81916d52eba01bb023e5098b35d34bc138dc42",
+  "publication_pending": true,
+  "npm_test": {
+    "tests": 3427,
+    "pass": 3425,
+    "fail": 1,
+    "skip": 1,
+    "failure": "pre-existing untracked public/data/benyehuda/context/10.json; untouched",
+    "tracked_corpus_guard": {
+      "files": 115,
+      "ready": 796,
+      "catalog": 26455,
+      "result": "unchanged"
+    }
+  },
+  "targeted": {
+    "tests": 139,
+    "pass": 139
+  },
+  "focused": {
+    "tests": 22,
+    "pass": 22
+  },
+  "i18n": {
+    "pass": 233,
+    "fail": 0
+  },
+  "python_atlas": {
+    "tests": 205,
+    "errors": 0,
+    "skipped": 12
+  },
+  "audit_reader": {
+    "sections": 21,
+    "findings": 0
+  },
+  "corrections_idempotent": true,
+  "old_target_checks": 61,
+  "source_pages_preserved": 203,
+  "old_global_cards_retained": 230,
+  "current_global_cards": 240,
+  "source_limits_open": 20,
+  "normal_browser": {
+    "widths": [
+      390,
+      1440
+    ],
+    "checks": [
+      14,
+      13
+    ],
+    "pass": true
+  },
+  "synthetic_browser": {
+    "widths": [
+      390,
+      1440
+    ],
+    "checks": [
+      14,
+      13
+    ],
+    "pass": true,
+    "not_final_ai_content": true
+  },
+  "column_browser": {
+    "desktop_sections": 21,
+    "mobile_sections": 4,
+    "RU_mutations": 0,
+    "existing97002_prepared_gloss_visible": true
+  },
+  "legacy97002": {
+    "sections": 42,
+    "prepared_rows": 2905,
+    "rejected": 0
+  },
+  "visual": {
+    "pages_each_width": 203,
+    "widths": [
+      390,
+      1440
+    ],
+    "screenshots": 406,
+    "contact_sheets_reviewed": 26,
+    "scope": "layout and RU/figure presentation; not full linguistic recertification",
+    "capture_only_image_eviction_disabled": true,
+    "screenshot_only_viewport_height_can_expand": true,
+    "normal_memory_test_separate": true,
+    "initial_capture_harness_failures_superseded": true
+  },
+  "open_phonetic_advisories": [
+    "chamfer",
+    "electron",
+    "alclad",
+    "powder-metallurgy"
+  ],
+  "final_ai_generated": false,
+  "remote_ci": "pending production push"
+}
