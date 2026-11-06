@@ -24,6 +24,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import reader_structure_upgrade as SU
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CORRECTIONS_DIR = os.path.join(HERE, 'corrections')
@@ -154,6 +155,10 @@ def load_corrections(atlas_id='a97002'):
 
 def apply_section(data, corrections=None):
     """Corrected copy of one reader section and a human log of what changed."""
+    if data.get('structure_revision'):
+        # The pinned semantic edition already contains all base corrections.
+        # Reapplying base section catalog replacements would erase new terms.
+        return SU.apply_section(data)
     corrections = corrections or load_corrections(data.get('atlas_id', 'a97002'))
     data = copy.deepcopy(data)
     log = []
@@ -169,6 +174,8 @@ def apply_section(data, corrections=None):
                 changed += 1
     if changed:
         log.append(f'{changed} русских строк: восстановлены пропущенные пробелы')
+    data, structure_log = SU.apply_section(data)
+    log.extend(structure_log)
     return data, log
 
 

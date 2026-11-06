@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { parseHTML } = require('linkedom');
 const api = require('../../public/js/atlas-reader.js');
+const words = require('../../public/js/atlas-words.js');
 
 const dir = process.argv[2];
 if (!dir) { console.error('usage: audit-reader.cjs <dir> [--json out.json]'); process.exit(2); }
@@ -18,6 +19,7 @@ const PIPELINE = /редакционн|редакторск|bbox|source_text|jso
 const RAW_TEX = /\\(?:frac|tau|sigma|alpha|beta|cdot|sqrt|mathrm|text|left|right|Delta|pi|mu|varphi|phi|omega|lambda)\b|[_^]\{/;
 
 const findings = [];
+const dispositions = [];
 function add(level, rule, sec, page, what) { findings.push({ level, rule, sec, page, what }); }
 
 const { document } = parseHTML('<!doctype html><html><body></body></html>');
@@ -36,8 +38,17 @@ for (const file of files) {
         return;
       }
       const he = it.he || it.he_raw || '';
-      if (!he.trim()) add('A', '1.7', d.id, p.page, 'empty text block ' + where(it));
-      if (!it.ru && d.translated) add('B', '1.6', d.id, p.page, 'block without translation ' + where(it) + ' «' + he.slice(0, 40) + '»');
+      // Structural editions also contain source-only editorial/shared contexts
+      // and explicitly held rows. They remain visible, but are not promised as
+      // parallel learning translations. Keep their omissions in the report.
+      const group = (p.legacy_groups || []).find(g => g.id === it.structure?.parent_ref);
+      const disclosed = it.structure && !words.learningItem(it) &&
+        (it.kind === 'editor_note' || it.kind === 'shared_source_context' ||
+          group?.review_status === 'needs_review' || it.concept_review_note);
+      if (disclosed && (!he.trim() || (!it.ru && d.translated)))
+        dispositions.push({ sec: d.id, page: p.page, ref: it.id, kind: it.kind, missing_he: !he.trim(), missing_ru: !it.ru, training_eligible: false });
+      if (!he.trim() && !disclosed) add('A', '1.7', d.id, p.page, 'empty text block ' + where(it));
+      if (!it.ru && d.translated && !disclosed) add('B', '1.6', d.id, p.page, 'block without translation ' + where(it) + ' «' + he.slice(0, 40) + '»');
       for (const [field, val] of [['ru', it.ru], ['he', it.he], ['niqqud', it.he_niqqud], ['translit', it.translit], ['note', it.ambiguity_note]]) {
         if (!val) continue;
         if (PIPELINE.test(val)) add('A', '4.3', d.id, p.page, 'supplier/pipeline words in ' + field + ' ' + where(it) + ': «' + val.match(PIPELINE)[0] + '»');
@@ -67,7 +78,7 @@ for (const file of files) {
     // what the reader sees: editor notes, formula sources and book crops are not reading text
     const shown = el.cloneNode(true);
     // errata explain a proposed correction to the editor-in-chief («редакционная гипотеза») and stay as they are
-    shown.querySelectorAll('.atlas-editor, .atlas-math, .atlas-latex, .atlas-orig, .atlas-erratum').forEach((n) => n.remove());
+    shown.querySelectorAll('.atlas-editor, .atlas-math, .atlas-latex, .atlas-orig, .atlas-erratum, .atlas-group-note, .atlas-concept-hold, .atlas-source-snapshot').forEach((n) => n.remove());
     const text = shown.textContent;
     const bad = text.match(/undefined|\[object Object\]|\bNaN\b/);
     if (bad) add('A', '4.5', d.id, p.page, 'rendered page shows ' + bad[0]);
@@ -94,6 +105,8 @@ for (const file of files) {
 const by = {};
 findings.forEach((f) => { const k = f.level + ' ' + f.rule; by[k] = (by[k] || 0) + 1; });
 console.log('sections', files.length, 'findings', findings.length);
+console.log('disclosed nonlearning omissions', dispositions.length);
 Object.keys(by).sort().forEach((k) => console.log('  ' + k + ': ' + by[k]));
 if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(findings, null, 1));
+if (jsonOut) fs.writeFileSync(jsonOut + '.dispositions.json', JSON.stringify(dispositions, null, 1));
 process.exitCode = findings.some((f) => f.level === 'A') ? 1 : 0;

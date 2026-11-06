@@ -264,6 +264,22 @@
   }
 
   // ---- G4: «Найди в книге» — the answer is where the fragment stands (section, page): data, never a model ----
+  // 97001 structural edits can preserve the visible Hebrew while putting a
+  // row on editorial hold. Text equality after answering is not sufficient:
+  // the bank must match every current section file before a session starts.
+  function findBankStatus(bank, index, atlasId) {
+    if (!bank || !Array.isArray(bank.items)) return 'missing';
+    if (atlasId !== 'a97001') return 'ready'; // preserve the other atlas contract
+    if (!index || index.atlas_id !== atlasId || bank.atlas_id !== atlasId || !Array.isArray(index.sections)) return 'unverified';
+    var expected = index.sections_sha256, built = bank.built_from && bank.built_from.sections;
+    var ids = (index.sections || []).map(function (s) { return s && s.id; });
+    var hash = function (v) { return typeof v === 'string' && /^[a-f0-9]{64}$/i.test(v); };
+    if (!ids.length || new Set(ids).size !== ids.length || !expected || !built ||
+        ids.some(function (id) { return !id || !hash(expected[id]); })) return 'unverified';
+    if (Object.keys(expected).length !== ids.length || Object.keys(built).length !== ids.length ||
+        ids.some(function (id) { return built[id] !== expected[id]; })) return 'stale';
+    return 'ready';
+  }
   // answer { sid, page } → { section: bool, page: 'exact' | 'near' | 'wrong' } (near = ±1 page of the right section, Г3)
   function checkFind(item, answer) {
     var section = !!(item && answer && answer.sid === item.sid);
@@ -346,7 +362,7 @@
       unit: sym && sym.options && sym.options.unit ? picks.unit === sym.answer.unit : null };
   }
 
-  return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere,
+  return { STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere, findBankStatus: findBankStatus,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
     termStats: termStats, termsLineState: termsLineState, globalDueItems: globalDueItems, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,

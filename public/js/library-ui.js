@@ -13667,11 +13667,17 @@ function atlasFindLoad(atlasId) {
   const get = (u) => fetch(u, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null));
   const base = '/data/atlas/' + encodeURIComponent(atlasId) + '/';
   if (!atlasFindBanks.has(atlasId)) atlasFindBanks.set(atlasId, get(base + 'train/find.json').then((b) => (b && Array.isArray(b.items) ? b : null)).catch(() => null));
-  if (!atlasFindIndexes.has(atlasId)) atlasFindIndexes.set(atlasId, get(base + 'index.json').catch(() => null));
+  // Revalidate the edition for each session; a cached old index and old bank
+  // must not validate one another after the reader data has changed.
+  atlasFindIndexes.set(atlasId, get(base + 'index.json').catch(() => null));
   return Promise.all([atlasFindBanks.get(atlasId), atlasFindIndexes.get(atlasId)]).then(([bank, index]) => {
     if (!bank) atlasFindBanks.delete(atlasId);   // not on the volume yet: ask again next time
     if (!index) atlasFindIndexes.delete(atlasId);
-    return { bank, sections: ((index && index.sections) || []).filter((x) => x.translated !== false && x.id !== 's00-front') };
+    const status = window.AtlasTrain && typeof window.AtlasTrain.findBankStatus === 'function'
+      ? window.AtlasTrain.findBankStatus(bank, index, atlasId)
+      : (atlasId === 'a97001' ? 'unverified' : (bank ? 'ready' : 'missing'));
+    if (status !== 'ready') atlasFindBanks.delete(atlasId);
+    return { bank: status === 'ready' ? bank : null, status, sections: ((index && index.sections) || []).filter((x) => x.translated !== false && x.id !== 's00-front') };
   });
 }
 function atlasFindBlock(atlasId, sid) {
@@ -13693,8 +13699,10 @@ function atlasFindBlock(atlasId, sid) {
       : '';
   }
   function run(onlySid) {
-    atlasFindLoad(atlasId).then(({ bank, sections }) => {
-      if (!bank) { stats.textContent = tt('atlas.find.noBank', 'Вопросы для этого упражнения ещё не выложены.'); return; }
+    atlasFindLoad(atlasId).then(({ bank, sections, status }) => {
+      if (!bank) { stats.textContent = status === 'stale' || status === 'unverified'
+        ? tt('atlas.find.unverifiedBank', 'Упражнение временно недоступно: вопросы не подтверждены для текущей версии атласа. История ответов сохранена.')
+        : tt('atlas.find.noBank', 'Вопросы для этого упражнения ещё не выложены.'); return; }
       const seen = new Set(atlasFindHistory().map((x) => x.id)), stale = atlasFindStale();
       let f = null;
       const close = () => { if (f) { f.stop(); if (f.el.isConnected) f.el.remove(); } paint(); };

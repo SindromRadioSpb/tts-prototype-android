@@ -26,6 +26,19 @@
     return /\d/.test(text) ? 'ltr' : 'rtl';
   }
 
+  // A retired merged ref addresses the complete group. Never silently turn it
+  // into its first child; the alias also works when layout prevents one wrapper.
+  function resolveRefNodes(section, ref) {
+    if (!section || !ref) return [];
+    var all = Array.from(section.querySelectorAll('[data-ref]'));
+    var exact = all.filter(function (node) { return node.getAttribute('data-ref') === ref; });
+    var members = new Set();
+    exact.forEach(function (node) {
+      (node.getAttribute('data-group-members') || '').split(' ').filter(Boolean).forEach(function (id) { members.add(id); });
+    });
+    return exact.concat(all.filter(function (node) { return members.has(node.getAttribute('data-ref')) && exact.indexOf(node) < 0; }));
+  }
+
   function factory(doc) {
     function h(tag, attrs, kids) {
       var node = doc.createElement(tag);
@@ -51,22 +64,114 @@
     // The cells are direct children with a fixed column each; the grid packs the visible ones (atlas-reader.css),
     // so any column set from «Колонки» closes up without holes. Proofreading status lives in the page header.
     function renderBlock(T, item) {
-      var row = h('div', { cls: 'atlas-row', 'data-ref': item.id });
-      if (!item.ru) {
-        row.appendChild(heText(item.he_raw || '', 'atlas-he atlas-raw'));
-        row.appendChild(h('div', { cls: 'atlas-tr atlas-muted', text: T('atlas.noTranslation', 'нет перевода — исходный текст') }));
-        return row;
+      var editorial = item.kind === 'editor_note', shared = item.kind === 'shared_source_context', structure = item.structure;
+      var learn = !editorial && !shared && item.training_eligible !== false && !(structure && structure.training_eligible === false);
+      var hasText = [item.he, item.he_raw, item.he_niqqud, item.translit, item.translit_ru, item.ru].some(function (s) { return String(s || '').trim(); });
+      var row = h(editorial ? 'aside' : 'div', { cls: editorial ? 'atlas-editor-note' : 'atlas-row' + (shared ? ' atlas-shared-source' : ''), 'data-ref': item.id, 'data-kind': item.kind || null });
+      if (editorial) row.appendChild(h('strong', { cls: 'atlas-editor-label', text: T('atlas.editor.title', 'Заметки редактора') }));
+      if (shared) row.appendChild(h('strong', { cls: 'atlas-structure-label', text: T('atlas.structure.sharedSource', 'Общий исходный текст') }));
+      if (structure) {
+        row.setAttribute('data-parent-ref', structure.parent_ref || '');
+        row.setAttribute('data-depth', Math.max(0, Math.min(8, Number(structure.depth) || 0)));
+        row.style.setProperty('--atlas-depth', Math.max(0, Math.min(4, Number(structure.depth) || 0)));
+        if (structure.marker) row.setAttribute('data-marker', structure.marker);
+        if (structure.group) row.setAttribute('data-structure-group', structure.group);
+        if (structure.review_status) row.setAttribute('data-structure-review', structure.review_status);
       }
+      if (structure && !hasText) row.appendChild(h('div', { cls: 'atlas-structure-placeholder' }, [
+        h('bdi', { dir: 'auto', text: item.symbol || structure.symbol || structure.marker || '' }),
+        h('span', { text: T('atlas.structure.needsAlignment', 'Требуется выравнивание с исходником') })]));
       // a row without a pointed line keeps its plain Hebrew even when the plain column is off
-      row.appendChild(heText(item.he, item.he_niqqud ? 'atlas-he' : 'atlas-he atlas-he-sole', 'he'));
+      if (item.he) row.appendChild(heText(item.he, item.he_niqqud ? 'atlas-he' : 'atlas-he atlas-he-sole', learn ? 'he' : null));
+      else if (item.he_raw) row.appendChild(heText(item.he_raw, 'atlas-he atlas-raw'));
       if (item.translit) row.appendChild(h('div', { cls: 'atlas-translit', lang: 'he-Latn', text: item.translit }));
       if (item.translit_ru) row.appendChild(h('div', { cls: 'atlas-translit atlas-translit-ru', lang: 'he-Cyrl', text: item.translit_ru }));
-      if (item.he_niqqud) row.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud', 'niqqud'));
-      row.appendChild(h('div', { cls: 'atlas-ru', lang: 'ru', text: cleanMeta(item.ru) }));
+      if (item.he_niqqud) row.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud' + (!item.he ? ' atlas-niqqud-sole' : ''), learn ? 'niqqud' : null));
+      if (item.ru) row.appendChild(h('div', { cls: 'atlas-ru', lang: 'ru', dir: 'ltr', text: structure || editorial ? item.ru : cleanMeta(item.ru) }));
+      else if (hasText || !structure) row.appendChild(h('div', { cls: 'atlas-tr atlas-muted', text: T('atlas.noTranslation', 'нет перевода — исходный текст') }));
       var note = readerNote(item.ambiguity_note);
       if (note) row.appendChild(h('div', { cls: 'atlas-note', text: note }));
+      if (item.training_eligible === false && item.concept_review_note) row.appendChild(h('aside', { cls: 'atlas-review-hold atlas-concept-hold', role: 'note' }, [
+        h('strong', { text: T('atlas.structure.learningHeld', 'Обучение приостановлено') }),
+        h('p', { cls: 'atlas-hold-reason', dir: 'auto', text: item.concept_review_note })]));
       if (item.kind) row.setAttribute('data-kind', item.kind);
       return row;
+    }
+
+    // These source-specific summaries are reviewed explanations, not a heuristic
+    // translation of the audit log. The exact audit notes remain in details below.
+    var GROUP_HOLD_REASONS = {
+      'a97001:p128:b004': ['diameters', 'Определения d₀ и d_f объединены в переводе. Для отдельных строк нужен согласованный перевод.'],
+      'a97001:p132:b006': ['diameterPair', 'Определения диаметров d₁ и d₂ объединены. Для каждой строки нужны отдельный перевод и сверка с оригиналом.'],
+      'a97001:p135:b006': ['bulletTranslation', 'Перевод объединяет четыре пункта. После разделения остались обрывки предложений; требуется редакторская правка.'],
+      'a97001:p136:b001': ['diagonals', 'Определения диагоналей d₁ и d₂ объединены. Нужны отдельные формулировки и проверка ошибочного упоминания диаметра шарика в источнике.'],
+      'a97001:p138:b003': ['columnHeadings', 'В русском тексте нет полного перевода заголовков колонок. Его нужно дополнить и сверить с оригиналом.'],
+      'a97001:p139:b003': ['scales', 'RB и RC объединены в одном русском определении. Для каждой шкалы нужен отдельный проверенный перевод.'],
+      'a97001:p144:b002': ['heights', 'H₁ и H₂ объединены в одном русском определении. Нужны отдельные формулировки начальной и конечной высоты.'],
+      'a97001:p158:b005': ['steelDigits', 'В переводе пропущено утверждение о значении второй цифры марки стали. Его нужно сверить с оригиналом и перевести.'],
+      'a97001:p165:b002': ['steelTranslation', 'Русский текст объединяет сведения о Cr/Ni и исправления ошибок источника. Нужен отдельный согласованный перевод каждой строки.'],
+      'a97001:p171:b001': ['alloyDefinitions', 'Названия и пороги части определений сокращены, а эвтектический и эвтектоидный процессы смешаны. Нужны полные проверенные формулировки.'],
+      'a97001:p193:b002': ['pronunciation', 'В последнем предложении вложенного пункта отсутствуют огласовки и есть ошибки транслитерации. Сначала нужна языковая правка.']
+    };
+    function groupNotes(T, group) {
+      var original = group.original || {}, held = group.review_status === 'needs_review', seen = new Set();
+      function unique(notes) {
+        return notes.filter(function (note) {
+          if (typeof note !== 'string' || !note.trim() || seen.has(note.trim())) return false;
+          seen.add(note.trim()); return true;
+        });
+      }
+      var notes = unique([original.ambiguity_note, original.note]);
+      var review = unique(held && Array.isArray(group.review_notes) ? group.review_notes : []);
+      if (!held && !notes.length) return null;
+      var box = h('aside', { cls: 'atlas-group-note' + (held ? ' atlas-review-hold' : ''), role: 'note' });
+      if (held) {
+        var reason = GROUP_HOLD_REASONS[group.id];
+        box.appendChild(h('strong', { text: T('atlas.structure.learningHeld', 'Обучение приостановлено') }));
+        box.appendChild(h('p', { cls: 'atlas-hold-reason', dir: 'auto', text: reason ? T('atlas.structure.holdReason.' + reason[0], reason[1])
+          : T('atlas.structure.holdReason.fallback', 'Отдельные формулировки и переводы ещё не согласованы с оригиналом. До редакторской проверки эти строки не используются в обучении.') }));
+      }
+      if (notes.length) {
+        box.appendChild(h('strong', { text: T('atlas.editor.title', 'Заметки редактора') }));
+        notes.forEach(function (note) { box.appendChild(h('p', { cls: 'atlas-original-caveat', dir: 'auto', text: note })); });
+      }
+      if (review.length) box.appendChild(h('details', { cls: 'atlas-review-details' }, [
+        h('summary', { text: T('atlas.structure.reviewDetails', 'Подробности проверки') }),
+        h('ul', {}, review.map(function (note) { return h('li', { dir: 'auto', text: note }); }))]));
+      return box;
+    }
+
+    function attachLegacyGroups(T, page, main) {
+      (page.legacy_groups || []).forEach(function (group) {
+        var children = (group.children || []).map(function (id) { return resolveRefNodes(main, id)[0]; }).filter(Boolean);
+        var original = group.original || {}, first = children[0], parent = first && first.parentNode;
+        var contiguous = children.length === (group.children || []).length && children.length > 0 && children.every(function (node, i) {
+          return node.parentNode === parent && (!i || children[i - 1].nextElementSibling === node);
+        });
+        var box = h('div', { cls: 'atlas-legacy-group' + (contiguous ? '' : ' atlas-legacy-alias'), 'data-ref': group.id,
+          'data-group-members': (group.children || []).join(' '), role: 'group', 'aria-label': T('atlas.structure.originalGroup', 'Исходная группа') });
+        var snapshot = h('div', { cls: 'atlas-source-snapshot', 'data-source-revision': group.source_revision || '' });
+        [['he', 'he', 'rtl'], ['he_raw', 'he', 'rtl'], ['he_niqqud', 'he', 'rtl'], ['translit', 'he-Latn', 'ltr'], ['translit_ru', 'he-Cyrl', 'ltr'], ['ru', 'ru', 'ltr']].forEach(function (field) {
+          if (original[field[0]]) snapshot.appendChild(h('div', { lang: field[1], dir: field[2], 'data-source-field': field[0], text: original[field[0]] }));
+        });
+        box.appendChild(h('details', { cls: 'atlas-group-history' }, [h('summary', { text: T('atlas.structure.originalGroup', 'Исходная группа') + ' · ' + T('atlas.structure.originalSnapshot', 'Текст до разделения') }), snapshot]));
+        var notes = groupNotes(T, group);
+        if (notes) box.appendChild(notes);
+        if (first) parent.insertBefore(box, first); else main.appendChild(box);
+        if (contiguous) children.forEach(function (node) { box.appendChild(node); });
+      });
+      var sharedTargets = new Map();
+      (page.items || []).filter(function (item) { return item.kind === 'shared_source_context'; }).forEach(function (shared) {
+        ((shared.structure && shared.structure.applies_to) || []).forEach(function (id) {
+          if (!sharedTargets.has(id)) sharedTargets.set(id, []);
+          sharedTargets.get(id).push(shared.id);
+        });
+      });
+      sharedTargets.forEach(function (ids, id) {
+        var row = resolveRefNodes(main, id)[0];
+        if (row) row.appendChild(h('button', { type: 'button', cls: 'atlas-shared-source-link', 'data-structure-target': ids.join(' '),
+          text: T('atlas.structure.sharedSource', 'Общий исходный текст') }));
+      });
     }
 
     // ---- margin marks of the book: 👍 advantages, 👎 drawbacks, ❗ attention ----
@@ -190,20 +295,35 @@
         if (!m) figures.push(f);
         else if (m.kind !== 'junk') marks.push({ kind: m.kind, mark: m, y: f.bbox[1] });
       });
+      // Reviewed source groups outrank picture coordinates. A merged paragraph
+      // can contain both advantages and limitations, and an extracted pictogram
+      // may be missing or land halfway through the wrong group after splitting.
+      var sourceGroups = items.map(function (item) {
+        var id = item.structure && String(item.structure.group || '');
+        var match = id && /:(advantages|limitations)$/.exec(id);
+        return match ? { id: id, kind: match[1] === 'advantages' ? 'pro' : 'con' } : null;
+      });
       var starts = {};
+      sourceGroups.forEach(function (source, i) {
+        if (!source || (i && sourceGroups[i - 1] && sourceGroups[i - 1].id === source.id)) return;
+        var end = i;
+        while (end + 1 < items.length && sourceGroups[end + 1] && sourceGroups[end + 1].id === source.id) end++;
+        starts[i] = { kind: source.kind, kinds: [source.kind], marks: [{ kind: source.kind }], end: end, sourceGroup: source.id };
+      });
       marks.sort(function (a, b) { return a.y - b.y; }).forEach(function (m) {
         var at = -1;
         for (var i = 0; i < items.length; i++) { var y = itemY(items[i]); if (y != null && y >= m.y - 6) { at = i; break; } }
         if (at < 0) at = items.length - 1;
         if (at < 0) return;
+        if (sourceGroups[at]) return;
         // two marks over one block (the supplier merged pros and cons into one line): keep both labels
         if (!starts[at]) starts[at] = { kind: m.kind, kinds: [m.kind], marks: [m.mark], end: at };
         else if (starts[at].kinds.indexOf(m.kind) < 0) { starts[at].kinds.push(m.kind); starts[at].marks.push(m.mark); starts[at].kind = 'mixed'; }
       });
       Object.keys(starts).forEach(function (k) {
         var g = starts[k], i = Number(k);
-        if (items[i].kind !== 'list_item') return;
-        while (i + 1 < items.length && items[i + 1].kind === 'list_item' && !starts[i + 1]) i++;
+        if (g.sourceGroup || items[i].kind !== 'list_item') return;
+        while (i + 1 < items.length && items[i + 1].kind === 'list_item' && !sourceGroups[i + 1] && !starts[i + 1]) i++;
         g.end = i;
       });
       var before = {}, captionOf = {};
@@ -219,6 +339,9 @@
       });
       var dup = {};
       items.forEach(function (it, i) {
+        // Source-reviewed semantic units and editorial notes have explicit identity.
+        // The older extraction heuristics must not hide or re-join them.
+        if (it.structure || it.kind === 'editor_note') return;
         if (it.type === 'formula' && tableFragment(it, page)) { dup[i] = true; return; }
         if (it.type !== 'formula' && flattenedTable(it, page)) { dup[i] = true; return; }
         // a bullet or punctuation mark alone on a line («•», p179)
@@ -226,7 +349,7 @@
           dup[i] = true;
           // a closing «)» split off its heading («Плоскостность (Flatness» + «)», p493–497) goes back to it
           var pv = items[i - 1];
-          if (/^\s*\)\s*$/.test(it.he || '') && pv && pv.type !== 'formula' && /\([^)]*$/.test(pv.ru || '')) {
+          if (/^\s*\)\s*$/.test(it.he || '') && pv && !pv.structure && pv.type !== 'formula' && /\([^)]*$/.test(pv.ru || '')) {
             items[i - 1] = Object.assign({}, pv, { he: (pv.he || '') + ')', ru: pv.ru + ')',
               he_niqqud: pv.he_niqqud ? pv.he_niqqud + ')' : pv.he_niqqud, translit: pv.translit ? pv.translit + ')' : pv.translit,
               translit_ru: pv.translit_ru ? pv.translit_ru + ')' : pv.translit_ru });
@@ -289,7 +412,7 @@
         });
         var share = cells.length ? bestHit / cells.length : 0;
         if (mirrorTable(t, best >= 0 ? texts[best] : '')) out.mirror[t.id] = true;
-        if (best >= 0 && share >= 0.8 && /^(other|table_note|symbol_row)$/.test(items[best].kind || '') && !out.replace[best]) { out.replace[best] = t; return; }
+        if (best >= 0 && !items[best].structure && items[best].kind !== 'editor_note' && share >= 0.8 && /^(other|table_note|symbol_row)$/.test(items[best].kind || '') && !out.replace[best]) { out.replace[best] = t; return; }
         var title = plain(t.title_he), at = -1;
         if (!title && seen['סמל'] && seen['תיאור']) title = 'טבלת סמלים';
         if (title) at = texts.findIndex(function (x) { return x && (x === title || x.indexOf(title) >= 0 || (x.length > 4 && title.indexOf(x) >= 0)); });
@@ -788,8 +911,14 @@
         var part = noteParts(it.type === 'formula' ? it.note : it.ambiguity_note).editor;
         if (part) moved.push({ about: it.type === 'formula' ? 'formula' : 'block', ref: it.id, text: part });
       });
-      var editor = renderEditor(T, (page.editor || []).concat(moved));
+      var inlineConceptNotes = new Map((page.items || []).filter(function (item) { return item.training_eligible === false && item.concept_review_note; }).map(function (item) { return [item.id, item.concept_review_note]; }));
+      var editorNotes = (page.editor || []).filter(function (note) {
+        var inline = inlineConceptNotes.get(note.ref);
+        return !inline || (note.text !== inline && note.text !== 'Термин требует редакторской проверки: ' + inline);
+      });
+      var editor = renderEditor(T, editorNotes.concat(moved));
       if (editor) main.appendChild(editor);
+      attachLegacyGroups(T, page, main);
       body.appendChild(aside); body.appendChild(main);
       sec.appendChild(body);
       return sec;
@@ -1046,6 +1175,14 @@
 
     function wireInteractions(section) {
       section.addEventListener('click', function (ev) {
+        var shared = ev.target.closest && ev.target.closest('[data-structure-target]');
+        if (shared) {
+          section.querySelectorAll('.atlas-hl').forEach(function (node) { node.classList.remove('atlas-hl'); });
+          var targets = (shared.getAttribute('data-structure-target') || '').split(' ').flatMap(function (id) { return resolveRefNodes(section, id); });
+          targets.forEach(function (node) { node.classList.add('atlas-hl'); });
+          if (targets[0] && targets[0].scrollIntoView) targets[0].scrollIntoView({ block: 'center' });
+          return;
+        }
         var thumb = ev.target.closest && ev.target.closest('.atlas-thumb');
         if (thumb) { openImage(thumb.getAttribute('data-image')); return; }
         var region = ev.target.closest && ev.target.closest('[data-region]');
@@ -1054,7 +1191,7 @@
         section.querySelectorAll('[data-region="' + region.getAttribute('data-region') + '"]').forEach(function (x) { x.classList.add('atlas-hl'); });
         (region.getAttribute('data-links') || '').split(' ').forEach(function (ref) {
           if (!ref) return;
-          section.querySelectorAll('[data-ref="' + ref + '"]').forEach(function (x) { x.classList.add('atlas-hl'); });
+          resolveRefNodes(section, ref).forEach(function (x) { x.classList.add('atlas-hl'); });
         });
       });
     }
@@ -1090,7 +1227,7 @@
     function goToPage(n, objectRef, cellRef) {
       var el = doc.getElementById('atlas-p' + n), win = doc.defaultView;
       if (!el) return false;
-      if(objectRef){var object=Array.from(el.querySelectorAll('[data-ref]')).find(function(node){return node.getAttribute('data-ref')===objectRef;});if(object){el=object;if(cellRef){var cell=object.querySelector('[data-cell="'+cellRef.row+':'+cellRef.col+'"]');if(cell)el=cell;}}}
+      if(objectRef){var object=resolveRefNodes(el,objectRef)[0];if(object){el=object;if(cellRef){var cell=object.querySelector('[data-cell="'+cellRef.row+':'+cellRef.col+'"]');if(cell)el=cell;}}}
       track.last = n; track.quietUntil = Date.now() + 1500;
       if (track.input) track.input.value = String(n);
       function place() {
@@ -1761,7 +1898,7 @@
         track.last = page || data.first;
         if (track.input) track.input.value = String(track.last);
         if (page) goToPage(page, how.ref, how.cell);
-        if(how.ref){var target=Array.from(section.querySelectorAll('[data-ref]')).find(function(n){return n.getAttribute('data-ref')===how.ref;});if(target){if(how.cell){var cell=target.querySelector('[data-cell="'+how.cell.row+':'+how.cell.col+'"]');if(cell)target=cell;}target.classList.add('atlas-hit');if(target.scrollIntoView)target.scrollIntoView({block:'center'});}else if(how.query){section.querySelectorAll('.atlas-row').forEach(function(n){if(n.textContent.toLowerCase().includes(how.query.toLowerCase()))n.classList.add('atlas-hit');});}}
+        if(how.ref){var targets=resolveRefNodes(section,how.ref),target=targets[0];if(target){if(how.cell){var cell=target.querySelector('[data-cell="'+how.cell.row+':'+how.cell.col+'"]');if(cell){target=cell;targets=[cell];}}targets.forEach(function(node){node.classList.add('atlas-hit');});if(target.scrollIntoView)target.scrollIntoView({block:'center'});}else if(how.query){section.querySelectorAll('.atlas-row').forEach(function(n){if(n.textContent.toLowerCase().includes(how.query.toLowerCase()))n.classList.add('atlas-hit');});}}
         if (!how.restore) onState(id, page || data.first, 'push');
         trackPages(id, section);
         setupListening(id, data, bar, section, how);
@@ -1837,7 +1974,7 @@
     return function () { doc.body.classList.remove('atlas-printing'); printRoot.remove(); style.remove(); };
   }
 
-  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers, manageImages: manageImages };
+  var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers, manageImages: manageImages, resolveRefNodes: resolveRefNodes };
   root.AtlasReader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

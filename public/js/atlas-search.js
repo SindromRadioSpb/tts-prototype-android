@@ -271,6 +271,21 @@
             (t.cells || []).map((c) => c.he || "").join(" "),
             (t.cells || []).map((c) => clean(c.ru)).join(" "),
           );
+          // Table definitions have independent, rendered cell refs in 97001.
+          // A glossary entry must not disappear from search just because its
+          // only definition is in a table instead of a prose item.
+          if (s.atlas_id === 'a97001') {
+            (t.cells || []).forEach(function (cell) {
+              (cell.terms || []).forEach(function (ref) {
+                var id = String(ref).split('#')[0];
+                (terms[id] || (terms[id] = [])).push([s.id, p.page, t.id + ':cell:' + cell.row + ':' + cell.col]);
+              });
+            });
+            (t.title_terms || []).forEach(function (ref) {
+              var id = String(ref).split('#')[0];
+              (terms[id] || (terms[id] = [])).push([s.id, p.page, t.id + ':title']);
+            });
+          }
         });
         // A cell coordinate is presentation metadata; table objects remain the search unit.
         (p.tables || []).forEach(function (t) {

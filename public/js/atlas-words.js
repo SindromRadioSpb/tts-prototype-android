@@ -125,22 +125,38 @@
   // atlas into the device's database. The place is the edition of the section + the block + the word; it verifies
   // only against the same loaded edition, so a source never points at a text that has changed.
   var SOURCE_KIND = "atlas_block";
+  function learningItem(item) {
+    return !!item && item.kind !== 'editor_note' && item.kind !== 'shared_source_context' && item.training_eligible !== false &&
+      !(item.structure && item.structure.training_eligible === false);
+  }
   function sourceContext(section, page, item, field, refs) {
-    return { atlas_id: section.atlas_id, section_id: section.id, page: page.page,
+    var group = item.structure && (page.legacy_groups || []).find(function (g) { return g.id === item.structure.parent_ref; });
+    var original = (group && group.original) || {};
+    var context = { atlas_id: section.atlas_id, section_id: section.id, page: page.page,
       object_id: item.id, field: field, scan: page.image || '',
       limits: page.source_limits || [], coverage_notice: page.coverage_notice || null,
       reviewed_terms: (refs || item.terms || []).map(function (ref) {
         var r = parseRef(ref), t = (section.terms || {})[r.id], sense = t && (t.senses || []).find(function (s) { return s.sense === r.sense; });
         return sense ? { id:r.id, sense:r.sense, he:t.lemma_he, ru:sense.ru, context:sense.context || '' } : null;
       }).filter(Boolean),
-      scientific_notes: [item.ambiguity_note, item.note].concat((page.editor || []).filter(function (n) { return n.about === 'page' || n.ref === item.id; }).map(function (n) { return n.text; })).filter(Boolean) };
+      scientific_notes: [item.ambiguity_note, item.note].concat((page.editor || []).filter(function (n) { return n.about === 'page' || n.ref === item.id || (item.structure && n.ref === item.structure.parent_ref); }).map(function (n) { return n.text; })).filter(Boolean) };
+    var groupNotes = [original.ambiguity_note, original.note].filter(Boolean);
+    if (groupNotes.length) {
+      context.group_notes = { ref: group.id, notes: groupNotes };
+      context.scientific_notes = Array.from(new Set(context.scientific_notes.concat(groupNotes)));
+    }
+    // Structural provenance participates in the prepared-layer revision, even if
+    // the base content-pack hash and an untouched row's learning identity stay put.
+    if (section.structure_revision) context.structure_revision = section.structure_revision;
+    if (item.structure) context.structure = item.structure;
+    return context;
   }
   // Reviewed table/figure references are real learning places, not fabricated prose.
   // Explicit cell refs keep the original source coordinates and do not scan unrelated words.
   function sectionItems(section) {
     var out = [];
     ((section && section.pages) || []).forEach(function (page) {
-      (page.items || []).forEach(function (it) { if (it && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
+      (page.items || []).forEach(function (it) { if (learningItem(it) && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
     });
     // Append new kinds after the complete legacy sequence. Existing block order_index
     // values, gloss keys and occurrence corrections therefore keep their identities.
@@ -148,7 +164,9 @@
       // Preserve other published books' row ordering and existing context-layer keys.
       if (!section || section.atlas_id !== 'a97001') return;
       (page.tables || []).forEach(function (table) {
+        if (!learningItem(table)) return;
         (table.cells || []).forEach(function (cell) {
+          if (!learningItem(cell)) return;
           if (!/[\u05d0-\u05ea]/.test(String(cell.he || ''))) return;
           out.push({ id: table.id + ':cell:' + cell.row + ':' + cell.col, page: page.page,
             source_ref: table.id, source_cell: { row: cell.row, col: cell.col }, type: 'table_cell',
@@ -158,6 +176,7 @@
           source_ref: table.id, type: 'table_title', he: table.title_he, he_niqqud: table.title_he, ru: table.title_ru || '', terms: table.title_terms || [], source_context: sourceContext(section, page, table, 'title_he', table.title_terms || []) });
       });
       (page.figures || []).forEach(function (figure) {
+        if (!learningItem(figure)) return;
         if ((section.context_exclusions || []).some(function (x) { return x.ref === figure.id && x.field === 'caption_he'; })) return;
         if (/[\u05d0-\u05ea]/.test(String(figure.caption_he || ''))) out.push({ id: figure.id + ':caption', source_ref: figure.id, page: page.page,
           type: 'figure_caption', he: figure.caption_he, he_niqqud: figure.caption_he, ru: figure.caption_ru || '', terms: figure.terms || [], source_context: sourceContext(section, page, figure, 'caption_he') });
@@ -165,16 +184,54 @@
     });
     return out;
   }
+  function sameSource(a, b) {
+    return ['he', 'he_niqqud', 'ru'].every(function (field) { return String(a[field] || '') === String(b[field] || ''); });
+  }
+  function editionKey(atlasId, sectionId, revision) {
+    return 'atlas-block-v1:' + atlasId + ':' + sectionId + ':' + String(revision || '');
+  }
+  function resolveReference(section, ref) {
+    ref = String(ref || '');
+    var pages = (section && section.pages) || [];
+    for (var i = 0; i < pages.length; i++) {
+      var page = pages[i], item = (page.items || []).find(function (it) { return it.id === ref; });
+      if (item) return { kind: 'item', ref: ref, page: page.page, item: item };
+      var group = (page.legacy_groups || []).find(function (g) { return g.id === ref; });
+      if (group) return { kind: 'legacy_group', ref: ref, page: page.page, original: group.original,
+        children: (group.children || []).slice(), group: group };
+    }
+    return null;
+  }
   function sectionContext(atlasId, section, RM) {
-    var items = new Map(), order = new Map(), located = new Map(), n = 0, personalRefs = [];
+    var items = new Map(), order = new Map(), located = new Map(), personalRefs = [], textKeys = new Map();
+    var compatibility = (section && section.occurrence_compatibility) || {}, prior = new Map(), reserved = new Set(), used = new Set(), n = 0;
+    (compatibility.rows || []).forEach(function (row) {
+      if (!row || !row.id || !Number.isInteger(row.order_index) || row.order_index < 0 || prior.has(String(row.id)) || reserved.has(row.order_index)) {
+        throw new Error('Invalid atlas occurrence compatibility');
+      }
+      prior.set(String(row.id), row); reserved.add(row.order_index); n = Math.max(n, row.order_index + 1);
+    });
+    var revision = String(section && section.content_pack_sha256 || '') +
+      (section && section.structure_revision ? ':structure:' + section.structure_revision : '');
+    var currentKey = editionKey(atlasId, section && section.id, revision);
     sectionItems(section).forEach(function (it) {
         if (!it || !it.id || !String(it.he || "").trim()) return;
-        items.set(String(it.id), it); order.set(String(it.id), n++);
+        var id = String(it.id), old = prior.get(id), requested = it.structure && it.structure.occurrence_order_index;
+        if (!Number.isInteger(requested)) requested = it.legacy_order_index;
+        var index = old ? old.order_index : Number.isInteger(requested) && requested >= 0 && !reserved.has(requested) && !used.has(requested) ? requested : n;
+        while (used.has(index) || (!old && reserved.has(index))) index++;
+        used.add(index); n = Math.max(n, index + 1);
+        items.set(id, it); order.set(id, index);
+        // Reuse an old source identity only on exact content equality, never merely
+        // because an ordinal or id was retained. Split parents are not in this map.
+        var unchanged = old && compatibility.source_revision && !(it.structure && it.structure.parent_ref) && sameSource(old, it);
+        textKeys.set(id, unchanged ? editionKey(atlasId, section.id, compatibility.source_revision) : currentKey);
     });
     return {
       atlasId: String(atlasId || ""), sectionId: String(section && section.id || ""), RM: RM,
-      textKey: "atlas-block-v1:" + atlasId + ":" + (section && section.id) + ":" + String(section && section.content_pack_sha256 || ""),
+      textKey: currentKey, textKeys: textKeys,
       terms: (section && section.terms) || {}, items: items, order: order,
+      resolveReference: function (ref) { return resolveReference(section, ref); },
       located: function (id) {
         id = String(id);
         if (!located.has(id)) {
@@ -212,7 +269,7 @@
     var term = loc && Number.isInteger(off) ? termAt(col === "niqqud" ? loc.niqqud.spans : loc.he.spans, off) : null;
     return Object.freeze({
       source_kind: SOURCE_KIND, atlas_id: ctx.atlasId, section_id: ctx.sectionId,
-      text_key: ctx.textKey, text_id: ctx.textKey, sentence_id: String(it.id), order_index: ctx.order.get(String(it.id)),
+      text_key: ctx.textKeys.get(String(it.id)), text_id: ctx.textKeys.get(String(it.id)), sentence_id: String(it.id), order_index: ctx.order.get(String(it.id)),
       word_offset: Number.isInteger(off) ? off : null, col: col === "niqqud" ? "niqqud" : "he", surface: bareWord(surface),
       sentence_he: String(it.he || ""), sentence_he_niqqud: String(it.he_niqqud || ""), sentence_ru: String(it.ru || ""),
       atlas_term: term ? { id: term.id, sense: term.sense } : null,
@@ -222,14 +279,30 @@
   // → { textKey, sentenceId, orderIndex, surface } (the source a mark keeps) or null
   function verifyOccurrence(occ, ctx) {
     if (!occ || occ.source_kind !== SOURCE_KIND || !ctx) return null;
-    if (occ.text_key !== ctx.textKey || occ.text_id !== ctx.textKey) return null;
     var it = ctx.items.get(String(occ.sentence_id));
     if (!it || ctx.order.get(String(it.id)) !== Number(occ.order_index)) return null;
+    var key = ctx.textKeys.get(String(it.id));
+    if (occ.text_key !== key || occ.text_id !== key) return null;
+    if (['he', 'he_niqqud', 'ru'].some(function (field) { return occ['sentence_' + field] != null && String(occ['sentence_' + field]) !== String(it[field] || ''); })) return null;
     var off = Number(occ.word_offset), surface = bareWord(occ.surface);
     if (!Number.isInteger(off) || off < 0 || !surface) return null;
     var plain = plainWordsOf(it.he, ctx.RM)[off], pointed = plainWordsOf(it.he_niqqud, ctx.RM)[off];
     if (surface !== plain && surface !== pointed) return null;
-    return { textKey: ctx.textKey, sentenceId: String(it.id), orderIndex: Number(occ.order_index), surface: surface };
+    return { textKey: key, sentenceId: String(it.id), orderIndex: Number(occ.order_index), surface: surface };
+  }
+  // Read-only historical inspection. This is deliberately NOT verifyOccurrence:
+  // a saved parent mark does not prove that any of its new children were learned.
+  function historicalOccurrence(occ, ctx) {
+    if (!occ || occ.source_kind !== SOURCE_KIND || !ctx) return null;
+    var ref = ctx.resolveReference(occ.sentence_id);
+    if (!ref || ref.kind !== 'legacy_group' || !ref.original) return null;
+    var key = editionKey(ctx.atlasId, ctx.sectionId, ref.group.source_revision), it = ref.original;
+    if (!ref.group.source_revision || occ.text_key !== key || occ.text_id !== key || Number(occ.order_index) !== ref.group.legacy_order_index) return null;
+    if (!sameSource(it, { he: occ.sentence_he, he_niqqud: occ.sentence_he_niqqud, ru: occ.sentence_ru })) return null;
+    var off = Number(occ.word_offset), surface = bareWord(occ.surface);
+    if (!Number.isInteger(off) || off < 0 || !surface || (plainWordsOf(it.he, ctx.RM)[off] !== surface && plainWordsOf(it.he_niqqud, ctx.RM)[off] !== surface)) return null;
+    return { kind: 'historical_group', ref: ref.ref, page: ref.page, source_revision: ref.group.source_revision,
+      original: it, children: ref.children, learning_eligible: false };
   }
   // The reviewed term above the card's dictionary reading → { kicker, title, subtitle, lines } or null (plain text)
   function cardTop(occ, ctx, labels) {
@@ -303,7 +376,8 @@
   }
 
   var api = { glossRows: glossRows, bindGlossRow: bindGlossRow, locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
-    sectionContext: sectionContext, sectionItems: sectionItems, occurrence: occurrence, verifyOccurrence: verifyOccurrence, cardTop: cardTop, decorateRow: decorateRow };
+    sectionContext: sectionContext, sectionItems: sectionItems, occurrence: occurrence, verifyOccurrence: verifyOccurrence, historicalOccurrence: historicalOccurrence,
+    resolveReference: resolveReference, learningItem: learningItem, cardTop: cardTop, decorateRow: decorateRow };
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

@@ -33,7 +33,11 @@ function buildFindBank(sections, shas, atlasId) {
     (s.pages || []).forEach((p) => {
       const formulas = (p.items || []).filter((it) => it && it.type === "formula").map((it) => it.id);
       (p.items || []).forEach((it) => {
-        if (!it || it.type !== "block" || !KINDS[it.kind] || !String(it.he || "").trim()) return;
+        // The find trainer must respect the same editorial/learning holds as
+        // word cards and term queues. Keep duplicate detection above over all
+        // visible source text: an ineligible duplicate still makes the answer
+        // ambiguous, even though it must never become a question itself.
+        if (!AW.learningItem(it) || it.type !== "block" || !KINDS[it.kind] || !String(it.he || "").trim()) return;
         const n = wordCount(it.he);
         if (n < MIN_WORDS || n > MAX_WORDS) return;
         if (seen.get(norm(it.he)) > 1) return;
@@ -56,7 +60,9 @@ function buildTermsIndex(sections, atlasId) {
     Object.keys(s.terms || {}).forEach((id) => {
       const t = s.terms[id];
       const out = terms[id] || (terms[id] = { lemma_he: t.lemma_he || "", niqqud: t.niqqud || "", translit: t.translit || "", translit_ru: t.translit_ru || "",
-        senses: [], sections: [], places: {}, ...(t.study_note ? {study_note:t.study_note} : {}) });
+        senses: [], sections: [], places: {}, ...(t.study_note ? {study_note:t.study_note} : {}),
+        ...(t.definition_refs ? {definition_refs:t.definition_refs.slice()} : {}),
+        ...(t.reading_status ? {reading_status:t.reading_status} : {}) });
       if (!out.sections.includes(s.id)) out.sections.push(s.id);
       (t.senses || []).forEach((sn) => { if (sn && sn.sense && !out.senses.some((x) => x.sense === sn.sense)) out.senses.push({ sense: sn.sense, ru: sn.ru || "" }); });
     });

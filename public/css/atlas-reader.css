@@ -157,12 +157,14 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
 .atlas-root .atlas-row[data-kind="heading"] .atlas-ru { font-size: 1.05rem; }
 
 /* columns (the Room's presets): each hidden layer is one class on the section */
-.atlas-root .atlas-hide-he .atlas-row > .atlas-he:not(.atlas-niqqud):not(.atlas-raw):not(.atlas-he-sole) { display: none; }
-.atlas-root .atlas-hide-niqqud .atlas-niqqud { display: none; }
+.atlas-root .atlas-hide-he .atlas-row > .atlas-he:not(.atlas-niqqud):not(.atlas-raw):not(.atlas-he-sole),
+.atlas-root .atlas-hide-he .atlas-editor-note > .atlas-he:not(.atlas-niqqud):not(.atlas-raw):not(.atlas-he-sole) { display: none; }
+.atlas-root .atlas-hide-niqqud .atlas-niqqud:not(.atlas-niqqud-sole) { display: none; }
 .atlas-root .atlas-hide-translit .atlas-translit { display: none; }
 .atlas-root .atlas-tl-lat .atlas-translit-ru, .atlas-root .atlas-tl-cyr .atlas-translit:not(.atlas-translit-ru) { display: none; }
 /* translation off hides every Russian layer, not just the main text (acceptance UI03) */
-.atlas-root .atlas-hebrew-only .atlas-row > .atlas-ru, .atlas-root .atlas-hebrew-only .atlas-row > .atlas-tr { display: none; }
+.atlas-root .atlas-hebrew-only .atlas-row > .atlas-ru, .atlas-root .atlas-hebrew-only .atlas-row > .atlas-tr,
+.atlas-root .atlas-hebrew-only .atlas-editor-note > .atlas-ru, .atlas-root .atlas-hebrew-only .atlas-editor-note > .atlas-tr { display: none; }
 .atlas-root .atlas-l-he { display: none; }
 .atlas-root .atlas-hebrew-only .atlas-l-ru, .atlas-root .atlas-hebrew-only .atlas-note, .atlas-root .atlas-hebrew-only .atlas-why,
 .atlas-root .atlas-hebrew-only .atlas-erratum > b, .atlas-root .atlas-hebrew-only .atlas-erratum summary > b, .atlas-root .atlas-hebrew-only .atlas-erratum > small { display: none; }
@@ -538,3 +540,39 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 
 .atlas-root .atlas-figure-open { display: block; cursor: zoom-in; }
 .atlas-root .atlas-figure-open:focus-visible { outline: 3px solid var(--atlas-scan-mark); outline-offset: 3px; }
+
+/* Source structure: independently selectable rows, with retired refs kept as
+   complete groups. Original snapshots never participate in word/learning rows. */
+.atlas-root .atlas-row[data-parent-ref] { margin-inline-start: calc(var(--atlas-depth, 0) * .7rem); }
+.atlas-root .atlas-legacy-group { min-width: 0; margin-block: 6px 12px; border-inline-start: 2px solid var(--atlas-line); padding-inline-start: 10px; }
+.atlas-root .atlas-legacy-alias { margin-block-end: 0; }
+.atlas-root .atlas-group-history { color: var(--atlas-muted); font-size: .78rem; }
+.atlas-root .atlas-group-history > summary { cursor: pointer; padding-block: 4px; overflow-wrap: anywhere; }
+.atlas-root .atlas-source-snapshot { padding: 8px; background: var(--atlas-sunken); border-radius: 6px; }
+.atlas-root .atlas-source-snapshot > div { white-space: pre-wrap; overflow-wrap: anywhere; margin-block: 4px; }
+.atlas-root .atlas-editor-note { margin-block: 8px; padding: 10px; border-inline-start: 3px solid var(--atlas-amber); background: var(--atlas-note-bg); overflow-wrap: anywhere; }
+.atlas-root .atlas-editor-label { display: block; color: var(--atlas-note-ink); font-size: .8rem; margin-block-end: 4px; }
+@media (max-width: 600px) {
+  .atlas-root .atlas-row[data-parent-ref] { margin-inline-start: calc(var(--atlas-depth, 0) * .4rem); }
+  .atlas-root .atlas-legacy-group { padding-inline-start: 6px; }
+}
+@media print {
+  .atlas-group-history { display: none !important; }
+  .atlas-legacy-group { break-inside: auto; }
+}
+.atlas-root .atlas-structure-label, .atlas-root .atlas-structure-placeholder, .atlas-root .atlas-shared-source-link { grid-column: 1 / -1; }
+.atlas-root .atlas-structure-label { color: var(--atlas-muted); font-size: .8rem; }
+.atlas-root .atlas-structure-placeholder { display: flex; flex-wrap: wrap; gap: .5em; color: var(--atlas-muted); font-size: .85rem; }
+.atlas-root .atlas-shared-source-link { width: auto; justify-self: start; font-size: .8rem; min-height: 36px; }
+/* Review holds are source warnings, not an optional translation layer. Keep the
+   status/reason outside details and visible in Hebrew-only and every stage. */
+.atlas-root .atlas-group-note, .atlas-root .atlas-review-hold {
+  display: block; margin-block: 8px; padding: 8px 10px; border-inline-start: 3px solid var(--atlas-amber);
+  background: var(--atlas-note-bg); color: var(--atlas-note-ink); font-size: .85rem; overflow-wrap: anywhere;
+}
+.atlas-root .atlas-row > .atlas-review-hold { grid-column: 1 / -1; }
+.atlas-root .atlas-group-note p, .atlas-root .atlas-review-hold p { margin-block: 4px 8px; white-space: pre-wrap; }
+.atlas-root .atlas-review-details { margin-block-start: 6px; }
+.atlas-root .atlas-review-details > summary { cursor: pointer; }
+.atlas-root .atlas-review-details ul { margin-block: 6px; padding-inline-start: 20px; }
+.atlas-root .atlas-review-details li { margin-block: 4px; white-space: pre-wrap; }
