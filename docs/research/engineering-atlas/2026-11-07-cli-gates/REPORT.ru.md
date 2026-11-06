@@ -11,7 +11,7 @@ Legacy fixture: a8268fd28029d5f8941d2601f7cfdcf18cbdd833 (867), отдельны
 C:\Users\lletp\Downloads\atlas97001-progress-2026-11-06T23-09-38-419Z.json
 SHA256 a8371bec521ab165f91f5aaaf297e21706c2a65bad6a53a85ef50a12de4475c2.
 verify-progress-snapshot.cjs прошёл в новой SQLite :memory: против immutable edition 50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc.
-word_status/review_log/find_history/find_stale = 0/0/0/0. Проверка пустой копии не доказывает сохранность ожидаемой ненулевой истории. Вопрос владельцу об ожидаемом нуле открыт; release gate нельзя объявлять безусловно закрытым. Raw browser storage/SQL/credentials не читались. Прямого сравнения всей исходной базы не было; read-only гарантии опираются на штатный exporter/worker. Snapshot не включён в отчёт или git.
+word_status/review_log/find_history/find_stale = 0/0/0/0. Проверка пустой копии не доказывает сохранность ожидаемой ненулевой истории. Владелец сначала сообщил об ожидаемых записях, затем отозвал это утверждение: не знает, ошибся. Ненулевая история не подтверждена; потери данных не установлены. Технический экспорт/verify завершён, но доказательства сохранности ненулевой истории нет. Решение о достаточности такого evidence остаётся за координатором. Raw browser storage/SQL/credentials не читались. Прямого сравнения всей исходной базы не было; read-only гарантии опираются на штатный exporter/worker. Snapshot не включён в отчёт или git.
 
 ## WebKit: причина и проверка
 Минимальный static-loopback reproducer cache-reload.cjs без приложения и SW воспроизвёл потерю CacheStorage после reload в Playwright 1.60.0 / WebKit 2287: match false, повторный put не помогает, delete возвращает true. Chromium проходит.
@@ -42,3 +42,5 @@ Rollback — только код к 869 либо сохранённому 867; i
 ## Воспроизведение
 Из structural worktree запустить scripts/atlas/edition-browser-smoke.cjs с --legacy exact867, --preparation preparation869, --edition-root edition-data-v2/atlas-editions, новым --out, --engine webkit --offline-mode transport --persistent yes --playwright-module ABSOLUTE_PATH_TO_PLAYWRIGHT_1_62. PLAYWRIGHT_BROWSERS_PATH указывает на отдельный каталог с WebKit2336. Не использовать owner profile. Не задавать --skip-install-interruption или --cache-probe для acceptance.
 Локальные operational JSON и логи: Архив/atlas97001-cli-handoff-20261106. Snapshot хранится только по указанному пути Downloads.
+
+Финальный тестовый commit: bb0f3e4ea605ff54323c691b631fb852b3bc9668; после него изменён только текст о неопределённости owner history.

@@ -13,7 +13,7 @@
 ## O-162 — Atlas97001: смысл пустого owner export требует подтверждения
 - **Дата / где:** 2026-11-07, штатный экспорт 869 в Chrome владельца.
 - **Факт:** изолированный verifier прошёл, все четыре счётчика нулевые. Это не доказательство сохранности ожидаемой ненулевой истории; raw profile не исследовался.
-- **Статус:** открыто; вопрос владельцу об ожидаемом нуле. [Локальная приёмка](../research/engineering-atlas/2026-11-07-cli-gates/REPORT.ru.md).
+- **Статус:** открыто как граница evidence; владелец уточнил, что не знает, были ли записи. Потери данных не установлены. [Локальная приёмка](../research/engineering-atlas/2026-11-07-cli-gates/REPORT.ru.md).
 
 ## O-161 — Atlas progress export: metadata leaf types and committed read
 - **Date / scope:** 2026-11-06, unpublished869/870, independent review.
