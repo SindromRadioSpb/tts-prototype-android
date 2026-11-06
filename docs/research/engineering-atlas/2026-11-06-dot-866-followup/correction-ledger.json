@@ -1,0 +1,737 @@
+{
+  "base_release": "3.11.866",
+  "base_commit": "63c07067d01b04db4dba99143fd33d1e4394ee2a",
+  "applied": true,
+  "confirmed_replacements": 17,
+  "cautious_exclusions": 1,
+  "mixed_paragraph_disambiguations": 1,
+  "preserved_confirmed_area_refs": 16,
+  "links": [
+    {
+      "section": "s03-concurrent-forces",
+      "page": 16,
+      "ref": "a97001:p16:b007",
+      "train_ref": "a97001:p16:b007",
+      "cell": null,
+      "source_he": "על פי החק השלישי של ניוטון מפעילה הקרקע כוח תגובה הנצב לפני השטח. מקומו בהמשך קו הפעלה של כוח המשקל וכוונו הפוך לכוון פעלת כוח המשקל. מאחר והגוף נמצא בשווי משקל, הוא אינו שוקע בקרקע ואינו עולה לאויר, הרי שסכום הכוחות הפועלים עליו בציר האנכי y שוה לאפס, ובציר האפקי x ממילא לא פועלים כוחות.",
+      "source_ru": "Согласно изложению книги, по третьему закону Ньютона поверхность создаёт реакцию, перпендикулярную поверхности. Она лежит на продолжении линии действия веса и направлена противоположно ему. Тело находится в равновесии: не проваливается в землю и не поднимается. Поэтому сумма вертикальных сил равна нулю; горизонтальные силы отсутствуют.",
+      "terms": [
+        "a97001:term:force#mechanics",
+        "a97001:term:weight#mechanics",
+        "a97001:term:equilibrium#mechanics",
+        "a97001:term:reaction#mechanics",
+        "a97001:term:area#mechanics",
+        "a97001:term:axis#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:force#mechanics",
+        "a97001:term:weight#mechanics",
+        "a97001:term:equilibrium#mechanics",
+        "a97001:term:reaction#mechanics",
+        "a97001:term:area#mechanics",
+        "a97001:term:axis#mechanics"
+      ],
+      "after": [
+        "a97001:term:force#mechanics",
+        "a97001:term:weight#mechanics",
+        "a97001:term:equilibrium#mechanics",
+        "a97001:term:reaction#mechanics",
+        "a97001:term:area#surface",
+        "a97001:term:axis#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "ref": "a97001:p109:b003",
+      "train_ref": "a97001:p109:b003",
+      "cell": null,
+      "source_he": "בשרטוט החלק ליצור מופיעים סימני טיב העבוד המצינים את טיב המשטחים לאחר עבודם. הבליטות והשקעים על קו משטח המוצר קובעים את מדת החספוס — דרגת מרקם השטח.",
+      "source_ru": "На рабочем чертеже обозначают требуемое качество поверхностей после обработки. Выступы и впадины профиля определяют шероховатость поверхности.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:drawing#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:roughness#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:drawing#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:roughness#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:drawing#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:roughness#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "ref": "a97001:p109:b004",
+      "train_ref": "a97001:p109:b004",
+      "cell": null,
+      "source_he": "קימים מספר תקנים (ת״י 780, DIN 3141, ISO 1302) לסימון טיב העבוד בשרטוט. התקנים מבססים על גבהי החספוס של פני השטח במיקרונים (1 μm = 0.001 mm), ועל ידי חשוב מתקבל מקדם ההשואה למדידה המסמן ב־Ra.",
+      "source_ru": "В исходнике приведены стандарты обозначения шероховатости: израильский 780, DIN 3141 и ISO 1302. Высоту неровностей выражают в микрометрах: 1 мкм = 0,001 мм. Расчётный параметр Ra характеризует среднее арифметическое отклонение профиля.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:drawing#mechanics",
+        "a97001:term:roughness#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:drawing#mechanics",
+        "a97001:term:roughness#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:drawing#mechanics",
+        "a97001:term:roughness#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "ref": "a97001:p109:b006",
+      "train_ref": "a97001:p109:b006",
+      "cell": null,
+      "source_he": "בכל שרטוט יצור יש להגדיר את טיב השטח, ובלעדיו לא נתן ליצר את המוצר. התקן הישראלי לטיב פני השטח קובע כי שטח בעל טיב מסים מסמן על ידי NX; במקום X יש לשים מספר בין 1 ל־12.",
+      "source_ru": "На рабочем чертеже необходимо задать требования к качеству поверхности. В приведённой системе класс обозначают NX, где вместо X указывают число от 1 до 12.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:drawing#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:drawing#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:drawing#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "ref": "a97001:p109:b007",
+      "train_ref": "a97001:p109:b007",
+      "cell": null,
+      "source_he": "טיב שטח עבור משטח מעבד: קדקד המשלש מסמן את השטח המעבד. אין צרך בעבוד החמר.",
+      "source_ru": "Обозначение шероховатости обработанной поверхности: вершина знака указывает на соответствующую поверхность. Второй знак относится к поверхности без удаления материала.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:surface#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 130,
+      "ref": "a97001:p130:b006",
+      "train_ref": "a97001:p130:b006",
+      "cell": null,
+      "source_he": "בשיטת בדיקה זו מפילים מגבה נתון H, עשרה אינצ׳ים, פטיש בעל חד יהלום אל פני שטח המתכת הנבדקת. הפטיש נתקל במתכת וקופץ חזרה. לפי הגבה h שאליו הוא חוזר נקבעת קשיות החמר. ככל שהקפיצה חזרה גבוהה יותר, המתכת קשה יותר.",
+      "source_ru": "Боёк с алмазным наконечником падает на поверхность металла с заданной высоты H; в исходнике указано 10 дюймов. После удара он отскакивает на высоту h. Чем выше отскок при одинаковых условиях испытания, тем выше измеренная твёрдость.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:metal#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:metal#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:metal#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 130,
+      "ref": "a97001:p130:b010",
+      "train_ref": "a97001:p130:b010",
+      "cell": null,
+      "source_he": "שמושי במיחד כאשר בדיקת קשיות רגילה אינה מתאפשרת. מחיבת שטח פנים מלטש. המשטח הנבדק חיב להיות נצב לפטיש המפל.",
+      "source_ru": "Метод удобен, когда обычное измерение твёрдости затруднено. Поверхность должна быть подготовленной и гладкой, а направление падения бойка — перпендикулярным ей.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:surface#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 132,
+      "ref": "a97001:p132:b003",
+      "train_ref": "a97001:p132:b003",
+      "cell": null,
+      "source_he": "יש צרך בהכנת דגימה קטנה ושטוחה של החמר הנבדק. טיב פני שטח לקוי גורם לאי־דיוק בבדיקה, לכן יש צרך בהכנת שטח נקי וחלק.",
+      "source_ru": "Необходимо подготовить участок испытания. Грязная или неровная поверхность ухудшает точность, поэтому её очищают и выравнивают.",
+      "terms": [
+        "a97001:term:area#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 135,
+      "ref": "a97001:p135:b008",
+      "train_ref": "a97001:p135:b008",
+      "cell": null,
+      "source_he": "על החלק הנבדק להיות בעל טיב פני שטח טוב ומישורי.",
+      "source_ru": "Участок измерения должен быть плоским и хорошо подготовленным.",
+      "terms": [
+        "a97001:term:area#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 137,
+      "ref": "a97001:p137:b005",
+      "train_ref": "a97001:p137:b005",
+      "cell": null,
+      "source_he": "1. עמס ראשוני: בתחלת הבדיקה מצמד החודרן אל פני השטח הנבדק בכח התחלתי של 100 N בלבד. כח זה מפעל כדי לעבר את שכבות התחמצת והזהומים שעל פני השטח ולספק תנאי בדיקה אחידים לכל הבדיקות באותו חמר, שאינם משפעים מפני השטח. 2. עמס ראשי: לאחר הטעינה המקדמת מפעל עמס גדול נוסף. עמק החדירה (הגדול בעמק עקב העמס העיקרי) נמדד.",
+      "source_ru": "1. Прикладывают предварительную нагрузку и устанавливают начальный уровень отсчёта глубины. Для обычных шкал это около 100 Н. 2. Прикладывают дополнительную основную нагрузку, увеличивая глубину вдавливания. Одинаковые условия обеспечивают для всех испытаний одного и того же материала. Эти условия не должны зависеть от состояния поверхности. Измеряют приращение глубины проникновения, обусловленное основной нагрузкой.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:load#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:load#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:load#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 153,
+      "ref": "a97001:p153:b004",
+      "train_ref": "a97001:p153:b004",
+      "cell": null,
+      "source_he": "הקפדה על מרקם המשטח של חלקי מכונות העובדים במאמץ משתנה; טיב פני השטח הממלץ הוא N6 וחלק יותר. המנעות מפנות חדות. סגסוג עם חמרים המעלים את העמידות בהתעיפות.",
+      "source_ru": "Обеспечивать требуемое качество поверхности; источник рекомендует N6 или более гладкую обработку. Избегать острых переходов и концентраторов напряжений. Выбирать состав и состояние материала с достаточным сопротивлением усталости.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:stress#mechanics",
+        "a97001:term:fatigue#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:stress#mechanics",
+        "a97001:term:fatigue#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:surface#mechanics",
+        "a97001:term:stress#mechanics",
+        "a97001:term:fatigue#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s17-steels",
+      "page": 165,
+      "ref": "a97001:p165:b002",
+      "train_ref": "a97001:p165:b002",
+      "cell": null,
+      "source_he": "אינן פלדות במובן הקלסי של סגסגת ברזל–פחמן, מכיון שהן מכילות מעט פחמן, ולמעשה הפחמן מהוה בהן זהום. העמידות המגברת כנגד קורוזיה מתקבלת על ידי סגסוג ביסודות נוספים, במיחד כרום, ניקל ומנגן. כרום הוא יסוד המסג החשוב ביותר; יש להוסיף לפחות 12% כרום. הכרום יוצר שכבת תחמצת הדוקה ורציפה על פני השטח המונעת חדירת חמצן אל תוכו ובכך מגנה על החמר. ניקל הוא יסוד מסג חשוב נוסף. הניקל מחזק את הסגסגת. כאשר מוסיפים לברזל מעל 8% ניקל, מבנה הסריג נשמר כ־FCC, אוסטניט, גם בטמפרטורת החדר. לפלדות כאלה חזק ועמידות טובה לקורוזיה גם בטמפרטורות גבוהות.",
+      "source_ru": "Коррозионную стойкость нержавеющих сталей обеспечивают прежде всего хром и образующаяся защитная пассивная плёнка. Никель способствует стабилизации аустенита. Источник указывает ориентиры 12% Cr и 8% Ni и ошибочно утверждает, что нержавеющие стали не являются сталями, а углерод в них всегда представляет загрязнение. Применимость этих численных ориентиров зависит от полного состава. Защитная оксидная плёнка препятствует проникновению кислорода внутрь материала. Никель упрочняет сплав.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:element#mechanics",
+        "a97001:term:alloy#mechanics",
+        "a97001:term:lattice#mechanics",
+        "a97001:term:strength#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:chromium#mechanics",
+        "a97001:term:nickel#mechanics",
+        "a97001:term:manganese#mechanics",
+        "a97001:term:austenite#mechanics",
+        "a97001:term:corrosion#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:element#mechanics",
+        "a97001:term:alloy#mechanics",
+        "a97001:term:lattice#mechanics",
+        "a97001:term:strength#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:chromium#mechanics",
+        "a97001:term:nickel#mechanics",
+        "a97001:term:manganese#mechanics",
+        "a97001:term:austenite#mechanics",
+        "a97001:term:corrosion#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:element#mechanics",
+        "a97001:term:alloy#mechanics",
+        "a97001:term:lattice#mechanics",
+        "a97001:term:strength#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:chromium#mechanics",
+        "a97001:term:nickel#mechanics",
+        "a97001:term:manganese#mechanics",
+        "a97001:term:austenite#mechanics",
+        "a97001:term:corrosion#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s17-steels",
+      "page": 177,
+      "ref": "a97001:p177:b002",
+      "train_ref": "a97001:p177:b002",
+      "cell": null,
+      "source_he": "מדד לעמק שבו עדין אפשר ליצר מבנה מרטנסיטי בגוף הפלדה. מהירות הקרור שונה בעמקים שונים, ולכן לא תושג חדירה מלאה של חסום: מרטנסיט בשטח ומבנים אחרים בפנים: ביניט, טרוסטיט, סורביט ופרליט. קטר קריטי לחסום מגדר במקור כקטר המקסימלי שבו נתן לקבל מרטנסיט מלא. ככל שהקטר גדול יותר, כשר החסום גבוה יותר.",
+      "source_ru": "Прокаливаемость характеризует глубину образования мартенсита в стали. Из-за различия скоростей охлаждения у поверхности может образоваться мартенсит, а в сердцевине — бейнит, троостит, сорбит или перлит. Источник определяет критический диаметр как максимальный диаметр с полностью мартенситной структурой. Чем больше критический диаметр, тем выше прокаливаемость. Буквальное утверждение пособия: полная глубина закалки не будет достигнута; мартенсит будет у поверхности. Реальный результат зависит от прокаливаемости, размеров и режима охлаждения, поэтому категоричность этого тезиса ограничена.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:diameter#mechanics",
+        "a97001:term:steel#mechanics",
+        "a97001:term:pearlite#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:hardenability#technical"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:diameter#mechanics",
+        "a97001:term:steel#mechanics",
+        "a97001:term:pearlite#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:hardenability#technical"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:diameter#mechanics",
+        "a97001:term:steel#mechanics",
+        "a97001:term:pearlite#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:hardenability#technical"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s17-steels",
+      "page": 178,
+      "ref": "a97001:p178:b003",
+      "train_ref": "a97001:p178:b003",
+      "cell": null,
+      "source_he": "4. כמיות קטנות של ונדיום, ניוביום או טיטניום תורמות למבנה עדין ולתכונות מכניות משפרות. 5. המקור מיחס לגאומטריה מסבכת הגדלת כשר חסום. 6. בפלדות פחמניות ההשפעה העקרית היא של פחמן ומנגן. עם הגדלת אחוזי הפחמן ומנגן כשר חסום גדל. 7. בפלדות מסגסגות הכשר תלוי בסוג וברכוז יסודות הסגוג. כשר חסום גדל עם אחוז יסודות המסגים עולה. 8. התכונות המכניות תלויות בקצב הקרור; קשה לקבל אחידות כי השטח מתקרר מהר מן הפנים. 9. כשר חסום טוב מאפשר הקשיה ויצירת מרטנסיט גם בתוך נפח הדגם.",
+      "source_ru": "4. Небольшие добавки ванадия, ниобия или титана способствуют измельчению структуры и улучшению механических свойств. 5. Источник связывает сложную геометрию с увеличением прокаливаемости. 6. Для углеродистых сталей особенно значимы углерод и марганец. 7. В легированных сталях результат зависит от вида и концентрации добавок. 8. Механические свойства связаны со скоростью охлаждения; поверхность охлаждается быстрее сердцевины, поэтому свойства по сечению могут различаться. 9. Хорошая прокаливаемость означает возможность получить закалённую мартенситную структуру не только снаружи, но и в объёме. В пункте 6 источник прямо указывает рост прокаливаемости с увеличением содержания углерода и марганца. В пункте 7 источник повторно утверждает рост прокаливаемости с повышением доли легирующих элементов.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:manganese#mechanics",
+        "a97001:term:vanadium#mechanics",
+        "a97001:term:quenching#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:manganese#mechanics",
+        "a97001:term:vanadium#mechanics",
+        "a97001:term:quenching#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:manganese#mechanics",
+        "a97001:term:vanadium#mechanics",
+        "a97001:term:quenching#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s17-steels",
+      "page": 184,
+      "ref": "a97001:p184:b004",
+      "train_ref": "a97001:p184:b004",
+      "cell": null,
+      "source_he": "חסום חיצוני בטפול תרמי בלבד דומה לחסום רגיל, אבל מגבל לשכבות החיצוניות. מחממים את המשטח בלהבה למבנה אוסטניטי. בקרור מתרחשת תגובה מרטנסיטית והשטח מתקשה. הקרור נעשה בהתזת מים רציפה. עמק החסום כ־3 מילימטרים; מתאים לפלדות פחמניות פשוטות בתכולה של 0.4–0.7% פחמן.",
+      "source_ru": "Процесс подобен обычной закалке, но нагрев ограничен наружным слоем. Пламя нагревает поверхность до аустенитного состояния, затем непрерывное распыление воды обеспечивает охлаждение и мартенситное упрочнение. В примере глубина закалки около 3 мм; рассматриваются простые углеродистые стали с 0,4–0,7% C.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:martensitic-transformation#technical"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:martensitic-transformation#technical"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:surface#mechanics",
+        "a97001:term:carbon#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:martensitic-transformation#technical"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s17-steels",
+      "page": 187,
+      "ref": "a97001:p187:b003",
+      "train_ref": "a97001:p187:b003",
+      "cell": null,
+      "source_he": "תהליך של החדרת חנקן לשכבה החיצונית של פלדה. על פני השטח נוצרת שכבה המתארת במקור כקרבוניטריד Fe₃(CN), בעבי 0.2–0.5 מילימטרים, עם עמידות גבוהה לבלאי ולשתוך.",
+      "source_ru": "Азотирование насыщает азотом наружный слой стали. Источник описывает поверхностный слой как карбонитрид Fe₃(CN) толщиной 0,2–0,5 мм с высокой стойкостью к износу и коррозии.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:steel#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:steel#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:steel#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s17-steels",
+      "page": 188,
+      "ref": "a97001:p188:b003",
+      "train_ref": "a97001:p188:b003",
+      "cell": null,
+      "source_he": "הקפדה על מרקם המשטח של חלקי מכונות במאמץ משתנה; טיב פני השטח הממלץ במקור הוא N6 או חלק יותר. המנעות מפנות חדות. סגוג בחמרים המעלים את העמידות בהתעיפות.",
+      "source_ru": "Контроль качества поверхности деталей при переменных нагрузках; источник рекомендует N6 или более гладкую поверхность. Исключение острых переходов и углов. Выбор легирования, улучшающего усталостную стойкость.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:stress#mechanics",
+        "a97001:term:fatigue#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "confirmed_surface_sense_mismatch",
+      "decision": "replace_surface_sense",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:surface#mechanics",
+        "a97001:term:stress#mechanics",
+        "a97001:term:fatigue#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#surface",
+        "a97001:term:surface#mechanics",
+        "a97001:term:stress#mechanics",
+        "a97001:term:fatigue#mechanics"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "page": 137,
+      "ref": "a97001:p137:b009",
+      "train_ref": "a97001:p137:b009",
+      "cell": null,
+      "source_he": "בדיקה מהירה; ערך הקשיות מתקבל באפן ישיר. מתאימה לחמרים רכים וקשים כאחד. משאירה עקבה קטנה בחמר הנבדק. אין צרך בשטח בדיקה מישורי וחלק. נתן לבדק שטחים עליונים דקים של מתכות שעברו הקשיה חיצונית.",
+      "source_ru": "Преимущества: быстрый прямой отсчёт, различные шкалы для мягких и твёрдых материалов, сравнительно небольшой отпечаток. Источник также заявляет отсутствие необходимости в гладкой плоской поверхности и возможность проверки тонких упрочнённых слоёв.",
+      "terms": [
+        "a97001:term:area#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "term_ref": "a97001:term:area#mechanics",
+      "semantic_status": "ambiguous_surface_or_test_area_review",
+      "decision": "cautious_unlink_not_confirmed_error",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:hardness#mechanics"
+      ],
+      "after": [
+        "a97001:term:hardness#mechanics"
+      ],
+      "why": "T866-U01: p137:b009 is unresolved surface/test-site wording. Exclude uncertain area association from training without asserting a replacement or changing source text."
+    },
+    {
+      "section": "s17-steels",
+      "page": 180,
+      "ref": "a97001:p180:b002",
+      "source_he": "שני גורמים עקריים משפיעים על דרגת ההקשיה: 1. חמרת החסום — קובעת כמה מהר החם מוסר מפני השטח במהלך החסום. 2. היחס בין שטח הפנים לנפח הדגם — משפיע על מהירות התקררות המרכז.",
+      "source_ru": "Два основных фактора результата закалки: 1. Интенсивность закалочной среды — скорость отвода тепла с поверхности. 2. Отношение площади поверхности образца к его объёму, влияющее на охлаждение сердцевины.",
+      "decision": "disambiguate_mixed_surface_and_area",
+      "before": [
+        "a97001:term:area#mechanics",
+        "a97001:term:quenching#mechanics"
+      ],
+      "after": [
+        "a97001:term:area#mechanics",
+        "a97001:term:quenching#mechanics",
+        "a97001:term:surface#mechanics"
+      ],
+      "why": "T866-M01: mixed paragraph retains quantitative area/volume reference; reviewed phrase alias פני שטח binds the earlier heat-removal surface separately."
+    }
+  ],
+  "card_changes": [
+    {
+      "section": "s00-front",
+      "term": "a97001:term:surface",
+      "change": "reviewed_surface_phrase_alias_and_learning_note"
+    },
+    {
+      "section": "s01-units",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s02-statics-basics",
+      "term": "a97001:term:surface",
+      "change": "reviewed_surface_phrase_alias_and_learning_note"
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s07-centroid",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s08-friction",
+      "term": "a97001:term:surface",
+      "change": "reviewed_surface_phrase_alias_and_learning_note"
+    },
+    {
+      "section": "s12-sections",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s13-dimensions",
+      "term": "a97001:term:chamfer",
+      "status": "attested_variant_correction_not_normative",
+      "changes": [
+        {
+          "field": "niqqud",
+          "old": "פָּזָה",
+          "old_present": true,
+          "new": "פָזָה"
+        },
+        {
+          "field": "translit",
+          "old": "Paza",
+          "old_present": true,
+          "new": "Faza"
+        },
+        {
+          "field": "translit_ru",
+          "old": "паза",
+          "old_present": true,
+          "new": "фаза"
+        },
+        {
+          "field": "pronunciation_basis",
+          "old": null,
+          "old_present": false,
+          "new": "Pointed chamfer/beveled-edge usage פָאזָה in original construction glossary, https://www.atmag.co.il/המילון-השלם-למשפץ/ (2007-01-02). Applied to source short spelling פזה; not inferred from the unrelated phase entry."
+        }
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "term": "a97001:term:surface",
+      "change": "reviewed_surface_phrase_alias_and_learning_note"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "term": "a97001:term:circular-runout",
+      "status": "confirmed_pedagogical_fix",
+      "changes": [
+        {
+          "field": "study_note",
+          "old": null,
+          "old_present": false,
+          "new": "חריגות — общее слово «отклонения». В этой строке таблицы (с. 113) значение «круговое биение» определяется изображённым знаком, а не самим словом. Не учите חריגות как универсальный перевод «круговое биение». Круговое и полное биение — разные виды допуска."
+        }
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "term": "a97001:term:electron",
+      "status": "confirmed_correction",
+      "changes": [
+        {
+          "field": "niqqud",
+          "old": "אֶלֶקְטְרוֹן",
+          "old_present": true,
+          "new": "אֵלֶקְטְרוֹן"
+        },
+        {
+          "field": "translit",
+          "old": "Elekteron",
+          "old_present": true,
+          "new": "Elektron"
+        },
+        {
+          "field": "translit_ru",
+          "old": "элэктэрон",
+          "old_present": true,
+          "new": "элэктрон"
+        },
+        {
+          "field": "pronunciation_basis",
+          "old": null,
+          "old_present": false,
+          "new": "Academy current pointed entry אֵלֶקְטְרוֹן: https://terms.hebrew-academy.org.il/munnah/2297_1; modern cluster reading Elektron, not Elekteron."
+        }
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "term": "a97001:term:surface",
+      "change": "reviewed_surface_phrase_alias_and_learning_note"
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:area",
+      "change": "add_surface_sense"
+    },
+    {
+      "section": "s17-steels",
+      "term": "a97001:term:surface",
+      "change": "reviewed_surface_phrase_alias_and_learning_note"
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "term": "a97001:term:powder-metallurgy",
+      "status": "unresolved_exact_construct_pronunciation",
+      "changes": [
+        {
+          "field": "study_note",
+          "old": null,
+          "old_present": false,
+          "new": "מטלורגית אבקות — порошковая металлургия. Точное произношение формы сопряжённого сочетания в этой карточке пока не подтверждено первичным фонетическим источником; транслитерацию не следует считать нормативной."
+        }
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "term": "a97001:term:alclad",
+      "status": "unresolved_hebrew_pronunciation",
+      "changes": [
+        {
+          "field": "study_note",
+          "old": null,
+          "old_present": false,
+          "new": "אלקלד — название Alclad, плакированного алюминиевого материала. Произношение этого названия на иврите пока не подтверждено первичным фонетическим источником; транслитерация приведена предварительно."
+        }
+      ]
+    }
+  ],
+  "ai_layer_created": false
+}

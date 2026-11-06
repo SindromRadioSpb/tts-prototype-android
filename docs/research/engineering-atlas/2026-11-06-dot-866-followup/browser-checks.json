@@ -1,0 +1,530 @@
+[
+  {
+    "width": 390,
+    "mode": "candidate_interception",
+    "checks": [
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s03-concurrent-forces",
+        "p": 16,
+        "id": "a97001:p16:b007",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "offset": 12,
+        "meaning": "поверхность",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s14-industrial-symbols",
+        "p": 109,
+        "id": "a97001:p109:b006",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "offset": 7,
+        "meaning": "поверхность",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s17-steels",
+        "p": 177,
+        "id": "a97001:p177:b002",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "offset": 23,
+        "meaning": "поверхность",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s17-steels",
+        "p": 180,
+        "id": "a97001:p180:b002",
+        "tid": "a97001:term:surface",
+        "sense": "mechanics",
+        "offset": 14,
+        "meaning": "поверхность",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:surface",
+        "sense": "mechanics",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:surface",
+        "sense": "mechanics",
+        "note": true
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s17-steels",
+        "p": 180,
+        "id": "a97001:p180:b002",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "offset": 20,
+        "meaning": "площадь",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s07-centroid",
+        "p": 50,
+        "id": "a97001:p50:b003",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "offset": 3,
+        "meaning": "площадь",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s14-industrial-symbols",
+        "p": 113,
+        "id": "a97001:p113:t-geometric-symbols:cell:9:1",
+        "tid": "a97001:term:circular-runout",
+        "sense": "technical",
+        "offset": 0,
+        "meaning": "круговое биение",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:circular-runout",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:circular-runout",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s15-materials-basics",
+        "p": 115,
+        "id": "a97001:p115:b005",
+        "tid": "a97001:term:electron",
+        "sense": "technical",
+        "offset": 0,
+        "meaning": "электрон",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:electron",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:electron",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s13-dimensions",
+        "p": 107,
+        "id": "a97001:p107:b002",
+        "tid": "a97001:term:chamfer",
+        "sense": "technical",
+        "offset": 3,
+        "meaning": "фаска",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:chamfer",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:chamfer",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s19-aluminium",
+        "p": 194,
+        "id": "a97001:p194:b002",
+        "tid": "a97001:term:alclad",
+        "sense": "technical",
+        "offset": 36,
+        "meaning": "Alclad; плакированный алюминиевый сплав",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:alclad",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:alclad",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s18-powder-metallurgy",
+        "p": 192,
+        "id": "a97001:p192:b001",
+        "tid": "a97001:term:powder-metallurgy",
+        "sense": "technical",
+        "offset": 0,
+        "meaning": "порошковая металлургия",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:powder-metallurgy",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:powder-metallurgy",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "actual_section_host_training_open_reveal_close"
+      }
+    ],
+    "errors": [],
+    "status": "passed"
+  },
+  {
+    "width": 1440,
+    "mode": "candidate_interception",
+    "checks": [
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s03-concurrent-forces",
+        "p": 16,
+        "id": "a97001:p16:b007",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "offset": 12,
+        "meaning": "поверхность",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s14-industrial-symbols",
+        "p": 109,
+        "id": "a97001:p109:b006",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "offset": 7,
+        "meaning": "поверхность",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s17-steels",
+        "p": 177,
+        "id": "a97001:p177:b002",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "offset": 23,
+        "meaning": "поверхность",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "surface",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s17-steels",
+        "p": 180,
+        "id": "a97001:p180:b002",
+        "tid": "a97001:term:surface",
+        "sense": "mechanics",
+        "offset": 14,
+        "meaning": "поверхность",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:surface",
+        "sense": "mechanics",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:surface",
+        "sense": "mechanics",
+        "note": true
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s17-steels",
+        "p": 180,
+        "id": "a97001:p180:b002",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "offset": 20,
+        "meaning": "площадь",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s07-centroid",
+        "p": 50,
+        "id": "a97001:p50:b003",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "offset": 3,
+        "meaning": "площадь",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:area",
+        "sense": "mechanics",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s14-industrial-symbols",
+        "p": 113,
+        "id": "a97001:p113:t-geometric-symbols:cell:9:1",
+        "tid": "a97001:term:circular-runout",
+        "sense": "technical",
+        "offset": 0,
+        "meaning": "круговое биение",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:circular-runout",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:circular-runout",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s15-materials-basics",
+        "p": 115,
+        "id": "a97001:p115:b005",
+        "tid": "a97001:term:electron",
+        "sense": "technical",
+        "offset": 0,
+        "meaning": "электрон",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:electron",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:electron",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s13-dimensions",
+        "p": 107,
+        "id": "a97001:p107:b002",
+        "tid": "a97001:term:chamfer",
+        "sense": "technical",
+        "offset": 3,
+        "meaning": "фаска",
+        "note": false
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:chamfer",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:chamfer",
+        "sense": "technical",
+        "note": false
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s19-aluminium",
+        "p": 194,
+        "id": "a97001:p194:b002",
+        "tid": "a97001:term:alclad",
+        "sense": "technical",
+        "offset": 36,
+        "meaning": "Alclad; плакированный алюминиевый сплав",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:alclad",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:alclad",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "actual_host_card_tap",
+        "sid": "s18-powder-metallurgy",
+        "p": 192,
+        "id": "a97001:p192:b001",
+        "tid": "a97001:term:powder-metallurgy",
+        "sense": "technical",
+        "offset": 0,
+        "meaning": "порошковая металлургия",
+        "note": true
+      },
+      {
+        "kind": "section_real_queue_browser_reveal",
+        "tid": "a97001:term:powder-metallurgy",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "global_real_queue_browser_reveal",
+        "tid": "a97001:term:powder-metallurgy",
+        "sense": "technical",
+        "note": true
+      },
+      {
+        "kind": "actual_section_host_training_open_reveal_close"
+      }
+    ],
+    "errors": [],
+    "status": "passed"
+  }
+]

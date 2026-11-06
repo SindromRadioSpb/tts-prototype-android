@@ -1463,6 +1463,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/word-gloss.js?v=819",
   "/js/word-gloss-ai.js?v=847",
   "/js/atlas-context-contract.js?v=2",
+  "/js/atlas-words.js?v=5",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",

@@ -1,0 +1,144 @@
+{
+  "confirmed": [
+    {
+      "section": "s03-concurrent-forces",
+      "id": "a97001:p16:b007"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "id": "a97001:p109:b003"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "id": "a97001:p109:b004"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "id": "a97001:p109:b006"
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "id": "a97001:p109:b007"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p130:b006"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p130:b010"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p132:b003"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p135:b008"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p137:b005"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p153:b004"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p165:b002"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p177:b002"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p178:b003"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p184:b004"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p187:b003"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p188:b003"
+    }
+  ],
+  "preserve": [
+    {
+      "section": "s01-units",
+      "id": "a97001:p4:t-derived-units:cell:2:0"
+    },
+    {
+      "section": "s07-centroid",
+      "id": "a97001:p50:b003"
+    },
+    {
+      "section": "s07-centroid",
+      "id": "a97001:p50:b005"
+    },
+    {
+      "section": "s07-centroid",
+      "id": "a97001:p50:b006"
+    },
+    {
+      "section": "s12-sections",
+      "id": "a97001:p94:b003"
+    },
+    {
+      "section": "s12-sections",
+      "id": "a97001:p97:b002"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p126:b006"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p127:b007"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p128:b002"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p128:b003"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p128:b004"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p129:b002"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p132:b006"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p136:b001"
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p137:b003"
+    },
+    {
+      "section": "s17-steels",
+      "id": "a97001:p180:b002"
+    }
+  ],
+  "uncertain": [
+    {
+      "section": "s16-mechanical-properties",
+      "id": "a97001:p137:b009"
+    }
+  ]
+}

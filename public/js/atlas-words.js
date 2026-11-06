@@ -241,6 +241,7 @@
     var others = senses.filter(function (s) { return s && s !== sense && s.ru; }).map(function (s) { return s.ru; });
     var lines = [sense.ru || ""];
     if (others.length) lines.push((labels.other || "") + (labels.other ? ": " : "") + others.join("; "));
+    if (typeof term.study_note === "string" && term.study_note.trim()) lines.push(term.study_note.trim());
     return { kicker: (term.personal ? labels.mine : labels.kicker) || labels.kicker || "", personal: !!term.personal, title: term.niqqud || term.lemma_he || "",
       subtitle: (labels.script === "cyr" ? term.translit_ru : term.translit) || "", lines: lines.filter(Boolean) };
   }

@@ -1,0 +1,26 @@
+[
+  {
+    "path": "scripts/atlas/corrections/a97001.json",
+    "before_sha256": "402cb7e9bb736bd30dc89253bb552a1d042401c7fa0e7709003d990c873989ea",
+    "after_sha256": "a14be40506a160f1376d1792d2aca315fe79ba599b646be70381b0c6d4f0b2c2",
+    "change": "modify"
+  },
+  {
+    "path": "public/js/atlas-words.js",
+    "before_sha256": "865acf1986142ef8d16466fe5f0c7b7b438581ce00055f0f76abc90447ac62c7",
+    "after_sha256": "ac2a17e8c5e0962e89b5cde6a5c99eb31cef920342f0507a4f0f14415c8b692e",
+    "change": "modify"
+  },
+  {
+    "path": "tests/atlas97001SurfaceSenseFollowup.test.js",
+    "before_sha256": null,
+    "after_sha256": "8ad7143127fecc36810db08ea9350d73606b0704f68e0b7feeb0870f30b006dc",
+    "change": "add"
+  },
+  {
+    "path": "tests/fixtures/atlas97001-surface-sense.json",
+    "before_sha256": null,
+    "after_sha256": "ca17543e4eb599d86b915acccec3afe31013b85bfc4d7c5399a650f3945d8497",
+    "change": "add"
+  }
+]

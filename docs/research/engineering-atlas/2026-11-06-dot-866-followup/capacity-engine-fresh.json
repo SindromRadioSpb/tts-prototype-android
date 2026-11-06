@@ -1,0 +1,544 @@
+{
+  "utc": "2026-11-06T14:28:48.621834+00:00",
+  "free_bytes": 3125129216,
+  "gate_bytes": 6442450944,
+  "queue": {
+    "failed": 8,
+    "cancelled-by-user": 23,
+    "finished": 440
+  },
+  "no_active_queued_builds": true,
+  "containers": [
+    {
+      "Id": "b4399c31d0ecbb998294a8ff2fc001c64dd4795472ee35f34baf6f54d2de1ebf",
+      "Image": "glmw0wjd6nm70fntxgjy6fkp:63c07067d01b04db4dba99143fd33d1e4394ee2a",
+      "ImageID": "sha256:4cedc92ff0be6d3c6c42cddf553e4d1c3face7562fa1e151b20211284b8bf868",
+      "State": "running",
+      "Status": "Up About an hour",
+      "Names": [
+        "/glmw0wjd6nm70fntxgjy6fkp-20261106T130612"
+      ]
+    },
+    {
+      "Id": "a03a9887029f2988d0bb68698fcf6e5c09893a2bda9a0b3f1ffd8c409062146f",
+      "Image": "ghcr.io/coollabsio/coolify:4.6.0",
+      "ImageID": "sha256:8821fbb5d1eb083a7378d9c0f6c85eae56ba0171b69947ebcb415eb8133706d7",
+      "State": "running",
+      "Status": "Up 2 days (healthy)",
+      "Names": [
+        "/coolify"
+      ]
+    },
+    {
+      "Id": "59c70981484880cdfb1f7db37fa0c9c44390cc5be80ea859584a58a12307f96d",
+      "Image": "redis:7-alpine",
+      "ImageID": "sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f",
+      "State": "running",
+      "Status": "Up 2 days (healthy)",
+      "Names": [
+        "/coolify-redis"
+      ]
+    },
+    {
+      "Id": "eaebac39d9ea33d76c4ee5c8ca63400a76c7ef6b2e2e1f28e5d258bb18dff009",
+      "Image": "postgres:15-alpine",
+      "ImageID": "sha256:54e0dd8e8cddcdbb9156c2486eed5a43eccb7214d7c6828097d41ce049fb3984",
+      "State": "running",
+      "Status": "Up 2 days (healthy)",
+      "Names": [
+        "/coolify-db"
+      ]
+    },
+    {
+      "Id": "b02b34249bfdd81c2c77b6114c4404197987a5360947053356e1a4bd2d5f9d6f",
+      "Image": "ghcr.io/coollabsio/sentinel:1.1.3",
+      "ImageID": "sha256:81f8ab984ea5c5fdbd696ea2f47f08c9e31ec41db7493a657b53a52256e26a82",
+      "State": "running",
+      "Status": "Up 4 days (healthy)",
+      "Names": [
+        "/coolify-sentinel"
+      ]
+    },
+    {
+      "Id": "9c67dbe56346803c4388cb36334d521db92d37ae23d70fd37603210dabb92a19",
+      "Image": "ghcr.io/umami-software/umami:3.0.3",
+      "ImageID": "sha256:28f263fe06f79ebffa5a6a6e9bd33b7a278e9342a88e0bdac812416c9f9e4361",
+      "State": "running",
+      "Status": "Up 4 days (healthy)",
+      "Names": [
+        "/umami-p8bcejm5xx66olsks13s5dgs"
+      ]
+    },
+    {
+      "Id": "f00646d445ef6be7c64adb8aa1fb0bb7b1a36a8e1e34e3e1907968c336a463aa",
+      "Image": "postgres:16-alpine",
+      "ImageID": "sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea",
+      "State": "running",
+      "Status": "Up 4 days (healthy)",
+      "Names": [
+        "/postgresql-p8bcejm5xx66olsks13s5dgs"
+      ]
+    },
+    {
+      "Id": "26206f2b069ff7a5dcb6be3ab5561ba00d6d8b1f24985676f35b842a188aaa60",
+      "Image": "linguistpro-media-acquisition:fd496fb4",
+      "ImageID": "sha256:98acbcdfdadee6b3edb66e9187272e5d5accd6b717476fa3a01ab00e825d48e8",
+      "State": "running",
+      "Status": "Up 4 days (healthy)",
+      "Names": [
+        "/linguistpro-media-acquisition"
+      ]
+    },
+    {
+      "Id": "39a1d5bb8e7aa9eeb051c7522d0248fffddd587d21e3547a2e4a0860309923be",
+      "Image": "traefik:v3.6",
+      "ImageID": "sha256:802adc80a7bb20a6766c9385c2ad547f0de98564cd20d31d0b6d8f726f906f66",
+      "State": "running",
+      "Status": "Up 4 days (healthy)",
+      "Names": [
+        "/coolify-proxy"
+      ]
+    }
+  ],
+  "volumes": [
+    "coolify-db",
+    "coolify-redis",
+    "glmw0wjd6nm70fntxgjy6fkp-linguistpro-data",
+    "p8bcejm5xx66olsks13s5dgs_postgresql-data"
+  ],
+  "images": [
+    {
+      "Id": "sha256:4cedc92ff0be6d3c6c42cddf553e4d1c3face7562fa1e151b20211284b8bf868",
+      "RepoTags": [
+        "glmw0wjd6nm70fntxgjy6fkp:63c07067d01b04db4dba99143fd33d1e4394ee2a"
+      ],
+      "RepoDigests": [
+        "glmw0wjd6nm70fntxgjy6fkp@sha256:4cedc92ff0be6d3c6c42cddf553e4d1c3face7562fa1e151b20211284b8bf868"
+      ],
+      "Created": 1793970490,
+      "Size": 1831883254,
+      "SharedSize": 239052022,
+      "Containers": 1,
+      "container_references": [
+        "b4399c31d0ecbb998294a8ff2fc001c64dd4795472ee35f34baf6f54d2de1ebf"
+      ]
+    },
+    {
+      "Id": "sha256:a4c5bdb4d212dc0aef21666ac197db78acc81ddbff5169a9b829f71085c2d717",
+      "RepoTags": [
+        "glmw0wjd6nm70fntxgjy6fkp:82328f3327a0fd80be539b8efd03969170d96ad6"
+      ],
+      "RepoDigests": [
+        "glmw0wjd6nm70fntxgjy6fkp@sha256:a4c5bdb4d212dc0aef21666ac197db78acc81ddbff5169a9b829f71085c2d717"
+      ],
+      "Created": 1793963209,
+      "Size": 1831569619,
+      "SharedSize": 239052022,
+      "Containers": 0,
+      "container_references": []
+    },
+    {
+      "Id": "sha256:184d42c6bc05028283406869bd318f4117ca9f5e5d30e5f8458d3d9757daa14b",
+      "RepoTags": [
+        "glmw0wjd6nm70fntxgjy6fkp:753f5bef652a52057df43cccc919904fe0acee25"
+      ],
+      "RepoDigests": [
+        "glmw0wjd6nm70fntxgjy6fkp@sha256:184d42c6bc05028283406869bd318f4117ca9f5e5d30e5f8458d3d9757daa14b"
+      ],
+      "Created": 1793955904,
+      "Size": 1830719585,
+      "SharedSize": 239052022,
+      "Containers": 0,
+      "container_references": []
+    },
+    {
+      "Id": "sha256:8821fbb5d1eb083a7378d9c0f6c85eae56ba0171b69947ebcb415eb8133706d7",
+      "RepoTags": [
+        "ghcr.io/coollabsio/coolify:4.6.0"
+      ],
+      "RepoDigests": [
+        "ghcr.io/coollabsio/coolify@sha256:8821fbb5d1eb083a7378d9c0f6c85eae56ba0171b69947ebcb415eb8133706d7"
+      ],
+      "Created": 1793634953,
+      "Size": 931591189,
+      "SharedSize": 9084930,
+      "Containers": 1,
+      "container_references": [
+        "a03a9887029f2988d0bb68698fcf6e5c09893a2bda9a0b3f1ffd8c409062146f"
+      ]
+    },
+    {
+      "Id": "sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f",
+      "RepoTags": [
+        "redis:7-alpine"
+      ],
+      "RepoDigests": [
+        "redis@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f"
+      ],
+      "Created": 1793032819,
+      "Size": 57786052,
+      "SharedSize": 32,
+      "Containers": 1,
+      "container_references": [
+        "59c70981484880cdfb1f7db37fa0c9c44390cc5be80ea859584a58a12307f96d"
+      ]
+    },
+    {
+      "Id": "sha256:b0cf60e6d6ecc73696811fe105d7b187b0fa387bd8ec62c647177420daf42bad",
+      "RepoTags": [
+        "coollabsio/coolify-helper:1.0.19"
+      ],
+      "RepoDigests": [
+        "coollabsio/coolify-helper@sha256:b0cf60e6d6ecc73696811fe105d7b187b0fa387bd8ec62c647177420daf42bad"
+      ],
+      "Created": 1792877954,
+      "Size": 702128765,
+      "SharedSize": 12938069,
+      "Containers": 0,
+      "container_references": []
+    },
+    {
+      "Id": "sha256:81f8ab984ea5c5fdbd696ea2f47f08c9e31ec41db7493a657b53a52256e26a82",
+      "RepoTags": [
+        "ghcr.io/coollabsio/sentinel:1.1.3"
+      ],
+      "RepoDigests": [
+        "ghcr.io/coollabsio/sentinel@sha256:81f8ab984ea5c5fdbd696ea2f47f08c9e31ec41db7493a657b53a52256e26a82"
+      ],
+      "Created": 1792877424,
+      "Size": 50375916,
+      "SharedSize": 12938039,
+      "Containers": 1,
+      "container_references": [
+        "b02b34249bfdd81c2c77b6114c4404197987a5360947053356e1a4bd2d5f9d6f"
+      ]
+    },
+    {
+      "Id": "sha256:54e0dd8e8cddcdbb9156c2486eed5a43eccb7214d7c6828097d41ce049fb3984",
+      "RepoTags": [
+        "postgres:15-alpine"
+      ],
+      "RepoDigests": [
+        "postgres@sha256:54e0dd8e8cddcdbb9156c2486eed5a43eccb7214d7c6828097d41ce049fb3984"
+      ],
+      "Created": 1792623447,
+      "Size": 416711165,
+      "SharedSize": 12938037,
+      "Containers": 1,
+      "container_references": [
+        "eaebac39d9ea33d76c4ee5c8ca63400a76c7ef6b2e2e1f28e5d258bb18dff009"
+      ]
+    },
+    {
+      "Id": "sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea",
+      "RepoTags": [
+        "postgres:16-alpine"
+      ],
+      "RepoDigests": [
+        "postgres@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+      ],
+      "Created": 1789680684,
+      "Size": 419719540,
+      "SharedSize": 0,
+      "Containers": 1,
+      "container_references": [
+        "f00646d445ef6be7c64adb8aa1fb0bb7b1a36a8e1e34e3e1907968c336a463aa"
+      ]
+    },
+    {
+      "Id": "sha256:98acbcdfdadee6b3edb66e9187272e5d5accd6b717476fa3a01ab00e825d48e8",
+      "RepoTags": [
+        "linguistpro-media-acquisition:fd496fb4"
+      ],
+      "RepoDigests": [
+        "linguistpro-media-acquisition@sha256:98acbcdfdadee6b3edb66e9187272e5d5accd6b717476fa3a01ab00e825d48e8"
+      ],
+      "Created": 1786406981,
+      "Size": 507707673,
+      "SharedSize": 0,
+      "Containers": 1,
+      "container_references": [
+        "26206f2b069ff7a5dcb6be3ab5561ba00d6d8b1f24985676f35b842a188aaa60"
+      ]
+    },
+    {
+      "Id": "sha256:802adc80a7bb20a6766c9385c2ad547f0de98564cd20d31d0b6d8f726f906f66",
+      "RepoTags": [
+        "traefik:v3.6"
+      ],
+      "RepoDigests": [
+        "traefik@sha256:802adc80a7bb20a6766c9385c2ad547f0de98564cd20d31d0b6d8f726f906f66"
+      ],
+      "Created": 1778535508,
+      "Size": 244965323,
+      "SharedSize": 0,
+      "Containers": 1,
+      "container_references": [
+        "39a1d5bb8e7aa9eeb051c7522d0248fffddd587d21e3547a2e4a0860309923be"
+      ]
+    },
+    {
+      "Id": "sha256:28f263fe06f79ebffa5a6a6e9bd33b7a278e9342a88e0bdac812416c9f9e4361",
+      "RepoTags": [
+        "ghcr.io/umami-software/umami:3.0.3"
+      ],
+      "RepoDigests": [
+        "ghcr.io/umami-software/umami@sha256:28f263fe06f79ebffa5a6a6e9bd33b7a278e9342a88e0bdac812416c9f9e4361"
+      ],
+      "Created": 1765513298,
+      "Size": 1114264104,
+      "SharedSize": 0,
+      "Containers": 1,
+      "container_references": [
+        "9c67dbe56346803c4388cb36334d521db92d37ae23d70fd37603210dabb92a19"
+      ]
+    }
+  ],
+  "cache": [
+    {
+      "ID": "iswgcbhfm2xzuwn797ujisrzc",
+      "Type": "regular",
+      "Size": 8285,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:05:53.92924002Z",
+      "LastUsedAt": "2026-11-06T11:08:25.035260072Z",
+      "Parents": null,
+      "Description": "[deps 2/5] WORKDIR /app"
+    },
+    {
+      "ID": "j41oia6znlqzvsjrkdvpuxbhv",
+      "Type": "regular",
+      "Size": 443,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:05:53.854102361Z",
+      "LastUsedAt": "2026-11-06T13:09:46.485100034Z",
+      "Parents": null,
+      "Description": ""
+    },
+    {
+      "ID": "96qmgunkqwm3bs8vj6gtqs2zu",
+      "Type": "regular",
+      "Size": 345443,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:06:49.392897021Z",
+      "LastUsedAt": "2026-11-06T11:08:25.021471829Z",
+      "Parents": null,
+      "Description": "mount / from exec /bin/sh -c node scripts/course/build-course-data.cjs content/course/ulpan-cafe-b-pilot public/data/course"
+    },
+    {
+      "ID": "flwse6z50dk6vuexkefnfw8w3",
+      "Type": "regular",
+      "Size": 214475133,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:06:38.800638549Z",
+      "LastUsedAt": "2026-11-06T11:08:25.018266551Z",
+      "Parents": null,
+      "Description": "[stage-1 4/6] COPY --from=deps /app/node_modules ./node_modules"
+    },
+    {
+      "ID": "buzmllkf7ynad9wxmf0s0020r",
+      "Type": "regular",
+      "Size": 3853673,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:05:53.738062636Z",
+      "LastUsedAt": "2026-11-06T13:07:13.302258128Z",
+      "Parents": null,
+      "Description": ""
+    },
+    {
+      "ID": "q9yontp7uqbz4oe65aj26ow25",
+      "Type": "regular",
+      "Size": 4501228,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T13:07:16.216600901Z",
+      "LastUsedAt": "2026-11-06T13:09:46.469486761Z",
+      "Parents": null,
+      "Description": "mount / from exec /bin/sh -c apk add --no-cache sqlite"
+    },
+    {
+      "ID": "siotpodn2w0zk06eg2xhzjya2",
+      "Type": "regular",
+      "Size": 345447,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T13:08:10.574472385Z",
+      "LastUsedAt": "2026-11-06T13:09:46.45487668Z",
+      "Parents": null,
+      "Description": "mount / from exec /bin/sh -c node scripts/course/build-course-data.cjs content/course/ulpan-cafe-b-pilot public/data/course"
+    },
+    {
+      "ID": "xhbzvjgdjjhz1h9bhy1x5gk7z",
+      "Type": "regular",
+      "Size": 325251072,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:23.11313526Z",
+      "LastUsedAt": "2026-11-06T13:09:46.471792499Z",
+      "Parents": null,
+      "Description": "mount / from exec /bin/sh -c apk add --no-cache python3 py3-setuptools make g++ gcc"
+    },
+    {
+      "ID": "ncuzxwirm6lcst357k3sj8t3p",
+      "Type": "frontend",
+      "Size": 43113664,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:10.852186317Z",
+      "LastUsedAt": "2026-11-06T13:09:46.462686748Z",
+      "Parents": null,
+      "Description": "pulled from docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e"
+    },
+    {
+      "ID": "mina2wco3sak5asmjxioljwhy",
+      "Type": "regular",
+      "Size": 56222326,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:05:53.753454829Z",
+      "LastUsedAt": "2026-11-06T13:07:13.31529906Z",
+      "Parents": null,
+      "Description": ""
+    },
+    {
+      "ID": "m0ocfpwhdlxvkh8m102kieqom",
+      "Type": "source.local",
+      "Size": 24576,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:09.510763548Z",
+      "LastUsedAt": "2026-11-06T13:09:46.483785324Z",
+      "Parents": null,
+      "Description": "local source for dockerfile"
+    },
+    {
+      "ID": "lswcuwwiv2pucsat3n311p9m6",
+      "Type": "regular",
+      "Size": 1373536380,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T13:08:09.933379348Z",
+      "LastUsedAt": "2026-11-06T13:09:46.476862535Z",
+      "Parents": null,
+      "Description": "[stage-1 5/6] COPY . ."
+    },
+    {
+      "ID": "xciwuzelpdo5omn6a7zv5brxa",
+      "Type": "regular",
+      "Size": 1373231339,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:06:48.74103779Z",
+      "LastUsedAt": "2026-11-06T11:08:25.019878407Z",
+      "Parents": null,
+      "Description": "[stage-1 5/6] COPY . ."
+    },
+    {
+      "ID": "u6ke7buv1nc3lgabos7djwd47",
+      "Type": "regular",
+      "Size": 1262428,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:05:53.809713745Z",
+      "LastUsedAt": "2026-11-06T13:07:13.343577378Z",
+      "Parents": null,
+      "Description": ""
+    },
+    {
+      "ID": "n7p24a6qzj1xpw7uos94g7d2b",
+      "Type": "source.local",
+      "Size": 888373248,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:13.317530857Z",
+      "LastUsedAt": "2026-11-06T13:09:46.493259583Z",
+      "Parents": null,
+      "Description": "local source for context"
+    },
+    {
+      "ID": "q6mzt321admgknjm4tuh43lre",
+      "Type": "regular",
+      "Size": 8285,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T13:07:13.458230917Z",
+      "LastUsedAt": "2026-11-06T13:09:46.487480364Z",
+      "Parents": null,
+      "Description": "[deps 2/5] WORKDIR /app"
+    },
+    {
+      "ID": "t5mci9iy70mvku6bnlzcj9bpv",
+      "Type": "regular",
+      "Size": 214475532,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T13:07:57.051151386Z",
+      "LastUsedAt": "2026-11-06T13:09:46.497313248Z",
+      "Parents": null,
+      "Description": "[stage-1 4/6] COPY --from=deps /app/node_modules ./node_modules"
+    },
+    {
+      "ID": "v0ejmw0rr5jvxne19ix01ijo6",
+      "Type": "regular",
+      "Size": 4501232,
+      "InUse": false,
+      "Shared": true,
+      "CreatedAt": "2026-11-06T11:05:56.753749105Z",
+      "LastUsedAt": "2026-11-06T11:08:25.038345307Z",
+      "Parents": null,
+      "Description": "mount / from exec /bin/sh -c apk add --no-cache sqlite"
+    },
+    {
+      "ID": "9sru6prplkw8ux5dswxqfk4na",
+      "Type": "regular",
+      "Size": 231505920,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:34.747814351Z",
+      "LastUsedAt": "2026-11-06T13:09:46.495899346Z",
+      "Parents": null,
+      "Description": "mount / from exec /bin/sh -c npm ci --only=production"
+    },
+    {
+      "ID": "163b6jnp0kovv7s9o7indjlkg",
+      "Type": "source.local",
+      "Size": 8192,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:12.963976246Z",
+      "LastUsedAt": "2026-11-06T13:09:46.46799194Z",
+      "Parents": null,
+      "Description": "local source for context"
+    },
+    {
+      "ID": "qxfjol886zehvabfdsgfvcuis",
+      "Type": "regular",
+      "Size": 249856,
+      "InUse": false,
+      "Shared": false,
+      "CreatedAt": "2026-11-06T13:07:34.703503759Z",
+      "LastUsedAt": "2026-11-06T13:09:46.473543703Z",
+      "Parents": null,
+      "Description": "[deps 4/5] COPY package.json package-lock.json ./"
+    }
+  ],
+  "private_inactive_bytes": 1488526528,
+  "estimated_free_after_private_only": 4613655744,
+  "deficit_after_private_only": 1828795200,
+  "health": {
+    "ok": true,
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 92,
+    "disk_warn": true
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "authorized_private_cache_removed": 7,
+  "authorized_backup_files_removed": 3,
+  "irreversible_recovery_points": [
+    "full 2026-11-01 04:30",
+    "daily 2026-11-02 03:00",
+    "daily 2026-11-03 03:00"
+  ],
+  "external_copies_verified": false,
+  "steps": [
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:17.757139+00:00",
+      "id": "n7p24a6qzj1xpw7uos94g7d2b",
+      "free_bytes": 4012937216,
+      "delta_bytes": 888381440
+    },
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:23.411203+00:00",
+      "id": "ncuzxwirm6lcst357k3sj8t3p",
+      "free_bytes": 4056080384,
+      "delta_bytes": 43143168
+    },
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:28.344083+00:00",
+      "id": "m0ocfpwhdlxvkh8m102kieqom",
+      "free_bytes": 4056113152,
+      "delta_bytes": 32768
+    },
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:33.133538+00:00",
+      "id": "163b6jnp0kovv7s9o7indjlkg",
+      "free_bytes": 4056121344,
+      "delta_bytes": 12288
+    },
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:38.385427+00:00",
+      "id": "9sru6prplkw8ux5dswxqfk4na",
+      "free_bytes": 4287635456,
+      "delta_bytes": 231514112
+    },
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:42.771465+00:00",
+      "id": "qxfjol886zehvabfdsgfvcuis",
+      "free_bytes": 4287893504,
+      "delta_bytes": 266240
+    },
+    {
+      "event": "cache_after",
+      "utc": "2026-11-06T14:50:47.291305+00:00",
+      "id": "xhbzvjgdjjhz1h9bhy1x5gk7z",
+      "free_bytes": 4613124096,
+      "delta_bytes": 325230592
+    },
+    {
+      "event": "file_after",
+      "utc": "2026-11-06T14:52:26.194250+00:00",
+      "path": "/opt/backups/linguistpro/app-data-full-20261101-043002.tar.gz",
+      "free_bytes": 6944202752,
+      "delta_bytes": 2331066368
+    },
+    {
+      "event": "file_after",
+      "utc": "2026-11-06T14:52:41.440950+00:00",
+      "path": "/opt/backups/linguistpro/app-data-20261102-030001.tar.gz",
+      "free_bytes": 8687034368,
+      "delta_bytes": 1742835712
+    },
+    {
+      "event": "file_after",
+      "utc": "2026-11-06T14:52:56.871053+00:00",
+      "path": "/opt/backups/linguistpro/app-data-20261103-030001.tar.gz",
+      "free_bytes": 10434441216,
+      "delta_bytes": 1747406848
+    }
+  ],
+  "free_bytes_after_cleanup": 10434441216,
+  "gate_bytes": 6442450944,
+  "retained_images": [
+    "sha256:184d42c6bc05028283406869bd318f4117ca9f5e5d30e5f8458d3d9757daa14b",
+    "sha256:4cedc92ff0be6d3c6c42cddf553e4d1c3face7562fa1e151b20211284b8bf868",
+    "sha256:a4c5bdb4d212dc0aef21666ac197db78acc81ddbff5169a9b829f71085c2d717"
+  ],
+  "all_guards_passed": true
+}

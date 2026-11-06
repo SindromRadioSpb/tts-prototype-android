@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.866";
+const CACHE_VERSION = "v3.11.867";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -200,7 +200,7 @@ const PRECACHE_URLS = [
   "/js/atlas-speech.js?v=1",
   "/js/atlas-reader.js?v=27",
   "/js/atlas-search.js?v=4",
-  "/js/atlas-words.js?v=4",
+  "/js/atlas-words.js?v=5",
   "/js/atlas-context-contract.js?v=2",
   "/js/atlas-train.js?v=9",
   "/js/atlas-train-ui.js?v=8",

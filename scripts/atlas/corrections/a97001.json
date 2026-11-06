@@ -6933,13 +6933,29 @@
         "ru": "Коррозионную стойкость нержавеющих сталей обеспечивают прежде всего хром и образующаяся защитная пассивная плёнка. Никель способствует стабилизации аустенита. Источник указывает ориентиры 12% Cr и 8% Ni и ошибочно утверждает, что нержавеющие стали не являются сталями, а углерод в них всегда представляет загрязнение. Применимость этих численных ориентиров зависит от полного состава. Защитная оксидная плёнка препятствует проникновению кислорода внутрь материала. Никель упрочняет сплав.",
         "he": "אינן פלדות במובן הקלסי של סגסגת ברזל–פחמן, מכיון שהן מכילות מעט פחמן, ולמעשה הפחמן מהוה בהן זהום. העמידות המגברת כנגד קורוזיה מתקבלת על ידי סגסוג ביסודות נוספים, במיחד כרום, ניקל ומנגן. כרום הוא יסוד המסג החשוב ביותר; יש להוסיף לפחות 12% כרום. הכרום יוצר שכבת תחמצת הדוקה ורציפה על פני השטח המונעת חדירת חמצן אל תוכו ובכך מגנה על החמר. ניקל הוא יסוד מסג חשוב נוסף. הניקל מחזק את הסגסגת. כאשר מוסיפים לברזל מעל 8% ניקל, מבנה הסריג נשמר כ־FCC, אוסטניט, גם בטמפרטורת החדר. לפלדות כאלה חזק ועמידות טובה לקורוזיה גם בטמפרטורות גבוהות.",
         "translit": "Enan pladot bamuvan haklasi shel sagsoget barzelpakhman–, mikevan shehen mekhilot me'at pakhman, ulema'ase hapakhman mehave bahen zihum. Ha'amidut hamugberet keneged korozya mitkabelet al yede sigsug bisodot nosafim, bimyukhad kerom, nikel umangan. Kerom hu yesod hameseg hekhashuv beyoter; yesh lehosif lefakhot 12% kerom. Hakrom yotser shikhvat takhmotset haduka uretsifa al pne hashetakh hamona'at khadirat khamtsan el tokho uvekhakh megina al hakhomer. Nikel hu yesod meseg khashuv nosaf. Hanikel mekhazek et hasagsoget. Ka'asher mosifim labarzel me'al 8% nikel, mivne hasarig nishmar k-FCC, ostenit, gam betemperaturat hakheder. Lifladot ka'ele khozek va'amidut tova lekorozya gam betemperaturot gvohot.",
-        "translit_ru": "енан пладот бамуван хакласи шэл сагсогэт барзэлпахман–, микеван шэхен мэхилот мэат пахман, улэмаасэ хапахман мэхавэ бахэн зихум. хаамидут хамугбэрэт кэнэгэд корозйа миткабэлэт ал йэде сигсуг бисодот носафим, бимйухад кэром, никэл уманган. кэром ху йэсод хамэсэг хэхашув бэйотер; йеш лэхосиф лэфахот 12% кэром. хакром йоцер шихват тахмоцэт хадука урэцифа ал пне хашэтах хамонаат хадират хамцан эл тохо увэхах мэгина ал хахомэр. никэл ху йэсод мэсэг хашув носаф. ханикэл мэхазек эт хасагсогэт. каашэр мосифим лабарзэл меал 8% никэл, мивне хасариг нишмар к-FCC, остенит, гам бэтэмпературат хахэдэр. лифладот каелэ хозэк ваамидут това лэкорозйа гам бэтэмпературот гвохот."
+        "translit_ru": "енан пладот бамуван хакласи шэл сагсогэт барзэлпахман–, микеван шэхен мэхилот мэат пахман, улэмаасэ хапахман мэхавэ бахэн зихум. хаамидут хамугбэрэт кэнэгэд корозйа миткабэлэт ал йэде сигсуг бисодот носафим, бимйухад кэром, никэл уманган. кэром ху йэсод хамэсэг хэхашув бэйотер; йеш лэхосиф лэфахот 12% кэром. хакром йоцер шихват тахмоцэт хадука урэцифа ал пне хашэтах хамонаат хадират хамцан эл тохо увэхах мэгина ал хахомэр. никэл ху йэсод мэсэг хашув носаф. ханикэл мэхазек эт хасагсогэт. каашэр мосифим лабарзэл меал 8% никэл, мивне хасариг нишмар к-FCC, остенит, гам бэтэмпературат хахэдэр. лифладот каелэ хозэк ваамидут това лэкорозйа гам бэтэмпературот гвохот.",
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:element#mechanics",
+          "a97001:term:alloy#mechanics",
+          "a97001:term:lattice#mechanics",
+          "a97001:term:strength#mechanics",
+          "a97001:term:carbon#mechanics",
+          "a97001:term:chromium#mechanics",
+          "a97001:term:nickel#mechanics",
+          "a97001:term:manganese#mechanics",
+          "a97001:term:austenite#mechanics",
+          "a97001:term:corrosion#mechanics"
+        ]
       },
       "audit_ids": [
         "HE-165-01",
         "HE-165-02"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены"
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved.",
+      "followup_ids": [
+        "T866-N01"
+      ]
     },
     {
       "page": 166,
@@ -7167,7 +7183,7 @@
         "translit": "Madad la'omek shebo adayin efshar litsor mivne martensiti beguf haplada. Mehirut hakerur shona ba'amakim shonim, velakhen lo tusag khadira mele'a shel khisum: martensit bashetakh umivnim akherim bifnim: benit, trostit, sorbit uferlit. Koter kriti lekhisum mugdar bamakor kakoter hamaksimali shebo nitan lekabel martensit male. Kekhal shehakoter gadol yoter, kosher hakhisum gavoha yoter.",
         "translit_ru": "мадад лаомэк шэбо адайин эфшар лицор мивнэ мартэнсити бэгуф хаплада. мэхирут хакерур шона баамаким шоним, вэлахен ло тусаг хадира мэлеа шэл хисум: мартэнсит башэтах умивним ахерим бифним: бенит, тростит, сорбит уфэрлит. котэр крити лэхисум мугдар бамакор какотэр хамаксимали шэбо нитан лэкабел мартэнсит мале. кэхал шэхакотэр гадол йотер, кошэр хахисум гавоха йотер.",
         "terms": [
-          "a97001:term:area#mechanics",
+          "a97001:term:area#surface",
           "a97001:term:diameter#mechanics",
           "a97001:term:steel#mechanics",
           "a97001:term:pearlite#mechanics",
@@ -7178,13 +7194,14 @@
       "audit_ids": [
         "HE-177-01"
       ],
-      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved.",
       "reacceptance_ids": [
         "R04",
         "R06"
       ],
       "followup_ids": [
-        "F04"
+        "F04",
+        "T866-N01"
       ]
     },
     {
@@ -7197,13 +7214,23 @@
         "ru": "4. Небольшие добавки ванадия, ниобия или титана способствуют измельчению структуры и улучшению механических свойств. 5. Источник связывает сложную геометрию с увеличением прокаливаемости. 6. Для углеродистых сталей особенно значимы углерод и марганец. 7. В легированных сталях результат зависит от вида и концентрации добавок. 8. Механические свойства связаны со скоростью охлаждения; поверхность охлаждается быстрее сердцевины, поэтому свойства по сечению могут различаться. 9. Хорошая прокаливаемость означает возможность получить закалённую мартенситную структуру не только снаружи, но и в объёме. В пункте 6 источник прямо указывает рост прокаливаемости с увеличением содержания углерода и марганца. В пункте 7 источник повторно утверждает рост прокаливаемости с повышением доли легирующих элементов.",
         "he": "4. כמיות קטנות של ונדיום, ניוביום או טיטניום תורמות למבנה עדין ולתכונות מכניות משפרות. 5. המקור מיחס לגאומטריה מסבכת הגדלת כשר חסום. 6. בפלדות פחמניות ההשפעה העקרית היא של פחמן ומנגן. עם הגדלת אחוזי הפחמן ומנגן כשר חסום גדל. 7. בפלדות מסגסגות הכשר תלוי בסוג וברכוז יסודות הסגוג. כשר חסום גדל עם אחוז יסודות המסגים עולה. 8. התכונות המכניות תלויות בקצב הקרור; קשה לקבל אחידות כי השטח מתקרר מהר מן הפנים. 9. כשר חסום טוב מאפשר הקשיה ויצירת מרטנסיט גם בתוך נפח הדגם.",
         "translit": "4. Kamuyot ktanot shel vanadyum, niyobyum o titanyum tormot lemivne adin uletkhunot mekhaniyot meshuparot. 5. Hamakor meyakhes lege'ometriya mesubekhet hagdalat kosher khisum. 6. Bifladot pakhmaniyot hahashpa'a ha'ikarit hi shel pakhman umangan. Im hagdalat akhuze hapakhman umangan kosher khisum gadel. 7. Bifladot mesugsagot hakosher taluy besug uverikuz yesodot hasigug. Kosher khisum gadel im akhuz yesodot hamsagim ole. 8. Hatkhunot hamekhaniyot tluyot beketsev hakerur; kashe lekabel akhidut ki hashetakh mitkarer maher min hapnim. 9. Kosher khisum tov me'afsher hakshaya vitsirat martensit gam betokh nefakh hadegem.",
-        "translit_ru": "4. камуйот ктанот шэл ванадйум, нийобйум о титанйум тормот лэмивнэ адин улэтхунот механийот мэшупарот. 5. хамакор мэйахес лэгеомэтрийа мэсубэхэт хагдалат кошэр хисум. 6. бифладот пахманийот хахашпаа хаикарит хи шэл пахман уманган. им хагдалат ахузе хапахман уманган кошэр хисум гадел. 7. бифладот мэсугсагот хакошэр талуй бэсуг увэрикуз йэсодот хасигуг. кошэр хисум гадел им ахуз йэсодот хамсагим олэ. 8. хатхунот хамеханийот тлуйот бэкэцэв хакерур; кашэ лэкабел ахидут ки хашэтах миткарер махер мин хапним. 9. кошэр хисум тов мэафшер хакшайа вицират мартэнсит гам бэтох нэфах хадэгэм."
+        "translit_ru": "4. камуйот ктанот шэл ванадйум, нийобйум о титанйум тормот лэмивнэ адин улэтхунот механийот мэшупарот. 5. хамакор мэйахес лэгеомэтрийа мэсубэхэт хагдалат кошэр хисум. 6. бифладот пахманийот хахашпаа хаикарит хи шэл пахман уманган. им хагдалат ахузе хапахман уманган кошэр хисум гадел. 7. бифладот мэсугсагот хакошэр талуй бэсуг увэрикуз йэсодот хасигуг. кошэр хисум гадел им ахуз йэсодот хамсагим олэ. 8. хатхунот хамеханийот тлуйот бэкэцэв хакерур; кашэ лэкабел ахидут ки хашэтах миткарер махер мин хапним. 9. кошэр хисум тов мэафшер хакшайа вицират мартэнсит гам бэтох нэфах хадэгэм.",
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:carbon#mechanics",
+          "a97001:term:manganese#mechanics",
+          "a97001:term:vanadium#mechanics",
+          "a97001:term:quenching#mechanics"
+        ]
       },
       "audit_ids": [
         "HE-178-01",
         "HE-178-02"
       ],
-      "why": "Восстановлены проверенные буквальные условия и термины исходника; научные оговорки отделены"
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved.",
+      "followup_ids": [
+        "T866-N01"
+      ]
     },
     {
       "page": 180,
@@ -9291,14 +9318,21 @@
         "ru": "1. Прикладывают предварительную нагрузку и устанавливают начальный уровень отсчёта глубины. Для обычных шкал это около 100 Н. 2. Прикладывают дополнительную основную нагрузку, увеличивая глубину вдавливания. Одинаковые условия обеспечивают для всех испытаний одного и того же материала. Эти условия не должны зависеть от состояния поверхности. Измеряют приращение глубины проникновения, обусловленное основной нагрузкой.",
         "he": "1. עמס ראשוני: בתחלת הבדיקה מצמד החודרן אל פני השטח הנבדק בכח התחלתי של 100 N בלבד. כח זה מפעל כדי לעבר את שכבות התחמצת והזהומים שעל פני השטח ולספק תנאי בדיקה אחידים לכל הבדיקות באותו חמר, שאינם משפעים מפני השטח. 2. עמס ראשי: לאחר הטעינה המקדמת מפעל עמס גדול נוסף. עמק החדירה (הגדול בעמק עקב העמס העיקרי) נמדד.",
         "translit": "1. Omes rishoni: bitkhilat habdika mutsmad hakhodran el pne hashetakh hanivdak bekhoakh hatkhalati shel 100 N bilvad. Koakh ze muf'al kde la'avor et shikhvot hatakhmotset vehazihumim she'al pne hashetakh ulesapek tna'e bdika akhidim lekhol habdikot be'oto khomer, she'enam mushpa'im mipne hashetakh. 2. Omes rashi: le'akhar hate'ina hamukdemet muf'al omes gadol nosaf. Omek hakhadira (hagidul ba'omek ekev ha'omes ha'ikari) nimdad.",
-        "translit_ru": "1. омэс ришони: битхилат хабдика муцмад хаходран эл пне хашэтах ханивдак бэхоах хатхалати шэл 100 N билвад. коах зэ муфал кде лаавор эт шихвот хатахмоцэт вэхазихумим шэал пне хашэтах улэсапек тнае бдика ахидим лэхол хабдикот бэото хомэр, шэенам мушпаим мипне хашэтах. 2. омэс раши: лэахар хатэина хамукдэмэт муфал омэс гадол носаф. омэк хахадира (хагидул баомэк екэв хаомэс хаикари) нимдад."
+        "translit_ru": "1. омэс ришони: битхилат хабдика муцмад хаходран эл пне хашэтах ханивдак бэхоах хатхалати шэл 100 N билвад. коах зэ муфал кде лаавор эт шихвот хатахмоцэт вэхазихумим шэал пне хашэтах улэсапек тнае бдика ахидим лэхол хабдикот бэото хомэр, шэенам мушпаим мипне хашэтах. 2. омэс раши: лэахар хатэина хамукдэмэт муфал омэс гадол носаф. омэк хахадира (хагидул баомэк екэв хаомэс хаикари) нимдад.",
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:load#mechanics"
+        ]
       },
       "audit_ids": [
         "HE-137-01",
         "HE-137-02",
         "HE-137-03"
       ],
-      "why": "Literal source-pixel review; qualifiers restored without guessing unreadable data"
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved.",
+      "followup_ids": [
+        "T866-N01"
+      ]
     },
     {
       "page": 138,
@@ -17263,18 +17297,21 @@
       "id": "a97001:p184:b004",
       "fields": {
         "terms": [
-          "a97001:term:area#mechanics",
+          "a97001:term:area#surface",
           "a97001:term:surface#mechanics",
           "a97001:term:carbon#mechanics",
           "a97001:term:quenching#mechanics",
           "a97001:term:martensitic-transformation#technical"
         ]
       },
-      "why": "Independent reacceptance: source-specific semantic correction",
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved.",
       "reacceptance_ids": [
         "R02",
         "R04",
         "R06"
+      ],
+      "followup_ids": [
+        "T866-N01"
       ]
     },
     {
@@ -20879,7 +20916,11 @@
                 "ru": "поверхность",
                 "context": "Граница тела; может служить базой измерения."
               }
-            ]
+            ],
+            "aliases_he": [
+              "פני שטח"
+            ],
+            "study_note": "משטח и сочетание פני השטח обозначают поверхность тела. В выражении שטח הפנים / נפח речь уже об отношении площади поверхности к объёму; это отдельное количественное значение."
           },
           "a97001:term:tension": {
             "lemma_he": "מתיחה",
@@ -20996,6 +21037,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -21507,7 +21553,11 @@
                 "ru": "поверхность",
                 "context": "Граница тела; может служить базой измерения."
               }
-            ]
+            ],
+            "aliases_he": [
+              "פני שטח"
+            ],
+            "study_note": "משטח и сочетание פני השטח обозначают поверхность тела. В выражении שטח הפנים / נפח речь уже об отношении площади поверхности к объёму; это отдельное количественное значение."
           },
           "a97001:term:velocity": {
             "lemma_he": "מהירות",
@@ -21676,6 +21726,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -22798,6 +22853,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -23084,7 +23144,11 @@
                 "ru": "поверхность",
                 "context": "Граница тела; может служить базой измерения."
               }
-            ]
+            ],
+            "aliases_he": [
+              "פני שטח"
+            ],
+            "study_note": "משטח и сочетание פני השטח обозначают поверхность тела. В выражении שטח הפנים / נפח речь уже об отношении площади поверхности к объёму; это отдельное количественное значение."
           },
           "a97001:term:weight": {
             "lemma_he": "משקל",
@@ -23839,6 +23903,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -24184,9 +24253,9 @@
           },
           "a97001:term:chamfer": {
             "lemma_he": "פזה",
-            "niqqud": "פָּזָה",
-            "translit": "Paza",
-            "translit_ru": "паза",
+            "niqqud": "פָזָה",
+            "translit": "Faza",
+            "translit_ru": "фаза",
             "senses": [
               {
                 "sense": "technical",
@@ -24198,7 +24267,14 @@
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
             "aliases_he": [
               "פאזות"
-            ]
+            ],
+            "pronunciation_basis": "Pointed chamfer/beveled-edge usage פָאזָה in original construction glossary, https://www.atmag.co.il/המילון-השלם-למשפץ/ (2007-01-02). Applied to source short spelling פזה; not inferred from the unrelated phase entry.",
+            "pronunciation_override": {
+              "niqqud": "פָזָה",
+              "translit": "Faza",
+              "translit_ru": "фаза",
+              "basis": "Pointed chamfer/beveled-edge usage פָאזָה in original construction glossary, https://www.atmag.co.il/המילון-השלם-למשפץ/ (2007-01-02). Applied to source short spelling פזה; not inferred from the unrelated phase entry."
+            }
           },
           "a97001:term:tool-relief": {
             "lemma_he": "חריץ שחרור",
@@ -24255,6 +24331,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -24373,7 +24454,11 @@
                 "ru": "поверхность",
                 "context": "Граница тела; может служить базой измерения."
               }
-            ]
+            ],
+            "aliases_he": [
+              "פני שטח"
+            ],
+            "study_note": "משטח и сочетание פני השטח обозначают поверхность тела. В выражении שטח הפנים / נפח речь уже об отношении площади поверхности к объёму; это отдельное количественное значение."
           },
           "a97001:term:tolerance": {
             "lemma_he": "סבולת",
@@ -24606,7 +24691,8 @@
               }
             ],
             "source": "reviewed-a97001-reacceptance",
-            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim"
+            "review_basis": "N05: explicit addressed source concept, PDF pixels checked; not a quantitative completeness claim",
+            "study_note": "חריגות — общее слово «отклонения». В этой строке таблицы (с. 113) значение «круговое биение» определяется изображённым знаком, а не самим словом. Не учите חריגות как универсальный перевод «круговое биение». Круговое и полное биение — разные виды допуска."
           }
         },
         "context_exclusions": []
@@ -25019,9 +25105,9 @@
           },
           "a97001:term:electron": {
             "lemma_he": "אלקטרון",
-            "niqqud": "אֶלֶקְטְרוֹן",
-            "translit": "Elekteron",
-            "translit_ru": "элэктэрон",
+            "niqqud": "אֵלֶקְטְרוֹן",
+            "translit": "Elektron",
+            "translit_ru": "элэктрон",
             "senses": [
               {
                 "sense": "technical",
@@ -25033,7 +25119,14 @@
             "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
             "aliases_he": [
               "אלקטרונים"
-            ]
+            ],
+            "pronunciation_basis": "Academy current pointed entry אֵלֶקְטְרוֹן: https://terms.hebrew-academy.org.il/munnah/2297_1; modern cluster reading Elektron, not Elekteron.",
+            "pronunciation_override": {
+              "niqqud": "אֵלֶקְטְרוֹן",
+              "translit": "Elektron",
+              "translit_ru": "элэктрон",
+              "basis": "Academy current pointed entry אֵלֶקְטְרוֹן: https://terms.hebrew-academy.org.il/munnah/2297_1; modern cluster reading Elektron, not Elekteron."
+            }
           },
           "a97001:term:proton": {
             "lemma_he": "פרוטון",
@@ -25297,6 +25390,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -25675,7 +25773,11 @@
                 "ru": "поверхность",
                 "context": "Граница тела; может служить базой измерения."
               }
-            ]
+            ],
+            "aliases_he": [
+              "פני שטח"
+            ],
+            "study_note": "משטח и сочетание פני השטח обозначают поверхность тела. В выражении שטח הפנים / נפח речь уже об отношении площади поверхности к объёму; это отдельное количественное значение."
           },
           "a97001:term:temperature": {
             "lemma_he": "טמפרטורה",
@@ -26058,6 +26160,11 @@
                 "sense": "mechanics",
                 "ru": "площадь",
                 "context": "Для сечения обычно обозначается A."
+              },
+              {
+                "sense": "surface",
+                "ru": "поверхность",
+                "context": "В этих местах שטח обозначает поверхность тела: её состояние, шероховатость, охлаждение или поверхностный слой. Это не величина площади; сочетание פני השטח означает поверхность. Значение «площадь» сохранено отдельно."
               }
             ]
           },
@@ -26649,7 +26756,11 @@
                 "ru": "поверхность",
                 "context": "Граница тела; может служить базой измерения."
               }
-            ]
+            ],
+            "aliases_he": [
+              "פני שטח"
+            ],
+            "study_note": "משטח и сочетание פני השטח обозначают поверхность тела. В выражении שטח הפנים / נפח речь уже об отношении площади поверхности к объёму; это отдельное количественное значение."
           },
           "a97001:term:temperature": {
             "lemma_he": "טמפרטורה",
@@ -27188,7 +27299,8 @@
               }
             ],
             "source": "reviewed-a97001-reacceptance",
-            "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "study_note": "מטלורגית אבקות — порошковая металлургия. Точное произношение формы сопряжённого сочетания в этой карточке пока не подтверждено первичным фонетическим источником; транслитерацию не следует считать нормативной."
           },
           "a97001:term:atomization": {
             "lemma_he": "רסוס",
@@ -27660,7 +27772,8 @@
               }
             ],
             "source": "reviewed-a97001-reacceptance",
-            "review_basis": "explicit named/defined source concept; no numeric source reconstruction"
+            "review_basis": "explicit named/defined source concept; no numeric source reconstruction",
+            "study_note": "אלקלד — название Alclad, плакированного алюминиевого материала. Произношение этого названия на иврите пока не подтверждено первичным фонетическим источником; транслитерация приведена предварительно."
           },
           "a97001:term:cold-hardening": {
             "lemma_he": "הקשיה בקור",
@@ -28402,12 +28515,14 @@
       "fields": {
         "terms": [
           "a97001:term:area#mechanics",
-          "a97001:term:quenching#mechanics"
+          "a97001:term:quenching#mechanics",
+          "a97001:term:surface#mechanics"
         ]
       },
-      "why": "Acceptance 3.11.865: process rate/quickness is not vector velocity",
+      "why": "T866-M01: mixed paragraph retains quantitative area/volume reference; reviewed phrase alias פני שטח binds the earlier heat-removal surface separately.",
       "followup_ids": [
-        "F04"
+        "F04",
+        "T866-M01"
       ]
     },
     {
@@ -28463,6 +28578,237 @@
         "N05"
       ],
       "why": "N05: addressed source concept available in section and trainer; original HE/RU preserved"
+    },
+    {
+      "op": "set",
+      "section": "s03-concurrent-forces",
+      "page": 16,
+      "collection": "items",
+      "id": "a97001:p16:b007",
+      "fields": {
+        "terms": [
+          "a97001:term:force#mechanics",
+          "a97001:term:weight#mechanics",
+          "a97001:term:equilibrium#mechanics",
+          "a97001:term:reaction#mechanics",
+          "a97001:term:area#surface",
+          "a97001:term:axis#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "collection": "items",
+      "id": "a97001:p109:b003",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:drawing#mechanics",
+          "a97001:term:surface#mechanics",
+          "a97001:term:roughness#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "collection": "items",
+      "id": "a97001:p109:b004",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:drawing#mechanics",
+          "a97001:term:roughness#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "collection": "items",
+      "id": "a97001:p109:b006",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:drawing#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s14-industrial-symbols",
+      "page": 109,
+      "collection": "items",
+      "id": "a97001:p109:b007",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:surface#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 130,
+      "collection": "items",
+      "id": "a97001:p130:b006",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:metal#mechanics",
+          "a97001:term:hardness#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 130,
+      "collection": "items",
+      "id": "a97001:p130:b010",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:surface#mechanics",
+          "a97001:term:hardness#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 132,
+      "collection": "items",
+      "id": "a97001:p132:b003",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 135,
+      "collection": "items",
+      "id": "a97001:p135:b008",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 153,
+      "collection": "items",
+      "id": "a97001:p153:b004",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:surface#mechanics",
+          "a97001:term:stress#mechanics",
+          "a97001:term:fatigue#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 187,
+      "collection": "items",
+      "id": "a97001:p187:b003",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:steel#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s17-steels",
+      "page": 188,
+      "collection": "items",
+      "id": "a97001:p188:b003",
+      "fields": {
+        "terms": [
+          "a97001:term:area#surface",
+          "a97001:term:surface#mechanics",
+          "a97001:term:stress#mechanics",
+          "a97001:term:fatigue#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-N01"
+      ],
+      "why": "T866-N01: independent source review distinguishes surface from measurable area; original HE/RU and other term links preserved."
+    },
+    {
+      "op": "set",
+      "section": "s16-mechanical-properties",
+      "page": 137,
+      "collection": "items",
+      "id": "a97001:p137:b009",
+      "fields": {
+        "terms": [
+          "a97001:term:hardness#mechanics"
+        ]
+      },
+      "followup_ids": [
+        "T866-U01"
+      ],
+      "why": "T866-U01: p137:b009 is unresolved surface/test-site wording. Exclude uncertain area association from training without asserting a replacement or changing source text."
     }
   ],
   "reacceptance_review": {
