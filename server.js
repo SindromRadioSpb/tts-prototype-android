@@ -697,6 +697,7 @@ app.use('/data/benyehuda/learning-niqqud', express.static(path.join(DATA_DIR, 'b
 
 // Engineering atlas (נוסחאון 97002): reader JSON and sha-named page/figure images live on the data
 // volume (DATA_DIR/atlas/a97002/…), not in git — the same volume-first rule as the corpus works above.
+require('./lib/atlasEdition').installRoutes(app, { dir: path.join(DATA_DIR, 'atlas-editions') });
 app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
   fallthrough: true, index: false,
   setHeaders(res, file) {
@@ -1429,7 +1430,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=866",
+  "/js/library-ui.js?v=869",
+  "/js/atlas-progress-export.js?v=869",
   "/js/corpus-registry.js?v=862",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -1505,9 +1507,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=865",
-  "/i18n/locales/en.js?v=865",
-  "/i18n/locales/he.js?v=865",
+  "/i18n/locales/ru.js?v=869",
+  "/i18n/locales/en.js?v=869",
+  "/i18n/locales/he.js?v=869",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

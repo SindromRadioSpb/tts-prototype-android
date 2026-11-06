@@ -5729,3 +5729,5 @@ window.I18N_LOCALES.he.course.pilotCorpus = {"title": "בית קפה B · פיי
 window.I18N_LOCALES.he.atlas.figureZoom = "פתיחת האיור בגודל מלא";
 
 Object.assign(window.I18N_LOCALES.he.atlas.word, {"sourceNote": "מקור ומגבלות", "prepared": "הוכן בבינה מלאכותית"});
+
+window.I18N_LOCALES.he.atlas.progressExport = {"help": "שמירת התקדמות אטלס 97001 בלבד לקובץ מקומי. המקור אינו משתנה. היסטוריית מילים משותפות נכללת רק בקישור מפורש לאטלס; חומרים אחרים אינם נכללים.", "save": "שמירת עותק התקדמות אטלס 97001", "working": "מכינים עותק מקומי…", "done": "הקובץ מוכן: {words} מצבים, {reviews} חזרות, {find} תשובות בתרגיל.", "error": "לא ניתן להכין עותק מאומת. המקור לא השתנה. עדכנו את היישום ונסו שוב.", "notOpen": "המתינו לטעינת היישום ונסו שוב. המקור לא השתנה."};

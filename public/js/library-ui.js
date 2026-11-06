@@ -13318,6 +13318,10 @@ function renderAtlasCorpus(atlasId, token) {
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-view atlas-corpus' });
   wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
+  if (atlasId === 'a97001' && window.AtlasProgressExport) window.AtlasProgressExport.mount(wrap, {
+    db: localDb, storage: window.localStorage,
+    labels: Object.fromEntries(['help','save','working','done','error','notOpen'].map(key => [key, tt('atlas.progressExport.' + key)])),
+  });
   main.appendChild(wrap);
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
   // A DB projection refresh can remount the atlas after its one-shot URL anchor

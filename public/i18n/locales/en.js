@@ -5720,3 +5720,5 @@ window.I18N_LOCALES.en.course.pilotCorpus = {"title": "Café B · text pilot", "
 window.I18N_LOCALES.en.atlas.figureZoom = "Open full-size figure";
 
 Object.assign(window.I18N_LOCALES.en.atlas.word, {"sourceNote": "Source and limitations", "prepared": "Prepared with AI"});
+
+window.I18N_LOCALES.en.atlas.progressExport = {"help": "Save only atlas 97001 progress to a local file. The original stays unchanged. Shared-word history requires an explicit atlas source; other materials are excluded.", "save": "Save atlas 97001 progress copy", "working": "Preparing the local copy…", "done": "File prepared: {words} states, {reviews} reviews, {find} exercise answers.", "error": "The verified copy could not be prepared. The original is unchanged. Update the app and try again.", "notOpen": "Wait for the app to finish loading, then try again. The original is unchanged."};

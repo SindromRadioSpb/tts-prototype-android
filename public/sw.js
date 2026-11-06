@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.867";
+const CACHE_VERSION = "v3.11.869";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,8 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=866",
+  "/js/library-ui.js?v=869",
+  "/js/atlas-progress-export.js?v=869",
   "/js/corpus-registry.js?v=862",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -377,9 +378,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=865",
-  "/i18n/locales/en.js?v=865",
-  "/i18n/locales/he.js?v=865",
+  "/i18n/locales/ru.js?v=869",
+  "/i18n/locales/en.js?v=869",
+  "/i18n/locales/he.js?v=869",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -651,6 +652,20 @@ self.addEventListener("fetch", (event) => {
   // evict the old bucket so a graph-asset change is never stale-loaded.
   if (GRAPH_CHUNK_RE.test(url.pathname)) {
     event.respondWith(graphCacheStrategy(req));
+    return;
+  }
+
+  // The revision namespace survives shell upgrades and rollback workers. Its
+  // cache name intentionally does not use the shell's linguistpro-* eviction prefix.
+  // The reader verifies the code-pinned manifest and every JSON's bytes.
+  if (req.method === 'GET' && /^\/data\/atlas-editions\/a97001\/[a-f0-9]{64}\//.test(url.pathname)) {
+    event.respondWith((async () => {
+      const cache = await caches.open('atlas-editions-v1');
+      const cached = await cache.match(req); if (cached) return cached;
+      const response = await fetch(req);
+      if (response.ok && response.type === 'basic') { try { await cache.put(req, response.clone()); } catch (_) {} }
+      return response;
+    })());
     return;
   }
 
