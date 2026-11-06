@@ -1,0 +1,52 @@
+{
+  "schema": "linguistpro.atlas-progress.1",
+  "atlas_id": "a97001",
+  "captured_at": "2026-11-06T21:00:00.000Z",
+  "scope": "atlas-specific term history and explicitly atlas-bound word state/history; no history inferred from shared lemma keys",
+  "word_status": [
+    {
+      "lemma_key": "at1:a97001:mass#mechanics",
+      "status": "known",
+      "updated_at": "2026-11-03T12:00:00Z",
+      "srs_due": "2026-11-08T12:00:00Z",
+      "srs_interval": 5,
+      "srs_reps": 3,
+      "srs_lapses": 1,
+      "srs_text_key": "atlas-block-v1:a97001:s15-materials-basics:old-revision",
+      "srs_sentence_id": "a97001:p122:b004",
+      "srs_order_index": 116,
+      "srs_surface": "mass",
+      "srs_stability": 6.4,
+      "srs_difficulty": 4.3,
+      "srs_reviewed_at": "2026-11-03T12:00:00Z",
+      "srs_scheme": "fsrs"
+    }
+  ],
+  "review_log": [
+    {
+      "id": "fixture:review",
+      "item_key": "at1:a97001:mass#mechanics",
+      "kind": "review",
+      "reviewed_at": "2026-11-03T12:00:00Z",
+      "grade": 3,
+      "source": "atlas-term",
+      "channel": "atlas:term",
+      "latency_ms": 60,
+      "meta_json": "{\"surface\":\"mass\",\"pos\":\"noun\",\"keyer_version\":1,\"text_key\":\"atlas-block-v1:a97001:s15-materials-basics:old-revision\",\"sentence_id\":\"a97001:p122:b004\",\"order_index\":116,\"scheduler\":{\"scheme\":\"fsrs\",\"engine_version\":\"fsrs6-core-v3\",\"request_retention\":0.9},\"evidence_scope\":\"recognition\"}"
+    }
+  ],
+  "find_history": [
+    {
+      "id": "find:a97001:p122:b004",
+      "sid": "s15-materials-basics",
+      "section": true,
+      "page": "near",
+      "ms": 125,
+      "at": 1234
+    }
+  ],
+  "find_stale": [
+    "find:a97001:p122:b004"
+  ],
+  "integrity_sha256": "ccbd973cb8d536b190a7b10f5aef99e93a9f88da119e984342a9d69081d013aa"
+}

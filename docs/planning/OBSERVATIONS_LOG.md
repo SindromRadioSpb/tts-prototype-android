@@ -10,6 +10,12 @@
 
 ---
 
+## O-161 — Atlas progress export: metadata leaf types and committed read
+- **Date / scope:** 2026-11-06, unpublished869/870, independent review.
+- **Confirmed:**5be3a432 accepted nested metadata.surface through capture/validate. It also exported a transaction-local review later rolled back. Prior green suites did not test these classes.
+- **Local correction:** strict shared leaf schemas and independent rehashed malformed-snapshot tests; dedicated worker RPC requires autocommit under one lease and refuses before touching the caller transaction timer. Real Chromium/WebKit worker tests use disposable synthetic profiles. Actual owner snapshot and structural WebKit offline gate remain pending.
+- **Status:** locally corrected; final evidence/commits in [review report](../research/engineering-atlas/2026-11-06-export-review-fix/REPORT.ru.md). No push, release, cleanup or owner writes.
+
 ## O-160 — Atlas edition rollout: owner snapshot and virtual-offline verification remain gates
 - **Date / scope:** 2026-11-06, local preparation869 and structure870.
 - **Observed:** Production867 has no supported atlas-only history export. A local explicit exporter now exists, but the actual owner snapshot is still unavailable until the compatible preparatory release. Synthetic preservation tests do not close this gate.

@@ -22,9 +22,9 @@ test('worker dependency graph cache-busts all repaired async lifecycle modules',
   const vfs = fs.readFileSync(path.join(root, 'public/db/IDBBatchAtomicVFS.js'), 'utf8');
   const sw = fs.readFileSync(path.join(root, 'public/sw.js'), 'utf8');
   const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
-  for (const [source, name] of [[worker, 'sqlite-api.js'], [worker, 'operation-lease.js'],
+  for (const [source, name] of [[worker, 'sqlite-api.js'], [worker, 'operation-lease.js'], [worker, 'atlas-progress-snapshot.js'],
     [worker, 'IDBBatchAtomicVFS.js'], [vfs, 'IDBContext.js']]) {
-    const version = { 'sqlite-api.js': 531, 'operation-lease.js': 727, 'IDBBatchAtomicVFS.js': 543, 'IDBContext.js': 543 }[name];
+    const version = { 'sqlite-api.js': 531, 'atlas-progress-snapshot.js': 869, 'operation-lease.js': 869, 'IDBBatchAtomicVFS.js': 543, 'IDBContext.js': 543 }[name];
     assert.ok(source.includes(`./${name}?v=${version}`), name + ' must not reuse a stale unversioned SW dependency');
     assert.ok(sw.includes(`/db/${name}?v=${version}`));
     assert.ok(server.includes(`/db/${name}?v=${version}`));

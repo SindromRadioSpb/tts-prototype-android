@@ -6,11 +6,11 @@ const run=(db,sql,p=[])=>new Promise((yes,no)=>db.run(sql,p,e=>e?no(e):yes()));
 const all=(db,sql,p=[])=>new Promise((yes,no)=>db.all(sql,p,(e,r)=>e?no(e):yes(r)));
 const term='at1:a97001:mass#mechanics',source='atlas-block-v1:a97001:s15-materials-basics:old-revision';
 function word(key=term,text=source){return Object.fromEntries(E.wordColumns.map(k=>[k,({lemma_key:key,status:'known',updated_at:'2026-11-03T12:00:00Z',srs_due:'2026-11-08T12:00:00Z',srs_interval:5,srs_reps:3,srs_lapses:1,srs_text_key:text,srs_sentence_id:text?'a97001:p122:b004':null,srs_order_index:116,srs_surface:'מסה',srs_stability:6.4,srs_difficulty:4.3,srs_reviewed_at:'2026-11-03T12:00:00Z',srs_scheme:'fsrs'})[k]??null]));}
-function review(key=term,meta={scheduler:{scheme:'fsrs',engine_version:'1',request_retention:0.9},evidence_scope:'recognition'}){return {id:'review:'+key,item_key:key,kind:'review',reviewed_at:'2026-11-03T12:00:00Z',grade:3,source:'atlas-term',channel:'atlas:term',latency_ms:60,meta_json:JSON.stringify(meta)};}
+function review(key=term,meta={scheduler:{scheme:'fsrs',engine_version:require('../public/js/fsrs-core').ENGINE_VERSION,request_retention:0.9},evidence_scope:'recognition'}){return {id:'review:'+key,item_key:key,kind:'review',reviewed_at:'2026-11-03T12:00:00Z',grade:3,source:'atlas-term',channel:'atlas:term',latency_ms:60,meta_json:JSON.stringify(meta)};}
 async function schema(db){for(const [name,cols]of [['word_status',E.wordColumns],['review_log',E.reviewColumns]])await run(db,'CREATE TABLE '+name+' ('+cols.map(k=>k+(/^(srs_(interval|reps|lapses|order_index|stability|difficulty)|grade|latency_ms)$/.test(k)?' NUMERIC':' TEXT')).join(',')+')');}
 async function insert(db,table,row){const keys=Object.keys(row);await run(db,'INSERT INTO '+table+' ('+keys.join(',')+') VALUES ('+keys.map(()=>'?').join(',')+')',keys.map(k=>row[k]));}
 function storage(h=[],s=[]){const data={'room.atlas.find.v1':JSON.stringify(h),'room.atlas.find.stale.v1':JSON.stringify(s)};return {getItem:k=>{assert(Object.hasOwn(data,k),'only two precise storage keys');return data[k];}};}
-function adapter(db){return {getOwnershipState:()=> 'shared',dbQuery:(sql,p)=>{assert.equal(sql,E.SQL);assert.equal((sql.match(/SELECT/g)||[]).length,2);assert(!/\b(INSERT|UPDATE|DELETE|PRAGMA|BEGIN|COMMIT|CREATE)\b/.test(sql));return all(db,sql,p);}};}
+function adapter(db){return {getOwnershipState:()=> 'shared',dbAtlasProgressSnapshot:()=>{const sql=E.SQL,p=[];assert.equal(sql,E.SQL);assert.equal((sql.match(/SELECT/g)||[]).length,2);assert(!/\b(INSERT|UPDATE|DELETE|PRAGMA|BEGIN|COMMIT|CREATE)\b/.test(sql));return all(db,sql,p);}};}
 test('native SQLite capture selects only explicit atlas records, preserves exact fields and never writes',async t=>{
  const db=open();t.after(()=>db.close());await schema(db);
  const skipped={...review(),id:'fixture:skip',kind:'skip'};
@@ -30,15 +30,15 @@ test('native SQLite capture selects only explicit atlas records, preserves exact
  assert.equal((await all(copy,'SELECT * FROM word_status')).length,2);assert(!JSON.stringify(await all(copy,'SELECT * FROM word_status')).includes(':s01'),'no parent grade cloned to children');
 });
 test('export refuses unopened DB and does not initialize a worker or access storage',async()=>{
- let calls=0;await assert.rejects(E.capture({db:{getOwnershipState:()=> 'unknown',dbQuery:()=>{calls++;},initLocalDB:()=>{throw Error('not allowed');}},storage:{getItem:()=>{throw Error('not allowed');}}}),/DB_NOT_OPEN/);assert.equal(calls,0);
+ let calls=0;await assert.rejects(E.capture({db:{getOwnershipState:()=> 'unknown',dbAtlasProgressSnapshot:()=>{calls++;},initLocalDB:()=>{throw Error('not allowed');}},storage:{getItem:()=>{throw Error('not allowed');}}}),/DB_NOT_OPEN/);assert.equal(calls,0);
 });
 test('foreign anchors, unsupported metadata and changed history fail closed instead of making a partial file',async()=>{
  for(const row of [review(term,{token:'secret'}),review(term,{scheduler:{scheme:'fsrs',cookie:'secret'}}),review('at1:a97002:mass#mechanics',{text_key:source})]){
-  const db={getOwnershipState:()=> 'shared',dbQuery:async()=>[{record_type:'review_log',record_json:JSON.stringify(row)}]};await assert.rejects(E.capture({db,storage:storage(),crypto}),/ATLAS_PROGRESS_/);
+  const db={getOwnershipState:()=> 'shared',dbAtlasProgressSnapshot:async()=>[{record_type:'review_log',record_json:JSON.stringify(row)}]};await assert.rejects(E.capture({db,storage:storage(),crypto}),/ATLAS_PROGRESS_/);
  }
- const db={getOwnershipState:()=> 'shared',dbQuery:async()=>[]};let n=0;await assert.rejects(E.capture({db,storage:{getItem:()=>JSON.stringify([++n])},crypto}),/SOURCE_CHANGED/);
+ const db={getOwnershipState:()=> 'shared',dbAtlasProgressSnapshot:async()=>[]};let n=0;await assert.rejects(E.capture({db,storage:{getItem:()=>JSON.stringify([++n])},crypto}),/SOURCE_CHANGED/);
 });
 test('snapshot integrity rejects changes, extra fields and unknown kinds before isolated import',async()=>{
- const s=await E.capture({db:{getOwnershipState:()=> 'shared',dbQuery:async()=>[]},storage:storage(),crypto});
+ const s=await E.capture({db:{getOwnershipState:()=> 'shared',dbAtlasProgressSnapshot:async()=>[]},storage:storage(),crypto});
  await assert.rejects(E.validate({...s,word_status:[word()]},crypto),/HASH/);await assert.rejects(E.validate({...s,token:'x'},crypto),/SCHEMA/);
 });

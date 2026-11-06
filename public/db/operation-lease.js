@@ -78,8 +78,10 @@ export class OperationLease {
     await this.rollback();
     await this.close();
   }
-  run(operation, { reset = false, retryOpen = false, sql = '' } = {}) {
+  run(operation, { reset = false, retryOpen = false, sql = '', requireCommitted = false } = {}) {
     const result = this.queue.then(async () => {
+      // Refuse before touching the transaction idle timer or triggering its rollback.
+      if (requireCommitted && this.opened && this.inTransaction()) throw this.error('ATLAS_PROGRESS_TRANSACTION_ACTIVE');
       clearTimeout(this.timer);
       if (reset) this.poisoned = false;
       if (this.poisoned) throw this.error('DB_TRANSACTION_ABORTED');
