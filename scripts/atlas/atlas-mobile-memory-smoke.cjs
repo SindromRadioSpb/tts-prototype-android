@@ -5,8 +5,10 @@ const { chromium, webkit } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 const baseline = process.argv.includes('--baseline');
+const baselineRef = 'f9077e0a';
 const live = process.argv.includes('--live');
 const engine = process.argv.includes('--webkit') ? webkit : chromium;
 (async () => {
@@ -17,14 +19,15 @@ const engine = process.argv.includes('--webkit') ? webkit : chromium;
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (/canon|import failed/i.test(m.text())) console.log(m.text().slice(0,500)); });
   page.on('request', r => requests.push(r.url()));
-  if (!baseline && !live) for (const file of ['atlas-reader.js', 'library-ui.js']) {
-    await page.route('**/js/' + file + '?*', route => route.fulfill({ path: path.join(root, 'public/js', file), contentType: 'text/javascript' }));
-  }
   const stats = () => page.evaluate(() => {
     const imgs = [...document.querySelectorAll('.atlas-section img')].filter(i => i.hasAttribute('src'));
     return { imagesWithSource: imgs.length, decodedRGBABytes: imgs.reduce((n, i) => n + i.naturalWidth * i.naturalHeight * 4, 0), nodes: document.querySelectorAll('*').length, heap: performance.memory?.usedJSHeapSize || null };
   });
   try {
+    if (!live) for (const file of ['atlas-reader.js', 'library-ui.js']) {
+      const body = baseline ? execFileSync('git', ['show', baselineRef + ':public/js/' + file], { cwd: root, maxBuffer: 16 * 1024 * 1024 }) : fs.readFileSync(path.join(root, 'public/js', file));
+      await page.route('**/js/' + file + '?*', route => route.fulfill({ body, contentType: 'text/javascript' }));
+    }
     const start = Date.now();
     await page.goto('https://linguistpro.kolosei.com/library.html#room=atlas%3Aa97001');
     await page.waitForSelector('.atlas-home', { timeout: 120000 });

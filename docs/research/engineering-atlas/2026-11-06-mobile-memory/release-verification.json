@@ -1,0 +1,57 @@
+{
+  "version": "3.11.863",
+  "shellKeys": 207,
+  "integrityFaults": [],
+  "localByteParity": [
+    "public/js/atlas-reader.js",
+    "public/js/library-ui.js",
+    "public/library.html",
+    "public/sw.js"
+  ],
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 125,
+      "now": "2026-11-06T04:26:10.143Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 83,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 125,
+      "now": "2026-11-06T04:26:10.218Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 83,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 125,
+      "now": "2026-11-06T04:26:10.297Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 83,
+      "disk_warn": true
+    }
+  ],
+  "activeServiceWorker": {
+    "version": "3.11.863",
+    "state": "activated",
+    "controlledPage": true
+  }
+}
