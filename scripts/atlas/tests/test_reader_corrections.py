@@ -75,6 +75,29 @@ class ReaderCorrectionsTest(unittest.TestCase):
         src = open(os.path.join(RC.HERE, 'build_reader_data.py'), encoding='utf-8').read()
         self.assertIn('RC.apply_section(data)', src)
 
+    def test_97001_aa3003_storage_translation_has_no_disproved_uses(self):
+        # PDF p200 AA3003: מיכל (בריכה) לאחסון. The old translation
+        # asserted fuel/food uses, then contradicted itself in an appended note.
+        original_ru = 'топливные баки и пищевые ёмкости. В исходнике они не указаны.'
+        data = section([], page=200, sid='s19-aluminium')
+        data['atlas_id'] = 'a97001'
+        data['pages'][0]['tables'] = [{
+            'id': 'a97001:p200:img01:t-applications',
+            'cells': [{'row': 5, 'col': 0, 'he': 'AA 3003', 'ru': 'AA 3003'},
+                      {'row': 5, 'col': 1, 'ru': original_ru}],
+        }]
+        fixed, _ = RC.apply_section(data)
+        cells = fixed['pages'][0]['tables'][0]['cells']
+        value = next(c for c in cells if c['row'] == 5 and c['col'] == 1)
+        self.assertIn('מיכל (בריכה) לאחסון', value['he'])
+        self.assertIn('ёмкости (бассейны) для хранения', value['ru'])
+        self.assertNotRegex(value['ru'].lower(), r'топлив|пищев')
+        self.assertNotIn('В исходнике', value['ru'])
+        self.assertIn('20%', value['ru'])
+        self.assertIn('AA1100', value['ru'])
+        self.assertEqual(data['pages'][0]['tables'][0]['cells'][1]['ru'], original_ru)
+        self.assertEqual(RC.apply_section(fixed), (fixed, []))
+
 
 if __name__ == '__main__':
     unittest.main()
