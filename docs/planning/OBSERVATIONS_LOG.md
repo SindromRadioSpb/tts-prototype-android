@@ -10,6 +10,11 @@
 
 ---
 
+## O-162 — Atlas97001: смысл пустого owner export требует подтверждения
+- **Дата / где:** 2026-11-07, штатный экспорт 869 в Chrome владельца.
+- **Факт:** изолированный verifier прошёл, все четыре счётчика нулевые. Это не доказательство сохранности ожидаемой ненулевой истории; raw profile не исследовался.
+- **Статус:** открыто; вопрос владельцу об ожидаемом нуле. [Локальная приёмка](../research/engineering-atlas/2026-11-07-cli-gates/REPORT.ru.md).
+
 ## O-161 — Atlas progress export: metadata leaf types and committed read
 - **Date / scope:** 2026-11-06, unpublished869/870, independent review.
 - **Confirmed:**5be3a432 accepted nested metadata.surface through capture/validate. It also exported a transaction-local review later rolled back. Prior green suites did not test these classes.

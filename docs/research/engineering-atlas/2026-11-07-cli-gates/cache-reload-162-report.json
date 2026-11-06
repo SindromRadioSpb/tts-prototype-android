@@ -1,0 +1,18 @@
+[
+  {
+    "engine": "webkit",
+    "persistent": false,
+    "afterReload": false,
+    "afterPut": false,
+    "deleted": true,
+    "afterDeletePut": true
+  },
+  {
+    "engine": "webkit",
+    "persistent": true,
+    "afterReload": true,
+    "afterPut": true,
+    "deleted": true,
+    "afterDeletePut": true
+  }
+]

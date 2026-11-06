@@ -3,8 +3,9 @@
 // Three disposable app servers behind one loopback origin: 867 -> preparation -> structure -> rollback.
 // Never points at production or a user browser/profile. All grades below are synthetic fixtures.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{fork}=require('node:child_process');
-const {chromium,firefox,webkit}=require('playwright');
 const work=path.resolve(__dirname,'../..'),get=k=>{const i=process.argv.indexOf(k);return i<0?null:process.argv[i+1];};
+const playwrightModule=get('--playwright-module')||'playwright';
+const {chromium,firefox,webkit}=require(playwrightModule);
 const legacy=path.resolve(get('--legacy')),preparation=path.resolve(get('--preparation')),editionRoot=path.resolve(get('--edition-root')),out=path.resolve(get('--out'));
 const E=require('../../public/js/atlas-progress-export'),Edition=require('../../public/js/atlas-edition');
 const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer,waitForSmokeHealth}=require('../smoke-server-env');
@@ -38,7 +39,14 @@ async function jump(page,n){await page.locator('.atlas-pagejump input').fill(Str
   proxy=http.createServer((req,res)=>{if(networkDown){req.socket.destroy();return;}if(blockInstall&&req.url==='/js/atlas-progress-export.js?v=869'){res.writeHead(503,{'Cache-Control':'no-store'});return res.end('deliberate local installation interruption');}const p=http.request({hostname:'127.0.0.1',port:ports[phase],method:req.method,path:req.url.startsWith('/__atlas-test/structure.html')?req.url.replace('/__atlas-test/structure.html','/study-library.html'):req.url,headers:req.headers},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res);});p.on('error',()=>{res.writeHead(503);res.end();});req.pipe(p);});proxy.listen(0,'127.0.0.1');await new Promise(r=>proxy.once('listening',r));const base='http://127.0.0.1:'+proxy.address().port;report.origin=base;
   for(const [engine,type] of [['chromium',chromium],['firefox',firefox],['webkit',webkit]]){
    if(get('--engine')&&get('--engine')!==engine)continue;
-   phase='legacy';networkDown=false;browser=await type.launch({headless:true,...(engine==='firefox'&&get('--firefox-path')?{executablePath:get('--firefox-path')}:{})});const context=await browser.newContext({viewport:{width:1280,height:900},acceptDownloads:true});await context.route('https://**',r=>r.abort());
+   phase='legacy';networkDown=false;const launchOptions={headless:true,...(engine==='firefox'&&get('--firefox-path')?{executablePath:get('--firefox-path')}:{})};
+   const contextOptions={viewport:{width:1280,height:900},acceptDownloads:true};let context;
+   if(get('--persistent')){
+    const profile=path.join(out,'synthetic-profile-'+engine);
+    assert(!fs.existsSync(profile),'Persistent smoke requires a new synthetic profile');
+    context=await type.launchPersistentContext(profile,{...launchOptions,...contextOptions});browser=context.browser();
+   }else{browser=await type.launch(launchOptions);context=await browser.newContext(contextOptions);}
+   report.playwright_module=playwrightModule;report.persistent_synthetic_profile=!!get('--persistent');await context.route('https://**',r=>r.abort());
    const result={engine,offline_mode:get('--offline-mode')==='transport'?'loopback transport disconnected (navigator.onLine unchanged)':'Playwright setOffline',cases:[],errors:[]};report.engines.push(result);activeResult=result;result.failedRequests=[];context.on('requestfailed',r=>result.failedRequests.push({url:r.url().replace(base,''),failure:r.failure()?.errorText}));const pass = name => { result.cases.push(name); console.log(engine + ': ' + name); fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2)); };const old=await context.newPage();old.on('pageerror',e=>result.errors.push(e.message));
    console.log(engine+': opening legacy');await goto(old,base,'legacy');console.log(engine+': legacy DOM ready');await waitController(old);await old.reload({waitUntil:'domcontentloaded'});await ready(old,122);assert.equal(await controllerVersion(old),'3.11.867');
    await old.evaluate(()=>fetch('/data/atlas/a97001/sections/s15-materials-basics.json').then(r=>r.json()));console.log(engine+': seeding disposable profile');const oldOccurrence=await bounded(seed(old),'seed disposable profile');const before=await bounded(rawState(old),'read disposable profile');pass('old SW + old cached reader and synthetic progress');
