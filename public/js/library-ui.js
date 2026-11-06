@@ -13319,7 +13319,11 @@ function renderAtlasCorpus(atlasId, token) {
   wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
   main.appendChild(wrap);
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
-  const anchor = roomAtlasAnchor; roomAtlasAnchor = null;
+  // A DB projection refresh can remount the atlas after its one-shot URL anchor
+  // was consumed. Keep the current section/page instead of returning to contents.
+  const anchor = roomAtlasAnchor || (roomAtlasPosition && {
+    ...roomAtlasPosition, section: roomAtlasPosition.itemId || '', page: roomAtlasPosition.rowIndex || 0,
+  }); roomAtlasAnchor = null;
   // The atlas shows the same columns as every other Room text, and a choice made in it is the Room's choice.
   // Proofreading marks: everyone sees them, the owner sets them (lib/atlasReview.js).
   const reviewUrl = '/api/atlas/' + encodeURIComponent(atlasId) + '/review';

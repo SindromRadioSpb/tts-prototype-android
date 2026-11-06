@@ -233,7 +233,7 @@ body.theme-dark .atlas-root, body.theme-dark .atlas-overlay {
   background: var(--atlas-scan-label); color: var(--atlas-scan-mark); border: 1px solid var(--atlas-scan-mark); border-radius: 3px; padding: 0 4px; pointer-events: none; }
 .atlas-root .atlas-rg.atlas-hl i { background: var(--atlas-scan-mark); color: var(--atlas-scan-label); }
 .atlas-root .atlas-rg i.n { inset-inline-start: -7px; top: -9px; margin: 0; padding: 0 3px; min-width: 16px; text-align: center; line-height: 16px; font: 700 10px/16px system-ui, sans-serif; border-radius: 8px; }
-.atlas-root figcaption { font-size: .85rem; color: var(--atlas-muted); margin-top: 6px; }
+.atlas-root figcaption { font-size: .85rem; color: var(--atlas-muted); margin-top: 6px; overflow-wrap: anywhere; }
 /* the page's own caption line under its figure keeps the study layers */
 .atlas-root figcaption.atlas-figcap-row { font-size: inherit; color: inherit; margin-top: 4px; }
 .atlas-root figcaption.atlas-figcap-row > .atlas-row { border-bottom: 0; }
