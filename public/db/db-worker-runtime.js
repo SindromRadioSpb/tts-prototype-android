@@ -25,7 +25,8 @@
 import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js?v=531';
 import { MIGRATIONS } from './migrations.js';
 import { computeVfsOrder } from './vfs-order.js';
-import { OperationLease } from './operation-lease.js?v=727';
+import { OperationLease } from './operation-lease.js?v=869';
+import { readCommittedAtlasProgress } from './atlas-progress-snapshot.js?v=869';
 import { readMaterial } from './material-read.js?v=815';
 import { storageIdentity } from './storage-identity.js';
 import { createRuntimeDiagnostics, identityLockName, holdIdentityLock, holderSummary } from './runtime-diagnostics.js?v=544';
@@ -325,7 +326,7 @@ self.onmessage = ({ data }) => {
     }
   }
   lease.run(async () => {
-    requestId = id; operation = ['init', 'query', 'run', 'exec', 'close', 'readMaterial'].includes(type) ? type : 'unknown';
+    requestId = id; operation = ['init', 'query', 'run', 'exec', 'close', 'readMaterial', 'atlasProgressSnapshot'].includes(type) ? type : 'unknown';
     setPhase(lease.opened ? 'transaction' : 'waiting-lock');
     if (type === 'init') {
       if (preferVfs && selectedVfs && preferVfs !== selectedVfs) throw new Error('DB_PREFERRED_STORAGE_UNAVAILABLE: storage identity mismatch');
@@ -337,8 +338,10 @@ self.onmessage = ({ data }) => {
       return { vfs: vfsName, vfsKind };
     }
     if (type === 'close') { await lease.close(); return {}; }
+    if (type === 'atlasProgressSnapshot' && !migrated) throw Object.assign(new Error('ATLAS_PROGRESS_DB_NOT_OPEN'), {code:'ATLAS_PROGRESS_DB_NOT_OPEN'});
     await lease.ensureOpen();
     setPhase('executing-sql');
+    if (type === 'atlasProgressSnapshot') return { rows: await readCommittedAtlasProgress({query:queryRows,inTransaction:() => !sqlite3.get_autocommit(db)}) };
     if (type === 'readMaterial') return { material: await readMaterial(data.textId, {
       query: queryRows, exec: execMulti, inTransaction: () => lease.inTransaction(),
     }) };
@@ -346,7 +349,7 @@ self.onmessage = ({ data }) => {
     if (type === 'run') return { changes: await runSingle(sql, params || []) };
     if (type === 'exec') { await execMulti(sql); return {}; }
     throw new Error(`Unknown type: ${type}`);
-  }, { reset: type === 'close', retryOpen: type === 'init', sql }).then(
+  }, { reset: type === 'close', retryOpen: type === 'init', sql: type === 'atlasProgressSnapshot' ? '' : sql, requireCommitted: type === 'atlasProgressSnapshot' }).then(
     // inTransaction lets the page mark a transaction that a later worker
     // termination (back/forward cache) rolls back.
     result => { setPhase('ready'); self.postMessage({ id, ok: true, ...result, inTransaction: lease.opened && lease.inTransaction() }); },

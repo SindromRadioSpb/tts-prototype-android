@@ -350,6 +350,11 @@ export async function execRaw(sql) {
 export async function dbQuery(sql, params) {
   return q(sql, params);
 }
+// No initialization, replacement worker, transaction command or migration on export.
+export async function dbAtlasProgressSnapshot() {
+  if (!_initialized || !_worker || _workerCrashed) throw Object.assign(new Error('ATLAS_PROGRESS_DB_NOT_OPEN'), {code:'ATLAS_PROGRESS_DB_NOT_OPEN'});
+  return _call('atlasProgressSnapshot');
+}
 export async function dbRun(sql, params) {
   return r(sql, params);
 }
@@ -453,7 +458,7 @@ async function _initializeLocalDB() {
 
 function _spawnWorker() {
   if (typeof _dbJournal !== 'undefined') _dbJournal.record({ phase: 'worker-module-loading', event: 'worker-created' });
-  _worker = new Worker('/db/db-worker-runtime.js?v=815', { type: 'module' });
+  _worker = new Worker('/db/db-worker-runtime.js?v=869', { type: 'module' });
   _worker.onmessage = ({ data }) => {
     if (data.kind === 'diagnostic-phase') { _dbJournal.record(data.snapshot); return; }
     if (data.kind === 'committed') {
