@@ -13316,7 +13316,8 @@ function atlasClient(atlasId) {
   if (!window.AtlasEdition && atlasId === 'a97001') throw new Error('ATLAS_EDITION_COMPONENT_MISSING');
   return window.AtlasEdition ? window.AtlasEdition.client(atlasId) : {base:'/data/atlas/'+encodeURIComponent(atlasId)+'/', json:file=>fetch('/data/atlas/'+encodeURIComponent(atlasId)+'/'+file,{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('ATLAS_UNAVAILABLE');return r.json();})};
 }
-function atlasJson(atlasId, file) { return Promise.resolve().then(() => atlasClient(atlasId).json(file)); }
+function atlasJson(atlasId, file) { return Promise.resolve().then(() => atlasId === 'a97001' && /^context-ai\/s[0-9]{2}-[a-z0-9-]+\.json$/.test(file)
+  ? atlasClient(atlasId).contextJson(file.slice('context-ai/'.length)) : atlasClient(atlasId).json(file)); }
 function renderAtlasCorpus(atlasId, token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;

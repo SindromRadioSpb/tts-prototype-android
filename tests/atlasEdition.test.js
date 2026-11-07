@@ -45,3 +45,16 @@ test('the edition requires the complete semantic renderer/word/train/search cont
  assert.equal(E.componentsReady(scope),true);
  for(const key of Object.keys(scope))assert.equal(E.componentsReady({...scope,[key]:{}}),false,key+' cannot silently be an older cached component');
 });
+test('published context package is pinned to the edition and every section hash',async()=>{
+ const hash='ca40870e123fd81e1388918f8bf3babc3c1acbe1ef1daca6fb5059b3ad9384f4';
+ const dir=path.join(__dirname,'../atlas-context/a97001',hash),manifest=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json')));
+ assert.equal(Object.keys(manifest.files).length,21);
+ assert.equal(P.sha(fs.readFileSync(path.join(dir,'manifest.json'))),hash);
+ const urls=[],fetcher=async url=>{urls.push(url);return new Response(fs.readFileSync(path.join(dir,path.basename(url))));};
+ const client=E.createClient('a97001',{fetch:fetcher,crypto:crypto.webcrypto});
+ for(const file of Object.keys(manifest.files)){const layer=await client.contextJson(file);assert.equal(layer.source_revision,manifest.files[file].source_revision);assert.equal(layer.coverage_mode,'complete');}
+ assert(urls.every(url=>url.startsWith('/data/atlas-context/a97001/'+hash+'/')));
+ await assert.rejects(client.contextJson('../manifest.json'),/PATH/);
+ const damaged=E.createClient('a97001',{fetch:async url=>new Response(url.endsWith('/manifest.json')?fs.readFileSync(path.join(dir,'manifest.json')):Buffer.from('{}')),crypto:crypto.webcrypto});
+ await assert.rejects(damaged.contextJson(Object.keys(manifest.files)[0]),/FILE_HASH/);
+});
