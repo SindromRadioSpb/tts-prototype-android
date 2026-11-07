@@ -165,9 +165,11 @@
   // Reviewed table/figure references are real learning places, not fabricated prose.
   // Explicit cell refs keep the original source coordinates and do not scan unrelated words.
   function sectionItems(section, purpose) {
-    var out = [];
+    var out = [], inspection = purpose === 'inspection' && section && section.atlas_id === 'a97001rc32';
+    function readable(it) { return it && it.kind !== 'editor_note' && it.kind !== 'shared_source_context'; }
+    function allowed(it) { return inspection ? readable(it) : learningItem(it, purpose); }
     ((section && section.pages) || []).forEach(function (page) {
-      (page.items || []).forEach(function (it) { if (learningItem(it, purpose) && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
+      (page.items || []).forEach(function (it) { if (allowed(it) && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
     });
     // Append new kinds after the complete legacy sequence. Existing block order_index
     // values, gloss keys and occurrence corrections therefore keep their identities.
@@ -175,11 +177,11 @@
       // Preserve other published books' row ordering and existing context-layer keys.
       if (!section || !['a97001','a97001rc32'].includes(section.atlas_id)) return;
       (page.tables || []).forEach(function (table) {
-        if (!learningItem(table, purpose)) return;
+        if (!allowed(table)) return;
         (table.cells || []).forEach(function (cell) {
-          if (!learningItem(cell, purpose)) return;
+          if (!allowed(cell)) return;
           if (Array.isArray(cell.parts) && cell.parts.length) {
-            cell.parts.forEach(function (part) { if (learningItem(part, purpose) && part.id && String(part.he || '').trim()) out.push(Object.assign({page: page.page, source_ref: table.id, source_context: sourceContext(section, page, part, 'he')}, part)); });
+            cell.parts.forEach(function (part) { if (allowed(part) && part.id && String(part.he || '').trim()) out.push(Object.assign({page: page.page, source_ref: table.id, source_context: sourceContext(section, page, part, 'he')}, part)); });
             return;
           }
           if (!/[\u05d0-\u05ea]/.test(String(cell.he || ''))) return;
@@ -187,13 +189,13 @@
             source_ref: table.id, source_cell: { row: cell.row, col: cell.col }, type: 'table_cell',
             training_eligible: cell.training_eligible, learning_eligibility: cell.learning_eligibility, term_context_eligible: cell.term_context_eligible, term_context_refs: cell.term_context_refs, he: cell.he, he_niqqud: cell.he_niqqud || cell.he, ru: cell.ru || '', translit: cell.translit || '', translit_ru: cell.translit_ru || '', terms: cell.terms || [], source_context: sourceContext(section, page, table, 'cells[' + cell.row + ',' + cell.col + '].he', cell.terms || []) });
         });
-        if (table.title_training_eligible !== false && /[\u05d0-\u05ea]/.test(String(table.title_he || ''))) out.push({ id: table.id + ':title', page: page.page,
+        if ((inspection || table.title_training_eligible !== false) && /[\u05d0-\u05ea]/.test(String(table.title_he || ''))) out.push({ id: table.id + ':title', page: page.page,
           source_ref: table.id, type: 'table_title', he: table.title_he, he_niqqud: table.title_he, ru: table.title_ru || '', terms: table.title_terms || [], source_context: sourceContext(section, page, table, 'title_he', table.title_terms || []) });
       });
       (page.figures || []).forEach(function (figure) {
-        if (!learningItem(figure, purpose)) return;
-        if ((section.context_exclusions || []).some(function (x) { return x.ref === figure.id && x.field === 'caption_he'; })) return;
-        if (figure.caption_training_eligible !== false && /[\u05d0-\u05ea]/.test(String(figure.caption_he || ''))) out.push({ id: figure.id + ':caption', source_ref: figure.id, page: page.page,
+        if (!allowed(figure)) return;
+        if (!inspection && (section.context_exclusions || []).some(function (x) { return x.ref === figure.id && x.field === 'caption_he'; })) return;
+        if ((inspection || figure.caption_training_eligible !== false) && /[\u05d0-\u05ea]/.test(String(figure.caption_he || ''))) out.push({ id: figure.id + ':caption', source_ref: figure.id, page: page.page,
           type: 'figure_caption', training_eligible: figure.training_eligible, learning_eligibility: figure.learning_eligibility, term_context_refs: figure.term_context_refs, he: figure.caption_he, he_niqqud: figure.caption_he_niqqud || figure.he_niqqud || figure.caption_he, ru: figure.caption_ru || '', translit: figure.translit || '', translit_ru: figure.translit_ru || '', terms: figure.terms || [], source_context: sourceContext(section, page, figure, 'caption_he') });
       });
     });
@@ -292,6 +294,7 @@
     var term = loc && Number.isInteger(off) ? termAt(col === "niqqud" ? loc.niqqud.spans : loc.he.spans, off) : null;
     if (ctx.purpose === 'term_context' && (!term || (it.terms || []).indexOf(term.id + '#' + term.sense) < 0)) return null;
     return Object.freeze({
+      ...(ctx.purpose === 'inspection' ? {inspection_only:true} : {}),
       source_kind: SOURCE_KIND, atlas_id: ctx.atlasId, section_id: ctx.sectionId,
       text_key: ctx.textKeys.get(String(it.id)), text_id: ctx.textKeys.get(String(it.id)), sentence_id: String(it.id), order_index: ctx.order.get(String(it.id)),
       word_offset: Number.isInteger(off) ? off : null, col: col === "niqqud" ? "niqqud" : "he", surface: bareWord(surface),
@@ -303,6 +306,7 @@
   // → { textKey, sentenceId, orderIndex, surface } (the source a mark keeps) or null
   function verifyOccurrence(occ, ctx) {
     if (!occ || occ.source_kind !== SOURCE_KIND || !ctx) return null;
+    if (occ.inspection_only || ctx.purpose === 'inspection') return null;
     var it = ctx.items.get(String(occ.sentence_id));
     if (!it || ctx.order.get(String(it.id)) !== Number(occ.order_index)) return null;
     var key = ctx.textKeys.get(String(it.id));

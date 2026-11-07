@@ -33,7 +33,7 @@ const localDb = new Proxy(localDbRaw, {
 });
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
-import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=875';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=876';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=861';
 
@@ -13330,7 +13330,7 @@ function renderAtlasCorpus(atlasId, token) {
   }
   // Export is owner-only on both the UI and API; large ZIPs download natively.
   Promise.resolve().then(() => window.CloudSync && window.CloudSync.me()).then(async session => {
-    if (token !== corpusRenderToken || !wrap.isConnected || session?.user?.role !== 'owner' || atlasId === 'a97001rc32') return;
+    if (token !== corpusRenderToken || !wrap.isConnected || session?.user?.role !== 'owner') return;
     const box = el('div', {class:'atlas-material-export'});
     const status = el('p', {text:tt('atlas.materialExport.checking')});
     status.setAttribute('role','status'); box.appendChild(status); wrap.insertBefore(box,wrap.querySelector('.atlas-root'));
@@ -13479,7 +13479,8 @@ function atlasColoursControl(panel) {
 function attachAtlasWords(atlasId, section, data, how) {
   const AW = window.AtlasWords;
   if (!AW || !window.ReaderMorph || !section) return null;
-  const ctx = atlasWordsCtx = AW.sectionContext(atlasId, data, window.ReaderMorph);
+  const inspection = atlasId === 'a97001rc32';
+  const ctx = atlasWordsCtx = AW.sectionContext(atlasId, data, window.ReaderMorph, inspection ? {purpose:'inspection'} : undefined);
   const layers = () => (how && typeof how.layers === 'function' && how.layers()) || {};
   const AT = window.AtlasTrain, sid = String((data && data.id) || '');
   if (AT && typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(data.terms, atlasMyTerms(atlasId), sid));
@@ -13487,7 +13488,7 @@ function attachAtlasWords(atlasId, section, data, how) {
   const cardTopOf = (occ) => {
     const top = AW.cardTop(occ, ctx, { kicker: tt('atlas.word.term', 'Термин атласа'), mine: tt('atlas.terms.mine', 'Мой термин'),
       other: tt('atlas.word.otherSenses', 'Другие значения'), script: layers().script }) || { title: '' };
-    if (AT) {
+    if (AT && !inspection) {
       if (!top.title) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
       else {
         top.actions = [{ id: 'learn-term', label: tt('atlas.train.learnOne', 'Учить этот термин') }];
@@ -13511,6 +13512,10 @@ function attachAtlasWords(atlasId, section, data, how) {
         if (!top.title) { top.title = occ.surface; top.kicker = tt('atlas.word.sourceNote', 'Источник и ограничения'); }
       }
     }
+    if (inspection) {
+      if (!top.title) top.title = occ.surface;
+      top.lines = (top.lines || []).concat(tt('atlas.word.inspection', 'Словарный просмотр: корень и формы не подтверждают чтение и значение слова в этой строке. Учебные оценки здесь не записываются.'));
+    }
     return top;
   };
   const handle = attachReaderMorph(section, {
@@ -13533,6 +13538,12 @@ function attachAtlasWords(atlasId, section, data, how) {
     },
     // the per-place review and the mentor need a stored sentence: not for atlas places (W0 report §2)
     confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
+    ...(inspection ? {
+      saveWord:null, saveUserMeaning:null, saveWordPersonal:null,
+      setWordStatus:null, enrollLearningTarget:null, practiceLearningTarget:null,
+      listLearningTargets:null, getDueSchedule:null, noteRecallShown:null, gradeReadingTap:null,
+      contextProvider:null, refineContext:null,
+    } : {}),
   });
   const labels = { terms: tt('atlas.word.terms', 'Термины абзаца') };
   section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });

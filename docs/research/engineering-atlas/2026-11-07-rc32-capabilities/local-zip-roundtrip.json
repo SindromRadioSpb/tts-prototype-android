@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "atlas_id": "a97001rc32",
+  "source_atlas_id": "a97001",
+  "revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "files": 1201,
+  "learner_data_included": false,
+  "ai_layer_included": false,
+  "original_supplier_zip_included": true,
+  "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+  "restore_to_new_directory_passed": true,
+  "repack_file_members_exactly_equal": true,
+  "zip_sha256": "6518a521d735229fcc18e38c8e404ea0de71890482b17878d720dae9d59a8816",
+  "zip_bytes": 184416521
+}

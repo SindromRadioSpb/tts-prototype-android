@@ -1,0 +1,12 @@
+{
+  "scope": "GET/HEAD only, anonymous disposable persistent Chromium; no owner data",
+  "checks": [
+    "root-family child card and Back retain inspection-only actions",
+    "Hebrew RTL 380px: dictionary, root and Pealim forms render without viewport overflow",
+    "original corpus retains its existing card actions after leaving RC3.2"
+  ],
+  "errors": [],
+  "origin": "http://127.0.0.1:51291",
+  "learner_counts_unchanged": true,
+  "status": "passed"
+}

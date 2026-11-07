@@ -21,7 +21,7 @@ async function main(){
  // Manifest written last: interrupted intake cannot be offered as a full export.
  const provenance=files['source-provenance.json']?JSON.parse(await fs.readFile(path.join(dest,'source-provenance.json'),'utf8')):null;
  if(provenance && (provenance.atlas_id!==id || provenance.pdf_sha256!==files[pdf].sha256))throw Error('Source provenance mismatch');
- await fs.writeFile(path.join(dest,'manifest.json'),JSON.stringify({schema:'linguistpro.atlas-export-sources.1',atlas_id:id,pdf,files,...(provenance?{sections:provenance.sections}:{})},null,2),{flag:'wx'});
+ await fs.writeFile(path.join(dest,'manifest.json'),JSON.stringify({schema:'linguistpro.atlas-export-sources.1',atlas_id:id,pdf,files,...(provenance?{sections:provenance.sections,...(provenance.source_atlas_id?{source_atlas_id:provenance.source_atlas_id,edition_revision:provenance.edition_revision,edition_manifest_sha256:provenance.edition_manifest_sha256}:{})}:{})},null,2),{flag:'wx'});
  console.log(JSON.stringify({atlas_id:id,files:Object.keys(files).length,pdf_sha256:files[pdf].sha256,destination:dest}));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});

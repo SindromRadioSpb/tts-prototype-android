@@ -1,0 +1,36 @@
+{
+  "disposable_profile": true,
+  "service_workers": "blocked; separate release check required",
+  "corpora": [
+    {
+      "atlas_id": "a97001rc32",
+      "file": "a97001rc32-full-material.zip",
+      "bytes": 184416521,
+      "download": "passed",
+      "learner_tables_unchanged": true
+    }
+  ],
+  "blocked_mutations": [],
+  "blocked_learner_reads": [
+    "/api/learner/log",
+    "/api/learner/counts",
+    "/api/learner/oracle"
+  ],
+  "page_errors": [],
+  "profile": "new isolated persistent Chromium profile",
+  "stage": "a97001rc32:verify-empty-profile",
+  "layouts": [
+    {
+      "atlas_id": "a97001rc32",
+      "width": 380,
+      "scrollWidth": 380
+    },
+    {
+      "atlas_id": "a97001rc32",
+      "width": 1280,
+      "scrollWidth": 1280
+    }
+  ],
+  "logout_status": 200,
+  "status": "passed"
+}

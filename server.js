@@ -1435,14 +1435,14 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=875",
-  "/js/atlas-progress-export.js?v=875",
-  "/js/atlas-edition.js?v=875",
-  "/js/atlas-train-ui.js?v=875",
-  "/js/atlas-train.js?v=875",
-  "/js/atlas-search.js?v=875",
-  "/js/atlas-reader.js?v=875",
-  "/js/corpus-registry.js?v=875",
+  "/js/library-ui.js?v=876",
+  "/js/atlas-progress-export.js?v=876",
+  "/js/atlas-edition.js?v=876",
+  "/js/atlas-train-ui.js?v=876",
+  "/js/atlas-train.js?v=876",
+  "/js/atlas-search.js?v=876",
+  "/js/atlas-reader.js?v=876",
+  "/js/corpus-registry.js?v=876",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
   "/js/course-format.js?v=861",
@@ -1475,7 +1475,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/word-gloss.js?v=819",
   "/js/word-gloss-ai.js?v=847",
   "/js/atlas-context-contract.js?v=2",
-  "/js/atlas-words.js?v=875",
+  "/js/atlas-words.js?v=876",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",
@@ -1517,9 +1517,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=875",
-  "/i18n/locales/en.js?v=875",
-  "/i18n/locales/he.js?v=875",
+  "/i18n/locales/ru.js?v=876",
+  "/i18n/locales/en.js?v=876",
+  "/i18n/locales/he.js?v=876",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -2186,7 +2186,7 @@ require("./lib/atlasReview").installRoutes(app, { dir: path.join(DATA_DIR, "atla
 const atlasExportEdition = require('./public/js/atlas-edition');
 require('./lib/atlasMaterialExport').installRoutes(app, {
   dataDir: DATA_DIR, contextDir: path.join(__dirname,'atlas-context'), requireUser,
-  pins: {a97001:{...atlasExportEdition.pin,context_sha256:atlasExportEdition.contextPin}},
+  pins: {a97001:{...atlasExportEdition.pin,context_sha256:atlasExportEdition.contextPin},a97001rc32:atlasExportEdition.pinFor('a97001rc32')},
   limiter: makeRateLimiter({windowMs:60000,max:10,name:'atlas-material-export'}),
 });
 // Cookie writers use the existing identity/CSRF boundary; connector credentials

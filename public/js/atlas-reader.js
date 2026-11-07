@@ -67,7 +67,7 @@
     // so any column set from «Колонки» closes up without holes. Proofreading status lives in the page header.
     function renderBlock(T, item) {
       var editorial = item.kind === 'editor_note', shared = item.kind === 'shared_source_context', structure = item.structure;
-      var learn = !editorial && !shared && learningEligible(item);
+      var learn = !editorial && !shared && (learningEligible(item) || inspectionTarget(item));
       var hasText = [item.he, item.he_raw, item.he_niqqud, item.translit, item.translit_ru, item.ru].some(function (s) { return String(s || '').trim(); });
       var row = h(editorial ? 'aside' : 'div', { cls: editorial ? 'atlas-editor-note' : 'atlas-row' + (shared ? ' atlas-shared-source' : ''), 'data-ref': item.id, 'data-kind': item.kind || null });
       if (editorial) row.appendChild(h('strong', { cls: 'atlas-editor-label', text: T('atlas.editor.title', 'Заметки редактора') }));
@@ -550,7 +550,7 @@
     function renderChip(fig) {
       var r = (fig.regions || [])[0] || {};
       var he = fig.caption_he || r.label_he || '', ru = cleanMeta(fig.caption_ru || r.label_ru);
-      var learning = learningEligible(fig) && /^a97001(?:rc32)?:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(he);
+      var learning = (learningEligible(fig) || inspectionTarget(fig)) && /^a97001(?:rc32)?:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(he);
       return h('figure', { cls: 'atlas-fig atlas-chipfig', 'data-ref': fig.id }, [
         h('img', { src: fig.crop, alt: ru || he || '', loading: 'lazy' }),
         h('figcaption', { cls: learning ? 'atlas-learning-row' : null, 'data-ref': learning ? fig.id + ':caption' : null }, [he ? h('bdi', { lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null, text: he }) : null,
@@ -619,7 +619,7 @@
           h('bdi', { lang: 'he', dir: dirOf(g.he), text: g.he }), ru ? h('span', { cls: 'atlas-l-ru', text: (g.he ? ' — ' : '') + ru }) : null]));
       });
       var capRu = cleanMeta(fig.caption_ru);
-      var learning = learningEligible(fig) && /^a97001(?:rc32)?:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(fig.caption_he || '');
+      var learning = (learningEligible(fig) || inspectionTarget(fig)) && /^a97001(?:rc32)?:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(fig.caption_he || '');
       var cap = captionRow ? h('figcaption', { cls: 'atlas-figcap-row' }, [captionRow])
         : (fig.caption_he || capRu) ? h('figcaption', { cls: learning ? 'atlas-learning-row' : null, 'data-ref': learning ? fig.id + ':caption' : null }, [h('bdi', { lang: 'he', dir: 'rtl', 'data-col': learning ? 'he' : null, text: fig.caption_he || '' }),
           h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null, text: (fig.caption_he && capRu ? ' - ' : '') + capRu })]) : null;
@@ -689,6 +689,9 @@
     }
 
     function learningEligible(item) { var p = item.learning_eligibility; return item.training_eligible !== false && !(item.structure && item.structure.training_eligible === false) && (!p || p.schema === 'atlas97001.learning-eligibility.1' && p.lexical && p.lexical.allowed === true); }
+    // A word may be inspected without approving its source row for practice.
+    // The RC3.2 host uses a separate inspection context with no learning writers.
+    function inspectionTarget(item) { return /^a97001rc32:/.test(item.id || ''); }
     function tableSourceFacts(cell) {
       var fields = cell.source_fields || {}, unresolved = cell.unresolved_fields || [];
       var facts = h('div', {cls:'atlas-source-facts', dir:'ltr'});
@@ -750,7 +753,7 @@
             if (/\d/.test(text)) digits = true;
             var unit = text.trim() && c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit && !labelled[String(c.unit).toLowerCase()] && !labelled['?' + String(c.unit).toLowerCase()] ? c.unit : '';
             var he = c.he && (c.he !== text || c.he_niqqud || c.translit || c.translit_ru) ? c.he : '';
-            var learning = learningEligible(table) && learningEligible(c) && /^a97001(?:rc32)?:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(c.he || '');
+            var learning = (learningEligible(table) && learningEligible(c) || inspectionTarget(table)) && /^a97001(?:rc32)?:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(c.he || '');
             tr.appendChild(h('td', { cls: learning ? 'atlas-learning-row' : null, colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text), 'data-cell': c.row+':'+c.col,
               'data-ref': c.id || (learning ? table.id + ':cell:' + c.row + ':' + c.col : null) },
               he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null }, texNodes(he)),
@@ -771,7 +774,7 @@
       var heads = firstNum >= 0 ? firstNum : (built.length >= 3 && !built[0].digits ? 1 : 0);
       built.forEach(function (b, n) { (n < heads ? head : body).appendChild(b.tr); });
       // an untitled table gets no caption: an empty one painted a blank band above the grid
-      var titleLearning = learningEligible(table) && /^a97001(?:rc32)?:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(table.title_he || '');
+      var titleLearning = (learningEligible(table) || inspectionTarget(table)) && /^a97001(?:rc32)?:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(table.title_he || '');
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
         !(tableTitle(table) || table.title_he) ? null : h('caption', { cls: titleLearning ? 'atlas-learning-row' : null, 'data-ref': titleLearning ? table.id + ':title' : null }, [h('span', { cls: 'atlas-l-ru', 'data-col': titleLearning ? 'ru' : null, text: tableTitle(table) }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', 'data-col': titleLearning ? 'he' : null, text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);

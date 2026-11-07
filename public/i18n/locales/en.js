@@ -5734,3 +5734,5 @@ window.I18N_LOCALES.en.atlas.materialExport = {"checking": "Checking full export
 window.I18N_LOCALES.en.atlas.materialExport.working = "Preparing and verifying the archive. It will appear in browser downloads; a large corpus may take up to a minute.";
 
 window.I18N_LOCALES.en.room.hub.atlas97001rc32 = {"title": "Engineering Atlas 97001 · RC3.2", "desc": "Full native edition · 203 pages · separate progress · learning limits are marked"};
+
+window.I18N_LOCALES.en.atlas.word.inspection = "Dictionary view: the root and forms do not verify this word’s reading or meaning in this passage. No learning grades are recorded here.";

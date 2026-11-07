@@ -72,3 +72,37 @@ test('legacy content must match its registered editorial provenance',async t=>{
  await f.put(f.source,'manifest.json',manifest);
  assert((await service.build('a97002',path.join(f.tmp,'bound'))).manifest);
 });
+
+async function nativeFixture(t){
+ const f=await fixture(t,'a97001',true),id='a97001rc32',pin={...f.pins.a97001,atlas_id:'a97001'};delete pin.context_sha256;f.pins[id]=pin;
+ const source=path.join(f.tmp,'atlas-sources',id),pdf=await f.put(source,'source.pdf',Buffer.from('pdf-fixture'));
+ const descriptor={atlas_id:id,source_atlas_id:'a97001',edition_revision:pin.revision,edition_manifest_sha256:pin.manifest_sha256,pdf:'source.pdf',files:{'source.pdf':pdf}};
+ await f.put(source,'manifest.json',descriptor);return {...f,id,pin,nativeSource:source,descriptor};
+}
+test('separate RC3.2 corpus exports immutable supplier identity without borrowing the original AI layer',async t=>{
+ const f=await nativeFixture(t),service=api.createService(f.options),result=await service.build(f.id,path.join(f.tmp,'native-export'));
+ assert.equal(result.manifest.atlas_id,f.id);assert.equal(result.manifest.source_atlas_id,'a97001');
+ assert.equal(result.manifest.edition_manifest_sha256,f.pin.manifest_sha256);assert.equal(result.manifest.ai_layer_included,false);
+ assert.equal(result.manifest.ai_dependency_state,'no_ai_layer');
+ const zip=await JSZip.loadAsync(await fs.readFile(result.zipPath));
+ assert.equal(JSON.parse(await zip.file('edition/index.json').async('string')).atlas_id,'a97001');
+ assert.equal(await zip.file('edition/sections/s01-test.json').async('string'),await fs.readFile(path.join(f.root,'sections/s01-test.json'),'utf8'));
+ assert(!Object.keys(zip.files).some(n=>n.startsWith('context/')));assert(zip.file('sources/source.pdf'));
+ assert((await service.inventory('a97001')).pin.context_sha256,'original context pin unchanged');
+});
+test('RC3.2 sources must bind the exact supplier edition',async t=>{
+ const f=await nativeFixture(t),service=api.createService(f.options);
+ await f.put(f.nativeSource,'manifest.json',{...f.descriptor,edition_revision:'f'.repeat(64)});
+ await assert.rejects(service.inventory(f.id),/SOURCE_BINDING_MISMATCH/);
+});
+test('RC3.2 ZIP API retains owner-only authorization on inventory and download',async t=>{
+ const f=await nativeFixture(t),app=express();
+ api.installRoutes(app,{...f.options,requireUser:async(req,res)=>{const role=req.headers['x-role'];if(!role){res.sendStatus(401);return null;}return {user:{role}};}});
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>server.close());const base='http://127.0.0.1:'+server.address().port;
+ for(const suffix of ['','.zip'])for(const [role,status]of [[null,401],['member',403]])assert.equal((await fetch(base+'/api/atlas/'+f.id+'/material-export'+suffix,{headers:role?{'x-role':role}:{}})).status,status);
+ const response=await fetch(base+'/api/atlas/'+f.id+'/material-export.zip',{headers:{'x-role':'owner'}});assert.equal(response.status,200);
+ assert.equal(response.headers.get('x-atlas-revision'),f.pin.revision);assert.match(response.headers.get('content-disposition'),/a97001rc32-full-material/);
+ const zip=await JSZip.loadAsync(await response.arrayBuffer());assert.equal(JSON.parse(await zip.file('manifest.json').async('string')).atlas_id,f.id);
+ for(let i=0;i<100 && (await fs.readdir(path.join(f.tmp,'atlas-export-tmp'))).length;i++)await new Promise(r=>setTimeout(r,20));
+ assert.deepEqual(await fs.readdir(path.join(f.tmp,'atlas-export-tmp')),[]);
+});

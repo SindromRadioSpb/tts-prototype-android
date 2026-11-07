@@ -36,6 +36,20 @@ const report={scope:'local actual server, SHA-verified corpus projection, synthe
  for(const c of controls){console.log('control page',c.page);await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32&sec='+c.section+'&pg='+c.page);await page.waitForSelector('#atlas-p'+c.page,{timeout:60000});await page.locator('#atlas-p'+c.page).scrollIntoViewIfNeeded();await page.waitForTimeout(400);await page.screenshot({path:path.join(out,'page-'+c.page+'-desktop.png'),timeout:20000,animations:'disabled'});}
  await page.setViewportSize({width:390,height:844});await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32&sec='+controls.find(x=>x.page===124).section+'&pg=124');await page.waitForSelector('#atlas-p124',{timeout:60000});await page.locator('#atlas-p124').scrollIntoViewIfNeeded();await page.waitForTimeout(400);await page.screenshot({path:path.join(out,'page-124-mobile.png')});report.mobileOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(report.mobileOverflow,false);
  report.checks.push('control pages 1,56,116,124,170,171,193,203 captured; 390px page124 no viewport overflow');
+ const inspectionState=()=>page.evaluate(async()=>({words:await __localDB.dbQuery('SELECT COUNT(*) AS n FROM word_status',[]),reviews:await __localDB.dbQuery('SELECT COUNT(*) AS n FROM review_log',[])}));
+ const inspectionBefore=await inspectionState();
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:1000});
+  const word=page.locator('#atlas-p124 [data-ref="a97001rc32:p124:b002"] [data-col="niqqud"] .rm-w').first();await word.click();
+  await page.waitForSelector('.rm-sheet.rm-open .rm-acc-conj',{timeout:60000});
+  assert((await page.locator('.rm-sheet').innerText()).includes('корень'));
+  assert.equal(await page.locator('.rm-sheet [data-rm-status], .rm-sheet [data-rm-save], .rm-sheet [data-rm-enroll], .rm-sheet [data-rm-recall-grade], .rm-sheet [data-rm-surface-action]').count(),0);
+  await page.locator('.rm-acc-conj summary').click();await page.waitForSelector('.rm-conj-body .v3-conj-cell');
+  await page.screenshot({path:path.join(out,'morph-p124-'+width+'.png'),timeout:20000});await page.keyboard.press('Escape');
+ }
+ await page.locator('#atlas-p124 .rm-w').filter({hasText:'צַוָּאר'}).first().click();await page.waitForSelector('.rm-sheet.rm-open .rm-current-reading',{timeout:60000});
+ assert((await page.locator('.rm-sheet').innerText()).includes('Учебные оценки здесь не записываются'));await page.keyboard.press('Escape');
+ assert.deepEqual(await inspectionState(),inspectionBefore);report.checks.push('RC3.2 held p124 words and source term open dictionary cards, roots and Pealim forms at 1440/390; no learning writers/actions; learner counts unchanged');
  await page.goto(base+'/study-library.html#room=atlas%3Aa97001');await page.waitForSelector('.atlas-home',{timeout:60000});report.checks.push('return to original corpus mounts successfully');
 
  await page.setViewportSize({width:1440,height:1000});

@@ -190,7 +190,7 @@
   // A link the text does not show keeps its paragraph without a word position (from/to null).
   function sectionTermItems(ctx) {
     var out = [], seen = {};
-    if (!ctx || !ctx.items) return out;
+    if (!ctx || !ctx.items || ctx.purpose === 'inspection') return out;
     function add(id, sense, block, from, to) {
       var k = termKey(ctx.atlasId, id, sense), term = ctx.terms && ctx.terms[id];
       if (!k || seen[k] || !term || term.training_eligible === false || (term.projection_hold_reasons || []).length) return;

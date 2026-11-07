@@ -35,11 +35,13 @@ fs.mkdirSync(out,{recursive:true});
    return route.continue();
   });
   const page=await context.newPage();page.on('pageerror',e=>report.page_errors.push(e.message));
-  for(const id of ['a97001','a97002']){
+  for(const id of (get('--corpus') || 'a97001,a97002').split(',')){
    report.stage=id+':open';
    await page.setViewportSize({width:380,height:900});
    await page.goto(base+'/study-library.html#room=atlas%3A'+id,{waitUntil:'load'});
-   const link=page.locator('.atlas-material-export a');await link.waitFor({timeout:90000});
+   const link=page.locator('.atlas-material-export a');
+   try { await link.waitFor({timeout:90000}); }
+   catch(e) { report.export_ui=await page.locator('.atlas-material-export').allTextContents();report.export_api=await page.evaluate(async id=>{const r=await fetch('/api/atlas/'+id+'/material-export');return {status:r.status,body:await r.text()};},id);throw e; }
    await page.waitForFunction(()=>window.__localDB?.getOwnershipState()==='shared',null,{timeout:60000});
    // This is an empty disposable profile. Prove it stays empty without copying
    // arbitrary learner rows through the automation transport.
