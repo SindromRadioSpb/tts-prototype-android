@@ -7,4 +7,4 @@ const deps=process.argv[2];if(!deps)throw Error('Usage: node run-project-tests.c
 const dependencyRoot=path.resolve(deps);require.resolve('katex',{paths:[dependencyRoot]});
 function discover(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?discover(p):/\.test\.[cm]?js$/.test(e.name)||e.name==='i18n.smoke.js'?[p]:[];}).sort();}
 fs.mkdirSync(path.join(root,'.tmp'),{recursive:true});const data=fs.mkdtempSync(path.join(root,'.tmp/unit-acceptance-'));
-const r=spawnSync(process.execPath,['--test','--test-concurrency=4',...discover(path.join(root,'tests'))],{cwd:root,env:{...smokeServerEnv(data,0),NODE_PATH:dependencyRoot},stdio:'inherit'});if(r.error)throw r.error;process.exitCode=r.status??1;
+const r=spawnSync(process.execPath,['--test','--test-concurrency=4',...discover(path.join(root,'tests')).map(p=>path.relative(root,p))],{cwd:root,env:{...smokeServerEnv(data,0),NODE_PATH:dependencyRoot},stdio:'inherit'});if(r.error)throw r.error;process.exitCode=r.status??1;

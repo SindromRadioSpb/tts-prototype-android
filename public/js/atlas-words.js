@@ -238,17 +238,26 @@
     var purpose = options && options.purpose;
     var items = new Map(), order = new Map(), located = new Map(), personalRefs = [], textKeys = new Map();
     var compatibility = (section && section.occurrence_compatibility) || {}, prior = new Map(), reserved = new Set(), used = new Set(), n = 0;
-    (compatibility.rows || []).forEach(function (row) {
+    // A reviewed overlay can add learning places without moving existing saved
+    // occurrences. Each purpose has its own source projection and identity map.
+    var scoped = compatibility.purposes && compatibility.purposes[purpose || 'lexical'];
+    ((scoped || compatibility).rows || []).forEach(function (row) {
       if (!row || !row.id || !Number.isInteger(row.order_index) || row.order_index < 0 || prior.has(String(row.id)) || reserved.has(row.order_index)) {
         throw new Error('Invalid atlas occurrence compatibility');
       }
       prior.set(String(row.id), row); reserved.add(row.order_index); n = Math.max(n, row.order_index + 1);
+      if (scoped && (typeof row.text_key !== 'string' || !row.text_key.startsWith(editionKey(atlasId, section.id, '')) || row.text_key === editionKey(atlasId, section.id, ''))) throw new Error('Invalid atlas occurrence identity');
     });
     var revision = String(section && section.content_pack_sha256 || '') +
       (section && section.structure_revision ? ':structure:' + section.structure_revision : '');
     var currentKey = editionKey(atlasId, section && section.id, revision + (purpose === 'term_context' ? ':term-context' : ''));
-    sectionItems(section, purpose).forEach(function (it) {
+    var projectedItems = sectionItems(section, purpose);
+    var finalItems = scoped && new Map(projectedItems.map(function (it) { return [it.id, it]; }));
+    projectedItems.forEach(function (it) {
         if (!it || !it.id || !String(it.he || "").trim()) return;
+        // Existing projections use the last semantic representation of an ID
+        // (for example a caption also represented by a block). Reserve it once.
+        if (scoped) { if (items.has(String(it.id))) return; it = finalItems.get(it.id); }
         var id = String(it.id), old = prior.get(id), requested = it.structure && it.structure.occurrence_order_index;
         if (!Number.isInteger(requested)) requested = it.legacy_order_index;
         var index = old ? old.order_index : Number.isInteger(requested) && requested >= 0 && !reserved.has(requested) && !used.has(requested) ? requested : n;
@@ -257,8 +266,8 @@
         items.set(id, it); order.set(id, index);
         // Reuse an old source identity only on exact content equality, never merely
         // because an ordinal or id was retained. Split parents are not in this map.
-        var unchanged = old && compatibility.source_revision && !(it.structure && it.structure.parent_ref) && sameSource(old, it);
-        textKeys.set(id, unchanged ? editionKey(atlasId, section.id, compatibility.source_revision) : currentKey);
+        var unchanged = old && sameSource(old, it) && (scoped || compatibility.source_revision && !(it.structure && it.structure.parent_ref));
+        textKeys.set(id, unchanged ? scoped ? old.text_key : editionKey(atlasId, section.id, compatibility.source_revision) : currentKey);
     });
     return {
       atlasId: String(atlasId || ""), sectionId: String(section && section.id || ""), RM: RM,
