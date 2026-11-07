@@ -56,7 +56,7 @@
     status:one(STATUS),keyer_version:one([1]),backfill:one([0,1]),interval:DAYS,reps:COUNTER,lapses:COUNTER,
     scheme:one(['fsrs','sm2','sm2-lite','manual-mark']),level:one(STATUS),seedAlgoVersion:one([1]),scheduler:scheduler,
     evidence_scope:one(['lexeme','cloze','context_supported','recognition','assisted_production','unsupported_production']),
-    // MorphHost.gradeRecall records ReaderMorph's provenance label, not an arbitrary score/string.
+    // MorphHost.gradeReadingTap records ReaderMorph's provenance label, not an arbitrary score/string.
     confidence:one(['exact','likely','guessed','function','unknown','dicta','context','owner','teacher']),
     fuzz_days:COUNTER,annul_of:ID,surface:WORD,
     pos:one(['','verb','noun','adjective','adverb','preposition','pronoun','propernoun','determiner','conjunction','interjection','particle','numeral','number','prefix','suffix','copula','question','punctuation','other','unknown']),
