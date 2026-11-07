@@ -1,0 +1,14 @@
+{
+  "files": 873,
+  "bytes": 273212707,
+  "roundtrip_equal": true,
+  "pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+  "sections": 21,
+  "pages": 203,
+  "capture": {
+    "revision": "50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc",
+    "manifest_sha256": "085d33fddbd04a1eaaa4a9e625273591683cdcf9ff19d0b16899d503132ada7a",
+    "context_sha256": "ca40870e123fd81e1388918f8bf3babc3c1acbe1ef1daca6fb5059b3ad9384f4",
+    "origin": "https://linguistpro.kolosei.com"
+  }
+}
