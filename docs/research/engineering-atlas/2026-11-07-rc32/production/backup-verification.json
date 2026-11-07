@@ -1,0 +1,17 @@
+{
+  "format": "linguistpro-volume-online-backup-v1",
+  "created_at": "2026-11-07T17:55:27.778455+00:00",
+  "sqlite_method": "online_backup_api",
+  "sqlite_integrity_check": "ok",
+  "snapshot_sha256": "e559a5822ef22189dae9a3f64575221e3cdfd4567f597b42c7d686c76e1f1b1d",
+  "excluded": [
+    "backups",
+    "audio-cache"
+  ],
+  "archive": "/opt/backups/linguistpro/atlas97001-rc32-20261107/volume-before-rc32.tar.gz",
+  "bytes": 2378830760,
+  "sha256": "90d65fb46d5a06f932f3f134642a89cd22471e250b7f6250a27b441e05d8f136",
+  "restored_snapshot_sha256_matches": true,
+  "status": "passed",
+  "existing_backups_removed": false
+}

@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "scope": "production GET/HEAD only; synthetic profile; screenshots wait for visible image decode",
+  "pages": [
+    {
+      "page": 1,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 56,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 116,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 124,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 170,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 171,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 193,
+      "visibleImagesDecoded": true
+    },
+    {
+      "page": 203,
+      "visibleImagesDecoded": true
+    }
+  ],
+  "mobileOverflow": false
+}

@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "scope": "actual owner canonical read-only exports before and after deployment; no application import",
+  "exact_rows_equal": {
+    "word_status": true,
+    "review_log": true,
+    "find_history": true,
+    "find_stale": true
+  },
+  "counts_before": {
+    "word_status": 0,
+    "review_log": 1,
+    "find_history": 0,
+    "find_stale": 0
+  },
+  "counts_after": {
+    "word_status": 0,
+    "review_log": 1,
+    "find_history": 0,
+    "find_stale": 0
+  },
+  "before_sha256": "cd4cd8f3ab88bb5e129c4800b3de61b26abe12525e2b3de12c55f563c7e229dd",
+  "after_sha256": "cb66a45b89726ba4ed679aaa06b28beca486ce2d66157ea370111ff419165e0c"
+}

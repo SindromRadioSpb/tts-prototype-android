@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "version": "3.11.875",
+  "legacy_files_equal": true,
+  "all_previous_edition_files_equal": true,
+  "review_files_equal": true,
+  "existing_backup_files_unchanged": true,
+  "volumes_equal": true,
+  "legacy_files": 945,
+  "previous_edition_files": 845,
+  "available_bytes": 4699377664,
+  "current_image": "sha256:f5e9b9f85941ccb8f3797b13a6d63744bbbbc8c405cb42c90748964ff3f67c42"
+}

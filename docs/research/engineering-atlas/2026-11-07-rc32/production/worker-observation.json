@@ -1,0 +1,10 @@
+{
+  "scope": "read-only observation in existing owner Reading Room tab; no storage modification",
+  "observed_at_utc": "2026-11-07T19:01:00Z",
+  "active_worker": "3.11.875",
+  "controlling_worker": "3.11.875",
+  "footer_version": "3.11.875",
+  "original_revision": "50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc",
+  "native_revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "timestamp_precision": "minute; manually transcribed aggregate tool observation"
+}

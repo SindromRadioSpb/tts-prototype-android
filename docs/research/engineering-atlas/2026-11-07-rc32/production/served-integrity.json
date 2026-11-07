@@ -1,0 +1,51 @@
+{
+  "status": "passed",
+  "version": "3.11.875",
+  "revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "manifest_sha256": "0211488a36ef6a03c6f277c6c913fb18165ab19430d13a4e623c95fc640ba332",
+  "edition_files_verified": 1196,
+  "shell_files_verified": 216,
+  "mismatches": [],
+  "health_probes": [
+    {
+      "ok": true,
+      "uptimeSec": 2185,
+      "now": "2026-11-07T19:02:03.229Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 88,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 2185,
+      "now": "2026-11-07T19:02:03.478Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 88,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 2186,
+      "now": "2026-11-07T19:02:03.713Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 88,
+      "disk_warn": true
+    }
+  ],
+  "elapsed_seconds": 178.45
+}
