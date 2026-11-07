@@ -1,0 +1,116 @@
+{
+  "pin": {
+    "atlas_id": "a97001",
+    "revision": "50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc",
+    "manifest_sha256": "085d33fddbd04a1eaaa4a9e625273591683cdcf9ff19d0b16899d503132ada7a"
+  },
+  "contextPin": "ca40870e123fd81e1388918f8bf3babc3c1acbe1ef1daca6fb5059b3ad9384f4",
+  "sections": [
+    {
+      "id": "s00-front",
+      "rows": 59,
+      "complete": true
+    },
+    {
+      "id": "s01-units",
+      "rows": 71,
+      "complete": true
+    },
+    {
+      "id": "s02-statics-basics",
+      "rows": 111,
+      "complete": true
+    },
+    {
+      "id": "s03-concurrent-forces",
+      "rows": 69,
+      "complete": true
+    },
+    {
+      "id": "s04-parallel-forces",
+      "rows": 95,
+      "complete": true
+    },
+    {
+      "id": "s05-planar-forces",
+      "rows": 31,
+      "complete": true
+    },
+    {
+      "id": "s06-trusses",
+      "rows": 69,
+      "complete": true
+    },
+    {
+      "id": "s07-centroid",
+      "rows": 74,
+      "complete": true
+    },
+    {
+      "id": "s08-friction",
+      "rows": 47,
+      "complete": true
+    },
+    {
+      "id": "s09-linear-motion",
+      "rows": 115,
+      "complete": true
+    },
+    {
+      "id": "s10-projectile-motion",
+      "rows": 43,
+      "complete": true
+    },
+    {
+      "id": "s11-circular-motion",
+      "rows": 28,
+      "complete": true
+    },
+    {
+      "id": "s12-sections",
+      "rows": 37,
+      "complete": true
+    },
+    {
+      "id": "s13-dimensions",
+      "rows": 83,
+      "complete": true
+    },
+    {
+      "id": "s14-industrial-symbols",
+      "rows": 130,
+      "complete": true
+    },
+    {
+      "id": "s15-materials-basics",
+      "rows": 111,
+      "complete": true
+    },
+    {
+      "id": "s16-mechanical-properties",
+      "rows": 233,
+      "complete": true
+    },
+    {
+      "id": "s17-steels",
+      "rows": 616,
+      "complete": true
+    },
+    {
+      "id": "s18-powder-metallurgy",
+      "rows": 18,
+      "complete": true
+    },
+    {
+      "id": "s19-aluminium",
+      "rows": 138,
+      "complete": true
+    },
+    {
+      "id": "s20-composites",
+      "rows": 6,
+      "complete": true
+    }
+  ],
+  "status": "passed"
+}

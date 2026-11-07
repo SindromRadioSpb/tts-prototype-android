@@ -1,0 +1,42 @@
+{
+  "base_commit": "b1c39a41",
+  "implementation_commit": "62c62b9f9c57892b0a54e77dc4f4c4f7027464fc",
+  "branch": "feat/atlas-rc32-context-technical",
+  "revision": "420c34275a26fe37cae12a41e77a77dde173de207164f6b5421c5a5dcf1c92bc",
+  "native_manifest_sha256": "20f06244b634c8296456693ec2a9620e5b19eb67f7df32a11efe3340f925018f",
+  "context_pin": "886489667313aaaf18d76676225af30395d1f5daebf16894b63ad6d921eb74d6",
+  "source_binding": {
+    "edition_revision": "420c34275a26fe37cae12a41e77a77dde173de207164f6b5421c5a5dcf1c92bc",
+    "edition_manifest_sha256": "20f06244b634c8296456693ec2a9620e5b19eb67f7df32a11efe3340f925018f",
+    "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+    "ai_dependencies_sha256": "c994972077618ccc9c3d63277ee63ff1731a3180513fee8af702f8d2bd33a4f0",
+    "source_overlay_manifest_sha256": "f6749c7bea7b08d5539baef08e2a887da19824d15ec59a11d02fe901c2a5d1b9"
+  },
+  "new_targets": 222,
+  "total_targets": 255,
+  "held": 48,
+  "original_term_ids_preserved": 513,
+  "lexical_rows": 78,
+  "source_records_verified": 6255,
+  "protected_fields_compared": 37530,
+  "addressed_maps": 263,
+  "changed_payload_keys": [
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-S",
+      "before_key": "r2209531a85b754d46:1",
+      "after_key": "r23a4332b8596350da:1",
+      "term_id": "a97001:term:element-s",
+      "reason": "explicit dictionary-backed reading correction; source HE and meaning unchanged"
+    }
+  ],
+  "full_export": {
+    "files": 1227,
+    "bytes": 218505631,
+    "sha256": "80b2e0a6e624d51e33081a1b4cd88fef87a447f0f5d6a975988718bd96593311",
+    "browser_download": "passed",
+    "verify_restore_repack_verify": "passed"
+  },
+  "production_changed": false,
+  "owner_profile_accessed": false,
+  "scientific_acceptance": false
+}

@@ -10,6 +10,13 @@
 
 ---
 
+## O-170 — Исторический volume fixture сравнивает старый train-bank с новым scoped builder
+- **Дата / где:** 2026-11-08, `tests/atlas97001SurfaceSenseFollowup.test.js`, принудительный `ATLAS_FOLLOWUP_DATA` на immutable edition `50253381…`.
+- **Факт:** 13/14 проверок проходят; `generated term index equals real builder…` требует полного равенства старого банка пересборке современным builder, добавляющим `canonical_selection/scoped_variants/held_sources`. Тот же тест падает на базовом main с тем же source directory; задействованные builder/words/test файлы main не имеют сторонних правок.
+- **Граница:** не регрессия V2 и не изменение старых данных. Обычный полный проектный набор проходит (3550 passed / 15 skipped), старый контекст 21/21 и его pins проверены. Этот дополнительный volume fixture не выдаётся за passed.
+- **Следующий шаг:** привязать историческую проверку к builder её выпуска либо проверять frozen manifest/runtime compatibility отдельно от современной пересборки. Не переписывать immutable train-bank ради теста.
+- **Статус:** открыто. [Отчёт V2](../research/engineering-atlas/2026-11-08-terms-v2-context/REPORT.ru.md).
+
 ## O-169 — Вложенный RC3.2 checkpoint содержит не весь raw input для повторной редакторской QA
 - **Дата / где:** 2026-11-07, локальный SHA-проверенный `a97001rc32-full-material.zip`, вложенный `sources/atlas97001-full-native-rc3-scoped-20261107.zip` → `sources/rc3-corrected-input-checkpoint.zip`.
 - **Факт:** checkpoint содержит 17 raw-разделов/5618 records; отсутствуют s08/s09/s11/s12. Повтор source-find scanner на этом частичном входе даёт 412 auto-eligible, а не полный эталон 6255/443; raw source parity останавливается на отсутствующем s08. Этот exploratory результат не засчитан как полная QA.

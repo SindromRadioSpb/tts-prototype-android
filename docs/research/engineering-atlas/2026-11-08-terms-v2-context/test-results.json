@@ -1,0 +1,40 @@
+{
+  "project_tests": {
+    "total": 3565,
+    "passed": 3550,
+    "failed": 0,
+    "skipped": 15,
+    "runner": "same recursive tests discovery and sanitized smoke environment, with local KaTeX NODE_PATH",
+    "skipped_tests": [
+      "ok 138 - 17 reviewed surface links use a separate sense in canonical and rendered data # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 139 - 16 reviewed area/region links stay intact; uncertain test-site association is not taught # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 140 - mixed p180 preserves quantitative area while heat removal uses the longer surface phrase # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 141 - all copies keep identical area/surface definitions and the distinct mishtakh lemma # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 142 - generated term index equals real builder and has exactly reviewed surface/area occurrences # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 143 - held surface/area contexts remain readable with exact provenance and never enter learning queues # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 144 - surface migration guards reject dropped, duplicated, wrong-sense and silently reactivated links # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 145 - all retired saved area examples fall back without modifying learner state # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 146 - each section can teach its referenced sense and every global occurrence remains valid # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 147 - pronunciation fixes are explicit and protected from generic recompilation # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 148 - unverified readings remain explicit limitations, not invented corrections # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 149 - circular-runout and pronunciation limitations reach normal cards and both trainer queues # SKIP requires volume-only a97001 runtime; canonical checks still run",
+      "ok 333 - real corpus bundle stays within budget and preserves postings and phrase text # SKIP",
+      "ok 352 - the whole book: every shown formula is read, ≥ 98 % of the readable blocks, within the cost ceiling # SKIP",
+      "ok 380 - full 97001 find-bank rebuild cannot teach any held or editorial row # SKIP requires a97001 runtime data"
+    ]
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "historical_50253381_volume_fixture": {
+    "passed": 13,
+    "failed": 1,
+    "baseline_same_test_failed": true,
+    "reason": "Frozen train bank predates scoped-variant metadata in current builder; source data unchanged"
+  },
+  "current_original_context": {
+    "sections": 21,
+    "status": "passed"
+  }
+}

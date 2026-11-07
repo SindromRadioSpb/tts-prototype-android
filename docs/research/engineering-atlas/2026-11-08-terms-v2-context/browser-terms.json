@@ -1,0 +1,64 @@
+{
+  "scope": "actual local server, new synthetic persistent Chromium; no production or owner profile",
+  "checks": [
+    "matched reviewed cards: compact canonical, Russian meaning, scoped Learn; source disclosure/navigation; owner force/solidification examples; 380px/LTR/RTL; viewing writes no learner state",
+    "real scoped Learn→grade→global review→exact source works, including front matter; original SQL/review state and canonical personal-term storage preserved",
+    "search for wheel returns and opens the semantic table part",
+    "three authorial correction/abbreviation targets stay loose with no invented source word span; p203 restriction remains in specific term note"
+  ],
+  "cards": [
+    {
+      "term": "a97001rc32:term:mechanics",
+      "page": 1,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:wheel",
+      "page": 11,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:element-s",
+      "page": 116,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:element-k",
+      "page": 116,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:short-alumina-fiber",
+      "page": 203,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:blast-furnace",
+      "page": 154,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:bauxite",
+      "page": 194,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    }
+  ],
+  "errors": [],
+  "origin": "http://127.0.0.1:52752",
+  "stage": "search-table-part",
+  "status": "passed"
+}

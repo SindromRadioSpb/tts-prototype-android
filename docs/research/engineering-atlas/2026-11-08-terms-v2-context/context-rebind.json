@@ -1,0 +1,159 @@
+{
+  "schema": "atlas97001.terms-v2-context-rebind.1",
+  "pin": {
+    "atlas_id": "a97001",
+    "revision": "420c34275a26fe37cae12a41e77a77dde173de207164f6b5421c5a5dcf1c92bc",
+    "manifest_sha256": "20f06244b634c8296456693ec2a9620e5b19eb67f7df32a11efe3340f925018f"
+  },
+  "sourceBinding": {
+    "edition_revision": "420c34275a26fe37cae12a41e77a77dde173de207164f6b5421c5a5dcf1c92bc",
+    "edition_manifest_sha256": "20f06244b634c8296456693ec2a9620e5b19eb67f7df32a11efe3340f925018f",
+    "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+    "ai_dependencies_sha256": "c994972077618ccc9c3d63277ee63ff1731a3180513fee8af702f8d2bd33a4f0",
+    "source_overlay_manifest_sha256": "f6749c7bea7b08d5539baef08e2a887da19824d15ec59a11d02fe901c2a5d1b9"
+  },
+  "contextPin": "886489667313aaaf18d76676225af30395d1f5daebf16894b63ad6d921eb74d6",
+  "baselineContextPin": "2f782372d533cbbe47fff439683f84d7fbb23bf44edc5486629f0dd1cb3b0dfd",
+  "map_entries": 263,
+  "changed_payload_keys": [
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-S",
+      "before_key": "r2209531a85b754d46:1",
+      "after_key": "r23a4332b8596350da:1",
+      "term_id": "a97001:term:element-s",
+      "reason": "explicit dictionary-backed reading correction; source HE and meaning unchanged"
+    }
+  ],
+  "sections": [
+    {
+      "id": "s00-front",
+      "expected": 69,
+      "accepted": 66,
+      "missing": 3
+    },
+    {
+      "id": "s01-units",
+      "expected": 46,
+      "accepted": 46,
+      "missing": 0
+    },
+    {
+      "id": "s02-statics-basics",
+      "expected": 108,
+      "accepted": 108,
+      "missing": 0
+    },
+    {
+      "id": "s03-concurrent-forces",
+      "expected": 71,
+      "accepted": 71,
+      "missing": 0
+    },
+    {
+      "id": "s04-parallel-forces",
+      "expected": 101,
+      "accepted": 101,
+      "missing": 0
+    },
+    {
+      "id": "s05-planar-forces",
+      "expected": 32,
+      "accepted": 32,
+      "missing": 0
+    },
+    {
+      "id": "s06-trusses",
+      "expected": 66,
+      "accepted": 66,
+      "missing": 0
+    },
+    {
+      "id": "s07-centroid",
+      "expected": 41,
+      "accepted": 41,
+      "missing": 0
+    },
+    {
+      "id": "s08-friction",
+      "expected": 48,
+      "accepted": 48,
+      "missing": 0
+    },
+    {
+      "id": "s09-linear-motion",
+      "expected": 117,
+      "accepted": 117,
+      "missing": 0
+    },
+    {
+      "id": "s10-projectile-motion",
+      "expected": 68,
+      "accepted": 68,
+      "missing": 0
+    },
+    {
+      "id": "s11-circular-motion",
+      "expected": 40,
+      "accepted": 40,
+      "missing": 0
+    },
+    {
+      "id": "s12-sections",
+      "expected": 28,
+      "accepted": 28,
+      "missing": 0
+    },
+    {
+      "id": "s13-dimensions",
+      "expected": 70,
+      "accepted": 70,
+      "missing": 0
+    },
+    {
+      "id": "s14-industrial-symbols",
+      "expected": 111,
+      "accepted": 111,
+      "missing": 0
+    },
+    {
+      "id": "s15-materials-basics",
+      "expected": 207,
+      "accepted": 207,
+      "missing": 0
+    },
+    {
+      "id": "s16-mechanical-properties",
+      "expected": 342,
+      "accepted": 342,
+      "missing": 0
+    },
+    {
+      "id": "s17-steels",
+      "expected": 667,
+      "accepted": 666,
+      "missing": 1
+    },
+    {
+      "id": "s18-powder-metallurgy",
+      "expected": 22,
+      "accepted": 22,
+      "missing": 0
+    },
+    {
+      "id": "s19-aluminium",
+      "expected": 97,
+      "accepted": 97,
+      "missing": 0
+    },
+    {
+      "id": "s20-composites",
+      "expected": 15,
+      "accepted": 15,
+      "missing": 0
+    }
+  ],
+  "unchanged": true,
+  "source_preserved": true,
+  "scientific_acceptance": false,
+  "production_changed": false
+}
