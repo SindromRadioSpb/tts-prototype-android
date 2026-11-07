@@ -1,0 +1,20 @@
+{
+  "a97001": {
+    "files": 872,
+    "bytes": 274061766,
+    "zip_sha256": "7353359508d314120135aca98fefb702dd0197474b413fc1d8053b234e0e04d8",
+    "restore": "passed",
+    "reexport": "passed",
+    "manifest_equal": true,
+    "pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c"
+  },
+  "a97002": {
+    "files": 2517,
+    "bytes": 541566451,
+    "zip_sha256": "a11993350fc30ff612b1efe3701102a62f7680d52a2a28ade1f6f96ae23a906e",
+    "restore": "passed",
+    "reexport": "passed",
+    "manifest_equal": true,
+    "pdf_sha256": "e5f20b1a41257ee84978c45568576205f04dc1f69fdb4be9adf541b5ca7b73e3"
+  }
+}

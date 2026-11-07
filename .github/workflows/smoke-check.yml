@@ -39,6 +39,9 @@ jobs:
       - name: Unit and contract tests (isolated storage)
         run: npm test
 
+      - name: Atlas archive restore and AI source invalidation
+        run: python -B -m unittest discover -s scripts/atlas/tests -p 'test_material_*.py'
+
       - name: API and migration smoke (disposable server)
         run: npm run test:api-smoke
 

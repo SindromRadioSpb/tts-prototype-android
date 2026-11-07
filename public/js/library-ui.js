@@ -13329,7 +13329,7 @@ function renderAtlasCorpus(atlasId, token) {
     if (token !== corpusRenderToken || !wrap.isConnected || session?.user?.role !== 'owner') return;
     const box = el('div', {class:'atlas-material-export'});
     const status = el('p', {text:tt('atlas.materialExport.checking')});
-    status.setAttribute('role','status'); box.appendChild(status); wrap.appendChild(box);
+    status.setAttribute('role','status'); box.appendChild(status); wrap.insertBefore(box,wrap.querySelector('.atlas-root'));
     try {
       const url='/api/atlas/'+encodeURIComponent(atlasId)+'/material-export';
       const response=await fetch(url,{credentials:'same-origin',cache:'no-store'});
@@ -13338,6 +13338,7 @@ function renderAtlasCorpus(atlasId, token) {
       status.textContent=tt('atlas.materialExport.help');
       const link=el('a',{text:tt('atlas.materialExport.download')});
       link.href=url+'.zip';link.setAttribute('download',atlasId+'-full-material.zip');
+      link.addEventListener('click',()=>{status.textContent=tt('atlas.materialExport.working');});
       box.appendChild(link);
     } catch(error) {
       status.textContent=tt(error.message==='SOURCE_PACKAGE_REQUIRED'?'atlas.materialExport.missing':'atlas.materialExport.error');

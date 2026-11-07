@@ -27,6 +27,8 @@ for(const [id,pinned] of [['a97001',true],['a97002',false],['future-atlas',false
  assert.equal(result.manifest.ai_dependency_state,pinned?'pinned_dependencies_unchanged':'unverified_requires_review');
  assert.match(result.manifest.ai_dependencies_sha256,/^[a-f0-9]{64}$/);
  for(const [n,v] of Object.entries(result.manifest.files)){const b=await zip.file(n).async('nodebuffer');assert.equal(hash(b),v.sha256);assert.equal(b.length,v.bytes);}
+ for(const [n,v] of Object.entries(result.manifest.support_files)){const b=await zip.file(n).async('nodebuffer');assert.equal(hash(b),v.sha256);assert.equal(b.length,v.bytes);}
+ assert(zip.file('tools/material_package.py'));
  assert.deepEqual(JSON.parse(await zip.file('edition/sections/s01-test.json').async('string')).pages[0].items[0].unknown,{keep:true});
  assert(zip.file('sources/source.pdf'));assert.equal(!!zip.file('context/s01-test.json'),pinned);
 });
@@ -60,4 +62,13 @@ test('legacy corpus changed during snapshot is rejected',async t=>{
  };
  try{await assert.rejects(service.build('a97002',path.join(f.tmp,'race')),/SOURCE_CHANGED/);}
  finally{fs.readFile=original;}
+});
+test('legacy content must match its registered editorial provenance',async t=>{
+ const f=await fixture(t,'a97002'),service=api.createService(f.options);
+ const p=path.join(f.root,'sections/s01-test.json'),d=JSON.parse(await fs.readFile(p,'utf8'));
+ d.id='s01-test';d.source_pack_sha256='b'.repeat(64);d.content_pack_sha256='c'.repeat(64);await f.put(f.root,'sections/s01-test.json',d);
+ await assert.rejects(service.build('a97002',path.join(f.tmp,'unbound')),/SOURCE_BINDING_MISMATCH/);
+ const manifest=JSON.parse(await fs.readFile(path.join(f.source,'manifest.json'),'utf8'));manifest.sections={'s01-test':{source_pack_sha256:d.source_pack_sha256,content_pack_sha256:d.content_pack_sha256}};
+ await f.put(f.source,'manifest.json',manifest);
+ assert((await service.build('a97002',path.join(f.tmp,'bound'))).manifest);
 });

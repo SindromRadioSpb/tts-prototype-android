@@ -1,0 +1,24 @@
+{
+  "disposable_profile": true,
+  "service_workers": "blocked; separate release check required",
+  "corpora": [
+    {
+      "atlas_id": "a97001",
+      "file": "a97001-full-material.zip",
+      "bytes": 265298190,
+      "download": "passed",
+      "learner_tables_unchanged": true
+    },
+    {
+      "atlas_id": "a97002",
+      "file": "a97002-full-material.zip",
+      "bytes": 521065066,
+      "download": "passed",
+      "learner_tables_unchanged": true
+    }
+  ],
+  "blocked_mutations": [],
+  "page_errors": [],
+  "logout_status": 200,
+  "status": "passed"
+}

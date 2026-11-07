@@ -19,7 +19,9 @@ async function main(){
  await fs.mkdir(dest,{recursive:false});
  for(const n of Object.keys(files)){const p=path.join(dest,n);await fs.mkdir(path.dirname(p),{recursive:true});await fs.copyFile(path.join(src,n),p,require('node:fs').constants.COPYFILE_EXCL);const b=await fs.readFile(p);if(crypto.createHash('sha256').update(b).digest('hex')!==files[n].sha256)throw Error('Source changed during intake');}
  // Manifest written last: interrupted intake cannot be offered as a full export.
- await fs.writeFile(path.join(dest,'manifest.json'),JSON.stringify({schema:'linguistpro.atlas-export-sources.1',atlas_id:id,pdf,files},null,2),{flag:'wx'});
+ const provenance=files['source-provenance.json']?JSON.parse(await fs.readFile(path.join(dest,'source-provenance.json'),'utf8')):null;
+ if(provenance && (provenance.atlas_id!==id || provenance.pdf_sha256!==files[pdf].sha256))throw Error('Source provenance mismatch');
+ await fs.writeFile(path.join(dest,'manifest.json'),JSON.stringify({schema:'linguistpro.atlas-export-sources.1',atlas_id:id,pdf,files,...(provenance?{sections:provenance.sections}:{})},null,2),{flag:'wx'});
  console.log(JSON.stringify({atlas_id:id,files:Object.keys(files).length,pdf_sha256:files[pdf].sha256,destination:dest}));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});
