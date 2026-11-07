@@ -19,3 +19,9 @@ Release 872 converged: 214 served resources matched local bytes and integrity; t
 The final audit found the common verifier checked file hashes but did not check the separate AI dependency digest. Release 873 adds a required dependency-hash check: text/PDF/image edits fail even if their ordinary file checksums are manually updated. Six Python tests (including all three mutations), seven export/API contracts, API smoke and 233 i18n checks pass; both real existing atlas ZIPs pass the stricter verifier unchanged.
 
 The browser harness excludes the GET-only ZIP route from CDP interception, allowing native streaming instead of buffering a large intercepted response in the driver. Production download/restore acceptance will be rerun against 873. Fresh cache-only cleanup was performed with no active build: all 14 images, all 9 containers and all 4 volumes retained, free space 9,905,217,536 bytes, health ready and disk_warn false.
+
+## Final version-consistency correction
+
+CI for 873 detected the Room footer still stamped 872 (eight contract failures from this single mismatch). Candidate 874 synchronizes the Room footer, Studio APP_VERSION and SW cache version; the complete local suite passes again (3486 pass, 15 skip, zero failures), API smoke passes and all 233 i18n/version checks pass. Export payload code is unchanged from 873.
+
+A production viewport assertion initially ran before the responsive layout settled. The browser harness now waits two animation frames after resizing and records actual viewport/scroll widths and diagnostic elements on failure. The subsequent 873 run passed layout checks and streamed the archive; it was intentionally cancelled to verify the final 874 runtime instead. It is not counted as completed download acceptance.

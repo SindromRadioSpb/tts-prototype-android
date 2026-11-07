@@ -39,7 +39,14 @@ fs.mkdirSync(out,{recursive:true});
    const before=await state();
    for(const width of [380,1280]){
     await page.setViewportSize({width,height:900});await link.evaluate(e=>e.scrollIntoView({block:'center'}));
-    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const layout=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
+    (report.layouts ||= []).push({atlas_id:id,...layout});
+    if(layout.scrollWidth>layout.width+1){
+     report.overflow_elements=await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,20).map(e=>({tag:e.tagName,class:e.className,right:e.getBoundingClientRect().right})));
+     await page.screenshot({path:path.join(out,id+'-'+width+'-overflow.png')});
+    }
+    assert(layout.scrollWidth<=layout.width+1,JSON.stringify(layout));
     await page.locator('.atlas-material-export').screenshot({path:path.join(out,id+'-'+width+'.png')});
    }
    const pending=page.waitForEvent('download',{timeout:300000});await link.click();const download=await pending;
