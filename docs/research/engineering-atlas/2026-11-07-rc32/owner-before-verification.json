@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "scope": "isolated in-memory test; no application import or owner writes",
+  "word_status": 0,
+  "review_log": 1,
+  "find_history": 0,
+  "find_stale": 0,
+  "historical_parent_sources": 0,
+  "eligible_current_queue_items": 0,
+  "unavailable_term_keys": 0,
+  "exact_rows_preserved": true,
+  "parent_grades_cloned": 0,
+  "snapshot_integrity_sha256": "8ff55738c19ac4bae2c9b0f1da33be28fcc3d3f464d44f9ab15929178e38ff18",
+  "file_sha256": "cd4cd8f3ab88bb5e129c4800b3de61b26abe12525e2b3de12c55f563c7e229dd"
+}

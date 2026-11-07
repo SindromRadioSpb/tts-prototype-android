@@ -151,7 +151,7 @@ const PRECACHE_URLS = [
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
   "/js/library-ui.js?v=875",
-  "/js/atlas-progress-export.js?v=869",
+  "/js/atlas-progress-export.js?v=875",
   "/js/atlas-edition.js?v=875",
   "/js/corpus-registry.js?v=875",
   "/js/course-hebrew.js?v=854",

@@ -42,3 +42,17 @@ test('snapshot integrity rejects changes, extra fields and unknown kinds before 
  const s=await E.capture({db:{getOwnershipState:()=> 'shared',dbAtlasProgressSnapshot:async()=>[]},storage:storage(),crypto});
  await assert.rejects(E.validate({...s,word_status:[word()]},crypto),/HASH/);await assert.rejects(E.validate({...s,token:'x'},crypto),/SCHEMA/);
 });
+
+test('canonical structural edition references export without changing learner rows',async t=>{
+ const db=open();t.after(()=>db.close());await schema(db);
+ const structural='atlas-block-v1:a97001:s15-materials-basics:'+'a'.repeat(64)+':structure:'+'b'.repeat(64);
+ const w=word(term,structural),r=review(term,{source:{text_key:structural,sentence_id:'a97001:p122:b004',order_index:116,surface:'מסה'}});
+ await insert(db,'word_status',w);await insert(db,'review_log',r);
+ const before=[await all(db,'SELECT * FROM word_status'),await all(db,'SELECT * FROM review_log')];
+ const snapshot=await E.capture({db:adapter(db),storage:storage(),crypto});assert.deepEqual(snapshot.word_status,[w]);assert.deepEqual(snapshot.review_log,[r]);assert.deepEqual(await E.validate(snapshot,crypto),snapshot);
+ assert.deepEqual([await all(db,'SELECT * FROM word_status'),await all(db,'SELECT * FROM review_log')],before);
+ for(const suffix of [':structure:bad',':structure:'+'b'.repeat(64)+':extra',':another:'+'b'.repeat(64)]){
+  const bad={...snapshot,word_status:[{...w,srs_text_key:source+suffix}]};delete bad.integrity_sha256;bad.integrity_sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(bad)))),n=>n.toString(16).padStart(2,'0')).join('');
+  await assert.rejects(E.validate(bad,crypto),/ATLAS_PROGRESS_SCHEMA/);
+ }
+});

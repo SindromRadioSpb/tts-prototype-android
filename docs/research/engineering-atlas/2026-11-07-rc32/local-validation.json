@@ -4,8 +4,8 @@
   "edition_manifest_entries_verified": 1196,
   "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
   "tests": {
-    "total": 3546,
-    "passed": 3531,
+    "total": 3548,
+    "passed": 3533,
     "skipped": 15,
     "failed": 0
   },
@@ -18,8 +18,12 @@
     "failed": 0
   },
   "full_suite_after_search_fix": {
-    "passed": 3531,
+    "passed": 3533,
     "skipped": 15,
+    "failed": 0
+  },
+  "export_schema_regression_tests": {
+    "passed": 20,
     "failed": 0
   }
 }

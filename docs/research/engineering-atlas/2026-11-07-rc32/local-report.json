@@ -7,10 +7,11 @@
     "return to original corpus mounts successfully",
     "UI grade saved in each corpus; original SQL states/review_log and 500 original find answers unchanged after native grading/find-source navigation",
     "native search result opens native source reference",
-    "source scan opens and decodes in browser"
+    "source scan opens and decodes in browser",
+    "all 38 steel pages traversed at 390px; bounded image residency; original term/review state still unchanged"
   ],
   "errors": [],
-  "origin": "http://127.0.0.1:61473",
+  "origin": "http://127.0.0.1:52634",
   "data": {
     "pages": 203,
     "targets": 33,
@@ -25,6 +26,12 @@
     "newWordStates": 1,
     "originalFindHistory": 500,
     "newFindHistory": 1
+  },
+  "longSection": {
+    "pages": 38,
+    "peakActiveImages": 8,
+    "peakEstimatedRGBA": 17395436,
+    "scope": "390px browser viewport, estimate from resident image dimensions; not physical-device/RSS evidence"
   },
   "status": "passed"
 }
