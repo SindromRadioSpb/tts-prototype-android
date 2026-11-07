@@ -46,6 +46,10 @@ R1: адресный допуск проверенных написаний, а 
 
 ## Дополнительное исследование: подписи без ивритской леммы
 
+### Повторная передача вложением
+
+Пользователь прикрепил ZIP в чат: `file_0000000011788210a73daf2c89ed89bc`. `Library.prepare_materialize` разрешил file reference и предоставил transfer размером 1 712 828 байт, но не локальный workspace path. Официальный `library_file_transfer.py materialize` завершился `library file transfer failed: download failed`. Проверка transfer host `sdmntprdenmarkeast.oaiusercontent.com` установила `URLError: Tunnel connection failed: 403 Forbidden`. На момент проверки network policy revision 1/enforced по-прежнему разрешает только presets разработки; host вложения отсутствует. Файл в `/workspace/context-input` не появился. SHA и содержимое по-прежнему не проверены. Альтернатива через авторизованное устройство также недоступна: Desktop Commander сообщает Windows-устройство Offline. Для продолжения требуется разрешить указанный host в настройках сети Codex или передать файл напрямую в файловую систему среды. Повторное прикрепление того же ZIP само по себе этот сетевой запрет не снимает.
+
 Запрос родительской задачи: 19 английских названий единиц/приставок и `Ra`; точные материалы и тесты ожидаются. Их количество и содержание здесь независимо не проверялись. Реализация не выполнялась.
 
 В текущем пути `AtlasWords.wordsOf/plainWordsOf` используют Hebrew-only `ReaderMorph.tokenize(...).isWord`; `locateTerms` берёт `lemma_he || niqqud`. Ячейки таблиц дополнительно фильтруются по наличию иврита. Поэтому простого добавления английского alias недостаточно: строка может вообще отсутствовать в `sectionItems`, а `verifyOccurrence` требует Hebrew offset. `sectionTermItems` и `build-train-bank.cjs` также ожидают `lemma_he/niqqud` как отображаемый заголовок.
