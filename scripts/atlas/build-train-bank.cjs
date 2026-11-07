@@ -144,12 +144,16 @@ function buildTermsIndex(sections, atlasId) {
       if (!out.sections.includes(s.id)) out.sections.push(s.id);
       (t.senses || []).forEach((sn) => { if (sn && sn.sense && !out.senses.some((x) => x.sense === sn.sense)) out.senses.push({ sense: sn.sense, ru: sn.ru || "" }); });
     });
-    // Contents are navigation, not the first educational example of a concept.
-    if (atlasId === 'a97001' && s.id === 's00-front') return;
+    // Contents remain navigation. A separately reviewed, exactly source-bound
+    // front-matter term may be a target; ordinary headings gain no permission.
     const learningItems = atlasId === 'a97001' ? AW.sectionItems(s, s.activation && s.activation.learning_mode === 'scoped' ? 'term_context' : undefined)
       : (s.pages || []).flatMap(p => (p.items || []).map(it => Object.assign({page:p.page},it)));
     learningItems.forEach((it) => (it && Array.isArray(it.terms) ? it.terms : []).forEach((ref) => {
       const i = String(ref).lastIndexOf("#"), id = String(ref).slice(0, i), sense = String(ref).slice(i + 1);
+      if (atlasId === 'a97001' && s.id === 's00-front') {
+        const canonical = (s.terms || {})[id];
+        if (!canonical || canonical.training_eligible === false || canonical.learning_eligibility?.lexical?.allowed !== true || !(canonical.source_refs || []).includes(it.id)) return;
+      }
       if (terms[id]) {
         const place = { sid: s.id, page: it.page, block: it.id };
         if (!terms[id].places[sense]) terms[id].places[sense] = place;

@@ -90,13 +90,21 @@
   // different number of words is the pointed line searched on its own.
   // → { he: {spans}, niqqud: {spans}, loose: [{id, sense}] }
   function locateBlock(item, terms, RM) {
-    var refs = item && item.terms, he = locateTerms(item && item.he, refs, terms, RM);
+    var refs = item && item.terms || [];
+    // A canonical typo correction/expanded abbreviation is a term-to-source
+    // relation, not proof that those canonical words were printed at an offset.
+    var looseOnly = refs.filter(function (ref) {
+      var t = terms && terms[parseRef(ref).id], kind = t && t.authorial_normalization && t.authorial_normalization.type;
+      return t && (t.source_word_span_verified === false || ['explicit_typo_correction','explicit_scientific_typo_correction','verified_abbreviation_expansion_for_reading'].includes(kind));
+    });
+    refs = refs.filter(function(ref){return looseOnly.indexOf(ref)<0;});
+    var he = locateTerms(item && item.he, refs, terms, RM);
     var niqqud = { spans: [] };
     if (item && item.he_niqqud) {
       niqqud = wordsOf(item.he_niqqud, RM).length === wordsOf(item.he, RM).length
         ? { spans: he.spans } : { spans: locateTerms(item.he_niqqud, refs, terms, RM).spans };
     }
-    return { he: { spans: he.spans }, niqqud: niqqud, loose: he.loose };
+    return { he: { spans: he.spans }, niqqud: niqqud, loose: he.loose.concat(looseOnly.map(parseRef)) };
   }
   // personal places that do not overlap the atlas's own (an atlas term keeps its words)
   function addPersonal(loc, item, terms, refs, RM) {
@@ -346,6 +354,26 @@
     return { kicker: (term.personal ? labels.mine : labels.kicker) || labels.kicker || "", personal: !!term.personal, title: term.niqqud || term.lemma_he || "",
       subtitle: (labels.script === "cyr" ? term.translit_ru : term.translit) || "", lines: lines.filter(Boolean) };
   }
+  // Source/editorial evidence is available without displacing the term and its
+  // meaning. Page-wide notes are not definitions of every word on that page.
+  function cardSourceDetails(top, occ, ctx, labels) {
+    labels = labels || {};
+    top = Object.assign({}, top || {title:''});
+    if (!occ || !ctx || !['a97001','a97001rc32'].includes(ctx.atlasId) || !occ.source_context) return top;
+    const source = occ.source_context, lines = [(labels.page || 'стр.') + ' ' + source.page];
+    const status = ctx.contextLayerStatus;
+    if (status && status.covered.has(occ.sentence_id)) {
+      lines.push((labels.prepared || 'Подготовлено ИИ') + ': ' + status.producer);
+      if (ctx.purpose === 'inspection') lines.push(labels.candidate || 'Технический кандидат; содержание ожидает приёмки');
+      if (status.coverage_mode === 'partial') lines.push(labels.partial || 'Переведено частично');
+    }
+    if (source.coverage_notice) lines.push(source.coverage_notice.ru, source.coverage_notice.he);
+    lines.push(...(source.scientific_notes || []), ...(source.limits || []).map(x=>x.scope));
+    if (ctx.purpose === 'inspection') lines.push(labels.inspection || 'Словарный просмотр: разбор слова не разрешает учебные оценки. Проверенные термины изучаются отдельно.');
+    if (!top.title) top.title = occ.surface;
+    top.details = [{summary:labels.source || 'Источник и ограничения',lines:[...new Set(lines.filter(Boolean))],actions:[{id:'show-source',label:labels.showSource || 'Показать в книге'}]}];
+    return top;
+  }
   // After the card wrapped a row: words of a whole term get .atlas-term; the block's links without a place get one
   // line «Термины абзаца: …» under the translation. Repeating it changes nothing.
   function decorateRow(row, ctx, labels) {
@@ -423,7 +451,7 @@
 
   var api = { glossRows: glossRows, bindGlossRow: bindGlossRow, locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
     sectionContext: sectionContext, sectionItems: sectionItems, occurrence: occurrence, verifyOccurrence: verifyOccurrence, historicalOccurrence: historicalOccurrence,
-    resolveReference: resolveReference, learningItem: learningItem, cardTop: cardTop, decorateRow: decorateRow };
+    resolveReference: resolveReference, learningItem: learningItem, cardTop: cardTop, cardSourceDetails:cardSourceDetails, decorateRow: decorateRow };
   api.editionContract = 'atlas-97001-structure-4';
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;

@@ -2725,6 +2725,11 @@
     var actions = top && Array.isArray(top.actions) ? top.actions.filter(function (a) { return a && a.id && a.label; }) : [];
     if (!top || (!top.title && !actions.length)) return "";
     var lines = Array.isArray(top.lines) ? top.lines.filter(Boolean) : [];
+    var details = (Array.isArray(top.details) ? top.details : []).filter(function(d){return d && d.summary;}).map(function(d){
+      return '<details class="rm-surface-details" dir="' + escapeHtml(dir || 'ltr') + '"><summary>' + escapeHtml(d.summary) + '</summary>' +
+        (Array.isArray(d.lines) ? d.lines : []).filter(Boolean).map(function(line){return '<p>' + escapeHtml(line) + '</p>';}).join('') +
+        (Array.isArray(d.actions) ? d.actions : []).filter(function(a){return a && a.id && a.label;}).map(function(a){return '<button type="button" class="rm-surface-action" data-rm-surface-action="' + escapeHtml(a.id) + '">' + escapeHtml(a.label) + '</button>';}).join('') + '</details>';
+    }).join('');
     return '<section class="rm-surface-top' + (top.title ? "" : " rm-surface-actions-only") + '" dir="' + escapeHtml(dir || "ltr") + '">' +
       (top.title ? (top.kicker ? '<p class="rm-surface-kicker">' + escapeHtml(top.kicker) + "</p>" : "") +
         '<p class="rm-surface-title"><bdi dir="rtl" lang="he">' + escapeHtml(top.title) + "</bdi>" +
@@ -2732,7 +2737,7 @@
         lines.map(function (l) { return '<p class="rm-surface-line">' + escapeHtml(l) + "</p>"; }).join("") : "") +
       (actions.length ? '<p class="rm-surface-actions">' + actions.map(function (a) {
         return '<button type="button" class="rm-surface-action" data-rm-surface-action="' + escapeHtml(a.id) + '">' + escapeHtml(a.label) + "</button>";
-      }).join(" ") + "</p>" : "") + "</section>";
+      }).join(" ") + "</p>" : "") + "</section>" + details;
   }
 
   function contextPendingHtml(card) {

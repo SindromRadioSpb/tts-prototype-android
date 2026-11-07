@@ -280,6 +280,14 @@
                 var id = String(ref).split('#')[0];
                 (terms[id] || (terms[id] = [])).push([s.id, p.page, cell.id || t.id + ':cell:' + cell.row + ':' + cell.col]);
               });
+              // Semantic table parts are independently rendered source places.
+              // New scoped terms must lead to the part, never its layout wrapper.
+              (cell.parts || []).forEach(function (part) {
+                (part.terms || []).forEach(function (ref) {
+                  var id = String(ref).split('#')[0];
+                  (terms[id] || (terms[id] = [])).push([s.id,p.page,part.id]);
+                });
+              });
             });
             (t.title_terms || []).forEach(function (ref) {
               var id = String(ref).split('#')[0];
@@ -346,6 +354,10 @@
           places = terms[id] || [];
         if (!places.length) return;
         var a = places[0];
+        if (['a97001','a97001rc32'].includes(s.atlas_id)) {
+          var scope = sections.find(function(section){return section.id === a[0];});
+          t = scope && scope.terms && scope.terms[id] || t;
+        }
         add(
           "term",
           a[0],

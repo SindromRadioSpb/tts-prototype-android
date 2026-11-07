@@ -6,7 +6,9 @@ const T = require('../public/js/atlas-train');
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 test('RC3.2 is a separate corpus; original pin and learning keys stay unchanged', () => {
  assert.equal(E.pin.revision,'50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc');
- assert.match(E.base('a97001rc32'), /cea369d4/);
+ assert.match(E.base('a97001rc32'),new RegExp('/'+E.rc32SourceBinding.edition_revision+'/'));
+ assert.notEqual(E.rc32SourceBinding.edition_revision,'cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7');
+ assert.equal(E.nativeReleaseFor('cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7').contextPin,'2f782372d533cbbe47fff439683f84d7fbb23bf44edc5486629f0dd1cb3b0dfd');
  assert.match(E.base('a97001'), /50253381/);
  assert.notEqual(T.termKey('a97001','a97001:term:force','s1'),T.termKey('a97001rc32','a97001rc32:term:force','s1'));
 });

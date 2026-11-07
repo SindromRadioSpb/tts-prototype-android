@@ -13485,39 +13485,30 @@ function attachAtlasWords(atlasId, section, data, how) {
   const AT = window.AtlasTrain, sid = String((data && data.id) || '');
   if (AT && typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(data.terms, atlasMyTerms(atlasId), sid));
   let train = null;
+  const termContext = inspection ? AW.sectionContext(atlasId, data, window.ReaderMorph, {purpose:'term_context'}) : ctx;
+  const approvedTermTargets = AT ? AT.sectionTermItems(termContext) : [];
   const cardTopOf = (occ) => {
-    const top = AW.cardTop(occ, ctx, { kicker: tt('atlas.word.term', 'Термин атласа'), mine: tt('atlas.terms.mine', 'Мой термин'),
+    let top = AW.cardTop(occ, ctx, { kicker: tt('atlas.word.term', 'Термин атласа'), mine: tt('atlas.terms.mine', 'Мой термин'),
       other: tt('atlas.word.otherSenses', 'Другие значения'), script: layers().script }) || { title: '' };
-    if (AT && !inspection) {
-      if (!top.title) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
-      else {
+    const ref = occ && occ.atlas_term;
+    const approved = ref && approvedTermTargets.some(it => it.termId === ref.id && it.sense === ref.sense && it.block === occ.sentence_id);
+    if (AT && (!inspection || approved)) {
+      if (!top.title && !inspection) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
+      else if (!inspection || approved) {
         top.actions = [{ id: 'learn-term', label: tt('atlas.train.learnOne', 'Учить этот термин') }];
-        if (top.personal) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
+        if (top.personal && !inspection) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
       }
     }
-    if (['a97001','a97001rc32'].includes(atlasId) && occ && occ.source_context) {
-      const source = occ.source_context;
-      top.lines = (top.lines || []).concat('Atlas 97001 · ' + tt('atlas.page', 'стр.') + ' ' + source.page);
-      const notes = (source.scientific_notes || []).concat((source.limits || []).map(x => x.scope)).filter(Boolean);
-      if (source.coverage_notice) notes.unshift(source.coverage_notice.ru, source.coverage_notice.he);
-      if (ctx.contextLayerStatus && ctx.contextLayerStatus.covered.has(occ.sentence_id)) {
-        top.lines.push(tt('atlas.word.prepared', 'Подготовлено ИИ') + ': ' + ctx.contextLayerStatus.producer +
-          (inspection ? ' · ' + tt('atlas.word.technicalCandidate', 'Технический кандидат; содержание ожидает приёмки') : '') +
-          (ctx.contextLayerStatus.coverage_mode === 'partial' ? ' · ' + tt('atlas.partial', 'Переведено частично') : ''));
-        if (!top.title) { top.title = occ.surface; top.kicker = tt('atlas.word.prepared', 'Подготовлено ИИ'); }
-        const uncertain = ctx.contextLayerStatus.uncertain.get(occ.sentence_id + ':' + occ.word_offset);
-        if (uncertain) notes.push(uncertain);
-      }
-      if (notes.length) {
-        top.lines.push(...Array.from(new Set(notes)));
-        if (!top.title) { top.title = occ.surface; top.kicker = tt('atlas.word.sourceNote', 'Источник и ограничения'); }
-      }
-    }
-    if (inspection) {
-      if (!top.title) top.title = occ.surface;
-      top.lines = (top.lines || []).concat(tt('atlas.word.inspection', 'Словарный просмотр: корень и формы не подтверждают чтение и значение слова в этой строке. Учебные оценки здесь не записываются.'));
-    }
-    return top;
+    // An uncertainty of this word/MWE stays visible; page-wide editorial notes
+    // belong in the disclosure below the compact term header.
+    const uncertain = ctx.contextLayerStatus && ctx.contextLayerStatus.uncertain && occ && ctx.contextLayerStatus.uncertain.get(occ.sentence_id + ':' + occ.word_offset);
+    if (uncertain) top.lines = (top.lines || []).concat(uncertain);
+    return AW.cardSourceDetails(top, occ, ctx, {
+      page:tt('atlas.page','стр.'), source:tt('atlas.word.sourceNote','Источник и ограничения'),
+      prepared:tt('atlas.word.prepared','Подготовлено ИИ'), partial:tt('atlas.partial','Переведено частично'),
+      candidate:tt('atlas.word.technicalCandidate','Технический кандидат; содержание ожидает приёмки'),
+      showSource:tt('atlas.train.source','Показать в книге'),
+    });
   };
   const handle = attachReaderMorph(section, {
     cellSelector: '.atlas-row[data-ref] > [data-col="he"], .atlas-row[data-ref] > [data-col="niqqud"], .atlas-learning-row[data-ref] > [data-col="he"], .atlas-learning-row[data-ref] > [data-col="niqqud"]',
@@ -13534,7 +13525,12 @@ function attachAtlasWords(atlasId, section, data, how) {
     },
     cardTop: occ => cardTopOf(occ),
     onSurfaceAction: (act, occ) => {
-      if (act === 'add-term' || act === 'edit-term') atlasTermDialog(atlasId, section, data, ctx, occ, act === 'edit-term', () => redecorate());
+      if (act === 'show-source' && occ) {
+        const row = Array.from(section.querySelectorAll('[data-ref]')).find(el => el.getAttribute('data-ref') === occ.sentence_id);
+        try { window.ReaderMorph.closeSheet(); } catch (_) {}
+        if (row) { row.scrollIntoView({block:'center',behavior:'smooth'}); row.setAttribute('tabindex','-1'); row.focus({preventScroll:true}); }
+      }
+      else if (act === 'add-term' || act === 'edit-term') atlasTermDialog(atlasId, section, data, ctx, occ, act === 'edit-term', () => redecorate());
       else if (act === 'learn-term' && train && occ && occ.atlas_term) { try { window.ReaderMorph.closeSheet(); } catch (_) {} train.learnOne(occ.atlas_term.id, occ.atlas_term.sense); }
     },
     // the per-place review and the mentor need a stored sentence: not for atlas places (W0 report §2)

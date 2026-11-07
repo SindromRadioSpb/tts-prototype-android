@@ -4,10 +4,10 @@ const {parseHTML}=require('linkedom');const {window,document}=parseHTML('<html><
 window.indexedDB=undefined;window.ReaderMorph=require('../public/js/reader-morph');require('../public/js/word-gloss-ai');
 const AI=window.WordGlossAI,W=require('../public/js/atlas-words'),C=require('../public/js/atlas-context-contract'),A=require('../public/js/atlas-context-addressed'),L=require('../public/js/atlas-context-rc32-loader'),E=require('../public/js/atlas-edition');
 const root=path.join(__dirname,'../atlas-context/a97001rc32',E.contextPinFor('a97001rc32')),read=n=>fs.readFileSync(path.join(root,n)),map=JSON.parse(read('addressed-map.json')),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),clone=x=>JSON.parse(JSON.stringify(x));
-const opts={purpose:A.PURPOSE,bytes:read('addressed-map.json'),sha256:sha(read('addressed-map.json')),editionRevision:E.pinFor('a97001rc32').revision,sourcePdfSha256:E.rc32SourceBinding.source_pdf_sha256,contract:C,ai:AI,crypto:crypto.webcrypto};
+const opts={purpose:A.PURPOSE,bytes:read('addressed-map.json'),sha256:sha(read('addressed-map.json')),editionRevision:E.pinFor('a97001rc32').revision,sourcePdfSha256:E.rc32SourceBinding.source_pdf_sha256,sourceOverlayManifestSha256:E.rc32SourceBinding.source_overlay_manifest_sha256,contract:C,ai:AI,crypto:crypto.webcrypto};
 const answer=e=>JSON.parse(read(e.section+'.json')).rows.find(r=>r.row_id===e.row_id);
 const fetch=async url=>new Response(read(url.split('/').pop()));
-test('all 264 addressed rows retain strict guards, offsets, and unknown-row rejection',async()=>{
+test('all 263 addressed rows retain strict guards, offsets, and unknown-row rejection',async()=>{
  const a=await A.create(opts);let mutations=0,lookups=0;
  for(const e of map.entries){assert.equal(a.describe([e.guard]).length,1);
   for(const prop of ['id','he','he_niqqud','ru','order_index','source_context','edition']){
@@ -16,7 +16,7 @@ test('all 264 addressed rows retain strict guards, offsets, and unknown-row reje
   }
   const r=answer(e);if(r)for(let i=0;i<e.source_words.length;i++){assert(a.lookup(e.guard,r,'he',i).gloss);lookups++;}
  }
- assert.equal(mutations,1848);assert.equal(lookups,3798);
+ assert.equal(mutations,1841);assert.equal(lookups,3797);
  const e=map.entries[0],bad=clone(e.guard);bad.id='a97001rc32:p999:unknown';assert.throws(()=>a.describe([bad]),/UNKNOWN_ROW/);
  const arow=answer(e);assert.throws(()=>a.lookup(e.guard,arow,'he',9999),/RANGE/);assert.throws(()=>a.lookup(e.guard,arow,'niqqud',-1),/INDEX/);
 });

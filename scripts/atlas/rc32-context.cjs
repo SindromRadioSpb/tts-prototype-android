@@ -8,16 +8,16 @@ const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const assert=(p,m)=>{if(!p)throw Error('RC32_CONTEXT_'+m);};
 function safe(root,file){assert(typeof file==='string'&&!file.includes('\\')&&!file.includes(':')&&!file.startsWith('/')&&file.split('/').every(s=>s&&s!=='.'&&s!=='..'),'PATH');const p=path.join(root,file);let at=root;assert(!fs.lstatSync(at).isSymbolicLink(),'LINK');for(const part of file.split('/')){at=path.join(at,part);assert(!fs.lstatSync(at).isSymbolicLink(),'LINK');}return p;}
 function verifiedSource(root){
- const bytes=fs.readFileSync(safe(root,'manifest.json')),m=JSON.parse(bytes),pin=E.pinFor('a97001rc32');
+ const bytes=fs.readFileSync(safe(root,'manifest.json')),m=JSON.parse(bytes),release=E.nativeReleaseFor(m.revision);assert(release,'UNKNOWN_RELEASE');const pin=release.pin,binding=release.sourceBinding;
  assert(m.schema==='linguistpro.atlas-material.1'&&m.atlas_id==='a97001rc32'&&m.source_atlas_id==='a97001','SOURCE_ID');
- assert(m.revision===pin.revision&&m.edition_manifest_sha256===pin.manifest_sha256&&m.pdf_sha256===E.rc32SourceBinding.source_pdf_sha256,'SOURCE_BINDING');
+ assert(m.revision===pin.revision&&m.edition_manifest_sha256===pin.manifest_sha256&&m.pdf_sha256===binding.source_pdf_sha256,'SOURCE_BINDING');
  for(const [name,e] of Object.entries(m.files)){const b=fs.readFileSync(safe(root,name));assert(b.length===e.bytes&&sha(b)===e.sha256,'SOURCE_FILE_'+name);}
  const deps=Object.fromEntries(Object.entries(m.files).filter(([n])=>n.startsWith('edition/sections/')||n.startsWith('edition/assets/')||n.startsWith('sources/')));
- assert(sha(Buffer.from(JSON.stringify(deps)))===m.ai_dependencies_sha256&&m.ai_dependencies_sha256===E.rc32SourceBinding.ai_dependencies_sha256,'DEPENDENCIES');
+ assert(sha(Buffer.from(JSON.stringify(deps)))===m.ai_dependencies_sha256&&m.ai_dependencies_sha256===binding.ai_dependencies_sha256,'DEPENDENCIES');
  const editionBytes=fs.readFileSync(safe(root,'edition/manifest.json')),edition=JSON.parse(editionBytes);
  assert(sha(editionBytes)===pin.manifest_sha256&&edition.structure_revision===pin.revision&&edition.atlas_id==='a97001','EDITION');
  for(const [name,e] of Object.entries(edition.files))assert(JSON.stringify(e)===JSON.stringify(m.files['edition/'+name]),'EDITION_FILE_'+name);
- return {manifest:m,edition,root};
+ return {manifest:m,edition,root,release};
 }
 function reader(){
  const {window,document}=require('linkedom').parseHTML('<html><body></body></html>');global.window=window;global.document=document;window.indexedDB=undefined;
@@ -27,30 +27,30 @@ function reader(){
 async function prepare(sourceRoot,contextRoot){
  const source=verifiedSource(sourceRoot),{AI,RM,W}=reader();
  const fetch=async url=>{const name=url.split('/').pop();return new Response(fs.readFileSync(safe(contextRoot,name)));};
- const loader=L.create({contextPin:E.contextPinFor('a97001rc32'),sourceBinding:E.rc32SourceBinding,fetch,crypto:crypto.webcrypto,contract:C,ai:AI,addressed:A});
+ const loader=L.create({contextPin:source.release.contextPin,sourceBinding:source.release.sourceBinding,fetch,crypto:crypto.webcrypto,contract:C,ai:AI,addressed:A});
  const manifest=await loader.manifest(),index=JSON.parse(fs.readFileSync(safe(sourceRoot,'edition/index.json'))),sections=[];
  assert(Object.keys(manifest.files).length===index.sections.length,'SECTION_COUNT');
  for(const section of index.sections){
   const raw=JSON.parse(fs.readFileSync(safe(sourceRoot,'edition/sections/'+section.id+'.json')));
-  const data=E.projectCorpus(raw,E.base('a97001rc32'));
+  const data=E.projectCorpus(raw,'/data/atlas-editions/a97001/'+source.release.pin.revision+'/');
   const rows=W.glossRows(W.sectionContext('a97001rc32',data,RM,{purpose:'inspection'}));
   const loaded=await loader.load(section.id,rows),expected=loaded.adapter.describe(rows);
   sections.push({id:section.id,rows,expected,loaded});
  }
- return {source,manifest,sections};
+ return {source,manifest,sections,release:source.release};
 }
 async function run(operation){
  const argv=process.argv.slice(2),opt=n=>argv.find(a=>a.startsWith('--'+n+'='))?.slice(n.length+3),dry=argv.includes('--dry-run');
  assert(opt('source-export')&&opt('context-package'),'ARGS_REQUIRE_SOURCE_EXPORT_AND_CONTEXT_PACKAGE');
  const source=path.resolve(opt('source-export')),context=path.resolve(opt('context-package'));
- const prepared=await prepare(source,context),pin=E.contextPinFor('a97001rc32');
+ const prepared=await prepare(source,context),pin=prepared.release.contextPin;
  const out=opt('out')?path.resolve(opt('out')):operation==='package'?path.resolve(__dirname,'../../atlas-context/a97001rc32',pin):null;
  assert(out,'OUT_REQUIRED');
  assert(out!==source&&!out.startsWith(source+path.sep)&&out!==context&&!out.startsWith(context+path.sep),'OUTPUT_OVERLAPS_SOURCE');
  if(!dry){
   assert(!fs.existsSync(out),'DESTINATION_EXISTS');fs.mkdirSync(out,{recursive:true});
   if(operation==='export'){
-   const zip=new (require('jszip'))(),manifest={schema:'atlas-context-export-v2',atlas:'a97001rc32',purpose:'inspection',source_binding:E.rc32SourceBinding,context_pin:pin,sections:[]};
+   const zip=new (require('jszip'))(),manifest={schema:'atlas-context-export-v2',atlas:'a97001rc32',purpose:'inspection',source_binding:prepared.release.sourceBinding,context_pin:pin,sections:[]};
    for(const s of prepared.sections){const body=s.expected.map(r=>JSON.stringify(r)).join('\n')+'\n';zip.file('rows/'+s.id+'.jsonl',body);manifest.sections.push({id:s.id,rows:s.expected.length,source_revision:await C.revision(s.expected),rows_sha256:sha(Buffer.from(body))});}
    zip.file('manifest.json',JSON.stringify(manifest,null,2));zip.file('FORMAT.ru.md',fs.readFileSync(path.join(__dirname,'CONTEXT_CONTRACT_97001.md')));
    fs.writeFileSync(path.join(out,'atlas-a97001rc32-context-export.zip'),await zip.generateAsync({type:'nodebuffer',compression:'DEFLATE'}));

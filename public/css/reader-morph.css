@@ -675,3 +675,10 @@ body.theme-dark .rm-ai-warn { color: #fdba74; }
 .rm-sheet .rm-analysis-source { margin-block: 8px; }
 .rm-sheet .rm-analysis-reviewed { font-size: 12px; font-weight: 600; }
 .rm-sheet .rm-head .rm-prov-line[hidden] { display: none; }
+
+/* The atlas term stays compact; source provenance and page-wide caveats are disclosed on demand. */
+.rm-surface-details { margin:8px 0 14px; padding:0 12px; color:var(--muted, #52647b); font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+.rm-surface-details > summary { cursor:pointer; padding:6px 0; font-weight:600; }
+.rm-surface-details > summary:focus-visible { outline:2px solid #2360a3; outline-offset:3px; border-radius:3px; }
+.rm-surface-details > p { margin:6px 0; white-space:pre-line; }
+.rm-surface-details .rm-surface-action { width:auto; margin:6px 0; }
