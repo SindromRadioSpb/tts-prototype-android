@@ -1,0 +1,32 @@
+{
+  "a97001": {
+    "text": {
+      "path": "edition/sections/s00-front.json",
+      "updated_ordinary_hash_rejected": true
+    },
+    "pdf": {
+      "path": "sources/source.pdf",
+      "updated_ordinary_hash_rejected": true
+    },
+    "image": {
+      "path": "edition/assets/00554a211bb5e6345bb9c923ab2afb587c4225a060fa813e36cb1670cbca8eb6.png",
+      "updated_ordinary_hash_rejected": true
+    },
+    "original_restored_and_verified": true
+  },
+  "a97002": {
+    "text": {
+      "path": "edition/sections/s00-front.json",
+      "updated_ordinary_hash_rejected": true
+    },
+    "pdf": {
+      "path": "sources/source.pdf",
+      "updated_ordinary_hash_rejected": true
+    },
+    "image": {
+      "path": "edition/assets/000f9f29738537b64c7707698c1d24aa52b313cec5754ea3ba7cfa4e2e74312a.png",
+      "updated_ordinary_hash_rejected": true
+    },
+    "original_restored_and_verified": true
+  }
+}

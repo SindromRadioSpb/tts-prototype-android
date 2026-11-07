@@ -1,0 +1,22 @@
+{
+  "a97001": {
+    "archive": "production-browser-874-bounded\\a97001-full-material.zip",
+    "files": 872,
+    "zip_bytes": 265298342,
+    "zip_sha256": "1ea084b6e2fc1eb1a0c39b22236a9c188d7e0bbe46440cdf79f20b3a7e4580d6",
+    "restored": true,
+    "reexported": true,
+    "manifest_equal": true,
+    "production_equals_verified_local_material": true
+  },
+  "a97002": {
+    "archive": "production-browser-874-bounded\\a97002-full-material.zip",
+    "files": 2517,
+    "zip_bytes": 521065221,
+    "zip_sha256": "209d6fe15eb293e0b584b9362e69494ca785639de133f3731703343cb74aa2fe",
+    "restored": true,
+    "reexported": true,
+    "manifest_equal": true,
+    "production_equals_verified_local_material": true
+  }
+}

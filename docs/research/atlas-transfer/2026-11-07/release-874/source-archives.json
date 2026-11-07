@@ -1,0 +1,36 @@
+{
+  "a97001": {
+    "a97001-editorial-v1.tar.gz": {
+      "files": 1206,
+      "unpacked_bytes": 120705215,
+      "read_all_members": true
+    },
+    "build-tools-and-corrections.tar.gz": {
+      "files": 90,
+      "unpacked_bytes": 4269808,
+      "read_all_members": true
+    },
+    "a97001-supplier-source-v1.zip": {
+      "files": 936,
+      "unpacked_bytes": 80207764,
+      "crc_all_members": true
+    }
+  },
+  "a97002": {
+    "a97002-editorial.tar.gz": {
+      "files": 47,
+      "unpacked_bytes": 8095614,
+      "read_all_members": true
+    },
+    "a97002-source-pack.tar.gz": {
+      "files": 2568,
+      "unpacked_bytes": 265907207,
+      "read_all_members": true
+    },
+    "build-tools-and-corrections.tar.gz": {
+      "files": 137,
+      "unpacked_bytes": 11323791,
+      "read_all_members": true
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "active_atlas_files_unchanged": true,
+  "atlas_editions_unchanged": true,
+  "atlas_review_unchanged": true,
+  "user_tables_unchanged": true,
+  "tables": [
+    "review_log",
+    "text_progress",
+    "translation_overrides",
+    "learner_artifacts",
+    "learner_artifact_meta",
+    "learner_events",
+    "notification_preferences",
+    "weekly_goals",
+    "sentence_notes",
+    "texts",
+    "sentences",
+    "srs_review_events",
+    "srs_cards",
+    "srs_attempts",
+    "history_events"
+  ],
+  "files": {
+    "atlas": 3527,
+    "atlas-editions": 845,
+    "atlas-review": 0
+  },
+  "rechecked_after_persistent_downloads": true
+}

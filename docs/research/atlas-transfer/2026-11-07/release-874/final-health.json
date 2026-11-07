@@ -1,0 +1,41 @@
+[
+  {
+    "ok": true,
+    "uptimeSec": 3599,
+    "now": "2026-11-07T11:48:06.703Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 79,
+    "disk_warn": false
+  },
+  {
+    "ok": true,
+    "uptimeSec": 3602,
+    "now": "2026-11-07T11:48:09.802Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 79,
+    "disk_warn": false
+  },
+  {
+    "ok": true,
+    "uptimeSec": 3605,
+    "now": "2026-11-07T11:48:12.885Z",
+    "db": {
+      "ready": true
+    },
+    "migrations": {
+      "ready": true
+    },
+    "disk_pct_used": 79,
+    "disk_warn": false
+  }
+]

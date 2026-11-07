@@ -1,0 +1,13 @@
+{
+  "free_bytes": 8292888576,
+  "current_image_retained": true,
+  "rollback_image_retained": true,
+  "pre_task_image_retained": true,
+  "containers_retained": true,
+  "volumes_retained": true,
+  "only_selected_image_removed": true,
+  "temporary_exports_empty": true,
+  "build_cache_bytes": 0,
+  "containers": 9,
+  "volumes": 4
+}

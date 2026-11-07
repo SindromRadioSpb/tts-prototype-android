@@ -1,0 +1,12 @@
+{
+  "previous_snapshot_files": 873,
+  "preserved_material_files_by_sha256": 869,
+  "current_material_files": 872,
+  "excluded_old_capture_diagnostics": [
+    "capture.json",
+    "checksums.json",
+    "health.json",
+    "served-atlas-edition.js"
+  ],
+  "note": "All original PDF, supplier ZIP, editorial TAR and active edition/context bytes retained. Old capture/health/served-code diagnostics are not source material; their material checksums are represented by the new manifest. New source provenance, source manifest and build/correction tools are included."
+}

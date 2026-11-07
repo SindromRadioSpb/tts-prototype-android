@@ -1,5 +1,7 @@
 # Full atlas export release 3.11.872
 
+Актуальный runtime и результаты общего экспорта **обоих** атласов: [production 3.11.874](../release-874/README.ru.md). Ниже сохранён отчёт предыдущего этапа с его историческими ограничениями.
+
 Candidate: atlas-transfer-audit, based on origin/main eb5fad7c. Production verification is pending.
 
 The owner download exports the active pinned 97001 edition and context, legacy 97002 and other atlas-reader corpora. PDF and editorial sources are required; missing or mismatched source provenance fails closed. Archives contain a standalone Python 3.12+ verifier/restorer/repacker and a Russian guide. Restore writes only a new directory; it never publishes or imports learner data.

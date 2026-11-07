@@ -1,0 +1,14 @@
+{
+  "a97001": {
+    "verified": true,
+    "manifest_equals_restored_production_zip": true,
+    "files": 872,
+    "sha256": "5ff1255b30d7f9fb66c3120dc578cbb397d7693e5a85dccb2ea4b6697049f79f"
+  },
+  "a97002": {
+    "verified": true,
+    "manifest_equals_restored_production_zip": true,
+    "files": 2517,
+    "sha256": "496c4eae80b80f338ae95a2fd831a8fd477bd6b53953a0ee55109b1482eeca20"
+  }
+}

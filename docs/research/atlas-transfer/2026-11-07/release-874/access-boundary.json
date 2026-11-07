@@ -1,0 +1,26 @@
+{
+  "anonymous": [
+    {
+      "url": "/api/atlas/a97001/material-export.zip",
+      "status": 401
+    },
+    {
+      "url": "/api/atlas/a97002/material-export.zip",
+      "status": 401
+    },
+    {
+      "url": "/api/atlas/a97001/material-export",
+      "status": 401
+    },
+    {
+      "url": "/api/atlas/a97002/material-export",
+      "status": 401
+    }
+  ],
+  "private_sources": [
+    {
+      "url": "/data/atlas-sources/a97001/source.pdf",
+      "status": 404
+    }
+  ]
+}
