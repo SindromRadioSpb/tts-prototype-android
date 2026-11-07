@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "path": "/api/atlas/a97001rc32/material-export",
+      "anonymous_status": 401
+    },
+    {
+      "path": "/api/atlas/a97001rc32/material-export.zip",
+      "anonymous_status": 401
+    },
+    {
+      "path": "/data/atlas-sources/a97001rc32/source.pdf",
+      "anonymous_status": 404
+    }
+  ]
+}

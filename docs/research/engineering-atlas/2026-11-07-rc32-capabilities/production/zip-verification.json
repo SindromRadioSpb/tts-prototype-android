@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "scope": "actual authenticated production browser download, user-supplied path; repository verifier, isolated restore and repack",
+  "atlas_id": "a97001rc32",
+  "source_atlas_id": "a97001",
+  "revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "zip_bytes": 184416514,
+  "zip_sha256": "0e2b0393b4a5dfb386681674738cfc64ed57ced710a6ceeccf22af8d055d24a5",
+  "material_files": 1201,
+  "total_file_entries": 1204,
+  "sections": 21,
+  "pages": 203,
+  "ai_layer_included": false,
+  "learner_data_included": false,
+  "supplier_zip_matches_original": true,
+  "restore_passed": true,
+  "repack_file_bytes_equal": true
+}

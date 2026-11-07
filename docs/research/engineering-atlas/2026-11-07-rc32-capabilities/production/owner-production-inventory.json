@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "scope": "authenticated owner browser; inventory GET only; no learner rows",
+  "http": 200,
+  "atlas_id": "a97001rc32",
+  "files": 1201,
+  "index_sha256": "b72890158cdc2c7f9641769205fc32a50edfc4d661a7717006978b7c1fab8739"
+}

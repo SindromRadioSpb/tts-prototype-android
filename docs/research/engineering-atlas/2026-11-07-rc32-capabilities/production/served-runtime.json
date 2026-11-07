@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "version": "3.11.876",
+  "release_commit": "723044f9a8387e91ef7e2e154dad334e68cfa61e",
+  "shell_files_verified": 216,
+  "changed_files_match_git": [
+    "public/js/atlas-edition.js",
+    "public/js/atlas-reader.js",
+    "public/js/atlas-words.js",
+    "public/js/atlas-train.js",
+    "public/js/library-ui.js",
+    "public/i18n/locales/ru.js",
+    "public/i18n/locales/en.js",
+    "public/i18n/locales/he.js",
+    "public/sw.js"
+  ],
+  "edition_manifests_verified": [
+    "50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc",
+    "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7"
+  ],
+  "health_probes": [
+    {
+      "ok": true,
+      "uptimeSec": 94,
+      "now": "2026-11-07T19:58:38.215Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 93,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 94,
+      "now": "2026-11-07T19:58:38.463Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 93,
+      "disk_warn": true
+    },
+    {
+      "ok": true,
+      "uptimeSec": 94,
+      "now": "2026-11-07T19:58:38.719Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 93,
+      "disk_warn": true
+    }
+  ]
+}
