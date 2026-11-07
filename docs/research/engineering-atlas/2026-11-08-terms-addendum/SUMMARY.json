@@ -1,0 +1,296 @@
+{
+  "base_commit": "bdf23d7fabdb540777c12afc8dc182e6e8e8c537",
+  "branch": "feat/atlas-rc32-context-technical",
+  "input_sha256": "9e1f7345436ec4b99ebd26901ba5f007af335dd6b44276817e3e17195fbf6dcb",
+  "input_bytes": 298231,
+  "input_manifest_files_verified": 28,
+  "proof": {
+    "schema": "atlas97001.addendum-final-proof.1",
+    "revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+    "contextPin": "eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19",
+    "base_targets": 255,
+    "new_targets": 48,
+    "total_targets": 303,
+    "old_due": 255,
+    "new_due": 48,
+    "negative_guards": 240,
+    "remaining_v2_holds": 45,
+    "held_source_cases": 69,
+    "separate_editorials": 5,
+    "additional_holds": 4,
+    "lexical": 78,
+    "source_find": 501,
+    "identities_checked": 4785,
+    "old_orders_shifted_without_map": 138,
+    "changed_text_keys": [],
+    "changed_ai_keys": [],
+    "editorial": [
+      "a97001rc32:term:nonmetals",
+      "a97001rc32:term:silicon-manganese-steel",
+      "a97001rc32:term:metal-fiber"
+    ],
+    "search_docs": 48,
+    "source_records": 6255,
+    "status": "passed",
+    "production_changed": false
+  },
+  "release": {
+    "schema": "atlas97001.terms-addendum-context-rebind.1",
+    "pin": {
+      "atlas_id": "a97001",
+      "revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+      "manifest_sha256": "17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d"
+    },
+    "sourceBinding": {
+      "edition_revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+      "edition_manifest_sha256": "17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d",
+      "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+      "ai_dependencies_sha256": "afbcc17988b98a553f052c5859e7bb893c71c0a1829f592c2cd23addcf3d2722",
+      "source_overlay_manifest_sha256": "e746d12b32d13d69177cce6dc2a25002d595b4026f1fd4e7cfaf8889e197b765"
+    },
+    "contextPin": "eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19",
+    "baselineContextPin": "886489667313aaaf18d76676225af30395d1f5daebf16894b63ad6d921eb74d6",
+    "map_entries": 263,
+    "changed_payload_keys": [],
+    "sections": [
+      {
+        "id": "s00-front",
+        "expected": 69,
+        "accepted": 66,
+        "missing": 3
+      },
+      {
+        "id": "s01-units",
+        "expected": 46,
+        "accepted": 46,
+        "missing": 0
+      },
+      {
+        "id": "s02-statics-basics",
+        "expected": 108,
+        "accepted": 108,
+        "missing": 0
+      },
+      {
+        "id": "s03-concurrent-forces",
+        "expected": 71,
+        "accepted": 71,
+        "missing": 0
+      },
+      {
+        "id": "s04-parallel-forces",
+        "expected": 101,
+        "accepted": 101,
+        "missing": 0
+      },
+      {
+        "id": "s05-planar-forces",
+        "expected": 32,
+        "accepted": 32,
+        "missing": 0
+      },
+      {
+        "id": "s06-trusses",
+        "expected": 66,
+        "accepted": 66,
+        "missing": 0
+      },
+      {
+        "id": "s07-centroid",
+        "expected": 41,
+        "accepted": 41,
+        "missing": 0
+      },
+      {
+        "id": "s08-friction",
+        "expected": 48,
+        "accepted": 48,
+        "missing": 0
+      },
+      {
+        "id": "s09-linear-motion",
+        "expected": 117,
+        "accepted": 117,
+        "missing": 0
+      },
+      {
+        "id": "s10-projectile-motion",
+        "expected": 68,
+        "accepted": 68,
+        "missing": 0
+      },
+      {
+        "id": "s11-circular-motion",
+        "expected": 40,
+        "accepted": 40,
+        "missing": 0
+      },
+      {
+        "id": "s12-sections",
+        "expected": 28,
+        "accepted": 28,
+        "missing": 0
+      },
+      {
+        "id": "s13-dimensions",
+        "expected": 70,
+        "accepted": 70,
+        "missing": 0
+      },
+      {
+        "id": "s14-industrial-symbols",
+        "expected": 111,
+        "accepted": 111,
+        "missing": 0
+      },
+      {
+        "id": "s15-materials-basics",
+        "expected": 207,
+        "accepted": 207,
+        "missing": 0
+      },
+      {
+        "id": "s16-mechanical-properties",
+        "expected": 342,
+        "accepted": 342,
+        "missing": 0
+      },
+      {
+        "id": "s17-steels",
+        "expected": 667,
+        "accepted": 666,
+        "missing": 1
+      },
+      {
+        "id": "s18-powder-metallurgy",
+        "expected": 22,
+        "accepted": 22,
+        "missing": 0
+      },
+      {
+        "id": "s19-aluminium",
+        "expected": 97,
+        "accepted": 97,
+        "missing": 0
+      },
+      {
+        "id": "s20-composites",
+        "expected": 15,
+        "accepted": 15,
+        "missing": 0
+      }
+    ],
+    "unchanged": false,
+    "source_preserved": true,
+    "scientific_acceptance": false,
+    "production_changed": false
+  },
+  "project_tests": {
+    "total": 3570,
+    "passed": 3555,
+    "skipped": 15,
+    "failed": 0
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "full_export": {
+    "bytes": 219226934,
+    "files": 1230,
+    "sha256": "b7d368bf251f4f85a392aec1d4975d3d1dae7d699e0975f267911e6c2c2e03c8",
+    "roundtrip": "verify_restore_repack_verify_passed"
+  },
+  "owner_profile_accessed": false,
+  "production_changed": false,
+  "scientific_acceptance": false,
+  "implementation_commit": "3003d49f5daa800fc21bceceaf785dca49a64c8e",
+  "browser_terms": {
+    "scope": "actual local server, new synthetic persistent Chromium; no production or owner profile",
+    "checks": [
+      "same-origin V2→addendum reload preserves actual synthetic SQL grades/review_log/bookmarks/progress, personal terms/stage and persisted manual context correction",
+      "matched reviewed cards: compact canonical, Russian meaning, scoped Learn; source disclosure/navigation; owner force/solidification examples; 380px/LTR/RTL; viewing writes no learner state",
+      "real scoped Learn→grade→global review→exact source works, including front matter; original SQL/review state and canonical personal-term storage preserved",
+      "search for wheel returns and opens the semantic table part",
+      "three addendum editorial canonical targets stay loose with no invented source word span; p203 restriction remains in specific term note",
+      "all three editorial terms retain required notices in real section and global review, with exact source navigation and no literal HE/niqqud term highlight"
+    ],
+    "cards": [
+      {
+        "term": "a97001rc32:term:molar-mass",
+        "page": 116,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      },
+      {
+        "term": "a97001rc32:term:torsion",
+        "page": 157,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      },
+      {
+        "term": "a97001rc32:term:grain-size",
+        "page": 148,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      },
+      {
+        "term": "a97001rc32:term:nickel-steel",
+        "page": 158,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      },
+      {
+        "term": "a97001rc32:term:rolling-fiber-direction",
+        "page": 148,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      },
+      {
+        "term": "a97001rc32:term:partial-annealing",
+        "page": 197,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      },
+      {
+        "term": "a97001rc32:term:magnetic-field",
+        "page": 185,
+        "compact_header": true,
+        "explicit_learning_action": true,
+        "source_navigation": true
+      }
+    ],
+    "errors": [],
+    "origin": "http://127.0.0.1:62000",
+    "stage": "editorial:a97001rc32:term:metal-fiber",
+    "status": "passed"
+  },
+  "preview": {
+    "url": "http://127.0.0.1:3217/study-library.html#room=atlas%3Aa97001rc32&sec=s00-front&pg=1",
+    "controller_pid": 46388,
+    "server_pid": 7740
+  },
+  "skipped_tests": [
+    "ok 138 - 17 reviewed surface links use a separate sense in canonical and rendered data # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 139 - 16 reviewed area/region links stay intact; uncertain test-site association is not taught # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 140 - mixed p180 preserves quantitative area while heat removal uses the longer surface phrase # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 141 - all copies keep identical area/surface definitions and the distinct mishtakh lemma # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 142 - generated term index equals real builder and has exactly reviewed surface/area occurrences # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 143 - held surface/area contexts remain readable with exact provenance and never enter learning queues # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 144 - surface migration guards reject dropped, duplicated, wrong-sense and silently reactivated links # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 145 - all retired saved area examples fall back without modifying learner state # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 146 - each section can teach its referenced sense and every global occurrence remains valid # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 147 - pronunciation fixes are explicit and protected from generic recompilation # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 148 - unverified readings remain explicit limitations, not invented corrections # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 149 - circular-runout and pronunciation limitations reach normal cards and both trainer queues # SKIP requires volume-only a97001 runtime; canonical checks still run",
+    "ok 338 - real corpus bundle stays within budget and preserves postings and phrase text # SKIP",
+    "ok 357 - the whole book: every shown formula is read, ≥ 98 % of the readable blocks, within the cost ceiling # SKIP",
+    "ok 385 - full 97001 find-bank rebuild cannot teach any held or editorial row # SKIP requires a97001 runtime data"
+  ]
+}

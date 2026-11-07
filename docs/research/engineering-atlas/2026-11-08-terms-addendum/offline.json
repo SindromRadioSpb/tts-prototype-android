@@ -1,0 +1,12 @@
+{
+  "scope": "actual local SW, fresh disposable profile; no production or owner data",
+  "checks": [
+    "full offline reload validates edition, candidate manifest, map and section from actual SW cache",
+    "stale/corrupt map cached under correct pin fails closed offline; no fallback",
+    "restoring verified candidate bytes recovers on offline reopen without resetting learner state"
+  ],
+  "errors": [],
+  "origin": "http://127.0.0.1:59673",
+  "learner_state_unchanged": true,
+  "status": "passed"
+}

@@ -1,0 +1,1635 @@
+{
+  "schema": "atlas97001.addendum-final-proof.1",
+  "revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+  "contextPin": "eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19",
+  "base_targets": 255,
+  "new_targets": 48,
+  "total_targets": 303,
+  "old_due": 255,
+  "new_due": 48,
+  "negative_guards": 240,
+  "remaining_v2_holds": 45,
+  "held_source_cases": 69,
+  "separate_editorials": 5,
+  "additional_holds": 4,
+  "lexical": 78,
+  "source_find": 501,
+  "identities_checked": 4785,
+  "old_orders_shifted_without_map": [
+    {
+      "id": "a97001rc32:p100:b004:s04",
+      "before": 75,
+      "unfrozen": 76
+    },
+    {
+      "id": "a97001rc32:p109:img01:label-mean-line",
+      "before": 122,
+      "unfrozen": 123
+    },
+    {
+      "id": "a97001rc32:p111:source-heading-machining",
+      "before": 123,
+      "unfrozen": 125
+    },
+    {
+      "id": "a97001rc32:p112:img01:label-upper-deviation",
+      "before": 124,
+      "unfrozen": 127
+    },
+    {
+      "id": "a97001rc32:p112:img01:label-lower-deviation",
+      "before": 125,
+      "unfrozen": 128
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:sand-casting-method",
+      "before": 126,
+      "unfrozen": 129
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:metal-mould-casting-method",
+      "before": 127,
+      "unfrozen": 130
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:pressure-casting-method",
+      "before": 128,
+      "unfrozen": 131
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:free-forging-method",
+      "before": 129,
+      "unfrozen": 132
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:hot-stamping-method",
+      "before": 130,
+      "unfrozen": 134
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:welding-method",
+      "before": 131,
+      "unfrozen": 135
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:initial-rolling-method",
+      "before": 132,
+      "unfrozen": 136
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:profile-rolling-method",
+      "before": 133,
+      "unfrozen": 137
+    },
+    {
+      "id": "a97001rc32:p111:t-stock-roughness:drawing-method",
+      "before": 134,
+      "unfrozen": 138
+    },
+    {
+      "id": "a97001rc32:p118:b003:s02",
+      "before": 99,
+      "unfrozen": 108
+    },
+    {
+      "id": "a97001rc32:p121:b002:s02",
+      "before": 100,
+      "unfrozen": 109
+    },
+    {
+      "id": "a97001rc32:p122:b006:s01",
+      "before": 101,
+      "unfrozen": 110
+    },
+    {
+      "id": "a97001rc32:p122:b006:s03",
+      "before": 102,
+      "unfrozen": 111
+    },
+    {
+      "id": "a97001rc32:p122:b006:s04",
+      "before": 103,
+      "unfrozen": 112
+    },
+    {
+      "id": "a97001rc32:p122:b006:s05",
+      "before": 104,
+      "unfrozen": 113
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-H",
+      "before": 105,
+      "unfrozen": 114
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-He",
+      "before": 106,
+      "unfrozen": 115
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Li",
+      "before": 107,
+      "unfrozen": 116
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Be",
+      "before": 108,
+      "unfrozen": 117
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-B",
+      "before": 109,
+      "unfrozen": 118
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-N",
+      "before": 110,
+      "unfrozen": 119
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-O",
+      "before": 111,
+      "unfrozen": 120
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-F",
+      "before": 112,
+      "unfrozen": 121
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Na",
+      "before": 113,
+      "unfrozen": 122
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-P",
+      "before": 114,
+      "unfrozen": 123
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-S",
+      "before": 115,
+      "unfrozen": 124
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ar",
+      "before": 116,
+      "unfrozen": 125
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-K",
+      "before": 117,
+      "unfrozen": 126
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ca",
+      "before": 118,
+      "unfrozen": 127
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Sc",
+      "before": 119,
+      "unfrozen": 128
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ti",
+      "before": 120,
+      "unfrozen": 129
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-V",
+      "before": 121,
+      "unfrozen": 130
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Co",
+      "before": 122,
+      "unfrozen": 131
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ga",
+      "before": 123,
+      "unfrozen": 132
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ge",
+      "before": 124,
+      "unfrozen": 133
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-As",
+      "before": 125,
+      "unfrozen": 134
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Se",
+      "before": 126,
+      "unfrozen": 135
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Br",
+      "before": 127,
+      "unfrozen": 136
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Kr",
+      "before": 128,
+      "unfrozen": 137
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Rb",
+      "before": 129,
+      "unfrozen": 138
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Y",
+      "before": 130,
+      "unfrozen": 139
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Zr",
+      "before": 131,
+      "unfrozen": 140
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Nb",
+      "before": 132,
+      "unfrozen": 141
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Mo",
+      "before": 133,
+      "unfrozen": 142
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ru",
+      "before": 134,
+      "unfrozen": 143
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Pd",
+      "before": 135,
+      "unfrozen": 144
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ag",
+      "before": 136,
+      "unfrozen": 145
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Cd",
+      "before": 137,
+      "unfrozen": 146
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-In",
+      "before": 138,
+      "unfrozen": 147
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Sn",
+      "before": 139,
+      "unfrozen": 148
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Sb",
+      "before": 140,
+      "unfrozen": 149
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-I",
+      "before": 141,
+      "unfrozen": 150
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Xe",
+      "before": 142,
+      "unfrozen": 151
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ba",
+      "before": 143,
+      "unfrozen": 152
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Hf",
+      "before": 144,
+      "unfrozen": 153
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Re",
+      "before": 145,
+      "unfrozen": 154
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Os",
+      "before": 146,
+      "unfrozen": 155
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ir",
+      "before": 147,
+      "unfrozen": 156
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Pt",
+      "before": 148,
+      "unfrozen": 157
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Au",
+      "before": 149,
+      "unfrozen": 158
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Hg",
+      "before": 150,
+      "unfrozen": 159
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Tl",
+      "before": 151,
+      "unfrozen": 160
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Pb",
+      "before": 152,
+      "unfrozen": 161
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Bi",
+      "before": 153,
+      "unfrozen": 162
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Po",
+      "before": 154,
+      "unfrozen": 163
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Rn",
+      "before": 155,
+      "unfrozen": 164
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ra",
+      "before": 156,
+      "unfrozen": 165
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-La",
+      "before": 157,
+      "unfrozen": 166
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ce",
+      "before": 158,
+      "unfrozen": 167
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Sm",
+      "before": 159,
+      "unfrozen": 168
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Eu",
+      "before": 160,
+      "unfrozen": 169
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Gd",
+      "before": 161,
+      "unfrozen": 170
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Tb",
+      "before": 162,
+      "unfrozen": 171
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Dy",
+      "before": 163,
+      "unfrozen": 172
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Ho",
+      "before": 164,
+      "unfrozen": 173
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Er",
+      "before": 165,
+      "unfrozen": 174
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Tm",
+      "before": 166,
+      "unfrozen": 175
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Yb",
+      "before": 167,
+      "unfrozen": 176
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Th",
+      "before": 168,
+      "unfrozen": 177
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-U",
+      "before": 169,
+      "unfrozen": 178
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Np",
+      "before": 170,
+      "unfrozen": 179
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Pu",
+      "before": 171,
+      "unfrozen": 180
+    },
+    {
+      "id": "a97001rc32:p116:t-periodic-source:element-Cf",
+      "before": 172,
+      "unfrozen": 181
+    },
+    {
+      "id": "a97001rc32:p116:t-chemical-families:family-1",
+      "before": 173,
+      "unfrozen": 182
+    },
+    {
+      "id": "a97001rc32:p116:t-chemical-families:family-2",
+      "before": 174,
+      "unfrozen": 183
+    },
+    {
+      "id": "a97001rc32:p116:t-chemical-families:family-17",
+      "before": 175,
+      "unfrozen": 184
+    },
+    {
+      "id": "a97001rc32:p148:b004:s02",
+      "before": 199,
+      "unfrozen": 201
+    },
+    {
+      "id": "a97001rc32:p148:b007:s01",
+      "before": 200,
+      "unfrozen": 202
+    },
+    {
+      "id": "a97001rc32:p148:b007:s02",
+      "before": 201,
+      "unfrozen": 203
+    },
+    {
+      "id": "a97001rc32:p148:b007:s03",
+      "before": 202,
+      "unfrozen": 204
+    },
+    {
+      "id": "a97001rc32:p148:b007:s04",
+      "before": 203,
+      "unfrozen": 205
+    },
+    {
+      "id": "a97001rc32:p152:b002:s01",
+      "before": 204,
+      "unfrozen": 208
+    },
+    {
+      "id": "a97001rc32:p152:img02-origin",
+      "before": 205,
+      "unfrozen": 211
+    },
+    {
+      "id": "a97001rc32:p158:b005:s15",
+      "before": 563,
+      "unfrozen": 571
+    },
+    {
+      "id": "a97001rc32:p158:b005:s16",
+      "before": 564,
+      "unfrozen": 572
+    },
+    {
+      "id": "a97001rc32:p164:b004:s03",
+      "before": 565,
+      "unfrozen": 573
+    },
+    {
+      "id": "a97001rc32:p165:t-stainless-types:s01",
+      "before": 566,
+      "unfrozen": 574
+    },
+    {
+      "id": "a97001rc32:p165:t-stainless-types:s04",
+      "before": 567,
+      "unfrozen": 575
+    },
+    {
+      "id": "a97001rc32:p166:b004:s02",
+      "before": 568,
+      "unfrozen": 576
+    },
+    {
+      "id": "a97001rc32:p170:img01:label:cementite-weight-title",
+      "before": 569,
+      "unfrozen": 577
+    },
+    {
+      "id": "a97001rc32:p170:img01:label:atomic-title",
+      "before": 570,
+      "unfrozen": 578
+    },
+    {
+      "id": "a97001rc32:p174:b007:s02",
+      "before": 571,
+      "unfrozen": 579
+    },
+    {
+      "id": "a97001rc32:p176:b006:s02",
+      "before": 572,
+      "unfrozen": 580
+    },
+    {
+      "id": "a97001rc32:p179:b002:s03",
+      "before": 573,
+      "unfrozen": 581
+    },
+    {
+      "id": "a97001rc32:p182:b005:s02",
+      "before": 574,
+      "unfrozen": 582
+    },
+    {
+      "id": "a97001rc32:p182:b005:s03",
+      "before": 575,
+      "unfrozen": 583
+    },
+    {
+      "id": "a97001rc32:p182:b005:s04",
+      "before": 576,
+      "unfrozen": 584
+    },
+    {
+      "id": "a97001rc32:p183:b006:s02",
+      "before": 577,
+      "unfrozen": 585
+    },
+    {
+      "id": "a97001rc32:p183:b006:s03",
+      "before": 578,
+      "unfrozen": 586
+    },
+    {
+      "id": "a97001rc32:p185:b004:s07",
+      "before": 579,
+      "unfrozen": 587
+    },
+    {
+      "id": "a97001rc32:p187:img01:label04",
+      "before": 580,
+      "unfrozen": 588
+    },
+    {
+      "id": "a97001rc32:p189:b003:s03",
+      "before": 581,
+      "unfrozen": 589
+    },
+    {
+      "id": "a97001rc32:p157:t-alloying-elements:cell:chromium-uses",
+      "before": 582,
+      "unfrozen": 590
+    },
+    {
+      "id": "a97001rc32:p157:t-alloying-elements:cell:nickel-uses",
+      "before": 583,
+      "unfrozen": 591
+    },
+    {
+      "id": "a97001rc32:p163:t-steel-suffixes:cell:meaning-M",
+      "before": 584,
+      "unfrozen": 599
+    },
+    {
+      "id": "a97001rc32:p200:source-heading",
+      "before": 125,
+      "unfrozen": 126
+    },
+    {
+      "id": "a97001rc32:p200:img01:t-applications:r1c1",
+      "before": 126,
+      "unfrozen": 127
+    },
+    {
+      "id": "a97001rc32:p200:img01:t-applications:r4c1",
+      "before": 127,
+      "unfrozen": 128
+    },
+    {
+      "id": "a97001rc32:p200:img01:t-applications:r5c1",
+      "before": 128,
+      "unfrozen": 129
+    },
+    {
+      "id": "a97001rc32:p200:img02:t-applications:r1c1",
+      "before": 129,
+      "unfrozen": 130
+    },
+    {
+      "id": "a97001rc32:p200:img02:t-applications:r2c1",
+      "before": 130,
+      "unfrozen": 131
+    },
+    {
+      "id": "a97001rc32:p200:img02:t-applications:r4c1",
+      "before": 131,
+      "unfrozen": 132
+    },
+    {
+      "id": "a97001rc32:p201:b002:s01:s02",
+      "before": 132,
+      "unfrozen": 133
+    },
+    {
+      "id": "a97001rc32:p201:b002:s02",
+      "before": 133,
+      "unfrozen": 134
+    },
+    {
+      "id": "a97001rc32:p201:b002:s04",
+      "before": 134,
+      "unfrozen": 135
+    },
+    {
+      "id": "a97001rc32:p201:img01:label-temperature",
+      "before": 135,
+      "unfrozen": 136
+    },
+    {
+      "id": "a97001rc32:p201:b003:s02",
+      "before": 136,
+      "unfrozen": 137
+    },
+    {
+      "id": "a97001rc32:p201:b003:s04",
+      "before": 137,
+      "unfrozen": 138
+    },
+    {
+      "id": "a97001rc32:p196:img02:t-tempers:r1c1",
+      "before": 138,
+      "unfrozen": 139
+    },
+    {
+      "id": "a97001rc32:p196:img02:t-tempers:r3c1",
+      "before": 139,
+      "unfrozen": 140
+    },
+    {
+      "id": "a97001rc32:p196:img02:t-tempers:r6c1",
+      "before": 140,
+      "unfrozen": 141
+    },
+    {
+      "id": "a97001rc32:p197:img01:t-strain-hardening:r3c1",
+      "before": 141,
+      "unfrozen": 143
+    },
+    {
+      "id": "a97001rc32:p199:img02:t-properties-key:r1c1",
+      "before": 142,
+      "unfrozen": 144
+    }
+  ],
+  "changed_text_keys": [],
+  "changed_ai_keys": [],
+  "editorial": [
+    "a97001rc32:term:nonmetals",
+    "a97001rc32:term:silicon-manganese-steel",
+    "a97001rc32:term:metal-fiber"
+  ],
+  "search_docs": 48,
+  "source_records": 6255,
+  "status": "passed",
+  "items": [
+    {
+      "key": "at1:a97001rc32:air-resistance#technical",
+      "termId": "a97001rc32:term:air-resistance",
+      "sense": "technical",
+      "title": "הִתְנַגְּדוּת הָאֲוִיר",
+      "plain": "התנגדות האוויר",
+      "translit": "hitnagdut haavir",
+      "translit_ru": "хитнагдут хаавир",
+      "ru": "сопротивление воздуха",
+      "personal": false,
+      "block": "a97001rc32:p76:b002:s01",
+      "from": null,
+      "to": null,
+      "studyNote": "Сила сопротивления, возникающая при движении тела относительно воздуха. В модели свободного падения ей пренебрегают. Учебное название сокращает исходное сочетание התנגדות שכבות האוויר; текст источника не изменён.",
+      "sid": "s09-linear-motion",
+      "page": 76,
+      "required_notice_ru": "Учебное название сокращает исходное сочетание התנגדות שכבות האוויר; текст источника не изменён.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:width#technical",
+      "termId": "a97001rc32:term:width",
+      "sense": "technical",
+      "title": "רֹחַב",
+      "plain": "רוחב",
+      "translit": "rokhav",
+      "translit_ru": "рохав",
+      "ru": "ширина",
+      "personal": false,
+      "block": "a97001rc32:p100:img02:label-width",
+      "from": 0,
+      "to": 0,
+      "studyNote": "Поперечный габарит детали, показанный вместе с длиной и высотой.",
+      "sid": "s13-dimensions",
+      "page": 100,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:engineering-projection#technical",
+      "termId": "a97001rc32:term:engineering-projection",
+      "sense": "technical",
+      "title": "הֶטֵּל",
+      "plain": "היטל",
+      "translit": "hetel",
+      "translit_ru": "хетель",
+      "ru": "проекция на чертеже",
+      "personal": false,
+      "block": "a97001rc32:p100:b003",
+      "from": 12,
+      "to": 12,
+      "studyNote": "Изображение формы детали на выбранной плоскости проецирования; размеры помещают на той проекции, где нужная часть видна яснее.",
+      "sid": "s13-dimensions",
+      "page": 100,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:hidden-line#technical",
+      "termId": "a97001rc32:term:hidden-line",
+      "sense": "technical",
+      "title": "קַו נִסְתָּר",
+      "plain": "קו נסתר",
+      "translit": "kav nistar",
+      "translit_ru": "кав нистар",
+      "ru": "линия невидимого контура",
+      "personal": false,
+      "block": "a97001rc32:p102:b003",
+      "from": 3,
+      "to": 4,
+      "studyNote": "Линия, обозначающая невидимую из выбранного направления часть контура детали. Не следует путать её смысл с любым штриховым стилем линии. Невидимый контур часто проводят штриховой линией: это смысл линии и её графический стиль, а не взаимоисключающие понятия.",
+      "sid": "s13-dimensions",
+      "page": 102,
+      "required_notice_ru": "Невидимый контур часто проводят штриховой линией: это смысл линии и её графический стиль, а не взаимоисключающие понятия.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:drilled-hole#technical",
+      "termId": "a97001rc32:term:drilled-hole",
+      "sense": "technical",
+      "title": "קֶדַח",
+      "plain": "קדח",
+      "translit": "kedakh",
+      "translit_ru": "кедах",
+      "ru": "просверленное отверстие",
+      "personal": false,
+      "block": "a97001rc32:p103:b004:s01",
+      "from": null,
+      "to": null,
+      "studyNote": "Отверстие в детали; при нанесении размеров расстояние между осями отверстий показывают на проекции, где отверстия видны окружностями.",
+      "sid": "s13-dimensions",
+      "page": 103,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:roughness-profile-peak#technical",
+      "termId": "a97001rc32:term:roughness-profile-peak",
+      "sense": "technical",
+      "title": "בְּלִיטָה",
+      "plain": "בליטה",
+      "translit": "blita",
+      "translit_ru": "блита",
+      "ru": "выступ профиля шероховатости",
+      "personal": false,
+      "block": "a97001rc32:p109:img01:label-peak",
+      "from": 0,
+      "to": 0,
+      "studyNote": "Локальный выступ неровного профиля поверхности над его средней линией.",
+      "sid": "s14-industrial-symbols",
+      "page": 109,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:roughness-profile-valley#technical",
+      "termId": "a97001rc32:term:roughness-profile-valley",
+      "sense": "technical",
+      "title": "שֶׁקַע",
+      "plain": "שקע",
+      "translit": "sheka",
+      "translit_ru": "шека",
+      "ru": "впадина профиля шероховатости",
+      "personal": false,
+      "block": "a97001rc32:p109:img01:label-valley",
+      "from": 0,
+      "to": 0,
+      "studyNote": "Локальная впадина неровного профиля поверхности ниже средней линии. Здесь речь о впадине профиля шероховатости, а не об отпечатке индентора при испытании твёрдости.",
+      "sid": "s14-industrial-symbols",
+      "page": 109,
+      "required_notice_ru": "Здесь речь о впадине профиля шероховатости, а не об отпечатке индентора при испытании твёрдости.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:raw-material#technical",
+      "termId": "a97001rc32:term:raw-material",
+      "sense": "technical",
+      "title": "חֹמֶר גֶּלֶם",
+      "plain": "חומר גלם",
+      "translit": "khomer gelem",
+      "translit_ru": "хомер гелем",
+      "ru": "исходный материал для изготовления",
+      "personal": false,
+      "block": "a97001rc32:p111:source-heading-stock",
+      "from": 5,
+      "to": 6,
+      "studyNote": "Материал, из которого получают заготовку или изделие обработкой; в таблице показаны способы подготовки материала и достигаемая шероховатость.",
+      "sid": "s14-industrial-symbols",
+      "page": 111,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:die-forging#technical",
+      "termId": "a97001rc32:term:die-forging",
+      "sense": "technical",
+      "title": "חִשּׁוּל בְּטַבָּעִים",
+      "plain": "חישול בטבעים",
+      "translit": "khishul betabaim",
+      "translit_ru": "хишул бетабаим",
+      "ru": "объёмная штамповка",
+      "personal": false,
+      "block": "a97001rc32:p111:t-stock-roughness:die-forging-method",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Пластическое формоизменение заготовки в штампах, рабочие поверхности которых задают форму поковки. Исходная строка относится к горячей обработке и не уточняет открытый или закрытый тип штампа.",
+      "sid": "s14-industrial-symbols",
+      "page": 111,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:chemical-composition#technical",
+      "termId": "a97001rc32:term:chemical-composition",
+      "sense": "technical",
+      "title": "הֶרְכֵּב כִּימִי",
+      "plain": "הרכב כימי",
+      "translit": "herkev kimi",
+      "translit_ru": "херкев кими",
+      "ru": "химический состав",
+      "personal": false,
+      "block": "a97001rc32:p115:b003:s02",
+      "from": 29,
+      "to": 30,
+      "studyNote": "Какие химические компоненты входят в материал и в каких количествах или соотношениях они присутствуют. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Огласовано по проверенным компонентам; полная фраза не выдаётся за найденную словарную цитату.",
+      "sid": "s15-materials-basics",
+      "page": 115,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Огласовано по проверенным компонентам; полная фраза не выдаётся за найденную словарную цитату.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:electric-charge#technical",
+      "termId": "a97001rc32:term:electric-charge",
+      "sense": "technical",
+      "title": "מִטְעָן חַשְׁמַלִּי",
+      "plain": "מטען חשמלי",
+      "translit": "mit'an khashmali",
+      "translit_ru": "митъан хашмали",
+      "ru": "электрический заряд",
+      "personal": false,
+      "block": "a97001rc32:p115:b005",
+      "from": 3,
+      "to": 4,
+      "studyNote": "Физическое свойство частиц и тел, определяющее их электрическое взаимодействие. Заряд бывает положительным или отрицательным. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s15-materials-basics",
+      "page": 115,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:molar-mass#technical",
+      "termId": "a97001rc32:term:molar-mass",
+      "sense": "technical",
+      "title": "מָסָה מוֹלָרִית",
+      "plain": "מסה מולרית",
+      "translit": "masa molarit",
+      "translit_ru": "маса моларит",
+      "ru": "молярная масса",
+      "personal": false,
+      "block": "a97001rc32:p116:img01:label-molar-mass",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Масса одного моля вещества, то есть отношение массы к количеству вещества.",
+      "sid": "s15-materials-basics",
+      "page": 116,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:solid-state#technical",
+      "termId": "a97001rc32:term:solid-state",
+      "sense": "technical",
+      "title": "מוּצָק",
+      "plain": "מוצק",
+      "translit": "mutsak",
+      "translit_ru": "муцак",
+      "ru": "твёрдое состояние",
+      "personal": false,
+      "block": "a97001rc32:p116:img01:key-solid",
+      "from": 0,
+      "to": 0,
+      "studyNote": "Обозначение твёрдого агрегатного состояния. В легенде исходной таблицы показано рядом с символом Li. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Перевод состояния действует только для данной легенды; Li сохранён как символ источника, не часть леммы.",
+      "sid": "s15-materials-basics",
+      "page": 116,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Перевод состояния действует только для данной легенды; Li сохранён как символ источника, не часть леммы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:liquid-state#technical",
+      "termId": "a97001rc32:term:liquid-state",
+      "sense": "technical",
+      "title": "נוֹזֵל",
+      "plain": "נוזל",
+      "translit": "nozel",
+      "translit_ru": "нозель",
+      "ru": "жидкое состояние",
+      "personal": false,
+      "block": "a97001rc32:p116:img01:key-liquid",
+      "from": 0,
+      "to": 0,
+      "studyNote": "Обозначение жидкого агрегатного состояния. В легенде исходной таблицы показано рядом с символом Hg. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Вне легенды נוזל прежде всего «жидкость»; «жидкое состояние» является контекстным переводом.",
+      "sid": "s15-materials-basics",
+      "page": 116,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Вне легенды נוזל прежде всего «жидкость»; «жидкое состояние» является контекстным переводом.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:gaseous-state#technical",
+      "termId": "a97001rc32:term:gaseous-state",
+      "sense": "technical",
+      "title": "גָּז",
+      "plain": "גז",
+      "translit": "gaz",
+      "translit_ru": "газ",
+      "ru": "газообразное состояние",
+      "personal": false,
+      "block": "a97001rc32:p116:img01:key-gas",
+      "from": 0,
+      "to": 0,
+      "studyNote": "Обозначение газообразного агрегатного состояния. В легенде исходной таблицы показано рядом с символом H. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. H здесь символ водорода в легенде; не исправлять его на H2 в цитате.",
+      "sid": "s15-materials-basics",
+      "page": 116,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. H здесь символ водорода в легенде; не исправлять его на H2 в цитате.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:nonmetals#technical",
+      "termId": "a97001rc32:term:nonmetals",
+      "sense": "technical",
+      "title": "אַל-מַתָּכוֹת",
+      "plain": "אל-מתכות",
+      "translit": "al-matakhot",
+      "translit_ru": "ал-матахот",
+      "ru": "неметаллы",
+      "personal": false,
+      "block": "a97001rc32:p116:img01:key-nonmetals",
+      "from": null,
+      "to": null,
+      "studyNote": "Класс химических элементов, отличаемый от металлов. Это классификация элементов, а не агрегатное состояние. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Редакционная нормализация исходного אלמתכות → אל-מתכות. Нормализованная лемма не является буквальным сплошным фрагментом PDF.",
+      "sid": "s15-materials-basics",
+      "page": 116,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Редакционная нормализация исходного אלמתכות → אל-מתכות. Нормализованная лемма не является буквальным сплошным фрагментом PDF.",
+      "editorial": true
+    },
+    {
+      "key": "at1:a97001rc32:atom#technical",
+      "termId": "a97001rc32:term:atom",
+      "sense": "technical",
+      "title": "אָטוֹם",
+      "plain": "אטום",
+      "translit": "atom",
+      "translit_ru": "атом",
+      "ru": "атом",
+      "personal": false,
+      "block": "a97001rc32:p117:b002",
+      "from": null,
+      "to": null,
+      "studyNote": "Частица химического элемента, состоящая из ядра и электронной оболочки. Не тождественна ядру или отдельному электрону. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s15-materials-basics",
+      "page": 117,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:state-of-matter#technical",
+      "termId": "a97001rc32:term:state-of-matter",
+      "sense": "technical",
+      "title": "מַצַּב צְבִירָה",
+      "plain": "מצב צבירה",
+      "translit": "matsav tsvira",
+      "translit_ru": "мацав цвира",
+      "ru": "агрегатное состояние",
+      "personal": false,
+      "block": "a97001rc32:p117:b003:s01",
+      "from": 16,
+      "to": 17,
+      "studyNote": "Физическое состояние вещества, например твёрдое, жидкое или газообразное. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s15-materials-basics",
+      "page": 117,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:boiling-point#technical",
+      "termId": "a97001rc32:term:boiling-point",
+      "sense": "technical",
+      "title": "נְקֻדַּת רְתִיחָה",
+      "plain": "נקודת רתיחה",
+      "translit": "nekudat retikha",
+      "translit_ru": "некудат ретиха",
+      "ru": "температура кипения",
+      "personal": false,
+      "block": "a97001rc32:p117:b003:s02",
+      "from": 19,
+      "to": 20,
+      "studyNote": "Температура, при которой жидкость кипит при заданном внешнем давлении. Не совпадает с температурой плавления. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Утверждение исходного предложения обо всех смесях не сертифицируется.",
+      "sid": "s15-materials-basics",
+      "page": 117,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Утверждение исходного предложения обо всех смесях не сертифицируется.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:chemical-bond#technical",
+      "termId": "a97001rc32:term:chemical-bond",
+      "sense": "technical",
+      "title": "קֶשֶׁר כִּימִי",
+      "plain": "קשר כימי",
+      "translit": "kesher kimi",
+      "translit_ru": "кешер кими",
+      "ru": "химическая связь",
+      "personal": false,
+      "block": "a97001rc32:p117:b003:s05",
+      "from": 10,
+      "to": 11,
+      "studyNote": "Взаимодействие, удерживающее атомы вместе в молекулах и других химических структурах. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Компоненты подтверждены отдельно, их сборка авторская.",
+      "sid": "s15-materials-basics",
+      "page": 117,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Компоненты подтверждены отдельно, их сборка авторская.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:grain-size#technical",
+      "termId": "a97001rc32:term:grain-size",
+      "sense": "technical",
+      "title": "גֹּדֶל הַגַּרְעִינִים",
+      "plain": "גודל הגרעינים",
+      "translit": "godel ha-gar'inim",
+      "translit_ru": "годэл ха-гаръиним",
+      "ru": "размер зерна",
+      "personal": false,
+      "block": "a97001rc32:p148:b002:s01",
+      "from": 1,
+      "to": 2,
+      "studyNote": "Размер кристаллических зёрен в структуре металла. В учебнике рассматривается его влияние на ударную прочность. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s16-mechanical-properties",
+      "page": 148,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:rolling-fiber-direction#technical",
+      "termId": "a97001rc32:term:rolling-fiber-direction",
+      "sense": "technical",
+      "title": "כִּוּוּן הַסִּיבִים",
+      "plain": "כיוון הסיבים",
+      "translit": "kivun ha-sivim",
+      "translit_ru": "кивун ха-сивим",
+      "ru": "направление волокон в прокате",
+      "personal": false,
+      "block": "a97001rc32:p148:b003:s01",
+      "from": 1,
+      "to": 2,
+      "studyNote": "Ориентация волокнистой структуры прокатанного металла относительно рассматриваемого направления или образца. В этом разделе она связана с ударной прочностью. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Смысл ограничен прокатом и ударной прочностью p148; не переносить на metal-fiber p203.",
+      "sid": "s16-mechanical-properties",
+      "page": 148,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Смысл ограничен прокатом и ударной прочностью p148; не переносить на metal-fiber p203.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:plastic-deformation#technical",
+      "termId": "a97001rc32:term:plastic-deformation",
+      "sense": "technical",
+      "title": "דֵּפוֹרְמַצְיָה פְּלַסְטִית",
+      "plain": "דפורמציה פלסטית",
+      "translit": "deformatsya plastit",
+      "translit_ru": "дэформацйа пластит",
+      "ru": "пластическая деформация",
+      "personal": false,
+      "block": "a97001rc32:p149:img01-plastic",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Необратимое изменение формы или размеров тела, сохраняющееся после снятия нагрузки. На кривой ползучести эта составляющая подписана отдельно. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s16-mechanical-properties",
+      "page": 149,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:elastic-deformation#technical",
+      "termId": "a97001rc32:term:elastic-deformation",
+      "sense": "technical",
+      "title": "דֵּפוֹרְמַצְיָה אֵלַסְטִית",
+      "plain": "דפורמציה אלסטית",
+      "translit": "deformatsya elastit",
+      "translit_ru": "дэформацйа эластит",
+      "ru": "упругая деформация",
+      "personal": false,
+      "block": "a97001rc32:p149:img01-elastic",
+      "from": 2,
+      "to": 3,
+      "studyNote": "Обратимое изменение формы или размеров тела: после снятия нагрузки упругая часть деформации исчезает. На рисунке она отмечена как начальная деформация. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Авторская грамматическая сборка; отмеченная на рисунке начальная деформация не означает, что вся ползучесть упруга.",
+      "sid": "s16-mechanical-properties",
+      "page": 149,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Авторская грамматическая сборка; отмеченная на рисунке начальная деформация не означает, что вся ползучесть упруга.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:fully-reversed-loading#technical",
+      "termId": "a97001rc32:term:fully-reversed-loading",
+      "sense": "technical",
+      "title": "עֲמִיסָה מִתְחַלֶּפֶת",
+      "plain": "עמיסה מתחלפת",
+      "translit": "amisa mitkhalefet",
+      "translit_ru": "амиса митхалэфэт",
+      "ru": "симметричное знакопеременное нагружение",
+      "personal": false,
+      "block": "a97001rc32:p152:img01-alt",
+      "from": 0,
+      "to": 1,
+      "studyNote": "В показанном слева цикле растяжение чередуется со сжатием, а среднее напряжение равно нулю. Слово «симметричное» описывает именно эту схему. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. «Симметричное» разрешено только для левой схемы σm=0; עמיסה מתחלפת вне схемы значит более общее знакопеременное нагружение.",
+      "sid": "s16-mechanical-properties",
+      "page": 152,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. «Симметричное» разрешено только для левой схемы σm=0; עמיסה מתחלפת вне схемы значит более общее знакопеременное нагружение.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:fatigue-fracture#technical",
+      "termId": "a97001rc32:term:fatigue-fracture",
+      "sense": "technical",
+      "title": "שֶׁבֶר הִתְעַיְּפוּת",
+      "plain": "שבר התעייפות",
+      "translit": "shever hit'ayfut",
+      "translit_ru": "шэвер хитъайфут",
+      "ru": "усталостное разрушение",
+      "personal": false,
+      "block": "a97001rc32:p152:b003:s02",
+      "from": 3,
+      "to": 4,
+      "studyNote": "Разрушение материала вследствие накопления повреждений при многократно повторяющейся нагрузке. Схема показывает развитие трещины и область окончательного разрушения. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s16-mechanical-properties",
+      "page": 152,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:nickel-steel#technical",
+      "termId": "a97001rc32:term:nickel-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת נִיקֶל",
+      "plain": "פלדת ניקל",
+      "translit": "pladat nikel",
+      "translit_ru": "пладат никэль",
+      "ru": "никелевая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s03",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Сталь, легированная никелем. В перечне учебника выделена как отдельный тип по составу; проценты никеля и действующие номера марок здесь не устанавливаются. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:chromium-nickel-steel#technical",
+      "termId": "a97001rc32:term:chromium-nickel-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת כְּרוֹם נִיקֶל",
+      "plain": "פלדת כרום ניקל",
+      "translit": "pladat krom nikel",
+      "translit_ru": "пладат кром никэль",
+      "ru": "хромоникелевая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s04",
+      "from": 0,
+      "to": 2,
+      "studyNote": "Сталь, легированная хромом и никелем. Составное название обозначает тип по легирующим элементам и само по себе не означает, что любая такая сталь нержавеющая. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:molybdenum-steel#technical",
+      "termId": "a97001rc32:term:molybdenum-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת מוֹלִיבְּדֵּן",
+      "plain": "פלדת מוליבדן",
+      "translit": "pladat molibden",
+      "translit_ru": "пладат молибдэн",
+      "ru": "молибденовая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s05",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Сталь, в составе которой молибден служит легирующим элементом. Карточка передаёт название класса из учебника без задания концентрации или марки. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:chromium-steel#technical",
+      "termId": "a97001rc32:term:chromium-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת כְּרוֹם",
+      "plain": "פלדת כרום",
+      "translit": "pladat krom",
+      "translit_ru": "пладат кром",
+      "ru": "хромистая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s06",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Сталь, легированная хромом. Это классификация по составу, а не самостоятельное утверждение о нержавеющих свойствах каждой марки. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:chromium-vanadium-steel#technical",
+      "termId": "a97001rc32:term:chromium-vanadium-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת כְּרוֹם וָנַדְיוּם",
+      "plain": "פלדת כרום ונדיום",
+      "translit": "pladat krom vanadyum",
+      "translit_ru": "пладат кром ванадйум",
+      "ru": "хромованадиевая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s07",
+      "from": 0,
+      "to": 2,
+      "studyNote": "Сталь, легированная хромом и ванадием. Начальная ו в слове ונדיום является частью названия ванадия, а не отдельным союзом. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:tungsten-steel#technical",
+      "termId": "a97001rc32:term:tungsten-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת ווֹלְפְרָם",
+      "plain": "פלדת וולפרם",
+      "translit": "pladat volfram",
+      "translit_ru": "пладат волфрам",
+      "ru": "вольфрамовая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s08",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Сталь, легированная вольфрамом. Слово וולפרם в исходной строке обозначает тот же элемент W, который также называется טונגסטן; исходное название сохранено. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:nickel-chromium-molybdenum-steel#technical",
+      "termId": "a97001rc32:term:nickel-chromium-molybdenum-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת נִיקֶל כְּרוֹם וּמוֹלִיבְּדֵּן",
+      "plain": "פלדת ניקל כרום ומוליבדן",
+      "translit": "pladat nikel krom u-molibden",
+      "translit_ru": "пладат никэль кром у-молибдэн",
+      "ru": "никель-хром-молибденовая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s09",
+      "from": 0,
+      "to": 3,
+      "studyNote": "Сталь, легированная никелем, хромом и молибденом. Названия элементов сохранены в порядке учебника; союз ו перед מוליבדן читается u в принятой огласовке. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:silicon-steel#technical",
+      "termId": "a97001rc32:term:silicon-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת צֹרָן",
+      "plain": "פלדת צורן",
+      "translit": "pladat tsoran",
+      "translit_ru": "пладат цоран",
+      "ru": "кремнистая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s10",
+      "from": 0,
+      "to": 1,
+      "studyNote": "Сталь, легированная кремнием. В строке учебника это первая из двух альтернатив: кремнистая или кремнемарганцевая сталь; слово צורן обозначает кремний, не силикон. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Названия сталей и чтения составлены по словарным компонентам; классификация и числа AISI/SAE из PDF не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:silicon-manganese-steel#technical",
+      "termId": "a97001rc32:term:silicon-manganese-steel",
+      "sense": "technical",
+      "title": "פְּלָדַת צֹרָן וּמַנְגָּן",
+      "plain": "פלדת צורן ומנגן",
+      "translit": "pladat tsoran u-mangan",
+      "translit_ru": "пладат цоран у-манган",
+      "ru": "кремнемарганцевая сталь",
+      "personal": false,
+      "block": "a97001rc32:p158:b005:s10",
+      "from": null,
+      "to": null,
+      "studyNote": "Сталь, легированная кремнием и марганцем. Это вторая альтернатива в строке учебника: опущенное в ней слово פלדת восстановлено только в учебной лемме, а исходная цитата сохранена без добавлений. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Редакционное раскрытие эллипсиса: исходное «פלדת צורן או צורן ומנגן» содержит вторую альтернативу «צורן ומנגן». Восстановленное «פלדת צורן ומנגן» не является сплошной цитатой PDF.",
+      "sid": "s17-steels",
+      "page": 158,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Редакционное раскрытие эллипсиса: исходное «פלדת צורן או צורן ומנגן» содержит вторую альтернативу «צורן ומנגן». Восстановленное «פלדת צורן ומנגן» не является сплошной цитатой PDF.",
+      "editorial": true
+    },
+    {
+      "key": "at1:a97001rc32:electromagnetic-induction#technical",
+      "termId": "a97001rc32:term:electromagnetic-induction",
+      "sense": "technical",
+      "title": "הַשְׁרָאָה",
+      "plain": "השראה",
+      "translit": "hashra'a",
+      "translit_ru": "хашраа",
+      "ru": "электромагнитная индукция",
+      "personal": false,
+      "block": "a97001rc32:p185:b002",
+      "from": 4,
+      "to": 4,
+      "studyNote": "Возникновение электродвижущей силы при изменении магнитного потока. Здесь речь об индукционном нагреве металла переменным магнитным полем. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только электромагнитная индукция в данном фрагменте. Не «вдохновение» и не отдельная величина B.",
+      "sid": "s17-steels",
+      "page": 185,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только электромагнитная индукция в данном фрагменте. Не «вдохновение» и не отдельная величина B.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:magnetic-field#technical",
+      "termId": "a97001rc32:term:magnetic-field",
+      "sense": "technical",
+      "title": "שָׂדֶה מַגְנֵטִי",
+      "plain": "שדה מגנטי",
+      "translit": "sade magneti",
+      "translit_ru": "садэ магнэти",
+      "ru": "магнитное поле",
+      "personal": false,
+      "block": "a97001rc32:p185:b002",
+      "from": 21,
+      "to": 22,
+      "studyNote": "Физическое поле, действующее на движущиеся заряды и магнитные моменты. В этом фрагменте переменное магнитное поле связано с индукционным нагревом стали. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s17-steels",
+      "page": 185,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:torsion#technical",
+      "termId": "a97001rc32:term:torsion",
+      "sense": "technical",
+      "title": "פִּתּוּל",
+      "plain": "פיתול",
+      "translit": "pitul",
+      "translit_ru": "питуль",
+      "ru": "кручение",
+      "personal": false,
+      "block": "a97001rc32:p157:t-alloying-elements:cell:vanadium-increases",
+      "from": 3,
+      "to": 3,
+      "studyNote": "Деформация, при которой сечения тела поворачиваются относительно друг друга под действием крутящего момента. В исходной строке говорится о сопротивлении кручению. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "sid": "s17-steels",
+      "page": 157,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:reinforcing-steel#technical",
+      "termId": "a97001rc32:term:reinforcing-steel",
+      "sense": "technical",
+      "title": "פְּלָדוֹת לְחִזּוּק בֵּטוֹן",
+      "plain": "פלדות לחיזוק בטון",
+      "translit": "pladot le-khizuk beton",
+      "translit_ru": "пладот лэ-хизук бэтон",
+      "ru": "арматурные стали",
+      "personal": false,
+      "block": "a97001rc32:p162:t-steel-symbols:cell:B-usage",
+      "from": 0,
+      "to": 2,
+      "studyNote": "Стали для армирования бетона, категория B в таблице учебника. Это материал арматуры; его не следует смешивать со сталью для предварительного напряжения бетона категории Y. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только материал и код B данной таблицы; числовые параметры и действующие нормы не проверены.",
+      "sid": "s17-steels",
+      "page": 162,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только материал и код B данной таблицы; числовые параметры и действующие нормы не проверены.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:engineering-steel#technical",
+      "termId": "a97001rc32:term:engineering-steel",
+      "sense": "technical",
+      "title": "פְּלָדוֹת לִבְנִיַּת מְכוֹנוֹת",
+      "plain": "פלדות לבניית מכונות",
+      "translit": "pladot livniyat mekhonot",
+      "translit_ru": "пладот ливнийат мэхонот",
+      "ru": "стали для машиностроения",
+      "personal": false,
+      "block": "a97001rc32:p162:t-steel-symbols:cell:E-usage",
+      "from": 0,
+      "to": 2,
+      "studyNote": "Стали для изготовления машин и их деталей, категория E в таблице учебника. Назначение отличается от категории S для стальных конструкций, поэтому одного перевода «конструкционные стали» недостаточно. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только категория E; не подменять общим русским «конструкционные стали».",
+      "sid": "s17-steels",
+      "page": 162,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только категория E; не подменять общим русским «конструкционные стали».",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:line-pipe-steel#technical",
+      "termId": "a97001rc32:term:line-pipe-steel",
+      "sense": "technical",
+      "title": "פְּלָדוֹת עֲבוּר צִנּוֹרוֹת",
+      "plain": "פלדות עבור צינורות",
+      "translit": "pladot avur tsinorot",
+      "translit_ru": "пладот авур цинорот",
+      "ru": "стали для трубопроводов",
+      "personal": false,
+      "block": "a97001rc32:p162:t-steel-symbols:cell:L-usage",
+      "from": 0,
+      "to": 2,
+      "studyNote": "Стали для изготовления труб трубопроводов, категория L. Исходная подпись буквально говорит о сталях для труб; более узкое трубопроводное назначение устанавливается по коду L в таблице. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Русское «для трубопроводов» обусловлено кодом L; сама подпись буквально «для труб».",
+      "sid": "s17-steels",
+      "page": 162,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Русское «для трубопроводов» обусловлено кодом L; сама подпись буквально «для труб».",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:boiler-steel#technical",
+      "termId": "a97001rc32:term:boiler-steel",
+      "sense": "technical",
+      "title": "פְּלָדָה לִבְנִיַּת דּוּדֵי קִיטוֹר",
+      "plain": "פלדה לבניית דודי קיטור",
+      "translit": "plada livniyat dudei kitor",
+      "translit_ru": "плада ливнийат дудэй китор",
+      "ru": "котельная сталь",
+      "personal": false,
+      "block": "a97001rc32:p162:t-steel-symbols:cell:P-usage",
+      "from": 0,
+      "to": 3,
+      "studyNote": "Сталь для изготовления паровых котлов, как буквально указано в учебнике. Она приведена в строке P, но категория P шире: охватывает стали для работы под давлением, а не только котлы. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Категория P шире котлов: steels for pressure purposes. Нельзя распространять узкий перевод на весь класс P.",
+      "sid": "s17-steels",
+      "page": 162,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Категория P шире котлов: steels for pressure purposes. Нельзя распространять узкий перевод на весь класс P.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:rail-steel#technical",
+      "termId": "a97001rc32:term:rail-steel",
+      "sense": "technical",
+      "title": "פְּלָדוֹת עֲבוּר מְסִלּוֹת בַּרְזֶל",
+      "plain": "פלדות עבור מסילות ברזל",
+      "translit": "pladot avur mesilot barzel",
+      "translit_ru": "пладот авур мэсилот барзэль",
+      "ru": "рельсовые стали",
+      "personal": false,
+      "block": "a97001rc32:p162:t-steel-symbols:cell:R-usage",
+      "from": 0,
+      "to": 3,
+      "studyNote": "Стали для железнодорожных рельсов, категория R в таблице учебника. Карточка называет материал, а не изделие или весь железнодорожный путь. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Смысл привязан к R; числовая твёрдость и применимость марки не сертифицированы.",
+      "sid": "s17-steels",
+      "page": 162,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Смысл привязан к R; числовая твёрдость и применимость марки не сертифицированы.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:prestressing-steel#technical",
+      "termId": "a97001rc32:term:prestressing-steel",
+      "sense": "technical",
+      "title": "פְּלָדוֹת מְתִיחָה",
+      "plain": "פלדות מתיחה",
+      "translit": "pladot metikha",
+      "translit_ru": "пладот мэтиха",
+      "ru": "стали для предварительного напряжения бетона",
+      "personal": false,
+      "block": "a97001rc32:p162:t-steel-symbols:cell:Y-usage",
+      "from": 0,
+      "to": 1,
+      "studyNote": "В строке с кодом Y: стали для предварительного напряжения бетона. Сама краткая ивритская подпись буквально означает «стали натяжения/растяжения» и без кода Y не даёт достаточного основания для этого узкого перевода. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Исходное פלדות מתיחה буквально «стали натяжения/растяжения». Узкий перевод «для предварительного напряжения бетона» разрешён только вместе с кодом Y; это не словарный перевод вне контекста.",
+      "sid": "s17-steels",
+      "page": 162,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Исходное פלדות מתיחה буквально «стали натяжения/растяжения». Узкий перевод «для предварительного напряжения бетона» разрешён только вместе с кодом Y; это не словарный перевод вне контекста.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:extrusion#technical",
+      "termId": "a97001rc32:term:extrusion",
+      "sense": "technical",
+      "title": "אֶקְסְטְרוּזְיָה",
+      "plain": "אקסטרוזיה",
+      "translit": "ekstruzya",
+      "translit_ru": "экструзйа",
+      "ru": "экструзия (прессование через матрицу)",
+      "personal": false,
+      "block": "a97001rc32:p197:t-product-key:r5c1",
+      "from": 3,
+      "to": 3,
+      "studyNote": "Получение длинномерного изделия проталкиванием материала через отверстие матрицы заданного профиля.",
+      "sid": "s19-aluminium",
+      "page": 197,
+      "required_notice_ru": "",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:partial-annealing#technical",
+      "termId": "a97001rc32:term:partial-annealing",
+      "sense": "technical",
+      "title": "רִפּוּי חֶלְקִי",
+      "plain": "ריפוי חלקי",
+      "translit": "ripuy khelki",
+      "translit_ru": "рипуй хэлки",
+      "ru": "частичный отжиг",
+      "personal": false,
+      "block": "a97001rc32:p197:img01:t-strain-hardening:r2c1",
+      "from": 3,
+      "to": 4,
+      "studyNote": "Отжиг после деформационного упрочнения, который снижает степень упрочнения лишь частично. В таблице эта операция входит в описание состояния H2X алюминиевых сплавов. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только операция в H2X. Старое словарное tempering не переносится на этот алюминиевый контекст; операция не равна полному коду состояния.",
+      "sid": "s19-aluminium",
+      "page": 197,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только операция в H2X. Старое словарное tempering не переносится на этот алюминиевый контекст; операция не равна полному коду состояния.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:low-temperature-stabilization#technical",
+      "termId": "a97001rc32:term:low-temperature-stabilization",
+      "sense": "technical",
+      "title": "יִצּוּב עַל-יְדֵי טִפּוּל בְּטֶמְפֵּרָטוּרָה נְמוּכָה",
+      "plain": "ייצוב על-ידי טיפול בטמפרטורה נמוכה",
+      "translit": "yitsuv al-yedei tipul be-temperatura nemukha",
+      "translit_ru": "йицув ал-йэдэй типуль бэ-тэмпэратура нэмуха",
+      "ru": "стабилизация низкотемпературной обработкой",
+      "personal": false,
+      "block": "a97001rc32:p197:img01:t-strain-hardening:r3c1",
+      "from": 3,
+      "to": 8,
+      "studyNote": "Стабилизирующая обработка после деформационного упрочнения алюминиевого сплава. В строке H3X она названа обработкой при низкой температуре; конкретный режим здесь не задан. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только операция строки H3X; не всё обозначение состояния и не числовой режим.",
+      "sid": "s19-aluminium",
+      "page": 197,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Только операция строки H3X; не всё обозначение состояния и не числовой режим.",
+      "editorial": false
+    },
+    {
+      "key": "at1:a97001rc32:metal-fiber#technical",
+      "termId": "a97001rc32:term:metal-fiber",
+      "sense": "technical",
+      "title": "סִיבֵי מַתֶּכֶת",
+      "plain": "סיבי מתכת",
+      "translit": "sivei matekhet",
+      "translit_ru": "сивэй матэхэт",
+      "ru": "металлические волокна",
+      "personal": false,
+      "block": "a97001rc32:p203:b004",
+      "from": null,
+      "to": null,
+      "studyNote": "Волокна из металла, применяемые для армирования композитного материала. В источнике они названы последним элементом перечня материалов волокон. Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Редакционное раскрытие эллипсиса исходного «בסיבי זכוכית, פחם או מתכות שונות»: общая вершина восстановлена, металлы приведены к собирательному מתכת, שונות опущено. Полная лемма סיבי מתכת не сплошная цитата PDF.",
+      "sid": "s20-composites",
+      "page": 203,
+      "required_notice_ru": "Огласовка, обе транслитерации, русский перевод и пояснение являются проверенным авторским учебным слоем, а не исходной огласовкой PDF. Одобрение ограничено этой леммой, значением и указанной привязкой; целое исходное предложение не сертифицировано. Редакционное раскрытие эллипсиса исходного «בסיבי זכוכית, פחם או מתכות שונות»: общая вершина восстановлена, металлы приведены к собирательному מתכת, שונות опущено. Полная лемма סיבי מתכת не сплошная цитата PDF.",
+      "editorial": true
+    }
+  ],
+  "production_changed": false
+}
