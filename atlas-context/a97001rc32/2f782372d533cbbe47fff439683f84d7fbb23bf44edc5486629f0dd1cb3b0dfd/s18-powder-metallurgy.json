@@ -1,0 +1,1181 @@
+{
+  "schema": "word-gloss-ai-layer-v1",
+  "contract": "atlas-context-v2",
+  "atlas": "a97001rc32",
+  "section": "s18-powder-metallurgy",
+  "source_revision": "c7557c4803f378a0cf5eed16e8a6831e26a64c95fe0704a420b5726e69455114",
+  "coverage_mode": "complete",
+  "provenance": {
+    "kind": "prepared_ai",
+    "producer": "OpenAI assistant; coordinated section authors",
+    "review_scope": "Current RC3.2 source-bound contextual Russian glosses, author self-review, exact token/order/key structural verification. Source restrictions preserved. No claim of independent whole-book linguistic, scientific, niqqud or facsimile acceptance; not deployed. Baseline reviewed_terms only; new terminology remains a separate overlay."
+  },
+  "rows": [
+    {
+      "row_id": "a97001rc32:p192:b001",
+      "source_row_id": "a97001:p192:b001",
+      "order_index": 0,
+      "key": "r21ae6a7c1e8f613a3:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "металлургия"
+        },
+        {
+          "gloss": "порошковая"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "порошковая металлургия"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b002",
+      "source_row_id": "a97001:p192:b002",
+      "order_index": 1,
+      "key": "r2663ff4396190e01:12",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "процесс"
+        },
+        {
+          "gloss": "изготовления"
+        },
+        {
+          "gloss": "изделий"
+        },
+        {
+          "gloss": "из металлов"
+        },
+        {
+          "gloss": "чистых"
+        },
+        {
+          "gloss": "сплавов"
+        },
+        {
+          "gloss": "или"
+        },
+        {
+          "gloss": "материалов"
+        },
+        {
+          "gloss": "керамических"
+        },
+        {
+          "gloss": "без"
+        },
+        {
+          "gloss": "необходимости"
+        },
+        {
+          "gloss": "плавления"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 7,
+          "to": 8,
+          "gloss": "керамические материалы"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b006",
+      "source_row_id": "a97001:p192:b006",
+      "order_index": 5,
+      "key": "r227f728ab1eab185:11",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "смешивание"
+        },
+        {
+          "gloss": "порошков"
+        },
+        {
+          "gloss": "процесс"
+        },
+        {
+          "gloss": "смешивания"
+        },
+        {
+          "gloss": "является"
+        },
+        {
+          "gloss": "жизненно необходимым"
+        },
+        {
+          "gloss": "чрезвычайно"
+        },
+        {
+          "gloss": "и он"
+        },
+        {
+          "gloss": "длится (нормализация)",
+          "uncertain": true,
+          "reason": "В источнике ошибочная форма. Смысл «длится» относится только к явно указанному normalized_reading_companion, а не к буквальной исходной форме."
+        },
+        {
+          "gloss": "несколько"
+        },
+        {
+          "gloss": "часов"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "смешивание порошков"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p193:b001",
+      "source_row_id": "a97001:p193:b001",
+      "order_index": 7,
+      "key": "r26e0b64f497ed3a8a:40",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "прессование"
+        },
+        {
+          "gloss": "процесс"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "приложения"
+        },
+        {
+          "gloss": "давления"
+        },
+        {
+          "gloss": "на"
+        },
+        {
+          "gloss": "порошок"
+        },
+        {
+          "gloss": "находящийся"
+        },
+        {
+          "gloss": "в пресс-форме"
+        },
+        {
+          "gloss": "величина"
+        },
+        {
+          "gloss": "давления"
+        },
+        {
+          "gloss": "зависит"
+        },
+        {
+          "gloss": "от размера"
+        },
+        {
+          "gloss": "изделия"
+        },
+        {
+          "gloss": "и вида"
+        },
+        {
+          "gloss": "порошка"
+        },
+        {
+          "gloss": "результат"
+        },
+        {
+          "gloss": "это"
+        },
+        {
+          "gloss": "изделие"
+        },
+        {
+          "gloss": "большее"
+        },
+        {
+          "gloss": "немного"
+        },
+        {
+          "gloss": "чем изделие"
+        },
+        {
+          "gloss": "конечное"
+        },
+        {
+          "gloss": "и имеющее"
+        },
+        {
+          "gloss": "прочность"
+        },
+        {
+          "gloss": "низкую"
+        },
+        {
+          "gloss": "но"
+        },
+        {
+          "gloss": "достаточную"
+        },
+        {
+          "gloss": "для"
+        },
+        {
+          "gloss": "того чтобы"
+        },
+        {
+          "gloss": "перемещать"
+        },
+        {
+          "gloss": "его"
+        },
+        {
+          "gloss": "с места"
+        },
+        {
+          "gloss": "на место"
+        },
+        {
+          "gloss": "можно"
+        },
+        {
+          "gloss": "сломать"
+        },
+        {
+          "gloss": "(показатель дополнения)"
+        },
+        {
+          "gloss": "изделие"
+        },
+        {
+          "gloss": "неспечённое"
+        },
+        {
+          "gloss": "рукой"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 28,
+          "to": 29,
+          "gloss": "для того чтобы"
+        },
+        {
+          "from": 37,
+          "to": 38,
+          "gloss": "неспечённая заготовка"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b003:s01",
+      "source_row_id": "a97001:p192:b003:s01",
+      "order_index": 9,
+      "key": "r243b89c5fee10765:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "процесс"
+        },
+        {
+          "gloss": "применяется"
+        },
+        {
+          "gloss": "в случаях"
+        },
+        {
+          "gloss": "следующих"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b003:s02",
+      "source_row_id": "a97001:p192:b003:s02",
+      "order_index": 10,
+      "key": "r2ad70514d30179883:19",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "когда"
+        },
+        {
+          "gloss": "не"
+        },
+        {
+          "gloss": "возможно"
+        },
+        {
+          "gloss": "или"
+        },
+        {
+          "gloss": "трудно"
+        },
+        {
+          "gloss": "расплавить"
+        },
+        {
+          "gloss": "(показатель дополнения)"
+        },
+        {
+          "gloss": "материал"
+        },
+        {
+          "gloss": "как"
+        },
+        {
+          "gloss": "в случае"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "материалов"
+        },
+        {
+          "gloss": "керамических"
+        },
+        {
+          "gloss": "и металлов"
+        },
+        {
+          "gloss": "имеющих"
+        },
+        {
+          "gloss": "температуру"
+        },
+        {
+          "gloss": "плавления"
+        },
+        {
+          "gloss": "высокую"
+        },
+        {
+          "gloss": "очень"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 9,
+          "to": 10,
+          "gloss": "в случае"
+        },
+        {
+          "from": 11,
+          "to": 12,
+          "gloss": "керамические материалы"
+        },
+        {
+          "from": 15,
+          "to": 16,
+          "gloss": "температура плавления"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b003:s03",
+      "source_row_id": "a97001:p192:b003:s03",
+      "order_index": 11,
+      "key": "r2f791f914d54fe602:12",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "когда"
+        },
+        {
+          "gloss": "есть"
+        },
+        {
+          "gloss": "необходимость"
+        },
+        {
+          "gloss": "в составах"
+        },
+        {
+          "gloss": "особых"
+        },
+        {
+          "gloss": "которые"
+        },
+        {
+          "gloss": "не"
+        },
+        {
+          "gloss": "возможны"
+        },
+        {
+          "gloss": "по"
+        },
+        {
+          "gloss": "согласно"
+        },
+        {
+          "gloss": "диаграмме"
+        },
+        {
+          "gloss": "фаз"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 8,
+          "to": 9,
+          "gloss": "согласно"
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "gloss": "фазовая диаграмма"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b003:s04",
+      "source_row_id": "a97001:p192:b003:s04",
+      "order_index": 12,
+      "key": "r2de9ca0cc5f2ddc9e:9",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "когда"
+        },
+        {
+          "gloss": "есть"
+        },
+        {
+          "gloss": "необходимость"
+        },
+        {
+          "gloss": "в весе"
+        },
+        {
+          "gloss": "точном"
+        },
+        {
+          "gloss": "очень"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "изделия"
+        },
+        {
+          "gloss": "конечного"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b003:s05",
+      "source_row_id": "a97001:p192:b003:s05",
+      "order_index": 13,
+      "key": "r2f0f71289fe08d95f:14",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "для"
+        },
+        {
+          "gloss": "деталей"
+        },
+        {
+          "gloss": "имеющих"
+        },
+        {
+          "gloss": "форму"
+        },
+        {
+          "gloss": "особую"
+        },
+        {
+          "gloss": "которые"
+        },
+        {
+          "gloss": "не"
+        },
+        {
+          "gloss": "возможно"
+        },
+        {
+          "gloss": "или"
+        },
+        {
+          "gloss": "дорого"
+        },
+        {
+          "gloss": "очень"
+        },
+        {
+          "gloss": "изготовить их"
+        },
+        {
+          "gloss": "способами"
+        },
+        {
+          "gloss": "другими"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b004:s01",
+      "source_row_id": "a97001:p192:b004:s01",
+      "order_index": 14,
+      "key": "r2d15774d53f9973e7:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "процесс"
+        },
+        {
+          "gloss": "состоит"
+        },
+        {
+          "gloss": "из четырёх"
+        },
+        {
+          "gloss": "этапов"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b004:s02",
+      "source_row_id": "a97001:p192:b004:s02",
+      "order_index": 15,
+      "key": "r2f1890a2ffbf62b51:13",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "подготовка"
+        },
+        {
+          "gloss": "порошков"
+        },
+        {
+          "gloss": "стремление"
+        },
+        {
+          "gloss": "получить"
+        },
+        {
+          "gloss": "порошки"
+        },
+        {
+          "gloss": "однородные"
+        },
+        {
+          "gloss": "насколько"
+        },
+        {
+          "gloss": "возможно"
+        },
+        {
+          "gloss": "по"
+        },
+        {
+          "gloss": "форме"
+        },
+        {
+          "gloss": "зёрен"
+        },
+        {
+          "gloss": "их размеру"
+        },
+        {
+          "gloss": "и их составу"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b005:s01",
+      "source_row_id": "a97001:p192:b005:s01",
+      "order_index": 16,
+      "key": "r2f8e95bf79b2fa525:6",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "можно"
+        },
+        {
+          "gloss": "приготовить"
+        },
+        {
+          "gloss": "(показатель дополнения)"
+        },
+        {
+          "gloss": "порошки"
+        },
+        {
+          "gloss": "несколькими"
+        },
+        {
+          "gloss": "способами"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b005:s02",
+      "source_row_id": "a97001:p192:b005:s02",
+      "order_index": 17,
+      "key": "r25db652b7ca4522fd:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "способ"
+        },
+        {
+          "gloss": "механический"
+        },
+        {
+          "gloss": "дробление"
+        },
+        {
+          "gloss": "и измельчение"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b005:s03",
+      "source_row_id": "a97001:p192:b005:s03",
+      "order_index": 18,
+      "key": "r227cf7ef2e0974870:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "способ"
+        },
+        {
+          "gloss": "химический"
+        },
+        {
+          "gloss": "восстановление"
+        },
+        {
+          "gloss": "электролиз"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b005:s04",
+      "source_row_id": "a97001:p192:b005:s04",
+      "order_index": 19,
+      "key": "r2158c0cdb81bfdb5d:13",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "атомизация"
+        },
+        {
+          "gloss": "плавление"
+        },
+        {
+          "gloss": "создание"
+        },
+        {
+          "gloss": "струи"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "материала"
+        },
+        {
+          "gloss": "расплавленного"
+        },
+        {
+          "gloss": "и охлаждение"
+        },
+        {
+          "gloss": "быстрое"
+        },
+        {
+          "gloss": "посредством"
+        },
+        {
+          "gloss": "воды"
+        },
+        {
+          "gloss": "или"
+        },
+        {
+          "gloss": "воздуха"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b005:s05",
+      "source_row_id": "a97001:p192:b005:s05",
+      "order_index": 20,
+      "key": "r2569adf475b92b91:12",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "способ"
+        },
+        {
+          "gloss": "подготовки"
+        },
+        {
+          "gloss": "определяется"
+        },
+        {
+          "gloss": "по"
+        },
+        {
+          "gloss": "согласно"
+        },
+        {
+          "gloss": "материалу"
+        },
+        {
+          "gloss": "исходному"
+        },
+        {
+          "gloss": "размеру"
+        },
+        {
+          "gloss": "и форме"
+        },
+        {
+          "gloss": "зёрен"
+        },
+        {
+          "gloss": "порошка"
+        },
+        {
+          "gloss": "требуемых"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 3,
+          "to": 4,
+          "gloss": "согласно"
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "gloss": "исходное сырьё"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b007:s01",
+      "source_row_id": "a97001:p192:b007:s01",
+      "order_index": 21,
+      "key": "r29ef9997c2be38e66:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "у смешивания"
+        },
+        {
+          "gloss": "порошков"
+        },
+        {
+          "gloss": "есть"
+        },
+        {
+          "gloss": "несколько"
+        },
+        {
+          "gloss": "целей"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p192:b007:s02",
+      "source_row_id": "a97001:p192:b007:s02",
+      "order_index": 22,
+      "key": "r2974eec35eddc2ae3:26",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "получение"
+        },
+        {
+          "gloss": "распределения"
+        },
+        {
+          "gloss": "размеров"
+        },
+        {
+          "gloss": "зёрен"
+        },
+        {
+          "gloss": "однородного"
+        },
+        {
+          "gloss": "во всём"
+        },
+        {
+          "gloss": "объёме"
+        },
+        {
+          "gloss": "порошка"
+        },
+        {
+          "gloss": "при"
+        },
+        {
+          "gloss": "хранении"
+        },
+        {
+          "gloss": "и транспортировке"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "порошка"
+        },
+        {
+          "gloss": "зёрна"
+        },
+        {
+          "gloss": "мелкие"
+        },
+        {
+          "gloss": "оседают"
+        },
+        {
+          "gloss": "вниз"
+        },
+        {
+          "gloss": "а зёрна"
+        },
+        {
+          "gloss": "крупные"
+        },
+        {
+          "gloss": "поднимаются"
+        },
+        {
+          "gloss": "вверх"
+        },
+        {
+          "gloss": "цель"
+        },
+        {
+          "gloss": "смешивания"
+        },
+        {
+          "gloss": "устранить"
+        },
+        {
+          "gloss": "явление"
+        },
+        {
+          "gloss": "это"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 1,
+          "to": 3,
+          "gloss": "распределение зёрен по размерам"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p192:b007:s03",
+      "source_row_id": "a97001:p192:b007:s03",
+      "order_index": 23,
+      "key": "r286bcf58a5d49b6dc:16",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "получение"
+        },
+        {
+          "gloss": "состава"
+        },
+        {
+          "gloss": "однородного"
+        },
+        {
+          "gloss": "в случае"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "порошка"
+        },
+        {
+          "gloss": "состоящего"
+        },
+        {
+          "gloss": "из нескольких"
+        },
+        {
+          "gloss": "компонентов"
+        },
+        {
+          "gloss": "смешивание"
+        },
+        {
+          "gloss": "создаёт"
+        },
+        {
+          "gloss": "состав"
+        },
+        {
+          "gloss": "однородный"
+        },
+        {
+          "gloss": "во всём"
+        },
+        {
+          "gloss": "объёме"
+        },
+        {
+          "gloss": "порошка"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 3,
+          "to": 4,
+          "gloss": "в случае"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p193:b002:s01",
+      "source_row_id": "a97001:p193:b002:s01",
+      "order_index": 24,
+      "key": "r2bd459b4b17ea99dd:16",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "спекание"
+        },
+        {
+          "gloss": "порошок"
+        },
+        {
+          "gloss": "который"
+        },
+        {
+          "gloss": "составляет"
+        },
+        {
+          "gloss": "(показатель дополнения)"
+        },
+        {
+          "gloss": "изделие"
+        },
+        {
+          "gloss": "неспечённое"
+        },
+        {
+          "gloss": "превращается"
+        },
+        {
+          "gloss": "в материал"
+        },
+        {
+          "gloss": "плотный"
+        },
+        {
+          "gloss": "или"
+        },
+        {
+          "gloss": "почти"
+        },
+        {
+          "gloss": "плотный"
+        },
+        {
+          "gloss": "и получается"
+        },
+        {
+          "gloss": "изделие"
+        },
+        {
+          "gloss": "целостное"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 5,
+          "to": 6,
+          "gloss": "неспечённая заготовка"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p193:b002:s02",
+      "source_row_id": "a97001:p193:b002:s02",
+      "order_index": 25,
+      "key": "r2d0b4dea72d104b8:23",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "процесс"
+        },
+        {
+          "gloss": "основной"
+        },
+        {
+          "gloss": "при спекании"
+        },
+        {
+          "gloss": "это"
+        },
+        {
+          "gloss": "диффузия"
+        },
+        {
+          "gloss": "диффузия"
+        },
+        {
+          "gloss": "фактор"
+        },
+        {
+          "gloss": "основной"
+        },
+        {
+          "gloss": "определяющий"
+        },
+        {
+          "gloss": "(показатель дополнения)"
+        },
+        {
+          "gloss": "скорость"
+        },
+        {
+          "gloss": "диффузии"
+        },
+        {
+          "gloss": "это"
+        },
+        {
+          "gloss": "температура"
+        },
+        {
+          "gloss": "чем"
+        },
+        {
+          "gloss": "температура"
+        },
+        {
+          "gloss": "высокая"
+        },
+        {
+          "gloss": "более"
+        },
+        {
+          "gloss": "тем"
+        },
+        {
+          "gloss": "скорость"
+        },
+        {
+          "gloss": "диффузии"
+        },
+        {
+          "gloss": "быстрая"
+        },
+        {
+          "gloss": "более"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 10,
+          "to": 11,
+          "gloss": "скорость диффузии"
+        },
+        {
+          "from": 19,
+          "to": 20,
+          "gloss": "скорость диффузии"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p193:b002:s03",
+      "source_row_id": "a97001:p193:b002:s03",
+      "order_index": 26,
+      "key": "r2b0c63f99e8f36a9f:14",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "фактор"
+        },
+        {
+          "gloss": "дополнительный"
+        },
+        {
+          "gloss": "это"
+        },
+        {
+          "gloss": "размер"
+        },
+        {
+          "gloss": "зёрен"
+        },
+        {
+          "gloss": "чем"
+        },
+        {
+          "gloss": "зёрна"
+        },
+        {
+          "gloss": "мелкие"
+        },
+        {
+          "gloss": "более"
+        },
+        {
+          "gloss": "тем"
+        },
+        {
+          "gloss": "скорость"
+        },
+        {
+          "gloss": "диффузии"
+        },
+        {
+          "gloss": "быстрая"
+        },
+        {
+          "gloss": "более"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 3,
+          "to": 4,
+          "gloss": "размер зёрен"
+        },
+        {
+          "from": 10,
+          "to": 11,
+          "gloss": "скорость диффузии"
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,11 @@
   var PIN={atlas_id:'a97001',revision:'50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc',manifest_sha256:'085d33fddbd04a1eaaa4a9e625273591683cdcf9ff19d0b16899d503132ada7a'};
   var CONTEXT_PIN='ca40870e123fd81e1388918f8bf3babc3c1acbe1ef1daca6fb5059b3ad9384f4';
   var NATIVE_ID='a97001rc32';
+  // Technical reading candidate; this pin does not confer editorial/scientific acceptance.
+  var RC32_CONTEXT_PIN='2f782372d533cbbe47fff439683f84d7fbb23bf44edc5486629f0dd1cb3b0dfd';
+  var RC32_SOURCE=Object.freeze({edition_revision:NATIVE_PIN.revision,edition_manifest_sha256:NATIVE_PIN.manifest_sha256,
+    source_pdf_sha256:'eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c',
+    ai_dependencies_sha256:'40a1394203c35f94a81fa03b78f2f395fc26c112a4e079d0f9586c541d21cb00'});
   function pinFor(id){return id===NATIVE_ID?NATIVE_PIN:id===PIN.atlas_id?PIN:null;}
   var clients=new Map();
   var CONTRACT='atlas-97001-structure-4';
@@ -32,7 +37,8 @@
   }
   function createClient(id,options){
     options=options||{};var pin=Object.hasOwn(options,'pin')?options.pin:pinFor(id);
-    var contextPin=Object.hasOwn(options,'contextPin')?options.contextPin:id===NATIVE_ID?null:CONTEXT_PIN;
+    var contextPin=Object.hasOwn(options,'contextPin')?options.contextPin:id===NATIVE_ID?RC32_CONTEXT_PIN:CONTEXT_PIN;
+    var rc32Loader;
     var prefix=pin?'/data/atlas-editions/'+pin.atlas_id+'/'+pin.revision+'/':'/data/atlas/'+encodeURIComponent(id)+'/',fetcher=options.fetch||root.fetch.bind(root),cryptoApi=options.crypto||root.crypto,manifestPromise,contextManifestPromise;
     async function hash(bytes){if(!cryptoApi||!cryptoApi.subtle)fail('ATLAS_EDITION_CRYPTO');return Array.from(new Uint8Array(await cryptoApi.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');}
     async function bytes(file){var r=await fetcher(prefix+file,{cache:'no-cache'});if(!r.ok)fail('ATLAS_EDITION_UNAVAILABLE');return new Uint8Array(await r.arrayBuffer());}
@@ -52,7 +58,7 @@
       return id===NATIVE_ID?projectCorpus(result,prefix):result;
     }
     async function contextJson(file){
-      if(id===NATIVE_ID)fail('ATLAS_CONTEXT_NOT_PUBLISHED');
+      if(id===NATIVE_ID)fail('ATLAS_CONTEXT_ROWS_REQUIRED');
       if(!pin||id!=='a97001')return json('context-ai/'+file);
       if(!/^s[0-9]{2}-[a-z0-9-]+\.json$/.test(file))fail('ATLAS_CONTEXT_PATH');
       if(!contextPin)fail('ATLAS_CONTEXT_NOT_PUBLISHED');
@@ -76,8 +82,18 @@
       var m=await manifest();if(!m||!m.files[file]||m.files[file].sha256!==expected)fail('ATLAS_EDITION_LINK_HASH');
     }
     function url(value){if(typeof value!=='string'||!value.startsWith(prefix))return Promise.reject(new Error('ATLAS_EDITION_ROOT'));return json(value.slice(prefix.length));}
-    return {base:prefix,json:json,contextJson:contextJson,url:url,manifest:manifest,checkLink:checkLink,revision:pin&&pin.revision};
+    async function contextForRows(sid,rows){
+      if(id!==NATIVE_ID)fail('ATLAS_CONTEXT_CORPUS');
+      if(!contextPin)fail('ATLAS_CONTEXT_NOT_PUBLISHED');
+      // Bind to the code pin and the actually verified source, never to server claims.
+      await manifest();
+      if(!pin||pin.revision!==RC32_SOURCE.edition_revision||pin.manifest_sha256!==RC32_SOURCE.edition_manifest_sha256)fail('ATLAS_CONTEXT_SOURCE');
+      if(!rc32Loader)rc32Loader=root.AtlasContextRC32Loader.create({contextPin,sourceBinding:RC32_SOURCE,
+        fetch:fetcher,crypto:cryptoApi,contract:root.AtlasContextContract,ai:root.window?.WordGlossAI||root.WordGlossAI,addressed:root.AtlasContextAddressed});
+      return rc32Loader.load(sid,rows);
+    }
+    return {base:prefix,json:json,contextJson:contextJson,contextForRows:contextForRows,url:url,manifest:manifest,checkLink:checkLink,revision:pin&&pin.revision};
   }
   function client(id){if(!clients.has(id))clients.set(id,createClient(id));return clients.get(id);}
-  return {base:base,assetUrl:assetUrl,client:client,createClient:createClient,componentsReady:componentsReady,contract:CONTRACT,pin:Object.freeze(Object.assign({},PIN)),pinFor:id=>{var pin=pinFor(id);return pin?Object.freeze(Object.assign({},pin)):null;},contextPin:CONTEXT_PIN};
+  return {base:base,assetUrl:assetUrl,client:client,createClient:createClient,projectCorpus:projectCorpus,componentsReady:componentsReady,contract:CONTRACT,pin:Object.freeze(Object.assign({},PIN)),pinFor:id=>{var pin=pinFor(id);return pin?Object.freeze(Object.assign({},pin)):null;},contextPin:CONTEXT_PIN,contextPinFor:id=>id===NATIVE_ID?RC32_CONTEXT_PIN:id==='a97001'?CONTEXT_PIN:null,rc32SourceBinding:RC32_SOURCE};
 });

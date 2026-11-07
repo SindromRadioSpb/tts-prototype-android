@@ -1,0 +1,1339 @@
+{
+  "schema": "word-gloss-ai-layer-v1",
+  "contract": "atlas-context-v2",
+  "atlas": "a97001rc32",
+  "section": "s00-front",
+  "source_revision": "d46fbbd12c6c0f6e906b5170d5bcd0736e8e33a5a0648f9233bf98acfd63a558",
+  "coverage_mode": "partial",
+  "provenance": {
+    "kind": "prepared_ai",
+    "producer": "OpenAI assistant; coordinated section authors",
+    "review_scope": "Current RC3.2 source-bound contextual Russian glosses, author self-review, exact token/order/key structural verification. Source restrictions preserved. No claim of independent whole-book linguistic, scientific, niqqud or facsimile acceptance; not deployed. Baseline reviewed_terms only; new terminology remains a separate overlay."
+  },
+  "rows": [
+    {
+      "row_id": "a97001rc32:p1:b001",
+      "source_row_id": "a97001:p1:b001",
+      "order_index": 0,
+      "key": "r213999dec62e95c6:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "справочник формул"
+        },
+        {
+          "gloss": "по дисциплине"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p1:b002",
+      "source_row_id": "a97001:p1:b002",
+      "order_index": 1,
+      "key": "r2da0bfa1690cd34f4:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "основы"
+        },
+        {
+          "gloss": "механики"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p1:b003",
+      "source_row_id": "a97001:p1:b003",
+      "order_index": 2,
+      "key": "r29879cab2a34d6bfc:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "практические инженеры"
+        },
+        {
+          "gloss": "инженерия"
+        },
+        {
+          "gloss": "машин"
+        },
+        {
+          "gloss": "автоматизированное проектирование и производство"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p1:b004",
+      "source_row_id": "a97001:p1:b004",
+      "order_index": 3,
+      "key": "r2a356eb2bb9e1d185:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "код"
+        },
+        {
+          "gloss": "экзамена"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p1:b006",
+      "source_row_id": "a97001:p1:b006",
+      "order_index": 5,
+      "key": "r26551ce2e186811a8:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "ноябрь"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b001",
+      "source_row_id": "a97001:p2:b001",
+      "order_index": 7,
+      "key": "r2484057c7623fe5bd:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "содержание"
+        },
+        {
+          "gloss": "разделов"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b003",
+      "source_row_id": "a97001:p2:b003",
+      "order_index": 8,
+      "key": "r2ae0085e742c2b15d:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "введение"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b004",
+      "source_row_id": "a97001:p2:b004",
+      "order_index": 9,
+      "key": "r258aa5aa58e1d8043:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "обозначения"
+        },
+        {
+          "gloss": "и единицы"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b005",
+      "source_row_id": "a97001:p2:b005",
+      "order_index": 10,
+      "key": "r253b68dd431644e42:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "статика"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b007",
+      "source_row_id": "a97001:p2:b007",
+      "order_index": 12,
+      "key": "r21232007fe9d4a1f9:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "разложение"
+        },
+        {
+          "gloss": "силы"
+        },
+        {
+          "gloss": "на составляющие"
+        },
+        {
+          "gloss": "прямые"
+        },
+        {
+          "gloss": "углы"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 3,
+          "to": 4,
+          "gloss": "взаимно перпендикулярные"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b008",
+      "source_row_id": "a97001:p2:b008",
+      "order_index": 13,
+      "key": "r2adba9cc83e46e49e:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "опоры"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b010",
+      "source_row_id": "a97001:p2:b010",
+      "order_index": 15,
+      "key": "r22eb5b50aa9f39534:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "пружина"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b012",
+      "source_row_id": "a97001:p2:b012",
+      "order_index": 17,
+      "key": "r286bd0427f4bba1f9:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "метод"
+        },
+        {
+          "gloss": "узла"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "метод узлов"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b016",
+      "source_row_id": "a97001:p2:b016",
+      "order_index": 20,
+      "key": "r285312d133c37a72d:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "динамика"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b018",
+      "source_row_id": "a97001:p2:b018",
+      "order_index": 22,
+      "key": "r2e452d9449a78912e:3",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "движение"
+        },
+        {
+          "gloss": "со скоростью"
+        },
+        {
+          "gloss": "переменной"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b019",
+      "source_row_id": "a97001:p2:b019",
+      "order_index": 23,
+      "key": "r241aa69cd18d6efa7:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "падение"
+        },
+        {
+          "gloss": "свободное"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "свободное падение"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b021",
+      "source_row_id": "a97001:p2:b021",
+      "order_index": 25,
+      "key": "r26e435663fb0dcc95:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "бросок"
+        },
+        {
+          "gloss": "под углом"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b022",
+      "source_row_id": "a97001:p2:b022",
+      "order_index": 26,
+      "key": "r2779f497b74496481:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "движение"
+        },
+        {
+          "gloss": "вращательное"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "точки"
+        },
+        {
+          "gloss": "материальной"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 3,
+          "to": 4,
+          "gloss": "материальная точка"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b023",
+      "source_row_id": "a97001:p2:b023",
+      "order_index": 27,
+      "key": "r2392709a9377929d7:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "графика"
+        },
+        {
+          "gloss": "инженерная"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b002",
+      "source_row_id": "a97001:p3:b002",
+      "order_index": 29,
+      "key": "r217dbdda4fb8a2fa6:3",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "допуск"
+        },
+        {
+          "gloss": "размера"
+        },
+        {
+          "gloss": "допуск"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b003",
+      "source_row_id": "a97001:p3:b003",
+      "order_index": 30,
+      "key": "r2cddd62d9ad5203f7:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "допуски"
+        },
+        {
+          "gloss": "геометрические"
+        },
+        {
+          "gloss": "допуск"
+        },
+        {
+          "gloss": "формы"
+        },
+        {
+          "gloss": "и расположения"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b005",
+      "source_row_id": "a97001:p3:b005",
+      "order_index": 31,
+      "key": "r2a63450159a415d73:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "учение"
+        },
+        {
+          "gloss": "о материалах"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "материаловедение"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b007",
+      "source_row_id": "a97001:p3:b007",
+      "order_index": 33,
+      "key": "r2819320881fe17c16:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "классификация"
+        },
+        {
+          "gloss": "материалов"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b008",
+      "source_row_id": "a97001:p3:b008",
+      "order_index": 34,
+      "key": "r2a3347f2f100a73a1:3",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "затвердевание"
+        },
+        {
+          "gloss": "кристаллизация"
+        },
+        {
+          "gloss": "вещества"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b009",
+      "source_row_id": "a97001:p3:b009",
+      "order_index": 35,
+      "key": "r2e08940692215044:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "типы"
+        },
+        {
+          "gloss": "структур"
+        },
+        {
+          "gloss": "решётка"
+        },
+        {
+          "gloss": "кристаллическая"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 2,
+          "to": 3,
+          "gloss": "кристаллическая решётка"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b010",
+      "source_row_id": "a97001:p3:b010",
+      "order_index": 37,
+      "key": "r268a66c2491e7ba8a:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "свойства"
+        },
+        {
+          "gloss": "материалов"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b012",
+      "source_row_id": "a97001:p3:b012",
+      "order_index": 38,
+      "key": "r2e18cc0b399e8f11:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "испытание"
+        },
+        {
+          "gloss": "твёрдости"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "испытание твёрдости"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b013",
+      "source_row_id": "a97001:p3:b013",
+      "order_index": 39,
+      "key": "r2a299f7a15e5d49e7:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "испытание"
+        },
+        {
+          "gloss": "удара"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "испытание на удар"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b014",
+      "source_row_id": "a97001:p3:b014",
+      "order_index": 40,
+      "key": "r25ea69865d31ad0d7:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "ползучесть"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b015",
+      "source_row_id": "a97001:p3:b015",
+      "order_index": 41,
+      "key": "r2938740ebdf6f085d:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "усталость"
+        },
+        {
+          "gloss": "материала"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b017",
+      "source_row_id": "a97001:p3:b017",
+      "order_index": 43,
+      "key": "r297df5fdfc607374d:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "стандарты"
+        },
+        {
+          "gloss": "сталей"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b019",
+      "source_row_id": "a97001:p3:b019",
+      "order_index": 44,
+      "key": "r271e77139b4604dfb:6",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "стали"
+        },
+        {
+          "gloss": "не"
+        },
+        {
+          "gloss": "ржавеющие"
+        },
+        {
+          "gloss": "стали"
+        },
+        {
+          "gloss": "не"
+        },
+        {
+          "gloss": "ржавеющие"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 2,
+          "gloss": "нержавеющие стали"
+        },
+        {
+          "from": 3,
+          "to": 5,
+          "gloss": "нержавеющие стали"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b018",
+      "source_row_id": "a97001:p3:b018",
+      "order_index": 45,
+      "key": "r2182cc70ae60c200c:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "литьё"
+        },
+        {
+          "gloss": "железа"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b020",
+      "source_row_id": "a97001:p3:b020",
+      "order_index": 46,
+      "key": "r2867141b0b210a98a:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "диаграмма"
+        },
+        {
+          "gloss": "фаз"
+        },
+        {
+          "gloss": "железо"
+        },
+        {
+          "gloss": "углерод"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b021",
+      "source_row_id": "a97001:p3:b021",
+      "order_index": 47,
+      "key": "r2e34cea7633a22484:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "обработка"
+        },
+        {
+          "gloss": "термическая"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "термическая обработка"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b022",
+      "source_row_id": "a97001:p3:b022",
+      "order_index": 48,
+      "key": "r2f7c8249aca836f20:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "коррозия"
+        },
+        {
+          "gloss": "коррозионное разрушение"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b024",
+      "source_row_id": "a97001:p3:b024",
+      "order_index": 50,
+      "key": "r2e55f9d9b95913141:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "материалы"
+        },
+        {
+          "gloss": "композиционные"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "композиционные материалы"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b006:s01",
+      "source_row_id": "a97001:p2:b006:s01",
+      "order_index": 53,
+      "key": "r223756f555747ac3:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "понятия"
+        },
+        {
+          "gloss": "основы"
+        },
+        {
+          "gloss": "законы"
+        },
+        {
+          "gloss": "и аксиомы"
+        },
+        {
+          "gloss": "статики"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "основные понятия"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b006:s02",
+      "source_row_id": "a97001:p2:b006:s02",
+      "order_index": 54,
+      "key": "r25e0b2b3d6be5838f:6",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "сила"
+        },
+        {
+          "gloss": "равнодействующая"
+        },
+        {
+          "gloss": "сложение"
+        },
+        {
+          "gloss": "и вычитание"
+        },
+        {
+          "gloss": "величины"
+        },
+        {
+          "gloss": "векторной"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "равнодействующая сила"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b009:s01",
+      "source_row_id": "a97001:p2:b009:s01",
+      "order_index": 55,
+      "key": "r22488665fbeb0025d:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "система"
+        },
+        {
+          "gloss": "сил"
+        },
+        {
+          "gloss": "сходящихся в одной"
+        },
+        {
+          "gloss": "точке"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b009:s02",
+      "source_row_id": "a97001:p2:b009:s02",
+      "order_index": 56,
+      "key": "r286fc9c58cfbb367a:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "блоки"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b011:s01",
+      "source_row_id": "a97001:p2:b011:s01",
+      "order_index": 57,
+      "key": "r2ed0eae0f892385ad:3",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "система"
+        },
+        {
+          "gloss": "сил"
+        },
+        {
+          "gloss": "параллельных"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b011:s02",
+      "source_row_id": "a97001:p2:b011:s02",
+      "order_index": 58,
+      "key": "r2d9ec3e324480d814:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "система"
+        },
+        {
+          "gloss": "сил"
+        },
+        {
+          "gloss": "плоских"
+        },
+        {
+          "gloss": "случай"
+        },
+        {
+          "gloss": "общий"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b011:s03",
+      "source_row_id": "a97001:p2:b011:s03",
+      "order_index": 59,
+      "key": "r29fec64a5ada89b7f:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "фермы"
+        },
+        {
+          "gloss": "плоские"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b011:s04",
+      "source_row_id": "a97001:p2:b011:s04",
+      "order_index": 60,
+      "key": "r29ad3b6e233851268:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "метод"
+        },
+        {
+          "gloss": "Риттера"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "метод Риттера (исходное написание имени сохранено)"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b013:s01",
+      "source_row_id": "a97001:p2:b013:s01",
+      "order_index": 61,
+      "key": "r2dbbd8a5571364c37:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "центр"
+        },
+        {
+          "gloss": "тяжести"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "центр тяжести"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b013:s02",
+      "source_row_id": "a97001:p2:b013:s02",
+      "order_index": 62,
+      "key": "r2d38dc6c2b439a62c:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "площади"
+        },
+        {
+          "gloss": "и центры"
+        },
+        {
+          "gloss": "тяжести"
+        },
+        {
+          "gloss": "фигуры"
+        },
+        {
+          "gloss": "распространённые"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b014:s01",
+      "source_row_id": "a97001:p2:b014:s01",
+      "order_index": 63,
+      "key": "r2474bd3397045e5fb:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "трение"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b014:s02",
+      "source_row_id": "a97001:p2:b014:s02",
+      "order_index": 64,
+      "key": "r2c60a1c72d2c43f5:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "плоскость"
+        },
+        {
+          "gloss": "наклонная"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "наклонная плоскость"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b017:s01",
+      "source_row_id": "a97001:p2:b017:s01",
+      "order_index": 65,
+      "key": "r2dcc14314bb8e8be:6",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "движение"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "точки"
+        },
+        {
+          "gloss": "материальной"
+        },
+        {
+          "gloss": "по линии"
+        },
+        {
+          "gloss": "прямой"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 2,
+          "to": 3,
+          "gloss": "материальная точка"
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "gloss": "по прямой линии"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b017:s02",
+      "source_row_id": "a97001:p2:b017:s02",
+      "order_index": 66,
+      "key": "r2eb37087f18213ad5:5",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "движение"
+        },
+        {
+          "gloss": "со скоростью"
+        },
+        {
+          "gloss": "постоянной"
+        },
+        {
+          "gloss": "движение"
+        },
+        {
+          "gloss": "равномерное"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p2:b020:s01",
+      "source_row_id": "a97001:p2:b020:s01",
+      "order_index": 67,
+      "key": "r2b3035b9630445d40:7",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "движение"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "точки"
+        },
+        {
+          "gloss": "материальной"
+        },
+        {
+          "gloss": "в воздухе"
+        },
+        {
+          "gloss": "по траектории"
+        },
+        {
+          "gloss": "кривой"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 2,
+          "to": 3,
+          "gloss": "материальная точка"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p2:b020:s02",
+      "source_row_id": "a97001:p2:b020:s02",
+      "order_index": 68,
+      "key": "r2fa3e3117c676521:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "бросок"
+        },
+        {
+          "gloss": "горизонтальный"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b001:s01",
+      "source_row_id": "a97001:p3:b001:s01",
+      "order_index": 70,
+      "key": "r27ea6266dd20682c3:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "разрезы и сечения"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b001:s02",
+      "source_row_id": "a97001:p3:b001:s02",
+      "order_index": 71,
+      "key": "r23e87644344a42b65:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "размеры"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b001:s03",
+      "source_row_id": "a97001:p3:b001:s03",
+      "order_index": 72,
+      "key": "r213737f0e46d01ec0:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "обозначения"
+        },
+        {
+          "gloss": "для промышленности"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b001:s04",
+      "source_row_id": "a97001:p3:b001:s04",
+      "order_index": 73,
+      "key": "r2e576860135256f4b:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "качество"
+        },
+        {
+          "gloss": "обработки"
+        },
+        {
+          "gloss": "текстура"
+        },
+        {
+          "gloss": "поверхности"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b006:s01",
+      "source_row_id": "a97001:p3:b006:s01",
+      "order_index": 74,
+      "key": "r2b87a2c8c376e891e:3",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "введение"
+        },
+        {
+          "gloss": "и понятия"
+        },
+        {
+          "gloss": "основы"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b006:s02",
+      "source_row_id": "a97001:p3:b006:s02",
+      "order_index": 75,
+      "key": "r26de143328a986b9c:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "строение"
+        },
+        {
+          "gloss": "вещества"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b011:s01",
+      "source_row_id": "a97001:p3:b011:s01",
+      "order_index": 76,
+      "key": "r25c506635e5be5b73:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "свойства"
+        },
+        {
+          "gloss": "механические"
+        },
+        {
+          "gloss": "(род. падеж)"
+        },
+        {
+          "gloss": "материалов"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b011:s02",
+      "source_row_id": "a97001:p3:b011:s02",
+      "order_index": 77,
+      "key": "r2a222ed877b57e049:3",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "испытание"
+        },
+        {
+          "gloss": "растяжение"
+        },
+        {
+          "gloss": "вытягивание"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 0,
+          "to": 1,
+          "gloss": "испытание на растяжение"
+        }
+      ]
+    },
+    {
+      "row_id": "a97001rc32:p3:b016:s01",
+      "source_row_id": "a97001:p3:b016:s01",
+      "order_index": 78,
+      "key": "r2d24ddeed1962abbf:1",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "стали"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b016:s02",
+      "source_row_id": "a97001:p3:b016:s02",
+      "order_index": 79,
+      "key": "r2405208c8e83ef0e:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "виды"
+        },
+        {
+          "gloss": "сталей"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b023:s01",
+      "source_row_id": "a97001:p3:b023:s01",
+      "order_index": 80,
+      "key": "r21ae6a7c1e8f613a3:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "металлургия"
+        },
+        {
+          "gloss": "порошков"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b023:s02",
+      "source_row_id": "a97001:p3:b023:s02",
+      "order_index": 81,
+      "key": "r25269fdcc4a396c2a:2",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "алюминий"
+        },
+        {
+          "gloss": "алюминий"
+        }
+      ],
+      "mwe": []
+    },
+    {
+      "row_id": "a97001rc32:p3:b023:s03",
+      "source_row_id": "a97001:p3:b023:s03",
+      "order_index": 82,
+      "key": "r2a0cb1018e9e8fe2e:4",
+      "model": "OpenAI assistant",
+      "glosses": [
+        {
+          "gloss": "старение"
+        },
+        {
+          "gloss": "обработка"
+        },
+        {
+          "gloss": "термическая"
+        },
+        {
+          "gloss": "алюминия"
+        }
+      ],
+      "mwe": [
+        {
+          "from": 1,
+          "to": 2,
+          "gloss": "термическая обработка"
+        }
+      ]
+    }
+  ]
+}

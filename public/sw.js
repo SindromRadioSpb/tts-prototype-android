@@ -150,9 +150,9 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=876",
+  "/js/library-ui.js?v=rc32-context-1",
   "/js/atlas-progress-export.js?v=876",
-  "/js/atlas-edition.js?v=876",
+  "/js/atlas-edition.js?v=rc32-context-1",
   "/js/corpus-registry.js?v=876",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -202,8 +202,10 @@ const PRECACHE_URLS = [
   "/js/atlas-speech.js?v=1",
   "/js/atlas-reader.js?v=876",
   "/js/atlas-search.js?v=876",
-  "/js/atlas-words.js?v=876",
-  "/js/atlas-context-contract.js?v=2",
+  "/js/atlas-words.js?v=rc32-context-1",
+  "/js/atlas-context-contract.js?v=rc32-context-1",
+  "/js/atlas-context-addressed.js?v=1",
+  "/js/atlas-context-rc32-loader.js?v=1",
   "/js/atlas-train.js?v=876",
   "/js/atlas-train-ui.js?v=876",
   "/css/atlas-reader.css?v=872",
@@ -236,10 +238,10 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=848",
+  "/js/reader-morph.js?v=rc32-context-1",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=819",
-  "/js/word-gloss-ai.js?v=847",
+  "/js/word-gloss-ai.js?v=rc32-context-1",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",
@@ -660,7 +662,7 @@ self.addEventListener("fetch", (event) => {
   // The revision namespace survives shell upgrades and rollback workers. Its
   // cache name intentionally does not use the shell's linguistpro-* eviction prefix.
   // The reader verifies the code-pinned manifest and every JSON's bytes.
-  if (req.method === 'GET' && /^\/data\/atlas-(?:editions|context)\/a97001\/[a-f0-9]{64}\//.test(url.pathname)) {
+  if (req.method === 'GET' && /^\/data\/atlas-(?:editions|context)\/a97001(?:rc32)?\/[a-f0-9]{64}\//.test(url.pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open('atlas-editions-v1');
       const cached = await cache.match(req); if (cached) return cached;

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 "use strict";
+// Explicit separate-corpus route; the original edition keeps its CLI contract.
+if(process.argv.includes('--corpus=a97001rc32')){require('./rc32-context.cjs').run('import').catch(e=>{console.error(e);process.exitCode=1;});return;}
 // Atlas P4 W2 fallback (owner decision E5): accept the AI agent's «В контексте (ИИ)» answer for the atlas.
 // Input: a folder (or .zip) of <section>.json files in word-gloss-ai-layer-v1 (format: FORMAT.ru.md of the export).
 // Every row is re-proved by the reader's own code (WordGlossAI.remember over AtlasWords.glossRows): a row whose key

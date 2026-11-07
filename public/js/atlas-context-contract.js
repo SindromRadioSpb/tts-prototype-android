@@ -42,10 +42,12 @@
       if(gloss.trim()==='?'&&!(entry&&entry.uncertain===true&&String(entry.reason||'').trim()))return false;
       return true;
     }
+    let previousOrder=-1;
     for(const row of rows){
       const ref=row&&byOrder.get(row.order_index),id=row&&(row.row_id||row.block_id);
       let valid=true;const reject=code=>{fail(code,row);valid=false;};
       if(!row||!Number.isInteger(row.order_index)||!ref){reject('unknown_order');continue;}
+      if(row.order_index<=previousOrder)reject('row_order');previousOrder=row.order_index;
       if(seenOrder.has(row.order_index))reject('duplicate_order');seenOrder.add(row.order_index);
       const identity=String(id)+'\u0001'+String(row.key);
       if(seenIdentity.has(identity))reject('duplicate_row_key');seenIdentity.add(identity);

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 "use strict";
+// Explicit separate-corpus route; the original edition keeps its CLI contract.
+if(process.argv.includes('--corpus=a97001rc32')){require('./rc32-context.cjs').run('export').catch(e=>{console.error(e);process.exitCode=1;});return;}
 // Atlas P4 W2 fallback (owner decisions E5, E6): the atlas as an archive for the owner's AI agent, which prepares
 // «В контексте (ИИ)» — a Russian gloss for every Hebrew word of every block, in the existing word-gloss-ai-layer-v1.
 // The row keys are computed by the reader's own code (WordGlossAI.rowPayloadFromData over AtlasWords.glossRows), so a

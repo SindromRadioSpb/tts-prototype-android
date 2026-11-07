@@ -13502,6 +13502,7 @@ function attachAtlasWords(atlasId, section, data, how) {
       if (source.coverage_notice) notes.unshift(source.coverage_notice.ru, source.coverage_notice.he);
       if (ctx.contextLayerStatus && ctx.contextLayerStatus.covered.has(occ.sentence_id)) {
         top.lines.push(tt('atlas.word.prepared', 'Подготовлено ИИ') + ': ' + ctx.contextLayerStatus.producer +
+          (inspection ? ' · ' + tt('atlas.word.technicalCandidate', 'Технический кандидат; содержание ожидает приёмки') : '') +
           (ctx.contextLayerStatus.coverage_mode === 'partial' ? ' · ' + tt('atlas.partial', 'Переведено частично') : ''));
         if (!top.title) { top.title = occ.surface; top.kicker = tt('atlas.word.prepared', 'Подготовлено ИИ'); }
         const uncertain = ctx.contextLayerStatus.uncertain.get(occ.sentence_id + ':' + occ.word_offset);
@@ -13563,6 +13564,20 @@ function attachAtlasWords(atlasId, section, data, how) {
   // (word-gloss-ai-layer-v1). Every row is re-proved by its key; no layer — the card shows what it showed before.
   const AI = window.WordGlossAI;
   if (AI && typeof AI.remember === 'function') {
+    if (inspection) {
+      const rows = AW.glossRows(ctx);
+      Promise.all([atlasClient(atlasId).contextForRows(data.id, rows), AI.hydrateDataRows(rows)])
+        .then(([loaded]) => {
+          if (ctx !== atlasWordsCtx) return;
+          const {layer,checked,adapter} = loaded;
+          ctx.preparedContext = {adapter,answers:new Map(checked.rows.map(r=>[r.row_id || r.block_id,r])),contextPin:loaded.contextPin};
+          ctx.contextLayerStatus = {producer:layer.provenance.producer,coverage_mode:checked.coverage_mode,
+            source_revision:layer.source_revision,covered:new Set(ctx.preparedContext.answers.keys()),uncertain:new Map()};
+        }).catch(error => {
+          if (ctx === atlasWordsCtx) section.dataset.contextError = error.message;
+        }).then(() => {if (train) train.glossLoaded();});
+      return handle;
+    }
     atlasJson(atlasId, 'context-ai/' + encodeURIComponent(String(data && data.id || '')) + '.json')
       .then(async (layer) => {
         if (!layer || ctx !== atlasWordsCtx) return null;

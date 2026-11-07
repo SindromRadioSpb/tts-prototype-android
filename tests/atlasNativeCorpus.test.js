@@ -20,7 +20,7 @@ test('native corpus verifies supplier bytes before projecting identities; source
  assert.equal(data.pages[0].items[0].he,raw.pages[0].items[0].he);assert.equal(data.pages[0].items[0].ru,'Сила');
  assert(data.terms['a97001rc32:term:force']);assert.match(data.pages[0].image,new RegExp('/a97001/'+revision+'/assets/'));
  assert(calls.every(url=>url.startsWith('/data/atlas-editions/a97001/')));
- const before=calls.length;await assert.rejects(c.contextJson('s01-test.json'),/ATLAS_CONTEXT_NOT_PUBLISHED/);assert.equal(calls.length,before);
+ const before=calls.length;await assert.rejects(c.contextJson('s01-test.json'),/ATLAS_CONTEXT_ROWS_REQUIRED/);assert.equal(calls.length,before);
  await c.checkLink('sections/s01-test.json',sha(bytes));await assert.rejects(c.checkLink('sections/s01-test.json','b'.repeat(64)),/ATLAS_EDITION_LINK_HASH/);
  corrupt=true;await assert.rejects(c.json('sections/s01-test.json'),/ATLAS_EDITION_FILE_HASH/);
 });

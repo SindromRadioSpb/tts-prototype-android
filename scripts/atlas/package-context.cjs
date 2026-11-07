@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 'use strict';
+// Explicit separate-corpus route; the original edition keeps its CLI contract.
+if(process.argv.includes('--corpus=a97001rc32')){require('./rc32-context.cjs').run('package').catch(e=>{console.error(e);process.exitCode=1;});return;}
 // Run after import-context has validated and written all 21 sections.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const source=path.resolve(process.argv[2]||'');

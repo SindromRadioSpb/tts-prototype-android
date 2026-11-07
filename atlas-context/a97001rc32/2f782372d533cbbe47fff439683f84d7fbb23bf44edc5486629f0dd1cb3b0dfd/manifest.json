@@ -1,0 +1,125 @@
+{
+  "schema": "linguistpro.atlas-context.1",
+  "atlas_id": "a97001rc32",
+  "source_atlas_id": "a97001",
+  "edition_revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "edition_manifest_sha256": "0211488a36ef6a03c6f277c6c913fb18165ab19430d13a4e623c95fc640ba332",
+  "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+  "ai_dependencies_sha256": "40a1394203c35f94a81fa03b78f2f395fc26c112a4e079d0f9586c541d21cb00",
+  "release_status": "offline_candidate_not_published",
+  "terms_overlay_applied": false,
+  "files": {
+    "s00-front.json": {
+      "sha256": "6d509efe2f8649eee4553b0dc5cb4a667ee24faa08cf0db541792bd114a87bde",
+      "bytes": 29774,
+      "source_revision": "d46fbbd12c6c0f6e906b5170d5bcd0736e8e33a5a0648f9233bf98acfd63a558"
+    },
+    "s01-units.json": {
+      "sha256": "7b4eebd8dd37d1a049f4ddd34d8a61413eb04f361af044042742908bbae6b0bf",
+      "bytes": 18104,
+      "source_revision": "7f1aead5634e3b73226feb11dfa5cc644f5dd916dd84b284a0cabeb940cbae64"
+    },
+    "s02-statics-basics.json": {
+      "sha256": "f952f4a41ac620d4633ee1bd42660b450ff1bb3010691e1fa8b33a0d44a45326",
+      "bytes": 82761,
+      "source_revision": "c1f8ed6766cc335324f75265c03b9f892761d8c0b4447585762dcde2aa33dafd"
+    },
+    "s03-concurrent-forces.json": {
+      "sha256": "10b9c7f067127ff82fd3c1d39877f984c8169e2481e97791b21f6efdf9d3d5be",
+      "bytes": 59952,
+      "source_revision": "2b00a2b202d2efacd03c5d41df38773d8e7f9d697fec8ae0be8c4c38e5a78d0f"
+    },
+    "s04-parallel-forces.json": {
+      "sha256": "eda54931a270a782ab1f3539c6470c611a395623c66c38ae71982f4f7415bd76",
+      "bytes": 84343,
+      "source_revision": "7e8a43dcadd6f4ccc99980ed5885f569c5ff66ed1006824959ae683743b38258"
+    },
+    "s05-planar-forces.json": {
+      "sha256": "3d964aa37ffec28ed681cd65c4cbb5fadb0b01b6a481651c5a26bc9ac78bacb7",
+      "bytes": 24932,
+      "source_revision": "e744fbfcbec65d3368d53217b24e16cd55b085c5a7374ab8186da0ae5352af37"
+    },
+    "s06-trusses.json": {
+      "sha256": "9f6fa7dd249714fe89dcd9aff74242b1fceef8938c7749776cbf8789f82ef714",
+      "bytes": 52203,
+      "source_revision": "cda9c53f2bf873f0aa13ddc943feb896b7e3cfffc4c54554886423075553f277"
+    },
+    "s07-centroid.json": {
+      "sha256": "653f7cf1dfeee50f4f206aa2974bd66c8c30957360b08ed4a9b4c1f70119af18",
+      "bytes": 31786,
+      "source_revision": "ef00ec779753c78f162c15a9aa042917fa691db451f8d16a2f2d93c19c061730"
+    },
+    "s08-friction.json": {
+      "sha256": "9bead90804693cb49e74b18b857bbdef39734057db42993b9dbd762a50270c81",
+      "bytes": 45963,
+      "source_revision": "3201fd4a0b024f473f49fad697eb97f8624f8bed620033b2fd33bffdb0ac2f00"
+    },
+    "s09-linear-motion.json": {
+      "sha256": "29691a308d208a8f6b0dce7645b287c788aa0f14d6da07b61ad61dec9c9b51ad",
+      "bytes": 75599,
+      "source_revision": "08b59eedb23031af2302196b21fb754603157966df6a6200559d418da1cb7700"
+    },
+    "s10-projectile-motion.json": {
+      "sha256": "12abdc15f77b24c38ed5cef44d16c9f8eb646ac50dd01935651ee62f6cb9151e",
+      "bytes": 52330,
+      "source_revision": "80adcbdda0fc451b841ed5d0050eec08d570e5accf002c6f4afe11ac42035274"
+    },
+    "s11-circular-motion.json": {
+      "sha256": "ceacd9e62cb9f9a708881811d8381fcedb57a86584184df831a113c08b686799",
+      "bytes": 31268,
+      "source_revision": "01ff8f65ad8b2e9495c58a448cb93b650c5a2e930958b9ec454c418c0d80f03a"
+    },
+    "s12-sections.json": {
+      "sha256": "91d0161054a767020ee1a8b104b8ab9166e6132be3bee55a579170289882c134",
+      "bytes": 23887,
+      "source_revision": "eb134fb53d94ebda54c09a109801895411640e35c8ef01236bdda53533079583"
+    },
+    "s13-dimensions.json": {
+      "sha256": "56f97610efb28b4bd433faf770707b0f1bf8f1c1f1fd1eb2dfafc7e7427cdf8d",
+      "bytes": 49692,
+      "source_revision": "41a543ede349320b4a55a91666ecbb209ad8ce18784431cb02cb577ae619a6f7"
+    },
+    "s14-industrial-symbols.json": {
+      "sha256": "d7685e8797101de52398f5d674a8b3eb70381347e2e036cfa44caf3b6bbff4a3",
+      "bytes": 67594,
+      "source_revision": "15e536c1c4edb021f8afceb77bc27959dd1d8f9dde88074b7bfab521d6df76c6"
+    },
+    "s15-materials-basics.json": {
+      "sha256": "e43ff88a84b5fc730054ba709bc99b13ce03a28ce7e3e0320816f0167129ba04",
+      "bytes": 149270,
+      "source_revision": "473baed240383a3bc05560600126d3f5db62b9073effb3b77d62598ca24a61bd"
+    },
+    "s16-mechanical-properties.json": {
+      "sha256": "8e23504baf3aa253dd92852c03964c80f686e801148f35ee73278f103d82ebed",
+      "bytes": 271864,
+      "source_revision": "cce4210c05e3eb5712f08b57838ba7559abdb4e99db4824c3197ccf4dda39786"
+    },
+    "s17-steels.json": {
+      "sha256": "279dd29dc911b8c5b7a50ecbd3a71c9ecf9aac693e3099271577af1e8d3d5c3a",
+      "bytes": 547667,
+      "source_revision": "251896a78949515997314f0705f7b4d0207d26101deae0d0421ea9b7632718a8"
+    },
+    "s18-powder-metallurgy.json": {
+      "sha256": "b185b0c876098af228e9cd2eb40356d572cfa7bd501f560c0fe8dffc5a803cfc",
+      "bytes": 25082,
+      "source_revision": "c7557c4803f378a0cf5eed16e8a6831e26a64c95fe0704a420b5726e69455114"
+    },
+    "s19-aluminium.json": {
+      "sha256": "b5679c74d047e5c8dc7b97a452bbfec89d728fd1b04e29c56cedc1c0e0fa2a50",
+      "bytes": 110214,
+      "source_revision": "08361feabcd6cf958b5a7a1d9316f894e869f70037b2d86a3084601053f320f3"
+    },
+    "s20-composites.json": {
+      "sha256": "25c2774e4285c6c345fd305afa83aecd5b849290cd66b299572b2762d78836eb",
+      "bytes": 15416,
+      "source_revision": "c52eda38ea42b6afc85327de01bc2429b7937e2ddf39f81b607b2b747cb9dd98"
+    }
+  },
+  "alignment_adapter": {
+    "path": "addressed-map.json",
+    "sha256": "3d095cd943d4cb1346dd04eef9273e8b32e5aa7637522f76f2476c626cacd8d8",
+    "bytes": 2623732,
+    "purpose": "prepared_context_reading_only",
+    "independent_alignment_review": true
+  }
+}

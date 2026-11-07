@@ -395,7 +395,25 @@
     if (!row || !ctx) return;
     var id = row.getAttribute("data-ref"), it = id && ctx.items.get(id);
     if (!it) return;
-    row.__lpLearningRow = { id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id), source_context: it.source_context || null };
+    row.__lpLearningRow = { id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id), row_type:it.type || 'block', source_context: it.source_context || null };
+    if (ctx.atlasId === 'a97001rc32') row.__lpPreparedContextLookup = function (index, column) {
+      const prepared = ctx.preparedContext;
+      const AI = root.WordGlossAI || root.window?.WordGlossAI;
+      if (!AI) return null;
+      const own = AI.lookup(row);
+      const answer = prepared && prepared.answers.get(id);
+      if (!answer) {
+        if (column === 'he') {try {root.AtlasContextContract.describe([row.__lpLearningRow],AI);} catch (_) {return null;}}
+        const personal=own?.glosses[index];
+        return personal?.manual === true ? Object.assign({},personal,{reading_only:true}) : null;
+      }
+      // Keep genuine personal corrections at their canonical pointed positions.
+      const merged = Object.assign({}, answer, {glosses:answer.glosses.map((g,i)=>own?.glosses[i]?.manual === true ? own.glosses[i] : g)});
+      const g = prepared.adapter.lookup(row.__lpLearningRow, merged, column, index);
+      const m = column === 'niqqud' && (answer.mwe || []).find(m=>index>=m.from&&index<=m.to);
+      return Object.assign({}, g, {model:answer.model, imported:true, wrongHint:!!g.wrong_hint && !g.manual, mwe:m?.gloss || g.mwe || '',
+        ...(m?.uncertain ? {uncertain:true,reason:[g.reason,m.reason].filter(Boolean).join('\n')} : {})});
+    };
     if (['a97001','a97001rc32'].includes(ctx.atlasId)) row.__lpAllowPreparedGloss = function () {
       return !!(ctx.contextLayerStatus && ctx.contextLayerStatus.covered.has(id));
     };

@@ -2400,7 +2400,8 @@
     var tr = _activeSpan.closest("[data-wg-row]") || _activeSpan.closest("tr");   // prefer a bound atlas cell over its unbound outer table row
     var k = Number(_activeSpan.getAttribute("data-w-offset"));
     if (!tr || !Number.isFinite(k)) return null;
-    var x = null; try { x = AI.wordAt(tr, k); } catch (_) { x = null; }
+    var column = _activeSpan.closest('[data-col]');
+    var x = null; try { x = AI.wordAt(tr, k, column && column.getAttribute('data-col')); } catch (_) { x = null; }
     return x ? { tr: tr, k: k, x: x } : null;
   }
   function aiOccurrenceHtml() {
@@ -2410,12 +2411,14 @@
     var key = x.manual ? tt("room.morph.aiInContextFixed", "в контексте (исправлено)") : tt("room.morph.aiInContext", "в контексте (ИИ)");
     var html = '<div class="rm-ai-line' + (x.manual ? " rm-ai-manual" : "") + '" dir="ltr" data-rm-ai-line>' +
       '<span class="rm-alts-k">' + escapeHtml(key) + ":</span> " + '<span class="rm-ai-gloss">' + escapeHtml(x.gloss) + "</span>" +
-      ' <button type="button" class="rm-meaning-edit rm-ai-edit" data-rm-ai-edit aria-label="' + escapeHtml(tt("room.morph.aiEdit", "Исправить перевод в контексте")) + '">✎</button>' +
+      (x.reading_only ? '' : ' <button type="button" class="rm-meaning-edit rm-ai-edit" data-rm-ai-edit aria-label="' + escapeHtml(tt("room.morph.aiEdit", "Исправить перевод в контексте")) + '">✎</button>') +
       "</div>";
     if (x.shared) html += '<div class="rm-alts" dir="' + uiDir() + '">' + escapeHtml(tt("contextLayer.shared", "Перевод из общего слоя одинаковых строк; отдельный контекст не подтверждён")) + "</div>";
     if (x.manual && x.aiGloss && x.aiGloss !== x.gloss) html += '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.aiWas", "ИИ предлагал")) + ":</span> " + escapeHtml(x.aiGloss) + "</div>";
     if (x.mwe) html += '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.aiMwe", "сочетание")) + ":</span> " + escapeHtml(x.mwe) + "</div>";
+    if (x.uncertain && x.reason) html += '<div class="rm-alts rm-ai-warn" dir="ltr">' + escapeHtml(x.reason) + '</div>';
     if (x.wrongHint) html += '<div class="rm-alts rm-ai-warn" dir="ltr">' + escapeHtml(tt("room.morph.aiWrongHint", "ИИ: словарное значение выше в этой строке, вероятно, не подходит")) + "</div>";
+    if (x.reading_only) return html;
     html += '<div class="rm-meaning-editor" data-rm-ai-editor dir="' + uiDir() + '" hidden>' +
       '<input type="text" class="rm-meaning-input" data-rm-ai-input dir="ltr" maxlength="120" placeholder="' + escapeHtml(tt("room.morph.aiPlaceholder", "перевод слова в этой строке")) + '" value="' + escapeHtml(x.gloss) + '" />' +
       '<button type="button" class="rm-meaning-save" data-rm-ai-save>' + escapeHtml(tt("room.morph.saveMeaning", "Сохранить")) + "</button>" +
@@ -2432,7 +2435,7 @@
   }
   async function onAiSave(revert) {
     var o = aiOccurrence(), AI = window.WordGlossAI;
-    if (!o || !AI || !AI.setOccurrenceGloss) return;
+    if (!o || o.x.reading_only || !AI || !AI.setOccurrenceGloss) return;
     var inp = _sheet && _sheet.querySelector("[data-rm-ai-input]");
     var val = revert ? "" : String(inp ? inp.value : "").trim();
     if (!revert && !val) { if (inp) { try { inp.focus(); } catch (_) {} } return; }

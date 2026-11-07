@@ -77,6 +77,9 @@
       return { w: sp.getAttribute("data-niqqud") || sp.textContent || "", surface: sp.getAttribute("data-surface") || "", hint: "" };
     });
     var p = payloadOf(paintedWords, ru, row);
+    // RC3.2 HE may expand into several pointed tokens. Its bound canonical row
+    // owns the occurrence key; a validated addressed map owns display offsets.
+    if (row && String(row.id).startsWith('a97001rc32:')) p = rowPayloadFromData(row);
     // A source-only view can paint unpointed spans while the bound row carries
     // the publication's derived pointing. Use that same canonical key as import
     // only when every rendered token is unpointed and matches the row's tokens.
@@ -178,6 +181,8 @@
         var own = mem.get(p.aliases[a]) || got[p.aliases[a]];
         if (own && validEntry(own, p.words.length)) { mem.set(p.storageKey, own); migrate.push([p.storageKey, own]); return; }
       }
+      // This separate corpus must never inherit common/legacy or old-edition corrections.
+      if (p.storageKey.startsWith('o1:a97001rc32%3A')) return;
       var common = mem.get(p.key) || got[p.key];
       if (common && validEntry(common, p.words.length)) {
         var carried = Object.assign({}, common, { shared: p.storageKey !== p.key });
@@ -200,7 +205,8 @@
     return k ? mem.get(k) || null : null;
   }
   // { gloss, mwe } for the k-th word of a row, or null
-  function wordAt(tr, k) {
+  function wordAt(tr, k, column) {
+    if (tr && typeof tr.__lpPreparedContextLookup === 'function') return tr.__lpPreparedContextLookup(k, column || 'niqqud');
     var r = lookup(tr);
     if (!r || !r.glosses || !r.glosses[k]) return null;
     var m = (r.mwe || []).filter(function (x) { return k >= x.from && k <= x.to; })[0] || null;
@@ -525,6 +531,7 @@
 
   window.WordGlossAI = {
     bindRows: bindRows,
+    hydrateDataRows: rows => hydratePayloads((rows || []).map(rowPayloadFromData).filter(Boolean)),
     rowPayload: rowPayload, rowPayloadFromData: rowPayloadFromData, lookup: lookup, ensureDataRows: ensureDataRows, estimateDataRows: estimateDataRows, glossCard: glossCard,
     portable: portable, remember: remember, LAYER_SCHEMA: LAYER_SCHEMA, wordAt: wordAt, wordAtData: wordAtData, setOccurrenceGloss: setOccurrenceGloss, hydrate: hydrate, ensureRows: ensureRows,
     paintRow: paintRow, paintWord: paintWord, paintMount: paintMount, startLazy: startLazy, stopLazy: stopLazy,

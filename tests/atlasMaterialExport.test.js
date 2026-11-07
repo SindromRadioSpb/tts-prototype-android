@@ -95,6 +95,23 @@ test('RC3.2 sources must bind the exact supplier edition',async t=>{
  await f.put(f.nativeSource,'manifest.json',{...f.descriptor,edition_revision:'f'.repeat(64)});
  await assert.rejects(service.inventory(f.id),/SOURCE_BINDING_MISMATCH/);
 });
+
+test('RC3.2 full export includes its addressed map and checks context/source dependency binding',async t=>{
+ const f=await nativeFixture(t),service=api.createService(f.options),base=await service.build(f.id,path.join(f.tmp,'before-context'));
+ const map=Buffer.from('{"synthetic":"address map"}'),layer=Buffer.from('{"synthetic":"candidate"}');
+ const cm={schema:'linguistpro.atlas-context.1',atlas_id:f.id,source_atlas_id:'a97001',edition_revision:f.pin.revision,edition_manifest_sha256:f.pin.manifest_sha256,
+  source_pdf_sha256:base.manifest.pdf_sha256,ai_dependencies_sha256:base.manifest.ai_dependencies_sha256,
+  alignment_adapter:{path:'addressed-map.json',sha256:hash(map),bytes:map.length},files:{'s01-test.json':{sha256:hash(layer),bytes:layer.length}}};
+ const bytes=Buffer.from(JSON.stringify(cm)),pin=hash(bytes),dir=path.join(f.options.contextDir,f.id,pin);
+ await f.put(dir,'manifest.json',bytes);await f.put(dir,'addressed-map.json',map);await f.put(dir,'s01-test.json',layer);
+ f.pin.context_sha256=pin;f.pin.context_source_binding={ai_dependencies_sha256:base.manifest.ai_dependencies_sha256};
+ const result=await service.build(f.id,path.join(f.tmp,'with-context')),zip=await JSZip.loadAsync(await fs.readFile(result.zipPath));
+ assert.equal(result.manifest.ai_layer_included,true);assert.equal(await zip.file('context/addressed-map.json').async('string'),map.toString());
+ assert.equal(result.manifest.ai_dependencies_sha256,base.manifest.ai_dependencies_sha256);
+ await f.put(dir,'addressed-map.json',Buffer.from('corrupt'));await assert.rejects(service.build(f.id,path.join(f.tmp,'corrupt-map')),/FILE_MISMATCH/);
+ f.pin.context_source_binding.ai_dependencies_sha256='0'.repeat(64);await assert.rejects(service.inventory(f.id),/CONTEXT_SOURCE_BINDING/);
+ assert((await service.inventory('a97001')).pin.context_sha256,'original pin retained');
+});
 test('RC3.2 ZIP API retains owner-only authorization on inventory and download',async t=>{
  const f=await nativeFixture(t),app=express();
  api.installRoutes(app,{...f.options,requireUser:async(req,res)=>{const role=req.headers['x-role'];if(!role){res.sendStatus(401);return null;}return {user:{role}};}});
