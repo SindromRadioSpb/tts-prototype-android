@@ -21,7 +21,9 @@ fs.mkdirSync(out,{recursive:true});
   await context.addInitScript(()=>{try{localStorage.setItem('app.locale',location.hash.includes('a97002')?'he':'ru');}catch(_){}});
   const login=await context.request.post(base+'/api/auth/bootstrap-login',{data:{secret,deviceLabel:'Atlas export verification (disposable)'}});secret=null;
   assert.equal(login.status(),200,'official login');const auth=await login.json();assert.equal(auth.user.role,'owner');
-  await context.route('**/*',route=>{
+  // Keep native ZIP transfers out of CDP interception: large intercepted bodies
+  // can be buffered in the test driver. The export endpoint is GET-only.
+  await context.route(url=>!url.pathname.endsWith('/material-export.zip'),route=>{
    const req=route.request(),url=new URL(req.url());
    if(!['GET','HEAD','OPTIONS'].includes(req.method())){report.blocked_mutations.push({method:req.method(),path:url.pathname});return route.abort();}
    if(url.origin!==new URL(base).origin && /^https?:/.test(url.protocol))return route.abort();

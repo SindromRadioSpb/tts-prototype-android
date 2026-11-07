@@ -14,6 +14,7 @@ class MaterialPackageTest(unittest.TestCase):
         data = b'{"unknown":"preserved"}\r\n'
         manifest = {'schema':'linguistpro.atlas-material.1','atlas_id':'a97002','revision':'fixture',
                     'files':{'edition/index.json':{'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}}}
+        manifest['ai_dependencies_sha256'] = hashlib.sha256(b'{}').hexdigest()
         file = root / 'source.zip'
         with zipfile.ZipFile(file,'x') as z:
             z.writestr('manifest.json',json.dumps(manifest));z.writestr('edition/index.json',data)
@@ -39,3 +40,24 @@ class MaterialPackageTest(unittest.TestCase):
                 root=Path(tmp);archive,_=self.archive(root,name)
                 with self.assertRaises(ValueError):package.restore(archive,root/'destination',True)
                 self.assertFalse((root/'destination').exists())
+
+    def test_updated_file_hash_cannot_preserve_stale_ai_dependencies(self):
+        for name in ('edition/sections/s01.json', 'sources/source.pdf', 'edition/assets/page.png'):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                data = b'original'
+                files = {name: {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}}
+                manifest = {'schema': 'linguistpro.atlas-material.1', 'atlas_id': 'future-atlas',
+                            'files': files, 'ai_dependencies_sha256': hashlib.sha256(
+                                json.dumps(files, separators=(',', ':')).encode()).hexdigest()}
+                (root / name).parent.mkdir(parents=True)
+                (root / name).write_bytes(data)
+                (root / 'manifest.json').write_text(json.dumps(manifest))
+                package.verify(root)
+                # Updating the ordinary file inventory is insufficient: the old
+                # AI dependency binding must not be carried into changed material.
+                (root / name).write_bytes(b'changed')
+                files[name] = {'sha256': hashlib.sha256(b'changed').hexdigest(), 'bytes': 7}
+                (root / 'manifest.json').write_text(json.dumps(manifest))
+                with self.assertRaisesRegex(ValueError, 'AI requires revalidation'):
+                    package.verify(root)

@@ -81,6 +81,12 @@ def verify(source):
             for n in files:
                 with archive.open(n) as f: actual[n] = digest(f)
     if actual != expected(manifest): raise ValueError('File checksum/size mismatch')
+    dependencies = {n: v for n, v in manifest['files'].items()
+                    if n.startswith(('edition/sections/', 'edition/assets/', 'sources/'))}
+    dependency_hash = hashlib.sha256(json.dumps(dependencies, ensure_ascii=False,
+                                                separators=(',', ':')).encode('utf8')).hexdigest()
+    if dependency_hash != manifest.get('ai_dependencies_sha256'):
+        raise ValueError('Source dependencies changed: AI requires revalidation')
     return manifest
 
 def restore(archive, destination, write=False):
