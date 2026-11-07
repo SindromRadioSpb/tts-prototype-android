@@ -2179,6 +2179,12 @@ require("./lib/atlasReview").installRoutes(app, { dir: path.join(DATA_DIR, "atla
   limiter: makeRateLimiter({ windowMs: 60000, max: 120, name: "atlas-review" }) });
 
 // M1 BYOA: explicit selected-fragment transport, independently gated from legacy AI.
+const atlasExportEdition = require('./public/js/atlas-edition');
+require('./lib/atlasMaterialExport').installRoutes(app, {
+  dataDir: DATA_DIR, contextDir: path.join(__dirname,'atlas-context'), requireUser,
+  pins: {a97001:{...atlasExportEdition.pin,context_sha256:atlasExportEdition.contextPin}},
+  limiter: makeRateLimiter({windowMs:60000,max:10,name:'atlas-material-export'}),
+});
 // Cookie writers use the existing identity/CSRF boundary; connector credentials
 // authorize only this transport, never MCP or canonical learning writers.
 const tutorRollout = require("./agent/tutor/rollout").createRollout(() => require("./db/sqlite").getDb());

@@ -50,5 +50,5 @@
     return {base:prefix,json:json,contextJson:contextJson,url:url,manifest:manifest,revision:pin&&pin.revision};
   }
   function client(id){if(!clients.has(id))clients.set(id,createClient(id));return clients.get(id);}
-  return {base:base,assetUrl:assetUrl,client:client,createClient:createClient,componentsReady:componentsReady,contract:CONTRACT,pin:Object.freeze(Object.assign({},PIN))};
+  return {base:base,assetUrl:assetUrl,client:client,createClient:createClient,componentsReady:componentsReady,contract:CONTRACT,pin:Object.freeze(Object.assign({},PIN)),contextPin:CONTEXT_PIN};
 });

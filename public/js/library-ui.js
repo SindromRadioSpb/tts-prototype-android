@@ -13324,6 +13324,25 @@ function renderAtlasCorpus(atlasId, token) {
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-view atlas-corpus' });
   wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
+  // Export is owner-only on both the UI and API; large ZIPs download natively.
+  Promise.resolve().then(() => window.CloudSync && window.CloudSync.me()).then(async session => {
+    if (token !== corpusRenderToken || !wrap.isConnected || session?.user?.role !== 'owner') return;
+    const box = el('div', {class:'atlas-material-export'});
+    const status = el('p', {text:tt('atlas.materialExport.checking')});
+    status.setAttribute('role','status'); box.appendChild(status); wrap.appendChild(box);
+    try {
+      const url='/api/atlas/'+encodeURIComponent(atlasId)+'/material-export';
+      const response=await fetch(url,{credentials:'same-origin',cache:'no-store'});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error);
+      status.textContent=tt('atlas.materialExport.help');
+      const link=el('a',{text:tt('atlas.materialExport.download')});
+      link.href=url+'.zip';link.setAttribute('download',atlasId+'-full-material.zip');
+      box.appendChild(link);
+    } catch(error) {
+      status.textContent=tt(error.message==='SOURCE_PACKAGE_REQUIRED'?'atlas.materialExport.missing':'atlas.materialExport.error');
+    }
+  }).catch(() => {});
   if (atlasId === 'a97001' && window.AtlasProgressExport) window.AtlasProgressExport.mount(wrap, {
     db: localDb, storage: window.localStorage,
     labels: Object.fromEntries(['help','save','working','done','error','notOpen'].map(key => [key, tt('atlas.progressExport.' + key)])),

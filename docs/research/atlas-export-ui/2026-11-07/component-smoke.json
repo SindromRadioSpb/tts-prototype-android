@@ -1,0 +1,33 @@
+{
+  "scope": "actual UI block, mocked session and availability; backend tested separately",
+  "results": [
+    {
+      "lang": "ru",
+      "width": 380,
+      "role": "owner",
+      "ready": true,
+      "passed": true
+    },
+    {
+      "lang": "he",
+      "width": 1280,
+      "role": "owner",
+      "ready": true,
+      "passed": true
+    },
+    {
+      "lang": "ru",
+      "width": 380,
+      "role": "owner",
+      "ready": false,
+      "passed": true
+    },
+    {
+      "lang": "ru",
+      "width": 380,
+      "role": "member",
+      "ready": true,
+      "passed": true
+    }
+  ]
+}
