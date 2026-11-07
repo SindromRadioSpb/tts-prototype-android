@@ -1,0 +1,12 @@
+{
+  "delivery_files": 883,
+  "material_files": 873,
+  "checksums": "passed",
+  "semantic_validation": "passed",
+  "roundtrip": "passed",
+  "archive": "atlas97001-full-export-20261107-r2.zip",
+  "archive_bytes": 264537447,
+  "archive_sha256": "86bda32420a8afb6c23eb60c0d4843eb825d9f3177af076d569ab91291403294",
+  "zip_crc": "passed",
+  "isolated_python": true
+}

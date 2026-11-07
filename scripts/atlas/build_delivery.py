@@ -67,6 +67,9 @@ python -B tools/material_snapshot.py prepare ../atlas97001-edit ../atlas97001-dr
 проверки; действующий context manifest снимается. Черновик имеет отдельный ID,
 подпись содержимого и publication_allowed=false. Производные индексы и новый
 ИИ-контекст нужно пересобрать перед приёмкой. Архив сам ничего не публикует.
+Изменение PDF, изображения или исходного вложения требует перепроверки ИИ
+ВСЕХ разделов, даже если текстовые файлы не изменились. Учитываются добавления,
+удаления и замена содержимого под тем же именем; сравнение идёт по SHA-256.
 
 Откат: снова импортировать material в другой новый каталог. Не копировать
 черновик поверх production. Пилот: p50, p51–52, p56 и p159; подробности в reports.
@@ -93,7 +96,7 @@ def main():
         for name in ('material_snapshot.py','material_validate.py','verify_delivery.py'):
             (root / 'tools' / name).write_bytes((scriptdir / name).read_bytes())
         (root / 'reports').mkdir()
-        for name in ('README.md','verification.json','goal-verification.json'):
+        for name in ('README.md','verification.json','goal-verification.json','source-invalidation.json'):
             (root / 'reports' / name).write_bytes((repo / 'docs/research/atlas-transfer/2026-11-07' / name).read_bytes())
         (root / 'README.ru.md').write_text(README,encoding='utf8')
         (root / 'CHECKSUMS.json').write_text(json.dumps(snapshot.inventory(root),ensure_ascii=False,indent=2),encoding='utf8')

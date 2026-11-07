@@ -1,0 +1,78 @@
+{
+  "image_only_change": true,
+  "all_section_bytes_unchanged": true,
+  "quarantined_sections": 21,
+  "report": {
+    "schema": "linguistpro.atlas-offline-draft.1",
+    "publication_allowed": false,
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "sections": 21,
+      "pages": 203,
+      "objects": 2301,
+      "references": 43,
+      "term_references": 1880
+    },
+    "diff": {
+      "changed_files": [
+        "edition/assets/00554a211bb5e6345bb9c923ab2afb587c4225a060fa813e36cb1670cbca8eb6.png"
+      ],
+      "ai_requires_review": [
+        "edition/sections/s00-front.json",
+        "edition/sections/s01-units.json",
+        "edition/sections/s02-statics-basics.json",
+        "edition/sections/s03-concurrent-forces.json",
+        "edition/sections/s04-parallel-forces.json",
+        "edition/sections/s05-planar-forces.json",
+        "edition/sections/s06-trusses.json",
+        "edition/sections/s07-centroid.json",
+        "edition/sections/s08-friction.json",
+        "edition/sections/s09-linear-motion.json",
+        "edition/sections/s10-projectile-motion.json",
+        "edition/sections/s11-circular-motion.json",
+        "edition/sections/s12-sections.json",
+        "edition/sections/s13-dimensions.json",
+        "edition/sections/s14-industrial-symbols.json",
+        "edition/sections/s15-materials-basics.json",
+        "edition/sections/s16-mechanical-properties.json",
+        "edition/sections/s17-steels.json",
+        "edition/sections/s18-powder-metallurgy.json",
+        "edition/sections/s19-aluminium.json",
+        "edition/sections/s20-composites.json"
+      ],
+      "source_changes": [
+        "edition/assets/00554a211bb5e6345bb9c923ab2afb587c4225a060fa813e36cb1670cbca8eb6.png"
+      ],
+      "invalidation_scope": "all_sections_source_changed",
+      "publication_allowed": false,
+      "policy": "Changed text invalidates its section AI; changed PDF, images or source attachments invalidate all section AI. Original AI evidence is retained."
+    },
+    "ai_requires_review": [
+      "s00-front.json",
+      "s01-units.json",
+      "s02-statics-basics.json",
+      "s03-concurrent-forces.json",
+      "s04-parallel-forces.json",
+      "s05-planar-forces.json",
+      "s06-trusses.json",
+      "s07-centroid.json",
+      "s08-friction.json",
+      "s09-linear-motion.json",
+      "s10-projectile-motion.json",
+      "s11-circular-motion.json",
+      "s12-sections.json",
+      "s13-dimensions.json",
+      "s14-industrial-symbols.json",
+      "s15-materials-basics.json",
+      "s16-mechanical-properties.json",
+      "s17-steels.json",
+      "s18-powder-metallurgy.json",
+      "s19-aluminium.json",
+      "s20-composites.json"
+    ],
+    "derived_data_requires_rebuild": true,
+    "payload_sha256": "dfed10e4cd9bc783f4d92bf6b24b42d09733222059d452207aff5a25376b22c6",
+    "edition_id": "offline-a97001-dfed10e4cd9bc783f4d92bf6b24b42d09733222059d452207aff5a25376b22c6"
+  }
+}

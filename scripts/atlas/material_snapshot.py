@@ -127,10 +127,20 @@ def transfer(source, destination, export=False):
 def difference(base, candidate):
     a, b = inventory(base), inventory(candidate)
     changed = [n for n in sorted(a.keys() | b.keys()) if a.get(n) != b.get(n)]
-    # Conservative invalidation: no edited section can inherit an accepted AI status.
-    sections = [n for n in changed if '/sections/' in '/' + n and n.endswith('.json')]
+    is_section = lambda n: '/sections/' in '/' + n and n.endswith('.json')
+    sections = [n for n in changed if is_section(n)]
+    # Source images/PDF can change meaning even when every text byte is identical.
+    # Until a reviewed page-to-AI dependency graph exists, invalidate ALL sections
+    # for any visual/source change, including additions, deletions and same-name edits.
+    visual_extensions = {'.pdf','.png','.jpg','.jpeg','.webp','.gif','.svg','.tif','.tiff','.bmp','.avif','.heic'}
+    source_changes = [n for n in changed if pathlib.PurePosixPath(n).suffix.lower() in visual_extensions
+                      or '/assets/' in '/' + n or n.startswith('sources/')]
+    if source_changes:
+        sections = sorted(n for n in a.keys() | b.keys() if is_section(n))
     return {'changed_files': changed, 'ai_requires_review': sections,
-            'publication_allowed': False, 'policy': 'All AI rows in changed sections require revalidation against current text; original AI evidence is retained.'}
+            'source_changes': source_changes,
+            'invalidation_scope': 'all_sections_source_changed' if source_changes else 'changed_sections',
+            'publication_allowed': False, 'policy': 'Changed text invalidates its section AI; changed PDF, images or source attachments invalidate all section AI. Original AI evidence is retained.'}
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
