@@ -1,0 +1,50 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "sections": 21,
+    "pages": 203,
+    "objects": 2301,
+    "references": 43,
+    "term_references": 1880
+  },
+  "draft_dry_run_no_write": true,
+  "stale_import_rejected": true,
+  "stale_ai_removed_from_active_context": true,
+  "ai_evidence_preserved": true,
+  "rollback_exact": true,
+  "source_unchanged": true,
+  "served_application_version": "3.11.871",
+  "draft_report": {
+    "schema": "linguistpro.atlas-offline-draft.1",
+    "publication_allowed": false,
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "sections": 21,
+      "pages": 203,
+      "objects": 2301,
+      "references": 43,
+      "term_references": 1880
+    },
+    "diff": {
+      "changed_files": [
+        "edition/sections/s07-centroid.json"
+      ],
+      "ai_requires_review": [
+        "edition/sections/s07-centroid.json"
+      ],
+      "publication_allowed": false,
+      "policy": "All AI rows in changed sections require revalidation against current text; original AI evidence is retained."
+    },
+    "ai_requires_review": [
+      "s07-centroid.json"
+    ],
+    "derived_data_requires_rebuild": true,
+    "payload_sha256": "c0848aa626ece70a5adc17740b200465b71918beb8e3e6ce87b4f7bda596fd6f",
+    "edition_id": "offline-a97001-c0848aa626ece70a5adc17740b200465b71918beb8e3e6ce87b4f7bda596fd6f"
+  },
+  "cli_roundtrip_equal": true,
+  "served_pins_rechecked_unchanged": true,
+  "post_prepare_mutation_rejected": true
+}
