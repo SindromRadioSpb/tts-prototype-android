@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.876";
+const CACHE_VERSION = "v3.11.877";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=876",
+  "/js/library-ui.js?v=877",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=876",
   "/js/corpus-registry.js?v=876",
@@ -173,7 +173,7 @@ const PRECACHE_URLS = [
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
   "/js/learning-compass-worker.js",
-  "/js/corpus-item-presenter.js?v=419",
+  "/js/corpus-item-presenter.js?v=877",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=817",
@@ -225,7 +225,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js?v=837",
   "/js/publication-center.js?v=520",
-  "/js/public-corpus-adapter.js?v=802",
+  "/js/public-corpus-adapter.js?v=877",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
   "/js/mentor-connection-core.js?v=414",
   "/js/mentor-home.js?v=414",

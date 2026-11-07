@@ -191,6 +191,13 @@ test("all corpus presenters expose one honest audio coverage contract", async ()
     { kind: "audio", coverage: "full", countLabel: "42/42", videoAvailable: true });
   assert.deepEqual({ kind: published.media.kind, coverage: published.media.coverage, countLabel: published.media.countLabel, humanOrTts: published.media.humanOrTts },
     { kind: "audio", coverage: "partial", countLabel: "2/3", humanOrTts: null });
+  // Задачник: аудио редакции нет, но озвучен учебный пакет (условие + решение) — это не «Аудио отсутствует».
+  const voicedTask = presenter.adaptPublicCorpusItem({ public_work_id: "m1", title: "Материаловедение — задача 1", expected_audio_count: 0, included_audio_count: 0, manifest_sha256: "b".repeat(64) },
+    { slug: "materials-science-year1-problem-book-2", learningAudioReady: true });
+  assert.deepEqual({ coverage: voicedTask.media.coverage, countLabel: voicedTask.media.countLabel }, { coverage: "full", countLabel: null });
+  const silentTask = presenter.adaptPublicCorpusItem({ public_work_id: "m2", title: "x", expected_audio_count: 0, included_audio_count: 0, manifest_sha256: "b".repeat(64) },
+    { slug: "materials-science-year1-problem-book-2" });
+  assert.equal(silentTask.media.coverage, "none");
 });
 
 test("unmaterialized group familiarity is actionable and never claims a derived value", async () => {

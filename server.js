@@ -1435,7 +1435,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=876",
+  "/js/library-ui.js?v=877",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=876",
   "/js/atlas-train-ui.js?v=876",
@@ -1460,10 +1460,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/course-reader.css?v=859",
   "/js/train-queue.js?v=461",
   "/js/retention-report.js?v=461",
-  "/js/corpus-item-presenter.js?v=419",
+  "/js/corpus-item-presenter.js?v=877",
   "/css/publication-center.css?v=643",
   "/js/publication-center.js?v=520",
-  "/js/public-corpus-adapter.js?v=802",
+  "/js/public-corpus-adapter.js?v=877",
   "/js/dicta-lexicon.js?v=769",
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
@@ -4575,6 +4575,10 @@ app.post("/api/publication/corpora/:corpusId\\:rollback", rlPublicationWrite, re
 app.post("/api/publication/corpora/:corpusId/draft\\:new-revision", rlPublicationWrite, requireStrictSameOriginJson, (req, res) => publicationWrite(req, res, "revision_draft_created",
   (repo, actor, opts) => repo.createRevisionDraft(actor, req.params.corpusId, opts), true));
 
+// Каталог с флагом озвученного учебного пакета получает свой ETag, чтобы включение флага не застряло за 304.
+function learningAudioCatalogEtagHash(manifestSha256) {
+  return crypto.createHash("sha256").update(String(manifestSha256) + ":learning-audio-v1").digest("hex");
+}
 // MASS_ACCESS_I4_PUBLIC_READ_BEGIN
 // Anonymous public-corpus reads are a separate namespace and projection. They
 // intentionally have no session, CSRF, audit or publication-write middleware.
@@ -4637,11 +4641,23 @@ app.get('/api/mediatheque', rlPublicCorpusRead, (req, res) => publicCorpusRead(r
   res.set('Cache-Control', 'no-store');
   return res.json({ ok: true, schema_version: 'mediatheque.1.0.0', ...await repo.getPublicMediatheque() });
 }));
+// Озвучка задачника живёт в учебном пакете (условие + решение), а не в аудио редакции. Каталог сообщает
+// о ней одним флагом, чтобы карточка не писала «Аудио отсутствует» про озвученную задачу.
+function publicCorpusLearningAudio(slug) {
+  if (slug !== "materials-science-year1-problem-book-2" || !materialsPb2LearningSupportPublicReadEnabled()) return null;
+  try {
+    const manifest = loadMaterialsPb2LearningSupportManifest();
+    return manifest.audio_boundary?.full_tts_generated === true ? { full_tts_generated: true, scope: "condition_and_solution" } : null;
+  } catch (_) { return null; }
+}
 app.get("/api/public-corpora/:slug", rlPublicCorpusRead, (req, res) => publicCorpusRead(res, async repo => {
   const published = await repo.getPublicCorpus(req.params.slug);
-  publicCorpusEtag(res, published.edition.manifest_sha256);
+  const learningAudio = publicCorpusLearningAudio(req.params.slug);
+  publicCorpusEtag(res, learningAudio
+    ? learningAudioCatalogEtagHash(published.edition.manifest_sha256)
+    : published.edition.manifest_sha256);
   res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
-  return res.json({ ok: true, schema_version: "public_corpus.1.0.0", ...published });
+  return res.json({ ok: true, schema_version: "public_corpus.1.0.0", ...published, ...(learningAudio ? { learning_audio: learningAudio } : {}) });
 }));
 const PUBLIC_LEARNING_INDEX_PACKET_MAX = 256 * 1024;
 function encodePublicLearningCursor(signature, offset) {

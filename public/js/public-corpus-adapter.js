@@ -42,7 +42,8 @@
     });
     const items = Array.isArray(value.items) ? value.items.map(item => normalizeItem(item, edition)) : invalid();
     if (items.length !== edition.item_count) invalid();
-    return Object.freeze({ corpus_id: text(rawCorpus.corpus_id, 160, ID), slug: text(rawCorpus.slug, 80, SLUG), title: text(rawCorpus.title, 500), description: String(rawCorpus.description || "").slice(0, 4000), edition, items: Object.freeze(items) });
+    return Object.freeze({ corpus_id: text(rawCorpus.corpus_id, 160, ID), slug: text(rawCorpus.slug, 80, SLUG), title: text(rawCorpus.title, 500), description: String(rawCorpus.description || "").slice(0, 4000), edition, items: Object.freeze(items),
+      learning_audio_ready: !!(value.learning_audio && value.learning_audio.full_tts_generated === true) });
   }
   function normalizeWork(payload) {
     const raw = payload.item || {}, snapshot = raw.snapshot;

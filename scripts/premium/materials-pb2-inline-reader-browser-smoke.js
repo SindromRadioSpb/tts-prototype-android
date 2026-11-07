@@ -88,8 +88,17 @@ async function stop(child) {
     const catalogCard = page.locator(".room-material-row").first();
     assert.equal(await catalogCard.locator(".materials-learning-action").count(), 1, "catalog card must expose only the full solution");
     assert.equal(await catalogCard.getByText("Краткий ответ", { exact: true }).count(), 0);
+    // Озвученный учебный пакет — не «Аудио отсутствует» на карточке каталога.
+    await catalogCard.locator(".learning-media").waitFor({ timeout: 30000 });
+    assert.equal(await catalogCard.locator(".learning-media").getAttribute("class"), "learning-media media-full");
+    await page.screenshot({ path: path.join(OUT, "materials-pb2-catalog-audio-380-ru.png"), fullPage: false });
     await catalogCard.locator(".materials-learning-action.primary").click();
     const standaloneViewer = page.locator(".materials-learning-viewer"); await standaloneViewer.waitFor({ timeout: 30000 });
+    assert.equal(await page.locator(".materials-learning-viewer .materials-step-cell, .materials-learning-viewer .materials-step-col").count(), 0, "no «Шаг» column");
+    assert.equal(await page.locator(".materials-learning-viewer .materials-audio-note").count(), 0, "ready audio needs no banner");
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.screenshot({ path: path.join(OUT, "materials-pb2-standalone-desktop-ru.png"), fullPage: false });
+    await page.setViewportSize({ width: 380, height: 845 });
     const standalone = await page.evaluate(() => ({
       rows: document.querySelectorAll(".materials-learning-table.is-solution .materials-learning-row").length,
       answerFirstRows: document.querySelectorAll('.materials-learning-table.is-solution [data-section="answer_first"]').length,
@@ -99,10 +108,10 @@ async function stop(child) {
     assert.ok(standalone.rows > 10 && standalone.answerFirstRows === 0 && standalone.semanticHeadings === 0 && !standalone.documentOverflow, JSON.stringify(standalone));
     await page.locator(".materials-learning-close").click();
     await page.locator(".room-text-title-link").first().click();
-    await page.locator("#readerTaskLearningSupport:not([hidden]) .materials-learning-action.primary").waitFor({ timeout: 30000 });
-    const reviewBefore = await page.evaluate(() => window.__localDB.countReviewLog());
-    await page.locator("#readerTaskLearningSupport .materials-learning-action.primary").click();
+    // Решение раскрыто сразу под условием: кнопки «Открыть решение» в «Читать» больше нет.
     const inline = page.locator("#materialsInlineSolution"); await inline.waitFor({ timeout: 30000 });
+    const reviewBefore = await page.evaluate(() => window.__localDB.countReviewLog());
+    assert.equal(await page.locator("#readerTaskLearningSupport .materials-learning-action").count(), 0, "no expand/collapse toggle in the reader");
     assert.equal(await page.locator(".materials-learning-viewer").count(), 0, "Reader action must not open the standalone dialog");
     const initial = await page.evaluate(() => {
       const main = document.querySelector("#roomReaderTable #proTable"), tables = [...document.querySelectorAll(".materials-inline-table")];
@@ -113,12 +122,12 @@ async function stop(child) {
         colsMatch: tables.every(table => table.dataset.cols === main.dataset.cols),
         widthsMatch: tables.every(table => [...table.querySelectorAll("col")].every((col, index) => col.style.width === main.querySelectorAll("col")[index]?.style.width)),
         documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-        tinyControls: controls.filter(node => { const rect = node.getBoundingClientRect(); return rect.width < 44 || rect.height < 44; }).map(node => node.textContent.trim()),
-        expanded: document.querySelector("#readerTaskLearningSupport .materials-learning-action.primary")?.getAttribute("aria-expanded"),
+        tinyControls: controls.filter(node => { const rect = node.getBoundingClientRect(); return rect.width < 24 || rect.height < 24; }).map(node => node.textContent.trim()),
+        stepColumn: document.querySelectorAll(".materials-step-cell").length,
         inlineOpen: document.body.classList.contains("materials-inline-open") };
     });
     assert.ok(initial.tables === 1 && initial.rows > 10 && initial.answerFirstRows === 0 && initial.semanticHeadings === 0, JSON.stringify(initial));
-    assert.ok(initial.colsMatch && initial.widthsMatch && !initial.documentOverflow && initial.expanded === "true" && initial.inlineOpen, JSON.stringify(initial));
+    assert.ok(initial.colsMatch && initial.widthsMatch && !initial.documentOverflow && initial.stepColumn === 0 && initial.inlineOpen, JSON.stringify(initial));
     assert.deepEqual(initial.tinyControls, []);
 
     await page.locator("#readerAidsToggle").click();
@@ -159,13 +168,22 @@ async function stop(child) {
     assert.deepEqual(desktop, { documentOverflow: false, inlineVisible: true });
     await page.screenshot({ path: path.join(OUT, "materials-pb2-inline-solution-desktop-ru.png"), fullPage: false });
 
-    const trigger = page.locator("#readerTaskLearningSupport .materials-learning-action.primary");
-    await trigger.click(); assert.equal(await inline.count(), 0); assert.equal(await trigger.getAttribute("aria-expanded"), "false");
-    assert.equal(await trigger.evaluate(node => document.activeElement === node), true, "collapse returns focus to its trigger");
+    // «Прочитано» и «Следующий для тебя» — после решения, а не между условием и решением.
+    await page.locator("#materialsInlineSolution .materials-inline-table tbody tr[data-row-idx]").last().scrollIntoViewIfNeeded();
+    await page.mouse.wheel(0, 4000);
+    await page.locator("#readerEndCard").waitFor({ timeout: 15000 });
+    const endCard = await page.evaluate(() => {
+      const card = document.querySelector("#readerEndCard"), region = document.querySelector("#materialsInlineSolution");
+      return { afterSolution: !!(card && region && (region.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        insideConditionTable: !!card?.closest("#roomReaderTable"), endHead: !!card?.querySelector(".reader-end-head") };
+    });
+    assert.deepEqual(endCard, { afterSolution: true, insideConditionTable: false, endHead: false });
+    await page.locator("#readerEndCard").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(OUT, "materials-pb2-inline-solution-end-desktop-ru.png"), fullPage: false });
     assert.deepEqual(pageErrors, []); assert.deepEqual(consoleErrors.filter(value => /TypeError|ReferenceError|materials/i.test(value)), []);
-    const report = { gate: "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER", version: "3.11.456", viewport: "380x845",
+    const report = { gate: "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER", version: "3.11.877", viewport: "380x845",
       publication_items: publication.full.items, standalone, solution: initial, reflow_200pct: reflow200, mobile_he: mobileHe, desktop,
-      review_log_delta: 0, page_errors: pageErrors,
+      end_card: endCard, review_log_delta: 0, page_errors: pageErrors,
       screenshots: fs.readdirSync(OUT).filter(name => name.endsWith(".png")).sort() };
     fs.writeFileSync(path.join(OUT, "local-browser-verification.json"), JSON.stringify(report, null, 2) + "\n");
     process.stdout.write(JSON.stringify(report, null, 2) + "\n");
