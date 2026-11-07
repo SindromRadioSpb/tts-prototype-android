@@ -1,0 +1,51 @@
+{
+  "status": "baseline_only_integration_pending",
+  "source_commit": "1ae74d9e1f0c0396dbcf0c66acdfc8da4a074cf0",
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "marks_only",
+      "he": "כוח",
+      "niqqud": "כּוֹחַ",
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "existing_reviewed_spelling",
+      "he": "חוקים",
+      "niqqud": "חֻקִּים",
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "unlisted_defective_spelling",
+      "he": "כוחות",
+      "niqqud": "כֹּחוֹת",
+      "accepted": false,
+      "error": "Atlas source/niqqud alignment mismatch: a97001rc32:p1:b001 (1/1)"
+    },
+    {
+      "name": "changed_word",
+      "he": "כוח",
+      "niqqud": "מַסָּה",
+      "accepted": false,
+      "error": "Atlas source/niqqud alignment mismatch: a97001rc32:p1:b001 (1/1)"
+    },
+    {
+      "name": "changed_word_count",
+      "he": "ביתספר",
+      "niqqud": "בֵּית סֵפֶר",
+      "accepted": false,
+      "error": "Atlas source/niqqud alignment mismatch: a97001rc32:p1:b001 (1/2)"
+    }
+  ],
+  "projection": {
+    "word_key_unchanged": true,
+    "source_revision": "45b04837d1a80d796fcaab533a2b1341e52f0d47e4be95b9a7af4298ce4240ef",
+    "projected_revision": "c2bdccd1bf7fbe7d630b766ec9a02a30ca916b43a9ea0168e2343c0508df25c1"
+  },
+  "loader": {
+    "code": "ATLAS_CONTEXT_NOT_PUBLISHED",
+    "fetches": 0
+  }
+}
