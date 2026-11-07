@@ -1123,7 +1123,9 @@
     .materials-audio-cell .row-tts-btn { position: relative; }
     .materials-audio-cell .row-tts-btn::after { content: ""; position: absolute; inset: -7px; }
     .materials-audio-cell .row-tts-btn:hover { background: color-mix(in srgb,#0f6f74 10%,var(--bg-card)); }
-    .materials-learning-row.row-playing > td { background: color-mix(in srgb,#0f6f74 7%,var(--bg-card)); }
+    .materials-learning-row.is-working > td { background: var(--row-hl-selected, color-mix(in srgb,#0f6f74 7%,var(--bg-card))); }
+    .materials-learning-row.is-working > td:first-child { box-shadow: inset 3px 0 0 var(--row-rail-selected, #0f6f74); }
+    .materials-learning-row.row-playing > td { background: color-mix(in srgb,#0f6f74 10%,var(--bg-card)); }
     .materials-table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
     .materials-learning-table { width: 100%; min-width: 860px; border-collapse: collapse; table-layout: fixed; }
     .materials-learning-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -1442,6 +1444,13 @@
       background-color: var(--row-hl-selected) !important;
     }
     #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-playing):not(.smk-row-active):not(.row-error) td:first-child {
+      box-shadow: inset 3px 0 0 var(--row-rail-selected);
+    }
+    /* Задачник: рабочая строка решения подсвечивается так же, как строка условия. */
+    #roomReader .materials-inline-table tbody tr.rm-row-current:not(.row-error) td {
+      background-color: var(--row-hl-selected) !important;
+    }
+    #roomReader .materials-inline-table tbody tr.rm-row-current:not(.row-playing):not(.row-error) td:first-child {
       box-shadow: inset 3px 0 0 var(--row-rail-selected);
     }
     /* ── Room media player (spec 2026-08-04) ─────────────────────────────────── */
@@ -3410,7 +3419,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.877</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.878</button>
     </p>
   </div>
 </div>
@@ -3755,7 +3764,7 @@
 <script src="/js/local-translit-bundle.js?v=810"></script>
 <script src="/js/translit-display.js?v=817"></script>
 <script src="/js/atlas-progress-export.js?v=876"></script>
-<script type="module" src="/js/library-ui.js?v=877"></script>
+<script type="module" src="/js/library-ui.js?v=878"></script>
 <script src="/js/tutor-client.js?v=2"></script>
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=718"></script>

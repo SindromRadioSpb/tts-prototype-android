@@ -1435,7 +1435,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=877",
+  "/js/library-ui.js?v=878",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=876",
   "/js/atlas-train-ui.js?v=876",

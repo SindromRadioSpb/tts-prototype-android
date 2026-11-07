@@ -76,7 +76,7 @@ async function stop(child) {
       const descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "src");
       if (descriptor?.set && descriptor?.get) Object.defineProperty(HTMLMediaElement.prototype, "src", { configurable: true,
         get() { return descriptor.get.call(this); }, set(value) { window.__materialsInlinePlayed.push(String(value)); descriptor.set.call(this, value); } });
-      HTMLMediaElement.prototype.play = function () { this.dispatchEvent(new Event("playing")); return Promise.resolve(); };
+      HTMLMediaElement.prototype.play = function () { window.__lastMedia = this; this.dispatchEvent(new Event("playing")); return Promise.resolve(); };
       HTMLMediaElement.prototype.pause = function () {};
     });
     await page.route("**/api/audio/**", async route => {
@@ -144,6 +144,28 @@ async function stop(child) {
     const firstRowButton = page.locator(".materials-inline-table .row-tts-btn").first();
     await firstRowButton.click();
     await page.waitForFunction(() => window.__materialsInlinePlayed.length > 0);
+    // Выбранная строка решения остаётся подсвеченной, и «Прослушать решение» стартует с неё.
+    const thirdRow = page.locator(".materials-inline-table tbody tr[data-row-idx]").nth(2);
+    const thirdIdx = await thirdRow.getAttribute("data-row-idx");
+    await thirdRow.locator(".row-tts-btn").click();
+    await page.waitForFunction(i => document.querySelector(`.materials-inline-table tr[data-row-idx="${i}"]`)?.classList.contains("rm-row-current"), thirdIdx);
+    assert.equal(await page.locator("#roomReaderTable tr.rm-row-current").count(), 0, "one working row for the whole task");
+    await page.evaluate(() => window.__lastMedia && window.__lastMedia.dispatchEvent(new Event("ended")));   // строка доиграла
+    await page.locator('[data-audio-action="play-solution"]').click();
+    await page.waitForFunction(i => document.querySelector(".materials-inline-table tr.row-playing")?.getAttribute("data-row-idx") === i, thirdIdx);
+    assert.equal(await page.locator(`.materials-inline-table tr[data-row-idx="${thirdIdx}"]`).getAttribute("class").then(c => /rm-row-current/.test(c)), true);
+    // Верхняя ▶ начинает с выделенной строки условия, а не с первой.
+    await page.locator("#roomReadAloud").click();   // старт: рабочая строка в решении → решение
+    await page.waitForFunction(i => document.querySelector(".materials-inline-table tr.row-playing")?.getAttribute("data-row-idx") === i, thirdIdx);
+    await page.locator("#roomReadAloud").click();   // стоп
+    const conditionRow = page.locator("#roomReaderTable #proTable tbody tr[data-row-idx]").nth(1);
+    await conditionRow.scrollIntoViewIfNeeded(); await conditionRow.locator("td").last().click();   // тап по строке условия
+    await page.waitForFunction(() => document.querySelector("#roomReaderTable tr.rm-row-current")?.getAttribute("data-row-idx") === "1");
+    assert.equal(await page.locator(".materials-inline-table tr.rm-row-current").count(), 0, "condition work clears the solution selection");
+    await page.evaluate(() => window.__lastMedia && window.__lastMedia.dispatchEvent(new Event("ended")));   // строка доиграла
+    await page.locator("#roomReadAloud").click();
+    await page.waitForFunction(() => document.querySelector("#roomReaderTable tr.row-playing")?.getAttribute("data-row-idx") === "1");
+    await page.locator("#roomReadAloud").click();
     const firstWord = page.locator('.materials-inline-table td[data-col="niqqud"] .rm-w[tabindex="0"]').first();
     await firstWord.click(); await page.locator(".rm-sheet.rm-open").waitFor({ timeout: 30000 });
     await page.keyboard.press("Escape");
@@ -181,7 +203,7 @@ async function stop(child) {
     await page.locator("#readerEndCard").scrollIntoViewIfNeeded();
     await page.screenshot({ path: path.join(OUT, "materials-pb2-inline-solution-end-desktop-ru.png"), fullPage: false });
     assert.deepEqual(pageErrors, []); assert.deepEqual(consoleErrors.filter(value => /TypeError|ReferenceError|materials/i.test(value)), []);
-    const report = { gate: "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER", version: "3.11.877", viewport: "380x845",
+    const report = { gate: "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER", version: "3.11.878", viewport: "380x845",
       publication_items: publication.full.items, standalone, solution: initial, reflow_200pct: reflow200, mobile_he: mobileHe, desktop,
       end_card: endCard, review_log_delta: 0, page_errors: pageErrors,
       screenshots: fs.readdirSync(OUT).filter(name => name.endsWith(".png")).sort() };

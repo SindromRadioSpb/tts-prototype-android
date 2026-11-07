@@ -6298,7 +6298,19 @@ function _karaokeRowFollowable(tr) {
   } catch (_) { return false; }
 }
 function onKaraokeRowChange(idx) {
-  if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }   // playback ended → keep last marker
+  if (idx < 0) {
+    // Задачник: озвучка решения останавливает строку условия — это не конец чтения вслух решения.
+    if (_karaokeSource === 'solution') return;
+    // Условие дочитано до конца (не остановлено вручную) → чтение вслух продолжается решением.
+    const naturalEnd = karaokeActive && !_karaokeStopping && _karaokeLastIdx === readerRows.length - 1;
+    _karaokeStopping = false; _karaokeLastIdx = -1;
+    if (naturalEnd && materialsInlineAudio && materialsInlineState && materialsInlineState.expanded) {
+      _karaokeSource = 'solution';
+      try { materialsInlineAudio.playAll(readerRows.length); return; } catch (_) { _karaokeSource = 'reader'; }
+    }
+    karaokeActive = false; setReadAloudBtn(false); return;   // playback ended → keep last marker
+  }
+  _karaokeLastIdx = idx;
   _roomReaderPresentationReadOnly = false;   // an actually sounding TTS row is genuine learner activity
   // media player: TTS реально заиграл → глушим ИГРАЮЩЕЕ медиа (isActive-guard сохраняет позицию
   // паузы — остановка bound-но-паузного медиа была бы потерей места без нужды).
@@ -6328,19 +6340,47 @@ function wireKaraokeScrollPause() {
   window.addEventListener('wheel', pause, { passive: true });
   window.addEventListener('touchmove', pause, { passive: true });
 }
+// Чтение вслух начинается с выделенной (рабочей) строки, а не всегда с первой. У задачника рабочей
+// может быть строка решения — тогда играет решение с неё.
+let _karaokeSource = 'reader', _karaokeStopping = false, _karaokeLastIdx = -1;
+function readAloudStartRow() {
+  const row = Math.floor(Number(_sessionLastRow));
+  return Number.isFinite(row) && row >= 0 && row < readerRows.length ? row : 0;
+}
 function toggleReadAloud() {
   if (!readerAudio) return;
-  if (karaokeActive) { try { readerAudio.stop(); } catch (_) {} return; }   // stop() → onRowChange(-1) resets UI
+  if (karaokeActive) {   // stop() → onRowChange(-1) resets UI
+    _karaokeStopping = true;
+    const fromSolution = _karaokeSource === 'solution';
+    _karaokeSource = 'reader';
+    try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {}
+    try { readerAudio.stop(); } catch (_) {}
+    if (fromSolution) { _karaokeStopping = false; karaokeActive = false; setReadAloudBtn(false); }
+    return;
+  }
   _roomReaderPresentationReadOnly = false;
   try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}   // media player: «Читать вслух» глушит медиа
-  karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false;
+  karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false; _karaokeStopping = false; _karaokeLastIdx = -1;
   wireKaraokeScrollPause();
   setReadAloudBtn(true);
-  try { readerAudio.playAll(0); } catch (_) { karaokeActive = false; setReadAloudBtn(false); }
+  const solutionRow = materialsSolutionWorkingRow();
+  // Уже звучащая строка при повторном старте читалась бы как «стоп» — сначала гасим текущее воспроизведение.
+  try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {}
+  if (solutionRow >= 0 && materialsInlineAudio) {
+    _karaokeSource = 'solution';
+    try { materialsInlineAudio.playAll(solutionRow); } catch (_) { _karaokeSource = 'reader'; karaokeActive = false; setReadAloudBtn(false); }
+    return;
+  }
+  _karaokeSource = 'reader';
+  try { readerAudio.playAll(readAloudStartRow()); } catch (_) { karaokeActive = false; setReadAloudBtn(false); }
 }
 function stopKaraoke() {
-  if (karaokeActive && readerAudio) { try { readerAudio.stop(); } catch (_) {} }
-  karaokeActive = false; setReadAloudBtn(false);
+  if (karaokeActive) {
+    _karaokeStopping = true; _karaokeSource = 'reader';
+    try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {}
+    try { if (readerAudio) readerAudio.stop(); } catch (_) {}
+  }
+  _karaokeStopping = false; karaokeActive = false; setReadAloudBtn(false);
 }
 
 // ── Room media player (spec 2026-08-04): оригинал аудио/видео для медиа-материалов ──────────
@@ -6758,6 +6798,7 @@ function setCurrentWorkingRow(idx) {
   const mount = $('roomReaderTable');
   const row = Math.floor(Number(idx));
   if (!mount || !Number.isFinite(row) || row < 0) return false;
+  if (materialsSolutionWorkingRow() >= 0) return false;   // рабочая строка сейчас в решении задачника
   const tr = mount.querySelector('tr[data-row-idx="' + String(row) + '"]');
   if (!tr) return false;
   clearCurrentWorkingRow();
@@ -6778,6 +6819,7 @@ function recordProgress(idx) {
   // write is suppressed during the read-only window.
   _sessionLastRow = window.ReaderProgress ? window.ReaderProgress.latestProgress(_sessionLastRow, idx) : Math.floor(Number(idx));
   _sessionFurthestRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionFurthestRow, idx) : Math.max(_sessionFurthestRow, idx);
+  clearMaterialsSolutionWorkingRow();   // работа в условии снимает выделение строки решения
   setCurrentWorkingRow(_sessionLastRow);
   if (_roomReaderPresentationReadOnly) return;
   const tid = readerTextId, row = _sessionLastRow;
@@ -8463,6 +8505,8 @@ function materialsInlineMorphOverrides() {
       if (!row || !row._materialsSolutionRow || !materialsInlineState) return;
       materialsInlineState.activeRowId = row._materialsSolutionRow.row_id;
       setMaterialsReaderUrl(materialsInlineState.support, 'solution', materialsInlineState.activeRowId);
+      const tr = span && span.closest && span.closest('tr[data-row-idx]');
+      if (tr) setMaterialsSolutionWorkingRow(Number(tr.getAttribute('data-row-idx')));
     },
     speakWord: async text => { try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {} return speakWord(text); },
   };
@@ -10261,6 +10305,32 @@ function materialsInlineSetTrigger(open, expanded) {
     : tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →';
 }
 
+// Рабочая строка решения задачника: та же тёплая подсветка, что у условия, но без записи в прогресс текста
+// (индексы решения лежат за пределами строк условия). Одна рабочая строка на весь текст: выбор в решении
+// снимает подсветку условия, работа в условии — подсветку решения.
+function materialsSolutionWorkingRow() {
+  const state = materialsInlineState;
+  return state && state.expanded && state.region && state.region.isConnected && state.workingIdx >= readerRows.length ? state.workingIdx : -1;
+}
+function paintMaterialsSolutionWorkingRow() {
+  const state = materialsInlineState; if (!state || !state.region) return;
+  state.region.querySelectorAll('tr.rm-row-current').forEach(tr => { tr.classList.remove('rm-row-current'); tr.removeAttribute('aria-current'); });
+  const tr = state.workingIdx >= 0 && state.region.querySelector('tr[data-row-idx="' + String(state.workingIdx) + '"]');
+  if (!tr) return;
+  tr.classList.add('rm-row-current'); tr.setAttribute('aria-current', 'location');
+  clearCurrentWorkingRow();
+}
+function setMaterialsSolutionWorkingRow(idx) {
+  const state = materialsInlineState, row = Math.floor(Number(idx));
+  if (!state || !Number.isFinite(row) || row < readerRows.length) return;
+  state.workingIdx = row; paintMaterialsSolutionWorkingRow();
+}
+function clearMaterialsSolutionWorkingRow() {
+  const state = materialsInlineState; if (!state || state.workingIdx < 0) return;
+  state.workingIdx = -1;
+  if (state.region) state.region.querySelectorAll('tr.rm-row-current').forEach(tr => { tr.classList.remove('rm-row-current'); tr.removeAttribute('aria-current'); });
+}
+
 function rerenderMaterialsInlineSolution() {
   const state = materialsInlineState;
   if (!state || !state.expanded || !state.region || !state.region.isConnected) return;
@@ -10294,6 +10364,7 @@ function rerenderMaterialsInlineSolution() {
   provenance.appendChild(el('span', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
   provenance.appendChild(el('code', { text: 'edition ' + state.support.edition_number + ' · work ' + state.support.public_work_id + ' · snapshot ' + state.support.snapshot_sha256.slice(0, 12) + '…' }));
   region.appendChild(provenance);
+  if (state.workingIdx >= 0) paintMaterialsSolutionWorkingRow();
   // Карточка «Прочитано / Следующий для тебя» живёт после решения: перерисовка не должна её терять.
   if (_endCardEl && _endCardEl.isConnected && _endCardEl.parentNode === region.parentNode) region.parentNode.appendChild(_endCardEl);
   roomPaintColWidths();
@@ -10310,9 +10381,14 @@ function attachMaterialsInlineAudio() {
     fallbackPolicy: 'cached-only', profile, gcpKey: '',
     audioUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key),
     timingUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key) + '/timing',
-    onBeforePlay: () => { try { if (readerAudio) readerAudio.stop(); } catch (_) {} morphHost.stopAudio(); },
+    onBeforePlay: () => { if (_karaokeSource !== 'solution') _karaokeStopping = true; try { if (readerAudio) readerAudio.stop(); } catch (_) {} morphHost.stopAudio(); },
     onRowChange: index => {
+      if (index < 0) {
+        if (_karaokeSource === 'solution') { _karaokeSource = 'reader'; _karaokeStopping = false; karaokeActive = false; setReadAloudBtn(false); }
+        return;
+      }
       if (index < readerRows.length) return;
+      setMaterialsSolutionWorkingRow(index);   // строка остаётся выделенной и после конца воспроизведения
       const tr = mount.querySelector('tr[data-row-idx="' + String(index) + '"]');
       if (tr) tr.scrollIntoView({ block: 'nearest' });
     },
@@ -10325,7 +10401,13 @@ function attachMaterialsInlineAudio() {
   };
   state.rows.forEach((row, index) => readerCore.paintRowAudioIndicator(mount, readerRows.length + index, row, profile, labels));
   const listen = mount.querySelector('[data-audio-action="play-solution"]');
-  if (listen) listen.addEventListener('click', () => { morphHost.stopAudio(); try { if (readerAudio) readerAudio.stop(); } catch (_) {} materialsInlineAudio.playAll(readerRows.length); });
+  if (listen) listen.addEventListener('click', () => {
+    morphHost.stopAudio();
+    if (karaokeActive) stopKaraoke(); else { try { if (readerAudio) readerAudio.stop(); } catch (_) {} }
+    const from = materialsSolutionWorkingRow();
+    try { materialsInlineAudio.stop(); } catch (_) {}
+    materialsInlineAudio.playAll(from >= 0 ? from : readerRows.length);   // с выделенной строки решения, иначе с первой
+  });
 }
 
 function renderMaterialsInlineSolution(support, trigger, wrap) {
@@ -10335,7 +10417,7 @@ function renderMaterialsInlineSolution(support, trigger, wrap) {
   const region = el('section', { class: 'materials-inline-solution', attrs: { id: 'materialsInlineSolution', role: 'region', 'aria-labelledby': 'materialsInlineSolutionTitle' } });
   wrap.appendChild(region);
   materialsInlineState = {
-    support, trigger, wrap, region, expanded: true,
+    support, trigger, wrap, region, expanded: true, workingIdx: -1,
     rows: materialsHonestSolutionRows(support.solution_rows).map(materialsSolutionReaderRow),
     activeRowId: requestedRowId,
   };
@@ -10438,7 +10520,15 @@ function openMaterialsLearningSupport(support, trigger) {
   const audioHandles = [];
   if (fullTts) for (const table of viewer.querySelectorAll('.materials-learning-table')) {
     const tableRows = Array.from(table.querySelectorAll('.materials-learning-row'));
+    // Последняя проигранная строка раздела остаётся выделенной; «Прослушать раздел» продолжает с неё.
+    let workingIdx = -1;
     const handle = readerCore.attachRowAudio(table, {
+      onRowChange: index => {
+        if (!(index >= 0) || !tableRows[index]) return;
+        workingIdx = index;
+        for (const row of tableRows) { row.classList.toggle('is-working', row === tableRows[index]); if (row !== tableRows[index]) row.removeAttribute('aria-current'); }
+        tableRows[index].setAttribute('aria-current', 'location');
+      },
       getRow: index => tableRows[index] && tableRows[index].__materialsAudioRow,
       rowCount: () => tableRows.length, fallbackPolicy: 'cached-only',
       profile: { voiceId: 'he-IL-Standard-A', rate: 0.8, pitch: 2.5 }, gcpKey: '',
@@ -10450,7 +10540,7 @@ function openMaterialsLearningSupport(support, trigger) {
     audioHandles.push(handle);
     const section = table.closest('.materials-learning-section');
     const listen = section && section.querySelector('[data-audio-action="play-all"]');
-    if (listen) listen.addEventListener('click', () => { for (const other of audioHandles) if (other !== handle) other.stop(); morphHost.stopAudio(); handle.playAll(0); });
+    if (listen) listen.addEventListener('click', () => { for (const other of audioHandles) if (other !== handle) other.stop(); morphHost.stopAudio(); handle.stop(); handle.playAll(workingIdx >= 0 ? workingIdx : 0); });
   }
   const materialsMorph = attachReaderMorph(viewer, {
     cellSelector: '.materials-learning-table tbody td[data-col="he"], .materials-learning-table tbody td[data-col="niqqud"]',
@@ -13402,7 +13492,7 @@ function renderAtlasCorpus(atlasId, token) {
       body: JSON.stringify({ page, reviewed }) }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }),
   };
   // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
-  const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
+  const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} _karaokeStopping = true; try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
   const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how), detach: detachAtlasWords };
   // P5 follow-up: «Термины к повторению» of the whole atlas on its home
   const homeExtra = (home) => atlasHomeQueue(atlasId, home);
