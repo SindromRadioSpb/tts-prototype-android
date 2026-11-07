@@ -1,0 +1,29 @@
+{
+  "package_sha256": "6090ac195f73e73b968b50fb3c281d1a2a794c5e718d43246c829a78b791e43f",
+  "package_manifest_entries_verified": 1262,
+  "edition_manifest_entries_verified": 1196,
+  "source_pdf_sha256": "eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c",
+  "tests": {
+    "total": 3548,
+    "passed": 3533,
+    "skipped": 15,
+    "failed": 0
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "post_search_fix_focused_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "full_suite_after_search_fix": {
+    "passed": 3533,
+    "skipped": 15,
+    "failed": 0
+  },
+  "export_schema_regression_tests": {
+    "passed": 20,
+    "failed": 0
+  }
+}

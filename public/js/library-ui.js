@@ -33,7 +33,7 @@ const localDb = new Proxy(localDbRaw, {
 });
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
-import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=862';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=875';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
 import * as roomB6 from '/js/room-b6-core.js?v=861';
 
@@ -13313,10 +13313,10 @@ function detachAtlasWords() {
 }
 let roomAtlasPosition = null;  // last section/page the atlas reported; kept by any later commit of the Room state
 function atlasClient(atlasId) {
-  if (!window.AtlasEdition && atlasId === 'a97001') throw new Error('ATLAS_EDITION_COMPONENT_MISSING');
+  if (!window.AtlasEdition && ['a97001','a97001rc32'].includes(atlasId)) throw new Error('ATLAS_EDITION_COMPONENT_MISSING');
   return window.AtlasEdition ? window.AtlasEdition.client(atlasId) : {base:'/data/atlas/'+encodeURIComponent(atlasId)+'/', json:file=>fetch('/data/atlas/'+encodeURIComponent(atlasId)+'/'+file,{cache:'no-cache'}).then(r=>{if(!r.ok)throw Error('ATLAS_UNAVAILABLE');return r.json();})};
 }
-function atlasJson(atlasId, file) { return Promise.resolve().then(() => atlasId === 'a97001' && /^context-ai\/s[0-9]{2}-[a-z0-9-]+\.json$/.test(file)
+function atlasJson(atlasId, file) { return Promise.resolve().then(() => ['a97001','a97001rc32'].includes(atlasId) && /^context-ai\/s[0-9]{2}-[a-z0-9-]+\.json$/.test(file)
   ? atlasClient(atlasId).contextJson(file.slice('context-ai/'.length)) : atlasClient(atlasId).json(file)); }
 function renderAtlasCorpus(atlasId, token) {
   const main = $('roomContent');
@@ -13324,9 +13324,13 @@ function renderAtlasCorpus(atlasId, token) {
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-view atlas-corpus' });
   wrap.appendChild(corpusSwitcherBar('atlas:' + atlasId));
+  if (atlasId === 'a97001rc32') {
+    wrap.appendChild(el('h2', {class:'corpus-view-title', text:tt('room.hub.atlas97001rc32.title')}));
+    wrap.appendChild(el('p', {class:'atlas-stage-desc', text:tt('room.hub.atlas97001rc32.desc')}));
+  }
   // Export is owner-only on both the UI and API; large ZIPs download natively.
   Promise.resolve().then(() => window.CloudSync && window.CloudSync.me()).then(async session => {
-    if (token !== corpusRenderToken || !wrap.isConnected || session?.user?.role !== 'owner') return;
+    if (token !== corpusRenderToken || !wrap.isConnected || session?.user?.role !== 'owner' || atlasId === 'a97001rc32') return;
     const box = el('div', {class:'atlas-material-export'});
     const status = el('p', {text:tt('atlas.materialExport.checking')});
     status.setAttribute('role','status'); box.appendChild(status); wrap.insertBefore(box,wrap.querySelector('.atlas-root'));
@@ -13350,7 +13354,7 @@ function renderAtlasCorpus(atlasId, token) {
   });
   main.appendChild(wrap);
   if (!window.AtlasReader) { showState('room.state.error', '⚠️'); return; }
-  if (atlasId === 'a97001' && (!window.AtlasEdition || !window.AtlasEdition.componentsReady(window))) {
+  if (['a97001','a97001rc32'].includes(atlasId) && (!window.AtlasEdition || !window.AtlasEdition.componentsReady(window))) {
     wrap.appendChild(el('p', {class:'atlas-state', text:tt('atlas.loadError')})); return;
   }
   // A DB projection refresh can remount the atlas after its one-shot URL anchor
@@ -13490,7 +13494,7 @@ function attachAtlasWords(atlasId, section, data, how) {
         if (top.personal) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
       }
     }
-    if (atlasId === 'a97001' && occ && occ.source_context) {
+    if (['a97001','a97001rc32'].includes(atlasId) && occ && occ.source_context) {
       const source = occ.source_context;
       top.lines = (top.lines || []).concat('Atlas 97001 · ' + tt('atlas.page', 'стр.') + ' ' + source.page);
       const notes = (source.scientific_notes || []).concat((source.limits || []).map(x => x.scope)).filter(Boolean);
@@ -13552,7 +13556,7 @@ function attachAtlasWords(atlasId, section, data, how) {
       .then(async (layer) => {
         if (!layer || ctx !== atlasWordsCtx) return null;
         const rows = AW.glossRows(ctx);
-        if (atlasId === 'a97001') {
+        if (['a97001','a97001rc32'].includes(atlasId)) {
           const contract = window.AtlasContextContract;
           if (!contract) return null;
           const expected = contract.describe(rows, AI), revision = await contract.revision(expected);
@@ -13633,7 +13637,10 @@ function atlasHomeQueue(atlasId, home) {
     const [index, states] = await Promise.all([atlasTermsIndexes.get(atlasId), localDb.getAtlasTermStates(atlasId).catch(() => ({}))]);
     queue = AT.globalDueItems(states || {}, index || { terms: {} }, atlasMyTerms(atlasId), Date.now(), ATLAS_SESSION_N);
     const learned = Object.keys(states || {}).length;
-    line.textContent = !learned ? tt('atlas.queue.empty', 'Пока нет выученных терминов — начните в разделе: «Тренировать» → «Термины раздела».')
+    const indexedTerms = Object.values((index && index.terms) || {});
+    const availableTerms = indexedTerms.filter(t => t.training_eligible !== false && Object.keys(t.places || {}).length > 0).length;
+    line.textContent = indexedTerms.length > 0 && !availableTerms ? tt('atlas.queue.held', 'Словарь доступен для чтения. Упражнения по терминам пока приостановлены; сохранённые оценки не изменены.')
+      : !learned ? tt('atlas.queue.empty', 'Пока нет выученных терминов — начните в разделе: «Тренировать» → «Термины раздела».')
       : queue.due ? tt('atlas.queue.due', 'Сегодня к повторению: {k} из {n} выученных, по всем разделам.').replace('{k}', String(queue.due)).replace('{n}', String(learned))
       : tt('atlas.queue.none', 'Сегодня повторять нечего · выученных терминов: {n}.').replace('{n}', String(learned));
     go.textContent = tt('atlas.train.review', 'Повторить') + ' (' + Math.min(queue.due, ATLAS_SESSION_N) + ')';
@@ -13647,12 +13654,12 @@ function atlasHomeQueue(atlasId, home) {
       const sec = it.sid ? await atlasLoadSection(atlasId, it.sid) : null;
       let sentence = '', sentenceParts = null, from = null, to = null;
       if (sec && AW && RM) {
-        const ctx = AW.sectionContext(atlasId, sec, RM);
+        const ctx = AW.sectionContext(atlasId, sec, RM, sec.activation && sec.activation.learning_mode === 'scoped' ? {purpose:'term_context'} : undefined);
         if (typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(sec.terms, atlasMyTerms(atlasId), it.sid));
         const block = ctx.items.get(it.block);
         if (block) {
           sentence = RM.words(String(block.he || '')).join(' ');
-          if (atlasId === 'a97001') {
+          if (['a97001','a97001rc32'].includes(atlasId)) {
             sentence = String(block.he || '');
             sentenceParts = RM.tokenize(sentence).map(part => ({ text: part.text, word: part.isWord }));
           }
@@ -13690,9 +13697,10 @@ function atlasHomeQueue(atlasId, home) {
 // (train/find.json, built by scripts/atlas/build-train-bank.cjs); answers are the device's own history (owner Г4), never
 // memory: nothing is written into word_status/review_log. Opening the answer checks the fragment is still on its page.
 const ATLAS_FIND_KEY = 'room.atlas.find.v1', ATLAS_FIND_STALE_KEY = 'room.atlas.find.stale.v1';
+function atlasFindStorageKey(key, atlasId) { return atlasId === 'a97001rc32' ? key + '.a97001rc32' : key; }
 const atlasFindBanks = new Map(), atlasFindIndexes = new Map();
-function atlasFindHistory() { try { const a = JSON.parse(localStorage.getItem(ATLAS_FIND_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } }
-function atlasFindStale() { try { return new Set(JSON.parse(localStorage.getItem(ATLAS_FIND_STALE_KEY) || '[]')); } catch (_) { return new Set(); } }
+function atlasFindHistory(atlasId) { try { const a = JSON.parse(localStorage.getItem(atlasFindStorageKey(ATLAS_FIND_KEY, atlasId)) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } }
+function atlasFindStale(atlasId) { try { return new Set(JSON.parse(localStorage.getItem(atlasFindStorageKey(ATLAS_FIND_STALE_KEY, atlasId)) || '[]')); } catch (_) { return new Set(); } }
 function atlasFindLoad(atlasId) {
   const get = (file) => atlasJson(atlasId, file);
 
@@ -13705,7 +13713,7 @@ function atlasFindLoad(atlasId) {
     if (!index) atlasFindIndexes.delete(atlasId);
     const status = window.AtlasTrain && typeof window.AtlasTrain.findBankStatus === 'function'
       ? window.AtlasTrain.findBankStatus(bank, index, atlasId)
-      : (atlasId === 'a97001' ? 'unverified' : (bank ? 'ready' : 'missing'));
+      : (['a97001','a97001rc32'].includes(atlasId) ? 'unverified' : (bank ? 'ready' : 'missing'));
     if (status !== 'ready') atlasFindBanks.delete(atlasId);
     return { bank: status === 'ready' ? bank : null, status, sections: ((index && index.sections) || []).filter((x) => x.translated !== false && x.id !== 's00-front') };
   });
@@ -13721,7 +13729,7 @@ function atlasFindBlock(atlasId, sid) {
   const actions = el('div', { class: 'atlas-seg' }); actions.append(all, here);
   box.append(head, line, stats, actions);
   function paint() {
-    const st = AT.findStats(atlasFindHistory());
+    const st = AT.findStats(atlasFindHistory(atlasId));
     stats.textContent = st.attempts
       ? tt('atlas.find.stats', 'Попыток: {n} · раздел верно: {s} % · страница точно: {p} % · медиана {t}')
         .replace('{n}', String(st.attempts)).replace('{s}', String(Math.round(st.sectionRate * 100))).replace('{p}', String(Math.round(st.pageRate * 100)))
@@ -13733,15 +13741,15 @@ function atlasFindBlock(atlasId, sid) {
       if (!bank) { stats.textContent = status === 'stale' || status === 'unverified'
         ? tt('atlas.find.unverifiedBank', 'Упражнение временно недоступно: вопросы не подтверждены для текущей версии атласа. История ответов сохранена.')
         : tt('atlas.find.noBank', 'Вопросы для этого упражнения ещё не выложены.'); return; }
-      const seen = new Set(atlasFindHistory().map((x) => x.id)), stale = atlasFindStale();
+      const seen = new Set(atlasFindHistory(atlasId).map((x) => x.id)), stale = atlasFindStale(atlasId);
       let f = null;
       const close = () => { if (f) { f.stop(); if (f.el.isConnected) f.el.remove(); } paint(); };
       f = UI.findSession(document, { T: tt, sections,
         next: () => { const it = AT.pickFind(bank, { sid: onlySid || null, seen, stale }); if (it) seen.add(it.id); return it; },
         check: (it, a) => AT.checkFind(it, a),
         onAnswer: (it, r, ms) => {
-          const h = atlasFindHistory(); h.push({ id: it.id, sid: it.sid, section: r.section, page: r.page, ms, at: Date.now() });
-          try { localStorage.setItem(ATLAS_FIND_KEY, JSON.stringify(h.slice(-500))); } catch (_) {}
+          const h = atlasFindHistory(atlasId); h.push({ id: it.id, sid: it.sid, section: r.section, page: r.page, ms, at: Date.now() });
+          try { localStorage.setItem(atlasFindStorageKey(ATLAS_FIND_KEY, atlasId), JSON.stringify(h.slice(-500))); } catch (_) {}
         },
         onOpen: (it) => { close(); atlasFindOpen(it); },
         onClose: close });
@@ -13790,16 +13798,19 @@ function atlasSymbolBlock(section, data) {
 function atlasFindOpen(it) {
   const reader = roomAtlasReader;
   if (!reader || typeof reader.openSection !== 'function') return;
-  Promise.resolve(reader.openSection(it.sid, it.page)).then(() => {
+  Promise.resolve(reader.openSection(it.sid, it.page)).then(async () => {
     // retire the question only when ITS section opened without it; if the learner went elsewhere, decide nothing
     const ctx = atlasWordsCtx, open = ctx && ctx.sectionId ? ctx.sectionId : null;
-    const block = open === it.sid ? ctx.items.get(it.block) : null;
+    if (open !== it.sid) return;
+    const data = await atlasLoadSection(ctx.atlasId, it.sid);
+    if (!data || ctx !== atlasWordsCtx) return;
+    const block = window.AtlasWords.sectionItems(data, 'source_find').find(row => row.id === it.block);
     const verdict = window.AtlasTrain.findStillThere(it, open ? { sid: open, blockHe: block ? block.he : null } : null);
     if (verdict === 'unknown') return;
     const row = Array.from(document.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]')).find((r) => r.getAttribute('data-ref') === it.block);
     if (verdict === 'stale' || !row) {
-      const st = atlasFindStale(); st.add(it.id);
-      try { localStorage.setItem(ATLAS_FIND_STALE_KEY, JSON.stringify(Array.from(st).slice(-2000))); } catch (_) {}
+      const st = atlasFindStale(ctx.atlasId); st.add(it.id);
+      try { localStorage.setItem(atlasFindStorageKey(ATLAS_FIND_STALE_KEY, ctx.atlasId), JSON.stringify(Array.from(st).slice(-2000))); } catch (_) {}
       roomToast(tt('atlas.find.stale', 'Этот фрагмент в книге изменился — вопрос больше не задаётся.'));
       return;
     }
@@ -13813,6 +13824,10 @@ const ATLAS_SESSION_N = 20;
 function atlasSectionTermsBlock(section, data, ctx, ui) {
   const AT = window.AtlasTrain, AW = window.AtlasWords, RM = window.ReaderMorph, UI = window.AtlasTrainUI;
   const atlasId = ctx.atlasId, sid = String((data && data.id) || '');
+  if (['a97001','a97001rc32'].includes(atlasId) && data.activation && data.activation.learning_mode === 'scoped') {
+    const priorTerms = ctx.terms; ctx = AW.sectionContext(atlasId, data, RM, {purpose:'term_context'});
+    if (typeof ctx.setPersonal === 'function') ctx.setPersonal(priorTerms);
+  }
   const box = el('div', { class: 'atlas-section-terms' });
   const head = el('div', { class: 'atlas-view-head', text: tt('atlas.train.termsHead', 'Термины раздела') });
   const line = el('p', { class: 'atlas-stage-desc' });
@@ -13826,9 +13841,13 @@ function atlasSectionTermsBlock(section, data, ctx, ui) {
     items = AT.sectionTermItems(ctx);
     const st = AT.termStats(items.map((x) => x.key), states, Date.now());
     const how = AT.termsLineState(st);
-    line.textContent = how === 'none' ? tt('atlas.train.termsNone', 'В этом разделе терминов нет — добавьте свои: нажмите на слово → «Добавить в термины».')
+    const declaredTerms = Object.keys((data && data.terms) || {}).length;
+    const unavailableTerms = Math.max(0, declaredTerms - new Set(items.map(x => x.termId)).size);
+    line.textContent = how === 'none' && declaredTerms > 0 ? tt('atlas.train.termsHeld', 'В словаре раздела есть {n} терминов. Упражнения по ним пока недоступны: необходимые чтения или связи с источником ещё проверяются. Исходник и словарь доступны для чтения.').replace('{n}', String(declaredTerms))
+      : how === 'none' ? tt('atlas.train.termsNone', 'В этом разделе терминов нет — добавьте свои: нажмите на слово → «Добавить в термины».')
       : how === 'start' ? tt('atlas.train.termsStart', 'Терминов: {n}. Начните с «Учить»: память о термине появится с первого ответа.').replace('{n}', String(st.termsTotal))
       : tt('atlas.train.termsLine', 'Терминов: {n} · к повторению: {due} · помню уверенно: {strong}').replace('{n}', String(st.termsTotal)).replace('{due}', String(st.due)).replace('{strong}', String(st.termsStrong));
+    if (st.termsTotal && unavailableTerms) line.textContent += ' ' + tt('atlas.train.termsPartiallyHeld', 'Ещё {n} терминов доступны только для чтения.').replace('{n}', String(unavailableTerms));
     learn.textContent = tt('atlas.train.learn', 'Учить') + ' (' + Math.min(ATLAS_SESSION_N, st.due + st.fresh) + ')';
     review.textContent = tt('atlas.train.review', 'Повторить') + ' (' + st.due + ')';
     learn.disabled = !loaded || !(st.due + st.fresh); review.disabled = !loaded || !st.due;
@@ -13840,8 +13859,8 @@ function atlasSectionTermsBlock(section, data, ctx, ui) {
     const plainWords = RM.words(String(block.he || '')), pointed = block.he_niqqud ? RM.words(String(block.he_niqqud)) : [];
     const stage3 = atlasStageOf(sid, atlasId) === 3, usePointed = !stage3 && pointed.length === plainWords.length && pointed.length;
     const m = /:p(\d+):/.exec(String(it.block));
-    const sentence = atlasId === 'a97001' ? String(usePointed ? block.he_niqqud : block.he || '') : (usePointed ? pointed : plainWords).join(' ');
-    return Object.assign({}, it, { sentence, page: m ? Number(m[1]) : null }, atlasId === 'a97001'
+    const sentence = ['a97001','a97001rc32'].includes(atlasId) ? String(usePointed ? block.he_niqqud : block.he || '') : (usePointed ? pointed : plainWords).join(' ');
+    return Object.assign({}, it, { sentence, page: m ? Number(m[1]) : null }, ['a97001','a97001rc32'].includes(atlasId)
       ? { sentenceParts: RM.tokenize(sentence).map(part => ({ text: part.text, word: part.isWord })) } : {});
   }
   function sourceOf(it) {

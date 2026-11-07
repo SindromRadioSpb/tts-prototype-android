@@ -67,7 +67,7 @@
     // so any column set from «Колонки» closes up without holes. Proofreading status lives in the page header.
     function renderBlock(T, item) {
       var editorial = item.kind === 'editor_note', shared = item.kind === 'shared_source_context', structure = item.structure;
-      var learn = !editorial && !shared && item.training_eligible !== false && !(structure && structure.training_eligible === false);
+      var learn = !editorial && !shared && learningEligible(item);
       var hasText = [item.he, item.he_raw, item.he_niqqud, item.translit, item.translit_ru, item.ru].some(function (s) { return String(s || '').trim(); });
       var row = h(editorial ? 'aside' : 'div', { cls: editorial ? 'atlas-editor-note' : 'atlas-row' + (shared ? ' atlas-shared-source' : ''), 'data-ref': item.id, 'data-kind': item.kind || null });
       if (editorial) row.appendChild(h('strong', { cls: 'atlas-editor-label', text: T('atlas.editor.title', 'Заметки редактора') }));
@@ -91,6 +91,7 @@
       if (item.he_niqqud) row.appendChild(heText(item.he_niqqud, 'atlas-he atlas-niqqud' + (!item.he ? ' atlas-niqqud-sole' : ''), learn ? 'niqqud' : null));
       if (item.ru) row.appendChild(h('div', { cls: 'atlas-ru', lang: 'ru', dir: 'ltr', text: structure || editorial ? item.ru : cleanMeta(item.ru) }));
       else if (hasText || !structure) row.appendChild(h('div', { cls: 'atlas-tr atlas-muted', text: T('atlas.noTranslation', 'нет перевода — исходный текст') }));
+      if (item.source_limit_note) row.appendChild(h('aside', { cls: 'atlas-note atlas-source-limit', role: 'note', text: item.source_limit_note }));
       var note = readerNote(item.ambiguity_note);
       if (note) row.appendChild(h('div', { cls: 'atlas-note', text: note }));
       if (item.training_eligible === false && item.concept_review_note) row.appendChild(h('aside', { cls: 'atlas-review-hold atlas-concept-hold', role: 'note' }, [
@@ -549,7 +550,7 @@
     function renderChip(fig) {
       var r = (fig.regions || [])[0] || {};
       var he = fig.caption_he || r.label_he || '', ru = cleanMeta(fig.caption_ru || r.label_ru);
-      var learning = /^a97001:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(he);
+      var learning = learningEligible(fig) && /^a97001(?:rc32)?:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(he);
       return h('figure', { cls: 'atlas-fig atlas-chipfig', 'data-ref': fig.id }, [
         h('img', { src: fig.crop, alt: ru || he || '', loading: 'lazy' }),
         h('figcaption', { cls: learning ? 'atlas-learning-row' : null, 'data-ref': learning ? fig.id + ':caption' : null }, [he ? h('bdi', { lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null, text: he }) : null,
@@ -618,7 +619,7 @@
           h('bdi', { lang: 'he', dir: dirOf(g.he), text: g.he }), ru ? h('span', { cls: 'atlas-l-ru', text: (g.he ? ' — ' : '') + ru }) : null]));
       });
       var capRu = cleanMeta(fig.caption_ru);
-      var learning = /^a97001:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(fig.caption_he || '');
+      var learning = learningEligible(fig) && /^a97001(?:rc32)?:/.test(fig.id || '') && /[\u05d0-\u05ea]/.test(fig.caption_he || '');
       var cap = captionRow ? h('figcaption', { cls: 'atlas-figcap-row' }, [captionRow])
         : (fig.caption_he || capRu) ? h('figcaption', { cls: learning ? 'atlas-learning-row' : null, 'data-ref': learning ? fig.id + ':caption' : null }, [h('bdi', { lang: 'he', dir: 'rtl', 'data-col': learning ? 'he' : null, text: fig.caption_he || '' }),
           h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null, text: (fig.caption_he && capRu ? ' - ' : '') + capRu })]) : null;
@@ -687,12 +688,26 @@
       return t ? t.charAt(0).toUpperCase() + t.slice(1) : '';
     }
 
+    function learningEligible(item) { var p = item.learning_eligibility; return item.training_eligible !== false && !(item.structure && item.structure.training_eligible === false) && (!p || p.schema === 'atlas97001.learning-eligibility.1' && p.lexical && p.lexical.allowed === true); }
+    function tableSourceFacts(cell) {
+      var fields = cell.source_fields || {}, unresolved = cell.unresolved_fields || [];
+      var facts = h('div', {cls:'atlas-source-facts', dir:'ltr'});
+      [['atomic_number','Z'],['atomic_mass','m']].forEach(function(entry) {
+        var key=entry[0], value=fields[key], known=value !== null && value !== undefined && String(value).trim() !== '';
+        if (!known && unresolved.indexOf(key)<0) return;
+        facts.appendChild(h('small', {cls:known ? 'atlas-source-fact' : 'atlas-source-unresolved', 'data-source-field':key,
+          title:key === 'atomic_number' ? 'Атомный номер / מספר אטומי' : 'Атомная масса / מסה אטומית',
+          text:entry[1]+': '+(known ? String(value) : 'не разобрано / לא פוענח')}));
+        facts.appendChild(h('br'));
+      });
+      return facts.childNodes.length ? facts : null;
+    }
     function renderTable(table, ref, mirror) {
       var cells = table.cells || [];
       if (mirror) {
         var wd = 0;
         cells.forEach(function (c) { wd = Math.max(wd, c.col + c.colspan); });
-        cells = cells.map(function (c) { return Object.assign({}, c, { col: wd - c.col - c.colspan }); });
+        cells = cells.map(function (c) { return Object.assign({}, c, { id: c.id || table.id + ':cell:' + c.row + ':' + c.col, col: wd - c.col - c.colspan }); });
       }
       var width = 0, covered = {}, pos = {}, rows = {};
       cells.forEach(function (c) {
@@ -719,16 +734,32 @@
         for (var k = 0; k < width; k++) {
           var c = pos[r + ':' + k];
           if (c) {
+            if ((c.parts && c.parts.length) || (c.figure_images && c.figure_images.length)) {
+              var cellNode = h('td', { colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, 'data-cell': c.row+':'+c.col, 'data-ref': c.id || null });
+              (c.parts || []).forEach(function(part) {
+                var visible = learningEligible(table) && learningEligible(c) ? part : Object.assign({}, part, {training_eligible:false});
+                cellNode.appendChild(renderBlock(function(k,fb){return fb;}, visible));
+              });
+              (c.figure_images || []).forEach(function(image) { cellNode.appendChild(h('img', {src:image.crop, alt:image.alt || '', loading:'lazy', decoding:'async', style:'max-width:100%;height:auto', 'data-ref':image.id || null})); });
+              var facts=tableSourceFacts(c);if(facts)cellNode.appendChild(facts);
+              tr.appendChild(cellNode);
+              continue;
+            }
             var text = cleanMeta(c.ru);
             if (/^[\d.,\s▪•+\-−]+$/.test(text) && /\d/.test(text)) numeric = true;
             if (/\d/.test(text)) digits = true;
             var unit = text.trim() && c.unit && c.unit !== '—' && text.slice(-c.unit.length) !== c.unit && !labelled[String(c.unit).toLowerCase()] && !labelled['?' + String(c.unit).toLowerCase()] ? c.unit : '';
-            var he = c.he && c.he !== text ? c.he : '';
-            var learning = /^a97001:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(c.he || '');
+            var he = c.he && (c.he !== text || c.he_niqqud || c.translit || c.translit_ru) ? c.he : '';
+            var learning = learningEligible(table) && learningEligible(c) && /^a97001(?:rc32)?:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(c.he || '');
             tr.appendChild(h('td', { cls: learning ? 'atlas-learning-row' : null, colspan: c.colspan > 1 ? c.colspan : null, rowspan: c.rowspan > 1 ? c.rowspan : null, dir: dirOf(text), 'data-cell': c.row+':'+c.col,
-              'data-ref': learning ? table.id + ':cell:' + c.row + ':' + c.col : null },
-              he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null }, texNodes(he)), h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null]))]
+              'data-ref': c.id || (learning ? table.id + ':cell:' + c.row + ':' + c.col : null) },
+              he ? [h('span', { cls: 'atlas-l-he', lang: 'he', dir: dirOf(he), 'data-col': learning ? 'he' : null }, texNodes(he)),
+                c.he_niqqud ? heText(c.he_niqqud, 'atlas-he atlas-niqqud', learning ? 'niqqud' : null) : null,
+                c.translit ? h('div', { cls: 'atlas-translit', lang: 'he-Latn', text: c.translit }) : null,
+                c.translit_ru ? h('div', { cls: 'atlas-translit atlas-translit-ru', lang: 'he-Cyrl', text: c.translit_ru }) : null,
+                h('span', { cls: 'atlas-l-ru', 'data-col': learning ? 'ru' : null }, texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null]))]
                 : learning ? [h('span', { lang: 'he', dir: 'rtl', 'data-col': 'he' }, texNodes(text))] : texNodes(text).concat([unit ? h('small', { text: ' ' + unit }) : null])));
+            var facts=tableSourceFacts(c);if(facts)tr.lastChild.appendChild(facts);
           } else if (!covered[r + ':' + k]) tr.appendChild(h('td'));
         }
         built.push({ tr: tr, numeric: numeric, digits: digits });
@@ -740,7 +771,7 @@
       var heads = firstNum >= 0 ? firstNum : (built.length >= 3 && !built[0].digits ? 1 : 0);
       built.forEach(function (b, n) { (n < heads ? head : body).appendChild(b.tr); });
       // an untitled table gets no caption: an empty one painted a blank band above the grid
-      var titleLearning = /^a97001:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(table.title_he || '');
+      var titleLearning = learningEligible(table) && /^a97001(?:rc32)?:/.test(table.id || '') && /[\u05d0-\u05ea]/.test(table.title_he || '');
       var t = h('table', { cls: 'atlas-table' + (width > 8 ? ' wide' : '') }, [
         !(tableTitle(table) || table.title_he) ? null : h('caption', { cls: titleLearning ? 'atlas-learning-row' : null, 'data-ref': titleLearning ? table.id + ':title' : null }, [h('span', { cls: 'atlas-l-ru', 'data-col': titleLearning ? 'ru' : null, text: tableTitle(table) }), table.title_he ? h('bdi', { lang: 'he', dir: 'rtl', 'data-col': titleLearning ? 'he' : null, text: ' ' + table.title_he }) : null]),
         head.childNodes.length ? head : null, body]);
@@ -944,6 +975,7 @@
       wrap.appendChild(h('p', { cls: 'atlas-sub' }, [T('atlas.pages', 'страницы') + ' ' + data.first + '–' + data.last +
         (data.translated ? '' : ' · ' + T('atlas.noTranslationShort', 'без перевода')),
         data.translated ? h('span', { cls: 'atlas-review-count' }) : null]));
+      if (data.activation && (data.activation.environment === 'isolated_staging' || data.activation.release_gate === 'blocked')) wrap.appendChild(h('aside', {cls:'atlas-release-blocked atlas-review-hold', role:'note', lang:'ru', dir:'ltr', text:data.activation.release_gate === 'blocked' ? 'Проверочный выпуск. Полнота источника и тренажёр ещё не приняты; публикация заблокирована.' : 'Проверочный выпуск. Неразборчивые места отмечены. Упражнения используют только допущенные данные; публикация не выполнена.'}));
       var terms = renderTerms(T, data.terms);
       if (terms) wrap.appendChild(terms);
       data.pages.forEach(function (p) { wrap.appendChild(renderPage(T, p, opts)); });
@@ -1118,7 +1150,7 @@
     var R = factory(doc);
     var atlasId = opts.atlasId || 'a97002', edition = Editions && Editions.client(atlasId);
     var base = opts.base || (edition ? edition.base : '/data/atlas/' + atlasId + '/');
-    var compatible = atlasId !== 'a97001' || !!opts.fetchJson || edition && opts.editionClient === edition && Editions.componentsReady(root);
+    var compatible = !['a97001','a97001rc32'].includes(atlasId) || !!opts.fetchJson || edition && opts.editionClient === edition && Editions.componentsReady(root);
     var readJson = opts.fetchJson || (edition ? edition.url : function (url) { return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); });
     var fetchJson = function (url) { return compatible ? readJson(url) : Promise.reject(new Error('ATLAS_EDITION_COMPONENT_MISMATCH')); };
     var view = doc.createElement('div');
@@ -1366,7 +1398,7 @@
     function checkedShard(ix, name) {
       return fetchJson(base + name).then(function (data) {
         if (!ix.shards || !ix.shards[name]) return data; // in-memory fixtures have no published manifest
-        return digest(data).then(function (hash) { if (hash !== ix.shards[name]) throw new Error('SEARCH_SHARD_MISMATCH'); return data; });
+        return (atlasId === 'a97001rc32' && !opts.fetchJson ? edition.checkLink(name, ix.shards[name]) : digest(data).then(function (hash) { if (hash !== ix.shards[name]) throw new Error('SEARCH_SHARD_MISMATCH'); })).then(function () { return data; });
       });
     }
     function loadSearch() {
@@ -1376,7 +1408,7 @@
         var ix = values[1], book = values[0];
         if (!ix || ix.schema !== 'linguistpro.atlas-search.1') throw new Error('SEARCH_SCHEMA');
         if (book.sections_sha256 && JSON.stringify(book.sections_sha256) !== JSON.stringify(ix.sections_sha256)) throw new Error('SEARCH_SECTIONS_MISMATCH');
-        return (book.search_sha256 ? digest(ix).then(function (hash) { if (hash !== book.search_sha256) throw new Error('SEARCH_INDEX_MISMATCH'); }) : Promise.resolve()).then(function () {
+        return (book.search_sha256 ? (atlasId === 'a97001rc32' && !opts.fetchJson ? edition.checkLink('search.json', book.search_sha256) : digest(ix).then(function (hash) { if (hash !== book.search_sha256) throw new Error('SEARCH_INDEX_MISMATCH'); })) : Promise.resolve()).then(function () {
           return ix.details ? ix : Promise.all([checkedShard(ix, 'search-details.json'), ix.shards && ix.shards['search-previews.json'] ? checkedShard(ix, 'search-previews.json') : null]).then(function (parts) { var details = parts[0]; ix.details = details.details||details; ix.previews = (parts[1] && parts[1].previews) || details.previews; return ix; });
         }).then(function (ix) { return Engine.unpack(ix); });
       }).catch(function (error) { searchBundle = null; throw error; });
@@ -1980,7 +2012,7 @@
   }
 
   var api = { mount: mount, factory: factory, dirOf: dirOf, preparePrint: preparePrint, applyLayers: applyLayers, normLayers: normLayers, manageImages: manageImages, resolveRefNodes: resolveRefNodes };
-  api.editionContract = 'atlas-97001-structure-2';
+  api.editionContract = 'atlas-97001-structure-4';
   root.AtlasReader = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

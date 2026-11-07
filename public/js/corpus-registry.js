@@ -62,6 +62,12 @@ export const CORPORA = [
     capabilities: [],
   },
   {
+    id: 'atlas:a97001rc32', icon: '📐', kind: 'atlas',
+    title: { key: 'room.hub.atlas97001rc32.title', fb: 'Инженерный атлас 97001 · RC3.2' },
+    desc: { key: 'room.hub.atlas97001rc32.desc', fb: 'Полная нативная редакция · 203 страницы · отдельный прогресс · ограничения обучения отмечены' },
+    capabilities: [],
+  },
+  {
     id: 'course:ulpan', icon: '🎓', kind: 'course',
     title: { key: 'course.corpus.title', fb: 'Курс иврита' },
     desc: { key: 'course.corpus.desc', fb: 'Уроки ульпана: ситуации, тексты, задания' },

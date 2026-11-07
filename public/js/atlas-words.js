@@ -125,9 +125,20 @@
   // atlas into the device's database. The place is the edition of the section + the block + the word; it verifies
   // only against the same loaded edition, so a source never points at a text that has changed.
   var SOURCE_KIND = "atlas_block";
-  function learningItem(item) {
-    return !!item && item.kind !== 'editor_note' && item.kind !== 'shared_source_context' && item.training_eligible !== false &&
-      !(item.structure && item.structure.training_eligible === false);
+  function learningItem(item, purpose) {
+    if (!item || item.kind === 'editor_note' || item.kind === 'shared_source_context') return false;
+    var policy = item.learning_eligibility;
+    if (policy) {
+      if (policy.schema !== 'atlas97001.learning-eligibility.1') return false;
+      var mode = purpose === 'source_find' ? 'source_find' : purpose === 'term_context' ? 'term_context' : 'lexical';
+      if (!policy[mode] || policy[mode].allowed !== true) return false;
+      // A readable source can support a location question while its uncertain
+      // pointing remains excluded from word cards. Explicit scopes never grant
+      // permission to quiz the unknown numerical/linguistic fields beside it.
+      if (mode === 'source_find') return item.find_training_eligible === true;
+      if (mode === 'term_context') return item.term_context_eligible === true;
+    }
+    return item.training_eligible !== false && !(item.structure && item.structure.training_eligible === false);
   }
   function sourceContext(section, page, item, field, refs) {
     var group = item.structure && (page.legacy_groups || []).find(function (g) { return g.id === item.structure.parent_ref; });
@@ -153,34 +164,45 @@
   }
   // Reviewed table/figure references are real learning places, not fabricated prose.
   // Explicit cell refs keep the original source coordinates and do not scan unrelated words.
-  function sectionItems(section) {
+  function sectionItems(section, purpose) {
     var out = [];
     ((section && section.pages) || []).forEach(function (page) {
-      (page.items || []).forEach(function (it) { if (learningItem(it) && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
+      (page.items || []).forEach(function (it) { if (learningItem(it, purpose) && it.id && String(it.he || '').trim()) out.push(Object.assign({ page: page.page, source_context: sourceContext(section, page, it, 'he') }, it)); });
     });
     // Append new kinds after the complete legacy sequence. Existing block order_index
     // values, gloss keys and occurrence corrections therefore keep their identities.
     ((section && section.pages) || []).forEach(function (page) {
       // Preserve other published books' row ordering and existing context-layer keys.
-      if (!section || section.atlas_id !== 'a97001') return;
+      if (!section || !['a97001','a97001rc32'].includes(section.atlas_id)) return;
       (page.tables || []).forEach(function (table) {
-        if (!learningItem(table)) return;
+        if (!learningItem(table, purpose)) return;
         (table.cells || []).forEach(function (cell) {
-          if (!learningItem(cell)) return;
+          if (!learningItem(cell, purpose)) return;
+          if (Array.isArray(cell.parts) && cell.parts.length) {
+            cell.parts.forEach(function (part) { if (learningItem(part, purpose) && part.id && String(part.he || '').trim()) out.push(Object.assign({page: page.page, source_ref: table.id, source_context: sourceContext(section, page, part, 'he')}, part)); });
+            return;
+          }
           if (!/[\u05d0-\u05ea]/.test(String(cell.he || ''))) return;
-          out.push({ id: table.id + ':cell:' + cell.row + ':' + cell.col, page: page.page,
+          out.push({ id: cell.id || table.id + ':cell:' + cell.row + ':' + cell.col, page: page.page,
             source_ref: table.id, source_cell: { row: cell.row, col: cell.col }, type: 'table_cell',
-            he: cell.he, he_niqqud: cell.he_niqqud || cell.he, ru: cell.ru || '', terms: cell.terms || [], source_context: sourceContext(section, page, table, 'cells[' + cell.row + ',' + cell.col + '].he', cell.terms || []) });
+            training_eligible: cell.training_eligible, learning_eligibility: cell.learning_eligibility, term_context_eligible: cell.term_context_eligible, term_context_refs: cell.term_context_refs, he: cell.he, he_niqqud: cell.he_niqqud || cell.he, ru: cell.ru || '', translit: cell.translit || '', translit_ru: cell.translit_ru || '', terms: cell.terms || [], source_context: sourceContext(section, page, table, 'cells[' + cell.row + ',' + cell.col + '].he', cell.terms || []) });
         });
-        if (/[\u05d0-\u05ea]/.test(String(table.title_he || ''))) out.push({ id: table.id + ':title', page: page.page,
+        if (table.title_training_eligible !== false && /[\u05d0-\u05ea]/.test(String(table.title_he || ''))) out.push({ id: table.id + ':title', page: page.page,
           source_ref: table.id, type: 'table_title', he: table.title_he, he_niqqud: table.title_he, ru: table.title_ru || '', terms: table.title_terms || [], source_context: sourceContext(section, page, table, 'title_he', table.title_terms || []) });
       });
       (page.figures || []).forEach(function (figure) {
-        if (!learningItem(figure)) return;
+        if (!learningItem(figure, purpose)) return;
         if ((section.context_exclusions || []).some(function (x) { return x.ref === figure.id && x.field === 'caption_he'; })) return;
-        if (/[\u05d0-\u05ea]/.test(String(figure.caption_he || ''))) out.push({ id: figure.id + ':caption', source_ref: figure.id, page: page.page,
-          type: 'figure_caption', he: figure.caption_he, he_niqqud: figure.caption_he, ru: figure.caption_ru || '', terms: figure.terms || [], source_context: sourceContext(section, page, figure, 'caption_he') });
+        if (figure.caption_training_eligible !== false && /[\u05d0-\u05ea]/.test(String(figure.caption_he || ''))) out.push({ id: figure.id + ':caption', source_ref: figure.id, page: page.page,
+          type: 'figure_caption', training_eligible: figure.training_eligible, learning_eligibility: figure.learning_eligibility, term_context_refs: figure.term_context_refs, he: figure.caption_he, he_niqqud: figure.caption_he_niqqud || figure.he_niqqud || figure.caption_he, ru: figure.caption_ru || '', translit: figure.translit || '', translit_ru: figure.translit_ru || '', terms: figure.terms || [], source_context: sourceContext(section, page, figure, 'caption_he') });
       });
+    });
+    if (purpose === 'term_context') return out.map(function (it) {
+      var target = Object.assign({}, it);
+      target.terms = (it.term_context_refs || it.terms || []).filter(function (ref) { var term = (section.terms || {})[parseRef(ref).id]; return term && term.training_eligible !== false && !(term.projection_hold_reasons || []).length; });
+      if (!learningItem(it)) { target.he_niqqud = ''; target.translit = ''; target.translit_ru = ''; target.ru = ''; }
+      target.source_context = Object.assign({}, it.source_context || {}, {learning_target:'verified_term_with_plain_source_context', full_sentence_linguistic_certification:learningItem(it), reviewed_terms:((it.source_context || {}).reviewed_terms || []).filter(function (t) { return target.terms.some(function (r) { return parseRef(r).id === t.id; }); })});
+      return target;
     });
     return out;
   }
@@ -202,7 +224,8 @@
     }
     return null;
   }
-  function sectionContext(atlasId, section, RM) {
+  function sectionContext(atlasId, section, RM, options) {
+    var purpose = options && options.purpose;
     var items = new Map(), order = new Map(), located = new Map(), personalRefs = [], textKeys = new Map();
     var compatibility = (section && section.occurrence_compatibility) || {}, prior = new Map(), reserved = new Set(), used = new Set(), n = 0;
     (compatibility.rows || []).forEach(function (row) {
@@ -213,8 +236,8 @@
     });
     var revision = String(section && section.content_pack_sha256 || '') +
       (section && section.structure_revision ? ':structure:' + section.structure_revision : '');
-    var currentKey = editionKey(atlasId, section && section.id, revision);
-    sectionItems(section).forEach(function (it) {
+    var currentKey = editionKey(atlasId, section && section.id, revision + (purpose === 'term_context' ? ':term-context' : ''));
+    sectionItems(section, purpose).forEach(function (it) {
         if (!it || !it.id || !String(it.he || "").trim()) return;
         var id = String(it.id), old = prior.get(id), requested = it.structure && it.structure.occurrence_order_index;
         if (!Number.isInteger(requested)) requested = it.legacy_order_index;
@@ -230,13 +253,13 @@
     return {
       atlasId: String(atlasId || ""), sectionId: String(section && section.id || ""), RM: RM,
       textKey: currentKey, textKeys: textKeys,
-      terms: (section && section.terms) || {}, items: items, order: order,
+      terms: (section && section.terms) || {}, items: items, order: order, purpose: purpose || 'lexical',
       resolveReference: function (ref) { return resolveReference(section, ref); },
       located: function (id) {
         id = String(id);
         if (!located.has(id)) {
           var loc = items.has(id) ? locateBlock(items.get(id), this.terms, RM) : null;
-          if (loc && personalRefs.length) addPersonal(loc, items.get(id), this.terms, personalRefs, RM);
+          if (loc && personalRefs.length && purpose !== 'term_context') addPersonal(loc, items.get(id), this.terms, personalRefs, RM);
           located.set(id, loc);
         }
         return located.get(id);
@@ -267,6 +290,7 @@
     if (!ctx || !ctx.items.has(String(blockId))) return null;
     var it = ctx.items.get(String(blockId)), off = Number(wordOffset), loc = ctx.located(blockId);
     var term = loc && Number.isInteger(off) ? termAt(col === "niqqud" ? loc.niqqud.spans : loc.he.spans, off) : null;
+    if (ctx.purpose === 'term_context' && (!term || (it.terms || []).indexOf(term.id + '#' + term.sense) < 0)) return null;
     return Object.freeze({
       source_kind: SOURCE_KIND, atlas_id: ctx.atlasId, section_id: ctx.sectionId,
       text_key: ctx.textKeys.get(String(it.id)), text_id: ctx.textKeys.get(String(it.id)), sentence_id: String(it.id), order_index: ctx.order.get(String(it.id)),
@@ -368,7 +392,7 @@
     var id = row.getAttribute("data-ref"), it = id && ctx.items.get(id);
     if (!it) return;
     row.__lpLearningRow = { id: id, he: String(it.he || ""), he_niqqud: String(it.he_niqqud || ""), ru: String(it.ru || ""), order_index: ctx.order.get(id), source_context: it.source_context || null };
-    if (ctx.atlasId === 'a97001') row.__lpAllowPreparedGloss = function () {
+    if (['a97001','a97001rc32'].includes(ctx.atlasId)) row.__lpAllowPreparedGloss = function () {
       return !!(ctx.contextLayerStatus && ctx.contextLayerStatus.covered.has(id));
     };
     row.setAttribute("data-wg-row", "1");
@@ -378,7 +402,7 @@
   var api = { glossRows: glossRows, bindGlossRow: bindGlossRow, locateTerms: locateTerms, locateBlock: locateBlock, termAt: termAt, skeleton: skeleton, SOURCE_KIND: SOURCE_KIND,
     sectionContext: sectionContext, sectionItems: sectionItems, occurrence: occurrence, verifyOccurrence: verifyOccurrence, historicalOccurrence: historicalOccurrence,
     resolveReference: resolveReference, learningItem: learningItem, cardTop: cardTop, decorateRow: decorateRow };
-  api.editionContract = 'atlas-97001-structure-2';
+  api.editionContract = 'atlas-97001-structure-4';
   root.AtlasWords = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

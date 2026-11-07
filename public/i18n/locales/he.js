@@ -5741,3 +5741,5 @@ window.I18N_LOCALES.he.atlas.progressExport = {"help": "שמירת התקדמו�
 
 window.I18N_LOCALES.he.atlas.materialExport = {"checking": "בודקים זמינות של ייצוא מלא…", "help": "עותק מלא של החומר, כולל PDF וקובצי מקור. ללא התקדמות לימודית והגדרות אישיות.", "download": "הורדת מהדורה מלאה (ZIP)", "missing": "ייצוא מלא אינו זמין: חבילת מקור מאומתת וקובץ PDF טרם חוברו.", "error": "לא ניתן לאמת את החומר לייצוא. נסו שוב מאוחר יותר."};
 window.I18N_LOCALES.he.atlas.materialExport.working = "מכינים ומאמתים את הארכיון. ההורדה תופיע בהורדות הדפדפן; הכנת מאגר גדול עשויה להימשך עד דקה.";
+
+window.I18N_LOCALES.he.room.hub.atlas97001rc32 = {"title": "אטלס הנדסי 97001 · RC3.2", "desc": "מהדורה מלאה · 203 עמודים · התקדמות נפרדת · מגבלות הלמידה מסומנות"};

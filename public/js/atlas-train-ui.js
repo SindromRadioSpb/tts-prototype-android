@@ -278,6 +278,7 @@
       var clockEl = h(doc, "p", { cls: "atlas-find-timer", "aria-live": "off", text: "0:00" });
       timer = setInterval(function () { clockEl.textContent = clock(now() - started); }, 1000);
       card.appendChild(h(doc, "p", { cls: "atlas-find-text", dir: "rtl", lang: "he", text: item.he }));
+      if (item.source_notice) card.appendChild(h(doc, "p", { cls: "atlas-source-limit-note", text: item.source_notice }));
       card.appendChild(clockEl);
       var sel = h(doc, "select", { name: "sid", "aria-label": T("atlas.find.section", "Раздел") }, [h(doc, "option", { value: "", text: T("atlas.find.section", "Раздел") + "…" })]);
       sections.forEach(function (s) { sel.appendChild(h(doc, "option", { value: s.id, text: (s.ru || "") + " · " + (s.he || "") + " (" + s.first + "–" + s.last + ")" })); });

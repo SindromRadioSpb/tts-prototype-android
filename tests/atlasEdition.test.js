@@ -51,10 +51,31 @@ test('published context package is pinned to the edition and every section hash'
  assert.equal(Object.keys(manifest.files).length,21);
  assert.equal(P.sha(fs.readFileSync(path.join(dir,'manifest.json'))),hash);
  const urls=[],fetcher=async url=>{urls.push(url);return new Response(fs.readFileSync(path.join(dir,path.basename(url))));};
- const client=E.createClient('a97001',{fetch:fetcher,crypto:crypto.webcrypto});
+ const pin={atlas_id:'a97001',revision:manifest.edition_revision,manifest_sha256:manifest.edition_manifest_sha256};
+ const client=E.createClient('a97001',{pin,contextPin:hash,fetch:fetcher,crypto:crypto.webcrypto});
  for(const file of Object.keys(manifest.files)){const layer=await client.contextJson(file);assert.equal(layer.source_revision,manifest.files[file].source_revision);assert.equal(layer.coverage_mode,'complete');}
  assert(urls.every(url=>url.startsWith('/data/atlas-context/a97001/'+hash+'/')));
  await assert.rejects(client.contextJson('../manifest.json'),/PATH/);
- const damaged=E.createClient('a97001',{fetch:async url=>new Response(url.endsWith('/manifest.json')?fs.readFileSync(path.join(dir,'manifest.json')):Buffer.from('{}')),crypto:crypto.webcrypto});
+ const damaged=E.createClient('a97001',{pin,contextPin:hash,fetch:async url=>new Response(url.endsWith('/manifest.json')?fs.readFileSync(path.join(dir,'manifest.json')):Buffer.from('{}')),crypto:crypto.webcrypto});
  await assert.rejects(damaged.contextJson(Object.keys(manifest.files)[0]),/FILE_HASH/);
+});
+
+test('new editions fail closed when no matching AI context is published',async()=>{
+ let calls=0;const client=E.createClient('a97001',{pin:{atlas_id:'a97001',revision:'b'.repeat(64),manifest_sha256:'c'.repeat(64)},contextPin:null,fetch:async()=>{calls++;throw Error('unexpected fetch');},crypto:crypto.webcrypto});
+ await assert.rejects(client.contextJson('s01-preface.json'),/ATLAS_CONTEXT_NOT_PUBLISHED/);
+ assert.equal(calls,0,'must not fetch the old AI context');
+});
+test('all declared search shards are packaged and hash-checked, including phrases',t=>{
+ const f=fixture(t),search=JSON.parse(fs.readFileSync(path.join(f.source,'search.json'))),index=JSON.parse(fs.readFileSync(path.join(f.source,'index.json')));
+ search.shards['search-phrases.json']=f.write('search-phrases.json',{phrase:'fixture'});
+ index.search_sha256=f.write('search.json',search);f.write('index.json',index);
+ const built=P.build(f.source);assert.equal(built.manifest.files['search-phrases.json'].sha256,search.shards['search-phrases.json']);
+ f.write('search-phrases.json',{phrase:'corrupted'});assert.throws(()=>P.build(f.source),/ATLAS_EDITION_SHARD/);
+ fs.unlinkSync(path.join(f.source,'search-phrases.json'));assert.throws(()=>P.build(f.source),/ATLAS_EDITION_SHARD/);
+});
+
+test('new edition rejects older semantic-contract components even when their APIs exist',()=>{
+ const scope={AtlasReader:require('../public/js/atlas-reader'),AtlasWords:require('../public/js/atlas-words'),AtlasTrain:require('../public/js/atlas-train'),AtlasSearch:require('../public/js/atlas-search')};
+ assert.equal(E.contract,'atlas-97001-structure-4');
+ for(const key of Object.keys(scope))assert.equal(E.componentsReady({...scope,[key]:{...scope[key],editionContract:'atlas-97001-structure-2'}}),false,key);
 });

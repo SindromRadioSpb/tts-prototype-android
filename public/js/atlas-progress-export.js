@@ -5,7 +5,7 @@
   var W=['lemma_key','status','updated_at','srs_due','srs_interval','srs_reps','srs_lapses','srs_text_key','srs_sentence_id','srs_order_index','srs_surface','srs_stability','srs_difficulty','srs_reviewed_at','srs_scheme'];
   var R=['id','item_key','kind','reviewed_at','grade','source','channel','latency_ms','meta_json'];
   var HISTORY='room.atlas.find.v1',STALE='room.atlas.find.stale.v1';
-  var TERM=/^at1:a97001:[a-z0-9-]+#[A-Za-z0-9_-]+$/,TEXT=/^atlas-block-v1:a97001:[a-z0-9-]+:[A-Za-z0-9_-]+$/;
+  var TERM=/^at1:a97001:[a-z0-9-]+#[A-Za-z0-9_-]+$/,TEXT=/^atlas-block-v1:a97001:[a-z0-9-]+:[A-Za-z0-9_-]+(?::structure:[a-f0-9]{64})?$/;
   var BLOCK=/^a97001:p[1-9][0-9]*:[A-Za-z0-9:_-]+$/,FIND=/^find:a97001:p[1-9][0-9]*:[A-Za-z0-9:_-]+$/;
   var SCOPE='atlas-specific term history and explicitly atlas-bound word state/history; no history inferred from shared lemma keys';
   var STATUS=['','new','l1','l2','l3','l4','known','ignore'];
@@ -56,6 +56,8 @@
     status:one(STATUS),keyer_version:one([1]),backfill:one([0,1]),interval:DAYS,reps:COUNTER,lapses:COUNTER,
     scheme:one(['fsrs','sm2','sm2-lite','manual-mark']),level:one(STATUS),seedAlgoVersion:one([1]),scheduler:scheduler,
     evidence_scope:one(['lexeme','cloze','context_supported','recognition','assisted_production','unsupported_production']),
+    // MorphHost.gradeReadingTap records ReaderMorph's provenance label, not an arbitrary score/string.
+    confidence:one(['exact','likely','guessed','function','unknown','dicta','context','owner','teacher']),
     fuzz_days:COUNTER,annul_of:ID,surface:WORD,
     pos:one(['','verb','noun','adjective','adverb','preposition','pronoun','propernoun','determiner','conjunction','interjection','particle','numeral','number','prefix','suffix','copula','question','punctuation','other','unknown']),
     text_key:TEXT_REF,textKey:TEXT_REF,sentence_id:BLOCK_REF,sentenceId:BLOCK_REF,order_index:COUNTER,orderIndex:COUNTER,source:source,

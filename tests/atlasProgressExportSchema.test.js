@@ -14,7 +14,7 @@ async function rejectBoth(snapshot,label){
  // Deliberately construct a correct checksum without calling capture: validate must stand alone.
  await assert.rejects(E.validate(seal(snapshot),crypto.webcrypto),e=>/^ATLAS_PROGRESS_/.test(e.code)&&e.code!=='ATLAS_PROGRESS_HASH',label+' validate');
 }
-const validMeta={status:'known',keyer_version:1,backfill:1,interval:4.5,reps:3,lapses:1,scheme:'sm2',level:'l2',seedAlgoVersion:1,scheduler:{scheme:'fsrs',engine_version:'fsrs6-core-v3',request_retention:0.9},evidence_scope:'recognition',fuzz_days:5,annul_of:'fixture:review',surface:'mass',pos:'noun',text_key:stored.word_status[0].srs_text_key,textKey:stored.word_status[0].srs_text_key,sentence_id:'a97001:p122:b004',sentenceId:'a97001:p122:b004',order_index:116,orderIndex:116,source:{textKey:stored.word_status[0].srs_text_key,sentenceId:'a97001:p122:b004',orderIndex:116,surface:'mass'},postTeach:1,word_only:1,training_stage:'l2',grade_policy_version:'d1.v1',raw_grade:1,effective_grade:2,policy_reason:'production-fail-receptive-strong',grade_policy:'d1.v1',grader:'deterministic',leech_released:1};
+const validMeta={confidence:'exact',status:'known',keyer_version:1,backfill:1,interval:4.5,reps:3,lapses:1,scheme:'sm2',level:'l2',seedAlgoVersion:1,scheduler:{scheme:'fsrs',engine_version:'fsrs6-core-v3',request_retention:0.9},evidence_scope:'recognition',fuzz_days:5,annul_of:'fixture:review',surface:'mass',pos:'noun',text_key:stored.word_status[0].srs_text_key,textKey:stored.word_status[0].srs_text_key,sentence_id:'a97001:p122:b004',sentenceId:'a97001:p122:b004',order_index:116,orderIndex:116,source:{textKey:stored.word_status[0].srs_text_key,sentenceId:'a97001:p122:b004',orderIndex:116,surface:'mass'},postTeach:1,word_only:1,training_stage:'l2',grade_policy_version:'d1.v1',raw_grade:1,effective_grade:2,policy_reason:'production-fail-receptive-strong',grade_policy:'d1.v1',grader:'deterministic',leech_released:1};
 test('stored valid snapshot validates independently and capture preserves exact selected values',async()=>{
  assert.deepEqual(await E.validate(stored,crypto.webcrypto),stored);
  const out=await capture([record('word_status',stored.word_status[0]),record('review_log',stored.review_log[0])]);
@@ -70,4 +70,12 @@ test('history rejects coercion objects/arrays and never silently drops malformed
 
 test('capture never falls back to unguarded dbQuery on an older bridge',async()=>{
  let queries=0;await assert.rejects(E.capture({db:{getOwnershipState:()=> 'shared',dbQuery:()=>{queries++;throw Error('unguarded path');}},storage,crypto:crypto.webcrypto}),/ATLAS_PROGRESS_DB_NOT_OPEN/);assert.equal(queries,0);
+});
+
+test('canonical reading-tap provenance labels remain exact, without accepting arbitrary confidence payloads',async()=>{
+ for(const confidence of ['exact','likely','guessed','function','unknown','dicta','context','owner','teacher']){
+  const v=withMeta({confidence});assert.deepEqual((await E.validate(v,crypto.webcrypto)).review_log,v.review_log);
+  assert.deepEqual((await capture([record('review_log',v.review_log[0])])).review_log,v.review_log);
+ }
+ for(const confidence of [0.9,'made-up',{token:'SYNTHETIC_NOT_A_SECRET'},['exact'],null])await rejectBoth(withMeta({confidence}),'confidence must be a canonical provenance label');
 });
