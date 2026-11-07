@@ -4,11 +4,12 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'../..'),E=require(root+'/public/js/atlas-edition'),W=require(root+'/public/js/atlas-words'),T=require(root+'/public/js/atlas-train'),RM=require(root+'/public/js/reader-morph');
 const {smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer,waitForSmokeHealth}=require(root+'/scripts/smoke-server-env');
-const data=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);fs.mkdirSync(out,{recursive:true});
+const data=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]),liveBase=process.argv[4];fs.mkdirSync(out,{recursive:true});
 const report={scope:'local actual server, SHA-verified corpus projection, synthetic persistent Chromium; no owner data',checks:[],errors:[]};let child,browser;
 (async()=>{try{
- child=fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(data,0),silent:true});const log=fs.createWriteStream(path.join(out,'server.log'));child.stdout.pipe(log);child.stderr.pipe(log);
- const port=await waitForSmokeServer(child,60000),base='http://127.0.0.1:'+port;report.origin=base;await waitForSmokeHealth(base,{timeoutMs:60000});
+ let base=liveBase;
+ if(!base){child=fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(data,0),silent:true});const log=fs.createWriteStream(path.join(out,'server.log'));child.stdout.pipe(log);child.stderr.pipe(log);base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);}
+ report.origin=base;if(liveBase)report.scope='production GET/HEAD only; anonymous synthetic persistent Chromium, no owner profile';await waitForSmokeHealth(base,{timeoutMs:60000});
  const client=E.createClient('a97001rc32',{fetch:(u,o)=>fetch(base+u,o),crypto:crypto.webcrypto}),index=await client.json('index.json'),bank=await client.json('train/terms.json'),find=await client.json('train/find.json');
  assert.equal(T.findBankStatus(find,index,'a97001rc32'),'ready');assert.equal(find.items.length,456);
  let pages=0,targets=0,graded=0,held=0,fields=0;const controls=[];let trainingSid;
@@ -25,12 +26,13 @@ const report={scope:'local actual server, SHA-verified corpus projection, synthe
  }
  assert.equal(pages,203);assert.equal(targets,33);assert.equal(held,492);report.data={pages,targets,graded,held,preservedLanguageFields:fields};
  const original=E.createClient('a97001',{fetch:(u,o)=>fetch(base+u,o),crypto:crypto.webcrypto});assert.equal((await original.json('index.json')).atlas_id,'a97001');report.checks.push('both immutable editions served; new source IDs retained; language fields unchanged; 33 due cycles and 492 held grades');
- browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,viewport:{width:1440,height:1000},serviceWorkers:'block'});const page=await browser.newPage();
- await page.route('**/*',route=>route.request().url().startsWith(base)||route.request().url().startsWith('data:')?route.continue():route.abort());
+ browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,viewport:{width:1440,height:1000},serviceWorkers:liveBase?'allow':'block'});const page=await browser.newPage();
+ await page.route('**/*',route=>(route.request().url().startsWith(base)||route.request().url().startsWith('data:'))&&['GET','HEAD'].includes(route.request().method())?route.continue():route.abort());
  page.on('pageerror',e=>report.errors.push(e.message));
  await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32');await page.waitForSelector('.atlas-home',{timeout:120000});
  assert.equal(await page.evaluate(()=>AtlasEdition.client('a97001').revision),E.pin.revision);
  report.checks.push('new corpus deep link mounts alongside unchanged original client');
+ if(liveBase){await page.waitForFunction(()=>navigator.serviceWorker.controller,{},{timeout:90000});report.serviceWorker=await page.evaluate(()=>navigator.serviceWorker.controller.scriptURL);report.checks.push('controlling production service worker');}
  for(const c of controls){console.log('control page',c.page);await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32&sec='+c.section+'&pg='+c.page);await page.waitForSelector('#atlas-p'+c.page,{timeout:60000});await page.locator('#atlas-p'+c.page).scrollIntoViewIfNeeded();await page.waitForTimeout(400);await page.screenshot({path:path.join(out,'page-'+c.page+'-desktop.png'),timeout:20000,animations:'disabled'});}
  await page.setViewportSize({width:390,height:844});await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32&sec='+controls.find(x=>x.page===124).section+'&pg=124');await page.waitForSelector('#atlas-p124',{timeout:60000});await page.locator('#atlas-p124').scrollIntoViewIfNeeded();await page.waitForTimeout(400);await page.screenshot({path:path.join(out,'page-124-mobile.png')});report.mobileOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(report.mobileOverflow,false);
  report.checks.push('control pages 1,56,116,124,170,171,193,203 captured; 390px page124 no viewport overflow');
@@ -51,4 +53,3 @@ const report={scope:'local actual server, SHA-verified corpus projection, synthe
  await page.locator('.atlas-thumb').first().click();await page.waitForSelector('.atlas-overlay img');await page.waitForFunction(()=>{const i=document.querySelector('.atlas-overlay img');return i&&i.complete&&i.naturalWidth>0;});await page.screenshot({path:path.join(out,'source-overlay.png'),timeout:20000});await page.keyboard.press('Escape');report.checks.push('source scan opens and decodes in browser');
  assert.deepEqual(report.errors,[]);report.status='passed';
  }catch(e){report.status='failed';report.errors.push(e.stack);process.exitCode=1;}finally{if(browser)await Promise.race([browser.close(),new Promise(r=>setTimeout(r,5000))]);if(child)child.kill();fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));process.exit(process.exitCode||0);}})();
-
