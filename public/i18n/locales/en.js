@@ -5732,3 +5732,5 @@ window.I18N_LOCALES.en.atlas.progressExport = {"help": "Save only atlas 97001 pr
 
 window.I18N_LOCALES.en.atlas.materialExport = {"checking": "Checking full export availability…", "help": "Complete material with PDF and source files. Learning progress and personal settings are excluded.", "download": "Download complete edition (ZIP)", "missing": "Full export is unavailable: a verified source package and PDF have not been connected.", "error": "Unable to verify the material for export. Try again later."};
 window.I18N_LOCALES.en.atlas.materialExport.working = "Preparing and verifying the archive. It will appear in browser downloads; a large corpus may take up to a minute.";
+
+window.I18N_LOCALES.en.room.hub.atlas97001rc32 = {"title": "Engineering Atlas 97001 · RC3.2", "desc": "Full native edition · 203 pages · separate progress · learning limits are marked"};

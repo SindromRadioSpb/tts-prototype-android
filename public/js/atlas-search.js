@@ -274,11 +274,11 @@
           // Table definitions have independent, rendered cell refs in 97001.
           // A glossary entry must not disappear from search just because its
           // only definition is in a table instead of a prose item.
-          if (s.atlas_id === 'a97001') {
+          if (['a97001','a97001rc32'].includes(s.atlas_id)) {
             (t.cells || []).forEach(function (cell) {
               (cell.terms || []).forEach(function (ref) {
                 var id = String(ref).split('#')[0];
-                (terms[id] || (terms[id] = [])).push([s.id, p.page, t.id + ':cell:' + cell.row + ':' + cell.col]);
+                (terms[id] || (terms[id] = [])).push([s.id, p.page, cell.id || t.id + ':cell:' + cell.row + ':' + cell.col]);
               });
             });
             (t.title_terms || []).forEach(function (ref) {
@@ -866,7 +866,7 @@
     query: query,
     fragment: fragment,
   };
-  api.editionContract = 'atlas-97001-structure-2';
+  api.editionContract = 'atlas-97001-structure-4';
   root.AtlasSearch = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof window === "object" ? window : globalThis);

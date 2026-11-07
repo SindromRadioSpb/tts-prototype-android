@@ -12,10 +12,10 @@ const terms=buildTermsIndex(sections,'a97001');
 fs.writeFileSync(path.join(out,'terms.json'),JSON.stringify(terms));
 fs.writeFileSync(path.join(dir,'structure-migration.json'),JSON.stringify({
  schema:'linguistpro.atlas-structure-migration.1',atlas_id:'a97001',revision:sections[0].structure_revision,
- groups:sections.flatMap(s=>s.pages.flatMap(p=>(p.legacy_groups||[]).map(g=>({section:s.id,page:p.page,legacy_ref:g.id,children:g.children})))),
- learner_state:'Never mutate review_log or copy a parent grade into new child rows. Existing term keys are unchanged.',
+ groups:sections.flatMap(s=>s.pages.flatMap(p=>[...(p.legacy_groups||[]),...(p.historical_groups||[])].map(g=>({section:s.id,page:p.page,legacy_ref:g.id,children:g.children})))),
+ learner_state:'Never mutate review_log or copy a parent grade into new child rows. Existing term IDs are retained. Source-proven distinct senses may be added, without migrating old grades.',
  prepared_layers:'Previous prepared context revisions no longer match. Do not regenerate without a separate request.',
- find_bank:'Not regenerated. Existing source-bound exercises require their normal stale-source validation.',
+ find_bank:'Built separately by build-train-bank.cjs and verified against exact section hashes during staging. An empty bank under editorial hold is not full training acceptance.',
  generated_ai_content:false,generated_exercises:false
 }));
 console.log(JSON.stringify({glossary_terms:Object.keys(terms.terms).length,generated_exercises:false,generated_ai_content:false}));

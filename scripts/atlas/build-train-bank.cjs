@@ -24,9 +24,19 @@ const wordCount = (s) => norm(s).split(" ").filter((w) => /[א-ת]/.test(w)).len
 // (sections, { sid: sha256 of the section file }, atlasId) → the bank object
 function buildFindBank(sections, shas, atlasId) {
   const seen = new Map();
-  sections.forEach((s) => (s.pages || []).forEach((p) => (p.items || []).forEach((it) => {
-    if (it && it.type === "block") { const k = norm(it.he || it.he_raw); if (k) seen.set(k, (seen.get(k) || 0) + 1); }
-  })));
+  const addText = (id, text) => { const key = norm(text); if (!id || !key) return; if (!seen.has(key)) seen.set(key, new Set()); seen.get(key).add(id); };
+  sections.forEach(s => (s.pages || []).forEach(p => {
+    (p.items || []).forEach(it => { if (it && it.type === 'block') addText(it.id, it.he || it.he_raw); });
+    if (atlasId !== 'a97001') return;
+    (p.tables || []).forEach(t => (t.cells || []).forEach(c => {
+      if ((c.parts || []).length) c.parts.forEach(part => addText(part.id, part.he || part.he_raw));
+      else addText(c.id || t.id + ':cell:' + c.row + ':' + c.col, c.he);
+    }));
+    (p.figures || []).forEach(f => {
+      addText(f.id, f.caption_he || f.he);
+      [...(f.labels || []), ...(f.regions || [])].forEach(label => addText(label.id, label.he || label.label_he || label.text_he));
+    });
+  }));
   const items = [];
   sections.forEach((s) => {
     if (SKIP_SECTIONS[s.id]) return;
@@ -37,12 +47,13 @@ function buildFindBank(sections, shas, atlasId) {
         // word cards and term queues. Keep duplicate detection above over all
         // visible source text: an ineligible duplicate still makes the answer
         // ambiguous, even though it must never become a question itself.
-        if (!AW.learningItem(it) || it.type !== "block" || !KINDS[it.kind] || !String(it.he || "").trim()) return;
+        const semanticKind = KINDS[it.kind] || (atlasId === "a97001" && it.find_training_eligible === true && ["paragraph", "definition", "definition_item", "rule"].includes(it.kind));
+        if (!AW.learningItem(it, "source_find") || it.type !== "block" || !semanticKind || !String(it.he || "").trim()) return;
         const n = wordCount(it.he);
         if (n < MIN_WORDS || n > MAX_WORDS) return;
-        if (seen.get(norm(it.he)) > 1) return;
+        if (seen.get(norm(it.he)) && seen.get(norm(it.he)).size > 1) return;
         items.push({ id: "find:" + it.id, sid: s.id, page: p.page, block: it.id, he: String(it.he).replace(NIQQUD, "").trim(),
-          formulas: formulas, terms: Array.isArray(it.terms) ? it.terms.slice() : [], kind: "book" });
+          formulas: formulas, terms: Array.isArray(it.terms) ? it.terms.slice() : [], kind: "book", learning_target: "source_text_location", source_notice: it.source_limit_note || (s.activation && s.activation.learning_mode === "scoped" ? "Это цитата из источника. Проверяется её местоположение, а не научная точность или нормативное написание." : null) });
       });
     });
   });
@@ -63,12 +74,79 @@ function buildTermsIndex(sections, atlasId) {
         senses: [], sections: [], places: {}, ...(t.study_note ? {study_note:t.study_note} : {}),
         ...(t.definition_refs ? {definition_refs:t.definition_refs.slice()} : {}),
         ...(t.reading_status ? {reading_status:t.reading_status} : {}) });
+      if (atlasId === 'a97001') {
+        // Keep legacy lexical fields stable for existing callers, but make their
+        // first-section selection explicit. A scope-aware caller must select the
+        // matching variant instead of silently presenting another section's form.
+        out.canonical_selection = 'legacy_first_section_with_scoped_variants';
+        const clone = value => JSON.parse(JSON.stringify(value));
+        const refs = out.definition_refs || [];
+        (t.definition_refs || []).forEach(ref => { if (!refs.includes(ref)) refs.push(ref); });
+        if (refs.length) out.definition_refs = refs;
+        const sourceRefs = [];
+        const held = [];
+        const approvedContextRefs = new Set();
+        const scan = value => {
+          if (Array.isArray(value)) { value.forEach(scan); return; }
+          if (!value || typeof value !== 'object') return;
+          if (value.id && Array.isArray(value.terms) && value.terms.some(ref => String(ref).split('#')[0] === id)) {
+            if (!sourceRefs.includes(value.id)) sourceRefs.push(value.id);
+            if (value.term_context_eligible === true && (value.term_context_refs || []).some(ref => String(ref).split('#')[0] === id)) approvedContextRefs.add(value.id);
+            if ((value.term_context_eligible === true ? !(value.term_context_refs || []).some(ref => String(ref).split('#')[0] === id) : value.training_eligible === false || (value.structure && value.structure.training_eligible === false)) ||
+                (Array.isArray(value.projection_held_terms) && value.projection_held_terms.includes(id))) {
+              if (!held.includes(value.id)) held.push(value.id);
+            }
+          }
+          Object.values(value).forEach(scan);
+        };
+        scan(s.pages || []);
+        (t.source_refs || []).forEach(ref => { if (!sourceRefs.includes(ref)) sourceRefs.push(ref); });
+        const nativeCandidates = ((s.term_projection || {}).native_scoped_candidates || {})[id];
+        const evidence = (s.term_projection || {}).reviewed_evidence || (s.term_projection || {}).evidence || {};
+        const sourceCandidates = [];
+        const candidateEvidence = nativeCandidates ? { [id]: nativeCandidates } : evidence;
+        Object.keys(candidateEvidence).filter(key => key.split('#')[0] === id).forEach(key => {
+          (Array.isArray(candidateEvidence[key]) ? candidateEvidence[key] : []).forEach(candidate => {
+            sourceCandidates.push(clone(candidate));
+            (candidate.occurrences || []).forEach(occurrence => {
+              const ref = occurrence.source_ref || occurrence.block;
+              if (ref && !sourceRefs.includes(ref)) sourceRefs.push(ref);
+            });
+          });
+        });
+        const explicitHeld = new Set((s.term_projection || {}).held_source_ids || []);
+        sourceRefs.forEach(ref => { if (explicitHeld.has(ref) && !approvedContextRefs.has(ref) && !held.includes(ref)) held.push(ref); });
+        const variant = { sid: s.id, canonical: clone(t), source_refs: sourceRefs,
+          definition_refs: (t.definition_refs || []).slice(), held_source_ids: held,
+          hold_reasons: (t.projection_hold_reasons || []).slice() };
+        if (sourceCandidates.length) variant.source_candidates = sourceCandidates;
+        variant.source_candidates_are_native = !!nativeCandidates;
+        variant.training_eligible = t.training_eligible !== false && !(s.activation && s.activation.release_gate === 'blocked');
+        (out.scoped_variants || (out.scoped_variants = [])).push(variant);
+        if (out.scoped_variants.every(v => v.training_eligible === false)) out.training_eligible = false;
+        else delete out.training_eligible;
+        ((s.term_projection || {}).semantic_corrections || []).filter(c => c.term_id === id && c.old && c.new && c.old.sense !== c.new.sense).forEach(c => {
+          const retired = out.retired_sense_sources || (out.retired_sense_sources = []);
+          (c.source_targets || []).forEach(ref => {
+            if (!retired.some(x => x.sid === s.id && x.source_ref === ref && x.old_sense === c.old.sense))
+              retired.push({ sid: s.id, source_ref: ref, old_sense: c.old.sense, new_sense: c.new.sense });
+          });
+        });
+        const heldSources = out.held_sources || (out.held_sources = []);
+        held.forEach(ref => {
+          if (!heldSources.some(x => x.sid === s.id && x.source_ref === ref))
+            heldSources.push({ sid: s.id, source_ref: ref, reasons: variant.hold_reasons.slice() });
+        });
+        out.has_scoped_variants = out.scoped_variants.some(v =>
+          ['lemma_he','niqqud','translit','translit_ru'].some(key => String(v.canonical[key] || '') !== String(out[key] || '')) ||
+          (v.canonical.senses || []).some(sn => out.senses.some(old => old.sense === sn.sense && old.ru !== (sn.ru || ''))));
+      }
       if (!out.sections.includes(s.id)) out.sections.push(s.id);
       (t.senses || []).forEach((sn) => { if (sn && sn.sense && !out.senses.some((x) => x.sense === sn.sense)) out.senses.push({ sense: sn.sense, ru: sn.ru || "" }); });
     });
     // Contents are navigation, not the first educational example of a concept.
     if (atlasId === 'a97001' && s.id === 's00-front') return;
-    const learningItems = atlasId === 'a97001' ? AW.sectionItems(s)
+    const learningItems = atlasId === 'a97001' ? AW.sectionItems(s, s.activation && s.activation.learning_mode === 'scoped' ? 'term_context' : undefined)
       : (s.pages || []).flatMap(p => (p.items || []).map(it => Object.assign({page:p.page},it)));
     learningItems.forEach((it) => (it && Array.isArray(it.terms) ? it.terms : []).forEach((ref) => {
       const i = String(ref).lastIndexOf("#"), id = String(ref).slice(0, i), sense = String(ref).slice(i + 1);

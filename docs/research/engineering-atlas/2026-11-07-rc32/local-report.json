@@ -1,0 +1,30 @@
+{
+  "scope": "local actual server, SHA-verified corpus projection, synthetic persistent Chromium; no owner data",
+  "checks": [
+    "both immutable editions served; new source IDs retained; language fields unchanged; 33 due cycles and 492 held grades",
+    "new corpus deep link mounts alongside unchanged original client",
+    "control pages 1,56,116,124,170,171,193,203 captured; 390px page124 no viewport overflow",
+    "return to original corpus mounts successfully",
+    "UI grade saved in each corpus; original SQL states/review_log and 500 original find answers unchanged after native grading/find-source navigation",
+    "native search result opens native source reference",
+    "source scan opens and decodes in browser"
+  ],
+  "errors": [],
+  "origin": "http://127.0.0.1:61473",
+  "data": {
+    "pages": 203,
+    "targets": 33,
+    "graded": 33,
+    "held": 492,
+    "preservedLanguageFields": 88180
+  },
+  "mobileOverflow": false,
+  "preservation": {
+    "originalWordStates": 1,
+    "originalReviews": 1,
+    "newWordStates": 1,
+    "originalFindHistory": 500,
+    "newFindHistory": 1
+  },
+  "status": "passed"
+}

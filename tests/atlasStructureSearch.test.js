@@ -13,3 +13,9 @@ test('dictionary index preserves exact definition refs and explicit absent readi
  assert.equal(entry.niqqud,'');assert.deepEqual(entry.definition_refs,[ref]);assert.equal(entry.reading_status,'not_in_snapshot');
  assert.equal(entry.places.technical.block,ref);
 });
+
+test('source table cell IDs take precedence over synthesized coordinates in search',()=>{
+ const f=fixture(),cell=f.pages[0].tables[0].cells[0],stable='a97001:p165:t-stainless-types:s02';cell.id=stable;f.terms[term].definition_refs=[stable];
+ const ix=S.buildIndex([f],{}),doc=ix.docs.find(d=>d[0]==='term');
+ assert.equal(doc[3],stable);assert.deepEqual(doc[6],[['s17-steels',165,stable]]);
+});

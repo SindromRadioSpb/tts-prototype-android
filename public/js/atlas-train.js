@@ -193,7 +193,8 @@
     if (!ctx || !ctx.items) return out;
     function add(id, sense, block, from, to) {
       var k = termKey(ctx.atlasId, id, sense), term = ctx.terms && ctx.terms[id];
-      if (!k || seen[k] || !term) return;
+      if (!k || seen[k] || !term || term.training_eligible === false || (term.projection_hold_reasons || []).length) return;
+      if (term.learning_eligibility && (!term.learning_eligibility.lexical || term.learning_eligibility.lexical.allowed !== true)) return;
       var sn = (term.senses || []).filter(function (s) { return s && s.sense === sense; })[0];
       if (!sn || !sn.ru) return;
       seen[k] = true;
@@ -238,14 +239,57 @@
       var t = mine[k.termId] || (index && index.terms && index.terms[k.termId]);
       var sn = t && (t.senses || []).filter(function (s) { return s && s.sense === k.sense; })[0];
       if (!t || !sn || !sn.ru) { missing++; return; }
+      if (t.training_eligible === false) return;
       var m = /^atlas-block-v1:[a-z0-9]+:([a-z0-9-]+):/.exec(String(st.textKey || ""));
+      // A held saved source is not a retired example: do not move its grade to
+      // another place or turn it into a due row. The stored learner state stays intact.
+      var heldSources = Array.isArray(t.held_sources) ? t.held_sources : [];
+      if (m && st.sentenceId && heldSources.some(function (p) {
+        return p.sid === m[1] && p.source_ref === String(st.sentenceId);
+      })) return;
+      // A proven meaning split is different from replacing an example of the
+      // same meaning. Never reinterpret an old grade as the new/other sense.
+      if (m && st.sentenceId && (t.retired_sense_sources || []).some(function (p) {
+        return p.sid === m[1] && p.source_ref === String(st.sentenceId) && p.old_sense === k.sense;
+      })) return;
       // Retain the learner's SRS state while replacing a retired/wrong source example.
       var validSaved = !t.occurrences || ((t.occurrences[k.sense] || []).some(function (p) { return m && p.sid === m[1] && p.block === String(st.sentenceId || ''); }));
       var place = m && st.sentenceId && validSaved ? { sid: m[1], block: String(st.sentenceId) }
         : t.personal ? { sid: t.sid, block: t.block } : ((t.places || {})[k.sense] || {});
+      var display = t;
+      if (!t.personal && Array.isArray(t.scoped_variants)) {
+        if (heldSources.some(function (p) { return p.sid === place.sid && p.source_ref === place.block; })) return;
+        var scoped = t.scoped_variants.filter(function (v) {
+          return v.sid === place.sid && Array.isArray(v.source_refs) && v.source_refs.indexOf(place.block) >= 0;
+        });
+        // Never fall back to a different section's lexical form when exact scoped
+        // evidence is present but the selected source cannot be resolved.
+        if (scoped.length !== 1) { missing++; return; }
+        var variant = scoped[0];
+        if (variant.training_eligible === false || (variant.canonical && variant.canonical.training_eligible === false) ||
+            (variant.held_source_ids || []).indexOf(place.block) >= 0 || (variant.hold_reasons || []).length) return;
+        display = variant.canonical || {};
+        if (variant.source_candidates_are_native) {
+          var candidates = (variant.source_candidates || []).filter(function (c) {
+            return c.canonical && (c.canonical.senses || []).some(function (s) { return s.sense === k.sense; }) &&
+              (c.occurrences || []).some(function (o) { return (o.source_ref || o.block) === place.block; });
+          });
+          if (candidates.length) {
+            var signature = function (c) {
+              var sense = (c.canonical.senses || []).filter(function (s) { return s.sense === k.sense; })[0] || {};
+              return JSON.stringify([c.canonical.lemma_he, c.canonical.niqqud, c.canonical.translit, c.canonical.translit_ru, sense.ru]);
+            };
+            if (candidates.some(function (c) { return signature(c) !== signature(candidates[0]); })) { missing++; return; }
+            if (candidates.some(function (c) { return c.canonical.training_eligible === false; })) return;
+            display = candidates[0].canonical;
+          }
+        }
+        sn = (display.senses || []).filter(function (s) { return s.sense === k.sense; })[0];
+        if (!sn || !sn.ru) { missing++; return; }
+      }
       var pm = /:p(\d+):/.exec(String(place.block || ""));
-      out.push({ key: key, due: Number(st.due), termId: k.termId, sense: k.sense, title: t.niqqud || t.lemma_he || "", plain: t.lemma_he || "",
-        translit: t.translit || "", translit_ru: t.translit_ru || "", ru: sn.ru, personal: !!t.personal, ...(t.study_note ? { studyNote: t.study_note } : {}),
+      out.push({ key: key, due: Number(st.due), termId: k.termId, sense: k.sense, title: display.niqqud || display.lemma_he || "", plain: display.lemma_he || "",
+        translit: display.translit || "", translit_ru: display.translit_ru || "", ru: sn.ru, personal: !!t.personal, ...((display.study_note || t.study_note) ? { studyNote: display.study_note || t.study_note } : {}),
         sid: place.sid || "", block: place.block || "", page: pm ? Number(pm[1]) : (place.page || null) });
     });
     out.sort(function (a, b) { return a.due - b.due; });
@@ -269,7 +313,7 @@
   // the bank must match every current section file before a session starts.
   function findBankStatus(bank, index, atlasId) {
     if (!bank || !Array.isArray(bank.items)) return 'missing';
-    if (atlasId !== 'a97001') return 'ready'; // preserve the other atlas contract
+    if (!['a97001','a97001rc32'].includes(atlasId)) return 'ready'; // preserve the other atlas contract
     if (!index || index.atlas_id !== atlasId || bank.atlas_id !== atlasId || !Array.isArray(index.sections)) return 'unverified';
     var expected = index.sections_sha256, built = bank.built_from && bank.built_from.sections;
     var ids = (index.sections || []).map(function (s) { return s && s.id; });
@@ -322,6 +366,8 @@
   // opts: { rnd, lang: 'ru' | 'he' } (Hebrew options on stages 2–3, owner Г5) → [{ formulaId, page, latex, mathml,
   //   symbols: [{ latex, mathml, answer: { text, ru, he, unit }, options: { meaning: [4 texts], unit: [4] | null } }] }]
   function symbolQuestions(section, opts) {
+    // RC3.2 accepts source-location and scoped lexical targets only, not symbol meanings/units.
+    if (section && section.activation && section.activation.learning_mode === 'scoped') return [];
     opts = opts || {};
     var rnd = typeof opts.rnd === "function" ? opts.rnd : Math.random, he = opts.lang === "he";
     var textOf = function (v) { return String((he && v.he) || v.ru || "").trim(); };
@@ -362,7 +408,7 @@
       unit: sym && sym.options && sym.options.unit ? picks.unit === sym.answer.unit : null };
   }
 
-  return { editionContract: 'atlas-97001-structure-2', STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere, findBankStatus: findBankStatus,
+  return { editionContract: 'atlas-97001-structure-4', STAGES: STAGES, stageOf: stageOf, symbolQuestions: symbolQuestions, checkSymbol: checkSymbol, checkFind: checkFind, pickFind: pickFind, findStats: findStats, findStillThere: findStillThere, findBankStatus: findBankStatus,
     termKey: termKey, parseTermKey: parseTermKey, isTermKey: isTermKey, sectionTermItems: sectionTermItems,
     termStats: termStats, termsLineState: termsLineState, globalDueItems: globalDueItems, sessionOrder: sessionOrder, STRONG_DAYS: STRONG_DAYS, setStage: setStage, layersFor: layersFor, glossPolicy: glossPolicy,
     isKnownStatus: isKnownStatus, nextStageHint: nextStageHint, paintStage: paintStage,
