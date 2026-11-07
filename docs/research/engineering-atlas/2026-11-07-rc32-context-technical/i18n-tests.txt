@@ -1,0 +1,258 @@
+
+[Suite 1] Locale file symmetry
+  ✓ ru.js loads and has keys
+  ✓ en.js loads and has keys
+  ✓ he.js loads and has keys
+  ✓ en.js has all keys from ru.js
+  ✓ he.js has all keys from ru.js
+  ✓ ru.js has no duplicate keys inside one object (a dup silently deletes the earlier block)
+  ✓ en.js has no duplicate keys inside one object (a dup silently deletes the earlier block)
+  ✓ he.js has no duplicate keys inside one object (a dup silently deletes the earlier block)
+  ✓ duplicate-key scanner detects a planted duplicate (guards against a vacuous gate)
+
+[Suite 2] t() key resolution
+  ✓ default locale is ru
+  ✓ t() resolves a simple key in ru
+  ✓ t() resolves a nested key in ru
+  ✓ t() falls back to ru for key missing in current locale
+[i18n] missing key: nonexistent.deep.key locale: ru
+  ✓ t() returns key string for unknown key
+
+[Suite 3] Interpolation
+  ✓ t() interpolates {param} in en
+  ✓ t() interpolates multiple params
+  ✓ t() leaves unfilled {placeholders} as-is
+
+[Suite 4] appSetLocale()
+  ✓ appSetLocale('en') switches locale
+  ✓ appSetLocale('he') switches locale
+  ✓ appSetLocale() persists to localStorage
+  ✓ appSetLocale() rejects unknown locale, falls back to ru
+
+[Suite 5] RTL / dir attribute
+  ✓ appSetLocale('he') sets dir=rtl on documentElement
+  ✓ appSetLocale('ru') sets dir=ltr on documentElement
+  ✓ appSetLocale('en') sets dir=ltr on documentElement
+  ✓ appSetLocale('he') sets lang=he on documentElement
+
+[Suite 6] Critical toast key presence
+  ✓ key "toast.ankiAvailable" resolves in all locales
+  ✓ key "toast.ankiUnavailable" resolves in all locales
+  ✓ key "toast.ankiPreviewFailed" resolves in all locales
+  ✓ key "toast.ankiExported" resolves in all locales
+  ✓ key "toast.ankiExportFailed" resolves in all locales
+  ✓ key "toast.openLibraryFirst" resolves in all locales
+  ✓ key "toast.audioBatchUnavailable" resolves in all locales
+  ✓ key "toast.selectRowFirst" resolves in all locales
+  ✓ key "toast.copied" resolves in all locales
+  ✓ key "toast.copyFailed" resolves in all locales
+  ✓ key "toast.ankiModalUnavailable" resolves in all locales
+  ✓ key "toast.noTextSelected" resolves in all locales
+  ✓ key "toast.generatingDocx" resolves in all locales
+  ✓ key "toast.docxDownloaded" resolves in all locales
+  ✓ key "toast.docxFailed" resolves in all locales
+  ✓ key "toast.srsUnavailable" resolves in all locales
+  ✓ key "toast.srsAdded" resolves in all locales
+  ✓ key "toast.srsFailed" resolves in all locales
+  ✓ key "toast.srsReviewUnavailable" resolves in all locales
+  ✓ key "toast.srsReviewSaved" resolves in all locales
+  ✓ key "toast.srsReviewFailed" resolves in all locales
+  ✓ key "toast.srsSessionFailed" resolves in all locales
+  ✓ key "toast.srsModeChangeFailed" resolves in all locales
+  ✓ key "toast.srsAudioUnavailable" resolves in all locales
+  ✓ key "toast.srsTypeAnswerFirst" resolves in all locales
+  ✓ key "toast.srsAnswerCheckFailed" resolves in all locales
+  ✓ key "confirm.clearText" resolves in all locales
+  ✓ key "confirm.resetAllEdits" resolves in all locales
+
+[Suite 7] Premium completion key coverage
+  ✓ premium key "classic.statusSummary" resolves in all locales
+  ✓ premium key "classic.statTtsLabel" resolves in all locales
+  ✓ premium key "classic.statTtsSub" resolves in all locales
+  ✓ premium key "classic.statTtsCostInfo" resolves in all locales
+  ✓ premium key "classic.statTtsQuotaInfo" resolves in all locales
+  ✓ premium key "classic.statAiLabel" resolves in all locales
+  ✓ premium key "classic.statAiSub" resolves in all locales
+  ✓ premium key "classic.statConsoleLabel" resolves in all locales
+  ✓ premium key "classic.statConsoleBtn" resolves in all locales
+  ✓ premium key "classic.statResetIn" resolves in all locales
+  ✓ premium key "classic.statResetSoon" resolves in all locales
+  ✓ premium key "classic.statResetUnknown" resolves in all locales
+  ✓ premium key "classic.rebuildTable" resolves in all locales
+  ✓ premium key "classic.updateTable" resolves in all locales
+  ✓ premium key "classic.reSpeak" resolves in all locales
+  ✓ premium key "classic.speakAgain" resolves in all locales
+  ✓ premium key "classic.primaryHintEmpty" resolves in all locales
+  ✓ premium key "classic.primaryHintStale" resolves in all locales
+  ✓ premium key "classic.primaryHintNoTable" resolves in all locales
+  ✓ premium key "classic.primaryHintReady" resolves in all locales
+  ✓ premium key "classic.sourceLocal" resolves in all locales
+  ✓ premium key "classic.sourceLibrary" resolves in all locales
+  ✓ premium key "classic.sourceCache" resolves in all locales
+  ✓ premium key "classic.chipFreshnessNone" resolves in all locales
+  ✓ premium key "classic.chipFreshnessStale" resolves in all locales
+  ✓ premium key "classic.chipFreshnessRestored" resolves in all locales
+  ✓ premium key "classic.chipFreshnessCurrent" resolves in all locales
+  ✓ premium key "classic.chipLibraryNone" resolves in all locales
+  ✓ premium key "classic.chipLibrarySaved" resolves in all locales
+  ✓ premium key "classic.chipLibraryNeedSave" resolves in all locales
+  ✓ premium key "classic.chipExportUnavailable" resolves in all locales
+  ✓ premium key "classic.chipExportAfterRebuild" resolves in all locales
+  ✓ premium key "classic.chipExportReady" resolves in all locales
+  ✓ premium key "classic.chipExportAfterSave" resolves in all locales
+  ✓ premium key "classic.resultSummaryNoTable" resolves in all locales
+  ✓ premium key "classic.resultSummaryStale" resolves in all locales
+  ✓ premium key "classic.resultSummaryExportReady" resolves in all locales
+  ✓ premium key "classic.resultSummarySaved" resolves in all locales
+  ✓ premium key "classic.resultSummaryUnsaved" resolves in all locales
+  ✓ premium key "classic.downloadAudio" resolves in all locales
+  ✓ premium key "classic.statusDraft" resolves in all locales
+  ✓ premium key "classic.statusSaved" resolves in all locales
+  ✓ premium key "classic.noTitle" resolves in all locales
+  ✓ premium key "classic.tableBuilt" resolves in all locales
+  ✓ premium key "classic.tableStaleSub" resolves in all locales
+  ✓ premium key "classic.providerLabel" resolves in all locales
+  ✓ premium key "classic.niqqudLabel" resolves in all locales
+  ✓ premium key "classic.openedFromDashboard" resolves in all locales
+  ✓ premium key "classic.openedFromLibrary" resolves in all locales
+  ✓ premium key "classic.modeResume" resolves in all locales
+  ✓ premium key "classic.audioNiqqudToHebrew" resolves in all locales
+  ✓ premium key "classic.sourceLabel" resolves in all locales
+  ✓ premium key "table.colTranslitLat" resolves in all locales
+  ✓ premium key "table.colTranslitRu" resolves in all locales
+  ✓ premium key "table.colTranslitSbl" resolves in all locales
+  ✓ premium key "library.level" resolves in all locales
+  ✓ premium key "library.progressRow" resolves in all locales
+  ✓ premium key "library.source" resolves in all locales
+  ✓ premium key "library.lastOpened" resolves in all locales
+  ✓ premium key "library.created" resolves in all locales
+  ✓ premium key "library.open" resolves in all locales
+  ✓ premium key "library.resume" resolves in all locales
+  ✓ premium key "library.edit" resolves in all locales
+  ✓ premium key "library.archive" resolves in all locales
+  ✓ premium key "library.delete" resolves in all locales
+  ✓ premium key "dashboard.pin" resolves in all locales
+  ✓ premium key "dashboard.unpin" resolves in all locales
+  ✓ premium key "dashboard.badgeSeen" resolves in all locales
+  ✓ premium key "dashboard.badgeLast" resolves in all locales
+  ✓ premium key "dashboard.badgeArchived" resolves in all locales
+  ✓ premium key "dashboard.levelChip" resolves in all locales
+  ✓ premium key "dashboard.shownOf" resolves in all locales
+  ✓ premium key "dashboard.allTextsScope" resolves in all locales
+  ✓ premium key "dashboard.loadingRows" resolves in all locales
+  ✓ premium key "dashboard.noActivity" resolves in all locales
+  ✓ premium key "dashboard.source" resolves in all locales
+  ✓ premium key "dashboard.continue" resolves in all locales
+  ✓ premium key "dashboard.open" resolves in all locales
+  ✓ premium key "dashboard.edit" resolves in all locales
+  ✓ premium key "diag.online" resolves in all locales
+  ✓ premium key "diag.unavailable" resolves in all locales
+  ✓ premium key "diag.ready" resolves in all locales
+  ✓ premium key "diag.unloadedIdle" resolves in all locales
+  ✓ premium key "diag.configured" resolves in all locales
+  ✓ premium key "diag.notConfigured" resolves in all locales
+  ✓ premium key "diag.lastRequest" resolves in all locales
+  ✓ premium key "diag.quotaChars" resolves in all locales
+  ✓ premium key "diag.used" resolves in all locales
+  ✓ premium key "diag.quota" resolves in all locales
+  ✓ premium key "diag.nearLimit" resolves in all locales
+  ✓ premium key "diag.periodFrom" resolves in all locales
+  ✓ premium key "diag.textsActive" resolves in all locales
+  ✓ premium key "diag.sentences" resolves in all locales
+  ✓ premium key "diag.cacheCard" resolves in all locales
+  ✓ premium key "diag.libCard" resolves in all locales
+  ✓ premium key "diag.versionsCard" resolves in all locales
+  ✓ premium key "diag.updated" resolves in all locales
+  ✓ premium key "time.hourMin" resolves in all locales
+  ✓ premium key "time.minSec" resolves in all locales
+  ✓ premium key "time.sec" resolves in all locales
+  ✓ premium key "time.min" resolves in all locales
+  ✓ classic.statTtsQuotaInfo interpolates {used} and {percent}
+  ✓ classic.statResetIn interpolates {duration}
+  ✓ time.hourMin interpolates {h} and {m}
+  ✓ dashboard.shownOf interpolates {shown}, {total}, {scope}
+
+[Suite 8] PATCH-17 key coverage
+  ✓ patch17 key "classic.chipTextStale" resolves in all locales
+  ✓ patch17 key "classic.chipTextReady" resolves in all locales
+  ✓ patch17 key "classic.chipResultStale" resolves in all locales
+  ✓ patch17 key "classic.chipResultRestored" resolves in all locales
+  ✓ patch17 key "classic.chipResultSaved" resolves in all locales
+  ✓ patch17 key "classic.chipResultDraft" resolves in all locales
+  ✓ patch17 key "classic.statAiTodayEmpty" resolves in all locales
+  ✓ patch17 key "classic.statAiToday" resolves in all locales
+  ✓ patch17 key "classic.statAiTodayLow" resolves in all locales
+  ✓ patch17 key "classic.ttsStatusLabel" resolves in all locales
+  ✓ patch17 key "classic.tableStatusLabel" resolves in all locales
+  ✓ patch17 key "classic.keyUploaded" resolves in all locales
+  ✓ patch17 key "classic.keyFromEnv" resolves in all locales
+  ✓ patch17 key "classic.keySet" resolves in all locales
+  ✓ patch17 key "library.loaded" resolves in all locales
+  ✓ patch17 key "textMeta.title" resolves in all locales
+  ✓ patch17 key "textMeta.close" resolves in all locales
+  ✓ patch17 key "textMeta.labelTopic" resolves in all locales
+  ✓ patch17 key "textMeta.tagsHint" resolves in all locales
+  ✓ patch17 key "dashboard.summaryLine" resolves in all locales
+  ✓ patch17 key "dashboard.stats7days" resolves in all locales
+  ✓ patch17 key "dashboard.statsAll" resolves in all locales
+  ✓ patch17 key "dashboard.metricsNA" resolves in all locales
+  ✓ patch17 key "dashboard.noPinned" resolves in all locales
+  ✓ patch17 key "dashboard.noRecent" resolves in all locales
+  ✓ patch17 key "dashboard.goToRow" resolves in all locales
+  ✓ patch17 key "dashboard.playRow" resolves in all locales
+  ✓ patch17 key "dashboard.rowMeta" resolves in all locales
+  ✓ patch17 key "dashboard.levelLabel" resolves in all locales
+  ✓ patch17 key "dashboard.topicLabel" resolves in all locales
+  ✓ classic.statAiToday interpolates {used} and {limit}
+  ✓ library.loaded interpolates {count} and {date}
+  ✓ dashboard.summaryLine interpolates {pinned}, {recent}, {activity}
+  ✓ dashboard.stats7days interpolates all params
+  ✓ dashboard.rowMeta interpolates {count} and {date}
+
+[Suite 9] P0-1 / P1-1 new key coverage
+  ✓ P1-1 key "classic.exportHint.noTable" resolves (not passthrough) in all locales
+  ✓ P1-1 key "classic.exportHint.stale" resolves (not passthrough) in all locales
+  ✓ P1-1 key "classic.exportHint.saveToLibrary" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.queueReady" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.direction" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.mode" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.start" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.dueToday" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.learning" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.review" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.new" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.help1" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.help2" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.cardDirection" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.trainerMode" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.correct" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.differs" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.expected" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.typeAnswer" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.check" resolves (not passthrough) in all locales
+  ✓ P1-1 key "srs.trainer.replay" resolves (not passthrough) in all locales
+  ✓ P1-1 key "ide.tabNotes" resolves (not passthrough) in all locales
+  ✓ P1-1 key "ide.tabSrs" resolves (not passthrough) in all locales
+  ✓ P1-1 key "ide.tabAudio" resolves (not passthrough) in all locales
+  ✓ P1-1 key "ide.tabExport" resolves (not passthrough) in all locales
+  ✓ P1-1 key "multitab.title" resolves (not passthrough) in all locales
+  ✓ P1-1 key "multitab.body" resolves (not passthrough) in all locales
+  ✓ P1-1 key "multitab.useHere" resolves (not passthrough) in all locales
+  ✓ P1-1 key "multitab.reload" resolves (not passthrough) in all locales
+  ✓ P1-1 key "multitab.takingOver" resolves (not passthrough) in all locales
+  ✓ P1-1 key "db.error.ownedByTab" resolves (not passthrough) in all locales
+  ✓ P1-1 key "db.error.unavailable" resolves (not passthrough) in all locales
+  ✓ P1-1 key "library.error.title" resolves (not passthrough) in all locales
+  ✓ P1-1 key "library.error.status" resolves (not passthrough) in all locales
+  ✓ P1-1 key "library.error.retry" resolves (not passthrough) in all locales
+  ✓ P1-1 key "library.error.backup" resolves (not passthrough) in all locales
+  ✓ P1-1 key "library.error.ownedByTab" resolves (not passthrough) in all locales
+
+[Suite 10] Locale cache-bust version lock (all HTML shells ?v= vs public/sw.js precache)
+  ✓ locale <script> tags in every HTML shell share one ?v= number
+  ✓ locale files match the committed cache-bust lock (content changed => ?v= must bump)
+
+[Suite 10b] Page version stamp (public/index.html window.APP_VERSION vs public/sw.js CACHE_VERSION)
+  ✓ window.APP_VERSION in index.html matches CACHE_VERSION in sw.js
+
+Results: 233 passed, 0 failed

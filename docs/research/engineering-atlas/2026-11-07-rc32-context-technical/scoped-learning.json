@@ -1,0 +1,137 @@
+{
+  "schema": "atlas97001.scoped-learning-runtime-proof.1",
+  "revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "publication": false,
+  "find_questions": 456,
+  "whole_row_lexical": 78,
+  "section_term_targets": 33,
+  "unique_term_senses": [
+    "at1:a97001:acoustic-properties#technical",
+    "at1:a97001:aluminium#mechanics",
+    "at1:a97001:elasticity#mechanics",
+    "at1:a97001:equilibrium#mechanics",
+    "at1:a97001:equilibrium#thermodynamics",
+    "at1:a97001:fiber-reinforcement#technical",
+    "at1:a97001:free-body-diagram#technical",
+    "at1:a97001:optical-properties#technical",
+    "at1:a97001:powder-metallurgy#technical",
+    "at1:a97001:quartz#technical",
+    "at1:a97001:strain#mechanics",
+    "at1:a97001:surface#mechanics",
+    "at1:a97001:temperature#mechanics"
+  ],
+  "context_rows": 102,
+  "per_section": {
+    "s00-front": {
+      "lexical_rows": 0,
+      "term_targets": 3,
+      "find_questions": 0
+    },
+    "s01-units": {
+      "lexical_rows": 0,
+      "term_targets": 1,
+      "find_questions": 0
+    },
+    "s02-statics-basics": {
+      "lexical_rows": 0,
+      "term_targets": 3,
+      "find_questions": 33
+    },
+    "s03-concurrent-forces": {
+      "lexical_rows": 0,
+      "term_targets": 2,
+      "find_questions": 14
+    },
+    "s04-parallel-forces": {
+      "lexical_rows": 0,
+      "term_targets": 1,
+      "find_questions": 11
+    },
+    "s05-planar-forces": {
+      "lexical_rows": 0,
+      "term_targets": 2,
+      "find_questions": 3
+    },
+    "s06-trusses": {
+      "lexical_rows": 0,
+      "term_targets": 1,
+      "find_questions": 10
+    },
+    "s07-centroid": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 8
+    },
+    "s08-friction": {
+      "lexical_rows": 0,
+      "term_targets": 1,
+      "find_questions": 7
+    },
+    "s09-linear-motion": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 14
+    },
+    "s10-projectile-motion": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 1
+    },
+    "s11-circular-motion": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 3
+    },
+    "s12-sections": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 7
+    },
+    "s13-dimensions": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 30
+    },
+    "s14-industrial-symbols": {
+      "lexical_rows": 0,
+      "term_targets": 0,
+      "find_questions": 15
+    },
+    "s15-materials-basics": {
+      "lexical_rows": 78,
+      "term_targets": 4,
+      "find_questions": 51
+    },
+    "s16-mechanical-properties": {
+      "lexical_rows": 0,
+      "term_targets": 5,
+      "find_questions": 84
+    },
+    "s17-steels": {
+      "lexical_rows": 0,
+      "term_targets": 1,
+      "find_questions": 136
+    },
+    "s18-powder-metallurgy": {
+      "lexical_rows": 0,
+      "term_targets": 2,
+      "find_questions": 14
+    },
+    "s19-aluminium": {
+      "lexical_rows": 0,
+      "term_targets": 3,
+      "find_questions": 13
+    },
+    "s20-composites": {
+      "lexical_rows": 0,
+      "term_targets": 4,
+      "find_questions": 2
+    }
+  },
+  "source_only_contexts": 102,
+  "graded_due_cases": 33,
+  "held_due_cases": 492,
+  "states_mutated": false,
+  "errors": [],
+  "status": "passed"
+}

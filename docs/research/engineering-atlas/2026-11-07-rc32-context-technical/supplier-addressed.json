@@ -1,0 +1,160 @@
+{
+  "status": "offline_addressed_adapter_and_loader_passed",
+  "original_gate_failures_preserved": 264,
+  "addressed_rows_passed": 264,
+  "exact_guard_negative_tests": 1848,
+  "source_column_lookups_checked": 3798,
+  "sections_loaded": 21,
+  "sections": [
+    {
+      "section": "s00-front",
+      "accepted": 66,
+      "missing": 3,
+      "complete": false
+    },
+    {
+      "section": "s01-units",
+      "accepted": 46,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s02-statics-basics",
+      "accepted": 108,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "accepted": 71,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s04-parallel-forces",
+      "accepted": 101,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s05-planar-forces",
+      "accepted": 32,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s06-trusses",
+      "accepted": 66,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s07-centroid",
+      "accepted": 41,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s08-friction",
+      "accepted": 48,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s09-linear-motion",
+      "accepted": 117,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s10-projectile-motion",
+      "accepted": 68,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s11-circular-motion",
+      "accepted": 40,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s12-sections",
+      "accepted": 28,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s13-dimensions",
+      "accepted": 70,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "accepted": 111,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s15-materials-basics",
+      "accepted": 207,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "accepted": 342,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s17-steels",
+      "accepted": 666,
+      "missing": 1,
+      "complete": false
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "accepted": 22,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s19-aluminium",
+      "accepted": 97,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "section": "s20-composites",
+      "accepted": 15,
+      "missing": 0,
+      "complete": true
+    }
+  ],
+  "additional_rejections": [
+    {
+      "test": "wrong manifest pin",
+      "result": "rejected"
+    },
+    {
+      "test": "wrong PDF binding",
+      "result": "rejected"
+    },
+    {
+      "test": "corrupt layer bytes",
+      "result": "rejected"
+    },
+    {
+      "test": "wrong source overlay binding",
+      "result": "rejected"
+    }
+  ],
+  "wrongPurpose": true,
+  "badHash": true,
+  "badMap": true,
+  "production_changed": false,
+  "training_flags_changed": false,
+  "browser_ui_tested": false
+}

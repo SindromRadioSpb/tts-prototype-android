@@ -1,0 +1,208 @@
+{
+  "scope": "local actual server, fresh synthetic browser and DB; GET/HEAD only",
+  "checks": [
+    "HE and niqqud cards: expansions, both p9 quotes, table parts, long sections, p203, uncertain MWE; no write controls",
+    "synthetic personal correction survives full reload and candidate revalidation",
+    "original edition context and pin still work after corpus switch",
+    "corrupted pinned manifest after reopen blocks prepared context despite prior cache"
+  ],
+  "cards": [
+    {
+      "id": "a97001rc32:p3:b019",
+      "column": "he",
+      "kind": "expanded_abbreviation",
+      "gloss": "нержавеющие стали"
+    },
+    {
+      "id": "a97001rc32:p3:b019",
+      "column": "niqqud",
+      "kind": "expanded_abbreviation",
+      "gloss": "стали"
+    },
+    {
+      "id": "a97001rc32:p53:b002",
+      "column": "he",
+      "kind": "expanded_unit_abbreviation",
+      "gloss": "в миллиметрах"
+    },
+    {
+      "id": "a97001rc32:p53:b002",
+      "column": "niqqud",
+      "kind": "expanded_unit_abbreviation",
+      "gloss": "в миллиметрах"
+    },
+    {
+      "id": "a97001rc32:p11:b002",
+      "column": "he",
+      "kind": "expanded_singular_plural_alternatives",
+      "gloss": "силы · сил"
+    },
+    {
+      "id": "a97001rc32:p11:b002",
+      "column": "niqqud",
+      "kind": "expanded_singular_plural_alternatives",
+      "gloss": "силы"
+    },
+    {
+      "id": "a97001rc32:p1:b003",
+      "column": "he",
+      "kind": "acronym_tokenization",
+      "gloss": "автоматизированное проектирование и производство"
+    },
+    {
+      "id": "a97001rc32:p1:b003",
+      "column": "niqqud",
+      "kind": "acronym_tokenization",
+      "gloss": "автоматизированное проектирование и производство"
+    },
+    {
+      "id": "a97001rc32:p9:b004",
+      "column": "he",
+      "kind": "tokenizer_punctuation",
+      "gloss": "силы"
+    },
+    {
+      "id": "a97001rc32:p9:b004",
+      "column": "niqqud",
+      "kind": "tokenizer_punctuation",
+      "gloss": "открывающая кавычка"
+    },
+    {
+      "id": "a97001rc32:p9:b005",
+      "column": "he",
+      "kind": "tokenizer_punctuation",
+      "gloss": "силы"
+    },
+    {
+      "id": "a97001rc32:p9:b005",
+      "column": "niqqud",
+      "kind": "tokenizer_punctuation",
+      "gloss": "открывающая кавычка"
+    },
+    {
+      "id": "a97001rc32:p1:b001",
+      "column": "he",
+      "kind": "ordinary-or-long",
+      "gloss": "справочник формул"
+    },
+    {
+      "id": "a97001rc32:p1:b001",
+      "column": "niqqud",
+      "kind": "ordinary-or-long",
+      "gloss": "справочник формул"
+    },
+    {
+      "id": "a97001rc32:p4:b001",
+      "column": "he",
+      "kind": "ordinary-or-long",
+      "gloss": "введение"
+    },
+    {
+      "id": "a97001rc32:p4:b001",
+      "column": "niqqud",
+      "kind": "ordinary-or-long",
+      "gloss": "введение"
+    },
+    {
+      "id": "a97001rc32:p154:b001",
+      "column": "he",
+      "kind": "ordinary-or-long",
+      "gloss": "стали"
+    },
+    {
+      "id": "a97001rc32:p154:b001",
+      "column": "niqqud",
+      "kind": "ordinary-or-long",
+      "gloss": "стали"
+    },
+    {
+      "id": "a97001rc32:p194:b001",
+      "column": "he",
+      "kind": "ordinary-or-long",
+      "gloss": "алюминий"
+    },
+    {
+      "id": "a97001rc32:p194:b001",
+      "column": "niqqud",
+      "kind": "ordinary-or-long",
+      "gloss": "алюминий"
+    },
+    {
+      "id": "a97001rc32:p203:b001",
+      "column": "he",
+      "kind": "ordinary-or-long",
+      "gloss": "материалы"
+    },
+    {
+      "id": "a97001rc32:p203:b001",
+      "column": "niqqud",
+      "kind": "ordinary-or-long",
+      "gloss": "материалы"
+    },
+    {
+      "id": "a97001rc32:p6:table01:layout-cell:0:1",
+      "column": "he",
+      "kind": "table-parts",
+      "gloss": "вес"
+    },
+    {
+      "id": "a97001rc32:p6:table01:layout-cell:0:1",
+      "column": "niqqud",
+      "kind": "table-parts",
+      "gloss": "вес"
+    },
+    {
+      "id": "a97001rc32:p12:b001",
+      "column": "he",
+      "kind": "explicit-expanded-example",
+      "gloss": "диаграмма свободного тела"
+    },
+    {
+      "id": "a97001rc32:p12:b001",
+      "column": "niqqud",
+      "kind": "explicit-expanded-example",
+      "gloss": "диаграмма"
+    },
+    {
+      "id": "a97001rc32:p12:b009",
+      "column": "he",
+      "kind": "explicit-expanded-example",
+      "gloss": "сила · наклонная · силы · наклонные"
+    },
+    {
+      "id": "a97001rc32:p12:b009",
+      "column": "niqqud",
+      "kind": "explicit-expanded-example",
+      "gloss": "сила"
+    },
+    {
+      "id": "a97001rc32:p203:b001",
+      "column": "he",
+      "kind": "source-hold-p203",
+      "gloss": "материалы"
+    },
+    {
+      "id": "a97001rc32:p203:b001",
+      "column": "niqqud",
+      "kind": "source-hold-p203",
+      "gloss": "материалы"
+    },
+    {
+      "id": "a97001rc32:p136:b002",
+      "column": "he",
+      "kind": "uncertain-mwe",
+      "gloss": "испытание"
+    },
+    {
+      "id": "a97001rc32:p136:b002",
+      "column": "niqqud",
+      "kind": "uncertain-mwe",
+      "gloss": "и поддаётся (по смыслу)"
+    }
+  ],
+  "errors": [],
+  "origin": "http://127.0.0.1:59783",
+  "stage": "corrupt-manifest",
+  "learner_state_unchanged": true,
+  "status": "passed"
+}

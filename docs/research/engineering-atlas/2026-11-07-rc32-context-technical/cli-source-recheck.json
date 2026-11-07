@@ -1,0 +1,160 @@
+{
+  "operation": "import",
+  "dry_run": true,
+  "context_pin": "2f782372d533cbbe47fff439683f84d7fbb23bf44edc5486629f0dd1cb3b0dfd",
+  "destination": "E:\\projects\\tts-prototype-android\\.worktrees\\atlas-rc32-context\\.tmp\\rc32-import-check-final",
+  "source_files": 1201,
+  "sections": [
+    {
+      "id": "s00-front",
+      "expected": 69,
+      "accepted": 66,
+      "missing": 3,
+      "complete": false
+    },
+    {
+      "id": "s01-units",
+      "expected": 46,
+      "accepted": 46,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s02-statics-basics",
+      "expected": 108,
+      "accepted": 108,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s03-concurrent-forces",
+      "expected": 71,
+      "accepted": 71,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s04-parallel-forces",
+      "expected": 101,
+      "accepted": 101,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s05-planar-forces",
+      "expected": 32,
+      "accepted": 32,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s06-trusses",
+      "expected": 66,
+      "accepted": 66,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s07-centroid",
+      "expected": 41,
+      "accepted": 41,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s08-friction",
+      "expected": 48,
+      "accepted": 48,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s09-linear-motion",
+      "expected": 117,
+      "accepted": 117,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s10-projectile-motion",
+      "expected": 68,
+      "accepted": 68,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s11-circular-motion",
+      "expected": 40,
+      "accepted": 40,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s12-sections",
+      "expected": 28,
+      "accepted": 28,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s13-dimensions",
+      "expected": 70,
+      "accepted": 70,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s14-industrial-symbols",
+      "expected": 111,
+      "accepted": 111,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s15-materials-basics",
+      "expected": 207,
+      "accepted": 207,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s16-mechanical-properties",
+      "expected": 342,
+      "accepted": 342,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s17-steels",
+      "expected": 667,
+      "accepted": 666,
+      "missing": 1,
+      "complete": false
+    },
+    {
+      "id": "s18-powder-metallurgy",
+      "expected": 22,
+      "accepted": 22,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s19-aluminium",
+      "expected": 97,
+      "accepted": 97,
+      "missing": 0,
+      "complete": true
+    },
+    {
+      "id": "s20-composites",
+      "expected": 15,
+      "accepted": 15,
+      "missing": 0,
+      "complete": true
+    }
+  ],
+  "expected": 2366,
+  "accepted": 2362,
+  "scientific_acceptance": false,
+  "production_changed": false
+}

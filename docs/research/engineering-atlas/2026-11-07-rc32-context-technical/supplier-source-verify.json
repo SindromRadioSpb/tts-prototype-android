@@ -1,0 +1,1288 @@
+{
+  "status": "structural_checks_passed_addressed_adapter_test_is_separate",
+  "sha256_files_verified": 103,
+  "sections": [
+    {
+      "section": "s00-front",
+      "answers": 66,
+      "expected": 69,
+      "complete": false,
+      "missing": [
+        {
+          "row_id": "a97001rc32:p1:b005",
+          "order_index": 4
+        },
+        {
+          "row_id": "a97001rc32:p1:audit-footer:s01",
+          "order_index": 51
+        },
+        {
+          "row_id": "a97001rc32:p1:audit-footer:s02",
+          "order_index": 52
+        }
+      ],
+      "alignment_gate_pending": 8
+    },
+    {
+      "section": "s01-units",
+      "answers": 46,
+      "expected": 46,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 0
+    },
+    {
+      "section": "s02-statics-basics",
+      "answers": 108,
+      "expected": 108,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 42
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "answers": 71,
+      "expected": 71,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 20
+    },
+    {
+      "section": "s04-parallel-forces",
+      "answers": 101,
+      "expected": 101,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 16
+    },
+    {
+      "section": "s05-planar-forces",
+      "answers": 32,
+      "expected": 32,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 1
+    },
+    {
+      "section": "s06-trusses",
+      "answers": 66,
+      "expected": 66,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 19
+    },
+    {
+      "section": "s07-centroid",
+      "answers": 41,
+      "expected": 41,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 6
+    },
+    {
+      "section": "s08-friction",
+      "answers": 48,
+      "expected": 48,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 0
+    },
+    {
+      "section": "s09-linear-motion",
+      "answers": 117,
+      "expected": 117,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 0
+    },
+    {
+      "section": "s10-projectile-motion",
+      "answers": 68,
+      "expected": 68,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 7
+    },
+    {
+      "section": "s11-circular-motion",
+      "answers": 40,
+      "expected": 40,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 10
+    },
+    {
+      "section": "s12-sections",
+      "answers": 28,
+      "expected": 28,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 0
+    },
+    {
+      "section": "s13-dimensions",
+      "answers": 70,
+      "expected": 70,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 0
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "answers": 111,
+      "expected": 111,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 4
+    },
+    {
+      "section": "s15-materials-basics",
+      "answers": 207,
+      "expected": 207,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 15
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "answers": 342,
+      "expected": 342,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 66
+    },
+    {
+      "section": "s17-steels",
+      "answers": 666,
+      "expected": 667,
+      "complete": false,
+      "missing": [
+        {
+          "row_id": "a97001rc32:p173:t-phase-points:cell:undivided-final-col-3",
+          "order_index": 1305
+        }
+      ],
+      "alignment_gate_pending": 31
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "answers": 22,
+      "expected": 22,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 1
+    },
+    {
+      "section": "s19-aluminium",
+      "answers": 97,
+      "expected": 97,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 12
+    },
+    {
+      "section": "s20-composites",
+      "answers": 15,
+      "expected": 15,
+      "complete": true,
+      "missing": [],
+      "alignment_gate_pending": 6
+    }
+  ],
+  "negative_tests": [
+    {
+      "section": "s00-front",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s00-front",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key"
+      ]
+    },
+    {
+      "section": "s00-front",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss"
+      ]
+    },
+    {
+      "section": "s00-front",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss"
+      ]
+    },
+    {
+      "section": "s00-front",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss"
+      ]
+    },
+    {
+      "section": "s00-front",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s01-units",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s01-units",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s01-units",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s01-units",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s01-units",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s01-units",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s02-statics-basics",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s02-statics-basics",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s02-statics-basics",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s02-statics-basics",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s02-statics-basics",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s02-statics-basics",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s04-parallel-forces",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s04-parallel-forces",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s04-parallel-forces",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s04-parallel-forces",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s04-parallel-forces",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s04-parallel-forces",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s05-planar-forces",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s05-planar-forces",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s05-planar-forces",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s05-planar-forces",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s05-planar-forces",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s05-planar-forces",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s06-trusses",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s06-trusses",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s06-trusses",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s06-trusses",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s06-trusses",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s06-trusses",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s07-centroid",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s07-centroid",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s07-centroid",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s07-centroid",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s07-centroid",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s07-centroid",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s08-friction",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s08-friction",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s08-friction",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s08-friction",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s08-friction",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s08-friction",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s09-linear-motion",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s09-linear-motion",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s09-linear-motion",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s09-linear-motion",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s09-linear-motion",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s09-linear-motion",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s10-projectile-motion",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s10-projectile-motion",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s10-projectile-motion",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s10-projectile-motion",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s10-projectile-motion",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s10-projectile-motion",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s11-circular-motion",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s11-circular-motion",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s11-circular-motion",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s11-circular-motion",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s11-circular-motion",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s11-circular-motion",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s12-sections",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s12-sections",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s12-sections",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s12-sections",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s12-sections",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s12-sections",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s13-dimensions",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s13-dimensions",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s13-dimensions",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s13-dimensions",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s13-dimensions",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s13-dimensions",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s15-materials-basics",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s17-steels",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s17-steels",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key"
+      ]
+    },
+    {
+      "section": "s17-steels",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss"
+      ]
+    },
+    {
+      "section": "s17-steels",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss"
+      ]
+    },
+    {
+      "section": "s17-steels",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss"
+      ]
+    },
+    {
+      "section": "s17-steels",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s19-aluminium",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s20-composites",
+      "test": "wrong-source-revision",
+      "result": "rejected",
+      "codes": [
+        "source_revision"
+      ]
+    },
+    {
+      "section": "s20-composites",
+      "test": "wrong-key",
+      "result": "rejected",
+      "codes": [
+        "row_identity_key",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s20-composites",
+      "test": "manual-is-not-ai",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s20-composites",
+      "test": "manual-string-rejected",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s20-composites",
+      "test": "uncertainty-needs-reason",
+      "result": "rejected",
+      "codes": [
+        "russian_gloss",
+        "incomplete"
+      ]
+    },
+    {
+      "section": "s20-composites",
+      "test": "missing-row-no-complete-certificate",
+      "result": "rejected",
+      "codes": [
+        "incomplete"
+      ]
+    }
+  ],
+  "source_export": {
+    "all_bound_files_verified": 1201,
+    "source_unchanged": true
+  },
+  "alignment_gate_pending": 264,
+  "independent_linguistic_acceptance": false,
+  "scientific_acceptance": false,
+  "browser_integration_tested": false,
+  "training_flags_changed": false,
+  "production_changed": false
+}

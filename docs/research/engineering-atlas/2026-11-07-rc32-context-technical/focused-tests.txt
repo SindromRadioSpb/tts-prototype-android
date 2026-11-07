@@ -1,0 +1,604 @@
+TAP version 13
+# Subtest: gloss rows: one per Hebrew block, in reading order, with the block id as identity
+ok 1 - gloss rows: one per Hebrew block, in reading order, with the block id as identity
+  ---
+  duration_ms: 4.5037
+  type: 'test'
+  ...
+# Subtest: a layer keyed by the export is accepted, a stale or wrong-length row is rejected, and the card finds the word
+ok 2 - a layer keyed by the export is accepted, a stale or wrong-length row is rejected, and the card finds the word
+  ---
+  duration_ms: 10.36
+  type: 'test'
+  ...
+# Subtest: context covers blocks, table cells, titles and captions with a visible card and preserved legacy order
+ok 3 - context covers blocks, table cells, titles and captions with a visible card and preserved legacy order
+  ---
+  duration_ms: 19.392
+  type: 'test'
+  ...
+# Subtest: strict complete contract accepts a coherent fixture and rejects every reported corrupt form
+ok 4 - strict complete contract accepts a coherent fixture and rejects every reported corrupt form
+  ---
+  duration_ms: 15.3193
+  type: 'test'
+  ...
+# Subtest: partial is explicit and cannot claim completeness; uncertain gloss requires its reason
+ok 5 - partial is explicit and cannot claim completeness; uncertain gloss requires its reason
+  ---
+  duration_ms: 2.4975
+  type: 'test'
+  ...
+# Subtest: prepared input cannot promote a malformed manual flag, including on MWEs
+ok 6 - prepared input cannot promote a malformed manual flag, including on MWEs
+  ---
+  duration_ms: 8.2999
+  type: 'test'
+  ...
+# Subtest: uncertain MWE requires a typed reason and reaches every covered word without hiding word uncertainty
+ok 7 - uncertain MWE requires a typed reason and reaches every covered word without hiding word uncertainty
+  ---
+  duration_ms: 2.46
+  type: 'test'
+  ...
+# Subtest: source/niqqud drift cannot be described as complete; reviewed orthography keeps its word order
+ok 8 - source/niqqud drift cannot be described as complete; reviewed orthography keeps its word order
+  ---
+  duration_ms: 1.1919
+  type: 'test'
+  ...
+# Subtest: a string manual flag in imported or cached data cannot bypass the prepared-layer gate
+ok 9 - a string manual flag in imported or cached data cannot bypass the prepared-layer gate
+  ---
+  duration_ms: 6.5253
+  type: 'test'
+  ...
+# Subtest: actual atlas card top displays MWE uncertainty at each covered word
+ok 10 - actual atlas card top displays MWE uncertainty at each covered word
+  ---
+  duration_ms: 24.4151
+  type: 'test'
+  ...
+# Subtest: source limits and editor evidence participate in revision; old text keys stay stable
+ok 11 - source limits and editor evidence participate in revision; old text keys stay stable
+  ---
+  duration_ms: 2.0997
+  type: 'test'
+  ...
+# Subtest: CLI rejects corrupt layer without writing and accepts an explicit valid subset only with its flag
+ok 12 - CLI rejects corrupt layer without writing and accepts an explicit valid subset only with its flag
+  ---
+  duration_ms: 1688.6662
+  type: 'test'
+  ...
+# Subtest: retired source example is replaced while due status and original state remain unchanged
+ok 13 - retired source example is replaced while due status and original state remain unchanged
+  ---
+  duration_ms: 2.2848
+  type: 'test'
+  ...
+# Subtest: cached AI is gated by current contract; manual correction survives a later accepted import
+ok 14 - cached AI is gated by current contract; manual correction survives a later accepted import
+  ---
+  duration_ms: 3.8504
+  type: 'test'
+  ...
+# Subtest: training dialog focuses its first action after it is mounted, so Escape reaches the dialog
+ok 15 - training dialog focuses its first action after it is mounted, so Escape reaches the dialog
+  ---
+  duration_ms: 2.2698
+  type: 'test'
+  ...
+# Subtest: publication is immutable, idempotent and keeps legacy data untouched; interrupted install retries safely
+ok 16 - publication is immutable, idempotent and keeps legacy data untouched; interrupted install retries safely
+  ---
+  duration_ms: 91.2977
+  type: 'test'
+  ...
+# Subtest: server serves only ready namespaces, keeps legacy routes and asset content type, and exposes no staging files
+ok 17 - server serves only ready namespaces, keeps legacy routes and asset content type, and exposes no staging files
+  ---
+  duration_ms: 153.4667
+  type: 'test'
+  ...
+# Subtest: pinned client rejects old/mixed cached bytes and wrong manifest, retries transient failure without legacy fallback
+ok 18 - pinned client rejects old/mixed cached bytes and wrong manifest, retries transient failure without legacy fallback
+  ---
+  duration_ms: 35.3673
+  type: 'test'
+  ...
+# Subtest: the edition requires the complete semantic renderer/word/train/search contract
+ok 19 - the edition requires the complete semantic renderer/word/train/search contract
+  ---
+  duration_ms: 6.5998
+  type: 'test'
+  ...
+# Subtest: published context package is pinned to the edition and every section hash
+ok 20 - published context package is pinned to the edition and every section hash
+  ---
+  duration_ms: 32.3095
+  type: 'test'
+  ...
+# Subtest: new editions fail closed when no matching AI context is published
+ok 21 - new editions fail closed when no matching AI context is published
+  ---
+  duration_ms: 0.6299
+  type: 'test'
+  ...
+# Subtest: all declared search shards are packaged and hash-checked, including phrases
+ok 22 - all declared search shards are packaged and hash-checked, including phrases
+  ---
+  duration_ms: 26.1282
+  type: 'test'
+  ...
+# Subtest: new edition rejects older semantic-contract components even when their APIs exist
+ok 23 - new edition rejects older semantic-contract components even when their APIs exist
+  ---
+  duration_ms: 0.4957
+  type: 'test'
+  ...
+# Subtest: RC3.2 held text, table cells and figure captions are inspectable without becoming learning sources
+ok 24 - RC3.2 held text, table cells and figure captions are inspectable without becoming learning sources
+  ---
+  duration_ms: 5.7855
+  type: 'test'
+  ...
+# Subtest: inspection cannot accidentally change the lexical contract of other editions
+ok 25 - inspection cannot accidentally change the lexical contract of other editions
+  ---
+  duration_ms: 0.3101
+  type: 'test'
+  ...
+# Subtest: held RC3.2 source fields receive morphology targets while learning eligibility remains false
+ok 26 - held RC3.2 source fields receive morphology targets while learning eligibility remains false
+  ---
+  duration_ms: 17.6583
+  type: 'test'
+  ...
+# Subtest: full ZIP preserves a97001
+ok 27 - full ZIP preserves a97001
+  ---
+  duration_ms: 127.9315
+  type: 'test'
+  ...
+# Subtest: full ZIP preserves a97002
+ok 28 - full ZIP preserves a97002
+  ---
+  duration_ms: 36.3581
+  type: 'test'
+  ...
+# Subtest: full ZIP preserves future-atlas
+ok 29 - full ZIP preserves future-atlas
+  ---
+  duration_ms: 50.1493
+  type: 'test'
+  ...
+# Subtest: missing source, tampered source and missing image fail closed
+ok 30 - missing source, tampered source and missing image fail closed
+  ---
+  duration_ms: 18.8696
+  type: 'test'
+  ...
+# Subtest: API enforces owner and serves native download
+ok 31 - API enforces owner and serves native download
+  ---
+  duration_ms: 130.0639
+  type: 'test'
+  ...
+# Subtest: legacy corpus changed during snapshot is rejected
+ok 32 - legacy corpus changed during snapshot is rejected
+  ---
+  duration_ms: 20.3849
+  type: 'test'
+  ...
+# Subtest: legacy content must match its registered editorial provenance
+ok 33 - legacy content must match its registered editorial provenance
+  ---
+  duration_ms: 37.7371
+  type: 'test'
+  ...
+# Subtest: separate RC3.2 corpus exports immutable supplier identity without borrowing the original AI layer
+ok 34 - separate RC3.2 corpus exports immutable supplier identity without borrowing the original AI layer
+  ---
+  duration_ms: 40.9576
+  type: 'test'
+  ...
+# Subtest: RC3.2 sources must bind the exact supplier edition
+ok 35 - RC3.2 sources must bind the exact supplier edition
+  ---
+  duration_ms: 10.967
+  type: 'test'
+  ...
+# Subtest: RC3.2 full export includes its addressed map and checks context/source dependency binding
+ok 36 - RC3.2 full export includes its addressed map and checks context/source dependency binding
+  ---
+  duration_ms: 94.8412
+  type: 'test'
+  ...
+# Subtest: RC3.2 ZIP API retains owner-only authorization on inventory and download
+ok 37 - RC3.2 ZIP API retains owner-only authorization on inventory and download
+  ---
+  duration_ms: 86.4657
+  type: 'test'
+  ...
+# Subtest: RC3.2 is a separate corpus; original pin and learning keys stay unchanged
+ok 38 - RC3.2 is a separate corpus; original pin and learning keys stay unchanged
+  ---
+  duration_ms: 2.0014
+  type: 'test'
+  ...
+# Subtest: native corpus verifies supplier bytes before projecting identities; source IDs and texts retained
+ok 39 - native corpus verifies supplier bytes before projecting identities; source IDs and texts retained
+  ---
+  duration_ms: 51.8148
+  type: 'test'
+  ...
+# Subtest: scoped edition never trains unaccepted formula symbols
+ok 40 - scoped edition never trains unaccepted formula symbols
+  ---
+  duration_ms: 1.2591
+  type: 'test'
+  ...
+# Subtest: all 264 addressed rows retain strict guards, offsets, and unknown-row rejection
+ok 41 - all 264 addressed rows retain strict guards, offsets, and unknown-row rejection
+  ---
+  duration_ms: 1204.7606
+  type: 'test'
+  ...
+# Subtest: adapter rejects wrong hash, edition, overlay, purpose, PDF and malformed segment offsets
+ok 42 - adapter rejects wrong hash, edition, overlay, purpose, PDF and malformed segment offsets
+  ---
+  duration_ms: 77.1978
+  type: 'test'
+  ...
+# Subtest: loader rejects bad pins, every source binding and corrupt manifest/map/layer without fallback
+ok 43 - loader rejects bad pins, every source binding and corrupt manifest/map/layer without fallback
+  ---
+  duration_ms: 28.8904
+  type: 'test'
+  ...
+# Subtest: contract rejects changed revision, row, order, counts, MWE, provenance and uncertainty without reason
+ok 44 - contract rejects changed revision, row, order, counts, MWE, provenance and uncertainty without reason
+  ---
+  duration_ms: 20.3108
+  type: 'test'
+  ...
+# Subtest: HE expanded span uses mapped gloss, manual corrections win; corpus caches and SRS keys stay isolated
+ok 45 - HE expanded span uses mapped gloss, manual corrections win; corpus caches and SRS keys stay isolated
+  ---
+  duration_ms: 23.8493
+  type: 'test'
+  ...
+# Subtest: term context strips unreviewed sentence fields and limits refs
+ok 46 - term context strips unreviewed sentence fields and limits refs
+  ---
+  duration_ms: 3.308
+  type: 'test'
+  ...
+# Subtest: only approved term can generate occurrence, blocked and other word cannot
+ok 47 - only approved term can generate occurrence, blocked and other word cannot
+  ---
+  duration_ms: 2.4375
+  type: 'test'
+  ...
+# Subtest: existing blocked due grade is not surfaced or modified
+ok 48 - existing blocked due grade is not surfaced or modified
+  ---
+  duration_ms: 2.2233
+  type: 'test'
+  ...
+# Subtest: personal merged word cannot bypass explicit RC3 canonical approval
+ok 49 - personal merged word cannot bypass explicit RC3 canonical approval
+  ---
+  duration_ms: 0.6429
+  type: 'test'
+  ...
+# Subtest: source reviewed_terms metadata excludes held canonical terms
+ok 50 - source reviewed_terms metadata excludes held canonical terms
+  ---
+  duration_ms: 0.2955
+  type: 'test'
+  ...
+# Subtest: aggregate source hold does not block a separately approved term on that same row
+ok 51 - aggregate source hold does not block a separately approved term on that same row
+  ---
+  duration_ms: 1.0832
+  type: 'test'
+  ...
+# Subtest: every integrity-checked shell asset is precached under the exact same key
+ok 52 - every integrity-checked shell asset is precached under the exact same key
+  ---
+  duration_ms: 11.1586
+  type: 'test'
+  ...
+# Subtest: a release query on a shell asset is identical on both sides
+ok 53 - a release query on a shell asset is identical on both sides
+  ---
+  duration_ms: 10.3947
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.BenYehudaLearningNiqqud consumer also loads benyehuda-learning-niqqud.js
+ok 54 - every shell loading a window.BenYehudaLearningNiqqud consumer also loads benyehuda-learning-niqqud.js
+  ---
+  duration_ms: 95.3897
+  type: 'test'
+  ...
+# Subtest: benyehuda-learning-niqqud.js is requested and precached under one identical key
+ok 55 - benyehuda-learning-niqqud.js is requested and precached under one identical key
+  ---
+  duration_ms: 20.6049
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.BenYehudaLearningNiqqudManifest consumer also loads benyehuda-learning-niqqud-manifest.js
+ok 56 - every shell loading a window.BenYehudaLearningNiqqudManifest consumer also loads benyehuda-learning-niqqud-manifest.js
+  ---
+  duration_ms: 72.4437
+  type: 'test'
+  ...
+# Subtest: benyehuda-learning-niqqud-manifest.js is requested and precached under one identical key
+ok 57 - benyehuda-learning-niqqud-manifest.js is requested and precached under one identical key
+  ---
+  duration_ms: 17.0516
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.LPTutorNotebook consumer also loads tutor-notebook.js
+ok 58 - every shell loading a window.LPTutorNotebook consumer also loads tutor-notebook.js
+  ---
+  duration_ms: 61.4062
+  type: 'test'
+  ...
+# Subtest: tutor-notebook.js is requested and precached under one identical key
+ok 59 - tutor-notebook.js is requested and precached under one identical key
+  ---
+  duration_ms: 16.0184
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.SubtitleRowLanguage consumer also loads subtitle-row-language.js
+ok 60 - every shell loading a window.SubtitleRowLanguage consumer also loads subtitle-row-language.js
+  ---
+  duration_ms: 68.0902
+  type: 'test'
+  ...
+# Subtest: subtitle-row-language.js is requested and precached under one identical key
+ok 61 - subtitle-row-language.js is requested and precached under one identical key
+  ---
+  duration_ms: 15.5993
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.SubtitleTimingStatus consumer also loads subtitle-timing-status.js
+ok 62 - every shell loading a window.SubtitleTimingStatus consumer also loads subtitle-timing-status.js
+  ---
+  duration_ms: 54.2602
+  type: 'test'
+  ...
+# Subtest: subtitle-timing-status.js is requested and precached under one identical key
+ok 63 - subtitle-timing-status.js is requested and precached under one identical key
+  ---
+  duration_ms: 15.9928
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.MediaStreamStore consumer also loads media-stream-store.js
+ok 64 - every shell loading a window.MediaStreamStore consumer also loads media-stream-store.js
+  ---
+  duration_ms: 52.6724
+  type: 'test'
+  ...
+# Subtest: media-stream-store.js is requested and precached under one identical key
+ok 65 - media-stream-store.js is requested and precached under one identical key
+  ---
+  duration_ms: 10.4284
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.SubtitleMaterialCore consumer also loads subtitle-material-core.js
+ok 66 - every shell loading a window.SubtitleMaterialCore consumer also loads subtitle-material-core.js
+  ---
+  duration_ms: 48.61
+  type: 'test'
+  ...
+# Subtest: subtitle-material-core.js is requested and precached under one identical key
+ok 67 - subtitle-material-core.js is requested and precached under one identical key
+  ---
+  duration_ms: 13.2661
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.MediaBundleCore consumer also loads media-bundle-core.js
+ok 68 - every shell loading a window.MediaBundleCore consumer also loads media-bundle-core.js
+  ---
+  duration_ms: 42.8892
+  type: 'test'
+  ...
+# Subtest: media-bundle-core.js is requested and precached under one identical key
+ok 69 - media-bundle-core.js is requested and precached under one identical key
+  ---
+  duration_ms: 9.397
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.SubtitleMaterialVocalization consumer also loads subtitle-material-vocalization.js
+ok 70 - every shell loading a window.SubtitleMaterialVocalization consumer also loads subtitle-material-vocalization.js
+  ---
+  duration_ms: 47.0766
+  type: 'test'
+  ...
+# Subtest: subtitle-material-vocalization.js is requested and precached under one identical key
+ok 71 - subtitle-material-vocalization.js is requested and precached under one identical key
+  ---
+  duration_ms: 10.1994
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.MaterialProgressLadder consumer also loads material-progress-ladder.js
+ok 72 - every shell loading a window.MaterialProgressLadder consumer also loads material-progress-ladder.js
+  ---
+  duration_ms: 44.7778
+  type: 'test'
+  ...
+# Subtest: material-progress-ladder.js is requested and precached under one identical key
+ok 73 - material-progress-ladder.js is requested and precached under one identical key
+  ---
+  duration_ms: 9.2237
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.LocalTranslit consumer also loads local-translit-bundle.js
+ok 74 - every shell loading a window.LocalTranslit consumer also loads local-translit-bundle.js
+  ---
+  duration_ms: 42.3608
+  type: 'test'
+  ...
+# Subtest: local-translit-bundle.js is requested and precached under one identical key
+ok 75 - local-translit-bundle.js is requested and precached under one identical key
+  ---
+  duration_ms: 9.4159
+  type: 'test'
+  ...
+# Subtest: every shell loading a window.TablePresets consumer also loads table-presets.js
+ok 76 - every shell loading a window.TablePresets consumer also loads table-presets.js
+  ---
+  duration_ms: 44.7838
+  type: 'test'
+  ...
+# Subtest: table-presets.js is requested and precached under one identical key
+ok 77 - table-presets.js is requested and precached under one identical key
+  ---
+  duration_ms: 8.9162
+  type: 'test'
+  ...
+# Subtest: every shell loading a module that needs the hashwasm runtime also serves it
+ok 78 - every shell loading a module that needs the hashwasm runtime also serves it
+  ---
+  duration_ms: 58.2822
+  type: 'test'
+  ...
+# Subtest: hiding the translation column preserves the bound occurrence and its saved manual gloss
+ok 79 - hiding the translation column preserves the bound occurrence and its saved manual gloss
+  ---
+  duration_ms: 116.1157
+  type: 'test'
+  ...
+# Subtest: saved occurrence context can prefetch an unwrapped bound row without painting or changing its source
+ok 80 - saved occurrence context can prefetch an unwrapped bound row without painting or changing its source
+  ---
+  duration_ms: 90.1954
+  type: 'test'
+  ...
+# Subtest: duplicate occurrences retain distinct imported glosses through reload, reorder and portable rebind
+ok 81 - duplicate occurrences retain distinct imported glosses through reload, reorder and portable rebind
+  ---
+  duration_ms: 141.902
+  type: 'test'
+  ...
+# Subtest: bound manual correction affects only one occurrence, survives reimport and keeps paid common cache
+ok 82 - bound manual correction affects only one occurrence, survives reimport and keeps paid common cache
+  ---
+  duration_ms: 161.0235
+  type: 'test'
+  ...
+# Subtest: draft corrections survive cloned render models and acquire saved IDs without leaking to repeated rows
+ok 83 - draft corrections survive cloned render models and acquire saved IDs without leaking to repeated rows
+  ---
+  duration_ms: 257.3878
+  type: 'test'
+  ...
+# Subtest: row key: the stored row and the rendered row agree, with or without the replay glyph
+ok 84 - row key: the stored row and the rendered row agree, with or without the replay glyph
+  ---
+  duration_ms: 2.9806
+  type: 'test'
+  ...
+# Subtest: row key: a machine-vocalized row keeps its key when he_niqqud travels in meta (text-card R9)
+ok 85 - row key: a machine-vocalized row keeps its key when he_niqqud travels in meta (text-card R9)
+  ---
+  duration_ms: 0.3699
+  type: 'test'
+  ...
+# Subtest: a source-only rendering uses the imported bound context, with spelling, translation and reading guards
+ok 86 - a source-only rendering uses the imported bound context, with spelling, translation and reading guards
+  ---
+  duration_ms: 37.2885
+  type: 'test'
+  ...
+# Subtest: a v1 entry paid on this device (keyed with the ▶︎ glyph) is found and moved to v2
+ok 87 - a v1 entry paid on this device (keyed with the ▶︎ glyph) is found and moved to v2
+  ---
+  duration_ms: 54.3226
+  type: 'test'
+  ...
+# Subtest: portable layer: export carries this card's rows; import re-proves every row
+ok 88 - portable layer: export carries this card's rows; import re-proves every row
+  ---
+  duration_ms: 75.944
+  type: 'test'
+  ...
+# Subtest: glossCard: sends only rows without glosses, once per content, and reports the card coverage
+ok 89 - glossCard: sends only rows without glosses, once per content, and reports the card coverage
+  ---
+  duration_ms: 256.0864
+  type: 'test'
+  ...
+# Subtest: glossCard without a Gemini key sends nothing and names the reason
+ok 90 - glossCard without a Gemini key sends nothing and names the reason
+  ---
+  duration_ms: 30.358
+  type: 'test'
+  ...
+# Subtest: an occurrence correction is locked, exported, survives an import, and reverts to the AI gloss
+ok 91 - an occurrence correction is locked, exported, survives an import, and reverts to the AI gloss
+  ---
+  duration_ms: 215.5659
+  type: 'test'
+  ...
+# Subtest: package: the layer travels as a non-semantic entry and verification returns it
+ok 92 - package: the layer travels as a non-semantic entry and verification returns it
+  ---
+  duration_ms: 47.9627
+  type: 'test'
+  ...
+# Subtest: package: a tampered layer fails like any other manifested entry
+ok 93 - package: a tampered layer fails like any other manifested entry
+  ---
+  duration_ms: 10.4656
+  type: 'test'
+  ...
+# Subtest: publication: the owner's layer reaches the public snapshot, bounded
+ok 94 - publication: the owner's layer reaches the public snapshot, bounded
+  ---
+  duration_ms: 122.4262
+  type: 'test'
+  ...
+# Subtest: publication: long rows keep their layer — the word count comes from the row key, not a fixed cap
+ok 95 - publication: long rows keep their layer — the word count comes from the row key, not a fixed cap
+  ---
+  duration_ms: 0.7332
+  type: 'test'
+  ...
+# Subtest: publication: every dropped layer row is reported with its reason
+ok 96 - publication: every dropped layer row is reported with its reason
+  ---
+  duration_ms: 0.6327
+  type: 'test'
+  ...
+# Subtest: text card: the layer is exported and handed to the bundle import
+ok 97 - text card: the layer is exported and handed to the bundle import
+  ---
+  duration_ms: 0.973
+  type: 'test'
+  ...
+# Subtest: publication keeps an occurrence correction with its AI original (bounded)
+ok 98 - publication keeps an occurrence correction with its AI original (bounded)
+  ---
+  duration_ms: 0.3083
+  type: 'test'
+  ...
+# Subtest: publication retains per-field attribution and restores it outside an immutable old snapshot
+ok 99 - publication retains per-field attribution and restores it outside an immutable old snapshot
+  ---
+  duration_ms: 76.0697
+  type: 'test'
+  ...
+1..99
+# tests 99
+# suites 0
+# pass 99
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2082.0209

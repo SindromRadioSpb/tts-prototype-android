@@ -1,0 +1,25 @@
+{
+  "scope": "local Node DOM and real HTTP, not browser or source acceptance",
+  "source": "E:\\projects\\tts-prototype-android\\.worktrees\\atlas-rc32-context\\.tmp\\rc32-source\\edition",
+  "revision": "cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7",
+  "manifestSha": "0211488a36ef6a03c6f277c6c913fb18165ab19430d13a4e623c95fc640ba332",
+  "pages": 203,
+  "sections": 21,
+  "tables": 70,
+  "images": 570,
+  "rows": 3011,
+  "learning": 78,
+  "formulas": 262,
+  "mathml": 262,
+  "fallback": [],
+  "duplicates": [],
+  "missingSemanticTargets": [],
+  "errors": [],
+  "verifiedFiles": 1196,
+  "http": {
+    "sections": 21,
+    "pages": 203,
+    "hiddenReadyStatus": 404
+  },
+  "status": "passed"
+}

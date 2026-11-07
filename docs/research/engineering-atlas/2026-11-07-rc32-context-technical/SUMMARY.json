@@ -1,0 +1,26 @@
+{
+  "base_commit": "1ae74d9e1f0c0396dbcf0c66acdfc8da4a074cf0",
+  "implementation_commit": "2f0944e838d7231cbe31b3a723a29bea9570232b",
+  "branch": "feat/atlas-rc32-context-technical",
+  "context_pin": "2f782372d533cbbe47fff439683f84d7fbb23bf44edc5486629f0dd1cb3b0dfd",
+  "zip_sha256": "f466031512ed438e3d8ade9b9f1cef3af569a50f11802809cbbcd1b731edbc00",
+  "source_files_verified": 1201,
+  "inspection_rows": 2366,
+  "canonical_source_hebrew_rows": 2354,
+  "canonical_answers": 2350,
+  "alias_answers": 12,
+  "runtime_answers": 2362,
+  "missing_canonical": 4,
+  "browser_cards": 32,
+  "unit_tests": 99,
+  "i18n_tests": 233,
+  "source_edition_unchanged": true,
+  "old_edition_unchanged": true,
+  "production_changed": false,
+  "scientific_acceptance": false,
+  "material_export": {
+    "files": 1224,
+    "ai_dependencies_sha256": "40a1394203c35f94a81fa03b78f2f395fc26c112a4e079d0f9586c541d21cb00",
+    "verify_restore_repack_verify": "passed"
+  }
+}
