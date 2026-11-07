@@ -17,7 +17,8 @@ test("Materials PB2 Room keeps zero-audio honesty and enables exact cached TTS o
   assert.match(room, /materialsPrintStudy/);
   assert.match(room, /materialsPrintExam/);
   assert.match(room, /materialsAudioDeferred/);
-  assert.match(room, /materialsAudioReady/);
+  assert.doesNotMatch(room, /materialsAudioReady/, "ready audio is shown by the ▶ controls, not by a banner");
+  assert.doesNotMatch(room, /materials-step-cell|materialsStep'/, "rows are sentences and paragraphs, not algorithm steps");
   assert.match(room, /fallbackPolicy: 'cached-only'/);
   assert.match(room, /materials-listen-section/);
   assert.match(room, /ensureMaterialsLearningSupport\(slug, item\)[\s\S]*_roomPublicAudioAssetKey[\s\S]*attachReaderAudio\(\)/,
@@ -27,8 +28,9 @@ test("Materials PB2 Room keeps zero-audio honesty and enables exact cached TTS o
   assert.match(html, /@page materials-exam[\s\S]*A4 portrait/);
   assert.match(html, /data-print-mode="exam"[\s\S]*materials-niqqud-cell/);
   assert.match(html, /@media \(max-width: 480px\)[\s\S]*materials-learning-table td::before/);
-  assert.match(html, /materials-listen-section[^}]*min-height:\s*48px/);
-  assert.match(html, /materials-audio-cell \.row-tts-btn[^}]*width:\s*48px[^}]*height:\s*48px/);
+  assert.match(html, /materials-listen-section \{[^}]*min-height:\s*34px/);
+  assert.match(html, /materials-audio-cell \.row-tts-btn \{[^}]*width:\s*30px[^}]*height:\s*30px/);
+  assert.match(html, /materials-audio-cell \.row-tts-btn::after \{[^}]*inset:\s*-7px/, "the small play button keeps a 44px hit area");
   assert.match(server, /MATERIALS_PB2_LEARNING_SUPPORT_PUBLIC_READ/);
   assert.match(server, /configured === "0"[\s\S]*loadMaterialsPb2LearningSupportManifest\(\)/,
     "runtime support must auto-enable only after its validated exact-edition manifest is installed, while retaining a kill switch");
@@ -70,7 +72,7 @@ test("Materials PB2 learner projection is honest and flat across all 60 tasks", 
 test("Materials PB2 learning surface is localized in all Room locales", () => {
   for (const locale of ["ru", "en", "he"]) {
     const dictionary = read(`public/i18n/locales/${locale}.js`);
-    for (const key of ["materialsLearningTitle", "materialsPrintStudy", "materialsPrintExam", "materialsAudioDeferred", "materialsAudioReady", "materialsListenSection", "materialsNiqqud", "materialsOpenSolution", "materialsHideSolution", "materialsListenSolution", "materialsInlineReaderNote"])
+    for (const key of ["materialsLearningTitle", "materialsPrintStudy", "materialsPrintExam", "materialsAudioDeferred", "materialsListenSection", "materialsNiqqud", "materialsOpenSolution", "materialsHideSolution", "materialsListenSolution", "materialsInlineReaderNote"])
       assert.ok(dictionary.includes(key + ":"), `${locale}: ${key}`);
   }
 });

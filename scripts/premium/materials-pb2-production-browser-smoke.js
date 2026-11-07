@@ -19,7 +19,7 @@ const sha256File = file => crypto.createHash("sha256").update(fs.readFileSync(fi
 async function surfaceReport(page) {
   return page.evaluate(() => {
     const viewer = document.querySelector(".materials-learning-viewer");
-    const visibleControls = [...viewer.querySelectorAll("button")].filter(node => node.getClientRects().length);
+    const visibleControls = [...viewer.querySelectorAll("button")].filter(node => node.getClientRects().length && !node.classList.contains("row-tts-btn"));
     const table = viewer.querySelector(".materials-solution-section .materials-learning-table");
     return {
       lang: document.documentElement.lang,
@@ -38,7 +38,6 @@ async function surfaceReport(page) {
       morph_tokens: viewer.querySelectorAll(".materials-learning-table .rm-w").length,
       roving_cells_invalid: [...viewer.querySelectorAll('.materials-learning-table td[data-col="he"], .materials-learning-table td[data-col="niqqud"]')]
         .filter(cell => cell.querySelectorAll('.rm-w').length && cell.querySelectorAll('.rm-w[tabindex="0"]').length !== 1).length,
-      derivation_rail: getComputedStyle(viewer.querySelector('.materials-solution-section .materials-step-cell')).borderInlineStartWidth,
     };
   });
 }
@@ -82,11 +81,10 @@ async function surfaceReport(page) {
     const desktop = await surfaceReport(page);
     assert.equal(desktop.document_overflow, false);
     assert.equal(desktop.viewer_overflow, false);
-    assert.equal(desktop.visible_columns, 5);
+    assert.equal(desktop.visible_columns, 4);
     assert.ok(desktop.table_rows > 10 && desktop.source_figures > 0 && desktop.audio_deferred && desktop.morph_tokens > 0, JSON.stringify(desktop));
     assert.equal(desktop.audio_controls, 0);
     assert.equal(desktop.roving_cells_invalid, 0);
-    assert.equal(desktop.derivation_rail, "3px");
     assert.deepEqual(desktop.tiny_controls, []);
     await page.screenshot({ path: path.join(SHOTS, "materials-pb2-production-solution-desktop-ru.png") });
 
@@ -119,7 +117,7 @@ async function surfaceReport(page) {
 
     await page.locator('[data-mode="exam"]').click();
     const exam = await surfaceReport(page);
-    assert.equal(exam.visible_columns, 2);
+    assert.equal(exam.visible_columns, 1);
     await page.screenshot({ path: path.join(SHOTS, "materials-pb2-production-exam-desktop-ru.png") });
     await page.locator('[data-mode="study"]').click();
     await page.setViewportSize({ width: 380, height: 844 });

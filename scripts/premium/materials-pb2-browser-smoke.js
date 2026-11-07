@@ -44,7 +44,7 @@ function writeRights() {
 }
 async function surfaceReport(page) {
   return page.evaluate(() => {
-    const viewer = document.querySelector(".materials-learning-viewer"), visibleControls = [...viewer.querySelectorAll("button")].filter(node => node.getClientRects().length);
+    const viewer = document.querySelector(".materials-learning-viewer"), visibleControls = [...viewer.querySelectorAll("button")].filter(node => node.getClientRects().length && !node.classList.contains("row-tts-btn"));
     const table = viewer.querySelector(".materials-solution-section .materials-learning-table");
     return { lang: document.documentElement.lang, dir: document.documentElement.dir,
       document_overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -58,7 +58,6 @@ async function surfaceReport(page) {
       morph_tokens: viewer.querySelectorAll('.materials-learning-table .rm-w').length,
       roving_cells_invalid: [...viewer.querySelectorAll('.materials-he-cell,.materials-niqqud-cell')]
         .filter(cell => cell.querySelectorAll('.rm-w').length && cell.querySelectorAll('.rm-w[tabindex="0"]').length !== 1).length,
-      derivation_rail: getComputedStyle(viewer.querySelector('.materials-solution-section .materials-step-cell')).borderInlineStartWidth,
     };
   });
 }
@@ -95,9 +94,9 @@ async function surfaceReport(page) {
     await page.locator(".materials-learning-viewer").waitFor();
     await page.locator(".materials-source-figure img").first().waitFor({ state: "attached" });
     const desktop = await surfaceReport(page);
-    assert.equal(desktop.document_overflow, false); assert.equal(desktop.viewer_overflow, false); assert.equal(desktop.visible_columns, 5);
+    assert.equal(desktop.document_overflow, false); assert.equal(desktop.viewer_overflow, false); assert.equal(desktop.visible_columns, 4);
     assert.ok(desktop.table_rows > 10 && desktop.source_figures > 0 && desktop.audio_deferred && desktop.morph_tokens > 0, JSON.stringify(desktop));
-    assert.equal(desktop.audio_controls, 0); assert.equal(desktop.roving_cells_invalid, 0); assert.equal(desktop.derivation_rail, '3px'); assert.deepEqual(desktop.tiny_controls, []);
+    assert.equal(desktop.audio_controls, 0); assert.equal(desktop.roving_cells_invalid, 0); assert.deepEqual(desktop.tiny_controls, []);
     await page.screenshot({ path: path.join(SHOTS, "materials-pb2-solution-desktop-ru.png"), fullPage: false });
 
     const reviewBeforeMorph = await page.evaluate(() => window.__localDB.countReviewLog());
@@ -127,7 +126,7 @@ async function surfaceReport(page) {
     assert.equal(restoredAnchor.row, morphCard.anchored_row); assert.equal(restoredAnchor.focused_row, morphCard.anchored_row);
 
     await page.locator('[data-mode="exam"]').click();
-    const examScreen = await surfaceReport(page); assert.equal(examScreen.visible_columns, 2);
+    const examScreen = await surfaceReport(page); assert.equal(examScreen.visible_columns, 1);
     await page.screenshot({ path: path.join(SHOTS, "materials-pb2-exam-desktop-ru.png"), fullPage: false });
     await page.locator('[data-mode="study"]').click();
     await page.setViewportSize({ width: 380, height: 844 });

@@ -1,6 +1,6 @@
 {
   "gate": "MATERIALS_PB2_HONEST_FLAT_SOLUTION_LOCAL_BROWSER",
-  "version": "3.11.456",
+  "version": "3.11.878",
   "viewport": "380x845",
   "publication_items": 60,
   "standalone": {
@@ -18,7 +18,7 @@
     "widthsMatch": true,
     "documentOverflow": false,
     "tinyControls": [],
-    "expanded": "true",
+    "stepColumn": 0,
     "inlineOpen": true
   },
   "reflow_200pct": {
@@ -34,12 +34,20 @@
     "documentOverflow": false,
     "inlineVisible": true
   },
+  "end_card": {
+    "afterSolution": true,
+    "insideConditionTable": false,
+    "endHead": false
+  },
   "review_log_delta": 0,
   "page_errors": [],
   "screenshots": [
+    "materials-pb2-catalog-audio-380-ru.png",
     "materials-pb2-inline-solution-380-he-rtl.png",
     "materials-pb2-inline-solution-380-ru-200pct.png",
     "materials-pb2-inline-solution-380-ru.png",
-    "materials-pb2-inline-solution-desktop-ru.png"
+    "materials-pb2-inline-solution-desktop-ru.png",
+    "materials-pb2-inline-solution-end-desktop-ru.png",
+    "materials-pb2-standalone-desktop-ru.png"
   ]
 }

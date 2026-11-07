@@ -250,7 +250,9 @@ export function adaptPublicCorpusItem(work, context = {}) {
   const expected = Math.max(0, finite(source.expected_audio_count) || 0);
   const included = Math.max(0, finite(source.included_audio_count) || 0);
   const missing = Math.max(0, finite(source.asset_missing) || 0);
-  const coverage = included <= 0 ? "none" : expected > 0 && included >= expected && missing === 0 ? "full" : "partial";
+  // Корпус с озвученным учебным пакетом (условие + решение) озвучен целиком, даже если у редакции нет аудиофайлов.
+  const learningAudio = context.learningAudioReady === true;
+  const coverage = learningAudio ? "full" : included <= 0 ? "none" : expected > 0 && included >= expected && missing === 0 ? "full" : "partial";
   const state = learnerState(context.progress, { copy, allowPercentage: false, newProgressZero: true });
   const audioSignal = typedSignal("audio", { coverage, kind: null },
     "asserted", "public-immutable-edition", source.manifest_sha256 || context.manifestSha256 || null,
@@ -262,7 +264,7 @@ export function adaptPublicCorpusItem(work, context = {}) {
     languageDirection: "rtl", kind: "public-study-song", artwork: null,
     learnerState: state,
     readiness: { levelLabel: null, familiarityPct: null, confidence: "unknown", caveats: [], reason: null },
-    media: { kind: "audio", coverage, humanOrTts: null, countLabel: expected > 0 ? `${included}/${expected}` : null, revision: null },
+    media: { kind: "audio", coverage, humanOrTts: null, countLabel: !learningAudio && expected > 0 ? `${included}/${expected}` : null, revision: null },
     savedState: null, tags: [], primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",
     secondaryActions: ["share", "details"],
     provenanceSummary: copyValue(copy, "publicProvenance", "Public immutable edition"),

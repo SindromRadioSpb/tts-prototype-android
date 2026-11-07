@@ -34,7 +34,7 @@ const localDb = new Proxy(localDbRaw, {
 import * as readerCore from '/js/reader-core.js?v=817';
 import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=876';
-import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=419';
+import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=877';
 import * as roomB6 from '/js/room-b6-core.js?v=861';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
@@ -6298,7 +6298,19 @@ function _karaokeRowFollowable(tr) {
   } catch (_) { return false; }
 }
 function onKaraokeRowChange(idx) {
-  if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }   // playback ended → keep last marker
+  if (idx < 0) {
+    // Задачник: озвучка решения останавливает строку условия — это не конец чтения вслух решения.
+    if (_karaokeSource === 'solution') return;
+    // Условие дочитано до конца (не остановлено вручную) → чтение вслух продолжается решением.
+    const naturalEnd = karaokeActive && !_karaokeStopping && _karaokeLastIdx === readerRows.length - 1;
+    _karaokeStopping = false; _karaokeLastIdx = -1;
+    if (naturalEnd && materialsInlineAudio && materialsInlineState && materialsInlineState.expanded) {
+      _karaokeSource = 'solution';
+      try { materialsInlineAudio.playAll(readerRows.length); return; } catch (_) { _karaokeSource = 'reader'; }
+    }
+    karaokeActive = false; setReadAloudBtn(false); return;   // playback ended → keep last marker
+  }
+  _karaokeLastIdx = idx;
   _roomReaderPresentationReadOnly = false;   // an actually sounding TTS row is genuine learner activity
   // media player: TTS реально заиграл → глушим ИГРАЮЩЕЕ медиа (isActive-guard сохраняет позицию
   // паузы — остановка bound-но-паузного медиа была бы потерей места без нужды).
@@ -6328,19 +6340,47 @@ function wireKaraokeScrollPause() {
   window.addEventListener('wheel', pause, { passive: true });
   window.addEventListener('touchmove', pause, { passive: true });
 }
+// Чтение вслух начинается с выделенной (рабочей) строки, а не всегда с первой. У задачника рабочей
+// может быть строка решения — тогда играет решение с неё.
+let _karaokeSource = 'reader', _karaokeStopping = false, _karaokeLastIdx = -1;
+function readAloudStartRow() {
+  const row = Math.floor(Number(_sessionLastRow));
+  return Number.isFinite(row) && row >= 0 && row < readerRows.length ? row : 0;
+}
 function toggleReadAloud() {
   if (!readerAudio) return;
-  if (karaokeActive) { try { readerAudio.stop(); } catch (_) {} return; }   // stop() → onRowChange(-1) resets UI
+  if (karaokeActive) {   // stop() → onRowChange(-1) resets UI
+    _karaokeStopping = true;
+    const fromSolution = _karaokeSource === 'solution';
+    _karaokeSource = 'reader';
+    try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {}
+    try { readerAudio.stop(); } catch (_) {}
+    if (fromSolution) { _karaokeStopping = false; karaokeActive = false; setReadAloudBtn(false); }
+    return;
+  }
   _roomReaderPresentationReadOnly = false;
   try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}   // media player: «Читать вслух» глушит медиа
-  karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false;
+  karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false; _karaokeStopping = false; _karaokeLastIdx = -1;
   wireKaraokeScrollPause();
   setReadAloudBtn(true);
-  try { readerAudio.playAll(0); } catch (_) { karaokeActive = false; setReadAloudBtn(false); }
+  const solutionRow = materialsSolutionWorkingRow();
+  // Уже звучащая строка при повторном старте читалась бы как «стоп» — сначала гасим текущее воспроизведение.
+  try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {}
+  if (solutionRow >= 0 && materialsInlineAudio) {
+    _karaokeSource = 'solution';
+    try { materialsInlineAudio.playAll(solutionRow); } catch (_) { _karaokeSource = 'reader'; karaokeActive = false; setReadAloudBtn(false); }
+    return;
+  }
+  _karaokeSource = 'reader';
+  try { readerAudio.playAll(readAloudStartRow()); } catch (_) { karaokeActive = false; setReadAloudBtn(false); }
 }
 function stopKaraoke() {
-  if (karaokeActive && readerAudio) { try { readerAudio.stop(); } catch (_) {} }
-  karaokeActive = false; setReadAloudBtn(false);
+  if (karaokeActive) {
+    _karaokeStopping = true; _karaokeSource = 'reader';
+    try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {}
+    try { if (readerAudio) readerAudio.stop(); } catch (_) {}
+  }
+  _karaokeStopping = false; karaokeActive = false; setReadAloudBtn(false);
 }
 
 // ── Room media player (spec 2026-08-04): оригинал аудио/видео для медиа-материалов ──────────
@@ -6758,6 +6798,7 @@ function setCurrentWorkingRow(idx) {
   const mount = $('roomReaderTable');
   const row = Math.floor(Number(idx));
   if (!mount || !Number.isFinite(row) || row < 0) return false;
+  if (materialsSolutionWorkingRow() >= 0) return false;   // рабочая строка сейчас в решении задачника
   const tr = mount.querySelector('tr[data-row-idx="' + String(row) + '"]');
   if (!tr) return false;
   clearCurrentWorkingRow();
@@ -6778,6 +6819,7 @@ function recordProgress(idx) {
   // write is suppressed during the read-only window.
   _sessionLastRow = window.ReaderProgress ? window.ReaderProgress.latestProgress(_sessionLastRow, idx) : Math.floor(Number(idx));
   _sessionFurthestRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionFurthestRow, idx) : Math.max(_sessionFurthestRow, idx);
+  clearMaterialsSolutionWorkingRow();   // работа в условии снимает выделение строки решения
   setCurrentWorkingRow(_sessionLastRow);
   if (_roomReaderPresentationReadOnly) return;
   const tid = readerTextId, row = _sessionLastRow;
@@ -6848,6 +6890,8 @@ function wireProgressScroll() {
   };
   window.addEventListener('scroll', onScroll, { passive: true });
   const mount = $('roomReaderTable'); if (mount) mount.addEventListener('scroll', onScroll, { passive: true });
+  // Учебный режим с раскрытым решением задачника прокручивает весь #roomReader, а не таблицу.
+  const readerScroller = $('roomReader'); if (readerScroller) readerScroller.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('wheel', onUserTakeover, { passive: true });
   window.addEventListener('touchmove', onUserTakeover, { passive: true });
   const onRowEngage = (event) => {
@@ -7007,6 +7051,14 @@ function resetEndCard() { removeEndCard(); _endCardFor = null; }
 // single-screen text whose whole body is visible on open).
 function readerAtEnd() {
   if (!window.ReaderProgress || !readerRows.length) return false;
+  const solution = materialsInlineState && materialsInlineState.expanded && materialsInlineState.region && materialsInlineState.region.isConnected ? materialsInlineState : null;
+  if (solution) {
+    // Задача кончается решением, а не условием: «Прочитано» появляется после последней строки решения.
+    const total = readerRows.length + solution.rows.length;
+    if (window.ReaderProgress.atTextEnd(_sessionFurthestRow, total)) return true;
+    const lastSolution = solution.region.querySelector('tr[data-row-idx="' + (total - 1) + '"]');
+    return !!lastSolution && window.ReaderProgress.lastRowVisible([{ bottom: lastSolution.getBoundingClientRect().bottom }], window.innerHeight || 0, 60);
+  }
   if (window.ReaderProgress.atTextEnd(_sessionFurthestRow, readerRows.length)) return true;
   const mount = $('roomReaderTable'); if (!mount) return false;
   const last = mount.querySelector('tr[data-row-idx="' + (readerRows.length - 1) + '"]');
@@ -7070,7 +7122,14 @@ async function renderEndOfTextCard(tid) {
   // строки до конца воспроизведения (владелец 2026-09-25).
   appendNextPartToEndCard(card);   // F4 — «Следующая часть» before the general «что дальше»
   const provNote = $('readerProvNote'), wrap = $('roomReaderTable');
-  if (provNote && wrap && provNote.parentNode === wrap) wrap.insertBefore(card, provNote);
+  const solutionRegion = materialsInlineState && materialsInlineState.expanded && materialsInlineState.region;
+  if (solutionRegion && solutionRegion.isConnected) {
+    // У задачи с решением текст кончается решением: без «— конец текста —», карточка после решения,
+    // «Следующий для тебя» дописывается в неё последним.
+    card.classList.add('reader-end-after-solution');
+    const endHead = card.querySelector('.reader-end-head'); if (endHead) endHead.remove();
+    solutionRegion.parentNode.appendChild(card);
+  } else if (provNote && wrap && provNote.parentNode === wrap) wrap.insertBefore(card, provNote);
   else if (wrap) wrap.appendChild(card);
   else reader.appendChild(card);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -8446,6 +8505,8 @@ function materialsInlineMorphOverrides() {
       if (!row || !row._materialsSolutionRow || !materialsInlineState) return;
       materialsInlineState.activeRowId = row._materialsSolutionRow.row_id;
       setMaterialsReaderUrl(materialsInlineState.support, 'solution', materialsInlineState.activeRowId);
+      const tr = span && span.closest && span.closest('tr[data-row-idx]');
+      if (tr) setMaterialsSolutionWorkingRow(Number(tr.getAttribute('data-row-idx')));
     },
     speakWord: async text => { try { if (materialsInlineAudio) materialsInlineAudio.stop(); } catch (_) {} return speakWord(text); },
   };
@@ -10125,14 +10186,13 @@ function materialsConditionRows(support) {
 
 function materialsLearningTable(rows, type, fullTts) {
   const wrap = el('div', { class: 'materials-table-wrap' });
-  if (fullTts) wrap.appendChild(el('button', { class: 'materials-listen-section', attrs: { type: 'button', 'data-audio-action': 'play-all' },
-    text: '▶ ' + tt('room.publicCorpus.materialsListenSection', 'Прослушать раздел') }));
   const table = el('table', { class: 'materials-learning-table ' + (type === 'condition' ? 'is-condition' : 'is-solution'), attrs: { 'data-learning-source': type } });
   const caption = el('caption', { text: type === 'condition' ? tt('room.publicCorpus.materialsCondition', 'Условие') : tt('room.publicCorpus.materialsSolution', 'Решение') });
   const head = el('thead'); const headRow = el('tr');
   if (fullTts) headRow.appendChild(el('th', { class: 'materials-audio-col', attrs: { scope: 'col', 'aria-label': tt('room.reader.audio.play', 'Озвучить строку') }, text: '▶' }));
+  // Колонки «Шаг» нет: строки — это предложения и абзацы записи, а не шаги алгоритма.
   for (const [key, fallback, className] of [
-    ['materialsStep', 'Шаг', 'materials-step-col'], ['materialsHebrew', 'Иврит', 'materials-he-col'],
+    ['materialsHebrew', 'Иврит', 'materials-he-col'],
     ['materialsNiqqud', 'Иврит с огласовками', 'materials-niqqud-col'], ['materialsTransliteration', 'Транслитерация', 'materials-translit-col'],
     ['materialsRussian', 'Русский', 'materials-ru-col']
   ]) headRow.appendChild(el('th', { class: className, attrs: { scope: 'col' }, text: tt('room.publicCorpus.' + key, fallback) }));
@@ -10153,9 +10213,6 @@ function materialsLearningTable(rows, type, fullTts) {
         'aria-label': tt('room.reader.audio.play', 'Озвучить строку'), 'aria-pressed': 'false' }, text: '▶' }));
       tr.appendChild(audioCell);
     }
-    const step = el('th', { class: 'materials-step-cell', attrs: { scope: 'row', 'data-label': tt('room.publicCorpus.materialsStep', 'Шаг') } });
-    step.appendChild(el('span', { class: 'materials-step-number', text: String(rowIndex + 1) + (row.part_label ? ' · ' + row.part_label : '') }));
-    tr.appendChild(step);
     for (const [field, key, fallback, className, lang, dir] of [
       ['he', 'materialsHebrew', 'Иврит', 'materials-he-cell', 'he', 'rtl'],
       ['he_niqqud', 'materialsNiqqud', 'Иврит с огласовками', 'materials-niqqud-cell', 'he', 'rtl'],
@@ -10248,18 +10305,44 @@ function materialsInlineSetTrigger(open, expanded) {
     : tt('room.publicCorpus.materialsOpenSolution', 'Открыть решение') + ' →';
 }
 
+// Рабочая строка решения задачника: та же тёплая подсветка, что у условия, но без записи в прогресс текста
+// (индексы решения лежат за пределами строк условия). Одна рабочая строка на весь текст: выбор в решении
+// снимает подсветку условия, работа в условии — подсветку решения.
+function materialsSolutionWorkingRow() {
+  const state = materialsInlineState;
+  return state && state.expanded && state.region && state.region.isConnected && state.workingIdx >= readerRows.length ? state.workingIdx : -1;
+}
+function paintMaterialsSolutionWorkingRow() {
+  const state = materialsInlineState; if (!state || !state.region) return;
+  state.region.querySelectorAll('tr.rm-row-current').forEach(tr => { tr.classList.remove('rm-row-current'); tr.removeAttribute('aria-current'); });
+  const tr = state.workingIdx >= 0 && state.region.querySelector('tr[data-row-idx="' + String(state.workingIdx) + '"]');
+  if (!tr) return;
+  tr.classList.add('rm-row-current'); tr.setAttribute('aria-current', 'location');
+  clearCurrentWorkingRow();
+}
+function setMaterialsSolutionWorkingRow(idx) {
+  const state = materialsInlineState, row = Math.floor(Number(idx));
+  if (!state || !Number.isFinite(row) || row < readerRows.length) return;
+  state.workingIdx = row; paintMaterialsSolutionWorkingRow();
+}
+function clearMaterialsSolutionWorkingRow() {
+  const state = materialsInlineState; if (!state || state.workingIdx < 0) return;
+  state.workingIdx = -1;
+  if (state.region) state.region.querySelectorAll('tr.rm-row-current').forEach(tr => { tr.classList.remove('rm-row-current'); tr.removeAttribute('aria-current'); });
+}
+
 function rerenderMaterialsInlineSolution() {
   const state = materialsInlineState;
   if (!state || !state.expanded || !state.region || !state.region.isConnected) return;
   const region = state.region;
   region.replaceChildren();
+  // Решение продолжает условие: тонкий разделитель с названием и одной тихой кнопкой прослушивания.
   const head = el('header', { class: 'materials-inline-solution-head' });
-  const copy = el('div', { class: 'materials-inline-solution-copy' });
-  copy.appendChild(el('span', { class: 'materials-inline-solution-kicker', text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
-  copy.appendChild(el('h3', { attrs: { id: 'materialsInlineSolutionTitle', tabindex: '-1' }, text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') + ' · ' + state.support.display_alias }));
-  copy.appendChild(el('p', { text: tt('room.publicCorpus.materialsInlineReaderNote', 'Те же колонки, ширины, огласовка, перевод и словарные подсказки, что у условия.') }));
-  const listen = el('button', { class: 'materials-inline-listen', attrs: { type: 'button', 'data-audio-action': 'play-solution' }, text: '▶ ' + tt('room.publicCorpus.materialsListenSolution', 'Прослушать решение') });
-  head.append(copy, listen); region.appendChild(head);
+  head.appendChild(el('h3', { attrs: { id: 'materialsInlineSolutionTitle', tabindex: '-1' }, text: tt('room.publicCorpus.materialsSolution', 'Решение') }));
+  if (state.support.audio_boundary && state.support.audio_boundary.full_tts_generated === true) {
+    head.appendChild(el('button', { class: 'materials-inline-listen', attrs: { type: 'button', 'data-audio-action': 'play-solution' }, text: '▶ ' + tt('room.publicCorpus.materialsListenSolution', 'Прослушать решение') }));
+  }
+  region.appendChild(head);
 
   const tableMount = el('div', { class: 'materials-inline-table-wrap' });
   const cfg = readerConfig();
@@ -10278,8 +10361,12 @@ function rerenderMaterialsInlineSolution() {
   });
   region.appendChild(tableMount);
   const provenance = el('footer', { class: 'materials-inline-solution-provenance' });
+  provenance.appendChild(el('span', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
   provenance.appendChild(el('code', { text: 'edition ' + state.support.edition_number + ' · work ' + state.support.public_work_id + ' · snapshot ' + state.support.snapshot_sha256.slice(0, 12) + '…' }));
   region.appendChild(provenance);
+  if (state.workingIdx >= 0) paintMaterialsSolutionWorkingRow();
+  // Карточка «Прочитано / Следующий для тебя» живёт после решения: перерисовка не должна её терять.
+  if (_endCardEl && _endCardEl.isConnected && _endCardEl.parentNode === region.parentNode) region.parentNode.appendChild(_endCardEl);
   roomPaintColWidths();
 }
 
@@ -10294,9 +10381,14 @@ function attachMaterialsInlineAudio() {
     fallbackPolicy: 'cached-only', profile, gcpKey: '',
     audioUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key),
     timingUrlForAssetKey: key => '/api/audio/' + encodeURIComponent(key) + '/timing',
-    onBeforePlay: () => { try { if (readerAudio) readerAudio.stop(); } catch (_) {} morphHost.stopAudio(); },
+    onBeforePlay: () => { if (_karaokeSource !== 'solution') _karaokeStopping = true; try { if (readerAudio) readerAudio.stop(); } catch (_) {} morphHost.stopAudio(); },
     onRowChange: index => {
+      if (index < 0) {
+        if (_karaokeSource === 'solution') { _karaokeSource = 'reader'; _karaokeStopping = false; karaokeActive = false; setReadAloudBtn(false); }
+        return;
+      }
       if (index < readerRows.length) return;
+      setMaterialsSolutionWorkingRow(index);   // строка остаётся выделенной и после конца воспроизведения
       const tr = mount.querySelector('tr[data-row-idx="' + String(index) + '"]');
       if (tr) tr.scrollIntoView({ block: 'nearest' });
     },
@@ -10309,29 +10401,39 @@ function attachMaterialsInlineAudio() {
   };
   state.rows.forEach((row, index) => readerCore.paintRowAudioIndicator(mount, readerRows.length + index, row, profile, labels));
   const listen = mount.querySelector('[data-audio-action="play-solution"]');
-  if (listen) listen.addEventListener('click', () => { morphHost.stopAudio(); try { if (readerAudio) readerAudio.stop(); } catch (_) {} materialsInlineAudio.playAll(readerRows.length); });
+  if (listen) listen.addEventListener('click', () => {
+    morphHost.stopAudio();
+    if (karaokeActive) stopKaraoke(); else { try { if (readerAudio) readerAudio.stop(); } catch (_) {} }
+    const from = materialsSolutionWorkingRow();
+    try { materialsInlineAudio.stop(); } catch (_) {}
+    materialsInlineAudio.playAll(from >= 0 ? from : readerRows.length);   // с выделенной строки решения, иначе с первой
+  });
 }
 
 function renderMaterialsInlineSolution(support, trigger, wrap) {
   if (!support || !wrap) return;
-  if (materialsInlineState && materialsInlineState.expanded) collapseMaterialsInlineSolution({ restoreFocus: false, reattach: false });
+  const requestedRowId = (() => { try { return new URLSearchParams(location.search).get('materials_row') || ''; } catch (_) { return ''; } })();
+  if (materialsInlineState && materialsInlineState.expanded) collapseMaterialsInlineSolution({ restoreFocus: false, reattach: false, keepUrl: true });
   const region = el('section', { class: 'materials-inline-solution', attrs: { id: 'materialsInlineSolution', role: 'region', 'aria-labelledby': 'materialsInlineSolutionTitle' } });
   wrap.appendChild(region);
   materialsInlineState = {
-    support, trigger, wrap, region, expanded: true,
+    support, trigger, wrap, region, expanded: true, workingIdx: -1,
     rows: materialsHonestSolutionRows(support.solution_rows).map(materialsSolutionReaderRow),
-    activeRowId: (() => { try { return new URLSearchParams(location.search).get('materials_row') || ''; } catch (_) { return ''; } })(),
+    activeRowId: requestedRowId,
   };
   document.body.classList.add('materials-inline-open');
   materialsInlineSetTrigger(trigger, true);
-  setMaterialsReaderUrl(support, 'solution', materialsInlineState.activeRowId);
   rerenderMaterialsInlineSolution();
   attachReaderAudio();
+  // Карточка конца, показанная по условию до прихода решения, пересчитывается уже по концу решения.
+  resetEndCard();
+  setTimeout(() => { try { maybeShowEndOfText(); } catch (_) {} }, 450);
+  // Решение раскрыто всегда, поэтому прокручиваем к нему только по ссылке на конкретную строку решения.
   const anchored = materialsInlineState.activeRowId && region.querySelector('[data-row-id="' + CSS.escape(materialsInlineState.activeRowId) + '"]');
-  requestAnimationFrame(() => {
-    const target = anchored || region.querySelector('#materialsInlineSolutionTitle');
-    if (target) { target.scrollIntoView({ block: anchored ? 'center' : 'nearest' }); try { target.focus({ preventScroll: true }); } catch (_) {} }
-  });
+  if (anchored) {
+    setMaterialsReaderUrl(support, 'solution', materialsInlineState.activeRowId);
+    requestAnimationFrame(() => { anchored.scrollIntoView({ block: 'center' }); try { anchored.focus({ preventScroll: true }); } catch (_) {} });
+  }
 }
 
 function collapseMaterialsInlineSolution(options = {}) {
@@ -10342,7 +10444,7 @@ function collapseMaterialsInlineSolution(options = {}) {
   materialsInlineSetTrigger(state.trigger, false);
   document.body.classList.remove('materials-inline-open');
   materialsInlineState = null;
-  clearMaterialsReaderUrl();
+  if (!options.keepUrl) clearMaterialsReaderUrl();
   if (options.reattach !== false && $('roomReader') && !$('roomReader').hidden) attachReaderAudio();
   if (options.restoreFocus !== false) { try { state.trigger && state.trigger.focus(); } catch (_) {} }
 }
@@ -10382,16 +10484,22 @@ function openMaterialsLearningSupport(support, trigger) {
   const examMode = modeButton('exam', tt('room.publicCorpus.materialsExamMode', 'Экзамен · иврит'), false);
   contentGroup.append(conditionMode, solutionMode, continuousMode); languageGroup.append(studyMode, examMode); toolbar.append(contentGroup, languageGroup); body.appendChild(toolbar);
   const fullTts = support.audio_boundary && support.audio_boundary.full_tts_generated === true;
-  const audioNote = el('p', { class: 'materials-audio-note', attrs: { role: 'note' }, text: fullTts
-    ? tt('room.publicCorpus.materialsAudioReady', 'Публичное аудио готово: строки, непрерывное чтение и пословная подсветка.')
-    : tt('room.publicCorpus.materialsAudioDeferred', 'Аудио и пословная подсветка будут добавлены после покарточной проверки этой редакции.') });
-  body.appendChild(audioNote);
+  // Готовое аудио видно по кнопкам ▶; отдельная плашка нужна только когда аудио ещё нет.
+  if (!fullTts) body.appendChild(el('p', { class: 'materials-audio-note', attrs: { role: 'note' },
+    text: tt('room.publicCorpus.materialsAudioDeferred', 'Аудио и пословная подсветка будут добавлены после покарточной проверки этой редакции.') }));
+  const sectionHead = (id, title) => {
+    const headRow = el('div', { class: 'materials-section-head' });
+    headRow.appendChild(el('h3', { attrs: { id }, text: title }));
+    if (fullTts) headRow.appendChild(el('button', { class: 'materials-listen-section', attrs: { type: 'button', 'data-audio-action': 'play-all' },
+      text: '▶ ' + tt('room.publicCorpus.materialsListenSection', 'Прослушать раздел') }));
+    return headRow;
+  };
   const condition = el('section', { class: 'materials-learning-section materials-condition-section', attrs: { 'aria-labelledby': 'materialsConditionTitle' } });
-  condition.appendChild(el('h3', { attrs: { id: 'materialsConditionTitle' }, text: tt('room.publicCorpus.materialsCondition', 'Условие') }));
+  condition.appendChild(sectionHead('materialsConditionTitle', tt('room.publicCorpus.materialsCondition', 'Условие')));
   condition.appendChild(materialsLearningTable(materialsConditionRows(support), 'condition', fullTts));
   const figures = materialsSourceFigures(support); if (figures.childElementCount) condition.appendChild(figures);
   const solution = el('section', { class: 'materials-learning-section materials-solution-section', attrs: { 'aria-labelledby': 'materialsSolutionTitle' } });
-  solution.appendChild(el('h3', { attrs: { id: 'materialsSolutionTitle' }, text: tt('room.publicCorpus.materialsSolution', 'Решение') }));
+  solution.appendChild(sectionHead('materialsSolutionTitle', tt('room.publicCorpus.materialsSolution', 'Решение')));
   solution.appendChild(materialsLearningTable(materialsHonestSolutionRows(support.solution_rows), 'solution', fullTts));
   const provenance = el('footer', { class: 'materials-learning-provenance' });
   provenance.appendChild(el('strong', { text: tt('room.publicCorpus.materialsReviewed', 'Независимо выведено и сверено с legacy-решением') }));
@@ -10412,7 +10520,15 @@ function openMaterialsLearningSupport(support, trigger) {
   const audioHandles = [];
   if (fullTts) for (const table of viewer.querySelectorAll('.materials-learning-table')) {
     const tableRows = Array.from(table.querySelectorAll('.materials-learning-row'));
+    // Последняя проигранная строка раздела остаётся выделенной; «Прослушать раздел» продолжает с неё.
+    let workingIdx = -1;
     const handle = readerCore.attachRowAudio(table, {
+      onRowChange: index => {
+        if (!(index >= 0) || !tableRows[index]) return;
+        workingIdx = index;
+        for (const row of tableRows) { row.classList.toggle('is-working', row === tableRows[index]); if (row !== tableRows[index]) row.removeAttribute('aria-current'); }
+        tableRows[index].setAttribute('aria-current', 'location');
+      },
       getRow: index => tableRows[index] && tableRows[index].__materialsAudioRow,
       rowCount: () => tableRows.length, fallbackPolicy: 'cached-only',
       profile: { voiceId: 'he-IL-Standard-A', rate: 0.8, pitch: 2.5 }, gcpKey: '',
@@ -10422,8 +10538,9 @@ function openMaterialsLearningSupport(support, trigger) {
       t: (key) => tt(key, key), rowTtsLabels: roomRowTtsLabels(),
     });
     audioHandles.push(handle);
-    const listen = table.parentElement && table.parentElement.querySelector('[data-audio-action="play-all"]');
-    if (listen) listen.addEventListener('click', () => { for (const other of audioHandles) if (other !== handle) other.stop(); morphHost.stopAudio(); handle.playAll(0); });
+    const section = table.closest('.materials-learning-section');
+    const listen = section && section.querySelector('[data-audio-action="play-all"]');
+    if (listen) listen.addEventListener('click', () => { for (const other of audioHandles) if (other !== handle) other.stop(); morphHost.stopAudio(); handle.stop(); handle.playAll(workingIdx >= 0 ? workingIdx : 0); });
   }
   const materialsMorph = attachReaderMorph(viewer, {
     cellSelector: '.materials-learning-table tbody td[data-col="he"], .materials-learning-table tbody td[data-col="niqqud"]',
@@ -10503,7 +10620,7 @@ async function renderReaderTaskResources(slug, workId, epoch) {
 
 async function renderReaderTaskLearningSupport(slug, workId, epoch) {
   const box = $('readerTaskLearningSupport'); if (!box) return;
-  box.replaceChildren(); box.hidden = true;
+  box.replaceChildren(); box.hidden = true; box.classList.remove('is-materials-solution');
   if (!['physics-year1-problems', 'materials-science-year1-problem-book-2'].includes(slug) || !workId) return;
   try {
     const catalog = await ensurePublicCatalog(slug);
@@ -10534,9 +10651,10 @@ async function renderReaderTaskLearningSupport(slug, workId, epoch) {
           attachReaderAudio();
         }
       }
-      head.appendChild(el('strong', { text: tt('room.publicCorpus.materialsLearningTitle', 'Решение задачи') }));
-      head.appendChild(el('span', { text: tt('room.publicCorpus.materialsLearningReaderNote', 'Таблица для учёбы и экзамена после условия') }));
-      box.append(head, renderMaterialsLearningActions(slug, item, { surface: 'reader' }));
+      // Условие и решение — один непрерывный текст: решение раскрыто сразу, без кнопки-переключателя.
+      box.classList.add('is-materials-solution'); box.hidden = false;
+      renderMaterialsInlineSolution(support, null, box);
+      return;
     }
     box.hidden = false;
   } catch (_) { box.hidden = true; }
@@ -10600,11 +10718,8 @@ async function openInitialPublicMaterial(query, initialPresentation) {
     if (query.get('materials_reader') === '1' && slug === 'materials-science-year1-problem-book-2') {
       const support = await ensureMaterialsLearningSupport(slug, card);
       if (!isCurrent()) return true;
+      void support;
       await renderReaderTaskLearningSupport(slug, workId, epoch);
-      if (!isCurrent()) return true;
-      const trigger = document.querySelector('.reader-task-learning-support .materials-learning-action.primary');
-      const wrap = trigger && trigger.closest('.materials-learning-actions');
-      if (trigger && wrap) renderMaterialsInlineSolution(support, trigger, wrap);
     }
   } catch (error) {
     if (!isCurrent()) return true;
@@ -13152,9 +13267,10 @@ async function renderPublicCorpus(slug, token) {
       const compassDescriptor = publicCompassDescriptor(slug, item, progress);
       const makeView = () => adaptPublicCorpusItem(item, {
         slug, progress, textKey: localKeyFor(item), copy: corpusItemCopy(), manifestSha256: catalog.edition.manifest_sha256,
+        learningAudioReady: catalog.learning_audio_ready === true,
         ...learningCompassContext(compassDescriptor && compassDescriptor.cache_key, {
           continue_reading: progress && Number(progress.last_row_idx) > 0,
-          audio_or_length: Number(item.included_audio_count) > 0,
+          audio_or_length: catalog.learning_audio_ready === true || Number(item.included_audio_count) > 0,
         }),
       });
       let view = makeView();
@@ -13376,7 +13492,7 @@ function renderAtlasCorpus(atlasId, token) {
       body: JSON.stringify({ page, reviewed }) }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }),
   };
   // One sound in the Room: atlas listening stops the word-card and row audio before it plays (plan P3 §4.5).
-  const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
+  const audio = { onStart: () => { try { morphHost.stopAudio(); } catch (_) {} _karaokeStopping = true; try { if (readerAudio) readerAudio.stop(); } catch (_) {} } };
   const words = { attach: (section, data, how) => attachAtlasWords(atlasId, section, data, how), detach: detachAtlasWords };
   // P5 follow-up: «Термины к повторению» of the whole atlas on its home
   const homeExtra = (home) => atlasHomeQueue(atlasId, home);
@@ -16898,10 +17014,8 @@ async function boot() {
               await openPublicCorpusWork(publicSlug, publicWork, { resume: true, replaceInitialHistory: true, returnToMediatheque: !!mediathequeReturnHref() });
               if (qp.get('materials_reader') === '1' && publicSlug === 'materials-science-year1-problem-book-2') {
                 const support = await ensureMaterialsLearningSupport(publicSlug, publicWork);
+                void support;
                 await renderReaderTaskLearningSupport(publicSlug, publicWorkId, readerOpenEpoch);
-                const trigger = document.querySelector('.reader-task-learning-support .materials-learning-action.primary');
-                const wrap = trigger && trigger.closest('.materials-learning-actions');
-                if (trigger && wrap) renderMaterialsInlineSolution(support, trigger, wrap);
               }
             } else roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
           }
